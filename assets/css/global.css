@@ -1,0 +1,40 @@
+
+
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+    font-size: 16px;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+body * {
+    font-family: inherit;
+}
+
+html, body{
+    height: 100%;
+}
+
+input, textarea {
+    -webkit-user-select: text;
+    user-select: text;
+}
+
+.fit-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding: 0;
+    margin: 0;
+    width: 100vw;
+    height: 100vh;
+}
+
+.show {
+	display: block;
+}
+
+.hide {
+	display: none;
+}

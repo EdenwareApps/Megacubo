@@ -1,0 +1,80 @@
+<html>
+    <head>
+        <script type="text/javascript" src="assets/js/jquery.min.js"></script>
+		<script type="text/javascript" src="assets/js/jquery.shortcuts.min.js"></script>
+        <script type="text/javascript" src="assets/js/jquery.idle.min.js"></script>
+        <script type="text/javascript" src="assets/js/global.js"></script>
+        <link rel="stylesheet" type="text/css" href="assets/css/global.css" />
+        <link rel="stylesheet" type="text/css" href="assets/css/overlay.css" />
+        <link rel="stylesheet" type="text/css" href="assets/fa/css/font-awesome.min.css" />
+        <style type="text/css">
+            body {
+                box-shadow: inset 0 0 6px #000;
+                margin: 0;
+                border: 2px solid #000;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="notify-area"></div>
+        <div id="drop-target" class="fit-screen"></div>
+        <div id="play-pause-marker" class="fit-screen">
+            <i class="fa fa-play" aria-hidden="true" ></i>
+        </div>
+        <script type="text/javascript">
+            function showHelpTip(){
+                var helpTips = [
+                    Lang.HINT_PRESS_SPACE_TO_PAUSE.format('Space')
+                ];
+                notify(helpTips[0], 'fa-info', 'normal')
+            }
+            jQuery(function (){
+                setTimeout(function (){
+                    showHelpTip()
+                }, 2000)
+            });
+            var dragDrop = require('drag-drop');
+            jQuery(function (){
+                var dropTarget = document.querySelector('#drop-target');
+                dragDrop(dropTarget, {
+                    onDrop: function (files, pos) {
+                        //console.log('Here are the dropped files', files)
+                        //console.log('Dropped at coordinates', pos.x, pos.y)
+                    },
+                    onDragEnter: function () {
+                        dropTarget.style.backgroundColor = 'rgba(215, 0, 35, 0.3)';                        
+                    },
+                    onDragOver: function () {},
+                    onDragLeave: function () {
+                        dropTarget.style.backgroundColor = 'transparent';
+                        if(isSandboxActive()){
+                            top.window.document.querySelector('iframe#overlay').style.pointerEvents = 'none';
+                        }
+                    },
+                    onDropText: function (text, pos) {
+                        //console.log('Here is the dropped text', text);
+                        //console.log('Dropped at coordinates', pos.x, pos.y);
+                        playCustomURL(text, true);
+                    }
+                });
+                var show = function (){
+                    jQuery('#info').fadeIn(200)
+                }
+                var hide = function (){
+                    jQuery('#info').fadeOut(200)
+                }
+                var w = jQuery(top.window), l = jQuery('body');   
+                l.idle({
+                    onIdle: hide,
+                    onActive: show,
+                    idle: 2000,
+                    events: 'mousemove mouseenter keydown mousedown touchstart scroll',
+                    startAtIdle: true
+                });
+                jQuery(document).on('mousemove', function (){
+                    callFunctionInWindow("controls", "hideControls", []);
+                })
+            });
+		</script>
+    </body>
+</html>

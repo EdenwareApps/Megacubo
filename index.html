@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html class="page-index">
+	<head>
+		<meta charset="UTF-8" />
+		<title>Megacubo</title>
+        <link rel="stylesheet" type="text/css" href="assets/css/global.css" />
+        <link rel="stylesheet" type="text/css" href="assets/css/index.css" />
+		<link rel="stylesheet" type="text/css" href="assets/fa/css/font-awesome.min.css" />
+		<style type="text/css">
+			html {
+				background: #000 url(assets/images/wallpaper.png);
+    			background-size: cover;
+				background-position: center center;
+			}
+		</style>
+		<script type="text/javascript">
+			var _splash, gui = require('nw.gui'), win = gui.Window.get(), miniPlayerActive = false;
+			gui.Window.open('splash.html', {
+				position: 'center',
+				width: 320,
+				height: 180,
+				frame: false,
+				show: true,
+				show_in_taskbar: false
+			}, function (w){
+				splash = w;
+			});
+			win.moveTo(5000, 5000);
+			win.show();
+			setTimeout(function (){
+				win.hide()
+			}, 100);
+		</script>
+	</head>
+	<body class="hidecontrols">
+		<div id="controls-trigger">
+			<i class="fa fa-caret-left" aria-hidden="true"></i>
+		</div>
+		<div id="drag-helper"></div>
+		<div id="modal-overlay">
+			<div>
+				<div>
+					
+				</div>
+			</div>
+		</div>
+		<script type="text/javascript" src="assets/js/jquery.min.js"></script>
+		<script type="text/javascript" src="assets/js/jquery.shortcuts.min.js"></script>
+        <script type="text/javascript" src="assets/js/blocked_domains.js"></script>
+        <script type="text/javascript" src="assets/js/global.js"></script>
+        <script type="text/javascript" src="assets/js/index.js"></script>
+        <script type="text/javascript" src="assets/js/countries.js"></script>
+		<script type="text/javascript" src="assets/js/fitter.js"></script>
+		<script type="text/javascript" src="assets/js/playback.js"></script>
+		<iframe id="player" class="fit-screen hide" height="100%" frameborder="0" scrolling="no" src="/player.html"></iframe>
+		<iframe id="sandbox" class="fit-screen hide" nwdisable nwfaketop height="100%" frameborder="0" src="/blank.html"></iframe>
+		<iframe id="controls" class="fit-screen hide" height="100%" allowtransparency="true" frameborder="0" scrolling="no" src="/controls.html"></iframe>
+		<iframe id="overlay" class="fit-screen show" height="100%" allowtransparency="true" frameborder="0" scrolling="no" src="/overlay.html"></iframe>
+		<div class="hide">
+			<input id="saveas" type="file" nwsaveas />
+		</div>
+		<!--
+		<script type="text/javascript">
+			var isDev = (0&&window.navigator.plugins.namedItem('Native Client') !== null);
+			var scripts = ['assets/js/index.js', 'assets/js/fitter.js', 'assets/js/playback.js'];
+			for(var i=0; i<scripts.length; i++){
+				if(isDev){
+					jQuery.getScript(scripts[i]);
+				} else {
+					alert('BEFORE: '+scripts[i] + '.bin');
+					win.evalNWBin(null, scripts[i] + '.bin');
+					alert('AFTER: '+scripts[i] + '.bin')
+				}
+			}
+		</script>
+		//-->
+		<script type="text/javascript">
+			var requestIdReferersTable = [], minVideoContentLength = (5 * (1024 * 1024));
+			function runFitter(){
+				console.log('Calling fitter...');
+				PlaybackManager.runFitter();
+			}
+			jQuery(document).on('lngload', function (){
+				jQuery('#controls').removeClass('hide').addClass('show');
+				bindWebRequest();
+				var locale = getLocale(true);
+				var nwcf = require('nw-custom-frame');
+				nwcf.attach(window, {
+					"size": 30, // You can specify the size in em,rem, etc...
+					"frameIconSize": 21, // You can specify the size in em,rem, etc...
+					"locales": {
+						'en': {
+							"close": Lang.CLOSE,
+							"maximize": Lang.MAXIMIZE,
+							"restore": Lang.RESTORE,
+							"minimize": Lang.MINIMIZE
+						},
+						locale: {
+							"close": Lang.CLOSE,
+							"maximize": Lang.MAXIMIZE,
+							"restore": Lang.RESTORE,
+							"minimize": Lang.MINIMIZE
+						}
+					},
+				});
+				sendStats('reg');
+				setInterval(function (){
+					sendStats('alive', currentStream()||{});
+				}, 600000) // 600 secs
+			});
+			jQuery('#player').on('mousemove', function (){
+				callFunctionInWindow("controls", "hideControls", []);
+			})
+		</script>
+	</body>
+</html>

@@ -1,0 +1,34 @@
+{
+ "name": "megacubo",
+ "main": "index.html",
+ "chromium-args": "--disable-transparency --disable-gpu-blacklist --ignore-certificate-errors --remote-debugging-port=9000",
+ "node": true,
+ "description": "A quite simple IPTV client.",
+ "version": "13.9.7",
+ "inject_js_end": "assets/js/helper.js",
+ "window": {
+   "title": "Megacubo",
+   "frame": false,
+   "icon": "default_icon.png",
+   "show": true
+ },
+ "dependencies": {
+   "peerflix": "~0.37.0",
+   "fluent-ffmpeg": "~2.1.2",
+   "fetch": "~0.3.5",
+   "mkdirp": "~0.3.5",
+   "m3u8-parser": "~4.0.0",
+   "miniget": "~1.1.0",
+   "async": "~2.6.0",
+   "drag-drop": "~2.13.2",
+   "nw-custom-frame": "~0.9.1"
+ },
+ "webkit": {
+   "page-cache": false
+ },
+ "permissions": [
+   "alwaysOnTopWindows",
+   "http://*/",
+   "https://*/"
+ ]
+}

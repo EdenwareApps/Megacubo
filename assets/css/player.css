@@ -1,0 +1,30 @@
+
+body > video#live-stream {
+    display: none;
+}
+
+.bar-container.seek-disabled, [data-no-op] p[data-no-op-msg] {
+    display: none !important;
+}
+
+.player-poster {
+    display: flex !important;
+    background-color: transparent !important;
+    cursor: pointer !important;
+}
+
+.player-poster[data-poster] .play-wrapper[data-poster] svg {
+    display: inline-block;
+}
+
+.media-control-left-panel > .media-control-button.media-control-icon {
+    display: none !important;
+}
+
+.dvr-controls {
+    margin-left: 18px !important;
+}
+
+video {
+    object-fit: contain;
+}

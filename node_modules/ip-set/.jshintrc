@@ -1,0 +1,14 @@
+{
+  "camelcase": true,
+  "eqeqeq": true,
+  "indent": 2,
+  "newcap": true,
+  "nonew": true,
+  "undef": true,
+  "unused": true,
+  "trailing": true,
+  "asi": true,
+  "browser": false,
+  "jquery": false,
+  "node": true
+}

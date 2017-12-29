@@ -1,0 +1,258 @@
+body {
+    overflow: hidden;
+    backface-visibility: hidden;
+	transform: translate3d(0, 0, 1px);
+	margin-top: 0 !important;
+}
+
+iframe {
+    border-width: 0;
+}
+
+iframe#controls {
+    -webkit-app-region: no-drag;
+    height: 100vh;
+    width: 28%;
+    max-width: 600px;
+    min-width: 180px;
+    position: absolute;
+    left: auto;
+    transition: right 0.4s cubic-bezier(0, 1.1, 1, 1) 0.2s;
+    right: -100%;
+    z-index: 3;
+}
+
+div#controls-trigger {
+    -webkit-app-region: no-drag;
+    position: absolute;
+    top: 30px;
+    right: 0;
+    width: 10%;
+    height: 60vh;
+    z-index: 2;
+    cursor: pointer;
+    opacity: 0.01;
+    background: linear-gradient(to bottom left, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.01) 25%);
+    transition: opacity 0.4s cubic-bezier(0, 1.1, 1, 1) 0s;
+}
+
+div#controls-trigger:hover {
+    opacity: 1;
+}
+
+body.frameless div#controls-trigger {
+    top: 0px;
+}
+
+div#controls-trigger i.fa {
+    display: none;
+    color: white;
+    font-size: 200%;
+    float: right;
+    margin-top: 4px;
+    margin-right: 0;
+}
+
+div#controls-trigger:hover i.fa {
+    display: inline-block;
+}
+
+div#drag-helper {
+    -webkit-app-region: drag;
+    position: absolute;
+    width: 80%;
+    height: 50%;
+    top: 10%;
+    left: 10%;
+    z-index: 1;
+    display: none;
+}
+
+body .fit-screen {
+    top: 30px;
+    height: calc(100vh - 30px);
+}
+
+iframe#controls {
+    right: -600px;
+}
+
+body.showcontrols iframe#controls {
+    right: 0;
+}
+
+body.frameless:not(.showcontrols) div#drag-helper {
+    display: inline-block;
+}
+
+body.frameless .fit-screen {
+    top: 0px;
+    height: 100vh;
+}
+
+body.frameless #nw-custom-frame {
+    display: none;
+}
+
+#nw-custom-frame {
+    z-index: 999;
+}
+
+iframe#overlay {
+    pointer-events: none;
+    z-index: 3;
+}
+
+iframe#sandbox {
+    background-color: #fff;
+}
+
+#player, iframe#sandbox {
+    transition: filter 0.4s cubic-bezier(0, 1.1, 1, 1) 0.2s;
+    filter: saturate(105%);
+}
+
+body.showcontrols #player, body.showcontrols iframe#sandbox {
+    filter: brightness(75%) saturate(75%);
+}
+
+body.modal iframe#controls, body.modal div#controls-trigger {
+    display: none;
+}
+
+div#modal-overlay { 
+    display:none;
+    background: radial-gradient(rgba(0, 0, 0, 0.5) 70%, rgba(0, 0, 0, 1) 100%); 
+    width: 100vw; 
+    height: 100vh; 
+    position: absolute; 
+    z-index: 2;
+}
+
+div#modal-overlay > div { 
+    display: table;
+    width: 100%;
+    height: 100%;
+}
+
+div#modal-overlay > div > div { 
+    display: table-cell;
+    vertical-align: middle;
+    align-items: center;
+    text-align: center;    
+}
+
+div#modal-overlay .prompt {
+    display: inline-block;
+    width: 100%;
+    max-width: calc(80% + 4px);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+div#modal-overlay .prompt textarea, div#modal-overlay .prompt input {
+    width: 100%;
+    border-width: 0;
+    outline: 0;
+    padding: 6px;
+    box-sizing: border-box;
+}
+
+div#modal-overlay .prompt input {
+    height: 31px;
+}
+
+div#modal-overlay .prompt textarea {
+    height: 160px;
+}
+
+.prompt-close {
+    position: relative;
+    float: right;
+}
+
+.prompt-close a {
+    position: absolute;
+    right: 11px;
+    top: 7px;
+    color: #000;
+}
+
+.prompt-footer, .prompt-header {
+    width: 100%;
+    min-height: 36px;
+    display: block;
+    margin: 0 auto;
+    font-size: 125%;
+    line-height: 175%;
+}
+
+.prompt-header {
+    background: #e5e9ef;
+    color: #000;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.25);
+}
+
+.prompt-footer .button {
+    display: inline-block;
+    background: #325EA8;
+    color: #fff;
+    height: 100%;
+    cursor: pointer;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
+}
+
+.prompt-footer .button:hover {
+    background: #5b85cc;
+}
+
+.prompt-1-columns .button {
+    width: 100%;
+}
+
+.prompt-2-columns .button {
+    width: 50%;
+}
+
+.prompt-3-columns .button {
+    width: 33.33%;
+}
+
+.prompt-4-columns .button {
+    width: 25%;
+}
+
+/* Clappr
+.bar-container.seek-disabled, [data-no-op] p[data-no-op-msg] {
+    display: none !important;
+}
+
+.player-poster {
+    display: none !important;
+    background-color: transparent !important;
+    cursor: pointer !important;
+}
+
+.media-control-left-panel > .media-control-button.media-control-icon {
+    display: none !important;
+}
+
+.dvr-controls {
+    margin-left: 18px !important;
+}
+*/
+
+#player video {
+    position: relative !important;
+    width: 100% !important;
+    height: auto !important;
+    object-fit: contain;
+}
+
+.vjs-poster {
+    position: absolute !important;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+}

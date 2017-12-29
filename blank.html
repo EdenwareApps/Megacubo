@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html class="page-wait-stream">
+	<head>
+		<!-- Transitions will not work, but will prevent white flickering //-->
+		<meta http-equiv="Page-Enter" content="blendTrans(Duration=0.1)" />
+		<meta http-equiv="Page-Exit" content="blendTrans(Duration=0.1)" />
+        <style type="text/css">
+		body{overflow:hidden;background:#000;margin:0px;padding:0px;color:#fff;text-align:center;overflow:hidden;}
+		span{color:#fff;font-size:11px;font-family:Tahoma,Arial}
+		</style>
+	</head>
+	<body>
+		<div style="height: 100%;width: 100%;margin: 0px;padding: 0px;z-index: 999999;position: absolute;left: 0px;vertical-align: middle;">
+			<span id="msg" style="background:rgba(0,0,0,0.6);height: 75px;width: 100%;display: inline-block;position: absolute;top: 50%;left: 0px;margin-top: -37.5px;font-size: 15px;line-height: 75px;cursor:busy;">
+				<video width="75" height="75" autoplay loop muted poster="assets/images/loading.gif">
+					Carregando...
+				</video>
+			</span>
+		</div>	
+		<script type="text/javascript">
+			// runs a get/post on url with post variables, where:
+			// url ... your url
+			// post ... {'key1':'value1', 'key2':'value2', ...}
+			//          set to null if you need a GET instead of POST req
+			// done ... function(t) called when request returns
+			function getFile(url, done)
+			{
+			   var method = 'GET';
+			   var xhr = new XMLHttpRequest();
+			   xhr.onreadystatechange = function() {
+				  if (this.readyState == 4 && this.status == 200)
+				  {
+					 try{
+						var res = this.response;
+						var reader = new window.FileReader();
+						reader.readAsDataURL(res); 
+						reader.onloadend = function() { done(reader.result); }
+					 }catch(e){
+						setTimeout(function (){
+							location.reload(true);
+						}, 2000);
+					 }
+				  }
+			   }
+			   xhr.open(method, url, true);
+			   xhr.responseType = 'blob';
+			   xhr.send('');
+			}
+			getFile('assets/images/loading.mp4', function (data){
+				var v=document.querySelector('video'), s = document.createElement('source');
+				s.type = 'video/mp4';
+				s.src = data;
+				v.appendChild(s);
+				v.play();
+			});
+		</script>
+	</body>
+</html>
