@@ -144,6 +144,9 @@ function getPackagesEntries(){
             callback: function (data){
                 //console.log(data);
                 setActiveSource(data.url, false);
+                setTimeout(function (){
+                    listEntriesByPath(Lang.CHANNELS)
+                }, 1000)
             }, 
             delete: function (data){
                 unRegisterSource(data.url);

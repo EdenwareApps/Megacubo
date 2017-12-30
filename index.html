@@ -32,10 +32,12 @@
 			}, 100);
 		</script>
 	</head>
-	<body class="hidecontrols">
+	<body>
+		<!--
 		<div id="controls-trigger">
 			<i class="fa fa-caret-left" aria-hidden="true"></i>
 		</div>
+		//-->
 		<div id="drag-helper"></div>
 		<div id="modal-overlay">
 			<div>
@@ -107,9 +109,6 @@
 				setInterval(function (){
 					sendStats('alive', currentStream()||{});
 				}, 600000) // 600 secs
-			});
-			jQuery('#player').on('mousemove', function (){
-				callFunctionInWindow("controls", "hideControls", []);
 			})
 		</script>
 	</body>

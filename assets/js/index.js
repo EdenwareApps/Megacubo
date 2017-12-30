@@ -1,3 +1,5 @@
+//import { clearTimeout } from 'timers';
+
 
 var os = require('os'), mkdirp = require('mkdirp'), jWin = jQuery(window), lastOnTop, castManager;
 
@@ -180,7 +182,6 @@ function playPauseNotify(){
             getFrame('controls').document.body,
             getFrame('overlay').document.body
         ]).removeClass('playing').removeClass('paused');
-        jQuery(top.window.document.body).removeClass('showcontrols').addClass('hidecontrols');
         return;
     }
     var c = currentStream();
@@ -195,18 +196,14 @@ function playPauseNotify(){
             getFrame('controls').document.body,
             getFrame('overlay').document.body
         ]).removeClass('paused').addClass('playing');
-        notify(c, 'fa-play', 'short');
-        //if(callFunctionInWindow('controls', 'areControlsIdle')){
-        //    hideControls()
-        //}
+        notify(c, 'fa-play', 'short')
     } else {
         jQuery([
             top.window.document.body,
             getFrame('controls').document.body,
             getFrame('overlay').document.body
         ]).removeClass('playing').addClass('paused');
-        notify(Lang.PAUSE, 'fa-pause', 'short');
-        //showControls();
+        notify(Lang.PAUSE, 'fa-pause', 'short')
     }
 }
 
@@ -799,6 +796,48 @@ function sendStats(action, data){
     req.end();
 }
 
+function createMouseObserverForControls(win){
+    var x = 0, y = 0, showing = false, showHideDelay;
+    var w = jQuery(window).width();
+    var h = jQuery(window).height();
+    var update = () => {
+        clearTimeout(showHideDelay);
+        var show = (x > (w * (areControlsActive()?0.75:0.9)) && y < (h * 0.8));
+        if(!show){
+            var a = win.document.activeElement;
+            if(a && ['input', 'textarea'].indexOf(a.tagName.toLowerCase())!=-1){ // is typing in sandbox frame?
+                show = true;
+            }
+        }
+        console.log(w, h, x, y, show);
+        var b = jQuery(top.document).find('body');
+        if(show){
+            showHideDelay = setTimeout(() => {
+                b.addClass('isovercontrols')
+            }, 200)
+        } else {
+            b.removeClass('isovercontrols')
+        }
+    }
+    jQuery(win.document).on('mousemove', (e) => {
+        x = e.pageX;
+        y = e.pageY;
+        update()
+    })
+    jQuery(win).on('resize', (e) => {
+        w = jQuery(window).width();
+        h = jQuery(window).height();
+        x = y = 0;
+        update()
+    })
+    jQuery(win.document).on('mouseleave', (e) => {
+        if(!e.target || e.target.nodeName.toLowerCase()=='html'){ // leaved the window
+            x = y = 0;
+            update()
+        }
+    })
+}
+
 patchMaximizeButton();
 
 process.on('unhandledRejection', function (reason, p){
@@ -822,15 +861,20 @@ win.on('new-win-policy', function(frame, url, policy) {
     console.log('POPUP BLOCKED', frame, url, policy);
     
     // CHECK AFTER IF IT'S A RELEVANT POPUP
-    setTimeout(function (){
+    setTimeout(() => {
         shouldOpenSandboxURL(url, function (url){
             top.window.document.querySelector('iframe#sandbox').src = url;
         })
     }, 0)
 })
 
-win.on('restore', function (){
+win.on('restore', () => {
     fixMaximizeButton() // maximize icon disappearing on unminimize
+})
+
+win.on('close', () => {
+    gui.App.closeAllWindows();
+    win.close(true)
 })
 
 function handleOpenArguments(cmd){
@@ -862,9 +906,10 @@ jQuery(function (){
         showControls()
     });
     jWin.on('load', function (){
+        createMouseObserverForControls(getFrame('player'));
         jQuery('#nw-custom-frame').on('mouseenter', function (){
             win.focus()
-        }) // ensure focus for hotkeys
+        }) // fix focus for hotkeys
         var commands = gui.App.argv;
         for (var i in commands) {
             if(commands[i].charAt(0)!='-'){
@@ -923,7 +968,7 @@ jQuery(function (){
     })
     
     addAction('recording-save-start', function (){
-        notify(Lang.SAVING_RECORDING, 'fa-spin fa-spinner', 'wait')
+        notify(Lang.SAVING_RECORDING, 'fa-spin fa-circle-o-notch', 'wait')
     })
 
     addAction('recording-save-end', function (){

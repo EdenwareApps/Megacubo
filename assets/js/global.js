@@ -9,7 +9,8 @@ window.ondragover = function(e) {
         e.preventDefault();
     }
     if(top == window){
-        document.querySelector('iframe#overlay').style.pointerEvents = 'all';
+        var ov = document.querySelector('iframe#overlay');
+        if(ov) ov.style.pointerEvents = 'all';
     } else {
         top.ondragover();
     }
@@ -20,6 +21,10 @@ window.ondragleave = window.ondrop = function(e) {
     if(e){
         e.preventDefault(); 
     }
+    setTimeout(function (){
+        var ov = document.querySelector('iframe#overlay');
+        if(ov) ov.style.pointerEvents = 'none';
+    }, 200);
     return false;
 };
 
@@ -404,7 +409,7 @@ if(typeof(require)!='undefined'){
     var b = jQuery(top.document).find('body');
     
     var areControlsActive = function (){
-        return !b.hasClass('hidecontrols');
+        return b.hasClass('istyping') || b.hasClass('isovercontrols');
     }
     
     var areControlsHiding = function (){
@@ -413,7 +418,7 @@ if(typeof(require)!='undefined'){
     
     function showControls(){
         if(!areControlsActive()){
-            b.removeClass('hidecontrols').addClass('showcontrols');
+            b.addClass('isovercontrols');
             console.log('CC')
         } else {
             console.log('DD')
@@ -436,7 +441,7 @@ if(typeof(require)!='undefined'){
             //console.log('HH')
             top.controlsHiding = true;
             var c = getFrame('controls');
-            b.removeClass('showcontrols').addClass('hidecontrols');
+            b.removeClass('istyping isovercontrols');
             var controlsActiveElement = c.document.activeElement;
             //console.log('HIDE', controlsActiveElement)
             if(controlsActiveElement && controlsActiveElement.tagName.toLowerCase()=='input'){
@@ -558,7 +563,7 @@ if(typeof(require)!='undefined'){
         }
         showPlayers(false, false);
         setTitleData('Megacubo', 'default_icon.png');
-        setTimeout(function (){
+        setTimeout(() => {
             if(!isPlaying()){
                 getFrame('controls').showControls()
             }
@@ -661,7 +666,7 @@ if(typeof(require)!='undefined'){
         }).add(a.find('.notify-wait')).remove();
         if(fa) fa = '<i class="fa {0}" aria-hidden="true"></i> '.format(fa);
         var n = jQuery('<div class="notify-row '+c+'"><div class="notify">' + fa + ' ' + str + '</div></div>');
-        n.appendTo(a);
+        n.prependTo(a);
         top.setTimeout(function (){
             n.hide(400, function (){
                 jQuery(this).remove()
@@ -682,7 +687,7 @@ if(typeof(require)!='undefined'){
 
     function setTitleFlag(fa){
         var t = top.document.querySelector('.nw-cf-icon');
-        if(fa){ // fa-spinner fa-spin
+        if(fa){ // fa-circle-o-notch fa-spin
             t.style.backgroundPositionX = '50px';
             t.innerHTML = '<i class="fa {0}" aria-hidden="true"></i>'.format(fa);
         } else {
@@ -814,6 +819,9 @@ if(typeof(require)!='undefined'){
     }
 
     function getFrame(id){
+        if(!top || !top.document){
+            top.location.reload()
+        }
         return top.document.getElementById(id).contentWindow.window;
     }
 

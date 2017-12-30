@@ -2,24 +2,12 @@ body {
     overflow: hidden;
     backface-visibility: hidden;
 	transform: translate3d(0, 0, 1px);
-	margin-top: 0 !important;
+    margin-top: 0 !important;
+    perspective: 365px;
 }
 
 iframe {
     border-width: 0;
-}
-
-iframe#controls {
-    -webkit-app-region: no-drag;
-    height: 100vh;
-    width: 28%;
-    max-width: 600px;
-    min-width: 180px;
-    position: absolute;
-    left: auto;
-    transition: right 0.4s cubic-bezier(0, 1.1, 1, 1) 0.2s;
-    right: -100%;
-    z-index: 3;
 }
 
 div#controls-trigger {
@@ -74,14 +62,24 @@ body .fit-screen {
 }
 
 iframe#controls {
-    right: -600px;
-}
-
-body.showcontrols iframe#controls {
+    -webkit-app-region: no-drag;
+    height: 100vh;
+    width: 28%;
+    max-width: 600px;
+    min-width: 180px;
+    position: absolute;
+    left: auto;
+    transition: transform 0.2s cubic-bezier(0, 1.1, 1, 1) 0.2s;
+    z-index: 3;
     right: 0;
+    transform: translate(100%, 0) rotateY(-140deg);
 }
 
-body.frameless:not(.showcontrols) div#drag-helper {
+body.isovercontrols iframe#controls, body.istyping iframe#controls {
+    transform: translate(0%, 0) rotateY(0deg);
+}
+
+body.frameless:not(.isovercontrols) div#drag-helper {
     display: inline-block;
 }
 
@@ -112,8 +110,8 @@ iframe#sandbox {
     filter: saturate(105%);
 }
 
-body.showcontrols #player, body.showcontrols iframe#sandbox {
-    filter: brightness(75%) saturate(75%);
+body.isovercontrols #player, body.isovercontrols iframe#sandbox, body.istyping #player, body.istyping iframe#sandbox {
+    filter: brightness(50%) saturate(50%);
 }
 
 body.modal iframe#controls, body.modal div#controls-trigger {

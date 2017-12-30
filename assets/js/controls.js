@@ -205,6 +205,13 @@ function extractM3U8List(content){
 }
 
 function fetchIPTVListFromAddr(addr, callback){
+    if(!addr.match(new RegExp('^(//|https?://)', 'i'))){
+        fs.readFile(addr, (err, content) => {
+            content = extractM3U8List(content);
+            callback(String(content), addr)
+        });
+        return;
+    }
     var key = 'iptv-content-' + addr, fallbackKey = 'fb-' + key;
     var content = DB.query(key);
     if(!content){
@@ -248,7 +255,7 @@ function getIPTVListContent(callback, lastTriedAddr, silent) {
             console.log('No addr? '+JSON.stringify(addr)+' ('+(silent?'Y':'N')+')');
             if(!silent){
                 askForSource(Lang.ASK_IPTV_LIST_FIRST.format(Lang.WEB_SEARCH), function (url){
-                    notify(Lang.PROCESSING, 'fa-spin fa-spinner', 'wait');
+                    notify(Lang.PROCESSING, 'fa-spin fa-circle-o-notch', 'wait');
                     checkM3U8Type(url, function (url, type){
                         if(type == 'list'){
                             notify(Lang.PACKAGE_ADDED, 'fa-info', 'normal');
@@ -334,7 +341,7 @@ function parseIPTVListToIndex(content, listUrl){
             if(slist[i].substr(0, 3).indexOf('#')!=-1){
                 parsingStream = parseIPTVMeta(slist[i])
                 //console.log(slist[i]);
-                //console.log(slist[i]);
+                //console.log(parsingStream);
             } else if(parsingStream) {
                 parsingStream.url = jQuery.trim(slist[i]);
                 if(
@@ -493,7 +500,7 @@ function updateStreamEntriesFlags(){
     var fas = jQuery('.entry');
     fas = fas.each(function (){
         if(urls.indexOf(this.href)!=-1){
-            setEntryFlag(this, 'fa-spinner fa-spin')
+            setEntryFlag(this, 'fa-circle-o-notch fa-spin')
         } else {
             setEntryFlag(this, '')
         }
@@ -578,18 +585,22 @@ function getNameFromSource(url){
 
 function checkM3U8Type(url, callback){
     var domain = getDomain(url), absRegex = new RegExp('^(//|https?://)'), m3u8Regex = new RegExp('\.m3u8?([A-Za-z0-9]|$)'), tsRegex = new RegExp('\.ts([A-Za-z0-9]|$)');
-    miniget(url, function(err, object, response){
+    var doCheck = function (response){
         var type = 'stream';
         if(response){
             if(response.indexOf('#EXT')!=-1){ // is m3u8
-                response = extractM3U8List(response);
-                //console.log(response);
+                response = extractM3U8List(String(response));
+                console.log(response);
+                var xscount = response.toUpperCase().split('EXT-X-STREAM-INF').length; // help distinguish a m3u8 alternate streams file from a segments list or a m3u8 with many different broadcasts
+                var xncount = response.toUpperCase().split('#EXTINF:-1').length;
                 var parser = getM3u8Parser();
                 parser.push(response);
                 parser.end();
-                var u, domain, tsDomains = [], absoluteM3u8Hits = 0, relativeM3u8Hits = 0, tsHits = 0;
+                console.log('SEGMENT', parser.manifest);
+                var u, domain, tsDomains = [], m3u8Hits = 0, tsHits = 0;
                 for(var i=0;i<parser.manifest.segments.length;i++){
                     u = parser.manifest.segments[i].uri;
+                    console.log('SEGMENT', parser.manifest.segments[i]);
                     if(u.match(tsRegex)){
                         tsHits++;
                         var domain = getDomain(u); // get TS domains, we need to diff TS segments in a M3U8 stream from the senseless (?!) TS stream URLs
@@ -597,27 +608,47 @@ function checkM3U8Type(url, callback){
                             tsDomains.push(domain)
                         }
                     } else if(u.match(m3u8Regex)) {
-                        if(u.match(absRegex) && getDomain(u) != domain){
-                            absoluteM3u8Hits++;
-                        } else {
-                            relativeM3u8Hits++;
-                        }
+                        m3u8Hits++;
                     }
                 }
-                console.log(tsDomains, tsHits, absoluteM3u8Hits, relativeM3u8Hits);
-                if(tsDomains.length > 1){
-                    absoluteM3u8Hits += tsHits;
-                    tsHits = 0;
-                }
-                if(tsHits > (absoluteM3u8Hits + relativeM3u8Hits) || relativeM3u8Hits > absoluteM3u8Hits){
+                console.log(xscount, xncount, tsDomains, tsHits, m3u8Hits);
+                if(xscount >= (tsHits + m3u8Hits)){ // todo: find a better logic
                     type = 'stream';
-                } else {
+                    console.log('Matched as stream.')
+                } else if(xncount >= (tsHits / 2)){ // todo: find a better logic
                     type = 'list';
+                    console.log('Matched as list.')
+                } else {
+                    if(tsDomains.length > 1){ // if has many TS domains, is a channel list
+                        type = 'stream';
+                        console.log('Matched as stream.')
+                    } else if(tsHits > m3u8Hits){
+                        type = 'stream';
+                        console.log('Matched as stream.')
+                    } else {
+                        type = 'list';
+                        console.log('Matched as list.')
+                    }
                 }
             }
         }
         callback(url, type)
-    })
+    }
+    if(url.match(new RegExp('^https?:'))){
+        miniget(url, (err, object, response) => {
+            if(err){
+                throw err;
+            }
+            doCheck(response)
+        })
+    } else {
+        fs.readFile(url, (err, response) => {
+            if(err){
+                throw err;
+            }
+            doCheck(response)
+        })
+    }
 }
 
 function addNewSource(){
@@ -628,9 +659,8 @@ function addNewSource(){
             console.log('CHECK CALLBACK', url, type);
             if(type=='stream'){
                 playCustomURL(url, true)
-            } else if(registerSource(url)) {
-                notify(Lang.PACKAGE_ADDED, 'fa-star', 'normal');
-                refreshListing()
+            } else {
+                registerSource(url)
             }
         });
         return true;
@@ -661,9 +691,13 @@ function registerSource(url, name){
             break;
         }
     }
-    if(!name) name = getNameFromSource(url);
+    if(!name){
+        name = getNameFromSource(url);
+    }
     sources.push([name, url]);
     Store.set(key, sources);
+    notify(Lang.PACKAGE_ADDED, 'fa-star', 'normal');
+    refreshListing();
     return true;
 }
 
@@ -768,50 +802,36 @@ var tb = jQuery(top.window.document).find('body'), c = tb.find('iframe#controls'
 var lastTabIndex = 1, controlsTriggerTimer = 0;
 
 jQuery(function (){
+    var b = jQuery(top.document).find('body'), onfocusout = () => {
+        var as = jQuery(".list a:not(.entry-back)").eq(0); //(lastTabIndex < 2)?-1:0);
+        if(areControlsActive()){
+            as.trigger("focus")
+        } else {
+            jQuery('body').one('mousemove', function (){
+                as.trigger("focus")
+            })
+        }
+    }
     jQuery("body").on("blur", "a", function() {
         setTimeout(function (){
             if(document.activeElement){
-                if(['a', 'input'].indexOf(document.activeElement.tagName.toLowerCase())==-1){
-                    var as = jQuery(".list a:not(.entry-back)").eq(0); //(lastTabIndex < 2)?-1:0);
-                    if(areControlsActive()){
-                        as.trigger("focus")
+                var tag = document.activeElement.tagName.toLowerCase();
+                if(['a', 'input'].indexOf(tag)!=-1){
+                    lastTabIndex = document.activeElement.tabIndex;
+                    if(tag == 'input'){
+                        b.addClass('istyping isovercontrols')
                     } else {
-                        jQuery('body').one('mousemove', function (){
-                            as.trigger("focus")
-                        })
+                        b.removeClass('istyping')
                     }
                 } else {
-                    lastTabIndex = document.activeElement.tabIndex;
+                    onfocusout()
                 }
+            } else {
+                b.removeClass('istyping')
+                onfocusout()
             }
         }, 50);
-    });
-    var w = jQuery(top.window), bd = jQuery('body');   
-    bd.idle({
-        onIdle: function (){
-            jQuery('body').addClass('idle');
-            hideControls()
-        },
-        onActive: function (){
-            jQuery('body').removeClass('idle');
-            showControls()
-        },
-        idle: 10000,
-        events: 'wake keyup mousemove touchstart',
-        startAtIdle: true
-    });
-    w.on('resize', hideControls);
-    bd.find('div.list').on('scroll', function (){
-        bd.trigger('wake')
-    });
-    tb.find('div#controls-trigger').on('mouseenter mousedown', function (){
-        clearInterval(controlsTriggerTimer);
-        controlsTriggerTimer = setTimeout(function (){
-            showControls()
-        }, 400)
-    }).on('mouseleave', function (){
-        clearInterval(controlsTriggerTimer)
-    });
+    })
 })
 
 jQuery(window).on('unload', function (){

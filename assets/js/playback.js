@@ -52,6 +52,9 @@ var PlaybackManager = {
             }
         }
         var was = this.wasLoading, isLoading = this.isLoading();
+        if(isLoading){
+            setTimeout(this.checkIntents.bind(this), 2000)
+        }
         console.log('ACTIVE', activeIntent, was, isLoading, intents);
     },
     registerIntent: function (intent){
@@ -77,7 +80,7 @@ var PlaybackManager = {
         for(var i=0; i<this.intents.length; i++){
             ok = true;
             for(var key in filter){
-                if(typeof(this.intents[i][key])=='undefined' || this.intents[i][key] != filter[key]){
+                if(!this.intents[i] || typeof(this.intents[i][key])=='undefined' || this.intents[i][key] != filter[key]){
                     ok = false;
                     break;
                 }
@@ -253,6 +256,7 @@ function createFrameIntent(entry, options){
     self.entry = entry;
     self.events = {};
     self.ctime = ((new Date()).getTime()/1000);
+    self.committed = false;
     
     self.frame = document.createElement('iframe');
     self.frame.onload = function (){
@@ -297,8 +301,12 @@ function createFrameIntent(entry, options){
     }
 
     self.playing = function (){
-        if(self.videoElement){
-            return !self.videoElement.paused;
+        if(self.committed){
+            if(self.videoElement){
+                return !self.videoElement.paused;
+            } else {
+                return true;
+            }
         }
     }
     
@@ -335,8 +343,9 @@ function createFrameIntent(entry, options){
     
     self.commit = function (){
         jQuery(top.window.document).find('#sandbox').remove();
-        self.frame.id = 'sandbox';
         jQuery(self.frame).removeClass('hide').addClass('show').prop('id', 'sandbox');
+        self.frame.id = 'sandbox';
+        self.committed = true;
     }
 
     self.destroy = function (){
@@ -363,9 +372,6 @@ function createFrameIntent(entry, options){
             jQuery(self.videoElement).
                 on('play', f).
                 on('pause', f).
-                on('mousemove', function (){
-                    self.top.hideControls()
-                }).
                 on('click', function (e){
                     e.preventDefault();
                     e.stopPropagation();
@@ -483,6 +489,10 @@ function createDirectIntent(entry, options){
             self.mimetype = 'application/x-mpegURL; codecs="avc1.4D401E, mp4a.40.2"';
         } else {
             self.mimetype = 'video/mp4; codecs="avc1.4D401E, mp4a.40.2"';
+        }
+        var p = getFrame('player');
+        if(!p || !p.test){
+            return top.location.reload()
         }
         getFrame('player').test(self.prxurl, self.mimetype, function (){
             console.log('Test succeeded.');
@@ -1020,8 +1030,8 @@ function getHLSProxy(){
 var pendingStateTimer = 0;
 
 function enterPendingState() {
-	setTitleFlag('fa-spinner fa-spin');
-    notify(Lang.LOADING, 'fa-spinner fa-spin', 'short');
+	setTitleFlag('fa-circle-o-notch fa-spin');
+    notify(Lang.LOADING, 'fa-circle-o-notch fa-spin', 'short');
 }
 
 function leavePendingState() {
@@ -1077,20 +1087,17 @@ function onIntentCommited(intent){
     notify(intent.entry.name, 'fa-play', 'short');
 }
 
-function unfocus(e){
+function unfocus(e){ // unfocus from sandbox frame to catch keypresses
     var target = e.srcElement;
     if(!target || typeof(target['tagName'])=='undefined' || ['input', 'textarea'].indexOf(target['tagName'].toLowerCase())==-1){
         //console.log(e);
         console.log('REFOCUS(*)');
-        top.window.focus();
-        getFrame('controls').hideControls()
+        top.window.focus()
     }
 }
 
 function patchFrameWindowEvents(frameWindow){    
-    frameWindow.document.addEventListener('mouseenter', function (){
-        getFrame('controls').hideControls()
-    });
+    createMouseObserverForControls(frameWindow);
     frameWindow.document.addEventListener('mouseup', unfocus);
     frameWindow.document.addEventListener('click', function (e){
         setTimeout(function (){unfocus(e)}, 400)

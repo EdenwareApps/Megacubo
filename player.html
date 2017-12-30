@@ -119,9 +119,6 @@
 				}, 0);
 				return stopEvent(event);
 			})
-			v.on('mousemove', function(event) {
-				top.hideControls();
-			})
 			var playPauseDelayTimer;
 			v.on('play', function(event) {
 				clearTimeout(playPauseDelayTimer);

@@ -28,6 +28,18 @@
                 ];
                 notify(helpTips[0], 'fa-info', 'normal')
             }
+            function processFile(file){
+                getFrame('controls').checkM3U8Type(file, (url, type) => {
+                    console.log(url, type);
+                    if(type == 'stream'){
+                        playCustomURL(url, true)
+                    } else if(type == 'list'){
+                        var d = new Date();
+                        var datestring = " "+d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0" + d.getDate()).slice(-2) + " " + ("0" + d.getHours()).slice(-2) + "-" + ("0" + d.getMinutes()).slice(-2);
+                        getFrame('controls').registerSource(url, basename(url)+' - '+datestring)
+                    }
+                })
+            }
             jQuery(function (){
                 setTimeout(function (){
                     showHelpTip()
@@ -38,23 +50,44 @@
                 var dropTarget = document.querySelector('#drop-target');
                 dragDrop(dropTarget, {
                     onDrop: function (files, pos) {
-                        //console.log('Here are the dropped files', files)
-                        //console.log('Dropped at coordinates', pos.x, pos.y)
+                        top.document.querySelector('iframe#overlay').style.pointerEvents = 'none';
+                        console.log('Here are the dropped files', files);
+                        files.forEach(file => {
+                            if(['m3u', 'm3u8'].indexOf(getExt(file.name))!=-1){
+                                processFile(file.path)
+                            } else if(isMedia(file.path)) {
+                                playCustomFile(file.path)
+                            } else {
+                                fs.open(file.path, 'r', function(err, fd) {
+                                    fs.fstat(fd, function(err, stats) {
+                                        if(stats.size < 5 * (1024 * 1024)){
+                                            var len = 2048, buffer = new Buffer(len);
+                                            fs.read(fd, buffer, 0, len, 0, (err, bytes, buff) => {
+                                                var response = String(buff);
+                                                console.log(response);
+                                                if(response.toUpperCase().indexOf('#EXTINF')!=-1){
+                                                    processFile(file.path)
+                                                }
+                                            });
+                                        }
+                                        fs.close(fd)
+                                    })
+                                })
+                            }
+                        })
                     },
                     onDragEnter: function () {
                         dropTarget.style.backgroundColor = 'rgba(215, 0, 35, 0.3)';                        
                     },
                     onDragOver: function () {},
                     onDragLeave: function () {
+                        top.document.querySelector('iframe#overlay').style.pointerEvents = 'none';
                         dropTarget.style.backgroundColor = 'transparent';
-                        if(isSandboxActive()){
-                            top.window.document.querySelector('iframe#overlay').style.pointerEvents = 'none';
-                        }
                     },
                     onDropText: function (text, pos) {
-                        //console.log('Here is the dropped text', text);
-                        //console.log('Dropped at coordinates', pos.x, pos.y);
-                        playCustomURL(text, true);
+                        top.document.querySelector('iframe#overlay').style.pointerEvents = 'none';
+                        console.log('Here is the dropped text', text);
+                        playCustomURL(text, true)
                     }
                 });
                 var show = function (){
@@ -63,18 +96,7 @@
                 var hide = function (){
                     jQuery('#info').fadeOut(200)
                 }
-                var w = jQuery(top.window), l = jQuery('body');   
-                l.idle({
-                    onIdle: hide,
-                    onActive: show,
-                    idle: 2000,
-                    events: 'mousemove mouseenter keydown mousedown touchstart scroll',
-                    startAtIdle: true
-                });
-                jQuery(document).on('mousemove', function (){
-                    callFunctionInWindow("controls", "hideControls", []);
-                })
-            });
+            })
 		</script>
     </body>
 </html>

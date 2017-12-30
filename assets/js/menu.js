@@ -409,16 +409,16 @@ function setEntryFlag(el, flag){
 }
 
 function findEntries(term){
-    var fas = jQuery('.entry'), term = top.window.decodeEntities(term).toLowerCase(), isURL = (term.indexOf('//') != -1);
+    var fas = jQuery('.entry'), term = top.window.decodeEntities(term).toLowerCase(), isPath = (term.indexOf('//') != -1 || term.indexOf(':\\') != -1 || term.indexOf(':/') != -1);
     fas = fas.filter(function (){
         var stub = '';
-        if(isURL){
-            stub += jQuery(this).attr('href');
+        if(isPath){
+            stub += jQuery(this).attr('href').toLowerCase();
         } else {
             stub += jQuery(this).find('.entry-name').html().toLowerCase();
         }
         var h = top.window.decodeEntities(stub);
-        if(h.indexOf(term) == -1){
+        if(h.indexOf(term) == -1){console.log(stub, term);
             return false;
         }
         return true;
@@ -442,7 +442,7 @@ function findActiveEntries(term){
 }
 
 function removeLoadingFlags(){
-    var fa = 'fa-spinner', entries = findActiveEntries(fa);
+    var fa = 'fa-circle-o-notch', entries = findActiveEntries(fa);
     for(var i=0;i<entries.length;i++){
         console.log('pSET-'+i);
         setEntryFlag(entries[i], '');
