@@ -873,6 +873,9 @@ win.on('restore', () => {
 })
 
 win.on('close', () => {
+    Array.from(document.getElementsByTagName('iframe')).forEach((frame) => {
+        frame.src = 'about:blank';
+    })
     gui.App.closeAllWindows();
     win.close(true)
 })

@@ -166,7 +166,7 @@ var PlaybackManager = {
     commitIntent: function (intent){
         for(var i=0; i<this.intents.length; i++){
             if(this.intents[i] != this.activeIntent && this.intents[i] != intent){
-                if(this.intents[i].ctime <= this.activeIntent.ctime){
+                if(!this.activeIntent || this.intents[i].ctime <= this.activeIntent.ctime){
                     // expired, discard it!
                     try{
                         this.intents[i].destroy()
@@ -187,7 +187,7 @@ var PlaybackManager = {
                 this.registerIntent(intent);
             }
             intent.commit();
-            this.trigger('commit', intent)
+            this.trigger('commit', intent, intent.entry)
         }
         this.intents = this.intents.filter(function (item) {
             return item !== undefined;
@@ -1120,8 +1120,8 @@ PlaybackManager.on('commit', onIntentCommited);
 PlaybackManager.on('play', delayedPlayPauseNotify);
 PlaybackManager.on('pause', delayedPlayPauseNotify);
 PlaybackManager.on('commit', delayedPlayPauseNotify);
-PlaybackManager.on('commit', function (stream){
-    sendStats('play', stream)
+PlaybackManager.on('commit', function (intent, entry){
+    sendStats('play', entry)
 });
 PlaybackManager.on('stop', function (){
     delayedPlayPauseNotify();
