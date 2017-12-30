@@ -181,7 +181,7 @@ input.entry-name {
     font-size: 150%;
     bottom: -5px;
     right: 0;
-    text-shadow: 0 3px 3px #000;
+    text-shadow: 0 1px 1px #000;
     z-index: 1;
 }
 .entry-offline > span {

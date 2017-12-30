@@ -596,11 +596,11 @@ function checkM3U8Type(url, callback){
                 var parser = getM3u8Parser();
                 parser.push(response);
                 parser.end();
-                console.log('SEGMENT', parser.manifest);
+                //console.log('SEGMENT', parser.manifest);
                 var u, domain, tsDomains = [], m3u8Hits = 0, tsHits = 0;
                 for(var i=0;i<parser.manifest.segments.length;i++){
                     u = parser.manifest.segments[i].uri;
-                    console.log('SEGMENT', parser.manifest.segments[i]);
+                    //console.log('SEGMENT', parser.manifest.segments[i]);
                     if(u.match(tsRegex)){
                         tsHits++;
                         var domain = getDomain(u); // get TS domains, we need to diff TS segments in a M3U8 stream from the senseless (?!) TS stream URLs
@@ -611,7 +611,7 @@ function checkM3U8Type(url, callback){
                         m3u8Hits++;
                     }
                 }
-                console.log(xscount, xncount, tsDomains, tsHits, m3u8Hits);
+                //console.log(xscount, xncount, tsDomains, tsHits, m3u8Hits);
                 if(xscount >= (tsHits + m3u8Hits)){ // todo: find a better logic
                     type = 'stream';
                     console.log('Matched as stream.')
@@ -852,7 +852,8 @@ jQuery(document).on('lngload', function (){
             {name: Lang.RESET_DATA, logo:'fa-trash', type: 'option', renderer: top.resetData, entries: []},
             {name: Lang.RESUME_PLAYBACK, type: 'check', check: function (checked){Store.set('no-resume',!checked)}, checked: !Store.get('no-resume')}
         ]}
-    ];
+    ]
+    
     if(getSources().length){
         readSourcesToIndex();
         playResume()
@@ -872,7 +873,7 @@ jQuery(document).on('lngload', function (){
     } else {
         listingPath = '/';
     }
-    
+
     listEntriesByPath(listingPath);
     showControls();
 
@@ -901,11 +902,13 @@ jQuery(document).on('lngload', function (){
     });
 
     setTimeout(function (){
-        top.restoreInitialSize();
         win.show();
-        if(top.splash){
-            top.splash.hide()
+        if(top){
+            top.restoreInitialSize();
+            if(top.splash){
+                top.splash.hide()
+            }
         }
-    }, 2000);
+    }, 2000)
 })
 

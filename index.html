@@ -61,21 +61,6 @@
 		<div class="hide">
 			<input id="saveas" type="file" nwsaveas />
 		</div>
-		<!--
-		<script type="text/javascript">
-			var isDev = (0&&window.navigator.plugins.namedItem('Native Client') !== null);
-			var scripts = ['assets/js/index.js', 'assets/js/fitter.js', 'assets/js/playback.js'];
-			for(var i=0; i<scripts.length; i++){
-				if(isDev){
-					jQuery.getScript(scripts[i]);
-				} else {
-					alert('BEFORE: '+scripts[i] + '.bin');
-					win.evalNWBin(null, scripts[i] + '.bin');
-					alert('AFTER: '+scripts[i] + '.bin')
-				}
-			}
-		</script>
-		//-->
 		<script type="text/javascript">
 			var requestIdReferersTable = [], minVideoContentLength = (5 * (1024 * 1024));
 			function runFitter(){

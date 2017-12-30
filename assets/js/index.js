@@ -1,6 +1,5 @@
 //import { clearTimeout } from 'timers';
 
-
 var os = require('os'), mkdirp = require('mkdirp'), jWin = jQuery(window), lastOnTop, castManager;
 
 var clipboard = gui.Clipboard.get();
@@ -809,7 +808,7 @@ function createMouseObserverForControls(win){
                 show = true;
             }
         }
-        console.log(w, h, x, y, show);
+        //console.log(w, h, x, y, show);
         var b = jQuery(top.document).find('body');
         if(show){
             showHideDelay = setTimeout(() => {
@@ -850,9 +849,6 @@ process.on('uncaughtException', function (err){
     console.error('Uncaught Exception thrown', err);
     var msg = err.message || err.stack || err;
     top.logErr('Uncaught Exception thrown', err, msg);
-    setTimeout(function (){
-        process.exit(1)
-    }, 1000)
     return true;
 });
 
@@ -882,6 +878,7 @@ win.on('close', () => {
 
 function handleOpenArguments(cmd){
     console.log('OPEN', cmd);
+    restoreInitialSize()
     // minimist module was giving error: notFlags.forEach is not a function
     // do it raw for now and better another day
     if(typeof(cmd)=='string'){
@@ -982,4 +979,4 @@ jQuery(function (){
         notify(Lang.RECORDING_SAVE_ERROR, 'fa-exclamation-circle', 'normal')
     })
 
-});
+})

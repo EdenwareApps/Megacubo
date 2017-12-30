@@ -154,6 +154,14 @@ if(typeof(require)!='undefined'){
         }
     }
     
+    function topWindow(){
+        var _top = top || parent || window.top || window.parent; // Uncaught TypeError: Cannot read property 'restoreInitialSize' of null for top.restore...
+        if(!_top){
+            throw 'No top window found at: '+document.URL+' (?!)';
+        }
+        return _top;
+    }
+
     function sliceObject(object, s, e){
         var ret = {};
         if(object){
@@ -246,6 +254,16 @@ if(typeof(require)!='undefined'){
         }
         return new top.m3u8Parser.Parser();
     }    
+
+    function isReady(callback){
+        if(top && getFrame('player') && getFrame('player').test){
+            callback()
+        } else {
+            setTimeout(() => {
+                isReady(callback)
+            }, 250)
+        }
+    }
 
     var shortcuts = [];
 
@@ -644,34 +662,36 @@ if(typeof(require)!='undefined'){
     var notifyTimer = 0;
     function notify(str, fa, secs){
         if(!str) return;
-        var c = '';
-        switch(secs){
-            case 'short':
-                secs = 1;
-                break;
-            case 'normal':
-                secs = 3;
-                break;
-            case 'long':
-                secs = 7;
-                break;
-            case 'wait':
-                secs = 120;
-                c += ' notify-wait';
-                break;
+        var c = '', o = getFrame('overlay');
+        if(o){
+            switch(secs){
+                case 'short':
+                    secs = 1;
+                    break;
+                case 'normal':
+                    secs = 3;
+                    break;
+                case 'long':
+                    secs = 7;
+                    break;
+                case 'wait':
+                    secs = 120;
+                    c += ' notify-wait';
+                    break;
+            }
+            var a = jQuery(o.document.getElementById('notify-area'));
+            a.find('.notify-row').filter(function (){
+                return jQuery(this).find('div').text().trim() == str;
+            }).add(a.find('.notify-wait')).remove();
+            if(fa) fa = '<i class="fa {0}" aria-hidden="true"></i> '.format(fa);
+            var n = jQuery('<div class="notify-row '+c+'"><div class="notify">' + fa + ' ' + str + '</div></div>');
+            n.prependTo(a);
+            top.setTimeout(function (){
+                n.hide(400, function (){
+                    jQuery(this).remove()
+                })
+            }, secs * 1000)
         }
-        var a = jQuery(getFrame('overlay').document.getElementById('notify-area'));
-        a.find('.notify-row').filter(function (){
-            return jQuery(this).find('div').text().trim() == str;
-        }).add(a.find('.notify-wait')).remove();
-        if(fa) fa = '<i class="fa {0}" aria-hidden="true"></i> '.format(fa);
-        var n = jQuery('<div class="notify-row '+c+'"><div class="notify">' + fa + ' ' + str + '</div></div>');
-        n.prependTo(a);
-        top.setTimeout(function (){
-            n.hide(400, function (){
-                jQuery(this).remove()
-            })
-        }, secs * 1000)
     }
 
     function setTitleData(title, icon) {
@@ -687,12 +707,14 @@ if(typeof(require)!='undefined'){
 
     function setTitleFlag(fa){
         var t = top.document.querySelector('.nw-cf-icon');
-        if(fa){ // fa-circle-o-notch fa-spin
-            t.style.backgroundPositionX = '50px';
-            t.innerHTML = '<i class="fa {0}" aria-hidden="true"></i>'.format(fa);
-        } else {
-            t.style.backgroundPositionX = '0px';
-            t.innerHTML = '';
+        if(t){
+            if(fa){ // fa-circle-o-notch fa-spin
+                t.style.backgroundPositionX = '50px';
+                t.innerHTML = '<i class="fa {0}" aria-hidden="true"></i>'.format(fa);
+            } else {
+                t.style.backgroundPositionX = '0px';
+                t.innerHTML = '';
+            }
         }
     }
     
@@ -819,10 +841,9 @@ if(typeof(require)!='undefined'){
     }
 
     function getFrame(id){
-        if(!top || !top.document){
-            top.location.reload()
-        }
-        return top.document.getElementById(id).contentWindow.window;
+        if(top && top.document){
+            return top.document.getElementById(id).contentWindow.window;
+        }        
     }
 
     function callFunctionInWindow(id, _functionName, _args){
@@ -1151,11 +1172,15 @@ if(typeof(require)!='undefined'){
     }
 
     var Lang = {};
-    jQuery(function (){
-        loadLanguage([getLocale(false), getLocale(true), 'en'], function (){            
-            jQuery(document).triggerHandler('lngload');
-        });
-    });
+    jQuery(() => {
+        loadLanguage([getLocale(false), getLocale(true), 'en'], () => {            
+            jQuery(() => {
+                isReady(() => {
+                    jQuery(document).triggerHandler('lngload')
+                })
+            })
+        })
+    })
     
     function isYoutubeURL(source){
         if(typeof(source)=='string'){
@@ -1168,46 +1193,4 @@ if(typeof(require)!='undefined'){
         }
     }
     
-    /*
-    addFilter('ffmpegStreamSource', function (source){
-        if(typeof(source)=='string'){
-            var parts = source.split('/');
-            if(parts.length > 2){
-                if(parts[2].match(new RegExp('youtube\.com|youtu\.be'))){
-                    source = ytdl(source, {
-                        / *
-                        quality: 'lowest',
-                        filter: function (format){
-                            console.log(format);
-                            return format.container == 'webm';
-                        },
-                        format: 'mp4'
-                        * /
-                    });
-                }
-            }
-        }
-        return source;
-    });
-
-    addFilter('VJSContentType', function (type, dest){
-        if(isYoutubeURL(dest)){
-            return 'video/youtube';
-        }
-    });
-
-    addFilter('skipFFmpeg', function (default, source){
-        if(isYoutubeURL(source)){
-            return source;
-        }
-        return default;
-    });
-    
-    addFilter('skipSandbox', function (source){
-        if(isYoutubeURL(source)){
-            return true;
-        }
-    });
-    */
-
 }

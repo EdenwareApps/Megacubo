@@ -492,7 +492,7 @@ function createDirectIntent(entry, options){
         }
         var p = getFrame('player');
         if(!p || !p.test){
-            return top.location.reload()
+            throw 'No iframe#player found.';
         }
         getFrame('player').test(self.prxurl, self.mimetype, function (){
             console.log('Test succeeded.');
