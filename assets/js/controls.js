@@ -180,7 +180,7 @@ function getIPTVListAddr(callback, value) {
 }
 
 function getIPTVListSearchTerm(){
-    var locale = getLocale(false);
+    var locale = getDefaultLocale(false, false);
     var country = top.Countries.select(locale, 'country_'+locale.substr(0, 2)+',country_iso', 'locale', true); //getLocale();
     var q = "iptv list m3u8 {0} {1}".format(country, (new Date()).getFullYear());
     return q;
@@ -584,23 +584,29 @@ function getNameFromSource(url){
 }
 
 function checkM3U8Type(url, callback){
-    var domain = getDomain(url), absRegex = new RegExp('^(//|https?://)'), m3u8Regex = new RegExp('\.m3u8?([A-Za-z0-9]|$)'), tsRegex = new RegExp('\.ts([A-Za-z0-9]|$)');
+    var debug = true, domain = getDomain(url), absRegex = new RegExp('^(//|https?://)'), m3u8Regex = new RegExp('\.m3u8?([A-Za-z0-9]|$)'), tsRegex = new RegExp('\.ts([A-Za-z0-9]|$)');
     var doCheck = function (response){
         var type = 'stream';
         if(response){
             if(response.indexOf('#EXT')!=-1){ // is m3u8
                 response = extractM3U8List(String(response));
-                console.log(response);
+                if(debug){
+                    console.log(response);
+                }
                 var xscount = response.toUpperCase().split('EXT-X-STREAM-INF').length; // help distinguish a m3u8 alternate streams file from a segments list or a m3u8 with many different broadcasts
                 var xncount = response.toUpperCase().split('#EXTINF:-1').length;
                 var parser = getM3u8Parser();
                 parser.push(response);
                 parser.end();
-                //console.log('SEGMENT', parser.manifest);
+                if(debug){
+                    console.log('SEGMENT', parser.manifest);
+                }
                 var u, domain, tsDomains = [], m3u8Hits = 0, tsHits = 0;
                 for(var i=0;i<parser.manifest.segments.length;i++){
                     u = parser.manifest.segments[i].uri;
-                    //console.log('SEGMENT', parser.manifest.segments[i]);
+                    if(debug){
+                        console.log('SEGMENT', parser.manifest.segments[i]);
+                    }
                     if(u.match(tsRegex)){
                         tsHits++;
                         var domain = getDomain(u); // get TS domains, we need to diff TS segments in a M3U8 stream from the senseless (?!) TS stream URLs
@@ -611,7 +617,9 @@ function checkM3U8Type(url, callback){
                         m3u8Hits++;
                     }
                 }
-                //console.log(xscount, xncount, tsDomains, tsHits, m3u8Hits);
+                if(xscount >= (tsHits + m3u8Hits)){ // todo: find a better logic
+                    console.log(xscount, xncount, tsDomains, tsHits, m3u8Hits);
+                }
                 if(xscount >= (tsHits + m3u8Hits)){ // todo: find a better logic
                     type = 'stream';
                     console.log('Matched as stream.')

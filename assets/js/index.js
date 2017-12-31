@@ -878,11 +878,15 @@ win.on('close', () => {
 
 function handleOpenArguments(cmd){
     console.log('OPEN', cmd);
-    restoreInitialSize()
     // minimist module was giving error: notFlags.forEach is not a function
     // do it raw for now and better another day
     if(typeof(cmd)=='string'){
-        cmd = cmd.split(' ');
+        if(getFrame('controls')){
+            restoreInitialSize()
+        } else {
+            top.location.reload()
+        }
+        cmd = cmd.split(' ')
     }
     for(var i=0; i<cmd.length; i++){
         if(cmd[i].match(new RegExp('(rt[ms]p[a-z]?:|mms[a-z]?:|\.(m3u8?|mp4|flv))', 'i'))){

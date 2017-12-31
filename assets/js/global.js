@@ -153,14 +153,6 @@ if(typeof(require)!='undefined'){
             })
         }
     }
-    
-    function topWindow(){
-        var _top = top || parent || window.top || window.parent; // Uncaught TypeError: Cannot read property 'restoreInitialSize' of null for top.restore...
-        if(!_top){
-            throw 'No top window found at: '+document.URL+' (?!)';
-        }
-        return _top;
-    }
 
     function sliceObject(object, s, e){
         var ret = {};
@@ -255,12 +247,23 @@ if(typeof(require)!='undefined'){
         return new top.m3u8Parser.Parser();
     }    
 
-    function isReady(callback){
-        if(top && getFrame('player') && getFrame('player').test){
+    function areFramesReady(callback){
+        var ok = true;
+        ['player', 'overlay', 'controls'].forEach((name) => {
+            var w = getFrame(name);
+            if(!w || !w.document || ['loaded', 'complete'].indexOf(w.document.readyState)==-1){
+                ok = false;
+            } else {
+                if(!w.top){
+                    w.top = window.top;
+                }
+            }
+        })
+        if(ok){
             callback()
         } else {
             setTimeout(() => {
-                isReady(callback)
+                areFramesReady(callback)
             }, 250)
         }
     }
@@ -856,12 +859,21 @@ if(typeof(require)!='undefined'){
             }, 250);
         }
     }
-
+    
+    function getDefaultLocale(short, noUnderline){
+        var lang = window.navigator.languages ? window.navigator.languages[0] : null;
+        lang = lang || window.navigator.language || window.navigator.browserLanguage || window.navigator.userLanguage;
+        if(!noUnderline){
+            lang = lang.replace('-', '_');
+        }
+        lang = lang.substr(0, short ? 2 : 5);
+        return lang;
+    }
+        
     function getLocale(short, noUnderline){
         var lang = Store.get('overridden-locale');
         if(!lang || typeof(lang)!='string'){
-            lang = window.navigator.languages ? window.navigator.languages[0] : null;
-            lang = lang || window.navigator.language || window.navigator.browserLanguage || window.navigator.userLanguage;
+            lang = getDefaultLocale(short, noUnderline);
         }
         if(!noUnderline){
             lang = lang.replace('-', '_');
@@ -1175,7 +1187,7 @@ if(typeof(require)!='undefined'){
     jQuery(() => {
         loadLanguage([getLocale(false), getLocale(true), 'en'], () => {            
             jQuery(() => {
-                isReady(() => {
+                areFramesReady(() => {
                     jQuery(document).triggerHandler('lngload')
                 })
             })

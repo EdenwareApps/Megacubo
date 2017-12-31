@@ -4,13 +4,13 @@
  "chromium-args": "--disable-transparency --disable-gpu-blacklist --ignore-certificate-errors --remote-debugging-port=9000",
  "node": true,
  "description": "A quite simple IPTV client.",
- "version": "13.9.7",
+ "version": "14.0.1",
  "inject_js_end": "assets/js/helper.js",
  "window": {
    "title": "Megacubo",
    "frame": false,
    "icon": "default_icon.png",
-   "show": true
+   "show": false
  },
  "dependencies": {
    "peerflix": "~0.37.0",

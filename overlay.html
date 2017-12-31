@@ -29,6 +29,45 @@
                 notify(helpTips[0], 'fa-info', 'normal')
             }
             function processFile(file){
+                var probeSize = 2048;
+                if(['m3u', 'm3u8'].indexOf(getExt(file))!=-1){
+                    openFile(file)
+                } else if(isMedia(file)) {
+                    playCustomFile(file)
+                } else {
+                    if(file.match(new RegExp('^(//|https?://)'))){
+                        miniget(file, {timeout: 5000, headers: {range: 'bytes=0-24'}}, function (e,o,r){
+                            var response = String(r);
+                            response = response.substr(0, probeSize)
+                            console.log(response);
+                            if(response.toUpperCase().indexOf('#EXTINF')!=-1){
+                                openFile(file)
+                            } else {
+                                playCustomURL(file, true)
+                            }
+                        })
+                    } else {
+                        fs.open(file, 'r', function(err, fd) {
+                            fs.fstat(fd, function(err, stats) {
+                                if(stats.size < 5 * (1024 * 1024)){
+                                    var buffer = new Buffer(probeSize);
+                                    fs.read(fd, buffer, 0, probeSize, 0, (err, bytes, buff) => {
+                                        var response = String(buff);
+                                        console.log(response);
+                                        if(response.toUpperCase().indexOf('#EXTINF')!=-1){
+                                            openFile(file)
+                                        } else {
+                                            playCustomURL(file, true)
+                                        }
+                                    });
+                                }
+                                fs.close(fd)
+                            })
+                        })
+                    }
+                }
+            }
+            function openFile(file){
                 getFrame('controls').checkM3U8Type(file, (url, type) => {
                     console.log(url, type);
                     if(type == 'stream'){
@@ -53,27 +92,7 @@
                         top.document.querySelector('iframe#overlay').style.pointerEvents = 'none';
                         console.log('Here are the dropped files', files);
                         files.forEach(file => {
-                            if(['m3u', 'm3u8'].indexOf(getExt(file.name))!=-1){
-                                processFile(file.path)
-                            } else if(isMedia(file.path)) {
-                                playCustomFile(file.path)
-                            } else {
-                                fs.open(file.path, 'r', function(err, fd) {
-                                    fs.fstat(fd, function(err, stats) {
-                                        if(stats.size < 5 * (1024 * 1024)){
-                                            var len = 2048, buffer = new Buffer(len);
-                                            fs.read(fd, buffer, 0, len, 0, (err, bytes, buff) => {
-                                                var response = String(buff);
-                                                console.log(response);
-                                                if(response.toUpperCase().indexOf('#EXTINF')!=-1){
-                                                    processFile(file.path)
-                                                }
-                                            });
-                                        }
-                                        fs.close(fd)
-                                    })
-                                })
-                            }
+                            processFile(file.path)
                         })
                     },
                     onDragEnter: function () {
@@ -86,8 +105,9 @@
                     },
                     onDropText: function (text, pos) {
                         top.document.querySelector('iframe#overlay').style.pointerEvents = 'none';
+                        dropTarget.style.backgroundColor = 'transparent';
                         console.log('Here is the dropped text', text);
-                        playCustomURL(text, true)
+                        processFile(text)
                     }
                 });
                 var show = function (){
