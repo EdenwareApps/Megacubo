@@ -14,6 +14,12 @@ var History = (function (){
         return fullHistory.slice(0)
     };
     _this.add = function (entry){
+        if(typeof(entry.originalUrl)=='string'){
+            entry.url = entry.originalUrl; // ignore the runtime changes in URL
+        }
+        if(typeof(entry.type)!='undefined'){
+            delete entry.type;
+        }
         for(var i in fullHistory){
             if(fullHistory[i].url == entry.url){
                 delete fullHistory[i];

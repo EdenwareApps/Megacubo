@@ -55,7 +55,7 @@ var PlaybackManager = {
         if(isLoading){
             setTimeout(this.checkIntents.bind(this), 2000)
         }
-        console.log('ACTIVE', activeIntent, was, isLoading, intents);
+        //console.log('ACTIVE', activeIntent, was, isLoading, intents);
     },
     registerIntent: function (intent){
         if(this.intents.indexOf(intent)==-1){
@@ -155,6 +155,28 @@ var PlaybackManager = {
         }
         return is;
     },
+    log: function (){
+        var _log = '', state;
+        for(var i=0; i<this.intents.length; i++){
+            state = 'unknown';
+            if(this.intents[i].started){
+                state = 'active';
+            } else {
+                if(!this.intents[i].ended && !this.intents[i].error){
+                    state = 'loading';
+                } else if(this.intents[i].ended){
+                    state = 'ended';
+                } else {
+                    state = 'error';
+                }
+            }
+            if(this.intents[i].sideload){
+                state = 'sideload '+state;
+            }
+            _log += this.intents[i].entry.url+" ("+this.intents[i].type+", "+state+")\r\n";
+        }
+        return _log;
+    },
     hasURL: function (url){
         for(var i=0; i<this.intents.length; i++){
             if(this.intents[i].entry.url == url){
@@ -164,30 +186,47 @@ var PlaybackManager = {
         }
     },
     commitIntent: function (intent){
-        for(var i=0; i<this.intents.length; i++){
-            if(this.intents[i] != this.activeIntent && this.intents[i] != intent){
-                if(!this.activeIntent || this.intents[i].ctime <= this.activeIntent.ctime){
-                    // expired, discard it!
-                    try{
-                        this.intents[i].destroy()
-                    }catch(e){
-                        console.log(e)
-                    }
-                    delete this.intents[i];
-                }
-            }
-        }
+        var intentTypesPriorityOrder = ['magnet', 'direct', 'ffmpeg', 'frame'];
+        console.log('COMMITING', intent);
         if(this.activeIntent != intent){
             if(this.activeIntent){
-                this.activeIntent.destroy()
-                this.trigger('uncommit', this.activeIntent, intent);
+                if(this.activeIntent.entry.originalUrl == intent.entry.originalUrl){ // both are intents from the same stream, decide for one of them
+                    var a = intentTypesPriorityOrder.indexOf(intent.entry.type);
+                    var b = intentTypesPriorityOrder.indexOf(this.activeIntent.entry.type);
+                    if(b <= a){
+                        console.log('COMMITING DISCARD');
+                        return false; // keep current activeIntent
+                    }
+                }
             }
-            this.activeIntent = intent;
+            for(var i=0; i<this.intents.length; i++){
+                if(this.intents[i] != intent){
+                    if(!this.activeIntent || this.intents[i].ctime <= this.activeIntent.ctime){
+                        // expired, discard it!
+                        try{
+                            console.log('DESTROYING', this.intents[i]);
+                            var active = (this.activeIntent == this.intents[i]);
+                            this.intents[i].destroy();
+                            if(active){
+                                this.trigger('uncommit', this.activeIntent, intent)
+                            }
+                        }catch(e){
+                            console.log('INTENT DESTROY FAILURE', e)
+                        }
+                        delete this.intents[i];
+                    }
+                }
+            }
+            console.log('ACTIVE', intent);
             if(this.intents.indexOf(intent)==-1){
                 this.registerIntent(intent);
             }
+            this.activeIntent = intent;
             intent.commit();
             this.trigger('commit', intent, intent.entry)
+            console.log('OK', this.intents);
+        } else {
+            console.log('Already committed.')
         }
         this.intents = this.intents.filter(function (item) {
             return item !== undefined;
@@ -209,17 +248,23 @@ function createPlayIntentAsync(entry, options, callback){
             console.log('Error: NO INTENT', intent, entry.url);
         }
     }
+    if(typeof(entry.originalUrl) == 'undefined'){
+        entry.originalUrl = entry.url;
+    }
     if(isMagnet(entry.url)){
         internalCallback(createMagnetIntent(entry, options))
     } else if(isRTMP(entry.url)){
         internalCallback(createFFmpegIntent(entry, options))
     } else if(isHTML5Video(entry.url)){
+        console.log('AAA');
         internalCallback(createDirectIntent(entry, options))
     } else if(isMedia(entry.url)){
         internalCallback(createFFmpegIntent(entry, options))
     } else  {
-        var preIntent = createDirectIntent(entry, options);
-        internalCallback(preIntent);
+        console.log('BBB');
+        internalCallback(createFrameIntent(entry, options));
+        internalCallback(createDirectIntent(entry, options)); // not sure, so we'll race the possible intents
+        /*
         jQuery.ajax({
             url: entry.url,
             type: 'GET',
@@ -234,8 +279,12 @@ function createPlayIntentAsync(entry, options, callback){
                 if(mimetype.indexOf('text')!=-1){
                     internalCallback(createFrameIntent(entry, options))
                 }
-            }
+            },
+            error: function(XMLHttpRequest, textStatus, errorThrown) { 
+                console.log("XMLHTTP error: " + textStatus+", " + errorThrown)
+            }   
         })
+        */
     }
 }
 
@@ -313,12 +362,6 @@ function createFrameIntent(entry, options){
     self.run = function (){
         self.frame.src = self.entry.url;
         if(self.entry.url.match(new RegExp('#(catalog|reveal)([^A-Za-z0-9]|$)'))){
-            self.frame.onload = function (){
-                patchFrameWindowEvents(this.contentWindow)
-            }
-            if(self.frame.contentWindow){
-                patchFrameWindowEvents(self.frame.contentWindow)
-            }
             self.started = true;
             self.trigger('start');
         }
@@ -346,6 +389,12 @@ function createFrameIntent(entry, options){
         jQuery(self.frame).removeClass('hide').addClass('show').prop('id', 'sandbox');
         self.frame.id = 'sandbox';
         self.committed = true;
+        self.frame.onload = function (){
+            patchFrameWindowEvents(this.contentWindow)
+        }
+        if(self.frame.contentWindow){
+            patchFrameWindowEvents(self.frame.contentWindow)
+        }
     }
 
     self.destroy = function (){
@@ -1110,6 +1159,12 @@ function patchFrameWindowEvents(frameWindow){
     frameWindow.ondrop = function(e) { e.preventDefault(); return false };
 }
 
+function unloadFrames(){
+    Array.from(document.getElementsByTagName('iframe')).forEach((frame) => {
+        frame.src = 'about:blank';
+    })
+}
+
 function delayedPlayPauseNotify(){
     setTimeout(function (){
         playPauseNotify()
@@ -1130,13 +1185,23 @@ PlaybackManager.on('stop', function (){
             stop(true)
         }
         delayedPlayPauseNotify();
-        getFrame('controls').updateStreamEntriesFlags()
+        var c = getFrame('controls');
+        if(c){
+            c.updateStreamEntriesFlags()
+        }
     }, 1000);
     sendStats('stop')
 });
 PlaybackManager.on('load-in', enterPendingState);
 PlaybackManager.on('load-out', leavePendingState);
 
+jQuery(window).on('beforeunload', function (){
+    stop();
+    unloadFrames()
+});
+
 jQuery(window).on('unload', function (){
+    stop();
+    unloadFrames();
     removeFolder('stream', false)
 });

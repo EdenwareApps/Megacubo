@@ -1,5 +1,5 @@
 
-var findStreams = function (scope){
+var doFindStreams = function (scope){
     var filters = {}, _pl = false, lastGenericDiscovering = false, window = scope;
     function addFilter(hook, callback){
         if(typeof(filters[hook])=='undefined'){
@@ -90,7 +90,7 @@ var findStreams = function (scope){
                         window.document.body = b[0];
                     }
             }
-        return (window.document.body||window.document.window.documentElement);
+        return (window.document.body||window.document.documentElement);
     }
     
     function stripSlashes(str) {
@@ -833,8 +833,9 @@ var findStreams = function (scope){
             }
             
             if(!src){
-                var html = body().innerHTML.length; // take whole HTML makes it too sensible, since JS may contain arrays of variated messages
+                var html = body().innerHTML; // take whole HTML makes it too sensible, since JS may contain arrays of variated messages
                 var stub = window.document.URL + ' ' + html + ' ' + scripts().join('');
+                //console.log('DEEPSEARCH', stub);
                 src = applyFilters('formatStream', findStreamOnText(stub));
             }
         }
@@ -844,15 +845,13 @@ var findStreams = function (scope){
     }
     
     function execute(){
-        if(top.window.fitterFoundStreams.length || top.window.fittedElement){
-            return;
-        }
-        console.log('fitter.findStream.js', window.document.URL);
+        console.log('DOFINDSTREAMS', window.document.URL);
         var stream = findStream();
-        if(stream && top.window.fitterFoundStreams.indexOf(stream) == -1){
-            console.log('FINDSTREAM', stream);
-            top.window.fitterFoundStreams.push(stream);
+        if(stream){
+            console.log('FOUNDSTREAM', stream);
             top.window.callFunctionInWindow("controls", "sideLoadPlay", [stream]);
+        } else {
+            console.log('NOSTREAMFOUND', window.document.URL);
         }
     }
 
@@ -999,15 +998,12 @@ var Fitter = (function (){
     }
     this.isDiscardable = function (object){
         if(typeof(object)!='object'){
+            console.log('Video discarded by type('+typeof(object)+')');
             return true;
         }
         if(tag(object)=='video'){
-            if(!isVisible(object)){
-                console.log('Video discarded by visibility.');
-                return true;
-            }
             if(!object.paused && !object.currentTime){
-                console.log('Video discarded by state: '+object.paused+'x'+object.currentTime);
+                console.log('Video discarded by state - paused='+object.paused+', currentTime='+object.currentTime);
                 return true;
             }
         }
@@ -1097,23 +1093,140 @@ var Fitter = (function (){
         }
         return list;
     }
+    this.findStreams = function (scope){
+        doFindStreams(scope);
+        var frames = scope.document.querySelectorAll("iframe, frame");
+        for(var i=0; i<frames.length; i++){
+            if(frames[i].contentWindow){
+                this.findStreams(frames[i].contentWindow);
+            }
+        }
+    }
     this.isVisible = function (elm) {
         if(!elm.offsetHeight && !elm.offsetWidth) { return false; }
         if(getComputedStyle(elm).visibility === 'hidden') { return false; }
         return true;
     }
-    this.start = function (window){
+    this.prepare = function (data){
         var unfocus = function (e){
             var target = e.srcElement;
             if(!target || typeof(target['tagName'])=='undefined' || ['input', 'textarea'].indexOf(target['tagName'].toLowerCase())==-1){
                 //console.log(e);
                 console.log('REFOCUS(*)');
                 top.window.focus();
-                getFrame('controls').hideControls()
+                var c = getFrame('controls');
+                if(c){
+                    c.hideControls()
+                }
             }
         }
-        var list = scan(window);
-        console.log('PRELIST', window.document.URL, list);
+
+        // document.body.appendChild(data.element); //Failed to read the 'buffered' property from 'SourceBuffer': This SourceBuffer has been removed from the parent media source.
+        top.patchFrameWindowEvents(data.scope, unfocus);
+
+        data.scope.__fitted = true;
+        stylizerQueueReset(data.element, data.scope);
+        fit(data.element, data.scope);
+        stylizerQueueCommit(data.scope);
+        fitParentFrames(data.scope);
+
+        (function (){ // INNER PAGE ROUTINES
+            //console.log('SCOPE => '+document.URL+' '+this.document.URL);
+            var document = this.document;
+            var absolutize = (function() {
+                // this prevents any overhead from creating the object each time
+                var a = document.createElement('a'), m = document.createElement('img');
+                return (function (url) {
+                    if ((typeof url)!='string' || url.match(new RegExp("^(about|res|javascript|#):")) || url.match(new RegExp("<[A-Za-z]+ ","i"))){
+                        return this.document.URL;
+                    }
+                    if (url.match(new RegExp("^(mms|rtsp|rtmp|http)s?:"))){
+                        return url;
+                    }
+                    a.href = url;
+                    if ((typeof a.href)=='string' && new RegExp("^[a-z]{2,7}:\/\/").test(a.href)){
+                        return a.href;
+                    } else {
+                        try{m.src = url;return m.src;}catch(e){};
+                        return url;
+                    }
+                });
+            })();
+
+            /*
+            
+            var favicon = function (){
+                var icon = false;
+                var nodeList = document.getElementsByTagName("link");
+                for (var i = 0; i < nodeList.length; i++){
+                    if((nodeList[i].getAttribute("rel") == "icon")||(nodeList[i].getAttribute("rel") == "shortcut icon")){
+                        icon = nodeList[i].getAttribute("href");
+                        if(icon.indexOf('.png')!=-1) break;
+                    }
+                }
+                return icon ? absolutize(icon) : false; 
+            }
+            var updateTitle = function (val){
+                console.log('TITLE = '+val+' '+typeof(val));
+                if(val && val!='undefined'){
+                    if(!top.window.hasValidTitle()){
+                        top.window.setTitleData(val, favicon());
+                    }
+                }
+            }
+            updateTitle(document.title); // keep above
+            document.__defineSetter__('title', function(val) { 
+                document.querySelector('title').childNodes[0].nodeValue = val;
+                updateTitle(val)
+            });
+
+            */
+
+        }).apply(data.scope, []);
+        return data;
+    }
+    this.start = function (scope){
+        var file, domains, list = false, domain = scope.document.domain;
+        if(!top.preFitterIndex){
+            top.preFitterIndex = {};
+            var files = fs.readdirSync('./hosts');
+            for(var i=0; i<files.length; i++){
+                domains = files[i].replace('.js', '').split(',')
+                for(var j=0; j<domains.length; j++){
+                    top.preFitterIndex[domains[i]] = './hosts/'+files[i];
+                }
+            }
+            console.log('PREFITTERINDEX', top.preFitterIndex)
+        }
+        domains = Object.keys(top.preFitterIndex);
+        for(var i=0; i<domains.length; i++){
+            if(domain.indexOf(domains[i])==0 || domain.indexOf('.'+domains[i])!=-1){
+                file = top.preFitterIndex[domains[i]];
+                break;
+            }
+        }
+        if(file){
+            console.log('PREFITTER MODULE MATCHED', file);
+            list = require(file)(scope)
+        } else {
+            console.log('NO PREFITTER', domain)
+        }
+        if(list && typeof(list)=='string'){ // if returns a string should be a redirect URL
+            console.log('PREFITTER REDIRECT', list);
+            scope.location.href = list;
+            return;
+        } else if(!list || typeof(list)!='object'){
+            list = this.run(scope)
+        }
+        if(list && typeof(list)=='object'){ // if returns a object, should be {element:videoElement, scope:videoElementWindow}
+            console.log('PREFITTER PREPARE', list);
+            this.prepare(list);
+        }
+        return list;
+    }
+    this.run = function (scope){
+        var list = scan(scope);
+        console.log('PRELIST', scope.document.URL, list);
         var Filters = [
             function (o){
                 var n = [], debug=false;
@@ -1167,75 +1280,14 @@ var Fitter = (function (){
             }
             console.log('Discover level: '+i+', objs: '+list.length);
         }
-        console.log('POSLIST', window.document.URL, list);
+        console.log('POSLIST', scope.document.URL, list);
         if(list.length){
-            // document.body.appendChild(list[0].element); //Failed to read the 'buffered' property from 'SourceBuffer': This SourceBuffer has been removed from the parent media source.
-            top.patchFrameWindowEvents(list[0].scope, unfocus);
-
-            list[0].scope.__fitted = true;
-            stylizerQueueReset(list[0].element, list[0].scope);
-            fit(list[0].element, list[0].scope);
-            stylizerQueueCommit(list[0].scope);
-            fitParentFrames(list[0].scope);
-
-            (function (){ // INNER PAGE ROUTINES
-                //console.log('SCOPE => '+document.URL+' '+this.document.URL);
-                var document = this.document;
-                var absolutize = (function() {
-                    // this prevents any overhead from creating the object each time
-                    var a = document.createElement('a'), m = document.createElement('img');
-                    return (function (url) {
-                        if ((typeof url)!='string' || url.match(new RegExp("^(about|res|javascript|#):")) || url.match(new RegExp("<[A-Za-z]+ ","i"))){
-                            return this.document.URL;
-                        }
-                        if (url.match(new RegExp("^(mms|rtsp|rtmp|http)s?:"))){
-                            return url;
-                        }
-                        a.href = url;
-                        if ((typeof a.href)=='string' && new RegExp("^[a-z]{2,7}:\/\/").test(a.href)){
-                            return a.href;
-                        } else {
-                            try{m.src = url;return m.src;}catch(e){};
-                            return url;
-                        }
-                    });
-                })();
-
-                /*
-                
-                var favicon = function (){
-                    var icon = false;
-                    var nodeList = document.getElementsByTagName("link");
-                    for (var i = 0; i < nodeList.length; i++){
-                        if((nodeList[i].getAttribute("rel") == "icon")||(nodeList[i].getAttribute("rel") == "shortcut icon")){
-                            icon = nodeList[i].getAttribute("href");
-                            if(icon.indexOf('.png')!=-1) break;
-                        }
-                    }
-                    return icon ? absolutize(icon) : false; 
-                }
-                var updateTitle = function (val){
-                    console.log('TITLE = '+val+' '+typeof(val));
-                    if(val && val!='undefined'){
-                        if(!top.window.hasValidTitle()){
-                            top.window.setTitleData(val, favicon());
-                        }
-                    }
-                }
-                updateTitle(document.title); // keep above
-                document.__defineSetter__('title', function(val) { 
-                    document.querySelector('title').childNodes[0].nodeValue = val;
-                    updateTitle(val)
-                });
-
-                */
-
-            }).apply(list[0].scope, [])
             return list[0];
+        } else {
+            this.findStreams(scope)
         }
         return false;
     }
-
     return this;
 })();
     

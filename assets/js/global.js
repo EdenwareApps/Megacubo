@@ -586,7 +586,10 @@ if(typeof(require)!='undefined'){
         setTitleData('Megacubo', 'default_icon.png');
         setTimeout(() => {
             if(!isPlaying()){
-                getFrame('controls').showControls()
+                var c = getFrame('controls');
+                if(c){
+                    c.showControls()
+                }
             }
         }, 400)
     }
@@ -653,13 +656,15 @@ if(typeof(require)!='undefined'){
     }
 
     function applyIcon(icon){
-        var doc = top.document;
-        var link = doc.querySelector("link[rel*='icon']") || doc.createElement('link');
-        link.type = 'image/x-png';
-        link.rel = 'shortcut icon';
-        link.href = icon;
-        doc.getElementsByTagName('head')[0].appendChild(link);
-        doc.querySelector('.nw-cf-icon').style.backgroundImage = 'url("{0}")'.format(icon);
+        if(top){
+            var doc = top.document;
+            var link = doc.querySelector("link[rel*='icon']") || doc.createElement('link');
+            link.type = 'image/x-png';
+            link.rel = 'shortcut icon';
+            link.href = icon;
+            doc.getElementsByTagName('head')[0].appendChild(link);
+            doc.querySelector('.nw-cf-icon').style.backgroundImage = 'url("{0}")'.format(icon);
+        }
     }
 
     var notifyTimer = 0;
@@ -698,14 +703,16 @@ if(typeof(require)!='undefined'){
     }
 
     function setTitleData(title, icon) {
-        var defaultIcon= 'default_icon.png';
-        applyIcon(icon);
-        checkImage(icon, function (){}, function (){
-            applyIcon(defaultIcon);
-        });
-        var doc = top.document;
-        doc.title = title;
-        doc.querySelector('.nw-cf-title').innerText = title;
+        if(top){
+            var defaultIcon= 'default_icon.png';
+            applyIcon(icon);
+            checkImage(icon, function (){}, function (){
+                applyIcon(defaultIcon);
+            });
+            var doc = top.document;
+            doc.title = title;
+            doc.querySelector('.nw-cf-title').innerText = title;
+        }
     }
 
     function setTitleFlag(fa){
@@ -763,7 +770,7 @@ if(typeof(require)!='undefined'){
     
     function isM3U8(url){
         if(typeof(url)!='string') return false;
-        return url.match(new RegExp('\.m3u8?([^A-Za-z0-9]|$)', 'i'));            
+        return url.match(new RegExp('\\.m3u8?([^A-Za-z0-9]|$)', 'i'));            
     }
     
     function isRTMP(url){
@@ -788,12 +795,12 @@ if(typeof(require)!='undefined'){
     
     function isVideo(url){
         if(typeof(url)!='string') return false;
-        return url.match(new RegExp('\.(wm[av]|avi|mp[34]|mk[av]|m4[av]|mov|flv|webm|flac|aac|ogg|ts)', 'i'));            
+        return url.match(new RegExp('\\.(wm[av]|avi|mp[34]|mk[av]|m4[av]|mov|flv|webm|flac|aac|ogg|ts)', 'i'));            
     }
     
     function isHTML5Video(url){
         if(typeof(url)!='string') return false;
-        return url.match(new RegExp('\.(mp[34]|m4[av]|webm|aac|ogg|ts)', 'i'));            
+        return url.match(new RegExp('\\.(mp[34]|m4[av]|webm|aac|ogg|ts)', 'i'));            
     }
     
     function isLive(url){
@@ -807,7 +814,7 @@ if(typeof(require)!='undefined'){
     }
     
     function isPlaying(){
-        if(top.PlaybackManager){
+        if(top && top.PlaybackManager){
             return top.PlaybackManager.playing();
         }
     }
@@ -818,18 +825,20 @@ if(typeof(require)!='undefined'){
     
     function showPlayers(stream, sandbox){
         console.log('showPlayers('+stream+', '+sandbox+')');
-        var doc = top.document || document;
-        var pstream = doc.getElementById('player');
-        var psandbox = doc.getElementById('sandbox');
-        if(sandbox){
-            jQuery(psandbox).removeClass('hide').addClass('show');
-        } else {
-            jQuery(psandbox).removeClass('show').addClass('hide');
-        }
-        if(stream){
-            jQuery(pstream).removeClass('hide').addClass('show');
-        } else {
-            jQuery(pstream).removeClass('show').addClass('hide');
+        if(top){
+            var doc = top.document;
+            var pstream = doc.getElementById('player');
+            var psandbox = doc.getElementById('sandbox');
+            if(sandbox){
+                jQuery(psandbox).removeClass('hide').addClass('show');
+            } else {
+                jQuery(psandbox).removeClass('show').addClass('hide');
+            }
+            if(stream){
+                jQuery(pstream).removeClass('hide').addClass('show');
+            } else {
+                jQuery(pstream).removeClass('show').addClass('hide');
+            }
         }
     }
     

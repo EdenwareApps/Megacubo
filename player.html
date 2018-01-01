@@ -19,6 +19,9 @@
 			.vjs-progress-holder {
 				max-width: 100%;
 			}
+			.vjs-icon-square:before {
+    			font-size: large;
+			}
 			video {
 				object-fit: contain;
 			}
@@ -80,7 +83,8 @@
 				player.pause()
 			}
 			function stop(){
-				player.pause()
+				player.pause();
+				player.reset()
 			}
 			function videoElement(){
 				return video;

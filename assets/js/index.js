@@ -167,9 +167,12 @@ function playPause(set){
 }
 
 function playPauseNotify(){
+    if(!top){ // unloading raises "Cannot read property 'window' of null" sometimes
+        return;
+    }
     if(!PlaybackManager.activeIntent){
         jQuery([
-            top.window.document.body,
+            top.document.body,
             getFrame('controls').document.body,
             getFrame('overlay').document.body
         ]).removeClass('playing').removeClass('paused');
@@ -177,7 +180,7 @@ function playPauseNotify(){
     }
     if(PlaybackManager.activeIntent.type=='frame' && !PlaybackManager.activeIntent.videoElement){
         jQuery([
-            top.window.document.body,
+            top.document.body,
             getFrame('controls').document.body,
             getFrame('overlay').document.body
         ]).removeClass('playing').removeClass('paused');
@@ -191,14 +194,14 @@ function playPauseNotify(){
     }
     if(PlaybackManager.playing()){
         jQuery([
-            top.window.document.body,
+            top.document.body,
             getFrame('controls').document.body,
             getFrame('overlay').document.body
         ]).removeClass('paused').addClass('playing');
         notify(c, 'fa-play', 'short')
     } else {
         jQuery([
-            top.window.document.body,
+            top.document.body,
             getFrame('controls').document.body,
             getFrame('overlay').document.body
         ]).removeClass('playing').addClass('paused');
@@ -869,9 +872,7 @@ win.on('restore', () => {
 })
 
 win.on('close', () => {
-    Array.from(document.getElementsByTagName('iframe')).forEach((frame) => {
-        frame.src = 'about:blank';
-    })
+    stop();
     gui.App.closeAllWindows();
     win.close(true)
 })
