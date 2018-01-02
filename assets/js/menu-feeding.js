@@ -21,7 +21,7 @@ function getWindowModeEntries(){
             top.enterMiniPlayer();
             refreshListing()
         }})
-        options.push({name: Lang.DUPLICATE+' (Ctrl+Shift+D)', logo:'fa-files-o', type: 'option', callback: function (){
+        options.push({name: Lang.DUPLICATE+' (Ctrl+Alt+D)', logo:'fa-files-o', type: 'option', callback: function (){
             top.window.spawnOut();
             refreshListing()
         }})

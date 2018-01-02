@@ -4,7 +4,7 @@
  "chromium-args": "--disable-transparency --disable-gpu-blacklist --ignore-certificate-errors --remote-debugging-port=9000",
  "node": true,
  "description": "A quite simple IPTV client.",
- "version": "14.0.1",
+ "version": "14.0.2",
  "inject_js_end": "assets/js/helper.js",
  "window": {
    "title": "Megacubo",

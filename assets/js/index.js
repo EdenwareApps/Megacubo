@@ -192,20 +192,25 @@ function playPauseNotify(){
     } else {
         c = Lang.PLAY;
     }
+    console.log('NOTIFY');
     if(PlaybackManager.playing()){
+        console.log('NOTIFY1');
         jQuery([
             top.document.body,
             getFrame('controls').document.body,
             getFrame('overlay').document.body
         ]).removeClass('paused').addClass('playing');
         notify(c, 'fa-play', 'short')
+        console.log('NOTIFY');
     } else {
+        console.log('NOTIFY2');
         jQuery([
             top.document.body,
             getFrame('controls').document.body,
             getFrame('overlay').document.body
         ]).removeClass('playing').addClass('paused');
         notify(Lang.PAUSE, 'fa-pause', 'short')
+        console.log('NOTIFY');
     }
 }
 
@@ -651,7 +656,9 @@ function modalPrompt(question, answers, placeholder, value){
     }
     top.window.focus();
     setTimeout(function (){
-        t.get(0).focus()
+        var n = t.get(0);
+        n.focus();
+        n.select()
     }, 400)
 }
 
@@ -745,17 +752,6 @@ function centralizeWindow(w, h){
     var y = (screen.availHeight - (h || window.outerHeight)) / 2;
     window.moveTo(x, y)
     console.log('POS', x, y);
-}
-
-function castManagerFoundDevice(chromecast){
-    // castManager.devices
-    // chromecast
-    chromecast.on(
-        'status',
-        function(status){
-            notify('Chromecast: '+JSON.stringify(status, false, '    '), 'fa-chrome', 'normal');
-        }
-    );
 }
 
 function logErr(){
@@ -874,7 +870,9 @@ win.on('restore', () => {
 win.on('close', () => {
     stop();
     gui.App.closeAllWindows();
-    win.close(true)
+    win.close(true);
+    nw.App.quit();
+    process.exit()
 })
 
 function handleOpenArguments(cmd){
@@ -901,6 +899,14 @@ function handleOpenArguments(cmd){
 
 nw.App.on('open', handleOpenArguments)
 handleOpenArguments(gui.App.argv)
+
+var packageQueue = Store.get('packageQueue') || [];
+var packageQueueCurrent = Store.get('packageQueueCurrent') || 0;
+
+jQuery(window).on('unload', function (){
+    Store.set('packageQueue', packageQueue);
+    Store.set('packageQueueCurrent', packageQueueCurrent)
+})
 
 jQuery(function (){
     var els = jQuery(document).add('html, body');

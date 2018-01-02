@@ -190,38 +190,40 @@ if(typeof(require)!='undefined'){
         top.PlaybackManager.seek(10)
     }
     
-    window.packageQueue = [], window.packageQueueCurrent = 0;
-    
     function collectPackageQueue(ref){
         var container = getListContainer(false);
         var as = container.find('a.entry-stream');
-        window.packageQueue = [];
+        var queue = [], ok = false;
         for(var i=0; i<as.length; i++){
             var s = as.eq(i).data('entry-data');
-            if(s.url == ref.url){
-                window.packageQueueCurrent = i;
+            if(s.url == ref.url || (typeof(ref.originalUrl)!='undefined' && s.url == ref.originalUrl)){
+                top.packageQueueCurrent = i;
+                ok = true;
             }
-            window.packageQueue.push(s)
+            queue.push(s)
+        }
+        if(ok){
+            top.packageQueue = queue;
         }
     }
     
     function getPreviousStream(){
-        if(window.packageQueue.length > 1){
-            var i = window.packageQueueCurrent - 1;
+        if(top.packageQueue.length > 1){
+            var i = top.packageQueueCurrent - 1;
             if(i < 0){
-                i = window.packageQueue.length - 1;
+                i = top.packageQueue.length - 1;
             }
-            return window.packageQueue[i];
+            return top.packageQueue[i];
         }
     }
 
     function getNextStream(){
-        if(window.packageQueue.length > 1){
-            var i = window.packageQueueCurrent + 1;
-            if(i >= window.packageQueue.length){
+        if(top.packageQueue.length > 1){
+            var i = top.packageQueueCurrent + 1;
+            if(i >= top.packageQueue.length){
                 i = 0;
             }
-            return window.packageQueue[i];
+            return top.packageQueue[i];
         }
     }
 
@@ -276,13 +278,15 @@ if(typeof(require)!='undefined'){
             top.toggleMiniPlayer()
         }));
         shortcuts.push(createShortcut("Ctrl+U", function (){
-            addNewSource()
-            //playCustomURL()
+            var c = getFrame('controls');
+            if(c){
+                c.addNewSource();
+            }
         }));
         shortcuts.push(createShortcut("Alt+Enter", function (){
             top.toggleFullScreen()
         }));
-        shortcuts.push(createShortcut("Ctrl+Shift+D", function (){
+        shortcuts.push(createShortcut("Ctrl+Alt+D", function (){
             top.spawnOut()
         }));
         shortcuts.push(createShortcut("Ctrl+E", function (){
@@ -298,7 +302,10 @@ if(typeof(require)!='undefined'){
         }));
         shortcuts.push(createShortcut("F1 Ctrl+I", help));
         shortcuts.push(createShortcut("F2", function (){
-            getFrame('controls').renameSelectedEntry()
+            var c = getFrame('controls');
+            if(c){
+                c.renameSelectedEntry()
+            }
         }))
         shortcuts.push(createShortcut("F3 Ctrl+F", function (){
             var c = getFrame('controls');
@@ -507,21 +514,28 @@ if(typeof(require)!='undefined'){
     }
     
     function askForSource(question, callback, placeholder){
-        top.modalPrompt(question, [
-            ['<i class="fa fa-search" aria-hidden="true"></i> '+Lang.WEB_SEARCH, function (){
-                nw.Shell.openExternal(getIPTVListSearchURL());
-            }],
-            ['<i class="fa fa-check-circle" aria-hidden="true"></i> OK', function (){
-                // parse lines for names and urls and use registerSource(url, name) for each
-                var v = top.modalPromptVal();
-                if(v){
-                    Store.set('last-ask-for-source-value', v);
-                }
-                if(callback(v)){
-                    top.modalClose()
-                }
-            }]
-        ], Lang.PASTE_URL_HINT, Store.get('last-ask-for-source-value'))
+        if(top){
+            var defaultValue = Store.get('last-ask-for-source-value');
+            var cb = top.clipboard.get('text');
+            if(cb.match(new RegExp('^(//|https?://)'))){
+                defaultValue = cb;
+            }
+            top.modalPrompt(question, [
+                ['<i class="fa fa-search" aria-hidden="true"></i> '+Lang.WEB_SEARCH, function (){
+                    nw.Shell.openExternal(getIPTVListSearchURL());
+                }],
+                ['<i class="fa fa-check-circle" aria-hidden="true"></i> OK', function (){
+                    // parse lines for names and urls and use registerSource(url, name) for each
+                    var v = top.modalPromptVal();
+                    if(v){
+                        Store.set('last-ask-for-source-value', v);
+                    }
+                    if(callback(v)){
+                        top.modalClose()
+                    }
+                }]
+            ], Lang.PASTE_URL_HINT, defaultValue)
+        }
     }
         
     function playCustomURL(placeholder, direct){
@@ -588,7 +602,8 @@ if(typeof(require)!='undefined'){
             if(!isPlaying()){
                 var c = getFrame('controls');
                 if(c){
-                    c.showControls()
+                    c.showControls();
+                    c.refreshListingIfMatch(Lang.OPTIONS)
                 }
             }
         }, 400)
@@ -663,7 +678,10 @@ if(typeof(require)!='undefined'){
             link.rel = 'shortcut icon';
             link.href = icon;
             doc.getElementsByTagName('head')[0].appendChild(link);
-            doc.querySelector('.nw-cf-icon').style.backgroundImage = 'url("{0}")'.format(icon);
+            var c = doc.querySelector('.nw-cf-icon');
+            if(c){
+                c.style.backgroundImage = 'url("{0}")'.format(icon)
+            }
         }
     }
 
@@ -711,7 +729,10 @@ if(typeof(require)!='undefined'){
             });
             var doc = top.document;
             doc.title = title;
-            doc.querySelector('.nw-cf-title').innerText = title;
+            var c = doc.querySelector('.nw-cf-title');
+            if(c){
+                c.innerText = title;
+            }
         }
     }
 
@@ -854,7 +875,10 @@ if(typeof(require)!='undefined'){
 
     function getFrame(id){
         if(top && top.document){
-            return top.document.getElementById(id).contentWindow.window;
+            var o = top.document.getElementById(id);
+            if(o){
+                return o.contentWindow.window;
+            }
         }        
     }
 

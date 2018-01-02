@@ -128,13 +128,13 @@
 			var playPauseDelayTimer;
 			v.on('play', function(event) {
 				clearTimeout(playPauseDelayTimer);
-				top.playPauseNotify()
+				top.delayedPlayPauseNotify()
 			})
 			v.on('pause', function(event) {
 				clearTimeout(playPauseDelayTimer);
 				playPauseDelayTimer = setTimeout(function (){ // delay a bit to avoid the pause UI on seeking
 					if(player.paused()){
-						top.playPauseNotify();
+						top.delayedPlayPauseNotify();
 					}
 				}, 500)
 			})

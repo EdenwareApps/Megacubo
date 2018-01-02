@@ -276,6 +276,12 @@ function refreshListing(){
     }
 }
 
+function refreshListingIfMatch(needle){
+    if(listingPath.indexOf(needle)!=-1){
+        refreshListing()
+    }
+}
+
 function listEntriesByPath(path, append, nofx){
     if(!nofx && listingPath.length != path.length){
         if(listingPath.length > path.length){

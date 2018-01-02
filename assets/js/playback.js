@@ -63,14 +63,14 @@ var PlaybackManager = {
         }
         intent.on('start', this.checkIntents.bind(this));
         intent.on('error', this.checkIntents.bind(this));
-        intent.on('end', function (){
+        intent.on('ended', function (){
             console.log('INTENT ENDED');
             setTimeout(PlaybackManager.checkIntents.bind(PlaybackManager), 1000)
         });
         this.checkIntents();
         this.trigger('register', intent)      
         if(intent.ended){
-            intent.trigger('end')
+            intent.trigger('ended')
         } else if(intent.error){
             intent.trigger('error')
         }
@@ -138,8 +138,14 @@ var PlaybackManager = {
         }
     },
     isLoading: function (fetch){
-        var is = false, urls = [], loadingIntents = this.query({started: false, ended: false, error: false, sideload: false});
-        if(fetch){
+        var loadingIntents;
+        if(typeof(fetch)=='string'){
+            loadingIntents = this.query({originalUrl: fetch, ended: false, error: false});
+            return loadingIntents.length > 0;
+        }
+        var is = false, urls = [];
+        loadingIntents = this.query({started: false, ended: false, error: false, sideload: false});
+        if(fetch === true){
             for(var i=0; i<loadingIntents.length; i++){
                 urls.push(loadingIntents[i].entry.url)
             }
@@ -173,13 +179,13 @@ var PlaybackManager = {
             if(this.intents[i].sideload){
                 state = 'sideload '+state;
             }
-            _log += this.intents[i].entry.url+" ("+this.intents[i].type+", "+state+")\r\n";
+            _log += this.intents[i].entry.originalUrl+" ("+this.intents[i].type+", "+state+")\r\n";
         }
         return _log;
     },
     hasURL: function (url){
         for(var i=0; i<this.intents.length; i++){
-            if(this.intents[i].entry.url == url){
+            if(this.intents[i].entry.url == url || this.intents[i].entry.originalUrl == url){
                 return true;
                 break;
             }
@@ -361,7 +367,7 @@ function createFrameIntent(entry, options){
     
     self.run = function (){
         self.frame.src = self.entry.url;
-        if(self.entry.url.match(new RegExp('#(catalog|reveal)([^A-Za-z0-9]|$)'))){
+        if(self.entry.originalUrl.match(new RegExp('#(catalog|nosandbox|nofit)([^A-Za-z0-9]|$)'))){
             self.started = true;
             self.trigger('start');
         }
@@ -369,16 +375,18 @@ function createFrameIntent(entry, options){
 
     self.runFitter = function (){
         console.log('intent.runFitter()');
-        if(!self.videoElement){
-            var result = Fitter.start(self.frame.contentWindow);
-            console.log('intent.runFitter()', result);
-            if(result){
-                self.started = true;
-                console.log('runFitter SUCCESS', result);
-                self.fittedElement = self.videoElement = result.element;
-                self.fittedScope = result.scope;
-                self.patchVideo();
-                self.trigger('start');
+        if(!self.entry.originalUrl.match(new RegExp('#nofit'))){
+            if(!self.videoElement){
+                var result = Fitter.start(self.frame.contentWindow);
+                console.log('intent.runFitter()', result);
+                if(result){
+                    self.started = true;
+                    console.log('runFitter SUCCESS', result);
+                    self.fittedElement = self.videoElement = result.element;
+                    self.fittedScope = result.scope;
+                    self.patchVideo();
+                    self.trigger('start');
+                }
             }
         }
         return self.started;
@@ -410,7 +418,7 @@ function createFrameIntent(entry, options){
                 console.log(self);
                 e.preventDefault();
                 e.stopPropagation();
-                setTimeout(self.top.playPauseNotify, 250);
+                self.top.delayedPlayPauseNotify();
                 return false;
             };
             if(self.videoElement.paused){
@@ -439,7 +447,7 @@ function createFrameIntent(entry, options){
                     }
                     console.log('PLAYING **', self.top.PlaybackManager.playing());
                     console.log('OK', playing, self.top);
-                    self.top.playPauseNotify();
+                    self.top.delayedPlayPauseNotify();
                     return false;
                 });
         }
@@ -523,10 +531,20 @@ function createDirectIntent(entry, options){
     
     self.commit = function (){
         jQuery('#player').removeClass('hide').addClass('show');
-        NativePlayURL(self.prxurl, self.mimetype);
-        self.attached = true;
+        NativePlayURL(self.prxurl, self.mimetype, 
+            function (){ // ended
+                console.log('Playback ended.');
+                self.ended = true;
+                self.trigger('ended')
+            },
+            function (){ // error
+                console.log('Player error.');
+                self.error = true;
+                self.trigger('error')
+            });
         self.controller = getFrame('player').player;
         self.videoElement = getFrame('player').videoElement();
+        self.attached = true;
     }
     
     self.run = function (){
@@ -638,7 +656,17 @@ function createFFmpegIntent(entry, options){
     
     self.commit = function (){
         jQuery('#player').removeClass('hide').addClass('show');
-        NativePlayURL(self.instance.file, 'application/x-mpegURL; codecs="avc1.4D401E, mp4a.40.2"');
+        NativePlayURL(self.instance.file, 'application/x-mpegURL; codecs="avc1.4D401E, mp4a.40.2"', 
+            function (){ // ended
+                console.log('Playback ended.');
+                self.ended = true;
+                self.trigger('ended')
+            },
+            function (){ // error
+                console.log('Player error.');
+                self.error = true;
+                self.trigger('error')
+            });
         self.videoElement = getFrame('player').videoElement();
         self.controller = getFrame('player').player;
         self.attached = true;
@@ -800,7 +828,17 @@ function createMagnetIntent(entry, options){
     }
         
     self.commit = function (){
-        NativePlayURL(self.instance.file, 'application/x-mpegURL; codecs="avc1.4D401E, mp4a.40.2"');
+        NativePlayURL(self.instance.file, 'application/x-mpegURL; codecs="avc1.4D401E, mp4a.40.2"', 
+            function (){ // ended
+                console.log('Playback ended.');
+                self.ended = true;
+                self.trigger('ended')
+            },
+            function (){ // error
+                console.log('Player error.');
+                self.error = true;
+                self.trigger('error')
+            });
         jQuery('#player').removeClass('hide').addClass('show');
         self.attached = true;
         self.controller = getFrame('player').player;
@@ -938,12 +976,22 @@ function createMagnetIntent(entry, options){
 // ? videojs.Hls = require('videojs-contrib-hls');
 // require('videojs-contrib-hls'); // gaving up of setup video.js with require :(
 
-function NativePlayURL(dest, mimetype) {
+function NativePlayURL(dest, mimetype, ended, error) {
     showPlayers(true, false);
-    if(!mimetype) mimetype = 'application/x-mpegURL';
+    if(!mimetype){
+        mimetype = 'application/x-mpegURL';
+    }
     console.log('WAITREADY');
     var pl = getFrame('player');
     pl.src(dest, mimetype);
+    if(error){
+        var v = pl.document.querySelector('video');
+        if(v) v.addEventListener('error', error);
+    }
+    if(ended){
+        var v = pl.document.querySelector('video');
+        if(v) v.addEventListener('ended', ended);
+    }
     pl.play();
     leavePendingState()
 }
@@ -1169,6 +1217,9 @@ function delayedPlayPauseNotify(){
     setTimeout(function (){
         playPauseNotify()
     }, 400)
+    setTimeout(function (){
+        playPauseNotify()
+    }, 1500)
 }
 
 PlaybackManager.on('commit', onIntentCommited);
@@ -1176,6 +1227,26 @@ PlaybackManager.on('play', delayedPlayPauseNotify);
 PlaybackManager.on('pause', delayedPlayPauseNotify);
 PlaybackManager.on('commit', delayedPlayPauseNotify);
 PlaybackManager.on('commit', function (intent, entry){
+    intent.on('error', function (){
+        setTimeout(function (){
+            if(!top.PlaybackManager.isLoading(intent.entry.originalUrl)){ // don't alert user if has sideload intents
+                notify(Lang.PLAY_STREAM_FAILURE.format(intent.entry.name), 'fa-exclamation-circle', 'normal')
+            }
+        }, 200)
+    })
+    intent.on('ended', function (){
+        if(!top.PlaybackManager.isLoading(intent.entry.originalUrl)){ // no sideload intents
+            // end of stream, go next
+            var next = getNextStream(), c = getFrame('controls');
+            if(c && next){
+                setTimeout(function (){
+                    c.playEntry(next)
+                }, 1200)
+            } else {
+                stop()
+            }
+        }      
+    })
     sendStats('play', entry)
 });
 PlaybackManager.on('stop', function (){

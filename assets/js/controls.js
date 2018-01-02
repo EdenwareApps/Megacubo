@@ -101,6 +101,9 @@ var Bookmarks = (function (){
         }
     }
     _this.add = function (entry){
+        if(entry.originalUrl != entry.url){
+            entry.url = entry.originalUrl;
+        }
         for(var i in fullBookmarks){
             if(fullBookmarks[i].url == entry.url){
                 delete fullBookmarks[i];
@@ -142,7 +145,8 @@ function addFav(s){
     }
     if(s && !Bookmarks.is(s)){
         Bookmarks.add(s);
-        notify(Lang.FAV_ADDED.format(s.name), 'fa-star', 'normal')
+        notify(Lang.FAV_ADDED.format(s.name), 'fa-star', 'normal');
+        refreshListingIfMatch(Lang.BOOKMARKS)
     }
 }
 
@@ -158,7 +162,8 @@ function removeFav(s){
     }
     if(s && Bookmarks.is(s)){
         Bookmarks.remove(s);
-        notify(Lang.FAV_REMOVED.format(s.name), 'fa-star', 'normal')
+        notify(Lang.FAV_REMOVED.format(s.name), 'fa-star', 'normal');
+        refreshListingIfMatch(Lang.BOOKMARKS)
     }
 }
 
@@ -284,15 +289,9 @@ var parseIPTVListRgxGroup = new RegExp('group\-title *= *["\']*([^,"\']*)', 'i')
 var parseIPTVListRgxLogo = new RegExp('tvg\-logo *= *["\']*([^"\']+)', 'i');
 var parseIPTVListRgxName = new RegExp(',([^,]*)$', 'i');
 
-function playEntry(stream, element){
+function playEntry(stream){
     collectPackageQueue(stream);
     top.createPlayIntentAsync(stream, {}, function (intent){
-        intent.on('error', function (){
-            notify(Lang.PLAY_STREAM_FAILURE.format(stream.name), 'fa-exclamation-circle', 'normal')
-        })
-        intent.on('ended', function (){
-            notify(Lang.PLAY_STREAM_FAILURE.format(stream.name), 'fa-exclamation-circle', 'normal')
-        })
         updateStreamEntriesFlags()
     })
 }
