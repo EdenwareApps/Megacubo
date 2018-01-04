@@ -521,7 +521,7 @@ if(typeof(require)!='undefined'){
                 defaultValue = cb;
             }
             top.modalPrompt(question, [
-                ['<i class="fa fa-search" aria-hidden="true"></i> '+Lang.WEB_SEARCH, function (){
+                ['<i class="fa fa-search" aria-hidden="true"></i> '+Lang.FIND_PACKAGES, function (){
                     nw.Shell.openExternal(getIPTVListSearchURL());
                 }],
                 ['<i class="fa fa-check-circle" aria-hidden="true"></i> OK', function (){
@@ -573,7 +573,49 @@ if(typeof(require)!='undefined'){
     
     function playCustomFile(file){
         Store.set('lastCustomPlayFile', file);
-        top.createPlayIntentAsync({url: file, name: basename(file)})
+        top.createPlayIntentAsync({url: file, name: basename(file, true)})
+    }
+
+    function checkPermission(file, mask, cb){ // https://stackoverflow.com/questions/11775884/nodejs-file-permissions
+        fs.stat(file, function (error, stats){
+            if (error){
+                cb (error, false);
+            }else{
+                cb (null, !!(mask & parseInt ((stats.mode & parseInt ("777", 8)).toString (8)[0])));
+            }
+        })
+    }
+
+    function isWritable(path, cb){
+        checkPermission(path, 2, cb);
+    }
+
+    function filesize(filename) {
+        const stats = fs.statSync(filename);
+        const fileSizeInBytes = stats.size;
+        return fileSizeInBytes;
+    }
+
+    function copyFile(source, target, cb) {
+        var cbCalled = false;
+        var done = function (err) {
+            if (!cbCalled) {
+                cb(err);
+                cbCalled = true;
+            }
+        }
+        var rd = fs.createReadStream(source);
+        rd.on("error", function(err) {
+            done(err);
+        });
+        var wr = fs.createWriteStream(target);
+        wr.on("error", function(err) {
+            done(err);
+        });
+        wr.on("close", function(ex) {
+            done();
+        });
+        rd.pipe(wr)
     }
 
     function createShortcut(key, callback, type, enableInInput){
@@ -756,11 +798,14 @@ if(typeof(require)!='undefined'){
         return (title && title == streamTitle && title.indexOf('Megacubo')==-1);
     }
     
-    function basename(str){
+    function basename(str, removeQueryString){
         _str = new String(str); 
         pos = _str.replaceAll('\\', '/').lastIndexOf('/');
         if(pos){
             _str = _str.substring(pos + 1); 
+        }
+        if(removeQueryString){
+            _str = _str.split('?')[0].split('#')[0];
         }
         return _str;
     }
@@ -880,17 +925,6 @@ if(typeof(require)!='undefined'){
                 return o.contentWindow.window;
             }
         }        
-    }
-
-    function callFunctionInWindow(id, _functionName, _args){
-        var w = getFrame(id);
-        if(w && w[_functionName]){
-            w[_functionName].apply(w, _args);
-        } else {
-            setTimeout(function (){
-                callFunctionInWindow(id, _functionName, _args);
-            }, 250);
-        }
     }
     
     function getDefaultLocale(short, noUnderline){

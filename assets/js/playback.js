@@ -119,7 +119,9 @@ var PlaybackManager = {
     },
     stop: function (){
         for(var i=0; i<this.intents.length; i++){
-            this.intents[i].destroy()
+            try{
+                this.intents[i].destroy()
+            } catch(e) {}
         }
         this.intents = [];
         this.activeIntent = false;
@@ -129,6 +131,11 @@ var PlaybackManager = {
             this.trigger('load-out');
         }
         this.trigger('stop')
+    },
+    getURL: function (){
+        if(this.activeIntent){
+            return this.activeIntent.entry.originalUrl || this.activeIntent.entry.url;
+        }
     },
     runFitter: function (){ // frames only
         console.log('PlaybackManager.runFitter()');
@@ -338,26 +345,26 @@ function createFrameIntent(entry, options){
     }
 
     self.play = function (){
-        if(self.videoElement){
+        if(self.getVideo()){
             self.videoElement.play()
         }
     }
 
     self.pause = function (){
-        if(self.videoElement){
+        if(self.getVideo()){
             self.videoElement.pause()
         }
     }
     
     self.seek = function (secs){
-        if(self.videoElement){
+        if(self.getVideo()){
             self.videoElement.currentTime += secs;
         }
     }
 
     self.playing = function (){
         if(self.committed){
-            if(self.videoElement){
+            if(self.getVideo()){
                 return !self.videoElement.paused;
             } else {
                 return true;
@@ -412,8 +419,15 @@ function createFrameIntent(entry, options){
         self.attached = self.videoElement = false;        
     }
     
+    self.getVideo = function (){
+        if(self.fittedScope && (!self.videoElement || !self.videoElement.parentNode)){
+            self.videoElement = self.fittedScope.document.querySelector('video');
+        }
+        return self.videoElement;
+    }
+    
     self.patchVideo = function (){
-        if(self.videoElement){
+        if(self.getVideo()){
             var f = function (e){
                 console.log(self);
                 e.preventDefault();
@@ -506,32 +520,43 @@ function createDirectIntent(entry, options){
     }
 
     self.play = function (){
-        if(self.attached){
-            self.controller.play()
+        if(self.getVideo()){
+            self.videoElement.play()
         }
     }
 
     self.pause = function (){
-        if(self.attached){
-            self.controller.pause()
+        if(self.getVideo()){
+            self.videoElement.pause()
         }
     }
     
     self.seek = function (secs){
-        if(self.attached){
+        if(self.getVideo()){
             self.videoElement.currentTime += secs;
         }
     }
     
     self.playing = function (){
-        if(self.attached){
-            return !self.controller.paused()
+        if(self.getVideo()){
+            return !self.videoElement.paused;
         }
     }
     
+    self.getVideo = function (){
+        if(!self.videoElement || !self.videoElement.parentNode){
+            self.videoElement = getFrame('player').videoElement();
+        }
+        return self.videoElement;
+    }
+
     self.commit = function (){
         jQuery('#player').removeClass('hide').addClass('show');
         NativePlayURL(self.prxurl, self.mimetype, 
+            function (){ // started
+                self.videoElement = getFrame('player').videoElement();
+                playPauseNotify()
+            },
             function (){ // ended
                 console.log('Playback ended.');
                 self.ended = true;
@@ -631,32 +656,36 @@ function createFFmpegIntent(entry, options){
     }
 
     self.play = function (){
-        if(self.attached){
-            self.controller.play()
+        if(self.getVideo()){
+            self.videoElement.play()
         }
     }
 
     self.pause = function (){
-        if(self.attached){
-            self.controller.pause()
+        if(self.getVideo()){
+            self.videoElement.pause()
         }
     }
     
     self.seek = function (secs){
-        if(self.attached){
+        if(self.getVideo()){
             self.videoElement.currentTime += secs;
         }
     }
     
     self.playing = function (){
-        if(self.attached){
-            return !self.controller.paused()
+        if(self.getVideo()){
+            return !self.videoElement.paused;
         }
     }
     
     self.commit = function (){
         jQuery('#player').removeClass('hide').addClass('show');
         NativePlayURL(self.instance.file, 'application/x-mpegURL; codecs="avc1.4D401E, mp4a.40.2"', 
+            function (){ // started
+                self.videoElement = getFrame('player').videoElement();
+                playPauseNotify()
+            },
             function (){ // ended
                 console.log('Playback ended.');
                 self.ended = true;
@@ -681,6 +710,13 @@ function createFFmpegIntent(entry, options){
         }
         self.ended = true;
         self.attached = self.videoElement = false;  
+    }
+    
+    self.getVideo = function (){
+        if(!self.videoElement || !self.videoElement.parentNode){
+            self.videoElement = getFrame('player').videoElement();
+        }
+        return self.videoElement;
     }
     
     self.run = function (){
@@ -804,31 +840,35 @@ function createMagnetIntent(entry, options){
     }
 
     self.play = function (){
-        if(self.attached){
-            self.controller.play()
+        if(self.getVideo()){
+            self.videoElement.play()
         }
     }
 
     self.pause = function (){
-        if(self.attached){
-            self.controller.pause()
+        if(self.getVideo()){
+            self.videoElement.pause()
         }
     }
     
     self.seek = function (secs){
-        if(self.attached){
+        if(self.getVideo()){
             self.videoElement.currentTime += secs;
         }
     }
     
     self.playing = function (){
-        if(self.attached){
-            return self.controller.isPlaying()
+        if(self.getVideo()){
+            return !self.videoElement.paused;
         }
     }
         
     self.commit = function (){
         NativePlayURL(self.instance.file, 'application/x-mpegURL; codecs="avc1.4D401E, mp4a.40.2"', 
+            function (){ // started
+                self.videoElement = getFrame('player').videoElement();
+                playPauseNotify()
+            },
             function (){ // ended
                 console.log('Playback ended.');
                 self.ended = true;
@@ -866,6 +906,13 @@ function createMagnetIntent(entry, options){
         }
         self.ended = true;
         self.attached = self.videoElement = false;  
+    }
+    
+    self.getVideo = function (){
+        if(!self.videoElement || !self.videoElement.parentNode){
+            self.videoElement = getFrame('player').videoElement();
+        }
+        return self.videoElement;
     }
 
     self.stream = function (){
@@ -976,7 +1023,7 @@ function createMagnetIntent(entry, options){
 // ? videojs.Hls = require('videojs-contrib-hls');
 // require('videojs-contrib-hls'); // gaving up of setup video.js with require :(
 
-function NativePlayURL(dest, mimetype, ended, error) {
+function NativePlayURL(dest, mimetype, started, ended, error) {
     showPlayers(true, false);
     if(!mimetype){
         mimetype = 'application/x-mpegURL';
@@ -984,16 +1031,22 @@ function NativePlayURL(dest, mimetype, ended, error) {
     console.log('WAITREADY');
     var pl = getFrame('player');
     pl.src(dest, mimetype);
-    if(error){
-        var v = pl.document.querySelector('video');
-        if(v) v.addEventListener('error', error);
-    }
-    if(ended){
-        var v = pl.document.querySelector('video');
-        if(v) v.addEventListener('ended', ended);
-    }
-    pl.play();
-    leavePendingState()
+    pl.player.ready(() => {
+        var v = jQuery(pl.document.querySelector('video'));
+        if(v){
+            if(started){
+                v.off('play').on('play', started)
+            }
+            if(error){
+                v.off('error').on('error', error)
+            }
+            if(ended){
+                v.off('ended').on('ended', ended)
+            }
+        }
+        pl.play();
+        leavePendingState()
+    })
 }
 
 function NativeStop(dest) {
@@ -1216,16 +1269,23 @@ function unloadFrames(){
 function delayedPlayPauseNotify(){
     setTimeout(function (){
         playPauseNotify()
-    }, 400)
+    }, 250)
     setTimeout(function (){
         playPauseNotify()
-    }, 1500)
+    }, 1000)
 }
 
-PlaybackManager.on('commit', onIntentCommited);
 PlaybackManager.on('play', delayedPlayPauseNotify);
 PlaybackManager.on('pause', delayedPlayPauseNotify);
-PlaybackManager.on('commit', delayedPlayPauseNotify);
+PlaybackManager.on('register', function (intent, entry){
+    intent.on('error', function (){
+        setTimeout(function (){
+            if(!top.PlaybackManager.isLoading(intent.entry.originalUrl)){ // don't alert user if has sideload intents
+                notify(Lang.PLAY_STREAM_FAILURE.format(intent.entry.name), 'fa-exclamation-circle', 'normal')
+            }
+        }, 200)
+    })
+})
 PlaybackManager.on('commit', function (intent, entry){
     intent.on('error', function (){
         setTimeout(function (){
@@ -1247,6 +1307,8 @@ PlaybackManager.on('commit', function (intent, entry){
             }
         }      
     })
+    onIntentCommited(intent, entry);
+    delayedPlayPauseNotify();
     sendStats('play', entry)
 });
 PlaybackManager.on('stop', function (){

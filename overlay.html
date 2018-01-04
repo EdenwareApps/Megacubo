@@ -48,21 +48,23 @@
                         })
                     } else {
                         fs.open(file, 'r', function(err, fd) {
-                            fs.fstat(fd, function(err, stats) {
-                                if(stats.size < 5 * (1024 * 1024)){
-                                    var buffer = new Buffer(probeSize);
-                                    fs.read(fd, buffer, 0, probeSize, 0, (err, bytes, buff) => {
-                                        var response = String(buff);
-                                        console.log(response);
-                                        if(response.toUpperCase().indexOf('#EXTINF')!=-1){
-                                            openFile(file)
-                                        } else {
-                                            playCustomURL(file, true)
-                                        }
-                                    });
-                                }
-                                fs.close(fd)
-                            })
+                            if(!err){
+                                fs.fstat(fd, function(err, stats) {
+                                    if(stats.size < 5 * (1024 * 1024)){
+                                        var buffer = new Buffer(probeSize);
+                                        fs.read(fd, buffer, 0, probeSize, 0, (err, bytes, buff) => {
+                                            var response = String(buff);
+                                            console.log(response);
+                                            if(response.toUpperCase().indexOf('#EXTINF')!=-1){
+                                                openFile(file)
+                                            } else {
+                                                playCustomURL(file, true)
+                                            }
+                                        });
+                                    }
+                                    fs.close(fd)
+                                })
+                            }
                         })
                     }
                 }
@@ -75,7 +77,9 @@
                     } else if(type == 'list'){
                         var d = new Date();
                         var datestring = " "+d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0" + d.getDate()).slice(-2) + " " + ("0" + d.getHours()).slice(-2) + "-" + ("0" + d.getMinutes()).slice(-2);
-                        getFrame('controls').registerSource(url, basename(url)+' - '+datestring)
+                        var name = basename(url, true)+' - '+datestring;
+                        console.log(name);
+                        getFrame('controls').registerSource(url, name)
                     }
                 })
             }
@@ -90,6 +94,7 @@
                 dragDrop(dropTarget, {
                     onDrop: function (files, pos) {
                         top.document.querySelector('iframe#overlay').style.pointerEvents = 'none';
+                        dropTarget.style.backgroundColor = 'transparent';
                         console.log('Here are the dropped files', files);
                         files.forEach(file => {
                             processFile(file.path)
@@ -107,6 +112,9 @@
                         top.document.querySelector('iframe#overlay').style.pointerEvents = 'none';
                         dropTarget.style.backgroundColor = 'transparent';
                         console.log('Here is the dropped text', text);
+                        if(text.match(new RegExp('^[a-z\\-]+\\.'))){
+                            text = 'http://'+text;
+                        }
                         processFile(text)
                     }
                 });

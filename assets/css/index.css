@@ -79,8 +79,10 @@ body.isovercontrols iframe#controls, body.istyping iframe#controls {
     transform: translate(0%, 0) rotateY(0deg);
 }
 
-body.frameless:not(.isovercontrols) div#drag-helper {
-    display: inline-block;
+@media (max-height: 800px) {
+    body.frameless:not(.isovercontrols) div#drag-helper {
+        display: inline-block;
+    }
 }
 
 body.frameless .fit-screen {
@@ -146,6 +148,7 @@ div#modal-overlay .prompt {
     max-width: calc(80% + 4px);
     border-radius: 3px;
     overflow: hidden;
+    box-shadow: 2px 2px 60px 0 #000;
 }
 
 div#modal-overlay .prompt textarea, div#modal-overlay .prompt input {
@@ -189,6 +192,12 @@ div#modal-overlay .prompt textarea {
     background: #e5e9ef;
     color: #000;
     text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.25);
+    padding: 0 26px;
+    box-sizing: border-box;
+}
+
+.prompt-footer {
+    background: #325EA8;
 }
 
 .prompt-footer .button {

@@ -32,6 +32,11 @@ function getWindowModeEntries(){
     options.push({name: Lang.START_IN_FULLSCREEN, type: 'check', check: function (checked){
         Store.set('start-in-fullscreen', checked)
     }, checked: Store.get('start-in-fullscreen')})
+    options.push({name: Lang.USE_HARDWARE_ACCELERATION, type: 'check', check: function (checked){
+        notify(Lang.SHOULD_RESTART, 'fa-cogs', 'normal');
+        Store.set('disable-gpu', !checked);
+        top.setHardwareAcceleration(checked)
+    }, checked: !Store.get('disable-gpu')})
     /*
     options.push({name: 'Chromecast', logo:'fa-chrome', type: 'option', callback: function (){
         top.castManagerInit();
@@ -143,7 +148,7 @@ function getPackagesEntries(){
         options.push({name: entry[0], logo:'fa-shopping-bag', type: 'option', url: entry[1], label: Lang.STREAMS+': '+length+' &middot '+Lang.GROUPS+': '+groups, 
             callback: function (data){
                 //console.log(data);
-                setActiveSource(data.url, false);
+                setActiveSource(data.url);
                 setTimeout(function (){
                     listEntriesByPath(Lang.CHANNELS)
                 }, 1000)
@@ -161,7 +166,7 @@ function getPackagesEntries(){
     }
     options.push({name: Lang.ADD_NEW_PACKAGE, logo:'fa-plus', type: 'option', callback: addNewSource});
     options.push({name: Lang.REMOVE_PACKAGE, logo:'fa-trash', type: 'group', renderer: getPackagesEntriesForRemoval, callback: markActiveSource});
-    options.push({name: Lang.WEB_SEARCH, logo:'fa-search', type: 'option', callback: function (){nw.Shell.openExternal(getIPTVListSearchURL())}});
+    options.push({name: Lang.FIND_PACKAGES, logo:'fa-search', type: 'option', callback: function (){nw.Shell.openExternal(getIPTVListSearchURL())}});
     return options;
 }
 

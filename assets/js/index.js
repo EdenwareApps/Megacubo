@@ -1,7 +1,7 @@
 //import { clearTimeout } from 'timers';
 
 var os = require('os'), mkdirp = require('mkdirp'), jWin = jQuery(window), lastOnTop, castManager;
-
+var isSDKBuild = (window.navigator.plugins.namedItem('Native Client') !== null);
 var clipboard = gui.Clipboard.get();
 
 //gui.App.setCrashDumpDir(process.cwd());
@@ -95,6 +95,20 @@ function fixMaximizeButton(){
     }
 }
 
+function setHardwareAcceleration(enable){
+    getManifest(function (manifest){
+        var enableFlags = ['--disable-gpu-blacklist'];
+        var disableFlags = ['--disable-gpu', '--force-cpu-draw'];
+        enableFlags.concat(disableFlags).forEach((flag) => {
+            manifest['chromium-args'] = manifest['chromium-args'].replace(flag, '')
+        });
+        (enable?enableFlags:disableFlags).forEach((flag) => {
+            manifest['chromium-args'] = manifest['chromium-args'] += ' '+flag;
+        });
+        fs.writeFile('package.json', JSON.stringify(manifest, null, 4))
+    })
+}
+
 function showMaximizeButton(){
     var e = document.querySelector('.nw-cf-maximize');
     if(e){ // at fullscreen out or unminimize the maximize button was disappearing
@@ -150,7 +164,7 @@ function playExternal(url){
         } else if(isM3U8(url)) {
             url = 'https://play.megacubo.tv/index.html?url='+encodeURIComponent(url);
         }
-        gui.Shell.openExternal(url);
+        gui.Shell.openExternal(url)
     }
     stop();
 }
@@ -216,7 +230,10 @@ function playPauseNotify(){
 
 function goHome(){
     stop();
-    callFunctionInWindow("controls", "listEntriesByPath", ["/"])
+    var c = getFrame('controls');
+    if(c){
+        c.listEntriesByPath('/')
+    }
 }
 
 var decodeEntities = (function() {
@@ -348,7 +365,10 @@ function bindWebRequest(){
                         if(fitterTestedStreams.indexOf(details.url)==-1){
                             fitterTestedStreams.push(details.url);
                             console.log('Going internal...');
-                            callFunctionInWindow("controls", "sideLoadPlay", [details.url]);
+                            var c = getFrame('controls');
+                            if(c){
+                                c.sideLoadPlay(details.url)
+                            }
                         }
                     } else {
                         console.log('M3U8 referer missing...');
@@ -373,11 +393,11 @@ function bindWebRequest(){
         if(message == "Network.responseReceived" && params.response){
             requestIdMap[params.requestId] = params.response.url;
         }
-        if(message == 'Network.loadingFinished') {
+        if(isRecording && message == 'Network.loadingFinished') {
             if(debug){
                 console.log('FINISHED', params, requestIdMap[params.requestId]);
             }
-            if(typeof(requestIdMap[params.requestId])!='undefined' && ['mp4', 'ts', 'aac'].indexOf(getExt(requestIdMap[params.requestId]))!=-1){
+            if(typeof(requestIdMap[params.requestId])!='undefined' && ['ts'].indexOf(getExt(requestIdMap[params.requestId]))!=-1){
                 if(requestIdMap[params.requestId].substr(0, 7)=='chrome-'){ // chrome-extension://dfaejjeepofbfhghijpmopheigokobfp/
                     var local = requestIdMap[params.requestId].replace(new RegExp('chrome\-extension://[^/]+/'), '');
                     if(debug){
@@ -397,9 +417,9 @@ function bindWebRequest(){
                             console.log('MEDIA RECEIVED');
                             doAction('media-received', requestIdMap[params.requestId], response);
                         }
-                        try {
-                            chrome.debugger.detach(debuggeeId);
-                        } catch(e) { }
+                        //try {
+                        //    chrome.debugger.detach(debuggeeId);
+                        //} catch(e) { }
                     })
                 }
             }
@@ -407,20 +427,23 @@ function bindWebRequest(){
     }
 
     chrome.tabs.getCurrent(function(currentTab) {
-            chrome.debugger.attach({ //debug at current tab
+        chrome.debugger.attach({ //debug at current tab
+            tabId: currentTab.id
+        }, "1.0", function () {    
+            chrome.debugger.sendCommand({ tabId: currentTab.id }, "Network.enable");  //first enable the Network
+            chrome.debugger.onEvent.addListener(chromeDebuggerEventHandler);  
+            if(!isSDKBuild){
+                try{
+                    win.closeDevTools()
+                }catch(e){}
+            }
+        })
+        jQuery(window).on('beforeunload unload', function (){
+            chrome.debugger.detach({ // is this the right way?!
                 tabId: currentTab.id
-            }, "1.0", function () {    
-                chrome.debugger.sendCommand({ tabId: currentTab.id }, "Network.enable");  //first enable the Network
-                chrome.debugger.onEvent.addListener(chromeDebuggerEventHandler);  
-                //win.closeDevTools()
             })
-            jQuery(window).on('unload', function (){
-                chrome.debugger.detach({ // is this the right way?!
-                    tabId: currentTab.id
-                })
-            })
-        }
-    )
+        })
+    })
 
     /*
     PARAMS
@@ -468,8 +491,18 @@ type: "Other"
 }
 
 function saveAs(file, callback){
+    var _callback = (file) => {
+        isWritable(dirname(file), (err, writable) => {
+            if(writable){
+                callback(file)
+            } else {
+                alert(Lang.FOLDER_NOT_WRITABLE);
+                saveAs(file, callback)
+            }
+        })
+    }
     if(isFullScreen() && file){
-        return callback(file)
+        return _callback(file)
     }
     if(!file) file = '';
     jQuery('<input id="saveas" type="file" nwsaveas />').
@@ -480,7 +513,7 @@ function saveAs(file, callback){
             if(!chosenFile){
                 chosenFile = file;
             }
-            callback(chosenFile)
+            _callback(chosenFile)
         }).
         trigger('click')
 }
@@ -502,12 +535,44 @@ function startRecording(){
     if(isRecording === false){
         var folder = 'recordings/session';
         fs.mkdir(folder, function(err){
-            removeFolder(folder, false, function (){
-                isRecording = {folder: folder};
+            removeFolder(folder, false, function (){ // just empty the folder
+                isRecording = {folder: folder}; // recording now
+                var url = PlaybackManager.getURL();
+                if(url && !isLive(url) && isVideo(url)){
+                    if(typeof(request)!='function'){
+                        request = require('request')
+                    }
+                    isRecording.totalBytes = 0;
+                    isRecording.receivedBytes = 0;
+                    isRecording.capturingFile = folder+'/'+time()+'.tmp';
+                    isRecording.capturingStream = fs.createWriteStream(isRecording.capturingFile, {'flags': 'w'});
+                    isRecording.capturingStream.on('error', () => {
+                        console.log('Stream write error', arguments)
+                    });
+                    isRecording.capturingRequest = request.
+                        get(url).
+                        on('response', function(data) {
+                            isRecording.totalBytes = parseInt(data.headers['content-length'] || 0);
+                        }).
+                        on('data', function(chunk) {
+                            isRecording.capturingStream.write(chunk, 'binary');
+                            isRecording.receivedBytes += chunk.length;
+                        }).
+                        on('end', function() {
+                            console.log('END');
+                            isRecording.capturingStream.end()
+                        }).
+                        on('error', function(err) {
+                            console.log("Error during HTTP request");
+                            console.log(err);
+                            isRecording.capturingStream.end();
+                            stopRecording()
+                        });
+                }
             })
         })
         doAction('recording-start', folder);
-        notify(Lang.RECORDING_STARTED, 'fa-download', 'normal')
+        notify(Lang.RECORDING_STARTED, 'fa-download', 'normal');
     }
 }
 
@@ -523,93 +588,118 @@ function stopRecording(){
         var datestring = " "+d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0" + d.getDate()).slice(-2) + " " + ("0" + d.getHours()).slice(-2) + "-" + ("0" + d.getMinutes()).slice(-2);
         name += datestring;
         var data = isRecording, originalOutputFile, outputFile = dirname(data.folder) + '/'+name+'.mp4';
-        isRecording = false;
-        doAction('recording-stop', data);        
-        doAction('recording-save-start', data);
-        fs.readdir(data.folder, function (err, files){
-            if(err){
-                console.log('Error while saving file list.');
-                doAction('recording-save-failure', data)
-            } else {
-                var list = '', listFile = data.folder+'/list.txt';
-                for(var i=0; i<files.length; i++){
-                    list += "file "+files[i]+"\r\n";
+        if(typeof(isRecording.capturingStream)!='undefined'){
+            isRecording.capturingRequest.abort();
+            isRecording.capturingStream.end();
+            var _file = isRecording.capturingFile;
+            isRecording = false;
+            doAction('recording-stop', data);        
+            doAction('recording-save-start', data);
+            console.log('aaa');
+            saveAs(outputFile, function (file){
+                console.log('aaa1', file);
+                if(file && file != outputFile){
+                    outputFile = file;
                 }
-				fs.writeFile(listFile, list, function (err){
-                    if(err){
-                        console.log('Error while saving the list file.');
-                        doAction('recording-save-failure', data)
-                    } else {
-                        var joinedFile = data.folder+'/joined.ts', joiner = ffmpeg({
-                            source: listFile
-                        }).
-                        inputOptions('-y').
-                        inputOptions('-safe 0').
-                        inputOptions('-f concat').
-                        addOption('-c copy').
-                        output(joinedFile).
-                        on('error', function (err){
-                            console.log('Error while saving joined file.', joinedFile, err);
+                console.log('aaa2', _file, outputFile);
+                moveFile(_file, outputFile);
+                console.log('aaa3', outputFile);
+                registerRecording(outputFile);
+                console.log('aaa4', outputFile);
+                doAction('recording-save-end', outputFile, data)
+                console.log('aaa5');
+            })
+        } else {
+            isRecording = false;
+            doAction('recording-stop', data);        
+            doAction('recording-save-start', data);
+            fs.readdir(data.folder, function (err, files){
+                if(err || !files.length){
+                    console.log('Error while saving file list.');
+                    doAction('recording-save-failure', data)
+                } else {
+                    var list = '', listFile = data.folder+'/list.txt';
+                    for(var i=0; i<files.length; i++){
+                        if(isVideo(files[i])){
+                            list += "file "+files[i]+"\r\n";
+                        }
+                    }
+                    fs.writeFile(listFile, list, function (err){
+                        if(err){
+                            console.log('Error while saving the list file.');
                             doAction('recording-save-failure', data)
-                        }).
-                        on('end', function (){
-                            originalOutputFile = outputFile;
-                            var saver = ffmpeg({
-                                source: joinedFile
+                        } else {
+                            var joinedFile = data.folder+'/joined.ts', joiner = ffmpeg({
+                                source: listFile
                             }).
-                            videoCodec('copy').
-                            audioCodec('aac').
                             inputOptions('-y').
-                            addOption('-bsf:a aac_adtstoasc').
-                            format('mp4').
-                            output(originalOutputFile).
-                            on('start', function(commandLine) {
-                                console.log('Spawned FFmpeg with command: ' + commandLine)
-                            }).
+                            inputOptions('-safe 0').
+                            inputOptions('-f concat').
+                            addOption('-c copy').
+                            output(joinedFile).
                             on('error', function (err){
-                                console.log('Error while saving output file.', outputFile, err);
+                                console.log('Error while saving joined file.', joinedFile, err);
                                 doAction('recording-save-failure', data)
                             }).
                             on('end', function (){
                                 originalOutputFile = outputFile;
-                                registerRecording(outputFile);
-                                saveAs(outputFile, function (file){
-                                    if(file && file != outputFile){
-                                        moveFile(outputFile, file)
-                                        registerRecording(file, outputFile);
-                                        outputFile = file;
-                                    }
-                                });
-                                removeFolder(data.folder);
-                                doAction('recording-save-end', outputFile, data)
+                                var saver = ffmpeg({
+                                    source: joinedFile
+                                }).
+                                videoCodec('copy').
+                                audioCodec('aac').
+                                inputOptions('-y').
+                                addOption('-bsf:a aac_adtstoasc').
+                                format('mp4').
+                                output(originalOutputFile).
+                                on('start', function(commandLine) {
+                                    console.log('Spawned FFmpeg with command: ' + commandLine)
+                                }).
+                                on('error', function (err){
+                                    console.log('Error while saving output file.', outputFile, err);
+                                    doAction('recording-save-failure', data)
+                                }).
+                                on('end', function (){
+                                    originalOutputFile = outputFile;
+                                    registerRecording(outputFile);
+                                    saveAs(outputFile, function (file){
+                                        if(file && file != outputFile){
+                                            moveFile(outputFile, file)
+                                            registerRecording(file, outputFile);
+                                            outputFile = file;
+                                        }
+                                    });
+                                    removeFolder(data.folder);
+                                    doAction('recording-save-end', outputFile, data)
+                                }).run();
                             }).run();
-                        }).run();
-                    }
-                })
-            }
-        })
+                        }
+                    })
+                }
+            })
+        }
     }
 }
 
 function moveFile(from, to, callback){
     if(from == to){
-        callback(to);
-        return;
-    }
-    fs.copyFile(from, to, function (err){
-        if (err){
-            fs.unlink(to);
-            if(callback){
-                callback(from)
-            }
-        } else {
-            fs.unlink(from, function (){
+        callback(to)
+    } else {
+        copyFile(from, to, function (err){
+            if (err){
+                fs.unlink(to);
                 if(callback){
-                    callback(to)
+                    callback(from)
                 }
-            })
-        }
-    })
+            } else {
+                fs.unlink(from, function (){
+                    if(callback){
+                        callback(to)
+                    }
+                })
+            }
+        })
+    }
 }
 
 function makeModal(content){
@@ -944,8 +1034,11 @@ jQuery(function (){
                     b.removeClass('frameless');
                 }
                 win.setShowInTaskbar(!changeTaskbar); // hide for miniplayer only
-                callFunctionInWindow("controls", "showWindowHandle", [onTop]);
-            }, 50);
+                var c = getFrame('controls');
+                if(c){
+                    c.showWindowHandle(onTop)
+                }
+            }, 50)
         }
     }); 
     addAction('uncommit', function (prevIntent, nextIntent){
@@ -953,12 +1046,28 @@ jQuery(function (){
             stopRecording()
         }
     });
+    var recordingJournal = [], recordingJournalLimit = 8;
     addAction('media-received', function (url, content){
         if(isRecording !== false){
-            //console.log('RECEIVED', url, content);
+            console.log('RECEIVED', url);
+            var length = (typeof(content)=='string') ? filesize(content) : content.body.length; 
+            if(!length){
+                console.log('Empty media skipped.');
+                return;
+            }
+            for(var key in recordingJournal){
+                if(length && recordingJournal[key] == length){
+                    console.log('Duplicated media skipped.');
+                    // !!!!! TODO: Compare deeper if the files are really the same.
+                    // !!!!! TODO: Compare deeper if the files are really the same.
+                    return;
+                }
+            }
             var file = isRecording.folder+'/'+time()+'.'+getExt(url);
+            recordingJournal[file] = length;
+            recordingJournal = sliceObject(recordingJournal, recordingJournalLimit * -1);
             if(typeof(content)=='string'){
-                fs.copyFile(content, file, function (err){
+                fs.copyFile(content, file, function (err){ // here content is the name of the source file
                     if(err){
                         console.log('WRITE ERROR', err)
                     }

@@ -180,10 +180,7 @@ function getIPTVListAddr(callback, value) {
     var def = getActiveSource();
     var url = validateIPTVListURL(def, placeholder);
     if(url){
-        registerSource(url);
-        if(url != def){
-            setActiveSource(url);
-        }
+        registerSource(url)
     }
     callback(url);
     //return 'http://pastebin.com/raw/TyG4tRKP';
@@ -200,7 +197,7 @@ function getIPTVListSearchTerm(){
 function getIPTVListSearchURL(){
     var q = getIPTVListSearchTerm();
     q = q.replaceAll(" ", "+");
-    return "https://www.google.com.br/search?safe=off&q="+q+"&oq="+q;
+    return "https://www.google.com.br/search?safe=off&tbs=qdr:m&q="+q+"&oq="+q;
 }
 
 function extractM3U8List(content){
@@ -237,7 +234,7 @@ function fetchIPTVListFromAddr(addr, callback){
             callback(content, addr)
         }
         miniget(addr, function (err, object, response){
-            if(response){
+            if(response && response.indexOf('#EXT')!=-1){
                 internalCallback(response)
             } else {
                 internalCallbackError(response)
@@ -265,7 +262,7 @@ function getIPTVListContent(callback, lastTriedAddr, silent) {
         if(!addr){
             console.log('No addr? '+JSON.stringify(addr)+' ('+(silent?'Y':'N')+')');
             if(!silent){
-                askForSource(Lang.ASK_IPTV_LIST_FIRST.format(Lang.WEB_SEARCH), function (url){
+                askForSource(Lang.ASK_IPTV_LIST_FIRST.format(Lang.FIND_PACKAGES), function (url){
                     notify(Lang.PROCESSING, 'fa-spin fa-circle-o-notch', 'wait');
                     checkM3U8Type(url, function (url, type){
                         if(type == 'list'){
@@ -363,8 +360,15 @@ function parseIPTVListToIndex(content, listUrl){
     }
 
     //console.log('! flatList !', JSON.stringify(flatList));
-    flatList.sort(function(a,b) {return (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0);} ); 
-    flatList.sort(function(a,b) {return (a.group > b.group) ? 1 : ((b.group > a.group) ? -1 : 0);} ); 
+    flatList.sort(function(a,b) {
+        if(a.group > b.group){
+            return 1;
+        } else if(a.group < b.group) {
+            return -1;
+        } else {
+            return (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0);
+        }
+    }); 
     if(listUrl){
         window.flatChannelsList[listUrl] = flatList;
         setSourceMeta(listUrl, 'length', flatList.length)
@@ -710,6 +714,7 @@ function registerSource(url, name){
     sources.push([name, url]);
     Store.set(key, sources);
     notify(Lang.PACKAGE_ADDED, 'fa-star', 'normal');
+    setActiveSource(url);
     refreshListing();
     return true;
 }
@@ -776,7 +781,7 @@ function getActiveSource(){
     return sources[0];
 }
 
-function setActiveSource(url, render){
+function setActiveSource(url){
     var skey = 'sources';
     var sources = Store.get(skey);
     var entry = [getNameFromSource(url), url];
@@ -798,7 +803,6 @@ function setActiveSource(url, render){
         } else {
             window.channelsIndex[url] = [{name: Lang.EMPTY, logo:'fa-files-o', type: 'option'}]
         }
-        console.log(parsed);
         if(typeof(window.index)=='object'){
             window.index = writeIndexPathEntries(Lang.CHANNELS, window.channelsIndex[url]);
             var locale = getLocale(false, true), length = getSourceMeta(url, 'length') || 0;
@@ -847,11 +851,26 @@ jQuery(function (){
     })
 })
 
-jQuery(window).on('unload', function (){
+jQuery(window).one('unload', function (){
     top.sendStats('unreg')
 })
+    
+jQuery(document).one('show', () => {
+    jQuery.getJSON('http://app.megacubo.net/configure.json?_=', function (data){
+        var currentVersion = data.version;
+        getManifest(function (data){
+            console.log('VERSION', data.version, currentVersion)
+            if(data.version < currentVersion){
+                jQuery('#help').html('<i class="fa fa-bell" aria-hidden="true"></i>').css('color', '#ff6c00');
+                if(confirm(Lang.NEW_VERSION_AVAILABLE)){
+                    gui.Shell.openExternal('https://megacubo.tv/online/2018/?version='+currentVersion);
+                }
+            }
+        })
+    })
+})
 
-jQuery(document).on('lngload', function (){
+jQuery(document).one('lngload', function (){
     window.index = [
         {name: Lang.CHANNELS, logo:'assets/icons/white/tv.png', url:'javascript:;', type: 'group', entries: []},
         {name: Lang.SEARCH, logo:'assets/icons/white/search.png', url:'javascript:;', type: 'option', callback: function (){showSearchField()}},
@@ -903,16 +922,6 @@ jQuery(document).on('lngload', function (){
             }
         }
     })
-    
-    jQuery.getJSON('http://app.megacubo.net/configure.json?_=', function (data){
-        var currentVersion = data.version;
-        getManifest(function (data){
-            console.log('VERSION', data.version, currentVersion)
-            if(data.version < currentVersion){
-                jQuery('#help').html('<i class="fa fa-bell" aria-hidden="true"></i>').css('color', '#ff6c00')
-            }
-        })
-    });
 
     setTimeout(function (){
         win.show();
@@ -920,7 +929,8 @@ jQuery(document).on('lngload', function (){
             top.restoreInitialSize();
             if(top.splash){
                 top.splash.hide()
-            }
+            };
+            jQuery(document).trigger('show')
         }
     }, 2000)
 })

@@ -849,7 +849,10 @@ var doFindStreams = function (scope){
         var stream = findStream();
         if(stream){
             console.log('FOUNDSTREAM', stream);
-            top.window.callFunctionInWindow("controls", "sideLoadPlay", [stream]);
+            var c = getFrame('controls');
+            if(c){
+                c.sideLoadPlay(stream)
+            }
         } else {
             console.log('NOSTREAMFOUND', window.document.URL);
         }

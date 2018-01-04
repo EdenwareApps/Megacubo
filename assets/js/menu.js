@@ -424,7 +424,8 @@ function findEntries(term){
             stub += jQuery(this).find('.entry-name').html().toLowerCase();
         }
         var h = top.window.decodeEntities(stub);
-        if(h.indexOf(term) == -1){console.log(stub, term);
+        if(h.indexOf(term) == -1){
+            //console.log(stub, term);
             return false;
         }
         return true;
