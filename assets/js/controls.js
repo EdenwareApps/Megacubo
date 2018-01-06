@@ -270,11 +270,12 @@ function getIPTVListContent(callback, lastTriedAddr, silent) {
                             registerSource(url);
                             top.modalClose()
                         } else {
-                            notify(Lang.IPTV_LIST_PARSE_ERROR, 'fa-exclamation-circle', 'normal')
+                            notify(Lang.INVALID_URL_MSG, 'fa-exclamation-circle', 'normal')
                         }
                     })
                     return false;
-                })
+                });
+                jQuery(top.document).find('.prompt-close').remove()
             }
             return;
         }
@@ -293,24 +294,46 @@ function playEntry(stream){
     })
 }
 
+var sideLoadTried = [];
+jQuery(() => {
+    top.PlaybackManager.on('commit', function (intent){
+        if(!intent.sideload){
+            sideLoadTried = [];
+        }
+    })
+});
+
 function sideLoadPlay(url){
     console.log('SIDELOADPLAY', url);
-    var frameIntents = top.PlaybackManager.query({type: 'frame', started: false});
-    if(!frameIntents.length){
-        frameIntents = top.PlaybackManager.query({type: 'frame'});
-    }
-    if(frameIntents.length){
-        var urls = top.PlaybackManager.isLoading(true);
-        if(urls.indexOf(url)==-1){
-            var entry = frameIntents[0].entry;
-            entry.url = url;
-            console.log('SIDELOADPLAY OK', entry, urls);
-            top.createFFmpegIntent(entry, {sideload: true})
+    var frameIntents = top.PlaybackManager.query({type: 'frame', error: false, ended: false});
+    if(frameIntents.length){ // only allow sideload if there's at least one frame intent active
+        if(sideLoadTried.indexOf(url) === -1){ // not already tried
+            sideLoadTried.push(url);
+            var sameURLIntents = top.PlaybackManager.query({url: url});
+            if(!sameURLIntents.length){
+                var entry = frameIntents[0].entry;
+                entry.url = url;
+                console.log('SIDELOADPLAY OK', entry);
+                top.createPlayIntentAsync(entry, {sideload: true, 'pre-commit': function (allow, intent){
+                    console.log('PRE-COMMIT');
+                    if(top.PlaybackManager.activeIntent){ // frame is active, user hasn't changed the channel
+                        console.log('PRE-COMMIT 1');
+                        if(intent.entry.originalUrl == top.PlaybackManager.activeIntent.entry.originalUrl){ // this sideload intent is really derived from the current activeIntent
+                            console.log('PRE-COMMIT 2');
+                            return true;
+                        }
+                    }
+                    console.log('PRE-COMMIT 3');
+                    return false;
+                }})
+            } else {
+                console.log('SIDELOADPLAY SKIPPED') // url already (side)loading
+            }
         } else {
-            console.log('SIDELOADPLAY SKIPPED');
+            console.log('SIDELOADPLAY SKIPPED *', sideLoadTried) // no frame intent
         }
     } else {
-        console.log('SIDELOADPLAY FAIL', url);
+        console.log('SIDELOADPLAY SKIPPED **', top.PlaybackManager.log()) // no frame intent
     }
 }
 
@@ -421,7 +444,7 @@ function playResume(){
     var entries = History.get();
     console.log(entries);
     if(entries.length){
-        console.log('resume ...');
+        console.log('resume...');
         var i = 0;
         var events = {
 			start: function (){
@@ -429,22 +452,25 @@ function playResume(){
 			},
 			error: function (){
                 console.log('RESUME ERROR '+document.URL);
-                if(!top.PlaybackManager.playing()){
+                if(!top.PlaybackManager.query({error: false, ended: false}).length){
+                    i++;
+                    if(i <= entries.length){
+                        top.createPlayIntentAsync(entries[i], events);
+                        return true;
+                    } else {
+                        console.log('No more history entries to resume.');
+                    }
+                } else {
                     console.log('RESUME INTERRUPTED, ALREADY PLAYING');
                     return;
                 }
-				i++;
-				if(i <= entries.length){
-					top.createPlayIntentAsync(entries[i], events);
-					return true;
-				} else {
-					console.log('No more history entries to resume.');
-				}
 			}
-		};
-        console.log(i);
-        console.log(entries[i]);
-        top.createPlayIntentAsync(entries[i], events)
+        };
+        if(!top.PlaybackManager.query({error: false, ended: false}).length){
+            console.log(i);
+            console.log(entries[i]);
+            top.createPlayIntentAsync(entries[i], events)
+        }
     } else {
         console.log('History empty.');
     }
@@ -654,16 +680,20 @@ function checkM3U8Type(url, callback){
     if(url.match(new RegExp('^https?:'))){
         miniget(url, (err, object, response) => {
             if(err){
-                throw err;
+                console.error('checkM3UType error', err);
+                callback(url, 'error')
+            } else {
+                doCheck(response)
             }
-            doCheck(response)
         })
     } else {
         fs.readFile(url, (err, response) => {
             if(err){
-                throw err;
+                console.error('checkM3UType error', err);
+                callback(url, 'error')
+            } else {
+                doCheck(response)
             }
-            doCheck(response)
         })
     }
 }
@@ -676,27 +706,14 @@ function addNewSource(){
             console.log('CHECK CALLBACK', url, type);
             if(type=='stream'){
                 playCustomURL(url, true)
-            } else {
+            } else if(type=='list'){
                 registerSource(url)
+            } else {
+                notify(Lang.INVALID_URL_MSG, 'fa-exclamation-circle', 'long')
             }
         });
         return true;
     })
-}
-
-function extractSources(val){
-    var urls = extractURLs(val), hits = 0;
-    for(var i=0; i<urls.length; i++){
-        if(urls[i].match(new RegExp('.ts[^A-Za-z0-9]', 'i'))){
-            continue; // skip .TS
-        }
-        registerSource(urls[i]);
-        hits++;
-    }
-    if(hits){
-        readSourcesToIndex()
-    }
-    return hits > 0;
 }
 
 function registerSource(url, name){
@@ -797,18 +814,7 @@ function setActiveSource(url){
     sources.unshift(entry);
     Store.set(skey, sources);
     markActiveSource();
-    fetchAndParseIPTVListFromAddr(url, function (content, parsed, url){
-        if(parsed.length){
-            window.channelsIndex[url] = parsed;
-        } else {
-            window.channelsIndex[url] = [{name: Lang.EMPTY, logo:'fa-files-o', type: 'option'}]
-        }
-        if(typeof(window.index)=='object'){
-            window.index = writeIndexPathEntries(Lang.CHANNELS, window.channelsIndex[url]);
-            var locale = getLocale(false, true), length = getSourceMeta(url, 'length') || 0;
-            window.index[0].label = Number(length).toLocaleString(locale)+' '+Lang.STREAMS.toLowerCase()
-        }
-    })
+    readSourcesToIndex()
 }
 
 function areControlsIdle(){
@@ -888,9 +894,14 @@ jQuery(document).one('lngload', function (){
     
     if(getSources().length){
         readSourcesToIndex();
-        playResume()
+        setTimeout(() => {
+            if(!top.PlaybackManager.intents.length){
+                playResume()
+            }
+        }, 1000)
     } else {
-        getIPTVListContent(function (){
+        readSourcesToIndex(); // set the "empty" entry
+        getIPTVListContent(function (){ // trigger to ask user for IPTV list URL
             readSourcesToIndex();
         })
     }

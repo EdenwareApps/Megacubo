@@ -63,9 +63,18 @@
 		</div>
 		<script type="text/javascript">
 			var requestIdReferersTable = [], minVideoContentLength = (5 * (1024 * 1024));
+			function shouldRunFitter(){
+				return (PlaybackManager.isLoading() || (PlaybackManager.activeIntent && PlaybackManager.activeIntent.type=='frame' && !PlaybackManager.activeIntent.videoElement))
+			}
 			function runFitter(){
-				console.log('Calling fitter...');
-				PlaybackManager.runFitter();
+				if(shouldRunFitter()){
+					console.log('Calling fitter...');
+					PlaybackManager.runFitter();
+				}
+			}
+			function runFitterDelayed(delay){
+				if(!delay) delay = 2000;
+				setTimeout(runFitter, delay)
 			}
 			jQuery(document).on('lngload', function (){
 				jQuery('#controls').removeClass('hide').addClass('show');

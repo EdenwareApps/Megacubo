@@ -1,17 +1,36 @@
 
-function readSourcesToIndex(){
+function readSourcesToIndex(callback){
     window.channelsIndex = window.channelsIndex || {};
-    var sources = getSources(), activeSrc = getActiveSource();
-    for(var i in sources){
-        fetchAndParseIPTVListFromAddr(sources[i][1], function (content, parsed, url){
-            window.channelsIndex[url] = parsed;
-            //console.log(parsed);
-            if(typeof(window.index)=='object' && url == activeSrc){
-                window.index = writeIndexPathEntries(Lang.CHANNELS, window.channelsIndex[url]);
-                var locale = getLocale(false, true), length = getSourceMeta(url, 'length') || 0;
-                window.index[0].label = Number(length).toLocaleString(locale)+' '+Lang.STREAMS.toLowerCase()
+    var sources = getSources(), activeSrc = getActiveSource(), fetchCallback = (content, parsed, url) => {
+        window.channelsIndex[url] = parsed;
+        //console.log(parsed);
+        if(typeof(window.index)=='object' && url == activeSrc){
+            var entries = window.channelsIndex[url];
+            if(!entries.length){
+                entries.push({name: Lang.EMPTY, logo:'fa-files-o', type: 'option'})
             }
-        });
+            if(sources.length > 1){
+                entries.push({name: Lang.OTHER_PACKAGES, logo: 'fa-plus-square', type: 'group', entries: [], renderer: () => {
+                    return getPackagesEntries(true, true)
+                }})
+            }
+            window.index = writeIndexPathEntries(Lang.CHANNELS, entries);
+            var locale = getLocale(false, true), length = getSourceMeta(url, 'length') || 0;
+            window.index[0].label = Number(length).toLocaleString(locale)+' '+Lang.STREAMS.toLowerCase();
+            if(typeof(callback)=='function'){
+                callback()
+            }
+        }
+    }
+    if(!sources.length || !activeSrc){
+        fetchCallback('', [], '')
+    } else {
+        fetchAndParseIPTVListFromAddr(activeSrc, fetchCallback)
+        for(var i in sources){
+            if(sources[i][1] != activeSrc){
+                fetchAndParseIPTVListFromAddr(sources[i][1], fetchCallback)
+            }
+        }
     }
 }
 
@@ -55,7 +74,7 @@ function entryInsertAtPath(_index, groupname, group){ // group is entry object o
 function listEntryRender(entry, container, tabIndexOffset){
     //console.log(entry);
     if(typeof(tabIndexOffset)!='number'){
-        tabIndexOffset = getTabIndexOffset();
+        tabIndexOffset = getTabIndexOffset()
     }
     if(!entry.type){
         if(!entry.url || entry.url.substr(0, 10)=='javascript'){

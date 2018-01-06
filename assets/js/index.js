@@ -301,29 +301,29 @@ function bindWebRequest(){
                     }
                 }
             }
+            if(isMedia(details.url) && (PlaybackManager.isLoading() || (PlaybackManager.activeIntent.type=='frame' && !PlaybackManager.activeIntent.videoElement))){
+                console.log('Calling fitter delayed.');
+                clearTimeout(runFitterDelayTimer);
+                runFitterDelayTimer = top.setTimeout(runFitter, 2000)
+            }
             return {requestHeaders: details.requestHeaders};
         }, {urls: ["<all_urls>"]}, ["requestHeaders", "blocking"]
     );
 
-    chrome.webRequest.onCompleted.addListener(
+    chrome.webRequest.onHeadersReceived.addListener(
         function(details) {
+            var debug = 1;
             if(debug){
-                console.log('OnCompleted', details.url, requestIdReferersTable[details.requestId]);
+                console.log('onHeadersReceived', details.url, requestIdReferersTable[details.requestId]);
                 console.log(details);
             }
-            if(details.url.substr(0, 4)=='http'){ // if is HTTP, comes from Sandbox
+            if(details.url.substr(0, 4)=='http'){ // if is HTTP, comes from a frame intent
                 if(debug){
                     console.log(details.url);
                 }
                 var ctype = '', isVideo = false, isAudio = false, isM3U8 = false, isDocument = false, isPartial = (details.statusCode == 206), contentLength = 0;
                 for(var i=0; i < details.responseHeaders.length; i++){
-                    if(debug){
-                        console.log(details.responseHeaders[i].name);
-                    }
                     var n = details.responseHeaders[i].name.toLowerCase();
-                    if(debug){
-                        console.log(n);
-                    }
                     if((!isPartial || !contentLength) && ["content-length"].indexOf(n) != -1){
                         contentLength = details.responseHeaders[i].value;
                     } else if(["content-range"].indexOf(n) != -1){
@@ -342,7 +342,7 @@ function bindWebRequest(){
                 isDocument = ctype.indexOf('/html') != -1;
                 isAudio = ctype.indexOf('audio/') != -1;
                 if(debug){
-                    console.log(details.statusCode, ctype, isVideo, isM3U8, isDocument, isAudio);
+                    console.log(details.url, details.statusCode, ctype, isVideo, isM3U8, isDocument, isAudio);
                 }
                 if(isM3U8){
                     if([404, 401, 403].indexOf(details.statusCode)!=-1){
@@ -361,14 +361,84 @@ function bindWebRequest(){
                 }
                 if(isM3U8 || (isVideo && (contentLength == 0||contentLength > minVideoContentLength))){
                     var referer = requestIdReferersTable[details.requestId] || '';
-                    if(referer && referer.substr(0, 4)=='http'){
-                        if(fitterTestedStreams.indexOf(details.url)==-1){
-                            fitterTestedStreams.push(details.url);
-                            console.log('Going internal...');
-                            var c = getFrame('controls');
-                            if(c){
-                                c.sideLoadPlay(details.url)
+                    if((!referer || referer.substr(0, 4)=='http') && details.url.substr(0, 4)=='http'){
+                        var c = getFrame('controls');
+                        if(c){
+                            c.sideLoadPlay(details.url)
+                        }
+                    } else {
+                        console.log('M3U8 referer missing...');
+                    }
+                } else if(PlaybackManager.isLoading() || (PlaybackManager.activeIntent.type=='frame' && !PlaybackManager.activeIntent.videoElement)){
+                    if(isM3U8 || isVideo || isAudio){
+                        console.log('Calling fitter now.');
+                        clearTimeout(runFitterDelayTimer);
+                        runFitter();
+                    } else if(isDocument) {
+                        console.log('Calling fitter delayed.');
+                        clearTimeout(runFitterDelayTimer);
+                        runFitterDelayTimer = setTimeout(runFitter, 2000);
+                    }
+                }
+            }
+            return {cancel: false};
+        }, {urls: ["<all_urls>"]}, ["responseHeaders"]
+    );
+
+    chrome.webRequest.onCompleted.addListener(
+        function(details) {
+            if(debug){
+                console.log('OnCompleted', details.url, requestIdReferersTable[details.requestId]);
+                console.log(details);
+            }
+            if(details.url.substr(0, 4)=='http'){ // if is HTTP, comes from a frame intent
+                if(debug){
+                    console.log(details.url);
+                }
+                var ctype = '', isVideo = false, isAudio = false, isM3U8 = false, isDocument = false, isPartial = (details.statusCode == 206), contentLength = 0;
+                for(var i=0; i < details.responseHeaders.length; i++){
+                    var n = details.responseHeaders[i].name.toLowerCase();
+                    if((!isPartial || !contentLength) && ["content-length"].indexOf(n) != -1){
+                        contentLength = details.responseHeaders[i].value;
+                    } else if(["content-range"].indexOf(n) != -1){
+                        if(details.responseHeaders[i].value.indexOf('/')!=-1){
+                            var l = parseInt(details.responseHeaders[i].value.split('/')[1].trim());
+                            if(l > 0){
+                                contentLength = l;
                             }
+                        }
+                    } else if(["content-type"].indexOf(n) != -1){
+                        ctype = details.responseHeaders[i].value;
+                    }
+                }
+                isVideo = ctype.match(new RegExp('video/(mp4|MP2T)', 'i'));
+                isM3U8 = ctype.toLowerCase().indexOf('mpegurl') != -1;
+                isDocument = ctype.indexOf('/html') != -1;
+                isAudio = ctype.indexOf('audio/') != -1;
+                if(debug){
+                    console.log(details.url, details.statusCode, ctype, isVideo, isM3U8, isDocument, isAudio);
+                }
+                if(isM3U8){
+                    if([404, 401, 403].indexOf(details.statusCode)!=-1){
+                        console.log('M3U8 reached 404')
+                        var w = getFrame('controls');
+                        var f = w.currentSandboxStreamArgs;
+                        if(f instanceof Array){
+                            console.log('M3U8 reached 404 *1')
+                            console.log('Stream error.');
+                            //f[2].apply(w, []);
+                            triggerSandboxError();
+                            console.log('Stream error. *1');
+                            return {cancel: false}
+                        }
+                    }
+                }
+                if(isM3U8 || (isVideo && (contentLength == 0||contentLength > minVideoContentLength))){
+                    var referer = requestIdReferersTable[details.requestId] || '';
+                    if((!referer || referer.substr(0, 4)=='http') && details.url.substr(0, 4)=='http'){
+                        var c = getFrame('controls');
+                        if(c){
+                            c.sideLoadPlay(details.url)
                         }
                     } else {
                         console.log('M3U8 referer missing...');
@@ -417,9 +487,6 @@ function bindWebRequest(){
                             console.log('MEDIA RECEIVED');
                             doAction('media-received', requestIdMap[params.requestId], response);
                         }
-                        //try {
-                        //    chrome.debugger.detach(debuggeeId);
-                        //} catch(e) { }
                     })
                 }
             }

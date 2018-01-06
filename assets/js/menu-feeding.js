@@ -135,11 +135,13 @@ function getLanguageEntries(){
     return options;
 }
 
-function getPackagesEntries(){
-    var sources = getSources();
+function getPackagesEntries(notActive, noManagement){
+    var sources = getSources(), active = getActiveSource();
     var options = [];
     for(var i in sources){
         var entry = sources[i], length = '-', groups = '-';
+        if(!(entry instanceof Array)) continue;
+        if(notActive === true && entry[1] == active) continue;
         if(typeof(entry[2])=='object'){
             var locale = getLocale(false, true);
             length = Number(entry[2].length).toLocaleString(locale);
@@ -151,7 +153,7 @@ function getPackagesEntries(){
                 setActiveSource(data.url);
                 setTimeout(function (){
                     listEntriesByPath(Lang.CHANNELS)
-                }, 1000)
+                }, 100)
             }, 
             delete: function (data){
                 unRegisterSource(data.url);
@@ -164,9 +166,11 @@ function getPackagesEntries(){
             }
         })
     }
-    options.push({name: Lang.ADD_NEW_PACKAGE, logo:'fa-plus', type: 'option', callback: addNewSource});
-    options.push({name: Lang.REMOVE_PACKAGE, logo:'fa-trash', type: 'group', renderer: getPackagesEntriesForRemoval, callback: markActiveSource});
-    options.push({name: Lang.FIND_PACKAGES, logo:'fa-search', type: 'option', callback: function (){nw.Shell.openExternal(getIPTVListSearchURL())}});
+    if(noManagement !== true){
+        options.push({name: Lang.ADD_NEW_PACKAGE, logo:'fa-plus', type: 'option', callback: addNewSource});
+        options.push({name: Lang.REMOVE_PACKAGE, logo:'fa-trash', type: 'group', renderer: getPackagesEntriesForRemoval, callback: markActiveSource});
+        options.push({name: Lang.FIND_PACKAGES, logo:'fa-search', type: 'option', callback: function (){nw.Shell.openExternal(getIPTVListSearchURL())}});
+    }
     return options;
 }
 
@@ -195,7 +199,5 @@ function getPackagesEntriesForRemoval(){
     }
     return entries;
 }
-
-
 
 

@@ -845,16 +845,20 @@ var doFindStreams = function (scope){
     }
     
     function execute(){
-        console.log('DOFINDSTREAMS', window.document.URL);
-        var stream = findStream();
-        if(stream){
-            console.log('FOUNDSTREAM', stream);
-            var c = getFrame('controls');
-            if(c){
-                c.sideLoadPlay(stream)
+        if(window.document){
+            console.log('DOFINDSTREAMS', window.document.URL || '');
+            var stream = findStream();
+            if(stream){
+                console.log('FOUNDSTREAM', stream);
+                var c = getFrame('controls');
+                if(c){
+                    c.sideLoadPlay(stream)
+                }
+            } else {
+                console.log('NOSTREAMFOUND', window.document.URL);
             }
         } else {
-            console.log('NOSTREAMFOUND', window.document.URL);
+            console.log('BAD SCOPE?!', window, scope)
         }
     }
 
@@ -959,10 +963,27 @@ var Fitter = (function (){
             }
             var w = width(window);
             for(var i=0; i<frames.length; i++){
-                if(compare(w, width(frames[i]), 8)){
+                if(compare(w, width(frames[i]), 20)){
                     return frames[i];
                     break;
                 }
+            }
+            for(var i=0; i<frames.length; i++){
+                if(frames[i].contentWindow && (frames[i].contentWindow.document.URL == window.document.URL)){
+                    return frames[i];
+                    break;
+                }
+            }
+            var maxHeight = 0, maxKey = -1, h;
+            for(var i=0; i<frames.length; i++){
+                var h = height(frames[i]);
+                if(h > maxHeight){
+                    maxHeight = h;
+                    maxKey = i;
+                }
+            }
+            if(maxKey != -1){
+                return frames[maxKey];
             }
         }
     }
@@ -975,6 +996,8 @@ var Fitter = (function (){
             if(window.parent){
                 fitParentFrames(window.parent)
             }
+        } else if(window != top && window != window.parent){
+            console.log('FAILED TO GET FRAME ELEMENT', window, window.parent, window.parent.document, window.parent.document.querySelectorAll('iframe,frame'))
         }
     }
     this.compare = function (a, b, tolerance){
@@ -1005,6 +1028,13 @@ var Fitter = (function (){
             return true;
         }
         if(tag(object)=='video'){
+            if(!object.currentSrc){
+                console.log('Video discarded due to empty src.');
+                return true;
+            }
+            if(object.paused && object.currentSrc.indexOf('blob:')==-1){
+                object.play()
+            }
             if(!object.paused && !object.currentTime){
                 console.log('Video discarded by state - paused='+object.paused+', currentTime='+object.currentTime);
                 return true;
@@ -1051,7 +1081,11 @@ var Fitter = (function (){
         if((!frameNestingLevel || frameNestingLevel < 10) && !isDiscardable(window) && (!frameObject || !isDiscardable(frameObject))){
             var details = {objects:[],frames:[]}, objects = window.document.querySelectorAll('video'); // object, embed, 
             for(var i=0; i < objects.length; i++){
-                if(!isDiscardable(objects[i])){ //} && (objects[i].tagName.toLowerCase()!='video' || objects[i].currentTime > 0)){
+                top.jQuery(objects[i]).one('timeupdate', () => {
+                    console.log('GOTCHA!!');
+                    top.runFitterDelayed()
+                });
+                if(!isDiscardable(objects[i])){
                     details.objects.push(objects[i]);
                 }
             }
@@ -1189,6 +1223,9 @@ var Fitter = (function (){
         return data;
     }
     this.start = function (scope){
+        if(!scope || !scope.document){
+            return false;
+        }
         var file, domains, list = false, domain = scope.document.domain;
         if(!top.preFitterIndex){
             top.preFitterIndex = {};

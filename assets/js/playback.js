@@ -58,6 +58,7 @@ var PlaybackManager = {
         //console.log('ACTIVE', activeIntent, was, isLoading, intents);
     },
     registerIntent: function (intent){
+        console.log('REGISTER INTENT', intent, traceback());
         if(this.intents.indexOf(intent)==-1){
             this.intents.push(intent)
         }
@@ -173,7 +174,7 @@ var PlaybackManager = {
         for(var i=0; i<this.intents.length; i++){
             state = 'unknown';
             if(this.intents[i].started){
-                state = 'active';
+                state = 'started';
             } else {
                 if(!this.intents[i].ended && !this.intents[i].error){
                     state = 'loading';
@@ -183,10 +184,17 @@ var PlaybackManager = {
                     state = 'error';
                 }
             }
+            if(this.intents[i] == this.activeIntent){
+                state += ' active';
+            }
             if(this.intents[i].sideload){
                 state = 'sideload '+state;
             }
-            _log += this.intents[i].entry.originalUrl+" ("+this.intents[i].type+", "+state+")\r\n";
+            _log += this.intents[i].entry.url;
+            if(this.intents[i].entry.url != this.intents[i].entry.originalUrl){
+                _log += " (from "+this.intents[i].entry.originalUrl+")";
+            }
+            _log += " ("+this.intents[i].type+", "+state+")\r\n";
         }
         return _log;
     },
@@ -200,7 +208,7 @@ var PlaybackManager = {
     },
     commitIntent: function (intent){
         var intentTypesPriorityOrder = ['magnet', 'direct', 'ffmpeg', 'frame'];
-        console.log('COMMITING', intent);
+        console.log('COMMITING', intent, this.activeIntent, traceback());
         if(this.activeIntent != intent){
             if(this.activeIntent){
                 if(this.activeIntent.entry.originalUrl == intent.entry.originalUrl){ // both are intents from the same stream, decide for one of them
@@ -208,9 +216,25 @@ var PlaybackManager = {
                     var b = intentTypesPriorityOrder.indexOf(this.activeIntent.entry.type);
                     if(b <= a){
                         console.log('COMMITING DISCARD');
-                        return false; // keep current activeIntent
+                        return false; // keep the current activeIntent
                     }
                 }
+            }
+            var allow = true;
+            allow = intent.filter('pre-commit', allow, intent, this.activeIntent);
+            if(allow === false){
+                console.log('COMMITING DISALLOWED');
+                console.log('DESTROYING', this.intents[i]);
+                try {
+                    intent.destroy();
+                } catch(e) {
+                    console.log('INTENT DESTROY FAILURE', e)
+                }
+                var i = this.intents.indexOf(intent);
+                if(i != -1){
+                    delete this.intents[i];
+                }
+                return false; // commiting canceled, keep the current activeIntent
             }
             for(var i=0; i<this.intents.length; i++){
                 if(this.intents[i] != intent){
@@ -249,6 +273,7 @@ var PlaybackManager = {
 }
 
 function createPlayIntentAsync(entry, options, callback){
+    console.log('CREATE INTENT', entry, traceback());
     var initTime = time();
     var internalCallback = function (intent){
         if(intent){
@@ -275,7 +300,9 @@ function createPlayIntentAsync(entry, options, callback){
         internalCallback(createFFmpegIntent(entry, options))
     } else  {
         console.log('BBB');
-        internalCallback(createFrameIntent(entry, options));
+        if(!options || !options.sideload){
+            internalCallback(createFrameIntent(entry, options))
+        }
         internalCallback(createDirectIntent(entry, options)); // not sure, so we'll race the possible intents
         /*
         jQuery.ajax({
@@ -339,9 +366,24 @@ function createFrameIntent(entry, options){
 
     self.trigger = function (action){
         var _args = Array.from(arguments).slice(1);
-        for(var i=0; i<self.events[action].length; i++){
-            self.events[action][i].apply(null, _args)
+        if(self.events[action] instanceof Array){
+            for(var i=0; i<self.events[action].length; i++){
+                self.events[action][i].apply(null, _args)
+            }
         }
+    }
+
+    self.filter = function (action){
+        var _args = Array.from(arguments).slice(1);
+        if(self.events[action] instanceof Array){
+            for(var i=0; i<self.events[action].length; i++){
+                if(!_args[0]){
+                    break;
+                }
+                _args[0] = self.events[action][i].apply(null, _args)
+            }
+        }
+        return _args[0];
     }
 
     self.play = function (){
@@ -383,7 +425,7 @@ function createFrameIntent(entry, options){
     self.runFitter = function (){
         console.log('intent.runFitter()');
         if(!self.entry.originalUrl.match(new RegExp('#nofit'))){
-            if(!self.videoElement){
+            if(!self.videoElement || !self.videoElement.parentNode){
                 var result = Fitter.start(self.frame.contentWindow);
                 console.log('intent.runFitter()', result);
                 if(result){
@@ -398,17 +440,22 @@ function createFrameIntent(entry, options){
         }
         return self.started;
     }
-    
+      
     self.commit = function (){
         jQuery(top.window.document).find('#sandbox').remove();
         jQuery(self.frame).removeClass('hide').addClass('show').prop('id', 'sandbox');
         self.frame.id = 'sandbox';
         self.committed = true;
-        self.frame.onload = function (){
-            patchFrameWindowEvents(this.contentWindow)
+        self.frame.onload = () => {
+            patchFrameWindowEvents(self.frame.contentWindow)
         }
         if(self.frame.contentWindow){
             patchFrameWindowEvents(self.frame.contentWindow)
+            setTimeout(() => {
+                if(self.frame && self.frame.contentWindow){ // stills available?
+                    patchFrameWindowEvents(self.frame.contentWindow)
+                }
+            }, 2000)
         }
     }
 
@@ -510,13 +557,25 @@ function createDirectIntent(entry, options){
     }
 
     self.trigger = function (action){
-        if(typeof(self.events[action])!='undefined'){
-            var _args = Array.from(arguments).slice(1);
-            var callbacks = self.events[action];
-            for(var i=0; i < callbacks.length; i++){
-                callbacks[i].apply(null, _args)
+        var _args = Array.from(arguments).slice(1);
+        if(self.events[action] instanceof Array){
+            for(var i=0; i<self.events[action].length; i++){
+                self.events[action][i].apply(null, _args)
             }
         }
+    }
+
+    self.filter = function (action, defaultVal){
+        var _args = Array.from(arguments).slice(1);
+        if(self.events[action] instanceof Array){
+            for(var i=0; i<self.events[action].length; i++){
+                if(!_args[0]){
+                    break;
+                }
+                _args[0] = self.events[action][i].apply(null, _args)
+            }
+        }
+        return _args[0];
     }
 
     self.play = function (){
@@ -586,12 +645,12 @@ function createDirectIntent(entry, options){
         if(!p || !p.test){
             throw 'No iframe#player found.';
         }
-        getFrame('player').test(self.prxurl, self.mimetype, function (){
-            console.log('Test succeeded.');
+        getFrame('player').test(self.prxurl, self.mimetype, () => {
+            console.log('Test succeeded. '+self.prxurl);
             self.started = true;
             self.trigger('start')
         }, function (){
-            console.log('Test Failed.');
+            console.log('Test Failed. '+self.prxurl);
             self.error = true;
             self.trigger('error')
         });
@@ -647,12 +706,25 @@ function createFFmpegIntent(entry, options){
     }
     
     self.trigger = function (action){
-        if(typeof(self.events[action])!='undefined'){
-            var _args = Array.from(arguments).slice(1);
+        var _args = Array.from(arguments).slice(1);
+        if(self.events[action] instanceof Array){
             for(var i=0; i<self.events[action].length; i++){
                 self.events[action][i].apply(null, _args)
             }
         }
+    }
+
+    self.filter = function (action, defaultVal){
+        var _args = Array.from(arguments).slice(1);
+        if(self.events[action] instanceof Array){
+            for(var i=0; i<self.events[action].length; i++){
+                if(!_args[0]){
+                    break;
+                }
+                _args[0] = self.events[action][i].apply(null, _args)
+            }
+        }
+        return _args[0];
     }
 
     self.play = function (){
@@ -831,12 +903,25 @@ function createMagnetIntent(entry, options){
     }
     
     self.trigger = function (action){
-        if(typeof(self.events[action])!='undefined'){
-            var _args = Array.from(arguments).slice(1);
+        var _args = Array.from(arguments).slice(1);
+        if(self.events[action] instanceof Array){
             for(var i=0; i<self.events[action].length; i++){
                 self.events[action][i].apply(null, _args)
             }
         }
+    }
+
+    self.filter = function (action, defaultVal){
+        var _args = Array.from(arguments).slice(1);
+        if(self.events[action] instanceof Array){
+            for(var i=0; i<self.events[action].length; i++){
+                if(!_args[0]){
+                    break;
+                }
+                _args[0] = self.events[action][i].apply(null, _args)
+            }
+        }
+        return _args[0];
     }
 
     self.play = function (){
@@ -1275,13 +1360,24 @@ function delayedPlayPauseNotify(){
     }, 1000)
 }
 
+function shouldNotifyPlaybackError(intent){
+    var url = intent.entry.originalUrl;
+    for(var i=0; i<PlaybackManager.intents.length; i++){
+        if(PlaybackManager.intents[i].entry.originalUrl == url && !PlaybackManager.intents[i].error && PlaybackManager.intents[i].type != intent.entry.type){
+            return false;
+        }
+    }
+    return true;
+}
+
 PlaybackManager.on('play', delayedPlayPauseNotify);
 PlaybackManager.on('pause', delayedPlayPauseNotify);
 PlaybackManager.on('register', function (intent, entry){
     intent.on('error', function (){
         setTimeout(function (){
-            if(!top.PlaybackManager.isLoading(intent.entry.originalUrl)){ // don't alert user if has sideload intents
-                notify(Lang.PLAY_STREAM_FAILURE.format(intent.entry.name), 'fa-exclamation-circle', 'normal')
+            if(shouldNotifyPlaybackError(intent)){ // don't alert user if has sideload intents
+                notify(Lang.PLAY_STREAM_FAILURE.format(intent.entry.name), 'fa-exclamation-circle', 'normal');
+                console.log('STREAM FAILED', intent.entry.originalUrl, PlaybackManager.log())
             }
         }, 200)
     })
@@ -1289,23 +1385,22 @@ PlaybackManager.on('register', function (intent, entry){
 PlaybackManager.on('commit', function (intent, entry){
     intent.on('error', function (){
         setTimeout(function (){
-            if(!top.PlaybackManager.isLoading(intent.entry.originalUrl)){ // don't alert user if has sideload intents
-                notify(Lang.PLAY_STREAM_FAILURE.format(intent.entry.name), 'fa-exclamation-circle', 'normal')
+            if(shouldNotifyPlaybackError(intent)){ // don't alert user if has sideload intents
+                notify(Lang.PLAY_STREAM_FAILURE.format(intent.entry.name), 'fa-exclamation-circle', 'normal');
+                console.log('STREAM FAILED', intent.entry.originalUrl, PlaybackManager.log())
             }
         }, 200)
     })
     intent.on('ended', function (){
-        if(!top.PlaybackManager.isLoading(intent.entry.originalUrl)){ // no sideload intents
-            // end of stream, go next
-            var next = getNextStream(), c = getFrame('controls');
-            if(c && next){
-                setTimeout(function (){
-                    c.playEntry(next)
-                }, 1200)
-            } else {
-                stop()
-            }
-        }      
+        // end of stream, go next
+        var next = getNextStream(), c = getFrame('controls');
+        if(c && next){
+            setTimeout(function (){
+                c.playEntry(next)
+            }, 1200)
+        } else {
+            stop()
+        }
     })
     onIntentCommited(intent, entry);
     delayedPlayPauseNotify();
