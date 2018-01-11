@@ -34,7 +34,7 @@ div#play-pause-marker {
     display: none;
     align-items: center;
     justify-content: center;
-    opacity: 0.8;
+    opacity: 1;
 }
 
 div#play-pause-marker i.fa {

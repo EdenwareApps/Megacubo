@@ -2,7 +2,7 @@
   "ASK_IPTV_LIST":"粘贴网址列表IPTV。",
   "ASK_STREAM_URL":"请在下面粘贴您的广播网址。",
   "ASK_IPTV_LIST_FIRST":"要开始，您必须输入IPTV列表的URL。 如果你没有，点击 \"{0}\".",
-  "IPTV_LIST_PARSE_ERROR":"您输入的网址列表无法访问或无效。 请检查或更改网址，然后重试。",
+  "INVALID_URL_MSG":"您输入的网址列表无法访问或无效。 请检查或更改网址，然后重试。",
   "PLAY_STREAM_FAILURE":"A transmissão \"{0}\" 无法访问，请尝试另一个。",
   "CHANNELS":"渠道",
   "PACKAGES":"包",

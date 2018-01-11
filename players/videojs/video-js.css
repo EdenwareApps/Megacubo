@@ -264,7 +264,8 @@
   line-height: 1;
   font-weight: normal;
   font-style: normal;
-  font-family: Arial, Helvetica, sans-serif; }
+  font-family: Arial, Helvetica, sans-serif;
+  word-break: initial; }
   .video-js:-moz-full-screen {
     position: absolute; }
   .video-js:-webkit-full-screen {

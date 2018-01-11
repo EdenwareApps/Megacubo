@@ -2,7 +2,7 @@
   "ASK_IPTV_LIST":"Fügen Sie die URL-Liste IPTV ein.",
   "ASK_STREAM_URL":"Bitte fügen Sie Ihre Sende-URL unten ein.",
   "ASK_IPTV_LIST_FIRST":"Um zu beginnen, müssen Sie die URL einer IPTV-Liste eingeben. Wenn Sie keinen haben, klicken Sie auf \"{0}\".",
-  "IPTV_LIST_PARSE_ERROR":"Die von Ihnen eingegebene URL-Liste kann nicht aufgerufen werden oder ist ungültig Bitte überprüfen oder ändern Sie die URL und versuchen Sie es erneut.",
+  "INVALID_URL_MSG":"Die von Ihnen eingegebene URL-Liste kann nicht aufgerufen werden oder ist ungültig Bitte überprüfen oder ändern Sie die URL und versuchen Sie es erneut.",
   "PLAY_STREAM_FAILURE":"Die Übertragung \"{0}\" ist nicht erreichbar, versuche es mit einem anderen.",
   "CHANNELS":"Kanäle",
   "PACKAGES":"Pakete",

@@ -314,13 +314,9 @@ function bindWebRequest(){
         function(details) {
             var debug = 1;
             if(debug){
-                console.log('onHeadersReceived', details.url, requestIdReferersTable[details.requestId]);
-                console.log(details);
+                console.log('onHeadersReceived', details.url, requestIdReferersTable[details.requestId], details);
             }
             if(details.url.substr(0, 4)=='http'){ // if is HTTP, comes from a frame intent
-                if(debug){
-                    console.log(details.url);
-                }
                 var ctype = '', isVideo = false, isAudio = false, isM3U8 = false, isDocument = false, isPartial = (details.statusCode == 206), contentLength = 0;
                 for(var i=0; i < details.responseHeaders.length; i++){
                     var n = details.responseHeaders[i].name.toLowerCase();
@@ -344,114 +340,41 @@ function bindWebRequest(){
                 if(debug){
                     console.log(details.url, details.statusCode, ctype, isVideo, isM3U8, isDocument, isAudio);
                 }
-                if(isM3U8){
-                    if([404, 401, 403].indexOf(details.statusCode)!=-1){
-                        console.log('M3U8 reached 404')
-                        var w = getFrame('controls');
-                        var f = w.currentSandboxStreamArgs;
-                        if(f instanceof Array){
-                            console.log('M3U8 reached 404 *1')
-                            console.log('Stream error.');
-                            //f[2].apply(w, []);
-                            triggerSandboxError();
-                            console.log('Stream error. *1');
-                            return {cancel: false}
-                        }
-                    }
-                }
-                if(isM3U8 || (isVideo && (contentLength == 0||contentLength > minVideoContentLength))){
-                    var referer = requestIdReferersTable[details.requestId] || '';
-                    if((!referer || referer.substr(0, 4)=='http') && details.url.substr(0, 4)=='http'){
-                        var c = getFrame('controls');
-                        if(c){
-                            c.sideLoadPlay(details.url)
-                        }
-                    } else {
-                        console.log('M3U8 referer missing...');
-                    }
-                } else if(PlaybackManager.isLoading() || (PlaybackManager.activeIntent.type=='frame' && !PlaybackManager.activeIntent.videoElement)){
-                    if(isM3U8 || isVideo || isAudio){
-                        console.log('Calling fitter now.');
-                        clearTimeout(runFitterDelayTimer);
-                        runFitter();
-                    } else if(isDocument) {
-                        console.log('Calling fitter delayed.');
-                        clearTimeout(runFitterDelayTimer);
-                        runFitterDelayTimer = setTimeout(runFitter, 2000);
-                    }
-                }
-            }
-            return {cancel: false};
-        }, {urls: ["<all_urls>"]}, ["responseHeaders"]
-    );
-
-    chrome.webRequest.onCompleted.addListener(
-        function(details) {
-            if(debug){
-                console.log('OnCompleted', details.url, requestIdReferersTable[details.requestId]);
-                console.log(details);
-            }
-            if(details.url.substr(0, 4)=='http'){ // if is HTTP, comes from a frame intent
-                if(debug){
-                    console.log(details.url);
-                }
-                var ctype = '', isVideo = false, isAudio = false, isM3U8 = false, isDocument = false, isPartial = (details.statusCode == 206), contentLength = 0;
-                for(var i=0; i < details.responseHeaders.length; i++){
-                    var n = details.responseHeaders[i].name.toLowerCase();
-                    if((!isPartial || !contentLength) && ["content-length"].indexOf(n) != -1){
-                        contentLength = details.responseHeaders[i].value;
-                    } else if(["content-range"].indexOf(n) != -1){
-                        if(details.responseHeaders[i].value.indexOf('/')!=-1){
-                            var l = parseInt(details.responseHeaders[i].value.split('/')[1].trim());
-                            if(l > 0){
-                                contentLength = l;
+                if(details.frameId){ // comes from a frame
+                    if(isM3U8 || (isVideo && contentLength > minVideoContentLength)){
+                        if(getExt(details.url)!='ts'){ // from a frame, not a TS
+                            var frameIntents = top.PlaybackManager.query({type: 'frame'});
+                            var urls, referer = requestIdReferersTable[details.requestId] || '';
+                            if(referer){
+                                var ok = false;
+                                for(var i=0; i<frameIntents.length; i++){
+                                    urls = getFrameURLs(frameIntents[i].frame);
+                                    console.log('SIDELOADPLAY URLS', urls);
+                                    if(matchURLs(referer, urls) || matchURLs(details.url, urls)){
+                                        var c = getFrame('controls');
+                                        if(c){
+                                            ok = true;
+                                            c.sideLoadPlay(details.url, frameIntents[i])
+                                        }
+                                    }
+                                }
+                                if(!ok){
+                                    console.log('SIDELOADPLAY FAILED, NO REFERER', details.url, referer, frameIntents)
+                                }
+                            } else {
+                                console.log('M3U8 referer missing...');
                             }
                         }
-                    } else if(["content-type"].indexOf(n) != -1){
-                        ctype = details.responseHeaders[i].value;
-                    }
-                }
-                isVideo = ctype.match(new RegExp('video/(mp4|MP2T)', 'i'));
-                isM3U8 = ctype.toLowerCase().indexOf('mpegurl') != -1;
-                isDocument = ctype.indexOf('/html') != -1;
-                isAudio = ctype.indexOf('audio/') != -1;
-                if(debug){
-                    console.log(details.url, details.statusCode, ctype, isVideo, isM3U8, isDocument, isAudio);
-                }
-                if(isM3U8){
-                    if([404, 401, 403].indexOf(details.statusCode)!=-1){
-                        console.log('M3U8 reached 404')
-                        var w = getFrame('controls');
-                        var f = w.currentSandboxStreamArgs;
-                        if(f instanceof Array){
-                            console.log('M3U8 reached 404 *1')
-                            console.log('Stream error.');
-                            //f[2].apply(w, []);
-                            triggerSandboxError();
-                            console.log('Stream error. *1');
-                            return {cancel: false}
+                    } else if(PlaybackManager.isLoading() || (PlaybackManager.activeIntent.type=='frame' && !PlaybackManager.activeIntent.videoElement)){
+                        if(isM3U8 || isVideo || isAudio){
+                            console.log('Calling fitter now.');
+                            clearTimeout(runFitterDelayTimer);
+                            runFitter();
+                        } else if(isDocument) {
+                            console.log('Calling fitter delayed.');
+                            clearTimeout(runFitterDelayTimer);
+                            runFitterDelayTimer = setTimeout(runFitter, 2000);
                         }
-                    }
-                }
-                if(isM3U8 || (isVideo && (contentLength == 0||contentLength > minVideoContentLength))){
-                    var referer = requestIdReferersTable[details.requestId] || '';
-                    if((!referer || referer.substr(0, 4)=='http') && details.url.substr(0, 4)=='http'){
-                        var c = getFrame('controls');
-                        if(c){
-                            c.sideLoadPlay(details.url)
-                        }
-                    } else {
-                        console.log('M3U8 referer missing...');
-                    }
-                } else if(PlaybackManager.isLoading() || (PlaybackManager.activeIntent.type=='frame' && !PlaybackManager.activeIntent.videoElement)){
-                    if(isM3U8 || isVideo || isAudio){
-                        console.log('Calling fitter now.');
-                        clearTimeout(runFitterDelayTimer);
-                        runFitter();
-                    } else if(isDocument) {
-                        console.log('Calling fitter delayed.');
-                        clearTimeout(runFitterDelayTimer);
-                        runFitterDelayTimer = setTimeout(runFitter, 2000);
                     }
                 }
             }
@@ -486,6 +409,7 @@ function bindWebRequest(){
                         if(typeof(response)!='undefined') {
                             console.log('MEDIA RECEIVED');
                             doAction('media-received', requestIdMap[params.requestId], response);
+                            response = null;
                         }
                     })
                 }
@@ -555,6 +479,34 @@ timestamp: 520361.307815
 type: "Other"
 */
 
+}
+
+function getFrameURLs(frame){
+    var urls = [];
+    urls.push(frame.src);
+    if(frame.contentWindow){
+        urls.push(frame.contentWindow.document.URL);
+        var frames = frame.contentWindow.document.querySelectorAll('iframe, frame');
+        for(var i=0; i<frames.length; i++){
+            urls = urls.concat(getFrameURLs(frames[i]))
+        }
+    }
+    return urls;
+}
+
+function matchURLs(url, urls){
+    url = removeQueryString(url);
+    for(var i=0; i<urls.length; i++){
+        if(urls[i].indexOf(url)!==-1){
+            return true;
+            break;
+        }
+    }
+}
+
+function matchFrameURLs(url, frame){
+    var urls = getFrameURLs(frame);
+    return matchURLs(url, urls)
 }
 
 function saveAs(file, callback){
@@ -651,9 +603,7 @@ function stopRecording(){
         } else {
             name = 'Unknown';
         }
-        var d = new Date();
-        var datestring = " "+d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0" + d.getDate()).slice(-2) + " " + ("0" + d.getHours()).slice(-2) + "-" + ("0" + d.getMinutes()).slice(-2);
-        name += datestring;
+        name += " "+dateStamp();
         var data = isRecording, originalOutputFile, outputFile = dirname(data.folder) + '/'+name+'.mp4';
         if(typeof(isRecording.capturingStream)!='undefined'){
             isRecording.capturingRequest.abort();
@@ -820,7 +770,7 @@ function modalPrompt(question, answers, placeholder, value){
 }
 
 function modalPromptVal(){
-    return jQuery('.prompt').find('input, textarea').val() || '';
+    return jQuery('.prompt').find('input, textarea').val().trim() || '';
 }
 
 function shouldOpenSandboxURL(url, callback){
@@ -833,16 +783,6 @@ function shouldOpenSandboxURL(url, callback){
             callback(url)
         }
     })
-}
-
-function castManagerInit(){
-    if(!castManager){
-        try {
-            var nwjsCast = require('nwjs-cast');
-            castManager = new nwjsCast()
-        } catch(e) { }
-    }
-    castManager.find(castManagerFoundDevice);
 }
 
 function isFullScreen(){
@@ -969,7 +909,7 @@ function createMouseObserverForControls(win){
         if(show){
             showHideDelay = setTimeout(() => {
                 b.addClass('isovercontrols')
-            }, 200)
+            }, 400)
         } else {
             b.removeClass('isovercontrols')
         }
@@ -991,6 +931,12 @@ function createMouseObserverForControls(win){
             update()
         }
     })
+    var frames = win.document.querySelectorAll('iframe, frame');
+    for(var i=0; i<frames.length; i++){
+        if(frames[i].offsetWidth >= (w - 40)){
+            createMouseObserverForControls(frames[i].contentWindow)
+        }
+    }
 }
 
 patchMaximizeButton();
@@ -1045,7 +991,16 @@ function handleOpenArguments(cmd){
         cmd = cmd.split(' ')
     }
     for(var i=0; i<cmd.length; i++){
-        if(cmd[i].match(new RegExp('(rt[ms]p[a-z]?:|mms[a-z]?:|\.(m3u8?|mp4|flv))', 'i'))){
+        var force = false;
+        if(cmd[i].match(new RegExp('mega:', 'i'))){
+            cmd[i] = cmd[i].replaceAll("'", "").replaceAll('"', '');
+            var parts = cmd[i].split(( cmd[i].indexOf('|')!=-1 ) ? '|' : '//');
+            if(parts.length > 1){
+                cmd[i] = atob(parts[1]);
+                force = true;
+            }
+        }
+        if(cmd[i] && (force || cmd[i].match(new RegExp('(rt[ms]p[a-z]?:|mms[a-z]?:|\.(m3u8?|mp4|flv))', 'i')))){
             console.log('PLAY', cmd);
             cmd[i] = cmd[i].replaceAll("'", "").replaceAll('"', '')
             playCustomURL(cmd[i], true);
@@ -1074,7 +1029,6 @@ jQuery(function (){
         showControls()
     });
     jWin.on('load', function (){
-        createMouseObserverForControls(getFrame('player'));
         jQuery('#nw-custom-frame').on('mouseenter', function (){
             win.focus()
         }) // fix focus for hotkeys

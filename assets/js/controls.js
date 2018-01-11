@@ -14,6 +14,7 @@ var History = (function (){
         return fullHistory.slice(0)
     };
     _this.add = function (entry){
+        entry = Object.assign({}, entry);
         if(typeof(entry.originalUrl)=='string'){
             entry.url = entry.originalUrl; // ignore the runtime changes in URL
         }
@@ -284,56 +285,108 @@ function getIPTVListContent(callback, lastTriedAddr, silent) {
 }
 
 var parseIPTVListRgxGroup = new RegExp('group\-title *= *["\']*([^,"\']*)', 'i');
-var parseIPTVListRgxLogo = new RegExp('tvg\-logo *= *["\']*([^"\']+)', 'i');
+var parseIPTVListRgxLogo = new RegExp('tvg\-logo *= *["\']*([^"\']+//[^"\']+)', 'i');
 var parseIPTVListRgxName = new RegExp(',([^,]*)$', 'i');
 
 function playEntry(stream){
+    console.log('111');
     collectPackageQueue(stream);
+    console.log('112');
+    top.PlaybackManager.cancelLoading();
+    console.log('113');
     top.createPlayIntentAsync(stream, {}, function (intent){
         updateStreamEntriesFlags()
     })
+    console.log('114');
 }
 
 var sideLoadTried = [];
 jQuery(() => {
-    top.PlaybackManager.on('commit', function (intent){
-        if(!intent.sideload){
+    top.PlaybackManager.on('commit stop', function (intent){
+        if(!intent || !intent.sideload){
             sideLoadTried = [];
+            console.log('RESET', intent)
         }
     })
 });
 
-function sideLoadPlay(url){
-    console.log('SIDELOADPLAY', url);
-    var frameIntents = top.PlaybackManager.query({type: 'frame', error: false, ended: false});
+function sideLoadPlay(url, originalIntent){
+    var debug = true;
+    if(debug){
+        console.log('SIDELOADPLAY', url);
+    }
+    var frameIntents = originalIntent ? [originalIntent] : top.PlaybackManager.query({type: 'frame', error: false, ended: false});
     if(frameIntents.length){ // only allow sideload if there's at least one frame intent active
-        if(sideLoadTried.indexOf(url) === -1){ // not already tried
-            sideLoadTried.push(url);
+        var surl = removeQueryString(url);
+        if(sideLoadTried.indexOf(surl) === -1){ // not already tried
+            sideLoadTried.push(surl);
             var sameURLIntents = top.PlaybackManager.query({url: url});
             if(!sameURLIntents.length){
                 var entry = frameIntents[0].entry;
                 entry.url = url;
-                console.log('SIDELOADPLAY OK', entry);
+                if(debug){
+                    console.log('SIDELOADPLAY OK', entry, surl)
+                }
                 top.createPlayIntentAsync(entry, {sideload: true, 'pre-commit': function (allow, intent){
-                    console.log('PRE-COMMIT');
+                    if(debug){
+                        console.log('PRE-COMMIT')
+                    }
                     if(top.PlaybackManager.activeIntent){ // frame is active, user hasn't changed the channel
-                        console.log('PRE-COMMIT 1');
+                        if(debug){
+                            console.log('PRE-COMMIT 1')
+                        }
+
+                        // !!!!!!! WAIT, IF THE ACTIVEINTENT IS FROM PREV CHANNEL AND USER CLICKED IN OTHER, WE SHOULD ALLOW IT HERE!
+                        // !!!!!!! ACTUALLY, ONLY TWO PLAYING CHANNELS ARE ALLOWED, AS CLICKING AT ONE CANCEL ANOTHER INTENTS,
+                        // !!!!!!! SO DEAL HERE WITH HE TWO POSSIBILITIES ONLY!
                         if(intent.entry.originalUrl == top.PlaybackManager.activeIntent.entry.originalUrl){ // this sideload intent is really derived from the current activeIntent
-                            console.log('PRE-COMMIT 2');
+                            if(debug){
+                                console.log('PRE-COMMIT 2')
+                            }
                             return true;
                         }
                     }
-                    console.log('PRE-COMMIT 3');
+                    if(debug){
+                        console.log('PRE-COMMIT 3')
+                    }
                     return false;
                 }})
             } else {
-                console.log('SIDELOADPLAY SKIPPED') // url already (side)loading
+                if(debug){
+                    console.log('SIDELOADPLAY SKIPPED') // url already (side)loading
+                }
             }
         } else {
-            console.log('SIDELOADPLAY SKIPPED *', sideLoadTried) // no frame intent
+            if(debug){
+                console.log('SIDELOADPLAY SKIPPED *', sideLoadTried) // no frame intent
+            }
         }
     } else {
-        console.log('SIDELOADPLAY SKIPPED **', top.PlaybackManager.log()) // no frame intent
+        if(debug){
+            console.log('SIDELOADPLAY SKIPPED **', top.PlaybackManager.log()) // no frame intent
+        }
+    }
+}
+
+function nextLogo(element){
+    var entry = jQuery(element).parents('a.entry');
+    var data = entry.data('entry-data');
+    if(data){
+        var src = element.src, found;
+        for(var i=0; i<data.entries.length; i++){
+            if(element.src == data.entries[i].logo) {
+                found = true;
+            } else if(found){
+                if(data.entries[i].logo && (data.entries[i].logo != defaultIcons['stream'])){
+                    element.src = data.entries[i].logo;
+                    return;
+                    break;
+                }
+            }
+        }
+        element.src = defaultIcons[data.type];
+    } else {
+        element.src = defaultIcons['stream'];
     }
 }
 
@@ -383,15 +436,6 @@ function parseIPTVListToIndex(content, listUrl){
     }
 
     //console.log('! flatList !', JSON.stringify(flatList));
-    flatList.sort(function(a,b) {
-        if(a.group > b.group){
-            return 1;
-        } else if(a.group < b.group) {
-            return -1;
-        } else {
-            return (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0);
-        }
-    }); 
     if(listUrl){
         window.flatChannelsList[listUrl] = flatList;
         setSourceMeta(listUrl, 'length', flatList.length)
@@ -409,32 +453,93 @@ function parseIPTVListToIndex(content, listUrl){
         setSourceMeta(listUrl, 'groups', Object.keys(parsedGroups).length)
     }
 
-    //console.log('BB');
-    var locale = getLocale(false, true), groupedEntries = [];
+    //console.log('BB', parsedGroups);
+    var groupedEntries = [];
     for(var k in parsedGroups){
-        groupedEntries.push({name: basename(k), path: k, type: 'group', label: Number(parsedGroups[k].length).toLocaleString(locale)+' '+Lang.STREAMS.toLowerCase(), entries: parsedGroups[k]});
+        groupedEntries.push({name: basename(k), path: k, type: 'group', label: '', entries: parsedGroups[k]});
     }
 
     //console.log('CC', groupedEntries);
-    var recursiveGroupedList = [];
-    for(var i=0;i<groupedEntries.length;i++){
-        var e = recursiveGroupedList;
-        //console.log('DD', JSON.stringify(recursiveGroupedList).substr(0, 128));
+    var recursivelyGroupedList = [];
+    for(var i=0; i<groupedEntries.length; i++){
+        if(groupedEntries[i].path.indexOf('/')!=-1){ // no path
+            //console.log('HH', e);
+            recursivelyGroupedList = entryInsertAtPath(recursivelyGroupedList, groupedEntries[i].path, groupedEntries[i])
+        }
+    }
+    //console.log('! INDEX !', recursivelyGroupedList, groupedEntries);
+
+    for(var i=0; i<groupedEntries.length; i++){
         if(groupedEntries[i].path.indexOf('/')==-1){ // no path
             //console.log('EE', e);
             //console.log('FF', groupedEntries[i]);
-            recursiveGroupedList.push(groupedEntries[i]);
-            var f = recursiveGroupedList;
+            
+            //recursivelyGroupedList.push(groupedEntries[i])
+            recursivelyGroupedList = mergeEntriesWithNoCollision(recursivelyGroupedList, [groupedEntries[i]]);
+           
+            //var f = recursivelyGroupedList;
             //console.log('GG', f);
-        } else {
-            //console.log('HH', e);
-            recursiveGroupedList = entryInsertAtPath(recursiveGroupedList, groupedEntries[i].path, groupedEntries[i]) // group is entry object of type "group" to be put as last location
         }
     }
 
+    //console.log('! INDEX !', recursivelyGroupedList);
+    recursivelyGroupedList = labelifyEntriesList(recursivelyGroupedList);
+    recursivelyGroupedList = sortListRecursively(recursivelyGroupedList);
 
-    //console.log('! INDEX !', recursiveGroupedList);
-    return recursiveGroupedList;
+    //console.log('! INDEX !', recursivelyGroupedList);
+    return recursivelyGroupedList;
+}
+
+function sortListRecursively(list){
+    var result = [], entry;
+    for (var i=0; i<list.length; i++){
+        entry = Object.assign({}, list[i]);
+        if(entry.type=='group'){
+            if(entry.entries.length){
+                if(entry.entries.length == 1){
+                    entry = entry.entries[0];
+                    entry.path = dirname(entry.path);
+                } else {
+                    entry.entries = sortListRecursively(entry.entries);
+                    for (var j=0; j<entry.entries.length; j++){
+                        if(entry.entries[j].logo){
+                            entry.logo = entry.entries[j].logo;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        result.push(entry)
+    }
+    result.sort(function(a, b) {
+        return (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0)
+    }); 
+    return result;
+}
+
+function labelifyEntriesList(list, locale){
+    if(!locale){
+        locale = getLocale(false, true)
+    }
+    var count;
+    for (var i=0; i<list.length; i++){
+        if(list[i].type=='group'){
+            //entry.label = Number(entry.entries.length).toLocaleString(locale)+' '+Lang.STREAMS.toLowerCase();
+            count = Number(list[i].entries.length);
+            if(count == 1){
+                list[i] = list[i].entries[0];
+                list[i].path = dirname(list[i].path);
+                list[i].group = dirname(list[i].group);
+            } else {
+                list[i].label = count+' '+Lang.STREAMS.toLowerCase();
+                list[i].entries = labelifyEntriesList(list[i].entries, locale);
+            }
+        } else if(list[i].type=='stream') {
+            list[i].label = basename(list[i].path || list[i].group);
+        }
+    }
+    return list;
 }
 
 function playResume(){
@@ -452,18 +557,22 @@ function playResume(){
 			},
 			error: function (){
                 console.log('RESUME ERROR '+document.URL);
-                if(!top.PlaybackManager.query({error: false, ended: false}).length){
-                    i++;
-                    if(i <= entries.length){
-                        top.createPlayIntentAsync(entries[i], events);
-                        return true;
+                /*
+                if(top){
+                    if(!top.PlaybackManager.query({error: false, ended: false}).length){
+                        i++;
+                        if(i <= entries.length){
+                            top.createPlayIntentAsync(entries[i], events);
+                            return true;
+                        } else {
+                            console.log('No more history entries to resume.');
+                        }
                     } else {
-                        console.log('No more history entries to resume.');
+                        console.log('RESUME INTERRUPTED, ALREADY PLAYING');
+                        return;
                     }
-                } else {
-                    console.log('RESUME INTERRUPTED, ALREADY PLAYING');
-                    return;
                 }
+                */
 			}
         };
         if(!top.PlaybackManager.query({error: false, ended: false}).length){
@@ -477,7 +586,12 @@ function playResume(){
 }
 
 function revealChannelsLogo(){
-    jQuery(document.querySelectorAll('div.list img[src*="base64"]')).not(':below-the-fold').each(function (){this.src=this.getAttribute('lazy-src')});
+    //jQuery(document.querySelectorAll('div.list img[src*="base64"]')).not(':below-the-fold').each(function (){this.src=this.getAttribute('lazy-src')});
+    jQuery(document.querySelectorAll('div.list img[lazy-src]')).not(':below-the-fold').each((i, item) => {
+        var n = item.getAttribute('lazy-src');
+        item.removeAttribute('lazy-src');        
+        item.src = n;
+    })
 }
 
 function registerOfflineStream(stream){
@@ -549,7 +663,7 @@ function updateStreamEntriesFlags(){
             setEntryFlag(entries[i], '');
         }
         if(typeof(stream.url)=='string'){
-            var entries = findEntries(stream.url);
+            var entries = findEntries(stream.originalUrl);
             for(var i=0;i<entries.length;i++){
                 console.log('SET-'+i);
                 setEntryFlag(entries[i], fa);
@@ -702,6 +816,7 @@ function addNewSource(){
     askForSource(Lang.PASTE_URL_HINT, function (val){
         var url = val;
         console.log('CHECK', url);
+        notify(Lang.PROCESSING, 'fa-spin fa-circle-o-notch', 'wait');
         checkM3U8Type(url, function (url, type){
             console.log('CHECK CALLBACK', url, type);
             if(type=='stream'){
@@ -858,7 +973,7 @@ jQuery(function (){
 })
 
 jQuery(window).one('unload', function (){
-    top.sendStats('unreg')
+    top.sendStats('die')
 })
     
 jQuery(document).one('show', () => {
@@ -909,7 +1024,9 @@ jQuery(document).one('lngload', function (){
         var l = false;
         try{
             l = readIndexPath(listingPath)
-        }catch(e){}
+        }catch(e){
+            console.error(e)
+        }
         if(!l || !l.length){
             listingPath = '/';
         }

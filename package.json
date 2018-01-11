@@ -1,10 +1,10 @@
 {
     "name": "megacubo",
     "main": "index.html",
-    "chromium-args": "--disable-transparency  --ignore-certificate-errors --remote-debugging-port=9000            --disable-gpu-blacklist",
+    "chromium-args": "--disable-transparency  --ignore-certificate-errors --remote-debugging-port=9000                --disable-gpu --force-cpu-draw",
     "node": true,
     "description": "A quite simple IPTV client.",
-    "version": "14.0.6",
+    "version": "14.0.8",
     "inject_js_end": "assets/js/helper.js",
     "window": {
         "title": "Megacubo",
@@ -25,7 +25,7 @@
         "request": "~2.83.0"
     },
     "webkit": {
-        "page-cache": false
+        "page-cache": true
     },
     "permissions": [
         "alwaysOnTopWindows",

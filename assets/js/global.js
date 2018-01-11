@@ -28,7 +28,7 @@ window.ondragleave = window.ondrop = function(e) {
     return false;
 };
 
-window.onerror = function (){
+window.onerror = (...arguments) => {
     console.log('ERROR', arguments);
     top.logErr(arguments);
     return true;
@@ -47,7 +47,7 @@ if(typeof(require)!='undefined'){
             return dir+key+'.json';
         };
         var prepareKey = function (key){
-            return key.replace(new RegExp('[^A-Za-z0-9\._-]', 'g'), '');
+            return key.replace(new RegExp('[^A-Za-z0-9\\._-]', 'g'), '');
         };
         _this.get = function (key){
             var _json = localStorage.getItem(prepareKey(key));
@@ -163,6 +163,22 @@ if(typeof(require)!='undefined'){
             }
         }
         return ret;
+    }
+
+    function findCircularRefs(o){
+        var cache = [];
+        JSON.stringify(o, function(key, value) {
+            if (typeof value === 'object' && value !== null) {
+                if (cache.indexOf(value) !== -1) {
+                    console.log('Circular reference found:', key, value);
+                    return;
+                }
+                // Store value in our collection
+                cache.push(value);
+            }
+            return value;
+        });
+        cache = null;
     }
 
     var currentScaleMode = 0, scaleModes = ['contain', 'cover', 'fill'];
@@ -512,6 +528,11 @@ if(typeof(require)!='undefined'){
         }
         return urls;
     }
+
+    function dateStamp(){
+        var d = new Date();
+        return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0" + d.getDate()).slice(-2) + " " + ("0" + d.getHours()).slice(-2) + "-" + ("0" + d.getMinutes()).slice(-2);
+    }
     
     function askForSource(question, callback, placeholder){
         if(top){
@@ -524,7 +545,8 @@ if(typeof(require)!='undefined'){
                 ['<i class="fa fa-search" aria-hidden="true"></i> '+Lang.FIND_PACKAGES, function (){
                     nw.Shell.openExternal(getIPTVListSearchURL());
                 }],
-                ['<i class="fa fa-check-circle" aria-hidden="true"></i> OK', function (){
+                ['<i class="fa fa-check-circle" aria-hidden="true"></i> OK', 
+                () => {
                     // parse lines for names and urls and use registerSource(url, name) for each
                     var v = top.modalPromptVal();
                     if(v){
@@ -763,6 +785,7 @@ if(typeof(require)!='undefined'){
     }
 
     function setTitleData(title, icon) {
+        console.log('TITLE = '+title);
         if(top){
             var defaultIcon= 'default_icon.png';
             applyIcon(icon);
@@ -775,6 +798,7 @@ if(typeof(require)!='undefined'){
             if(c){
                 c.innerText = title;
             }
+            console.log('TITLE OK');
         }
     }
 
@@ -797,15 +821,19 @@ if(typeof(require)!='undefined'){
         var streamTitle = stream ? stream.name : '';
         return (title && title == streamTitle && title.indexOf('Megacubo')==-1);
     }
-    
-    function basename(str, removeQueryString){
+
+    function removeQueryString(url){
+        return url.split('?')[0].split('#')[0];
+    }
+
+    function basename(str, rqs){
         _str = new String(str); 
         pos = _str.replaceAll('\\', '/').lastIndexOf('/');
         if(pos){
             _str = _str.substring(pos + 1); 
         }
-        if(removeQueryString){
-            _str = _str.split('?')[0].split('#')[0];
+        if(rqs){
+            _str = removeQueryString(_str);
         }
         return _str;
     }
@@ -836,7 +864,7 @@ if(typeof(require)!='undefined'){
     
     function isM3U8(url){
         if(typeof(url)!='string') return false;
-        return url.match(new RegExp('\\.m3u8?([^A-Za-z0-9]|$)', 'i'));            
+        return ['m3u8', 'm3u'].indexOf(getExt(url)) != -1;            
     }
     
     function isRTMP(url){
@@ -871,7 +899,7 @@ if(typeof(require)!='undefined'){
     
     function isLive(url){
         if(typeof(url)!='string') return false;
-        return isM3U8(url)||isRTMP(url)||isRTSP(url);            
+        return isM3U8(url)||isRTMP(url)||isRTSP(url)||(getExt(url)=='ts');            
     }
     
     function isMedia(url){

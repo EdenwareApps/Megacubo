@@ -141,6 +141,7 @@ a.entry-stream .entry-logo img {
     bottom: 0;
     margin: auto;
     left: 0;
+    color: rgba(0,0,0,0.01);
 }
 .entry-logo i.fa-as-entry-logo {
     color: #fff;

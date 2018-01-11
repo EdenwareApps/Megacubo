@@ -2,7 +2,7 @@
   "ASK_IPTV_LIST":"URLリストIPTVを貼り付けます。",
   "ASK_STREAM_URL":"下記のブロードキャストURLを貼り付けてください。",
   "ASK_IPTV_LIST_FIRST":"開始するには、IPTVリストのURLを入力する必要があります。 あなたが持っていない場合は、をクリックします。 \"{0}\".",
-  "IPTV_LIST_PARSE_ERROR":"入力したURLリストにアクセスできないか、無効です。 URLを確認または変更してもう一度お試しください。",
+  "INVALID_URL_MSG":"入力したURLリストにアクセスできないか、無効です。 URLを確認または変更してもう一度お試しください。",
   "PLAY_STREAM_FAILURE":"トランスミッション \"{0}\" アクセスできない場合は、別のものを試してください。",
   "CHANNELS":"チャンネル",
   "PACKAGES":"パッケージ",

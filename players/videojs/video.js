@@ -1,6 +1,6 @@
 /**
  * @license
- * Video.js 6.6.0 <http://videojs.com/>
+ * Video.js 6.6.2 <http://videojs.com/>
  * Copyright Brightcove, Inc. <https://www.brightcove.com/>
  * Available under Apache License Version 2.0
  * <https://github.com/videojs/video.js/blob/master/LICENSE>
@@ -16,7 +16,7 @@
 	(global.videojs = factory());
 }(this, (function () {
 
-var version = "6.6.0";
+var version = "6.6.2";
 
 var commonjsGlobal = typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
@@ -14473,7 +14473,7 @@ var SeekBar = function (_Slider) {
      */
     this.player_.trigger({ type: 'timeupdate', target: this, manuallyTriggered: true });
     if (this.videoWasPlaying) {
-      this.player_.play();
+      silencePromise(this.player_.play());
     }
   };
 
@@ -17526,7 +17526,13 @@ var AudioTrackMenuItem = function (_MenuItem) {
 
     _this.track = track;
 
-    var changeHandler = bind(_this, _this.handleTracksChange);
+    var changeHandler = function changeHandler() {
+      for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+        args[_key] = arguments[_key];
+      }
+
+      _this.handleTracksChange.apply(_this, args);
+    };
 
     tracks.addEventListener('change', changeHandler);
     _this.on('dispose', function () {
@@ -18060,7 +18066,7 @@ var CustomControlSpacer = function (_Spacer) {
 
     // No-flex/table-cell mode requires there be some content
     // in the cell to fill the remaining space of the table.
-    el.innerHTML = '&nbsp;';
+    el.innerHTML = '\xA0';
     return el;
   };
 
@@ -25121,7 +25127,7 @@ videojs.hookOnce = function (type, fn) {
   videojs.hooks(type, [].concat(fn).map(function (original) {
     var wrapper = function wrapper() {
       videojs.removeHook(type, wrapper);
-      original.apply(undefined, arguments);
+      return original.apply(undefined, arguments);
     };
 
     return wrapper;

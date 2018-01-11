@@ -2,7 +2,7 @@
   "ASK_IPTV_LIST":"Collez la liste d'URL IPTV.",
   "ASK_STREAM_URL":"Veuillez coller votre URL de diffusion ci-dessous.",
   "ASK_IPTV_LIST_FIRST":"Pour commencer, vous devez entrer l'URL d'une liste IPTV. Si vous n'en avez pas, cliquez \"{0}\".",
-  "IPTV_LIST_PARSE_ERROR":"La liste d'URL que vous avez entrée est inaccessible ou invalide. Veuillez vérifier ou modifier l'URL et réessayer.",
+  "INVALID_URL_MSG":"La liste d'URL que vous avez entrée est inaccessible ou invalide. Veuillez vérifier ou modifier l'URL et réessayer.",
   "PLAY_STREAM_FAILURE":"A transmissão \"{0}\" est inaccessible, essayez un autre.",
   "CHANNELS":"Chaînes",
   "PACKAGES":"Forfaits",

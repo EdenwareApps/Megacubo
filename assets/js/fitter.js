@@ -1028,6 +1028,7 @@ var Fitter = (function (){
             return true;
         }
         if(tag(object)=='video'){
+            object.muted = true;
             if(!object.currentSrc){
                 console.log('Video discarded due to empty src.');
                 return true;
@@ -1145,6 +1146,11 @@ var Fitter = (function (){
         return true;
     }
     this.prepare = function (data){
+        if(!data || !data.scope){
+            console.error('BAD SCOPE', data, traceback());
+            return;
+        }
+
         var unfocus = function (e){
             var target = e.srcElement;
             if(!target || typeof(target['tagName'])=='undefined' || ['input', 'textarea'].indexOf(target['tagName'].toLowerCase())==-1){
@@ -1260,7 +1266,7 @@ var Fitter = (function (){
         }
         if(list && typeof(list)=='object'){ // if returns a object, should be {element:videoElement, scope:videoElementWindow}
             console.log('PREFITTER PREPARE', list);
-            this.prepare(list);
+            this.prepare(list)
         }
         return list;
     }

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8" />
+		<link rel="stylesheet" type="text/css" href="players/videojs/video-js.min.css" />
+		<style type="text/css">	
+			* {
+				-webkit-user-drag: none;
+			}
+			body {
+				margin: 0;
+			}		
+			.video-js {
+				width: 100vw !important;
+    			height: 100vh !important;
+			}
+		</style>
+	</head>
+	<body>
+		<script type="text/javascript" src="assets/js/jquery-3.2.1.js"></script>
+		<script type="text/javascript" src="players/videojs/video.min.js"></script>
+		<script type="text/javascript" src="players/videojs/videojs-contrib-hls.js"></script>
+		<div id="tester"></div>
+		<script type="text/javascript">
+			function test(url, type, _success, _failure){
+				var v = jQuery('<video></video>').appendTo('#tester');
+				var errTimer, tPlayer = videojs(v.get(0));
+				v.on('canplay loadedmetadata', function (){
+					clearTimeout(errTimer);
+					tPlayer.dispose();
+					try{
+						_success();
+					}catch(e){}
+					v.remove()
+				});
+				v.on('error ended', function (){
+					clearTimeout(errTimer);
+					tPlayer.dispose();
+					_failure();
+					v.remove()
+				});
+				errTimer = setTimeout(function (){
+					tPlayer.dispose();
+					_failure();
+					v.remove()
+				}, 10000); // tester timeout
+				tPlayer.src({src: url, type: type});
+				tPlayer.play()
+			}
+		</script>
+	</body>
+</html>

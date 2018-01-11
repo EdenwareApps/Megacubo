@@ -34,41 +34,62 @@ function readSourcesToIndex(callback){
     }
 }
 
-function mergeEntryWithNoCollision(leveledIndex, leveledEntry){
-    for(var i=0;i<leveledIndex.length;i++){
-        if(leveledIndex[i].type==leveledEntry.type && leveledIndex[i].name==leveledEntry.name){
-            //console.log('MATCH' , JSON.stringify(leveledIndex).substr(0, 128));
-            leveledIndex[i].entries = leveledIndex[i].entries.concat(leveledEntry.entries);
-            //console.log('MATCH' , JSON.stringify(leveledIndex).substr(0, 128));
-            return leveledIndex;
-            break;
+// mergeEntriesWithNoCollision([{name:'1',type:'group', entries:[1,2,3]}], [{name:'1',type:'group', entries:[4,5,6]}])
+function mergeEntriesWithNoCollision(leveledIndex, leveledEntries){
+    var ok;
+    if(leveledIndex instanceof Array && leveledEntries instanceof Array){
+        for(var j=0;j<leveledEntries.length;j++){
+            ok = false;
+            for(var i=0;i<leveledIndex.length;i++){
+                if(leveledIndex[i].type==leveledEntries[j].type && leveledIndex[i].name==leveledEntries[j].name){
+                    //console.log('LEVELING', leveledIndex[i], leveledEntries[j])
+                    leveledIndex[i].entries = mergeEntriesWithNoCollision(leveledIndex[i].entries, leveledEntries[j].entries);
+                    ok = true;
+                    break;
+                }
+            }
+            if(!ok){
+                //console.log('NOMATCH FOR '+leveledEntries[j].name, leveledIndex, leveledEntries[j]);
+                leveledIndex.push(leveledEntries[j]);
+                //console.log('noMATCH' , JSON.stringify(leveledIndex).substr(0, 128));
+            }
         }
     }
-    //console.log('noMATCH' , JSON.stringify(leveledIndex).substr(0, 128));
-    leveledIndex.push(leveledEntry);
-    //console.log('noMATCH' , JSON.stringify(leveledIndex).substr(0, 128));
     return leveledIndex;
 }
 
-function entryInsertAtPath(_index, groupname, group){ // group is entry object of type "group" to be put as last location, create the intermediaries, groupname is like a path
-    var path = groupname.replace(new RegExp('\\+'), '/');
-    var paths = path.split('/');
+function buildPathStructure(path, group){ // group is entry object of type "group" to be put as last location, create the intermediaries
     var groupEntryTemplate = {name: '', path: '', type: 'group', label: '', entries: []};
-    var complexObject = group;
-    //console.log('BEFORE '+groupname, _index, complexObject);
+    path = path.replace(new RegExp('\\+'), '/');
+    var paths = path.split('/');
+    var structure = group;
     for(var i=(paths.length - 2);i>=0;i--){
-        //console.log('PATH '+paths[i], complexObject);
-        var entry = groupEntryTemplate, c = complexObject;
-        entry.entries = [c];
+        //console.log(structure);
+        var entry = groupEntryTemplate;
+        entry.entries = [Object.assign({}, structure)];
         entry.name = paths[i];
         entry.label = '';
         entry.path = paths.slice(0, i + 1).join('/');
-        //console.log('PATH B '+paths[i], entry);
-        complexObject = entry;
-        //console.log('PATH C '+paths[i], complexObject);
+        structure = entry;
     }
-    //console.log('AFTER '+groupname, JSON.stringify(complexObject).substr(0, 128));
-    return mergeEntryWithNoCollision(_index, complexObject); // _index is an array, complexObject here should be a entry of type "group" with inner entries organized
+    return [structure];
+}
+
+function entryInsertAtPath(_index, groupname, group){ // group is entry object of type "group" to be put as last location, create the intermediaries, groupname is like a path
+    var structure = buildPathStructure(groupname, group);
+    
+    //console.log('AFTER '+groupname, group, structure);
+    //console.log('RRR');
+    //findCircularRefs([structure]);
+    //console.log('SSS');
+
+    _index = mergeEntriesWithNoCollision(_index, structure);
+    
+    //console.log('XXX');
+    //findCircularRefs(_index);
+    //console.log('ZZZ');
+
+    return _index;
 }
 
 function listEntryRender(entry, container, tabIndexOffset){
@@ -245,9 +266,9 @@ var menuTemplates = {
     'option': '<a href="[url]" onclick="return false;" class="entry entry-option [class]"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><img src="[logo]" title="[name] - [group]" onerror="this.onerror=null;this.src=\'[default-logo]\';" /></span></td><td><span class="entry-name">[name]</span><span class="entry-label">[label]</span></td></tr></table></a>',
     'input': '<a href="[url]" onclick="return false;" class="entry entry-input"><table class="entry-search"><tr><td><input type="text" style="background-image: url([logo]);" /></td><td class="entry-logo-c">...</td></tr></table></a>', // entry-input-container entry-search-helper
     'check': '<a href="[url]" onclick="return false;" class="entry entry-option [class]"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><i class="fa fa-toggle-off fa-as-entry-logo" aria-hidden="true"></i></span></td><td><span class="entry-name">[name]</span></td></tr></table></a>',
-    'stream': '<a href="[url]" onclick="return false;" class="entry entry-stream"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><img src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" lazy-src="[logo]" title="[name] - [group]" onerror="this.onerror=null;this.src=\'[default-logo]\';" /></span></td><td><span class="entry-name">[format-name]</span><span class="entry-label">[group]</span></td></tr></table></a>',
+    'stream': '<a href="[url]" onclick="return false;" class="entry entry-stream"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><img src="[default-logo]" lazy-src="[logo]" title="[name] - [group]" onerror="this.onerror=null;this.src=\'[default-logo]\';" /></span></td><td><span class="entry-name">[format-name]</span><span class="entry-label">[label]</span></td></tr></table></a>',
     'back': '<a href="[url]" onclick="return false;" class="entry entry-back [class]"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><img src="[logo]" title="[name] - [group]" /></span></td><td><span class="entry-name">[name]</span></td></tr></table></a>',
-    'group': '<a href="[url]" onclick="return false;" class="entry entry-group [class]"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><img src="[logo]" title="[name] - [group]" onerror="this.onerror=null;this.src=\'[default-logo]\';" /></span></td><td><span class="entry-name">[name]</span><span class="entry-label">[label]</span></td></tr></table></a>'
+    'group': '<a href="[url]" onclick="return false;" class="entry entry-group [class]"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><img src="[logo]" title="[name] - [group]" onerror="nextLogo(this)" /></span></td><td><span class="entry-name">[name]</span><span class="entry-label">[label]</span></td></tr></table></a>'
 };
 
 var defaultIcons = {
@@ -256,7 +277,7 @@ var defaultIcons = {
     'stream': 'assets/icons/white/default-channel.png',
     'back': 'fa-chevron-left',
     'check': 'fa-toggle-off',
-    'group': 'fa-shopping-bag'
+    'group': 'assets/icons/white/default-channel.png'
 };
 
 var $container = false, $ccontainer = false;
@@ -412,17 +433,26 @@ function triggerEntry(data, element){
         console.log(data.path);
         listEntriesByPath(data.path)
     }
-    console.log('CALLBACK', typeof(data.callback));
-    if(typeof(data.callback)=='function'){
+    var t = typeof(data.callback);
+    console.log('CALLBACK', t, data);
+    if(t == 'function'){
         setTimeout(function (){
             data.callback(data, this)
         }, 150)
-    } else if(data.type=='stream') {
+    } else if(isStreamEntry(data)) {
+        console.log('PLAY', data);
         playEntry(data)
     }
 }
 
-
+function isStreamEntry(data){
+    if(typeof(data.type)=='undefined' || !data.type){
+        if(typeof(data.url)=='string' && data.url.match('(//|magnet:)')){
+            data.type = 'stream';
+        }
+    }
+    return (data.type == 'stream');
+}
 
 function setEntryFlag(el, flag){
     if(flag){

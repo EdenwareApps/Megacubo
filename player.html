@@ -36,36 +36,8 @@
 		<script type="text/javascript" src="players/videojs/videojs-contrib-hls.js"></script>
 		<script type="text/javascript" src="players/videojs/videojs-dvrseekbar.min.js"></script>
 		<script type="text/javascript" src="players/videojs/videojs-stop-button.js"></script>
-		<div id="tester"></div>
 		<script type="text/javascript">
-			function test(url, type, _success, _failure){
-				var v = jQuery('<video></video>').appendTo('#tester');
-				var errTimer, tPlayer = videojs(v.get(0));
-				v.on('canplay loadedmetadata', function (){
-					clearTimeout(errTimer);
-					tPlayer.dispose();
-					try{
-						_success();
-					}catch(e){}
-					v.remove()
-				});
-				v.on('error ended', function (){
-					clearTimeout(errTimer);
-					tPlayer.dispose();
-					_failure();
-					v.remove()
-				});
-				errTimer = setTimeout(function (){
-					tPlayer.dispose();
-					_failure();
-					v.remove()
-				}, 10000); // tester timeout
-				tPlayer.src({src: url, type: type});
-				tPlayer.play()
-			}
-		</script>
-		<script type="text/javascript">
-			var video = document.querySelector('video'), v = jQuery(video), paused = false, stopEvent = function(e) {
+			var lastPlaybackData, video = document.querySelector('video'), v = jQuery(video), _paused = false, stopEvent = function(e) {
 				if(e){
 					e.stopPropagation();
 					e.preventDefault();
@@ -78,15 +50,21 @@
 				"autoplay": true, 
 				"preload": "auto" 
 			});
-			// player.dvrseekbar() // re-enable when the slider gets fixed, maybe the ondragstart hook at global.js or helper.js
+			//player.dvrseekbar() // re-enable when the slider gets fixed, maybe the ondragstart hook at global.js or helper.js
 			player.stopButton();
 			function src(_src, type){
-				player.src({src: _src, type: type})
+				player.off('error');
+				lastPlaybackData = {src: _src, type: type};
+				player.src(lastPlaybackData)
 			}
 			function pause(){
 				player.pause()
 			}
+			function paused(){
+				return player.paused()
+			}
 			function stop(){
+				player.off('error');
 				player.pause();
 				player.reset()
 			}
@@ -99,6 +77,10 @@
 				return video;
 			}
 			function play(){
+				if(lastPlaybackData instanceof Array){
+					player.src(lastPlaybackData);
+					player.load();
+				}
 				player.play()
 			}
 			function seek(s){
@@ -108,8 +90,8 @@
 			function patchVideo(v){
 				v.off('mousedown click mouseup');
 				v.on('mousedown', function(event) {
-					paused = !video.paused;
-					console.log('Player.PAUSED = ' + JSON.stringify(paused));
+					_paused = !video.paused;
+					console.log('Player.PAUSED = ' + JSON.stringify(_paused));
 					return stopEvent(event);
 				})
 				v.on('click', function(event) {
@@ -117,7 +99,7 @@
 				})
 				v.on('mouseup', function(event) {
 					setTimeout(function() {
-						if (paused) {
+						if (_paused) {
 							console.log('Player.PLAY');
 							top.PlaybackManager.play()
 						}
@@ -129,17 +111,33 @@
 					return stopEvent(event);
 				})
 				var playPauseDelayTimer;
-				v.on('play', function(event) {
+				player.off('play');
+				player.off('pause');
+				player.off('error');
+				player.on('play', function(event) {
 					clearTimeout(playPauseDelayTimer);
 					top.delayedPlayPauseNotify()
-				})
-				v.on('pause', function(event) {
+				});
+				player.on('pause', function(event) {
 					clearTimeout(playPauseDelayTimer);
 					playPauseDelayTimer = setTimeout(function (){ // delay a bit to avoid the pause UI on seeking
 						if(player.paused()){
 							top.delayedPlayPauseNotify();
 						}
 					}, 500)
+				});
+				player.on('error', function(event) {
+					//top.PlaybackManager.activeIntent.error = true;
+					//top.PlaybackManager.activeIntent.trigger('error');
+					console.log('Video.JS error', event)
+					var _src = player.src();
+					if(_src.indexOf('127.0.0.1')!=-1){
+						_src = _src.replace(new RegExp('127\\.0\\.0\\.1:[0-9]+/'), '')
+					} else {
+						_src = top.getHLSProxy().getURL(_src)
+					}
+					lastPlaybackData['src'] = _src;
+					window.play()
 				})
 			}
 			patchVideo(v);
@@ -154,6 +152,9 @@
 				e.stopPropagation();
 				e.preventDefault();
 				return false;
+			});
+			jQuery(() => {
+				top.createMouseObserverForControls(window)
 			})
 		</script>
 	</body>
