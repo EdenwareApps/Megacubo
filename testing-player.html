@@ -25,24 +25,22 @@
 			function test(url, type, _success, _failure){
 				var v = jQuery('<video></video>').appendTo('#tester');
 				var errTimer, tPlayer = videojs(v.get(0));
-				v.on('canplay loadedmetadata', function (){
+				v.on('canplay', function (){
 					clearTimeout(errTimer);
 					tPlayer.dispose();
-					try{
-						_success();
-					}catch(e){}
-					v.remove()
+					v.remove();
+					_success()
 				});
 				v.on('error ended', function (){
 					clearTimeout(errTimer);
 					tPlayer.dispose();
-					_failure();
-					v.remove()
+					v.remove();
+					_failure()
 				});
 				errTimer = setTimeout(function (){
 					tPlayer.dispose();
-					_failure();
-					v.remove()
+					v.remove();
+					_failure()
 				}, 10000); // tester timeout
 				tPlayer.src({src: url, type: type});
 				tPlayer.play()

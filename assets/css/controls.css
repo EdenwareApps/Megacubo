@@ -146,6 +146,13 @@ a.entry-stream .entry-logo img {
 .entry-logo i.fa-as-entry-logo {
     color: #fff;
 }
+.entry-offline {
+    border-color: rgba(255, 255, 255, 0.09) !important;
+}
+.entry-offline img, .entry-offline .entry-name, .entry-offline .entry-label {
+    opacity: 0.5;  
+    filter: saturate(50%)
+}
 .entry-name {
     display: block;
     color: #fff;

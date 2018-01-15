@@ -135,7 +135,7 @@ function getLanguageEntries(){
     return options;
 }
 
-function getPackagesEntries(notActive, noManagement){
+function getListsEntries(notActive, noManagement){
     var sources = getSources(), active = getActiveSource();
     var options = [];
     for(var i in sources){
@@ -167,14 +167,17 @@ function getPackagesEntries(notActive, noManagement){
         })
     }
     if(noManagement !== true){
-        options.push({name: Lang.ADD_NEW_PACKAGE, logo:'fa-plus', type: 'option', callback: addNewSource});
-        options.push({name: Lang.REMOVE_PACKAGE, logo:'fa-trash', type: 'group', renderer: getPackagesEntriesForRemoval, callback: markActiveSource});
-        options.push({name: Lang.FIND_PACKAGES, logo:'fa-search', type: 'option', callback: function (){nw.Shell.openExternal(getIPTVListSearchURL())}});
+        options.push({name: Lang.ADD_NEW_LIST, logo:'fa-plus', type: 'option', callback: addNewSource});
+        options.push({name: Lang.REMOVE_LIST, logo:'fa-trash', type: 'group', renderer: getListsEntriesForRemoval, callback: markActiveSource});
+        options.push({name: Lang.FIND_LISTS, logo:'fa-search', type: 'option', callback: function (){nw.Shell.openExternal(getIPTVListSearchURL())}});
+        options.push({name: Lang.SHARE_LISTS, type: 'check', check: function (checked){
+            Store.set('unshare-lists', !checked)
+        }, checked: !Store.get('unshare-lists')})
     }
     return options;
 }
 
-function getPackagesEntriesForRemoval(){
+function getListsEntriesForRemoval(){
     var sources = getSources();
     var entries = [];
     if(sources.length){
@@ -191,7 +194,7 @@ function getPackagesEntriesForRemoval(){
                         refreshListing()
                     }, 1000)
                 }, 
-                path: Lang.PACKAGES
+                path: Lang.LISTS
             })
         }
     } else {

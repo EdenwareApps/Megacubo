@@ -1,6 +1,9 @@
 
 var doFindStreams = function (scope){
     var filters = {}, _pl = false, lastGenericDiscovering = false, window = scope;
+    if(!window || !window.document){
+        return;
+    }
     function addFilter(hook, callback){
         if(typeof(filters[hook])=='undefined'){
             filters[hook] = [];

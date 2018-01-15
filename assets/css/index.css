@@ -175,7 +175,7 @@ div#modal-overlay .prompt textarea {
 .prompt-close a {
     position: absolute;
     right: 11px;
-    top: 7px;
+    top: 18px;
     color: #000;
 }
 
@@ -192,7 +192,7 @@ div#modal-overlay .prompt textarea {
     background: #e5e9ef;
     color: #000;
     text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.25);
-    padding: 0 26px;
+    padding: 10px 26px;
     box-sizing: border-box;
 }
 

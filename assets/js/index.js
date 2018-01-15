@@ -51,7 +51,7 @@ function escapePressed(){
 }
 
 function isMaximized(){
-    var w = top.window, widthMargin = 24, heightMargin = 72;
+    var w = top || window, widthMargin = 24, heightMargin = 72;
     return (w.outerWidth >= (screen.width - widthMargin) && w.outerHeight >= (screen.height - heightMargin));
 }
 
@@ -87,7 +87,7 @@ function closeWindow(){
 
 function fixMaximizeButton(){
     if(typeof(isMaximized)!='undefined'){
-        if(isMaximized()){
+        if(isMaximized() || miniPlayerActive){
             showRestoreButton()
         } else {
             showMaximizeButton()
@@ -136,6 +136,7 @@ function patchMaximizeButton(){
     old_element = document.querySelector(".nw-cf-restore");
     old_element.addEventListener('click', function (){
         setTimeout(fixMaximizeButton, 50);
+        jQuery(window).trigger('restore')
     });
     
     patchMaximizeButton = function (){};
@@ -263,7 +264,9 @@ function bindWebRequest(){
     var debug = false;
     chrome.webRequest.onBeforeRequest.addListener(
         function(details) {
-            console.log("blocking:", details);
+            if(debug){
+                console.log("blocking:", details);
+            }
             if(typeof(details['frameId'])!='undefined' && details.frameId && details.type=='sub_frame'){
                 return {redirectUrl: top.document.URL.replace('index.', 'block.')};
             }
@@ -302,7 +305,9 @@ function bindWebRequest(){
                 }
             }
             if(isMedia(details.url) && (PlaybackManager.isLoading() || (PlaybackManager.activeIntent.type=='frame' && !PlaybackManager.activeIntent.videoElement))){
-                console.log('Calling fitter delayed.');
+                if(debug){
+                    console.log('Calling fitter delayed.');
+                }
                 clearTimeout(runFitterDelayTimer);
                 runFitterDelayTimer = top.setTimeout(runFitter, 2000)
             }
@@ -312,7 +317,6 @@ function bindWebRequest(){
 
     chrome.webRequest.onHeadersReceived.addListener(
         function(details) {
-            var debug = 1;
             if(debug){
                 console.log('onHeadersReceived', details.url, requestIdReferersTable[details.requestId], details);
             }
@@ -349,7 +353,9 @@ function bindWebRequest(){
                                 var ok = false;
                                 for(var i=0; i<frameIntents.length; i++){
                                     urls = getFrameURLs(frameIntents[i].frame);
-                                    console.log('SIDELOADPLAY URLS', urls);
+                                    if(debug){
+                                        console.log('SIDELOADPLAY URLS', urls);
+                                    }
                                     if(matchURLs(referer, urls) || matchURLs(details.url, urls)){
                                         var c = getFrame('controls');
                                         if(c){
@@ -359,19 +365,27 @@ function bindWebRequest(){
                                     }
                                 }
                                 if(!ok){
-                                    console.log('SIDELOADPLAY FAILED, NO REFERER', details.url, referer, frameIntents)
+                                    if(debug){
+                                        console.log('SIDELOADPLAY FAILED, NO REFERER', details.url, referer, frameIntents)
+                                    }
                                 }
                             } else {
-                                console.log('M3U8 referer missing...');
+                                if(debug){
+                                    console.log('M3U8 referer missing...');
+                                }
                             }
                         }
                     } else if(PlaybackManager.isLoading() || (PlaybackManager.activeIntent.type=='frame' && !PlaybackManager.activeIntent.videoElement)){
                         if(isM3U8 || isVideo || isAudio){
-                            console.log('Calling fitter now.');
+                            if(debug){
+                                console.log('Calling fitter now.');
+                            }
                             clearTimeout(runFitterDelayTimer);
                             runFitter();
                         } else if(isDocument) {
-                            console.log('Calling fitter delayed.');
+                            if(debug){
+                                console.log('Calling fitter delayed.');
+                            }
                             clearTimeout(runFitterDelayTimer);
                             runFitterDelayTimer = setTimeout(runFitter, 2000);
                         }
@@ -547,7 +561,7 @@ function registerRecording(file, replaceThisOne){
         url: file,
         name: basename(file).replace('.'+getExt(file), '')
     });
-    c.refreshListing()
+    c.refreshListingIfMatch(Lang.RECORDINGS)
 }
 
 function startRecording(){
@@ -730,6 +744,19 @@ function modalClose(){
     jQuery('#modal-overlay').hide()
 }
 
+function modalConfirm(question, answers, callback){
+    var a = [];
+    for(var k in answers){
+        a.push(jQuery('<span class="button">'+answers[k][0]+'</span>').on('click', answers[k][1]))
+    }
+    var b = jQuery('<div class="prompt prompt-'+a.length+'-columns">'+
+                '<span class="prompt-header">'+nl2br(question)+'</span>'+
+                '<span class="prompt-footer"></span></div>');
+    b.find('.prompt-footer').append(a);
+    makeModal(b);
+    top.window.focus()
+}
+
 function modalPrompt(question, answers, placeholder, value){
     var a = [];
     for(var k in answers){
@@ -737,7 +764,7 @@ function modalPrompt(question, answers, placeholder, value){
     }
     var b = jQuery('<div class="prompt prompt-'+a.length+'-columns">'+
                 '<span class="prompt-close"><a href="javascript:modalClose();void(0)"><i class="fa fa-times-circle" aria-hidden="true"></i></a></span>'+
-                '<span class="prompt-header">'+question+'</span>'+
+                '<span class="prompt-header">'+nl2br(question)+'</span>'+
                 '<input type="text" />'+
                 '<span class="prompt-footer"></span></div>');
     b.find('.prompt-footer').append(a);
@@ -797,6 +824,7 @@ function maxPortViewSize(width, height){
 
 function setFullScreen(enter){
     if(!enter){
+        miniPlayerActive = false;
         win.leaveKioskMode(); // bugfix, was remembering to enter fullscreen irreversibly
         var s = initialSize();
         window.resizeTo(s.width, s.height);
@@ -808,7 +836,6 @@ function setFullScreen(enter){
         centralizeWindow(s.width, s.height);
         //win.setPosition('center'); // buggy sometimes
         console.log('SIZE', s.width, s.height);
-        miniPlayerActive = false;
         if(typeof(window['fixMaximizeButton'])=='function'){
             fixMaximizeButton()
         }
@@ -1015,6 +1042,35 @@ handleOpenArguments(gui.App.argv)
 var packageQueue = Store.get('packageQueue') || [];
 var packageQueueCurrent = Store.get('packageQueueCurrent') || 0;
 
+var miniPlayerMouseOutTimer = 0, miniPlayerMouseHoverDelay = 0, isMouseOver;
+var mouseEnterTimeout = () => {
+    clearTimeout(miniPlayerMouseOutTimer);
+    miniPlayerMouseOutTimer = setTimeout(() => {
+        if(miniPlayerActive){
+            jQuery('body').addClass('frameless').off('mousemove', mouseEnterTimeout)
+        }
+    }, 3000)
+}
+jQuery('body').hover(
+    () => {
+        isMouseOver = true;
+        if(miniPlayerActive && isMouseOver){
+            jQuery('body').removeClass('frameless').on('mousemove', mouseEnterTimeout);
+            fixMaximizeButton();
+        }
+    }, 
+    () => {
+        isMouseOver = false;
+        clearTimeout(miniPlayerMouseHoverDelay);
+        miniPlayerMouseHoverDelay = setTimeout(() => {
+            if(miniPlayerActive && !isMouseOver){
+                jQuery('body').addClass('frameless').off('mousemove', mouseEnterTimeout)
+            }
+        }, 400)
+    }
+)
+
+jQuery(window).on('restore', restoreInitialSize);
 jQuery(window).on('unload', function (){
     Store.set('packageQueue', packageQueue);
     Store.set('packageQueueCurrent', packageQueueCurrent)

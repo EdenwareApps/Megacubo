@@ -1,4 +1,22 @@
 
+var menuTemplates = {
+    'option': '<a href="[url]" onclick="return false;" class="entry entry-option [class]"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><img src="[logo]" title="[name] - [group]" onerror="this.onerror=null;this.src=\'[default-logo]\';" /></span></td><td><span class="entry-name">[name]</span><span class="entry-label">[label]</span></td></tr></table></a>',
+    'input': '<a href="[url]" onclick="return false;" class="entry entry-input"><table class="entry-search"><tr><td><input type="text" style="background-image: url([logo]);" /></td><td class="entry-logo-c">...</td></tr></table></a>', // entry-input-container entry-search-helper
+    'check': '<a href="[url]" onclick="return false;" class="entry entry-option [class]"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><i class="fa fa-toggle-off fa-as-entry-logo" aria-hidden="true"></i></span></td><td><span class="entry-name">[name]</span></td></tr></table></a>',
+    'stream': '<a href="[url]" onclick="return false;" class="entry entry-stream [class]"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><img src="[default-logo]" lazy-src="[logo]" title="[name] - [group]" onerror="this.onerror=null;this.src=\'[default-logo]\';" /></span></td><td><span class="entry-name">[format-name]</span><span class="entry-label">[label]</span></td></tr></table></a>',
+    'back': '<a href="[url]" onclick="return false;" class="entry entry-back [class]"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><img src="[logo]" title="[name] - [group]" /></span></td><td><span class="entry-name">[name]</span></td></tr></table></a>',
+    'group': '<a href="[url]" onclick="return false;" class="entry entry-group [class]"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><img src="[logo]" title="[name] - [group]" onerror="nextLogo(this)" /></span></td><td><span class="entry-name">[name]</span><span class="entry-label">[label]</span></td></tr></table></a>'
+};
+
+var defaultIcons = {
+    'option': 'fa-cog',
+    'input': 'assets/icons/white/search-dark.png',
+    'stream': 'assets/icons/white/default-channel.png',
+    'back': 'fa-chevron-left',
+    'check': 'fa-toggle-off',
+    'group': 'assets/icons/white/default-channel.png'
+};
+
 function readSourcesToIndex(callback){
     window.channelsIndex = window.channelsIndex || {};
     var sources = getSources(), activeSrc = getActiveSource(), fetchCallback = (content, parsed, url) => {
@@ -10,8 +28,8 @@ function readSourcesToIndex(callback){
                 entries.push({name: Lang.EMPTY, logo:'fa-files-o', type: 'option'})
             }
             if(sources.length > 1){
-                entries.push({name: Lang.OTHER_PACKAGES, logo: 'fa-plus-square', type: 'group', entries: [], renderer: () => {
-                    return getPackagesEntries(true, true)
+                entries.push({name: Lang.OTHER_LISTS, logo: 'fa-plus-square', type: 'group', entries: [], renderer: () => {
+                    return getListsEntries(true, true)
                 }})
             }
             window.index = writeIndexPathEntries(Lang.CHANNELS, entries);
@@ -103,6 +121,9 @@ function listEntryRender(entry, container, tabIndexOffset){
         } else {
             entry.type = 'stream';
         }
+    }
+    if(entry.offline){
+        entry.class = (entry.class || '') + ' entry-offline';
     }
     var logo = entry.logo || defaultIcons[entry.type];
     var html = menuTemplates[entry.type];
@@ -262,24 +283,6 @@ function listBackEffect(callback){
     jQuery('.list > div').animate({opacity: 0.01}, effectFadeTime, function (){callback();jQuery(this).css({opacity: 1})});
 }
 
-var menuTemplates = {
-    'option': '<a href="[url]" onclick="return false;" class="entry entry-option [class]"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><img src="[logo]" title="[name] - [group]" onerror="this.onerror=null;this.src=\'[default-logo]\';" /></span></td><td><span class="entry-name">[name]</span><span class="entry-label">[label]</span></td></tr></table></a>',
-    'input': '<a href="[url]" onclick="return false;" class="entry entry-input"><table class="entry-search"><tr><td><input type="text" style="background-image: url([logo]);" /></td><td class="entry-logo-c">...</td></tr></table></a>', // entry-input-container entry-search-helper
-    'check': '<a href="[url]" onclick="return false;" class="entry entry-option [class]"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><i class="fa fa-toggle-off fa-as-entry-logo" aria-hidden="true"></i></span></td><td><span class="entry-name">[name]</span></td></tr></table></a>',
-    'stream': '<a href="[url]" onclick="return false;" class="entry entry-stream"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><img src="[default-logo]" lazy-src="[logo]" title="[name] - [group]" onerror="this.onerror=null;this.src=\'[default-logo]\';" /></span></td><td><span class="entry-name">[format-name]</span><span class="entry-label">[label]</span></td></tr></table></a>',
-    'back': '<a href="[url]" onclick="return false;" class="entry entry-back [class]"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><img src="[logo]" title="[name] - [group]" /></span></td><td><span class="entry-name">[name]</span></td></tr></table></a>',
-    'group': '<a href="[url]" onclick="return false;" class="entry entry-group [class]"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><img src="[logo]" title="[name] - [group]" onerror="nextLogo(this)" /></span></td><td><span class="entry-name">[name]</span><span class="entry-label">[label]</span></td></tr></table></a>'
-};
-
-var defaultIcons = {
-    'option': 'fa-cog',
-    'input': 'assets/icons/white/search-dark.png',
-    'stream': 'assets/icons/white/default-channel.png',
-    'back': 'fa-chevron-left',
-    'check': 'fa-toggle-off',
-    'group': 'assets/icons/white/default-channel.png'
-};
-
 var $container = false, $ccontainer = false;
 function getListContainer(reset){
     if(!$container){
@@ -353,6 +356,7 @@ function listEntriesByPath(path, append, nofx){
     if(!(list instanceof Array)){
         list = [list];
     }
+    list = applyFilters('filterEntries', list);
     if(!append){
         if(path.length) {
             backEntryRender(container, dirname(path));
@@ -625,7 +629,41 @@ function triggerBack(){
     }
 }
 
-var listingPath = Store.get('listingPath');
+var listingPath = Store.get('listingPath'), autoCleanHintShown = false;
 jQuery(window).on('unload', function (){
     Store.set('listingPath', listingPath)
+})
+
+jQuery(() => {
+    addFilter('filterEntries', (entries) => {
+        var nentries = [], urls = getOfflineStreamsURLs(), offline = [], forceClean = false, isStreamsListing = false;
+        for(var i=0; i<entries.length; i++){
+            if(entries[i].type && entries[i].type=='stream'){
+                if(!isStreamsListing){
+                    isStreamsListing = true;
+                }
+                if(urls.indexOf(entries[i].url)!=-1){
+                    entries[i].offline = true;
+                    offline.push(entries[i]);
+                } else {
+                    entries[i].offline = false;
+                    nentries.push(entries[i])
+                }
+            } else {
+                nentries.push(entries[i]) // not a stream entry
+            }
+        }
+        if(offline.length){
+            nentries = nentries.filter(function (item) {
+                return !!item;
+            }).concat(offline);            
+        } else if(isStreamsListing) {
+            if(!autoCleanHintShown){
+                autoCleanHintShown = true;
+                notify(Lang.AUTOCLEAN_HINT, 'fa-info-circle', 'long')
+            }
+        }
+        console.log('FILTERED', nentries, entries, offline);
+        return nentries;
+    })
 })

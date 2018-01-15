@@ -263,11 +263,11 @@ function getIPTVListContent(callback, lastTriedAddr, silent) {
         if(!addr){
             console.log('No addr? '+JSON.stringify(addr)+' ('+(silent?'Y':'N')+')');
             if(!silent){
-                askForSource(Lang.ASK_IPTV_LIST_FIRST.format(Lang.FIND_PACKAGES), function (url){
+                askForSource(Lang.ASK_IPTV_LIST_FIRST.format(Lang.FIND_LISTS), (url) => {
                     notify(Lang.PROCESSING, 'fa-spin fa-circle-o-notch', 'wait');
                     checkM3U8Type(url, function (url, type){
                         if(type == 'list'){
-                            notify(Lang.PACKAGE_ADDED, 'fa-info', 'normal');
+                            notify(Lang.LIST_ADDED, 'fa-info', 'normal');
                             registerSource(url);
                             top.modalClose()
                         } else {
@@ -275,7 +275,7 @@ function getIPTVListContent(callback, lastTriedAddr, silent) {
                         }
                     })
                     return false;
-                });
+                }, null, true);
                 jQuery(top.document).find('.prompt-close').remove()
             }
             return;
@@ -289,15 +289,35 @@ var parseIPTVListRgxLogo = new RegExp('tvg\-logo *= *["\']*([^"\']+//[^"\']+)', 
 var parseIPTVListRgxName = new RegExp(',([^,]*)$', 'i');
 
 function playEntry(stream){
-    console.log('111');
-    collectPackageQueue(stream);
-    console.log('112');
+    collectListQueue(stream);
     top.PlaybackManager.cancelLoading();
-    console.log('113');
-    top.createPlayIntentAsync(stream, {}, function (intent){
+    if((typeof(stream.source)=='undefined' || !stream.source) && !Store.get('unshare-lists')){
+        stream.source = getActiveSource()
+    }
+    top.createPlayIntent(stream, {}, function (intent){
         updateStreamEntriesFlags()
     })
-    console.log('114');
+}
+
+function testEntry(stream, success, error){
+    var intents, checkr = () => {
+        var worked = true;
+        for(var i=0; i<intents.length; i++){
+            if(intents[i].ended || intents[i].error){
+                worked = false;
+            }
+            else if(!intents[i].started){
+                return; // not ready
+                break;
+            }
+        }
+        for(var i=0; i<intents.length; i++){ // ready
+            intents[i].destroy()
+        }        
+        (worked ? success : error)()
+    }
+    intents = top.createPlayIntent(stream, {shadow: true, start: checkr, error: checkr, ended: checkr})
+    return intents;
 }
 
 var sideLoadTried = [];
@@ -327,7 +347,7 @@ function sideLoadPlay(url, originalIntent){
                 if(debug){
                     console.log('SIDELOADPLAY OK', entry, surl)
                 }
-                top.createPlayIntentAsync(entry, {sideload: true, 'pre-commit': function (allow, intent){
+                top.createPlayIntent(entry, {sideload: true, 'pre-commit': function (allow, intent){
                     if(debug){
                         console.log('PRE-COMMIT')
                     }
@@ -562,7 +582,7 @@ function playResume(){
                     if(!top.PlaybackManager.query({error: false, ended: false}).length){
                         i++;
                         if(i <= entries.length){
-                            top.createPlayIntentAsync(entries[i], events);
+                            top.createPlayIntent(entries[i], events);
                             return true;
                         } else {
                             console.log('No more history entries to resume.');
@@ -578,7 +598,7 @@ function playResume(){
         if(!top.PlaybackManager.query({error: false, ended: false}).length){
             console.log(i);
             console.log(entries[i]);
-            top.createPlayIntentAsync(entries[i], events)
+            top.createPlayIntent(entries[i], events)
         }
     } else {
         console.log('History empty.');
@@ -594,10 +614,27 @@ function revealChannelsLogo(){
     })
 }
 
+function getOfflineStreams(){
+    var ostreams = Store.get('offline_streams');
+    if(!(ostreams instanceof Array)) ostreams = [];
+    return ostreams;
+}
+
+function getOfflineStreamsURLs(){
+    return getOfflineStreams().map((stream) => {
+        return stream.url;
+    });
+}
+
 function registerOfflineStream(stream){
     console.log(stream);
+    if(typeof(stream.originalUrl)!='undefined' && stream.originalUrl){
+        stream.url = stream.originalUrl;
+    }
     var ostreams = Store.get('offline_streams');
-    if(typeof(ostreams)!='object') ostreams = [];
+    if(!(ostreams instanceof Array)){
+        ostreams = [];
+    }
     for(var i in ostreams){
         if(ostreams[i].url == stream.url){
             setTimeout(updateStreamEntriesFlags, 1000);
@@ -612,6 +649,9 @@ function registerOfflineStream(stream){
 }
 
 function unregisterOfflineStream(stream){
+    if(typeof(stream.originalUrl)!='undefined' && stream.originalUrl){
+        stream.url = stream.originalUrl;
+    }
     var ostreams = Store.get('offline_streams');
     if(!(ostreams instanceof Array)){
         ostreams = [];
@@ -629,20 +669,6 @@ function unregisterOfflineStream(stream){
 }
 
 function updateStreamEntriesFlags(){
-
-    // offline streams
-    var ostreams = Store.get('offline_streams'), urls = [];
-    if(typeof(ostreams)=='object'){
-        for(var i in ostreams){
-            urls.push(ostreams[i].url);
-        }
-    }
-    var fas = jQuery('.entry');
-    fas = fas.filter(function (){
-        return (urls.indexOf(this.href)!=-1);
-    });
-    jQuery('.entry-offline').removeClass('entry-offline');
-    fas.addClass('entry-offline');
 
     // pending entries
     var urls = top.PlaybackManager.isLoading(true);
@@ -727,9 +753,29 @@ function getSourcesURLs(){
     return urls;
 }
 
-function getNameFromSource(url){
+function getNameFromSource(content){
+    var match = content.match(new RegExp('(iptv|pltv)\\-name *= *[\'"]([^\'"]+)'));
+    if(match){
+        return match[2];
+    }
+}
+
+function getNameFromSourceURL(url){
     url = url.replace(new RegExp('^[a-z]*://'), '').split('/');
     return url[0].split('.')[0]+' '+url[url.length - 1];
+}
+
+function getNameFromSourceURLAsync(url, callback){
+    miniget(url, (err, object, response) => {
+        var name = false;
+        if(!err){
+            name = getNameFromSource(response)
+        }
+        if(!name){
+            name = getNameFromSourceURL(url)
+        }
+        callback(name, url, response)
+    })
 }
 
 function checkM3U8Type(url, callback){
@@ -832,7 +878,7 @@ function addNewSource(){
 }
 
 function registerSource(url, name){
-    var key = 'sources';
+    var chknam, key = 'sources';
     var sources = getSources();
     for(var i in sources){
         if(sources[i][1] == url){
@@ -841,13 +887,22 @@ function registerSource(url, name){
         }
     }
     if(!name){
-        name = getNameFromSource(url);
+        chknam = true;
+        name = getNameFromSourceURL(url);
     }
     sources.push([name, url]);
     Store.set(key, sources);
-    notify(Lang.PACKAGE_ADDED, 'fa-star', 'normal');
+    notify(Lang.LIST_ADDED, 'fa-star', 'normal');
     setActiveSource(url);
-    refreshListing();
+    refreshListingIfMatch(Lang.LISTS);
+    if(chknam){
+        getNameFromSourceURLAsync(url, (newName, url, content) => {
+            if(newName != name){
+                setSourceName(url, newName);
+                refreshListingIfMatch(Lang.LISTS)
+            }
+        })
+    }
     return true;
 }
 
@@ -901,7 +956,7 @@ function unRegisterSource(url){
         return item !== undefined;
     });
     Store.set(key, sources);
-    notify(Lang.PACKAGE_REMOVED, 'fa-trash', 'normal')
+    notify(Lang.LIST_REMOVED, 'fa-trash', 'normal')
     return sources;
 }
 
@@ -916,7 +971,7 @@ function getActiveSource(){
 function setActiveSource(url){
     var skey = 'sources';
     var sources = Store.get(skey);
-    var entry = [getNameFromSource(url), url];
+    var entry = [getNameFromSourceURL(url), url];
     for(var i=0;i<sources.length; i++){
         if(!(sources[i] instanceof Array)){
             delete sources[i];
@@ -930,6 +985,35 @@ function setActiveSource(url){
     Store.set(skey, sources);
     markActiveSource();
     readSourcesToIndex()
+}
+
+function autoCleanEntries(){
+    var entries = jQuery('a.entry-stream').map((i, o) => {
+        return jQuery(o).data('entry-data')
+    });
+    var n = notify(Lang.AUTOCLEAN+' 0%', 'fa-spin fa-spinner', 'forever');
+    var iterator = 0, readyIterator = 0, tasks = Array(entries.length).fill((callback) => {
+        var entry = entries[iterator];
+        iterator++;
+        testEntry(entry, () => {
+            readyIterator++;
+            n.update(Lang.AUTOCLEAN+' '+parseInt(readyIterator / (entries.length / 100))+'%', 'fa-spin fa-spinner');
+            unregisterOfflineStream(entry);
+            callback(null, true)
+        }, () => {
+            readyIterator++;
+            n.update(Lang.AUTOCLEAN+' '+parseInt(readyIterator / (entries.length / 100))+'%', 'fa-spin fa-spinner');
+            registerOfflineStream(entry);
+            callback(null, false);
+            refreshListing()
+        })
+    });
+    if(typeof(async) == 'undefined'){
+        async = require('async')
+    }
+    async.parallelLimit(tasks, 2, (err, results) => {
+        n.update(Lang.AUTOCLEAN+' 100%', 'fa-check', 'normal');
+    })
 }
 
 function areControlsIdle(){
@@ -996,7 +1080,7 @@ jQuery(document).one('lngload', function (){
         {name: Lang.CHANNELS, logo:'assets/icons/white/tv.png', url:'javascript:;', type: 'group', entries: []},
         {name: Lang.SEARCH, logo:'assets/icons/white/search.png', url:'javascript:;', type: 'option', callback: function (){showSearchField()}},
         {name: Lang.OPTIONS, logo:'assets/icons/white/settings.png', url:'javascript:;', type: 'group', entries: [
-            {name: Lang.PACKAGES, logo:'fa-shopping-bag', type: 'group', renderer: getPackagesEntries, callback: markActiveSource, entries: []},
+            {name: Lang.LISTS, logo:'fa-shopping-bag', type: 'group', renderer: getListsEntries, callback: markActiveSource, entries: []},
             {name: Lang.BOOKMARKS, logo:'fa-star', type: 'group', renderer: getBookmarksEntries, entries: []},
             {name: Lang.RECORDINGS, logo:'fa-download', type: 'group', renderer: getRecordingEntries, entries: []},
             {name: Lang.HISTORY, logo:'fa-history', type: 'group', renderer: getHistoryEntries, entries: []},

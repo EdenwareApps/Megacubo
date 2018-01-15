@@ -206,7 +206,7 @@ if(typeof(require)!='undefined'){
         top.PlaybackManager.seek(10)
     }
     
-    function collectPackageQueue(ref){
+    function collectListQueue(ref){
         var container = getListContainer(false);
         var as = container.find('a.entry-stream');
         var queue = [], ok = false;
@@ -336,7 +336,7 @@ if(typeof(require)!='undefined'){
             changeScaleMode()
         }));
         shortcuts.push(createShortcut("F5", function (){
-            top.location.reload()
+            getFrame('controls').autoCleanEntries()
         }));
         shortcuts.push(createShortcut("F9", function (){
             if(!top.isRecording){
@@ -359,6 +359,9 @@ if(typeof(require)!='undefined'){
         }));
         shortcuts.push(createShortcut("Ctrl+Shift+D", function (){
             getFrame('controls').removeFav()
+        }));
+        shortcuts.push(createShortcut("Ctrl+Alt+R", function (){
+            top.location.reload()
         }));
         shortcuts.push(createShortcut("Home", function (){
             if(!areControlsActive()){
@@ -533,20 +536,24 @@ if(typeof(require)!='undefined'){
         var d = new Date();
         return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0" + d.getDate()).slice(-2) + " " + ("0" + d.getHours()).slice(-2) + "-" + ("0" + d.getMinutes()).slice(-2);
     }
+
+    function nl2br (str) {
+        var breakTag = '<br />';
+        return (str + '').replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1' + breakTag + '$2');
+    }
     
-    function askForSource(question, callback, placeholder){
+    function askForSource(question, callback, placeholder, showCommunityListOption){
         if(top){
             var defaultValue = Store.get('last-ask-for-source-value');
             var cb = top.clipboard.get('text');
             if(cb.match(new RegExp('^(//|https?://)'))){
                 defaultValue = cb;
             }
-            top.modalPrompt(question, [
-                ['<i class="fa fa-search" aria-hidden="true"></i> '+Lang.FIND_PACKAGES, function (){
+            var options = [
+                ['<i class="fa fa-search" aria-hidden="true"></i> '+Lang.FIND_LISTS, () => {
                     nw.Shell.openExternal(getIPTVListSearchURL());
                 }],
-                ['<i class="fa fa-check-circle" aria-hidden="true"></i> OK', 
-                () => {
+                ['<i class="fa fa-check-circle" aria-hidden="true"></i> OK', () => {
                     // parse lines for names and urls and use registerSource(url, name) for each
                     var v = top.modalPromptVal();
                     if(v){
@@ -556,7 +563,35 @@ if(typeof(require)!='undefined'){
                         top.modalClose()
                     }
                 }]
-            ], Lang.PASTE_URL_HINT, defaultValue)
+            ];
+            if(showCommunityListOption){
+                options.splice(1, 0, [
+                    '<i class="fa fa-users" aria-hidden="true"></i> '+Lang.USE_COMMUNITY_LIST, () => {
+                        addCommunityList()
+                    }
+                ])
+            }
+            top.modalPrompt(question, options, Lang.PASTE_URL_HINT, defaultValue)
+        }
+    }
+    
+    function addCommunityList(){
+        if(top){
+            var options = [
+                ['<i class="fa fa-undo" aria-hidden="true"></i> '+Lang.BACK, () => {
+                    var c = getFrame('controls');
+                    if(c){
+                        c.getIPTVListContent(() => {
+                            top.modalClose()
+                        })
+                    }
+                }],
+                ['<i class="fa fa-check-circle" aria-hidden="true"></i> '+Lang.I_AGREE, () => {
+                    registerSource('http://app.megacubo.net/auto', Lang.COMMUNITY_LIST); // an endpoint which always redirects to the most used list URL in that country dynamically
+                    top.modalClose()
+                }]
+            ];
+            top.modalConfirm(Lang.ASK_COMMUNITY_LIST.format(Lang.I_AGREE), options)
         }
     }
         
@@ -588,22 +623,28 @@ if(typeof(require)!='undefined'){
             if(name){
                 console.log('lastCustomPlayURL', url, name);
                 Store.set('lastCustomPlayURL', url);
-                top.createPlayIntentAsync({url: url, name: name})
+                top.createPlayIntent({url: url, name: name})
             }
         }
     }
     
     function playCustomFile(file){
         Store.set('lastCustomPlayFile', file);
-        top.createPlayIntentAsync({url: file, name: basename(file, true)})
+        top.createPlayIntent({url: file, name: basename(file, true)})
     }
 
     function checkPermission(file, mask, cb){ // https://stackoverflow.com/questions/11775884/nodejs-file-permissions
         fs.stat(file, function (error, stats){
             if (error){
                 cb (error, false);
-            }else{
-                cb (null, !!(mask & parseInt ((stats.mode & parseInt ("777", 8)).toString (8)[0])));
+            } else {
+                var v = false;
+                try {
+                    v = !!(mask & parseInt ((stats.mode & parseInt ("777", 8)).toString (8)[0]));
+                } catch(e) {
+                    console.error(e)
+                }
+                cb (null, v)
             }
         })
     }
@@ -750,37 +791,69 @@ if(typeof(require)!='undefined'){
     }
 
     var notifyTimer = 0;
+    function notifyParseTime(secs){
+        var maxSecs = 200000;
+        switch(secs){
+            case 'short':
+                secs = 1;
+                break;
+            case 'normal':
+                secs = 3;
+                break;
+            case 'long':
+                secs = 7;
+                break;
+            case 'wait':
+                secs = 120;
+                break;
+            case 'forever':
+                secs = 30 * (24 * 3600);
+                break;
+        }
+        if(secs > maxSecs){
+            secs = maxSecs;
+        }
+        return secs;
+    }
+
     function notify(str, fa, secs){
         if(!str) return;
-        var c = '', o = getFrame('overlay');
+        var c = '', o = getFrame('overlay'), timer;
         if(o){
-            switch(secs){
-                case 'short':
-                    secs = 1;
-                    break;
-                case 'normal':
-                    secs = 3;
-                    break;
-                case 'long':
-                    secs = 7;
-                    break;
-                case 'wait':
-                    secs = 120;
-                    c += ' notify-wait';
-                    break;
+            if(secs == 'wait'){
+                c += ' notify-wait';
             }
+            secs = notifyParseTime(secs);
             var a = jQuery(o.document.getElementById('notify-area'));
+            var destroy = () => {
+                n.hide(400, function (){
+                    jQuery(this).remove()
+                })
+            };
             a.find('.notify-row').filter(function (){
                 return jQuery(this).find('div').text().trim() == str;
             }).add(a.find('.notify-wait')).remove();
             if(fa) fa = '<i class="fa {0}" aria-hidden="true"></i> '.format(fa);
             var n = jQuery('<div class="notify-row '+c+'"><div class="notify">' + fa + ' ' + str + '</div></div>');
             n.prependTo(a);
-            top.setTimeout(function (){
-                n.hide(400, function (){
-                    jQuery(this).remove()
-                })
-            }, secs * 1000)
+            timer = top.setTimeout(destroy, secs * 1000);
+            return {
+                update: (str, fa, secs) => {
+                    if(fa && str) {
+                        fa = '<i class="fa {0}" aria-hidden="true"></i> '.format(fa);
+                        n.find('.notify').html(fa + ' ' + str)
+                    }
+                    if(secs){
+                        secs = notifyParseTime(secs);
+                        clearTimeout(timer);
+                        timer = top.setTimeout(destroy, secs * 1000);
+                    }
+                },
+                close: () => {
+                    clearTimeout(timer);
+                    destroy()
+                }
+            }
         }
     }
 

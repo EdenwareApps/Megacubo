@@ -65,5 +65,20 @@
   "FIND_PACKAGES":"Encontrar pacotes",
   "FOLDER_NOT_WRITABLE": "Sem permissão para salvar nesta pasta, selecione outra.",
   "NEW_VERSION_AVAILABLE": "Já está disponível uma nova versão do programa. Deseja realizar o download agora?",
-  "OTHER_PACKAGES":"Outros pacotes"
+  "OTHER_PACKAGES":"Outros pacotes",
+  "LISTS": "Listas",
+  "ADD_NEW_LIST": "Adicionar lista",
+  "REMOVE_LIST": "Remover lista",
+  "LIST_REMOVED": "List removed.",
+  "LIST_ADDED": "Lista adicionada.",
+  "LISTS_ADDED": "{0} listas adicionadas.",
+  "OTHER_LISTS": "Outras listas",
+  "FIND_LISTS":"Encontrar listas",
+  "COMMUNITY_LIST": "Lista da comunidade",
+  "USE_COMMUNITY_LIST": "Usar lista da comunidade",
+  "AUTOCLEAN_HINT": "Pressione a tecla F5 para realizar uma limpeza automática nesta listagem",
+  "AUTOCLEAN": "Limpeza automática",
+  "SHARE_LISTS": "Compartilhar listas",
+  "I_AGREE": "Estou ciente, prosseguir",
+  "ASK_COMMUNITY_LIST": "ATENÇÃO! Recomendamos que você utilize sua própria lista de IPTV.\r\nClicando em \"{0}\" o programa adicionará automaticamente a lista pública mais utilizada pelos usuários de seu país. Como a origem da lista é desconhecida, esta pode estar desatualizada ou mesmo possuir conteúdos indesejados."
 }
