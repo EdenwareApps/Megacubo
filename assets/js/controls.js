@@ -213,7 +213,7 @@ function extractM3U8List(content){
     return content;
 }
 
-function fetchIPTVListFromAddr(addr, callback){
+function fetchIPTVListFromAddr(addr, callback, errorCallback){
     if(!addr.match(new RegExp('^(//|https?://)', 'i'))){
         fs.readFile(addr, (err, content) => {
             content = extractM3U8List(content);
@@ -222,26 +222,23 @@ function fetchIPTVListFromAddr(addr, callback){
         return;
     }
     var key = 'iptv-content-' + addr, fallbackKey = 'fb-' + key;
-    var content = DB.query(key);
+    var content = DB.get(key);
     if(!content){
         console.log('No cache, fetching...');
-        var internalCallbackError = function (){
-            return;
-        }
         var internalCallback = function (content){
             content = extractM3U8List(content);
-            DB.insert(key, content, IPTVListCacheTTL);
-            DB.insert(fallbackKey, content, IPTVListFallbackCacheTTL);
+            DB.set(key, content, IPTVListCacheTTL);
+            DB.set(fallbackKey, content, IPTVListFallbackCacheTTL);
             callback(content, addr)
         }
         miniget(addr, function (err, object, response){
             if(response && response.indexOf('#EXT')!=-1){
                 internalCallback(response)
             } else {
-                internalCallbackError(response)
+                errorCallback(response, addr)
             }
         });
-        content = DB.query(fallbackKey);
+        content = DB.get(fallbackKey);
     }
     if(content){
         console.log('List cache used.');
@@ -249,10 +246,12 @@ function fetchIPTVListFromAddr(addr, callback){
     }
 }
 
-function fetchAndParseIPTVListFromAddr(addr, _callback){
-    fetchIPTVListFromAddr(addr, function (content, addr){
-        var parsed = parseIPTVListToIndex(content, addr);
-        _callback(content, parsed, addr);
+function fetchAndParseIPTVListFromAddr(addr, _callback, _errorCallback, isRemote){
+    fetchIPTVListFromAddr(addr, function (content, addr, isRemote){
+        var parsed = parseIPTVListToIndex(content, addr, isRemote);
+        _callback(content, parsed, addr, isRemote);
+    }, (response) => {
+        _errorCallback(response, addr)
     });
 }
 
@@ -265,7 +264,7 @@ function getIPTVListContent(callback, lastTriedAddr, silent) {
             if(!silent){
                 askForSource(Lang.ASK_IPTV_LIST_FIRST.format(Lang.FIND_LISTS), (url) => {
                     notify(Lang.PROCESSING, 'fa-spin fa-circle-o-notch', 'wait');
-                    checkM3U8Type(url, function (url, type){
+                    checkStreamType(url, function (url, type){
                         if(type == 'list'){
                             notify(Lang.LIST_ADDED, 'fa-info', 'normal');
                             registerSource(url);
@@ -292,24 +291,29 @@ function playEntry(stream){
     collectListQueue(stream);
     top.PlaybackManager.cancelLoading();
     if((typeof(stream.source)=='undefined' || !stream.source) && !Store.get('unshare-lists')){
-        stream.source = getActiveSource()
+        stream.source = getActiveSource();
+        stream.source_nam = getSourceMeta(stream.source, 'name');
+        stream.source_len = getSourceMeta(stream.source, 'length');
+        if(isNaN(parseInt(stream.source_len))){
+            stream.source_len = -1; // -1 = unknown
+        }
     }
-    top.createPlayIntent(stream, {}, function (intent){
+    top.createPlayIntent(stream, {manual: true}, function (intent){
         updateStreamEntriesFlags()
     })
 }
 
 function testEntry(stream, success, error){
     var intents, checkr = () => {
-        var worked = true;
+        var worked = false;
         for(var i=0; i<intents.length; i++){
             if(intents[i].ended || intents[i].error){
-                worked = false;
-            }
-            else if(!intents[i].started){
-                return; // not ready
+                continue;
+            } else if(!intents[i].started) {
+                return; // not ready, just return for now...
                 break;
             }
+            worked = true;
         }
         for(var i=0; i<intents.length; i++){ // ready
             intents[i].destroy()
@@ -388,25 +392,44 @@ function sideLoadPlay(url, originalIntent){
     }
 }
 
-function nextLogo(element){
+function updateOnlineUsersCount(){
+    var callback = (n) => {
+        var locale = getLocale(false, true);
+        updateRootEntry(Lang.BEEN_WATCHED, {label: Number(n).toLocaleString(locale) + ' ' + ( n==1 ? Lang.USER : Lang.USERS )})
+    }
+    jQuery.getJSON('http://app.megacubo.net/stats/data/usersonline.json', (response) => {
+        if(!isNaN(parseInt(response))){
+            Store.set('usersonline', response);
+            callback(response)
+        }
+    });
+    var n = Store.get('usersonline');
+    if(n){
+        callback(n)
+    }
+}
+
+function nextLogoForGroup(element){
     var entry = jQuery(element).parents('a.entry');
     var data = entry.data('entry-data');
     if(data){
-        var src = element.src, found;
-        for(var i=0; i<data.entries.length; i++){
-            if(element.src == data.entries[i].logo) {
-                found = true;
-            } else if(found){
-                if(data.entries[i].logo && (data.entries[i].logo != defaultIcons['stream'])){
-                    element.src = data.entries[i].logo;
-                    return;
-                    break;
+        if(data.entries){
+            var src = element.src, found;
+            for(var i=0; i<data.entries.length; i++){
+                if(element.src == data.entries[i].logo) {
+                    found = true;
+                } else if(found){
+                    if(data.entries[i].logo && (data.entries[i].logo != defaultIcons['stream'])){
+                        element.src = data.entries[i].logo;
+                        return;
+                        break;
+                    }
                 }
             }
         }
-        element.src = defaultIcons[data.type];
+        element.src = defaultIcons[data.type || 'group'];
     } else {
-        element.src = defaultIcons['stream'];
+        element.src = defaultIcons['group'];
     }
 }
 
@@ -431,7 +454,7 @@ function parseIPTVMetaField(meta, rgx, index){
 }
 
 var flatChannelsList = [];
-function parseIPTVListToIndex(content, listUrl){
+function parseIPTVListToIndex(content, listUrl, isRemote){
     var parsingStream = null, flatList = [], slist = content.split("\n"), entry;
     for(var i in slist){
         slist[i] = jQuery.trim(slist[i]);
@@ -456,7 +479,7 @@ function parseIPTVListToIndex(content, listUrl){
     }
 
     //console.log('! flatList !', JSON.stringify(flatList));
-    if(listUrl){
+    if(!isRemote && listUrl){
         window.flatChannelsList[listUrl] = flatList;
         setSourceMeta(listUrl, 'length', flatList.length)
     }
@@ -469,7 +492,7 @@ function parseIPTVListToIndex(content, listUrl){
         }
         parsedGroups[flatList[i].group].push(flatList[i]);
     }
-    if(listUrl){
+    if(!isRemote && listUrl){
         setSourceMeta(listUrl, 'groups', Object.keys(parsedGroups).length)
     }
 
@@ -563,7 +586,7 @@ function labelifyEntriesList(list, locale){
 }
 
 function playResume(){
-    if(Store.get('no-resume')){
+    if(!Store.get('resume')){
         return;
     }
     var entries = History.get();
@@ -643,9 +666,15 @@ function registerOfflineStream(stream){
         }
     }
     ostreams.push(stream);
+    var limit = 8192;
+    if(ostreams.length > limit){ // keep entries length in control
+        ostreams = ostreams.slice(limit * -1)
+    }
     console.log(ostreams);
     Store.set('offline_streams', ostreams);
-    setTimeout(updateStreamEntriesFlags, 1000);
+    if(jQuery('.list').html().indexOf(stream.url)!=-1){
+        refreshListing()
+    }
 }
 
 function unregisterOfflineStream(stream){
@@ -665,7 +694,9 @@ function unregisterOfflineStream(stream){
         return item !== undefined;
     });
     Store.set('offline_streams', ostreams);
-    setTimeout(updateStreamEntriesFlags, 1000);
+    if(jQuery('.list').html().indexOf(stream.url)!=-1){
+        refreshListing()
+    }
 }
 
 function updateStreamEntriesFlags(){
@@ -708,7 +739,7 @@ function showWindowHandle(show){
 
 var listEntryFocusOnMouseEnterTimer = 0;
 
-function parseM3U8ColorsTag(name){
+function parseM3U8NameTags(name){
     if(name){
         var match, matches = name.match(new RegExp('\\[/?color([^\\]]*)\\]', 'gi'));
         if(matches){
@@ -721,11 +752,16 @@ function parseM3U8ColorsTag(name){
                         color = '';
                     }
                     name = name.replaceAll(match, color ? '<font color="'+color+'">' : '')
-                } else {console.log(match)
+                } else {
+                    //console.log(match)
                     name = name.replaceAll(match, '</font>')
                 }
             }
         }
+        name = name.replace(new RegExp('\\[[^\\]]*\\]', 'g'), '').trim();
+    }
+    if(!name) {
+        name = 'Untitled';
     }
     return name;
 }
@@ -778,8 +814,17 @@ function getNameFromSourceURLAsync(url, callback){
     })
 }
 
-function checkM3U8Type(url, callback){
-    var debug = true, domain = getDomain(url), absRegex = new RegExp('^(//|https?://)'), m3u8Regex = new RegExp('\.m3u8?([A-Za-z0-9]|$)'), tsRegex = new RegExp('\.ts([A-Za-z0-9]|$)');
+function checkStreamType(url, callback){
+    var debug = true, domain = getDomain(url), tsM3u8Regex = new RegExp('\.(ts|m3u8?)([^A-Za-z0-9]|$)');
+    if(['http', 'https', false].indexOf(getProto(url)) == -1){ // any other protocol like rtsp, rtmp...
+        return callback(url, 'stream')
+    }
+    if(isMagnet(url) || isVideo(url)){
+        return callback(url, 'stream')
+    }
+    if(!isValidPath(url)){
+        return callback(url, 'error')
+    }
     var doCheck = function (response){
         var type = 'stream';
         if(response){
@@ -788,49 +833,26 @@ function checkM3U8Type(url, callback){
                 if(debug){
                     console.log(response);
                 }
-                var xscount = response.toUpperCase().split('EXT-X-STREAM-INF').length; // help distinguish a m3u8 alternate streams file from a segments list or a m3u8 with many different broadcasts
-                var xncount = response.toUpperCase().split('#EXTINF:-1').length;
+                var eis = response.toUpperCase().split('#EXTINF:').length - 1; // EXTINFs
+                var eiNDs = (response.toUpperCase().split('#EXTINF:0').length + response.toUpperCase().split('#EXTINF:-1').length) - 2; // EXTINFs with no duration
+                console.log('CHECKSTREAMTYPE', eis, eiNDs);
+                if(eis && eiNDs >= eis){
+                    return callback(url, 'list')
+                }
                 var parser = getM3u8Parser();
                 parser.push(response);
                 parser.end();
+                /*
                 if(debug){
                     console.log('SEGMENT', parser.manifest);
                 }
-                var u, domain, tsDomains = [], m3u8Hits = 0, tsHits = 0;
+                */
+                var u;
                 for(var i=0;i<parser.manifest.segments.length;i++){
                     u = parser.manifest.segments[i].uri;
-                    if(debug){
-                        console.log('SEGMENT', parser.manifest.segments[i]);
-                    }
-                    if(u.match(tsRegex)){
-                        tsHits++;
-                        var domain = getDomain(u); // get TS domains, we need to diff TS segments in a M3U8 stream from the senseless (?!) TS stream URLs
-                        if(domain && tsDomains.indexOf(domain)==-1){
-                            tsDomains.push(domain)
-                        }
-                    } else if(u.match(m3u8Regex)) {
-                        m3u8Hits++;
-                    }
-                }
-                if(xscount >= (tsHits + m3u8Hits)){ // todo: find a better logic
-                    console.log(xscount, xncount, tsDomains, tsHits, m3u8Hits);
-                }
-                if(xscount >= (tsHits + m3u8Hits)){ // todo: find a better logic
-                    type = 'stream';
-                    console.log('Matched as stream.')
-                } else if(xncount >= (tsHits / 2)){ // todo: find a better logic
-                    type = 'list';
-                    console.log('Matched as list.')
-                } else {
-                    if(tsDomains.length > 1){ // if has many TS domains, is a channel list
-                        type = 'stream';
-                        console.log('Matched as stream.')
-                    } else if(tsHits > m3u8Hits){
-                        type = 'stream';
-                        console.log('Matched as stream.')
-                    } else {
-                        type = 'list';
-                        console.log('Matched as list.')
+                    if(!u.match(tsM3u8Regex)){ // other format present, like mp4
+                        return callback(url, 'list');
+                        break;
                     }
                 }
             }
@@ -840,7 +862,7 @@ function checkM3U8Type(url, callback){
     if(url.match(new RegExp('^https?:'))){
         miniget(url, (err, object, response) => {
             if(err){
-                console.error('checkM3UType error', err);
+                console.error('checkStreamType error', err);
                 callback(url, 'error')
             } else {
                 doCheck(response)
@@ -849,7 +871,7 @@ function checkM3U8Type(url, callback){
     } else {
         fs.readFile(url, (err, response) => {
             if(err){
-                console.error('checkM3UType error', err);
+                console.error('checkStreamType error', err);
                 callback(url, 'error')
             } else {
                 doCheck(response)
@@ -863,14 +885,15 @@ function addNewSource(){
         var url = val;
         console.log('CHECK', url);
         notify(Lang.PROCESSING, 'fa-spin fa-circle-o-notch', 'wait');
-        checkM3U8Type(url, function (url, type){
+        checkStreamType(url, function (url, type){
             console.log('CHECK CALLBACK', url, type);
-            if(type=='stream'){
+            notify(false);
+            if(type=='stream' && isValidPath(url)){
                 playCustomURL(url, true)
             } else if(type=='list'){
                 registerSource(url)
             } else {
-                notify(Lang.INVALID_URL_MSG, 'fa-exclamation-circle', 'long')
+                notify(Lang.INVALID_URL_MSG, 'fa-exclamation-circle', 'normal')
             }
         });
         return true;
@@ -882,6 +905,7 @@ function registerSource(url, name){
     var sources = getSources();
     for(var i in sources){
         if(sources[i][1] == url){
+            notify(Lang.LIST_ALREADY_ADDED, 'fa-warning', 'normal');
             return false;
             break;
         }
@@ -927,6 +951,13 @@ function setSourceMeta(url, key, val){
             obj[key] = val;
             sources[i][2] = obj;
             Store.set('sources', sources);
+            if(key == 'length' && url == getActiveSource()){
+                var locale = getLocale(false, true);
+                updateRootEntry(Lang.CHANNELS, {label: Number(val).toLocaleString(locale)+' '+Lang.STREAMS.toLowerCase()});
+                if(listingPath.length < 2){ // ishome
+                    refreshListing()
+                }
+            }
         }
     }
 }
@@ -991,33 +1022,69 @@ function autoCleanEntries(){
     var entries = jQuery('a.entry-stream').map((i, o) => {
         return jQuery(o).data('entry-data')
     });
-    var n = notify(Lang.AUTOCLEAN+' 0%', 'fa-spin fa-spinner', 'forever');
+    var n = notify(Lang.AUTOCLEAN+' 0%', 'fa-spin fa-circle-o-notch', 'forever');
     var iterator = 0, readyIterator = 0, tasks = Array(entries.length).fill((callback) => {
         var entry = entries[iterator];
         iterator++;
         testEntry(entry, () => {
             readyIterator++;
-            n.update(Lang.AUTOCLEAN+' '+parseInt(readyIterator / (entries.length / 100))+'%', 'fa-spin fa-spinner');
+            n.update(Lang.AUTOCLEAN+' '+parseInt(readyIterator / (entries.length / 100))+'%', 'fa-spin fa-circle-o-notch');
             unregisterOfflineStream(entry);
-            callback(null, true)
+            callback(null, true);
+            top.sendStats('alive', entry)
         }, () => {
             readyIterator++;
-            n.update(Lang.AUTOCLEAN+' '+parseInt(readyIterator / (entries.length / 100))+'%', 'fa-spin fa-spinner');
+            n.update(Lang.AUTOCLEAN+' '+parseInt(readyIterator / (entries.length / 100))+'%', 'fa-spin fa-circle-o-notch');
             registerOfflineStream(entry);
             callback(null, false);
-            refreshListing()
+            refreshListing();
+            top.sendStats('error', entry)
         })
     });
     if(typeof(async) == 'undefined'){
         async = require('async')
     }
-    async.parallelLimit(tasks, 2, (err, results) => {
+    async.parallelLimit(tasks, 4, (err, results) => {
         n.update(Lang.AUTOCLEAN+' 100%', 'fa-check', 'normal');
     })
 }
 
 function areControlsIdle(){
     return jQuery('body').hasClass('idle')
+}
+
+function parentalControlTerms(){
+    var sepAliases = ['|', ' '];
+    var terms = Store.get('parental-control-terms') || '';
+    sepAliases.forEach((sep) => {
+        terms = terms.replaceAll(sep, ',')
+    });
+    return terms.toLowerCase().split(',').filter((term) => {
+        return term.length >= 2;
+    })
+}
+
+function parentalControlAllow(entry){
+    var terms = parentalControlTerms();
+    if(terms.length){
+        if(typeof(entry.name)!='undefined' && hasTerms(entry.name, terms)){
+            return false;
+        }
+        if(typeof(entry.url)!='undefined' && hasTerms(entry.url, terms)){
+            return false;
+        }
+    }
+    return true;
+}
+
+function hasTerms(stack, needles){
+    stack = stack.toLowerCase();
+    for(var i=0; i<needles.length; i++){
+        if(needles[i].length && stack.indexOf(needles[i])!=-1){
+            return true;
+        }
+    }
+    return false;
 }
 
 var tb = jQuery(top.window.document).find('body'), c = tb.find('iframe#controls'), d = jQuery('div#controls');
@@ -1034,7 +1101,7 @@ jQuery(function (){
             })
         }
     }
-    jQuery("body").on("blur", "a", function() {
+    jQuery("body").on("blur", "a", () => {
         setTimeout(function (){
             if(document.activeElement){
                 var tag = document.activeElement.tagName.toLowerCase();
@@ -1061,35 +1128,51 @@ jQuery(window).one('unload', function (){
 })
     
 jQuery(document).one('show', () => {
-    jQuery.getJSON('http://app.megacubo.net/configure.json?_=', function (data){
+    jQuery.getJSON('http://app.megacubo.net/configure.json?'+time(), function (data){
         var currentVersion = data.version;
         getManifest(function (data){
             console.log('VERSION', data.version, currentVersion)
             if(data.version < currentVersion){
                 jQuery('#help').html('<i class="fa fa-bell" aria-hidden="true"></i>').css('color', '#ff6c00');
                 if(confirm(Lang.NEW_VERSION_AVAILABLE)){
-                    gui.Shell.openExternal('https://megacubo.tv/online/2018/?version='+currentVersion);
+                    gui.Shell.openExternal('https://megacubo.tv/online/?version='+data.version);
                 }
             }
         })
     })
 })
 
+var listingPath = ltrimPathBar(Store.get('listingPath')) || '', autoCleanHintShown = false, pos = listingPath.indexOf(Lang.CHANNELS);
+if(pos == -1 || pos > 3){
+    listingPath = '';
+}
+jQuery(window).on('unload', function (){
+    Store.set('listingPath', listingPath)
+})
+
 jQuery(document).one('lngload', function (){
     window.index = [
-        {name: Lang.CHANNELS, logo:'assets/icons/white/tv.png', url:'javascript:;', type: 'group', entries: []},
-        {name: Lang.SEARCH, logo:'assets/icons/white/search.png', url:'javascript:;', type: 'option', callback: function (){showSearchField()}},
+        {name: Lang.CHANNELS, label: Lang.PROCESSING, logo:'assets/icons/white/tv.png', url:'javascript:;', type: 'group', entries: [getLoadingEntry()]},
+        {name: Lang.SEARCH + ' (F3)', logo:'assets/icons/white/search.png', url:'javascript:;', type: 'option', callback: function (){showSearchField()}},
+        {name: Lang.BEEN_WATCHED, logo: 'fa-users', label: '', type: 'group', renderer: getWatchingEntries, entries: []},
+        {name: Lang.BOOKMARKS_EXTRAS, logo:'fa-star', type: 'group', renderer: getXtraEntries, entries: []},
         {name: Lang.OPTIONS, logo:'assets/icons/white/settings.png', url:'javascript:;', type: 'group', entries: [
-            {name: Lang.LISTS, logo:'fa-shopping-bag', type: 'group', renderer: getListsEntries, callback: markActiveSource, entries: []},
-            {name: Lang.BOOKMARKS, logo:'fa-star', type: 'group', renderer: getBookmarksEntries, entries: []},
-            {name: Lang.RECORDINGS, logo:'fa-download', type: 'group', renderer: getRecordingEntries, entries: []},
-            {name: Lang.HISTORY, logo:'fa-history', type: 'group', renderer: getHistoryEntries, entries: []},
+            {name: Lang.MY_LISTS, logo:'fa-shopping-bag', type: 'group', renderer: getListsEntries, callback: markActiveSource, entries: []},
             {name: Lang.WINDOW, logo:'fa-window-maximize', type: 'group', renderer: getWindowModeEntries, entries: []},
             {name: Lang.LANGUAGE, logo:'fa-globe', type: 'group', renderer: getLanguageEntries, callback: markActiveLocale, entries: []},
             {name: Lang.RESET_DATA, logo:'fa-trash', type: 'option', renderer: top.resetData, entries: []},
-            {name: Lang.RESUME_PLAYBACK, type: 'check', check: function (checked){Store.set('no-resume',!checked)}, checked: !Store.get('no-resume')}
+            {name: Lang.RESUME_PLAYBACK, type: 'check', check: (checked) => {Store.set('resume',checked)}, checked: () => {return Store.get('resume')}},
+            /* bad option? think more before make it available
+            {name: Lang.FORCE_FFMPEG, type: 'check', check: (checked) => {Store.set('force-ffmpeg',checked)}, checked: () => {return Store.get('force-ffmpeg')}},
+            */
+            {name: Lang.HIDE_BUTTON_OPT.format(Lang.BACK, 'Backspace'), type: 'check', check: (checked) => {Store.set('hide-back-button',checked)}, checked: () => {return Store.get('hide-back-button')}},
+            {name: Lang.PARENTAL_CONTROL, logo:'fa-shield', type: 'group', renderer: getParentalControlEntries, entries: [], callback: () => {
+                notify(Lang.PARENTAL_CONTROL_FILTER_HINT, 'fa-shield', 'long')
+            }}
         ]}
-    ]
+    ];
+    updateOnlineUsersCount();
+    setInterval(updateOnlineUsersCount, 600000);
     
     if(getSources().length){
         readSourcesToIndex();
@@ -1099,11 +1182,11 @@ jQuery(document).one('lngload', function (){
             }
         }, 1000)
     } else {
-        readSourcesToIndex(); // set the "empty" entry
         getIPTVListContent(function (){ // trigger to ask user for IPTV list URL
             readSourcesToIndex();
         })
     }
+    
     if(listingPath){
         var l = false;
         try{
@@ -1112,10 +1195,10 @@ jQuery(document).one('lngload', function (){
             console.error(e)
         }
         if(!l || !l.length){
-            listingPath = '/';
+            listingPath = '';
         }
     } else {
-        listingPath = '/';
+        listingPath = '';
     }
 
     listEntriesByPath(listingPath);

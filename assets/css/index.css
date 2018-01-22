@@ -10,52 +10,6 @@ iframe {
     border-width: 0;
 }
 
-div#controls-trigger {
-    -webkit-app-region: no-drag;
-    position: absolute;
-    top: 30px;
-    right: 0;
-    width: 10%;
-    height: 60vh;
-    z-index: 2;
-    cursor: pointer;
-    opacity: 0.01;
-    background: linear-gradient(to bottom left, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.01) 25%);
-    transition: opacity 0.4s cubic-bezier(0, 1.1, 1, 1) 0s;
-}
-
-div#controls-trigger:hover {
-    opacity: 1;
-}
-
-body.frameless div#controls-trigger {
-    top: 0px;
-}
-
-div#controls-trigger i.fa {
-    display: none;
-    color: white;
-    font-size: 200%;
-    float: right;
-    margin-top: 4px;
-    margin-right: 0;
-}
-
-div#controls-trigger:hover i.fa {
-    display: inline-block;
-}
-
-div#drag-helper {
-    -webkit-app-region: drag;
-    position: absolute;
-    width: 80%;
-    height: 50%;
-    top: 10%;
-    left: 10%;
-    z-index: 1;
-    display: none;
-}
-
 body .fit-screen {
     top: 30px;
     height: calc(100vh - 30px);
@@ -77,12 +31,6 @@ iframe#controls {
 
 body.isovercontrols iframe#controls, body.istyping iframe#controls {
     transform: translate(0%, 0) rotateY(0deg);
-}
-
-@media (max-height: 800px) {
-    body.frameless:not(.isovercontrols) div#drag-helper {
-        display: inline-block;
-    }
 }
 
 body.frameless .fit-screen {
@@ -112,11 +60,11 @@ iframe#sandbox {
     filter: saturate(105%);
 }
 
-body.isovercontrols #player, body.isovercontrols iframe#sandbox, body.istyping #player, body.istyping iframe#sandbox {
+body.isovercontrols #player, body.isovercontrols iframe#sandbox, body.istyping #player, body.istyping iframe#sandbox, body.paused #player, body.paused iframe#sandbox {
     filter: brightness(50%) saturate(50%);
 }
 
-body.modal iframe#controls, body.modal div#controls-trigger {
+body.modal iframe#controls {
     display: none;
 }
 

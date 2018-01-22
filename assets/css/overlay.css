@@ -24,6 +24,12 @@ div.notify {
 
 div.notify-row {
     display: block;
+    font-size: 75%;
+}
+
+div.notify-row:first-child {
+    display: block;
+    font-size: 100%;
 }
 
 div.drop-target {
@@ -40,6 +46,7 @@ div#play-pause-marker {
 div#play-pause-marker i.fa {
     color: #fff;
     font-size: 1000%;
+    text-shadow: 2px 2px 24px #000;
 }
 
 body.paused div#play-pause-marker {

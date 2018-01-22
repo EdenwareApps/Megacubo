@@ -22,6 +22,10 @@
             <i class="fa fa-play" aria-hidden="true" ></i>
         </div>
         <script type="text/javascript">
+            document.onmousedown = () => { // if the program forgot to add back pointerEvents=none, let any click on overlay rebember it
+                var ov = top.document.querySelector('iframe#overlay');
+                if(ov) ov.style.pointerEvents = 'none';
+            }
             function showHelpTip(){
                 var helpTips = [
                     Lang.HINT_PRESS_SPACE_TO_PAUSE.format('Space')
@@ -36,7 +40,8 @@
                     playCustomFile(file)
                 } else {
                     if(file.match(new RegExp('^(//|https?://)'))){
-                        miniget(file, {timeout: 5000, headers: {range: 'bytes=0-24'}}, function (e,o,r){
+                        notify(Lang.PROCESSING, 'fa-spin fa-circle-o-notch', 'wait');
+                        miniget(file, {timeout: 10000, headers: {range: 'bytes=0-24'}}, function (e,o,r){
                             var response = String(r);
                             response = response.substr(0, probeSize)
                             console.log(response);
@@ -70,7 +75,7 @@
                 }
             }
             function openFile(file){
-                getFrame('controls').checkM3U8Type(file, (url, type) => {
+                getFrame('controls').checkStreamType(file, (url, type) => {
                     console.log(url, type);
                     if(type == 'stream'){
                         playCustomURL(url, true)
@@ -80,6 +85,8 @@
                         var name = basename(url, true)+' - '+datestring;
                         console.log(name);
                         getFrame('controls').registerSource(url, name)
+                    } else { // type=error so
+                        notify(Lang.INVALID_URL_MSG, 'fa-warning', 'normal')
                     }
                 })
             }
@@ -90,9 +97,10 @@
             });
             var dragDrop = require('drag-drop');
             jQuery(function (){
-                var dropTarget = document.querySelector('#drop-target');
+                var dropTarget = document.querySelector('#drop-target'), dragOverColorTimer = 0;
                 dragDrop(dropTarget, {
                     onDrop: function (files, pos) {
+                        clearTimeout(dragOverColorTimer);
                         top.document.querySelector('iframe#overlay').style.pointerEvents = 'none';
                         dropTarget.style.backgroundColor = 'transparent';
                         console.log('Here are the dropped files', files);
@@ -101,14 +109,19 @@
                         })
                     },
                     onDragEnter: function () {
-                        dropTarget.style.backgroundColor = 'rgba(215, 0, 35, 0.3)';                        
+                        dropTarget.style.backgroundColor = 'rgba(215, 0, 35, 0.3)';   
+                        dragOverColorTimer = setTimeout(() => {
+                            dropTarget.style.backgroundColor = 'transparent';
+                        }, 3000)
                     },
                     onDragOver: function () {},
                     onDragLeave: function () {
+                        clearTimeout(dragOverColorTimer);
                         top.document.querySelector('iframe#overlay').style.pointerEvents = 'none';
                         dropTarget.style.backgroundColor = 'transparent';
                     },
                     onDropText: function (text, pos) {
+                        clearTimeout(dragOverColorTimer);
                         top.document.querySelector('iframe#overlay').style.pointerEvents = 'none';
                         dropTarget.style.backgroundColor = 'transparent';
                         console.log('Here is the dropped text', text);

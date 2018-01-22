@@ -172,6 +172,9 @@ input.entry-name {
     color: #000;
     text-shadow: none;
 }
+.entry-hide {
+    display: none !important;
+}
 .entry-label {
     display: block;
     color: rgba(255, 255, 255, 0.5);

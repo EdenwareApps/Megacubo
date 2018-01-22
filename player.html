@@ -98,7 +98,7 @@
 					return stopEvent(event);
 				})
 				v.on('mouseup', function(event) {
-					setTimeout(function() {
+					setTimeout(() => {
 						if (_paused) {
 							console.log('Player.PLAY');
 							top.PlaybackManager.play()

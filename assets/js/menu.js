@@ -1,11 +1,12 @@
 
 var menuTemplates = {
     'option': '<a href="[url]" onclick="return false;" class="entry entry-option [class]"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><img src="[logo]" title="[name] - [group]" onerror="this.onerror=null;this.src=\'[default-logo]\';" /></span></td><td><span class="entry-name">[name]</span><span class="entry-label">[label]</span></td></tr></table></a>',
+    'disabled': '<a href="[url]" onclick="return false;" class="entry entry-disabled entry-offline [class]"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><img src="[logo]" title="[name] - [group]" onerror="this.onerror=null;this.src=\'[default-logo]\';" /></span></td><td><span class="entry-name">[name]</span><span class="entry-label">[label]</span></td></tr></table></a>',
     'input': '<a href="[url]" onclick="return false;" class="entry entry-input"><table class="entry-search"><tr><td><input type="text" style="background-image: url([logo]);" /></td><td class="entry-logo-c">...</td></tr></table></a>', // entry-input-container entry-search-helper
     'check': '<a href="[url]" onclick="return false;" class="entry entry-option [class]"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><i class="fa fa-toggle-off fa-as-entry-logo" aria-hidden="true"></i></span></td><td><span class="entry-name">[name]</span></td></tr></table></a>',
     'stream': '<a href="[url]" onclick="return false;" class="entry entry-stream [class]"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><img src="[default-logo]" lazy-src="[logo]" title="[name] - [group]" onerror="this.onerror=null;this.src=\'[default-logo]\';" /></span></td><td><span class="entry-name">[format-name]</span><span class="entry-label">[label]</span></td></tr></table></a>',
     'back': '<a href="[url]" onclick="return false;" class="entry entry-back [class]"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><img src="[logo]" title="[name] - [group]" /></span></td><td><span class="entry-name">[name]</span></td></tr></table></a>',
-    'group': '<a href="[url]" onclick="return false;" class="entry entry-group [class]"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><img src="[logo]" title="[name] - [group]" onerror="nextLogo(this)" /></span></td><td><span class="entry-name">[name]</span><span class="entry-label">[label]</span></td></tr></table></a>'
+    'group': '<a href="[url]" onclick="return false;" class="entry entry-group [class]"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><img src="[logo]" title="[name] - [group]" onerror="nextLogoForGroup(this)" /></span></td><td><span class="entry-name">[name]</span><span class="entry-label">[label]</span></td></tr></table></a>'
 };
 
 var defaultIcons = {
@@ -16,6 +17,20 @@ var defaultIcons = {
     'check': 'fa-toggle-off',
     'group': 'assets/icons/white/default-channel.png'
 };
+
+function updateRootEntry(name, data){
+    for(var i=0; i<index.length; i++){
+        if(index[i].name == name){
+            for(var key in data){
+                index[i][key] = data[key];
+            }
+            if(!listingPath){
+                refreshListing()
+            }
+            break;
+        }
+    }
+}
 
 function readSourcesToIndex(callback){
     window.channelsIndex = window.channelsIndex || {};
@@ -34,11 +49,17 @@ function readSourcesToIndex(callback){
             }
             window.index = writeIndexPathEntries(Lang.CHANNELS, entries);
             var locale = getLocale(false, true), length = getSourceMeta(url, 'length') || 0;
-            window.index[0].label = Number(length).toLocaleString(locale)+' '+Lang.STREAMS.toLowerCase();
+            updateRootEntry(Lang.CHANNELS, {label: Number(length).toLocaleString(locale)+' '+Lang.STREAMS.toLowerCase()});
             if(typeof(callback)=='function'){
                 callback()
             }
+            if(isLoadingEntryRendered()){
+                refreshListingIfMatch(Lang.CHANNELS)
+            }
         }
+    }
+    if(!Object.values(window.channelsIndex).length){ // first run on program open
+        updateRootEntry(Lang.CHANNELS, {entries: [getLoadingEntry()]})
     }
     if(!sources.length || !activeSrc){
         fetchCallback('', [], '')
@@ -50,6 +71,20 @@ function readSourcesToIndex(callback){
             }
         }
     }
+}
+
+function getLoadingEntry(){
+    return {
+        type: 'option',
+        name: Lang.PROCESSING,
+        label: '',
+        logo: 'fa-spin fa-circle-o-notch',
+        class: 'entry-loading'
+    }
+}
+
+function isLoadingEntryRendered(){
+    return !!jQuery('.entry-loading').length;
 }
 
 // mergeEntriesWithNoCollision([{name:'1',type:'group', entries:[1,2,3]}], [{name:'1',type:'group', entries:[4,5,6]}])
@@ -122,15 +157,19 @@ function listEntryRender(entry, container, tabIndexOffset){
             entry.type = 'stream';
         }
     }
-    if(entry.offline){
+    if(entry.offline === true){
         entry.class = (entry.class || '') + ' entry-offline';
+    } else {
+        if(entry.class && entry.class.indexOf('entry-offline')!=-1){
+            entry.class = entry.class.replace('entry-offline', '')
+        }
     }
     var logo = entry.logo || defaultIcons[entry.type];
     var html = menuTemplates[entry.type];
     html = html.replace('<a ', '<a tabindex="'+tabIndexOffset+'" ').replace('<input ', '<input tabindex="'+tabIndexOffset+'" ');
     html = html.replaceAll('[name]', entry.name);
     if(html.indexOf('[format-name]')!=-1){
-        html = html.replaceAll('[format-name]', parseM3U8ColorsTag(entry.rawname)||entry.name);
+        html = html.replaceAll('[format-name]', entry.rawname ? parseM3U8NameTags(entry.rawname) : entry.name);
     }
     if(logo.substr(0, 3)=="fa-"){
         html = html.replace(new RegExp('<img[^>]+>', 'mi'), '<i class="fa '+logo+' fa-as-entry-logo" aria-hidden="true"></i>')
@@ -144,10 +183,12 @@ function listEntryRender(entry, container, tabIndexOffset){
     html = html.replaceAll('[url]', entry.url||'javascript:;');
     //console.log(html, entry);
     var jEntry = jQuery(html).data('entry-data', entry).appendTo(container);
-    jEntry.on('click', function (){
-        var data = jQuery(this).data('entry-data');
-        triggerEntry(data, this)
-    });
+    if(entry.type != 'disabled'){
+        jEntry.on('click', function (){
+            var data = jQuery(this).data('entry-data');
+            triggerEntry(data, this)
+        })
+    }
     var actions = ['delete', 'rename'];
     for(var i=0;i<actions.length;i++){
         if(entry[actions[i]]){
@@ -161,13 +202,16 @@ function listEntryRender(entry, container, tabIndexOffset){
             jEntry.find('input').on('input', function(){
                 jQuery('body').trigger('wake');
                 entry['change'](entry, this, this.value);
-            });
+            })
+        }
+        if(entry['value']){
+            jEntry.find('input').val(entry['value'])
         }
         jEntry.on('focus', function (){
             this.querySelector('input').focus()
         })
     } else if(entry.type == 'check') {
-        var checked = typeof(entry.checked)!='undefined' && entry.checked;
+        var checked = typeof(entry.checked)!='undefined' && entry.checked();
         var handleChecking = function (element, docheck){
             element.find('i.fa').removeClass(docheck?'fa-toggle-off':'fa-toggle-on').addClass(docheck?'fa-toggle-on':'fa-toggle-off').css('opacity', docheck ? 1 : 0.5);
         }, checkCallback = entry.check || false;
@@ -221,20 +265,21 @@ function renameSelectedEntry(){
 }
 
 function writeIndexPathEntries(path, entries, _index){
-    if(path.charAt(0)=='/') path = path.substr(1);
     var name = getRootFolderFromStr(path);
     if(typeof(_index)=='undefined'){
         _index = index;
     }
-    //alert('SEARCH '+name+', '+path);
+    console.log('SEARCH '+name+', '+path);
     for(var k in _index){
-        //console.log(name);
+        console.log(name);
         if(typeof(_index[k]['name'])=='string' && _index[k]['name']==name){
-            //alert('KEY '+k+', '+name+', '+path);
+            console.log('KEY '+k+', '+name+', '+path);
             if(name == path){
+                console.log('OK '+k+', '+name+', '+path);
                 _index[k].entries = entries;
             } else {
-                _index[k].entries = writeIndexPathEntries(stripRootFolderFromStr(path), entries, _index[k].entries);
+                console.log('ENTER '+k+', '+name+', '+path);
+                _index[k].entries = writeIndexPathEntries(ltrimPathBar(stripRootFolderFromStr(path)), entries, _index[k].entries);
             }
         }
     }
@@ -243,7 +288,7 @@ function writeIndexPathEntries(path, entries, _index){
 
 function readIndexSubEntries(_index, name){
     for(var k in _index){
-        if(typeof(_index[k]['name'])=='string' && _index[k]['name']==name){
+        if(['string', 'object'].indexOf(typeof(_index[k]['name']))!=-1 && _index[k]['name']==name){
             return _index[k].entries || [];
         }
     }
@@ -298,6 +343,8 @@ function getListContainer(reset){
 }
 
 function listEntries(entries, path){
+    var lst = jQuery('.list'), top = lst.prop('scrollTop'), inSearch = (listingPath.indexOf(Lang.SEARCH) != -1);
+    console.log('LISTENTRIES', entries, path, traceback());
     var container = getListContainer(false);
     var tabIndexOffset = getTabIndexOffset();
     for(var i=0;i<entries.length;i++){
@@ -305,17 +352,38 @@ function listEntries(entries, path){
         listEntryRender(entries[i], container, tabIndexOffset);
         tabIndexOffset++;
     }
+    var rescroll = () => {
+        lst.prop('scrollTop', top);
+        if(top && lst.prop('scrollTop')<top && lst.height() > top){
+            setTimeout(rescroll, 33)
+        }
+    }
+    setTimeout(rescroll, 0)
     revealChannelsLogo();
 }
 
 var lastParentEntry = 0;
 
 function refreshListing(){
-    var entry = listingPath ? getPathTriggerer(listingPath) : false;
-    if(entry) {
-        triggerEntry(entry)
+    var lst = jQuery('.list'), top = lst.prop('scrollTop'), inSearch = (listingPath.indexOf(Lang.SEARCH) != -1);
+    if(inSearch){
+        jQuery('.list input').trigger('input');
     } else {
-        listEntriesByPath(listingPath)
+        var entry = listingPath ? getPathTriggerer(listingPath) : false;
+        if(entry) {
+            triggerEntry(entry)
+        } else {
+            listEntriesByPath(listingPath)
+        }
+    }
+    if(top){
+        var rescroll = () => {
+            lst.prop('scrollTop', top);
+            if(top && lst.prop('scrollTop')<top && lst.height() > top){
+                setTimeout(rescroll, 33)
+            }
+        }
+        setTimeout(rescroll, inSearch ? 410 : 0) // wait search delay of 400ms
     }
 }
 
@@ -325,7 +393,74 @@ function refreshListingIfMatch(needle){
     }
 }
 
+function fetchEntries(url, name, filter){
+    //listingPath = '/'+Lang.SEARCH;
+    var path;
+    console.log('FETCH', url, name);
+    if(name){
+        var pos = listingPath.indexOf('/'+name+'/');
+        if(pos != -1){
+            listingPath = listingPath.substr(0, pos)
+        }
+        if(name && name != basename(listingPath) && name != basename(dirname(listingPath))){
+            listingPath = ltrimPathBar(listingPath + '/' + name)
+        }
+    }
+    path = listingPath;
+    console.log('FETCH2', url, name, path);
+    var container = getListContainer(true);
+    backEntryRender(container, '/');
+    var key = 'remote-entries-'+url, doFetch = false, options = DB.get(key), failed = () => {
+        notify(Lang.DATA_FETCHING_FAILURE, 'fa-warning', 'normal');
+        triggerBack()
+    }
+    if(!(options instanceof Array)){
+        doFetch = true;
+        options = Store.get(key) // fallback
+    }
+    if(doFetch){
+        if(!(options instanceof Array)){
+            options = [];
+        }
+        console.log('JSON', url, path);
+        jQuery.getJSON(url, (data) => {
+            if(path == listingPath) { // user stills in the same view
+                if((data instanceof Array) && data.length){
+                    DB.set(key, data, 60);
+                    Store.set(key, data); // fallback
+                    jQuery('.entry:not(.entry-back)').remove();
+                    if(filter){
+                        data = data.map(filter)
+                    }
+                    index = writeIndexPathEntries(path, data, index);
+                    listEntriesByPath(path)
+                } else {
+                    failed()
+                }
+            }
+        }).fail(function (jqXHR, textStatus, errorThrown) {
+            if(path == listingPath) { // user stills in the same view
+                console.error(jqXHR);
+                console.error(textStatus);
+                console.error(errorThrown);
+                failed()
+            }
+        })
+    }   
+    if(!options.length){
+        options.push(getLoadingEntry()); 
+    } else {
+        if(filter){
+            options = options.map(filter)
+        }
+    }
+    return options;
+}
+
 function listEntriesByPath(path, append, nofx){
+    if(!append && path.indexOf(Lang.SEARCH) != -1){
+        return listEntriesByPathTriggering(path)
+    }
     if(!nofx && listingPath.length != path.length){
         if(listingPath.length > path.length){
             listBackEffect(function (){
@@ -341,10 +476,9 @@ function listEntriesByPath(path, append, nofx){
     if(listingPath.length < path.length){ // Entering
         lastParentEntry = listingPath;
     }
-    listingPath = path;
+    listingPath = path = ltrimPathBar(path);
     var container = getListContainer(!append), entry;
     if(!path) path = '';
-    if(path.charAt(0)=='/') path = path.substr(1);
     console.log(path);
     if(path){
         jQuery('body').removeClass('home')
@@ -352,7 +486,7 @@ function listEntriesByPath(path, append, nofx){
         jQuery('body').addClass('home')
     }
     list = readIndexPath(path);
-    console.log(list);
+    console.log('DREADY3', path, list);
     if(!(list instanceof Array)){
         list = [list];
     }
@@ -380,6 +514,9 @@ function backEntryRender(container, backPath){
             console.log('DELETE TEST', a, b)
         }
     };
+    if(Store.get('hide-back-button')){
+        back.class += ' entry-hide';
+    }
     listEntryRender(back, container, 1)
 }
 
@@ -401,6 +538,7 @@ function getPathTriggerer(path){
 }
 
 function triggerEntry(data, element){
+    console.log('TRIGGER', data, element);
     if(data.type == 'back'){
         console.log(data.path);
         if(typeof(data.back)=='function'){
@@ -421,19 +559,22 @@ function triggerEntry(data, element){
     if(typeof(data.path)=='undefined'){
         data.path = '';
     }
+    var npath = ltrimPathBar(data.path+'/'+data.name);
     if(typeof(data.renderer)=='function'){
         var entries = data.renderer(data, element);
         if(!(entries instanceof Array)){
             console.log('!! RENDERER DIDNT RETURNS A ARRAY', entries, data.path);
         } else {
-            console.log('WW', data.path+'/'+data.name, entries);
-            window.index = writeIndexPathEntries(data.path+'/'+data.name, entries);
+            console.log('WW', npath, entries);
+            //console.log(window.index);
+            window.index = writeIndexPathEntries(npath, entries);
+            //console.log(window.index)
         }
     }
     if(data.type == 'group'){
-        console.log(data.path+'/'+data.name);
-        listEntriesByPath(data.path+'/'+data.name)
-    } else if (data.type == 'back') {
+        console.log(npath);
+        listEntriesByPath(npath)
+    } else if (data.type == 'back') { // parent entry not found
         console.log(data.path);
         listEntriesByPath(data.path)
     }
@@ -544,16 +685,21 @@ function markActiveLocale(){
 }
 
 
-var searchKeypressTimer = 0, lastSearchTerm = '';
+var searchKeypressTimer = 0, lastSearchTerm = Store.get('last-search-term');
 
 function showSearchField(term){
+    listingPath = Lang.SEARCH;
     var container = getListContainer(true);
     backEntryRender(container, '/');
+    if(term){
+        lastSearchTerm = term;
+    }
     var entry = {
         type: 'input',
         change: function (entry, element, val){
             if(val){
                 lastSearchTerm = val;
+                Store.set('last-search-term', val);
             }
             clearTimeout(searchKeypressTimer);
             searchKeypressTimer = setTimeout(function (){
@@ -562,12 +708,11 @@ function showSearchField(term){
                 container.find('a.entry-stream').remove();
                 listEntries(r, Lang.SEARCH);
             }, 400);
-        }
+        },
+        value: lastSearchTerm
     };    
     var element = listEntryRender(entry, container);
-    if(lastSearchTerm){
-        element.find('input').trigger('focus').val(lastSearchTerm).trigger('input');
-    }
+    element.find('input').trigger('focus').trigger('input');
 }
 
 function fetchSearchResults(){
@@ -584,7 +729,7 @@ function fetchSearchResults(){
             }
         }
     }
-    return r;
+    return applyFilters('filterEntries', r)
 }
 
 function hideSearchField(){
@@ -629,24 +774,49 @@ function triggerBack(){
     }
 }
 
-var listingPath = Store.get('listingPath'), autoCleanHintShown = false;
-jQuery(window).on('unload', function (){
-    Store.set('listingPath', listingPath)
-})
+function listEntriesByPathTriggering(path){
+    var c = getFrame('controls'), ms = 200;
+    c.listEntriesByPath('');
+    path = path.split('/');
+    var nav = () => {
+        if(path.length){
+            var next = path.shift();
+            c.findEntries(next).click();
+            if(path.length){
+                setTimeout(nav, ms)
+            }
+        }
+    }
+    setTimeout(nav, ms)
+}
+
+function goHistory(){
+    getFrame('controls').listEntriesByPathTriggering(Lang.BOOKMARKS_EXTRAS+'/'+Lang.HISTORY)
+}
 
 jQuery(() => {
     addFilter('filterEntries', (entries) => {
-        var nentries = [], urls = getOfflineStreamsURLs(), offline = [], forceClean = false, isStreamsListing = false;
+        console.log('PREFILTERED', entries);
+        var nentries = [], urls = getOfflineStreamsURLs(), offline = [], forceClean = false, isStreamsListing = false, offLabel = ' (OFF)';
         for(var i=0; i<entries.length; i++){
+            if(!parentalControlAllow(entries[i])){
+                continue;
+            }
             if(entries[i].type && entries[i].type=='stream'){
                 if(!isStreamsListing){
                     isStreamsListing = true;
                 }
                 if(urls.indexOf(entries[i].url)!=-1){
                     entries[i].offline = true;
-                    offline.push(entries[i]);
+                    if(entries[i].label.indexOf(offLabel)==-1){
+                        entries[i].label += offLabel;
+                    }
+                    offline.push(entries[i])
                 } else {
                     entries[i].offline = false;
+                    if(typeof(entries[i].label)!='undefined' && entries[i].label.indexOf(offLabel)!=-1){
+                        entries[i].label = entries[i].label.replace(offLabel, '')
+                    }
                     nentries.push(entries[i])
                 }
             } else {
@@ -660,7 +830,7 @@ jQuery(() => {
         } else if(isStreamsListing) {
             if(!autoCleanHintShown){
                 autoCleanHintShown = true;
-                notify(Lang.AUTOCLEAN_HINT, 'fa-info-circle', 'long')
+                notify(Lang.AUTOCLEAN_HINT, 'fa-info-circle', 'normal')
             }
         }
         console.log('FILTERED', nentries, entries, offline);

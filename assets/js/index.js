@@ -1,4 +1,3 @@
-//import { clearTimeout } from 'timers';
 
 var os = require('os'), mkdirp = require('mkdirp'), jWin = jQuery(window), lastOnTop, castManager;
 var isSDKBuild = (window.navigator.plugins.namedItem('Native Client') !== null);
@@ -20,7 +19,7 @@ function enterMiniPlayer(){
     var w = 320, h = 240, rightMargin = 50;
     window.resizeTo(w, h);
     window.moveTo(screen.availWidth - w - rightMargin, screen.availWidth - h);
-    miniPlayerActive = true
+    miniPlayerActive = true;
 }
 
 function leaveMiniPlayer(){
@@ -233,11 +232,11 @@ function goHome(){
     stop();
     var c = getFrame('controls');
     if(c){
-        c.listEntriesByPath('/')
+        c.listEntriesByPath('')
     }
 }
 
-var decodeEntities = (function() {
+var decodeEntities = (() => {
     // this prevents any overhead from creating the object each time
     var element = document.createElement('div');
 
@@ -568,7 +567,7 @@ function startRecording(){
     if(isRecording === false){
         var folder = 'recordings/session';
         fs.mkdir(folder, function(err){
-            removeFolder(folder, false, function (){ // just empty the folder
+            removeFolder(folder, false, () => { // just empty the folder
                 isRecording = {folder: folder}; // recording now
                 var url = PlaybackManager.getURL();
                 if(url && !isLive(url) && isVideo(url)){
@@ -579,7 +578,7 @@ function startRecording(){
                     isRecording.receivedBytes = 0;
                     isRecording.capturingFile = folder+'/'+time()+'.tmp';
                     isRecording.capturingStream = fs.createWriteStream(isRecording.capturingFile, {'flags': 'w'});
-                    isRecording.capturingStream.on('error', () => {
+                    isRecording.capturingStream.on('error', (...arguments) => {
                         console.log('Stream write error', arguments)
                     });
                     isRecording.capturingRequest = request.
@@ -591,7 +590,7 @@ function startRecording(){
                             isRecording.capturingStream.write(chunk, 'binary');
                             isRecording.receivedBytes += chunk.length;
                         }).
-                        on('end', function() {
+                        on('end', () => {
                             console.log('END');
                             isRecording.capturingStream.end()
                         }).
@@ -842,7 +841,7 @@ function setFullScreen(enter){
     } else {
         maxPortViewSize(0, 0);
         win.enterKioskMode();
-        notify(Lang.EXIT_FULLSCREEN_HINT, 'fa-info-circle', 'long')
+        notify(Lang.EXIT_FULLSCREEN_HINT, 'fa-info-circle', 'normal')
     }
     var f = function (){
         var _fs = isFullScreen();
@@ -874,7 +873,9 @@ function restoreInitialSize(){
 function centralizeWindow(w, h){
     var x = (screen.availWidth - (w || window.outerWidth)) / 2;
     var y = (screen.availHeight - (h || window.outerHeight)) / 2;
-    window.moveTo(x, y)
+    //window.moveTo(x, y)
+    win.x = x;
+    win.y = y;
     console.log('POS', x, y);
 }
 
@@ -924,7 +925,17 @@ function createMouseObserverForControls(win){
     var h = jQuery(window).height();
     var update = () => {
         clearTimeout(showHideDelay);
-        var show = (x > (w * (areControlsActive()?0.75:0.9)) && y < (h * 0.8));
+        var a = areControlsActive(), b = w * (a ? 0.6 : 0.8);
+        if(a){
+            if(b < (w - 600)){
+                b = w - 600;
+            }
+        } else {
+            if(b < (w - 180)){
+                b = w - 180;
+            }
+        }
+        var show = (x > b && y < (h * 0.8));
         if(!show){
             var a = win.document.activeElement;
             if(a && ['input', 'textarea'].indexOf(a.tagName.toLowerCase())!=-1){ // is typing in sandbox frame?
@@ -1097,7 +1108,7 @@ jQuery(function (){
         }
     });
     jWin.on('load resize', function (){
-        var miniPlayerTriggerWidth = ( screen.width / 3), width = jWin.width(), changeTaskbar = ( width < miniPlayerTriggerWidth ), onTop = !!( changeTaskbar || isFullScreen());
+        var miniPlayerTriggerWidth = ( screen.width / 2), width = jWin.width(), showInTaskbar = ( width < miniPlayerTriggerWidth ), onTop = !!( showInTaskbar || isFullScreen());
         console.log( width+' < ( '+screen.width+' / 3) )');
         if(onTop !== lastOnTop){
             lastOnTop = onTop;
@@ -1110,7 +1121,8 @@ jQuery(function (){
                 } else {
                     b.removeClass('frameless');
                 }
-                win.setShowInTaskbar(!changeTaskbar); // hide for miniplayer only
+                win.setShowInTaskbar(!showInTaskbar); // hide for miniplayer only
+                miniPlayerActive = showInTaskbar;
                 var c = getFrame('controls');
                 if(c){
                     c.showWindowHandle(onTop)

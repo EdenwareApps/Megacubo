@@ -27,17 +27,17 @@
 			{
 			   var method = 'GET';
 			   var xhr = new XMLHttpRequest();
-			   xhr.onreadystatechange = function() {
+			   xhr.onreadystatechange = () => {
 				  if (this.readyState == 4 && this.status == 200)
 				  {
 					 try{
 						var res = this.response;
 						var reader = new window.FileReader();
 						reader.readAsDataURL(res); 
-						reader.onloadend = function() { done(reader.result); }
+						reader.onloadend = () => { done(reader.result); }
 					 }catch(e){
-						setTimeout(function (){
-							location.reload(true);
+						setTimeout(() => {
+							location.reload(true)
 						}, 2000);
 					 }
 				  }

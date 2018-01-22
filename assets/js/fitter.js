@@ -19,7 +19,7 @@ var doFindStreams = function (scope){
         }
         return as[0];
     }    
-    var decodeEntities = (function() {
+    var decodeEntities = (() => {
         // this prevents any overhead from creating the object each time
         var element = window.document.createElement('div');
 
@@ -39,7 +39,7 @@ var doFindStreams = function (scope){
             return str;
         });
     })();    
-    var absolutize = (function() {
+    var absolutize = (() => {
         // this prevents any overhead from creating the object each time
         var a = window.document.createElement('a'), m = window.document.createElement('img');
         return (function (url) {
@@ -960,6 +960,14 @@ var Fitter = (function (){
             }
             for(var i=0; i<frames.length; i++){
                 if(frames[i].src == window.document.URL){
+                    console.log('Found parent frame by SRC.');
+                    return frames[i];
+                    break;
+                }
+            }
+            for(var i=0; i<frames.length; i++){
+                if(frames[i].contentWindow && (frames[i].contentWindow.document.URL == window.document.URL)){
+                    console.log('Found parent frame by URL.');
                     return frames[i];
                     break;
                 }
@@ -967,12 +975,7 @@ var Fitter = (function (){
             var w = width(window);
             for(var i=0; i<frames.length; i++){
                 if(compare(w, width(frames[i]), 20)){
-                    return frames[i];
-                    break;
-                }
-            }
-            for(var i=0; i<frames.length; i++){
-                if(frames[i].contentWindow && (frames[i].contentWindow.document.URL == window.document.URL)){
+                    console.log('Found parent frame by approximated dimension.');
                     return frames[i];
                     break;
                 }
@@ -986,6 +989,7 @@ var Fitter = (function (){
                 }
             }
             if(maxKey != -1){
+                console.log('Found parent frame by biggest height.');
                 return frames[maxKey];
             }
         }
@@ -1083,12 +1087,16 @@ var Fitter = (function (){
     this.scanFrame = function (window, frameObject, frameNestingLevel){
         // retorna para o main, no return da função, os objetos encontrados, suas dimensões, tags e srcs, tamanho da página, tamanho do frame.
         if((!frameNestingLevel || frameNestingLevel < 10) && !isDiscardable(window) && (!frameObject || !isDiscardable(frameObject))){
-            var details = {objects:[],frames:[]}, objects = window.document.querySelectorAll('video'); // object, embed, 
+            var s, details = {objects:[],frames:[]}, objects = window.document.querySelectorAll('video'), minScroll = -1; // object, embed, 
             for(var i=0; i < objects.length; i++){
                 top.jQuery(objects[i]).one('timeupdate', () => {
                     console.log('GOTCHA!!');
                     top.runFitterDelayed()
                 });
+                var s = top.jQuery(objects[i]).offset().top;
+                if(s >= 0 && (minScroll == -1 || s < minScroll)){
+                    minScroll = s;
+                }
                 if(!isDiscardable(objects[i])){
                     details.objects.push(objects[i]);
                 }
@@ -1096,7 +1104,17 @@ var Fitter = (function (){
             var frames = window.document.querySelectorAll('iframe, frame');
             for(var i=0; i < frames.length; i++){
                 if(!isDiscardable(frames[i])){
+                    var s = top.jQuery(frames[i]).offset().top;
+                    if(s >= 0 && (minScroll == -1 || s < minScroll)){
+                        minScroll = s;
+                    }
                     details.frames.push(frames[i]);
+                }
+            }
+            if(minScroll!=-1){
+                console.log('MINSCROLL', minScroll, window.document.body, window.document.URL);
+                if(minScroll > window.document.body.scrollTop){
+                    window.scrollTo(0, minScroll)
                 }
             }
             return details;
@@ -1179,7 +1197,7 @@ var Fitter = (function (){
         (function (){ // INNER PAGE ROUTINES
             //console.log('SCOPE => '+document.URL+' '+this.document.URL);
             var document = this.document;
-            var absolutize = (function() {
+            var absolutize = (() => {
                 // this prevents any overhead from creating the object each time
                 var a = document.createElement('a'), m = document.createElement('img');
                 return (function (url) {
@@ -1242,7 +1260,7 @@ var Fitter = (function (){
             for(var i=0; i<files.length; i++){
                 domains = files[i].replace('.js', '').split(',')
                 for(var j=0; j<domains.length; j++){
-                    top.preFitterIndex[domains[i]] = './hosts/'+files[i];
+                    top.preFitterIndex[domains[j]] = './hosts/'+files[i];
                 }
             }
             console.log('PREFITTERINDEX', top.preFitterIndex)
@@ -1255,8 +1273,9 @@ var Fitter = (function (){
             }
         }
         if(file){
-            console.log('PREFITTER MODULE MATCHED', file);
+            console.log('PREFITTER MODULE MATCHED', file, scope.document.URL);
             list = require(file)(scope)
+            console.log('PREFITTER MODULE RETURNED', list);
         } else {
             console.log('NO PREFITTER', domain)
         }

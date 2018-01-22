@@ -1,5 +1,13 @@
 var gui = require('nw.gui');
     
+/*
+try {
+    import {setInterval, clearInterval} from 'timers';
+} catch(e) {
+    console.error(e)
+}
+*/
+
 setTimeout = global.setTimeout.bind(global);
 clearTimeout = global.clearTimeout.bind(global);
 
@@ -21,7 +29,7 @@ window.ondragleave = window.ondrop = function(e) {
     if(e){
         e.preventDefault(); 
     }
-    setTimeout(function (){
+    setTimeout(() => {
         var ov = document.querySelector('iframe#overlay');
         if(ov) ov.style.pointerEvents = 'none';
     }, 200);
@@ -36,7 +44,7 @@ window.onerror = (...arguments) => {
 
 if(typeof(require)!='undefined'){
 
-    var fs = require("fs"), Store = (function (){
+    var fs = require("fs"), Store = (() => {
         var dir = 'data/', _this = {};
         fs.stat(dir, function(err, stat){
             if(err !== null) {
@@ -50,7 +58,9 @@ if(typeof(require)!='undefined'){
             return key.replace(new RegExp('[^A-Za-z0-9\\._-]', 'g'), '');
         };
         _this.get = function (key){
-            var _json = localStorage.getItem(prepareKey(key));
+            if(!localStorage) return; // randomly undefined ?!
+            key = prepareKey(key);
+            var _json = localStorage.getItem(key);
             if(_json === null){
                 var f = resolve(key); 
                 if(fs.existsSync(f)){
@@ -66,22 +76,24 @@ if(typeof(require)!='undefined'){
             return null;
         };
         _this.set = function (key, val){
+            if(!localStorage) return;
+            key = prepareKey(key);
             val = JSON.stringify(val);
             //console.log('WRITE '+key+' '+val);
-            localStorage.setItem(prepareKey(key), val);
+            localStorage.setItem(key, val);
             fs.writeFile(resolve(key), val, "utf8");
         };
         return _this;
     })();
 
-    var DB = (function (){
+    var DB = (() => {
 
         var _this = this;
 
         _this.maximumExpiral = 30 * (24 * 3600);
 
-        _this.insert = function (key, jsonData, expirationSec){
-            if (typeof(localStorage) == "undefined") { return false; }
+        _this.set = function (key, jsonData, expirationSec){
+            if (typeof(localStorage) == "undefined" || !localStorage) { return false; }
             key = _this.prepare(key);
             var expirationMS = expirationSec * 1000;
             var record = {value: JSON.stringify(jsonData), expires: new Date().getTime() + expirationMS}
@@ -89,7 +101,7 @@ if(typeof(require)!='undefined'){
             return jsonData;
         };
 
-        _this.query = function(key){
+        _this.get = function(key){
             if (typeof(localStorage) == "undefined") { return false; }
             key = _this.prepare(key);
             var v = localStorage.getItem(key);
@@ -124,14 +136,14 @@ if(typeof(require)!='undefined'){
     })();
 
     /*
-    DB.insert('test', 'ok', 5);
-    alert(DB.query('test'));
-    setTimeout(function (){
-        alert(DB.query('test'));
+    DB.set('test', 'ok', 5);
+    alert(DB.get('test'));
+    setTimeout(() => {
+        alert(DB.get('test'));
         alert(DB.prepare('test_&¨%#&try'));
     }, 6000);
 
-    jQuery(function (){
+    jQuery(() => {
         Store.set('test', [3, 2]);
         console.log(Store.get('test'));
     });
@@ -144,7 +156,7 @@ if(typeof(require)!='undefined'){
 
     // First, checks if it isn't implemented yet.
     if (!String.prototype.format) {
-        String.prototype.format = function() {
+        String.prototype.format = function (){
             var args = arguments;
             return this.replace(/{(\d+)}/g, function(match, number) { 
             return typeof args[number] != 'undefined'
@@ -290,86 +302,67 @@ if(typeof(require)!='undefined'){
 
     function setupShortcuts(){
 
-        shortcuts.push(createShortcut("Ctrl+M", function (){
-            top.toggleMiniPlayer()
-        }));
-        shortcuts.push(createShortcut("Ctrl+U", function (){
-            var c = getFrame('controls');
-            if(c){
-                c.addNewSource();
-            }
-        }));
-        shortcuts.push(createShortcut("Alt+Enter", function (){
-            top.toggleFullScreen()
-        }));
-        shortcuts.push(createShortcut("Ctrl+Alt+D", function (){
+        shortcuts.push(createShortcut("Ctrl+Alt+D", () => {
             top.spawnOut()
-        }));
-        shortcuts.push(createShortcut("Ctrl+E", function (){
+        }, null, true));
+        shortcuts.push(createShortcut("Ctrl+E", () => {
             top.playExternal()
-        }));
-        shortcuts.push(createShortcut("Ctrl+W", function (){
+        }, null, true));
+        shortcuts.push(createShortcut("Ctrl+W", () => {
             stop()
-        }));
-        shortcuts.push(createShortcut("Ctrl+O", function (){
+        }, null, true));
+        shortcuts.push(createShortcut("Ctrl+O", () => {
             openFileDialog(function (file){
                 playCustomFile(file)
             })
-        }));
+        }, null, true));
         shortcuts.push(createShortcut("F1 Ctrl+I", help));
-        shortcuts.push(createShortcut("F2", function (){
+        shortcuts.push(createShortcut("F2", () => {
             var c = getFrame('controls');
             if(c){
                 c.renameSelectedEntry()
             }
-        }))
-        shortcuts.push(createShortcut("F3 Ctrl+F", function (){
+        }, null, true))
+        shortcuts.push(createShortcut("F3 Ctrl+F", () => {
             var c = getFrame('controls');
             c.showControls();
             c.listEntriesByPath(Lang.SEARCH);
-            setTimeout(function (){
+            setTimeout(() => {
                 c.refreshListing();
                 jQuery(c.document).find('.entry input').parent().get(0).focus()
             }, 150)
-        }));
-        shortcuts.push(createShortcut("F4", function (){
-            changeScaleMode()
-        }));
-        shortcuts.push(createShortcut("F5", function (){
+        }, null, true));
+        shortcuts.push(createShortcut("F5", () => {
             getFrame('controls').autoCleanEntries()
-        }));
-        shortcuts.push(createShortcut("F9", function (){
-            if(!top.isRecording){
-                top.startRecording()
-            } else {
-                top.stopRecording()
-            }
-        }));
-        shortcuts.push(createShortcut("F11", function (){
-            top.toggleFullScreen()
-        }));
-        shortcuts.push(createShortcut("Esc", function (){
-            top.escapePressed();
-        }));
-        shortcuts.push(createShortcut("Space", function (){
+        }, null, true));
+        shortcuts.push(createShortcut("Space", () => {
             top.playPause()
         }));
-        shortcuts.push(createShortcut("Ctrl+D", function (){
+        shortcuts.push(createShortcut("Ctrl+H", () => {
+            getFrame('controls').goHistory()
+        }, null, true));
+        shortcuts.push(createShortcut("Ctrl+D", () => {
             getFrame('controls').addFav()
-        }));
-        shortcuts.push(createShortcut("Ctrl+Shift+D", function (){
+        }, null, true));
+        shortcuts.push(createShortcut("Ctrl+Shift+D", () => {
             getFrame('controls').removeFav()
-        }));
-        shortcuts.push(createShortcut("Ctrl+Alt+R", function (){
+        }, null, true));
+        shortcuts.push(createShortcut("Ctrl+Alt+R", () => {
             top.location.reload()
-        }));
-        shortcuts.push(createShortcut("Home", function (){
+        }, null, true));
+        shortcuts.push(createShortcut("Home", () => {
             if(!areControlsActive()){
                 showControls()
             }
-            getFrame('controls').listEntriesByPath('/')
+            getFrame('controls').listEntriesByPath('')
         }));
-        shortcuts.push(createShortcut("Delete", function (){
+        shortcuts.push(createShortcut("Ctrl+Home", () => { // with Ctrl it work on inputs so
+            if(!areControlsActive()){
+                showControls()
+            }
+            getFrame('controls').listEntriesByPath('')
+        }, null, true));
+        shortcuts.push(createShortcut("Delete", () => {
             if(areControlsActive()){
                 var c = getFrame('controls');
                 c.triggerEntryAction('delete')
@@ -380,17 +373,17 @@ if(typeof(require)!='undefined'){
                 }
             }
         }));
-        shortcuts.push(createShortcut("Up", function (){
+        shortcuts.push(createShortcut("Up", () => {
             showControls();
             var c = getFrame('controls');
             c.focusPrevious()
         }, "hold", true));
-        shortcuts.push(createShortcut("Down", function (){
+        shortcuts.push(createShortcut("Down", () => {
             showControls();
             var c = getFrame('controls');
             c.focusNext()
         }, "hold", true));
-        shortcuts.push(createShortcut("Right Enter", function (){
+        shortcuts.push(createShortcut("Right Enter", () => {
             if(areControlsActive()){
                 var c = getFrame('controls');
                 c.triggerEnter()
@@ -398,21 +391,7 @@ if(typeof(require)!='undefined'){
                 showControls()
             }
         }));
-        shortcuts.push(createShortcut("Ctrl+Left", function (){
-            var s = getPreviousStream();
-            if(s){
-                console.log(s);
-                getFrame('controls').playEntry(s)
-            }
-        }));
-        shortcuts.push(createShortcut("Ctrl+Right", function (){
-            var s = getNextStream();
-            if(s){
-                console.log(s);
-                getFrame('controls').playEntry(s)
-            }
-        }));
-        shortcuts.push(createShortcut("Left Backspace", function (){
+        shortcuts.push(createShortcut("Left Backspace", () => {
             if(areControlsActive()){
                 var c = getFrame('controls');
                 c.triggerBack()
@@ -420,46 +399,148 @@ if(typeof(require)!='undefined'){
                 seekRewind()
             }
         }, "hold"));
-        shortcuts.push(createShortcut("Shift+Left", function (){
+        shortcuts.push(createShortcut("Ctrl+Backspace", () => { // with Ctrl it work on inputs so
+            if(areControlsActive()){
+                var c = getFrame('controls');
+                c.triggerBack()
+            } else {
+                seekRewind()
+            }
+        }, null, true));
+        shortcuts.push(createShortcut("Shift+Left", () => {
             seekRewind()
-        }, "hold"));
-        shortcuts.push(createShortcut("Shift+Right", function (){
+        }, "hold", true));
+        shortcuts.push(createShortcut("Shift+Right", () => {
             seekForward()
-        }, "hold"));
+        }, "hold", true));
+        shortcuts.push(createShortcut("Esc", () => {
+            top.escapePressed()
+        }, null, true));
         jQuery.Shortcuts.start();
 
-        var globalHotkeys = [
-            {
-                key : "MediaPlayPause",
-                active : function() {
-                    top.playPause();
+        if(!top || top == window){
+            var globalHotkeys = [
+                {
+                    key : "Ctrl+M",
+                    active : () => {
+                        top.toggleMiniPlayer()
+                    }
+                },
+                {
+                    key : "Ctrl+U",
+                    active : () => {
+                        var c = getFrame('controls');
+                        if(c){
+                            c.addNewSource()
+                        }
+                    }
+                },
+                {
+                    key : "Alt+Enter",
+                    active : () => {
+                        top.toggleFullScreen()
+                    }
+                },
+                {
+                    key : "F4",
+                    active : () => {
+                        changeScaleMode()
+                    }
+                },
+                {
+                    key : "F9",
+                    active : () => {
+                        if(!top.isRecording){
+                            top.startRecording()
+                        } else {
+                            top.stopRecording()
+                        }
+                    }
+                },
+                {
+                    key : "F11",
+                    active : () => {
+                        top.toggleFullScreen()
+                    }
+                },
+                {
+                    key : "Ctrl+Left",
+                    active : () => {
+                        var s = getPreviousStream();
+                        if(s){
+                            console.log(s);
+                            getFrame('controls').playEntry(s)
+                        }
+                    }
+                },
+                {
+                    key : "Ctrl+Right",
+                    active : () => {
+                        var s = getNextStream();
+                        if(s){
+                            console.log(s);
+                            getFrame('controls').playEntry(s)
+                        }
+                    }
+                },
+                {
+                    key : "MediaPrevTrack",
+                    active : () => {
+                        var s = getPreviousStream();
+                        if(s){
+                            console.log(s);
+                            getFrame('controls').playEntry(s)
+                        }
+                    }
+                },
+                {
+                    key : "MediaNextTrack",
+                    active : () => {
+                        var s = getNextStream();
+                        if(s){
+                            console.log(s);
+                            getFrame('controls').playEntry(s)
+                        }
+                    }
+                },
+                {
+                    key : "MediaPlayPause",
+                    active : () => {
+                        top.playPause();
+                    }
+                },
+                {
+                    key : "MediaStop",
+                    active : () => {
+                        top.playPause(false);
+                    }
                 }
-            },
-            {
-                key : "MediaPrevTrack",
-                active : function() {
-                    // TODO, play previousChannel
+            ];
+            for(var i=0; i<globalHotkeys.length; i++){
+                console.log('Registering hotkey: '+globalHotkeys[i].key);
+                globalHotkeys[i].failed = function(msg) {
+                    // :(, fail to register the |key| or couldn't parse the |key|.
+                    console.log(msg)
                 }
-            },
-            {
-                key : "MediaStop",
-                active : function() {
-                    top.playPause(false);
+                globalHotkeys[i] = new gui.Shortcut(globalHotkeys[i]);
+                gui.App.registerGlobalHotKey(globalHotkeys[i]);
+            }
+            jQuery(window).on('beforeunload', () => {
+                for(var i=0; i<globalHotkeys.length; i++){
+                    nw.App.unregisterGlobalHotKey(globalHotkeys[i]);
                 }
-            },
-        ];
-        for(var i=0; i<globalHotkeys.length; i++){
-            gui.App.registerGlobalHotKey(new gui.Shortcut(globalHotkeys[i]));
+                console.log('Hotkeys unregistered.')
+            })
         }
     }
     
     var b = jQuery(top.document).find('body');
     
-    var areControlsActive = function (){
+    var areControlsActive = () => {
         return b.hasClass('istyping') || b.hasClass('isovercontrols');
     }
     
-    var areControlsHiding = function (){
+    var areControlsHiding = () => {
         return top.controlsHiding || false;
     }
     
@@ -495,7 +576,7 @@ if(typeof(require)!='undefined'){
                 //console.log('HIDE UNFOCUS', controlsActiveElement)
                 c.focusPrevious()
             }
-            setTimeout(function (){
+            setTimeout(() => {
                 top.controlsHiding = false;
             }, 600)
         }
@@ -506,7 +587,7 @@ if(typeof(require)!='undefined'){
         if(r){
             callback(r)
         } else {
-            setTimeout(function (){
+            setTimeout(() => {
                 wait(checker, callback)
             }, 250);
         }
@@ -520,6 +601,15 @@ if(typeof(require)!='undefined'){
             }
         }
         return '';
+    }
+    
+    function getProto(u){
+        var pos = u.indexOf('://');
+        if(pos != -1){
+            var proto = u.substr(0, pos).toLowerCase();
+            return proto;
+        }
+        return false;
     }
     
     function extractURLs(val){
@@ -544,6 +634,9 @@ if(typeof(require)!='undefined'){
     
     function askForSource(question, callback, placeholder, showCommunityListOption){
         if(top){
+            if(top.miniPlayerActive){
+                top.leaveMiniPlayer()
+            }
             var defaultValue = Store.get('last-ask-for-source-value');
             var cb = top.clipboard.get('text');
             if(cb.match(new RegExp('^(//|https?://)'))){
@@ -594,6 +687,13 @@ if(typeof(require)!='undefined'){
             top.modalConfirm(Lang.ASK_COMMUNITY_LIST.format(Lang.I_AGREE), options)
         }
     }
+
+    function isValidPath(url){ // poor checking for now
+        if(url.indexOf('/') == -1 && url.indexOf('\\') == -1){
+            return false;
+        }
+        return true;
+    }
         
     function playCustomURL(placeholder, direct){
         var url;
@@ -602,16 +702,14 @@ if(typeof(require)!='undefined'){
         } else {
             if(!placeholder) placeholder = Store.get('lastCustomPlayURL');
             return top.askForSource(Lang.PASTE_URL_HINT, function (val){
-                playCustomURL(val, true);
+                playCustomURL(val+'#nosandbox', true);
                 return true;
             })            
         }
         if(url){
             Store.set('lastCustomPlayURL', url);
             var name = false;
-            if(url.split('/').length > 2){
-                name = 'Megacubo '+url.split('/')[2];
-            } else if(isMagnet(url)){
+            if(isMagnet(url)){
                 name = true;
                 var match = url.match(new RegExp('dn=([^&]+)'));
                 if(match){
@@ -619,18 +717,20 @@ if(typeof(require)!='undefined'){
                 } else {
                     name = 'Magnet URL';
                 }
+            } else if(isValidPath(url)){
+                name = 'Megacubo '+url.split('/')[2];
             }
             if(name){
                 console.log('lastCustomPlayURL', url, name);
                 Store.set('lastCustomPlayURL', url);
-                top.createPlayIntent({url: url, name: name})
+                top.createPlayIntent({url: url+'#nosandbox', name: name}, {manual: true})
             }
         }
     }
     
     function playCustomFile(file){
         Store.set('lastCustomPlayFile', file);
-        top.createPlayIntent({url: file, name: basename(file, true)})
+        top.createPlayIntent({url: file, name: basename(file, true)}, {manual: true})
     }
 
     function checkPermission(file, mask, cb){ // https://stackoverflow.com/questions/11775884/nodejs-file-permissions
@@ -687,7 +787,7 @@ if(typeof(require)!='undefined'){
             type: type ? type : 'down',
             mask: key,
             enableInInput: !!enableInInput,
-            handler: function (){
+            handler: () => {
                 console.log(key+' pressed', document.URL)
                 callback()
             }
@@ -798,7 +898,7 @@ if(typeof(require)!='undefined'){
                 secs = 1;
                 break;
             case 'normal':
-                secs = 3;
+                secs = 4;
                 break;
             case 'long':
                 secs = 7;
@@ -817,21 +917,24 @@ if(typeof(require)!='undefined'){
     }
 
     function notify(str, fa, secs){
-        if(!str) return;
-        var c = '', o = getFrame('overlay'), timer;
+        var o = getFrame('overlay'), a = jQuery(o.document.getElementById('notify-area'));
+        if(!str) {
+            a.find('.notify-wait').remove();
+            return;
+        }
+        var c = '', timer;
         if(o){
             if(secs == 'wait'){
                 c += ' notify-wait';
             }
             secs = notifyParseTime(secs);
-            var a = jQuery(o.document.getElementById('notify-area'));
             var destroy = () => {
-                n.hide(400, function (){
+                n.hide(400, () => {
                     jQuery(this).remove()
                 })
             };
-            a.find('.notify-row').filter(function (){
-                return jQuery(this).find('div').text().trim() == str;
+            a.find('.notify-row').filter((i, o) => {
+                return jQuery(o).find('div').text().trim() == str;
             }).add(a.find('.notify-wait')).remove();
             if(fa) fa = '<i class="fa {0}" aria-hidden="true"></i> '.format(fa);
             var n = jQuery('<div class="notify-row '+c+'"><div class="notify">' + fa + ' ' + str + '</div></div>');
@@ -857,12 +960,26 @@ if(typeof(require)!='undefined'){
         }
     }
 
+
+    var pendingStateTimer = 0, defaultTitle = '';
+
+    function enterPendingState(title) {
+        setTitleFlag('fa-circle-o-notch fa-spin', title);
+        notify(Lang.LOADING, 'fa-circle-o-notch fa-spin', 'short');
+    }
+    
+    function leavePendingState() {
+        setTitleFlag('', defaultTitle);
+        getFrame('controls').removeLoadingFlags()
+    }
+
     function setTitleData(title, icon) {
         console.log('TITLE = '+title);
+        defaultTitle = title;
         if(top){
             var defaultIcon= 'default_icon.png';
             applyIcon(icon);
-            checkImage(icon, function (){}, function (){
+            checkImage(icon, () => {}, () => {
                 applyIcon(defaultIcon);
             });
             var doc = top.document;
@@ -875,7 +992,7 @@ if(typeof(require)!='undefined'){
         }
     }
 
-    function setTitleFlag(fa){
+    function setTitleFlag(fa, title){
         var t = top.document.querySelector('.nw-cf-icon');
         if(t){
             if(fa){ // fa-circle-o-notch fa-spin
@@ -884,6 +1001,17 @@ if(typeof(require)!='undefined'){
             } else {
                 t.style.backgroundPositionX = '0px';
                 t.innerHTML = '';
+            }
+            if(typeof(title)=='string'){
+                var doc = top.document;
+                doc.title = title;
+                var c = doc.querySelector('.nw-cf-title');
+                if(c){
+                    if(!defaultTitle){
+                        defaultTitle = c.innerText;
+                    }
+                    c.innerText = title;
+                }
             }
         }
     }
@@ -895,6 +1023,13 @@ if(typeof(require)!='undefined'){
         return (title && title == streamTitle && title.indexOf('Megacubo')==-1);
     }
 
+    function ltrimPathBar(path){
+        if(path.charAt(0)=='/'){
+            path = path.substr(1)
+        }
+        return path;
+    }
+
     function removeQueryString(url){
         return url.split('?')[0].split('#')[0];
     }
@@ -902,7 +1037,7 @@ if(typeof(require)!='undefined'){
     function basename(str, rqs){
         _str = new String(str); 
         pos = _str.replaceAll('\\', '/').lastIndexOf('/');
-        if(pos){
+        if(pos != -1){
             _str = _str.substring(pos + 1); 
         }
         if(rqs){
@@ -1052,7 +1187,7 @@ if(typeof(require)!='undefined'){
     
     function removeFolder(location, itself, next) {
         console.log(itself?'REMOVING':'CLEANING', location);
-        if (!next) next = function() {};
+        if (!next) next = () => {};
         fs.readdir(location, function(err, files) {
             async.each(files, function(file, cb) {
                 file = location + '/' + file;

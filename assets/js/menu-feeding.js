@@ -1,5 +1,4 @@
 
-
 function getWindowModeEntries(){
     var options = [];
     if(top.window.miniPlayerActive){
@@ -31,12 +30,18 @@ function getWindowModeEntries(){
     }})
     options.push({name: Lang.START_IN_FULLSCREEN, type: 'check', check: function (checked){
         Store.set('start-in-fullscreen', checked)
-    }, checked: Store.get('start-in-fullscreen')})
+    }, checked: () => {
+            return Store.get('start-in-fullscreen')
+        }
+    })
     options.push({name: Lang.USE_HARDWARE_ACCELERATION, type: 'check', check: function (checked){
         notify(Lang.SHOULD_RESTART, 'fa-cogs', 'normal');
         Store.set('disable-gpu', !checked);
         top.setHardwareAcceleration(checked)
-    }, checked: !Store.get('disable-gpu')})
+    }, checked: () => {
+            return !Store.get('disable-gpu')
+        }
+    })
     /*
     options.push({name: 'Chromecast', logo:'fa-chrome', type: 'option', callback: function (){
         top.castManagerInit();
@@ -59,7 +64,102 @@ function getHistoryEntries(){
     return options;
 }
 
-function getBookmarksEntries(){
+function getRemoteXtras(url, name){
+    var url = 'http://app.megacubo.net/stats/data/xtras.'+getLocale(true)+'.json', name = Lang.EXTRAS;
+    return fetchEntries(url, name)
+}
+
+function getRemoteSources(){
+    var url = 'http://app.megacubo.net/stats/data/sources.'+getLocale(true)+'.json', name = Lang.CONNECTED_LISTS;
+    return fetchEntries(url, name, (entry) => {
+        if(!entry.name){
+            entry.name = getNameFromSourceURL(entry.url)
+        }
+        entry.type = "group";
+        entry.label = entry.label.format(Lang.USER, Lang.USERS);
+        entry.renderer = (data) => {
+            //console.log(data);
+            return previewSourceRenderer(data.url, data.name)
+        }
+        setTimeout(markActiveSource, 250); // wait rendering
+        return entry;
+    })
+}
+
+function previewSourceRenderer(url, name){
+    var path = listingPath;
+    if(basename(path) != name){
+        path += '/'+name;
+    }
+    listingPath = path;
+    //console.log('DREADY -1!', path, listingPath);
+    setTimeout(() => { // tricky delay, preventing it from render before to render the loadingEntry
+        //console.log('DREADY0!', path, listingPath);
+        fetchAndParseIPTVListFromAddr(url, (content, parsed) => {
+            //console.log('DREADY1!', path, listingPath, parsed);
+            if(getSourcesURLs().indexOf(url)==-1){
+                parsed.unshift({
+                    type: 'option',
+                    logo: 'fa-download',
+                    name: Lang.ADD_TO.format(Lang.MY_LISTS),
+                    callback: () => {
+                        registerSource(url, name)
+                    }
+                })
+            } else {
+                parsed.unshift({
+                    type: 'disabled',
+                    logo: 'fa-download',
+                    name: Lang.LIST_ALREADY_ADDED
+                })
+            }
+            index = writeIndexPathEntries(path, parsed, index);
+            //console.log('DREADY1.5!', path, listingPath, readIndexPath(path));
+            if(path == listingPath){ // user is on same view
+                //console.log('DREADY2!', readIndexPath(path));
+                listEntriesByPath(path);
+                markActiveSource()
+            }
+        }, () => {
+            notify(Lang.DATA_FETCHING_FAILURE, 'fa-warning', 'normal');
+            triggerBack()
+        }, true);
+    }, 250);
+    return [getLoadingEntry()]
+}
+
+function getWatchingEntries(){
+    var url = 'http://app.megacubo.net/stats/data/watching.'+getLocale(true)+'.json', name = Lang.BEEN_WATCHED;
+    return fetchEntries(url, name, (entry) => {
+        entry.label = entry.label.format(Lang.USER, Lang.USERS);
+        setTimeout(updateStreamEntriesFlags, 250); // wait rendering
+        return entry;
+    })
+}
+
+function getXtraEntries(){
+    var options = getBookmarksEntries(false);
+    options.push({name: Lang.OPEN_URL+' (Ctrl+U)', logo:'fa-link', type: 'option', callback: () => {playCustomURL()}});
+    options.push({name: Lang.RECORDINGS, logo:'fa-download', type: 'group', renderer: getRecordingEntries, entries: []});
+    options.push({name: Lang.HISTORY+' (Ctrl+H)', logo:'fa-history', type: 'group', renderer: getHistoryEntries, entries: []});
+    options.push({name: Lang.EXTRAS, logo:'fa-folder', type: 'group', renderer: getRemoteXtras, entries: []});
+    return options;
+}
+
+function getParentalControlEntries(){
+    var options = [];
+    options.push({
+        type: 'input',
+        logo: 'assets/icons/white/shield.png',
+        change: function (entry, element, val){
+            Store.set('parental-control-terms', val)
+        },
+        value: parentalControlTerms().join(',')
+    });
+    return options;
+}
+
+function getBookmarksEntries(reportEmpty){
     var options = [], stream;
     var bookmarks = Bookmarks.get();
     if(stream = currentStream()){
@@ -77,7 +177,7 @@ function getBookmarksEntries(){
     }
     if(bookmarks && bookmarks.length){
         options = options.concat(bookmarks);
-    } else {
+    } else if(reportEmpty) {
         options.push({name: Lang.EMPTY, logo:'fa-files-o', type: 'option'})
     }
     return options;
@@ -167,12 +267,16 @@ function getListsEntries(notActive, noManagement){
         })
     }
     if(noManagement !== true){
-        options.push({name: Lang.ADD_NEW_LIST, logo:'fa-plus', type: 'option', callback: addNewSource});
-        options.push({name: Lang.REMOVE_LIST, logo:'fa-trash', type: 'group', renderer: getListsEntriesForRemoval, callback: markActiveSource});
-        options.push({name: Lang.FIND_LISTS, logo:'fa-search', type: 'option', callback: function (){nw.Shell.openExternal(getIPTVListSearchURL())}});
+        options.push({name: Lang.ADD_NEW_LIST, logo: 'fa-plus', type: 'option', callback: addNewSource});
+        options.push({name: Lang.REMOVE_LIST, logo: 'fa-trash', type: 'group', renderer: getListsEntriesForRemoval, callback: markActiveSource});
+        options.push({name: Lang.CONNECTED_LISTS, logo: 'fa-users', type: 'group', renderer: getRemoteSources, entries: []});
+        // options.push({name: Lang.FIND_LISTS, logo: 'fa-search', type: 'option', callback: function (){nw.Shell.openExternal(getIPTVListSearchURL())}});
         options.push({name: Lang.SHARE_LISTS, type: 'check', check: function (checked){
             Store.set('unshare-lists', !checked)
-        }, checked: !Store.get('unshare-lists')})
+        },  checked: () => {
+                return !Store.get('unshare-lists')
+            }
+        })
     }
     return options;
 }
