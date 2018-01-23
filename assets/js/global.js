@@ -1024,10 +1024,10 @@ if(typeof(require)!='undefined'){
     }
 
     function ltrimPathBar(path){
-        if(path.charAt(0)=='/'){
+        if(path && path.charAt(0)=='/'){
             path = path.substr(1)
         }
-        return path;
+        return path || '';
     }
 
     function removeQueryString(url){
