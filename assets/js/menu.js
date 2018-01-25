@@ -6,16 +6,16 @@ var menuTemplates = {
     'check': '<a href="[url]" onclick="return false;" class="entry entry-option [class]"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><i class="fa fa-toggle-off fa-as-entry-logo" aria-hidden="true"></i></span></td><td><span class="entry-name">[name]</span></td></tr></table></a>',
     'stream': '<a href="[url]" onclick="return false;" class="entry entry-stream [class]"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><img src="[default-logo]" lazy-src="[logo]" title="[name] - [group]" onerror="this.onerror=null;this.src=\'[default-logo]\';" /></span></td><td><span class="entry-name">[format-name]</span><span class="entry-label">[label]</span></td></tr></table></a>',
     'back': '<a href="[url]" onclick="return false;" class="entry entry-back [class]"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><img src="[logo]" title="[name] - [group]" /></span></td><td><span class="entry-name">[name]</span></td></tr></table></a>',
-    'group': '<a href="[url]" onclick="return false;" class="entry entry-group [class]"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><img src="[logo]" title="[name] - [group]" onerror="nextLogoForGroup(this)" /></span></td><td><span class="entry-name">[name]</span><span class="entry-label">[label]</span></td></tr></table></a>'
+    'group': '<a href="[url]" onclick="return false;" class="entry entry-group [class]"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><img src="[logo]" title="[name] - [group]" /></span></td><td><span class="entry-name">[name]</span><span class="entry-label">[label]</span></td></tr></table></a>' // onerror="nextLogoForGroup(this)" 
 };
 
 var defaultIcons = {
     'option': 'fa-cog',
     'input': 'assets/icons/white/search-dark.png',
-    'stream': 'assets/icons/white/default-channel.png',
+    'stream': 'assets/icons/white/default-stream.png',
     'back': 'fa-chevron-left',
     'check': 'fa-toggle-off',
-    'group': 'assets/icons/white/default-channel.png'
+    'group': 'assets/icons/white/default-group.png'
 };
 
 function updateRootEntry(name, data){
@@ -39,14 +39,6 @@ function readSourcesToIndex(callback){
         //console.log(parsed);
         if(typeof(window.index)=='object' && url == activeSrc){
             var entries = window.channelsIndex[url];
-            if(!entries.length){
-                entries.push({name: Lang.EMPTY, logo:'fa-files-o', type: 'option'})
-            }
-            if(sources.length > 1){
-                entries.push({name: Lang.OTHER_LISTS, logo: 'fa-plus-square', type: 'group', entries: [], renderer: () => {
-                    return getListsEntries(true, true)
-                }})
-            }
             window.index = writeIndexPathEntries(Lang.CHANNELS, entries);
             var locale = getLocale(false, true), length = getSourceMeta(url, 'length') || 0;
             updateRootEntry(Lang.CHANNELS, {label: Number(length).toLocaleString(locale)+' '+Lang.STREAMS.toLowerCase()});
@@ -169,7 +161,12 @@ function listEntryRender(entry, container, tabIndexOffset){
     html = html.replace('<a ', '<a tabindex="'+tabIndexOffset+'" ').replace('<input ', '<input tabindex="'+tabIndexOffset+'" ');
     html = html.replaceAll('[name]', entry.name);
     if(html.indexOf('[format-name]')!=-1){
-        html = html.replaceAll('[format-name]', entry.rawname ? parseM3U8NameTags(entry.rawname) : entry.name);
+        var minLengthToMarquee = 36, n = entry.rawname ? parseM3U8NameTags(entry.rawname) : entry.name;
+        if(entry.name.length >= minLengthToMarquee){
+            n = '<span>'+n+'</span>';
+            html = html.replace('entry-name', 'entry-name marquee')
+        }
+        html = html.replaceAll('[format-name]', n);
     }
     if(logo.substr(0, 3)=="fa-"){
         html = html.replace(new RegExp('<img[^>]+>', 'mi'), '<i class="fa '+logo+' fa-as-entry-logo" aria-hidden="true"></i>')
@@ -358,8 +355,12 @@ function listEntries(entries, path){
             setTimeout(rescroll, 33)
         }
     }
-    setTimeout(rescroll, 0)
+    setTimeout(rescroll, 0);
     revealChannelsLogo();
+    var lps = 7;
+    lst.find('.marquee:not(.marquee-adjusted)').each((i, e) => {
+        jQuery(e).addClass('marquee-adjusted').find('*:eq(0)').css('animation-duration', parseInt(e.innerText.length / lps)+'s')
+    })
 }
 
 var lastParentEntry = 0;
@@ -490,7 +491,7 @@ function listEntriesByPath(path, append, nofx){
     if(!(list instanceof Array)){
         list = [list];
     }
-    list = applyFilters('filterEntries', list);
+    list = applyFilters('filterEntries', list, path);
     if(!append){
         if(path.length) {
             backEntryRender(container, dirname(path));
@@ -539,7 +540,12 @@ function getPathTriggerer(path){
 
 function triggerEntry(data, element){
     console.log('TRIGGER', data, element);
+    var isBack = false;
+    if(data.type == 'group'){ // prior to dealing with the back entry
+        lastListScrollTop = jQuery('.list').scrollTop()
+    }
     if(data.type == 'back'){
+        isBack = true;
         console.log(data.path);
         if(typeof(data.back)=='function'){
             var entry = data;
@@ -587,6 +593,13 @@ function triggerEntry(data, element){
     } else if(isStreamEntry(data)) {
         console.log('PLAY', data);
         playEntry(data)
+    }
+    if(isBack){
+        setTimeout(() => {
+            if(lastListScrollTop){
+                jQuery('.list').scrollTop(lastListScrollTop)
+            }
+        }, 250)
     }
 }
 
@@ -729,7 +742,7 @@ function fetchSearchResults(){
             }
         }
     }
-    return applyFilters('filterEntries', r)
+    return applyFilters('filterEntries', r, Lang.SEARCH)
 }
 
 function hideSearchField(){
@@ -795,7 +808,7 @@ function goHistory(){
 }
 
 jQuery(() => {
-    addFilter('filterEntries', (entries) => {
+    addFilter('filterEntries', (entries, path) => {
         console.log('PREFILTERED', entries);
         var nentries = [], urls = getOfflineStreamsURLs(), offline = [], forceClean = false, isStreamsListing = false, offLabel = ' (OFF)';
         for(var i=0; i<entries.length; i++){
@@ -832,6 +845,15 @@ jQuery(() => {
                 autoCleanHintShown = true;
                 notify(Lang.AUTOCLEAN_HINT, 'fa-info-circle', 'normal')
             }
+        }
+        jQuery('.entry-empty').remove()
+        if(!nentries.length){
+            nentries.push({name: Lang.EMPTY, logo:'fa-files-o', type: 'option', class: 'entry-empty'})
+        }
+        if(path == Lang.CHANNELS && getSources().length > 1){
+            nentries.push({name: Lang.OTHER_LISTS, logo: 'fa-plus-square', type: 'group', entries: [], renderer: () => {
+                return getListsEntries(true, true)
+            }})
         }
         console.log('FILTERED', nentries, entries, offline);
         return nentries;

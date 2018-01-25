@@ -34,14 +34,18 @@
             }
             function processFile(file){
                 var probeSize = 2048;
+                if(file && file.substr(0, 2)=='//'){
+                    file = 'http:'+file;
+                }
                 if(['m3u', 'm3u8'].indexOf(getExt(file))!=-1){
                     openFile(file)
                 } else if(isMedia(file)) {
                     playCustomFile(file)
                 } else {
-                    if(file.match(new RegExp('^(//|https?://)'))){
+                    if(file.match(new RegExp('^https?://'))){
                         notify(Lang.PROCESSING, 'fa-spin fa-circle-o-notch', 'wait');
-                        miniget(file, {timeout: 10000, headers: {range: 'bytes=0-24'}}, function (e,o,r){
+                        var fetchOptions = {redirect: 'follow'};
+                        fetchTimeout(file, (r) => {
                             var response = String(r);
                             response = response.substr(0, probeSize)
                             console.log(response);
@@ -50,7 +54,7 @@
                             } else {
                                 playCustomURL(file, true)
                             }
-                        })
+                        }, 10000, fetchOptions)
                     } else {
                         fs.open(file, 'r', function(err, fd) {
                             if(!err){

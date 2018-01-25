@@ -231,6 +231,7 @@ function fetchIPTVListFromAddr(addr, callback, errorCallback){
             DB.set(fallbackKey, content, IPTVListFallbackCacheTTL);
             callback(content, addr)
         }
+        /*
         miniget(addr, function (err, object, response){
             if(response && response.indexOf('#EXT')!=-1){
                 internalCallback(response)
@@ -238,6 +239,15 @@ function fetchIPTVListFromAddr(addr, callback, errorCallback){
                 errorCallback(response, addr)
             }
         });
+        */
+        var timeout = 30000, fetchOptions = {redirect: 'follow'};
+        fetchTimeout(addr, (r) => {
+            if(r && r.indexOf('#EXT')!=-1){
+                internalCallback(r)
+            } else {
+                errorCallback(r, addr)
+            }
+        }, timeout, fetchOptions);
         content = DB.get(fallbackKey);
     }
     if(content){
@@ -248,11 +258,14 @@ function fetchIPTVListFromAddr(addr, callback, errorCallback){
 
 function fetchAndParseIPTVListFromAddr(addr, _callback, _errorCallback, isRemote){
     fetchIPTVListFromAddr(addr, function (content, addr, isRemote){
+        content = fixUTF8(content);
         var parsed = parseIPTVListToIndex(content, addr, isRemote);
         _callback(content, parsed, addr, isRemote);
     }, (response) => {
-        _errorCallback(response, addr)
-    });
+        if(_errorCallback && typeof(_errorCallback)=='function'){
+            _errorCallback(response, addr)
+        }
+    })
 }
 
 var IPTVListCacheTTL = 1800, IPTVListFallbackCacheTTL = DB.maximumExpiral;
@@ -453,6 +466,25 @@ function parseIPTVMetaField(meta, rgx, index){
     return '';
 }
 
+function joinDupsEntries(flatList){
+    var urls = [], map = {};
+    for(var i=0; i<flatList.length; i++){
+        if(urls.indexOf(flatList[i].url)!=-1){
+            var j = map[flatList[i].url];
+            if(flatList[j].name != flatList[i].name){
+                flatList[j].name += flatList[j].rawname += ' | '+flatList[i].name;
+            }
+            delete flatList[i];
+        } else {
+            urls.push(flatList[i].url);
+            map[flatList[i].url] = i;
+        }
+    }
+    return flatList.filter(function (item) {
+        return item !== undefined;
+    })
+}
+
 var flatChannelsList = [];
 function parseIPTVListToIndex(content, listUrl, isRemote){
     var parsingStream = null, flatList = [], slist = content.split("\n"), entry;
@@ -479,6 +511,8 @@ function parseIPTVListToIndex(content, listUrl, isRemote){
     }
 
     //console.log('! flatList !', JSON.stringify(flatList));
+    flatList = joinDupsEntries(flatList);
+
     if(!isRemote && listUrl){
         window.flatChannelsList[listUrl] = flatList;
         setSourceMeta(listUrl, 'length', flatList.length)
@@ -496,7 +530,7 @@ function parseIPTVListToIndex(content, listUrl, isRemote){
         setSourceMeta(listUrl, 'groups', Object.keys(parsedGroups).length)
     }
 
-    //console.log('BB', parsedGroups);
+    // console.log('BB', parsedGroups);
     var groupedEntries = [];
     for(var k in parsedGroups){
         groupedEntries.push({name: basename(k), path: k, type: 'group', label: '', entries: parsedGroups[k]});
@@ -526,11 +560,68 @@ function parseIPTVListToIndex(content, listUrl, isRemote){
     }
 
     //console.log('! INDEX !', recursivelyGroupedList);
-    recursivelyGroupedList = labelifyEntriesList(recursivelyGroupedList);
     recursivelyGroupedList = sortListRecursively(recursivelyGroupedList);
+    recursivelyGroupedList = paginateList(recursivelyGroupedList);
+    recursivelyGroupedList = labelifyEntriesList(recursivelyGroupedList);
 
     //console.log('! INDEX !', recursivelyGroupedList);
     return recursivelyGroupedList;
+}
+
+var folderSizeLimit = 128, folderSizeLimitTolerance = 12;
+
+function getLetterRange(entries){
+    var l, start = '0', end = 'Z', r = new RegExp('[A-Za-z0-9]');
+    for(var i=0; i<entries.length; i++){
+        l = entries[i].name.charAt(0);
+        if(l.match(r)){
+            start = l.toUpperCase()
+            break;
+        }
+    }
+    for(var i=(entries.length - 1); i>=0; i--){
+        l = entries[i].name.charAt(0);
+        if(l.match(r)){
+            end = l.toUpperCase()
+            break;
+        }
+    }
+    return (start==end)?start:start+'-'+end;
+}
+
+function paginateListGroupifier(groupEntry){
+    console.log('CC', groupEntry.entries.length);
+    var group, entries = [], template = groupEntry, n = 1;
+    for(var i=0; i<groupEntry.entries.length; i += folderSizeLimit){
+        group = Object.assign({}, template);
+        console.log('CD', i, folderSizeLimit);
+        group.entries = groupEntry.entries.slice(i, i + folderSizeLimit);
+        group.name += ' '+getLetterRange(group.entries);
+        console.log('DC', group.entries.length);
+        entries.push(group);
+        n++;
+    }
+    console.log('DD', entries.length);
+    return entries;
+}
+
+function paginateList(list){
+    console.log('AA', list.length);
+    var nentries;
+    for (var i=(list.length - 1); i >= 0; i--){
+        if(list[i] && list[i].type=='group' && list[i].entries.length > (folderSizeLimit + folderSizeLimitTolerance)){
+            nentries = paginateListGroupifier(list[i]);
+            list[i] = nentries.shift();
+            for(var j=(nentries.length - 1); j >= 0; j--){
+                console.log('ZZ', j, nentries[j])
+                if(typeof(nentries[j])=='object'){
+                    list.splice(i + 1, 0, nentries[j])
+                }
+            }
+        }
+    }
+    console.log('BB', list.length);
+    return list;
 }
 
 function sortListRecursively(list){
@@ -544,12 +635,14 @@ function sortListRecursively(list){
                     entry.path = dirname(entry.path);
                 } else {
                     entry.entries = sortListRecursively(entry.entries);
+                    /* nextGroupForLogo
                     for (var j=0; j<entry.entries.length; j++){
                         if(entry.entries[j].logo){
                             entry.logo = entry.entries[j].logo;
                             break;
                         }
                     }
+                    */
                 }
             }
         }
@@ -860,6 +953,7 @@ function checkStreamType(url, callback){
         callback(url, type)
     }
     if(url.match(new RegExp('^https?:'))){
+        /*
         miniget(url, (err, object, response) => {
             if(err){
                 console.error('checkStreamType error', err);
@@ -868,6 +962,17 @@ function checkStreamType(url, callback){
                 doCheck(response)
             }
         })
+        */
+        
+        var timeout = 30000, fetchOptions = {redirect: 'follow'};
+        fetchTimeout(url, (r) => {
+            if(r){
+                doCheck(r)
+            } else {
+                console.error('checkStreamType error', r);
+                callback(url, 'error')
+            }
+        }, timeout, fetchOptions)
     } else {
         fs.readFile(url, (err, response) => {
             if(err){
@@ -1223,7 +1328,8 @@ jQuery(document).one('lngload', function (){
         if(top){
             top.restoreInitialSize();
             if(top.splash){
-                top.splash.hide()
+                // top.splash.hide();
+                top.splash.close()
             };
             jQuery(document).trigger('show')
         }

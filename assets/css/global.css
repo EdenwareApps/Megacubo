@@ -38,3 +38,20 @@ input, textarea {
 .hide {
 	display: none;
 }
+
+.entry .marquee {
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.entry:hover .marquee > *, .entry:active .marquee > *, .entry:focus .marquee > * {
+    display: inline-block;
+    text-indent: 0;
+    animation: marquee 15s linear infinite;
+}
+
+/* Make it move */
+@keyframes marquee {
+    0%   { transform: translate(0, 0); }
+    100% { transform: translate(-100%, 0); }
+}

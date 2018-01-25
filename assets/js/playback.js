@@ -351,13 +351,13 @@ function createPlayIntent(entry, options, callback){
     }
     if(getExt(entry.url)=='ts'){
         if(currentPlaybackTypePriotity == -1 || PlaybackManager.intentTypesPriorityOrder['ffmpeg'] < currentPlaybackTypePriotity){
-            intents.push(createFFmpegIntent(entry, options))
+            intents.push(createFFmpegIntent(entry, options)) // even with the the TS wrapper, it's not working directly, but hanging after first segment reproduction
         }
     } else if(isMagnet(entry.url)){
         if(currentPlaybackTypePriotity == -1 || PlaybackManager.intentTypesPriorityOrder['magnet'] < currentPlaybackTypePriotity){
             intents.push(createMagnetIntent(entry, options))
         }
-    } else if(isRTMP(entry.url)){
+    } else if(isRTMP(entry.url) || isRTSP(entry.url)){
         if(currentPlaybackTypePriotity == -1 || PlaybackManager.intentTypesPriorityOrder['ffmpeg'] < currentPlaybackTypePriotity){
             intents.push(createFFmpegIntent(entry, options))
         }
@@ -751,14 +751,19 @@ function createDirectIntent(entry, options){
     self.run = () => {
         self.setTimeout(15);
         self.prxurl = self.entry.url;
-        if(self.prxurl.match(new RegExp('(https?://).*m3u8'))){
+
+        self.mimetype = 'application/x-mpegURL; codecs="avc1.4D401E, mp4a.40.2"';
+        var isTS = (getExt(self.prxurl) == 'ts');
+        if(isTS){
+            self.prxurl = getTSWrapper().getURL(self.prxurl);
+        } else if(self.prxurl.match(new RegExp('(https?://).*m3u8'))){
             console.log('PRX run');
             self.prx = getHLSProxy();
             self.prxurl = self.prx.getURL(self.prxurl)
-            self.mimetype = 'application/x-mpegURL; codecs="avc1.4D401E, mp4a.40.2"';
         } else {
             self.mimetype = 'video/mp4; codecs="avc1.4D401E, mp4a.40.2"';
         }
+
         var p = getFrame('testing-player');
         if(!p || !p.test){
             throw 'No iframe#testing-player found.';
@@ -772,7 +777,7 @@ function createDirectIntent(entry, options){
             console.log('Test Failed. '+self.prxurl);
             self.error = true;
             self.trigger('error')
-        });
+        })
     }
 
     self.destroy = () => {
@@ -1151,7 +1156,7 @@ var TSWrapperInstance;
 
 function getTSWrapper(){
     if(!TSWrapperInstance){
-        var debug = false, port = 0, iterator = 0;
+        var debug = false, port = 0, iterator = 0, prx = getHLSProxy();
         if(typeof(http)=='undefined'){
             http = require('http')
         }
@@ -1177,6 +1182,7 @@ function getTSWrapper(){
             if(url.charAt(0)=='/'){
                 url = "http:/"+url;
             }
+            url = prx.getURL(url);
             if(debug){
                 console.log('serving', url);
             }
