@@ -1,3 +1,4 @@
+//import { clearInterval } from 'timers';
 
 var fs = require('fs'), os = require('os'), async = require('async'), ffmpeg = require('fluent-ffmpeg'), peerflix;
 
@@ -14,7 +15,7 @@ var PlaybackManager = (() => {
 		wasLoading: false, 
 		activeIntent: false, 
         lastCommitTime: 0,
-        intentTypesPriorityOrder: ['magnet', 'direct', 'ffmpeg', 'frame']
+        intentTypesPriorityOrder: ['magnet', 'ts', 'direct', 'youtube', 'ffmpeg', 'frame'] // ts above direct to ensure
 	};
     self.on = (action, callback) => { // register, commit
         action = action.split(' ');
@@ -310,13 +311,68 @@ var PlaybackManager = (() => {
                 console.error(e)
             }
             console.log('COMMITING BB', intent);
-            self.trigger('commit', intent, intent.entry)
+            self.trigger('commit', intent, intent.entry);
+            setTimeout(self.initRatio, 100);
             console.log('COMMITING OK', self.intents);
         } else {
             console.log('COMMITING - Already committed.')
         }
         self.lastCommitTime = time()
     }
+    self.getVideoSize = () => {
+        if(self.activeIntent){
+            var v = self.activeIntent.getVideo();
+            if(v){
+                return {width: v.videoWidth, height: v.videoHeight}
+            }
+        }
+        return {width: 1920, height: 1080}; // some fallback value
+    }    
+    self.initRatio = () => {
+        if(self.activeIntent){
+            var v = self.activeIntent.getVideo();
+            if(v){
+                var w = v.videoWidth || 1920, h = v.videoHeight || 1080, r = w / h;
+                var scaleModesInt = scaleModes.map(scaleModeAsInt);
+                var c = closest(r, scaleModesInt), k = scaleModesInt.indexOf(c);
+                self.setRatio(scaleModes[k])
+            }
+        }
+    }  
+    self.getRatio = () => {
+        return Config.get('aspect-ratio') || '16:9';
+    }
+    self.setRatio = (ratio) => {
+        if(typeof(ratio)!='string'){
+            ratio = self.getRatio();
+        } else {
+            Config.set('aspect-ratio', ratio)
+        }
+        if(self.activeIntent){
+            var v = self.activeIntent.getVideo();
+            if(v){
+                console.log(typeof(ratio), ratio);
+                ratio = scaleModeAsInt(ratio);                
+				var w, h, ww = v.ownerDocument.body.offsetWidth, wh = v.ownerDocument.body.offsetHeight, wratio = ww / wh;
+				if(wratio >= ratio){
+					h = wh;
+                    w = wh * ratio;
+				} else {
+					w = ww;
+					h = ww / ratio;
+				}
+                console.log('RATIO', w, h, ww, wh, wratio, ratio);
+                v.style.setProperty("width", w+"px", "important");
+                v.style.setProperty("height", h+"px", "important");
+                v.style.setProperty("min-width", w+"px", "important");
+                v.style.setProperty("min-height", h+"px", "important");
+                v.style.setProperty("top", ((wh - h) / 2)+"px", "important");
+                v.style.setProperty("left", ((ww - w) / 2)+"px", "important");
+                v.style.setProperty("objectFit", "fill", "important");
+            }
+        }
+    }
+    window.addEventListener('resize', self.setRatio);
     return self;
 })();
 
@@ -326,6 +382,9 @@ function createPlayIntent(entry, options, callback){
     var shadow = (typeof(options.shadow)!='undefined' && options.shadow);
     var initTime = time(), FFmpegIntentsLimit = 8, intents = [];
     var currentPlaybackType = '', currentPlaybackTypePriotity = -1;
+    entry.url = String(entry.url); // Parameter "url" must be a string, not object
+    entry.name = String(entry.name);
+    entry.logo = String(entry.logo);
     if(!shadow && PlaybackManager.activeIntent && PlaybackManager.activeIntent.entry.originalUrl == (entry.originalUrl || entry.url)){
         currentPlaybackType = PlaybackManager.activeIntent.type;
         currentPlaybackTypePriotity = PlaybackManager.intentTypesPriorityOrder.indexOf(currentPlaybackType); // less is higher
@@ -349,20 +408,22 @@ function createPlayIntent(entry, options, callback){
     if(typeof(entry.originalUrl) == 'undefined'){
         entry.originalUrl = entry.url;
     }
-    if(getExt(entry.url)=='ts'){
-        if(currentPlaybackTypePriotity == -1 || PlaybackManager.intentTypesPriorityOrder['ffmpeg'] < currentPlaybackTypePriotity){
-            intents.push(createFFmpegIntent(entry, options)) // even with the the TS wrapper, it's not working directly, but hanging after first segment reproduction
-        }
+    if(isTS(entry.url)){
+        // these TS can be >20MB and even infinite (realtime), so it wont run as HTML5, FFMPEG is a better approach so
+        console.log('CREATEPLAYINTENT FOR TS', entry.url);
+        intents.push(createTSFFmpegIntent(entry, options))
     } else if(isMagnet(entry.url)){
+        console.log('CREATEPLAYINTENT FOR MAGNET', entry.url);
         if(currentPlaybackTypePriotity == -1 || PlaybackManager.intentTypesPriorityOrder['magnet'] < currentPlaybackTypePriotity){
             intents.push(createMagnetIntent(entry, options))
         }
     } else if(isRTMP(entry.url) || isRTSP(entry.url)){
+        console.log('CREATEPLAYINTENT FOR RTMP/RTSP', entry.url);
         if(currentPlaybackTypePriotity == -1 || PlaybackManager.intentTypesPriorityOrder['ffmpeg'] < currentPlaybackTypePriotity){
             intents.push(createFFmpegIntent(entry, options))
         }
     } else if(isHTML5Video(entry.url) || isM3U8(entry.url)){
-        console.log('AAA');
+        console.log('CREATEPLAYINTENT FOR HTML5/M3U8', entry.url);
         if(currentPlaybackTypePriotity == -1 || PlaybackManager.intentTypesPriorityOrder['direct'] < currentPlaybackTypePriotity){
             intents.push(createDirectIntent(entry, options))
         }
@@ -372,11 +433,27 @@ function createPlayIntent(entry, options, callback){
             }
         }
     } else if(isMedia(entry.url)){
+        console.log('CREATEPLAYINTENT FOR MEDIA', entry.url);
         if(currentPlaybackTypePriotity == -1 || PlaybackManager.intentTypesPriorityOrder['ffmpeg'] < currentPlaybackTypePriotity){
             intents.push(createFFmpegIntent(entry, options))
         }
+    } else if(isYT(entry.url)){
+        console.log('CREATEPLAYINTENT FOR YT', entry.url);
+        if(typeof(ytdl)=='undefined'){
+            ytdl = require('ytdl-core')
+        }
+        var id = ytdl.getURLVideoID(entry.url);
+        if(id){
+            if(currentPlaybackTypePriotity == -1 || PlaybackManager.intentTypesPriorityOrder['youtube'] < currentPlaybackTypePriotity){
+                intents.push(createYoutubeIntent(entry, options))
+            }
+        } else {
+            if(currentPlaybackTypePriotity == -1 || PlaybackManager.intentTypesPriorityOrder['frame'] < currentPlaybackTypePriotity){
+                intents.push(createFrameIntent(entry, options))
+            }
+        }
     } else  {
-        console.log('BBB');
+        console.log('CREATEPLAYINTENT FOR GENERIC', entry.url);
         if(currentPlaybackTypePriotity == -1 || PlaybackManager.intentTypesPriorityOrder['frame'] < currentPlaybackTypePriotity){
             if(!options || !options.sideload){
                 intents.push(createFrameIntent(entry, options))
@@ -426,10 +503,30 @@ function createBaseIntent(){
         }
     }
 
+    self.off = (action, callback) => { // register, commit
+        if(action){
+            action = action.split(' ')
+        } else {
+            action = Object.keys(self.events)
+        }
+        for(var i=0;i<action.length;i++){
+            if(typeof(self.events[action[i]])!='undefined'){
+                if(callback){
+                    var p = self.events[action[i]].indexOf(callback)
+                    if(p != -1){
+                        delete self.events[action[i]][p];
+                    }
+                } else {
+                    self.events[action[i]] = [];
+                }
+            }
+        }
+    }
+
     self.trigger = (action, ...arguments) => {
         var _args = Array.from(arguments);
-        if(self.events[action] instanceof Array){
-            console.log(action);
+        if(jQuery.isArray(self.events[action])){
+            console.log(action, traceback());
             console.log(self.events[action]);
             console.log(self.events[action].length);
             for(var i=0; self.events[action] && i<self.events[action].length; i++){
@@ -440,7 +537,7 @@ function createBaseIntent(){
 
     self.filter = (action, ...arguments) => {
         var _args = Array.from(arguments);
-        if(self.events[action] instanceof Array){
+        if(jQuery.isArray(self.events[action])){
             for(var i=0; self.events[action] && i<self.events[action].length; i++){
                 if(!_args[0]){
                     break;
@@ -453,13 +550,15 @@ function createBaseIntent(){
 
     self.play = () => {
         if(self.controller){
-            self.controller.play()
+            self.controller.play();
+            self.trigger('play')
         }
     }
 
     self.pause = () => {
         if(self.controller){
-            self.controller.pause()
+            self.controller.pause();
+            self.trigger('pause')
         }
     }
     
@@ -506,8 +605,10 @@ function createBaseIntent(){
     self.setTimeout = (secs) => {
         clearInterval(self.timeout);
         if(!self.committed && !self.error){
+            var s = time();
             self.timeout = setTimeout(() => {
                 if(!self.committed && !self.started && !self.error && !self.ended){
+                    console.error('Connect timeout.', s, time() - s);
                     self.error = true;
                     self.trigger('error')
                 }
@@ -536,9 +637,28 @@ function createFrameIntent(entry, options){
     self.frame.onload = () => {
         self.loaded = true;
     }
+
+    self.run = () => {    
+        if(self.entry.url.substr(0, 4)=='http'){
+            getHTTPContentType(self.entry.url, (ct) => {
+                console.log('Content-Type', self.entry.url, ct);
+                if(!ct || ['text/html'].indexOf(ct.toLowerCase()) != -1){
+                    self.runConfirm()
+                } else {
+                    console.log('Bad content-type: '+ct);
+                    self.error = true;
+                    self.trigger('error')
+                }
+            })        
+        } else {
+            console.log('Not HTTP(s)');
+            self.error = true;
+            self.trigger('error')
+        }
+    }
     
-    self.run = () => {
-        self.setTimeout(20);
+    self.runConfirm = () => {
+        self.setTimeout(30);
         self.frame.src = self.entry.url;
         if(self.entry.originalUrl.match(new RegExp('#(catalog|nosandbox|nofit)([^A-Za-z0-9]|$)'))){
             self.started = true;
@@ -552,15 +672,19 @@ function createFrameIntent(entry, options){
             if(!self.videoElement || !self.videoElement.parentNode){
                 var result = Fitter.start(self.frame.contentWindow);
                 console.log('intent.runFitter()', result);
-                if(result){
+                if(result && result.element){
                     self.started = true;
                     console.log('runFitter SUCCESS', result);
                     self.fittedElement = result.element;
                     self.fittedScope = result.scope;
-                    if(self.fittedElement.tagName.toLowerCase()=='video'){
+                    if(self.fittedElement.tagName && self.fittedElement.tagName.toLowerCase()=='video'){
                         self.videoElement = self.fittedElement;
                     } else {
-                        self.videoElement = self.fittedElement.querySelector('video')
+                        if(self.fittedElement.querySelector){
+                            self.videoElement = self.fittedElement.querySelector('video')
+                        } else {
+                            self.videoElement = self.fittedScope.document.querySelector('video')
+                        }
                     }
                     self.patchVideo();
                     self.trigger('start');
@@ -573,7 +697,7 @@ function createFrameIntent(entry, options){
       
     self.commit = () => {
         NativeStop();
-        jQuery(top.window.document).find('#sandbox').remove();
+        jQuery(top.document).find('#sandbox').remove();
         jQuery(self.frame).removeClass('hide').addClass('show').prop('id', 'sandbox');
         self.committed = true;
         self.frame.id = 'sandbox';
@@ -713,10 +837,6 @@ function createFrameIntent(entry, options){
 
 function createDirectIntent(entry, options){
 
-    if(Store.get('force-ffmpeg')){
-        return null;
-    }
-
     var self = createBaseIntent();
     self.type = 'direct';
     self.controller = false;
@@ -748,14 +868,13 @@ function createDirectIntent(entry, options){
         self.attached = true;
     }
     
-    self.run = () => {
+    self.runConfirm = (ct) => {
         self.setTimeout(15);
         self.prxurl = self.entry.url;
-
         self.mimetype = 'application/x-mpegURL; codecs="avc1.4D401E, mp4a.40.2"';
         var isTS = (getExt(self.prxurl) == 'ts');
         if(isTS){
-            self.prxurl = getTSWrapper().getURL(self.prxurl);
+            self.prxurl = getTSWrapper().getURL(self.prxurl)
         } else if(self.prxurl.match(new RegExp('(https?://).*m3u8'))){
             console.log('PRX run');
             self.prx = getHLSProxy();
@@ -763,12 +882,11 @@ function createDirectIntent(entry, options){
         } else {
             self.mimetype = 'video/mp4; codecs="avc1.4D401E, mp4a.40.2"';
         }
-
         var p = getFrame('testing-player');
         if(!p || !p.test){
             throw 'No iframe#testing-player found.';
         }
-        console.log('Testing', self.prxurl, self.entry.url, self, traceback());
+        console.log('Testing', self.prxurl, self.entry.url, self.mimetype, self, traceback());
         p.test(self.prxurl, self.mimetype, () => {
             console.log('Test succeeded. '+self.prxurl);
             self.started = true;
@@ -778,6 +896,42 @@ function createDirectIntent(entry, options){
             self.error = true;
             self.trigger('error')
         })
+    }
+
+    self.run = () => {    
+        if(self.entry.url.substr(0, 4)=='http'){
+            getHTTPContentType(self.entry.url, (ct) => {
+                console.log('Content-Type', self.entry.url, ct);
+                if(!ct || [
+                    'audio/x-mpegurl', 
+                    'video/x-mpegurl', 
+                    'application/x-mpegurl', 
+                    'video/mp2t', 
+                    'application/vnd.apple.mpegurl', 
+                    'video/mp4', 
+                    'audio/mp4', 
+                    'video/x-m4v', 
+                    'video/m4v',
+                    'audio/aac',
+                    'application/x-winamp-playlist', 
+                    'audio/mpegurl', 
+                    'audio/mpeg-url', 
+                    'audio/playlist', 
+                    'audio/scpls', 
+                    'audio/x-scpls'
+                    ].indexOf(ct.toLowerCase()) != -1){
+                    self.runConfirm(ct)
+                } else {
+                    console.log('Bad content-type: '+ct);
+                    self.error = true;
+                    self.trigger('error')
+                }
+            })        
+        } else {
+            console.log('Not HTTP(s)');
+            self.error = true;
+            self.trigger('error')
+        }
     }
 
     self.destroy = () => {
@@ -797,13 +951,14 @@ function createDirectIntent(entry, options){
 function createFFmpegIntent(entry, options){
 
     var self = createBaseIntent();
-    self.transcode = !!entry['transcode'];
-    self.videoCodec = self.transcode ? 'libx264' : 'copy';
     self.type = 'ffmpeg';
     self.entry = entry;
     self.folder = '';
+    self.proxify = true;
     self.prxurl = false;
     self.prx = false;
+    self.transcode = false;
+    self.videoCodec = 'copy';
 
     self.killFFmpeg = () => {
         console.log('DESTROY 1.5');
@@ -850,18 +1005,15 @@ function createFFmpegIntent(entry, options){
         self.attached = self.videoElement = false;  
     }
     
-    self.run = () => {
+    self.callFFmpeg = () => {
         var uid = (new Date()).getTime(), isTS = (getExt(self.entry.url) == 'ts');
-        self.setTimeout(30);
+        self.setTimeout(60);
         self.prxurl = self.entry.url;
-        if(isTS || ['m3u', 'm3u8'].indexOf(getExt(self.prxurl))!=-1){
+    
+        if(['m3u', 'm3u8'].indexOf(getExt(self.prxurl))!=-1 && self.proxify){
             console.log('PRX run');
             self.prx = getHLSProxy();
             self.prxurl = self.prx.getURL(self.prxurl)
-        }
-    
-        if(isTS){
-            self.prxurl = getTSWrapper().getURL(self.prxurl)
         }
 
         self.instance = ffmpeg(self.prxurl).
@@ -878,14 +1030,18 @@ function createFFmpegIntent(entry, options){
             addOption('-hls_list_size', 0).
             addOption('-hls_flags', 'delete_segments').
             addOption('-copyts').
+            addOption('-sn').
             format('hls');
 
         if (self.entry.url.indexOf('http') == 0 && isMedia(self.entry.url)) { // skip other protocols
             var agent = navigator.userAgent.split('"')[0];
-            self.instance.inputOptions('-multiple_requests 1')
+            self.instance
                 .inputOptions('-user_agent', '"' + agent + '"') //  -headers ""
                 .inputOptions('-icy 0')
                 .inputOptions('-seekable 1')
+            if (!self.proxify){
+                self.instance.inputOptions('-multiple_requests 1')
+            }
             if (self.entry.url.indexOf('https') == 0) {
                 self.instance.inputOptions('-tls_verify 0')
             }
@@ -939,6 +1095,327 @@ function createFFmpegIntent(entry, options){
         }, 1800);
         self.instance.output(self.instance.file).run();
     }
+    
+    self.run = () => {
+        if(self.entry.url.substr(0, 4)=='http'){
+            getHTTPContentType(self.entry.url, (ct) => {
+                console.log('Content-Type', self.entry.url, ct);
+                self.transcode = (!ct || [
+                    'audio/x-mpegurl', 
+                    'video/x-mpegurl', 
+                    'application/x-mpegurl', 
+                    'video/mp2t', 
+                    'application/vnd.apple.mpegurl', 
+                    'video/mp4', 
+                    'audio/mp4', 
+                    'video/x-m4v', 
+                    'video/m4v',
+                    'audio/aac',
+                    'application/x-winamp-playlist', 
+                    'audio/mpegurl', 
+                    'audio/mpeg-url', 
+                    'audio/playlist', 
+                    'audio/scpls', 
+                    'audio/x-scpls',
+                    'text/html'
+                    ].indexOf(ct.toLowerCase()) == -1);
+                //self.transcode = 1;
+                self.videoCodec = self.transcode ? 'libx264' : 'copy';
+                self.callFFmpeg()
+            })        
+        } else {
+            self.callFFmpeg()
+        }
+    }
+
+    var DVRTime = 3 * 3600; // secs
+    var segmentDuration = 5; // secs
+
+    self.on('error', self.killFFmpeg);
+    self.on('ended', self.killFFmpeg);
+
+    if(options){
+        self.apply(options);
+        console.log('ZZZZ', options, self);
+    }
+
+    return self;
+
+}
+
+function createTSFFmpegIntent(entry, options){
+
+    var self = createBaseIntent();
+    self.type = 'ts';
+    self.entry = entry;
+    self.folder = '';
+    self.proxify = true;
+    self.prxurl = false;
+    self.prx = false;
+    self.transcode = false;
+    self.videoCodec = 'copy';
+    self.uid = 0;
+    self.softErrors = [];
+    self.tsDuration = 0;
+    self.tsFetchStart = 0;
+    
+    var uid = (new Date()).getTime(), file = 'stream/' + uid + '/output.m3u8';
+
+    self.getTSDuration = (callback) => {
+        if(self.tsDuration){
+            callback(self.tsDuration)
+        } else {
+            var tsfile = dirname(file)+'/output0.ts';
+            getFFmpegMediaInfo(tsfile, (output) => {
+                console.log(tsfile, output);
+                if(output){
+                    var match = output.match(new RegExp('Duration: ([0-9:]+)'));
+                    if(match.length > 1 && match[1].length == 8){
+                        var secs = hmsToSecondsOnly(match[1]);
+                        if(secs){
+                            self.tsDuration = secs;
+                            return callback(secs)
+                        }
+                    }
+                }
+                callback(false)
+            })
+        }
+    }
+
+    self.fetchNext = () => {
+        self.killFFmpeg(true); // kill actual instance, arguments[0] = true to keep files
+        self.getTSDuration((duration) => {
+            var nextFetchTime = self.tsFetchStart + duration;
+            var remainingToNextFetch = nextFetchTime - time();
+            if(remainingToNextFetch > 0){
+                console.log('FETCHWAIT', remainingToNextFetch, time(), nextFetchTime);
+                setTimeout(self.callFFmpeg, (remaining * -1) * 1000)
+            } else {
+                console.log('FETCHNOWAIT', remainingToNextFetch, time(), nextFetchTime);
+                self.callFFmpeg()
+            }
+        })
+    }
+
+    self.killFFmpeg = (keepFiles) => {
+        console.log('DESTROY 1.5');
+        if(self.instance){
+            console.log('DESTROY 3');
+            self.instance.kill('SIGKILL');
+            if (keepFiles !== true && self.instance.file) {
+                console.log('DESTROY 3.5');
+                removeFolder(dirname(self.instance.file), true);
+            }
+            self.instance = false;
+        }
+        console.log('DESTROY 4');
+    }
+
+    self.commit = () => {
+        jQuery('#player').removeClass('hide').addClass('show');
+        var restartPlayback = () => {
+            // https://github.com/videojs/video.js/issues/1805
+            // the approach above did not worked fine, so we'll do a hard reset here
+            var pl = getFrame('player'); 
+            var err = pl.player.error(), code = err ? err.code : -1;
+            var ttime, ntime = pl.player.currentTime();
+            if(!ttime || (ntime && ntime > ttime)){
+                ttime = ntime;
+            }
+            console.log('ERR', code);
+            if(code === 2 || code === -1) {
+                var tt = time();
+                self.softErrors.push(tt);
+                var _t = tt - 10;
+                var recentErrorsCount = self.softErrors.filter((t) => {
+                    return ((t > _t));
+                }).length;
+                console.log('ERRORCOUNT', recentErrorsCount);
+                if(recentErrorsCount < 4){
+                    /*
+                    pl.location.reload();
+                    setTimeout(() => {
+                        self.videoElement = pl.videoElement();
+                        jQuery(self.videoElement).on('pause', () => {
+                            console.log('FORCE PLAY?');
+                            restartPlayback()
+                        })
+                        pl.src(self.instance.file, 'application/x-mpegURL; codecs="avc1.4D401E, mp4a.40.2"');
+                        pl.play(() => {
+                            console.log('REPOINT', ttime);
+                            jQuery(self.videoElement).one('play', () => {
+                                console.log('FORCE PLAY');
+                                pl.player.ready(() => {
+                                    pl.player.currentTime(ttime - 2);
+                                    PlaybackManager.setRatio();
+                                    jQuery(self.videoElement).off('pause')
+                                })
+                            })
+                        })
+                    }, 2000);
+                    */
+                    pl.reset();
+                    pl.player.off('ended');
+                    pl.player.on('ended', () => {
+                        console.log('PLAYER RESET 2');
+                        pl.reset()
+                    });
+                    return true;
+                }
+            }
+        }
+        NativePlayURL(self.instance.file, 'application/x-mpegURL; codecs="avc1.4D401E, mp4a.40.2"', 
+            () => { // started
+                var pl = getFrame('player');
+                self.videoElement = pl.videoElement();
+                pl.player.off('ended');
+                pl.player.on('ended', () => {
+                    console.log('PLAYER RESET');
+                    pl.reset()
+                });
+                playPauseNotify();
+            },
+            () => { // ended
+                console.log('Playback ended, restart.'); // wait for FFMPEG chunks
+                if(!restartPlayback()){
+                    console.log('Restart failed.');
+                    self.ended = true;
+                    self.trigger('ended')
+                }
+            },
+            () => { // error
+                console.log('Player error.');
+                if(!restartPlayback()){
+                    console.log('Restart failed.');
+                    self.error = true;
+                    self.trigger('error')
+                }
+            });
+        self.committed = true;
+        self.controller = getFrame('player');
+        self.videoElement = self.controller.videoElement();
+        self.attached = true;
+    }
+
+    self.destroy = () => {
+        console.log('DESTROY 1');
+        self.events = [];
+        self.killFFmpeg();
+        console.log('DESTROY 2');
+        self.ended = true;
+        self.attached = self.videoElement = false;  
+    }
+
+    top.mkdirp(dirname(file));
+
+    self.callFFmpeg = () => {
+        //console.log('aa');
+        self.setTimeout(60);
+        self.tsFetchStart = time();
+        self.instance = ffmpeg(self.prxurl).
+            addOption('-cpu-used -5').
+            addOption('-deadline realtime').
+            addOption('-threads ' + (cpuCount - 1)).
+            inputOptions('-fflags +genpts').
+            inputOptions('-stream_loop 999999').
+            videoCodec(self.videoCodec).
+            audioCodec('aac').
+            addOption('-profile:a', 'aac_low').
+            addOption('-preset:a', 'veryfast').
+            addOption('-hls_time', segmentDuration).
+            addOption('-hls_list_size', 0).
+            addOption('-hls_flags', 'delete_segments')
+
+        //console.log('aa');
+        var alreadyExists = fs.existsSync(file);
+        if(alreadyExists) {
+            self.instance.addOption('-hls_flags', 'append_list')
+        }
+        
+        self.instance.addOption('-copyts').addOption('-sn').format('hls');
+
+        //console.log('aa');
+        if (self.entry.url.indexOf('http') == 0 && isMedia(self.entry.url)) { // skip other protocols
+            var agent = navigator.userAgent.split('"')[0];
+            self.instance
+                .inputOptions('-user_agent', '"' + agent + '"') //  -headers ""
+                .inputOptions('-icy 0')
+                .inputOptions('-seekable 1')
+            if (!self.proxify){
+                self.instance.inputOptions('-multiple_requests 1')
+            }
+            if (self.entry.url.indexOf('https') == 0) {
+                self.instance.inputOptions('-tls_verify 0')
+            }
+        }
+
+        //console.log('aa');
+        if(self.transcode){
+            self.instance.
+                addOption('-pix_fmt', 'yuv420p').
+                addOption('-profile:v', 'main').
+                addOption('-preset:v', 'veryfast');
+        }
+    
+        // setup event handlers
+        self.instance.
+        on('end', () => {
+            console.log('file ended'); // if it ended, it's not realtime, fallback to using it as chunks
+            self.fetchNext()
+        }).
+        on('error', function(err) {
+            console.log('an error happened: ' + err.message);
+            var tt = time();
+            self.softErrors.push(tt);
+            var _t = tt - 10;
+            var recentErrorsCount = self.softErrors.filter((t) => {
+                return ((t > _t));
+            }).length;
+            console.log('ERRORCOUNT', recentErrorsCount);
+            if(recentErrorsCount < 4 && err.message && err.message.match('(403 Forbidden|5XX Server Error|End of file)') && self.entry.source){
+                console.log('reauth needed', self.entry.source); // if it ended, it's not realtime, fallback to using it as chunks
+                getHeaders(self.entry.source, (h, u) => {
+                    console.log('reauth OK', self.entry.source, u, h); // if it ended, it's not realtime, fallback to using it as chunks
+                    self.fetchNext()
+                });
+            } else {
+                self.error = true;
+                self.trigger('error')
+            }
+        }).
+        on('start', function(commandLine) {
+            console.log('Spawned FFmpeg with command: ' + commandLine);
+            // ok, but wait file creation to trigger "start"
+        });
+    
+        //console.log('aa');
+        self.instance.file = file;
+        if(!alreadyExists){
+            waitInstanceFileExistsTimeout(self, function (exists) {
+                if(!self.ended && !self.error){
+                    if(exists){
+                        console.log('M3U8 file created.');
+                        self.started = true;
+                        self.trigger('start')
+                    } else {
+                        console.log('M3U8 file creation timeout.');
+                        self.error = true;
+                        self.trigger('error')
+                    }
+                }
+            }, 1800);
+        }
+        
+        //console.log('aa');
+        self.instance.output(file).run();
+        //console.log('aa');
+    }
+    
+    self.run = () => {
+        self.prxurl = self.entry.url;
+        self.callFFmpeg()
+    }
 
     var DVRTime = 3 * 3600; // secs
     var segmentDuration = 5; // secs
@@ -964,12 +1441,27 @@ function createMagnetIntent(entry, options){
     self.entry = entry;
     self.folder = '';
     self.peerflix = false;
+    self.endpoint = false;
+    self.progressTimer = 0;
+    self.unpaused = false;
         
     self.commit = () => {
         NativePlayURL(self.instance.file, 'application/x-mpegURL; codecs="avc1.4D401E, mp4a.40.2"', 
             () => { // started
-                self.videoElement = getFrame('player').videoElement();
-                playPauseNotify()
+                console.log('STARTS');
+                if(!self.unpaused){
+                    self.unpaused = true;
+                    self.videoElement = getFrame('player').videoElement();
+                    //playPauseNotify()
+                    top.automaticallyPaused = true;
+                    var o = getFrame('overlay');
+                    if(o){
+                        jQuery(o.document).one('mousemove', () => {
+                            console.log('WAKENPLAY');
+                            PlaybackManager.play()
+                        })
+                    }
+                }
             },
             () => { // ended
                 console.log('Playback ended.');
@@ -980,28 +1472,32 @@ function createMagnetIntent(entry, options){
                 console.log('Player error.');
                 self.error = true;
                 self.trigger('error')
-            });
+            }, true);
         jQuery('#player').removeClass('hide').addClass('show');
         self.committed = true;
         self.attached = true;
         self.controller = getFrame('player');
         self.videoElement = self.controller.videoElement();
+        self.on('play', self.hideStats);
+        self.on('pause', self.showStats);
         top.focus()
     }
 
-    self.notifyStart = () => {
-        if(!self.notify){
-            self.notify = notify(Lang.TORRENT_SLOW_START, 'fa-magnet', 'sticky');
-        } else {
-            self.notify.text();
-        }
+    self.showStats = () => {
+        self.subNotify.show();
+        self.notify.show()
+    }
+
+    self.hideStats = () => {
+        self.subNotify.hide();
+        self.notify.hide()
     }
     
     self.run = () => {
         //self.setTimeout(15);
-        self.notify = notify(Lang.TORRENT_SLOW_START, 'fa-magnet', 'sticky');
         console.log('run() called');
-        self.waiting = true;
+        self.subNotify = notify(Lang.CAN_BE_SLOW, 'fa-coffee', 'wait');
+        self.notify = notify(Lang.SEARCHING_PEERS, 'fa-magnet', 'wait');
         if(self.endpoint){
             console.log('About to stream...');
             self.stream()
@@ -1009,18 +1505,24 @@ function createMagnetIntent(entry, options){
     }
 
     self.destroy = () => {
+        if(self.notify){
+            self.subNotify.close();
+            self.notify.close()
+        }
+        clearInterval(self.progressTimer);
         self.peerflix.destroy();
         self.events = [];
-        self.instance.kill('SIGKILL');
-        if (self.instance.file) {
-            removeFolder(dirname(self.instance.file), true);
+        if(self.instance){
+            self.instance.kill('SIGKILL');
+            if (self.instance.file) {
+                removeFolder(dirname(self.instance.file), true);
+            }
         }
         self.ended = true;
         self.attached = self.videoElement = false;  
     }
     
     self.stream = () => {
-        self.started = true;
         self.instance = ffmpeg(self.endpoint).
             addOption('-cpu-used -5').
             addOption('-deadline realtime').
@@ -1035,6 +1537,7 @@ function createMagnetIntent(entry, options){
             addOption('-hls_list_size', 0).
             addOption('-hls_flags', 'delete_segments').
             addOption('-copyts').
+            addOption('-sn').
             format('hls');
     
         if(self.transcode){
@@ -1073,18 +1576,16 @@ function createMagnetIntent(entry, options){
         on('start', function(commandLine) {
             console.log('Spawned FFmpeg with command: ' + commandLine);
             // ok, but wait file creation to trigger "start"
-        });
-    
-        self.instance.file = 'stream/' + uid + '/output.m3u8';
-    
-        top.mkdirp(dirname(self.instance.file));
-    
+        });    
+        self.instance.file = 'stream/' + uid + '/output.m3u8';    
+        top.mkdirp(dirname(self.instance.file));    
         waitInstanceFileExistsTimeout(self, function (exists) {
             if(!self.ended && !self.error){
                 if(exists){
                     console.log('M3U8 file created.');
                     self.started = true;
-                    self.trigger('start')
+                    self.trigger('start');
+                    clearInterval(self.progressTimer)
                 } else {
                     console.log('M3U8 file creation timeout.');
                     self.error = true;
@@ -1092,9 +1593,8 @@ function createMagnetIntent(entry, options){
                 }
             }
         }, 1800);
-        self.instance.output(self.instance.file).run();
+        self.instance.output(self.instance.file).run()
     }
-
     if(!peerflix){
         peerflix = require('peerflix')
     }
@@ -1103,6 +1603,33 @@ function createMagnetIntent(entry, options){
         self.endpoint = 'http://127.0.0.1:' +  self.peerflix.server.address().port + '/';
         self.stream()
     });
+    var minAmountToStart = 10000000;
+    self.progressTimer = setInterval(() => {
+        if(!self.peerflix.torrent){
+            console.log('Something wrong with', self.entry)
+        } else if(self.notify){
+            var downloaded = 0;
+            for (var i = 0; i < self.peerflix.torrent.pieces.length; i++) {
+                if (self.peerflix.bitfield.get(i)){
+                    downloaded++;
+                }
+            }      
+            //var totalp = (downloaded / (self.peerflix.torrent.pieces.length / 100));
+            var p = (downloaded * self.peerflix.torrent.pieceLength) / (minAmountToStart / 100);
+            //console.log('QQQQQQQQQQQQQ', downloaded, self.peerflix.torrent.pieces.length, p);
+            if(p >= 100){
+                if(self.endpoint){
+                    p = 100;
+                } else {
+                    p = 99;
+                }
+            }
+            if(p > 0){
+                self.subNotify.close()
+            }
+            self.notify.update(Lang.LOADING+' '+parseInt(p)+'% &middot; '+formatBytes(self.peerflix.swarm.downloadSpeed())+'/s', 'fa-magnet')
+        }
+    }, 1000);
 
     var uid = (new Date()).getTime();
     var DVRTime = 3 * 3600; // secs
@@ -1116,12 +1643,121 @@ function createMagnetIntent(entry, options){
 
 }
 
+function createYoutubeIntent(entry, options){
+    
+    var self = createBaseIntent();
+    self.transcode = !!entry['transcode'];
+    self.videoCodec = 'copy';
+    self.audioCodec = 'copy';
+    self.type = 'youtube';
+    self.entry = entry;
+    self.folder = '';
+    self.ytdl = false;
+    self.endpoint = false;
+    self.progressTimer = 0;
+    self.ctype = 'video/mp4; codecs="avc1.4D401E, mp4a.40.2"';
+        
+    self.commit = () => {
+        NativePlayURL(self.endpoint, self.ctype, 
+            () => { // started
+                self.videoElement = getFrame('player').videoElement();
+                playPauseNotify()
+            },
+            () => { // ended
+                console.log('Playback ended.');
+                self.ended = true;
+                self.trigger('ended')
+            },
+            () => { // error
+                console.log('Player error.');
+                self.error = true;
+                self.trigger('error')
+            });
+        jQuery('#player').removeClass('hide').addClass('show');
+        self.committed = true;
+        self.attached = true;
+        self.controller = getFrame('player');
+        self.videoElement = self.controller.videoElement();
+        top.focus()
+    }
+    
+    self.run = () => {
+        //self.setTimeout(15);
+        console.log('run() called');
+        if(typeof(ytdl)=='undefined'){
+            ytdl = require('ytdl-core')
+        }
+        var id = ytdl.getURLVideoID(self.entry.url);
+        console.log('run() id', id, self.entry.url);
+        ytdl.getInfo(id, (err, info) => {
+            if (err){
+                self.error = true;
+                self.trigger('error')
+                throw err;
+            } else {
+                console.log('YT Info', info);
+                for(var i=0;i<info.formats.length;i++){
+                    if(info.formats[i].type.match('mp4.*,')){ // mp4 including audio
+                        self.endpoint = info.formats[i].url;
+                        self.ctype = info.formats[i].type;
+                        self.started = true;
+                        self.trigger('start');
+                        return;
+                        break;
+                    }
+                }
+                console.error('no compatible formats', info);
+                self.error = true;
+                self.trigger('error')
+            }
+        })
+    }
+
+    self.destroy = () => {
+        clearInterval(self.progressTimer);
+        self.events = [];
+        self.ended = true;
+        self.attached = self.videoElement = false;  
+    }
+
+    var uid = (new Date()).getTime();
+    var DVRTime = 3 * 3600; // secs
+    var segmentDuration = 5; // secs
+
+    if(options){
+        self.apply(options)
+    }
+    
+    return self;
+
+}
+
+var currentScaleMode = 0, scaleModes = ['16:9', '4:3', '16:10'];
+function changeScaleMode(){
+    if(top.PlaybackManager.activeIntent){
+        var v = top.PlaybackManager.activeIntent.videoElement;
+        if(v){
+            currentScaleMode++;
+            if(currentScaleMode >= scaleModes.length){
+                currentScaleMode = 0;
+            }
+            top.PlaybackManager.setRatio(scaleModes[currentScaleMode]);
+            notify('Scale: '+scaleModes[currentScaleMode], 'fa-expand', 'short')
+        }
+    }
+}
+
+function scaleModeAsInt(scaleMode){
+    var n = scaleMode.split(':');
+    return parseInt(n[0]) / parseInt(n[1])
+}
+
 //var videojs = require('video.js');
 // ? global.videojs = window.videojs = videojs; // https://github.com/videojs/videojs-contrib-hls/issues/636
 // ? videojs.Hls = require('videojs-contrib-hls');
 // require('videojs-contrib-hls'); // gaving up of setup video.js with require :(
 
-function NativePlayURL(dest, mimetype, started, ended, error) {
+function NativePlayURL(dest, mimetype, started, ended, error, paused) {
     showPlayers(true, false);
     if(!mimetype){
         mimetype = 'application/x-mpegURL';
@@ -1130,9 +1766,19 @@ function NativePlayURL(dest, mimetype, started, ended, error) {
     var pl = getFrame('player');
     pl.src(dest, mimetype);
     pl.player.ready(() => {
-        var v = jQuery(pl.document.querySelector('video'));
+        var ap = false, v = jQuery(pl.document.querySelector('video'));
         if(v){
             if(started){
+                console.log('STARTED', ap, paused);
+                if(!ap && paused){
+                    top.automaticallyPaused = ap = true;
+                    setTimeout(() => {
+                        //if(top.automaticallyPaused){
+                            console.log('PAUSING', top.automaticallyPaused);
+                            PlaybackManager.pause() // use PlaybackManager to trigger the notifies from createMagnetIntent
+                        //}
+                    }, 400)
+                }
                 v.off('play').on('play', started)
             }
             if(error){
@@ -1142,7 +1788,6 @@ function NativePlayURL(dest, mimetype, started, ended, error) {
                 v.off('ended').on('ended', ended)
             }
         }
-        pl.play();
         leavePendingState()
     })
 }
@@ -1152,23 +1797,24 @@ function NativeStop() {
     pl.stop()
 }
 
-var TSWrapperInstance;
+var TSWrapperInstance, TSWrapperCaching = {};
 
 function getTSWrapper(){
     if(!TSWrapperInstance){
-        var debug = false, port = 0, iterator = 0, prx = getHLSProxy();
+        var debug = true, proxify = false, port = 0, iterator = 0, prx = getHLSProxy();
         if(typeof(http)=='undefined'){
             http = require('http')
         }
         TSWrapperInstance = http.createServer(function (_request, _response) {
             if(debug){
-                console.log('request starting...');
+                console.log('request starting...', _request);
             }
             var headers = { 
                 'Cache-Control': 'no-cache',
                 'Access-Control-Allow-Origin': '*'
             }
             var url = _request.url.split('#')[0].replace('.m3u8', '.ts'), request = _request, response = _response;
+            var originalUrl = url;
             if(request.url.substr(0, 3) == '/s/'){
                 url = request.url.replace('/s/', 'https://')
             }
@@ -1182,16 +1828,31 @@ function getTSWrapper(){
             if(url.charAt(0)=='/'){
                 url = "http:/"+url;
             }
-            url = prx.getURL(url);
+            var code = 200;
+            if(typeof(TSWrapperCaching[originalUrl])!='undefined' && (time() - TSWrapperCaching[originalUrl].time) <= 3){
+                response.writeHead(code, headers);
+                response.write(TSWrapperCaching[originalUrl], 'binary');
+                response.end();
+            }
+            if(proxify){
+                url = prx.getURL(url);
+            }
             if(debug){
-                console.log('serving', url);
+                console.log('serving', url, originalUrl)
+            }
+            if(url.indexOf('?')==-1){
+                url += '?t='+time();
             }
             var buffer = "#EXTM3U\n#EXT-X-MEDIA-SEQUENCE:"+iterator+"\n#EXT-X-DISCONTINUITY-SEQUENCE:"+iterator+"\n#EXT-X-DISCONTINUITY\n#EXTINF:0,\n" + url;
+            console.log('served', buffer);
             response.writeHead(200, headers);
             response.write(buffer, 'utf8');
             response.end();
+            TSWrapperCaching[originalUrl] = {time: time(), content: buffer};
+            TSWrapperCaching = sliceObject(TSWrapperCaching, -6);
             iterator++;
-        }).listen();
+            buffer = null;
+        }).listen(prx.address().port + 2);
         TSWrapperInstance.getURL = function (url){
             if(!port){
                 port = TSWrapperInstance.address().port;
@@ -1209,17 +1870,17 @@ function getTSWrapper(){
     return TSWrapperInstance;
 }
 
-var HLSProxyInstance;
+var HLSProxyInstance, HLSProxyCaching = {};
 
 function getHLSProxy(){
     if(!HLSProxyInstance){
-        var debug = false, port = 0;
+        var debug = true, port = 0;
         if(typeof(http)=='undefined'){
             http = require('http')
         }
         HLSProxyInstance = http.createServer(function (_request, _response) {
             if(debug){
-                console.log('request starting...');
+                console.log('request starting...', _request);
             }
             var headers = { 
                 'Cache-Control': 'no-cache',
@@ -1242,28 +1903,55 @@ function getHLSProxy(){
             if(debug){
                 console.log('serving', url);
             }
+            var code = 200;
+            if(HLSProxyCaching !== false && typeof(HLSProxyCaching[url])!='undefined' && (time() - HLSProxyCaching[url].time) <= 3){
+                response.writeHead(code, headers);
+                response.write(HLSProxyCaching[url], 'binary');
+                response.end();
+            }
             var fetchOpts = {
                 redirect: 'follow'
             }
-            var code = 200;
             if(getExt(url) == 'ts'){
+                if(debug){
+                    console.log('start fetching...')
+                }
                 fetch(url, fetchOpts).then(function (res){
                     code = res.status;
                     headers['Content-Type'] = 'video/MP2T';
+                    if(debug){
+                        console.log('received')
+                    }
                     if(res.url && res.url != url) {
                         code = 302;
                         headers['Location'] = HLSProxyInstance.getURL(res.url);
+                        if(debug){
+                            console.log('location: '+headers['Location']);
+                        }
                         return '';
                     }
-                    return res.arrayBuffer();
+                    if(debug){
+                        console.log('response buffer')
+                    }
+                    setTimeout(() => null, 0); 
+                    var v = res.arrayBuffer();
+                    console.log(typeof(v), v)
+                    return v;
                 }).then(function (buffer){
                     if(debug){
                         console.log('responding', buffer);
                     }
                     buffer = Buffer.from(new Uint8Array(buffer));
+                    if(HLSProxyCaching !== false){
+                        HLSProxyCaching[url] = {time: time(), content: buffer};
+                        HLSProxyCaching = sliceObject(HLSProxyCaching, -6)
+                    }
                     response.writeHead(code, headers);
                     response.write(buffer, 'binary');
                     response.end();
+                    if(debug){
+                        console.log('fine.')
+                    }
                     doAction('media-received', url, buffer);
                     buffer = null;
                 }).catch(function (err){
@@ -1300,12 +1988,13 @@ function getHLSProxy(){
                         console.log('responding');
                     }
                     if(content.substr(0, 192).indexOf('#EXT')!=-1){ // really is m3u8
-                        if(content.indexOf('.ts')!=-1){
-                            var entries = content.split('#EXTINF');
-                            if(entries.length > 5){
-                                content = [entries[0].replace(new RegExp('#EXT\-X\-MEDIA\-SEQUENCE[^\r\n]+[\r\n]+', 'mi'), '')].concat(entries.slice(-5)).join('#EXTINF');
-                            }
-                        }
+                        //if(content.indexOf('.ts')!=-1){
+                            // stuff below was causing errors, dont remember why I've put that here
+                            //var entries = content.split('#EXTINF');
+                            //if(entries.length > 5){
+                            //    content = [entries[0].replace(new RegExp('#EXT\-X\-MEDIA\-SEQUENCE[^\r\n]+[\r\n]+', 'mi'), '')].concat(entries.slice(-5)).join('#EXTINF');
+                            //}
+                        //}
                         var matches = content.match(new RegExp('https?://[^\r\n ]', 'gi'));
                         if(matches){
                             for(var i=0; i<matches.length; i++){
@@ -1389,12 +2078,17 @@ function waitInstanceFileExistsTimeout(self, callback, timeout, startedAt) {
 }
 
 function onIntentCommit(intent){
+    console.log('ONINTENTCOMM');
     setTitleData(intent.entry.name, intent.entry.logo);
     var c = getFrame('controls');
     if(c){
+        console.log('ONINTENTCOMM', intent.entry);
         var entries = c.findEntries(intent.entry.url);
-        c.unregisterOfflineStream(intent.entry); // this already update entries flags
+        console.log('ONINTENTCOMM', intent.entry);
+        c.unregisterOfflineStream(intent.entry, true); // this already update entries flags
+        console.log('ONINTENTCOMM', intent.entry);
         c.History.add(intent.entry);
+        console.log('ONINTENTCOMM', intent.entry, c.History);
         c.updateStreamEntriesFlags()
     }
     notify(intent.entry.name, 'fa-play', 'short');
@@ -1405,13 +2099,13 @@ function unfocus(e){ // unfocus from sandbox frame to catch keypresses
     if(!target || typeof(target['tagName'])=='undefined' || ['input', 'textarea'].indexOf(target['tagName'].toLowerCase())==-1){
         //console.log(e);
         console.log('REFOCUS(*)');
-        top.window.focus()
+        top.focus()
     }
 }
 
 function defaultFrameDragOver(e){
     e.preventDefault(); 
-    top.window.ondragover(e);
+    top.ondragover(e);
     return false;
 }
 
@@ -1423,7 +2117,9 @@ function patchFrameWindowEvents(frameWindow){
             if(!e.target || !e.target.tagName || ['input', 'textarea'].indexOf(e.target.tagName.toLowerCase())==-1){ // skip text inputs
                 var n = e.originalEvent;
                 setTimeout(() => {
-                    top.document.dispatchEvent(n)  
+                    try {
+                        top.document.dispatchEvent(n)  
+                    } catch(e) {}
                 }, 10)
             }
         });
@@ -1474,18 +2170,20 @@ PlaybackManager.on('register', function (intent, entry){
                 console.log('STREAM FAILED', intent.entry.originalUrl, PlaybackManager.log());
                 var c = getFrame('controls');
                 if(c){
-                    c.registerOfflineStream(intent.entry);
-                };
-                sendStats('error', intent.entry)
+                    c.registerOfflineStream(intent.entry, true);
+                    sendStats('error', c.sendStatsPrepareEntry(intent.entry))
+                } else {
+                    sendStats('error', intent.entry)
+                }
             }
         }, 200)
     })
 })
 PlaybackManager.on('commit', function (intent, entry){
-    console.log('COMMIT TRIGGERED')
+    console.log('COMMIT TRIGGERED');
     var c = getFrame('controls');
     if(c){
-        c.unregisterOfflineStream(intent.entry);
+        c.unregisterOfflineStream(intent.entry, true);
     }
     onIntentCommit(intent);
     intent.on('ended', () => {
@@ -1503,7 +2201,18 @@ PlaybackManager.on('commit', function (intent, entry){
         }
     })
     delayedPlayPauseNotify();
-    sendStats('alive', entry)
+    var c = getFrame('controls');
+    if(c){
+        sendStats('alive', c.sendStatsPrepareEntry(entry))
+    } else {
+        sendStats('alive', entry)
+    }
+    if(intent.type != 'magnet'){
+        setTimeout(() => {
+            PlaybackManager.play();
+            hideControls()
+        }, 1000)
+    }
 });
 PlaybackManager.on('stop', () => {
     delayedPlayPauseNotify();
@@ -1522,9 +2231,9 @@ PlaybackManager.on('stop', () => {
 PlaybackManager.on('load-in', () => {
     var title, intents = PlaybackManager.query({started: false, ended: false, error: false, sideload: false});
     if(intents.length){
-        title = Lang.LOADING.replaceAll('.', '').trim()+': '+intents[0].entry.name;
+        title = Lang.CONNECTING.replaceAll('.', '').trim()+': '+(decodeURIComponent(intents[0].entry.name)||intents[0].entry.name);
     } else {
-        title = Lang.LOADING;
+        title = Lang.CONNECTING;
     }
     enterPendingState(title)
 });

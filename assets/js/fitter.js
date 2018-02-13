@@ -836,10 +836,13 @@ var doFindStreams = function (scope){
             }
             
             if(!src){
-                var html = body().innerHTML; // take whole HTML makes it too sensible, since JS may contain arrays of variated messages
-                var stub = window.document.URL + ' ' + html + ' ' + scripts().join('');
-                //console.log('DEEPSEARCH', stub);
-                src = applyFilters('formatStream', findStreamOnText(stub));
+                var b = body();
+                if(b){
+                    var html = body().innerHTML; // take whole HTML makes it too sensible, since JS may contain arrays of variated messages
+                    var stub = window.document.URL + ' ' + html + ' ' + scripts().join('');
+                    //console.log('DEEPSEARCH', stub);
+                    src = applyFilters('formatStream', findStreamOnText(stub));
+                }
             }
         }
             
@@ -1000,7 +1003,8 @@ var Fitter = (function (){
             stylizerQueueReset(frameElement, window.parent);
             fit(frameElement, window.parent);
             stylizerQueueCommit(window.parent);
-            if(window.parent){
+            if(window.parent && window.parent != window){
+                console.log('PARENT', window, window.parent, window.document.URL, window.parent.document.URL);
                 fitParentFrames(window.parent)
             }
         } else if(window != top && window != window.parent){
@@ -1112,7 +1116,7 @@ var Fitter = (function (){
                 }
             }
             if(minScroll!=-1){
-                console.log('MINSCROLL', minScroll, window.document.body, window.document.URL);
+                console.log('MINSCROLL', minScroll, window.document.URL);
                 if(minScroll > window.document.body.scrollTop){
                     window.scrollTo(0, minScroll)
                 }
@@ -1189,9 +1193,11 @@ var Fitter = (function (){
         top.patchFrameWindowEvents(data.scope, unfocus);
 
         data.scope.__fitted = true;
-        stylizerQueueReset(data.element, data.scope);
-        fit(data.element, data.scope);
-        stylizerQueueCommit(data.scope);
+        if(['html', 'body'].indexOf(tag(data.element))==-1){
+            stylizerQueueReset(data.element, data.scope);
+            fit(data.element, data.scope);
+            stylizerQueueCommit(data.scope);
+        }
         fitParentFrames(data.scope);
 
         (function (){ // INNER PAGE ROUTINES
@@ -1216,9 +1222,7 @@ var Fitter = (function (){
                     }
                 });
             })();
-
             /*
-            
             var favicon = function (){
                 var icon = false;
                 var nodeList = document.getElementsByTagName("link");
@@ -1243,9 +1247,7 @@ var Fitter = (function (){
                 document.querySelector('title').childNodes[0].nodeValue = val;
                 updateTitle(val)
             });
-
             */
-
         }).apply(data.scope, []);
         return data;
     }
@@ -1276,15 +1278,19 @@ var Fitter = (function (){
             console.log('PREFITTER MODULE MATCHED', file, scope.document.URL);
             list = require(file)(scope)
             console.log('PREFITTER MODULE RETURNED', list);
+            if(list && typeof(list)=='string'){ // if returns a string should be a redirect URL
+                console.log('PREFITTER REDIRECT', list);
+                scope.location.href = list;
+                return;
+            } else if(list === true){
+                console.log('PREFITTER MODULE FORWARDED TO DISCOVERY, returned true', list);
+                list = this.run(scope)
+            }
         } else {
-            console.log('NO PREFITTER', domain)
-        }
-        if(list && typeof(list)=='string'){ // if returns a string should be a redirect URL
-            console.log('PREFITTER REDIRECT', list);
-            scope.location.href = list;
-            return;
-        } else if(!list || typeof(list)!='object'){
-            list = this.run(scope)
+            console.log('NO PREFITTER', domain);
+            if(!list || typeof(list)!='object'){
+                list = this.run(scope)
+            }
         }
         if(list && typeof(list)=='object'){ // if returns a object, should be {element:videoElement, scope:videoElementWindow}
             console.log('PREFITTER PREPARE', list);

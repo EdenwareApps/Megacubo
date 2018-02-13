@@ -1,4 +1,9 @@
 
+
+.vjs-live-button  {
+    display: none !important;
+}
+
 body > video#live-stream {
     display: none;
 }

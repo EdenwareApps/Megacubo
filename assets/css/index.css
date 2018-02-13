@@ -20,7 +20,7 @@ iframe#controls {
     height: 100vh;
     width: 28%;
     max-width: 600px;
-    min-width: 180px;
+    min-width: 300px;
     position: absolute;
     left: auto;
     transition: transform 0.2s cubic-bezier(0, 1.1, 1, 1) 0.2s;
@@ -29,7 +29,7 @@ iframe#controls {
     transform: translate(100%, 0) rotateY(-140deg);
 }
 
-body.isovercontrols iframe#controls, body.istyping iframe#controls {
+body.isovercontrols iframe#controls, body.istyping iframe#controls, body.paused iframe#controls {
     transform: translate(0%, 0) rotateY(0deg);
 }
 
@@ -38,15 +38,35 @@ body.frameless .fit-screen {
     height: 100vh;
 }
 
-body.frameless #nw-custom-frame {
+body.miniplayer iframe#controls {
     display: none;
 }
 
 #nw-custom-frame {
     z-index: 999;
+    height: 30px;
+    overflow: hidden;
+    transition: height 0.2s linear 0s;
+}
+
+body.frameless #nw-custom-frame {
+    height: 0 !important;
+}
+
+.nw-cf {
+    background: #000000 !important;
+}
+
+.nw-cf-handle {
+    overflow: hidden;
 }
 
 iframe#overlay {
+    pointer-events: none;
+    z-index: 3;
+}
+
+body.paused iframe#overlay {
     pointer-events: none;
     z-index: 3;
 }
@@ -55,12 +75,16 @@ iframe#sandbox {
     background-color: #fff;
 }
 
+iframe#player {
+    background: #000;
+}
+
 #player, iframe#sandbox {
     transition: filter 0.4s cubic-bezier(0, 1.1, 1, 1) 0.2s;
     filter: saturate(105%);
 }
 
-body.isovercontrols #player, body.isovercontrols iframe#sandbox, body.istyping #player, body.istyping iframe#sandbox, body.paused #player, body.paused iframe#sandbox {
+body.isovercontrols:not(.miniplayer) #player, body.isovercontrols:not(.miniplayer) iframe#sandbox, body.paused #player, body.paused iframe#sandbox, body.istyping #player, body.istyping iframe#sandbox, body.paused #player, body.paused iframe#sandbox {
     filter: brightness(50%) saturate(50%);
 }
 
@@ -74,7 +98,7 @@ div#modal-overlay {
     width: 100vw; 
     height: 100vh; 
     position: absolute; 
-    z-index: 2;
+    z-index: 4;
 }
 
 div#modal-overlay > div { 
@@ -210,4 +234,24 @@ div#modal-overlay .prompt textarea {
     right: 0;
     top: 0;
     bottom: 0;
+}
+
+#menu-trigger-icon {
+    position: absolute;
+    top: 41px;
+    right: 8px;
+    z-index: 999999;
+}
+
+body.isovercontrols #menu-trigger-icon, body.paused #menu-trigger-icon, body.miniplayer #menu-trigger-icon {
+    display: none !important;
+}
+
+body.frameless #menu-trigger-icon {
+    top: 11px;
+}
+
+#menu-trigger-icon i.fa {
+    font-size: 150%;
+    color: white;
 }

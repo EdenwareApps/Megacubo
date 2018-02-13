@@ -25,9 +25,10 @@ div.notify {
 div.notify-row {
     display: block;
     font-size: 75%;
+    transition: font-size 0.2s cubic-bezier(0, 1.1, 1, 1) 0.2s;
 }
 
-div.notify-row:first-child {
+div.notify-row.notify-first {
     display: block;
     font-size: 100%;
 }
@@ -41,6 +42,7 @@ div#play-pause-marker {
     align-items: center;
     justify-content: center;
     opacity: 1;
+    cursor: pointer;
 }
 
 div#play-pause-marker i.fa {

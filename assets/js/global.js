@@ -37,134 +37,474 @@ window.ondragleave = window.ondrop = function(e) {
 };
 
 window.onerror = (...arguments) => {
-    console.log('ERROR', arguments);
-    top.logErr(arguments);
+    console.error('ERROR', arguments);
+    logErr(arguments);
     return true;
 }
 
 if(typeof(require)!='undefined'){
 
-    var fs = require("fs"), Store = (() => {
-        var dir = 'data/', _this = {};
-        fs.stat(dir, function(err, stat){
-            if(err !== null) {
-                fs.mkdir(dir);
+    if(typeof(fs)=='undefined'){
+        var fs = require("fs");
+    }
+
+    function include(file) {
+        eval.apply(global, [fs.readFileSync(file).toString()]);
+    }
+
+	String.prototype.replaceAll = function(search, replacement) {
+		var target = this;
+		if(target.indexOf(search)!=-1){
+			target = target.split(search).join(replacement);
+		}
+		return String(target);
+	}
+
+	// First, checks if it isn't implemented yet.
+	if (!String.prototype.format) {
+		String.prototype.format = function (){
+			var args = arguments;
+			return this.replace(/{(\d+)}/g, function(match, number) { 
+			return typeof args[number] != 'undefined'
+				? args[number]
+				: match
+			})
+		}
+	}
+
+	function time(){
+		return ((new Date()).getTime()/1000);
+	}
+
+	function fetchTimeout(url, callback, ms, opts){
+		let didTimeOut = false;
+		return new Promise(function (resolve, reject) {
+			const timeout = setTimeout(function() {
+				didTimeOut = true;
+				reject(new Error('Request timed out'));
+			}, ms);
+			var contentType = false;
+			fetch(url, opts).then((response) => {
+				contentType = response.headers.get("content-type");
+				return response.text()
+			}).then((response) => {
+				// Clear the timeout as cleanup
+				clearTimeout(timeout);
+				if(!didTimeOut) {
+					resolve(response);
+					callback(response, contentType)
+				}
+			})
+			.catch(function(err) {
+				console.log('fetch failed! ', err);
+				if(didTimeOut) return;
+				reject(err);
+				callback(false, false)
+			});
+		}).catch(function(err) {
+			// Error: response error, request timeout or runtime error
+			console.log('promise error! ', url, err);
+			callback(false, false)
+		})
+	}
+
+    var request;
+    function getHeaders(url, callback, timeoutSecs){
+        var start = time(), timer = 0;
+        if(typeof(callback)!='function'){
+            callback = () => {}
+        }
+        if(!request){
+            request = require('request')
+        }
+        var r = request(url);
+        r.on('response', (response) => {
+            clearTimeout(timer);
+            var headers = response.headers;
+            r.abort();
+            if(headers['location'] && headers['location'] != url){
+                var remainingTimeout = timeoutSecs - (time() - start);
+                if(remainingTimeout){
+                    getHeaders(headers['location'], callback, remainingTimeout)
+                } else {
+                    callback(headers, url)
+                }
+            } else {
+                callback(headers, url)
             }
         });
-        var resolve = function (key){
-            return dir+key+'.json';
-        };
-        var prepareKey = function (key){
-            return key.replace(new RegExp('[^A-Za-z0-9\\._-]', 'g'), '');
-        };
-        _this.get = function (key){
-            if(!localStorage) return; // randomly undefined ?!
-            key = prepareKey(key);
-            var _json = localStorage.getItem(key);
-            if(_json === null){
-                var f = resolve(key); 
-                if(fs.existsSync(f)){
-                    _json = fs.readFileSync(f, "utf8");
-                }
-            }
-            if(_json !== null){
-                try {
-                    var r = JSON.parse(_json);
-                    return r;
-                } catch(e){};
-            }
-            return null;
-        };
-        _this.set = function (key, val){
-            if(!localStorage) return;
-            key = prepareKey(key);
-            val = JSON.stringify(val);
-            //console.log('WRITE '+key+' '+val);
-            localStorage.setItem(key, val);
-            fs.writeFile(resolve(key), val, "utf8");
-        };
-        return _this;
-    })();
-
-    var DB = (() => {
-
-        var _this = this;
-
-        _this.maximumExpiral = 30 * (24 * 3600);
-
-        _this.set = function (key, jsonData, expirationSec){
-            if (typeof(localStorage) == "undefined" || !localStorage) { return false; }
-            key = _this.prepare(key);
-            var expirationMS = expirationSec * 1000;
-            var record = {value: JSON.stringify(jsonData), expires: new Date().getTime() + expirationMS}
-            localStorage.setItem(key, JSON.stringify(record));
-            return jsonData;
-        };
-
-        _this.get = function(key){
-            if (typeof(localStorage) == "undefined") { return false; }
-            key = _this.prepare(key);
-            var v = localStorage.getItem(key);
-            if(!v) return false;
-            var record = JSON.parse(v);
-            if (!record){return false;}
-            return (new Date().getTime() < record.expires && JSON.parse(record.value));
-        };
-
-        _this.prepare = function (key){
-            return key.replace(new RegExp('[^A-Za-z0-9\._-]', 'g'), '');
-        };
-
-        var toRemove = [], currentDate = new Date().getTime();
-        for (var i = 0, j = localStorage.length; i < j; i++) {
-            var key = localStorage.key(i), current = localStorage.getItem(key);
-            if (current && /^\{(.*?)\}$/.test(current)) {
-                current = JSON.parse(current);
-                if (current.expires && current.expires <= currentDate) {
-                    toRemove.push(key);
-                }
-            }
-        }
-        // Remove itens que já passaram do tempo
-        // Se remover no primeiro loop isto poderia afetar a ordem,
-        // pois quando se remove um item geralmente o objeto ou array são reordenados
-        for (var i = toRemove.length - 1; i >= 0; i--) {
-            localStorage.removeItem(toRemove[i]);
-        }
-
-        return _this;
-    })();
-
-    /*
-    DB.set('test', 'ok', 5);
-    alert(DB.get('test'));
-    setTimeout(() => {
-        alert(DB.get('test'));
-        alert(DB.prepare('test_&¨%#&try'));
-    }, 6000);
-
-    jQuery(() => {
-        Store.set('test', [3, 2]);
-        console.log(Store.get('test'));
-    });
-    */
-
-    String.prototype.replaceAll = function(search, replacement) {
-        var target = this;
-        return target.split(search).join(replacement);
-    };
-
-    // First, checks if it isn't implemented yet.
-    if (!String.prototype.format) {
-        String.prototype.format = function (){
-            var args = arguments;
-            return this.replace(/{(\d+)}/g, function(match, number) { 
-            return typeof args[number] != 'undefined'
-                ? args[number]
-                : match
-            })
-        }
+        timer = setTimeout(() => {
+            r.abort();
+            callback({}, url)
+        }, timeoutSecs * 1000)
     }
+
+	function basename(str, rqs){
+		_str = new String(str); 
+		pos = _str.replaceAll('\\', '/').lastIndexOf('/');
+		if(pos != -1){
+			_str = _str.substring(pos + 1); 
+		}
+		if(rqs){
+			_str = removeQueryString(_str);
+		}
+		return _str;
+	}
+
+	function dirname(str){
+		_str = new String(str); 
+		pos = _str.replaceAll('\\', '/').lastIndexOf('/');
+		if(!pos) return '';
+		_str = _str.substring(0, pos); 
+		return _str;
+	}
+
+	if ( typeof WPDK_FILTERS === 'undefined' ) {
+		
+		// List of filters
+		WPDK_FILTERS = {};
+		
+		// List of actions
+		WPDK_ACTIONS = {};
+		
+		/**
+		 * Used to add an action or filter. Internal use only.
+		 *
+		 * @param {string}   type             Type of hook, 'action' or 'filter'.
+		 * @param {string}   tag              Name of action or filter.
+		 * @param {Function} function_to_add  Function hook.
+		 * @param {integer}  priority         Priority.
+		 *
+		 * @since 1.6.1
+		 */
+		_wpdk_add = function( type, tag, function_to_add, priority )
+		{
+			var lists = ( 'filter' == type ) ? WPDK_FILTERS : WPDK_ACTIONS;
+		
+			// Defaults
+			priority = ( priority || 10 );
+		
+			if( !( tag in lists ) ) {
+			lists[ tag ] = [];
+			}
+		
+			if( !( priority in lists[ tag ] ) ) {
+			lists[ tag ][ priority ] = [];
+			}
+		
+			lists[ tag ][ priority ].push( {
+			func : function_to_add,
+			pri  : priority
+			} );
+		
+		};
+		
+		/**
+		 * Hook a function or method to a specific filter action.
+		 *
+		 * WPDK offers filter hooks to allow plugins to modify various types of internal data at runtime in a similar
+		 * way as php `add_filter()`
+		 *
+		 * The following example shows how a callback function is bound to a filter hook.
+		 * Note that $example is passed to the callback, (maybe) modified, then returned:
+		 *
+		 * <code>
+		 * function example_callback( example ) {
+		 * 	// Maybe modify $example in some way
+		 * 	return example;
+		 * }
+		 * add_filter( 'example_filter', example_callback );
+		 * </code>
+		 *
+		 * @param {string}   tag             The name of the filter to hook the function_to_add callback to.
+		 * @param {Function} function_to_add The callback to be run when the filter is applied.
+		 * @param {integer}  priority        Optional. Used to specify the order in which the functions
+		 *                                   associated with a particular action are executed. Default 10.
+		 *                                   Lower numbers correspond with earlier execution,
+		 *                                   and functions with the same priority are executed
+		 *                                   in the order in which they were added to the action.
+		 * @return {boolean}
+		 */
+		wpdk_add_filter = function( tag, function_to_add, priority )
+		{
+			_wpdk_add( 'filter', tag, function_to_add, priority );
+		};
+		
+		/**
+		 * Hooks a function on to a specific action.
+		 *
+		 * Actions are the hooks that the WPDK core launches at specific points during execution, or when specific
+		 * events occur. Plugins can specify that one or more of its Javascript functions are executed at these points,
+		 * using the Action API.
+		 *
+		 * @since 1.6.1
+		 *
+		 * @uses _wpdk_add() Adds an action. Parameter list and functionality are the same.
+		 *
+		 * @param {string}   tag             The name of the action to which the $function_to_add is hooked.
+		 * @param {Function} function_to_add The name of the function you wish to be called.
+		 * @param {integer}  priority        Optional. Used to specify the order in which the functions associated with a
+		 *                                   particular action are executed. Default 10.
+		 *                                   Lower numbers correspond with earlier execution, and functions with the same
+		 *                                   priority are executed in the order in which they were added to the action.
+		 *
+		 * @return bool Will always return true.
+		 */
+		wpdk_add_action = function( tag, function_to_add, priority )
+		{
+			_wpdk_add( 'action', tag, function_to_add, priority );
+		};
+		
+		/**
+		 * Do an action or apply filters.
+		 *
+		 * @param {string} type Type of "do" to do 'action' or 'filter'.
+		 * @param {Array} args Optional. Original list of arguments. This array could be empty for 'action'.
+		 * @returns {*}
+		 */
+		_wpdk_do = function( type, args )
+		{
+			var hook, lists = ( 'action' == type ) ? WPDK_ACTIONS : WPDK_FILTERS;
+			var tag = args[ 0 ];
+		
+			if( !( tag in lists ) ) {
+			return args[ 1 ];
+			}
+		
+			// Remove the first argument
+			[].shift.apply( args );
+		
+			for( var pri in lists[ tag ] ) {
+		
+			hook = lists[ tag ][ pri ];
+		
+			if( typeof hook !== 'undefined' ) {
+		
+				for( var f in hook ) {
+				var func = hook[ f ].func;
+		
+				if( typeof func === "function" ) {
+		
+					if( 'filter' === type ) {
+					args[ 0 ] = func.apply( null, args );
+					}
+					else {
+					func.apply( null, args );
+					}
+				}
+				}
+			}
+			}
+		
+			if( 'filter' === type ) {
+			return args[ 0 ];
+			}
+		
+		};
+		
+		/**
+		 * Call the functions added to a filter hook and the filtered value after all hooked functions are applied to it.
+		 *
+		 * The callback functions attached to filter hook $tag are invoked by calling this function. This function can be
+		 * used to create a new filter hook by simply calling this function with the name of the new hook specified using
+		 * the tag parameter.
+		 *
+		 * The function allows for additional arguments to be added and passed to hooks.
+		 * <code>
+		 * // Our filter callback function
+		 * function example_callback( my_string, arg1, arg2 ) {
+		 *	// (maybe) modify my_string
+		*	return my_string;
+		* }
+		* wpdk_add_filter( 'example_filter', example_callback, 10 );
+		*
+		* // Apply the filters by calling the 'example_callback' function we
+		* // "hooked" to 'example_filter' using the wpdk_add_filter() function above.
+		* // - 'example_filter' is the filter hook tag
+		* // - 'filter me' is the value being filtered
+		* // - arg1 and arg2 are the additional arguments passed to the callback.
+		*
+		* var value = wpdk_apply_filters( 'example_filter', 'filter me', arg1, arg2 );
+		* </code>
+		*
+		* @param {string} tag     The name of the filter hook.
+		* @param {*}      value   The value on which the filters hooked to <tt>tag</tt> are applied on.
+		* @param {...*}   varargs Optional. Additional variables passed to the functions hooked to <tt>tag</tt>.
+		*
+		* @return {*}
+		*/
+		wpdk_apply_filters = function( tag, value, varargs )
+		{
+			return _wpdk_do( 'filter', arguments );
+		};
+		
+		/**
+		 * Execute functions hooked on a specific action hook.
+		 *
+		 * This function invokes all functions attached to action hook tag. It is possible to create new action hooks by
+		 * simply calling this function, specifying the name of the new hook using the <tt>tag</tt> parameter.
+		 *
+		 * You can pass extra arguments to the hooks, much like you can with wpdk_apply_filters().
+		 *
+		 * @since 1.6.1
+		 *
+		 * @param {string} tag  The name of the action to be executed.
+		 * @param {...*}   args Optional. Additional arguments which are passed on to the functions hooked to the action.
+		 *                      Default empty.
+		 *
+		 */
+		wpdk_do_action = function( tag, args )
+		{
+			_wpdk_do( 'action', arguments );
+		};
+
+		addAction = wpdk_add_action;
+		addFilter = wpdk_add_filter;
+		doAction = wpdk_do_action;
+		applyFilters = wpdk_apply_filters;
+
+	}
+
+	if(typeof(fs)=='undefined'){
+		var fs = require("fs");
+	}
+
+	if(top == window){
+		var Store = (() => {
+			var dir = (typeof(__dirname)!='undefined')?__dirname+'/../../data/':'../../data/', self = {}, cache = {};
+			fs.stat(dir, (err, stat) => {
+				if(err !== null) {
+					fs.mkdir(dir);
+				}
+			});
+			self.resolve = (key) => {
+				key = key.replace(new RegExp('[^A-Za-z0-9\\._-]', 'g'), '');
+				return dir + key + '.json';
+			}
+			self.get = (key) => {
+				var f = self.resolve(key), _json = null, val = null; 
+				if(typeof(cache[key])!='undefined'){
+					return cache[key];
+				}
+				if(fs.existsSync(f)){
+					_json = fs.readFileSync(f, "utf8");
+					if(Buffer.isBuffer(_json)){ // is buffer
+						_json = String(_json);
+					}
+					if(typeof(_json)=='string' && _json.length){
+						try {
+							var r = JSON.parse(_json);
+							if(r != null && typeof(r)=='object' && (r.expires === null || r.expires >= time())){
+								val = r.data;
+							} else {
+								//console.error('Expired', r.expires+' < '+time())
+							}
+						} catch(e){
+							console.error(e, f)
+						}
+					} else {
+						//console.error('Bad type', typeof(_json))
+					}
+				} else {
+					//console.error('Not found', typeof(_json))
+				}
+				cache[key] = val;
+				return val;
+			}
+			self.set = (key, val, expiration) => {
+				try {
+					var f = self.resolve(key);
+					if(fs.existsSync(f)){
+						fs.truncateSync(f, 0)
+					}
+					fs.writeFileSync(f, JSON.stringify({data: val, expires: time() + expiration}), "utf8")
+				} catch(e){
+					console.error(e)
+				}
+				cache[key] = val;
+			}
+			return self;
+		})();        
+		var Config = (() => {
+			var self = {}, file = 'data/configure.json', loaded = false, defaults = {
+				"sources": [],
+				"gpu-rendering": false,
+				"hd-lists-url-en": "http://www.iptvchoice.com/free-iptv-test/",
+				"hide-logos": false,
+				"hide-back-button": false,
+				"resume": false,
+				"show-adult-content": false,
+				"sources": [],
+				"start-in-fullscreen": false,
+				"after-exit-url-en": "http://app.megacubo.net/out.php?ver={0}",
+				"unshare-lists": false
+			}, data = defaults;
+			self.load = () => {
+				loaded = true;
+				if(fs.existsSync(file)){
+					var _data = fs.readFileSync(file, "utf8");
+					if(_data){
+						if(Buffer.isBuffer(_data)){ // is buffer
+							_data = String(_data)
+						}
+						//console.log('DATA', data)
+						if(typeof(_data)=='string' && _data.length > 2){
+							_data = _data.replaceAll("\n", "");
+							//data = stripBOM(data.replace(new RegExp("([\r\n\t]| +)", "g"), "")); // with \n the array returns empty (?!)
+							_data = JSON.parse(_data);
+							if(typeof(_data)=='object'){
+								data = Object.assign(data, _data)
+							}
+						}
+					}
+				}
+			}
+			self.getAll = () => {
+				if(!loaded){
+					self.load()
+				}
+				//console.log('GET', key);
+				return data;
+			}
+			self.get = (key) => {
+				if(!loaded){
+					self.load()
+				}
+				//console.log('DATAb', JSON.stringify(data))
+				//console.log('GET', key, traceback());
+				var t = typeof(data[key]);
+				if(t == 'undefined'){
+					data[key] = defaults[key];
+					t = typeof(defaults[key]);
+				}
+				if(t == 'undefined'){
+					return null;
+				} else if(t == 'object') {
+					if(jQuery.isArray(data[key])){ // avoid referencing
+						return data[key].slice(0)
+					} else {
+						return Object.assign({}, data[key])
+					}
+				}
+				return data[key];
+			}
+			self.set = (key, val) => {
+				if(!loaded){
+					self.load()
+				}
+				//console.log('SSSET', key, val);
+				data[key] = val;
+				if(fs.existsSync(file)){
+					fs.truncateSync(file, 0)
+				}
+				fs.writeFileSync(file, JSON.stringify(data, null, 4), "utf8")
+			}
+			return self;
+		})()
+	} else {
+		var Config = top.Config;
+		var Store = top.Store;
+	}
 
     function sliceObject(object, s, e){
         var ret = {};
@@ -179,7 +519,7 @@ if(typeof(require)!='undefined'){
 
     function findCircularRefs(o){
         var cache = [];
-        JSON.stringify(o, function(key, value) {
+        JSON.stringify(o, (key, value) => {
             if (typeof value === 'object' && value !== null) {
                 if (cache.indexOf(value) !== -1) {
                     console.log('Circular reference found:', key, value);
@@ -191,21 +531,6 @@ if(typeof(require)!='undefined'){
             return value;
         });
         cache = null;
-    }
-
-    var currentScaleMode = 0, scaleModes = ['contain', 'cover', 'fill'];
-    function changeScaleMode(){
-        if(top.PlaybackManager.activeIntent){
-            var v = top.PlaybackManager.activeIntent.videoElement;
-            if(v){
-                currentScaleMode++;
-                if(currentScaleMode >= scaleModes.length){
-                    currentScaleMode = 0;
-                }
-                v.style.objectFit = scaleModes[currentScaleMode];
-                notify('Scale mode: '+scaleModes[currentScaleMode], 'fa-expand', 'short')
-            }
-        }
     }
     
     function seekRewind(){
@@ -316,6 +641,12 @@ if(typeof(require)!='undefined'){
                 playCustomFile(file)
             })
         }, null, true));
+        shortcuts.push(createShortcut("Ctrl+Z", () => {
+            var c = getFrame('controls');
+            if(c){
+                c.playPrevious()
+            }
+        }, null, true));
         shortcuts.push(createShortcut("F1 Ctrl+I", help));
         shortcuts.push(createShortcut("F2", () => {
             var c = getFrame('controls');
@@ -323,13 +654,18 @@ if(typeof(require)!='undefined'){
                 c.renameSelectedEntry()
             }
         }, null, true))
-        shortcuts.push(createShortcut("F3 Ctrl+F", () => {
-            var c = getFrame('controls');
+        shortcuts.push(createShortcut("F3 Ctrl+F Ctrl+F3", () => {
+            top.automaticallyPaused = false;
+            var c = getFrame('controls'), path = Lang.WHAT_TO_WATCH + '/' + Lang.FIND_CHANNELS + ' (F3)';
             c.showControls();
-            c.listEntriesByPath(Lang.SEARCH);
+            if(c.listingPath.indexOf(path)==-1){
+                c.listEntriesByPathTriggering(path)
+            }
             setTimeout(() => {
-                c.refreshListing();
-                jQuery(c.document).find('.entry input').parent().get(0).focus()
+                var n = jQuery(c.document).find('.entry input');
+                if(n.length){
+                    n.parent().get(0).focus()
+                }
             }, 150)
         }, null, true));
         shortcuts.push(createShortcut("F5", () => {
@@ -384,11 +720,13 @@ if(typeof(require)!='undefined'){
             c.focusNext()
         }, "hold", true));
         shortcuts.push(createShortcut("Right Enter", () => {
-            if(areControlsActive()){
-                var c = getFrame('controls');
-                c.triggerEnter()
-            } else {
-                showControls()
+            if(!top.miniPlayerActive){
+                if(areControlsActive()){
+                    var c = getFrame('controls');
+                    c.triggerEnter()
+                } else {
+                    showControls()
+                }
             }
         }));
         shortcuts.push(createShortcut("Left Backspace", () => {
@@ -444,7 +782,7 @@ if(typeof(require)!='undefined'){
                 {
                     key : "F4",
                     active : () => {
-                        changeScaleMode()
+                        top.changeScaleMode()
                     }
                 },
                 {
@@ -533,11 +871,43 @@ if(typeof(require)!='undefined'){
             })
         }
     }
+
+    var spawn;
+    function getFFmpegMediaInfo(path, callback){
+        if(!spawn){
+            spawn = require('child_process').spawn;
+        }
+        var data = '';
+        var child = spawn('ffmpeg/ffmpeg', [
+            '-i', path
+        ]);
+        child.stdout.on('data', function(chunk) {
+            data += String(chunk)
+        });
+        child.stderr.on('data', function(chunk) {
+            data += String(chunk)
+        });
+        child.on('close', (code) => {
+            callback(data, code)
+        });
+    }
     
+    function hmsToSecondsOnly(str) {
+        var p = str.split(':'),
+            s = 0, m = 1;
+    
+        while (p.length > 0) {
+            s += m * parseInt(p.pop(), 10);
+            m *= 60;
+        }
+    
+        return s;
+    }
+
     var b = jQuery(top.document).find('body');
     
     var areControlsActive = () => {
-        return b.hasClass('istyping') || b.hasClass('isovercontrols');
+        return b.hasClass('istyping') || b.hasClass('isovercontrols') || b.hasClass('paused');
     }
     
     var areControlsHiding = () => {
@@ -547,6 +917,9 @@ if(typeof(require)!='undefined'){
     function showControls(){
         if(!areControlsActive()){
             b.addClass('isovercontrols');
+            if(top.PlaybackManager.playing()){
+                top.PlaybackManager.pause()
+            }
             console.log('CC')
         } else {
             console.log('DD')
@@ -560,7 +933,7 @@ if(typeof(require)!='undefined'){
             return;
         }
         
-        if(!isPlaying() && (top.PlaybackManager.activeIntent.type!='frame' || top.PlaybackManager.activeIntent.videoElement)){
+        if(!top.PlaybackManager.activeIntent){
             //console.log('FF')
             return showControls();
         }
@@ -569,13 +942,14 @@ if(typeof(require)!='undefined'){
             //console.log('HH')
             top.controlsHiding = true;
             var c = getFrame('controls');
-            b.removeClass('istyping isovercontrols');
+            b.removeClass('istyping isovercontrols paused');
             var controlsActiveElement = c.document.activeElement;
             //console.log('HIDE', controlsActiveElement)
             if(controlsActiveElement && controlsActiveElement.tagName.toLowerCase()=='input'){
                 //console.log('HIDE UNFOCUS', controlsActiveElement)
                 c.focusPrevious()
             }
+            top.PlaybackManager.play();
             setTimeout(() => {
                 top.controlsHiding = false;
             }, 600)
@@ -594,7 +968,7 @@ if(typeof(require)!='undefined'){
     }
     
     function getDomain(u){
-        if(u.indexOf('//')!=-1){
+        if(u && u.indexOf('//')!=-1){
             var domain = u.split('//')[1].split('/')[0];
             if(domain.indexOf('.')!=-1){
                 return domain;
@@ -608,6 +982,9 @@ if(typeof(require)!='undefined'){
         if(pos != -1){
             var proto = u.substr(0, pos).toLowerCase();
             return proto;
+        }
+        if(u.substr(0, 2)=='//'){
+            return 'http';
         }
         return false;
     }
@@ -908,13 +1285,6 @@ if(typeof(require)!='undefined'){
                     }
                 }]
             ];
-            if(showCommunityListOption){
-                options.splice(1, 0, [
-                    '<i class="fa fa-users" aria-hidden="true"></i> '+Lang.USE_COMMUNITY_LIST, () => {
-                        addCommunityList()
-                    }
-                ])
-            }
             top.modalPrompt(question, options, Lang.PASTE_URL_HINT, defaultValue)
         }
     }
@@ -931,12 +1301,16 @@ if(typeof(require)!='undefined'){
                     }
                 }],
                 ['<i class="fa fa-check-circle" aria-hidden="true"></i> '+Lang.I_AGREE, () => {
-                    registerSource('http://app.megacubo.net/auto', Lang.COMMUNITY_LIST); // an endpoint which always redirects to the most used list URL in that country dynamically
+                    registerSource(communityList(), Lang.COMMUNITY_LIST); // an endpoint which always redirects to the most used list URL in that country dynamically
                     top.modalClose()
                 }]
             ];
             top.modalConfirm(Lang.ASK_COMMUNITY_LIST.format(Lang.I_AGREE), options)
         }
+    }
+    
+    function communityList(){
+        return 'http://app.megacubo.net/auto';
     }
 
     function isValidPath(url){ // poor checking for now
@@ -944,6 +1318,14 @@ if(typeof(require)!='undefined'){
             return false;
         }
         return true;
+    }
+
+    function getNameFromMagnet(url){
+        var match = url.match(new RegExp('dn=([^&]+)'));
+        if(match){
+            return urldecode(match[1])
+        }
+        return 'Unknown Magnet';
     }
         
     function playCustomURL(placeholder, direct){
@@ -964,13 +1346,7 @@ if(typeof(require)!='undefined'){
             Store.set('lastCustomPlayURL', url);
             var name = false;
             if(isMagnet(url)){
-                name = true;
-                var match = url.match(new RegExp('dn=([^&]+)'));
-                if(match){
-                    name = decodeURIComponent(match[1])
-                } else {
-                    name = 'Magnet URL';
-                }
+                name = getNameFromMagnet(url);
             } else if(isValidPath(url)){
                 name = 'Megacubo '+url.split('/')[2];
             }
@@ -1085,11 +1461,17 @@ if(typeof(require)!='undefined'){
         return c.currentSandboxTimeoutTimer && (top.document.querySelector('iframe#sandbox').src == stream[0].url);
     }
     
+    var installedVersion = 0;
     function getManifest(callback){
-        jQuery.get('/package.json', function (data){
-            data = data.replace(new RegExp('/\\* .+ \\*/', 'gm'), '');
-            data = JSON.parse(data);
+        jQuery.get('package.json', function (data){
+            if(typeof(data)=='string'){
+                data = data.replace(new RegExp('/\\* .+ \\*/', 'gm'), '');
+                data = JSON.parse(data.replaceAll("\n", ""))
+            }
             console.log(data);
+            if(data && data.version){
+                installedVersion = data.version;
+            }
             callback(data)
         })
     }
@@ -1108,15 +1490,11 @@ if(typeof(require)!='undefined'){
             }
             nw.Window.open('/index.html', data, function (popWin){
                 if(callback){
-                    callback(popWin);
+                    callback(popWin)
                 }
             })
             stop()
         })
-    }
-
-    function time(){
-        return ((new Date()).getTime()/1000);
     }
 
     function checkImage(url, load, error){
@@ -1158,7 +1536,7 @@ if(typeof(require)!='undefined'){
                 secs = 7;
                 break;
             case 'wait':
-                secs = 120;
+                secs = maxSecs;
                 break;
             case 'forever':
                 secs = 30 * (24 * 3600);
@@ -1170,10 +1548,35 @@ if(typeof(require)!='undefined'){
         return secs;
     }
 
+    function updateNotifyFirstDo(){
+        var o = getFrame('overlay');
+        if(o){
+            var nrs = jQuery(o.document).find('div.notify-row:visible');
+            var f = nrs.eq(0);
+            if(!f.hasClass('notify-first')){
+                f.addClass('notify-first')
+            }
+            nrs.slice(1).filter('.notify-first').removeClass('notify-first')
+        }
+    }
+
+    function updateNotifyFirst(){
+        updateNotifyFirstDo();
+        setTimeout(updateNotifyFirstDo, 200)
+    }
+
+    function notifyRemove(str){
+        var o = getFrame('overlay'), a = jQuery(o.document.getElementById('notify-area'));
+        a.find('.notify-row').filter((i, o) => {
+            return jQuery(o).find('div').text().trim() == str;
+        }).remove();
+    }
+
     function notify(str, fa, secs){
         var o = getFrame('overlay'), a = jQuery(o.document.getElementById('notify-area'));
         if(!str) {
             a.find('.notify-wait').remove();
+            updateNotifyFirst();
             return;
         }
         var c = '', timer;
@@ -1184,16 +1587,18 @@ if(typeof(require)!='undefined'){
             secs = notifyParseTime(secs);
             var destroy = () => {
                 n.hide(400, () => {
-                    jQuery(this).remove()
+                    jQuery(this).remove();
+                    setTimeout(updateNotifyFirst, 100)
                 })
             };
             a.find('.notify-row').filter((i, o) => {
                 return jQuery(o).find('div').text().trim() == str;
-            }).add(a.find('.notify-wait')).remove();
+            }).remove();
             if(fa) fa = '<i class="fa {0}" aria-hidden="true"></i> '.format(fa);
-            var n = jQuery('<div class="notify-row '+c+'"><div class="notify">' + fa + ' ' + str + '</div></div>');
+            var n = jQuery('<div class="notify-row '+c+' notify-first"><div class="notify">' + fa + ' ' + str + '</div></div>');
             n.prependTo(a);
             timer = top.setTimeout(destroy, secs * 1000);
+            updateNotifyFirst();
             return {
                 update: (str, fa, secs) => {
                     if(fa && str) {
@@ -1204,7 +1609,16 @@ if(typeof(require)!='undefined'){
                         secs = notifyParseTime(secs);
                         clearTimeout(timer);
                         timer = top.setTimeout(destroy, secs * 1000);
+                        n.show();
+                        updateNotifyFirst()
                     }
+                    return n;
+                },
+                show: () => {
+                    n.show()
+                },
+                hide: () => {
+                    n.hide()
                 },
                 close: () => {
                     clearTimeout(timer);
@@ -1214,21 +1628,34 @@ if(typeof(require)!='undefined'){
         }
     }
 
+    function formatBytes(bytes){
+        var sizes = ['bytes', 'KB', 'MB', 'GB', 'TB'];
+        if (bytes == 0) return '0 bytes';
+        var i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
+        if (i == 0) return bytes + ' ' + sizes[i];
+        return (bytes / Math.pow(1024, i)).toFixed(1) + ' ' + sizes[i];
+    }
 
     var pendingStateTimer = 0, defaultTitle = '';
 
     function enterPendingState(title) {
         setTitleFlag('fa-circle-o-notch fa-spin', title);
-        notify(Lang.LOADING, 'fa-circle-o-notch fa-spin', 'short');
+        notify(Lang.CONNECTING, 'fa-circle-o-notch fa-spin', 'wait');
     }
     
     function leavePendingState() {
+        notifyRemove(Lang.CONNECTING);
         setTitleFlag('', defaultTitle);
         getFrame('controls').removeLoadingFlags()
     }
 
+    function urldecode(t){
+        return decodeURIComponent(t.replaceAll('+', ' '));
+    }
+
     function setTitleData(title, icon) {
         console.log('TITLE = '+title);
+        title = urldecode(title);
         defaultTitle = title;
         if(top){
             var defaultIcon= 'default_icon.png';
@@ -1247,6 +1674,7 @@ if(typeof(require)!='undefined'){
     }
 
     function setTitleFlag(fa, title){
+        title = urldecode(title);
         var t = top.document.querySelector('.nw-cf-icon');
         if(t){
             if(fa){ // fa-circle-o-notch fa-spin
@@ -1269,35 +1697,19 @@ if(typeof(require)!='undefined'){
             }
         }
     }
-    
-    function fetchTimeout(url, callback, ms, opts){
-        let didTimeOut = false;
-        return new Promise(function (resolve, reject) {
-            const timeout = setTimeout(function() {
-                didTimeOut = true;
-                reject(new Error('Request timed out'));
-            }, ms);
-            fetch(url, opts).then((response) => {
-                return response.text()
-            }).then((response) => {
-                // Clear the timeout as cleanup
-                clearTimeout(timeout);
-                if(!didTimeOut) {
-                    resolve(response);
-                    callback(response)
-                }
-            })
-            .catch(function(err) {
-                console.log('fetch failed! ', err);
-                if(didTimeOut) return;
-                reject(err);
-                callback(false)
-            });
-        }).catch(function(err) {
-            // Error: response error, request timeout or runtime error
-            console.log('promise error! ', err);
-            callback(false)
-        })
+
+    function getHTTPContentType(url, callback){
+        var timeout = 30;
+        getHeaders(url, (h, u) => { 
+            var cl = h['content-length'] || -1;
+            var ct = h['content-type'] || '';
+            if(ct){
+                ct = ct.split(',')[0].split(';')[0];
+            } else {
+                ct = '';
+            }
+            callback(ct, cl, url, u) // u is the final url, url the starter url
+        }, 10)
     }
 
     function hasValidTitle(){
@@ -1316,26 +1728,6 @@ if(typeof(require)!='undefined'){
 
     function removeQueryString(url){
         return url.split('?')[0].split('#')[0];
-    }
-
-    function basename(str, rqs){
-        _str = new String(str); 
-        pos = _str.replaceAll('\\', '/').lastIndexOf('/');
-        if(pos != -1){
-            _str = _str.substring(pos + 1); 
-        }
-        if(rqs){
-            _str = removeQueryString(_str);
-        }
-        return _str;
-    }
-    
-    function dirname(str){
-        _str = new String(str); 
-        pos = _str.replaceAll('\\', '/').lastIndexOf('/');
-        if(!pos) return '';
-        _str = _str.substring(0, pos); 
-        return _str;
     }
     
     function stripRootFolderFromStr(str){
@@ -1359,6 +1751,11 @@ if(typeof(require)!='undefined'){
         return ['m3u8', 'm3u'].indexOf(getExt(url)) != -1;            
     }
     
+    function isTS(url){
+        if(typeof(url)!='string') return false;
+        return ['http', 'https'].indexOf(getProto(url))!=-1 && getExt(url) == 'ts';            
+    }
+    
     function isRTMP(url){
         if(typeof(url)!='string') return false;
         return url.match(new RegExp('^rtmp[a-z]?:', 'i'));            
@@ -1368,10 +1765,22 @@ if(typeof(require)!='undefined'){
         if(typeof(url)!='string') return false;
         return url.substr(0, 7)=='magnet:';            
     }
+
+    function isYT(url){
+        url = String(url);
+        if(url.indexOf('youtube.com')==-1){
+            return false;
+        }
+        if(typeof(ytdl)=='undefined'){
+            ytdl = require('ytdl-core')
+        }
+        var id = ytdl.getURLVideoID(url);
+        return typeof(id)=='string';
+    }
     
     function isRTSP(url){
         if(typeof(url)!='string') return false;
-        return url.match(new RegExp('(^(rtsp|mms)[a-z]?:|\:[0-9]+\/)', 'i'));            
+        return url.match(new RegExp('(^(rtsp|mms)[a-z]?:)', 'i'));            
     }
     
     function isLocal(url){
@@ -1381,7 +1790,7 @@ if(typeof(require)!='undefined'){
     
     function isVideo(url){
         if(typeof(url)!='string') return false;
-        return url.match(new RegExp('\\.(wm[av]|avi|mp[34]|mk[av]|m4[av]|mov|flv|webm|flac|aac|ogg|ts)', 'i'));            
+        return url.match(new RegExp('\\.(wm[av]|avi|mp[34]|mk[av]|m4[av]|mov|flv|webm|flac|aac|ogg)', 'i'));            
     }
     
     function isHTML5Video(url){
@@ -1391,7 +1800,7 @@ if(typeof(require)!='undefined'){
     
     function isLive(url){
         if(typeof(url)!='string') return false;
-        return isM3U8(url)||isRTMP(url)||isRTSP(url)||(getExt(url)=='ts');            
+        return isM3U8(url)||isRTMP(url)||isRTSP(url)||isTS(url)
     }
     
     function isMedia(url){
@@ -1458,7 +1867,7 @@ if(typeof(require)!='undefined'){
     }
         
     function getLocale(short, noUnderline){
-        var lang = Store.get('overridden-locale');
+        var lang = Config.get('locale');
         if(!lang || typeof(lang)!='string'){
             lang = getDefaultLocale(short, noUnderline);
         }
@@ -1467,6 +1876,19 @@ if(typeof(require)!='undefined'){
         }
         lang = lang.substr(0, short ? 2 : 5);
         return lang;
+    }
+
+    function closest(num, arr) {
+        var curr = arr[0];
+        var diff = Math.abs (num - curr);
+        for (var val = 0; val < arr.length; val++) {
+            var newdiff = Math.abs (num - arr[val]);
+            if (newdiff < diff) {
+                diff = newdiff;
+                curr = arr[val];
+            }
+        }
+        return curr;
     }
     
     function removeFolder(location, itself, next) {
@@ -1502,212 +1924,6 @@ if(typeof(require)!='undefined'){
             })
         })
     }
-
-    if ( typeof window.WPDK_FILTERS === 'undefined' ) {
-        
-        // List of filters
-        window.WPDK_FILTERS = {};
-        
-        // List of actions
-        window.WPDK_ACTIONS = {};
-        
-        /**
-         * Used to add an action or filter. Internal use only.
-         *
-         * @param {string}   type             Type of hook, 'action' or 'filter'.
-         * @param {string}   tag              Name of action or filter.
-         * @param {Function} function_to_add  Function hook.
-         * @param {integer}  priority         Priority.
-         *
-         * @since 1.6.1
-         */
-        window._wpdk_add = function( type, tag, function_to_add, priority )
-        {
-            var lists = ( 'filter' == type ) ? WPDK_FILTERS : WPDK_ACTIONS;
-        
-            // Defaults
-            priority = ( priority || 10 );
-        
-            if( !( tag in lists ) ) {
-            lists[ tag ] = [];
-            }
-        
-            if( !( priority in lists[ tag ] ) ) {
-            lists[ tag ][ priority ] = [];
-            }
-        
-            lists[ tag ][ priority ].push( {
-            func : function_to_add,
-            pri  : priority
-            } );
-        
-        };
-        
-        /**
-         * Hook a function or method to a specific filter action.
-         *
-         * WPDK offers filter hooks to allow plugins to modify various types of internal data at runtime in a similar
-         * way as php `add_filter()`
-         *
-         * The following example shows how a callback function is bound to a filter hook.
-         * Note that $example is passed to the callback, (maybe) modified, then returned:
-         *
-         * <code>
-         * function example_callback( example ) {
-         * 	// Maybe modify $example in some way
-         * 	return example;
-         * }
-         * add_filter( 'example_filter', example_callback );
-         * </code>
-         *
-         * @param {string}   tag             The name of the filter to hook the function_to_add callback to.
-         * @param {Function} function_to_add The callback to be run when the filter is applied.
-         * @param {integer}  priority        Optional. Used to specify the order in which the functions
-         *                                   associated with a particular action are executed. Default 10.
-         *                                   Lower numbers correspond with earlier execution,
-         *                                   and functions with the same priority are executed
-         *                                   in the order in which they were added to the action.
-         * @return {boolean}
-         */
-        window.wpdk_add_filter = function( tag, function_to_add, priority )
-        {
-            _wpdk_add( 'filter', tag, function_to_add, priority );
-        };
-        
-        /**
-         * Hooks a function on to a specific action.
-         *
-         * Actions are the hooks that the WPDK core launches at specific points during execution, or when specific
-         * events occur. Plugins can specify that one or more of its Javascript functions are executed at these points,
-         * using the Action API.
-         *
-         * @since 1.6.1
-         *
-         * @uses _wpdk_add() Adds an action. Parameter list and functionality are the same.
-         *
-         * @param {string}   tag             The name of the action to which the $function_to_add is hooked.
-         * @param {Function} function_to_add The name of the function you wish to be called.
-         * @param {integer}  priority        Optional. Used to specify the order in which the functions associated with a
-         *                                   particular action are executed. Default 10.
-         *                                   Lower numbers correspond with earlier execution, and functions with the same
-         *                                   priority are executed in the order in which they were added to the action.
-         *
-         * @return bool Will always return true.
-         */
-        window.wpdk_add_action = function( tag, function_to_add, priority )
-        {
-            _wpdk_add( 'action', tag, function_to_add, priority );
-        };
-        
-        /**
-         * Do an action or apply filters.
-         *
-         * @param {string} type Type of "do" to do 'action' or 'filter'.
-         * @param {Array} args Optional. Original list of arguments. This array could be empty for 'action'.
-         * @returns {*}
-         */
-        window._wpdk_do = function( type, args )
-        {
-            var hook, lists = ( 'action' == type ) ? WPDK_ACTIONS : WPDK_FILTERS;
-            var tag = args[ 0 ];
-        
-            if( !( tag in lists ) ) {
-            return args[ 1 ];
-            }
-        
-            // Remove the first argument
-            [].shift.apply( args );
-        
-            for( var pri in lists[ tag ] ) {
-        
-            hook = lists[ tag ][ pri ];
-        
-            if( typeof hook !== 'undefined' ) {
-        
-                for( var f in hook ) {
-                var func = hook[ f ].func;
-        
-                if( typeof func === "function" ) {
-        
-                    if( 'filter' === type ) {
-                    args[ 0 ] = func.apply( null, args );
-                    }
-                    else {
-                    func.apply( null, args );
-                    }
-                }
-                }
-            }
-            }
-        
-            if( 'filter' === type ) {
-            return args[ 0 ];
-            }
-        
-        };
-        
-        /**
-         * Call the functions added to a filter hook and the filtered value after all hooked functions are applied to it.
-         *
-         * The callback functions attached to filter hook $tag are invoked by calling this function. This function can be
-         * used to create a new filter hook by simply calling this function with the name of the new hook specified using
-         * the tag parameter.
-         *
-         * The function allows for additional arguments to be added and passed to hooks.
-         * <code>
-         * // Our filter callback function
-         * function example_callback( my_string, arg1, arg2 ) {
-         *	// (maybe) modify my_string
-        *	return my_string;
-        * }
-        * wpdk_add_filter( 'example_filter', example_callback, 10 );
-        *
-        * // Apply the filters by calling the 'example_callback' function we
-        * // "hooked" to 'example_filter' using the wpdk_add_filter() function above.
-        * // - 'example_filter' is the filter hook tag
-        * // - 'filter me' is the value being filtered
-        * // - arg1 and arg2 are the additional arguments passed to the callback.
-        *
-        * var value = wpdk_apply_filters( 'example_filter', 'filter me', arg1, arg2 );
-        * </code>
-        *
-        * @param {string} tag     The name of the filter hook.
-        * @param {*}      value   The value on which the filters hooked to <tt>tag</tt> are applied on.
-        * @param {...*}   varargs Optional. Additional variables passed to the functions hooked to <tt>tag</tt>.
-        *
-        * @return {*}
-        */
-        window.wpdk_apply_filters = function( tag, value, varargs )
-        {
-            return _wpdk_do( 'filter', arguments );
-        };
-        
-        /**
-         * Execute functions hooked on a specific action hook.
-         *
-         * This function invokes all functions attached to action hook tag. It is possible to create new action hooks by
-         * simply calling this function, specifying the name of the new hook using the <tt>tag</tt> parameter.
-         *
-         * You can pass extra arguments to the hooks, much like you can with wpdk_apply_filters().
-         *
-         * @since 1.6.1
-         *
-         * @param {string} tag  The name of the action to be executed.
-         * @param {...*}   args Optional. Additional arguments which are passed on to the functions hooked to the action.
-         *                      Default empty.
-         *
-         */
-        window.wpdk_do_action = function( tag, args )
-        {
-            _wpdk_do( 'action', arguments );
-        };
-
-        window.addAction = window.wpdk_add_action;
-        window.addFilter = window.wpdk_add_filter;
-        window.doAction = window.wpdk_do_action;
-        window.applyFilters = window.wpdk_apply_filters;
-
-    }
     
     function traceback() { 
         try { 
@@ -1716,6 +1932,13 @@ if(typeof(require)!='undefined'){
         } catch(ex) {
             return ex.stack.replace('TypeError: a.debug is not a function', '').trim()
         };
+    }
+
+    function logErr(){
+        if(!fs.existsSync('error.log')){
+            fs.closeSync(fs.openSync('error.log', 'w')); // touch
+        }
+        return fs.appendFileSync('error.log', JSON.stringify(Array.from(arguments))+"\r\n"+traceback()+"\r\n\r\n");
     }
     
     var openFileDialogChooser = false;

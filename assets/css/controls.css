@@ -206,7 +206,7 @@ input.entry-name {
     display: inline-block;
 }
 .entry-input input {
-    font-size: 300%;
+    font-size: 200%;
     border-radius: 6px;
     border-width: 0;
     width: 100%;

@@ -55,3 +55,96 @@ input, textarea {
     0%   { transform: translate(0, 0); }
     100% { transform: translate(-100%, 0); }
 }
+
+.fa-bounce {
+    display: inline-block;
+    position: relative;
+    -moz-animation: bounce 0.5s infinite linear;
+    -o-animation: bounce 0.5s infinite linear;
+    -webkit-animation: bounce 0.5s infinite linear;
+    animation: bounce 0.5s infinite linear;
+}
+
+@-webkit-keyframes bounce {
+    0% { left: 0; }
+    50% { left: -0.05em; }
+    70% { left: -0.1em; }
+    100% { left: 0; }
+}
+@-moz-keyframes bounce {
+    0% { left: 0; }
+    50% { left: -0.05em; }
+    70% { left: -0.1em; }
+    100% { left: 0; }
+}
+@-o-keyframes bounce {
+    0% { left: 0; }
+    50% { left: -0.05em; }
+    70% { left: -0.3em; }
+    100% { left: 0; }
+}
+@-ms-keyframes bounce {
+    0% { left: 0; }
+    50% { left: -0.05em; }
+    70% { left: -0.1em; }
+    100% { left: 0; }
+}
+@keyframes bounce {
+    0% { left: 0; }
+    50% { left: -0.05em; }
+    70% { left: -0.1em; }
+    100% { left: 0; }
+}
+
+.fa-shake {
+    display: inline-block;
+    position: relative;
+    animation: shake 1.1s infinite linear;
+}
+
+@keyframes shake {
+    0% { left: 0; }
+    4% { left: -0.05em; }
+    8% { left: 0em; }
+    12% { left: 0.05em; }
+    16% { left: 0em; }
+    20% { left: -0.05em; }
+    24% { left: 0em; }
+    28% { left: 0.05em; }
+    32% { left: 0; }
+}
+
+/* Icon pulse */
+.fa-pulse {
+	display: inline-block;
+	-moz-animation: pulse 2s infinite linear;
+	-o-animation: pulse 2s infinite linear;
+	-webkit-animation: pulse 2s infinite linear;
+	animation: pulse 2s infinite linear;
+}
+
+@-webkit-keyframes pulse {
+	0% { opacity: 1; }
+	50% { opacity: 0; }
+	100% { opacity: 1; }
+}
+@-moz-keyframes pulse {
+	0% { opacity: 1; }
+	50% { opacity: 0; }
+	100% { opacity: 1; }
+}
+@-o-keyframes pulse {
+	0% { opacity: 1; }
+	50% { opacity: 0; }
+	100% { opacity: 1; }
+}
+@-ms-keyframes pulse {
+	0% { opacity: 1; }
+	50% { opacity: 0; }
+	100% { opacity: 1; }
+}
+@keyframes pulse {
+	0% { opacity: 1; }
+	50% { opacity: 0; }
+	100% { opacity: 1; }
+}

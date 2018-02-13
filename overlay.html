@@ -24,7 +24,10 @@
         <script type="text/javascript">
             document.onmousedown = () => { // if the program forgot to add back pointerEvents=none, let any click on overlay rebember it
                 var ov = top.document.querySelector('iframe#overlay');
-                if(ov) ov.style.pointerEvents = 'none';
+                if(ov){
+                    ov.style.pointerEvents = 'none';
+                }
+                top.PlaybackManager.play()
             }
             function showHelpTip(){
                 var helpTips = [
@@ -33,19 +36,20 @@
                 notify(helpTips[0], 'fa-info', 'normal')
             }
             function processFile(file){
-                var probeSize = 2048;
+                var probeSize = 120000;
                 if(file && file.substr(0, 2)=='//'){
                     file = 'http:'+file;
                 }
                 if(['m3u', 'm3u8'].indexOf(getExt(file))!=-1){
                     openFile(file)
-                } else if(isMedia(file)) {
+                } else if(isMedia(file) || isMagnet(file)) {
                     playCustomFile(file)
                 } else {
                     if(file.match(new RegExp('^https?://'))){
-                        notify(Lang.PROCESSING, 'fa-spin fa-circle-o-notch', 'wait');
+                        var n = notify(Lang.PROCESSING, 'fa-spin fa-circle-o-notch', 'wait');
                         var fetchOptions = {redirect: 'follow'};
                         fetchTimeout(file, (r) => {
+                            n.close();
                             var response = String(r);
                             response = response.substr(0, probeSize)
                             console.log(response);
@@ -54,7 +58,7 @@
                             } else {
                                 playCustomURL(file, true)
                             }
-                        }, 10000, fetchOptions)
+                        }, 30000, fetchOptions)
                     } else {
                         fs.open(file, 'r', function(err, fd) {
                             if(!err){
@@ -94,10 +98,11 @@
                     }
                 })
             }
-            jQuery(function (){
-                setTimeout(function (){
-                    showHelpTip()
-                }, 2000)
+            jQuery(document).on('lngload', () => {
+                setTimeout(showHelpTip, 2000);
+				setTimeout(() => {
+					top.createMouseObserverForControls(window)				
+				}, 200)
             });
             var dragDrop = require('drag-drop');
             jQuery(function (){

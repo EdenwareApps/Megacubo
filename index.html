@@ -3,6 +3,7 @@
 	<head>
 		<meta charset="UTF-8" />
 		<title>Megacubo</title>
+		<base href="./" />
         <link rel="stylesheet" type="text/css" href="assets/css/global.css" />
         <link rel="stylesheet" type="text/css" href="assets/css/index.css" />
 		<link rel="stylesheet" type="text/css" href="assets/fa/css/font-awesome.min.css" />
@@ -24,6 +25,7 @@
 				show_in_taskbar: false
 			}, function (w){
 				splash = w;
+				splash.setAlwaysOnTop(true)
 			});
 			win.moveTo(5000, 5000);
 			win.show();
@@ -56,6 +58,44 @@
 		<div class="hide">
 			<input id="saveas" type="file" nwsaveas />
 		</div>
+		<div id="menu-trigger-icon"><i class="fa fa-chevron-left"></i></div>
+		<style type="text/css">
+			.nw-cf-icon { 
+				background-position: center center; 
+				background-repeat: no-repeat; 
+			}
+			.nw-cf-handle .nw-cf-icon { 
+				margin-left: 5px;
+			}
+			.nw-cf-title { 
+				color: #ddd; 
+				vertical-align: top; 
+				padding-left: 4px; 
+			}
+			.nw-cf-btn { 
+				background-color: #000; 
+				border-width: 0px; 
+				position: relative;
+    			top: -2px;
+				width: 42px;
+				display: inline-block;
+				text-align: center;
+				vertical-align: top;
+			}	
+			.nw-cf-btn:hover { 
+				background-color: #20242F;
+			}
+			.nw-cf-close:hover {
+				background-color: #402;
+			}
+			.nw-cf-close {
+				position: relative;
+			}
+			.nw-cf-btn i { 
+				color: #ddd;
+				vertical-align: middle;
+			}		
+		</style>
 		<script type="text/javascript">
 			var requestIdReferersTable = [], minVideoContentLength = (50 * (1024 * 1024));
 			function shouldRunFitter(){
@@ -79,6 +119,7 @@
 				nwcf.attach(window, {
 					"size": 30, // You can specify the size in em,rem, etc...
 					"frameIconSize": 21, // You can specify the size in em,rem, etc...
+					"includeCSS": false, 
 					"locales": {
 						'en': {
 							"close": Lang.CLOSE,
@@ -94,9 +135,28 @@
 						}
 					},
 				});
+				jQuery(document).on('show', () => { // tricky hack to solve a font drawing bug
+					setTimeout(() => {
+						var t = jQuery('.nw-cf-buttons'), is = t.find('i');
+						is.each((i, el) => {
+							el = jQuery(el);
+							el.prop('className', el.prop('className').replaceAll('nw-cf-icon-close', 'nw-cf-icon fa fa-times').replaceAll('nw-cf-icon', 'nw-cf-icon fa fa-window'))
+						})
+					}, 1000)
+				});
+				createMouseObserverForControls(window);
 				sendStats('alive');
 				setInterval(() => {
-					sendStats('alive', currentStream()||{});
+					var s = currentStream();
+					if(s){
+						var c = getFrame('controls');
+						if(c){
+							s = c.sendStatsPrepareEntry(s)
+						}
+					} else {
+						s = {}
+					}
+					sendStats('alive', s)
 				}, 600000) // 600 secs
 			})
 		</script>

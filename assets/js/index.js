@@ -1,7 +1,7 @@
 
-var os = require('os'), mkdirp = require('mkdirp'), jWin = jQuery(window), lastOnTop, castManager;
+var os = require('os'), mkdirp = require('mkdirp'), jWin = jQuery(window), jB = jQuery('body'), lastOnTop, castManager;
 var isSDKBuild = (window.navigator.plugins.namedItem('Native Client') !== null);
-var clipboard = gui.Clipboard.get();
+var currentVersion = 0, clipboard = gui.Clipboard.get();
 
 //gui.App.setCrashDumpDir(process.cwd());
 
@@ -16,15 +16,43 @@ function resetData(){
 }
 
 function enterMiniPlayer(){
-    var w = 320, h = 240, rightMargin = 50;
+    miniPlayerActive = true;   
+    var ratio = PlaybackManager.getRatio();
+    var h = screen.availHeight / 4, w = scaleModeAsInt(PlaybackManager.getRatio()) * h, rightMargin = 50;
     window.resizeTo(w, h);
     window.moveTo(screen.availWidth - w - rightMargin, screen.availWidth - h);
-    miniPlayerActive = true;
+    doAction('miniplayer-on')
 }
 
 function leaveMiniPlayer(){
-    restoreInitialSize();
+    restoreInitialSize();  
+    win.setAlwaysOnTop(false);
+    doAction('miniplayer-off')
 }
+
+addAction('miniplayer-on', () => {
+    console.log('MP-ON');
+    jB.addClass('miniplayer');
+    win.setAlwaysOnTop(true);
+    win.setShowInTaskbar(false);
+    console.log('MP-ON');
+    fixMaximizeButton();
+    PlaybackManager.play();
+    afterExitPage()
+    console.log('MP-ON');
+})
+
+addAction('miniplayer-off', () => {
+    console.log('MP-OFF');
+    jB.removeClass('miniplayer');
+    console.log('MP-OFF');
+    win.setAlwaysOnTop(false);
+    console.log('MP-OFF');
+    win.setShowInTaskbar(true);
+    console.log('MP-OFF');
+    fixMaximizeButton();
+    console.log('MP-OFF');
+})
 
 function toggleMiniPlayer(){
     if(miniPlayerActive){
@@ -44,9 +72,18 @@ function toggleFullScreen(){
     setFullScreen(!isFullScreen());
 }
 
+var useKioskForFullScreen = true;
 function escapePressed(){
-    win.leaveKioskMode();
+    if(useKioskForFullScreen){
+        win.leaveKioskMode()
+    } else {
+        win.leaveFullscreen()
+    }
     restoreInitialSize();
+    var c = getFrame('controls');
+    if(c){
+        c.autoCleanEntriesCancel()
+    }
 }
 
 function isMaximized(){
@@ -55,8 +92,8 @@ function isMaximized(){
 }
 
 function maximizeOrRestore(){
-    if(top.window.miniPlayerActive){
-        top.window.leaveMiniPlayer();
+    if(top.miniPlayerActive){
+        top.leaveMiniPlayer();
     } else {
         if(isMaximized()){
             win.unmaximize();
@@ -69,18 +106,28 @@ function maximizeOrRestore(){
 }
 
 function minimizeWindow(){
-    if(top.window.miniPlayerActive){
+    if(top.miniPlayerActive){
         win.minimize();
     } else {
-        top.window.enterMiniPlayer();
+        top.enterMiniPlayer();
+    }
+}
+
+function afterExitPage(){
+    var lastTime = Store.get('after-exit-time'), t = time();
+    if(!lastTime || (t - lastTime) > (24 * 3600)){
+        Store.set('after-exit-time', t);
+        var url = (Config.get("after-exit-url-"+getLocale(true)) || Config.get("after-exit-url-en")).format(currentVersion);
+        gui.Shell.openExternal(url)
     }
 }
 
 function closeWindow(){
-    if(top.window.miniPlayerActive){
-        top.window.leaveMiniPlayer();
+    if(top.miniPlayerActive){
+        top.leaveMiniPlayer();
     } else {
-        top.window.close();
+        afterExitPage();
+        top.close()
     }
 }
 
@@ -592,14 +639,16 @@ function startRecording(){
                         }).
                         on('end', () => {
                             console.log('END');
-                            isRecording.capturingStream.end()
+                            if(isRecording.capturingStream){
+                                isRecording.capturingStream.end()
+                            }
                         }).
                         on('error', function(err) {
                             console.log("Error during HTTP request");
                             console.log(err);
                             isRecording.capturingStream.end();
                             stopRecording()
-                        });
+                        })
                 }
             })
         })
@@ -626,19 +675,40 @@ function stopRecording(){
             doAction('recording-stop', data);        
             doAction('recording-save-start', data);
             console.log('aaa');
-            saveAs(outputFile, function (file){
-                console.log('aaa1', file);
-                if(file && file != outputFile){
-                    outputFile = file;
-                }
-                console.log('aaa2', _file, outputFile);
-                moveFile(_file, outputFile);
-                console.log('aaa3', outputFile);
+            var nfile = _file+'.mp4';
+            moveFile(_file, nfile);
+            var fixer = ffmpeg({
+                source: nfile
+            }).
+            inputOptions('-y').
+            inputOptions('-err_detect ignore_err').
+            videoCodec('copy').
+            audioCodec('aac').
+            inputOptions('-y').
+            addOption('-bsf:a aac_adtstoasc').
+            format('mp4').
+            output(outputFile).
+            on('start', function(commandLine) {
+                console.log('Spawned FFmpeg with command: ' + commandLine)
+            }).
+            on('error', function (err){
+                console.log('Error while saving joined file.', nfile, outputFile, err);
+                doAction('recording-save-failure', data)
+            }).
+            on('end', function (){
+                originalOutputFile = outputFile;
                 registerRecording(outputFile);
-                console.log('aaa4', outputFile);
-                doAction('recording-save-end', outputFile, data)
-                console.log('aaa5');
-            })
+                saveAs(outputFile, function (file){
+                    if(file && file != outputFile){
+                        moveFile(outputFile, file)
+                        registerRecording(file, outputFile);
+                        outputFile = file;
+                    }
+                });
+                removeFolder(data.folder);
+                doAction('recording-save-end', outputFile, data);
+                gui.Shell.showItemInFolder(outputFile)
+            }).run()
         } else {
             isRecording = false;
             doAction('recording-stop', data);        
@@ -700,7 +770,8 @@ function stopRecording(){
                                         }
                                     });
                                     removeFolder(data.folder);
-                                    doAction('recording-save-end', outputFile, data)
+                                    doAction('recording-save-end', outputFile, data);
+                                    gui.Shell.showItemInFolder(outputFile)
                                 }).run();
                             }).run();
                         }
@@ -733,13 +804,13 @@ function moveFile(from, to, callback){
 }
 
 function makeModal(content){
-    jQuery(top.window.document).find('body').addClass('modal');
+    jQuery(top.document).find('body').addClass('modal');
     jQuery(content).appendTo(jQuery('#modal-overlay > div > div').html(''));
     jQuery('#modal-overlay').show()
 }
 
 function modalClose(){
-    jQuery(top.window.document).find('body').removeClass('modal');
+    jQuery(top.document).find('body').removeClass('modal');
     jQuery('#modal-overlay').hide()
 }
 
@@ -753,7 +824,7 @@ function modalConfirm(question, answers, callback){
                 '<span class="prompt-footer"></span></div>');
     b.find('.prompt-footer').append(a);
     makeModal(b);
-    top.window.focus()
+    top.focus()
 }
 
 function modalPrompt(question, answers, placeholder, value){
@@ -787,7 +858,7 @@ function modalPrompt(question, answers, placeholder, value){
             }
         });
     }
-    top.window.focus();
+    top.focus();
     setTimeout(function (){
         var n = t.get(0);
         n.focus();
@@ -816,15 +887,20 @@ function isFullScreen(){
 }
 
 function maxPortViewSize(width, height){
-    if(process.platform === 'win32' && parseFloat(os.release(), 10) > 6.1) {
-        win.setMaximumSize(width, height);
+    if(process.platform === 'win32' && parseFloat(os.release(), 10) > 6.1 && width && height) {
+        win.setMaximumSize(Math.round(width), Math.round(height));
     }
 }
 
 function setFullScreen(enter){
     if(!enter){
         miniPlayerActive = false;
-        win.leaveKioskMode(); // bugfix, was remembering to enter fullscreen irreversibly
+        doAction('miniplayer-off');
+        if(useKioskForFullScreen){
+            win.leaveKioskMode() // bugfix, was remembering to enter fullscreen irreversibly
+        } else {
+            win.leaveFullscreen()
+        }
         var s = initialSize();
         window.resizeTo(s.width, s.height);
         if(document.readyState.indexOf('in')==-1){
@@ -840,12 +916,16 @@ function setFullScreen(enter){
         }
     } else {
         maxPortViewSize(0, 0);
-        win.enterKioskMode();
+        if(useKioskForFullScreen){
+            win.enterKioskMode() // bugfix, was remembering to enter fullscreen irreversibly
+        } else {
+            win.enterFullscreen()
+        }
         notify(Lang.EXIT_FULLSCREEN_HINT, 'fa-info-circle', 'normal')
     }
     var f = function (){
         var _fs = isFullScreen();
-        win.setAlwaysOnTop(_fs);
+        win.setAlwaysOnTop(_fs || miniPlayerActive);
         win.requestAttention(_fs);
         if(_fs) {
             win.blur();
@@ -867,23 +947,17 @@ function initialSize(){
 }
 
 function restoreInitialSize(){
-    setFullScreen(Store.get('start-in-fullscreen'))
+    jQuery('body').removeClass('miniplayer');
+    setFullScreen(Config.get('start-in-fullscreen'))
 }
 
 function centralizeWindow(w, h){
-    var x = (screen.availWidth - (w || window.outerWidth)) / 2;
-    var y = (screen.availHeight - (h || window.outerHeight)) / 2;
+    var x = Math.round((screen.availWidth - (w || window.outerWidth)) / 2);
+    var y = Math.round((screen.availHeight - (h || window.outerHeight)) / 2);
     //window.moveTo(x, y)
     win.x = x;
     win.y = y;
     console.log('POS', x, y);
-}
-
-function logErr(){
-    if(!fs.existsSync('error.log')){
-        fs.closeSync(fs.openSync('error.log', 'w')); // touch
-    }
-    return fs.appendFileSync('error.log', JSON.stringify(Array.from(arguments))+"\r\n"+traceback()+"\r\n\r\n");
 }
 
 function sendStats(action, data){
@@ -891,7 +965,7 @@ function sendStats(action, data){
     var options = {
         hostname: 'app.megacubo.net',
         port: 80,
-        path: '/stats-v2/'+action,
+        path: '/stats/'+action,
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -920,41 +994,88 @@ function sendStats(action, data){
 }
 
 function createMouseObserverForControls(win){
-    var x = 0, y = 0, showing = false, showHideDelay;
-    var w = jQuery(window).width();
-    var h = jQuery(window).height();
+    var x = 0, y = 0, showing = false, margin = 6, v = false, t = 0, ht = 0, jw = jQuery(win), tb = jQuery(top.document).find('body');
+    var w = jw.width();
+    var h = jw.height();
+    var b = jw.find('body');
     var update = () => {
-        clearTimeout(showHideDelay);
-        var a = areControlsActive(), b = w * (a ? 0.6 : 0.8);
+        if(top.miniPlayerActive){
+            var isOver = !(x < margin || y < margin || x > (w - margin) || y > (h - margin));
+            if(isOver){
+                clearTimeout(ht);
+                if(!v){
+                    clearTimeout(t);
+				    t = setTimeout(() => {
+    					tb.removeClass('frameless') 
+                    }, 400)
+                }
+            } else {
+                clearTimeout(ht);
+                clearTimeout(t);
+                ht = setTimeout(() => {
+                    if(top.miniPlayerActive){
+                        tb.addClass('frameless') 
+                    }
+				}, 3000)
+            }
+            console.log('MP', v, isOver)
+            v = isOver;
+            return;
+        }
+        if(top.showHideDelay){
+            clearTimeout(top.showHideDelay);
+            top.showHideDelay = 0;
+        }
+        var a = areControlsActive(), l = w * (a ? 0.6 : 0.8);
         if(a){
-            if(b < (w - 600)){
-                b = w - 600;
+            if(l < (w - 600)){
+                l = w - 600;
             }
         } else {
-            if(b < (w - 180)){
-                b = w - 180;
+            if(l < (w - 180)){
+                l = w - 180;
             }
         }
-        var show = (x > b && y < (h * 0.8));
+        var show = (x > l && y < (h * 0.33) && (x < (w - margin)));
         if(!show){
             var a = win.document.activeElement;
-            if(a && ['input', 'textarea'].indexOf(a.tagName.toLowerCase())!=-1){ // is typing in sandbox frame?
+            if(0 && ['input', 'textarea'].indexOf(a.tagName.toLowerCase())!=-1){ // is typing in sandbox frame?
+                show = true;
+            } else if(!PlaybackManager.playing() && !top.automaticallyPaused){ // is typing in sandbox frame?
                 show = true;
             }
         }
         //console.log(w, h, x, y, show);
-        var b = jQuery(top.document).find('body');
         if(show){
-            showHideDelay = setTimeout(() => {
-                b.addClass('isovercontrols')
+            top.showHideDelay = setTimeout(() => {
+                tb.addClass('isovercontrols');
+                if(PlaybackManager.playing()){
+                    top.automaticallyPaused = true;
+                    top.PlaybackManager.pause()
+                }
             }, 400)
         } else {
-            b.removeClass('isovercontrols')
+            tb.removeClass('isovercontrols');
+            if(top.automaticallyPaused){
+                top.automaticallyPaused = false;
+                top.PlaybackManager.play()
+            }
         }
     }
     jQuery(win.document).on('mousemove', (e) => {
         x = e.pageX;
         y = e.pageY;
+        if(typeof(top.menuTriggerIconTrigger)!='undefined'){
+            clearTimeout(top.menuTriggerIconTrigger)
+        }
+        if(typeof(top.mti) == 'undefined'){
+            mti = jQuery(top.document).find("#menu-trigger-icon");
+            mti.on('mousedown', showControls)
+        }
+        mti.show('fast');
+        menuTriggerIconTrigger = setTimeout(() => {
+            mti.hide('fast')
+        }, 2000) // idle time before hide
         update()
     })
     jQuery(win).on('resize', (e) => {
@@ -981,14 +1102,14 @@ patchMaximizeButton();
 
 process.on('unhandledRejection', function (reason, p){
     console.error(reason, 'Unhandled Rejection at Promise', p);
-    top.logErr(reason, 'Unhandled Rejection at Promise', p);
+    logErr(reason, 'Unhandled Rejection at Promise', p);
     //process.exit(1);
 });
 
 process.on('uncaughtException', function (err){
     console.error('Uncaught Exception thrown', err);
     var msg = err.message || err.stack || err;
-    top.logErr('Uncaught Exception thrown', err, msg);
+    logErr('Uncaught Exception thrown', err, msg);
     return true;
 });
 
@@ -999,7 +1120,7 @@ win.on('new-win-policy', function(frame, url, policy) {
     // CHECK AFTER IF IT'S A RELEVANT POPUP
     setTimeout(() => {
         shouldOpenSandboxURL(url, function (url){
-            top.window.document.querySelector('iframe#sandbox').src = url;
+            top.document.querySelector('iframe#sandbox').src = url;
         })
     }, 0)
 })
@@ -1016,6 +1137,16 @@ win.on('close', () => {
     process.exit()
 })
 
+win.on('minimize', function() {
+    console.log('Window is minimized');
+    if(PlaybackManager.activeIntent && !miniPlayerActive){
+        restoreInitialSize();
+        enterMiniPlayer()
+    } else {
+        win.setShowInTaskbar(true)
+    }
+})
+
 function handleOpenArguments(cmd){
     console.log('OPEN', cmd);
     // minimist module was giving error: notFlags.forEach is not a function
@@ -1030,6 +1161,10 @@ function handleOpenArguments(cmd){
     }
     for(var i=0; i<cmd.length; i++){
         var force = false;
+        if(cmd[i].charAt(0)=='-'){
+
+            continue;
+        }
         if(cmd[i].match(new RegExp('mega:', 'i'))){
             cmd[i] = cmd[i].replaceAll("'", "").replaceAll('"', '');
             var parts = cmd[i].split(( cmd[i].indexOf('|')!=-1 ) ? '|' : '//');
@@ -1038,9 +1173,9 @@ function handleOpenArguments(cmd){
                 force = true;
             }
         }
-        if(cmd[i] && (force || cmd[i].match(new RegExp('(rt[ms]p[a-z]?:|mms[a-z]?:|\.(m3u8?|mp4|flv))', 'i')))){
-            console.log('PLAY', cmd);
-            cmd[i] = cmd[i].replaceAll("'", "").replaceAll('"', '')
+        if(cmd[i] && (force || cmd[i].match(new RegExp('(rt[ms]p[a-z]?:|mms[a-z]?:|magnet:|\.(m3u8?|mp4|flv))', 'i')))){
+            cmd[i] = cmd[i].replaceAll("'", "").replaceAll('"', '');
+            console.log('PLAY', cmd[i]);
             playCustomURL(cmd[i], true);
             break;
         }
@@ -1053,33 +1188,38 @@ handleOpenArguments(gui.App.argv)
 var packageQueue = Store.get('packageQueue') || [];
 var packageQueueCurrent = Store.get('packageQueueCurrent') || 0;
 
-var miniPlayerMouseOutTimer = 0, miniPlayerMouseHoverDelay = 0, isMouseOver;
+/*
+var miniPlayerMouseOutTimer = 0, miniPlayerMouseHoverDelay = 0, isMouseOver, _b = jQuery('body');
 var mouseEnterTimeout = () => {
     clearTimeout(miniPlayerMouseOutTimer);
     miniPlayerMouseOutTimer = setTimeout(() => {
         if(miniPlayerActive){
-            jQuery('body').addClass('frameless').off('mousemove', mouseEnterTimeout)
+            _b.addClass('frameless') 
         }
-    }, 3000)
+        _b.off('mousemove', mouseEnterTimeout)
+    }, 2000)
 }
 jQuery('body').hover(
     () => {
-        isMouseOver = true;
-        if(miniPlayerActive && isMouseOver){
-            jQuery('body').removeClass('frameless').on('mousemove', mouseEnterTimeout);
+        if(miniPlayerActive){
+            isMouseOver = true;
+            _b.removeClass('frameless').on('mousemove', mouseEnterTimeout);
             fixMaximizeButton();
         }
     }, 
     () => {
-        isMouseOver = false;
-        clearTimeout(miniPlayerMouseHoverDelay);
-        miniPlayerMouseHoverDelay = setTimeout(() => {
-            if(miniPlayerActive && !isMouseOver){
-                jQuery('body').addClass('frameless').off('mousemove', mouseEnterTimeout)
-            }
-        }, 400)
+        if(miniPlayerActive){
+            isMouseOver = false;
+            clearTimeout(miniPlayerMouseHoverDelay);
+            miniPlayerMouseHoverDelay = setTimeout(() => {
+                if(miniPlayerActive && !isMouseOver){
+                    _b.addClass('frameless').off('mousemove', mouseEnterTimeout)
+                }
+            }, 200)
+        }
     }
 )
+*/
 
 jQuery(window).on('restore', restoreInitialSize);
 jQuery(window).on('unload', function (){
@@ -1108,8 +1248,8 @@ jQuery(function (){
         }
     });
     jWin.on('load resize', function (){
-        var miniPlayerTriggerWidth = ( screen.width / 2), width = jWin.width(), showInTaskbar = ( width < miniPlayerTriggerWidth ), onTop = !!( showInTaskbar || isFullScreen());
-        console.log( width+' < ( '+screen.width+' / 3) )');
+        var miniPlayerTriggerWidth = ( screen.width / 2.5), width = jWin.width(), showInTaskbar = !( width <= miniPlayerTriggerWidth ), onTop = ( !showInTaskbar || isFullScreen());
+        console.log( width+' < ( '+screen.width+' / 3) )', onTop, showInTaskbar);
         if(onTop !== lastOnTop){
             lastOnTop = onTop;
             console.log('SET ' + JSON.stringify(onTop));
@@ -1121,8 +1261,12 @@ jQuery(function (){
                 } else {
                     b.removeClass('frameless');
                 }
-                win.setShowInTaskbar(!showInTaskbar); // hide for miniplayer only
-                miniPlayerActive = showInTaskbar;
+                if(showInTaskbar){
+                    doAction('miniplayer-off')
+                } else {
+                    doAction('miniplayer-on')
+                }
+                miniPlayerActive = !showInTaskbar;
                 var c = getFrame('controls');
                 if(c){
                     c.showWindowHandle(onTop)

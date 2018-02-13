@@ -10,12 +10,10 @@ module.exports = (scope) => {
 			return 'https://www.youtube.com/tv#/watch/video/control?v='+id+'#nofit';
 			// https://www.youtube.com/tv#/watch/video/control?v=TVrN96ZX9v0 // &resume
 		} else {
-			var v = scope.document.querySelector('video');
-			if(v){
-				return {element: scope.document.querySelector('video'), scope: scope}; // fit this video element
-			} else {
-				return false;
+			if(top != window){
+				return true;
 			}
+			return {element: scope.document.querySelector('body'), scope: scope}; // fit and reveal this whole page;
 		}
 	} else {
 		if(url.match('(/embed/|/v/)')){
@@ -24,12 +22,10 @@ module.exports = (scope) => {
 			var id = match[1];
 			return 'https://www.youtube.com/embed/'+id+'?autoplay=1&rel=0&showinfo=0#nofit';
 		} else {
-			var v = scope.document.querySelector('video');
-			if(v){
-				return {element: scope.document.querySelector('video'), scope: scope}; // fit this video element
-			} else {
-				return false;
+			if(top != window){
+				return true;
 			}
+			return {element: scope.document.querySelector('body'), scope: scope}; // fit and reveal this whole page;
 		}
 	}
 }

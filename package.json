@@ -1,10 +1,10 @@
 {
-    "name": "megacubo",
+    "name": "megacubo-1425",
     "main": "index.html",
-    "chromium-args": "--disable-transparency  --ignore-certificate-errors --remote-debugging-port=9000                    --disable-gpu-blacklist",
+    "chromium-args": "--disable-transparency --ignore-certificate-errors --remote-debugging-port=9000 --disable-gpu --force-cpu-draw",
     "node": true,
-    "description": "A quite simple IPTV client.",
-    "version": "14.1.6",
+    "description": "A simple and intuitive IPTV player.",
+    "version": "14.2.7",
     "inject_js_end": "assets/js/helper.js",
     "window": {
         "title": "Megacubo",
@@ -13,16 +13,22 @@
         "show": false
     },
     "dependencies": {
-        "peerflix": "~0.37.0",
-        "fluent-ffmpeg": "~2.1.2",
+        "async": "~2.6.0",
+        "btdb-search": "~1.1.0",
+        "chromecasts": "~1.9.0",
+        "drag-drop": "~2.13.2",
         "fetch": "~0.3.5",
-        "mkdirp": "~0.3.5",
+        "fluent-ffmpeg": "~2.1.2",
         "m3u8-parser": "~4.0.0",
         "miniget": "~1.1.0",
-        "async": "~2.6.0",
-        "drag-drop": "~2.13.2",
+        "mkdirp": "~0.3.5",
         "nw-custom-frame": "~0.9.1",
-        "request": "~2.83.0"
+        "peerflix": "~0.37.0",
+        "pornsearch": "~2.3.0",
+        "request": "~2.83.0",
+        "tiny-worker": "~2.1.1",
+        "ytdl-core": "~0.20.0",
+        "ytsr": "~0.1.7"
     },
     "webkit": {
         "page-cache": true

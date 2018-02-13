@@ -19,7 +19,7 @@
 	<body>
 		<script type="text/javascript" src="assets/js/jquery-3.2.1.js"></script>
 		<script type="text/javascript" src="players/videojs/video.min.js"></script>
-		<script type="text/javascript" src="players/videojs/videojs-contrib-hls.js"></script>
+		<script type="text/javascript" src="players/videojs/videojs-contrib-hlsjs.min.js"></script>
 		<div id="tester"></div>
 		<script type="text/javascript">
 			function test(url, type, _success, _failure){
@@ -41,7 +41,7 @@
 					tPlayer.dispose();
 					v.remove();
 					_failure()
-				}, 10000); // tester timeout
+				}, 15000); // tester timeout
 				tPlayer.src({src: url, type: type});
 				tPlayer.play()
 			}
