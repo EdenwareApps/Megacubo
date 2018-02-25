@@ -1,8 +1,7 @@
 //import { clearTimeout } from 'timers';
 
 
-var gui = require('nw.gui'), win = gui.Window.get();
-
+var gui = require('nw.gui'), win = gui.Window.get(), offLabel = ' (off)';
 var History = (function (){
     var key = 'history', _this = {}, limit = 48;
     var fullHistory = Store.get(key);
@@ -47,46 +46,36 @@ var History = (function (){
     return _this;
 })();
 
-var RecordingHistory = (function (){
-    var key = 'recording', _this = {}, limit = 48;
-    var fullRecordingHistory = Store.get(key);
-    if(fullRecordingHistory === null){
-        fullRecordingHistory = [];
-    }
+var Recordings = (function (){
+    var key = 'recording', _this = {}, limit = 48, _folder = 'recordings', _synced = false;
+    var fullRecordings = [];
     _this.get = function (index){
+        if(!_synced){
+            _this.sync()
+        }
         if(typeof(key)=='number'){
-            return fullRecordingHistory[key] || false;
+            return fullRecordings[key] || false;
         }
-        return fullRecordingHistory.slice(0)
-    };
+        return fullRecordings.slice(0)
+    }
     _this.sync = function (){
-        for(var i in fullRecordingHistory){
-            if(!fullRecordingHistory[i] || !fs.existsSync(fullRecordingHistory[i].url)){
-                delete fullRecordingHistory[i];
+        let files = fs.readdirSync(_folder), name;
+        fullRecordings = [];
+        for(var i=0; i<files.length; i++){
+            if(files[i].indexOf('.mp4')!=-1){
+                name = files[i].replace('.mp4', '')
+                fullRecordings.push({
+                    name: name,
+                    url: absolutize(_folder+'/'+files[i]),
+                    type: 'stream',
+                    logo: 'fa-film'
+                })
             }
         }
-        fullRecordingHistory = fullRecordingHistory.filter(function (item) {
-            return item !== undefined;
-        }).slice(0, limit);
-    };
-    _this.removeByURL = function (url){
-        for(var i in fullRecordingHistory){
-            if(fullRecordingHistory[i].url == url || !fs.existsSync(fullRecordingHistory[i].url)){
-                delete fullRecordingHistory[i];
-            }
-        }
-        _this.sync()
-    };
-    _this.add = function (entry){
-        _this.removeByURL(entry.url);
-        fullRecordingHistory.unshift(entry);
-        _this.sync();
-        Store.set(key, fullRecordingHistory);
-    };
+    }
     _this.clear = function (){
-        fullRecordingHistory = [];
-        Store.set(key, fullRecordingHistory);
-    };
+        removeFolder(_folder, false)
+    }
     return _this;
 })();
 
@@ -206,13 +195,13 @@ function getIPTVListSearchTerm(){
 function getIPTVListSearchURL(){
     var q = getIPTVListSearchTerm();
     q = q.replaceAll(" ", "+");
-    return "https://www.google.com.br/search?safe=off&tbs=qdr:m&q="+q+"&oq="+q;
+    return "https://www.google.com/search?safe=off&tbs=qdr:m&q="+q+"&oq="+q;
 }
 
 function sendStatsPrepareEntry(stream){
     if(stream){
         stream.uiLocale = getLocale(false, false);
-        stream.ver = 0;
+        stream.ver = top.currentVersion;
         if(typeof(stream.source)!='undefined' && stream.source){
             stream.source_nam = getSourceMeta(stream.source, 'name');
             stream.source_len = getSourceMeta(stream.source, 'length');
@@ -226,7 +215,7 @@ function sendStatsPrepareEntry(stream){
 
 function playEntry(stream){
     collectListQueue(stream);
-    stream.name = stream.name.replace(Lang.FEATURED+': ', '');
+    stream.prependName = '';
     top.PlaybackManager.cancelLoading();
     top.createPlayIntent(stream, {manual: true}, function (intent){
         updateStreamEntriesFlags()
@@ -282,11 +271,11 @@ jQuery(() => {
 });
 
 function sideLoadPlay(url, originalIntent){
-    var debug = true;
+    var debug = false;
     if(debug){
         console.log('SIDELOADPLAY', url);
     }
-    var frameIntents = originalIntent ? [originalIntent] : top.PlaybackManager.query({type: 'frame', error: false, ended: false});
+    var frameIntents = originalIntent ? [originalIntent] : top.PlaybackManager.query({type: 'frame', started: true, error: false, ended: false});
     if(frameIntents.length){ // only allow sideload if there's at least one frame intent active
         var surl = removeQueryString(url);
         if(sideLoadTried.indexOf(surl) === -1){ // not already tried
@@ -300,13 +289,12 @@ function sideLoadPlay(url, originalIntent){
                 }
                 top.createPlayIntent(entry, {sideload: true, 'pre-commit': function (allow, intent){
                     if(debug){
-                        console.log('PRE-COMMIT')
+                        console.log('PRE-COMMIT', allow, intent)
                     }
                     if(top.PlaybackManager.activeIntent){ // frame is active, user hasn't changed the channel
                         if(debug){
                             console.log('PRE-COMMIT 1')
                         }
-
                         // !!!!!!! WAIT, IF THE ACTIVEINTENT IS FROM PREV CHANNEL AND USER CLICKED IN OTHER, WE SHOULD ALLOW IT HERE!
                         // !!!!!!! ACTUALLY, ONLY TWO PLAYING CHANNELS ARE ALLOWED, AS CLICKING AT ONE CANCEL ANOTHER INTENTS,
                         // !!!!!!! SO DEAL HERE WITH HE TWO POSSIBILITIES ONLY!
@@ -321,6 +309,10 @@ function sideLoadPlay(url, originalIntent){
                         console.log('PRE-COMMIT 3')
                     }
                     return false;
+                }, error: (...arguments) => {
+                    console.error('SIDELOADPLAY ERROR', arguments)
+                }, ended: (...arguments) => {
+                    console.error('SIDELOADPLAY ENDED', arguments)
                 }})
             } else {
                 if(debug){
@@ -358,6 +350,7 @@ function updateOnlineUsersCount(){
 }
 
 jQuery(document).on('lngload', () => {
+    searchPath = Lang.WHAT_TO_WATCH+'/'+Lang.SEARCH;
     updateOnlineUsersCount();
     setInterval(updateOnlineUsersCount, 600000)
 });
@@ -443,7 +436,7 @@ function getOfflineStreamsURLs(){
     });
 }
 
-function registerOfflineStream(stream, updateListing){
+function registerOfflineStream(stream){
     console.log(stream);
     if(typeof(stream.originalUrl)!='undefined' && stream.originalUrl){
         stream.url = stream.originalUrl;
@@ -452,12 +445,11 @@ function registerOfflineStream(stream, updateListing){
     if(!jQuery.isArray(ostreams)){
         ostreams = [];
     }
-    for(var i in ostreams){
-        if(ostreams[i].url == stream.url){
-            setTimeout(updateStreamEntriesFlags, 1000);
-            return;
-            break;
-        }
+    var offurls = ostreams.map((stream) => {
+        return stream.url;
+    });
+    if(offurls.indexOf(stream.url) != -1){ // nothing to do
+        return;
     }
     ostreams.push(stream);
     var limit = 8192;
@@ -466,14 +458,10 @@ function registerOfflineStream(stream, updateListing){
     }
     console.log(ostreams);
     Store.set('offline_streams', ostreams);
-    if(updateListing){
-        if(jQuery('.list').html().indexOf(stream.url)!=-1){
-            refreshListing()
-        }
-    }
+    updateStreamEntriesFlags()
 }
 
-function unregisterOfflineStream(stream, updateListing){
+function unregisterOfflineStream(stream){
     if(typeof(stream.originalUrl)!='undefined' && stream.originalUrl){
         stream.url = stream.originalUrl;
     }
@@ -481,32 +469,58 @@ function unregisterOfflineStream(stream, updateListing){
     if(!jQuery.isArray(ostreams)){
         ostreams = [];
     }
+    var found = false;
     for(var i in ostreams){
         if(ostreams[i].url == stream.url){
             delete ostreams[i];
+            found = true;
         }
     }
-    ostreams = ostreams.filter(function (item) {
-        return item !== undefined;
-    });
-    Store.set('offline_streams', ostreams);
-    if(updateListing){
-        if(jQuery('.list').html().indexOf(stream.url)!=-1){
-            refreshListing()
-        }
+    if(found){
+        ostreams = ostreams.filter(function (item) {
+            return item !== undefined;
+        });
+        Store.set('offline_streams', ostreams);
+        updateStreamEntriesFlags()
     }
 }
 
 function updateStreamEntriesFlags(){
 
+    // offline streams
+    var ostreams = Store.get('offline_streams');
+    if(!jQuery.isArray(ostreams)){
+        ostreams = []
+    }
+    var offurls = ostreams.map((stream) => {
+        return stream.url;
+    });
+
     // pending entries
     var urls = top.PlaybackManager.isLoading(true);
     var fas = jQuery('.entry');
-    fas = fas.each(function (){
+    fas = fas.each(() => {
         if(urls.indexOf(this.href)!=-1){
-            setEntryFlag(this, 'fa-circle-o-notch fa-spin')
+            setEntryFlag(this, 'fa-circle-notch fa-spin')
         } else {
             setEntryFlag(this, '')
+        }
+        // is offline?
+        let e = jQuery(this), n = e.find('.entry-name'), t = n.text(), isoff = t.toLowerCase().indexOf(offLabel) != -1, gooff = offurls.indexOf(this.href) != -1;
+        if(isoff != gooff){
+            if(gooff){
+                n.text(t + offLabel);
+                e.addClass('entry-offline')
+            } else {
+                n.text(t.replace(offLabel, ''));
+                var p = jQuery('.entry-offline:eq(0)');
+                if(p.length){
+                    p.before(e)
+                } else {
+                    jQuery('.entry:eq(-1)').after(e)
+                }
+                e.removeClass('entry-offline')
+            }
         }
     });
 
@@ -602,7 +616,7 @@ function getNameFromSource(content){
 
 function getNameFromSourceURL(url){
     url = url.replace(new RegExp('^[a-z]*://'), '').split('/');
-    return url[0].split('.')[0]+' '+url[url.length - 1];
+    return (url[0].split('.')[0]+' '+url[url.length - 1]).replaceAll('?', ' ');
 }
 
 function getNameFromSourceURLAsync(url, callback){
@@ -623,7 +637,10 @@ function checkStreamType(url, callback){
     if(['http', 'https', false].indexOf(getProto(url)) == -1){ // any other protocol like rtsp, rtmp...
         return callback(url, 'stream')
     }
-    if(isMagnet(url) || isVideo(url)){
+    if(getExt(url)=='m3u'){
+        return callback(url, 'list')
+    }
+    if(isMagnet(url) || isVideo(url) || isTS(url)){
         return callback(url, 'stream')
     }
     if(!isValidPath(url)){
@@ -672,8 +689,6 @@ function checkStreamType(url, callback){
             if(ct){
                 if(ct && ct.indexOf('video')!=-1){
                     callback(url, 'stream')
-                } else if (ct && ct.toLowerCase().indexOf('mpegurl')!=-1){
-                    callback(url, 'stream')
                 } else { // no valid content-type, fetch the whole content to check better
                     timeout = 30000, fetchOptions = {redirect: 'follow'};
                     fetchTimeout(url, (r) => {
@@ -706,7 +721,7 @@ function addNewSource(){
     askForSource(Lang.PASTE_URL_HINT, function (val){
         var url = val;
         console.log('CHECK', url);
-        var n = notify(Lang.PROCESSING, 'fa-spin fa-circle-o-notch', 'wait');
+        var n = notify(Lang.PROCESSING, 'fa-spin fa-circle-notch', 'wait');
         checkStreamType(url, function (url, type){
             console.log('CHECK CALLBACK', url, type);
             n.close();
@@ -722,7 +737,7 @@ function addNewSource(){
     })
 }
 
-function registerSource(url, name, silent){
+function registerSource(url, name, silent, norefresh){
     var chknam, key = 'sources';
     var sources = getSources();
     for(var i in sources){
@@ -742,12 +757,16 @@ function registerSource(url, name, silent){
         notify(Lang.LIST_ADDED, 'fa-star', 'normal');
     }
     setActiveSource(url);
-    refreshListingIfMatch(Lang.LISTS);
+    if(!norefresh){
+        refreshListing()
+    }
     if(chknam){
         getNameFromSourceURLAsync(url, (newName, url, content) => {
             if(newName != name){
                 setSourceName(url, newName);
-                refreshListingIfMatch(Lang.LISTS)
+                if(!norefresh){
+                    refreshListing()
+                }
             }
         })
     }
@@ -841,57 +860,65 @@ function setActiveSource(url){
     console.log('SETACTIVE', entry);
     sources.unshift(entry);
     Config.set(skey, sources);
-    markActiveSource();
-    readSourcesToIndex()
+    markActiveSource()
 }
 
-var autoCleanEntriesQueue = [];
+var autoCleanEntriesQueue = [], autoCleanEntriesStatus = '';
 
 function autoCleanEntries(){
-    var entries = jQuery('a.entry-stream').map((i, o) => {
+    if(autoCleanEntriesCancel()){
+        jQuery('a.entry-autoclean .entry-name').html(Lang.TEST_THEM_ALL)
+        return false;
+    }
+    var autoPlayed = false, entries = jQuery('a.entry-stream').map((i, o) => {
         return jQuery(o).data('entry-data')
     });
     if(!entries.length){
         return;
     }
-    var sn = notify(Lang.CAN_BE_SLOW, 'fa-coffee', 'forever');
-    var n = notify(Lang.AUTOCLEAN+' 0%', 'fa-spin fa-circle-o-notch', 'forever');
+    autoCleanEntriesStatus = Lang.AUTOCLEAN+' 0%';
     jQuery('a.entry-autoclean .entry-name').html(Lang.AUTOCLEAN+' 0%');
     var iterator = 0, cancel = false, readyIterator = 0, testers = [], tasks = Array(entries.length).fill((callback) => {
         if(cancel) return;
         var entry = entries[iterator];
         iterator++;
         console.log('ACAC', entry, entries);
-        try{
+        try {
             testers = testers.concat(
-            testEntry(entry, () => {
-                readyIterator++;
-                n.update(Lang.AUTOCLEAN+' '+parseInt(readyIterator / (entries.length / 100))+'%', 'fa-spin fa-circle-o-notch');
-                jQuery('a.entry-autoclean .entry-name').html(Lang.AUTOCLEAN+' '+parseInt(readyIterator / (entries.length / 100))+'%');
-                unregisterOfflineStream(entry);
-                callback(null, true);
-                top.sendStats('alive', sendStatsPrepareEntry(entry))
-            }, () => {
-                readyIterator++;
-                n.update(Lang.AUTOCLEAN+' '+parseInt(readyIterator / (entries.length / 100))+'%', 'fa-spin fa-circle-o-notch');
-                jQuery('a.entry-autoclean .entry-name').html(Lang.AUTOCLEAN+' '+parseInt(readyIterator / (entries.length / 100))+'%');
-                registerOfflineStream(entry);
-                callback(null, false);
-                refreshListing();
-                top.sendStats('error', sendStatsPrepareEntry(entry))
-            })
-        )
-    }catch(e){console.error(e)}
+                testEntry(entry, () => {
+                    readyIterator++;
+                    autoCleanEntriesStatus = Lang.AUTOCLEAN+' '+parseInt(readyIterator / (entries.length / 100))+'% ('+readyIterator+'/'+entries.length+')';
+                    jQuery('a.entry-autoclean .entry-name').html(autoCleanEntriesStatus);
+                    unregisterOfflineStream(entry);
+                    callback(null, true);
+                    top.sendStats('alive', sendStatsPrepareEntry(entry));
+                    if(!autoPlayed){
+                        autoPlayed = true;
+                        playEntry(entry)
+                    }
+                }, () => {
+                    readyIterator++;
+                    autoCleanEntriesStatus = Lang.AUTOCLEAN+' '+parseInt(readyIterator / (entries.length / 100))+'% ('+readyIterator+'/'+entries.length+')';
+                    jQuery('a.entry-autoclean .entry-name').html(autoCleanEntriesStatus);
+                    registerOfflineStream(entry);
+                    callback(null, false);
+                    refreshListing();
+                    top.sendStats('error', sendStatsPrepareEntry(entry))
+                })
+            )
+        } catch(e) {
+            console.error(e)
+        }
         console.log('ACAC2', testers);
     });
     if(typeof(async) == 'undefined'){
         async = require('async')
     }
     async.parallelLimit(tasks, 4, (err, results) => {
-        sn.close();
+        console.log('DONE', tasks.length);
         if(!cancel){
-            jQuery('a.entry-autoclean .entry-name').html(Lang.AUTOCLEAN+' 100%');
-            n.update(Lang.AUTOCLEAN+' 100%', 'fa-check', 'normal')
+            autoCleanEntriesStatus = Lang.AUTOCLEAN+' 100%';
+            jQuery('a.entry-autoclean .entry-name').html(autoCleanEntriesStatus);
         }
     });
     var controller = {
@@ -903,9 +930,8 @@ function autoCleanEntries(){
                 intent.off();
                 intent.destroy()
             });
-            sn.close();
-            jQuery('a.entry-autoclean .entry-name').html(Lang.TEST_THEM_ALL+' (F5)');
-            n.update(Lang.AUTOCLEAN, 'fa-times-circle', 'short')
+            autoCleanEntriesStatus = '';
+            jQuery('a.entry-autoclean .entry-name').html(Lang.TEST_THEM_ALL);
         }
     }
     autoCleanEntriesQueue.push(controller);
@@ -913,10 +939,12 @@ function autoCleanEntries(){
 }
 
 function autoCleanEntriesCancel(){
-    console.log(autoCleanEntriesQueue);
+    var cancelled = false;
+    console.warn('AUTOCLEAN CANCEL', autoCleanEntriesQueue, traceback());
     for(var i=0; i<autoCleanEntriesQueue.length; i++){
         console.log(autoCleanEntriesQueue[i]);
         if(autoCleanEntriesQueue[i]){
+            cancelled = true;
             console.log(autoCleanEntriesQueue[i]);
             autoCleanEntriesQueue[i].cancel();
             delete autoCleanEntriesQueue[i]
@@ -925,6 +953,8 @@ function autoCleanEntriesCancel(){
     autoCleanEntriesQueue = autoCleanEntriesQueue.filter(function (item) {
         return item !== undefined;
     });
+    autoCleanEntriesStatus = '';
+    return cancelled;
 }
 
 function areControlsIdle(){
@@ -1043,40 +1073,103 @@ function hasTerms(stack, needles){
     return false;
 }
 
-var tb = jQuery(top.document).find('body'), c = tb.find('iframe#controls'), d = jQuery('div#controls');
-var lastTabIndex = 1, controlsTriggerTimer = 0;
+var focusEntryItem, lastTabIndex = 1, controlsTriggerTimer = 0, isScrolling = false, scrollEnd, isTyping = false, typingEnd, isWheeling = false, wheelEnd, handleMenuFocus, scrollDirection;
 
 jQuery(function (){
-    var t = 0, x, b = jQuery(top.document).find('body'), onfocusout = () => {
-        var as = jQuery(".list a:not(.entry-back)").eq(0); //(lastTabIndex < 2)?-1:0);
-        if(areControlsActive()){
-            as.trigger("focus")
-        } else {
-            jQuery('body').one('mousemove', function (){
-                as.trigger("focus")
-            })
+    var t = 0, x, tb = jQuery(top.document).find('body'), c = tb.find('iframe#controls'), d = jQuery('div#controls'), b = jQuery('body'), l = jQuery(".list"), ld = l.find("div:eq(0)");
+
+    focusEntryItem = (a, noscroll) => {
+        console.log(a.length, a.html());
+        if(!noscroll){
+            let y = a.offset().top + l.scrollTop(), ah = a.height();
+            //console.log(a.html(), y);
+            l.scrollTop(y - ((l.height() - ah) / 2))
         }
+        jQuery('.entry-focused').removeClass('entry-focused');
+        a.addClass('entry-focused').trigger('focus')
     }
-    jQuery("body").on("blur", "a", () => {
-        setTimeout(function (){
-            if(document.activeElement){
-                var tag = document.activeElement.tagName.toLowerCase();
-                if(['a', 'input'].indexOf(tag)!=-1){
-                    lastTabIndex = document.activeElement.tabIndex;
-                    if(tag == 'input'){
-                        b.addClass('isovercontrols') // istyping 
-                    } else {
-                        b.removeClass('istyping')
-                    }
-                } else {
-                    onfocusout()
-                }
-            } else {
-                b.removeClass('istyping')
-                onfocusout()
-            }
-        }, 50);
+        
+    /* scrollstart|scrollend events */
+    scrollEnd = () => {
+        isScrolling = false;
+        b.trigger("scrollend")
+    }
+    jQuery(".list").on("scroll", () => {
+        if(isScrolling){
+            clearTimeout(isScrolling)
+        } else {
+            b.trigger("scrollstart")
+        }
+        isScrolling = setTimeout(scrollEnd, 400)
     });
+
+    /* wheelstart|wheelend events */
+    wheelEnd = () => {
+        isWheeling = false;
+        b.trigger("wheelend")
+    }
+    jQuery(".list").on("wheel", () => {
+        if(isWheeling){
+            clearTimeout(isWheeling)
+        } else {
+            b.trigger("wheelstart")
+        }
+        isWheeling = setTimeout(wheelEnd, 400)
+    });
+
+    /* typestart|typeend events */
+    typingEnd = () => {
+        isTyping = false;
+        b.trigger("typeend")
+    }
+    b.on("keydown", () => {
+        if(isTyping){
+            clearTimeout(isTyping)
+        } else {
+            b.trigger("typestart")
+        }
+        isTyping = setTimeout(typingEnd, 400)
+    });
+
+    /* adjust focus to visible items always */
+    var lastScrollY = 0;
+    handleMenuFocus = () => {
+        var newScrollY = l.scrollTop();
+        scrollDirection = (lastScrollY > newScrollY) ? 'up' : 'down';
+        lastScrollY = newScrollY;
+        if(document.activeElement){
+            var tag = document.activeElement.tagName.toLowerCase();
+            if(['a', 'input'].indexOf(tag)!=-1){ // focus a.entry or input (searching) only
+                lastTabIndex = document.activeElement.tabIndex;
+                if(tag == 'input'){
+                    tb.addClass('isovercontrols') // istyping 
+                } else {
+                    tb.removeClass('istyping')
+                }
+            }
+        } else {
+            tb.removeClass('istyping')
+        }
+    }   
+    jQuery(window).on('resize', handleMenuFocus);
+
+    /* ignore focus handling while scrolling, with mouse or keyboard */
+    (() => {
+        var unlockDelay = 0;
+        var lock = () => { 
+            ld.css("pointer-events", "none") 
+        }
+        var unlock = () => { 
+            ld.css("pointer-events", "all");
+            handleMenuFocus()
+        }
+        var unlocker = () => { 
+            clearTimeout(unlock);
+            unlockDelay = setTimeout(unlock, 400)
+        }
+        b.on("wheelstart", lock).on("wheelend", unlocker).on("typestart", lock).on("typeend", unlocker).on("blur", "a", handleMenuFocus);
+    })();
+
     var w = jQuery(window).width();  
     jQuery(window).on('resize', () => {
         w = jQuery(window).width()
@@ -1124,9 +1217,9 @@ jQuery(document).one('show', () => {
         getManifest(function (data){
             console.log('VERSION', data.version, currentVersion);
             top.currentVersion = data.version;
-            jQuery('#help').attr('title', 'Megacubo v'+top.currentVersion);
+            jQuery('#home-icon-help').attr('title', 'Megacubo v'+top.currentVersion);
             if(data.version < currentVersion){
-                jQuery('#help').html('<i class="fa fa-bell" aria-hidden="true"></i>').css('color', '#ff6c00');
+                jQuery('#home-icon-help').html('<i class="fas fa-bell" aria-hidden="true"></i>').css('color', '#ff6c00');
                 if(confirm(Lang.NEW_VERSION_AVAILABLE)){
                     gui.Shell.openExternal('https://megacubo.tv/online/?version='+data.version);
                 }
@@ -1167,16 +1260,11 @@ jQuery(window).on('unload', function (){
 
 jQuery(document).one('lngload', function (){
     window.index = [
-        {name: Lang.WHAT_TO_WATCH, label: Lang.SEARCH, logo:'assets/icons/white/tv.png', type: 'group', entries: [
-            {name: Lang.FIND_CHANNELS + ' (F3)', label: Lang.ALL_LISTS, logo:'fa-search fa-shake', url:'javascript:;', type: 'option', callback: function (){setupSearch(false, 'complete', Lang.FIND_CHANNELS + ' (F3)')}},
-            {name: Lang.FIND_VIDEOS, label: Lang.FIND_VIDEOS, logo:'fa-film', url:'javascript:;', type: 'option', callback: function (){setupSearch(false, 'video', Lang.FIND_VIDEOS)}},
-            {name: Lang.MAGNET_SEARCH, label: Lang.MAGNET_SEARCH, logo:'fa-magnet', url:'javascript:;', type: 'option', callback: function (){setupSearch(false, 'magnet', Lang.MAGNET_SEARCH)}},
-        ]},
-        {name: Lang.IPTV_LISTS, label: Lang.PROCESSING, logo:'fa-list', url:'javascript:;', type: 'group', entries: [getLoadingEntry()]},
+        {name: Lang.WHAT_TO_WATCH, label: Lang.SEARCH, logo:'assets/icons/white/tv.png', type: 'group', entries: [], renderer: getWhatToWatch},
         {name: Lang.OPTIONS, logo:'assets/icons/white/settings.png', url:'javascript:;', type: 'group', entries: [
             {name: Lang.OPEN_URL+' (Ctrl+U)', logo:'fa-link', type: 'option', callback: () => {playCustomURL()}},
             {name: Lang.WINDOW, logo:'fa-window-maximize', type: 'group', renderer: getWindowModeEntries, entries: []},
-            {name: Lang.LANGUAGE, logo:'fa-globe', type: 'group', renderer: getLanguageEntries, callback: markActiveLocale, entries: []},
+            {name: Lang.LANGUAGE, logo:'fa-language', type: 'group', renderer: getLanguageEntries, callback: markActiveLocale, entries: []},
             {name: Lang.PARENTAL_CONTROL, logo: 'assets/icons/white/parental-control.png', type: 'group', renderer: getParentalControlEntries, entries: []},
             {name: Lang.SEARCH_RANGE, logo: 'fa-search', type: 'group', renderer: getSearchRangeEntries, entries: [], callback: () => {
                 var entries = jQuery('a.entry-option'), range = Config.get('search-range') || 18;
@@ -1201,7 +1289,6 @@ jQuery(document).one('lngload', function (){
         registerSource(communityList(), Lang.COMMUNITY_LIST, true);
     }
 
-    readSourcesToIndex();
     setTimeout(() => {
         if(!top.PlaybackManager.intents.length){
             playResume()
@@ -1225,19 +1312,6 @@ jQuery(document).one('lngload', function (){
     listEntriesByPath(listingPath);
     showControls();
 
-    var lastScrollY = 0;
-    jQuery('div.list').on('scroll resize', function (){
-        var newScrollY = jQuery(this).scrollTop();
-        var direction = (lastScrollY > newScrollY) ? 'up' : 'down';
-        lastScrollY = newScrollY;
-        if(!jQuery(document.activeElement).is(':in-viewport')){
-            var as = jQuery(this).find('a:in-viewport');
-            if(as && as.length){
-                as.eq(direction ? 0 : -1).trigger('focus')
-            }
-        }
-    })
-
     setTimeout(function (){
         win.show();
         jQuery(document).trigger('show');
@@ -1245,7 +1319,6 @@ jQuery(document).one('lngload', function (){
             top.restoreInitialSize();
             top.jQuery(top.document).trigger('show');
             if(top.splash){
-                // top.splash.hide();
                 top.splash.close()
             };
         }

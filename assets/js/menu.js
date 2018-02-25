@@ -2,8 +2,8 @@
 var menuTemplates = {
     'option': '<a href="[url]" onclick="return false;" class="entry entry-option [class]"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><img src="[logo]" title="[name] - [group]" onerror="this.onerror=null;this.src=\'[default-logo]\';" /></span></td><td><span class="entry-name">[name]</span><span class="entry-label">[label]</span></td></tr></table></a>',
     'disabled': '<a href="[url]" onclick="return false;" class="entry entry-disabled entry-offline [class]"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><img src="[logo]" title="[name] - [group]" onerror="this.onerror=null;this.src=\'[default-logo]\';" /></span></td><td><span class="entry-name">[name]</span><span class="entry-label">[label]</span></td></tr></table></a>',
-    'input': '<a href="[url]" onclick="return false;" class="entry entry-input"><table class="entry-search"><tr><td><input type="text" style="background-image: url([logo]);" /></td><td class="entry-logo-c">...</td></tr></table></a>', // entry-input-container entry-search-helper
-    'check': '<a href="[url]" onclick="return false;" class="entry entry-option [class]"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><i class="fa fa-toggle-off fa-as-entry-logo" aria-hidden="true"></i></span></td><td><span class="entry-name">[name]</span></td></tr></table></a>',
+    'input': '<a href="[url]" onclick="return false;" class="entry entry-input"><table class="entry-search"><tr><td><input type="text" style="background-image: url([logo]);" /></td><td class="entry-logo-c"></td></tr></table></a>', // entry-input-container entry-search-helper
+    'check': '<a href="[url]" onclick="return false;" class="entry entry-option [class]"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><i class="fas fa-toggle-off entry-logo-fa" aria-hidden="true"></i></span></td><td><span class="entry-name">[name]</span></td></tr></table></a>',
     'stream': '<a href="[url]" onclick="return false;" class="entry entry-stream [class]"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><img src="[logo]" data-lazy-src="[lazy-logo]" title="[name] - [group]" onerror="this.onerror=null;this.src=\'[default-logo]\';" /></span></td><td><span class="entry-name">[format-name]</span><span class="entry-label">[label]</span></td></tr></table></a>',
     'back': '<a href="[url]" onclick="return false;" class="entry entry-back [class]"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><img src="[logo]" title="[name] - [group]" /></span></td><td><span class="entry-name">[name]</span></td></tr></table></a>',
     'group': '<a href="[url]" onclick="return false;" class="entry entry-group [class]"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><img src="[logo]" title="[name] - [group]" /></span></td><td><span class="entry-name">[name]</span><span class="entry-label">[label]</span></td></tr></table></a>' // onerror="nextLogoForGroup(this)" 
@@ -17,6 +17,9 @@ var defaultIcons = {
     'check': 'fa-toggle-off',
     'group': 'assets/icons/white/default-group.png'
 };
+
+var loadingToActionDelay = 200; // prevent a loading message from not appearing by applying a delay before start any CPU intensive task
+var searchPath = null;
 
 function assumePath(name, path){
 	if(!name){
@@ -54,49 +57,13 @@ function updateRootEntry(name, data){
     }
 }
 
-function readSourcesToIndex(callback){
-    var channelsPath = Lang.IPTV_LISTS;
-    window.channelsIndex = window.channelsIndex || {};
-    var sources = getSources(), activeSrc = getActiveSource(), fetchCallback = (parsed, parsedFlat) => {
-        var entries = parsed;
-        window.channelsIndex[activeSrc] = parsedFlat;
-        setSourceMeta(activeSrc, 'length', parsedFlat.length);
-        window.index = writeIndexPathEntries(channelsPath, entries);
-        var locale = getLocale(false, true), length = getSourceMeta(activeSrc, 'length') || 0;
-        updateRootEntry(channelsPath, {label: Number(length).toLocaleString(locale)+' '+Lang.STREAMS.toLowerCase()});
-        if(typeof(callback)=='function'){
-            callback()
-        }
-        if(isLoadingEntryRendered()){
-            refreshListingIfMatch(channelsPath)
-        }
-    }
-    if(!sources.length || !activeSrc){
-        updateRootEntry(channelsPath, {label: '0 '+Lang.STREAMS.toLowerCase(), entries: []});
-        if(typeof(callback)=='function'){
-            callback()
-        }
-    } else {
-        updateRootEntry(channelsPath, {entries: [getLoadingEntry()]});
-        ListMan.deepParse(activeSrc, fetchCallback)
-        for(var i in sources){
-            if(sources[i][1] != activeSrc){
-                ListMan.parse(sources[i][1], (parsedFlat) => {
-                    window.channelsIndex[sources[i][1]] = parsedFlat;
-                    setSourceMeta(sources[i][1], 'length', parsedFlat.length);
-                })
-            }
-        }
-    }
-}
-
 function getLoadingEntry(txt){
     if(!txt) txt = Lang.LOADING;
     return {
         type: 'option',
         name: txt,
         label: '',
-        logo: 'fa-spin fa-circle-o-notch',
+        logo: 'fa-circle-notch fa-spin',
         class: 'entry-loading'
     }
 }
@@ -107,7 +74,8 @@ function isLoadingEntryRendered(){
 
 function listEntryRender(entry, container, tabIndexOffset){
     //console.log(entry);
-    if(!(entry instanceof Object)){
+    if(entry == null || typeof(entry)!='object'){
+        console.log('BAD BAD ENTRY', entry, typeof(entry));
         return;
     }
     if(typeof(tabIndexOffset)!='number'){
@@ -136,17 +104,19 @@ function listEntryRender(entry, container, tabIndexOffset){
     }
     var html = menuTemplates[entry.type];
     html = html.replace('<a ', '<a tabindex="'+tabIndexOffset+'" ').replace('<input ', '<input tabindex="'+tabIndexOffset+'" ');
-    html = html.replaceAll('[name]', (entry.prependName || '') + entry.name);
+    html = html.replaceAll('[name]', displayPrepareName(entry.name, entry.prependName || '', entry.appendName || ''));
     if(html.indexOf('[format-name]')!=-1){
         var minLengthToMarquee = 36, n = entry.rawname ? parseM3U8NameTags(entry.rawname) : entry.name;
         if(entry.name.length >= minLengthToMarquee){
             n = '<span>'+n+'</span>';
             html = html.replace('entry-name', 'entry-name marquee')
         }
-        html = html.replaceAll('[format-name]', (entry.prependName || '') + n);
+        html = html.replaceAll('[format-name]', displayPrepareName(n, entry.prependName || '', entry.appendName || ''));
     }
     if(logo.substr(0, 3)=="fa-"){
-        html = html.replace(new RegExp('<img[^>]+>', 'mi'), '<i class="fa '+logo+' fa-as-entry-logo" aria-hidden="true"></i>')
+        html = html.replace(new RegExp('<img[^>]+>', 'mi'), '<i class="fas '+logo+' entry-logo-fa" aria-hidden="true"></i>')
+    } else if(logo.indexOf(" fa-")!=-1){
+        html = html.replace(new RegExp('<img[^>]+>', 'mi'), '<i class="'+logo+' entry-logo-fa" aria-hidden="true"></i>')
     } else {
         html = html.replaceAll('[logo]', logo);
         html = html.replaceAll('[lazy-logo]', originalLogo);
@@ -156,10 +126,10 @@ function listEntryRender(entry, container, tabIndexOffset){
     html = html.replaceAll('[label]', entry.label || entry.group || '');
     html = html.replaceAll('[class]', entry.class || '');
     html = html.replaceAll('[url]', entry.url||'javascript:;');
-    //console.log(html, entry);
+    console.log(html, entry);
     var jEntry = jQuery(html).data('entry-data', entry).appendTo(container);
     if(entry.type != 'disabled'){
-        jEntry.on('click', function (){
+        jEntry.on('mousedown', function (){
             var data = jQuery(this).data('entry-data');
             triggerEntry(data, this)
         });
@@ -196,10 +166,10 @@ function listEntryRender(entry, container, tabIndexOffset){
     } else if(entry.type == 'check') {
         var checked = typeof(entry.checked)!='undefined' && entry.checked();
         var handleChecking = function (element, docheck){
-            element.find('i.fa').removeClass(docheck?'fa-toggle-off':'fa-toggle-on').addClass(docheck?'fa-toggle-on':'fa-toggle-off').css('opacity', docheck ? 1 : 0.5);
+            element.css('opacity', docheck ? 1 : 0.75).find('svg, i:eq(0)').replaceWith('<i class="fas '+(docheck?'fa-toggle-on':'fa-toggle-off')+' entry-logo-fa" aria-hidden="true"></i>');
         }, checkCallback = entry.check || false;
         handleChecking(jEntry, checked);
-        jEntry.on('click', function (){
+        jEntry.on('mousedown', function (){
             checked = !checked;
             handleChecking(jEntry, checked);
             if(checkCallback) checkCallback(checked)
@@ -209,8 +179,8 @@ function listEntryRender(entry, container, tabIndexOffset){
         clearTimeout(listEntryFocusOnMouseEnterTimer);
         var e = this;
         listEntryFocusOnMouseEnterTimer = setTimeout(function (){
-            e.focus()
-        }, 250);
+            focusEntryItem(jQuery(e), true)
+        }, 600);
     })
     return jEntry;
 }
@@ -350,7 +320,9 @@ function listEntries(entries, path){
         entries[i].path = path;
         listEntryRender(entries[i], container, tabIndexOffset);
         tabIndexOffset++;
+        console.log('LISTENTRIES', entries[i], container.html().substr(0, 24));
     }
+    console.log('LISTENTRIES', container.html());
     var rescroll = () => {
         lst.prop('scrollTop', top);
         if(top && lst.prop('scrollTop')<top && lst.height() > top){
@@ -361,7 +333,9 @@ function listEntries(entries, path){
     var lps = 7;
     lst.find('.marquee:not(.marquee-adjusted)').each((i, e) => {
         jQuery(e).addClass('marquee-adjusted').find('*:eq(0)').css('animation-duration', parseInt(e.innerText.length / lps)+'s')
-    })
+    });
+    focusEntryItem(lst.find('a.entry:eq(0)'));
+    window['lhr'] = jQuery('.list > div').html()
 }
 
 var lastParentEntry = 0;
@@ -375,7 +349,8 @@ function refreshListing(){
         if(entry) {
             triggerEntry(entry)
         } else {
-            listEntriesByPath(listingPath)
+            console.warn('no triggerer', listingPath);
+            listEntriesByPathTriggering(listingPath)
         }
     }
     if(top){
@@ -408,6 +383,9 @@ function fetchEntries(url, callback){
     if(doFetch){
         jQuery.getJSON(url, (ndata) => {
             if(jQuery.isArray(ndata) && ndata.length){
+                for(var i=0; i<ndata.length; i++){
+                    ndata[i].name = fixUTF8(ndata[i].name)
+                }
                 Store.set(key, ndata, 60);
                 Store.set(fbkey, ndata, 30 * (24 * 3600)); // fallback
                 callback(ndata)
@@ -451,14 +429,46 @@ function fetchAndRenderEntries(url, name, filter, callback){
                 failed()
             }
         })
-    }, 50);
+    }, loadingToActionDelay);
     return [getLoadingEntry()];
 }
 
-function listEntriesByPath(path, append, nofx){
+function fetchAndRenderWatchingEntries(name, filter, callback){
+    //listingPath = '/'+Lang.SEARCH;
+    var path = assumePath(name);
+    console.log('FETCH WATCHING', name, path);
+    var container = getListContainer(true);
+    backEntryRender(container, dirname(path));
+    var failed = () => {
+        notify(Lang.DATA_FETCHING_FAILURE, 'fa-warning', 'normal');
+        triggerBack()
+    }
+    setTimeout(() => { // avoid mess the loading entry returned, getting overridden by him
+        getWatchingData((options) => {
+            if(options.length){
+                console.log(options);
+                if(typeof(filter)=='function'){
+                    options = options.map(filter)
+                }
+                jQuery('.entry:not(.entry-back)').remove();
+                console.log(options, name, path);
+                index = writeIndexPathEntries(path, options, index);
+                listEntriesByPath(path);
+                if(typeof(callback)=='function'){
+                    callback(options)
+                }
+            } else {
+                failed()
+            }
+        })
+    }, loadingToActionDelay);
+    return [getLoadingEntry()];
+}
+
+function listEntriesByPath(path, append, nofx, cb){
     console.log(path);
     if(!append && path.indexOf(Lang.SEARCH+'/') != -1){
-        return listEntriesByPathTriggering(path)
+        return listEntriesByPathTriggering(path, cb)
     }
     if(!nofx && listingPath.length != path.length){
         if(listingPath.length > path.length){
@@ -497,10 +507,13 @@ function listEntriesByPath(path, append, nofx){
             backEntryRender(container, dirname(path));
         }
     }
-    listEntries(list, path);
+    listEntries(list, path, cb);
     updateStreamEntriesFlags();
     if(!append){
         container.find('a:eq(0)').trigger('focus')
+    }
+    if(typeof(cb)=='function'){
+        cb()
     }
 }
 
@@ -626,16 +639,29 @@ function setEntryFlag(el, flag){
 function findEntries(term){
     var fas;
     if(top){
-        fas = jQuery('.entry'), term = top.decodeEntities(term).toLowerCase(), isPath = (term.indexOf('//') != -1 || term.indexOf(':\\') != -1 || term.indexOf('magnet:') != -1 || term.indexOf(':/') != -1);
+        fas = jQuery('.entry'), term = top.decodeEntities(term).toLowerCase();
         fas = fas.filter(function (){
-            var stub = '';
-            if(isPath){
-                stub += jQuery(this).attr('href').toLowerCase();
-            } else {
-                stub += jQuery(this).find('.entry-name').html().toLowerCase();
-            }
+            var stub = jQuery(this).attr('href').toLowerCase();
             var h = top.decodeEntities(stub);
             if(h.indexOf(term) == -1){
+                //console.log(stub, term);
+                return false;
+            }
+            return true;
+        });
+    } else {
+        fas = jQuery([]);
+    }
+    return fas;
+}
+
+function findEntriesByName(term, _strict){
+    var fas;
+    if(top){
+        fas = jQuery('.entry');
+        fas = fas.filter(function (){
+            var h = top.decodeEntities(jQuery(this).find('.entry-name').html());
+            if(_strict ? (h != term) : (h.indexOf(term) == -1)){
                 //console.log(stub, term);
                 return false;
             }
@@ -663,7 +689,7 @@ function findActiveEntries(term){
 }
 
 function removeLoadingFlags(){
-    var fa = 'fa-circle-o-notch', entries = findActiveEntries(fa);
+    var fa = 'fa-circle-notch', entries = findActiveEntries(fa);
     for(var i=0;i<entries.length;i++){
         console.log('pSET-'+i);
         setEntryFlag(entries[i], '');
@@ -696,7 +722,7 @@ function markActiveLocale(){
         console.log('pSET-'+i);
         setEntryFlag(entries[i], '');
     }
-    var entries = findEntries(locale).add(findEntries(slocale));
+    var entries = findEntriesByName(locale).add(findEntriesByName(slocale));
     for(var i=0;i<entries.length;i++){
         console.log('SET-'+i);
         setEntryFlag(entries[i], fa);
@@ -716,22 +742,29 @@ function setupSearch(term, type, name){
     var entry = {
         type: 'input',
         change: function (entry, element, val){
-            if(val){
-                lastSearchTerm = val;
-                Store.set('last-search-term', val);
-            }
+            var np = container.find('a.entry-input');
+            lastSearchTerm = val;
+            Store.set('last-search-term', val);
             clearTimeout(searchKeypressTimer);
             container.find('a.entry-stream, a.entry-loading, a.entry-autoclean').remove();
-            listEntries([getLoadingEntry()], listingPath)
+            listEntries([getLoadingEntry()], listingPath);
+            focusEntryItem(np);
+            np.find('input').get(0).focus();
             searchKeypressTimer = setTimeout(() => {
                 clearTimeout(searchKeypressTimer);
                 var r;
                 switch(type){
-                    case "complete":
-                        r = fetchSharedListsSearchResults();
-                        r = r.filter((entry) => {
-                            return !isVideo(entry.url)
-                        })
+                    case "live":
+                        if(val.length){
+                            r = fetchSharedListsSearchResults();
+                            r = r.filter((entry) => {
+                                return !entry.isvideo;
+                            }).concat(r.filter((entry) => {
+                                return entry.isvideo;
+                            }))
+                        } else {
+                            r = getWatchingData().filter((entry) => { return isLive(entry.url) });
+                        }
                         break;
                     /*
                     case "prn":
@@ -739,18 +772,29 @@ function setupSearch(term, type, name){
                         break;
                     */
                     case "magnet":
-                        r = fetchMagnetSearchResults();
+                        if(val.length){
+                            r = fetchMagnetSearchResults();
+                        } else {
+                            r = getWatchingData().filter((entry) => { return isMagnet(entry.url) });
+                        }
                         break;
                     case "video":
-                        r = fetchVideoSearchResults();
+                        if(val.length){
+                            r = fetchVideoSearchResults();
+                        } else {
+                            r = getWatchingData().filter((entry) => { return isVideo(entry.url) && !isMagnet(entry.url) });
+                        }
                         break;
                     default:
-                        r = fetchSearchResults();
+                        r = []; //fetchSearchResults();
                         break;
                 }
+                r = orderEntriesByWatching(r);
                 container.find('a.entry-stream, a.entry-loading, a.entry-autoclean').remove();
                 console.log('QQQ', r, val, type, listingPath);
                 listEntries(r, listingPath);
+                focusEntryItem(np);
+                np.find('input').get(0).focus();
                 if(val.length > 2){
                     top.sendStats('search', {query: val, type: type})
                 }
@@ -787,26 +831,39 @@ function fetchVideoSearchResults(){
     var c = jQuery('.list > div > div');
     var q = c.find('input').val().toLowerCase();
     if(q.length > 1){
+        var cb = (entries) => {
+            if(listingPath.indexOf('/'+Lang.FIND_VIDEOS)==-1 || c.find('input').val().toLowerCase() != q){
+                return;
+            }
+            var _entries = fetchSharedListsSearchResults('video');
+            if(_entries.length > 1){
+                entries = _entries.concat(entries)
+            }
+            var container = getListContainer(false);
+            container.find('a.entry-stream, a.entry-loading').remove();
+            listEntries(entries, listingPath);
+        }
         setTimeout(() => { // avoid mess the loading entry returned, getting overridden by him
             if(!ytsr){
                 ytsr = require('ytsr')
             }
             ytsr.get_filters(q, function(err, filters) {
                 console.log(filters);
+                if(!jQuery.isArray(filters)){
+                    return cb([])
+                }
                 var filter = filters['type'].find((o) => {return o.name == 'Video'});
                 var options = {
                     limit: 36,
                     nextpage_ref: filter.ref,
                 }
                 ytsr.search(null, options, function(err, search_results) {
-                    if(err) throw err;
+                    if(err){
+                        return cb([])
+                    }
                     //console.log(search_results);
                     //console.log(search_results.items);
                     //console.log(search_results.items.length);
-                    console.log('HH', listingPath, q, c.find('input').val().toLowerCase())
-                    if(listingPath.indexOf('/'+Lang.FIND_VIDEOS)==-1 && c.find('input').val().toLowerCase() == q){
-                        return;
-                    }
                     var entries = [];
                     for(var i=0; i<search_results.items.length; i++){
                         //console.log(search_results.items[i]);
@@ -818,17 +875,11 @@ function fetchVideoSearchResults(){
                             label: search_results.items[i].author.name
                         })
                     }
-                    var _entries = fetchSharedListsSearchResults('video');
-                    if(_entries.length > 1){
-                        entries = _entries.concat(entries)
-                    }
-                    var container = getListContainer(false);
-                    container.find('a.entry-stream, a.entry-loading').remove();
-                    listEntries(entries, listingPath);
+                    cb(entries);
                     //console.log(entries);
                 });
             })
-        }, 50);
+        }, loadingToActionDelay);
         return [getLoadingEntry()];
     }
     return [];
@@ -861,6 +912,7 @@ function fetchMagnetSearchResults(){
                 }
                 var container = getListContainer(false);
                 container.find('a.entry-stream, a.entry-loading').remove();
+                entries = orderEntriesByWatching(entries);
                 listEntries(entries, listingPath);
             });
             /*
@@ -869,7 +921,7 @@ function fetchMagnetSearchResults(){
                 size: '692.29 MB',
                 popularity: '1099' }]
             */
-        }, 50);
+        }, loadingToActionDelay);
         return [getLoadingEntry()];
     }
     return [];
@@ -913,7 +965,7 @@ function fetchPRNSearchResults(){
             Searcher.videos().then(callback).catch(() => {
                 callback([])
             })
-        }, 50);
+        },loadingToActionDelay);
         return [getLoadingEntry()];
     }
     return [];
@@ -952,6 +1004,13 @@ function buildSharedListsSearchIndex(callback){
                 var url = urls[iterator];
                 iterator++;
                 ListMan.parse(url, (entries) => {
+                    for(var i=0; i<entries.length; i++){
+                        //console.log('entry', entries[i]);
+                        entries[i].isvideo = (entries[i].url.indexOf('mp4') != -1);
+                        entries[i].searchTerms = Array.from(new Set((entries[i].name + ' ' + entries[i].group).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').split(" "))).join(" ");
+                        //console.log('entry pk', entries[i], entries[i].searchTerms);
+                    }
+                    console.log('HOORAY', entries);
                     sharedListsSearchIndex[url] = entries;
                     completeIterator++;
                     if(typeof(Lang.SEARCH)!='undefined' && listingPath.indexOf(Lang.SEARCH+'/'+Lang.COMPLETE_SEARCH)!=-1){ // do we still in the search view?
@@ -969,42 +1028,48 @@ function buildSharedListsSearchIndex(callback){
             }
             async.parallelLimit(tasks, 20, (err, results) => {
                 buildenSharedListsSearchIndex = true;
-                if(typeof(callback)=='function'){
-                    callback()
-                }
+                jQuery(window).trigger('search-index-ready')
             })
         })
+    } else if(callback) {
+        jQuery(window).off('search-index-ready', callback).on('search-index-ready', callback)
     }
 }
 
 buildSharedListsSearchIndex();
 
 var sharedListsSearchCaching = false;
-function fetchSharedListsSearchResults(type){
+function fetchSharedListsSearchResults(type, term, matchAll){
     if(buildenSharedListsSearchIndex === true){
-        var c = jQuery('.list > div > div input'), r = [], limit = 36, q = c.val().toLowerCase();
-        if(c.length && q.length > 2){
-            if(sharedListsSearchCaching && sharedListsSearchCaching.query == q && sharedListsSearchCaching.type == type){
+        var r = [], limit = 64;
+        if(!term){
+            var c = jQuery('.list > div > div input');
+            if(c.length){
+                term = c.val().toLowerCase()
+            } else {
+                term = ''
+            }
+        }
+        if(term && term.length > 2){
+            if(sharedListsSearchCaching && sharedListsSearchCaching.query == term && sharedListsSearchCaching.type == type){
                 r = sharedListsSearchCaching.entries;
             } else {
-                var maybe = [], terms = q.split(' ').filter((s) => { return s.length > 2; });
-                if(q.length > 1){
+                var maybe = [], terms = term.split(' ').filter((s) => { return s.length > 2; });
+                if(terms.length >= 1){ 
                     for(var list in sharedListsSearchIndex){
                         for(var n in sharedListsSearchIndex[list]){
                             if(r.length >= limit) break;
-                            var v = isVideo(sharedListsSearchIndex[list][n].url);
-                            if(type=='video'){
-                                if(!v){
+                            if(type && ['video', 'stream'].indexOf(type) != -1){
+                                if(type =='video' && !sharedListsSearchIndex[list][n].isvideo){
                                     continue;
                                 }
-                            } else {
-                                if(v){
+                                if(type =='stream' && sharedListsSearchIndex[list][n].isvideo){
                                     continue;
                                 }
                             }
-                            var hits = 0, s = sharedListsSearchIndex[list][n].name.toLowerCase();
+                            var hits = 0;
                             for(var i in terms){
-                                if(s.indexOf(terms[i])!=-1){
+                                if(sharedListsSearchIndex[list][n].searchTerms.indexOf(terms[i])!=-1){
                                     hits++;
                                 }
                             }
@@ -1012,7 +1077,7 @@ function fetchSharedListsSearchResults(type){
                                 sharedListsSearchIndex[list][n].source = list;
                                 if(hits == terms.length){
                                     r.push(sharedListsSearchIndex[list][n]);
-                                } else {
+                                } else if(!matchAll) {
                                     maybe.push(sharedListsSearchIndex[list][n])
                                 }
                             }
@@ -1021,13 +1086,9 @@ function fetchSharedListsSearchResults(type){
                     if(r.length < limit){
                         r = r.concat(maybe.slice(0, limit - r.length))
                     }
+                    sharedListsSearchCaching = {type: type, query: term, entries: r};
                 }
-                sharedListsSearchCaching = {type: type, query: q, entries: r};
             }
-        }
-        var n = Lang.TEST_THEM_ALL + ' (F5)';
-        if(r.length > 2 && !isListed(n, r)){
-            r.unshift({type: 'option', name: n, label: Lang.AUTOCLEAN, logo: 'fa-magic', class: 'entry-autoclean', callback: autoCleanEntries})
         }
         return r;
     } else {
@@ -1037,8 +1098,103 @@ function fetchSharedListsSearchResults(type){
             jQuery('.list input').trigger('input')
         });
         jQuery('.entry-loading').remove();
-        return [getLoadingEntry(Lang.GENERATING_INDEX+'... 0%')];
+        return [getLoadingEntry(Lang.GENERATING_INDEX+'...')];
     }
+}
+
+var sharedListsGroups = false;
+function fetchSharedListsGroups(type){
+    if(buildenSharedListsSearchIndex === true){
+        if(sharedListsGroups === false){
+            sharedListsGroups = {video: [], live: []};
+            let processedGroups = {video: [], live: []}, gtype;
+            for(var list in sharedListsSearchIndex){
+                for(var n in sharedListsSearchIndex[list]){
+                    var g = sharedListsSearchIndex[list][n].group;
+                    if(g && g.indexOf('/')==-1){
+                        gtype = sharedListsSearchIndex[list][n].isvideo ? 'video' : 'live';
+                        if(processedGroups[gtype].indexOf(g) == -1){
+                            processedGroups[gtype].push(g);
+                            g = g.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                            if(sharedListsGroups[gtype].indexOf(g) == -1){
+                                sharedListsGroups[gtype].push(g)
+                            }
+                        }
+                    }
+                }
+            }
+            sharedListsGroups['video'].sort();
+            sharedListsGroups['live'].sort();
+        }
+        switch(type){
+            case 'video':
+                return sharedListsGroups['video'];
+                break;
+            case 'live':
+                return sharedListsGroups['live'];
+                break;
+            default:
+                var r = sharedListsGroups['live'];
+                r = r.concat(sharedListsGroups['video']);
+                r = r.sort();
+                return r;
+        }
+    } else {
+        return [];
+    }
+}
+
+function lettersToRange(a, b){
+    if(a == b) return a;
+    return a+'-'+b;
+}
+
+function sharedGroupsAsEntries(type){
+    var groups = fetchSharedListsGroups(type);
+    groups = groups.map((group) => {
+        return {
+            name: group,
+            type: 'group',
+            renderer: () => {
+                return fetchSharedListsSearchResults(false, group, true)
+            }
+        }
+    });
+    var masterGroups = {}, firstChar;
+    for(var i=0; i<groups.length; i++){
+        firstChar = groups[i].name.toUpperCase().match(new RegExp('[A-Z0-9]'));
+        firstChar = (firstChar && firstChar.length >= 1) ? firstChar[0] : '0';
+        if(typeof(masterGroups[firstChar])=='undefined'){
+            masterGroups[firstChar] = [];
+        }
+        masterGroups[firstChar].push(groups[i])
+    }
+    var masterGroupsParsed = [], parsingGroup = [], parsingGroupIndexStart = false, parsingGroupIndexEnd = false;
+    for(var key in masterGroups){
+        if(parsingGroupIndexStart === false){
+            parsingGroupIndexStart = key;
+        }
+        if((parsingGroup.length + masterGroups[key].length) >= folderSizeLimit){
+            masterGroupsParsed.push({
+                name: lettersToRange(parsingGroupIndexStart, parsingGroupIndexEnd)+' ('+parsingGroup.length+')',
+                type: 'group',
+                entries: parsingGroup
+            });
+            parsingGroup = masterGroups[key];
+            parsingGroupIndexStart = key;
+        } else {
+            parsingGroup = parsingGroup.concat(masterGroups[key])
+        }
+        parsingGroupIndexEnd = key;
+    }
+    if(parsingGroup.length){
+        masterGroupsParsed.push({
+            name: lettersToRange(parsingGroupIndexStart, parsingGroupIndexEnd)+' ('+parsingGroup.length+')',
+            type: 'group',
+            entries: parsingGroup
+        })
+    }
+    return masterGroupsParsed;
 }
 
 function hideSearchField(){
@@ -1050,20 +1206,34 @@ function hideSearchField(){
     }
 }
 
+function getFocusedEntry(){
+    var f = jQuery('body').find('a.entry-focused');
+    if(!f.length || !f.is(':in-viewport')){
+        f = jQuery('body').find('a.entry:in-viewport').eq(scrollDirection == 'up' ? 0 : -1);
+    }
+    return f;
+}
+
 function focusPrevious(){
-    var as = getListContainer().find('a');
-    console.log(lastTabIndex, document.activeElement);
-    var ni = (lastTabIndex <= 0) ? (as.length - 1) : (lastTabIndex - 2);
-    as.eq(ni).trigger('focus')
-    console.log(ni)
+    var e = getFocusedEntry(), p = e.prev('a.entry:visible, a.option:visible');
+    if(!p.length){
+        p = jQuery('body').find(e.hasClass('entry')?'a.option:visible':'a.entry:visible').eq(-1);
+        if(!p.length){
+            p = jQuery('body').find('a.entry:visible:eq(-1)')
+        }
+    }
+    focusEntryItem(p)
 }
 
 function focusNext(){
-    var as = getListContainer().find('a');
-    //console.log(lastTabIndex, document.activeElement);
-    var ni = (lastTabIndex >= as.length) ? 0 : lastTabIndex;
-    as.eq(ni).trigger('focus')
-    //console.log(ni)
+    var e = getFocusedEntry(), p = e.next('a.entry:visible, a.option:visible');
+    if(!p.length){
+        p = jQuery('body').find(e.hasClass('entry')?'a.option:visible':'a.entry:visible').eq(0);
+        if(!p.length){
+            p = jQuery('body').find('a.entry:visible:eq(0)')
+        }
+    }
+    focusEntryItem(p)
 }
 
 function triggerEntryAction(type){
@@ -1071,28 +1241,64 @@ function triggerEntryAction(type){
 }
 
 function triggerEnter(){
-    document.activeElement.click()
+    var e = document.activeElement;
+    if(e){
+        jQuery(e).trigger('mousedown')
+    }
 }
 
 function triggerBack(){
     var b = getListContainer().find('.entry-back');
     if(b && b.length){
-        b.trigger('click')
+        b.trigger('mousedown')
     } else {
         hideControls()
     }
 }
 
-function listEntriesByPathTriggering(path){
-    var c = getFrame('controls'), ms = 200;
+function listEntriesByPathTriggering(path, cb){
+    var c = getFrame('controls'), ms = 25, e = jQuery('.list > div').hide(), retries = 10;
     c.listEntriesByPath('');
     path = path.split('/');
     var nav = () => {
-        if(path.length){
-            var next = path.shift();
-            c.findEntries(next).click();
-            if(path.length){
+        if(path.length){ 
+            if(e.find('.entry-loading').length){
+                e.show();
                 setTimeout(nav, ms)
+            } else {
+                var next = path.shift();
+                if(next){
+                    var ns = c.findEntriesByName(next, true);
+                    if(ns.length){
+                        ns.trigger('mousedown');
+                        if(path.length){
+                            setTimeout(nav, ms)
+                        } else {
+                            e.show();
+                            if(typeof(cb)=='function'){
+                                cb()
+                            }
+                        }
+                    } else if(retries) {
+                        path.unshift(next);
+                        setTimeout(nav, ms)
+                    } else {
+                        e.show();
+                        if(typeof(cb)=='function'){
+                            cb()
+                        }
+                    }
+                } else {
+                    e.show();
+                    if(typeof(cb)=='function'){
+                        cb()
+                    }
+                }
+            }
+        } else {
+            e.show();
+            if(typeof(cb)=='function'){
+                cb()
             }
         }
     }
@@ -1121,22 +1327,7 @@ var showLogos = !Config.get('hide-logos');
 jQuery(() => {    
     addFilter('filterEntries', (entries, path) => {
         //console.log('PREFILTERED', entries);
-        var logosToCheck = [], nentries = [], offlineURLs = getOfflineStreamsURLs(), offline = [], forceClean = false, isStreamsListing = false, offLabel = ' (OFF)';
-        if(path == Lang.WHAT_TO_WATCH){
-            if(!isListed(Lang.BEEN_WATCHED, entries)){
-                entries.push({name: Lang.BEEN_WATCHED, logo: 'fa-users', label: onlineUsersCount, type: 'group', renderer: getWatchingEntries, entries: []})
-                getXtraEntries().forEach((e) => {
-                    entries.push(e)
-                })
-            }
-        }
-        if(path == Lang.IPTV_LISTS){
-            if(!isListed(Lang.MY_LISTS, entries)){
-                entries.unshift({name: Lang.MY_LISTS, logo: 'fa-shopping-bag', type: 'group', entries: [], renderer: () => {
-                    return getListsEntries(false, false)
-                }})
-            }
-        }
+        var hasLiveEntries = false, firstGroupEntryOffset = -1, firstStreamEntryOffset = -1, logosToCheck = [], nentries = [], offlineURLs = getOfflineStreamsURLs(), offline = [], forceClean = false, isStreamsListing = false;
         for(var i=0; i<entries.length; i++){
             // entry properties are randomly(?!) coming as buffers instead of strings, treat it until we discover the reason
             if(['undefined', 'string'].indexOf(typeof(entries[i].name))==-1){
@@ -1160,15 +1351,6 @@ jQuery(() => {
                 if(!isStreamsListing){
                     isStreamsListing = true;
                 }
-                /*
-                if(!showLogos && entry.logo && entry.logo.indexOf('//')!=-1){
-                    if(logosToCheck.indexOf(entry.logo)==-1){
-                        logosToCheck.push(entry.logo)
-                    }
-                    entry.originalLogo = entry.logo;
-                    entry.logo = defaultIcons['stream'];
-                }
-                */
                 if(!showLogos){
                     entry.logo = defaultIcons['stream'];
                 }
@@ -1177,6 +1359,9 @@ jQuery(() => {
                 }
                 if(offlineURLs.indexOf(entry.url)!=-1){
                     entry.offline = true;
+                    if(typeof(entry.label) != 'string'){
+                        entry.label = '';
+                    }
                     if(entry.label.indexOf(offLabel)==-1){
                         entry.label += offLabel;
                     }
@@ -1186,10 +1371,30 @@ jQuery(() => {
                     if(typeof(entry.label)!='undefined' && entry.label.indexOf(offLabel)!=-1){
                         entry.label = entry.label.replace(offLabel, '')
                     }
-                    nentries.push(entry)
+                    if(firstGroupEntryOffset == -1){
+                        nentries.push(entry);
+                        if(firstStreamEntryOffset == -1){
+                            firstStreamEntryOffset = nentries.length - 1;
+                        }
+                    } else {
+                        console.log('SPLICE', firstGroupEntryOffset, entry);
+                        nentries.splice(firstGroupEntryOffset, 0, entry);
+                        if(firstStreamEntryOffset == -1){
+                            firstStreamEntryOffset = firstGroupEntryOffset;
+                        }
+                        firstGroupEntryOffset++;
+                    }
+                   if(!hasLiveEntries && listingPath){
+                        if(isLive(entry.url)){
+                            hasLiveEntries = true;
+                        }
+                    }
                 }
             } else {
                 nentries.push(entries[i]) // not a stream entry
+                if(firstGroupEntryOffset == -1 && entries[i].type == 'group' && entries[i].entries && entries[i].entries.length){
+                    firstGroupEntryOffset = nentries.length - 1;
+                }
             }
         }
         //console.log('MIDFILTERED', entries);
@@ -1197,28 +1402,16 @@ jQuery(() => {
             nentries = nentries.filter(function (item) {
                 return !!item;
             }).concat(offline)          
-        } else if(isStreamsListing) {
-            if(!autoCleanHintShown){
-                autoCleanHintShown = true;
-                //notify(Lang.AUTOCLEAN_HINT, 'fa-info-circle', 'normal')
-            }
         }
+                
         //console.log('POSFILTERED', entries);
-        jQuery('.entry-empty').remove()
+        jQuery('.entry-empty').remove();
         if(!nentries.length){
-            nentries.push({name: Lang.EMPTY, logo:'fa-files-o', type: 'option', class: 'entry-empty'})
+            nentries.push({name: Lang.EMPTY, logo:'far fa-file', type: 'option', class: 'entry-empty'})
+        } else if(hasLiveEntries && listingPath.indexOf(Lang.BEEN_WATCHED) == -1) {
+            var n = (autoCleanEntriesStatus && autoCleanEntriesStatus.indexOf('100%')==-1) ? autoCleanEntriesStatus : Lang.TEST_THEM_ALL;
+            nentries.splice(firstStreamEntryOffset, 0, {type: 'option', name: n, label: Lang.AUTOCLEAN, logo: 'fa-magic', class: 'entry-autoclean', callback: autoCleanEntries})
         }
-        /*
-        var srcListing = listingPath;
-        logosToCheck.forEach((src) => {
-            parentalControlAllowImageURL(src, (allowed, src) => {
-                //console.log('ALLOW', srcListing, listingPath, src, 'img[data-lazy-src="'+src+'"]');
-                if(srcListing == listingPath){
-                    jQuery('img[data-lazy-src="'+src+'"]').prop('src', allowed ? src : 'assets/icons/white/parental-control.png')
-                }
-            })
-        })
-        */
         console.log('FILTERED', nentries, entries, offline);
         return nentries;
     });

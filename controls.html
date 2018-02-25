@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html class="page-player">
+<html class="page-controls">
 	<head>
 		<meta name="viewport" content="width=device-width" />
 		<title>Megacubo</title>
@@ -12,14 +12,22 @@
         <script type="text/javascript" src="assets/js/menu-feeding.js"></script>
         <script type="text/javascript" src="assets/js/jquery.idle.min.js"></script>
         <script type="text/javascript" src="assets/js/jquery.viewport.js"></script>
+        <script defer src="assets/fa/js/fontawesome-all.js"></script>
         <link rel="stylesheet" type="text/css" href="assets/css/global.css" />
         <link rel="stylesheet" type="text/css" href="assets/css/controls.css" />
-        <link rel="stylesheet" type="text/css" href="assets/fa/css/font-awesome.min.css" />
     </head>
     <body tabindex="-1">
-        <a href="javascript:help()" id="help" tabindex="-1">
-            <i class="fa fa-question-circle" aria-hidden="true"></i>
-        </a>
+        <span id="home-icons">
+            <a href="javascript:goOpen()" title="Open" id="home-icon-open" class="option" tabindex="-1" style="top: 1px;">
+                <i class="fas fa-folder-open" aria-hidden="true"></i>
+            </a>
+            <a href="javascript:goSearch()" title="Search" id="home-icon-search" class="option" tabindex="-1" style="top: -1px;">
+                <i class="fas fa-search" aria-hidden="true"></i>
+            </a>
+            <a href="javascript:help()" id="home-icon-help" class="option" tabindex="-1" style="font-size: 109%; top: 1px;">
+                <i class="fas fa-question-circle" aria-hidden="true"></i>
+            </a>
+        </span>
         <div id="controls" class="fit-screen" tabindex="-1">
             <div>
                 <div class="list">
@@ -32,7 +40,7 @@
             </div>
         </div>
         <div id="window-handle">
-            <a href="javascript:top.maximizeOrRestore();void(0)" tabindex="-1" title="Megacubo"><i class="fa fa-window-restore" aria-hidden="true"></i></a>
+            <a href="javascript:top.maximizeOrRestore();void(0)" tabindex="-1" title="Megacubo"><i class="fas fa-window-restore" aria-hidden="true"></i></a>
         </div>
     </body>
 </html>

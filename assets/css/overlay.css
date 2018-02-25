@@ -45,11 +45,30 @@ div#play-pause-marker {
     cursor: pointer;
 }
 
-div#play-pause-marker i.fa {
+div#play-pause-marker i, div#play-pause-marker svg, div#drop-target i, div#drop-target svg {
     color: #fff;
     font-size: 1000%;
     text-shadow: 2px 2px 24px #000;
 }
+
+#drop-target {
+    background-color: transparent;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#drop-target svg, #drop-target i {
+    display: none;
+}
+
+#drop-target.hover {
+    background-color: rgba(10, 88, 49, 0.72);
+}
+
+#drop-target.hover svg, #drop-target.hover i {
+    display: inline-block;
+}  
 
 body.paused div#play-pause-marker {
     display: flex;

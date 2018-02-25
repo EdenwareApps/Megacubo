@@ -110,7 +110,7 @@
     "SEARCHING_PEERS": "Buscando pares ...",
     "CAN_BE_SLOW": "Puede tomar algunos minutos",
     "SEARCH_PLACEHOLDER": "Escriba el nombre del canal ...",
-    "TEST_THEM_ALL": "Resultados de prueba a continuación",
+    "TEST_THEM_ALL": "Pruebe las transmisiones",
     "FILTER_WORDS": "Filtra estas palabras",
     "FIND_CHANNELS": "Encontrar canales",
     "IPTV_LISTS": "Listas de IPTV",
@@ -122,5 +122,9 @@
     "XTREME": "Extremo",
     "HIGH": "Alto",
     "MEDIUM": "Medio",
-    "LOW": "Bajo"
+    "LOW": "Bajo",
+    "CONTINUE": "Continuar",
+    "OPEN_FILE": "Abrir archivo",
+	"CATEGORIES": "Categorías",
+	"VIDEOS": "Vídeos"
 }

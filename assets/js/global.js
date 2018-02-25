@@ -70,7 +70,13 @@ if(typeof(require)!='undefined'){
 				: match
 			})
 		}
-	}
+    }
+    
+    (function($) {
+        $.fn.outerHTML = function() {
+          return $(this).clone().wrap('<div></div>').parent().html();
+        };
+    })(jQuery);
 
 	function time(){
 		return ((new Date()).getTime()/1000);
@@ -371,7 +377,7 @@ if(typeof(require)!='undefined'){
 
 	if(top == window){
 		var Store = (() => {
-			var dir = (typeof(__dirname)!='undefined')?__dirname+'/../../data/':'../../data/', self = {}, cache = {};
+			var dir = 'data/', self = {}, cache = {};
 			fs.stat(dir, (err, stat) => {
 				if(err !== null) {
 					fs.mkdir(dir);
@@ -429,14 +435,14 @@ if(typeof(require)!='undefined'){
 			var self = {}, file = 'data/configure.json', loaded = false, defaults = {
 				"sources": [],
 				"gpu-rendering": false,
-				"hd-lists-url-en": "http://www.iptvchoice.com/free-iptv-test/",
+				"hd-lists-url": "http://www.iptvchoice.com/free-iptv-test/",
 				"hide-logos": false,
 				"hide-back-button": false,
 				"resume": false,
 				"show-adult-content": false,
 				"sources": [],
 				"start-in-fullscreen": false,
-				"after-exit-url-en": "http://app.megacubo.net/out.php?ver={0}",
+				"after-exit-url": "http://app.megacubo.net/out.php?ver={0}",
 				"unshare-lists": false
 			}, data = defaults;
 			self.load = () => {
@@ -586,6 +592,38 @@ if(typeof(require)!='undefined'){
         })
     }
 
+    function goHome(){
+        stop();
+        var c = getFrame('controls');
+        if(c){
+            c.listEntriesByPath('')
+        }
+    }
+
+    function goReload(){
+        if(top && top.PlaybackManager.activeIntent){
+            var e = top.PlaybackManager.activeIntent.entry, c = getFrame('controls');
+            stop();
+            c.playEntry(e)
+        }
+    }
+    
+    function goSearch(){
+        top.automaticallyPaused = false;
+        var c = getFrame('controls');
+        if(c.searchPath){
+            c.showControls();
+            c.listEntriesByPathTriggering(c.searchPath)
+        }
+    }
+
+    function goOpen(){
+        var c = getFrame('controls');
+        if(c){
+            c.addNewSource()
+        }
+    }
+
     var minigetProvider, m3u8Parser;
     
     function miniget(){
@@ -609,7 +647,7 @@ if(typeof(require)!='undefined'){
             if(!w || !w.document || ['loaded', 'complete'].indexOf(w.document.readyState)==-1){
                 ok = false;
             } else {
-                if(!w.top){
+                if(!w.top && window.top){
                     w.top = window.top;
                 }
             }
@@ -638,7 +676,10 @@ if(typeof(require)!='undefined'){
         }, null, true));
         shortcuts.push(createShortcut("Ctrl+O", () => {
             openFileDialog(function (file){
-                playCustomFile(file)
+                var o = getFrame('overlay');
+                if(o){
+                    o.processFile(file)
+                }
             })
         }, null, true));
         shortcuts.push(createShortcut("Ctrl+Z", () => {
@@ -655,21 +696,10 @@ if(typeof(require)!='undefined'){
             }
         }, null, true))
         shortcuts.push(createShortcut("F3 Ctrl+F Ctrl+F3", () => {
-            top.automaticallyPaused = false;
-            var c = getFrame('controls'), path = Lang.WHAT_TO_WATCH + '/' + Lang.FIND_CHANNELS + ' (F3)';
-            c.showControls();
-            if(c.listingPath.indexOf(path)==-1){
-                c.listEntriesByPathTriggering(path)
-            }
-            setTimeout(() => {
-                var n = jQuery(c.document).find('.entry input');
-                if(n.length){
-                    n.parent().get(0).focus()
-                }
-            }, 150)
+            goSearch()
         }, null, true));
         shortcuts.push(createShortcut("F5", () => {
-            getFrame('controls').autoCleanEntries()
+            goReload()
         }, null, true));
         shortcuts.push(createShortcut("Space", () => {
             top.playPause()
@@ -679,6 +709,19 @@ if(typeof(require)!='undefined'){
         }, null, true));
         shortcuts.push(createShortcut("Ctrl+D", () => {
             getFrame('controls').addFav()
+        }, null, true));
+        shortcuts.push(createShortcut("Ctrl+U", () => {
+            var c = getFrame('controls');
+            if(c){
+                c.addNewSource()
+            }
+        }, null, true));
+        shortcuts.push(createShortcut("Ctrl+S Ctrl+X", () => {
+            if(!top.isRecording){
+                top.startRecording()
+            } else {
+                top.stopRecording()
+            }
         }, null, true));
         shortcuts.push(createShortcut("Ctrl+Shift+D", () => {
             getFrame('controls').removeFav()
@@ -720,7 +763,7 @@ if(typeof(require)!='undefined'){
             c.focusNext()
         }, "hold", true));
         shortcuts.push(createShortcut("Right Enter", () => {
-            if(!top.miniPlayerActive){
+            if(top && !top.miniPlayerActive){
                 if(areControlsActive()){
                     var c = getFrame('controls');
                     c.triggerEnter()
@@ -762,15 +805,6 @@ if(typeof(require)!='undefined'){
                     key : "Ctrl+M",
                     active : () => {
                         top.toggleMiniPlayer()
-                    }
-                },
-                {
-                    key : "Ctrl+U",
-                    active : () => {
-                        var c = getFrame('controls');
-                        if(c){
-                            c.addNewSource()
-                        }
                     }
                 },
                 {
@@ -850,7 +884,7 @@ if(typeof(require)!='undefined'){
                 {
                     key : "MediaStop",
                     active : () => {
-                        top.playPause(false);
+                        stop()
                     }
                 }
             ];
@@ -1268,10 +1302,19 @@ if(typeof(require)!='undefined'){
                 defaultValue = cb;
             }
             var options = [
-                ['<i class="fa fa-search" aria-hidden="true"></i> '+Lang.FIND_LISTS, () => {
-                    nw.Shell.openExternal(getIPTVListSearchURL());
+                ['<i class="fas fa-folder-open" aria-hidden="true"></i> '+Lang.OPEN_FILE, () => {
+                    openFileDialog(function (file){
+                        var o = getFrame('overlay');
+                        if(o){
+                            top.modalClose();
+                            o.processFile(file)
+                        }
+                    })
                 }],
-                ['<i class="fa fa-check-circle" aria-hidden="true"></i> OK', () => {
+                ['<i class="fas fa-search" aria-hidden="true"></i> '+Lang.FIND_LISTS, () => {
+                    gui.Shell.openExternal(getIPTVListSearchURL())
+                }],
+                ['<i class="fas fa-check-circle" aria-hidden="true"></i> OK', () => {
                     // parse lines for names and urls and use registerSource(url, name) for each
                     var v = top.modalPromptVal();
                     if(v){
@@ -1292,7 +1335,7 @@ if(typeof(require)!='undefined'){
     function addCommunityList(){
         if(top){
             var options = [
-                ['<i class="fa fa-undo" aria-hidden="true"></i> '+Lang.BACK, () => {
+                ['<i class="fas fa-undo" aria-hidden="true"></i> '+Lang.BACK, () => {
                     var c = getFrame('controls');
                     if(c){
                         c.getIPTVListContent(() => {
@@ -1300,7 +1343,7 @@ if(typeof(require)!='undefined'){
                         })
                     }
                 }],
-                ['<i class="fa fa-check-circle" aria-hidden="true"></i> '+Lang.I_AGREE, () => {
+                ['<i class="fas fa-check-circle" aria-hidden="true"></i> '+Lang.I_AGREE, () => {
                     registerSource(communityList(), Lang.COMMUNITY_LIST); // an endpoint which always redirects to the most used list URL in that country dynamically
                     top.modalClose()
                 }]
@@ -1310,7 +1353,7 @@ if(typeof(require)!='undefined'){
     }
     
     function communityList(){
-        return 'http://app.megacubo.net/auto';
+        return 'http://app.megacubo.net/auto?uilocale='+getLocale()
     }
 
     function isValidPath(url){ // poor checking for now
@@ -1566,66 +1609,93 @@ if(typeof(require)!='undefined'){
     }
 
     function notifyRemove(str){
-        var o = getFrame('overlay'), a = jQuery(o.document.getElementById('notify-area'));
-        a.find('.notify-row').filter((i, o) => {
-            return jQuery(o).find('div').text().trim() == str;
-        }).remove();
+        var o = getFrame('overlay');
+        if(o){
+            var a = jQuery(o.document.getElementById('notify-area'));
+            a.find('.notify-row').filter((i, o) => {
+                return jQuery(o).find('div').text().trim() == str;
+            }).hide()
+        }
     }
 
     function notify(str, fa, secs){
-        var o = getFrame('overlay'), a = jQuery(o.document.getElementById('notify-area'));
-        if(!str) {
-            a.find('.notify-wait').remove();
-            updateNotifyFirst();
-            return;
-        }
-        var c = '', timer;
-        if(o){
-            if(secs == 'wait'){
-                c += ' notify-wait';
-            }
-            secs = notifyParseTime(secs);
-            var destroy = () => {
-                n.hide(400, () => {
-                    jQuery(this).remove();
-                    setTimeout(updateNotifyFirst, 100)
-                })
-            };
-            a.find('.notify-row').filter((i, o) => {
-                return jQuery(o).find('div').text().trim() == str;
-            }).remove();
-            if(fa) fa = '<i class="fa {0}" aria-hidden="true"></i> '.format(fa);
-            var n = jQuery('<div class="notify-row '+c+' notify-first"><div class="notify">' + fa + ' ' + str + '</div></div>');
-            n.prependTo(a);
-            timer = top.setTimeout(destroy, secs * 1000);
-            updateNotifyFirst();
-            return {
-                update: (str, fa, secs) => {
-                    if(fa && str) {
-                        fa = '<i class="fa {0}" aria-hidden="true"></i> '.format(fa);
-                        n.find('.notify').html(fa + ' ' + str)
+        var o = getFrame('overlay');
+        if(o && o.document){
+            var a = o.document.getElementById('notify-area');
+            if(a){
+                a = jQuery(a);
+                if(!str) {
+                    a.find('.notify-wait').hide();
+                    updateNotifyFirst();
+                    return;
+                }
+                var c = '', timer;
+                if(a){
+                    if(secs == 'wait'){
+                        c += ' notify-wait';
                     }
-                    if(secs){
-                        secs = notifyParseTime(secs);
-                        clearTimeout(timer);
-                        timer = top.setTimeout(destroy, secs * 1000);
-                        n.show();
-                        updateNotifyFirst()
+                    secs = notifyParseTime(secs);
+                    var destroy = () => {
+                        n.hide(400, () => {
+                            n.remove();
+                            setTimeout(updateNotifyFirst, 100)
+                        })
+                    };
+                    a.find('.notify-row').filter((i, o) => {
+                        return jQuery(o).find('div').text().trim() == str;
+                    }).remove();
+                    if(fa) fa = '<i class="fa {0}" aria-hidden="true"></i> '.format(fa);
+                    var n = jQuery('<div class="notify-row '+c+' notify-first"><div class="notify">' + fa + ' ' + str + '</div></div>');
+                    n.prependTo(a);
+                    timer = top.setTimeout(destroy, secs * 1000);
+                    updateNotifyFirst();
+                    var getElement = () => {
+                        if(!(n && n.parent() && n.parent().parent())){
+                            n = notify(str, fa, secs)
+                        }
+                        return n;
                     }
-                    return n;
-                },
-                show: () => {
-                    n.show()
-                },
-                hide: () => {
-                    n.hide()
-                },
-                close: () => {
-                    clearTimeout(timer);
-                    destroy()
+                    return {
+                        update: (str, fa, secs) => {
+                            n = getElement();
+                            n.hide();
+                            if(fa && str) {
+                                fa = '<i class="fa {0}" aria-hidden="true"></i> '.format(fa);
+                                n.find('.notify').html(fa + ' ' + str)
+                            }
+                            if(secs){
+                                n.prependTo(a);
+                                n.parent().appendTo('body');
+                                secs = notifyParseTime(secs);
+                                clearTimeout(timer);
+                                timer = top.setTimeout(destroy, secs * 1000);
+                                updateNotifyFirst()
+                            }
+                            n.show();
+                            return n;
+                        },
+                        show: () => {
+                            n = getElement();
+                            n.show()
+                        },
+                        hide: () => {
+                            n = getElement();
+                            n.hide()
+                        },
+                        close: () => {
+                            clearTimeout(timer);
+                            destroy()
+                        }
+                    }
                 }
             }
         }
+    }
+
+    function replaceLast(x, y, z){
+        var a = x.split("");
+        a[x.lastIndexOf(y)] = z;
+        return a.join("");
     }
 
     function formatBytes(bytes){
@@ -1639,8 +1709,8 @@ if(typeof(require)!='undefined'){
     var pendingStateTimer = 0, defaultTitle = '';
 
     function enterPendingState(title) {
-        setTitleFlag('fa-circle-o-notch fa-spin', title);
-        notify(Lang.CONNECTING, 'fa-circle-o-notch fa-spin', 'wait');
+        setTitleFlag('fa-circle-notch fa-spin', title);
+        notify(Lang.CONNECTING, 'fa-circle-notch fa-spin', 'wait');
     }
     
     function leavePendingState() {
@@ -1653,9 +1723,28 @@ if(typeof(require)!='undefined'){
         return decodeURIComponent(t.replaceAll('+', ' '));
     }
 
+    function displayPrepareName(name, prepend, append){
+        if(prepend){
+            if(name.indexOf('<span')!=-1){
+                name = name.replace('>', '>'+prepend+' ');
+            } else {
+                name = prepend+' '+name;
+            }
+        }
+        if(append){
+            if(name.indexOf('<span')!=-1){
+                name = replaceLast(name, '<', ' '+append+'<');
+            } else {
+                name = name+' '+append;
+            }
+        }
+        name = name.replaceAll(' - ', ' · ').replaceAll(' | ', ' · ');
+        return name;
+    }
+
     function setTitleData(title, icon) {
         console.log('TITLE = '+title);
-        title = urldecode(title);
+        title = displayPrepareName(urldecode(title));
         defaultTitle = title;
         if(top){
             var defaultIcon= 'default_icon.png';
@@ -1674,25 +1763,28 @@ if(typeof(require)!='undefined'){
     }
 
     function setTitleFlag(fa, title){
-        title = urldecode(title);
-        var t = top.document.querySelector('.nw-cf-icon');
-        if(t){
-            if(fa){ // fa-circle-o-notch fa-spin
-                t.style.backgroundPositionX = '50px';
-                t.innerHTML = '<i class="fa {0}" aria-hidden="true"></i>'.format(fa);
-            } else {
-                t.style.backgroundPositionX = '0px';
-                t.innerHTML = '';
-            }
-            if(typeof(title)=='string'){
-                var doc = top.document;
-                doc.title = title;
-                var c = doc.querySelector('.nw-cf-title');
-                if(c){
-                    if(!defaultTitle){
-                        defaultTitle = c.innerText;
+        if(top){
+            title = displayPrepareName(urldecode(title));
+            var doc = top.document, t = doc.querySelector('.nw-cf-icon'), c = doc.querySelector('.nw-cf-title');
+            if(t){
+                if(fa){ // fa-circle-notch fa-spin
+                    t.innerHTML = '<i class="fa {0}" aria-hidden="true"></i>'.format(fa);
+                    t.style.backgroundPositionX = '50px';
+                    c.style.marginLeft = '0px';
+                } else {
+                    t.innerHTML = '';
+                    t.style.backgroundPositionX = '0px';
+                    c.style.marginLeft = '4px';
+                }
+                if(typeof(title)=='string'){
+                    doc.title = title;
+                    var c = doc.querySelector('.nw-cf-title');
+                    if(c){
+                        if(!defaultTitle){
+                            defaultTitle = c.innerText;
+                        }
+                        c.innerText = title;
                     }
-                    c.innerText = title;
                 }
             }
         }
@@ -1756,6 +1848,11 @@ if(typeof(require)!='undefined'){
         return ['http', 'https'].indexOf(getProto(url))!=-1 && getExt(url) == 'ts';            
     }
     
+    function isRemoteTS(url){
+        if(typeof(url)!='string') return false;
+        return ['http', 'https'].indexOf(getProto(url))!=-1 && getExt(url) == 'ts';            
+    }
+    
     function isRTMP(url){
         if(typeof(url)!='string') return false;
         return url.match(new RegExp('^rtmp[a-z]?:', 'i'));            
@@ -1800,12 +1897,12 @@ if(typeof(require)!='undefined'){
     
     function isLive(url){
         if(typeof(url)!='string') return false;
-        return isM3U8(url)||isRTMP(url)||isRTSP(url)||isTS(url)
+        return isM3U8(url)||isRTMP(url)||isRTSP(url)||isRemoteTS(url)
     }
     
     function isMedia(url){
         if(typeof(url)!='string') return false;
-        return isLive(url)||isLocal(url)||isVideo(url);            
+        return isLive(url)||isLocal(url)||isVideo(url)||isTS(url);            
     }
     
     function isPlaying(){
@@ -1876,6 +1973,14 @@ if(typeof(require)!='undefined'){
         }
         lang = lang.substr(0, short ? 2 : 5);
         return lang;
+    }
+
+    var path = false;
+    function absolutize(file){
+        if(!path){
+            path = require('path')
+        }
+        return path.join(process.cwd(), file)
     }
 
     function closest(num, arr) {

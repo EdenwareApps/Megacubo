@@ -23,6 +23,9 @@
 			.vjs-icon-square:before {
     			font-size: large;
 			}
+			.vjs-button {
+				cursor: pointer;
+			}
 			video {
 				object-fit: fill;
 			}
@@ -35,7 +38,7 @@
 		<script type="text/javascript" src="players/videojs/video.min.js"></script>
 		<script type="text/javascript" src="players/videojs/videojs-contrib-hlsjs.min.js"></script>
 		<script type="text/javascript" src="players/videojs/videojs-dvrseekbar.min.js"></script>
-		<script type="text/javascript" src="players/videojs/videojs-stop-button.js"></script>
+        <script defer src="assets/fa/js/fontawesome-all.js"></script>
 		<script type="text/javascript">
 			var lastPlaybackData, video, v, player, _paused = false, lastCurrentTime = 0, stopEvent = function(e) {
 				if(e){
@@ -43,12 +46,30 @@
 					e.preventDefault();
 				}
 				return false;
-			};
-			function src(_src, type){
+			}
+			var playbackStartTimer = 0;
+			function playbackStartTimeout(secs){
+				clearTimeout(playbackStartTimer);
+				playbackStartTimer = setTimeout(() => {
+					if(video && video.networkState == 2){
+						reset()
+					}
+				}, secs * 1000)
+			}
+			function src(_src, type, cb){
 				player.off('error');
 				lastPlaybackData = {src: _src, type: type};
 				player.src(lastPlaybackData);
-				player.load()
+				player.load();
+				playbackStartTimeout(10);
+				video.oncanplaythrough = () => {
+					clearTimeout(playbackStartTimer);
+					console.log('Can play!');
+				}
+				player.play()
+			}
+			function ready(f){
+				player.ready(f)
 			}
 			function pause(){
 				if(!paused()){
@@ -99,8 +120,9 @@
 			}
 			function patchVideo(v){
 				v.off('mousedown click mouseup');
+				/*
 				v.on('mousedown', function(event) {
-					_paused = !video.paused;
+					_paused = video.paused;
 					console.log('Player.PAUSED = ' + JSON.stringify(_paused));
 					return stopEvent(event);
 				})
@@ -120,6 +142,7 @@
 					}, 0);
 					return stopEvent(event);
 				})
+				*/
 				var playPauseDelayTimer;
 				player.off('play');
 				player.off('pause');
@@ -140,9 +163,30 @@
 					//top.PlaybackManager.activeIntent.error = true;
 					//top.PlaybackManager.activeIntent.trigger('error');
 					console.log('Video.JS error', event)
-				})
+				});
+				
+				var bt = jQuery('<button class="vjs-reload-control vjs-control vjs-button" type="button" aria-live="polite" title="Reload" aria-disabled="false"><i aria-hidden="true" class="fas fa-sync-alt"></i></button>');
+				bt.on('mousedown', goReload);
+				jQuery('.vjs-volume-panel').before(bt);
+				
+				bt = jQuery('<button class="vjs-stop-control vjs-control vjs-button" type="button" aria-live="polite" title="Stop" aria-disabled="false"><i aria-hidden="true" class="fas fa-stop"></i></button>');
+				bt.on('mousedown', () => {
+					top.stop()
+				});
+				jQuery('.vjs-play-control').after(bt);
+				
+				bt = jQuery('.video-js .vjs-fullscreen-control'), pbt = bt.parent();
+				bt.remove().appendTo(pbt);
+				bt.on('mousedown', function (e){ // .live()
+					top.toggleFullScreen();
+					e.stopPropagation();
+					e.preventDefault();
+					return false;
+				});				
+				jQuery('.vjs-volume-panel').before(bt);
 			}
 			function reset(){
+				console.warn('Reset player.');
 				var ct = 0;
 				if(player){
 					ct = player.currentTime()
@@ -153,40 +197,27 @@
 				}
 				delete window['player'];
 				video = document.createElement('video');
+				video.preload = "none";
 				v = jQuery(video);
 				document.querySelector('body').appendChild(video);
 				video.className = 'video-js'; // set here to skip auto-setup
 				player = videojs(video, { 
-					"controls": true, 
-					"autoplay": true, 
-					"preload": "auto" 
+					"preload": "none",
+					"autoplay": false, 
+					"controls": true
 				});
 				player.dvrseekbar(); // re-enable when the slider gets fixed, maybe the ondragstart hook at global.js or helper.js
-				player.stopButton();
+				patchVideo(v);
 				if(lastPlaybackData){
-					player.src(lastPlaybackData);
-					player.load();
+					src(lastPlaybackData.src, lastPlaybackData.type);
 					if(ct){
 						player.ready(() => {
 							player.currentTime(ct)
 						})
 					}
 				}
-				patchVideo(v)
 			}
 			reset();
-			jQuery('.video-js').on('mousedown', '.vjs-fullscreen-control', function (e){ // .live()
-				top.toggleFullScreen();
-				e.stopPropagation();
-				e.preventDefault();
-				return false;
-			});
-			jQuery('.video-js').on('mousedown', '.vjs-stop-button', function (e){ // .live()
-				top.stop();
-				e.stopPropagation();
-				e.preventDefault();
-				return false;
-			});
 			jQuery(() => {
 				setTimeout(() => {
 					top.createMouseObserverForControls(window)				

@@ -6,26 +6,28 @@ var currentVersion = 0, clipboard = gui.Clipboard.get();
 //gui.App.setCrashDumpDir(process.cwd());
 
 function resetData(){
-    localStorage.clear();
-    removeFolder('data', false, function (){
-        removeFolder('torrent', false, function (){
-            localStorage.clear();
+    removeFolder('torrent', false, function (){
+        removeFolder('data', false, function (){
+            nw.App.clearCache();
             top.location.reload()
         })
     })
 }
 
+var miniPlayerRightMargin = 24;
+
 function enterMiniPlayer(){
     miniPlayerActive = true;   
     var ratio = PlaybackManager.getRatio();
-    var h = screen.availHeight / 4, w = scaleModeAsInt(PlaybackManager.getRatio()) * h, rightMargin = 50;
+    var h = screen.availHeight / 4, w = scaleModeAsInt(PlaybackManager.getRatio()) * h;
     window.resizeTo(w, h);
-    window.moveTo(screen.availWidth - w - rightMargin, screen.availWidth - h);
+    window.moveTo(screen.availWidth - w - miniPlayerRightMargin, screen.availWidth - h);
     doAction('miniplayer-on')
 }
 
 function leaveMiniPlayer(){
-    restoreInitialSize();  
+    //restoreInitialSize();  
+    setFullScreen(false);
     win.setAlwaysOnTop(false);
     doAction('miniplayer-off')
 }
@@ -72,14 +74,12 @@ function toggleFullScreen(){
     setFullScreen(!isFullScreen());
 }
 
-var useKioskForFullScreen = true;
+var useKioskForFullScreen = false;
 function escapePressed(){
-    if(useKioskForFullScreen){
-        win.leaveKioskMode()
-    } else {
-        win.leaveFullscreen()
-    }
-    restoreInitialSize();
+    //win.leaveKioskMode();
+    //win.leaveFullscreen();
+    //restoreInitialSize();
+    setFullScreen(false);
     var c = getFrame('controls');
     if(c){
         c.autoCleanEntriesCancel()
@@ -92,42 +92,62 @@ function isMaximized(){
 }
 
 function maximizeOrRestore(){
-    if(top.miniPlayerActive){
-        top.leaveMiniPlayer();
-    } else {
-        if(isMaximized()){
-            win.unmaximize();
+    if(top){
+        if(top.miniPlayerActive){
+            top.leaveMiniPlayer();
         } else {
-            win.hide();
-            win.maximize();
-            win.show();
+            if(isMaximized()){
+                win.unmaximize();
+            } else {
+                win.hide();
+                win.maximize();
+                win.show();
+            }
         }
     }
 }
 
 function minimizeWindow(){
-    if(top.miniPlayerActive){
-        win.minimize();
-    } else {
-        top.enterMiniPlayer();
+    if(top){
+        if(top.miniPlayerActive){
+            win.minimize();
+        } else {
+            top.enterMiniPlayer();
+        }
     }
 }
 
+var allowAfterExitPage = false;
+setTimeout(() => { // avoid after exit page too soon as the program open
+    allowAfterExitPage = true;
+}, 10000);
+
 function afterExitPage(){
-    var lastTime = Store.get('after-exit-time'), t = time();
-    if(!lastTime || (t - lastTime) > (24 * 3600)){
-        Store.set('after-exit-time', t);
-        var url = (Config.get("after-exit-url-"+getLocale(true)) || Config.get("after-exit-url-en")).format(currentVersion);
-        gui.Shell.openExternal(url)
+    if(allowAfterExitPage && currentVersion){
+        var lastTime = Store.get('after-exit-time'), t = time();
+        if(!lastTime || (t - lastTime) > (24 * 3600)){
+            Store.set('after-exit-time', t);
+            var url = Config.get("after-exit-url").format(currentVersion);
+            gui.Shell.openExternal(url)
+        }
     }
 }
 
 function closeWindow(){
-    if(top.miniPlayerActive){
-        top.leaveMiniPlayer();
+    if(miniPlayerActive){
+        leaveMiniPlayer();
     } else {
         afterExitPage();
-        top.close()
+        window.close();
+        /*
+            gui.App.crashBrowser();
+            gui.App.crashRenderer();
+            process.exit();
+            gui.App.quit();
+            window.top.close(); // Not fixed at 2018? https://github.com/nwjs/nw.js/issues/984 so ensure to close the window
+            gui.App.closeAllWindows(); // breaks duplicate feature
+            process.kill(process.pid * -1, 'SIGKILL')
+        */
     }
 }
 
@@ -272,14 +292,6 @@ function playPauseNotify(){
         ]).removeClass('playing').addClass('paused');
         notify(Lang.PAUSE, 'fa-pause', 'short')
         console.log('NOTIFY');
-    }
-}
-
-function goHome(){
-    stop();
-    var c = getFrame('controls');
-    if(c){
-        c.listEntriesByPath('')
     }
 }
 
@@ -446,7 +458,7 @@ function bindWebRequest(){
         if(message == "Network.responseReceived" && params.response){
             requestIdMap[params.requestId] = params.response.url;
         }
-        if(isRecording && message == 'Network.loadingFinished') {
+        if(isRecording && message == 'Network.loadingFinished') { 
             if(debug){
                 console.log('FINISHED', params, requestIdMap[params.requestId]);
             }
@@ -456,7 +468,7 @@ function bindWebRequest(){
                     if(debug){
                         console.log('LOCAL', requestIdMap[params.requestId], local);
                     }
-                    doAction('media-received', requestIdMap[params.requestId], local);
+                    doAction('media-received', requestIdMap[params.requestId], local, 'path');
                 } else {
                     if(debug){
                         console.log('REMOTE', requestIdMap[params.requestId], local);
@@ -468,7 +480,7 @@ function bindWebRequest(){
                     }, function(response) {
                         if(typeof(response)!='undefined') {
                             console.log('MEDIA RECEIVED');
-                            doAction('media-received', requestIdMap[params.requestId], response);
+                            doAction('media-received', requestIdMap[params.requestId], response, 'content');
                             response = null;
                         }
                     })
@@ -597,63 +609,24 @@ function saveAs(file, callback){
         trigger('click')
 }
 
-function registerRecording(file, replaceThisOne){
-    var c = getFrame('controls');
-    if(replaceThisOne){
-        c.RecordingHistory.removeByURL(replaceThisOne)
-    }
-    c.RecordingHistory.add({
-        type: 'stream',
-        url: file,
-        name: basename(file).replace('.'+getExt(file), '')
-    });
-    c.refreshListingIfMatch(Lang.RECORDINGS)
-}
-
 function startRecording(){
     if(isRecording === false){
-        var folder = 'recordings/session';
+        let folder = 'recordings/session';
         fs.mkdir(folder, function(err){
             removeFolder(folder, false, () => { // just empty the folder
-                isRecording = {folder: folder}; // recording now
                 var url = PlaybackManager.getURL();
-                if(url && !isLive(url) && isVideo(url)){
-                    if(typeof(request)!='function'){
-                        request = require('request')
-                    }
-                    isRecording.totalBytes = 0;
-                    isRecording.receivedBytes = 0;
-                    isRecording.capturingFile = folder+'/'+time()+'.tmp';
-                    isRecording.capturingStream = fs.createWriteStream(isRecording.capturingFile, {'flags': 'w'});
-                    isRecording.capturingStream.on('error', (...arguments) => {
-                        console.log('Stream write error', arguments)
-                    });
-                    isRecording.capturingRequest = request.
-                        get(url).
-                        on('response', function(data) {
-                            isRecording.totalBytes = parseInt(data.headers['content-length'] || 0);
-                        }).
-                        on('data', function(chunk) {
-                            isRecording.capturingStream.write(chunk, 'binary');
-                            isRecording.receivedBytes += chunk.length;
-                        }).
-                        on('end', () => {
-                            console.log('END');
-                            if(isRecording.capturingStream){
-                                isRecording.capturingStream.end()
-                            }
-                        }).
-                        on('error', function(err) {
-                            console.log("Error during HTTP request");
-                            console.log(err);
-                            isRecording.capturingStream.end();
-                            stopRecording()
-                        })
+                if(isMagnet(url)){
+                    folder = 'torrent/torrent-stream/'+PlaybackManager.activeIntent.peerflix.torrent.infoHash+'/'+PlaybackManager.activeIntent.peerflix.torrent.name;
+                    gui.Shell.showItemInFolder(absolutize(folder))
+                } else if(!isLive(url) && isVideo(url)){
+                    gui.Shell.openExternal('http://play.megacubo.tv/mp4-player?url='+encodeURIComponent(url))
+                } else {
+                    isRecording = {folder: folder}; // recording now
+                    doAction('recording-start', folder);
+                    recordingNotification.update(Lang.RECORDING_STARTED, 'fa-download', 'normal')
                 }
             })
         })
-        doAction('recording-start', folder);
-        notify(Lang.RECORDING_STARTED, 'fa-download', 'normal');
     }
 }
 
@@ -697,17 +670,12 @@ function stopRecording(){
             }).
             on('end', function (){
                 originalOutputFile = outputFile;
-                registerRecording(outputFile);
-                saveAs(outputFile, function (file){
-                    if(file && file != outputFile){
-                        moveFile(outputFile, file)
-                        registerRecording(file, outputFile);
-                        outputFile = file;
-                    }
-                });
+                Recordings.sync();
                 removeFolder(data.folder);
                 doAction('recording-save-end', outputFile, data);
-                gui.Shell.showItemInFolder(outputFile)
+                if(!isFullScreen()){
+                    gui.Shell.showItemInFolder(absolutize(outputFile))
+                }
             }).run()
         } else {
             isRecording = false;
@@ -715,7 +683,8 @@ function stopRecording(){
             doAction('recording-save-start', data);
             fs.readdir(data.folder, function (err, files){
                 if(err || !files.length){
-                    console.log('Error while saving file list.');
+                    console.log('Error while saving file list.', data.folder);
+                    gui.Shell.openExternal(absolutize(data.folder));
                     doAction('recording-save-failure', data)
                 } else {
                     var list = '', listFile = data.folder+'/list.txt';
@@ -737,9 +706,13 @@ function stopRecording(){
                             inputOptions('-f concat').
                             addOption('-c copy').
                             output(joinedFile).
+                            on('start', function(commandLine) {
+                                console.log('Spawned FFmpeg with command: ' + commandLine)
+                            }).
                             on('error', function (err){
-                                console.log('Error while saving joined file.', joinedFile, err);
-                                doAction('recording-save-failure', data)
+                                console.log('Error while saving joined file.', joinedFile, err, data.folder);
+                                gui.Shell.openExternal(absolutize(data.folder));
+                                doAction('recording-save-failure', data);
                             }).
                             on('end', function (){
                                 originalOutputFile = outputFile;
@@ -761,17 +734,12 @@ function stopRecording(){
                                 }).
                                 on('end', function (){
                                     originalOutputFile = outputFile;
-                                    registerRecording(outputFile);
-                                    saveAs(outputFile, function (file){
-                                        if(file && file != outputFile){
-                                            moveFile(outputFile, file)
-                                            registerRecording(file, outputFile);
-                                            outputFile = file;
-                                        }
-                                    });
+                                    Recordings.sync();
                                     removeFolder(data.folder);
                                     doAction('recording-save-end', outputFile, data);
-                                    gui.Shell.showItemInFolder(outputFile)
+                                    if(!isFullScreen()){
+                                        gui.Shell.showItemInFolder(absolutize(outputFile))
+                                    }
                                 }).run();
                             }).run();
                         }
@@ -833,7 +801,7 @@ function modalPrompt(question, answers, placeholder, value){
         a.push(jQuery('<span class="button">'+answers[k][0]+'</span>').on('click', answers[k][1]))
     }
     var b = jQuery('<div class="prompt prompt-'+a.length+'-columns">'+
-                '<span class="prompt-close"><a href="javascript:modalClose();void(0)"><i class="fa fa-times-circle" aria-hidden="true"></i></a></span>'+
+                '<span class="prompt-close"><a href="javascript:modalClose();void(0)"><i class="fas fa-times-circle" aria-hidden="true"></i></a></span>'+
                 '<span class="prompt-header">'+nl2br(question)+'</span>'+
                 '<input type="text" />'+
                 '<span class="prompt-footer"></span></div>');
@@ -896,18 +864,15 @@ function setFullScreen(enter){
     if(!enter){
         miniPlayerActive = false;
         doAction('miniplayer-off');
-        if(useKioskForFullScreen){
-            win.leaveKioskMode() // bugfix, was remembering to enter fullscreen irreversibly
-        } else {
-            win.leaveFullscreen()
-        }
+        win.leaveKioskMode(); // bugfix, was remembering to enter fullscreen irreversibly
+        win.leaveFullscreen()
         var s = initialSize();
-        window.resizeTo(s.width, s.height);
         if(document.readyState.indexOf('in')==-1){
             maxPortViewSize(screen.availWidth + 15, screen.availHeight + 14);
         } else {
             maxPortViewSize(s.width, s.height);						
         }
+        window.resizeTo(s.width, s.height);
         centralizeWindow(s.width, s.height);
         //win.setPosition('center'); // buggy sometimes
         console.log('SIZE', s.width, s.height);
@@ -915,7 +880,7 @@ function setFullScreen(enter){
             fixMaximizeButton()
         }
     } else {
-        maxPortViewSize(0, 0);
+        maxPortViewSize(screen.width + 1, screen.height + 1);
         if(useKioskForFullScreen){
             win.enterKioskMode() // bugfix, was remembering to enter fullscreen irreversibly
         } else {
@@ -990,75 +955,79 @@ function sendStats(action, data){
         console.log('Houve um erro', e);
     });
     req.write(postData);
-    req.end();
+    req.end()
 }
 
 function createMouseObserverForControls(win){
+    if(!win) return;
     var x = 0, y = 0, showing = false, margin = 6, v = false, t = 0, ht = 0, jw = jQuery(win), tb = jQuery(top.document).find('body');
     var w = jw.width();
     var h = jw.height();
     var b = jw.find('body');
     var update = () => {
-        if(top.miniPlayerActive){
-            var isOver = !(x < margin || y < margin || x > (w - margin) || y > (h - margin));
-            if(isOver){
-                clearTimeout(ht);
-                if(!v){
+        if(top){
+            if(top.miniPlayerActive){
+                var isOver = !(x < margin || y < margin || x > (w - margin) || y > (h - margin));
+                if(isOver){
+                    clearTimeout(ht);
+                    if(!v){
+                        clearTimeout(t);
+                        t = setTimeout(() => {
+                            tb.removeClass('frameless') 
+                        }, 400)
+                    }
+                } else {
+                    clearTimeout(ht);
                     clearTimeout(t);
-				    t = setTimeout(() => {
-    					tb.removeClass('frameless') 
-                    }, 400)
+                    ht = setTimeout(() => {
+                        if(top.miniPlayerActive){
+                            tb.addClass('frameless');
+                            PlaybackManager.setRatio()
+                        }
+                    }, 3000)
+                }
+                console.log('MP', v, isOver)
+                v = isOver;
+                return;
+            }
+            if(top.showHideDelay){
+                clearTimeout(top.showHideDelay);
+                top.showHideDelay = 0;
+            }
+            var a = areControlsActive(), l = w * (a ? 0.6 : 0.8);
+            if(a){
+                if(l < (w - 600)){
+                    l = w - 600;
                 }
             } else {
-                clearTimeout(ht);
-                clearTimeout(t);
-                ht = setTimeout(() => {
-                    if(top.miniPlayerActive){
-                        tb.addClass('frameless') 
-                    }
-				}, 3000)
-            }
-            console.log('MP', v, isOver)
-            v = isOver;
-            return;
-        }
-        if(top.showHideDelay){
-            clearTimeout(top.showHideDelay);
-            top.showHideDelay = 0;
-        }
-        var a = areControlsActive(), l = w * (a ? 0.6 : 0.8);
-        if(a){
-            if(l < (w - 600)){
-                l = w - 600;
-            }
-        } else {
-            if(l < (w - 180)){
-                l = w - 180;
-            }
-        }
-        var show = (x > l && y < (h * 0.33) && (x < (w - margin)));
-        if(!show){
-            var a = win.document.activeElement;
-            if(0 && ['input', 'textarea'].indexOf(a.tagName.toLowerCase())!=-1){ // is typing in sandbox frame?
-                show = true;
-            } else if(!PlaybackManager.playing() && !top.automaticallyPaused){ // is typing in sandbox frame?
-                show = true;
-            }
-        }
-        //console.log(w, h, x, y, show);
-        if(show){
-            top.showHideDelay = setTimeout(() => {
-                tb.addClass('isovercontrols');
-                if(PlaybackManager.playing()){
-                    top.automaticallyPaused = true;
-                    top.PlaybackManager.pause()
+                if(l < (w - 180)){
+                    l = w - 180;
                 }
-            }, 400)
-        } else {
-            tb.removeClass('isovercontrols');
-            if(top.automaticallyPaused){
-                top.automaticallyPaused = false;
-                top.PlaybackManager.play()
+            }
+            var show = (x > l && y < (h * 0.33) && (x < (w - margin)));
+            if(!show){
+                var a = win.document.activeElement;
+                if(0 && ['input', 'textarea'].indexOf(a.tagName.toLowerCase())!=-1){ // is typing in sandbox frame?
+                    show = true;
+                } else if(!PlaybackManager.playing() && !top.automaticallyPaused){ // is typing in sandbox frame?
+                    show = true;
+                }
+            }
+            //console.log(w, h, x, y, show);
+            if(show){
+                top.showHideDelay = setTimeout(() => {
+                    tb.addClass('isovercontrols');
+                    if(PlaybackManager.playing()){
+                        top.automaticallyPaused = true;
+                        top.PlaybackManager.pause()
+                    }
+                }, 400)
+            } else {
+                tb.removeClass('isovercontrols');
+                if(top.automaticallyPaused){
+                    top.automaticallyPaused = false;
+                    top.PlaybackManager.play()
+                }
             }
         }
     }
@@ -1070,7 +1039,10 @@ function createMouseObserverForControls(win){
         }
         if(typeof(top.mti) == 'undefined'){
             mti = jQuery(top.document).find("#menu-trigger-icon");
-            mti.on('mousedown', showControls)
+            mti.on('mouseenter', () => {
+                top.automaticallyPaused = true;
+                showControls()
+            })
         }
         mti.show('fast');
         menuTriggerIconTrigger = setTimeout(() => {
@@ -1099,6 +1071,10 @@ function createMouseObserverForControls(win){
 }
 
 patchMaximizeButton();
+
+jQuery(() => {
+    gui.Window.get().on('close', closeWindow)
+});
 
 process.on('unhandledRejection', function (reason, p){
     console.error(reason, 'Unhandled Rejection at Promise', p);
@@ -1176,7 +1152,10 @@ function handleOpenArguments(cmd){
         if(cmd[i] && (force || cmd[i].match(new RegExp('(rt[ms]p[a-z]?:|mms[a-z]?:|magnet:|\.(m3u8?|mp4|flv))', 'i')))){
             cmd[i] = cmd[i].replaceAll("'", "").replaceAll('"', '');
             console.log('PLAY', cmd[i]);
-            playCustomURL(cmd[i], true);
+            var o = getFrame('overlay');
+            if(o){
+                o.processFile(cmd[i])
+            }
             break;
         }
     }
@@ -1248,8 +1227,8 @@ jQuery(function (){
         }
     });
     jWin.on('load resize', function (){
-        var miniPlayerTriggerWidth = ( screen.width / 2.5), width = jWin.width(), showInTaskbar = !( width <= miniPlayerTriggerWidth ), onTop = ( !showInTaskbar || isFullScreen());
-        console.log( width+' < ( '+screen.width+' / 3) )', onTop, showInTaskbar);
+        var miniPlayerTriggerHeight = (screen.height / 3), height = jWin.height(), showInTaskbar = !( height <= miniPlayerTriggerHeight ), onTop = ( !showInTaskbar || isFullScreen());
+        console.log( height + ' < ( '+screen.height+' / 3) )', onTop, showInTaskbar);
         if(onTop !== lastOnTop){
             lastOnTop = onTop;
             console.log('SET ' + JSON.stringify(onTop));
@@ -1280,12 +1259,21 @@ jQuery(function (){
         }
     });
     var recordingJournal = [], recordingJournalLimit = 8;
-    addAction('media-received', function (url, content){
+    addAction('media-received', function (url, content, type){
         if(isRecording !== false){
-            console.log('RECEIVED', url);
-            var length = (typeof(content)=='string') ? filesize(content) : content.body.length; 
+            if(type == 'path'){ // so content is a path, not a buffer
+                content = fs.readFileSync(content, 'binary')
+            }
+            if(typeof(content)=='object' && typeof(content.base64Encoded)!='undefined' && content.base64Encoded){
+                if(['frame'].indexOf(PlaybackManager.activeIntent.type)==-1){ // only in frame intent we receive from chrome.debugger now
+                    return;
+                }
+                content = new Buffer(content.body, 'base64')
+            }
+            var length = (typeof(content)=='string') ? content.length : content.byteLength; 
             if(!length){
-                console.log('Empty media skipped.');
+                console.log('recording');
+                console.warn('Empty media skipped.');
                 return;
             }
             for(var key in recordingJournal){
@@ -1299,37 +1287,24 @@ jQuery(function (){
             var file = isRecording.folder+'/'+time()+'.'+getExt(url);
             recordingJournal[file] = length;
             recordingJournal = sliceObject(recordingJournal, recordingJournalLimit * -1);
-            if(typeof(content)=='string'){
-                fs.copyFile(content, file, function (err){ // here content is the name of the source file
-                    if(err){
-                        console.log('WRITE ERROR', err)
-                    }
-                })
-            } else {
-                console.log('SAVE', file, content.body.length);
-                if(content.base64Encoded){
-                    fs.writeFile(file, new Buffer(content.body, 'base64'), {encoding: 'binary', flag: 'w'});
-                } else {
-                    fs.writeFile(file, new Buffer(content.body, 'binary'), {encoding: 'binary', flag: 'w'}, function (err){
-                        if(err){
-                            console.log('WRITE ERROR', err)
-                        }
-                    })
+            fs.writeFile(file, content, {encoding: 'binary', flag: 'w'}, function (err){
+                if(err){
+                    console.error('WRITE ERROR', file, err)
                 }
-            }
+            })
         }
     })
     
     addAction('recording-save-start', function (){
-        notify(Lang.SAVING_RECORDING, 'fa-spin fa-circle-o-notch', 'wait')
+        recordingNotification.update(Lang.SAVING_RECORDING, 'fa-spin fa-circle-notch', 'forever')
     })
 
     addAction('recording-save-end', function (){
-        notify(Lang.RECORDING_SAVED, 'fa-check', 'normal')
+        recordingNotification.update(Lang.RECORDING_SAVED, 'fa-check', 'normal')
     })
     
     addAction('recording-save-failure', function (){
-        notify(Lang.RECORDING_SAVE_ERROR, 'fa-exclamation-circle', 'normal')
+        recordingNotification.update(Lang.RECORDING_SAVE_ERROR, 'fa-exclamation-circle', 'normal')
     })
 
 })

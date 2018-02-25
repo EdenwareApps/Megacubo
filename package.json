@@ -1,11 +1,11 @@
 {
-    "name": "megacubo-1425",
+    "name": "megacubo-1432",
     "main": "index.html",
-    "chromium-args": "--disable-transparency --ignore-certificate-errors --remote-debugging-port=9000 --disable-gpu --force-cpu-draw",
-    "node": true,
+    "chromium-args": "--disable-transparency --ignore-certificate-errors --remote-debugging-port=9000    --disable-gpu --force-cpu-draw",
     "description": "A simple and intuitive IPTV player.",
-    "version": "14.2.7",
+    "version": "14.3.5",
     "inject_js_end": "assets/js/helper.js",
+    "bugs": "https://www.facebook.com/messages/t/MegacuboTV",
     "window": {
         "title": "Megacubo",
         "frame": false,
@@ -24,9 +24,7 @@
         "mkdirp": "~0.3.5",
         "nw-custom-frame": "~0.9.1",
         "peerflix": "~0.37.0",
-        "pornsearch": "~2.3.0",
         "request": "~2.83.0",
-        "tiny-worker": "~2.1.1",
         "ytdl-core": "~0.20.0",
         "ytsr": "~0.1.7"
     },

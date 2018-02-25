@@ -889,10 +889,7 @@ body.vjs-full-window {
   .video-js .vjs-volume-panel:focus .vjs-volume-control,
   .video-js .vjs-volume-panel .vjs-volume-control:hover,
   .video-js .vjs-volume-panel .vjs-volume-control:active,
-  .video-js .vjs-volume-panel .vjs-volume-control:focus,
   .video-js .vjs-volume-panel .vjs-mute-control:hover ~ .vjs-volume-control,
-  .video-js .vjs-volume-panel .vjs-mute-control:active ~ .vjs-volume-control,
-  .video-js .vjs-volume-panel .vjs-mute-control:focus ~ .vjs-volume-control,
   .video-js .vjs-volume-panel .vjs-volume-control.vjs-slider-active {
     visibility: visible;
     opacity: 1;
@@ -907,10 +904,7 @@ body.vjs-full-window {
     .video-js .vjs-volume-panel:focus .vjs-volume-control.vjs-volume-horizontal,
     .video-js .vjs-volume-panel .vjs-volume-control:hover.vjs-volume-horizontal,
     .video-js .vjs-volume-panel .vjs-volume-control:active.vjs-volume-horizontal,
-    .video-js .vjs-volume-panel .vjs-volume-control:focus.vjs-volume-horizontal,
     .video-js .vjs-volume-panel .vjs-mute-control:hover ~ .vjs-volume-control.vjs-volume-horizontal,
-    .video-js .vjs-volume-panel .vjs-mute-control:active ~ .vjs-volume-control.vjs-volume-horizontal,
-    .video-js .vjs-volume-panel .vjs-mute-control:focus ~ .vjs-volume-control.vjs-volume-horizontal,
     .video-js .vjs-volume-panel .vjs-volume-control.vjs-slider-active.vjs-volume-horizontal {
       width: 5em;
       height: 3em; }
@@ -919,10 +913,7 @@ body.vjs-full-window {
     .video-js .vjs-volume-panel:focus .vjs-volume-control.vjs-volume-vertical,
     .video-js .vjs-volume-panel .vjs-volume-control:hover.vjs-volume-vertical,
     .video-js .vjs-volume-panel .vjs-volume-control:active.vjs-volume-vertical,
-    .video-js .vjs-volume-panel .vjs-volume-control:focus.vjs-volume-vertical,
     .video-js .vjs-volume-panel .vjs-mute-control:hover ~ .vjs-volume-control.vjs-volume-vertical,
-    .video-js .vjs-volume-panel .vjs-mute-control:active ~ .vjs-volume-control.vjs-volume-vertical,
-    .video-js .vjs-volume-panel .vjs-mute-control:focus ~ .vjs-volume-control.vjs-volume-vertical,
     .video-js .vjs-volume-panel .vjs-volume-control.vjs-slider-active.vjs-volume-vertical {
       -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=100)"; }
       .video-js .vjs-volume-panel:hover .vjs-volume-control.vjs-volume-vertical .vjs-volume-bar,
@@ -935,18 +926,12 @@ body.vjs-full-window {
       .video-js .vjs-volume-panel .vjs-volume-control:hover.vjs-volume-vertical .vjs-volume-level,
       .video-js .vjs-volume-panel .vjs-volume-control:active.vjs-volume-vertical .vjs-volume-bar,
       .video-js .vjs-volume-panel .vjs-volume-control:active.vjs-volume-vertical .vjs-volume-level,
-      .video-js .vjs-volume-panel .vjs-volume-control:focus.vjs-volume-vertical .vjs-volume-bar,
-      .video-js .vjs-volume-panel .vjs-volume-control:focus.vjs-volume-vertical .vjs-volume-level,
       .video-js .vjs-volume-panel .vjs-mute-control:hover ~ .vjs-volume-control.vjs-volume-vertical .vjs-volume-bar,
       .video-js .vjs-volume-panel .vjs-mute-control:hover ~ .vjs-volume-control.vjs-volume-vertical .vjs-volume-level,
-      .video-js .vjs-volume-panel .vjs-mute-control:active ~ .vjs-volume-control.vjs-volume-vertical .vjs-volume-bar,
-      .video-js .vjs-volume-panel .vjs-mute-control:active ~ .vjs-volume-control.vjs-volume-vertical .vjs-volume-level,
-      .video-js .vjs-volume-panel .vjs-mute-control:focus ~ .vjs-volume-control.vjs-volume-vertical .vjs-volume-bar,
-      .video-js .vjs-volume-panel .vjs-mute-control:focus ~ .vjs-volume-control.vjs-volume-vertical .vjs-volume-level,
       .video-js .vjs-volume-panel .vjs-volume-control.vjs-slider-active.vjs-volume-vertical .vjs-volume-bar,
       .video-js .vjs-volume-panel .vjs-volume-control.vjs-slider-active.vjs-volume-vertical .vjs-volume-level {
         -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=100)"; }
-  .video-js .vjs-volume-panel.vjs-volume-panel-horizontal:hover, .video-js .vjs-volume-panel.vjs-volume-panel-horizontal:focus, .video-js .vjs-volume-panel.vjs-volume-panel-horizontal:active, .video-js .vjs-volume-panel.vjs-volume-panel-horizontal.vjs-slider-active {
+  .video-js .vjs-volume-panel.vjs-volume-panel-horizontal:hover, .video-js .vjs-volume-panel.vjs-volume-panel-horizontal:active, .video-js .vjs-volume-panel.vjs-volume-panel-horizontal.vjs-slider-active {
     width: 9em;
     -webkit-transition: width 0.1s;
     -moz-transition: width 0.1s;
@@ -1432,3 +1417,12 @@ video::-webkit-media-text-track-display {
 @media print {
   .video-js > *:not(.vjs-tech):not(.vjs-poster) {
     visibility: hidden; } }
+
+.vjs-resize-manager {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+  visibility: hidden; }

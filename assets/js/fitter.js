@@ -1047,7 +1047,7 @@ var Fitter = (function (){
             if(object.paused && object.currentSrc.indexOf('blob:')==-1){
                 object.play()
             }
-            if(!object.paused && !object.currentTime){
+            if(!object.currentTime){
                 console.log('Video discarded by state - paused='+object.paused+', currentTime='+object.currentTime);
                 return true;
             }
@@ -1160,7 +1160,7 @@ var Fitter = (function (){
         doFindStreams(scope);
         var frames = scope.document.querySelectorAll("iframe, frame");
         for(var i=0; i<frames.length; i++){
-            if(frames[i].contentWindow){
+            if(frames[i].contentWindow && frames[i].contentWindow.document){
                 this.findStreams(frames[i].contentWindow);
             }
         }
@@ -1175,7 +1175,6 @@ var Fitter = (function (){
             console.error('BAD SCOPE', data, traceback());
             return;
         }
-
         var unfocus = function (e){
             var target = e.srcElement;
             if(!target || typeof(target['tagName'])=='undefined' || ['input', 'textarea'].indexOf(target['tagName'].toLowerCase())==-1){
@@ -1188,10 +1187,8 @@ var Fitter = (function (){
                 }
             }
         }
-
         // document.body.appendChild(data.element); //Failed to read the 'buffered' property from 'SourceBuffer': This SourceBuffer has been removed from the parent media source.
         top.patchFrameWindowEvents(data.scope, unfocus);
-
         data.scope.__fitted = true;
         if(['html', 'body'].indexOf(tag(data.element))==-1){
             stylizerQueueReset(data.element, data.scope);
@@ -1199,56 +1196,6 @@ var Fitter = (function (){
             stylizerQueueCommit(data.scope);
         }
         fitParentFrames(data.scope);
-
-        (function (){ // INNER PAGE ROUTINES
-            //console.log('SCOPE => '+document.URL+' '+this.document.URL);
-            var document = this.document;
-            var absolutize = (() => {
-                // this prevents any overhead from creating the object each time
-                var a = document.createElement('a'), m = document.createElement('img');
-                return (function (url) {
-                    if ((typeof url)!='string' || url.match(new RegExp("^(about|res|javascript|#):")) || url.match(new RegExp("<[A-Za-z]+ ","i"))){
-                        return this.document.URL;
-                    }
-                    if (url.match(new RegExp("^(mms|rtsp|rtmp|http)s?:"))){
-                        return url;
-                    }
-                    a.href = url;
-                    if ((typeof a.href)=='string' && new RegExp("^[a-z]{2,7}:\/\/").test(a.href)){
-                        return a.href;
-                    } else {
-                        try{m.src = url;return m.src;}catch(e){};
-                        return url;
-                    }
-                });
-            })();
-            /*
-            var favicon = function (){
-                var icon = false;
-                var nodeList = document.getElementsByTagName("link");
-                for (var i = 0; i < nodeList.length; i++){
-                    if((nodeList[i].getAttribute("rel") == "icon")||(nodeList[i].getAttribute("rel") == "shortcut icon")){
-                        icon = nodeList[i].getAttribute("href");
-                        if(icon.indexOf('.png')!=-1) break;
-                    }
-                }
-                return icon ? absolutize(icon) : false; 
-            }
-            var updateTitle = function (val){
-                console.log('TITLE = '+val+' '+typeof(val));
-                if(val && val!='undefined'){
-                    if(!top.window.hasValidTitle()){
-                        top.window.setTitleData(val, favicon());
-                    }
-                }
-            }
-            updateTitle(document.title); // keep above
-            document.__defineSetter__('title', function(val) { 
-                document.querySelector('title').childNodes[0].nodeValue = val;
-                updateTitle(val)
-            });
-            */
-        }).apply(data.scope, []);
         return data;
     }
     this.start = function (scope){

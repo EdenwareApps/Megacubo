@@ -225,14 +225,27 @@ var ListMan = (() => {
     return self;
 })();
 
+function listManMergeNames(a, b){
+    var la = a.toLowerCase();
+    var lb = b.toLowerCase();
+    if(la.indexOf(lb)!=-1){
+        return a;
+    }
+    if(lb.indexOf(la)!=-1){
+        return b;
+    }
+    return a+' - '+b;
+}
+
 function listManJoinDuplicates(flatList){
     var urls = [], map = {};
     for(var i=0; i<flatList.length; i++){
-        if(flatList[i].type=='stream'){
+        if(flatList[i].type=='stream' && !flatList[i].prependName){
             if(urls.indexOf(flatList[i].url)!=-1){
                 var j = map[flatList[i].url];
                 if(flatList[j].name != flatList[i].name){
-                    flatList[j].name += flatList[j].rawname += ' | '+flatList[i].name;
+                    flatList[j].name = listManMergeNames(flatList[j].name, flatList[i].name);
+                    flatList[j].rawname = listManMergeNames(flatList[j].rawname, flatList[i].rawname);
                 }
                 delete flatList[i];
             } else {
@@ -248,14 +261,14 @@ function listManJoinDuplicates(flatList){
 
 addFilter('listManParse', listManJoinDuplicates);
 
-var folderSizeLimit = 128, folderSizeLimitTolerance = 12;
+var folderSizeLimit = 32, folderSizeLimitTolerance = 12;
 
 function listManGetLetterRange(entries){
     var l, start = '0', end = 'Z', r = new RegExp('[A-Za-z0-9]');
     for(var i=0; i<entries.length; i++){
         l = entries[i].name.charAt(0);
         if(l.match(r)){
-            start = l.toUpperCase()
+            start = l.toUpperCase();
             break;
         }
     }
@@ -270,18 +283,24 @@ function listManGetLetterRange(entries){
 }
 
 function listManPaginateGroup(groupEntry){
-    //console.log('CC', groupEntry.entries.length);
-    var group, entries = [], template = groupEntry, n = 1;
+    console.log('CC', groupEntry.entries.length);
+    var group, entries = [], template = groupEntry, n = 1, already = {};
     for(var i=0; i<groupEntry.entries.length; i += folderSizeLimit){
         group = Object.assign({}, template);
-        //console.log('CD', i, folderSizeLimit);
+        console.log('CD', i, folderSizeLimit);
         group.entries = groupEntry.entries.slice(i, i + folderSizeLimit);
         group.name += ' '+listManGetLetterRange(group.entries);
-        //console.log('DC', group.entries.length);
+        if(typeof(already[group.name])!='undefined'){
+            already[group.name]++;
+            group.name += ' '+already[group.name];
+        } else {
+            already[group.name] = 1;
+        }
+        console.log('DC', group.entries.length);
         entries.push(group);
         n++;
     }
-    //console.log('DD', entries.length);
+    console.log('DD', entries.length);
     return entries;
 }
 
@@ -361,43 +380,4 @@ function listManLabelify(list, locale){
 addFilter('listManDeepParse', listManSortRecursively);
 addFilter('listManDeepParse', listManPaginate);
 addFilter('listManDeepParse', listManLabelify);
-
-/*
-
-var channelsIndex = [];
-
-    if(!isRemote && listUrl){
-        window.channelsIndex[listUrl] = flatList;
-        setSourceMeta(listUrl, 'length', flatList.length)
-    }
-
-var IPTVListCacheTTL = 1800, IPTVListFallbackCacheTTL = DB.maximumExpiral;
-function getIPTVListContent(callback, lastTriedAddr, silent) {
-    console.log('Getting list... '+lastTriedAddr+' ('+(silent?'Y':'N')+')');
-    getIPTVListAddr(function (addr){
-        if(!addr){
-            console.log('No addr? '+JSON.stringify(addr)+' ('+(silent?'Y':'N')+')');
-            if(!silent){
-                askForSource(Lang.ASK_IPTV_LIST_FIRST.format(Lang.FIND_LISTS), (url) => {
-                    notify(Lang.PROCESSING, 'fa-spin fa-circle-o-notch', 'wait');
-                    checkStreamType(url, function (url, type){
-                        if(type == 'list'){
-                            notify(Lang.LIST_ADDED, 'fa-info', 'normal');
-                            registerSource(url);
-                            top.modalClose()
-                        } else {
-                            notify(Lang.INVALID_URL_MSG, 'fa-exclamation-circle', 'normal')
-                        }
-                    })
-                    return false;
-                }, null, true);
-                jQuery(top.document).find('.prompt-close').remove()
-            }
-            return;
-        }
-        fetchAndParseIPTVListFromAddr(addr, callback);
-    }, lastTriedAddr);
-}
-
-*/
 

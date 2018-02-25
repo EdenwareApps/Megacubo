@@ -110,7 +110,7 @@
     "SEARCHING_PEERS": "Kollegen suchen ...",
     "CAN_BE_SLOW": "Es kann einige Minuten dauern",
     "SEARCH_PLACEHOLDER": "Gib den Kanalnamen ein ...",
-    "TEST_THEM_ALL": "Testergebnisse unten",
+    "TEST_THEM_ALL": "Testen Sie diese Übertragungen",
     "FILTER_WORDS": "Filtere diese Wörter",
     "FIND_CHANNELS": "Finde Kanäle",
     "IPTV_LISTS": "IPTV-Listen",
@@ -122,5 +122,7 @@
     "XTREME": "Extrem",
     "HIGH": "Hoch",
     "MEDIUM": "Mittel",
-    "LOW": "Niedrig"
+    "LOW": "Niedrig",
+    "CONTINUE": "Fortsetzen",
+    "OPEN_FILE": "Datei öffnen"
 }

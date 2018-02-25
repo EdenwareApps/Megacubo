@@ -6,7 +6,7 @@
         <script type="text/javascript" src="assets/js/global.js"></script>
         <link rel="stylesheet" type="text/css" href="assets/css/global.css" />
         <link rel="stylesheet" type="text/css" href="assets/css/overlay.css" />
-        <link rel="stylesheet" type="text/css" href="assets/fa/css/font-awesome.min.css" />
+        <script defer src="assets/fa/js/fontawesome-all.js"></script>
         <style type="text/css">
             body {
                 box-shadow: inset 0 0 6px #000;
@@ -17,9 +17,11 @@
     </head>
     <body>
         <div id="notify-area"></div>
-        <div id="drop-target" class="fit-screen"></div>
+        <div id="drop-target" class="fit-screen">
+            <i class="fas fa-download"></i>
+        </div>
         <div id="play-pause-marker" class="fit-screen">
-            <i class="fa fa-play" aria-hidden="true" ></i>
+            <i class="fas fa-play" aria-hidden="true" ></i>
         </div>
         <script type="text/javascript">
             document.onmousedown = () => { // if the program forgot to add back pointerEvents=none, let any click on overlay rebember it
@@ -28,12 +30,6 @@
                     ov.style.pointerEvents = 'none';
                 }
                 top.PlaybackManager.play()
-            }
-            function showHelpTip(){
-                var helpTips = [
-                    Lang.HINT_PRESS_SPACE_TO_PAUSE.format('Space')
-                ];
-                notify(helpTips[0], 'fa-info', 'normal')
             }
             function processFile(file){
                 var probeSize = 120000;
@@ -46,7 +42,7 @@
                     playCustomFile(file)
                 } else {
                     if(file.match(new RegExp('^https?://'))){
-                        var n = notify(Lang.PROCESSING, 'fa-spin fa-circle-o-notch', 'wait');
+                        var n = notify(Lang.PROCESSING, 'fa-spin fa-circle-notch', 'wait');
                         var fetchOptions = {redirect: 'follow'};
                         fetchTimeout(file, (r) => {
                             n.close();
@@ -98,41 +94,49 @@
                     }
                 })
             }
+            function showHelpTip(){
+                var helpTips = [
+                    Lang.HINT_PRESS_SPACE_TO_PAUSE.format('Space')
+                ];
+                notify(helpTips[0], 'fa-info', 'normal')
+            }
             jQuery(document).on('lngload', () => {
-                setTimeout(showHelpTip, 2000);
+                //setTimeout(showHelpTip, 2000);
 				setTimeout(() => {
 					top.createMouseObserverForControls(window)				
 				}, 200)
             });
             var dragDrop = require('drag-drop');
             jQuery(function (){
+                top.recordingNotification = notify('...', 'fa-star', 'short');
+                top.recordingNotification.hide();
                 var dropTarget = document.querySelector('#drop-target'), dragOverColorTimer = 0;
                 dragDrop(dropTarget, {
                     onDrop: function (files, pos) {
                         clearTimeout(dragOverColorTimer);
                         top.document.querySelector('iframe#overlay').style.pointerEvents = 'none';
-                        dropTarget.style.backgroundColor = 'transparent';
+                        jQuery(dropTarget).removeClass('hover');
                         console.log('Here are the dropped files', files);
                         files.forEach(file => {
                             processFile(file.path)
                         })
                     },
                     onDragEnter: function () {
-                        dropTarget.style.backgroundColor = 'rgba(215, 0, 35, 0.3)';   
+                        jQuery(dropTarget).addClass('hover');
                         dragOverColorTimer = setTimeout(() => {
-                            dropTarget.style.backgroundColor = 'transparent';
+                            jQuery(dropTarget).removeClass('hover')
                         }, 3000)
                     },
                     onDragOver: function () {},
                     onDragLeave: function () {
                         clearTimeout(dragOverColorTimer);
                         top.document.querySelector('iframe#overlay').style.pointerEvents = 'none';
-                        dropTarget.style.backgroundColor = 'transparent';
+                        jQuery(dropTarget).removeClass('hover')
                     },
                     onDropText: function (text, pos) {
                         clearTimeout(dragOverColorTimer);
                         top.document.querySelector('iframe#overlay').style.pointerEvents = 'none';
-                        dropTarget.style.backgroundColor = 'transparent';
+                        jQuery(dropTarget).removeClass('hover');
                         console.log('Here is the dropped text', text);
                         if(text.match(new RegExp('^[a-z\\-]+\\.'))){
                             text = 'http://'+text;

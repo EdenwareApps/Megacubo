@@ -61,6 +61,53 @@ body.frameless #nw-custom-frame {
     overflow: hidden;
 }
 
+.nw-cf-icon { 
+    background-position: center center; 
+    background-repeat: no-repeat; 
+}
+
+.nw-cf-icon i, .nw-cf-icon svg {
+    color: #fff;
+}
+
+.nw-cf-handle .nw-cf-icon { 
+    margin-left: 5px;
+}
+
+.nw-cf-title { 
+    color: #ddd; 
+    vertical-align: top; 
+    margin-left: 4px; 
+}
+
+.nw-cf-btn { 
+    background-color: #000; 
+    border-width: 0px; 
+    position: relative;
+    top: -2px;
+    width: 42px;
+    display: inline-block;
+    text-align: center;
+    vertical-align: top;
+}	
+
+.nw-cf-btn:hover { 
+    background-color: #20242F;
+}
+
+.nw-cf-close:hover {
+    background-color: #402;
+}
+
+.nw-cf-close {
+    position: relative;
+}
+
+.nw-cf-btn .nw-cf-icon { 
+    color: #ddd;
+    vertical-align: middle;
+}		
+
 iframe#overlay {
     pointer-events: none;
     z-index: 3;
@@ -86,6 +133,7 @@ iframe#player {
 
 body.isovercontrols:not(.miniplayer) #player, body.isovercontrols:not(.miniplayer) iframe#sandbox, body.paused #player, body.paused iframe#sandbox, body.istyping #player, body.istyping iframe#sandbox, body.paused #player, body.paused iframe#sandbox {
     filter: brightness(50%) saturate(50%);
+    pointer-events: none;
 }
 
 body.modal iframe#controls {
@@ -238,9 +286,23 @@ div#modal-overlay .prompt textarea {
 
 #menu-trigger-icon {
     position: absolute;
-    top: 41px;
-    right: 8px;
+    top: 30px;
+    right: 0;
     z-index: 999999;
+    color: #fff;
+    background: #00040c;
+    padding: 6px 13px 6px 13px;
+    border-bottom-left-radius: 4px;
+    display: inline-block;
+}
+
+body.frameless #menu-trigger-icon {
+    top: 0px;
+}
+
+#menu-trigger-icon i, #menu-trigger-icon svg {
+    font-size: 100%;
+    color: white;
 }
 
 body.isovercontrols #menu-trigger-icon, body.paused #menu-trigger-icon, body.miniplayer #menu-trigger-icon {
@@ -249,9 +311,4 @@ body.isovercontrols #menu-trigger-icon, body.paused #menu-trigger-icon, body.min
 
 body.frameless #menu-trigger-icon {
     top: 11px;
-}
-
-#menu-trigger-icon i.fa {
-    font-size: 150%;
-    color: white;
 }
