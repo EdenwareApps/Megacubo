@@ -3,7 +3,7 @@
     "main": "index.html",
     "chromium-args": "--disable-transparency --ignore-certificate-errors --remote-debugging-port=9000    --disable-gpu --force-cpu-draw",
     "description": "A simple and intuitive IPTV player.",
-    "version": "14.3.5",
+    "version": "14.3.6",
     "inject_js_end": "assets/js/helper.js",
     "bugs": "https://www.facebook.com/messages/t/MegacuboTV",
     "window": {

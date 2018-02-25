@@ -1123,6 +1123,25 @@ win.on('minimize', function() {
     }
 })
 
+function openMegaFile(file){
+    fs.readFile(file, (err, content) => {
+        if(!err && content){
+            var parser = new DOMParser();
+            var doc = parser.parseFromString(content, "application/xml");
+            var url = jQuery(doc).find('stream').text();
+            var name = jQuery(doc).find('stream').attr('name');
+            var c = getFrame('controls');
+            if(c){
+                c.playEntry({
+                    name: name,
+                    url: url,
+                    logo: c.defaultIcons['stream']
+                })
+            }
+        }
+    })
+}
+
 function handleOpenArguments(cmd){
     console.log('OPEN', cmd);
     // minimist module was giving error: notFlags.forEach is not a function
@@ -1135,28 +1154,35 @@ function handleOpenArguments(cmd){
         }
         cmd = cmd.split(' ')
     }
+    console.log('OPEN 2', cmd);
     for(var i=0; i<cmd.length; i++){
         var force = false;
         if(cmd[i].charAt(0)=='-'){
-
             continue;
         }
+        cmd[i] = cmd[i].replaceAll("'", "").replaceAll('"', '');
         if(cmd[i].match(new RegExp('mega:', 'i'))){
-            cmd[i] = cmd[i].replaceAll("'", "").replaceAll('"', '');
             var parts = cmd[i].split(( cmd[i].indexOf('|')!=-1 ) ? '|' : '//');
             if(parts.length > 1){
                 cmd[i] = atob(parts[1]);
                 force = true;
             }
         }
-        if(cmd[i] && (force || cmd[i].match(new RegExp('(rt[ms]p[a-z]?:|mms[a-z]?:|magnet:|\.(m3u8?|mp4|flv))', 'i')))){
-            cmd[i] = cmd[i].replaceAll("'", "").replaceAll('"', '');
-            console.log('PLAY', cmd[i]);
-            var o = getFrame('overlay');
-            if(o){
-                o.processFile(cmd[i])
+        if(cmd[i]){
+            console.log('OPEN 3', cmd[i], getExt(cmd[i]));
+            if(getExt(cmd[i])=='mega'){
+                openMegaFile(cmd[i]);
+                break;
+            } else if(force || cmd[i].match(new RegExp('(rt[ms]p[a-z]?:|mms[a-z]?:|magnet:|\.(m3u8?|mp4|flv))', 'i'))){
+                cmd[i] = cmd[i].replaceAll("'", "").replaceAll('"', '');
+                console.log('PLAY', cmd[i]);
+                var o = getFrame('overlay');
+                if(o){
+                    o.processFile(cmd[i])
+                }
+                break;
             }
-            break;
+            console.log('OPEN 4', cmd[i]);
         }
     }
 }

@@ -1724,6 +1724,9 @@ if(typeof(require)!='undefined'){
     }
 
     function displayPrepareName(name, prepend, append){
+        if(!name){
+            name = 'Unknown';
+        }
         if(prepend){
             if(name.indexOf('<span')!=-1){
                 name = name.replace('>', '>'+prepend+' ');

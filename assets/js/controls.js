@@ -213,15 +213,6 @@ function sendStatsPrepareEntry(stream){
     return stream;
 }
 
-function playEntry(stream){
-    collectListQueue(stream);
-    stream.prependName = '';
-    top.PlaybackManager.cancelLoading();
-    top.createPlayIntent(stream, {manual: true}, function (intent){
-        updateStreamEntriesFlags()
-    })
-}
-
 function playPrevious(){ // PCH
     var entry = History.get(0);
     var c = currentStream();
@@ -483,6 +474,15 @@ function unregisterOfflineStream(stream){
         Store.set('offline_streams', ostreams);
         updateStreamEntriesFlags()
     }
+}
+
+function playEntry(stream){
+    collectListQueue(stream);
+    stream.prependName = '';
+    top.PlaybackManager.cancelLoading();
+    top.createPlayIntent(stream, {manual: true}, function (intent){
+        updateStreamEntriesFlags()
+    })
 }
 
 function updateStreamEntriesFlags(){
