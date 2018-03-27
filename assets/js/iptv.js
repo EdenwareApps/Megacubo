@@ -48,7 +48,7 @@ function buildPathStructure(path, group){ // group is entry object of type "grou
 
 var ListMan = (() => {
 
-    var self = {};
+    var self = {}, debug = false;
 
     self.regexes = {
         'group': new RegExp('group\-title *= *["\']*([^,"\']*)', 'i'),
@@ -78,19 +78,27 @@ var ListMan = (() => {
         if(path.match('^https?:')){
             var key = 'iptv-read-'+path, fallbackKey = key+'-fb', doFetch = false, data = Store.get(key);
             if(typeof(data)=='string' && data.length){
-                console.log('READ CACHED FOR '+key, data.length);
+                if(debug){
+                    console.log('READ CACHED FOR '+key, data.length)
+                }
                 callback(data, path);
                 setTimeout(() => {
                     getHeaders(path) // ping the list anyway to do any auth, but do that much after to avoid overload while parsing the list
                 }, 10000)
             } else {
-                console.log('READ FETCH FOR '+key);
+                if(debug){
+                    console.log('READ FETCH FOR '+key)
+                }
                 var fetchOptions = {redirect: 'follow'};
                 fetchTimeout(path, (r) => {
                     if(typeof(r)=='string' && r.indexOf('#EXT')!=-1){
-                        console.log('READ SAVE FOR '+key, r.length);
+                        if(debug){
+                            console.log('READ SAVE FOR '+key, r.length)
+                        }
                         r = self.extract(r);
-                        console.log('READ EXTRACTED FOR '+key, r.length);
+                        if(debug){
+                            console.log('READ EXTRACTED FOR '+key, r.length)
+                        }
                         Store.set(key, r, 12 * 3600);
                         Store.set(fallbackKey, r, 31 * (12 * 3600));
                         callback(r, path)
@@ -158,13 +166,19 @@ var ListMan = (() => {
     self.parse = (content, cb, timeout, skipFilters, url) => { // parse a list to a array of entries/objects
         if(self.isPath(content)){
             url = content;
-            console.log('READING', content, time());
+            if(debug){
+                console.log('READING', content, time())
+            }
             self.read(content, (content, path) => {
-                console.log('READEN', path, time());
+                if(debug){
+                    console.log('READEN', path, time())
+                }
                 self.parse(content, cb, timeout, skipFilters, url)
             }, timeout)
         } else {
-            console.log('PARSING', time(), content.length);
+            if(debug){
+                console.log('PARSING', time(), content.length)
+            }
             var parsingStream = null, flatList = [], slist = content.split("\n");
             for(var i in slist){
                 if(slist[i].length > 12){
@@ -181,10 +195,14 @@ var ListMan = (() => {
                 }
             }
             if(!skipFilters){
-                console.log('PARSING 2', time());
+                if(debug){
+                    console.log('PARSING 2', time())
+                }
                 flatList = applyFilters('listManParse', flatList);
             }
-            console.log('PARSED', time());
+            if(debug){
+                console.log('PARSED', time())
+            }
             cb(flatList)
         }
     }
@@ -238,10 +256,12 @@ function listManMergeNames(a, b){
 }
 
 function listManJoinDuplicates(flatList){
-    var urls = [], map = {};
+    var already = {}, map = {};
     for(var i=0; i<flatList.length; i++){
-        if(flatList[i].type=='stream' && !flatList[i].prependName){
-            if(urls.indexOf(flatList[i].url)!=-1){
+        if(!flatList[i]){
+            delete flatList[i];
+        } else if((typeof(flatList[i].type)=='undefined' || flatList[i].type=='stream') && !flatList[i].prependName){
+            if(typeof(already[flatList[i].url])!='undefined'){
                 var j = map[flatList[i].url];
                 if(flatList[j].name != flatList[i].name){
                     flatList[j].name = listManMergeNames(flatList[j].name, flatList[i].name);
@@ -249,7 +269,7 @@ function listManJoinDuplicates(flatList){
                 }
                 delete flatList[i];
             } else {
-                urls.push(flatList[i].url);
+                already[flatList[i].url] = 1;
                 map[flatList[i].url] = i;
             }
         }
@@ -283,11 +303,11 @@ function listManGetLetterRange(entries){
 }
 
 function listManPaginateGroup(groupEntry){
-    console.log('CC', groupEntry.entries.length);
+    //console.log('CC', groupEntry.entries.length);
     var group, entries = [], template = groupEntry, n = 1, already = {};
     for(var i=0; i<groupEntry.entries.length; i += folderSizeLimit){
         group = Object.assign({}, template);
-        console.log('CD', i, folderSizeLimit);
+        //console.log('CD', i, folderSizeLimit);
         group.entries = groupEntry.entries.slice(i, i + folderSizeLimit);
         group.name += ' '+listManGetLetterRange(group.entries);
         if(typeof(already[group.name])!='undefined'){
@@ -296,11 +316,11 @@ function listManPaginateGroup(groupEntry){
         } else {
             already[group.name] = 1;
         }
-        console.log('DC', group.entries.length);
+        //console.log('DC', group.entries.length);
         entries.push(group);
         n++;
     }
-    console.log('DD', entries.length);
+    //console.log('DD', entries.length);
     return entries;
 }
 

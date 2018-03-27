@@ -1,4 +1,6 @@
-if(document.URL.substr(0, 7)!='chrome-'){
+if(document.URL.substr(0, 7) != 'chrome-'){
+	
+	window.WebSocket = undefined;
 
 	console.clear = function (){
 		return;
@@ -21,6 +23,11 @@ if(document.URL.substr(0, 7)!='chrome-'){
 	window.confirm = function (str){
 		console.log('CONFIRM', str);
 		return false;
+	}
+
+	window.onerror = (...arguments) => {
+		console.error('ERROR', arguments);
+		return true;
 	}
 
 	window.open = function (url, name, features) {

@@ -2,92 +2,101 @@
 <html class="page-index">
 	<head>
 		<meta charset="UTF-8" />
-		<link rel="stylesheet" type="text/css" href="players/videojs/video-js.min.css" />
-		<link rel="stylesheet" type="text/css" href="players/videojs/videojs-dvrseekbar.css" />
-		<link rel="stylesheet" type="text/css" href="players/videojs/videojs-stop-button.css" />
-		<link rel="stylesheet" type="text/css" href="assets/css/player.css" />
-		<style type="text/css">	
-			* {
-				-webkit-user-drag: none;
-			}
-			body {
-				margin: 0;
-			}		
-			.video-js {
-				width: 100vw !important;
-    			height: 100vh !important;
-			}
-			.vjs-progress-holder {
-				max-width: 100%;
-			}
-			.vjs-icon-square:before {
-    			font-size: large;
-			}
-			.vjs-button {
-				cursor: pointer;
-			}
-			video {
-				object-fit: fill;
-			}
-		</style>
 	</head>
 	<body>
-		<script type="text/javascript" src="assets/js/jquery-3.2.1.js"></script>
+		<script type="text/javascript" src="assets/js/jquery.js"></script>
 		<script type="text/javascript" src="assets/js/jquery.shortcuts.min.js"></script>
 		<script type="text/javascript" src="assets/js/global.js"></script>
-		<script type="text/javascript" src="players/videojs/video.min.js"></script>
-		<script type="text/javascript" src="players/videojs/videojs-contrib-hlsjs.min.js"></script>
-		<script type="text/javascript" src="players/videojs/videojs-dvrseekbar.min.js"></script>
-        <script defer src="assets/fa/js/fontawesome-all.js"></script>
+		<script type="text/javascript" src="assets/js/hls.js"></script>
+		<video id="video" autoplay></video>
 		<script type="text/javascript">
-			var lastPlaybackData, video, v, player, _paused = false, lastCurrentTime = 0, stopEvent = function(e) {
-				if(e){
-					e.stopPropagation();
-					e.preventDefault();
-				}
-				return false;
-			}
-			var playbackStartTimer = 0;
-			function playbackStartTimeout(secs){
-				clearTimeout(playbackStartTimer);
-				playbackStartTimer = setTimeout(() => {
-					if(video && video.networkState == 2){
-						reset()
+			var hls, video = document.getElementById('video'), player = jQuery(video), b = jQuery('body');
+			top.prepareVideoObject(video);
+			var recoverDecodingErrorDate, recoverSwapAudioCodecDate;
+			function handleMediaError(hls) {
+				var now = performance.now();
+				if (!recoverDecodingErrorDate || (now - recoverDecodingErrorDate) > 3000) {
+					recoverDecodingErrorDate = performance.now();
+					var msg = "trying to recover from media Error ..."
+					console.warn(msg);
+					hls.recoverMediaError();
+				} else {
+					if (!recoverSwapAudioCodecDate || (now - recoverSwapAudioCodecDate) > 3000) {
+						recoverSwapAudioCodecDate = performance.now();
+						var msg = "trying to swap Audio Codec and recover from media Error ..."
+						console.warn(msg);
+						hls.swapAudioCodec();
+						hls.recoverMediaError();
+					} else {
+						var msg = "cannot recover, last media error recovery failed ..."
+						console.error(msg);
 					}
-				}, secs * 1000)
-			}
-			function src(_src, type, cb){
-				player.off('error');
-				lastPlaybackData = {src: _src, type: type};
-				player.src(lastPlaybackData);
-				player.load();
-				playbackStartTimeout(10);
-				video.oncanplaythrough = () => {
-					clearTimeout(playbackStartTimer);
-					console.log('Can play!');
 				}
-				player.play()
+			}	
+			var currentSrc = false;	
+			function src(_src, type){
+				currentSrc = {src: _src, type: type};
+				if(hls){
+					hls.destroy()
+				}
+				if(type.toLowerCase().indexOf('mpegurl')!=-1){
+					hls = new Hls({
+						//debug: true
+						maxSeekHole: 30,
+						maxBufferHole: 25
+					});				
+					hls.loadSource(_src);
+					hls.attachMedia(video);
+					hls.on(Hls.Events.ERROR, function(event, data) {
+						var msg = "Player error: " + data.type + " - " + data.details;
+						console.error(msg, data);
+						if (data.fatal) { //} || data.details == 'bufferStalledError') {
+							switch (data.type) {
+								case Hls.ErrorTypes.MEDIA_ERROR:
+									handleMediaError(hls);
+									break;
+								case Hls.ErrorTypes.NETWORK_ERROR:
+									console.error("network error ...");
+									handleMediaError(hls);
+									break;
+								default:
+									console.error("unrecoverable error");
+									reset();
+									break;
+							}
+						} 
+					});
+					hls.on(Hls.Events.MANIFEST_PARSED, () => {
+						video.play();
+					});
+				} else {
+					video.src = _src;
+					video.load();
+					video.play()
+				}
 			}
 			function ready(f){
-				player.ready(f)
+				f()
 			}
 			function pause(){
 				if(!paused()){
-					player.pause()
+					video.pause()
 				}
 			}
 			function unpause(){
 				if(paused()){
-					player.play()
+					video.play()
 				}
 			}
 			function paused(){
-				return player.paused()
+				return video.paused
 			}
 			function stop(){
-				player.off('error');
-				player.pause();
-				player.reset()
+				video.pause();
+				if(hls){
+					hls.destroy();
+					hls = null;
+				}
 			}
 			function videoElement(){
 				if(!video || !video.parentNode){
@@ -96,125 +105,23 @@
 				return video;
 			}
 			function play(callback){
-				//if(lastPlaybackData){
-				//	player.src(lastPlaybackData);
-				//	player.load();
-				//}
-				console.log('player.play()')
-				player.ready(() => {
-					player.play();
-					if(typeof(callback)=='function'){
-						callback()
-					}
-				})
+				video.play()
+				if(callback){
+					callback()
+				}
 			}
 			function currentTime(s){
 				if(s){
-					player.currentTime(s)
+					video.currentTime = s;
 				}
-				return player.currentTime()
+				return video.currentTime;
 			}
 			function seek(s){
-				var t = player.currentTime();
-				player.currentTime(t + s)
-			}
-			function patchVideo(v){
-				v.off('mousedown click mouseup');
-				/*
-				v.on('mousedown', function(event) {
-					_paused = video.paused;
-					console.log('Player.PAUSED = ' + JSON.stringify(_paused));
-					return stopEvent(event);
-				})
-				v.on('click', function(event) {
-					return stopEvent(event);
-				})
-				v.on('mouseup', function(event) {
-					setTimeout(() => {
-						if (_paused) {
-							console.log('Player.PLAY');
-							top.PlaybackManager.play()
-						}
-						else {
-							console.log('Player.PAUSE');
-							top.PlaybackManager.pause()
-						}
-					}, 0);
-					return stopEvent(event);
-				})
-				*/
-				var playPauseDelayTimer;
-				player.off('play');
-				player.off('pause');
-				player.off('error');
-				player.on('play', function(event) {
-					clearTimeout(playPauseDelayTimer);
-					top.delayedPlayPauseNotify()
-				});
-				player.on('pause', function(event) {
-					clearTimeout(playPauseDelayTimer);
-					playPauseDelayTimer = setTimeout(function (){ // delay a bit to avoid the pause UI on seeking
-						if(player.paused() && top){
-							top.delayedPlayPauseNotify();
-						}
-					}, 500)
-				});
-				player.on('error', function(event) {
-					//top.PlaybackManager.activeIntent.error = true;
-					//top.PlaybackManager.activeIntent.trigger('error');
-					console.log('Video.JS error', event)
-				});
-				
-				var bt = jQuery('<button class="vjs-reload-control vjs-control vjs-button" type="button" aria-live="polite" title="Reload" aria-disabled="false"><i aria-hidden="true" class="fas fa-sync-alt"></i></button>');
-				bt.on('mousedown', goReload);
-				jQuery('.vjs-volume-panel').before(bt);
-				
-				bt = jQuery('<button class="vjs-stop-control vjs-control vjs-button" type="button" aria-live="polite" title="Stop" aria-disabled="false"><i aria-hidden="true" class="fas fa-stop"></i></button>');
-				bt.on('mousedown', () => {
-					top.stop()
-				});
-				jQuery('.vjs-play-control').after(bt);
-				
-				bt = jQuery('.video-js .vjs-fullscreen-control'), pbt = bt.parent();
-				bt.remove().appendTo(pbt);
-				bt.on('mousedown', function (e){ // .live()
-					top.toggleFullScreen();
-					e.stopPropagation();
-					e.preventDefault();
-					return false;
-				});				
-				jQuery('.vjs-volume-panel').before(bt);
+				video.currentTime += s;
 			}
 			function reset(){
-				console.warn('Reset player.');
-				var ct = 0;
-				if(player){
-					ct = player.currentTime()
-				}
-				jQuery('video, .video-js').remove();
-				if(player){
-					player.dispose()
-				}
-				delete window['player'];
-				video = document.createElement('video');
-				video.preload = "none";
-				v = jQuery(video);
-				document.querySelector('body').appendChild(video);
-				video.className = 'video-js'; // set here to skip auto-setup
-				player = videojs(video, { 
-					"preload": "none",
-					"autoplay": false, 
-					"controls": true
-				});
-				player.dvrseekbar(); // re-enable when the slider gets fixed, maybe the ondragstart hook at global.js or helper.js
-				patchVideo(v);
-				if(lastPlaybackData){
-					src(lastPlaybackData.src, lastPlaybackData.type);
-					if(ct){
-						player.ready(() => {
-							player.currentTime(ct)
-						})
-					}
+				if(currentSrc){
+					src(currentSrc.src, currentSrc.type)
 				}
 			}
 			reset();

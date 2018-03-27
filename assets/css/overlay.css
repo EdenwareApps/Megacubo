@@ -37,20 +37,6 @@ div.drop-target {
     z-index: 1;
 }
 
-div#play-pause-marker {
-    display: none;
-    align-items: center;
-    justify-content: center;
-    opacity: 1;
-    cursor: pointer;
-}
-
-div#play-pause-marker i, div#play-pause-marker svg, div#drop-target i, div#drop-target svg {
-    color: #fff;
-    font-size: 1000%;
-    text-shadow: 2px 2px 24px #000;
-}
-
 #drop-target {
     background-color: transparent;
     display: flex;
@@ -69,7 +55,3 @@ div#play-pause-marker i, div#play-pause-marker svg, div#drop-target i, div#drop-
 #drop-target.hover svg, #drop-target.hover i {
     display: inline-block;
 }  
-
-body.paused div#play-pause-marker {
-    display: flex;
-}

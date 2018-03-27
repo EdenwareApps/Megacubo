@@ -36,7 +36,7 @@ input, textarea {
 }
 
 .hide {
-	display: none;
+	visibility: hidden;
 }
 
 .entry .marquee {

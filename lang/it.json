@@ -84,7 +84,7 @@
 	"OPEN_URL": "Apri URL",
 	"PARENTAL_CONTROL": "Controllo parentale",
 	"PARENTAL_CONTROL_FILTER_HINT": "Digita le parole da filtrare separate da virgole.",
-	"DATA_FETCHING_FAILURE": "Impossibile ottenere dati, riprova più tardi.",
+	"DATA_FETCHING_FAILURE": "Impossibile ottenere dati, controlla la tua connessione.",
 	"HIDE_BUTTON_OPT": "Nascondi pulsante \"{0}\" (utilizza {1})",
 	"MY_LISTS": "Le mie liste",
 	"CONNECTED_LISTS": "Elenchi collegati",
@@ -106,7 +106,7 @@
     "HD_LISTS": "Elenchi di qualità HD",
     "GPU_RENDERING": "Rendering GPU",
     "MAGNET_SEARCH": "Ricerca magnete",
-    "CONNECTING": "Connessione in corso ...",
+    "CONNECTING": "Connessione in corso",
     "SEARCHING_PEERS": "Alla ricerca di coetanei ...",
     "CAN_BE_SLOW": "Potrebbero essere necessari alcuni minuti",
     "SEARCH_PLACEHOLDER": "Digita il nome del canale ...",
@@ -116,7 +116,7 @@
     "IPTV_LISTS": "Elenchi IPTV",
     "ALL_LISTS": "Tutte le liste",
     "FIND_VIDEOS": "Trova Video",
-    "WHAT_TO_WATCH": "Cosa guardare",
+    "WHAT_TO_WATCH": "Cosa guardare?",
     "FEATURED": "In primo piano",
     "SEARCH_RANGE": "Intervallo di ricerca",
     "XTREME": "Estremo",
@@ -125,5 +125,9 @@
     "LOW": "Basso",
     "CONTINUE": "Continua",
     "OPEN_FILE": "Apri un file",
-	"CATEGORIES": "Categories"
+	"CATEGORIES": "Categories",
+	"REMOVE_FROM": "Rimuovere da \"{0}\"",
+    "WATCH_NOW": "Guarda ora",
+	"TUNING": "Sintonizzando",
+	"FORWARD": "Avanzare"
 }

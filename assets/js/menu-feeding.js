@@ -2,7 +2,7 @@
 function getWindowModeEntries(){
     var options = [];
     if(top){
-        if(top.miniPlayerActive){
+        if(isMiniPlayerActive()){
             options.push({name: Lang.RESTORE+' (ESC)', logo:'fa-window-restore', type: 'option', callback: function (){
                 top.leaveMiniPlayer();
                 refreshListing()
@@ -67,16 +67,14 @@ function getHistoryEntries(){
     return options;
 }
 
-function getRemoteXtras(url, name){
-    var url = 'http://app.megacubo.net/stats/data/xtras.'+getLocale(true)+'.json', name = Lang.EXTRAS;
-    fetchAndRenderEntries(url, name)
+function getRemoteXtras(callback){
+    var url = 'http://app.megacubo.net/stats/data/xtras.'+getLocale(true)+'.json';
+    return fetchEntries(url, callback)
 }
 
 function getRemoteSources(callback){
-    var url = 'http://app.megacubo.net/stats/data/sources.'+getLocale(true)+'.json', name = Lang.ALL_LISTS;
-    return fetchEntries(url, (entries) => {
-        callback(entries)
-    })
+    var url = 'http://app.megacubo.net/stats/data/sources.'+getLocale(true)+'.json';
+    return fetchEntries(url, callback)
 }
 
 function loadSource(url, name, callback, filter){
@@ -84,7 +82,7 @@ function loadSource(url, name, callback, filter){
     var container = getListContainer(true);
     backEntryRender(container, dirname(path));
     var failed = () => {
-        notify(Lang.DATA_FETCHING_FAILURE, 'fa-warning', 'normal');
+        notify(Lang.DATA_FETCHING_FAILURE, 'fa-exclamation-triangle', 'normal');
         triggerBack()
     }
     setTimeout(() => { // avoid mess the loading entry returned, getting overridden by him
@@ -128,38 +126,40 @@ function loadSource(url, name, callback, filter){
     return [getLoadingEntry()];
 }
 
-function getWhatToWatch(){
+function getXtraEntries(){
     var entries = [
         {name: Lang.BOOKMARKS, logo:'fa-star', type: 'group', renderer: getBookmarksEntries, entries: []},
-        {name: Lang.MY_LISTS, label: Lang.IPTV_LISTS, logo:'fa-list', type: 'group', entries: [], renderer: getListsEntries},
-        {name: Lang.BEEN_WATCHED, logo: 'fa-users', label: onlineUsersCount, type: 'group', renderer: getWatchingEntries, entries: []}
-    ];
-    if(buildenSharedListsSearchIndex){
-        entries = entries.concat([
-            {name: Lang.SEARCH, label: '', logo: 'fa-search', type: 'option', callback: () => {setupSearch(null, 'live', Lang.SEARCH)}},
-            {name: Lang.MAGNET_SEARCH, label: '', logo: 'fa-magnet', type: 'option', callback: () => {setupSearch(null, 'magnet', Lang.MAGNET_SEARCH)}},
-            {name: Lang.CATEGORIES+' &middot; '+Lang.CHANNELS, label: Lang.CHANNELS, logo: 'assets/icons/white/tv.png', type: 'group', entries: [], renderer: () => { return sharedGroupsAsEntries('live'); }},
-            {name: Lang.CATEGORIES+' &middot; '+Lang.VIDEOS, label: Lang.VIDEOS, logo: 'fa-film', type: 'group', entries: [], renderer: () => { return sharedGroupsAsEntries('video') }}
-        ]);
-    } else {
-        buildSharedListsSearchIndex(() => {            
-            if(listingPath == Lang.WHAT_TO_WATCH){
-                refreshListing()
+        {name: Lang.SEARCH, label: '', logo: 'fa-search', type: 'option', value: lastSearchTerm, callback: () => { 
+            var term = lastSearchTerm, n = top.PlaybackManager.activeIntent;
+            if(n && n.entry.originalUrl && isMega(n.entry.originalUrl)){
+                var data = parseMegaURL(n.entry.originalUrl);
+                if(data && data.type == 'play'){
+                    term = data.name;
+                }
             }
-        });
-        entries = entries.concat([getLoadingEntry(Lang.GENERATING_INDEX+'...')]);
-    }
-    entries = entries.concat([
+            setupSearch(term, 'live', Lang.SEARCH)
+        }},
+        {name: Lang.MAGNET_SEARCH, label: '', logo: 'fa-magnet', type: 'option', value: lastSearchTerm, callback: () => { setupSearch(lastSearchTerm, 'magnet', Lang.MAGNET_SEARCH) }},
         {name: Lang.RECORDINGS, logo:'fa-download', type: 'group', renderer: getRecordingEntries, entries: []},
-        {name: Lang.HISTORY+' (Ctrl+H)', logo:'fa-history', type: 'group', renderer: getHistoryEntries, entries: []},
-        {name: Lang.EXTRAS, logo:'fa-folder', type: 'group', renderer: getRemoteXtras, entries: []}
-    ]);
+        {name: Lang.HISTORY, append: '(Ctrl+H)', logo:'fa-history', type: 'group', renderer: getHistoryEntries, entries: []}
+    ];
     return entries;
+}
+
+var remoteXtrasAppended = false;
+
+function appendRemoteXtras(){
+    getRemoteXtras((entries) => {
+        var container = getListContainer(false);
+        if (listingPath == xtrasPath) {
+            listEntriesRender(entries, container)
+        }
+    })
 }
 
 function renderRemoteSources(){
     var failed = () => {
-        notify(Lang.DATA_FETCHING_FAILURE, 'fa-warning', 'normal');
+        notify(Lang.DATA_FETCHING_FAILURE, 'fa-exclamation-triangle', 'normal');
         triggerBack()
     }
     setTimeout(() => {
@@ -214,8 +214,10 @@ function getWatchingData(cb, update){
             } else {
                 entries = entries.map((entry) => {
                     entry.label = entry.label.format(Lang.USER, Lang.USERS);
+                    setStreamStateCache(entry, true);
                     return entry;
-                })
+                });
+                sharedListsSearchIndex['watching'] = entries;
             }
             if(entries.length){
                 Store.set(ckey, entries, 30 * (24 * 3600))
@@ -230,35 +232,6 @@ function getWatchingData(cb, update){
         }
     }
     return data;
-}
-
-function orderEntriesByWatching(entries){
-    var data = getWatchingData();
-    for(var j=0; j<data.length; j++){
-        var n = data[j].label.indexOf(' ');
-        if(n){
-            n = parseInt(data[j].label.substr(0, n))
-        } else {
-            n = 0;
-        }
-        for(var i=0; i<entries.length; i++){
-            if(data[j].url == entries[i].url){
-                entries[i].watching = n;
-                if(n && entries[i].label.indexOf(n+' ')==-1){
-                    entries[i].label += ' &middot; '+ n + ' ' + (n > 1 ? Lang.USERS : Lang.USER);
-                }
-            }
-        }
-    }
-    return entries.slice(0).sort((a, b) => {
-        var na = (typeof(a.watching)!='undefined') ? a.watching : 0;
-        var nb = (typeof(b.watching)!='undefined') ? b.watching : 0;
-        if (na > nb)
-          return -1;
-        if (na < nb)
-          return 1;
-        return 0;
-    });
 }
 
 function preInjectClean(prepend){
@@ -288,13 +261,30 @@ function injectContinueOption(){
         if(lastEntry && lastEntry.name != playingName){
             lastEntry.prependName = String(prepend);
             lastEntry.label = basename(lastEntry.group || '');
-            index.unshift(lastEntry);
+            if(!lastEntry.logo || lastEntry.logo.indexOf('.')==-1){
+                lastEntry.logo = 'fa-redo-alt';
+            }
+            var go = (iconExists) => {
+                if(!iconExists){
+                    lastEntry.logo = 'fa-redo-alt';
+                }
+                index.unshift(lastEntry);
+                posInjectClean();
+                if(!listingPath){
+                    refreshListing()
+                }
+            }
+            if(lastEntry.logo && lastEntry.logo.substr(0, 3)!='fa-'){
+                checkImage(lastEntry.logo, () => {
+                    go(true)
+                }, () => {
+                    go(false)
+                })
+            } else {
+                go(false)
+            }
             break;
         }
-    }
-    posInjectClean();
-    if(!listingPath){
-        refreshListing()
     }
 }
 
@@ -334,14 +324,11 @@ jQuery(document).on('lngload', () => {
                 injectFeaturedOption(entry)
             }
             if(entry.logo && entry.logo.substr(0, 3)!='fa-'){
-                var m = new Image();
-                m.onload = () => {
+                checkImage(entry.logo, () => {
                     go(true)
-                }
-                m.onerror = () => {
+                }, () => {
                     go(false)
-                }
-                m.src = entry.logo;
+                })
             } else {
                 go(false)
             }
@@ -376,17 +363,7 @@ function getParentalControlEntries(){
                 return Config.get('hide-logos')
             }
         },
-        {
-            name: Lang.HIDE_ADULT_CONTENT,
-            type: 'check',
-            check: (checked) => {
-                Config.set('show-adult-content', !checked);
-                showAdultContent = !checked;
-            }, 
-            checked: () => {
-                return !Config.get('show-adult-content')
-            }
-        },
+        getParentalControlToggler(),
         {
             type: 'input',
             logo: 'assets/icons/white/shield.png',
@@ -398,6 +375,23 @@ function getParentalControlEntries(){
         }
     ];
     return options;
+}
+
+function getParentalControlToggler(cb){
+    return {
+        name: Lang.HIDE_ADULT_CONTENT,
+        type: 'check',
+        check: (checked) => {
+            Config.set('show-adult-content', !checked);
+            showAdultContent = !checked;
+            if(typeof(cb) == 'function'){
+                cb(showAdultContent)
+            }
+        }, 
+        checked: () => {
+            return !Config.get('show-adult-content')
+        }
+    }
 }
 
 function getBookmarksEntries(reportEmpty){
@@ -413,7 +407,7 @@ function getBookmarksEntries(reportEmpty){
     }
     if(bookmarks && bookmarks.length){
         options = options.concat(bookmarks);
-        options.push({name: Lang.REMOVE, logo: 'fa-trash', type: 'group', renderer: getBookmarksForRemoval})
+        options.push({name: Lang.REMOVE, logo: 'fa-trash', type: 'group', entries: [], renderer: getBookmarksForRemoval})
     } else if(reportEmpty) {
         options.push({name: Lang.EMPTY, logo:'fa-file', type: 'option'})
     }
@@ -431,14 +425,14 @@ function getBookmarksForRemoval(){
                 type: 'option',
                 stream: bookmarks[i], 
                 callback: function (data){
-                    removeFav(data.stream);
-                    triggerBack()
+                    removeFav(data.stream)
                 }
             })
         }
     } else {
         entries.push({name: Lang.EMPTY, logo:'fa-file', type: 'option'})
     }
+    //console.warn(entries);
     return entries;
 }
 
@@ -469,17 +463,22 @@ function getRecordingEntries(){
         }});
     }
     return options;
-}
+}  
 
 function getLanguageEntries(){
-    var options = [];
+    var options = []; 
     fs.readdirSync('lang').forEach(file => {
         if(file.indexOf('.json')!=-1){
             console.log(file);
             var locale = file.split('.')[0];
+            var logoPath = 'assets/images/flags/'+locale+'.png';
+            if(!fs.existsSync(logoPath)){
+                logoPath = 'fa-language';
+            }
             options.push({
-                name: languageLabelMask.format(locale.toUpperCase()),
-                logo: 'fa-language',
+                name: availableLanguageNames[locale] || Lang.LANGUAGE+': '+locale.toUpperCase(),
+                label: languageLabelMask.format(locale.toUpperCase()),
+                logo: logoPath,
                 type: 'option',
                 callback: function (data){
                     var resetActiveList = (getActiveSource() == communityList());
@@ -494,61 +493,57 @@ function getLanguageEntries(){
                 }
             })
         }
-    })
+    });
     return options;
 }
 
 function getListsEntries(notActive, noManagement){
-    var sources = getSources(), active = getActiveSource();
-    var options = [];
-    for(var i in sources){
-        var entry = sources[i], length = '-', groups = '-';
-        if(!jQuery.isArray(entry)) continue;
-        if(notActive === true && entry[1] == active) continue;
-        if(typeof(entry[2])=='object'){
-            var locale = getLocale(false, true);
-            length = Number(entry[2].length).toLocaleString(locale);
-            groups = Number(entry[2]['groups']).toLocaleString(locale);
-        }
-        options.push({
-            name: entry[0], 
-            logo: 'fa-shopping-bag', 
-            type: 'group', 
-            url: entry[1], 
-            label: Lang.STREAMS+': '+length, 
-            renderer: (data) => {
-                return loadSource(data.url, data.name)
-            },
-            delete: (data) => {
-                unRegisterSource(data.url);
-                markActiveSource();  
-                refreshListing()          
-            }, 
-            rename: (name, data) => {
-                //alert(newName)         
-                setSourceName(data.url, name)
+    var options = [
+        {name: Lang.MY_LISTS, label: Lang.IPTV_LISTS, type: 'group', renderer: () => {
+            var sources = getSources(), active = getActiveSource(), options = [];
+            for(var i in sources){
+                var entry = sources[i], length = '-', groups = '-';
+                if(!jQuery.isArray(entry)) continue;
+                if(notActive === true && entry[1] == active) continue;
+                if(typeof(entry[2])=='object'){
+                    var locale = getLocale(false, true);
+                    length = Number(entry[2].length).toLocaleString(locale);
+                    groups = Number(entry[2]['groups']).toLocaleString(locale);
+                }
+                options.push({
+                    name: entry[0], 
+                    logo: 'fa-shopping-bag', 
+                    type: 'group', 
+                    url: entry[1], 
+                    label: Lang.STREAMS+': '+length, 
+                    renderer: (data) => {
+                        return loadSource(data.url, data.name)
+                    },
+                    delete: (data) => {
+                        unRegisterSource(data.url);
+                        markActiveSource();  
+                        refreshListing()          
+                    }, 
+                    rename: (name, data) => {
+                        //alert(newName)         
+                        setSourceName(data.url, name)
+                    }
+                });
             }
-        })
-    }
-    if(noManagement !== true){
-        options.push({name: Lang.ADD_NEW_LIST, logo: 'fa-plus', type: 'option', callback: addNewSource});
-        options.push({name: Lang.REMOVE_LIST, logo: 'fa-trash', type: 'group', renderer: getListsEntriesForRemoval, callback: markActiveSource});
-        options.push({name: Lang.ALL_LISTS, logo: 'fa-users', type: 'group', renderer: renderRemoteSources, entries: []});
-        options.push({name: Lang.SHARE_LISTS, type: 'check', check: function (checked){
+            return options;            
+        }},
+        {name: Lang.ADD_NEW_LIST, logo: 'fa-plus', type: 'option', callback: addNewSource},
+        {name: Lang.REMOVE_LIST, logo: 'fa-trash', type: 'group', renderer: getListsEntriesForRemoval, callback: markActiveSource},
+        {name: Lang.ALL_LISTS, logo: 'fa-users', type: 'group', renderer: renderRemoteSources, entries: []},
+        {name: Lang.SHARE_LISTS, type: 'check', check: function (checked){
             Config.set('unshare-lists', !checked)
         },  checked: () => {
                 return !Config.get('unshare-lists')
             }
-        });
-        options.push({name: Lang.HD_LISTS, logo: 'fa-cart-arrow-down', type: 'option', callback: () => {
-            var url = Config.get('hd-lists-url');
-            if(url){
-                gui.Shell.openExternal(url)
-            }
-        }})
-    } else {
-        options.push({name: Lang.ALL_LISTS, logo: 'fa-users', type: 'group', renderer: renderRemoteSources, entries: []})
-    }
+        },
+        {name: Lang.CATEGORIES+' &middot; '+Lang.CHANNELS, label: Lang.ALL_LISTS, logo: 'assets/icons/white/tv.png', type: 'group', entries: [], renderer: () => { return sharedGroupsAsEntries('live'); }},
+        {name: Lang.CATEGORIES+' &middot; '+Lang.VIDEOS, label: Lang.ALL_LISTS, logo: 'fa-film', type: 'group', entries: [], renderer: () => { return sharedGroupsAsEntries('video') }}
+    ];
     return options;
 }
 

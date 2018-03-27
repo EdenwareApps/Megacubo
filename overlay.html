@@ -1,6 +1,6 @@
 <html>
     <head>
-        <script type="text/javascript" src="assets/js/jquery-3.2.1.js"></script>
+        <script type="text/javascript" src="assets/js/jquery.js"></script>
 		<script type="text/javascript" src="assets/js/jquery.shortcuts.min.js"></script>
         <script type="text/javascript" src="assets/js/jquery.idle.min.js"></script>
         <script type="text/javascript" src="assets/js/global.js"></script>
@@ -9,9 +9,7 @@
         <script defer src="assets/fa/js/fontawesome-all.js"></script>
         <style type="text/css">
             body {
-                box-shadow: inset 0 0 6px #000;
                 margin: 0;
-                border: 2px solid #000;
             }
         </style>
     </head>
@@ -19,9 +17,6 @@
         <div id="notify-area"></div>
         <div id="drop-target" class="fit-screen">
             <i class="fas fa-download"></i>
-        </div>
-        <div id="play-pause-marker" class="fit-screen">
-            <i class="fas fa-play" aria-hidden="true" ></i>
         </div>
         <script type="text/javascript">
             document.onmousedown = () => { // if the program forgot to add back pointerEvents=none, let any click on overlay rebember it
@@ -38,7 +33,7 @@
                 }
                 if(['m3u', 'm3u8'].indexOf(getExt(file))!=-1){
                     openFile(file)
-                } else if(isMedia(file) || isMagnet(file)) {
+                } else if(isMedia(file) || isMagnet(file) || isMega(file)) {
                     playCustomFile(file)
                 } else {
                     if(file.match(new RegExp('^https?://'))){
@@ -90,7 +85,7 @@
                         console.log(name);
                         getFrame('controls').registerSource(url, name)
                     } else { // type=error so
-                        notify(Lang.INVALID_URL_MSG, 'fa-warning', 'normal')
+                        notify(Lang.INVALID_URL_MSG, 'fa-exclamation-triangle', 'normal')
                     }
                 })
             }

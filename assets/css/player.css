@@ -1,35 +1,74 @@
 
-
-.vjs-live-button  {
-    display: none !important;
+* {
+	-webkit-user-drag: none;
+}
+body {
+	margin: 0;
+}	
+div#player-status {
+	position: absolute;
+	background: rgba(0, 0, 0, 0.5);
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	display: none;
+	align-items: center;
+	justify-content: center;
+	z-index: 2147483646 !important;
+	pointer-events: none;
+}
+div#player-status svg {
+	color: #fff;
+	font-size: 72px;
+	opacity: 0.75;    
+}
+div#player-status .fac {
+	background: rgba(3, 11, 23, 0.75);
+	padding: 12px;
+	border-radius: 6px;
+	display: none;
+}
+body.loading div#player-status, body.paused div#player-status {
+	display: flex !important;
+}
+body.loading div.fac-loading {
+	display: block !important;
+}
+body.paused div.fac-paused {
+	display: block !important;
 }
 
-body > video#live-stream {
+#player-top-bar {
     display: none;
+    position: absolute;
+    z-index: 2147483647 !important;
+    top: 4px;
+    left: calc(100% - 36px);
+    color: #FFF;
+	cursor: pointer;
+	background-color: #000;
+	padding: 2px 2px 0px 2px !important;
+    border-radius: 10px;
 }
-
-.bar-container.seek-disabled, [data-no-op] p[data-no-op-msg] {
-    display: none !important;
+body.loading #player-top-bar, body.paused #player-top-bar {
+	display: inline-block;
 }
-
-.player-poster {
-    display: flex !important;
-    background-color: transparent !important;
-    cursor: pointer !important;
-}
-
-.player-poster[data-poster] .play-wrapper[data-poster] svg {
-    display: inline-block;
-}
-
-.media-control-left-panel > .media-control-button.media-control-icon {
-    display: none !important;
-}
-
-.dvr-controls {
-    margin-left: 18px !important;
-}
-
 video {
-    object-fit: contain;
+	object-fit: fill;
+	width: 100vw;
+	height: 100vh;
+	position: absolute;
+}
+video::-webkit-media-controls-panel { 
+	background: rgba(43,51,63,.7); 
+	position: absolute;
+	z-index: 2147483647 !important;
+}
+video::-webkit-media-controls-current-time-display, video::-webkit-media-controls-time-remaining-display { 
+	color: #ddd !important; 
+}
+video::-webkit-media-controls-mute-button, video::-webkit-media-controls-play-button, video::-webkit-media-controls-fullscreen-button { 
+	filter: brightness(2.4); 
+	cursor: pointer; 
 }

@@ -1,50 +1,36 @@
 
-var doFindStreams = function (scope){
-    var filters = {}, _pl = false, lastGenericDiscovering = false, window = scope;
-    if(!window || !window.document){
+/*
+// before 14.4.5 changes
+
+scan(scope) | return [{scope: scope, element: video}, ...] from scanFrame recursively
+called from run()
+Receive a window scope and call scanFrame in that, after it joins the scanFrame() results of each of his frames. Return a recursive list of objects.
+
+scanFrame(scope) | return {objects:[],frames:[]} not recursively
+called from scan()
+Receive a window scope return a non-recursive list of objects and frames.
+
+run(scope) | return {scope: window, element: video} from scan() + filterlevels
+called from start()
+Receive a window scope, call scan() to get a recursive list of objects and run them against filter levels to get the most appropriate. Returns the winner object and his scope.
+
+start(contentWindow) | returns {scope: window, element: video} from run()
+called from playback.js
+Receive a window scope and match him against hosts filters, if a filter is available for the domain it returns his results, if not, call run() on the scope and return the recursive list of objects. Return a winner object and his scope for playback.js.
+
+*/
+
+var doFindStreams = (scope, callback) => {
+    var self = {}, _pl = false, lastGenericDiscovering = false;
+    if(!scope || !scope.document){
         return;
     }
-    function addFilter(hook, callback){
-        if(typeof(filters[hook])=='undefined'){
-            filters[hook] = [];
-        }
-        filters[hook].push(callback);
-    }    
-    function applyFilters(hook){
-        var as = Array.prototype.slice.call(arguments).slice(1);
-        if(typeof(filters[hook])!='undefined'){
-            for(var i=0;i<filters[hook].length;i++){
-                as[0] = filters[hook][i].apply(this, as);
-            }
-        }
-        return as[0];
-    }    
-    var decodeEntities = (() => {
+    self.absolutize = (() => {
         // this prevents any overhead from creating the object each time
-        var element = window.document.createElement('div');
-
-        // regular expression matching HTML entities
-        var entity = new RegExp('&(?:#x[a-f0-9]+|#[0-9]+|[a-z0-9]+);?', 'gi');
-
-        return (function (str) {
-            // find and replace all the html entities
-            str = str.replace(entity, function(m) {
-                element.innerHTML = m;
-                return element.textContent;
-            });
-
-            // reset the value
-            element.textContent = '';
-
-            return str;
-        });
-    })();    
-    var absolutize = (() => {
-        // this prevents any overhead from creating the object each time
-        var a = window.document.createElement('a'), m = window.document.createElement('img');
+        var a = scope.document.createElement('a'), m = scope.document.createElement('img');
         return (function (url) {
             if ((typeof url)!='string' || url.match(new RegExp("^(about|res|javascript|#):","i")) || url.match(new RegExp("<[A-Za-z]+ ","i"))){
-                return window.document.URL;
+                return scope.document.URL;
             }
             if (url.match(new RegExp("^(mms|rtsp|rtmp|http)s?://"))){
                 return url;
@@ -57,46 +43,8 @@ var doFindStreams = function (scope){
                 return url;
             }
         });
-    })();
-                    
-    function time(){
-        return ((new Date()).getTime()/1000);
-    }
-
-    function tag(el){
-        return (el&&el.tagName)?el.tagName.toLowerCase():'';
-    }
-    
-    function basename(str){
-        var base = new String(str).substring(str.lastIndexOf('/') + 1); 
-        if(base.lastIndexOf(".") != -1){
-            base = base.substring(0, base.lastIndexOf("."));
-        }
-        return base;
-    }
-
-    function select(tags, container){
-        if(!container) container = window.document;
-        return container.querySelectorAll(tags);
-    }
-    
-    function objects(container){
-        return select('video,object,embed', container);
-    }
-
-    function body(){
-        if(!window.document.body && window['select'])
-            {
-                var b = select('body,frameset');
-                if(b.length)
-                    {
-                        window.document.body = b[0];
-                    }
-            }
-        return (window.document.body||window.document.documentElement);
-    }
-    
-    function stripSlashes(str) {
+    })(); 
+    self.stripSlashes = function (str) {
         return (str + '').replace(/\\(.?)/g, function (s, n1) {
         switch (n1) {
         case '\\':
@@ -110,8 +58,7 @@ var doFindStreams = function (scope){
         }
         });
     }
-    
-    function src(o){
+    self.src = function (o){
         if(typeof o != 'string'){
             var uri = false;
             var flashvars = false;
@@ -181,12 +128,11 @@ var doFindStreams = function (scope){
                 {
                     return '';
                 }
-            return uri.match(new RegExp('^(about|res)'))?uri:absolutize(uri);
+            return uri.match(new RegExp('^(about|res)'))?uri:self.absolutize(uri);
         }
-        return absolutize(o);
+        return self.absolutize(o);
     }
-
-    function findInstances(e, classes, maxlevel){
+    self.findInstances = function (e, classes, maxlevel){
         var results = [];
         if(maxlevel){
             for(var key in e){
@@ -211,20 +157,18 @@ var doFindStreams = function (scope){
             }
         }
         return results;
-    }
-    
-    function scripts(all){
+    }    
+    self.scripts = function (all){
         var blocks = [];
-        var s = window.document.getElementsByTagName('script');
+        var s = scope.document.getElementsByTagName('script');
         for(var i=0;i<s.length;i++){
             if(s[i]['text'] && (all || s[i]['text'].match(new RegExp("(swf|play|jw|\$f|\\.setup|m3u8|mp4|rtmp|mms|embed|file=)","i")))){
                 blocks.push(s[i]['text'].replace(new RegExp('\,[ \t\r\n\}]+\}', 'g'), '}'));
             }
         }
         return blocks;
-    };
-
-    function fpRecoverPlayParametersAsObject(){
+    }
+    self.fpRecoverPlayParametersAsObject = function (){
         if(typeof(flowplayer)=='undefined') return false;
         // var vrs = ['clip', 'hlsFix', 'hlsQualities', 'hostname', 'live', 'rtmp', 'swf', 'swfHls'];
         var map = {'src': 'file', 'completeUrl': 'file', 'netConnectionUrl': 'netConnectionUrl'}, gotcnf = false, ret = false, result = {}; //, 'suffix': 'type'};
@@ -259,49 +203,50 @@ var doFindStreams = function (scope){
         //alert(JSON.stringify(result));
     }
     
-    function flashvars(o){
-        if(!o) o = window['pl'];
-        if(tag(o)=='object')
-            {
-                var c = o.getElementsByTagName('param');
-                for (var j=0; j<c.length;j++)
-                    {
-                        var n = c[j].getAttribute('name');
-                        if (n != null)
-                            {
-                                if (n.toLowerCase()=='flashvars')
-                                    {
-                                        return c[j].getAttribute('value');
-                                    }
-                            }
-                    }
-            }
-        try
-            {
-                var f = o.getAttribute('flashvars');
-                if((typeof f)=='string')
-                    {
-                        return f;
-                    }
-            }
-        catch(e){};
-        try
-            {
-                var f = src(o);
-                if((typeof f)=='string')
-                    {
-                        var pos = f.indexOf('?');
-                        if(pos==-1) return '';
-                        return f.substr(pos+1);
-                    }
-            }
-        catch(e){}
+    self.flashvars = function (o){
+        if(o){
+            if(tag(o)=='object')
+                {
+                    var c = o.getElementsByTagName('param');
+                    for (var j=0; j<c.length;j++)
+                        {
+                            var n = c[j].getAttribute('name');
+                            if (n != null)
+                                {
+                                    if (n.toLowerCase()=='flashvars')
+                                        {
+                                            return c[j].getAttribute('value');
+                                        }
+                                }
+                        }
+                }
+            try
+                {
+                    var f = o.getAttribute('flashvars');
+                    if((typeof f)=='string')
+                        {
+                            return f;
+                        }
+                }
+            catch(e){};
+            try
+                {
+                    var f = src(o);
+                    if((typeof f)=='string')
+                        {
+                            var pos = f.indexOf('?');
+                            if(pos==-1) return '';
+                            return f.substr(pos+1);
+                        }
+                }
+            catch(e){}
+        }
         return '';
     }
     
-    function inlineObjectsFlashvars(){
+    self.inlineObjectsFlashvars = function (){
         var blocks = [];
-        var t, s = objects();
+        var t, s = scope.document.querySelectorAll('video,object,embed');
         for(var i=0;i<s.length;i++)
             {
                 t = flashvars(s[i]);
@@ -313,7 +258,7 @@ var doFindStreams = function (scope){
         return blocks;
     }
 
-    function extractFlashVar(content, _arg){
+    self.extractFlashVar = function (content, _arg){
         var absVars = ['file', 'netstreambasepath', 'streamer', 'playlist', 'image'];
         content = " "+content.replace(new RegExp('[\t\r\n]', 'gm'), ' ');
         var regexes = [
@@ -351,43 +296,42 @@ var doFindStreams = function (scope){
         return false;
     }
 
-    function isJW(change){
+    self.isJW = function (change){
         if(change){
             if(change == 'delete'){
-                delete(window['jwplayer']);
-                window['jwinst'] = false;
+                delete(scope['jwplayer']);
+                scope['jwinst'] = false;
             } else {
-                window['jwinst'] = change;
+                scope['jwinst'] = change;
             }
-            return window['jwinst'];
+            return scope['jwinst'];
         }
-        if(typeof(window['jwinst']) != 'undefined'){
-            return window['jwinst'];
+        if(typeof(scope['jwinst']) != 'undefined'){
+            return scope['jwinst'];
         }
-        if((typeof jwplayer)=='function'){
-            var j = jwplayer();
+        if((typeof scope.jwplayer)=='function'){
+            var j = scope.jwplayer();
             if(j && typeof(j.getContainer)=='function'){
-                window['jwinst'] = j;
+                scope['jwinst'] = j;
                 return j;
             }
         }
         return false;
     }
 
-    function isJWCompatible(){
-        var j = isJW();
+    self.isJWCompatible = function (){
+        var j = self.isJW();
         return (typeof(j)=='object' && !j['getContainer'])?j:false; // if yes, it's the JW6 or major
     }
 
-    function isJWNotCompatible(){
-        var j = isJW();
+    self.isJWNotCompatible = function (){
+        var j = self.isJW();
         return (typeof(j)=='object' && j['getRenderingMode'])?j:false; // if yes, it's the JW6 or major
     }
-
-    function jwRecoverPlayParametersAsObject(){
+    self.jwRecoverPlayParametersAsObject = function (){
         
         var vrs = ['file', 'netstreambasepath', 'streamer', 'type', 'playlist', 'key', 'provider', 'mediaid', 'image'];
-        if(j = isJW()){
+        if(j = self.isJW()){
             if(typeof(j.getPlaylistItem)=='function'){
             
                 var l = false;
@@ -435,9 +379,9 @@ var doFindStreams = function (scope){
             }
         }
         
-        var m = scripts();
+        var m = self.scripts();
         if(!m || !m.length){
-            m = inlineObjectsFlashvars();
+            m = self.inlineObjectsFlashvars();
         }
         
         //alert(9876);
@@ -445,15 +389,15 @@ var doFindStreams = function (scope){
         //console.log('FVRS:: '+m);
         if(typeof(m) == 'object'){ // array
             for(var i=0;i<m.length;i++){
-                var f = extractFlashVar(m[i], 'file');
+                var f = self.extractFlashVar(m[i], 'file');
                 if(f){ // has file=...
                     var jwo = {'file': f};
-                    var s = extractFlashVar(m[i], 'streamer');
+                    var s = self.extractFlashVar(m[i], 'streamer');
                     if(s){
                         jwo['streamer'] = s;
                         jwo['file'] = basename(jwo['file']);
                     } else {
-                        s = extractFlashVar(m[i], 'netstreambasepath');
+                        s = self.extractFlashVar(m[i], 'netstreambasepath');
                         if(s){
                             jwo['netstreambasepath'] = s;
                             jwo['file'] = basename(jwo['file']);
@@ -463,50 +407,30 @@ var doFindStreams = function (scope){
                     break;
                 }
             }
-        }
-        
-    }
-    
+        }        
+    }    
     function ino(el){ // inner object
         var t = tag(el);
         if(!t.match(new RegExp('^(object|embed|video|audio|iframe)$', 'i'))){
-            var ino = objects(el);
+            var ino = scope.document.querySelectorAll(el);
             if(ino.length){
                 return ino[0];
             }
         }
         return el;
     }
-    
-    function blacklisted(o){
-        return false;
-        if(typeof o!='string'){
-            o = src(o).split('?')[0];
-        }
-        if(o){
-            var e = blacklist.split(',');
-            for(var i=0;i<e.length;i++){
-                if(e[i].length && o.indexOf(e[i])!=-1){
-                    return e[i];
-                }
-            }
-        }
-        return false;
-    }
-
-    function html(o){
+    self.html = function (o){
         try {
-            o = (o.outerHTML||o.innerHTML||o.window.document.body.innerHTML||(""+o));
+            o = (o.outerHTML||o.innerHTML||(""+o));
             if((typeof o)=='string') {
                 return o;
             }
         } catch(e) {};
         return '';
     }
-
-    function sizes(o){
+    self.sizes = function (o){
         var w=0, h = 0, a, b, c;
-        if(o && o!=window && o!=body()){
+        if(o && o!=scope && o!=scope.document.querySelector('body')){
             if(o.getBoundingClientRect){
                 try	{
                     var c = o.getBoundingClientRect();
@@ -535,40 +459,36 @@ var doFindStreams = function (scope){
             }
         } else {
             var w=0, h = 0;
-            if (typeof window.innerWidth != 'undefined'){
-                w = window.innerWidth;
-                h = window.innerHeight;
-            } else if (typeof window.document.window.documentElement != 'undefined' && (typeof window.document.window.documentElement.clientWidth) != 'undefined' && window.document.window.documentElement.clientWidth != 0) {
-                w = window.document.window.documentElement.clientWidth;
-                h = window.document.window.documentElement.clientHeight;
+            if (typeof scope.innerWidth != 'undefined'){
+                w = scope.innerWidth;
+                h = scope.innerHeight;
+            } else if (typeof scope.document.scope.documentElement != 'undefined' && (typeof scope.document.documentElement.clientWidth) != 'undefined' && scope.document.documentElement.clientWidth != 0) {
+                w = scope.document.documentElement.clientWidth;
+                h = scope.document.documentElement.clientHeight;
             } else {
-                var b = body();
+                var b = scope.document.querySelector('body');
                 w = b.clientWidth;
                 h = b.clientHeight;
             }
             if(w && h){
-                window['lsizes'] = {width:w,height:h};
-            } else if(window['lsizes']) {
-                return window['lsizes'];
+                scope['lsizes'] = {width:w,height:h};
+            } else if(scope['lsizes']) {
+                return scope['lsizes'];
             }
         }
         return {width:parseInt(w),height:parseInt(h)};
     }
-
-    function offset(element){
-        var de = window.document.window.documentElement;
+    self.offset = function (element){
+        var de = scope.document.documentElement;
         var box = element.getBoundingClientRect();
-        var top = box.top + window.pageYOffset - de.clientTop;
-        var left = box.left + window.pageXOffset - de.clientLeft;
+        var top = box.top + scope.pageYOffset - de.clientTop;
+        var left = box.left + scope.pageXOffset - de.clientLeft;
         return { top: top, left: left };
     }
-
-    function validateStream(src){
-        if(!src.match(new RegExp('^[a-z]*:?\/\/[^\/]+'))) return false;
-        return applyFilters('validateStream', src);	
-    }
-    
-    function getBiggerString(arr)	{
+    self.validateStream = function (src){
+        return src.match(new RegExp('^[a-z]*:?\/\/[^\/]+'));	
+    }    
+    self.getBiggerString = function (arr)	{
         if(typeof(arr)=='object' && arr.length){
             var maxLen = 0, maxKey = false;
             for(var i in arr){
@@ -583,33 +503,7 @@ var doFindStreams = function (scope){
         }
         return false;
     }
-
-    function xpost_target(){
-        var xid = '_xpt';
-        if(!window.document.getElementById(xid)){
-            var f = window.document.createElement('iframe');
-            f.id = xid; f.name = xid; f.width = 10; f.height = 10;
-            body().appendChild(f);
-            f.style.position = 'fixed';
-            f.style.top = '-20px';
-        }
-        return xid;
-    }
-        
-    function xpost(url, vars){
-        var f = window.document.createElement('form');
-        f.action = url; f.method = 'POST'; f.target = xpost_target();
-        for(var k in vars){
-            var e = window.document.createElement('input');
-            e.type = 'hidden'; e.name = k; e.value = vars[k];
-            f.appendChild(e);
-        }
-        body().appendChild(f);
-        f.submit();
-        return f;
-    }
-
-    function findStreamOnText(content, includeMedia){
+    self.findStreamOnText = function (content, includeMedia){
         var src = false;
         if(!src){
             var dstub = 0, stub = content;
@@ -622,14 +516,12 @@ var doFindStreams = function (scope){
                     console.log('findStream method 3');
                     while(match.length){
                         for(var k in match){
-                            match[k] = absolutize(match[k]);
-                            if(!validateStream(match[k])){
+                            match[k] = self.absolutize(match[k]);
+                            if(!self.validateStream(match[k])){
                                 delete match[k];
-                            } else {
-                                match[k] = applyFilters('formatStream', match[k]);
                             }
                         }
-                        src = getBiggerString(match);
+                        src = self.getBiggerString(match);
                         if(!src) break;
                         for(var k in match){
                             if(match[k]==src){
@@ -651,7 +543,7 @@ var doFindStreams = function (scope){
                         if(src.indexOf(';rtmp')!=-1){
                             src = 'rtmp'+src.split(';rtmp')[1];
                         }
-                        if(validateStream(src)){
+                        if(self.validateStream(src)){
                             console.log('src='+src);
                             break;
                         } else {
@@ -660,23 +552,20 @@ var doFindStreams = function (scope){
                     }
                 }
             }
-
             if(!src){
-                if(!dstub) dstub = stripSlashes(decodeEntities(unescape(stub)));
+                if(!dstub) dstub = self.stripSlashes(decodeEntities(unescape(stub)));
                 if(dstub){
                     var match = dstub.match(r);
                     if(match){
                         console.log('findStream method 4');
                         while(match.length){
                             for(var k in match){
-                                match[k] = absolutize(match[k]);
-                                if(!validateStream(match[k])){
+                                match[k] = self.absolutize(match[k]);
+                                if(!self.validateStream(match[k])){
                                     delete match[k];
-                                } else {
-                                    match[k] = applyFilters('formatStream', match[k]);
                                 }
                             }
-                            src = getBiggerString(match);
+                            src = self.getBiggerString(match);
                             if(!src) break;
                             for(var k in match){
                                 if(match[k]==src){
@@ -698,7 +587,7 @@ var doFindStreams = function (scope){
                             if(src.indexOf(';rtmp')!=-1){
                                 src = 'rtmp'+src.split(';rtmp')[1];
                             }
-                            if(validateStream(src)){
+                            if(self.validateStream(src)){
                                 break;
                             } else {
                                 src = false;
@@ -706,8 +595,7 @@ var doFindStreams = function (scope){
                         }
                     }
                 }
-            }
-            
+            }            
             r = new RegExp('(rtmp[set]?:\/\/[^\'"<>\\[\\]#\t\r\n ]*)', 'gi');
             if(!src){
                 var match2 = stub.match(r);
@@ -715,14 +603,12 @@ var doFindStreams = function (scope){
                     console.log('findStream method 7');
                     while(match2.length){
                         for(var k in match2){
-                            match2[k] = absolutize(match2[k]);
-                            if(!validateStream(match2[k])){
+                            match2[k] = self.absolutize(match2[k]);
+                            if(!self.validateStream(match2[k])){
                                 delete match2[k];
-                            } else {
-                                match2[k] = applyFilters('formatStream', match2[k]);
                             }
                         }
-                        src = getBiggerString(match2);
+                        src = self.getBiggerString(match2);
                         if(!src) break;
                         for(var k in match2){
                             if(match2[k]==src){
@@ -732,7 +618,7 @@ var doFindStreams = function (scope){
                         if(src.indexOf(' ')!=-1){
                             src = src.replace(new RegExp(' ', 'g'), '');
                         }
-                        if(validateStream(src)){
+                        if(self.validateStream(src)){
                             break;
                         } else {
                             src = false;
@@ -740,23 +626,20 @@ var doFindStreams = function (scope){
                     }
                 }
             }
-
             if(!src){
-                if(!dstub) dstub = stripSlashes(decodeEntities(unescape(stub)));
+                if(!dstub) dstub = self.stripSlashes(decodeEntities(unescape(stub)));
                 if(dstub){
                     var match = dstub.match(r);
                     if(match){
                         console.log('findStream method 8');
                         while(match.length){
                             for(var k in match){
-                                match[k] = absolutize(match[k]);
-                                if(!validateStream(match[k])){
+                                match[k] = self.absolutize(match[k]);
+                                if(!self.validateStream(match[k])){
                                     delete match[k];
-                                } else {
-                                    match[k] = applyFilters('formatStream', match[k]);
                                 }
                             }
-                            src = getBiggerString(match);
+                            src = self.getBiggerString(match);
                             if(!src) break;
                             for(var k in match){
                                 if(match[k]==src){
@@ -769,7 +652,7 @@ var doFindStreams = function (scope){
                             if(src.indexOf('&')!=-1){
                                 src = src.split('&')[0];
                             }
-                            if(validateStream(src)){
+                            if(self.validateStream(src)){
                                 break;
                             } else {
                                 src = false;
@@ -781,35 +664,29 @@ var doFindStreams = function (scope){
         }
         return src;
     }
-
-    function findStream(){
-        var src = '';
-    
-        if(typeof(Clappr) != 'undefined' && typeof(Clappr.Player) != 'undefined'){
-            var cps = findInstances(window, [Clappr.Player], 9);
+    self.findStream = function (){
+        var src = '';    
+        if(typeof(scope.Clappr) != 'undefined' && typeof(scope.Clappr.Player) != 'undefined'){
+            var cps = self.findInstances(scope, [scope.Clappr.Player], 9);
             for(var i in cps){
                 try{
                     var s = cps[i].playerInfo.options.source;
                     if(s.indexOf('.m3u8')!=-1){
-                        src = applyFilters('formatStream', absolutize(s));
+                        src = self.absolutize(s);
                     }
                 } catch(e) { }
             }
         }
-
-        if(typeof(flowplayer) != 'undefined'){
+        if(typeof(scope.flowplayer) != 'undefined'){
             try{
-                var s = flowplayer().conf.clip.sources[0].src
-                if(s) src = applyFilters('formatStream', s);
+                var s = scope.flowplayer().conf.clip.sources[0].src
+                if(s) src = s;
             }catch(e){};
         }
-    
         if(!src){
-            var rgx = new RegExp('(^rtmp:|\.m3u8(\\?|$))');
-            
-            var pro = jwRecoverPlayParametersAsObject();
-            var fro = fpRecoverPlayParametersAsObject();
-            
+            var rgx = new RegExp('(^rtmp:|\.m3u8(\\?|$))');            
+            var pro = self.jwRecoverPlayParametersAsObject();
+            var fro = self.fpRecoverPlayParametersAsObject();            
             var stream = false;
             if(typeof(pro)=='object' && pro['file']){
                 if(pro['streamer']){
@@ -819,10 +696,9 @@ var doFindStreams = function (scope){
                 }
                 if(pro['file'].match(rgx)){
                     console.log('findStream method 1');
-                    src = applyFilters('formatStream', pro['file']);
+                    src = pro['file'];
                 }
-            }
-            
+            }            
             if(!src && typeof(fro)=='object' && fro['file']){
                 if(fro['streamer']){
                     fro['file'] = fro['streamer']+'/'+basename(fro['file']);
@@ -831,62 +707,43 @@ var doFindStreams = function (scope){
                 }
                 if(fro['file'].match(rgx)){
                     console.log('findStream method 2');
-                    src = applyFilters('formatStream', fro['file']);
+                    src = fro['file'];
                 }
-            }
-            
+            }            
             if(!src){
-                var b = body();
+                var b = scope.document.querySelector('body');
                 if(b){
-                    var html = body().innerHTML; // take whole HTML makes it too sensible, since JS may contain arrays of variated messages
-                    var stub = window.document.URL + ' ' + html + ' ' + scripts().join('');
+                    var html = b.innerHTML; // take whole HTML makes it too sensible, since JS may contain arrays of variated messages
+                    var stub = scope.document.URL + ' ' + html + ' ' + self.scripts().join('');
                     //console.log('DEEPSEARCH', stub);
-                    src = applyFilters('formatStream', findStreamOnText(stub));
+                    if(stub.match(new RegExp('(m3u8|rtmp|mp4|play|hls|live)', 'i'))){
+                        src = self.findStreamOnText(stub);
+                    }
                 }
             }
-        }
-            
-        src = applyFilters('findStream', src);				
+        }            
         return src;
+    }    
+    console.log('DOFINDSTREAMS', scope.document.URL || '');
+    var stream = self.findStream();
+    if(stream){
+        console.log('FOUNDSTREAM', stream);
+        callback(stream);
+    } else {
+        console.log('NOSTREAMFOUND', scope.document.URL);
     }
-    
-    function execute(){
-        if(window.document){
-            console.log('DOFINDSTREAMS', window.document.URL || '');
-            var stream = findStream();
-            if(stream){
-                console.log('FOUNDSTREAM', stream);
-                var c = getFrame('controls');
-                if(c){
-                    c.sideLoadPlay(stream)
-                }
-            } else {
-                console.log('NOSTREAMFOUND', window.document.URL);
-            }
-        } else {
-            console.log('BAD SCOPE?!', window, scope)
-        }
-    }
-
-    var  url = window.document.URL, prefix = url.substr(0, 4);
-    if(['http', 'abou'].indexOf(prefix)!=-1){
-        window.addEventListener('load', function (){
-            execute();
-            setTimeout(execute, 3000);
-        });
-        execute()
-    }
+    self = null;
 }
 
-var Fitter = (function (){
-    var stylizerQueue = null, stylizerRelevantTags = [];
-    this.width = function (object){
+var Fitter = (() => {
+    var debug = false, self = {}, stylizerQueue = null, stylizerRelevantTags = [];
+    self.width = function (object){
         return object.offsetWidth || object.scrollWidth || object.outerWidth;
     }
-    this.height = function (object){
+    self.height = function (object){
         return object.offsetHeight || object.scrollHeight || object.outerHeight;
     }
-    this.createRuleTarget = function (object, forceAttrs){
+    self.createRuleTarget = function (object, forceAttrs){
         var t = tag(object), c = t;
         if(forceAttrs || stylizerRelevantTags.indexOf(t)!=-1){
             var s = false;
@@ -904,18 +761,27 @@ var Fitter = (function (){
         }
         return c;
     }
-    this.stylizerQueueCommit = function (scope){
+    self.stylizerQueueCommit = function (scope){
         var showTarget = Array.from(new Set(stylizerQueue.show)).join(', ');
         var hideTarget = Array.from(new Set(stylizerQueue.hide)).join(', ');
-        var css = 'html, body { overflow: hidden; } '+ showTarget +
-            //'{ display: inline-block !important; margin: 0 !important; pointer-events: all !important; z-index: 999999 !important; height: 100vmin !important; width: 100vmax !important; min-height: 100vmin !important; min-width: 100vmax !important; max-height: 100vmin !important; max-width: 100vmax !important; position: fixed !important; top: 0 !important; left: 0 !important; } ' +
-            '{ display: inline-block !important; margin: 0 !important; pointer-events: all !important; z-index: 999999 !important; height: 100vh !important; width: 100vw !important; min-height: 100vh !important; min-width: 100vw!important; max-height: 100vh !important; max-width: 100vw !important; position: fixed !important; top: 0 !important; left: 0 !important; } ' +
+        var css = 'html, body { overflow: hidden; } '+ 
+            ' video::-webkit-media-controls-panel { background: rgba(43,51,63,.7); } '+
+            ' video::-webkit-media-controls-current-time-display, video::-webkit-media-controls-time-remaining-display { color: #ddd !important; } '+
+            ' video::-webkit-media-controls-mute-button, video::-webkit-media-controls-play-button, video::-webkit-media-controls-fullscreen-button { filter: brightness(2.4); cursor: pointer; } '+ showTarget +
+            '{ display: inline-block !important; margin: 0 !important; pointer-events: all !important; z-index: 999999 !important; height: inherit !important; width: inherit !important; min-height: 100vh !important; min-width: 100vw!important; max-height: 100vh !important; max-width: 100vw !important; position: fixed !important; top: 0 !important; left: 0 !important; background-color: #000; } ' +
             hideTarget+', '+hideTarget+' * '+
-            '{ position: absolute !important; top: -3000px !important; max-height: 10px !important; max-width: 10px !important; overflow: hidden !important; } ';
+            '{ position: absolute !important; top: -3000px !important; max-height: 10px !important; max-width: 10px !important; overflow: hidden !important; z-index: -1; } ';
         console.log('COMMIT', stylizerRelevantTags, css);
-        stylize(css, scope);
+        try{
+            scope.document.querySelectorAll('link, style').forEach((s) => {
+                s.parentNode.removeChild(s)
+            });
+            stylizer(css, 'fitter', scope)
+        } catch(e) {
+            console.error(e)
+        }
     }
-    this.stylizerQueueReset = function (object, scope){
+    self.stylizerQueueReset = function (object, scope){
         stylizerQueue = {show:[],hide:[]}, stylizerRelevantTags = [];
         var t = '';
         while(object && (t = tag(object))){
@@ -926,23 +792,23 @@ var Fitter = (function (){
             object = object.parentNode;
         }
     }
-    this.hide = function (object, scope){
+    self.hide = function (object, scope){
         var t = tag(object);
         if(!t) return; //  || !height(object)) return;
         if(['video', 'html', 'body', 'head', 'script', 'style', 'link'].indexOf(t)==-1){
-            stylizerQueue.hide.push(createRuleTarget(object));
+            stylizerQueue.hide.push(self.createRuleTarget(object));
         }
     }
-    this.fit = function (object, scope){
+    self.fit = function (object, scope){
         if(!object || !tag(object)) return;
-        stylizerQueue.show.push(createRuleTarget(object, true));
+        stylizerQueue.show.push(self.createRuleTarget(object, true));
         var p = object.parentNode, c = object;
         while(p && p!=document.documentElement){
-            fit(p, scope);
+            self.fit(p, scope);
             var childrens = p.childNodes;
             for(var i=0; i<childrens.length; i++){
                 if(childrens[i] != c){
-                    hide(childrens[i], scope);
+                    self.hide(childrens[i], scope);
                 }
             }
             c = p;
@@ -952,32 +818,32 @@ var Fitter = (function (){
             }
         }
     }
-    this.getFrameElement = function (window){
-        if(window.frameElement){
-            return window.frameElement;
+    self.getFrameElement = function (scope){
+        if(scope.frameElement){
+            return scope.frameElement;
         }
-        if(window.parent && window.parent != window){
-            var frames = window.parent.document.querySelectorAll('frame, iframe');
+        if(scope.parent && scope.parent != scope){
+            var frames = scope.parent.document.querySelectorAll('frame, iframe');
             if(frames.length == 1){
                 return frames[0];
             }
             for(var i=0; i<frames.length; i++){
-                if(frames[i].src == window.document.URL){
+                if(frames[i].src == scope.document.URL){
                     console.log('Found parent frame by SRC.');
                     return frames[i];
                     break;
                 }
             }
             for(var i=0; i<frames.length; i++){
-                if(frames[i].contentWindow && (frames[i].contentWindow.document.URL == window.document.URL)){
+                if(frames[i].contentWindow && (frames[i].contentWindow.document.URL == scope.document.URL)){
                     console.log('Found parent frame by URL.');
                     return frames[i];
                     break;
                 }
             }
-            var w = width(window);
+            var w = self.width(scope);
             for(var i=0; i<frames.length; i++){
-                if(compare(w, width(frames[i]), 20)){
+                if(self.compare(w, self.width(frames[i]), 20)){
                     console.log('Found parent frame by approximated dimension.');
                     return frames[i];
                     break;
@@ -985,7 +851,7 @@ var Fitter = (function (){
             }
             var maxHeight = 0, maxKey = -1, h;
             for(var i=0; i<frames.length; i++){
-                var h = height(frames[i]);
+                var h = self.height(frames[i]);
                 if(h > maxHeight){
                     maxHeight = h;
                     maxKey = i;
@@ -997,45 +863,32 @@ var Fitter = (function (){
             }
         }
     }
-    this.fitParentFrames = function (window){
-        var frameElement = getFrameElement(window);
+    self.fitParentFrames = function (scope){
+        scope.onresize = null;
+        var frameElement = self.getFrameElement(scope);
         if(frameElement){
-            stylizerQueueReset(frameElement, window.parent);
-            fit(frameElement, window.parent);
-            stylizerQueueCommit(window.parent);
-            if(window.parent && window.parent != window){
-                console.log('PARENT', window, window.parent, window.document.URL, window.parent.document.URL);
-                fitParentFrames(window.parent)
+            frameElement.setAttribute('allowFullScreen', '');
+            self.stylizerQueueReset(frameElement, scope.parent);
+            self.fit(frameElement, scope.parent);
+            self.stylizerQueueCommit(scope.parent);
+            if(scope.parent && scope.parent != scope){
+                console.log('PARENT', scope, scope.parent, scope.document.URL, scope.parent.document.URL);
+                self.fitParentFrames(scope.parent)
             }
-        } else if(window != top && window != window.parent){
-            console.log('FAILED TO GET FRAME ELEMENT', window, window.parent, window.parent.document, window.parent.document.querySelectorAll('iframe,frame'))
+        } else if(scope != top && scope != scope.parent){
+            console.log('FAILED TO GET FRAME ELEMENT', scope, scope.parent, scope.parent.document, scope.parent.document.querySelectorAll('iframe,frame'))
         }
     }
-    this.compare = function (a, b, tolerance){
+    self.compare = function (a, b, tolerance){
         return b < (a + tolerance) && b > (a - tolerance) 
     }
-    this.stylize = function (cssCode, scope){
-        try {
-            console.log(cssCode);
-            var s = scope.document.getElementById("__stylize");
-            if(!s){
-                s = scope.document.createElement("style");
-                s.type = "text/css";
-                s.id = "__stylize";
-            }
-            if(s.styleSheet){
-                s.styleSheet.cssText = cssCode;
-            } else {
-                s.appendChild(scope.document.createTextNode(cssCode));
-            }
-            scope.document.getElementsByTagName("head")[0].appendChild(s);
-        } catch(e) {
-            console.log('CSS Error: '+(e.message||e.msg||e.description||e)+' '+cssCode);
+    self.isDiscardable = function (object){
+        if(!object){
+            console.log('Null video.');
+            return true;
         }
-    }
-    this.isDiscardable = function (object){
         if(typeof(object)!='object'){
-            console.log('Video discarded by type('+typeof(object)+')');
+            console.log('Video discarded by type ('+typeof(object)+').');
             return true;
         }
         if(tag(object)=='video'){
@@ -1047,10 +900,6 @@ var Fitter = (function (){
             if(object.paused && object.currentSrc.indexOf('blob:')==-1){
                 object.play()
             }
-            if(!object.currentTime){
-                console.log('Video discarded by state - paused='+object.paused+', currentTime='+object.currentTime);
-                return true;
-            }
         }
         if(object.scrollTop && object.scrollTop > 800){
             if(tag(object)=='video'){
@@ -1058,10 +907,10 @@ var Fitter = (function (){
             }
             return true;
         }
-        var w = width(object), h = height(object);
+        var w = self.width(object), h = self.height(object);
         if(w < 200 || h < 100) { // 320x240 is miniplayer
             if(tag(object)=='video'){
-                console.log('Video discarded by size: '+w+'x'+h);
+                console.log('Video discarded by size: '+w+'x'+h+'.');
             }
             return true; 
         }
@@ -1077,38 +926,49 @@ var Fitter = (function (){
             {w:728,h:90}
         ];
         for(var i=0;i<formats.length;i++){
-            if(compare(w, formats[i].w, tolerance) && compare(h, formats[i].h, tolerance)){
+            if(self.compare(w, formats[i].w, tolerance) && self.compare(h, formats[i].h, tolerance)){
                 if(tag(object)=='video'){
-                    console.log('Video discarded by size*: '+w+'x'+h+' '+formats[i].w+'x'+formats[i].h);
+                    console.log('Video discarded by size*: '+w+'x'+h+' '+formats[i].w+'x'+formats[i].h+'.');
                 }
                 return true;
             }
         }
     }
-    this.tag = function (el){
-        return (el&&el.tagName)?el.tagName.toLowerCase():'';
+    self.objectContainer = function (videoObjectOrEmbed){
+        // checa a altura dos parentNodes e retorna o container diferente de body que tem a mesma altura do vídeo, com uma pequena margem de tolerância (20px).
+        var object = videoObjectOrEmbed, h = height(object);
+        while(videoObjectOrEmbed && videoObjectOrEmbed != document.body){
+            var p = videoObjectOrEmbed.parentNode;
+            if(!p || !p['tagName']) break;
+            if(['body', 'html'].indexOf(p['tagName'].toLowerCase())!=-1) break;
+            if(!self.compare(height(p), h, 20)) break;
+            videoObjectOrEmbed = p;
+        }
+        return videoObjectOrEmbed;
     }
-    this.scanFrame = function (window, frameObject, frameNestingLevel){
-        // retorna para o main, no return da função, os objetos encontrados, suas dimensões, tags e srcs, tamanho da página, tamanho do frame.
-        if((!frameNestingLevel || frameNestingLevel < 10) && !isDiscardable(window) && (!frameObject || !isDiscardable(frameObject))){
-            var s, details = {objects:[],frames:[]}, objects = window.document.querySelectorAll('video'), minScroll = -1; // object, embed, 
-            for(var i=0; i < objects.length; i++){
-                top.jQuery(objects[i]).one('timeupdate', () => {
-                    console.log('GOTCHA!!');
-                    top.runFitterDelayed()
-                });
-                var s = top.jQuery(objects[i]).offset().top;
+    self.scanFrame = function (scope, intent, frameObject, frameNestingLevel){
+        // retorna para o main, no return da função, os objetos encontrados e seus scopes.
+        if((!frameNestingLevel || frameNestingLevel < 10) && !self.isDiscardable(scope) && (!frameObject || !self.isDiscardable(frameObject))){
+            var s, details = {videos:[],frames:[]}, videos = scope.document.querySelectorAll('video'), minScroll = -1; // object, embed, 
+            for(var i=0; i < videos.length; i++){
+                self.watchVideo(videos[i], intent);
+                var s = jQuery(videos[i]).offset().top;
                 if(s >= 0 && (minScroll == -1 || s < minScroll)){
                     minScroll = s;
                 }
-                if(!isDiscardable(objects[i])){
-                    details.objects.push(objects[i]);
+                if(!self.isDiscardable(videos[i])){
+                    if(!videos[i].currentTime){
+                        console.log('Video pos-discarded by duration (paused='+videos[i].paused+', currentTime='+videos[i].currentTime+').');
+                        continue;
+                    } else {
+                        details.videos.push(videos[i])
+                    }
                 }
             }
-            var frames = window.document.querySelectorAll('iframe, frame');
+            var frames = scope.document.querySelectorAll('iframe, frame');
             for(var i=0; i < frames.length; i++){
-                if(!isDiscardable(frames[i])){
-                    var s = top.jQuery(frames[i]).offset().top;
+                if(!self.isDiscardable(frames[i])){
+                    var s = jQuery(frames[i]).offset().top;
                     if(s >= 0 && (minScroll == -1 || s < minScroll)){
                         minScroll = s;
                     }
@@ -1116,93 +976,16 @@ var Fitter = (function (){
                 }
             }
             if(minScroll!=-1){
-                console.log('MINSCROLL', minScroll, window.document.URL);
-                if(minScroll > window.document.body.scrollTop){
-                    window.scrollTo(0, minScroll)
+                console.log('MINSCROLL', minScroll, scope.document.URL);
+                if(minScroll > scope.document.body.scrollTop){
+                    scope.scrollTo(0, minScroll)
                 }
             }
             return details;
         }
     }
-    this.objectContainer = function (videoObjectOrEmbed){
-        // checa a altura dos parentNodes e retorna o container diferente de body que tem a mesma altura do vídeo, com uma pequena margem de tolerância (20px).
-        var object = videoObjectOrEmbed, h = height(object);
-        while(videoObjectOrEmbed && videoObjectOrEmbed != document.body){
-            var p = videoObjectOrEmbed.parentNode;
-            if(!p || !p['tagName']) break;
-            if(['body', 'html'].indexOf(p['tagName'].toLowerCase())!=-1) break;
-            if(!compare(height(p), h, 20)) break;
-            videoObjectOrEmbed = p;
-        }
-        return videoObjectOrEmbed;
-    }
-    this.scan = function (window){
-        var details = scanFrame(window);
-        var list = [];
-        if(details){
-            for(var i=0; i<details.objects.length; i++){
-                list.push({scope: window, element: details.objects[i]})
-            }
-            for(var i=0; i<details.frames.length; i++){
-                try{
-                    var objects = scan(details.frames[i].contentWindow);
-                    if(objects.length){
-                        list = list.concat(objects);
-                    }
-                } catch(e){
-                    console.log(e);
-                }
-            }
-        }
-        return list;
-    }
-    this.findStreams = function (scope){
-        doFindStreams(scope);
-        var frames = scope.document.querySelectorAll("iframe, frame");
-        for(var i=0; i<frames.length; i++){
-            if(frames[i].contentWindow && frames[i].contentWindow.document){
-                this.findStreams(frames[i].contentWindow);
-            }
-        }
-    }
-    this.isVisible = function (elm) {
-        if(!elm.offsetHeight && !elm.offsetWidth) { return false; }
-        if(getComputedStyle(elm).visibility === 'hidden') { return false; }
-        return true;
-    }
-    this.prepare = function (data){
-        if(!data || !data.scope){
-            console.error('BAD SCOPE', data, traceback());
-            return;
-        }
-        var unfocus = function (e){
-            var target = e.srcElement;
-            if(!target || typeof(target['tagName'])=='undefined' || ['input', 'textarea'].indexOf(target['tagName'].toLowerCase())==-1){
-                //console.log(e);
-                console.log('REFOCUS(*)');
-                top.window.focus();
-                var c = getFrame('controls');
-                if(c){
-                    c.hideControls()
-                }
-            }
-        }
-        // document.body.appendChild(data.element); //Failed to read the 'buffered' property from 'SourceBuffer': This SourceBuffer has been removed from the parent media source.
-        top.patchFrameWindowEvents(data.scope, unfocus);
-        data.scope.__fitted = true;
-        if(['html', 'body'].indexOf(tag(data.element))==-1){
-            stylizerQueueReset(data.element, data.scope);
-            fit(data.element, data.scope);
-            stylizerQueueCommit(data.scope);
-        }
-        fitParentFrames(data.scope);
-        return data;
-    }
-    this.start = function (scope){
-        if(!scope || !scope.document){
-            return false;
-        }
-        var file, domains, list = false, domain = scope.document.domain;
+    self.scan = function (scope, intent){
+        var file, domains, list = [], domain = scope.document.domain;
         if(!top.preFitterIndex){
             top.preFitterIndex = {};
             var files = fs.readdirSync('./hosts');
@@ -1223,36 +1006,99 @@ var Fitter = (function (){
         }
         if(file){
             console.log('PREFITTER MODULE MATCHED', file, scope.document.URL);
-            list = require(file)(scope)
-            console.log('PREFITTER MODULE RETURNED', list);
-            if(list && typeof(list)=='string'){ // if returns a string should be a redirect URL
-                console.log('PREFITTER REDIRECT', list);
-                scope.location.href = list;
-                return;
-            } else if(list === true){
-                console.log('PREFITTER MODULE FORWARDED TO DISCOVERY, returned true', list);
-                list = this.run(scope)
+            var listItem = require(file)(scope);
+            console.log('PREFITTER MODULE RETURNED', listItem);
+            if(listItem && typeof(listItem)=='string'){ // if returns a string should be a redirect URL
+                console.log('PREFITTER REDIRECT', listItem);
+                scope.location.href = listItem;
+                return false;
+            } else if(listItem === true){
+                console.log('PREFITTER MODULE FORWARDED TO DISCOVERY returning true', listItem);
             }
         } else {
-            console.log('NO PREFITTER', domain);
-            if(!list || typeof(list)!='object'){
-                list = this.run(scope)
-            }
+            console.log('NO PREFITTER', domain, scope.document.URL);
         }
-        if(list && typeof(list)=='object'){ // if returns a object, should be {element:videoElement, scope:videoElementWindow}
-            console.log('PREFITTER PREPARE', list);
-            this.prepare(list)
+        if(listItem && typeof(listItem)=='object' && listItem.element){
+            return [listItem];
+        }
+        var details = self.scanFrame(scope, intent);
+        var list = [];
+        if(details){
+            for(var i=0; i<details.videos.length; i++){
+                list.push({scope: scope, element: details.videos[i]})
+            }
+            for(var i=0; i<details.frames.length; i++){
+                self.watchFrame(details.frames[i], intent);
+                try{
+                    var objects = self.scan(details.frames[i].contentWindow, intent); // scan instead of scanFrame, to run hosts files
+                    if(objects.length){
+                        list = list.concat(objects)
+                    }
+                } catch(e){
+                    console.log(e)
+                }
+            }
         }
         return list;
     }
-    this.run = function (scope){
-        var list = scan(scope);
-        console.log('PRELIST', scope.document.URL, list);
+    self.findStreams = function (scope, callback){
+        doFindStreams(scope, callback);
+        var frames = scope.document.querySelectorAll("iframe, frame");
+        for(var i=0; i<frames.length; i++){
+            var c, w = false;
+            try {
+                c = frames[i].contentWindow;
+                c = c.document;
+            } catch(e) {
+                w = false;
+                console.warn(e)
+            }
+            if(w){
+                self.findStreams(w, callback)
+            }
+        }
+    }
+    self.isVisible = function (elm) {
+        if(!elm.offsetHeight && !elm.offsetWidth) { return false; }
+        if(getComputedStyle(elm).visibility === 'hidden') { return false; }
+        return true;
+    }
+    self.prepare = function (data){
+        if(!data || !data.scope){
+            console.error('BAD SCOPE', data, traceback());
+            return;
+        }
+        var unfocus = function (e){
+            var target = e.srcElement;
+            if(!target || typeof(target['tagName'])=='undefined' || ['input', 'textarea'].indexOf(target['tagName'].toLowerCase())==-1){
+                //console.log(e);
+                console.log('REFOCUS(*)');
+                top.window.focus()
+            }
+        }
+        if(!data.element.parentNode) {
+            document.querySelector('body').appendChild(data.element); //Failed to read the 'buffered' property from 'SourceBuffer': This SourceBuffer has been removed from the parent media source.
+        }
+        top.patchFrameWindowEvents(data.scope, unfocus);
+        data.scope.__fitted = true;
+        if(['html', 'body'].indexOf(tag(data.element))==-1){
+            self.stylizerQueueReset(data.element, data.scope);
+            self.fit(data.element, data.scope);
+            self.stylizerQueueCommit(data.scope);
+        }
+        self.fitParentFrames(data.scope);
+        return data;
+    }
+    self.run = function (scope, intent){
+        var list = self.scan(scope, intent);
+        if(debug){
+            console.log('PRELIST', scope.document.URL, list)
+        }
         var Filters = [
             function (o){
                 var n = [], debug=false;
                 for(var i=0;i<o.length;i++){
-                    if(!isDiscardable(o[i].element)){
+                    if(!self.isDiscardable(o[i].element)){
                         n.push(o[i]);
                     }
                 }
@@ -1301,15 +1147,127 @@ var Fitter = (function (){
             }
             console.log('Discover level: '+i+', objs: '+list.length);
         }
-        console.log('POSLIST', scope.document.URL, list);
+        if(debug){
+            console.log('POSLIST', scope.document.URL, list)
+        }
         if(list.length){
             return list[0];
-        } else {
-            this.findStreams(scope)
+        } else if(typeof(scope.allowSearchStreamInCode)=='undefined' || scope.allowSearchStreamInCode !== false) {
+            self.findStreams(scope, (streamUrl) => {
+                intent.sideload(streamUrl)
+            });
+            scope.allowSearchStreamInCode = false; // search in code once
         }
         return false;
     }
-    return this;
+    self.watchVideo = (video, intent) => {
+        if(debug){
+            console.warn('PREFITTER WATCH VIDEO', video.ownerDocument.URL, video, video.src, intent, intent.runFitter)
+        }
+        jQuery(video).off('timeupdate').one('timeupdate', (event) => {
+            intent.runFitter(); // tricky delay, recall the processing
+            if(debug){
+                console.warn('PREFITTER DURATION CHANGED OK', video.ownerDocument.URL, video, intent, intent.runFitter)
+            }
+        })
+    }
+    self.watchFrame = (frame, intent) => {
+        var innerScope = false;
+        try {
+            innerScope = frame.contentWindow;
+        } catch (e) {}
+        if(innerScope && innerScope.document && innerScope.document.readyState.match(new RegExp('(complete|interactive)', 'i'))){
+            self.watchScope(innerScope, intent)
+        } else {
+            setTimeout(() => {
+                if(frame && intent && intent.allowFitter()){
+                    if(debug){
+                        console.warn('WAITFRAME', frame.src, time())
+                    }
+                   self.watchFrame(frame, intent)
+                }
+            }, 100)
+        }
+    },
+    self.framesHash = (scope, intent) => {
+        var hash = '';
+        scope.document.querySelectorAll('iframe, frame, video').forEach((frame) => {
+            hash += frame.src + ' '+ frame.currentTime || '0';
+        });
+        return hash;
+    },
+    self.watchScope = (scope, intent) => {
+        if(!scope.watchingTimer && scope.document){
+            scope.watchingTimer = 1;
+            scope.onerror = (e) => {
+                console.error(e);
+                return true;
+            }
+            if(debug){
+                console.warn('PREFITTER MUTATION SETUP', (scope.document) ? scope.document.URL : 'blank')
+            }
+            var hash = self.framesHash(scope, intent);
+            var observer = new scope.MutationObserver((mutations) => {
+                console.warn('MUTATION', scope.document.URL, time());
+                if(scope.watchingTimer){
+                    clearTimeout(scope.watchingTimer)
+                }
+                scope.watchingTimer = scope.setTimeout(() => {
+                    if(debug){
+                        console.warn('PREFITTER MUTATION')
+                    }
+                    if(!intent.error && !intent.ended && !intent.getVideo()){
+                        var nhash = self.framesHash(scope, intent);
+                        if(nhash != hash){
+                            if(debug){
+                                console.warn('PREFITTER MUTATION SUCCESS', scope.document.URL, nhash, hash, intent)
+                            }
+                            hash = nhash;
+                            intent.runFitter()
+                        }
+                    } else {
+                        if(debug){
+                            console.warn('PREFITTER MUTATION OFF', (scope.document) ? scope.document.URL : 'blank')
+                        }
+                        observer.disconnect()
+                    }
+                }, 50)
+            });
+            observer.observe(scope.document, {attributes: false, childList: true, characterData: false, subtree:true});
+            if(debug){
+                console.warn('PREFITTER MUTATION SETUP OK')
+            }
+        }
+    }
+    self.start = function (scope, intent){
+        if(debug){
+            console.log('PREFITTER RUN', (scope.document) ? scope.document.URL : 'blank');
+        }
+        if(!scope || !scope.document || !intent || !intent.allowFitter || !intent.allowFitter()){
+            return false;
+        }
+        if(debug){
+            console.log('PREFITTER RUN', (scope.document) ? scope.document.URL : 'blank')
+        }
+        var list = self.run(scope, intent);
+        if(debug){
+            console.log('PREFITTER RUN OK', list, (scope.document) ? scope.document.URL : 'blank')
+        }
+        if(list && typeof(list)=='object'){ // if returns a object, should be {element:videoElement, scope:videoElementWindow}
+            if(debug){
+                console.log('PREFITTER PREPARE', list, (scope.document) ? scope.document.URL : 'blank')
+            }
+            self.prepare(list);
+            try{
+                intent.fitterCallback(list)
+            }catch(e){
+                console.error(e)
+            }
+        } else {
+            self.watchScope(scope, intent)
+        }
+    }
+    return self;
 })();
     
 

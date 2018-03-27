@@ -19,22 +19,25 @@ var History = (function (){
     };
     _this.add = function (entry){
         console.log('HISTORY ADD', entry);
-        entry = Object.assign({}, entry);
-        if(typeof(entry.originalUrl)=='string'){
-            entry.url = entry.originalUrl; // ignore the runtime changes in URL
+        let nentry = Object.assign({}, entry);
+        if(typeof(nentry.originalUrl)=='string'){
+            nentry.url = nentry.originalUrl; // ignore the runtime changes in URL
         }
-        if(typeof(entry.type)!='undefined'){
-            delete entry.type;
+        if(typeof(nentry.type)!='undefined'){
+            delete nentry.type;
+        }
+        if(nentry.logo.indexOf('//') == -1){
+            nentry.logo = defaultIcons['stream'];
         }
         for(var i in fullHistory){
-            if(fullHistory[i].url == entry.url){
+            if(fullHistory[i].url == nentry.url){
                 delete fullHistory[i];
             }
         }
         fullHistory = fullHistory.filter((item) => {
             return !!item
         });
-        fullHistory.unshift(entry);
+        fullHistory.unshift(nentry);
         fullHistory = fullHistory.slice(0, limit);
         console.log('HISTORY ADDED', fullHistory);
         Store.set(key, fullHistory);
@@ -99,15 +102,16 @@ var Bookmarks = (function (){
         }
     }
     _this.add = function (entry){
-        if(entry.originalUrl != entry.url){
-            entry.url = entry.originalUrl;
+        let nentry = Object.assign({}, entry);
+        if(nentry.originalUrl && nentry.originalUrl != nentry.url){
+            nentry.url = nentry.originalUrl;
         }
         for(var i in fullBookmarks){
-            if(fullBookmarks[i].url == entry.url){
+            if(fullBookmarks[i].url == nentry.url){
                 delete fullBookmarks[i];
             }
         }
-        fullBookmarks.push(entry);
+        fullBookmarks.push(nentry);
         fullBookmarks = fullBookmarks.reverse().filter(function (item) {
             return item !== undefined;
         });
@@ -227,99 +231,38 @@ function playPrevious(){ // PCH
     }
 }
 
-function testEntry(stream, success, error){
-    if(isMagnet(stream.url) || isYT(stream.url)){
-        return success()
+function testEntry(stream, success, error, returnSucceededIntent){
+    var resolved = false, intents = [];
+    if(isMagnet(stream.url) || isMega(stream.url) || isYT(stream.url)){
+        success();
+        return intents;
     }
-    var intents, checkr = () => {
-        var worked = false;
+    var checkr = () => {
+        if(resolved) return;
+        var worked = false, complete = 0, succeededIntent = null;
         for(var i=0; i<intents.length; i++){
-            if(intents[i].ended || intents[i].error){
-                continue;
-            } else if(!intents[i].started) {
-                return; // not ready, just return for now...
-                break;
+            if(intents[i].started || intents[i].ended || intents[i].error){
+                complete++;
             }
-            worked = true;
+            if(!worked && intents[i].started && !intents[i].ended && !intents[i].error){
+                if(returnSucceededIntent){
+                    succeededIntent = intents[i];
+                }
+                worked = true;
+            }
         }
-        for(var i=0; i<intents.length; i++){ // ready
-            intents[i].destroy()
-        }        
-        (worked ? success : error)()
+        if(worked || complete == intents.length){
+            resolved = true;
+            for(var i=0; i<intents.length; i++){ // ready
+                if(intents[i] != succeededIntent){
+                    intents[i].destroy()
+                }
+            }   
+            (worked ? success : error)(succeededIntent)
+        }
     }
-    intents = top.createPlayIntent(stream, {shadow: true, start: checkr, error: checkr, ended: checkr})
+    intents = top.createPlayIntent(stream, {maxTimeout: 20, shadow: true, manual: false, start: checkr, error: checkr, ended: checkr});
     return intents;
-}
-
-var sideLoadTried = [];
-jQuery(() => {
-    top.PlaybackManager.on('commit stop', function (intent){
-        if(!intent || !intent.sideload){
-            sideLoadTried = [];
-            console.log('RESET', intent)
-        }
-    })
-});
-
-function sideLoadPlay(url, originalIntent){
-    var debug = false;
-    if(debug){
-        console.log('SIDELOADPLAY', url);
-    }
-    var frameIntents = originalIntent ? [originalIntent] : top.PlaybackManager.query({type: 'frame', started: true, error: false, ended: false});
-    if(frameIntents.length){ // only allow sideload if there's at least one frame intent active
-        var surl = removeQueryString(url);
-        if(sideLoadTried.indexOf(surl) === -1){ // not already tried
-            sideLoadTried.push(surl);
-            var sameURLIntents = top.PlaybackManager.query({url: url});
-            if(!sameURLIntents.length){
-                var entry = frameIntents[0].entry;
-                entry.url = url;
-                if(debug){
-                    console.log('SIDELOADPLAY OK', entry, surl)
-                }
-                top.createPlayIntent(entry, {sideload: true, 'pre-commit': function (allow, intent){
-                    if(debug){
-                        console.log('PRE-COMMIT', allow, intent)
-                    }
-                    if(top.PlaybackManager.activeIntent){ // frame is active, user hasn't changed the channel
-                        if(debug){
-                            console.log('PRE-COMMIT 1')
-                        }
-                        // !!!!!!! WAIT, IF THE ACTIVEINTENT IS FROM PREV CHANNEL AND USER CLICKED IN OTHER, WE SHOULD ALLOW IT HERE!
-                        // !!!!!!! ACTUALLY, ONLY TWO PLAYING CHANNELS ARE ALLOWED, AS CLICKING AT ONE CANCEL ANOTHER INTENTS,
-                        // !!!!!!! SO DEAL HERE WITH HE TWO POSSIBILITIES ONLY!
-                        if(intent.entry.originalUrl == top.PlaybackManager.activeIntent.entry.originalUrl){ // this sideload intent is really derived from the current activeIntent
-                            if(debug){
-                                console.log('PRE-COMMIT 2')
-                            }
-                            return true;
-                        }
-                    }
-                    if(debug){
-                        console.log('PRE-COMMIT 3')
-                    }
-                    return false;
-                }, error: (...arguments) => {
-                    console.error('SIDELOADPLAY ERROR', arguments)
-                }, ended: (...arguments) => {
-                    console.error('SIDELOADPLAY ENDED', arguments)
-                }})
-            } else {
-                if(debug){
-                    console.log('SIDELOADPLAY SKIPPED') // url already (side)loading
-                }
-            }
-        } else {
-            if(debug){
-                console.log('SIDELOADPLAY SKIPPED *', sideLoadTried) // no frame intent
-            }
-        }
-    } else {
-        if(debug){
-            console.log('SIDELOADPLAY SKIPPED **', top.PlaybackManager.log()) // no frame intent
-        }
-    }
 }
 
 var onlineUsersCount = "";
@@ -340,8 +283,11 @@ function updateOnlineUsersCount(){
     }
 }
 
+var searchPath, bookmarksPath;
 jQuery(document).on('lngload', () => {
-    searchPath = Lang.WHAT_TO_WATCH+'/'+Lang.SEARCH;
+    searchPath = Lang.EXTRAS+'/'+Lang.SEARCH;
+    xtrasPath = Lang.EXTRAS;
+    bookmarksPath = Lang.EXTRAS+'/'+Lang.BOOKMARKS;
     updateOnlineUsersCount();
     setInterval(updateOnlineUsersCount, 600000)
 });
@@ -413,131 +359,113 @@ function playResume(){
     }
 }
 
-function getOfflineStreams(){
-    var ostreams = Store.get('offline_streams');
-    if(!jQuery.isArray(ostreams)){
-        ostreams = [];
-    }
-    return ostreams;
-}
+var streamStateCache = Store.get('stream_state_caches') || {}, streamStateCacheTTL = (7 * (24 * 3600));
 
-function getOfflineStreamsURLs(){
-    return getOfflineStreams().map((stream) => {
-        return stream.url;
-    });
-}
-
-function registerOfflineStream(stream){
-    console.log(stream);
-    if(typeof(stream.originalUrl)!='undefined' && stream.originalUrl){
-        stream.url = stream.originalUrl;
-    }
-    var ostreams = Store.get('offline_streams');
-    if(!jQuery.isArray(ostreams)){
-        ostreams = [];
-    }
-    var offurls = ostreams.map((stream) => {
-        return stream.url;
-    });
-    if(offurls.indexOf(stream.url) != -1){ // nothing to do
-        return;
-    }
-    ostreams.push(stream);
-    var limit = 8192;
-    if(ostreams.length > limit){ // keep entries length in control
-        ostreams = ostreams.slice(limit * -1)
-    }
-    console.log(ostreams);
-    Store.set('offline_streams', ostreams);
-    updateStreamEntriesFlags()
-}
-
-function unregisterOfflineStream(stream){
-    if(typeof(stream.originalUrl)!='undefined' && stream.originalUrl){
-        stream.url = stream.originalUrl;
-    }
-    var ostreams = Store.get('offline_streams');
-    if(!jQuery.isArray(ostreams)){
-        ostreams = [];
-    }
-    var found = false;
-    for(var i in ostreams){
-        if(ostreams[i].url == stream.url){
-            delete ostreams[i];
-            found = true;
+function streamCacheNormalizeURL(url){
+    url = String(url);
+    if(url.indexOf('%') != -1){
+        var n;  
+        try {
+        	n = decodeURIComponent(url)
+        } catch(e) {
+    	    //console.warn(e, url)
+        }
+        if(n){
+            url = n;
         }
     }
-    if(found){
-        ostreams = ostreams.filter(function (item) {
-            return item !== undefined;
-        });
-        Store.set('offline_streams', ostreams);
-        updateStreamEntriesFlags()
+    if(url.indexOf('&amp;') != -1 && top && top.decodeEntities){
+        url = top.decodeEntities(url);
     }
+    if(url.indexOf(':80/') != -1){
+        url.replace(':80/', '/')
+    }
+    return url.replace(':80/', '/')
+}
+
+function getStreamStateCache(_url, ttl){
+    var url = streamCacheNormalizeURL((_url && typeof(_url) == 'object') ? _url.url : _url);
+    if(typeof(streamStateCache[url])=='object' && streamStateCache[url] && typeof(streamStateCache[url].time)!='undefined' && time() < (streamStateCache[url].time + (ttl || streamStateCacheTTL))){
+        return streamStateCache[url].state;
+    }
+    return null;
+}
+
+function setStreamStateCache(entry, state){
+    var urls = [entry.url];
+    if(entry.originalUrl && !isMega(entry.originalUrl)){
+        urls.push(entry.originalUrl)
+    }
+    urls.forEach((url) => {
+        streamStateCache[streamCacheNormalizeURL(url)] = {'state': state, 'time': time()};
+        Store.set('stream_state_caches', streamStateCache)
+    })
 }
 
 function playEntry(stream){
     collectListQueue(stream);
     stream.prependName = '';
     top.PlaybackManager.cancelLoading();
-    top.createPlayIntent(stream, {manual: true}, function (intent){
-        updateStreamEntriesFlags()
-    })
+    top.createPlayIntent(stream, {manual: true});
+    updateStreamEntriesFlags()
 }
 
 function updateStreamEntriesFlags(){
 
+    if(!top) return; // top is undefined on NW.js unloading
+
     // offline streams
-    var ostreams = Store.get('offline_streams');
-    if(!jQuery.isArray(ostreams)){
-        ostreams = []
+    var activeurls = [];
+    if(stream = currentStream()){
+        activeurls.push(stream.url);
+        if(stream.originalUrl){
+            activeurls.push(stream.originalUrl)
+        }
     }
-    var offurls = ostreams.map((stream) => {
-        return stream.url;
-    });
 
     // pending entries
-    var urls = top.PlaybackManager.isLoading(true);
-    var fas = jQuery('.entry');
-    fas = fas.each(() => {
-        if(urls.indexOf(this.href)!=-1){
-            setEntryFlag(this, 'fa-circle-notch fa-spin')
-        } else {
-            setEntryFlag(this, '')
-        }
-        // is offline?
-        let e = jQuery(this), n = e.find('.entry-name'), t = n.text(), isoff = t.toLowerCase().indexOf(offLabel) != -1, gooff = offurls.indexOf(this.href) != -1;
-        if(isoff != gooff){
-            if(gooff){
-                n.text(t + offLabel);
+    var loadingurls = top.PlaybackManager.isLoading(true);
+    if(typeof(top.isPending)=='string'){
+        loadingurls.push(top.isPending)
+    }
+    console.log(loadingurls, top.isPending);
+
+    var doSort = allowAutoClean(listingPath);
+
+    var fas = jQuery('.entry-stream'), autoCleaning = jQuery('.entry-autoclean').filter((i, e) => { 
+        return e.innerHTML.indexOf('% ') != -1; 
+    }).length, firstStreamOffset = false;
+    fas = fas.each((i, element) => {
+        if(doSort){
+            let state = getStreamStateCache(element.href);
+            if(state === false){
+                // is offline?
+                let e = jQuery(element), n = e.find('.entry-label');
+                n.find('.stream-state').remove();
+                n.prepend('<span class="stream-state"><i class="fas fa-thumbs-down" style="color: #8c0825;font-size: 90%;position: relative;top: 0px;"></i> </span>');
                 e.addClass('entry-offline')
-            } else {
-                n.text(t.replace(offLabel, ''));
-                var p = jQuery('.entry-offline:eq(0)');
-                if(p.length){
-                    p.before(e)
-                } else {
-                    jQuery('.entry:eq(-1)').after(e)
-                }
-                e.removeClass('entry-offline')
+            } else if(state === true) {
+                let e = jQuery(element), n = e.find('.entry-label');
+                n.find('.stream-state').remove();
+                n.prepend('<span class="stream-state"><i class="fas fa-thumbs-up" style="color: #03821f;font-size: 90%;position: relative;top: -1px;"></i></span> ');
+                e.removeClass('entry-offline');
+            } else if(autoCleaning) {
+                let e = jQuery(element), n = e.find('.entry-label');
+                n.find('.stream-state').remove();
+                n.prepend('<span class="stream-state"><i class="fas fa-clock" style="color: #eee;font-size: 90%;position: relative;top: -1px;"></i></span> ');
+                e.removeClass('entry-offline');
             }
+        }
+        if(activeurls.indexOf(element.href)!=-1){
+            setEntryFlag(element, 'fa-play-circle')
+        } else if(loadingurls.indexOf(element.href)!=-1){
+            setEntryFlag(element, 'fa-circle-notch fa-spin')
+        } else {
+            setEntryFlag(element, '')
         }
     });
-
-    // active entry
-    if(stream = currentStream()){
-        var fa = 'fa-play-circle', entries = findActiveEntries(fa);
-        for(var i=0;i<entries.length;i++){
-            console.log('pSET-'+i);
-            setEntryFlag(entries[i], '');
-        }
-        if(typeof(stream.url)=='string'){
-            var entries = findEntries(stream.originalUrl);
-            for(var i=0;i<entries.length;i++){
-                console.log('SET-'+i);
-                setEntryFlag(entries[i], fa);
-            }
-        }
+    if(doSort){
+        sortEntriesByState(fas)
     }
 }
 
@@ -718,11 +646,11 @@ function checkStreamType(url, callback){
 }
 
 function addNewSource(){
-    askForSource(Lang.PASTE_URL_HINT, function (val){
+    askForSource(Lang.PASTE_URL_HINT, (val) => {
         var url = val;
         console.log('CHECK', url);
         var n = notify(Lang.PROCESSING, 'fa-spin fa-circle-notch', 'wait');
-        checkStreamType(url, function (url, type){
+        checkStreamType(url, (url, type) => {
             console.log('CHECK CALLBACK', url, type);
             n.close();
             if(type=='stream' && (isValidPath(url) || isMagnet(url))){
@@ -742,7 +670,7 @@ function registerSource(url, name, silent, norefresh){
     var sources = getSources();
     for(var i in sources){
         if(sources[i][1] == url){
-            notify(Lang.LIST_ALREADY_ADDED, 'fa-warning', 'normal');
+            notify(Lang.LIST_ALREADY_ADDED, 'fa-exclamation-circle', 'normal');
             return false;
             break;
         }
@@ -863,97 +791,282 @@ function setActiveSource(url){
     markActiveSource()
 }
 
-var autoCleanEntriesQueue = [], autoCleanEntriesStatus = '';
+function priorizeEntries(entries, filter){
+    var goodEntries = [], badEntries = [], neutralEntries = [];
+    entries.forEach((entry) => {
+        var s = filter(entry);
+        if(s === true){
+            goodEntries.push(entry)
+        } else if(s === false){
+            badEntries.push(entry)
+        } else {
+            neutralEntries.push(entry)
+        }
+    });
+    return goodEntries.concat(neutralEntries).concat(badEntries)
+}
 
-function autoCleanEntries(){
+function sortEntries(entries, filter){
+    if(entries.length){
+		return entries.sort(filter)
+    }
+    return entries;
+}
+
+function sortEntriesStateKey(entry, historyData, watchingData){
+    var state = entry ? getStreamStateCache(entry) : null, inHistory = false, inWatching = false;
+    for(var i=0; i<historyData.length; i++){
+        if(historyData[i].url == entry.url){
+            inHistory = true;
+            break;
+        }
+    }
+    if(!inHistory){
+        for(var i=0; i<watchingData.length; i++){
+            if(watchingData[i].url && watchingData[i].url == entry.url){
+                inWatching = true;
+                break;
+            }
+        }
+    }
+    return ((state === true) ? 0 : (state === false ? 2 : 1)) + '-' + (inHistory ? 0 : (inWatching ? 1: 2)) + '-' + (isTS(entry.url) ? 1 : 0) + '-' + (entry.name || '').toLowerCase();
+}
+
+function sortEntriesByState(entries){
+    var historyData = History.get(), watchingData = getWatchingData();
+    if(entries instanceof jQuery){
+        entries.each((i, o) => {
+            let j = jQuery(o);
+            if(j.length){
+                entry = j.data('entry-data');
+                if(entry){
+                    j.data('sortkey', sortEntriesStateKey(entry, historyData, watchingData))
+                }
+            }
+        });
+        var p = entries.eq(0).prev(), type = 'after'; 
+        if(!p.length){
+            p = entries.eq(0).parent();
+            type = 'prepend';
+        }
+        entries.detach().sort((a, b) => {
+            var c = $(a).data('sortkey');
+            var d = $(b).data('sortkey');
+            return c > d ? 1 : -1;
+        });   
+        if(type == 'after'){
+            entries.insertAfter(p)
+        } else {
+            p.prepend(entries)
+        }
+    } else {
+        if(entries.sortBy){
+            for(var i=0; i<entries.length; i++){
+                if(entries[i]){
+                    entries[i].sortkey = sortEntriesStateKey(entries[i], historyData, watchingData)
+                }
+            }
+            return entries.sortBy('sortkey')
+        }
+    }
+    return entries;
+}
+
+var autoCleanEntriesQueue = [], closingAutoCleanEntriesQueue = [], autoCleanEntriesStatus = '';
+
+function autoCleanEntries(entries, success, failure, cancelCb, returnSucceededIntent){
     if(autoCleanEntriesCancel()){
         jQuery('a.entry-autoclean .entry-name').html(Lang.TEST_THEM_ALL)
+    }
+    var succeeded = false, readyIterator = 0, debug = true;
+    if(!jQuery.isArray(entries)){
+        var arr = [];
+        jQuery('a.entry-stream').each((i, o) => {
+            var e = jQuery(o).data('entry-data');
+            if(e){
+                arr.push(e)
+            }
+        });
+        entries = sortEntriesByState(arr);
+    }
+    if(!entries.length){
+        if(typeof(failure)=='function'){
+            setTimeout(failure, 150)
+        }
         return false;
     }
-    var autoPlayed = false, entries = jQuery('a.entry-stream').map((i, o) => {
-        return jQuery(o).data('entry-data')
-    });
-    if(!entries.length){
-        return;
-    }
-    autoCleanEntriesStatus = Lang.AUTOCLEAN+' 0%';
-    jQuery('a.entry-autoclean .entry-name').html(Lang.AUTOCLEAN+' 0%');
-    var iterator = 0, cancel = false, readyIterator = 0, testers = [], tasks = Array(entries.length).fill((callback) => {
-        if(cancel) return;
-        var entry = entries[iterator];
-        iterator++;
-        console.log('ACAC', entry, entries);
-        try {
-            testers = testers.concat(
-                testEntry(entry, () => {
-                    readyIterator++;
-                    autoCleanEntriesStatus = Lang.AUTOCLEAN+' '+parseInt(readyIterator / (entries.length / 100))+'% ('+readyIterator+'/'+entries.length+')';
-                    jQuery('a.entry-autoclean .entry-name').html(autoCleanEntriesStatus);
-                    unregisterOfflineStream(entry);
-                    callback(null, true);
-                    top.sendStats('alive', sendStatsPrepareEntry(entry));
-                    if(!autoPlayed){
-                        autoPlayed = true;
-                        playEntry(entry)
-                    }
-                }, () => {
-                    readyIterator++;
-                    autoCleanEntriesStatus = Lang.AUTOCLEAN+' '+parseInt(readyIterator / (entries.length / 100))+'% ('+readyIterator+'/'+entries.length+')';
-                    jQuery('a.entry-autoclean .entry-name').html(autoCleanEntriesStatus);
-                    registerOfflineStream(entry);
-                    callback(null, false);
-                    refreshListing();
-                    top.sendStats('error', sendStatsPrepareEntry(entry))
-                })
-            )
-        } catch(e) {
-            console.error(e)
-        }
-        console.log('ACAC2', testers);
-    });
-    if(typeof(async) == 'undefined'){
-        async = require('async')
-    }
-    async.parallelLimit(tasks, 4, (err, results) => {
-        console.log('DONE', tasks.length);
-        if(!cancel){
-            autoCleanEntriesStatus = Lang.AUTOCLEAN+' 100%';
-            jQuery('a.entry-autoclean .entry-name').html(autoCleanEntriesStatus);
-        }
-    });
-    var controller = {
+    console.log('autoCleanSort', entries);
+    console.log('autoCleanSort', entries.map((entry) => {return entry.sortkey+' ('+entry.url+')'}).join(", \r\n"));
+    var controller, iterator = 0;
+    autoCleanEntriesStatus = Lang.AUTOCLEAN+' 0% ('+readyIterator+'/'+entries.length+')';
+    jQuery('a.entry-autoclean .entry-name').html(autoCleanEntriesStatus);
+    controller = {
+        testers: [],
+        cancelled: false,
+        id: time(),
         cancel: () => {
-            console.log('cancelling');
-            cancel = true;
-            console.log(testers);
-            testers.forEach((intent, i) => {
-                intent.off();
-                intent.destroy()
-            });
-            autoCleanEntriesStatus = '';
-            jQuery('a.entry-autoclean .entry-name').html(Lang.TEST_THEM_ALL);
+            if(!controller.cancelled){
+                if(debug){
+                    console.warn('ACE CANCEL', tasks.length, controller.id)
+                }
+                console.log('cancelling', controller.testers);
+                controller.cancelled = true;
+                controller.testers.forEach((intent, i) => {
+                    if(intent.shadow){ // not returned onsuccess
+                        try {
+                            intent.destroy();
+                        } catch(e) {
+                            console.warn(e)
+                        }
+                    }
+                });
+                autoCleanEntriesStatus = '';
+                jQuery('a.entry-autoclean .entry-name').html(Lang.TEST_THEM_ALL);
+                if(!succeeded && typeof(cancelCb)=='function'){
+                    cancelCb()
+                }
+                autoCleanEntriesRunning() // purge invalid controllers on ac queue
+            }
         }
     }
+    var tasks = Array(entries.length).fill((callback) => {
+        if(controller.cancelled){
+            callback();
+            return;
+        }
+        var entry = entries[iterator], originalUrl = entry.url;
+        iterator++;
+        if(isMagnet(entry.url) || isMega(entry.url)){
+            readyIterator++;
+            if(debug){
+                console.warn('ACE k')
+            }
+            return callback() // why should we test?
+        }
+        if(debug){
+            console.log('ACE TESTING', entry.name, entry.url, entry, entries, controller.id)
+        }
+        try {
+            var originalUrl = entry.originalUrl && !isMega(entry.originalUrl) ? entry.originalUrl : entry.url, ntesters = testEntry(entry, (succeededIntent) => {
+                if(!top){
+                    controller.cancel()
+                } else if(controller.cancelled){
+                    if(succeededIntent){
+                        succeededIntent.destroy()
+                    }
+                    return callback()
+                } else {
+                    if(debug){
+                        console.warn('ACE TESTING SUCCESS', returnSucceededIntent, succeededIntent, entry.name, entry.url, succeeded, controller.cancelled)
+                    }
+                    readyIterator++;
+                    if(!succeeded){
+                        succeeded = true;
+                        if(succeededIntent){
+                            succeededIntent.shadow = false;
+                        }
+                        if(returnSucceededIntent){
+                            controller.cancel()
+                            if(debug){
+                                console.warn('ACE TESTING CANCEL', entry.name, entry.url, succeeded, controller.cancelled, controller.id)
+                            }
+                        }
+                        if(typeof(success)=='function'){
+                            console.warn('ACE SUCCES CB', entry.name, entry.url, succeededIntent)
+                            success(entry, controller, succeededIntent)
+                        }
+                    }
+                    autoCleanEntriesStatus = Lang.AUTOCLEAN+' '+parseInt(readyIterator / (entries.length / 100))+'% ('+readyIterator+'/'+entries.length+')';
+                    jQuery('a.entry-autoclean .entry-name').html(autoCleanEntriesStatus);
+                    setStreamStateCache(entry, true);
+                    updateStreamEntriesFlags();
+                    top.sendStats('alive', sendStatsPrepareEntry(entry));
+                    callback();
+                }
+            }, () => {
+                if(!top){
+                    controller.cancel()
+                } else if(controller.cancelled){
+                    if(succeededIntent){
+                        succeededIntent.destroy()
+                    }
+                    return callback()
+                } else {
+                    if(debug){
+                        console.warn('ACE TESTING FAILURE', entry.name, entry.url, succeeded, controller.cancelled, controller.id)
+                    }
+                    readyIterator++;
+                    autoCleanEntriesStatus = Lang.AUTOCLEAN+' '+parseInt(readyIterator / (entries.length / 100))+'% ('+readyIterator+'/'+entries.length+')';
+                    jQuery('a.entry-autoclean .entry-name').html(autoCleanEntriesStatus);
+                    setStreamStateCache(entry, false);
+                    updateStreamEntriesFlags();
+                    callback();
+                    if(debug){
+                        console.warn('ACE F')
+                    }
+                    top.sendStats('error', sendStatsPrepareEntry(entry))
+                }
+            }, returnSucceededIntent);
+            console.log('ACE G', ntesters, entry);
+            if(jQuery.isArray(ntesters)){
+                console.log('ACE H', controller.testers, ntesters);
+                controller.testers = controller.testers.concat(ntesters)
+            }
+        } catch(e) {
+            console.error('ACE', e)
+        }
+        if(debug){
+            console.warn('ACE 2', controller.testers)
+        }
+    });
+    console.log('ACE I', controller.testers);
     autoCleanEntriesQueue.push(controller);
+    setTimeout(() => {
+        if(typeof(async) == 'undefined'){
+            async = require('async')
+        }
+        async.parallelLimit(tasks, 3, (err, results) => {
+            console.warn('ACE DONE', tasks.length);
+            if(!controller.cancelled){
+                controller.cancel();
+                if(!succeeded && typeof(failure)=='function'){
+                    setTimeout(failure, 150)
+                }
+                autoCleanEntriesStatus = Lang.AUTOCLEAN+' 100%';
+                jQuery('a.entry-autoclean .entry-name').html(autoCleanEntriesStatus);
+            }
+        })
+    }, 100);
     return controller;
+}
+
+function autoCleanEntriesRunning(){
+    for(var i=0; i<autoCleanEntriesQueue.length; i++){
+        if(autoCleanEntriesQueue[i] && autoCleanEntriesQueue[i].cancelled){
+            closingAutoCleanEntriesQueue.push(autoCleanEntriesQueue[i])
+            autoCleanEntriesQueue[i] = null;
+        }
+    }
+    autoCleanEntriesQueue = autoCleanEntriesQueue.filter((item) => {
+        return !!item
+    });
+    return !!autoCleanEntriesQueue.length;
 }
 
 function autoCleanEntriesCancel(){
     var cancelled = false;
-    console.warn('AUTOCLEAN CANCEL', autoCleanEntriesQueue, traceback());
-    for(var i=0; i<autoCleanEntriesQueue.length; i++){
-        console.log(autoCleanEntriesQueue[i]);
-        if(autoCleanEntriesQueue[i]){
-            cancelled = true;
-            console.log(autoCleanEntriesQueue[i]);
-            autoCleanEntriesQueue[i].cancel();
-            delete autoCleanEntriesQueue[i]
+    if(autoCleanEntriesQueue.length){
+        console.warn('AUTOCLEAN CANCEL', autoCleanEntriesQueue, traceback());
+        closingAutoCleanEntriesQueue = closingAutoCleanEntriesQueue.concat(autoCleanEntriesQueue);
+        autoCleanEntriesQueue = [];
+        for(var i=0; i<closingAutoCleanEntriesQueue.length; i++){
+            console.log(closingAutoCleanEntriesQueue[i]);
+            if(closingAutoCleanEntriesQueue[i]){
+                closingAutoCleanEntriesQueue[i].cancel()
+            }
         }
+        autoCleanEntriesStatus = '';
     }
-    autoCleanEntriesQueue = autoCleanEntriesQueue.filter(function (item) {
-        return item !== undefined;
-    });
-    autoCleanEntriesStatus = '';
     return cancelled;
 }
 
@@ -966,7 +1079,7 @@ function defaultParentalControlTerms(){
     if(typeof(terms)!='string'){
         terms = 'adult,erotic,erótic,sex,porn';
     }
-    return terms.toLowerCase().split(',').filter((term) => {
+    return fixUTF8(terms).toLowerCase().split(',').filter((term) => {
         return term.length >= 2;
     })
 }
@@ -990,21 +1103,24 @@ function parentalControlTerms(){
 }
 
 var showAdultContent = Config.get('show-adult-content');
-function parentalControlAllow(entry){
-    if(showAdultContent){
+function parentalControlAllow(entry, ignoreSetting){
+    if(showAdultContent && !ignoreSetting){
         return true;
+    }
+    var terms = parentalControlTerms();
+    if(typeof(entry)=='string'){
+        return !hasTerms(entry, terms);
     }
     if(entry && typeof(entry.type)=='string' && ['group', 'stream'].indexOf(entry.type)==-1){
         return true;
     }
-    var terms = parentalControlTerms();
     if(terms.length){
         if(typeof(entry.name)=='string' && hasTerms(entry.name, terms)){
             return false;
         }
-        if(typeof(entry.url)=='string' && hasTerms(entry.url, terms)){
-            return false;
-        }
+        //if(typeof(entry.url)=='string' && hasTerms(entry.url, terms)){
+        //    return false;
+        //}
         if(typeof(entry.label)=='string' && hasTerms(entry.label, terms)){
             return false;
         }
@@ -1013,6 +1129,14 @@ function parentalControlAllow(entry){
         }
     }
     return true;
+}
+
+function toggleControls(){
+    if(areControlsActive()){
+        hideControls()
+    } else {
+        showControls()
+    }
 }
 
 function parentalControlMatchPalette(colors){
@@ -1141,17 +1265,32 @@ jQuery(function (){
             var tag = document.activeElement.tagName.toLowerCase();
             if(['a', 'input'].indexOf(tag)!=-1){ // focus a.entry or input (searching) only
                 lastTabIndex = document.activeElement.tabIndex;
+                /*
                 if(tag == 'input'){
-                    tb.addClass('isovercontrols') // istyping 
+                    tb.addClass('showcontrols') // istyping 
                 } else {
                     tb.removeClass('istyping')
                 }
+                */
             }
         } else {
+            /*
             tb.removeClass('istyping')
+            */
         }
     }   
     jQuery(window).on('resize', handleMenuFocus);
+
+    console.log(b);
+    b.on('scrollend', () => {
+        var y = jQuery('.list').scrollTop();
+        if(y >= 500){
+            b.addClass('scrolled_500')
+        } else {
+            b.removeClass('scrolled_500')
+        }
+    })
+    console.log(b);
 
     /* ignore focus handling while scrolling, with mouse or keyboard */
     (() => {
@@ -1168,39 +1307,7 @@ jQuery(function (){
             unlockDelay = setTimeout(unlock, 400)
         }
         b.on("wheelstart", lock).on("wheelend", unlocker).on("typestart", lock).on("typeend", unlocker).on("blur", "a", handleMenuFocus);
-    })();
-
-    var w = jQuery(window).width();  
-    jQuery(window).on('resize', () => {
-        w = jQuery(window).width()
-    }).on('mousemove', (e) => {
-        if(t){
-            console.log('HIDECANCEL', x, t);
-            clearTimeout(t);
-            t = 0;
-        }
-        x = e.pageX;
-        if(top.showHideDelay){
-            clearTimeout(top.showHideDelay);
-            top.showHideDelay = 0;
-        }
-        if(top.automaticallyPaused && x >= (w - 6)){
-            if(top.showHideDelay){
-                clearTimeout(top.showHideDelay);
-                top.showHideDelay = 0;
-            }
-            console.log('MOUSEOUTHIDE', x, w);
-            t = setTimeout(() => {
-                if(top.showHideDelay){
-                    clearTimeout(top.showHideDelay);
-                    top.showHideDelay = 0;
-                }
-                console.log('HIDENOW', x, w);
-                top.PlaybackManager.play();
-                hideControls()
-            }, 600)
-        }
-    })
+    })()
 })
 
 jQuery(window).one('unload', function (){
@@ -1208,15 +1315,24 @@ jQuery(window).one('unload', function (){
 })
 
 jQuery(document).one('show', () => {
-    jQuery.getJSON('http://app.megacubo.net/configure.json?'+time(), function (data){
+    jQuery.getJSON('http://app.megacubo.net/configure.json?'+time(), (data) => {
         if(!data || !data.version) return;
         var currentVersion = data.version;
         if(typeof(data.adultTerms)!='undefined'){
-            Config.set('default-parental-control-terms', String(data.adultTerms), 30 * (24 * 3600))
+            if(typeof(data.adultTerms) != 'string'){
+                data.adultTerms = String(data.adultTerms)
+            }   
+            Config.set('default-parental-control-terms', fixUTF8(data.adultTerms), 30 * (24 * 3600))
         }
-        getManifest(function (data){
+        getManifest((data) => {
             console.log('VERSION', data.version, currentVersion);
             top.currentVersion = data.version;
+            jQuery('#home-icons a, #list-icons a').each((i, element) => {
+                var je = jQuery(element), key = je.attr('data-title-lng-key');
+                if(key && Lang[key]){
+                    je.attr('title', Lang[key])
+                }
+            });
             jQuery('#home-icon-help').attr('title', 'Megacubo v'+top.currentVersion);
             if(data.version < currentVersion){
                 jQuery('#home-icon-help').html('<i class="fas fa-bell" aria-hidden="true"></i>').css('color', '#ff6c00');
@@ -1228,28 +1344,6 @@ jQuery(document).one('show', () => {
     })
 })
 
-/*
-var Worker = require("tiny-worker");
-
-function bgParseList(url, callback, timeout, skipFilters){
-    if(!timeout){
-        timeout = 30;
-    }
-    var bgParseWorker = new Worker("./assets/js/bg-parse.js");
-    bgParseWorker.onmessage = function(e) {
-        if(typeof(e.data)=='object' && typeof(e.data.entries)=='object'){
-            callback(e.data.entries, e.data.url);
-            bgParseWorker.terminate()
-        } else {
-            console.log('WRKMSG', e.data)
-        }
-    }
-    ListMan.read(url, (content) => { // fetch (fetchTimeout) wont work in a Worker
-        bgParseWorker.postMessage({content: content, url: url, Lang: Lang, skipFilters: skipFilters})
-    }, timeout)
-}
-*/
-
 var listingPath = ltrimPathBar(Store.get('listingPath')) || '', autoCleanHintShown = false, pos = listingPath.indexOf(Lang.MY_LISTS);
 if(pos == -1 || pos > 3){
     listingPath = '';
@@ -1258,9 +1352,184 @@ jQuery(window).on('unload', function (){
     Store.set('listingPath', listingPath)
 })
 
+function queryEntries(entries, atts, remove){
+    var results = [];
+    for(var i in entries){
+        for(var key in atts){
+            if(typeof(entries[i][key])=='undefined'){
+                continue;
+            } else if(typeof(entries[i][key])=='function'){
+                if(entries[i][key](entries[i]) == atts[key]){
+                    results.push(entries[i]);
+                    if(remove){
+                        delete entries[i];
+                    }
+                }
+            } else {
+                if(entries[i][key] == atts[key]){
+                    results.push(entries[i]);
+                    if(remove){
+                        delete entries[i];
+                    }
+                }
+            }
+        }        
+    }
+    if(remove){
+        return entries.slice(0) // reset
+    }
+    return results;
+}
+
+function removeEntries(entries, atts){
+    return queryEntries(entries, atts, true)
+}
+
+function pickLogoFromEntries(entries, type){
+    if(!type){
+        type = 'stream';
+    }
+    var rgx = new RegExp('( |fa\-)');
+    for(var i in entries){
+        if(entries[i].logo && !entries[i].logo.match(rgx)){
+            return entries[i].logo;
+        }
+    }
+    return defaultIcons[type];
+}
+
+function autoCleanNPlay(entries, name, originalUrl){
+    if(typeof(entries)=='string'){
+        if(!name){
+            name = entries;
+        }
+        var nentries = fetchSharedListsSearchResults('stream', entries, true);
+        if(nentries.length == 1 && nentries[0].type=='option'){ // search index not ready
+            return setTimeout(() => {
+                autoCleanNPlay(entries, name, originalUrl)
+            }, 500)
+        }
+        entries = nentries;
+    }
+    var failure = () => {
+        notify(Lang.PLAY_STREAM_FAILURE.format(name), 'fa-exclamation-circle', 'normal');
+    }
+    if(!entries.length){
+        failure();
+        return;
+    }
+    if(!name){
+        name = entries[0].name;
+    }
+    if(autoCleanEntriesRunning()){
+        autoCleanEntriesCancel()
+    }
+    //console.warn('ORDERED', entries);
+    var hr = autoCleanEntries(entries, (entry, controller, succeededIntent) => {
+        leavePendingState();
+        console.warn('ACE TES SUCCESS', entry, controller, succeededIntent);
+        var title = Lang.CONNECTING+': '+(decodeURIComponent(entry.name) || entry.name);
+        enterPendingState(title, Lang.CONNECTING, originalUrl);
+        controller.cancel();
+        notifyRemove(Lang.TUNING);
+        console.log('preAutoCleanNPlay success', succeededIntent, entry);
+        if(originalUrl){
+            entry.originalUrl = originalUrl;
+        }
+        console.log('autoCleanNPlay success', succeededIntent, entry);
+        if(succeededIntent) {
+            succeededIntent.manual = true;
+            succeededIntent.shadow = false;
+            succeededIntent.entry = entry;
+            top.PlaybackManager.commitIntent(succeededIntent)
+        } else {
+            playEntry(entry)
+        }
+        setTimeout(refreshListing, 500)
+    }, () => {
+        console.warn('FAILED');
+        leavePendingState();
+        failure()
+    }, () => {
+        console.warn('CANCELLED');
+        leavePendingState()
+    }, true);
+    if(hr){
+        var title = Lang.TUNING+': '+(decodeURIComponent(name) || name);
+        enterPendingState(title, Lang.TUNING, originalUrl);
+        return true;
+    }
+    return;
+}
+
+function getMainCategoriesEntries(){
+    var category, optionName = Lang.CHANNELS;
+    return fetchAndRenderEntries("http://app.megacubo.net/stats/data/categories."+getLocale(true)+".json", optionName, (category) => {
+        category.entries = category.entries.map((entry) => {
+            entry.type = 'group';
+            entry.renderer = (data) => {
+                //console.warn(data);
+                var entries = fetchSharedListsSearchResults('stream', data.name, true);
+                if(!entries.length){
+                    notify(Lang.PLAY_STREAM_FAILURE.format(data.name), 'fa-exclamation-circle', 'normal');
+                    return -1;
+                }
+                entries = listManJoinDuplicates(entries);
+                var sbname = Lang.STREAMS+': '+entries.length, megaUrl = 'mega://play|' + encodeURIComponent(data.name);
+                var watchEntries = [
+                    {type: 'stream', name: data.name, logo: pickLogoFromEntries(entries), label: '<i class="fas fa-play-circle"></i> '+Lang.WATCH_NOW, url: megaUrl, callback: () => {
+                        autoCleanNPlay(entries, data.name, megaUrl)
+                    }},
+                    {type: 'group', name: Lang.OPTIONS, label: sbname, logo: 'fa-list', path: assumePath(sbname), entries: [], renderer: () => {
+                        entries = entries.map((entry) => { 
+                            // entry.originalUrl = megaUrl; // why?!
+                            return entry; 
+                        });
+                        //console.warn(entries);
+                        return entries;
+                    }}
+                ];
+                var bookmarking = {name: data.name, type: 'stream', label: data.group || '', url: megaUrl};
+                if(Bookmarks.is(bookmarking)){
+                    watchEntries.push({
+                        type: 'option',
+                        logo: 'fa-star-half',
+                        name: Lang.REMOVE_FROM.format(Lang.BOOKMARKS),
+                        callback: () => {
+                            removeFav(bookmarking);
+                            refreshListing()
+                        }
+                    })
+                } else {
+                    watchEntries.push({
+                        type: 'option',
+                        logo: 'fa-star',
+                        name: Lang.ADD_TO.format(Lang.BOOKMARKS),
+                        callback: () => {
+                            addFav(bookmarking);
+                            refreshListing()
+                        }
+                    })
+                }
+                return watchEntries;
+            }
+            if(!entry.logo){
+                entry.logo = defaultIcons['stream'];
+            }
+            return entry;
+        });
+        return category;
+    }, (entries) => {
+        entries.unshift({name: Lang.IPTV_LISTS, label: Lang.MY_LISTS, logo:'fa-list', type: 'group', entries: [], renderer: getListsEntries});
+        entries.unshift({name: Lang.BEEN_WATCHED, logo: 'fa-users', label: onlineUsersCount, type: 'group', renderer: getWatchingEntries, entries: []});
+        return entries;
+    })
+}
+
 jQuery(document).one('lngload', function (){
     window.index = [
-        {name: Lang.WHAT_TO_WATCH, label: Lang.SEARCH, logo:'assets/icons/white/tv.png', type: 'group', entries: [], renderer: getWhatToWatch},
+        {name: Lang.CHANNELS, label: Lang.CATEGORIES, logo:'assets/icons/white/tv.png', type: 'group', entries: [], renderer: getMainCategoriesEntries},
+        {name: Lang.EXTRAS, label: Lang.IPTV_LISTS+' &middot; '+Lang.RECORDINGS, logo:'fa-th-large', type: 'group', entries: [], renderer: getXtraEntries, callback: appendRemoteXtras},
         {name: Lang.OPTIONS, logo:'assets/icons/white/settings.png', url:'javascript:;', type: 'group', entries: [
             {name: Lang.OPEN_URL+' (Ctrl+U)', logo:'fa-link', type: 'option', callback: () => {playCustomURL()}},
             {name: Lang.WINDOW, logo:'fa-window-maximize', type: 'group', renderer: getWindowModeEntries, entries: []},
@@ -1276,9 +1545,6 @@ jQuery(document).one('lngload', function (){
                 })
             }},
             {name: Lang.RESUME_PLAYBACK, type: 'check', check: (checked) => {Config.set('resume',checked)}, checked: () => {return Config.get('resume')}},
-            /*
-            {name: Lang.FORCE_FFMPEG, type: 'check', check: (checked) => {Config.set('force-transcode',checked)}, checked: () => {return Config.get('force-transcode')}},
-            */
             {name: Lang.HIDE_BUTTON_OPT.format(Lang.BACK, 'Backspace'), type: 'check', check: (checked) => {Config.set('hide-back-button',checked)}, checked: () => {return Config.get('hide-back-button')}},
             {name: Lang.RESET_DATA, logo:'fa-trash', type: 'option', renderer: top.resetData, entries: []},
         ]}
@@ -1310,18 +1576,18 @@ jQuery(document).one('lngload', function (){
     }
 
     listEntriesByPath(listingPath);
-    showControls();
+    setTimeout(() => {}, 0); // tricky?!
+    //console.log(jQuery('.list').html())
 
     setTimeout(function (){
-        win.show();
         jQuery(document).trigger('show');
         if(top){
-            top.restoreInitialSize();
+            centralizedResizeWindow(top.initialSize().width, top.initialSize().height);
+            jQuery(top.document).find('#splash').hide();
             top.jQuery(top.document).trigger('show');
-            if(top.splash){
-                top.splash.close()
-            };
+            top.enableSetFullScreenWindowResizing = true;
         }
+        showControls();
     }, 2000)
 })
 

@@ -86,7 +86,7 @@
     "OPEN_URL": "Open URL",
     "PARENTAL_CONTROL": "Parental Control",
     "PARENTAL_CONTROL_FILTER_HINT": "Type the words to filter separated by commas.",
-    "DATA_FETCHING_FAILURE": "Failed to fetch data, try again later.",
+    "DATA_FETCHING_FAILURE": "Failed to get data, check your connection.",
     "HIDE_BUTTON_OPT": "Hide \"{0}\" Button (use {1})",
     "MY_LISTS": "My Lists",
     "CONNECTED_LISTS": "Connected lists",
@@ -108,7 +108,7 @@
     "HD_LISTS": "HD Quality Lists",
     "GPU_RENDERING": "GPU Rendering",
     "MAGNET_SEARCH": "Magnet Search",
-    "CONNECTING": "Connecting...",
+    "CONNECTING": "Connecting",
     "SEARCHING_PEERS": "Searching peers...",
     "CAN_BE_SLOW": "It can take some minutes",
     "SEARCH_PLACEHOLDER": "Type the channel name...",
@@ -118,7 +118,7 @@
     "IPTV_LISTS": "IPTV Lists",
     "ALL_LISTS": "All lists",
     "FIND_VIDEOS": "Find videos",
-    "WHAT_TO_WATCH": "What to watch",
+    "WHAT_TO_WATCH": "What to watch?",
     "FEATURED": "Featured",
     "SEARCH_RANGE": "Search Range",
     "XTREME": "Extreme",
@@ -128,5 +128,9 @@
     "CONTINUE": "Continue",
     "OPEN_FILE": "Open file",
     "CATEGORIES": "Categories",
-    "VIDEOS": "Videos"
+    "VIDEOS": "Videos",
+    "REMOVE_FROM": "Remove from \"{0}\"",
+    "WATCH_NOW": "Watch now",
+    "TUNING": "Tuning",
+    "FORWARD": "Forward"
 }

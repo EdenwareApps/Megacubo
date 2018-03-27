@@ -6,6 +6,7 @@ try {
 } catch(e) {
     console.error(e)
 }
+
 */
 
 setTimeout = global.setTimeout.bind(global);
@@ -15,6 +16,10 @@ clearTimeout = global.clearTimeout.bind(global);
 window.ondragover = function(e) { 
     if(e){
         e.preventDefault();
+    }
+    console.log('dragover', window);
+    if(top.dragTimer){
+        clearTimeout(top.dragTimer);
     }
     if(top == window){
         var ov = document.querySelector('iframe#overlay');
@@ -29,10 +34,16 @@ window.ondragleave = window.ondrop = function(e) {
     if(e){
         e.preventDefault(); 
     }
-    setTimeout(() => {
-        var ov = document.querySelector('iframe#overlay');
-        if(ov) ov.style.pointerEvents = 'none';
-    }, 200);
+    console.log('dragleave', window);
+    if(top.dragTimer){
+        clearTimeout(top.dragTimer);
+        top.dragTimer = setTimeout(() => {
+            var ov = document.querySelector('iframe#overlay');
+            if(ov){
+                ov.style.pointerEvents = 'none';
+            }
+        }, 200);
+    }
     return false;
 };
 
@@ -43,6 +54,13 @@ window.onerror = (...arguments) => {
 }
 
 if(typeof(require)!='undefined'){
+        
+    var availableLanguageNames = {
+        en: 'English',
+        es: 'Español',
+        pt: 'Português',
+        it: 'Italiano'
+    };
 
     if(typeof(fs)=='undefined'){
         var fs = require("fs");
@@ -58,7 +76,11 @@ if(typeof(require)!='undefined'){
 			target = target.split(search).join(replacement);
 		}
 		return String(target);
-	}
+    }
+    
+    jQuery.fn.reverse = function() {
+        return this.pushStack(this.get().reverse(), arguments);
+    } 
 
 	// First, checks if it isn't implemented yet.
 	if (!String.prototype.format) {
@@ -71,12 +93,156 @@ if(typeof(require)!='undefined'){
 			})
 		}
     }
-    
+
+	if (!Array.prototype.sortBy) {
+        Array.prototype.sortBy = function (p, reverse) {
+            return this.slice(0).sort((a,b) => {
+                if(reverse) return (a[p] > b[p]) ? -1 : (a[p] < b[p]) ? 1 : 0;
+                return (a[p] > b[p]) ? 1 : (a[p] < b[p]) ? -1 : 0;
+            });
+        }
+    }
+
     (function($) {
         $.fn.outerHTML = function() {
           return $(this).clone().wrap('<div></div>').parent().html();
         };
-    })(jQuery);
+    })(jQuery)
+
+    /*
+    Uint8Array.prototype.indexOfMulti = function (searchElements, fromIndex) {
+        fromIndex = fromIndex || 0;
+    
+
+        var index = Array.prototype.indexOf.call(this, searchElements[0], fromIndex);
+        if(searchElements.length === 1 || index === -1) {
+            // Not found or no other elements to check
+            return index;
+        }
+
+        for(var i = index, j = 0; j < searchElements.length && i < this.length; i++, j++) {
+            if(this[i] !== searchElements[j]) {
+                return this.indexOfMulti(searchElements, index + 1);
+            }
+        }
+    
+        return(i === index + searchElements.length) ? index : -1;
+    }
+
+    Uint8Array.prototype.indexOfMulti2 = function (search) {
+        var result = -1, index, fromIndex = 0, scanCount = 0;
+        console.log('indexOfMulti::start');
+        for(var i=0; i < this.length; i++){
+            index = this.indexOf(search[0], fromIndex);
+            scanCount++;
+            if(index != -1){
+                //console.log('indexOfMulti::offset', index);
+                result = index;
+				fromIndex = index + 1;
+                for(var j = 1; j < search.length; j++){
+                    index++;
+                    //console.log(search[j], this[index]);
+                    if(search[j] != this[index]){
+                        result = -1;
+                        //console.log('indexOfMulti::break', j);
+                        break;
+                    }
+                }
+                if(result != -1){
+                    break;
+                }
+            } else {
+                break;
+            }
+        }
+        console.log('indexOfMulti::done', result, scanCount);
+        return result;
+    }
+    */
+
+    Uint8Array.prototype.indexOfMulti = function (search) {
+        var result = -1, index, fromIndex = 0, scanCount = 0, rotateOffset = 0, maxCharRotation = parseInt(search.length / 2);
+        console.log('indexOfMulti::start');
+        for(var i=0; i < this.length; i++){
+            index = this.indexOf(search[0 + rotateOffset], fromIndex);
+            scanCount++;
+            if(index != -1){
+                //console.log('indexOfMulti::offset', index);
+                result = index;
+                fromIndex = index + 1;
+                for(var j = 1 + rotateOffset; j < (search.length - rotateOffset); j++){
+                    index++;
+                    //console.log(search[j], this[index]);
+                    if(search[j] != this[index]){
+                        result = -1;
+                        //console.log('indexOfMulti::break', j);
+                        rotateOffset++;
+                        if(rotateOffset > maxCharRotation){
+                            //console.log('indexOfMulti::rotate', rotateOffset);
+                            rotateOffset = 0;
+                        } else { 
+                            fromIndex++; 
+                        }
+                        break;
+                    }
+                }
+                if(result != -1){
+                    break;
+                }
+            } else {
+                break;
+            }
+        }
+        console.log('indexOfMulti::done', result, scanCount);
+        return result == -1 ? -1 : (result - rotateOffset);
+    }
+    
+    function concatTypedArrays(a, b) { // a, b TypedArray of same type
+        var c = new (a.constructor)(a.length + b.length);
+        c.set(a, 0);
+        c.set(b, a.length);
+        return c;
+    }
+
+    function concatBuffers(a, b) {
+        return concatTypedArrays(
+            new Uint8Array(a.buffer || a), 
+            new Uint8Array(b.buffer || b)
+        ).buffer;
+    }
+
+    function concatBytes(ui8a, bytes) {
+        var b = new Uint8Array(bytes.length);
+        bytes.forEach(function (byte, index) {
+            b[index] = byte;
+        });
+        var r = concatTypedArrays(ui8a, b);
+        ui8a = null;
+        b = null;
+        return r;
+    }
+
+    function tag(el){
+        return (el&&el.tagName)?el.tagName.toLowerCase():'';
+    }
+
+    function toArrayBuffer(buf) {
+        var ab = new ArrayBuffer(buf.length);
+        var view = new Uint8Array(ab);
+        for (var i = 0; i < buf.length; ++i) {
+            view[i] = buf[i];
+        }
+        return ab;
+    }
+    
+    function toBuffer(ab) {
+        var buf = new Buffer(ab.byteLength);
+        var view = new Uint8Array(ab);
+        for (var i = 0; i < buf.length; ++i) {
+            buf[i] = view[i];
+        }
+        return buf;
+    }
 
 	function time(){
 		return ((new Date()).getTime()/1000);
@@ -112,25 +278,87 @@ if(typeof(require)!='undefined'){
 			console.log('promise error! ', url, err);
 			callback(false, false)
 		})
-	}
+    }
+    
+    var resolveURL=function resolve(url, base){
+        if('string'!==typeof url || !url){
+            return null; // wrong or empty url
+        }
+        else if(url.match(/^[a-z]+\:\/\//i)){ 
+            return url; // url is absolute already 
+        }
+        else if(url.match(/^\/\//)){ 
+            return 'http:'+url; // url is absolute already 
+        }
+        else if(url.match(/^[a-z]+\:/i)){ 
+            return url; // data URI, mailto:, tel:, etc.
+        }
+        else if('string'!==typeof base){
+            var a=document.createElement('a'); 
+            a.href=url; // try to resolve url without base  
+            if(!a.pathname){ 
+                return null; // url not valid 
+            }
+            return 'http://'+url;
+        }
+        else{ 
+            base=resolve(base); // check base
+            if(base===null){
+                return null; // wrong base
+            }
+        }
+        var a=document.createElement('a'); 
+        a.href=base;    
+        if(url[0]==='/'){ 
+            base=[]; // rooted path
+        }
+        else{ 
+            base=a.pathname.split('/'); // relative path
+            base.pop(); 
+        }
+        url=url.split('/');
+        for(var i=0; i<url.length; ++i){
+            if(url[i]==='.'){ // current directory
+                continue;
+            }
+            if(url[i]==='..'){ // parent directory
+                if('undefined'===typeof base.pop() || base.length===0){ 
+                    return null; // wrong url accessing non-existing parent directories
+                }
+            }
+            else{ // child directory
+                base.push(url[i]); 
+            }
+        }
+        return a.protocol+'//'+a.hostname+base.join('/');
+    }
 
     var request;
     function getHeaders(url, callback, timeoutSecs){
-        var start = time(), timer = 0;
+        var start = time(), timer = 0, currentURL = url;
         if(typeof(callback)!='function'){
             callback = () => {}
         }
         if(!request){
             request = require('request')
         }
+        //console.warn(url, traceback());
         var r = request(url);
+        r.on('error', (response) => {
+            r.abort();
+            callback({}, url)
+        });
         r.on('response', (response) => {
             clearTimeout(timer);
             var headers = response.headers;
             r.abort();
-            if(headers['location'] && headers['location'] != url){
+            if(headers['location'] && headers['location'] != url && headers['location'] != currentURL){
+                if(!headers['location'].match(new RegExp('^(//|https?://)'))){
+                    headers['location'] = resolveURL(headers['location'], currentURL); 
+                }
+                currentURL = headers['location'];
                 var remainingTimeout = timeoutSecs - (time() - start);
-                if(remainingTimeout){
+                if(remainingTimeout && headers['location'] != url && headers['location'] != currentURL){
                     getHeaders(headers['location'], callback, remainingTimeout)
                 } else {
                     callback(headers, url)
@@ -384,7 +612,7 @@ if(typeof(require)!='undefined'){
 				}
 			});
 			self.resolve = (key) => {
-				key = key.replace(new RegExp('[^A-Za-z0-9\\._-]', 'g'), '');
+				key = key.replace(new RegExp('[^A-Za-z0-9\\._\\- ]', 'g'), '');
 				return dir + key + '.json';
 			}
 			self.get = (key) => {
@@ -430,7 +658,8 @@ if(typeof(require)!='undefined'){
 				cache[key] = val;
 			}
 			return self;
-		})();        
+        })();        
+        
 		var Config = (() => {
 			var self = {}, file = 'data/configure.json', loaded = false, defaults = {
 				"sources": [],
@@ -512,6 +741,11 @@ if(typeof(require)!='undefined'){
 		var Store = top.Store;
 	}
 
+    function prepareFilename(file){
+        file = file.replace(new RegExp('[^A-Za-z0-9\\._\\- ]', 'g'), '');
+        return file;
+    }
+
     function sliceObject(object, s, e){
         var ret = {};
         if(object){
@@ -540,13 +774,17 @@ if(typeof(require)!='undefined'){
     }
     
     function seekRewind(){
-        notify(Lang.REWIND, 'fa-backward', 'short');
-        top.PlaybackManager.seek(-10)
+        if(top && top.PlaybackManager && top.PlaybackManager.activeIntent){
+            notify(Lang.REWIND, 'fa-backward', 'short');
+            top.PlaybackManager.seek(-10)
+        }
     }
 
     function seekForward(){
-        notify(Lang.FORWARD, 'fa-forward', 'short');
-        top.PlaybackManager.seek(10)
+        if(top && top.PlaybackManager && top.PlaybackManager.activeIntent){
+            notify(Lang.FORWARD, 'fa-forward', 'short');
+            top.PlaybackManager.seek(10)
+        }
     }
     
     function collectListQueue(ref){
@@ -608,12 +846,28 @@ if(typeof(require)!='undefined'){
         }
     }
     
-    function goSearch(){
-        top.automaticallyPaused = false;
+    function goSearch(searchTerm){
         var c = getFrame('controls');
         if(c.searchPath){
-            c.showControls();
-            c.listEntriesByPathTriggering(c.searchPath)
+            if(searchTerm){
+                c.lastSearchTerm = searchTerm;
+            }
+            c.listEntriesByPathTriggering(c.searchPath, () => {
+                c.showControls();
+                if(searchTerm){
+                    var n = jQuery(c.document).find('.list input');
+                    console.log('AA', c.listingPath, searchTerm);
+                    n.val(searchTerm);
+                    console.log('BB', n.length);
+                }
+            })
+        }
+    }
+    
+    function goBookmarks(){
+        var c = getFrame('controls');
+        if(c.bookmarksPath){
+            c.listEntriesByPathTriggering(c.bookmarksPath)
         }
     }
 
@@ -622,6 +876,13 @@ if(typeof(require)!='undefined'){
         if(c){
             c.addNewSource()
         }
+    }
+    
+    function toTitleCase(str)
+    {
+        return str.replace(/\w\S*/g, function(txt){
+            return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+        });
     }
 
     var minigetProvider, m3u8Parser;
@@ -651,21 +912,24 @@ if(typeof(require)!='undefined'){
                     w.top = window.top;
                 }
             }
-        })
-        if(ok){
-            callback()
-        } else {
-            setTimeout(() => {
-                areFramesReady(callback)
-            }, 250)
+        });
+        if(typeof(callback)=='function'){
+            if(ok){
+                callback()
+            } else {
+                setTimeout(() => {
+                    areFramesReady(callback)
+                }, 250)
+            }
         }
+        return ok;
     }
 
     var shortcuts = [];
 
     function setupShortcuts(){
 
-        shortcuts.push(createShortcut("Ctrl+Alt+D", () => {
+        shortcuts.push(createShortcut("Ctrl+Alt+D Ctrl+T", () => {
             top.spawnOut()
         }, null, true));
         shortcuts.push(createShortcut("Ctrl+E", () => {
@@ -726,8 +990,15 @@ if(typeof(require)!='undefined'){
         shortcuts.push(createShortcut("Ctrl+Shift+D", () => {
             getFrame('controls').removeFav()
         }, null, true));
-        shortcuts.push(createShortcut("Ctrl+Alt+R", () => {
-            top.location.reload()
+        shortcuts.push(createShortcut("Ctrl+Alt+R Ctrl+F5", () => {
+            //chrome.runtime.reload();
+            getManifest((data) => {
+                jQuery(top.document).find('#splash').show('fast');
+                centralizedResizeWindow(data.window.width, data.window.height);
+                setTimeout(() => { 
+                    chrome.runtime.reload()
+                }, 500)
+            })
         }, null, true));
         shortcuts.push(createShortcut("Home", () => {
             if(!areControlsActive()){
@@ -735,12 +1006,6 @@ if(typeof(require)!='undefined'){
             }
             getFrame('controls').listEntriesByPath('')
         }));
-        shortcuts.push(createShortcut("Ctrl+Home", () => { // with Ctrl it work on inputs so
-            if(!areControlsActive()){
-                showControls()
-            }
-            getFrame('controls').listEntriesByPath('')
-        }, null, true));
         shortcuts.push(createShortcut("Delete", () => {
             if(areControlsActive()){
                 var c = getFrame('controls');
@@ -762,38 +1027,62 @@ if(typeof(require)!='undefined'){
             var c = getFrame('controls');
             c.focusNext()
         }, "hold", true));
-        shortcuts.push(createShortcut("Right Enter", () => {
-            if(top && !top.miniPlayerActive){
-                if(areControlsActive()){
+        shortcuts.push(createShortcut("Enter", () => {
+            if(!isMiniPlayerActive()){
+                if(!areControlsActive()){
+                    showControls()
+                } else {
                     var c = getFrame('controls');
                     c.triggerEnter()
-                } else {
-                    showControls()
                 }
             }
         }));
-        shortcuts.push(createShortcut("Left Backspace", () => {
-            if(areControlsActive()){
-                var c = getFrame('controls');
-                c.triggerBack()
-            } else {
-                seekRewind()
+        shortcuts.push(createShortcut("Backspace", () => {
+            if(!isMiniPlayerActive()){
+                if(!areControlsActive()){
+                    showControls()
+                } else {
+                    var c = getFrame('controls');
+                    c.triggerBack()
+                }
             }
         }, "hold"));
+        shortcuts.push(createShortcut("Alt+Enter F11", () => {
+            top.toggleFullScreen()
+        })),
+        shortcuts.push(createShortcut("Right", () => {
+            seekForward()
+        }, "hold"));
+        shortcuts.push(createShortcut("Left", () => {
+            seekRewind()
+        }, "hold"));
+        shortcuts.push(createShortcut("Ctrl+Left", () => {
+            var s = getPreviousStream();
+            if(s){
+                console.log(s);
+                getFrame('controls').playEntry(s)
+            }
+        }));
+        shortcuts.push(createShortcut("Ctrl+Right", () => {
+            var s = getNextStream();
+            if(s){
+                console.log(s);
+                getFrame('controls').playEntry(s)
+            }
+        }));
         shortcuts.push(createShortcut("Ctrl+Backspace", () => { // with Ctrl it work on inputs so
-            if(areControlsActive()){
-                var c = getFrame('controls');
-                c.triggerBack()
-            } else {
-                seekRewind()
+            if(!isMiniPlayerActive()){
+                if(!areControlsActive()){
+                    showControls()
+                } else {
+                    var c = getFrame('controls');
+                    c.triggerBack()
+                }
             }
         }, null, true));
-        shortcuts.push(createShortcut("Shift+Left", () => {
-            seekRewind()
-        }, "hold", true));
-        shortcuts.push(createShortcut("Shift+Right", () => {
-            seekForward()
-        }, "hold", true));
+        shortcuts.push(createShortcut("F4", () => {
+            top.changeScaleMode()
+        }));
         shortcuts.push(createShortcut("Esc", () => {
             top.escapePressed()
         }, null, true));
@@ -808,50 +1097,12 @@ if(typeof(require)!='undefined'){
                     }
                 },
                 {
-                    key : "Alt+Enter",
-                    active : () => {
-                        top.toggleFullScreen()
-                    }
-                },
-                {
-                    key : "F4",
-                    active : () => {
-                        top.changeScaleMode()
-                    }
-                },
-                {
                     key : "F9",
                     active : () => {
                         if(!top.isRecording){
                             top.startRecording()
                         } else {
                             top.stopRecording()
-                        }
-                    }
-                },
-                {
-                    key : "F11",
-                    active : () => {
-                        top.toggleFullScreen()
-                    }
-                },
-                {
-                    key : "Ctrl+Left",
-                    active : () => {
-                        var s = getPreviousStream();
-                        if(s){
-                            console.log(s);
-                            getFrame('controls').playEntry(s)
-                        }
-                    }
-                },
-                {
-                    key : "Ctrl+Right",
-                    active : () => {
-                        var s = getNextStream();
-                        if(s){
-                            console.log(s);
-                            getFrame('controls').playEntry(s)
                         }
                     }
                 },
@@ -905,6 +1156,42 @@ if(typeof(require)!='undefined'){
             })
         }
     }
+    
+    function centralizedResizeWindow(w, h, animate){
+        var tw = window.top;
+        if(tw){
+            var t = (screen.availHeight - h) / 2, l = (screen.availWidth - w) / 2;
+            if(animate){
+                var initialTop = top.win.y;
+                var initialLeft = top.win.x;
+                var initialWidth = tw.outerWidth;
+                var initialHeight = tw.outerHeight;
+                jQuery({percent: 0}).animate({percent: 100}, {
+                    step: (percent) => { 
+                        var width = initialWidth + (percent * ((w - initialWidth) / 100)), height = initialHeight + (percent * ((h - initialHeight) / 100));
+                        var top = initialTop + (percent * ((t - initialTop) / 100)), left = initialLeft + (percent * ((l - initialLeft) / 100));
+                        //console.log('resize', top, left, width, height);
+                        tw.moveTo(left, top);
+                        tw.resizeTo(width, height)
+                    }
+                })
+            } else {
+                console.log('resize', t, l, w, h);
+                tw.resizeTo(w, h);
+                tw.moveTo(l, t)
+            }
+        }
+    }
+
+    function trimChar(string, charToRemove) {
+        while(string.charAt(0)==charToRemove) {
+            string = string.substring(1);
+        }
+        while(string.charAt(string.length-1)==charToRemove) {
+            string = string.substring(0,string.length-1);
+        }
+        return string;
+    }
 
     var spawn;
     function getFFmpegMediaInfo(path, callback){
@@ -941,7 +1228,7 @@ if(typeof(require)!='undefined'){
     var b = jQuery(top.document).find('body');
     
     var areControlsActive = () => {
-        return b.hasClass('istyping') || b.hasClass('isovercontrols') || b.hasClass('paused');
+        return b.hasClass('istyping') || b.hasClass('showcontrols') || b.hasClass('paused');
     }
     
     var areControlsHiding = () => {
@@ -950,11 +1237,7 @@ if(typeof(require)!='undefined'){
     
     function showControls(){
         if(!areControlsActive()){
-            b.addClass('isovercontrols');
-            if(top.PlaybackManager.playing()){
-                top.PlaybackManager.pause()
-            }
-            console.log('CC')
+            b.addClass('showcontrols')
         } else {
             console.log('DD')
         }
@@ -962,21 +1245,11 @@ if(typeof(require)!='undefined'){
     
     function hideControls(){
         //console.log('EE', traceback())
-
-        if(!top || !top.PlaybackManager){
-            return;
-        }
-        
-        if(!top.PlaybackManager.activeIntent){
-            //console.log('FF')
-            return showControls();
-        }
-        //console.log('GG')
         if(areControlsActive()){
             //console.log('HH')
             top.controlsHiding = true;
             var c = getFrame('controls');
-            b.removeClass('istyping isovercontrols paused');
+            b.removeClass('istyping showcontrols paused');
             var controlsActiveElement = c.document.activeElement;
             //console.log('HIDE', controlsActiveElement)
             if(controlsActiveElement && controlsActiveElement.tagName.toLowerCase()=='input'){
@@ -1044,7 +1317,7 @@ if(typeof(require)!='undefined'){
     }
 
     function fixUTF8(str) {
-        return str
+        return String(str)
         // U+20AC  0x80  € â‚¬   %E2 %82 %AC
         .replace(/â‚¬/g, '€')
         // U+201A  0x82  ‚ â€š   %E2 %80 %9A
@@ -1290,12 +1563,19 @@ if(typeof(require)!='undefined'){
         // U+00FF  0xFF  ÿ Ã¿  %C3 %BF
         .replace(/Ã¿/g, 'ÿ')
     }
+
+    function isMiniPlayerActive(){
+        if(top && typeof(top.miniPlayerActive) != 'undefined'){
+            return top.miniPlayerActive;
+        }
+    }
     
-    function askForSource(question, callback, placeholder, showCommunityListOption){
+    function askForSource(question, callback, placeholder){
         if(top){
-            if(top.miniPlayerActive){
+            if(isMiniPlayerActive()){
                 top.leaveMiniPlayer()
             }
+            console.error(traceback());
             var defaultValue = Store.get('last-ask-for-source-value');
             var cb = top.clipboard.get('text');
             if(cb.match(new RegExp('^(//|https?://)'))){
@@ -1332,26 +1612,6 @@ if(typeof(require)!='undefined'){
         }
     }
     
-    function addCommunityList(){
-        if(top){
-            var options = [
-                ['<i class="fas fa-undo" aria-hidden="true"></i> '+Lang.BACK, () => {
-                    var c = getFrame('controls');
-                    if(c){
-                        c.getIPTVListContent(() => {
-                            top.modalClose()
-                        })
-                    }
-                }],
-                ['<i class="fas fa-check-circle" aria-hidden="true"></i> '+Lang.I_AGREE, () => {
-                    registerSource(communityList(), Lang.COMMUNITY_LIST); // an endpoint which always redirects to the most used list URL in that country dynamically
-                    top.modalClose()
-                }]
-            ];
-            top.modalConfirm(Lang.ASK_COMMUNITY_LIST.format(Lang.I_AGREE), options)
-        }
-    }
-    
     function communityList(){
         return 'http://app.megacubo.net/auto?uilocale='+getLocale()
     }
@@ -1377,7 +1637,7 @@ if(typeof(require)!='undefined'){
             url = placeholder;
         } else {
             if(!placeholder) placeholder = Store.get('lastCustomPlayURL');
-            return top.askForSource(Lang.PASTE_URL_HINT, function (val){
+            return top.askForSource(Lang.PASTE_URL_HINT, (val) => {
                 playCustomURL(val+'#nosandbox', true);
                 return true;
             })            
@@ -1396,7 +1656,11 @@ if(typeof(require)!='undefined'){
             if(name){
                 console.log('lastCustomPlayURL', url, name);
                 Store.set('lastCustomPlayURL', url);
-                top.createPlayIntent({url: url+'#nosandbox', name: name}, {manual: true})
+                var logo = '', c = getFrame('controls');                
+                if(c){
+                    logo = c.defaultIcons['stream'];
+                }
+                top.createPlayIntent({url: url+'#nosandbox', name: name, logo: logo}, {manual: true})
             }
         }
     }
@@ -1436,6 +1700,9 @@ if(typeof(require)!='undefined'){
         var cbCalled = false;
         var done = function (err) {
             if (!cbCalled) {
+				if(typeof(err)=='undefined' && typeof(cb)=='function'){
+					err = false;
+				}
                 cb(err);
                 cbCalled = true;
             }
@@ -1470,18 +1737,23 @@ if(typeof(require)!='undefined'){
     jQuery(setupShortcuts);    
 
     function stop(skipPlaybackManager){
+        if(!top) return;
         console.log('STOP', traceback());
-        if(!skipPlaybackManager){
-            top.PlaybackManager.stop();
+        if(top.PlaybackManager.activeIntent){
+            if(!skipPlaybackManager){
+                top.PlaybackManager.fullStop();
+            }
+            showPlayers(false, false);
+            setTitleData('Megacubo', 'default_icon.png');
+            leavePendingState();
+            top.doAction('stop')
         }
-        showPlayers(false, false);
-        setTitleData('Megacubo', 'default_icon.png');
         setTimeout(() => {
             if(!isPlaying()){
                 var c = getFrame('controls');
                 if(c){
-                    c.showControls();
-                    c.refreshListingIfMatch(Lang.OPTIONS)
+                    c.autoCleanEntriesCancel();
+                    c.updateStreamEntriesFlags()
                 }
             }
         }, 400)
@@ -1535,12 +1807,17 @@ if(typeof(require)!='undefined'){
                 if(callback){
                     callback(popWin)
                 }
+                popWin.closeDevTools()
             })
             stop()
         })
     }
 
     function checkImage(url, load, error){
+        if(url.indexOf('/') != -1){
+            error();
+            return;
+        }
         if(typeof(window._testImageObject)=='undefined'){
             _testImageObject = new Image();
         }
@@ -1613,7 +1890,7 @@ if(typeof(require)!='undefined'){
         if(o){
             var a = jQuery(o.document.getElementById('notify-area'));
             a.find('.notify-row').filter((i, o) => {
-                return jQuery(o).find('div').text().trim() == str;
+                return jQuery(o).find('div').text().trim().indexOf(str) != -1;
             }).hide()
         }
     }
@@ -1708,15 +1985,41 @@ if(typeof(require)!='undefined'){
 
     var pendingStateTimer = 0, defaultTitle = '';
 
-    function enterPendingState(title) {
+    function inPendingState() {
+        return top.isPending || false;
+    }
+
+    function enterPendingState(title, notifyFlag, loadingUrl) {
+        //console.warn('ssss', top.isPending, loadingUrl || false, traceback());
+        top.isPending = loadingUrl || ((top.isPending && typeof(top.isPending)=='string') ? top.isPending : true);
+        //console.warn('ssss', top.isPending);
         setTitleFlag('fa-circle-notch fa-spin', title);
-        notify(Lang.CONNECTING, 'fa-circle-notch fa-spin', 'wait');
+        if(!notifyFlag){
+            notifyFlag = Lang.CONNECTING;
+        }
+        var knownLabels = [Lang.CONNECTING, Lang.TUNNING];
+        knownLabels.forEach(notifyRemove);
+        if(knownLabels.indexOf(notifyFlag)==-1){
+            notifyRemove(notifyFlag)
+        }
+        notify(notifyFlag+'...', 'fa-circle-notch fa-spin', 'forever');
+        var c = getFrame('controls');
+        if(c){
+            c.updateStreamEntriesFlags()
+        }
     }
     
     function leavePendingState() {
-        notifyRemove(Lang.CONNECTING);
-        setTitleFlag('', defaultTitle);
-        getFrame('controls').removeLoadingFlags()
+        if(top && typeof(top.isPending)!='undefined'){
+            top.isPending = false;
+            notifyRemove(Lang.CONNECTING);
+            notifyRemove(Lang.TUNING);
+            setTitleFlag('', defaultTitle);
+            var c = getFrame('controls');
+            if(c){
+                c.removeLoadingFlags()
+            }
+        }
     }
 
     function urldecode(t){
@@ -1804,7 +2107,7 @@ if(typeof(require)!='undefined'){
                 ct = '';
             }
             callback(ct, cl, url, u) // u is the final url, url the starter url
-        }, 10)
+        }, timeout)
     }
 
     function hasValidTitle(){
@@ -1840,6 +2143,50 @@ if(typeof(require)!='undefined'){
         _str = _str.substring(0, pos); 
         return _str;
     }
+
+    function openMegaFile(file){
+        var entry = megaFileToEntry(file);
+        if(entry){
+            var c = getFrame('controls');
+            if(c){
+                c.playEntry(entry)
+            }
+        }
+    }
+    
+    function megaFileToEntry(file){
+        var content = fs.readFileSync(file);
+        if(content) {
+            var c = getFrame('controls'), parser = new DOMParser();
+            var doc = parser.parseFromString(content, "application/xml");
+            var url = jQuery(doc).find('stream').text().replaceAll('embed::', '').replaceAll('#off', '#nosandbox').replaceAll('#catalog', '#nofit#');
+            var name = jQuery(doc).find('stream').attr('name') || jQuery(doc).find('name').text();
+            return {
+                name: name,
+                url: url,
+                logo: c ? c.defaultIcons['stream'] : ''
+            }
+        }
+        return false;
+    }
+
+    function parseMegaURL(url){
+        var parts = url.split(( url.indexOf('|')!=-1 ) ? '|' : '//');
+        if(parts.length > 1){
+            parts[0] = parts[0].split('/').pop();
+            switch(parts[0]){
+                case 'link':
+                    return {type: 'link', url: atob(parts[1]), name: 'Megacubo '+getDomain(parts[1])};
+                    break;
+                case 'play':
+                    parts[1] = decodeURIComponent(parts[1]) || parts[1];
+                    parts[1] = parts[1].split('?')[0].split('#')[0];                    
+                    return {type: 'play', link: '', name: parts[1]};
+                    break;
+            }
+        }
+        return false;
+    }
     
     function isM3U8(url){
         if(typeof(url)!='string') return false;
@@ -1865,6 +2212,11 @@ if(typeof(require)!='undefined'){
         if(typeof(url)!='string') return false;
         return url.substr(0, 7)=='magnet:';            
     }
+    
+    function isMega(url){
+        if(typeof(url)!='string') return false;
+        return url.substr(0, 5)=='mega:';            
+    }
 
     function isYT(url){
         url = String(url);
@@ -1883,9 +2235,17 @@ if(typeof(require)!='undefined'){
         return url.match(new RegExp('(^(rtsp|mms)[a-z]?:)', 'i'));            
     }
     
-    function isLocal(url){
-        if(typeof(url)!='string') return false;
-        return url.substr(0, 5)=='file:';
+    function isLocal(str){
+        if(typeof(str)!='string'){
+            return false;
+        }
+        if(str.match('[A-Z]:')){ // windows drive letter
+            return true;
+        }
+        if(str.substr(0, 5)=='file:'){
+            return true;
+        }
+        return fs.existsSync(str)
     }
     
     function isVideo(url){
@@ -1955,7 +2315,7 @@ if(typeof(require)!='undefined'){
             }
         }        
     }
-    
+
     function getDefaultLocale(short, noUnderline){
         var lang = window.navigator.languages ? window.navigator.languages[0] : null;
         lang = lang || window.navigator.language || window.navigator.browserLanguage || window.navigator.userLanguage;

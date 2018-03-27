@@ -8,32 +8,43 @@
         <link rel="stylesheet" type="text/css" href="assets/css/index.css" />
 		<style type="text/css">
 			html {
-				background: #000 url(assets/images/wallpaper.png);
+				background: #000 url(assets/images/wallpaper.png) no-repeat fixed;
     			background-size: cover;
 				background-position: center center;
+    			transition: all 0.2s ease-in-out 0s;
 			}
 		</style>
 		<script type="text/javascript">
-			var _splash, gui = require('nw.gui'), win = gui.Window.get(), miniPlayerActive = false;
-			gui.Window.open('splash.html', {
-				position: 'center',
-				width: 320,
-				height: 180,
-				frame: false,
-				show: true,
-				show_in_taskbar: false
-			}, function (w){
-				splash = w;
-				splash.setAlwaysOnTop(true)
+			var gui = require('nw.gui'), win = gui.Window.get(), miniPlayerActive = false;
+			function traceback() { 
+				try { 
+					var a = {}; 
+					a.debug(); 
+				} catch(ex) {
+					return ex.stack.replace('TypeError: a.debug is not a function', '').trim()
+				};
+			}
+			function logErr(){
+				if(!fs){
+					fs = require('fs')
+				}
+				if(!fs.existsSync('error.log')){
+					fs.closeSync(fs.openSync('error.log', 'w')); // touch
+				}
+				return fs.appendFileSync('error.log', JSON.stringify(Array.from(arguments))+"\r\n"+traceback()+"\r\n\r\n");
+			}
+			process.on('unhandledRejection', function (reason, p){
+				console.error(reason, 'Unhandled Rejection at Promise', p);
+				logErr(reason, 'Unhandled Rejection at Promise', p);
+				//process.exit(1);
 			});
-			win.moveTo(5000, 5000);
-			win.show();
-			setTimeout(function (){
-				win.hide()
-			}, 10);
 		</script>
 	</head>
 	<body>
+		<div id="splash" class="fit-screen show">
+			<img width="320" height="180" src="assets/images/splash.png" />
+			<img class="splash-spinner" src="assets/images/loading.gif" width="30" height="30" />
+		</div>
 		<div id="modal-overlay">
 			<div>
 				<div>
@@ -41,7 +52,7 @@
 				</div>
 			</div>
 		</div>
-		<script type="text/javascript" src="assets/js/jquery-3.2.1.js"></script>
+		<script type="text/javascript" src="assets/js/jquery.js"></script>
 		<script type="text/javascript" src="assets/js/jquery.shortcuts.min.js"></script>
         <script type="text/javascript" src="assets/js/blocked_domains.js"></script>
         <script type="text/javascript" src="assets/js/global.js"></script>
@@ -49,30 +60,19 @@
         <script type="text/javascript" src="assets/js/countries.js"></script>
 		<script type="text/javascript" src="assets/js/fitter.js"></script>
 		<script type="text/javascript" src="assets/js/playback.js"></script>
-		<iframe id="testing-player" class="fit-screen hide" height="100%" frameborder="0" scrolling="no" src="/testing-player.html"></iframe>
+		<iframe id="testing-player" class="hide" height="100%" frameborder="0" scrolling="no" src="/testing-player.html"></iframe>
 		<iframe id="controls" class="fit-screen hide" height="100%" allowtransparency="true" frameborder="0" scrolling="no" src="/controls.html"></iframe>
 		<iframe id="sandbox" class="fit-screen hide" nwdisable nwfaketop height="100%" frameborder="0" src="/blank.html"></iframe>
 		<iframe id="overlay" class="fit-screen show" height="100%" allowtransparency="true" frameborder="0" scrolling="no" src="/overlay.html"></iframe>
-		<iframe id="player" class="fit-screen hide" height="100%" frameborder="0" scrolling="no" src="/player.html"></iframe>
+		<iframe id="player" class="fit-screen hide" height="100%" frameborder="0" scrolling="no" src="/player.html" allowfullscreen></iframe>
 		<div class="hide">
 			<input id="saveas" type="file" nwsaveas />
 		</div>
-		<div id="menu-trigger-icon"><i class="fas fa-bars"></i></div>
+		<div id="menu-trigger-icon">
+			<i class="fas fa-chevron-left"></i>
+		</div>
 		<script type="text/javascript">
-			var requestIdReferersTable = [], minVideoContentLength = (50 * (1024 * 1024));
-			function shouldRunFitter(){
-				return (PlaybackManager.isLoading() || (PlaybackManager.activeIntent && PlaybackManager.activeIntent.type=='frame' && !PlaybackManager.activeIntent.videoElement))
-			}
-			function runFitter(){
-				if(shouldRunFitter()){
-					console.log('Calling fitter...');
-					PlaybackManager.runFitter();
-				}
-			}
-			function runFitterDelayed(delay){
-				if(!delay) delay = 2000;
-				setTimeout(runFitter, delay)
-			}
+			var requestIdReferersTable = [], minVideoContentLength = (50 * (1024 * 1024)), fitterEnabled = true;
 			jQuery(document).on('lngload', function (){
 				jQuery('body').on('click', (e) => { 
 					if(e.target.tagName.toLowerCase()=='body'){ // fallback for when #sandbox or #player has pointer-events: none
@@ -81,7 +81,20 @@
 				});
 				jQuery('#controls').removeClass('hide').addClass('show');
 				bindWebRequest();
-				var locale = getLocale(true);
+
+				if(!Config.get('locale')){
+					var locale = getLocale(true);
+					if(locale == 'en'){
+						jQuery.getJSON('http://app.megacubo.net/get-lang', (data) => {
+							if(data.length == 2 && data != 'en' && Object.keys(availableLanguageNames).indexOf(data) != -1) {
+								Config.set('locale', data)
+							} else {
+								Config.set('locale', 'en')
+							}
+						})
+					}
+				}
+
 				var nwcf = require('nw-custom-frame');
 				nwcf.attach(window, {
 					"size": 30, // You can specify the size in em,rem, etc...
@@ -103,6 +116,7 @@
 					},
 				});
 				jQuery(document).on('show', () => { // tricky hack to solve a font drawing bug
+					//console.error('one');
 					var t = jQuery('.nw-cf-buttons'), is = t.find('i');
 					is.each((i, el) => {
 						el = jQuery(el);
@@ -117,10 +131,10 @@
 					close.replaceWith(close.outerHTML()); // override closing behaviour
 					jQuery.getScript("assets/fa/js/fontawesome-all.js");
 					jQuery('.nw-cf-close').on('mouseup', closeWindow);
+					//console.error('two');
 				});
 				createMouseObserverForControls(window);
-				sendStats('alive');
-				setInterval(() => {
+				var statsAlive = () => {
 					var s = currentStream();
 					if(s){
 						var c = getFrame('controls');
@@ -131,7 +145,13 @@
 						s = {}
 					}
 					sendStats('alive', s)
-				}, 600000) // 600 secs
+				}
+				setInterval(statsAlive, 600000); // each 600 secs
+				statsAlive();
+
+				win.on('minimize', minimizeCallback);
+				jQuery('.nw-cf-btn.nw-cf-minimize').on('click', minimizeCallback);
+				handleOpenArguments(gui.App.argv)
 			})
 		</script>
 	</body>

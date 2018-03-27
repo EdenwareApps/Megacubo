@@ -14,12 +14,12 @@ function resetData(){
     })
 }
 
-var miniPlayerRightMargin = 24;
+var miniPlayerRightMargin = 18;
 
 function enterMiniPlayer(){
     miniPlayerActive = true;   
     var ratio = PlaybackManager.getRatio();
-    var h = screen.availHeight / 4, w = scaleModeAsInt(PlaybackManager.getRatio()) * h;
+    var h = screen.availHeight / 3, w = scaleModeAsInt(PlaybackManager.getRatio()) * h;
     window.resizeTo(w, h);
     window.moveTo(screen.availWidth - w - miniPlayerRightMargin, screen.availWidth - h);
     doAction('miniplayer-on')
@@ -33,27 +33,27 @@ function leaveMiniPlayer(){
 }
 
 addAction('miniplayer-on', () => {
-    console.log('MP-ON');
+    //console.log('MP-ON');
     jB.addClass('miniplayer');
     win.setAlwaysOnTop(true);
     win.setShowInTaskbar(false);
-    console.log('MP-ON');
+    //console.log('MP-ON');
     fixMaximizeButton();
     PlaybackManager.play();
     afterExitPage()
-    console.log('MP-ON');
+    //console.log('MP-ON');
 })
 
 addAction('miniplayer-off', () => {
-    console.log('MP-OFF');
+    //console.log('MP-OFF');
     jB.removeClass('miniplayer');
-    console.log('MP-OFF');
+    //console.log('MP-OFF');
     win.setAlwaysOnTop(false);
-    console.log('MP-OFF');
+    //console.log('MP-OFF');
     win.setShowInTaskbar(true);
-    console.log('MP-OFF');
+    //console.log('MP-OFF');
     fixMaximizeButton();
-    console.log('MP-OFF');
+    //console.log('MP-OFF');
 })
 
 function toggleMiniPlayer(){
@@ -79,10 +79,12 @@ function escapePressed(){
     //win.leaveKioskMode();
     //win.leaveFullscreen();
     //restoreInitialSize();
-    setFullScreen(false);
-    var c = getFrame('controls');
-    if(c){
-        c.autoCleanEntriesCancel()
+    if(isFullScreen()){
+        setFullScreen(false)
+    } else if(isMiniPlayerActive()) {
+        leaveMiniPlayer()
+    } else {
+        stop()
     }
 }
 
@@ -93,7 +95,7 @@ function isMaximized(){
 
 function maximizeOrRestore(){
     if(top){
-        if(top.miniPlayerActive){
+        if(isMiniPlayerActive()){
             top.leaveMiniPlayer();
         } else {
             if(isMaximized()){
@@ -109,7 +111,7 @@ function maximizeOrRestore(){
 
 function minimizeWindow(){
     if(top){
-        if(top.miniPlayerActive){
+        if(isMiniPlayerActive()){
             win.minimize();
         } else {
             top.enterMiniPlayer();
@@ -241,9 +243,9 @@ function playPause(set){
         return;
     }
     if(PlaybackManager.playing()){
-        PlaybackManager.pause();
+        PlaybackManager.pause()
     } else {
-        PlaybackManager.play();
+        PlaybackManager.play()
     }
 }
 
@@ -259,39 +261,31 @@ function playPauseNotify(){
         ]).removeClass('playing').removeClass('paused');
         return;
     }
-    if(PlaybackManager.activeIntent.type=='frame' && !PlaybackManager.activeIntent.videoElement){
-        jQuery([
-            top.document.body,
-            getFrame('controls').document.body,
-            getFrame('overlay').document.body
-        ]).removeClass('playing').removeClass('paused');
-        return;
-    }
     var c = currentStream();
     if(c) {
         c = c.name;
     } else {
         c = Lang.PLAY;
     }
-    console.log('NOTIFY');
+    //console.log('NOTIFY', traceback());
     if(PlaybackManager.playing()){
-        console.log('NOTIFY1');
+        //console.log('NOTIFY1');
         jQuery([
             top.document.body,
             getFrame('controls').document.body,
             getFrame('overlay').document.body
         ]).removeClass('paused').addClass('playing');
         notify(c, 'fa-play', 'short')
-        console.log('NOTIFY');
+        //console.log('NOTIFY');
     } else {
-        console.log('NOTIFY2');
+        //console.log('NOTIFY2');
         jQuery([
             top.document.body,
             getFrame('controls').document.body,
             getFrame('overlay').document.body
         ]).removeClass('playing').addClass('paused');
         notify(Lang.PAUSE, 'fa-pause', 'short')
-        console.log('NOTIFY');
+        //console.log('NOTIFY');
     }
 }
 
@@ -304,7 +298,7 @@ var decodeEntities = (() => {
 
     return (function (str) {
         // find and replace all the html entities
-        str = str.replace(entity, function(m) {
+        str = (str||'').replace(entity, function(m) {
             element.innerHTML = m;
             return element.textContent;
         });
@@ -316,23 +310,31 @@ var decodeEntities = (() => {
     });
 })();
 
-var runFitterDelayTimer = 0, fitterTestedStreams = [], requestIdReferersTable = {}, requestIdReferersTableLimit = 256, isRecording = false, requestIdMap = {}, requestIdMapLimit = 256;
+var requestIdReferersTable = {}, requestIdReferersTableLimit = 256, isRecording = false, requestIdMap = {}, requestIdMapLimit = 256;
 function bindWebRequest(){
-
+    
     var debug = false;
-    chrome.webRequest.onBeforeRequest.addListener(
-        function(details) {
-            if(debug){
-                console.log("blocking:", details);
-            }
-            if(typeof(details['frameId'])!='undefined' && details.frameId && details.type=='sub_frame'){
-                return {redirectUrl: top.document.URL.replace('index.', 'block.')};
-            }
-            return {cancel: true };
-        },
-        {urls: blocked_domains},
-        ["blocking"]
+    chrome.webRequest.onAuthRequired.addListener(
+        function (details) { 
+            return { cancel: true }; 
+        }, { urls: ["<all_urls>"] }, ['blocking']
     );
+
+    if(typeof(blocked_domains)=='object' && jQuery.isArray(blocked_domains) && blocked_domains.length){
+            chrome.webRequest.onBeforeRequest.addListener(
+            function(details) {
+                if(debug){
+                    console.log("blocking:", details);
+                }
+                if(typeof(details['frameId'])!='undefined' && details.frameId && details.type=='sub_frame'){
+                    return {redirectUrl: top.document.URL.replace('index.', 'block.')};
+                }
+                return {cancel: true };
+            },
+            {urls: blocked_domains},
+            ["blocking"]
+        );
+    }
 
     chrome.webRequest.onBeforeSendHeaders.addListener(
         function(details) {
@@ -362,64 +364,73 @@ function bindWebRequest(){
                     }
                 }
             }
-            if(isMedia(details.url) && (PlaybackManager.isLoading() || (PlaybackManager.activeIntent.type=='frame' && !PlaybackManager.activeIntent.videoElement))){
-                if(debug){
-                    console.log('Calling fitter delayed.');
-                }
-                clearTimeout(runFitterDelayTimer);
-                runFitterDelayTimer = top.setTimeout(runFitter, 2000)
-            }
             return {requestHeaders: details.requestHeaders};
         }, {urls: ["<all_urls>"]}, ["requestHeaders", "blocking"]
     );
 
     chrome.webRequest.onHeadersReceived.addListener(
-        function(details) {
+        (details) => {
             if(debug){
                 console.log('onHeadersReceived', details.url, requestIdReferersTable[details.requestId], details);
             }
+            var headers = details.responseHeaders;
             if(details.url.substr(0, 4)=='http'){ // if is HTTP, comes from a frame intent
                 var ctype = '', isVideo = false, isAudio = false, isM3U8 = false, isDocument = false, isPartial = (details.statusCode == 206), contentLength = 0;
-                for(var i=0; i < details.responseHeaders.length; i++){
-                    var n = details.responseHeaders[i].name.toLowerCase();
+                var referer = requestIdReferersTable[details.requestId] || '';
+                var origin = (details.initiator || details.url).match(new RegExp('[a-z]+?://[^?#/]+')); // (referer || 
+                if(origin){
+                    origin = origin[0];
+                } else {
+                    origin = 'same-origin';
+                }
+                for(var i=0; i < headers.length; i++){
+                    let n = headers[i].name.toLowerCase();
+                    if (['x-frame-options', 'content-security-policy', 'x-xss-protection', 'x-content-type-options'].indexOf(n) != -1) {
+                        headers.splice(i, 1);
+                        i = 0;
+                        continue; // no problem to skip the next checkings
+                    } else if(['access-control-allow-origin'].indexOf(n) != -1){
+                        headers[i].value = origin;
+                    }
                     if((!isPartial || !contentLength) && ["content-length"].indexOf(n) != -1){
-                        contentLength = details.responseHeaders[i].value;
+                        contentLength = headers[i].value;
                     } else if(["content-range"].indexOf(n) != -1){
-                        if(details.responseHeaders[i].value.indexOf('/')!=-1){
-                            var l = parseInt(details.responseHeaders[i].value.split('/')[1].trim());
+                        if(headers[i].value.indexOf('/')!=-1){
+                            var l = parseInt(headers[i].value.split('/')[1].trim());
                             if(l > 0){
                                 contentLength = l;
                             }
                         }
                     } else if(["content-type"].indexOf(n) != -1){
-                        ctype = details.responseHeaders[i].value;
+                        ctype = headers[i].value;
                     }
                 }
+                headers.push({name: 'X-Content-Type-Options', value: 'no-sniff'});
+                //headers.push({name: 'X-Frame-Options', value: 'ALLOW-FROM '+origin}); // not supported for Chrome
                 isVideo = ctype.match(new RegExp('video/(mp4|MP2T)', 'i'));
                 isM3U8 = ctype.toLowerCase().indexOf('mpegurl') != -1;
                 isDocument = ctype.indexOf('/html') != -1;
                 isAudio = ctype.indexOf('audio/') != -1;
                 if(debug){
-                    console.log(details.url, details.statusCode, ctype, isVideo, isM3U8, isDocument, isAudio);
+                    console.log(details.url, origin, details, ctype, isVideo, isM3U8, isDocument, isAudio);
                 }
                 if(details.frameId){ // comes from a frame
                     if(isM3U8 || (isVideo && contentLength > minVideoContentLength)){
                         if(getExt(details.url)!='ts'){ // from a frame, not a TS
-                            var frameIntents = top.PlaybackManager.query({type: 'frame'});
-                            var urls, referer = requestIdReferersTable[details.requestId] || '';
+                            var urls, frameIntents = top.PlaybackManager.query({type: 'frame'});
+                            //console.log('SIDELOADPLAY INFO', details.url, referer, frameIntents);
                             if(referer){
                                 var ok = false;
                                 for(var i=0; i<frameIntents.length; i++){
+                                    //console.log('SIDELOADPLAY NFO', frameIntents[i].frame);
                                     urls = getFrameURLs(frameIntents[i].frame);
+                                    //console.log('SIDELOADPLAY INFO', urls, details.url, referer);
                                     if(debug){
                                         console.log('SIDELOADPLAY URLS', urls);
                                     }
                                     if(matchURLs(referer, urls) || matchURLs(details.url, urls)){
-                                        var c = getFrame('controls');
-                                        if(c){
-                                            ok = true;
-                                            c.sideLoadPlay(details.url, frameIntents[i])
-                                        }
+                                        ok = true;
+                                        frameIntents[i].sideload(details.url)
                                     }
                                 }
                                 if(!ok){
@@ -433,25 +444,13 @@ function bindWebRequest(){
                                 }
                             }
                         }
-                    } else if(PlaybackManager.isLoading() || (PlaybackManager.activeIntent.type=='frame' && !PlaybackManager.activeIntent.videoElement)){
-                        if(isM3U8 || isVideo || isAudio){
-                            if(debug){
-                                console.log('Calling fitter now.');
-                            }
-                            clearTimeout(runFitterDelayTimer);
-                            runFitter();
-                        } else if(isDocument) {
-                            if(debug){
-                                console.log('Calling fitter delayed.');
-                            }
-                            clearTimeout(runFitterDelayTimer);
-                            runFitterDelayTimer = setTimeout(runFitter, 2000);
-                        }
                     }
                 }
+            } else {
+                //console.warn('SKIPPED', details)
             }
-            return {cancel: false};
-        }, {urls: ["<all_urls>"]}, ["responseHeaders"]
+            return {responseHeaders: headers};
+        }, {urls: ["<all_urls>"]}, ["blocking", "responseHeaders"]
     );
 
     function chromeDebuggerEventHandler(debuggeeId, message, params) {
@@ -507,60 +506,32 @@ function bindWebRequest(){
             })
         })
     })
-
-    /*
-    PARAMS
-
-frameId: "157092.106"
-requestId: "157092.3843"
-response: 
-encodedDataLength: 102
-fromDiskCache: false
-headers: {Access-Control-Allow-Origin: "*", Connection: "keep-alive", Content-Length: "0"}
-headersText:
-"HTTP/1.1 204 No Content
-↵Access-Control-Allow-Origin: *
-↵Content-Length: 0
-↵Connection: keep-alive
-↵
-↵"
-mimeType: "text/plain"
-protocol: "http/1.1"
-remoteIPAddress: "54.164.98.102"
-remotePort: 80
-requestHeaders: {Accept: "*\/*", Accept-Encoding: "gzip, deflate", Accept-Language: "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7", Cache-Control: "max-age=0", Connection: "keep-alive", …}
-requestHeadersText:
-"POST /UW5QV0R+UTMkeQA7OGIdBCs7HBFkPBk+Fmc6PBFwGzZgNBFiDXYjLTVTZmZxYFtkcTQ4Cm1mYiIaMSMxIlNkZWI4ADY4eWRZZ3EybF9+ZnR/WWV5dHcaIDYjbF92CHlgW2Fkc2lZYWN9aVpm HTTP/1.1
-↵Host: naenticle.info
-↵Connection: keep-alive
-↵Content-Length: 0
-↵Cache-Control: max-age=0
-↵Origin: http://pxstream.tv
-↵User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36
-↵Content-Type: text/plain;charset=UTF-8
-↵Accept: *\/*
-↵Referer: http://pxstream.tv/embed/gv7e0zj2ruhx/
-↵Accept-Encoding: gzip, deflate
-↵Accept-Language: pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7
-↵"
-status: 204
-statusText: "No Content"
-timing: {connectEnd: -1, connectStart: -1, dnsEnd: -1, dnsStart: -1, proxyEnd: -1, …}
-url: "http://naenticle.info/UW5QV0R+UTMkeQA7OGIdBCs7HBFkPBk+Fmc6PBFwGzZgNBFiDXYjLTVTZmZxYFtkcTQ4Cm1mYiIaMSMxIlNkZWI4ADY4eWRZZ3EybF9+ZnR/WWV5dHcaIDYjbF92CHlgW2Fkc2lZYWN9aVpm"
-timestamp: 520361.307815
-type: "Other"
-*/
-
 }
 
 function getFrameURLs(frame){
     var urls = [];
-    urls.push(frame.src);
-    if(frame.contentWindow){
-        urls.push(frame.contentWindow.document.URL);
-        var frames = frame.contentWindow.document.querySelectorAll('iframe, frame');
-        for(var i=0; i<frames.length; i++){
-            urls = urls.concat(getFrameURLs(frames[i]))
+    if(frame){
+        urls.push(frame.src);
+        if(frame.contentWindow){
+            try {
+                var url = frame.contentWindow.document.URL;
+                if(url){
+                    if(urls.indexOf(url) == -1){
+                        urls.push(url)
+                    }
+                    var frames = frame.contentWindow.document.querySelectorAll('iframe, frame');
+                    for(var i=0; i<frames.length; i++){
+                        let nurls = getFrameURLs(frames[i]);
+                        nurls.forEach((url) => {
+                            if(urls.indexOf(url) == -1){
+                                urls.push(url)
+                            }
+                        })
+                    }
+                }
+            } catch(e) {
+
+            }
         }
     }
     return urls;
@@ -638,115 +609,123 @@ function stopRecording(){
         } else {
             name = 'Unknown';
         }
+        console.log('Saving recording: 1');
         name += " "+dateStamp();
-        var data = isRecording, originalOutputFile, outputFile = dirname(data.folder) + '/'+name+'.mp4';
-        if(typeof(isRecording.capturingStream)!='undefined'){
-            isRecording.capturingRequest.abort();
-            isRecording.capturingStream.end();
-            var _file = isRecording.capturingFile;
-            isRecording = false;
-            doAction('recording-stop', data);        
-            doAction('recording-save-start', data);
-            console.log('aaa');
-            var nfile = _file+'.mp4';
-            moveFile(_file, nfile);
-            var fixer = ffmpeg({
-                source: nfile
-            }).
-            inputOptions('-y').
-            inputOptions('-err_detect ignore_err').
-            videoCodec('copy').
-            audioCodec('aac').
-            inputOptions('-y').
-            addOption('-bsf:a aac_adtstoasc').
-            format('mp4').
-            output(outputFile).
-            on('start', function(commandLine) {
-                console.log('Spawned FFmpeg with command: ' + commandLine)
-            }).
-            on('error', function (err){
-                console.log('Error while saving joined file.', nfile, outputFile, err);
+        var data = isRecording, outputFile = dirname(data.folder) + '/'+prepareFilename(name)+'.mp4';
+        isRecording = false;
+        doAction('recording-stop', data);        
+        doAction('recording-save-start', data);
+        console.log('Saving recording: 2', data);
+        fs.readdir(data.folder, function (err, files){
+            console.log('Saving recording: 3', err, files);
+            if(!files || !files.length){
+                console.log('Error while saving file list.', data.folder);
+                gui.Shell.openExternal(absolutize(data.folder));
                 doAction('recording-save-failure', data)
-            }).
-            on('end', function (){
-                originalOutputFile = outputFile;
-                Recordings.sync();
-                removeFolder(data.folder);
-                doAction('recording-save-end', outputFile, data);
-                if(!isFullScreen()){
-                    gui.Shell.showItemInFolder(absolutize(outputFile))
-                }
-            }).run()
-        } else {
-            isRecording = false;
-            doAction('recording-stop', data);        
-            doAction('recording-save-start', data);
-            fs.readdir(data.folder, function (err, files){
-                if(err || !files.length){
-                    console.log('Error while saving file list.', data.folder);
+            } else {
+                console.log('Saving recording: 4', files);
+                var failure = (err) => {
+                    console.log('Error while saving file list.', err);
                     gui.Shell.openExternal(absolutize(data.folder));
                     doAction('recording-save-failure', data)
-                } else {
-                    var list = '', listFile = data.folder+'/list.txt';
-                    for(var i=0; i<files.length; i++){
-                        if(isVideo(files[i])){
-                            list += "file "+files[i]+"\r\n";
-                        }
-                    }
-                    fs.writeFile(listFile, list, function (err){
-                        if(err){
-                            console.log('Error while saving the list file.');
-                            doAction('recording-save-failure', data)
-                        } else {
-                            var joinedFile = data.folder+'/joined.ts', joiner = ffmpeg({
-                                source: listFile
-                            }).
-                            inputOptions('-y').
-                            inputOptions('-safe 0').
-                            inputOptions('-f concat').
-                            addOption('-c copy').
-                            output(joinedFile).
-                            on('start', function(commandLine) {
-                                console.log('Spawned FFmpeg with command: ' + commandLine)
-                            }).
-                            on('error', function (err){
-                                console.log('Error while saving joined file.', joinedFile, err, data.folder);
-                                gui.Shell.openExternal(absolutize(data.folder));
-                                doAction('recording-save-failure', data);
-                            }).
-                            on('end', function (){
-                                originalOutputFile = outputFile;
-                                var saver = ffmpeg({
-                                    source: joinedFile
-                                }).
-                                videoCodec('copy').
-                                audioCodec('aac').
-                                inputOptions('-y').
-                                addOption('-bsf:a aac_adtstoasc').
-                                format('mp4').
-                                output(originalOutputFile).
-                                on('start', function(commandLine) {
-                                    console.log('Spawned FFmpeg with command: ' + commandLine)
-                                }).
-                                on('error', function (err){
-                                    console.log('Error while saving output file.', outputFile, err);
-                                    doAction('recording-save-failure', data)
-                                }).
-                                on('end', function (){
-                                    originalOutputFile = outputFile;
-                                    Recordings.sync();
-                                    removeFolder(data.folder);
-                                    doAction('recording-save-end', outputFile, data);
-                                    if(!isFullScreen()){
-                                        gui.Shell.showItemInFolder(absolutize(outputFile))
-                                    }
-                                }).run();
-                            }).run();
-                        }
-                    })
                 }
-            })
+                var success = (output) => {
+                    console.log('Saving record success.', output);
+                    var c = getFrame('controls');
+                    if(c){
+                        c.Recordings.sync()
+                    }
+                    removeFolder(data.folder);
+                    doAction('recording-save-end', output, data);
+                    if(!isFullScreen()){
+                        gui.Shell.showItemInFolder(absolutize(output))
+                    }
+                    console.log('Saving recording: 7');
+                }
+                var callback = (err, output) => {
+                    console.log('Saving recording: 6', err, output);
+                    if(err){
+                        if(files.length > 1){
+                            console.log('Join failure, removing last segment.');
+                            files.pop();
+                            goJoin(files)
+                        } else {
+                            console.log('Saving recording failure.');
+                            failure(err)
+                        }
+                    } else {
+                        console.log('Saving recording success.');
+                        success(output)
+                    }
+                }
+                var goJoin = (files) => {
+                    console.log('Saving recording: 5', files);
+                    joinFiles(files, data.folder, outputFile, callback)
+                }
+                goJoin(files)
+            }
+        })
+    }
+}
+
+function joinFiles(files, folder, outputFile, callback){
+    console.log('JOIN', files, callback);
+    if(files.length){
+        var list = '', listFile = folder+'/list.txt', hits = [];
+        for(var i=0; i<files.length; i++){
+            if(getExt(files[i])=='ts'){
+                hits.push(folder+'/'+files[i]);
+                list += "file "+files[i]+"\r\n";
+            }
         }
+        console.log(list, listFile, files);
+        fs.writeFile(listFile, list, function (err){
+            if(err){
+                callback('Failed to write temp list on disk.')
+            } else {
+                var joinedFile = folder + '/joined.ts', lastStep = function (){
+                    var saver = ffmpeg({source: joinedFile}).
+                    videoCodec('copy').
+                    audioCodec('aac').
+                    inputOptions('-y').
+                    addOption('-bsf:a aac_adtstoasc').
+                    format('mp4').
+                    output(outputFile).
+                    on('start', function(commandLine) {
+                        console.log('Spawned FFmpeg with command: ' + commandLine)
+                    }).
+                    on('error', function (err){
+                        console.log('Error while saving output file.', outputFile, err);
+                        callback(null, joinedFile)
+                    }).
+                    on('end', function (){
+                        callback(null, outputFile)
+                    }).run()
+                }
+                if(!hits.length){
+                    callback('Bad segments.')
+                } else if(hits.length > 1){
+                        var joiner = ffmpeg({source: listFile}).
+                        inputOptions('-y').
+                        inputOptions('-safe 0').
+                        inputOptions('-f concat').
+                        addOption('-c copy').
+                        output(joinedFile).
+                        on('start', function (commandLine) {
+                            console.log('Spawned FFmpeg with command: ' + commandLine)
+                        }).
+                        on('error', function (err){
+                            callback('Failed to generate joined file.')
+                        }).
+                        on('end', lastStep).run()
+                } else {
+                    joinedFile = hits[0];
+                    lastStep()
+                }
+            }
+        })
+    } else {
+        callback('Empty file list.')
     }
 }
 
@@ -797,9 +776,10 @@ function modalConfirm(question, answers, callback){
 
 function modalPrompt(question, answers, placeholder, value){
     var a = [];
-    for(var k in answers){
-        a.push(jQuery('<span class="button">'+answers[k][0]+'</span>').on('click', answers[k][1]))
-    }
+    console.warn(answers);
+    answers.forEach((answer) => {
+        a.push(jQuery('<span class="button">'+answer[0]+'</span>').on('click', answer[1]))
+    });
     var b = jQuery('<div class="prompt prompt-'+a.length+'-columns">'+
                 '<span class="prompt-close"><a href="javascript:modalClose();void(0)"><i class="fas fa-times-circle" aria-hidden="true"></i></a></span>'+
                 '<span class="prompt-header">'+nl2br(question)+'</span>'+
@@ -856,9 +836,12 @@ function isFullScreen(){
 
 function maxPortViewSize(width, height){
     if(process.platform === 'win32' && parseFloat(os.release(), 10) > 6.1 && width && height) {
-        win.setMaximumSize(Math.round(width), Math.round(height));
+        //win.setMaximumSize(Math.round(width), Math.round(height));
+        // win.setMaximumSize(screen.width, screen.height);
     }
 }
+
+var enableSetFullScreenWindowResizing = false;
 
 function setFullScreen(enter){
     if(!enter){
@@ -866,15 +849,15 @@ function setFullScreen(enter){
         doAction('miniplayer-off');
         win.leaveKioskMode(); // bugfix, was remembering to enter fullscreen irreversibly
         win.leaveFullscreen()
-        var s = initialSize();
-        if(document.readyState.indexOf('in')==-1){
-            maxPortViewSize(screen.availWidth + 15, screen.availHeight + 14);
-        } else {
-            maxPortViewSize(s.width, s.height);						
+        if(enableSetFullScreenWindowResizing){
+            var s = initialSize();
+            if(document.readyState.indexOf('in')==-1){
+                maxPortViewSize(screen.availWidth + 15, screen.availHeight + 14);
+            } else {
+                maxPortViewSize(s.width, s.height);						
+            }
+            centralizedResizeWindow(s.width, s.height, false)
         }
-        window.resizeTo(s.width, s.height);
-        centralizeWindow(s.width, s.height);
-        //win.setPosition('center'); // buggy sometimes
         console.log('SIZE', s.width, s.height);
         if(typeof(window['fixMaximizeButton'])=='function'){
             fixMaximizeButton()
@@ -940,7 +923,7 @@ function sendStats(action, data){
     if(typeof(http)=='undefined'){
         http = require('http')
     }
-    console.log(options);
+    console.log('sendStats', options, postData, traceback());
     var req = http.request(options, function (res){
         res.setEncoding('utf8');
         var data = '';
@@ -964,103 +947,19 @@ function createMouseObserverForControls(win){
     var w = jw.width();
     var h = jw.height();
     var b = jw.find('body');
-    var update = () => {
-        if(top){
-            if(top.miniPlayerActive){
-                var isOver = !(x < margin || y < margin || x > (w - margin) || y > (h - margin));
-                if(isOver){
-                    clearTimeout(ht);
-                    if(!v){
-                        clearTimeout(t);
-                        t = setTimeout(() => {
-                            tb.removeClass('frameless') 
-                        }, 400)
-                    }
-                } else {
-                    clearTimeout(ht);
-                    clearTimeout(t);
-                    ht = setTimeout(() => {
-                        if(top.miniPlayerActive){
-                            tb.addClass('frameless');
-                            PlaybackManager.setRatio()
-                        }
-                    }, 3000)
-                }
-                console.log('MP', v, isOver)
-                v = isOver;
-                return;
-            }
-            if(top.showHideDelay){
-                clearTimeout(top.showHideDelay);
-                top.showHideDelay = 0;
-            }
-            var a = areControlsActive(), l = w * (a ? 0.6 : 0.8);
-            if(a){
-                if(l < (w - 600)){
-                    l = w - 600;
-                }
-            } else {
-                if(l < (w - 180)){
-                    l = w - 180;
-                }
-            }
-            var show = (x > l && y < (h * 0.33) && (x < (w - margin)));
-            if(!show){
-                var a = win.document.activeElement;
-                if(0 && ['input', 'textarea'].indexOf(a.tagName.toLowerCase())!=-1){ // is typing in sandbox frame?
-                    show = true;
-                } else if(!PlaybackManager.playing() && !top.automaticallyPaused){ // is typing in sandbox frame?
-                    show = true;
-                }
-            }
-            //console.log(w, h, x, y, show);
-            if(show){
-                top.showHideDelay = setTimeout(() => {
-                    tb.addClass('isovercontrols');
-                    if(PlaybackManager.playing()){
-                        top.automaticallyPaused = true;
-                        top.PlaybackManager.pause()
-                    }
-                }, 400)
-            } else {
-                tb.removeClass('isovercontrols');
-                if(top.automaticallyPaused){
-                    top.automaticallyPaused = false;
-                    top.PlaybackManager.play()
-                }
-            }
-        }
-    }
     jQuery(win.document).on('mousemove', (e) => {
+        if(top.isOver) return;
         x = e.pageX;
         y = e.pageY;
         if(typeof(top.menuTriggerIconTrigger)!='undefined'){
             clearTimeout(top.menuTriggerIconTrigger)
         }
-        if(typeof(top.mti) == 'undefined'){
-            mti = jQuery(top.document).find("#menu-trigger-icon");
-            mti.on('mouseenter', () => {
-                top.automaticallyPaused = true;
-                showControls()
-            })
-        }
-        mti.show('fast');
-        menuTriggerIconTrigger = setTimeout(() => {
-            mti.hide('fast')
+        top.isOver = true;
+        tb.addClass('over');
+        top.menuTriggerIconTrigger = setTimeout(() => {
+            top.isOver = false;
+            tb.removeClass('over')
         }, 2000) // idle time before hide
-        update()
-    })
-    jQuery(win).on('resize', (e) => {
-        w = jQuery(window).width();
-        h = jQuery(window).height();
-        x = y = 0;
-        update()
-    })
-    jQuery(win.document).on('mouseleave', (e) => {
-        if(!e.target || e.target.nodeName.toLowerCase()=='html'){ // leaved the window
-            x = y = 0;
-            update()
-        }
     })
     var frames = win.document.querySelectorAll('iframe, frame');
     for(var i=0; i<frames.length; i++){
@@ -1073,30 +972,21 @@ function createMouseObserverForControls(win){
 patchMaximizeButton();
 
 jQuery(() => {
-    gui.Window.get().on('close', closeWindow)
-});
-
-process.on('unhandledRejection', function (reason, p){
-    console.error(reason, 'Unhandled Rejection at Promise', p);
-    logErr(reason, 'Unhandled Rejection at Promise', p);
-    //process.exit(1);
-});
-
-process.on('uncaughtException', function (err){
-    console.error('Uncaught Exception thrown', err);
-    var msg = err.message || err.stack || err;
-    logErr('Uncaught Exception thrown', err, msg);
-    return true;
+    gui.Window.get().on('close', closeWindow);
+    jQuery("#menu-trigger-icon").on('mousedown mouseup', (e) => {
+        showControls();
+        e.preventDefault(); // don't pause on clicking
+        e.stopPropagation()
+    })
 });
 
 win.on('new-win-policy', function(frame, url, policy) {
     policy.ignore(); // IGNORE = BLOCK
-    console.log('POPUP BLOCKED', frame, url, policy);
-    
+    console.log('POPUP BLOCKED', frame, url, policy);    
     // CHECK AFTER IF IT'S A RELEVANT POPUP
     setTimeout(() => {
         shouldOpenSandboxURL(url, function (url){
-            top.document.querySelector('iframe#sandbox').src = url;
+            document.querySelector('iframe#sandbox').src = url;
         })
     }, 0)
 })
@@ -1107,39 +997,160 @@ win.on('restore', () => {
 
 win.on('close', () => {
     stop();
-    gui.App.closeAllWindows();
+    //gui.App.closeAllWindows();
     win.close(true);
-    nw.App.quit();
-    process.exit()
+    //nw.App.quit();
+    //process.exit()
 })
 
-win.on('minimize', function() {
+function minimizeCallback() {
     console.log('Window is minimized');
-    if(PlaybackManager.activeIntent && !miniPlayerActive){
+    if((PlaybackManager.activeIntent || inPendingState()) && !miniPlayerActive){
         restoreInitialSize();
         enterMiniPlayer()
     } else {
         win.setShowInTaskbar(true)
     }
-})
+}
 
-function openMegaFile(file){
-    fs.readFile(file, (err, content) => {
-        if(!err && content){
-            var parser = new DOMParser();
-            var doc = parser.parseFromString(content, "application/xml");
-            var url = jQuery(doc).find('stream').text();
-            var name = jQuery(doc).find('stream').attr('name');
-            var c = getFrame('controls');
-            if(c){
-                c.playEntry({
-                    name: name,
-                    url: url,
-                    logo: c.defaultIcons['stream']
-                })
-            }
+function stylizer(cssCode, id, scope){
+    try {
+        //console.log(cssCode);
+        //console.warn('style creating');
+        var s = scope.document.getElementById("stylize-"+id);
+        if(!s){
+            console.warn('style created');
+            s = scope.document.createElement("style");
+            s.type = "text/css";
+            s.id = "stylize-"+id;
         }
-    })
+        s.innerText = '';
+        s.appendChild(scope.document.createTextNode(cssCode));
+        scope.document.querySelector("head, body").appendChild(s)
+        //console.warn('style created OK', scope, scope.document.URL, cssCode, s)
+    } catch(e) {
+        console.log('CSS Error', e, cssCode)
+    }
+}
+
+function updateControlBarPos(scope, player){
+    var controlBarHeight = 32, controlBarMargin = 12,  t = (jQuery(scope).height() - player.offset().top) - (controlBarHeight + (controlBarMargin * 2));
+    var rule = ' video::-webkit-media-controls-panel { ';
+    if(controlBarMargin){
+        rule += ' width: calc(100% - '+(controlBarMargin * 2)+'px); margin: '+controlBarMargin+'px; border-radius: 3px;';
+    } else {
+        rule += ' width: 100%; margin: 0; border-radius: 0; ';
+    }
+    rule += 'top: '+t+'px; } #player-top-bar { top: '+ (b.hasClass('frameless') ? 16 : 4) +'px !important; } ';
+    if(!scope.__lastControlBarPosRule || scope.__lastControlBarPosRule != rule){
+        scope.__lastControlBarPosRule = rule;
+        stylizer(rule, 'video-control-bar-pos', scope);
+    }
+}
+
+var tb = jQuery(top.document).find('body');
+function prepareVideoObject(videoElement){
+    var doc = videoElement.ownerDocument;
+    var scope = doc.defaultView;
+    var paused, wasPaused, player = jQuery(videoElement), b = jQuery(doc.querySelector('body')), f = function (e){
+        e.preventDefault();
+        e.stopPropagation();
+        top.delayedPlayPauseNotify();
+        return false;
+    };
+    if(videoElement.getAttribute('controls') !== null){
+        videoElement.removeAttribute('controls')
+    }
+    videoElement.setAttribute('controls', 'controls');
+    if(videoElement.getAttribute('controlsList') !== null){
+        videoElement.removeAttribute('controlsList')
+    }
+    videoElement.setAttribute('controlsList', 'nodownload');
+    if(videoElement.paused){
+        videoElement.play()
+    }
+    videoElement.onclick = videoElement.onmousedown = videoElement.onmouseup = null;
+    videoElement.style.background = '#000';
+    var timer = 0, ignoreResizing, f = () => {
+        //console.warn('UPDATE', scope, player);
+        if(top && scope && player && !ignoreResizing){
+            scope.clearTimeout(timer);
+            ignoreResizing = true; // prevent looping
+            timer = scope.setTimeout(() => {
+                //console.warn('UPDATE 2', scope, player);
+                updateControlBarPos(scope, player);
+                ignoreResizing = false;
+            }, 200)
+        }
+    }
+    if(!doc.getElementById('.player-status')){
+        var pieces = [
+            '<div id="player-status"><div class="fac fac-loading"><i class="fas fa-circle-notch fa-spin"></i></div><div class="fac fac-paused"><i class="fas fa-play"></i></div></div>'+
+            '<div id="player-top-bar"><i class="fas fa-times-circle"></i></div>'
+        ];
+        jQuery(pieces.join(' ')).appendTo(b);
+        var ptb = b.find("#player-top-bar");
+        ptb.on('mousedown mouseup', (e) => {
+            stop();
+            e.preventDefault();
+            e.stopPropagation();
+        }).attr('title', Lang.STOP);
+        var s =  doc.createElement('script');
+        s.type = 'text/javascript'; 
+        s.defer = 'defer'; s.async = 'async';
+        doc.querySelector('head, body').appendChild(s);
+        var url = dirname(document.URL)+'/assets/fa/js/fontawesome-all.js';
+        setTimeout(() => {
+            console.log('Loading FA', url);
+            s.src = url;
+            console.log('Loading FA OK ...?')
+        }, 2000);
+        fs.readFile('assets/css/player.css', (err, content) => {
+            if(content){
+                stylizer(content, 'player-css', scope)
+            }
+        })
+    }
+    new ResizeObserver(f).observe(videoElement);
+    jQuery(scope).on('load resize', f);
+    jQuery(videoElement).
+        on('waiting', (event) => {
+            b.addClass('loading').removeClass('paused')
+        }).
+        on('canplaythrough playing', (event) => {
+            b.removeClass('loading paused')
+        }).
+        on('play', f).
+        on('pause', () => {
+            b.removeClass('loading').addClass('paused')
+        }).
+        on('click', function (e){
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        }).
+        on('mousemove', function (e){
+            wasPaused = videoElement.paused;
+        }).
+        on('mousedown', function (e){
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('FRAME VIDEO MOUSEDOWN');
+            wasPaused = videoElement.paused;
+            console.log('PLAYING *', wasPaused, top);
+            return false;
+        }).
+        on('mouseup', function (e){
+            if(wasPaused){
+                top.PlaybackManager.play()
+            } else {
+                top.PlaybackManager.pause()
+            }
+            console.log('PLAYING **', wasPaused, top.PlaybackManager.playing());
+            top.delayedPlayPauseNotify();
+            top.focus();
+            return false;
+        })
 }
 
 function handleOpenArguments(cmd){
@@ -1161,19 +1172,12 @@ function handleOpenArguments(cmd){
             continue;
         }
         cmd[i] = cmd[i].replaceAll("'", "").replaceAll('"', '');
-        if(cmd[i].match(new RegExp('mega:', 'i'))){
-            var parts = cmd[i].split(( cmd[i].indexOf('|')!=-1 ) ? '|' : '//');
-            if(parts.length > 1){
-                cmd[i] = atob(parts[1]);
-                force = true;
-            }
-        }
         if(cmd[i]){
             console.log('OPEN 3', cmd[i], getExt(cmd[i]));
             if(getExt(cmd[i])=='mega'){
                 openMegaFile(cmd[i]);
                 break;
-            } else if(force || cmd[i].match(new RegExp('(rt[ms]p[a-z]?:|mms[a-z]?:|magnet:|\.(m3u8?|mp4|flv))', 'i'))){
+            } else if(force || cmd[i].match(new RegExp('(rt[ms]p[a-z]?:|mms[a-z]?:|mega:|magnet:|\.(m3u8?|mp4|flv))', 'i'))){
                 cmd[i] = cmd[i].replaceAll("'", "").replaceAll('"', '');
                 console.log('PLAY', cmd[i]);
                 var o = getFrame('overlay');
@@ -1188,43 +1192,46 @@ function handleOpenArguments(cmd){
 }
 
 nw.App.on('open', handleOpenArguments)
-handleOpenArguments(gui.App.argv)
 
 var packageQueue = Store.get('packageQueue') || [];
 var packageQueueCurrent = Store.get('packageQueueCurrent') || 0;
 
-/*
-var miniPlayerMouseOutTimer = 0, miniPlayerMouseHoverDelay = 0, isMouseOver, _b = jQuery('body');
-var mouseEnterTimeout = () => {
+var miniPlayerMouseOutTimer = 0, miniPlayerMouseHoverDelay = 0, _b = jQuery('body');
+var mouseMoveTimeout = () => {
     clearTimeout(miniPlayerMouseOutTimer);
     miniPlayerMouseOutTimer = setTimeout(() => {
+        isOver = false;
         if(miniPlayerActive){
             _b.addClass('frameless') 
         }
-        _b.off('mousemove', mouseEnterTimeout)
+        _b.removeClass('over').off('mousemove', mouseMoveTimeout)
     }, 2000)
 }
-jQuery('body').hover(
-    () => {
+var miniPlayerMouseOut = () => {
+    if(!isOver){
         if(miniPlayerActive){
-            isMouseOver = true;
-            _b.removeClass('frameless').on('mousemove', mouseEnterTimeout);
-            fixMaximizeButton();
+            _b.addClass('frameless');
+            _b.off('mousemove', mouseMoveTimeout)
         }
-    }, 
-    () => {
-        if(miniPlayerActive){
-            isMouseOver = false;
-            clearTimeout(miniPlayerMouseHoverDelay);
-            miniPlayerMouseHoverDelay = setTimeout(() => {
-                if(miniPlayerActive && !isMouseOver){
-                    _b.addClass('frameless').off('mousemove', mouseEnterTimeout)
-                }
-            }, 200)
-        }
+        _b.removeClass('over')
     }
-)
-*/
+}
+jQuery('body').on('mouseenter mousemove', () => {
+    isOver = true;
+    if(!top.isFullScreen()){
+        _b.removeClass('frameless')
+    }
+    _b.addClass('over');
+    if(miniPlayerActive){
+        _b.on('mousemove', mouseMoveTimeout)
+    }
+    fixMaximizeButton();
+    mouseMoveTimeout()
+}).on('mouseleave', () => {
+    isOver = false;
+    clearTimeout(miniPlayerMouseHoverDelay);
+    miniPlayerMouseHoverDelay = setTimeout(miniPlayerMouseOut, 200)
+})
 
 jQuery(window).on('restore', restoreInitialSize);
 jQuery(window).on('unload', function (){
@@ -1232,7 +1239,7 @@ jQuery(window).on('unload', function (){
     Store.set('packageQueueCurrent', packageQueueCurrent)
 })
 
-jQuery(function (){
+jQuery(() => {
     var els = jQuery(document).add('html, body');
     els.on('scroll', function (){
         els.scrollTop(0).scrollLeft(0)
@@ -1244,16 +1251,12 @@ jQuery(function (){
         jQuery('#nw-custom-frame').on('mouseenter', function (){
             win.focus()
         }) // fix focus for hotkeys
-        var commands = gui.App.argv;
-        for (var i in commands) {
-            if(commands[i].charAt(0)!='-'){
-                playCustomURL(commands[i]);
-                break;
-            }
-        }
     });
     jWin.on('load resize', function (){
-        var miniPlayerTriggerHeight = (screen.height / 3), height = jWin.height(), showInTaskbar = !( height <= miniPlayerTriggerHeight ), onTop = ( !showInTaskbar || isFullScreen());
+        var nonMiniPlayerMinWidth = 400, miniPlayerTriggerHeight = (screen.height / 3), width = jWin.width(), height = jWin.height(), showInTaskbar = ( height > miniPlayerTriggerHeight && width > nonMiniPlayerMinWidth), onTop = ( !showInTaskbar || isFullScreen());
+        if(miniPlayerTriggerHeight < 380){
+            miniPlayerTriggerHeight = 380;
+        }
         console.log( height + ' < ( '+screen.height+' / 3) )', onTop, showInTaskbar);
         if(onTop !== lastOnTop){
             lastOnTop = onTop;
@@ -1261,7 +1264,7 @@ jQuery(function (){
             setTimeout(function (){
                 win.setAlwaysOnTop(!!onTop);
                 var b = jQuery('body');
-                if(onTop){
+                if(onTop || isFullScreen()){
                     b.addClass('frameless');
                 } else {
                     b.removeClass('frameless');
@@ -1277,31 +1280,39 @@ jQuery(function (){
                     c.showWindowHandle(onTop)
                 }
             }, 50)
-        }
+        }        
     }); 
     addAction('uncommit', function (prevIntent, nextIntent){
-        if(!nextIntent.sideload){
+        if(!nextIntent.isSideload){
             stopRecording()
         }
     });
     var recordingJournal = [], recordingJournalLimit = 8;
-    addAction('media-received', function (url, content, type){
+    addAction('media-received', (url, content, type) => {
         if(isRecording !== false){
+            console.log('recording, media received', content);
             if(type == 'path'){ // so content is a path, not a buffer
                 content = fs.readFileSync(content, 'binary')
             }
+            console.log('recording, media received', content, typeof(content));
             if(typeof(content)=='object' && typeof(content.base64Encoded)!='undefined' && content.base64Encoded){
-                if(['frame'].indexOf(PlaybackManager.activeIntent.type)==-1){ // only in frame intent we receive from chrome.debugger now
+                console.log('recording, media received', content, typeof(content));
+                if(['frame', 'ts'].indexOf(PlaybackManager.activeIntent.type)==-1){ // only in frame intent we receive from chrome.debugger now
+                    console.log('recording, media received', content, typeof(content));
                     return;
                 }
+                console.log('recording, media received', content, typeof(content));
                 content = new Buffer(content.body, 'base64')
+                console.log('recording, media received', content, typeof(content));
             }
+            console.log('recording, media received', content);
             var length = (typeof(content)=='string') ? content.length : content.byteLength; 
             if(!length){
                 console.log('recording');
                 console.warn('Empty media skipped.');
                 return;
             }
+            console.log('recording, media received', content);
             for(var key in recordingJournal){
                 if(length && recordingJournal[key] == length){
                     console.log('Duplicated media skipped.');
@@ -1310,14 +1321,17 @@ jQuery(function (){
                     return;
                 }
             }
+            console.log('recording, media received', content);
             var file = isRecording.folder+'/'+time()+'.'+getExt(url);
             recordingJournal[file] = length;
             recordingJournal = sliceObject(recordingJournal, recordingJournalLimit * -1);
+            console.log('recording, media received', content);
             fs.writeFile(file, content, {encoding: 'binary', flag: 'w'}, function (err){
                 if(err){
                     console.error('WRITE ERROR', file, err)
                 }
             })
+            console.log('recording, media received', content);
         }
     })
     
@@ -1333,4 +1347,18 @@ jQuery(function (){
         recordingNotification.update(Lang.RECORDING_SAVE_ERROR, 'fa-exclamation-circle', 'normal')
     })
 
+    var playerSizeUpdated = (() => {
+        var htmlElement = jQuery('html'), controls = jQuery('#controls'), timer;
+        return () => {
+            clearTimeout(timer);
+            timer = setTimeout(() => {
+                console.log('player size updated');
+                PlaybackManager.setRatio();
+                htmlElement.css('background-position-x', (!miniPlayerActive && areControlsActive()) ? (((controls.width() / 2) * -1)  + 12) : 0)
+            }, 200);
+        }
+    })();
+
+    var player = document.getElementById('player');
+    new ResizeObserver(playerSizeUpdated).observe(player)
 })

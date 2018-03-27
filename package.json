@@ -1,23 +1,24 @@
 {
-    "name": "megacubo-1432",
+    "name": "megacubo-1460",
     "main": "index.html",
-    "chromium-args": "--disable-transparency --ignore-certificate-errors --remote-debugging-port=9000    --disable-gpu --force-cpu-draw",
+    "chromium-args": "--disable-transparency --ignore-certificate-errors --remote-debugging-port=9000     --disable-gpu --force-cpu-draw",
     "description": "A simple and intuitive IPTV player.",
-    "version": "14.3.6",
+    "version": "14.6.0",
     "inject_js_end": "assets/js/helper.js",
     "bugs": "https://www.facebook.com/messages/t/MegacuboTV",
     "window": {
         "title": "Megacubo",
         "frame": false,
         "icon": "default_icon.png",
-        "show": false
+        "show": true,
+        "width": 640,
+        "height": 360
     },
     "dependencies": {
         "async": "~2.6.0",
         "btdb-search": "~1.1.0",
         "chromecasts": "~1.9.0",
         "drag-drop": "~2.13.2",
-        "fetch": "~0.3.5",
         "fluent-ffmpeg": "~2.1.2",
         "m3u8-parser": "~4.0.0",
         "miniget": "~1.1.0",
@@ -32,6 +33,7 @@
         "page-cache": true
     },
     "permissions": [
+        "<all_urls>",
         "alwaysOnTopWindows",
         "http://*/",
         "https://*/"

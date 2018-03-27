@@ -15,21 +15,28 @@ body .fit-screen {
     height: calc(100vh - 30px);
 }
 
+body.showcontrols:not(.miniplayer) .fit-screen {
+    width: calc(100vw - 282px);
+}
+
+iframe#testing-player {
+    width: 640;
+    height: 480;
+}
+
 iframe#controls {
     -webkit-app-region: no-drag;
     height: 100vh;
-    width: 28%;
-    max-width: 600px;
-    min-width: 300px;
     position: absolute;
     left: auto;
     transition: transform 0.2s cubic-bezier(0, 1.1, 1, 1) 0.2s;
     z-index: 3;
     right: 0;
     transform: translate(100%, 0) rotateY(-140deg);
+    box-shadow: 0px 0px 18px 6px rgba(0, 0, 0, 0.5);
 }
 
-body.isovercontrols iframe#controls, body.istyping iframe#controls, body.paused iframe#controls {
+body.showcontrols iframe#controls {
     transform: translate(0%, 0) rotateY(0deg);
 }
 
@@ -109,31 +116,46 @@ body.frameless #nw-custom-frame {
 }		
 
 iframe#overlay {
+    transition: background 0.4s cubic-bezier(0, 1.1, 1, 1) 0.2s;
     pointer-events: none;
     z-index: 3;
 }
 
+body:not(.paused) iframe#overlay {
+    width: 100vw;
+}
+
+body.playing, body.paused {
+    background: #000;
+}
+
+body.playing iframe#overlay, body.paused iframe#overlay {
+    background: transparent;
+}
+
 body.paused iframe#overlay {
     pointer-events: none;
-    z-index: 3;
+    z-index: 2;
 }
 
 iframe#sandbox {
     background-color: #fff;
 }
 
-iframe#player {
+#player {
     background: #000;
 }
 
-#player, iframe#sandbox {
-    transition: filter 0.4s cubic-bezier(0, 1.1, 1, 1) 0.2s;
-    filter: saturate(105%);
+body.miniplayer #player, body.miniplayer  iframe#sandbox, body:not(.showcontrols) #player, body:not(.showcontrols)  iframe#sandbox {
+    width: 100vw !important;
 }
 
-body.isovercontrols:not(.miniplayer) #player, body.isovercontrols:not(.miniplayer) iframe#sandbox, body.paused #player, body.paused iframe#sandbox, body.istyping #player, body.istyping iframe#sandbox, body.paused #player, body.paused iframe#sandbox {
-    filter: brightness(50%) saturate(50%);
-    pointer-events: none;
+body:not(.miniplayer) #player, body:not(.miniplayer) iframe#sandbox {
+    transition: all 0.2s cubic-bezier(0, 1.1, 1, 1) 0.1s;
+}
+
+body.paused #player, body.paused iframe#sandbox {
+    filter: brightness(90%) saturate(90%);
 }
 
 body.modal iframe#controls {
@@ -249,33 +271,6 @@ div#modal-overlay .prompt textarea {
     width: 25%;
 }
 
-/* Clappr
-.bar-container.seek-disabled, [data-no-op] p[data-no-op-msg] {
-    display: none !important;
-}
-
-.player-poster {
-    display: none !important;
-    background-color: transparent !important;
-    cursor: pointer !important;
-}
-
-.media-control-left-panel > .media-control-button.media-control-icon {
-    display: none !important;
-}
-
-.dvr-controls {
-    margin-left: 18px !important;
-}
-*/
-
-#player video {
-    position: relative !important;
-    width: 100% !important;
-    height: auto !important;
-    object-fit: contain;
-}
-
 .vjs-poster {
     position: absolute !important;
     left: 0;
@@ -288,12 +283,26 @@ div#modal-overlay .prompt textarea {
     position: absolute;
     top: 30px;
     right: 0;
-    z-index: 999999;
-    color: #fff;
+    z-index: 9999 !important;
+    color: #ccc; 
     background: #00040c;
-    padding: 6px 13px 6px 13px;
+    padding: 2px 14px 2px 7px;
+    border-color: #29292b;
     border-bottom-left-radius: 4px;
+    display: none;
+    border-style: solid;
+    border-width: 0 0 1px 1px;
+    font-size: 97%;
+    cursor: pointer;
+}
+
+body.over #menu-trigger-icon {
     display: inline-block;
+}
+
+#menu-trigger-icon:hover {
+    color: #fff;
+    padding: 2px 15px 2px 8px;
 }
 
 body.frameless #menu-trigger-icon {
@@ -302,13 +311,50 @@ body.frameless #menu-trigger-icon {
 
 #menu-trigger-icon i, #menu-trigger-icon svg {
     font-size: 100%;
-    color: white;
 }
 
-body.isovercontrols #menu-trigger-icon, body.paused #menu-trigger-icon, body.miniplayer #menu-trigger-icon {
+body.showcontrols #menu-trigger-icon, body.paused #menu-trigger-icon, body.miniplayer #menu-trigger-icon {
     display: none !important;
 }
 
 body.frameless #menu-trigger-icon {
     top: 11px;
+}
+
+#player, iframe#sandbox {
+    filter: saturate(105%);
+}
+
+body #controls {
+    width: 28%;
+}
+
+#player, iframe#sandbox {
+    width: calc(100vw - 28%); /* +18px to box-shadow */
+}
+
+#splash {
+    z-index: 2147483647;
+    width: 100vw !important;
+    height: 100vh !important;
+    background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    top: 0px;
+}
+
+#splash .fa-spin { 
+    color: #777; 
+    position: absolute; 
+    bottom: 24px; 
+    left: calc(50% - 8px); 
+}
+
+img.splash-spinner {
+    position: absolute;
+    bottom: 36px;
+    width: 24px;
+    height: 24px;
+    opacity: 0.6;
 }

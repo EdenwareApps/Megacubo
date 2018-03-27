@@ -1,10 +1,13 @@
 
 module.exports = function process(scope){
-	if(typeof(scope['abrirPlayer'])=='function'){
+	if(!scope['clk1'] && typeof(scope['abrirPlayer'])=='function'){
+		scope['clk1'] = true;
 		scope.abrirPlayer('player');
-	} else {
+	}
+	if(!scope['clk2']){
 		var as = scope.document.querySelectorAll('.QualidadePlayer a');
 		if(as.length){
+			scope['clk2'] = true;
 			as[as.length - 1].click();
 		}
 	}
