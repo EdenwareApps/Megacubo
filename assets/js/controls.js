@@ -20,6 +20,7 @@ var History = (function (){
     _this.add = function (entry){
         console.log('HISTORY ADD', entry);
         let nentry = Object.assign({}, entry);
+        nentry.class = '';
         if(typeof(nentry.originalUrl)=='string'){
             nentry.url = nentry.originalUrl; // ignore the runtime changes in URL
         }
@@ -77,7 +78,12 @@ var Recordings = (function (){
         }
     }
     _this.clear = function (){
-        removeFolder(_folder, false)
+        let files = fs.readdirSync(_folder);
+        for(var i=0; i<files.length; i++){
+            if(files[i].indexOf('.mp4')!=-1){
+                fs.unlink(files[i])
+            }
+        }
     }
     return _this;
 })();
@@ -148,7 +154,7 @@ function addFav(s){
     if(s && !Bookmarks.is(s)){
         Bookmarks.add(s);
         notify(Lang.FAV_ADDED.format(s.name), 'fa-star', 'normal');
-        refreshListingIfMatch(Lang.BOOKMARKS)
+        Menu.refresh(Lang.BOOKMARKS)
     }
 }
 
@@ -165,7 +171,7 @@ function removeFav(s){
     if(s && Bookmarks.is(s)){
         Bookmarks.remove(s);
         notify(Lang.FAV_REMOVED.format(s.name), 'fa-star', 'normal');
-        refreshListingIfMatch(Lang.BOOKMARKS)
+        Menu.refresh(Lang.BOOKMARKS)
     }
 }
 
@@ -191,7 +197,7 @@ function getIPTVListAddr(callback, value) {
 
 function getIPTVListSearchTerm(){
     var locale = getDefaultLocale(false, false);
-    var country = top.Countries.select(locale, 'country_'+locale.substr(0, 2)+',country_iso', 'locale', true); //getLocale();
+    var country = Countries.select(locale, 'country_'+locale.substr(0, 2)+',country_iso', 'locale', true); //getLocale();
     var q = "iptv list m3u8 {0} {1}".format(country, (new Date()).getFullYear());
     return q;
 }
@@ -203,15 +209,16 @@ function getIPTVListSearchURL(){
 }
 
 function sendStatsPrepareEntry(stream){
-    if(stream){
-        stream.uiLocale = getLocale(false, false);
-        stream.ver = top.currentVersion;
-        if(typeof(stream.source)!='undefined' && stream.source){
-            stream.source_nam = getSourceMeta(stream.source, 'name');
-            stream.source_len = getSourceMeta(stream.source, 'length');
-            if(isNaN(parseInt(stream.source_len))){
-                stream.source_len = -1; // -1 = unknown
-            }
+    if(!stream || typeof(stream)!='object'){
+        stream = {};
+    }
+    stream.uiLocale = getLocale(false, false);
+    stream.ver = installedVersion || 0;
+    if(typeof(stream.source)!='undefined' && stream.source){
+        stream.source_nam = getSourceMeta(stream.source, 'name');
+        stream.source_len = getSourceMeta(stream.source, 'length');
+        if(isNaN(parseInt(stream.source_len))){
+            stream.source_len = -1; // -1 = unknown
         }
     }
     return stream;
@@ -229,40 +236,6 @@ function playPrevious(){ // PCH
             playEntry(entry)
         }
     }
-}
-
-function testEntry(stream, success, error, returnSucceededIntent){
-    var resolved = false, intents = [];
-    if(isMagnet(stream.url) || isMega(stream.url) || isYT(stream.url)){
-        success();
-        return intents;
-    }
-    var checkr = () => {
-        if(resolved) return;
-        var worked = false, complete = 0, succeededIntent = null;
-        for(var i=0; i<intents.length; i++){
-            if(intents[i].started || intents[i].ended || intents[i].error){
-                complete++;
-            }
-            if(!worked && intents[i].started && !intents[i].ended && !intents[i].error){
-                if(returnSucceededIntent){
-                    succeededIntent = intents[i];
-                }
-                worked = true;
-            }
-        }
-        if(worked || complete == intents.length){
-            resolved = true;
-            for(var i=0; i<intents.length; i++){ // ready
-                if(intents[i] != succeededIntent){
-                    intents[i].destroy()
-                }
-            }   
-            (worked ? success : error)(succeededIntent)
-        }
-    }
-    intents = top.createPlayIntent(stream, {maxTimeout: 20, shadow: true, manual: false, start: checkr, error: checkr, ended: checkr});
-    return intents;
 }
 
 var onlineUsersCount = "";
@@ -285,9 +258,9 @@ function updateOnlineUsersCount(){
 
 var searchPath, bookmarksPath;
 jQuery(document).on('lngload', () => {
-    searchPath = Lang.EXTRAS+'/'+Lang.SEARCH;
-    xtrasPath = Lang.EXTRAS;
-    bookmarksPath = Lang.EXTRAS+'/'+Lang.BOOKMARKS;
+    searchPath = Lang.OPTIONS+'/'+Lang.SEARCH;
+    bookmarksPath = Lang.OPTIONS+'/'+Lang.BOOKMARKS;
+    getSearchSuggestions();
     updateOnlineUsersCount();
     setInterval(updateOnlineUsersCount, 600000)
 });
@@ -333,10 +306,10 @@ function playResume(){
                 console.log('RESUME ERROR '+document.URL);
                 /*
                 if(top){
-                    if(!top.PlaybackManager.query({error: false, ended: false}).length){
+                    if(!PlaybackManager.query({error: false, ended: false}).length){
                         i++;
                         if(i <= entries.length){
-                            top.createPlayIntent(entries[i], events);
+                            createPlayIntent(entries[i], events);
                             return true;
                         } else {
                             console.log('No more history entries to resume.');
@@ -349,10 +322,10 @@ function playResume(){
                 */
 			}
         };
-        if(!top.PlaybackManager.query({error: false, ended: false}).length){
+        if(!PlaybackManager.query({error: false, ended: false}).length){
             console.log(i);
             console.log(entries[i]);
-            top.createPlayIntent(entries[i], events)
+            createPlayIntent(entries[i], events)
         }
     } else {
         console.log('History empty.');
@@ -374,8 +347,8 @@ function streamCacheNormalizeURL(url){
             url = n;
         }
     }
-    if(url.indexOf('&amp;') != -1 && top && top.decodeEntities){
-        url = top.decodeEntities(url);
+    if(url.indexOf('&amp;') != -1 && top && decodeEntities){
+        url = decodeEntities(url);
     }
     if(url.indexOf(':80/') != -1){
         url.replace(':80/', '/')
@@ -405,14 +378,12 @@ function setStreamStateCache(entry, state){
 function playEntry(stream){
     collectListQueue(stream);
     stream.prependName = '';
-    top.PlaybackManager.cancelLoading();
-    top.createPlayIntent(stream, {manual: true});
+    PlaybackManager.cancelLoading();
+    createPlayIntent(stream, {manual: true});
     updateStreamEntriesFlags()
 }
 
 function updateStreamEntriesFlags(){
-
-    if(!top) return; // top is undefined on NW.js unloading
 
     // offline streams
     var activeurls = [];
@@ -424,13 +395,13 @@ function updateStreamEntriesFlags(){
     }
 
     // pending entries
-    var loadingurls = top.PlaybackManager.isLoading(true);
-    if(typeof(top.isPending)=='string'){
-        loadingurls.push(top.isPending)
+    var loadingurls = PlaybackManager.isLoading(true);
+    if(typeof(isPending)=='string'){
+        loadingurls.push(isPending)
     }
-    console.log(loadingurls, top.isPending);
+    console.log(loadingurls, isPending);
 
-    var doSort = allowAutoClean(listingPath);
+    var doSort = allowAutoClean(Menu.path);
 
     var fas = jQuery('.entry-stream'), autoCleaning = jQuery('.entry-autoclean').filter((i, e) => { 
         return e.innerHTML.indexOf('% ') != -1; 
@@ -466,17 +437,6 @@ function updateStreamEntriesFlags(){
     });
     if(doSort){
         sortEntriesByState(fas)
-    }
-}
-
-function showWindowHandle(show){
-    var e = document.getElementById('window-handle');
-    if(e){
-        e.style.display = show ? 'inline-block' : 'none';
-        e.querySelector('a').title = Lang.RESTORE;
-    }
-    if(top){
-        top.PlaybackManager.setRatio()
     }
 }
 
@@ -686,14 +646,14 @@ function registerSource(url, name, silent, norefresh){
     }
     setActiveSource(url);
     if(!norefresh){
-        refreshListing()
+        Menu.refresh()
     }
     if(chknam){
         getNameFromSourceURLAsync(url, (newName, url, content) => {
             if(newName != name){
                 setSourceName(url, newName);
                 if(!norefresh){
-                    refreshListing()
+                    Menu.refresh()
                 }
             }
         })
@@ -725,8 +685,8 @@ function setSourceMeta(url, key, val){
             if(key == 'length' && url == getActiveSource()){
                 var locale = getLocale(false, true);
                 updateRootEntry(Lang.IPTV_LISTS, {label: Number(val).toLocaleString(locale)+' '+Lang.STREAMS.toLowerCase()});
-                if(listingPath.length < 2){ // ishome
-                    refreshListing()
+                if(Menu.path.length < 2){ // ishome
+                    Menu.refresh()
                 }
             }
         }
@@ -806,14 +766,12 @@ function priorizeEntries(entries, filter){
     return goodEntries.concat(neutralEntries).concat(badEntries)
 }
 
-function sortEntries(entries, filter){
-    if(entries.length){
-		return entries.sort(filter)
-    }
-    return entries;
-}
-
 function sortEntriesStateKey(entry, historyData, watchingData){
+    if(entry.type == 'group'){
+        return '1-0-0-0-0';
+    } else if(entry.type != 'stream'){
+        return '0-0-0-0-0';
+    }
     var state = entry ? getStreamStateCache(entry) : null, inHistory = false, inWatching = false;
     for(var i=0; i<historyData.length; i++){
         if(historyData[i].url == entry.url){
@@ -829,7 +787,7 @@ function sortEntriesStateKey(entry, historyData, watchingData){
             }
         }
     }
-    return ((state === true) ? 0 : (state === false ? 2 : 1)) + '-' + (inHistory ? 0 : (inWatching ? 1: 2)) + '-' + (isTS(entry.url) ? 1 : 0) + '-' + (entry.name || '').toLowerCase();
+    return '2-'+((state === true) ? 0 : (state === false ? 2 : 1)) + '-' + (inHistory ? 0 : (inWatching ? 1: 2)) + '-' + ((isLive(entry.url)||isRemoteTS(entry.url)) ? 0 : (isVideo(entry.url)?2:1)) + '-' + (entry.name || '').toLowerCase();
 }
 
 function sortEntriesByState(entries){
@@ -850,8 +808,8 @@ function sortEntriesByState(entries){
             type = 'prepend';
         }
         entries.detach().sort((a, b) => {
-            var c = $(a).data('sortkey');
-            var d = $(b).data('sortkey');
+            var c = jQuery(a).data('sortkey');
+            var d = jQuery(b).data('sortkey');
             return c > d ? 1 : -1;
         });   
         if(type == 'after'){
@@ -872,13 +830,23 @@ function sortEntriesByState(entries){
     return entries;
 }
 
-var autoCleanEntriesQueue = [], closingAutoCleanEntriesQueue = [], autoCleanEntriesStatus = '';
+function deferEntriesByURLs(entries, urls){
+    entries.sort((x, y) => {
+        var a = urls.indexOf(x.url);
+        var b = urls.indexOf(y.url);
+        return a - b;
+    });
+    return entries;
+}
 
-function autoCleanEntries(entries, success, failure, cancelCb, returnSucceededIntent){
+var autoCleanDomainConcurrency = {}, autoCleanEntriesQueue = [], closingAutoCleanEntriesQueue = [], autoCleanEntriesStatus = '', autoCleanLastMegaURL = '', autoCleanReturnedURLs = [];
+
+function autoCleanEntries(entries, success, failure, cancelCb, returnSucceededIntent, cancelOnFirstSuccess, megaUrl){
+    cancelOnFirstSuccess = true;
     if(autoCleanEntriesCancel()){
         jQuery('a.entry-autoclean .entry-name').html(Lang.TEST_THEM_ALL)
     }
-    var succeeded = false, readyIterator = 0, debug = true;
+    var succeeded = false, testedMap = [], readyIterator = 0, debug = true;
     if(!jQuery.isArray(entries)){
         var arr = [];
         jQuery('a.entry-stream').each((i, o) => {
@@ -895,10 +863,11 @@ function autoCleanEntries(entries, success, failure, cancelCb, returnSucceededIn
         }
         return false;
     }
-    console.log('autoCleanSort', entries);
-    console.log('autoCleanSort', entries.map((entry) => {return entry.sortkey+' ('+entry.url+')'}).join(", \r\n"));
+    entries = deferEntriesByURLs(entries, autoCleanReturnedURLs);
+    console.log('autoCleanSort', entries, entries.map((entry) => {return entry.sortkey+' ('+entry.url+')'}).join(", \r\n"));
     var controller, iterator = 0;
-    autoCleanEntriesStatus = Lang.AUTOCLEAN+' 0% ('+readyIterator+'/'+entries.length+')';
+    autoCleanDomainConcurrency = {};
+    autoCleanEntriesStatus = Lang.TUNING+' 0% ('+readyIterator+'/'+entries.length+')';
     jQuery('a.entry-autoclean .entry-name').html(autoCleanEntriesStatus);
     controller = {
         testers: [],
@@ -934,90 +903,150 @@ function autoCleanEntries(entries, success, failure, cancelCb, returnSucceededIn
             callback();
             return;
         }
-        var entry = entries[iterator], originalUrl = entry.url;
-        iterator++;
-        if(isMagnet(entry.url) || isMega(entry.url)){
-            readyIterator++;
-            if(debug){
-                console.warn('ACE k')
-            }
-            return callback() // why should we test?
-        }
-        if(debug){
-            console.log('ACE TESTING', entry.name, entry.url, entry, entries, controller.id)
-        }
-        try {
-            var originalUrl = entry.originalUrl && !isMega(entry.originalUrl) ? entry.originalUrl : entry.url, ntesters = testEntry(entry, (succeededIntent) => {
-                if(!top){
-                    controller.cancel()
-                } else if(controller.cancelled){
-                    if(succeededIntent){
-                        succeededIntent.destroy()
-                    }
-                    return callback()
-                } else {
-                    if(debug){
-                        console.warn('ACE TESTING SUCCESS', returnSucceededIntent, succeededIntent, entry.name, entry.url, succeeded, controller.cancelled)
-                    }
-                    readyIterator++;
-                    if(!succeeded){
-                        succeeded = true;
-                        if(succeededIntent){
-                            succeededIntent.shadow = false;
-                        }
-                        if(returnSucceededIntent){
-                            controller.cancel()
-                            if(debug){
-                                console.warn('ACE TESTING CANCEL', entry.name, entry.url, succeeded, controller.cancelled, controller.id)
+        var entry, domain;        
+        var select = () => {
+            if(!controller.cancelled){
+                if(!entry){
+                    for(var i=0; i < entries.length; i++){
+                        if(testedMap.indexOf(i) == -1){
+                            domain = getDomain(entries[i].url);
+                            if(typeof(autoCleanDomainConcurrency[domain]) == 'undefined'){
+                                autoCleanDomainConcurrency[domain] = 0;
+                            }
+                            if(autoCleanDomainConcurrency[domain] >= 1){
+                                console.warn('AutoClean domain throttled: '+domain);
+                                continue;
+                            } else {
+                                testedMap.push(i);
+                                entry = entries[i];
+                                break;
                             }
                         }
-                        if(typeof(success)=='function'){
-                            console.warn('ACE SUCCES CB', entry.name, entry.url, succeededIntent)
-                            success(entry, controller, succeededIntent)
+                    }
+                }
+                if(entry){
+                    if((entry.type && entry.type != 'stream') || isMagnet(entry.url) || isMega(entry.url)){
+                        readyIterator++;
+                        if(debug){
+                            console.warn('ACE k', entry)
                         }
+                        return callback() // why should we test?
                     }
-                    autoCleanEntriesStatus = Lang.AUTOCLEAN+' '+parseInt(readyIterator / (entries.length / 100))+'% ('+readyIterator+'/'+entries.length+')';
-                    jQuery('a.entry-autoclean .entry-name').html(autoCleanEntriesStatus);
-                    setStreamStateCache(entry, true);
-                    updateStreamEntriesFlags();
-                    top.sendStats('alive', sendStatsPrepareEntry(entry));
-                    callback();
-                }
-            }, () => {
-                if(!top){
-                    controller.cancel()
-                } else if(controller.cancelled){
-                    if(succeededIntent){
-                        succeededIntent.destroy()
+                    if(debug){
+                        console.log('ACE TESTING', entry.name, entry.url, entry, entries, controller.id)
                     }
-                    return callback()
+                    process()
                 } else {
-                    if(debug){
-                        console.warn('ACE TESTING FAILURE', entry.name, entry.url, succeeded, controller.cancelled, controller.id)
-                    }
-                    readyIterator++;
-                    autoCleanEntriesStatus = Lang.AUTOCLEAN+' '+parseInt(readyIterator / (entries.length / 100))+'% ('+readyIterator+'/'+entries.length+')';
-                    jQuery('a.entry-autoclean .entry-name').html(autoCleanEntriesStatus);
-                    setStreamStateCache(entry, false);
-                    updateStreamEntriesFlags();
-                    callback();
-                    if(debug){
-                        console.warn('ACE F')
-                    }
-                    top.sendStats('error', sendStatsPrepareEntry(entry))
+                    setTimeout(select, 1000)
                 }
-            }, returnSucceededIntent);
-            console.log('ACE G', ntesters, entry);
-            if(jQuery.isArray(ntesters)){
-                console.log('ACE H', controller.testers, ntesters);
-                controller.testers = controller.testers.concat(ntesters)
             }
-        } catch(e) {
-            console.error('ACE', e)
         }
-        if(debug){
-            console.warn('ACE 2', controller.testers)
+        var process = () => {
+            if(!controller.cancelled){
+                autoCleanDomainConcurrency[domain]++;
+                var sm = entry.originalUrl && isMega(entry.originalUrl), originalUrl = entry.originalUrl && !sm ? entry.originalUrl : entry.url;
+                try {
+                    if(!megaUrl && sm){
+                        megaUrl = entry.originalUrl;
+                    }
+                    ntesters = testEntry(entry, (succeededIntent) => {
+                        if(controller.cancelled){
+                            if(succeededIntent){
+                                succeededIntent.destroy()
+                            }
+                            if(autoCleanDomainConcurrency[domain]){
+                                autoCleanDomainConcurrency[domain]--;
+                            }
+                            return callback()
+                        } else {
+                            if(debug){
+                                console.warn('ACE TESTING SUCCESS', returnSucceededIntent, succeededIntent, entry, megaUrl, succeeded, controller.cancelled)
+                            }
+                            readyIterator++;
+                            if(!succeeded){
+                                succeeded = true;
+                                if(megaUrl){
+                                    entry.originalUrl = megaUrl;
+                                }
+                                if(megaUrl != autoCleanLastMegaURL){
+                                    autoCleanLastMegaURL = megaUrl || '';
+                                    autoCleanReturnedURLs = [];
+                                }
+                                if(autoCleanReturnedURLs.indexOf(entry.url) == -1){
+                                    autoCleanReturnedURLs.push(entry.url)
+                                }
+                                if(succeededIntent){
+                                    succeededIntent.shadow = false;
+                                    if(megaUrl){
+                                        succeededIntent.entry.originalUrl = megaUrl;
+                                    }
+                                }
+                                if(returnSucceededIntent){
+                                    if(cancelOnFirstSuccess){
+                                        controller.cancel()
+                                        if(debug){
+                                            console.warn('ACE TESTING CANCEL', entry.name, entry.url, succeeded, controller.cancelled, controller.id)
+                                        }
+                                    }
+                                }
+                                if(typeof(success)=='function'){
+                                    console.warn('ACE SUCCES CB', megaUrl, entry, succeededIntent)
+                                    success(entry, controller, succeededIntent)
+                                }
+                            }
+                            if(cancelOnFirstSuccess){
+                                autoCleanEntriesStatus = Lang.TRY_OTHER_STREAM;
+                            } else {
+                                autoCleanEntriesStatus = Lang.TUNING+' '+parseInt(readyIterator / (entries.length / 100))+'% ('+readyIterator+'/'+entries.length+')';
+                            }
+                            jQuery('a.entry-autoclean .entry-name').html(autoCleanEntriesStatus);
+                            setStreamStateCache(entry, true);
+                            updateStreamEntriesFlags();
+                            sendStats('alive', sendStatsPrepareEntry(entry));
+                            if(autoCleanDomainConcurrency[domain]){
+                                autoCleanDomainConcurrency[domain]--;
+                            }
+                            callback()
+                        }
+                    }, () => {
+                        if(controller.cancelled){
+                            if(autoCleanDomainConcurrency[domain]){
+                                autoCleanDomainConcurrency[domain]--;
+                            }
+                            return callback()
+                        } else {
+                            if(debug){
+                                console.warn('ACE TESTING FAILURE', entry.name, entry.url, succeeded, controller.cancelled, controller.id)
+                            }
+                            readyIterator++;
+                            autoCleanEntriesStatus = Lang.TUNING+' '+parseInt(readyIterator / (entries.length / 100))+'% ('+readyIterator+'/'+entries.length+')';
+                            jQuery('a.entry-autoclean .entry-name').html(autoCleanEntriesStatus);
+                            setStreamStateCache(entry, false);
+                            updateStreamEntriesFlags();
+                            if(autoCleanDomainConcurrency[domain]){
+                                autoCleanDomainConcurrency[domain]--;
+                            }
+                            callback();
+                            if(debug){
+                                console.warn('ACE F')
+                            }
+                            sendStats('error', sendStatsPrepareEntry(entry))
+                        }
+                    }, returnSucceededIntent);
+                    console.log('ACE G', ntesters, entry);
+                    if(jQuery.isArray(ntesters)){
+                        console.log('ACE H', controller.testers, ntesters);
+                        controller.testers = controller.testers.concat(ntesters)
+                    }
+                } catch(e) {
+                    console.error('ACE ERROR CATCHED', e)
+                }
+                if(debug){
+                    console.warn('ACE 2', controller.testers)
+                }
+            }
         }
+        select()
     });
     console.log('ACE I', controller.testers);
     autoCleanEntriesQueue.push(controller);
@@ -1025,14 +1054,14 @@ function autoCleanEntries(entries, success, failure, cancelCb, returnSucceededIn
         if(typeof(async) == 'undefined'){
             async = require('async')
         }
-        async.parallelLimit(tasks, 3, (err, results) => {
+        async.parallelLimit(tasks, 8, (err, results) => {
             console.warn('ACE DONE', tasks.length);
             if(!controller.cancelled){
                 controller.cancel();
                 if(!succeeded && typeof(failure)=='function'){
                     setTimeout(failure, 150)
                 }
-                autoCleanEntriesStatus = Lang.AUTOCLEAN+' 100%';
+                autoCleanEntriesStatus = Lang.AUTO_TUNING+' 100%';
                 jQuery('a.entry-autoclean .entry-name').html(autoCleanEntriesStatus);
             }
         })
@@ -1197,20 +1226,25 @@ function hasTerms(stack, needles){
     return false;
 }
 
-var focusEntryItem, lastTabIndex = 1, controlsTriggerTimer = 0, isScrolling = false, scrollEnd, isTyping = false, typingEnd, isWheeling = false, wheelEnd, handleMenuFocus, scrollDirection;
+var focusEntryItem, lastTabIndex = 1, controlsTriggerTimer = 0, isScrolling = false, scrollEnd, isWheeling = false, wheelEnd, handleMenuFocus, scrollDirection;
 
 jQuery(function (){
-    var t = 0, x, tb = jQuery(top.document).find('body'), c = tb.find('iframe#controls'), d = jQuery('div#controls'), b = jQuery('body'), l = jQuery(".list"), ld = l.find("div:eq(0)");
+    var t = 0, x, tb = jQuery(document).find('body'), c = tb.find('div#controls'), d = jQuery('div#controls'), b = jQuery('body'), l = jQuery(".list"), ld = l.find("div:eq(0)");
 
     focusEntryItem = (a, noscroll) => {
-        console.log(a.length, a.html());
-        if(!noscroll){
-            let y = a.offset().top + l.scrollTop(), ah = a.height();
-            //console.log(a.html(), y);
-            l.scrollTop(y - ((l.height() - ah) / 2))
+        if(a && a.length){
+            console.log(a.length, a.html());
+            if(!noscroll){
+                let y = a.offset();
+                if(y){
+                    y = y.top + l.scrollTop(), ah = a.height();
+                    //console.log(a.html(), y);
+                    l.scrollTop(y - ((l.height() - ah) / 2))
+                }
+            }   
+            jQuery('.entry-focused').removeClass('entry-focused');
+            a.addClass('entry-focused').get(0).focus()
         }
-        jQuery('.entry-focused').removeClass('entry-focused');
-        a.addClass('entry-focused').trigger('focus')
     }
         
     /* scrollstart|scrollend events */
@@ -1241,20 +1275,6 @@ jQuery(function (){
         isWheeling = setTimeout(wheelEnd, 400)
     });
 
-    /* typestart|typeend events */
-    typingEnd = () => {
-        isTyping = false;
-        b.trigger("typeend")
-    }
-    b.on("keydown", () => {
-        if(isTyping){
-            clearTimeout(isTyping)
-        } else {
-            b.trigger("typestart")
-        }
-        isTyping = setTimeout(typingEnd, 400)
-    });
-
     /* adjust focus to visible items always */
     var lastScrollY = 0;
     handleMenuFocus = () => {
@@ -1263,20 +1283,11 @@ jQuery(function (){
         lastScrollY = newScrollY;
         if(document.activeElement){
             var tag = document.activeElement.tagName.toLowerCase();
-            if(['a', 'input'].indexOf(tag)!=-1){ // focus a.entry or input (searching) only
+            if(['a', 'input'].indexOf(tag) != -1){ // focus a.entry or input (searching) only
                 lastTabIndex = document.activeElement.tabIndex;
-                /*
-                if(tag == 'input'){
-                    tb.addClass('showcontrols') // istyping 
-                } else {
-                    tb.removeClass('istyping')
-                }
-                */
+            } else if(!jQuery(document.activeElement).is(':in-viewport')) {
+                Menu.focusNext()
             }
-        } else {
-            /*
-            tb.removeClass('istyping')
-            */
         }
     }   
     jQuery(window).on('resize', handleMenuFocus);
@@ -1284,10 +1295,10 @@ jQuery(function (){
     console.log(b);
     b.on('scrollend', () => {
         var y = jQuery('.list').scrollTop();
-        if(y >= 500){
-            b.addClass('scrolled_500')
+        if(y >= 400){
+            b.addClass('scrolled_400')
         } else {
-            b.removeClass('scrolled_500')
+            b.removeClass('scrolled_400')
         }
     })
     console.log(b);
@@ -1306,84 +1317,48 @@ jQuery(function (){
             clearTimeout(unlock);
             unlockDelay = setTimeout(unlock, 400)
         }
-        b.on("wheelstart", lock).on("wheelend", unlocker).on("typestart", lock).on("typeend", unlocker).on("blur", "a", handleMenuFocus);
+        b.on("wheelstart", lock).on("wheelend", unlocker).on("blur", "a", handleMenuFocus);
     })()
 })
 
 jQuery(window).one('unload', function (){
-    top.sendStats('die')
+    sendStats('die')
 })
 
+var installedVersion = 0;
 jQuery(document).one('show', () => {
     jQuery.getJSON('http://app.megacubo.net/configure.json?'+time(), (data) => {
         if(!data || !data.version) return;
-        var currentVersion = data.version;
+        currentVersion = data.version;
         if(typeof(data.adultTerms)!='undefined'){
             if(typeof(data.adultTerms) != 'string'){
                 data.adultTerms = String(data.adultTerms)
             }   
             Config.set('default-parental-control-terms', fixUTF8(data.adultTerms), 30 * (24 * 3600))
         }
-        getManifest((data) => {
-            console.log('VERSION', data.version, currentVersion);
-            top.currentVersion = data.version;
+        getManifest((manifest) => {
+            console.log('VERSION', manifest.version, currentVersion);
+            installedVersion = manifest.version;
             jQuery('#home-icons a, #list-icons a').each((i, element) => {
                 var je = jQuery(element), key = je.attr('data-title-lng-key');
                 if(key && Lang[key]){
-                    je.attr('title', Lang[key])
+                    je.attr('aria-label', Lang[key]).prop('title', Lang[key])
                 }
+            }).on('click', (event) => {
+                event.preventDefault();
+                event.stopPropagation()
             });
-            jQuery('#home-icon-help').attr('title', 'Megacubo v'+top.currentVersion);
-            if(data.version < currentVersion){
+            jQuery('#home-icon-help').attr('title', 'Megacubo v'+installedVersion);
+            jQuery('#controls-toggle').prop('title', Lang.SHOW_HIDE_MENU).attr('aria-label', Lang.SHOW_HIDE_MENU);
+            if(installedVersion < currentVersion){
                 jQuery('#home-icon-help').html('<i class="fas fa-bell" aria-hidden="true"></i>').css('color', '#ff6c00');
                 if(confirm(Lang.NEW_VERSION_AVAILABLE)){
-                    gui.Shell.openExternal('https://megacubo.tv/online/?version='+data.version);
+                    gui.Shell.openExternal('https://megacubo.tv/online/?version='+manifest.version);
                 }
             }
         })
     })
 })
-
-var listingPath = ltrimPathBar(Store.get('listingPath')) || '', autoCleanHintShown = false, pos = listingPath.indexOf(Lang.MY_LISTS);
-if(pos == -1 || pos > 3){
-    listingPath = '';
-}
-jQuery(window).on('unload', function (){
-    Store.set('listingPath', listingPath)
-})
-
-function queryEntries(entries, atts, remove){
-    var results = [];
-    for(var i in entries){
-        for(var key in atts){
-            if(typeof(entries[i][key])=='undefined'){
-                continue;
-            } else if(typeof(entries[i][key])=='function'){
-                if(entries[i][key](entries[i]) == atts[key]){
-                    results.push(entries[i]);
-                    if(remove){
-                        delete entries[i];
-                    }
-                }
-            } else {
-                if(entries[i][key] == atts[key]){
-                    results.push(entries[i]);
-                    if(remove){
-                        delete entries[i];
-                    }
-                }
-            }
-        }        
-    }
-    if(remove){
-        return entries.slice(0) // reset
-    }
-    return results;
-}
-
-function removeEntries(entries, atts){
-    return queryEntries(entries, atts, true)
-}
 
 function pickLogoFromEntries(entries, type){
     if(!type){
@@ -1398,12 +1373,49 @@ function pickLogoFromEntries(entries, type){
     return defaultIcons[type];
 }
 
-function autoCleanNPlay(entries, name, originalUrl){
+function switchPlayingStream(){
+    var term = playingStreamKeyword();
+    if(term){
+        var megaUrl = 'mega://play|'+term;
+        //PlaybackManager.stop();
+        autoCleanNPlay(term, null, megaUrl)
+        return true;
+    }
+}
+
+function playingStreamKeyword(){
+    var intent = (PlaybackManager.activeIntent || PlaybackManager.lastActiveIntent || false);
+    if(intent){
+        var megaUrl = intent.entry.originalUrl;
+        if(isMega(megaUrl)){
+            var parts = parseMegaURL(megaUrl);
+            if(parts && parts.name){
+                return parts.name;
+            }
+        }
+        return searchTermFromEntry(intent.entry);
+    }
+    return false;
+}
+
+function searchTermFromEntry(entry){
+    var term = false;
+    searchSuggestions.forEach((t) => {
+        if(entry.name.toLowerCase().indexOf(t.search_term)!=-1){
+			if(!term || term.length < t.search_term.length){
+            	term = t.search_term;
+            }
+        }
+    });
+    return term;
+}
+
+function autoCleanNPlay(entries, name, originalUrl){ // entries can be a string search term
     if(typeof(entries)=='string'){
         if(!name){
             name = entries;
         }
-        var nentries = fetchSharedListsSearchResults('stream', entries, true);
+        var nentries = fetchSharedListsSearchResults(null, 'stream', entries, true);
         if(nentries.length == 1 && nentries[0].type=='option'){ // search index not ready
             return setTimeout(() => {
                 autoCleanNPlay(entries, name, originalUrl)
@@ -1432,20 +1444,16 @@ function autoCleanNPlay(entries, name, originalUrl){
         enterPendingState(title, Lang.CONNECTING, originalUrl);
         controller.cancel();
         notifyRemove(Lang.TUNING);
-        console.log('preAutoCleanNPlay success', succeededIntent, entry);
-        if(originalUrl){
-            entry.originalUrl = originalUrl;
-        }
         console.log('autoCleanNPlay success', succeededIntent, entry);
         if(succeededIntent) {
             succeededIntent.manual = true;
             succeededIntent.shadow = false;
             succeededIntent.entry = entry;
-            top.PlaybackManager.commitIntent(succeededIntent)
+            PlaybackManager.commitIntent(succeededIntent)
         } else {
             playEntry(entry)
         }
-        setTimeout(refreshListing, 500)
+        //setTimeout(Menu.refresh, 500)
     }, () => {
         console.warn('FAILED');
         leavePendingState();
@@ -1453,7 +1461,7 @@ function autoCleanNPlay(entries, name, originalUrl){
     }, () => {
         console.warn('CANCELLED');
         leavePendingState()
-    }, true);
+    }, true, true, originalUrl);
     if(hr){
         var title = Lang.TUNING+': '+(decodeURIComponent(name) || name);
         enterPendingState(title, Lang.TUNING, originalUrl);
@@ -1462,62 +1470,111 @@ function autoCleanNPlay(entries, name, originalUrl){
     return;
 }
 
+function adjustMainCategoriesEntry(entry){
+    entry.type = 'group';
+    entry.renderer = (data) => {
+        var entries = fetchSharedListsSearchResults(null, 'stream', data.name, true);
+        // console.warn('ZZZZZZZZZZ', data, entries);
+        if(!entries.length){
+            notify(Lang.PLAY_STREAM_FAILURE.format(data.name), 'fa-exclamation-circle', 'normal');
+            return -1;
+        }
+        entries = listManJoinDuplicates(entries);
+        var sbname = Lang.CHOOSE_STREAM+' ('+entries.length+')', megaUrl = 'mega://play|' + encodeURIComponent(data.name);
+        var isPlaying = PlaybackManager.activeIntent && PlaybackManager.activeIntent.entry.originalUrl.toLowerCase() == megaUrl.toLowerCase();
+        var logo = showLogos ? entry.logo || pickLogoFromEntries(entries) : '';
+        var watchEntries = [
+            {type: 'stream', class: 'entry-vary-play-state', name: data.name, logo: logo, 
+                label: isPlaying ? '<i class="fas fa-random"></i>&nbsp; '+Lang.TRY_OTHER_STREAM : '<i class="fas fa-play-circle"></i>&nbsp; '+Lang.AUTO_TUNING, 
+                url: megaUrl, callback: () => {
+                autoCleanNPlay(entries, data.name, megaUrl)
+            }},
+            {type: 'group', label: Lang.MANUAL_TUNING, name: sbname, logo: 'fa-list', path: assumePath(sbname), entries: [], renderer: () => {
+                entries = entries.map((entry) => { 
+                    entry.originalUrl = megaUrl;
+                    if(!entry.logo){
+                        entry.logo = logo;
+                    }
+                    return entry; 
+                });
+                return entries;
+            }}
+        ];
+        if(isPlaying){
+            if(Menu.currentRecordingState){
+                if(Menu.currentRecordingState == 'saving'){
+                    watchEntries.push({name: Lang.SAVING_RECORDING, class: 'entry-vary-recording-state', logo:'fa-circle-notch fa-spin', type: 'option'})
+                } else {
+                    watchEntries.push({name: Lang.STOP_RECORDING+' (F9)', class: 'entry-vary-recording-state', logo:'fa-stop', type: 'option', callback: function (){
+                        stopRecording()
+                    }})
+                }
+            } else {
+                watchEntries.push({name: Lang.START_RECORDING+' (F9)', class: 'entry-vary-recording-state', logo:'fa-download', type: 'option', callback: function (){
+                    startRecording()
+                }})
+            }
+            watchEntries.push({name: Lang.WINDOW, logo:'fa-window-maximize', type: 'group', renderer: () => { return getWindowModeEntries(true) }, entries: []})
+        }
+        var bookmarking = {name: data.name, type: 'stream', label: data.group || '', url: megaUrl};
+        if(Bookmarks.is(bookmarking)){
+            watchEntries.push({
+                type: 'option',
+                logo: 'fa-star-half',
+                name: Lang.REMOVE_FROM.format(Lang.BOOKMARKS),
+                callback: () => {
+                    removeFav(bookmarking)
+                }
+            })
+        } else {
+            watchEntries.push({
+                type: 'option',
+                logo: 'fa-star',
+                name: Lang.ADD_TO.format(Lang.BOOKMARKS),
+                callback: () => {
+                    addFav(bookmarking)
+                }
+            })
+        }
+        if(isPlaying){
+            watchEntries.push({
+                name: Lang.SHARE, 
+                logo: 'fa-share-alt', 
+                type: 'group', 
+                entries: [
+                    {name: Lang.SHARE+': Facebook', logo: 'fab fa-facebook', type: 'option', callback: goShareFB},
+                    {name: Lang.SHARE+': Twitter', logo: 'fab fa-twitter', type: 'option', callback: goShareTW}
+                ]
+            })
+        }
+        return watchEntries;
+    }
+    if(!showLogos || !entry.logo){
+        entry.logo = defaultIcons['stream'];
+    }
+    return entry;
+}
+
+function searchRangeOption(){
+    return {name: Lang.SEARCH_RANGE, logo: 'fa-search', type: 'group', renderer: getSearchRangeEntries, entries: [], callback: () => {
+        var entries = jQuery('a.entry-option'), range = Config.get('search-range') || 18;
+        entries.each((i) => {
+            var el = entries.eq(i), v = el.data('entry-data');
+            if(v && v.value == range){
+                setEntryFlag(el, 'fa-check-circle')
+            }
+        })
+    }};
+}
+
+function parentalControlOption(){
+    return {name: Lang.PARENTAL_CONTROL, logo: 'assets/icons/white/parental-control.png', type: 'group', renderer: getParentalControlEntries, entries: []}
+}
+
 function getMainCategoriesEntries(){
     var category, optionName = Lang.CHANNELS;
     return fetchAndRenderEntries("http://app.megacubo.net/stats/data/categories."+getLocale(true)+".json", optionName, (category) => {
-        category.entries = category.entries.map((entry) => {
-            entry.type = 'group';
-            entry.renderer = (data) => {
-                //console.warn(data);
-                var entries = fetchSharedListsSearchResults('stream', data.name, true);
-                if(!entries.length){
-                    notify(Lang.PLAY_STREAM_FAILURE.format(data.name), 'fa-exclamation-circle', 'normal');
-                    return -1;
-                }
-                entries = listManJoinDuplicates(entries);
-                var sbname = Lang.STREAMS+': '+entries.length, megaUrl = 'mega://play|' + encodeURIComponent(data.name);
-                var watchEntries = [
-                    {type: 'stream', name: data.name, logo: pickLogoFromEntries(entries), label: '<i class="fas fa-play-circle"></i> '+Lang.WATCH_NOW, url: megaUrl, callback: () => {
-                        autoCleanNPlay(entries, data.name, megaUrl)
-                    }},
-                    {type: 'group', name: Lang.OPTIONS, label: sbname, logo: 'fa-list', path: assumePath(sbname), entries: [], renderer: () => {
-                        entries = entries.map((entry) => { 
-                            // entry.originalUrl = megaUrl; // why?!
-                            return entry; 
-                        });
-                        //console.warn(entries);
-                        return entries;
-                    }}
-                ];
-                var bookmarking = {name: data.name, type: 'stream', label: data.group || '', url: megaUrl};
-                if(Bookmarks.is(bookmarking)){
-                    watchEntries.push({
-                        type: 'option',
-                        logo: 'fa-star-half',
-                        name: Lang.REMOVE_FROM.format(Lang.BOOKMARKS),
-                        callback: () => {
-                            removeFav(bookmarking);
-                            refreshListing()
-                        }
-                    })
-                } else {
-                    watchEntries.push({
-                        type: 'option',
-                        logo: 'fa-star',
-                        name: Lang.ADD_TO.format(Lang.BOOKMARKS),
-                        callback: () => {
-                            addFav(bookmarking);
-                            refreshListing()
-                        }
-                    })
-                }
-                return watchEntries;
-            }
-            if(!entry.logo){
-                entry.logo = defaultIcons['stream'];
-            }
-            return entry;
-        });
+        category.entries = category.entries.map(adjustMainCategoriesEntry);
         return category;
     }, (entries) => {
         entries.unshift({name: Lang.IPTV_LISTS, label: Lang.MY_LISTS, logo:'fa-list', type: 'group', entries: [], renderer: getListsEntries});
@@ -1526,27 +1583,113 @@ function getMainCategoriesEntries(){
     })
 }
 
+var timerTimer = 0, timerData = 0;
+function timer(){
+    if(timerData){
+        clearTimeout(timerData['timer']);
+        timerData = 0;
+        return false;
+    }
+    var opts = [];
+    [5, 15, 30, 45].forEach((m) => {
+        opts.push({name: Lang.AFTER_X_MINUTES.format(m), value: m, label: Lang.TIMER, logo:'fa-clock', type: 'group', entries: [], renderer: timerChooseAction});
+    });
+    [1, 2, 3].forEach((h) => {
+        opts.push({name: Lang.AFTER_X_HOURS.format(h), value: h * 60, label: Lang.TIMER, logo:'fa-clock', type: 'group', entries: [], renderer: timerChooseAction});
+    });
+    return opts;
+}
+
+function timerChooseAction(data){
+    console.warn('TIMER', data);
+    var opts = [
+        {name: Lang.STOP_RECORDING, type: 'option', logo: 'fa-dot-circle', value: [data.value, 0], callback: timerChosen},
+        {name: Lang.STOP, type: 'option', logo: 'fa-stop', value: [data.value, 1], callback: timerChosen},
+        {name: Lang.CLOSE, type: 'option', logo: 'fa-times-circle', value: [data.value, 2], callback: timerChosen},
+        {name: Lang.SHUTDOWN, type: 'option', logo: 'fa-power-off', value: [data.value, 3], callback: timerChosen}
+    ];
+    return opts;
+}
+
+function timerChosen(data){
+    var t = time();
+    timerData = {minutes: data.value[0], action: data.value[1], start: t, end: t + (data.value[0] * 60)};
+    timerData['timer'] = setTimeout(() => {
+        console.warn('TIMER DEST', timerData);
+        stopRecording();
+        switch(timerData.action){
+            case 1:
+                stop();
+                break;
+            case 2:
+                stop();
+                closeWindow();
+                break;
+            case 3:
+                stop();
+                closeWindow();
+                shutdown();
+                break;
+        };
+        timerData = 0;
+        timerWatch() // reset then
+    }, timerData.minutes * 60000);
+    Menu.go(Lang.OPTIONS);
+    timerWatch();
+}
+
+function timerWatch(){
+    var t = jQuery('.entry-timer');
+    if(timerData){
+        if(t.length){
+            var d = timeFormat(timerData.end - time());
+            t.find('.entry-label').html('<i class="fas fa-clock"></i> '+d);
+        }
+        setTimeout(timerWatch, 1000)
+    } else {
+        t.find('.entry-label').html('')
+    }
+}
+
+function timeFormat(secs){
+    var sec_num = parseInt(secs, 10); // don't forget the second param
+    var hours   = Math.floor(sec_num / 3600);
+    var minutes = Math.floor((sec_num - (hours * 3600)) / 60);
+    var seconds = sec_num - (hours * 3600) - (minutes * 60);
+    if (hours   < 10) {hours   = "0"+hours;}
+    if (minutes < 10) {minutes = "0"+minutes;}
+    if (seconds < 10) {seconds = "0"+seconds;}
+    return hours+':'+minutes+':'+seconds;
+}
+
 jQuery(document).one('lngload', function (){
-    window.index = [
+    win.show();
+
+    Menu.index = [
         {name: Lang.CHANNELS, label: Lang.CATEGORIES, logo:'assets/icons/white/tv.png', type: 'group', entries: [], renderer: getMainCategoriesEntries},
-        {name: Lang.EXTRAS, label: Lang.IPTV_LISTS+' &middot; '+Lang.RECORDINGS, logo:'fa-th-large', type: 'group', entries: [], renderer: getXtraEntries, callback: appendRemoteXtras},
-        {name: Lang.OPTIONS, logo:'assets/icons/white/settings.png', url:'javascript:;', type: 'group', entries: [
+        {name: Lang.OPTIONS, logo:'assets/icons/white/settings.png', type: 'group', entries: [
             {name: Lang.OPEN_URL+' (Ctrl+U)', logo:'fa-link', type: 'option', callback: () => {playCustomURL()}},
+            {name: Lang.TIMER, logo:'fa-stopwatch', class: 'entry-timer', type: 'group', renderer: timer},
+            {name: Lang.BOOKMARKS, logo:'fa-star', type: 'group', class: 'entry-hide', renderer: getBookmarksEntries, entries: []},
+            {name: Lang.SEARCH, label: '', logo: 'fa-search', type: 'option', class: 'entry-hide', value: lastSearchTerm, callback: () => { 
+                var term = lastSearchTerm, n = PlaybackManager.activeIntent;
+                if(n && n.entry.originalUrl && isMega(n.entry.originalUrl)){
+                    var data = parseMegaURL(n.entry.originalUrl);
+                    if(data && data.type == 'play'){
+                        term = data.name;
+                    }
+                }
+                setupSearch(term, 'live', Lang.SEARCH)
+            }},
+            {name: Lang.RECORDINGS, logo:'fa-download', type: 'group', renderer: getRecordingEntries, entries: []},
+            {name: Lang.HISTORY, append: '(Ctrl+H)', logo:'fa-history', type: 'group', renderer: getHistoryEntries, entries: []},
             {name: Lang.WINDOW, logo:'fa-window-maximize', type: 'group', renderer: getWindowModeEntries, entries: []},
             {name: Lang.LANGUAGE, logo:'fa-language', type: 'group', renderer: getLanguageEntries, callback: markActiveLocale, entries: []},
-            {name: Lang.PARENTAL_CONTROL, logo: 'assets/icons/white/parental-control.png', type: 'group', renderer: getParentalControlEntries, entries: []},
-            {name: Lang.SEARCH_RANGE, logo: 'fa-search', type: 'group', renderer: getSearchRangeEntries, entries: [], callback: () => {
-                var entries = jQuery('a.entry-option'), range = Config.get('search-range') || 18;
-                entries.each((i) => {
-                    var el = entries.eq(i);
-                    if(el.data('entry-data').value == range){
-                        setEntryFlag(el, 'fa-check-circle')
-                    }
-                })
-            }},
+            parentalControlOption(),
+            searchRangeOption(),
             {name: Lang.RESUME_PLAYBACK, type: 'check', check: (checked) => {Config.set('resume',checked)}, checked: () => {return Config.get('resume')}},
             {name: Lang.HIDE_BUTTON_OPT.format(Lang.BACK, 'Backspace'), type: 'check', check: (checked) => {Config.set('hide-back-button',checked)}, checked: () => {return Config.get('hide-back-button')}},
-            {name: Lang.RESET_DATA, logo:'fa-trash', type: 'option', renderer: top.resetData, entries: []},
+            {name: Lang.RESET_DATA, logo:'fa-trash', type: 'option', renderer: resetData, entries: []},
         ]}
     ];
     
@@ -1556,38 +1699,41 @@ jQuery(document).one('lngload', function (){
     }
 
     setTimeout(() => {
-        if(!top.PlaybackManager.intents.length){
+        if(!PlaybackManager.intents.length){
             playResume()
         }
     }, 1000)
     
-    if(listingPath){
+    Menu.setup();
+    if(Menu.path){
         var l = false;
         try{
-            l = readIndexPath(listingPath)
+            l = readIndexPath(Menu.path)
         }catch(e){
             console.error(e)
         }
         if(!l || !l.length){
-            listingPath = '';
+            Menu.path = '';
         }
     } else {
-        listingPath = '';
+        Menu.path = '';
     }
 
-    listEntriesByPath(listingPath);
+    Menu.go(Menu.path);
     setTimeout(() => {}, 0); // tricky?!
     //console.log(jQuery('.list').html())
 
-    setTimeout(function (){
+    var waitToRenderDelay = 1000, t = (top || window.parent), is = initialSize();
+    setTimeout(() => { 
         jQuery(document).trigger('show');
-        if(top){
-            centralizedResizeWindow(top.initialSize().width, top.initialSize().height);
-            jQuery(top.document).find('#splash').hide();
-            top.jQuery(top.document).trigger('show');
-            top.enableSetFullScreenWindowResizing = true;
-        }
-        showControls();
-    }, 2000)
+        enableSetFullScreenWindowResizing = true;
+        centralizedResizeWindow(is.width, is.height);
+        setTimeout(() => { 
+            showControls();
+            jQuery('#controls').show();
+            jQuery('#splash').hide();
+        }, 500)
+    }, waitToRenderDelay);
+
 })
 

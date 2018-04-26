@@ -14,7 +14,7 @@
 * {
     -webkit-user-drag: none;
 }
-body {
+div#controls {
     -webkit-app-region: no-drag;
     -webkit-user-select: none;
     user-select: none;
@@ -24,40 +24,23 @@ input {
     -webkit-user-select: text;
     user-select: text;
 }
-div#window-handle { 
-    display: none;
-    position: absolute;
-    right: 0;
-    background-color: rgba(0,0,0,0.5);
-    padding: 5px 6px 4px 6px;
-    z-index: 99;
-    opacity: 0.01;
-}
-div#window-handle:hover { 
-    opacity: 1;
-}
-div#window-handle a i, div#window-handle a svg { 
-    color: white; 
-    font-size: 175%;
-    font-weight: normal;
-    padding: 1px 2px;
-}
 #controls {
     outline: 0;
 }
 #controls > div {
-    border-left: 1px solid #29292b;
-    box-shadow: 2px 2px 24px rgba(0, 0, 0, 0.75);
+    background: #000;
+    border-left: 1px solid #131315;
+    box-shadow: 0 0 9px 0 #000;
     align-items: center;
     text-align: center;
     width: 100%;
-    height: 100vh;
+    height: inherit;
     position: absolute;
     right: 0;
+    height: inherit;
 }
 #controls .list {
     width: 100%;
-    height: 100vh;
     overflow-x: hidden;
     overflow-y: auto;
     display: inline-block;
@@ -69,23 +52,21 @@ div#window-handle a i, div#window-handle a svg {
     height: 100%;
     display: table;
     padding-right: 48px; /* for easing curve */
-    box-shadow: inset 0 0 150px 0px rgba(0, 0, 0, 0.5);
 }
-body.playing #controls div.list, body.paused #controls div.list {
-    background: linear-gradient( to bottom, #000, rgba(47, 54, 68, 0.62) 18%);
+body.playing div#controls div.list, body.paused div#controls div.list {
+    background: linear-gradient( to bottom, #000, rgba(47, 54, 68, 0.24) 18%);
 }
 #controls div.list > div > div {
     width: 100%;
     height: 100%;
     display: table-cell;
-    padding-bottom: 32px;
 }
 a.entry {
     display: inline-block;
     text-decoration: none;
     vertical-align: top;
     box-shadow: 0 -2px 2px rgba(0, 0, 0, 0.5);
-    border-top: 1px solid rgba(255, 255, 255, 0.25);
+    border-top: 1px solid #131315;
     background: linear-gradient(to bottom, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.2) 100%);
     width: calc(100% - 12px);
     text-align: left;
@@ -94,7 +75,7 @@ a.entry {
 }
 a.entry:focus, a.entry.entry-focused {
     outline: 0 !important;
-    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.1) 0%, rgba(188, 211, 253, 0.5) 100%);
+    background: linear-gradient(to bottom, rgba(188, 211, 253, 0.05) 0%, rgba(188, 211, 253, 0.21) 100%);
 }
 a.entry tbody {
     height: inherit;
@@ -121,14 +102,25 @@ a.entry td {
     position: relative;
 }
 a.entry-stream .entry-logo {
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.038);
 }
 a.entry-stream .entry-logo img {
     -webkit-box-reflect: below 0  -webkit-linear-gradient(bottom, rgba(255,255,255,0.3) 0%, transparent 33%);
 }
 
+span.entry-logo-img-c {
+    overflow: hidden;
+    width: inherit;
+    height: inherit;
+    display: inline-flex;
+    text-align: center;
+    align-items: center;
+    position: relative;
+}
+
 .entry-logo img {
-    width: 100%;
+    width: auto;
+    height: 100%;
     display: inline-block;
     position: absolute;
     top: 0;
@@ -136,6 +128,11 @@ a.entry-stream .entry-logo img {
     margin: auto;
     left: 0;
     color: rgba(0,0,0,0.01);
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    margin-left: 50%;
+    transform: translateX(-50%);
 }
 
 .entry-logo .entry-logo-fa {
@@ -244,53 +241,71 @@ input.entry-name {
 }
 
 a.option {
-    color: #fff;
+    color: rgba(255, 255, 255, 0.75);
 }
 
-a.option.entry-focused {
+a.option.entry-focused, a.option:hover {
     outline: 0 !important;
-    color: #db0 !important;
+    color: #fff !important;
+    background: radial-gradient(farthest-corner, #666666 0%, transparent 55%);
 }
 
-body .list > div > div {
+div#controls .list > div > div {
     vertical-align: top;
 }
 
-body.home .list > div > div {
+body.home div#controls .list > div > div {
     vertical-align: middle;
+}
+
+div#controls-in {
+    outline: 0;
+}
+
+div#controls-in > div, div.list {
+    height: inherit;
 }
 
 #home-icons, #list-icons {
     transition: top 0.2s linear 0s;
     visibility: visible;
-    font-size: 200%;
+    font-size: 150%;
     position: absolute;
-    right: 7px;
+    right: 6px;
     z-index: 99;
 }
 
-body #home-icons {
+#home-icons {
+    display: none;
     top: 100vh;
 }
 
-body #list-icons {
+#list-icons {
+    display: none;
     top: 100vh;
 }
 
-body.scrolled_500:not(.home) #list-icons {
+body.miniplayer #home-icons, body.miniplayer #list-icons {
+    display: none !important;
+}
+
+body.scrolled_400:not(.home) #list-icons {
     display: inline-block;
     background: #000;
-    padding: 2px 8px 5px 3px;
+    padding: 3px 8px 4px 2px;
     right: 0px;
     border-top-left-radius: 6px;
     border-color: rgba(255, 255, 255, 0.1);
     border-style: solid;
     border-width: 1px 0 0 1px;
-    top: calc(100vh - 64px);
+    top: auto;
+    bottom: 0;
 }
 
-body.home #home-icons {
-    top: calc(100vh - 64px);
+body.showcontrols.home #home-icons {
+    display: inline-block;
+    top: auto;
+    bottom: 4px;
 }
 
 #home-icons a, #list-icons a {
@@ -301,29 +316,47 @@ body.home #home-icons {
     outline: 0;
 }
 
-#home-icons a:hover, #list-icons a:hover {
-    background: radial-gradient(farthest-corner, #666666 0%, transparent 55%);
-}
-
 #controls-toggle, div#controls-toggle * { 
     cursor: pointer; 
 }
 
 #controls-toggle { 
     text-decoration: none; 
-    display: inline-block;  
-    color: #ccc; 
+    display: inline-block; 
     position: absolute; 
-    left: 0;
+    left: -30px;
     top: 0;
     z-index: 9999; 
     background: #000;
     border-color: #29292b;
-    border-bottom-right-radius: 6px;
+    border-bottom-left-radius: 6px;
+    border-bottom-right-radius: 0;
     padding: 2px 7px 3px 10px;
-    font-size: 150%;
+    font-size: 174%;
     border-style: solid;
+    border-width: 0 0 1px 1px;
+    transition: left 0.2s linear;
+    color: #424242;
+}
+
+body.home #controls-toggle { 
+    left: -1px;
     border-width: 0 1px 1px 0;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 6px;
+}
+
+body.playing #controls-toggle, body.paused #controls-toggle {
+    opacity: 0.5; 
+    color: #a09e9e; 
+}
+
+body:not(.playing) #controls-toggle:hover {
+    opacity: 1;
+}
+
+body.submenu #controls-toggle { 
+    color: #424242 !important;
 }
 
 #controls-toggle:hover { 
@@ -331,8 +364,29 @@ body.home #home-icons {
     padding: 2px 8px 3px 11px;
 }
 
+.entry-sub {
+    background-color: rgba(150, 160, 255, 0.15) !important;
+    box-shadow: none !important;
+    border-top-color: transparent !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+}
+
+a.entry-back.entry-sub { 
+    background-color: rgba(150, 160, 255, 0.075) !important;
+}
+
+.entry-sub-first { 
+    /* border-top-left-radius: 4px; */
+}
+
+.entry-sub-last { 
+    /* border-bottom-left-radius: 4px; */
+    /* margin-bottom: -25% !important; */
+}
+
 @media (min-height: 1000px) {
-    body {
+    div#controls {
         font-size: 16px;
     }
     .entry td.entry-logo-c {
@@ -361,8 +415,8 @@ body.home #home-icons {
     }
 }
 @media (min-height: 800px) and (max-height: 999px) {
-    body {
-        font-size: 14px;
+    div#controls {
+        font-size: 15px;
     }
     .entry td.entry-logo-c {
         width: 82px;
@@ -390,8 +444,8 @@ body.home #home-icons {
     }
 }
 @media (min-height: 700px) and (max-height: 779px) {
-    body {
-        font-size: 12px;
+    div#controls {
+        font-size: 13px;
     }
     .entry td.entry-logo-c {
         width: 62px;
@@ -419,8 +473,8 @@ body.home #home-icons {
     }
 }
 @media (min-height: 450px) and (max-height: 699px) {
-    body {
-        font-size: 10px;
+    div#controls {
+        font-size: 11px;
     }
     .entry td.entry-logo-c {
         width: 42px;
@@ -448,8 +502,8 @@ body.home #home-icons {
     }
 }
 @media (max-height: 459px) {
-    body {
-        font-size: 9px;
+    div#controls {
+        font-size: 10px;
     }
     .entry td.entry-logo-c {
         width: 32px;

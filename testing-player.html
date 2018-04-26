@@ -79,18 +79,33 @@
 							hls.destroy()
 						}
 						video.src = '';
-						if(video.parentNode){
+						if(video.parentNode){ 
 							video.parentNode.removeChild(video)
 						}
 					} catch(e) {
 						console.warn(e)
 					}
 				}
+				/*
 				v.on('canplay', () => {
+					console.warn('DURATIONCHANGE', video.duration, s);
+					return;
 					cleanup();
 					if(_success){
 						_success('canplay');
 						_success = _failure = null;
+					}
+				});
+				*/
+				v.on('durationchange', () => {
+					var s = top.minBufferSecsBeforeCommit;
+					console.warn('DURATIONCHANGE', video.duration, s);
+					if(video.duration >= s){
+						cleanup();
+						if(_success){
+							_success('canplay');
+							_success = _failure = null;
+						}
 					}
 				});
 				v.on('error ended', (e) => {

@@ -333,16 +333,38 @@ if(typeof(require)!='undefined'){
         return a.protocol+'//'+a.hostname+base.join('/');
     }
 
-    var request;
+    var request, requestForever;
+
+    function prepareRequest(){
+        if(!request){
+            request = require('request');
+            request = request.defaults({
+                headers: {'User-Agent': navigator.userAgent} // without user-agent some hosts return 403
+            })
+        }
+        return request;
+    }
+
+    function prepareRequestForever(){
+        if(!requestForever){
+            requestForever = require('request').forever();
+            requestForever = requestForever.defaults({
+                headers: {'User-Agent': navigator.userAgent} // without user-agent some hosts return 403
+            })
+        }
+        return requestForever;
+    }
+
     function getHeaders(url, callback, timeoutSecs){
         var start = time(), timer = 0, currentURL = url;
         if(typeof(callback)!='function'){
             callback = () => {}
         }
-        if(!request){
-            request = require('request')
-        }
+        prepareRequest();
         //console.warn(url, traceback());
+        if(!timeoutSecs){
+            timeoutSecs = 10;
+        }
         var r = request(url);
         r.on('error', (response) => {
             r.abort();
@@ -351,6 +373,7 @@ if(typeof(require)!='undefined'){
         r.on('response', (response) => {
             clearTimeout(timer);
             var headers = response.headers;
+            headers['status'] = response.statusCode;
             r.abort();
             if(headers['location'] && headers['location'] != url && headers['location'] != currentURL){
                 if(!headers['location'].match(new RegExp('^(//|https?://)'))){
@@ -746,6 +769,12 @@ if(typeof(require)!='undefined'){
         return file;
     }
 
+    function ucWords(str){
+        return str.toLowerCase().replace(/^[\u00C0-\u1FFF\u2C00-\uD7FF\w]|\s[\u00C0-\u1FFF\u2C00-\uD7FF\w]/g, function(letter) {
+            return letter.toUpperCase();
+        })
+    }
+
     function sliceObject(object, s, e){
         var ret = {};
         if(object){
@@ -776,19 +805,19 @@ if(typeof(require)!='undefined'){
     function seekRewind(){
         if(top && top.PlaybackManager && top.PlaybackManager.activeIntent){
             notify(Lang.REWIND, 'fa-backward', 'short');
-            top.PlaybackManager.seek(-10)
+            top.PlaybackManager.seek(-4)
         }
     }
 
     function seekForward(){
         if(top && top.PlaybackManager && top.PlaybackManager.activeIntent){
             notify(Lang.FORWARD, 'fa-forward', 'short');
-            top.PlaybackManager.seek(10)
+            top.PlaybackManager.seek(4)
         }
     }
     
     function collectListQueue(ref){
-        var container = getListContainer(false);
+        var container = Menu.container(false);
         var as = container.find('a.entry-stream');
         var queue = [], ok = false;
         for(var i=0; i<as.length; i++){
@@ -832,47 +861,95 @@ if(typeof(require)!='undefined'){
 
     function goHome(){
         stop();
-        var c = getFrame('controls');
+        var c = (top || parent);
         if(c){
-            c.listEntriesByPath('')
+            c.Menu.go('')
         }
+    }
+
+    function restartApp(){
+        getManifest((data) => {
+            jQuery(top.document).find('#splash').show('fast');
+            centralizedResizeWindow(data.window.width, data.window.height, true);
+            setTimeout(() => { 
+                chrome.runtime.reload()
+            }, 500)
+        })
     }
 
     function goReload(){
         if(top && top.PlaybackManager.activeIntent){
-            var e = top.PlaybackManager.activeIntent.entry, c = getFrame('controls');
+            var e = top.PlaybackManager.activeIntent.entry;
             stop();
-            c.playEntry(e)
+            var c = (top || parent);
+            if(c){
+                c.playEntry(e)
+            }
         }
     }
     
     function goSearch(searchTerm){
-        var c = getFrame('controls');
-        if(c.searchPath){
+        var c = (top || parent || window);
+        if(c && c.searchPath){
+            if(c.isMiniPlayerActive()){
+                c.leaveMiniPlayer()
+            }
             if(searchTerm){
                 c.lastSearchTerm = searchTerm;
             }
-            c.listEntriesByPathTriggering(c.searchPath, () => {
+            var callback = () => {
                 c.showControls();
                 if(searchTerm){
                     var n = jQuery(c.document).find('.list input');
-                    console.log('AA', c.listingPath, searchTerm);
-                    n.val(searchTerm);
+                    console.log('AA', c.Menu.path, searchTerm);
+                    n.val(searchTerm).trigger('input');
                     console.log('BB', n.length);
                 }
-            })
+            }
+            if(c.Menu.path == c.searchPath){
+                callback()
+            } else {
+                c.Menu.go(c.searchPath, callback)
+            }
+            setBackToHome()
         }
     }
     
+    function goShare(what){
+        var ewhat = encodeURIComponent(what), url = 'https://megacubo.tv/assistir/'+ewhat;
+        url = 'https://www.addtoany.com/share#url='+encodeURIComponent(url)+'&title='+ewhat;
+        gui.Shell.openExternal(url)
+    }
+    
+    function goShareFB(){
+        var n = PlaybackManager.activeIntent?PlaybackManager.activeIntent.entry.name:'...';
+        var url = 'https://megacubo.tv', t = Lang.SHARE_FACEBOOK_MASK.format(n);
+        url = 'https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(url)+'&quote='+encodeURIComponent(t);
+        gui.Shell.openExternal(url)
+    }
+    
+    function goShareTW(){
+        var n = PlaybackManager.activeIntent?PlaybackManager.activeIntent.entry.name:'...';
+        var url = 'https://megacubo.tv', t = Lang.SHARE_TWITTER_MASK.format(n);
+        url = 'https://twitter.com/share?url='+encodeURIComponent(url)+'&text='+encodeURIComponent(t);
+        gui.Shell.openExternal(url)
+    }
+
     function goBookmarks(){
-        var c = getFrame('controls');
+        var c = (top || parent);
         if(c.bookmarksPath){
-            c.listEntriesByPathTriggering(c.bookmarksPath)
+            c.Menu.go(c.bookmarksPath);
+            setBackToHome()
         }
     }
 
+    function setBackToHome(){
+        var c = (top || parent);
+        jQuery(c.document).find('.entry-back').off('mousedown click').on('click', () => {Menu.go('')})
+    }
+
     function goOpen(){
-        var c = getFrame('controls');
+        var c = (top || parent);
         if(c){
             c.addNewSource()
         }
@@ -903,7 +980,7 @@ if(typeof(require)!='undefined'){
 
     function areFramesReady(callback){
         var ok = true;
-        ['player', 'overlay', 'controls'].forEach((name) => {
+        ['player', 'overlay'].forEach((name) => {
             var w = getFrame(name);
             if(!w || !w.document || ['loaded', 'complete'].indexOf(w.document.readyState)==-1){
                 ok = false;
@@ -928,168 +1005,9 @@ if(typeof(require)!='undefined'){
     var shortcuts = [];
 
     function setupShortcuts(){
-
-        shortcuts.push(createShortcut("Ctrl+Alt+D Ctrl+T", () => {
-            top.spawnOut()
-        }, null, true));
-        shortcuts.push(createShortcut("Ctrl+E", () => {
-            top.playExternal()
-        }, null, true));
-        shortcuts.push(createShortcut("Ctrl+W", () => {
-            stop()
-        }, null, true));
-        shortcuts.push(createShortcut("Ctrl+O", () => {
-            openFileDialog(function (file){
-                var o = getFrame('overlay');
-                if(o){
-                    o.processFile(file)
-                }
-            })
-        }, null, true));
-        shortcuts.push(createShortcut("Ctrl+Z", () => {
-            var c = getFrame('controls');
-            if(c){
-                c.playPrevious()
-            }
-        }, null, true));
-        shortcuts.push(createShortcut("F1 Ctrl+I", help));
-        shortcuts.push(createShortcut("F2", () => {
-            var c = getFrame('controls');
-            if(c){
-                c.renameSelectedEntry()
-            }
-        }, null, true))
-        shortcuts.push(createShortcut("F3 Ctrl+F Ctrl+F3", () => {
-            goSearch()
-        }, null, true));
-        shortcuts.push(createShortcut("F5", () => {
-            goReload()
-        }, null, true));
-        shortcuts.push(createShortcut("Space", () => {
-            top.playPause()
-        }));
-        shortcuts.push(createShortcut("Ctrl+H", () => {
-            getFrame('controls').goHistory()
-        }, null, true));
-        shortcuts.push(createShortcut("Ctrl+D", () => {
-            getFrame('controls').addFav()
-        }, null, true));
-        shortcuts.push(createShortcut("Ctrl+U", () => {
-            var c = getFrame('controls');
-            if(c){
-                c.addNewSource()
-            }
-        }, null, true));
-        shortcuts.push(createShortcut("Ctrl+S Ctrl+X", () => {
-            if(!top.isRecording){
-                top.startRecording()
-            } else {
-                top.stopRecording()
-            }
-        }, null, true));
-        shortcuts.push(createShortcut("Ctrl+Shift+D", () => {
-            getFrame('controls').removeFav()
-        }, null, true));
-        shortcuts.push(createShortcut("Ctrl+Alt+R Ctrl+F5", () => {
-            //chrome.runtime.reload();
-            getManifest((data) => {
-                jQuery(top.document).find('#splash').show('fast');
-                centralizedResizeWindow(data.window.width, data.window.height);
-                setTimeout(() => { 
-                    chrome.runtime.reload()
-                }, 500)
-            })
-        }, null, true));
-        shortcuts.push(createShortcut("Home", () => {
-            if(!areControlsActive()){
-                showControls()
-            }
-            getFrame('controls').listEntriesByPath('')
-        }));
-        shortcuts.push(createShortcut("Delete", () => {
-            if(areControlsActive()){
-                var c = getFrame('controls');
-                c.triggerEntryAction('delete')
-            } else {
-                if(!areControlsHiding()){
-                    stop();
-                    notify(Lang.STOP, 'fa-stop', 'short')
-                }
-            }
-        }));
-        shortcuts.push(createShortcut("Up", () => {
-            showControls();
-            var c = getFrame('controls');
-            c.focusPrevious()
-        }, "hold", true));
-        shortcuts.push(createShortcut("Down", () => {
-            showControls();
-            var c = getFrame('controls');
-            c.focusNext()
-        }, "hold", true));
-        shortcuts.push(createShortcut("Enter", () => {
-            if(!isMiniPlayerActive()){
-                if(!areControlsActive()){
-                    showControls()
-                } else {
-                    var c = getFrame('controls');
-                    c.triggerEnter()
-                }
-            }
-        }));
-        shortcuts.push(createShortcut("Backspace", () => {
-            if(!isMiniPlayerActive()){
-                if(!areControlsActive()){
-                    showControls()
-                } else {
-                    var c = getFrame('controls');
-                    c.triggerBack()
-                }
-            }
-        }, "hold"));
-        shortcuts.push(createShortcut("Alt+Enter F11", () => {
-            top.toggleFullScreen()
-        })),
-        shortcuts.push(createShortcut("Right", () => {
-            seekForward()
-        }, "hold"));
-        shortcuts.push(createShortcut("Left", () => {
-            seekRewind()
-        }, "hold"));
-        shortcuts.push(createShortcut("Ctrl+Left", () => {
-            var s = getPreviousStream();
-            if(s){
-                console.log(s);
-                getFrame('controls').playEntry(s)
-            }
-        }));
-        shortcuts.push(createShortcut("Ctrl+Right", () => {
-            var s = getNextStream();
-            if(s){
-                console.log(s);
-                getFrame('controls').playEntry(s)
-            }
-        }));
-        shortcuts.push(createShortcut("Ctrl+Backspace", () => { // with Ctrl it work on inputs so
-            if(!isMiniPlayerActive()){
-                if(!areControlsActive()){
-                    showControls()
-                } else {
-                    var c = getFrame('controls');
-                    c.triggerBack()
-                }
-            }
-        }, null, true));
-        shortcuts.push(createShortcut("F4", () => {
-            top.changeScaleMode()
-        }));
-        shortcuts.push(createShortcut("Esc", () => {
-            top.escapePressed()
-        }, null, true));
-        jQuery.Shortcuts.start();
-
-        if(!top || top == window){
+        if(top == window){
             var globalHotkeys = [
+                /*
                 {
                     key : "Ctrl+M",
                     active : () => {
@@ -1106,13 +1024,14 @@ if(typeof(require)!='undefined'){
                         }
                     }
                 },
+                */
                 {
                     key : "MediaPrevTrack",
                     active : () => {
                         var s = getPreviousStream();
                         if(s){
                             console.log(s);
-                            getFrame('controls').playEntry(s)
+                            (top || parent).playEntry(s)
                         }
                     }
                 },
@@ -1122,7 +1041,7 @@ if(typeof(require)!='undefined'){
                         var s = getNextStream();
                         if(s){
                             console.log(s);
-                            getFrame('controls').playEntry(s)
+                            (top || parent).playEntry(s)
                         }
                     }
                 },
@@ -1155,6 +1074,166 @@ if(typeof(require)!='undefined'){
                 console.log('Hotkeys unregistered.')
             })
         }
+        shortcuts.push(createShortcut("Ctrl+Alt+D Ctrl+T", () => {
+            top.spawnOut()
+        }, null, true));
+        shortcuts.push(createShortcut("Ctrl+E", () => {
+            top.playExternal()
+        }, null, true));
+        shortcuts.push(createShortcut("Ctrl+W", () => {
+            stop()
+        }, null, true));
+        shortcuts.push(createShortcut("Ctrl+O", () => {
+            openFileDialog(function (file){
+                var o = getFrame('overlay');
+                if(o){
+                    o.processFile(file)
+                }
+            })
+        }, null, true));
+        shortcuts.push(createShortcut("Ctrl+Z", () => {
+            var c = (top || parent);
+            if(c){
+                c.playPrevious()
+            }
+        }, null, true));
+        shortcuts.push(createShortcut("F1 Ctrl+I", help));
+        shortcuts.push(createShortcut("F2", () => {
+            var c = (top || parent);
+            if(c){
+                c.renameSelectedEntry()
+            }
+        }, null, true))
+        shortcuts.push(createShortcut("F3 Ctrl+F Ctrl+F3", () => {
+            goSearch()
+        }, null, true));
+        shortcuts.push(createShortcut("F5", () => {
+            goReload()
+        }, null, true));
+        shortcuts.push(createShortcut("Space", () => {
+            top.playPause()
+        }));
+        shortcuts.push(createShortcut("Ctrl+H", () => {
+            (top || parent).goHistory()
+        }, null, true));
+        shortcuts.push(createShortcut("Ctrl+U", () => {
+            var c = (top || parent);
+            if(c){
+                c.addNewSource()
+            }
+        }, null, true));
+        shortcuts.push(createShortcut("F9 Ctrl+X", () => {
+            if(!top.isRecording){
+                top.startRecording()
+            } else {
+                top.stopRecording()
+            }
+        }, null, true));
+        shortcuts.push(createShortcut("Ctrl+D Ctrl+S", () => {
+            (top || parent).addFav()
+        }, null, true));
+        shortcuts.push(createShortcut("Ctrl+Alt+D Ctrl+Alt+S", () => {
+            (top || parent).removeFav()
+        }, null, true));
+        shortcuts.push(createShortcut("Ctrl+Shift+D Ctrl+Shift+S", () => {
+            goBookmarks()
+        }, null, true));
+        shortcuts.push(createShortcut("Ctrl+Alt+R Ctrl+F5", () => {
+            restartApp()
+        }, null, true));
+        shortcuts.push(createShortcut("Home", () => {
+            if(!areControlsActive()){
+                showControls()
+            }
+            (top || parent).Menu.go('')
+        }));
+        shortcuts.push(createShortcut("Delete", () => {
+            if(areControlsActive()){
+                var c = (top || parent);
+                c.Menu.triggerKey('delete')
+            } else {
+                if(!areControlsHiding()){
+                    stop();
+                    notify(Lang.STOP, 'fa-stop', 'short')
+                }
+            }
+        }));
+        shortcuts.push(createShortcut("Up Shift+Tab", () => {
+            showControls();
+            var c = (top || parent);
+            c.Menu.focusPrevious()
+        }, "hold", true));
+        shortcuts.push(createShortcut("Down Tab", () => {
+            showControls();
+            var c = (top || parent);
+            c.Menu.focusNext()
+        }, "hold", true));
+        shortcuts.push(createShortcut("Enter", () => {
+            if(!isMiniPlayerActive()){
+                if(!areControlsActive()){
+                    showControls()
+                } else {
+                    var c = (top || parent);
+                    c.Menu.enter()
+                }
+            }
+        }));
+        shortcuts.push(createShortcut("Backspace", () => {
+            if(!isMiniPlayerActive()){
+                if(!areControlsActive()){
+                    showControls()
+                } else {
+                    var c = (top || parent);
+                    c.Menu.back()
+                }
+            }
+        }, "hold"));
+        shortcuts.push(createShortcut("Alt+Enter F11", () => {
+            top.toggleFullScreen()
+        })),
+        shortcuts.push(createShortcut("Right", () => {
+            seekForward()
+        }, "hold"));
+        shortcuts.push(createShortcut("Left", () => {
+            seekRewind()
+        }, "hold"));
+        shortcuts.push(createShortcut("Ctrl+Left", () => {
+            var s = getPreviousStream();
+            if(s){
+                console.log(s);
+                (top || parent).playEntry(s)
+            }
+        }));
+        shortcuts.push(createShortcut("Ctrl+Right", () => {
+            var s = getNextStream();
+            if(s){
+                console.log(s);
+                (top || parent).playEntry(s)
+            }
+        }));
+        shortcuts.push(createShortcut("Ctrl+Backspace", () => { // with Ctrl it work on inputs so
+            if(!isMiniPlayerActive()){
+                if(!areControlsActive()){
+                    showControls()
+                } else {
+                    var c = (top || parent);
+                    c.Menu.back()
+                }
+            }
+        }, null, true));
+        shortcuts.push(createShortcut("F4", () => {
+            top.changeScaleMode()
+        }));
+        shortcuts.push(createShortcut("Ctrl+M", () => {
+            top.toggleMiniPlayer() // global shortcuts fail sometimes, so list it here too as a fallback hotkey binding
+        }, null, true));
+        shortcuts.push(createShortcut("Ctrl+Tab", () => {
+            top.switchPlayingStream()
+        }, null, true));
+        shortcuts.push(createShortcut("Esc", () => {
+            top.escapePressed()
+        }, null, true));
+        jQuery.Shortcuts.start();
     }
     
     function centralizedResizeWindow(w, h, animate){
@@ -1208,7 +1287,11 @@ if(typeof(require)!='undefined'){
         child.stderr.on('data', function(chunk) {
             data += String(chunk)
         });
+        var timeout = setTimeout(() => {
+            child.kill()
+        }, 10000);
         child.on('close', (code) => {
+            clearTimeout(timeout);
             callback(data, code)
         });
     }
@@ -1228,7 +1311,7 @@ if(typeof(require)!='undefined'){
     var b = jQuery(top.document).find('body');
     
     var areControlsActive = () => {
-        return b.hasClass('istyping') || b.hasClass('showcontrols') || b.hasClass('paused');
+        return b.hasClass('showcontrols');
     }
     
     var areControlsHiding = () => {
@@ -1248,13 +1331,13 @@ if(typeof(require)!='undefined'){
         if(areControlsActive()){
             //console.log('HH')
             top.controlsHiding = true;
-            var c = getFrame('controls');
+            var c = (top || parent);
             b.removeClass('istyping showcontrols paused');
             var controlsActiveElement = c.document.activeElement;
             //console.log('HIDE', controlsActiveElement)
             if(controlsActiveElement && controlsActiveElement.tagName.toLowerCase()=='input'){
                 //console.log('HIDE UNFOCUS', controlsActiveElement)
-                c.focusPrevious()
+                c.Menu.focusPrevious()
             }
             top.PlaybackManager.play();
             setTimeout(() => {
@@ -1575,7 +1658,6 @@ if(typeof(require)!='undefined'){
             if(isMiniPlayerActive()){
                 top.leaveMiniPlayer()
             }
-            console.error(traceback());
             var defaultValue = Store.get('last-ask-for-source-value');
             var cb = top.clipboard.get('text');
             if(cb.match(new RegExp('^(//|https?://)'))){
@@ -1656,7 +1738,7 @@ if(typeof(require)!='undefined'){
             if(name){
                 console.log('lastCustomPlayURL', url, name);
                 Store.set('lastCustomPlayURL', url);
-                var logo = '', c = getFrame('controls');                
+                var logo = '', c = (top || parent);                
                 if(c){
                     logo = c.defaultIcons['stream'];
                 }
@@ -1737,26 +1819,23 @@ if(typeof(require)!='undefined'){
     jQuery(setupShortcuts);    
 
     function stop(skipPlaybackManager){
-        if(!top) return;
+        var c = (top || parent);
         console.log('STOP', traceback());
-        if(top.PlaybackManager.activeIntent){
+        c.autoCleanEntriesCancel();
+        if(c.PlaybackManager.activeIntent){
             if(!skipPlaybackManager){
-                top.PlaybackManager.fullStop();
+                c.PlaybackManager.fullStop();
             }
             showPlayers(false, false);
             setTitleData('Megacubo', 'default_icon.png');
             leavePendingState();
-            top.doAction('stop')
+            c.doAction('stop')
         }
         setTimeout(() => {
-            if(!isPlaying()){
-                var c = getFrame('controls');
-                if(c){
-                    c.autoCleanEntriesCancel();
-                    c.updateStreamEntriesFlags()
-                }
+            if(c.updateStreamEntriesFlags){
+                c.updateStreamEntriesFlags() // on unload => Uncaught TypeError: c.updateStreamEntriesFlags is not a function
             }
-        }, 400)
+        }, 200)
     }
     
     function currentStream(){
@@ -1770,7 +1849,7 @@ if(typeof(require)!='undefined'){
     }
     
     function isSandboxLoading(){
-        var c = getFrame('controls');
+        var c = (top || parent);
         var stream = c.currentSandboxStreamArgs;
         console.log('isSandboxLoading', c.currentSandboxTimeoutTimer, top.document.querySelector('iframe#sandbox').src, stream);
         return c.currentSandboxTimeoutTimer && (top.document.querySelector('iframe#sandbox').src == stream[0].url);
@@ -1813,18 +1892,33 @@ if(typeof(require)!='undefined'){
         })
     }
 
+    var imageCheckingCache = {};
+
     function checkImage(url, load, error){
-        if(url.indexOf('/') != -1){
+        if(url.indexOf('/') == -1){
             error();
             return;
         }
-        if(typeof(window._testImageObject)=='undefined'){
-            _testImageObject = new Image();
+        if(typeof(imageCheckingCache[url])=='boolean'){
+            if(imageCheckingCache[url]){
+                load()
+            } else {
+                error()
+            }
+            return;
         }
-        _testImageObject.onerror = error;
-        _testImageObject.onload = load;
+        var _testImageObject = new Image();
+        _testImageObject.onerror = () => {
+            delete _testImageObject;
+            imageCheckingCache[url] = false;
+            error()
+        }
+        _testImageObject.onload = () => {
+            delete _testImageObject;
+            imageCheckingCache[url] = true;
+            load()
+        }
         _testImageObject.src = url;
-        return _testImageObject;
     }
 
     function applyIcon(icon){
@@ -1869,7 +1963,7 @@ if(typeof(require)!='undefined'){
     }
 
     function updateNotifyFirstDo(){
-        var o = getFrame('overlay');
+        var o = window.top || window.parent;
         if(o){
             var nrs = jQuery(o.document).find('div.notify-row:visible');
             var f = nrs.eq(0);
@@ -1885,8 +1979,8 @@ if(typeof(require)!='undefined'){
         setTimeout(updateNotifyFirstDo, 200)
     }
 
-    function notifyRemove(str){
-        var o = getFrame('overlay');
+    function notifyCache(str){
+        var o = window.top || window.parent;
         if(o){
             var a = jQuery(o.document.getElementById('notify-area'));
             a.find('.notify-row').filter((i, o) => {
@@ -1895,10 +1989,25 @@ if(typeof(require)!='undefined'){
         }
     }
 
+    function notifyRemove(str){
+        var o = window.top || window.parent;
+        if(o){
+            var a = jQuery(o.document.getElementById('notify-area'));
+            a.find('.notify-row').filter((i, o) => {
+                return jQuery(o).find('div').text().trim().indexOf(str) != -1;
+            }).hide()
+        }
+    }
+
+    var lastNotifyCall = null;
     function notify(str, fa, secs){
-        var o = getFrame('overlay');
+        if((str + fa) == lastNotifyCall){ // tricky, avoid doubled calls
+            return;
+        }
+        lastNotifyCall = (str + fa);
+        var o = window.top || window.parent;
         if(o && o.document){
-            var a = o.document.getElementById('notify-area');
+            var _fa = fa, a = o.document.getElementById('notify-area');
             if(a){
                 a = jQuery(a);
                 if(!str) {
@@ -1913,7 +2022,10 @@ if(typeof(require)!='undefined'){
                     }
                     secs = notifyParseTime(secs);
                     var destroy = () => {
-                        n.hide(400, () => {
+                        if(lastNotifyCall == (str + fa)){
+                            lastNotifyCall = '';
+                        }
+                        n.animate({left: 40, opacity: 0.01}, 400, () => {
                             n.remove();
                             setTimeout(updateNotifyFirst, 100)
                         })
@@ -1921,11 +2033,18 @@ if(typeof(require)!='undefined'){
                     a.find('.notify-row').filter((i, o) => {
                         return jQuery(o).find('div').text().trim() == str;
                     }).remove();
-                    if(fa) fa = '<i class="fa {0}" aria-hidden="true"></i> '.format(fa);
-                    var n = jQuery('<div class="notify-row '+c+' notify-first"><div class="notify">' + fa + ' ' + str + '</div></div>');
+                    if(_fa){
+                        if(_fa.indexOf('/') != -1){
+                            _fa = '<span class="notify-icon" style="background-image:url({0});"></span> '.format(fa.replaceAll('"', ''))
+                        } else {
+                            _fa = '<i class="fa {0}" aria-hidden="true"></i> '.format(fa)
+                        }
+                    }
+                    var n = jQuery('<div class="notify-row '+c+' notify-first" style="position: relative; left: 40px; opacity: 0.01;"><div class="notify">' + _fa + ' ' + str + '</div></div>');
                     n.prependTo(a);
                     timer = top.setTimeout(destroy, secs * 1000);
                     updateNotifyFirst();
+                    n.animate({left: 0, opacity: 1}, 250);
                     var getElement = () => {
                         if(!(n && n.parent() && n.parent().parent())){
                             n = notify(str, fa, secs)
@@ -1934,15 +2053,16 @@ if(typeof(require)!='undefined'){
                     }
                     return {
                         update: (str, fa, secs) => {
+                            lastNotifyCall = (str + fa);
                             n = getElement();
+                            console.log('UPDATE NOTIFY', n);
                             n.hide();
                             if(fa && str) {
-                                fa = '<i class="fa {0}" aria-hidden="true"></i> '.format(fa);
-                                n.find('.notify').html(fa + ' ' + str)
+                                _fa = '<i class="fa {0}" aria-hidden="true"></i> '.format(fa)
+                                n.find('.notify').html(_fa + ' ' + str)
                             }
                             if(secs){
                                 n.prependTo(a);
-                                n.parent().appendTo('body');
                                 secs = notifyParseTime(secs);
                                 clearTimeout(timer);
                                 timer = top.setTimeout(destroy, secs * 1000);
@@ -1956,6 +2076,9 @@ if(typeof(require)!='undefined'){
                             n.show()
                         },
                         hide: () => {
+                            if(lastNotifyCall == (str + fa)){
+                                lastNotifyCall = '';
+                            }
                             n = getElement();
                             n.hide()
                         },
@@ -1986,12 +2109,13 @@ if(typeof(require)!='undefined'){
     var pendingStateTimer = 0, defaultTitle = '';
 
     function inPendingState() {
-        return top.isPending || false;
+        return top ? (top.isPending || false) : false;
     }
 
     function enterPendingState(title, notifyFlag, loadingUrl) {
         //console.warn('ssss', top.isPending, loadingUrl || false, traceback());
-        top.isPending = loadingUrl || ((top.isPending && typeof(top.isPending)=='string') ? top.isPending : true);
+        var t = top || parent || window;
+        t.isPending = loadingUrl || ((t.isPending && typeof(t.isPending)=='string') ? t.isPending : true);
         //console.warn('ssss', top.isPending);
         setTitleFlag('fa-circle-notch fa-spin', title);
         if(!notifyFlag){
@@ -2003,22 +2127,17 @@ if(typeof(require)!='undefined'){
             notifyRemove(notifyFlag)
         }
         notify(notifyFlag+'...', 'fa-circle-notch fa-spin', 'forever');
-        var c = getFrame('controls');
-        if(c){
-            c.updateStreamEntriesFlags()
-        }
+        t.updateStreamEntriesFlags()
     }
     
     function leavePendingState() {
-        if(top && typeof(top.isPending)!='undefined'){
-            top.isPending = false;
+        var t = top || parent || window;
+        if(typeof(t.isPending)!='undefined'){
+            t.isPending = false;
             notifyRemove(Lang.CONNECTING);
             notifyRemove(Lang.TUNING);
             setTitleFlag('', defaultTitle);
-            var c = getFrame('controls');
-            if(c){
-                c.removeLoadingFlags()
-            }
+            t.removeLoadingFlags()
         }
     }
 
@@ -2096,17 +2215,18 @@ if(typeof(require)!='undefined'){
         }
     }
 
-    function getHTTPContentType(url, callback){
+    function getHTTPInfo(url, callback){
         var timeout = 30;
         getHeaders(url, (h, u) => { 
             var cl = h['content-length'] || -1;
             var ct = h['content-type'] || '';
+            var st = h['status'] || 0;
             if(ct){
                 ct = ct.split(',')[0].split(';')[0];
             } else {
                 ct = '';
             }
-            callback(ct, cl, url, u) // u is the final url, url the starter url
+            callback(ct, cl, url, u, st) // "u" is the final url, "url" the starter url
         }, timeout)
     }
 
@@ -2120,6 +2240,14 @@ if(typeof(require)!='undefined'){
     function ltrimPathBar(path){
         if(path && path.charAt(0)=='/'){
             path = path.substr(1)
+        }
+        return path || '';
+    }
+
+    function rtrimPathBar(path){
+        var i = path && path.length ? path.length - 1 : 0;
+        if(path && path.charAt(i)=='/'){
+            path = path.substr(0, i)
         }
         return path || '';
     }
@@ -2147,7 +2275,7 @@ if(typeof(require)!='undefined'){
     function openMegaFile(file){
         var entry = megaFileToEntry(file);
         if(entry){
-            var c = getFrame('controls');
+            var c = (top || parent);
             if(c){
                 c.playEntry(entry)
             }
@@ -2157,7 +2285,7 @@ if(typeof(require)!='undefined'){
     function megaFileToEntry(file){
         var content = fs.readFileSync(file);
         if(content) {
-            var c = getFrame('controls'), parser = new DOMParser();
+            var c = (top || parent), parser = new DOMParser();
             var doc = parser.parseFromString(content, "application/xml");
             var url = jQuery(doc).find('stream').text().replaceAll('embed::', '').replaceAll('#off', '#nosandbox').replaceAll('#catalog', '#nofit#');
             var name = jQuery(doc).find('stream').attr('name') || jQuery(doc).find('name').text();
@@ -2187,6 +2315,17 @@ if(typeof(require)!='undefined'){
         }
         return false;
     }
+
+    function isRadio(name){
+        //console.log('NAME', name);
+        var t = typeof(name);
+        if(['string', 'object'].indexOf(t) != -1){
+            if((t=='string' ? name : name.join(' ')).match(new RegExp('(r[aá&cute;]+dio|\\b(fm|am)\\b)', 'i'))){
+                return true;
+            }
+        }
+        return false;
+    }
     
     function isM3U8(url){
         if(typeof(url)!='string') return false;
@@ -2195,17 +2334,22 @@ if(typeof(require)!='undefined'){
     
     function isTS(url){
         if(typeof(url)!='string') return false;
-        return ['http', 'https'].indexOf(getProto(url))!=-1 && getExt(url) == 'ts';            
+        return isHTTP(url) && getExt(url) == 'ts';            
     }
     
     function isRemoteTS(url){
         if(typeof(url)!='string') return false;
-        return ['http', 'https'].indexOf(getProto(url))!=-1 && getExt(url) == 'ts';            
+        return isHTTP(url) && getExt(url) == 'ts';            
     }
     
     function isRTMP(url){
         if(typeof(url)!='string') return false;
         return url.match(new RegExp('^rtmp[a-z]?:', 'i'));            
+    }
+    
+    function isHTTP(url){
+        if(typeof(url)!='string') return false;
+        return url.match(new RegExp('^https?:', 'i'));            
     }
     
     function isMagnet(url){
@@ -2403,6 +2547,9 @@ if(typeof(require)!='undefined'){
     }
 
     function logErr(){
+        if(!fs){
+            fs = require('fs')
+        }
         if(!fs.existsSync('error.log')){
             fs.closeSync(fs.openSync('error.log', 'w')); // touch
         }

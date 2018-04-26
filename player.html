@@ -11,15 +11,26 @@
 		<video id="video" autoplay></video>
 		<script type="text/javascript">
 			var hls, video = document.getElementById('video'), player = jQuery(video), b = jQuery('body');
-			top.prepareVideoObject(video);
 			var recoverDecodingErrorDate, recoverSwapAudioCodecDate;
 			function handleMediaError(hls) {
+				var watchTimeout = () => {
+					var timer = 0, ms = video.currentTime;
+					timer = setTimeout(() => {
+						if(ms == video.currentTime){
+							reset()
+						}
+					}, 5000);
+					player.off('canplaythrough').one('canplaythrough', () => {
+						clearTimeout(timer)
+					})
+				}
 				var now = performance.now();
 				if (!recoverDecodingErrorDate || (now - recoverDecodingErrorDate) > 3000) {
 					recoverDecodingErrorDate = performance.now();
 					var msg = "trying to recover from media Error ..."
 					console.warn(msg);
 					hls.recoverMediaError();
+					watchTimeout()
 				} else {
 					if (!recoverSwapAudioCodecDate || (now - recoverSwapAudioCodecDate) > 3000) {
 						recoverSwapAudioCodecDate = performance.now();
@@ -27,9 +38,11 @@
 						console.warn(msg);
 						hls.swapAudioCodec();
 						hls.recoverMediaError();
+						watchTimeout()
 					} else {
 						var msg = "cannot recover, last media error recovery failed ..."
 						console.error(msg);
+						setTimeout(reset, 1000)
 					}
 				}
 			}	
@@ -39,6 +52,7 @@
 				if(hls){
 					hls.destroy()
 				}
+				console.log('SRC=', _src, type);
 				if(type.toLowerCase().indexOf('mpegurl')!=-1){
 					hls = new Hls({
 						//debug: true
@@ -47,10 +61,13 @@
 					});				
 					hls.loadSource(_src);
 					hls.attachMedia(video);
-					hls.on(Hls.Events.ERROR, function(event, data) {
+					hls.on(Hls.Events.ERROR, (event, data) => {
 						var msg = "Player error: " + data.type + " - " + data.details;
 						console.error(msg, data);
-						if (data.fatal) { //} || data.details == 'bufferStalledError') {
+						if(data.details == 'bufferStalledError'){
+							handleMediaError(hls);
+						} else if (data.fatal) {
+							// reset();
 							switch (data.type) {
 								case Hls.ErrorTypes.MEDIA_ERROR:
 									handleMediaError(hls);
@@ -112,7 +129,7 @@
 			}
 			function currentTime(s){
 				if(s){
-					video.currentTime = s;
+					video.currentTime = s; 
 				}
 				return video.currentTime;
 			}
@@ -124,12 +141,7 @@
 					src(currentSrc.src, currentSrc.type)
 				}
 			}
-			reset();
-			jQuery(() => {
-				setTimeout(() => {
-					top.createMouseObserverForControls(window)				
-				}, 200)
-			})
+			reset()
 		</script>
 	</body>
 </html>

@@ -2,73 +2,52 @@
 * {
 	-webkit-user-drag: none;
 }
+
 body {
 	margin: 0;
 }	
-div#player-status {
-	position: absolute;
-	background: rgba(0, 0, 0, 0.5);
-	top: 0;
-	left: 0;
-	width: 100vw;
-	height: 100vh;
-	display: none;
-	align-items: center;
-	justify-content: center;
-	z-index: 2147483646 !important;
-	pointer-events: none;
-}
-div#player-status svg {
-	color: #fff;
-	font-size: 72px;
-	opacity: 0.75;    
-}
-div#player-status .fac {
-	background: rgba(3, 11, 23, 0.75);
-	padding: 12px;
-	border-radius: 6px;
-	display: none;
-}
-body.loading div#player-status, body.paused div#player-status {
-	display: flex !important;
-}
-body.loading div.fac-loading {
-	display: block !important;
-}
-body.paused div.fac-paused {
-	display: block !important;
-}
 
-#player-top-bar {
-    display: none;
-    position: absolute;
-    z-index: 2147483647 !important;
-    top: 4px;
-    left: calc(100% - 36px);
-    color: #FFF;
-	cursor: pointer;
-	background-color: #000;
-	padding: 2px 2px 0px 2px !important;
-    border-radius: 10px;
-}
-body.loading #player-top-bar, body.paused #player-top-bar {
-	display: inline-block;
-}
 video {
 	object-fit: fill;
 	width: 100vw;
 	height: 100vh;
 	position: absolute;
+	filter: saturate(104%) contrast(104%) brightness(104%);
+	/* not working
+	transition: filter 0.2s linear 0.1s, -webkit-filter 0.2s linear 0.1s;
+	-webkit-transition: filter 0.2s linear 0.1s, -webkit-filter 0.2s linear 0.1s;
+	*/
 }
+
+body.loading video, body.paused video {
+    filter: saturate(80%) contrast(80%) brightness(80%);
+}
+
 video::-webkit-media-controls-panel { 
-	background: rgba(43,51,63,.7); 
+    background: rgba(11, 12, 16, 0.75);
 	position: absolute;
+	display: flex !important;
 	z-index: 2147483647 !important;
+	padding: 18px 4px 18px 4px;
+    box-sizing: border-box;
+    transform: scale(1.0001);
 }
+
 video::-webkit-media-controls-current-time-display, video::-webkit-media-controls-time-remaining-display { 
 	color: #ddd !important; 
 }
+
 video::-webkit-media-controls-mute-button, video::-webkit-media-controls-play-button, video::-webkit-media-controls-fullscreen-button { 
 	filter: brightness(2.4); 
 	cursor: pointer; 
+}
+
+video::-webkit-media-controls-volume-slider,
+video::-webkit-media-controls-timeline {
+	filter: hue-rotate(19deg) saturate(5) !important;
+}
+
+video:hover::-webkit-media-controls-panel {
+	opacity: 1 !important;
+	display: flex;
 }

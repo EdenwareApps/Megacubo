@@ -1,34 +1,35 @@
 
-function getWindowModeEntries(){
+function getWindowModeEntries(short){
     var options = [];
-    if(top){
-        if(isMiniPlayerActive()){
-            options.push({name: Lang.RESTORE+' (ESC)', logo:'fa-window-restore', type: 'option', callback: function (){
-                top.leaveMiniPlayer();
-                refreshListing()
-            }})
-        } else if(top.isFullScreen()){
-            options.push({name: Lang.RESTORE+' (ESC)', logo:'fa-window-restore', type: 'option', callback: function (){
-                top.setFullScreen(false);
-                refreshListing()
-            }})
-        } else {
-            options.push({name: Lang.FULLSCREEN+' (F11)', logo:'fa-window-maximize', type: 'option', callback: function (){
-                top.setFullScreen(true);
-                refreshListing()
-            }})
-            options.push({name: 'Miniplayer (Ctrl+M)', logo:'fa-level-down-alt', type: 'option', callback: function (){
-                top.enterMiniPlayer();
-                refreshListing()
-            }})
+    if(isMiniPlayerActive()){
+        options.push({name: Lang.RESTORE+' (ESC)', logo:'fa-window-restore', type: 'option', callback: function (){
+            leaveMiniPlayer();
+            Menu.refresh()
+        }})
+    } else if(isFullScreen()){
+        options.push({name: Lang.RESTORE+' (ESC)', logo:'fa-window-restore', type: 'option', callback: function (){
+            setFullScreen(false);
+            Menu.refresh()
+        }})
+    } else {
+        options.push({name: Lang.FULLSCREEN+' (F11)', logo:'fa-window-maximize', type: 'option', callback: function (){
+            setFullScreen(true);
+            Menu.refresh()
+        }})
+        options.push({name: 'Miniplayer (Ctrl+M)', logo:'fa-level-down-alt', type: 'option', callback: function (){
+            enterMiniPlayer();
+            Menu.refresh()
+        }})
+        if(short !== true){
             options.push({name: Lang.DUPLICATE+' (Ctrl+Alt+D)', logo:'fa-copy', type: 'option', callback: function (){
-                top.spawnOut();
-                refreshListing()
+                spawnOut()
             }})
         }
-        options.push({name: 'Aspect Ratio (F4)', logo:'fa-arrows-alt', type: 'option', callback: function (){
-            top.changeScaleMode()
-        }})    
+    }
+    options.push({name: 'Aspect Ratio (F4)', logo:'fa-arrows-alt', type: 'option', callback: function (){
+        changeScaleMode()
+    }})    
+    if(short !== true){
         options.push({name: Lang.START_IN_FULLSCREEN, type: 'check', check: function (checked){
             Config.set('start-in-fullscreen', checked)
         }, checked: () => {
@@ -38,7 +39,7 @@ function getWindowModeEntries(){
         options.push({name: Lang.GPU_RENDERING, type: 'check', check: function (checked){
             notify(Lang.SHOULD_RESTART, 'fa-cogs', 'normal');
             Config.set('gpu-rendering', checked);
-            top.setHardwareAcceleration(checked)
+            setHardwareAcceleration(checked)
         }, checked: () => {
                 return Config.get('gpu-rendering')
             }
@@ -46,8 +47,8 @@ function getWindowModeEntries(){
     }
     /*
     options.push({name: 'Chromecast', logo:'fa-chrome', type: 'option', callback: function (){
-        top.castManagerInit();
-        refreshListing()
+        castManagerInit();
+        Menu.refresh()
     }})
     */
     return options;
@@ -59,17 +60,12 @@ function getHistoryEntries(){
     if(options.length){
         options.push({name: Lang.CLEAR, logo:'fa-user-secret', type: 'option', callback: function (){
             History.clear();
-            refreshListing()
+            Menu.refresh()
         }})
     } else {
         options.push({name: Lang.EMPTY, logo:'fa-file', type: 'option'})
     }
     return options;
-}
-
-function getRemoteXtras(callback){
-    var url = 'http://app.megacubo.net/stats/data/xtras.'+getLocale(true)+'.json';
-    return fetchEntries(url, callback)
 }
 
 function getRemoteSources(callback){
@@ -79,11 +75,11 @@ function getRemoteSources(callback){
 
 function loadSource(url, name, callback, filter){
     var path = assumePath(name);
-    var container = getListContainer(true);
-    backEntryRender(container, dirname(path));
+    var container = Menu.container(true);
+    backEntryRender(container, dirname(path), name);
     var failed = () => {
         notify(Lang.DATA_FETCHING_FAILURE, 'fa-exclamation-triangle', 'normal');
-        triggerBack()
+        Menu.back()
     }
     setTimeout(() => { // avoid mess the loading entry returned, getting overridden by him
         ListMan.deepParse(url, (parsed) => {
@@ -111,13 +107,7 @@ function loadSource(url, name, callback, filter){
                     }
                 }
                 jQuery('.entry:not(.entry-back)').remove();
-                index = writeIndexPathEntries(path, parsed, index);
-                if(listingPath == path){ // user is at same view
-                    listEntriesByPath(path);
-                    if(typeof(callback)=='function'){
-                        callback(parsed)
-                    }
-                }
+                Menu.asyncResult(path, parsed)
             } else {
                 failed()
             }
@@ -126,74 +116,7 @@ function loadSource(url, name, callback, filter){
     return [getLoadingEntry()];
 }
 
-function getXtraEntries(){
-    var entries = [
-        {name: Lang.BOOKMARKS, logo:'fa-star', type: 'group', renderer: getBookmarksEntries, entries: []},
-        {name: Lang.SEARCH, label: '', logo: 'fa-search', type: 'option', value: lastSearchTerm, callback: () => { 
-            var term = lastSearchTerm, n = top.PlaybackManager.activeIntent;
-            if(n && n.entry.originalUrl && isMega(n.entry.originalUrl)){
-                var data = parseMegaURL(n.entry.originalUrl);
-                if(data && data.type == 'play'){
-                    term = data.name;
-                }
-            }
-            setupSearch(term, 'live', Lang.SEARCH)
-        }},
-        {name: Lang.MAGNET_SEARCH, label: '', logo: 'fa-magnet', type: 'option', value: lastSearchTerm, callback: () => { setupSearch(lastSearchTerm, 'magnet', Lang.MAGNET_SEARCH) }},
-        {name: Lang.RECORDINGS, logo:'fa-download', type: 'group', renderer: getRecordingEntries, entries: []},
-        {name: Lang.HISTORY, append: '(Ctrl+H)', logo:'fa-history', type: 'group', renderer: getHistoryEntries, entries: []}
-    ];
-    return entries;
-}
-
 var remoteXtrasAppended = false;
-
-function appendRemoteXtras(){
-    getRemoteXtras((entries) => {
-        var container = getListContainer(false);
-        if (listingPath == xtrasPath) {
-            listEntriesRender(entries, container)
-        }
-    })
-}
-
-function renderRemoteSources(){
-    var failed = () => {
-        notify(Lang.DATA_FETCHING_FAILURE, 'fa-exclamation-triangle', 'normal');
-        triggerBack()
-    }
-    setTimeout(() => {
-        getRemoteSources((entries) => {
-            var sources = getSourcesURLs();
-            console.log('RENTRIES', entries);
-            if(entries.length){
-                entries = entries.filter((entry) => {
-                    return (sources.indexOf(entry.url) == -1)
-                });
-                entries = entries.map((entry) => {
-                    if(!entry.name){
-                        entry.name = getNameFromSourceURL(entry.url)
-                    }
-                    entry.type = "group";
-                    if(!entry.label){
-                        entry.label = '';
-                    }
-                    entry.label = entry.label.format(Lang.USER, Lang.USERS);
-                    entry.renderer = (data) => {
-                        return loadSource(data.url, data.name)
-                    }
-                    return entry;
-                });
-                index = writeIndexPathEntries(listingPath, entries);
-                listEntriesByPath(listingPath);
-                setTimeout(markActiveSource, 250) // wait rendering
-            } else {
-                failed()
-            }
-        })
-    }, 150);
-    return [getLoadingEntry()];
-}
 
 function getWatchingEntries(){
     var name = Lang.BEEN_WATCHED;
@@ -214,10 +137,13 @@ function getWatchingData(cb, update){
             } else {
                 entries = entries.map((entry) => {
                     entry.label = entry.label.format(Lang.USER, Lang.USERS);
+                    if(!entry.logo){
+                        entry.logo = 'http://app.megacubo.net/logos/'+encodeURIComponent(entry.name)+'.png';
+                    }
                     setStreamStateCache(entry, true);
                     return entry;
                 });
-                sharedListsSearchIndex['watching'] = entries;
+                //sharedListsSearchIndex['watching'] = entries;
             }
             if(entries.length){
                 Store.set(ckey, entries, 30 * (24 * 3600))
@@ -234,25 +160,32 @@ function getWatchingData(cb, update){
     return data;
 }
 
-function preInjectClean(prepend){
-    for(var i in index){
-        if(index[i].prependName == prepend){
-            index.splice(i, 1)
+function preInjectClean(prepend){ 
+    for(var i in Menu.index){
+        if(Menu.index[i] && typeof(Menu.index[i])=='object' && Menu.index[i].prependName == prepend){
+            Menu.index.splice(i, 1);
+            return preInjectClean(prepend);
+            break;
         }
     }
 }
 
+var updateSideSidgetDelay = 0;
 function posInjectClean(){
-    for(var i=0; i<index.length; i++){
-        if(!index[i].prependName && index[i].type == 'stream'){
-            index.splice(i, 1);
-            i = 0; // restart loop
+    clearTimeout(updateSideSidgetDelay);
+    for(var i=0; i<Menu.index.length; i++){
+        if(Menu.index[i] && !Menu.index[i].prependName && Menu.index[i].type == 'stream'){
+            Menu.index.splice(i, 1);
+            break;
         }
     }
+    updateSideSidgetDelay = setTimeout(() => {
+        updateSideWidget()
+    }, 100)
 }
 
 function injectContinueOption(){
-    var lastEntry, prepend = Lang.CONTINUE+': ';
+    var lastEntry, prepend = Lang.CONTINUE+':';
     var c = currentStream(), playingName = c ? c.name : false;
     var start = (c || Config.get('resume')) ? 1 : 0;
     preInjectClean(prepend);
@@ -268,10 +201,11 @@ function injectContinueOption(){
                 if(!iconExists){
                     lastEntry.logo = 'fa-redo-alt';
                 }
-                index.unshift(lastEntry);
+                preInjectClean(prepend);
+                Menu.index.unshift(lastEntry);
                 posInjectClean();
-                if(!listingPath){
-                    refreshListing()
+                if(!Menu.path){
+                    Menu.refresh()
                 }
             }
             if(lastEntry.logo && lastEntry.logo.substr(0, 3)!='fa-'){
@@ -289,21 +223,66 @@ function injectContinueOption(){
 }
 
 function injectFeaturedOption(entry){
-    var lastEntry, prepend = Lang.FEATURED+': ';
+    var lastEntry, prepend = Lang.FEATURED+':';
     var c = currentStream(), playingName = c ? c.name : false;
     var start = (c || Config.get('resume')) ? 1 : 0;
     entry.prependName = prepend;
     preInjectClean(prepend);
     entry.label = entry.label.format(Lang.USER, Lang.USERS);
-    index.unshift(entry);
+    Menu.index.unshift(entry);
     posInjectClean();
-    if(!listingPath){
-        refreshListing()
+    if(!Menu.path){
+        Menu.refresh()
     }
 }
 
-top.PlaybackManager.on('commit', injectContinueOption);
-top.PlaybackManager.on('stop', injectContinueOption);
+function sideWidget(entries){
+    var html = "", sw = jQuery('#side-widget').empty();
+    entries.slice(0, 5).forEach((entry) => {
+        var piece = jQuery("<div class=\"side-widget-entry\"><a href=\""+entry.url+"\" title=\""+entry.name+"\" aria-label=\""+entry.name+"\" style=\"background: url('"+entry.logo+"')\">&nbsp;</a></div>");
+        piece.find('a').data('entry-data', entry).on('mousedown', () => {
+            var entry = jQuery(event.currentTarget).data('entry-data');
+            if(entry) {
+                playEntry(entry)
+            }
+        }).on('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation()
+        });
+        piece.appendTo(sw)        
+    });
+    sw.animate({opacity: 1, paddingLeft: 0}).show()
+}
+
+function updateSideWidget(){
+    if(!jQuery.isArray(Menu.index) || !Menu.index.length){
+        return setTimeout(() => {
+            updateSideWidget()
+        }, 200)
+    }
+    var max = Menu.index.length, i = 0, results = [], _next = () => {
+        var n = sideWidgetEntries[i];
+        if(n){
+            i++;
+            if(n.logo && n.logo.indexOf('//') != -1){
+                checkImage(n.logo, () => {
+                    results.push(n);
+                    if(results.length == max){
+                        sideWidget(results)
+                    } else if(results.length < max) {
+                        _next()
+                    }
+                }, _next)
+            } else {
+                _next()
+            }
+        }
+    }
+    _next();
+}
+
+PlaybackManager.on('commit', injectContinueOption);
+PlaybackManager.on('stop', injectContinueOption);
 
 jQuery(document).on('lngload', () => {
     injectContinueOption();
@@ -320,7 +299,7 @@ jQuery(document).on('lngload', () => {
                 if(!iconExists){
                     entry.logo = 'fa-fire';
                 }
-                console.log('GOING', index[0], index[0].type, index[0].name, entry.name, index[0].prependName, Lang.FEATURED+': ');
+                console.log('GOING', Menu.index[0], Menu.index[0].type, Menu.index[0].name, entry.name, Menu.index[0].prependName, Lang.FEATURED+': ');
                 injectFeaturedOption(entry)
             }
             if(entry.logo && entry.logo.substr(0, 3)!='fa-'){
@@ -333,7 +312,12 @@ jQuery(document).on('lngload', () => {
                 go(false)
             }
         }
-    }, true)
+    }, true);
+    var p = getFrame('player'), o = getFrame('overlay'), video = p.document.querySelector('video');
+    prepareVideoObject(video);
+    createMouseObserverForControls(p);
+    createMouseObserverForControls(o);
+    createMouseObserverForControls(window)
 });
 
 function getSearchRangeEntries(){
@@ -341,7 +325,7 @@ function getSearchRangeEntries(){
     var callback = (entry, r) => {
         Config.set('search-range', entry.value);
         console.log('RANGER', entry, entry.value);
-        top.location.reload()
+        location.reload()
     }
     options.push({name: Lang.LOW+' ('+Lang.LISTS+': 18)', value: 18, logo:'fa-search-minus', type: 'option', renderer: getRecordingEntries, callback: callback});
     options.push({name: Lang.MEDIUM+' ('+Lang.LISTS+': 36)', value: 36, logo:'fa-search', type: 'option', renderer: getRecordingEntries, callback: callback});
@@ -371,7 +355,8 @@ function getParentalControlEntries(){
                 Config.set('parental-control-terms', val)
             },
             value: userParentalControlTerms().join(','),
-            placeholder: Lang.FILTER_WORDS
+            placeholder: Lang.FILTER_WORDS,
+            name: Lang.FILTER_WORDS
         }
     ];
     return options;
@@ -400,8 +385,7 @@ function getBookmarksEntries(reportEmpty){
     if(stream = currentStream()){
         if(!Bookmarks.is(stream)){
             options.push({name: Lang.ADD+': '+stream.name, logo:'fa-star', type: 'option', callback: function (){
-                addFav(stream);
-                refreshListing()
+                addFav(stream)
             }})
         }
     }
@@ -419,15 +403,17 @@ function getBookmarksForRemoval(){
     var entries = [];
     if(bookmarks.length){
         for(var i in bookmarks){
-            entries.push({
-                name: Lang.REMOVE.toUpperCase()+': '+bookmarks[i].name, 
-                logo:'assets/icons/white/trash.png', 
-                type: 'option',
-                stream: bookmarks[i], 
-                callback: function (data){
-                    removeFav(data.stream)
-                }
-            })
+            if(bookmarks[i].name){
+                entries.push({
+                    name: Lang.REMOVE.toUpperCase()+': '+bookmarks[i].name, 
+                    logo:'assets/icons/white/trash.png', 
+                    type: 'option',
+                    stream: bookmarks[i], 
+                    callback: function (data){
+                        removeFav(data.stream)
+                    }
+                })
+            }
         }
     } else {
         entries.push({name: Lang.EMPTY, logo:'fa-file', type: 'option'})
@@ -438,28 +424,22 @@ function getBookmarksForRemoval(){
 
 function getRecordingEntries(){
     var options = [];
-    if(top.isRecording){
-        options.push({name: Lang.STOP_RECORDING+' (F9)', logo:'fa-stop', type: 'option', callback: function (){
-            top.stopRecording();
-            refreshListing()
-        }});
+    if(isRecording){
+        options.push({name: Lang.STOP_RECORDING+' (F9)', class: 'entry-vary-recording-state', logo:'fa-stop', type: 'option', callback: function (){
+            stopRecording()
+        }})
     } else {
-        options.push({name: Lang.START_RECORDING+' (F9)', logo:'fa-download', type: 'option', callback: function (){
-            top.startRecording();
-            wait(function (){
-                return top.isRecording;
-            }, function (){
-                refreshListing()
-            })
-        }});
+        options.push({name: Lang.START_RECORDING+' (F9)', class: 'entry-vary-recording-state', logo:'fa-download', type: 'option', callback: function (){
+            startRecording()
+        }})
     }
     Recordings.sync(); // clean deleted ones
-    var history = Recordings.get();
-    if(history && history.length){
-        options = options.concat(history);
+    var all = Recordings.get();
+    if(all && all.length){
+        options = options.concat(all);
         options.push({name: Lang.CLEAR, logo:'fa-user-secret', type: 'option', callback: function (){
             Recordings.clear();
-            refreshListing()
+            Menu.refresh()
         }});
     }
     return options;
@@ -488,7 +468,7 @@ function getLanguageEntries(){
                     }
                     markActiveLocale();
                     setTimeout(function (){
-                        top.location.reload()
+                        location.reload()
                     }, 1000)
                 }
             })
@@ -522,7 +502,7 @@ function getListsEntries(notActive, noManagement){
                     delete: (data) => {
                         unRegisterSource(data.url);
                         markActiveSource();  
-                        refreshListing()          
+                        Menu.refresh()          
                     }, 
                     rename: (name, data) => {
                         //alert(newName)         
@@ -534,15 +514,15 @@ function getListsEntries(notActive, noManagement){
         }},
         {name: Lang.ADD_NEW_LIST, logo: 'fa-plus', type: 'option', callback: addNewSource},
         {name: Lang.REMOVE_LIST, logo: 'fa-trash', type: 'group', renderer: getListsEntriesForRemoval, callback: markActiveSource},
-        {name: Lang.ALL_LISTS, logo: 'fa-users', type: 'group', renderer: renderRemoteSources, entries: []},
+        {name: Lang.ALL_LISTS, logo: 'fa-users', type: 'group', renderer: (data) => {
+            return renderRemoteSources(data.name)
+        }, entries: []},
         {name: Lang.SHARE_LISTS, type: 'check', check: function (checked){
             Config.set('unshare-lists', !checked)
         },  checked: () => {
                 return !Config.get('unshare-lists')
             }
-        },
-        {name: Lang.CATEGORIES+' &middot; '+Lang.CHANNELS, label: Lang.ALL_LISTS, logo: 'assets/icons/white/tv.png', type: 'group', entries: [], renderer: () => { return sharedGroupsAsEntries('live'); }},
-        {name: Lang.CATEGORIES+' &middot; '+Lang.VIDEOS, label: Lang.ALL_LISTS, logo: 'fa-film', type: 'group', entries: [], renderer: () => { return sharedGroupsAsEntries('video') }}
+        }
     ];
     return options;
 }
@@ -559,9 +539,9 @@ function getListsEntriesForRemoval(){
                 url: sources[i][1], 
                 callback: function (data){
                     unRegisterSource(data.url); 
-                    listEntriesByPath(dirname(data.path));
+                    Menu.go(dirname(data.path));
                     setTimeout(function (){
-                        refreshListing()
+                        Menu.refresh()
                     }, 1000)
                 }, 
                 path: Lang.LISTS

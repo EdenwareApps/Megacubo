@@ -18,21 +18,21 @@
     </head>
     <body tabindex="-1">
         <span id="home-icons">
-            <a href="javascript:goBookmarks()" data-title-lng-key="BOOKMARKS" id="home-icon-bookmark" class="option" tabindex="-1" style="top: -1px;">
+            <a href="#" data-title-lng-key="BOOKMARKS" onmousedown="goBookmarks()" id="home-icon-bookmark" class="option" tabindex="995" style="top: -1px;">
                 <i class="fas fa-star" aria-hidden="true"></i>
             </a>
-            <a href="javascript:goSearch()" data-title-lng-key="SEARCH" id="home-icon-search" class="option" tabindex="-1" style="top: -1px;">
+            <a href="#" data-title-lng-key="SEARCH" onmousedown="goSearch()" id="home-icon-search" class="option" tabindex="996" style="top: -1px;">
                 <i class="fas fa-search" aria-hidden="true"></i>
             </a>
-            <a href="javascript:goOpen()" data-title-lng-key="OPEN_FILE" id="home-icon-open" class="option" tabindex="-1" style="top: 1px;">
+            <a href="#" data-title-lng-key="OPEN_FILE" onmousedown="goOpen()" id="home-icon-open" class="option" tabindex="997" style="top: 1px;">
                 <i class="fas fa-folder-open" aria-hidden="true"></i>
             </a>
-            <a href="javascript:help()" title="Megacubo" id="home-icon-help" class="option" tabindex="-1" style="font-size: 109%; top: 1px;">
+            <a href="#" title="Megacubo" onmousedown="help()" id="home-icon-help" class="option" tabindex="998" style="font-size: 109%; top: 1px;">
                 <i class="fas fa-question-circle" aria-hidden="true"></i>
             </a>
         </span>
         <span id="list-icons">
-            <a href="javascript:triggerBack()" data-title-lng-key="BACK" id="home-icon-back" class="option" tabindex="-1" style="top: 0;">
+            <a href="#" onmousedown="triggerBack()" data-title-lng-key="BACK" id="home-icon-back" class="option" tabindex="999" style="top: 0;">
                 <i class="fas fa-chevron-circle-left" aria-hidden="true"></i>
             </a>
         </span>
@@ -47,10 +47,7 @@
                 </div>
             </div>
         </div>
-        <div id="window-handle">
-            <a href="javascript:top.maximizeOrRestore();void(0)" tabindex="-1" title="Megacubo"><i class="fas fa-window-restore" aria-hidden="true"></i></a>
-        </div>
-		<a href="javascript:;" id="controls-toggle" onclick="toggleControls()">
+		<a href="javascript:;" id="controls-toggle" onmousedown="toggleControls()">
 			<i class="fas fa-chevron-right"></i>
 		</a>
     </body>

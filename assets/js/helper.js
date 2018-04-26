@@ -1,14 +1,16 @@
 if(document.URL.substr(0, 7) != 'chrome-'){
 	
-	window.WebSocket = undefined;
+	window.WebSocket = window.Worker = undefined;
 
 	console.clear = function (){
 		return;
 	};
 
-	window.alert = function (str){
+	window.alert = function (str){ 
 		console.log('ALERT', str);
 	}
+
+	window.close = function (){}
 
 	window.prompt = function (str, def){
 		console.log('PROMPT', str, def);

@@ -249,7 +249,7 @@ var doFindStreams = (scope, callback) => {
         var t, s = scope.document.querySelectorAll('video,object,embed');
         for(var i=0;i<s.length;i++)
             {
-                t = flashvars(s[i]);
+                t = self.flashvars(s[i]);
                 if(t)
                     {
                         blocks.push(t);
@@ -285,7 +285,7 @@ var doFindStreams = (scope, callback) => {
                     if(u && u.length && !u.match(new RegExp('\.(png|gif|bmp|srt|vtt|jpe?g)', 'i'))){
                         console.log('extractVar('+_arg+') '+u +' :: '+content.substr(0, 64)+'...');
                         if(absVars.indexOf(_arg)!=-1){
-                            u = absolutize(u);
+                            u = self.absolutize(u);
                         }
                         console.log('extractVar('+_arg+')* '+u);
                         return u;
@@ -736,7 +736,7 @@ var doFindStreams = (scope, callback) => {
 }
 
 var Fitter = (() => {
-    var debug = false, self = {}, stylizerQueue = null, stylizerRelevantTags = [];
+    var debug = true, self = {}, stylizerQueue = null, stylizerRelevantTags = ['a', 'iframe', 'div'];
     self.width = function (object){
         return object.offsetWidth || object.scrollWidth || object.outerWidth;
     }
@@ -745,7 +745,7 @@ var Fitter = (() => {
     }
     self.createRuleTarget = function (object, forceAttrs){
         var t = tag(object), c = t;
-        if(forceAttrs || stylizerRelevantTags.indexOf(t)!=-1){
+        if(1 || forceAttrs || stylizerRelevantTags.indexOf(t) != -1){
             var s = false;
             if(object.className){
                 var match = object.className.match(new RegExp('(rand\-[0-9]+)'));
@@ -762,21 +762,24 @@ var Fitter = (() => {
         return c;
     }
     self.stylizerQueueCommit = function (scope){
+        console.warn('STYLIZER', stylizerQueue.hide);
         var showTarget = Array.from(new Set(stylizerQueue.show)).join(', ');
         var hideTarget = Array.from(new Set(stylizerQueue.hide)).join(', ');
         var css = 'html, body { overflow: hidden; } '+ 
             ' video::-webkit-media-controls-panel { background: rgba(43,51,63,.7); } '+
             ' video::-webkit-media-controls-current-time-display, video::-webkit-media-controls-time-remaining-display { color: #ddd !important; } '+
             ' video::-webkit-media-controls-mute-button, video::-webkit-media-controls-play-button, video::-webkit-media-controls-fullscreen-button { filter: brightness(2.4); cursor: pointer; } '+ showTarget +
-            '{ display: inline-block !important; margin: 0 !important; pointer-events: all !important; z-index: 999999 !important; height: inherit !important; width: inherit !important; min-height: 100vh !important; min-width: 100vw!important; max-height: 100vh !important; max-width: 100vw !important; position: fixed !important; top: 0 !important; left: 0 !important; background-color: #000; } ' +
+            '{ display: inline-flex !important; opacity: 1 !important; align-items: center; margin: 0 !important; pointer-events: all !important; z-index: 2147483647 !important; height: inherit !important; width: inherit !important; min-height: 100vh !important; min-width: 100vw!important; max-height: 100vh !important; max-width: 100vw !important; position: fixed !important; top: 0 !important; left: 0 !important; background-color: #000; } ' +
             hideTarget+', '+hideTarget+' * '+
             '{ position: absolute !important; top: -3000px !important; max-height: 10px !important; max-width: 10px !important; overflow: hidden !important; z-index: -1; } ';
         console.log('COMMIT', stylizerRelevantTags, css);
         try{
-            scope.document.querySelectorAll('link, style').forEach((s) => {
-                s.parentNode.removeChild(s)
-            });
-            stylizer(css, 'fitter', scope)
+            if(scope.document){
+                scope.document.querySelectorAll('link, style').forEach((s) => {
+                    s.parentNode.removeChild(s)
+                });
+                stylizer(css, 'fitter', scope)
+            }
         } catch(e) {
             console.error(e)
         }
@@ -807,7 +810,7 @@ var Fitter = (() => {
             self.fit(p, scope);
             var childrens = p.childNodes;
             for(var i=0; i<childrens.length; i++){
-                if(childrens[i] != c){
+                if(childrens[i] != c && (!childrens[i].id || ['player-status', 'player-top-bar'].indexOf(childrens[i].id) == -1)){
                     self.hide(childrens[i], scope);
                 }
             }
@@ -957,8 +960,11 @@ var Fitter = (() => {
                     minScroll = s;
                 }
                 if(!self.isDiscardable(videos[i])){
-                    if(!videos[i].currentTime){
-                        console.log('Video pos-discarded by duration (paused='+videos[i].paused+', currentTime='+videos[i].currentTime+').');
+                    if(!videos[i].currentTime && videos[i].src && videos[i].paused){
+                        videos[i].play()
+                    }
+                    if(videos[i].duration < intent.minBufferSecsBeforeCommit){
+                        console.log('Video pos-discarded by duration (paused='+videos[i].paused+', currentTime='+videos[i].currentTime+', duration='+videos[i].duration+').');
                         continue;
                     } else {
                         details.videos.push(videos[i])
@@ -976,8 +982,10 @@ var Fitter = (() => {
                 }
             }
             if(minScroll!=-1){
-                console.log('MINSCROLL', minScroll, scope.document.URL);
-                if(minScroll > scope.document.body.scrollTop){
+                if(debug){
+                    console.log('MINSCROLL', minScroll, scope.document.documentElement.scrollTop, scope.document.URL)
+                }
+                if(minScroll > scope.document.documentElement.scrollTop){
                     scope.scrollTo(0, minScroll)
                 }
             }
@@ -995,7 +1003,9 @@ var Fitter = (() => {
                     top.preFitterIndex[domains[j]] = './hosts/'+files[i];
                 }
             }
-            console.log('PREFITTERINDEX', top.preFitterIndex)
+            if(debug){
+                console.log('PREFITTERINDEX', top.preFitterIndex)
+            }
         }
         domains = Object.keys(top.preFitterIndex);
         for(var i=0; i<domains.length; i++){
@@ -1005,21 +1015,39 @@ var Fitter = (() => {
             }
         }
         if(file){
-            console.log('PREFITTER MODULE MATCHED', file, scope.document.URL);
-            var listItem = require(file)(scope);
-            console.log('PREFITTER MODULE RETURNED', listItem);
-            if(listItem && typeof(listItem)=='string'){ // if returns a string should be a redirect URL
-                console.log('PREFITTER REDIRECT', listItem);
+            if(debug){
+                console.log('PREFITTER MODULE MATCHED', file, scope.document.URL)
+            }
+            var listItem = require(file)(scope, intent, self);
+            if(debug){
+                console.log('PREFITTER MODULE RETURNED', listItem)
+            }
+            if(listItem && typeof(listItem)=='string') { // if returns a string should be a redirect URL
+                if(debug){
+                    console.log('PREFITTER REDIRECT', listItem)
+                }
                 scope.location.href = listItem;
                 return false;
             } else if(listItem === true){
-                console.log('PREFITTER MODULE FORWARDED TO DISCOVERY returning true', listItem);
+                if(debug){
+                    console.log('PREFITTER MODULE FORWARDED TO DISCOVERY returning true', listItem)
+                }
             }
         } else {
-            console.log('NO PREFITTER', domain, scope.document.URL);
+            if(debug){
+                console.log('NO PREFITTER', domain, scope.document.URL);
+            }
         }
         if(listItem && typeof(listItem)=='object' && listItem.element){
             return [listItem];
+        }
+        if(scope.unloadOnSideload){
+            //alert(456);
+            self.findStreams(scope, (streamUrl) => {
+                intent.sideload(streamUrl);
+                scope.location.href = 'about:blank';
+            });
+            return [];
         }
         var details = self.scanFrame(scope, intent);
         var list = [];
@@ -1038,6 +1066,9 @@ var Fitter = (() => {
                     console.log(e)
                 }
             }
+        }
+        if(debug){
+            console.log('PREFITTER SCAN RESULT', domain, list)
         }
         return list;
     }
@@ -1079,7 +1110,7 @@ var Fitter = (() => {
         if(!data.element.parentNode) {
             document.querySelector('body').appendChild(data.element); //Failed to read the 'buffered' property from 'SourceBuffer': This SourceBuffer has been removed from the parent media source.
         }
-        top.patchFrameWindowEvents(data.scope, unfocus);
+        top.enableEventForwarding(data.scope, unfocus);
         data.scope.__fitted = true;
         if(['html', 'body'].indexOf(tag(data.element))==-1){
             self.stylizerQueueReset(data.element, data.scope);
@@ -1099,17 +1130,12 @@ var Fitter = (() => {
                 var n = [], debug=false;
                 for(var i=0;i<o.length;i++){
                     if(!self.isDiscardable(o[i].element)){
-                        n.push(o[i]);
-                    }
-                }
-                return n;
-            },
-            function (o){
-                var n = [];
-                for(var i=0;i<o.length;i++){
-                    s = o[i].element.src;
-                    if(s.match(new RegExp('([\.=]m3u8|blob:|rtmp:|live)', 'i'))){
-                        n.push(o[i]);
+                        s = o[i].element.src;
+                        if(s.match(new RegExp('([\.=]m3u8|blob:|rtmp:)', 'i'))){
+                            n.push(o[i]);
+                        } else if(s.match(new RegExp('[\.=](mp4|mp3|acc|webm|ogv|rtmp:)', 'i'))){
+                            intent.sideload(s)
+                        }
                     }
                 }
                 return n;
@@ -1127,11 +1153,20 @@ var Fitter = (() => {
                 var n = [];
                 for(var i=0;i<o.length;i++){
                     var s = (o[i].element.src||'').split('?')[0];
-                    if(s && !s.match(new RegExp('[\./\-,\?]ad[A-Za-z0-9]{0,8}[\./\-,\?]', 'i'))){
+                    if(s && !s.match(new RegExp('[\./\\-,\?]ad[A-Za-z0-9]{0,8}[\./\\-,\?]', 'i'))){
                         n.push(o[i]);
                     }
                 }
                 return n;
+            },
+            function (o){
+                o = o.sort((a, b) => {
+                    var c = (a.element.paused || a.element.muted) ? 0 : (a.element.duration || 0), d = (b.element.paused || b.element.muted)  ? 0 : (b.element.duration || 0);
+                    if(c < d) return 1;
+                    if(c > d) return -1;
+                    return 0;
+                });
+                return o;
             }
         ];
         var o = Filters[0](list);
@@ -1143,7 +1178,7 @@ var Fitter = (() => {
                     list = o;
                 }
             }catch(e){
-                console.log('Discover error at level '+i+': '+e.description||e.msg||e);
+                console.log('Discover error at level '+i, e)
             }
             console.log('Discover level: '+i+', objs: '+list.length);
         }
@@ -1161,13 +1196,13 @@ var Fitter = (() => {
         return false;
     }
     self.watchVideo = (video, intent) => {
-        if(debug){
-            console.warn('PREFITTER WATCH VIDEO', video.ownerDocument.URL, video, video.src, intent, intent.runFitter)
-        }
+        //if(debug){
+        //    console.warn('PREFITTER WATCH VIDEO', video.ownerDocument.URL, video, video.src, intent, intent.runFitter)
+        //}
         jQuery(video).off('timeupdate').one('timeupdate', (event) => {
             intent.runFitter(); // tricky delay, recall the processing
             if(debug){
-                console.warn('PREFITTER DURATION CHANGED OK', video.ownerDocument.URL, video, intent, intent.runFitter)
+                console.warn('PREFITTER DURATION CHANGED OK', video.ownerDocument.URL, video, video.duration, intent, intent.runFitter)
             }
         })
     }
@@ -1176,17 +1211,23 @@ var Fitter = (() => {
         try {
             innerScope = frame.contentWindow;
         } catch (e) {}
-        if(innerScope && innerScope.document && innerScope.document.readyState.match(new RegExp('(complete|interactive)', 'i'))){
-            self.watchScope(innerScope, intent)
+        if(innerScope && innerScope.document){
+            if(innerScope.document.readyState.match(new RegExp('(complete|interactive)'))){
+                if(debug){
+                    //console.warn('WAITFRAME', innerScope.document.URL, time())
+                }
+                self.watchScope(innerScope, intent)
+            } else {
+                innerScope.document.onreadystatechange = () => {
+                    self.watchFrame(frame, intent)
+                }
+            }
         } else {
             setTimeout(() => {
                 if(frame && intent && intent.allowFitter()){
-                    if(debug){
-                        console.warn('WAITFRAME', frame.src, time())
-                    }
-                   self.watchFrame(frame, intent)
+                    self.watchFrame(frame, intent)
                 }
-            }, 100)
+            }, 400)
         }
     },
     self.framesHash = (scope, intent) => {
@@ -1200,7 +1241,7 @@ var Fitter = (() => {
         if(!scope.watchingTimer && scope.document){
             scope.watchingTimer = 1;
             scope.onerror = (e) => {
-                console.error(e);
+                console.error(scope.document.URL, e);
                 return true;
             }
             if(debug){
@@ -1212,10 +1253,14 @@ var Fitter = (() => {
                 if(scope.watchingTimer){
                     clearTimeout(scope.watchingTimer)
                 }
+                console.warn('MUTATION', scope.document.URL, time());
                 scope.watchingTimer = scope.setTimeout(() => {
                     if(debug){
                         console.warn('PREFITTER MUTATION')
                     }
+                    console.warn('MUTATION', scope.document.URL, time());
+                    observer.disconnect();
+                    console.warn('MUTATION', scope.document.URL, time());
                     if(!intent.error && !intent.ended && !intent.getVideo()){
                         var nhash = self.framesHash(scope, intent);
                         if(nhash != hash){
@@ -1223,15 +1268,17 @@ var Fitter = (() => {
                                 console.warn('PREFITTER MUTATION SUCCESS', scope.document.URL, nhash, hash, intent)
                             }
                             hash = nhash;
-                            intent.runFitter()
+                            intent.runFitter();
+                            observer.observe(scope.document, {attributes: false, childList: true, characterData: false, subtree:true})
                         }
                     } else {
                         if(debug){
                             console.warn('PREFITTER MUTATION OFF', (scope.document) ? scope.document.URL : 'blank')
                         }
-                        observer.disconnect()
                     }
+                    console.warn('MUTATION', scope.document.URL, time());
                 }, 50)
+                console.warn('MUTATION', scope.document.URL, time());
             });
             observer.observe(scope.document, {attributes: false, childList: true, characterData: false, subtree:true});
             if(debug){
@@ -1239,11 +1286,19 @@ var Fitter = (() => {
             }
         }
     }
+    self.scopeToDocument = function (scope) {
+        var doc = false;
+        try {
+            doc = scope.document;
+        } catch(e) { }
+        return doc ? doc : false;
+    },
     self.start = function (scope, intent){
+        var doc = self.scopeToDocument(scope);
         if(debug){
             console.log('PREFITTER RUN', (scope.document) ? scope.document.URL : 'blank');
         }
-        if(!scope || !scope.document || !intent || !intent.allowFitter || !intent.allowFitter()){
+        if(!scope || !doc || !intent || !intent.allowFitter || !intent.allowFitter()){
             return false;
         }
         if(debug){
@@ -1253,15 +1308,17 @@ var Fitter = (() => {
         if(debug){
             console.log('PREFITTER RUN OK', list, (scope.document) ? scope.document.URL : 'blank')
         }
-        if(list && typeof(list)=='object'){ // if returns a object, should be {element:videoElement, scope:videoElementWindow}
+        if(list && typeof(list)=='object' && list.element){ // if returns a object, should be {element:videoElement, scope:videoElementWindow}
             if(debug){
                 console.log('PREFITTER PREPARE', list, (scope.document) ? scope.document.URL : 'blank')
             }
-            self.prepare(list);
             try{
-                intent.fitterCallback(list)
-            }catch(e){
-                console.error(e)
+                if(intent.fitterCallback(list)){
+                    console.warn('PREPPAREDDDDDDDDDD!!!!!!!!!');
+                    self.prepare(list)
+                }
+            } catch(e) {
+                console.error(e, 'catched')
             }
         } else {
             self.watchScope(scope, intent)

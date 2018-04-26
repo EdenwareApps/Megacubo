@@ -14,7 +14,6 @@
         </style>
     </head>
     <body>
-        <div id="notify-area"></div>
         <div id="drop-target" class="fit-screen">
             <i class="fas fa-download"></i>
         </div>
@@ -74,20 +73,23 @@
                 }
             }
             function openFile(file){
-                getFrame('controls').checkStreamType(file, (url, type) => {
-                    console.log(url, type);
-                    if(type == 'stream'){
-                        playCustomURL(url, true)
-                    } else if(type == 'list'){
-                        var d = new Date();
-                        var datestring = " "+d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0" + d.getDate()).slice(-2) + " " + ("0" + d.getHours()).slice(-2) + "-" + ("0" + d.getMinutes()).slice(-2);
-                        var name = basename(url, true)+' - '+datestring;
-                        console.log(name);
-                        getFrame('controls').registerSource(url, name)
-                    } else { // type=error so
-                        notify(Lang.INVALID_URL_MSG, 'fa-exclamation-triangle', 'normal')
-                    }
-                })
+                var c = (top || parent);
+                if(c){
+                    c.checkStreamType(file, (url, type) => {
+                        console.log(url, type);
+                        if(type == 'stream'){ 
+                            playCustomURL(url, true)
+                        } else if(type == 'list'){
+                            var d = new Date();
+                            var datestring = " "+d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0" + d.getDate()).slice(-2) + " " + ("0" + d.getHours()).slice(-2) + "-" + ("0" + d.getMinutes()).slice(-2);
+                            var name = basename(url, true)+' - '+datestring;
+                            console.log(name);
+                            c.registerSource(url, name)
+                        } else { // type=error so
+                            notify(Lang.INVALID_URL_MSG, 'fa-exclamation-triangle', 'normal')
+                        }
+                    })
+                }
             }
             function showHelpTip(){
                 var helpTips = [
@@ -95,12 +97,6 @@
                 ];
                 notify(helpTips[0], 'fa-info', 'normal')
             }
-            jQuery(document).on('lngload', () => {
-                //setTimeout(showHelpTip, 2000);
-				setTimeout(() => {
-					top.createMouseObserverForControls(window)				
-				}, 200)
-            });
             var dragDrop = require('drag-drop');
             jQuery(function (){
                 top.recordingNotification = notify('...', 'fa-star', 'short');
