@@ -1,30 +1,29 @@
 <!DOCTYPE html>
-<html class="page-index">
+<html class="ui-index">
 	<head>
 		<meta charset="UTF-8" />
-		<title>Megacubo</title>
+		<title></title>
 		<base href="./" />
         <link rel="stylesheet" type="text/css" href="assets/css/global.css" />
         <link rel="stylesheet" type="text/css" href="assets/css/index.css" />
         <link rel="stylesheet" type="text/css" href="assets/css/controls.css" />
 		<style type="text/css">
 			html {
-				background: #000 url(assets/images/wallpaper.png) no-repeat fixed;
-    			background-size: cover;
-				background-position: center center;
 				transition: all 0.1s ease-in-out 0s;
 				overflow: hidden;
 			}
 		</style>
+        <link rel="stylesheet" type="text/css" href="assets/css/theme.scss" />
 		<script type="text/javascript">
 			var gui = require('nw.gui'), win = gui.Window.get(), miniPlayerActive = false;
+			document.title = gui.App.manifest.window.title;
 			function traceback() { 
 				try { 
 					var a = {}; 
 					a.debug(); 
 				} catch(ex) {
 					return ex.stack.replace('TypeError: a.debug is not a function', '').trim()
-				};
+				}
 			}
 			function logErr(){
 				if(!fs){
@@ -35,11 +34,24 @@
 				}
 				return fs.appendFileSync('error.log', JSON.stringify(Array.from(arguments))+"\r\n"+traceback()+"\r\n\r\n");
 			}
-			process.on('unhandledRejection', function (reason, p){
-				console.error(reason, 'Unhandled Rejection at Promise', p);
-				logErr(reason, 'Unhandled Rejection at Promise', p);
-				//process.exit(1);
+			process.removeAllListeners('uncaughtException');
+			process.removeAllListeners('unhandledRejection');
+			process.on('uncaughtException', (err) => {
+				console.error('Unhandled exception', err);
+				if(typeof(logErr)=='function'){
+					logErr('Unhandled exception', err)
+				}
+				//process.exit(1)
+				return true;
 			});
+			process.on('unhandledRejection', (reason, p) => {
+				console.error(reason, 'Unhandled Rejection at Promise', p);
+				if(typeof(logErr)=='function'){
+					logErr(reason, 'Unhandled Rejection at Promise', p)
+				}
+				//process.exit(1)
+				return true;
+			})
 		</script>
 	</head>
 	<body tabindex="-1"> 
@@ -57,7 +69,10 @@
 		<script type="text/javascript" src="assets/js/jquery.js"></script>
 		<script type="text/javascript" src="assets/js/jquery.shortcuts.min.js"></script>
         <script type="text/javascript" src="assets/js/blocked_domains.js"></script>
-        <script type="text/javascript" src="assets/js/global.js"></script>
+		<script type="text/javascript" src="assets/js/global.js"></script>
+		<script type="text/javascript">
+			loadTheming()
+		</script>
         <script type="text/javascript" src="assets/js/index.js"></script>
         <script type="text/javascript" src="assets/js/countries.js"></script>
 		<script type="text/javascript" src="assets/js/fitter.js"></script>
@@ -72,8 +87,7 @@
 		<iframe id="sandbox" class="fit-player hide" nwdisable nwfaketop height="100%" frameborder="0" src="/blank.html"></iframe>
 		<iframe id="overlay" class="fit-player show" height="100%" allowtransparency="true" frameborder="0" scrolling="no" src="/overlay.html"></iframe>
 		<iframe id="player" class="fit-player hide" height="100%" frameborder="0" scrolling="no" src="/player.html" allowfullscreen></iframe>
-		<div id="player-top-bar">
-			<a href="#" id="ptb-record" data-title-lng-key="START_RECORDING"><i style="font-size: 93%;" class="fas fa-dot-circle"></i> <span></span></a> &middot; 
+		<div id="player-top-bar" class="fit-player-min">
 			<a href="#" data-title-lng-key="RELOAD"><i style="font-size: 93%;" class="fas fa-sync-alt"></i> <span></span></a> &middot; 
 			<span class="try-other"><a href="#" data-title-lng-key="TRY_OTHER_STREAM"><i style="font-size: 93%;" class="fas fa-random"></i> <span></span></a> &middot; </span>
 			<a href="#" data-title-lng-key="STOP"><i style="font-size: 93%;" class="fas fa-square"></i> <span></span></a>
@@ -112,8 +126,8 @@
 			<a href="#" data-title-lng-key="OPEN_FILE" onmousedown="goOpen();return false" id="home-icon-open" class="option" tabindex="997" style="top: 1px;">
 				<i class="fas fa-folder-open" aria-hidden="true"></i>
 			</a>
-			<a href="#" title="Megacubo" onmousedown="help()" id="home-icon-help" class="option" tabindex="998" style="font-size: 109%; top: 1px;">
-				<i class="fas fa-question-circle" aria-hidden="true"></i>
+			<a href="#" title="Megacubo" onmousedown="about()" id="home-icon-help" class="option" tabindex="998" style="font-size: 109%; top: 1px;">
+				<i class="fas fa-info-circle" aria-hidden="true"></i>
 			</a>
 		</span>
 		<span id="list-icons">
@@ -154,12 +168,6 @@
 				});
 				jQuery('#controls').removeClass('hide').addClass('show'); 
 				var actions = {
-					'START_RECORDING': () => { 
-						if(isRecording){
-							stopRecording()
-						} else {
-							startRecording()
-						} },
 					'RELOAD': goReload,
 					'TRY_OTHER_STREAM': switchPlayingStream,
 					'STOP': () => {
@@ -181,8 +189,9 @@
 					var locale = getLocale(true);
 					if(locale == 'en'){
 						jQuery.getJSON('http://app.megacubo.net/get-lang', (data) => {
-							if(data.length == 2 && data != 'en' && Object.keys(availableLanguageNames).indexOf(data) != -1) {
-								Config.set('locale', data)
+							if(data.length == 2 && data != 'en') {
+								// unsure of language, ask user
+								goChangeLang()
 							} else {
 								Config.set('locale', 'en')
 							}
@@ -224,7 +233,7 @@
 					var close = jQuery('.nw-cf-close');
 					close.replaceWith(close.outerHTML()); // override closing behaviour
 					jQuery('#menu-trigger-icon').prop('title', Lang.SHOW_HIDE_MENU).attr('aria-label', Lang.SHOW_HIDE_MENU);
-					jQuery.getScript("assets/fa/js/fontawesome-all.js");
+					jQuery.getScript("assets/fa/js/all.js");
 					jQuery('.nw-cf-close').on('click', closeWindow);
 					//console.error('two');
 				});

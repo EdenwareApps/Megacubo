@@ -16,7 +16,7 @@
 "WEB_SEARCH": "Búsqueda Web",
 "HOME": "Inicio",
 "NOGROUP": "Otros",
-"BACK": "Volver al inicio",
+"BACK": "Volver",
 "SEARCH": "Búsqueda",
 "CLOSE": "Cerrar",
 "MAXIMIZE": "Maximizar",
@@ -60,6 +60,7 @@
 "LANGUAGE": "Idioma",
 "USE_HARDWARE_ACCELERATION": "Usa aceleración de hardware",
 "SHOULD_RESTART": "Reinicie la aplicación para que los cambios surtan efecto.",
+"NEED_RESTART": "El programa debe reiniciarse para que los cambios surtan efecto. ¿Desea proseguir?",
 "FIND_PACKAGES": "Encuentra paquetes",
 "FOLDER_NOT_WRITABLE": "Sin permiso para guardar en esta carpeta, seleccione otra.",
 "NEW_VERSION_AVAILABLE": "Una nueva versión del programa ya está disponible. ¿Te gustaría descargarlo ahora?",
@@ -148,5 +149,8 @@
 "SHUTDOWN": "Shutdown",
 "RELOAD": "Recargar",
 "SHARE_TWITTER_MASK": "Assistindo {0} via @Megacubo",
-"SHARE_FACEBOOK_MASK": "Assistindo {0} no Megacubo"
+"SHARE_FACEBOOK_MASK": "Assistindo {0} no Megacubo",
+"LEGAL_NOTICE": "Aviso legal",
+"ABOUT_LEGAL_NOTICE": "Megacubo no realiza transmisiones. El contenido en él es proporcionado por listas IPTV agregadas por los usuarios al programa en un ambiente común. El uso del programa para acceder a contenido protegido por derechos va en contra de los Términos de Uso del mismo.",
+"ALLOW_SIMILAR_TRANSMISSIONS": "Permitir transmisiones similares"
 }

@@ -736,7 +736,7 @@ var doFindStreams = (scope, callback) => {
 }
 
 var Fitter = (() => {
-    var debug = true, self = {}, stylizerQueue = null, stylizerRelevantTags = ['a', 'iframe', 'div'];
+    var debug = false, self = {}, stylizerQueue = null, stylizerRelevantTags = ['a', 'iframe', 'div'];
     self.width = function (object){
         return object.offsetWidth || object.scrollWidth || object.outerWidth;
     }
@@ -879,7 +879,7 @@ var Fitter = (() => {
                 self.fitParentFrames(scope.parent)
             }
         } else if(scope != top && scope != scope.parent){
-            console.log('FAILED TO GET FRAME ELEMENT', scope, scope.parent, scope.parent.document, scope.parent.document.querySelectorAll('iframe,frame'))
+            console.log('FAILED TO GET FRAME ELEMENT', scope)
         }
     }
     self.compare = function (a, b, tolerance){
@@ -1108,7 +1108,7 @@ var Fitter = (() => {
             }
         }
         if(!data.element.parentNode) {
-            document.querySelector('body').appendChild(data.element); //Failed to read the 'buffered' property from 'SourceBuffer': This SourceBuffer has been removed from the parent media source.
+            data.scope.document.querySelector('body').appendChild(data.element) //Failed to read the 'buffered' property from 'SourceBuffer': This SourceBuffer has been removed from the parent media source.
         }
         top.enableEventForwarding(data.scope, unfocus);
         data.scope.__fitted = true;

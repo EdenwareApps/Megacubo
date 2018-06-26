@@ -60,6 +60,7 @@
 "LANGUAGE": "Lingua",
 "USE_HARDWARE_ACCELERATION": "Usa l'accelerazione hardware",
 "SHOULD_RESTART": "Riavviare l'applicazione per rendere effettive le modifiche.",
+"NEED_RESTART": "Il programma dovrà essere riavviato affinché le modifiche abbiano effetto. Vuoi procedere?",
 "FIND_PACKAGES": "Trova pacchetti",
 "FOLDER_NOT_WRITABLE": "Senza il permesso di salvare questa cartella, selezionarne un'altra.",
 "NEW_VERSION_AVAILABLE": "Una nuova versione del programma è ora disponibile. Vorresti scaricarlo ora?",
@@ -147,5 +148,8 @@
 "SHUTDOWN": "Spegnere",
 "RELOAD": "Ricaricare",
 "SHARE_TWITTER_MASK": "Assistere {0} via @Megacubo",
-"SHARE_FACEBOOK_MASK": "Assistere {0} senza Megacubo"
+"SHARE_FACEBOOK_MASK": "Assistere {0} senza Megacubo",
+"LEGAL_NOTICE": "Avviso legale",
+"ABOUT_LEGAL_NOTICE": "Megacubo non esegue trasmissioni. Il contenuto in esso è fornito dagli elenchi IPTV aggiunti dagli utenti al programma in un ambiente comune. L'utilizzo del programma per accedere a contenuti protetti da copyright è contrario ai suoi termini di utilizzo.",
+"ALLOW_SIMILAR_TRANSMISSIONS": "Consenti trasmissioni simili"
 }

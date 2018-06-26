@@ -189,6 +189,22 @@ function listBackEffect(callback){
     jQuery('.list > div').animate({opacity: 0.01}, effectFadeTime, function (){callback();jQuery(this).css({opacity: 1})});
 }
 
+function about(){
+    if(currentVersion > installedVersion){
+        var txt = gui.App.manifest.window.title+' v'+gui.App.manifest.version+' (< v'+currentVersion+")\n\n";
+        txt = applyFilters('about', txt);
+        txt = trimChar(txt, "\n") + "\n\n" + Lang.NEW_VERSION_AVAILABLE;
+        if(confirm(txt)){
+            gui.Shell.openExternal('https://megacubo.tv/online/?version='+gui.App.manifest.version)
+        }
+    } else {
+        var txt = gui.App.manifest.window.title+' v'+gui.App.manifest.version+"\nhttps://megacubo.tv\n\n";
+        txt = applyFilters('about', txt);
+        txt = trimChar(txt, "\n");
+        alert(txt)
+    }
+}
+
 var sideWidgetEntries = [], searchSuggestions = [];
 
 function getSearchSuggestions(){
@@ -203,13 +219,14 @@ function getSearchSuggestions(){
             suggestions.forEach((suggest, i) => {
                 suggestions[i].search_term = suggestions[i].search_term.trim();
                 if(parentalControlAllow(suggest.search_term)){
-                    var t = Lang.SEARCH + ': ' + suggest.search_term, c = ucWords(suggest.search_term), s = encodeURIComponent(c), entry = {name: c, logo: 'http://app.megacubo.net/logos/'+encodeURIComponent(s)+'.png?_=', type: 'stream', label: Lang.MOST_SEARCHED, url: 'mega://play|'+s};
+                    var t = Lang.SEARCH + ': ' + suggest.search_term, c = ucWords(suggest.search_term), s = encodeURIComponent(c), entry = {name: c, logo: 'http://app.megacubo.net/logos/'+encodeURIComponent(s)+'.png', type: 'stream', label: Lang.MOST_SEARCHED, url: 'mega://play|'+s};
                     entries.push({name: '#'+suggest.search_term, logo: 'fa-search', type: 'option', class: 'entry-suggest', label: Lang.SEARCH, callback: () => {goSearch(suggest.search_term)}})
                     sideWidgetEntries.push(entry);
                     var a = jQuery('<a href="#" title="'+t+'" aria-label="'+t+'">'+suggest.search_term+'</a>');
                     a.data('entry-data', entry).on('mousedown', (event) => {
                         var entry = jQuery(event.currentTarget).data('entry-data');
-                        goSearch(entry.name.toLowerCase())
+                        // goSearch(entry.name.toLowerCase())
+                        playEntry(entry)
                     }).on('click', (event) => {
                         event.preventDefault()
                     });
@@ -223,6 +240,16 @@ function getSearchSuggestions(){
             }
         }
     })
+}
+
+function getSearchSuggestionsTerms(){
+    var s = [];    
+    if(searchSuggestions && searchSuggestions.length){
+        searchSuggestions.forEach((suggest, i) => {
+            s.push(searchSuggestions[i].search_term)
+        })
+    }
+    return s;
 }
 
 function renderRemoteSources(name){
@@ -378,7 +405,7 @@ function backEntry(label){
 }
 
 function backEntryRender(container, backPath, label){
-    //console.warn('#####################################', backPath, traceback());
+    // console.warn('#####################################', backPath, traceback());
     Menu.container(true) // reset always for back button
     var back = backEntry(label);
     Menu.render([back], 1)
@@ -399,7 +426,10 @@ function isStreamEntry(data){
     return (data.type == 'stream');
 }
 
-function setEntryFlag(el, flag){
+function setEntryFlag(el, flag, unique){
+    if(unique){
+        jQuery('.entry-status > span').html('')
+    }
     if(flag){
         flag = '<i class="fa '+flag+'" aria-hidden="true"></i>';
     } else {
@@ -477,9 +507,9 @@ function markActiveSource(){
             setEntryFlag(entries[i], '');
         }
         var entries = findEntries(source);
-        for(var i=0;i<entries.length;i++){
+        if(entries.length){
             console.log('SET-'+i);
-            setEntryFlag(entries[i], fa);
+            setEntryFlag(entries[0], fa, true)
         }
     }
 }
@@ -539,7 +569,7 @@ function setupSearch(term, type, name){
             focusEntryItem(np);
             np.find('input').get(0).focus();
             var callback = (r) => {
-                console.log('QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ!!');
+                //console.log('QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ!!');
                 container.find('a.entry-stream, a.entry-loading, a.entry-autoclean, a.entry-group, a.entry-suggest, a.entry-option:not(.entry-back)').remove();
                 console.log('QQQ', r, val, type, Menu.path);
                 if(type == 'live'){
@@ -615,7 +645,7 @@ function fetchSearchResults(){
 
 var ytsr = false;
 function fetchVideoSearchResults(_cb){
-    var searchYoutube = false, c = jQuery('.list > div > div');
+    var searchYoutube = true, c = jQuery('.list > div > div');
     var q = c.find('input').val().toLowerCase();
     if(q.length > 1){
         var cb = (entries) => {
@@ -630,7 +660,7 @@ function fetchVideoSearchResults(_cb){
                 }
                 ytsr.get_filters(q, function(err, filters) {
                     console.log(filters);
-                    if(!jQuery.isArray(filters)){
+                    if(typeof(filters)!='object'){
                         return cb([])
                     }
                     var filter = filters['type'].find((o) => {return o.name == 'Video'});
@@ -866,7 +896,7 @@ function fetchSharedListsSearchResults(cb, type, term, matchAll){
                         already = null;
                     });
                     var max = Math.max.apply(null, Object.values(resultHitMap));
-                    //console.warn("GOLD", resultEntryMap, resultHitMap, terms);
+                    console.warn("GOLD", resultEntryMap, resultHitMap, terms);
                     Object.keys(resultHitMap).sort((a, b) => {return resultHitMap[b] - resultHitMap[a]}).forEach((url) => {
                         if(r.length < searchResultsLimit){
                             if(!matchAll || resultHitMap[url] >= max){
@@ -878,6 +908,7 @@ function fetchSharedListsSearchResults(cb, type, term, matchAll){
                             }
                         }
                     });
+                    console.warn("GOLD", r, maybe);
                     if(r.length < limit && !matchAll){
                         r = r.concat(maybe.slice(0, limit - r.length))
                     }
@@ -907,7 +938,7 @@ function lettersToRange(a, b){
 
 var Menu = (() => {
     var self = {};
-    self.debug = false;
+    self.debug = true;
     self.path = '';
     self.vpath = false;
     self.lastListScrollTop = 0;
@@ -980,7 +1011,7 @@ var Menu = (() => {
     }
     self.trigger = (data, element) => {
         console.log('TRIGGER', data, element, traceback());
-        if(data.type == 'input'){
+        if(data.type == 'input' || (typeof(data.class)=='string' && data.class.indexOf('entry-disabled')!=-1)){
             return;
         }
         if(data.type == 'group'){ // prior to dealing with the back entry
@@ -1025,13 +1056,15 @@ var Menu = (() => {
                 console.log('!! RENDERER DIDNT RETURNED A ARRAY', entries, data.path);
             }
         }
-        console.log('TRIGGER DATA', data, npath, data.path, entries);
+        console.log('TRIGGER DATA', npath, data, data.path, entries);
         if(data.type == 'group'){
+            entries = applyFilters('internalFilterEntries', entries, npath);
             self.triggerer(npath, data);
+            console.log('TRIGGER DATA 2', entries);
             if(jQuery.isArray(entries)){
                 var ok = false;
                 //console.error('XXXXXXXX', entries, data, self.path && entries.length <= self.subMenuSizeLimit);
-                if(entries.length <= self.subMenuSizeLimit){
+                if(entries.length <= self.subMenuSizeLimit && (!data.class || data.class.indexOf('nosub') == -1)){
                     //console.error('XXXXXXXX', entries, data);
                     if(!element){
                         var es = self.queryElements(self.entries(false, false), {name: data.name, type: data.type});
@@ -1110,7 +1143,7 @@ var Menu = (() => {
         console.log('CALLBACK', t, data);
         if(t == 'function'){
             setTimeout(function (){
-                data.callback(data, this)
+                data.callback(data, element)
             }, 150)
         } else if(isStreamEntry(data)) {
             console.log('PLAY', data);
@@ -1208,10 +1241,11 @@ var Menu = (() => {
                 }
                 html = html.replaceAll('[format-name]', displayPrepareName(n, entry.prependName || '', entry.appendName || ''));
             }
+            var logoColor = typeof(entry.logoColor) == 'undefined' ? '' : 'color: '+entry.logoColor+';';
             if(logo.substr(0, 3)=="fa-"){
-                html = html.replace(new RegExp('<img[^>]+>', 'mi'), '<i class="fas '+logo+' entry-logo-fa" aria-hidden="true"></i>')
+                html = html.replace(new RegExp('<img[^>]+>', 'mi'), '<i class="fas '+logo+' entry-logo-fa" style="'+logoColor+'" aria-hidden="true"></i>')
             } else if(logo.indexOf(" fa-")!=-1){
-                html = html.replace(new RegExp('<img[^>]+>', 'mi'), '<i class="'+logo+' entry-logo-fa" aria-hidden="true"></i>')
+                html = html.replace(new RegExp('<img[^>]+>', 'mi'), '<i class="'+logo+' entry-logo-fa" style="'+logoColor+'" aria-hidden="true"></i>')
             } else {
                 html = html.replaceAll('[logo]', logo);
                 html = html.replaceAll('[auto-logo]', autoLogo);
@@ -1377,7 +1411,9 @@ var Menu = (() => {
         return f;
     }
     self.focusPrevious = () => {
-        var e = self.getFocus(), p = e.prevAll('a.entry:visible, button.nw-cf-btn:visible, a.option:visible').eq(0);
+        var insub = jQuery('.entry-sub').length, aq = 'a.entry';
+        if(insub) aq += '.entry-sub';
+        var e = self.getFocus(), p = e.prevAll(aq+':visible, button.nw-cf-btn:visible, a.option:visible').eq(0);
         if(self.debugMenuFocus){
             console.log('Menu.focusPrevious', e, p)
         }
@@ -1386,8 +1422,8 @@ var Menu = (() => {
                 p = jQuery('a.option:visible:eq(-1)')
             } else if(e.hasClass('entry')) {
                 p = jQuery('.nw-cf-btn:eq(-1)')
-            } else if(e.hasClass('option')) {
-                p = jQuery('a.entry:visible:eq(-1)')
+            } else if(!insub && e.hasClass('option')) {
+                p = jQuery(aq+':visible:eq(-1)')
             } else {
                 p = jQuery('#controls-toggle')
             }      
@@ -1395,7 +1431,7 @@ var Menu = (() => {
                 console.log('Menu.focusPrevious', e, p)
             }
             if(!p.length){
-                p = jQuery('a.entry:not(.entry-back):visible:eq(-1)');
+                p = jQuery(aq+':not(.entry-back):visible:eq(-1)');
                 if(self.debugMenuFocus){
                     console.log('Menu.focusPrevious', e, p)
                 }
@@ -1404,7 +1440,9 @@ var Menu = (() => {
         focusEntryItem(p)
     }
     self.focusNext = () => {
-        var e = self.getFocus(), nxt = e.nextAll('a.entry:visible, button.nw-cf-btn:visible, a.option:visible').eq(0);
+        var insub = jQuery('.entry-sub').length, aq = 'a.entry';
+        if(insub) aq += '.entry-sub';
+        var e = self.getFocus(), nxt = e.nextAll(aq+':visible, button.nw-cf-btn:visible, a.option:visible').eq(0);
         if(self.debugMenuFocus){
             console.log('Menu.focusNext', e, nxt)
         }
@@ -1412,17 +1450,17 @@ var Menu = (() => {
             if(e.attr('id') == 'controls-toggle'){
                 nxt = jQuery('.nw-cf-btn:eq(0)')
             } else  if(e.hasClass('entry')){
-                nxt = jQuery('a.option:visible:eq(0)')
+                nxt = jQuery(insub ? '#controls-toggle' : 'a.option:visible:eq(0)')
             } else  if(e.hasClass('option')){
                 nxt = jQuery('#controls-toggle')
             } else {
-                nxt = jQuery('a.entry:visible:eq(0)')
+                nxt = jQuery(aq+':visible:eq(0)')
             }
             if(self.debugMenuFocus){
                 console.log('Menu.focusNext', e, nxt)
             }
             if(!nxt.length){
-                nxt = jQuery('a.entry:not(.entry-back):visible:eq(0)');
+                nxt = jQuery(aq+':not(.entry-back):visible:eq(0)');
                 if(self.debugMenuFocus){
                     console.log('Menu.focusNext', e, nxt)
                 }
@@ -1508,7 +1546,7 @@ var Menu = (() => {
     }
     self.go = (fullPath, _cb) => {
         self.vpath = false;
-        var debug = true, timeout = 10000, ms = 50, retries = timeout / ms, cb = () => {
+        var timeout = 10000, ms = 50, retries = timeout / ms, cb = () => {
             if(typeof(_cb) == 'function'){
                 _cb()
             }
@@ -1520,7 +1558,7 @@ var Menu = (() => {
             return cb()
         }
         if(fullPath === self.path){
-            return;
+            return cb();
         }
         if(dirname(fullPath) == self.path){
             var es = self.query(Menu.entries(true, false), {name: basename(fullPath), type: 'group'});
@@ -1542,11 +1580,12 @@ var Menu = (() => {
                     return;
                 }
             }
-            if(debug) console.warn('OPEN', next,  'IN', entries);
+            if(self.debug) console.warn('OPEN', next,  'IN', entries, cumulatedPath);
             for(var i=0; i<entries.length; i++){
                 if(entries[i].name == next){
                     var nentries = read(entries[i]);
-                    if(debug) console.warn('OPENED', nentries);
+                    nentries = applyFilters('internalFilterEntries', nentries, cumulatedPath);
+                    if(self.debug) console.warn('OPENED', nentries);
                     return nentries;
                 }
             }
@@ -1566,34 +1605,46 @@ var Menu = (() => {
             return nentries;
         }
         var enter = (entries, next) => {
-            if(debug) console.log('enter(next=', next, ')', cumulatedPath, entries, path);
+            if(self.debug) console.log('enter(next=', next, ')', cumulatedPath, entries, path);
             if(entries.length){
                 if(entries[0].class != 'entry-loading') {
                     if(next){ 
-                        if(debug) console.log('enter(next=', next, ')');
+                        if(self.debug) console.log('enter(next=', next, ')');
                         var nentries = open(entries, next);
                         if(nentries){
                             entries = nentries;
                             var next = path.shift();
                             if(next){
                                 self.vpath = cumulatedPath = assumePath(next, cumulatedPath);
-                                if(debug) console.log('cumulatedPath', cumulatedPath, next);
+                                if(self.debug) console.log('cumulatedPath', cumulatedPath, next);
                             }
                             return enter(nentries, next)
                         }
-                        if(debug) console.log('open failed for', next, 'IN', entries)
+                        if(self.debug) console.log('open failed for', next, 'IN', entries)
                     } else {
                         self.vpath = false;
                         self.path = fullPath;
-                        if(debug) console.log('no more', self.path, path, entries);
+                        if(self.debug) console.log('NO NEXT', self.path, path, entries);
                         var container = self.container(true); // just to reset entries in view
                         backEntryRender(container, dirname(fullPath), basename(fullPath));
+                        self.list(entries, fullPath);
+                        if(self.debug){
+                            console.warn('listed successfully', entries)
+                        }
+                        cb()
+                        /*
                         if(!fullPath || entries.length >= self.subMenuSizeLimit){
                             self.list(entries, fullPath);
-                            if(debug) console.warn('listed successfully', entries);
+                            if(self.debug){
+                                console.warn('listed successfully', entries)
+                            }
                             cb()
                         } else {
                             var __cb = cb, __name = basename(fullPath);
+                            if(self.debug){
+                                console.warn('listing go', fullPath, dirname(fullPath), entries)
+                            }
+                            self.list(entries, fullPath);
                             self.go(dirname(fullPath), () => {
                                 __cb();
                                 jQuery('.entry-group').filter((i, e) => { 
@@ -1602,14 +1653,15 @@ var Menu = (() => {
                                 }).trigger('mousedown')
                             })
                         }
+                        */
                     }
                 } else {
                     if(retries){
-                        if(debug) console.log('retry');
+                        if(self.debug) console.log('retry');
                         retries--;
                         setTimeout(() => {
                             var n = next ? dirname(cumulatedPath) : cumulatedPath;
-                            if(debug) console.log('WAITING FOR', n, 'IN', self.asyncResults);
+                            if(self.debug) console.log('WAITING FOR', n, 'IN', self.asyncResults);
                             var r = n ? self.asyncResult(n) : index;
                             if(jQuery.isArray(r)){
                                 entries = r;
@@ -1620,7 +1672,7 @@ var Menu = (() => {
                         }, ms)
                     } else {
                         self.vpath = false;
-                        if(debug) console.log('give it up!');
+                        if(self.debug) console.log('give it up!');
                         cb()
                     }
                 }
@@ -1668,23 +1720,19 @@ var Menu = (() => {
                 } else if(typeof(entry[key])=='function'){
                     if(entry[key](entry) == atts[key]){
                         hits++;
-                        results.push(entry);
-                        if(remove){
-                            delete entries[i];
-                        }
                     }
                 } else {
                     if(entry[key] == atts[key]){
                         hits++;
-                        if(remove){
-                            delete entries[i];
-                        }
                     } else {
                         break;
                     }
                 }
                 if(hits == attLen){
-                    results.push(entry)
+                    results.push(entry);
+                    if(remove){
+                        delete entries[i];
+                    }
                 }
             }        
         });
@@ -1692,6 +1740,39 @@ var Menu = (() => {
             return entries.slice(0) // reset
         }
         return results;
+    }
+    self.insert = (entries, atts, insEntry, insertAfterInstead) => {
+        var j = null, results = [], attLen = Object.keys(atts).length;
+        for(var i in entries) {
+            var entry = entries[i], hits = 0;
+            for(var key in atts){
+                if(typeof(entry[key])=='undefined'){
+                    break;
+                } else if(typeof(entry[key])=='function'){
+                    if(entry[key](entry) == atts[key]){
+                        hits++;
+                    }
+                } else {
+                    if(entry[key] == atts[key]){
+                        hits++;
+                    } else {
+                        break;
+                    }
+                }
+                if(hits == attLen){
+                    j = i;
+                }
+            }        
+        }
+        if(j !== null){
+            if(insertAfterInstead){
+                j += 2;
+            }
+            entries = Menu.query(entries, {name: insEntry.name}, true);
+            entries.splice(j, 0, insEntry);
+            return entries.slice(0) // reset
+        }
+        return entries;
     }
     self.setup = () => {
         self.path = ltrimPathBar(Store.get('Menu.path')) || '', pos = self.path.indexOf(Lang.MY_LISTS);
@@ -1732,7 +1813,7 @@ function lazyLoad(element, srcs){
 
 function allowAutoClean(curPath){
     // should append autoclean in this path?
-    var offerAutoClean = false, autoCleanAllowPaths = [Lang.CHANNELS, Lang.MY_LISTS, Lang.SEARCH], ignorePaths = [Lang.BEEN_WATCHED, Lang.HISTORY, Lang.RECORDINGS, Lang.BOOKMARKS, Lang.MAGNET_SEARCH];
+    var offerAutoClean = false, autoCleanAllowPaths = [Lang.CHANNELS, Lang.MY_LISTS, Lang.SEARCH], ignorePaths = [Lang.BEEN_WATCHED, Lang.HISTORY, Lang.RECORDINGS, Lang.BOOKMARKS, Lang.MAGNET_SEARCH, 'Youtube'];
     autoCleanAllowPaths.forEach((path) => {
         if(curPath.indexOf(path) != -1){
             offerAutoClean = true;

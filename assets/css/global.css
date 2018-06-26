@@ -21,7 +21,7 @@ input, textarea {
     user-select: text;
 }
 
-.fit-screen, .fit-player {
+.fit-screen, .fit-player, .fit-player-min {
     position: absolute;
     top: 0;
     left: 0;
@@ -33,6 +33,10 @@ input, textarea {
 
 body.showcontrols:not(.miniplayer) .fit-player {
     width: calc(100vw - 28%);
+}
+
+body.showcontrols:not(.miniplayer) .fit-player-min {
+    width: calc(100vw - 28% - 20px);
 }
 
 .show {

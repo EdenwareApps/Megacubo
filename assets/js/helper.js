@@ -1,5 +1,6 @@
 if(document.URL.substr(0, 7) != 'chrome-'){
 	
+	console.log('[helper.js] ' + document.URL);
 	window.WebSocket = window.Worker = undefined;
 
 	console.clear = function (){
@@ -14,11 +15,6 @@ if(document.URL.substr(0, 7) != 'chrome-'){
 
 	window.prompt = function (str, def){
 		console.log('PROMPT', str, def);
-		return false;
-	}
-
-	window.confirm = function (str){
-		console.log('CONFIRM', str);
 		return false;
 	}
 

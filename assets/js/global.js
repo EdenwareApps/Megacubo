@@ -9,8 +9,10 @@ try {
 
 */
 
-setTimeout = global.setTimeout.bind(global);
-clearTimeout = global.clearTimeout.bind(global);
+if(global.setTimeout){
+    setTimeout = global.setTimeout.bind(global);
+    clearTimeout = global.clearTimeout.bind(global);
+}
 
 // prevent default behavior from changing page on dropped file
 window.ondragover = function(e) { 
@@ -197,6 +199,26 @@ if(typeof(require)!='undefined'){
         return result == -1 ? -1 : (result - rotateOffset);
     }
     
+    function blobToBuffer (blob, cb) {
+        if (typeof Blob === 'undefined' || !(blob instanceof Blob)) {
+          throw new Error('first argument must be a Blob')
+        }
+        if (typeof cb !== 'function') {
+          throw new Error('second argument must be a function')
+        }
+      
+        var reader = new FileReader()
+      
+        function onLoadEnd (e) {
+          reader.removeEventListener('loadend', onLoadEnd, false)
+          if (e.error) cb(e.error)
+          else cb(null, Buffer.from(reader.result))
+        }
+      
+        reader.addEventListener('loadend', onLoadEnd, false)
+        reader.readAsArrayBuffer(blob)
+    }
+
     function concatTypedArrays(a, b) { // a, b TypedArray of same type
         var c = new (a.constructor)(a.length + b.length);
         c.set(a, 0);
@@ -354,46 +376,54 @@ if(typeof(require)!='undefined'){
         }
         return requestForever;
     }
+    
+    function validateUrl(value) {
+        return /^(?:(?:(?:https?|ftp):)?\/\/)(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,})))(?::\d{2,5})?(?:[/?#]\S*)?$/i.test(value);
+    }
 
     function getHeaders(url, callback, timeoutSecs){
         var start = time(), timer = 0, currentURL = url;
         if(typeof(callback)!='function'){
             callback = () => {}
         }
-        prepareRequest();
-        //console.warn(url, traceback());
-        if(!timeoutSecs){
-            timeoutSecs = 10;
-        }
-        var r = request(url);
-        r.on('error', (response) => {
-            r.abort();
-            callback({}, url)
-        });
-        r.on('response', (response) => {
-            clearTimeout(timer);
-            var headers = response.headers;
-            headers['status'] = response.statusCode;
-            r.abort();
-            if(headers['location'] && headers['location'] != url && headers['location'] != currentURL){
-                if(!headers['location'].match(new RegExp('^(//|https?://)'))){
-                    headers['location'] = resolveURL(headers['location'], currentURL); 
-                }
-                currentURL = headers['location'];
-                var remainingTimeout = timeoutSecs - (time() - start);
-                if(remainingTimeout && headers['location'] != url && headers['location'] != currentURL){
-                    getHeaders(headers['location'], callback, remainingTimeout)
+        if(validateUrl(url)){
+            prepareRequest();
+            //console.warn(url, traceback());
+            if(!timeoutSecs){
+                timeoutSecs = 10;
+            }
+            var r = request(url);
+            r.on('error', (response) => {
+                r.abort();
+                callback({}, url)
+            });
+            r.on('response', (response) => {
+                clearTimeout(timer);
+                var headers = response.headers;
+                headers['status'] = response.statusCode;
+                r.abort();
+                if(headers['location'] && headers['location'] != url && headers['location'] != currentURL){
+                    if(!headers['location'].match(new RegExp('^(//|https?://)'))){
+                        headers['location'] = resolveURL(headers['location'], currentURL); 
+                    }
+                    currentURL = headers['location'];
+                    var remainingTimeout = timeoutSecs - (time() - start);
+                    if(remainingTimeout && headers['location'] != url && headers['location'] != currentURL){
+                        getHeaders(headers['location'], callback, remainingTimeout)
+                    } else {
+                        callback(headers, url)
+                    }
                 } else {
                     callback(headers, url)
                 }
-            } else {
-                callback(headers, url)
-            }
-        });
-        timer = setTimeout(() => {
-            r.abort();
+            });
+            timer = setTimeout(() => {
+                r.abort();
+                callback({}, url)
+            }, timeoutSecs * 1000)
+        } else {
             callback({}, url)
-        }, timeoutSecs * 1000)
+        }
     }
 
 	function basename(str, rqs){
@@ -624,16 +654,23 @@ if(typeof(require)!='undefined'){
 
 	if(typeof(fs)=='undefined'){
 		var fs = require("fs");
-	}
+    }
+
+	if(typeof(path)=='undefined'){
+		var path = require("path");
+    }
 
 	if(top == window){
 		var Store = (() => {
-			var dir = 'data/', self = {}, cache = {};
-			fs.stat(dir, (err, stat) => {
-				if(err !== null) {
-					fs.mkdir(dir);
-				}
-			});
+            var dir, self = {}, cache = {};
+            self.folder = (addEndSlash) => {
+                if(typeof(self.cachingFolder)=='undefined'){
+                    var pos = gui.App.dataPath.lastIndexOf(gui.App.manifest.name);
+                    self.cachingFolder = gui.App.dataPath.substr(0, pos + gui.App.manifest.name.length)+'/Cache';
+                    self.cachingFolder = path.normalize(self.cachingFolder)
+                }
+                return self.cachingFolder + (addEndSlash ? path.sep : '');
+            }    
 			self.resolve = (key) => {
 				key = key.replace(new RegExp('[^A-Za-z0-9\\._\\- ]', 'g'), '');
 				return dir + key + '.json';
@@ -680,38 +717,54 @@ if(typeof(require)!='undefined'){
 				}
 				cache[key] = val;
 			}
+            dir = self.folder(true); 
+			fs.stat(dir, (err, stat) => {
+				if(err !== null) {
+					fs.mkdir(dir, (err) => {
+
+                    })
+				}
+            });
 			return self;
         })();        
         
 		var Config = (() => {
-			var self = {}, file = 'data/configure.json', loaded = false, defaults = {
-				"sources": [],
-				"gpu-rendering": false,
-				"hd-lists-url": "http://www.iptvchoice.com/free-iptv-test/",
-				"hide-logos": false,
-				"hide-back-button": false,
-				"resume": false,
-				"show-adult-content": false,
-				"sources": [],
-				"start-in-fullscreen": false,
-				"after-exit-url": "http://app.megacubo.net/out.php?ver={0}",
-				"unshare-lists": false
-			}, data = defaults;
+            var self = {
+                debug: false,
+                file: Store.folder(true) + 'configure.json',
+                defaults: {
+                    "allow-similar-transmissions": true,
+                    "sources": [],
+                    "gpu-rendering": true,
+                    "hd-lists-url": "http://www.iptvchoice.com/free-iptv-test/",
+                    "hide-logos": false,
+                    "hide-back-button": false,
+                    "resume": false,
+                    "show-adult-content": false,
+                    "sources": [],
+                    "start-in-fullscreen": false,
+                    "after-exit-url": "http://app.megacubo.net/out.php?ver={0}",
+                    "unshare-lists": false
+                }
+            }, loaded = false;
+            self.data = self.defaults;
 			self.load = () => {
 				loaded = true;
-				if(fs.existsSync(file)){
-					var _data = fs.readFileSync(file, "utf8");
+				if(fs.existsSync(self.file)){
+					var _data = fs.readFileSync(self.file, "utf8");
 					if(_data){
 						if(Buffer.isBuffer(_data)){ // is buffer
 							_data = String(_data)
 						}
-						//console.log('DATA', data)
+						if(self.debug){
+                            console.log('DATA', _data)
+                        }
 						if(typeof(_data)=='string' && _data.length > 2){
 							_data = _data.replaceAll("\n", "");
 							//data = stripBOM(data.replace(new RegExp("([\r\n\t]| +)", "g"), "")); // with \n the array returns empty (?!)
 							_data = JSON.parse(_data);
 							if(typeof(_data)=='object'){
-								data = Object.assign(data, _data)
+								self.data = Object.assign(self.data, _data)
 							}
 						}
 					}
@@ -722,7 +775,7 @@ if(typeof(require)!='undefined'){
 					self.load()
 				}
 				//console.log('GET', key);
-				return data;
+				return self.data;
 			}
 			self.get = (key) => {
 				if(!loaded){
@@ -730,38 +783,43 @@ if(typeof(require)!='undefined'){
 				}
 				//console.log('DATAb', JSON.stringify(data))
 				//console.log('GET', key, traceback());
-				var t = typeof(data[key]);
+				var t = typeof(self.data[key]);
 				if(t == 'undefined'){
-					data[key] = defaults[key];
-					t = typeof(defaults[key]);
+					self.data[key] = self.defaults[key];
+					t = typeof(self.defaults[key]);
 				}
 				if(t == 'undefined'){
 					return null;
 				} else if(t == 'object') {
-					if(jQuery.isArray(data[key])){ // avoid referencing
-						return data[key].slice(0)
+					if(jQuery.isArray(self.data[key])){ // avoid referencing
+						return self.data[key].slice(0)
 					} else {
-						return Object.assign({}, data[key])
+						return Object.assign({}, self.data[key])
 					}
 				}
-				return data[key];
+				return self.data[key];
 			}
 			self.set = (key, val) => {
 				if(!loaded){
 					self.load()
+                }
+				if(self.debug){
+                    console.log('SSSET', key, val, self.data)
+                }
+				self.data[key] = val;
+				if(fs.existsSync(self.file)){
+					fs.truncateSync(self.file, 0)
 				}
-				//console.log('SSSET', key, val);
-				data[key] = val;
-				if(fs.existsSync(file)){
-					fs.truncateSync(file, 0)
-				}
-				fs.writeFileSync(file, JSON.stringify(data, null, 4), "utf8")
+                var jso = JSON.stringify(self.data, null, 4);
+				fs.writeFileSync(self.file, jso, "utf8");
+				if(self.debug){
+                    console.log('SSSET', jso, self.data)
+                }
 			}
 			return self;
 		})()
 	} else {
-		var Config = top.Config;
-		var Store = top.Store;
+		var Config = top.Config, Store = top.Store;
 	}
 
     function prepareFilename(file){
@@ -801,7 +859,7 @@ if(typeof(require)!='undefined'){
         });
         cache = null;
     }
-    
+
     function seekRewind(){
         if(top && top.PlaybackManager && top.PlaybackManager.activeIntent){
             notify(Lang.REWIND, 'fa-backward', 'short');
@@ -854,9 +912,7 @@ if(typeof(require)!='undefined'){
     }
 
     function help(){
-        getManifest(function (data){
-            gui.Shell.openExternal('https://megacubo.tv/online/2018/?version='+data.version);
-        })
+        gui.Shell.openExternal('https://megacubo.tv/online/2018/?version='+gui.App.manifest.version)
     }
 
     function goHome(){
@@ -868,23 +924,28 @@ if(typeof(require)!='undefined'){
     }
 
     function restartApp(){
-        getManifest((data) => {
-            jQuery(top.document).find('#splash').show('fast');
-            centralizedResizeWindow(data.window.width, data.window.height, true);
-            setTimeout(() => { 
-                chrome.runtime.reload()
-            }, 500)
-        })
+        jQuery(top.document).find('#splash').show('fast');
+        //centralizedResizeWindow(gui.App.manifest.window.width, gui.App.manifest.window.height, true);
+        setTimeout(() => { 
+            // chrome.runtime.reload()
+            gui.Shell.openExternal(process.execPath);
+            setTimeout(() => {
+                closeWindow();
+                win.close(true)
+            }, 0);
+        }, 500)
     }
 
     function goReload(){
-        if(top && top.PlaybackManager.activeIntent){
-            var e = top.PlaybackManager.activeIntent.entry;
+        var c = (top || parent || window);
+        if(c && c.PlaybackManager.activeIntent){
+            var e = c.PlaybackManager.activeIntent.entry;
+            c.isReloading = true;
+            setTimeout(() => {
+                c.isReloading = false;
+            }, 1000);
             stop();
-            var c = (top || parent);
-            if(c){
-                c.playEntry(e)
-            }
+            c.playEntry(e)
         }
     }
     
@@ -943,9 +1004,29 @@ if(typeof(require)!='undefined'){
         }
     }
 
-    function setBackToHome(){
+    function goOptions(){
         var c = (top || parent);
-        jQuery(c.document).find('.entry-back').off('mousedown click').on('click', () => {Menu.go('')})
+        if(c.optionsPath){
+            c.Menu.go(c.optionsPath);
+            setBackToHome()
+        }
+    }
+
+    function goChangeLang(){
+        var c = (top || parent);
+        if(c.langPath){
+            c.Menu.go(c.langPath);
+            setBackToHome()
+        }
+    }
+
+    function setBackTo(path){
+        var c = (top || parent);
+        jQuery(c.document).find('.entry-back').off('mousedown click').on('click', () => {Menu.go(path)})
+    }
+
+    function setBackToHome(){
+        setBackTo('')
     }
 
     function goOpen(){
@@ -1007,24 +1088,6 @@ if(typeof(require)!='undefined'){
     function setupShortcuts(){
         if(top == window){
             var globalHotkeys = [
-                /*
-                {
-                    key : "Ctrl+M",
-                    active : () => {
-                        top.toggleMiniPlayer()
-                    }
-                },
-                {
-                    key : "F9",
-                    active : () => {
-                        if(!top.isRecording){
-                            top.startRecording()
-                        } else {
-                            top.stopRecording()
-                        }
-                    }
-                },
-                */
                 {
                     key : "MediaPrevTrack",
                     active : () => {
@@ -1072,168 +1135,217 @@ if(typeof(require)!='undefined'){
                     nw.App.unregisterGlobalHotKey(globalHotkeys[i]);
                 }
                 console.log('Hotkeys unregistered.')
-            })
-        }
-        shortcuts.push(createShortcut("Ctrl+Alt+D Ctrl+T", () => {
-            top.spawnOut()
-        }, null, true));
-        shortcuts.push(createShortcut("Ctrl+E", () => {
-            top.playExternal()
-        }, null, true));
-        shortcuts.push(createShortcut("Ctrl+W", () => {
-            stop()
-        }, null, true));
-        shortcuts.push(createShortcut("Ctrl+O", () => {
-            openFileDialog(function (file){
-                var o = getFrame('overlay');
-                if(o){
-                    o.processFile(file)
-                }
-            })
-        }, null, true));
-        shortcuts.push(createShortcut("Ctrl+Z", () => {
-            var c = (top || parent);
-            if(c){
-                c.playPrevious()
-            }
-        }, null, true));
-        shortcuts.push(createShortcut("F1 Ctrl+I", help));
-        shortcuts.push(createShortcut("F2", () => {
-            var c = (top || parent);
-            if(c){
-                c.renameSelectedEntry()
-            }
-        }, null, true))
-        shortcuts.push(createShortcut("F3 Ctrl+F Ctrl+F3", () => {
-            goSearch()
-        }, null, true));
-        shortcuts.push(createShortcut("F5", () => {
-            goReload()
-        }, null, true));
-        shortcuts.push(createShortcut("Space", () => {
-            top.playPause()
-        }));
-        shortcuts.push(createShortcut("Ctrl+H", () => {
-            (top || parent).goHistory()
-        }, null, true));
-        shortcuts.push(createShortcut("Ctrl+U", () => {
-            var c = (top || parent);
-            if(c){
-                c.addNewSource()
-            }
-        }, null, true));
-        shortcuts.push(createShortcut("F9 Ctrl+X", () => {
-            if(!top.isRecording){
-                top.startRecording()
-            } else {
-                top.stopRecording()
-            }
-        }, null, true));
-        shortcuts.push(createShortcut("Ctrl+D Ctrl+S", () => {
-            (top || parent).addFav()
-        }, null, true));
-        shortcuts.push(createShortcut("Ctrl+Alt+D Ctrl+Alt+S", () => {
-            (top || parent).removeFav()
-        }, null, true));
-        shortcuts.push(createShortcut("Ctrl+Shift+D Ctrl+Shift+S", () => {
-            goBookmarks()
-        }, null, true));
-        shortcuts.push(createShortcut("Ctrl+Alt+R Ctrl+F5", () => {
-            restartApp()
-        }, null, true));
-        shortcuts.push(createShortcut("Home", () => {
-            if(!areControlsActive()){
-                showControls()
-            }
-            (top || parent).Menu.go('')
-        }));
-        shortcuts.push(createShortcut("Delete", () => {
-            if(areControlsActive()){
+            });
+            shortcuts.push(createShortcut("Ctrl+Alt+D Ctrl+T", () => {
+                top.spawnOut()
+            }, null, true));
+            shortcuts.push(createShortcut("Ctrl+E", () => {
+                top.playExternal()
+            }, null, true));
+            shortcuts.push(createShortcut("Ctrl+W", () => {
+                stop()
+            }, null, true));
+            shortcuts.push(createShortcut("Ctrl+O", () => {
+                openFileDialog(function (file){
+                    var o = getFrame('overlay');
+                    if(o){
+                        o.processFile(file)
+                    }
+                })
+            }, null, true));
+            shortcuts.push(createShortcut("Ctrl+Z", () => {
                 var c = (top || parent);
-                c.Menu.triggerKey('delete')
+                if(c){
+                    c.playPrevious()
+                }
+            }, null, true));
+            shortcuts.push(createShortcut("F1 Ctrl+I", help));
+            shortcuts.push(createShortcut("F2", () => {
+                var c = (top || parent);
+                if(c){
+                    c.renameSelectedEntry()
+                }
+            }, null, true))
+            shortcuts.push(createShortcut("F3 Ctrl+F Ctrl+F3", () => {
+                goSearch()
+            }, null, true));
+            shortcuts.push(createShortcut("F5", () => {
+                goReload()
+            }, null, true));
+            shortcuts.push(createShortcut("Space", () => {
+                top.playPause()
+            }));
+            shortcuts.push(createShortcut("Ctrl+H", () => {
+                (top || parent).goHistory()
+            }, null, true));
+            shortcuts.push(createShortcut("Ctrl+U", () => {
+                var c = (top || parent);
+                if(c){
+                    c.addNewSource()
+                }
+            }, null, true));
+            shortcuts.push(createShortcut("Ctrl+L", () => {
+                goChangeLang()
+            }));
+            shortcuts.push(createShortcut("Ctrl+D Ctrl+S", () => {
+                (top || parent).addFav()
+            }, null, true));
+            shortcuts.push(createShortcut("Ctrl+Alt+D Ctrl+Alt+S", () => {
+                (top || parent).removeFav()
+            }, null, true));
+            shortcuts.push(createShortcut("Ctrl+Shift+D Ctrl+Shift+S", () => {
+                goBookmarks()
+            }, null, true));
+            shortcuts.push(createShortcut("Ctrl+Alt+R Ctrl+F5", () => {
+                restartApp()
+            }, null, true));
+            shortcuts.push(createShortcut("Home", () => {
+                if(!areControlsActive()){
+                    showControls()
+                }
+                (top || parent).Menu.go('')
+            }));
+            shortcuts.push(createShortcut("Delete", () => {
+                if(areControlsActive()){
+                    var c = (top || parent);
+                    c.Menu.triggerKey('delete')
+                } else {
+                    if(!areControlsHiding()){
+                        stop();
+                        notify(Lang.STOP, 'fa-stop', 'short')
+                    }
+                }
+            }));
+            shortcuts.push(createShortcut("Up Shift+Tab", () => {
+                showControls();
+                var c = (top || parent);
+                c.Menu.focusPrevious()
+            }, "hold", true));
+            shortcuts.push(createShortcut("Down Tab", () => {
+                showControls();
+                var c = (top || parent);
+                c.Menu.focusNext()
+            }, "hold", true));
+            shortcuts.push(createShortcut("Enter", () => {
+                if(!isMiniPlayerActive()){
+                    if(!areControlsActive()){
+                        showControls()
+                    } else {
+                        var c = (top || parent);
+                        c.Menu.enter()
+                    }
+                }
+            }));
+            shortcuts.push(createShortcut("Alt+Enter F11", () => {
+                top.toggleFullScreen()
+            })),
+            shortcuts.push(createShortcut("Right", () => {
+                seekForward()
+            }, "hold"));
+            shortcuts.push(createShortcut("Left", () => {
+                seekRewind()
+            }, "hold"));
+            shortcuts.push(createShortcut("Ctrl+Left", () => {
+                var s = getPreviousStream();
+                if(s){
+                    console.log(s);
+                    (top || parent).playEntry(s)
+                }
+            }));
+            shortcuts.push(createShortcut("Ctrl+Right", () => {
+                var s = getNextStream();
+                if(s){
+                    console.log(s);
+                    (top || parent).playEntry(s)
+                }
+            }));
+            shortcuts.push(createShortcut("Backspace", () => {
+                if(!isMiniPlayerActive()){
+                    var c = (top || parent);
+                    if(c.Menu.path){
+                        c.Menu.back()
+                    } else {
+                        if(areControlsActive() && !isStopped()){
+                            hideControls()
+                        } else {
+                            showControls()
+                        }
+                    }
+                }
+            }, "hold"));
+            shortcuts.push(createShortcut("Ctrl+Backspace", () => { // with Ctrl it work on inputs so
+                if(!isMiniPlayerActive()){
+                    var c = (top || parent);
+                    if(c.Menu.path){
+                        c.Menu.back()
+                    } else {
+                        if(areControlsActive() && !isStopped()){
+                            hideControls()
+                        } else {
+                            showControls()
+                        }
+                    }
+                }
+            }, null, true));
+            shortcuts.push(createShortcut("F4", () => {
+                top.changeScaleMode()
+            }));
+            shortcuts.push(createShortcut("Ctrl+M", () => {
+                top.toggleMiniPlayer() // global shortcuts fail sometimes, so list it here too as a fallback hotkey binding
+            }, null, true));
+            shortcuts.push(createShortcut("Ctrl+Tab", () => {
+                var c = (top || parent);
+                if(c){
+                    if(!isStopped()){
+                        c.switchPlayingStream()
+                    } else {
+                        c.playPrevious()
+                    }
+                }
+            }, null, true));
+            shortcuts.push(createShortcut("Esc", () => {
+                top.escapePressed()
+            }, null, true));
+            jQuery.Shortcuts.start()
+        } else {
+            setupKeyboardForwarding(document)
+        }
+    }
+
+    function setupKeyboardForwarding(fromDocument){
+        var ctrlProp = '_keyboardForwarding';
+        if(fromDocument != top.document){
+            if(typeof(fromDocument[ctrlProp])=='undefined'){
+                fromDocument[ctrlProp] = true;
+                fromDocument.addEventListener('keydown', (e) => {
+                    console.log('KEYDOWN');
+                    let evt = new top.Event('keydown', {key: e.key, code: e.code, ctrlKey: e.ctrlKey, altKey: e.altKey, shiftKey: e.shiftKey, metaKey: e.metaKey, composed: true, charCode: e.charCode, keyCode: e.keyCode, which: e.which, bubbles: true, cancelable: true, which: e.keyCode});
+                    evt.keyCode = e.keyCode;
+                    evt.which = e.keyCode;
+                    evt.altKey = e.altKey;
+                    evt.ctrlKey = e.ctrlKey;
+                    evt.metaKey = e.metaKey;
+                    evt.shiftKey = e.shiftKey;
+                    top.document.body.dispatchEvent(evt);
+                    console.log('KEYDOWN OK', evt.ctrlKey, e.ctrlKey)    
+                });
+                fromDocument.addEventListener('keyup', (e) => {
+                    console.log('KEYUP');  
+                    let evt = new top.Event('keyup', {key: e.key, code: e.code, ctrlKey: e.ctrlKey, altKey: e.altKey, shiftKey: e.shiftKey, metaKey: e.metaKey, composed: true, charCode: e.charCode, keyCode: e.keyCode, which: e.which, bubbles: true, cancelable: true, which: e.keyCode});
+                    evt.keyCode = e.keyCode;
+                    evt.which = e.keyCode;
+                    evt.altKey = e.altKey;
+                    evt.ctrlKey = e.ctrlKey;
+                    evt.metaKey = e.metaKey;
+                    evt.shiftKey = e.shiftKey;
+                    top.document.body.dispatchEvent(evt);
+                    console.log('KEYUP OK')
+                });
+                console.log('Keyboard forwarding from '+basename(fromDocument.URL, true))
             } else {
-                if(!areControlsHiding()){
-                    stop();
-                    notify(Lang.STOP, 'fa-stop', 'short')
-                }
+                console.log('Keyboard already forwarding from '+basename(fromDocument.URL, true))
             }
-        }));
-        shortcuts.push(createShortcut("Up Shift+Tab", () => {
-            showControls();
-            var c = (top || parent);
-            c.Menu.focusPrevious()
-        }, "hold", true));
-        shortcuts.push(createShortcut("Down Tab", () => {
-            showControls();
-            var c = (top || parent);
-            c.Menu.focusNext()
-        }, "hold", true));
-        shortcuts.push(createShortcut("Enter", () => {
-            if(!isMiniPlayerActive()){
-                if(!areControlsActive()){
-                    showControls()
-                } else {
-                    var c = (top || parent);
-                    c.Menu.enter()
-                }
-            }
-        }));
-        shortcuts.push(createShortcut("Backspace", () => {
-            if(!isMiniPlayerActive()){
-                if(!areControlsActive()){
-                    showControls()
-                } else {
-                    var c = (top || parent);
-                    c.Menu.back()
-                }
-            }
-        }, "hold"));
-        shortcuts.push(createShortcut("Alt+Enter F11", () => {
-            top.toggleFullScreen()
-        })),
-        shortcuts.push(createShortcut("Right", () => {
-            seekForward()
-        }, "hold"));
-        shortcuts.push(createShortcut("Left", () => {
-            seekRewind()
-        }, "hold"));
-        shortcuts.push(createShortcut("Ctrl+Left", () => {
-            var s = getPreviousStream();
-            if(s){
-                console.log(s);
-                (top || parent).playEntry(s)
-            }
-        }));
-        shortcuts.push(createShortcut("Ctrl+Right", () => {
-            var s = getNextStream();
-            if(s){
-                console.log(s);
-                (top || parent).playEntry(s)
-            }
-        }));
-        shortcuts.push(createShortcut("Ctrl+Backspace", () => { // with Ctrl it work on inputs so
-            if(!isMiniPlayerActive()){
-                if(!areControlsActive()){
-                    showControls()
-                } else {
-                    var c = (top || parent);
-                    c.Menu.back()
-                }
-            }
-        }, null, true));
-        shortcuts.push(createShortcut("F4", () => {
-            top.changeScaleMode()
-        }));
-        shortcuts.push(createShortcut("Ctrl+M", () => {
-            top.toggleMiniPlayer() // global shortcuts fail sometimes, so list it here too as a fallback hotkey binding
-        }, null, true));
-        shortcuts.push(createShortcut("Ctrl+Tab", () => {
-            top.switchPlayingStream()
-        }, null, true));
-        shortcuts.push(createShortcut("Esc", () => {
-            top.escapePressed()
-        }, null, true));
-        jQuery.Shortcuts.start();
+        }
     }
     
     function centralizedResizeWindow(w, h, animate){
@@ -1306,6 +1418,26 @@ if(typeof(require)!='undefined'){
         }
     
         return s;
+    }
+
+    function arrayMin(arr) {
+        var len = arr.length, min = arr[0] || '';
+        while (len--) {
+          if (arr[len] < min) {
+            min = arr[len];
+          }
+        }
+        return min;
+    }
+      
+    function arrayMax(arr) {
+        var len = arr.length, max = arr[0] || '';
+        while (len--) {
+          if (arr[len] > max) {
+            max = arr[len];
+          }
+        }
+        return max;
     }
 
     var b = jQuery(top.document).find('body');
@@ -1693,9 +1825,50 @@ if(typeof(require)!='undefined'){
             top.modalPrompt(question, options, Lang.PASTE_URL_HINT, defaultValue)
         }
     }
-    
-    function communityList(){
-        return 'http://app.megacubo.net/auto?uilocale='+getLocale()
+
+    function loadTheming(opts){
+        var srcFile = 'assets/css/theme.src.css';
+        fs.readFile(srcFile, (err, content) => {
+            if(!err){
+                let bgcolor = Config.get('theme-bgcolor') || '#000000';
+                content = parseTheming(content, opts);
+                stylizer(content, 'theming', window);
+                redrawBackgroundImage();
+                if(getColorLightLevel(bgcolor) > 50){
+                    document.documentElement.className += ' ui-light';                    
+                } else {
+                    document.documentElement.className = document.documentElement.className.replaceAll('ui-light', '');
+                }
+            }
+        })
+    }
+
+    function redrawBackgroundImage(){
+        var wpfile = 'assets/images/wallpaper.png', content = fs.readFileSync(wpfile), type = 'jpeg';
+        if(String(content).substr(0, 256).indexOf('PNG') != -1){
+            type = 'png';
+        }
+        var base64 = content.toString('base64');
+        content = '';
+        console.warn('!!!!!!!!!!', document.documentElement.style.backgroundImage);
+        document.documentElement.style.backgroundImage = 'url("data:image/'+type+';base64,' + base64 + '")';
+        console.warn('!!!!!!!!!!', document.documentElement.style.backgroundImage.length);
+    }
+
+    function parseTheming(content, opts){
+        let data = {
+            'bgcolor': Config.get('theme-bgcolor') || '#000000',
+            'fgcolor': Config.get('theme-fgcolor') || '#FFFFFF',
+            'fontsize': Config.get('theme-fontsize') || '14px'
+        };
+        if(typeof(opts) == 'object'){
+            data = Object.assign(data, opts);
+        } 
+        content = String(content);
+        Object.keys(data).forEach((key) => {
+            content = content.replace(new RegExp('\\('+key+'\\)', 'g'), data[key])
+        });
+        return content;
     }
 
     function isValidPath(url){ // poor checking for now
@@ -1816,10 +1989,10 @@ if(typeof(require)!='undefined'){
         })
     }
 
-    jQuery(setupShortcuts);    
+    jQuery(setupShortcuts); 
 
     function stop(skipPlaybackManager){
-        var c = (top || parent);
+        var c = (top || parent || window);
         console.log('STOP', traceback());
         c.autoCleanEntriesCancel();
         if(c.PlaybackManager.activeIntent){
@@ -1827,7 +2000,7 @@ if(typeof(require)!='undefined'){
                 c.PlaybackManager.fullStop();
             }
             showPlayers(false, false);
-            setTitleData('Megacubo', 'default_icon.png');
+            setTitleData(gui.App.manifest.window.title, 'default_icon.png');
             leavePendingState();
             c.doAction('stop')
         }
@@ -1835,7 +2008,17 @@ if(typeof(require)!='undefined'){
             if(c.updateStreamEntriesFlags){
                 c.updateStreamEntriesFlags() // on unload => Uncaught TypeError: c.updateStreamEntriesFlags is not a function
             }
-        }, 200)
+        }, 200);
+        if(!c.isReloading){
+            setTimeout(() => {
+                if(isStopped()){
+                    if(isMiniPlayerActive()){
+                        leaveMiniPlayer()
+                    }
+                    showControls()
+                }
+            }, 1200)
+        }
     }
     
     function currentStream(){
@@ -1871,25 +2054,20 @@ if(typeof(require)!='undefined'){
     }
         
     function spawnOut(options, callback){
-        getManifest(function (data){
-            if(typeof(data)=='object'){
-                data = data.window;
-                var disallow = 'avoidthisparameter'.split('|');
-                for(var k in data){
-                    if(disallow.indexOf(k)!=-1){
-                        delete data[k];
-                    }
-                }
-                console.log(data);
+        var data = gui.App.manifest.window;
+        var disallow = 'avoidthisparameter'.split('|');
+        for(var k in data){
+            if(disallow.indexOf(k)!=-1){
+                delete data[k];
             }
-            nw.Window.open('/index.html', data, function (popWin){
-                if(callback){
-                    callback(popWin)
-                }
-                popWin.closeDevTools()
-            })
-            stop()
+        }
+        nw.Window.open('/index.html', data, function (popWin){
+            if(callback){
+                callback(popWin)
+            }
+            popWin.closeDevTools()
         })
+        stop()
     }
 
     var imageCheckingCache = {};
@@ -2113,7 +2291,7 @@ if(typeof(require)!='undefined'){
     }
 
     function enterPendingState(title, notifyFlag, loadingUrl) {
-        //console.warn('ssss', top.isPending, loadingUrl || false, traceback());
+        //console.warn('ssss', top.isPending, loadingUrl || false, traceback(), PlaybackManager.log());
         var t = top || parent || window;
         t.isPending = loadingUrl || ((t.isPending && typeof(t.isPending)=='string') ? t.isPending : true);
         //console.warn('ssss', top.isPending);
@@ -2131,8 +2309,9 @@ if(typeof(require)!='undefined'){
     }
     
     function leavePendingState() {
+        console.warn('ssss', top.isPending);
         var t = top || parent || window;
-        if(typeof(t.isPending)!='undefined'){
+        if(typeof(t.isPending) != 'undefined'){
             t.isPending = false;
             notifyRemove(Lang.CONNECTING);
             notifyRemove(Lang.TUNING);
@@ -2143,6 +2322,22 @@ if(typeof(require)!='undefined'){
 
     function urldecode(t){
         return decodeURIComponent(t.replaceAll('+', ' '));
+    }   
+
+    function setHTTPHeaderInObject(header, headers){
+        var lcnames = Object.keys(header).map((s) => { 
+            return s.toLowerCase() 
+        });
+        for(var k in headers){
+            var pos = lcnames.indexOf(k.toLowerCase());
+            if(pos != -1){
+                delete headers[lcnames[pos]];
+            }
+        }
+        for(var k in header){
+            headers[k] = header[k];
+        }
+        return headers;
     }
 
     function displayPrepareName(name, prepend, append){
@@ -2213,6 +2408,35 @@ if(typeof(require)!='undefined'){
                 }
             }
         }
+    }
+
+    function componentToHex(c) {
+        var hex = c.toString(16);
+        return hex.length == 1 ? "0" + hex : hex;
+    }
+    
+    function rgbToHex(r, g, b) {
+        return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
+    }
+
+    function hexToRgb(hex) {
+        // Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")
+        var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
+        hex = hex.replace(shorthandRegex, function(m, r, g, b) {
+            return r + r + g + g + b + b;
+        });
+    
+        var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result ? {
+            r: parseInt(result[1], 16),
+            g: parseInt(result[2], 16),
+            b: parseInt(result[3], 16)
+        } : null;
+    }
+
+    function getColorLightLevel(hex){
+        var rgb = hexToRgb(hex);
+        return (rgb.r + rgb.g + rgb.b ) / 7.64999;
     }
 
     function getHTTPInfo(url, callback){
@@ -2418,6 +2642,13 @@ if(typeof(require)!='undefined'){
         }
     }
     
+    function isStopped(){
+        if(top && top.PlaybackManager){
+            return !top.PlaybackManager.activeIntent;
+        }
+        return true;
+    }
+    
     function getExt(url){
         return (''+url).split('?')[0].split('#')[0].split('.').pop().toLowerCase();        
     }
@@ -2482,11 +2713,7 @@ if(typeof(require)!='undefined'){
         return lang;
     }
 
-    var path = false;
     function absolutize(file){
-        if(!path){
-            path = require('path')
-        }
         return path.join(process.cwd(), file)
     }
 
@@ -2557,15 +2784,22 @@ if(typeof(require)!='undefined'){
     }
     
     var openFileDialogChooser = false;
-    function openFileDialog(callback) {
+    function openFileDialog(callback, accepts) {
         if(!openFileDialogChooser){ // JIT
             openFileDialogChooser = jQuery('<input type="file" />');
+        }
+		openFileDialogChooser.get(0).value = "";
+        if(accepts){
+            openFileDialogChooser.attr("accept", accepts)
+        } else {
+            openFileDialogChooser.removeAttr("accept")
         }
         openFileDialogChooser.off('change');
         openFileDialogChooser.on('change', function(evt) {
             callback(openFileDialogChooser.val());
         });    
         openFileDialogChooser.trigger('click');  
+        return openFileDialogChooser;
     }
 
     var saveFileDialogChooser = false;

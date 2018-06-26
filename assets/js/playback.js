@@ -3,7 +3,7 @@
 var fs = require('fs'), os = require('os'), async = require('async'), ffmpeg = require('fluent-ffmpeg'), peerflix;
 
 var minBufferSecsBeforeCommit = 2;
-var isPlaying = isPending = false;
+var isPending = false;
 var cpuCount = os.cpus().length;
 
 ffmpeg.setFfmpegPath('ffmpeg/ffmpeg');
@@ -119,12 +119,12 @@ var PlaybackManager = (() => {
     self.isLoading = (fetch) => {
         var loadingIntents;
         if(typeof(fetch)=='string'){
-            loadingIntents = self.query({originalUrl: fetch, ended: false, error: false});
+            loadingIntents = self.query({originalUrl: fetch, ended: false, error: false, manual: true});
             return loadingIntents.length > 0;
         }
         var is = false, urls = [];
-        //console.log('LOADING', self, traceback());
-        loadingIntents = self.query({started: false, ended: false, error: false, isSideload: false});
+        loadingIntents = self.query({started: false, ended: false, error: false, isSideload: false, manual: true});
+        console.log('LOADING', fetch, Object.assign({}, loadingIntents), traceback());
         if(fetch === true){
             for(var i=0; i<loadingIntents.length; i++){
                 urls.push(loadingIntents[i].entry.url)
@@ -285,9 +285,17 @@ var PlaybackManager = (() => {
             }
             */
             var allow = true;
-            allow = intent.filter('pre-commit', allow, intent, self.activeIntent);
+            allow = applyFilters('preCommitAllow', allow, intent, self.activeIntent);
             if(allow === false){
                 console.log('COMMITING DISALLOWED');
+                self.destroyIntent(intent);
+                return false; // commiting canceled, keep the current activeIntent
+            }
+
+            var allow = true;
+            allow = intent.filter('pre-commit', allow, intent, self.activeIntent);
+            if(allow === false){
+                console.log('COMMITING DISALLOWED *');
                 self.destroyIntent(intent);
                 return false; // commiting canceled, keep the current activeIntent
             }
@@ -408,10 +416,10 @@ var PlaybackManager = (() => {
     return self;
 })();
 
-function createPlayIntent(entry, options, callback){
+function preparePlayIntent(entry, options, ignoreCurrentPlaying){
     if(!options) options = {};
     var shadow = (typeof(options.shadow)!='undefined' && options.shadow);
-    var initTime = time(), FFmpegIntentsLimit = 8, intents = [];
+    var initTime = time(), FFmpegIntentsLimit = 8, types = [];
     var currentPlaybackType = '', currentPlaybackTypePriotity = -1;
     entry.url = String(entry.url); // Parameter "url" must be a string, not object
     entry.originalUrl = entry.originalUrl ? String(entry.originalUrl) : entry.url;
@@ -420,30 +428,108 @@ function createPlayIntent(entry, options, callback){
     if(entry.logo == 'undefined'){
         entry.logo = '';
     }
-    if(!shadow && PlaybackManager.activeIntent && PlaybackManager.activeIntent.entry.originalUrl == (entry.originalUrl || entry.url) && PlaybackManager.activeIntent.entry.name == entry.name){
+    if(!ignoreCurrentPlaying && !shadow && PlaybackManager.activeIntent && PlaybackManager.activeIntent.entry.originalUrl == (entry.originalUrl || entry.url) && PlaybackManager.activeIntent.entry.name == entry.name){
         currentPlaybackType = PlaybackManager.activeIntent.type;
         currentPlaybackTypePriotity = PlaybackManager.intentTypesPriorityOrder.indexOf(currentPlaybackType); // less is higher
     }
-    console.log('CREATE INTENT', currentPlaybackType, currentPlaybackTypePriotity, entry, options, traceback());
-    var internalCallback = (intent) => {
-        console.log('_INTENT', intent, intents);
-        if(intent){
-            if(!shadow){
-                PlaybackManager.registerIntent(intent);
-            }
-            if(callback){
-                callback(intent) // before run() to allow setup any event callbacks
-            }
-            //console.log('INTERNAL', intent, traceback());
-            intent.run();
-            return intent;
-        } else {
-            console.log('Error: NO INTENT', intent, entry.url);
-        }
-    }
+    console.log('CHECK INTENT', currentPlaybackType, currentPlaybackTypePriotity, entry, options, traceback());
     if(typeof(entry.originalUrl) == 'undefined'){
         entry.originalUrl = entry.url;
     }
+    console.log(entry.url);
+    if(isMega(entry.url)){ // mega://
+        if(options.shadow){
+            return {types: types, entry: entry};
+        }
+        console.log('isMega');
+        var data = parseMegaURL(entry.url);
+        if(!data){
+            return {types: types, entry: entry};
+        }
+        console.log('PARTS', data);
+        if(data.type == 'link'){
+            entry.url = data.url;
+        } else if(data.type == 'play') {
+            return {types: types, entry: entry};
+        }
+    }
+    if(getExt(entry.url)=='mega'){ // .mega
+        entry = megaFileToEntry(entry.url);
+        if(!entry){
+            return {types: types, entry: entry};
+        }
+    }
+    if(isMagnet(entry.url)){
+        console.log('CREATEPLAYINTENT FOR MAGNET', entry.url);
+        if(currentPlaybackTypePriotity == -1 || PlaybackManager.intentTypesPriorityOrder.indexOf('magnet') < currentPlaybackTypePriotity){
+            types.push('magnet')
+        }
+    } else if(isRTMP(entry.url) || isRTSP(entry.url)){
+        console.log('CREATEPLAYINTENT FOR RTMP/RTSP', entry.url);
+        if(currentPlaybackTypePriotity == -1 || PlaybackManager.intentTypesPriorityOrder.indexOf('ffmpeg') < currentPlaybackTypePriotity){
+            types.push('ffmpeg')
+        }
+    } else if(isRemoteTS(entry.url)){ // before isHTML5Video()
+        // these TS can be >20MB and even infinite (realtime), so it wont run as HTML5, FFMPEG is a better approach so
+        console.log('CREATEPLAYINTENT FOR TS', entry.url);
+        types.push('ts')
+    } else if(isHTML5Video(entry.url) || isM3U8(entry.url)){
+        console.log('CREATEPLAYINTENT FOR HTML5/M3U8', entry.url);
+        if(currentPlaybackTypePriotity == -1 || PlaybackManager.intentTypesPriorityOrder.indexOf('direct') < currentPlaybackTypePriotity){
+            types.push('direct')
+        }
+    } else if(isMedia(entry.url)){
+        console.log('CREATEPLAYINTENT FOR MEDIA', entry.url);
+        if(currentPlaybackTypePriotity == -1 || PlaybackManager.intentTypesPriorityOrder.indexOf('ffmpeg') < currentPlaybackTypePriotity){
+            types.push('ffmpeg')
+        }
+    } else if(isYT(entry.url)){
+        console.log('CREATEPLAYINTENT FOR YT', entry.url);
+        if(typeof(ytdl)=='undefined'){
+            ytdl = require('ytdl-core')
+        }
+        var id = ytdl.getURLVideoID(entry.url);
+        if(id && id != 'live_stream' && entry.url.indexOf('#yt-live') == -1){
+            if(currentPlaybackTypePriotity == -1 || PlaybackManager.intentTypesPriorityOrder.indexOf('youtube') < currentPlaybackTypePriotity){
+                types.push('youtube')
+            }
+        } else {
+            if(currentPlaybackTypePriotity == -1 || PlaybackManager.intentTypesPriorityOrder.indexOf('frame') < currentPlaybackTypePriotity){
+                types.push('frame')
+            }
+        }
+    } else if(['html', 'htm'].indexOf(getExt(entry.url))!=-1) {
+        console.log('CREATEPLAYINTENT FOR GENERIC', entry.url);
+        if(currentPlaybackTypePriotity == -1 || PlaybackManager.intentTypesPriorityOrder.indexOf('frame') < currentPlaybackTypePriotity){
+            if(!options || !options.isSideload){
+                types.push('frame')
+            }
+        }
+    } else  {
+        console.log('CREATEPLAYINTENT FOR GENERIC', entry.url);
+        if(currentPlaybackTypePriotity == -1 || PlaybackManager.intentTypesPriorityOrder.indexOf('frame') < currentPlaybackTypePriotity){
+            if(!options || !options.isSideload){
+                types.push('frame')
+            }
+        }
+        if(currentPlaybackTypePriotity == -1 || PlaybackManager.intentTypesPriorityOrder.indexOf('ffmpeg') < currentPlaybackTypePriotity){
+            if(PlaybackManager.query({type: 'ffmpeg', error: false, ended: false}).length < FFmpegIntentsLimit){
+                types.push('ffmpeg') // not sure, so we'll race the possible intents
+            }
+        }
+    }
+    return {types: types, entry: entry};
+}
+
+function getPlayIntentTypes(entry, options){
+    var data = preparePlayIntent(entry, options, true);
+    return data.types.sort().join(',');
+}
+
+function createPlayIntent(entry, options, callback) {
+    console.log('CREATE INTENT', entry, options, traceback());
+    var shadow = (typeof(options.shadow)!='undefined' && options.shadow);
+    var intents = [];
     console.log(entry.url);
     if(isMega(entry.url)){ // mega://
         if(options.shadow){
@@ -465,81 +551,35 @@ function createPlayIntent(entry, options, callback){
             return [];
         }
     }
-    if(getExt(entry.url)=='mega'){ // .mega
-        entry = megaFileToEntry(entry.url);
-        if(!entry){
-            return [];
-        }
-    }
-    if(isMagnet(entry.url)){
-        console.log('CREATEPLAYINTENT FOR MAGNET', entry.url);
-        if(currentPlaybackTypePriotity == -1 || PlaybackManager.intentTypesPriorityOrder.indexOf('magnet') < currentPlaybackTypePriotity){
-            intents.push(createMagnetIntent(entry, options))
-        }
-    } else if(isRTMP(entry.url) || isRTSP(entry.url)){
-        console.log('CREATEPLAYINTENT FOR RTMP/RTSP', entry.url);
-        if(currentPlaybackTypePriotity == -1 || PlaybackManager.intentTypesPriorityOrder.indexOf('ffmpeg') < currentPlaybackTypePriotity){
-            intents.push(createFFmpegIntent(entry, options))
-        }
-    } else if(isRemoteTS(entry.url)){ // before isHTML5Video()
-        // these TS can be >20MB and even infinite (realtime), so it wont run as HTML5, FFMPEG is a better approach so
-        console.log('CREATEPLAYINTENT FOR TS', entry.url);
-        intents.push(createTSIntent(entry, options))
-    } else if(isHTML5Video(entry.url) || isM3U8(entry.url)){
-        console.log('CREATEPLAYINTENT FOR HTML5/M3U8', entry.url);
-        if(currentPlaybackTypePriotity == -1 || PlaybackManager.intentTypesPriorityOrder.indexOf('direct') < currentPlaybackTypePriotity){
-            intents.push(createDirectIntent(entry, options))
-        }
-        /*
-        if(currentPlaybackTypePriotity == -1 || PlaybackManager.intentTypesPriorityOrder.indexOf('ffmpeg') < currentPlaybackTypePriotity){
-            if(PlaybackManager.query({type: 'ffmpeg', error: false, ended: false}).length < FFmpegIntentsLimit){
-                intents.push(createFFmpegIntent(entry, options))
+    var data = preparePlayIntent(entry, options);
+    if(data.types.length){
+        data.types.forEach((type) => {
+            if(type == 'ffmpeg'){
+                intents = intents.concat(createFFmpegIntent(entry, options))
+            } else if(type == 'ts'){
+                intents = intents.concat(createTSIntent(entry, options))
+            } else {
+                var n = "create"+ucWords(type)+"Intent";
+                console.log(n, type, data.types);
+                intents = intents.concat(window[n](entry, options))
             }
-        }
-        console.log('CREATEPLAYINTENT FOR HTML5/M3U8', PlaybackManager.intentTypesPriorityOrder.indexOf('direct'), currentPlaybackTypePriotity, intents);
-        */
-    } else if(isMedia(entry.url)){
-        console.log('CREATEPLAYINTENT FOR MEDIA', entry.url);
-        if(currentPlaybackTypePriotity == -1 || PlaybackManager.intentTypesPriorityOrder.indexOf('ffmpeg') < currentPlaybackTypePriotity){
-            intents.push(createFFmpegIntent(entry, options))
-        }
-    } else if(isYT(entry.url)){
-        console.log('CREATEPLAYINTENT FOR YT', entry.url);
-        if(typeof(ytdl)=='undefined'){
-            ytdl = require('ytdl-core')
-        }
-        var id = ytdl.getURLVideoID(entry.url);
-        if(id && id != 'live_stream' && entry.url.indexOf('embed') == -1){
-            if(currentPlaybackTypePriotity == -1 || PlaybackManager.intentTypesPriorityOrder.indexOf('youtube') < currentPlaybackTypePriotity){
-                intents.push(createYoutubeIntent(entry, options))
-            }
-        } else {
-            if(currentPlaybackTypePriotity == -1 || PlaybackManager.intentTypesPriorityOrder.indexOf('frame') < currentPlaybackTypePriotity){
-                intents.push(createFrameIntent(entry, options))
-            }
-        }
-    } else if(['html', 'htm'].indexOf(getExt(entry.url))!=-1) {
-        console.log('CREATEPLAYINTENT FOR GENERIC', entry.url);
-        if(currentPlaybackTypePriotity == -1 || PlaybackManager.intentTypesPriorityOrder.indexOf('frame') < currentPlaybackTypePriotity){
-            if(!options || !options.isSideload){
-                intents.push(createFrameIntent(entry, options))
-            }
-        }
-    } else  {
-        console.log('CREATEPLAYINTENT FOR GENERIC', entry.url);
-        if(currentPlaybackTypePriotity == -1 || PlaybackManager.intentTypesPriorityOrder.indexOf('frame') < currentPlaybackTypePriotity){
-            if(!options || !options.isSideload){
-                intents.push(createFrameIntent(entry, options))
-            }
-        }
-        if(currentPlaybackTypePriotity == -1 || PlaybackManager.intentTypesPriorityOrder.indexOf('ffmpeg') < currentPlaybackTypePriotity){
-            if(PlaybackManager.query({type: 'ffmpeg', error: false, ended: false}).length < FFmpegIntentsLimit){
-                intents.push(createFFmpegIntent(entry, options)) // not sure, so we'll race the possible intents
-            }
-        }
+        })
     }
     intents.forEach((intent, index) => {
-        internalCallback(intent)
+        console.log('_INTENT', intent, intents);
+        if(intent){
+            if(!shadow){
+                PlaybackManager.registerIntent(intent);
+            }
+            if(callback){
+                callback(intent) // before run() to allow setup any event callbacks
+            }
+            //console.log('INTERNAL', intent, traceback());
+            intent.run();
+            return intent;
+        } else {
+            console.log('Error: NO INTENT', intent, entry.url);
+        }
     });
     return intents;
 }
@@ -738,32 +778,32 @@ function createBaseIntent(){
                 }
                 return false;
             }
-            if(PlaybackManager.activeIntent){
-                // playing something
-                if(PlaybackManager.activeIntent.entry.originalUrl == succeededIntent.entry.originalUrl){
-                    // playing the same channel, check intent type priority so
-                    var currentPlaybackTypePriotity = PlaybackManager.intentTypesPriorityOrder.indexOf(PlaybackManager.activeIntent.type); // less is higher
-                    var newPlaybackTypePriotity = PlaybackManager.intentTypesPriorityOrder.indexOf(succeededIntent.type); // less is higher
-                    if(newPlaybackTypePriotity < currentPlaybackTypePriotity){
-                        console.log('PRE-COMMIT OK, higher priority');
-                    } else {
-                        console.log('PRE-COMMIT DISALLOW (priotity)', succeededIntent, PlaybackManager.intents, newPlaybackTypePriotity, currentPlaybackTypePriotity);
-                        if(succeededIntent){
-                            succeededIntent.destroy()
+            if(succeededIntent){
+                if(PlaybackManager.activeIntent){
+                    // playing something
+                    if(PlaybackManager.activeIntent.entry.originalUrl == succeededIntent.entry.originalUrl){
+                        // playing the same channel, check intent type priority so
+                        var currentPlaybackTypePriotity = PlaybackManager.intentTypesPriorityOrder.indexOf(PlaybackManager.activeIntent.type); // less is higher
+                        var newPlaybackTypePriotity = PlaybackManager.intentTypesPriorityOrder.indexOf(succeededIntent.type); // less is higher
+                        if(newPlaybackTypePriotity < currentPlaybackTypePriotity){
+                            console.log('PRE-COMMIT OK, higher priority');
+                        } else {
+                            console.log('PRE-COMMIT DISALLOW (priority)', succeededIntent, PlaybackManager.intents, newPlaybackTypePriotity, currentPlaybackTypePriotity);
+                            if(succeededIntent){
+                                succeededIntent.destroy()
+                            }
+                            return false;
                         }
-                        return false;
+                    } else {
+                        // playing other channel, commit anyway so
+                        // remember, on hit play on a channel, cancel any inactive or loading intents, keep only the "actually playing" intent
+                        // ... 
+                        console.log('PRE-COMMIT OK, changing channel');
                     }
                 } else {
-                    // playing other channel, commit anyway so
-                    // remember, on hit play on a channel, cancel any inactive or loading intents, keep only the "actually playing" intent
-                    // ... 
-                    console.log('PRE-COMMIT OK, changing channel');
+                    // not yet playing, not it will be!
+                    console.log('PRE-COMMIT OK, wasn\'t playing');
                 }
-            } else {
-                // not yet playing, not it will be!
-                console.log('PRE-COMMIT OK, wasn\'t playing');
-            }
-            if(succeededIntent) {
                 /*
                 succeededIntent.ended = false;
                 succeededIntent.manual = true;
@@ -773,7 +813,9 @@ function createBaseIntent(){
                 */
                 succeededIntent.destroy()
             }
-            createPlayIntent(entry, {skipTest: true})
+            self.manual = false;
+            self.shadow = true;
+            createPlayIntent(entry, {skipTest: true, manual: true, shadow: false})
         }, () => {
             console.log('SIDELOADPLAY FAILURE', entry)
         }, true);
@@ -817,6 +859,7 @@ function createBaseIntent(){
     }    
 
     self.on('error destroy', () => {
+        console.log('ERROR TRIGGERED');
         self.sideloadTesters.forEach((sideloadTestIntent) => {
             sideloadTestIntent.destroy()
         });
@@ -1000,6 +1043,7 @@ function createFrameIntent(entry, options){
                 self.getVideo();
                 self.started = true;
                 self.trigger('start');
+                PlaybackManager.setRatio();
                 console.log('runFitter SUCCESS', result);
                 return true;
             }
@@ -1098,6 +1142,7 @@ function createFrameIntent(entry, options){
     }
 
     self.on('error destroy', () => {
+        console.log('ERROR TRIGGERED');
         if(self.frame){
             self.frame.src = 'about:blank';
             jQuery(self.frame).remove();
@@ -1897,6 +1942,7 @@ function createYoutubeIntent(entry, options){
                         }
                     }
                 }
+                console.log('YT Info', live);
                 if(live.length){
 
                     /*
@@ -1907,7 +1953,7 @@ function createYoutubeIntent(entry, options){
                         bitrate = parseFloat(bitrate) * 1000000;
                         playlist += "#EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH="+bitrate+", CODECS=\"avc1.4D401E, mp4a.40.2\"\r\n";
                         playlist += getHLSProxy().getURL(stream.url) + "\r\n\r\n";
-                    })
+                    });
                     var playlistFile = 'stream/'+id+'/index.m3u8';
                     mkdirp(dirname(playlistFile));
                     fs.writeFile(playlistFile, playlist, () => {
@@ -1915,29 +1961,39 @@ function createYoutubeIntent(entry, options){
                         if(hr){
                             console.warn('Sideload called', playlistFile, playlist);
                             // dont trigger error for now
+                            self.manual = false;
+                            self.shadow = true;
+                            setTimeout(() => {
+                                self.error = true;
+                                self.trigger('error');
+                            }, 20000); // give some ttl to the sideload created
                         } else {
                             console.error('Sideload refused', playlistFile, playlist);
+                            self.error = true;
+                            self.trigger('error');
                         }
-                        self.error = true;
-                        self.trigger('error')
                         return;
                     });
                     */
                     
-                    var hr = self.sideload('https://www.youtube.com/embed/'+id+'?autoplay=1&showinfo=0&iv_load_policy=3&rel=0&modestbranding=1');
+                    //var hr = self.sideload('https://www.youtube.com/v/'+id+'?autoplay=1&showinfo=0&iv_load_policy=3&rel=0&modestbranding=1#yt-live');
+                    var hr = self.sideload('https://www.youtube.com/tv#/watch/video/control?v='+id+'&resume#nosandbox#yt-live');
                     if(hr){
-                        console.warn('Sideload called', playlistFile, playlist);
+                        console.warn('Sideload called');
                         // dont trigger error for now
+                        self.manual = false;
+                        self.shadow = true;
                         setTimeout(() => {
                             self.error = true;
                             self.trigger('error');
-                        }, 15000); // give some ttl to the sideload created
+                        }, 20000); // give some ttl to the sideload created
                     } else {
-                        console.error('Sideload refused', playlistFile, playlist);
+                        console.error('Sideload refused');
                         self.error = true;
                         self.trigger('error');
                     }
-                    return;
+
+                    return;                    
                 }
                 console.error('No compatible formats', info);
                 self.error = true;
@@ -2038,20 +2094,6 @@ function NativeStop() {
     showPlayers(0, 0)
 }
 
-function setHTTPHeaderInObject(header, headers){
-    var lcnames = Object.keys(header).map((s) => { return s.toLowerCase() });
-    for(var k in headers){
-        var pos = lcnames.indexOf(k.toLowerCase());
-        if(pos != -1){
-            delete headers[lcnames[pos]];
-        }
-    }
-    for(var k in header){
-        headers[k] = header[k];
-    }
-    return headers;
-}
-
 if(typeof(http)=='undefined'){
     http = require('http')
 }
@@ -2114,9 +2156,7 @@ function getHLSProxy(){
                         console.log('responding', buffer)
                     }
                     if(buffer instanceof ArrayBuffer){
-                        buffer = Buffer.from(buffer);
-                    } else {
-                        buffer = String(buffer)
+                        buffer = Buffer.from(buffer).toString('utf8')
                     }
                     if(HLSProxyCaching !== false){
                         HLSProxyCaching[headers['Location'] || url] = {time: time(), content: buffer};
@@ -2143,7 +2183,9 @@ function getHLSProxy(){
                     if(debug){
                         console.log('responding', buffer);
                     }
-                    if(buffer instanceof ArrayBuffer){
+                    if(buffer instanceof Buffer){
+                        content = buffer.toString('utf8');
+                    } if(buffer instanceof ArrayBuffer){
                         content = Buffer.from(buffer).toString('utf8');
                     } else {
                         content = String(buffer)
@@ -2187,15 +2229,10 @@ function getHLSProxy(){
                 'Cache-Control': 'no-cache',
                 'Access-Control-Allow-Origin': '*'
             };
-            var invocation = new XMLHttpRequest();
-            invocation.open('GET', url, true);
-            invocation.responseType = "arraybuffer";
-            invocation.onreadystatechange = () => {
-                if(closed){
-                    invocation.abort()
-                } else if(invocation.readyState == 4){
-                    code = invocation.status || 200;
-                    invocation.getAllResponseHeaders().split("\n").forEach((s) => {
+            var cb = function () {
+                if(!closed){
+                    code = this.status || 200;
+                    this.getAllResponseHeaders().split("\n").forEach((s) => {
                         var p = s.indexOf(':');
                         if(p){
                             s = [toTitleCase(s.substr(0, p)), s.substr(p + 1).trim()]; 
@@ -2204,20 +2241,33 @@ function getHLSProxy(){
                             }
                         }
                     });
-                    if(invocation.responseURL && invocation.responseURL != url) {
+                    if(this.responseURL && this.responseURL != url) {
                         code = 302;
-                        headers = setHTTPHeaderInObject({'Location': HLSProxyInstance.getURL(invocation.responseURL)}, headers);
+                        headers = setHTTPHeaderInObject({
+                            'Location': HLSProxyInstance.getURL(this.responseURL)
+                        }, headers);
                         if(debug){
                             console.log('location: '+headers['Location']);
                         }
                     }
                     if(callback){
-                        callback(invocation.response, headers, code);
-                        delete invocation
-                        delete callback;
+                        blobToBuffer(this.response, (err, buffer) => {
+                            if(err){
+                                code = 500;
+                                callback('', headers, code)
+                            } else {
+                                callback(buffer, headers, code)
+                            }
+                        })
                     }
                 }
-            };
+                this.removeEventListener('load', cb);
+                delete callback;
+            }
+            var invocation = new XMLHttpRequest();
+            invocation.open('GET', url, true);
+            invocation.responseType = "blob";
+            invocation.addEventListener('load', cb);
             invocation.send(null)
         }
         HLSProxyInstance.getURL = (url) => {
@@ -2249,6 +2299,8 @@ var TSWrapperInstance;
 function getTSWrapper(){
     if(!TSWrapperInstance){
         var debug = false, closed, port = 0, request = prepareRequestForever();
+        var stream = require('stream'), util = require('util');
+        var Transform = stream.Transform;
         TSWrapperInstance = http.createServer((request, client) => {
             if(debug){
                 console.log('request starting...', request);
@@ -2294,16 +2346,23 @@ function getTSWrapper(){
                     //console.log('server: responding', buffer.length);
                     client.write(buffer, 'binary')
                 }
+                buffer = null;
 			}, client)
         }).listen();
         TSWrapperInstance.streamer = (url, callback, client) => {
-            //var r, aborted, nextIntersectBuffer, bytesToIgnore = 0, intersectBuffers = [], intersectBufferSize = 2 * 1024, maxIntersectBufferSize = 4 * (1024 * 1024), sliceSize = maxIntersectBufferSize / 2;
-            var r, aborted, nextIntersectBuffer, bytesToIgnore = 0, intersectBuffers = [], intersectBufferSize = 1024, maxIntersectBufferSize = 3 * (1024 * 1024), sliceSize = maxIntersectBufferSize / 2;
+            var r, aborted, rclosed, nextIntersectBuffer, bytesToIgnore = 0, intersectBuffers = [], intersectBufferSize = 1024 * 1024, maxIntersectBufferSize = 4 * (1024 * 1024);
             var abort = () => {
 				if(debug){
-                    console.log('server: streamer close')
+                    console.log('server: streamer abort')
                 }
                 aborted = true;
+                close()
+            }
+            var close = () => {
+				if(debug){
+                    console.log('server: streamer close', traceback())
+                }
+                rclosed = true;
                 intersectBuffers = [];
                 nextIntersectBuffer = null;
                 if(r){
@@ -2318,76 +2377,94 @@ function getTSWrapper(){
                 });
                 return length;
             }
+            var Hermes = function (options) {
+                // allow use without new
+                if (!(this instanceof Hermes)) {
+                    return new Hermes(options);
+                }
+                Transform.call(this, options);
+            }
+            util.inherits(Hermes, Transform);
+            Hermes.prototype._transform = function (data, enc, cb) {
+                if(!aborted && !closed){
+                    //data = toBuffer(data);
+                    var currentIntersectBufferSize = intersectBuffersSum();
+                    if(nextIntersectBuffer){
+                        if(debug){
+                            console.log('server: intersection', currentIntersectBufferSize, maxIntersectBufferSize);
+                        }
+                        var offset = -1;
+                        try {
+                            console.warn('TS Joining', url);
+                            offset = Buffer.concat(intersectBuffers).lastIndexOf(data.slice(0, intersectBufferSize));
+                            console.warn('TS Joining', offset, currentIntersectBufferSize, data.length)
+                        } catch(e) {
+                            console.error(e)
+                        }         
+                        if(offset != -1){
+                            bytesToIgnore = currentIntersectBufferSize - offset;
+                            if(bytesToIgnore < data.length){
+                                callback(data.slice(bytesToIgnore))
+                            } else {
+                                bytesToIgnore -= data.length;
+                            }
+                        } else {
+                            callback(data)
+                        }
+                        nextIntersectBuffer = null;
+                    } else {
+                        //console.log('server: responding', data.length);
+                        var skip = false;
+                        if(bytesToIgnore){
+                            if(data.length > bytesToIgnore){
+                                if(debug){
+                                    console.log('server: ignore 2')
+                                }
+                                data = data.slice(bytesToIgnore);
+                                bytesToIgnore = 0;
+                            } else {
+                                if(debug){
+                                    console.log('server: ignore 1')
+                                }
+                                bytesToIgnore -= data.length;
+                                skip = true;
+                            }
+                        }
+                        if(!skip){
+                            if(currentIntersectBufferSize > maxIntersectBufferSize){
+                                intersectBuffers = intersectBuffers.slice(1);
+                            }  
+                            intersectBuffers.push(data);
+                            //console.log(data);
+                            //top.zaz = data;
+                            callback(data)
+                        }
+                    }
+                } else {
+                    client.end();
+                    close()
+                }
+                data = null;
+                this.push('');
+                cb()
+            }
             var connect = () => {
-				if(!aborted && !closed){
+				if(!aborted && !closed && !rclosed){
+                    r = null;
 					r = request({method: 'GET', uri: url}, function (error, response, body) {
                         if(!nextIntersectBuffer){
                             nextIntersectBuffer = true;
                         }
-                        if(!aborted && !closed){
+                        if(!aborted && !closed && !rclosed){
                             if(debug){
                                 console.log('server: host closed, reconnect')
                             }
                             connect()
+                        } else {
+                            close()
                         }
-					}).on('response', function(response) {
-						response.on('data', function(data) {
-                            if(!aborted && !closed){
-                                //data = toBuffer(data);
-                                var currentIntersectBufferSize = intersectBuffersSum();
-                                if(nextIntersectBuffer){
-                                    if(debug){
-                                        console.log('server: intersection', currentIntersectBufferSize, maxIntersectBufferSize);
-                                    }
-                                    var offset = -1;
-                                    try {
-                                        console.warn('TS Joining', url);
-                                        offset = Buffer.concat(intersectBuffers).lastIndexOf(data.slice(0, intersectBufferSize));
-                                        console.warn('TS Joining', offset, currentIntersectBufferSize, data.length)
-                                    } catch(e) {
-                                        console.error(e)
-                                    }         
-                                    if(offset != -1){
-                                        bytesToIgnore = currentIntersectBufferSize - offset;
-                                        if(bytesToIgnore < data.length){
-                                            callback(data.slice(bytesToIgnore))
-                                        } else {
-                                            bytesToIgnore -= data.length;
-                                        }
-                                    } else {
-                                        callback(data)
-                                    }
-                                    nextIntersectBuffer = null;
-                                } else {
-                                    //console.log('server: responding', data.length);
-                                    if(bytesToIgnore){
-                                        if(data.length > bytesToIgnore){
-                                            if(debug){
-                                                console.log('server: ignore 2')
-                                            }
-                                            data = data.slice(bytesToIgnore);
-                                            bytesToIgnore = 0;
-                                        } else {
-                                            if(debug){
-                                                console.log('server: ignore 1')
-                                            }
-                                            bytesToIgnore -= data.length;
-                                            return;
-                                        }
-                                    }
-                                    if(currentIntersectBufferSize > maxIntersectBufferSize){
-                                        intersectBuffers = intersectBuffers.slice(1);
-                                    }  
-                                    intersectBuffers.push(data);
-                                    //console.log(data);
-                                    //top.zaz = data;
-                                    callback(data)
-                                }
-                            } else {
-                                client.end()
-                            }
-						})
-					})
+                    });
+                    r.pipe(new Hermes())
 				} else {
                     abort()
                 }
@@ -2563,7 +2640,7 @@ PlaybackManager.on('register', (intent, entry) => {
             setStreamStateCache(intent.entry, false);
             sendStats('error', sendStatsPrepareEntry(intent.entry))
             if(!intent.shadow && shouldNotifyPlaybackError(intent)){ // don't alert user if has concurrent intents loading
-                if(!switchPlayingStream()){
+                if(!Config.get('allow-similar-transmissions') || !switchPlayingStream(intent)){
                     notify(Lang.PLAY_STREAM_FAILURE.format(intent.entry.name), intent.entry.logo || 'fa-exclamation-circle', 'normal');
                     console.log('STREAM FAILED', intent.entry.originalUrl, PlaybackManager.log())
                 }
@@ -2572,31 +2649,33 @@ PlaybackManager.on('register', (intent, entry) => {
     });
     intent.on('ended', () => {
         // end of stream, go next
+        console.log('STREAM ENDED', PlaybackManager.log())
         if(!intent.shadow){
             if(isLive(intent.entry.url)){
-                if(!intent.shadow && isMega(entry.originalUrl)){ // mega://
-                    console.log('isMega', entry.originalUrl);
-                    var data = parseMegaURL(entry.originalUrl);
+                if(!intent.shadow && isMega(intent.entry.originalUrl)){ // mega://
+                    console.log('isMega', intent.entry.originalUrl);
+                    var data = parseMegaURL(intent.entry.originalUrl);
                     console.log('isMega', data);
                     if(data){
                         console.log('PARTS', data);
                         if(data.type == 'play') {
                             setTimeout(() => {
                                 if(!autoCleanEntriesRunning()){
-                                    autoCleanNPlay(data.name, null, entry.originalUrl)
+                                    autoCleanNPlay(data.name, null, intent.entry.originalUrl)
                                 }
                             }, 1000)
                         }
                     }
                 }
-            } else {
-                var next = getNextStream();
-                if(next && !isLive(next)){
-                    setTimeout(() => {
-                        playEntry(next)
-                    }, 1000)
-                } else {
-                    stop()
+            } else  {
+                var type = getPlayIntentTypes(intent.entry), next = getNextStream();
+                if(next){
+                    var ntype = getPlayIntentTypes(next);
+                    if(type == ntype){
+                        setTimeout(() => {
+                            playEntry(next)
+                        }, 1000)
+                    }
                 }
             }
         }
@@ -2616,9 +2695,12 @@ PlaybackManager.on('commit', (intent) => {
             PlaybackManager.setRatio()
         }
     }, 200);
-    var tryOther = playingStreamKeyword(), b = getFrame('player').document.querySelector('.try-other');
+    var tryOther = playingStreamKeyword(intent), b = document.querySelector('.try-other');
     if(b) {
-        jQuery(b)[tryOther?'show':'hide']()
+        jQuery(b)[tryOther ? 'show' : 'hide']();
+        if(tryOther){
+            jQuery(b).off('mousedown').on('mousedown', switchPlayingStream)
+        }
     }
 });
 PlaybackManager.on('stop', () => {
@@ -2646,9 +2728,6 @@ PlaybackManager.on('load-out', () => {
 
 addAction('stop', () => {
     updateStreamEntriesFlags();
-    if(isMiniPlayerActive()){
-        leaveMiniPlayer()
-    }
     sendStats('stop')
 });
 

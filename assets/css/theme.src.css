@@ -1,0 +1,178 @@
+html.ui-index {
+    background: (bgcolor) url(assets/images/wallpaper.png?nocache) no-repeat fixed;
+    background-size: cover;
+    background-position: center center;
+}
+
+html.ui-index .nw-cf {
+    background: (bgcolor) !important;
+}
+
+html.ui-index .nw-cf {
+    background: (bgcolor) !important;
+}
+
+html.ui-index .nw-cf-btn { 
+    background-color: (bgcolor); 
+}
+
+html.ui-index #controls > div {
+    background: (bgcolor);
+    box-shadow: 0 0 9px 0 (bgcolor)44;
+}
+
+html.ui-index #controls-toggle { 
+    background: (bgcolor);
+    color: (fgcolor)AA;
+    border-color: (fgcolor)11;
+}
+
+html.ui-index iframe#overlay {
+    box-shadow: inset -58px 3px 12px 0px (bgcolor);
+}
+
+html.ui-index body.playing iframe#overlay, html.ui-index body.miniplayer iframe#overlay {
+    box-shadow: none;
+}
+
+html.ui-index div#notify-area { 
+    background: linear-gradient(to top, (bgcolor)00 0px, (bgcolor)44 56px);
+}
+
+div.notify { 
+    color: #fff;
+    text-shadow: 1px 1px 2px #000;
+}
+
+html.ui-index #menu-trigger-icon {
+    background: (bgcolor);
+    border-color: (fgcolor)11;
+    color: (fgcolor)AA; 
+}
+
+html.ui-index a.entry {
+    border-top: 1px solid (fgcolor)09;
+    box-shadow: inset 0 -11px 41px 0px rgba(0, 0, 0, 0.05), 0 -2px 2px rgba(0, 0, 0, 0.03);
+}
+
+html.ui-index .entry-name {
+    color: (fgcolor);
+    font-size: 128%;
+    text-transform: uppercase;
+}
+
+html.ui-index.ui-light .entry-name {
+    font-weight: bold;
+}
+
+html.ui-index:not(.ui-light) .entry-name {
+    text-shadow: 1px 1px 0px #000, 0px 0px 3px #000;
+}
+
+html.ui-index div#suggest a, html.ui-index div#suggest span { 
+    color: (fgcolor)44; 
+    text-decoration: none; 
+    transition: color 0.1s linear 0.1s;
+}
+
+html.ui-index div#suggest span, html.ui-index div#suggest a { 
+    font-size: 88%;
+    text-transform: uppercase; 
+}
+
+html.ui-index div#suggest { 
+    color: (fgcolor); 
+    background: linear-gradient(to bottom, (bgcolor)00 0%, (bgcolor)CC 50%)
+}
+
+html.ui-index div#suggest a:hover { 
+    color: (fgcolor); 
+    text-decoration: underline; 
+}
+
+html.ui-index .entry-logo .entry-logo-fa {
+    color: (fgcolor);
+}
+
+html.ui-index body.playing #controls-toggle, html.ui-index body.paused #controls-toggle {
+    color: (fgcolor)77; 
+}
+
+html.ui-index body:not(.playing) #controls-toggle:hover {
+    opacity: 1;
+}
+
+html.ui-index body.submenu #controls-toggle { 
+    color: (fgcolor)11 !important;
+}
+
+html.ui-index #controls-toggle:hover { 
+    color: (fgcolor);  
+}
+
+html.ui-index #controls-toggle.entry-focused, html.ui-index .nw-cf-btn.entry-focused {
+    color: (fgcolor);  
+}
+
+html.ui-index .entry-label {
+    color: (fgcolor)77;
+}
+
+html.ui-index .nw-cf-title {
+    color: (fgcolor)77;
+}
+
+html.ui-index .nw-cf-icon i, html.ui-index .nw-cf-icon svg, html.ui-index .nw-cf-btn .nw-cf-icon { 
+    color: (fgcolor)77;
+}	
+
+html.ui-index.ui-light .entry-logo img[src*="assets/icons/white"] {
+    filter: invert(100%);
+}
+
+html.ui-index body.scrolled_400:not(.home) #list-icons {
+    background: (bgcolor);
+    border-color: (fgcolor)11;
+}
+
+html.ui-index #player {
+    background: (bgcolor);
+}
+
+html.ui-index body.playing div#controls div.list, html.ui-index body.paused div#controls div.list {
+    background: linear-gradient( to bottom, (bgcolor), (fgcolor)11 18%);
+}
+
+html.ui-index body.playing, html.ui-index body.paused {
+    background: (bgcolor);
+}
+
+html.ui-index #player-top-bar {
+    color: (bgcolor)33;
+    background: (bgcolor)99;
+}
+
+html.ui-index #player-top-bar a {
+    color: (fgcolor)CC;
+}
+
+html.ui-index #player-top-bar a:hover {
+    color: (fgcolor);
+}
+
+html.ui-index:not(.ui-light) html.ui-index #player-top-bar a {
+    text-shadow: 2px 2px 2px (bgcolor) !important;
+}
+
+::-webkit-scrollbar {
+    background: (fgcolor)33;
+}
+
+::-webkit-scrollbar-thumb {
+    background: (fgcolor);
+    box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.75);
+}
+
+::-webkit-scrollbar-corner {
+    background: (bgcolor);
+}

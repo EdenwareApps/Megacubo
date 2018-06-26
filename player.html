@@ -1,13 +1,12 @@
 <!DOCTYPE html>
-<html class="page-index">
+<html class="ui-player">
 	<head>
 		<meta charset="UTF-8" />
 	</head>
 	<body>
 		<script type="text/javascript" src="assets/js/jquery.js"></script>
-		<script type="text/javascript" src="assets/js/jquery.shortcuts.min.js"></script>
 		<script type="text/javascript" src="assets/js/global.js"></script>
-		<script type="text/javascript" src="assets/js/hls.js"></script>
+		<script type="text/javascript" src="assets/js/hls.light.js"></script>
 		<video id="video" autoplay></video>
 		<script type="text/javascript">
 			var hls, video = document.getElementById('video'), player = jQuery(video), b = jQuery('body');
@@ -29,8 +28,8 @@
 					recoverDecodingErrorDate = performance.now();
 					var msg = "trying to recover from media Error ..."
 					console.warn(msg);
-					hls.recoverMediaError();
-					watchTimeout()
+					//hls.recoverMediaError();
+					//watchTimeout()
 				} else {
 					if (!recoverSwapAudioCodecDate || (now - recoverSwapAudioCodecDate) > 3000) {
 						recoverSwapAudioCodecDate = performance.now();
@@ -55,12 +54,15 @@
 				console.log('SRC=', _src, type);
 				if(type.toLowerCase().indexOf('mpegurl')!=-1){
 					hls = new Hls({
-						//debug: true
+						/*
+						debug: true,
 						maxSeekHole: 30,
-						maxBufferHole: 25
-					});				
-					hls.loadSource(_src);
-					hls.attachMedia(video);
+						maxBufferHole: 25,
+						maxBufferLength: 100,
+						maxMaxBufferLength: '600s',
+						maxBufferHole: 5
+						*/
+					});		
 					hls.on(Hls.Events.ERROR, (event, data) => {
 						var msg = "Player error: " + data.type + " - " + data.details;
 						console.error(msg, data);
@@ -82,10 +84,14 @@
 									break;
 							}
 						} 
-					});
+					});		
 					hls.on(Hls.Events.MANIFEST_PARSED, () => {
 						video.play();
 					});
+					hls.on(Hls.Events.MEDIA_ATTACHED, () => {
+						hls.loadSource(_src)
+					});
+					hls.attachMedia(video);
 				} else {
 					video.src = _src;
 					video.load();
@@ -140,6 +146,7 @@
 				if(currentSrc){
 					src(currentSrc.src, currentSrc.type)
 				}
+    			(top || parent).prepareVideoObject(video)
 			}
 			reset()
 		</script>

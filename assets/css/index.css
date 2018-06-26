@@ -56,41 +56,30 @@ body.paused div.fac-paused {
 #player-top-bar {
 	display: none;
 	position: absolute;
-    z-index: 2147483647 !important;
-    top: 30px;
+    z-index: 99999 !important;
+    top: auto;
+    bottom: 36px;
     right: 48px;
     line-height: 100%;
-	padding: 6px 8px 7px 8px !important;
+	padding: 8px 0px 4px 0px !important;
 	border-radius: 4px;
 	border-top-left-radius: 0;
 	border-top-right-radius: 0;
-	background-color: rgba(0, 0, 0, 0.68);
-    text-shadow: 1px 1px 1px #000;
-}
-
-body.frameless #player-top-bar {
-    top: 0;
-}
-
-body.showcontrols #player-top-bar {
-    right: calc(30% + 48px);
+    text-align: center;
+    height: auto;
 }
 
 #player-top-bar a {
-    color: rgba(255, 255, 255, 0.78);
 	cursor: pointer;
 	text-transform: uppercase;
-	text-decoration: none;
-	font-size: 11px;
+    text-decoration: none;
+	font-size: 88%;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
-}
-
-#player-top-bar a:hover {
-	color: rgba(255, 255, 255, 0.86);
 }
 
 body.paused #player-top-bar, body.playing.over #player-top-bar {
 	display: inline-block;
+    transition: display 0s linear 1s;
 }
 
 div#controls {
@@ -103,7 +92,7 @@ div#controls {
     position: absolute;
     left: auto;
     transition: transform 0.05s cubic-bezier(0, 1.1, 1, 1) 0s;
-    z-index: 3;
+    z-index: 9998;
     right: 0;
     top: 30px;
     display: none;
@@ -135,10 +124,6 @@ body.frameless #nw-custom-frame {
     height: 0 !important;
 }
 
-.nw-cf {
-    background: #000000 !important;
-}
-
 .nw-cf-handle {
     overflow: hidden;
 }
@@ -148,22 +133,16 @@ body.frameless #nw-custom-frame {
     background-repeat: no-repeat; 
 }
 
-.nw-cf-icon i, .nw-cf-icon svg {
-    color: #fff;
-}
-
 .nw-cf-handle .nw-cf-icon { 
     margin-left: 5px;
 }
 
 .nw-cf-title { 
-    color: #ddd; 
     vertical-align: top; 
     margin-left: 4px; 
 }
 
 .nw-cf-btn { 
-    background-color: #000; 
     border-width: 0px; 
     position: relative;
     top: -2px;
@@ -186,7 +165,6 @@ body.frameless #nw-custom-frame {
 }
 
 .nw-cf-btn .nw-cf-icon { 
-    color: #ddd;
     vertical-align: middle;
 }		
 
@@ -199,7 +177,6 @@ div#notify-area {
     box-sizing: border-box;
     pointer-events: none;
     z-index: 2147483647 !important;
-    background: linear-gradient(to top, rgba(0, 0, 0, 0.001) 0px, rgba(0, 0, 0, 0.45) 56px);
     height: auto;
     padding-right: 74px;
 }
@@ -211,11 +188,9 @@ body.frameless div#notify-area {
 
 div.notify { 
     width: auto;
-    color: #fff;
     font-size: inherit;
     margin: 18px 0 0 18px; 
     display: inline-block;
-    text-shadow: 1px 1px 2px #000;
     /*
     background-color: rgba(150, 0, 0, 0.45);
     box-shadow: inset 0 -5px 18px 8px rgba(50, 0, 0, 0.3), inset 0 0 3px 3px rgba(50, 0, 0, 0.3);
@@ -256,10 +231,6 @@ iframe#overlay {
     z-index: 3;    
 }
 
-body.playing, body.paused {
-    background: #000;
-}
-
 body.playing iframe#overlay, body.paused iframe#overlay {
     background: transparent;
 }
@@ -274,7 +245,6 @@ iframe#sandbox {
 }
 
 #player {
-    background: #000;
     z-index: 1;
 }
 
@@ -292,11 +262,11 @@ body.modal div#controls {
 
 div#modal-overlay { 
     display:none;
-    background: radial-gradient(rgba(0, 0, 0, 0.5) 70%, rgba(0, 0, 0, 1) 100%); 
+    background: radial-gradient(rgba(0, 0, 0, 0.86) 70%, rgba(0, 0, 0, 1) 100%); 
     width: 100vw; 
     height: 100vh; 
     position: absolute; 
-    z-index: 4;
+    z-index: 10000;
 }
 
 div#modal-overlay > div { 
@@ -412,10 +382,7 @@ div#modal-overlay .prompt textarea {
     top: 30px;
     right: 0;
     z-index: 9999 !important;
-    color: #ccc; 
-    background: #00040c;
     padding: 2px 14px 2px 7px;
-    border-color: #29292b;
     border-bottom-left-radius: 4px;
     display: none;
     border-style: solid;
@@ -433,10 +400,6 @@ body.over #menu-trigger-icon {
     padding: 2px 15px 2px 8px;
 }
 
-body.frameless #menu-trigger-icon {
-    top: 0px;
-}
-
 #menu-trigger-icon i, #menu-trigger-icon svg {
     font-size: 100%;
 }
@@ -446,7 +409,7 @@ body.showcontrols #menu-trigger-icon, body.paused #menu-trigger-icon, body.minip
 }
 
 body.frameless #menu-trigger-icon {
-    top: 11px;
+    top: 0px !important;
 }
 
 body #controls {
@@ -490,12 +453,13 @@ body.playing #player, body.playing iframe#sandbox, body.playing div#suggest, bod
 }
 
 div#suggest { 
-    color: #fff; 
     position: absolute; 
     bottom: -4px; 
-    left: 6px;
+    left: 0;
+    padding-left: 6px;
     transition: opacity 0.2s linear 0.2s;
     opacity: 0.001;
+    z-index: 3;
 }
 
 body.over div#suggest {
@@ -527,29 +491,22 @@ div#suggest:hover div#suggest-a, div#suggest:hover div#suggest-b {
     animation-play-state: paused;
 }
 
-div#suggest span { 
-    color: rgb(101, 102, 105); 
-}
-
 div#suggest a { 
-    color: rgb(148, 149, 152); 
     text-decoration: none; 
     transition: color 0.1s linear 0.1s;
 }
 
 div#suggest span, div#suggest a { 
-    font-size: 69%;
-    text-transform: uppercase; 
     margin-right: 5px;
 }
 
 div#suggest a:hover { 
-    color: rgb(255, 255, 255); 
     text-decoration: underline; 
 }
 
 div#suggest > div >div { 
     padding-left: 6px;
+    padding-bottom: 1px;
 }
 
 @keyframes marquee {

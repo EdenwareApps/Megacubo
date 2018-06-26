@@ -46,6 +46,47 @@ function getWindowModeEntries(short){
         })
     }
     /*
+    // DISABLED UNTIL THE CHROMECAST NPM MODULE BE FIXED
+
+    
+    {request: {…}, error: "mime-unknown"}
+    error
+    :
+    "mime-unknown"
+    request
+    :
+    entity
+    :
+    {v: "cKG5HDyTW8o"}
+    headers
+    :
+    {Content-Type: "application/x-www-form-urlencoded.js", Accept: "application/x-www-form-urlencoded.js, application/json;q=0.8, text/plain;q=0.5, *;q=0.2"}
+    method
+    :
+    "POST"
+    originator
+    :
+    ƒ interceptedClient(request)
+    path
+    :
+    "http://192.168.1.6:8008/apps/YouTube"
+    __proto__
+    :
+    Object
+    __proto__
+    :
+    Object
+    "Unhandled Rejection at Promise" 
+    Rejected {id: 19, value: {…}, handled: false, reported: true}
+    process.on	@	index.html:49
+    emit	@	events.js:182
+    (anonymous)	@	F:\NWJS_SDK\package.…\makePromise.js:917
+    ReportTask.run	@	F:\NWJS_SDK\package.…\makePromise.js:654
+    Scheduler._drain	@	F:\NWJS_SDK\package.…lib\Scheduler.js:70
+    Scheduler.drain	@	F:\NWJS_SDK\package.…lib\Scheduler.js:27
+    _tickCallback	@	internal/process/next_tick.js:61
+
+
     options.push({name: 'Chromecast', logo:'fa-chrome', type: 'option', callback: function (){
         castManagerInit();
         Menu.refresh()
@@ -313,8 +354,7 @@ jQuery(document).on('lngload', () => {
             }
         }
     }, true);
-    var p = getFrame('player'), o = getFrame('overlay'), video = p.document.querySelector('video');
-    prepareVideoObject(video);
+    var p = getFrame('player'), o = getFrame('overlay');
     createMouseObserverForControls(p);
     createMouseObserverForControls(o);
     createMouseObserverForControls(window)
@@ -327,10 +367,10 @@ function getSearchRangeEntries(){
         console.log('RANGER', entry, entry.value);
         location.reload()
     }
-    options.push({name: Lang.LOW+' ('+Lang.LISTS+': 18)', value: 18, logo:'fa-search-minus', type: 'option', renderer: getRecordingEntries, callback: callback});
-    options.push({name: Lang.MEDIUM+' ('+Lang.LISTS+': 36)', value: 36, logo:'fa-search', type: 'option', renderer: getRecordingEntries, callback: callback});
-    options.push({name: Lang.HIGH+' ('+Lang.LISTS+': 64)', value: 64, logo:'fa-search-plus', type: 'option', renderer: getRecordingEntries, callback: callback});
-    options.push({name: Lang.XTREME+' ('+Lang.LISTS+': 96, '+Lang.SLOW+')', value: 96, logo:'fa-search-plus', type: 'option', renderer: getRecordingEntries, callback: callback});
+    options.push({name: Lang.LOW+' ('+Lang.LISTS+': 18)', value: 18, logo:'fa-search-minus', type: 'option', callback: callback});
+    options.push({name: Lang.MEDIUM+' ('+Lang.LISTS+': 36)', value: 36, logo:'fa-search', type: 'option', callback: callback});
+    options.push({name: Lang.HIGH+' ('+Lang.LISTS+': 64)', value: 64, logo:'fa-search-plus', type: 'option', callback: callback});
+    options.push({name: Lang.XTREME+' ('+Lang.LISTS+': 96, '+Lang.SLOW+')', value: 96, logo:'fa-search-plus', type: 'option', callback: callback});
     return options;
 }
 
@@ -422,29 +462,6 @@ function getBookmarksForRemoval(){
     return entries;
 }
 
-function getRecordingEntries(){
-    var options = [];
-    if(isRecording){
-        options.push({name: Lang.STOP_RECORDING+' (F9)', class: 'entry-vary-recording-state', logo:'fa-stop', type: 'option', callback: function (){
-            stopRecording()
-        }})
-    } else {
-        options.push({name: Lang.START_RECORDING+' (F9)', class: 'entry-vary-recording-state', logo:'fa-download', type: 'option', callback: function (){
-            startRecording()
-        }})
-    }
-    Recordings.sync(); // clean deleted ones
-    var all = Recordings.get();
-    if(all && all.length){
-        options = options.concat(all);
-        options.push({name: Lang.CLEAR, logo:'fa-user-secret', type: 'option', callback: function (){
-            Recordings.clear();
-            Menu.refresh()
-        }});
-    }
-    return options;
-}  
-
 function getLanguageEntries(){
     var options = []; 
     fs.readdirSync('lang').forEach(file => {
@@ -461,15 +478,15 @@ function getLanguageEntries(){
                 logo: logoPath,
                 type: 'option',
                 callback: function (data){
-                    var resetActiveList = (getActiveSource() == communityList());
-                    Config.set('locale', locale);
-                    if(resetActiveList){
-                        setActiveSource(communityList())
+                    if(locale != Config.get('locale')){
+                        Config.set('locale', locale);
+                        markActiveLocale();
+                        setTimeout(function (){
+                            location.reload()
+                        }, 1000)
+                    } else {
+                        goHome()
                     }
-                    markActiveLocale();
-                    setTimeout(function (){
-                        location.reload()
-                    }, 1000)
                 }
             })
         }
@@ -510,6 +527,9 @@ function getListsEntries(notActive, noManagement){
                     }
                 });
             }
+            if(!options.length){
+                options.push({name: Lang.EMPTY, logo:'fa-file', type: 'option'})
+            }
             return options;            
         }},
         {name: Lang.ADD_NEW_LIST, logo: 'fa-plus', type: 'option', callback: addNewSource},
@@ -531,7 +551,7 @@ function getListsEntriesForRemoval(){
     var sources = getSources();
     var entries = [];
     if(sources.length){
-        for(var i in sources){
+        sources.forEach((source, i) => {
             entries.push({
                 name: Lang.REMOVE.toUpperCase()+': '+sources[i][0], 
                 logo:'assets/icons/white/trash.png', 
@@ -546,7 +566,7 @@ function getListsEntriesForRemoval(){
                 }, 
                 path: Lang.LISTS
             })
-        }
+        })
     } else {
         entries.push({name: Lang.EMPTY, logo:'fa-file', type: 'option'})
     }

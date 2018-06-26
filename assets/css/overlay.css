@@ -1,6 +1,3 @@
-body {
-    box-shadow: inset 0 0 6px 1px #000;
-}
 
 div.drop-target {
     z-index: 1;

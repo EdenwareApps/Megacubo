@@ -228,7 +228,7 @@ function playPrevious(){ // PCH
     var entry = History.get(0);
     var c = currentStream();
     if(entry){
-        console.log('PLAYPREV', entry);
+        console.log('PLAYPREV', entry, traceback());
         if(c && entry.originalUrl == c.originalUrl){
             entry = History.get(1)
         }
@@ -256,10 +256,14 @@ function updateOnlineUsersCount(){
     }
 }
 
-var searchPath, bookmarksPath;
+var searchPath, bookmarksPath, langPath, optionsPath;
 jQuery(document).on('lngload', () => {
+    optionsPath = Lang.OPTIONS;
     searchPath = Lang.OPTIONS+'/'+Lang.SEARCH;
+    searchVideoPath = Lang.OPTIONS+'/'+Lang.VIDEO_SEARCH;
+    ytPath = Lang.CHANNELS+'/Youtube';
     bookmarksPath = Lang.OPTIONS+'/'+Lang.BOOKMARKS;
+    langPath = Lang.OPTIONS+'/'+Lang.LANGUAGE;
     getSearchSuggestions();
     updateOnlineUsersCount();
     setInterval(updateOnlineUsersCount, 600000)
@@ -376,11 +380,17 @@ function setStreamStateCache(entry, state){
 }
 
 function playEntry(stream){
-    collectListQueue(stream);
-    stream.prependName = '';
-    PlaybackManager.cancelLoading();
-    createPlayIntent(stream, {manual: true});
-    updateStreamEntriesFlags()
+    var allow = true;
+    allow = applyFilters('prePlayEntryAllow', allow, stream);
+    if(allow){
+        collectListQueue(stream);
+        stream.prependName = '';
+        PlaybackManager.cancelLoading();
+        createPlayIntent(stream, {manual: true});
+        updateStreamEntriesFlags()
+    } else {
+        console.warn('prePlayEntryAllow DENY', stream)
+    }
 }
 
 function updateStreamEntriesFlags(){
@@ -1325,7 +1335,7 @@ jQuery(window).one('unload', function (){
     sendStats('die')
 })
 
-var installedVersion = 0;
+var installedVersion = 0, availableVersion = 0;
 jQuery(document).one('show', () => {
     jQuery.getJSON('http://app.megacubo.net/configure.json?'+time(), (data) => {
         if(!data || !data.version) return;
@@ -1336,27 +1346,24 @@ jQuery(document).one('show', () => {
             }   
             Config.set('default-parental-control-terms', fixUTF8(data.adultTerms), 30 * (24 * 3600))
         }
-        getManifest((manifest) => {
-            console.log('VERSION', manifest.version, currentVersion);
-            installedVersion = manifest.version;
-            jQuery('#home-icons a, #list-icons a').each((i, element) => {
-                var je = jQuery(element), key = je.attr('data-title-lng-key');
-                if(key && Lang[key]){
-                    je.attr('aria-label', Lang[key]).prop('title', Lang[key])
-                }
-            }).on('click', (event) => {
-                event.preventDefault();
-                event.stopPropagation()
-            });
-            jQuery('#home-icon-help').attr('title', 'Megacubo v'+installedVersion);
-            jQuery('#controls-toggle').prop('title', Lang.SHOW_HIDE_MENU).attr('aria-label', Lang.SHOW_HIDE_MENU);
-            if(installedVersion < currentVersion){
-                jQuery('#home-icon-help').html('<i class="fas fa-bell" aria-hidden="true"></i>').css('color', '#ff6c00');
-                if(confirm(Lang.NEW_VERSION_AVAILABLE)){
-                    gui.Shell.openExternal('https://megacubo.tv/online/?version='+manifest.version);
-                }
+        console.log('VERSION', gui.App.manifest.version, currentVersion);
+        installedVersion = gui.App.manifest.version;
+        jQuery('#home-icons a, #list-icons a').each((i, element) => {
+            var je = jQuery(element), key = je.attr('data-title-lng-key');
+            if(key && Lang[key]){
+                je.attr('aria-label', Lang[key]).prop('title', Lang[key])
             }
-        })
+        }).on('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation()
+        });
+        jQuery('#controls-toggle').prop('title', Lang.SHOW_HIDE_MENU).attr('aria-label', Lang.SHOW_HIDE_MENU);
+        if(installedVersion < currentVersion){
+            availableVersion = currentVersion;
+            if(confirm(Lang.NEW_VERSION_AVAILABLE)){
+                gui.Shell.openExternal('https://megacubo.tv/online/?version='+gui.App.manifest.version);
+            }
+        }
     })
 })
 
@@ -1373,8 +1380,8 @@ function pickLogoFromEntries(entries, type){
     return defaultIcons[type];
 }
 
-function switchPlayingStream(){
-    var term = playingStreamKeyword();
+function switchPlayingStream(intent){
+    var term = playingStreamKeyword(intent);
     if(term){
         var megaUrl = 'mega://play|'+term;
         //PlaybackManager.stop();
@@ -1383,17 +1390,19 @@ function switchPlayingStream(){
     }
 }
 
-function playingStreamKeyword(){
-    var intent = (PlaybackManager.activeIntent || PlaybackManager.lastActiveIntent || false);
+function playingStreamKeyword(intent){
+    if(!intent || (typeof(intent['entry']) == 'undefined' && typeof(intent['originalUrl']) == 'undefined')){
+        intent = (PlaybackManager.activeIntent || PlaybackManager.lastActiveIntent || false);
+    }
     if(intent){
-        var megaUrl = intent.entry.originalUrl;
+        var entry = typeof(intent['entry']) != 'undefined' ? intent.entry : intent, megaUrl = entry.originalUrl;
         if(isMega(megaUrl)){
             var parts = parseMegaURL(megaUrl);
             if(parts && parts.name){
                 return parts.name;
             }
         }
-        return searchTermFromEntry(intent.entry);
+        return searchTermFromEntry(entry);
     }
     return false;
 }
@@ -1401,7 +1410,7 @@ function playingStreamKeyword(){
 function searchTermFromEntry(entry){
     var term = false;
     searchSuggestions.forEach((t) => {
-        if(entry.name.toLowerCase().indexOf(t.search_term)!=-1){
+        if(typeof(entry.name)=='string' && entry.name.toLowerCase().indexOf(t.search_term)!=-1){
 			if(!term || term.length < t.search_term.length){
             	term = t.search_term;
             }
@@ -1463,7 +1472,7 @@ function autoCleanNPlay(entries, name, originalUrl){ // entries can be a string 
         leavePendingState()
     }, true, true, originalUrl);
     if(hr){
-        var title = Lang.TUNING+': '+(decodeURIComponent(name) || name);
+        var title = Lang.TUNING+': '+ucWords(decodeURIComponent(name) || name);
         enterPendingState(title, Lang.TUNING, originalUrl);
         return true;
     }
@@ -1483,7 +1492,7 @@ function adjustMainCategoriesEntry(entry){
         var sbname = Lang.CHOOSE_STREAM+' ('+entries.length+')', megaUrl = 'mega://play|' + encodeURIComponent(data.name);
         var isPlaying = PlaybackManager.activeIntent && PlaybackManager.activeIntent.entry.originalUrl.toLowerCase() == megaUrl.toLowerCase();
         var logo = showLogos ? entry.logo || pickLogoFromEntries(entries) : '';
-        var watchEntries = [
+        var metaEntries = [
             {type: 'stream', class: 'entry-vary-play-state', name: data.name, logo: logo, 
                 label: isPlaying ? '<i class="fas fa-random"></i>&nbsp; '+Lang.TRY_OTHER_STREAM : '<i class="fas fa-play-circle"></i>&nbsp; '+Lang.AUTO_TUNING, 
                 url: megaUrl, callback: () => {
@@ -1501,24 +1510,12 @@ function adjustMainCategoriesEntry(entry){
             }}
         ];
         if(isPlaying){
-            if(Menu.currentRecordingState){
-                if(Menu.currentRecordingState == 'saving'){
-                    watchEntries.push({name: Lang.SAVING_RECORDING, class: 'entry-vary-recording-state', logo:'fa-circle-notch fa-spin', type: 'option'})
-                } else {
-                    watchEntries.push({name: Lang.STOP_RECORDING+' (F9)', class: 'entry-vary-recording-state', logo:'fa-stop', type: 'option', callback: function (){
-                        stopRecording()
-                    }})
-                }
-            } else {
-                watchEntries.push({name: Lang.START_RECORDING+' (F9)', class: 'entry-vary-recording-state', logo:'fa-download', type: 'option', callback: function (){
-                    startRecording()
-                }})
-            }
-            watchEntries.push({name: Lang.WINDOW, logo:'fa-window-maximize', type: 'group', renderer: () => { return getWindowModeEntries(true) }, entries: []})
+            metaEntries = applyFilters('playingMetaEntries', metaEntries);
+            metaEntries.push({name: Lang.WINDOW, logo:'fa-window-maximize', type: 'group', renderer: () => { return getWindowModeEntries(true) }, entries: []})
         }
         var bookmarking = {name: data.name, type: 'stream', label: data.group || '', url: megaUrl};
         if(Bookmarks.is(bookmarking)){
-            watchEntries.push({
+            metaEntries.push({
                 type: 'option',
                 logo: 'fa-star-half',
                 name: Lang.REMOVE_FROM.format(Lang.BOOKMARKS),
@@ -1527,7 +1524,7 @@ function adjustMainCategoriesEntry(entry){
                 }
             })
         } else {
-            watchEntries.push({
+            metaEntries.push({
                 type: 'option',
                 logo: 'fa-star',
                 name: Lang.ADD_TO.format(Lang.BOOKMARKS),
@@ -1537,9 +1534,9 @@ function adjustMainCategoriesEntry(entry){
             })
         }
         if(isPlaying){
-            watchEntries.push({
+            metaEntries.push({
                 name: Lang.SHARE, 
-                logo: 'fa-share-alt', 
+                logo: 'fa-heart', 
                 type: 'group', 
                 entries: [
                     {name: Lang.SHARE+': Facebook', logo: 'fab fa-facebook', type: 'option', callback: goShareFB},
@@ -1547,7 +1544,7 @@ function adjustMainCategoriesEntry(entry){
                 ]
             })
         }
-        return watchEntries;
+        return metaEntries;
     }
     if(!showLogos || !entry.logo){
         entry.logo = defaultIcons['stream'];
@@ -1561,7 +1558,7 @@ function searchRangeOption(){
         entries.each((i) => {
             var el = entries.eq(i), v = el.data('entry-data');
             if(v && v.value == range){
-                setEntryFlag(el, 'fa-check-circle')
+                setEntryFlag(el, 'fa-check-circle', true)
             }
         })
     }};
@@ -1577,6 +1574,7 @@ function getMainCategoriesEntries(){
         category.entries = category.entries.map(adjustMainCategoriesEntry);
         return category;
     }, (entries) => {
+        entries = applyFilters('mainCategoriesEntries', entries);
         entries.unshift({name: Lang.IPTV_LISTS, label: Lang.MY_LISTS, logo:'fa-list', type: 'group', entries: [], renderer: getListsEntries});
         entries.unshift({name: Lang.BEEN_WATCHED, logo: 'fa-users', label: onlineUsersCount, type: 'group', renderer: getWatchingEntries, entries: []});
         return entries;
@@ -1611,6 +1609,8 @@ function timerChooseAction(data){
     return opts;
 }
 
+var timerLabel = false;
+
 function timerChosen(data){
     var t = time();
     timerData = {minutes: data.value[0], action: data.value[1], start: t, end: t + (data.value[0] * 60)};
@@ -1635,19 +1635,25 @@ function timerChosen(data){
         timerWatch() // reset then
     }, timerData.minutes * 60000);
     Menu.go(Lang.OPTIONS);
-    timerWatch();
+    timerWatch()
 }
 
 function timerWatch(){
-    var t = jQuery('.entry-timer');
+    if(!timerLabel){
+        var t = jQuery('.entry-timer');
+        timerLabel = [t, t.length ? t.find('.entry-label') : false];    
+    }
     if(timerData){
-        if(t.length){
+        if(timerLabel[0].length){
             var d = timeFormat(timerData.end - time());
-            t.find('.entry-label').html('<i class="fas fa-clock"></i> '+d);
+            timerLabel[1].html('<i class="fas fa-clock"></i> '+d+' &middot; '+Lang.STOP);
         }
         setTimeout(timerWatch, 1000)
     } else {
-        t.find('.entry-label').html('')
+        timerLabel[1].html('<i class="fas fa-stop"></i> '+timeFormat(0));
+        setTimeout(() => {
+            timerLabel[1].html('')    
+        }, 1000)
     }
 }
 
@@ -1667,7 +1673,7 @@ jQuery(document).one('lngload', function (){
 
     Menu.index = [
         {name: Lang.CHANNELS, label: Lang.CATEGORIES, logo:'assets/icons/white/tv.png', type: 'group', entries: [], renderer: getMainCategoriesEntries},
-        {name: Lang.OPTIONS, logo:'assets/icons/white/settings.png', type: 'group', entries: [
+        {name: Lang.OPTIONS, logo:'assets/icons/white/settings.png', callback: () => { timerLabel = false; }, type: 'group', entries: [
             {name: Lang.OPEN_URL+' (Ctrl+U)', logo:'fa-link', type: 'option', callback: () => {playCustomURL()}},
             {name: Lang.TIMER, logo:'fa-stopwatch', class: 'entry-timer', type: 'group', renderer: timer},
             {name: Lang.BOOKMARKS, logo:'fa-star', type: 'group', class: 'entry-hide', renderer: getBookmarksEntries, entries: []},
@@ -1681,22 +1687,23 @@ jQuery(document).one('lngload', function (){
                 }
                 setupSearch(term, 'live', Lang.SEARCH)
             }},
-            {name: Lang.RECORDINGS, logo:'fa-download', type: 'group', renderer: getRecordingEntries, entries: []},
+            {name: Lang.VIDEO_SEARCH, label: '', logo: 'fa-search', type: 'option', class: 'entry-hide', value: lastSearchTerm, callback: () => { 
+                var term = lastSearchTerm;
+                setupSearch(term, 'video', Lang.VIDEO_SEARCH)
+            }},
             {name: Lang.HISTORY, append: '(Ctrl+H)', logo:'fa-history', type: 'group', renderer: getHistoryEntries, entries: []},
             {name: Lang.WINDOW, logo:'fa-window-maximize', type: 'group', renderer: getWindowModeEntries, entries: []},
-            {name: Lang.LANGUAGE, logo:'fa-language', type: 'group', renderer: getLanguageEntries, callback: markActiveLocale, entries: []},
+            {name: Lang.LANGUAGE, append: '(Ctrl+L)', logo:'fa-language', type: 'group', renderer: getLanguageEntries, callback: markActiveLocale, entries: []},
             parentalControlOption(),
             searchRangeOption(),
             {name: Lang.RESUME_PLAYBACK, type: 'check', check: (checked) => {Config.set('resume',checked)}, checked: () => {return Config.get('resume')}},
+            {name: Lang.ALLOW_SIMILAR_TRANSMISSIONS, type: 'check', check: (checked) => {Config.set('allow-similar-transmissions', checked)}, checked: () => {return Config.get('allow-similar-transmissions')}},
             {name: Lang.HIDE_BUTTON_OPT.format(Lang.BACK, 'Backspace'), type: 'check', check: (checked) => {Config.set('hide-back-button',checked)}, checked: () => {return Config.get('hide-back-button')}},
             {name: Lang.RESET_DATA, logo:'fa-trash', type: 'option', renderer: resetData, entries: []},
         ]}
     ];
     
     console.log(getSources());
-    if(!getSources().length){
-        registerSource(communityList(), Lang.COMMUNITY_LIST, true);
-    }
 
     setTimeout(() => {
         if(!PlaybackManager.intents.length){
@@ -1724,6 +1731,7 @@ jQuery(document).one('lngload', function (){
     //console.log(jQuery('.list').html())
 
     var waitToRenderDelay = 1000, t = (top || window.parent), is = initialSize();
+    jQuery('#splash > *').hide();
     setTimeout(() => { 
         jQuery(document).trigger('show');
         enableSetFullScreenWindowResizing = true;
@@ -1732,6 +1740,7 @@ jQuery(document).one('lngload', function (){
             showControls();
             jQuery('#controls').show();
             jQuery('#splash').hide();
+            jQuery(document).trigger('shown');
         }, 500)
     }, waitToRenderDelay);
 

@@ -7,7 +7,7 @@ var clipboard = gui.Clipboard.get();
 
 function resetData(){
     removeFolder('torrent', false, function (){
-        removeFolder('data', false, function (){
+        removeFolder(Store.folder(false), false, function (){
             nw.App.clearCache();
             top.location.reload()
         })
@@ -33,19 +33,23 @@ function leaveMiniPlayer(){
 }
 
 addAction('miniplayer-on', () => {
-    //console.log('MP-ON');
+    console.log('MP-ON');
     jB.addClass('miniplayer');
     win.setAlwaysOnTop(true);
     win.setShowInTaskbar(false);
     //console.log('MP-ON');
     fixMaximizeButton();
-    PlaybackManager.play();
+    if(!isStopped()){
+        PlaybackManager.play()
+    } else {
+        playPrevious()
+    }
     afterExitPage()
     //console.log('MP-ON');
-})
+});
 
 addAction('miniplayer-off', () => {
-    //console.log('MP-OFF');
+    console.log('MP-OFF');
     jB.removeClass('miniplayer');
     //console.log('MP-OFF');
     win.setAlwaysOnTop(false);
@@ -54,6 +58,11 @@ addAction('miniplayer-off', () => {
     //console.log('MP-OFF');
     fixMaximizeButton();
     //console.log('MP-OFF');
+    setTimeout(() => {
+        if(!isFullScreen() && !isMiniPlayerActive()){
+            showControls()
+        }
+    }, 500)
 })
 
 function toggleMiniPlayer(){
@@ -81,8 +90,6 @@ function escapePressed(){
     //restoreInitialSize();
     if(isFullScreen()){
         setFullScreen(false)
-    } else if(isMiniPlayerActive()) {
-        leaveMiniPlayer()
     } else {
         stop()
     }
@@ -127,7 +134,7 @@ setTimeout(() => { // avoid after exit page too soon as the program open
 function afterExitPage(){
     if(allowAfterExitPage && installedVersion){
         var lastTime = Store.get('after-exit-time'), t = time();
-        if(!lastTime || (t - lastTime) > (24 * 3600)){
+        if(!lastTime || (t - lastTime) > (6 * 3600)){
             Store.set('after-exit-time', t);
             var url = Config.get("after-exit-url").format(installedVersion);
             gui.Shell.openExternal(url)
@@ -145,24 +152,6 @@ function shutdown(){
     return exec(cmd)
 }
 
-function closeWindow(){
-    if(miniPlayerActive){
-        leaveMiniPlayer();
-    } else {
-        afterExitPage();
-        window.close();
-        /*
-            gui.App.crashBrowser();
-            gui.App.crashRenderer();
-            process.exit();
-            gui.App.quit();
-            window.top.close(); // Not fixed at 2018? https://github.com/nwjs/nw.js/issues/984 so ensure to close the window
-            gui.App.closeAllWindows(); // breaks duplicate feature
-            process.kill(process.pid * -1, 'SIGKILL')
-        */
-    }
-}
-
 function fixMaximizeButton(){
     if(typeof(isMaximized)!='undefined'){
         if(isMaximized() || miniPlayerActive){
@@ -174,17 +163,16 @@ function fixMaximizeButton(){
 }
 
 function setHardwareAcceleration(enable){
-    getManifest(function (manifest){
-        var enableFlags = ['--disable-gpu-blacklist'];
-        var disableFlags = ['--disable-gpu', '--force-cpu-draw'];
-        enableFlags.concat(disableFlags).forEach((flag) => {
-            manifest['chromium-args'] = manifest['chromium-args'].replace(flag, '')
-        });
-        (enable?enableFlags:disableFlags).forEach((flag) => {
-            manifest['chromium-args'] = manifest['chromium-args'] += ' '+flag;
-        });
-        fs.writeFile('package.json', JSON.stringify(manifest, null, 4))
-    })
+    var manifest = gui.App.manifest;    
+    var enableFlags = [];
+    var disableFlags = ['--disable-gpu', '--force-cpu-draw'];
+    enableFlags.concat(disableFlags).forEach((flag) => {
+        manifest['chromium-args'] = manifest['chromium-args'].replace(flag, '')
+    });
+    (enable?enableFlags:disableFlags).forEach((flag) => {
+        manifest['chromium-args'] = manifest['chromium-args'] += ' '+flag;
+    });
+    fs.writeFile('package.json', JSON.stringify(manifest, null, 4))
 }
 
 function showMaximizeButton(){
@@ -264,7 +252,7 @@ function playPauseNotifyContainers(){
     if(o && o.document && o.document.body){
         sel = sel.add(o.document.body)
     }
-    if(PlaybackManager.activeIntent){
+    if(typeof(PlaybackManager) != 'undefined' && PlaybackManager.activeIntent){
         if(PlaybackManager.activeIntent.type == 'frame'){
             if(PlaybackManager.activeIntent.fittedScope && PlaybackManager.activeIntent.fittedScope.document && PlaybackManager.activeIntent.fittedScope.document.body){
                 sel = sel.add(PlaybackManager.activeIntent.fittedScope.document.body)
@@ -570,7 +558,7 @@ function bindWebRequest(){
                 }catch(e){}
             }
         })
-        jQuery(window).on('beforeunload unload', function (){
+        addAction('appunload', () => {
             if(currentTab && currentTab.id){
                 chrome.debugger.detach({ // is this the right way?!
                     tabId: currentTab.id
@@ -650,113 +638,7 @@ function saveAs(file, callback){
             _callback(chosenFile)
         }).
         trigger('click')
-}
-
-function startRecording(){
-    if(isRecording === false){
-        let folder = 'recordings/session';
-        fs.mkdir(folder, function(err){
-            removeFolder(folder, false, () => { // just empty the folder
-                var url = PlaybackManager.getURL();
-                if(isMagnet(url)){
-                    folder = 'torrent/torrent-stream/'+PlaybackManager.activeIntent.peerflix.torrent.infoHash+'/'+PlaybackManager.activeIntent.peerflix.torrent.name;
-                    gui.Shell.showItemInFolder(absolutize(folder))
-                } else if(!isLive(url) && isVideo(url)){
-                    gui.Shell.openExternal('http://play.megacubo.tv/mp4-player?url='+encodeURIComponent(url))
-                } else {
-                    isRecording = {folder: folder}; // recording now
-                    doAction('recording-start', folder)
-                }
-            })
-        })
-    }
-}
-
-function stopRecording(){
-    if(isRecording !== false){
-        var name, stream = currentStream();
-        if(stream){
-            name = stream.name;
-        } else {
-            name = 'Unknown';
-        }
-        console.log('Saving recording: 1');
-        name += " "+dateStamp();
-        var data = isRecording, outputFile = dirname(data.folder) + '/'+prepareFilename(name)+'.mp4';
-        isRecording = false;
-        doAction('recording-stop', data);        
-        doAction('recording-save-start', data);
-        console.log('Saving recording: 2', data);
-        fs.readdir(data.folder, function (err, files){
-            console.log('Saving recording: 3', err, files);
-            if(!files || !files.length){
-                console.log('Error while saving file list.', data.folder);
-                //gui.Shell.openExternal(absolutize(data.folder));
-                doAction('recording-save-failure', data, 1)
-            } else {
-                console.log('Saving recording: 4', files);
-                var failure = (err) => {
-                    console.log('Error while saving file list.', err);
-                    //gui.Shell.openExternal(absolutize(data.folder));
-                    doAction('recording-save-failure', data, 2)
-                }
-                var success = (output) => {
-                    console.log('Saving record success.', output);
-                    Recordings.sync();
-                    removeFolder(data.folder);
-                    doAction('recording-save-end', output, data);
-                    if(!isFullScreen()){
-                        gui.Shell.showItemInFolder(absolutize(output))
-                    }
-                    console.log('Saving recording: 7');
-                }
-                var callback = (err, output) => {
-                    console.log('Saving recording: 6', err, output);
-                    if(err){
-                        if(files.length > 1){
-                            console.log('Join failure, removing last segment.');
-                            files.pop();
-                            goJoin(files)
-                        } else {
-                            console.log('Saving recording failure.');
-                            failure(err)
-                        }
-                    } else {
-                        console.log('Saving recording success.');
-                        success(output)
-                    }
-                }
-                var goJoin = (files) => {
-                    console.log('Saving recording: 5', files);
-                    filterWorkingVideos(files, data.folder, (_files) => {
-                        joinFiles(_files, data.folder, outputFile, callback)
-                    })       
-                }
-                goJoin(files)
-            }
-        })
-    }
-}
-
-function filterWorkingVideos(files, path, cb){
-    var workingFiles = [], iterator = 0;
-    if(!async){
-        async = require('async');
-    }
-    var tasks = Array(files.length).fill((callback) => {
-        var file = files[iterator];
-        iterator++;
-        getFFmpegMediaInfo(path+'/'+file, (info) => {
-            if(info && info.indexOf('Stream #0') != -1){
-                workingFiles.push(file)
-            }
-            callback()
-        })
-    });
-    async.parallelLimit(tasks, 3, (err, results) => {
-        cb(workingFiles)
-    })
-}    
+} 
 
 function joinFiles(files, folder, outputFile, callback){
     console.log('JOIN', files, callback);
@@ -959,6 +841,8 @@ function testEntry(stream, success, error, returnSucceededIntent){
     return intents;
 }
 
+var inFullScreen = false;
+
 function isFullScreen(){
     return !!(win.isKioskMode || win.isFulscreen)
 }
@@ -975,7 +859,7 @@ var enableSetFullScreenWindowResizing = false;
 function setFullScreen(enter){
     console.warn('setFulllscreen()', enter);
     if(!enter){
-        miniPlayerActive = false;
+        inFullScreen = miniPlayerActive = false;
         doAction('miniplayer-off');
         win.leaveKioskMode(); // bugfix, was remembering to enter fullscreen irreversibly
         win.leaveFullscreen()
@@ -993,13 +877,15 @@ function setFullScreen(enter){
             fixMaximizeButton()
         }
     } else {
+        inFullScreen = true;
         maxPortViewSize(screen.width + 1, screen.height + 1);
         if(useKioskForFullScreen){
             win.enterKioskMode() // bugfix, was remembering to enter fullscreen irreversibly
         } else {
             win.enterFullscreen()
         }
-        notify(Lang.EXIT_FULLSCREEN_HINT, 'fa-info-circle', 'normal')
+        notify(Lang.EXIT_FULLSCREEN_HINT, 'fa-info-circle', 'normal');
+        hideControls()
     }
     var f = function (){
         var _fs = isFullScreen();
@@ -1047,10 +933,12 @@ function sendStats(action, data){
         hostname: 'app.megacubo.net',
         port: 80,
         path: '/stats/'+action,
+        family: 4, // https://github.com/nodejs/node/issues/5436
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
-            'Content-Length': Buffer.byteLength(postData)
+            'Content-Length': Buffer.byteLength(postData),
+            'Cache-Control': 'no-cache'
         }
     }
     if(typeof(http)=='undefined'){
@@ -1102,12 +990,101 @@ win.on('restore', () => {
 })
 
 win.on('close', () => {
-    stop();
+    preCloseWindow();
+    closeWindow(true); // force parameter needed to avoid looping
     //gui.App.closeAllWindows();
-    win.close(true);
     //nw.App.quit();
     //process.exit()
 })
+
+var preClosingWindow = false, closingWindow = false;
+
+function killCrashpad(){    
+    var ps = require('ps-node');
+    ps.lookup({
+        command: 'megacubo',
+        arguments: 'crashpad'
+    }, (err, resultList ) => {
+        if (err) {
+            throw new Error( err );
+        }    
+        resultList.forEach(( process ) => {
+            if( process ){
+                console.log( 'PID', process.pid );
+                ps.kill(process.pid, ( err ) => {
+                    if (err) {
+                    throw new Error( err );
+                    } else {
+                        console.log( 'Crashpad unloaded!', process.pid );
+                    }
+                });
+            }
+        });
+    })
+}
+
+function preCloseWindow(){
+    if(!preClosingWindow){
+        doAction('appunload');
+        preClosingWindow = true;
+        fixLocalStateFile();
+        console.warn('preCloseWindow()');
+        stop();    
+        afterExitPage();
+        /*
+        */
+    }
+}
+
+jQuery(window).on('beforeunload unload', preCloseWindow);
+
+function closeWindow(force){
+    if(miniPlayerActive){
+        leaveMiniPlayer();
+    } else {
+        preCloseWindow();
+        if(!closingWindow && force !== true){
+            console.warn('CASE A');
+            closingWindow = true;
+            win.close()
+        } else {
+            console.warn('CASE B');
+            win.close(true)
+        }
+        // killCrashpad()
+    }
+}
+
+function fixLocalStateFile(){
+    var file = gui.App.dataPath;
+    if(basename(file)=='Default'){
+        file = dirname(file)
+    }
+    file += '\\Local State';
+    console.log('fixLocalStateFile()', file);
+    if(fs.existsSync(file)){
+        var content = fs.readFileSync(file);
+        console.log('fixLocalStateFile()', content);
+        if(content){
+            var j = JSON.parse(content);
+            if(j && typeof(j['profile'])!='undefined'){
+                j['profile']['info_cache'] = {};
+                content = JSON.stringify(j);
+                if(content){
+                    console.log('fixLocalStateFile() SUCCESS');
+                    fs.writeFileSync(file, content)
+                } else {
+                    console.log('fixLocalStateFile() ERR');
+                    fs.unlink(file)
+                }
+            } else {
+                console.log('fixLocalStateFile() ERR');
+                fs.unlink(file)
+            }
+        }
+    }
+    console.log('fixLocalStateFile() OK');
+}
 
 function minimizeCallback() {
     console.log('Window is minimized');
@@ -1172,42 +1149,6 @@ function logoLoad(image, name){
     check()
 }
 
-function playerRecordingButton(){
-    return document.querySelector('#ptb-record')
-}
-
-addAction('recording-start', () => {
-    var b = playerRecordingButton();
-    if(b){
-        b.title = Lang.STOP_RECORDING;
-        b.getElementsByTagName('span')[0].innerHTML = Lang.STOP_RECORDING;
-    }
-});
-
-addAction('recording-save-start', () => {
-    var b = playerRecordingButton();
-    if(b){
-        b.title = Lang.SAVING_RECORDING;
-        b.getElementsByTagName('span')[0].innerHTML = Lang.SAVING_RECORDING;
-    }
-});
-
-addAction('recording-save-end', () => {
-    var b = playerRecordingButton();
-    if(b){
-        b.title = Lang.START_RECORDING;
-        b.getElementsByTagName('span')[0].innerHTML = Lang.START_RECORDING;
-    }
-});
-
-addAction('recording-save-failure', () => {
-    var b = playerRecordingButton();
-    if(b){
-        b.title = Lang.START_RECORDING;
-        b.getElementsByTagName('span')[0].innerHTML = Lang.START_RECORDING;
-    }
-});
-
 var tb = jQuery(top.document).find('body');
 function prepareVideoObject(videoElement, intent){ // intent is empty for native player
     if(!videoElement || !videoElement.ownerDocument){
@@ -1216,7 +1157,7 @@ function prepareVideoObject(videoElement, intent){ // intent is empty for native
     var doc = videoElement.ownerDocument, ps = doc.getElementById('player-status');
     if(!ps){
         var scope = doc.defaultView;
-        var seeking, paused, wasPaused, player = jQuery(videoElement), b = jQuery(doc.querySelector('body')), f = (e) => {
+        var seeking, fslock, paused, wasPaused, fstm = 0, player = jQuery(videoElement), b = jQuery(doc.querySelector('body')), f = (e) => {
             e.preventDefault();
             e.stopPropagation();
             top.delayedPlayPauseNotify();
@@ -1247,10 +1188,10 @@ function prepareVideoObject(videoElement, intent){ // intent is empty for native
                 }, 200)
             }
         }
-        fs.readFile('assets/css/player.css', (err, content) => {
+        fs.readFile('assets/css/player.src.css', (err, content) => {
             if(content){
                 console.log('Applying CSS...');
-                stylizer(content, 'player-css', scope);
+                stylizer(parseTheming(content), 'player-css', scope);
                 console.log('Applied CSS.');
             }
         });
@@ -1363,7 +1304,25 @@ function prepareVideoObject(videoElement, intent){ // intent is empty for native
                     }
                 }
                 return false;
-            })
+            }).
+            on("webkitfullscreenchange", () => {
+                var e = doc.webkitFullscreenElement, i = !inFullScreen;
+                if(!fslock){
+                    fslock = true;
+                    clearTimeout(fstm);
+                    console.log('FSFS', i, e);
+                    doc.webkitCancelFullScreen();
+                    if(i){
+                        setFullScreen(true)
+                    } else {
+                        setFullScreen(false)
+                    }              
+                    fstm = scope.setTimeout(() => {
+                        fslock = false;
+                    }, 1000)    
+                }
+            });
+
     }
 }
 
@@ -1429,7 +1388,7 @@ var miniPlayerMouseOut = () => {
 }
 
 function createMouseObserverForControls(win){
-    if(!win || !win.document || !window.document.documentElement){
+    if(!win || !win.document || !win.document.documentElement){
         console.error('Bad observe', win, win.document);
         return;
     }
@@ -1458,13 +1417,13 @@ function createMouseObserverForControls(win){
                 createMouseObserverForControls(frames[i].contentWindow)
             }
         }
+        setupKeyboardForwarding(win.document)
     } catch(e) {
         console.error(e)
     }
 }
 
 function ptbTryOther(){
-    console.warn('PTBPTBPTB');
     jQuery('.try-other')[playingStreamKeyword()?'show':'hide']()
 }
 
@@ -1493,8 +1452,9 @@ jQuery(window).on('unload', function (){
 
 jQuery(() => {
     PlaybackManager.on('commit', ptbTryOther);
-    var els = jQuery(document).add('html, body');
-    jWin.on('load resize', function (){
+    PlaybackManager.on('commit', leavePendingState);
+    var jDoc = jQuery(document), els = jDoc.add('html, body');
+    var r = () => {
         var nonMiniPlayerMinWidth = 400, miniPlayerTriggerHeight = (screen.height / 3), width = jWin.width(), height = jWin.height(), showInTaskbar = ( height > miniPlayerTriggerHeight && width > nonMiniPlayerMinWidth), onTop = ( !showInTaskbar || isFullScreen());
         if(miniPlayerTriggerHeight < 380){
             miniPlayerTriggerHeight = 380;
@@ -1519,6 +1479,12 @@ jQuery(() => {
                 miniPlayerActive = !showInTaskbar;
             }, 50)
         }        
+    }
+    jDoc.on('shown', () => {
+        setTimeout(() => {
+            jWin.on('resize', r)
+        }, 50);
+        r()
     });
     addAction('uncommit', function (prevIntent, nextIntent){
         if(!nextIntent.isSideload){
@@ -1577,24 +1543,6 @@ jQuery(() => {
         }
     })    
 
-    
-    addAction('recording-start', function (){
-        recordingNotification.update(Lang.RECORDING_STARTED, 'fa-download', 'normal');
-        Menu.recordingState(true)
-    })
-    addAction('recording-save-start', function (){
-        recordingNotification.update(Lang.SAVING_RECORDING, 'fa-spin fa-circle-notch', 'forever');
-        Menu.recordingState('saving')
-    })
-    addAction('recording-save-end', function (){
-        recordingNotification.update(Lang.RECORDING_SAVED, 'fa-check', 'normal');
-        Menu.recordingState(false)
-    })    
-    addAction('recording-save-failure', function (data, reason){
-        var t = reason == 1 ? Lang.RECORDING_TOO_SHORT : Lang.RECORDING_SAVE_ERROR;
-        recordingNotification.update(t, 'fa-exclamation-circle', 'normal');
-        Menu.recordingState(false)
-    })
     var player = document.getElementById('player'), playerSizeUpdated = (() => {
         var lastSize, htmlElement = jQuery('html'), controls = jQuery('#controls'), timer = 0;
         return () => {
@@ -1621,85 +1569,31 @@ jQuery(() => {
     jQuery(document).on('scroll', () => {
         document.documentElement.scrollTop = document.documentElement.scrollLeft = 0; 
     })
-})
+});
 
-function nextBotReview(data){
-    prepareRequest();
-    //console.warn('BBBBBBBBBBBBBBBBBBB', data);
-    request({
-        url: 'http://app.megacubo.net/stats/bot/review-gateway.php',
-        method: 'POST',
-        json: data || {}
-    }, (error, response, stream) => {
-        //console.warn('BBBBBBBBBBBBBBBBBBB', stream, error);
-        if(!error && stream && typeof(stream)=='object' && stream['stream_url']){
-            console.log('nextBotReview #1', stream);
-            var entry = {url: stream['stream_url'], name: stream['stream_name']};
-            testEntry(entry, () => {
-                var mem = Math.round(process.memoryUsage().rss / 1024 / 1024), dt = new Date(), date = dt.getHours()+':'+dt.getMinutes()+':'+dt.getSeconds();
-                var prevState = stream['stream_status'];
-                stream['stream_status'] = 'ok';
-                if(stream['stream_status'] != prevState){
-                    console.warn('nextBotReview', prevState+' => '+stream['stream_status'], mem+'MB', date, entry, stream, jQuery.param(stream));
-                } else {
-                    console.log('nextBotReview', prevState+' => '+stream['stream_status'], mem+'MB', date, entry, stream, jQuery.param(stream));
+if(gui.App.manifest.window.title.indexOf('Premium') != -1){
+    var premiumLoaderExt = 'js';
+    (() => {
+        var f = 'premium/premium.js';
+        if(!fs.existsSync(f)) {
+            f = 'premium/premium.bin', premiumLoaderExt = 'bin';
+        } 
+        f = path.resolve(f);
+        console.log(f);
+        if(fs.existsSync(f)) {
+            var ecb = () => {
+                if(typeof(window.premiumLoaded)=='undefined'){
+                    if(confirm('Failed to load premium resources. Would you like to restart Megacubo?')){
+                        restartApp()
+                    }
                 }
-                nextBotReview(stream);
-                if(mem > 1000){
-                    restartApp()
-                }
-            }, () => {
-                var mem = Math.round(process.memoryUsage().rss / 1024 / 1024), dt = new Date(), date = dt.getHours()+':'+dt.getMinutes()+':'+dt.getSeconds(); // process after the test
-                var prevState = stream['stream_status'];
-                stream['stream_status'] = 'off';
-                if(stream['stream_status'] != prevState){
-                    console.warn('nextBotReview', prevState+' => '+stream['stream_status'], date, mem+'MB', entry);
-                } else {
-                    console.log('nextBotReview', prevState+' => '+stream['stream_status'], date, mem+'MB', entry);
-                }
-                nextBotReview(stream)
-                if(mem > 1000){
-                    restartApp()
-                }
-            })
-        } else {
-            setTimeout(() => {nextBotReview()}, 2000)
-        }
-    })
-}
-
-var extractURLsRegex =/(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
-function extractURLs(txt) {
-    return txt.match(extractURLsRegex) || []
-}
-
-var botCrawlsURLs = false, botCrawledURLs = [];
-function nextBotCrawl(){
-    if(botCrawlsURLs === false){
-        var txt = fs.readFileSync('crawl.txt');
-        botCrawlsURLs = extractURLs(txt);
-    }
-    botCrawlsURLs.every((url) => {
-        if(botCrawledURLs.indexOf(url) == -1){
-            botCrawlURL(url, nextBotCrawl);
-            return false;
-        }
-        return true;
-    })
-}
-
-function botCrawlURL(url, next){
-    if(!window['request']){
-        request = prepareRequest()
-    }
-    testEntry({'url': url}, () => {
-        request(url, (err, resp, html) => {
-            if(!err){
-                //
             }
-            next()
-        })       
-    }, next)
+            if(getExt(f)=='js'){
+                jQuery.getScript(f, ecb)   
+            } else {
+                win.evalNWBin(null, f);
+                ecb()
+            }
+        }
+    })()
 }
-
-//jQuery(window).on('load', () => { nextBotReview() })
