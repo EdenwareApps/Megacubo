@@ -20,7 +20,6 @@
         "btdb-search": "~1.1.0",
         "chromecast": "~0.0.6",
         "drag-drop": "~2.13.2",
-        "ffi": "~2.2.0",
         "fluent-ffmpeg": "~2.1.2",
         "m3u8-parser": "~4.0.0",
         "miniget": "~1.1.0",
