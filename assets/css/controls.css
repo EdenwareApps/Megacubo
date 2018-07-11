@@ -25,10 +25,9 @@ input {
     align-items: center;
     text-align: center;
     width: 100%;
-    height: inherit;
+    height: 100%;
     position: absolute;
     right: 0;
-    height: inherit;
 }
 #controls .list {
     width: 100%;
@@ -67,29 +66,43 @@ a.entry tbody {
 }
 a.entry tr {
     height: inherit;
+    width: 100%;
 }
 a.entry td {
     height: inherit;
+    width: inherit;
     display: table-cell;
     align-items: center;
-    vertical-align: center;
+    vertical-align: middle;
     line-height: 150%;
     margin: auto;
     padding: 0;
     position: relative;
     top: -1px;
 }
+
 .entry-logo {
     text-align: center;
     display: inline-block;
     align-items: center;
     position: relative;
 }
+
 a.entry-stream .entry-logo {
     border: 1px solid rgba(255, 255, 255, 0.038);
 }
+
 a.entry-stream .entry-logo img {
     -webkit-box-reflect: below 0  -webkit-linear-gradient(bottom, rgba(255,255,255,0.3) 0%, transparent 33%);
+}
+
+.entry-slider input {
+    margin: 4px 0 0 0;
+    width: 100%;
+}
+
+input[type=range]:focus {
+    outline: 0;
 }
 
 span.entry-logo-img-c {
@@ -232,7 +245,7 @@ div#controls-in {
 }
 
 div#controls-in > div, div.list {
-    height: inherit;
+    height: 100%;
 }
 
 #home-icons, #list-icons {

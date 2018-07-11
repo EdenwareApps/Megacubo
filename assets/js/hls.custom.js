@@ -7096,7 +7096,7 @@ var playlist_loader_PlaylistLoader = function (_EventHandler) {
         id: id,
         rangeStart: 0,
         rangeEnd: 2048,
-        responseType: 'arraybuffer'
+        responseType: 'blob'
       });
       return;
     }
@@ -7438,7 +7438,7 @@ var key_loader_KeyLoader = function (_EventHandler) {
       var loaderContext = void 0,
           loaderConfig = void 0,
           loaderCallbacks = void 0;
-      loaderContext = { url: uri, frag: frag, responseType: 'arraybuffer' };
+      loaderContext = { url: uri, frag: frag, responseType: 'blob' };
       loaderConfig = { timeout: config.fragLoadingTimeOut, maxRetry: config.fragLoadingMaxRetry, retryDelay: config.fragLoadingRetryDelay, maxRetryDelay: config.fragLoadingMaxRetryTimeout };
       loaderCallbacks = { onSuccess: this.loadsuccess.bind(this), onError: this.loaderror.bind(this), onTimeout: this.loadtimeout.bind(this) };
       frag.loader.load(loaderContext, loaderConfig, loaderCallbacks);
@@ -12561,17 +12561,17 @@ var xhr_loader_XhrLoader = function () {
             data = xhr.response;
             len = data.byteLength;
           } else if (context.responseType === 'blob') {
-			return blobToBuffer(xhr.response, (err, buffer) => {
-				if(err){
-					console.error(err)
-				} else {
-					data = buffer;
-					len = data.byteLength;
-				    stats.loaded = stats.total = len;
-				    var response = { url: xhr.responseURL, data: data };
-				    this.callbacks.onSuccess(response, stats, context, xhr);
-				}
-			})
+			      return blobToBuffer(xhr.response, (err, buffer) => {
+              if(err){
+                console.error(err)
+              } else {
+                data = buffer;
+                len = data.byteLength;
+                  stats.loaded = stats.total = len;
+                  var response = { url: xhr.responseURL, data: data };
+                  this.callbacks.onSuccess(response, stats, context, xhr);
+              }
+            })
           } else {
             data = xhr.responseText;
             len = data.length;

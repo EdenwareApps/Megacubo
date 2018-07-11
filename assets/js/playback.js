@@ -6,7 +6,8 @@ var minBufferSecsBeforeCommit = 2;
 var isPending = false;
 var cpuCount = os.cpus().length;
 
-ffmpeg.setFfmpegPath('ffmpeg/ffmpeg');
+var FFmpegPath = path.dirname(process.execPath)+path.sep+'ffmpeg'+path.sep+'ffmpeg'
+ffmpeg.setFfmpegPath(FFmpegPath);
 
 var PlaybackManager = (() => {
     var self = {
@@ -500,16 +501,20 @@ function preparePlayIntent(entry, options, ignoreCurrentPlaying){
         }
     } else if(['html', 'htm'].indexOf(getExt(entry.url))!=-1) {
         console.log('CREATEPLAYINTENT FOR GENERIC', entry.url);
-        if(currentPlaybackTypePriotity == -1 || PlaybackManager.intentTypesPriorityOrder.indexOf('frame') < currentPlaybackTypePriotity){
-            if(!options || !options.isSideload){
-                types.push('frame')
+        if(Config.get('allow-web-pages')){
+            if(currentPlaybackTypePriotity == -1 || PlaybackManager.intentTypesPriorityOrder.indexOf('frame') < currentPlaybackTypePriotity){
+                if(!options || !options.isSideload){
+                    types.push('frame')
+                }
             }
         }
     } else  {
         console.log('CREATEPLAYINTENT FOR GENERIC', entry.url);
-        if(currentPlaybackTypePriotity == -1 || PlaybackManager.intentTypesPriorityOrder.indexOf('frame') < currentPlaybackTypePriotity){
-            if(!options || !options.isSideload){
-                types.push('frame')
+        if(Config.get('allow-web-pages')){
+            if(currentPlaybackTypePriotity == -1 || PlaybackManager.intentTypesPriorityOrder.indexOf('frame') < currentPlaybackTypePriotity){
+                if(!options || !options.isSideload){
+                    types.push('frame')
+                }
             }
         }
         if(currentPlaybackTypePriotity == -1 || PlaybackManager.intentTypesPriorityOrder.indexOf('ffmpeg') < currentPlaybackTypePriotity){
@@ -1003,7 +1008,7 @@ function createFrameIntent(entry, options){
     }
     
     self.allowFitter = () => {
-        if(!self.ended && !self.error){
+        if(!self.ended && !self.error && self.entry.originalUrl.indexOf('#nofit') == -1){
             if(fitterEnabled && self && self.frame){
                 var c = false;
                 try {
@@ -1095,7 +1100,7 @@ function createFrameIntent(entry, options){
             if(self.allowMediaSourcePausing || self.videoElement.currentSrc.indexOf('blob:')==-1){
                 self.videoElement.pause()
             } else {
-                notify(Lang.CANNOT_PAUSE, 'fa-exclamation-circle', 'normal')
+                notify(Lang.CANNOT_PAUSE, 'fa-exclamation-circle faclr-red', 'normal')
             }
         }
     }
@@ -1565,7 +1570,7 @@ function createTSIntent(entry, options){
             }
         }).
         on('error', function(err) {
-            console.error('an error happened: ' + err.message);
+            console.error('an error happened:', err.message);
             if(err.message.indexOf('ffmpeg was killed with signal') == -1){
                 if(!self.error){
                     self.error = true;
@@ -1574,7 +1579,7 @@ function createTSIntent(entry, options){
             } 
         }).
         on('start', function(commandLine) {
-            console.log('Spawned FFmpeg with command: ' + commandLine);
+            console.log('Spawned FFmpeg with command:', commandLine);
             // ok, but wait file creation to trigger "start"
         });    
         self.decoder.file = file;     
@@ -1717,7 +1722,7 @@ function createMagnetIntent(entry, options){
     
     self.run = () => {
         console.log('run() called');
-        self.subNotify = notify(Lang.CAN_BE_SLOW, 'fa-coffee', 'wait');
+        self.subNotify = notify(Lang.CAN_BE_SLOW, 'fa-coffee faclr-yellow', 'wait');
         self.notify = notify(Lang.SEARCHING_PEERS, 'fa-magnet', 'wait');
         notifyRemove(Lang.CONNECTING);
         if(self.endpoint){
@@ -2184,9 +2189,9 @@ function getHLSProxy(){
                         console.log('responding', buffer);
                     }
                     if(buffer instanceof Buffer){
-                        content = buffer.toString('utf8');
+                        content = buffer.toString('utf8')
                     } if(buffer instanceof ArrayBuffer){
-                        content = Buffer.from(buffer).toString('utf8');
+                        content = Buffer.from(buffer).toString('utf8')
                     } else {
                         content = String(buffer)
                     }
@@ -2343,7 +2348,9 @@ function getTSWrapper(){
                     console.log('server: late data', buffer.length);
                     client.end()
                 } else if(buffer) {
-                    //console.log('server: responding', buffer.length);
+                    if(debug){
+                        console.log('server: responding', buffer.length);
+                    }
                     client.write(buffer, 'binary')
                 }
                 buffer = null;
@@ -2387,7 +2394,7 @@ function getTSWrapper(){
             util.inherits(Hermes, Transform);
             Hermes.prototype._transform = function (data, enc, cb) {
                 if(!aborted && !closed){
-                    //data = toBuffer(data);
+                    /*
                     var currentIntersectBufferSize = intersectBuffersSum();
                     if(nextIntersectBuffer){
                         if(debug){
@@ -2440,6 +2447,8 @@ function getTSWrapper(){
                             callback(data)
                         }
                     }
+                    */
+                    callback(data)
                 } else {
                     client.end();
                     close()
@@ -2451,7 +2460,9 @@ function getTSWrapper(){
             var connect = () => {
 				if(!aborted && !closed && !rclosed){
                     r = null;
-					r = request({method: 'GET', uri: url}, function (error, response, body) {
+                    r = request({method: 'GET', uri: url});
+                    var h = new Hermes();
+                    h.on('end', () => {
                         if(!nextIntersectBuffer){
                             nextIntersectBuffer = true;
                         }
@@ -2464,7 +2475,7 @@ function getTSWrapper(){
                             close()
                         }
                     });
-                    r.pipe(new Hermes())
+                    r.pipe(h)
 				} else {
                     abort()
                 }
@@ -2559,7 +2570,7 @@ function onIntentCommit(intent){
     History.add(intent.entry);
     //console.log('ONINTENTCOMM', intent.entry, c.History);
     updateStreamEntriesFlags();
-    notify(intent.entry.name, 'fa-play', 'short');
+    notify(intent.entry.name, 'fa-play faclr-green', 'short');
 }
 
 function unfocus(e){ // unfocus from sandbox frame to catch keypresses
@@ -2641,7 +2652,7 @@ PlaybackManager.on('register', (intent, entry) => {
             sendStats('error', sendStatsPrepareEntry(intent.entry))
             if(!intent.shadow && shouldNotifyPlaybackError(intent)){ // don't alert user if has concurrent intents loading
                 if(!Config.get('allow-similar-transmissions') || !switchPlayingStream(intent)){
-                    notify(Lang.PLAY_STREAM_FAILURE.format(intent.entry.name), intent.entry.logo || 'fa-exclamation-circle', 'normal');
+                    notify(Lang.PLAY_STREAM_FAILURE.format(intent.entry.name), intent.entry.logo || 'fa-exclamation-circle faclr-red', 'normal');
                     console.log('STREAM FAILED', intent.entry.originalUrl, PlaybackManager.log())
                 }
             }
@@ -2699,7 +2710,9 @@ PlaybackManager.on('commit', (intent) => {
     if(b) {
         jQuery(b)[tryOther ? 'show' : 'hide']();
         if(tryOther){
-            jQuery(b).off('mousedown').on('mousedown', switchPlayingStream)
+            jQuery(b).off('mousedown').on('mousedown', () => {
+                setTimeout(switchPlayingStream, 100)
+            })
         }
     }
 });

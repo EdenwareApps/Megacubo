@@ -9,7 +9,7 @@ iframe {
 
 body .fit-screen, body .fit-player {
     top: 30px;
-    height: calc(100vh - 30px);
+    height: calc(100% - 30px);
 }
 
 iframe#testing-player {
@@ -61,10 +61,7 @@ body.paused div.fac-paused {
     bottom: 36px;
     right: 48px;
     line-height: 100%;
-	padding: 8px 0px 4px 0px !important;
-	border-radius: 4px;
-	border-top-left-radius: 0;
-	border-top-right-radius: 0;
+	padding: 8px 0px 5px 0px !important;
     text-align: center;
     height: auto;
 }
@@ -96,7 +93,7 @@ div#controls {
     right: 0;
     top: 30px;
     display: none;
-    height: calc(100vh - 30px);
+    height: calc(100% - 30px);
     transform: translate(100%, 0) rotateY(-140deg);
 }
 
@@ -106,7 +103,7 @@ body.showcontrols div#controls {
 
 body.frameless .fit-screen, body.frameless .fit-player, body.frameless div#controls {
     top: 0px;
-    height: 100vh;
+    height: 100%;
 }
 
 body.miniplayer div#controls {
@@ -248,8 +245,8 @@ iframe#sandbox {
     z-index: 1;
 }
 
-body.miniplayer #player, body.miniplayer  iframe#sandbox, body.miniplayer div#suggest, body:not(.showcontrols) #player, body:not(.showcontrols) iframe#sandbox, body:not(.showcontrols) div#suggest {
-    width: 100vw !important;
+body.miniplayer #player, body.miniplayer  iframe#sandbox, body:not(.showcontrols) #player, body:not(.showcontrols) iframe#sandbox {
+    width: 100% !important;
 }
 
 body:not(.miniplayer) #player, body:not(.miniplayer) iframe#sandbox {
@@ -263,10 +260,16 @@ body.modal div#controls {
 div#modal-overlay { 
     display:none;
     background: radial-gradient(rgba(0, 0, 0, 0.86) 70%, rgba(0, 0, 0, 1) 100%); 
-    width: 100vw; 
-    height: 100vh; 
+    width: 100%; 
+    height: calc(100% - 30px);
     position: absolute; 
     z-index: 10000;
+    top: 30px;
+}
+
+body.frameless div#modal-overlay {
+    height: 100vh;
+    top: 0;
 }
 
 div#modal-overlay > div { 
@@ -417,16 +420,8 @@ body #controls {
     transition: width 0.2s linear;
 }
 
-body.playing #controls, body.paused #controls {
-    width: 30%;
-}
-
-#player, iframe#sandbox, div#suggest {
-    width: calc(100vw - 34%); /* +18px to box-shadow */
-}
-
-body.playing #player, body.playing iframe#sandbox, body.playing div#suggest, body.paused #player, body.paused iframe#sandbox, body.paused div#suggest {
-    width: calc(100vw - 30%); /* +18px to box-shadow */
+#player, iframe#sandbox {
+    width: calc(100% - 34%); /* +18px to box-shadow */
 }
 
 #splash {
@@ -452,63 +447,6 @@ body.playing #player, body.playing iframe#sandbox, body.playing div#suggest, bod
     opacity: 0.6;
 }
 
-div#suggest { 
-    position: absolute; 
-    bottom: -4px; 
-    left: 0;
-    padding-left: 6px;
-    transition: opacity 0.2s linear 0.2s;
-    opacity: 0.001;
-    z-index: 3;
-}
-
-body.over div#suggest {
-    opacity: 1;
-}
-
-body.playing div#suggest, body.paused div#suggest {
-    display: none;
-}
-
-div#suggest div {
-    overflow: hidden;
-    white-space: nowrap;
-}
-
-div#suggest-a {
-    display: inline-block;
-    animation: marquee 40s linear infinite;
-}
-
-div#suggest-b {
-    display: inline-block;
-    animation: marquee2 40s linear infinite;
-    animation-delay: 20s;
-    transform: translateX(200%);
-}
-
-div#suggest:hover div#suggest-a, div#suggest:hover div#suggest-b {
-    animation-play-state: paused;
-}
-
-div#suggest a { 
-    text-decoration: none; 
-    transition: color 0.1s linear 0.1s;
-}
-
-div#suggest span, div#suggest a { 
-    margin-right: 5px;
-}
-
-div#suggest a:hover { 
-    text-decoration: underline; 
-}
-
-div#suggest > div >div { 
-    padding-left: 6px;
-    padding-bottom: 1px;
-}
-
 @keyframes marquee {
     from {
         transform: translateX(100%);
@@ -532,14 +470,14 @@ div#suggest > div >div {
     align-items: center;
     justify-content: center;
     position: absolute;
-    height: calc(100vh - 30px);
+    height: calc(100% - 30px);
     top: 30px;
     z-index: 0;
     background: linear-gradient(to right, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.001));
 }
 
 body.frameless #side-widget-container {
-    height: 100vh;
+    height: 100%;
     top: 0;
 }
 

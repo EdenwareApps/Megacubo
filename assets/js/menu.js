@@ -5,11 +5,13 @@ var menuTemplates = {
     'input': '<a href="[url]" role="button" onclick="return false;" class="entry entry-input [class]" title="[name] [label]" aria-label="[name] [label]"><table class="entry-search"><tr><td><input type="text" style="background-image: url([logo]);" /></td><td class="entry-logo-c"></td></tr></table></a>', // entry-input-container entry-search-helper
     'check': '<a href="[url]" role="button" onclick="return false;" class="entry entry-option [class]" title="[name] [label]" aria-label="[name] [label]"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><i class="fas fa-toggle-off entry-logo-fa" aria-hidden="true"></i></span></td><td><span class="entry-name">[name]</span></td></tr></table></a>',
     'stream': '<a href="[url]" role="button" onclick="return false;" class="entry entry-stream [class]" title="[name] [label]" aria-label="[name] [label]"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><span class="entry-logo-img-c"><img src="[logo]" onerror="lazyLoad(this, [\'[auto-logo]\', \'[default-logo]\'])" title="[name] - [group]" alt="[name]" /></span></span></td><td><span class="entry-name">[format-name]</span><span class="entry-label">[format-label]</span></td></tr></table></a>',
-    'group': '<a href="[url]" role="button" onclick="return false;" class="entry entry-group [class]" title="[name] [label]" aria-label="[name] [label]"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><span class="entry-logo-img-c"><img src="[logo]" onerror="lazyLoad(this, [\'[auto-logo]\', \'[default-logo]\'])" title="[name] - [group]" alt="[name]" /></span></span></td><td><span class="entry-name">[name]</span><span class="entry-label">[format-label]</span></td></tr></table></a>' // onerror="nextLogoForGroup(this)" 
+    'group': '<a href="[url]" role="button" onclick="return false;" class="entry entry-group [class]" title="[name] [label]" aria-label="[name] [label]"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><span class="entry-logo-img-c"><img src="[logo]" onerror="lazyLoad(this, [\'[auto-logo]\', \'[default-logo]\'])" title="[name] - [group]" alt="[name]" /></span></span></td><td><span class="entry-name">[name]</span><span class="entry-label">[format-label]</span></td></tr></table></a>', // onerror="nextLogoForGroup(this)" 
+    'slider': '<a href="[url]" role="button" onclick="return false;" class="entry entry-slider [class]" title="[name] [label]" aria-label="[name] [label]"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><img src="[logo]" onerror="this.onerror=null;this.src=\'[default-logo]\';" /></span></td><td><span class="entry-name">[name]</span><span class="entry-label"><input type="range" /></span></td></tr></table></a>'
 };
 
 var defaultIcons = {
     'option': 'fa-cog',
+    'slider': 'fa-cog',
     'input': 'assets/icons/white/search-dark.png',
     'stream': 'assets/icons/white/default-stream.png',
     'check': 'fa-toggle-off',
@@ -190,15 +192,16 @@ function listBackEffect(callback){
 }
 
 function about(){
+    var arch = process.arch == 'ia32' ? 'x86' : 'x64';
     if(currentVersion > installedVersion){
-        var txt = gui.App.manifest.window.title+' v'+gui.App.manifest.version+' (< v'+currentVersion+")\n\n";
+        var txt = gui.App.manifest.window.title+' v'+gui.App.manifest.version+' (< v'+currentVersion+') '+arch+"\n\n";
         txt = applyFilters('about', txt);
         txt = trimChar(txt, "\n") + "\n\n" + Lang.NEW_VERSION_AVAILABLE;
         if(confirm(txt)){
             gui.Shell.openExternal('https://megacubo.tv/online/?version='+gui.App.manifest.version)
         }
     } else {
-        var txt = gui.App.manifest.window.title+' v'+gui.App.manifest.version+"\nhttps://megacubo.tv\n\n";
+        var txt = gui.App.manifest.window.title+' v'+gui.App.manifest.version+' '+arch+"\nhttps://megacubo.tv\n\n";
         txt = applyFilters('about', txt);
         txt = trimChar(txt, "\n");
         alert(txt)
@@ -214,23 +217,20 @@ function getSearchSuggestions(){
         if(suggestions && suggestions.length){
             searchSuggestions = suggestions;
             sideWidgetEntries = [];
-            var sgs = jQuery('div#suggest-a, div#suggest-b').empty();
-            jQuery('<span>'+Lang.MOST_SEARCHED+':</span>').appendTo(sgs);
             suggestions.forEach((suggest, i) => {
                 suggestions[i].search_term = suggestions[i].search_term.trim();
                 if(parentalControlAllow(suggest.search_term)){
                     var t = Lang.SEARCH + ': ' + suggest.search_term, c = ucWords(suggest.search_term), s = encodeURIComponent(c), entry = {name: c, logo: 'http://app.megacubo.net/logos/'+encodeURIComponent(s)+'.png', type: 'stream', label: Lang.MOST_SEARCHED, url: 'mega://play|'+s};
                     entries.push({name: '#'+suggest.search_term, logo: 'fa-search', type: 'option', class: 'entry-suggest', label: Lang.SEARCH, callback: () => {goSearch(suggest.search_term)}})
                     sideWidgetEntries.push(entry);
-                    var a = jQuery('<a href="#" title="'+t+'" aria-label="'+t+'">'+suggest.search_term+'</a>');
+                    var a = jQuery('<a href="#" title="'+t+'" aria-label="'+t+'">'+suggest.search_term+'</a>&nbsp;');
                     a.data('entry-data', entry).on('mousedown', (event) => {
                         var entry = jQuery(event.currentTarget).data('entry-data');
                         // goSearch(entry.name.toLowerCase())
                         playEntry(entry)
                     }).on('click', (event) => {
                         event.preventDefault()
-                    });
-                    a.appendTo(sgs)
+                    })
                 }
             });
             //console.warn('INPUT', basename(Menu.path), basename(searchPath), Menu.path, searchPath, lastSearchTerm, lastSearchTerm.length);
@@ -254,7 +254,7 @@ function getSearchSuggestionsTerms(){
 
 function renderRemoteSources(name){
     var path = assumePath(name, Menu.path), failed = () => {
-        notify(Lang.DATA_FETCHING_FAILURE, 'fa-exclamation-triangle', 'normal');
+        notify(Lang.DATA_FETCHING_FAILURE, 'fa-exclamation-triangle faclr-red', 'normal');
         Menu.back()
     }
     setTimeout(() => {
@@ -346,7 +346,7 @@ function fetchAndRenderEntries(url, name, filter, callback){
                 }
                 Menu.asyncResult(fetchPath, options);
             } else {
-                notify(Lang.DATA_FETCHING_FAILURE, 'fa-exclamation-triangle', 'normal');
+                notify(Lang.DATA_FETCHING_FAILURE, 'fa-exclamation-triangle faclr-red', 'normal');
                 Menu.asyncResult(fetchPath, -1);
             }
         })
@@ -379,7 +379,7 @@ function fetchAndRenderWatchingEntries(name, filter, callback){
                     callback(options)
                 }
             } else {
-                notify(Lang.DATA_FETCHING_FAILURE, 'fa-exclamation-triangle', 'normal');
+                notify(Lang.DATA_FETCHING_FAILURE, 'fa-exclamation-triangle faclr-red', 'normal');
                 Menu.asyncResult(path, -1);
             }
         })
@@ -643,57 +643,16 @@ function fetchSearchResults(){
     return r;
 }
 
-var ytsr = false;
-function fetchVideoSearchResults(_cb){
-    var searchYoutube = true, c = jQuery('.list > div > div');
-    var q = c.find('input').val().toLowerCase();
-    if(q.length > 1){
-        var cb = (entries) => {
-            fetchSharedListsSearchResults((nentries) => {
-                _cb(entries.concat(nentries))
-            }, 'video')
-        }
-        if(searchYoutube){
-            setTimeout(() => { // avoid mess the loading entry returned, getting overridden by him
-                if(!ytsr){
-                    ytsr = require('ytsr')
-                }
-                ytsr.get_filters(q, function(err, filters) {
-                    console.log(filters);
-                    if(typeof(filters)!='object'){
-                        return cb([])
-                    }
-                    var filter = filters['type'].find((o) => {return o.name == 'Video'});
-                    var options = {
-                        limit: 36,
-                        nextpage_ref: filter.ref,
-                    }
-                    ytsr.search(null, options, function(err, search_results) {
-                        if(err){
-                            return cb([])
-                        }
-                        //console.log(search_results);
-                        //console.log(search_results.items);
-                        //console.log(search_results.items.length);
-                        var entries = [];
-                        for(var i=0; i<search_results.items.length; i++){
-                            //console.log(search_results.items[i]);
-                            entries.push({
-                                type: 'stream',
-                                url: search_results.items[i].link,
-                                name: search_results.items[i].title,
-                                logo: search_results.items[i].thumbnail,
-                                label: search_results.items[i].author.name
-                            })
-                        }
-                        cb(entries);
-                        //console.log(entries);
-                    });
-                })
-            }, loadingToActionDelay)
-        } else {
-            cb([])
-        }
+function fetchVideoSearchResults(_cb, terms){
+    if(typeof(terms)!='string'){
+        terms = jQuery('.list > div > div').find('input').val().toLowerCase()
+    }
+    if(terms.length > 1){
+        fetchSharedListsSearchResults((nentries) => {
+            _cb(nentries)
+        }, 'video')
+    } else {
+        _cb([])
     }
 }
 
@@ -763,11 +722,15 @@ function fetchSharedLists(callback){
     if(sharedLists.length){
         callback(sharedLists)
     } else {
-        var url = 'http://app.megacubo.net/stats/data/sources.'+getLocale(true)+'.json';
-        fetchEntries(url, (entries) => {
-            sharedLists = entries.map((entry) => { return entry.url; });
-            callback(sharedLists)
-        })
+        if(Config.get('search-other-users-lists')){
+            var url = 'http://app.megacubo.net/stats/data/sources.'+getLocale(true)+'.json';
+            fetchEntries(url, (entries) => {
+                sharedLists = jQuery.unique(entries.map((entry) => { return entry.url; }).concat(callback));
+                callback(sharedLists)
+            })
+        } else {
+            callback(getSourcesURLs())
+        }
     }
 }
 
@@ -781,7 +744,6 @@ function buildSharedListsSearchIndex(callback){
             if(typeof(listsCountLimit)!='number' || listsCountLimit < 5){
                 listsCountLimit = 18; // default
             }
-            urls = getSourcesURLs().concat(urls);
             if(urls.length > listsCountLimit){
                 urls = urls.slice(0, listsCountLimit)
             }
@@ -842,7 +804,7 @@ buildSharedListsSearchIndex();
 
 function getStreamBasicType(entry){
     var b = entry.name+' '+entry.group;
-    return isRadio(b) ? 'radio' : ((entry.url.indexOf('mp4') != -1) ? 'video' : 'live');
+    return isRadio(b) ? 'radio' : ((entry.url.indexOf('mp4') != -1 || entry.url.indexOf('youtube.com') != -1) ? 'video' : 'live');
 }
 
 var sharedListsSearchCaching = false;
@@ -861,8 +823,10 @@ function fetchSharedListsSearchResults(cb, type, term, matchAll){
             if(sharedListsSearchCaching && sharedListsSearchCaching.query == term && sharedListsSearchCaching.type == type){
                 r = sharedListsSearchCaching.entries;
             } else {
-                var searchType = (type == 'video') ? 'video' : (isRadio(term) ? 'radio' : 'live'), maybe = [], already = {}, 
-                terms = term.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().split(' ');
+                var blacklist = ['tv'], searchType = (type == 'video') ? 'video' : (isRadio(term) ? 'radio' : 'live'), maybe = [], already = {}, 
+                terms = term.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().split(' ').filter((kw) => {
+                    return kw.length >= 2 && blacklist.indexOf(kw) == -1;
+                });
                 if(terms.length >= 1){
                     var resultHitMap = {}, resultEntryMap = {};
                     terms.forEach((_term) => {
@@ -1040,6 +1004,7 @@ var Menu = (() => {
             }, loadingToActionDelay);
             return true;
         }
+        self.saveScroll();  
         if(typeof(data.path)=='undefined'){
             data.path = '';
         }
@@ -1127,7 +1092,8 @@ var Menu = (() => {
                                 e.className += ' entry-sub-last';
                             }
                             return e;
-                        })
+                        });
+                        self.restoreScroll()
                     }
                 }
                 if(!ok){
@@ -1192,7 +1158,6 @@ var Menu = (() => {
             jQuery(e).addClass('marquee-adjusted').find('*:eq(0)').css('animation-duration', parseInt(e.innerText.length / lps)+'s')
         });
         focusEntryItem(lst.find('a.entry:not(.entry-back):eq(0)'), true);
-        self.restoreScroll();
         return entries;
     }
     self.render = (entries, tabIndexOffset, at) => { // render entries
@@ -1224,7 +1189,7 @@ var Menu = (() => {
                 }
             }
             //console.log('WWWWWWWWWWWWW', entry);
-            var autoLogo = 'http://app.megacubo.net/logos/'+encodeURIComponent(entry.name)+'.png', logo = entry.logo || autoLogo;
+            var autoLogo = 'http://app.megacubo.net/logos/'+encodeURIComponent(entry.name)+'.png', logo = entry.logo || (entry.type=='stream'?autoLogo:false) || defaultIcons[entry.type];
             var originalLogo = entry.originalLogo || entry.logo || defaultIcons[entry.type];
             if(typeof(menuTemplates[entry.type])=='undefined'){
                 console.log('BAD BAD ENTRY', entry);
@@ -1286,14 +1251,14 @@ var Menu = (() => {
                     }
                 }
             }
-            if(entry.type == 'input'){
+            if(['input', 'slider'].indexOf(entry.type) != -1){
                 if(entry['change']){
                     atts.input = (event) => {
                         jQuery('body').trigger('wake');
                         entry['change'](entry, event.currentTarget, event.currentTarget.getElementsByTagName('input')[0].value);
                     }
                 }
-                if(entry['value']){
+                if(typeof(entry['value'])!='undefined'){
                     atts.value = entry['value'];
                 }
                 if(entry['placeholder']){
@@ -1328,7 +1293,6 @@ var Menu = (() => {
             as.show().slice(at, at + allEvents.length).hide();
             as.eq(at).after(allHTML);
             rv = self.container().find('a.entry').not(as).reverse();
-            self.restoreScroll()
             self.adjustBodyClass(false)
         } else {
             //console.warn('BBBBBBBBBBBBB', at);
@@ -1380,8 +1344,13 @@ var Menu = (() => {
         }
     }
     self.restoreScroll = () => {
+        var c = self.container();
+        if(!Menu.path){
+            c.css('height', 'auto');
+            return;
+        }
         setTimeout(() => {
-            var c = self.container(), p = self.containerParent(), t = 0;
+            var p = self.containerParent(), t = 0;
             if(typeof(self.scrollTopCache[self.path])!='undefined'){
                 t = self.scrollTopCache[self.path];
             }
@@ -1400,8 +1369,8 @@ var Menu = (() => {
             p.animate({opacity: 1}, 250).scrollTop(t)
             setTimeout(() => {
                 p.scrollTop(t)
-            }, 500)
-        }, 150)
+            }, 600)
+        }, 200)
     }
     self.getFocus = () => {
         var f = jQuery('.entry-focused');
@@ -1475,8 +1444,7 @@ var Menu = (() => {
         self.vpath = false;
         jQuery('body').removeClass('submenu'); 
         var subs = self.container().find('a.entry-sub');
-        if(subs.length){
-            self.saveScroll();    
+        if(subs.length){  
             var subsub = subs.filter('a.entry-sub-sub');
             self.path = dirname(self.path);
             self.adjustBodyClass(!self.path);
@@ -1502,7 +1470,7 @@ var Menu = (() => {
             focusEntryItem(r);
             self.restoreScroll()
         } else {
-            self.go(dirname(self.path))
+            self.go(dirname(self.path), self.restoreScroll)
         }
     }
     self.enter = () => {

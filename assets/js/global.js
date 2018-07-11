@@ -734,16 +734,18 @@ if(typeof(require)!='undefined'){
                 file: Store.folder(true) + 'configure.json',
                 defaults: {
                     "allow-similar-transmissions": true,
+                    "allow-web-pages": true,
+                    "search-other-users-lists": true,
                     "sources": [],
                     "gpu-rendering": true,
                     "hd-lists-url": "http://www.iptvchoice.com/free-iptv-test/",
                     "hide-logos": false,
                     "hide-back-button": false,
+                    "resolution-limit": "1280x720",
                     "resume": false,
                     "show-adult-content": false,
                     "sources": [],
                     "start-in-fullscreen": false,
-                    "after-exit-url": "http://app.megacubo.net/out.php?ver={0}",
                     "unshare-lists": false
                 }
             }, loaded = false;
@@ -927,13 +929,15 @@ if(typeof(require)!='undefined'){
         jQuery(top.document).find('#splash').show('fast');
         //centralizedResizeWindow(gui.App.manifest.window.width, gui.App.manifest.window.height, true);
         setTimeout(() => { 
-            // chrome.runtime.reload()
+            chrome.runtime.reload()
+            /*
             gui.Shell.openExternal(process.execPath);
             setTimeout(() => {
                 closeWindow();
                 win.close(true)
             }, 0);
-        }, 500)
+            */
+        }, 250)
     }
 
     function goReload(){
@@ -1043,14 +1047,7 @@ if(typeof(require)!='undefined'){
         });
     }
 
-    var minigetProvider, m3u8Parser;
-    
-    function miniget(){
-        if(!top.minigetProvider){
-            top.minigetProvider = require('miniget');
-        }
-        return top.minigetProvider.apply(window, arguments);
-    }
+    var m3u8Parser;
     
     function getM3u8Parser(){
         if(!top.m3u8Parser){
@@ -1390,7 +1387,7 @@ if(typeof(require)!='undefined'){
             spawn = require('child_process').spawn;
         }
         var data = '';
-        var child = spawn('ffmpeg/ffmpeg', [
+        var child = spawn(top.FFmpegPath, [
             '-i', path
         ]);
         child.stdout.on('data', function(chunk) {
@@ -1925,7 +1922,7 @@ if(typeof(require)!='undefined'){
         top.createPlayIntent({url: file, name: basename(file, true)}, {manual: true})
     }
 
-    function checkPermission(file, mask, cb){ // https://stackoverflow.com/questions/11775884/nodejs-file-permissions
+    function checkFilePermission(file, mask, cb){ // https://stackoverflow.com/questions/11775884/nodejs-file-permissions
         fs.stat(file, function (error, stats){
             if (error){
                 cb (error, false);
@@ -1941,8 +1938,26 @@ if(typeof(require)!='undefined'){
         })
     }
 
-    function isWritable(path, cb){
-        checkPermission(path, 2, cb);
+    function isWritable(_path, cb){
+        var isFolder = false;
+        try{
+            isFolder = fs.lstatSync(_path).isDirectory()
+        } catch(e) {
+            isFolder = false;
+        }
+        if(isFolder){
+            var testFile = _path + path.sep + 'test.tmp';
+            fs.writeFile(testFile, '1', (err) => {
+                if (err){
+                    cb(null, false)
+                } else {
+                    cb(null, true)
+                }
+                fs.unlink(testFile, () => {})
+            })
+        } else {
+            checkFilePermission(_path, 2, cb)
+        }
     }
 
     function filesize(filename) {
@@ -2291,10 +2306,10 @@ if(typeof(require)!='undefined'){
     }
 
     function enterPendingState(title, notifyFlag, loadingUrl) {
-        //console.warn('ssss', top.isPending, loadingUrl || false, traceback(), PlaybackManager.log());
+        console.warn('enterPendingState', top.isPending, loadingUrl || false, traceback(), PlaybackManager.log());
         var t = top || parent || window;
         t.isPending = loadingUrl || ((t.isPending && typeof(t.isPending)=='string') ? t.isPending : true);
-        //console.warn('ssss', top.isPending);
+        console.warn('enterPendingState', top.isPending);
         setTitleFlag('fa-circle-notch fa-spin', title);
         if(!notifyFlag){
             notifyFlag = Lang.CONNECTING;
@@ -2309,7 +2324,7 @@ if(typeof(require)!='undefined'){
     }
     
     function leavePendingState() {
-        console.warn('ssss', top.isPending);
+        console.warn('leavePendingState', top.isPending);
         var t = top || parent || window;
         if(typeof(t.isPending) != 'undefined'){
             t.isPending = false;
@@ -2618,12 +2633,12 @@ if(typeof(require)!='undefined'){
     
     function isVideo(url){
         if(typeof(url)!='string') return false;
-        return url.match(new RegExp('\\.(wm[av]|avi|mp[34]|mk[av]|m4[av]|mov|flv|webm|flac|aac|ogg)', 'i'));            
+        return 'wma|wmv|avi|mp3|mp4|mka|mkv|m4a|m4v|mov|flv|webm|flac|aac|ogg'.split('|').indexOf(getExt(url)) != -1;            
     }
     
     function isHTML5Video(url){
         if(typeof(url)!='string') return false;
-        return url.match(new RegExp('\\.(mp[34]|m4[av]|webm|aac|ogg|ts)', 'i'));            
+        return 'mp3|mp4|m4a|m4v|webm|aac|ogg|ts'.split('|').indexOf(getExt(url)) != -1;            
     }
     
     function isLive(url){
@@ -2811,10 +2826,27 @@ if(typeof(require)!='undefined'){
             saveFileDialogChooser.prop('nwsaveas', placeholder)
         }
         saveFileDialogChooser.off('change');
-        saveFileDialogChooser.on('change', function(evt) {
+        saveFileDialogChooser.val('');
+        saveFileDialogChooser.on('change', (evt) => {
             callback(saveFileDialogChooser.val());
         });    
         saveFileDialogChooser.trigger('click')
+    }
+
+    var saveFolderDialogChooser = false;
+    function saveFolderDialog(callback, placeholder) {
+        if(!saveFolderDialogChooser){ // JIT
+            saveFolderDialogChooser = jQuery('<input type="file" nwdirectory />');
+        }
+        if(placeholder){
+            saveFolderDialogChooser.prop('nwdirectory', placeholder)
+        }
+        saveFolderDialogChooser.off('change');
+        saveFolderDialogChooser.val('');
+        saveFolderDialogChooser.on('change', (evt) => {
+            callback(saveFolderDialogChooser.val());
+        });    
+        saveFolderDialogChooser.trigger('click')
     }
 
     //chooseFile(function (file){alert(file);window.ww=file});

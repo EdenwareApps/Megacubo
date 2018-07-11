@@ -154,5 +154,16 @@
 "SHARE_FACEBOOK_MASK": "Watching {0} on Megacubo",
 "LEGAL_NOTICE": "Legal notice",
 "ABOUT_LEGAL_NOTICE": "Megacubo does not perform transmissions. The content in it is provided by IPTV lists added by users to the program in a common environment. Your use of the program to access copyrighted content is against its terms of use.",
-"ALLOW_SIMILAR_TRANSMISSIONS": "Allow similar transmissions"
+"ALLOW_SIMILAR_TRANSMISSIONS": "Allow similar transmissions",
+"ALLOW_WEB_PAGES": "Allow web page broadcasts",
+"SEARCH_OTHER_USERS_LISTS": "Search other user's lists",
+"CHANGE_DEST_FOLDER": "Change destination folder",
+"ASPECT_RATIO": "Aspect Ratio",
+"UNLIMITED": "Unlimited",
+"RESOLUTION_LIMIT": "Resolution limit",
+"VIDEO_ADJUSTMENT": "Video adjustment",
+"SATURATION": "Saturation",
+"BRIGHTNESS": "Brightness",
+"CONTRAST": "Contrast",
+"HUE": "Hue"
 }

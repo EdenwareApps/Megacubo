@@ -28,7 +28,7 @@ html.ui-index #controls-toggle {
 }
 
 html.ui-index iframe#overlay {
-    box-shadow: inset -58px 3px 12px 0px (bgcolor);
+    box-shadow: inset 0 3px 12px 0px (bgcolor);
 }
 
 html.ui-index body.playing iframe#overlay, html.ui-index body.miniplayer iframe#overlay {
@@ -67,27 +67,6 @@ html.ui-index.ui-light .entry-name {
 
 html.ui-index:not(.ui-light) .entry-name {
     text-shadow: 1px 1px 0px #000, 0px 0px 3px #000;
-}
-
-html.ui-index div#suggest a, html.ui-index div#suggest span { 
-    color: (fgcolor)44; 
-    text-decoration: none; 
-    transition: color 0.1s linear 0.1s;
-}
-
-html.ui-index div#suggest span, html.ui-index div#suggest a { 
-    font-size: 88%;
-    text-transform: uppercase; 
-}
-
-html.ui-index div#suggest { 
-    color: (fgcolor); 
-    background: linear-gradient(to bottom, (bgcolor)00 0%, (bgcolor)CC 50%)
-}
-
-html.ui-index div#suggest a:hover { 
-    color: (fgcolor); 
-    text-decoration: underline; 
 }
 
 html.ui-index .entry-logo .entry-logo-fa {
@@ -175,4 +154,18 @@ html.ui-index:not(.ui-light) html.ui-index #player-top-bar a {
 
 ::-webkit-scrollbar-corner {
     background: (bgcolor);
+}
+
+input[type=range] {
+    -webkit-appearance: none;
+    background: (fgcolor);
+    border-radius: 2px;
+}
+
+input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    background: (bgcolor);
+    cursor: pointer;
+    height: 12px;
+    width: 16px;
 }

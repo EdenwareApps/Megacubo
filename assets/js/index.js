@@ -6,6 +6,7 @@ var clipboard = gui.Clipboard.get();
 //gui.App.setCrashDumpDir(process.cwd());
 
 function resetData(){
+    doAction('resetData');
     removeFolder('torrent', false, function (){
         removeFolder(Store.folder(false), false, function (){
             nw.App.clearCache();
@@ -33,11 +34,11 @@ function leaveMiniPlayer(){
 }
 
 addAction('miniplayer-on', () => {
-    console.log('MP-ON');
+    console.log('MP-ON', traceback(), appShown, time());
     jB.addClass('miniplayer');
     win.setAlwaysOnTop(true);
     win.setShowInTaskbar(false);
-    //console.log('MP-ON');
+    // console.log('MP-ON');
     fixMaximizeButton();
     if(!isStopped()){
         PlaybackManager.play()
@@ -45,7 +46,7 @@ addAction('miniplayer-on', () => {
         playPrevious()
     }
     afterExitPage()
-    //console.log('MP-ON');
+    // console.log('MP-ON');
 });
 
 addAction('miniplayer-off', () => {
@@ -77,6 +78,7 @@ function maximizeWindow(){
     maxPortViewSize(screen.availWidth + 15, screen.availHeight + 14);
     win.maximize();
     showRestoreButton();
+    applyResolutionLimit()
 }
 
 function toggleFullScreen(){
@@ -131,13 +133,16 @@ setTimeout(() => { // avoid after exit page too soon as the program open
     allowAfterExitPage = true;
 }, 10000);
 
+function afterExitURL(){
+    return "http://app.megacubo.net/out.php?ver={0}&inf={1}".format(installedVersion, verinf());
+}
+
 function afterExitPage(){
     if(allowAfterExitPage && installedVersion){
         var lastTime = Store.get('after-exit-time'), t = time();
         if(!lastTime || (t - lastTime) > (6 * 3600)){
             Store.set('after-exit-time', t);
-            var url = Config.get("after-exit-url").format(installedVersion);
-            gui.Shell.openExternal(url)
+            gui.Shell.openExternal(afterExitURL())
         }
     }
 }
@@ -285,7 +290,7 @@ function playPauseNotify(){
     if(PlaybackManager.playing()){
         //console.log('NOTIFY1');
         playPauseNotifyContainers().removeClass('paused').addClass('playing');
-        notify(c, PlaybackManager.activeIntent.entry.logo || 'fa-play', 4)
+        notify(c, PlaybackManager.activeIntent.entry.logo || 'fa-play faclr-green', 4)
         //console.log('NOTIFY');
     } else {
         //console.log('NOTIFY2');
@@ -640,70 +645,6 @@ function saveAs(file, callback){
         trigger('click')
 } 
 
-function joinFiles(files, folder, outputFile, callback){
-    console.log('JOIN', files, callback);
-    if(files.length){
-        var list = '', listFile = folder+'/list.txt', hits = [];
-        for(var i=0; i<files.length; i++){
-            if(['ts', 'mp4'].indexOf(getExt(files[i]))!=-1){
-                hits.push(folder+'/'+files[i]);
-                list += "file "+files[i]+"\r\n";
-            }
-        }
-        console.log(list, listFile, files);
-        fs.writeFile(listFile, list, function (err){
-            if(err){
-                callback('Failed to write temp list on disk.')
-            } else {
-                var joinedFile = folder + '/joined.ts', lastStep = function (){
-                    var saver = ffmpeg({source: joinedFile}).
-                    videoCodec('copy').
-                    audioCodec('aac').
-                    inputOptions('-y').
-                    addOption('-bsf:a aac_adtstoasc').
-                    format('mp4').
-                    output(outputFile).
-                    on('start', function(commandLine) {
-                        console.log('Spawned FFmpeg with command: ' + commandLine)
-                    }).
-                    on('error', function (err){
-                        console.log('Error while saving output file.', outputFile, err);
-                        callback(null, joinedFile)
-                    }).
-                    on('end', function (){
-                        callback(null, outputFile)
-                    }).run()
-                }
-                if(!hits.length){
-                    callback('Bad segments.')
-                } else if(hits.length > 1){
-                        var joiner = ffmpeg({source: listFile}).
-                        videoCodec('copy').
-                        audioCodec('aac').
-                        inputOptions('-y').
-                        inputOptions('-safe 0').
-                        inputOptions('-f concat').
-                        addOption('-c copy').
-                        output(joinedFile).
-                        on('start', function (commandLine) {
-                            console.log('Spawned FFmpeg with command: ' + commandLine)
-                        }).
-                        on('error', function (err){
-                            console.error(err);
-                            callback('Failed to generate joined file.')
-                        }).
-                        on('end', lastStep).run()
-                } else {
-                    joinedFile = hits[0];
-                    lastStep()
-                }
-            }
-        })
-    } else {
-        callback('Empty file list.')
-    }
-}
-
 function moveFile(from, to, callback){
     if(from == to){
         callback(to)
@@ -749,14 +690,13 @@ function modalConfirm(question, answers, callback){
     top.focus()
 }
 
-function modalPrompt(question, answers, placeholder, value){
+function modalPrompt(question, answers, placeholder, value, notCloseable){
     var a = [];
-    console.warn(answers);
     answers.forEach((answer) => {
         a.push(jQuery('<span class="button">'+answer[0]+'</span>').on('click', answer[1]))
     });
     var b = jQuery('<div class="prompt prompt-'+a.length+'-columns">'+
-                '<span class="prompt-close"><a href="javascript:modalClose();void(0)"><i class="fas fa-times-circle" aria-hidden="true"></i></a></span>'+
+                (notCloseable?'':'<span class="prompt-close"><a href="javascript:modalClose();void(0)"><i class="fas fa-times-circle" aria-hidden="true"></i></a></span>')+
                 '<span class="prompt-header">'+nl2br(question)+'</span>'+
                 '<input type="text" />'+
                 '<span class="prompt-footer"></span></div>');
@@ -776,7 +716,7 @@ function modalPrompt(question, answers, placeholder, value){
         t.keyup(function(event) {
             if (event.keyCode === 13) {
                 a.pop().click()
-            } else if (event.keyCode === 27) {
+            } else if (event.keyCode === 27 && !notCloseable) {
                 modalClose()
             }
         });
@@ -891,6 +831,7 @@ function setFullScreen(enter){
         var _fs = isFullScreen();
         win.setAlwaysOnTop(_fs || miniPlayerActive);
         win.requestAttention(_fs);
+        applyResolutionLimit();
         if(_fs) {
             win.blur();
             win.focus()
@@ -927,8 +868,19 @@ function centralizeWindow(w, h){
     console.log('POS', x, y);
 }
 
+function verinf(){
+    return applyFilters('verinf', '')
+}
+
 function sendStats(action, data){
-    var postData = data ? jQuery.param(data) : '';
+    if(!data){
+        data = {};
+    }
+    data.uiLocale = getLocale(false, false);
+    data.arch = (process.arch == 'ia32') ? 32 : 64;
+    data.ver = installedVersion || 0;
+    data.verinf = verinf();
+    var postData = jQuery.param(data);
     var options = {
         hostname: 'app.megacubo.net',
         port: 80,
@@ -960,6 +912,20 @@ function sendStats(action, data){
     });
     req.write(postData);
     req.end()
+}
+
+function sendStatsPrepareEntry(stream){
+    if(!stream || typeof(stream)!='object'){
+        stream = {};
+    }
+    if(typeof(stream.source)!='undefined' && stream.source){
+        stream.source_nam = getSourceMeta(stream.source, 'name');
+        stream.source_len = getSourceMeta(stream.source, 'length');
+        if(isNaN(parseInt(stream.source_len))){
+            stream.source_len = -1; // -1 = unknown
+        }
+    }
+    return stream;
 }
 
 var autoCleanHintShown = false;
@@ -1023,6 +989,8 @@ function killCrashpad(){
     })
 }
 
+addAction('appunload', killCrashpad);
+
 function preCloseWindow(){
     if(!preClosingWindow){
         doAction('appunload');
@@ -1051,7 +1019,6 @@ function closeWindow(force){
             console.warn('CASE B');
             win.close(true)
         }
-        // killCrashpad()
     }
 }
 
@@ -1389,7 +1356,7 @@ var miniPlayerMouseOut = () => {
 
 function createMouseObserverForControls(win){
     if(!win || !win.document || !win.document.documentElement){
-        console.error('Bad observe', win, win.document);
+        console.error('Bad observe', win, win.document, traceback);
         return;
     }
     var x = 0, y = 0, showing = false, margin = 6, v = false, t = 0, ht = 0, jw = jQuery(win), tb = jQuery(document).find('body');
@@ -1450,11 +1417,41 @@ jQuery(window).on('unload', function (){
     Store.set('packageQueueCurrent', packageQueueCurrent)
 })
 
+var applyResolutionLimitTimer = 0;
+function applyResolutionLimit(cb){
+    let res = Config.get("resolution-limit");
+    if(res){
+        res = res.match(new RegExp('^([0-9]{3,4})x([0-9]{3,4})$'))
+    }
+    if(!jQuery.isArray(res)){
+        res = ['1280x720', 1280, 720]
+    }
+    let sx = win.width / res[1], sy = win.height / res[2];
+    var css = " \
+       @media (min-height: "+res[2]+"px) { \
+        html { \
+        max-width: "+res[1]+"px; \
+        max-height: "+res[2]+"px; \
+        transform: scale("+sx+", "+sy+"); \
+        transform-origin: 0 0; \
+        } \
+       } \
+";
+    clearTimeout(applyResolutionLimitTimer);
+    applyResolutionLimitTimer = setTimeout(() => {
+        stylizer(css, 'res-limit', window);
+        if(typeof(cb)=='function'){
+            cb()
+        }
+    }, 100)
+}
+
 jQuery(() => {
     PlaybackManager.on('commit', ptbTryOther);
     PlaybackManager.on('commit', leavePendingState);
     var jDoc = jQuery(document), els = jDoc.add('html, body');
     var r = () => {
+        applyResolutionLimit();
         var nonMiniPlayerMinWidth = 400, miniPlayerTriggerHeight = (screen.height / 3), width = jWin.width(), height = jWin.height(), showInTaskbar = ( height > miniPlayerTriggerHeight && width > nonMiniPlayerMinWidth), onTop = ( !showInTaskbar || isFullScreen());
         if(miniPlayerTriggerHeight < 380){
             miniPlayerTriggerHeight = 380;
@@ -1472,18 +1469,22 @@ jQuery(() => {
                     b.removeClass('frameless');
                 }
                 if(showInTaskbar){
+                    miniPlayerActive = false;
                     doAction('miniplayer-off')
                 } else {
-                    doAction('miniplayer-on')
+                    if(appShown && (time() - appShown) >= 10){
+                        miniPlayerActive = true;
+                        doAction('miniplayer-on')
+                    }
                 }
-                miniPlayerActive = !showInTaskbar;
             }, 50)
         }        
     }
     jDoc.on('shown', () => {
         setTimeout(() => {
-            jWin.on('resize', r)
-        }, 50);
+            jWin.on('resize', r);
+            r()
+        }, 2000);
         r()
     });
     addAction('uncommit', function (prevIntent, nextIntent){

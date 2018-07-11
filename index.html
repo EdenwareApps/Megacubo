@@ -15,7 +15,7 @@
 		</style>
         <link rel="stylesheet" type="text/css" href="assets/css/theme.scss" />
 		<script type="text/javascript">
-			var gui = require('nw.gui'), win = gui.Window.get(), miniPlayerActive = false;
+			var gui = require('nw.gui'), win = gui.Window.get(), miniPlayerActive = false, appShown = false;
 			document.title = gui.App.manifest.window.title;
 			function traceback() { 
 				try { 
@@ -81,7 +81,6 @@
         <script type="text/javascript" src="assets/js/controls.js"></script>
         <script type="text/javascript" src="assets/js/menu.js"></script>
         <script type="text/javascript" src="assets/js/menu-feeding.js"></script>
-        <script type="text/javascript" src="assets/js/jquery.idle.min.js"></script>
         <script type="text/javascript" src="assets/js/jquery.viewport.js"></script>
 		<iframe id="testing-player" class="hide" height="100%" frameborder="0" scrolling="no" src="/testing-player.html"></iframe>
 		<iframe id="sandbox" class="fit-player hide" nwdisable nwfaketop height="100%" frameborder="0" src="/blank.html"></iframe>
@@ -100,33 +99,23 @@
 				<i class="fas fa-play"></i>
 			</div>
 		</div>
-		<div id="suggest">
-			<div>
-				<div id="suggest-a">
-					&nbsp;
-				</div>
-				<div id="suggest-b">
-					&nbsp;
-				</div>
-			</div>
-		</div>
 		<div class="hide">
 			<input id="saveas" type="file" nwsaveas />
 		</div>
 		<div id="menu-trigger-icon">
 			<i class="fas fa-chevron-left"></i>
 		</div>
-		<span id="home-icons">
-			<a href="#" data-title-lng-key="BOOKMARKS" onmousedown="goBookmarks()" id="home-icon-bookmark" class="option" tabindex="995" style="top: -1px;">
+		<span id="home-icons" style="display: none;">
+			<a href="javascript:;" data-title-lng-key="BOOKMARKS" onmousedown="goBookmarks()" id="home-icon-bookmark" class="option" tabindex="995" style="top: -1px;">
 				<i class="fas fa-star" aria-hidden="true"></i>
 			</a>
-			<a href="#" data-title-lng-key="SEARCH" onmousedown="goSearch()" id="home-icon-search" class="option" tabindex="996" style="top: -1px;">
+			<a href="javascript:;" data-title-lng-key="SEARCH" onmousedown="goSearch()" id="home-icon-search" class="option" tabindex="996" style="top: -1px;">
 				<i class="fas fa-search" aria-hidden="true"></i>
 			</a>
-			<a href="#" data-title-lng-key="OPEN_FILE" onmousedown="goOpen();return false" id="home-icon-open" class="option" tabindex="997" style="top: 1px;">
+			<a href="javascript:;" data-title-lng-key="OPEN_FILE" onmousedown="goOpen();return false" id="home-icon-open" class="option" tabindex="997" style="top: 1px;">
 				<i class="fas fa-folder-open" aria-hidden="true"></i>
 			</a>
-			<a href="#" title="Megacubo" onmousedown="about()" id="home-icon-help" class="option" tabindex="998" style="font-size: 109%; top: 1px;">
+			<a href="javascript:;" title="Megacubo" onmousedown="about()" id="home-icon-help" class="option" tabindex="998" style="font-size: 109%; top: 1px;">
 				<i class="fas fa-info-circle" aria-hidden="true"></i>
 			</a>
 		</span>

@@ -1249,18 +1249,14 @@ var Fitter = (() => {
             }
             var hash = self.framesHash(scope, intent);
             var observer = new scope.MutationObserver((mutations) => {
-                console.warn('MUTATION', scope.document.URL, time());
                 if(scope.watchingTimer){
                     clearTimeout(scope.watchingTimer)
                 }
-                console.warn('MUTATION', scope.document.URL, time());
                 scope.watchingTimer = scope.setTimeout(() => {
                     if(debug){
                         console.warn('PREFITTER MUTATION')
                     }
-                    console.warn('MUTATION', scope.document.URL, time());
                     observer.disconnect();
-                    console.warn('MUTATION', scope.document.URL, time());
                     if(!intent.error && !intent.ended && !intent.getVideo()){
                         var nhash = self.framesHash(scope, intent);
                         if(nhash != hash){
@@ -1276,9 +1272,7 @@ var Fitter = (() => {
                             console.warn('PREFITTER MUTATION OFF', (scope.document) ? scope.document.URL : 'blank')
                         }
                     }
-                    console.warn('MUTATION', scope.document.URL, time());
                 }, 50)
-                console.warn('MUTATION', scope.document.URL, time());
             });
             observer.observe(scope.document, {attributes: false, childList: true, characterData: false, subtree:true});
             if(debug){

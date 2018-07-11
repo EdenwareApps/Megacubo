@@ -50,44 +50,6 @@ var History = (function (){
     return _this;
 })();
 
-var Recordings = (function (){
-    var key = 'recording', _this = {}, limit = 48, _folder = 'recordings', _synced = false;
-    var fullRecordings = [];
-    _this.get = function (index){
-        if(!_synced){
-            _this.sync()
-        }
-        if(typeof(key)=='number'){
-            return fullRecordings[key] || false;
-        }
-        return fullRecordings.slice(0)
-    }
-    _this.sync = function (){
-        let files = fs.readdirSync(_folder), name;
-        fullRecordings = [];
-        for(var i=0; i<files.length; i++){
-            if(files[i].indexOf('.mp4')!=-1){
-                name = files[i].replace('.mp4', '')
-                fullRecordings.push({
-                    name: name,
-                    url: absolutize(_folder+'/'+files[i]),
-                    type: 'stream',
-                    logo: 'fa-film'
-                })
-            }
-        }
-    }
-    _this.clear = function (){
-        let files = fs.readdirSync(_folder);
-        for(var i=0; i<files.length; i++){
-            if(files[i].indexOf('.mp4')!=-1){
-                fs.unlink(files[i])
-            }
-        }
-    }
-    return _this;
-})();
-
 var Bookmarks = (function (){
     var key = 'bookmarks', _this = {};
     var fullBookmarks = Store.get(key);
@@ -153,7 +115,7 @@ function addFav(s){
     }
     if(s && !Bookmarks.is(s)){
         Bookmarks.add(s);
-        notify(Lang.FAV_ADDED.format(s.name), 'fa-star', 'normal');
+        notify(Lang.FAV_ADDED.format(s.name), 'fa-star faclr-green', 'normal');
         Menu.refresh(Lang.BOOKMARKS)
     }
 }
@@ -170,7 +132,7 @@ function removeFav(s){
     }
     if(s && Bookmarks.is(s)){
         Bookmarks.remove(s);
-        notify(Lang.FAV_REMOVED.format(s.name), 'fa-star', 'normal');
+        notify(Lang.FAV_REMOVED.format(s.name), 'fa-star faclr-green', 'normal');
         Menu.refresh(Lang.BOOKMARKS)
     }
 }
@@ -206,22 +168,6 @@ function getIPTVListSearchURL(){
     var q = getIPTVListSearchTerm();
     q = q.replaceAll(" ", "+");
     return "https://www.google.com/search?safe=off&tbs=qdr:m&q="+q+"&oq="+q;
-}
-
-function sendStatsPrepareEntry(stream){
-    if(!stream || typeof(stream)!='object'){
-        stream = {};
-    }
-    stream.uiLocale = getLocale(false, false);
-    stream.ver = installedVersion || 0;
-    if(typeof(stream.source)!='undefined' && stream.source){
-        stream.source_nam = getSourceMeta(stream.source, 'name');
-        stream.source_len = getSourceMeta(stream.source, 'length');
-        if(isNaN(parseInt(stream.source_len))){
-            stream.source_len = -1; // -1 = unknown
-        }
-    }
-    return stream;
 }
 
 function playPrevious(){ // PCH
@@ -423,12 +369,12 @@ function updateStreamEntriesFlags(){
                 // is offline?
                 let e = jQuery(element), n = e.find('.entry-label');
                 n.find('.stream-state').remove();
-                n.prepend('<span class="stream-state"><i class="fas fa-thumbs-down" style="color: #8c0825;font-size: 90%;position: relative;top: 0px;"></i> </span>');
+                n.prepend('<span class="stream-state"><i class="fas fa-thumbs-down faclr-red" style="font-size: 90%;position: relative;top: 0px;"></i> </span>');
                 e.addClass('entry-offline')
             } else if(state === true) {
                 let e = jQuery(element), n = e.find('.entry-label');
                 n.find('.stream-state').remove();
-                n.prepend('<span class="stream-state"><i class="fas fa-thumbs-up" style="color: #03821f;font-size: 90%;position: relative;top: -1px;"></i></span> ');
+                n.prepend('<span class="stream-state"><i class="fas fa-thumbs-up faclr-green" style="font-size: 90%;position: relative;top: -1px;"></i></span> ');
                 e.removeClass('entry-offline');
             } else if(autoCleaning) {
                 let e = jQuery(element), n = e.find('.entry-label');
@@ -438,7 +384,7 @@ function updateStreamEntriesFlags(){
             }
         }
         if(activeurls.indexOf(element.href)!=-1){
-            setEntryFlag(element, 'fa-play-circle')
+            setEntryFlag(element, 'fa-play-circle faclr-green')
         } else if(loadingurls.indexOf(element.href)!=-1){
             setEntryFlag(element, 'fa-circle-notch fa-spin')
         } else {
@@ -518,7 +464,7 @@ function getNameFromSourceURL(url){
 }
 
 function getNameFromSourceURLAsync(url, callback){
-    miniget(url, (err, object, response) => {
+    request(url, (err, object, response) => {
         var name = false;
         if(!err){
             name = getNameFromSource(response)
@@ -628,7 +574,7 @@ function addNewSource(){
             } else if(type=='list'){
                 registerSource(url)
             } else {
-                notify(Lang.INVALID_URL_MSG, 'fa-exclamation-circle', 'normal')
+                notify(Lang.INVALID_URL_MSG, 'fa-exclamation-circle faclr-red', 'normal')
             }
         });
         return true;
@@ -640,7 +586,7 @@ function registerSource(url, name, silent, norefresh){
     var sources = getSources();
     for(var i in sources){
         if(sources[i][1] == url){
-            notify(Lang.LIST_ALREADY_ADDED, 'fa-exclamation-circle', 'normal');
+            notify(Lang.LIST_ALREADY_ADDED, 'fa-exclamation-circle faclr-red', 'normal');
             return false;
             break;
         }
@@ -652,7 +598,7 @@ function registerSource(url, name, silent, norefresh){
     sources.push([name, url]);
     Config.set(key, sources);
     if(!silent){
-        notify(Lang.LIST_ADDED, 'fa-star', 'normal');
+        notify(Lang.LIST_ADDED, 'fa-star faclr-green', 'normal');
     }
     setActiveSource(url);
     if(!norefresh){
@@ -728,7 +674,7 @@ function unRegisterSource(url){
         return item !== undefined;
     });
     Config.set(key, sources);
-    notify(Lang.LIST_REMOVED, 'fa-trash', 'normal')
+    notify(Lang.LIST_REMOVED, 'fa-trash faclr-green', 'normal')
     return sources;
 }
 
@@ -874,11 +820,11 @@ function autoCleanEntries(entries, success, failure, cancelCb, returnSucceededIn
         return false;
     }
     entries = deferEntriesByURLs(entries, autoCleanReturnedURLs);
-    console.log('autoCleanSort', entries, entries.map((entry) => {return entry.sortkey+' ('+entry.url+')'}).join(", \r\n"));
-    var controller, iterator = 0;
+    // console.log('autoCleanSort', entries, entries.map((entry) => {return entry.sortkey+' ('+entry.url+')'}).join(", \r\n"));
     autoCleanDomainConcurrency = {};
     autoCleanEntriesStatus = Lang.TUNING+' 0% ('+readyIterator+'/'+entries.length+')';
     jQuery('a.entry-autoclean .entry-name').html(autoCleanEntriesStatus);
+    var controller, iterator = 0;
     controller = {
         testers: [],
         cancelled: false,
@@ -1077,6 +1023,69 @@ function autoCleanEntries(entries, success, failure, cancelCb, returnSucceededIn
         })
     }, 100);
     return controller;
+}
+
+function autoCleanNPlay(entries, name, originalUrl){ // entries can be a string search term
+    if(typeof(entries)=='string'){
+        if(!name){
+            name = entries;
+        }
+        var nentries = fetchSharedListsSearchResults(null, 'stream', entries, true);
+        if(nentries.length == 1 && nentries[0].type=='option'){ // search index not ready
+            return setTimeout(() => {
+                autoCleanNPlay(entries, name, originalUrl)
+            }, 500)
+        }
+        entries = nentries;
+    }
+    var failure = () => {
+        notifyRemove(Lang.TUNING);
+        notify(Lang.PLAY_STREAM_FAILURE.format(name), 'fa-exclamation-circle faclr-red', 'normal');
+    }
+    if(!entries.length){
+        failure();
+        return;
+    }
+    if(!name){
+        name = entries[0].name;
+    }
+    if(autoCleanEntriesRunning()){
+        autoCleanEntriesCancel()
+    }
+    console.warn('ACE ENTRIES', entries);
+    var hr = autoCleanEntries(entries, (entry, controller, succeededIntent) => {
+        leavePendingState();
+        console.warn('ACE TES SUCCESS', entry, controller, succeededIntent);
+        var title = Lang.CONNECTING+': '+(decodeURIComponent(entry.name) || entry.name);
+        enterPendingState(title, Lang.CONNECTING, originalUrl);
+        controller.cancel();
+        notifyRemove(Lang.TUNING);
+        console.log('autoCleanNPlay success', succeededIntent, entry);
+        if(succeededIntent) {
+            succeededIntent.manual = true;
+            succeededIntent.shadow = false;
+            succeededIntent.entry = entry;
+            PlaybackManager.commitIntent(succeededIntent)
+        } else {
+            playEntry(entry)
+        }
+        //setTimeout(Menu.refresh, 500)
+    }, () => {
+        console.warn('autoCleanNPlay() FAILED');
+        leavePendingState();
+        failure()
+    }, () => {
+        console.warn('autoCleanNPlay() CANCELLED');
+        leavePendingState()
+    }, true, true, originalUrl);
+    if(hr){
+        console.log('autoCleanNPlay() OK');
+        var title = Lang.TUNING+': '+ucWords(decodeURIComponent(name) || name);
+        enterPendingState(title, Lang.TUNING, originalUrl);
+        return hr;
+    }
+    console.warn('autoCleanNPlay() FAILED');
+    return false;
 }
 
 function autoCleanEntriesRunning(){
@@ -1357,6 +1366,7 @@ jQuery(document).one('show', () => {
             event.preventDefault();
             event.stopPropagation()
         });
+        jQuery('#home-icons').show();
         jQuery('#controls-toggle').prop('title', Lang.SHOW_HIDE_MENU).attr('aria-label', Lang.SHOW_HIDE_MENU);
         if(installedVersion < currentVersion){
             availableVersion = currentVersion;
@@ -1419,73 +1429,13 @@ function searchTermFromEntry(entry){
     return term;
 }
 
-function autoCleanNPlay(entries, name, originalUrl){ // entries can be a string search term
-    if(typeof(entries)=='string'){
-        if(!name){
-            name = entries;
-        }
-        var nentries = fetchSharedListsSearchResults(null, 'stream', entries, true);
-        if(nentries.length == 1 && nentries[0].type=='option'){ // search index not ready
-            return setTimeout(() => {
-                autoCleanNPlay(entries, name, originalUrl)
-            }, 500)
-        }
-        entries = nentries;
-    }
-    var failure = () => {
-        notify(Lang.PLAY_STREAM_FAILURE.format(name), 'fa-exclamation-circle', 'normal');
-    }
-    if(!entries.length){
-        failure();
-        return;
-    }
-    if(!name){
-        name = entries[0].name;
-    }
-    if(autoCleanEntriesRunning()){
-        autoCleanEntriesCancel()
-    }
-    //console.warn('ORDERED', entries);
-    var hr = autoCleanEntries(entries, (entry, controller, succeededIntent) => {
-        leavePendingState();
-        console.warn('ACE TES SUCCESS', entry, controller, succeededIntent);
-        var title = Lang.CONNECTING+': '+(decodeURIComponent(entry.name) || entry.name);
-        enterPendingState(title, Lang.CONNECTING, originalUrl);
-        controller.cancel();
-        notifyRemove(Lang.TUNING);
-        console.log('autoCleanNPlay success', succeededIntent, entry);
-        if(succeededIntent) {
-            succeededIntent.manual = true;
-            succeededIntent.shadow = false;
-            succeededIntent.entry = entry;
-            PlaybackManager.commitIntent(succeededIntent)
-        } else {
-            playEntry(entry)
-        }
-        //setTimeout(Menu.refresh, 500)
-    }, () => {
-        console.warn('FAILED');
-        leavePendingState();
-        failure()
-    }, () => {
-        console.warn('CANCELLED');
-        leavePendingState()
-    }, true, true, originalUrl);
-    if(hr){
-        var title = Lang.TUNING+': '+ucWords(decodeURIComponent(name) || name);
-        enterPendingState(title, Lang.TUNING, originalUrl);
-        return true;
-    }
-    return;
-}
-
 function adjustMainCategoriesEntry(entry){
     entry.type = 'group';
     entry.renderer = (data) => {
         var entries = fetchSharedListsSearchResults(null, 'stream', data.name, true);
         // console.warn('ZZZZZZZZZZ', data, entries);
         if(!entries.length){
-            notify(Lang.PLAY_STREAM_FAILURE.format(data.name), 'fa-exclamation-circle', 'normal');
+            notify(Lang.PLAY_STREAM_FAILURE.format(data.name), 'fa-exclamation-circle faclr-red', 'normal');
             return -1;
         }
         entries = listManJoinDuplicates(entries);
@@ -1558,7 +1508,7 @@ function searchRangeOption(){
         entries.each((i) => {
             var el = entries.eq(i), v = el.data('entry-data');
             if(v && v.value == range){
-                setEntryFlag(el, 'fa-check-circle', true)
+                setEntryFlag(el, 'fa-check-circle faclr-green', true)
             }
         })
     }};
@@ -1571,9 +1521,20 @@ function parentalControlOption(){
 function getMainCategoriesEntries(){
     var category, optionName = Lang.CHANNELS;
     return fetchAndRenderEntries("http://app.megacubo.net/stats/data/categories."+getLocale(true)+".json", optionName, (category) => {
+        category.renderer = (data) => {
+            return data.entries.filter((station) => {
+                return !!fetchSharedListsSearchResults(null, 'stream', station.name, true).length;
+            })
+        }
         category.entries = category.entries.map(adjustMainCategoriesEntry);
         return category;
     }, (entries) => {
+        entries.unshift({name: 'Youtube', logo: 'fab fa-youtube', label: '', type: 'option', callback: () => {
+            playEntry({
+                name: 'Youtube',
+                url: 'http://youtube.com/tv#nosandbox#nofit'
+            })
+        }});
         entries = applyFilters('mainCategoriesEntries', entries);
         entries.unshift({name: Lang.IPTV_LISTS, label: Lang.MY_LISTS, logo:'fa-list', type: 'group', entries: [], renderer: getListsEntries});
         entries.unshift({name: Lang.BEEN_WATCHED, logo: 'fa-users', label: onlineUsersCount, type: 'group', renderer: getWatchingEntries, entries: []});
@@ -1670,7 +1631,6 @@ function timeFormat(secs){
 
 jQuery(document).one('lngload', function (){
     win.show();
-
     Menu.index = [
         {name: Lang.CHANNELS, label: Lang.CATEGORIES, logo:'assets/icons/white/tv.png', type: 'group', entries: [], renderer: getMainCategoriesEntries},
         {name: Lang.OPTIONS, logo:'assets/icons/white/settings.png', callback: () => { timerLabel = false; }, type: 'group', entries: [
@@ -1691,13 +1651,15 @@ jQuery(document).one('lngload', function (){
                 var term = lastSearchTerm;
                 setupSearch(term, 'video', Lang.VIDEO_SEARCH)
             }},
+            {name: Lang.LANGUAGE, append: '(Ctrl+L)', logo:'fa-language', type: 'group', renderer: getLanguageEntries, callback: markActiveLocale, entries: []},
             {name: Lang.HISTORY, append: '(Ctrl+H)', logo:'fa-history', type: 'group', renderer: getHistoryEntries, entries: []},
             {name: Lang.WINDOW, logo:'fa-window-maximize', type: 'group', renderer: getWindowModeEntries, entries: []},
-            {name: Lang.LANGUAGE, append: '(Ctrl+L)', logo:'fa-language', type: 'group', renderer: getLanguageEntries, callback: markActiveLocale, entries: []},
             parentalControlOption(),
             searchRangeOption(),
             {name: Lang.RESUME_PLAYBACK, type: 'check', check: (checked) => {Config.set('resume',checked)}, checked: () => {return Config.get('resume')}},
             {name: Lang.ALLOW_SIMILAR_TRANSMISSIONS, type: 'check', check: (checked) => {Config.set('allow-similar-transmissions', checked)}, checked: () => {return Config.get('allow-similar-transmissions')}},
+            {name: Lang.ALLOW_WEB_PAGES, type: 'check', check: (checked) => {Config.set('allow-web-pages', checked)}, checked: () => {return Config.get('allow-web-pages')}},
+            {name: Lang.SEARCH_OTHER_USERS_LISTS, type: 'check', check: (checked) => {Config.set('search-other-users-lists', checked);notify(Lang.SHOULD_RESTART, 'fa-cogs faclr-yellow', 'normal');}, checked: () => {return Config.get('search-other-users-lists')}},
             {name: Lang.HIDE_BUTTON_OPT.format(Lang.BACK, 'Backspace'), type: 'check', check: (checked) => {Config.set('hide-back-button',checked)}, checked: () => {return Config.get('hide-back-button')}},
             {name: Lang.RESET_DATA, logo:'fa-trash', type: 'option', renderer: resetData, entries: []},
         ]}
@@ -1735,6 +1697,7 @@ jQuery(document).one('lngload', function (){
     setTimeout(() => { 
         jQuery(document).trigger('show');
         enableSetFullScreenWindowResizing = true;
+        appShown = time();
         centralizedResizeWindow(is.width, is.height);
         setTimeout(() => { 
             showControls();

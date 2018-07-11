@@ -152,5 +152,16 @@
 "SHARE_FACEBOOK_MASK": "Assistindo {0} no Megacubo",
 "LEGAL_NOTICE": "Aviso legal",
 "ABOUT_LEGAL_NOTICE": "Megacubo no realiza transmisiones. El contenido en él es proporcionado por listas IPTV agregadas por los usuarios al programa en un ambiente común. El uso del programa para acceder a contenido protegido por derechos va en contra de los Términos de Uso del mismo.",
-"ALLOW_SIMILAR_TRANSMISSIONS": "Permitir transmisiones similares"
+"ALLOW_SIMILAR_TRANSMISSIONS": "Permitir transmisiones similares",
+"ALLOW_WEB_PAGES": "Permitir transmisiones de páginas web",
+"SEARCH_OTHER_USERS_LISTS": "Buscar en listas de otros usuarios",
+"CHANGE_DEST_FOLDER": "Cambiar carpeta de destino",
+"ASPECT_RATIO": "Relación de aspecto",
+"ILIMITADO": "Ilimitado",
+"RESOLUTION_LIMIT": "Límite de resolución",
+"VIDEO_ADJUSTMENT": "Ajuste de vídeo",
+"SATURATION": "Saturación",
+"BRIGHTNESS": "Brilho",
+"CONTRAST": "Contraste",
+"HUE": "Tonalidade"
 }

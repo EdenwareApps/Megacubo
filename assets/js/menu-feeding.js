@@ -26,10 +26,42 @@ function getWindowModeEntries(short){
             }})
         }
     }
-    options.push({name: 'Aspect Ratio (F4)', logo:'fa-arrows-alt', type: 'option', callback: function (){
+    options.push({name: Lang.ASPECT_RATIO + ' (F4)', logo:'fa-arrows-alt', type: 'option', callback: function (){
         changeScaleMode()
-    }})    
-    if(short !== true){
+    }});   
+    if(short !== true){  
+        var resLimit = Config.get('resolution-limit'), cb = (res) => {
+            if(!res){
+                res = '99999x99999';
+            }
+            resLimit = res;
+            Config.set('resolution-limit', res);
+            Menu.refresh();
+            applyResolutionLimit(Menu.restoreScroll);
+            mrk()
+        }, mrk = () => {
+            var entries = jQuery('a.entry-option'), range = Config.get('search-range') || 18;
+            entries.each((i) => {
+                var el = entries.eq(i), v = el.data('entry-data');
+                if(v && v.label == resLimit){
+                    setEntryFlag(el, 'fa-check-circle', true)
+                }
+            })
+        };
+        options.push({name: Lang.RESOLUTION_LIMIT, logo: 'fa-arrows-alt', type: 'group', entries: [
+            {name: '480p', label: '854x480', type: 'option', logo:'fa-arrows-alt', callback: (data) => {
+                cb(data.label)
+            }},
+            {name: '720p', label: '1280X720', type: 'option', logo:'fa-arrows-alt', callback: (data) => {
+                cb(data.label)
+            }},
+            {name: '1080p', label: '1920X1080', type: 'option', logo:'fa-arrows-alt', callback: (data) => {
+                cb(data.label)
+            }},
+            {name: Lang.UNLIMITED, label: '', type: 'option', logo:'fa-arrows-alt', callback: (data) => {
+                cb(data.label)
+            }}
+        ], callback: mrk});   
         options.push({name: Lang.START_IN_FULLSCREEN, type: 'check', check: function (checked){
             Config.set('start-in-fullscreen', checked)
         }, checked: () => {
@@ -37,7 +69,7 @@ function getWindowModeEntries(short){
             }
         })
         options.push({name: Lang.GPU_RENDERING, type: 'check', check: function (checked){
-            notify(Lang.SHOULD_RESTART, 'fa-cogs', 'normal');
+            notify(Lang.SHOULD_RESTART, 'fa-cogs faclr-yellow', 'normal');
             Config.set('gpu-rendering', checked);
             setHardwareAcceleration(checked)
         }, checked: () => {
@@ -119,7 +151,7 @@ function loadSource(url, name, callback, filter){
     var container = Menu.container(true);
     backEntryRender(container, dirname(path), name);
     var failed = () => {
-        notify(Lang.DATA_FETCHING_FAILURE, 'fa-exclamation-triangle', 'normal');
+        notify(Lang.DATA_FETCHING_FAILURE, 'fa-exclamation-triangle faclr-red', 'normal');
         Menu.back()
     }
     setTimeout(() => { // avoid mess the loading entry returned, getting overridden by him

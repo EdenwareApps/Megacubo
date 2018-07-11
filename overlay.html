@@ -1,7 +1,6 @@
 <html>
     <head>
         <script type="text/javascript" src="assets/js/jquery.js"></script>
-        <script type="text/javascript" src="assets/js/jquery.idle.min.js"></script>
         <script type="text/javascript" src="assets/js/global.js"></script>
         <link rel="stylesheet" type="text/css" href="assets/css/global.css" />
         <link rel="stylesheet" type="text/css" href="assets/css/overlay.css" />
@@ -85,7 +84,7 @@
                             console.log(name);
                             c.registerSource(url, name)
                         } else { // type=error so
-                            notify(Lang.INVALID_URL_MSG, 'fa-exclamation-triangle', 'normal')
+                            notify(Lang.INVALID_URL_MSG, 'fa-exclamation-triangle faclr-red', 'normal')
                         }
                     })
                 }

@@ -27,16 +27,12 @@ input, textarea {
     left: 0;
     padding: 0;
     margin: 0;
-    height: 100vh;
-    width: 100vw;
+    height: 100%;
+    width: 100%;
 }
 
-body.showcontrols:not(.miniplayer) .fit-player {
-    width: calc(100vw - 28%);
-}
-
-body.showcontrols:not(.miniplayer) .fit-player-min {
-    width: calc(100vw - 28% - 20px);
+body.showcontrols:not(.miniplayer) .fit-player, body.showcontrols:not(.miniplayer) .fit-player-min {
+    width: calc(100% - 34%);
 }
 
 .show {
@@ -58,6 +54,18 @@ body.showcontrols:not(.miniplayer) .fit-player-min {
     display: inline-block;
     text-indent: 0;
     animation: marquee 15s linear infinite;
+}
+
+.faclr-red {
+    color: #960316;
+}
+
+.faclr-yellow {
+    color: #c17600;
+}
+
+.faclr-green {
+    color: #01791c;
 }
 
 /* Make it move */

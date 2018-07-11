@@ -3,7 +3,7 @@
     "main": "index.html",
     "chromium-args": "--process-per-site --disable-logging --enable-video-player-chromecast-support --enable-cast-receiver --enable-smooth-scrolling --disable-crash-handler=true --disable-breakpad --no-experiments --no-pings --ignore-autoplay-restrictions --ignore-urlfetcher-cert-requests --disable-transparency --ignore-certificate-errors --remote-debugging-port=9000",
     "description": "A simple and intuitive IPTV player.",
-    "version": "14.8.2",
+    "version": "14.8.5",
     "inject_js_end": "assets/js/helper.js",
     "bugs": "https://www.facebook.com/messages/t/MegacuboTV",
     "js-flags": "--max-old-space-size=2047",
@@ -18,19 +18,15 @@
     "dependencies": {
         "async": "~2.6.0",
         "btdb-search": "~1.1.0",
-        "chromecast": "~0.0.6",
         "drag-drop": "~2.13.2",
-        "ffi": "~2.2.0",
         "fluent-ffmpeg": "~2.1.2",
         "m3u8-parser": "~4.0.0",
-        "miniget": "~1.1.0",
         "mkdirp": "~0.3.5",
         "nw-custom-frame": "~0.9.1",
         "peerflix": "~0.39.0",
         "ps-node": "~0.1.6",
         "request": "~2.83.0",
-        "ytdl-core": "~0.20.0",
-        "ytsr": "~0.1.7"
+        "ytdl-core": "~0.20.0"
     },
     "webkit": {
         "page-cache": true
