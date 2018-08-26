@@ -1,4 +1,4 @@
-var gui = require('nw.gui');
+var gui = require('nw.gui'), Menu;
     
 /*
 try {
@@ -68,8 +68,12 @@ if(typeof(require)!='undefined'){
         var fs = require("fs");
     }
 
-    function include(file) {
-        eval.apply(global, [fs.readFileSync(file).toString()]);
+    if(typeof(async)=='undefined'){
+        var async = require("async");
+    }
+
+    Array.prototype.getUnique = function() {
+        return [...new Set( this )];
     }
 
 	String.prototype.replaceAll = function(search, replacement) {
@@ -79,10 +83,42 @@ if(typeof(require)!='undefined'){
 		}
 		return String(target);
     }
+
+    jQuery.ajaxSetup({ cache: false });
     
     jQuery.fn.reverse = function() {
         return this.pushStack(this.get().reverse(), arguments);
     } 
+
+    jQuery.getMultiScripts = function(arr, path, callback) {
+        if(typeof(async) != 'object'){
+            async = require('async')
+        }
+        var i = 0, tasks = arr.map(() => {
+            var scr = arr[i];
+            i++;
+            return (cb) => {
+                console.warn('LOAD', (path||"") + scr, cb)
+                loadScript((path||"") + scr, cb)
+            }
+        })
+        async.parallelLimit(tasks, 1, callback)
+    }
+
+    function loadScript(url, callback){
+        var script = document.createElement("script")
+        script.type = "text/javascript";
+        script.onload = function (){
+            //console.warn('LOADED', url);
+            callback();
+        }
+        script.onerror = function (){
+            //console.warn('ERROR', url);
+            callback();
+        }
+        script.src = url;
+        document.getElementsByTagName("head")[0].appendChild(script);
+    }
 
 	// First, checks if it isn't implemented yet.
 	if (!String.prototype.format) {
@@ -355,17 +391,7 @@ if(typeof(require)!='undefined'){
         return a.protocol+'//'+a.hostname+base.join('/');
     }
 
-    var request, requestForever;
-
-    function prepareRequest(){
-        if(!request){
-            request = require('request');
-            request = request.defaults({
-                headers: {'User-Agent': navigator.userAgent} // without user-agent some hosts return 403
-            })
-        }
-        return request;
-    }
+    var requestForever;
 
     function prepareRequestForever(){
         if(!requestForever){
@@ -387,7 +413,6 @@ if(typeof(require)!='undefined'){
             callback = () => {}
         }
         if(validateUrl(url)){
-            prepareRequest();
             //console.warn(url, traceback());
             if(!timeoutSecs){
                 timeoutSecs = 10;
@@ -484,63 +509,43 @@ if(typeof(require)!='undefined'){
 			pri  : priority
 			} );
 		
-		};
-		
-		/**
-		 * Hook a function or method to a specific filter action.
-		 *
-		 * WPDK offers filter hooks to allow plugins to modify various types of internal data at runtime in a similar
-		 * way as php `add_filter()`
-		 *
-		 * The following example shows how a callback function is bound to a filter hook.
-		 * Note that $example is passed to the callback, (maybe) modified, then returned:
-		 *
-		 * <code>
-		 * function example_callback( example ) {
-		 * 	// Maybe modify $example in some way
-		 * 	return example;
-		 * }
-		 * add_filter( 'example_filter', example_callback );
-		 * </code>
-		 *
-		 * @param {string}   tag             The name of the filter to hook the function_to_add callback to.
-		 * @param {Function} function_to_add The callback to be run when the filter is applied.
-		 * @param {integer}  priority        Optional. Used to specify the order in which the functions
-		 *                                   associated with a particular action are executed. Default 10.
-		 *                                   Lower numbers correspond with earlier execution,
-		 *                                   and functions with the same priority are executed
-		 *                                   in the order in which they were added to the action.
-		 * @return {boolean}
-		 */
-		wpdk_add_filter = function( tag, function_to_add, priority )
+        };
+        
+		_wpdk_has = function( type, tag, fn)
 		{
-			_wpdk_add( 'filter', tag, function_to_add, priority );
-		};
+			var lists = ( 'filter' == type ) ? WPDK_FILTERS : WPDK_ACTIONS;
 		
-		/**
-		 * Hooks a function on to a specific action.
-		 *
-		 * Actions are the hooks that the WPDK core launches at specific points during execution, or when specific
-		 * events occur. Plugins can specify that one or more of its Javascript functions are executed at these points,
-		 * using the Action API.
-		 *
-		 * @since 1.6.1
-		 *
-		 * @uses _wpdk_add() Adds an action. Parameter list and functionality are the same.
-		 *
-		 * @param {string}   tag             The name of the action to which the $function_to_add is hooked.
-		 * @param {Function} function_to_add The name of the function you wish to be called.
-		 * @param {integer}  priority        Optional. Used to specify the order in which the functions associated with a
-		 *                                   particular action are executed. Default 10.
-		 *                                   Lower numbers correspond with earlier execution, and functions with the same
-		 *                                   priority are executed in the order in which they were added to the action.
-		 *
-		 * @return bool Will always return true.
-		 */
-		wpdk_add_action = function( tag, function_to_add, priority )
-		{
-			_wpdk_add( 'action', tag, function_to_add, priority );
+			if(tag in lists) {
+			    for(var priority in lists[ tag ]){
+                    for(var i=0; i< lists[tag][priority].length; i++){
+                        if(lists[tag][priority][i] && (typeof(fn) != 'function' || lists[tag][priority][i].func == fn)){
+                            return true;
+                            break;
+                        }
+                    }
+                }
+			}
+		
 		};
+        
+		_wpdk_remove = function( type, tag, fn)
+		{
+			var lists = ( 'filter' == type ) ? WPDK_FILTERS : WPDK_ACTIONS;		
+			if(tag in lists) {
+                if(typeof(fn) != 'function'){
+                    lists[tag] = [];
+                } else {
+                    for(var priority in lists[ tag ]){
+                        for(var i=0; i< lists[tag][priority].length; i++){
+                            if(lists[tag][priority][i] && lists[tag][priority][i].func == fn) {
+                                lists[tag][priority].splice(i, 1);
+                            }
+                        }
+                    }
+                }
+			}
+		
+		}
 		
 		/**
 		 * Do an action or apply filters.
@@ -576,7 +581,7 @@ if(typeof(require)!='undefined'){
 					args[ 0 ] = func.apply( null, args );
 					}
 					else {
-					func.apply( null, args );
+					func.apply( null, args || []);
 					}
 				}
 				}
@@ -587,68 +592,39 @@ if(typeof(require)!='undefined'){
 			return args[ 0 ];
 			}
 		
-		};
+        }
+        
+		addFilter = function( tag, function_to_add, priority ) {
+			_wpdk_add( 'filter', tag, function_to_add, priority );
+		}
+        
+		hasFilter = function( tag, fn ) {
+			return _wpdk_has( 'filter', tag, fn );
+        }
 		
-		/**
-		 * Call the functions added to a filter hook and the filtered value after all hooked functions are applied to it.
-		 *
-		 * The callback functions attached to filter hook $tag are invoked by calling this function. This function can be
-		 * used to create a new filter hook by simply calling this function with the name of the new hook specified using
-		 * the tag parameter.
-		 *
-		 * The function allows for additional arguments to be added and passed to hooks.
-		 * <code>
-		 * // Our filter callback function
-		 * function example_callback( my_string, arg1, arg2 ) {
-		 *	// (maybe) modify my_string
-		*	return my_string;
-		* }
-		* wpdk_add_filter( 'example_filter', example_callback, 10 );
-		*
-		* // Apply the filters by calling the 'example_callback' function we
-		* // "hooked" to 'example_filter' using the wpdk_add_filter() function above.
-		* // - 'example_filter' is the filter hook tag
-		* // - 'filter me' is the value being filtered
-		* // - arg1 and arg2 are the additional arguments passed to the callback.
-		*
-		* var value = wpdk_apply_filters( 'example_filter', 'filter me', arg1, arg2 );
-		* </code>
-		*
-		* @param {string} tag     The name of the filter hook.
-		* @param {*}      value   The value on which the filters hooked to <tt>tag</tt> are applied on.
-		* @param {...*}   varargs Optional. Additional variables passed to the functions hooked to <tt>tag</tt>.
-		*
-		* @return {*}
-		*/
-		wpdk_apply_filters = function( tag, value, varargs )
-		{
+		applyFilters = function( tag, value, varargs ) {
 			return _wpdk_do( 'filter', arguments );
-		};
+		}
+        
+		removeFilter = function( tag, fn ) {
+            _wpdk_remove( 'filter', tag, fn );
+        }
 		
-		/**
-		 * Execute functions hooked on a specific action hook.
-		 *
-		 * This function invokes all functions attached to action hook tag. It is possible to create new action hooks by
-		 * simply calling this function, specifying the name of the new hook using the <tt>tag</tt> parameter.
-		 *
-		 * You can pass extra arguments to the hooks, much like you can with wpdk_apply_filters().
-		 *
-		 * @since 1.6.1
-		 *
-		 * @param {string} tag  The name of the action to be executed.
-		 * @param {...*}   args Optional. Additional arguments which are passed on to the functions hooked to the action.
-		 *                      Default empty.
-		 *
-		 */
-		wpdk_do_action = function( tag, args )
-		{
+		addAction = function( tag, function_to_add, priority ) {
+			_wpdk_add( 'action', tag, function_to_add, priority );
+        }
+        
+		hasAction = function( tag, fn ) {
+			return _wpdk_has( 'action', tag, fn );
+        }
+		
+		doAction = function( tag ) {
 			_wpdk_do( 'action', arguments );
-		};
-
-		addAction = wpdk_add_action;
-		addFilter = wpdk_add_filter;
-		doAction = wpdk_do_action;
-		applyFilters = wpdk_apply_filters;
+        }
+        
+		removeAction = function( tag, fn ) {
+			_wpdk_remove( 'action', tag, fn );
+        }
 
 	}
 
@@ -733,23 +709,38 @@ if(typeof(require)!='undefined'){
                 debug: false,
                 file: Store.folder(true) + 'configure.json',
                 defaults: {
-                    "allow-similar-transmissions": true,
-                    "allow-web-pages": true,
-                    "search-other-users-lists": true,
-                    "sources": [],
+                    "background": "assets/images/wallpaper.png",
+                    "connect-timeout": 36,
                     "gpu-rendering": true,
-                    "hd-lists-url": "http://www.iptvchoice.com/free-iptv-test/",
                     "hide-logos": false,
                     "hide-back-button": false,
+                    "ignore-webpage-streams": false,
+                    "min-buffer-secs-before-commit": 2,
+                    "play-while-tuning": false,
                     "resolution-limit": "1280x720",
                     "resume": false,
+                    "search-live": true,
+                    "search-range-size": 18,
+                    "search-vod": false,
                     "show-adult-content": false,
+                    "similar-transmissions": true,
                     "sources": [],
-                    "start-in-fullscreen": false,
-                    "unshare-lists": false
+                    "theme-bg": "linear-gradient(to top, #000004 0%, #01193c 75%)",
+                    "theme-bgcolor": "#01193c",
+                    "theme-fgcolor": "#FFFFFF",
+                    "theme-font-size": 1,
+                    "theme-iconsize": 36,
+                    "theme-transparent-menu": false,
+                    "volume": 1.0
                 }
             }, loaded = false;
-            self.data = self.defaults;
+            self.data = Object.assign({}, self.defaults); // keep defaults object for reference
+            for(var key in self.data){
+                if(typeof(self.data[key]) != typeof(self.defaults[key])){
+                    console.error('Invalid key value for', key, self.data[key], 'is not of type ' + typeof(self.defaults[key]));
+                    self.data[key] = self.defaults[key];
+                }
+            }
 			self.load = () => {
 				loaded = true;
 				if(fs.existsSync(self.file)){
@@ -875,7 +866,7 @@ if(typeof(require)!='undefined'){
             top.PlaybackManager.seek(4)
         }
     }
-    
+
     function collectListQueue(ref){
         var container = Menu.container(false);
         var as = container.find('a.entry-stream');
@@ -925,19 +916,35 @@ if(typeof(require)!='undefined'){
         }
     }
 
-    function restartApp(){
-        jQuery(top.document).find('#splash').show('fast');
-        //centralizedResizeWindow(gui.App.manifest.window.width, gui.App.manifest.window.height, true);
-        setTimeout(() => { 
-            chrome.runtime.reload()
-            /*
-            gui.Shell.openExternal(process.execPath);
-            setTimeout(() => {
-                closeWindow();
-                win.close(true)
-            }, 0);
-            */
-        }, 250)
+    function restartApp(hard){
+        doAction('beforeRestartApp');
+        if(hard === true){
+            setTimeout(() => { 
+                chrome.runtime.reload()
+                /*
+                gui.Shell.openExternal(process.execPath);
+                setTimeout(() => {
+                    closeApp();
+                    win.close(true)
+                }, 0);
+                */
+            }, 250)
+        } else {
+            top.location.reload()
+        }
+    }
+
+    function bufferize(buffer) {
+        if(buffer instanceof ArrayBuffer){
+            buffer = Buffer.from(buffer).toString('utf8')
+        } else if(typeof(buffer)=='object' && typeof(buffer.base64Encoded)!='undefined'){
+            if(buffer.base64Encoded){
+                buffer = new Buffer(buffer.body, 'base64')
+            } else {
+                buffer = buffer.body
+            }
+        }  
+        return buffer;
     }
 
     function goReload(){
@@ -1003,24 +1010,21 @@ if(typeof(require)!='undefined'){
     function goBookmarks(){
         var c = (top || parent);
         if(c.bookmarksPath){
-            c.Menu.go(c.bookmarksPath);
-            setBackToHome()
+            c.Menu.go(c.bookmarksPath, setBackToHome)
         }
     }
 
     function goOptions(){
         var c = (top || parent);
         if(c.optionsPath){
-            c.Menu.go(c.optionsPath);
-            setBackToHome()
+            c.Menu.go(c.optionsPath, setBackToHome)
         }
     }
 
     function goChangeLang(){
         var c = (top || parent);
         if(c.langPath){
-            c.Menu.go(c.langPath);
-            setBackToHome()
+            c.Menu.go(c.langPath, setBackToHome)
         }
     }
 
@@ -1080,10 +1084,61 @@ if(typeof(require)!='undefined'){
         return ok;
     }
 
+    function statusCodeToMessage(code){
+        var codes = {
+            '200': 'OK',
+            '201': 'Created',
+            '202': 'Accepted',
+            '203': 'Non-Authoritative Information',
+            '204': 'No Content',
+            '205': 'Reset Content',
+            '206': 'Partial Content',
+            '300': 'Multiple Choices',
+            '301': 'Moved Permanently',
+            '302': 'Found',
+            '303': 'See Other',
+            '304': 'Not Modified',
+            '305': 'Use Proxy',
+            '307': 'Temporary Redirect',
+            '400': 'Bad Request',
+            '401': 'Unauthorized',
+            '402': 'Payment Required',
+            '403': 'Forbidden',
+            '404': 'Not Found',
+            '405': 'Method Not Allowed',
+            '406': 'Not Acceptable',
+            '407': 'Proxy Authentication Required',
+            '408': 'Request Timeout',
+            '409': 'Conflict',
+            '410': 'Gone',
+            '411': 'Length Required',
+            '412': 'Precondition Failed',
+            '413': 'Request Entity Too Large',
+            '414': 'Request-URI Too Long',
+            '415': 'Unsupported Media Type',
+            '416': 'Requested Range Not Satisfiable',
+            '417': 'Expectation Failed',
+            '500': 'Internal Server Error',
+            '501': 'Not Implemented',
+            '502': 'Bad Gateway',
+            '503': 'Service Unavailable',
+            '504': 'Gateway Timeout',
+            '505': 'HTTP Version Not Supported'
+        }
+        if(typeof(codes[code])!='undefined'){
+            return codes[String(code)];
+        }
+        return 'Unknown error';
+    }
+
     var shortcuts = [];
 
-    function setupShortcuts(){
-        if(top == window){
+    function setupShortcuts(){ 
+        if(opener && opener != global){
+            setupKeyboardForwarding(document, opener.document)
+        } else if (top != window) {
+            setupKeyboardForwarding(document)
+        } else {
             var globalHotkeys = [
                 {
                     key : "MediaPrevTrack",
@@ -1122,7 +1177,7 @@ if(typeof(require)!='undefined'){
                 console.log('Registering hotkey: '+globalHotkeys[i].key);
                 globalHotkeys[i].failed = function(msg) {
                     // :(, fail to register the |key| or couldn't parse the |key|.
-                    console.log(msg)
+                    console.warn(msg)
                 }
                 globalHotkeys[i] = new gui.Shortcut(globalHotkeys[i]);
                 gui.App.registerGlobalHotKey(globalHotkeys[i]);
@@ -1133,209 +1188,52 @@ if(typeof(require)!='undefined'){
                 }
                 console.log('Hotkeys unregistered.')
             });
-            shortcuts.push(createShortcut("Ctrl+Alt+D Ctrl+T", () => {
-                top.spawnOut()
-            }, null, true));
-            shortcuts.push(createShortcut("Ctrl+E", () => {
-                top.playExternal()
-            }, null, true));
-            shortcuts.push(createShortcut("Ctrl+W", () => {
-                stop()
-            }, null, true));
-            shortcuts.push(createShortcut("Ctrl+O", () => {
-                openFileDialog(function (file){
-                    var o = getFrame('overlay');
-                    if(o){
-                        o.processFile(file)
+            jQuery.getScript('assets/js/hotkeys-actions.js', () => {
+                jQuery.getJSON('hotkeys.json', (hotkeys) => {
+                    var args = [];
+                    for(var key in hotkeys){
+                        if(jQuery.isArray(hotkeysActions[hotkeys[key]])){
+                            args = hotkeysActions[hotkeys[key]];
+                            args.unshift(key);
+                            shortcuts.push(createShortcut.apply(createShortcut, args));  
+                        }
                     }
+                    jQuery.Shortcuts.start()
                 })
-            }, null, true));
-            shortcuts.push(createShortcut("Ctrl+Z", () => {
-                var c = (top || parent);
-                if(c){
-                    c.playPrevious()
-                }
-            }, null, true));
-            shortcuts.push(createShortcut("F1 Ctrl+I", help));
-            shortcuts.push(createShortcut("F2", () => {
-                var c = (top || parent);
-                if(c){
-                    c.renameSelectedEntry()
-                }
-            }, null, true))
-            shortcuts.push(createShortcut("F3 Ctrl+F Ctrl+F3", () => {
-                goSearch()
-            }, null, true));
-            shortcuts.push(createShortcut("F5", () => {
-                goReload()
-            }, null, true));
-            shortcuts.push(createShortcut("Space", () => {
-                top.playPause()
-            }));
-            shortcuts.push(createShortcut("Ctrl+H", () => {
-                (top || parent).goHistory()
-            }, null, true));
-            shortcuts.push(createShortcut("Ctrl+U", () => {
-                var c = (top || parent);
-                if(c){
-                    c.addNewSource()
-                }
-            }, null, true));
-            shortcuts.push(createShortcut("Ctrl+L", () => {
-                goChangeLang()
-            }));
-            shortcuts.push(createShortcut("Ctrl+D Ctrl+S", () => {
-                (top || parent).addFav()
-            }, null, true));
-            shortcuts.push(createShortcut("Ctrl+Alt+D Ctrl+Alt+S", () => {
-                (top || parent).removeFav()
-            }, null, true));
-            shortcuts.push(createShortcut("Ctrl+Shift+D Ctrl+Shift+S", () => {
-                goBookmarks()
-            }, null, true));
-            shortcuts.push(createShortcut("Ctrl+Alt+R Ctrl+F5", () => {
-                restartApp()
-            }, null, true));
-            shortcuts.push(createShortcut("Home", () => {
-                if(!areControlsActive()){
-                    showControls()
-                }
-                (top || parent).Menu.go('')
-            }));
-            shortcuts.push(createShortcut("Delete", () => {
-                if(areControlsActive()){
-                    var c = (top || parent);
-                    c.Menu.triggerKey('delete')
-                } else {
-                    if(!areControlsHiding()){
-                        stop();
-                        notify(Lang.STOP, 'fa-stop', 'short')
-                    }
-                }
-            }));
-            shortcuts.push(createShortcut("Up Shift+Tab", () => {
-                showControls();
-                var c = (top || parent);
-                c.Menu.focusPrevious()
-            }, "hold", true));
-            shortcuts.push(createShortcut("Down Tab", () => {
-                showControls();
-                var c = (top || parent);
-                c.Menu.focusNext()
-            }, "hold", true));
-            shortcuts.push(createShortcut("Enter", () => {
-                if(!isMiniPlayerActive()){
-                    if(!areControlsActive()){
-                        showControls()
-                    } else {
-                        var c = (top || parent);
-                        c.Menu.enter()
-                    }
-                }
-            }));
-            shortcuts.push(createShortcut("Alt+Enter F11", () => {
-                top.toggleFullScreen()
-            })),
-            shortcuts.push(createShortcut("Right", () => {
-                seekForward()
-            }, "hold"));
-            shortcuts.push(createShortcut("Left", () => {
-                seekRewind()
-            }, "hold"));
-            shortcuts.push(createShortcut("Ctrl+Left", () => {
-                var s = getPreviousStream();
-                if(s){
-                    console.log(s);
-                    (top || parent).playEntry(s)
-                }
-            }));
-            shortcuts.push(createShortcut("Ctrl+Right", () => {
-                var s = getNextStream();
-                if(s){
-                    console.log(s);
-                    (top || parent).playEntry(s)
-                }
-            }));
-            shortcuts.push(createShortcut("Backspace", () => {
-                if(!isMiniPlayerActive()){
-                    var c = (top || parent);
-                    if(c.Menu.path){
-                        c.Menu.back()
-                    } else {
-                        if(areControlsActive() && !isStopped()){
-                            hideControls()
-                        } else {
-                            showControls()
-                        }
-                    }
-                }
-            }, "hold"));
-            shortcuts.push(createShortcut("Ctrl+Backspace", () => { // with Ctrl it work on inputs so
-                if(!isMiniPlayerActive()){
-                    var c = (top || parent);
-                    if(c.Menu.path){
-                        c.Menu.back()
-                    } else {
-                        if(areControlsActive() && !isStopped()){
-                            hideControls()
-                        } else {
-                            showControls()
-                        }
-                    }
-                }
-            }, null, true));
-            shortcuts.push(createShortcut("F4", () => {
-                top.changeScaleMode()
-            }));
-            shortcuts.push(createShortcut("Ctrl+M", () => {
-                top.toggleMiniPlayer() // global shortcuts fail sometimes, so list it here too as a fallback hotkey binding
-            }, null, true));
-            shortcuts.push(createShortcut("Ctrl+Tab", () => {
-                var c = (top || parent);
-                if(c){
-                    if(!isStopped()){
-                        c.switchPlayingStream()
-                    } else {
-                        c.playPrevious()
-                    }
-                }
-            }, null, true));
-            shortcuts.push(createShortcut("Esc", () => {
-                top.escapePressed()
-            }, null, true));
-            jQuery.Shortcuts.start()
-        } else {
-            setupKeyboardForwarding(document)
+            })
         }
     }
 
-    function setupKeyboardForwarding(fromDocument){
+    function setupKeyboardForwarding(fromDocument, to){
         var ctrlProp = '_keyboardForwarding';
-        if(fromDocument != top.document){
+        if(!to){
+            to = top.document;
+        }
+        if(fromDocument != to){
             if(typeof(fromDocument[ctrlProp])=='undefined'){
                 fromDocument[ctrlProp] = true;
                 fromDocument.addEventListener('keydown', (e) => {
                     console.log('KEYDOWN');
-                    let evt = new top.Event('keydown', {key: e.key, code: e.code, ctrlKey: e.ctrlKey, altKey: e.altKey, shiftKey: e.shiftKey, metaKey: e.metaKey, composed: true, charCode: e.charCode, keyCode: e.keyCode, which: e.which, bubbles: true, cancelable: true, which: e.keyCode});
+                    let evt = new to.defaultView.Event('keydown', {key: e.key, code: e.code, ctrlKey: e.ctrlKey, altKey: e.altKey, shiftKey: e.shiftKey, metaKey: e.metaKey, composed: true, charCode: e.charCode, keyCode: e.keyCode, which: e.which, bubbles: true, cancelable: true, which: e.keyCode});
                     evt.keyCode = e.keyCode;
                     evt.which = e.keyCode;
                     evt.altKey = e.altKey;
                     evt.ctrlKey = e.ctrlKey;
                     evt.metaKey = e.metaKey;
                     evt.shiftKey = e.shiftKey;
-                    top.document.body.dispatchEvent(evt);
+                    to.body.dispatchEvent(evt);
                     console.log('KEYDOWN OK', evt.ctrlKey, e.ctrlKey)    
                 });
                 fromDocument.addEventListener('keyup', (e) => {
                     console.log('KEYUP');  
-                    let evt = new top.Event('keyup', {key: e.key, code: e.code, ctrlKey: e.ctrlKey, altKey: e.altKey, shiftKey: e.shiftKey, metaKey: e.metaKey, composed: true, charCode: e.charCode, keyCode: e.keyCode, which: e.which, bubbles: true, cancelable: true, which: e.keyCode});
+                    let evt = new to.defaultView.Event('keyup', {key: e.key, code: e.code, ctrlKey: e.ctrlKey, altKey: e.altKey, shiftKey: e.shiftKey, metaKey: e.metaKey, composed: true, charCode: e.charCode, keyCode: e.keyCode, which: e.which, bubbles: true, cancelable: true, which: e.keyCode});
                     evt.keyCode = e.keyCode;
                     evt.which = e.keyCode;
                     evt.altKey = e.altKey;
                     evt.ctrlKey = e.ctrlKey;
                     evt.metaKey = e.metaKey;
                     evt.shiftKey = e.shiftKey;
-                    top.document.body.dispatchEvent(evt);
+                    to.defaultView.document.body.dispatchEvent(evt);
                     console.log('KEYUP OK')
                 });
                 console.log('Keyboard forwarding from '+basename(fromDocument.URL, true))
@@ -1364,7 +1262,7 @@ if(typeof(require)!='undefined'){
                     }
                 })
             } else {
-                console.log('resize', t, l, w, h);
+                // console.log('resize', t, l, w, h);
                 tw.resizeTo(w, h);
                 tw.moveTo(l, t)
             }
@@ -1405,16 +1303,35 @@ if(typeof(require)!='undefined'){
         });
     }
     
-    function hmsToSecondsOnly(str) {
-        var p = str.split(':'),
-            s = 0, m = 1;
-    
+    function hmsClockToSeconds(str) {
+        var cs = str.split('.'), p = cs[0].split(':'), s = 0, m = 1;    
         while (p.length > 0) {
             s += m * parseInt(p.pop(), 10);
             m *= 60;
+        }    
+        if(cs.length > 1 && cs[1].length >= 2){
+            s += parseInt(cs[1].substr(0, 2)) / 100;
         }
-    
         return s;
+    }
+
+    function hmsSecondsToClock(secs) {
+        var sec_num = parseInt(secs, 10); // don't forget the second param
+        var hours   = Math.floor(sec_num / 3600);
+        var minutes = Math.floor((sec_num - (hours * 3600)) / 60);
+        var seconds = sec_num - (hours * 3600) - (minutes * 60);    
+        if (hours   < 10) {hours   = "0"+hours;}
+        if (minutes < 10) {minutes = "0"+minutes;}
+        if (seconds < 10) {seconds = "0"+seconds;}
+        return hours+':'+minutes+':'+seconds;
+    }
+    
+    function createDateAsUTC(date) {
+        return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), date.getMinutes(), date.getSeconds()));
+    }
+    
+    function convertDateToUTC(date) { 
+        return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds()); 
     }
 
     function arrayMin(arr) {
@@ -1823,11 +1740,23 @@ if(typeof(require)!='undefined'){
         }
     }
 
-    function loadTheming(opts){
+    var appNameCaching = false;
+    function appName(){
+        var title = appNameCaching || 'Megacubo';
+        try {
+            var t = gui.App.manifest.window.title;
+            if(t){
+                appNameCaching = title = t;
+            }
+        } catch(e) {}
+        return applyFilters('appName', title)
+    }
+
+    function loadTheming(opts, _cb){
         var srcFile = 'assets/css/theme.src.css';
         fs.readFile(srcFile, (err, content) => {
             if(!err){
-                let bgcolor = Config.get('theme-bgcolor') || '#000000';
+                let bgcolor = Config.get('theme-bgcolor'), bg = jQuery('#background');
                 content = parseTheming(content, opts);
                 stylizer(content, 'theming', window);
                 redrawBackgroundImage();
@@ -1836,28 +1765,60 @@ if(typeof(require)!='undefined'){
                 } else {
                     document.documentElement.className = document.documentElement.className.replaceAll('ui-light', '');
                 }
+                if(Config.get("theme-transparent-menu")){
+                    document.documentElement.className += ' ui-transparent-menu';                    
+                    bg.removeClass('fit-player').addClass('fit-screen')
+                } else {
+                    document.documentElement.className = document.documentElement.className.replaceAll('ui-transparent-menu', '');
+                    bg.removeClass('fit-screen').addClass('fit-player');
+                }
+                if(typeof(Menu)!='undefined'){
+                    Menu.restoreScroll()
+                }
+                if(typeof(_cb)=='function'){
+                    _cb()
+                }
             }
         })
     }
 
+    var isFirstBackgroundDraw = true;
     function redrawBackgroundImage(){
-        var wpfile = 'assets/images/wallpaper.png', content = fs.readFileSync(wpfile), type = 'jpeg';
-        if(String(content).substr(0, 256).indexOf('PNG') != -1){
-            type = 'png';
+        var bg = document.querySelector('#background');
+        if(bg) {
+            var defaultBackground = 'assets/images/wallpaper.png';
+            var n, content = Config.get('background'), rm = bg.querySelector('img, video');
+            switch(content.substr(5, 5)){
+                case 'image':
+                    n = '<img src="' + content + '" />';
+                    break;
+                case 'video':
+                    n = '<video loop autoplay muted src="' + content + '" />';
+                    break;
+                default:
+                    n = '<img src="' + defaultBackground + '" />';
+                    break;
+            }
+            if(n){
+                if(rm){
+                    bg.removeChild(rm)
+                }
+                jQuery(n).prependTo(bg)
+            }
         }
-        var base64 = content.toString('base64');
-        content = '';
-        console.warn('!!!!!!!!!!', document.documentElement.style.backgroundImage);
-        document.documentElement.style.backgroundImage = 'url("data:image/'+type+';base64,' + base64 + '")';
-        console.warn('!!!!!!!!!!', document.documentElement.style.backgroundImage.length);
     }
 
     function parseTheming(content, opts){
         let data = {
-            'bgcolor': Config.get('theme-bgcolor') || '#000000',
-            'fgcolor': Config.get('theme-fgcolor') || '#FFFFFF',
-            'fontsize': Config.get('theme-fontsize') || '14px'
+            'bg': Config.get('theme-bg') || 'linear-gradient(to top, #000004 0%, #01193c 75%)',
+            'bgcolor': Config.get('theme-bgcolor'),
+            'fgcolor': Config.get('theme-fgcolor'),
+            'fontsize': Config.get('theme-font-size'),
+            'iconsize': Config.get('theme-iconsize')
         };
+        if(data.fontsize > 2){
+            data.fontsize = 1;
+        }
         if(typeof(opts) == 'object'){
             data = Object.assign(data, opts);
         } 
@@ -1866,6 +1827,28 @@ if(typeof(require)!='undefined'){
             content = content.replace(new RegExp('\\('+key+'\\)', 'g'), data[key])
         });
         return content;
+    }
+
+    function stylizer(cssCode, id, scope){
+        if(scope && scope.document){
+            try {
+                //console.log(cssCode);
+                //console.warn('style creating');
+                var s = scope.document.getElementById("stylize-"+id);
+                if(!s){
+                    console.warn('style created');
+                    s = scope.document.createElement("style");
+                    s.type = "text/css";
+                    s.id = "stylize-"+id;
+                }
+                s.innerText = '';
+                s.appendChild(scope.document.createTextNode(cssCode));
+                scope.document.querySelector("head, body").appendChild(s)
+                //console.warn('style created OK', scope, scope.document.URL, cssCode, s)
+            } catch(e) {
+                console.log('CSS Error', e, cssCode)
+            }
+        }
     }
 
     function isValidPath(url){ // poor checking for now
@@ -1912,7 +1895,7 @@ if(typeof(require)!='undefined'){
                 if(c){
                     logo = c.defaultIcons['stream'];
                 }
-                top.createPlayIntent({url: url+'#nosandbox', name: name, logo: logo}, {manual: true})
+                top.createPlayIntent({url: url+'#nosandbox', allowWebPages: true, name: name, logo: logo}, {manual: true})
             }
         }
     }
@@ -1999,40 +1982,33 @@ if(typeof(require)!='undefined'){
             enableInInput: !!enableInInput,
             handler: () => {
                 console.log(key+' pressed', document.URL)
-                callback()
+                callback.call(window.top)
             }
         })
     }
 
     jQuery(setupShortcuts); 
 
-    function stop(skipPlaybackManager){
+    function stop(skipPlaybackManager, isInternal){
         var c = (top || parent || window);
         console.log('STOP', traceback());
         c.autoCleanEntriesCancel();
-        if(c.PlaybackManager.activeIntent){
-            if(!skipPlaybackManager){
+        if(c.PlaybackManager.activeIntent || c.PlaybackManager.isLoading()){
+            if(skipPlaybackManager !== true){
                 c.PlaybackManager.fullStop();
             }
             showPlayers(false, false);
-            setTitleData(gui.App.manifest.window.title, 'default_icon.png');
-            leavePendingState();
             c.doAction('stop')
         }
+        jQuery('body').removeClass('playing loading paused');
         setTimeout(() => {
             if(c.updateStreamEntriesFlags){
                 c.updateStreamEntriesFlags() // on unload => Uncaught TypeError: c.updateStreamEntriesFlags is not a function
             }
         }, 200);
-        if(!c.isReloading){
-            setTimeout(() => {
-                if(isStopped()){
-                    if(isMiniPlayerActive()){
-                        leaveMiniPlayer()
-                    }
-                    showControls()
-                }
-            }, 1200)
+        if(!c.isReloading && isInternal !== true){
+            setTitleData(appName(), 'default_icon.png');
+            leavePendingState()
         }
     }
     
@@ -2076,7 +2052,7 @@ if(typeof(require)!='undefined'){
                 delete data[k];
             }
         }
-        nw.Window.open('/index.html', data, function (popWin){
+        nw.Window.open('/app.html', data, function (popWin){
             if(callback){
                 callback(popWin)
             }
@@ -2123,10 +2099,21 @@ if(typeof(require)!='undefined'){
             link.href = icon;
             doc.getElementsByTagName('head')[0].appendChild(link);
             var c = doc.querySelector('.nw-cf-icon');
-            if(c){
+            if(c) {
                 c.style.backgroundImage = 'url("{0}")'.format(icon)
             }
         }
+    }
+
+    function wordWrapPhrase(str, count, sep){
+        var ret = '', sts = str.split(' '), wordsPerLine = Math.ceil(sts.length / count);
+        for(var i=0; i<count; i++){
+            if(i){
+                ret += sep;
+            }
+            ret += sts.slice(i * wordsPerLine, (i * wordsPerLine) + wordsPerLine).join(' ');
+        }
+        return ret;
     }
 
     var notifyTimer = 0;
@@ -2155,41 +2142,37 @@ if(typeof(require)!='undefined'){
         return secs;
     }
 
-    function updateNotifyFirstDo(){
-        var o = window.top || window.parent;
-        if(o){
-            var nrs = jQuery(o.document).find('div.notify-row:visible');
-            var f = nrs.eq(0);
-            if(!f.hasClass('notify-first')){
-                f.addClass('notify-first')
-            }
-            nrs.slice(1).filter('.notify-first').removeClass('notify-first')
-        }
-    }
-
-    function updateNotifyFirst(){
-        updateNotifyFirstDo();
-        setTimeout(updateNotifyFirstDo, 200)
-    }
-
-    function notifyCache(str){
-        var o = window.top || window.parent;
-        if(o){
-            var a = jQuery(o.document.getElementById('notify-area'));
-            a.find('.notify-row').filter((i, o) => {
-                return jQuery(o).find('div').text().trim().indexOf(str) != -1;
-            }).hide()
-        }
-    }
-
     function notifyRemove(str){
         var o = window.top || window.parent;
         if(o){
+            console.log('notifyRemove', 'pending', traceback());
             var a = jQuery(o.document.getElementById('notify-area'));
             a.find('.notify-row').filter((i, o) => {
                 return jQuery(o).find('div').text().trim().indexOf(str) != -1;
             }).hide()
         }
+    }
+
+    function setupNotify(){
+        if(top.setupNotifyDone) return;
+        top.setupNotifyDone = true;
+        var observer = new top.MutationObserver((mutations) => {
+            if(top.notifyWatchingTimer){
+                clearTimeout(top.notifyWatchingTimer)
+            }
+            top.notifyWatchingTimer = top.setTimeout(() => {
+                var o = window.top || window.parent;
+                if(o){
+                    var nrs = jQuery(o.document).find('div.notify-row:visible');
+                    var f = nrs.eq(0);
+                    if(!f.hasClass('notify-first')){
+                        f.addClass('notify-first')
+                    }
+                    nrs.slice(1).filter('.notify-first').removeClass('notify-first')
+                }
+            }, 50)
+        });
+        observer.observe(top.document.querySelector('#notify-area'), {attributes: true, childList: true, characterData: true, subtree:true})
     }
 
     var lastNotifyCall = null;
@@ -2197,6 +2180,7 @@ if(typeof(require)!='undefined'){
         if((str + fa) == lastNotifyCall){ // tricky, avoid doubled calls
             return;
         }
+        setupNotify();
         lastNotifyCall = (str + fa);
         var o = window.top || window.parent;
         if(o && o.document){
@@ -2205,7 +2189,6 @@ if(typeof(require)!='undefined'){
                 a = jQuery(a);
                 if(!str) {
                     a.find('.notify-wait').hide();
-                    updateNotifyFirst();
                     return;
                 }
                 var c = '', timer;
@@ -2219,8 +2202,7 @@ if(typeof(require)!='undefined'){
                             lastNotifyCall = '';
                         }
                         n.animate({left: 40, opacity: 0.01}, 400, () => {
-                            n.remove();
-                            setTimeout(updateNotifyFirst, 100)
+                            n.remove()
                         })
                     };
                     a.find('.notify-row').filter((i, o) => {
@@ -2230,13 +2212,12 @@ if(typeof(require)!='undefined'){
                         if(_fa.indexOf('/') != -1){
                             _fa = '<span class="notify-icon" style="background-image:url({0});"></span> '.format(fa.replaceAll('"', ''))
                         } else {
-                            _fa = '<i class="fa {0}" aria-hidden="true"></i> '.format(fa)
+                            _fa = '<i class="fa {0} notify-icon" aria-hidden="true"></i> '.format(fa)
                         }
                     }
-                    var n = jQuery('<div class="notify-row '+c+' notify-first" style="position: relative; left: 40px; opacity: 0.01;"><div class="notify">' + _fa + ' ' + str + '</div></div>');
+                    var n = jQuery('<div class="notify-row '+c+' notify-first" style="position: relative; left: 40px; opacity: 0.01;"><div class="notify">' + _fa + '<span class="notify-text">' + str + '</span></div></div>');
                     n.prependTo(a);
                     timer = top.setTimeout(destroy, secs * 1000);
-                    updateNotifyFirst();
                     n.animate({left: 0, opacity: 1}, 250);
                     var getElement = () => {
                         if(!(n && n.parent() && n.parent().parent())){
@@ -2245,21 +2226,24 @@ if(typeof(require)!='undefined'){
                         return n;
                     }
                     return {
-                        update: (str, fa, secs) => {
-                            lastNotifyCall = (str + fa);
+                        update: (str, _fa, secs) => {
+                            lastNotifyCall = (str + _fa);
                             n = getElement();
                             console.log('UPDATE NOTIFY', n);
                             n.hide();
-                            if(fa && str) {
-                                _fa = '<i class="fa {0}" aria-hidden="true"></i> '.format(fa)
-                                n.find('.notify').html(_fa + ' ' + str)
+                            if(_fa && str) {
+                                if(_fa.indexOf('/') != -1){
+                                    _fa = '<span class="notify-icon" style="background-image:url({0});"></span> '.format(_fa.replaceAll('"', ''))
+                                } else {
+                                    _fa = '<i class="fa {0} notify-icon" aria-hidden="true"></i> '.format(_fa)
+                                }
+                                n.find('.notify').html(_fa + ' <span class="notify-text">' + str + '</span>')
                             }
                             if(secs){
                                 n.prependTo(a);
                                 secs = notifyParseTime(secs);
                                 clearTimeout(timer);
-                                timer = top.setTimeout(destroy, secs * 1000);
-                                updateNotifyFirst()
+                                timer = top.setTimeout(destroy, secs * 1000)
                             }
                             n.show();
                             return n;
@@ -2299,44 +2283,60 @@ if(typeof(require)!='undefined'){
         return (bytes / Math.pow(1024, i)).toFixed(1) + ' ' + sizes[i];
     }
 
-    var pendingStateTimer = 0, defaultTitle = '';
+    var pendingStateTimer = 0, defaultTitle = '', pendingStateNotification;
 
     function inPendingState() {
         return top ? (top.isPending || false) : false;
     }
 
+    function pendingStateFlags() {
+        return [Lang.CONNECTING, Lang.TUNING]
+    }
+
     function enterPendingState(title, notifyFlag, loadingUrl) {
-        console.warn('enterPendingState', top.isPending, loadingUrl || false, traceback(), PlaybackManager.log());
+        console.warn('enterPendingState', time(), top.isPending, loadingUrl || false, traceback(), PlaybackManager.log());
         var t = top || parent || window;
         t.isPending = loadingUrl || ((t.isPending && typeof(t.isPending)=='string') ? t.isPending : true);
         console.warn('enterPendingState', top.isPending);
-        setTitleFlag('fa-circle-notch fa-spin', title);
         if(!notifyFlag){
             notifyFlag = Lang.CONNECTING;
         }
-        var knownLabels = [Lang.CONNECTING, Lang.TUNNING];
-        knownLabels.forEach(notifyRemove);
-        if(knownLabels.indexOf(notifyFlag)==-1){
-            notifyRemove(notifyFlag)
+        if(!title){
+            title = notifyFlag+'...';
+        } else {
+            title = notifyFlag + ': ' + title + '...';
+        } 
+        setTitleFlag('fa-circle-notch fa-spin', title);
+        if(!pendingStateNotification){
+            pendingStateNotification = notify(notifyFlag+'...', 'fa-circle-notch fa-spin', 'forever')
+        } else {
+            pendingStateNotification.update(notifyFlag+'...', 'fa-circle-notch fa-spin')
         }
-        notify(notifyFlag+'...', 'fa-circle-notch fa-spin', 'forever');
         t.updateStreamEntriesFlags()
     }
     
     function leavePendingState() {
-        console.warn('leavePendingState', top.isPending);
+        console.warn('leavePendingState', time(), top.isPending);
         var t = top || parent || window;
         if(typeof(t.isPending) != 'undefined'){
             t.isPending = false;
-            notifyRemove(Lang.CONNECTING);
-            notifyRemove(Lang.TUNING);
+            if(pendingStateNotification){
+                pendingStateNotification.hide()
+            }
             setTitleFlag('', defaultTitle);
-            t.removeLoadingFlags()
+            t.updateStreamEntriesFlags()
         }
     }
 
     function urldecode(t){
-        return decodeURIComponent(t.replaceAll('+', ' '));
+        t = t.replaceAll('+', ' ');
+        try {
+            var nt = decodeURIComponent(t.replaceAll('+', ' '));
+            if(nt) {
+                t = nt;
+            }
+        } catch(e) { }
+        return t;
     }   
 
     function setHTTPHeaderInObject(header, headers){
@@ -2451,6 +2451,7 @@ if(typeof(require)!='undefined'){
 
     function getColorLightLevel(hex){
         var rgb = hexToRgb(hex);
+        if(!rgb) return 0;
         return (rgb.r + rgb.g + rgb.b ) / 7.64999;
     }
 
@@ -2538,7 +2539,7 @@ if(typeof(require)!='undefined'){
     }
 
     function parseMegaURL(url){
-        var parts = url.split(( url.indexOf('|')!=-1 ) ? '|' : '//');
+        var parts = url.split(( url.indexOf('|')!=-1 ) ? '|': '//');
         if(parts.length > 1){
             parts[0] = parts[0].split('/').pop();
             switch(parts[0]){
@@ -2638,7 +2639,7 @@ if(typeof(require)!='undefined'){
     
     function isHTML5Video(url){
         if(typeof(url)!='string') return false;
-        return 'mp3|mp4|m4a|m4v|webm|aac|ogg|ts'.split('|').indexOf(getExt(url)) != -1;            
+        return 'mp3|mp4|m4a|m4v|webm|aac|ogg|ts|mkv'.split('|').indexOf(getExt(url)) != -1;            
     }
     
     function isLive(url){
@@ -2850,40 +2851,6 @@ if(typeof(require)!='undefined'){
     }
 
     //chooseFile(function (file){alert(file);window.ww=file});
-
-    function loadLanguage(locales, callback){
-        var localeMask = "lang/{0}.json", locale = locales.shift();
-        jQuery.getJSON("lang/"+locale+".json", function( data ) {
-            Lang = data;
-            if(locale == 'en'){
-                callback()
-            } else {
-                jQuery.getJSON("lang/en.json", function( data ) { // always load EN language as fallback for missing translations
-                    Lang = Object.assign(data, Lang);
-                    callback()
-                })
-            }
-        }).fail(function (jqXHR, textStatus, errorThrown) {
-            if(locales.length){
-                loadLanguage(locales, callback)
-            } else {
-                console.error(jqXHR);
-                console.error(textStatus);
-                console.error(errorThrown);
-            }
-        })
-    }
-
-    var Lang = {};
-    jQuery(() => {
-        loadLanguage([getLocale(false), getLocale(true), 'en'], () => {            
-            jQuery(() => {
-                areFramesReady(() => {
-                    jQuery(document).triggerHandler('lngload')
-                })
-            })
-        })
-    })
     
     function isYoutubeURL(source){
         if(typeof(source)=='string'){

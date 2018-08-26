@@ -3,7 +3,7 @@ if(document.URL.substr(0, 7) != 'chrome-'){
 	console.log('[helper.js] ' + document.URL);
 	window.WebSocket = window.Worker = undefined;
 
-	console.clear = function (){
+	window.console.clear = () => {
 		return;
 	};
 

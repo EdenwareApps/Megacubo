@@ -33,16 +33,16 @@ body.over video::-webkit-media-controls-panel, body.paused video::-webkit-media-
 }
 
 video::-webkit-media-controls-panel { 
-    background: (bgcolor)99;
+    background: #000000;
 	position: absolute;
 	z-index: 2147483647 !important;
 	padding: 18px 4px 18px 4px;
     box-sizing: border-box;
-    transform: scale(1.0001);
+    transform: scale(1.0002);
 }
 
 video::-webkit-media-controls-current-time-display, video::-webkit-media-controls-time-remaining-display { 
-	color: (fgcolor) !important; 
+	color: #ffffff !important; 
 }
 
 video::-webkit-media-controls-mute-button, video::-webkit-media-controls-play-button, video::-webkit-media-controls-fullscreen-button { 

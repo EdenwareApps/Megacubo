@@ -12,6 +12,7 @@ div#controls {
     -webkit-app-region: no-drag;
     -webkit-user-select: none;
     user-select: none;
+    font-size: 72%;
 }
 input {
     -webkit-app-region: no-drag;
@@ -34,7 +35,6 @@ input {
     overflow-x: hidden;
     overflow-y: auto;
     display: inline-block;
-    background: transparent;
     transition: background-color 1s linear 0s, background 1s linear 0s;
 }
 #controls div.list > div {
@@ -56,9 +56,8 @@ a.entry {
     text-align: left;
     position: relative;
 }
-a.entry:focus, a.entry.entry-focused {
+a.entry:focus, .entry-focused {
     outline: 0 !important;
-    background: linear-gradient(to bottom, rgba(188, 211, 253, 0.05) 0%, rgba(188, 211, 253, 0.21) 100%);
 }
 a.entry tbody {
     height: inherit;
@@ -98,7 +97,15 @@ a.entry-stream .entry-logo img {
 
 .entry-slider input {
     margin: 4px 0 0 0;
-    width: 100%;
+    width: calc(100% - 15%);
+}
+
+.entry-slider span.slider-value {
+    text-align: center;
+    vertical-align: text-bottom;
+    padding-left: 6px;
+    font-size: 125%;
+    text-transform: none;
 }
 
 input[type=range]:focus {
@@ -175,6 +182,10 @@ input.entry-name {
 
 .entry-status .fa-play-circle { /* fill play triangle */
     background: radial-gradient(#000000 10%, #777777 50%, transparent 51%);
+}
+
+.entry-status svg.fa-circle-notch.fa-spin {
+    height: 0.99em;
 }
 
 .entry-offline > span {
@@ -282,6 +293,10 @@ body.scrolled_400:not(.home) #list-icons {
     bottom: 0;
 }
 
+body.submenu #list-icons {
+    display: none !important;
+}
+
 body.showcontrols.home #home-icons {
     display: inline-block;
     top: auto;
@@ -304,7 +319,7 @@ body.showcontrols.home #home-icons {
     text-decoration: none; 
     display: inline-block; 
     position: absolute; 
-    left: -30px;
+    left: -29px;
     top: 0;
     z-index: 9999; 
     border-bottom-left-radius: 6px;
@@ -336,7 +351,7 @@ body:not(.playing) #controls-toggle:hover {
 }
 
 #controls-toggle.entry-focused, .nw-cf-btn.entry-focused {
-    background: #002880;
+    background: #FF66BB33 !important;
     outline: 0 !important;
 }
 
@@ -365,133 +380,33 @@ a.entry-back.entry-sub {
 
 */
 
+.entry-logo-fa {
+    line-height: 100%;
+    position: relative;
+    max-width: 100%;
+}
+
 @media (min-height: 1000px) {
-    div#controls {
-        font-size: 16px;
-    }
-    .entry td.entry-logo-c {
-        width: 102px;
-    }
-    #controls a.entry {
-        height: 112px;
-    }
-    .entry-logo {
-        width: 100px;
-        height: 100px;
-    }
-    .entry-logo img {
-        max-height: 100px;
-    }
-    .entry-logo-fa {
-        font-size: 96px;
-        line-height: 100%;
-        position: relative;
-    }
     .entry-label, .entry-name {
         padding-left: 18px;
     }
 }
 @media (min-height: 800px) and (max-height: 999px) {
-    div#controls {
-        font-size: 15px;
-    }
-    .entry td.entry-logo-c {
-        width: 82px;
-    }
-    #controls a.entry {
-        height: 92px;
-    }
-    .entry-logo {
-        width: 80px;
-        height: 80px;
-    }
-    .entry-logo img {
-        max-height: 80px;
-    }
-    .entry-logo-fa {
-        font-size: 76px;
-        line-height: 100%;
-        position: relative;
-    }
     .entry-label, .entry-name {
         padding-left: 12px;
     }
 }
-@media (min-height: 700px) and (max-height: 779px) {
-    div#controls {
-        font-size: 13px;
-    }
-    .entry td.entry-logo-c {
-        width: 62px;
-    }
-    #controls a.entry {
-        height: 72px;
-    }
-    .entry-logo {
-        width: 60px;
-        height: 60px;
-    }
-    .entry-logo img {
-        max-height: 60px;
-    }
-    .entry-logo-fa {
-        font-size: 56px;
-        line-height: 100%;
-        position: relative;
-    }
+@media (min-height: 700px) and (max-height: 799px) {
     .entry-label, .entry-name {
         padding-left: 9px;
     }
 }
 @media (min-height: 450px) and (max-height: 699px) {
-    div#controls {
-        font-size: 11px;
-    }
-    .entry td.entry-logo-c {
-        width: 42px;
-    }
-    #controls a.entry {
-        height: 52px;
-    }
-    .entry-logo {
-        width: 40px;
-        height: 40px;
-    }
-    .entry-logo img {
-        max-height: 40px;
-    }
-    .entry-logo-fa {
-        font-size: 36px;
-        line-height: 100%;
-        position: relative;
-    }
     .entry-label, .entry-name {
         padding-left: 6px;
     }
 }
-@media (max-height: 459px) {
-    div#controls {
-        font-size: 10px;
-    }
-    .entry td.entry-logo-c {
-        width: 32px;
-    }
-    #controls a.entry {
-        height: 42px;
-        padding: 0 6px;
-    }
-    .entry-logo {
-        width: 30px;
-        height: 30px;
-    }
-    .entry-logo img {
-        max-height: 30px;
-    }
-    .entry-logo-fa {
-        font-size: 26px;
-        line-height: 100%;
-        position: relative;
-    }
+@media (max-height: 449px) {
     .entry-label, .entry-name {
         padding-left: 6px;
     }

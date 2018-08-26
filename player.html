@@ -28,7 +28,7 @@
 					recoverDecodingErrorDate = performance.now();
 					var msg = "trying to recover from media Error ..."
 					console.warn(msg);
-					//hls.recoverMediaError();
+					//hls.recoverMediaError(); // ffmpeg slow response, commenting it and trusting on hls.js here
 					//watchTimeout()
 				} else {
 					if (!recoverSwapAudioCodecDate || (now - recoverSwapAudioCodecDate) > 3000) {
@@ -146,9 +146,24 @@
 				if(currentSrc){
 					src(currentSrc.src, currentSrc.type)
 				}
-    			(top || parent).prepareVideoObject(video)
+    			(window.top || window.parent).prepareVideoObject(video)
 			}
-			reset()
+			function init(){
+				var checkMemTimer = 0;
+				function checkMemory(){
+					var percent = process.memoryUsage().rss / (performance.memory.jsHeapSizeLimit / 100);
+					if(percent >= 75){
+						clearInterval(checkMemTimer);
+						console.warn('Memory usage limit reached, reloading player...');
+						reset();
+						setTimeout(() => {
+							checkMemTimer = setInterval(checkMemory, 30000);
+						}, 10000);
+					}
+				}
+				checkMemTimer = setInterval(checkMemory, 30000);
+				reset()
+			}
 		</script>
 	</body>
 </html>

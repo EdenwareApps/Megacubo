@@ -1,10 +1,10 @@
-<html>
+<html class="ui-overlay">
     <head>
         <script type="text/javascript" src="assets/js/jquery.js"></script>
         <script type="text/javascript" src="assets/js/global.js"></script>
         <link rel="stylesheet" type="text/css" href="assets/css/global.css" />
         <link rel="stylesheet" type="text/css" href="assets/css/overlay.css" />
-        <script defer src="assets/fa/js/fontawesome-all.js"></script>
+        <script defer src="assets/fa/js/all.js"></script>
         <style type="text/css">
             body {
                 margin: 0;
@@ -13,7 +13,7 @@
     </head>
     <body>
         <div id="drop-target" class="fit-screen">
-            <i class="fas fa-download"></i>
+            <i class="fas fa-play-circle"></i>
         </div>
         <script type="text/javascript">
             document.onmousedown = () => { // if the program forgot to add back pointerEvents=none, let any click on overlay rebember it
@@ -30,11 +30,21 @@
                 }
                 if(['m3u', 'm3u8'].indexOf(getExt(file))!=-1){
                     openFile(file)
+                } else if(['png', 'jpg', 'jpeg'].indexOf(getExt(file))!=-1){
+                    if(confirm(top.Lang.APPLY_AS_BACKGROUND)){
+                        top.applyBackgroundImage(file)
+                    }
+                } else if(getExt(file) == 'json'){
+                    if(confirm(top.Lang.IMPORT_THEME_CONFIRM)){
+                        top.importTheme(file, top.loadTheming)
+                    } else if(confirm(top.Lang.IMPORT_CONFIG_CONFIRM)){
+                        top.importConfig(file, restartApp)
+                    }
                 } else if(isMedia(file) || isMagnet(file) || isMega(file)) {
                     playCustomFile(file)
                 } else {
                     if(file.match(new RegExp('^https?://'))){
-                        var n = notify(Lang.PROCESSING, 'fa-spin fa-circle-notch', 'wait');
+                        var n = notify(top.Lang.PROCESSING, 'fa-spin fa-circle-notch', 'wait');
                         var fetchOptions = {redirect: 'follow'};
                         fetchTimeout(file, (r) => {
                             n.close();
@@ -84,21 +94,26 @@
                             console.log(name);
                             c.registerSource(url, name)
                         } else { // type=error so
-                            notify(Lang.INVALID_URL_MSG, 'fa-exclamation-triangle faclr-red', 'normal')
+                            notify(top.Lang.INVALID_URL_MSG, 'fa-exclamation-triangle faclr-red', 'normal')
                         }
                     })
                 }
             }
             function showHelpTip(){
                 var helpTips = [
-                    Lang.HINT_PRESS_SPACE_TO_PAUSE.format('Space')
+                    top.Lang.HINT_PRESS_SPACE_TO_PAUSE.format('Space')
                 ];
                 notify(helpTips[0], 'fa-info', 'normal')
             }
+            var show = function (){
+                jQuery('#info').fadeIn(200)
+            }
+            var hide = function (){
+                jQuery('#info').fadeOut(200)
+            }
             var dragDrop = require('drag-drop');
             jQuery(function (){
-                top.recordingNotification = notify('...', 'fa-star', 'short');
-                top.recordingNotification.hide();
+                loadTheming();
                 var dropTarget = document.querySelector('#drop-target'), dragOverColorTimer = 0;
                 dragDrop(dropTarget, {
                     onDrop: function (files, pos) {
@@ -132,13 +147,7 @@
                         }
                         processFile(text)
                     }
-                });
-                var show = function (){
-                    jQuery('#info').fadeIn(200)
-                }
-                var hide = function (){
-                    jQuery('#info').fadeOut(200)
-                }
+                })
             })
 		</script>
     </body>

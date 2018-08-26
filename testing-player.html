@@ -11,6 +11,19 @@
 		<script type="text/javascript">
 			var b = jQuery('body');
 			var recoverDecodingErrorDate, recoverSwapAudioCodecDate;
+			function parseError(event) {
+				let error = event;
+				if (event.originalEvent) {
+					error = error.originalEvent;
+				}
+				if (event.path && event.path[0]) {
+					error = event.path[0].error;
+				}
+				if (event.originalTarget) {
+					error = error.originalTarget.error;
+				}
+				return typeof(error.message) != 'undefined' ? error.message : error;
+			}
 			function handleMediaError(hls) {
 				var now = performance.now();
 				if (!recoverDecodingErrorDate || (now - recoverDecodingErrorDate) > 3000) {
@@ -24,15 +37,16 @@
 						var msg = "trying to swap Audio Codec and recover from media Error ..."
 						console.warn(msg);
 						hls.swapAudioCodec();
-						hls.recoverMediaError();
+						hls.recoverMediaError()
 					} else {
 						var msg = "cannot recover, last media error recovery failed ..."
-						console.error(msg);
+						console.error(msg)
 					}
 				}
 			}		
 			function src(_src, type, video){
 				var hls = false;
+				console.log('Test src:', _src, type);
 				if(type.toLowerCase().indexOf('mpegurl')!=-1){
 					hls = new Hls({
 						//debug: true
@@ -68,7 +82,7 @@
 				return hls;
 			}			
 			function test(url, type, _success, _failure){
-				var hls, errTimer, v = jQuery('<video></video>'), video = v.get(0);
+				var hls, v = jQuery('<video></video>'), video = v.get(0), minBufSecs = Config.get('min-buffer-secs-before-commit');
 				v.appendTo('#testers');
 				var cleanup = () => {
 					try {
@@ -85,21 +99,9 @@
 						console.warn(e)
 					}
 				}
-				/*
-				v.on('canplay', () => {
-					console.warn('DURATIONCHANGE', video.duration, s);
-					return;
-					cleanup();
-					if(_success){
-						_success('canplay');
-						_success = _failure = null;
-					}
-				});
-				*/
 				v.on('durationchange', () => {
-					var s = top.minBufferSecsBeforeCommit;
-					console.warn('DURATIONCHANGE', video.duration, s);
-					if(video.duration >= s){
+					console.warn('DURATIONCHANGE', video.duration, minBufSecs);
+					if(video.duration >= minBufSecs){
 						cleanup();
 						if(_success){
 							_success('canplay');
@@ -110,17 +112,10 @@
 				v.on('error ended', (e) => {
 					cleanup();
 					if(_failure){
-						_failure(['error ended', e]);
+						_failure(['error ended', parseError(e)]);
 						_success = _failure = null;
 					}
 				});
-				errTimer = setTimeout(function (){
-					cleanup();
-					if(_failure){
-						_failure('timeout')
-						_success = _failure = null;
-					}
-				}, 30000); // tester timeout
 				hls = src(url, type, video);
 				return {
 					cancel: () => {

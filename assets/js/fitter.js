@@ -963,7 +963,7 @@ var Fitter = (() => {
                     if(!videos[i].currentTime && videos[i].src && videos[i].paused){
                         videos[i].play()
                     }
-                    if(videos[i].duration < intent.minBufferSecsBeforeCommit){
+                    if(videos[i].duration < Config.get('min-buffer-secs-before-commit')){
                         console.log('Video pos-discarded by duration (paused='+videos[i].paused+', currentTime='+videos[i].currentTime+', duration='+videos[i].duration+').');
                         continue;
                     } else {
@@ -1308,7 +1308,7 @@ var Fitter = (() => {
             }
             try{
                 if(intent.fitterCallback(list)){
-                    console.warn('PREPPAREDDDDDDDDDD!!!!!!!!!');
+                    // console.warn('PREPPAREDDDDDDDDDD!!!!!!!!!');
                     self.prepare(list)
                 }
             } catch(e) {

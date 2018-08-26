@@ -48,8 +48,9 @@ function buildPathStructure(path, group){ // group is entry object of type "grou
 
 var ListMan = (() => {
 
-    var self = {}, debug = false;
-
+    var self = {}, debug = true;
+    
+    self.badexts = ['jpg', 'jpeg', 'gif', 'bmp', 'png', 'txt'];
     self.regexes = {
         'group': new RegExp('group\-title *= *["\']*([^,"\']*)', 'i'),
         'logo': new RegExp('tvg\-logo *= *["\']*([^"\']+//[^"\']+)', 'i'),
@@ -187,7 +188,7 @@ var ListMan = (() => {
                     } else if(parsingStream) {
                         parsingStream.url = slist[i].trim();
                         parsingStream.source = url;
-                        if(parsingStream.url.match(self.regexes['validateprotocol']) && !parsingStream.url.match(self.regexes['validatehost'])){ // ignore bad stream urls
+                        if(parsingStream.url && self.badexts.indexOf(getExt(parsingStream.url)) == -1 && parsingStream.url.match(self.regexes['validateprotocol']) && !parsingStream.url.match(self.regexes['validatehost'])){ // ignore bad stream urls
                             flatList.push(parsingStream)
                         }
                         parsingStream = null;

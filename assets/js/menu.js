@@ -1,12 +1,12 @@
 
 var menuTemplates = {
-    'option': '<a href="[url]" role="button" onclick="return false;" class="entry entry-option [class]" title="[name] [label]" aria-label="[name] [label]"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><img src="[logo]" onerror="this.onerror=null;this.src=\'[default-logo]\';" /></span></td><td><span class="entry-name">[name]</span><span class="entry-label">[format-label]</span></td></tr></table></a>',
+    'option': '<a href="[url]" role="button" onclick="return false;" class="entry entry-option [class]" title="[name] [label]" aria-label="[name] [label]"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><span class="entry-logo-img-c"><img src="[logo]" onerror="this.onerror=null;this.src=\'[default-logo]\';" /></span></span></td><td><span class="entry-name">[name]</span><span class="entry-label">[format-label]</span></td></tr></table></a>',
     'disabled': '<a href="[url]" role="button" onclick="return false;" class="entry entry-disabled entry-offline [class]" aria-hidden="true"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><img src="[logo]" title="[name] - [group]" onerror="this.onerror=null;this.src=\'[default-logo]\';" /></span></td><td><span class="entry-name">[name]</span><span class="entry-label">[format-label]</span></td></tr></table></a>',
     'input': '<a href="[url]" role="button" onclick="return false;" class="entry entry-input [class]" title="[name] [label]" aria-label="[name] [label]"><table class="entry-search"><tr><td><input type="text" style="background-image: url([logo]);" /></td><td class="entry-logo-c"></td></tr></table></a>', // entry-input-container entry-search-helper
     'check': '<a href="[url]" role="button" onclick="return false;" class="entry entry-option [class]" title="[name] [label]" aria-label="[name] [label]"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><i class="fas fa-toggle-off entry-logo-fa" aria-hidden="true"></i></span></td><td><span class="entry-name">[name]</span></td></tr></table></a>',
     'stream': '<a href="[url]" role="button" onclick="return false;" class="entry entry-stream [class]" title="[name] [label]" aria-label="[name] [label]"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><span class="entry-logo-img-c"><img src="[logo]" onerror="lazyLoad(this, [\'[auto-logo]\', \'[default-logo]\'])" title="[name] - [group]" alt="[name]" /></span></span></td><td><span class="entry-name">[format-name]</span><span class="entry-label">[format-label]</span></td></tr></table></a>',
     'group': '<a href="[url]" role="button" onclick="return false;" class="entry entry-group [class]" title="[name] [label]" aria-label="[name] [label]"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><span class="entry-logo-img-c"><img src="[logo]" onerror="lazyLoad(this, [\'[auto-logo]\', \'[default-logo]\'])" title="[name] - [group]" alt="[name]" /></span></span></td><td><span class="entry-name">[name]</span><span class="entry-label">[format-label]</span></td></tr></table></a>', // onerror="nextLogoForGroup(this)" 
-    'slider': '<a href="[url]" role="button" onclick="return false;" class="entry entry-slider [class]" title="[name] [label]" aria-label="[name] [label]"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><img src="[logo]" onerror="this.onerror=null;this.src=\'[default-logo]\';" /></span></td><td><span class="entry-name">[name]</span><span class="entry-label"><input type="range" /></span></td></tr></table></a>'
+    'slider': '<a href="[url]" role="button" onclick="return false;" class="entry entry-slider [class]" title="[name] [label]" aria-label="[name] [label]"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><img src="[logo]" onerror="this.onerror=null;this.src=\'[default-logo]\';" /></span></td><td><span class="entry-name">[format-name]</span><span class="entry-label"><input type="range" /><span class="slider-value">[value]</span></span></td></tr></table></a>'
 };
 
 var defaultIcons = {
@@ -192,23 +192,23 @@ function listBackEffect(callback){
 }
 
 function about(){
-    var arch = process.arch == 'ia32' ? 'x86' : 'x64';
+    var name = appName(), arch = process.arch == 'ia32' ? 'x86' : 'x64';
     if(currentVersion > installedVersion){
-        var txt = gui.App.manifest.window.title+' v'+gui.App.manifest.version+' (< v'+currentVersion+') '+arch+"\n\n";
+        var txt = name + ' v'+gui.App.manifest.version+' (< v'+currentVersion+') '+arch+"\n\n";
         txt = applyFilters('about', txt);
         txt = trimChar(txt, "\n") + "\n\n" + Lang.NEW_VERSION_AVAILABLE;
         if(confirm(txt)){
             gui.Shell.openExternal('https://megacubo.tv/online/?version='+gui.App.manifest.version)
         }
     } else {
-        var txt = gui.App.manifest.window.title+' v'+gui.App.manifest.version+' '+arch+"\nhttps://megacubo.tv\n\n";
+        var txt = name + ' v'+gui.App.manifest.version+' '+arch+"\nhttps://megacubo.tv\n\n";
         txt = applyFilters('about', txt);
         txt = trimChar(txt, "\n");
         alert(txt)
     }
 }
 
-var sideWidgetEntries = [], searchSuggestions = [];
+var searchSuggestions = [];
 
 function getSearchSuggestions(){
     var url = 'http://app.megacubo.net/stats/data/searching.'+getLocale(true)+'.json';
@@ -216,13 +216,11 @@ function getSearchSuggestions(){
         var entries = [];
         if(suggestions && suggestions.length){
             searchSuggestions = suggestions;
-            sideWidgetEntries = [];
             suggestions.forEach((suggest, i) => {
                 suggestions[i].search_term = suggestions[i].search_term.trim();
                 if(parentalControlAllow(suggest.search_term)){
                     var t = Lang.SEARCH + ': ' + suggest.search_term, c = ucWords(suggest.search_term), s = encodeURIComponent(c), entry = {name: c, logo: 'http://app.megacubo.net/logos/'+encodeURIComponent(s)+'.png', type: 'stream', label: Lang.MOST_SEARCHED, url: 'mega://play|'+s};
-                    entries.push({name: '#'+suggest.search_term, logo: 'fa-search', type: 'option', class: 'entry-suggest', label: Lang.SEARCH, callback: () => {goSearch(suggest.search_term)}})
-                    sideWidgetEntries.push(entry);
+                    entries.push({name: suggest.search_term, defaultLogo: defaultIcons['stream'], logo: 'http://app.megacubo.net/logos/'+encodeURIComponent(suggest.search_term)+'.png', type: 'option', class: 'entry-suggest', label: Lang.SEARCH, callback: () => {goSearch(suggest.search_term)}})
                     var a = jQuery('<a href="#" title="'+t+'" aria-label="'+t+'">'+suggest.search_term+'</a>&nbsp;');
                     a.data('entry-data', entry).on('mousedown', (event) => {
                         var entry = jQuery(event.currentTarget).data('entry-data');
@@ -291,44 +289,10 @@ function renderRemoteSources(name){
     return [getLoadingEntry()];
 }
 
-function fetchEntries(url, callback){
-    console.log('FETCH', url);
-    var key = 'remote-entries-'+url, fbkey = key + '-fb', doFetch = false, data = Store.get(key);
-    if(!jQuery.isArray(data)){
-        doFetch = true;
-        data = Store.get(fbkey) // fallback
-        if(!jQuery.isArray(data)){
-            data = []
-        }
-    }
-    if(typeof(callback)=='function'){
-        if(doFetch){
-            jQuery.getJSON(url, (ndata) => {
-                if(jQuery.isArray(ndata) && ndata.length){
-                    for(var i=0; i<ndata.length; i++){
-                        ndata[i].name = fixUTF8(ndata[i].name)
-                    }
-                    Store.set(key, ndata, 60);
-                    Store.set(fbkey, ndata, 30 * (24 * 3600)); // fallback
-                    callback(ndata)
-                } else {
-                    callback(data)
-                }
-            }).fail(function (jqXHR, textStatus, errorThrown) {
-                console.warn('XMLHTTP failed', url, jqXHR, textStatus, errorThrown);
-                callback(data)
-            })
-        } else {
-            callback(data)
-        }
-    }
-    return data;
-}
-
 function fetchAndRenderEntries(url, name, filter, callback){
     var path = assumePath(name);
     var fetchPath = path;
-    console.log('FETCH', url, name, path, fetchPath, Menu.path, Menu.vpath);
+    console.log('FETCHNRENDER', url, name, path, fetchPath, Menu.path, Menu.vpath, traceback());
     setTimeout(() => { // avoid mess the loading entry returned, getting overridden by him
         fetchEntries(url, (options) => {
             console.log('FETCH 2', Menu.path, name, fetchPath, path);
@@ -405,7 +369,9 @@ function backEntry(label){
 }
 
 function backEntryRender(container, backPath, label){
-    // console.warn('#####################################', backPath, traceback());
+    if(Menu.debug){
+        console.warn('backEntryRender', backPath, traceback())
+    }
     Menu.container(true) // reset always for back button
     var back = backEntry(label);
     Menu.render([back], 1)
@@ -436,6 +402,28 @@ function setEntryFlag(el, flag, unique){
         flag = '';
     }
     jQuery(el).find('.entry-status > span').html(flag);
+}
+
+function setActiveEntry(data, flag){
+    if(!flag){
+        flag = 'fa-check-circle';
+    }
+    var ok, index = -1, es = Menu.entries(true, true);
+    for(var i = 0; i < es.length; i++){
+        ok = true;
+        for(var k in data){
+            if(typeof(es[i][k])=='undefined' || es[i][k] != data[k]){
+                ok = false;
+                break;
+            }
+        }
+        if(ok){
+            index = i;
+        }
+    }
+    if(index > -1){
+        setEntryFlag(Menu.entries(false, true).eq(index), flag, true)
+    }
 }
 
 function findEntries(term){
@@ -490,14 +478,6 @@ function findActiveEntries(term){
     return fas;
 }
 
-function removeLoadingFlags(){
-    var fa = 'fa-circle-notch', entries = findActiveEntries(fa);
-    for(var i=0;i<entries.length;i++){
-        console.log('pSET-'+i);
-        setEntryFlag(entries[i], '');
-    }
-}
-
 function markActiveSource(){
     var source = getActiveSource();
     if(source){
@@ -534,7 +514,7 @@ function markActiveLocale(){
 
 var searchKeypressTimer = 0, searchResultsLimit = 128, lastSearchTerm = Store.get('last-search-term');
 
-function setupSearch(term, type, name){
+function setupSearch(term, type, name, customSearchFn){
     Menu.path = assumePath(name);
     var container = Menu.container(true);
     backEntryRender(container, dirname(Menu.path), name);
@@ -590,8 +570,9 @@ function setupSearch(term, type, name){
                     var r;
                     switch(type){
                         case "live":
+                        case "all":
                             if(val.length){
-                                fetchSharedListsSearchResults(callback, null, val, true);
+                                fetchSharedListsSearchResults(callback, type, val, true);
                             }
                            break;
                         case "magnet":
@@ -599,13 +580,8 @@ function setupSearch(term, type, name){
                                 fetchMagnetSearchResults(callback);
                             }
                             break;
-                        case "video":
-                            if(val.length){
-                                fetchVideoSearchResults(callback);
-                            }
-                            break;
-                        case "prn":
-                            fetchPRNSearchResults(callback);
+                        case "custom":
+                            customSearchFn(callback, val);
                             break;
                     }
                 } else {
@@ -716,183 +692,91 @@ function fetchPRNSearchResults(cb){
     })
 }
 
-var sharedLists = [], sharedListsSearchWordsIndex = {};
-
-function fetchSharedLists(callback){
-    if(sharedLists.length){
-        callback(sharedLists)
-    } else {
-        if(Config.get('search-other-users-lists')){
-            var url = 'http://app.megacubo.net/stats/data/sources.'+getLocale(true)+'.json';
-            fetchEntries(url, (entries) => {
-                sharedLists = jQuery.unique(entries.map((entry) => { return entry.url; }).concat(callback));
-                callback(sharedLists)
-            })
-        } else {
-            callback(getSourcesURLs())
-        }
-    }
-}
-
-var buildenSharedListsSearchIndex = -1;
-
-function buildSharedListsSearchIndex(callback){
-    if(buildenSharedListsSearchIndex === -1){
-        buildenSharedListsSearchIndex = 0;
-        fetchSharedLists((urls) => {
-            var listsCountLimit = Config.get('search-range');
-            if(typeof(listsCountLimit)!='number' || listsCountLimit < 5){
-                listsCountLimit = 18; // default
-            }
-            if(urls.length > listsCountLimit){
-                urls = urls.slice(0, listsCountLimit)
-            }
-            var iterator = 0, completeIterator = 0, tasks = Array(urls.length).fill((asyncCallback) => {
-                var done = false, url = urls[iterator];
-                iterator++;
-                if(!buildenSharedListsSearchIndex && iterator >= 8){
-                    buildenSharedListsSearchIndex = true;
-                    jQuery(window).trigger('search-index-ready')
-                }
-                ListMan.parse(url, (entries) => {
-                    var b, s = [], sep = ' _|_ ';
-                    for(var i=0; i<entries.length; i++){
-                        b = (entries[i].name + ' ' + entries[i].group);
-                        if(b.indexOf(sep) != -1){
-                            b = b.replaceAll(sep, '')
-                        }
-                        s.push(b)
-                    }
-                    s = s.join(sep).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').split(sep);
-                    for(var i=0; i<entries.length; i++){
-                        //console.log('entry', entries[i]);
-                        entries[i].mediaType = -1;
-                        entries[i].source = url;
-                        s[i].split(' ').forEach((t) => {
-                            if(t.length > 1){
-                                if(typeof(sharedListsSearchWordsIndex[t])=='undefined'){
-                                    sharedListsSearchWordsIndex[t] = {items: [entries[i]]};
-                                } else {
-                                    sharedListsSearchWordsIndex[t].items.push(entries[i])
-                                }
-                            }
-                        })
-                    }
-                    completeIterator++;
-                    if(!done){
-                        done = true;
-                        asyncCallback()
-                    }
-                }, 7.5, true)            
-            });
-            if(typeof(async) == 'undefined'){
-                async = require('async')
-            }
-            async.parallelLimit(tasks, 20, (err, results) => {
-                if(!buildenSharedListsSearchIndex){
-                    buildenSharedListsSearchIndex = true;
-                    jQuery(window).trigger('search-index-ready')
-                }
-            })
-        })
-    } else if(callback) {
-        jQuery(window).off('search-index-ready', callback).on('search-index-ready', callback)
-    }
-}
-
-buildSharedListsSearchIndex();
-
 function getStreamBasicType(entry){
     var b = entry.name+' '+entry.group;
     return isRadio(b) ? 'radio' : ((entry.url.indexOf('mp4') != -1 || entry.url.indexOf('youtube.com') != -1) ? 'video' : 'live');
 }
 
 var sharedListsSearchCaching = false;
-function fetchSharedListsSearchResults(cb, type, term, matchAll){
-    if(buildenSharedListsSearchIndex === true){
-        var r = [], limit = 96;
-        if(!term){
-            var c = jQuery('.list > div > div input');
-            if(c.length){
-                term = c.val().toLowerCase()
-            } else {
-                term = ''
-            }
+function fetchSharedListsSearchResults(cb, type, term, matchAll, _strict){
+    var r = [], limit = 96;
+    if(!term){
+        var c = jQuery('.list > div > div input');
+        if(c.length){
+            term = c.val().toLowerCase()
+        } else {
+            term = ''
         }
-        if(term && term.length > 2){
-            if(sharedListsSearchCaching && sharedListsSearchCaching.query == term && sharedListsSearchCaching.type == type){
-                r = sharedListsSearchCaching.entries;
-            } else {
-                var blacklist = ['tv'], searchType = (type == 'video') ? 'video' : (isRadio(term) ? 'radio' : 'live'), maybe = [], already = {}, 
-                terms = term.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().split(' ').filter((kw) => {
-                    return kw.length >= 2 && blacklist.indexOf(kw) == -1;
-                });
-                if(terms.length >= 1){
-                    var resultHitMap = {}, resultEntryMap = {};
-                    terms.forEach((_term) => {
-                        var already = {}, _terms = [];
-                        if(typeof(sharedListsSearchWordsIndex[_term]) != 'undefined'){
-                            _terms.push(_term)
-                        }
-                        var l = _term.length, f = _term.charAt(0);
+    }
+    if(term && term.length > 2){
+        if(sharedListsSearchCaching && sharedListsSearchCaching.query == term && sharedListsSearchCaching.type == type && sharedListsSearchCaching.matchAll == matchAll && sharedListsSearchCaching.strict == _strict){
+            r = sharedListsSearchCaching.entries;
+        } else {
+            var blacklist = ['tv'], searchType = (type == 'all' ? 'all' : ((type == 'video') ? 'video' : (isRadio(term) ? 'radio' : 'live'))), maybe = [], already = {}, 
+            terms = term.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().split(' ').filter((kw) => {
+                return kw.length >= 2 && blacklist.indexOf(kw) == -1;
+            });
+            if(terms.length >= 1){
+                var resultHitMap = {}, resultEntryMap = {};
+                terms.forEach((_term) => {
+                    var already = {}, _terms = [];
+                    if(typeof(sharedListsSearchWordsIndex[_term]) != 'undefined'){
+                        _terms.push(_term)
+                    }
+                    var l = _term.length, f = _term.charAt(0);
+                    if(!_strict){
                         for(var k in sharedListsSearchWordsIndex){
                             if(k.length > l && k.charAt(0) == f && k.substr(0, l) == _term){
                                 _terms.push(k)
                             }
                         }
-                        _terms.forEach((t) => {
-                            if(typeof(sharedListsSearchWordsIndex[t]) != 'undefined'){
-                                sharedListsSearchWordsIndex[t].items.forEach((entry, i) => {
-                                    if(entry.mediaType == -1){
-                                        sharedListsSearchWordsIndex[t].items[i].mediaType = getStreamBasicType(entry);
+                    }
+                    _terms.forEach((t) => {
+                        if(typeof((_strict?sharedListsSearchWordsIndexStrict:sharedListsSearchWordsIndex)[t]) != 'undefined'){
+                            (_strict?sharedListsSearchWordsIndexStrict:sharedListsSearchWordsIndex)[t].items.forEach((entry, i) => {
+                                if(entry.mediaType == -1){
+                                    (_strict?sharedListsSearchWordsIndexStrict:sharedListsSearchWordsIndex)[t].items[i].mediaType = getStreamBasicType(entry);
+                                }
+                                if(('all' == searchType || entry.mediaType == searchType) && typeof(already[entry.url])=='undefined'){
+                                    already[entry.url] = true;
+                                    if(typeof(resultHitMap[entry.url])=='undefined'){
+                                        resultHitMap[entry.url] = 0;
                                     }
-                                    if(entry.mediaType == searchType && typeof(already[entry.url])=='undefined'){
-                                        already[entry.url] = true;
-                                        if(typeof(resultHitMap[entry.url])=='undefined'){
-                                            resultHitMap[entry.url] = 0;
-                                        }
-                                        resultHitMap[entry.url]++;
-                                        resultEntryMap[entry.url] = entry;
-                                    }
-                                })
-                            }
-                        });
-                        already = null;
-                    });
-                    var max = Math.max.apply(null, Object.values(resultHitMap));
-                    console.warn("GOLD", resultEntryMap, resultHitMap, terms);
-                    Object.keys(resultHitMap).sort((a, b) => {return resultHitMap[b] - resultHitMap[a]}).forEach((url) => {
-                        if(r.length < searchResultsLimit){
-                            if(!matchAll || resultHitMap[url] >= max){
-                                var entry = Object.assign({}, resultEntryMap[url]);
-                                r.push(entry)
-                            } else if(resultHitMap[url] >= max - 1) {
-                                var entry = Object.assign({}, resultEntryMap[url]);
-                                maybe.push(entry)
-                            }
+                                    resultHitMap[entry.url]++;
+                                    resultEntryMap[entry.url] = entry;
+                                }
+                            })
                         }
                     });
-                    console.warn("GOLD", r, maybe);
-                    if(r.length < limit && !matchAll){
-                        r = r.concat(maybe.slice(0, limit - r.length))
+                    already = null;
+                });
+                var max = matchAll ? terms.length : Math.max.apply(null, Object.values(resultHitMap));
+                //console.warn("GOLD", resultEntryMap, resultHitMap, terms);
+                Object.keys(resultHitMap).sort((a, b) => {
+                    return resultHitMap[b] - resultHitMap[a]
+                }).forEach((url) => {
+                    if(r.length < searchResultsLimit){
+                        if(!matchAll || resultHitMap[url] >= max){
+                            var entry = Object.assign({}, resultEntryMap[url]);
+                            r.push(entry)
+                        } else if(resultHitMap[url] >= max - 1) {
+                            var entry = Object.assign({}, resultEntryMap[url]);
+                            maybe.push(entry)
+                        }
                     }
-                    sharedListsSearchCaching = {type: type, query: term, entries: r};                    
+                });
+                //console.warn("GOLD", r, maybe);
+                if(r.length < limit && !matchAll){
+                    r = r.concat(maybe.slice(0, limit - r.length))
                 }
+                sharedListsSearchCaching = {type: type, query: term, entries: r, matchAll: matchAll, strict: _strict};                    
             }
         }
-        if(typeof(cb)=='function'){
-            cb(r)
-        }
-        return r;
-    } else {
-        //console.log('SSSS');
-        buildSharedListsSearchIndex(() => {
-            jQuery('.entry-loading').remove();
-            jQuery('.list input').trigger('input')
-        });
-        jQuery('.entry-loading').remove();
-        return [getLoadingEntry(Lang.GENERATING_INDEX+'...')];
     }
+    if(typeof(cb)=='function'){
+        cb(r)
+    }
+    return r;
 }
 
 function lettersToRange(a, b){
@@ -900,9 +784,13 @@ function lettersToRange(a, b){
     return a+'-'+b;
 }
 
-var Menu = (() => {
+function getAutoLogo(name){
+    return 'http://app.megacubo.net/logos/'+encodeURIComponent(name)+'.png';
+}
+
+Menu = (() => {
     var self = {};
-    self.debug = true;
+    self.debug = false;
     self.path = '';
     self.vpath = false;
     self.lastListScrollTop = 0;
@@ -919,7 +807,9 @@ var Menu = (() => {
         if(typeof(entries)=='undefined'){
             return (typeof(self.asyncResults[path])=='undefined' ? false : self.asyncResults[path])
         }
-        //console.log('ASYNCRESULT', entries, path);
+        if(self.debug){
+            console.log('ASYNCRESULT', entries, path, self.path)
+        }
         self.asyncResults[path] = entries;
         if(path == self.path){
             var container = self.container(true);
@@ -931,7 +821,7 @@ var Menu = (() => {
             }
         }
     }
-    self.containerParent = (reset) => {
+    self.containerParent = () => {
         if(!self._containerParent){
             self._containerParent = jQuery('#controls div.list')
         }
@@ -942,6 +832,9 @@ var Menu = (() => {
             self._container = self.containerParent().find('div > div').eq(0)
         }
         if(reset){
+            if(self.debug){
+                console.log('container reset')
+            }
             self.containerParent().prop('scrollTop', 0);
             self._container.html('');
             lastTabIndex = 1;
@@ -954,16 +847,19 @@ var Menu = (() => {
             if(inSearch){
                 self.containerParent().find('input').trigger('input');
             } else {
-                self.saveScroll();
+                self.saveScroll(true);
                 var s = self.path;
                 console.warn('no triggerer', s);
-                if(s){
-                    self.back()
-                } else {
-                    self.path = '-';                    
-                }
-                self.go(s);
-                self.restoreScroll()
+                self.path = '-';                    
+                self.go(s, () => {
+                    if(self.debug){
+                        console.log('after refresh', self.container().html())
+                    }
+                    self.restoreScroll()
+                    if(self.debug){
+                        console.log('after refresh', self.container().html())
+                    }
+                })
             }
         }
     }
@@ -974,7 +870,7 @@ var Menu = (() => {
         return self.triggeringCache[path] || false;
     }
     self.trigger = (data, element) => {
-        console.log('TRIGGER', data, element, traceback());
+        // console.log('TRIGGER', data, element, traceback());
         if(data.type == 'input' || (typeof(data.class)=='string' && data.class.indexOf('entry-disabled')!=-1)){
             return;
         }
@@ -982,7 +878,7 @@ var Menu = (() => {
             self.lastListScrollTop = jQuery('.list').scrollTop()
         }
         if(data.type == 'back'){
-            console.log(data.path);
+            //console.log(data.path);
             if(typeof(data.back)=='function'){
                 var entry = data;
                 setTimeout(function (){
@@ -990,7 +886,7 @@ var Menu = (() => {
                 }, loadingToActionDelay)
             }
             var newPath = dirname(self.path);
-            console.log('BACK', newPath);
+            // console.log('BACK', newPath);
             var triggerer = self.triggerer(newPath);
             self.go(newPath);
             setTimeout(() => { // without this delay the callback was being triggered too quick.
@@ -1004,7 +900,7 @@ var Menu = (() => {
             }, loadingToActionDelay);
             return true;
         }
-        self.saveScroll();  
+        self.saveScroll(true);  
         if(typeof(data.path)=='undefined'){
             data.path = '';
         }
@@ -1021,7 +917,7 @@ var Menu = (() => {
                 console.log('!! RENDERER DIDNT RETURNED A ARRAY', entries, data.path);
             }
         }
-        console.log('TRIGGER DATA', npath, data, data.path, entries);
+        //console.log('TRIGGER DATA', npath, data, data.path, entries);
         if(data.type == 'group'){
             entries = applyFilters('internalFilterEntries', entries, npath);
             self.triggerer(npath, data);
@@ -1106,21 +1002,26 @@ var Menu = (() => {
             }
         }
         var t = typeof(data.callback);
-        console.log('CALLBACK', t, data);
+        //console.log('CALLBACK', t, data);
         if(t == 'function'){
-            setTimeout(function (){
+            setTimeout(() => {
                 data.callback(data, element)
-            }, 150)
+            }, 200)
         } else if(isStreamEntry(data)) {
-            console.log('PLAY', data);
+            //console.log('PLAY', data);
             playEntry(data)
         }
     }
     self.adjustBodyClass = (inHome) => {
-        if(inHome){
-            jQuery('body').addClass('home')
-        } else {
-            jQuery('body').removeClass('home')
+        if(!self.vpath){
+            if(inHome || (Menu.path.indexOf('/') == -1 && jQuery('body').hasClass('submenu'))){
+                if(self.debug){
+                    console.warn('INHOME', traceback(), inHome, Menu.path)
+                }
+                jQuery('body').addClass('home')
+            } else {
+                jQuery('body').removeClass('home')
+            }
         }
     }
     self.entries = (getData, visibleOnly) => {
@@ -1135,33 +1036,53 @@ var Menu = (() => {
         }
         self.saveScroll();
         var lst = self.containerParent();
-        //console.log('Menu.list OFFSET', at);
-        //console.log('Menu.list PREFILTER', entries, path, traceback());
+        if(self.debug){
+            console.log('Menu.list OFFSET', at);
+            console.log('Menu.list PREFILTER', entries, path, traceback())
+        }
         var container = self.container(false);
         var tabIndexOffset = getTabIndexOffset();
         entries = applyFilters('filterEntries', entries, path);
-        //console.log('Menu.list POSFILTER', entries, path, traceback());
+        if(self.debug){
+            console.log('Menu.list POSFILTER', entries, path, traceback())
+        }
         for(var i=0; i<entries.length; i++){
             entries[i].path = path;
         }
         self.path = path;
+        if(self.debug){
+            console.log('Menu.list', container.html().substr(0, 1024))
+        }
         self.render(entries, tabIndexOffset, at);
-        //console.log('Menu.list', container.html().substr(0, 36));
+        if(self.debug){
+            console.log('Menu.list', container.find('a').length, container.html().substr(0, 1024))
+        }
         if(typeof(at)=='number'){
             jQuery('body').addClass('submenu')
         } else {
             updateStreamEntriesFlags();
             jQuery('body').removeClass('submenu')
         }
+        if(self.debug){
+            console.log('Menu.list', container.find('a').length, container.html().substr(0, 1024))
+        }
         var lps = 7;
         lst.find('.marquee:not(.marquee-adjusted)').each((i, e) => {
             jQuery(e).addClass('marquee-adjusted').find('*:eq(0)').css('animation-duration', parseInt(e.innerText.length / lps)+'s')
         });
+        if(self.debug){
+            console.log('Menu.list', container.find('a').length, container.html().substr(0, 1024))
+        }
         focusEntryItem(lst.find('a.entry:not(.entry-back):eq(0)'), true);
+        if(self.debug){
+            console.log('Menu.list', container.find('a').length, container.html().substr(0, 1024))
+        }
         return entries;
     }
     self.render = (entries, tabIndexOffset, at) => { // render entries
-        //console.log(entry);
+        if(self.debug){
+            console.log('render', entries)
+        }
         if(typeof(at) != 'number' || at < 0){
             at = false;
         }
@@ -1189,7 +1110,7 @@ var Menu = (() => {
                 }
             }
             //console.log('WWWWWWWWWWWWW', entry);
-            var autoLogo = 'http://app.megacubo.net/logos/'+encodeURIComponent(entry.name)+'.png', logo = entry.logo || (entry.type=='stream'?autoLogo:false) || defaultIcons[entry.type];
+            var autoLogo = getAutoLogo(name), logo = entry.logo || (entry.type=='stream'?autoLogo:false) || defaultIcons[entry.type];
             var originalLogo = entry.originalLogo || entry.logo || defaultIcons[entry.type];
             if(typeof(menuTemplates[entry.type])=='undefined'){
                 console.log('BAD BAD ENTRY', entry);
@@ -1199,7 +1120,7 @@ var Menu = (() => {
             html = html.replace('<a ', '<a tabindex="'+tabIndexOffset+'" ').replace('<input ', '<input tabindex="'+tabIndexOffset+'" ');
             html = html.replaceAll('[name]', displayPrepareName(entry.name, entry.prependName || '', entry.appendName || ''));
             if(html.indexOf('[format-name]')!=-1){
-                var minLengthToMarquee = 36, n = entry.rawname ? parseM3U8NameTags(entry.rawname) : entry.name;
+                var minLengthToMarquee = 32, n = entry.rawname ? parseM3U8NameTags(entry.rawname) : entry.name;
                 if(entry.name.length >= minLengthToMarquee){
                     n = '<span>'+n+'</span>';
                     html = html.replace('entry-name', 'entry-name marquee')
@@ -1214,13 +1135,14 @@ var Menu = (() => {
             } else {
                 html = html.replaceAll('[logo]', logo);
                 html = html.replaceAll('[auto-logo]', autoLogo);
-                html = html.replaceAll('[default-logo]', defaultIcons[entry.type])
+                html = html.replaceAll('[default-logo]', entry.defaultLogo || defaultIcons[entry.type])
             }
             html = html.replaceAll('[group]', entry.group || '');
             html = html.replaceAll('[label]', (entry.label || entry.group || '').replace(new RegExp(' *<\\/?[^>]+> *', 'g'), ' ').replaceAll('"', '&amp;quot;'));
             html = html.replaceAll('[format-label]', (entry.label || entry.group || ''));
             html = html.replaceAll('[class]', entry.class || '');
             html = html.replaceAll('[url]', entry.url || entry.originalUrl || ' ');
+            html = html.replaceAll('[value]', typeof(entry.mask)!='undefined' ? entry.mask.format(entry.value) : entry.value);
             // console.log('#####################', html, entry);
             allHTML += html;
             atts.data = entry;
@@ -1229,18 +1151,18 @@ var Menu = (() => {
                     var me = jQuery(event.currentTarget);
                     var data = me.data('entry-data');
                     if(data.type == 'check') {
-                        var checked = typeof(data.checked)!='undefined' && data.checked();
+                        var checked = typeof(data.checked)!='undefined' && data.checked(data);
                         checked = !checked;
                         var checkCallback = data.check || false;
                         handleEntryInputChecking(me, checked);
-                        if(typeof(data.check)=='function') data.check(checked)
+                        if(typeof(data.check)=='function') data.check(checked, data)
                         //console.warn('OK?', data, checked, data.check);
                     } else {
                         self.trigger(data, event.currentTarget)
                     }
                 }
                 if(entry.type == 'check') {
-                    atts.checked = typeof(entry.checked)!='undefined' && entry.checked()
+                    atts.checked = typeof(entry.checked)!='undefined' && entry.checked(entry)
                 }
             }
             var actions = ['delete', 'rename'];
@@ -1255,7 +1177,13 @@ var Menu = (() => {
                 if(entry['change']){
                     atts.input = (event) => {
                         jQuery('body').trigger('wake');
-                        entry['change'](entry, event.currentTarget, event.currentTarget.getElementsByTagName('input')[0].value);
+                        var n = event.currentTarget.getElementsByTagName('input')[0], v = n.value;
+                        if(n.type == 'range'){
+                            v = parseInt(entry.range.start + (parseInt(v) * ((entry.range.end - entry.range.start) / 100)));
+                            event.currentTarget.querySelector('span.slider-value').innerText = typeof(entry.mask)!='undefined' ? entry.mask.format(v) : v;
+                        }
+                        entry.value = v;
+                        entry['change'](entry, event.currentTarget, v)
                     }
                 }
                 if(typeof(entry['value'])!='undefined'){
@@ -1283,6 +1211,9 @@ var Menu = (() => {
             allEvents.push(atts);
             tabIndexOffset++;
         });
+        if(self.debug){
+            console.log('render', at, allHTML)   
+        }
         var ri = allEvents.length, rv = null;
         if(typeof(at)=='number'){
             //console.warn('AAAAAAAAAAAAA', at);
@@ -1321,7 +1252,12 @@ var Menu = (() => {
                             jQuery(element).find('input').prop('placeholder', allEvents[ri][key]);
                             break;
                         case 'value': 
-                            jQuery(element).find('input').val(allEvents[ri][key]);
+                            var v = allEvents[ri][key], n = jQuery(element).find('input');
+                            if(n.attr('type') == 'range'){
+                                var entry = jQuery(element).data('entry-data');
+                                v = parseInt((v - entry.range.start) / ((entry.range.end - entry.range.start) / 100))
+                            }
+                            n.val(v);
                             break;
                         case 'checked': 
                             handleEntryInputChecking(jQuery(element), allEvents[ri][key]);
@@ -1333,44 +1269,50 @@ var Menu = (() => {
                 }
             }
         })
+        if(self.debug){
+            console.log('render', self.container().html())  
+        }
     }
-    self.saveScroll = () => {
-        var c = self.container(), p = self.containerParent(), h = c.height();
-        c.css({height: h + 'px'});
-        p.css({opacity: 0.75});
-        var l = p.scrollTop();
-        if(l){
+    self.saveScroll = (force) => {
+        var p = self.containerParent(), l = p.scrollTop();
+        if(l || force === true){
             self.scrollTopCache[self.path] = l;
         }
     }
     self.restoreScroll = () => {
-        var c = self.container();
+        var c = self.container(), _path= Menu.path;
         if(!Menu.path){
             c.css('height', 'auto');
+            self.adjustBodyClass(true);
             return;
         }
+        if(_path != Menu.path) return;
+        var p = self.containerParent(), t = 0;
+        if(typeof(self.scrollTopCache[self.path])!='undefined'){
+            t = self.scrollTopCache[self.path];
+        }
+        c.css('height', 'auto');
+        var rv = c.find('.entry-sub');
+        if(rv.length) {
+            var sl = rv.last();
+            var ct = p.scrollTop();
+            var ch = p.height();
+            var tp = sl.prop('offsetTop') + sl.height() - ch + 18;
+            var ft = rv.first().prop('offsetTop');
+            focusEntryItem(rv.eq(1), true);
+            if(t < tp){
+                t = tp;
+            } else if(t > ft) {
+                t = ft;
+            }
+        }
+        p.scrollTop(t);
+        if(_path != Menu.path) return;
         setTimeout(() => {
-            var p = self.containerParent(), t = 0;
-            if(typeof(self.scrollTopCache[self.path])!='undefined'){
-                t = self.scrollTopCache[self.path];
-            }
-            c.css('height', 'auto');
-            var rv = c.find('.entry-sub');
-            if(rv.length) {
-                var sl = rv.last();
-                var ct = p.scrollTop();
-                var ch = p.height();
-                var tp = sl.prop('offsetTop') + sl.height() - ch + 18;
-                focusEntryItem(rv.eq(1), true);
-                if(t < tp){
-                    t = tp;
-                }
-            }
-            p.animate({opacity: 1}, 250).scrollTop(t)
-            setTimeout(() => {
-                p.scrollTop(t)
-            }, 600)
-        }, 200)
+            if(_path != Menu.path) return;
+            p.scrollTop(t);
+            self.adjustBodyClass(false);
+        }, 150)
     }
     self.getFocus = () => {
         var f = jQuery('.entry-focused');
@@ -1379,63 +1321,63 @@ var Menu = (() => {
         }
         return f;
     }
+    self.navigables = () => {
+        var navigables = [], modal = jB.hasClass('modal'), insub = jB.hasClass('submenu');
+        if(modal){
+            jB.find('#modal-overlay').find('input, textarea, .button:visible').each((i, element) => {
+                navigables.push(element)
+            })
+        } else if(insub) {
+            jB.find('.entry-sub:visible').each((i, element) => {
+                navigables.push(element)
+            })
+        } else {
+            jB.find('.entry:visible').each((i, element) => {
+                navigables.push(element)
+            })
+        }
+        if(!modal){
+            if(!insub){
+                jB.find('a.option:visible').each((i, element) => {
+                    navigables.push(element)
+                })
+            }
+        }
+        jB.find('button.nw-cf-btn:visible').each((i, element) => {
+            navigables.push(element)
+        });
+        if(!modal){
+            navigables.push(document.getElementById('controls-toggle'))
+        }
+        return navigables;
+    }
     self.focusPrevious = () => {
-        var insub = jQuery('.entry-sub').length, aq = 'a.entry';
-        if(insub) aq += '.entry-sub';
-        var e = self.getFocus(), p = e.prevAll(aq+':visible, button.nw-cf-btn:visible, a.option:visible').eq(0);
+        var navigables = self.navigables();
+        var e = self.getFocus();
+        var p, i = navigables.indexOf(e.get(0));
+        if(i < 1){
+            p = navigables[navigables.length - 1];
+        } else {
+            p = navigables[i - 1];
+        }
         if(self.debugMenuFocus){
-            console.log('Menu.focusPrevious', e, p)
+            console.log('Menu.focusPrevious', i, e, p)
         }
-        if(!p.length){
-            if(e.attr('id') == 'controls-toggle'){
-                p = jQuery('a.option:visible:eq(-1)')
-            } else if(e.hasClass('entry')) {
-                p = jQuery('.nw-cf-btn:eq(-1)')
-            } else if(!insub && e.hasClass('option')) {
-                p = jQuery(aq+':visible:eq(-1)')
-            } else {
-                p = jQuery('#controls-toggle')
-            }      
-            if(self.debugMenuFocus){
-                console.log('Menu.focusPrevious', e, p)
-            }
-            if(!p.length){
-                p = jQuery(aq+':not(.entry-back):visible:eq(-1)');
-                if(self.debugMenuFocus){
-                    console.log('Menu.focusPrevious', e, p)
-                }
-            }
-        }
-        focusEntryItem(p)
+        focusEntryItem(jQuery(p))
     }
     self.focusNext = () => {
-        var insub = jQuery('.entry-sub').length, aq = 'a.entry';
-        if(insub) aq += '.entry-sub';
-        var e = self.getFocus(), nxt = e.nextAll(aq+':visible, button.nw-cf-btn:visible, a.option:visible').eq(0);
+        var navigables = self.navigables();
+        var e = self.getFocus();
+        var n, i = navigables.indexOf(e.get(0));
+        if(i > (navigables.length - 2)){
+            n = navigables[0];
+        } else {
+            n = navigables[i + 1];
+        }
         if(self.debugMenuFocus){
-            console.log('Menu.focusNext', e, nxt)
+            console.log('Menu.focusNext', i, e, n)
         }
-        if(!nxt.length){
-            if(e.attr('id') == 'controls-toggle'){
-                nxt = jQuery('.nw-cf-btn:eq(0)')
-            } else  if(e.hasClass('entry')){
-                nxt = jQuery(insub ? '#controls-toggle' : 'a.option:visible:eq(0)')
-            } else  if(e.hasClass('option')){
-                nxt = jQuery('#controls-toggle')
-            } else {
-                nxt = jQuery(aq+':visible:eq(0)')
-            }
-            if(self.debugMenuFocus){
-                console.log('Menu.focusNext', e, nxt)
-            }
-            if(!nxt.length){
-                nxt = jQuery(aq+':not(.entry-back):visible:eq(0)');
-                if(self.debugMenuFocus){
-                    console.log('Menu.focusNext', e, nxt)
-                }
-            }
-        }
-        focusEntryItem(nxt)
+        focusEntryItem(jQuery(n))
     }
     self.triggerKey = (type) => {
         jQuery(document.activeElement).trigger(type);
@@ -1444,6 +1386,9 @@ var Menu = (() => {
         self.vpath = false;
         jQuery('body').removeClass('submenu'); 
         var subs = self.container().find('a.entry-sub');
+        if(self.debug){
+            console.log('BACK', subs.length, self.path, traceback())
+        }
         if(subs.length){  
             var subsub = subs.filter('a.entry-sub-sub');
             self.path = dirname(self.path);
@@ -1513,8 +1458,12 @@ var Menu = (() => {
         }
     }
     self.go = (fullPath, _cb) => {
+        if(self.debug){
+            console.log('GO', fullPath)
+        }
         self.vpath = false;
         var timeout = 10000, ms = 50, retries = timeout / ms, cb = () => {
+            self.restoreScroll();
             if(typeof(_cb) == 'function'){
                 _cb()
             }
@@ -1550,10 +1499,12 @@ var Menu = (() => {
             }
             if(self.debug) console.warn('OPEN', next,  'IN', entries, cumulatedPath);
             for(var i=0; i<entries.length; i++){
-                if(entries[i].name == next){
+                if(entries[i] && entries[i].name == next){
                     var nentries = read(entries[i]);
                     nentries = applyFilters('internalFilterEntries', nentries, cumulatedPath);
-                    if(self.debug) console.warn('OPENED', nentries);
+                    if(self.debug){
+                        console.warn('OPENED', nentries)
+                    }
                     return nentries;
                 }
             }
@@ -1573,7 +1524,9 @@ var Menu = (() => {
             return nentries;
         }
         var enter = (entries, next) => {
-            if(self.debug) console.log('enter(next=', next, ')', cumulatedPath, entries, path);
+            if(self.debug){
+                console.log('enter(next=', next, ')', cumulatedPath, entries, path)
+            }
             if(entries.length){
                 if(entries[0].class != 'entry-loading') {
                     if(next){ 
@@ -1597,9 +1550,12 @@ var Menu = (() => {
                         backEntryRender(container, dirname(fullPath), basename(fullPath));
                         self.list(entries, fullPath);
                         if(self.debug){
-                            console.warn('listed successfully', entries)
+                            console.warn('listed successfully', entries, container.html().substr(0, 1024))
                         }
-                        cb()
+                        cb();
+                        if(self.debug){
+                            console.warn('listed successfully 2', entries, container.html().substr(0, 1024))
+                        }
                         /*
                         if(!fullPath || entries.length >= self.subMenuSizeLimit){
                             self.list(entries, fullPath);
@@ -1761,8 +1717,7 @@ var Menu = (() => {
 })();
 
 function goHistory(){
-    Menu.go(Lang.OPTIONS+'/'+Lang.HISTORY);
-    setBackToHome()
+    Menu.go(Lang.OPTIONS+'/'+Lang.HISTORY, setBackToHome)
 }
 
 function lazyLoad(element, srcs){
@@ -1855,16 +1810,18 @@ jQuery(() => {
                 var megaUrl = false;
                 var aopt = {type: 'option', name: n, label: Lang.AUTO_TUNING, logo: 'fa-magic', class: 'entry-autoclean', callback: () => {
                     if(autoCleanEntriesRunning()){
-                        autoCleanEntriesCancel()
+                        autoCleanEntriesCancel();
+                        leavePendingState()
                     } else {
+                        enterPendingState(null, Lang.TUNING, '');
                         autoCleanEntries(null, (entry, controller, succeededIntent) => {
-                            console.warn('ACE SUCCES CB 2', entry, succeededIntent.ended, controller, succeededIntent);
+                            console.warn('Autoclean onsuccess entry callback', entry, controller, succeededIntent);
                             if(succeededIntent){
                                 PlaybackManager.stop();
                                 PlaybackManager.commitIntent(succeededIntent)
                             }
                         }, () => {
-
+                            leavePendingState()
                         }, () => {
 
                         }, true, true, megaUrl)
@@ -1876,18 +1833,19 @@ jQuery(() => {
                         n = Lang.TRY_OTHER_STREAM;
                     }
                     var opts = {name: Lang.OPTIONS, label: Lang.SEARCH, type: 'group', logo: 'assets/icons/white/settings.png', entries: [
-                        {name: Lang.VIDEO_SEARCH, label: '', logo: 'fa-film', type: 'option', value: lastSearchTerm, callback: () => { setupSearch(lastSearchTerm, 'video', Lang.VIDEO_SEARCH) }},
-                        {name: Lang.MAGNET_SEARCH, label: '', logo: 'fa-magnet', type: 'option', value: lastSearchTerm, callback: () => { setupSearch(lastSearchTerm, 'magnet', Lang.MAGNET_SEARCH) }}
+                        {name: Lang.MAGNET_SEARCH, label: '', logo: 'fa-magnet', type: 'option', value: lastSearchTerm, callback: () => { 
+                            setupSearch(lastSearchTerm, 'magnet', Lang.MAGNET_SEARCH);
+                            setBackTo(searchPath)
+                        }},
+                        {name: Lang.TUNE, type: 'option', logo: 'fa-broadcast-tower', callback: () => { 
+                            Menu.go(tunePath);
+                            setBackTo(searchPath)
+                        }},
+                        {name: Lang.SECURITY, type: 'option', logo: 'fa-shield-alt', callback: () => { 
+                            Menu.go(secPath);
+                            setBackTo(searchPath)
+                        }}
                     ]};
-                    if(showAdultContent){
-                        opts.entries.push({name: Lang.ADULT_SEARCH, label: '', logo: 'fa-fire', type: 'option', value: lastSearchTerm, callback: () => { setupSearch(lastSearchTerm, 'prn', Lang.ADULT_SEARCH) }})
-                    }
-                    opts.entries.push(searchRangeOption()),
-                    opts.entries.push(
-                        getParentalControlToggler(() => {
-                            goSearch()
-                        })
-                    );
                     if(ac){
                         nentries.splice(firstStreamOrGroupEntryOffset, 0, aopt)
                     }
@@ -1898,13 +1856,6 @@ jQuery(() => {
             }
         }
         if(hasStreams && !hasVisibleStreams){ // has stream entries, but them're blocked by the parental control
-            nentries.push(getParentalControlToggler(() => {
-                var path = Menu.path;
-                Menu.back();
-                setTimeout(() => {
-                    Menu.go(path)
-                }, 400)
-            }));
             nentries.push({name: Lang.EMPTY, logo:'fa-file', type: 'option'})
         } else {
             jQuery('.entry-empty').remove()

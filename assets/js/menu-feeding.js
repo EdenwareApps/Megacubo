@@ -21,7 +21,7 @@ function getWindowModeEntries(short){
             Menu.refresh()
         }})
         if(short !== true){
-            options.push({name: Lang.DUPLICATE+' (Ctrl+Alt+D)', logo:'fa-copy', type: 'option', callback: function (){
+            options.push({name: Lang.DUPLICATE+' (Ctrl+T)', logo:'fa-copy', type: 'option', callback: function (){
                 spawnOut()
             }})
         }
@@ -37,10 +37,10 @@ function getWindowModeEntries(short){
             resLimit = res;
             Config.set('resolution-limit', res);
             Menu.refresh();
-            applyResolutionLimit(Menu.restoreScroll);
-            mrk()
+            mrk();
+            Menu.restoreScroll()
         }, mrk = () => {
-            var entries = jQuery('a.entry-option'), range = Config.get('search-range') || 18;
+            var entries = jQuery('a.entry-option');
             entries.each((i) => {
                 var el = entries.eq(i), v = el.data('entry-data');
                 if(v && v.label == resLimit){
@@ -62,12 +62,6 @@ function getWindowModeEntries(short){
                 cb(data.label)
             }}
         ], callback: mrk});   
-        options.push({name: Lang.START_IN_FULLSCREEN, type: 'check', check: function (checked){
-            Config.set('start-in-fullscreen', checked)
-        }, checked: () => {
-                return Config.get('start-in-fullscreen')
-            }
-        })
         options.push({name: Lang.GPU_RENDERING, type: 'check', check: function (checked){
             notify(Lang.SHOULD_RESTART, 'fa-cogs faclr-yellow', 'normal');
             Config.set('gpu-rendering', checked);
@@ -179,7 +173,6 @@ function loadSource(url, name, callback, filter){
                         })
                     }
                 }
-                jQuery('.entry:not(.entry-back)').remove();
                 Menu.asyncResult(path, parsed)
             } else {
                 failed()
@@ -197,39 +190,26 @@ function getWatchingEntries(){
 }
 
 function getWatchingData(cb, update){
-    var ckey = 'watching-data';
-    data = Store.get(ckey);
-    if(!jQuery.isArray(data)){
-        data = [];
-    }
-    if(update || !data.length){
-        var url = 'http://app.megacubo.net/stats/data/watching.'+getLocale(true)+'.json';
-        fetchEntries(url, (entries) => {
-            if(!jQuery.isArray(entries)){
-                entries = [];
-            } else {
-                entries = entries.map((entry) => {
-                    entry.label = entry.label.format(Lang.USER, Lang.USERS);
-                    if(!entry.logo){
-                        entry.logo = 'http://app.megacubo.net/logos/'+encodeURIComponent(entry.name)+'.png';
-                    }
-                    setStreamStateCache(entry, true);
-                    return entry;
-                });
-                //sharedListsSearchIndex['watching'] = entries;
-            }
-            if(entries.length){
-                Store.set(ckey, entries, 30 * (24 * 3600))
-            }
-            if(typeof(cb)=='function'){
-                cb(entries)
-            }
-        })
-    } else {
-        if(typeof(cb)=='function'){
-            cb(data)
+    var url = 'http://app.megacubo.net/stats/data/watching.'+getLocale(true)+'.json';
+    data = fetchEntries(url, (entries) => {
+        if(!jQuery.isArray(entries)){
+            entries = [];
         }
-    }
+        entries = entries.map((entry) => {
+            entry.label = entry.label.format(Lang.USER, Lang.USERS);
+            if(!entry.logo){
+                entry.logo = 'http://app.megacubo.net/logos/'+encodeURIComponent(entry.name)+'.png';
+            }
+            setStreamStateCache(entry, true);
+            return entry;
+        });
+        if(isListSharingActive()) {
+            addEntriesToSearchIndex(entries)
+        }
+        if(typeof(cb)=='function'){
+            cb(entries)
+        }
+    });
     return data;
 }
 
@@ -243,56 +223,103 @@ function preInjectClean(prepend){
     }
 }
 
-var updateSideSidgetDelay = 0;
 function posInjectClean(){
-    clearTimeout(updateSideSidgetDelay);
     for(var i=0; i<Menu.index.length; i++){
         if(Menu.index[i] && !Menu.index[i].prependName && Menu.index[i].type == 'stream'){
             Menu.index.splice(i, 1);
             break;
         }
     }
-    updateSideSidgetDelay = setTimeout(() => {
-        updateSideWidget()
-    }, 100)
 }
 
-function injectContinueOption(){
-    var lastEntry, prepend = Lang.CONTINUE+':';
-    var c = currentStream(), playingName = c ? c.name : false;
-    var start = (c || Config.get('resume')) ? 1 : 0;
+function setMiniPlayerContinueData(entry, prepend){
+    if(entry && entry.name){
+        var html = '<img src="[logo]" onerror="lazyLoad(this, [\'[auto-logo]\', \'[default-logo]\'])" title="" />', autoLogo = getAutoLogo(entry.name);
+        if(entry.logo.substr(0, 3)=="fa-"){
+            html = html.replace(new RegExp('<img[^>]+>', 'mi'), '<i class="fas '+entry.logo+' entry-logo-fa" aria-hidden="true"></i>')
+        } else if(entry.logo.indexOf(" fa-")!=-1){
+            html = html.replace(new RegExp('<img[^>]+>', 'mi'), '<i class="'+entry.logo+' entry-logo-fa" aria-hidden="true"></i>')
+        } else {
+            html = html.replaceAll('[logo]', entry.logo);
+            html = html.replaceAll('[auto-logo]', autoLogo);
+            html = html.replaceAll('[default-logo]', defaultIcons['stream'])
+        }
+        jQuery('.miniplayer-continue-logo').html(html);
+        jQuery('.miniplayer-continue-text').html((prepend ? (prepend + ' ') : '') + entry.name);
+        jQuery('#miniplayer-continue').off('click').on('click', () => {
+            playEntry(entry)
+        })
+    }
+}
+
+function injectContinueOptions(){
+    var entry, prepend = Lang.CONTINUE + ':';
+    var i = Menu.index.length;
     preInjectClean(prepend);
-    for(var i=start; i < 3; i++){
-        lastEntry = History.get(i);
-        if(lastEntry && lastEntry.name != playingName){
-            lastEntry.prependName = String(prepend);
-            lastEntry.label = basename(lastEntry.group || '');
-            if(!lastEntry.logo || lastEntry.logo.indexOf('.')==-1){
-                lastEntry.logo = 'fa-redo-alt';
+    if(i != Menu.index.length){
+        Menu.refresh()
+    }
+    var e = jQuery('a.entry'), ch = jQuery('div#controls').height(), eh = e.eq(0).outerHeight(); 
+    var maxLimit = 1, limit = Math.floor((ch / eh)) - (e.length + 1);
+    //console.warn('CONTINUE', limit, e.length, i, ch, eh);
+    if(limit > maxLimit){
+        limit = maxLimit;
+    } else if(limit < 1) {
+        limit = 1;
+    }
+    var start = (c || Config.get('resume')) ? 1 : 0;
+    var lastEntries = [], already = [];
+    var c = currentStream(), playingName = c ? c.name : false;
+    if(playingName){
+        already.push(playingName)
+    }
+    for(var i=start; i < 20 && limit > 0; i++){
+        entry = History.get(i);
+        //console.warn('CONTINUE', i, entry);
+        if(entry && already.indexOf(entry.name) == -1){
+            already.push(entry.name);
+            entry.prependName = String(prepend);
+            entry.label = basename(entry.group || '');
+            if(!entry.logo || entry.logo.indexOf('.')==-1){
+                entry.logo = 'fa-redo-alt';
             }
-            var go = (iconExists) => {
-                if(!iconExists){
-                    lastEntry.logo = 'fa-redo-alt';
-                }
-                preInjectClean(prepend);
-                Menu.index.unshift(lastEntry);
-                posInjectClean();
-                if(!Menu.path){
-                    Menu.refresh()
-                }
-            }
-            if(lastEntry.logo && lastEntry.logo.substr(0, 3)!='fa-'){
-                checkImage(lastEntry.logo, () => {
-                    go(true)
-                }, () => {
-                    go(false)
-                })
-            } else {
-                go(false)
-            }
-            break;
+            lastEntries.push(entry);
+            limit--;
         }
     }
+    console.warn('CONTINUE', lastEntries);
+    var iterator = 0, finalEntries = [], tasks = Array(lastEntries.length).fill((callback) => {
+        var entry = lastEntries[iterator];
+        iterator++;
+        var go = (iconExists) => {
+            if(!iconExists){
+                entry.logo = 'fa-redo-alt';
+            }
+            //console.warn('CONTINUE', entry);
+            finalEntries.push(entry);
+            callback()
+        }
+        if(entry.logo && entry.logo.substr(0, 3)!='fa-'){
+            checkImage(entry.logo, () => {
+                go(true)
+            }, () => {
+                go(false)
+            })
+        } else {
+            go(false)
+        }
+    });
+    async.parallel(tasks, (err, results) => { 
+        //console.warn('CONTINUE', finalEntries);
+        finalEntries.reverse().forEach((entry) => {
+            Menu.index.unshift(entry)
+        });
+        setMiniPlayerContinueData(finalEntries[0], prepend);
+        posInjectClean();
+        if(!Menu.path){
+            Menu.refresh()
+        }
+    })
 }
 
 function injectFeaturedOption(entry){
@@ -307,148 +334,24 @@ function injectFeaturedOption(entry){
     if(!Menu.path){
         Menu.refresh()
     }
+    setMiniPlayerContinueData(entry, prepend)
 }
 
-function sideWidget(entries){
-    var html = "", sw = jQuery('#side-widget').empty();
-    entries.slice(0, 5).forEach((entry) => {
-        var piece = jQuery("<div class=\"side-widget-entry\"><a href=\""+entry.url+"\" title=\""+entry.name+"\" aria-label=\""+entry.name+"\" style=\"background: url('"+entry.logo+"')\">&nbsp;</a></div>");
-        piece.find('a').data('entry-data', entry).on('mousedown', () => {
-            var entry = jQuery(event.currentTarget).data('entry-data');
-            if(entry) {
-                playEntry(entry)
-            }
-        }).on('click', (event) => {
-            event.preventDefault();
-            event.stopPropagation()
-        });
-        piece.appendTo(sw)        
-    });
-    sw.animate({opacity: 1, paddingLeft: 0}).show()
-}
-
-function updateSideWidget(){
-    if(!jQuery.isArray(Menu.index) || !Menu.index.length){
-        return setTimeout(() => {
-            updateSideWidget()
-        }, 200)
-    }
-    var max = Menu.index.length, i = 0, results = [], _next = () => {
-        var n = sideWidgetEntries[i];
-        if(n){
-            i++;
-            if(n.logo && n.logo.indexOf('//') != -1){
-                checkImage(n.logo, () => {
-                    results.push(n);
-                    if(results.length == max){
-                        sideWidget(results)
-                    } else if(results.length < max) {
-                        _next()
-                    }
-                }, _next)
-            } else {
-                _next()
-            }
-        }
-    }
-    _next();
-}
-
-PlaybackManager.on('commit', injectContinueOption);
-PlaybackManager.on('stop', injectContinueOption);
-
-jQuery(document).on('lngload', () => {
-    injectContinueOption();
-    getWatchingData((entries) => {
-        var entry = false;
-        for(var i=0; i<entries.length; i++){
-            if(isLive(entries[i].url)){
-                entry = Object.assign({}, entries[i]);
-                break;
-            }
-        }
-        if(entry){
-            var go = (iconExists) => {
-                if(!iconExists){
-                    entry.logo = 'fa-fire';
-                }
-                console.log('GOING', Menu.index[0], Menu.index[0].type, Menu.index[0].name, entry.name, Menu.index[0].prependName, Lang.FEATURED+': ');
-                injectFeaturedOption(entry)
-            }
-            if(entry.logo && entry.logo.substr(0, 3)!='fa-'){
-                checkImage(entry.logo, () => {
-                    go(true)
-                }, () => {
-                    go(false)
-                })
-            } else {
-                go(false)
-            }
-        }
-    }, true);
-    var p = getFrame('player'), o = getFrame('overlay');
-    createMouseObserverForControls(p);
-    createMouseObserverForControls(o);
-    createMouseObserverForControls(window)
-});
+PlaybackManager.on('commit', injectContinueOptions);
+PlaybackManager.on('stop', injectContinueOptions);
 
 function getSearchRangeEntries(){
     var options = [];
     var callback = (entry, r) => {
-        Config.set('search-range', entry.value);
-        console.log('RANGER', entry, entry.value);
-        location.reload()
+        Config.set('search-range-size', entry.value);        
+        initSearchIndex(() => {})
     }
+    options.push({name: Lang.MY_LISTS_ONLY, value: 0, logo:'fa-search-minus', type: 'option', callback: callback});
     options.push({name: Lang.LOW+' ('+Lang.LISTS+': 18)', value: 18, logo:'fa-search-minus', type: 'option', callback: callback});
     options.push({name: Lang.MEDIUM+' ('+Lang.LISTS+': 36)', value: 36, logo:'fa-search', type: 'option', callback: callback});
     options.push({name: Lang.HIGH+' ('+Lang.LISTS+': 64)', value: 64, logo:'fa-search-plus', type: 'option', callback: callback});
     options.push({name: Lang.XTREME+' ('+Lang.LISTS+': 96, '+Lang.SLOW+')', value: 96, logo:'fa-search-plus', type: 'option', callback: callback});
     return options;
-}
-
-function getParentalControlEntries(){
-    var options = [
-        {
-            name: Lang.HIDE_LOGOS,
-            type: 'check',
-            check: (checked) => {
-                Config.set('hide-logos', checked);
-                showLogos = !checked;
-            }, 
-            checked: () => {
-                return Config.get('hide-logos')
-            }
-        },
-        getParentalControlToggler(),
-        {
-            type: 'input',
-            logo: 'assets/icons/white/shield.png',
-            change: function (entry, element, val){
-                Config.set('parental-control-terms', val)
-            },
-            value: userParentalControlTerms().join(','),
-            placeholder: Lang.FILTER_WORDS,
-            name: Lang.FILTER_WORDS
-        }
-    ];
-    return options;
-}
-
-function getParentalControlToggler(cb){
-    return {
-        name: Lang.HIDE_ADULT_CONTENT,
-        type: 'check',
-        check: (checked) => {
-            Config.set('show-adult-content', !checked);
-            showAdultContent = !checked;
-            if(typeof(cb) == 'function'){
-                cb(showAdultContent)
-            }
-        }, 
-        checked: () => {
-            return !Config.get('show-adult-content')
-        }
-    }
 }
 
 function getBookmarksEntries(reportEmpty){
@@ -457,7 +360,8 @@ function getBookmarksEntries(reportEmpty){
     if(stream = currentStream()){
         if(!Bookmarks.is(stream)){
             options.push({name: Lang.ADD+': '+stream.name, logo:'fa-star', type: 'option', callback: function (){
-                addFav(stream)
+                addFav(stream);
+                Menu.refresh()
             }})
         }
     }
@@ -482,7 +386,8 @@ function getBookmarksForRemoval(){
                     type: 'option',
                     stream: bookmarks[i], 
                     callback: function (data){
-                        removeFav(data.stream)
+                        removeFav(data.stream);
+                        Menu.refresh()
                     }
                 })
             }
@@ -566,16 +471,21 @@ function getListsEntries(notActive, noManagement){
         }},
         {name: Lang.ADD_NEW_LIST, logo: 'fa-plus', type: 'option', callback: addNewSource},
         {name: Lang.REMOVE_LIST, logo: 'fa-trash', type: 'group', renderer: getListsEntriesForRemoval, callback: markActiveSource},
-        {name: Lang.ALL_LISTS, logo: 'fa-users', type: 'group', renderer: (data) => {
-            return renderRemoteSources(data.name)
-        }, entries: []},
-        {name: Lang.SHARE_LISTS, type: 'check', check: function (checked){
-            Config.set('unshare-lists', !checked)
+        {name: Lang.LIST_SHARING, type: 'check', check: function (checked) {
+            var v = checked ? Config.defaults['search-range-size'] : 0;
+            Config.set('search-range-size', v);        
+            initSearchIndex(() => {})
+            Menu.refresh()
         },  checked: () => {
-                return !Config.get('unshare-lists')
+                return isListSharingActive()
             }
         }
     ];
+    if(isListSharingActive()){
+        options.push({name: Lang.ALL_LISTS, logo: 'fa-users', type: 'group', renderer: (data) => {
+            return renderRemoteSources(data.name)
+        }, entries: []})
+    }
     return options;
 }
 
@@ -591,10 +501,9 @@ function getListsEntriesForRemoval(){
                 url: sources[i][1], 
                 callback: function (data){
                     unRegisterSource(data.url); 
-                    Menu.go(dirname(data.path));
-                    setTimeout(function (){
+                    Menu.go(dirname(data.path), () => {
                         Menu.refresh()
-                    }, 1000)
+                    })
                 }, 
                 path: Lang.LISTS
             })

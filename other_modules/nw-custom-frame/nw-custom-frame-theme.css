@@ -1,0 +1,28 @@
+
+.nw-cf {
+	position:fixed;
+	width:100%;
+	top:0;
+	left:0;
+	background: #171717;
+	color:#a1a1a1;
+	font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.nw-cf-icon {
+    margin: 0 5px;
+}
+
+.nw-cf-btn {
+	background: none;
+	color:#a1a1a1;
+}
+
+.nw-cf-btn:hover {
+	background: #424242;
+}
+
+.nw-cf-close:hover {
+	background: #e81123;
+	color:#FFF;
+}

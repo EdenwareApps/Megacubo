@@ -19,30 +19,56 @@ iframe#testing-player {
 
 div#player-status {
 	position: absolute;
-	background: rgba(0, 0, 0, 0.5);
 	left: 0;
-	display: none;
+	display: flex;
 	align-items: center;
 	justify-content: center;
 	z-index: 2;
-	pointer-events: none;
+    pointer-events: none;
+    background-color: rgba(0, 0, 0, 0.5);
+    opacity: 0.001;
+    transition: opacity 0.2s linear 0s;
 }
 
 div#player-status svg {
 	color: #fff;
-	font-size: 72px;
+	font-size: 48px;
 	opacity: 0.75;    
 }
 
 div#player-status .fac {
 	background: rgba(3, 11, 23, 0.75);
-	padding: 12px;
-	border-radius: 5px;
-	display: none;
+	border-radius: 36px;
+    padding: 6px;
+    display: none;
+}
+
+div#drop-hint {
+    display: none;
+    font-size: 150%;
+    text-align: center;
+    padding: 3%;
+    box-sizing: border-box;
+    line-height: 175%;
+}
+
+div#drop-hint {
+    vertical-align: middle;
+    width: 100%;
+}
+
+div#drop-hint > div {
+    vertical-align: middle;
+    width: 100%;
+    display: table-cell;
+}
+
+body.miniplayer:not(.playing):not(.paused) div#drop-hint {
+    display: table;
 }
 
 body.loading div#player-status, body.paused div#player-status {
-	display: flex !important;
+    opacity: 1;
 }
 
 body.loading div.fac-loading {
@@ -53,25 +79,43 @@ body.paused div.fac-paused {
 	display: block !important;
 }
 
+div#player-status svg.fa-play {
+    font-size: 36px;
+    margin: 5px 3px 6px 9px;
+}
+
 #player-top-bar {
 	display: none;
 	position: absolute;
-    z-index: 99999 !important;
+    z-index: 999 !important;
     top: auto;
     bottom: 36px;
     right: 48px;
     line-height: 100%;
-	padding: 8px 0px 5px 0px !important;
+	padding: 8px 0 5px 0;
     text-align: center;
     height: auto;
+    box-sizing: border-box;
+}
+
+body:not(.showcontrols) #player-top-bar {
+    padding-right: 15px !important
 }
 
 #player-top-bar a {
-	cursor: pointer;
+    cursor: pointer;
 	text-transform: uppercase;
     text-decoration: none;
 	font-size: 88%;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+}
+
+#player-top-bar a, #player-top-bar span {
+    margin-right: 12px;
+}
+
+#player-top-bar a:last-child, #player-top-bar span:last-child {
+    margin-right: 0;
 }
 
 body.paused #player-top-bar, body.playing.over #player-top-bar {
@@ -165,6 +209,52 @@ body.frameless #nw-custom-frame {
     vertical-align: middle;
 }		
 
+#background {
+    top: 30px;
+    height: calc(100% - 30px);
+    z-index: -1;
+}
+
+#background.loading {
+    z-index: 2147483647;
+    width: 100% !important;
+}
+
+#loader {
+    display: none;
+    z-index: 2147483647;
+    width: 0%;
+    height: 4px;
+    align-items: center;
+    justify-content: center;
+    bottom: 0;
+    top: auto;    
+    position: absolute;
+    transition: width 3s ease;    
+}
+
+#background.loading #loader {
+    display: flex;
+}
+
+body.frameless #background {
+    top: 0;
+    height: 100%;
+}
+
+#background {
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+}
+
+#background img, #background video {    
+    width: 100%;
+    height: 100%;
+    display: inline-block;
+    object-fit: cover;
+}
+
 div#notify-area { 
     max-width: 100vw; 
     font-size: 136%; 
@@ -176,6 +266,7 @@ div#notify-area {
     z-index: 2147483647 !important;
     height: auto;
     padding-right: 74px;
+    padding-top: 6px;
 }
 
 body.frameless div#notify-area { 
@@ -187,7 +278,7 @@ div.notify {
     width: auto;
     font-size: inherit;
     margin: 18px 0 0 18px; 
-    display: inline-block;
+    display: table-row;
     /*
     background-color: rgba(150, 0, 0, 0.45);
     box-shadow: inset 0 -5px 18px 8px rgba(50, 0, 0, 0.3), inset 0 0 3px 3px rgba(50, 0, 0, 0.3);
@@ -200,6 +291,18 @@ div.notify img {
     vertical-align: top;
 }
 
+div.notify .notify-icon {  /* not only span here */
+    display: table-cell;
+    margin: 9px 9px 9px 12px;
+    box-sizing: border-box;
+}
+
+div.notify span.notify-text {
+    display: table-cell;
+    vertical-align: top;
+    padding-top: 6px;
+}
+
 div.notify span.notify-icon { 
     width: 28px;
     height: 28px;
@@ -209,12 +312,13 @@ div.notify span.notify-icon {
     overflow: hidden;
     display: inline-block;
     vertical-align: text-top;
+    margin: 6px 9px 9px 12px;
 }
 
 div.notify-row {
     display: block;
     font-size: 75%;
-    transition: font-size 0.2s cubic-bezier(0, 1.1, 1, 1) 0.2s;
+    transition: font-size 0.2s linear 0s;
 }
 
 div.notify-row.notify-first {
@@ -258,8 +362,7 @@ body.modal div#controls {
 }
 
 div#modal-overlay { 
-    display:none;
-    background: radial-gradient(rgba(0, 0, 0, 0.86) 70%, rgba(0, 0, 0, 1) 100%); 
+    display: none;
     width: 100%; 
     height: calc(100% - 30px);
     position: absolute; 
@@ -329,10 +432,10 @@ div#modal-overlay .prompt textarea {
     margin: 0 auto;
     font-size: 125%;
     line-height: 175%;
+    background: #e5e9ef;
 }
 
 .prompt-header {
-    background: #e5e9ef;
     color: #000;
     text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.25);
     padding: 10px 26px;
@@ -340,20 +443,16 @@ div#modal-overlay .prompt textarea {
 }
 
 .prompt-footer {
-    background: #325EA8;
+    border-radius: 0 0 5px 5px;
 }
 
 .prompt-footer .button {
     display: inline-block;
-    background: #325EA8;
-    color: #fff;
     height: 100%;
     cursor: pointer;
-    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
-}
-
-.prompt-footer .button:hover {
-    background: #5b85cc;
+    min-height: 36px;
+    border-width: 0;
+    font-size: 100%;
 }
 
 .prompt-1-columns .button {
@@ -384,7 +483,7 @@ div#modal-overlay .prompt textarea {
     position: absolute;
     top: 30px;
     right: 0;
-    z-index: 9999 !important;
+    z-index: 99999 !important;
     padding: 2px 14px 2px 7px;
     border-bottom-left-radius: 4px;
     display: none;
@@ -399,7 +498,7 @@ body.over #menu-trigger-icon {
 }
 
 #menu-trigger-icon:hover {
-    color: #fff;
+    color: #fff !important;
     padding: 2px 15px 2px 8px;
 }
 
@@ -424,95 +523,44 @@ body #controls {
     width: calc(100% - 34%); /* +18px to box-shadow */
 }
 
-#splash {
-    z-index: 2147483647;
-    width: 100vw !important;
-    height: 100vh !important;
+div#miniplayer-continue {
+    display: none;
     background: #000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    top: 0px;
-}
-
-#splash img.splash-image {
-    margin-top: -42px;
-}
-
-#splash img.splash-spinner {
+    color: #fff;
     position: absolute;
-    bottom: 24px;
-    width: 24px;
-    height: 24px;
-    opacity: 0.6;
-}
-
-@keyframes marquee {
-    from {
-        transform: translateX(100%);
-    }
-    to {
-        transform: translateX(-100%);
-    }
-}
-
-@keyframes marquee2 {
-    from {
-        transform: translateX(0%);
-    }
-    to {
-        transform: translateX(-200%);
-    }
-}
-
-#side-widget-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: absolute;
-    height: calc(100% - 30px);
-    top: 30px;
-    z-index: 0;
-    background: linear-gradient(to right, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.001));
-}
-
-body.frameless #side-widget-container {
-    height: 100%;
-    top: 0;
-}
-
-#side-widget {
-    width: 76px;
-    opacity: 0.01;
-    padding-left: 40px;
-}
-
-.side-widget-entry {
-    border-bottom: 1px solid transparent;
-    padding: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    bottom: 5%;
+    width: 50%;
+    left: 25%;
     text-align: center;
-    overflow: hidden;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 0 0;
+    box-sizing: border-box;
+    border-style: dashed;
+    border-width: 2px 2px 0 2px;
+    border-color: #111;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+    cursor: pointer;
 }
 
-.side-widget-entry a {
-    height: 52px;
-    width: 50px;
+td.miniplayer-continue-logo {
+    min-width: 52px;
+}
+
+td.miniplayer-continue-text {
+    text-decoration: underline;
+}
+
+div#miniplayer-continue table {
+    display: inline-table;
+}
+
+div#miniplayer-continue img, div#miniplayer-continue i, div#miniplayer-continue svg {
+    max-width: 36px;
+    max-height: 36px;
+}
+
+body.miniplayer:not(.playing):not(.paused) div#miniplayer-continue {
     display: inline-block;
-    border-radius: 36px;
-    background-size: cover !important;
-    background-position: center center !important;
-    text-decoration: none;
-    box-shadow: inset 0 0 36px 0px rgba(0, 0, 0, 0.36);
-    background-repeat: no-repeat !important;
-    opacity: 0.875;
 }
-
-.side-widget-entry a:hover {
-    box-shadow: 0 0 6px 2px rgba(255, 255, 255, 0.25), inset 0 0 6px 0px rgba(255, 255, 255, 0.5);
-    opacity: 1;
-    filter: saturate(1.2);
-}
-

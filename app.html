@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html class="ui-index">
+	<head>
+		<meta charset="UTF-8" />
+		<title></title>
+		<base href="./" />
+        <link rel="stylesheet" type="text/css" href="assets/css/global.css" />
+        <link rel="stylesheet" type="text/css" href="assets/css/index.css" />
+		<link rel="stylesheet" type="text/css" href="assets/css/controls.css" />
+		<style type="text/css">
+			html {
+				transition: all 0.1s ease-in-out 0s;
+				overflow: hidden;
+				background: #000000;
+			}
+		</style>
+		<script type="text/javascript">
+			var gui = require('nw.gui'), win = gui.Window.get(), miniPlayerActive = false, appShown = false;
+			document.title = gui.App.manifest.window.title;
+			function traceback() { 
+				try { 
+					var a = {}; 
+					a.debug(); 
+				} catch(ex) {
+					return ex.stack.replace('TypeError: a.debug is not a function', '').trim()
+				}
+			}
+			function logErr(){
+				if(!fs){
+					fs = require('fs')
+				}
+				if(!fs.existsSync('error.log')){
+					fs.closeSync(fs.openSync('error.log', 'w')); // touch
+				}
+				return fs.appendFileSync('error.log', JSON.stringify(Array.from(arguments))+"\r\n"+traceback()+"\r\n\r\n");
+			}
+			process.removeAllListeners('uncaughtException');
+			process.removeAllListeners('unhandledRejection');
+			process.on('uncaughtException', (err) => {
+				console.error('Unhandled exception', err);
+				if(typeof(logErr)=='function'){
+					logErr('Unhandled exception', err)
+				}
+				//process.exit(1)
+				return true;
+			});
+			process.on('unhandledRejection', (reason, p) => {
+				console.error(reason, 'Unhandled Rejection at Promise', p);
+				if(typeof(logErr)=='function'){
+					logErr(reason, 'Unhandled Rejection at Promise', p)
+				}
+				//process.exit(1)
+				return true;
+			});
+		</script>
+	</head>
+	<body tabindex="-1"> 
+		<div id="background" class="fit-screen loading">
+			<progress id='loader' max='100' value='100'></progress>
+		</div>
+		<script type="text/javascript" src="assets/js/jquery.js"></script>
+		<script type="text/javascript" src="assets/js/jquery.shortcuts.min.js"></script>
+		<script type="text/javascript" src="assets/js/global.js"></script>
+		<script type="text/javascript">
+			loadTheming();
+			var loader = document.getElementById('loader');
+			addAction("shared-lists-index-progress", (lc, tc, pc) => {
+				console.warn('PC', pc+'%', lc, tc);
+				if(pc > 99) pc = 99;
+				loader.style.width = pc+'%'; // update width instead of value to allow css transition
+			})
+		</script>
+		<div id="modal-overlay">
+			<div>
+				<div>
+					
+				</div>
+			</div>
+		</div>
+		<iframe id="testing-player" class="hide" height="100%" frameborder="0" scrolling="no" src="/testing-player.html"></iframe>
+		<iframe id="sandbox" class="fit-player hide" nwdisable nwfaketop height="100%" frameborder="0" src="/blank.html"></iframe>
+		<iframe id="overlay" class="fit-player show" height="100%" allowtransparency="true" frameborder="0" scrolling="no" src="/overlay.html"></iframe>
+		<iframe id="player" class="fit-player hide" height="100%" frameborder="0" scrolling="no" src="/player.html" allowfullscreen></iframe>
+		<div id="player-top-bar" class="fit-player-min">
+			<a href="#" data-title-lng-key="RELOAD"><i style="font-size: 93%;" class="fas fa-sync-alt"></i> <span></span></a>
+			<span class="try-other"><a href="#" data-title-lng-key="TRY_OTHER_STREAM"><i style="font-size: 93%;" class="fas fa-random"></i> <span></span></a></span>
+			<a href="#" data-title-lng-key="STOP"><i style="font-size: 93%;" class="fas fa-square"></i> <span></span></a>
+		</div>
+		<div id="player-status" class="fit-player">
+			<div class="fac fac-loading">
+				<i class="fas fa-circle-notch fa-spin"></i>
+			</div>
+			<div class="fac fac-paused">
+				<i class="fas fa-play"></i>
+			</div>
+		</div>
+		<div id="drop-hint" class="fit-screen"></div>
+		<div class="hide">
+			<input id="saveas" type="file" nwsaveas />
+		</div>
+		<div id="menu-trigger-icon">
+			<i class="fas fa-chevron-left"></i>
+		</div>
+		<span id="home-icons" style="display: none;">
+			<a href="javascript:;" data-title-lng-key="SEARCH" onmousedown="goSearch()" id="home-icon-search" class="option" tabindex="996" style="top: -1px;">
+				<i class="fas fa-search" aria-hidden="true"></i>
+			</a>
+			<a href="javascript:;" data-title-lng-key="OPEN_FILE" onmousedown="goOpen();return false" id="home-icon-open" class="option" tabindex="997" style="top: 1px;">
+				<i class="fas fa-folder-open" aria-hidden="true"></i>
+			</a>
+			<a href="javascript:;" title="Megacubo" onmousedown="about()" id="home-icon-help" class="option" tabindex="998" style="font-size: 109%; top: 1px;">
+				<i class="fas fa-info-circle" aria-hidden="true"></i>
+			</a>
+		</span>
+		<span id="list-icons">
+			<a href="#" onmousedown="menuScrollUp()" data-title-lng-key="BACK" id="home-icon-back" class="option" tabindex="999" style="top: 0;">
+				<i class="fas fa-chevron-up" aria-hidden="true"></i>
+			</a>
+		</span>
+		<div id="controls" class="fit-screen" tabindex="-1">
+			<div id="controls-in" tabindex="-1">
+				<div>
+					<div class="list">
+						<div>
+							<div>
+								LOW MEMORY?
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<a href="javascript:;" id="controls-toggle" onmousedown="toggleControls()">
+				<i class="fas fa-chevron-right"></i>
+			</a>
+		</div>
+		<div id="notify-area" class="fit-player"></div>
+		<div id="miniplayer-continue">
+			<table>
+				<tbody>
+					<tr>
+						<td class="miniplayer-continue-logo"></td>
+						<td class="miniplayer-continue-text"></td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+		<script type="text/javascript">
+			jQuery.getMultiScripts([
+				'util.js',
+				'winstate.js',
+				'playback.js',
+				'iptv.js',
+				'menu.js',
+				'menu-feeding.js',
+				'jquery.viewport.js',
+				'countries.js',
+				'app.js',
+				'fitter.js',
+				'blocked_domains.js',
+			], 'assets/js/', () => {
+				init()
+			});
+		</script>
+	</body>
+</html>

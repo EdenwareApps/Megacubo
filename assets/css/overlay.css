@@ -12,12 +12,7 @@ div.drop-target {
 
 #drop-target svg, #drop-target i {
     display: none;
-    color: #fff;
     font-size: 750%;
-}
-
-#drop-target.hover {
-    background-color: rgba(99, 7, 16, 0.8);
 }
 
 #drop-target.hover svg, #drop-target.hover i {

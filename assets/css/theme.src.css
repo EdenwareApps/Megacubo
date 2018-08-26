@@ -1,58 +1,64 @@
+body {
+    font-size: (fontsize)em;
+}
+
+
 html.ui-index {
-    background: (bgcolor) url(assets/images/wallpaper.png?nocache) no-repeat fixed;
-    background-size: cover;
-    background-position: center center;
+    background: (bg);
 }
 
 html.ui-index .nw-cf {
-    background: (bgcolor) !important;
+    background: transparent;
 }
 
-html.ui-index .nw-cf {
-    background: (bgcolor) !important;
+html.ui-index body.miniplayer.playing .nw-cf, html.ui-index body.miniplayer.paused .nw-cf {
+    background: linear-gradient(to bottom, #00000077 0%, #00000044 25%, #00000044 75%, #00000000 100%) !important;
 }
 
 html.ui-index .nw-cf-btn { 
-    background-color: (bgcolor); 
-}
-
-html.ui-index #controls > div {
-    background: (bgcolor);
-    box-shadow: 0 0 9px 0 (bgcolor)44;
+    background-color: transparent; 
 }
 
 html.ui-index #controls-toggle { 
-    background: (bgcolor);
     color: (fgcolor)AA;
-    border-color: (fgcolor)11;
-}
-
-html.ui-index iframe#overlay {
-    box-shadow: inset 0 3px 12px 0px (bgcolor);
+    border-color: (fgcolor)44; 
+    background: (bgcolor);
 }
 
 html.ui-index body.playing iframe#overlay, html.ui-index body.miniplayer iframe#overlay {
     box-shadow: none;
 }
 
-html.ui-index div#notify-area { 
-    background: linear-gradient(to top, (bgcolor)00 0px, (bgcolor)44 56px);
+html.ui-index #background.loading {
+    background: (bg);
 }
 
-div.notify { 
+html.ui-index div.notify { 
     color: #fff;
     text-shadow: 1px 1px 2px #000;
 }
 
 html.ui-index #menu-trigger-icon {
     background: (bgcolor);
-    border-color: (fgcolor)11;
+    border-color: (fgcolor)44;
     color: (fgcolor)AA; 
 }
 
 html.ui-index a.entry {
     border-top: 1px solid (fgcolor)09;
     box-shadow: inset 0 -11px 41px 0px rgba(0, 0, 0, 0.05), 0 -2px 2px rgba(0, 0, 0, 0.03);
+}
+
+html.ui-index #controls a.entry:first-child {
+    border-top-color: transparent;
+}
+
+html.ui-index #controls .list {
+    background: transparent;
+}
+
+html.ui-index.ui-transparent-menu #controls .list {
+    background: (bgcolor)AA;
 }
 
 html.ui-index .entry-name {
@@ -62,7 +68,7 @@ html.ui-index .entry-name {
 }
 
 html.ui-index.ui-light .entry-name {
-    font-weight: bold;
+    text-shadow: 1px 1px 2px (fgcolor)66;
 }
 
 html.ui-index:not(.ui-light) .entry-name {
@@ -82,7 +88,7 @@ html.ui-index body:not(.playing) #controls-toggle:hover {
 }
 
 html.ui-index body.submenu #controls-toggle { 
-    color: (fgcolor)11 !important;
+    color: (fgcolor)44 !important;
 }
 
 html.ui-index #controls-toggle:hover { 
@@ -97,6 +103,10 @@ html.ui-index .entry-label {
     color: (fgcolor)77;
 }
 
+html.ui-index a.entry:focus, html.ui-index a.entry.entry-focused {
+    background: linear-gradient(to bottom, #FFFFFF15 0%, #FFFFFF0F 75%, #FFFFFF20 100%);
+}
+
 html.ui-index .nw-cf-title {
     color: (fgcolor)77;
 }
@@ -105,42 +115,129 @@ html.ui-index .nw-cf-icon i, html.ui-index .nw-cf-icon svg, html.ui-index .nw-cf
     color: (fgcolor)77;
 }	
 
+html.ui-index span.nw-cf-icon {
+    background-image: url(assets/icons/white/default-icon-white.png);
+}
+
+html.ui-index.ui-light .nw-cf-icon {
+    filter: invert(100%);
+}
+
 html.ui-index.ui-light .entry-logo img[src*="assets/icons/white"] {
     filter: invert(100%);
 }
 
 html.ui-index body.scrolled_400:not(.home) #list-icons {
     background: (bgcolor);
-    border-color: (fgcolor)11;
+    border-color: (fgcolor)44;
 }
 
 html.ui-index #player {
-    background: (bgcolor);
+    background: #000000;
 }
 
 html.ui-index body.playing div#controls div.list, html.ui-index body.paused div#controls div.list {
-    background: linear-gradient( to bottom, (bgcolor), (fgcolor)11 18%);
+    background: linear-gradient( to bottom, (bgcolor), #000000 18%);
 }
 
 html.ui-index body.playing, html.ui-index body.paused {
-    background: (bgcolor);
+    background: (bg);
 }
 
 html.ui-index #player-top-bar {
-    color: (bgcolor)33;
-    background: (bgcolor)99;
+    color: #FFFFFF;
+    text-shadow: 2px 2px 2px #000000 !important;
+    background: linear-gradient(to bottom, #00000000 0%, #000000FF 25%);
+}
+
+html.ui-index body.miniplayer #player-top-bar {
+    background: transparent;
 }
 
 html.ui-index #player-top-bar a {
-    color: (fgcolor)CC;
+    color: #FFFFFF;
 }
 
 html.ui-index #player-top-bar a:hover {
-    color: (fgcolor);
+    color: #FFFFFFAA;
 }
 
 html.ui-index:not(.ui-light) html.ui-index #player-top-bar a {
     text-shadow: 2px 2px 2px (bgcolor) !important;
+}
+
+html.ui-index div#controls .list > div > div {
+    border-left: 1px solid (fgcolor)07;
+}
+
+html.ui-index .entry td.entry-logo-c {
+    width: calc((iconsize)px + 2px);
+}
+
+html.ui-index #controls a.entry {
+    height: calc((iconsize)px + 12px);
+}
+
+html.ui-index .entry-logo {
+    width: (iconsize)px;
+    height: (iconsize)px;
+}
+
+html.ui-index .entry-logo img {
+    max-height: (iconsize)px;
+}
+
+html.ui-index .entry-logo-fa {
+    font-size: calc((iconsize)px - 4px);
+}
+
+html.ui-index div#modal-overlay {
+    background: linear-gradient((bgcolor)FF 0%, #000000FF 25%);
+}
+
+progress {
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+progress::-webkit-progress-bar { 
+    background: (bg);
+}
+
+progress::-webkit-progress-value {
+    background: (fgcolor); 
+    box-shadow: 0 0 36px (fgcolor);
+}
+
+html.ui-index .prompt-footer .button {
+    display: inline-block;
+    background: (bgcolor);
+    color: (fgcolor);
+    height: 100%;
+    cursor: pointer;
+    text-shadow: 1px 1px 1px (bg);
+}
+
+html.ui-index .prompt-footer .button:hover, html.ui-index .prompt-footer .button.entry-focused {
+    background: (bgcolor)DD;
+}
+
+html.ui-index div#drop-hint {
+    background: #000000;
+}
+
+html.ui-index div#drop-hint > div {
+    color: #fff;    
+    border: 2px dashed #FFFFFF11;
+}
+
+html.ui-overlay #drop-target svg, html.ui-overlay #drop-target i {
+    color: #fff;
+    font-size: 750%;
+}
+
+html.ui-overlay #drop-target.hover {
+    background-color: (bgcolor)CC;
 }
 
 ::-webkit-scrollbar {
@@ -153,7 +250,7 @@ html.ui-index:not(.ui-light) html.ui-index #player-top-bar a {
 }
 
 ::-webkit-scrollbar-corner {
-    background: (bgcolor);
+    background: (bg);
 }
 
 input[type=range] {
@@ -164,7 +261,7 @@ input[type=range] {
 
 input[type=range]::-webkit-slider-thumb {
     -webkit-appearance: none;
-    background: (bgcolor);
+    background: (bg);
     cursor: pointer;
     height: 12px;
     width: 16px;
