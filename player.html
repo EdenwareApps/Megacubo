@@ -10,34 +10,63 @@
 		<video id="video" autoplay></video>
 		<script type="text/javascript">
 			var hls, video = document.getElementById('video'), player = jQuery(video), b = jQuery('body');
-			var recoverDecodingErrorDate, recoverSwapAudioCodecDate;
-			function handleMediaError(hls) {
-				var watchTimeout = () => {
-					var timer = 0, ms = video.currentTime;
-					timer = setTimeout(() => {
-						if(ms == video.currentTime){
-							reset()
-						}
-					}, 5000);
-					player.off('canplaythrough').one('canplaythrough', () => {
-						clearTimeout(timer)
-					})
+			var recoverDecodingErrorDate, recoverSwapAudioCodecDate, recoverTimer = 0;
+			function recover(hls) {
+				var doReset = true;
+				clearTimeout(recoverTimer);
+				if(hls){
+					doReset = false;
+					window.onerror = () => {
+						window.onerror = null;
+						reset();
+						return true;
+					}
+					hls.recoverMediaError();
+					recoverTimer = setTimeout(() => {
+						window.onerror = null;
+					}, 3000)
 				}
-				var now = performance.now();
+				if(doReset){
+					reset()
+				}
+			}
+			function watchTimeout(ct) {
+				var timer = 0, ms = video.currentTime;
+				timer = setTimeout(() => {
+					if(ms == video.currentTime){
+						reset()
+					}
+				}, 5000);
+				player.off('canplaythrough').one('canplaythrough', () => {
+					clearTimeout(timer);
+					if(ct){
+						currentTime(ct)
+					}
+				})
+			}
+			function handleMediaError(hls) {
+				var now = performance.now(), ct = false;
+				if(top.PlaybackManager.activeIntent && top.PlaybackManager.activeIntent.decoderOutputAppending) {
+					try {
+						ct = currentTime()
+					} catch(e) {
+						console.warn('Failed to get currentTime.')
+					}
+				}
 				if (!recoverDecodingErrorDate || (now - recoverDecodingErrorDate) > 3000) {
 					recoverDecodingErrorDate = performance.now();
 					var msg = "trying to recover from media Error ..."
 					console.warn(msg);
-					//hls.recoverMediaError(); // ffmpeg slow response, commenting it and trusting on hls.js here
-					//watchTimeout()
+					watchTimeout(ct);
+					recover(hls) // ffmpeg slow response, commenting it and trusting on hls.js here
 				} else {
 					if (!recoverSwapAudioCodecDate || (now - recoverSwapAudioCodecDate) > 3000) {
 						recoverSwapAudioCodecDate = performance.now();
 						var msg = "trying to swap Audio Codec and recover from media Error ..."
 						console.warn(msg);
 						hls.swapAudioCodec();
-						hls.recoverMediaError();
-						watchTimeout()
+						watchTimeout(ct);
+						recover(hls)
 					} else {
 						var msg = "cannot recover, last media error recovery failed ..."
 						console.error(msg);
@@ -65,10 +94,12 @@
 					});		
 					hls.on(Hls.Events.ERROR, (event, data) => {
 						var msg = "Player error: " + data.type + " - " + data.details;
-						console.error(msg, data);
 						if(data.details == 'bufferStalledError'){
-							handleMediaError(hls);
+							// handleMediaError(hls);
+							// not fatal, dont neet to handle so
+							console.warn(msg, data);
 						} else if (data.fatal) {
+							console.error(msg, data);
 							// reset();
 							switch (data.type) {
 								case Hls.ErrorTypes.MEDIA_ERROR:

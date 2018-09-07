@@ -244,6 +244,9 @@ function playExternal(url){
     stop();
 }
 
+var playPauseNotification = notify('...', 'fa-check', 'forever');
+playPauseNotification.hide();
+
 function playPause(set){
     if(!PlaybackManager.activeIntent){
         return;
@@ -276,10 +279,10 @@ function playPauseNotifyContainers(){
 }
 
 function playPauseNotify(){
-    if(!top){ // unloading raises "Cannot read property 'window' of null" sometimes
+    if(!top) { // unloading raises "Cannot read property 'window' of null" sometimes
         return;
     }
-    if(!PlaybackManager.activeIntent){
+    if(!PlaybackManager.activeIntent) {
         playPauseNotifyContainers().removeClass('playing').removeClass('paused');
         return;
     }
@@ -290,15 +293,15 @@ function playPauseNotify(){
         c = Lang.PLAY;
     }
     //console.log('NOTIFY', traceback());
-    if(PlaybackManager.playing()){
+    if(PlaybackManager.playing()) {
         //console.log('NOTIFY1');
         playPauseNotifyContainers().removeClass('paused').addClass('playing');
-        notify(c, PlaybackManager.activeIntent.entry.logo || 'fa-play faclr-green', 4)
+        playPauseNotification.update(c, PlaybackManager.activeIntent.entry.logo || 'fa-play faclr-green', 4)
         //console.log('NOTIFY');
     } else {
         //console.log('NOTIFY2');
         playPauseNotifyContainers().removeClass('playing').addClass('paused');
-        notify(Lang.PAUSE, 'fa-pause', 'short')
+        playPauseNotification.update(Lang.PAUSE, 'fa-pause', 'short')
         //console.log('NOTIFY');
     }
 }
@@ -706,16 +709,16 @@ function modalClose(){
     jQuery('#modal-overlay').hide()
 }
 
-function modalConfirm(question, answers, callback){
+function modalConfirm(question, answers, closeable){
     var a = [];
-    for(var k in answers){
-        a.push(jQuery('<button class="button">'+answers[k][0]+'</button>').on('click', answers[k][1]))
-    }
+    answers.forEach((answer) => {
+        a.push(jQuery('<button class="button">'+answer[0]+'</button>').on('click', answer[1]))
+    });
     var b = jQuery('<div class="prompt prompt-'+a.length+'-columns">'+
                 '<span class="prompt-header">'+nl2br(question)+'</span>'+
                 '<span class="prompt-footer"></span></div>');
     b.find('.prompt-footer').append(a);
-    makeModal(b);
+    makeModal(b, closeable);
     top.focus()
 }
 
@@ -1108,10 +1111,14 @@ function restoreFromTray(){
     if($tray){
         removeFromTray()
     }
+    if(isMiniPlayerActive){
+        setFullScreen(false)
+    }
 }
 
 gui.App.on('open', restoreFromTray);
 nw.App.on('open', restoreFromTray);
+
 addAction('miniplayer-on', showInTray);
 addAction('miniplayer-off', removeFromTray);
 addAction('appUnload', removeFromTray);
@@ -2035,12 +2042,12 @@ function tuningConcurrency(){
 
 var autoCleanDomainConcurrencyLimit = 2, autoCleanDomainConcurrency = {}, autoCleanEntriesQueue = [], closingAutoCleanEntriesQueue = [], autoCleanEntriesStatus = '', autoCleanLastMegaURL = '', autoCleanReturnedURLs = [];
 
-function autoCleanEntries(entries, success, failure, cancelCb, returnSucceededIntent, cancelOnFirstSuccess, megaUrl){
+function autoCleanEntries(entries, success, failure, cancelCb, returnSucceededIntent, cancelOnFirstSuccess, megaUrl, name){
     cancelOnFirstSuccess = true;
     if(autoCleanEntriesCancel()){
         jQuery('a.entry-autoclean .entry-name').html(Lang.TEST_THEM_ALL)
     }
-    var succeeded = false, testedMap = [], readyIterator = 0, debug = true;
+    var succeeded = false, testedMap = [], readyIterator = 0, debug = false;
     if(!jQuery.isArray(entries)){
         var arr = [];
         jQuery('a.entry-stream').each((i, o) => {
@@ -2061,11 +2068,16 @@ function autoCleanEntries(entries, success, failure, cancelCb, returnSucceededIn
     }
     entries = entries.filter((entry) => { return parentalControlAllow(entry, true) });
     entries = deferEntriesByURLs(entries, autoCleanReturnedURLs);
-    // console.log('autoCleanSort', entries, entries.map((entry) => {return entry.sortkey+' ('+entry.url+')'}).join(", \r\n"));
+    if(!name && entries.length){
+        name = basename(Menu.path)
+    }
+    if(debug){
+        console.log('autoCleanSort', entries, entries.map((entry) => {return entry.sortkey+' ('+entry.url+')'}).join(", \r\n"))
+    }
     autoCleanDomainConcurrency = {};
-    autoCleanEntriesStatus = Lang.TUNING+' 0% ('+readyIterator+'/'+entries.length+')';
+    var controller, iterator = 0, entriesLength = entries.length, pcs;
+    autoCleanEntriesStatus = pcs = Lang.TUNING+' '+name+' ('+Lang.X_OF_Y.format(readyIterator, entriesLength)+')';
     jQuery('a.entry-autoclean .entry-name').html(autoCleanEntriesStatus);
-    var controller, iterator = 0;
     controller = {
         testers: [],
         cancelled: false,
@@ -2080,7 +2092,7 @@ function autoCleanEntries(entries, success, failure, cancelCb, returnSucceededIn
                 controller.testers.forEach((intent, i) => {
                     if(intent.shadow){ // not returned onsuccess
                         try {
-                            intent.destroy();
+                            intent.destroy()
                         } catch(e) {
                             console.error(e)
                         }
@@ -2095,7 +2107,7 @@ function autoCleanEntries(entries, success, failure, cancelCb, returnSucceededIn
             }
         }
     }
-    var tasks = Array(entries.length).fill((callback) => {
+    var tasks = Array(entriesLength).fill((callback) => {
         if(controller.cancelled){
             callback();
             return;
@@ -2142,12 +2154,12 @@ function autoCleanEntries(entries, success, failure, cancelCb, returnSucceededIn
             if(!controller.cancelled){
                 autoCleanDomainConcurrency[domain]++;
                 var sm = entry.originalUrl && isMega(entry.originalUrl), originalUrl = entry.originalUrl && !sm ? entry.originalUrl : entry.url;
+                pcs = name + ' ('+Lang.X_OF_Y.format(readyIterator, entries.length)+')';
                 try {
                     if(!megaUrl && sm){
                         megaUrl = entry.originalUrl;
                     }
                     testEntry(entry, (succeededIntent) => {
-                        var pcs = parseInt(readyIterator / (entries.length / 100))+'% ('+readyIterator+'/'+entries.length+')';
                         if(controller.cancelled){
                             if(succeededIntent){
                                 succeededIntent.destroy()
@@ -2211,7 +2223,6 @@ function autoCleanEntries(entries, success, failure, cancelCb, returnSucceededIn
                             callback()
                         }
                     }, () => {
-                        var pcs = parseInt(readyIterator / (entries.length / 100))+'% ('+readyIterator+'/'+entries.length+')';
                         if(controller.cancelled){
                             if(autoCleanDomainConcurrency[domain]){
                                 autoCleanDomainConcurrency[domain]--;
@@ -2349,7 +2360,7 @@ function tune(entries, name, originalUrl, cb){ // entries can be a string search
         failure(Lang.PLAY_STREAM_FAILURE.format(name))
     }, () => {
         // CANCELLED
-    }, true, true, originalUrl);
+    }, true, true, originalUrl, name);
     if(hr){
         console.log('tuning OK');
     } else {
@@ -2369,7 +2380,7 @@ function tuneNPlay(entries, name, originalUrl, _cb){ // entries can be a string 
     }
     var failure = () => {
         leavePendingState();
-        notify(Lang.PLAY_STREAM_FAILURE.format(name), 'fa-exclamation-circle faclr-red', 'normal')
+        notify(Lang.NONE_STREAM_WORKED.format(name), 'fa-exclamation-circle faclr-red', 'normal')
     }
     if(!Config.get('play-while-tuning') && PlaybackManager.activeIntent){
         stop(false, true)
@@ -2585,12 +2596,12 @@ function switchPlayingStream(intent, cb){
     if(!intent){
         intent = (PlaybackManager.activeIntent || PlaybackManager.lastActiveIntent || false);
     }
-    if(intent){
+    if(intent && [PlaybackManager.activeIntent, PlaybackManager.lastActiveIntent].indexOf(intent) != -1){
         var entry = typeof(intent.entry) != 'undefined' ? intent.entry : intent;
         var term = playingStreamKeyword(entry);
         if(term){
             stop(false, true);
-            var megaUrl = 'mega://play|'+term;
+            var megaUrl = 'mega://play|' + term;
             entries = fetchSharedListsSearchResults(null, 'live', term, true, true);
             if(entries.length){
                 entries = entries.filter((e) => {
@@ -2598,8 +2609,10 @@ function switchPlayingStream(intent, cb){
                 })
             }
             if(entries.length){
-                tuneNPlay(entries, term, megaUrl, cb);
-                return true;
+                if([PlaybackManager.activeIntent, PlaybackManager.lastActiveIntent].indexOf(intent) != -1){
+                    tuneNPlay(entries, term, megaUrl, cb);
+                    return true;
+                }
             }
         }
     }

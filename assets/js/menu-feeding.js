@@ -197,6 +197,12 @@ function getWatchingData(cb, update){
         }
         entries = entries.map((entry) => {
             entry.label = entry.label.format(Lang.USER, Lang.USERS);
+            if(isMega(entry.url)){
+                var data = parseMegaURL(entry.url);
+                if(data && data.type == 'play' && data.name && data.name.length < entry.name.length) {
+                    entry.name = data.name;
+                }
+            }
             if(!entry.logo){
                 entry.logo = 'http://app.megacubo.net/logos/'+encodeURIComponent(entry.name)+'.png';
             }
@@ -310,8 +316,9 @@ function injectContinueOptions(){
         }
     });
     async.parallel(tasks, (err, results) => { 
-        //console.warn('CONTINUE', finalEntries);
-        finalEntries.reverse().forEach((entry) => {
+        console.warn('CONTINUE', finalEntries);
+        preInjectClean(prepend);
+        finalEntries.reverse().slice(0, maxLimit).forEach((entry) => {
             Menu.index.unshift(entry)
         });
         setMiniPlayerContinueData(finalEntries[0], prepend);

@@ -10218,7 +10218,7 @@ var stream_controller_StreamController = function (_TaskLoop) {
     var config = this.config,
         media = this.media;
 
-    var currentTime = media.currentTime;
+    var currentTime = media ? media.currentTime : 0;
     var jumpThreshold = 0.5; // tolerance needed as some browsers stalls playback before reaching buffered range end
 
     var partial = this.fragmentTracker.getPartialFragment(currentTime);

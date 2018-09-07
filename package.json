@@ -3,7 +3,7 @@
     "main": "app.html",
     "chromium-args": "--force-device-scale-factor=1 --process-per-site --disable-logging --enable-video-player-chromecast-support --enable-cast-receiver --enable-smooth-scrolling --disable-crash-handler=true --disable-breakpad --no-experiments --no-pings --ignore-autoplay-restrictions --ignore-urlfetcher-cert-requests --disable-transparency --ignore-certificate-errors --remote-debugging-port=9000",
     "description": "A simple and intuitive IPTV player.",
-    "version": "15.0.1",
+    "version": "15.0.2",
     "inject_js_end": "assets/js/helper.js",
     "bugs": "https://www.facebook.com/messages/t/MegacuboTV",
     "js-flags": "--max-old-space-size=2047",

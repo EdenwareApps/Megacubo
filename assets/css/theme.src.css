@@ -12,7 +12,7 @@ html.ui-index .nw-cf {
 }
 
 html.ui-index body.miniplayer.playing .nw-cf, html.ui-index body.miniplayer.paused .nw-cf {
-    background: linear-gradient(to bottom, #00000077 0%, #00000044 25%, #00000044 75%, #00000000 100%) !important;
+    background: linear-gradient(to bottom, #000000BB 0%, #00000077 25%, #00000077 75%, #00000000 100%) !important;
 }
 
 html.ui-index .nw-cf-btn { 
@@ -147,11 +147,7 @@ html.ui-index body.playing, html.ui-index body.paused {
 html.ui-index #player-top-bar {
     color: #FFFFFF;
     text-shadow: 2px 2px 2px #000000 !important;
-    background: linear-gradient(to bottom, #00000000 0%, #000000FF 25%);
-}
-
-html.ui-index body.miniplayer #player-top-bar {
-    background: transparent;
+    background: linear-gradient(to bottom, #00000000 0%, #000000BB 50%);
 }
 
 html.ui-index #player-top-bar a {

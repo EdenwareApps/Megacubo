@@ -96,6 +96,7 @@ div#player-status svg.fa-play {
     text-align: center;
     height: auto;
     box-sizing: border-box;
+    line-height: 125%;
 }
 
 body:not(.showcontrols) #player-top-bar {
@@ -104,6 +105,7 @@ body:not(.showcontrols) #player-top-bar {
 
 #player-top-bar a {
     cursor: pointer;
+    white-space: nowrap;
 	text-transform: uppercase;
     text-decoration: none;
 	font-size: 88%;
@@ -123,13 +125,18 @@ body.paused #player-top-bar, body.playing.over #player-top-bar {
     transition: display 0s linear 1s;
 }
 
+@media (max-width: 560px) {
+    body.miniplayer #player-top-bar > span, body.miniplayer #player-top-bar > a {
+        display: block;
+    }
+}
+
 div#controls {
     overflow: visible;
     backface-visibility: hidden;
 	transform: translate3d(0, 0, 1px);
     margin-top: 0 !important;
     perspective: 365px;
-    -webkit-app-region: no-drag;
     position: absolute;
     left: auto;
     transition: transform 0.05s cubic-bezier(0, 1.1, 1, 1) 0s;
@@ -191,6 +198,7 @@ body.frameless #nw-custom-frame {
     display: inline-block;
     text-align: center;
     vertical-align: top;
+    outline: 0 !important;
 }	
 
 .nw-cf-btn:hover { 
@@ -224,7 +232,7 @@ body.frameless #nw-custom-frame {
     display: none;
     z-index: 2147483647;
     width: 0%;
-    height: 4px;
+    height: 9px;
     align-items: center;
     justify-content: center;
     bottom: 0;
@@ -317,8 +325,10 @@ div.notify span.notify-icon {
 
 div.notify-row {
     display: block;
-    font-size: 75%;
-    transition: font-size 0.2s linear 0s;
+    font-size: 62.5%;
+    /*
+    transition: font-size 0.05s linear 0s;
+    */
 }
 
 div.notify-row.notify-first {

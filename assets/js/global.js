@@ -635,7 +635,7 @@ if(typeof(require)!='undefined'){
 	if(typeof(path)=='undefined'){
 		var path = require("path");
     }
-
+    
 	if(top == window){
 		var Store = (() => {
             var dir, self = {}, cache = {};
@@ -682,16 +682,24 @@ if(typeof(require)!='undefined'){
 				return val;
 			}
 			self.set = (key, val, expiration) => {
+                var f = self.resolve(key);
 				try {
-					var f = self.resolve(key);
 					if(fs.existsSync(f)){
 						fs.truncateSync(f, 0)
 					}
 					fs.writeFileSync(f, JSON.stringify({data: val, expires: time() + expiration}), "utf8")
 				} catch(e){
 					console.error(e)
-				}
-				cache[key] = val;
+                }
+                fs.stat(f, (err, stat) => {
+                    if(err) { 
+                        console.error('Caching file not found or empty.', 0, f)
+                    } else {
+                        if(stat.size < (56 * 1024)){ // 56kb, less than a TS size
+                            cache[key] = val;
+                        }
+                    }
+                })
 			}
             dir = self.folder(true); 
 			fs.stat(dir, (err, stat) => {
@@ -969,21 +977,22 @@ if(typeof(require)!='undefined'){
             if(searchTerm){
                 c.lastSearchTerm = searchTerm;
             }
+            var oPath = Menu.path;
             var callback = () => {
                 c.showControls();
-                if(searchTerm){
+                if(searchTerm) {
                     var n = jQuery(c.document).find('.list input');
                     console.log('AA', c.Menu.path, searchTerm);
                     n.val(searchTerm).trigger('input');
                     console.log('BB', n.length);
                 }
+                setBackTo(oPath)
             }
             if(c.Menu.path == c.searchPath){
                 callback()
             } else {
                 c.Menu.go(c.searchPath, callback)
             }
-            setBackToHome()
         }
     }
     
@@ -2157,20 +2166,16 @@ if(typeof(require)!='undefined'){
         if(top.setupNotifyDone) return;
         top.setupNotifyDone = true;
         var observer = new top.MutationObserver((mutations) => {
-            if(top.notifyWatchingTimer){
-                clearTimeout(top.notifyWatchingTimer)
-            }
-            top.notifyWatchingTimer = top.setTimeout(() => {
-                var o = window.top || window.parent;
-                if(o){
-                    var nrs = jQuery(o.document).find('div.notify-row:visible');
-                    var f = nrs.eq(0);
-                    if(!f.hasClass('notify-first')){
-                        f.addClass('notify-first')
-                    }
-                    nrs.slice(1).filter('.notify-first').removeClass('notify-first')
+            var delay = 10;
+            var o = window.top || window.parent;
+            if(o){
+                var nrs = jQuery(o.document).find('div.notify-row:visible');
+                var f = nrs.eq(0);
+                if(!f.hasClass('notify-first')){
+                    f.addClass('notify-first')
                 }
-            }, 50)
+                nrs.slice(1).filter('.notify-first').removeClass('notify-first')
+            }
         });
         observer.observe(top.document.querySelector('#notify-area'), {attributes: true, childList: true, characterData: true, subtree:true})
     }
@@ -2304,7 +2309,7 @@ if(typeof(require)!='undefined'){
         if(!title){
             title = notifyFlag+'...';
         } else {
-            title = notifyFlag + ': ' + title + '...';
+            title = notifyFlag + ' ' + title + '...';
         } 
         setTitleFlag('fa-circle-notch fa-spin', title);
         if(!pendingStateNotification){

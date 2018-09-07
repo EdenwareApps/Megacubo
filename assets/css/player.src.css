@@ -1,8 +1,4 @@
 
-* {
-	-webkit-user-drag: none;
-}
-
 body {
 	margin: 0;
 }	
@@ -33,7 +29,7 @@ body.over video::-webkit-media-controls-panel, body.paused video::-webkit-media-
 }
 
 video::-webkit-media-controls-panel { 
-    background: #000000;
+    background: #000000BB;
 	position: absolute;
 	z-index: 2147483647 !important;
 	padding: 18px 4px 18px 4px;

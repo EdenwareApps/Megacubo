@@ -9,7 +9,6 @@
     -webkit-user-drag: none;
 }
 div#controls {
-    -webkit-app-region: no-drag;
     -webkit-user-select: none;
     user-select: none;
     font-size: 72%;
@@ -226,6 +225,7 @@ input.entry-name {
 #controls a.entry {
     padding: 6px;
     cursor: pointer !important;
+    -webkit-user-drag: element;
 }
 
 .entry-label {

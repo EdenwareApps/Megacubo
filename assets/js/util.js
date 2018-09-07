@@ -353,7 +353,7 @@ function getNameFromSourceURLAsync(url, callback){
 }
 
 function checkStreamType(url, callback){
-    var debug = true, domain = getDomain(url), tsM3u8Regex = new RegExp('\.(ts|m3u8?)([^A-Za-z0-9]|$)');
+    var debug = false, domain = getDomain(url), tsM3u8Regex = new RegExp('\.(ts|m3u8?)([^A-Za-z0-9]|$)');
     if(['http', 'https', false].indexOf(getProto(url)) == -1){ // any other protocol like rtsp, rtmp...
         return callback(url, 'stream')
     }

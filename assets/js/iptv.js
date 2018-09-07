@@ -48,7 +48,7 @@ function buildPathStructure(path, group){ // group is entry object of type "grou
 
 var ListMan = (() => {
 
-    var self = {}, debug = true;
+    var self = {}, debug = false;
     
     self.badexts = ['jpg', 'jpeg', 'gif', 'bmp', 'png', 'txt'];
     self.regexes = {
@@ -164,6 +164,14 @@ var ListMan = (() => {
         return '';
     }
 
+    self.exportEntriesAsM3U = (entries) => {
+        var ct = "#EXTM3U\n";
+        entries.forEach((entry) => {
+            ct += "#EXTINF:-1 tvg-name=\""+entry.name+"\" tvg-logo=\""+entry.logo+"\" group-title=\""+(entry.group || "")+"\","+entry.name+"\n"+entry.url+"\n\n";
+        });
+        return ct;
+    }
+
     self.parse = (content, cb, timeout, skipFilters, url) => { // parse a list to a array of entries/objects
         if(self.isPath(content)){
             url = content;
@@ -266,7 +274,7 @@ function listManJoinDuplicates(flatList){
                 var j = map[flatList[i].url];
                 if(flatList[j].name != flatList[i].name){
                     flatList[j].name = listManMergeNames(flatList[j].name, flatList[i].name);
-                    flatList[j].rawname = listManMergeNames(flatList[j].rawname, flatList[i].rawname);
+                    flatList[j].rawname = listManMergeNames(flatList[j].rawname || flatList[j].name, flatList[i].rawname || flatList[j].name);
                 }
                 delete flatList[i];
             } else {

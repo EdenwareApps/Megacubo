@@ -342,7 +342,8 @@ var PlaybackManager = (() => {
             }
             console.log('COMMITING BB', intent);
             self.trigger('commit', intent, intent.entry);
-            setTimeout(self.initRatio, 100);
+            setTimeout(self.initRatio, 400);
+            setTimeout(self.initRatio, 1000);
             console.log('COMMITING OK', self.intents);
         } else {
             console.log('COMMITING - Already committed.')
@@ -538,7 +539,7 @@ function pingSource(url) {
     console.warn('Source ping', url); // Print the error if one occurred
     request(url, function (error, response, body) {
         if(error){
-            console.error('Source ping error', error, response, body); // Print the error if one occurred
+            console.error('Source ping error', url, error); // Print the error if one occurred
         } else {
             console.warn('Source ping success', response.statusMessage); // Print the error if one occurred
         }
@@ -550,7 +551,7 @@ function createPlayIntent(entry, options, subIntentCreateCallback) {
     var shadow = (typeof(options.shadow)!='undefined' && options.shadow);
     var intents = [];
     console.log(entry.url);
-    if(entry.source){
+    if(entry.source && isHTTP(entry.source)){
         pingSource(entry.source)
     }
     if(isMega(entry.url)){ // mega://
@@ -648,6 +649,7 @@ function createBaseIntent(){
     self.manual = false;
     self.loaded = false;
     self.decoder = false;
+    self.decoderOutputAppending = false;
     self.error = false;
     self.ended = false;
     self.entry = {};
@@ -788,7 +790,7 @@ function createBaseIntent(){
     }
 
     self.sideload = (url) => {
-        var debug = true;
+        var debug = false;
         /*
         if(self.shadow || !self.manual){
             console.log('SIDELOAD DISALLOW', 'testing entry');
@@ -841,7 +843,7 @@ function createBaseIntent(){
     }
 
     self.sideloadConfirm = (url) => {
-        var debug = true, fine = true, loadingIntents = PlaybackManager.query({started: false, ended: false, error: false, isSideload: false}); // disallow sideloading if there are other channel intents loading already
+        var debug = false, fine = true, loadingIntents = PlaybackManager.query({started: false, ended: false, error: false, isSideload: false}); // disallow sideloading if there are other channel intents loading already
         loadingIntents.forEach((intent) => {
             if(intent && intent.entry.originalUrl != self.entry.originalUrl){
                 fine = false;
@@ -1376,6 +1378,7 @@ function createFFmpegIntent(entry, options){
     self.prx = false;
     self.transcode = false;
     self.videoCodec = 'copy';
+    self.decoderOutputAppending = true;
 
     self.commit = () => {
         jQuery('#player').removeClass('hide').addClass('show');
@@ -1577,6 +1580,7 @@ function createTSIntent(entry, options){
     self.softErrors = [];
     self.tsDuration = 0;
     self.tsFetchStart = 0;
+    self.decoderOutputAppending = true;
     
     var uid = self.getUID(), file = 'stream/' + uid + '/output.m3u8';
 
@@ -1684,8 +1688,7 @@ function createTSIntent(entry, options){
             self.retry() // will already call error on failure
         }).
         on('error', function(err, sout, serr) {
-            console.error('an error happened:', err.message, sout, serr);
-            if(err.message.indexOf('ffmpeg was killed with signal') == -1){
+            if(err.message.indexOf('ffmpeg was killed with signal') == -1) {
                 if(!self.error){
                     self.error = 'ffmpeg';
                     self.trigger('error')
@@ -1805,6 +1808,7 @@ function createMagnetIntent(entry, options){
     self.progressTimer = 0;
     self.unpaused = false;
     self.useDecoder = false;
+    self.decoderOutputAppending = true;
         
     self.commit = () => {
         NativePlayURL(self.useDecoder ? self.decoder.file : self.endpoint, self.useDecoder ? 'application/x-mpegURL; codecs="avc1.4D401E, mp4a.40.2"' : 'video/mp4', 
@@ -2420,6 +2424,46 @@ function getHLSProxy(){
     return HLSProxyInstance;
 }
 
+var StaticTSFetch = (() => {
+    var ttl = 300, salt = 'tsc'; // keep salt short
+    return (url, cb) => {
+        var val = Store.get(salt + url);
+        if(val) {
+            cb(false, val)
+        } else {
+            var invocation = new XMLHttpRequest();
+            var internalErrCb = function (err) { // dont update function declare
+                cb(err, '');
+                this.removeEventListener('load', internalCb);
+                this.removeEventListener('error', internalErrCb);
+                delete internalCb;
+                delete internalErrCb;
+            }
+            var internalCb = function () { // dont update function declare
+                blobToBuffer(this.response, (err, buffer) => {
+                    console.error(url, err, buffer);
+                    if(err){
+                        cb(err, '')
+                    } else {
+                        Store.set(salt + url, buffer, ttl);
+                        cb(false, buffer)
+                    }
+                });
+                console.error(this);
+                this.removeEventListener('load', internalCb);
+                this.removeEventListener('error', internalErrCb);
+                delete internalCb;
+                delete internalErrCb;
+            }
+            invocation.open('GET', url, true);
+            invocation.responseType = "blob";
+            invocation.addEventListener("load", internalCb);
+            invocation.addEventListener("error", internalErrCb);
+            invocation.send(null)
+        }
+    }
+})();
+
 var TSProxyInstance;
 
 function getTSProxy(){
@@ -2758,7 +2802,7 @@ function unfocus(e){ // unfocus from sandbox frame to catch keypresses
 }
 
 function defaultFrameDragOver(e){
-    e.preventDefault(); 
+    //e.preventDefault(); 
     top.ondragover(e);
     return false;
 }
@@ -2897,14 +2941,14 @@ PlaybackManager.on('commit', (intent) => {
     if(v) {
         v.volume = Config.get('volume')
     }
-    var tryOther = playingStreamKeyword(intent.entry), b = document.querySelector('.try-other');
+    var terms = playingStreamKeyword(intent.entry), b = document.querySelector('.try-other');
     if(b) {
-        jQuery(b)[tryOther ? 'show' : 'hide']();
-        if(tryOther){
+        jQuery(b)[terms ? 'show' : 'hide']();
+        if(terms){
             jQuery(b).off('mousedown').on('mousedown', () => {
                 setTimeout(() => {
                     switchPlayingStream();
-                    goSearch(tryOther)                    
+                    // goSearch(terms)
                 }, 100)
             })
         }

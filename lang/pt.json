@@ -237,5 +237,7 @@
 "LESS_THAN_A_HOUR": "Menos de uma hora",
 "SCHEDULING_RECORD_WARNING": "Atenção! O programa precisa estar aberto ou na bandeja do sistema nesta data e hora para poder realizar a gravação automaticamente.",
 "FORCE_TRANSCODE": "Forçar transcode (usa mais CPU)",
-"AWAITING_SCHEDULING": "{0} agendamentos"
+"AWAITING_SCHEDULING": "{0} agendamentos",
+"NONE_STREAM_WORKED": "Nenhuma transmissão ativa encontrada para {0}.",
+"X_OF_Y": "{0} de {1}"
 }

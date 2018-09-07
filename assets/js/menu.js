@@ -1147,7 +1147,7 @@ Menu = (() => {
             allHTML += html;
             atts.data = entry;
             if(entry.type != 'disabled'){
-                atts.mousedown = (event) => {
+                atts.click = (event) => {
                     var me = jQuery(event.currentTarget);
                     var data = me.data('entry-data');
                     if(data.type == 'check') {
@@ -1171,6 +1171,25 @@ Menu = (() => {
                     atts[actions[i]] = (event) => {
                         entry[event.type](entry, event.currentTarget);
                     }
+                }
+            }
+            atts.dragstart = (event) => {
+                var data = jQuery(event.target).data('entry-data');
+                if(data && data.url){
+                    var ct = false;
+                    if(isMega(data.url)){
+                        var mega = parseMegaURL(data.url);
+                        if(mega){
+                            ct = ListMan.exportEntriesAsM3U(fetchSharedListsSearchResults(null, 'all', mega.name, true, true))
+                        }
+                    }
+                    if(!ct){
+                        ct = ListMan.exportEntriesAsM3U([data])
+                    }
+                    var f = gui.App.dataPath + path.sep + prepareFilename(data.name) + '.m3u';
+                    fs.writeFileSync(f, ct, "utf-8");
+                    var file = new File(f, '');
+                    event.originalEvent.dataTransfer.setData('DownloadURL', file.type + ':' + file.name + ':' + file.path)
                 }
             }
             if(['input', 'slider'].indexOf(entry.type) != -1){
@@ -1404,7 +1423,7 @@ Menu = (() => {
                 subsub.remove();
                 var es = self.queryElements(self.entries(false, false), {name: basename(self.path), type: 'group'});
                 if(es && es.length){
-                    es.eq(0).trigger('mousedown')
+                    es.eq(0).trigger('click')
                 } else {
                     self.go(self.path)
                 }
@@ -1422,11 +1441,7 @@ Menu = (() => {
         var e = document.activeElement;
         if(e){
             e = jQuery(e);
-            if(e.is('button')){
-                e.trigger('click')
-            } else {
-                e.trigger('mousedown')
-            }
+            e.trigger('click')
         }
     }
     self.playState = (state) => {
@@ -1738,18 +1753,42 @@ function allowAutoClean(curPath){
     // should append autoclean in this path?
     var offerAutoClean = false, autoCleanAllowPaths = [Lang.CHANNELS, Lang.MY_LISTS, Lang.SEARCH], ignorePaths = [Lang.BEEN_WATCHED, Lang.HISTORY, Lang.RECORDINGS, Lang.BOOKMARKS, Lang.MAGNET_SEARCH, 'Youtube'];
     autoCleanAllowPaths.forEach((path) => {
-        if(curPath.indexOf(path) != -1){
+        if(curPath && curPath.indexOf(path) != -1){
             offerAutoClean = true;
         }
     });
     if(offerAutoClean){
         ignorePaths.forEach((path) => {
-            if(curPath.indexOf(path) != -1){
+            if(curPath && curPath.indexOf(path) != -1){
                 offerAutoClean = false;
             }
         })
     }
     return offerAutoClean;
+}
+
+function getAutoCleanEntry(megaUrl, name){
+    var n = (autoCleanEntriesRunning() && autoCleanEntriesStatus && autoCleanEntriesStatus.indexOf('100%')==-1) ? autoCleanEntriesStatus : Lang.TEST_THEM_ALL;
+    return {type: 'option', name: n, label: Lang.AUTO_TUNING, logo: 'fa-magic', class: 'entry-autoclean', callback: () => {
+        if(autoCleanEntriesRunning()){
+            autoCleanEntriesCancel();
+            leavePendingState()
+        } else {
+            enterPendingState(null, Lang.TUNING, '');
+            autoCleanEntries(null, (entry, controller, succeededIntent) => {
+                console.warn('Autoclean onsuccess entry callback', entry, controller, succeededIntent);
+                if(succeededIntent){
+                    PlaybackManager.stop();
+                    PlaybackManager.commitIntent(succeededIntent)
+                }
+            }, () => {
+                leavePendingState();
+                notify(Lang.NONE_STREAM_WORKED.format(name), 'fa-exclamation-circle faclr-red', 'forever')
+            }, () => {
+
+            }, true, true, megaUrl)
+        }
+    }}
 }
 
 var showLogos = !Config.get('hide-logos');  
@@ -1808,26 +1847,8 @@ jQuery(() => {
             if(!Menu.query(Menu.entries(true), {name: Lang.OPTIONS}).length){
                 var n = (autoCleanEntriesRunning() && autoCleanEntriesStatus && autoCleanEntriesStatus.indexOf('100%')==-1) ? autoCleanEntriesStatus : Lang.TEST_THEM_ALL;
                 var megaUrl = false;
-                var aopt = {type: 'option', name: n, label: Lang.AUTO_TUNING, logo: 'fa-magic', class: 'entry-autoclean', callback: () => {
-                    if(autoCleanEntriesRunning()){
-                        autoCleanEntriesCancel();
-                        leavePendingState()
-                    } else {
-                        enterPendingState(null, Lang.TUNING, '');
-                        autoCleanEntries(null, (entry, controller, succeededIntent) => {
-                            console.warn('Autoclean onsuccess entry callback', entry, controller, succeededIntent);
-                            if(succeededIntent){
-                                PlaybackManager.stop();
-                                PlaybackManager.commitIntent(succeededIntent)
-                            }
-                        }, () => {
-                            leavePendingState()
-                        }, () => {
-
-                        }, true, true, megaUrl)
-                    }
-                }};
                 if(Menu.path == searchPath){
+                    var aopt = getAutoCleanEntry(megaUrl, lastSearchTerm);
                     megaUrl = 'mega://play|'+lastSearchTerm;
                     if(PlaybackManager.activeIntent && PlaybackManager.activeIntent.entry.originalUrl == megaUrl){
                         n = Lang.TRY_OTHER_STREAM;
@@ -1851,6 +1872,7 @@ jQuery(() => {
                     }
                     nentries.splice(firstStreamOrGroupEntryOffset, 0, opts)
                 } else if(ac) {
+                    var aopt = getAutoCleanEntry(megaUrl, basename(Menu.path));
                     nentries.splice(firstStreamOrGroupEntryOffset, 0, aopt)
                 }
             }

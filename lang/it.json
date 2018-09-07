@@ -234,5 +234,7 @@
 "LESS_THAN_A_HOUR": "Meno di un'ora",
 "SCHEDULING_RECORD_WARNING": "Attenzione! Il programma deve essere aperto o nella barra delle applicazioni in questa data e ora per poter eseguire automaticamente la registrazione.",
 "FORCE_TRANSCODE": "Forza transcodifica (utilizza più CPU)",
-"AWAITING_SCHEDULING": "{0} pianificazioni"
+"AWAITING_SCHEDULING": "{0} pianificazioni",
+"NONE_STREAM_WORKED": "Nessuna trasmissione trovata per {0}.",
+"X_OF_Y": "{0} di {1}"
 }

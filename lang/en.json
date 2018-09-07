@@ -237,5 +237,7 @@
 "LESS_THAN_A_HOUR": "Less than one hour",
 "SCHEDULING_RECORD_WARNING": "Attention! The program must be open or in the system tray at this date and time to be able to perform the recording automatically.",
 "FORCE_TRANSCODE": "Force transcode (uses more CPU)",
-"AWAITING_SCHEDULING": "{0} schedules"
+"AWAITING_SCHEDULING": "{0} schedules",
+"NONE_STREAM_WORKED": "No active transmission found for {0}.",
+"X_OF_Y": "{0} of {1}"
 }
