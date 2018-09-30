@@ -199,6 +199,16 @@ input.entry-name {
     display: inline-block;
 }
 
+.entry {
+    -webkit-user-drag: none !important;
+    user-drag: none !important;
+}
+
+.entry-stream, .entry-group {
+    -webkit-user-drag: element !important;
+    user-drag: element !important;
+}
+
 .entry-input input {
     font-size: 200%;
     border-radius: 6px;
@@ -226,6 +236,10 @@ input.entry-name {
     padding: 6px;
     cursor: pointer !important;
     -webkit-user-drag: element;
+}
+
+.entry-slider {    
+    -webkit-user-drag: none !important;
 }
 
 .entry-label {
@@ -298,7 +312,7 @@ body.submenu #list-icons {
 }
 
 body.showcontrols.home #home-icons {
-    display: inline-block;
+    display: inline-block !important;
     top: auto;
     bottom: 4px;
 }
@@ -319,12 +333,12 @@ body.showcontrols.home #home-icons {
     text-decoration: none; 
     display: inline-block; 
     position: absolute; 
-    left: -29px;
+    left: -33px;
     top: 0;
     z-index: 9999; 
     border-bottom-left-radius: 6px;
     border-bottom-right-radius: 0;
-    padding: 2px 7px 3px 10px;
+    padding: 2px 9px 3px 12px;
     font-size: 174%;
     border-style: solid;
     border-width: 0 0 1px 1px;
@@ -338,16 +352,16 @@ body.home #controls-toggle {
     border-bottom-right-radius: 6px;
 }
 
-body.playing #controls-toggle, body.paused #controls-toggle {
-    opacity: 0.5; 
+body.playing #menu-trigger-icon, body.paused #menu-trigger-icon {
+    opacity: 0.75; 
 }
 
-body:not(.playing) #controls-toggle:hover {
+body:not(.playing) #controls-toggle:hover, body:not(.playing) #menu-trigger-icon:hover {
     opacity: 1;
 }
 
 #controls-toggle:hover { 
-    padding: 2px 8px 3px 11px;
+    padding: 2px 10px 3px 13px;
 }
 
 #controls-toggle.entry-focused, .nw-cf-btn.entry-focused {

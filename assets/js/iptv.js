@@ -164,15 +164,48 @@ var ListMan = (() => {
         return '';
     }
 
-    self.exportEntriesAsM3U = (entries) => {
-        var ct = "#EXTM3U\n";
-        entries.forEach((entry) => {
-            ct += "#EXTINF:-1 tvg-name=\""+entry.name+"\" tvg-logo=\""+entry.logo+"\" group-title=\""+(entry.group || "")+"\","+entry.name+"\n"+entry.url+"\n\n";
-        });
+    self.exportEntriesAsM3U = (entries, noHeader) => {
+        var ct = "", vpath = Menu.path;
+        if(!noHeader){
+            ct += "#EXTM3U\n\n";
+        }
+        if(jQuery.isArray(entries)){
+            entries.forEach((entry) => {
+                if(entry.type == 'stream' && entry.url){
+                    if(isMega(entry.url)){
+                        var mega = parseMegaURL(entry.url);
+                        if(mega && mega.name){
+                            ct += ListMan.exportEntriesAsM3U(fetchSharedListsSearchResults(null, 'all', mega.name, true, true))
+                        }
+                    } else {
+                        ct += "#EXTINF:-1 tvg-name=\""+entry.name+"\" tvg-logo=\""+entry.logo+"\" group-title=\""+(entry.group || "")+"\","+entry.name+"\n"+entry.url+"\n\n";
+                    }
+                } else {
+                    if(entry['renderer'] && entry.type == 'group') {
+                        var nentries = entry['renderer'](entry, null, true);
+                        if(nentries.length == 1 && nentries[0].class && nentries[0].class.indexOf('entry-loading') != -1) {
+                            var vpathIn = assumePath(entry.name, vpath);
+                            var es = Menu.asyncResult(vpathIn);
+                            //console.warn('ASYNC', entry, vpath, vpathIn, es);
+                            if(es){
+                                ct += self.exportEntriesAsM3U(es, true)
+                            }
+                        } else {
+                            ct += self.exportEntriesAsM3U(nentries, true)
+                        }
+                    } else if(entry['entries']) {
+                        ct += self.exportEntriesAsM3U(entry['entries'], true)
+                    }
+                }
+            })
+        }
         return ct;
     }
 
     self.parse = (content, cb, timeout, skipFilters, url) => { // parse a list to a array of entries/objects
+        if(typeof(content) != 'string'){
+            content = String(content)
+        }
         if(self.isPath(content)){
             url = content;
             if(debug){

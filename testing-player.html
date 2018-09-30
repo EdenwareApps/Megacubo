@@ -12,6 +12,9 @@
 			var b = jQuery('body');
 			var recoverDecodingErrorDate, recoverSwapAudioCodecDate;
 			function parseError(event) {
+				if(!event) {
+					return 'No error specified.';
+				}
 				let error = event;
 				if (event.originalEvent) {
 					error = error.originalEvent;
@@ -44,7 +47,7 @@
 					}
 				}
 			}		
-			function src(_src, type, video){
+			function src(_src, type, video, onerr){
 				var hls = false;
 				console.log('Test src:', _src, type);
 				if(type.toLowerCase().indexOf('mpegurl')!=-1){
@@ -59,14 +62,17 @@
 						if (data.fatal) {
 							switch (data.type) {
 								case Hls.ErrorTypes.MEDIA_ERROR:
-									handleMediaError(hls);
+									//handleMediaError(hls);
+									onerr();
 									break;
 								case Hls.ErrorTypes.NETWORK_ERROR:
 									console.error("network error ...");
+									onerr();
 									break;
 								default:
 									console.error("unrecoverable error");
 									hls.destroy();
+									onerr();
 									break;
 							}
 						}
@@ -99,6 +105,13 @@
 						console.warn(e)
 					}
 				}
+				var onerr = (e) => {
+					cleanup();
+					if(_failure){
+						_failure(['error ended', parseError(e)]);
+						_success = _failure = null;
+					}
+				}
 				v.on('durationchange', () => {
 					console.warn('DURATIONCHANGE', video.duration, minBufSecs);
 					if(video.duration >= minBufSecs){
@@ -109,14 +122,8 @@
 						}
 					}
 				});
-				v.on('error ended', (e) => {
-					cleanup();
-					if(_failure){
-						_failure(['error ended', parseError(e)]);
-						_success = _failure = null;
-					}
-				});
-				hls = src(url, type, video);
+				v.on('error ended', onerr);
+				hls = src(url, type, video, onerr);
 				return {
 					cancel: () => {
 						cleanup()

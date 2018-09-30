@@ -19,10 +19,12 @@ html.ui-index .nw-cf-btn {
     background-color: transparent; 
 }
 
-html.ui-index #controls-toggle { 
-    color: (fgcolor)AA;
-    border-color: (fgcolor)44; 
-    background: (bgcolor);
+html.ui-index body.playing #controls-toggle, html.ui-index body.paused #controls-toggle, html.ui-index body.playing #menu-trigger-icon, html.ui-index body.paused #menu-trigger-icon { 
+    background: linear-gradient( to bottom, transparent, #00000077 100%);
+}
+
+body.playing:not(.showcontrols) .nw-cf, body.paused:not(.showcontrols) .nw-cf {
+    background: #000000;
 }
 
 html.ui-index body.playing iframe#overlay, html.ui-index body.miniplayer iframe#overlay {
@@ -38,9 +40,11 @@ html.ui-index div.notify {
     text-shadow: 1px 1px 2px #000;
 }
 
-html.ui-index #menu-trigger-icon {
-    background: (bgcolor);
-    border-color: (fgcolor)44;
+html.ui-index #menu-trigger-icon, html.ui-index #controls-toggle {
+    background: transparent;
+    border-bottom-color: (fgcolor)20;
+    border-right-color: (fgcolor)07;
+    border-left-color: (fgcolor)07;
     color: (fgcolor)AA; 
 }
 
@@ -58,7 +62,7 @@ html.ui-index #controls .list {
 }
 
 html.ui-index.ui-transparent-menu #controls .list {
-    background: (bgcolor)AA;
+    background: (bgcolor)(menu-opacity);
 }
 
 html.ui-index .entry-name {
@@ -95,7 +99,7 @@ html.ui-index #controls-toggle:hover {
     color: (fgcolor);  
 }
 
-html.ui-index #controls-toggle.entry-focused, html.ui-index .nw-cf-btn.entry-focused {
+html.ui-index #controls-toggle.entry-focused, html.ui-index .nw-cf-btn.entry-focused, html.ui-index .nw-cf-btn:hover {
     color: (fgcolor);  
 }
 
@@ -116,7 +120,7 @@ html.ui-index .nw-cf-icon i, html.ui-index .nw-cf-icon svg, html.ui-index .nw-cf
 }	
 
 html.ui-index span.nw-cf-icon {
-    background-image: url(assets/icons/white/default-icon-white.png);
+    background-image: url("default_icon.png");
 }
 
 html.ui-index.ui-light .nw-cf-icon {
@@ -162,8 +166,14 @@ html.ui-index:not(.ui-light) html.ui-index #player-top-bar a {
     text-shadow: 2px 2px 2px (bgcolor) !important;
 }
 
-html.ui-index div#controls .list > div > div {
-    border-left: 1px solid (fgcolor)07;
+html.ui-index div#controls-left-border {
+    width: 1px;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    top: 33px;
+    height: calc(100% - 33px);
+    background: linear-gradient(to top, (fgcolor)07 0%, (fgcolor)07 90%, (fgcolor)20 100%);
 }
 
 html.ui-index .entry td.entry-logo-c {
@@ -188,7 +198,7 @@ html.ui-index .entry-logo-fa {
 }
 
 html.ui-index div#modal-overlay {
-    background: linear-gradient((bgcolor)FF 0%, #000000FF 25%);
+    background: linear-gradient(#00000000 0%, #000000FF 25%);
 }
 
 progress {
@@ -211,7 +221,7 @@ html.ui-index .prompt-footer .button {
     color: (fgcolor);
     height: 100%;
     cursor: pointer;
-    text-shadow: 1px 1px 1px (bg);
+    text-shadow: 1px 1px 1px (bgcolor);
 }
 
 html.ui-index .prompt-footer .button:hover, html.ui-index .prompt-footer .button.entry-focused {
@@ -224,7 +234,7 @@ html.ui-index div#drop-hint {
 
 html.ui-index div#drop-hint > div {
     color: #fff;    
-    border: 2px dashed #FFFFFF11;
+    border: 4px dashed #FFFFFF10;
 }
 
 html.ui-overlay #drop-target svg, html.ui-overlay #drop-target i {
@@ -233,7 +243,7 @@ html.ui-overlay #drop-target svg, html.ui-overlay #drop-target i {
 }
 
 html.ui-overlay #drop-target.hover {
-    background-color: (bgcolor)CC;
+    background: linear-gradient(to top, #000000dd 50%, #000000aa 100%);
 }
 
 ::-webkit-scrollbar {
@@ -261,4 +271,8 @@ input[type=range]::-webkit-slider-thumb {
     cursor: pointer;
     height: 12px;
     width: 16px;
+}
+
+body.tuning #background .background-logo {
+    animation: (bg-anim) 4s infinite;
 }

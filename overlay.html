@@ -13,7 +13,7 @@
     </head>
     <body>
         <div id="drop-target" class="fit-player">
-            <i class="fas fa-play-circle"></i>
+            <i class="fas fa-expand-arrows-alt"></i>
         </div>
         <script type="text/javascript">
             document.onmousedown = () => { // if the program forgot to add back pointerEvents=none, let any click on overlay rebember it
@@ -143,6 +143,7 @@
                         })
                     },
                     onDragEnter: function () {
+                        clearTimeout(dragOverColorTimer);
                         jQuery(dropTarget).addClass('hover');
                         dragOverColorTimer = setTimeout(() => {
                             jQuery(dropTarget).removeClass('hover')
@@ -151,8 +152,10 @@
                     onDragOver: function () {},
                     onDragLeave: function () {
                         clearTimeout(dragOverColorTimer);
-                        top.document.querySelector('iframe#overlay').style.pointerEvents = 'none';
-                        jQuery(dropTarget).removeClass('hover')
+                        dragOverColorTimer = setTimeout(() => {
+                            top.document.querySelector('iframe#overlay').style.pointerEvents = 'none';
+                            jQuery(dropTarget).removeClass('hover')
+                        }, 400)
                     },
                     onDropText: function (text, pos) {
                         clearTimeout(dragOverColorTimer);

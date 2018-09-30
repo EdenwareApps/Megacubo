@@ -174,6 +174,7 @@
 "BACKGROUND_COLOR": "Background color",
 "ADVANCED": "Advanced",
 "DOWNLOAD_INSTEAD": "Download video instead of play",
+"CHANGE_LOGO_IMAGE": "Change logo image",
 "CHANGE_BACKGROUND_IMAGE": "Change background image",
 "RESTORE_BACKGROUND_IMAGE": "Restore background image",
 "APPEARANCE": "Appearance",
@@ -239,5 +240,12 @@
 "FORCE_TRANSCODE": "Force transcode (uses more CPU)",
 "AWAITING_SCHEDULING": "{0} schedules",
 "NONE_STREAM_WORKED": "No active transmission found for {0}.",
-"X_OF_Y": "{0} of {1}"
+"X_OF_Y": "{0} of {1}",
+"BITRATE": "Bit rate",
+"AVERAGE_BITRATE": "Average bit rate",
+"DOWNLOAD_SPEED": "Download Speed",
+"ANIMATE_BACKGROUND_ON_TUNING": "Animate background while tuning",
+"THEMES": "Themes",
+"CUSTOMIZE_THEME": "Custom theme",
+"CLICK_AGAIN_TO_CANCEL": "Click again to cancel"
 }

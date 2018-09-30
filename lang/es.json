@@ -172,6 +172,7 @@
 "BACKGROUND_COLOR": "Color del fondo",
 "ADVANCED": "Avanzado",
 "DOWNLOAD_INSTEAD": "Descargar vídeo en lugar de reproducir",
+"CHANGE_LOGO_IMAGE": "Cambiar imagen de logo",
 "CHANGE_BACKGROUND_IMAGE": "Cambiar imagen de fondo",
 "RESTORE_BACKGROUND_IMAGE": "Restaurar imagen de fondo",
 "APPEARANCE": "Apariencia",
@@ -237,5 +238,12 @@
 "FORCE_TRANSCODE": "Forzar transcode (utiliza más CPU)",
 "AWAITING_SCHEDULING": "{0} programaciones",
 "NONE_STREAM_WORKED": "Ninguna transmisión activa encontrada para {0}.",
-"X_OF_Y": "{0} de {1}"
+"X_OF_Y": "{0} de {1}",
+"BITRATE": "Velocidad de bits",
+"AVERAGE_BITRATE": "Velocidad de bits promedio",
+"DOWNLOAD_SPEED": "Velocidad de descarga",
+"ANIMATE_BACKGROUND_ON_TUNING": "Animar fondo mientras sintoniza",
+"THEMES": "Temas",
+"CUSTOMIZE_THEME": "Personalizar tema",
+"CLICK_AGAIN_TO_CANCEL": "Haga clic de nuevo para cancelar"
 }

@@ -646,10 +646,22 @@ if(typeof(require)!='undefined'){
                     self.cachingFolder = path.normalize(self.cachingFolder)
                 }
                 return self.cachingFolder + (addEndSlash ? path.sep : '');
-            }    
+            }  
+            self.hash = function(txt) {
+                var hash = 0;
+                if (txt.length == 0) {
+                    return hash;
+                }
+                for (var i = 0; i < txt.length; i++) {
+                    var char = txt.charCodeAt(i);
+                    hash = ((hash<<5)-hash)+char;
+                    hash = hash & hash; // Convert to 32bit integer
+                }
+                return hash;
+            },  
 			self.resolve = (key) => {
-				key = key.replace(new RegExp('[^A-Za-z0-9\\._\\- ]', 'g'), '');
-				return dir + key + '.json';
+				key = key.replace(new RegExp('[^A-Za-z0-9\\._\\- ]', 'g'), '').substr();
+				return dir + key.substr(0, 128) + '.json';
 			}
 			self.get = (key) => {
 				var f = self.resolve(key), _json = null, val = null; 
@@ -717,11 +729,8 @@ if(typeof(require)!='undefined'){
                 debug: false,
                 file: Store.folder(true) + 'configure.json',
                 defaults: {
-                    "background": "assets/images/wallpaper.png",
                     "connect-timeout": 36,
                     "gpu-rendering": true,
-                    "hide-logos": false,
-                    "hide-back-button": false,
                     "ignore-webpage-streams": false,
                     "min-buffer-secs-before-commit": 2,
                     "play-while-tuning": false,
@@ -733,12 +742,6 @@ if(typeof(require)!='undefined'){
                     "show-adult-content": false,
                     "similar-transmissions": true,
                     "sources": [],
-                    "theme-bg": "linear-gradient(to top, #000004 0%, #01193c 75%)",
-                    "theme-bgcolor": "#01193c",
-                    "theme-fgcolor": "#FFFFFF",
-                    "theme-font-size": 1,
-                    "theme-iconsize": 36,
-                    "theme-transparent-menu": false,
                     "volume": 1.0
                 }
             }, loaded = false;
@@ -774,9 +777,13 @@ if(typeof(require)!='undefined'){
 			self.getAll = () => {
 				if(!loaded){
 					self.load()
-				}
+                }
+                var data = {};
+                Object.keys(self.defaults).forEach((key) => {
+                    data[key] = self.data[key] || self.defaults[key];
+                });
 				//console.log('GET', key);
-				return self.data;
+				return data;
 			}
 			self.get = (key) => {
 				if(!loaded){
@@ -818,10 +825,130 @@ if(typeof(require)!='undefined'){
                 }
 			}
 			return self;
-		})()
+        })();
+        
+        
+        
+        var Theme = (() => {
+            var self = {
+                debug: false,
+                file: Store.folder(true) + 'theme.json',
+                defaults: {
+                    "revision": 1.0, // increment to purge default theme
+                    "hide-logos": false,
+                    "background": "assets/images/wallpaper.png",
+                    "bg": "linear-gradient(to top, #000004 0%, #150055 75%)",
+                    "bgcolor": "#150055",
+                    "fgcolor": "#FFFFFF",
+                    "font-size": 1,
+                    "hide-back-button": false,
+                    "iconsize": 36,
+                    "logo": "default_icon.png",
+                    "menu-transparency": 100,
+                    "name": "default",
+                    "tuning-background-animation": "spin-x"
+                }
+            }, loaded = false;
+            self.data = Object.assign({}, self.defaults); // keep defaults object for reference
+            self.keys = Object.keys(self.defaults);
+            for(var key in self.data){
+                if(typeof(self.data[key]) != typeof(self.defaults[key])){
+                    console.error('Invalid key value for', key, self.data[key], 'is not of type ' + typeof(self.defaults[key]));
+                    self.data[key] = self.defaults[key];
+                }
+            }
+            self.load = () => {
+                loaded = true;
+                if(fs.existsSync(self.file)){
+                    var _data = fs.readFileSync(self.file, "utf8");
+                    if(_data){
+                        if(Buffer.isBuffer(_data)){ // is buffer
+                            _data = String(_data)
+                        }
+                        if(self.debug){
+                            console.log('DATA', _data)
+                        }
+                        if(typeof(_data)=='string' && _data.length > 2){
+                            _data = _data.replaceAll("\n", "");
+                            _data = JSON.parse(_data);
+                            if(typeof(_data)=='object' && _data.revision >= self.defaults.revision){
+                                self.data = Object.assign(self.data, _data)
+                            }
+                        }
+                    }
+                }
+            }
+            self.getAll = () => {
+                if(!loaded){
+                    self.load()
+                }
+                //console.log('GET', key);
+                return self.data;
+            }
+            self.get = (key) => {
+                if(!loaded){
+                    self.load()
+                }
+                if(self.debug){
+                    console.log('DATA', JSON.stringify(data))
+                    console.log('GET', key, traceback())
+                }
+                var t = typeof(self.data[key]);
+                if(t == 'undefined'){
+                    self.data[key] = self.defaults[key];
+                    t = typeof(self.defaults[key]);
+                }
+                if(t == 'undefined'){
+                    return null;
+                } else if(t == 'object') {
+                    if(jQuery.isArray(self.data[key])){ // avoid referencing
+                        return self.data[key].slice(0)
+                    } else {
+                        return Object.assign({}, self.data[key])
+                    }
+                }
+                return self.data[key];
+            }
+            self.set = (key, val) => {
+                if(!loaded){
+                    self.load()
+                }
+                if(self.debug){
+                    console.log('SSSET', key, val, self.data)
+                }
+                self.data[key] = val;
+                if(fs.existsSync(self.file)){
+                    fs.truncateSync(self.file, 0)
+                }
+                var jso = JSON.stringify(self.data, null, 4);
+                fs.writeFileSync(self.file, jso, "utf8");
+                if(self.debug){
+                    console.log('SSSET', jso, self.data)
+                }
+            }
+            self.reset = () => {
+                if(!loaded){
+                    self.load()
+                }
+                if(self.debug){
+                    console.log('SSSET', key, val, self.data)
+                }
+                self.data = self.defaults;
+                if(fs.existsSync(self.file)){
+                    fs.truncateSync(self.file, 0)
+                }
+                var jso = JSON.stringify(self.data, null, 4);
+                fs.writeFileSync(self.file, jso, "utf8");
+                if(self.debug){
+                    console.log('SSSET', jso, self.data)
+                }
+            }
+            return self;
+        })()
+        
 	} else {
-		var Config = top.Config, Store = top.Store;
-	}
+		var Config = top.Config, Store = top.Store, Theme = top.Theme;
+    }
 
     function prepareFilename(file){
         file = file.replace(new RegExp('[^A-Za-z0-9\\._\\- ]', 'g'), '');
@@ -832,6 +959,13 @@ if(typeof(require)!='undefined'){
         return str.toLowerCase().replace(/^[\u00C0-\u1FFF\u2C00-\uD7FF\w]|\s[\u00C0-\u1FFF\u2C00-\uD7FF\w]/g, function(letter) {
             return letter.toUpperCase();
         })
+    }
+
+    function ucNameFix(name){
+        if(name == name.toLowerCase()){
+            return ucWords(name)
+        }
+        return name;
     }
 
     function sliceObject(object, s, e){
@@ -968,7 +1102,7 @@ if(typeof(require)!='undefined'){
         }
     }
     
-    function goSearch(searchTerm){
+    function goSearch(searchTerm, backTo){
         var c = (top || parent || window);
         if(c && c.searchPath){
             if(c.isMiniPlayerActive()){
@@ -977,7 +1111,9 @@ if(typeof(require)!='undefined'){
             if(searchTerm){
                 c.lastSearchTerm = searchTerm;
             }
-            var oPath = Menu.path;
+            if(typeof(backTo) != 'string'){
+                backTo = Menu.path;
+            }
             var callback = () => {
                 c.showControls();
                 if(searchTerm) {
@@ -1039,6 +1175,7 @@ if(typeof(require)!='undefined'){
 
     function setBackTo(path){
         var c = (top || parent);
+        console.warn('SETBACK TO', path);
         jQuery(c.document).find('.entry-back').off('mousedown click').on('click', () => {Menu.go(path)})
     }
 
@@ -1372,10 +1509,31 @@ if(typeof(require)!='undefined'){
     var areControlsHiding = () => {
         return top.controlsHiding || false;
     }
+
+    var hidePlayerBar = (() => {
+        var timer = 0;
+        return () => {
+            clearTimeout(timer);
+            if(PlaybackManager.activeIntent && typeof(PlaybackManager.activeIntent.getVideo) == 'function'){
+                var v = PlaybackManager.activeIntent.getVideo();
+                if(v){
+                    var ptb = jQuery('#player-top-bar'), v = jQuery(v.ownerDocument.body);
+                    v.addClass('hiding-controls');
+                    ptb.css({opacity: 0.01});
+                    timer = setTimeout(() => {
+                        ptb.animate({opacity: 1});
+                        v.removeClass('hiding-controls')
+                    }, 1000)
+                }
+            }
+        }
+    })();
     
     function showControls(){
         if(!areControlsActive()){
-            b.addClass('showcontrols')
+            sound('menu', 9);
+            hidePlayerBar();
+            b.add(getFrame('overlay').document.body).addClass('showcontrols')
         } else {
             console.log('DD')
         }
@@ -1384,10 +1542,12 @@ if(typeof(require)!='undefined'){
     function hideControls(){
         //console.log('EE', traceback())
         if(areControlsActive()){
+            sound('menu', 9);
             //console.log('HH')
             top.controlsHiding = true;
+            hidePlayerBar();
             var c = (top || parent);
-            b.removeClass('istyping showcontrols paused');
+            b.add(getFrame('overlay').document.body).removeClass('istyping showcontrols paused');
             var controlsActiveElement = c.document.activeElement;
             //console.log('HIDE', controlsActiveElement)
             if(controlsActiveElement && controlsActiveElement.tagName.toLowerCase()=='input'){
@@ -1765,21 +1925,22 @@ if(typeof(require)!='undefined'){
         var srcFile = 'assets/css/theme.src.css';
         fs.readFile(srcFile, (err, content) => {
             if(!err){
-                let bgcolor = Config.get('theme-bgcolor'), bg = jQuery('#background');
+                let bgcolor = Theme.get('bgcolor'), bg = jQuery('#background');
                 content = parseTheming(content, opts);
                 stylizer(content, 'theming', window);
                 redrawBackgroundImage();
+                redrawLogoImage();
                 if(getColorLightLevel(bgcolor) > 50){
                     document.documentElement.className += ' ui-light';                    
                 } else {
                     document.documentElement.className = document.documentElement.className.replaceAll('ui-light', '');
                 }
-                if(Config.get("theme-transparent-menu")){
+                if(Theme.get("menu-transparency") < 99){
+                    bg.removeClass('fit-player').addClass('fit-screen').find('.background-logo-container').addClass('fit-player');
                     document.documentElement.className += ' ui-transparent-menu';                    
-                    bg.removeClass('fit-player').addClass('fit-screen')
                 } else {
+                    bg.removeClass('fit-screen').addClass('fit-player').find('.background-logo-container').removeClass('fit-player');
                     document.documentElement.className = document.documentElement.className.replaceAll('ui-transparent-menu', '');
-                    bg.removeClass('fit-screen').addClass('fit-player');
                 }
                 if(typeof(Menu)!='undefined'){
                     Menu.restoreScroll()
@@ -1796,16 +1957,16 @@ if(typeof(require)!='undefined'){
         var bg = document.querySelector('#background');
         if(bg) {
             var defaultBackground = 'assets/images/wallpaper.png';
-            var n, content = Config.get('background'), rm = bg.querySelector('img, video');
+            var n, content = Theme.get('background'), rm = bg.querySelector('img.background-image, video.background-image');
             switch(content.substr(5, 5)){
                 case 'image':
-                    n = '<img src="' + content + '" />';
+                    n = '<img class="background-image" src="' + content + '" />';
                     break;
                 case 'video':
-                    n = '<video loop autoplay muted src="' + content + '" />';
+                    n = '<video class="background-image" loop autoplay muted src="' + content + '" />';
                     break;
                 default:
-                    n = '<img src="' + defaultBackground + '" />';
+                    n = '<img class="background-image" src="' + defaultBackground + '" />';
                     break;
             }
             if(n){
@@ -1817,13 +1978,41 @@ if(typeof(require)!='undefined'){
         }
     }
 
+    var isFirstLogoDraw = true;
+    function redrawLogoImage() {
+        var bg = document.querySelector('#background');
+        if(bg) {
+            var defaultLogo = 'default_icon.png';
+            var n, content = Theme.get('logo') || '', rm = bg.querySelector('.background-logo-container');
+            switch(content.substr(5, 5)) {
+                case 'image':
+                    applyIcon(content);
+                    n = '<div class="background-logo-container fit-player"><img class="background-logo" src="' + content + '" /></div>';
+                    break;
+                default:
+                    applyIcon(defaultLogo);
+                    n = '<div class="background-logo-container fit-player"><img class="background-logo" src="' + defaultLogo + '" /></div>';
+                    break;
+            }
+            if(n) {
+                if(rm) {
+                    bg.removeChild(rm)
+                }
+                jQuery(n).prependTo(bg)
+            }
+        }
+    }
+
     function parseTheming(content, opts){
         let data = {
-            'bg': Config.get('theme-bg') || 'linear-gradient(to top, #000004 0%, #01193c 75%)',
-            'bgcolor': Config.get('theme-bgcolor'),
-            'fgcolor': Config.get('theme-fgcolor'),
-            'fontsize': Config.get('theme-font-size'),
-            'iconsize': Config.get('theme-iconsize')
+            'bg': Theme.get('bg') || 'linear-gradient(to top, #000004 0%, #01193c 75%)',
+            'bgcolor': Theme.get('bgcolor'),
+            'fgcolor': Theme.get('fgcolor'),
+            'fontsize': Theme.get('font-size'),
+            'iconsize': Theme.get('iconsize'),
+            'bg-anim': 'bga-' + Theme.get('tuning-background-animation'),
+            'theme': Theme.get('name'),
+            'menu-opacity': componentToHex(Math.round(Theme.get('menu-transparency') * (255 / 100)))
         };
         if(data.fontsize > 2){
             data.fontsize = 1;
@@ -1880,7 +2069,9 @@ if(typeof(require)!='undefined'){
         if(placeholder && direct){
             url = placeholder;
         } else {
-            if(!placeholder) placeholder = Store.get('lastCustomPlayURL');
+            if(!placeholder){
+                placeholder = Store.get('lastCustomPlayURL')
+            }
             return top.askForSource(Lang.PASTE_URL_HINT, (val) => {
                 playCustomURL(val+'#nosandbox', true);
                 return true;
@@ -1959,6 +2150,9 @@ if(typeof(require)!='undefined'){
     }
 
     function copyFile(source, target, cb) {
+        if(typeof(cb) != 'function') {
+            cb = () => {}
+        }
         var cbCalled = false;
         var done = function (err) {
             if (!cbCalled) {
@@ -2016,7 +2210,7 @@ if(typeof(require)!='undefined'){
             }
         }, 200);
         if(!c.isReloading && isInternal !== true){
-            setTitleData(appName(), 'default_icon.png');
+            setTitleData(appName(), '');
             leavePendingState()
         }
     }
@@ -2311,13 +2505,16 @@ if(typeof(require)!='undefined'){
         } else {
             title = notifyFlag + ' ' + title + '...';
         } 
-        setTitleFlag('fa-circle-notch fa-spin', title);
+        //setTitleFlag('fa-circle-notch fa-spin', title);
         if(!pendingStateNotification){
-            pendingStateNotification = notify(notifyFlag+'...', 'fa-circle-notch fa-spin', 'forever')
+            //pendingStateNotification = notify(notifyFlag+'...', 'fa-circle-notch fa-spin', 'forever')
+            pendingStateNotification = notify(title, 'fa-circle-notch fa-spin', 'forever')
         } else {
-            pendingStateNotification.update(notifyFlag+'...', 'fa-circle-notch fa-spin')
+            //pendingStateNotification.update(notifyFlag+'...', 'fa-circle-notch fa-spin')
+            pendingStateNotification.update(title, 'fa-circle-notch fa-spin')
         }
-        t.updateStreamEntriesFlags()
+        t.updateStreamEntriesFlags();
+        jQuery(t.document.querySelector('body')).addClass('tuning')
     }
     
     function leavePendingState() {
@@ -2328,9 +2525,10 @@ if(typeof(require)!='undefined'){
             if(pendingStateNotification){
                 pendingStateNotification.hide()
             }
-            setTitleFlag('', defaultTitle);
+            //setTitleFlag('', defaultTitle);
             t.updateStreamEntriesFlags()
-        }
+        };
+        jQuery(t.document.querySelector('body')).removeClass('tuning')
     }
 
     function urldecode(t){
@@ -2387,11 +2585,15 @@ if(typeof(require)!='undefined'){
         title = displayPrepareName(urldecode(title));
         defaultTitle = title;
         if(top){
-            var defaultIcon= 'default_icon.png';
-            applyIcon(icon);
-            checkImage(icon, () => {}, () => {
-                applyIcon(defaultIcon);
-            });
+            var defaultIcon = 'default_icon.png';
+            if(icon){
+                applyIcon(icon);
+                checkImage(icon, () => {}, () => {
+                    applyIcon(defaultIcon);
+                });
+            } else {
+                applyIcon(defaultIcon)
+            }
             var doc = top.document;
             doc.title = title;
             var c = doc.querySelector('.nw-cf-title');

@@ -11,6 +11,7 @@
     "Space": "PLAYPAUSE", 
     "Ctrl+H": "HISTORY",
     "Ctrl+U": "ADDNEWSOURCE",
+    "Ctrl+V": "PASTEPLAY",
     "Ctrl+L": "CHANGELANG",
     "Ctrl+D Ctrl+S": "ADDFAV",
     "Ctrl+Alt+D Ctrl+Alt+S": "REMOVEFAV",

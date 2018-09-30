@@ -1,8 +1,9 @@
 
 var menuTemplates = {
     'option': '<a href="[url]" role="button" onclick="return false;" class="entry entry-option [class]" title="[name] [label]" aria-label="[name] [label]"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><span class="entry-logo-img-c"><img src="[logo]" onerror="this.onerror=null;this.src=\'[default-logo]\';" /></span></span></td><td><span class="entry-name">[name]</span><span class="entry-label">[format-label]</span></td></tr></table></a>',
+    'back': '<a href="[url]" role="button" onclick="return false;" class="entry entry-option [class]" title="[name] [label]" aria-label="[name] [label]"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><span class="entry-logo-img-c"><img src="[logo]" onerror="this.onerror=null;this.src=\'[default-logo]\';" /></span></span></td><td><span class="entry-name">[name]</span><span class="entry-label">[format-label]</span></td></tr></table></a>',
     'disabled': '<a href="[url]" role="button" onclick="return false;" class="entry entry-disabled entry-offline [class]" aria-hidden="true"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><img src="[logo]" title="[name] - [group]" onerror="this.onerror=null;this.src=\'[default-logo]\';" /></span></td><td><span class="entry-name">[name]</span><span class="entry-label">[format-label]</span></td></tr></table></a>',
-    'input': '<a href="[url]" role="button" onclick="return false;" class="entry entry-input [class]" title="[name] [label]" aria-label="[name] [label]"><table class="entry-search"><tr><td><input type="text" style="background-image: url([logo]);" /></td><td class="entry-logo-c"></td></tr></table></a>', // entry-input-container entry-search-helper
+    'input': '<a href="[url]" draggable="false" role="button" onclick="return false;" class="entry entry-input [class]" title="[name] [label]" aria-label="[name] [label]"><table class="entry-search"><tr><td><input type="text" style="background-image: url([logo]);" /></td><td class="entry-logo-c"></td></tr></table></a>', // entry-input-container entry-search-helper
     'check': '<a href="[url]" role="button" onclick="return false;" class="entry entry-option [class]" title="[name] [label]" aria-label="[name] [label]"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><i class="fas fa-toggle-off entry-logo-fa" aria-hidden="true"></i></span></td><td><span class="entry-name">[name]</span></td></tr></table></a>',
     'stream': '<a href="[url]" role="button" onclick="return false;" class="entry entry-stream [class]" title="[name] [label]" aria-label="[name] [label]"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><span class="entry-logo-img-c"><img src="[logo]" onerror="lazyLoad(this, [\'[auto-logo]\', \'[default-logo]\'])" title="[name] - [group]" alt="[name]" /></span></span></td><td><span class="entry-name">[format-name]</span><span class="entry-label">[format-label]</span></td></tr></table></a>',
     'group': '<a href="[url]" role="button" onclick="return false;" class="entry entry-group [class]" title="[name] [label]" aria-label="[name] [label]"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><span class="entry-logo-img-c"><img src="[logo]" onerror="lazyLoad(this, [\'[auto-logo]\', \'[default-logo]\'])" title="[name] - [group]" alt="[name]" /></span></span></td><td><span class="entry-name">[name]</span><span class="entry-label">[format-label]</span></td></tr></table></a>', // onerror="nextLogoForGroup(this)" 
@@ -182,18 +183,55 @@ function readIndexPath(path){
     return sub;
 }
 
-var effectFadeTime = 100;
+var effectRevealDelay = 50, effectContainer = jQuery('.list > div'), effectDuration = 75;
+
 function listEnterEffect(callback){
-    jQuery('.list > div').animate({marginLeft:'-10%', opacity: 0.01}, effectFadeTime, function (){callback();jQuery(this).css({marginLeft:0,opacity: 1})});
+    var from = 0, to = -50;
+    jQuery({y: from}).animate({y: to}, {
+        duration: effectDuration,
+        easing: "swing",
+        step: function(val) {
+            var o = (100 - (Math.abs(val) / ((Math.abs(to) - from) / 100))) / 100;
+            console.warn('VAL', val, o);
+            effectContainer.css({
+                transform: "translate("+val+"px, "+(val/20)+"px)",
+                opacity: o
+            }) 
+        },
+        done: function(){
+            callback();
+            setTimeout(() => {
+                effectContainer.css({transform: "none", opacity: 1})
+            }, effectRevealDelay)
+        }
+    })
 }
 
 function listBackEffect(callback){
-    jQuery('.list > div').animate({opacity: 0.01}, effectFadeTime, function (){callback();jQuery(this).css({opacity: 1})});
+    var from = 0, to = 50;
+    jQuery({y: from}).animate({y: to}, {
+        duration: effectDuration,
+        easing: "swing",
+        step: function(val) {
+            var o = (100 - (Math.abs(val) / ((Math.abs(to) - from) / 100))) / 100;
+            effectContainer.css({
+                transform: "translate("+val+"px, "+(val/20)+"px)",
+                opacity: o
+            }) 
+        },
+        done: function(){
+            callback();
+            setTimeout(() => {
+                effectContainer.css({transform: "none", opacity: 1})
+            }, effectRevealDelay)
+        }
+    })
 }
 
 function about(){
+    sound('warn', 16);
     var name = appName(), arch = process.arch == 'ia32' ? 'x86' : 'x64';
-    if(currentVersion > installedVersion){
+    if(currentVersion && (currentVersion > installedVersion)){
         var txt = name + ' v'+gui.App.manifest.version+' (< v'+currentVersion+') '+arch+"\n\n";
         txt = applyFilters('about', txt);
         txt = trimChar(txt, "\n") + "\n\n" + Lang.NEW_VERSION_AVAILABLE;
@@ -220,9 +258,9 @@ function getSearchSuggestions(){
                 suggestions[i].search_term = suggestions[i].search_term.trim();
                 if(parentalControlAllow(suggest.search_term)){
                     var t = Lang.SEARCH + ': ' + suggest.search_term, c = ucWords(suggest.search_term), s = encodeURIComponent(c), entry = {name: c, logo: 'http://app.megacubo.net/logos/'+encodeURIComponent(s)+'.png', type: 'stream', label: Lang.MOST_SEARCHED, url: 'mega://play|'+s};
-                    entries.push({name: suggest.search_term, defaultLogo: defaultIcons['stream'], logo: 'http://app.megacubo.net/logos/'+encodeURIComponent(suggest.search_term)+'.png', type: 'option', class: 'entry-suggest', label: Lang.SEARCH, callback: () => {goSearch(suggest.search_term)}})
+                    entries.push({name: suggest.search_term, defaultLogo: defaultIcons['stream'], logo: 'http://app.megacubo.net/logos/'+encodeURIComponent(suggest.search_term)+'.png', type: 'option', class: 'entry-suggest', label: Lang.SEARCH, callback: () => {goSearch(suggest.search_term, '')}})
                     var a = jQuery('<a href="#" title="'+t+'" aria-label="'+t+'">'+suggest.search_term+'</a>&nbsp;');
-                    a.data('entry-data', entry).on('mousedown', (event) => {
+                    a.data('entry-data', entry).on('click', (event) => {
                         var entry = jQuery(event.currentTarget).data('entry-data');
                         // goSearch(entry.name.toLowerCase())
                         playEntry(entry)
@@ -272,13 +310,13 @@ function renderRemoteSources(name){
                         entry.label = '';
                     }
                     entry.label = entry.label.format(Lang.USER, Lang.USERS);
-                    entry.renderer = (data) => {
-                        return loadSource(data.url, data.name)
+                    entry.renderer = (data, element, isVirtual) => {
+                        return loadSource(data.url, data.name, null, null, isVirtual)
                     }
                     return entry;
                 });
-                //index = writeIndexPathEntries(Menu.path, entries);
-                //Menu.go(Menu.path);
+                // index = writeIndexPathEntries(Menu.path, entries);
+                // Menu.go(Menu.path);
                 Menu.asyncResult(path, entries);
                 setTimeout(markActiveSource, 250) // wait rendering
             } else {
@@ -354,7 +392,7 @@ function fetchAndRenderWatchingEntries(name, filter, callback){
 function backEntry(label){
     var back = {
         name: Lang.BACK,
-        type: 'option',
+        type: 'back',
         class: 'entry-back entry-search-helper',
         logo: 'fa-chevron-left',
         callback: Menu.back
@@ -362,7 +400,7 @@ function backEntry(label){
     if(label){
         back.label = '<i class="fas fa-map-marker-alt"></i>&nbsp; '+label;
     }
-    if(Config.get('hide-back-button')){
+    if(Theme.get('hide-back-button')){
         back.class += ' entry-hide';
     }
     return back;
@@ -512,7 +550,7 @@ function markActiveLocale(){
     }
 }
 
-var searchKeypressTimer = 0, searchResultsLimit = 128, lastSearchTerm = Store.get('last-search-term');
+var searchKeypressTimer = 0, searchResultsLimit = 196, lastSearchTerm = Store.get('last-search-term');
 
 function setupSearch(term, type, name, customSearchFn){
     Menu.path = assumePath(name);
@@ -599,7 +637,10 @@ function setupSearch(term, type, name, customSearchFn){
         placeholder: Lang.SEARCH_PLACEHOLDER
     };   
     Menu.render([entry]);
-    jQuery('a.entry input').trigger('focus').trigger('input');
+    Menu.vpath = '';
+    Menu.adjustBodyClass(false);
+    setBackToHome();
+    jQuery('a.entry input').trigger('focus').trigger('input')
 }
 
 function fetchSearchResults(){
@@ -699,7 +740,7 @@ function getStreamBasicType(entry){
 
 var sharedListsSearchCaching = false;
 function fetchSharedListsSearchResults(cb, type, term, matchAll, _strict){
-    var r = [], limit = 96;
+    var r = [], limit = searchResultsLimit;
     if(!term){
         var c = jQuery('.list > div > div input');
         if(c.length){
@@ -803,7 +844,7 @@ Menu = (() => {
     self.asyncResults = {};
     self.scrollTopCache = {};
     self.triggeringCache = {};
-    self.asyncResult = (path, entries) => {
+    self.asyncResult = (path, entries, isVirtual) => {
         if(typeof(entries)=='undefined'){
             return (typeof(self.asyncResults[path])=='undefined' ? false : self.asyncResults[path])
         }
@@ -869,7 +910,25 @@ Menu = (() => {
         }
         return self.triggeringCache[path] || false;
     }
-    self.trigger = (data, element) => {
+    self.trigger = (data, element, animEnded) => {
+        if(animEnded !== true){
+            console.warn('ANIM', data);
+            if(data.type == 'back'){
+                sound('click-out', 3);
+                listBackEffect(() => {
+                    self.trigger(data, element, true)
+                });
+                return;
+            } else if(data.type == 'group') {
+                sound('click-in', 4);
+                listEnterEffect(() => {
+                    self.trigger(data, element, true)
+                });
+                return;
+            } else if(data.type == 'stream') {
+                sound('warn', 16); // no return, no effect
+            }
+        }
         // console.log('TRIGGER', data, element, traceback());
         if(data.type == 'input' || (typeof(data.class)=='string' && data.class.indexOf('entry-disabled')!=-1)){
             return;
@@ -910,7 +969,7 @@ Menu = (() => {
             entries = data.entries;
         }
         if(typeof(data.renderer)=='function'){
-            entries = data.renderer(data, element);
+            entries = data.renderer(data, element, false);
             if(entries === -1){
                 return;
             } else if(!jQuery.isArray(entries)){
@@ -1137,7 +1196,7 @@ Menu = (() => {
                 html = html.replaceAll('[auto-logo]', autoLogo);
                 html = html.replaceAll('[default-logo]', entry.defaultLogo || defaultIcons[entry.type])
             }
-            html = html.replaceAll('[group]', entry.group || '');
+            html = html.replaceAll('[group]', entry.group && entry.group != 'undefined' ? entry.group : '');
             html = html.replaceAll('[label]', (entry.label || entry.group || '').replace(new RegExp(' *<\\/?[^>]+> *', 'g'), ' ').replaceAll('"', '&amp;quot;'));
             html = html.replaceAll('[format-label]', (entry.label || entry.group || ''));
             html = html.replaceAll('[class]', entry.class || '');
@@ -1155,7 +1214,8 @@ Menu = (() => {
                         checked = !checked;
                         var checkCallback = data.check || false;
                         handleEntryInputChecking(me, checked);
-                        if(typeof(data.check)=='function') data.check(checked, data)
+                        if(typeof(data.check)=='function') data.check(checked, data);
+                        sound('switch', 12);
                         //console.warn('OK?', data, checked, data.check);
                     } else {
                         self.trigger(data, event.currentTarget)
@@ -1173,26 +1233,33 @@ Menu = (() => {
                     }
                 }
             }
-            atts.dragstart = (event) => {
-                var data = jQuery(event.target).data('entry-data');
-                if(data && data.url){
-                    var ct = false;
-                    if(isMega(data.url)){
-                        var mega = parseMegaURL(data.url);
-                        if(mega){
-                            ct = ListMan.exportEntriesAsM3U(fetchSharedListsSearchResults(null, 'all', mega.name, true, true))
+            if(['input', 'slider'].indexOf(entry.type) == -1){
+                atts.dragstart = (event) => {
+                    var data = jQuery(event.target).data('entry-data');
+                    if(data){
+                        var ct = false;
+                        if(data.url && isMega(data.url)){
+                            var mega = parseMegaURL(data.url);
+                            if(mega){
+                                ct = ListMan.exportEntriesAsM3U(fetchSharedListsSearchResults(null, 'all', mega.name, true, true))
+                            }
                         }
+                        if(!ct){
+                            ct = ListMan.exportEntriesAsM3U([data])
+                        }
+                        var f = gui.App.dataPath + path.sep + prepareFilename(data.name) + '.m3u';
+                        fs.writeFileSync(f, ct, "utf-8");
+                        var file = new File(f, '');
+                        event.originalEvent.dataTransfer.setData('DownloadURL', file.type + ':' + file.name + ':' + file.path)
                     }
-                    if(!ct){
-                        ct = ListMan.exportEntriesAsM3U([data])
-                    }
-                    var f = gui.App.dataPath + path.sep + prepareFilename(data.name) + '.m3u';
-                    fs.writeFileSync(f, ct, "utf-8");
-                    var file = new File(f, '');
-                    event.originalEvent.dataTransfer.setData('DownloadURL', file.type + ':' + file.name + ':' + file.path)
                 }
-            }
-            if(['input', 'slider'].indexOf(entry.type) != -1){
+            } else {
+                if(typeof(entry['value'])!='undefined'){
+                    if(typeof(entry.getValue) == 'function'){
+                        entry['value'] = entry.getValue(entry);
+                    }
+                    atts.value = entry['value'];
+                }
                 if(entry['change']){
                     atts.input = (event) => {
                         jQuery('body').trigger('wake');
@@ -1204,9 +1271,6 @@ Menu = (() => {
                         entry.value = v;
                         entry['change'](entry, event.currentTarget, v)
                     }
-                }
-                if(typeof(entry['value'])!='undefined'){
-                    atts.value = entry['value'];
                 }
                 if(entry['placeholder']){
                     atts.placeholder = entry['placeholder'];
@@ -1527,7 +1591,7 @@ Menu = (() => {
         var read = (entry) => {
             var nentries = [];
             if(typeof(entry.renderer)=='function'){
-                nentries = entry.renderer(entry)
+                nentries = entry.renderer(entry, null, true)
             } else {
                 if(typeof(entry.entries) != 'undefined'){
                     nentries = entry.entries;
@@ -1768,6 +1832,7 @@ function allowAutoClean(curPath){
 }
 
 function getAutoCleanEntry(megaUrl, name){
+    console.log('HEREEE!', megaUrl, name);
     var n = (autoCleanEntriesRunning() && autoCleanEntriesStatus && autoCleanEntriesStatus.indexOf('100%')==-1) ? autoCleanEntriesStatus : Lang.TEST_THEM_ALL;
     return {type: 'option', name: n, label: Lang.AUTO_TUNING, logo: 'fa-magic', class: 'entry-autoclean', callback: () => {
         if(autoCleanEntriesRunning()){
@@ -1775,6 +1840,7 @@ function getAutoCleanEntry(megaUrl, name){
             leavePendingState()
         } else {
             enterPendingState(null, Lang.TUNING, '');
+            /*
             autoCleanEntries(null, (entry, controller, succeededIntent) => {
                 console.warn('Autoclean onsuccess entry callback', entry, controller, succeededIntent);
                 if(succeededIntent){
@@ -1786,12 +1852,20 @@ function getAutoCleanEntry(megaUrl, name){
                 notify(Lang.NONE_STREAM_WORKED.format(name), 'fa-exclamation-circle faclr-red', 'forever')
             }, () => {
 
-            }, true, true, megaUrl)
+            }, true, true, megaUrl, name)
+            */
+            var name = basename(Menu.path);
+            if(Menu.path == searchPath){
+                name = lastSearchTerm;
+            } else if(Menu.path.indexOf(Lang.CHOOSE_STREAM)) {
+                name = basename(Menu.path.substr(0, Menu.path.indexOf(Lang.CHOOSE_STREAM) - 1))
+            }
+            tuneNPlay(Menu.query(Menu.entries(true), {type: 'stream'}), name, 'mega://play|'+encodeURIComponent(name))
         }
     }}
 }
 
-var showLogos = !Config.get('hide-logos');  
+var showLogos = !Theme.get('hide-logos');  
 jQuery(() => {    
     addFilter('filterEntries', (entries, path) => {
         //console.log('PREFILTERED', entries);
@@ -1847,26 +1921,39 @@ jQuery(() => {
             if(!Menu.query(Menu.entries(true), {name: Lang.OPTIONS}).length){
                 var n = (autoCleanEntriesRunning() && autoCleanEntriesStatus && autoCleanEntriesStatus.indexOf('100%')==-1) ? autoCleanEntriesStatus : Lang.TEST_THEM_ALL;
                 var megaUrl = false;
+                console.log('HEREEE!', Menu.path, searchPath, Menu.path == searchPath, lastSearchTerm);
                 if(Menu.path == searchPath){
                     var aopt = getAutoCleanEntry(megaUrl, lastSearchTerm);
                     megaUrl = 'mega://play|'+lastSearchTerm;
                     if(PlaybackManager.activeIntent && PlaybackManager.activeIntent.entry.originalUrl == megaUrl){
                         n = Lang.TRY_OTHER_STREAM;
                     }
-                    var opts = {name: Lang.OPTIONS, label: Lang.SEARCH, type: 'group', logo: 'assets/icons/white/settings.png', entries: [
-                        {name: Lang.MAGNET_SEARCH, label: '', logo: 'fa-magnet', type: 'option', value: lastSearchTerm, callback: () => { 
-                            setupSearch(lastSearchTerm, 'magnet', Lang.MAGNET_SEARCH);
-                            setBackTo(searchPath)
-                        }},
-                        {name: Lang.TUNE, type: 'option', logo: 'fa-broadcast-tower', callback: () => { 
-                            Menu.go(tunePath);
-                            setBackTo(searchPath)
-                        }},
-                        {name: Lang.SECURITY, type: 'option', logo: 'fa-shield-alt', callback: () => { 
-                            Menu.go(secPath);
-                            setBackTo(searchPath)
-                        }}
-                    ]};
+                    console.log('HEREEE!', aopt);
+                    var opts = {name: Lang.OPTIONS, label: Lang.SEARCH, type: 'group', logo: 'assets/icons/white/settings.png', 
+                        callback: () => {
+                            setBackTo(searchPath);
+                            setTimeout(() => {
+                                if(basename(Menu.path) == Lang.OPTIONS){
+                                    setBackTo(searchPath)
+                                }
+                            }, 200)
+                        },
+                        entries: [
+                            {name: Lang.MAGNET_SEARCH, label: '', logo: 'fa-magnet', type: 'option', value: lastSearchTerm, callback: () => { 
+                                setupSearch(lastSearchTerm, 'magnet', Lang.MAGNET_SEARCH);
+                                setBackTo(searchPath)
+                            }},
+                            {name: Lang.TUNE, type: 'option', logo: 'fa-broadcast-tower', callback: () => { 
+                                Menu.go(tunePath);
+                                setBackTo(searchPath)
+                            }},
+                            {name: Lang.SECURITY, type: 'option', logo: 'fa-shield-alt', callback: () => { 
+                                Menu.go(secPath);
+                                setBackTo(searchPath)
+                            }},
+                            {name: Lang.HISTORY, type: 'group', logo: 'fa-history', renderer: getSearchHistoryEntries}
+                        ]
+                    };
                     if(ac){
                         nentries.splice(firstStreamOrGroupEntryOffset, 0, aopt)
                     }

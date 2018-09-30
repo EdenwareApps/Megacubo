@@ -2871,6 +2871,7 @@ PlaybackManager.on('register', (intent, entry) => {
             sendStats('error', sendStatsPrepareEntry(intent.entry))
             if(!intent.shadow && shouldNotifyPlaybackError(intent)){ // don't alert user if has concurrent intents loading
                 if(!Config.get('similar-transmissions') || !switchPlayingStream(intent)){
+                    sound('static', 16);
                     var message = Lang.PLAY_STREAM_FAILURE.format(intent.entry.name);
                     if([404, 'connect', 'invalid'].indexOf(intent.error) != -1 || [404].indexOf(intent.statusCode) != -1) {
                         message += ' ' + Lang.PLAYBACK_OFFLINE_STREAM;

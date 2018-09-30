@@ -140,10 +140,12 @@ function getRemoteSources(callback){
     return fetchEntries(url, callback)
 }
 
-function loadSource(url, name, callback, filter){
+function loadSource(url, name, callback, filter, isVirtual){
     var path = assumePath(name);
-    var container = Menu.container(true);
-    backEntryRender(container, dirname(path), name);
+    if(!isVirtual) {
+        var container = Menu.container(true);
+        backEntryRender(container, dirname(path), name)
+    }
     var failed = () => {
         notify(Lang.DATA_FETCHING_FAILURE, 'fa-exclamation-triangle faclr-red', 'normal');
         Menu.back()
@@ -173,9 +175,14 @@ function loadSource(url, name, callback, filter){
                         })
                     }
                 }
-                Menu.asyncResult(path, parsed)
+                Menu.asyncResult(path, parsed);
+                if(typeof(callback) == 'function'){
+                    callback(parsed, path)
+                }
             } else {
-                failed()
+                if(!isVirtual()) {
+                    failed()
+                }
             }
         })
     }, loadingToActionDelay);
@@ -210,7 +217,7 @@ function getWatchingData(cb, update){
             return entry;
         });
         if(isListSharingActive()) {
-            addEntriesToSearchIndex(entries)
+            addEntriesToSearchIndex(entries, url)
         }
         if(typeof(cb)=='function'){
             cb(entries)
@@ -351,7 +358,8 @@ function getSearchRangeEntries(){
     var options = [];
     var callback = (entry, r) => {
         Config.set('search-range-size', entry.value);        
-        initSearchIndex(() => {})
+        initSearchIndex(() => {});
+        setActiveEntry({value: entry.value})
     }
     options.push({name: Lang.MY_LISTS_ONLY, value: 0, logo:'fa-search-minus', type: 'option', callback: callback});
     options.push({name: Lang.LOW+' ('+Lang.LISTS+': 18)', value: 18, logo:'fa-search-minus', type: 'option', callback: callback});
@@ -360,6 +368,57 @@ function getSearchRangeEntries(){
     options.push({name: Lang.XTREME+' ('+Lang.LISTS+': 96, '+Lang.SLOW+')', value: 96, logo:'fa-search-plus', type: 'option', callback: callback});
     return options;
 }
+
+function getSearchHistoryEntries(){
+    var opts = [], hpath = assumePath(Lang.HISTORY), sugs = Config.get('search-history');
+    if(jQuery.isArray(sugs) && sugs.length){
+        sugs.forEach((sug) => {
+            opts.push({
+                name: sug,
+                type: 'option',
+                callback: () => {
+                    goSearch(sug, hpath)
+                }
+            })
+        })
+        opts.push({
+            name: Lang.CLEAR,
+            logo: 'fa-undo',
+            type: 'option',
+            callback: () => {
+                Config.set('search-history', []);
+                Menu.back()
+            }
+        })
+    } else {
+        opts.push({
+            name: Lang.EMPTY,
+            type: 'option',
+            callback: () => { }
+        })
+    }
+    setBackTo(searchPath);
+    setTimeout(() => {
+        if(basename(Menu.path) == Lang.HISTORY){
+            setBackTo(searchPath)
+        }
+    }, 200);
+    return opts;
+}
+
+PlaybackManager.on('commit', () => {
+    if(Menu.path.indexOf(searchPath) != -1){
+        var str = lastSearchTerm;
+        var sugs = Config.get('search-history');
+        if(!jQuery.isArray(sugs)){
+            sugs = []
+        }
+        if(sugs.indexOf(str) == -1) {
+            sugs.push(str);
+            Config.set('search-history', sugs)
+        }
+    }
+});
 
 function getBookmarksEntries(reportEmpty){
     var options = [], stream;
@@ -438,15 +497,39 @@ function getLanguageEntries(){
     return options;
 }
 
-function getListsEntries(notActive, noManagement){
+function getThemeEntries() {
+    var options = []; 
+    fs.readdirSync('themes').forEach(file => {
+        if(file.indexOf('.json')!=-1){
+            console.log(file);
+            var n = basename(file).replace('.json', '');
+            options.push({
+                name: n,
+                file: 'themes/' + file,
+                logo: 'fa-palette',
+                type: 'option',
+                callback: function (data){
+                    console.warn('##', data);
+                    importTheme(data.file, () => {
+                        loadTheming();
+                        Menu.back()
+                    })
+                }
+            })
+        }
+    });
+    return options;
+}
+
+function getListsEntries(notActive, noManagement, isVirtual){
     var options = [
         {name: Lang.MY_LISTS, label: Lang.IPTV_LISTS, type: 'group', renderer: () => {
             var sources = getSources(), active = getActiveSource(), options = [];
-            for(var i in sources){
+            for(var i in sources) {
                 var entry = sources[i], length = '-', groups = '-';
                 if(!jQuery.isArray(entry)) continue;
                 if(notActive === true && entry[1] == active) continue;
-                if(typeof(entry[2])=='object'){
+                if(typeof(entry[2])=='object') {
                     var locale = getLocale(false, true);
                     length = Number(entry[2].length).toLocaleString(locale);
                     groups = Number(entry[2]['groups']).toLocaleString(locale);
@@ -457,8 +540,8 @@ function getListsEntries(notActive, noManagement){
                     type: 'group', 
                     url: entry[1], 
                     label: Lang.STREAMS+': '+length, 
-                    renderer: (data) => {
-                        return loadSource(data.url, data.name)
+                    renderer: (data, element, isVirtual) => {
+                        return loadSource(data.url, data.name, null, null, isVirtual)
                     },
                     delete: (data) => {
                         unRegisterSource(data.url);
@@ -469,7 +552,7 @@ function getListsEntries(notActive, noManagement){
                         //alert(newName)         
                         setSourceName(data.url, name)
                     }
-                });
+                })
             }
             if(!options.length){
                 options.push({name: Lang.EMPTY, logo:'fa-file', type: 'option'})
@@ -488,7 +571,7 @@ function getListsEntries(notActive, noManagement){
             }
         }
     ];
-    if(isListSharingActive()){
+    if(!isVirtual && isListSharingActive()){
         options.push({name: Lang.ALL_LISTS, logo: 'fa-users', type: 'group', renderer: (data) => {
             return renderRemoteSources(data.name)
         }, entries: []})

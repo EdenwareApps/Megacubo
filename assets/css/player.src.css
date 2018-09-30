@@ -8,14 +8,16 @@ video {
 	width: 100%;
 	height: 100%;
 	position: absolute;
+	transition: all 0.1s linear 0s;
 	/* not working
 	transition: filter 0.2s linear 0.1s, -webkit-filter 0.2s linear 0.1s;
 	-webkit-transition: filter 0.2s linear 0.1s, -webkit-filter 0.2s linear 0.1s;
 	*/
 }
 
-body:not(.over) video::-webkit-media-controls-panel { 
-    display: none !important;
+body:not(.over) video::-webkit-media-controls-panel, body.hiding-controls video::-webkit-media-controls-panel { 
+	display: none !important;
+	opacity: 0 !important;
 }
 
 video::-webkit-media-controls { 
@@ -23,7 +25,7 @@ video::-webkit-media-controls {
 	max-height: 100%;
 }
 
-body.over video::-webkit-media-controls-panel, body.paused video::-webkit-media-controls-panel { 
+body.over:not(.hiding-controls) video::-webkit-media-controls-panel, body.paused:not(.hiding-controls) video::-webkit-media-controls-panel { 
 	display: flex !important;
 	opacity: 1 !important;
 }

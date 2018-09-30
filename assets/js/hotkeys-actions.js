@@ -44,7 +44,7 @@ var hotkeysActions = {
     ],
     "SEARCH": [
         () => {
-            goSearch()
+            goSearch(false, '')
         }, 
         null, 
         true
@@ -83,6 +83,20 @@ var hotkeysActions = {
         }, 
         null, 
         true
+    ],
+    "PASTEPLAY": [
+        () => {
+		var cb = top.clipboard.get('text');
+		if(cb){
+			cb = cb.trim(cb);
+		        if(cb.match(new RegExp('^(//|(https?|rtmp)://)'))){
+				return playCustomURL(cb, true)
+			}
+		}
+            	addNewSource()			
+        }, 
+        null, 
+        false
     ],
     "CHANGELANG": [
         () => {
@@ -158,7 +172,7 @@ var hotkeysActions = {
                 }
             }
     ],
-    "FULLLSCREEN": [
+    "FULLSCREEN": [
         () => {
                 toggleFullScreen()
             }

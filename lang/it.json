@@ -171,6 +171,7 @@
 "BACKGROUND_COLOR": "Colore di sfondo",
 "ADVANCED": "Avanzato",
 "DOWNLOAD_INSTEAD": "Scarica video invece di giocare",
+"CHANGE_LOGO_IMAGE": "Cambia immagine logo",
 "CHANGE_BACKGROUND_IMAGE": "Cambia immagine di sfondo",
 "RESTORE_BACKGROUND_IMAGE": "Ripristina immagine di sfondo",
 "APPEARANCE": "Apparenza",
@@ -236,5 +237,12 @@
 "FORCE_TRANSCODE": "Forza transcodifica (utilizza più CPU)",
 "AWAITING_SCHEDULING": "{0} pianificazioni",
 "NONE_STREAM_WORKED": "Nessuna trasmissione trovata per {0}.",
-"X_OF_Y": "{0} di {1}"
+"X_OF_Y": "{0} di {1}",
+"BITRATE": "Bit rate",
+"AVERAGE_BITRATE": "Bit rate medio",
+"DOWNLOAD_SPEED": "Velocità di download",
+"ANIMATE_BACKGROUND_ON_TUNING": "Anima sfondo durante l'ottimizzazione",
+"THEMES": "Temi",
+"CUSTOMIZE_THEME": "Personalizza tema",
+"CLICK_AGAIN_TO_CANCEL": "Fai nuovamente clic per annullare"
 }

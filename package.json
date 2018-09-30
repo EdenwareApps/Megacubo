@@ -1,22 +1,10 @@
 {
-    "name": "megacubo",
-    "main": "app.html",
-    "chromium-args": "--force-device-scale-factor=1 --process-per-site --disable-logging --enable-video-player-chromecast-support --enable-cast-receiver --enable-smooth-scrolling --disable-crash-handler=true --disable-breakpad --no-experiments --no-pings --ignore-autoplay-restrictions --ignore-urlfetcher-cert-requests --disable-transparency --ignore-certificate-errors --remote-debugging-port=9000",
-    "description": "A simple and intuitive IPTV player.",
-    "version": "15.0.2",
-    "inject_js_end": "assets/js/helper.js",
     "bugs": "https://www.facebook.com/messages/t/MegacuboTV",
-    "js-flags": "--max-old-space-size=2047",
-    "window": {
-        "title": "Megacubo",
-        "frame": false,
-        "icon": "default_icon.png",
-        "show": false
-    },
+    "chromium-args": "--force-device-scale-factor=1 --process-per-site --disable-logging --enable-video-player-chromecast-support --enable-cast-receiver --enable-smooth-scrolling --disable-crash-handler=true --disable-breakpad --no-experiments --no-pings --ignore-autoplay-restrictions --ignore-urlfetcher-cert-requests --disable-transparency --ignore-certificate-errors --media-remoting --remote-debugging-port=9000",
     "dependencies": {
+        "@codemotion/color-thief": "~2.0.5",
         "async": "~2.6.0",
         "btdb-search": "~1.1.0",
-        "@codemotion/color-thief": "~2.0.5",
         "drag-drop": "~2.13.2",
         "fluent-ffmpeg": "~2.1.2",
         "m3u8-parser": "~4.0.0",
@@ -27,13 +15,25 @@
         "request": "~2.83.0",
         "ytdl-core": "~0.20.0"
     },
-    "webkit": {
-        "page-cache": true
-    },
+    "description": "A simple and intuitive IPTV player.",
+    "inject_js_end": "assets/js/helper.js",
+    "js-flags": "--max-old-space-size=2047",
+    "main": "app.html",
+    "name": "megacubo",
     "permissions": [
         "<all_urls>",
         "alwaysOnTopWindows",
         "http://*/",
         "https://*/"
-    ]
+    ],
+    "version": "15.0.3",
+    "webkit": {
+        "page-cache": true
+    },
+    "window": {
+        "frame": false,
+        "icon": "default_icon.png",
+        "show": false,
+        "title": "Megacubo"
+    }
 }

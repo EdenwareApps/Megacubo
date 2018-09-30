@@ -23,8 +23,9 @@ function leaveMiniPlayer(){
 }
 
 addAction('miniplayer-on', () => {
+    sound('menu', 9);
     console.log('MP-ON', traceback(), appShown, time());
-    jB.addClass('miniplayer');
+    jB.add(getFrame('overlay').document.body).addClass('miniplayer');
     win.setAlwaysOnTop(true);
     win.setShowInTaskbar(false);
     // console.log('MP-ON');
@@ -33,6 +34,7 @@ addAction('miniplayer-on', () => {
 });
 
 addAction('miniplayer-off', () => {
+    sound('menu', 9);
     console.log('MP-OFF');
     jB.removeClass('miniplayer');
     //console.log('MP-OFF');
@@ -180,7 +182,8 @@ function setHardwareAcceleration(enable){
     (enable?enableFlags:disableFlags).forEach((flag) => {
         manifest['chromium-args'] = manifest['chromium-args'] += ' '+flag;
     });
-    fs.writeFile('package.json', JSON.stringify(manifest, null, 4))
+    manifest['main'] = basename(manifest['main']);
+    fs.writeFile('package.json', JSON.stringify(manifest, null, 4), () => {})
 }
 
 function showMaximizeButton(){
@@ -722,7 +725,8 @@ function modalConfirm(question, answers, closeable){
     top.focus()
 }
 
-function modalPrompt(question, answers, placeholder, value, notCloseable){
+function modalPrompt(question, answers, placeholder, value, notCloseable){    
+    sound('warn', 16);
     var a = [];
     answers.forEach((answer) => {
         a.push(jQuery('<button class="button">' + answer[0] + '</button>').on('click', answer[1]))
@@ -883,7 +887,7 @@ function setFullScreen(enter){
 
 function restoreInitialSize(){
     console.warn('restoreInitialSize()');
-    jQuery('body').removeClass('miniplayer');
+    jQuery('body').add(getFrame('overlay').document.body).removeClass('miniplayer');
     setFullScreen(false)
 }
 
@@ -1317,6 +1321,12 @@ function prepareVideoObject(videoElement, intent){ // intent is empty for native
                 e.stopPropagation();
                 return false;
             }).
+            on('dblclick', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                toggleControls();
+                return false;
+            }).
             on('contextmenu', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -1380,25 +1390,22 @@ function prepareVideoObject(videoElement, intent){ // intent is empty for native
     }
 }
 
-var themeSettingsKeys = ["background", "theme-bg", "theme-bgcolor", "theme-fgcolor", "theme-font-size", "theme-transparent-menu"];
+var themeSettingsKeys = ["background", "bg", "bgcolor", "fgcolor", "font-size", "logo", "name", "menu-transparency", "tuning-background-animation"];
 
-function exportTheme(file, cb){
-    var _json = {};
-    themeSettingsKeys.forEach((key) => {
-        _json[key] = Config.get(key)
-    });
-    fs.writeFile(file, JSON.stringify(_json, null, 2), cb)
+function exportTheme(file, cb) {
+    fs.writeFile(file, JSON.stringify(Theme.data, null, 2), cb)
 }
 
-function importTheme(file, cb){
+function importTheme(file, cb) {
 	fs.readFile(file, (err, content) => {
 		var data = JSON.parse(content);
 		if(typeof(data)=='object' && data != null){
 			for(var key in data){
-                if(themeSettingsKeys.indexOf(key) != -1){
-                    Config.set(key, data[key])
+                if(Theme.keys.indexOf(key) != -1){
+                    Theme.set(key, data[key])
                 }
             }
+            saveThemeImages();
             if(typeof(cb) == 'function'){
                 cb()
             }
@@ -1406,11 +1413,23 @@ function importTheme(file, cb){
 	})
 }
 
-function resetTheme(){
-    themeSettingsKeys.forEach((key) => {
-        Config.set(key, Config.defaults[key])
-    });
-    loadTheming()
+function saveThemeImages() {
+    var l = Theme.get('logo');
+    if(l) {
+        base64ToFile(l, 'default_icon.png')
+    }
+    var l = Theme.get('background');
+    if(l) {
+        base64ToFile(l, 'assets/images/wallpaper.png')
+    }
+}
+
+function resetTheme(cb){
+    doAction('resetTheme');
+    // Theme.reset();
+    importTheme('themes/default.json', () => {
+        loadTheming({}, cb)
+    })
 }
 
 function exportConfig(file, cb){
@@ -1433,12 +1452,13 @@ function importConfig(file, cb){
 
 function resetConfig(){
     if(confirm(Lang.RESET_CONFIRM)){
-        doAction('resetTheme');
-        doAction('resetConfig');
-        removeFolder('torrent', false, function (){
-            removeFolder(Store.folder(false), false, function (){
-                nw.App.clearCache();
-                top.location.reload()
+        resetTheme(() => {
+            doAction('resetConfig');
+            removeFolder('torrent', false, function (){
+                removeFolder(Store.folder(false), false, function (){
+                    nw.App.clearCache();
+                    top.location.reload()
+                })
             })
         })
     }
@@ -1446,9 +1466,9 @@ function resetConfig(){
 
 function chameleonize(base64, cb){    
     getImageColorsForTheming(base64, (colors) => {
-        Config.set('theme-bg', "linear-gradient(to top, #000004 0%, "+colors.darkestColor+" 75%)");
-        Config.set('theme-bgcolor', colors.darkestColor);
-        Config.set('theme-fgcolor', colors.lightestColor);
+        Theme.set('bg', "linear-gradient(to top, #000004 0%, "+colors.darkestColor+" 75%)");
+        Theme.set('bgcolor', colors.darkestColor);
+        Theme.set('fgcolor', colors.lightestColor);
         loadTheming(null, cb)
     })
 }
@@ -1460,14 +1480,16 @@ function getImageColorsForTheming(file, cb){
     let s = new Image(), white = '#FFFFFF', black = '#000000';
     s.onload = () => {
         let colors = (new ColorThief()).getPalette(s, 18), lightColors = [], darkColors = [];
-        colors.forEach((color) => {
-            let hex = rgbToHex.apply(null, color), lvl = getColorLightLevel(hex);
-            if(lvl <= 50){
-                darkColors.push(hex)
-            } else if(lvl >= 50) {
-                lightColors.push(hex)
-            }
-        });
+        if(jQuery.isArray(colors)) {
+            colors.forEach((color) => {
+                let hex = rgbToHex.apply(null, color), lvl = getColorLightLevel(hex);
+                if(lvl <= 50){
+                    darkColors.push(hex)
+                } else if(lvl >= 50) {
+                    lightColors.push(hex)
+                }
+            })
+        }
         let darkestColor = arrayMin(darkColors),  lightestColor = arrayMax(lightColors);
         if(darkColors.indexOf(black) == -1){
             darkColors.push(black);
@@ -1496,45 +1518,95 @@ function getImageColorsForTheming(file, cb){
     s.src = file;
 }
 
-function applyBackgroundImage(file){    
-    var wpfile = "assets/images/wallpaper.png";
+function applyLogoImage(file){    
     if(file){
-        fs.exists(file, (exists) => {
-            fs.readFile(file, (err, content) => {
-                var type = '', fragment = String(content).substr(0, 256);
-                switch(getExt(file)){
-                    case 'png':
-                        type = 'image/png';
-                        break;
-                    case 'jpg':
-                    case 'jpeg':
-                        type = 'image/jpeg';
-                        break;
-                    case 'mp4':
-                        type = 'video/mp4';
-                        break;
-                    case 'webm':
-                        type = 'video/webm';
-                        break;
-                }
-                if(type){
-                    var base64 = 'data:'+type+';base64,'+content.toString('base64');
-                    Config.set('background', base64);
-                    chameleonize(base64, () => {
-                        Menu.go('', () => {
-                            var path = Lang.OPTIONS+'/'+Lang.APPEARANCE+'/'+Lang.BACKGROUND_COLOR;
-                            setTimeout(() => {
-                                Menu.go(path, setBackToHome)
-                            }, 100)
-                        })
-                    })
-                } else {
-                    alert('Invalid format.');
-                    console.warn(fragment)
-                }
-            })
+        copyFile(file, 'default_icon.png');
+        fileToBase64(file, (err, b64) => {
+            var done = () => {
+                Menu.go('', () => {
+                    var path = Lang.OPTIONS+'/'+Lang.APPEARANCE;
+                    setTimeout(() => {
+                        Menu.go(path, setBackToHome)
+                    }, 100)
+                })
+            };
+            if(!err) {
+                Theme.set("logo", b64);
+                loadTheming()
+            }
+            done()
         })
     }
+}
+
+function applyBackgroundImage(file){  
+    if(file){
+        copyFile(file, 'assets/images/wallpaper.png');
+        fileToBase64(file, (err, b64) => {
+            var done = () => {
+                Menu.go('', () => {
+                    var path = Lang.OPTIONS+'/'+Lang.APPEARANCE;
+                    setTimeout(() => {
+                        Menu.go(path, setBackToHome)
+                    }, 100)
+                })
+            };
+            if(!err) {
+                Theme.set("background", b64);
+                loadTheming()
+            }
+            done()
+        })
+    }
+}
+
+function base64ToFile(b64, file, cb) {
+    var base64Data = b64.replace(/^data:(image|video)\/(jpe?g|png|mp4|webm);base64,/, "");
+    fs.writeFile(file, base64Data, 'base64', (err) => {
+        if(err){
+            console.error(err)
+        }
+        if(typeof(cb) == 'function') {
+            cb()
+        }
+    })
+}
+
+function fileToBase64(file, cb){    
+    fs.exists(file, (exists) => {
+        if(exists) {
+            fs.readFile(file, (err, content) => {
+                if(err) {
+                    cb('Failed to read file', '')
+                } else {
+                    var type = '', fragment = String(content).substr(0, 256);
+                    switch(getExt(file)){
+                        case 'png':
+                            type = 'image/png';
+                            break;
+                        case 'jpg':
+                        case 'jpeg':
+                            type = 'image/jpeg';
+                            break;
+                        case 'mp4':
+                            type = 'video/mp4';
+                            break;
+                        case 'webm':
+                            type = 'video/webm';
+                            break;
+                    }
+                    if(type){
+                        cb(null, 'data:'+type+';base64,'+content.toString('base64'))
+                    } else {
+                        cb('Invalid format.', '');
+                        console.warn(fragment)
+                    }
+                }
+            })
+        } else {
+            cb('Failed to read file', '')
+        }
+    })
 }
 
 var packageQueue = Store.get('packageQueue') || [];
@@ -1772,7 +1844,7 @@ jQuery(() => {
                     //console.log('player size reobserve', player.offsetWidth, player.offsetHeight);
                     videoObserver.observe(player)
                 }
-            }, 200)
+            }, 50)
         }
     })(), videoObserver = new ResizeObserver(playerSizeUpdated);
     videoObserver.observe(player);
@@ -1876,7 +1948,7 @@ function addEntriesToSearchIndex(_entries, listURL, strict){
     ss = ss.join(sep).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').split(sep);
     for(var i=0; i<entries.length; i++){
         entries[i].mediaType = -1;
-        entries[i].source = listURL;
+        entries[i].source = entries[i].source || listURL;
         s[i].split(' ').forEach((t) => {
             if(t.length > 1){
                 if(typeof(sharedListsSearchWordsIndex[t])=='undefined'){
@@ -1904,6 +1976,8 @@ applyResolutionLimit();
 win.on('resize', applyResolutionLimit);
 
 jQuery(document).one('appload', () => {
+
+    soundSetup('warn', 16); // reload it
 
     var p = getFrame('player'), o = getFrame('overlay');
 
@@ -1938,17 +2012,14 @@ jQuery(document).one('appload', () => {
         var waitToRenderDelay = 1000, t = (top || window.parent); 
         setTimeout(() => { 
             jQuery(document).trigger('show');
-            appShown = time();
             showControls();
+            appShown = time();
             jQuery('#controls').show();
             jQuery('body').removeClass('frameless');
-            jQuery(document).trigger('shown');  
+            jQuery(document).trigger('shown');
             setTimeout(() => {             
                 var bg = jQuery('#background');
-                if(!Config.get('theme-transparent-menu')){
-                    bg.removeClass('fit-screen').addClass('fit-player')
-                }
-                bg.removeClass('loading')  
+                bg.removeClass('loading')
             }, 500)
         }, waitToRenderDelay)
     });
@@ -1990,7 +2061,7 @@ function getFileBitrate(file, cb, length){
     }
 }
 
-var averageStreamingBandwidthData;
+var currentBitrate = 0, averageStreamingBandwidthData;
 
 function averageStreamingBandwidth(data){
     if(!jQuery.isArray(averageStreamingBandwidthData)){
@@ -2020,14 +2091,28 @@ function averageStreamingBandwidthCollectSample(url, file, length) {
                 averageStreamingBandwidthData = Store.get('aver-bandwidth-data') || [];
             }
             averageStreamingBandwidthData.push(bitrate);
-            Store.set('aver-bandwidth-data', averageStreamingBandwidthData)
+            Store.set('aver-bandwidth-data', averageStreamingBandwidthData);
         }
     }, length);
 }
 
+PlaybackManager.on('stop', () => {
+    currentBitrate = 0;
+});
+
 PlaybackManager.on('commit', () => {
     addAction('media-received', averageStreamingBandwidthCollectSample)
-})
+});
+
+addFilter('about', (txt) => {
+    txt += Lang.DOWNLOAD_SPEED+': '+window.navigator.connection.downlink.toFixed(1)+"MBps\n";
+    if(currentBitrate){
+        txt += Lang.BITRATE+': '+currentBitrate.toFixed(1)+"MBps\n";    
+    } else {
+        txt += Lang.AVERAGE_BITRATE+': '+averageStreamingBandwidth().toFixed(1)+"MBps\n";   
+    }
+    return txt;
+});
 
 function tuningConcurrency(){
     var downlink = window.navigator.connection.downlink || 5;
@@ -2040,12 +2125,20 @@ function tuningConcurrency(){
     return ret;
 }
 
+function updateAutoCleanOptionsStatus(txt, inactive) {
+    var _as = jQuery('a.entry-autoclean');
+    if(_as.length){
+        _as.find('.entry-name').html(txt);
+        _as.find('.entry-label').html(inactive ? Lang.AUTO_TUNING : '<font class="faclr-red">'+Lang.CLICK_AGAIN_TO_CANCEL+'</font>');
+    }
+}
+
 var autoCleanDomainConcurrencyLimit = 2, autoCleanDomainConcurrency = {}, autoCleanEntriesQueue = [], closingAutoCleanEntriesQueue = [], autoCleanEntriesStatus = '', autoCleanLastMegaURL = '', autoCleanReturnedURLs = [];
 
-function autoCleanEntries(entries, success, failure, cancelCb, returnSucceededIntent, cancelOnFirstSuccess, megaUrl, name){
+function autoCleanEntries(entries, success, failure, cancelCb, returnSucceededIntent, cancelOnFirstSuccess, megaUrl, name) {
     cancelOnFirstSuccess = true;
     if(autoCleanEntriesCancel()){
-        jQuery('a.entry-autoclean .entry-name').html(Lang.TEST_THEM_ALL)
+        updateAutoCleanOptionsStatus(Lang.TEST_THEM_ALL, true)
     }
     var succeeded = false, testedMap = [], readyIterator = 0, debug = false;
     if(!jQuery.isArray(entries)){
@@ -2076,8 +2169,8 @@ function autoCleanEntries(entries, success, failure, cancelCb, returnSucceededIn
     }
     autoCleanDomainConcurrency = {};
     var controller, iterator = 0, entriesLength = entries.length, pcs;
-    autoCleanEntriesStatus = pcs = Lang.TUNING+' '+name+' ('+Lang.X_OF_Y.format(readyIterator, entriesLength)+')';
-    jQuery('a.entry-autoclean .entry-name').html(autoCleanEntriesStatus);
+    autoCleanEntriesStatus = pcs = Lang.TUNING+' '+ucNameFix(name)+' ('+Lang.X_OF_Y.format(readyIterator, entriesLength)+')';
+    updateAutoCleanOptionsStatus(autoCleanEntriesStatus);
     controller = {
         testers: [],
         cancelled: false,
@@ -2099,7 +2192,7 @@ function autoCleanEntries(entries, success, failure, cancelCb, returnSucceededIn
                     }
                 });
                 autoCleanEntriesStatus = '';
-                jQuery('a.entry-autoclean .entry-name').html(Lang.TEST_THEM_ALL);
+                updateAutoCleanOptionsStatus(Lang.TEST_THEM_ALL, true);
                 if(!succeeded && typeof(cancelCb)=='function'){
                     cancelCb()
                 }
@@ -2154,7 +2247,7 @@ function autoCleanEntries(entries, success, failure, cancelCb, returnSucceededIn
             if(!controller.cancelled){
                 autoCleanDomainConcurrency[domain]++;
                 var sm = entry.originalUrl && isMega(entry.originalUrl), originalUrl = entry.originalUrl && !sm ? entry.originalUrl : entry.url;
-                pcs = name + ' ('+Lang.X_OF_Y.format(readyIterator, entries.length)+')';
+                pcs = ucNameFix(name) + ' ('+Lang.X_OF_Y.format(readyIterator, entries.length)+')';
                 try {
                     if(!megaUrl && sm){
                         megaUrl = entry.originalUrl;
@@ -2213,7 +2306,7 @@ function autoCleanEntries(entries, success, failure, cancelCb, returnSucceededIn
                             } else {
                                 autoCleanEntriesStatus = Lang.TUNING+' '+pcs;
                             }
-                            jQuery('a.entry-autoclean .entry-name').html(autoCleanEntriesStatus);
+                            updateAutoCleanOptionsStatus(autoCleanEntriesStatus);
                             setStreamStateCache(entry, true);
                             updateStreamEntriesFlags();
                             sendStats('alive', sendStatsPrepareEntry(entry));
@@ -2234,7 +2327,7 @@ function autoCleanEntries(entries, success, failure, cancelCb, returnSucceededIn
                             }
                             readyIterator++;
                             autoCleanEntriesStatus = Lang.TUNING+' '+pcs;
-                            jQuery('a.entry-autoclean .entry-name').html(autoCleanEntriesStatus);
+                            updateAutoCleanOptionsStatus(autoCleanEntriesStatus);
                             if(!succeeded){
                                 enterPendingState(pcs, Lang.TUNING)
                             }
@@ -2271,7 +2364,7 @@ function autoCleanEntries(entries, success, failure, cancelCb, returnSucceededIn
                     setTimeout(failure, 150)
                 }
                 autoCleanEntriesStatus = Lang.AUTO_TUNING+' 100%';
-                jQuery('a.entry-autoclean .entry-name').html(autoCleanEntriesStatus);
+                updateAutoCleanOptionsStatus(autoCleanEntriesStatus)
             }
         })
     }, 100);
@@ -2384,8 +2477,8 @@ function tuneNPlay(entries, name, originalUrl, _cb){ // entries can be a string 
     }
     if(!Config.get('play-while-tuning') && PlaybackManager.activeIntent){
         stop(false, true)
-    }
-    enterPendingState(ucWords(decodeURIComponent(name) || name), Lang.TUNING, originalUrl);
+    }    
+    enterPendingState(ucNameFix(decodeURIComponent(name) || name)+' ('+Lang.X_OF_Y.format(0, entries.length)+')', Lang.TUNING, originalUrl);
     var hr = tune(entries, name, originalUrl, (err, entry, succeededIntent) => {
         leavePendingState();
         if(typeof(_cb)=='function'){
@@ -2443,13 +2536,21 @@ function autoCleanEntriesCancel(){
 }
 
 function setFontSizeCallback(data){
-    Config.set('theme-font-size', data.fontSize);
-    loadTheming()
+    Theme.set('font-size', data.fontSize);
+    loadTheming();    
+    setActiveEntry({fontSize: Theme.get('font-size')})
 }
 
 function setIconSizeCallback(data){
-    Config.set('theme-iconsize', data.iconSize);
-    loadTheming()
+    Theme.set('iconsize', data.iconSize);
+    loadTheming();    
+    setActiveEntry({iconSize: Theme.get('iconsize')})
+}
+
+function setBackgroundAnimationCallback(data){
+    Theme.set('tuning-background-animation', data.animation);
+    loadTheming();
+    setActiveEntry({animation: data.animation})
 }
 
 function areControlsIdle(){
@@ -2653,6 +2754,7 @@ function adjustMainCategoriesEntry(entry){
         var entries = fetchSharedListsSearchResults(null, 'live', data.name, true, true);
         // console.warn('ZZZZZZZZZZ', data, entries);
         if(!entries.length){
+            sound('static', 16);
             notify(Lang.PLAY_STREAM_FAILURE.format(data.name), 'fa-exclamation-circle faclr-red', 'normal');
             return -1;
         }
@@ -2731,7 +2833,9 @@ function getMainCategoriesEntries(){
             })
         }});
         entries = applyFilters('mainCategoriesEntries', entries);
-        entries.unshift({name: Lang.IPTV_LISTS, label: Lang.MY_LISTS, logo:'fa-list', type: 'group', entries: [], renderer: getListsEntries});
+        entries.unshift({name: Lang.IPTV_LISTS, label: Lang.MY_LISTS, logo:'fa-list', type: 'group', entries: [], renderer: (data, element, isVirtual) => {
+            return getListsEntries(false, false, isVirtual)
+        }});
         entries.unshift({name: Lang.BEEN_WATCHED, logo: 'fa-users', label: onlineUsersCount, type: 'group', renderer: getWatchingEntries, entries: []});
         return entries;
     };
@@ -3085,7 +3189,9 @@ jQuery(function (){
         }
         b.on("wheelstart", lock).on("wheelend", unlocker).on("blur", "a", handleMenuFocus);
     })()
-})
+});
+
+currentVersion = false;
 
 jQuery(document).one('show', () => {
     jQuery.getJSON('http://app.megacubo.net/configure.json?'+time(), (data) => {
@@ -3147,164 +3253,208 @@ jQuery(document).one('lngload', () => {
             {name: Lang.WINDOW, logo:'fa-window-maximize', type: 'group', renderer: getWindowModeEntries, entries: []},
             {name: Lang.APPEARANCE, logo:'fa-palette', type: 'group', entries: [
                 {
-                    name: Lang.HIDE_BUTTON_OPT.format(Lang.BACK, 'Backspace'), 
-                    type: 'check', 
-                    check: (checked) => {Config.set('hide-back-button',checked)}, 
-                    checked: () => {return Config.get('hide-back-button')}
-                },                
-                {
-                    name: Lang.CHANGE_BACKGROUND_IMAGE, 
-                    type: 'option',
-                    logo: 'fa-image',
-                    callback: () => {
-                        openFileDialog((file) => {
-                            applyBackgroundImage(file)
-                        }, ".jpeg,.jpg,.png,.webm,.mp4")
-                    }
-                },
-                {
-                    name: Lang.BACKGROUND_COLOR, 
+                    name: Lang.THEME,
                     type: 'group',
-                    logo: 'fas fa-paint-roller',
-                    entries: [getLoadingEntry()],
-                    callback: () => {
-                        let alreadyChosenColor = Config.get('theme-bgcolor'), curPath = Menu.path, wpfile = "assets/images/wallpaper.png";
-                        getImageColorsForTheming(Config.get('background') || wpfile, (colors) => {
-                            let alreadyChosenIndex = -1;
-                            console.warn('WOW', curPath, Menu.path, colors);
-                            var entries = colors.darkColors.concat(colors.lightColors).map((color, i) => {
-                                let _color = color;
-                                if(_color == alreadyChosenColor){
-                                    alreadyChosenIndex = i;
-                                }
-                                return {
-                                    name: _color,
-                                    type: 'option',
-                                    logo: 'fas fa-circle',
-                                    logoColor: _color,
-                                    callback: (data, element) => {
-                                        setEntryFlag(element, 'fa-check-circle', true);
-                                        Config.set('theme-bg', "linear-gradient(to top, #000004 0%, "+_color+" 75%)");
-                                        Config.set('theme-bgcolor', _color);
-                                        loadTheming()
-                                    }
-                                }
-                            });
-                            entries.push({
-                                name: Lang.OTHER_COLOR,
-                                type: 'option',
-                                logo: 'fa-palette',
-                                callback: (data, element) => {
-                                    pickColor((_color) => {
-                                        if(_color){
-                                            Config.set('theme-bg', "linear-gradient(to top, #000004 0%, "+_color+" 75%)");
-                                            Config.set('theme-bgcolor', _color);
-                                            loadTheming()
-                                        }
-                                    }, alreadyChosenColor)
-                                }
-                            });
-                            if(curPath == Menu.path){
-                                Menu.container(true);
-                                backEntryRender(Menu.container(true), dirname(curPath), basename(curPath));
-                                Menu.render(entries, curPath);
-                                if(alreadyChosenIndex != -1){
-                                    setEntryFlag(Menu.entries(false, false).get(alreadyChosenIndex + 1), 'fa-check-circle', true)
-                                }
-                            }
-                        })
-                    }
+                    logo: 'fa-palette',
+                    entries: [],
+                    renderer: getThemeEntries
                 },
                 {
-                    name: Lang.FONT_COLOR, 
+                    name: Lang.CUSTOMIZE_THEME,
                     type: 'group',
                     logo: 'fa-paint-brush',
-                    entries: [getLoadingEntry()],
-                    callback: () => {
-                        let alreadyChosenColor = Config.get('theme-fgcolor'), curPath = Menu.path, wpfile = "assets/images/wallpaper.png";
-                        getImageColorsForTheming(wpfile, (colors) => {
-                            let alreadyChosenIndex = -1;
-                            console.warn('WOW', curPath, Menu.path, colors);
-                            var entries = colors.darkColors.concat(colors.lightColors).map((color, i) => {
-                                let _color = color;
-                                if(_color == alreadyChosenColor){
-                                    alreadyChosenIndex = i;
-                                }
-                                return {
-                                    name: _color,
-                                    type: 'option',
-                                    logo: 'fas fa-circle',
-                                    logoColor: _color,
-                                    callback: (data, element) => {
-                                        setEntryFlag(element, 'fa-check-circle', true);
-                                        Config.set('theme-fgcolor', _color);
-                                        loadTheming()
-                                    }
-                                }
-                            });
-                            entries.push({
-                                name: Lang.OTHER_COLOR,
-                                type: 'option',
-                                logo: 'fa-palette',
-                                callback: (data, element) => {
-                                    pickColor((_color) => {
-                                        if(_color){
-                                            Config.set('theme-fgcolor', _color);
-                                            loadTheming()
-                                        }
-                                    }, alreadyChosenColor)
-                                }
-                            });
-                            if(curPath == Menu.path){
-                                Menu.container(true);
-                                backEntryRender(Menu.container(true), dirname(curPath), basename(curPath));
-                                Menu.render(entries, curPath);
-                                if(alreadyChosenIndex != -1){
-                                    setEntryFlag(Menu.entries(false, false).get(alreadyChosenIndex + 1), 'fa-check-circle', true)
-                                }
+                    entries: [
+                        {
+                            name: Lang.CHANGE_BACKGROUND_IMAGE, 
+                            type: 'option',
+                            logo: 'fa-image',
+                            callback: () => {
+                                openFileDialog((file) => {
+                                    applyBackgroundImage(file)
+                                }, ".jpeg,.jpg,.png,.webm,.mp4")
                             }
-                        })
-                    }
-                },               
-                {
-                    name: Lang.FONT_SIZE, 
-                    type: 'group',
-                    logo: 'fa-font',
-                    entries: [
-                        {name: Lang.VERY_SMALL, logo: 'fa-font', type: 'option', fontSize: 0.75, callback: setFontSizeCallback},
-                        {name: Lang.SMALL, logo: 'fa-font', type: 'option', fontSize: 0.875, callback: setFontSizeCallback},
-                        {name: Lang.NORMAL, logo: 'fa-font', type: 'option', fontSize: 1, callback: setFontSizeCallback},
-                        {name: Lang.BIG, logo: 'fa-font', type: 'option', fontSize: 1.5, callback: setFontSizeCallback},
-                        {name: Lang.VERY_BIG, logo: 'fa-font', type: 'option', fontSize: 1.75, callback: setFontSizeCallback}
-                    ],
-                    callback: () => {
-                        setActiveEntry({fontSize: Config.get('theme-font-size')})
-                    }
-                },                
-                {
-                    name: Lang.ICON_SIZE, 
-                    type: 'group',
-                    logo: 'fa-th-large',
-                    entries: [
-                        {name: Lang.VERY_SMALL, logo: 'fa-th-large', type: 'option', iconSize: 24, callback: setIconSizeCallback},
-                        {name: Lang.SMALL, logo: 'fa-th-large', type: 'option', iconSize: 30, callback: setIconSizeCallback},
-                        {name: Lang.NORMAL, logo: 'fa-th-large', type: 'option', iconSize: 36, callback: setIconSizeCallback},
-                        {name: Lang.BIG, logo: 'fa-th-large', type: 'option', iconSize: 50, callback: setIconSizeCallback},
-                        {name: Lang.VERY_BIG, logo: 'fa-th-large', type: 'option', iconSize: 68, callback: setIconSizeCallback}
-                    ],
-                    callback: () => {
-                        setActiveEntry({iconSize: Config.get('theme-iconsize')})
-                    }
+                        },            
+                        {
+                            name: Lang.CHANGE_LOGO_IMAGE, 
+                            type: 'option',
+                            logo: 'fa-image',
+                            callback: () => {
+                                openFileDialog((file) => {
+                                    applyLogoImage(file)
+                                }, ".png")
+                            }
+                        },
+                        {
+                            name: Lang.BACKGROUND_COLOR, 
+                            type: 'group',
+                            logo: 'fas fa-paint-roller',
+                            entries: [getLoadingEntry()],
+                            callback: () => {
+                                let alreadyChosenColor = Theme.get('bgcolor'), curPath = Menu.path, wpfile = "assets/images/wallpaper.png";
+                                getImageColorsForTheming(Theme.get('background') || wpfile, (colors) => {
+                                    let alreadyChosenIndex = -1;
+                                    console.warn('WOW', curPath, Menu.path, colors);
+                                    var entries = colors.darkColors.concat(colors.lightColors).map((color, i) => {
+                                        let _color = color;
+                                        if(_color == alreadyChosenColor) {
+                                            alreadyChosenIndex = i;
+                                        }
+                                        return {
+                                            name: _color,
+                                            type: 'option',
+                                            logo: 'fas fa-circle',
+                                            logoColor: _color,
+                                            callback: (data, element) => {
+                                                setEntryFlag(element, 'fa-check-circle', true);
+                                                Theme.set('bg', "linear-gradient(to top, #000004 0%, "+_color+" 75%)");
+                                                Theme.set('bgcolor', _color);
+                                                loadTheming()
+                                            }
+                                        }
+                                    });
+                                    entries.push({
+                                        name: Lang.OTHER_COLOR,
+                                        type: 'option',
+                                        logo: 'fa-palette',
+                                        callback: (data, element) => {
+                                            pickColor((_color) => {
+                                                if(_color){
+                                                    Theme.set('bg', "linear-gradient(to top, #000004 0%, "+_color+" 75%)");
+                                                    Theme.set('bgcolor', _color);
+                                                    loadTheming()
+                                                }
+                                            }, alreadyChosenColor)
+                                        }
+                                    });
+                                    if(curPath == Menu.path){
+                                        Menu.container(true);
+                                        backEntryRender(Menu.container(true), dirname(curPath), basename(curPath));
+                                        Menu.render(entries, curPath);
+                                        if(alreadyChosenIndex != -1){
+                                            setEntryFlag(Menu.entries(false, false).get(alreadyChosenIndex + 1), 'fa-check-circle', true)
+                                        }
+                                    }
+                                })
+                            }
+                        },
+                        {
+                            name: Lang.FONT_COLOR, 
+                            type: 'group',
+                            logo: 'fa-paint-brush',
+                            entries: [getLoadingEntry()],
+                            callback: () => {
+                                let alreadyChosenColor = Theme.get('fgcolor'), curPath = Menu.path, wpfile = "assets/images/wallpaper.png";
+                                getImageColorsForTheming(wpfile, (colors) => {
+                                    let alreadyChosenIndex = -1;
+                                    console.warn('WOW', curPath, Menu.path, colors);
+                                    var entries = colors.darkColors.concat(colors.lightColors).map((color, i) => {
+                                        let _color = color;
+                                        if(_color == alreadyChosenColor){
+                                            alreadyChosenIndex = i;
+                                        }
+                                        return {
+                                            name: _color,
+                                            type: 'option',
+                                            logo: 'fas fa-circle',
+                                            logoColor: _color,
+                                            callback: (data, element) => {
+                                                setEntryFlag(element, 'fa-check-circle', true);
+                                                Theme.set('fgcolor', _color);
+                                                loadTheming()
+                                            }
+                                        }
+                                    });
+                                    entries.push({
+                                        name: Lang.OTHER_COLOR,
+                                        type: 'option',
+                                        logo: 'fa-palette',
+                                        callback: (data, element) => {
+                                            pickColor((_color) => {
+                                                if(_color){
+                                                    Theme.set('fgcolor', _color);
+                                                    loadTheming()
+                                                }
+                                            }, alreadyChosenColor)
+                                        }
+                                    });
+                                    if(curPath == Menu.path){
+                                        Menu.container(true);
+                                        backEntryRender(Menu.container(true), dirname(curPath), basename(curPath));
+                                        Menu.render(entries, curPath);
+                                        if(alreadyChosenIndex != -1){
+                                            setEntryFlag(Menu.entries(false, false).get(alreadyChosenIndex + 1), 'fa-check-circle', true)
+                                        }
+                                    }
+                                })
+                            }
+                        },               
+                        {
+                            name: Lang.FONT_SIZE, 
+                            type: 'group',
+                            logo: 'fa-font',
+                            entries: [
+                                {name: Lang.VERY_SMALL, logo: 'fa-font', type: 'option', fontSize: 0.75, callback: setFontSizeCallback},
+                                {name: Lang.SMALL, logo: 'fa-font', type: 'option', fontSize: 0.875, callback: setFontSizeCallback},
+                                {name: Lang.NORMAL, logo: 'fa-font', type: 'option', fontSize: 1, callback: setFontSizeCallback},
+                                {name: Lang.BIG, logo: 'fa-font', type: 'option', fontSize: 1.5, callback: setFontSizeCallback},
+                                {name: Lang.VERY_BIG, logo: 'fa-font', type: 'option', fontSize: 1.75, callback: setFontSizeCallback}
+                            ],
+                            callback: () => {
+                                setActiveEntry({fontSize: Theme.get('font-size')})
+                            }
+                        },                
+                        {
+                            name: Lang.ICON_SIZE, 
+                            type: 'group',
+                            logo: 'fa-th-large',
+                            entries: [
+                                {name: Lang.VERY_SMALL, logo: 'fa-th-large', type: 'option', iconSize: 24, callback: setIconSizeCallback},
+                                {name: Lang.SMALL, logo: 'fa-th-large', type: 'option', iconSize: 30, callback: setIconSizeCallback},
+                                {name: Lang.NORMAL, logo: 'fa-th-large', type: 'option', iconSize: 36, callback: setIconSizeCallback},
+                                {name: Lang.BIG, logo: 'fa-th-large', type: 'option', iconSize: 50, callback: setIconSizeCallback},
+                                {name: Lang.VERY_BIG, logo: 'fa-th-large', type: 'option', iconSize: 68, callback: setIconSizeCallback}
+                            ],
+                            callback: () => {
+                                setActiveEntry({iconSize: Theme.get('iconsize')})
+                            }
+                        },
+                        {
+                            name: Lang.TRANSPARENT_MENU, 
+                            type: 'slider', 
+                            logo: 'fa-adjust', 
+                            label: 'saturation', 
+                            range: {start: 0, end: 100}, 
+                            getValue: (data) => {
+                                return Theme.get('menu-transparency')
+                            },
+                            value: Theme.get('menu-transparency'),
+                            change:  (data, element, value) => {
+                                Theme.set('menu-transparency', value);
+                                clearTimeout(window['loadThemingApplyTimer']);
+                                window['loadThemingApplyTimer'] = setTimeout(loadTheming, 400)
+                            }
+                        }, 
+                    ]
                 },
                 {
-                    name: Lang.TRANSPARENT_MENU, 
+                    name: Lang.HIDE_BUTTON_OPT.format(Lang.BACK, 'Backspace'), 
                     type: 'check', 
                     check: (checked) => {
-                        Config.set('theme-transparent-menu',checked);
-                        loadTheming();
+                        Theme.set('hide-back-button',checked);
+                        Menu.refresh()
                     }, 
-                    checked: () => {
-                        return Config.get('theme-transparent-menu')
+                    checked: () => {return Theme.get('hide-back-button')}
+                }, 
+                {
+                    name: Lang.ANIMATE_BACKGROUND_ON_TUNING, 
+                    type: 'group', 
+                    logo: 'fa-cog',
+                    entries: [
+                        {name: 'None', type: 'option', animation: 'none', callback: setBackgroundAnimationCallback},
+                        {name: 'Spin X', type: 'option', animation: 'spin-x', callback: setBackgroundAnimationCallback}
+                    ],
+                    callback: () => {
+                        setActiveEntry({animation: Config.get('tuning-background-animation')})
                     }
                 }, 
                 {name: Lang.EXPORT_THEME, logo:'fa-file-export', type: 'option', callback: () => {
@@ -3326,11 +3476,11 @@ jQuery(document).one('lngload', () => {
                     name: Lang.HIDE_LOGOS,
                     type: 'check',
                     check: (checked) => {
-                        Config.set('hide-logos', checked);
+                        Theme.set('hide-logos', checked);
                         showLogos = !checked;
                     }, 
                     checked: () => {
-                        return Config.get('hide-logos')
+                        return Theme.get('hide-logos')
                     }
                 },
                 {

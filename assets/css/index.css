@@ -202,11 +202,11 @@ body.frameless #nw-custom-frame {
 }	
 
 .nw-cf-btn:hover { 
-    background-color: #20242F;
+    background-color: #20242FAA !important;
 }
 
 .nw-cf-close:hover {
-    background-color: #402;
+    background-color: #FF000033 !important;
 }
 
 .nw-cf-close {
@@ -221,10 +221,42 @@ body.frameless #nw-custom-frame {
     top: 30px;
     height: calc(100% - 30px);
     z-index: -1;
+    position: relative;
+    perspective: 200px;
+    perspective-origin: center;
+}
+
+html.ui-transparent-menu #background {
+    top: 0;
+    height: 100%;
+    z-index: -1;
+}
+
+#background .background-logo {
+    max-width: 36%;    
+    max-height: 42%;
+    position: absolute;
+    transform-origin: center bottom 0px;
+}
+
+.background-logo-container {
+    height: calc(100% - 30px) !important;
+    width: 100%;
+    display: flex;
+    position: absolute;
+    top: 30px !important;
+    justify-content: center;
+    text-align: center;
+    align-items: center;
+}
+
+#background.fit-player .background-logo-container {
+    height: 100% !important;
+    top: 0 !important;
 }
 
 #background.loading {
-    z-index: 2147483647;
+    z-index: 2147483647 !important;
     width: 100% !important;
 }
 
@@ -232,10 +264,11 @@ body.frameless #nw-custom-frame {
     display: none;
     z-index: 2147483647;
     width: 0%;
-    height: 9px;
+    height: 6px;
     align-items: center;
     justify-content: center;
-    bottom: 0;
+    bottom: 0;    
+    left: 0;
     top: auto;    
     position: absolute;
     transition: width 3s ease;    
@@ -253,10 +286,11 @@ body.frameless #background {
 #background {
     display: flex;
     align-items: center;
+    justify-content: center;
     overflow: hidden;
 }
 
-#background img, #background video {    
+#background .background-image {    
     width: 100%;
     height: 100%;
     display: inline-block;
@@ -363,12 +397,8 @@ body.miniplayer #player, body.miniplayer  iframe#sandbox, body:not(.showcontrols
     width: 100% !important;
 }
 
-body:not(.miniplayer) #player, body:not(.miniplayer) iframe#sandbox {
-    transition: all 0.05s cubic-bezier(0, 1.1, 1, 1) 0s;
-}
-
-body.modal div#controls {
-    display: none;
+body.modal div#controls, body.modal #player {
+    display: none !important;
 }
 
 div#modal-overlay { 
@@ -494,7 +524,7 @@ div#modal-overlay .prompt textarea {
     top: 30px;
     right: 0;
     z-index: 99999 !important;
-    padding: 2px 14px 2px 7px;
+    padding: 2px 16px 2px 13px;
     border-bottom-left-radius: 4px;
     display: none;
     border-style: solid;
@@ -509,7 +539,7 @@ body.over #menu-trigger-icon {
 
 #menu-trigger-icon:hover {
     color: #fff !important;
-    padding: 2px 15px 2px 8px;
+    padding: 2px 16px 2px 15px !important;
 }
 
 #menu-trigger-icon i, #menu-trigger-icon svg {
@@ -538,7 +568,7 @@ div#miniplayer-continue {
     background: #000;
     color: #fff;
     position: absolute;
-    bottom: 5%;
+    bottom: 5.3%;
     width: 50%;
     left: 25%;
     text-align: center;
@@ -547,8 +577,8 @@ div#miniplayer-continue {
     padding: 6px 0 0;
     box-sizing: border-box;
     border-style: dashed;
-    border-width: 2px 2px 0 2px;
-    border-color: #111;
+    border-width: 4px 4px 0 4px;
+    border-color: #FFFFFF10;
     border-top-left-radius: 12px;
     border-top-right-radius: 12px;
     cursor: pointer;
@@ -574,3 +604,25 @@ div#miniplayer-continue img, div#miniplayer-continue i, div#miniplayer-continue 
 body.miniplayer:not(.playing):not(.paused) div#miniplayer-continue {
     display: inline-block;
 }
+
+@keyframes bga-spin-x {
+    0% {
+        transform: rotate3d(0, 1, 0, 0deg);
+        opacity: 0.75;
+    }
+    25% {
+        opacity: 0.6;
+    }
+    50% {
+        transform: rotate3d(0, 1, 0, 180deg);
+        opacity: 0.75;
+    }
+    75% {
+        opacity: 0.6;
+    }
+    100% {
+        transform: rotate3d(0, 1, 0, 357deg);
+        opacity: 0.75;
+    }
+}
+
