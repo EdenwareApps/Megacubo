@@ -143,7 +143,7 @@ function afterExitPage(){
     if(allowAfterExitPage && installedVersion){
         var lastTime = Store.get('after-exit-time'), t = time();
         if(!lastTime || (t - lastTime) > (6 * 3600)){
-            Store.set('after-exit-time', t);
+            Store.set('after-exit-time', t, 365 * (24 * 3600));
             gui.Shell.openExternal(afterExitURL())
         }
     }
@@ -1870,7 +1870,7 @@ function loadAddons(loadcb){
                             try {
                                 if(fs.existsSync(file + '.js')) {
                                     console.log('LOAD JS '+file + '.js');
-                                    jQuery.getScript(file + '.js')  
+                                    jQuery.getScript(file.replace(folder, 'addons') + '.js')  
                                 } else if(fs.existsSync(file + '.bin')) {
                                     console.log('LOAD BIN '+file + '.bin');
                                     win.evalNWBin(null, file + '.bin')
@@ -1907,11 +1907,10 @@ function loadLanguage(locales, folder, callback){
             }
         }
     };
-    jQuery.getJSON(localeMask.format(locale), (data) => {
-        Lang = Object.assign(data, Lang);
-        next()
-    }).fail(function (jqXHR, textStatus, errorThrown) {
-        console.error(jqXHR, textStatus, errorThrown);
+    getJSON(localeMask.format(locale), (err, content) => {
+        if(content && typeof(content)=='object'){
+            Lang = Object.assign(content, Lang);
+        }
         next()
     })
 }
@@ -2091,7 +2090,7 @@ function averageStreamingBandwidthCollectSample(url, file, length) {
                 averageStreamingBandwidthData = Store.get('aver-bandwidth-data') || [];
             }
             averageStreamingBandwidthData.push(bitrate);
-            Store.set('aver-bandwidth-data', averageStreamingBandwidthData);
+            Store.set('aver-bandwidth-data', averageStreamingBandwidthData, 365 * (24 * 3600));
         }
     }, length);
 }
@@ -2975,11 +2974,11 @@ var History = (function (){
         fullHistory.unshift(nentry);
         fullHistory = fullHistory.slice(0, limit);
         console.log('HISTORY ADDED', fullHistory);
-        Store.set(key, fullHistory);
+        Store.set(key, fullHistory, 365 * (24 * 3600));
     };
     _this.clear = function (){
         fullHistory = [];
-        Store.set(key, fullHistory);
+        Store.set(key, fullHistory, 365 * (24 * 3600));
     };
     return _this;
 })();
@@ -3623,7 +3622,7 @@ jQuery(document).one('lngload', () => {
 });
 
 
-var requestIdReferersTable = [], minVideoContentLength = (50 * (1024 * 1024)), fitterEnabled = true;
+var requestIdReferersTable = [], minVideoContentLength = (50 * (1024 * 1024));
 function menuScrollUp(){
     jQuery('.list').stop().animate({scrollTop: 0}, 75, 'swing')
 }
@@ -3772,13 +3771,16 @@ function init(){
             jQuery('.nw-cf-close').on('click', closeApp);
             //win.on('minimize', minimizeCallback);
             jQuery('.nw-cf-btn.nw-cf-minimize').on('click', minimizeCallback);
-            if(!Config.get('locale')){
+            var cl = Config.get('locale');
+            console.log('Current language:', cl, typeof(cl));
+            if(!cl || cl == 'en') {
                 var locale = getLocale(true);
                 if(locale == 'en'){
                     jQuery.getJSON('http://app.megacubo.net/get-lang', (data) => {
+                        console.log('IP language:', data, data.length);
                         if(data.length == 2 && data != 'en') {
                             // unsure of language, ask user
-                            goChangeLang()
+                            setTimeout(goChangeLang, 1000)
                         } else {
                             Config.set('locale', 'en')
                         }

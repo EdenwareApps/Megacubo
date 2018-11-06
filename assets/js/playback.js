@@ -5,7 +5,7 @@ var fs = require('fs'), os = require('os'), ffmpeg = require('fluent-ffmpeg'), p
 var isPending = false;
 var cpuCount = os.cpus().length;
 var segmentDuration = 2;
-
+var fitterEnabled = true
 var FFmpegPath = path.dirname(process.execPath)+path.sep+'ffmpeg'+path.sep+'ffmpeg'
 ffmpeg.setFfmpegPath(FFmpegPath);
 
@@ -615,7 +615,9 @@ function createPlayIntent(entry, options, subIntentCreateCallback) {
             } else {
                 var n = "create"+ucWords(type)+"Intent";
                 console.log(n, type, data.types);
-                intents = intents.concat(window[n](entry, options))
+                if(typeof(window[n])=='function'){
+                    intents = intents.concat(window[n](entry, options))
+                }
             }
         })
     }

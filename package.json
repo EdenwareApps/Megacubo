@@ -1,6 +1,6 @@
 {
     "bugs": "https://www.facebook.com/messages/t/MegacuboTV",
-    "chromium-args": "--force-device-scale-factor=1 --process-per-site --disable-logging --enable-video-player-chromecast-support --enable-cast-receiver --enable-smooth-scrolling --disable-crash-handler=true --disable-breakpad --no-experiments --no-pings --ignore-autoplay-restrictions --ignore-urlfetcher-cert-requests --disable-transparency --ignore-certificate-errors --media-remoting --remote-debugging-port=9000",
+    "chromium-args": " --password-store=basic --force-device-scale-factor=1 --process-per-site --disable-logging --enable-video-player-chromecast-support --enable-cast-receiver --enable-smooth-scrolling --disable-crash-handler=true --disable-breakpad --no-experiments --no-pings --ignore-autoplay-restrictions --ignore-urlfetcher-cert-requests --disable-transparency --ignore-certificate-errors --media-remoting --remote-debugging-port=9000",
     "dependencies": {
         "@codemotion/color-thief": "~2.0.5",
         "async": "~2.6.0",
@@ -26,7 +26,7 @@
         "http://*/",
         "https://*/"
     ],
-    "version": "15.0.3",
+    "version": "15.0.4",
     "webkit": {
         "page-cache": true
     },

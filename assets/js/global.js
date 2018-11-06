@@ -695,6 +695,11 @@ if(typeof(require)!='undefined'){
 			}
 			self.set = (key, val, expiration) => {
                 var f = self.resolve(key);
+                if(expiration === true){
+                    expiration = 365 * (24 * 3600); // true = for one year
+                } else if(expiration === false) {
+                    expiration = 0; // false = session only
+                }
 				try {
 					if(fs.existsSync(f)){
 						fs.truncateSync(f, 0)
@@ -977,6 +982,16 @@ if(typeof(require)!='undefined'){
             }
         }
         return ret;
+    }
+
+    function getJSON(file, cb){
+        fs.readFile(path.resolve(file), (err, content) => {
+            if( err ) {
+                cb('File not found.', false)
+            } else {
+                cb(null, JSON.parse(content))
+            }
+        })
     }
 
     function findCircularRefs(o){
@@ -1335,16 +1350,18 @@ if(typeof(require)!='undefined'){
                 console.log('Hotkeys unregistered.')
             });
             jQuery.getScript('assets/js/hotkeys-actions.js', () => {
-                jQuery.getJSON('hotkeys.json', (hotkeys) => {
-                    var args = [];
-                    for(var key in hotkeys){
-                        if(jQuery.isArray(hotkeysActions[hotkeys[key]])){
-                            args = hotkeysActions[hotkeys[key]];
-                            args.unshift(key);
-                            shortcuts.push(createShortcut.apply(createShortcut, args));  
+                getJSON('hotkeys.json', (err, hotkeys) => {
+                    if(hotkeys && typeof(hotkeys)=='object'){
+                        var args = [];
+                        for(var key in hotkeys){
+                            if(jQuery.isArray(hotkeysActions[hotkeys[key]])){
+                                args = hotkeysActions[hotkeys[key]];
+                                args.unshift(key);
+                                shortcuts.push(createShortcut.apply(createShortcut, args));  
+                            }
                         }
+                        jQuery.Shortcuts.start()
                     }
-                    jQuery.Shortcuts.start()
                 })
             })
         }
