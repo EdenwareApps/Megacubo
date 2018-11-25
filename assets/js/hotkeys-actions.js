@@ -131,18 +131,18 @@ var hotkeysActions = {
     ],
     "HOME": [
         () => {
-            if(!areControlsActive()){
-                showControls()
+            if(!isMenuVisible()){
+                showMenu()
             }
             Menu.go('')
         }
     ],
     "DELETE": [
         () => {
-            if(areControlsActive()){
+            if(isMenuVisible()){
                 Menu.triggerKey('delete')
             } else {
-                if(!areControlsHiding()){
+                if(!isMenuHiding()){
                     stop();
                     notify(Lang.STOP, 'fa-stop', 'short')
                 }
@@ -151,21 +151,21 @@ var hotkeysActions = {
     ],
     "NAVUP": [
         () => {
-            showControls();
+            showMenu();
             Menu.focusPrevious()
         }, "hold", true
     ],
     "NAVDOWN": [
         () => {
-                showControls();
+                showMenu();
                 Menu.focusNext()
             }, "hold", true
     ],
     "NAVENTER": [
         () => {
                 if(!isMiniPlayerActive()){
-                    if(!areControlsActive()){
-                        showControls()
+                    if(!isMenuVisible()){
+                        showMenu()
                     } else {
                         Menu.enter()
                     }

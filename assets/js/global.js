@@ -839,17 +839,22 @@ if(typeof(require)!='undefined'){
                 debug: false,
                 file: Store.folder(true) + 'theme.json',
                 defaults: {
-                    "revision": 1.0, // increment to purge default theme
+                    "compability": 1.1, // increment to purge default theme
                     "hide-logos": false,
                     "background": "assets/images/wallpaper.png",
                     "bg": "linear-gradient(to top, #000004 0%, #150055 75%)",
                     "bgcolor": "#150055",
+                    "bgcolor-playing": "#000000",
                     "fgcolor": "#FFFFFF",
-                    "font-size": 1,
+                    "font-size": 0.94,
                     "hide-back-button": false,
-                    "iconsize": 36,
+                    "hide-menu-auto": false,
+                    "icon-size": 24,
                     "logo": "default_icon.png",
+                    "menu-entry-vertical-padding": 10,
                     "menu-transparency": 100,
+                    "menu-margin": 0,
+                    "menu-width": 34,
                     "name": "default",
                     "tuning-background-animation": "spin-x"
                 }
@@ -876,7 +881,7 @@ if(typeof(require)!='undefined'){
                         if(typeof(_data)=='string' && _data.length > 2){
                             _data = _data.replaceAll("\n", "");
                             _data = JSON.parse(_data);
-                            if(typeof(_data)=='object' && _data.revision >= self.defaults.revision){
+                            if(typeof(_data)=='object' && _data.compability >= self.defaults.compability){
                                 self.data = Object.assign(self.data, _data)
                             }
                         }
@@ -1130,7 +1135,7 @@ if(typeof(require)!='undefined'){
                 backTo = Menu.path;
             }
             var callback = () => {
-                c.showControls();
+                c.showMenu();
                 if(searchTerm) {
                     var n = jQuery(c.document).find('.list input');
                     console.log('AA', c.Menu.path, searchTerm);
@@ -1297,7 +1302,9 @@ if(typeof(require)!='undefined'){
     function setupShortcuts(){ 
         if(opener && opener != global){
             setupKeyboardForwarding(document, opener.document)
-        } else if (top != window) {
+        } else if (document.URL.indexOf('detect-keys.html') != -1) {
+            return;
+        }  else if (top != window) {
             setupKeyboardForwarding(document)
         } else {
             var globalHotkeys = [
@@ -1519,52 +1526,32 @@ if(typeof(require)!='undefined'){
 
     var b = jQuery(top.document).find('body');
     
-    var areControlsActive = () => {
-        return b.hasClass('showcontrols');
+    var isMenuVisible = () => {
+        return b.hasClass('show-menu');
     }
     
-    var areControlsHiding = () => {
+    var isMenuHiding = () => {
         return top.controlsHiding || false;
     }
-
-    var hidePlayerBar = (() => {
-        var timer = 0;
-        return () => {
-            clearTimeout(timer);
-            if(PlaybackManager.activeIntent && typeof(PlaybackManager.activeIntent.getVideo) == 'function'){
-                var v = PlaybackManager.activeIntent.getVideo();
-                if(v){
-                    var ptb = jQuery('#player-top-bar'), v = jQuery(v.ownerDocument.body);
-                    v.addClass('hiding-controls');
-                    ptb.css({opacity: 0.01});
-                    timer = setTimeout(() => {
-                        ptb.animate({opacity: 1});
-                        v.removeClass('hiding-controls')
-                    }, 1000)
-                }
-            }
-        }
-    })();
     
-    function showControls(){
-        if(!areControlsActive()){
+    function showMenu(){
+        if(!isMenuVisible()){
             sound('menu', 9);
-            hidePlayerBar();
-            b.add(getFrame('overlay').document.body).addClass('showcontrols')
+            b.add(getFrame('overlay').document.body).addClass('show-menu');
+            doAction('showMenu')
         } else {
             console.log('DD')
         }
     }
     
-    function hideControls(){
+    function hideMenu(){
         //console.log('EE', traceback())
-        if(areControlsActive()){
+        if(isMenuVisible()){
             sound('menu', 9);
             //console.log('HH')
             top.controlsHiding = true;
-            hidePlayerBar();
             var c = (top || parent);
-            b.add(getFrame('overlay').document.body).removeClass('istyping showcontrols paused');
+            b.add(getFrame('overlay').document.body).removeClass('istyping show-menu paused');
             var controlsActiveElement = c.document.activeElement;
             //console.log('HIDE', controlsActiveElement)
             if(controlsActiveElement && controlsActiveElement.tagName.toLowerCase()=='input'){
@@ -1574,7 +1561,8 @@ if(typeof(require)!='undefined'){
             top.PlaybackManager.play();
             setTimeout(() => {
                 top.controlsHiding = false;
-            }, 600)
+            }, 600);
+            doAction('hideMenu')
         }
     }
     
@@ -1941,6 +1929,7 @@ if(typeof(require)!='undefined'){
     function loadTheming(opts, _cb){
         var srcFile = 'assets/css/theme.src.css';
         fs.readFile(srcFile, (err, content) => {
+            console.log('loadTheming');
             if(!err){
                 let bgcolor = Theme.get('bgcolor'), bg = jQuery('#background');
                 content = parseTheming(content, opts);
@@ -1962,11 +1951,37 @@ if(typeof(require)!='undefined'){
                 if(typeof(Menu)!='undefined'){
                     Menu.restoreScroll()
                 }
-                if(typeof(_cb)=='function'){
+                if(typeof(doAction) == 'function'){
+                    try {
+                        doAction('afterLoadTheming')
+                    } catch(e) {
+                        console.error(e)
+                    }
+                }
+                if(typeof(_cb) == 'function'){
                     _cb()
                 }
+                if(typeof(updateMenuDimensions)=='function'){
+                    updateMenuDimensions()
+                }
             }
-        })
+        });        
+        var scope = (typeof(PlaybackManager) != 'undefined' && PlaybackManager.activeIntent) ? PlaybackManager.activeIntent.getVideo() : false;
+        if(scope) {
+            scope = scope.ownerDocument.defaultView;
+        } else {
+            scope = document.querySelector('iframe#player');
+            scope = scope ? scope.contentWindow : false;
+        }
+        if(scope){
+            fs.readFile('assets/css/player.src.css', (err, content) => {
+                if(content){
+                    console.log('Applying CSS...');
+                    stylizer(parseTheming(content), 'player-css', scope);
+                    console.log('Applied CSS.');
+                }
+            })
+        }
     }
 
     var isFirstBackgroundDraw = true;
@@ -2021,15 +2036,20 @@ if(typeof(require)!='undefined'){
     }
 
     function parseTheming(content, opts){
-        let data = {
+        let maxPlayerStatusOpacity = 0.75, mt = Math.round(Theme.get('menu-transparency') * (255 / 100)), data = {
             'bg': Theme.get('bg') || 'linear-gradient(to top, #000004 0%, #01193c 75%)',
+            'bgcolor-playing': Theme.get('bgcolor-playing'),
             'bgcolor': Theme.get('bgcolor'),
             'fgcolor': Theme.get('fgcolor'),
             'fontsize': Theme.get('font-size'),
-            'iconsize': Theme.get('iconsize'),
+            'icon-size': Theme.get('icon-size'),
             'bg-anim': 'bga-' + Theme.get('tuning-background-animation'),
             'theme': Theme.get('name'),
-            'menu-opacity': componentToHex(Math.round(Theme.get('menu-transparency') * (255 / 100)))
+            'menu-entry-vertical-padding': Theme.get('menu-entry-vertical-padding') || 12,
+            'menu-margin': Theme.get('menu-margin') / 100,
+            'menu-transparency-hex': componentToHex(mt),
+            'menu-width': (Theme.get('menu-width') || 34) + '%', // percent of window width
+            'player-status-transparency-hex': mt > (255 * maxPlayerStatusOpacity) ? componentToHex(Math.round(255 * maxPlayerStatusOpacity)) : componentToHex(mt)
         };
         if(data.fontsize > 2){
             data.fontsize = 1;
@@ -2039,7 +2059,9 @@ if(typeof(require)!='undefined'){
         } 
         content = String(content);
         Object.keys(data).forEach((key) => {
-            content = content.replace(new RegExp('\\('+key+'\\)', 'g'), data[key])
+            if(content.indexOf('('+key) != -1){
+                content = content.replace(new RegExp('\\('+key.replaceAll('-', '.{0,2}')+'\\)', 'g'), data[key]);
+            }
         });
         return content;
     }
@@ -2761,19 +2783,28 @@ if(typeof(require)!='undefined'){
         }
         return false;
     }
+    
+    function objectifyQueryString(qs) {
+        let _params = new URLSearchParams(qs);
+        let query = Array.from(_params.keys()).reduce((sum, value)=>{
+          return Object.assign({[value]: _params.get(value)}, sum)
+        }, {});
+        return query;
+    }
 
     function parseMegaURL(url){
         var parts = url.split(( url.indexOf('|')!=-1 ) ? '|': '//');
         if(parts.length > 1){
             parts[0] = parts[0].split('/').pop();
+            var qs = objectifyQueryString(parts[1].split('?').pop().split('#')[0]);
             switch(parts[0]){
                 case 'link':
-                    return {type: 'link', url: atob(parts[1]), name: 'Megacubo '+getDomain(parts[1])};
+                    return Object.assign({type: 'link', url: atob(parts[1]), name: 'Megacubo '+getDomain(parts[1])}, qs);
                     break;
                 case 'play':
                     parts[1] = decodeURIComponent(parts[1]) || parts[1];
                     parts[1] = parts[1].split('?')[0].split('#')[0];                    
-                    return {type: 'play', link: '', name: parts[1]};
+                    return Object.assign({type: 'play', link: '', name: parts[1]}, qs);
                     break;
             }
         }

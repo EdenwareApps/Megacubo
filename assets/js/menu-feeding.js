@@ -36,14 +36,17 @@ function getWindowModeEntries(short){
             }
             resLimit = res;
             Config.set('resolution-limit', res);
+            applyResolutionLimit();
             Menu.refresh();
-            mrk();
-            Menu.restoreScroll()
+            setTimeout(() => {
+                Menu.restoreScroll();
+                mrk()
+            }, 400)
         }, mrk = () => {
             var entries = jQuery('a.entry-option');
             entries.each((i) => {
                 var el = entries.eq(i), v = el.data('entry-data');
-                if(v && v.label == resLimit){
+                if(v && (v.label == resLimit || (v.label=='' && resLimit == '99999x99999'))) {
                     setEntryFlag(el, 'fa-check-circle', true)
                 }
             })
@@ -361,12 +364,62 @@ function getSearchRangeEntries(){
         initSearchIndex(() => {});
         setActiveEntry({value: entry.value})
     }
-    options.push({name: Lang.MY_LISTS_ONLY, value: 0, logo:'fa-search-minus', type: 'option', callback: callback});
+    options.push({name: Lang.MY_LISTS_ONLY, value: 0, logo:'fa-search-minus', type: 'option', callback: callback, class: getSources().length?'':'entry-disabled'});
     options.push({name: Lang.LOW+' ('+Lang.LISTS+': 18)', value: 18, logo:'fa-search-minus', type: 'option', callback: callback});
     options.push({name: Lang.MEDIUM+' ('+Lang.LISTS+': 36)', value: 36, logo:'fa-search', type: 'option', callback: callback});
     options.push({name: Lang.HIGH+' ('+Lang.LISTS+': 64)', value: 64, logo:'fa-search-plus', type: 'option', callback: callback});
     options.push({name: Lang.XTREME+' ('+Lang.LISTS+': 96, '+Lang.SLOW+')', value: 96, logo:'fa-search-plus', type: 'option', callback: callback});
     return options;
+}
+
+function getKeyboardMappingEntries(){
+    var _path = Menu.path + '/' + Lang.KEYBOARD_MAPPING;
+    getJSON('hotkeys.json', (err, hotkeys) => {
+        var entries = [];
+        console.warn('HOTKEY', hotkeys);
+        if(hotkeys && typeof(hotkeys)=='object'){
+            for(var key in hotkeys){
+                let n = hotkeys[key];
+                if(typeof(Lang['HOTKEY_DESC_'+n]) != 'undefined'){
+                    n = Lang['HOTKEY_DESC_'+n]
+                }
+                entries.push({name: n, label: key, type: 'option', callback: (data) => {
+                    console.warn('HOTKEY', data);
+                    detectKeys(data.label, (keys) => {
+                        if(keys && keys != data.label){
+                            var r = false;
+                            if(typeof(hotkeys[keys]) != 'undefined'){
+                                r = hotkeys[keys];
+                            }
+                            hotkeys[keys] = hotkeys[data.label];
+                            delete hotkeys[data.label];
+                            if(r){
+                                hotkeys[data.label] = r;
+                            }
+                        }
+                        console.warn('HOTKEY', keys, data.label, hotkeys);
+                        fs.writeFile('hotkeys.json', JSON.stringify(hotkeys, null, 4), () => {
+                            var y = Menu.saveScroll();
+                            Menu.go('Opções', () => { 
+                                console.warn('HOTKEY', -1);
+                                Menu.go('Opções/'+Lang.KEYBOARD_MAPPING);
+                                setTimeout(() => {
+                                    console.warn('HOTKEY', y);
+                                    Menu.restoreScroll(y)
+                                }, 500)
+                            })
+                        })
+                    })
+                }})
+            }
+        }
+        console.warn('HOTKEY', entries, Menu.path, _path);
+        if(Menu.path == _path){
+            jQuery('.entry-loading').remove();
+            Menu.render(entries, _path)
+        }
+    });
+    return [getLoadingEntry()]
 }
 
 function getSearchHistoryEntries(){
@@ -420,6 +473,104 @@ PlaybackManager.on('commit', () => {
     }
 });
 
+var currentBookmarkAddingByName = {
+    name: '',
+    search_live: true,
+    search_vod: false,
+    logo: ''
+};
+
+function getAddBookmarkByNameEntries(){
+    return [
+        {name: Lang.CHANNEL_OR_CONTENT_NAME, type: 'input', value: currentBookmarkAddingByName.name, label: Lang.CHANNEL_OR_CONTENT_NAME, change: (data, element, value) => {
+            currentBookmarkAddingByName['name'] = value;
+        }},
+        {name: Lang.SEARCH_LIVE, type: 'check', checked: () => {
+            return currentBookmarkAddingByName.search_live;
+        }, check: (value) => {
+            currentBookmarkAddingByName.search_live = value;
+            if(!value && !currentBookmarkAddingByName.search_vod){
+                currentBookmarkAddingByName.search_vod = true;
+            }
+        }},
+        {name: Lang.SEARCH_VOD, type: 'check', checked: () => {
+            return currentBookmarkAddingByName.search_vod;
+        }, check: (value) => {
+            currentBookmarkAddingByName.search_vod = value;
+            if(!value && !currentBookmarkAddingByName.search_live){
+                currentBookmarkAddingByName.search_live = true;
+            }
+        }},
+        {name: Lang.SAVE, type: 'option', logo: 'fa-save', type: 'group', renderer: getAddBookmarkByNameEntriesPhase2}
+    ]
+}
+
+function getAddBookmarkByNameEntriesPhase2(){
+    if(!currentBookmarkAddingByName.name){
+        return -1;
+    }
+    var type = 'all';
+    if(!currentBookmarkAddingByName.search_live){
+        type = 'video';
+    } else if(!currentBookmarkAddingByName.search_vod){
+        type = 'live';
+    }
+    var entries = [], sentries = fetchSharedListsSearchResults(null, type, currentBookmarkAddingByName.name, true, true);
+    var type = (currentBookmarkAddingByName.search_live && currentBookmarkAddingByName.search_vod) ? 'all' : (currentBookmarkAddingByName.search_live ? 'live' : 'video');
+    var url = 'mega://play|'+encodeURIComponent(currentBookmarkAddingByName.name)+'?search_type='+type;
+    var logos = sentries.map((entry) => { return entry.logo; }).filter((logoUrl) => { return isHTTP(logoUrl) }).getUnique().slice(0, 96).forEach((logoUrl) => {
+        entries.push({
+            name: Lang.SELECT_ICON,
+            logo: logoUrl,
+            type: 'option',
+            callback: () => {
+                currentBookmarkAddingByName.logo = logoUrl;
+                Bookmarks.add({
+                    name: currentBookmarkAddingByName.name,
+                    logo: currentBookmarkAddingByName.logo,
+                    type: (type == 'live' ? 'stream' : 'group'),
+                    url: url
+                });
+                goBookmarks()
+            }
+        })
+    });
+    entries.push({
+        name: Lang.SELECT_ICON,
+        logo: defaultIcons['stream'],
+        type: 'option',
+        callback: () => {
+            currentBookmarkAddingByName.logo = '';
+            Bookmarks.add({
+                name: currentBookmarkAddingByName.name,
+                logo: currentBookmarkAddingByName.logo,
+                type: (type == 'live' ? 'stream' : 'group'),
+                url: url
+            });
+            goBookmarks()
+        }
+    });
+    return entries;
+}
+
+function expandMegaUrl(url){
+    var data = parseMegaURL(url);
+    if(data){
+        if(data.type == 'link'){
+            return [{
+                name: data.name || 'Unknown',
+                type: 'stream',
+                url: data.url
+            }]
+        } else if(data.type == 'play') {
+            return fetchSharedListsSearchResults(null, data.search_type || 'live', data.name, true, true)
+        }
+    } else {
+        console.error('Bad mega:// URL', entry)
+    }
+    return []
+}
+
 function getBookmarksEntries(reportEmpty){
     var options = [], stream;
     var bookmarks = Bookmarks.get();
@@ -431,10 +582,23 @@ function getBookmarksEntries(reportEmpty){
             }})
         }
     }
+    options.push({name: Lang.ADD_BY_NAME, logo:'fa-star', type: 'group', renderer: getAddBookmarkByNameEntries});
     if(bookmarks && bookmarks.length){
-        options = options.concat(bookmarks);
+        options = options.concat(bookmarks.map((opt, i) => {
+            opt.label = (i + 1) + '&ordm;';
+            if(opt.type == 'group' && !opt.renderer && isMega(opt.url)){
+                opt.renderer = () => {
+                    var entries = expandMegaUrl(opt.url);
+                    if(!entries.length){
+                        entries.push({name: Lang.EMPTY, logo:'fa-file', type: 'option'})
+                    }
+                    return entries;
+                }
+            }
+            return opt;
+        }));
         options.push({name: Lang.REMOVE, logo: 'fa-trash', type: 'group', entries: [], renderer: getBookmarksForRemoval})
-    } else if(reportEmpty) {
+    } else if(reportEmpty === true) {
         options.push({name: Lang.EMPTY, logo:'fa-file', type: 'option'})
     }
     return options;
@@ -453,7 +617,11 @@ function getBookmarksForRemoval(){
                     stream: bookmarks[i], 
                     callback: function (data){
                         removeFav(data.stream);
-                        Menu.refresh()
+                        if(Bookmarks.get().length){
+                            Menu.refresh()
+                        } else {
+                            goBookmarks()
+                        }
                     }
                 })
             }
@@ -548,8 +716,7 @@ function getListsEntries(notActive, noManagement, isVirtual){
                         markActiveSource();  
                         Menu.refresh()          
                     }, 
-                    rename: (name, data) => {
-                        //alert(newName)         
+                    rename: (name, data) => {   
                         setSourceName(data.url, name)
                     }
                 })
@@ -559,9 +726,11 @@ function getListsEntries(notActive, noManagement, isVirtual){
             }
             return options;            
         }},
-        {name: Lang.ADD_NEW_LIST, logo: 'fa-plus', type: 'option', callback: addNewSource},
-        {name: Lang.REMOVE_LIST, logo: 'fa-trash', type: 'group', renderer: getListsEntriesForRemoval, callback: markActiveSource},
-        {name: Lang.LIST_SHARING, type: 'check', check: function (checked) {
+        {name: Lang.ADD_NEW_LIST, logo: 'fa-plus', type: 'option', callback: addNewSource}
+    ];
+    if(getSources().length){
+        options.push({name: Lang.REMOVE_LIST, logo: 'fa-trash', type: 'group', renderer: getListsEntriesForRemoval, callback: markActiveSource});
+        options.push({name: Lang.LIST_SHARING, type: 'check', check: function (checked) {
             var v = checked ? Config.defaults['search-range-size'] : 0;
             Config.set('search-range-size', v);        
             initSearchIndex(() => {})
@@ -569,9 +738,9 @@ function getListsEntries(notActive, noManagement, isVirtual){
         },  checked: () => {
                 return isListSharingActive()
             }
-        }
-    ];
-    if(!isVirtual && isListSharingActive()){
+        })
+    }
+    if(!isVirtual){
         options.push({name: Lang.ALL_LISTS, logo: 'fa-users', type: 'group', renderer: (data) => {
             return renderRemoteSources(data.name)
         }, entries: []})

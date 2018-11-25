@@ -1,5 +1,5 @@
 body {
-    font-size: (fontsize)em;
+    font-size: (fontsize)rem;
 }
 
 
@@ -12,7 +12,7 @@ html.ui-index .nw-cf {
 }
 
 html.ui-index body.miniplayer.playing .nw-cf, html.ui-index body.miniplayer.paused .nw-cf {
-    background: linear-gradient(to bottom, #000000BB 0%, #00000077 25%, #00000077 75%, #00000000 100%) !important;
+    background: #00000077;
 }
 
 html.ui-index .nw-cf-btn { 
@@ -23,7 +23,7 @@ html.ui-index body.playing #controls-toggle, html.ui-index body.paused #controls
     background: linear-gradient( to bottom, transparent, #00000077 100%);
 }
 
-body.playing:not(.showcontrols) .nw-cf, body.paused:not(.showcontrols) .nw-cf {
+body.playing:not(.show-menu) .nw-cf, body.paused:not(.show-menu) .nw-cf {
     background: #000000;
 }
 
@@ -45,11 +45,11 @@ html.ui-index #menu-trigger-icon, html.ui-index #controls-toggle {
     border-bottom-color: (fgcolor)20;
     border-right-color: (fgcolor)07;
     border-left-color: (fgcolor)07;
-    color: (fgcolor)AA; 
+    color: (fgcolor)77; 
 }
 
 html.ui-index a.entry {
-    border-top: 1px solid (fgcolor)09;
+    border-bottom: 1px solid (fgcolor)03;
     box-shadow: inset 0 -11px 41px 0px rgba(0, 0, 0, 0.05), 0 -2px 2px rgba(0, 0, 0, 0.03);
 }
 
@@ -61,8 +61,13 @@ html.ui-index #controls .list {
     background: transparent;
 }
 
-html.ui-index.ui-transparent-menu #controls .list {
-    background: (bgcolor)(menu-opacity);
+html.ui-index.ui-transparent-menu body:not(.transparent-menu) #controls .list {
+    background: (bgcolor)(menu-transparency-hex);
+}
+
+html.ui-index div#player-status {
+    /* background: linear-gradient( to bottom, (bgcolor)(menu-transparency-hex) 0%, (bgcolor-playing)(player-status-transparency-hex) 18% ); */
+    background: (bgcolor-playing)(player-status-transparency-hex);
 }
 
 html.ui-index .entry-name {
@@ -109,6 +114,9 @@ html.ui-index .entry-label {
 
 html.ui-index a.entry:focus, html.ui-index a.entry.entry-focused {
     background: linear-gradient(to bottom, #FFFFFF15 0%, #FFFFFF0F 75%, #FFFFFF20 100%);
+    outline: 0 !important;
+    box-sizing: content-box;
+    border-bottom: 1px solid (fgcolor)17;
 }
 
 html.ui-index .nw-cf-title {
@@ -137,33 +145,19 @@ html.ui-index body.scrolled_400:not(.home) #list-icons {
 }
 
 html.ui-index #player {
-    background: #000000;
+    background: (bgcolor-playing);
 }
 
 html.ui-index body.playing div#controls div.list, html.ui-index body.paused div#controls div.list {
-    background: linear-gradient( to bottom, (bgcolor), #000000 18%);
+    background: linear-gradient( to bottom, (bgcolor), (bgcolor-playing) 18%);
 }
 
 html.ui-index body.playing, html.ui-index body.paused {
     background: (bg);
 }
 
-html.ui-index #player-top-bar {
-    color: #FFFFFF;
-    text-shadow: 2px 2px 2px #000000 !important;
-    background: linear-gradient(to bottom, #00000000 0%, #000000BB 50%);
-}
-
-html.ui-index #player-top-bar a {
-    color: #FFFFFF;
-}
-
-html.ui-index #player-top-bar a:hover {
-    color: #FFFFFFAA;
-}
-
-html.ui-index:not(.ui-light) html.ui-index #player-top-bar a {
-    text-shadow: 2px 2px 2px (bgcolor) !important;
+#vcontrols {
+    background: (bgcolor-playing)(menu-transparency-hex);
 }
 
 html.ui-index div#controls-left-border {
@@ -171,34 +165,123 @@ html.ui-index div#controls-left-border {
     position: absolute;
     bottom: 0;
     left: 0;
-    top: 33px;
+    top: 31px;
     height: calc(100% - 33px);
     background: linear-gradient(to top, (fgcolor)07 0%, (fgcolor)07 90%, (fgcolor)20 100%);
 }
 
+html.ui-index body.has-menu-margin div#controls-left-border {
+    display: none;
+}
+
 html.ui-index .entry td.entry-logo-c {
-    width: calc((iconsize)px + 2px);
+    width: calc((icon-size)px + 2px);
 }
 
 html.ui-index #controls a.entry {
-    height: calc((iconsize)px + 12px);
+    height: calc((icon-size)px + (menu-entry-vertical-padding)px);
 }
 
 html.ui-index .entry-logo {
-    width: (iconsize)px;
-    height: (iconsize)px;
+    width: (icon-size)px;
+    height: (icon-size)px;
 }
 
 html.ui-index .entry-logo img {
-    max-height: (iconsize)px;
+    max-height: (icon-size)px;
 }
 
 html.ui-index .entry-logo-fa {
-    font-size: calc((iconsize)px - 4px);
+    font-size: calc((icon-size)px - 4px);
 }
 
 html.ui-index div#modal-overlay {
     background: linear-gradient(#00000000 0%, #000000FF 25%);
+}
+
+html.ui-index body.playing.transparent-menu #player, 
+html.ui-index body.playing.transparent-menu iframe#sandbox, 
+html.ui-index body.paused.transparent-menu #player, 
+html.ui-index body.paused.transparent-menu iframe#sandbox,
+html.ui-index body.playing.has-menu-margin #player, 
+html.ui-index body.playing.has-menu-margin iframe#sandbox, 
+html.ui-index body.paused.has-menu-margin #player, 
+html.ui-index body.paused.has-menu-margin iframe#sandbox {
+    width: 100% !important;
+}
+
+html.ui-index body.transparent-menu #controls-left-border {
+    display: none;
+}
+
+html.ui-index body.has-menu-margin.auto-hide.over #controls > div, 
+html.ui-index body.has-menu-margin.show-menu:not(.playing):not(.paused) #controls > div, 
+html.ui-index body.has-menu-margin.show-menu:not(.auto-hide) #controls > div {
+    width: 100%;
+    height: calc(100% * (1 - (menu-margin)));
+    right: calc((100vh - 30px) * ((menu-margin) / 2));
+    top: calc((100% - 30px) * ((menu-margin) / 2));
+}
+
+html.ui-index body.has-menu-margin.show-menu.home #home-icons {
+    bottom: calc((100vh - 30px) * ((menu-margin) / 2) + 1px);
+    right: calc((100vh - 30px) * ((menu-margin) / 2) + 8px);
+}
+
+html.ui-index body.has-menu-margin #controls-toggle {
+    top: calc((100vh - 30px) * ((menu-margin) / 2));
+    right: calc((100vh - 30px) * ((menu-margin) / 2));
+    left: auto;
+}
+
+html.ui-index body.has-menu-margin .vcontrols {
+    bottom: calc((100% - 30px) * ((menu-margin) / 2));
+    left: calc((100vh - 30px) * ((menu-margin) / 2));
+    max-width: calc(100% - (2 * ((100vh - 30px) * ((menu-margin) / 2))));
+    border-radius: 4px;
+}
+
+html.ui-index body.has-menu-margin.show-menu:not(.miniplayer):not(.auto-hide) .vcontrols {
+    width: calc(100% - 34% - (3 * ((100vh - 30px) * ((menu-margin) / 2)))) !important;
+}
+
+html.ui-index body.auto-hide #controls-toggle {
+    display: none;
+}
+
+html.ui-index body.transparent-menu.playing div#controls div.list, html.ui-index body.transparent-menu.paused div#controls div.list {
+    background: linear-gradient( to bottom, (bgcolor-playing)(player-status-transparency-hex) 0%, (bgcolor-playing)(player-status-transparency-hex) 75%, (bgcolor-playing)(player-status-transparency-hex) 90%);
+}
+
+
+html.ui-index body.transparent-menu.playing div#player-status, html.ui-index body.transparent-menu.paused div#player-status {
+    background: linear-gradient( to bottom, (bgcolor)(menu-transparency-hex) 0%, (bgcolor-playing)(player-status-transparency-hex) 18%);
+}
+
+html.ui-index body.playing:not(.show-menu) div#player-status, html.ui-index body.paused:not(.show-menu) div#player-status {
+    background: linear-gradient( to bottom, #000000FF 0%, #000000(player-status-transparency-hex) 18%);
+}
+
+html.ui-index body.has-menu-margin.playing div#controls div.list, html.ui-index body.has-menu-margin.paused div#controls div.list {
+    border-radius: 4px;
+}
+
+html.ui-index body.has-menu-margin.playing .fit-screen, html.ui-index body.has-menu-margin.playing .fit-player, html.ui-index body.has-menu-margin.playing .fit-player-min, 
+html.ui-index body.has-menu-margin.paused .fit-screen, html.ui-index body.has-menu-margin.paused .fit-player, html.ui-index body.has-menu-margin.paused .fit-player-min {
+    width: 100%;
+}
+
+body.show-menu:not(.miniplayer) .fit-player, body.show-menu:not(.miniplayer) .fit-player-min {
+    width: calc(100% - (menu-width));
+}
+
+body #controls {
+    width: (menu-width);
+    transition: width 0.2s linear;
+}
+
+#player, iframe#sandbox {
+    width: calc(100% - (menu-width)); /* +18px to box-shadow */
 }
 
 progress {
@@ -228,13 +311,12 @@ html.ui-index .prompt-footer .button:hover, html.ui-index .prompt-footer .button
     background: (bgcolor)DD;
 }
 
-html.ui-index div#drop-hint {
+html.ui-index div#miniplayer-poster {
     background: #000000;
 }
 
-html.ui-index div#drop-hint > div {
+html.ui-index div#miniplayer-poster > div {
     color: #fff;    
-    border: 4px dashed #FFFFFF10;
 }
 
 html.ui-overlay #drop-target svg, html.ui-overlay #drop-target i {

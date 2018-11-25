@@ -46,7 +46,7 @@ addAction('miniplayer-off', () => {
     //console.log('MP-OFF');
     setTimeout(() => {
         if(!isFullScreen() && !isMiniPlayerActive()){
-            showControls()
+            showMenu()
         }
     }, 500)
 })
@@ -81,10 +81,10 @@ function backSpacePressed(){
             console.warn(document.URL, document.body, Menu);
             Menu.back()
         } else {
-            if(areControlsActive() && !isStopped()){
-                hideControls()
+            if(isMenuVisible() && !isStopped()){
+                hideMenu()
             } else {
-                showControls()
+                showMenu()
             }
         }
     }
@@ -221,7 +221,7 @@ function patchMaximizeButton(){
 
 function playExternal(url){
     if(!url){
-        if(areControlsActive()){
+        if(isMenuVisible()){
             var entry = selectedEntry();
             if(entry && entry.type=='stream'){
                 url = entry.url;
@@ -868,7 +868,7 @@ function setFullScreen(enter){
             win.enterFullscreen()
         }
         notify(Lang.EXIT_FULLSCREEN_HINT, 'fa-info-circle', 'normal');
-        hideControls()
+        hideMenu()
     }
     var f = function (){
         var _fs = isFullScreen();
@@ -968,7 +968,7 @@ patchMaximizeButton();
 jQuery(() => {
     gui.Window.get().on('close', closeApp);
     jQuery("#menu-trigger-icon").on('mousedown mouseup', (e) => {
-        showControls();
+        showMenu();
         e.preventDefault(); // don't pause on clicking
         e.stopPropagation()
     })
@@ -1054,7 +1054,9 @@ function closeApp(force){
             win.close()
         } else {
             console.warn('CASE B');
-            win.close(true)
+            gui.App.closeAllWindows();
+            gui.App.quit()
+            // win.close(true);            
         }
     }
 }
@@ -1168,26 +1170,6 @@ function minimizeCallback() {
     }
 }
 
-function updateControlBarPos(scope, player){
-    if(scope && scope.document && scope.document.documentElement){
-        var controlBarHeight = 36, controlBarMargin = 0,  t = (
-            jQuery(scope.document).height() - 
-            player.offset().top
-        ) - (controlBarHeight + (controlBarMargin * 2));
-        var rule = ' video::-webkit-media-controls-panel { ';
-        if(controlBarMargin){
-            rule += ' width: calc(100% - '+(controlBarMargin * 2)+'px); margin: '+controlBarMargin+'px; border-radius: 3px;';
-        } else {
-            rule += ' width: 100%; margin: 0; border-radius: 0; ';
-        }
-        rule += 'top: '+t+'px; } ';
-        if(!scope.__lastControlBarPosRule || scope.__lastControlBarPosRule != rule){
-            scope.__lastControlBarPosRule = rule;
-            stylizer(rule, 'video-control-bar-pos', scope);
-        }
-    }
-}
-
 function logoLoad(image, name){
     var entries = fetchSharedListsSearchResults(null, 'live', name, true, true);
     var check = () => {
@@ -1199,6 +1181,36 @@ function logoLoad(image, name){
     check()
 }
 
+var fitPlayerControlsToMenuLastWidth;
+
+function fitPlayerControlsToMenu(scope){
+    if(!scope){
+        if(typeof(PlaybackManager) != 'undefined' && PlaybackManager.activeIntent){
+            var p = PlaybackManager.activeIntent.getVideo();
+            if(p){
+                scope = p.ownerDocument.defaultView;
+            }
+        }
+    }
+    if(scope){
+        var w = top.jQuery(scope.document).find('video').width();
+        if(w != fitPlayerControlsToMenuLastWidth){
+            fitPlayerControlsToMenuLastWidth = w;
+            var ww = scope.innerWidth, l = (ww - w) / 2;
+            var css = ' body.fit-to-menu video::-webkit-media-controls-panel { max-width: calc((((100% + (2 * '+l+'px)) / 100) * (100 - '+top.Theme.get('menu-width')+')) - '+l+'px) } ';
+            //console.warn('CSS', css, ww, ',',  w,  ',', l);
+            top.stylizer(css, 'fit-to-menu', scope)
+        }
+        var b = jQuery('body'), jb = jQuery(scope.document.body);
+        if(b.hasClass('transparent-menu') && b.hasClass('show-menu')){
+            jb.addClass('fit-to-menu')
+        } else {
+            jb.removeClass('fit-to-menu')
+        }
+        return scope;
+    }
+}
+
 var tb = jQuery(top.document).find('body');
 function prepareVideoObject(videoElement, intent){ // intent is empty for native player
     if(!videoElement || !videoElement.ownerDocument){
@@ -1206,7 +1218,10 @@ function prepareVideoObject(videoElement, intent){ // intent is empty for native
     }
     var doc = videoElement.ownerDocument, ps = doc.getElementById('player-status');
     if(!ps){
-        var scope = doc.defaultView;
+        if(VControls){
+            VControls.bind(videoElement)
+        }
+        var jVideoElement = jQuery(videoElement), scope = doc.defaultView;
         var seeking, fslock, paused, wasPaused, fstm = 0, player = jQuery(videoElement), b = jQuery(doc.querySelector('body')), f = (e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -1216,28 +1231,30 @@ function prepareVideoObject(videoElement, intent){ // intent is empty for native
         if(videoElement.getAttribute('controls') !== null){
             videoElement.removeAttribute('controls')
         }
-        videoElement.setAttribute('controls', 'controls');
         if(videoElement.getAttribute('controlsList') !== null){
             videoElement.removeAttribute('controlsList')
         }
-        videoElement.setAttribute('controlsList', 'nodownload');
         if(videoElement.paused){
             videoElement.play()
         }
         videoElement.onclick = videoElement.onmousedown = videoElement.onmouseup = null;
-        videoElement.style.background = '#000';
-        var videoObserver, timer = 0, ignoreResizing, f = () => {
-            //console.warn('UPDATE', scope, player);
-            if(top && scope && scope.clearTimeout && player){
+        videoElement.style.background = Theme.get('bgcolor-playing');
+       
+        var videoObserver, lastWidth, timer = 0, ignoreResizing, f = () => {
+            var currentWidth = jVideoElement.width();
+            if(currentWidth != lastWidth && top && scope && scope.clearTimeout){
+                lastWidth = currentWidth;
+                console.warn('UPDATE', currentWidth, traceback());
                 scope.clearTimeout(timer);
                 timer = scope.setTimeout(() => {
                     videoObserver.disconnect(); // ensure prevent looping
                     scope.clearTimeout(timer);
-                    updateControlBarPos(scope, player);
+                    fitPlayerControlsToMenu(scope);
                     videoObserver.observe(videoElement)
                 }, 200)
             }
         }
+
         fs.readFile('assets/css/player.src.css', (err, content) => {
             if(content){
                 console.log('Applying CSS...');
@@ -1250,7 +1267,7 @@ function prepareVideoObject(videoElement, intent){ // intent is empty for native
         jQuery(scope).on('load resize', f);
         var mouseDownTime = 0, allowTimeoutReload = (intent && intent.type == 'frame' && !isVideo(videoElement.src)), reloadTimer = 0, reloadTimeout = 10000;
         videoElement.volume = Config.get('volume');
-        jQuery(videoElement).
+        jVideoElement.
             on('wheel', (event) => {
                 if(event.ctrlKey){
                     if(event.originalEvent.deltaY < 0){
@@ -1383,16 +1400,15 @@ function prepareVideoObject(videoElement, intent){ // intent is empty for native
                     }, 1000)    
                 }
             }).
-            on('dblclick', hideControls).
+            on('dblclick', hideMenu).
             on('volumechange', () => {
                 Config.set('volume', videoElement.volume)
             });
     }
 }
 
-var themeSettingsKeys = ["background", "bg", "bgcolor", "fgcolor", "font-size", "logo", "name", "menu-transparency", "tuning-background-animation"];
-
 function exportTheme(file, cb) {
+    var t = Theme.data;
     fs.writeFile(file, JSON.stringify(Theme.data, null, 2), cb)
 }
 
@@ -1452,10 +1468,10 @@ function importConfig(file, cb){
 
 function resetConfig(){
     if(confirm(Lang.RESET_CONFIRM)){
-        resetTheme(() => {
-            doAction('resetConfig');
-            removeFolder('torrent', false, function (){
-                removeFolder(Store.folder(false), false, function (){
+        doAction('resetConfig');
+        removeFolder('torrent', false, () => {
+            removeFolder(Store.folder(false), false, () => {
+                resetTheme(() => {
                     nw.App.clearCache();
                     top.location.reload()
                 })
@@ -1621,20 +1637,123 @@ var mouseMoveTimeout = () => {
             _b.addClass('frameless') 
         }
         _b.off('mousemove', mouseMoveTimeout);
-        playPauseNotifyContainers().removeClass('over')
+        let c = playPauseNotifyContainers();
+        if(c.hasClass('over')){
+            setWindowOverClass(false);
+            jQuery(window).trigger('appout')
+        }
     }, mouseOutGraceTime)
 }
+
 var miniPlayerMouseOut = () => {
     if(!isOver){
         if(miniPlayerActive){
             _b.addClass('frameless');
             _b.off('mousemove', mouseMoveTimeout)
         }
-        playPauseNotifyContainers().removeClass('over')
+        let c = playPauseNotifyContainers();
+        if(c.hasClass('over')){
+            setWindowOverClass(false);
+            jQuery(window).trigger('appout')
+        }
     }
 }
 
-function createMouseObserverForControls(win){
+var menuDimensions = {x: 0, y: 0, width: 0, height: 0}, mousePos = {x: 0, y: 0};
+
+function updateMenuDimensions() {
+    var c = document.querySelector('#controls-in');
+    if(c) {
+        var md = Object.assign(c.getBoundingClientRect());
+        if(md.width){
+            md.y = 0;
+            md.top = 0;
+            md.right = window.outerWidth;
+            md.height = window.outerHeight;
+            md.x = md.left = window.outerWidth - md.width;
+            menuDimensions = md;
+        }
+    }
+}
+
+jQuery(window).on('resize appload', () => {
+    setTimeout(updateMenuDimensions, 200)
+});
+
+addAction('afterLoadTheming', () => {
+    setTimeout(updateMenuDimensions, 50)
+});
+
+addAction('showMenu', () => {
+    setTimeout(updateMenuDimensions, 50)
+});
+
+function isOverMenu() {
+    return menuDimensions && (mousePos.x >= menuDimensions.x && mousePos.x <= (menuDimensions.x + menuDimensions.width)) && 
+            (mousePos.y >= menuDimensions.y && mousePos.y <= (menuDimensions.y + menuDimensions.height))
+    //return menuDimensions && (mousePos.x >= menuDimensions.x && mousePos.x <= (menuDimensions.x + menuDimensions.width)) && 
+    //    (mousePos.y >= menuDimensions.y && mousePos.y <= (menuDimensions.y + menuDimensions.height))
+}
+
+function isOverPlayerControls() {
+    return (PlaybackManager.activeIntent && mousePos.y >= (document.body.clientHeight * 0.75))
+}
+
+var menuEntered = false, updateWindowOverClassState;
+
+function setWindowOverClass(state) {
+    return updateWindowOverClass(state)
+}
+
+function updateWindowOverClass(state) {
+    var b = jQuery('body'), p = getFrame('player');
+    if(p && p.document && p.document.body){
+        b = b.add(p.document.body)
+    }
+    if((b.hasClass('over') && state !== false) || state === true){
+        var c = 'over', r = '', pl = !menuEntered && isOverPlayerControls();
+        if(pl){
+            c += ' over-vcontrols';
+        } else {
+            r += ' over-vcontrols';
+        }
+        if(!pl && isOverMenu()){
+            // console.log('ZZZZ', 'menuEntered = true;');
+            menuEntered = true;
+            c += ' over-menu';
+        } else {
+            // console.log('ZZZZ', 'menuEntered = false;');
+            menuEntered = false;
+            r += ' over-menu';
+        }
+        if(Theme.get('menu-margin')){
+            c += ' has-menu-margin';
+        } else {
+            r += ' has-menu-margin';
+        }
+        var s = c + '|' + r + '|' + window.outerWidth;
+        if(s != updateWindowOverClassState || !b.hasClass('over')){
+            updateWindowOverClassState = s;
+            // console.log('C', c, 'R', r);
+            if(r){
+                b.removeClass(r)
+            }
+            if(c){
+                b.addClass(c);
+                updateMenuDimensions()
+            }
+            if(typeof(PlaybackManager) != 'undefined' && PlaybackManager.activeIntent){
+                fitPlayerControlsToMenu()
+            }
+        }
+    } else {
+        // console.log('ZZZZ', 'menuEntered = false;');
+        menuEntered = false;
+        b.removeClass('over over-vcontrols over-menu')
+    }
+}
+
+function attachMouseObserver(win){
     if(!win || !win.document){
         console.error('Bad observe', win, win.document, traceback())
         return;
@@ -1642,7 +1761,7 @@ function createMouseObserverForControls(win){
     if(!win.document.documentElement){
         console.log('Delaying observe creation...', win);
         setTimeout(() => {
-            createMouseObserverForControls(win)
+            attachMouseObserver(win)
         }, 1000);
         return;
     }
@@ -1652,23 +1771,36 @@ function createMouseObserverForControls(win){
         var h = jw.height();
         var b = jw.find('body');
         jQuery(win.document).on('mousemove', (e) => {
-            if(isOver) return;
-            x = e.pageX;
-            y = e.pageY;
-            if(typeof(menuTriggerIconTrigger)!='undefined'){
+            top.mousePos.x = x = e.pageX;
+            top.mousePos.y = y = e.pageY;
+            if(isOver) {
+                top.updateWindowOverClass();
+                return;
+            } 
+            if(typeof(menuTriggerIconTrigger)!='undefined') {
                 clearTimeout(menuTriggerIconTrigger)
             }
             isOver = true;
-            playPauseNotifyContainers().addClass('over');
+            let c = playPauseNotifyContainers();
+            if(!c.hasClass('over')) {
+                setWindowOverClass(true);
+                jQuery(window).trigger('appover')
+            } else {
+                top.updateWindowOverClass()
+            }
             menuTriggerIconTrigger = setTimeout(() => {
                 isOver = false;
-                playPauseNotifyContainers().removeClass('over')
+                let c = playPauseNotifyContainers();
+                if(c.hasClass('over')){
+                    setWindowOverClass(false);
+                    jQuery(window).trigger('appout')
+                }
             }, mouseOutGraceTime) // idle time before hide
-        })
+        });
         var frames = win.document.querySelectorAll('iframe, frame');
         for(var i=0; i<frames.length; i++){
             if(frames[i].offsetWidth >= (w - 40)){
-                createMouseObserverForControls(frames[i].contentWindow)
+                attachMouseObserver(frames[i].contentWindow)
             }
         }
         setupKeyboardForwarding(win.document)
@@ -1686,7 +1818,11 @@ jQuery('body').on('mouseenter mousemove', () => {
     if(!top.isFullScreen()){
         _b.removeClass('frameless')
     }
-    playPauseNotifyContainers().addClass('over');
+    let c = playPauseNotifyContainers();
+    if(!c.hasClass('over')){
+        setWindowOverClass(true);
+        jQuery(window).trigger('appover')
+    }
     if(miniPlayerActive){
         _b.on('mousemove', mouseMoveTimeout)
     }
@@ -1696,6 +1832,124 @@ jQuery('body').on('mouseenter mousemove', () => {
     isOver = false;
     clearTimeout(miniPlayerMouseHoverDelay);
     miniPlayerMouseHoverDelay = setTimeout(miniPlayerMouseOut, 200)
+});
+
+var appOverTimer = 0, appOverState = true, appOverBindState = false;
+
+function autoHideMenu(state, force) {
+    var b = jQuery('body');
+    if(state && (force === true || true || PlaybackManager.activeIntent)){
+        b.addClass('auto-hide');
+        if(!appOverBindState){
+            appOverBindState = true;
+            jQuery('div#controls-left-border').css({
+                'height': '100%',
+                'top': 0
+            });
+            jQuery('#menu-trigger-icon, #controls-toggle').hide()
+        }
+    } else {
+        b.removeClass('auto-hide');
+        if(appOverBindState){
+            appOverBindState = false;
+            jQuery('div#controls-left-border').css({
+                'height': 'calc(100% - 33px)',
+                'top': '33px'
+            });
+            jQuery('#menu-trigger-icon, #controls-toggle').show()
+        }
+    }
+}
+
+function detectKeys(currentKey, cb){
+    var dw = getFrame('detect-keys');
+    dw.nextCallback = (keys) => {
+        setTimeout(() => {
+            jQuery('#detect-keys').hide();
+            jQuery('.nw-cf').css('background', 'transparent');
+            if(keys != currentKey){
+                notify(Lang.SHOULD_RESTART, 'fa-cogs faclr-yellow', 'normal')
+            }
+        }, 750);
+        cb(keys)
+    }
+    jQuery('#detect-keys').show();
+    jQuery('.nw-cf').css('background', '#000000');
+    dw.document.querySelector('#result').innerHTML = currentKey;
+    dw.focus();
+}
+
+function hideSeekbar(state){
+    var e = jQuery('.vcontrols .video-seek input');
+    if(state){
+        e.hide()
+    } else {
+        e.show()
+    }
+}
+
+function overlayedMenu(state){
+    var b = jQuery('body');
+    if(state){
+        b.addClass('transparent-menu')
+    } else {
+        b.removeClass('transparent-menu')
+    }
+}
+
+function setHasMenuMargin(state){
+    var b = jQuery('body');
+    console.warn('XXXX', b, state);
+    if(state){
+        b.addClass('has-menu-margin')
+    } else {
+        b.removeClass('has-menu-margin')
+    }
+}
+
+jQuery(window).on('appover', () => { 
+    clearTimeout(appOverTimer);
+    appOverTimer = setTimeout(() => {
+        appOverState = true;
+        if(appOverBindState){
+            showMenu() 
+        }
+    }, 400)
+}).on('appout', () => { 
+    clearTimeout(appOverTimer);
+    appOverTimer = setTimeout(() => {
+        appOverState = false;
+        if(appOverBindState){
+            if(PlaybackManager.activeIntent) { 
+                hideMenu() 
+            }
+        } 
+    }, 400)
+}).on('load', () => {
+    PlaybackManager.on('commit', () => {
+        var videoElement = PlaybackManager.activeIntent.getVideo();
+        if(videoElement && VControls){
+            VControls.bind(videoElement)
+        }
+        if(appOverBindState){
+            autoHideMenu(Theme.get('hide-menu-auto'), true);
+            if(!appOverState){
+                hideMenu()
+            }
+        }
+    });
+    PlaybackManager.on('stop', () => {
+        autoHideMenu(Theme.get('hide-menu-auto'));
+        showMenu()
+    });
+    hideSeekbar(Theme.get('hide-seekbar'));
+    var cb = () => {
+        overlayedMenu(Theme.get('menu-transparency') <= 99);
+        setHasMenuMargin(Theme.get('menu-margin') >= 1);
+        autoHideMenu(Theme.get('hide-menu-auto'))
+    }
+    addAction('afterLoadTheming', cb);
+    cb()
 })
 
 jQuery(window).on('restore', restoreInitialSize);
@@ -1974,7 +2228,7 @@ enableSetFullScreenWindowResizing = true;
 applyResolutionLimit();
 win.on('resize', applyResolutionLimit);
 
-jQuery(document).one('appload', () => {
+jQuery(window).one('appload', () => {
 
     soundSetup('warn', 16); // reload it
 
@@ -1982,9 +2236,9 @@ jQuery(document).one('appload', () => {
 
     p.init();
 
-    createMouseObserverForControls(p);
-    createMouseObserverForControls(o);
-    createMouseObserverForControls(window);
+    attachMouseObserver(p);
+    attachMouseObserver(o);
+    attachMouseObserver(window);
 
     setTimeout(() => {
         if(!PlaybackManager.intents.length){
@@ -2011,7 +2265,7 @@ jQuery(document).one('appload', () => {
         var waitToRenderDelay = 1000, t = (top || window.parent); 
         setTimeout(() => { 
             jQuery(document).trigger('show');
-            showControls();
+            showMenu();
             appShown = time();
             jQuery('#controls').show();
             jQuery('body').removeClass('frameless');
@@ -2112,6 +2366,12 @@ addFilter('about', (txt) => {
     }
     return txt;
 });
+
+function checkInternetConnection(cb) {
+    require('dns').lookup('google.com', (err) => {
+        cb(!(err && err.code == "ENOTFOUND"))
+    })
+}
 
 function tuningConcurrency(){
     var downlink = window.navigator.connection.downlink || 5;
@@ -2329,7 +2589,7 @@ function autoCleanEntries(entries, success, failure, cancelCb, returnSucceededIn
                             updateAutoCleanOptionsStatus(autoCleanEntriesStatus);
                             if(!succeeded){
                                 enterPendingState(pcs, Lang.TUNING)
-                            }
+                            }                    
                             setStreamStateCache(entry, false);
                             updateStreamEntriesFlags();
                             if(autoCleanDomainConcurrency[domain]) {
@@ -2399,24 +2659,8 @@ function tune(entries, name, originalUrl, cb){ // entries can be a string search
     var expands = {};
     entries.forEach((entry, i) => {
         if(isMega(entry.url)){ // mega://
-            console.log('isMega');
-            var data = parseMegaURL(entry.url);
-            if(data){
-                // console.log('PARTS', data);
-                if(data.type == 'link'){
-                    entries[i].url = data.url;
-                } else if(data.type == 'play') {
-                    nentries = fetchSharedListsSearchResults(null, 'live', data.name, true, true);
-                    if(nentries.length && (typeof(nentries[0].type) == 'undefined' || nentries[0].type !='option')){
-                        expands[i] = nentries;
-                    }
-                }
-            } else {
-                console.error('Bad mega:// URL', entry)
-            }
-            if(typeof(expands[i]) == 'undefined'){
-                expands[i] = [];
-            }
+            // console.log('isMega');
+            expands[i] = expandMegaURL(entry.url);
         }
     });
     if(Object.keys(expands).length){
@@ -2432,6 +2676,7 @@ function tune(entries, name, originalUrl, cb){ // entries can be a string search
         entries = nentries;
         nentries = null;
     }
+    entries = sortEntriesByState(entries);
     console.log('TUNE ENTRIES 2', entries);
     if(autoCleanEntriesRunning()){
         autoCleanEntriesCancel()
@@ -2541,19 +2786,15 @@ function setFontSizeCallback(data){
 }
 
 function setIconSizeCallback(data){
-    Theme.set('iconsize', data.iconSize);
+    Theme.set('icon-size', data.iconSize);
     loadTheming();    
-    setActiveEntry({iconSize: Theme.get('iconsize')})
+    setActiveEntry({iconSize: Theme.get('icon-size')})
 }
 
 function setBackgroundAnimationCallback(data){
     Theme.set('tuning-background-animation', data.animation);
     loadTheming();
     setActiveEntry({animation: data.animation})
-}
-
-function areControlsIdle(){
-    return jQuery('body').hasClass('idle')
 }
 
 function defaultParentalControlTerms(){
@@ -2614,10 +2855,10 @@ function parentalControlAllow(entry, ignoreSetting){
 }
 
 function toggleControls(){
-    if(areControlsActive()){
-        hideControls()
+    if(isMenuVisible()){
+        hideMenu()
     } else {
-        showControls()
+        showMenu()
     }
 }
 
@@ -3037,7 +3278,7 @@ var Bookmarks = (function (){
 })();
 
 function addFav(s){
-    if(!s && areControlsActive()){
+    if(!s && isMenuVisible()){
         s = selectedEntry();
         if(s && s.type!='stream'){
             s = false;
@@ -3053,7 +3294,7 @@ function addFav(s){
 }
 
 function removeFav(s){
-    if(!s && areControlsActive()){
+    if(!s && isMenuVisible()){
         s = selectedEntry();
         if(s && s.type!='stream'){
             s = false;
@@ -3067,6 +3308,123 @@ function removeFav(s){
         notify(Lang.FAV_REMOVED.format(s.name), 'fa-star faclr-green', 'normal')
     }
 }
+
+var VControls = (() => {
+    var self = {};
+    self.muteLock = false;
+    self.videoObject = null;
+    self.box = jQuery('.vcontrols');
+    self.prepare = () => {
+        self.volumeButton = self.box.find('a.volume-button');
+        self.muteButton = self.volumeButton.find('svg.fa-volume-up');
+        self.unmuteButton = self.volumeButton.find('svg.fa-volume-off');
+        self.volumeSlider = self.box.find('.volume-slider input');
+        self.switchButton = self.box.find('.video-switch');
+        self.seekSlider = self.box.find('.video-seek input');
+        self.playPauseContainer = self.box.find('.video-play');
+        self.fsButton = self.box.find('.video-fullscreen');
+        self.stopButton = self.box.find('.video-stop');
+        self.playButton = self.playPauseContainer.find('svg.fa-play');
+        self.pauseButton = self.playPauseContainer.find('svg.fa-pause');
+        self.videoTimer = self.box.find('.video-timer');
+        self.playPauseContainer.off('click').on('click', self.togglePlayback).attr('title', Lang.PLAY + '/' + Lang.PAUSE);
+        self.volumeButton.off('click').on('click', self.toggleMute);
+        self.volumeSlider.val(Math.round(self.videoObject.volume * 100));
+        self.stopButton.off('click').on('click', stop).attr('title', Lang.STOP);
+        self.fsButton.off('click').on('click', toggleFullScreen).attr('title', Lang.FULLSCREEN);
+        self.switchButton.off('click').on('click', () => { switchPlayingStream() }).attr('title', Lang.TRY_OTHER_STREAM)
+    }
+    self.bind = (videoObject) => {
+        if(videoObject && videoObject != self.videoObject) {
+            self.unbind();
+            self.videoObject = videoObject;
+            self.jVideoObject = jQuery(videoObject);
+            self.prepare();
+            self.jVideoObject.on('timeupdate', () => {
+                self.videoTimer.text(self.timeFormat(self.videoObject.currentTime));
+                self.seekSlider.val(self.videoObject.currentTime / (self.videoObject.duration / 100))
+            });
+            self.jVideoObject.on('volumechange', () => {
+                var v = Math.round(self.videoObject.volume * 100);
+                if(self.videoObject.muted && self.muteLock && self.muteLock == self.videoObject.volume){
+                    self.volumeSlider.val(1);
+                    self.videoObject.muted = true;
+                    self.muteButton.hide();
+                    self.unmuteButton.show()
+                } else {
+                    if(v != self.volumeSlider.val()){
+                        self.volumeSlider.val(v)
+                    }
+                    if(v <= 1) {
+                        self.muteLock = self.videoObject.volume;
+                        self.videoObject.muted = true;
+                        self.muteButton.hide();
+                        self.unmuteButton.show();
+                    } else {
+                        self.muteLock = -1;
+                        self.videoObject.muted = false;
+                        self.muteButton.show();
+                        self.unmuteButton.hide();
+                    }
+                }
+            });
+            self.jVideoObject.on('playing', () => {
+                self.playButton.hide();
+                self.pauseButton.show()
+            });
+            self.jVideoObject.on('pause', () => {
+                self.playButton.show();
+                self.pauseButton.hide()
+            });
+            self.volumeSlider.on('input change', () => {
+                self.videoObject.volume = self.volumeSlider.val() / 100;
+            });
+            self.seekSlider.on('input change', () => {
+                var v = self.seekSlider.val();
+                self.videoObject.currentTime = (self.videoObject.duration / 100) * v;
+            })
+        }
+    }
+    self.unbind = () => {
+        if(self.jVideoObject){
+            self.jVideoObject.off('timeupdate volumechange play pause');
+            self.videoObject = self.jVideoObject = null;
+        }
+    }
+    self.play = () => {
+        if(self.videoObject){
+            self.videoObject.play()
+        }
+    }
+    self.pause = () => {
+        if(self.videoObject){
+            self.videoObject.pause()
+        }
+    }
+    self.togglePlayback = () => {
+        playPause()
+    }
+    self.toggleMute = () => {
+        if(self.videoObject){
+            if(!self.videoObject.muted) {
+                self.muteLock = self.videoObject.volume;
+                self.videoObject.muted = true;                
+            } else {
+                if(self.muteLock) {
+                    self.videoObject.volume = self.muteLock;
+                }
+                self.muteLock = -1;
+                self.videoObject.muted = false;
+            }
+        }
+    }
+    self.timeFormat = (seconds) => {
+        var m = Math.floor(seconds / 60) < 10 ? '0' + Math.floor(seconds / 60) : Math.floor(seconds / 60);
+        var s = Math.floor(seconds - (m * 60)) < 10 ? '0' + Math.floor(seconds - (m * 60)) : Math.floor(seconds - (m * 60));
+        return m + ':' + s;
+    }
+    return self;
+})();
 
 var searchPath, bookmarksPath, langPath, optionsPath;
 
@@ -3231,7 +3589,7 @@ jQuery(window).one('unload', () => {
 jQuery(document).one('lngload', () => {
     Menu.index = [
         {name: Lang.CHANNELS, label: Lang.CATEGORIES, logo:'assets/icons/white/tv.png', class: 'entry-nosub', type: 'group', entries: [], renderer: getMainCategoriesEntries},
-        {name: Lang.BOOKMARKS, logo:'fa-star', type: 'group', class: (Bookmarks.get().length) ? '' : 'entry-hide', renderer: getBookmarksEntries, entries: []},
+        {name: Lang.BOOKMARKS, logo:'fa-star', type: 'group', class: 'entry-hide', renderer: getBookmarksEntries, entries: []},
         {name: Lang.OPTIONS, logo:'assets/icons/white/settings.png', callback: () => { timerLabel = false; }, type: 'group', entries: [
             {name: Lang.OPEN_URL+' (Ctrl+U)', logo:'fa-link', type: 'option', callback: () => {playCustomURL()}},
             {name: Lang.TIMER, logo:'fa-stopwatch', class: 'entry-timer', type: 'group', renderer: timer},
@@ -3337,6 +3695,59 @@ jQuery(document).one('lngload', () => {
                             }
                         },
                         {
+                            name: Lang.BACKGROUND_COLOR_WHILE_PLAYING, 
+                            type: 'group',
+                            logo: 'fas fa-paint-roller',
+                            entries: [getLoadingEntry()],
+                            callback: () => {
+                                let alreadyChosenColor = Theme.get('bgcolor-playing'), curPath = Menu.path, wpfile = "assets/images/wallpaper.png";
+                                getImageColorsForTheming(Theme.get('background') || wpfile, (colors) => {
+                                    let alreadyChosenIndex = -1;
+                                    console.warn('WOW', curPath, Menu.path, colors);
+                                    var entries = colors.darkColors.concat(colors.lightColors).map((color, i) => {
+                                        let _color = color;
+                                        if(_color == alreadyChosenColor) {
+                                            alreadyChosenIndex = i;
+                                        }
+                                        return {
+                                            name: _color,
+                                            type: 'option',
+                                            logo: 'fas fa-circle',
+                                            logoColor: _color,
+                                            callback: (data, element) => {
+                                                setEntryFlag(element, 'fa-check-circle', true);
+                                                // Theme.set('bg', "linear-gradient(to top, #000004 0%, "+_color+" 75%)");
+                                                Theme.set('bgcolor-playing', _color);
+                                                loadTheming()
+                                            }
+                                        }
+                                    });
+                                    entries.push({
+                                        name: Lang.OTHER_COLOR,
+                                        type: 'option',
+                                        logo: 'fa-palette',
+                                        callback: (data, element) => {
+                                            pickColor((_color) => {
+                                                if(_color){
+                                                    // Theme.set('bg', "linear-gradient(to top, #000004 0%, "+_color+" 75%)");
+                                                    Theme.set('bgcolor-playing', _color);
+                                                    loadTheming()
+                                                }
+                                            }, alreadyChosenColor)
+                                        }
+                                    });
+                                    if(curPath == Menu.path){
+                                        Menu.container(true);
+                                        backEntryRender(Menu.container(true), dirname(curPath), basename(curPath));
+                                        Menu.render(entries, curPath);
+                                        if(alreadyChosenIndex != -1){
+                                            setEntryFlag(Menu.entries(false, false).get(alreadyChosenIndex + 1), 'fa-check-circle', true)
+                                        }
+                                    }
+                                })
+                            }
+                        },
+                        {
                             name: Lang.FONT_COLOR, 
                             type: 'group',
                             logo: 'fa-paint-brush',
@@ -3386,7 +3797,8 @@ jQuery(document).one('lngload', () => {
                                     }
                                 })
                             }
-                        },               
+                        },  
+                        /*                
                         {
                             name: Lang.FONT_SIZE, 
                             type: 'group',
@@ -3401,7 +3813,7 @@ jQuery(document).one('lngload', () => {
                             callback: () => {
                                 setActiveEntry({fontSize: Theme.get('font-size')})
                             }
-                        },                
+                        },             
                         {
                             name: Lang.ICON_SIZE, 
                             type: 'group',
@@ -3414,11 +3826,64 @@ jQuery(document).one('lngload', () => {
                                 {name: Lang.VERY_BIG, logo: 'fa-th-large', type: 'option', iconSize: 68, callback: setIconSizeCallback}
                             ],
                             callback: () => {
-                                setActiveEntry({iconSize: Theme.get('iconsize')})
+                                setActiveEntry({iconSize: Theme.get('icon-size')})
                             }
                         },
+                        */
                         {
-                            name: Lang.TRANSPARENT_MENU, 
+                            name: Lang.HIDE_SEEKBAR, 
+                            type: 'check', 
+                            check: (checked) => {
+                                Theme.set('hide-seekbar', checked);
+                                Menu.refresh();
+                                hideSeekbar(checked)
+                            }, 
+                            checked: () => {return Theme.get('hide-seekbar')}
+                        },
+                        {
+                            name: Lang.HIDE_MENU_AUTOMATICALLY, 
+                            type: 'check', 
+                            check: (checked) => {
+                                Theme.set('hide-menu-auto', checked);
+                                Menu.refresh();
+                                autoHideMenu(checked)
+                            }, 
+                            checked: () => {return Theme.get('hide-menu-auto')}
+                        },
+                        {
+                            name: Lang.FONT_SIZE, 
+                            logo: 'fa-font',
+                            type: 'slider', 
+                            range: {start: 75, end: 175}, 
+                            getValue: (data) => {
+                                return Theme.get('font-size') * 100
+                            },
+                            value: Theme.get('font-size') * 100,
+                            change:  (data, element, value) => {
+                                Theme.set('font-size', value / 100);
+                                clearTimeout(window['loadThemingApplyTimer']);
+                                window['loadThemingApplyTimer'] = setTimeout(loadTheming, 400);
+                                setActiveEntry({iconSize: Theme.get('font-size')})
+                            }
+                        }, 
+                        {
+                            name: Lang.ICON_SIZE, 
+                            logo: 'fa-th-large',
+                            type: 'slider', 
+                            range: {start: 18, end: 68}, 
+                            getValue: (data) => {
+                                return Theme.get('icon-size')
+                            },
+                            value: Theme.get('icon-size'),
+                            change:  (data, element, value) => {
+                                Theme.set('icon-size', value);
+                                clearTimeout(window['loadThemingApplyTimer']);
+                                window['loadThemingApplyTimer'] = setTimeout(loadTheming, 400);
+                                setActiveEntry({iconSize: Theme.get('icon-size')})
+                            }
+                        }, 
+                        {
+                            name: Lang.MENU_TRANSPARENCY, 
                             type: 'slider', 
                             logo: 'fa-adjust', 
                             label: 'saturation', 
@@ -3433,6 +3898,63 @@ jQuery(document).one('lngload', () => {
                                 window['loadThemingApplyTimer'] = setTimeout(loadTheming, 400)
                             }
                         }, 
+                        {
+                            name: Lang.MENU_WIDTH, 
+                            type: 'slider', 
+                            logo: 'fa-ruler',  
+                            range: {start: 10, end: 100}, 
+                            getValue: (data) => {
+                                return Theme.get('menu-width')
+                            },
+                            value: Theme.get('menu-width'),
+                            change:  (data, element, value) => {
+                                Theme.set('menu-width', value);
+                                clearTimeout(window['loadThemingApplyTimer']);
+                                window['loadThemingApplyTimer'] = setTimeout(loadTheming, 400)
+                            }
+                        }, 
+                        {
+                            name: Lang.MENU_HEIGHT, 
+                            type: 'slider', 
+                            logo: 'fa-ruler',  
+                            range: {start: 4, end: 36}, 
+                            getValue: (data) => {
+                                return Theme.get('menu-entry-vertical-padding')
+                            },
+                            value: Theme.get('menu-entry-vertical-padding'),
+                            change:  (data, element, value) => {
+                                Theme.set('menu-entry-vertical-padding', value);
+                                clearTimeout(window['loadThemingApplyTimer']);
+                                window['loadThemingApplyTimer'] = setTimeout(loadTheming, 400)
+                            }
+                        }, 
+                        {
+                            name: Lang.MENU_MARGIN, 
+                            type: 'slider', 
+                            logo: 'fa-ruler', 
+                            range: {start: 0, end: 50}, 
+                            getValue: (data) => {
+                                return Theme.get('menu-margin')
+                            },
+                            value: Theme.get('menu-margin'),
+                            change:  (data, element, value) => {
+                                Theme.set('menu-margin', value);
+                                clearTimeout(window['loadThemingApplyTimer']);
+                                window['loadThemingApplyTimer'] = setTimeout(loadTheming, 400)
+                            }
+                        }, 
+                        {
+                            name: Lang.ANIMATE_BACKGROUND_ON_TUNING, 
+                            type: 'group', 
+                            logo: 'fa-cog',
+                            entries: [
+                                {name: 'None', type: 'option', animation: 'none', callback: setBackgroundAnimationCallback},
+                                {name: 'Spin X', type: 'option', animation: 'spin-x', callback: setBackgroundAnimationCallback}
+                            ],
+                            callback: () => {
+                                setActiveEntry({animation: Theme.get('tuning-background-animation')})
+                            }
+                        }
                     ]
                 },
                 {
@@ -3443,18 +3965,6 @@ jQuery(document).one('lngload', () => {
                         Menu.refresh()
                     }, 
                     checked: () => {return Theme.get('hide-back-button')}
-                }, 
-                {
-                    name: Lang.ANIMATE_BACKGROUND_ON_TUNING, 
-                    type: 'group', 
-                    logo: 'fa-cog',
-                    entries: [
-                        {name: 'None', type: 'option', animation: 'none', callback: setBackgroundAnimationCallback},
-                        {name: 'Spin X', type: 'option', animation: 'spin-x', callback: setBackgroundAnimationCallback}
-                    ],
-                    callback: () => {
-                        setActiveEntry({animation: Config.get('tuning-background-animation')})
-                    }
                 }, 
                 {name: Lang.EXPORT_THEME, logo:'fa-file-export', type: 'option', callback: () => {
                     saveAs('theme.json', (file) => {
@@ -3564,6 +4074,7 @@ jQuery(document).one('lngload', () => {
                     ]
                 }}
             ]},
+            {name: Lang.KEYBOARD_MAPPING, logo: 'fa-keyboard', type: 'group', class: 'entry-nosub', entries: [], renderer: getKeyboardMappingEntries},
             {name: Lang.EXPORT_IMPORT, logo:'fa-cogs', type: 'group', entries: [
                 {name: Lang.EXPORT_CONFIG, logo:'fa-file-export', type: 'option', callback: () => {
                     saveAs('configure.json', (file) => {
@@ -3666,6 +4177,13 @@ gui.App.on('open', function (argString) {
     handleOpenArguments(argString)
 });
 
+chrome.downloads.onDeterminingFilename.addListener(function (downloadItem) {
+    console.warn('Cancelling download...', downloadItem);
+    chrome.downloads.cancel(downloadItem.id, () => {
+        console.warn('Cancelled download', downloadItem)
+    })
+});
+
 function init(){
 
     var completeIterator = 0;
@@ -3718,24 +4236,7 @@ function init(){
                 }
             });
             jQuery('#controls').removeClass('hide').addClass('show'); 
-            var actions = {
-                'RELOAD': goReload,
-                'TRY_OTHER_STREAM': switchPlayingStream,
-                'STOP': () => {
-                    stop()
-                }
-            };
-            jQuery("#player-top-bar a").each((i, element) => {
-                var je = jQuery(element), key = je.attr('data-title-lng-key');
-                if(key && Lang[key]){
-                    je.attr('aria-label', Lang[key]).prop('title', Lang[key]).on('mousedown', actions[key]);
-                    je.find('span').html(Lang[key])
-                }
-            }).on('click', (event) => {
-                event.preventDefault();
-                event.stopPropagation()
-            });
-            jQuery('div#drop-hint').html('<div><i class="fas fa-arrows-alt"></i> ' + wordWrapPhrase(Lang.DRAG_HERE, 3, "<br />")+'</div>');
+            jQuery('div#miniplayer-poster').append('<div id="miniplayer-drop-hint"><i class="fas fa-arrows-alt"></i> ' + wordWrapPhrase(Lang.DRAG_HERE, 3, "<br />")+'</div>');
             var statsAlive = () => {
                 var s = sendStatsPrepareEntry(currentStream());
                 sendStats('alive', s)
@@ -3753,7 +4254,7 @@ function init(){
     initialTasks.push((llcb) => {
         updateProgress(0.5);
         jQuery(document).on('beforeshow', () => { // tricky hack to solve a font drawing bug
-            console.error('one');
+            //console.error('one');
             var t = jQuery('.nw-cf-buttons'), is = t.find('i');
             is.each((i, el) => {
                 el = jQuery(el);
@@ -3835,7 +4336,7 @@ function init(){
     });
 
     async.parallel(initialTasks, (err, results) => {
-        jQuery(document).triggerHandler('appload');
+        jQuery(window).triggerHandler('appload');
         console.log('[INIT] App loaded.');
         if (err) {
             throw err;

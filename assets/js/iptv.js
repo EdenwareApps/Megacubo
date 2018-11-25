@@ -323,7 +323,7 @@ function listManJoinDuplicates(flatList){
 
 addFilter('listManParse', listManJoinDuplicates);
 
-var folderSizeLimit = 32, folderSizeLimitTolerance = 12;
+var folderSizeLimit = 96, folderSizeLimitTolerance = 12;
 
 function listManGetLetterRange(entries){
     var l, start = '0', end = 'Z', r = new RegExp('[A-Za-z0-9]');

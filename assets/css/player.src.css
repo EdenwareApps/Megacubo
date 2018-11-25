@@ -15,45 +15,7 @@ video {
 	*/
 }
 
-body:not(.over) video::-webkit-media-controls-panel, body.hiding-controls video::-webkit-media-controls-panel { 
-	display: none !important;
-	opacity: 0 !important;
-}
-
-video::-webkit-media-controls { 
-	max-width: 100%;
-	max-height: 100%;
-}
-
-body.over:not(.hiding-controls) video::-webkit-media-controls-panel, body.paused:not(.hiding-controls) video::-webkit-media-controls-panel { 
-	display: flex !important;
-	opacity: 1 !important;
-}
-
 video::-webkit-media-controls-panel { 
-    background: #000000BB;
-	position: absolute;
-	z-index: 2147483647 !important;
-	padding: 18px 4px 18px 4px;
-    box-sizing: border-box;
-    transform: scale(1.0002);
-}
-
-video::-webkit-media-controls-current-time-display, video::-webkit-media-controls-time-remaining-display { 
-	color: #ffffff !important; 
-}
-
-video::-webkit-media-controls-mute-button, video::-webkit-media-controls-play-button, video::-webkit-media-controls-fullscreen-button { 
-	filter: brightness(2.4); 
-	cursor: pointer; 
-}
-
-video::-webkit-media-controls-volume-slider,
-video::-webkit-media-controls-timeline {
-	filter: hue-rotate(19deg) saturate(5) !important;
-}
-
-video:hover::-webkit-media-controls-panel {
-	opacity: 1 !important;
-	display: flex;
+	display: none !important;
+	opacity: 0.001 !important;
 }

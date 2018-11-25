@@ -55,6 +55,9 @@ a.entry {
     text-align: left;
     position: relative;
 }
+a.entry-disabled td > span {
+    opacity: .1;
+}
 a.entry:focus, .entry-focused {
     outline: 0 !important;
 }
@@ -153,6 +156,15 @@ input.entry-name {
     text-shadow: none;
 }
 
+.entry-input img, .entry-input svg {
+    height: 96%;
+    display: inline-block;
+    position: absolute;
+    right: 3%;
+    top: 1px;    
+    color: #000000BB;
+}
+
 .entry-hide {
     display: none !important;
 }
@@ -211,16 +223,12 @@ input.entry-name {
 
 .entry-input input {
     font-size: 200%;
-    border-radius: 6px;
+    border-radius: 4px;
     border-width: 0;
     width: 100%;
     height: 96%;
     padding: 0 6px;
     box-sizing: border-box;
-    background-image: url(/assets/icons/white/search-dark.png);
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position-x: 99%;
     opacity: 0.9;
     box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.5);
     outline: 0;
@@ -276,7 +284,7 @@ div#controls-in > div, div.list {
 #home-icons, #list-icons {
     transition: top 0.2s linear 0s;
     visibility: visible;
-    font-size: 150%;
+    font-size: 200%;
     position: absolute;
     right: 6px;
     z-index: 9999;
@@ -300,7 +308,7 @@ body.scrolled_400:not(.home) #list-icons {
     display: inline-block;
     padding: 3px 8px 4px 2px;
     right: 0px;
-    border-top-left-radius: 6px;
+    border-top-left-radius: 4px;
     border-style: solid;
     border-width: 1px 0 0 1px;
     top: auto;
@@ -311,7 +319,7 @@ body.submenu #list-icons {
     display: none !important;
 }
 
-body.showcontrols.home #home-icons {
+body.show-menu.home #home-icons {
     display: inline-block !important;
     top: auto;
     bottom: 4px;
@@ -336,7 +344,7 @@ body.showcontrols.home #home-icons {
     left: -33px;
     top: 0;
     z-index: 9999; 
-    border-bottom-left-radius: 6px;
+    border-bottom-left-radius: 4px;
     border-bottom-right-radius: 0;
     padding: 2px 9px 3px 12px;
     font-size: 174%;
@@ -345,11 +353,15 @@ body.showcontrols.home #home-icons {
     transition: left 0.2s linear;
 }
 
-body.home #controls-toggle { 
+#controls-toggle-container {
+    position: relative;
+}
+
+body.home:not(.has-menu-margin) #controls-toggle { 
     left: 0px;
     border-width: 0 1px 1px 0;
     border-bottom-left-radius: 0;
-    border-bottom-right-radius: 6px;
+    border-bottom-right-radius: 4px;
 }
 
 body.playing #menu-trigger-icon, body.paused #menu-trigger-icon {
@@ -424,4 +436,103 @@ a.entry-back.entry-sub {
     .entry-label, .entry-name {
         padding-left: 6px;
     }
+}
+
+
+.vcontrols {
+    position: absolute;
+    top: auto;
+    bottom: 0;
+    height: auto;
+    visibility: hidden;
+    display: flex;
+    padding: 6px;
+    z-index: 3;    
+    box-sizing: border-box;
+}
+
+body.has-menu-margin .vcontrols {
+    margin-bottom: 2px;
+}
+
+body:not(.playing):not(.paused) .vcontrols { /* stoppped */
+    visibility: hidden !important;
+}
+
+.vcontrols > * {
+    display: flex;
+    flex: none;
+}
+
+.vcontrols a, .vcontrols div {
+    color: #ffffffaa; 
+    display: inline-block;
+}
+
+.vcontrols a:hover, .vcontrols a:hover svg {
+    color: #ffffffff; 
+}
+
+.vcontrols .video-seek {
+    display: inline-block;
+    flex: auto;    
+}
+
+.vcontrols .video-seek input {
+    width: 100%;
+}
+
+.vcontrols a, .video-timer {
+    padding: 0 16px 0 0;
+}
+
+.vcontrols .video-play {
+    padding-left: 16px;
+}
+
+.vcontrols .video-play, .vcontrols .volume-box {
+    padding: 0 18px;
+}
+
+.vcontrols .volume-button {
+    padding-right: 6px;
+}
+
+.vcontrols .fa-volume-off {
+    padding-right: 10px;
+}
+
+.vcontrols .fa-volume-off, .vcontrols .fa-play {
+    display: none;
+}
+
+.vcontrols input[type=range] {
+    background: #FFFFFF22 !important;
+    overflow: hidden;
+    visibility: inherit !important;
+}
+
+.vcontrols input[type=range], .vcontrols input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    border-radius: 2px;
+    cursor: pointer;
+}
+
+.vcontrols input[type=range]::-webkit-slider-thumb {
+    background: #ffffffaa;
+    height: 12px;
+    width: 16px;
+}
+
+.vcontrols input[type='range']::-webkit-slider-thumb {
+    box-shadow: -10000px 0 0 10000px #ffffffaa;
+}
+
+body.over:not(.hiding-menu) .vcontrols, /* over */
+body.paused .vcontrols /* paused */ { 
+	visibility: visible;
+}
+
+body.no-video .vcontrols {
+    visibility: hidden !important;
 }

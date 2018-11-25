@@ -197,22 +197,29 @@ function saveStreamStateCache(){
 
 addAction('appUnload', saveStreamStateCache);
 
-function playEntry(stream){
-    var allow = true;
-    allow = applyFilters('prePlayEntryAllow', allow, stream);
-    if(allow){
-        if(!Config.get('play-while-tuning')){
-            stop();
+function playEntry(stream){    
+    checkInternetConnection((connected) => {
+        if(connected){
+            var allow = true;
+            allow = applyFilters('prePlayEntryAllow', allow, stream);
+            if(allow){
+                if(!Config.get('play-while-tuning')){
+                    stop();
+                }
+                collectListQueue(stream);
+                stream.prependName = '';
+                stream.allowWebPages = true;
+                PlaybackManager.cancelLoading();
+                createPlayIntent(stream, {manual: true});
+                updateStreamEntriesFlags()
+            } else {
+                console.warn('prePlayEntryAllow DENY', stream)
+            }
+        } else {
+            console.error('prePlayEntryAllow DENY', 'No internet connection.');
+            notify(Lang.NO_INTERNET_CONNECTION, 'fa-globe', 'normal')
         }
-        collectListQueue(stream);
-        stream.prependName = '';
-        stream.allowWebPages = true;
-        PlaybackManager.cancelLoading();
-        createPlayIntent(stream, {manual: true});
-        updateStreamEntriesFlags()
-    } else {
-        console.warn('prePlayEntryAllow DENY', stream)
-    }
+    })
 }
 
 function updateStreamEntriesFlags(){

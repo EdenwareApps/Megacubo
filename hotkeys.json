@@ -8,7 +8,7 @@
     "F3 Ctrl+F Ctrl+F3": "SEARCH",
     "F5": "RELOAD",
     "Alt+F5": "SOFTRELOAD",
-    "Space": "PLAYPAUSE", 
+    "Space": "PLAYPAUSE",
     "Ctrl+H": "HISTORY",
     "Ctrl+U": "ADDNEWSOURCE",
     "Ctrl+V": "PASTEPLAY",

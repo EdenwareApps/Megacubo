@@ -81,10 +81,34 @@
 		<iframe id="sandbox" class="fit-player hide" nwdisable nwfaketop height="100%" frameborder="0" src="/blank.html"></iframe>
 		<iframe id="overlay" class="fit-screen show" height="100%" allowtransparency="true" frameborder="0" scrolling="no" src="/overlay.html"></iframe>
 		<iframe id="player" class="fit-player hide" height="100%" frameborder="0" scrolling="no" src="/player.html" allowfullscreen></iframe>
-		<div id="player-top-bar" class="fit-player-min">
-			<a href="#" data-title-lng-key="RELOAD"><i style="font-size: 93%;" class="fas fa-sync-alt"></i> <span></span></a>
-			<span class="try-other"><a href="#" data-title-lng-key="TRY_OTHER_STREAM"><i style="font-size: 93%;" class="fas fa-random"></i> <span></span></a></span>
-			<a href="#" data-title-lng-key="STOP"><i style="font-size: 93%;" class="fas fa-square"></i> <span></span></a>
+		<iframe id="detect-keys" class="fit-screen" height="100%" frameborder="0" scrolling="no" src="/detect-keys.html" allowfullscreen style="display: none; z-index: 2147483647;"></iframe>
+		<div id="vcontrols" class="vcontrols fit-player-min">
+			<a href="javascript:;" class="video-play">
+				<i class="fas fa-play"></i>
+				<i class="fas fa-pause"></i>
+			</a>
+			<a href="javascript:;" class="video-stop">
+				<i class="fas fa-stop"></i>
+			</a>
+			<a href="javascript:;" class="video-switch try-other">
+				<i class="fas fa-exchange-alt"></i>
+			</a>
+			<div class="video-timer">00:00</div>
+			<div class="video-seek">
+				<input type ="range" min ="1" max="100" step ="1" value ="100"/>
+			</div>
+			<div class="volume-box">
+				<a href="javascript:;" class="volume-button">
+					<i class="fas fa-volume-up"></i>
+					<i class="fas fa-volume-off"></i>
+				</a>
+				<div class="volume-slider">
+					<input type ="range" min ="1" max="100" step ="1" value ="100"/>
+				</div>
+			</div>
+			<a href="javascript:;" class="video-fullscreen">
+				<i class="fas fa-expand-arrows-alt"></i>
+			</a>
 		</div>
 		<div id="player-status" class="fit-player">
 			<div class="fac fac-loading">
@@ -94,29 +118,24 @@
 				<i class="fas fa-play"></i>
 			</div>
 		</div>
-		<div id="drop-hint" class="fit-screen"></div>
+		<div id="miniplayer-poster" class="fit-screen">
+			<div id="miniplayer-continue">
+				<table>
+					<tbody>
+						<tr>
+							<td class="miniplayer-continue-logo"></td>
+							<td class="miniplayer-continue-text"></td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
 		<div class="hide">
 			<input id="saveas" type="file" nwsaveas />
 		</div>
 		<div id="menu-trigger-icon">
 			<i class="fas fa-chevron-left"></i>
 		</div>
-		<span id="home-icons" style="display: none;">
-			<a href="javascript:;" data-title-lng-key="SEARCH" onmousedown="goSearch(false, '')" id="home-icon-search" class="option" tabindex="996" style="top: -1px;">
-				<i class="fas fa-search" aria-hidden="true"></i>
-			</a>
-			<a href="javascript:;" data-title-lng-key="OPEN_FILE" onmousedown="goOpen();return false" id="home-icon-open" class="option" tabindex="997" style="top: 1px;">
-				<i class="fas fa-folder-open" aria-hidden="true"></i>
-			</a>
-			<a href="javascript:;" title="Megacubo" onmousedown="about()" id="home-icon-help" class="option" tabindex="998" style="font-size: 109%; top: 1px;">
-				<i class="fas fa-info-circle" aria-hidden="true"></i>
-			</a>
-		</span>
-		<span id="list-icons">
-			<a href="#" onmousedown="menuScrollUp()" data-title-lng-key="BACK" id="home-icon-back" class="option" tabindex="999" style="top: 0;">
-				<i class="fas fa-chevron-up" aria-hidden="true"></i>
-			</a>
-		</span>
 		<div id="controls" class="fit-screen" tabindex="-1">
 			<div id="controls-left-border"></div>
 			<div id="controls-in" tabindex="-1">
@@ -130,21 +149,32 @@
 					</div>
 				</div>
 			</div>
-			<a href="javascript:;" id="controls-toggle" onmousedown="toggleControls()">
-				<i class="fas fa-chevron-right"></i>
-			</a>
+			<span id="controls-toggle-container">
+				<a href="javascript:;" id="controls-toggle" onmousedown="toggleControls()">
+					<i class="fas fa-chevron-right"></i>
+				</a>
+			</span>
+			<span id="home-icons" style="display: none;">
+				<a href="javascript:;" data-title-lng-key="SEARCH" onmousedown="goSearch(false, '')" id="home-icon-search" class="option" tabindex="996" style="top: -1px;">
+					<i class="fas fa-search" aria-hidden="true"></i>
+				</a>
+				<a href="javascript:;" data-title-lng-key="BOOKMARKS" onmousedown="goBookmarks()" id="home-icon-bookmarks" class="option" tabindex="996" style="top: -1px;">
+					<i class="fas fa-star" aria-hidden="true"></i>
+				</a>
+				<a href="javascript:;" data-title-lng-key="OPEN_FILE" onmousedown="goOpen();return false" id="home-icon-open" class="option" tabindex="997" style="top: 1px;">
+					<i class="fas fa-folder-open" aria-hidden="true"></i>
+				</a>
+				<a href="javascript:;" title="Megacubo" onmousedown="about()" id="home-icon-help" class="option" tabindex="998" style="font-size: 109%; top: 1px;">
+					<i class="fas fa-info-circle" aria-hidden="true"></i>
+				</a>
+			</span>
+			<span id="list-icons">
+				<a href="#" onmousedown="menuScrollUp()" data-title-lng-key="BACK" id="home-icon-back" class="option" tabindex="999" style="top: 0;">
+					<i class="fas fa-chevron-up" aria-hidden="true"></i>
+				</a>
+			</span>
 		</div>
 		<div id="notify-area" class="fit-player"></div>
-		<div id="miniplayer-continue">
-			<table>
-				<tbody>
-					<tr>
-						<td class="miniplayer-continue-logo"></td>
-						<td class="miniplayer-continue-text"></td>
-					</tr>
-				</tbody>
-			</table>
-		</div>
 		<script type="text/javascript">
 			jQuery.getMultiScripts([
 				'util.js',

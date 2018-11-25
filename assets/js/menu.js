@@ -3,7 +3,7 @@ var menuTemplates = {
     'option': '<a href="[url]" role="button" onclick="return false;" class="entry entry-option [class]" title="[name] [label]" aria-label="[name] [label]"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><span class="entry-logo-img-c"><img src="[logo]" onerror="this.onerror=null;this.src=\'[default-logo]\';" /></span></span></td><td><span class="entry-name">[name]</span><span class="entry-label">[format-label]</span></td></tr></table></a>',
     'back': '<a href="[url]" role="button" onclick="return false;" class="entry entry-option [class]" title="[name] [label]" aria-label="[name] [label]"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><span class="entry-logo-img-c"><img src="[logo]" onerror="this.onerror=null;this.src=\'[default-logo]\';" /></span></span></td><td><span class="entry-name">[name]</span><span class="entry-label">[format-label]</span></td></tr></table></a>',
     'disabled': '<a href="[url]" role="button" onclick="return false;" class="entry entry-disabled entry-offline [class]" aria-hidden="true"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><img src="[logo]" title="[name] - [group]" onerror="this.onerror=null;this.src=\'[default-logo]\';" /></span></td><td><span class="entry-name">[name]</span><span class="entry-label">[format-label]</span></td></tr></table></a>',
-    'input': '<a href="[url]" draggable="false" role="button" onclick="return false;" class="entry entry-input [class]" title="[name] [label]" aria-label="[name] [label]"><table class="entry-search"><tr><td><input type="text" style="background-image: url([logo]);" /></td><td class="entry-logo-c"></td></tr></table></a>', // entry-input-container entry-search-helper
+    'input': '<a href="[url]" draggable="false" role="button" onclick="return false;" class="entry entry-input [class]" title="[name] [label]" aria-label="[name] [label]"><table class="entry-search"><tr><td><input type="text" placeholder="[label]" /><img src="[logo]" onerror="this.onerror=null;this.src=\'[default-logo]\';" /></td><td class="entry-logo-c"></td></tr></table></a>', // entry-input-container entry-search-helper
     'check': '<a href="[url]" role="button" onclick="return false;" class="entry entry-option [class]" title="[name] [label]" aria-label="[name] [label]"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><i class="fas fa-toggle-off entry-logo-fa" aria-hidden="true"></i></span></td><td><span class="entry-name">[name]</span></td></tr></table></a>',
     'stream': '<a href="[url]" role="button" onclick="return false;" class="entry entry-stream [class]" title="[name] [label]" aria-label="[name] [label]"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><span class="entry-logo-img-c"><img src="[logo]" onerror="lazyLoad(this, [\'[auto-logo]\', \'[default-logo]\'])" title="[name] - [group]" alt="[name]" /></span></span></td><td><span class="entry-name">[format-name]</span><span class="entry-label">[format-label]</span></td></tr></table></a>',
     'group': '<a href="[url]" role="button" onclick="return false;" class="entry entry-group [class]" title="[name] [label]" aria-label="[name] [label]"><table><tr><td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><span class="entry-logo-img-c"><img src="[logo]" onerror="lazyLoad(this, [\'[auto-logo]\', \'[default-logo]\'])" title="[name] - [group]" alt="[name]" /></span></span></td><td><span class="entry-name">[name]</span><span class="entry-label">[format-label]</span></td></tr></table></a>', // onerror="nextLogoForGroup(this)" 
@@ -13,7 +13,7 @@ var menuTemplates = {
 var defaultIcons = {
     'option': 'fa-cog',
     'slider': 'fa-cog',
-    'input': 'assets/icons/white/search-dark.png',
+    'input': 'fa-keyboard',
     'stream': 'assets/icons/white/default-stream.png',
     'check': 'fa-toggle-off',
     'group': 'assets/icons/white/default-group.png'
@@ -1360,9 +1360,10 @@ Menu = (() => {
         var p = self.containerParent(), l = p.scrollTop();
         if(l || force === true){
             self.scrollTopCache[self.path] = l;
+            return l;
         }
     }
-    self.restoreScroll = () => {
+    self.restoreScroll = (offsetY) => {
         var c = self.container(), _path= Menu.path;
         if(!Menu.path){
             c.css('height', 'auto');
@@ -1371,7 +1372,9 @@ Menu = (() => {
         }
         if(_path != Menu.path) return;
         var p = self.containerParent(), t = 0;
-        if(typeof(self.scrollTopCache[self.path])!='undefined'){
+        if(typeof(offsetY)=='number'){
+            t = offsetY;
+        } else if(typeof(self.scrollTopCache[self.path])!='undefined'){
             t = self.scrollTopCache[self.path];
         }
         c.css('height', 'auto');
@@ -1430,7 +1433,10 @@ Menu = (() => {
             navigables.push(element)
         });
         if(!modal){
-            navigables.push(document.getElementById('controls-toggle'))
+            var ct = jQuery('#controls-toggle:visible');
+            if(ct.length){
+                navigables.push(ct.get(0))
+            }
         }
         return navigables;
     }
@@ -1838,29 +1844,22 @@ function getAutoCleanEntry(megaUrl, name){
         if(autoCleanEntriesRunning()){
             autoCleanEntriesCancel();
             leavePendingState()
-        } else {
-            enterPendingState(null, Lang.TUNING, '');
-            /*
-            autoCleanEntries(null, (entry, controller, succeededIntent) => {
-                console.warn('Autoclean onsuccess entry callback', entry, controller, succeededIntent);
-                if(succeededIntent){
-                    PlaybackManager.stop();
-                    PlaybackManager.commitIntent(succeededIntent)
+        } else {   
+            checkInternetConnection((connected) => {
+                if(connected){
+                    enterPendingState(null, Lang.TUNING, '');
+                    var name = basename(Menu.path);
+                    if(Menu.path == searchPath){
+                        name = lastSearchTerm;
+                    } else if(Menu.path.indexOf(Lang.CHOOSE_STREAM)) {
+                        name = basename(Menu.path.substr(0, Menu.path.indexOf(Lang.CHOOSE_STREAM) - 1))
+                    }
+                    tuneNPlay(Menu.query(Menu.entries(true), {type: 'stream'}), name, 'mega://play|'+encodeURIComponent(name))
+                } else {
+                    console.error('autoClean DENY', 'No internet connection.');
+                    notify(Lang.NO_INTERNET_CONNECTION, 'fa-globe', 'normal')
                 }
-            }, () => {
-                leavePendingState();
-                notify(Lang.NONE_STREAM_WORKED.format(name), 'fa-exclamation-circle faclr-red', 'forever')
-            }, () => {
-
-            }, true, true, megaUrl, name)
-            */
-            var name = basename(Menu.path);
-            if(Menu.path == searchPath){
-                name = lastSearchTerm;
-            } else if(Menu.path.indexOf(Lang.CHOOSE_STREAM)) {
-                name = basename(Menu.path.substr(0, Menu.path.indexOf(Lang.CHOOSE_STREAM) - 1))
-            }
-            tuneNPlay(Menu.query(Menu.entries(true), {type: 'stream'}), name, 'mega://play|'+encodeURIComponent(name))
+            })
         }
     }}
 }

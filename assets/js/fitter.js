@@ -810,7 +810,7 @@ var Fitter = (() => {
             self.fit(p, scope);
             var childrens = p.childNodes;
             for(var i=0; i<childrens.length; i++){
-                if(childrens[i] != c && (!childrens[i].id || ['player-status', 'player-top-bar'].indexOf(childrens[i].id) == -1)){
+                if(childrens[i] != c && (!childrens[i].id || ['player-status', 'vcontrols'].indexOf(childrens[i].id) == -1)){
                     self.hide(childrens[i], scope);
                 }
             }

@@ -29,7 +29,8 @@ function buildSharedListsSearchIndex(loadcb){
                 loadcb()
             })
         } else {
-            mainWin.alert(mainWin.Lang.NO_LIST_PROVIDED.format(mainWin.Lang.SEARCH_RANGE))
+            mainWin.alert(mainWin.Lang.NO_LIST_PROVIDED.format(mainWin.Lang.SEARCH_RANGE));
+            loadcb()
         }
     })
 }

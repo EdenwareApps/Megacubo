@@ -170,16 +170,18 @@
 				}
 				return video.currentTime;
 			}
-			function seek(s){
+			function seek(s) {
 				video.currentTime += s;
 			}
-			function reset(){
-				if(currentSrc){
+			function reset() {
+				if(currentSrc) {
 					src(currentSrc.src, currentSrc.type)
 				}
-    			(window.top || window.parent).prepareVideoObject(video)
+				if(top && top.prepareVideoObject) {
+					top.prepareVideoObject(video)
+				}
 			}
-			function init(){
+			function init() {
 				var checkMemTimer = 0;
 				function checkMemory(){
 					var percent = process.memoryUsage().rss / (performance.memory.jsHeapSizeLimit / 100);

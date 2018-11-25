@@ -788,6 +788,11 @@ function createBaseIntent(){
         if(!self.videoElement || !self.videoElement.parentNode){
             self.videoElement = getFrame('player').videoElement()
         }
+        if(self.videoElement){
+            jQuery('body').removeClass('no-video')
+        } else {
+            jQuery('body').addClass('no-video')
+        }
         return self.videoElement;
     }
 
@@ -1221,6 +1226,11 @@ function createFrameIntent(entry, options){
                 }
             }
         }
+        if(self.videoElement){
+            jQuery('body').removeClass('no-video')
+        } else {
+            jQuery('body').addClass('no-video')
+        }
         return self.videoElement;
     }
 
@@ -1577,8 +1587,8 @@ function createTSIntent(entry, options){
     self.proxify = true;
     self.prxurl = false;
     self.prx = false;
-    self.transcode = false;
-    self.videoCodec = 'copy';
+    self.transcode = Config.get('force-transcode');
+    self.videoCodec = self.transcode ? 'libx264' : 'copy';
     self.softErrors = [];
     self.tsDuration = 0;
     self.tsFetchStart = 0;
@@ -2812,7 +2822,7 @@ function defaultFrameDragOver(e){
 function enableEventForwarding(frameWindow){    
     if(frameWindow && frameWindow.document && frameWindow.ondragover !== defaultFrameDragOver){
         frameWindow.ondragover = defaultFrameDragOver;
-        createMouseObserverForControls(frameWindow);
+        attachMouseObserver(frameWindow);
         frameWindow.document.addEventListener('keydown', (e) => { // forward keyboard to top where the hotkeys are registered
             if(!e.target || !e.target.tagName || ['input', 'textarea'].indexOf(e.target.tagName.toLowerCase())==-1){ // skip text inputs
                 var n = e.originalEvent;
@@ -2946,15 +2956,7 @@ PlaybackManager.on('commit', (intent) => {
     }
     var terms = playingStreamKeyword(intent.entry), b = document.querySelector('.try-other');
     if(b) {
-        jQuery(b)[terms ? 'show' : 'hide']();
-        if(terms){
-            jQuery(b).off('mousedown').on('mousedown', () => {
-                setTimeout(() => {
-                    switchPlayingStream();
-                    // goSearch(terms)
-                }, 100)
-            })
-        }
+        jQuery(b)[terms ? 'show' : 'hide']()
     }
     setTimeout(() => {
         if(PlaybackManager.activeIntent){
