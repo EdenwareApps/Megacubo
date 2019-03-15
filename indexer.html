@@ -1,12 +1,18 @@
 <html>
-	<head>        
-        <script type="text/javascript">
-            var mainWin = (window.opener && window.opener != global) ? window.opener : top; 
-            jQuery = mainWin.jQuery;   
-        </script>
-		<script type="text/javascript" src="assets/js/global.js"></script>
-        <script type="text/javascript" src="assets/js/util.js"></script>
-        <script type="text/javascript" src="assets/js/iptv.js"></script>
-        <script type="text/javascript" src="assets/js/indexer.js"></script>
+    <head>
+        <style type="text/css">
+            html, body {
+                background-color: transparent;
+            }
+        </style>
     </head>
+    <body>        
+        <script type="text/javascript" src="assets/js/core/jquery.js"></script>
+        <!-- a weird bug makes jQuery undefined at first load in new_instance, so we'll repeat -->
+		<script type="text/javascript" src="assets/js/core/jquery.js"></script>
+		<script type="text/javascript" src="assets/js/core/global.js"></script>
+        <script type="text/javascript" src="assets/js/core/util.js"></script>
+        <script type="text/javascript" src="assets/js/utils/iptv.js"></script>
+        <script type="text/javascript" src="assets/js/utils/indexer.js"></script>
+    </body>
 </html>

@@ -4,12 +4,14 @@
 		<meta charset="UTF-8" />
 	</head>
 	<body>
-		<script type="text/javascript" src="assets/js/jquery.js"></script>
-		<script type="text/javascript" src="assets/js/global.js"></script>
-		<script type="text/javascript" src="assets/js/hls.custom.js"></script>
+		<script type="text/javascript">
+			jQuery = top.jQuery
+		</script>
+		<script type="text/javascript" src="assets/js/core/global.js"></script>
+		<script type="text/javascript" src="assets/js/playback/hls.custom.js"></script>
 		<div id="testers"></div>
 		<script type="text/javascript">
-			var b = jQuery('body');
+			var b = $body;
 			var recoverDecodingErrorDate, recoverSwapAudioCodecDate;
 			function parseError(event) {
 				if(!event) {
@@ -28,18 +30,18 @@
 				return typeof(error.message) != 'undefined' ? error.message : error;
 			}
 			function handleMediaError(hls) {
-				var now = performance.now();
+				var now = performance.now()
 				if (!recoverDecodingErrorDate || (now - recoverDecodingErrorDate) > 3000) {
-					recoverDecodingErrorDate = performance.now();
+					recoverDecodingErrorDate = performance.now()
 					var msg = "trying to recover from media Error ..."
-					console.warn(msg);
-					hls.recoverMediaError();
+					console.warn(msg)
+					hls.recoverMediaError()
 				} else {
 					if (!recoverSwapAudioCodecDate || (now - recoverSwapAudioCodecDate) > 3000) {
-						recoverSwapAudioCodecDate = performance.now();
+						recoverSwapAudioCodecDate = performance.now()
 						var msg = "trying to swap Audio Codec and recover from media Error ..."
-						console.warn(msg);
-						hls.swapAudioCodec();
+						console.warn(msg)
+						hls.swapAudioCodec()
 						hls.recoverMediaError()
 					} else {
 						var msg = "cannot recover, last media error recovery failed ..."
@@ -49,51 +51,51 @@
 			}		
 			function src(_src, type, video, onerr){
 				var hls = false;
-				console.log('Test src:', _src, type);
+				console.log('Test src:', _src, type)
 				if(type.toLowerCase().indexOf('mpegurl')!=-1){
 					hls = new Hls({
 						//debug: true
-					});				
-					hls.loadSource(_src);
-					hls.attachMedia(video);
+					})				
+					hls.loadSource(_src)
+					hls.attachMedia(video)
 					hls.on(Hls.Events.ERROR, function(event, data) {
 						var msg = "Player error: " + data.type + " - " + data.details;
-						console.error(msg);
+						console.error(msg)
 						if (data.fatal) {
 							switch (data.type) {
 								case Hls.ErrorTypes.MEDIA_ERROR:
-									//handleMediaError(hls);
-									onerr();
+									//handleMediaError(hls)
+									onerr()
 									break;
 								case Hls.ErrorTypes.NETWORK_ERROR:
-									console.error("network error ...");
-									onerr();
+									console.error("network error ...")
+									onerr()
 									break;
 								default:
-									console.error("unrecoverable error");
-									hls.destroy();
-									onerr();
+									console.error("unrecoverable error")
+									hls.destroy()
+									onerr()
 									break;
 							}
 						}
-					});
+					})
 					hls.on(Hls.Events.MANIFEST_PARSED, () => {
-						video.play();
-					});
+						video.play()
+					})
 				} else {
 					video.src = _src;
-					video.load();
+					video.load()
 					video.play()
 				}
 				return hls;
 			}			
 			function test(url, type, _success, _failure){
-				var hls, v = jQuery('<video></video>'), video = v.get(0), minBufSecs = Config.get('min-buffer-secs-before-commit');
-				v.appendTo('#testers');
+				var hls, v = jQuery('<video></video>'), video = v.get(0), minBufSecs = Config.get('min-buffer-secs-before-commit')
+				v.appendTo('#testers')
 				var cleanup = () => {
 					try {
-						v.off();
-						video.pause();
+						v.off()
+						video.pause()
 						if(hls){
 							hls.destroy()
 						}
@@ -106,24 +108,24 @@
 					}
 				}
 				var onerr = (e) => {
-					cleanup();
+					cleanup()
 					if(_failure){
-						_failure(['error ended', parseError(e)]);
+						_failure(['error ended', parseError(e)])
 						_success = _failure = null;
 					}
 				}
 				v.on('durationchange', () => {
-					console.warn('DURATIONCHANGE', video.duration, minBufSecs);
+					console.warn('DURATIONCHANGE', video.duration, minBufSecs)
 					if(video.duration >= minBufSecs){
-						cleanup();
+						cleanup()
 						if(_success){
-							_success('canplay');
+							_success('canplay')
 							_success = _failure = null;
 						}
 					}
-				});
-				v.on('error ended', onerr);
-				hls = src(url, type, video, onerr);
+				})
+				v.on('error ended', onerr)
+				hls = src(url, type, video, onerr)
 				return {
 					cancel: () => {
 						cleanup()

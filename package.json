@@ -1,22 +1,31 @@
 {
     "bugs": "https://www.facebook.com/messages/t/MegacuboTV",
-    "chromium-args": " --password-store=basic --force-device-scale-factor=1 --process-per-site --disable-logging --enable-video-player-chromecast-support --enable-cast-receiver --enable-smooth-scrolling --disable-crash-handler=true --disable-breakpad --no-experiments --no-pings --ignore-autoplay-restrictions --ignore-urlfetcher-cert-requests --disable-transparency --ignore-certificate-errors --media-remoting --remote-debugging-port=9000",
+    "chromium-args": "--disable-features=NetworkPrediction --disable-web-security --proxy-auto-detect --no-zygote --no-sandbox --enable-gpu-async-worker-context --password-store=basic --force-device-scale-factor=1 --process-per-tab --disable-logging --enable-video-player-chromecast-support --enable-cast-receiver --enable-smooth-scrolling --disable-crash-handler=true --disable-breakpad --no-experiments --no-pings --ignore-autoplay-restrictions --ignore-urlfetcher-cert-requests --disable-transparency --ignore-certificate-errors --media-remoting --remote-debugging-port=9000",
     "dependencies": {
         "@codemotion/color-thief": "~2.0.5",
         "async": "~2.6.0",
-        "btdb-search": "~1.1.0",
+        "big-json": "~2.0.2",
+        "chromecasts": "~1.9.0",
         "drag-drop": "~2.13.2",
         "fluent-ffmpeg": "~2.1.2",
+        "fontfaceobserver": "~1.7.3",
+        "http-proxy": "~1.17.0",
         "m3u8-parser": "~4.0.0",
         "mkdirp": "~0.3.5",
         "moment": "~2.22.2",
+        "node-ipc": "~9.1.1",
+        "p2p-media-loader-core": "~0.4.0",
         "peerflix": "~0.39.0",
+        "pornsearch": "~2.4.3",
         "ps-node": "~0.1.6",
         "request": "~2.83.0",
-        "ytdl-core": "~0.20.0"
+        "subtitler": "~2.6.0",
+        "tar": "~4.4.8",
+        "ytdl-core": "~0.20.0",
+        "ytsr": "~0.1.8"
     },
     "description": "A simple and intuitive IPTV player.",
-    "inject_js_end": "assets/js/helper.js",
+    "inject_js_end": "assets/js/utils/helper.js",
     "js-flags": "--max-old-space-size=2047",
     "main": "app.html",
     "name": "megacubo",
@@ -26,7 +35,7 @@
         "http://*/",
         "https://*/"
     ],
-    "version": "15.0.5",
+    "version": "15.1.6",
     "webkit": {
         "page-cache": true
     },
@@ -34,6 +43,9 @@
         "frame": false,
         "icon": "default_icon.png",
         "show": false,
-        "title": "Megacubo"
+        "title": "Megacubo",
+        "width": 1000,
+        "height": 562,
+        "position": "center"
     }
 }

@@ -9,18 +9,18 @@ var vaFilters = [
 function applyVideoAdjustments(){
     var filter = '';
     vaFilters.forEach((r) => {
-        var v = Config.get('va-' + r.key);
+        var v = Config.get('va-' + r.key)
         if(typeof(v)=='number'){
             filter += ' '+r.mask.format(v)
         }
-    });
+    })
     if(filter){
-        var p = getFrame('player');
+        var p = getFrame('player')
         var css = 'video { filter: '+filter+'; }';
-        stylizer(css, 'va', p);
-        console.warn(filter);
-        if(PlaybackManager.activeIntent){
-            var v = PlaybackManager.activeIntent.getVideo();
+        stylizer(css, 'va', p)
+        console.warn(filter)
+        if(Playback.active){
+            var v = Playback.active.getVideo()
             if(v && v.ownerDocument.defaultView && v.ownerDocument.defaultView != p){
                 stylizer(css, 'va', v.ownerDocument.defaultView)
             }
@@ -30,7 +30,7 @@ function applyVideoAdjustments(){
 
 function getVideoAdjustmentEntries(){
     var vaLogic = (data, element, value) => {
-        Config.set('va-' + data.label, value);
+        Config.set('va-' + data.label, value)
         applyVideoAdjustments()
     };
     var entries = [
@@ -41,14 +41,14 @@ function getVideoAdjustmentEntries(){
         {name: Lang.CLEAR, type: 'option', logo: 'fa-undo', label: Lang.RESET_DATA, callback: () => {
             vaFilters.forEach((r) => {
                 Config.set('va-' + r.key, Config.defaults['va-' + r.key])
-            });
-            applyVideoAdjustments();
+            })
+            applyVideoAdjustments()
             Menu.refresh()
         }}        
     ];
     entries = entries.map((data) => {
         if(data.type == 'slider'){
-            data.value = Config.get('va-' + data.label);
+            data.value = Config.get('va-' + data.label)
             if(typeof(data.value) != 'number'){
                 if(data.label == 'hue'){
                     data.value = 0;
@@ -58,27 +58,22 @@ function getVideoAdjustmentEntries(){
             }
         }
         return data;
-    });
+    })
     return entries;
 }
 
-PlaybackManager.on('commit', () => {
+Playback.on('commit', () => {
     setTimeout(applyVideoAdjustments, 400)
-});
+})
 
-addFilter('internalFilterEntries', (entries, path) => {
-	if(path == Lang.OPTIONS + '/' + Lang.PLAYBACK){
-        var entry = {name: Lang.VIDEO_ADJUSTMENT, logo: 'fa-adjust', type: 'group', renderer: getVideoAdjustmentEntries};
-        if(!Menu.query(entries, {name: Lang.VIDEO_ADJUSTMENT}).length){
-            entries.push(entry)
-        }
-	}
+addFilter('toolsEntries', (entries, path) => {
+    entries.push({name: Lang.VIDEO_ADJUSTMENT, logo: 'fa-adjust', type: 'group', renderer: getVideoAdjustmentEntries})
 	return entries;
-});
+})
 
 Config.defaults = Object.assign({
     'va-hue': 0,
     'va-contrast': 100,
     'va-saturation': 100,
     'va-brightness': 100
-}, Config.defaults);
+}, Config.defaults)

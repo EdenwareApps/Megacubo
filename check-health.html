@@ -1,0 +1,53 @@
+<html>
+	<body>
+		<script type="text/javascript">
+			jQuery = top.jQuery
+		</script>
+		<script type="text/javascript" src="assets/js/core/global.js"></script>
+        <script>
+		jQuery(document).on('keyup', (evt) => {
+			if (evt.keyCode == 27) {
+				top.cancelCheckPlaybackHealth()
+			}
+		})
+        jQuery(document).on('mousemove', (evt) => {
+            window.focus()
+        })
+        </script>
+		<link rel="stylesheet" type="text/css" href="assets/css/global.css" />
+		<style type="text/css">
+		body {
+			background: #000;
+			font-size: 2em;
+			display: table;
+			margin: 0;
+		}
+		div#box {
+			vertical-align: middle;
+			display: table-cell;
+			height: 100vh;
+			width: 100vw;
+			text-align: center;
+		}
+		div#message {
+		    box-sizing: border-box;
+		    margin: 0 5%;
+		    text-align: left;
+			color: #707277;
+		}
+		div#action {
+		    box-sizing: border-box;
+		    margin: 0 5% 2%;
+		    padding-bottom: 2%;
+		    text-align: left;
+			color: #ffffff;
+			border-bottom: 2px solid #707277;
+		}
+		</style>
+		<div id="box">
+			<div id="action"></div>
+			<div id="message"></div>
+		</div>
+        <script defer src="assets/fa/js/all.js"></script>
+	</body>
+</html>

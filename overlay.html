@@ -1,9 +1,10 @@
 <html class="ui-overlay">
     <head>
-        <script type="text/javascript" src="assets/js/jquery.js"></script>
-        <script type="text/javascript" src="assets/js/global.js"></script>
+		<script type="text/javascript">
+			jQuery = top.jQuery
+		</script>
+        <script type="text/javascript" src="assets/js/core/global.js"></script>
         <link rel="stylesheet" type="text/css" href="assets/css/global.css" />
-        <link rel="stylesheet" type="text/css" href="assets/css/overlay.css" />
         <script defer src="assets/fa/js/all.js"></script>
         <style type="text/css">
             body {
@@ -17,44 +18,45 @@
         </div>
         <script type="text/javascript">
             document.onmousedown = () => { // if the program forgot to add back pointerEvents=none, let any click on overlay rebember it
-                var ov = top.document.querySelector('iframe#overlay');
+                var ov = top.document.querySelector('iframe#overlay')
                 if(ov){
                     ov.style.pointerEvents = 'none';
                 }
-                top.PlaybackManager.play()
+                top.Playback.play()
             }
             function processFile(file){
+                var c = (top || parent)
                 var probeSize = 120000;
                 if(file && file.substr(0, 2)=='//'){
                     file = 'http:'+file;
                 }
                 if(['m3u', 'm3u8'].indexOf(getExt(file))!=-1){
-                    openFile(file)
+                    c.openFile(file)
                 } else if(['png', 'jpg', 'jpeg'].indexOf(getExt(file))!=-1){
                     if(confirm(top.Lang.APPLY_AS_BACKGROUND)){
-                        top.applyBackgroundImage(file)
+                        c.applyBackgroundImage(file)
                     }
                 } else if(getExt(file) == 'json'){
                     if(confirm(top.Lang.IMPORT_THEME_CONFIRM)){
-                        top.importTheme(file, top.loadTheming)
+                        c.importThemeFile(file, top.loadTheming)
                     } else if(confirm(top.Lang.IMPORT_CONFIG_CONFIRM)){
-                        top.importConfig(file, restartApp)
+                        c.importConfig(file, restartApp)
                     }
-                } else if(isMedia(file) || isMagnet(file) || isMega(file)) {
-                    top.playCustomFile(file)
+                } else if(isMedia(file) || isMegaURL(file) || c.hasCustomMediaType(file)) {
+                    c.playCustomFile(file)
                 } else {
                     if(file.match(new RegExp('^https?://'))){
-                        var n = notify(top.Lang.PROCESSING, 'fa-spin fa-circle-notch', 'wait');
-                        var fetchOptions = {redirect: 'follow'};
+                        var n = notify(top.Lang.PROCESSING, 'fa-spin fa-circle-notch', 'wait')
+                        var fetchOptions = {redirect: 'follow'}
                         fetchTimeout(file, (r) => {
-                            n.close();
-                            var response = String(r);
+                            n.close()
+                            var response = String(r)
                             response = response.substr(0, probeSize)
-                            console.log(response);
+                            console.log(response)
                             if(response.toUpperCase().indexOf('#EXTINF')!=-1){
-                                openFile(file)
+                                c.openFile(file)
                             } else {
-                                playCustomURL(file, true)
+                                c.playCustomURL(file, true)
                             }
                         }, 30000, fetchOptions)
                     } else {
@@ -62,16 +64,16 @@
                             if(!err){
                                 fs.fstat(fd, function(err, stats) {
                                     if(stats.size < 5 * (1024 * 1024)){
-                                        var buffer = new Buffer(probeSize);
+                                        var buffer = Buffer.alloc(probeSize)
                                         fs.read(fd, buffer, 0, probeSize, 0, (err, bytes, buff) => {
-                                            var response = String(buff);
-                                            console.log(response);
+                                            var response = String(buff)
+                                            console.log(response)
                                             if(response.toUpperCase().indexOf('#EXTINF')!=-1){
-                                                openFile(file)
+                                                c.openFile(file)
                                             } else {
-                                                playCustomURL(file, true)
+                                                c.playCustomURL(file, true)
                                             }
-                                        });
+                                        })
                                     }
                                     fs.close(fd)
                                 })
@@ -81,46 +83,40 @@
                 }
             }
             function openFile(file){
-                var c = (top || parent);
+                var c = (top || parent)
                 if(c){
                     c.checkStreamType(file, (url, type) => {
-                        console.log(url, type);
+                        console.log(url, type)
                         if(type == 'stream'){ 
                             c.playCustomURL(url, true)
                         } else if(type == 'list'){
-                            c.modalClose();
+                            c.modalClose()
                             c.modalConfirm(c.Lang.OPEN_FILE, [
                                 [c.Lang.PLAY, () => {
                                     c.ListMan.parse(url, (entries) => {
-                                        var cpath = String(parseInt(time()));
-                                        c.backEntryRender(null, c.Menu.path);
-                                        entries.unshift(c.getAutoCleanEntry());
-                                        c.Menu.index.push({name: cpath, class: 'entry-hide', entries: entries});
-                                        c.Menu.list(entries, cpath);
+                                        var cpath = String(parseInt(time()))
+                                        c.Menu.renderBackEntry(null, c.Menu.path)
+                                        entries.unshift(c.getAutoCleanEntry())
+                                        c.Menu.entries.push({name: cpath, class: 'entry-hide', entries: entries})
+                                        c.Menu.list(entries, cpath)
                                         c.jQuery('.entry-autoclean').trigger('click')
-                                    });
+                                    })
                                     c.modalClose() 
                                 }], 
                                 [c.Lang.ADD_NEW_LIST, () => {
-                                    var d = new Date();
-                                    var datestring = " "+d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0" + d.getDate()).slice(-2) + " " + ("0" + d.getHours()).slice(-2) + "-" + ("0" + d.getMinutes()).slice(-2);
+                                    var d = new Date()
+                                    var datestring = " "+d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0" + d.getDate()).slice(-2) + " " + ("0" + d.getHours()).slice(-2) + "-" + ("0" + d.getMinutes()).slice(-2)
                                     var name = c.basename(url, true)+' - '+datestring;
-                                    console.log(name);
+                                    console.log(name)
                                     c.registerSource(url, name)
                                     c.modalClose()
                                 }]
-                            ]);
+                            ])
                         } else { // type=error so
                             notify(top.Lang.INVALID_URL_MSG, 'fa-exclamation-triangle faclr-red', 'normal')
                         }
                     })
                 }
-            }
-            function showHelpTip(){
-                var helpTips = [
-                    top.Lang.HINT_PRESS_SPACE_TO_PAUSE.format('Space')
-                ];
-                notify(helpTips[0], 'fa-info', 'normal')
             }
             var show = function (){
                 jQuery('#info').fadeIn(200)
@@ -128,40 +124,40 @@
             var hide = function (){
                 jQuery('#info').fadeOut(200)
             }
-            var dragDrop = require('drag-drop');
+            var dragDrop = require('drag-drop')
             jQuery(function (){
-                loadTheming();
+                top.applyCSSTemplate('assets/css/overlay.src.css', getFrame('overlay'))
                 var dropTarget = document.querySelector('#drop-target'), dragOverColorTimer = 0;
                 dragDrop(dropTarget, {
                     onDrop: function (files, pos) {
-                        clearTimeout(dragOverColorTimer);
+                        clearTimeout(dragOverColorTimer)
                         top.document.querySelector('iframe#overlay').style.pointerEvents = 'none';
-                        jQuery(dropTarget).removeClass('hover');
-                        console.log('Here are the dropped files', files);
+                        jQuery(dropTarget).removeClass('hover')
+                        console.log('Here are the dropped files', files)
                         files.forEach(file => {
                             processFile(file.path)
                         })
                     },
                     onDragEnter: function () {
-                        clearTimeout(dragOverColorTimer);
-                        jQuery(dropTarget).addClass('hover');
+                        clearTimeout(dragOverColorTimer)
+                        jQuery(dropTarget).addClass('hover')
                         dragOverColorTimer = setTimeout(() => {
                             jQuery(dropTarget).removeClass('hover')
                         }, 3000)
                     },
                     onDragOver: function () {},
                     onDragLeave: function () {
-                        clearTimeout(dragOverColorTimer);
+                        clearTimeout(dragOverColorTimer)
                         dragOverColorTimer = setTimeout(() => {
                             top.document.querySelector('iframe#overlay').style.pointerEvents = 'none';
                             jQuery(dropTarget).removeClass('hover')
                         }, 400)
                     },
                     onDropText: function (text, pos) {
-                        clearTimeout(dragOverColorTimer);
+                        clearTimeout(dragOverColorTimer)
                         top.document.querySelector('iframe#overlay').style.pointerEvents = 'none';
-                        jQuery(dropTarget).removeClass('hover');
-                        console.log('Here is the dropped text', text);
+                        jQuery(dropTarget).removeClass('hover')
+                        console.log('Here is the dropped text', text)
                         if(text.match(new RegExp('^[a-z\\-]+\\.'))){
                             text = 'http://'+text;
                         }

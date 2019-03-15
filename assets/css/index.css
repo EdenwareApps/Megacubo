@@ -1,6 +1,7 @@
 body {
     overflow: hidden;
     margin-top: 0 !important;
+    transition: background 0.1s linear;
 }
 
 iframe {
@@ -26,7 +27,33 @@ div#player-status {
 	z-index: 2;
     pointer-events: none;
     opacity: 0.001;
-    transition: opacity 0.2s linear 0s;
+    transition: opacity 0.1s linear 0s;
+}
+
+div#player-status {
+    height: calc(100% - 30px);
+}
+
+body.over.miniplayer div#player-status, body.paused.miniplayer div#player-status {
+    height: calc(100% - 32px);
+    padding-top: 16px;
+}
+
+body.over:not(.miniplayer) div#player-status, body.paused:not(.miniplayer) div#player-status {
+    height: calc(100% - 62px);
+    padding-top: 16px;
+}
+
+body.over.miniplayer.loading div#player-status {
+    height: 100%;
+}
+
+body.frameless #nw-custom-frame {
+    top: -30px !important;
+}
+
+body.frameless:not(.over) div#player-status {
+    height: calc(100% - 0px);
 }
 
 div#player-status svg {
@@ -59,7 +86,7 @@ div#miniplayer-poster > div {
     display: table-cell;
 }
 
-body.miniplayer:not(.playing):not(.paused) div#miniplayer-poster {
+body.miniplayer:not(.playing):not(.paused):not(.loading):not(.modal) div#miniplayer-poster {
     display: table;
 }
 
@@ -80,17 +107,18 @@ div#player-status svg.fa-play {
     margin: 5px 3px 6px 9px;
 }
 
+body.has-video.loading #vcontrols, /* buffering */
 body.has-menu-margin.paused #vcontrols, /* has menu margin, paused */
 body.has-menu-margin.playing.over #vcontrols, /* has menu margin, playing, over */
 body.paused.over:not(.has-menu-margin):not(.auto-hide) #vcontrols,  /* no margin, paused, no auto hide, over window */
-body.playing.over:not(.has-menu-margin):not(.auto-hide) #vcontrols,  /* no margin, playing, no auto hide, over window */
+body.playing.over:not(.has-menu-margin):not(.auto-hide):not(.no-video) #vcontrols,  /* no margin, playing, no auto hide, over window */
 body.paused.auto-hide.over:not(.has-menu-margin) #vcontrols, /* paused, no margin, autohide, over window */
-body.playing.auto-hide.over:not(.has-menu-margin) #vcontrols, /* playing, no margin, autohide, over window */
-body.playing.over.auto-hide #vcontrols  /* playing, auto hide, over player */ {
-	visibility: visible;
+body.playing.auto-hide.over:not(.has-menu-margin):not(.no-video) #vcontrols, /* playing, no margin, autohide, over window */
+body.playing.over.auto-hide:not(.no-video) #vcontrols  /* playing, auto hide, over player */ {
+	visibility: visible !important;
 }
 
-div#controls {
+div#menu {
     overflow: visible;
     backface-visibility: hidden;
 	transform: translate3d(0, 0, 1px);
@@ -98,7 +126,7 @@ div#controls {
     perspective: 365px;
     position: absolute;
     left: auto;
-    transition: transform 0.05s cubic-bezier(0, 1.1, 1, 1) 0s;
+    transition: transform 0.1s cubic-bezier(0, 1.1, 1, 1) 0s;
     z-index: 9998;
     right: 0;
     top: 30px;
@@ -107,30 +135,30 @@ div#controls {
     transform: translate(100%, 0) rotateY(-140deg);
 }
 
-body.show-menu:not(.paused):not(.playing) div#controls, /* not playing */
-body.show-menu:not(.auto-hide):not(.has-menu-margin) div#controls, /* no margin, no autohide */
-body.show-menu.has-menu-margin:not(.auto-hide) div#controls, /* has menu margin, no autohide */
-body.show-menu.has-menu-margin.playing:not(.auto-hide) div#controls, /* playing, no autohide, has menu margin */
-body.show-menu.has-menu-margin.paused:not(.auto-hide) div#controls, /* paused, no autohide, has menu margin */
-body.auto-hide:not(.playing):not(.paused) div#controls, /* autohide, stopped */
-body.auto-hide.over div#controls /* autohide, over */ {
+body.show-menu:not(.paused):not(.playing):not(.loading) div#menu, /* not playing */
+body.show-menu:not(.auto-hide):not(.has-menu-margin) div#menu, /* no margin, no autohide */
+body.show-menu.has-menu-margin:not(.auto-hide) div#menu, /* has menu margin, no autohide */
+body.show-menu.has-menu-margin.playing:not(.auto-hide) div#menu, /* playing, no autohide, has menu margin */
+body.show-menu.has-menu-margin.paused:not(.auto-hide) div#menu, /* paused, no autohide, has menu margin */
+body.auto-hide:not(.playing):not(.paused):not(.loading) div#menu, /* autohide, stopped */
+body.auto-hide.over div#menu /* autohide, over */ {
     transform: translate(0%, 0) rotateY(0deg);
 }
 
-body.frameless .fit-screen, body.frameless .fit-player, body.frameless div#controls {
+body.frameless .fit-screen, body.frameless .fit-player, body.frameless div#menu {
     top: 0px;
     height: 100%;
 }
 
-body.miniplayer div#controls {
+body.miniplayer div#menu {
     display: none !important;
 }
 
 #nw-custom-frame {
-    z-index: 999;
+    z-index: 9999;
     height: 30px;
-    overflow: hidden;
-    transition: height 0.2s linear 0s;
+    overflow: visible;
+    /* transition: height 0.1s linear 0s; */
 }
 
 body.frameless #nw-custom-frame {
@@ -182,7 +210,7 @@ body.frameless #nw-custom-frame {
     vertical-align: middle;
 }		
 
-#background {
+#background-overlay {
     top: 30px;
     height: calc(100% - 30px);
     z-index: -1;
@@ -191,13 +219,13 @@ body.frameless #nw-custom-frame {
     perspective-origin: center;
 }
 
-html.ui-transparent-menu #background {
+html.ui-transparent-menu #background-overlay {
     top: 0;
     height: 100%;
     z-index: -1;
 }
 
-#background .background-logo {
+#background-overlay .background-logo {
     max-width: 36%;    
     max-height: 42%;
     position: absolute;
@@ -215,12 +243,12 @@ html.ui-transparent-menu #background {
     align-items: center;
 }
 
-#background.fit-player .background-logo-container {
+#background-overlay.fit-player .background-logo-container {
     height: 100% !important;
     top: 0 !important;
 }
 
-#background.loading {
+body.splash #background-overlay {
     z-index: 2147483647 !important;
     width: 100% !important;
 }
@@ -239,41 +267,64 @@ html.ui-transparent-menu #background {
     transition: width 3s ease;    
 }
 
-#background.loading #loader {
+#splash-message {
+    font-size: 150%;
+    font-weight: bold;
+    position: absolute;
+    bottom: 12%;
+    display: none;
+}
+
+#splash-message i, #splash-message svg {
+    margin-right: 8px;
+}
+
+body.splash #background-overlay #loader {
     display: flex;
 }
 
-body.frameless #background {
+body.splash #splash-message {
+    display: inline-block;
+}
+
+body.splash #menu, body.splash #player, body.splash #sandbox, body.splash #menu-trigger, body.splash #menu-toggle {
+    display: none !important;
+}
+
+body.frameless #background-overlay {
     top: 0;
     height: 100%;
 }
 
-#background {
+#background-overlay {
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
 }
 
-#background .background-image {    
+.background-image {    
     width: 100%;
-    height: 100%;
+    height: 100% !important;
+    top: 0 !important;
     display: inline-block;
     object-fit: cover;
+    z-index: -2;
 }
 
 div#notify-area { 
+    display: none;
     max-width: 100vw; 
-    font-size: 136%; 
     position: absolute; 
     top: 30px;
     left: 0;
     box-sizing: border-box;
     pointer-events: none;
-    z-index: 2147483647 !important;
+    z-index: 9998 !important;
     height: auto;
     padding-right: 74px;
     padding-top: 6px;
+    transition: background 0.1s linear;
 }
 
 body.frameless div#notify-area { 
@@ -304,10 +355,23 @@ div.notify .notify-icon {  /* not only span here */
     box-sizing: border-box;
 }
 
-div.notify span.notify-text {
+div.notify-row:not(.notify-first) div.notify .notify-icon {
+    margin: 9px 9px 9px 16px;
+}
+
+div.notify-row span.notify-text {
     display: table-cell;
-    vertical-align: top;
-    padding-top: 6px;
+    vertical-align: middle;
+    position: relative;
+    top: -1px;
+}
+
+div.notify-row:not(.notify-first) span.notify-text {
+    font-size: 1rem;
+}
+
+div.notify-row.notify-first span.notify-text {
+    font-size: 1.5rem;
 }
 
 div.notify span.notify-icon { 
@@ -323,16 +387,13 @@ div.notify span.notify-icon {
 }
 
 div.notify-row {
-    display: block;
+    display: table-row-group;
     font-size: 62.5%;
-    /*
-    transition: font-size 0.05s linear 0s;
-    */
+    transition: font-size 0.1s linear 0s;
 }
 
 div.notify-row.notify-first {
-    display: block;
-    font-size: 100%;
+    font-size: 1.5rem;
 }
 
 iframe#overlay {
@@ -350,19 +411,23 @@ body.paused iframe#overlay {
     z-index: 2;
 }
 
-iframe#sandbox {
-    background-color: #fff;
+iframe#sandbox, #player {
+    background-color: #000000;
 }
 
 #player {
-    z-index: 1;
+    z-index: 1;    
+}
+
+body.auto-hide.show-menu:not(.frameless):not(.miniplayer) iframe#sandbox, body.auto-hide.show-menu:not(.frameless):not(.miniplayer) #player {
+    border-top-right-radius: 4px;
 }
 
 body.miniplayer #player, body.miniplayer  iframe#sandbox, body:not(.show-menu) #player, body:not(.show-menu) iframe#sandbox {
     width: 100% !important;
 }
 
-body.modal div#controls, body.modal #player {
+body.modal div#menu, body.modal #player {
     display: none !important;
 }
 
@@ -378,6 +443,10 @@ div#modal-overlay {
 body.frameless div#modal-overlay {
     height: 100vh;
     top: 0;
+}
+
+body.splash div#modal-overlay {
+    z-index: -3;
 }
 
 div#modal-overlay > div { 
@@ -403,15 +472,11 @@ div#modal-overlay .prompt {
 }
 
 div#modal-overlay .prompt textarea, div#modal-overlay .prompt input {
-    width: 100%;
     border-width: 0;
     outline: 0;
     padding: 6px;
     box-sizing: border-box;
-}
-
-div#modal-overlay .prompt input {
-    height: 31px;
+    float: left;
 }
 
 div#modal-overlay .prompt textarea {
@@ -421,43 +486,59 @@ div#modal-overlay .prompt textarea {
 .prompt-close {
     position: relative;
     float: right;
+    display: flex;
+    align-items: center;
 }
 
 .prompt-close a {
     position: absolute;
     right: 11px;
-    top: 18px;
-    color: #000;
+    top: 0;
+    padding: 12px 0;
+}
+
+.prompt-no-header .prompt-close a {
+    padding: 9px 0;
+}
+
+.prompt-input {
+    display: flex;
+    width: 100%;
 }
 
 .prompt-footer, .prompt-header {
-    width: 100%;
+    width: 100.1%;
     min-height: 36px;
-    display: block;
     margin: 0 auto;
-    font-size: 125%;
-    line-height: 175%;
-    background: #e5e9ef;
-}
-
-.prompt-header {
-    color: #000;
-    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.25);
-    padding: 10px 26px;
     box-sizing: border-box;
 }
 
+.prompt-footer, .prompt-header, .prompt input, .prompt-close a {
+    font-size: 1.5rem;
+    line-height: 175%;
+}
+
+.prompt-header, .prompt-footer, .prompt-close a {
+    line-height: 175%;
+}
+
+.prompt-header {
+    padding: 12px;
+    display: block;
+}
+
 .prompt-footer {
-    border-radius: 0 0 5px 5px;
+    border-radius: 0 0 4px 4px;
+    display: table;
 }
 
 .prompt-footer .button {
-    display: inline-block;
-    height: 100%;
+    display: inline-table;
+    height: fit-content;
     cursor: pointer;
-    min-height: 36px;
     border-width: 0;
-    font-size: 100%;
+    font-size: inherit;
+    vertical-align: bottom;
 }
 
 .prompt-1-columns .button {
@@ -476,11 +557,11 @@ div#modal-overlay .prompt textarea {
     width: 25%;
 }
 
-#menu-trigger-icon {
+#menu-trigger {
     position: absolute;
     top: 30px;
     right: 0;
-    z-index: 99999 !important;
+    z-index: 2147483647 !important;
     padding: 2px 16px 2px 13px;
     border-bottom-left-radius: 4px;
     display: none;
@@ -490,29 +571,30 @@ div#modal-overlay .prompt textarea {
     cursor: pointer;
 }
 
-body.over #menu-trigger-icon {
+body.over #menu-trigger {
     display: inline-block;
 }
 
-#menu-trigger-icon:hover {
+#menu-trigger:hover {
     color: #fff !important;
     padding: 2px 16px 2px 15px !important;
 }
 
-#menu-trigger-icon i, #menu-trigger-icon svg {
+#menu-trigger i, #menu-trigger svg {
     font-size: 100%;
 }
 
-body.show-menu #menu-trigger-icon, body.miniplayer #menu-trigger-icon {
+body.show-menu #menu-trigger, body.miniplayer #menu-trigger {
     display: none !important;
 }
 
-body.frameless #menu-trigger-icon {
+body.frameless #menu-trigger {
     top: 0px !important;
 }
 
 div#miniplayer-continue {
-    display: none;
+    display: inline-block;
+    visibility: none;
     font-size: initial;
     background: #FFFFFF11;
     color: #fff;
@@ -540,9 +622,11 @@ td.miniplayer-continue-text {
 }
 
 div#miniplayer-drop-hint {
-    padding-bottom: 6%;
-    font-size: 124%;
+    padding: 3% 2% 12% 2%;
+    font-size: initial;
     line-height: 172%;
+    display: table-cell;
+    background: #000000EE;
 }
 
 div#miniplayer-continue table {
@@ -554,8 +638,32 @@ div#miniplayer-continue img, div#miniplayer-continue i, div#miniplayer-continue 
     max-height: 36px;
 }
 
-body.miniplayer:not(.playing):not(.paused) div#miniplayer-continue {
+body.miniplayer:not(.playing):not(.paused):not(.loading) div#miniplayer-continue {
+    visibility: visible;
+}
+
+body.clear-ui #menu, body.clear-ui #vcontrols, body.clear-ui iframe {
+    display: none !important;    
+}
+
+body.playing .video-play .fa-play, body.loading .video-play .fa-play {
+    display: none;
+}
+
+body.playing .video-play .fa-pause, body.loading .video-play .fa-pause {
     display: inline-block;
+}
+
+body.paused .video-play .fa-play {
+    display: inline-block;
+}
+
+body.paused .video-play .fa-pause {
+    display: none;
+}
+
+body.clear-ui #background-overlay {
+    width: 100%;
 }
 
 @keyframes bga-spin-x {

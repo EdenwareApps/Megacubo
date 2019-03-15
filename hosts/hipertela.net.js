@@ -1,8 +1,8 @@
 
 module.exports = function process(scope){
-	var e = scope.document.querySelector('.vjs-big-play-button');
+	var e = scope.document.querySelector('.vjs-big-play-button')
 	if(e){
-		e.click();
+		e.click()
 	}
 	return true;
 }

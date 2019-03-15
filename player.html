@@ -2,26 +2,33 @@
 <html class="ui-player">
 	<head>
 		<meta charset="UTF-8" />
+		<style type="text/css">
+			video::cue {				
+				visibility: hidden;
+			}
+		</style>
 	</head>
 	<body>
-		<script type="text/javascript" src="assets/js/jquery.js"></script>
-		<script type="text/javascript" src="assets/js/global.js"></script>
-		<script type="text/javascript" src="assets/js/hls.custom.js"></script>
-		<video id="video" autoplay></video>
 		<script type="text/javascript">
-			var hls, video = document.getElementById('video'), player = jQuery(video), b = jQuery('body');
-			var recoverDecodingErrorDate, recoverSwapAudioCodecDate, recoverTimer = 0;
+			jQuery = top.jQuery
+		</script>
+		<script type="text/javascript" src="assets/js/core/global.js"></script>
+		<script type="text/javascript" src="assets/js/playback/hls.custom.js"></script>
+		<video id="video"></video>
+		<script type="text/javascript">
+			var hls, video = document.getElementById('video'), player = jQuery(video)
+			var recoverDecodingErrorDate, recoverSwapAudioCodecDate, recoverTimer = 0, mediaErrors = [];
 			function recover(hls) {
+				console.log('WONT RECOVER', hls)
+				return;
 				var doReset = true;
-				clearTimeout(recoverTimer);
+				clearTimeout(recoverTimer)
 				if(hls){
 					doReset = false;
 					window.onerror = () => {
-						window.onerror = null;
-						reset();
-						return true;
+						return true
 					}
-					hls.recoverMediaError();
+					hls.recoverMediaError()
 					recoverTimer = setTimeout(() => {
 						window.onerror = null;
 					}, 3000)
@@ -30,103 +37,143 @@
 					reset()
 				}
 			}
-			function watchTimeout(ct) {
+			function watchTimeout(ct, cb, timeoutMs) {
+				if(!cb){
+					cb = reset;
+				}
+				if(!timeoutMs) {
+					timeoutMs = 5000;
+				}
 				var timer = 0, ms = video.currentTime;
 				timer = setTimeout(() => {
 					if(ms == video.currentTime){
-						reset()
+						cb()
 					}
-				}, 5000);
+				}, timeoutMs)
 				player.off('canplaythrough').one('canplaythrough', () => {
-					clearTimeout(timer);
+					clearTimeout(timer)
 					if(ct){
 						currentTime(ct)
 					}
 				})
 			}
 			function handleMediaError(hls) {
-				var now = performance.now(), ct = false;
-				if(top.PlaybackManager.activeIntent && top.PlaybackManager.activeIntent.decoderOutputAppending) {
-					try {
-						ct = currentTime()
-					} catch(e) {
-						console.warn('Failed to get currentTime.')
+				var msg = '', now = performance.now(), ct = false;
+				if(top.Playback.active){
+					if(top.Playback.active.decoderOutputAppending) {
+						try {
+							ct = currentTime()
+						} catch(e) {
+							console.warn('Failed to get currentTime.')
+						}
+					}
+					if(top.Playback.active.ignoreErrors) {
+						return;
 					}
 				}
 				if (!recoverDecodingErrorDate || (now - recoverDecodingErrorDate) > 3000) {
-					recoverDecodingErrorDate = performance.now();
-					var msg = "trying to recover from media Error ..."
-					console.warn(msg);
-					watchTimeout(ct);
+					recoverDecodingErrorDate = now;
+					msg = "trying to recover from media Error ..."
+					watchTimeout(ct)
 					recover(hls) // ffmpeg slow response, commenting it and trusting on hls.js here
 				} else {
 					if (!recoverSwapAudioCodecDate || (now - recoverSwapAudioCodecDate) > 3000) {
-						recoverSwapAudioCodecDate = performance.now();
-						var msg = "trying to swap Audio Codec and recover from media Error ..."
-						console.warn(msg);
-						hls.swapAudioCodec();
-						watchTimeout(ct);
+						recoverSwapAudioCodecDate = now;
+						msg = "trying to swap Audio Codec and recover from media Error ..."
+						hls.swapAudioCodec()
+						watchTimeout(ct)
 						recover(hls)
 					} else {
-						var msg = "cannot recover, last media error recovery failed ..."
-						console.error(msg);
+						msg = "cannot recover, last media error recovery failed ..."
 						setTimeout(reset, 1000)
 					}
 				}
+				console.warn(msg)
+				top.Playback.reportError(msg, 'playback')
 			}	
-			var currentSrc = false;	
-			function src(_src, type){
-				currentSrc = {src: _src, type: type};
-				if(hls){
-					hls.destroy()
-				}
-				console.log('SRC=', _src, type);
-				if(type.toLowerCase().indexOf('mpegurl')!=-1){
-					hls = new Hls({
-						/*
-						debug: true,
-						maxSeekHole: 30,
-						maxBufferHole: 25,
-						maxBufferLength: 100,
-						maxMaxBufferLength: '600s',
-						maxBufferHole: 5
-						*/
-					});		
-					hls.on(Hls.Events.ERROR, (event, data) => {
-						var msg = "Player error: " + data.type + " - " + data.details;
-						if(data.details == 'bufferStalledError'){
-							// handleMediaError(hls);
-							// not fatal, dont neet to handle so
-							console.warn(msg, data);
-						} else if (data.fatal) {
-							console.error(msg, data);
-							// reset();
-							switch (data.type) {
-								case Hls.ErrorTypes.MEDIA_ERROR:
-									handleMediaError(hls);
-									break;
-								case Hls.ErrorTypes.NETWORK_ERROR:
-									console.error("network error ...");
-									handleMediaError(hls);
-									break;
-								default:
-									console.error("unrecoverable error");
-									reset();
-									break;
+			function updateSource(){
+				var endpoint = top.Playback.endpoint
+				if(endpoint){
+					top.jQuery(video).off() // discard events
+					if(endpoint.mimetype.toLowerCase().indexOf('mpegurl')!=-1){
+						if(!hls){
+							var hlsConfig = {
+								/*
+								debug: true,
+								maxSeekHole: 30,
+								maxBufferHole: 25,
+								maxBufferLength: 100,
+								maxMaxBufferLength: '600s',
+								maxBufferHole: 5
+								*/
+								maxBufferSize: 0,       // Highly recommended setting
+								maxBufferLength: 5,     // Highly recommended setting
+								liveSyncDuration: 30   // Highly recommended setting
 							}
-						} 
-					});		
-					hls.on(Hls.Events.MANIFEST_PARSED, () => {
-						video.play();
-					});
-					hls.on(Hls.Events.MEDIA_ATTACHED, () => {
-						hls.loadSource(_src)
-					});
-					hls.attachMedia(video);
-				} else {
-					video.src = _src;
-					video.load();
-					video.play()
+							hls = new Hls(hlsConfig)
+							hls.on(Hls.Events.ERROR, (event, data) => {
+								var msg = "Player error: " + data.type + " - " + data.details;
+								if(data.details == 'bufferStalledError'){
+									// handleMediaError(hls)
+									// not fatal, dont neet to handle so
+									// wait, the playback hangs even it not saying that it's a fatal error, watch to be sure
+									console.warn(msg, data)
+									watchTimeout(null, () => {
+										top.seemsSlow()
+										watchTimeout(null, () => {
+											recover(hls)
+										})
+									}, 3000)
+								} else if (data.fatal) {
+									console.error(msg, data)
+									// reset()
+									switch (data.type) {
+										case Hls.ErrorTypes.MEDIA_ERROR:
+											handleMediaError(hls)
+											break;
+										case Hls.ErrorTypes.NETWORK_ERROR:
+											console.error("network error ...")
+											handleMediaError(hls)
+											break;
+										default:
+											console.error("unrecoverable error")
+											reset()
+											break;
+									}
+								} else {
+									console.error(msg, data)
+								} 
+							})
+							hls.on(Hls.Events.MANIFEST_PARSED, () => {
+								video.play()
+							})
+							hls.on(Hls.Events.MEDIA_ATTACHED, () => {
+								// console.error('ATTACHED', _src)        
+								hls.loadSource(endpoint.src)
+							})
+							hls.on(Hls.Events.MEDIA_DETACHED, () => {
+								setTimeout(() => {
+									if(video.paused && !hls){
+										console.warn('DETACHED', top.traceback(), top.Playback.endpoint)
+									}
+								}, 100)
+							})
+							hls.attachMedia(video)
+						} else {
+							hls.loadSource(endpoint.src)
+						}
+					} else {
+						if(hls){						
+							hls.destroy()
+							hls = false;
+						}
+						video.pause()
+						video.removeAttribute('src')
+						var type = endpoint.mimetype.replaceAll('"', "'").split(';')[0]
+						video.innerHTML = '<source type="'+ type +'" src=\''+endpoint.src+'\' />'
+						video.load()
+						video.play()
+					}
 				}
 			}
 			function ready(f){
@@ -146,9 +193,10 @@
 				return video.paused
 			}
 			function stop(){
-				video.pause();
+				console.warn("STOP", top.traceback())
+				video.pause()
 				if(hls){
-					hls.destroy();
+					hls.destroy()
 					hls = null;
 				}
 			}
@@ -174,27 +222,14 @@
 				video.currentTime += s;
 			}
 			function reset() {
-				if(currentSrc) {
-					src(currentSrc.src, currentSrc.type)
+				if(top.Playback.endpoint){
+					updateSource()
+				} else {
+					console.log('STOP')
+					stop()
 				}
-				if(top && top.prepareVideoObject) {
-					top.prepareVideoObject(video)
-				}
-			}
+			}	
 			function init() {
-				var checkMemTimer = 0;
-				function checkMemory(){
-					var percent = process.memoryUsage().rss / (performance.memory.jsHeapSizeLimit / 100);
-					if(percent >= 75){
-						clearInterval(checkMemTimer);
-						console.warn('Memory usage limit reached, reloading player...');
-						reset();
-						setTimeout(() => {
-							checkMemTimer = setInterval(checkMemory, 30000);
-						}, 10000);
-					}
-				}
-				checkMemTimer = setInterval(checkMemory, 30000);
 				reset()
 			}
 		</script>

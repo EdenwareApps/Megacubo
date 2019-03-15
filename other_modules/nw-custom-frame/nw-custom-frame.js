@@ -4,6 +4,9 @@
 	
 	"use strict";
 	
+				
+	var json = require('./package.json'), fs = require('fs'), path = require('path');
+
 	function extend(obj) {
 		Array.prototype.slice.call(arguments, 1).forEach(function(source) {
 			if (source) {
@@ -100,7 +103,6 @@
 		
 			var that = this;
 			
-			var path = require('path');
 			var options = this.options;
 			if(that.window.localStorage.nwCustomFrameState === undefined) {
 				that.window.localStorage.nwCustomFrameState = "initial";
@@ -131,12 +133,12 @@
 			
 			if(favicon !== undefined) {
 				var filename = path.resolve(packageJSON.window.icon);
-				if(require('fs').existsSync(filename)) {
+				if(fs.existsSync(filename)) {
 					favicon = filename;
 				}
 			} else if(packageJSON.window !== undefined && packageJSON.window.icon !== undefined) {
 				var filename = path.resolve(packageJSON.window.icon);
-				if(require('fs').existsSync(filename)) {
+				if(fs.existsSync(filename)) {
 					favicon = filename;
 				}
 			} else {
@@ -410,9 +412,6 @@
 			}
 
 			if(options.includeCSS) {
-				
-				var json = require('./package.json');
-				var fs = require('fs');
 				
 				var coreLoaded = false, themeLoaded = false, iconLoaded = false;
 				

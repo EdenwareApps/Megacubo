@@ -3,24 +3,37 @@
 	<head>
 		<meta charset="UTF-8" />
 		<title></title>
-		<base href="./" />
+		<!-- <base href="./" /> -->
         <link rel="stylesheet" type="text/css" href="assets/css/global.css" />
         <link rel="stylesheet" type="text/css" href="assets/css/index.css" />
 		<link rel="stylesheet" type="text/css" href="assets/css/controls.css" />
 		<style type="text/css">
 			html {
-				transition: all 0.1s ease-in-out 0s;
 				overflow: hidden;
 				background: #000000;
 			}
 		</style>
 		<script type="text/javascript">
-			var gui = require('nw.gui'), win = gui.Window.get(), miniPlayerActive = false, appShown = false;
-			document.title = gui.App.manifest.window.title;
+			var win = nw.Window.get(), miniPlayerActive = false, appShown = false;
+			global.onerror = window.onerror = (err) => { 
+			    logErr('Unhandled error', err)
+				var ok = false;
+				if(typeof(win) != 'undefined' && win){
+					try {
+						win.show()
+						ok = true;
+					} catch(e) { }
+				}
+				if(!ok){
+					nw.App.closeAllWindows()
+				}
+				return ok;
+			}
+			document.title = nw.App.manifest.window.title;
 			function traceback() { 
 				try { 
 					var a = {}; 
-					a.debug(); 
+					a.debug() 
 				} catch(ex) {
 					return ex.stack.replace('TypeError: a.debug is not a function', '').trim()
 				}
@@ -30,42 +43,47 @@
 					fs = require('fs')
 				}
 				if(!fs.existsSync('error.log')){
-					fs.closeSync(fs.openSync('error.log', 'w')); // touch
+					fs.closeSync(fs.openSync('error.log', 'w')) // touch
 				}
-				return fs.appendFileSync('error.log', JSON.stringify(Array.from(arguments))+"\r\n"+traceback()+"\r\n\r\n");
+				return fs.appendFileSync('error.log', JSON.stringify(Array.from(arguments))+"\r\n"+traceback()+"\r\n\r\n")
 			}
-			process.removeAllListeners('uncaughtException');
-			process.removeAllListeners('unhandledRejection');
+			process.removeAllListeners('uncaughtException')
+			process.removeAllListeners('unhandledRejection')
 			process.on('uncaughtException', (err) => {
-				console.error('Unhandled exception', err);
+				console.error('Unhandled exception', err)
 				if(typeof(logErr)=='function'){
 					logErr('Unhandled exception', err)
 				}
 				//process.exit(1)
 				return true;
-			});
+			})
 			process.on('unhandledRejection', (reason, p) => {
-				console.error(reason, 'Unhandled Rejection at Promise', p);
+				console.error(reason, 'Unhandled rejection at promise', p)
 				if(typeof(logErr)=='function'){
-					logErr(reason, 'Unhandled Rejection at Promise', p)
+					logErr(reason, 'Unhandled rejection at promise', p)
 				}
 				//process.exit(1)
 				return true;
-			});
+			})
 		</script>
 	</head>
-	<body tabindex="-1"> 
-		<div id="background" class="fit-screen loading">
+	<body tabindex="-1" class="splash"> 
+		<div id="background-overlay" class="fit-screen splash">
 			<progress id='loader' max='100' value='100'></progress>
+			<div id="splash-message">
+				<i class="fas fa-circle-notch pulse-spin"></i>
+				<span></span>
+			</div>
 		</div>
-		<script type="text/javascript" src="assets/js/jquery.js"></script>
-		<script type="text/javascript" src="assets/js/jquery.shortcuts.min.js"></script>
-		<script type="text/javascript" src="assets/js/global.js"></script>
+		<script type="text/javascript" src="assets/js/core/jquery.js"></script>
+		<script type="text/javascript" src="assets/js/core/global.js"></script>
+		<script type="text/javascript" src="assets/js/ui/theming.js"></script>
 		<script type="text/javascript">
-			loadTheming();
-			var loader = document.getElementById('loader');
-			addAction("shared-lists-index-progress", (lc, tc, pc) => {
-				console.warn('PC', pc+'%', lc, tc);
+			loadTheming()
+			win.show()
+			var loader = document.getElementById('loader')
+			addAction("app-load-progress", (lc, tc, pc) => {
+				console.warn('PC', pc+'%', lc, tc)
 				if(pc > 99) pc = 99;
 				loader.style.width = pc+'%'; // update width instead of value to allow css transition
 			})
@@ -81,7 +99,8 @@
 		<iframe id="sandbox" class="fit-player hide" nwdisable nwfaketop height="100%" frameborder="0" src="/blank.html"></iframe>
 		<iframe id="overlay" class="fit-screen show" height="100%" allowtransparency="true" frameborder="0" scrolling="no" src="/overlay.html"></iframe>
 		<iframe id="player" class="fit-player hide" height="100%" frameborder="0" scrolling="no" src="/player.html" allowfullscreen></iframe>
-		<iframe id="detect-keys" class="fit-screen" height="100%" frameborder="0" scrolling="no" src="/detect-keys.html" allowfullscreen style="display: none; z-index: 2147483647;"></iframe>
+		<iframe id="detect-keys" class="fit-screen" height="100%" frameborder="0" scrolling="no" src="/detect-keys.html" style="display: none; z-index: 2147483647;"></iframe>
+		<iframe id="check-health" class="fit-screen" height="100%" frameborder="0" scrolling="no" src="/check-health.html" style="display: none; z-index: 2147483647;"></iframe>
 		<div id="vcontrols" class="vcontrols fit-player-min">
 			<a href="javascript:;" class="video-play">
 				<i class="fas fa-play"></i>
@@ -90,8 +109,8 @@
 			<a href="javascript:;" class="video-stop">
 				<i class="fas fa-stop"></i>
 			</a>
-			<a href="javascript:;" class="video-switch try-other">
-				<i class="fas fa-exchange-alt"></i>
+			<a href="javascript:;" class="video-reload">
+				<i class="fas fa-redo"></i>
 			</a>
 			<div class="video-timer">00:00</div>
 			<div class="video-seek">
@@ -106,13 +125,19 @@
 					<input type ="range" min ="1" max="100" step ="1" value ="100"/>
 				</div>
 			</div>
+			<a href="javascript:;" class="video-switch try-other">
+				<i class="fas fa-random"></i>
+			</a>
+			<a href="javascript:;" class="video-scale">
+				&nbsp;
+			</a>
 			<a href="javascript:;" class="video-fullscreen">
 				<i class="fas fa-expand-arrows-alt"></i>
 			</a>
 		</div>
 		<div id="player-status" class="fit-player">
 			<div class="fac fac-loading">
-				<i class="fas fa-circle-notch fa-spin"></i>
+				<i class="fas fa-circle-notch pulse-spin"></i>
 			</div>
 			<div class="fac fac-paused">
 				<i class="fas fa-play"></i>
@@ -133,12 +158,18 @@
 		<div class="hide">
 			<input id="saveas" type="file" nwsaveas />
 		</div>
-		<div id="menu-trigger-icon">
+		<div id="notify-area" class="fit-player"></div>
+		<div id="menu-trigger" onfocus="Menu.show()">
 			<i class="fas fa-chevron-left"></i>
 		</div>
-		<div id="controls" class="fit-screen" tabindex="-1">
-			<div id="controls-left-border"></div>
-			<div id="controls-in" tabindex="-1">
+		<div id="menu" class="fit-screen" tabindex="-1">
+			<div id="menu-left-border"></div>
+			<div id="menu-wrapper" tabindex="-1">
+				<span id="menu-toggle-container">
+					<a href="javascript:;" id="menu-toggle" onclick="Menu.toggle()">
+						<i class="fas fa-chevron-right"></i>
+					</a>
+				</span>
 				<div>
 					<div class="list">
 						<div>
@@ -149,49 +180,63 @@
 					</div>
 				</div>
 			</div>
-			<span id="controls-toggle-container">
-				<a href="javascript:;" id="controls-toggle" onmousedown="toggleControls()">
-					<i class="fas fa-chevron-right"></i>
-				</a>
-			</span>
-			<span id="home-icons" style="display: none;">
-				<a href="javascript:;" data-title-lng-key="SEARCH" onmousedown="goSearch(false, '')" id="home-icon-search" class="option" tabindex="996" style="top: -1px;">
-					<i class="fas fa-search" aria-hidden="true"></i>
-				</a>
-				<a href="javascript:;" data-title-lng-key="BOOKMARKS" onmousedown="goBookmarks()" id="home-icon-bookmarks" class="option" tabindex="996" style="top: -1px;">
-					<i class="fas fa-star" aria-hidden="true"></i>
-				</a>
-				<a href="javascript:;" data-title-lng-key="OPEN_FILE" onmousedown="goOpen();return false" id="home-icon-open" class="option" tabindex="997" style="top: 1px;">
-					<i class="fas fa-folder-open" aria-hidden="true"></i>
-				</a>
-				<a href="javascript:;" title="Megacubo" onmousedown="about()" id="home-icon-help" class="option" tabindex="998" style="font-size: 109%; top: 1px;">
-					<i class="fas fa-info-circle" aria-hidden="true"></i>
-				</a>
-			</span>
-			<span id="list-icons">
-				<a href="#" onmousedown="menuScrollUp()" data-title-lng-key="BACK" id="home-icon-back" class="option" tabindex="999" style="top: 0;">
-					<i class="fas fa-chevron-up" aria-hidden="true"></i>
-				</a>
-			</span>
+			<div id="menu-scrolling-up">
+				<div>
+					<i class="fas fa-angle-double-up"></i>
+				</div>
+			</div>
+			<div id="menu-scrolling-down">
+				<div>
+					<i class="fas fa-angle-double-down"></i>
+				</div>
+			</div>
 		</div>
-		<div id="notify-area" class="fit-player"></div>
 		<script type="text/javascript">
-			jQuery.getMultiScripts([
-				'util.js',
-				'winstate.js',
-				'playback.js',
-				'iptv.js',
-				'menu.js',
-				'menu-feeding.js',
-				'jquery.viewport.js',
-				'countries.js',
-				'app.js',
-				'fitter.js',
-				'blocked_domains.js',
-				'buzz.min.js',
+			loadScripts([
+				'core/util.js',
+				'utils/iptv.js',
+				'playback/base.js',
+				'core/app.js'
 			], 'assets/js/', () => {
-				init()
-			});
+				console.log('[INIT] Search index scanning...')
+				initSearchIndex(() => {
+					console.log('[INIT] Search index done.')
+				})
+				loadScripts([
+					'utils/countries.js',
+					'utils/dialer.js',
+					'utils/iprx.js',
+					'utils/search.js',
+					'ui/buzz.min.js',
+					'ui/context-menu.js',
+					'ui/fitter.js',
+					'ui/jquery.shortcuts.min.js',
+					'ui/jquery.viewport.js',
+					'ui/menu.js',
+					'ui/menu-feeding.js',
+					'ui/pointer.js',
+					'ui/winstate.js',
+					'ui/wizard.js',
+					'playback/direct.js',
+					'playback/ffmpeg.js',
+					'playback/frame.js',
+					'playback/magnet.js',
+					'playback/ts.js'
+				], 'assets/js/', () => {
+					console.log('[INIT] LOADED')
+					init()
+				})
+			})
+			addAction('afterAppShow', () => {				
+				loadScripts([
+					'utils/blocked_domains.js',
+					'ui/context-menu.js'
+				], 'assets/js/', () => {
+					console.log('[INIT] POS LOADED')
+					applyBlockedDomains(blocked_domains)
+					blocked_domains = null
+				})
+			})
 		</script>
 	</body>
 </html>

@@ -20,6 +20,54 @@ input, textarea {
     user-select: text;
 }
 
+.pulse-spin {
+    transform-origin: center !important;
+    animation: pulse-spin 3s infinite linear;
+}
+
+@media (min-height: 601px) {
+    .fa-stack .fa-stack-1x.fa-circle {
+        margin: 0 !important;
+        width: 60% !important;
+        height: 60% !important;
+        top: calc(20% + 0.1px) !important;
+        left: calc(20% - 0.1px) !important;
+    }
+}
+
+@media (max-height: 600px) {
+    .fa-stack .fa-stack-1x.fa-circle {
+        margin: 0 !important;
+        width: 60% !important;
+        height: 60% !important;
+        top: 20% !important;
+        left: calc(20% - 0.1px) !important;
+    }
+}
+
+@keyframes pulse-spin {
+    0% {
+        transform: rotate(0deg) scale(1);
+        opacity: 0.6;
+    }
+    25% {
+        transform: rotate(180deg) scale(1);
+        opacity: 0.6;
+    }
+    50% {
+        transform: rotate(360deg) scale(1.05);
+        opacity: 1;
+    }
+    75% {
+        transform: rotate(540deg) scale(1);
+        opacity: 0.6;
+    }
+    100% {
+        transform: rotate(720deg) scale(1);
+        opacity: 0.6;
+    }
+}
+
 .fit-screen, .fit-player, .fit-player-min {
     position: absolute;
     top: 0;
@@ -28,10 +76,6 @@ input, textarea {
     margin: 0;
     height: 100%;
     width: 100%;
-}
-
-body.miniplayer #nw-custom-frame {
-    opacity: 0.9;
 }
 
 body.miniplayer .fit-screen, body.miniplayer .fit-player {
@@ -49,12 +93,12 @@ body.miniplayer .fit-screen, body.miniplayer .fit-player {
     top: -3000px;
 }
 
-.entry .marquee {
+body:not(.no-marquee) .entry .marquee {
     white-space: nowrap;
     overflow: hidden;
 }
 
-.entry:hover .marquee > *, .entry:active .marquee > *, .entry:focus .marquee > * {
+body:not(.no-marquee) .entry:hover .marquee > *, body:not(.no-marquee) .entry:active .marquee > *, body:not(.no-marquee) .entry:focus .marquee > * {
     display: inline-block;
     text-indent: 0;
     animation: marquee 15s linear infinite;

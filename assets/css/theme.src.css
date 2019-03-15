@@ -1,273 +1,300 @@
 body {
-    font-size: (fontsize)rem;
+    font-size: 1rem;
+    font-family: (font-family);
+    font-weight: (font-weight);
 }
 
-
-html.ui-index {
-    background: (bg);
+html {
+    font-size: (font-size)px;
+    background: (background-color);
 }
 
-html.ui-index .nw-cf {
+html .nw-cf {
     background: transparent;
 }
 
-html.ui-index body.miniplayer.playing .nw-cf, html.ui-index body.miniplayer.paused .nw-cf {
-    background: #00000077;
+body.miniplayer.playing .nw-cf, body.miniplayer.paused .nw-cf {
+    background: (background-color-playing)AA;
 }
 
-html.ui-index .nw-cf-btn { 
+body.notify.miniplayer.playing .nw-cf, body.notify.miniplayer.paused .nw-cf, body.notify.miniplayer.loading .nw-cf {
+    background: (background-color-playing)FF;
+}
+
+html .nw-cf-btn { 
     background-color: transparent; 
 }
 
-html.ui-index body.playing #controls-toggle, html.ui-index body.paused #controls-toggle, html.ui-index body.playing #menu-trigger-icon, html.ui-index body.paused #menu-trigger-icon { 
-    background: linear-gradient( to bottom, transparent, #00000077 100%);
+body.playing #menu-toggle, body.paused #menu-toggle, body.playing #menu-trigger, body.paused #menu-trigger { 
+    background: (background-color-playing)(menu-transparency-hex);
 }
 
 body.playing:not(.show-menu) .nw-cf, body.paused:not(.show-menu) .nw-cf {
-    background: #000000;
+    background: (background-color-playing);
 }
 
-html.ui-index body.playing iframe#overlay, html.ui-index body.miniplayer iframe#overlay {
+body.playing iframe#overlay, body.miniplayer iframe#overlay {
     box-shadow: none;
 }
 
-html.ui-index #background.loading {
-    background: (bg);
+body.miniplayer iframe#overlay {
+    box-shadow: inset 0px -12px 12px -12px (background-color-playing);
 }
 
-html.ui-index div.notify { 
+html div.notify { 
     color: #fff;
     text-shadow: 1px 1px 2px #000;
 }
 
-html.ui-index #menu-trigger-icon, html.ui-index #controls-toggle {
-    background: transparent;
-    border-bottom-color: (fgcolor)20;
-    border-right-color: (fgcolor)07;
-    border-left-color: (fgcolor)07;
-    color: (fgcolor)77; 
+body.playing div#notify-area, body.paused div#notify-area, body.miniplayer div#notify-area { 
+    background: linear-gradient(to bottom, (background-color-playing)FF 33%, (background-color-playing)77 66%, (background-color-playing)00 100%);
 }
 
-html.ui-index a.entry {
-    border-bottom: 1px solid (fgcolor)03;
+html #menu-trigger, html #menu-toggle {
+    background: transparent;
+    border-bottom-color: (font-color)10;
+    border-right-color: (font-color)03;
+    border-left-color: (font-color)03;
+    color: (font-color)55; 
+    font-size: 174%;
+}
+
+html #menu-toggle {
+    padding-right: 9px;
+    padding-left: 12px;
+    padding-bottom: calc((menu-entry-vertical-padding)px / 4);
+    padding-top: calc((menu-entry-vertical-padding)px / 4);
+}
+
+html a.entry {
+    border-bottom: 1px solid (font-color)03;
     box-shadow: inset 0 -11px 41px 0px rgba(0, 0, 0, 0.05), 0 -2px 2px rgba(0, 0, 0, 0.03);
 }
 
-html.ui-index #controls a.entry:first-child {
+html #menu a.entry:first-child {
     border-top-color: transparent;
 }
 
-html.ui-index #controls .list {
+html #menu-wrapper > div {
     background: transparent;
 }
 
-html.ui-index.ui-transparent-menu body:not(.transparent-menu) #controls .list {
-    background: (bgcolor)(menu-transparency-hex);
+html.ui-index.ui-transparent-menu body:not(.transparent-menu) #menu .list {
+    background: (background-color)(menu-transparency-hex);
 }
 
-html.ui-index div#player-status {
-    /* background: linear-gradient( to bottom, (bgcolor)(menu-transparency-hex) 0%, (bgcolor-playing)(player-status-transparency-hex) 18% ); */
-    background: (bgcolor-playing)(player-status-transparency-hex);
+html div#player-status {
+    /* background: linear-gradient( to bottom, (background-color)(menu-transparency-hex) 0%, (background-color-playing)(player-status-transparency-hex) 18% ); */
+    background: (background-color-playing)(player-status-transparency-hex);
 }
 
-html.ui-index .entry-name {
-    color: (fgcolor);
-    font-size: 128%;
-    text-transform: uppercase;
+html .entry-name, .entry-slider span.entry-slider-value {
+    color: (font-color);
+}
+
+html .entry-label, html .entry-name {
+    text-transform: (menu-text-case);
+    font-size: 1rem;    
+    white-space: nowrap;
 }
 
 html.ui-index.ui-light .entry-name {
-    text-shadow: 1px 1px 2px (fgcolor)66;
+    text-shadow: 1px 1px 2px (font-color)66;
 }
 
 html.ui-index:not(.ui-light) .entry-name {
     text-shadow: 1px 1px 0px #000, 0px 0px 3px #000;
 }
 
-html.ui-index .entry-logo .entry-logo-fa {
-    color: (fgcolor);
+html .entry-logo .entry-logo-fa {
+    color: (font-color);
 }
 
-html.ui-index body.playing #controls-toggle, html.ui-index body.paused #controls-toggle {
-    color: (fgcolor)77; 
+body.playing #menu-toggle, body.paused #menu-toggle {
+    color: (font-color)55; 
 }
 
-html.ui-index body:not(.playing) #controls-toggle:hover {
+body:not(.playing) #menu-toggle:hover {
     opacity: 1;
 }
 
-html.ui-index body.submenu #controls-toggle { 
-    color: (fgcolor)44 !important;
+body.submenu #menu-toggle { 
+    color: (font-color)44 !important;
 }
 
-html.ui-index #controls-toggle:hover { 
-    color: (fgcolor);  
+html #menu-toggle:hover { 
+    color: (font-color);  
 }
 
-html.ui-index #controls-toggle.entry-focused, html.ui-index .nw-cf-btn.entry-focused, html.ui-index .nw-cf-btn:hover {
-    color: (fgcolor);  
+html #menu-toggle.focused, html .nw-cf-btn.focused, html .nw-cf-btn:hover {
+    color: (font-color);  
 }
 
-html.ui-index .entry-label {
-    color: (fgcolor)77;
+html .entry-label {
+    color: (font-color)55;
+    text-shadow: none;
 }
 
-html.ui-index a.entry:focus, html.ui-index a.entry.entry-focused {
-    background: linear-gradient(to bottom, #FFFFFF15 0%, #FFFFFF0F 75%, #FFFFFF20 100%);
+html a.entry:focus, html a.entry.focused {
+    background: linear-gradient(to bottom, (font-color)15 0%, (font-color)0F 75%, (font-color)20 100%);
     outline: 0 !important;
-    box-sizing: content-box;
-    border-bottom: 1px solid (fgcolor)17;
+    border-bottom: 1px solid (font-color)17;
 }
 
-html.ui-index .nw-cf-title {
-    color: (fgcolor)77;
+input.focused {
+
 }
 
-html.ui-index .nw-cf-icon i, html.ui-index .nw-cf-icon svg, html.ui-index .nw-cf-btn .nw-cf-icon { 
-    color: (fgcolor)77;
+html .nw-cf-title {
+    color: (font-color)55;
+}
+
+html .nw-cf-icon i, html .nw-cf-icon svg, html .nw-cf-btn .nw-cf-icon { 
+    color: (font-color)55;
 }	
 
-html.ui-index span.nw-cf-icon {
+html span.nw-cf-icon {
     background-image: url("default_icon.png");
-}
-
-html.ui-index.ui-light .nw-cf-icon {
-    filter: invert(100%);
 }
 
 html.ui-index.ui-light .entry-logo img[src*="assets/icons/white"] {
     filter: invert(100%);
 }
 
-html.ui-index body.scrolled_400:not(.home) #list-icons {
-    background: (bgcolor);
-    border-color: (fgcolor)44;
+#menu-scrolling-down > div, #menu-scrolling-up > div {
+    border-color: (font-color)07;
+    border-radius: 4px;
+    color: (font-color)44;
 }
 
-html.ui-index #player {
-    background: (bgcolor-playing);
+a.option {
+    color: (font-color)44;
 }
 
-html.ui-index body.playing div#controls div.list, html.ui-index body.paused div#controls div.list {
-    background: linear-gradient( to bottom, (bgcolor), (bgcolor-playing) 18%);
+html #player {
+    background: (background-color-playing);
 }
 
-html.ui-index body.playing, html.ui-index body.paused {
-    background: (bg);
+body.playing:not(.transparent-menu) div#menu-wrapper, body.paused:not(.transparent-menu) div#menu-wrapper {
+    background: linear-gradient( to bottom, (background-color), (background-color-playing) 18%);
 }
 
-#vcontrols {
-    background: (bgcolor-playing)(menu-transparency-hex);
+body.playing, body.paused {
+    background: (background-color);
 }
 
-html.ui-index div#controls-left-border {
+html div#menu-left-border {
     width: 1px;
     position: absolute;
     bottom: 0;
     left: 0;
-    top: 31px;
-    height: calc(100% - 33px);
-    background: linear-gradient(to top, (fgcolor)07 0%, (fgcolor)07 90%, (fgcolor)20 100%);
+    top: calc(0.75rem * 2 + 2px);
+    height: calc(100% - (0.75rem * 2 + 2px));
+    background: linear-gradient(to top, (font-color)03 0%, (font-color)03 90%, (font-color)10 100%);
 }
 
-html.ui-index body.has-menu-margin div#controls-left-border {
+body.has-menu-margin div#menu-left-border {
     display: none;
 }
 
-html.ui-index .entry td.entry-logo-c {
+html .entry td.entry-logo-c {
     width: calc((icon-size)px + 2px);
 }
 
-html.ui-index #controls a.entry {
+html #menu a.entry, #vcontrols {
     height: calc((icon-size)px + (menu-entry-vertical-padding)px);
 }
 
-html.ui-index .entry-logo {
+.menu-footer {
+    background: (background-color-playing)44;
+}
+
+html #menu a.entry:not(.entry-compact):not(.entry-input) td, td.entry-slider span.entry-slider-value {
+    padding-left: calc((font-size)px * 0.5);
+}
+
+.entry-input img, .entry-input svg {
+    right: calc((font-size)px * 0.5);
+    top: calc((100% - (icon-size)px) / 2);
+    color: (background-color-playing)AA;
+}
+
+html .entry-logo {
     width: (icon-size)px;
     height: (icon-size)px;
 }
 
-html.ui-index .entry-logo img {
+html .entry-logo img {
     max-height: (icon-size)px;
 }
 
-html.ui-index .entry-logo-fa {
-    font-size: calc((icon-size)px - 4px);
+html .entry-logo-fa, #vcontrols svg {
+    font-size: (icon-size)px;
+    max-width: (icon-size)px;
+    max-height: (icon-size)px;
 }
 
-html.ui-index div#modal-overlay {
+html div#modal-overlay {
     background: linear-gradient(#00000000 0%, #000000FF 25%);
 }
 
-html.ui-index body.playing.transparent-menu #player, 
-html.ui-index body.playing.transparent-menu iframe#sandbox, 
-html.ui-index body.paused.transparent-menu #player, 
-html.ui-index body.paused.transparent-menu iframe#sandbox,
-html.ui-index body.playing.has-menu-margin #player, 
-html.ui-index body.playing.has-menu-margin iframe#sandbox, 
-html.ui-index body.paused.has-menu-margin #player, 
-html.ui-index body.paused.has-menu-margin iframe#sandbox {
+body.playing.transparent-menu #player, 
+body.playing.transparent-menu iframe#sandbox, 
+body.paused.transparent-menu #player, 
+body.paused.transparent-menu iframe#sandbox,
+body.playing.has-menu-margin #player, 
+body.playing.has-menu-margin iframe#sandbox, 
+body.paused.has-menu-margin #player, 
+body.paused.has-menu-margin iframe#sandbox {
     width: 100% !important;
 }
 
-html.ui-index body.transparent-menu #controls-left-border {
+body.transparent-menu #menu-left-border {
     display: none;
 }
 
-html.ui-index body.has-menu-margin.auto-hide.over #controls > div, 
-html.ui-index body.has-menu-margin.show-menu:not(.playing):not(.paused) #controls > div, 
-html.ui-index body.has-menu-margin.show-menu:not(.auto-hide) #controls > div {
+body.has-menu-margin.auto-hide.over #menu > div, 
+body.has-menu-margin.show-menu:not(.playing):not(.paused):not(.loading) #menu > div, 
+body.has-menu-margin.show-menu:not(.auto-hide) #menu > div {
     width: 100%;
     height: calc(100% * (1 - (menu-margin)));
     right: calc((100vh - 30px) * ((menu-margin) / 2));
     top: calc((100% - 30px) * ((menu-margin) / 2));
 }
 
-html.ui-index body.has-menu-margin.show-menu.home #home-icons {
-    bottom: calc((100vh - 30px) * ((menu-margin) / 2) + 1px);
-    right: calc((100vh - 30px) * ((menu-margin) / 2) + 8px);
-}
-
-html.ui-index body.has-menu-margin #controls-toggle {
-    top: calc((100vh - 30px) * ((menu-margin) / 2));
-    right: calc((100vh - 30px) * ((menu-margin) / 2));
-    left: auto;
-}
-
-html.ui-index body.has-menu-margin .vcontrols {
+body.has-menu-margin #vcontrols {
     bottom: calc((100% - 30px) * ((menu-margin) / 2));
     left: calc((100vh - 30px) * ((menu-margin) / 2));
     max-width: calc(100% - (2 * ((100vh - 30px) * ((menu-margin) / 2))));
     border-radius: 4px;
 }
 
-html.ui-index body.has-menu-margin.show-menu:not(.miniplayer):not(.auto-hide) .vcontrols {
+body.has-menu-margin.show-menu:not(.miniplayer) #vcontrols {
     width: calc(100% - 34% - (3 * ((100vh - 30px) * ((menu-margin) / 2)))) !important;
 }
 
-html.ui-index body.auto-hide #controls-toggle {
+body.auto-hide #menu-toggle {
     display: none;
 }
 
-html.ui-index body.transparent-menu.playing div#controls div.list, html.ui-index body.transparent-menu.paused div#controls div.list {
-    background: linear-gradient( to bottom, (bgcolor-playing)(player-status-transparency-hex) 0%, (bgcolor-playing)(player-status-transparency-hex) 75%, (bgcolor-playing)(player-status-transparency-hex) 90%);
+body.transparent-menu.playing div#menu-wrapper > div, body.transparent-menu.paused div#menu-wrapper > div {
+    background: linear-gradient( to bottom, (background-color-playing)(player-status-transparency-hex) 0%, (background-color-playing)(player-status-transparency-hex) 75%, (background-color-playing)(player-status-transparency-hex) 90%);
 }
 
-
-html.ui-index body.transparent-menu.playing div#player-status, html.ui-index body.transparent-menu.paused div#player-status {
-    background: linear-gradient( to bottom, (bgcolor)(menu-transparency-hex) 0%, (bgcolor-playing)(player-status-transparency-hex) 18%);
+body.transparent-menu.playing div#player-status, body.transparent-menu.paused div#player-status {
+    background: linear-gradient( to bottom, (background-color)(menu-transparency-hex) 0%, (background-color-playing)(player-status-transparency-hex) 18%);
 }
 
-html.ui-index body.playing:not(.show-menu) div#player-status, html.ui-index body.paused:not(.show-menu) div#player-status {
-    background: linear-gradient( to bottom, #000000FF 0%, #000000(player-status-transparency-hex) 18%);
+body.playing:not(.show-menu) div#player-status, body.paused:not(.show-menu) div#player-status {
+    background: linear-gradient( to bottom, (background-color-playing)FF 0%, (background-color-playing)(player-status-transparency-hex) 18%);
 }
 
-html.ui-index body.has-menu-margin.playing div#controls div.list, html.ui-index body.has-menu-margin.paused div#controls div.list {
+body.has-menu-margin.playing div#menu-wrapper > div, body.has-menu-margin.paused div#menu-wrapper > div {
     border-radius: 4px;
 }
 
-html.ui-index body.has-menu-margin.playing .fit-screen, html.ui-index body.has-menu-margin.playing .fit-player, html.ui-index body.has-menu-margin.playing .fit-player-min, 
-html.ui-index body.has-menu-margin.paused .fit-screen, html.ui-index body.has-menu-margin.paused .fit-player, html.ui-index body.has-menu-margin.paused .fit-player-min {
+body.has-menu-margin.playing .fit-screen, body.has-menu-margin.playing .fit-player, body.has-menu-margin.playing .fit-player-min, 
+body.has-menu-margin.paused .fit-screen, body.has-menu-margin.paused .fit-player, body.has-menu-margin.paused .fit-player-min {
     width: 100%;
 }
 
@@ -275,13 +302,13 @@ body.show-menu:not(.miniplayer) .fit-player, body.show-menu:not(.miniplayer) .fi
     width: calc(100% - (menu-width));
 }
 
-body #controls {
+body #menu {
     width: (menu-width);
-    transition: width 0.2s linear;
+    transition: width 0.1s linear;
 }
 
 #player, iframe#sandbox {
-    width: calc(100% - (menu-width)); /* +18px to box-shadow */
+    width: calc(100% - (menu-width));
 }
 
 progress {
@@ -290,33 +317,103 @@ progress {
 }
 
 progress::-webkit-progress-bar { 
-    background: (bg);
+    background: (background-color);
 }
 
 progress::-webkit-progress-value {
-    background: (fgcolor); 
-    box-shadow: 0 0 36px (fgcolor);
+    background: linear-gradient(to right, (font-color)99 0%, (font-color)FF 75%); 
+    box-shadow: 0 0 36px (font-color);
 }
 
-html.ui-index .prompt-footer .button {
-    display: inline-block;
-    background: (bgcolor);
-    color: (fgcolor);
-    height: 100%;
-    cursor: pointer;
-    text-shadow: 1px 1px 1px (bgcolor);
+html .prompt-footer .button {
+    background: (background-color);
+    color: (font-color);
+    min-height: calc(2 * (icon-size)px);
+    text-shadow: 1px 1px 1px (background-color);
 }
 
-html.ui-index .prompt-footer .button:hover, html.ui-index .prompt-footer .button.entry-focused {
-    background: (bgcolor)DD;
+html .prompt-footer .button svg, .prompt-close a svg {
+    width: (icon-size)px;
+    height: (icon-size)px;
+    font-size: (icon-size)px;
 }
 
-html.ui-index div#miniplayer-poster {
-    background: #000000;
+html .prompt-footer .button:hover, html .prompt-footer .button.focused {
+    background: (background-color)DD;
 }
 
-html.ui-index div#miniplayer-poster > div {
+.prompt-close a {
+    color: (background-color-playing);
+}
+
+.prompt-close a.focused {
+    color: (background-color-playing)77;
+}
+
+.prompt-header, .prompt-footer {
+    color: (background-color-playing);
+    text-shadow: 1px 1px 1px (background-color-playing)77;
+    background: linear-gradient(to bottom, (font-color)FF, (font-color)E0);
+}
+
+.prompt-input {
+    color: (background-color-playing);
+    background: (font-color);
+    min-height: calc(2 * (icon-size)px);
+}
+
+div#modal-overlay .prompt textarea, div#modal-overlay .prompt input {
+    width: calc(100% - (2 * (font-size)px));
+}
+
+body div.list {
+    mask-image: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 0%, rgba(0,0,0,1) (menu-inset-shadow-end), rgba(0,0,0,0) 100%);
+    -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 0%, rgba(0,0,0,1) (menu-inset-shadow-end), rgba(0,0,0,0) 100%);
+}
+
+body.home div.list, body.transparent-menu div.list, body.playing div.list, body.paused div.list {
+    mask-image: none;
+    -webkit-mask-image: none;
+}
+
+body.scrolled-down div.list {
+    mask-image: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,1) (menu-inset-shadow-start), rgba(0,0,0,1) (menu-inset-shadow-end), rgba(0,0,0,0) 100%);
+    -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,1) (menu-inset-shadow-start), rgba(0,0,0,1) (menu-inset-shadow-end), rgba(0,0,0,0) 100%);
+}
+
+.background-image {    
+    opacity: (background-opacity);
+}
+
+.background-logo-container {    
+    opacity: (logo-opacity);
+}
+
+#splash-message {
+    color: (font-color);
+    text-shadow: 2px 2px (background-color-playing);
+}
+
+body.splash .background-logo-container {    
+    opacity: 1 !important;
+}
+
+body.miniplayer:not(.paused):not(.playing):not(.loading) span.nw-cf-icon {
+    background: transparent url(assets/icons/white/white_logo.png) no-repeat center center !important;
+    background-size: 100% auto !important;
+}
+
+html div#miniplayer-poster {
+    background: #000000 url(assets/icons/white/white_logo.png) no-repeat center 36%;
+    background-size: 30%;
+}
+
+html div#miniplayer-poster > div {
     color: #fff;    
+}
+
+html.ui-overlay, html.ui-player, html.ui-overlay body, html.ui-player body {
+    background: transparent !important;
 }
 
 html.ui-overlay #drop-target svg, html.ui-overlay #drop-target i {
@@ -329,32 +426,126 @@ html.ui-overlay #drop-target.hover {
 }
 
 ::-webkit-scrollbar {
-    background: (fgcolor)33;
+    background: (font-color)33;
 }
 
 ::-webkit-scrollbar-thumb {
-    background: (fgcolor);
+    background: (font-color);
     box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.75);
 }
 
 ::-webkit-scrollbar-corner {
-    background: (bg);
+    background: (background-color);
 }
 
 input[type=range] {
     -webkit-appearance: none;
-    background: (fgcolor);
+    background: (font-color);
     border-radius: 2px;
 }
 
 input[type=range]::-webkit-slider-thumb {
     -webkit-appearance: none;
-    background: (bg);
+    background: (background-color);
     cursor: pointer;
     height: 12px;
     width: 16px;
 }
 
-body.tuning #background .background-logo {
-    animation: (bg-anim) 4s infinite;
+body.tuning #background-overlay .background-logo {
+    animation: (background-animation) 3s infinite;
+}
+
+#vcontrols {
+    background: (background-color-playing)(menu-transparency-hex);
+    max-height: calc((icon-size)px + (menu-entry-vertical-padding)px); /* padding */
+}
+
+#vcontrols a, #vcontrols div {
+    color: (font-color)aa; 
+}
+
+#vcontrols a:hover, #vcontrols a:hover svg {
+    color: (font-color)ff; 
+}
+
+#vcontrols .video-scale svg, #vcontrols .video-scale i {
+    border: 1px solid (font-color)aa;
+}
+
+#vcontrols input[type=range] {
+    background: (font-color)22 !important;
+}
+
+#vcontrols input[type=range]::-webkit-slider-thumb {
+    background: (font-color)aa;
+}
+
+#vcontrols input[type='range']::-webkit-slider-thumb {
+    box-shadow: -10000px 0 0 10000px (font-color)aa;
+}
+
+#vcontrols .video-scale {
+    border: 1px solid (font-color)aa;
+    max-height: (icon-size)px;
+}
+
+div#menu-scrolling-up, div#menu-scrolling-down {
+    display: none;
+    height: auto;
+    width: 100%;
+    width: 100%;
+    right: 0;
+    text-align: right;
+    pointer-events: none;
+}
+
+div#menu-scrolling-up > div, div#menu-scrolling-down > div {
+    font-size: 200%;
+    display: inline-block;
+    height: 100%;
+    width: 10%;
+    padding: 1%;
+    background: (background-color);
+    text-align: center;
+    border-style: solid;
+}
+
+div#menu-scrolling-up > div {
+    border-bottom-right-radius: 0;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    border-width: 1px 1px 0 0;
+}
+
+div#menu-scrolling-down {
+    bottom: 0;
+}
+
+div#menu-scrolling-down > div {
+    background: (background-color-playing);
+    border-width: 1px 0 0 1px;
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+    border-top-right-radius: 0;    
+}
+
+.entry-status > span {
+    color: (highlight-color);
+    text-shadow: 0 1px 1px (background-color-playing);
+}
+
+.entry-status .fa-play-circle { /* fill play triangle */
+    background: radial-gradient((background-color-playing) 10%, (background-color-playing)99 50%, transparent 51%);
+}
+
+.notify-first .notify-icon {
+    font-size: (icon-size)px;
+    max-width: (icon-size)px;
+    max-height: (icon-size)px;
+}
+
+a.entry-stream .entry-logo-img-c, a.entry-meta-stream .entry-logo-img-c, a.entry-stream .entry-logo-fa-c, a.entry-meta-stream .entry-logo-fa-c {
+	border-radius: (icon-rounding);
+    overflow: hidden;
 }
