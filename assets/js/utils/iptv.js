@@ -48,7 +48,7 @@ function buildPathStructure(path, group){ // group is entry object of type "grou
 
 var ListMan = (() => {
 
-    var self = {}, debug = false;
+    var self = {}, debug = debugAllow(false)
     
     self.badexts = ['jpg', 'jpeg', 'gif', 'bmp', 'png', 'txt'];
     self.regexes = {
@@ -161,21 +161,29 @@ var ListMan = (() => {
         return '';
     }
 
-    self.exportEntriesAsM3U = (entries, noHeader) => {
+    self.exportEntriesAsM3U = (entries, noHeader, cb) => {
         var ct = "", vpath = Menu.path;
         if(!noHeader){
             ct += "#EXTM3U\n\n";
         }
         if(jQuery.isArray(entries)){
-            entries.forEach((entry) => {
+            async.forEach(entries, (entry, callback) => {
                 if(entry.type == 'stream' && entry.url){
                     if(isMegaURL(entry.url)){
                         var mega = parseMegaURL(entry.url);
                         if(mega && mega.name){
-                            ct += ListMan.exportEntriesAsM3U(fetchSharedListsSearchResults(null, 'all', mega.name, true, true))
+                            fetchSharedListsSearchResults(es => {
+                                ListMan.exportEntriesAsM3U(es, true, txt => {
+                                    ct += txt
+                                    callback()
+                                })
+                            }, 'all', mega.name, true, true)
+                        } else {
+                            callback()
                         }
                     } else {
                         ct += "#EXTINF:-1 tvg-name=\""+entry.name+"\" tvg-logo=\""+entry.logo+"\" group-title=\""+(entry.group || "")+"\","+entry.name+"\n"+entry.url+"\n\n";
+                        callback()
                     }
                 } else {
                     if(entry['renderer'] && entry.type == 'group') {
@@ -185,18 +193,34 @@ var ListMan = (() => {
                             var es = Menu.asyncResult(vpathIn);
                             //console.warn('ASYNC', entry, vpath, vpathIn, es);
                             if(es){
-                                ct += self.exportEntriesAsM3U(es, true)
+                                self.exportEntriesAsM3U(es, true, txt => {
+                                    ct += txt
+                                    callback()
+                                })
+                            } else {
+                                callback()
                             }
                         } else {
-                            ct += self.exportEntriesAsM3U(nentries, true)
+                            self.exportEntriesAsM3U(nentries, true, txt => {
+                                ct += txt
+                                callback()
+                            })
                         }
                     } else if(entry['entries']) {
-                        ct += self.exportEntriesAsM3U(entry['entries'], true)
+                        self.exportEntriesAsM3U(entry['entries'], true, txt => {
+                            ct += txt
+                            callback()
+                        })
+                    } else {
+                        callback()
                     }
                 }
+            }, () => {
+                cb(ct)
             })
+        } else {
+            cb(ct)
         }
-        return ct;
     }
 
     self.parse = (content, cb, timeout, skipFilters, url) => { // parse a list to a array of entries/objects

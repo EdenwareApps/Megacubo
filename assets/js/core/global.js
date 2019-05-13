@@ -1,7 +1,11 @@
 
-var Menu, $win = jQuery(window), $body = jQuery('body'), isSDKBuild = (window.navigator.plugins.namedItem('Native Client') !== null)
+var Menu, $win = jQuery(window), $body = jQuery('body'), isSDKBuild = (window.navigator.plugins.namedItem('Native Client') !== null), searchResultsLimit = 196
 
-if(!isSDKBuild){
+function debugAllow(def){
+    return isSDKBuild && (typeof(def) == 'undefined' || def)
+}
+
+if(!debugAllow()){
     var __console = console;
     window.console = {}
     var fns = ['log', 'warn', 'info', 'debug', 'trace', 'clear']
@@ -71,9 +75,9 @@ window.ondragleave = window.ondrop = function(e) {
 };
 
 window.onerror = (...arguments) => {
-    console.error('ERROR', arguments);
-    logErr(arguments);
-    return true;
+    console.error('ERROR', arguments, traceback())
+    logErr(arguments)
+    return true
 }
 
 var availableLanguageNames = {
@@ -166,6 +170,12 @@ function loadScript(__url, cb){
         })
     }
     check(__url)
+}
+
+function rand(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
 // First, checks if it isn't implemented yet.
@@ -290,21 +300,21 @@ Uint8Array.prototype.indexOfMulti = function (search) {
 }
 
 function blobToBuffer (blob, cb) {
-    if (typeof Blob === 'undefined' || blob.constructor.name != "Blob") {
-        throw new Error('first argument must be a Blob')
+    if (typeof(Blob) === 'undefined' || !(typeof(blob) == 'object' && typeof(blob.constructor) != 'undefined' && blob.constructor.name == "Blob")) {
+        return cb(new Error('first argument must be a Blob, received:', typeof(blob), JSON.stringify(blob)))
     }
     if (typeof cb !== 'function') {
-        throw new Error('second argument must be a function')
-    }
-    
-    var reader = new FileReader()
-    
+        return cb(new Error('second argument must be a function'))
+    }    
+    var reader = new FileReader()    
     function onLoadEnd (e) {
         reader.removeEventListener('loadend', onLoadEnd, false)
-        if (e.error) cb(e.error)
-        else cb(null, Buffer.from(reader.result))
-    }
-    
+        if (e.error) {
+            cb(e.error)
+        } else {
+            cb(null, Buffer.from(reader.result))
+        }
+    }    
     reader.addEventListener('loadend', onLoadEnd, false)
     reader.readAsArrayBuffer(blob)
 }
@@ -379,41 +389,35 @@ function fetchTimeout(url, _callback, ms, opts){
     })
 }
 
-var resolveURL=function resolve(url, base){
-    if('string'!==typeof url || !url){
+var absolutize = (url, base) => {
+    if('string' !== typeof(url) || !url){
         return null; // wrong or empty url
-    }
-    else if(url.match(/^[a-z]+\:\/\//i)){ 
+    } else if(url.match(/^[a-z]+\:\/\//i)){ 
         return url; // url is absolute already 
-    }
-    else if(url.match(/^\/\//)){ 
+    } else if(url.match(/^\/\//)){ 
         return 'http:'+url; // url is absolute already 
-    }
-    else if(url.match(/^[a-z]+\:/i)){ 
+    } else if(url.match(/^[a-z]+\:/i)){ 
         return url; // data URI, mailto:, tel:, etc.
-    }
-    else if('string'!==typeof base){
+    } else if('string' !== typeof(base)){
         var a=document.createElement('a'); 
         a.href=url; // try to resolve url without base  
         if(!a.pathname){ 
             return null; // url not valid 
         }
-        return 'http://'+url;
-    }
-    else{ 
-        base=resolve(base); // check base
-        if(base===null){
-            return null; // wrong base
+        return 'http://'+url
+    } else { 
+        base = absolutize(base) // check base
+        if(base === null){
+            return null // wrong base
         }
     }
     var a=document.createElement('a'); 
     a.href=base;    
-    if(url[0]==='/'){ 
-        base=[]; // rooted path
-    }
-    else{ 
-        base=a.pathname.split('/'); // relative path
-        base.pop(); 
+    if(url[0] == '/'){ 
+        base = [] // rooted path
+    } else{ 
+        base = a.pathname.split('/') // relative path
+        base.pop()
     }
     url=url.split('/');
     for(var i=0; i<url.length; ++i){
@@ -473,7 +477,7 @@ function getHeaders(url, callback, timeoutSecs){
             r.abort();
             if(headers['location'] && headers['location'] != url && headers['location'] != currentURL){
                 if(!headers['location'].match(new RegExp('^(//|https?://)'))){
-                    headers['location'] = resolveURL(headers['location'], currentURL); 
+                    headers['location'] = absolutize(headers['location'], currentURL); 
                 }
                 currentURL = headers['location'];
                 var remainingTimeout = timeoutSecs - (time() - start);
@@ -503,23 +507,29 @@ function parseThousands(s) {
 }
 
 function basename(str, rqs){
-    _str = new String(str); 
-    pos = _str.replaceAll('\\', '/').lastIndexOf('/');
+    str = String(str), qs = ''
+    let pos = str.indexOf('?')
     if(pos != -1){
-        _str = _str.substring(pos + 1); 
+        qs = str.slice(pos + 1)
+        str = str.slice(0, pos)
     }
-    if(rqs){
-        _str = removeQueryString(_str);
+    str = str.replaceAll('\\', '/')
+    pos = str.lastIndexOf('/')
+    if(pos != -1){
+        str = str.substring(pos + 1)
     }
-    return String(_str)
+    if(!rqs && qs){
+        str += '?'+qs
+    }
+    return str
 }
 
 function dirname(str){
-    _str = new String(str); 
-    pos = _str.replaceAll('\\', '/').lastIndexOf('/');
-    if(!pos) return '';
-    _str = _str.substring(0, pos); 
-    return _str;
+    _str = new String(str)
+    pos = _str.replaceAll('\\', '/').lastIndexOf('/')
+    if(!pos) return ''
+    _str = _str.substring(0, pos)
+    return _str
 }
 
 WPDK_FILTERS = {}, WPDK_ACTIONS = {};
@@ -821,6 +831,7 @@ if(top == window){
     var Config = (() => {
         var self = {
             debug: false,
+            loaded: false,
             file: Users.loggedFolder + path.sep + 'configure.json',
             defaults: {
                 "abbreviate-counters": true,
@@ -891,13 +902,11 @@ if(top == window){
                 "min-buffer-secs-before-commit": 2,
                 "override-locale": "", 
                 "p2p": true,
-                "p2p-port": 9736,
                 "play-while-tuning": true,
                 "resolution-limit": "1280x720",
                 "resume": false,
-                "search-range-size": 18,
+                "search-range-size": 0,
                 "similar-transmissions": true,
-                "slide-menu-transitions": true,
                 "sources": [],
                 "themes": {},
                 "theme-current": "default",
@@ -907,7 +916,7 @@ if(top == window){
                 "volume": 1.0,
                 "warn-on-connection-errors": true
             }
-        }, loaded = false;
+        };
         self.data = Object.assign({}, self.defaults); // keep defaults object for reference
         for(var key in self.data){
             if(typeof(self.data[key]) != typeof(self.defaults[key])){
@@ -916,8 +925,8 @@ if(top == window){
             }
         }
         self.load = () => {
-            loaded = true;
-            if(fs.existsSync(self.file)){
+            if(!self.loaded  && fs.existsSync(self.file)){
+                self.loaded = true
                 var _data = fs.readFileSync(self.file, "utf8")
                 if(_data){
                     if(Buffer.isBuffer(_data)){ // is buffer
@@ -937,10 +946,12 @@ if(top == window){
                 }
             }
         }
+        self.reload = () => {
+            self.loaded = false
+            self.load()
+        }
         self.getAll = () => {
-            if(!loaded){
-                self.load()
-            }
+            self.load()
             var data = {};
             Object.keys(self.defaults).forEach((key) => {
                 data[key] = self.data[key] || self.defaults[key];
@@ -949,9 +960,7 @@ if(top == window){
             return data;
         }
         self.get = (key) => {
-            if(!loaded){
-                self.load()
-            }
+            self.load()
             //console.log('DATAb', JSON.stringify(data))
             //console.log('GET', key, traceback());
             var t = typeof(self.data[key]);
@@ -971,9 +980,7 @@ if(top == window){
             return self.data[key];
         }
         self.set = (key, val) => {
-            if(!loaded){
-                self.load()
-            }
+            self.load()
             if(self.debug){
                 console.log('SSSET', key, val, self.data)
             }
@@ -983,15 +990,18 @@ if(top == window){
             }
             if(fs.existsSync(self.file)){
                 fs.truncateSync(self.file, 0)
+            } else {
+                console.warn(dirname(self.file))
+                mkdirr(dirname(self.file))
             }
             var jso = JSON.stringify(Object.assign({}, self.data), null, 3);
-            fs.writeFileSync(self.file, jso, "utf8");
+            fs.writeFileSync(self.file, jso, "utf8")
             if(self.debug){
                 console.log('SSSET', jso, self.data)
             }
         }
         return self;
-    })();       
+    })()   
     
     var Theme = (() => {
         var self = {
@@ -1011,20 +1021,20 @@ if(top == window){
                 "font-weight": 100,
                 "hide-back-button": false,
                 "hide-menu-auto": false,
-                "highlight-color": "#00AFB1",
+                "highlight-opacity": 8,
                 "icon-size": 20,
                 "icon-rounding": 50,
                 "inline-css": "",
                 "logo": "default_icon.png",
                 "logo-opacity": 75,
                 "menu-entry-vertical-padding": 10,
-                "menu-transparency": 100,
+                "menu-opacity": 100,
                 "menu-inset-shadow": 1,
                 "menu-margin": 0,
                 "menu-uppercase": true,
                 "menu-width": 34,
                 "name": "default",
-                "slide-menu-transitions": false,
+                "slide-menu-transitions": true,
                 "tuning-background-animation": "spin-x"
             }
         }, loaded = false; // keep defaults object for reference
@@ -1174,10 +1184,10 @@ if(top == window){
 
     var BigJSON = (() => {
         var self = {}
-        self.module = require('big-json');
-        self.stringify = (text, cb) => {     
+        self.module = require('big-json')
+        self.stringify = (data, cb) => {     
             var opts = {
-                body: text
+                body: data
             }
             self.module.stringify(opts, cb)
         }
@@ -1344,12 +1354,25 @@ function goHome(){
 }
 
 function restartApp(hard){
+    if(ipc && ipc.server.server.listening){        
+        if(!ipcIsClosing){
+            ipcIsClosing = true;
+            ipcSrvClose(() => {
+                ipc = false;
+                restartApp(hard)
+            })
+        }
+        return;
+    }
     doAction('appUnload')
     if(hard === true){
         setTimeout(() => { 
             //chrome.runtime.reload()
             //*
-            nw.Shell.openExternal(process.execPath)
+            var spawn = require('child_process').spawn
+            spawn(process.execPath, nw.App.argv, {
+                detached: true 
+             });
             setTimeout(() => {
                 nw.App.closeAllWindows()
             }, 0)
@@ -1402,7 +1425,7 @@ function getM3u8Parser(){
     if(!top.m3u8Parser){
         top.m3u8Parser = require('m3u8-parser');
     }
-    return new top.m3u8Parser.Parser();
+    return new top.m3u8Parser.Parser()
 }    
 
 function areFramesReady(callback){
@@ -1482,7 +1505,7 @@ function setupShortcuts(){
     if (document.URL.match(new RegExp('(detect\-keys|indexer|background_page)\.html'))) {
         return;
     }  else if (top != window) {
-        setupKeyboardForwarding(document)
+        setupEventForwarding(document)
     } else {
         var globalHotkeys = [
             {
@@ -1589,10 +1612,33 @@ function setPriority(priority, cb, retries){
             }
         }
     }
-    require('child_process').exec('wmic process where processid='+process.pid+' CALL setpriority "'+priority+'"', callback)
+    if(process.platform == 'win32'){
+        require('child_process').exec('wmic process where processid='+process.pid+' CALL setpriority "'+priority+'"', callback)
+    } else {
+        if(typeof(cb) =='function'){
+            cb('Not win32', '')
+        }
+    }
 }
 
-function setupKeyboardForwarding(fromDocument, to){
+function getHash(file, cb){
+    if(typeof($crypto) == 'undefined'){
+        $crypto = require('crypto') 
+    }
+    fs.exists(file, exists => {
+        if(exists){
+            fs.createReadStream(file).
+                pipe($crypto.createHash('sha1').setEncoding('hex')).
+                on('finish', function () { // no arrow function here
+                    cb(this.read()) //the hash
+                })
+        } else {
+            cb('')
+        }
+    })
+}
+
+function setupEventForwarding(fromDocument, to){
     var ctrlProp = '_keyboardForwarding';
     if(!to){
         to = top.document;
@@ -1600,41 +1646,29 @@ function setupKeyboardForwarding(fromDocument, to){
     if(fromDocument != to){
         if(typeof(fromDocument[ctrlProp])=='undefined'){
             fromDocument[ctrlProp] = true;
-            fromDocument.addEventListener('keydown', (e) => {
-                console.log('KEYDOWN');
-                if(to.defaultView){
-                    let evt = new to.defaultView.Event('keydown', {key: e.key, code: e.code, ctrlKey: e.ctrlKey, altKey: e.altKey, shiftKey: e.shiftKey, metaKey: e.metaKey, composed: true, charCode: e.charCode, keyCode: e.keyCode, which: e.which, bubbles: true, cancelable: true, which: e.keyCode});
-                    evt.keyCode = e.keyCode;
-                    evt.which = e.keyCode;
-                    evt.altKey = e.altKey;
-                    evt.ctrlKey = e.ctrlKey;
-                    evt.metaKey = e.metaKey;
-                    evt.shiftKey = e.shiftKey;
-                    to.body.dispatchEvent(evt);
-                    console.log('KEYDOWN OK', evt.ctrlKey, e.ctrlKey)
-                } else {
-                    console.log('KEYDOWN FAIL, no defaultView', to, to.defaultView)
-                }
-            });
-            fromDocument.addEventListener('keyup', (e) => {
-                console.log('KEYUP');  
-                if(to.defaultView){
-                    let evt = new to.defaultView.Event('keyup', {key: e.key, code: e.code, ctrlKey: e.ctrlKey, altKey: e.altKey, shiftKey: e.shiftKey, metaKey: e.metaKey, composed: true, charCode: e.charCode, keyCode: e.keyCode, which: e.which, bubbles: true, cancelable: true, which: e.keyCode});
-                    evt.keyCode = e.keyCode;
-                    evt.which = e.keyCode;
-                    evt.altKey = e.altKey;
-                    evt.ctrlKey = e.ctrlKey;
-                    evt.metaKey = e.metaKey;
-                    evt.shiftKey = e.shiftKey;
-                    to.defaultView.document.body.dispatchEvent(evt);
-                    console.log('KEYUP OK', evt.ctrlKey, e.ctrlKey)
-                } else {
-                    console.log('KEYUP FAIL, no defaultView', to, to.defaultView)
-                }
-            });
-            console.log('Keyboard forwarding from '+basename(fromDocument.URL, true))
+            if(to.defaultView){
+                ['contextmenu', 'keypress', 'keydown', 'keyup', 'mousemove', 'mouseover', 'mouseout', 'mousedown', 'mousemove', 'click'].forEach(eventName => {
+                    fromDocument.addEventListener(eventName, (e) => {
+                        let evt = new to.defaultView.Event(eventName, {
+                            "bubbles": true, 
+                            "cancelable": true
+                        })
+                        for(var propName in e){
+                            if(typeof(e[propName]) != 'function'){
+                                evt[propName] = e[propName]
+                            }
+                        }
+                        to.defaultView.document.body.dispatchEvent(evt)                        
+                        e.stopPropagation()
+                        e.preventDefault()
+                    }) 
+                })
+            } else {
+                console.error('Event forwarding failure, no defaultView', to, to.defaultView)
+            }
+            console.log('Event forwarding from '+basename(fromDocument.URL, true))
         } else {
-            console.log('Keyboard already forwarding from '+basename(fromDocument.URL, true))
+            console.log('Event already forwarding from '+basename(fromDocument.URL, true))
         }
     }
 }
@@ -1766,7 +1800,7 @@ function wait(checker, callback){
 function getDomain(u){
     if(u && u.indexOf('//')!=-1){
         var domain = u.split('//')[1].split('/')[0];
-        if(domain.indexOf('.')!=-1){
+        if(domain == 'localhost' || domain.indexOf('.') != -1){
             return domain;
         }
     }
@@ -2395,9 +2429,8 @@ parseURL = (() => {
     }
 })()
 
-var notifyTimer = 0, notifyDebug = false;
+var notifyTimer = 0, notifyDebug = true;
 function notifyParseTime(secs){
-    var maxSecs = 200000;
     switch(secs){
         case 'short':
             secs = 1;
@@ -2409,14 +2442,9 @@ function notifyParseTime(secs){
             secs = 7;
             break;
         case 'wait':
-            secs = maxSecs;
-            break;
         case 'forever':
-            secs = 30 * (24 * 3600);
+            secs = 0;
             break;
-    }
-    if(secs > maxSecs){
-        secs = maxSecs;
     }
     return secs;
 }
@@ -2467,12 +2495,21 @@ function notify(str, fa, secs, eternal){
     if((str + fa) == lastNotifyCall){ // tricky, avoid doubled calls
         return;
     }
+    if(notifyDebug){
+        console.log('[notify] NEW NOTIFY', str, fa, secs, eternal)
+    }
     setupNotify();
     lastNotifyCall = (str + fa);
     var o = window.top || window.parent;
     if(o && o.document){
+        if(notifyDebug){
+            console.log('[notify] NEW NOTIFY', str, fa, secs, eternal)
+        }
         var _fa = fa, a = o.document.getElementById('notify-area');
         if(a){
+            if(notifyDebug){
+                console.log('[notify] NEW NOTIFY', str, fa, secs, eternal)
+            }
             a = jQuery(a);
             if(!str) {
                 a.find('.notify-wait').hide();
@@ -2480,10 +2517,16 @@ function notify(str, fa, secs, eternal){
             }
             var c = '', timer;
             if(a){
+                if(notifyDebug){
+                    console.log('[notify] NEW NOTIFY', str, fa, secs, eternal)
+                }
                 if(secs == 'wait'){
                     c += ' notify-wait';
                 }
                 secs = notifyParseTime(secs);
+                if(notifyDebug){
+                    console.log('[notify] NEW NOTIFY', str, fa, secs, eternal)
+                }
                 a.find('.notify-row').filter((i, o) => {
                     return jQuery(o).find('div').text().trim() == str;
                 }).remove();
@@ -2499,7 +2542,7 @@ function notify(str, fa, secs, eternal){
                 n.prependTo(a);
                 var destroy = () => {
                     if(notifyDebug){
-                        console.log('[notify] DESTROY')
+                        console.log('[notify] DESTROY', traceback())
                     }
                     if(lastNotifyCall == (str + fa)){
                         lastNotifyCall = '';
@@ -2528,7 +2571,13 @@ function notify(str, fa, secs, eternal){
                     }
                     return n;
                 }
-                timer = top.setTimeout(destroy, secs * 1000);
+                timer = 0
+                if(secs){
+                    timer = top.setTimeout(destroy, secs * 1000)
+                }
+                if(notifyDebug){
+                    console.log('[notify] NEW NOTIFY', n.html(), secs, n.css('display'))
+                }
                 n.stop().animate({left: 0, opacity: 1}, 250);
                 return {
                     element: () => {
@@ -2538,7 +2587,7 @@ function notify(str, fa, secs, eternal){
                         lastNotifyCall = (str + _fa);
                         n = getElement();
                         if(notifyDebug){
-                            console.log('[notify] UPDATE NOTIFY', n, _fa, secs)
+                            console.log('[notify] UPDATE NOTIFY', n, str, _fa, secs)
                         }
                         if(_fa && _fa != lastFA) {
                             lastFA = _fa;
@@ -2557,16 +2606,19 @@ function notify(str, fa, secs, eternal){
                                 n.prependTo(a)
                             }
                             secs = notifyParseTime(secs)
-                            clearTimeout(timer);
-                            if(notifyDebug){
-                                console.warn('[notify] NOTIFY TIMEOUT SETUP', secs * 1000)
-                            }
-                            timer = setTimeout(() => {
+                            clearTimeout(timer)
+                            timer = 0
+                            if(secs){
                                 if(notifyDebug){
-                                    console.warn('[notify] NOTIFY TIMEOUT OK', secs * 1000)
+                                    console.warn('[notify] NOTIFY TIMEOUT SETUP', secs * 1000)
                                 }
-                                destroy()
-                            }, secs * 1000)
+                                timer = setTimeout(() => {
+                                    if(notifyDebug){
+                                        console.warn('[notify] NOTIFY TIMEOUT OK', secs * 1000)
+                                    }
+                                    destroy()
+                                }, secs * 1000)
+                            }
                             n.show().animate({left: 0, opacity: 1}, 250)
                         }
                         return n;
@@ -2653,9 +2705,8 @@ function displayPrepareName(name, label, prepend, append, raw){
     }
     name = name.replaceAll(' - ', ' · ').replaceAll(' | ', ' · ').trim();
     if(label){
-        name += '&nbsp; ';
         if(raw){
-            name += label;
+            name += ' ' + label;
         } else {
             name += '<span class="entry-label">' + label.trim() + '</span>';
         }
@@ -2875,6 +2926,21 @@ function parseMegaURL(url){
     return false;
 }
 
+function getMediaType(entry){
+    const url = entry.originalUrl || entry.url || String(entry)
+    if(isMegaURL(url)){
+        let p = parseMegaURL(url)
+        if(p && p.mediaType){
+            return p.mediaType
+        }
+    } else if(isLive(url)) {
+        return 'live'
+    } else if(isVideo(url)) {
+        return 'video'
+    }
+    return 'all'
+}
+
 function isValidMegaURL(url){
     var data = parseMegaURL(url)
     if(data){
@@ -3087,7 +3153,7 @@ function getLocale(short, noUnderline){
     return lang;
 }
 
-function absolutize(file){
+function localize(file){
     return path.join(process.cwd(), file)
 }
 
@@ -3105,6 +3171,7 @@ function closest(num, arr) {
 }
 
 function removeFolder(location, itself, next) {
+    location = path.resolve(location)
     console.log(itself?'REMOVING':'CLEANING', location);
     if (!next) next = jQuery.noop;
     fs.readdir(location, function(err, files) {

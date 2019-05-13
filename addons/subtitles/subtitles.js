@@ -305,6 +305,6 @@ Playback.on('stop', () => {
     subtitlesMaybeRefresh()
 })    
 
-addAction('appStart', () => {
+addAction('appReady', () => {
     registerSearchEngine(Lang.SUBTITLES, 'subtitles', fetchSubtitles)
 })

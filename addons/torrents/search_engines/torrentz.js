@@ -2,7 +2,7 @@
 Name: TorrentZ
 */
 module.exports = (terms, callback, modules) => {
-    var torrentz = require(modules.path.resolve('addons/torrents/node_modules/node-torrentz'))
+    var torrentz = require('node-torrentz')
     if(torrentz){	
         torrentz.search(terms, (results) => {
             var score, entries = [];

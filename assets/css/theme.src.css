@@ -14,11 +14,13 @@ html .nw-cf {
 }
 
 body.miniplayer.playing .nw-cf, body.miniplayer.paused .nw-cf {
-    background: (background-color-playing)AA;
+    background: (background-color-playing)(menu-opacity-hex);
+    box-shadow: 0 -3px 12px 12px (background-color-playing)(menu-opacity-hex);
 }
 
 body.notify.miniplayer.playing .nw-cf, body.notify.miniplayer.paused .nw-cf, body.notify.miniplayer.loading .nw-cf {
     background: (background-color-playing)FF;
+    box-shadow: 0 -3px 12px 12px (background-color-playing)FF;
 }
 
 html .nw-cf-btn { 
@@ -26,7 +28,7 @@ html .nw-cf-btn {
 }
 
 body.playing #menu-toggle, body.paused #menu-toggle, body.playing #menu-trigger, body.paused #menu-trigger { 
-    background: (background-color-playing)(menu-transparency-hex);
+    background: (background-color-playing)(menu-opacity-hex);
 }
 
 body.playing:not(.show-menu) .nw-cf, body.paused:not(.show-menu) .nw-cf {
@@ -80,11 +82,11 @@ html #menu-wrapper > div {
 }
 
 html.ui-index.ui-transparent-menu body:not(.transparent-menu) #menu .list {
-    background: (background-color)(menu-transparency-hex);
+    background: (background-color)(menu-opacity-hex);
 }
 
 html div#player-status {
-    /* background: linear-gradient( to bottom, (background-color)(menu-transparency-hex) 0%, (background-color-playing)(player-status-transparency-hex) 18% ); */
+    /* background: linear-gradient( to bottom, (background-color)(menu-opacity-hex) 0%, (background-color-playing)(player-status-transparency-hex) 18% ); */
     background: (background-color-playing)(player-status-transparency-hex);
 }
 
@@ -110,6 +112,10 @@ html .entry-logo .entry-logo-fa {
     color: (font-color);
 }
 
+.entry-logo-fa-c .fa-xs, .entry-logo-img-c .fa-xs {
+    background: (font-color)17;
+}
+
 body.playing #menu-toggle, body.paused #menu-toggle {
     color: (font-color)55; 
 }
@@ -133,16 +139,18 @@ html #menu-toggle.focused, html .nw-cf-btn.focused, html .nw-cf-btn:hover {
 html .entry-label {
     color: (font-color)55;
     text-shadow: none;
+    margin-left: 6px;
 }
 
-html a.entry:focus, html a.entry.focused {
-    background: linear-gradient(to bottom, (font-color)15 0%, (font-color)0F 75%, (font-color)20 100%);
+html a.entry:focus, html a.entry.focused, html #vcontrols .focused, #menu-toggle.focused, .nw-cf-btn.focused {
     outline: 0 !important;
-    border-bottom: 1px solid (font-color)17;
+    box-shadow: 0px 0px 18px (font-color)(highlight-opacity-hex) !important;
+    background: (font-color)(highlight-opacity-hex) !important;
 }
 
-input.focused {
-
+#vcontrols a, .video-timer {
+    padding: 0 8px 0 8px;
+    border-radius: 4px;
 }
 
 html .nw-cf-title {
@@ -175,7 +183,7 @@ html #player {
     background: (background-color-playing);
 }
 
-body.playing:not(.transparent-menu) div#menu-wrapper, body.paused:not(.transparent-menu) div#menu-wrapper {
+body.playing:not(.transparent-menu) div#menu-wrapper, body.paused:not(.transparent-menu) div#menu-wrapper, body.loading:not(.transparent-menu) div#menu-wrapper {
     background: linear-gradient( to bottom, (background-color), (background-color-playing) 18%);
 }
 
@@ -199,6 +207,8 @@ body.has-menu-margin div#menu-left-border {
 
 html .entry td.entry-logo-c {
     width: calc((icon-size)px + 2px);
+    position: relative;
+    top: -0.025em;
 }
 
 html #menu a.entry, #vcontrols {
@@ -282,7 +292,7 @@ body.transparent-menu.playing div#menu-wrapper > div, body.transparent-menu.paus
 }
 
 body.transparent-menu.playing div#player-status, body.transparent-menu.paused div#player-status {
-    background: linear-gradient( to bottom, (background-color)(menu-transparency-hex) 0%, (background-color-playing)(player-status-transparency-hex) 18%);
+    background: linear-gradient( to bottom, (background-color)(menu-opacity-hex) 0%, (background-color-playing)(player-status-transparency-hex) 18%);
 }
 
 body.playing:not(.show-menu) div#player-status, body.paused:not(.show-menu) div#player-status {
@@ -457,7 +467,8 @@ body.tuning #background-overlay .background-logo {
 }
 
 #vcontrols {
-    background: (background-color-playing)(menu-transparency-hex);
+    background: (background-color-playing)(menu-opacity-hex);
+    box-shadow: 0 3px 12px 12px (background-color-playing)(menu-opacity-hex);
     max-height: calc((icon-size)px + (menu-entry-vertical-padding)px); /* padding */
 }
 
@@ -530,12 +541,11 @@ div#menu-scrolling-down > div {
     border-top-right-radius: 0;    
 }
 
-.entry-status > span {
-    color: (highlight-color);
-    text-shadow: 0 1px 1px (background-color-playing);
+.entry-flags > span {
+    color: (font-color);
 }
 
-.entry-status .fa-play-circle { /* fill play triangle */
+.entry-flags .fa-play-circle { /* fill play triangle */
     background: radial-gradient((background-color-playing) 10%, (background-color-playing)99 50%, transparent 51%);
 }
 

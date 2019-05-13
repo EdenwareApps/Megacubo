@@ -146,6 +146,6 @@ registerDialingAction('search', 'fa-search', (terms) => {
     goSearch(terms.toLowerCase())
 })
 
-registerDialingAction('play', 'fa-play-circle', (terms) => {
+registerDialingAction('play', 'fa-play', (terms) => {
     tuneNPlay(terms.toLowerCase(), null, 'mega://play|'+encodeURIComponent(terms.toLowerCase()))
 })

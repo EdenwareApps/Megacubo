@@ -1,18 +1,18 @@
 
-var os = require('os'), mkdirp = require('mkdirp'), async = require('async'), lastOnTop, castManager, Lang = {}
-var clipboard = nw.Clipboard.get();
+var async = require('async'), lastOnTop, castManager, Lang = {}, clipboard = nw.Clipboard.get()
 
-//nw.App.setCrashDumpDir(process.cwd());
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
-var miniPlayerRightMargin = 18;
+const miniPlayerRightMargin = 18;
 
-function mkdirp(...arguments){
-    return require('mkdirp').apply(null, arguments)
+function mkdirr(folder){
+    return fs.mkdirSync(folder, {
+        recursive: true
+    })
 }
 
 function enterMiniPlayer(){
-    win.hide(); 
+    win.hide()
     setTimeout(() => { 
         miniPlayerActive = true;  
         doAction('miniplayer-on');
@@ -21,11 +21,13 @@ function enterMiniPlayer(){
         window.resizeTo(w, h);
         window.moveTo(screen.availWidth - w - miniPlayerRightMargin, screen.availWidth - h)
     }, 100)
-    setTimeout(() => { win.show() }, 250)
+    setTimeout(() => { 
+        win.show() 
+    }, 250)
 }
 
 function leaveMiniPlayer(){
-    win.hide();
+    win.hide()
     setTimeout(() => { 
         setFullScreen(false);
         win.setAlwaysOnTop(false);
@@ -33,7 +35,9 @@ function leaveMiniPlayer(){
         doAction('miniplayer-off');
         win.hide()
     }, 100)
-    setTimeout(() => { win.show() }, 250)
+    setTimeout(() => { 
+        win.show() 
+    }, 250)
 }
 
 addAction('miniplayer-on', () => {
@@ -146,7 +150,7 @@ function afterExitPage(){
     if(allowAfterExitPage && installedVersion && uptime() > 600){
         var lastTime = GStore.get('after-exit-time'), t = time();
         if(!lastTime || (t - lastTime) > (6 * 3600)){
-            GStore.set('after-exit-time', t, 365 * (24 * 3600));
+            GStore.set('after-exit-time', t, true);
             nw.Shell.openExternal(afterExitURL())
         }
     }
@@ -291,8 +295,9 @@ function encodeEntities(str){
 
 function getIntentFromURL(url){
     var urls, intent = false, frameIntents = Playback.query({type: 'frame'})
-    if(url && url != iprx.resolve(url)){
-        url = url.split('#')[0];
+    if(url){
+        url = Playback.proxy.unproxify(url)
+        url = url.split('#')[0]
         for(var i=0; i<frameIntents.length; i++){
             urls = getFrameURLs(frameIntents[i].frame);
             if(matchURLs(url, urls)){
@@ -305,23 +310,23 @@ function getIntentFromURL(url){
 }
 
 var requestIdReferersTable = {}, requestIdReferersTableLimit = 256, requestIdMap = {}, requestCtypeMap = {}, requestIdMapLimit = 256, minVideoContentLength = (10 * 1024);
-var capturingFolder = 'stream/session';
+var capturingFolder = Playback.proxyLocal.folder + path.sep + 'stream' + path.sep + 'session';
 
 fs.exists(capturingFolder, (exists) => {
     if(exists){
         removeFolder(capturingFolder, false, jQuery.noop) // just empty the folder
     } else {
-        mkdirp(capturingFolder)
+        mkdirr(capturingFolder)
     }
 })
 
 function shouldCapture() {
-    return hasAction('media-received');
+    return hasAction('media-received')
 }
 
 function goSideload(url, referer) {
-    if(getDomain(url).indexOf('127.0.0.1') == -1 && url != iprx.resolve(url) && (!referer || getDomain(referer).indexOf('127.0.0.1') == -1)){
-        var intent = false;
+    if(getDomain(url).indexOf(Playback.proxy.addr) == -1 && url != Playback.proxy.proxify(url) && (!referer || getDomain(referer).indexOf(Playback.proxy.addr) == -1)){
+        var intent = false
         if(referer){
             intent = getIntentFromURL(referer)
         }
@@ -340,7 +345,7 @@ function goSideload(url, referer) {
 }
 
 function applyBlockedDomains(blocked_domains){
-    var debug = true;
+    var debug = debugAllow(true)
     if(typeof(blocked_domains)=='object' && jQuery.isArray(blocked_domains) && blocked_domains.length){
         chrome.webRequest.onBeforeRequest.addListener(
             (details) => {
@@ -358,208 +363,6 @@ function applyBlockedDomains(blocked_domains){
             ["blocking"]
         )
     }
-}
-
-function bindWebRequest(){
-    
-    var debug = false;
-
-    function requestIdToKey(rid){
-        return String(rid).replace('.', '');
-    }
-
-    chrome.downloads.onCreated.addListener((item) => {
-        chrome.downloads.cancel(item.id);
-        if(item.state == "complete"){
-            chrome.downloads.removeFile(item.id)
-        }
-    });
-
-    chrome.webRequest.onBeforeRequest.addListener(
-        (details) => { 
-            if(details.type == 'image'){
-                return {}
-            }
-            if(details.initiator){
-                if(details.initiator.substr(0, 7) == 'chrome-'){ //chrome-extension://
-                    return {}
-                } else {
-                    if(details.url.match(new RegExp('#(nosandbox|nofit|catalog|off)'))){
-                        return {}
-                    } else if(intent = getIntentFromURL(details.initiator)){
-                        if(intent.entry.url.match(new RegExp('#(nosandbox|nofit|catalog|off)'))){
-                            return {}
-                        }
-                    }
-                }
-            }
-            console.log("[blocked] " + details.url, details)
-            return {cancel: true}
-        }, { urls: ["<all_urls>"], types:["image"] }, ['blocking']
-    )
-
-    chrome.webRequest.onBeforeSendHeaders.addListener(
-        function(details) {
-            if(debug){
-                console.log('BeforeSendHeaders', details.url);
-                console.log(details);
-            }
-            var rid = requestIdToKey(details.requestId);
-            //requestCtypeMap = sliceObject(requestCtypeMap, requestIdMapLimit * -1);
-            requestIdMap = sliceObject(requestIdMap, requestIdMapLimit * -1);
-            requestIdMap[rid] = details.url;
-            if(details.url.substr(0, 4)=='http'){
-                for(var i=0;i<details.requestHeaders.length;i++){
-                    if(debug){
-                        console.log(details.requestHeaders[i].name);
-                    }
-                    if(["X-Frame-Options"].indexOf(details.requestHeaders[i].name) != -1){
-                        delete details.requestHeaders[i];
-                        details.requestHeaders = details.requestHeaders.filter(function (item) {
-                            return item !== undefined;
-                        });
-                    } else if(["Referer", "Origin"].indexOf(details.requestHeaders[i].name) != -1){
-                        requestIdReferersTable = sliceObject(requestIdReferersTable, requestIdReferersTableLimit * -1);
-                        requestIdReferersTable[rid] = details.requestHeaders[i].value;
-                        if(debug){
-                            console.log('BeforeRequest', details.url, details.requestId, requestIdReferersTable[rid]);
-                            //details.requestHeaders.push({name:"dummyHeader",value:"1"});
-                        }
-                    }
-                }
-                if(requestIdReferersTable[rid] && isM3U8(details.url)){
-                    goSideload(details.url, requestIdReferersTable[rid])
-                }
-            }
-            return {requestHeaders: details.requestHeaders}
-        }, {urls: ["<all_urls>"]}, ["requestHeaders", "blocking"]
-    );
-
-    chrome.webRequest.onHeadersReceived.addListener(
-        (details) => {
-            var headers = details.responseHeaders, rid = requestIdToKey(details.requestId);
-            if(debug){
-                console.log('onHeadersReceived', details.url, requestIdReferersTable[rid], details);
-            }
-            if(details.url.substr(0, 4)=='http'){ // if is HTTP, comes from a frame intent
-                var ctype = '', isVideo = false, isAudio = false, isM3U8 = false, isDocument = false, isPartial = (details.statusCode == 206), contentLength = 0;
-                var referer = requestIdReferersTable[rid] || details.initiator || '';
-                var origin = (details.initiator || details.url).match(new RegExp('[a-z]+?://[^?#/]+')); // (referer || 
-                if(origin){
-                    origin = origin[0];
-                } else {
-                    origin = 'same-origin';
-                }
-                for(var i=0; i < headers.length; i++){
-                    let n = headers[i].name.toLowerCase();
-                    if (['x-frame-options', 'content-security-policy', 'x-xss-protection', 'x-content-type-options'].indexOf(n) != -1) {
-                        headers.splice(i, 1);
-                        i = 0;
-                        continue; // no problem to skip the next checkings
-                    } else if(['access-control-allow-origin'].indexOf(n) != -1){
-                        headers[i].value = origin;
-                    }
-                    if((!isPartial || !contentLength) && ["content-length"].indexOf(n) != -1){
-                        contentLength = headers[i].value;
-                    } else if(["content-range"].indexOf(n) != -1){
-                        if(headers[i].value.indexOf('/')!=-1){
-                            var l = parseInt(headers[i].value.split('/')[1].trim());
-                            if(l > 0){
-                                contentLength = l;
-                            }
-                        }
-                    } else if(["content-type"].indexOf(n) != -1){
-                        ctype = headers[i].value;
-                    }
-                }
-                requestCtypeMap[details.url] = ctype;
-                headers.push({name: 'X-Content-Type-Options', value: 'no-sniff'});
-                //headers.push({name: 'X-Frame-Options', value: 'ALLOW-FROM '+origin}); // not supported for Chrome
-                isVideo = ctype.match(new RegExp('(video/(mp4|MP2T)|mpeg)', 'i'));
-                isM3U8 = ctype.toLowerCase().indexOf('mpegurl') != -1;
-                isDocument = ctype.indexOf('/html') != -1;
-                isAudio = ctype.indexOf('audio/') != -1;
-                if(debug){
-                    console.log('onHeadersReceived 2', details.url, origin, details, ctype, isVideo, isM3U8, isDocument, isAudio);
-                }
-                if(details.frameId){ // comes from a frame
-                    if(isM3U8 || (isVideo && contentLength > minVideoContentLength)){
-                        if(getExt(details.url) != 'ts'){ // from a frame, not a TS
-                            goSideload(details.url, referer)
-                        }
-                    }
-                }
-            } else {
-                //console.warn('SKIPPED', details)
-            }
-            return {responseHeaders: headers}
-        }, {urls: ["<all_urls>"]}, ["blocking", "responseHeaders"]
-    );
-
-    function chromeDebuggerEventHandler(debuggeeId, message, params) {
-        var rid = requestIdToKey(params.requestId);
-        if(message == "Network.responseReceived" && params.response){
-            requestIdMap[rid] = params.response.url;
-        }
-        if(shouldCapture() && message == 'Network.loadingFinished') { 
-            var shouldSave = ['ts'].indexOf(getExt(requestIdMap[rid])) != -1;
-            if(!shouldSave){
-                //console.warn('OOOOOOOOOOOOO', requestCtypeMap, requestIdMap[rid], typeof(requestCtypeMap[requestIdMap[rid]]));
-                if(typeof(requestCtypeMap[requestIdMap[rid]])!='undefined'){
-                    if(requestCtypeMap[requestIdMap[rid]].match(new RegExp('(video\/)', 'i'))){
-                        shouldSave = true;
-                    }
-                }
-            }
-            if(debug){
-                console.log('FINISHED', params, requestIdMap[rid], shouldSave);
-            }
-            if(typeof(requestIdMap[rid])!='undefined' && shouldSave){
-                if(requestIdMap[rid].substr(0, 7)=='chrome-'){ // chrome-extension://dfaejjeepofbfhghijpmopheigokobfp/
-                    var local = requestIdMap[rid].replace(new RegExp('chrome\-extension://[^/]+/'), '');
-                    if(debug){
-                        console.log('LOCAL', requestIdMap[rid], local);
-                    }
-                    doAction('media-save', requestIdMap[rid], local, 'path');
-                } else {
-                    if(debug){
-                        console.log('REMOTE', requestIdMap[rid], local);
-                    }
-                    chrome.debugger.sendCommand({
-                        tabId: debuggeeId.tabId
-                    }, "Network.getResponseBody", {
-                        "requestId": params.requestId
-                    }, function(response) {
-                        if(typeof(response)!='undefined') {
-                            doAction('media-save', requestIdMap[rid], bufferize(response), 'content');
-                            response = null;
-                        }
-                    })
-                }
-            }
-        }
-    }
-
-    chrome.tabs.getCurrent(function(tab) {
-        chrome.debugger.attach({ //debug at current tab
-            tabId: tab.id
-        }, "1.0", function () {    
-            chrome.debugger.sendCommand({ tabId: tab.id }, "Network.enable");  //first enable the Network
-            chrome.debugger.onEvent.addListener(chromeDebuggerEventHandler);  
-            if(!isSDKBuild){
-                try{
-                    win.closeDevTools()
-                }catch(e){}
-            }
-        })
-        addAction('appUnload', () => {
-            if(tab && tab.id){
-                chrome.debugger.detach({ // is this the right way?!
-                    tabId: tab.id
-                })
-            }
-        })
-    })
 }
 
 function getFrameURLs(frame){
@@ -676,13 +479,19 @@ function makeModal(content){
     jQuery('#modal-overlay').show()
 }
 
-function modalClose(){
+function modalClose(silent){
     console.warn('modalClose', traceback());
-    doAction('modalClose')
-    removeAction('modalClose')
-    jQuery(top.document).find('body').removeClass('modal');
-    jQuery('#modal-overlay > div > div').html('')
-    jQuery('#modal-overlay').hide()
+    if(silent !== true){
+        doAction('modalClose')
+        removeAction('modalClose')
+    }
+
+    var d = jQuery(
+        (top && top != window && typeof(top.document) !== 'undefined') ? top.document : document
+    )
+    d.find('body').removeClass('modal')
+    d.find('#modal-overlay > div > div').html('')
+    d.find('#modal-overlay').hide()
 }
 
 function modalConfirm(question, answers, closeable){
@@ -1039,7 +848,9 @@ function killCrashpad(){
     })
 }
 
-// addAction('appUnload', killCrashpad)
+// addAction('appUnload', () => {
+//    setTimeout(killCrashpad, 0)
+// })
 
 var $tray = false;
 
@@ -1151,44 +962,15 @@ function minimizeCallback() {
 }
 
 function logoLoad(image, name){
-    var entries = fetchSharedListsSearchResults(null, 'live', name, true, true);
-    var check = () => {
-        var entry = entries.shift();
-        checkImage(entry.logo, () => {
-            image.src = entry.logo;
-        }, check)
-    }
-    check()
-}
-
-var fitPlayerControlsToMenuLastWidth;
-
-function fitPlayerControlsToMenu(scope){
-    if(!scope){
-        if(typeof(Playback) != 'undefined' && Playback.active){
-            var p = Playback.active.getVideo();
-            if(p){
-                scope = p.ownerDocument.defaultView;
-            }
+    fetchSharedListsSearchResults(entries => {
+        var check = () => {
+            var entry = entries.shift()
+            checkImage(entry.logo, () => {
+                image.src = entry.logo
+            }, check)
         }
-    }
-    if(scope){
-        var w = top.jQuery(scope.document).find('video').width();
-        if(w != fitPlayerControlsToMenuLastWidth){
-            fitPlayerControlsToMenuLastWidth = w;
-            var ww = scope.innerWidth, l = (ww - w) / 2;
-            var css = ' body.fit-to-menu video::-webkit-media-controls-panel { max-width: calc((((100% + (2 * '+l+'px)) / 100) * (100 - '+top.Theme.get('menu-width')+')) - '+l+'px) } ';
-            //console.warn('CSS', css, ww, ',',  w,  ',', l);
-            top.stylizer(css, 'fit-to-menu', scope)
-        }
-        var b = $body, jb = jQuery(scope.document.body);
-        if(b.hasClass('transparent-menu') && b.hasClass('show-menu')){
-            jb.addClass('fit-to-menu')
-        } else {
-            jb.removeClass('fit-to-menu')
-        }
-        return scope;
-    }
+        check()
+    }, 'live', name, true, true)
 }
 
 var notificationVolume = notify('...', 'fa-volume-up', 'forever', true);
@@ -1211,9 +993,8 @@ function seemsSlow(){
             if(playingStreamKeyword(Playback.active)) { // can switch
                 t += ', ' + Lang.SLOW_SERVER_CLIENT_HINT.format(hotkeysActions['PLAYALTERNATE'][0])
             }
-            if(notificationSeemsSlow){
+            if(!notificationSeemsSlow){
                 notificationSeemsSlow = notify(t, 'fa-wifi', 'normal', true)
-                notificationSeemsSlow.hide()
             } else {
                 notificationSeemsSlow.update(t, 'fa-wifi', 'normal')
             }
@@ -1633,7 +1414,7 @@ $win.on('resize', () => {
     setTimeout(updateMenuDimensions, 200)
 })
 
-addAction('appStart', () => {
+addAction('appReady', () => {
     setTimeout(updateMenuDimensions, 200)
 })
 
@@ -1710,9 +1491,6 @@ function updateWindowOverClass(state) {
                 b.addClass(c);
                 updateMenuDimensions()
             }
-            if(typeof(Playback) != 'undefined' && Playback.active){
-                fitPlayerControlsToMenu()
-            }
         }
     } else {
         // console.log('ZZZZ', 'menuEntered = false;');
@@ -1771,7 +1549,7 @@ function attachMouseObserver(win){
                 attachMouseObserver(frames[i].contentWindow)
             }
         }
-        setupKeyboardForwarding(win.document)
+        setupEventForwarding(win.document)
     } catch(e) {
         console.error(e)
     }
@@ -1799,7 +1577,7 @@ $body.on('mouseenter mousemove', () => {
 }).on('mouseleave', () => {
     isOver = false;
     clearTimeout(miniPlayerMouseHoverDelay);
-    miniPlayerMouseHoverDelay = setTimeout(miniPlayerMouseOut, 200)
+    miniPlayerMouseHoverDelay = setTimeout(miniPlayerMouseOut, 2000)
 });
 
 function detectKeys(currentKey, currentAction, cb){
@@ -1851,8 +1629,8 @@ function setHasMenuMargin(state){
 
 $win.on('restore', restoreInitialSize);
 $win.on('unload', function (){
-    Store.set('packageQueue', packageQueue);
-    Store.set('packageQueueCurrent', packageQueueCurrent)
+    Store.set('packageQueue', packageQueue, true)
+    Store.set('packageQueueCurrent', packageQueueCurrent, true)
 })
 
 function applyResolutionLimit(x, y){
@@ -2110,7 +1888,6 @@ function loadLanguage(locales, folder, callback){
 var ipc = require('node-ipc'), leftWindowDiff = 0, ipcIsClosing;
 ipc.config.id = 'main';
 ipc.config.socketRoot = Store.folder + path.sep;
-ipc.config.retry = 1000;
 ipc.serve(() => {
     // started
 })
@@ -2187,60 +1964,57 @@ function focusApp(){
     }
 }
 
-var searchIndexBuilden = false;
+var indexerVarsAvailable = false;
 
-function applyIndexerResults(file, trigger){
-    BigJSON.read(file, (err, results) => {
-        if(!err){
-            Object.keys(results).forEach((k) => {
-                window[k] = results[k]
-            })
-        }
-        searchIndexBuilden = true;
-        $body.addClass('indexed')
-        if(jQuery('.search-index-vary').length){
-            Menu.refresh()
-        }
-        if(trigger){
-            doAction('searchIndexReady')
-        }
-    })
-}
-
-function initSearchIndex(cb) {
-    sharedListsSearchCaching = false;
-    sharedListsSearchWordsIndex = {}
-    sharedListsSearchWordsIndexStrict = {}
-    var file = Store.resolve('indexer-data'), events = {
-        'indexer:results': (file) => {
-            console.warn('INDEXER', time(), file)
-            applyIndexerResults(file, true)
+function initSearchIndex(_cb) {
+    doAction('initSearchIndex')
+    const cb = () => {
+        if(typeof(_cb) == 'function'){
+            _cb()
+            _cb = null
         }
     }
-    fs.exists(file, exists => {
-        if(exists){
-            applyIndexerResults(file, false)
+    if(!indexerVarsAvailable){
+        const applyVars = (data) => {
+            if(!indexerVarsAvailable){
+                indexerVarsAvailable = true;
+                $body.addClass('indexed')
+            }
+            Object.keys(data).forEach(k => {
+                window[k] = data[k]
+            })
+            if(jQuery('a.entry.search-index-vary').length){
+                Menu.refresh()
+            }
         }
-    })
-    doAction('initSearchIndex')
-    addAction('searchIndexReady', () => {
-        if(typeof(cb) == 'function'){
-            cb()
+        const events = {
+            'indexer-load': () => {
+                focusApp()
+            },
+            'indexer-vars': (data) => {
+                console.warn('INDEXER', data)
+                Store.set('indexer-vars', data, true)
+                applyVars(data)
+                cb()
+            }
         }
-    })
-    addAction('searchIndexReady', () => {
-        removeAction('searchIndexReady')
-    })
-    Object.keys(events).forEach(name => {
-        ipc.server.on(name, events[name])
-    })
-    nw.Window.open('indexer.html', {
-        new_instance: true,
-        show_in_taskbar: false,
-        transparent: true,
-        frame: false,
-        show: false
-    })
+        Object.keys(events).forEach(name => {
+            ipc.server.on(name, events[name])
+        })
+        nw.Window.open('indexer.html', {
+            new_instance: true,
+            show_in_taskbar: false,
+            transparent: true,
+            frame: false,
+            show: false
+        })
+        const lastVars = Store.get('indexer-vars')
+        if(typeof(lastVars) == 'object' && lastVars){
+            applyVars(lastVars)
+        }
+    } else {
+        cb()
+    }
 }
 
 enableSetFullScreenWindowResizing = true;
@@ -2297,7 +2071,7 @@ addAction('appLoad', () => {
         ['menu-trigger', '#menu-trigger', () => { 
             return !Pointer.body.hasClass('modal') && !Menu.isVisible() 
         }],
-        ['player', '#vcontrols a', () => { 
+        ['player', '#vcontrols a:visible', () => { 
             return !Pointer.body.hasClass('modal') && Playback.active 
         }]
     ].forEach((args) => {
@@ -2396,10 +2170,10 @@ function averageStreamingBandwidthCollectSample(url, file, length) {
         } else {
             currentBitrate = bitrate;
             if(!jQuery.isArray(averageStreamingBandwidthData)){
-                averageStreamingBandwidthData = GStore.get('aver-bandwidth-data') || [];
+                averageStreamingBandwidthData = GStore.get('aver-bandwidth-data') || []
             }
             averageStreamingBandwidthData.push(bitrate);
-            GStore.set('aver-bandwidth-data', averageStreamingBandwidthData, 365 * (24 * 3600));
+            GStore.set('aver-bandwidth-data', averageStreamingBandwidthData, true)
         }
     }, length);
 }
@@ -2415,7 +2189,12 @@ Playback.on('commit', () => {
 addFilter('about', (txt) => {
     txt += Lang.DOWNLOAD_SPEED+': '+window.navigator.connection.downlink.toFixed(1)+"MBps\n";
     if(Playback.active && currentBitrate){
-        txt += Lang.BITRATE+': '+(currentBitrate / 1024 / 1024).toFixed(1)+"MBps\n";   
+        txt += Lang.BITRATE+': '+(currentBitrate / 1024 / 1024).toFixed(1)+"MBps ("
+        txt += Playback.active.type
+        if(Playback.active.transcode){
+            txt += ", transcode"
+        }
+        txt += ")\n";   
     } else {
         txt += Lang.AVERAGE_BITRATE+': '+averageStreamingBandwidth().toFixed(1)+"MBps\n";   
     }
@@ -2454,7 +2233,7 @@ function autoCleanEntries(entries, success, failure, cancelCb, returnSucceededIn
     if(autoCleanEntriesCancel()){
         updateAutoCleanOptionsStatus(Lang.TEST_THEM_ALL, true)
     }
-    var succeeded = false, testedMap = [], readyIterator = 0, debug = true;
+    var succeeded = false, testedMap = [], readyIterator = 0, debug = debugAllow(true)
     if(!jQuery.isArray(entries)){
         var arr = []
         jQuery('a.entry-stream').each((i, o) => {
@@ -2805,11 +2584,11 @@ function tune(entries, name, originalUrl, cb, type){ // entries can be a string 
             name = entries;
         }
         console.warn('KKKKKKKKKKK', type || 'all');
-        nentries = fetchSharedListsSearchResults(null, type || 'all', entries, true, true)
-        if(!nentries.length){
-            nentries = fetchSharedListsSearchResults(null, type || 'all', entries, false, true)
-        }
-        entries = nentries;
+        const terms = entries
+        fetchSharedListsSearchResults(entries => {
+            tune(entries, name, originalUrl, cb, type)
+        }, type || 'all', terms, 'auto', true)
+        return;
     }
     var failure = (msg) => {
         cb(msg, false, false)
@@ -2981,9 +2760,9 @@ var switchPlayingStreamDefer = {term: '', entries: []}
 
 function switchPlayingStream(intent, cb, doSearch){
     if(!intent){
-        intent = (Playback.active || Playback.lastActiveIntent || false);
+        intent = (Playback.active || Playback.lastActive || false);
     }
-    if(intent && [Playback.active, Playback.lastActiveIntent].indexOf(intent) != -1){
+    if(intent && [Playback.active, Playback.lastActive].indexOf(intent) != -1){
         var entry = typeof(intent.entry) != 'undefined' ? intent.entry : intent;
         var term = playingStreamKeyword(entry);
         if(term){
@@ -2992,24 +2771,25 @@ function switchPlayingStream(intent, cb, doSearch){
             }
             stop(false, true);
             var megaUrl = 'mega://play|' + term;
-            entries = fetchSharedListsSearchResults(null, 'live', term, true, true);
-            if(switchPlayingStreamDefer.term != term){
-                switchPlayingStreamDefer.term = term;
-                switchPlayingStreamDefer.entries = [];
-            }
-            switchPlayingStreamDefer.entries.push(entry);
-            for(var i=0; i<switchPlayingStreamDefer.entries.length; i++){
-                entries = entries.filter((e) => {
-                    return (!isMegaURL(e.url) && e.url != switchPlayingStreamDefer.entries[i].url)
-                })
-            }
-            entries = entries.concat(switchPlayingStreamDefer.entries.slice(0, switchPlayingStreamDefer.entries.length - 1));
-            if(entries.length){
-                if([Playback.active, Playback.lastActiveIntent].indexOf(intent) != -1){
-                    tuneNPlay(entries, term, megaUrl, cb);
-                    return true;
+            fetchSharedListsSearchResults(entries => {
+                if(switchPlayingStreamDefer.term != term){
+                    switchPlayingStreamDefer.term = term;
+                    switchPlayingStreamDefer.entries = []
                 }
-            }
+                switchPlayingStreamDefer.entries.push(entry);
+                for(var i=0; i<switchPlayingStreamDefer.entries.length; i++){
+                    entries = entries.filter((e) => {
+                        return (!isMegaURL(e.url) && e.url != switchPlayingStreamDefer.entries[i].url)
+                    })
+                }
+                entries = entries.concat(switchPlayingStreamDefer.entries.slice(0, switchPlayingStreamDefer.entries.length - 1));
+                if(entries.length){
+                    if([Playback.active, Playback.lastActive].indexOf(intent) != -1){
+                        tuneNPlay(entries, term, megaUrl, cb);
+                        return true;
+                    }
+                }
+            }, 'live', term, true, true)
         }
     }
 }
@@ -3056,90 +2836,104 @@ function adjustMainCategoriesEntry(entry){
 
     //console.warn('CONTINUE', entry.logo);
     entry.renderer = (data) => {
-        var entries = fetchSharedListsSearchResults(null, data.mediaType || 'all', data.name, true, true)
-        if(!entries.length){
-            entries = fetchSharedListsSearchResults(null, data.mediaType || 'all', data.name, false, true)
-        }
-        // console.warn('ZZZZZZZZZZ', data, entries, '|', data.mediaType || 'all', data.name)
-        if(!entries.length){
-            sound('static', 16);
-            notify(Lang.PLAY_STREAM_FAILURE.format(data.name), 'fa-exclamation-circle faclr-red', 'normal');
-            return -1;
-        }
-        entries = listManJoinDuplicates(entries);
-        var sbname = Lang.CHOOSE_STREAM+' ('+entries.length+')', megaUrl = 'mega://play|' + encodeURIComponent(data.name);
-        if(typeof(data.originalUrl) != 'undefined' && isMegaURL(data.originalUrl)){
-            megaUrl = data.originalUrl;
-        } else if(isMegaURL(data.url)){
-            megaUrl = data.url;
-        }
-        var isPlaying = Playback.active && Playback.active.entry.originalUrl.toLowerCase() == megaUrl.toLowerCase();
-        //console.warn('isPlaying', Playback.active ? Playback.active.entry.originalUrl.toLowerCase() : '-', megaUrl.toLowerCase());
-        var logo = showLogos ? entry.logo || pickLogoFromEntries(entries) : '';
-        var metaEntries = [
-            {type: 'stream', class: 'entry-vary-play-state entry-no-wrap', name: data.name, logo: logo, 
-                label: isPlaying ? Lang.TRY_OTHER_STREAM : Lang.AUTO_TUNING, 
-                url: megaUrl, 
-                callback: () => {
-                    tuneNPlay(entries, data.name, megaUrl)
-                }
-            },
-            {type: 'group', label: Lang.MANUAL_TUNING, name: sbname, logo: 'fa-list', path: assumePath(sbname), entries: [], renderer: () => {
-                entries = entries.map((entry) => { 
-                    entry.originalUrl = megaUrl;
-                    if(!entry.logo){
-                        entry.logo = logo;
+        console.warn("HOORAY", entry)
+        const _path = assumePath(entry.name)
+        console.warn("HOORAY", _path)
+        fetchSharedListsSearchResults(entries => {
+            console.warn("HOORAY", entries, _path, entry)
+            if(!entries.length){
+                sound('static', 16);
+                notify(Lang.PLAY_STREAM_FAILURE.format(data.name), 'fa-exclamation-circle faclr-red', 'normal');
+                Menu.asyncResult(_path, -1)
+                return -1;
+            }
+            entries = listManJoinDuplicates(entries);
+            var sbname = Lang.CHOOSE_STREAM+' ('+entries.length+')', megaUrl = 'mega://play|' + encodeURIComponent(data.name) + '?mediaType=' + (data.mediaType || 'all')
+            if(typeof(data.originalUrl) != 'undefined' && isMegaURL(data.originalUrl)){
+                megaUrl = data.originalUrl;
+            } else if(isMegaURL(data.url)){
+                megaUrl = data.url;
+            }
+            var isPlaying = Playback.active && Playback.active.entry.originalUrl.toLowerCase() == megaUrl.toLowerCase();
+            //console.warn('isPlaying', Playback.active ? Playback.active.entry.originalUrl.toLowerCase() : '-', megaUrl.toLowerCase());
+            var logo = showLogos ? entry.logo || pickLogoFromEntries(entries) : '';
+            var metaEntries = [
+                {type: 'stream', class: 'entry-vary-play-state entry-no-wrap', name: data.name, logo: logo, 
+                    label: isPlaying ? Lang.TRY_OTHER_STREAM : Lang.AUTO_TUNING, 
+                    url: megaUrl, 
+                    callback: () => {
+                        tuneNPlay(entries, data.name, megaUrl)
                     }
-                    return entry; 
-                });
-                return entries;
-            }}
-        ];
-        if(isPlaying){
-            metaEntries = applyFilters('playingMetaEntries', metaEntries);
-            metaEntries.push({name: Lang.WINDOW, logo:'fa-window-maximize', type: 'group', renderer: () => { return getWindowModeEntries(true) }, entries: []})
-        }
-        var bookmarking = {name: data.name, type: 'stream', label: data.group || '', url: megaUrl}
-        if(Bookmarks.is(bookmarking)){
-            metaEntries.push({
-                type: 'option',
-                logo: 'fa-star-half',
-                name: Lang.REMOVE_FROM.format(Lang.BOOKMARKS),
-                callback: () => {
-                    removeFav(bookmarking);
-                    Menu.refresh()
-                }
-            })
-        } else {
-            metaEntries.push({
-                type: 'option',
-                logo: 'fa-star',
-                name: Lang.ADD_TO.format(Lang.BOOKMARKS),
-                callback: () => {
-                    addFav(bookmarking);
-                    Menu.refresh()
-                }
-            })
-        }
-        return metaEntries;
+                },
+                {type: 'group', label: Lang.MANUAL_TUNING, name: sbname, logo: 'fa-list', path: assumePath(sbname), entries: [], renderer: () => {
+                    entries = entries.map((entry) => { 
+                        entry.originalUrl = megaUrl;
+                        if(!entry.logo){
+                            entry.logo = logo;
+                        }
+                        return entry; 
+                    });
+                    return entries;
+                }}
+            ];
+            if(isPlaying){
+                metaEntries = applyFilters('playingMetaEntries', metaEntries);
+                metaEntries.push({name: Lang.WINDOW, logo:'fa-window-maximize', type: 'group', renderer: () => { return getWindowModeEntries(true) }, entries: []})
+            }
+            var bookmarking = {name: data.name, type: 'stream', label: data.group || '', url: megaUrl}
+            if(Bookmarks.is(bookmarking)){
+                metaEntries.push({
+                    type: 'option',
+                    logo: 'fa-star-half',
+                    name: Lang.REMOVE_FROM.format(Lang.BOOKMARKS),
+                    callback: () => {
+                        removeFav(bookmarking);
+                        Menu.refresh()
+                    }
+                })
+            } else {
+                metaEntries.push({
+                    type: 'option',
+                    logo: 'fa-star',
+                    name: Lang.ADD_TO.format(Lang.BOOKMARKS),
+                    callback: () => {
+                        addFav(bookmarking);
+                        Menu.refresh()
+                    }
+                })
+            }
+            console.warn("HOORAY", _path, metaEntries)
+            Menu.asyncResult(_path, metaEntries)
+        }, data.mediaType || 'all', data.name, 'auto', true)
+        console.warn("HOORAY", data.mediaType || 'all', data.name, 'auto', true)
+        return [Menu.loadingEntry()]
     }
     return entry;
 }
 
-
 function getLiveEntries(){
-    var category, optionName = Lang.LIVE, cb = (entries) => {
+    var category, ppath = assumePath(Lang.LIVE), cb = (entries) => {
         return applyFilters('liveMetaEntries', entries)
     }
-    return fetchAndRenderEntries("http://app.megacubo.net/stats/data/categories."+getLocale(true)+".json", optionName, (category) => {
+    return fetchAndRenderEntries("http://app.megacubo.net/stats/data/categories."+getLocale(true)+".json", ppath, (category) => {
         category.renderer = (data) => {
-            var catStations =  data.entries.filter((station) => {
-                return !!fetchSharedListsSearchResults(null, 'live', station.name, true, true).length;
-            });
-            return catStations.length ? catStations : [Menu.emptyEntry()];
+            let catStations = [], _path = assumePath(data.name, ppath)
+            async.forEach(data.entries, (entry, callback) => {
+                fetchSharedListsSearchResults(es => {
+                    console.warn(es)
+                    if(es.length){
+                        catStations.push(entry)
+                    }
+                    callback()
+                }, 'live', entry.name, true, true)
+            }, () => {
+                Menu.asyncResult(_path, catStations.length ? catStations : [Menu.emptyEntry()])
+            })
+            return [Menu.loadingEntry()]
         }
         category.entries = category.entries.map((entry) => { 
             entry.type = 'stream'; 
+            entry.mediaType = 'live'; 
             entry.logo = entry.logo || defaultIcons['stream']; 
             return adjustMainCategoriesEntry(entry) 
         })
@@ -3560,12 +3354,12 @@ var History = (() => {
         self.data.unshift(nentry);
         self.data = self.data.slice(0, limit);
         console.log('HISTORY ADDED', self.data);
-        Store.set(key, self.data, 365 * (24 * 3600));
+        Store.set(key, self.data, true);
         self.trigger('change', self.data)
     }
     self.clear = () => {
         self.data = [];
-        Store.set(key, self.data, 365 * (24 * 3600));
+        Store.set(key, self.data, true);
         self.trigger('change', self.data)
     }
     return self;
@@ -3631,7 +3425,7 @@ var Bookmarks = (() => {
         self.data = self.prepare(self.data.filter((item) => {
             return item !== undefined;
         }))
-        Store.set(key, self.data)
+        Store.set(key, self.data, true)
     }
     self.remove = (entry) => {
         for(var i in self.data){
@@ -3642,11 +3436,11 @@ var Bookmarks = (() => {
         self.data = self.prepare(self.data.filter((item) => {
             return item !== undefined;
         }))
-        Store.set(key, self.data)
+        Store.set(key, self.data, true)
     }
     self.clear = () => {
         self.data = []
-        Store.set(key, self.data)
+        Store.set(key, self.data, true)
     }
     self.data = Store.get(key)
     if(self.data === null){
@@ -3751,7 +3545,7 @@ var Controls = (() => {
             self.scaleButton.off('click').on('click', changeScaleMode).attr('title', Lang.ASPECT_RATIO);
             self.stopButton.off('click').on('click', stop).attr('title', Lang.STOP);
             self.fsButton.off('click').on('click', toggleFullScreen).attr('title', Lang.FULLSCREEN);
-            self.switchButton.off('click').on('click', () => { switchPlayingStream(false, false, true) }).attr('title', Lang.NOT_WORKED + ' - ' + Lang.TRY_OTHER_STREAM);
+            self.switchButton.off('click').on('click', () => { switchPlayingStream(false, false, false) }).attr('title', Lang.NOT_WORKED + ' - ' + Lang.TRY_OTHER_STREAM);
             self.seekSlider.off('change input').on('change input', self.seekCallback)
             self.volumeSlider.off('change input').on('change input', self.volumeCallback)
             var as = self.box.find('a');
@@ -4198,8 +3992,8 @@ jQuery(function (){
 
 currentVersion = false;
 
-addAction('appStart', () => {
-    jQuery('#menu-toggle').label(Lang.SHOW_HIDE_MENU, 'down-right');
+addAction('appReady', () => {
+    jQuery('#menu-toggle').label(Lang.SHOW_HIDE_MENU, 'down-right')
     jQuery.getJSON('http://app.megacubo.net/configure.json?'+time(), (data) => {
         if(!data || !data.version) return;
         currentVersion = data.version;
@@ -4284,7 +4078,7 @@ function openTVGuide() {
 }
 
 nw.App.on('open', function (argString) {
-    console.warn('OPENX', arguments);
+    console.warn('OPENX', arguments)
     handleOpenArguments(argString)
 })
 
@@ -4294,8 +4088,6 @@ chrome.downloads.onDeterminingFilename.addListener(function (downloadItem) {
         console.warn('Cancelled download', downloadItem)
     })
 })
-
-addAction('addEntriesToSearchIndex', updateMediaTypeStreamsCount)
 
 addFilter('toolsEntries', (entries) => {
     entries.push({name: Lang.TV_GUIDE, append: getActionHotkey('TVGUIDE'), logo:'fa-book-open', type: 'option', callback: () => {
@@ -4331,7 +4123,7 @@ function init(){
         updateProgress(0.5);
         afterLanguageLoad(() => {
             var customFrameState = isFullScreen() ? 'fullscreen' : (isMaximized() ? 'maximized' : '');
-            var nwcf = require(path.resolve('other_modules/nw-custom-frame'));
+            var nwcf = require('nw-custom-frame')
             nwcf.attach(window, {
                 "size": 30, // You can specify the size in em,rem, etc...
                 "frameIconSize": 21, // You can specify the size in em,rem, etc...
@@ -4409,7 +4201,7 @@ function init(){
             var close = jQuery('.nw-cf-close');
             close.replaceWith(close.outerHTML()); // override closing behaviour
             jQuery('#menu-trigger').label(Lang.SHOW_HIDE_MENU, 'down-right');
-            jQuery.getScript("assets/fa/js/all.js");
+            jQuery.getScript("node_modules/@fortawesome/fontawesome-free/js/all.min.js");
             jQuery('.nw-cf-close').on('click', closeApp);
             //win.on('minimize', minimizeCallback);
             jQuery('.nw-cf-btn.nw-cf-minimize').on('click', minimizeCallback);
@@ -4449,16 +4241,6 @@ function init(){
                 cb()
             })
         })
-    });
-
-    // BIND WEBREQUEST
-    initialTasks.push((cb) => {
-        console.log('[INIT] WebRequest bind');
-        updateProgress(0.5);
-        bindWebRequest();
-        console.log('[INIT] WebRequest binded.');
-        updateProgress(0.5);
-        cb()
     });
 
     async.parallel(initialTasks, (err, results) => {

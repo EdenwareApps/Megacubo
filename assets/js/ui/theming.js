@@ -19,7 +19,7 @@
                 } else {
                     document.documentElement.className = document.documentElement.className.replaceAll('ui-light', '');
                 }
-                if(Theme.get("menu-transparency") < 99){
+                if(Theme.get("menu-opacity") < 99){
                     bg.removeClass('fit-player').addClass('fit-screen').find('.background-logo-container').addClass('fit-player');
                     document.documentElement.className += ' ui-transparent-menu';                    
                 } else {
@@ -133,7 +133,7 @@
         if(['image', 'video'].indexOf(bg.substr(5, 5)) != -1){
             bg = 'url("'+bg+'")';
         }
-        let maxPlayerStatusOpacity = 0.75, mt = Math.round(Theme.get('menu-transparency') * (255 / 100)), data = {
+        let maxPlayerStatusOpacity = 0.75, mt = Math.round(Theme.get('menu-opacity') * (255 / 100)), ht = Math.round(Theme.get('highlight-opacity') * (255 / 100)), data = {
             'background-image': bg,
             'background-animation': 'bga-' + Theme.get('tuning-background-animation'),
             'background-color-playing': Theme.get('background-color-playing'),
@@ -144,7 +144,8 @@
             'font-size': Theme.get('font-size'),
             'font-family': Theme.get('font-family'),
             'font-weight': Theme.get('font-weight'),
-            'highlight-color': Theme.get('highlight-color'),
+            'highlight-opacity': Theme.get('highlight-opacity') / 100,
+            'highlight-opacity-hex': componentToHex(ht),
             'icon-size': Theme.get('icon-size'),
             'icon-rounding': Theme.get('icon-rounding') + '%',
             'logo-opacity': Theme.get('logo-opacity') / 100,
@@ -152,7 +153,7 @@
             'menu-inset-shadow-start': Theme.get('menu-inset-shadow') + '%',
             'menu-inset-shadow-end': (100 - Theme.get('menu-inset-shadow')) + '%',
             'menu-margin': Theme.get('menu-margin') / 100,
-            'menu-transparency-hex': componentToHex(mt),
+            'menu-opacity-hex': componentToHex(mt),
             'menu-text-case': Theme.get('menu-uppercase') ? 'uppercase' : 'none',
             'menu-width': (Theme.get('menu-width') || 34) + '%', // percent of window width
             'player-status-transparency-hex': mt > (255 * maxPlayerStatusOpacity) ? componentToHex(Math.round(255 * maxPlayerStatusOpacity)) : componentToHex(mt),

@@ -48,7 +48,7 @@ function torrentPercentage(uri, percent){
     var hash = getMagnetHash(uri)
     if(typeof(percent) == 'number'){
         torrentPercentages[hash] = percent
-        Store.set('torrent-status', torrentPercentages)
+        Store.set('torrent-status', torrentPercentages, true)
     }
 
     return typeof(torrentPercentages[hash])=='undefined' ? -1 : torrentPercentages[hash]
@@ -85,7 +85,7 @@ function torrentsAddLocal(entries, cb){
         var folder = torrentsFolder + path.sep + 'torrent-stream';
         fs.readdir(folder, (err, files) => {
             if(err){
-                mkdirp(folder)
+                mkdirr(folder)
                 lcb(false)
                 throw err;
             } else {
@@ -161,7 +161,7 @@ var torrentOption = registerMediaType({
     'save': () => {
         if(Playback.active && Playback.active.peerflix && Playback.active.peerflix.torrent) {
             folder = torrentsFolder + path.sep + 'torrent-stream' + path.sep + Playback.active.peerflix.torrent.infoHash + path.sep + Playback.active.peerflix.torrent.name;
-            nw.Shell.shomInFolder(absolutize(folder))
+            nw.Shell.shomInFolder(localize(folder))
         }
     }
 }, false)

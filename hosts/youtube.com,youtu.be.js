@@ -2,7 +2,11 @@
 module.exports = (scope, intent, self, _top) => {
 	var prop = 'checker-' + intent.uid
 	if(typeof(scope[prop]) == 'undefined'){
-		_top.console.log('skipper')
+		_top.console.log('[youtube.com] skipper')
+		if(intent.sideload.add){
+			_top.console.log('[youtube.com] sideload prevented')
+			intent.sideload.add = () => {} // disallow sideload for this domain
+		}
 		var self = {
 			player: false,
 			selectors: {
@@ -24,7 +28,7 @@ module.exports = (scope, intent, self, _top) => {
 			var sel = scope.document.querySelectorAll(self.selectors.skipButton)
 			if (sel.length > 0) {
 				_top.console.log('[youtube.com] vad skipped')	
-				scope.document.getElementsByClassName('video-stream html5-main-video')[0].src = ''	
+				//scope.document.getElementsByClassName('video-stream html5-main-video')[0].src = ''	
 				sel[0].click()
 			}
 		}		
@@ -71,6 +75,14 @@ module.exports = (scope, intent, self, _top) => {
 			}
 			return self.player;
 		}
+		self.wttl = () => {
+			var target = scope.document.querySelector('head > title'), observer = new MutationObserver((mutations) => {
+				mutations.forEach((mutation) => {
+					intent.rename(mutation.target.textContent)
+				})
+			})
+			observer.observe(target, { subtree: true, characterData: true, childList: true })
+		}
 		_top.console.log('[youtube.com] hooking')
 		if(!self.hook()){
 			_top.console.log('[youtube.com] hooking (2)')
@@ -82,11 +94,24 @@ module.exports = (scope, intent, self, _top) => {
 	}
 	var v = scope.document.querySelector('video')
 	if(v && v.paused){
-		var e = scope.document.querySelector('.ytp-play-button')
+		const e = scope.document.querySelector('.ytp-play-button'), ended = () => {
+			if(!intent.ended){
+				intent.ended = true;
+				intent.trigger('ended')
+			}
+		}	
 		if(e){
 			_top.console.log('[youtube.com] play')	
 			e.click()
 		}
+		v.onloadedmetadata = function() {
+			if(v.networkState == 0 && v.readyState == 0){
+				ended()
+			}
+		}
+		v.addEventListener('ended', () => {
+			ended()
+		})
 	}
 	return true;
 }

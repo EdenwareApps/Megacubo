@@ -1,83 +1,185 @@
-var start = time(), connected, terminated, leftWindowDiffTimer, leftWindowDiff, ipc = require('node-ipc'), win = nw.Window.get()
-ipc.config.id = 'indexer';
-ipc.config.maxRetries = 1000;
-ipc.config.socketRoot = Store.folder + path.sep;
-ipc.config.retry = 250;
-ipc.config.stopRetrying = false;
-ipc.connectTo('main', () => {
-    console.log('IPC connected', time())
-    var events = {
-        'close': () => {
-            console.log('detected close event')
-            terminate(true)
-        }
-    }
-    Object.keys(events).forEach(name => {
-        ipc.of.main.on(name, events[name])
-    })
-    connected = true;
-})
+var start = time(), 
+    lastUpdate = 0, 
+    processingInterval = 3600, 
+    reportingInterval = 60, 
+    connected, 
+    terminated, 
+    leftWindowDiffTimer, 
+    leftWindowDiff
+const ipc = require('node-ipc'), 
+    win = nw.Window.get(),
+    indexerResultsFile = Store.resolve('indexer-data')
 
-function terminate(force) {
+ipc.config.id = 'indexer-' + rand(1, 999999)
+ipc.config.socketRoot = Store.folder + path.sep;
+
+const connect = () => {
+    ipc.connectTo('main', () => {
+        console.log('IPC connected', time())
+        var events = {
+            'disconnect': () => {
+                console.log('detected disconnect event')
+                //terminate(true)
+                connect()
+            },
+            'indexer-update': () => {
+                init()
+            },
+            'indexer-query': (opts) => {
+                ipc.of.main.emit('indexer-query-result', indexerQuery(opts))
+            }
+        }
+        Object.keys(events).forEach(name => {
+            ipc.of.main.on(name, events[name])
+        })
+        connected = true;
+    })
+}
+
+connect()
+
+indexerQuery = (opts) => {
+    var results = [], limit = searchResultsLimit, maybe = [], already = {}, terms = prepareSearchTerms(opts.term)
+    if(terms.length >= 1){
+        var resultHitMap = {}, resultEntryMap = {}
+        terms.forEach((_term) => {
+            var already = {}, _terms = []
+            if(typeof(sharedListsSearchWordsIndex[_term]) != 'undefined'){
+                _terms.push(_term)
+            }
+            var l = _term.length, f = _term.charAt(0)
+            if(!opts.strict){
+                for(var k in sharedListsSearchWordsIndex){
+                    if(k.length > l && k.charAt(0) == f && k.substr(0, l) == _term){
+                        _terms.push(k)
+                    }
+                }
+            }
+            _terms.forEach((t) => {
+                if(typeof((opts.strict?sharedListsSearchWordsIndexStrict:sharedListsSearchWordsIndex)[t]) != 'undefined'){
+                    (opts.strict?sharedListsSearchWordsIndexStrict:sharedListsSearchWordsIndex)[t].entries.forEach((entry, i) => {
+                        if(entry.mediaType == -1){
+                            (opts.strict?sharedListsSearchWordsIndexStrict:sharedListsSearchWordsIndex)[t].entries[i].mediaType = getStreamBasicType(entry)
+                        }
+                        if(('all' == opts.type || entry.mediaType == opts.type) && typeof(already[entry.url])=='undefined'){
+                            already[entry.url] = true;
+                            if(typeof(resultHitMap[entry.url])=='undefined'){
+                                resultHitMap[entry.url] = 0;
+                            }
+                            resultHitMap[entry.url]++;
+                            resultEntryMap[entry.url] = entry;
+                        }
+                    })
+                }
+            });
+            already = null;
+        })
+        var max = opts.matchAll ? terms.length : Math.max.apply(null, Object.values(resultHitMap));
+        //console.warn("GOLD", resultEntryMap, resultHitMap, terms);
+        Object.keys(resultHitMap).sort((a, b) => {
+            return resultHitMap[b] - resultHitMap[a]
+        }).forEach((url) => {
+            if(results.length < searchResultsLimit){
+                if(!opts.matchAll || resultHitMap[url] >= max){
+                    var entry = Object.assign({}, resultEntryMap[url]);
+                    results.push(entry)
+                } else if(resultHitMap[url] >= max - 1) {
+                    var entry = Object.assign({}, resultEntryMap[url]);
+                    maybe.push(entry)
+                }
+            }
+        })
+    }
+    return {uid: opts.uid, results, maybe}
+}
+
+addAction('addEntriesToSearchIndex', updateMediaTypeStreamsCount)
+
+function addEntriesToSearchIndex(_entries, listURL){
+    var b, bs, s = [], ss = [], sep = ' _|_ ';
+    var entries = _entries.filter((entry) => {
+        return entry && !isMegaURL(entry.url);
+    })
+    for(var i=0; i<entries.length; i++){
+        b = bs = entries[i].name;
+        if(typeof(entries[i].group) != 'undefined' && entries[i].group != 'undefined'){
+            b += ' ' + entries[i].group
+        }
+        if(b == bs){
+            bs = b = prepareSearchTerms(b)
+        } else {
+            b = prepareSearchTerms(b), bs = prepareSearchTerms(bs)
+        }
+        if(typeof(entries[i].mediaType) == 'undefined' || entries[i].mediaType == -1){
+            entries[i].mediaType = getStreamBasicType(entries[i])
+        }
+        entries[i].source = entries[i].source || listURL;
+        b.forEach((t) => {
+            if(t.length > 1){
+                if(typeof(sharedListsSearchWordsIndex[t])=='undefined'){
+                    sharedListsSearchWordsIndex[t] = {entries: []}
+                }
+                sharedListsSearchWordsIndex[t].entries.push(entries[i])
+            }
+        })
+        bs.forEach((t) => {
+            if(t.length > 1){
+                if(typeof(sharedListsSearchWordsIndexStrict[t])=='undefined'){
+                    sharedListsSearchWordsIndexStrict[t] = {entries: []}
+                }
+                sharedListsSearchWordsIndexStrict[t].entries.push(entries[i])
+            }
+        })
+    }
+    doAction('addEntriesToSearchIndex', entries)
+}
+
+function updateMediaTypeStreamsCount(entries, wasEmpty){
+    if(wasEmpty){
+        mediaTypeStreamsCount = Object.assign({}, mediaTypeStreamsCountTemplate);
+    }
+    entries.forEach((entry) => {
+        if(typeof(mediaTypeStreamsCount[entry.mediaType])=='undefined'){
+            mediaTypeStreamsCount[entry.mediaType] = 0;
+        }
+        mediaTypeStreamsCount[entry.mediaType]++;
+    })
+}
+
+function terminate() {
+    var debug = debugAllow(false)
     try {
         ipc.disconnect('main')
     } catch(e) {
         console.error(e)
     }
     console.log('closing', traceback())
-    var doClose = (force === true || !isSDKBuild)
-    if(doClose){
+    if(!debug){
         win.close(true)
     } else {
         console.warn('Closing prevented for debugging')
     }
 }
 
-function init() {
-    if(Store.get('indexer-results')){
-        setPriority('idle')
-    }
-    var pop = nw.Window.get()
-    pop.maximize()
-    leftWindowDiffTimer = setInterval(() => {
-        if(pop.x <= 0){
-            clearInterval(leftWindowDiffTimer);
-            try {
-                leftWindowDiff = pop.x;
-                pop.hide()
-            } catch(e) {
-                console.error(e)
-            }
-        }
-    }, 250)
+function report(){
+    ipc.of.main.emit('indexer-vars', {mediaTypeStreamsCount, leftWindowDiff, sharedListsGroups})
+}
+
+function init(cb) {
     buildSharedListsSearchIndex((urls) => {
         console.log('Search index builden', time())
         fetchSharedListsGroups('live')
         console.log('Shared groups builden', time())
-        /*
-        var exports = ['mediaTypeStreamsCount','leftWindowDiff','sharedListsGroups','sharedListsSearchWordsIndex','sharedListsSearchWordsIndexStrict']
-        var results = {}
-        exports.forEach(v => { // no arrow function here
-            results[v] = '!' + BigJSON.stringify(eval(v))
-        })
-        ipc.of.main.emit('indexer:results', results)
-        */
-        var file = Store.resolve('indexer-data')
-        fs.writeFile(
-            file, 
-            JSON.stringify({mediaTypeStreamsCount,leftWindowDiff,sharedListsGroups,sharedListsSearchWordsIndex,sharedListsSearchWordsIndexStrict}),
-            () => {
-                console.log('Search index sending', time())
-                ipc.of.main.emit('indexer:results', file)
-                console.log('Search index sent', time())
-                async.forEach(urls, (url, callback) => {
-                    getHeaders(url, callback)
-                }, () => {
-                    ipc.disconnect('main') // end after the getHeaders delay to give a grace period for sending the results
-                    terminate()
-                }) // ping lists anyway for any possible auth
-            }
-        )   
+        report()
+        console.log('Search index sent', time())
+        async.forEach(urls, (url, callback) => {
+            getHeaders(url, callback)
+        }, () => {
+            console.log('DONE') // dont close yet, keep with main
+        }) // ping lists anyway for any possible auth
+        if(typeof(cb) == 'function'){
+            cb()
+        }
     })
 }
 
@@ -147,16 +249,15 @@ function fetchSharedListsGroups(type){
 }
 
 function buildSharedListsSearchIndex(loadcb){
-    var listRetrieveTimeout = 8
-    fetchSharedLists((urls) => {
+    mediaTypeStreamsCount = Object.assign({}, mediaTypeStreamsCountTemplate)
+    sharedListsSearchCaching = false;
+    sharedListsSearchWordsIndex = {}
+    sharedListsSearchWordsIndexStrict = {}
+    var listRetrieveTimeout = 10 // make timeout low, we have caches anyway in case of timeouts
+    Config.reload()
+    getActiveLists((urls) => {
         if(urls.length){
-            var listsCountLimit = Config.get('search-range-size');
-            if(typeof(listsCountLimit)!='number' || listsCountLimit >= 0){
-                listsCountLimit = 18; // default
-            }
-            if(urls.length > listsCountLimit){
-                urls = urls.slice(0, listsCountLimit)
-            }
+            console.warn('BUILD*', Config.get('search-range-size'), urls)
             var iterator = 0, completeIterator = 0, tasks = Array(urls.length).fill((asyncCallback) => {
                 var url = urls[iterator];
                 iterator++;
@@ -171,22 +272,37 @@ function buildSharedListsSearchIndex(loadcb){
                 loadcb(urls)
             })
         } else {
-            mainWin.alert(mainWin.Lang.NO_LIST_PROVIDED.format(mainWin.Lang.SEARCH_RANGE));
             loadcb([])
         }
     })
 }
 
-if(navigator.onLine){
-    init()
-} else {
-    var iStateTimer;
-    window.addEventListener('online', () => {
-        iStateTimer = setTimeout(init, 5000)
-    })
-    window.addEventListener('offline', () => {
-        if(iStateTimer){
-            clearTimeout(iStateTimer)
-        }
-    })
+function ready(){
+    Config.reload()
+    if(navigator.onLine && (Config.get('search-range-size') > 0 || getSources().length)){
+        console.log('Start indexing...')
+        var pop = nw.Window.get()
+        pop.maximize()
+        leftWindowDiffTimer = setInterval(() => {
+            if(pop.x <= 0){
+                clearInterval(leftWindowDiffTimer)
+                try {
+                    leftWindowDiff = pop.x
+                    pop.hide()
+                    ipc.of.main.emit('indexer-load')
+                } catch(e) {
+                    console.error(e)
+                }
+            }
+        }, 250)    
+        init(() => {
+            setInterval(init, processingInterval * 1000)
+            setInterval(report, reportingInterval * 1000)
+        })        
+    } else {
+        setTimeout(ready, 1500)
+    }
 }
+
+ready()
+

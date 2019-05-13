@@ -18,7 +18,7 @@
   "menu-entry-vertical-padding": 18,
   "menu-inset-shadow": 1,
   "menu-margin": 0,
-  "menu-transparency": 100,
+  "menu-opacity": 100,
   "menu-uppercase": true,
   "menu-width": 34,
   "name": "big",

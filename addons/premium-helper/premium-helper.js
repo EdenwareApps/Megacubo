@@ -15,14 +15,13 @@ if(typeof(PremiumHelper) == 'undefined'){
                 },
                 check: (checked, data, element) => {
                     console.warn('CHECKK', checked, data)
-                    $body.addClass('no-marquee')
                     if(checked){
                         if(!self.installed(true)){
+                            self.shouldInstall = true;
                             self.notification.update(Lang.ENABLING_PREMIUM_FEATURES, 'fa-circle-notch pulse-spin', 'forever')
                             jQuery(element).find('.entry-name').html('<i class="fas fa-circle-notch pulse-spin"></i> &nbsp;' + Lang.ENABLING_PREMIUM_FEATURES)
                             self.install((err) => {
                                 self.notification.hide()
-                                $body.removeClass('no-marquee')
                                 if(!self.installed(false)){
                                     console.error(err)
                                     Menu.refresh()                                    
@@ -41,19 +40,16 @@ if(typeof(PremiumHelper) == 'undefined'){
                         self.shouldInstall = false;
                         if(self.installed(true)){
                             var ok = false;
-                            if(typeof(askForLicense) == 'function'){
-                                if(typeof(premiumReset) == 'function'){
-                                    premiumReset()
-                                }
+                            if(typeof(premiumReset) == 'function'){
+                                premiumReset()
                                 askForLicense()
-                                ok = isModal()
-                                $body.removeClass('no-marquee')
+                                ok = true
+                                Menu.refresh()
                             }
                             if(!ok){
                                 self.notification.update(Lang.PROCESSING, 'fa-circle-notch pulse-spin', 'forever')
                                 jQuery(element).find('.entry-name').html('<i class="fas fa-circle-notch pulse-spin"></i> &nbsp;' + Lang.PROCESSING)
                                 self.uninstall((ret) => {
-                                    $body.removeClass('no-marquee')
                                     self.notification.hide()
                                     Menu.refresh()
                                     if(ret){
@@ -61,8 +57,7 @@ if(typeof(PremiumHelper) == 'undefined'){
                                     }
                                 })
                             }
-                            Menu.refresh()
-                        }
+                        }                        
                     }
                 },
                 callback: () => {

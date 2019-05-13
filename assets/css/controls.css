@@ -86,6 +86,11 @@ a.entry td {
     padding: 0;
 }
 
+a.entry:not(.entry-compact) td:not(.entry-logo-c) {
+    position: relative;
+    top: -2px;
+}
+
 .entry-logo {
     text-align: center;
     display: inline-block;
@@ -118,6 +123,8 @@ span.entry-logo-img-c, span.entry-logo-fa-c {
     text-align: center;
     align-items: center;
     position: relative;
+    top: 0;
+    vertical-align: text-bottom;
 }
 
 span.entry-logo-img-c {
@@ -151,8 +158,10 @@ span.entry-logo-fa-c {
 }
 
 .entry-name {
-    display: inline-block;
+    display: table-cell;
     word-wrap: break-word;
+    position: relative;
+    left: -4px;
 }
 
 input.entry-name {
@@ -187,23 +196,26 @@ input.entry-name {
     text-align: left;
 }
 
-.entry-status {
-    height: 0;
-    display: block;
+.entry-flags {
+    display: table-cell;
     position: relative;
-    top: 100%;
+    left: -2px;
 }
 
-.entry-status > span {
-    position: absolute;
-    font-size: 150%;
-    bottom: -4px;
-    right: 0;
-    text-shadow: 0 1px 1px #000;
+.entry-flags > span {
     z-index: 1;
+    margin-right: 3px;
 }
 
-.entry-status svg.fa-circle-notch.fa-spin {
+.entry-flags > span:empty {
+    display: none;
+}
+
+.entry-flags svg, .entry-flags i {
+    margin: 0 3px 0 0;
+}
+
+.entry-flags svg.fa-circle-notch.fa-spin {
     height: 0.99em;
 }
 
@@ -339,11 +351,6 @@ body:not(.playing) #menu-toggle:hover, body:not(.playing) #menu-trigger:hover {
     opacity: 1;
 }
 
-#menu-toggle.focused, .nw-cf-btn.focused {
-    background: #FF66BB33 !important;
-    outline: 0 !important;
-}
-
 .entry-sub {
     background-color: rgba(150, 160, 255, 0.15) !important;
     box-shadow: none !important;
@@ -380,6 +387,24 @@ body.submenu a.entry:not(.entry-sub) {
     max-width: 100%;
 }
 
+.entry-logo-fa-c .fa-xs {
+    position: relative;
+    font-size: 1.25em;
+    left: -0.1225em;
+    top: -0.25em;
+    border-radius: 12px;
+    padding: 33%;
+}
+
+.entry-logo-img-c .fa-xs {
+    position: relative;
+    font-size: 1.25em;
+    top: 0.0125em;
+    left: -0.1225em;
+    border-radius: 12px;
+    padding: 33%;
+}
+
 .entry-label, .entry-name {
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: subpixel-antialiased;
@@ -397,6 +422,10 @@ body.submenu a.entry:not(.entry-sub) {
     transition: 0.1s opacity linear 0.1s;
     box-sizing: border-box;    
     align-items: center;
+}
+
+body.frameless:not(.miniplayer) #vcontrols {
+    bottom: -1px;
 }
 
 body.has-menu-margin #vcontrols {
@@ -429,10 +458,6 @@ body:not(.playing):not(.paused):not(.loading) #vcontrols { /* stoppped */
 
 #vcontrols .video-seek input {
     width: 100%;
-}
-
-#vcontrols a, .video-timer {
-    padding: 0 16px 0 0;
 }
 
 #vcontrols .video-play {
@@ -483,9 +508,9 @@ body:not(.playing):not(.paused):not(.loading) #vcontrols { /* stoppped */
 }
 
 #vcontrols .video-scale {
-    text-decoration: none;
-    padding: 1px 3px;
-    margin-right: 16px;
+    text-decoration: none;    
+    padding: 2px 6px;
+    margin: 0 8px;
     box-sizing: border-box;
     display: inline-flex;
     font-size: 68%;
@@ -500,7 +525,9 @@ body:not(.playing):not(.paused):not(.loading) #vcontrols { /* stoppped */
 }
 
 body.over:not(.hiding-menu) #vcontrols, /* over */
-body.paused #vcontrols /* paused */ { 
+body.paused #vcontrols, /* paused */ 
+body #vcontrols:focus-within /* focused */ 
+{ 
 	opacity: 1;
 }
 

@@ -14,7 +14,7 @@
 			}
 		</style>
 		<script type="text/javascript">
-			var win = nw.Window.get(), miniPlayerActive = false, appShown = false;
+			var win = nw.Window.get(), miniPlayerActive = false, appShown = false
 			global.onerror = window.onerror = (err) => { 
 			    logErr('Unhandled error', err)
 				var ok = false;
@@ -39,13 +39,16 @@
 				}
 			}
 			function logErr(){
+				const log = JSON.stringify(Array.from(arguments))+"\r\n"+traceback()+"\r\n\r\n"
 				if(!fs){
 					fs = require('fs')
 				}
-				if(!fs.existsSync('error.log')){
-					fs.closeSync(fs.openSync('error.log', 'w')) // touch
+				if(fs.existsSync('error.log')){
+					fs.appendFileSync('error.log', log)
+				} else {
+					fs.writeFileSync('error.log', log)
 				}
-				return fs.appendFileSync('error.log', JSON.stringify(Array.from(arguments))+"\r\n"+traceback()+"\r\n\r\n")
+				alert(log)
 			}
 			process.removeAllListeners('uncaughtException')
 			process.removeAllListeners('unhandledRejection')
@@ -192,42 +195,67 @@
 			</div>
 		</div>
 		<script type="text/javascript">
-			loadScripts([
-				'core/util.js',
-				'utils/iptv.js',
-				'playback/base.js',
-				'core/app.js'
-			], 'assets/js/', () => {
-				console.log('[INIT] Search index scanning...')
+			(() => {
+				const libs = [
+					{ // core
+						path: 'assets/js/',
+						files: [
+							'core/util.js'
+						]
+					},
+					{ // playback
+						path: 'assets/js/playback/',
+						files: [
+							'playback.js',
+							'internal-proxy.js',
+							'internal-proxy-hls.js',
+							'engines/base.js',
+							'engines/direct.js',
+							'engines/ffmpeg.js',
+							'engines/frame.js',
+							'engines/magnet.js',
+							'engines/ts.js'
+						]
+					},
+					{ // app + utils
+						path: 'assets/js/',
+						files: [
+							'core/app.js',
+							'utils/countries.js',
+							'utils/dialer.js',
+							'utils/fitter.js',
+							'utils/iptv.js',
+							'utils/search.js',
+							'ui/buzz.min.js',
+							'ui/context-menu.js',
+							'ui/jquery.shortcuts.min.js',
+							'ui/jquery.viewport.js',
+							'ui/menu.js',
+							'ui/menu-feeding.js',
+							'ui/pointer.js',
+							'ui/winstate.js',
+							'ui/wizard.js'
+						]
+					}
+				]
+				const load = (level) => {
+					if(typeof(libs[level]) != 'undefined'){
+						console.log('[INIT] LOAD', level)
+						loadScripts(libs[level].files, libs[level].path, () => {
+							console.log('[INIT] LOAD', libs[level])
+							load(level + 1)
+						})
+					} else {
+						console.log('[INIT] OK', level)
+						init()
+					}
+				}
+				load(0)
+			})()
+			addAction('appReady', () => {
 				initSearchIndex(() => {
 					console.log('[INIT] Search index done.')
-				})
-				loadScripts([
-					'utils/countries.js',
-					'utils/dialer.js',
-					'utils/iprx.js',
-					'utils/search.js',
-					'ui/buzz.min.js',
-					'ui/context-menu.js',
-					'ui/fitter.js',
-					'ui/jquery.shortcuts.min.js',
-					'ui/jquery.viewport.js',
-					'ui/menu.js',
-					'ui/menu-feeding.js',
-					'ui/pointer.js',
-					'ui/winstate.js',
-					'ui/wizard.js',
-					'playback/direct.js',
-					'playback/ffmpeg.js',
-					'playback/frame.js',
-					'playback/magnet.js',
-					'playback/ts.js'
-				], 'assets/js/', () => {
-					console.log('[INIT] LOADED')
-					init()
-				})
-			})
-			addAction('afterAppShow', () => {				
+				})	
 				loadScripts([
 					'utils/blocked_domains.js',
 					'ui/context-menu.js'
@@ -235,7 +263,7 @@
 					console.log('[INIT] POS LOADED')
 					applyBlockedDomains(blocked_domains)
 					blocked_domains = null
-				})
+				})			
 			})
 		</script>
 	</body>

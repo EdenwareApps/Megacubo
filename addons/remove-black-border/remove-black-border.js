@@ -65,6 +65,8 @@ var AutoScaler = (() => {
                 }
             } 
             v.style.transform = 'none';
+            v.style.removeProperty('min-width') // was breaking centralize on youtube.com
+            v.style.removeProperty('min-height')
         }
     }
     return self;

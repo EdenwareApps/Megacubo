@@ -43,7 +43,7 @@ window.contextMenuActions = {
     ],
     "OPENURLORLIST": [
         () => {
-            addNewSource()
+            addNewSource(false, false, true)
         }
     ],
     "CHANGELANG": [

@@ -323,9 +323,6 @@ function getWatchingData(cb, update, locale){
         } 
         watchingData = entries;
         if(filter){
-            if(isListSharingActive()) {
-                addEntriesToSearchIndex(entries, url)
-            }
             entries = applyFilters('getWatchingData', entries)
             if(!jQuery.isArray(entries)){
                 console.error('getWatchingData filter error')
@@ -401,7 +398,7 @@ function parseLabelCount(data){
     }
     if(type) {
         if(typeof(mediaTypeStreamsCount[type]) != 'undefined'){
-            if(!searchIndexBuilden){
+            if(!indexerVarsAvailable){
                 return '<i class="fas fa-circle-notch pulse-spin search-index-vary"></i> '+Lang.PROCESSING
             }
             count = type == 'total' ? onlineUsersCount['total'] : mediaTypeStreamsCount[type];
@@ -438,16 +435,31 @@ function getAppearanceOptionsEntries(){
             }
         },
         {
-            name: Lang.MENU_TRANSPARENCY, 
+            name: Lang.HIGHLIGHT_INTENSITY, 
             type: 'slider', 
             logo: 'fa-adjust', 
             range: {start: 0, end: 100}, 
             getValue: (data) => {
-                return Theme.get('menu-transparency')
+                return Theme.get('highlight-opacity')
             },
-            value: Theme.get('menu-transparency'),
+            value: Theme.get('highlight-opacity'),
             change:  (data, element, value) => {
-                Theme.set('menu-transparency', value);
+                Theme.set('highlight-opacity', value);
+                clearTimeout(window['loadThemingApplyTimer']);
+                window['loadThemingApplyTimer'] = setTimeout(loadTheming, 400)
+            }
+        },
+        {
+            name: Lang.MENU_OPACITY, 
+            type: 'slider', 
+            logo: 'fa-adjust', 
+            range: {start: 0, end: 100}, 
+            getValue: (data) => {
+                return Theme.get('menu-opacity')
+            },
+            value: Theme.get('menu-opacity'),
+            change:  (data, element, value) => {
+                Theme.set('menu-opacity', value);
                 clearTimeout(window['loadThemingApplyTimer']);
                 window['loadThemingApplyTimer'] = setTimeout(loadTheming, 400)
             }
@@ -600,57 +612,6 @@ function getAppearanceColorsEntries(){
                 }, ".png")
             }
         },
-        {
-            name: Lang.HIGHLIGHT_COLOR, 
-            type: 'group',
-            logo: 'fa-paint-brush',
-            entries: [Menu.loadingEntry()],
-            callback: () => {
-                let alreadyChosenColor = Theme.get('highlight-color'), curPath = Menu.path, wpfile = "assets/images/wallpaper.png";
-                getImageColorsForTheming(wpfile, (colors) => {
-                    let alreadyChosenIndex = -1;
-                    console.warn('WOW', curPath, Menu.path, colors);
-                    var entries = colors.darkColors.concat(colors.lightColors).concat(getThemeColors()).getUnique().map((color, i) => {
-                        let _color = color;
-                        if(_color == alreadyChosenColor){
-                            alreadyChosenIndex = i;
-                        }
-                        return {
-                            name: _color,
-                            type: 'option',
-                            logo: 'fas fa-circle',
-                            logoColor: _color,
-                            callback: (data, element) => {
-                                setEntryFlag(element, 'fa-check-circle', true);
-                                Theme.set('highlight-color', _color);
-                                loadTheming()
-                            }
-                        }
-                    });
-                    entries.push({
-                        name: Lang.OTHER_COLOR,
-                        type: 'option',
-                        logo: 'fa-palette',
-                        callback: (data, element) => {
-                            pickColor((_color) => {
-                                if(_color){
-                                    Theme.set('highlight-color', _color);
-                                    loadTheming()
-                                }
-                            }, alreadyChosenColor)
-                        }
-                    })
-                    if(curPath == Menu.path){
-                        Menu.container(true);
-                        Menu.renderBackEntry(Menu.container(true), dirname(curPath), basename(curPath));
-                        Menu.render(entries, curPath);
-                        if(alreadyChosenIndex != -1){
-                            setEntryFlag(Menu.getEntries(false, false).get(alreadyChosenIndex + 1), 'fa-check-circle', true)
-                        }
-                    }
-                })
-            }
-        },  
         {
             name: Lang.BACKGROUND_COLOR, 
             type: 'group',
@@ -1239,25 +1200,13 @@ function getSettingsEntries(){
             {name: Lang.ALLOW_SIMILAR_TRANSMISSIONS, type: 'check', check: (checked) => {
                 Config.set('similar-transmissions', checked)
             }, checked: () => {return Config.get('similar-transmissions')}},
-            {name: Lang.ENABLE_P2P, label: '&nbsp;', type: 'check', class: 'entry-allow-p2p', check: (checked) => {
+            {name: Lang.P2P_ACCELERATION, label: '&nbsp;', type: 'check', class: 'entry-allow-p2p', check: (checked) => {
                 Config.set('p2p', checked)
-                showP2PPortSelector(checked)
+                // showP2PPortSelector(checked)
                 if(Playback.active){
                     goReload()
                 }
-            }, checked: () => {return Config.get('p2p')}},            
-            {name: Lang.P2P_PORT, type: 'slider', class: 'entry-p2p-port '+(Config.get('p2p') ? '' : 'entry-hide'), logo: 'fa-users', value: Config.get('p2p-port'), range: {start: 5000, end: 10000}, change: (data, element) => {
-                Config.set("p2p-port", data.value)
-                if(typeof(top.p2pPortChanging) != 'undefined'){
-                    clearTimeout(top.p2pPortChanging)
-                }
-                top.p2pPortChanging = setTimeout(() => {
-                    iprx.setP2PPort(Config.get('p2p-port'))
-                    if(Playback.active){
-                        goReload()
-                    }
-                }, 2000)
-            }},
+            }, checked: () => {return Config.get('p2p')}},    
             {name: Lang.PLAY_WHILE_TUNING, type: 'check', check: (checked) => {
                 Config.set('play-while-tuning', checked)
             }, checked: () => {
@@ -1370,29 +1319,10 @@ function prepareFeaturedOptions(entries, cb){
 
 function prepareContinueOptions(entries, cb){
     var ces = []
-    async.each(entries || History.get(), (entry, done) => {
-        var go = (iconExists) => {
-            if(!iconExists){
-                entry.logo = 'fa-redo-alt';
-            }
-            ces.push(entry)
-            done()
-        }
-        if(isLive(entry.url) && entry.logo && entry.logo.substr(0, 3)!='fa-'){
-            checkImage(entry.logo, () => {
-                go(true)
-            }, () => {
-                go(false)
-            })
-        } else {
-            go(false)
-        }
-    }, () => {
-        homeMetaOptions['continue'] = ces
-        if(typeof(cb) == 'function'){
-            cb()
-        }
-    })
+    homeMetaOptions['continue'] = History.get()
+    if(typeof(cb) == 'function'){
+        cb()
+    }
 }
 
 function updateHomeMetaOptions(){
@@ -1463,8 +1393,10 @@ function updateHomeMetaOptions(){
 function getSearchRangeEntries(){
     var options = [];
     var callback = (entry, r) => {
-        Config.set('search-range-size', entry.value);        
-        initSearchIndex(jQuery.noop);
+        if(entry.value != Config.get('search-range-size')){
+            Config.set('search-range-size', entry.value);        
+            ipc.server.broadcast('indexer-update')
+        }
         setActiveEntry({value: entry.value})
     }
     options.push({name: Lang.MY_LISTS_ONLY, value: 0, logo:'fa-search-minus', type: 'option', callback: callback, class: getSources().length?'':'entry-disable'});
@@ -1531,7 +1463,7 @@ function getSearchHistoryEntries(){
             logo: 'fa-undo',
             type: 'option',
             callback: () => {
-                Store.set('search-history', []);
+                Store.set('search-history', [], true);
                 Menu.back()
             }
         })
@@ -1583,22 +1515,39 @@ function getAddBookmarkByNameEntriesPhase2(){
     if(!currentBookmarkAddingByName.name){
         return -1;
     }
-    var type = 'all';
+    var type = 'all', _path = assumePath(Lang.SAVE)
     if(!currentBookmarkAddingByName.search_live){
         type = 'video';
     } else if(!currentBookmarkAddingByName.search_vod){
         type = 'live';
     }
-    var entries = [], sentries = fetchSharedListsSearchResults(null, type, currentBookmarkAddingByName.name, true, true);
-    var type = (currentBookmarkAddingByName.search_live && currentBookmarkAddingByName.search_vod) ? 'all' : (currentBookmarkAddingByName.search_live ? 'live' : 'video');
-    var url = 'mega://play|'+encodeURIComponent(currentBookmarkAddingByName.name)+'?search_type='+type;
-    var logos = sentries.map((entry) => { return entry.logo; }).filter((logoUrl) => { return isHTTP(logoUrl) }).getUnique().slice(0, 96).forEach((logoUrl) => {
+    fetchSharedListsSearchResults(sentries => {
+        var entries = []
+        var type = (currentBookmarkAddingByName.search_live && currentBookmarkAddingByName.search_vod) ? 'all' : (currentBookmarkAddingByName.search_live ? 'live' : 'video');
+        var url = 'mega://play|'+encodeURIComponent(currentBookmarkAddingByName.name)+'?search_type='+type;
+        var logos = sentries.map((entry) => { return entry.logo; }).filter((logoUrl) => { return isHTTP(logoUrl) }).getUnique().slice(0, 96).forEach((logoUrl) => {
+            entries.push({
+                name: Lang.SELECT_ICON,
+                logo: logoUrl,
+                type: 'option',
+                callback: () => {
+                    currentBookmarkAddingByName.logo = logoUrl;
+                    Bookmarks.add({
+                        name: currentBookmarkAddingByName.name,
+                        logo: currentBookmarkAddingByName.logo,
+                        type: (type == 'live' ? 'stream' : 'group'),
+                        url: url
+                    });
+                    goBookmarks()
+                }
+            })
+        })
         entries.push({
             name: Lang.SELECT_ICON,
-            logo: logoUrl,
+            logo: defaultIcons['stream'],
             type: 'option',
             callback: () => {
-                currentBookmarkAddingByName.logo = logoUrl;
+                currentBookmarkAddingByName.logo = '';
                 Bookmarks.add({
                     name: currentBookmarkAddingByName.name,
                     logo: currentBookmarkAddingByName.logo,
@@ -1608,41 +1557,29 @@ function getAddBookmarkByNameEntriesPhase2(){
                 goBookmarks()
             }
         })
-    });
-    entries.push({
-        name: Lang.SELECT_ICON,
-        logo: defaultIcons['stream'],
-        type: 'option',
-        callback: () => {
-            currentBookmarkAddingByName.logo = '';
-            Bookmarks.add({
-                name: currentBookmarkAddingByName.name,
-                logo: currentBookmarkAddingByName.logo,
-                type: (type == 'live' ? 'stream' : 'group'),
-                url: url
-            });
-            goBookmarks()
-        }
-    });
-    return entries;
+        Menu.asyncResult(_path, entries)
+    }, type, currentBookmarkAddingByName.name, true, true)
+    return [Menu.loadingEntry]
 }
 
-function expandMegaURL(url){
+function expandMegaURL(url, cb){
     var data = parseMegaURL(url);
     if(data){
         if(data.type == 'link'){
-            return [{
+            cb([{
                 name: data.name || 'Unknown',
                 type: 'stream',
                 url: data.url
-            }]
+            }])
+            return
         } else if(data.type == 'play') {
-            return fetchSharedListsSearchResults(null, data.mediaType || 'live', data.name, true, true)
+            fetchSharedListsSearchResults(cb, data.mediaType || 'live', data.name, true, true)
+            return
         }
     } else {
         console.error('Bad mega:// URL', entry)
     }
-    return []
+    cb([])
 }
 
 function getBookmarksEntries(reportEmpty){
@@ -1880,14 +1817,16 @@ function getListsEntries(notActive, noManagement, isVirtual){
             }
             return options;            
         }},
-        {name: Lang.ADD_NEW_LIST, logo: 'fa-plus', type: 'option', callback: addNewSource}
+        {name: Lang.ADD_NEW_LIST, logo: 'fa-plus', type: 'option', callback: () => {
+            addNewSource(false, false, true)
+        }}
     ];
     if(getSources().length){
         options.push({name: Lang.REMOVE_LIST, logo: 'fa-trash', type: 'group', renderer: getListsEntriesForRemoval, callback: markActiveSource});
         options.push({name: Lang.LIST_SHARING, type: 'check', check: function (checked) {
-            var v = checked ? Config.defaults['search-range-size'] : 0;
+            var v = checked ? Config.defaults['search-range-size'] : 0
             Config.set('search-range-size', v);        
-            initSearchIndex(jQuery.noop)
+            ipc.server.broadcast('indexer-update')
             Menu.refresh()
         },  checked: () => {
                 return isListSharingActive()
@@ -1962,7 +1901,11 @@ function sharedGroupsAsEntries(type, mediaType, filter){
             type: 'group',
             mediaType: mediaType || type,
             renderer: (data) => {
-                return fetchSharedListsSearchResults(false, data.mediaType, data.name, true, false, filter)
+                _path = assumePath(group)
+                fetchSharedListsSearchResults(entries => {
+                    Menu.asyncResult(_path, entries)
+                }, data.mediaType, data.name, true, false, filter)
+                return [Menu.loadingEntry]
             }
         }
     });

@@ -7,25 +7,26 @@ var formatXXXURL = (url) => {
 function fetchXXXSearchResults(q, cb){
     var callback = (videos) => {
         console.log('PN', videos)
-        var entries = fetchSharedListsSearchResults(null, 'all', q, true, false, (entries) => {
+        fetchSharedListsSearchResults(entries => {
+            if(jQuery.isArray(videos)){
+                for(var i=0; i<videos.length; i++){
+                    //console.log(search_results.entries[i])
+                    entries.push({
+                        type: 'stream',
+                        url: formatXXXURL(videos[i].url),
+                        name: videos[i].title + ' | XXX',
+                        logo: videos[i].thumb,
+                        label: videos[i].duration
+                    })
+                }
+            }
+            cb(entries)
+        }, 'all', q, true, false, entries => {
             return entries.filter(entry => {
                 return entry.parentalControlSafe === false
             }).slice(0)
         })
-        if(jQuery.isArray(videos)){
-            for(var i=0; i<videos.length; i++){
-                //console.log(search_results.entries[i])
-                entries.push({
-                    type: 'stream',
-                    url: formatXXXURL(videos[i].url),
-                    name: videos[i].title + ' | XXX',
-                    logo: videos[i].thumb,
-                    label: videos[i].duration
-                })
-            }
-        }
-        cb(entries)
-    };
+    }
     var Searcher = new (require('pornsearch'))(q)
     Searcher.videos().then(callback).catch(() => {
         callback([])
@@ -112,6 +113,6 @@ addFilter('toolsEntries', (entries) => {
     return entries
 })
 
-addAction('appStart', () => {
+addAction('appReady', () => {
     registerSearchEngine(Lang.ADULT_CONTENT, 'adult-content', fetchXXXSearchResults)
 })

@@ -1,13 +1,216 @@
 //import { clearTimeout } from 'timers';
 
-var requestJar = request.jar(), Lang = {};
-var customMediaTypes = [], customMediaEntries = [];
-var installedVersion = 0, availableVersion = 0, sharedLists = [], sharedListsSearchWordsIndex = {}, sharedListsSearchWordsIndexStrict = {}, sharedListsGroups = false;
+var requestJar = request.jar(), Lang = {}, os = require('os')
+var customMediaTypes = [], customMediaEntries = []
+var installedVersion = 0, availableVersion = 0, sharedLists = [], sharedListsGroups = false
+
+const sharedDefaultSearchRangeSize = 36
 
 request = request.defaults({
     jar: requestJar,
     headers: {'User-Agent': navigator.userAgent} // without user-agent some hosts return 403
 })
+
+var md5 = function (string) {
+
+    function RotateLeft(lValue, iShiftBits) {
+            return (lValue<<iShiftBits) | (lValue>>>(32-iShiftBits));
+    }
+ 
+    function AddUnsigned(lX,lY) {
+            var lX4,lY4,lX8,lY8,lResult;
+            lX8 = (lX & 0x80000000);
+            lY8 = (lY & 0x80000000);
+            lX4 = (lX & 0x40000000);
+            lY4 = (lY & 0x40000000);
+            lResult = (lX & 0x3FFFFFFF)+(lY & 0x3FFFFFFF);
+            if (lX4 & lY4) {
+                    return (lResult ^ 0x80000000 ^ lX8 ^ lY8);
+            }
+            if (lX4 | lY4) {
+                    if (lResult & 0x40000000) {
+                            return (lResult ^ 0xC0000000 ^ lX8 ^ lY8);
+                    } else {
+                            return (lResult ^ 0x40000000 ^ lX8 ^ lY8);
+                    }
+            } else {
+                    return (lResult ^ lX8 ^ lY8);
+            }
+    }
+ 
+    function F(x,y,z) { return (x & y) | ((~x) & z); }
+    function G(x,y,z) { return (x & z) | (y & (~z)); }
+    function H(x,y,z) { return (x ^ y ^ z); }
+    function I(x,y,z) { return (y ^ (x | (~z))); }
+ 
+    function FF(a,b,c,d,x,s,ac) {
+            a = AddUnsigned(a, AddUnsigned(AddUnsigned(F(b, c, d), x), ac));
+            return AddUnsigned(RotateLeft(a, s), b);
+    };
+ 
+    function GG(a,b,c,d,x,s,ac) {
+            a = AddUnsigned(a, AddUnsigned(AddUnsigned(G(b, c, d), x), ac));
+            return AddUnsigned(RotateLeft(a, s), b);
+    };
+ 
+    function HH(a,b,c,d,x,s,ac) {
+            a = AddUnsigned(a, AddUnsigned(AddUnsigned(H(b, c, d), x), ac));
+            return AddUnsigned(RotateLeft(a, s), b);
+    };
+ 
+    function II(a,b,c,d,x,s,ac) {
+            a = AddUnsigned(a, AddUnsigned(AddUnsigned(I(b, c, d), x), ac));
+            return AddUnsigned(RotateLeft(a, s), b);
+    };
+ 
+    function ConvertToWordArray(string) {
+            var lWordCount;
+            var lMessageLength = string.length;
+            var lNumberOfWords_temp1=lMessageLength + 8;
+            var lNumberOfWords_temp2=(lNumberOfWords_temp1-(lNumberOfWords_temp1 % 64))/64;
+            var lNumberOfWords = (lNumberOfWords_temp2+1)*16;
+            var lWordArray=Array(lNumberOfWords-1);
+            var lBytePosition = 0;
+            var lByteCount = 0;
+            while ( lByteCount < lMessageLength ) {
+                    lWordCount = (lByteCount-(lByteCount % 4))/4;
+                    lBytePosition = (lByteCount % 4)*8;
+                    lWordArray[lWordCount] = (lWordArray[lWordCount] | (string.charCodeAt(lByteCount)<<lBytePosition));
+                    lByteCount++;
+            }
+            lWordCount = (lByteCount-(lByteCount % 4))/4;
+            lBytePosition = (lByteCount % 4)*8;
+            lWordArray[lWordCount] = lWordArray[lWordCount] | (0x80<<lBytePosition);
+            lWordArray[lNumberOfWords-2] = lMessageLength<<3;
+            lWordArray[lNumberOfWords-1] = lMessageLength>>>29;
+            return lWordArray;
+    };
+ 
+    function WordToHex(lValue) {
+            var WordToHexValue="",WordToHexValue_temp="",lByte,lCount;
+            for (lCount = 0;lCount<=3;lCount++) {
+                    lByte = (lValue>>>(lCount*8)) & 255;
+                    WordToHexValue_temp = "0" + lByte.toString(16);
+                    WordToHexValue = WordToHexValue + WordToHexValue_temp.substr(WordToHexValue_temp.length-2,2);
+            }
+            return WordToHexValue;
+    };
+ 
+    function Utf8Encode(string) {
+            string = string.replace(/\r\n/g,"\n");
+            var utftext = "";
+ 
+            for (var n = 0; n < string.length; n++) {
+ 
+                    var c = string.charCodeAt(n);
+ 
+                    if (c < 128) {
+                            utftext += String.fromCharCode(c);
+                    }
+                    else if((c > 127) && (c < 2048)) {
+                            utftext += String.fromCharCode((c >> 6) | 192);
+                            utftext += String.fromCharCode((c & 63) | 128);
+                    }
+                    else {
+                            utftext += String.fromCharCode((c >> 12) | 224);
+                            utftext += String.fromCharCode(((c >> 6) & 63) | 128);
+                            utftext += String.fromCharCode((c & 63) | 128);
+                    }
+ 
+            }
+ 
+            return utftext;
+    };
+ 
+    var x=Array();
+    var k,AA,BB,CC,DD,a,b,c,d;
+    var S11=7, S12=12, S13=17, S14=22;
+    var S21=5, S22=9 , S23=14, S24=20;
+    var S31=4, S32=11, S33=16, S34=23;
+    var S41=6, S42=10, S43=15, S44=21;
+ 
+    string = Utf8Encode(string);
+ 
+    x = ConvertToWordArray(string);
+ 
+    a = 0x67452301; b = 0xEFCDAB89; c = 0x98BADCFE; d = 0x10325476;
+ 
+    for (k=0;k<x.length;k+=16) {
+            AA=a; BB=b; CC=c; DD=d;
+            a=FF(a,b,c,d,x[k+0], S11,0xD76AA478);
+            d=FF(d,a,b,c,x[k+1], S12,0xE8C7B756);
+            c=FF(c,d,a,b,x[k+2], S13,0x242070DB);
+            b=FF(b,c,d,a,x[k+3], S14,0xC1BDCEEE);
+            a=FF(a,b,c,d,x[k+4], S11,0xF57C0FAF);
+            d=FF(d,a,b,c,x[k+5], S12,0x4787C62A);
+            c=FF(c,d,a,b,x[k+6], S13,0xA8304613);
+            b=FF(b,c,d,a,x[k+7], S14,0xFD469501);
+            a=FF(a,b,c,d,x[k+8], S11,0x698098D8);
+            d=FF(d,a,b,c,x[k+9], S12,0x8B44F7AF);
+            c=FF(c,d,a,b,x[k+10],S13,0xFFFF5BB1);
+            b=FF(b,c,d,a,x[k+11],S14,0x895CD7BE);
+            a=FF(a,b,c,d,x[k+12],S11,0x6B901122);
+            d=FF(d,a,b,c,x[k+13],S12,0xFD987193);
+            c=FF(c,d,a,b,x[k+14],S13,0xA679438E);
+            b=FF(b,c,d,a,x[k+15],S14,0x49B40821);
+            a=GG(a,b,c,d,x[k+1], S21,0xF61E2562);
+            d=GG(d,a,b,c,x[k+6], S22,0xC040B340);
+            c=GG(c,d,a,b,x[k+11],S23,0x265E5A51);
+            b=GG(b,c,d,a,x[k+0], S24,0xE9B6C7AA);
+            a=GG(a,b,c,d,x[k+5], S21,0xD62F105D);
+            d=GG(d,a,b,c,x[k+10],S22,0x2441453);
+            c=GG(c,d,a,b,x[k+15],S23,0xD8A1E681);
+            b=GG(b,c,d,a,x[k+4], S24,0xE7D3FBC8);
+            a=GG(a,b,c,d,x[k+9], S21,0x21E1CDE6);
+            d=GG(d,a,b,c,x[k+14],S22,0xC33707D6);
+            c=GG(c,d,a,b,x[k+3], S23,0xF4D50D87);
+            b=GG(b,c,d,a,x[k+8], S24,0x455A14ED);
+            a=GG(a,b,c,d,x[k+13],S21,0xA9E3E905);
+            d=GG(d,a,b,c,x[k+2], S22,0xFCEFA3F8);
+            c=GG(c,d,a,b,x[k+7], S23,0x676F02D9);
+            b=GG(b,c,d,a,x[k+12],S24,0x8D2A4C8A);
+            a=HH(a,b,c,d,x[k+5], S31,0xFFFA3942);
+            d=HH(d,a,b,c,x[k+8], S32,0x8771F681);
+            c=HH(c,d,a,b,x[k+11],S33,0x6D9D6122);
+            b=HH(b,c,d,a,x[k+14],S34,0xFDE5380C);
+            a=HH(a,b,c,d,x[k+1], S31,0xA4BEEA44);
+            d=HH(d,a,b,c,x[k+4], S32,0x4BDECFA9);
+            c=HH(c,d,a,b,x[k+7], S33,0xF6BB4B60);
+            b=HH(b,c,d,a,x[k+10],S34,0xBEBFBC70);
+            a=HH(a,b,c,d,x[k+13],S31,0x289B7EC6);
+            d=HH(d,a,b,c,x[k+0], S32,0xEAA127FA);
+            c=HH(c,d,a,b,x[k+3], S33,0xD4EF3085);
+            b=HH(b,c,d,a,x[k+6], S34,0x4881D05);
+            a=HH(a,b,c,d,x[k+9], S31,0xD9D4D039);
+            d=HH(d,a,b,c,x[k+12],S32,0xE6DB99E5);
+            c=HH(c,d,a,b,x[k+15],S33,0x1FA27CF8);
+            b=HH(b,c,d,a,x[k+2], S34,0xC4AC5665);
+            a=II(a,b,c,d,x[k+0], S41,0xF4292244);
+            d=II(d,a,b,c,x[k+7], S42,0x432AFF97);
+            c=II(c,d,a,b,x[k+14],S43,0xAB9423A7);
+            b=II(b,c,d,a,x[k+5], S44,0xFC93A039);
+            a=II(a,b,c,d,x[k+12],S41,0x655B59C3);
+            d=II(d,a,b,c,x[k+3], S42,0x8F0CCC92);
+            c=II(c,d,a,b,x[k+10],S43,0xFFEFF47D);
+            b=II(b,c,d,a,x[k+1], S44,0x85845DD1);
+            a=II(a,b,c,d,x[k+8], S41,0x6FA87E4F);
+            d=II(d,a,b,c,x[k+15],S42,0xFE2CE6E0);
+            c=II(c,d,a,b,x[k+6], S43,0xA3014314);
+            b=II(b,c,d,a,x[k+13],S44,0x4E0811A1);
+            a=II(a,b,c,d,x[k+4], S41,0xF7537E82);
+            d=II(d,a,b,c,x[k+11],S42,0xBD3AF235);
+            c=II(c,d,a,b,x[k+2], S43,0x2AD7D2BB);
+            b=II(b,c,d,a,x[k+9], S44,0xEB86D391);
+            a=AddUnsigned(a,AA);
+            b=AddUnsigned(b,BB);
+            c=AddUnsigned(c,CC);
+            d=AddUnsigned(d,DD);
+            }
+ 
+        var temp = WordToHex(a)+WordToHex(b)+WordToHex(c)+WordToHex(d);
+ 
+        return temp.toLowerCase();
+ }
 
 function extractInt(s, sep, def){
     let ss = s.split(sep || ' ').filter((n) => {
@@ -147,7 +350,7 @@ function updateOnlineUsersCount(){
     }
     jQuery.getJSON('http://app.megacubo.net/stats/data/usersonline.json', (response) => {
         if(!isNaN(parseInt(response))){
-            GStore.set('usersonline', response);
+            GStore.set('usersonline', response, true);
             callback(response)
         }
     })
@@ -165,59 +368,6 @@ var mediaTypeStreamsCountTemplate = {
 
 var onlineUsersCount = Object.assign({}, mediaTypeStreamsCountTemplate), mediaTypeStreamsCount = Object.assign({}, mediaTypeStreamsCountTemplate);
 
-function updateMediaTypeStreamsCount(entries, wasEmpty){
-    if(wasEmpty){
-        mediaTypeStreamsCount = Object.assign({}, mediaTypeStreamsCountTemplate);
-    }
-    entries.forEach((entry) => {
-        if(typeof(mediaTypeStreamsCount[entry.mediaType])=='undefined'){
-            mediaTypeStreamsCount[entry.mediaType] = 0;
-        }
-        mediaTypeStreamsCount[entry.mediaType]++;
-    })
-}
-
-addAction('addEntriesToSearchIndex', updateMediaTypeStreamsCount);
-
-function addEntriesToSearchIndex(_entries, listURL){
-    var b, bs, s = [], ss = [], sep = ' _|_ ';
-    var entries = _entries.filter((entry) => {
-        return entry && !isMegaURL(entry.url);
-    })
-    for(var i=0; i<entries.length; i++){
-        b = bs = entries[i].name;
-        if(typeof(entries[i].group) != 'undefined' && entries[i].group != 'undefined'){
-            b += ' ' + entries[i].group
-        }
-        if(b == bs){
-            bs = b = prepareSearchTerms(b)
-        } else {
-            b = prepareSearchTerms(b), bs = prepareSearchTerms(bs)
-        }
-        if(typeof(entries[i].mediaType) == 'undefined' || entries[i].mediaType == -1){
-            entries[i].mediaType = getStreamBasicType(entries[i])
-        }
-        entries[i].source = entries[i].source || listURL;
-        b.forEach((t) => {
-            if(t.length > 1){
-                if(typeof(sharedListsSearchWordsIndex[t])=='undefined'){
-                    sharedListsSearchWordsIndex[t] = {entries: []}
-                }
-                sharedListsSearchWordsIndex[t].entries.push(entries[i])
-            }
-        })
-        bs.forEach((t) => {
-            if(t.length > 1){
-                if(typeof(sharedListsSearchWordsIndexStrict[t])=='undefined'){
-                    sharedListsSearchWordsIndexStrict[t] = {entries: []}
-                }
-                sharedListsSearchWordsIndexStrict[t].entries.push(entries[i])
-            }
-        })
-    }
-    doAction('addEntriesToSearchIndex', entries)
-}
-
 function getStreamBasicType(entry){
     if(entry.mediaType && entry.mediaType != -1){
         return entry.mediaType;
@@ -225,8 +375,7 @@ function getStreamBasicType(entry){
     var b = entry.name;
     if(entry.group){
         b += ' '+entry.group;
-    }
-    
+    }    
     var ret = false;
     Object.values(customMediaTypes).forEach((atts) => {
         if(atts.check && atts.check(entry.url, entry)){
@@ -234,7 +383,6 @@ function getStreamBasicType(entry){
         }
     });
     if(ret) return ret;
-
     if(isRadio(b)){
         return 'radio';
     } else if(entry.url && ((isHTML5Video(entry.url) && !isTS(entry.url)) || isYT(entry.url))) {
@@ -367,7 +515,7 @@ function isNumberOrLetter(chr){
 }
 
 function playPrevious(){ // PCH
-    var c = Playback.active ? Playback.active.entry : (Playback.lastActiveIntent ? Playback.lastActiveIntent.entry : false)
+    var c = Playback.active ? Playback.active.entry : (Playback.lastActive ? Playback.lastActive.entry : false)
     History.get().some((entry) => {
         if(!isLocal(entry.url)) { 
             if(!c || (entry.url != c.url && (!c.originalUrl || !entry.originalUrl || entry.originalUrl != c.originalUrl))){
@@ -380,7 +528,7 @@ function playPrevious(){ // PCH
 
 function playResume(){
     History.get().some((entry) => {
-        if(!Playback.active && !Playback.lastActiveIntent && !Playback.intents.length){
+        if(!Playback.active && !Playback.lastActive && !Playback.intents.length){
             playEntry(entry)
             return true;
         }
@@ -433,7 +581,7 @@ function setStreamStateCache(entry, state, commit){
 }
 
 function saveStreamStateCache(){
-    GStore.set('stream_state_caches', streamStateCache)
+    GStore.set('stream_state_caches', streamStateCache, true)
 }
 
 addAction('appUnload', saveStreamStateCache);
@@ -539,7 +687,7 @@ function updateStreamEntriesFlags(){
             }
         }
         if(activeurls.indexOf(element.href)!=-1){
-            setEntryFlag(element, 'fa-play-circle')
+            setEntryFlag(element, 'fa-play')
         } else if(loadingurls.indexOf(element.href)!=-1){
             setEntryFlag(element, 'fa-circle-notch pulse-spin')
         } else {
@@ -632,7 +780,7 @@ function getNameFromSourceURLAsync(url, callback){
 }
 
 function checkStreamType(url, callback){
-    var debug = false, domain = getDomain(url), tsM3u8Regex = new RegExp('\.(ts|m3u8?)([^A-Za-z0-9]|$)');
+    var debug = debugAllow(false), domain = getDomain(url), tsM3u8Regex = new RegExp('\.(ts|m3u8?)([^A-Za-z0-9]|$)');
     if(['http', 'https', false].indexOf(getProto(url)) == -1){ // any other protocol like rtsp, rtmp...
         return callback(url, 'stream')
     }
@@ -660,18 +808,12 @@ function checkStreamType(url, callback){
                 if(eis && eiNDs >= eis){
                     return callback(url, 'list')
                 }
-                var parser = getM3u8Parser();
-                parser.push(response);
-                parser.end();
-                /*
-                if(debug){
-                    console.log('SEGMENT', parser.manifest);
-                }
-                */
-                var u;
+                var u, parser = getM3u8Parser()
+                parser.push(response)
+                parser.end()
                 if(parser.manifest && parser.manifest.segments){
                     for(var i=0;i<parser.manifest.segments.length;i++){
-                        u = parser.manifest.segments[i].uri;
+                        u = parser.manifest.segments[i].uri
                         if(!u.match(tsM3u8Regex)){ // other format present, like mp4
                             return callback(url, 'list');
                             break;
@@ -739,7 +881,7 @@ function binUnserialize(buf, cb){
     })
 }
     
-function askForSource(question, callback, onclose){
+function askForSource(question, callback, onclose, notCloseable, keepOpened){
     if(typeof(onclose) != 'function'){
         onclose = jQuery.noop
     }
@@ -754,9 +896,9 @@ function askForSource(question, callback, onclose){
             if(v.substr(0, 2)=='//'){
                 v = 'http:'+v;
             }
-            Store.set('last-ask-for-source-value', v)
+            Store.set('last-ask-for-source-value', v, true)
         }
-        if(callback(v)){
+        if(callback(v) && !keepOpened){
             modalClose()
         }
     }
@@ -771,8 +913,8 @@ function askForSource(question, callback, onclose){
             })
         }],
         ['<i class="fas fa-check-circle" aria-hidden="true"></i> OK', go]
-    ];
-    modalPrompt(question, options, Lang.PASTE_URL_HINT, defaultValue, true, onclose)
+    ]
+    modalPrompt(question, options, Lang.PASTE_URL_HINT, defaultValue, !notCloseable, onclose)
 }
         
 function playCustomURL(placeholder, direct){
@@ -792,14 +934,14 @@ function playCustomURL(placeholder, direct){
         if(url.substr(0, 2)=='//'){
             url = 'http:'+url;
         }
-        Store.set('lastCustomPlayURL', url);
+        Store.set('lastCustomPlayURL', url, true);
         var name = false;
         if(isValidPath(url)){
             name = 'Megacubo '+url.split('/')[2];
         }
         if(name){
             console.log('lastCustomPlayURL', url, name);
-            Store.set('lastCustomPlayURL', url);
+            Store.set('lastCustomPlayURL', url, true);
             var logo = '', c = (top || parent);                
             if(c){
                 logo = c.defaultIcons['stream'];
@@ -810,11 +952,13 @@ function playCustomURL(placeholder, direct){
 }
 
 function playCustomFile(file){
-    Store.set('lastCustomPlayFile', file);
+    Store.set('lastCustomPlayFile', file, true);
     top.createPlayIntent({url: file, name: basename(file, true)}, {manual: true})
 }
 
-function addNewSource(cb, label, listsOnly){
+var addNewSourceNotification
+
+function addNewSource(cb, label, allowStreams, notCloseable){
     if(!label){
         label = Lang.PASTE_URL_HINT
     }
@@ -822,28 +966,71 @@ function addNewSource(cb, label, listsOnly){
         cb = jQuery.noop
     }
     askForSource(label, (val) => {
-        var url = val;
-        console.log('CHECK', url);
-        var n = notify(Lang.PROCESSING, 'fa-spin fa-circle-notch', 'wait');
+        var url = val
+        console.log('CHECK', url)
+        if(!addNewSourceNotification){
+            addNewSourceNotification = notify(Lang.PROCESSING, 'fa-spin fa-circle-notch', 'forever', true)
+        } else {
+            addNewSourceNotification.update(Lang.PROCESSING, 'fa-spin fa-circle-notch', 'forever')
+        }
         checkStreamType(url, (url, type) => {
-            console.log('CHECK CALLBACK', url, type);
-            n.close();
-            if(type == 'stream' && (isValidPath(url) || hasCustomMediaType(url))){
-                if(!listsOnly){
-                    playCustomURL(url, true)
-                }
+            console.log('CHECK CALLBACK', url, type, traceback())
+            addNewSourceNotification.hide()
+            modalClose(true)
+            if(allowStreams && type == 'stream' && (isValidPath(url) || hasCustomMediaType(url))){
+                playCustomURL(url, true)
                 cb(null, 'stream')
-            } else if(type=='list'){
+            } else if(type == 'list'){
                 registerSource(url)
                 cb(null, 'list')
             } else {
-                notify(Lang.INVALID_URL_MSG, 'fa-exclamation-circle faclr-red', 'normal')
+                addNewSourceNotification.update(Lang.INVALID_URL_MSG, 'fa-exclamation-circle faclr-red', 'normal')
                 cb(Lang.INVALID_URL_MSG, '')
             }
         })
         return true
     }, () => {
         cb('Prompt closed', '')
+    }, notCloseable, true)
+}
+
+function isFreePort(port, cb) {
+    var server = http.createServer()
+    server.listen(port, (err) => {
+        server.once('close', () => {
+            if(typeof(cb) == 'function'){
+                cb(true)
+                cb = null
+            }
+        })
+        server.close()
+    })
+    server.on('error', (err) => {        
+        if(typeof(cb) == 'function'){
+            cb(true)
+            cb = null
+        }
+    })
+}
+
+function findFreePort(cb, min, max) {
+    if(typeof(min) != 'number'){
+        min = 5000
+    }
+    if(typeof(max) != 'number'){
+        max = 50000
+    }
+    var port = min
+    if(port > max){
+        return cb(new Error('No free port available.'))
+    }
+    min++;
+    isFreePort(port, (available) => {
+        if(available){
+            cb(null, port)
+        } else {
+            findFreePort(cb, min, max)
+        }
     })
 }
 
@@ -1098,25 +1285,40 @@ function isListSharingActive(){
     return !!srs;
 }
 
-function fetchSharedLists(callback){
-    if(sharedLists.length){
-        callback(sharedLists)
+function getAllSharedLists(callback){
+    if(!isListSharingActive()){
+        callback([])
     } else {
-        if(isListSharingActive()){
-            var url = 'http://app.megacubo.net/stats/data/sources.'+getLocale(true)+'.json';
-            fetchEntries(url, (entries) => {
-                sharedLists = jQuery.unique(entries.map((entry) => { return entry.url; }).concat(callback));
-                callback(sharedLists)
-            })
-        } else {
-            callback(getSourcesURLs())
-        }
+        const url = 'http://app.megacubo.net/stats/data/sources.'+getLocale(true)+'.json'
+        fetchEntries(url, (entries) => {
+            sharedLists = entries.map((entry) => { return entry.url }).getUnique()
+            callback(sharedLists)
+        })
+    }
+}
+
+function getActiveLists(callback){
+    const urls = getSourcesURLs()
+    let shLimit = Config.get('search-range-size')
+    if(typeof(shLimit) != 'number'){
+        shLimit = sharedDefaultSearchRangeSize // fallback
+    }
+    shLimit -= urls.length
+    if(typeof(shLimit) == 'number' && shLimit > 0){
+        getAllSharedLists(shUrls => {
+            if(shUrls.length > shLimit){
+                shUrls = shUrls.slice(0, shLimit)
+            }
+            callback(urls.concat(shUrls).getUnique())
+        })
+    } else {
+        callback(urls)
     }
 }
 
 function fetchEntries(url, callback, update){
     console.log('FETCH', url, traceback());
-    var key = 'remote-entries-'+url, fbkey = key + '-fb', doFetch = false, data = GStore.get(key);
+    var key = 'remote-entries-'+url, fbkey = key + '-fb', doFetch = false, data = GStore.get(key)
     if(!jQuery.isArray(data) || update){
         doFetch = true;
         data = GStore.get(fbkey); // fallback

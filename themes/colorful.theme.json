@@ -18,7 +18,7 @@
   "menu-entry-vertical-padding": 14,
   "menu-inset-shadow": 1,
   "menu-margin": 2,
-  "menu-transparency": 80,
+  "menu-opacity": 80,
   "menu-uppercase": true,
   "menu-width": 34,
   "name": "colorful",

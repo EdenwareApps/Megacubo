@@ -1,5 +1,4 @@
-
-addAction('appLoad', () => {
+function contextMenuSetup(){
     var menus = {
         window: {
             menu: new nw.Menu,
@@ -9,7 +8,7 @@ addAction('appLoad', () => {
     loadScripts([
         'context-menu-actions.js'
     ], 'assets/js/ui/', () => {
-        var actions = Config.get('context-menu');
+        var actions = Config.get('context-menu')
         if(actions){
             for(var type in actions){
                 if(jQuery.isArray(actions[type])){
@@ -42,4 +41,6 @@ addAction('appLoad', () => {
             data.menu.popup(e.pageX, e.pageY)
         })
     }
-  })
+}
+
+addAction('appReady', contextMenuSetup)

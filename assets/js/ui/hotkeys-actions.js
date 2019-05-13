@@ -105,7 +105,7 @@ var hotkeysActions = {
     "OPENURLORLIST": [
         () => {
             if(!isModal()){
-                addNewSource()
+                addNewSource(false, false, true)
             }
         }, 
         null, 
@@ -121,7 +121,7 @@ var hotkeysActions = {
                         return playCustomURL(cb, true)
                     }
                 }
-                addNewSource()	
+                addNewSource(false, false, true)	
             }		
         }, 
         null, 

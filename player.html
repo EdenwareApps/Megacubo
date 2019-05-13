@@ -17,10 +17,9 @@
 		<video id="video"></video>
 		<script type="text/javascript">
 			var hls, video = document.getElementById('video'), player = jQuery(video)
-			var recoverDecodingErrorDate, recoverSwapAudioCodecDate, recoverTimer = 0, mediaErrors = [];
+			var recoverDecodingErrorDate, recoverSwapAudioCodecDate, recoverTimer = 0, mediaErrors = []
 			function recover(hls) {
-				console.log('WONT RECOVER', hls)
-				return;
+				console.log('RECOVER', hls, top.Playback.endpoint)
 				var doReset = true;
 				clearTimeout(recoverTimer)
 				if(hls){
@@ -93,37 +92,51 @@
 			}	
 			function updateSource(){
 				var endpoint = top.Playback.endpoint
-				if(endpoint){
+				if(endpoint && endpoint.mimetype){
 					top.jQuery(video).off() // discard events
-					if(endpoint.mimetype.toLowerCase().indexOf('mpegurl')!=-1){
+					let src = endpoint.src, isHLS = endpoint.mimetype.toLowerCase().indexOf('mpegurl') != -1
+					if(top.Playback.proxy.isSupported(src)){
+						src = top.Playback.proxy.proxify(src)
+					} else if(isHLS && isLocal(src)){
+						src = top.Playback.proxyLocal.proxify(src)
+					}
+					console.log('CONNECT', src, type)
+					if(isHLS){
 						if(!hls){
 							var hlsConfig = {
-								/*
-								debug: true,
+								debug: false,
 								maxSeekHole: 30,
-								maxBufferHole: 25,
-								maxBufferLength: 100,
-								maxMaxBufferLength: '600s',
-								maxBufferHole: 5
-								*/
 								maxBufferSize: 0,       // Highly recommended setting
-								maxBufferLength: 5,     // Highly recommended setting
-								liveSyncDuration: 30   // Highly recommended setting
+								maxBufferHole: 10,
+								maxBufferLength: 300,
+								maxMaxBufferLength: '600s',
+								maxFragLookUpTolerance: 0.04
 							}
 							hls = new Hls(hlsConfig)
 							hls.on(Hls.Events.ERROR, (event, data) => {
 								var msg = "Player error: " + data.type + " - " + data.details;
 								if(data.details == 'bufferStalledError'){
+									console.warn(msg, data)
 									// handleMediaError(hls)
 									// not fatal, dont neet to handle so
 									// wait, the playback hangs even it not saying that it's a fatal error, watch to be sure
-									console.warn(msg, data)
-									watchTimeout(null, () => {
-										top.seemsSlow()
-										watchTimeout(null, () => {
+									setTimeout(() => {
+										/*
+										let fwd = video.currentTime < (video.duration - 2)
+										console.warn(data.details, video.currentTime, '/', video.duration, fwd)
+										if(fwd){ // if has buffer, should not have stopped, threat as playback error
+											//	video.currentTime = video.currentTime + 2
+											//} else {
 											recover(hls)
+										} else { // no buffer, wait a bit before to threat as error
+										*/
+										watchTimeout(null, () => {
+											top.seemsSlow()
+											watchTimeout(null, () => {
+												recover(hls)
+											})
 										})
-									}, 3000)
+									}, 0)
 								} else if (data.fatal) {
 									console.error(msg, data)
 									// reset()
@@ -149,7 +162,7 @@
 							})
 							hls.on(Hls.Events.MEDIA_ATTACHED, () => {
 								// console.error('ATTACHED', _src)        
-								hls.loadSource(endpoint.src)
+								hls.loadSource(src)
 							})
 							hls.on(Hls.Events.MEDIA_DETACHED, () => {
 								setTimeout(() => {
@@ -160,7 +173,7 @@
 							})
 							hls.attachMedia(video)
 						} else {
-							hls.loadSource(endpoint.src)
+							hls.loadSource(src)
 						}
 					} else {
 						if(hls){						
@@ -174,6 +187,7 @@
 						video.load()
 						video.play()
 					}
+					top.Playback.rebind()
 				}
 			}
 			function ready(f){

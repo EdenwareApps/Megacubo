@@ -7,15 +7,15 @@ menuTemplates['option'] = `
             <tr>
                 <td class="entry-logo-c">
                     <span class="entry-logo">
-                        <span class="entry-status">
-                            <span></span>
-                        </span>
                         <span class="entry-logo-img-c">
                             <img src="[logo]" onerror="this.onerror=null;this.src=\'[default-logo]\';" />
                         </span>
                     </span>
                 </td>
                 <td>
+                    <span class="entry-flags">
+                        <span></span>
+                    </span>
                     <span class="entry-name">[format-name]</span>
                 </td>
             </tr>
@@ -29,15 +29,16 @@ menuTemplates['back'] = `
 		<tr>
             <td class="entry-logo-c">
                 <span class="entry-logo">
-                    <span class="entry-status">
-                        <span></span>
-                    </span>
                     <span class="entry-logo-img-c">
                         <img src="[logo]" onerror="this.onerror=null;this.src=\'[default-logo]\';" />
                     </span>
                 </span>
 			</td>
-			<td><span class="entry-name">[format-name]</span>
+			<td>
+                <span class="entry-flags">
+                    <span></span>
+                </span>
+                <span class="entry-name">[format-name]</span>
 			</td>
 		</tr>
 	</table>
@@ -48,9 +49,17 @@ menuTemplates['disabled'] = `
 <a href="[url]" role="button" onclick="return false;" class="entry entry-disable entry-offline [class]" aria-hidden="true">
     <table>
         <tr>
-            <td class="entry-logo-c"><span class="entry-logo"><span class="entry-status"><span></span></span><img src="[logo]" title="[name] - [group]" onerror="this.onerror=null;this.src=\'[default-logo]\';" /></span>
+            <td class="entry-logo-c">
+                <span class="entry-logo">
+                    <img src="[logo]" title="[name] - [group]" onerror="this.onerror=null;this.src=\'[default-logo]\';" />
+                </span>
             </td>
-            <td><span class="entry-name">[format-name]</span></td>
+            <td>
+                <span class="entry-flags">
+                    <span></span>
+                </span>
+                <span class="entry-name">[format-name]</span>
+            </td>
         </tr>
     </table>
 </a>
@@ -78,13 +87,13 @@ menuTemplates['check'] = `
         <tr>
             <td class="entry-logo-c">
                 <span class="entry-logo">
-                    <span class="entry-status">
-                        <span></span>
-                    </span>
                     <i class="fas fa-toggle-off entry-logo-fa" aria-hidden="true"></i>
                 </span>
             </td>
             <td>
+                <span class="entry-flags">
+                    <span></span>
+                </span>
                 <span class="entry-name">[format-name]</span>
             </td>
         </tr>
@@ -98,15 +107,15 @@ menuTemplates['stream'] = `
         <tr>
             <td class="entry-logo-c">
                 <span class="entry-logo">
-                    <span class="entry-status">
-                        <span></span>
-                    </span>
                     <span class="entry-logo-img-c">
                         <img src="[logo]" onerror="lazyLoad(this, [\'[auto-logo]\', \'[default-logo]\'])" title="[name] - [group]" alt="[name]" />
                     </span>
                 </span>
             </td>
             <td>
+                <span class="entry-flags">
+                    <span></span>
+                </span>
                 <span class="entry-name">[format-name]</span>
             </td>
         </tr>
@@ -120,15 +129,15 @@ menuTemplates['group'] = `
         <tr>
             <td class="entry-logo-c">
                 <span class="entry-logo">
-                    <span class="entry-status">
-                        <span></span>
-                    </span>
                     <span class="entry-logo-img-c">
                         <img src="[logo]" onerror="lazyLoad(this, [\'[auto-logo]\', \'[default-logo]\'])" title="[name] - [group]" alt="[name]" />
                     </span>
                 </span>
             </td>
             <td>
+                <span class="entry-flags">
+                    <span></span>
+                </span>
                 <span class="entry-name">[format-name]</span>
             </td>
         </tr>
@@ -142,9 +151,6 @@ menuTemplates['slider'] = `
         <tr>
             <td class="entry-logo-c">
                 <span class="entry-logo">
-                    <span class="entry-status">
-                        <span></span>
-                    </span>
                     <img src="[logo]" onerror="this.onerror=null;this.src=\'[default-logo]\';" />
                 </span>
             </td>
@@ -164,7 +170,7 @@ var defaultIcons = {
     'option': 'fa-cog',
     'slider': 'fa-cog',
     'input': 'fa-keyboard',
-    'stream': 'fa-play-circle',
+    'stream': 'fa-play fa-xs',
     'check': 'fa-toggle-off',
     'group': 'fa-folder-open'
 };
@@ -172,28 +178,28 @@ var defaultIcons = {
 var loadingToActionDelay = 50; // prevent a loading message from not appearing by applying a delay before start any CPU intensive task
 var searchPath = null;
 
-function assumePath(name, path){
-    if(typeof(path)=='undefined'){
-        path = typeof(Menu.vpath)=='string' ? Menu.vpath : Menu.path;
+function assumePath(name, _path){
+    if(typeof(_path)!='string'){
+        _path = typeof(Menu.vpath)=='string' ? Menu.vpath : Menu.path;
     }
     if(!name){
-		return path;
+		return _path;
     }
-    if(!path.length){
+    if(!_path.length){
         return name;
     }
-    // path = trimChar(path, '/');
-    var n = path.lastIndexOf(name);
-    //console.log(n, name, path);
+    // _path = trimChar(_path, '/');
+    var n = _path.lastIndexOf(name);
+    //console.log(n, name, _path);
     if(n != -1){
         if(n == 0){
             return name;
-        } else if(n >= (path.length - (name.length + 1))){
-            return path;
+        } else if(n >= (_path.length - (name.length + 1))){
+            return _path;
         }
-        path = path.substr(n + name.length + 1);
+        _path = _path.substr(n + name.length + 1);
     }
-    return path + '/' + name;
+    return _path + '/' + name;
 }
 
 function updateRootEntry(name, data){
@@ -219,7 +225,7 @@ function handleEntryInputChecking(element, docheck) {
 }
 
 function writeIndexPathEntries(path, entries, _index){
-    var debug = false, name = String(getRootFolderFromStr(path));
+    var debug = debugAllow(false), name = String(getRootFolderFromStr(path));
     if(typeof(_index)=='undefined'){
         _index = Menu.entries;
     }
@@ -359,10 +365,23 @@ function getSearchSuggestions(){
         if(suggestions && suggestions.length){
             searchSuggestions = suggestions;
             suggestions.forEach((suggest, i) => {
-                suggestions[i].search_term = suggestions[i].search_term.trim();
+                suggestions[i].search_term = suggestions[i].search_term.trim()
                 if(parentalControlAllow(suggest.search_term)){
                     var t = Lang.SEARCH + ': ' + suggest.search_term, c = ucWords(suggest.search_term), s = encodeURIComponent(c), entry = {name: c, logo: 'http://app.megacubo.net/logos/'+encodeURIComponent(s)+'.png', type: 'stream', label: Lang.MOST_SEARCHED, url: 'mega://play|'+s};
-                    entries.push({name: suggest.search_term, defaultLogo: defaultIcons['stream'], logo: 'http://app.megacubo.net/logos/'+encodeURIComponent(suggest.search_term)+'.png', type: 'option', class: 'entry-suggest', label: Lang.SEARCH, callback: () => {goSearch(suggest.search_term)}})
+                    entries.push({
+                        name: suggest.search_term, 
+                        defaultLogo: defaultIcons['stream'], 
+                        logo: 'http://app.megacubo.net/logos/{0}.png'.format(encodeURIComponent(suggest.search_term)), 
+                        type: 'option', 
+                        class: 'entry-suggest', 
+                        label: Lang.SEARCH, 
+                        callback: (data, element) => {
+                            goSearch(suggest.search_term)
+                            if(element){
+                                setEntryFlag(element, 'fa-circle-notch pulse-spin')
+                            }
+                        }
+                    })
                     var a = jQuery('<a href="#" title="'+t+'" aria-label="'+t+'">'+suggest.search_term+'</a>&nbsp;');
                     a.data('entry-data', entry).on('click', (event) => {
                         var entry = jQuery(event.currentTarget).data('entry-data');
@@ -433,7 +452,13 @@ function renderRemoteSources(name){
 }
 
 function fetchAndRenderEntries(url, name, filter, callback){
-    var path = assumePath(name);
+    var path
+    if(name.indexOf('/') == -1){
+        path = assumePath(name)
+    } else {
+        path = name
+        name = basename(path)
+    }
     var fetchPath = path;
     console.log('FETCHNRENDER', url, name, path, fetchPath, Menu.path, Menu.vpath, traceback());
     setTimeout(() => { // avoid mess the loading entry returned, getting overridden by him
@@ -478,19 +503,19 @@ function isStreamEntry(data){
 
 function setEntryFlag(el, flag, unique){
     if(unique){
-        jQuery('.entry-status > span').html('')
+        jQuery('.entry-flags > span').html('')
     }
     if(flag){
         flag = '<i class="fa '+flag+'" aria-hidden="true"></i>';
     } else {
         flag = '';
     }
-    jQuery(el).find('.entry-status > span').html(flag)
+    jQuery(el).find('.entry-flags > span').html(flag)
 }
 
 function setActiveEntry(data, flag, notUnique){
     if(!notUnique){
-        jQuery('.entry-status > span').html('')
+        jQuery('.entry-flags > span').html('')
     }
     if(!flag){
         flag = 'fa-check-circle';
@@ -551,7 +576,7 @@ function findEntriesByName(term, _strict){
 }
 
 function findActiveEntries(term){
-    var fas = jQuery('.entry-status i.fa'), term = decodeEntities(term);
+    var fas = jQuery('.entry-flags i.fa'), term = decodeEntities(term);
     fas = fas.map(function (){
         return jQuery(this).parents('.entry').get(0);
     });
@@ -613,7 +638,7 @@ Menu = (() => {
     self.initialized = false;
     self.window = jQuery(window);
     self.body = jQuery('body');
-    self.debug = false;
+    self.debug = debugAllow(true);
     self.path = '';
     self.vpath = false;
     self.events = {};
@@ -1017,10 +1042,10 @@ Menu = (() => {
         }
         //console.log('TRIGGER DATA', npath, data, data.path, entries);
         if(data.type == 'group'){
-            entries = applyFilters('internalFilterEntries', entries, npath);
             self.triggerer(npath, data);
             console.log('TRIGGER DATA 2', data.path, npath, entries);
             if(jQuery.isArray(entries)){
+                entries = applyFilters('internalFilterEntries', entries, npath);
                 var ok = false;
                 //console.error('XXXXXXXX', entries, data, self.path && entries.length <= self.subMenuSizeLimit);
                 if(entries.length <= self.subMenuSizeLimit && (!data.class || (data.class.indexOf('entry-nosub') == -1 && data.class.indexOf('entry-compact') == -1))){
@@ -1222,7 +1247,9 @@ Menu = (() => {
         var isCompact = false, allEvents = [], allHTML = '';
         entries.forEach((entry, i) => { // append
             if(entry == null || typeof(entry)!='object'){
-                console.log('BAD BAD ENTRY', entry, typeof(entry));
+                if(self.debug){
+                    console.log('BAD BAD ENTRY', entry, typeof(entry))
+                }
                 return;
             }
             if(!entry.type){
@@ -1241,7 +1268,9 @@ Menu = (() => {
             }
             //console.log('WWWWWWWWWWWWW', entry);
             if(typeof(menuTemplates[entry.type])=='undefined'){
-                console.log('BAD BAD ENTRY', entry);
+                if(self.debug){
+                    console.log('BAD BAD ENTRY', entry)
+                }
                 return;
             }
 
@@ -1327,19 +1356,12 @@ Menu = (() => {
                 atts.dragstart = (event) => {
                     var data = jQuery(event.target).data('entry-data');
                     if(data){
-                        var ct = false;
-                        if(data.url && isMegaURL(data.url)){
-                            var mega = parseMegaURL(data.url);
-                            if(mega){
-                                ct = ListMan.exportEntriesAsM3U(fetchSharedListsSearchResults(null, 'all', mega.name, true, true))
-                            }
-                        }
-                        if(!ct){
-                            ct = ListMan.exportEntriesAsM3U([data])
-                        }
-                        var f = nw.App.dataPath + path.sep + prepareFilename(data.name, false) + '.m3u';
-                        fs.writeFileSync(f, ct, "utf-8");
-                        var file = new File(f, '');
+                        const f = nw.App.dataPath + path.sep + prepareFilename(data.name, false) + '.m3u'
+                        fs.writeFileSync(f, "Generating, open again in some seconds...", "utf-8")
+                        ListMan.exportEntriesAsM3U([data], false, txt => {
+                            fs.writeFileSync(f, txt, "utf-8")
+                        })
+                        var file = new File(f, '')
                         event.originalEvent.dataTransfer.setData('DownloadURL', file.type + ':' + file.name + ':' + file.path)
                     }
                 }
@@ -1416,8 +1438,8 @@ Menu = (() => {
                             jQuery(element).find('input').on('input', () => {
                                 var data = jQuery(this).data('entry-data');
                                 self.body.trigger('wake');
-                                allEvents[ri][key](data, this, this.value);
-                            });
+                                allEvents[ri][key](data, this, this.value)
+                            })
                             break;
                         case 'placeholder': 
                             jQuery(element).find('input').prop('placeholder', allEvents[ri][key]);
@@ -1479,14 +1501,18 @@ Menu = (() => {
         if(!data || typeof(data) != 'object'){
             data = self.scrollCache[pt]
         }
-        console.warn('RESTORE SCROLL', data, insub)
+        if(self.debug){
+            console.warn('RESTORE SCROLL', data, insub)
+        }
         if(data){
             if(data.data){
                 self.getEntries(false, true).each((i, element) => {
                     if(!ok){
                         var j = jQuery(element), entry = j.data('entry-data');
                         if(entry && entry.name == data.data.name){
-                            console.warn('RESTORE SCROLL', data, p.scrollTop());
+                            if(self.debug){
+                                console.warn('RESTORE SCROLL', data, p.scrollTop())
+                            }
                             Pointer.focus(j, false);
                             ok = true;
                         }
@@ -1494,18 +1520,25 @@ Menu = (() => {
                 })
             } else if(typeof(data.offset)=='number' && !insub) {
                 p.scrollTop(data.offset);
-                console.warn('RESTORE SCROLL', data, p.scrollTop());
+                if(self.debug){
+                    console.warn('RESTORE SCROLL', data, p.scrollTop())
+                }
+                Pointer.focus(jQuery('a.entry:not(.entry-back):visible:in-viewport:eq(0)'), false);
                 ok = true;
             }
         }
         self.adjustBodyClass(insub ? self.path.indexOf('/') == -1 : (!_path))
         if(!ok){
-            console.warn('RESTORE SCROLL', p.scrollTop());
+            if(self.debug){
+                console.warn('RESTORE SCROLL', p.scrollTop())
+            }
             Pointer.focus(false, true);
             ok = true;
         }
         if(insub){
-            console.warn('RESTORE SCROLL', Menu.path, p.scrollTop(), self.body.hasClass('submenu'));
+            if(self.debug){
+                console.warn('RESTORE SCROLL', Menu.path, p.scrollTop(), self.body.hasClass('submenu'))
+            }
             self.fitSubMenuScroll()
         }
         if(typeof(cb) == 'function'){
@@ -1645,7 +1678,9 @@ Menu = (() => {
         var path = fullPath.split('/');
         var cumulatedPath = '';
         var scan = (entries, next) => {
-            console.warn('NTRIES', entries, next, cumulatedPath);
+            if(self.debug){
+                console.warn('NTRIES', entries, next, cumulatedPath)
+            }
             for(var i=0; i<entries.length; i++){
                 if(entries[i] && entries[i].name == next){
                     var nentries = read(entries[i], cumulatedPath, basename(fullPath) != next);
@@ -1699,14 +1734,16 @@ Menu = (() => {
         var read = (entry, path, isVirtual) => {
             var nentries = [];
             if(typeof(entry.renderer)=='function'){
-                if(self.debug) console.log('RENDERING', self.path, path);
+                if(self.debug){
+                    console.log('RENDERING', self.path, path)
+                }
                 nentries = entry.renderer(entry, null, isVirtual)
             } else {
                 if(typeof(entry.entries) != 'undefined'){
                     nentries = entry.entries;
                 }
                 if(typeof(entry.callback) == 'function'){
-                    entry.callback()
+                    entry.callback(entry)
                 }
             }
             var r = self.asyncResult(path);
@@ -1724,26 +1761,36 @@ Menu = (() => {
                 if(typeof(entries[0]) == 'undefined'){
                     entries = entries.slice()
                 }
-                console.log('BOOO', entries);
+                if(self.debug){
+                    console.log('BOOO', entries)
+                }
                 if(entries[0].class != 'entry-loading') {
                     if(next){ 
-                        if(self.debug) console.log('enter(next=', next, ')');
+                        if(self.debug){
+                            console.log('enter(next=', next, ')')
+                        }
                         var nentries = open(entries, next);
                         if(nentries){
                             entries = nentries;
                             var next = path.shift();
                             if(next){
                                 self.vpath = cumulatedPath = assumePath(next, cumulatedPath);
-                                if(self.debug) console.log('cumulatedPath', cumulatedPath, next);
+                                if(self.debug){
+                                    console.log('cumulatedPath', cumulatedPath, next)
+                                }
                             }
                             return enter(nentries, next)
                         }
-                        if(self.debug) console.log('open failed for', next, 'IN', entries, 'result:', nentries, fullPath, '-', path, '-', cumulatedPath)
+                        if(self.debug){
+                            console.log('open failed for', next, 'IN', entries, 'result:', nentries, fullPath, '-', path, '-', cumulatedPath)
+                        }
                         cb(false)
                     } else {
                         self.vpath = false;
                         self.path = fullPath;
-                        if(self.debug) console.log('NO NEXT', self.path, path, entries);
+                        if(self.debug){
+                            console.log('NO NEXT', self.path, path, entries)
+                        }
                         var container = self.container(true); // just to reset entries in view
                         self.renderBackEntry(container, dirname(fullPath), basename(fullPath));
                         self.list(entries, fullPath);
@@ -1757,11 +1804,15 @@ Menu = (() => {
                     }
                 } else {
                     if(retries){
-                        if(self.debug) console.log('retry');
+                        if(self.debug){
+                            console.log('retry')
+                        }
                         retries--;
                         setTimeout(() => {
                             var n = next ? dirname(cumulatedPath) : cumulatedPath;
-                            if(self.debug) console.log('WAITING FOR', n, 'IN', self.asyncResults);
+                            if(self.debug){
+                                console.log('WAITING FOR', n, 'IN', self.asyncResults)
+                            }
                             var r = n ? self.asyncResult(n) : index;
                             if(jQuery.isArray(r)){
                                 entries = r;
@@ -1772,7 +1823,9 @@ Menu = (() => {
                         }, ms)
                     } else {
                         self.vpath = false;
-                        if(self.debug) console.log('give it up!');
+                        if(self.debug){
+                            console.log('give it up!')
+                        }
                         cb(true)
                     }
                 }
@@ -1805,7 +1858,9 @@ Menu = (() => {
                     results.push(entries[i])
                 }
             } else {
-                console.warn('ENTRY WITH NO DATA?', entries[i], entry)
+                if(self.debug){
+                    console.warn('ENTRY WITH NO DATA?', entries[i], entry)
+                }
             }
         });
         return jQuery(results);
@@ -1929,7 +1984,7 @@ Menu = (() => {
             self.path = '';
         }
         self.window.on('unload', function (){
-            Store.set('Menu.path', self.path)
+            Store.set('Menu.path', self.path, true)
         })
 
         self.container().on('mousedown', (event) => {
@@ -2073,7 +2128,7 @@ Menu = (() => {
             update()
         })()
         var cb = () => {
-            overlayedMenu(Theme.get('menu-transparency') <= 99);
+            overlayedMenu(Theme.get('menu-opacity') <= 99);
             setHasMenuMargin(Theme.get('menu-margin') >= 1);
             self.autoHide(Theme.get('hide-menu-auto'))
         }
@@ -2183,6 +2238,9 @@ jQuery(() => {
         console.log('FILTERING', entries, traceback())
         return entries.map((opt) => {
             if(opt && opt.url && !opt.renderer && isMegaURL(opt.url)){
+                if(typeof(opt.mediaType) == 'undefined'){
+                    opt.mediaType = getMediaType(opt)
+                }
                 opt = adjustMainCategoriesEntry(opt)
             }
             return opt;

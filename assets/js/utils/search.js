@@ -1,13 +1,13 @@
 
 
-var searchKeypressTimer = 0, searchResultsLimit = 196, searchEngines = {}
+var searchKeypressTimer = 0, searchEngines = {}
 
 function registerSearchEngine(name, slug, callback, public){
     searchEngines[slug] = {name, slug, callback, mode: public ? 'public' : 'private'}
 }
 
 function getDefaultSearchTerms(){
-    var c = Playback.active ? Playback.active.entry : (Playback.lastActiveIntent ? Playback.lastActiveIntent.entry : History.get(0))
+    var c = Playback.active ? Playback.active.entry : (Playback.lastActive ? Playback.lastActive.entry : History.get(0))
     if(c){
         return prepareSearchTerms(c.name).slice(0, 3).join(' ')
     }
@@ -71,16 +71,28 @@ function setupSearch(term, type, onRender){
     }
     lastSearchTerm = term;
     lastSearchType = type;
-    var entry = {
+    const load = () => {
+        if(!container.find('a.entry-loading').length){
+            clear()
+            Menu.list([
+                Menu.loadingEntry()
+            ], Menu.path)
+        }
+    }
+    const clear = () => {
+        container.find('a.entry-stream, a.entry-loading, a.entry-autoclean, a.entry-empty').remove()
+    }
+    const entry = {
         type: 'input',
         name: Lang.SEARCH,
-        change: (entry, element, val) => {
+        change: (e, element, val) => {
+            load()
             var np = container.find('a.entry-input'), initPath = Menu.path;
             clearTimeout(searchKeypressTimer);
             container.find('a.entry-stream, a.entry-loading, a.entry-autoclean, a.entry-empty').remove();
             if(val){
                 lastSearchTerm = val;
-                Store.set('last-search-term', val);
+                Store.set('last-search-term', val, true);
                 Menu.list([Menu.loadingEntry()], Menu.path)
             } else {
                 Menu.list([], Menu.path) // just to update the body class
@@ -91,12 +103,12 @@ function setupSearch(term, type, onRender){
                 if(Menu.path == initialPath && initialTerms == lastSearchTerm){
                     var append = Menu.query(Menu.getEntries(true, true, true), {type: 'stream'}).length;
                     console.log('QQQ', results, val, type, Menu.path);
-                    results = results.map((entry) => {
-                        entry.origin = {
+                    results = results.map((e) => {
+                        e.origin = {
                             term: term,
                             searchType: type
                         }
-                        return entry
+                        return e
                     })
                     if(append){
                         if(results.length){
@@ -119,18 +131,21 @@ function setupSearch(term, type, onRender){
             searchKeypressTimer = setTimeout(() => {
                 clearTimeout(searchKeypressTimer);
                 if(initPath == Menu.path){
+                    if(val.length < 2){
+                        callback([])
+                        if(type == 'live'){
+                            getSearchSuggestions()
+                        }
+                        return
+                    }
+                    load()
                     var parentalControlAllowed = parentalControlAllow(val, true)
-                    if(val.length && (adultContentPolicy == 'allow' || parentalControlAllowed)){   
+                    if(adultContentPolicy == 'allow' || parentalControlAllowed){   
                         searchEngines[type].callback(val, callback)
                     } else {
-                        callback([])
+                        callback([{name: Lang.NO_RESULTS, logo:'fa-ban', type: 'option', class: 'entry-empty'}])
                     }
-                    //console.warn('INPUT2', val, np.find('input').val());
-                    if(val.length > 2){
-                        sendStats('search', {query: val, type: type})
-                    } else {
-                        getSearchSuggestions()
-                    }
+                    sendStats('search', {query: val, type: type})
                 }
             }, 750)
         },
@@ -144,11 +159,30 @@ function setupSearch(term, type, onRender){
     jQuery('a.entry input').trigger('focus').trigger('input')
 }
 
+var indexerSearchQueryCallbacks = {}
+
+function indexerSearchQuery(type, term, matchAll, strict, cb){
+    let uid = 0
+    while(typeof(indexerSearchQueryCallbacks[uid]) == 'function'){
+        uid = rand(1, 1000000)
+    }
+    indexerSearchQueryCallbacks[uid] = cb
+    ipc.server.broadcast('indexer-query', {uid, type, term, matchAll, strict})
+}
+
+ipc.server.on('indexer-query-result', (results) => {
+    console.log('RESULT', results)
+    if(typeof(indexerSearchQueryCallbacks[results.uid]) == 'function'){
+        indexerSearchQueryCallbacks[results.uid](results)
+        delete indexerSearchQueryCallbacks[results.uid]
+    }
+})
+
 var sharedListsSearchCaching = false;
 function fetchSharedListsSearchResults(cb, type, term, matchAll, _strict, filter){
-    var r = [], limit = searchResultsLimit;
+    var r = [], limit = searchResultsLimit
     if(!term){
-        var c = jQuery('.list > div > div input');
+        var c = jQuery('.list > div > div input')
         if(c.length){
             term = c.val().toLowerCase()
         } else {
@@ -156,77 +190,35 @@ function fetchSharedListsSearchResults(cb, type, term, matchAll, _strict, filter
         }
     }
     if(term && term.length > 2){
-        if(sharedListsSearchCaching && sharedListsSearchCaching.query == term && sharedListsSearchCaching.type == type && sharedListsSearchCaching.matchAll == matchAll && sharedListsSearchCaching.strict == _strict){
-            r = sharedListsSearchCaching.entries;
-        } else {
-            var maybe = [], already = {}, terms = prepareSearchTerms(term);
-            if(terms.length >= 1){
-                var resultHitMap = {}, resultEntryMap = {};
-                terms.forEach((_term) => {
-                    var already = {}, _terms = [];
-                    if(typeof(sharedListsSearchWordsIndex[_term]) != 'undefined'){
-                        _terms.push(_term)
-                    }
-                    var l = _term.length, f = _term.charAt(0);
-                    if(!_strict){
-                        for(var k in sharedListsSearchWordsIndex){
-                            if(k.length > l && k.charAt(0) == f && k.substr(0, l) == _term){
-                                _terms.push(k)
-                            }
-                        }
-                    }
-                    _terms.forEach((t) => {
-                        if(typeof((_strict?sharedListsSearchWordsIndexStrict:sharedListsSearchWordsIndex)[t]) != 'undefined'){
-                            (_strict?sharedListsSearchWordsIndexStrict:sharedListsSearchWordsIndex)[t].entries.forEach((entry, i) => {
-                                if(entry.mediaType == -1){
-                                    (_strict?sharedListsSearchWordsIndexStrict:sharedListsSearchWordsIndex)[t].entries[i].mediaType = getStreamBasicType(entry);
-                                }
-                                if(('all' == type || entry.mediaType == type) && typeof(already[entry.url])=='undefined'){
-                                    already[entry.url] = true;
-                                    if(typeof(resultHitMap[entry.url])=='undefined'){
-                                        resultHitMap[entry.url] = 0;
-                                    }
-                                    resultHitMap[entry.url]++;
-                                    resultEntryMap[entry.url] = entry;
-                                }
-                            })
-                        }
-                    });
-                    already = null;
-                });
-                var max = matchAll ? terms.length : Math.max.apply(null, Object.values(resultHitMap));
-                //console.warn("GOLD", resultEntryMap, resultHitMap, terms);
-                Object.keys(resultHitMap).sort((a, b) => {
-                    return resultHitMap[b] - resultHitMap[a]
-                }).forEach((url) => {
-                    if(r.length < searchResultsLimit){
-                        if(!matchAll || resultHitMap[url] >= max){
-                            var entry = Object.assign({}, resultEntryMap[url]);
-                            r.push(entry)
-                        } else if(resultHitMap[url] >= max - 1) {
-                            var entry = Object.assign({}, resultEntryMap[url]);
-                            maybe.push(entry)
-                        }
-                    }
-                });
-                //console.warn("GOLD", r, maybe);
-                if(typeof(filter) == 'function'){
-                    r = filter(r)
-                }
-                if(r.length < limit && !matchAll){
-                    if(typeof(filter) == 'function'){
-                        maybe = filter(maybe)
-                    }
-                    r = r.concat(maybe.slice(0, limit - r.length))
-                }
-                sharedListsSearchCaching = {type: type, query: term, entries: r, matchAll: matchAll, strict: _strict};                    
+        const autoStrict = (_strict == 'auto'), done = ret => {
+            console.warn('SEARCH RESULT', ret)
+            //console.warn("GOLD", r, maybe);
+            if(typeof(filter) == 'function'){
+                ret.results = filter(ret.results)
             }
+            if(ret.results.length < limit && !matchAll){
+                if(typeof(filter) == 'function'){
+                    ret.maybe = filter(ret.maybe)
+                }
+                ret.results = ret.results.concat(ret.maybe.slice(0, limit - r.length))
+            }
+            cb(ret.results)
         }
+        if(autoStrict){
+            _strict = true
+        }
+        indexerSearchQuery(type, term, matchAll, _strict, (ret) => {
+            if(autoStrict && !ret.results.length){
+                indexerSearchQuery(type, term, matchAll, false, (ret) => { // query again unstrictly
+                    done(ret)
+                })
+            } else {
+                done(ret)
+            }
+        })
+    } else {
+        cb([])
     }
-    if(typeof(cb)=='function'){
-        cb(r)
-    }
-    return r;
 }
 
 addAction('appLoad', () => {

@@ -196,7 +196,7 @@
 "VERY_BIG": "Muito grande",
 "IMPORT_CONFIG_CONFIRM": "Você deseja importar configurações deste arquivo?",
 "IMPORT_THEME_CONFIRM": "Você deseja aplicar o tema deste arquivo?",
-"MENU_TRANSPARENCY": "Transparência do menu",
+"MENU_OPACITY": "Transparência do menu",
 "PLAY_WHILE_TUNING": "Reproduzir enquanto sintoniza",
 "ICON_SIZE": "Tamanho do ícone",
 "NO_LIST_PROVIDED": "Oops, você precisa adicionar ao menos uma lista IPTV ao programa ou ajustar a opção \"{0}\".",
@@ -377,7 +377,7 @@
 "SHOW_TOOLTIPS": "Exibir dicas de ferramentas",
 "PREFERRED_SECTIONS": "Seções preferidas",
 "PREFERRED_SECTIONS_ONLY": "Exibir somente as seções preferidas",
-"ENABLE_P2P": "Ativar P2P",
+"P2P_ACCELERATION": "Aceleração P2P",
 "P2P_DISABLED": "P2P desativado",
 "START_PLAYBACK_FIRST": "Inicie a reprodução do conteúdo primeiro.",
 "TRANSMIT": "Transmitir",
@@ -390,5 +390,7 @@
 "P2P_PORT": "Porta P2P",
 "ALLOW": "Permitir",
 "BLOCK": "Bloquear",
-"HIGHLIGHT_COLOR": "Cor de destaque"
+"HIGHLIGHT_INTENSITY": "Intensidade do destaque",
+"SSL_VERIFY": "Verificação SSL",
+"RECORD_WITHIN_WEB_PAGES": "Gravar dentro de páginas da web (afeta desempenho)"
 }

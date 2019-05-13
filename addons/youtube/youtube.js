@@ -358,6 +358,13 @@ addFilter('toolsEntries', entries => {
     return entries
 })
 
+addFilter('sideloadAllow', url => {
+    if(getDomain(url).match(new RegExp('((googlevideo|youtube)\.com|youtu\.be)', 'i'))){
+        return false
+    }
+    return url
+})
+
 registerDialingAction('yt-live-search', 'fab fa-youtube', (terms) => {
     goYTLiveSearch(terms.toLowerCase())
 })
@@ -366,7 +373,7 @@ registerDialingAction('yt-videos-search', 'fab fa-youtube', (terms) => {
     goYTVideosSearch(terms.toLowerCase())
 })
 
-addAction('appStart', () => {
+addAction('appReady', () => {
     registerSearchEngine(ytName + ' - ' + Lang.LIVE, 'yt-live', fetchYTLiveSearchResults, true)
     registerSearchEngine(ytName + ' - ' + Lang.VIDEOS, 'yt-videos', fetchYTVideoSearchResults)
 })

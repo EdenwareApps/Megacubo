@@ -1,18 +1,19 @@
-var Pointer = (() => {
+var Pointer = ((w, d, j, m) => {
     var self = {};
-    self.window = jQuery(window);
-    self.body = jQuery('body');
-    self.debug = false;
+    self.j = j;
+    self.window = self.j(w);
+    self.body = self.j(d.body || 'body');
+    self.debug = debugAllow(false); 
     self.navs = [];
-    self.distanceAngleWeight = 5;
+    self.distanceAngleWeight = 0.005;
     self.selected = (wrap, hasData) => {
-        var j, data, element = document.activeElement;
+        var j, data, element = d.activeElement;
         if(element){
-            j = jQuery(element);
+            j = self.j(element);
             data = j.data('entry-data');
         }
         if(!data){
-            j = jQuery('.focused');
+            j = self.j('.focused');
             if(element.length){
                 data = j.data('entry-data');            
             }
@@ -25,7 +26,7 @@ var Pointer = (() => {
     }
     self.focus = (a, noscroll) => {
         if(!a || !a.length){
-            a = Menu.getEntries(false, true).eq(Menu.path ? 1: 0)
+            a = m.getEntries(false, true).eq(m.path ? 1: 0)
         }
         if(a && a.length){
             if(self.debug){
@@ -33,7 +34,7 @@ var Pointer = (() => {
             }
             if(!noscroll){
                 if(self.body.hasClass('submenu')){
-                    var l = Menu.getEntries(false, true).last();
+                    var l = m.getEntries(false, true).last();
                     //console.log('FOCUSENTRY', l.length, !l.is(':in-viewport'));
                     if(l.length && !l.is(':in-viewport')){
                         l.focus()
@@ -43,7 +44,7 @@ var Pointer = (() => {
                     if(aq.length){
                         self.lastSelected = aq;
                     } else if(self.body.hasClass('submenu')) {
-                        aq = Menu.getEntries(false, true)
+                        aq = m.getEntries(false, true)
                     } else {
                         aq = self.lastSelected;
                     }
@@ -52,20 +53,23 @@ var Pointer = (() => {
                         aq = aq.eq(0);
                         let y = aq.offset();
                         if(y){
-                            y = y.top + Menu.scrollContainer().scrollTop(), ah = aq.height();
+                            y = y.top + m.scrollContainer().scrollTop(), ah = aq.height();
                             //console.log('FOCUSENTRY', aq.html(), ah, y);
-                            Menu.scrollContainer().scrollTop(y - ((Menu.scrollContainer().height() - ah) / 2));
+                            m.scrollContainer().scrollTop(y - ((m.scrollContainer().height() - ah) / 2));
                         }
                     }
                 }
             }   
-            jQuery('.focused').removeClass('focused');
+            self.j('.focused').removeClass('focused');
             var f = a.addClass('focused').get(0);
             a.triggerHandler('focus');
-            if(document.activeElement){
+            if(a.parents('#vcontrols').length){
+                self.j(d).triggerHandler('mousemove')
+            }
+            if(d.activeElement){
                 // dirty hack to force input to lose focus
-                if(document.activeElement.tagName.toLowerCase() == 'input'){
-                    var t = document.activeElement;
+                if(d.activeElement.tagName.toLowerCase() == 'input'){
+                    var t = d.activeElement;
                     t.style.visibility = 'hidden';
                     f.focus({preventScroll: true});
                     t.style.visibility = 'visible';
@@ -94,7 +98,7 @@ var Pointer = (() => {
                         navigables.push(element)
                     })
                 } else {
-                    jQuery(sel).each((i, element) => {
+                    self.j(sel).each((i, element) => {
                         navigables.push(element)
                     })
                 }
@@ -179,6 +183,16 @@ var Pointer = (() => {
                 if(n != e){
                     var nxy = self.coords(n);
                     if(nxy){
+                        if(['up', 'down'].indexOf(direction) != -1){ // avoid horizontal moving
+                            if(nxy.y == exy.y && n.offsetHeight == e.offsetHeight){
+                                return;
+                            }
+                        }
+                        if(['left', 'right'].indexOf(direction) != -1){ // avoid vertical moving
+                            if(nxy.x == exy.x && n.offsetWidth == e.offsetWidth){
+                                return;
+                            }
+                        }
                         angle = self.angle(exy, nxy);
                         if(self.inAngle(angle, angleStart, angleEnd)){
                             var df, dist;
@@ -211,11 +225,11 @@ var Pointer = (() => {
             if(self.debug){
                 console.warn('POINTER', closer, closerDist)
             }
-            self.focus(jQuery(closer))
+            self.focus(self.j(closer))
         }
     }
     self.setup = () => {
 
     }
     return self;
-})()
+})(window, document, jQuery, Menu)
