@@ -198,21 +198,21 @@ var Playback = (() => {
         return false;
     }
     self.connect = (dest, mimetype) => {
-        self.endpoint = {src: dest, mimetype: mimetype}
+        self.endpoint = {src: dest, mimetype: mimetype, source: self.active.entry.source}
         showPlayers(true, false);
         if(!mimetype){
             mimetype = 'application/x-mpegURL';
         }
-        console.log('CONNECT', dest, mimetype);
-        var p = getFrame('player');
-        p.updateSource();
+        console.log('CONNECT', self.endpoint)
+        var p = getFrame('player')
+        p.updateSource()
         p.ready(() => {
             var video = p.document.querySelector('video'), v = jQuery(video);
             if(v){
-                self.bind(video, Playback.active)
+                self.bind(video, self.active)
             }
             leavePendingState()
-        });
+        })
         setTimeout(() => {
             self.setRatio()
         }, 2000)
@@ -1267,7 +1267,7 @@ function unloadFrames(){
 
 function shouldNotifyPlaybackError(intent){
     console.log('SHOULD', intent);
-    if(intent.manual && !intent.shadow && !intent.disabled){
+    if(intent.manual && !intent.shadow && (!intent.disabled || (Playback.lastActive && (intent.entry.url == Playback.lastActive.entry.url)))){
         var url = intent.entry.originalUrl;
         for(var i=0; i<Playback.intents.length; i++){
             if(Playback.intents[i].entry.originalUrl == url && Playback.intents[i].entry.name == intent.entry.name && Playback.intents[i] != intent && !Playback.intents[i].error && !Playback.intents[i].ended){
@@ -1320,7 +1320,7 @@ Playback.on('register', (intent, entry) => {
         console.log('STREAM ENDED', Playback.log(), intent.shadow)
         if(!intent.shadow){
             console.log('STREAM ENDED', Playback.log(), intent.entry.url, isLive(intent.entry.url), intent.entry.originalUrl)
-            if(isLive(intent.entry.url)){
+            if(!isVideo(intent.entry.url)){
                 // if is live, the stream should not end, so connect to another broadcast
                 if(isMegaURL(intent.entry.originalUrl)){ // mega://
                     console.log('isMega', intent.entry.originalUrl);

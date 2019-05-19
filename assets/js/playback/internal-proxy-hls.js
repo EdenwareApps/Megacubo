@@ -125,9 +125,6 @@ Playback.HLSManager = ((parent) => {
                     for(var i=0;i<parser.manifest.playlists.length;i++){
                         u = absolutize(parser.manifest.playlists[i].uri, url)
                         replaces[parser.manifest.playlists[i].uri] = self.parent.proxy.proxify(u)
-                        if(self.download(u)){
-                            self.log('predict', u)
-                        }                
                     }
                 }
             }
@@ -380,6 +377,14 @@ Playback.HLSManager = ((parent) => {
     }
     self.download = (url, cb) => {
         const id = self.id(url), internalUrl = self.parent.proxyLow.proxify(url)
+        if(isM3U8(url)){
+            const err = 'Segment ignored: ' + url
+            console.error(err)
+            if(typeof(cb) == 'function'){
+                cb(err)
+            }
+            return
+        }
         if(typeof(cb) == 'function'){
             if(typeof(self.callbacks[id]) == 'undefined'){
                 self.callbacks[id] = []

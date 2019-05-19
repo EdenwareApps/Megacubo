@@ -94,13 +94,22 @@
 				var endpoint = top.Playback.endpoint
 				if(endpoint && endpoint.mimetype){
 					top.jQuery(video).off() // discard events
-					let src = endpoint.src, isHLS = endpoint.mimetype.toLowerCase().indexOf('mpegurl') != -1
+					let source = endpoint.source, src = endpoint.src, isHLS = endpoint.mimetype.toLowerCase().indexOf('mpegurl') != -1
 					if(top.Playback.proxy.isSupported(src)){
 						src = top.Playback.proxy.proxify(src)
+						if(source){
+							source = top.Playback.proxy.proxify(source)
+						}
 					} else if(isHLS && isLocal(src)){
 						src = top.Playback.proxyLocal.proxify(src)
+						if(source){
+							source = top.Playback.proxyLocal.proxify(source)
+						}
 					}
-					console.log('CONNECT', src, type)
+					if(source){
+						top.pingSource(source)
+					}
+					console.log('CONNECT', src, source, endpoint)
 					if(isHLS){
 						if(!hls){
 							var hlsConfig = {

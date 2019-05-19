@@ -237,7 +237,7 @@ function getTSStreamer(){
         }
         var createStreamer = (url, callback, client, abortCallback) => {
             var errorLevel = 0, lastResponseSize = -1, r, aborted, streamerClosed, nextIntersectBuffer, bytesToIgnore = 0, intersectBuffers = [],
-                intersectBufferSize = 32 * 1024 /* needle */, 
+                intersectBufferSize = 64 * 1024 /* needle */, 
                 maxIntersectBufferSize = 5 * (1024 * 1024) /* stack, keep big */;
             var abort = () => {
 				if(!aborted){
@@ -291,8 +291,7 @@ function getTSStreamer(){
                             if(debug){
                                 console.warn('[ts] joining', '(client ' + client.id + ')', url)
                             }
-                            // offset = Buffer.concat(intersectBuffers).lastIndexOf(data.slice(0, intersectBufferSize))
-                            offset = Buffer.concat(intersectBuffers).indexOf(data.slice(0, intersectBufferSize))
+                            offset = Buffer.concat(intersectBuffers).lastIndexOf(data.slice(0, intersectBufferSize))
                             if(debug){
                                 console.warn('[ts] joining', '(client ' + client.id + ')', offset, currentIntersectBufferSize, len(data))
                             }

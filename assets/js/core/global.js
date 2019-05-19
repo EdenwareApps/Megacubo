@@ -2979,9 +2979,14 @@ function isRadio(name){
     return false;
 }
 
+function isM3U(url){
+    if(typeof(url)!='string') return false;
+    return ['m3u'].indexOf(getExt(url)) != -1;            
+}
+
 function isM3U8(url){
     if(typeof(url)!='string') return false;
-    return ['m3u8', 'm3u'].indexOf(getExt(url)) != -1;            
+    return ['m3u8'].indexOf(getExt(url)) != -1;            
 }
 
 function isTS(url){

@@ -3,7 +3,7 @@ Playback.proxy = ((parent) => { // handle http / p2p with original url
     var networking = true, ipcache, self = {
         addr: '127.0.0.1',
         closed: false,
-        debug: false,
+        debug: true,
         parent,
         port: 0, // let the http.server sort
         request: false,
@@ -70,7 +70,10 @@ Playback.proxy = ((parent) => { // handle http / p2p with original url
                 }
                 let port = url.match(new RegExp(':([0-9]+)'))
                 port = port ? parseInt(port[1]) : 80    
-                self.log('serving', domain, port)            
+                if(self.debug){
+                    self.log('serving', domain, port)            
+                }
+                let allowP2P = self.parent.active && self.parent.active.type != 'ts' && !self.parent.query({started: false, ended: false, error: false}).length && !autoCleanEntriesRunning()
                 if(['127.0.0.1', 'localhost'].indexOf(domain) != -1 && port == 80){
                     let localPath  = url.replace(new RegExp('^.*//[^/]+/?'), '')
                     if(self.debug){
@@ -93,7 +96,7 @@ Playback.proxy = ((parent) => { // handle http / p2p with original url
                             response.end(buffer, 'binary')
                         }
                     })
-                } else if(ext == 'ts' && self.parent.active && self.parent.active.type != 'ts') { // only ts uses hybridSegmentFetch
+                } else if(ext == 'ts' && allowP2P) { // only ts uses hybridSegmentFetch
                     if(self.debug){
                         self.log('start segment fetching...')
                     }
@@ -137,7 +140,7 @@ Playback.proxy = ((parent) => { // handle http / p2p with original url
                         buffer = null;
                     })
                 } else if(ext == 'm3u8') {
-                    var headers = req.headers, finalUrl = url
+                    var retries = 2, headers = req.headers, finalUrl = url
                     headers.host = domain
                     if(self.debug){
                         self.log('open', url, req, ext)
@@ -146,37 +149,49 @@ Playback.proxy = ((parent) => { // handle http / p2p with original url
                     if(typeof(headers['accept-encoding']) != 'undefined'){
                         delete headers['accept-encoding']
                     }
-                    var err, sent, r = self.request({
-                        url: url,
-                        headers: req.headers,
-                        followRedirect: false
-                    }, (error, res, body) => {
-                        let hs, code
-                        if(res && res.headers){
-                            hs = res.headers
-                            if(typeof(hs['location']) != 'undefined'){
-                                finalUrl = absolutize(hs['location'], url)
-                                hs['location'] = self.proxify(finalUrl)
-                                hs['access-control-allow-origin'] = '*'
-                                if(self.debug){
-                                    self.log('response with location', hs)
+                    var go = () => {
+                        self.request({
+                            url: url,
+                            headers: req.headers,
+                            followRedirect: false
+                        }, (error, res, body) => {
+                            let hs, code
+                            if(retries && (!res || [500, 502, 401, 403].indexOf(res.statusCode) != -1)){
+                                retries--
+                                console.warn('Connection error, delaying ', res ? res.statusCode : -1, retries)
+                                return setTimeout(go, 2000)
+                            }
+                            if(res && res.headers){
+                                hs = res.headers
+                                if(typeof(hs['location']) != 'undefined'){
+                                    finalUrl = absolutize(hs['location'], url)
+                                    hs['location'] = self.proxify(finalUrl)
+                                    hs['access-control-allow-origin'] = '*'
+                                    if(self.debug){
+                                        self.log('response with location', hs)
+                                    }
                                 }
+                                if(typeof(hs['accept-encoding']) != 'undefined'){
+                                    delete hs['accept-encoding']
+                                }
+                                if(allowP2P){
+                                    body = self.parent.HLSManager.process(body, finalUrl)
+                                }
+                                //hs['content-length'] = body.length
+                                delete hs['content-length']
+                                code = res.statusCode
+                            } else {
+                                console.error(error)
+                                hs = {}
+                                body = ''
+                                hs['content-length'] = 0
+                                code = 502
                             }
-                            if(typeof(hs['accept-encoding']) != 'undefined'){
-                                delete hs['accept-encoding']
-                            }
-                            body = self.parent.HLSManager.process(body, finalUrl)
-                            hs['content-length'] = body.length
-                            code = res.statusCode
-                        } else {
-                            hs = {}
-                            body = ''
-                            hs['content-length'] = 0
-                            code = 502
-                        }
-                        response.writeHead(code, hs)
-                        response.end(body, {end: true})
-                    })      
+                            response.writeHead(code, hs)
+                            response.end(body, {end: true})
+                        })      
+                    }
+                    go()
                 } else { // piped direct response for non "ts segments"
                     var headers = req.headers, finalUrl = url
                     headers.host = domain
@@ -213,7 +228,7 @@ Playback.proxy = ((parent) => { // handle http / p2p with original url
                     })
                     r.on('end', () => {
                         if(self.debug){
-                            self.log('close', r, req, response, url, m3u8)
+                            self.log('close', r, req, response, url)
                         }
                         if(err && !sent){
                             response.writeHead(500)

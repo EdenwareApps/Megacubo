@@ -48,13 +48,34 @@
 						console.error(msg)
 					}
 				}
-			}		
-			function src(_src, type, video, onerr){
-				var hls = false;
-				console.log('Test src:', _src, type)
-				if(type.toLowerCase().indexOf('mpegurl')!=-1){
+			}	
+			function ping(url){
+				console.warn('Source ping', url) // Print the error if one occurred
+				top.request(url, function (error, response, body) {
+					if(error){
+						console.error('Source ping error', url, error) // Print the error if one occurred
+					} else {
+						console.warn('Source ping success', response.statusMessage) // Print the error if one occurred
+					}
+				})
+			}	
+			function src(_src, type, source, video, onerr){
+				var hls = false, isHLS = type.toLowerCase().indexOf('mpegurl') != -1;
+				console.log('Test src:', _src, type, isHLS)
+
+				if(top.Playback.proxy.isSupported(_src)){
+					_src = top.Playback.proxy.proxify(_src)
+					if(source){
+						source = top.Playback.proxy.proxify(source)
+					}
+				}
+				if(source){
+					ping(source)
+				}
+				console.warn('DAT', source, _src)
+				if(isHLS){
 					hls = new Hls({
-						//debug: true
+						debug: true
 					})				
 					hls.loadSource(_src)
 					hls.attachMedia(video)
@@ -89,9 +110,12 @@
 				}
 				return hls;
 			}			
-			function test(url, type, _success, _failure){
+			function test(url, type, source, _success, _failure){
 				var hls, v = jQuery('<video></video>'), video = v.get(0), minBufSecs = Config.get('min-buffer-secs-before-commit')
 				v.appendTo('#testers')
+				if(source){
+					top.pingSource(source)
+				}
 				var cleanup = () => {
 					try {
 						v.off()
@@ -125,7 +149,7 @@
 					}
 				})
 				v.on('error ended', onerr)
-				hls = src(url, type, video, onerr)
+				hls = src(url, type, source, video, onerr)
 				return {
 					cancel: () => {
 						cleanup()

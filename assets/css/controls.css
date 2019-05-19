@@ -524,6 +524,10 @@ body:not(.playing):not(.paused):not(.loading) #vcontrols { /* stoppped */
     display: none;
 }
 
+body.miniplayer #vcontrols .video-seek input {
+    display: none !important;
+}
+
 body.over:not(.hiding-menu) #vcontrols, /* over */
 body.paused #vcontrols, /* paused */ 
 body #vcontrols:focus-within /* focused */ 

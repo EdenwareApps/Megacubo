@@ -1600,7 +1600,7 @@ function detectKeys(currentKey, currentAction, cb){
 }
 
 function hideSeekbar(state){
-    var e = jQuery('#vcontrols .video-seek input');
+    var e = jQuery('#vcontrols .video-seek input')
     if(state){
         e.hide()
     } else {
@@ -2163,7 +2163,8 @@ function averageStreamingBandwidth(data){
 }
 
 function averageStreamingBandwidthCollectSample(url, file, length) {
-    removeAction('media-received', averageStreamingBandwidthCollectSample); // once per commit
+    removeAction('media-received', averageStreamingBandwidthCollectSample) // once per commit
+    file = file.replaceAll('\\', '/').trim()
     getFileBitrate(file, (err, bitrate, file) => {
         if(err){
             console.error('Bitrate collect error', file)

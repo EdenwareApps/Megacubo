@@ -60,7 +60,7 @@ function createBaseIntent(){
             if(!p || !p.test){
                 cb(false)    
             } else {
-                p.test(self.testURL || self.streamURL, self.mimetype, () => {
+                p.test(self.testURL || self.streamURL, self.mimetype, self.entry.source, () => {
                     console.log('Test succeeded. '+self.streamURL);
                     self.tested = true;
                     cb(self.tested)
