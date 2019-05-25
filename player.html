@@ -18,6 +18,9 @@
 		<script type="text/javascript">
 			var hls, video = document.getElementById('video'), player = jQuery(video)
 			var recoverDecodingErrorDate, recoverSwapAudioCodecDate, recoverTimer = 0, mediaErrors = []
+			function stalled(){
+				return video.readyState == 0 && video.networkState == 2
+			}
 			function recover(hls) {
 				console.log('RECOVER', hls, top.Playback.endpoint)
 				var doReset = true;

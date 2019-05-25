@@ -237,7 +237,7 @@ function getTSStreamer(){
         }
         var createStreamer = (url, callback, client, abortCallback) => {
             var errorLevel = 0, lastResponseSize = -1, r, aborted, streamerClosed, nextIntersectBuffer, bytesToIgnore = 0, intersectBuffers = [],
-                intersectBufferSize = 64 * 1024 /* needle */, 
+                intersectBufferSize = 256 * 1024 /* needle */, 
                 maxIntersectBufferSize = 5 * (1024 * 1024) /* stack, keep big */;
             var abort = () => {
 				if(!aborted){

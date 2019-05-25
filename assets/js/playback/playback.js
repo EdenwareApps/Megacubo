@@ -76,6 +76,12 @@ var Playback = (() => {
             return self.active.entry;
         }
     }
+    self.player = () => {
+        if(!self._player){
+            self._player = getFrame('player')
+        }
+        return self._player
+    }
     self.query = (filter) => { // object
         var results = [];
         for(var i=0; i<self.intents.length; i++){
@@ -103,7 +109,7 @@ var Playback = (() => {
                     sel = sel.add(self.active.fittedScope.document.body)
                 }
             } else {
-                var p = getFrame('player');
+                var p = self.player()
                 if(p && p.document && p.document.body){
                     sel = sel.add(p.document.body)
                 }
@@ -115,7 +121,7 @@ var Playback = (() => {
         if(!self.active){
             return 'stop'
         }
-        var p = getFrame('player'), video = p.document.querySelector('video');
+        var p = self.player(), video = p.document.querySelector('video');
         if(video.paused) {
             return 'pause'
         } else {
@@ -125,6 +131,13 @@ var Playback = (() => {
                 return 'play'
             }
         }
+    }
+    self.stalled = () => {
+        if(!self.active){
+            return false
+        }
+        var p = self.player()
+        return p && p.stalled()
     }
     self.setState = (state) => {
         if(!state){
@@ -204,7 +217,7 @@ var Playback = (() => {
             mimetype = 'application/x-mpegURL';
         }
         console.log('CONNECT', self.endpoint)
-        var p = getFrame('player')
+        var p = self.player()
         p.updateSource()
         p.ready(() => {
             var video = p.document.querySelector('video'), v = jQuery(video);
@@ -219,7 +232,7 @@ var Playback = (() => {
     }
     self.disconnect = () => {
         self.endpoint = {}
-        var p = getFrame('player')
+        var p = self.player()
         if(p){
             p.stop()
         }
@@ -989,7 +1002,7 @@ function preparePlayIntent(entry, options, ignoreCurrentPlaying){
         // these TS can be >20MB and even infinite (realtime), so it wont run as HTML5, FFMPEG is a better approach so
         console.log('CREATEPLAYINTENT FOR TS', entry.url);
         types.push('ts')
-    } else if(!forceTranscode && (isHTML5Video(entry.url) || isM3U8(entry.url))){
+    } else if(!forceTranscode && (isHTML5Media(entry.url) || isM3U8(entry.url))){
         console.log('CREATEPLAYINTENT FOR HTML5/M3U8', entry.url);
         if(currentPlaybackTypePriotity == -1 || Playback.intentTypesPriorityOrder.indexOf('direct') < currentPlaybackTypePriotity){
             types.push('direct')
@@ -1283,7 +1296,6 @@ function shouldNotifyPlaybackError(intent){
 
 Playback.on('register', (intent, entry) => {
     intent.on('error', () => {
-        //console.log('STREAM FAILED', Playback.log())
         setTimeout(() => {
             //console.log('STREAM FAILED', Playback.log());
             setStreamStateCache(intent.entry, false);
@@ -1364,6 +1376,9 @@ Playback.on('commit', (intent) => {
     if(b) {
         jQuery(b)[terms ? 'show' : 'hide']()
     }
+    intent.on('error', () => {
+        console.error('Stream failure after commit', Playback.log())
+    })
 })
 
 Playback.on('stop', () => {

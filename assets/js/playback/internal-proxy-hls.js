@@ -62,6 +62,7 @@ Playback.HLSManager = ((parent) => {
         })
         self.loader.on(self.p2pml.Events.SegmentLoaded, self.loaded)
         self.loader.on(self.p2pml.Events.SegmentError, self.error)
+        self.loader.on(self.p2pml.Events.SegmentAbort, self.abort)
         self.loader.on(self.p2pml.Events.PeerConnect, (peer) => {
             if(self.peers.indexOf(peer.id) == -1){
                 self.peers.push(peer.id)
@@ -125,6 +126,7 @@ Playback.HLSManager = ((parent) => {
                     for(var i=0;i<parser.manifest.playlists.length;i++){
                         u = absolutize(parser.manifest.playlists[i].uri, url)
                         replaces[parser.manifest.playlists[i].uri] = self.parent.proxy.proxify(u)
+                        //console.warn('DEBUGGG', url, u, parser.manifest.playlists[i].uri, replaces[parser.manifest.playlists[i].uri])
                     }
                 }
             }
@@ -242,8 +244,8 @@ Playback.HLSManager = ((parent) => {
                         if(bufferAmountRequired < 1){
                             bufferAmountRequired = 0
                         }
-                        if(bufferAmountRequired < bufferedAmount){  // buffered enough, let http rest
-                            priority = 1
+                        if(bufferAmountRequired < bufferedAmount || self.parent.stalled()){  // buffered enough, let http rest
+                            priority = 0
                             self.loader.settings.requiredSegmentsPriority = 0
                         } else {
                             self.loader.settings.requiredSegmentsPriority = bufferAmountRequired - bufferedAmount
@@ -355,6 +357,10 @@ Playback.HLSManager = ((parent) => {
             self.load()
         }
     }
+    self.abort = (segment) => {
+        self.log("segment loading abort", segment)
+        self.error(segment, "Segment load aborted", true)
+    }
     self.init = () => {
         self.started = true;
         self.request = prepareRequestForever()
@@ -377,7 +383,7 @@ Playback.HLSManager = ((parent) => {
     }
     self.download = (url, cb) => {
         const id = self.id(url), internalUrl = self.parent.proxyLow.proxify(url)
-        if(isM3U8(url)){
+        if(['m2ts', 'ts', 'mp4', 'ogv', 'webm'].indexOf(getExt(url)) == -1){
             const err = 'Segment ignored: ' + url
             console.error(err)
             if(typeof(cb) == 'function'){

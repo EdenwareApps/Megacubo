@@ -385,9 +385,9 @@ function getStreamBasicType(entry){
     if(ret) return ret;
     if(isRadio(b)){
         return 'radio';
-    } else if(entry.url && ((isHTML5Video(entry.url) && !isTS(entry.url)) || isYT(entry.url))) {
+    } else if(entry.url && ((isHTML5Video(entry.url) && !isRemoteTS(entry.url)) || isYT(entry.url))) {
         return 'video';
-    } else if(entry.url && (isLive(entry.url) ||isMegaURL(entry.url) || entry.url.match(new RegExp('(live|m3u|rtmp)', 'i')))) {
+    } else if(entry.url && (isLive(entry.url) || isMegaURL(entry.url) || entry.url.match(new RegExp('(live|m3u|rtmp)', 'i')))) {
         return 'live';
     } else if(entry.url && entry.url.match(new RegExp('(video)', 'i'))) {
         return 'video';

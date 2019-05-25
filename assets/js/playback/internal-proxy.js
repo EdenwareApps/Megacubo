@@ -118,7 +118,7 @@ Playback.proxy = ((parent) => { // handle http / p2p with original url
                             buffer = bufferize(buffer)
                             doAction('media-save', url, buffer, 'content')
                             if(self.debug){
-                                self.log('responding', buffer.byteLength)
+                                self.log('responding', buffer.byteLength, location)
                             }
                             if(location){
                                 response.writeHead(307, {
@@ -161,11 +161,14 @@ Playback.proxy = ((parent) => { // handle http / p2p with original url
                                 console.warn('Connection error, delaying ', res ? res.statusCode : -1, retries)
                                 return setTimeout(go, 2000)
                             }
-                            if(res && res.headers){
+                            if(retries && res && res.headers){
                                 hs = res.headers
                                 if(typeof(hs['location']) != 'undefined'){
+                                    console.warn('Connection DEBUGGG', hs, url)
                                     finalUrl = absolutize(hs['location'], url)
+                                    console.warn('Connection DEBUGGG', finalUrl)
                                     hs['location'] = self.proxify(finalUrl)
+                                    console.warn('Connection DEBUGGG', hs)
                                     hs['access-control-allow-origin'] = '*'
                                     if(self.debug){
                                         self.log('response with location', hs)
@@ -174,21 +177,27 @@ Playback.proxy = ((parent) => { // handle http / p2p with original url
                                 if(typeof(hs['accept-encoding']) != 'undefined'){
                                     delete hs['accept-encoding']
                                 }
+                                console.warn('Connection DEBUGGG', body, finalUrl)
                                 if(allowP2P){
                                     body = self.parent.HLSManager.process(body, finalUrl)
                                 }
+                                console.warn('Connection DEBUGGG', body, finalUrl)
                                 //hs['content-length'] = body.length
                                 delete hs['content-length']
                                 code = res.statusCode
                             } else {
-                                console.error(error)
+                                console.error('Connection error, gaving up ', error)
                                 hs = {}
                                 body = ''
                                 hs['content-length'] = 0
-                                code = 502
+                                code = res && res.statusCode ? res.statusCode : 0
                             }
-                            response.writeHead(code, hs)
-                            response.end(body, {end: true})
+                            if(code){
+                                response.writeHead(code, hs)
+                                response.end(body, {end: true})
+                            } else {
+                                response.connection.destroy()
+                            }
                         })      
                     }
                     go()
@@ -331,7 +340,7 @@ Playback.proxyLow = ((parent) => { // handle low level connection from http mana
                     url = "http:/"+url;
                 }
                 if(self.debug){
-                    self.log('serving', url);
+                    self.log('serving', url)
                 }
                 let domain = getDomain(url).split(':')[0], ts = getExt(url) == 'ts', type = ts ? "video/MP2T" : "application/x-mpegURL"
                 let ppath  = url.replace(new RegExp('^.*//[^/]+'), ''), port = url.match(new RegExp(':([0-9]+)'))

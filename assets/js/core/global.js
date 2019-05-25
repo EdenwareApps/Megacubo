@@ -411,7 +411,7 @@ var absolutize = (url, base) => {
             return null // wrong base
         }
     }
-    var a=document.createElement('a'); 
+    var a=document.createElement('a')
     a.href=base;    
     if(url[0] == '/'){ 
         base = [] // rooted path
@@ -433,7 +433,7 @@ var absolutize = (url, base) => {
             base.push(url[i]); 
         }
     }
-    return a.protocol+'//'+a.hostname+base.join('/');
+    return a.protocol + '//' + a.hostname + (a.port && a.port != 80 ? ':' + a.port : '') + base.join('/');
 }
 
 var requestForever;
@@ -1712,25 +1712,31 @@ function trimChar(string, charToRemove) {
 var spawn;
 function getMediaInfo(path, callback){
     if(!spawn){
-        spawn = require('child_process').spawn;
+        spawn = require('child_process').spawn
     }
-    var data = '';
+    var data = ''
     var child = spawn(top.FFmpegPath, [
-        '-i', path
-    ]);
+        '-i', forwardSlashes(path)
+    ])
     child.stdout.on('data', function(chunk) {
         data += String(chunk)
-    });
+    })
     child.stderr.on('data', function(chunk) {
         data += String(chunk)
-    });
+    })
+    child.stderr.on('error', function(err) {
+        console.error('getMediaInfo', err, data)
+    })
     var timeout = setTimeout(() => {
         child.kill()
-    }, 10000);
+    }, 10000)
     child.on('close', (code) => {
-        clearTimeout(timeout);
+        if(debugAllow(true)){
+            console.log('getMediaInfo', path, fs.statSync(path), code, data)
+        }
+        clearTimeout(timeout)
         callback(data, code)
-    });
+    })
 }
 
 function hmsClockToSeconds(str) {
@@ -2968,6 +2974,10 @@ function updateMegaURLQSAppend(url, qs){
     return p[0]+'?'+q.join('&');
 }
 
+function forwardSlashes(file){
+    return file.replaceAll('\\', '/').replaceAll('//', '/')
+}
+
 function isRadio(name){
     //console.log('NAME', name);
     var t = typeof(name);
@@ -2991,12 +3001,12 @@ function isM3U8(url){
 
 function isTS(url){
     if(typeof(url)!='string') return false;
-    return isHTTP(url) && getExt(url) == 'ts';            
+    return ['m2ts', 'ts'].indexOf(getExt(url)) != -1  
 }
 
 function isRemoteTS(url){
     if(typeof(url)!='string') return false;
-    return isHTTP(url) && getExt(url) == 'ts';            
+    return isHTTP(url) && ['m2ts', 'ts'].indexOf(getExt(url)) != -1  
 }
 
 function isRTMP(url){
@@ -3068,7 +3078,16 @@ function isVideo(url){
 
 function isHTML5Video(url){
     if(typeof(url)!='string') return false;
-    return 'mp3|mp4|m4a|m4v|webm|aac|ogg|ts|mkv'.split('|').indexOf(getExt(url)) != -1;            
+    return 'mp4|m4v|webm|ogv|ts|m2ts|mkv'.split('|').indexOf(getExt(url)) != -1;            
+}
+
+function isHTML5Audio(url){
+    if(typeof(url)!='string') return false;
+    return 'mp3|m4a|webm|aac|ogg|mka'.split('|').indexOf(getExt(url)) != -1;            
+}
+
+function isHTML5Media(url){
+    return isHTML5Video(url) || isHTML5Audio(url)
 }
 
 function isLive(url){

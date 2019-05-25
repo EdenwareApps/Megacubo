@@ -1728,9 +1728,9 @@ jQuery(() => {
             } else {
                 length = (typeof(content)=='string') ? content.length : content.byteLength; 
             }
-            if(!length) { // discard empty media
-                console.warn('Empty media skipped.');
-                return;
+            if(length < 2048) { // discard empty media and most playlists
+                console.warn('Empty media skipped.', length)
+                return
             }
             for(var key in recordingJournal){
                 if(length && recordingJournal[key] == length){
@@ -1739,18 +1739,23 @@ jQuery(() => {
                     return;
                 }
             }
-            var ext = getExt(url);
+            var ext = getExt(url)
+            if(['m3u8', 'm3u', 'pls'].indexOf(ext) != -1){
+                console.log('Playlist skipped.', ext, length)
+                return
+            }
             if(['ts', 'mpg', 'webm', 'ogv', 'mpeg', 'mp4'].indexOf(ext) == -1){
                 ext = 'mp4';
             }
-            var file = capturingFolder + '/' + time() + '.' + ext;
+            var file = path.resolve(capturingFolder + '/' + time() + '.' + ext)
             recordingJournal[file] = length;
             recordingJournal = sliceObject(recordingJournal, recordingJournalLimit * -1);
             var cb = (err) => {
                 if(err){
-                    console.error('Failed to save media.')
+                    console.error('Failed to save media.', url, file, length, ext)
+                } else {
+                    doAction('media-received', url, file, length, ext)
                 }
-                doAction('media-received', url, file, length)
             }
             if(type == 'path'){ // so content is a path, not a buffer
                 copyFile(filePath, file, cb)
@@ -2164,10 +2169,9 @@ function averageStreamingBandwidth(data){
 
 function averageStreamingBandwidthCollectSample(url, file, length) {
     removeAction('media-received', averageStreamingBandwidthCollectSample) // once per commit
-    file = file.replaceAll('\\', '/').trim()
     getFileBitrate(file, (err, bitrate, file) => {
         if(err){
-            console.error('Bitrate collect error', file)
+            console.error('Bitrate collect error', file, fs.existsSync(file))
         } else {
             currentBitrate = bitrate;
             if(!jQuery.isArray(averageStreamingBandwidthData)){
@@ -2470,7 +2474,7 @@ function autoCleanEntries(entries, success, failure, cancelCb, returnSucceededIn
 function cancelCheckPlaybackHealth(forceClose){
     var has = hasAction('cancelCheckPlaybackHealth');
     if(typeof(forceClose) != 'boolean'){
-        forceClose = !has;
+        forceClose = !has
     }
     if(has){
         doAction('cancelCheckPlaybackHealth');
@@ -2537,7 +2541,7 @@ function checkPlaybackHealth(_step, _cb, locale){
     }
     var process = (es) => {
         entries = es.slice(0, 50)
-        console.warn('ENTRIES', es);
+        console.warn('ENTRIES', es)
         var iterator = 0, process = (callback) => {
             if(cancel){
                 callback()
