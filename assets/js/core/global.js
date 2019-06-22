@@ -6,15 +6,12 @@ function debugAllow(def){
 }
 
 if(!debugAllow()){
-    var __console = console;
-    window.console = {}
     var fns = ['log', 'warn', 'info', 'debug', 'trace', 'clear']
     fns.forEach(fn => {
-        window.console[fn] = (...arguments) => {
+        window.console[fn] = () => {
             // ignore on non SDK
         }
     })
-    window.console.error = logErr;
 }
 
 if(typeof(fs)=='undefined'){
@@ -29,10 +26,6 @@ if(typeof(http)=='undefined'){
     http = top.http || require("http")
 }
 
-if(typeof(request)=='undefined'){
-    request = top.request || require("request")
-}
-
 ['setTimeout', 'setInterval', 'clearTimeout', 'clearInterval'].forEach((key) => { // setTimeout doesn't works sometimes without it
     if(global[key]){
         window[key] = global[key].bind(global)
@@ -42,9 +35,9 @@ if(typeof(request)=='undefined'){
 // prevent default behavior from changing page on dropped file
 window.ondragover = function(e) { 
     if(e){
-        e.preventDefault();
+        e.preventDefault()
     }
-    console.log('dragover', window);
+    console.log('dragover', window)
     if(top.dragTimer){
         clearTimeout(top.dragTimer);
     }
@@ -137,6 +130,7 @@ function loadScript(__url, cb){
     }
     let next = (url) => {
         if(getExt(url) == 'bin'){
+            //console.warn('LOADED', url);
             nw.Window.get().evalNWBin(null, url)
             callback()
         } else {
@@ -207,7 +201,11 @@ if (!Array.prototype.sortByProp) {
         return $(this).clone().wrap('<div></div>').parent().html()
     }
     $.fn.label = function(val, tooltipDirection) {
-        return $(this).prop('title', val).attr('aria-label', val).attr('data-balloon', val).attr('data-balloon-pos', tooltipDirection || 'up-left')
+        let j = $(this)
+        if(!tooltipDirection){
+            tooltipDirection = j.attr('data-balloon-pos')
+        }
+        return j.prop('title', val).attr('aria-label', val).attr('data-balloon', val).attr('data-balloon-pos', tooltipDirection || 'up-left')
     }
 })(jQuery)
 
@@ -334,58 +332,63 @@ function concatBuffers(a, b) {
 }
 
 function concatBytes(ui8a, bytes) {
-    var b = new Uint8Array(bytes.length);
+    var b = new Uint8Array(bytes.length)
     bytes.forEach(function (byte, index) {
-        b[index] = byte;
-    });
-    var r = concatTypedArrays(ui8a, b);
-    ui8a = null;
-    b = null;
-    return r;
+        b[index] = byte
+    })
+    var r = concatTypedArrays(ui8a, b)
+    ui8a = null
+    b = null
+    return r
 }
 
 function tag(el){
-    return (el&&el.tagName)?el.tagName.toLowerCase():'';
+    return (el&&el.tagName)?el.tagName.toLowerCase():''
 }
 
 function time(){
-    return ((new Date()).getTime() / 1000);
+    return ((new Date()).getTime() / 1000)
 }
 
 function fetchTimeout(url, _callback, ms, opts){
     let didTimeOut = false, callback = (response, type) => {
         if(typeof(_callback)=='function'){
-            _callback(response, type);
-            _callback = null;
+            _callback(response, type)
+            _callback = null
         }
     }
     return new Promise(function (resolve, reject) {
         const timeout = setTimeout(function() {
-            didTimeOut = true;
-            reject(new Error('Request timed out'));
-        }, ms);
-        var contentType = false;
+            didTimeOut = true
+            reject(new Error('Request timed out'))
+        }, ms)
+        var contentType = false
         fetch(url, opts).then((response) => {
-            contentType = response.headers.get("content-type");
+            contentType = response.headers.get("content-type")
             return response.text()
         }).then((response) => {
             // Clear the timeout as cleanup
-            clearTimeout(timeout);
+            clearTimeout(timeout)
             if(!didTimeOut) {
-                resolve(response);
+                resolve(response)
                 callback(response, contentType)
             }
-        })
-        .catch(function(err) {
-            console.log('fetch failed! ', err);
-            if(didTimeOut) return;
-            reject(err);
+        }).catch(function(err) {
+            console.log('fetch failed! ', err)
+            if(didTimeOut) return
+            reject(err)
             callback(false, false)
-        });
+        })
     }).catch(function(err) {
         // Error: response error, request timeout or runtime error
-        console.log('promise error! ', url, err);
+        console.log('promise error! ', url, err)
         callback(false, false)
+    })
+}
+
+function fetchTimeout(url, _callback, ms, opts){
+    request({url, timeout: ms}, (error, response, body) => {
+        _callback(body, response.headers['content-type'] || '')
     })
 }
 
@@ -446,7 +449,7 @@ function prepareRequestForever(){
             headers: {'User-Agent': navigator.userAgent} // without user-agent some hosts return 403
         })
     }
-    return requestForever;
+    return requestForever
 }
 
 function validateUrl(value) {
@@ -454,7 +457,7 @@ function validateUrl(value) {
 }
 
 function getHeaders(url, callback, timeoutSecs){
-    var start = time(), timer = 0, currentURL = url;
+    var start = time(), timer = 0, currentURL = url
     if(typeof(callback)!='function'){
         callback = jQuery.noop
     }
@@ -463,24 +466,31 @@ function getHeaders(url, callback, timeoutSecs){
         if(!timeoutSecs){
             timeoutSecs = 20;
         }
-        var r = request(url);
-        console.warn(url, timeoutSecs);
+        var r = request({url, ttl: 0}), abort = () => {
+            if(r.abort){
+                r.abort()
+            } else {
+                r.end()
+                r.removeAllListeners()
+            }
+        }
+        console.warn(url, timeoutSecs)
         r.on('error', (response) => {
-            r.abort();
+            abort()
             callback({}, url)
-        });
+        })
         r.on('response', (response) => {
-            console.log('UAAAAA', url, response.request.headers, response.headers, requestJar.getCookieString(url), traceback());
-            clearTimeout(timer);
-            var headers = response.headers;
-            headers['status'] = response.statusCode;
-            r.abort();
+            // console.log('UAAAAA', url, response.headers, requestJar.getCookieString(url), traceback())
+            clearTimeout(timer)
+            var headers = response.headers
+            headers['status'] = response.statusCode
+            abort()
             if(headers['location'] && headers['location'] != url && headers['location'] != currentURL){
                 if(!headers['location'].match(new RegExp('^(//|https?://)'))){
-                    headers['location'] = absolutize(headers['location'], currentURL); 
+                    headers['location'] = absolutize(headers['location'], currentURL)
                 }
-                currentURL = headers['location'];
-                var remainingTimeout = timeoutSecs - (time() - start);
+                currentURL = headers['location']
+                var remainingTimeout = timeoutSecs - (time() - start)
                 if(remainingTimeout && headers['location'] != url && headers['location'] != currentURL){
                     getHeaders(headers['location'], callback, remainingTimeout)
                 } else {
@@ -489,11 +499,11 @@ function getHeaders(url, callback, timeoutSecs){
             } else {
                 callback(headers, url)
             }
-        });
-        console.warn(url, timeoutSecs);
+        })
+        console.warn(url, timeoutSecs)
         timer = setTimeout(() => {
-            console.warn(url, timeoutSecs);
-            r.abort();
+            console.warn(url, timeoutSecs)
+            abort()
             callback({}, url)
         }, timeoutSecs * 1000)
     } else {
@@ -501,8 +511,8 @@ function getHeaders(url, callback, timeoutSecs){
     }
 }
 
-function parseThousands(s) {
-    var locale = getLocale(false, true);
+function parseThousands(s){
+    var locale = getLocale(false, true)
     return Number(String(s).replace(new RegExp('[^0-9]', 'g'), '')).toLocaleString(locale)
 }
 
@@ -532,7 +542,7 @@ function dirname(str){
     return _str
 }
 
-WPDK_FILTERS = {}, WPDK_ACTIONS = {};
+WPDK_FILTERS = {}, WPDK_ACTIONS = {}
 
 _wpdk_add = function( type, tag, function_to_add, priority )
 {
@@ -731,102 +741,10 @@ if(top == window){
         return self;
     })(profilePath + path.sep + 'Users');
 
-    function createStoreDriver(folder){
-        return ((folder) => {
-            var dir, self = {
-                debug: false,
-                cache: {},
-                folder: folder,
-                cacheMemSizeLimit: (56 * 1024) /* 56kb */
-            }
-            self.hash = function(txt) {
-                var hash = 0;
-                if (txt.length == 0) {
-                    return hash;
-                }
-                for (var i = 0; i < txt.length; i++) {
-                    var char = txt.charCodeAt(i);
-                    hash = ((hash<<5)-hash)+char;
-                    hash = hash & hash; // Convert to 32bit integer
-                }
-                return hash;
-            },  
-            self.resolve = (key) => {
-                key = key.replace(new RegExp('[^A-Za-z0-9\\._\\- ]', 'g'), '').substr();
-                return dir + key.substr(0, 128) + '.json';
-            }
-            self.get = (key) => {
-                var f = self.resolve(key), _json = null, val = null; 
-                if(typeof(self.cache[key])!='undefined'){
-                    return self.cache[key];
-                }
-                if(fs.existsSync(f)){
-                    _json = fs.readFileSync(f, "utf8");
-                    if(Buffer.isBuffer(_json)){ // is buffer
-                        _json = String(_json);
-                    }
-                    if(typeof(_json)=='string' && _json.length){
-                        try {
-                            var r = JSON.parse(_json);
-                            if(r != null && typeof(r)=='object' && (r.expires === null || r.expires >= time())){
-                                val = r.data;
-                                if(r.data.length < self.cacheMemSizeLimit){
-                                    self.cache[key] = val;
-                                }
-                            } else {
-                                if(self.debug){
-                                    console.error('Expired', r.expires+' < '+time())
-                                }
-                            }
-                        } catch(e){
-                            console.error(e, f)
-                        }
-                    } else {
-                        if(self.debug){
-                            console.error('Bad type', typeof(_json))
-                        }
-                    }
-                } else {
-                    if(self.debug){
-                        console.error('Not found', typeof(_json))
-                    }
-                }
-                return val;
-            }
-            self.set = (key, val, expiration) => {
-                var f = self.resolve(key);
-                if(expiration === false) {
-                    expiration = 0; // false = session only
-                } else if(expiration === true || typeof(expiration) != 'number') {
-                    expiration = 365 * (24 * 3600); // true = for one year
-                }
-                try {
-                    if(fs.existsSync(f)){
-                        fs.truncateSync(f, 0)
-                    }
-                    let buf = JSON.stringify({data: val, expires: time() + expiration})
-                    fs.writeFileSync(f, buf, "utf8")
-                    if(buf.length < self.cacheMemSizeLimit){
-                        self.cache[key] = val;
-                    }
-                } catch(e){
-                    console.error(e)
-                }
-            }
-            dir = self.folder + path.sep; 
-            fs.stat(dir, (err, stat) => {
-                if(err !== null) {
-                    fs.mkdir(dir, (err) => {
-
-                    })
-                }
-            })
-            return self;
-        })(folder)
-    }   
-
-    var GStore = createStoreDriver(profilePath + path.sep + 'Store');        
-    var Store = createStoreDriver(profilePath + path.sep + 'Users' + path.sep + Users.logged + path.sep + 'Store');
+    var Writer = require(path.resolve('modules/writer'))
+    var StorageController = require(path.resolve('modules/storage-controller'))
+    var GStore = new StorageController(profilePath + path.sep + 'Store')
+    var Store = new StorageController(profilePath + path.sep + 'Users' + path.sep + Users.logged + path.sep + 'Store')
 
     var Config = (() => {
         var self = {
@@ -839,7 +757,7 @@ if(top == window){
                 "autofit": false,
                 "autoscroll": true,
                 "bookmark-dialing": true,
-                "connect-timeout": 36,
+                "connect-timeout": 10,
                 "context-menu": {
                     "window": [
                         "HOME",
@@ -895,7 +813,7 @@ if(top == window){
                     "Ctrl+G": "TVGUIDE",
                     "F2": "RENAME"
                 },
-                "ignore-webpage-streams": false,
+                "ignore-webpage-streams": true,
                 "initial-section": "",
                 "initial-sections": ['featured', 'continue', 'live', 'videos', 'youtube'],
                 "initial-sections-only": false,
@@ -906,13 +824,12 @@ if(top == window){
                 "resolution-limit": "1280x720",
                 "resume": false,
                 "search-range-size": 0,
-                "similar-transmissions": true,
                 "sources": [],
                 "themes": {},
                 "theme-current": "default",
                 "tooltips": true,
-                "transcode-policy": "auto",
                 "transcode-fps": 0,
+                "tune-timeout": 45,
                 "volume": 1.0,
                 "warn-on-connection-errors": true
             }
@@ -971,7 +888,7 @@ if(top == window){
             if(t == 'undefined'){
                 return null;
             } else if(t == 'object') {
-                if(jQuery.isArray(self.data[key])){ // avoid referencing
+                if(Array.isArray(self.data[key])){ // avoid referencing
                     return self.data[key].slice(0)
                 } else {
                     return Object.assign({}, self.data[key])
@@ -1129,7 +1046,7 @@ if(top == window){
             if(t == 'undefined'){
                 return null;
             } else if(t == 'object') {
-                if(jQuery.isArray(self.data[key])){ // avoid referencing
+                if(Array.isArray(self.data[key])){ // avoid referencing
                     return self.data[key].slice(0)
                 } else {
                     return Object.assign({}, self.data[key])
@@ -1180,57 +1097,9 @@ if(top == window){
         self.keys = Object.keys(self.defaults).sort();
         self.assign(self.defaults);
         return self;
-    })()
-
-    var BigJSON = (() => {
-        var self = {}
-        self.module = require('big-json')
-        self.stringify = (data, cb) => {     
-            var opts = {
-                body: data
-            }
-            self.module.stringify(opts, cb)
-        }
-        self.parse = (val, cb) => {            
-            var opts = {
-                body: val
-            }
-            self.module.parse(opts, cb)
-        }
-        self.read = (file, cb) => {
-            fs.readFile(file, (err, data) => {
-                if(err){
-                    console.error(err)
-                    cb(err)
-                } else {
-                    self.parse(String(data), cb)
-                }
-            })
-        }
-        self.write = (file, data, cb) => {
-            /*
-            self.stringify(data, (err, text) => {
-                if(err){
-                    console.error(err)
-                    cb(err)
-                } else {
-                    fs.writeFile(file, text, cb)
-                }
-            })
-            */
-            const writerStream = fs.createWriteStream(file), stringifyStream = self.module.createStringifyStream({
-                body: data
-            })
-            stringifyStream.pipe(writerStream, {end: true})
-            stringifyStream.on('end', () => {
-                cb()
-            })
-        }
-        return self;
-    })()
-    
+    })()   
 } else {
-    var Config = top.Config, Store = top.Store, GStore = top.GStore, Theme = top.Theme, Users = top.Users, BigJSON = top.BigJSON;
+    var Config = top.Config, Store = top.Store, GStore = top.GStore, Theme = top.Theme, Users = top.Users
 }
 
 function prepareFilename(file, keepAccents){
@@ -1353,34 +1222,31 @@ function goHome(){
     }
 }
 
-function restartApp(hard){
+function restartApp(){
     if(ipc && ipc.server.server.listening){        
         if(!ipcIsClosing){
-            ipcIsClosing = true;
+            ipcIsClosing = true
             ipcSrvClose(() => {
-                ipc = false;
-                restartApp(hard)
+                ipc = false
+                restartApp()
             })
         }
-        return;
+        return
     }
     doAction('appUnload')
-    if(hard === true){
-        setTimeout(() => { 
-            //chrome.runtime.reload()
-            //*
-            var spawn = require('child_process').spawn
-            spawn(process.execPath, nw.App.argv, {
-                detached: true 
-             });
-            setTimeout(() => {
-                nw.App.closeAllWindows()
-            }, 0)
-            //*/
-        }, 250)
-    } else {
-        top.location.reload()
-    }
+    var delay = 2, templates = {
+        // win32: ['restartApp.cmd', "@echo off\r\nping 127.0.0.1 -n {0} > nul\r\n{1} {2}"], 
+        win32: ['restartApp.cmd', "@echo off\r\ntimeout /T {0} > nul\r\n{1} {2}"], 
+        linux: ['restartApp.sh', "sleep {0}\r\n{1} {2}"]
+    }, cmd = templates[process.platform]
+    cmd[0] = GStore.folder + path.sep + cmd[0]
+    cmd[1] = cmd[1].format(delay, process.execPath, nw.App.argv.join(' '))
+    fs.writeFileSync(cmd[0], cmd[1], {flag: 'w'})
+    require('child_process').spawn(cmd[0], [], {
+        detached: true,
+        windowsHide: true
+    })
+    process.abort(0)
 }
 
 function bufferize(buffer) {
@@ -1393,7 +1259,7 @@ function bufferize(buffer) {
             buffer = buffer.body
         }
     }  
-    return buffer;
+    return buffer
 }
 
 function toTitleCase(str)
@@ -1563,7 +1429,7 @@ function setupShortcuts(){
             if(hotkeys && typeof(hotkeys)=='object' && typeof(hotkeysActions)=='object'){
                 var args = [];
                 for(var key in hotkeys){
-                    if(jQuery.isArray(hotkeysActions[hotkeys[key]])){
+                    if(Array.isArray(hotkeysActions[hotkeys[key]])){
                         args = hotkeysActions[hotkeys[key]];
                         args.unshift(key);
                         shortcuts.push(createShortcut.apply(createShortcut, args));  
@@ -1587,7 +1453,7 @@ function getActionHotkey(action, nowrap) {
     return '';
 }
 
-function setPriority(priority, cb, retries){
+function setPriority(priority, pid, cb){
     /*
     idle: 64 (or "idle")
     below normal: 16384 (or "below normal")
@@ -1596,24 +1462,16 @@ function setPriority(priority, cb, retries){
     high priority: 128 (or "high priority")
     real time: 256 (or "realtime")
     */
-    if(typeof(retries) != 'number'){
-        retries = 3
-    }
     var callback = (err, output) => {
         if(err){
             console.error(err)
         }
-        if(retries > 0){
-            retries--;
-            setPriority(priority, cb, retries)
-        } else {
-            if(typeof(cb) =='function'){
-                cb(err, output)
-            }
+        if(typeof(cb) == 'function'){
+            cb(err, output)
         }
     }
     if(process.platform == 'win32'){
-        require('child_process').exec('wmic process where processid='+process.pid+' CALL setpriority "'+priority+'"', callback)
+        require('child_process').exec('wmic process where processid='+(pid||process.pid)+' CALL setpriority "'+priority+'"', callback)
     } else {
         if(typeof(cb) =='function'){
             cb('Not win32', '')
@@ -1714,8 +1572,8 @@ function getMediaInfo(path, callback){
     if(!spawn){
         spawn = require('child_process').spawn
     }
-    var data = ''
-    var child = spawn(top.FFmpegPath, [
+    var data = '', debug = debugAllow(false)
+    var child = spawn(FFmpegPath, [
         '-i', forwardSlashes(path)
     ])
     child.stdout.on('data', function(chunk) {
@@ -1731,7 +1589,7 @@ function getMediaInfo(path, callback){
         child.kill()
     }, 10000)
     child.on('close', (code) => {
-        if(debugAllow(true)){
+        if(debug){
             console.log('getMediaInfo', path, fs.statSync(path), code, data)
         }
         clearTimeout(timeout)
@@ -1807,10 +1665,10 @@ function getDomain(u){
     if(u && u.indexOf('//')!=-1){
         var domain = u.split('//')[1].split('/')[0];
         if(domain == 'localhost' || domain.indexOf('.') != -1){
-            return domain;
+            return domain.split(':')[0]
         }
     }
-    return '';
+    return ''
 }
 
 function getProto(u){
@@ -2229,15 +2087,15 @@ function copyFile(source, target, cb) {
     }
     var rd = fs.createReadStream(source);
     rd.on("error", function(err) {
-        done(err);
-    });
+        done(err)
+    })
     var wr = fs.createWriteStream(target);
     wr.on("error", function(err) {
-        done(err);
-    });
+        done(err)
+    })
     wr.on("close", function(ex) {
-        done();
-    });
+        done()
+    })
     rd.pipe(wr)
 }
 
@@ -2435,7 +2293,7 @@ parseURL = (() => {
     }
 })()
 
-var notifyTimer = 0, notifyDebug = true;
+var notifyTimer = 0, notifyDebug = false
 function notifyParseTime(secs){
     switch(secs){
         case 'short':
@@ -2721,54 +2579,26 @@ function displayPrepareName(name, label, prepend, append, raw){
 }
 
 function setTitleData(title, icon) {
-    console.log('TITLE = '+title);
-    title = displayPrepareName(urldecode(title));
-    defaultTitle = title;
+    console.log('TITLE = '+title)
+    title = displayPrepareName(urldecode(title))
+    defaultTitle = title
     if(top){
         var defaultIcon = 'default_icon.png';
         if(icon){
-            applyIcon(icon);
+            applyIcon(icon)
             checkImage(icon, jQuery.noop, () => {
-                applyIcon(defaultIcon);
-            });
+                applyIcon(defaultIcon)
+            })
         } else {
             applyIcon(defaultIcon)
         }
-        var doc = top.document;
-        doc.title = title;
-        var c = doc.querySelector('.nw-cf-title');
+        var doc = top.document
+        doc.title = title
+        var c = doc.querySelector('.nw-cf-title')
         if(c){
-            c.innerText = title;
+            c.innerText = title
         }
-        console.log('TITLE OK');
-    }
-}
-
-function setTitleFlag(fa, title){
-    if(top){
-        title = displayPrepareName(urldecode(title));
-        var doc = top.document, t = doc.querySelector('.nw-cf-icon'), c = doc.querySelector('.nw-cf-title');
-        if(t){
-            if(fa){ // fa-circle-notch pulse-spin
-                t.innerHTML = '<i class="fa {0}" aria-hidden="true"></i>'.format(fa);
-                t.style.backgroundPositionX = '50px';
-                c.style.marginLeft = '0px';
-            } else {
-                t.innerHTML = '';
-                t.style.backgroundPositionX = '0px';
-                c.style.marginLeft = '4px';
-            }
-            if(typeof(title)=='string'){
-                doc.title = title;
-                var c = doc.querySelector('.nw-cf-title');
-                if(c){
-                    if(!defaultTitle){
-                        defaultTitle = c.innerText;
-                    }
-                    c.innerText = title;
-                }
-            }
-        }
+        console.log('TITLE OK')
     }
 }
 
@@ -2809,15 +2639,15 @@ function getColorLightLevel(hex){
 }
 
 function getHTTPInfo(url, callback){
-    var timeout = 30;
+    var timeout = 30
     getHeaders(url, (h, u) => { 
-        var cl = h['content-length'] || -1;
-        var ct = h['content-type'] || '';
-        var st = h['status'] || 0;
+        var cl = h['content-length'] || -1
+        var ct = h['content-type'] || ''
+        var st = h['status'] || 0
         if(ct){
-            ct = ct.split(',')[0].split(';')[0];
+            ct = ct.split(',')[0].split(';')[0]
         } else {
-            ct = '';
+            ct = ''
         }
         callback(ct, cl, url, u, st) // "u" is the final url, "url" the starter url
     }, timeout)
@@ -2880,7 +2710,7 @@ function megaFileToEntry(file){
     if(content) {
         var c = (top || parent), parser = new DOMParser();
         var doc = parser.parseFromString(content, "application/xml");
-        var url = jQuery(doc).find('stream').text().replaceAll('embed::', '').replaceAll('#off', '#nosandbox').replaceAll('#catalog', '#nofit#');
+        var url = jQuery(doc).find('stream').text().replaceAll('embed::', '').replaceAll('#off', '#nosandbox').replaceAll('#catalog', '#nofit');
         var name = jQuery(doc).find('stream').attr('name') || jQuery(doc).find('name').text();
         return {
             name: name,
@@ -2932,19 +2762,12 @@ function parseMegaURL(url){
     return false;
 }
 
-function getMediaType(entry){
-    const url = entry.originalUrl || entry.url || String(entry)
-    if(isMegaURL(url)){
-        let p = parseMegaURL(url)
-        if(p && p.mediaType){
-            return p.mediaType
-        }
-    } else if(isLive(url)) {
-        return 'live'
-    } else if(isVideo(url)) {
-        return 'video'
+function compareMegaURLs(url, url2){
+    let a = parseMegaURL(url), b = parseMegaURL(url2)
+    if(!a || !b){
+        return false
     }
-    return 'all'
+    return a.name == b.name
 }
 
 function isValidMegaURL(url){
@@ -3078,7 +2901,7 @@ function isVideo(url){
 
 function isHTML5Video(url){
     if(typeof(url)!='string') return false;
-    return 'mp4|m4v|webm|ogv|ts|m2ts|mkv'.split('|').indexOf(getExt(url)) != -1;            
+    return 'mp4|m4v|webm|ogv|ts|m2ts'.split('|').indexOf(getExt(url)) != -1;            
 }
 
 function isHTML5Audio(url){
@@ -3114,7 +2937,7 @@ function isStopped(){
 }
 
 function getExt(url){
-    return (''+url).split('?')[0].split('#')[0].split('.').pop().toLowerCase();        
+    return String(url).split('?')[0].split('#')[0].split('.').pop().toLowerCase();        
 }
 
 function showPlayers(stream, sandbox){
@@ -3229,6 +3052,44 @@ function removeFolder(location, itself, next) {
     })
 }
 
+function mainPID(pid, cb){
+    const file = Store.folder + path.sep + 'main.pid'
+    if(typeof(pid) == 'number'){
+        fs.writeFile(file, pid, () => {
+            if(typeof(cb) == 'function'){
+                cb(true)
+            }
+        })
+    } else {
+        fs.readFile(file, (err, r) => {
+            r = parseInt(r)
+            cb(r&&!isNaN(r)?r:false)
+        })   
+    }
+}
+
+function isPIDRunning(pid, cb){
+    require('ps-node').lookup({
+        command: 'megacubo'
+    }, (err, resultList) => {
+    	if (err && !(Array.isArray(resultList) && resultList.length)) {
+	        cb(err, false, resultList)
+	    } else {
+            cb(null, resultList.some(r => { return r.pid == pid}))
+        }
+    })
+}
+
+function isMainPIDRunning(cb){
+    mainPID(null, pid => {
+        if(!pid){
+            cb('PID not set')
+        } else {
+            isPIDRunning(pid, cb)
+        }
+    })
+}
+
 function traceback() { 
     try { 
         var a = {}
@@ -3238,14 +3099,8 @@ function traceback() {
     }
 }
 
-function logErr(){
-    if(typeof(fs) == 'undefined'){
-        fs = top.fs || require('fs')
-    }
-    if(!fs.existsSync('error.log')){
-        fs.closeSync(fs.openSync('error.log', 'w')); // touch
-    }
-    return fs.appendFileSync('error.log', JSON.stringify(Array.from(arguments))+"\r\n"+traceback()+"\r\n\r\n");
+if(typeof(logErr) != 'function'){
+    logErr = top.logErr
 }
 
 var openFileDialogChooser = false;
@@ -3312,3 +3167,19 @@ function isYoutubeURL(source){
     }
 }
 
+if(typeof(request) == 'undefined'){
+    if(window == top){
+        var request = require("request")       
+        var requestJar = request.jar()
+        request = request.defaults({
+            jar: requestJar,
+            headers: {'User-Agent': navigator.userAgent} // without user-agent some hosts return 403
+        })
+        request = require('cached-request')(request)
+        request.setValue('ttl', 2000)
+        request.setCacheDirectory(GStore.folder + path.sep + 'request')
+    } else {
+        request = top.request
+        requestJar = top.requestJar
+    }
+}

@@ -184,6 +184,18 @@ body:not(.no-marquee) .entry:hover .marquee > *, body:not(.no-marquee) .entry:ac
     100% { left: 0; }
 }
 
+.an-fa-blink-alpha, body.loading .video-switch {
+    animation: blink-alpha 1.1s infinite linear;
+}
+
+@keyframes blink-alpha {
+    0% { opacity: 1; }
+    20% { opacity: 1; }
+    50% { opacity: 0.5; }
+    80% { opacity: 1; }
+    100% { opacity: 1; }
+}
+
 .an-fa-shake {
     display: inline-block;
     position: relative;

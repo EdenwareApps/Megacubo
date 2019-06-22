@@ -49,7 +49,7 @@ function getMagnetHash(uri){
 var Trackers = (() => {
     var self = {}
     self.parse = (query) => {
-        if(jQuery.isArray(trs)){
+        if(Array.isArray(trs)){
             return trs
         }
         var trs = []
@@ -65,7 +65,7 @@ var Trackers = (() => {
         return trs.map(decodeURIComponent)
     }
     self.compile = (trs) => {
-        if(!jQuery.isArray(trs)){
+        if(!Array.isArray(trs)){
             return trs
         }
         return trs.getUnique().map(tr => { return 'tr='+encodeURIComponent(tr)}).join('&')
@@ -74,7 +74,7 @@ var Trackers = (() => {
         return uri.indexOf('tr='+tr) != -1
     }
     self.add = (uri, trs) => {
-        if(!jQuery.isArray(trs)){
+        if(!Array.isArray(trs)){
             trs = self.parse(trs)
         }
         trs.forEach(tr => {
@@ -92,7 +92,7 @@ var Trackers = (() => {
     self.remove = (uri, trs) => {
         uri = uri.split('?')
         if(uri.length > 1){
-            if(!jQuery.isArray(trs)){
+            if(!Array.isArray(trs)){
                 trs = self.parse(trs)
             }
             uri[1] = uri[1].split('&').filter(tr => {
@@ -113,92 +113,140 @@ var Trackers = (() => {
 var torrentsNotification = notify('...', 'fa-magnet', 'forever', true);
 torrentsNotification.hide();
 
-function createMagnetIntent(entry, options){    
-    var self = createBaseIntent();
-    self.transcode = typeof(entry.transcode) == 'boolean' ? entry.transcode : (Config.get('transcode-policy') == 'always' || 'wmv|avi|mpg|mpeg|3gp'.split('|').indexOf(getExt(getMagnetName(entry.url)||entry.url)) != -1);
-    self.videoCodec = self.transcode ? 'libx264' : 'copy';
-    self.type = 'magnet';
-    self.entry = entry;
-    self.folder = '';
-    self.peerflix = false;
-    self.streamURL = false;
-    self.peerflixEndpoint = false;
-    self.progressTimer = 0;
-    self.unpaused = false;
-    self.decoderOutputAppending = true;
-    self.streamStarted = false;
-    self.playbackStarted = false;
-    self.ignoreErrors = true;
-    self.streamType = 'video'
-    self.videoEvents = {
-        'play': () => {
-            self.hideStats()
-        },
-        'playing': () => {
-            self.hideStats()
-        },
-        'pause': () => {
-            self.showStats() 
-        },
-        'waiting': () => {
-            self.showStats() 
-        },
-        'stalled': () => {
-            self.showStats() 
-        },
-        'error': (data) => { // error
-            if(self.ignoreErrors){
-                setTimeout(self.resume, 200)
-                return true
-            } else {
-                self.hideStats()
-                return false
-            }
+class PlaybackMagnetIntent extends PlaybackBaseIntent {  
+    constructor(entry, options){ 
+        super(entry, options)
+        this.type = 'magnet';
+        this.entry = entry;
+        this.folder = '';
+        this.peerflix = false;
+        this.streamURL = false;
+        this.peerflixEndpoint = false;
+        this.progressTimer = 0;
+        this.unpaused = false;
+        this.decoderOutputAppending = true;
+        this.streamStarted = false;
+        this.playbackStarted = false;
+        this.ignoreErrors = true;
+        this.streamType = 'video'
+        this.videoEvents = {
+            'play': [
+                () => {
+                    this.hideStats()
+                }
+            ],
+            'playing': [
+                () => {
+                    this.hideStats()
+                }
+            ],
+            'pause': [
+                () => {
+                    this.showStats() 
+                }
+            ],
+            'waiting': [
+                () => {
+                    this.showStats() 
+                }
+            ],
+            'stalled': [
+                () => {
+                    this.showStats() 
+                }
+            ],
+            'error': [
+                (data) => { // error
+                    if(this.ignoreErrors){
+                        setTimeout(this.resume, 200)
+                        return true
+                    } else {
+                        this.hideStats()
+                        return false
+                    }
+                }
+            ]
         }
+        var lastPercentage = null;
+        this.progressTimer = setInterval(() => {
+            if(this.peerflix && this.peerflix.torrent){
+                var p = this.percent()
+                if(p >= 0 && p != lastPercentage){
+                    lastPercentage = p;
+                    torrentPercentage(this.entry.url, p)
+                    var complete = p >= 100
+                    torrentsNotification.update(
+                        complete ? Lang.COMPLETE : (Lang.RECEIVING+': '+ Math.round(p, 2) +'% &middot; '+ formatBytes(this.peerflix.swarm.downloadSpeed())+'/s'), 
+                        (this.playbackStarted || complete) ? 'fa-magnet' : 'fa-circle-notch pulse-spin'
+                    )
+                    updateTorrentsListingState(this.entry.url, p)
+                }            
+            }
+        }, 1000)
+        var err = () => {
+            this.hideStats()  
+            clearInterval(this.progressTimer)
+        }
+        this.on('error', err)
+        this.on('end', err)
+        this.on('getVideo', () => {
+            console.log('WAXXX', this.video)
+            var cb = () => {
+                var t = this.video.currentTime
+                console.log('WAXXX', t)
+                if(t && t > 0){
+                    jQuery(this.video).off('timeupdate', cb)
+                    this.playback.setState('play')
+                }
+            }
+            jQuery(this.video).on('timeupdate', cb)
+            console.log('WAXXX')
+        })
+        if(options){
+            this.apply(options)
+        } 
+        this.playback.on('stop', () => {
+            this.hideStats()
+        })   
     }
-    self.percent = () => {        
+    percent(){        
         var downloaded = 0;
-        for (var i = 0; i < self.peerflix.torrent.pieces.length; i++) {
-            if (self.peerflix.bitfield.get(i)){
+        for (var i = 0; i < this.peerflix.torrent.pieces.length; i++) {
+            if (this.peerflix.bitfield.get(i)){
                 downloaded++;
             }
         }      
-        return (downloaded / (self.peerflix.torrent.pieces.length / 100))
+        return (downloaded / (this.peerflix.torrent.pieces.length / 100))
     }   
-    self.isReady = () => {
-        self.streamURL = self.transcode ? self.ffmpegEndpoint : self.peerflixEndpoint;
-        return self.streamURL
+    isReady(){
+        if(this.videoCodec == 'copy' && this.audioCodec == 'copy'){
+            this.streamURL = this.peerflixEndpoint
+            this.mimetype = PLAYBACK_MP4_MIMETYPE
+        } else {
+            this.streamURL = this.ffmpegEndpoint
+            this.mimetype = PLAYBACK_HLS_MIMETYPE
+        }
+        return this.streamURL
     }
-    self.resume = () => { 
-        if(!self.shadow){
+    resume(){ 
+        if(!this.shadow){
             Playback.setState('load')
         }
-        self.showStats()
-        if(self.isReady()){
+        this.showStats()
+        if(this.isReady()){
             var f = getFrame('player'), v = f.video
-            if(!self.playbackStarted) {
-                self.playbackStarted = true;
-                console.warn('RESUME', self.transcode)
-                if(self.transcode){
-                    Playback.connect(
-                        self.ffmpegEndpoint, 
-                        'application/x-mpegURL; codecs="avc1.4D401E, mp4a.40.2"'
-                    )
-                } else {
-                    Playback.connect(
-                        self.peerflixEndpoint, 
-                        'video/mp4'
-                    )
-                }
+            if(!this.playbackStarted) {
+                this.playbackStarted = true
+                Playback.connect(this.streamURL, this.mimetype)
                 showPlayers(true, false)
             } else {
                 if(v.paused){
                     v.play()
                 }
             }
-            if(self.manifestAvailable){
+            if(this.manifestAvailable){
                 setTimeout(() => {
-                    self.ignoreErrors = false;
+                    this.ignoreErrors = false;
                     if(!v.currentTime){
                         f.reset()
                     }
@@ -206,33 +254,33 @@ function createMagnetIntent(entry, options){
             }
         }
     }
-    self.commit = () => {
-        self.attached = true;
-        var v = self.getVideo()
+    commit(){
+        this.attached = true;
+        var v = this.getVideo()
         if(v) v.pause()
         showPlayers(true, false)
     }
-    self.showStats = () => {
+    showStats(){
         torrentsNotification.show()
     }
-    self.hideStats = () => {
+    hideStats(){
         torrentsNotification.hide()
     }    
-    self.run = () => {
+    run(){
         if(Config.get('p2p')){
             console.log('run() called')
             torrentsNotification.update(Lang.SEARCHING_PEERS, 'fa-circle-notch pulse-spin', 'wait')
-            self.setTimeout(600)
+            this.setTimeout(600)
             if(typeof(peerflix)=='undefined'){
                 window.peerflix = require('peerflix')
             }
-            let defTrackers = Trackers.parse(self.entry.url) 
-            self.entry.url = Trackers.add(self.entry.url, torrentsDefaultTrackers)
-            self.peerflix = peerflix(self.entry.url, {tmp: torrentsFolder})
-            self.peerflix.server.on('listening', () => {
-                self.peerflixEndpoint = 'http://127.0.0.1:' +  self.peerflix.server.address().port + '/';
-                self.stream()
-                let jfile = torrentsFolder + path.sep + 'torrent-stream' + path.sep + getMagnetHash(self.entry.url) + '.json'
+            let defTrackers = Trackers.parse(this.entry.url) 
+            this.entry.url = Trackers.add(this.entry.url, torrentsDefaultTrackers)
+            this.peerflix = peerflix(this.entry.url, {tmp: torrentsFolder})
+            this.peerflix.server.on('listening', () => {
+                this.peerflixEndpoint = 'http://127.0.0.1:' +  this.peerflix.server.address().port + '/';
+                this.stream()
+                let jfile = torrentsFolder + path.sep + 'torrent-stream' + path.sep + getMagnetHash(this.entry.url) + '.json'
                 //console.warn("EXX", jfile)
                 fs.exists(jfile, exists => {
                     console.warn("EXX", jfile, exists)
@@ -242,43 +290,25 @@ function createMagnetIntent(entry, options){
                     }
                 })                
             })
-            self.started = true;
-            self.trigger('start', self)
+            this.start()
         } else {
-            self.error = 'p2p-disabled';
-            self.trigger('error')
+            this.fail('p2p-disabled')
         }
     }
-    self.destroy = () => {
-        self.hideStats();
-        clearInterval(self.progressTimer);
-        self.peerflix.destroy();
-        self.trigger('destroy')
+    destroy(){
+        this.hideStats()
+        clearInterval(this.progressTimer)
+        this.peerflix.destroy()
+        super.destroy()
     }    
-    self.stream = () => {
+    stream(){
         localTorrentsEntries = false // flush local torrents cache
-        if(!self.streamStarted){
-            self.streamStarted = true;
-            if(self.transcode){
-                self.decoder = ffmpeg(self.peerflixEndpoint).
-                addOption('-cpu-used -5').
-                addOption('-deadline realtime').
-                addOption('-threads ' + (cpuCount - 1)).
-                inputOptions('-fflags +genpts').
-                inputOptions('-stream_loop -1').
-                videoCodec(self.videoCodec).
-                audioCodec('aac').
-                addOption('-profile:a', 'aac_low').
-                addOption('-preset:a', 'veryfast').
-                addOption('-hls_time', segmentDuration).
-                addOption('-hls_list_size', 0).
-                addOption('-hls_flags', 'delete_segments').
-                addOption('-copyts').
-                addOption('-pix_fmt', 'yuv420p').
-                addOption('-profile:v', 'main').
-                addOption('-preset:v', 'veryfast').
-                addOption('-sn').
-                format('hls');
+        if(!this.streamStarted){
+            this.streamStarted = true;
+            if(this.videoCodec == 'copy' && this.audioCodec == 'copy'){
+                this.manifestAvailable = true;
+            } else {
+                this.decoder = this.ffmpeg(this.peerflixEndpoint)
         
                         //addOption('-g 15').
                         //addOption('-cluster_size_limit 10M').
@@ -286,103 +316,40 @@ function createMagnetIntent(entry, options){
                         //addOption('-movflags +faststart+frag_keyframe+empty_moov+default_base_moof').
                         //addOption('-x264opts no-scenecut')
 
-                if(self.playback.allowTranscodeFPS){
+                if(this.playback.allowTranscodeFPS){
                     let fps = Config.get('transcode-fps')
                     if(fps > 0) {
-                        self.decoder.
+                        this.decoder.
                         addOption('-vf', '"minterpolate=fps='+fps+':mi_mode=mci:mc_mode=aobmc:me_mode=bidir:vsbmc=1"').
                         addOption('-r', fps)
                     }
                 }
             
-                if (self.entry.url.indexOf('http') == 0 && isMedia(self.entry.url)) { // skip other protocols
-                    var agent = navigator.userAgent.split('"')[0];
-                    self.decoder.inputOptions('-user_agent', '"' + agent + '"') //  -headers ""
-                        .inputOptions('-icy 0')
-                        .inputOptions('-seekable 1')
-                }
-            
-                // setup event handlers
-                self.decoder.
-                on('end', () => {
-                    console.log('file ended');
-                }).
-                on('error', function(err) {
-                    console.error('an error happened: ' + err.message);
-                    self.error = 'ffmpeg';
-                    self.trigger('error')
-                }).
-                on('start', function(commandLine) {
-                    console.log('Spawned FFmpeg with command: ' + commandLine);
-                    // ok, but wait file creation to trigger "start"
-                });    
-                self.decoder.file = path.resolve(self.workDir + path.sep + self.uid + path.sep + 'output.m3u8')
-                self.ffmpegEndpoint = self.playback.proxyLocal.proxify(self.decoder.file)
+                this.decoder.file = path.resolve(this.workDir + path.sep + this.uid + path.sep + 'output.m3u8')
+                this.ffmpegEndpoint = this.playback.proxyLocal.proxify(this.decoder.file)
 
-                mkdirr(dirname(self.decoder.file));    
-                waitInstanceFileExistsTimeout(self, (exists) => {
-                    if(!self.ended && !self.error){
+                mkdirr(dirname(this.decoder.file));    
+                this.waiter = waitFileTimeout(this.decoder.file, (exists) => {
+                    if(!this.ended && !this.error && !this.destroyed){
                         if(exists){
                             console.log('M3U8 file created.')
-                            self.manifestAvailable = true;
-                            self.resume()
+                            this.manifestAvailable = true;
+                            this.resume()
                         } else {
                             console.error('M3U8 file creation timeout.');
-                            self.error = 'ffmpeg';
-                            self.trigger('error')
+                            this.fail('transcode')
                         }
                     }
                 }, 1800);
-                self.decoder.output(self.decoder.file).run();
-                self.resetTimeout()
-            } else {
-                self.manifestAvailable = true;
+                this.decoder.output(this.decoder.file).run()
             }
-            self.resume()
+            this.resume()
         }
     }
-    var lastPercentage = null;
-    self.progressTimer = setInterval(() => {
-        if(self.peerflix && self.peerflix.torrent){
-            var p = self.percent()
-            if(p >= 0 && p != lastPercentage){
-                lastPercentage = p;
-                torrentPercentage(self.entry.url, p)
-                var complete = p >= 100
-                torrentsNotification.update(
-                    complete ? Lang.COMPLETE : (Lang.RECEIVING+': '+ Math.round(p, 2) +'% &middot; '+ formatBytes(self.peerflix.swarm.downloadSpeed())+'/s'), 
-                    (self.playbackStarted || complete) ? 'fa-magnet' : 'fa-circle-notch pulse-spin'
-                )
-                updateTorrentsListingState(self.entry.url, p)
-            }            
-        }
-    }, 1000)
-    var err = () => {
-        self.hideStats()  
-        clearInterval(self.progressTimer)
-    }
-    self.on('error', err)
-    self.on('end', err)
-    self.on('getVideo', () => {
-        console.log('WAXXX', self.videoElement)
-        var cb = () => {
-            var t = self.videoElement.currentTime
-            console.log('WAXXX', t)
-            if(t && t > 0){
-                jQuery(self.videoElement).off('timeupdate', cb)
-                self.playback.setState('play')
-            }
-        }
-        jQuery(self.videoElement).on('timeupdate', cb)
-        console.log('WAXXX')
-    })
-    if(options){
-        self.apply(options)
-    } 
-    self.playback.on('stop', () => {
-        self.hideStats()
-    })   
-    return self;
 }
 
+PlaybackMagnetIntent.supports = (entry) => {
+    return entry.url.match(new RegExp('^(magnet):', 'i'))
+}
 
+Playback.registerEngine('magnet', PlaybackMagnetIntent, 5)

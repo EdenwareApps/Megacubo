@@ -2,9 +2,10 @@
 
 Playback.HLSManager = ((parent) => {
     var self = {
-        debug: true,
+        debug: debugAllow(false),
         callbacks: {},
         minBufferSecs: 5,
+        maxQueueLength: 10,
         maxIndexLength: 1024,
         parent,
         indexing: [],
@@ -117,16 +118,17 @@ Playback.HLSManager = ((parent) => {
                         u = absolutize(parser.manifest.segments[i].uri, url)
                         urls.push(self.parent.proxyLow.proxify(u))
                         replaces[parser.manifest.segments[i].uri] = self.parent.proxy.proxify(u)
-                        if(self.download(u)){
-                            self.log('predict', u)
-                        }                
+                        if(self.loader.segmentsQueue.length < self.maxQueueLength){
+                            if(self.download(u)){
+                                self.log('predict', u)
+                            }                
+                        }
                     }
                 }
                 if(parser.manifest.playlists){
                     for(var i=0;i<parser.manifest.playlists.length;i++){
                         u = absolutize(parser.manifest.playlists[i].uri, url)
                         replaces[parser.manifest.playlists[i].uri] = self.parent.proxy.proxify(u)
-                        //console.warn('DEBUGGG', url, u, parser.manifest.playlists[i].uri, replaces[parser.manifest.playlists[i].uri])
                     }
                 }
             }
@@ -302,17 +304,18 @@ Playback.HLSManager = ((parent) => {
     }
     self.load = (segments, segment) => { 
         self.log("stepp 1")
-        if(!jQuery.isArray(segments)){
+        if(!Array.isArray(segments)){
             segments = (self.loader.segmentsQueue || []).slice(0)
         }
         if(segment && !self.loader.segments.get(segment.id)){
             segment.priority = 0
-            var maxQueueLen = 5
+            var maxQueueLen = 50
             if(segments.length > maxQueueLen){
                 var j = segments.length - maxQueueLen
                 segments = segments.filter((s, i) => {
                     if(i < j){
-                        self.error(s, 'queued out', true)                   
+                        console.warn('queued out', 'adding: '+segment.url, 'to', segments.map(s => { return s.url }).join("\r\n"))
+                        self.error(s, 'queued out, ' + segments.length +' > '+maxQueueLen, true)                   
                     } else {
                         return true
                     }
@@ -368,7 +371,7 @@ Playback.HLSManager = ((parent) => {
             self.p2pml = require('p2p-media-loader-core')
             self.reset()
         } else {
-            loadScript(path.resolve('node_modules/p2p-media-loader-core/build/p2p-media-loader-core.js'), () => {
+            loadScript(path.resolve('modules/p2p-media-loader-core/build/p2p-media-loader-core.js'), () => {
                 self.p2pml = p2pml.core
                 self.reset()
             })
@@ -383,7 +386,7 @@ Playback.HLSManager = ((parent) => {
     }
     self.download = (url, cb) => {
         const id = self.id(url), internalUrl = self.parent.proxyLow.proxify(url)
-        if(['m2ts', 'ts', 'mp4', 'ogv', 'webm'].indexOf(getExt(url)) == -1){
+        if(!self.parent.proxy.isFragment(url)){
             const err = 'Segment ignored: ' + url
             console.error(err)
             if(typeof(cb) == 'function'){
@@ -401,7 +404,7 @@ Playback.HLSManager = ((parent) => {
                 var cancelling = self.loader.segmentsQueue.slice(0, self.loader.segmentsQueue.size - 3)
                 self.loader.segmentsQueue = self.loader.segmentsQueue.slice(self.loader.segmentsQueue.size - 3)
                 cancelling.forEach(s => {
-                    self.error(s, 'queued out', true)
+                    self.error(s, 'queued out*', true)
                 })
             }
         }

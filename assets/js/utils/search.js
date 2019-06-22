@@ -159,27 +159,36 @@ function setupSearch(term, type, onRender){
     jQuery('a.entry input').trigger('focus').trigger('input')
 }
 
-var indexerSearchQueryCallbacks = {}
+var indexerQueryCallbacks = {}
 
-function indexerSearchQuery(type, term, matchAll, strict, cb){
+function indexerSearch(type, term, matchAll, strict, cb){
     let uid = 0
-    while(typeof(indexerSearchQueryCallbacks[uid]) == 'function'){
+    while(typeof(indexerQueryCallbacks[uid]) == 'function'){
         uid = rand(1, 1000000)
     }
-    indexerSearchQueryCallbacks[uid] = cb
+    indexerQueryCallbacks[uid] = cb
     ipc.server.broadcast('indexer-query', {uid, type, term, matchAll, strict})
+}
+
+function indexerFilter(type, names, matchAll, strict, cb){
+    let uid = 0
+    while(typeof(indexerQueryCallbacks[uid]) == 'function'){
+        uid = rand(1, 1000000)
+    }
+    indexerQueryCallbacks[uid] = cb
+    ipc.server.broadcast('indexer-filter', {uid, type, names, matchAll, strict})
 }
 
 ipc.server.on('indexer-query-result', (results) => {
     console.log('RESULT', results)
-    if(typeof(indexerSearchQueryCallbacks[results.uid]) == 'function'){
-        indexerSearchQueryCallbacks[results.uid](results)
-        delete indexerSearchQueryCallbacks[results.uid]
+    if(typeof(indexerQueryCallbacks[results.uid]) == 'function'){
+        indexerQueryCallbacks[results.uid](results)
+        delete indexerQueryCallbacks[results.uid]
     }
 })
 
 var sharedListsSearchCaching = false;
-function fetchSharedListsSearchResults(cb, type, term, matchAll, _strict, filter){
+function search(cb, type, term, matchAll, _strict, filter){
     var r = [], limit = searchResultsLimit
     if(!term){
         var c = jQuery('.list > div > div input')
@@ -190,6 +199,7 @@ function fetchSharedListsSearchResults(cb, type, term, matchAll, _strict, filter
         }
     }
     if(term && term.length > 2){
+        console.warn('SEARCH FETCH', traceback())
         const autoStrict = (_strict == 'auto'), done = ret => {
             console.warn('SEARCH RESULT', ret)
             //console.warn("GOLD", r, maybe);
@@ -202,14 +212,17 @@ function fetchSharedListsSearchResults(cb, type, term, matchAll, _strict, filter
                 }
                 ret.results = ret.results.concat(ret.maybe.slice(0, limit - r.length))
             }
+            ret.results = sortEntriesByEngine(ret.results)
+            ret.results = ret.results.map((e, i) => { e.score = i; return e })
+            ret.results = sortEntriesByState(ret.results)
             cb(ret.results)
         }
         if(autoStrict){
             _strict = true
         }
-        indexerSearchQuery(type, term, matchAll, _strict, (ret) => {
+        indexerSearch(type, term, matchAll, _strict, (ret) => {
             if(autoStrict && !ret.results.length){
-                indexerSearchQuery(type, term, matchAll, false, (ret) => { // query again unstrictly
+                indexerSearch(type, term, matchAll, false, (ret) => { // query again unstrictly
                     done(ret)
                 })
             } else {
@@ -221,6 +234,23 @@ function fetchSharedListsSearchResults(cb, type, term, matchAll, _strict, filter
     }
 }
 
+function sortEntriesByEngine(entries){
+    let groups = {}, rentries = []
+    entries.forEach(e => {
+	    let g = getEngine(e)
+	    if(typeof(groups[g]) == 'undefined'){
+    		groups[g] = []
+    	}
+    	groups[g].push(e)
+    })
+    Playback.intentTypesPriorityOrder.forEach(g => {
+        if(typeof(groups[g]) != 'undefined'){
+            rentries = rentries.concat(groups[g])
+        }
+    })
+    return rentries
+}
+
 addAction('appLoad', () => {
     var s = Store.get('search-history')
     if(s && s.length){
@@ -229,10 +259,10 @@ addAction('appLoad', () => {
         lastSearchTerm = '', lastSearchType = 'all';
     }
     registerSearchEngine(Lang.LIVE, 'live', (val, callback) => {
-        fetchSharedListsSearchResults(callback, 'live', val, true)
+        search(callback, 'live', val, true)
     }, true)
     registerSearchEngine(Lang.VIDEOS, 'video', (val, callback) => {
-        fetchSharedListsSearchResults(callback, 'video', val, true)
+        search(callback, 'video', val, true)
     }, true)
     registerSearchEngine(Lang.ALL, 'all', (val, cb) => {
         var results = {}

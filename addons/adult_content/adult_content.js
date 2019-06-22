@@ -1,14 +1,17 @@
 // to enable this option, go to Options > Security and uncheck the "Hide adult content" option.
 
 var formatXXXURL = (url) => {
-    return 'https://pt.pornhub.com/embed/'+url.split('=')[1];
+    if(url.indexOf('//') == -1){
+        url = 'https://pt.pornhub.com/embed/'+url.split('=')[1]
+    }
+    return url
 }
 
 function fetchXXXSearchResults(q, cb){
     var callback = (videos) => {
         console.log('PN', videos)
-        fetchSharedListsSearchResults(entries => {
-            if(jQuery.isArray(videos)){
+        search(entries => {
+            if(Array.isArray(videos)){
                 for(var i=0; i<videos.length; i++){
                     //console.log(search_results.entries[i])
                     entries.push({
@@ -92,14 +95,14 @@ function getXXXWatchingEntries(_cb){
                 var i = 0
                 options = options.map((entry, k) => {
                     if(!entry.__parsed){
-                        entry.label = (i + 1)+'&ordm; &middot; '+(entry.mediaType == 'radio' ? Lang.LISTENING : Lang.X_WATCHING).format(parseCounter(entry.label.split(' ')[0]))
+                        entry.label = (i + 1)+'&ordm; &middot; '+(entry.mediaType == 'audio' ? Lang.LISTENING : Lang.X_WATCHING).format(parseCounter(entry.label.split(' ')[0]))
                         i++;
                         entry.__parsed = true;
                     }                      
                     if(!entry.logo){
                         entry.logo = 'http://app.megacubo.net/logos/'+encodeURIComponent(entry.name)+'.png';
                     }
-                    return entry;
+                    return entry
                 })
             }
             entries = options.slice(0, 96)

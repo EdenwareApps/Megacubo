@@ -1,22 +1,15 @@
 //import { clearTimeout } from 'timers';
 
-var requestJar = request.jar(), Lang = {}, os = require('os')
+var Lang = {}, os = require('os')
 var customMediaTypes = [], customMediaEntries = []
 var installedVersion = 0, availableVersion = 0, sharedLists = [], sharedListsGroups = false
 
 const sharedDefaultSearchRangeSize = 36
 
-request = request.defaults({
-    jar: requestJar,
-    headers: {'User-Agent': navigator.userAgent} // without user-agent some hosts return 403
-})
-
 var md5 = function (string) {
-
     function RotateLeft(lValue, iShiftBits) {
             return (lValue<<iShiftBits) | (lValue>>>(32-iShiftBits));
-    }
- 
+    } 
     function AddUnsigned(lX,lY) {
             var lX4,lY4,lX8,lY8,lResult;
             lX8 = (lX & 0x80000000);
@@ -36,33 +29,27 @@ var md5 = function (string) {
             } else {
                     return (lResult ^ lX8 ^ lY8);
             }
-    }
- 
+    } 
     function F(x,y,z) { return (x & y) | ((~x) & z); }
     function G(x,y,z) { return (x & z) | (y & (~z)); }
     function H(x,y,z) { return (x ^ y ^ z); }
-    function I(x,y,z) { return (y ^ (x | (~z))); }
- 
+    function I(x,y,z) { return (y ^ (x | (~z))); } 
     function FF(a,b,c,d,x,s,ac) {
             a = AddUnsigned(a, AddUnsigned(AddUnsigned(F(b, c, d), x), ac));
             return AddUnsigned(RotateLeft(a, s), b);
-    };
- 
+    }
     function GG(a,b,c,d,x,s,ac) {
             a = AddUnsigned(a, AddUnsigned(AddUnsigned(G(b, c, d), x), ac));
             return AddUnsigned(RotateLeft(a, s), b);
-    };
- 
+    }
     function HH(a,b,c,d,x,s,ac) {
             a = AddUnsigned(a, AddUnsigned(AddUnsigned(H(b, c, d), x), ac));
             return AddUnsigned(RotateLeft(a, s), b);
-    };
- 
+    }
     function II(a,b,c,d,x,s,ac) {
             a = AddUnsigned(a, AddUnsigned(AddUnsigned(I(b, c, d), x), ac));
             return AddUnsigned(RotateLeft(a, s), b);
-    };
- 
+    }
     function ConvertToWordArray(string) {
             var lWordCount;
             var lMessageLength = string.length;
@@ -84,8 +71,7 @@ var md5 = function (string) {
             lWordArray[lNumberOfWords-2] = lMessageLength<<3;
             lWordArray[lNumberOfWords-1] = lMessageLength>>>29;
             return lWordArray;
-    };
- 
+    }
     function WordToHex(lValue) {
             var WordToHexValue="",WordToHexValue_temp="",lByte,lCount;
             for (lCount = 0;lCount<=3;lCount++) {
@@ -94,8 +80,7 @@ var md5 = function (string) {
                     WordToHexValue = WordToHexValue + WordToHexValue_temp.substr(WordToHexValue_temp.length-2,2);
             }
             return WordToHexValue;
-    };
- 
+    }
     function Utf8Encode(string) {
             string = string.replace(/\r\n/g,"\n");
             var utftext = "";
@@ -120,21 +105,16 @@ var md5 = function (string) {
             }
  
             return utftext;
-    };
- 
+    }
     var x=Array();
     var k,AA,BB,CC,DD,a,b,c,d;
     var S11=7, S12=12, S13=17, S14=22;
     var S21=5, S22=9 , S23=14, S24=20;
     var S31=4, S32=11, S33=16, S34=23;
-    var S41=6, S42=10, S43=15, S44=21;
- 
-    string = Utf8Encode(string);
- 
-    x = ConvertToWordArray(string);
- 
-    a = 0x67452301; b = 0xEFCDAB89; c = 0x98BADCFE; d = 0x10325476;
- 
+    var S41=6, S42=10, S43=15, S44=21; 
+    string = Utf8Encode(string); 
+    x = ConvertToWordArray(string); 
+    a = 0x67452301; b = 0xEFCDAB89; c = 0x98BADCFE; d = 0x10325476; 
     for (k=0;k<x.length;k+=16) {
             AA=a; BB=b; CC=c; DD=d;
             a=FF(a,b,c,d,x[k+0], S11,0xD76AA478);
@@ -205,12 +185,10 @@ var md5 = function (string) {
             b=AddUnsigned(b,BB);
             c=AddUnsigned(c,CC);
             d=AddUnsigned(d,DD);
-            }
- 
-        var temp = WordToHex(a)+WordToHex(b)+WordToHex(c)+WordToHex(d);
- 
+            } 
+        var temp = WordToHex(a)+WordToHex(b)+WordToHex(c)+WordToHex(d); 
         return temp.toLowerCase();
- }
+}
 
 function extractInt(s, sep, def){
     let ss = s.split(sep || ' ').filter((n) => {
@@ -221,14 +199,14 @@ function extractInt(s, sep, def){
 
 function hasTerms(stack, needles){
     if(stack.length > 2){
-        stack = stack.toLowerCase();
+        stack = stack.toLowerCase()
         for(var i=0; i<needles.length; i++){
             if(needles[i].length && stack.indexOf(needles[i])!=-1){
-                return true;
+                return true
             }
         }
     }
-    return false;
+    return false
 }
 
 function defaultParentalControlTerms(){
@@ -363,37 +341,28 @@ function updateOnlineUsersCount(){
 var mediaTypeStreamsCountTemplate = {
     'live': 0,
     'video': 0,
-    'radio': 0
+    'audio': 0
 }
 
 var onlineUsersCount = Object.assign({}, mediaTypeStreamsCountTemplate), mediaTypeStreamsCount = Object.assign({}, mediaTypeStreamsCountTemplate);
 
-function getStreamBasicType(entry){
-    if(entry.mediaType && entry.mediaType != -1){
-        return entry.mediaType;
+var msi
+function getMediaType(entry){
+    if(!msi){
+        msi = new (require(path.resolve('modules/m3u-indexer/media-stream-info')))()
     }
-    var b = entry.name;
-    if(entry.group){
-        b += ' '+entry.group;
-    }    
-    var ret = false;
-    Object.values(customMediaTypes).forEach((atts) => {
-        if(atts.check && atts.check(entry.url, entry)){
-            ret = atts.type;
+    return msi.mediaType(entry)
+}
+
+function getEngine(entry){
+    let ret = ''
+    Playback.intentTypesPriorityOrder.some(type => {
+        if(Playback.engines[type].supports(entry)){
+            ret = type
+            return true
         }
-    });
-    if(ret) return ret;
-    if(isRadio(b)){
-        return 'radio';
-    } else if(entry.url && ((isHTML5Video(entry.url) && !isRemoteTS(entry.url)) || isYT(entry.url))) {
-        return 'video';
-    } else if(entry.url && (isLive(entry.url) || isMegaURL(entry.url) || entry.url.match(new RegExp('(live|m3u|rtmp)', 'i')))) {
-        return 'live';
-    } else if(entry.url && entry.url.match(new RegExp('(video)', 'i'))) {
-        return 'video';
-    }
-    // console.warn('UNSURE', entry.name, entry.url);
-    return 'live';
+    })
+    return ret
 }
 
 function prepareSearchTerms(txt){
@@ -574,7 +543,7 @@ function setStreamStateCache(entry, state, commit){
     }
     urls.forEach((url) => {
         streamStateCache[streamCacheNormalizeURL(url)] = {'state': state, 'time': time()};
-    });
+    })
     if(commit){
         saveStreamStateCache()
     }
@@ -586,19 +555,59 @@ function saveStreamStateCache(){
 
 addAction('appUnload', saveStreamStateCache);
 
-function playEntry(oentry){    
+function playEntry(oentry, types, tuning, cb){    
     console.warn('prePlayEntryAllow')
+    console.warn('TSPOOLPLAY', oentry, types, traceback())
+    Playback.cancelLoading()
     if(navigator.onLine){
-        var entry = Object.assign({}, oentry)
-        entry.transcode = null;
-        entry.prepend = '';
-        entry.allowWebPages = true;
-        if(Playback.play(entry)){
+        var atts = {
+            ended: (intent) => {
+                if(!intent.started){
+                    if(typeof(cb) == 'function'){
+                        cb('playEntry() ended', intent)
+                    }
+                }
+            },
+            error: (intent) => {
+                if(!intent.started){
+                    if(typeof(cb) == 'function'){
+                        cb('playEntry() error', intent)
+                    }
+                }
+            },
+            start: (intent) => {
+                if(typeof(cb) == 'function'){
+                    cb(null, intent)
+                }
+            }
+        }
+        var entry = Object.assign({
+            transcode: null,
+            allowWebPages: true
+        }, oentry)        
+        entry.prepend = ''
+        /*
+        if(Playback.play(entry, types, tuning, atts, (err, i, statusCode) => {
+            if(err){
+                notifyPlaybackStartError(entry, statusCode)
+            }
+        })){
             collectListQueue(entry)
             updateStreamEntriesFlags()
         }
+        */
+        enterPendingState((decodeURIComponent(entry.name) || entry.name), Lang.CONNECTING, entry.originalUrl || '')
+        Playback.createIntent(entry, {tuning: tuning ? [tuning.originalUrl, tuning.type] : false, manual: true}, null, (err, intents, statusCode) => {
+            if(err){
+                notifyPlaybackStartError(entry, statusCode || err)
+            } else {
+                collectListQueue(entry)
+                updateStreamEntriesFlags()
+            }
+        })
     } else {
         console.error('prePlayEntryAllow DENY', 'No internet connection.')
+        updateInternetState()
     }
 }
 
@@ -608,11 +617,11 @@ function allowAutoClean(curPath, entries){
         return false;
     }
     var offerAutoClean = false, autoCleanAllowPaths = [Lang.LIVE, Lang.VIDEOS, Lang.MY_LISTS, Lang.SEARCH], ignorePaths = [Lang.BEEN_WATCHED, Lang.HISTORY, Lang.RECORDINGS, Lang.BOOKMARKS, 'Youtube'];
-    if(jQuery.isArray(entries)){
+    if(Array.isArray(entries)){
         entries.some((entry) => {
-            var type = getStreamBasicType(entry);
+            var type = getMediaType(entry)
             if(type){
-                if(['live', 'video', 'radio'].indexOf(type) != -1){
+                if(['live', 'video', 'audio'].indexOf(type) != -1){
                     offerAutoClean = true;
                 } else if(typeof(customMediaTypes[type]) != 'undefined' && customMediaTypes[type]['testable']) {
                     offerAutoClean = true;
@@ -667,7 +676,7 @@ function updateStreamEntriesFlags(){
     }).length, firstStreamOffset = false;
     fas.each((i, element) => {
         if(doSort){
-            let state = getStreamStateCache(element.href);
+            let state = getStreamStateCache(element.href)
             if(state === false){
                 // is offline?
                 let e = jQuery(element), n = e.find('.entry-label');
@@ -732,7 +741,7 @@ function getSources(){
     var key = 'sources';
     var r = false, sources = Config.get(key) || [];
     for(var i=0; i<sources.length; i++){
-        if(!jQuery.isArray(sources[i])){
+        if(!Array.isArray(sources[i])){
             delete sources[i];
             r = true;
         }
@@ -755,9 +764,11 @@ function getSourcesURLs(){
 }
 
 function getNameFromSource(content){
-    var match = content.match(new RegExp('(iptv|pltv)\\-name *= *[\'"]([^\'"]+)'));
-    if(match){
-        return match[2];
+    if(content){
+        var match = content.match(new RegExp('(iptv|pltv)\\-name *= *[\'"]([^\'"]+)'));
+        if(match){
+            return match[2]
+        }
     }
 }
 
@@ -767,7 +778,7 @@ function getNameFromSourceURL(url){
 }
 
 function getNameFromSourceURLAsync(url, callback){
-    request(url, (err, object, response) => {
+    request({url, ttl: 6 * 3600}, (err, object, response) => {
         var name = false;
         if(!err){
             name = getNameFromSource(response)
@@ -777,6 +788,14 @@ function getNameFromSourceURLAsync(url, callback){
         }
         callback(name, url, response)
     })
+}
+
+function checkStreamTypeByContent(content, callback){
+    if(content.match(new RegExp('(group\\-title|tvg\\-[a-z])'))){
+        callback('list')
+    } else {
+        callback('stream')
+    }
 }
 
 function checkStreamType(url, callback){
@@ -794,49 +813,30 @@ function checkStreamType(url, callback){
         return callback(url, 'error')
     }
     var doCheck = function (response){
-        var type = 'stream';
-        if(response){
-            if(response.indexOf('#EXT')!=-1){ // is m3u8
-                response = String(response);
-                response = ListMan.extract(response)
-                if(debug){
-                    console.log(response);
-                }
-                var eis = response.toUpperCase().split('#EXTINF:').length - 1; // EXTINFs
-                var eiNDs = (response.toUpperCase().split('#EXTINF:0').length + response.toUpperCase().split('#EXTINF:-1').length) - 2; // EXTINFs with no duration
-                console.log('CHECKSTREAMTYPE', eis, eiNDs);
-                if(eis && eiNDs >= eis){
-                    return callback(url, 'list')
-                }
-                var u, parser = getM3u8Parser()
-                parser.push(response)
-                parser.end()
-                if(parser.manifest && parser.manifest.segments){
-                    for(var i=0;i<parser.manifest.segments.length;i++){
-                        u = parser.manifest.segments[i].uri
-                        if(!u.match(tsM3u8Regex)){ // other format present, like mp4
-                            return callback(url, 'list');
-                            break;
-                        }
-                    }
-                }
-            }
+        response = String(response)
+        response = ListMan.extract(response)
+        if(response && response.indexOf('#EXT') != -1){ // is m3u(8)
+            checkStreamTypeByContent(response, t => {
+                callback(url, t || stream)
+            })
+        } else {
+            callback(url, 'error')
         }
-        callback(url, type)
     }
-    if(url.match(new RegExp('^https?:'))){
+    if(isHTTP(url)){
         var timeout = 15000, fetchOptions = {redirect: 'follow', method: 'HEAD'};
         fetchTimeout(url, (r, ct) => {
             if(ct){
-                if(ct && ct.indexOf('video')!=-1){
-                    callback(url, 'stream')
+                if(ct && ct.match(new RegExp('(video)'))){
+                    callback('stream')
                 } else { // no valid content-type, fetch the whole content to check better
-                    timeout = 30000, fetchOptions = {redirect: 'follow'};
+                    timeout = 30000, fetchOptions = {redirect: 'follow', method: 'GET'}
                     fetchTimeout(url, (r) => {
+                        console.error('checkStreamType', ct)
                         if(r){
                             doCheck(r)
                         } else {
-                            console.error('checkStreamType error', r);
+                            console.error('checkStreamType error', r)
                             callback(url, 'stream')
                         }
                     }, timeout, fetchOptions)
@@ -894,7 +894,7 @@ function askForSource(question, callback, onclose, notCloseable, keepOpened){
         var v = modalPromptVal()
         if(v){
             if(v.substr(0, 2)=='//'){
-                v = 'http:'+v;
+                v = 'http:'+v
             }
             Store.set('last-ask-for-source-value', v, true)
         }
@@ -917,8 +917,8 @@ function askForSource(question, callback, onclose, notCloseable, keepOpened){
     modalPrompt(question, options, Lang.PASTE_URL_HINT, defaultValue, !notCloseable, onclose)
 }
         
-function playCustomURL(placeholder, direct){
-    var url;
+function playCustomURL(placeholder, direct, cb){
+    var url
     if(placeholder && direct){
         url = placeholder;
     } else {
@@ -926,8 +926,8 @@ function playCustomURL(placeholder, direct){
             placeholder = Store.get('lastCustomPlayURL')
         }
         return askForSource(Lang.PASTE_URL_HINT, (val) => {
-            playCustomURL(val, true);
-            return true;
+            playCustomURL(val, true, cb)
+            return true
         })            
     }
     if(url){
@@ -942,18 +942,15 @@ function playCustomURL(placeholder, direct){
         if(name){
             console.log('lastCustomPlayURL', url, name);
             Store.set('lastCustomPlayURL', url, true);
-            var logo = '', c = (top || parent);                
-            if(c){
-                logo = c.defaultIcons['stream'];
-            }
-            top.createPlayIntent({url: url, allowWebPages: true, name: name, logo: logo}, {manual: true})
+            var entry = {url: url, allowWebPages: true, name: name, logo: defaultIcons['stream']}
+            playEntry(entry, null, null, cb)
         }
     }
 }
 
 function playCustomFile(file){
     Store.set('lastCustomPlayFile', file, true);
-    top.createPlayIntent({url: file, name: basename(file, true)}, {manual: true})
+    Playback.createIntent({url: file, name: basename(file, true)}, {manual: true})
 }
 
 var addNewSourceNotification
@@ -977,12 +974,17 @@ function addNewSource(cb, label, allowStreams, notCloseable){
             console.log('CHECK CALLBACK', url, type, traceback())
             addNewSourceNotification.hide()
             modalClose(true)
-            if(allowStreams && type == 'stream' && (isValidPath(url) || hasCustomMediaType(url))){
-                playCustomURL(url, true)
-                cb(null, 'stream')
-            } else if(type == 'list'){
+            if(type == 'list'){
                 registerSource(url)
                 cb(null, 'list')
+            } else if(allowStreams && (isValidPath(url) || hasCustomMediaType(url))){
+                playCustomURL(url, true, (err, intent, statusCode) => {
+                    if(err){
+                        var message = getPlaybackErrorMessage(intent, statusCode || err)
+                        notify(message, 'fa-exclamation-circle faclr-red', 'normal')
+                    }
+                })
+                cb(null, 'stream')
             } else {
                 addNewSourceNotification.update(Lang.INVALID_URL_MSG, 'fa-exclamation-circle faclr-red', 'normal')
                 cb(Lang.INVALID_URL_MSG, '')
@@ -1138,7 +1140,7 @@ function unRegisterSource(url){
         sources = [];
     }
     for(var i in sources){
-        if(!jQuery.isArray(sources[i]) || sources[i][1] == url){
+        if(!Array.isArray(sources[i]) || sources[i][1] == url){
             delete sources[i];
         }
     }
@@ -1161,12 +1163,12 @@ function getActiveSource(){
 function setActiveSource(url){
     var skey = 'sources';
     var sources = Config.get(skey);
-    if(!jQuery.isArray(sources)){
+    if(!Array.isArray(sources)){
         sources = [];
     }
     var entry = [getNameFromSourceURL(url), url];
     for(var i=0;i<sources.length; i++){
-        if(!jQuery.isArray(sources[i])){
+        if(!Array.isArray(sources[i])){
             delete sources[i];
         } else if(entry[1] == sources[i][1]){
             entry[0] = sources[i][0];
@@ -1196,65 +1198,65 @@ function priorizeEntries(entries, filter){
 
 function sortEntriesStateKey(entry, historyData, watchingData){
     if(entry.type == 'group'){
-        return '1-0-0-0-0';
+        return '1-0-0-0-0'
     } else if(entry.type != 'stream'){
-        return '0-0-0-0-0';
+        return '0-0-0-0-0'
     }
     var state = entry ? getStreamStateCache(entry) : null, inHistory = false, inWatching = false;
     for(var i=0; i<historyData.length; i++){
         if(historyData[i].url == entry.url){
-            inHistory = true;
-            break;
+            inHistory = true
+            break
         }
     }
     if(!inHistory){
         for(var i=0; i<watchingData.length; i++){
             if(watchingData[i].url && watchingData[i].url == entry.url){
-                inWatching = true;
-                break;
+                inWatching = true
+                break
             }
         }
     }
-    var n = Number.MAX_SAFE_INTEGER, nl = String(n).length, score = String(n - (entry.score || 0));
+    var n = Number.MAX_SAFE_INTEGER, nl = String(n).length, score = String(n - (entry.score || 0))
     if(score.length - nl){
-        score = "0".repeat(score.length - nl) + score;
+        score = "0".repeat(score.length - nl) + score
     }
     return '2-'+
         ((state === true) ? 0 : (state === false ? 2 : 1)) + '-' + 
         (inHistory ? 0 : (inWatching ? 1: 2)) + '-' + 
         score + '-' + 
         ((isLive(entry.url)||isRemoteTS(entry.url)) ? 0 : (isVideo(entry.url)?2:1)) + '-' + 
-        (entry.name || '').toLowerCase();
+        (entry.name || '').toLowerCase()
 }
 
 function sortEntriesByState(entries){
     var historyData = History.get(), watchingData = getWatchingData()
     if(entries instanceof jQuery){
         entries.each((i, o) => {
-            let j = jQuery(o);
+            let j = jQuery(o)
             if(j.length){
-                entry = j.data('entry-data');
+                entry = j.data('entry-data')
                 if(entry){
                     j.data('sortkey', sortEntriesStateKey(entry, historyData, watchingData))
                 }
             }
-        });
-        var p = entries.eq(0).prev(), type = 'after'; 
+        })
+        var p = entries.eq(0).prev(), type = 'after'
         if(!p.length){
-            p = entries.eq(0).parent();
-            type = 'prepend';
+            p = entries.eq(0).parent()
+            type = 'prepend'
         }
         entries.detach().sort((a, b) => {
-            var c = jQuery(a).data('sortkey');
-            var d = jQuery(b).data('sortkey');
+            var c = jQuery(a).data('sortkey')
+            var d = jQuery(b).data('sortkey')
             return c > d ? 1 : -1;
-        });   
+        })  
         if(type == 'after'){
             entries.insertAfter(p)
         } else {
             p.prepend(entries)
         }
-    } else if(jQuery.isArray(entries)) {
+    } else if(Array.isArray(entries)) {
         if(entries.sortByProp){
             for(var i=0; i<entries.length; i++){
                 if(entries[i]){
@@ -1264,7 +1266,7 @@ function sortEntriesByState(entries){
             return entries.sortByProp('sortkey')
         }
     }
-    return entries;
+    return entries
 }
 
 function deferEntriesByURLs(entries, urls){
@@ -1319,16 +1321,16 @@ function getActiveLists(callback){
 function fetchEntries(url, callback, update){
     console.log('FETCH', url, traceback());
     var key = 'remote-entries-'+url, fbkey = key + '-fb', doFetch = false, data = GStore.get(key)
-    if(!jQuery.isArray(data) || update){
+    if(!Array.isArray(data) || update){
         doFetch = true;
         data = GStore.get(fbkey); // fallback
-        if(!jQuery.isArray(data)){
+        if(!Array.isArray(data)){
             data = []
         }
     }
     if(doFetch){
         jQuery.getJSON(url, (ndata) => {
-            if(jQuery.isArray(ndata) && ndata.length){
+            if(Array.isArray(ndata) && ndata.length){
                 for(var i=0; i<ndata.length; i++){
                     ndata[i].name = fixUTF8(ndata[i].name)
                 }

@@ -11,7 +11,7 @@ function contextMenuSetup(){
         var actions = Config.get('context-menu')
         if(actions){
             for(var type in actions){
-                if(jQuery.isArray(actions[type])){
+                if(Array.isArray(actions[type])){
                     actions[type].forEach((action) => {
                         if(typeof(menus[type]) != 'undefined'){
                             if(typeof(action) == 'string'){

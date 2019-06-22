@@ -172,7 +172,8 @@ function setupSubtitle(data){
         subtitlesNotification.update(Lang.SUBTITLE_APPLYNG, subtitlesIcon, 'forever')
         request({
             url: data.url,
-            encoding: 'latin1'
+            encoding: 'latin1',
+            ttl: 6 * 3600
         }, (error, response, body) => {
             if(error || !body){
                 subtitlesNotification.update(Lang.SUBTITLE_APPLY_ERROR, 'fa-exclamation-triangle faclr-red', 'normal')
@@ -191,7 +192,7 @@ function fetchSubtitles(q, cb){
     if(subtitler){
         var callback = (subtitles) => {
             console.warn('SUBTITLES', subtitles)
-            if(jQuery.isArray(subtitles)){
+            if(Array.isArray(subtitles)){
                 var entries = [];
                 for(var i=0; i<subtitles.length; i++){
                     entries.push({

@@ -38,8 +38,23 @@
 					return ex.stack.replace('TypeError: a.debug is not a function', '').trim()
 				}
 			}
+			function censor(censor) {
+				var i = 0;
+				return function(key, value) {
+					if(i !== 0 && typeof(censor) === 'object' && typeof(value) == 'object' && censor == value) 
+						return '[Circular]' 
+					if(i >= 29) // seems to be a harded maximum of 30 serialized objects?
+						return '[Unknown]'
+					++i
+					return value
+				}
+			}
 			function logErr(){
-				const log = JSON.stringify(Array.from(arguments))+"\r\n"+traceback()+"\r\n\r\n"
+				let log = '', a = Array.from(arguments)
+				try {
+					log += JSON.stringify(a, censor(a)) + "\r\n"
+				} catch(e) { }
+				log += traceback()+"\r\n\r\n"
 				if(!fs){
 					fs = require('fs')
 				}
@@ -48,7 +63,6 @@
 				} else {
 					fs.writeFileSync('error.log', log)
 				}
-				alert(log)
 			}
 			process.removeAllListeners('uncaughtException')
 			process.removeAllListeners('unhandledRejection')
@@ -209,12 +223,14 @@
 							'playback.js',
 							'internal-proxy.js',
 							'internal-proxy-hls.js',
+							'internal-proxy-ts.js',
 							'engines/base.js',
-							'engines/direct.js',
-							'engines/ffmpeg.js',
-							'engines/frame.js',
+							'engines/hls.js',
+							'engines/html.js',
 							'engines/magnet.js',
-							'engines/ts.js'
+							'engines/rtp.js',
+							'engines/ts.js',
+							'engines/mp4.js',
 						]
 					},
 					{ // app + utils
@@ -225,6 +241,7 @@
 							'utils/dialer.js',
 							'utils/fitter.js',
 							'utils/iptv.js',
+							'utils/tuner.js',
 							'utils/search.js',
 							'ui/buzz.min.js',
 							'ui/context-menu.js',
@@ -253,6 +270,10 @@
 				load(0)
 			})()
 			addAction('appReady', () => {
+				removeFolder(GStore.folder + path.sep + 'request')
+				removeFolder(Playback.proxyLocal.folder + path.sep + 'stream', false, () => {
+					mkdirr(Playback.proxyLocal.folder + path.sep + 'stream' + path.sep + 'session')
+				})
 				initSearchIndex(() => {
 					console.log('[INIT] Search index done.')
 				})	

@@ -1,0 +1,8 @@
+{
+   "main": "m3u-indexer.js",
+   "name": "m3u-indexer",
+   "version": "0.0.1",
+   "dependencies": {
+		"m3u-ext-parser": "~0.0.1" 
+   }   
+}

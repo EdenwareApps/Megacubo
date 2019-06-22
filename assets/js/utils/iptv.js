@@ -8,7 +8,7 @@ function entryInsertAtPath(_index, groupname, group){ // group is entry object o
 // mergeEntriesWithNoCollision([{name:'1',type:'group', entries:[1,2,3]}], [{name:'1',type:'group', entries:[4,5,6]}])
 function mergeEntriesWithNoCollision(leveledIndex, leveledEntries){
     var ok;
-    if(jQuery.isArray(leveledIndex) && jQuery.isArray(leveledEntries)){
+    if(Array.isArray(leveledIndex) && Array.isArray(leveledEntries)){
         for(var j=0;j<leveledEntries.length;j++){
             ok = false;
             for(var i=0;i<leveledIndex.length;i++){
@@ -166,13 +166,13 @@ var ListMan = (() => {
         if(!noHeader){
             ct += "#EXTM3U\n\n";
         }
-        if(jQuery.isArray(entries)){
+        if(Array.isArray(entries)){
             async.forEach(entries, (entry, callback) => {
                 if(entry.type == 'stream' && entry.url){
                     if(isMegaURL(entry.url)){
                         var mega = parseMegaURL(entry.url);
                         if(mega && mega.name){
-                            fetchSharedListsSearchResults(es => {
+                            search(es => {
                                 ListMan.exportEntriesAsM3U(es, true, txt => {
                                     ct += txt
                                     callback()
@@ -187,10 +187,10 @@ var ListMan = (() => {
                     }
                 } else {
                     if(entry['renderer'] && entry.type == 'group') {
-                        var nentries = entry['renderer'](entry, null, true);
+                        var nentries = entry['renderer'](entry, null, true)
                         if(nentries.length == 1 && nentries[0].class && nentries[0].class.indexOf('entry-loading') != -1) {
-                            var vpathIn = assumePath(entry.name, vpath);
-                            var es = Menu.asyncResult(vpathIn);
+                            var vpathIn = assumePath(entry.name, vpath)
+                            var es = Menu.asyncResult(vpathIn)
                             //console.warn('ASYNC', entry, vpath, vpathIn, es);
                             if(es){
                                 self.exportEntriesAsM3U(es, true, txt => {
@@ -222,21 +222,20 @@ var ListMan = (() => {
             cb(ct)
         }
     }
-
     self.parse = (content, cb, timeout, skipFilters, url) => { // parse a list to a array of entries/objects
         if(typeof(content) != 'string'){
             content = String(content)
         }
         if(self.isPath(content)){
-            url = content;
+            url = content
             if(debug){
                 console.log('READING', content, time())
             }
-            self.read(content, (content, path) => {
+            self.read(content, (icontent, path) => {
                 if(debug){
                     console.log('READEN', path, time())
                 }
-                self.parse(content, cb, timeout, skipFilters, url)
+                self.parse(icontent, cb, timeout, skipFilters, url || path)
             }, timeout)
         } else {
             if(debug){
@@ -249,11 +248,13 @@ var ListMan = (() => {
                         parsingStream = self.parseMeta(slist[i])
                     } else if(parsingStream) {
                         parsingStream.url = slist[i].trim();
-                        parsingStream.source = url;
                         if(parsingStream.url && self.badexts.indexOf(getExt(parsingStream.url)) == -1 && parsingStream.url.match(self.regexes['validateprotocol']) && !parsingStream.url.match(self.regexes['validatehost'])){ // ignore bad stream urls
+                            if(url){
+                                parsingStream.source = url
+                            }
                             flatList.push(parsingStream)
                         }
-                        parsingStream = null;
+                        parsingStream = null
                     }
                 }
             }
@@ -271,17 +272,17 @@ var ListMan = (() => {
     }
 
     self.deepParse = (content, callback) => { // parse to a multidimensional array
-        if(!jQuery.isArray(content)){
+        if(!Array.isArray(content)){
             self.parse(content, (c) => {
                 self.deepParse(c, callback)
             })
         } else {
-            var parsedGroups = {}, flatList = content;
+            var parsedGroups = {}, flatList = content
             for(var i=0;i<flatList.length;i++){
                 if(typeof(parsedGroups[flatList[i].group])=='undefined'){
-                    parsedGroups[flatList[i].group] = [];
+                    parsedGroups[flatList[i].group] = []
                 }
-                parsedGroups[flatList[i].group].push(flatList[i]);
+                parsedGroups[flatList[i].group].push(flatList[i])
             }
             var groupedEntries = [];
             for(var k in parsedGroups){

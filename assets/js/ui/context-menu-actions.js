@@ -26,7 +26,7 @@ window.contextMenuActions = {
     ],
     "SOFTRELOAD": [
         () => {
-            if(Playback.active && Playback.active.type != 'frame'){
+            if(Playback.active && Playback.active.type != 'html'){
 				getFrame('player').reset()
 			}
         }
@@ -117,10 +117,8 @@ window.contextMenuActions = {
     ],
     "PLAYALTERNATE": [
         () => {
-            if(!isStopped()){
-                switchPlayingStream()
-            } else {
-                playPrevious()
+            if(!alternateStream(false, false, false)){
+                goReload()
             }
         }
     ],

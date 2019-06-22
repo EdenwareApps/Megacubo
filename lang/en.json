@@ -153,7 +153,6 @@
 "SHARE_FACEBOOK_MASK": "Watching {0} on Megacubo",
 "LEGAL_NOTICE": "Legal notice",
 "ABOUT_LEGAL_NOTICE": "Megacubo does not perform transmissions. The content in it is provided by IPTV lists added by users to the program in a common environment. Your use of the program to access copyrighted content is against its terms of use.",
-"ALLOW_SIMILAR_TRANSMISSIONS": "Allow similar transmissions",
 "IGNORE_WEB_PAGES": "Ignore broadcasts on webpages",
 "SEARCH_OTHER_USERS_LISTS": "Search other user's lists",
 "OPEN_DEST_FOLDER": "Open destination folder",
@@ -232,7 +231,7 @@
 "LIST_SHARING": "List sharing",
 "LESS_THAN_A_HOUR": "Less than one hour",
 "SCHEDULING_RECORD_WARNING": "Attention! The program must be open or in the system tray at this date and time to be able to perform the recording automatically.",
-"FORCE_TRANSCODE": "Force transcode (uses more CPU)",
+"FORCE_TRANSCODE": "Force transcode",
 "AWAITING_SCHEDULING": "{0} schedules",
 "NONE_STREAM_WORKED": "No active transmission found for {0}.",
 "X_OF_Y": "{0} of {1}",
@@ -304,6 +303,7 @@
 "STRETCH_TO_FIT": "Stretch video to fit the screen",
 "SEARCH_OPTIONS": "Search options",
 "INITIAL_SECTION": "Initial section",
+"ENABLED": "Enabled",
 "DISABLED": "Disabled",
 "ACTION_ON_TYPING": "Default action when typing",
 "OPEN_FOLDER_AFTER_RECORDING": "Open folder after recording",
@@ -390,5 +390,7 @@
 "BLOCK": "Lock",
 "HIGHLIGHT_INTENSITY": "Highlight intensity",
 "SSL_VERIFY": "SSL Verification",
-"RECORD_WITHIN_WEB_PAGES": "Record within web pages (affects performance)"
+"RECORD_WITHIN_WEB_PAGES": "Record within web pages (affects performance)",
+"TESTING": "Testing...",
+"TUNE_TIMEOUT": "Tuning timeout"
 }

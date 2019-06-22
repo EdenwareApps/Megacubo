@@ -18,8 +18,8 @@ if(typeof(PremiumHelper) == 'undefined'){
                     if(checked){
                         if(!self.installed(true)){
                             self.shouldInstall = true;
-                            self.notification.update(Lang.ENABLING_PREMIUM_FEATURES, 'fa-circle-notch pulse-spin', 'forever')
-                            jQuery(element).find('.entry-name').html('<i class="fas fa-circle-notch pulse-spin"></i> &nbsp;' + Lang.ENABLING_PREMIUM_FEATURES)
+                            self.notification.update(Lang.ENABLING_PREMIUM_FEATURES.format(0), 'fa-circle-notch pulse-spin', 'forever')
+                            jQuery(element).find('.entry-name').html('<i class="fas fa-circle-notch pulse-spin"></i> &nbsp;' + Lang.ENABLING_PREMIUM_FEATURES.format(0))
                             self.install((err) => {
                                 self.notification.hide()
                                 if(!self.installed(false)){
@@ -83,7 +83,8 @@ if(typeof(PremiumHelper) == 'undefined'){
                 var received_bytes = 0, total_bytes = 0;
                 var req = request({
                     method: 'GET',
-                    uri: endpoint
+                    uri: endpoint,
+                    ttl: 0
                 }, (error, response, body) => {
                     console.log('INSTALL PREMIUM', 'DOWNLOAD', "FINISHED", file, error)
                     if(error){

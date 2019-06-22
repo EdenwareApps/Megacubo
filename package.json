@@ -1,10 +1,11 @@
 {
     "bugs": "https://www.facebook.com/messages/t/MegacuboTV",
-    "chromium-args": "--disable-features=NetworkPrediction --disable-background-timer-throttling --proxy-auto-detect --no-zygote --no-sandbox --enable-gpu-async-worker-context --password-store=basic --force-device-scale-factor=1 --process-per-tab --enable-smooth-scrolling --disable-crash-handler=true --disable-breakpad --no-experiments --no-pings --disable-transparency --enable-logging=stderr --remote-debugging-port=9000",
+    "chromium-args": "--disable-web-security --allow-hidden-media-playback --disable-features=NetworkPrediction --disable-background-timer-throttling --proxy-auto-detect --no-zygote --no-sandbox --enable-gpu-async-worker-context --password-store=basic --force-device-scale-factor=1 --process-per-tab --enable-smooth-scrolling --disable-crash-handler=true --disable-breakpad --no-experiments --no-pings --disable-transparency --remote-debugging-port=9000",
     "dependencies": {
         "@codemotion/color-thief": "~2.0.5",
         "@fortawesome/fontawesome-free": "~5.8.1",
         "async": "~2.6.0",
+        "cached-request": "git://github.com/efoxbr/cached-request.git",
         "chromecasts": "~1.9.0",
         "drag-drop": "~4.2.0",
         "fluent-ffmpeg": "~2.1.2",
@@ -26,7 +27,7 @@
     },
     "description": "A simple and intuitive IPTV player.",
     "inject_js_end": "assets/js/utils/helper.js",
-    "js-flags": "--max-old-space-size=2047",
+    "js-flags": "--optimize_for_size --max_old_space_size=460 --gc_interval=100",
     "main": "app.html",
     "name": "megacubo",
     "permissions": [
@@ -35,7 +36,7 @@
         "http://*/",
         "https://*/"
     ],
-    "version": "15.2.6",
+    "version": "15.3.3",
     "webkit": {
         "page-cache": true
     },

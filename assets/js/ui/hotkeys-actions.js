@@ -79,7 +79,7 @@ var hotkeysActions = {
     ],
     "SOFTRELOAD": [
         () => {
-            if(Playback.active && Playback.active.type != 'frame'){
+            if(Playback.active && Playback.active.type != 'html'){
                 getFrame('player').reset()
             }
         }, 
@@ -301,10 +301,8 @@ var hotkeysActions = {
     "PLAYALTERNATE": [
         () => {
             if(!isModal()){
-                if(!isStopped()){
-                    switchPlayingStream()
-                } else {
-                    playPrevious()
+                if(!alternateStream(false, false, false)){
+                    goReload()
                 }
             }
         }, null, true

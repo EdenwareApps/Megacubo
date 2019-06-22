@@ -258,7 +258,7 @@ function getWatchingEntries(mediaType){
     var name = Lang.BEEN_WATCHED;
     var path = assumePath(name);
     if(typeof(mediaType) != 'string'){
-        mediaType = '';
+        mediaType = ''
     }
     setTimeout(() => { // avoid mess the loading entry returned, getting overridden by him
         getWatchingData((_options) => {
@@ -271,7 +271,7 @@ function getWatchingEntries(mediaType){
                 if(options.length && options[0].label.indexOf('ordm')==-1){
                     options.forEach((entry, i) => {
                         if(!entry.__parsed){
-                            options[i].label = (i + 1)+'&ordm; &middot; '+(mediaType == 'radio' ? Lang.LISTENING : Lang.X_WATCHING).format(parseCounter(extractInt(options[i].label)))
+                            options[i].label = (i + 1)+'&ordm; &middot; '+(mediaType == 'audio' ? Lang.LISTENING : Lang.X_WATCHING).format(parseCounter(extractInt(options[i].label)))
                             if(typeof(entry.url) == 'string' && isMegaURL(entry.url)){
                                 //console.log('FETCH WATCHING', entry.url, mediaType);
                                 options[i].url = updateMegaURLQSAppend(entry.url, {mediaType: mediaType})
@@ -303,7 +303,7 @@ function getWatchingData(cb, update, locale){
     var url = 'http://app.megacubo.net/stats/data/watching.' + locale + '.json';
     data = fetchEntries(url, (_entries) => {
         var entries = _entries.slice(0);
-        if(!jQuery.isArray(entries)){
+        if(!Array.isArray(entries)){
             entries = [];
         }
         for(var i=0; i<entries.length; i++){
@@ -317,14 +317,14 @@ function getWatchingData(cb, update, locale){
                 entries[i].logo = 'http://app.megacubo.net/logos/'+encodeURIComponent(entries[i].name)+'.png';
             }
             if(typeof(entries[i].mediaType) == 'undefined' || entries[i].mediaType == -1){
-                entries[i]['mediaType'] = entries[i].mediaType = getStreamBasicType(entries[i])
+                entries[i].mediaType = getMediaType(entries[i])
             }
             entries[i].label = entries[i].label.format(Lang.USER, Lang.USERS)
         } 
         watchingData = entries;
         if(filter){
             entries = applyFilters('getWatchingData', entries)
-            if(!jQuery.isArray(entries)){
+            if(!Array.isArray(entries)){
                 console.error('getWatchingData filter error')
                 entries = []
             }
@@ -339,8 +339,8 @@ function getWatchingData(cb, update, locale){
 
 addFilter('getWatchingData', (entries) => {
     return entries.map((entry) => {
-        setStreamStateCache(entry, true);
-        return entry;
+        setStreamStateCache(entry, true)
+        return entry
     })
 })
 
@@ -356,7 +356,7 @@ function parseLabelCount(data){
             case 'video':
                 fmt = Lang.X_VIDEOS;
                 break;
-            case 'radio':
+            case 'audio':
                 fmt = Lang.X_STATIONS;
                 break;
         }
@@ -388,7 +388,7 @@ function parseLabelCount(data){
                     type = 'video', fmt = Lang.X_VIDEOS;
                     break;
                 case Lang.RADIOS:
-                    type = 'radio', fmt = Lang.X_STATIONS;
+                    type = 'audio', fmt = Lang.X_STATIONS;
                     break;
                 default:
                     type = 'total', fmt = Lang.X_WATCHING;
@@ -894,30 +894,6 @@ function getToolsEntries(){
 
 function getTranscodeEntries(){
     var opts = [        
-        {
-            name: Lang.TRANSCODE_POLICY, 
-            type: 'group', 
-            logo: 'fa-cogs',
-            entries: [],
-            renderer: () => {
-                return ['automatic', 'always'].map((action) => {
-                    return {
-                        name: ucWords(Lang[action.toUpperCase()] || action),
-                        type: 'option',
-                        action: action,
-                        callback: (data) => {
-                            if(Config.get('transcode-policy') != data.action){
-                                Config.set('transcode-policy', data.action);
-                                setActiveEntry({action: Config.get('transcode-policy')})
-                            }
-                        }
-                    }
-                })
-            },
-            callback: () => {
-                setActiveEntry({action: Config.get('transcode-policy')})
-            }
-        }
         /*
         ,
         {
@@ -959,41 +935,50 @@ function getTranscodeEntries(){
         }
         */
     ]
-    if(Playback.active){
-        if(typeof(Playback.active.transcode) == 'boolean'){
-            if(Playback.active.transcode){
-                opts.push({
-                    name: Lang.DEACTIVATE_TRANSCODE_STREAM,
-                    logo: 'fa-cog',
-                    type: 'option',
-                    callback: () => {
-                        var entry = Playback.active.entry
-                        stop()
-                        entry.transcode = false
-                        playEntry(entry)
-                    }
-                })
-            } else {
-                opts.push({
-                    name: Lang.ACTIVATE_TRANSCODE_STREAM,
-                    logo: 'fa-cog',
-                    type: 'option',
-                    callback: () => {
-                        var entry = Playback.active.entry
-                        stop()
-                        entry.transcode = true
-                        playEntry(entry)
-                    }
-                })
-            }
+    let active = Playback.active || Playback.lastActive
+    if(active){
+        if(['html'].indexOf(active.type) == -1){
+            opts.push({
+                name: 'Audio',
+                type: 'check',
+                checked: () => {
+                    active = Playback.active || Playback.lastActive
+                    return active.audioCodec != 'copy'
+                },
+                check: (checked) => { 
+                    active = Playback.active || Playback.lastActive
+                    active.audioCodec = checked ? 'aac' : 'copy'
+                    active.restartDecoder()
+                }
+            })
+            opts.push({
+                name: 'Video',
+                type: 'check',
+                checked: () => {
+                    active = Playback.active || Playback.lastActive
+                    return active.videoCodec != 'copy'
+                },
+                check: (checked) => { 
+                    active = Playback.active || Playback.lastActive
+                    active.videoCodec = checked ? 'libx264' : 'copy'
+                    active.restartDecoder()
+                }
+            })
         } else {
             opts.push({
-                name: Lang.TRANSCODE_NOT_SUPPORTED_STREAM,
+                name: Lang.PLAYBACK_UNSUPPORTED_STREAM,
                 logo: 'fa-ban',
                 type: 'option',
                 callback: jQuery.noop
             })
         }
+    } else {
+        opts.push({
+            name: Lang.START_PLAYBACK_FIRST,
+            logo: 'fa-ban',
+            type: 'option',
+            callback: jQuery.noop
+        })
     }
     return opts
 }
@@ -1169,37 +1154,10 @@ function getSettingsEntries(){
             }, checked: () => {
                     return Config.get('autofit')
                 }
-            },      
-            {
-                name: Lang.TRANSCODE_POLICY, 
-                type: 'group', 
-                logo: 'fa-cogs',
-                entries: [],
-                renderer: () => {
-                    return ['automatic', 'always'].map((action) => {
-                        return {
-                            name: ucWords(Lang[action.toUpperCase()] || action),
-                            type: 'option',
-                            action: action,
-                            callback: (data) => {
-                                if(Config.get('transcode-policy') != data.action){
-                                    Config.set('transcode-policy', data.action);
-                                    setActiveEntry({action: Config.get('transcode-policy')})
-                                }
-                            }
-                        }
-                    })
-                },
-                callback: () => {
-                    setActiveEntry({action: Config.get('transcode-policy')})
-                }
-            }
-            // {name: Lang.TRANSCODE, logo: 'fa-cogs', type: 'group', renderer: getTranscodeEntries}
+            },  
+            {name: Lang.FORCE_TRANSCODE, logo: 'fa-cogs', type: 'group', renderer: getTranscodeEntries}
         ]},
         {name: Lang.TUNE, logo: 'fas fa-satellite-dish', type: 'group', entries: [
-            {name: Lang.ALLOW_SIMILAR_TRANSMISSIONS, type: 'check', check: (checked) => {
-                Config.set('similar-transmissions', checked)
-            }, checked: () => {return Config.get('similar-transmissions')}},
             {name: Lang.P2P_ACCELERATION, label: '&nbsp;', type: 'check', class: 'entry-allow-p2p', check: (checked) => {
                 Config.set('p2p', checked)
                 // showP2PPortSelector(checked)
@@ -1227,11 +1185,14 @@ function getSettingsEntries(){
             }, checked: () => {
                 return Config.get('bookmark-dialing')
             }},
-            {name: Lang.DIAGNOSTIC_TOOL, type: 'option', logo: 'fa-medkit', callback: checkPlaybackHealth},
+            {name: Lang.DIAGNOSTIC_TOOL, type: 'group', logo: 'fa-medkit', renderer: checkPlaybackHealthEntries},
             {name: Lang.ADVANCED, logo:'fa-cogs', type: 'group', renderer: () => {
                 return [
-                    {name: Lang.CONNECT_TIMEOUT, type: 'slider', logo: 'fa-plug', mask: '{0}s', value: Config.get('connect-timeout'), range: {start: 25, end: 120}, change: (data, element) => {
+                    {name: Lang.CONNECT_TIMEOUT, type: 'slider', logo: 'fa-plug', mask: '{0}s', value: Config.get('connect-timeout'), range: {start: 10, end: 20}, change: (data, element) => {
                         Config.set("connect-timeout", data.value)
+                    }},
+                    {name: Lang.TUNE_TIMEOUT, type: 'slider', logo: 'fa-plug', mask: '{0}s', value: Config.get('tune-timeout'), range: {start: 25, end: 120}, change: (data, element) => {
+                        Config.set("tune-timeout", data.value)
                     }},
                     {name: Lang.MIN_BUFFER_BEFORE_COMMIT, type: 'slider', logo: 'fa-stopwatch', mask: '{0}s', value: Config.get('min-buffer-secs-before-commit'), range: {start: 2, end: 60}, change: (data, element) => {
                         Config.set("min-buffer-secs-before-commit", data.value)
@@ -1336,7 +1297,7 @@ function updateHomeMetaOptions(){
         {type: 'continue', prepend: Lang.CONTINUE+':'},
 		{type: 'featured', prepend: Lang.FEATURED + ':'}
     ].forEach(data => {
-        if(jQuery.isArray(Menu.entries)){
+        if(Array.isArray(Menu.entries)){
             Menu.entries = Menu.entries.filter((entry) => {
                 return typeof(entry.prepend) == 'undefined' || entry.prepend != data.prepend
             })
@@ -1448,7 +1409,7 @@ function getKeyboardMappingEntries(){
 
 function getSearchHistoryEntries(){
     var opts = [], hpath = assumePath(Lang.HISTORY), sugs = Store.get('search-history');
-    if(jQuery.isArray(sugs) && sugs.length){
+    if(Array.isArray(sugs) && sugs.length){
         sugs.forEach((sug) => {
             opts.push({
                 name: sug.term,
@@ -1521,7 +1482,7 @@ function getAddBookmarkByNameEntriesPhase2(){
     } else if(!currentBookmarkAddingByName.search_vod){
         type = 'live';
     }
-    fetchSharedListsSearchResults(sentries => {
+    search(sentries => {
         var entries = []
         var type = (currentBookmarkAddingByName.search_live && currentBookmarkAddingByName.search_vod) ? 'all' : (currentBookmarkAddingByName.search_live ? 'live' : 'video');
         var url = 'mega://play|'+encodeURIComponent(currentBookmarkAddingByName.name)+'?search_type='+type;
@@ -1573,7 +1534,7 @@ function expandMegaURL(url, cb){
             }])
             return
         } else if(data.type == 'play') {
-            fetchSharedListsSearchResults(cb, data.mediaType || 'live', data.name, true, true)
+            search(cb, data.mediaType || 'live', data.name, true, true)
             return
         }
     } else {
@@ -1655,7 +1616,7 @@ function getLanguageEntries(){
                         Config.set('locale', locale);
                         markActiveLocale();
                         setTimeout(function (){
-                            location.reload()
+                            restartApp(true)
                         }, 1000)
                     } else {
                         goHome()
@@ -1786,7 +1747,7 @@ function getListsEntries(notActive, noManagement, isVirtual){
             var sources = getSources(), active = getActiveSource(), options = [];
             for(var i in sources) {
                 var entry = sources[i], length = '-', groups = '-';
-                if(!jQuery.isArray(entry)) continue;
+                if(!Array.isArray(entry)) continue;
                 if(notActive === true && entry[1] == active) continue;
                 if(typeof(entry[2])=='object') {
                     var locale = getLocale(false, true);
@@ -1866,9 +1827,9 @@ function getListsEntriesForRemoval(){
     return entries;
 }
 
-function fetchSharedListsGroups(type){
+function getListingGroups(type){
     if(sharedListsGroups === false){
-        sharedListsGroups = {video: [], live: [], radio: [], adult: []}
+        sharedListsGroups = {video: [], live: [], audio: [], adult: []}
         // processing offloaded for indexer.js
     }
     switch(type){
@@ -1878,8 +1839,8 @@ function fetchSharedListsGroups(type){
         case 'video':
             return sharedListsGroups['video'];
             break;
-        case 'radio':
-            return sharedListsGroups['radio'];
+        case 'audio':
+            return sharedListsGroups['audio'];
             break;
         case 'adult':
             return sharedListsGroups['adult'];
@@ -1887,14 +1848,14 @@ function fetchSharedListsGroups(type){
         default:
             var r = sharedListsGroups['live'];
             r = r.concat(sharedListsGroups['video']);
-            r = r.concat(sharedListsGroups['radio']);
+            r = r.concat(sharedListsGroups['audio']);
             r = r.sort();
             return r;
     }
 }
 
 function sharedGroupsAsEntries(type, mediaType, filter){
-    var groups = fetchSharedListsGroups(type);
+    var groups = getListingGroups(type);
     groups = groups.map((group) => {
         return {
             name: group,
@@ -1902,7 +1863,7 @@ function sharedGroupsAsEntries(type, mediaType, filter){
             mediaType: mediaType || type,
             renderer: (data) => {
                 _path = assumePath(group)
-                fetchSharedListsSearchResults(entries => {
+                search(entries => {
                     Menu.asyncResult(_path, entries)
                 }, data.mediaType, data.name, true, false, filter)
                 return [Menu.loadingEntry]

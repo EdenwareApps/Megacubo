@@ -153,7 +153,6 @@
 "SHARE_FACEBOOK_MASK": "Assistindo {0} no Megacubo",
 "LEGAL_NOTICE": "Aviso legal",
 "ABOUT_LEGAL_NOTICE": "O Megacubo não realiza transmissões. O conteúdo nele é fornecido por listas IPTV adicionadas pelos usuários ao programa em um ambiente comum. O uso do programa para acessar conteúdo protegido por direitos vai contra os Termos de Uso do mesmo.",
-"ALLOW_SIMILAR_TRANSMISSIONS": "Permitir transmissões similares",
 "IGNORE_WEB_PAGES": "Ignorar transmissões em páginas da web",
 "SEARCH_OTHER_USERS_LISTS": "Buscar em listas de outros usuários",
 "OPEN_DEST_FOLDER": "Abrir pasta de destino",
@@ -232,7 +231,7 @@
 "LIST_SHARING": "Compartilhamento de listas",
 "LESS_THAN_A_HOUR": "Menos de uma hora",
 "SCHEDULING_RECORD_WARNING": "Atenção! O programa precisa estar aberto ou na bandeja do sistema nesta data e hora para poder realizar a gravação automaticamente.",
-"FORCE_TRANSCODE": "Forçar transcode (usa mais CPU)",
+"FORCE_TRANSCODE": "Forçar transcode",
 "AWAITING_SCHEDULING": "{0} agendamentos",
 "NONE_STREAM_WORKED": "Nenhuma transmissão ativa encontrada para {0}.",
 "X_OF_Y": "{0} de {1}",
@@ -306,6 +305,7 @@
 "STRETCH_TO_FIT": "Esticar vídeo para ajustar à tela",
 "SEARCH_OPTIONS": "Opções de pesquisa",
 "INITIAL_SECTION": "Seção inicial",
+"ENABLED": "Ativado",
 "DISABLED": "Desativado",
 "ACTION_ON_TYPING": "Ação padrão ao digitar",
 "OPEN_FOLDER_AFTER_RECORDING": "Abrir pasta após gravação",
@@ -392,5 +392,7 @@
 "BLOCK": "Bloquear",
 "HIGHLIGHT_INTENSITY": "Intensidade do destaque",
 "SSL_VERIFY": "Verificação SSL",
-"RECORD_WITHIN_WEB_PAGES": "Gravar dentro de páginas da web (afeta desempenho)"
+"RECORD_WITHIN_WEB_PAGES": "Gravar dentro de páginas da web (afeta desempenho)",
+"TESTING":"Testando...",
+"TUNE_TIMEOUT":"Tempo limite de sintonia"
 }

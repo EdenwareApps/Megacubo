@@ -3,9 +3,9 @@ module.exports = (scope, intent, self, _top) => {
 	var prop = 'checker-' + intent.uid
 	if(typeof(scope[prop]) == 'undefined'){
 		_top.console.log('[youtube.com] skipper')
-		if(intent.sideload.add){
-			_top.console.log('[youtube.com] sideload prevented')
-			intent.sideload.add = () => {} // disallow sideload for this domain
+		if(intent.sideloadAdd){
+			_top.console.log('[youtube.com] sideload disabled for this domain')
+			intent.sideloadAdd = () => {} // disallow sideload for this domain
 		}
 		var self = {
 			player: false,
@@ -20,8 +20,7 @@ module.exports = (scope, intent, self, _top) => {
 			_top.console.log('[youtube.com] reveal')	
 			if(!intent.started && !intent.error && !intent.ended){
 				_top.console.log('[youtube.com] reveal (2)')	
-				intent.started = true;
-				intent.trigger('start', self)
+				intent.start()
 			}
 		}
 		self.svad = () => {		
@@ -96,8 +95,9 @@ module.exports = (scope, intent, self, _top) => {
 	if(v && v.paused){
 		const e = scope.document.querySelector('.ytp-play-button'), ended = () => {
 			if(!intent.ended){
+				// top.console.warn("GOTCHAAH!!!", v.src, v.currentSrc, v.duration, v.currentTime, v.networkState, v.readyState)
 				intent.ended = true;
-				intent.trigger('ended')
+				intent.emit('end', intent)
 			}
 		}	
 		if(e){

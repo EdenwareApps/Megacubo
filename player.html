@@ -18,9 +18,6 @@
 		<script type="text/javascript">
 			var hls, video = document.getElementById('video'), player = jQuery(video)
 			var recoverDecodingErrorDate, recoverSwapAudioCodecDate, recoverTimer = 0, mediaErrors = []
-			function stalled(){
-				return video.readyState == 0 && video.networkState == 2
-			}
 			function recover(hls) {
 				console.log('RECOVER', hls, top.Playback.endpoint)
 				var doReset = true;
@@ -91,7 +88,6 @@
 					}
 				}
 				console.warn(msg)
-				top.Playback.reportError(msg, 'playback')
 			}	
 			function updateSource(){
 				var endpoint = top.Playback.endpoint
@@ -109,14 +105,20 @@
 							source = top.Playback.proxyLocal.proxify(source)
 						}
 					}
-					if(source){
-						top.pingSource(source)
-					}
-					console.log('CONNECT', src, source, endpoint)
+					video.pause()
+					video.removeAttribute('src')
+					video.load()
+					console.log('CONNECT', src, source, endpoint, traceback())
 					if(isHLS){
-						if(!hls){
+						if(hls){
+							hls.loadSource(src)
+						} else {
+							if(hls){
+								hls.destroy()
+							}
 							var hlsConfig = {
 								debug: false,
+								nudgeMaxRetry: 30,
 								maxSeekHole: 30,
 								maxBufferSize: 0,       // Highly recommended setting
 								maxBufferHole: 10,
@@ -127,29 +129,23 @@
 							hls = new Hls(hlsConfig)
 							hls.on(Hls.Events.ERROR, (event, data) => {
 								var msg = "Player error: " + data.type + " - " + data.details;
+								/*
 								if(data.details == 'bufferStalledError'){
 									console.warn(msg, data)
 									// handleMediaError(hls)
 									// not fatal, dont neet to handle so
 									// wait, the playback hangs even it not saying that it's a fatal error, watch to be sure
-									setTimeout(() => {
-										/*
-										let fwd = video.currentTime < (video.duration - 2)
-										console.warn(data.details, video.currentTime, '/', video.duration, fwd)
-										if(fwd){ // if has buffer, should not have stopped, threat as playback error
-											//	video.currentTime = video.currentTime + 2
-											//} else {
-											recover(hls)
-										} else { // no buffer, wait a bit before to threat as error
-										*/
+									process.nextTick(() => {
 										watchTimeout(null, () => {
 											top.seemsSlow()
 											watchTimeout(null, () => {
 												recover(hls)
 											})
 										})
-									}, 0)
-								} else if (data.fatal) {
+									})
+								} else 
+								*/
+								if (data.fatal) {
 									console.error(msg, data)
 									// reset()
 									switch (data.type) {
@@ -168,6 +164,7 @@
 								} else {
 									console.error(msg, data)
 								} 
+								top.Playback.setState()
 							})
 							hls.on(Hls.Events.MANIFEST_PARSED, () => {
 								video.play()
@@ -184,9 +181,7 @@
 								}, 100)
 							})
 							hls.attachMedia(video)
-						} else {
-							hls.loadSource(src)
-						}
+						} 
 					} else {
 						if(hls){						
 							hls.destroy()
@@ -225,6 +220,8 @@
 					hls.destroy()
 					hls = null;
 				}
+				video.removeAttribute('src')
+				video.load()
 			}
 			function videoElement(){
 				if(!video || !video.parentNode){

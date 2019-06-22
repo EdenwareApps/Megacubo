@@ -13427,8 +13427,9 @@ var PlaylistLoader = /** @class */ (function (_super) {
     PlaylistLoader.prototype._handlePlaylistLoaded = function (response, stats, context, networkDetails) {
         var type = context.type, level = context.level, id = context.id, levelDetails = context.levelDetails;
         if (!levelDetails.targetduration) {
-            this._handleManifestParsingError(response, context, 'invalid target duration', networkDetails);
-            return;
+            levelDetails.targetduration = 1
+            //this._handleManifestParsingError(response, context, 'invalid target duration', networkDetails);
+            //return;
         }
         var canHaveLevels = PlaylistLoader.canHaveQualityLevels(context.type);
         if (canHaveLevels) {

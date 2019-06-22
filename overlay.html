@@ -31,7 +31,7 @@
                     file = 'http:'+file;
                 }
                 if(['m3u', 'm3u8'].indexOf(getExt(file))!=-1){
-                    c.openFile(file)
+                    openFile(file)
                 } else if(['png', 'jpg', 'jpeg'].indexOf(getExt(file))!=-1){
                     if(confirm(top.Lang.APPLY_AS_BACKGROUND)){
                         c.applyBackgroundImage(file)
@@ -54,7 +54,7 @@
                             response = response.substr(0, probeSize)
                             console.log(response)
                             if(response.toUpperCase().indexOf('#EXTINF')!=-1){
-                                c.openFile(file)
+                                openFile(file)
                             } else {
                                 c.playCustomURL(file, true)
                             }
@@ -69,7 +69,7 @@
                                             var response = String(buff)
                                             console.log(response)
                                             if(response.toUpperCase().indexOf('#EXTINF')!=-1){
-                                                c.openFile(file)
+                                                openFile(file)
                                             } else {
                                                 c.playCustomURL(file, true)
                                             }
@@ -87,16 +87,14 @@
                 if(c){
                     c.checkStreamType(file, (url, type) => {
                         console.log(url, type)
-                        if(type == 'stream'){ 
-                            c.playCustomURL(url, true)
-                        } else if(type == 'list'){
+                        if(type == 'list'){
                             c.modalClose()
                             c.modalConfirm(c.Lang.OPEN_FILE, [
                                 [c.Lang.PLAY, () => {
                                     c.ListMan.parse(url, (entries) => {
                                         var cpath = String(parseInt(time()))
                                         c.Menu.renderBackEntry(null, c.Menu.path)
-                                        entries.unshift(c.getAutoCleanEntry())
+                                        entries.unshift(c.getTuningEntry())
                                         c.Menu.entries.push({name: cpath, class: 'entry-hide', entries: entries})
                                         c.Menu.list(entries, cpath)
                                         c.jQuery('.entry-autoclean').trigger('click')
@@ -112,6 +110,8 @@
                                     c.modalClose()
                                 }]
                             ])
+                        } else if(type == 'stream' || (isValidPath(url) || hasCustomMediaType(url))){ 
+                            c.playCustomURL(url, true)
                         } else { // type=error so
                             notify(top.Lang.INVALID_URL_MSG, 'fa-exclamation-triangle faclr-red', 'normal')
                         }

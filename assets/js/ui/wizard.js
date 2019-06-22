@@ -17,7 +17,7 @@ const Wizard = (() => {
                     ['<i class="fas fa-users"></i> '+Lang.SHARED_MODE, () => {
                         jQuery('.prompt .fa-users').parent('button').html('<i class="fas fa-circle-notch pulse-spin"></i> ' + Lang.PROCESSING)
                         Config.set('search-range-size', sharedDefaultSearchRangeSize)
-                        setTimeout(self.next, 0)
+                        process.nextTick(self.next)
                         if(typeof(addNewSourceNotification) != 'undefined'){
                             addNewSourceNotification.hide()
                         }

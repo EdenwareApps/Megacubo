@@ -3,7 +3,10 @@ var torrentsSearchEngines = {}
 
 function torrentsSearch(terms, callback) {
     var already = [], cheerio = require('cheerio')
-    if(!jQuery.isArray(torrentsSearchEngines)){
+    if(terms.indexOf(' mp4') == -1){
+        terms += ' mp4'
+    }
+    if(!Array.isArray(torrentsSearchEngines)){
         torrentsSearchEngines = [];
         let dir = path.resolve('addons/torrents/search_engines')
         fs.readdir(path.resolve(dir), (err, files) => {
@@ -16,11 +19,12 @@ function torrentsSearch(terms, callback) {
             torrentsSearch(terms, callback)
         })
     } else {
-        let complete = 0;
+        let complete = 0
         Object.keys(torrentsSearchEngines).forEach((n) => {
-            torrentsSearchEngines[n](terms, (err, entries) => {
+            torrentsSearchEngines[n](terms, (err, entries, url, html, len) => {
                 complete++;
-                console.warn(n, err, entries)
+                console.warn('TORRENT SEARCH', n, err, entries, Object.keys(torrentsSearchEngines))
+                console.warn('TORRENT SEARCH*', url, html, len)
                 entries = entries.filter((entry) => {
                     var hash = getMagnetHash(entry.url)
                     if(already.indexOf(hash) != -1){
@@ -73,7 +77,7 @@ function updateTorrentsListingState(uri, p){
 var localTorrentsEntries = false
 function torrentsAddLocal(entries, cb){
     let lcb = (localTorrentsEntries) => {
-        if(jQuery.isArray(localTorrentsEntries)){
+        if(Array.isArray(localTorrentsEntries)){
             entries = entries.concat(localTorrentsEntries)
         }
         cb(entries)
@@ -112,7 +116,7 @@ function torrentsAddLocal(entries, cb){
                         if(e && e.length < 5 && ['torrent', 'json'].indexOf(e) == -1){
                             getLocalJSON(file.replace('.torrent', '.json'), (err, _trackers) => {
                                 let uri = 'magnet:?xt=urn:btih:'+file+'&dn='+encodeURIComponent(name), p = torrentPercentage(uri)
-                                if(jQuery.isArray(_trackers)){
+                                if(Array.isArray(_trackers)){
                                     uri = Trackers.add(uri, _trackers)
                                 }
                                 localTorrentsEntries.push({
@@ -147,7 +151,7 @@ var torrentOption = registerMediaType({
         torrentsAddLocal(entries, cb)
     },
     'search': (terms, cb) => {
-        torrentsSearch(terms + ' mp4 aac', (err, results) => {
+        torrentsSearch(terms, (err, results) => {
             if(err){
                 console.error(err)
             }
@@ -161,7 +165,7 @@ var torrentOption = registerMediaType({
     'save': () => {
         if(Playback.active && Playback.active.peerflix && Playback.active.peerflix.torrent) {
             folder = torrentsFolder + path.sep + 'torrent-stream' + path.sep + Playback.active.peerflix.torrent.infoHash + path.sep + Playback.active.peerflix.torrent.name;
-            nw.Shell.shomInFolder(localize(folder))
+            nw.Shell.showInFolder(localize(folder))
         }
     }
 }, false)

@@ -11,8 +11,37 @@
 		<script type="text/javascript" src="assets/js/playback/hls.custom.js"></script>
 		<div id="testers"></div>
 		<script type="text/javascript">
-			var b = $body;
-			var recoverDecodingErrorDate, recoverSwapAudioCodecDate;
+			var b = $body
+			var recoverDecodingErrorDate, recoverSwapAudioCodecDate
+			function videoRecycle(v){
+				if(typeof(window['videoRecycling']) == 'undefined'){
+					window['videoRecycling'] = []
+				}
+				if(v instanceof jQuery){
+					if(window['videoRecycling'].indexOf(v) == -1){
+						// console.warn("VIDEO RECYCLE PUSH!", v.html(), v.length, ['videoRecycling'].length)
+						let vv = v.off().get(0)
+						vv.pause()
+						vv.currentTime = 0
+						vv.removeAttribute('src')
+						vv.load()
+						return window['videoRecycling'].push(v)
+					} else {
+						// console.warn("VIDEO RECYCLE PUSH AVOID!", traceback())
+					}
+				} else {
+					if(window['videoRecycling'].length){
+						v = window['videoRecycling'].shift()
+						// console.warn("VIDEO RECYCLE SHIFT!", v, window['videoRecycling'].length)
+					} else {
+						// console.warn("VIDEO RECYCLE CREATE!", window['videoRecycling'].length)
+						let video = document.createElement('video')
+						document.getElementById('testers').appendChild(video)
+						v = jQuery(video)
+					}
+				}
+				return v
+			}
 			function parseError(event) {
 				if(!event) {
 					return 'No error specified.';
@@ -51,7 +80,7 @@
 			}	
 			function ping(url){
 				console.warn('Source ping', url) // Print the error if one occurred
-				top.request(url, function (error, response, body) {
+				top.request({url, ttl: 60000}, function (error, response, body) {
 					if(error){
 						console.error('Source ping error', url, error) // Print the error if one occurred
 					} else {
@@ -59,10 +88,9 @@
 					}
 				})
 			}	
-			function src(_src, type, source, video, onerr){
-				var hls = false, isHLS = type.toLowerCase().indexOf('mpegurl') != -1;
+			function src(_src, type, source, video, _onerr){
+				var hls = false, isHLS = type.toLowerCase().indexOf('mpegurl') != -1
 				console.log('Test src:', _src, type, isHLS)
-
 				if(top.Playback.proxy.isSupported(_src)){
 					_src = top.Playback.proxy.proxify(_src)
 					if(source){
@@ -72,30 +100,32 @@
 				if(source){
 					ping(source)
 				}
-				console.warn('DAT', source, _src)
+				console.warn("TESTING2", _src, type, source)
+				var onerr = (data) => {
+					if(typeof(_onerr) == 'function'){
+						_onerr(data)
+					}
+				}
 				if(isHLS){
-					hls = new Hls({
-						debug: true
-					})				
+					hls = new Hls({debug: false})				
 					hls.loadSource(_src)
 					hls.attachMedia(video)
 					hls.on(Hls.Events.ERROR, function(event, data) {
-						var msg = "Player error: " + data.type + " - " + data.details;
-						console.error(msg)
+						var msg = "Player error: " + data.type + " - " + data.details
+						console.error(msg, data)
 						if (data.fatal) {
 							switch (data.type) {
 								case Hls.ErrorTypes.MEDIA_ERROR:
 									//handleMediaError(hls)
-									onerr()
+									onerr(data)
 									break;
 								case Hls.ErrorTypes.NETWORK_ERROR:
 									console.error("network error ...")
-									onerr()
+									onerr(data)
 									break;
 								default:
 									console.error("unrecoverable error")
-									hls.destroy()
-									onerr()
+									onerr(data)
 									break;
 							}
 						}
@@ -108,50 +138,63 @@
 					video.load()
 					video.play()
 				}
-				return hls;
+				return hls
 			}			
-			function test(url, type, source, _success, _failure){
-				var hls, v = jQuery('<video></video>'), video = v.get(0), minBufSecs = Config.get('min-buffer-secs-before-commit')
-				v.appendTo('#testers')
-				if(source){
-					top.pingSource(source)
-				}
+			function test(url, type, source, _success, _failure, timeout){
+				console.warn("TESTING", url, type, source, timeout)
+				var hls, playing, v = videoRecycle(), minBufSecs = Config.get('min-buffer-secs-before-commit'), errorLimit = 1
+				// console.warn("VIDEO RECYCLE PIT STOP!", v, v.length)
+				var video = v.get(0)
+				// console.warn("VIDEO RECYCLE PIT STOP!", video)
 				var cleanup = () => {
+					// console.warn("VIDEO RECYCLE PIT STOP!", v, v.length, video)
 					try {
-						v.off()
-						video.pause()
 						if(hls){
 							hls.destroy()
-						}
-						video.src = '';
-						if(video.parentNode){ 
-							video.parentNode.removeChild(video)
+							hls = null
 						}
 					} catch(e) {
 						console.warn(e)
 					}
+					// console.warn("VIDEO RECYCLE PIT STOP!", v, v.length, video)
+					if(video){
+						videoRecycle(v)
+						video = null
+					}
 				}
 				var onerr = (e) => {
 					cleanup()
+					console.error('TEST PLAYER ERR', e)
 					if(_failure){
 						_failure(['error ended', parseError(e)])
 						_success = _failure = null;
 					}
 				}
-				v.on('durationchange', () => {
+				var dc = () => {
 					console.warn('DURATIONCHANGE', video.duration, minBufSecs)
-					if(video.duration >= minBufSecs){
+					if(playing && video.duration >= minBufSecs){
 						cleanup()
 						if(_success){
 							_success('canplay')
 							_success = _failure = null;
 						}
 					}
+				}
+				v.on('play canplaythrough', () => {
+					console.warn('PLAY')
+					playing = true
+					dc()
 				})
+				v.on('durationchange', dc)
+				if(typeof(timeout) == 'number'){
+					setTimeout(() => {
+						onerr('Timeout ('+timeout+'s)')
+					}, timeout * 1000)
+				}
 				v.on('error ended', onerr)
 				hls = src(url, type, source, video, onerr)
 				return {
-					cancel: () => {
+					destroy: () => {
 						cleanup()
 					}
 				}

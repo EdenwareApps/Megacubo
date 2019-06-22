@@ -134,7 +134,7 @@ function getYTLiveFeeds(term, cb){
         term = term.substr(0, 128)
     }
     var key = 'yt-l-feed-'+term, entries = Store.get(key)
-    if(!jQuery.isArray(entries)){
+    if(!Array.isArray(entries)){
         console.warn('YTSR', term)
             var options = {
                 limit: 96,
@@ -168,7 +168,7 @@ function getYTVideoFeeds(term, cb){
         term = term.substr(0, 128)
     }
     var key = 'yt-v-feed-'+term, entries = Store.get(key)
-    if(!jQuery.isArray(entries)){
+    if(!Array.isArray(entries)){
         console.warn('YTSR', term)
             var options = {
                 limit: 96,
@@ -194,7 +194,7 @@ function fetchYTLiveSearchResults(terms, cb) {
         terms = jQuery('.list > div > div').find('input').val().toLowerCase()
     }
     var key = 'yt-sr-l-'+terms, entries = Store.get(key)
-    if(!jQuery.isArray(entries)){
+    if(!Array.isArray(entries)){
         console.warn('@ duh', key, cb)
         ytsr().getFilters(terms, function(err, filters) {
             if(err){
@@ -232,7 +232,7 @@ function fetchYTLiveSearchResults(terms, cb) {
 
 function fetchYTVideoSearchResults(terms, cb) {
     var key = 'yt-sr-v-'+terms, entries = Store.get(key)
-    if(!jQuery.isArray(entries)){
+    if(!Array.isArray(entries)){
         console.warn('@ duh', key)
         ytsr().getFilters(terms, function(err, filters) {
             if(err){

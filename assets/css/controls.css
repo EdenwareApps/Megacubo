@@ -464,7 +464,7 @@ body:not(.playing):not(.paused):not(.loading) #vcontrols { /* stoppped */
     padding-left: 16px;
 }
 
-#vcontrols .video-play, #vcontrols .volume-box {
+#vcontrols .volume-box {
     padding: 0 18px;
 }
 

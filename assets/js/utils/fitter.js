@@ -822,7 +822,7 @@ var Fitter = (() => {
     }
     self.fit = function (object, scope){
         if(!object || !tag(object)) return;
-        var root = typeof(top.fittingQueue) == 'undefined' || !jQuery.isArray(top.fittingQueue)
+        var root = typeof(top.fittingQueue) == 'undefined' || !Array.isArray(top.fittingQueue)
         if(root){
             top.fittingQueue = []
         }
@@ -1089,7 +1089,7 @@ var Fitter = (() => {
         }
         if(scope.unloadOnSideload){
             self.findStreams(scope, intent, (streamURL) => {
-                intent.sideload.add(streamURL)
+                intent.sideloadAdd(streamURL)
                 scope.location.href = 'about:blank'
             })
             return []
@@ -1245,7 +1245,7 @@ var Fitter = (() => {
             return list[0]
         } else if(typeof(scope.allowSearchStreamInCode)=='undefined' || scope.allowSearchStreamInCode !== false) {
             self.findStreams(scope, intent, (streamURL) => {
-                intent.sideload.add(streamURL)
+                intent.sideloadAdd(streamURL)
             })
             scope.allowSearchStreamInCode = false; // search in code once
         }
@@ -1379,7 +1379,7 @@ var Fitter = (() => {
     if(!top.preFitterIndex){
         top.preFitterIndex = {};
         var files = fs.readdir('hosts', (err, files) => {
-            if(jQuery.isArray(files)){
+            if(Array.isArray(files)){
                 for(var i=0; i<files.length; i++){
                     let domains = files[i].replace('.js', '').split(',')
                     for(var j=0; j<domains.length; j++){

@@ -58,12 +58,10 @@ body.frameless:not(.over) div#player-status {
 
 div#player-status svg {
 	color: #fff;
-	font-size: 48px;
-	opacity: 0.75;    
+	font-size: 48px; 
 }
 
 div#player-status .fac {
-	background: rgba(3, 11, 23, 0.75);
 	border-radius: 36px;
     padding: 6px;
     display: none;
@@ -91,7 +89,11 @@ body.miniplayer:not(.playing):not(.paused):not(.loading):not(.modal) div#minipla
 }
 
 body.loading div#player-status, body.paused div#player-status {
-    opacity: 1;
+    opacity: 0.5;
+}
+
+body.loading div#player-status .fac {
+    background: transparent;
 }
 
 body.loading div.fac-loading {
