@@ -18,7 +18,7 @@ if(typeof(PremiumHelper) == 'undefined'){
                     if(checked){
                         if(!self.installed(true)){
                             self.shouldInstall = true;
-                            self.notification.update(Lang.ENABLING_PREMIUM_FEATURES.format(0), 'fa-circle-notch pulse-spin', 'forever')
+                            self.notification.update(Lang.ENABLING_PREMIUM_FEATURES.format(0), 'fa-mega spin-x-alt', 'forever')
                             jQuery(element).find('.entry-name').html('<i class="fas fa-circle-notch pulse-spin"></i> &nbsp;' + Lang.ENABLING_PREMIUM_FEATURES.format(0))
                             self.install((err) => {
                                 self.notification.hide()
@@ -47,7 +47,7 @@ if(typeof(PremiumHelper) == 'undefined'){
                                 Menu.refresh()
                             }
                             if(!ok){
-                                self.notification.update(Lang.PROCESSING, 'fa-circle-notch pulse-spin', 'forever')
+                                self.notification.update(Lang.PROCESSING, 'fa-mega spin-x-alt', 'forever')
                                 jQuery(element).find('.entry-name').html('<i class="fas fa-circle-notch pulse-spin"></i> &nbsp;' + Lang.PROCESSING)
                                 self.uninstall((ret) => {
                                     self.notification.hide()
@@ -90,9 +90,12 @@ if(typeof(PremiumHelper) == 'undefined'){
                     if(error){
                         cb(error || 'Download failure')
                     } else {
+                        console.log('INSTALL PREMIUM', self.shouldInstall)
                         if(self.shouldInstall){
                            untar(file, process.cwd().replaceAll(path.sep + 'package.nw', ''), (result) => {
-                                if(self.installed(false)){
+                                let ld = self.installed(false)    
+                                console.log('INSTALL PREMIUM', result, ld)
+                                if(ld){
                                     doAction('installPremiumSuccess')
                                     console.log('INSTALL PREMIUM', 'EXTRACTED', file)
                                     cb(null)
@@ -121,7 +124,7 @@ if(typeof(PremiumHelper) == 'undefined'){
                     if(total_bytes){
                         p = Math.round(received_bytes / (total_bytes / 100))
                     }
-                    self.notification.update(Lang.ENABLING_PREMIUM_FEATURES.format(p), 'fa-circle-notch pulse-spin', 'forever')
+                    self.notification.update(Lang.ENABLING_PREMIUM_FEATURES.format(p), 'fa-mega spin-x-alt', 'forever')
                 })
             }
         }

@@ -410,7 +410,7 @@ body.submenu a.entry:not(.entry-sub) {
     -webkit-font-smoothing: subpixel-antialiased;
 }
 
-#vcontrols {
+#video-controls {
     top: auto;
     bottom: 0;
     z-index: 3;  
@@ -424,90 +424,90 @@ body.submenu a.entry:not(.entry-sub) {
     align-items: center;
 }
 
-body.frameless:not(.miniplayer) #vcontrols {
+body.frameless:not(.miniplayer) #video-controls {
     bottom: -1px;
 }
 
-body.has-menu-margin #vcontrols {
+body.has-menu-margin #video-controls {
     margin-bottom: 2px;
 }
 
-body:not(.playing):not(.paused):not(.loading) #vcontrols { /* stoppped */
+body:not(.playing):not(.paused):not(.loading) #video-controls { /* stoppped */
     visibility: hidden !important;
 }
 
-#vcontrols > * {
+#video-controls > * {
     display: flex;
     flex: none;
 }
 
-#vcontrols a, #vcontrols div {
+#video-controls a, #video-controls div {
     display: inline-block;
 }
 
-#vcontrols .video-seek, #vcontrols .volume-slider {
+#video-controls .video-seek, #video-controls .volume-slider {
     display: inline-flex;
     flex: auto;
     align-items: center;      
 }
 
-#vcontrols .volume-slider {    
+#video-controls .volume-slider {    
     height: -webkit-fill-available;
     float: right; 
 }
 
-#vcontrols .video-seek input {
+#video-controls .video-seek input {
     width: 100%;
 }
 
-#vcontrols .video-play {
+#video-controls .video-play {
     padding-left: 16px;
 }
 
-#vcontrols .volume-box {
+#video-controls .volume-box {
     padding: 0 18px;
 }
 
-#vcontrols .volume-button {
+#video-controls .volume-button {
     padding-right: 6px;
     position: relative;
     bottom: -2px;
 }
 
-#vcontrols .fa-volume-off {
+#video-controls .fa-volume-off {
     padding-right: 10px;
     display: none;
 }
 
-#vcontrols .video-scale svg, #vcontrols .video-scale i {
+#video-controls .video-scale svg, #video-controls .video-scale i {
     box-sizing: border-box;
     padding: 1px;
     width: 1.25em;
 }
 
-#vcontrols .video-timer {
+#video-controls .video-timer {
     display: inline-flex !important;
     align-items: center;
     line-height: 200%;
 }
 
-#vcontrols input[type=range] {
+#video-controls input[type=range] {
     overflow: hidden;
     visibility: inherit !important;
 }
 
-#vcontrols input[type=range], #vcontrols input[type=range]::-webkit-slider-thumb {
+#video-controls input[type=range], #video-controls input[type=range]::-webkit-slider-thumb {
     -webkit-appearance: none;
     border-radius: 2px;
     cursor: pointer;
 }
 
-#vcontrols input[type=range]::-webkit-slider-thumb {
+#video-controls input[type=range]::-webkit-slider-thumb {
     height: 12px;
     width: 4px;
 }
 
-#vcontrols .video-scale {
+#video-controls .video-scale {
     text-decoration: none;    
     padding: 2px 6px;
     margin: 0 8px;
@@ -520,22 +520,22 @@ body:not(.playing):not(.paused):not(.loading) #vcontrols { /* stoppped */
     height: 100%;
 }
 
-#vcontrols .video-reload {
+#video-controls .video-reload {
     display: none;
 }
 
-body.miniplayer #vcontrols .video-seek input {
+body.miniplayer #video-controls .video-seek input {
     display: none !important;
 }
 
-body.over:not(.hiding-menu) #vcontrols, /* over */
-body.paused #vcontrols, /* paused */ 
-body #vcontrols:focus-within /* focused */ 
+body.over:not(.hiding-menu) #video-controls, /* over */
+body.paused #video-controls, /* paused */ 
+body #video-controls:focus-within /* focused */ 
 { 
 	opacity: 1;
 }
 
-body.no-video #vcontrols {
+body.no-video #video-controls {
     visibility: hidden !important;
 }
 

@@ -63,7 +63,7 @@ var Pointer = ((w, d, j, m) => {
             self.j('.focused').removeClass('focused');
             var f = a.addClass('focused').get(0);
             a.triggerHandler('focus');
-            if(a.parents('#vcontrols').length){
+            if(a.parents('#video-controls').length){
                 self.j(d).triggerHandler('mousemove')
             }
             if(d.activeElement){

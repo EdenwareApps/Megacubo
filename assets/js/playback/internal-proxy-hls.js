@@ -58,7 +58,9 @@ Playback.HLSManager = ((parent) => {
             simultaneousP2PDownloads: 6,
             requiredSegmentsPriority: 0,
             httpDownloadProbability: 0,
-            cachedSegmentsCount: 16, // default is 30, use less ram with 16
+            cachedSegmentsCount: 20, // default is 30, use less ram with 20
+            httpFailedSegmentTimeout: 60000,
+            p2pSegmentDownloadTimeout: 30000,
             useP2P: Config.get('p2p')
         })
         self.loader.on(self.p2pml.Events.SegmentLoaded, self.loaded)
@@ -346,6 +348,10 @@ Playback.HLSManager = ((parent) => {
         }
     }
     self.error = (segment, error, stop) => {
+        if(self.loader.p2pManager.isDownloading(segment)){
+            self.log("segment loading failed, wait for p2p?", segment, error)
+            return
+        }
         if(typeof(self.downloading[segment.id]) == 'number' && self.downloading[segment.id]){
             self.downloading[segment.id]--
         }
@@ -366,12 +372,12 @@ Playback.HLSManager = ((parent) => {
     }
     self.init = () => {
         self.started = true;
-        self.request = prepareRequestForever()
+        self.request = requestForever
         if(self.p2pml_use_require){
             self.p2pml = require('p2p-media-loader-core')
             self.reset()
         } else {
-            loadScript(path.resolve('modules/p2p-media-loader-core/build/p2p-media-loader-core.js'), () => {
+            loadScript('modules/p2p-media-loader-core/build/p2p-media-loader-core.js', () => {
                 self.p2pml = p2pml.core
                 self.reset()
             })
@@ -434,18 +440,17 @@ Playback.HLSManager = ((parent) => {
             self.downloading[id]--
         }
         self.load(self.loader.segmentsQueue.filter(s => { 
-            var fine = (s.id != id)
-            if(!fine){
-                if(self.loader.httpManager.isDownloading(s) || self.loader.p2pManager.isDownloading(s)){
-                    fine = true // keep downloading if we already started, the player might re-request in sequence
-                    self.log('not cancelling, it\'s already downloading', url)
-                } else {
-                    self.log('cancelling', url)
+            if(s.id == id){
+                if(self.loader.httpManager.isDownloading(s)){
+                    self.loader.httpManager.abort(s)
                 }
+                if(!self.loader.p2pManager.isDownloading(s)){
+                    self.loader.p2pManager.download(s)
+                }
+                self.log('not cancelling, just moving to p2p queue', url)
             }
-            return fine
+            return true
         }))
-
     }
     self.destroy = () => {
         self.log('closing...')
@@ -456,7 +461,7 @@ Playback.HLSManager = ((parent) => {
         self.destroy()
     })
     addFilter('about', txt => {
-        if(self.parent.active){
+        if(self.parent.active && self.parent.active.type == 'hls'){
             if(self.stats.p2p.in || self.loader.p2pManager.peers.size){
                 txt += 'P2P: '+parseInt(self.stats.p2p.in / ((self.stats.http.in + self.stats.p2p.in) / 100)) + '%'
                 if(self.loader.p2pManager.peers.size > 1){

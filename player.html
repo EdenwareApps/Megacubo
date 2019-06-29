@@ -57,24 +57,15 @@
 				})
 			}
 			function handleMediaError(hls) {
-				var msg = '', now = performance.now(), ct = false;
-				if(top.Playback.active){
-					if(top.Playback.active.decoderOutputAppending) {
-						try {
-							ct = currentTime()
-						} catch(e) {
-							console.warn('Failed to get currentTime.')
-						}
-					}
-					if(top.Playback.active.ignoreErrors) {
-						return;
-					}
+				var msg = '', now = performance.now(), ct = false
+				if(top.Playback.active && top.Playback.active.ignoreErrors) {
+					return
 				}
 				if (!recoverDecodingErrorDate || (now - recoverDecodingErrorDate) > 3000) {
 					recoverDecodingErrorDate = now;
-					msg = "trying to recover from media Error ..."
+					msg = "trying to recover from media Error..."
 					watchTimeout(ct)
-					recover(hls) // ffmpeg slow response, commenting it and trusting on hls.js here
+					recover(hls)
 				} else {
 					if (!recoverSwapAudioCodecDate || (now - recoverSwapAudioCodecDate) > 3000) {
 						recoverSwapAudioCodecDate = now;
@@ -84,8 +75,23 @@
 						recover(hls)
 					} else {
 						msg = "cannot recover, last media error recovery failed ..."
-						setTimeout(reset, 1000)
+						// setTimeout(reset, 1000)
+						reportFailure()
 					}
+				}
+				console.warn(msg)
+			}	
+			function handleNetworkError(hls) {
+				var msg = '', now = performance.now(), ct = false
+				if(top.Playback.active && top.Playback.active.ignoreErrors) {
+					return
+				}
+				if(video.duration && video.currentTime){
+					msg = "trying to recover from network Error..."
+					watchTimeout(ct)
+					recover(hls) // ffmpeg slow response, commenting it and trusting on hls.js here
+				} else {
+					reportFailure()
 				}
 				console.warn(msg)
 			}	
@@ -118,13 +124,15 @@
 							}
 							var hlsConfig = {
 								debug: false,
-								nudgeMaxRetry: 30,
+								nudgeMaxRetry: 12,
 								maxSeekHole: 30,
-								maxBufferSize: 0,       // Highly recommended setting
+								maxBufferSize: 20,
 								maxBufferHole: 10,
-								maxBufferLength: 300,
-								maxMaxBufferLength: '600s',
-								maxFragLookUpTolerance: 0.04
+								maxBufferLength: 10,
+								maxMaxBufferLength: '120s',
+								maxFragLookUpTolerance: 0.04,
+								startPosition: 0,
+								defaultAudioCodec: 'mp4a.40.2'
 							}
 							hls = new Hls(hlsConfig)
 							hls.on(Hls.Events.ERROR, (event, data) => {
@@ -154,7 +162,7 @@
 											break;
 										case Hls.ErrorTypes.NETWORK_ERROR:
 											console.error("network error ...")
-											handleMediaError(hls)
+											handleNetworkError(hls)
 											break;
 										default:
 											console.error("unrecoverable error")
@@ -190,7 +198,7 @@
 						video.pause()
 						video.removeAttribute('src')
 						var type = endpoint.mimetype.replaceAll('"', "'").split(';')[0]
-						video.innerHTML = '<source type="'+ type +'" src=\''+endpoint.src+'\' />'
+						video.innerHTML = '<source type="'+ type +'" src=\''+src+'\' />'
 						video.load()
 						video.play()
 					}
@@ -222,6 +230,9 @@
 				}
 				video.removeAttribute('src')
 				video.load()
+			}
+			function reportFailure(){
+				top.Playback.active.fail('playback')
 			}
 			function videoElement(){
 				if(!video || !video.parentNode){

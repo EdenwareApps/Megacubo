@@ -47,25 +47,25 @@ const dialer = (() => {
             ok = true;
         }
         self.notification.update.apply(self.notification, notifyData)
-        console.warn('KEY', chr, '--', self.nowDialing);
+        console.warn('KEY', chr, '--', self.nowDialing)
         if(ok && typeof(dialingActions[tp]) != 'undefined'){
             self.dialerTimer = setTimeout(() => {
                 ok = false;
                 console.warn('ZZZZZZZZZZZ', self.dialerType, self.nowDialing)
                 if(self.dialerType == 'mixed') {
-                    bms = self.nowDialing;
+                    bms = self.nowDialing
                     if(bms.length > 2) {
                         cb = applyFilters('dialingCallback', (self) => {
                             self.notification.update(bms.toLowerCase(), dialingActions[tp]['icon'], 'normal');
-                            dialingActions[tp]['callback'](bms.toLowerCase());
+                            dialingActions[tp]['callback'](bms.toLowerCase())
                             self.notification.hide()
                         }, self.nowDialing, self.dialerType, self.notification)
                         self.dialerTimer = setTimeout(() => {
                             cb.call(null, self)
-                            self.dialerType = false;
-                            self.nowDialing = '';
+                            self.dialerType = false
+                            self.nowDialing = ''
                         }, 400);
-                        ok = true;
+                        ok = true
                     }
                 } else {
                     if(parseInt(self.nowDialing) > 0) {
@@ -81,7 +81,7 @@ const dialer = (() => {
                                 console.warn('ZZZZZZZZZZZ', bms)
                                 bms = bms[0]
                                 self.notification.update(bms.name, bms.logo || 'fa-star', 'normal');
-                                playEntry(bms);
+                                playEntry(bms)
                                 self.notification.hide()
                             } else {
                                 self.notification.update(Lang.NOT_FOUND, 'fa-ban', 'short')
@@ -90,16 +90,16 @@ const dialer = (() => {
                         console.warn('ZZZZZZZZZZZ', cb)
                         self.dialerTimer = setTimeout(() => {
                             cb.call(null, self)
-                            self.dialerType = false;
-                            self.nowDialing = '';
+                            self.dialerType = false
+                            self.nowDialing = ''
                         }, 400);
-                        ok = true;
+                        ok = true
                     }
                 }
                 if(!ok) {
                     self.notification.update(Lang.NOT_FOUND, 'fa-ban', 'short');
-                    self.dialerType = false;
-                    self.nowDialing = '';
+                    self.dialerType = false
+                    self.nowDialing = ''
                 }
             }, self.dialerInterval)
         }

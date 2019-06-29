@@ -121,6 +121,9 @@ class PlaybackManager extends Events {
             state = this.checkState()
         }
         // console.warn('STATE', state)
+        if(!this.active){
+            state = 'stop'
+        }
         if(state != this.state){
             console.warn('STATECHANGE', state, traceback())
             switch(state){
@@ -174,6 +177,9 @@ class PlaybackManager extends Events {
         showPlayers(true, false)
         if(!mimetype){
             mimetype = 'application/x-mpegURL'
+        }
+        if(Controls.seekSlider){
+            Controls.seekSlider.val(0)
         }
         console.log('CONNECT', this.endpoint)
         var p = this.player()
@@ -264,13 +270,19 @@ class PlaybackManager extends Events {
                     } catch (e) {}
                     console.error('Playback error.', err || data, video, message)
                     let c
-                    if(message.indexOf('Failed to send video') != -1 && this.active.videoCodec == 'copy'){
+                    if(message.indexOf('stream parsing failed') != -1 && [this.active.videoCodec, this.active.audioCodec].indexOf('copy') != -1){
                         this.active.videoCodec = 'libx264'
-                        c = true
-                    }
-                    if(message.indexOf('Failed to send audio') != -1 && this.active.audioCodec == 'copy'){
                         this.active.audioCodec = 'aac'
                         c = true
+                    } else {
+                        if(message.indexOf('Failed to send video') != -1 && this.active.videoCodec == 'copy'){
+                            this.active.videoCodec = 'libx264'
+                            c = true
+                        }
+                        if(message.indexOf('Failed to send audio') != -1 && this.active.audioCodec == 'copy'){
+                            this.active.audioCodec = 'aac'
+                            c = true
+                        }
                     }
                     if(c){
                         this.active.restartDecoder()
@@ -452,15 +464,15 @@ class PlaybackManager extends Events {
                 }
             }
         }
-        video.volume = Store.get('volume') || 1;
-        video.muted = Store.get('muted') || false;
-        Controls.bind(video);
+        video.volume = Store.get('volume') || 1
+        video.muted = Store.get('muted') || false
+        Controls.bind(video)
         this.setState(this.checkState())
         var seeking, fslock, paused, wasPaused, fstm = 0, player = jQuery(video), b = jQuery(doc.querySelector('body')), f = (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
-        };
+            e.preventDefault()
+            e.stopPropagation()
+            return false
+        }
         if(video.getAttribute('controls') !== null){
             video.removeAttribute('controls')
         }
@@ -470,8 +482,8 @@ class PlaybackManager extends Events {
         if(video.paused){
             video.play()
         }
-        video.onclick = video.onmousedown = video.onmouseup = null;
-        video.style.background = Theme.get('background-color-playing');
+        video.onclick = video.onmousedown = video.onmouseup = null
+        video.style.background = Theme.get('background-color-playing')
         applyCSSTemplate('assets/css/player.src.css', getPlayerScope())
         Object.keys(nativeEvents).forEach((event) => {
             jvideo.off(event, nativeEvents[event]).on(event, nativeEvents[event])
@@ -479,7 +491,7 @@ class PlaybackManager extends Events {
         this.mouseDownTime = 0
         this.allowTimeoutReload = (intent && intent.type == 'html' && !isVideo(video.src))
         this.reloadTimer = 0
-        this.reloadTimeout = 10000;
+        this.reloadTimeout = 10000
     }
     rebind(){
         let intent = this.active
@@ -492,7 +504,8 @@ class PlaybackManager extends Events {
         }
     }
     unbind(intent){
-        if(intent && typeof(intent.getVideo) == 'function'){
+        if(intent && intent == this.active){
+            Controls.unbind()
             var v = intent.getVideo()
             if(v) {
                 jQuery(v).off()
@@ -573,7 +586,7 @@ class PlaybackManager extends Events {
             return r;
         }
     }
-    fullStop(){
+    stopAll(){ // stop playback and loading intents
         console.log('STOP', traceback());
         this.intents.forEach((intent, i) => {
             this.destroyIntent(intent)
@@ -586,12 +599,11 @@ class PlaybackManager extends Events {
             console.log('load-out')
             this.emit('load-out');
         }
-        this.emit('stop');
-        this.disconnect();
+        this.stop();
         console.log('STOP OK');
     }
-    stop(){
-        this.errors = {};
+    stop(){ // stop playback
+        this.errors = {}
         console.log('STOP', traceback())
         if(this.active){
             console.log('STOPPED', this.intents);
@@ -633,7 +645,7 @@ class PlaybackManager extends Events {
         return is
     }
     resetIntentsKeys(){
-        this.intents = this.intents.filter(function (item) {
+        this.intents = this.intents.filter((item) => {
             return item !== undefined
         })
     }
@@ -937,17 +949,17 @@ class PlaybackManager extends Events {
         this.emit('setRatio', oratio)
     }
 	prepareIntent(entry, options, ignoreCurrentPlaying, callback){
-        if(!options) options = {};
+        if(!options) options = {}
         var allowedTypes = typeof(options.allowedTypes) != 'undefined' ? options.allowedTypes : false
-        var shadow = (typeof(options.shadow)!='undefined' && options.shadow);
-        var statusCode = 0, types = [];
-        var currentPlaybackType = '', currentPlaybackTypePriotity = -1;
-        var allowWebPages = typeof(entry.allowWebPages) == 'undefined' ? (!Config.get('ignore-webpage-streams')) : entry.allowWebPages;
+        var shadow = (typeof(options.shadow)!='undefined' && options.shadow)
+        var statusCode = 0, types = []
+        var currentPlaybackType = '', currentPlaybackTypePriotity = -1
+        var allowWebPages = typeof(entry.allowWebPages) == 'undefined' ? true : entry.allowWebPages
         var forceTranscode = typeof(entry.transcode) != 'undefined' && entry.transcode
-        entry.url = String(entry.url); // Parameter "url" must be a string, not object
-        entry.originalUrl = entry.originalUrl ? String(entry.originalUrl) : entry.url;
-        entry.name = String(entry.name);
-        entry.logo = String(entry.logo);
+        entry.url = String(entry.url) // Parameter "url" must be a string, not object
+        entry.originalUrl = entry.originalUrl ? String(entry.originalUrl) : entry.url
+        entry.name = String(entry.name)
+        entry.logo = String(entry.logo)
         if(entry.logo == 'undefined'){
             entry.logo = ''
         }
@@ -957,27 +969,27 @@ class PlaybackManager extends Events {
         }
         console.log('CHECK INTENT', allowedTypes, currentPlaybackType, currentPlaybackTypePriotity, entry, options, traceback());
         if(typeof(entry.originalUrl) == 'undefined'){
-            entry.originalUrl = entry.url;
+            entry.originalUrl = entry.url
         }
-        console.log(entry.url);
+        console.log(entry.url)
         if(isMegaURL(entry.url)){ // mega://
             if(options.shadow){
                 return callback({types: types, entry: entry, statusCode})
             }
             console.log('isMega');
-            var data = parseMegaURL(entry.url);
+            var data = parseMegaURL(entry.url)
             if(!data){
                 return callback({types: types, entry: entry, statusCode})
             }
-            console.log('PARTS', data);
+            console.log('PARTS', data)
             if(data.type == 'link'){
-                entry.url = data.url;
+                entry.url = data.url
             } else if(data.type == 'play') {
                 return callback({types: types, entry: entry, statusCode})
             }
         }
         if(getExt(entry.url)=='mega'){ // .mega
-            entry = megaFileToEntry(entry.url);
+            entry = megaFileToEntry(entry.url)
             if(!entry){
                 return callback({types: types, entry: entry, statusCode})
             }
@@ -990,13 +1002,13 @@ class PlaybackManager extends Events {
         })
         if(customType) {
             if(!allowedTypes || allowedTypes.indexOf(customType) != -1){
-                console.log('CREATEINTENT FOR ' + customType.toUpperCase(), entry.url);
+                console.log('CREATEINTENT FOR ' + customType.toUpperCase(), entry.url)
                 types.push(customType)
             }
         } else if(isRTMP(entry.url) || isRTSP(entry.url)){
             if(!allowedTypes || allowedTypes.indexOf('rtp') != -1){
                 if(currentPlaybackTypePriotity == -1 || Playback.intentTypesPriorityOrder.indexOf('rtp') < currentPlaybackTypePriotity){
-                    console.log('CREATEINTENT FOR RTMP/RTSP', entry.url);
+                    console.log('CREATEINTENT FOR RTMP/RTSP', entry.url)
                     types.push('rtp')
                 }
             }
@@ -1094,19 +1106,19 @@ class PlaybackManager extends Events {
                         }
                     }
                 }
-                callback({types: types, entry: entry, statusCode})
+                callback({types: types.getUnique(), entry: entry, statusCode})
             })
         }
-        callback({types: types, entry: entry, statusCode})
+        callback({types: types.getUnique(), entry: entry, statusCode})
     }    
     getIntentTypes(entry, options, callback){
         this.prepareIntent(entry, options, true, data => {
-            callback(data.types.sort().join(','))
+            callback(data.types.join(','))
         })
     }    
     createIntent(entry, options, forceTypes, _callback) {
-        console.log('CREATE INTENT', entry, options, traceback(), forceTypes);
-        var shadow = (typeof(options.shadow) != 'undefined' && options.shadow);
+        console.log('CREATE INTENT', entry, options, traceback(), forceTypes)
+        var shadow = (typeof(options.shadow) != 'undefined' && options.shadow)
         var data, statusCode = 0, intents = []
         let callback = (e, i) => {
             if(typeof(_callback) == 'function'){
@@ -1124,7 +1136,7 @@ class PlaybackManager extends Events {
                 }
                 return
             }
-            console.log('PARTS', data);
+            console.log('PARTS', data)
             if(data.type == 'link'){
                 entry.url = data.url;
             } else if(data.type == 'play') {
@@ -1141,7 +1153,7 @@ class PlaybackManager extends Events {
                                     callback(null, [intent])
                                 }
                             } else {
-                                entry.originalUrl = megaUrl;
+                                entry.originalUrl = megaUrl
                                 this.createIntent(entry, options, null, callback)
                             }
                         }, data.mediaType, true)
@@ -1161,7 +1173,7 @@ class PlaybackManager extends Events {
                                     callback(false, [intent])
                                 }
                             } else {
-                                entry.originalUrl = megaUrl;
+                                entry.originalUrl = megaUrl
                                 this.createIntent(entry, options, null, callback)
                             }
                         }, data.mediaType, true)
@@ -1188,6 +1200,7 @@ class PlaybackManager extends Events {
                     }
                 })
             }
+            console.log('CREATED INTENTS', intents)
             if(intents.length){
                 if(entry.source && isHTTP(entry.source)){
                     pingSource(entry.source)
@@ -1202,12 +1215,12 @@ class PlaybackManager extends Events {
                         }
                         return intent
                     } else {
-                        console.log('Error: NO INTENT', intent, entry.url);
+                        console.log('Error: NO INTENT', intent, entry.url)
                     }
                 })
                 callback(null, intents)
             } else {
-                callback('No compatible streams found', [])
+                callback('No compatible streams found.', [])
             }
         }
         if(Array.isArray(forceTypes)){
@@ -1369,7 +1382,7 @@ function notifyPlaybackStartError(entry, error){
     sound('static', 16)
     var message = getPlaybackErrorMessage(entry, error)
     notify(message, 'fa-exclamation-circle faclr-red', 'normal')
-    console.log('STREAM FAILED', message, entry, Playback.log())
+    console.log('STREAM FAILED', message, entry, Playback.log(), traceback())
 }
 
 function getPlaybackErrorMessage(intentOrEntry, error){
@@ -1380,6 +1393,9 @@ function getPlaybackErrorMessage(intentOrEntry, error){
             entry = intentOrEntry.entry
             if(intentOrEntry.error){
                 error = intentOrEntry.error
+            }
+            if(intentOrEntry.statusCode && intentOrEntry.statusCode != 200){
+                error = intentOrEntry.statusCode
             }
         } else if(typeof(intentOrEntry.url) != 'undefined'){
             entry = intentOrEntry
@@ -1410,13 +1426,13 @@ function getPlaybackErrorMessage(intentOrEntry, error){
     return message
 }
 
-function continuePlayback(intent, hasErrors){
+function continueLivePlayback(intent, hasErrors){
     let alternate = () => {
         if(!alternateStream(intent) && hasErrors){
             sound('static', 16)
             var message = getPlaybackErrorMessage(intent)
             notify(message, intent.entry.logo || 'fa-exclamation-circle faclr-red', 'normal');
-            console.log('STREAM FAILED', message, intent.error, intent.statusCode, intent.entry.originalUrl, Playback.log())
+            console.log('STREAM FAILED', message, intent.tuning, intent.error, intent.statusCode, intent.entry.originalUrl, Playback.log(), traceback())
         }
     }
     if(hasErrors){
@@ -1427,6 +1443,35 @@ function continuePlayback(intent, hasErrors){
         }
     } else {
         alternate()
+    }
+}
+
+function continuePlayback(intent, hasErrors){
+    if(intent.entry.mediaType == 'live'){
+        continueLivePlayback(intent, hasErrors)
+    } else if(hasErrors === false) {
+        getNextStream(null, (e) => {
+            if(e){
+                (top || parent).playEntry(e)
+            } else {
+                (top || parent).stop()
+                notify(Lang.NOT_FOUND, 'fa-ban', 'normal')
+            }
+        })
+    } else {
+        sound('static', 16)
+        var message = getPlaybackErrorMessage(intent, hasErrors)
+        notify(message, intent.entry.logo || 'fa-exclamation-circle faclr-red', 'normal')
+        console.log('STREAM FAILED', message, intent.tuning, intent.error, intent.statusCode, intent.entry.originalUrl, Playback.log(), traceback())
+    }
+}
+
+function setMediaTypeClass(c){
+    ['live', 'video', 'audio'].forEach(t => {
+        $body.removeClass('mt-' + t)
+    })
+    if(c){
+        $body.addClass('mt-' + c)
     }
 }
 
@@ -1445,25 +1490,7 @@ Playback.on('register', (intent, entry) => {
             console.log('STREAM ENDED', Playback.log(), intent.shadow)
             if(!intent.shadow){
                 console.log('STREAM ENDED', Playback.log(), intent.entry.url, isLive(intent.entry.url), intent.entry.originalUrl)
-                if(!isVideo(intent.entry.url)){
-                    continuePlayback(intent, false)
-                } else  {
-                    let next = getNextStream()
-                    if(next){
-                        Playback.getIntentTypes(intent.entry, null, types => {
-                            console.log('STREAM ENDED', types, next)
-                            Playback.getIntentTypes(next, null, ntypes => {
-                                if(types == ntypes){
-                                    setTimeout(() => {
-                                        if(!Playback.active){
-                                            playEntry(next)
-                                        }
-                                    }, 1000)
-                                }
-                            })
-                        })
-                    }
-                }
+                continuePlayback(intent, false)
             }
         }
     })
@@ -1471,23 +1498,21 @@ Playback.on('register', (intent, entry) => {
 
 Playback.on('commit', (intent) => {
     console.log('COMMIT TRIGGERED');
-    Menu.playState(true);
-    setStreamStateCache(intent.entry, true);
-    onIntentCommit(intent);
-    sendStats('alive', sendStatsPrepareEntry(intent.entry));
-    leavePendingState();    
-    var terms = playingStreamKeyword(intent.entry), b = document.querySelector('.try-other');
-    if(b) {
-        jQuery(b)[terms ? 'show' : 'hide']()
-    }
+    setMediaTypeClass(intent.entry.mediaType||'video')
+    Menu.playState(true)
+    setStreamStateCache(intent.entry, true)
+    onIntentCommit(intent)
+    sendStats('alive', sendStatsPrepareEntry(intent.entry))
+    leavePendingState()
     intent.on('error', () => {
         console.error('Stream failure after commit', Playback.log())
     })
 })
 
 Playback.on('stop', () => {
+    setMediaTypeClass('')
     setTitleData(appName(), '')
-    Menu.playState(false);
+    Menu.playState(false)
     if(!Playback.intents.length){
         stop(true)
     }

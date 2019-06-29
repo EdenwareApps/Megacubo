@@ -95,9 +95,6 @@
 "LIST_ALREADY_ADDED": "Elenco già aggiunto.",
 "BEEN_WATCHED": "Canali guardati",
 "CANNOT_PAUSE": "Questo stream non può essere messo in pausa.",
-"FORCE_FFMPEG": "Uso forzato di FFMPEG",
-"QUICK_SEARCH": "Recherche rapide",
-"COMPLETE_SEARCH": "Recherche complète",
 "SHARED_LISTS": "Listes partagées",
 "SLOW": "Lent",
 "GENERATING_INDEX": "Génération de l'index",
@@ -231,6 +228,7 @@
 "LESS_THAN_A_HOUR": "Meno di un'ora",
 "SCHEDULING_RECORD_WARNING": "Attenzione! Il programma deve essere aperto o nella barra delle applicazioni in questa data e ora per poter eseguire automaticamente la registrazione.",
 "FORCE_TRANSCODE": "Forza transcodifica",
+"FORCE_TRANSCODE_BROADCAST": "Forza transcodifica questa trasmissione",
 "AWAITING_SCHEDULING": "{0} pianificazioni",
 "NONE_STREAM_WORKED": "Nessuna trasmissione trovata per {0}.",
 "X_OF_Y": "{0} di {1}",
@@ -391,5 +389,6 @@
 "SSL_VERIFY": "Verifica SSL",
 "RECORD_WITHIN_WEB_PAGES": "Registra entro pagine web (influisce prestazioni)",
 "TESTING": "Testing...",
-"TUNE_TIMEOUT": "Timeout di sintonizzazione"
+"TUNE_TIMEOUT": "Timeout di sintonizzazione",
+"NEXT": "Avanti"
 }

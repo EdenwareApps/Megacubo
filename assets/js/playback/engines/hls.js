@@ -18,8 +18,8 @@ class PlaybackHlsIntent extends PlaybackBaseIntent {
         } else {
             this.decoder = this.ffmpeg(this.entry.url)
             this.decoder.file = path.resolve(this.workDir + path.sep + this.uid + path.sep + 'output.m3u8')
-            this.streamURL = this.playback.proxyLocal.proxify(this.decoder.file)
             this.decoder.addOption('-hls_flags ' + (fs.existsSync(this.decoder.file) ? 'delete_segments+append_list' :  'delete_segments'))
+            this.streamURL = this.playback.proxyLocal.proxify(this.decoder.file)
             mkdirr(dirname(this.decoder.file))
             this.waiter = waitFileTimeout(this.decoder.file, (exists) => {
                 if(!this.ended && !this.error && !this.destroyed){
@@ -41,7 +41,7 @@ class PlaybackHlsIntent extends PlaybackBaseIntent {
             this.ping((result) => {
                 if(!this.error && !this.ended && !this.destroyed){
                     console.log('Content-Type', this.entry.url, result);
-                    if(this.validateContentType(result.type) && this.validateStatusCode(result.status)){
+                    if(result === true || (this.validateContentType(result.type) && this.validateStatusCode(result.status))){
                         this.confirm(true)
                     } else if(!this.started) {
                         console.error('Bad HTTP response for '+this.type, result);

@@ -20,7 +20,7 @@ class TSInfiniteProxy extends Events {
 			bufferSize: 0,
 			joinMethod: 2,
 			addNullPaddings: 1,
-			idleTimeout: 12000,
+			idleTimeout: 0,
 			needleSize: 36 * 1024,
 			intersectBufferSize: 12 * (1024 * 1024),
 			maxBufferSize: 28 * (1024 * 1024),
@@ -57,6 +57,7 @@ class TSInfiniteProxy extends Events {
 				}
 				return
 			}
+			this.clients.push(client)
 			this.connected++
 			clearTimeout(this.idleTimer)
             var closed, writer = new Writer(client), headers = { 
@@ -83,7 +84,14 @@ class TSInfiniteProxy extends Events {
 					return
 				}
 				this.connected--
-				if(!this.connected){
+				let i = this.clients.indexOf(client)
+				if(i != -1){
+					delete this.clients[i]
+					this.clients = this.clients.filter((item) => {
+						return item !== undefined
+					})
+				}
+				if(!this.connected && this.opts.idleTimeout){
 					if(this.debug){
 						console.warn('[ts] timeout start')
 					}
@@ -92,6 +100,7 @@ class TSInfiniteProxy extends Events {
 						if(this.debug){
 							console.warn('[ts] timeout')
 						}
+						this.emit('timeout', this.connected, this.clients.length)
 						this.destroy()
 					}, this.opts.idleTimeout)
 				}
@@ -298,6 +307,7 @@ class TSInfiniteProxy extends Events {
 		this.nullBuffer = new Buffer([0x00])
 	}
 	destroy(){
+		console.log('TSInfiniteProxy DESTROY', traceback())
 		if(this.debug){
 			console.log('[ts] destroy')
 		}

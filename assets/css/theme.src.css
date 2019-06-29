@@ -142,13 +142,13 @@ html .entry-label {
     margin-left: 6px;
 }
 
-html a.entry:focus, html a.entry.focused, html #vcontrols .focused, #menu-toggle.focused, .nw-cf-btn.focused {
+html a.entry:focus, html a.entry.focused, html #video-controls .focused, #menu-toggle.focused, .nw-cf-btn.focused {
     outline: 0 !important;
     box-shadow: 0px 0px 18px (font-color)(highlight-opacity-hex) !important;
     background: (font-color)(highlight-opacity-hex) !important;
 }
 
-#vcontrols a, .video-timer {
+#video-controls a, .video-timer {
     padding: 0 8px 0 8px;
     border-radius: 4px;
 }
@@ -211,7 +211,7 @@ html .entry td.entry-logo-c {
     top: -0.025em;
 }
 
-html #menu a.entry, #vcontrols {
+html #menu a.entry, #video-controls {
     height: calc((icon-size)px + (menu-entry-vertical-padding)px);
 }
 
@@ -238,7 +238,7 @@ html .entry-logo img {
     max-height: (icon-size)px;
 }
 
-html .entry-logo-fa, #vcontrols svg {
+html .entry-logo-fa, #video-controls svg {
     font-size: (icon-size)px;
     max-width: (icon-size)px;
     max-height: (icon-size)px;
@@ -272,14 +272,14 @@ body.has-menu-margin.show-menu:not(.auto-hide) #menu > div {
     top: calc((100% - 30px) * ((menu-margin) / 2));
 }
 
-body.has-menu-margin #vcontrols {
+body.has-menu-margin #video-controls {
     bottom: calc((100% - 30px) * ((menu-margin) / 2));
     left: calc((100vh - 30px) * ((menu-margin) / 2));
     max-width: calc(100% - (2 * ((100vh - 30px) * ((menu-margin) / 2))));
     border-radius: 4px;
 }
 
-body.has-menu-margin.show-menu:not(.miniplayer) #vcontrols {
+body.has-menu-margin.show-menu:not(.miniplayer) #video-controls {
     width: calc(100% - 34% - (3 * ((100vh - 30px) * ((menu-margin) / 2)))) !important;
 }
 
@@ -462,41 +462,47 @@ input[type=range]::-webkit-slider-thumb {
     width: 16px;
 }
 
-body.tuning #background-overlay .background-logo {
+body.tuning #background-overlay .background-logo, .spin-x {
     animation: (background-animation) 3s infinite;
+    transform-origin: center bottom 0px;
 }
 
-#vcontrols {
+.spin-x-alt {    
+    animation: bga-spin-x-alt 3s infinite;
+    display: inline-block;
+}
+
+#video-controls {
     background: (background-color-playing)(menu-opacity-hex);
     box-shadow: 0 3px 12px 12px (background-color-playing)(menu-opacity-hex);
     max-height: calc((icon-size)px + (menu-entry-vertical-padding)px); /* padding */
 }
 
-#vcontrols a, #vcontrols div {
+#video-controls a, #video-controls div {
     color: (font-color)aa; 
 }
 
-#vcontrols a:hover, #vcontrols a:hover svg {
+#video-controls a:hover, #video-controls a:hover svg {
     color: (font-color)ff; 
 }
 
-#vcontrols .video-scale svg, #vcontrols .video-scale i {
+#video-controls .video-scale svg, #video-controls .video-scale i {
     border: 1px solid (font-color)aa;
 }
 
-#vcontrols input[type=range] {
+#video-controls input[type=range] {
     background: (font-color)22 !important;
 }
 
-#vcontrols input[type=range]::-webkit-slider-thumb {
+#video-controls input[type=range]::-webkit-slider-thumb {
     background: (font-color)aa;
 }
 
-#vcontrols input[type='range']::-webkit-slider-thumb {
+#video-controls input[type='range']::-webkit-slider-thumb {
     box-shadow: -10000px 0 0 10000px (font-color)aa;
 }
 
-#vcontrols .video-scale {
+#video-controls .video-scale {
     border: 1px solid (font-color)aa;
     max-height: (icon-size)px;
 }

@@ -86,7 +86,9 @@ var useKioskForFullScreen = false;
 function escapePressed(){
     //win.leaveKioskMode();
     //win.leaveFullscreen();
-    if(Tuning.is(i => { return i.resultBufferSize != -1 })){ // stop only play intents tuning, not folder checkings
+    if(isModal()){
+        modalClose()
+    } else if(Tuning.is(i => { return i.resultBufferSize != -1 })){ // stop only play intents tuning, not folder checkings
         Tuning.stop(i => { return i.resultBufferSize != -1 })
     } else if(isFullScreen()) {
         setFullScreen(false)
@@ -840,7 +842,7 @@ function showInTray() {
 function closeToTray(keepPlayback) {
     if(!$tray || isMiniPlayerActive){
         if(keepPlayback !== true){
-            Playback.fullStop()
+            Playback.stopAll()
         }
         if(!$tray){
             showInTray()
@@ -977,11 +979,11 @@ function enterPendingState(title, notifyFlag, loadingUrl, ignoreStreamEntries) {
     } else {
         title = isPendingFlag + ' ' + title + '...'
     } 
-    //setTitleFlag('fa-circle-notch pulse-spin', title);
+    //setTitleFlag('fa-mega spin-x-alt', title);
     if(!pendingStateNotification){
-        pendingStateNotification = notify(title, 'fa-circle-notch pulse-spin', 'forever')
+        pendingStateNotification = notify(title, 'fa-mega spin-x-alt', 'forever')
     } else {
-        pendingStateNotification.update(title, 'fa-circle-notch pulse-spin', 'forever')
+        pendingStateNotification.update(title, 'fa-mega spin-x-alt', 'forever')
     }
     if(!wasPending){
         jQuery(document.querySelector('body')).addClass('tuning')
@@ -1321,9 +1323,6 @@ function fileToBase64(file, cb){
     })
 }
 
-var packageQueue = Store.get('packageQueue') || [];
-var packageQueueCurrent = Store.get('packageQueueCurrent') || 0;
-
 var isOver, mouseOutGraceTime = 4000, miniPlayerMouseOutTimer = 0, miniPlayerMouseHoverDelay = 0, _b = $body;
 var mouseMoveTimeout = () => {
     clearTimeout(miniPlayerMouseOutTimer);
@@ -1425,9 +1424,9 @@ function updateWindowOverClass(state) {
     if((b.hasClass('over') && state !== false) || state === true){
         var c = 'over', r = '', pl = !menuEntered && isOverPlayerControls();
         if(pl){
-            c += ' over-vcontrols';
+            c += ' over-video-controls';
         } else {
-            r += ' over-vcontrols';
+            r += ' over-video-controls';
         }
         if(!pl && isOverMenu()){
             // console.log('ZZZZ', 'menuEntered = true;');
@@ -1457,7 +1456,7 @@ function updateWindowOverClass(state) {
     } else {
         // console.log('ZZZZ', 'menuEntered = false;');
         menuEntered = false;
-        b.removeClass('over over-vcontrols over-menu')
+        b.removeClass('over over-video-controls over-menu')
     }
 }
 
@@ -1517,10 +1516,6 @@ function attachMouseObserver(win){
     }
 }
 
-function ptbTryOther(){
-    jQuery('.try-other')[(Playback.active && playingStreamKeyword(Playback.active))?'show':'hide']()
-}
-
 $body.on('mouseenter mousemove', () => {
     isOver = true;
     if(!top.isFullScreen()){
@@ -1562,7 +1557,7 @@ function detectKeys(currentKey, currentAction, cb){
 }
 
 function hideSeekbar(state){
-    var e = jQuery('#vcontrols .video-seek input')
+    var e = jQuery('#video-controls .video-seek input')
     if(state){
         e.hide()
     } else {
@@ -1590,10 +1585,6 @@ function setHasMenuMargin(state){
 }
 
 $win.on('restore', restoreInitialSize);
-$win.on('unload', function (){
-    Store.set('packageQueue', packageQueue, true)
-    Store.set('packageQueueCurrent', packageQueueCurrent, true)
-})
 
 function applyResolutionLimit(x, y){
     console.warn('RESIZERR', x, y);
@@ -1631,7 +1622,6 @@ function applyResolutionLimit(x, y){
 var miniPlayerWidthTrigger = 400, miniPlayerHeightTriggerMinLimit = 380;
 
 jQuery(() => {
-    Playback.on('commit', ptbTryOther);
     Playback.on('commit', leavePendingState);
     var jDoc = jQuery(document), els = jDoc.add('html, body');
     var r = () => {
@@ -1673,25 +1663,28 @@ jQuery(() => {
     console.log('FINE HERE', traceback())
     var recordingJournal = [], recordingJournalLimit = 8;
     addAction('media-save', (url, content, type) => { // prepare and remove dups from recording journal
-        if(typeof(content) != 'undefined' && shouldCapture()){
-            var length, filePath = null;
-            console.log('recording, media received', typeof(content));
+        if(typeof(content) != 'undefined' && Playback.active && shouldCapture()){
+            var length, filePath = null
+            console.log('recording, media received', typeof(content), url)
             if(typeof(content)=='object' && typeof(content.base64Encoded)!='undefined' && content.base64Encoded){ // from chrome.debugger
-                console.log('recording, media received', typeof(content));
-                if(['html', 'ts'].indexOf(Playback.active.type) == -1){ // only in frame intent we receive from chrome.debugger now
-                    console.log('recording, media received', typeof(content));
-                    return;
+                console.log('recording, media received', typeof(content))
+                if(['html'].indexOf(Playback.active.type) == -1){ // only in frame intent we receive from chrome.debugger now
+                    console.log('recording, media received', typeof(content))
+                    return
                 }
-                content = Buffer.from(content.body, 'base64');
-                length = content.byteLength; 
+                content = Buffer.from(content.body, 'base64')
+                length = content.byteLength
             } else if(type == 'path'){ // so content is a path, not a buffer
-                filePath = content;
-                length = fs.statSync(filePath).size; 
+                filePath = content
+                length = fs.statSync(filePath).size
             } else {
-                length = (typeof(content)=='string') ? content.length : content.byteLength; 
+                length = (typeof(content)=='string') ? content.length : content.byteLength
+            }
+            if(Playback.active.decoder && type != 'path'){ // local only so
+                return
             }
             if(length < 2048) { // discard empty media and most playlists
-                console.warn('Empty media skipped.', length)
+                console.warn('Empty media skipped.', length, content, traceback())
                 return
             }
             for(var key in recordingJournal){
@@ -1709,7 +1702,8 @@ jQuery(() => {
             if(['ts', 'mpg', 'webm', 'ogv', 'mpeg', 'mp4'].indexOf(ext) == -1){
                 ext = 'mp4';
             }
-            var file = path.resolve(capturingFolder + '/' + time() + '.' + ext)
+            var file = path.resolve(capturingFolder + '/' + (basename(filePath || url, true) || time()) + '.' + ext)
+            console.log('recording journal add', file)
             recordingJournal[file] = length;
             recordingJournal = sliceObject(recordingJournal, recordingJournalLimit * -1);
             var cb = (err) => {
@@ -2049,7 +2043,7 @@ addAction('appLoad', () => {
         ['menu-trigger', '#menu-trigger', () => { 
             return !Pointer.body.hasClass('modal') && !Menu.isVisible() 
         }],
-        ['player', '#vcontrols a:visible', () => { 
+        ['player', '#video-controls a:visible', () => { 
             return !Pointer.body.hasClass('modal') && Playback.active 
         }]
     ].forEach((args) => {
@@ -2452,7 +2446,7 @@ function tuneNPlay(entries, name, originalUrl, _cb, type, keepOrder){ // entries
         } else {
             leavePendingState(true)
             console.warn('tune() success', entry, types)
-            playEntry(entry, types, tuning)
+            playEntry(entry, {tested: true, pinged: true}, types, tuning)
         }
     }, type, keepOrder, (percent, x, y) => {
         if(isPending){
@@ -2479,6 +2473,7 @@ function tuneNFlag(mega, type, cb, progress){ // entries can be a string search 
     console.log('TUNE ENTRIES 2', entries)
     var tuning = new Tuner(entries, mega, 'all')
     tuning.resultBufferSize = -1
+    tuning.skipPlaybackTest = true
     tuning.on('failure', (e) => {
         setStreamStateCache(e, false)
     })
@@ -2534,43 +2529,52 @@ function alternateStream(intent, cb, doSearch){
         intent = (Playback.active || Playback.lastActive || History.get(0))
     }
     console.warn('SWITCHPLAYINGX', intent, Playback.active, Playback.lastActive, History.get(0))
-    if(intent && intent.tuning){
-        let tuning = Tuning.get.apply(Tuning, intent.tuning)
-        if(tuning){
-            stop()
+    if(intent){
+        if(intent.tuning){
             let tuning = Tuning.get.apply(Tuning, intent.tuning)
-            console.warn('ACBR RESULTS', tuning)
-            tuning.removeAllListeners()
-            tuning.suspend()
-            let kw = playingStreamKeyword(intent.entry) || intent.entry.name, fmtName = ucNameFix(decodeURIComponent(kw) || kw), step = (percent, x, y) => {
-                enterPendingState(fmtName + ' (' + Lang.X_OF_Y.format(x, y)+')', Lang.TUNING, tuning.originalUrl, true)
-            }
-            step(null, tuning.complete, tuning.entries.length)
-            console.warn('ACBR RESULTS FETCH', intent.entry)
-            tuning.on('progress', step)
-            tuning.on('suspend', () => {
-                console.warn('ACBR RESULTS CANCEL')
-                leavePendingState(false)
-            })
-            tuning.next((entry, types) => {
-                console.warn('ACBR RESULTS CATCH', entry, types)
+            if(tuning){
+                stop()
+                let tuning = Tuning.get.apply(Tuning, intent.tuning)
+                console.warn('ACBR RESULTS', tuning)
                 tuning.removeAllListeners()
-                if(entry){
-                    playEntry(entry, types, tuning, (err) => {
-                        if(err){
-                            alternateStream(intent, cb, doSearch)
-                        } else {
-                            if(typeof(cb) == 'function'){
-                                cb(null, entry)
-                            }
-                        }
-                    })
-                } else {
-                    leavePendingState(false)
-                    notify(Lang.NONE_STREAM_WORKED.format(fmtName), 'fa-exclamation-circle faclr-red', 'normal')
+                tuning.suspend()
+                let kw = playingStreamKeyword(intent.entry) || intent.entry.name, fmtName = ucNameFix(decodeURIComponent(kw) || kw), step = (percent, x, y) => {
+                    enterPendingState(fmtName + ' (' + Lang.X_OF_Y.format(x, y)+')', Lang.TUNING, tuning.originalUrl, true)
                 }
-            })
-            return true
+                step(null, tuning.complete, tuning.entries.length)
+                console.warn('ACBR RESULTS FETCH', intent.entry)
+                tuning.on('progress', step)
+                tuning.on('suspend', () => {
+                    console.warn('ACBR RESULTS CANCEL')
+                    leavePendingState(false)
+                })
+                tuning.next((entry, types) => {
+                    console.warn('ACBR RESULTS CATCH', entry, types)
+                    tuning.removeAllListeners()
+                    if(entry){
+                        playEntry(entry, {
+                            tested: true, 
+                            pinged: true
+                        }, types, tuning, (err) => {
+                            if(err){
+                                alternateStream(intent, cb, doSearch)
+                            } else {
+                                if(typeof(cb) == 'function'){
+                                    cb(null, entry)
+                                }
+                            }
+                        })
+                    } else if(tuning.rewind()) {
+                        alternateStream(intent, cb, doSearch)
+                    } else {
+                        leavePendingState(false)
+                        notify(Lang.NONE_STREAM_WORKED.format(fmtName), 'fa-exclamation-circle faclr-red', 'normal')
+                    }
+                })
+                return true
+            }
+        } else {
+            goSearch(playingStreamKeyword(intent.entry) || intent.entry.name, intent.entry.mediaType, Menu.path)
         }
     }
 }
@@ -2580,33 +2584,33 @@ function playingStreamKeyword(entry){
         entry = entry.entry
     }
     if(entry){
-        var megaUrl = entry.originalUrl;
+        var megaUrl = entry.originalUrl
         if(isMegaURL(megaUrl)){
-            var parts = parseMegaURL(megaUrl);
+            var parts = parseMegaURL(megaUrl)
             if(parts && parts.name){
-                return parts.name;
+                return parts.name
             }
         }
-        return searchTermFromEntry(entry);
+        return searchTermFromEntry(entry)
     }
-    return false;
+    return false
 }
 
 function searchTermFromEntry(entry){
-    var term = false;
+    var term = false
     searchSuggestions.forEach((t) => {
         if(typeof(entry.name)=='string' && entry.name.toLowerCase().indexOf(t.search_term)!=-1){
 			if(!term || term.length < t.search_term.length){
-            	term = t.search_term;
+            	term = t.search_term
             }
         }
-    });
-    return term;
+    })
+    return term
 }
 
 function adjustMainCategoriesEntry(entry, type){
     if(entry.type != 'stream' || (entry.class && entry.class.indexOf('entry-no-wrap') != -1)){
-        return entry;
+        return entry
     }    
     
     //console.warn('CONTINUE', entry.logo, showLogos);
@@ -2655,24 +2659,27 @@ function adjustMainCategoriesEntry(entry, type){
             } else if(isMegaURL(data.url)){
                 megaUrl = data.url
             }
-            var isPlayingSame = false
-            if(Playback.active){
-                isPlayingSame = compareMegaURLs(megaUrl, Playback.active.entry.originalUrl || Playback.active.entry.url)
-                if(!isPlayingSame){
-                    isPlayingSame = entries.some(e => {
-                        return e.url == Playback.active.entry.url
-                    })
+            var isPlayingSame = () => {
+                let ret = false
+                if(Playback.active){
+                    ret = compareMegaURLs(megaUrl, Playback.active.entry.originalUrl || Playback.active.entry.url)
+                    if(!ret){
+                        ret = entries.some(e => {
+                            return e.url == Playback.active.entry.url
+                        })
+                    }
                 }
+                return ret
             }
             //console.warn('isPlayingSame', Playback.active ? Playback.active.entry.originalUrl.toLowerCase() : '-', megaUrl.toLowerCase());
             var logo = showLogos ? entry.logo || pickLogoFromEntries(entries) : '';
             var metaEntries = [
                 {type: 'stream', class: 'entry-vary-play-state entry-no-wrap', name: data.name, logo: logo, 
-                    label: isPlayingSame ? Lang.TRY_OTHER_STREAM : Lang.AUTO_TUNING, 
+                    label: isPlayingSame() ? Lang.TRY_OTHER_STREAM : Lang.AUTO_TUNING, 
                     url: megaUrl, 
                     callback: () => {
                         let hr
-                        if(isPlayingSame){
+                        if(isPlayingSame()){
                             hr = alternateStream()
                         }
                         if(!hr){
@@ -2682,16 +2689,17 @@ function adjustMainCategoriesEntry(entry, type){
                 },
                 {type: 'group', label: Lang.MANUAL_TUNING, name: sbname, logo: 'fa-list', path: assumePath(sbname), entries: [], renderer: () => {
                     entries = entries.map((entry) => { 
-                        entry.originalUrl = megaUrl;
+                        entry.originalUrl = megaUrl
                         if(!entry.logo){
-                            entry.logo = logo;
+                            entry.logo = logo
                         }
-                        return entry; 
-                    });
-                    return entries;
+                        return entry
+                    })
+                    entries.unshift(getTuningEntry())
+                    return entries
                 }}
             ]
-            if(isPlayingSame){
+            if(isPlayingSame()){
                 metaEntries = applyFilters('playingMetaEntries', metaEntries);
                 metaEntries.push({name: Lang.WINDOW, logo:'fa-window-maximize', type: 'group', renderer: () => { return getWindowModeEntries(true) }, entries: []})
             }
@@ -2998,17 +3006,18 @@ function timeFormat(secs){
 
 var isReloading = false;
 function stop(skipPlayback, isInternal){
+    console.log('STOP', traceback())
     showPlayers(false, false)
     if(Playback.active || Playback.isLoading()){
         Playback.unbind(Playback.active)
         console.log('STOP', traceback())
         if(skipPlayback !== true){
-            Playback.fullStop()
+            Playback.stopAll()
         }
         doAction('stop')
     }
     Playback.setState('stop')
-    console.warn('REMOVEPAUSED', traceback())
+    setTitleData(appName(), '')
     setTimeout(() => {
         updateStreamEntriesFlags() // on unload => Uncaught TypeError: c.updateStreamEntriesFlags is not a function
     }, 200)
@@ -3140,7 +3149,11 @@ var History = (() => {
         nentry.class = '';
         if(typeof(nentry.originalUrl) == 'string'){
             if(nentry.originalUrl.indexOf('/') != -1 && (!isMegaURL(nentry.originalUrl) || isValidMegaURL(nentry.originalUrl))){
-                nentry.url = nentry.originalUrl; // ignore the runtime changes in URL
+                nentry.url = nentry.originalUrl // ignore the runtime changes in URL
+                let data = parseMegaURL(nentry.url)
+                if(data && data.name){
+                    nentry.name = nentry.rawname = data.name
+                }
             }
         }
         if(typeof(nentry.type)!='undefined'){
@@ -3218,9 +3231,15 @@ var Bookmarks = (() => {
         }
     }
     self.add = (entry) => {
-        let nentry = Object.assign({}, entry);
-        if(nentry.originalUrl && nentry.originalUrl != nentry.url){
-            nentry.url = nentry.originalUrl;
+        let nentry = Object.assign({}, entry)
+        if(typeof(nentry.originalUrl) == 'string'){
+            if(nentry.originalUrl.indexOf('/') != -1 && (!isMegaURL(nentry.originalUrl) || isValidMegaURL(nentry.originalUrl))){
+                nentry.url = nentry.originalUrl // ignore the runtime changes in URL
+                let data = parseMegaURL(nentry.url)
+                if(data && data.name){
+                    nentry.name = nentry.rawname = data.name
+                }
+            }
         }
         for(var i in self.data){
             if(self.data[i].url == nentry.url){
@@ -3294,7 +3313,7 @@ var Controls = (() => {
     self.muteLock = false;
     self.video = null;
     self.events = {}
-    self.box = jQuery('#vcontrols')
+    self.box = jQuery('#video-controls')
     self.bindings = [
         ['timeupdate', () => {
             // console.warn("TIMEUPDATE");
@@ -3330,32 +3349,32 @@ var Controls = (() => {
     self.prepare = () => {
         if(!self.prepared){
             self.prepared = true;
-            self.volumeButton = self.box.find('a.volume-button');
-            self.muteButton = self.volumeButton.find('svg.fa-volume-up');
-            self.unmuteButton = self.volumeButton.find('svg.fa-volume-off');
-            self.volumeSlider = self.box.find('.volume-slider input');
-            self.switchButton = self.box.find('.video-switch');
-            self.seekSlider = self.box.find('.video-seek input');
-            self.playPauseContainer = self.box.find('.video-play');
-            self.fsButton = self.box.find('.video-fullscreen');
-            self.reloadButton = self.box.find('.video-reload');
-            self.scaleButton = self.box.find('.video-scale');
-            self.stopButton = self.box.find('.video-stop');
-            self.playButton = self.playPauseContainer.find('svg.fa-play');
-            self.pauseButton = self.playPauseContainer.find('svg.fa-pause');
-            self.videoTimer = self.box.find('.video-timer');
-            self.volumeSlider.attr('title', Lang.VOLUME);
-            self.playPauseContainer.off('click').on('click', self.togglePlayback).attr('title', Lang.PLAY + '/' + Lang.PAUSE);
-            self.volumeButton.off('click').on('click', self.toggleMute).attr('title', Lang.VOLUME);
-            self.reloadButton.off('click').on('click', goReload).attr('title', Lang.RELOAD);
-            self.scaleButton.off('click').on('click', changeScaleMode).attr('title', Lang.ASPECT_RATIO);
-            self.stopButton.off('click').on('click', stop).attr('title', Lang.STOP);
-            self.fsButton.off('click').on('click', toggleFullScreen).attr('title', Lang.FULLSCREEN);
+            self.volumeButton = self.box.find('a.volume-button')
+            self.muteButton = self.volumeButton.find('svg.fa-volume-up')
+            self.unmuteButton = self.volumeButton.find('svg.fa-volume-off')
+            self.volumeSlider = self.box.find('.volume-slider input')
+            self.switchButton = self.box.find('.video-switch')
+            self.seekSlider = self.box.find('.video-seek input')
+            self.playPauseContainer = self.box.find('.video-play')
+            self.fsButton = self.box.find('.video-fullscreen')
+            self.reloadButton = self.box.find('.video-reload')
+            self.scaleButton = self.box.find('.video-scale')
+            self.stopButton = self.box.find('.video-stop')
+            self.playButton = self.playPauseContainer.find('svg.fa-play')
+            self.pauseButton = self.playPauseContainer.find('svg.fa-pause')
+            self.videoTimer = self.box.find('.video-timer')
+            self.volumeSlider.attr('title', Lang.VOLUME)
+            self.playPauseContainer.off('click').on('click', self.togglePlayback).attr('title', Lang.PLAY + '/' + Lang.PAUSE)
+            self.volumeButton.off('click').on('click', self.toggleMute).attr('title', Lang.VOLUME)
+            self.reloadButton.off('click').on('click', goReload).attr('title', Lang.RELOAD)
+            self.scaleButton.off('click').on('click', changeScaleMode).attr('title', Lang.ASPECT_RATIO)
+            self.stopButton.off('click').on('click', stop).attr('title', Lang.STOP)
+            self.fsButton.off('click').on('click', toggleFullScreen).attr('title', Lang.FULLSCREEN)
             self.switchButton.off('click').on('click', () => { 
-                if(!alternateStream(false, false, false)){
-                    goReload()
-                }
-            }).attr('title', Lang.NOT_WORKED + ' - ' + Lang.TRY_OTHER_STREAM);
+                continuePlayback(Playback.active, false)
+            })
+            self.switchButton.find('.fa-random').attr('title', Lang.NOT_WORKED + ' - ' + Lang.TRY_OTHER_STREAM)
+            self.switchButton.find('.fa-step-forward').attr('title', Lang.NEXT)
             self.seekSlider.val(0).off('change input').on('change input', self.seekCallback)
             self.volumeSlider.off('change input').on('change input', self.volumeCallback)
             var as = self.box.find('a');
@@ -3429,7 +3448,7 @@ var Controls = (() => {
                 })                
             })
             if(self.video.paused){
-                self.jvideo.triggerHandler('pause');
+                self.jvideo.triggerHandler('pause')
             } else {
                 self.jvideo.triggerHandler('playing')
             }
@@ -3439,9 +3458,14 @@ var Controls = (() => {
     }
     self.unbind = () => {
         if(self.jvideo){
-            self.video = self.jvideo = null;
+            self.bindings.forEach((binding, i) => {
+                self.bindings[i][0].split(' ').forEach(type => {
+                    self.jvideo.off(type, self.bindings[i][1])
+                })                
+            })
+            self.video = self.jvideo = null
+            self.seekSlider.val(0)
         }
-        self.seekSlider.val(0)
     }
     self.play = () => {
         if(self.video){

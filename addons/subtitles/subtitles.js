@@ -168,7 +168,7 @@ function setVideoSubtitle(vttb64, url, locale, video){
 
 function setupSubtitle(data){
     if(Playback.active){
-        setActiveEntry({url: data.url}, 'fa-circle-notch pulse-spin', false)
+        setActiveEntry({url: data.url}, 'fa-mega spin-x-alt', false)
         subtitlesNotification.update(Lang.SUBTITLE_APPLYNG, subtitlesIcon, 'forever')
         request({
             url: data.url,

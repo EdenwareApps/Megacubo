@@ -1,5 +1,5 @@
 
-const TSPool = new TSInfiniteProxyPool(prepareRequestForever())
+const TSPool = new TSInfiniteProxyPool(requestForever)
 
 class PlaybackTsIntent extends PlaybackTranscodeIntent {  
     constructor(entry, options){
@@ -50,6 +50,9 @@ class PlaybackTsIntent extends PlaybackTranscodeIntent {
                 if(!this.ended && !this.error && !this.destroyed){
                     if(exists){
                         console.log('M3U8 file created.')
+                        if(this.proxy){
+                            this.proxy.opts.idleTimeout = 30000
+                        }
                         this.start(true)
                     } else {
                         console.error('M3U8 file creation timeout.');
@@ -68,6 +71,9 @@ class PlaybackTsIntent extends PlaybackTranscodeIntent {
                 process.nextTick(() => {
                     this.confirm()
                 })
+            })
+            this.proxy.on('timeout', (...args) => {
+                console.warn('TIMEOUTT', JSON.stringify(args))
             })
             this.proxy.on('destroy', () => {
                 if(!this.error && !this.destroyed){

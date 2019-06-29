@@ -7,6 +7,7 @@
         <link rel="stylesheet" type="text/css" href="assets/css/global.css" />
         <link rel="stylesheet" type="text/css" href="assets/css/index.css" />
 		<link rel="stylesheet" type="text/css" href="assets/css/controls.css" />
+		<link rel="stylesheet" type="text/css" href="assets/fonts/megacubo/style.css" />
 		<style type="text/css">
 			html {
 				overflow: hidden;
@@ -27,7 +28,7 @@
 				if(!ok){
 					nw.App.closeAllWindows()
 				}
-				return ok;
+				return ok
 			}
 			document.title = nw.App.manifest.window.title;
 			function traceback() { 
@@ -88,7 +89,7 @@
 		<div id="background-overlay" class="fit-screen splash">
 			<progress id='loader' max='100' value='100'></progress>
 			<div id="splash-message">
-				<i class="fas fa-circle-notch pulse-spin"></i>
+				<i class="fa-mega spin-x-alt"></i>
 				<span></span>
 			</div>
 		</div>
@@ -118,7 +119,7 @@
 		<iframe id="player" class="fit-player hide" height="100%" frameborder="0" scrolling="no" src="/player.html" allowfullscreen></iframe>
 		<iframe id="detect-keys" class="fit-screen" height="100%" frameborder="0" scrolling="no" src="/detect-keys.html" style="display: none; z-index: 2147483647;"></iframe>
 		<iframe id="check-health" class="fit-screen" height="100%" frameborder="0" scrolling="no" src="/check-health.html" style="display: none; z-index: 2147483647;"></iframe>
-		<div id="vcontrols" class="vcontrols fit-player-min">
+		<div id="video-controls" class="video-controls fit-player-min">
 			<a href="javascript:;" class="video-play">
 				<i class="fas fa-play"></i>
 				<i class="fas fa-pause"></i>
@@ -131,7 +132,7 @@
 			</a>
 			<div class="video-timer">00:00</div>
 			<div class="video-seek">
-				<input type ="range" min ="1" max="100" step ="1" value ="100"/>
+				<input type ="range" min ="1" max="100" step ="1" value ="0"/>
 			</div>
 			<div class="volume-box">
 				<a href="javascript:;" class="volume-button">
@@ -142,8 +143,9 @@
 					<input type ="range" min ="1" max="100" step ="1" value ="100"/>
 				</div>
 			</div>
-			<a href="javascript:;" class="video-switch try-other">
+			<a href="javascript:;" class="video-switch">
 				<i class="fas fa-random"></i>
+				<i class="fas fa-step-forward"></i>
 			</a>
 			<a href="javascript:;" class="video-scale">
 				&nbsp;
@@ -154,7 +156,7 @@
 		</div>
 		<div id="player-status" class="fit-player">
 			<div class="fac fac-loading">
-				<i class="fas fa-circle-notch pulse-spin"></i>
+				<i class="fa-mega spin-x-alt"></i>
 			</div>
 			<div class="fac fac-paused">
 				<i class="fas fa-play"></i>

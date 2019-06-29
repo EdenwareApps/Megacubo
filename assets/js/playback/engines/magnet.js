@@ -177,7 +177,7 @@ class PlaybackMagnetIntent extends PlaybackBaseIntent {
                     var complete = p >= 100
                     torrentsNotification.update(
                         complete ? Lang.COMPLETE : (Lang.RECEIVING+': '+ Math.round(p, 2) +'% &middot; '+ formatBytes(this.peerflix.swarm.downloadSpeed())+'/s'), 
-                        (this.playbackStarted || complete) ? 'fa-magnet' : 'fa-circle-notch pulse-spin'
+                        (this.playbackStarted || complete) ? 'fa-magnet' : 'fa-mega spin-x-alt'
                     )
                     updateTorrentsListingState(this.entry.url, p)
                 }            
@@ -269,7 +269,7 @@ class PlaybackMagnetIntent extends PlaybackBaseIntent {
     run(){
         if(Config.get('p2p')){
             console.log('run() called')
-            torrentsNotification.update(Lang.SEARCHING_PEERS, 'fa-circle-notch pulse-spin', 'wait')
+            torrentsNotification.update(Lang.SEARCHING_PEERS, 'fa-mega spin-x-alt', 'wait')
             this.setTimeout(600)
             if(typeof(peerflix)=='undefined'){
                 window.peerflix = require('peerflix')

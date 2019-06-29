@@ -941,6 +941,7 @@ function getTranscodeEntries(){
             opts.push({
                 name: 'Audio',
                 type: 'check',
+                class: 'entry-vary-play-state',
                 checked: () => {
                     active = Playback.active || Playback.lastActive
                     return active.audioCodec != 'copy'
@@ -954,6 +955,7 @@ function getTranscodeEntries(){
             opts.push({
                 name: 'Video',
                 type: 'check',
+                class: 'entry-vary-play-state',
                 checked: () => {
                     active = Playback.active || Playback.lastActive
                     return active.videoCodec != 'copy'
@@ -969,6 +971,7 @@ function getTranscodeEntries(){
                 name: Lang.PLAYBACK_UNSUPPORTED_STREAM,
                 logo: 'fa-ban',
                 type: 'option',
+                class: 'entry-vary-play-state',
                 callback: jQuery.noop
             })
         }
@@ -977,6 +980,7 @@ function getTranscodeEntries(){
             name: Lang.START_PLAYBACK_FIRST,
             logo: 'fa-ban',
             type: 'option',
+            class: 'entry-vary-play-state',
             callback: jQuery.noop
         })
     }
@@ -1155,7 +1159,7 @@ function getSettingsEntries(){
                     return Config.get('autofit')
                 }
             },  
-            {name: Lang.FORCE_TRANSCODE, logo: 'fa-cogs', type: 'group', renderer: getTranscodeEntries}
+            {name: Lang.FORCE_TRANSCODE_BROADCAST, logo: 'fa-cogs', type: 'group', renderer: getTranscodeEntries}
         ]},
         {name: Lang.TUNE, logo: 'fas fa-satellite-dish', type: 'group', entries: [
             {name: Lang.P2P_ACCELERATION, label: '&nbsp;', type: 'check', class: 'entry-allow-p2p', check: (checked) => {
@@ -1171,9 +1175,10 @@ function getSettingsEntries(){
                 return Config.get('play-while-tuning')
             }},
             {name: Lang.IGNORE_WEB_PAGES, type: 'check', check: (checked) => {
-                Config.set('ignore-webpage-streams', checked)
+                Config.set('tuning-ignore-webpages', checked)
+                Tuning.destroyAll()
             }, checked: () => {
-                return Config.get('ignore-webpage-streams')
+                return Config.get('tuning-ignore-webpages')
             }},
             {name: Lang.SEARCH_RANGE, logo: 'fa-search', type: 'group', renderer: getSearchRangeEntries, entries: [], callback: () => {
                 setActiveEntry({

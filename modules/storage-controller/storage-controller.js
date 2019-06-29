@@ -86,7 +86,7 @@ class StorageController {
 			}
 			let buf = JSON.stringify({data: val, expires: this.time() + expiration})
 			fs.writeFileSync(f, buf, "utf8")
-			if(buf.length < this.cacheMemSizeLimit){
+			if(buf.length < this.cacheMemSizeLimit && expiration > (24 * 3600)){
 				this.cache[key] = val
 			}
 		} catch(e){

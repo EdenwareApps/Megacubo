@@ -95,9 +95,6 @@
 "LIST_ALREADY_ADDED": "This list is already added.",
 "BEEN_WATCHED": "Being watched",
 "CANNOT_PAUSE": "Cannot pause this broadcast.",
-"FORCE_FFMPEG": "Force FFMPEG usage",
-"QUICK_SEARCH": "Quick Search",
-"COMPLETE_SEARCH": "Complete Search", 
 "SHARED_LISTS": "Shared lists",
 "SLOW": "Slow",
 "GENERATING_INDEX": "Generating index",
@@ -232,6 +229,7 @@
 "LESS_THAN_A_HOUR": "Less than one hour",
 "SCHEDULING_RECORD_WARNING": "Attention! The program must be open or in the system tray at this date and time to be able to perform the recording automatically.",
 "FORCE_TRANSCODE": "Force transcode",
+"FORCE_TRANSCODE_BROADCAST": "Force transcode on this broadcast",
 "AWAITING_SCHEDULING": "{0} schedules",
 "NONE_STREAM_WORKED": "No active transmission found for {0}.",
 "X_OF_Y": "{0} of {1}",
@@ -392,5 +390,6 @@
 "SSL_VERIFY": "SSL Verification",
 "RECORD_WITHIN_WEB_PAGES": "Record within web pages (affects performance)",
 "TESTING": "Testing...",
-"TUNE_TIMEOUT": "Tuning timeout"
+"TUNE_TIMEOUT": "Tuning timeout",
+"NEXT": "Next"
 }

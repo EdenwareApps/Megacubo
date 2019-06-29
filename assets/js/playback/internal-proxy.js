@@ -76,7 +76,7 @@ Playback.proxy = ((parent) => { // handle http / p2p with original url
                 if(self.debug){
                     self.log('serving', domain, port)            
                 }
-                let allowP2P = self.parent.active && self.parent.active.type != 'ts' && !self.parent.query({started: false, ended: false, error: false}).length && Config.get('p2p') && !Tuning.active()
+                let allowP2P = self.parent.active && self.parent.active.type == 'hls' && !self.parent.query({started: false, ended: false, error: false}).length && Config.get('p2p') && !Tuning.active()
                 if(['127.0.0.1', 'localhost'].indexOf(domain) != -1 && port == 80){
                     let localPath  = url.replace(new RegExp('^.*//[^/]+/?'), '')
                     if(self.debug){
@@ -119,7 +119,6 @@ Playback.proxy = ((parent) => { // handle http / p2p with original url
                             response.end()
                         } else {
                             buffer = bufferize(buffer)
-                            doAction('media-save', url, buffer, 'content')
                             if(self.debug){
                                 self.log('responding', buffer.byteLength, location)
                             }
@@ -131,8 +130,8 @@ Playback.proxy = ((parent) => { // handle http / p2p with original url
                             } else {
                                 response.writeHead(200, {
                                     "Access-Control-Allow-Origin": "*",
-                                    "Content-Type": type,
-                                    "Content-Length": Buffer.byteLength(buffer, 'utf-8')
+                                    "Content-Type": type
+                                    //, "Content-Length": Buffer.byteLength(buffer, 'binary')
                                 })
                             }
                             response.end(buffer, 'binary')
@@ -140,10 +139,10 @@ Playback.proxy = ((parent) => { // handle http / p2p with original url
                         if(self.debug){
                             self.log('fine.')
                         }
-                        buffer = null;
+                        // buffer = null
                     })
                 } else if(ext == 'm3u8') {
-                    var retries = 5, headers = req.headers, finalUrl = url
+                    var retries = 3, headers = req.headers, finalUrl = url
                     headers.host = domain
                     if(self.debug){
                         self.log('open', url, req, ext)
@@ -159,11 +158,15 @@ Playback.proxy = ((parent) => { // handle http / p2p with original url
                             followRedirect: false,
                             ttl: 2000
                         }, (error, res, body) => {
-                            let hs, code
+                            let hs, code, delay = 100
                             if(retries && res && [502, 401, 403].indexOf(res.statusCode) != -1){
                                 retries--
                                 console.warn('Connection error, delaying ', req.headers, res ? res.statusCode : -1, retries)
-                                return setTimeout(go, res.statusCode == 403 ? 3000 : 100)
+                                if(res.statusCode == 403){
+                                    delay = 5000
+                                    req.headers['connection'] = 'close'
+                                }
+                                return setTimeout(go, delay)
                             }
                             if(retries && res && res.headers){
                                 hs = res.headers
@@ -258,7 +261,7 @@ Playback.proxy = ((parent) => { // handle http / p2p with original url
     self.init = () => {
         self.started = true;
         self.listen()
-        self.request = prepareRequestForever()
+        self.request = requestForever
     }
     self.isSupported = (url) => {
         return url && url.indexOf('//') != -1 && url.indexOf('//127.0.0.1/') == -1 && url.indexOf('//127.0.0.1:') == -1 && ['m3u8', 'mp4'].indexOf(getExt(url)) != -1
@@ -348,6 +351,7 @@ Playback.proxyLow = ((parent) => { // handle low level connection from http mana
                 if(self.debug){
                     self.log('serving', url)
                 }
+                let saving = []
                 let domain = getDomain(url)
                 let port = url.match(new RegExp(':([0-9]+)'))
                 port = port ? parseInt(port[1]) : 80   
@@ -368,10 +372,18 @@ Playback.proxyLow = ((parent) => { // handle low level connection from http mana
                     r.abort()
                     response.end()
                 })
+                if(isTS(url)){
+                    r.on("data", chunk => {
+                        saving.push(chunk)
+                    })
+                }
                 r.on("response", res => {
                     hasErr = false
                     if(self.debug){
                         self.log('response', res)
+                    }
+                    if(typeof(res.headers['content-length']) != 'undefined'){
+                        delete res.headers['content-length']
                     }
                     res.headers['access-control-allow-origin'] = '*'
                     response.writeHead(res.statusCode, res.headers)
@@ -392,6 +404,9 @@ Playback.proxyLow = ((parent) => { // handle low level connection from http mana
                         } catch(e) { }
                         response.end()
                     }
+                    if(saving.length){
+                        doAction('media-save', url, Buffer.concat(saving), 'content')
+                    }
                 })      
                 r.pipe(response)
             }).listen(self.port, self.addr)
@@ -400,7 +415,7 @@ Playback.proxyLow = ((parent) => { // handle low level connection from http mana
     self.init = () => {
         self.started = true;
         self.listen()
-        self.request = prepareRequestForever()
+        self.request = requestForever
     }
     self.isSupported = (url) => {
         return url && url.indexOf('//') != -1 && url.indexOf('//127.0.0.1/') == -1 && ['m3u8', 'mp4'].indexOf(getExt(url)) != -1
@@ -485,7 +500,10 @@ Playback.proxyLocal = ((parent) => { // http'ize local files from ffmpeg output
                     return
                 }   
                 response.writeHead(200)
-                fs.createReadStream(file).pipe(response)
+                fs.createReadStream(file).pipe(response)          
+                if(isTS(req.url)){
+                    doAction('media-save', req.url, file, 'path')
+                }
             })
         }).listen(self.port)
     }
@@ -515,7 +533,7 @@ Playback.proxyLocal = ((parent) => { // http'ize local files from ffmpeg output
             if(url.indexOf('&') != -1 && url.indexOf(';') != -1){
                 url = decodeEntities(url)
             }
-            url = self.folder + path.sep + url
+            url = path.resolve(self.folder + path.sep + url)
         }
         return url
     }

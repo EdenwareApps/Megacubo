@@ -1,6 +1,7 @@
 
 const Tuning = (() => {
     var self = {
+        verbose: false, 
         instances: [],
         types: {
             'live': ['hls', 'ts', 'rtp'],
@@ -73,10 +74,17 @@ const Tuning = (() => {
                 }
             })
             if(rem){
-                self.instances = self.instances.filter(function (item) {
+                self.instances = self.instances.filter((item) => {
                     return item !== undefined
                 })
             }
+        },
+        destroyAll: () => {
+            self.instances.forEach((inst, i) => {
+                self.instances[i].destroy()
+                delete self.instances[i]
+            })
+            self.instances = []
         }
     }
     return self
@@ -85,16 +93,15 @@ const Tuning = (() => {
 class Tuner extends Events {
     constructor(entries, megaUrl, type){
         super()
+        this.master = Tuning
         this.debug = debugAllow(true)
         this.id = megaUrl + ':' + type
         this.type = type
         this.originalUrl = megaUrl
-        this.sleeps = []
         this.intents = []
         this.timers = {}
         this.errors = {}
         this.testMap = null
-        this.testMapTypes = []
         this.entries = entries
         this.suspended = true
         this.resultBufferSize = 1
@@ -104,38 +111,32 @@ class Tuner extends Events {
         this.active = 0
         this.actives = []
         this.status = 0
-        this.sameDomainDelay = 1500
-        this.types = Tuning.types
+        this.types = this.master.types
+        this.skipPlaybackTest = false
         if(typeof(this.types[this.type]) != 'undefined'){
             this.allowedTypes = this.types[this.type]
+            if(this.type == 'live' && !Config.get('tuning-ignore-webpages')){
+                this.allowedTypes.push('html')
+            }
         } else if(!this.type || this.type == 'all') {
             this.allowedTypes = [].concat.apply([], Object.values(this.types))
+            if(!Config.get('tuning-ignore-webpages')){
+                this.allowedTypes.push('html')
+            }
         } else {
             this.allowedTypes = [type]
         }
-        this.concurrency = Tuning.concurrency()
-        Tuning.register(this)
+        this.concurrency = this.master.concurrency()
+        this.master.register(this)
 	}
     resume(){
+        if(this.finished){
+            this.rewind()
+        }
         if(this.suspended || !this.active){
             this.suspended = false
             this.process()
             setPriority('high priority')
-            if(this.resultBufferSize == -1 || this.buffered() < this.resultBufferSize){
-                let i = this.concurrency - this.active
-                while(i){
-                    let args = this.sleeps.shift()
-                    if(Array.isArray(args)){
-                        if(this.scanState == 2){
-                            this.scanState = 1
-                        }
-                        this.task.apply(this, args)
-                        i--
-                    } else {
-                        break
-                    }
-                }
-            }
         }
     }
 	suspend(){
@@ -155,7 +156,10 @@ class Tuner extends Events {
         return n
     }
     process(){
-        if(!this.suspended && !this.destroyed){
+        console.warn('PROCESS')
+        if(!this.suspended && !this.finished){
+            // emit results
+            console.warn('PROCESS')
             let ret = this.testMap.some((state, i) => {
                 switch(state){
                     case -1:
@@ -169,7 +173,7 @@ class Tuner extends Events {
                         if(isMegaURL(this.originalUrl)){
                             this.entries[i].originalUrl = this.originalUrl
                         }
-                        this.emit('result', this.entries[i], this.testMapTypes[i])
+                        this.emit('result', this.entries[i], this.typeMap[i])
                         this.testMap[i] = 2
                         return true
                         break
@@ -180,21 +184,23 @@ class Tuner extends Events {
                 }
                 return false
             })
-            let complete = this.testMap.filter((state, i) => {
-                return state != 0
-            }).length
-            if(complete != this.complete){
-                this.complete = complete
-                this.progress()
-            }
+            console.warn('PROCESS')
+            // finished?
             if(this.testMap.filter(t => { return t != 0 }).length == this.entries.length){
-                this.finish()
+                this.scanState = 3
+                if(!ret){
+                    this.finish()   
+                }
             }
+            console.warn('PROCESS')
+            // should suspend?
             if(ret){
-                if(this.resultBufferSize != -1 && this.buffered() < this.resultBufferSize){
+                console.warn('PROCESS')
+                if(this.resultBufferSize != -1 && this.buffered() >= this.resultBufferSize){
                     this.suspend()
                 }
             } else {
+                console.warn('PROCESS')
                 switch(this.scanState){
                     case 2:
                         // kkk
@@ -205,6 +211,39 @@ class Tuner extends Events {
                         break
                 }
             }
+            console.warn('PROCESS')
+            // spawn new tests
+            if(!this.suspended && !this.finished && this.active < this.concurrency){
+                console.warn('PROCESS')
+                this.scanState = 1
+                // spawn by stream type priority
+                this.allowedTypes.some(type => {
+                    return this.typeMap.some((t, i) => {
+                        if(typeof(this.testMap[i]) == 'undefined' && Array.isArray(t) && t.indexOf(type) != -1){
+                            this.test(i)
+                            return true
+                        }
+                    })
+                })
+                console.warn('PROCESS')
+                // spawn any to fill the concurrency limit
+                while(this.active < this.concurrency){
+                    let ret = this.typeMap.some((t, i) => {
+                        if(typeof(this.testMap[i]) == 'undefined' && Array.isArray(t)){
+                            this.test(i)
+                            return true
+                        }
+                    })
+                    if(!ret){ // no where to go
+                        break
+                    }
+                }
+                console.warn('PROCESS')
+            }
+            console.warn('PROCESS')
+            // update progress
+            this.progress()
+            console.warn('PROCESS')
         }
     }
     next(cb){
@@ -244,23 +283,89 @@ class Tuner extends Events {
     shouldSuspend(){
         return (this.resultBufferSize != -1 && this.buffered() >= this.resultBufferSize)
     }
+    test(i){
+        let entry = this.entries[i], t = this.typeMap[i]
+        this.testMap[i] = 0 // undefined to zero, the zero will act as a lock to pick once
+        this.active++
+        this.actives.push(entry)
+        if(this.master.verbose){
+            console.warn('TESTEST', entry.name, type)
+        }
+        Playback.createIntent(entry, {
+            shadow: true, 
+            manual: false,
+            autorun: false
+        }, t, (err, intents) => {
+            if(this.finished){
+                return
+            }
+            let types = [], errors = []
+            this.intents[i] = intents
+            async.eachOfLimit(intents, 1, (intent, k, ncb) => {
+                if(this.finished){
+                    if(typeof(ncb) == 'function'){
+                        ncb()
+                        ncb = null
+                    }
+                }
+                let icb = (worked) => {                                                    
+                    intent.destroy()
+                    if(typeof(ncb) == 'function'){
+                        ncb()
+                        ncb = null
+                    }                    
+                }
+                intent.on('start', () => {
+                    types.push(intent.type)
+                    icb()
+                })
+                intent.on('error', () => {
+                    errors.push(intent.error)
+                    icb()
+                })
+                intent.on('end', () => {
+                    icb()
+                })
+                if(this.skipPlaybackTest === true){
+                    intent.tested = true
+                }
+                intent.run()
+            }, () => {
+                if(this.finished){
+                    return
+                }
+                if(types && types.length){
+                    this.testMap[i] = 1
+                } else if(types === false) { // no compatible intents
+                    this.testMap[i] = 3
+                } else {
+                    this.testMap[i] = -1
+                    this.errors[i] = errors
+                }
+                this.active--
+                let p = this.actives.indexOf(entry)
+                if(p != -1){
+                    delete this.actives[p]
+                }
+                this.process()
+            })
+        })
+    }
     start(){
         if(this.testMap === null){
             this.scanState = 1
             this.testMap = []
             this.typeMap = []
             this.resume()
-            async.eachOfLimit(this.entries, 1, (entry, i, acb) => {
+            this.entries = this.entries.filter((e, i) => {
+                return !isMegaURL(e.url)
+            })
+            this.entries.forEach((e, i) => {
+                this.entries[i].i = i
+            })
+            async.eachOfLimit(this.entries, this.concurrency, (entry, i, acb) => {
                 let process = () => {
                     if(this.finished){
-                        if(typeof(acb) == 'function'){
-                            acb()
-                            acb = null
-                        }
-                        return
-                    }
-                    if(isMegaURL(entry.url)) { // no compatible intents
-                        this.typeMap[i] = 0
                         if(typeof(acb) == 'function'){
                             acb()
                             acb = null
@@ -273,11 +378,13 @@ class Tuner extends Events {
                             clearTimeout(this.timers[n])
                         }
                         this.timers[n] = setTimeout(() => {
-                            console.log('WAITIN1')
+                            if(this.master.verbose){
+                                console.log('WAITIN1')
+                            }
                             process()
                         }, 1000)
                         return 
-                    }                        
+                    }      
                     Playback.getIntentTypes(entry, null, (types) => {
                         if(this.finished){
                             if(typeof(acb) == 'function'){
@@ -292,132 +399,17 @@ class Tuner extends Events {
                         this.typeMap[i] = types && types.length ? types : 0
                         if(!this.typeMap[i]){
                             this.testMap[i] = 3
-                            this.testMapTypes[i] = []
                         }
                         if(typeof(acb) == 'function'){
                             acb()
                             acb = null
                         }
+                        this.process()
                     })
                 }
                 process()
             }, () => {
                 this.process()
-            })
-            async.eachOfLimit(this.entries, this.concurrency, (entry, k, bcb) => {
-                let process = () => {
-                    if(this.finished){
-                        if(typeof(bcb) == 'function'){
-                            bcb()
-                            bcb = null
-                        }
-                        return
-                    }
-                    let ret, done = this.typeMap.length == this.entries.length
-                    if(this.shouldSuspend()){
-                        this.scanState = 2
-                    } else {
-                        this.scanState = 1
-                        ret = this.allowedTypes.some(type => {
-                            return this.typeMap.some((t, i) => {
-                                if(Array.isArray(t)){
-                                    done = false
-                                    if(t.indexOf(type) != -1){
-                                        let t = this.typeMap[i]
-                                        this.typeMap[i] = 0 // no problem overriding here, we don't need this info and the zero will act as a lock to pick once
-                                        entry = this.entries[i]
-                                        this.active++
-                                        this.actives.push(entry)
-                                        Playback.createIntent(entry, {
-                                            shadow: true, 
-                                            manual: false,
-                                            autorun: false
-                                        }, t, (err, intents) => {
-                                            if(this.finished){
-                                                if(typeof(bcb) == 'function'){
-                                                    bcb()
-                                                    bcb = null
-                                                }
-                                                return
-                                            }
-                                            let types = [], errors = []
-                                            this.intents[i] = intents
-                                            async.eachOfLimit(intents, 1, (intent, k, ncb) => {
-                                                if(this.finished){
-                                                    return ncb()
-                                                }
-                                                let icb = (worked) => {                                                    
-                                                    intent.destroy()
-                                                    if(typeof(ncb) == 'function'){
-                                                        ncb()
-                                                        ncb = null
-                                                    }                    
-                                                }
-                                                intent.on('start', () => {
-                                                    types.push(intent.type)
-                                                    icb()
-                                                })
-                                                intent.on('error', () => {
-                                                    errors.push(intent.error)
-                                                    icb()
-                                                })
-                                                intent.on('end', () => {
-                                                    icb()
-                                                })
-                                                intent.run()
-                                            }, () => {
-                                                if(types && types.length){
-                                                    this.testMap[i] = 1
-                                                    this.testMapTypes[i] = types
-                                                } else if(types === false) { // no compatible intents
-                                                    this.testMap[i] = 3
-                                                    this.testMapTypes[i] = []
-                                                } else {
-                                                    this.testMap[i] = -1
-                                                    this.errors[i] = errors
-                                                }
-                                                this.active--
-                                                let p = this.actives.indexOf(entry)
-                                                if(p != -1){
-                                                    delete this.actives[p]
-                                                }
-                                                if(typeof(bcb) == 'function'){
-                                                    bcb()
-                                                    bcb = null
-                                                }
-                                                //console.log('SOLVED', k)
-                                                this.process()
-                                                //console.log('SOLVED', k)
-                                            })
-                                        })
-                                        return true
-                                    }
-                                }
-                            })
-                        })
-                    }
-                    if(!ret){
-                        //console.log('WAITING', k)
-                        if(done){
-                            if(typeof(bcb) == 'function'){
-                                bcb()
-                                bcb = null
-                            }
-                            return
-                        } else {
-                            let n = 'b'
-                            if(typeof(this.timers[n]) != 'undefined'){
-                                clearTimeout(this.timers[n])
-                            }
-                            this.timers[n] = setTimeout(() => {
-                                process()
-                            }, 1000)
-                        }
-                    }
-                }
-                process()
-            }, () => {
-                this.finish()
             })
         } else {
             this.resume()
@@ -426,8 +418,37 @@ class Tuner extends Events {
     }
     progress(){  
         if(!this.destroyed){
-            this.status = this.complete / (this.entries.length / 100)
-            this.emit('progress', this.status, this.complete, this.entries.length)
+            let complete = this.testMap.filter((state, i) => {
+                return state != 0
+            }).length
+            if(complete != this.complete){
+                this.complete = complete
+                this.status = this.complete / (this.entries.length / 100)
+                this.emit('progress', this.status, this.complete, this.entries.length)
+            }
+        }
+    }
+    rewind(){
+        if(this.finished){
+            this.testMap.forEach((state, i) => {
+                switch(state){
+                    case -2:
+                        this.testMap[i] = -1
+                        break
+                    case 2:
+                        this.testMap[i] = 1
+                        return true
+                        break
+                    case -3:
+                        this.testMap[i] = -3
+                        break
+                }
+            })
+            if(this.buffered()){
+                this.finished = false
+                this.process()
+                return true
+            }
         }
     }
     finish(){
@@ -435,7 +456,6 @@ class Tuner extends Events {
             this.finished = true
             this.scanState = 3
             this.status = 100
-            this.sleeps = []
             this.active = 0
             this.process()
             if(Array.isArray(this.intents)){

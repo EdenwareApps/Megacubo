@@ -251,22 +251,28 @@ var hotkeysActions = {
     "PLAYPREVIOUS": [
         () => {
             if(!isModal()){
-                var s = getPreviousStream()
-                if(s){
-                    console.log(s);
-                    playEntry(s)
-                }
+                getPreviousStream(null, (e) => {
+                    if(e){
+                        (top || parent).playEntry(e)
+                    } else {
+                        (top || parent).stop()
+                        notify(Lang.NOT_FOUND, 'fa-ban', 'normal')
+                    }
+                })
             }
         }
     ],
     "PLAYNEXT": [
         () => {
             if(!isModal()){
-                var s = getNextStream()
-                if(s){
-                    console.log(s);
-                    playEntry(s)
-                }
+                getNextStream(null, (e) => {
+                    if(e){
+                        (top || parent).playEntry(e)
+                    } else {
+                        (top || parent).stop()
+                        notify(Lang.NOT_FOUND, 'fa-ban', 'normal')
+                    }
+                })
             }
         }
     ],

@@ -12,7 +12,7 @@ class PlaybackMp4Intent extends PlaybackBaseIntent {
             this.apply(options)
         }
     }  
-    confirm(){
+    confirm(test){
         if(this.videoCodec == 'copy' && this.audioCodec == 'copy'){
             this.mimetype = PLAYBACK_MP4_MIMETYPE
             this.streamURL = this.entry.url
@@ -39,13 +39,13 @@ class PlaybackMp4Intent extends PlaybackBaseIntent {
     }
     run(){    
         if(isLocal(this.entry.url)){
-            this.start(true)
+            this.confirm(true)
         } else if(isHTTP(this.entry.url)){
             this.ping((result) => {
                 if(!this.error && !this.ended && !this.destroyed){
                     console.log('Content-Type', this.entry.url, result)
-                    if(this.validateContentType(result.type) && this.validateStatusCode(result.status)){
-                        this.start(!!result.type)
+                    if(result === true || (this.validateContentType(result.type) && this.validateStatusCode(result.status))){
+                        this.confirm(!!result.type)
                     } else if(!this.started) {
                         console.error('Bad HTTP response for '+this.type, result)
                         this.fail(status || 'connect')
@@ -60,7 +60,7 @@ class PlaybackMp4Intent extends PlaybackBaseIntent {
 }
 
 PlaybackMp4Intent.supports = (entry) => {
-    return isHTTP(entry.url) && entry.url.match(new RegExp('\\.(mp4|webm|ogv)($|\\?)', 'i'))
+    return isHTTP(entry.url) && entry.url.match(new RegExp('\\.(mp4|mkv|webm|ogv)($|\\?)', 'i'))
 }
 
 Playback.registerEngine('mp4', PlaybackMp4Intent, 3)

@@ -439,19 +439,6 @@ var absolutize = (url, base) => {
     return a.protocol + '//' + a.hostname + (a.port && a.port != 80 ? ':' + a.port : '') + base.join('/');
 }
 
-var requestForever;
-
-function prepareRequestForever(){
-    if(!requestForever){
-        requestForever = require('request').forever()
-        requestForever = requestForever.defaults({
-            jar: requestJar,
-            headers: {'User-Agent': navigator.userAgent} // without user-agent some hosts return 403
-        })
-    }
-    return requestForever
-}
-
 function validateUrl(value) {
     return /^(?:(?:(?:https?|ftp):)?\/\/)(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,})))(?::\d{2,5})?(?:[/?#]\S*)?$/i.test(value);
 }
@@ -463,7 +450,7 @@ function getHeaders(url, callback, timeoutSecs){
     }
     if(validateUrl(url)){
         console.warn(url, traceback())
-        if(!timeoutSecs){
+        if(typeof(timeoutSecs) != 'number'){
             timeoutSecs = 20;
         }
         var r = request({url, ttl: 0}), abort = () => {
@@ -480,7 +467,7 @@ function getHeaders(url, callback, timeoutSecs){
             callback({}, url)
         })
         r.on('response', (response) => {
-            // console.log('UAAAAA', url, response.headers, requestJar.getCookieString(url), traceback())
+            console.log('UAAAAA', url, response, response.headers, requestJar.getCookieString(url), traceback())
             clearTimeout(timer)
             var headers = response.headers
             headers['status'] = response.statusCode
@@ -813,7 +800,6 @@ if(top == window){
                     "Ctrl+G": "TVGUIDE",
                     "F2": "RENAME"
                 },
-                "ignore-webpage-streams": true,
                 "initial-section": "",
                 "initial-sections": ['featured', 'continue', 'live', 'videos', 'youtube'],
                 "initial-sections-only": false,
@@ -830,6 +816,7 @@ if(top == window){
                 "tooltips": true,
                 "transcode-fps": 0,
                 "tune-timeout": 45,
+                "tuning-ignore-webpages": true,
                 "volume": 1.0,
                 "warn-on-connection-errors": true
             }
@@ -1174,41 +1161,58 @@ function seekForward(){
     }
 }
 
-function collectListQueue(ref){
-    var container = Menu.container(false);
-    var as = container.find('a.entry-stream');
-    var queue = [], ok = false;
-    for(var i=0; i<as.length; i++){
-        var s = as.eq(i).data('entry-data');
-        if(s.url == ref.url || (typeof(ref.originalUrl)!='undefined' && s.url == ref.originalUrl)){
-            top.packageQueueCurrent = i;
-            ok = true;
+function getPreviousStream(entry, cb){
+    if(!entry){
+        entry = (Playback.active||Playback.lastActive)
+        if(entry && entry.entry){
+            entry = entry.entry
+        } else {
+            return cb(false)
         }
-        queue.push(s)
     }
-    if(ok){
-        top.packageQueue = queue;
-    }
+    search(entries => {
+        let oi = 0
+        entries.some((e, i) => {
+            if(e.name == entry.name){
+                oi = i - 1
+                if(typeof(entries[oi]) == 'undefined'){
+                    oi = 0
+                }
+            }
+        })        
+        if(typeof(entries[oi]) != 'undefined'){
+            cb(entries[oi])
+        } else {
+            cb(false)
+        }
+    }, 'video', entry.group, true, false)
 }
 
-function getPreviousStream(){
-    if(top.packageQueue.length > 1){
-        var i = top.packageQueueCurrent - 1;
-        if(i < 0){
-            i = top.packageQueue.length - 1;
+function getNextStream(entry, cb){
+    if(!entry){
+        entry = (Playback.active||Playback.lastActive)
+        if(entry && entry.entry){
+            entry = entry.entry
+        } else {
+            return cb(false)
         }
-        return top.packageQueue[i];
     }
-}
-
-function getNextStream(){
-    if(top.packageQueue.length > 1){
-        var i = top.packageQueueCurrent + 1;
-        if(i >= top.packageQueue.length){
-            i = 0;
+    search(entries => {
+        let oi = 0
+        entries.some((e, i) => {
+            if(e.name == entry.name){
+                oi = i + 1
+                if(typeof(entries[oi]) == 'undefined'){
+                    oi = 0
+                }
+            }
+        })        
+        if(typeof(entries[oi]) != 'undefined'){
+            cb(entries[oi])
+        } else {
+            cb(false)
         }
-        return top.packageQueue[i];
-    }
+    }, 'video', entry.group, true, false)
 }
 
 function goHome(){
@@ -1234,7 +1238,7 @@ function restartApp(){
         return
     }
     doAction('appUnload')
-    var delay = 2, templates = {
+    var delay = 3, templates = {
         // win32: ['restartApp.cmd', "@echo off\r\nping 127.0.0.1 -n {0} > nul\r\n{1} {2}"], 
         win32: ['restartApp.cmd', "@echo off\r\ntimeout /T {0} > nul\r\n{1} {2}"], 
         linux: ['restartApp.sh', "sleep {0}\r\n{1} {2}"]
@@ -1377,21 +1381,27 @@ function setupShortcuts(){
             {
                 key : "MediaPrevTrack",
                 active : () => {
-                    var s = getPreviousStream();
-                    if(s){
-                        console.log(s);
-                        (top || parent).playEntry(s)
-                    }
+                    getPreviousStream(null, (e) => {
+                        if(e){
+                            (top || parent).playEntry(e)
+                        } else {
+                            (top || parent).stop()
+                            notify(Lang.NOT_FOUND, 'fa-ban', 'normal')
+                        }
+                    })
                 }
             },
             {
                 key : "MediaNextTrack",
                 active : () => {
-                    var s = getNextStream();
-                    if(s){
-                        console.log(s);
-                        (top || parent).playEntry(s)
-                    }
+                    getNextStream(null, (e) => {
+                        if(e){
+                            (top || parent).playEntry(e)
+                        } else {
+                            (top || parent).stop()
+                            notify(Lang.NOT_FOUND, 'fa-ban', 'normal')
+                        }
+                    })
                 }
             },
             {
@@ -2362,6 +2372,9 @@ function notify(str, fa, secs, eternal){
     if(notifyDebug){
         console.log('[notify] NEW NOTIFY', str, fa, secs, eternal)
     }
+    if(str == Lang.NOT_FOUND){
+        console.error(str, traceback())
+    }
     setupNotify();
     lastNotifyCall = (str + fa);
     var o = window.top || window.parent;
@@ -2398,6 +2411,8 @@ function notify(str, fa, secs, eternal){
                 if(_fa){
                     if(_fa.indexOf('/') != -1){
                         _fa = '<span class="notify-icon" style="background-image:url({0});"></span> '.format(fa.replaceAll('"', ''))
+                    } else if(_fa.indexOf('fa-mega') != -1) {
+                        _fa = '<i class="{0} notify-icon" style="display: inline-block !important;" aria-hidden="true"></i> '.format(fa)
                     } else {
                         _fa = '<i class="fa {0} notify-icon" aria-hidden="true"></i> '.format(fa)
                     }
@@ -2457,6 +2472,8 @@ function notify(str, fa, secs, eternal){
                             lastFA = _fa;
                             if(_fa.indexOf('/') != -1){
                                 _fa = '<span class="notify-icon" style="background-image:url({0});"></span> '.format(_fa.replaceAll('"', ''))
+                            } else if(_fa.indexOf('fa-mega') != -1) {
+                                _fa = '<i class="{0} notify-icon" style="display: inline-block !important;" aria-hidden="true"></i> '.format(_fa)
                             } else {
                                 _fa = '<i class="fa {0} notify-icon" aria-hidden="true"></i> '.format(_fa)
                             }
@@ -2466,7 +2483,7 @@ function notify(str, fa, secs, eternal){
                             n.find('.notify').find('.notify-text').html(str)
                         }
                         if(secs){
-                            if(!o.parentNode){
+                            if(!n.get(0).parentNode){
                                 n.prependTo(a)
                             }
                             secs = notifyParseTime(secs)
@@ -2483,9 +2500,11 @@ function notify(str, fa, secs, eternal){
                                     destroy()
                                 }, secs * 1000)
                             }
-                            n.show().animate({left: 0, opacity: 1}, 250)
+                            if(!n.is(":visible")){
+                                n.show().animate({left: 0, opacity: 1}, 250)
+                            }
                         }
-                        return n;
+                        return n
                     },
                     show: () => {
                         n = getElement();
@@ -2638,12 +2657,19 @@ function getColorLightLevel(hex){
     return getColorLightLevelFromRGB(hex)
 }
 
-function getHTTPInfo(url, callback){
+function getHTTPInfo(url, callback, retries){
     var timeout = 30
+    if(typeof(retries) != 'number'){
+        retries = 3
+    }
     getHeaders(url, (h, u) => { 
-        var cl = h['content-length'] || -1
-        var ct = h['content-type'] || ''
-        var st = h['status'] || 0
+        let delay = 5000, cl = h['content-length'] || -1, ct = h['content-type'] || '', st = h['status'] || 0
+        if(retries && [0, 403, 502].indexOf(st) != -1){
+            retries--
+            return setTimeout(() => {
+                getHTTPInfo(url, callback, retries)
+            }, delay)
+        }
         if(ct){
             ct = ct.split(',')[0].split(';')[0]
         } else {
@@ -2941,20 +2967,20 @@ function getExt(url){
 }
 
 function showPlayers(stream, sandbox){
-    console.log('showPlayers('+stream+', '+sandbox+')');
+    console.log('showPlayers('+stream+', '+sandbox+')')
     if(top){
         var doc = top.document;
         var pstream = doc.getElementById('player');
         var psandbox = doc.getElementById('sandbox');
         if(sandbox){
-            jQuery(psandbox).removeClass('hide').addClass('show');
+            jQuery(psandbox).removeClass('hide').addClass('show')
         } else {
-            jQuery(psandbox).removeClass('show').addClass('hide');
+            jQuery(psandbox).removeClass('show').addClass('hide')
         }
         if(stream){
-            jQuery(pstream).removeClass('hide').addClass('show');
+            jQuery(pstream).removeClass('hide').addClass('show')
         } else {
-            jQuery(pstream).removeClass('show').addClass('hide');
+            jQuery(pstream).removeClass('show').addClass('hide')
         }
     }
 }
@@ -3167,19 +3193,29 @@ function isYoutubeURL(source){
     }
 }
 
-if(typeof(request) == 'undefined'){
-    if(window == top){
-        var request = require("request")       
-        var requestJar = request.jar()
-        request = request.defaults({
-            jar: requestJar,
-            headers: {'User-Agent': navigator.userAgent} // without user-agent some hosts return 403
-        })
-        request = require('cached-request')(request)
-        request.setValue('ttl', 2000)
-        request.setCacheDirectory(GStore.folder + path.sep + 'request')
-    } else {
-        request = top.request
-        requestJar = top.requestJar
+console.log('request')
+
+var dns = require('dns'), dnscache = require('dnscache')({
+    enable: true,
+    ttl: 3600,
+    cachesize: 5000
+})
+
+if(window == top){
+    const _request = require('request'), _crequest = require('cached-request')
+    var requestJar = _request.jar()
+    let defs = {
+        jar: requestJar,
+        headers: {'User-Agent': navigator.userAgent} // without user-agent some hosts return 403
     }
+    let setup = r => {
+        r = _crequest(r.defaults(defs))
+        r.setValue('ttl', 3600)
+        r.setCacheDirectory(GStore.folder + path.sep + 'request')
+        return r
+    }
+    var requestForever = setup(_request.forever())
+    var request = setup(_request)
+} else {
+    var request = top.request, requestJar = top.requestJar, requestForever = top.requestForever
 }

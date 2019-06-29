@@ -460,7 +460,7 @@ class HybridLoader extends events_1.EventEmitter {
                     // this.p2pManager.abort(segment);
                     this.httpManager.download(segment); // racing p2pxhttp
                     if (this.p2pManager.isDownloading(segment)) { // racing p2pxhttp
-						this.p2pManager.download(segment);
+						          this.p2pManager.download(segment);
                     }
                     this.debugSegments("HTTP download (priority)", segment.priority, segment.url);
                     updateSegmentsMap = true;
@@ -9174,7 +9174,7 @@ Peer.prototype._maybeReady = function () {
       var candidatePairs = {}
       var foundSelectedCandidatePair = false
 
-      items.forEach(function (item) {
+      items.forEach((item) => {
         // TODO: Once all browsers support the hyphenated stats report types, remove
         // the non-hypenated ones
         if (item.type === 'remotecandidate' || item.type === 'remote-candidate') {
@@ -9188,7 +9188,7 @@ Peer.prototype._maybeReady = function () {
         }
       })
 
-      items.forEach(function (item) {
+      items.forEach((item) => {
         // Spec-compliant
         if (item.type === 'transport' && item.selectedCandidatePairId) {
           setSelectedCandidatePair(candidatePairs[item.selectedCandidatePairId])

@@ -56,7 +56,7 @@ body.frameless:not(.over) div#player-status {
     height: calc(100% - 0px);
 }
 
-div#player-status svg {
+div#player-status svg, div#player-status i {
 	color: #fff;
 	font-size: 48px; 
 }
@@ -109,14 +109,14 @@ div#player-status svg.fa-play {
     margin: 5px 3px 6px 9px;
 }
 
-body.has-video.loading #vcontrols, /* buffering */
-body.has-menu-margin.paused #vcontrols, /* has menu margin, paused */
-body.has-menu-margin.playing.over #vcontrols, /* has menu margin, playing, over */
-body.paused.over:not(.has-menu-margin):not(.auto-hide) #vcontrols,  /* no margin, paused, no auto hide, over window */
-body.playing.over:not(.has-menu-margin):not(.auto-hide):not(.no-video) #vcontrols,  /* no margin, playing, no auto hide, over window */
-body.paused.auto-hide.over:not(.has-menu-margin) #vcontrols, /* paused, no margin, autohide, over window */
-body.playing.auto-hide.over:not(.has-menu-margin):not(.no-video) #vcontrols, /* playing, no margin, autohide, over window */
-body.playing.over.auto-hide:not(.no-video) #vcontrols  /* playing, auto hide, over player */ {
+body.has-video.loading #video-controls, /* buffering */
+body.has-menu-margin.paused #video-controls, /* has menu margin, paused */
+body.has-menu-margin.playing.over #video-controls, /* has menu margin, playing, over */
+body.paused.over:not(.has-menu-margin):not(.auto-hide) #video-controls,  /* no margin, paused, no auto hide, over window */
+body.playing.over:not(.has-menu-margin):not(.auto-hide):not(.no-video) #video-controls,  /* no margin, playing, no auto hide, over window */
+body.paused.auto-hide.over:not(.has-menu-margin) #video-controls, /* paused, no margin, autohide, over window */
+body.playing.auto-hide.over:not(.has-menu-margin):not(.no-video) #video-controls, /* playing, no margin, autohide, over window */
+body.playing.over.auto-hide:not(.no-video) #video-controls  /* playing, auto hide, over player */ {
 	visibility: visible !important;
 }
 
@@ -598,8 +598,8 @@ div#miniplayer-continue {
     display: inline-block;
     visibility: none;
     font-size: initial;
-    background: #FFFFFF11;
-    color: #fff;
+    background: #FFFFFF22;
+    color: #FFFFFF;
     text-align: center;
     align-items: center;
     justify-content: center;
@@ -644,7 +644,7 @@ body.miniplayer:not(.playing):not(.paused):not(.loading) div#miniplayer-continue
     visibility: visible;
 }
 
-body.clear-ui #menu, body.clear-ui #vcontrols, body.clear-ui iframe {
+body.clear-ui #menu, body.clear-ui #video-controls, body.clear-ui iframe {
     display: none !important;    
 }
 
@@ -685,6 +685,27 @@ body.clear-ui #background-overlay {
     }
     100% {
         transform: rotate3d(0, 1, 0, 357deg);
+        opacity: 0.75;
+    }
+}
+
+@keyframes bga-spin-x-alt {
+    0% {
+        transform: scaleX(1);
+        opacity: 0.75;
+    }
+    25% {
+        opacity: 0.6;
+    }
+    50% {
+        transform: scaleX(-1);
+        opacity: 0.75;
+    }
+    75% {
+        opacity: 0.6;
+    }
+    100% {
+        transform: scaleX(1);
         opacity: 0.75;
     }
 }

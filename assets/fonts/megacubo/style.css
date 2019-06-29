@@ -1,0 +1,28 @@
+@font-face {
+  font-family: 'megacubo';
+  src:
+    url('fonts/megacubo.ttf?hnwtr') format('truetype'),
+    url('fonts/megacubo.woff?hnwtr') format('woff'),
+    url('fonts/megacubo.svg?hnwtr#megacubo') format('svg');
+  font-weight: lighter;
+  font-style: normal;
+}
+
+.fa-mega {
+  /* use !important to prevent issues with browser extensions that change fonts */
+  font-family: 'megacubo' !important;
+  speak: none;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.fa-mega:before {
+  content: "\e901";
+}

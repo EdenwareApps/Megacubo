@@ -32,7 +32,8 @@ class PlaybackBaseIntent extends Events {
         this.audioCodec = 'copy'
         this.FF = {
             segmentDuration: 2,
-            cpuUsed: -16
+            cpuUsed: -16,
+            log: []
         }
         this.controller = getFrame('player')
         this.mimetype = PLAYBACK_HLS_MIMETYPE
@@ -127,7 +128,9 @@ class PlaybackBaseIntent extends Events {
                     console.log('Test succeeded. '+this.streamURL);
                     this.tested = true;
                     cb(this.tested)
+                    console.log('Test succeeded. '+this.streamURL);
                     ret.destroy()
+                    console.log('Test succeeded. '+this.streamURL);
                 }, (data) => {
                     console.error('Test Failed. '+this.streamURL, data);
                     this.tested = false;
@@ -149,7 +152,7 @@ class PlaybackBaseIntent extends Events {
     start(test){
         let icb = (worked) => {
             if(worked){
-                this.started = true;
+                this.started = true
                 this.emit('start', this)
             } else {
                 this.fail('playback')
@@ -242,7 +245,7 @@ class PlaybackBaseIntent extends Events {
     }
     restartDecoder(){
         if(!this.destroyed){
-            if(this.controller){
+            if(this.controller && this.playback.active == this){
                 this.controller.video.pause()
                 if(this.controller.hls){
                     this.controller.hls.stopLoad()
@@ -282,6 +285,7 @@ class PlaybackBaseIntent extends Events {
         }
     }
     ffmpeg(url){
+        this.FF.log = []
         this.file = path.resolve(this.workDir + path.sep + this.uid + path.sep + 'output.m3u8')
         mkdirr(dirname(this.file))
         let ret = ffmpeg(url).
@@ -302,6 +306,10 @@ class PlaybackBaseIntent extends Events {
             // addOption('-copyts').
             addOption('-sn').
             format('hls')
+        ret.addOption('-hls_flags ' + (fs.existsSync(this.file) ? 'delete_segments+append_list' :  'delete_segments'))
+        if(['mp4'].indexOf(this.type) == -1){
+            ret.inputOptions('-stream_loop -1')
+        }            
         if(this.videoCodec == 'libx264') {
             ret.addOption('-pix_fmt', 'yuv420p').addOption('-vprofile', 'baseline').addOption('-preset:v', 'veryfast')
             /*
@@ -365,8 +373,7 @@ class PlaybackBaseIntent extends Events {
         on('stderr', (stderrLine) => {
             if(!this.unloaded){
                 if(!stderrLine.match(new RegExp('frame=.*fps=', 'i'))){
-                    console.log('Stderr output: ' + stderrLine)
-                    ret.log += stderrLine + "\r\n"
+                    this.FF.log.push(stderrLine)
                 }
             }
         }).
@@ -394,7 +401,7 @@ class PlaybackBaseIntent extends Events {
     }
     fail(err){
         if(!this.destroyed && !this.error && !this.unloaded){
-            console.error('INTENT FAIL', this.entry.name, this.entry.url, err, traceback())
+            console.error('INTENT FAIL', this.type, this.entry.name, this.entry.url, err, this.FF.log.join("\r\n"), traceback())
             if(this.proxy){
                 console.error('INTENT FAIL', this.proxy.buffers.map(b => { return this.proxy.len(b) }), fs.readdirSync(this.workDir + path.sep + this.uid), this.decoder ? this.decoder.log : '')
             }

@@ -555,7 +555,7 @@ function saveStreamStateCache(){
 
 addAction('appUnload', saveStreamStateCache);
 
-function playEntry(oentry, types, tuning, cb){    
+function playEntry(oentry, opts, types, tuning, cb){    
     console.warn('prePlayEntryAllow')
     console.warn('TSPOOLPLAY', oentry, types, traceback())
     Playback.cancelLoading()
@@ -581,27 +581,17 @@ function playEntry(oentry, types, tuning, cb){
                 }
             }
         }
-        var entry = Object.assign({
-            transcode: null,
-            allowWebPages: true
-        }, oentry)        
+        opts = Object.assign({
+            tuning: (tuning ? [tuning.originalUrl, tuning.type] : false), 
+            manual: true
+        }, opts || {})
+        var entry = Object.assign({allowWebPages: true}, oentry)        
         entry.prepend = ''
-        /*
-        if(Playback.play(entry, types, tuning, atts, (err, i, statusCode) => {
-            if(err){
-                notifyPlaybackStartError(entry, statusCode)
-            }
-        })){
-            collectListQueue(entry)
-            updateStreamEntriesFlags()
-        }
-        */
         enterPendingState((decodeURIComponent(entry.name) || entry.name), Lang.CONNECTING, entry.originalUrl || '')
-        Playback.createIntent(entry, {tuning: tuning ? [tuning.originalUrl, tuning.type] : false, manual: true}, null, (err, intents, statusCode) => {
+        Playback.createIntent(entry, opts, null, (err, intents, statusCode) => {
             if(err){
                 notifyPlaybackStartError(entry, statusCode || err)
             } else {
-                collectListQueue(entry)
                 updateStreamEntriesFlags()
             }
         })
@@ -614,68 +604,63 @@ function playEntry(oentry, types, tuning, cb){
 function allowAutoClean(curPath, entries){
     // should append autoclean in this path?
     if(!curPath){
-        return false;
+        return false
     }
-    var offerAutoClean = false, autoCleanAllowPaths = [Lang.LIVE, Lang.VIDEOS, Lang.MY_LISTS, Lang.SEARCH], ignorePaths = [Lang.BEEN_WATCHED, Lang.HISTORY, Lang.RECORDINGS, Lang.BOOKMARKS, 'Youtube'];
+    var offerAutoClean = false, autoCleanAllowPaths = [Lang.LIVE, Lang.VIDEOS, Lang.MY_LISTS, Lang.SEARCH], ignorePaths = [Lang.BEEN_WATCHED, Lang.HISTORY, Lang.RECORDINGS, Lang.BOOKMARKS, 'Youtube']
     if(Array.isArray(entries)){
         entries.some((entry) => {
             var type = getMediaType(entry)
             if(type){
                 if(['live', 'video', 'audio'].indexOf(type) != -1){
-                    offerAutoClean = true;
+                    offerAutoClean = true
                 } else if(typeof(customMediaTypes[type]) != 'undefined' && customMediaTypes[type]['testable']) {
-                    offerAutoClean = true;
+                    offerAutoClean = true
                 }
             }   
-            return offerAutoClean; 
+            return offerAutoClean 
         })
     } else {  // no entries, check for path so
         autoCleanAllowPaths.forEach((path) => {
             if(curPath.length && curPath.indexOf(path) != -1){
-                offerAutoClean = true;
+                offerAutoClean = true
             }
         })
     }
     if(offerAutoClean){
         ignorePaths.every((path) => {
-            if(curPath.indexOf(path) != -1){
-                offerAutoClean = false;
+            if(basename(curPath) == path){
+                offerAutoClean = false
             }
-            return offerAutoClean;
+            return offerAutoClean
         })
     }
-    return offerAutoClean;
+    return offerAutoClean
 }
 
 function updateStreamEntriesFlags(){
-
     if(typeof(Menu) == 'undefined'){
-        return;
+        return
     }
-
     // offline streams
-    var activeurls = [];
+    var activeurls = []
     if(stream = currentStream()){
-        activeurls.push(stream.url);
+        activeurls.push(stream.url)
         if(stream.originalUrl){
             activeurls.push(stream.originalUrl)
         }
     }
-
     // pending entries
     var loadingurls = Playback.isLoading(true);
     if(typeof(isPending)=='string'){
         loadingurls.push(isPending)
     }
     console.log(loadingurls, isPending);
-
     var doSort = allowAutoClean(Menu.path);
-
     var fas = jQuery('.entry-stream'), autoCleaning = jQuery('.entry-autoclean').filter((i, e) => { 
         return e.innerHTML.indexOf('% ') != -1; 
     }).length, firstStreamOffset = false;
     fas.each((i, element) => {
-        if(doSort){
+        if(doSort && !isMegaURL(element.href)){
             let state = getStreamStateCache(element.href)
             if(state === false){
                 // is offline?
@@ -698,7 +683,7 @@ function updateStreamEntriesFlags(){
         if(activeurls.indexOf(element.href)!=-1){
             setEntryFlag(element, 'fa-play')
         } else if(loadingurls.indexOf(element.href)!=-1){
-            setEntryFlag(element, 'fa-circle-notch pulse-spin')
+            setEntryFlag(element, 'fa-mega spin-x-alt')
         } else {
             setEntryFlag(element, '')
         }
@@ -747,7 +732,7 @@ function getSources(){
         }
     }
     if(r){
-        sources = sources.filter(function (item) {
+        sources = sources.filter((item) => {
             return item !== undefined && item !== null && item !== false;
         })
     }
@@ -943,7 +928,7 @@ function playCustomURL(placeholder, direct, cb){
             console.log('lastCustomPlayURL', url, name);
             Store.set('lastCustomPlayURL', url, true);
             var entry = {url: url, allowWebPages: true, name: name, logo: defaultIcons['stream']}
-            playEntry(entry, null, null, cb)
+            playEntry(entry, null, null, null, cb)
         }
     }
 }
@@ -1144,7 +1129,7 @@ function unRegisterSource(url){
             delete sources[i];
         }
     }
-    sources = sources.filter(function (item) {
+    sources = sources.filter((item) => {
         return item !== undefined;
     });
     Config.set(key, sources);
@@ -1230,40 +1215,47 @@ function sortEntriesStateKey(entry, historyData, watchingData){
 }
 
 function sortEntriesByState(entries){
-    var historyData = History.get(), watchingData = getWatchingData()
+    var isLiveOrAudio = false, historyData = History.get(), watchingData = getWatchingData()
     if(entries instanceof jQuery){
+        var ct = Menu.container(), sentries = jQuery([]), pentries = jQuery([])
         entries.each((i, o) => {
             let j = jQuery(o)
             if(j.length){
-                entry = j.data('entry-data')
-                if(entry){
+                let entry = j.data('entry-data')
+                if(entry && (!entry.type || entry.type == 'stream')){
+                    if(!isLiveOrAudio && entry.mediaType && entry.mediaType != 'video'){
+                        isLiveOrAudio = true
+                    }
                     j.data('sortkey', sortEntriesStateKey(entry, historyData, watchingData))
+                    sentries = sentries.add(j)
+                    return
                 }
             }
+            pentries = pentries.add(j)
         })
-        var p = entries.eq(0).prev(), type = 'after'
-        if(!p.length){
-            p = entries.eq(0).parent()
-            type = 'prepend'
-        }
-        entries.detach().sort((a, b) => {
-            var c = jQuery(a).data('sortkey')
-            var d = jQuery(b).data('sortkey')
-            return c > d ? 1 : -1;
-        })  
-        if(type == 'after'){
-            entries.insertAfter(p)
-        } else {
-            p.prepend(entries)
+        if(isLiveOrAudio && sentries.length > 8){
+            sentries.detach().sort((a, b) => {
+                var c = jQuery(a).data('sortkey')
+                var d = jQuery(b).data('sortkey')
+                return c > d ? 1 : (c < d ? -1 : 0)
+            })
+            if(pentries.length){
+                sentries.insertAfter(pentries.last())
+            } else {
+                ct.append(sentries)
+            }
         }
     } else if(Array.isArray(entries)) {
         if(entries.sortByProp){
             for(var i=0; i<entries.length; i++){
                 if(entries[i]){
                     entries[i].sortkey = sortEntriesStateKey(entries[i], historyData, watchingData)
+                    if(!isLiveOrAudio && entries[i].mediaType && entries[i].mediaType != 'video'){
+                        isLiveOrAudio = true
+                    }
                 }
             }
-            return entries.sortByProp('sortkey')
+            return isLiveOrAudio ? entries.sortByProp('sortkey') : entries
         }
     }
     return entries

@@ -95,9 +95,6 @@
 "LIST_ALREADY_ADDED": "Lista ya agregada.",
 "BEEN_WATCHED": "Están asistidos",
 "CANNOT_PAUSE": "Esta transmisión no se puede pausar.",
-"FORCE_FFMPEG": "Forzar el uso del FFMPEG",
-"QUICK_SEARCH": "Búsqueda rápida",
-"COMPLETE_SEARCH": "Búsqueda completa",
 "SHARED_LISTS": "Listas compartidas",
 "SLOW": "Lento", 
 "GENERATING_INDEX": "Generando índice",
@@ -231,7 +228,8 @@
 "LIST_SHARING": "Uso compartido de listas",
 "LESS_THAN_A_HOUR": "Menos de una hora",
 "SCHEDULING_RECORD_WARNING": "Atención, el programa debe estar abierto o en la bandeja del sistema en esta fecha y hora para poder realizar la grabación automáticamente.",
-"FORCE_TRANSCODE": "Forzar transcode",
+"FORCE_TRANSCODE": "Forzar transcodificación",
+"FORCE_TRANSCODE_BROADCAST": "Forzar transcodificación en esta transmisión",
 "AWAITING_SCHEDULING": "{0} programaciones",
 "NONE_STREAM_WORKED": "Ninguna transmisión activa encontrada para {0}.",
 "X_OF_Y": "{0} de {1}",
@@ -392,5 +390,6 @@
 "SSL_VERIFY": "Verificación de SSL",
 "RECORD_WITHIN_WEB_PAGES": "Grabar dentro de páginas web (afecta rendimiento)",
 "TESTING": "A prueba...",
-"TUNE_TIMEOUT": "Tiempo de espera de sintonía"
+"TUNE_TIMEOUT": "Tiempo de espera de sintonía",
+"NEXT": "Siguiente"
 }

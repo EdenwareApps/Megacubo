@@ -116,7 +116,6 @@
 						if (data.fatal) {
 							switch (data.type) {
 								case Hls.ErrorTypes.MEDIA_ERROR:
-									//handleMediaError(hls)
 									onerr(data)
 									break;
 								case Hls.ErrorTypes.NETWORK_ERROR:
@@ -191,8 +190,10 @@
 						onerr('Timeout ('+timeout+'s)')
 					}, timeout * 1000)
 				}
-				v.on('error ended', onerr)
 				hls = src(url, type, source, video, onerr)
+				if(!hls){
+					v.on('error ended', onerr)
+				}
 				return {
 					destroy: () => {
 						cleanup()

@@ -379,7 +379,7 @@ function getSearchSuggestions(){
                         callback: (data, element) => {
                             goSearch(suggest.search_term)
                             if(element){
-                                setEntryFlag(element, 'fa-circle-notch pulse-spin')
+                                setEntryFlag(element, 'fa-mega spin-x-alt')
                             }
                         }
                     })
@@ -507,9 +507,13 @@ function setEntryFlag(el, flag, unique){
         jQuery('.entry-flags > span').html('')
     }
     if(flag){
-        flag = '<i class="fa '+flag+'" aria-hidden="true"></i>';
+        if(flag.indexOf('fa-mega') == -1){
+            flag = '<i class="fa '+flag+'" aria-hidden="true"></i>'
+        } else {
+            flag = '<i class="'+flag+'" aria-hidden="true"></i>'
+        }
     } else {
-        flag = '';
+        flag = ''
     }
     jQuery(el).find('.entry-flags > span').html(flag)
 }
@@ -901,7 +905,7 @@ Menu = (() => {
             type: 'option',
             name: txt,
             label: '',
-            logo: 'fa-circle-notch pulse-spin',
+            logo: 'fa-mega spin-x-alt',
             class: 'entry-loading'
         }
     }
@@ -1255,7 +1259,9 @@ Menu = (() => {
     self.renderIcon = (entry, fallbacks) => {
         var html, autoLogo = getAutoLogo(entry.name), logo = entry.logo || (entry.type == 'stream' ? autoLogo : false) || defaultIcons[entry.type || 'option'];
         var logoColor = typeof(entry.logoColor) == 'undefined' ? '' : 'color: '+entry.logoColor+';';
-        if(logo.match(new RegExp('(^fa-| fa-)'))){
+        if(logo.indexOf('fa-mega') != -1){
+            html = '<i class="'+logo+' entry-logo-fa" style="'+logoColor+'" aria-hidden="true"></i>'
+        } else if(logo.match(new RegExp('(^fa-| fa-)'))){
             if(logo.substr(0, 3) == 'fa-'){
                 logo = 'fas ' + logo;
             }
@@ -2339,7 +2345,7 @@ jQuery(() => {
             if(['undefined', 'string'].indexOf(typeof(entries[i].url))==-1){
                 entries[i].url = String(entries[i].url)
             }
-            let type = typeof(entries[i].type)=='string' ? entries[i].type : 'stream';
+            let type = typeof(entries[i].type) == 'string' ? entries[i].type : (typeof(entries[i].url) == 'string' ? 'stream' : 'option')
             let nm = type == 'stream' && !entries[i].url.match(new RegExp('^(magnet|mega):', 'i'))
             if(nm && !hasStreams){
                 hasStreams = true;

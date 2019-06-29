@@ -338,7 +338,7 @@ function listManJoinDuplicates(flatList){
             }
         }
     }
-    return flatList.filter(function (item) {
+    return flatList.filter((item) => {
         return item !== undefined;
     })
 }

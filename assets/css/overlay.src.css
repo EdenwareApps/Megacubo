@@ -17,12 +17,17 @@ div.drop-target {
     display: flex; 
     justify-content: center;
     align-items: center;
+    color: (font-color);
 }
 
 #drop-target svg, #drop-target i {
     display: none;
     font-size: 750%;
 }
+
+#drop-target.hover {
+    background-color: (background-color-playing)AA;
+}  
 
 #drop-target.hover svg, #drop-target.hover i {
     display: inline-block;
