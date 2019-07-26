@@ -388,8 +388,9 @@
 "BLOCK": "Lock",
 "HIGHLIGHT_INTENSITY": "Highlight intensity",
 "SSL_VERIFY": "SSL Verification",
-"RECORD_WITHIN_WEB_PAGES": "Record within web pages (affects performance)",
 "TESTING": "Testing...",
 "TUNE_TIMEOUT": "Tuning timeout",
-"NEXT": "Next"
+"NEXT": "Next",
+"AUDIOS": "Audios",
+"ADULT_CONTENT_BLOCKED": "Adult content blocked"
 }

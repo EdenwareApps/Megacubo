@@ -151,8 +151,8 @@ if(typeof(PremiumHelper) == 'undefined'){
             if(ns && ns.length){
                 entries = entries.concat(ns)
             }
-            return entries;
+            return entries
         })
-        return self;
+        return self
     })()
 }

@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html class="ui-index">
+	<head>
+		<meta charset="UTF-8" />
+		<title></title>
+		<!-- <base href="./" /> -->
+        <link rel="stylesheet" type="text/css" href="assets/css/global.css" />
+        <link rel="stylesheet" type="text/css" href="assets/css/index.css" />
+		<link rel="stylesheet" type="text/css" href="assets/css/controls.css" />
+		<link rel="stylesheet" type="text/css" href="assets/fonts/megacubo/style.css" />
+		<style type="text/css">
+			html {
+				overflow: hidden;
+				background: #000000;
+			}
+		</style>
+	</head>
+	<body tabindex="-1" class="splash"> 
+		<div id="background-overlay" class="fit-screen splash">
+			<progress id='loader' max='100' value='100'></progress>
+			<div id="splash-message">
+				<i class="fa-mega spin-x-alt"></i>
+				<span></span>
+			</div>
+		</div>
+		<script type="text/javascript" src="assets/js/core/jquery.js"></script>
+		<script type="text/javascript" src="assets/js/core/global.js"></script>
+		<script type="text/javascript" src="assets/js/ui/theming.js"></script>
+		<script type="text/javascript">
+			loadTheming()
+			win.show()
+			var loader = document.getElementById('loader')
+			addAction("app-load-progress", (lc, tc, pc) => {
+				console.warn('PC', pc+'%', lc, tc)
+				if(pc > 99) pc = 99;
+				loader.style.width = pc+'%'; // update width instead of value to allow css transition
+			})
+		</script>
+		<div id="modal-overlay">
+			<div>
+				<div>
+					
+				</div>
+			</div>
+		</div>
+		<iframe id="testing-player" class="hide" height="100%" frameborder="0" scrolling="no" src="/testing-player.html"></iframe>
+		<iframe id="sandbox" class="fit-player hide" nwdisable nwfaketop height="100%" frameborder="0" src="/blank.html"></iframe>
+		<iframe id="overlay" class="fit-screen show" height="100%" allowtransparency="true" frameborder="0" scrolling="no" src="/overlay.html"></iframe>
+		<iframe id="player" class="fit-player hide" height="100%" frameborder="0" scrolling="no" src="/player.html" allowfullscreen></iframe>
+		<iframe id="detect-keys" class="fit-screen" height="100%" frameborder="0" scrolling="no" src="/detect-keys.html" style="display: none; z-index: 2147483647;"></iframe>
+		<iframe id="check-health" class="fit-screen" height="100%" frameborder="0" scrolling="no" src="/check-health.html" style="display: none; z-index: 2147483647;"></iframe>
+		<div id="video-controls" class="video-controls fit-player-min">
+			<a href="javascript:;" class="video-play">
+				<i class="fas fa-play"></i>
+				<i class="fas fa-pause"></i>
+			</a>
+			<a href="javascript:;" class="video-stop">
+				<i class="fas fa-stop"></i>
+			</a>
+			<a href="javascript:;" class="video-reload">
+				<i class="fas fa-redo"></i>
+			</a>
+			<div class="video-timer">00:00</div>
+			<div class="video-seek">
+				<input type ="range" min ="1" max="100" step ="1" value ="0"/>
+			</div>
+			<div class="volume-box">
+				<a href="javascript:;" class="volume-button">
+					<i class="fas fa-volume-up"></i>
+					<i class="fas fa-volume-off"></i>
+				</a>
+				<div class="volume-slider">
+					<input type ="range" min ="1" max="100" step ="1" value ="100"/>
+				</div>
+			</div>
+			<a href="javascript:;" class="video-switch">
+				<i class="fas fa-random"></i>
+				<i class="fas fa-step-forward"></i>
+			</a>
+			<a href="javascript:;" class="video-scale">
+				&nbsp;
+			</a>
+			<a href="javascript:;" class="video-fullscreen">
+				<i class="fas fa-expand-arrows-alt"></i>
+			</a>
+		</div>
+		<div id="player-status" class="fit-player">
+			<div class="fac fac-loading">
+				<i class="fa-mega spin-x-alt"></i>
+			</div>
+			<div class="fac fac-paused">
+				<i class="fas fa-play"></i>
+			</div>
+		</div>
+		<div id="miniplayer-poster" class="fit-screen">
+			<div id="miniplayer-continue">
+				<table>
+					<tbody>
+						<tr>
+							<td class="miniplayer-continue-logo"></td>
+							<td class="miniplayer-continue-text"></td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+		<div class="hide">
+			<input id="saveas" type="file" nwsaveas />
+		</div>
+		<div id="notify-area" class="fit-player"></div>
+		<div id="menu-trigger" onfocus="Menu.show()">
+			<i class="fas fa-chevron-left"></i>
+		</div>
+		<div id="menu" class="fit-screen" tabindex="-1">
+			<div id="menu-left-border"></div>
+			<div id="menu-wrapper" tabindex="-1">
+				<span id="menu-toggle-container">
+					<a href="javascript:;" id="menu-toggle" onclick="Menu.toggle()">
+						<i class="fas fa-chevron-right"></i>
+					</a>
+				</span>
+				<div>
+					<div class="list">
+						<div>
+							<div>
+								LOW MEMORY?
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div id="menu-scrolling-up">
+				<div>
+					<i class="fas fa-angle-double-up"></i>
+				</div>
+			</div>
+			<div id="menu-scrolling-down">
+				<div>
+					<i class="fas fa-angle-double-down"></i>
+				</div>
+			</div>
+		</div>
+		<script type="text/javascript">
+			(() => {
+				const libs = [
+					{ // core
+						path: 'assets/js/',
+						files: [
+							'core/util.js'
+						]
+					},
+					{ // playback
+						path: 'assets/js/playback/',
+						files: [
+							'playback.js',
+							'internal-proxy.js',
+							'internal-proxy-hls.js',
+							'internal-proxy-ts.js',
+							'engines/base.js',
+							'engines/hls.js',
+							'engines/html.js',
+							'engines/magnet.js',
+							'engines/rtp.js',
+							'engines/ts.js',
+							'engines/mp4.js',
+						]
+					},
+					{ // app + utils
+						path: 'assets/js/',
+						files: [
+							'core/app.js',
+							'utils/countries.js',
+							'utils/dialer.js',
+							'utils/fitter.js',
+							'utils/iptv.js',
+							'utils/tuner.js',
+							'utils/search.js',
+							'ui/buzz.min.js',
+							'ui/context-menu.js',
+							'ui/jquery.shortcuts.min.js',
+							'ui/jquery.viewport.js',
+							'ui/menu.js',
+							'ui/menu-feeding.js',
+							'ui/pointer.js',
+							'ui/winstate.js',
+							'ui/wizard.js'
+						]
+					}
+				]
+				const load = (level) => {
+					if(typeof(libs[level]) != 'undefined'){
+						console.log('[INIT] LOAD', level)
+						loadScripts(libs[level].files, libs[level].path, () => {
+							console.log('[INIT] LOAD', libs[level])
+							load(level + 1)
+						})
+					} else {
+						console.log('[INIT] OK', level)
+						init()
+					}
+				}
+				load(0)
+			})()
+			addAction('appReady', () => {
+				removeFolder(GStore.folder + path.sep + 'request')
+				removeFolder(Playback.proxyLocal.folder + path.sep + 'stream', false, () => {
+					mkdirr(Playback.proxyLocal.folder + path.sep + 'stream' + path.sep + 'session')
+				})
+				initSearchIndex(() => {
+					console.log('[INIT] Search index done.')
+				})	
+				loadScripts([
+					'utils/blocked_domains.js',
+					'ui/context-menu.js'
+				], 'assets/js/', () => {
+					console.log('[INIT] POS LOADED')
+					applyBlockedDomains(blocked_domains)
+					blocked_domains = null
+				})			
+			})
+		</script>
+	</body>
+</html>

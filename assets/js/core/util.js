@@ -283,7 +283,7 @@ function parentalControlAllow(entry, ignoreSetting){
             return entry.parentalControlSafe; // block adult
             break;
     }
-    return true; // allow as error fallback
+    return true // allow as error fallback
 }
 
 function validateIPTVListURL(url, placeholder){
@@ -606,7 +606,7 @@ function allowAutoClean(curPath, entries){
     if(!curPath){
         return false
     }
-    var offerAutoClean = false, autoCleanAllowPaths = [Lang.LIVE, Lang.VIDEOS, Lang.MY_LISTS, Lang.SEARCH], ignorePaths = [Lang.BEEN_WATCHED, Lang.HISTORY, Lang.RECORDINGS, Lang.BOOKMARKS, 'Youtube']
+    var offerAutoClean = false, autoCleanAllowPaths = [Lang.LIVE, Lang.VIDEOS, Lang.MY_LISTS, Lang.SEARCH], ignorePaths = [Lang.BEEN_WATCHED, Lang.HISTORY, Lang.RECORDINGS, Lang.BOOKMARKS, Lang.NEXT, 'Youtube']
     if(Array.isArray(entries)){
         entries.some((entry) => {
             var type = getMediaType(entry)
@@ -656,7 +656,7 @@ function updateStreamEntriesFlags(){
     }
     console.log(loadingurls, isPending);
     var doSort = allowAutoClean(Menu.path);
-    var fas = jQuery('.entry-stream'), autoCleaning = jQuery('.entry-autoclean').filter((i, e) => { 
+    var fas = jQuery('.entry-stream'), autoCleaning = jQuery('.entry-tuning').filter((i, e) => { 
         return e.innerHTML.indexOf('% ') != -1; 
     }).length, firstStreamOffset = false;
     fas.each((i, element) => {
@@ -1064,9 +1064,10 @@ function registerSource(url, name, silent, norefresh){
     sources.push([name, url]);
     Config.set(key, sources);
     if(!silent){
-        notify(Lang.LIST_ADDED, 'fa-star en', 'normal');
+        notify(Lang.LIST_ADDED, 'fa-star en', 'normal')
     }
     setActiveSource(url);
+    indexerSync()
     if(!norefresh){
         Menu.refresh()
     }

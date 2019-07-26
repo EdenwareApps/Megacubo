@@ -289,8 +289,8 @@ function getSubtitlesEntry(){
     }
 }
 
-addFilter('toolsEntries', (entries) => {
-    entries.push(getSubtitlesEntry())
+addFilter('videosMetaEntries', (entries) => {
+    entries.splice(2, 0, getSubtitlesEntry())
     return entries
 })
 

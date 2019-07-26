@@ -10,34 +10,41 @@ var formatXXXURL = (url) => {
 function fetchXXXSearchResults(q, cb){
     var callback = (videos) => {
         console.log('PN', videos)
-        search(entries => {
-            if(Array.isArray(videos)){
-                for(var i=0; i<videos.length; i++){
-                    //console.log(search_results.entries[i])
-                    entries.push({
-                        type: 'stream',
-                        url: formatXXXURL(videos[i].url),
-                        name: videos[i].title + ' | XXX',
-                        logo: videos[i].thumb,
-                        label: videos[i].duration
-                    })
+        if(adultContentPolicy == 'allow'){
+            search(entries => {
+                if(Array.isArray(videos)){
+                    for(var i=0; i<videos.length; i++){
+                        //console.log(search_results.entries[i])
+                        entries.push({
+                            type: 'stream',
+                            url: formatXXXURL(videos[i].url),
+                            name: videos[i].title + ' | XXX',
+                            logo: videos[i].thumb,
+                            label: videos[i].duration
+                        })
+                    }
                 }
-            }
-            cb(entries)
-        }, 'all', q, true, false, entries => {
-            return entries.filter(entry => {
-                return entry.parentalControlSafe === false
-            }).slice(0)
-        })
+                cb(entries)
+            }, 'all', q, true, false, entries => {
+                return entries.filter(entry => {
+                    return entry.parentalControlSafe === false
+                }).slice(0)
+            }, true)
+        } else {
+            cb([Menu.emptyEntry(Lang.ADULT_CONTENT_BLOCKED, 'fa-user-lock')])
+        }
     }
+    callback([])
+    /*
     var Searcher = new (require('pornsearch'))(q)
     Searcher.videos().then(callback).catch(() => {
         callback([])
     })
+    */
 }
 
-function getXXXEntries(data){
-    var entries = sharedGroupsAsEntries('adult', 'all', (entries) => {
+function getXXXEntries(data, type){
+    var entries = sharedGroupsAsEntries('adult-'+type, type, (entries) => {
         return entries.filter(entry => {
             return entry.parentalControlSafe === false
         }).slice(0)
@@ -98,10 +105,7 @@ function getXXXWatchingEntries(_cb){
                         entry.label = (i + 1)+'&ordm; &middot; '+(entry.mediaType == 'audio' ? Lang.LISTENING : Lang.X_WATCHING).format(parseCounter(entry.label.split(' ')[0]))
                         i++;
                         entry.__parsed = true;
-                    }                      
-                    if(!entry.logo){
-                        entry.logo = 'http://app.megacubo.net/logos/'+encodeURIComponent(entry.name)+'.png';
-                    }
+                    }   
                     return entry
                 })
             }
@@ -111,11 +115,24 @@ function getXXXWatchingEntries(_cb){
     })
 }
 
-addFilter('toolsEntries', (entries) => {
-    entries.push({name: Lang.ADULT_CONTENT, homeId: 'adult-content', parentalControlSafe: false, logo: 'fa-fire', label: '', class: 'entry-nosub', type: 'group', renderer: getXXXEntries, entries: []})
+const adCtName = 'XXX' // Lang.ADULT_CONTENT
+
+addFilter('videosMetaEntries', (entries) => {
+    let opt = {name: adCtName, homeId: 'adult-content', parentalControlSafe: false, logo: 'fa-fire', label: '', class: 'entry-nosub', type: 'group', renderer: (data) => {
+        return getXXXEntries(null, 'video')
+    }, entries: []}
+    entries.splice(2, 0, opt)
+    return entries
+})
+
+addFilter('liveMetaEntries', (entries) => {
+    let opt = {name: adCtName, homeId: 'adult-content', parentalControlSafe: false, logo: 'fa-fire', label: '', class: 'entry-nosub', type: 'group', renderer: (data) => {
+        return getXXXEntries(null, 'live')
+    }, entries: []}
+    entries.splice(2, 0, opt)
     return entries
 })
 
 addAction('appReady', () => {
-    registerSearchEngine(Lang.ADULT_CONTENT, 'adult-content', fetchXXXSearchResults)
+    registerSearchEngine(adCtName, 'adult-content', fetchXXXSearchResults)
 })

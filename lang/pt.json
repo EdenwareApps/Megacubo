@@ -390,8 +390,9 @@
 "BLOCK": "Bloquear",
 "HIGHLIGHT_INTENSITY": "Intensidade do destaque",
 "SSL_VERIFY": "Verificação SSL",
-"RECORD_WITHIN_WEB_PAGES": "Gravar dentro de páginas da web (afeta desempenho)",
 "TESTING":"Testando...",
 "TUNE_TIMEOUT":"Tempo limite de sintonia",
-"NEXT": "Próximo"
+"NEXT": "Próximo",
+"AUDIOS": "Áudios",
+"ADULT_CONTENT_BLOCKED": "Conteúdo adulto bloqueado"
 }

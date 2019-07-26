@@ -94,7 +94,7 @@ class M3UExtParser {
     }
     parseMeta(meta){
         // get logo, group and name
-        var c = {};
+        var c = {}
         c.logo = this.parseMetaField(meta, this.regexes['logo'])
         c.group = this.parseMetaField(meta, this.regexes['group']).replaceAll('\\', '/').toUpperCase().replace(this.regexes['nullgroup'], '').trim()
         c.rawname = this.parseMetaField(meta, this.regexes['name']).trim()

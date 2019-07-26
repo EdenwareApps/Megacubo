@@ -80,7 +80,7 @@ function setupSearch(term, type, onRender){
         }
     }
     const clear = () => {
-        container.find('a.entry-stream, a.entry-loading, a.entry-autoclean, a.entry-empty').remove()
+        container.find('a.entry-stream, a.entry-loading, a.entry-tuning, a.entry-empty').remove()
     }
     const entry = {
         type: 'input',
@@ -89,7 +89,7 @@ function setupSearch(term, type, onRender){
             load()
             var np = container.find('a.entry-input'), initPath = Menu.path;
             clearTimeout(searchKeypressTimer);
-            container.find('a.entry-stream, a.entry-loading, a.entry-autoclean, a.entry-empty').remove();
+            container.find('a.entry-stream, a.entry-loading, a.entry-tuning, a.entry-empty').remove();
             if(val){
                 lastSearchTerm = val;
                 Store.set('last-search-term', val, true);
@@ -105,7 +105,7 @@ function setupSearch(term, type, onRender){
                     console.log('QQQ', results, val, type, Menu.path);
                     results = results.map((e) => {
                         e.origin = {
-                            term: term,
+                            term: val,
                             searchType: type
                         }
                         return e
@@ -115,7 +115,7 @@ function setupSearch(term, type, onRender){
                             Menu.list(results, Menu.path, Menu.getEntries(false, false, false).length)
                         }
                     } else {
-                        container.find('a.entry-stream, a.entry-loading, a.entry-autoclean, a.entry-group, a.entry-suggest, a.entry-option:not(.entry-back)').remove();
+                        container.find('a.entry-stream, a.entry-loading, a.entry-tuning, a.entry-group, a.entry-suggest, a.entry-option:not(.entry-back)').remove();
                         if(!results.length){
                             results = [{name: Lang.NO_RESULTS, logo:'fa-ban', type: 'option', class: 'entry-empty'}]
                         }
@@ -161,13 +161,28 @@ function setupSearch(term, type, onRender){
 
 var indexerQueryCallbacks = {}
 
-function indexerSearch(type, term, matchAll, strict, cb){
+function indexerSync(){
+    ipc.server.broadcast('indexer-sync', {})
+}
+
+function indexerAdultFilter(entries, cb){
+    let uid = 0
+    while(typeof(indexerQueryCallbacks[uid]) == 'function'){
+        uid = rand(1, 1000000)
+    }
+    indexerQueryCallbacks[uid] = opts => {
+        cb(opts.entries)
+    }
+    ipc.server.broadcast('indexer-adult-filter', {uid, entries})
+}
+
+function indexerSearch(type, term, matchAll, strict, cb, adult){
     let uid = 0
     while(typeof(indexerQueryCallbacks[uid]) == 'function'){
         uid = rand(1, 1000000)
     }
     indexerQueryCallbacks[uid] = cb
-    ipc.server.broadcast('indexer-query', {uid, type, term, matchAll, strict})
+    ipc.server.broadcast('indexer-query', {uid, type, term, matchAll, strict, adult})
 }
 
 function indexerFilter(type, names, matchAll, strict, cb){
@@ -188,7 +203,7 @@ ipc.server.on('indexer-query-result', (results) => {
 })
 
 var sharedListsSearchCaching = false;
-function search(cb, type, term, matchAll, _strict, filter){
+function search(cb, type, term, matchAll, _strict, filter, adult){
     var r = [], limit = searchResultsLimit
     if(!term){
         var c = jQuery('.list > div > div input')
@@ -199,7 +214,7 @@ function search(cb, type, term, matchAll, _strict, filter){
         }
     }
     if(term && term.length > 2){
-        console.warn('SEARCH FETCH', traceback())
+        console.warn('SEARCH FETCH', type, traceback())
         const autoStrict = (_strict == 'auto'), done = ret => {
             console.warn('SEARCH RESULT', ret)
             //console.warn("GOLD", r, maybe);
@@ -224,11 +239,11 @@ function search(cb, type, term, matchAll, _strict, filter){
             if(autoStrict && !ret.results.length){
                 indexerSearch(type, term, matchAll, false, (ret) => { // query again unstrictly
                     done(ret)
-                })
+                }, adult)
             } else {
                 done(ret)
             }
-        })
+        }, adult)
     } else {
         cb([])
     }
@@ -266,7 +281,8 @@ addAction('appLoad', () => {
     }, true)
     registerSearchEngine(Lang.ALL, 'all', (val, cb) => {
         var results = {}
-        async.each(searchEngines, (engine, done) => {
+        async.each(['live', 'video'], (n, done) => {
+            let engine = searchEngines[n]
             console.warn(engine, engine.callback)
             if(engine.mode == 'public' && typeof(results[engine.slug]) == 'undefined'){
                 engine.callback(val, (entries) => {

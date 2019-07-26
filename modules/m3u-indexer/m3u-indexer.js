@@ -10,6 +10,7 @@ class M3UIndexer extends Events {
 		this.msi = new MediaStreamInfo()
 		this.parser = new M3UParser(this.lang, request)
 		this.groupsCaching = {}
+		this.filters = []
 	}
 	setLists(urls){
 		let fetchs = []
@@ -28,6 +29,7 @@ class M3UIndexer extends Events {
 					flatList = this.store.get(fbkey)
 					this.lists[url] = Array.isArray(flatList) ? flatList : []
 				}
+				this.applyFilters(url)
 			}
 		})
 		this.emit('stats', this.stats(), this.allGroups())
@@ -41,9 +43,11 @@ class M3UIndexer extends Events {
 							group: this.terms(entry.group || '')
 						}
 						entry.mediaType = this.msi.mediaType(entry)
+						entry.isAudio = this.msi.isAudio(entry.url) || this.msi.isRadio(entry.name)
 						return entry
 					})
 					this.lists[url] = flatList
+					this.applyFilters(url)
 					this.store.set(key, this.lists[url], (24 * 3600))
 					this.store.set(fbkey, this.lists[url], 30 * (24 * 3600))
 				}
@@ -53,18 +57,47 @@ class M3UIndexer extends Events {
 			this.emit('stats', this.stats(), this.allGroups())
 		})
 	}
+	addFilter(f){
+		this.filters.push(f)
+		this.applyFilters()
+	}
+	applyFilters(url){
+		let sources
+		if(typeof(url) == 'string'){
+			sources = [url]
+		} else {
+			sources = Object.keys(this.lists)
+		}
+		sources.forEach(source => {
+			this.lists[source].forEach((entry, k) => {
+				this.filters.forEach(f => {
+					this.lists[source][k] = f(entry)
+				})
+			})
+		})
+	}
 	allGroups(){
-		let tpl = {video: [], live: [], audio: [], adult: []}, ret = Object.assign({}, tpl)
+		let tpl = {video: [], live: [], 'audio-video': [], 'audio-live': [], 'adult-video': [], 'adult-live': []}, ret = Object.assign({}, tpl)
 		Object.keys(this.lists).forEach(source => {
 			let gs = this.groupsCaching[source]
 			if(!Array.isArray(gs)){
 				gs = Object.assign({}, tpl)
-				let list = this.lists[source]
-				list.forEach(entry => {
+				this.lists[source].forEach(entry => {
 					let gn = entry.groupName, type = entry.mediaType
-					if(gn && typeof(gs[type]) != 'undefined'){
-						if(gs[type].indexOf(gn) == -1){
-							gs[type].push(gn)
+					if(gn){
+						if(entry.parentalControlSafe === false && gs['adult-'+entry.mediaType].indexOf(gn) == -1){
+							gs['adult-'+entry.mediaType].push(gn)
+						}
+						if(typeof(gs['audio-'+entry.mediaType]) == 'undefined'){
+							console.warn('BLOOOM', gs, 'audio-'+entry.mediaType)
+						}
+						if(entry.isAudio === true && gs['audio-'+entry.mediaType].indexOf(gn) == -1){
+							gs['audio-'+entry.mediaType].push(gn)
+						}
+						if(typeof(gs[type]) != 'undefined'){
+							if(gs[type].indexOf(gn) == -1){
+								gs[type].push(gn)
+							}
 						}
 					}
 				})
@@ -148,7 +181,7 @@ class M3UIndexer extends Events {
 		}
 		return results.length
 	}
-	search(terms, matchGroup, allowPartialMatch, types){
+	search(terms, matchGroup, allowPartialMatch, types, adult){
 		let results = [], maybe = [], all = types.indexOf('all') != -1
 		if(!terms){
 			return results
@@ -157,16 +190,17 @@ class M3UIndexer extends Events {
 			terms = this.terms(terms)
 		}
 		Object.keys(this.lists).forEach(source => {
-			let list = this.lists[source]
-			list.forEach(entry => {
+			this.lists[source].forEach(entry => {
 				if(all || types.indexOf(entry.mediaType) != -1){
-					const score = this.match(terms, entry.terms.name)
-					if(score == 2){
-						entry.source = source
-						results.push(entry)
-					} else if((score == 1 && allowPartialMatch) || (matchGroup && this.match(terms, entry.terms.group))){
-						entry.source = source
-						maybe.push(entry)
+					if(typeof(adult) != 'boolean' || entry.parentalControlSafe === !adult){
+						const score = this.match(terms, entry.terms.name)
+						if(score == 2){
+							entry.source = source
+							results.push(entry)
+						} else if((score == 1 && allowPartialMatch) || (matchGroup && this.match(terms, entry.terms.group))){
+							entry.source = source
+							maybe.push(entry)
+						}
 					}
 				}
 			})

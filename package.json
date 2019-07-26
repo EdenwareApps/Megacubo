@@ -15,7 +15,7 @@
         "md5": "^2.2.1",
         "moment": "~2.24.0",
         "node-ipc": "~9.1.1",
-        "nw-custom-frame": "git://github.com/efoxbr/nw-custom-frame.git",
+        "nw-custom-frame": "github:efoxbr/nw-custom-frame",
         "p2p-media-loader-core": "~0.5.0",
         "peerflix": "~0.39.0",
         "pornsearch": "~2.4.3",
@@ -37,7 +37,7 @@
         "http://*/",
         "https://*/"
     ],
-    "version": "15.3.4",
+    "version": "15.3.5",
     "webkit": {
         "page-cache": true
     },

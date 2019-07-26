@@ -32,6 +32,15 @@ const connect = () => {
             'indexer-update': () => {
                 init()
             },
+            'indexer-sync': () => {
+                Config.reload()
+                getActiveLists((urls) => {
+                    Indexer.setLists(urls) 
+                })
+            },
+            'indexer-adult-filter': (opts) => {
+                ipc.of.main.emit('indexer-query-result', indexerAdultFilter(opts))
+            },
             'indexer-filter': (opts) => {
                 ipc.of.main.emit('indexer-query-result', indexerFilter(opts))
             },
@@ -48,7 +57,7 @@ const connect = () => {
 
 connect()
 
-indexerFilter = (opts) => {
+indexerFilter = opts => {
     opts.names = opts.names.filter(name => {
         if(!Indexer.has){
             console.warn('Indexer.has', Indexer, typeof(Indexer))
@@ -58,8 +67,34 @@ indexerFilter = (opts) => {
     return opts
 }
 
+indexerAdultFilter = opts => {
+    let ks = Object.keys(Indexer.lists)
+    opts.entries = opts.entries.map(e => {
+        ks.forEach(u => {
+            if(e.parentalControlSafe !== false){
+                let found = false
+                Indexer.lists[u].some(n => {
+                    if(e.name == n.name || e.url == n.url){
+                        found = true
+                        if(n.parentalControlSafe === false){
+                            e.parentalControlSafe = false
+                            return true
+                        }
+                    }
+                })
+                if(!found && e.parentalControlSafe !== false && !parentalControlAllow(e, true)){
+                    e.parentalControlSafe = false
+                    return true
+                }
+            }
+        })
+        return e
+    })
+    return opts
+}
+
 indexerQuery = (opts) => {
-    let limit = searchResultsLimit, ret = Indexer.search(opts.term, !opts.strict, true, [opts.type])    
+    let limit = searchResultsLimit, ret = Indexer.search(opts.term, !opts.strict, true, [opts.type], typeof(opts.adult) == 'boolean' ? opts.adult : null)    
     let maybe = searchResultsLimit > ret.results.length ? ret.maybe.slice(0, searchResultsLimit - ret.results.length) : []
     return {uid: opts.uid, results: ret.results.slice(0, searchResultsLimit), maybe}
 }
@@ -97,6 +132,12 @@ function init(loadcb){
                 report()
             })
         }
+        Indexer.addFilter(entry => {
+            if(typeof(entry.parentalControlSafe) != 'boolean'){
+                entry.parentalControlSafe = parentalControlAllow(entry, true)
+            }
+            return entry
+        }) 
         Indexer.setLists(urls) 
         if(typeof(loadcb) == 'function'){
             loadcb(urls)

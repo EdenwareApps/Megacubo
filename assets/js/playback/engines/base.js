@@ -270,12 +270,12 @@ class PlaybackBaseIntent extends Events {
             if(this.waiter){
                 this.waiter.cancel()
             }
+            this.decoder = null 
             dec.removeAllListeners()
             dec.kill()
             if (dec.file) {
                 removeFolder(dirname(dec.file), true)
-            }    
-            this.decoder = null  
+            }     
             if(this.proxy){
                 this.proxy.reset()
             }
@@ -303,12 +303,20 @@ class PlaybackBaseIntent extends Events {
             addOption('-hls_list_size', 0).
             addOption('-map', '0:a').
             addOption('-map', '0:v').
+            addOption('-loglevel', 'warning').
             // addOption('-copyts').
             addOption('-sn').
             format('hls')
         ret.addOption('-hls_flags ' + (fs.existsSync(this.file) ? 'delete_segments+append_list' :  'delete_segments'))
         if(['mp4'].indexOf(this.type) == -1){
-            ret.inputOptions('-stream_loop -1')
+            ret.
+                inputOptions('-stream_loop -1').
+                inputOptions('-reconnect_at_eof 1').
+                inputOptions('-timeout -1').
+                inputOptions('-reconnect 1').
+                inputOptions('-reconnect_at_eof 1').
+                inputOptions('-reconnect_streamed 1').
+                inputOptions('-reconnect_delay_max 20')
         }            
         if(this.videoCodec == 'libx264') {
             ret.addOption('-pix_fmt', 'yuv420p').addOption('-vprofile', 'baseline').addOption('-preset:v', 'veryfast')
@@ -339,7 +347,7 @@ class PlaybackBaseIntent extends Events {
             ret.
             inputOptions('-user_agent', '"' + agent + '"'). //  -headers ""
             inputOptions('-icy 0').
-            inputOptions('-seekable 1').
+            inputOptions('-seekable -1').
             inputOptions('-multiple_requests 1')
             if (isHTTPS(url)) {
                 ret.inputOptions('-tls_verify 0')
@@ -355,7 +363,7 @@ class PlaybackBaseIntent extends Events {
             }
         }).
         on('error', (err) => {
-            if(!this.unloaded){
+            if(!this.unloaded && this.decoder){
                 console.error('an error happened: ' + err.message)
                 err = err.message || err
                 let m = err.match(new RegExp('Server returned ([0-9]+)'))
@@ -382,13 +390,27 @@ class PlaybackBaseIntent extends Events {
             if(!this.error && !this.ended){
                 let r, tv = codecData.video && codecData.video.substr(0, 4) != 'h264'
                 let ta = codecData.audio && codecData.audio.indexOf('aac (LC)') == -1
-                if(tv && this.videoCodec == 'copy'){
-                    this.videoCodec = 'libx264'
-                    r = true
+                if(tv){
+                    if(this.videoCodec == 'copy'){
+                        this.videoCodec = 'libx264'
+                        r = true
+                    }
+                } else {
+                    if(this.videoCodec != 'copy'){
+                        this.videoCodec = 'copy'
+                        r = true
+                    }
                 }
-                if(ta && this.audioCodec == 'copy'){
-                    this.audioCodec = 'aac'
-                    r = true
+                if(ta){
+                    if(this.audioCodec == 'copy'){
+                        this.audioCodec = 'aac'
+                        r = true
+                    }
+                } else {
+                    if(this.audioCodec != 'copy'){
+                        this.audioCodec = 'copy'
+                        r = true
+                    }
                 }
                 if(r){                    
                     console.warn('CODECDATA TRANSCODE REQUIRED', tv, ta);

@@ -634,8 +634,11 @@ function lettersToRange(a, b){
     return a+'-'+b;
 }
 
-function getAutoLogo(name){
-    return 'http://app.megacubo.net/logos/'+encodeURIComponent(name)+'.png';
+function getAutoLogo(entry){
+    if(entry.mediaType != 'live'){
+        return false
+    }
+    return 'http://app.megacubo.net/logos/'+encodeURIComponent(entry.name)+'.png'
 }
 
 Menu = (() => {
@@ -747,8 +750,11 @@ Menu = (() => {
                 console.log('ASYNCRESULT', entries, path, self.path)
             }
             var container = self.container(true);
-            self.renderBackEntry(container, dirname(path), basename(path));
+            self.renderBackEntry(container, dirname(path), basename(path))
             if(Array.isArray(entries)){
+                if(!entries.length){
+                    entries.push(self.emptyEntry())
+                }
                 self.list(entries, path)
             } else if(entries === -1) {
                 self.back()
@@ -1257,7 +1263,7 @@ Menu = (() => {
         return entries
     }
     self.renderIcon = (entry, fallbacks) => {
-        var html, autoLogo = getAutoLogo(entry.name), logo = entry.logo || (entry.type == 'stream' ? autoLogo : false) || defaultIcons[entry.type || 'option'];
+        var html, autoLogo = getAutoLogo(entry), logo = entry.logo || (entry.type == 'stream' ? autoLogo : false) || defaultIcons[entry.type || 'option'];
         var logoColor = typeof(entry.logoColor) == 'undefined' ? '' : 'color: '+entry.logoColor+';';
         if(logo.indexOf('fa-mega') != -1){
             html = '<i class="'+logo+' entry-logo-fa" style="'+logoColor+'" aria-hidden="true"></i>'
@@ -1328,8 +1334,11 @@ Menu = (() => {
             html = html.replaceAll('[format-label]', (label || entry.group || ''));
             
             if(html.indexOf('[format-name]')!=-1){
-                var minLengthToMarquee = 32, n = entry.rawname ? parseM3U8NameTags(entry.rawname) : entry.name;
-                var fhtml = displayPrepareName(n, label || entry.group || '', entry.prepend || '', entry.append || '');
+                var minLengthToMarquee = 32, n = entry.rawname ? parseM3U8NameTags(entry.rawname) : entry.name
+                var fhtml = displayPrepareName(n, label || entry.group || '', entry.prepend || '', entry.append || '')
+                if(entry.url && isMegaURL(entry.url)){
+                    fhtml = '<i class="fas fa-satellite-dish"></i> ' + fhtml
+                }
                 if(String(entry.name + entries.name).length >= minLengthToMarquee){
                     fhtml = '<span>' + fhtml + '</span>';
                     html = html.replace('entry-name', 'entry-name marquee')
@@ -2245,35 +2254,26 @@ function lazyLoad(element, srcs){
 }
 
 function getTuningEntry(){
-    var mega = 'mega://play|'+Menu.path.replaceAll('/', '-'), type = 'all', t = Tuning.get(mega, type), n = t ? ('{0} {1}%').format(Lang.TESTING, parseInt(t.status)) : Lang.TEST_THEM_ALL;
-    let getbt = () => {
-        return Menu.getEntries(false, true, true).filter((i, e) => {
-            let data = jQuery(e).data('entry-data')
-            return data && data.label == Lang.MANUAL_TUNING
-        }).find('.entry-name')
-    }
-    return {type: 'option', name: n, label: Lang.MANUAL_TUNING, logo: 'fa-magic', class: 'entry-autoclean', callback: () => {
+    var mega = 'mega://play|'+Menu.path.replaceAll('/', '-'), type = 'all', t = Tuning.get(mega, type), n = t && !t.suspended ? ('{0} {1}%').format(Lang.TESTING, parseInt(t.status)) : Lang.TEST_THEM_ALL
+    return {type: 'option', name: n, label: '', logo: 'fa-magic', class: 'entry-tuning', callback: () => {
         if(Tuning.get(mega, type)){
             Tuning.destroy(mega, type)
-            let bt = getbt()
-            if(bt && bt.length){
-                bt.text(Lang.TEST_THEM_ALL)
-            }
+            updateTuningOptionsStatus(-1)
         } else {
             if(navigator.onLine){
+                updateTuningOptionsStatus(0)
                 tuneNFlag(mega, type, () => {
                     t = null
+                    updateTuningOptionsStatus(-1)
+                    updateStreamEntriesFlags()
                 }, (percent, complete, total) => {
-                    let bt = getbt()
-                    if(bt && bt.length){
-                        if(!t){
-                            t = Tuning.get(mega, type)
-                        }
-                        if(t && t.status < 100){
-                            bt.text(('{0} {1}%').format(Lang.TESTING, parseInt(t.status)))
-                        } else {
-                            bt.text(Lang.TEST_THEM_ALL)
-                        }
+                    if(!t){
+                        t = Tuning.get(mega, type)
+                    }
+                    if(t && !t.suspended){
+                        updateTuningOptionsStatus(percent)
+                    } else {
+                        updateTuningOptionsStatus(-1)
                     }
                     updateStreamEntriesFlags()
                 })
@@ -2288,7 +2288,7 @@ var showLogos = !Theme.get('hide-logos');
 jQuery(() => {    
     addFilter('allowEntries', (entries, path) => {
         // console.log('XPREFILTERED', entries);
-        var nentries = [];
+        var nentries = []
         for(var i=0; i<entries.length; i++){
             // entry properties are randomly(?!) coming as buffers instead of strings, treat it until we discover the reason
             if(!entries[i]) continue;
@@ -2308,12 +2308,12 @@ jQuery(() => {
             // console.log('XCURFILTERED', type, entries[i], parentalControlAllow(entries[i]));
             if(['stream', 'group'].indexOf(type)!=-1 && !parentalControlAllow(entries[i])){
                 // console.log('PARENTAL CONTROL BLOCKED', entries[i]);
-                continue;
+                continue
             }
             nentries.push(entries[i]) // not a stream entry
         }         
         // console.log('XPOSFILTERED', entries);
-        return nentries;
+        return nentries
     });
     addFilter('internalFilterEntries', (entries, path) => {
         console.log('FILTERING', entries, traceback())
@@ -2324,9 +2324,9 @@ jQuery(() => {
                 }
                 opt = adjustMainCategoriesEntry(opt, 'all')
             }
-            return opt;
+            return opt
         })
-    });
+    })
     addFilter('filterEntries', (entries, path) => {
         //console.log('PREFILTERED', entries);
         var hasStreams = false, hasVisibleStreams = false, firstStreamOrGroupEntryOffset = -1, nentries = [];
@@ -2346,7 +2346,10 @@ jQuery(() => {
                 entries[i].url = String(entries[i].url)
             }
             let type = typeof(entries[i].type) == 'string' ? entries[i].type : (typeof(entries[i].url) == 'string' ? 'stream' : 'option')
-            let nm = type == 'stream' && !entries[i].url.match(new RegExp('^(magnet|mega):', 'i'))
+            if(type == 'stream' && !entries[i].url){
+                console.error('BAD BAD ENTRY', entries[i])
+            }
+            let nm = type == 'stream' && entries[i].url && !entries[i].url.match(new RegExp('^(magnet|mega):', 'i'))
             if(nm && !hasStreams){
                 hasStreams = true;
             }   

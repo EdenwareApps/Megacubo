@@ -36,12 +36,12 @@ class MediaStreamInfo {
 			return entry.mediaType
 		}
 		const name = entry.name + ' ' + (entry.group || ''), url = String(entry.url)
-		if(this.isRadio(name) || this.isAudio(url)){
-			return 'audio'
+		if(this.isRadio(name)){
+			return 'live'
 		} else if(entry.url) {
-			if(this.isLive(url) || this.isMega(url)) {
+			if(this.isLive(url)) {
 				return 'live'
-			} if(this.isVideo(url) || this.isYT(url)) {
+			} if(this.isVideo(url) || this.isAudio(url) || this.isYT(url)) {
 				return 'video'
 			} else if(url.match(new RegExp('(video)', 'i'))) {
 				return 'video'

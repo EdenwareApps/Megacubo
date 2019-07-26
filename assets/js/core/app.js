@@ -1680,8 +1680,13 @@ jQuery(() => {
             } else {
                 length = (typeof(content)=='string') ? content.length : content.byteLength
             }
-            if(Playback.active.decoder && type != 'path'){ // local only so
-                return
+            if(Playback.active.decoder){
+                if(type != 'path'){ // local only so
+                    return
+                }
+                if((filePath || url).indexOf(Playback.active.uid) == -1){ // current transmission only
+                    return
+                }
             }
             if(length < 2048) { // discard empty media and most playlists
                 console.warn('Empty media skipped.', length, content, traceback())
@@ -1920,6 +1925,7 @@ function closeApp(force){
 }
 
 function focusApp(){
+    console.log('FOCUS', traceback())
     var top = win.isAlwaysOnTop
     if(!top){
         win.setAlwaysOnTop(true)
@@ -2135,19 +2141,21 @@ function averageStreamingBandwidth(data){
 }
 
 function averageStreamingBandwidthCollectSample(url, file, length) {
-    removeAction('media-received', averageStreamingBandwidthCollectSample) // once per commit
-    getFileBitrate(file, (err, bitrate, file) => {
-        if(err){
-            console.error('Bitrate collect error', file, fs.existsSync(file))
-        } else {
-            currentBitrate = bitrate;
-            if(!Array.isArray(averageStreamingBandwidthData)){
-                averageStreamingBandwidthData = GStore.get('aver-bandwidth-data') || []
+    if(!Tuning.is()){
+        removeAction('media-received', averageStreamingBandwidthCollectSample) // once per commit
+        getFileBitrate(file, (err, bitrate, file) => {
+            if(err){
+                console.error('Bitrate collect error', file, fs.existsSync(file))
+            } else {
+                currentBitrate = bitrate;
+                if(!Array.isArray(averageStreamingBandwidthData)){
+                    averageStreamingBandwidthData = GStore.get('aver-bandwidth-data') || []
+                }
+                averageStreamingBandwidthData.push(bitrate);
+                GStore.set('aver-bandwidth-data', averageStreamingBandwidthData, true)
             }
-            averageStreamingBandwidthData.push(bitrate);
-            GStore.set('aver-bandwidth-data', averageStreamingBandwidthData, true)
-        }
-    }, length);
+        }, length);
+    }
 }
 
 Playback.on('stop', () => {
@@ -2179,11 +2187,16 @@ addFilter('about', (txt) => {
     return txt;
 })
 
-function updateAutoCleanOptionsStatus(txt, inactive) {
-    var _as = jQuery('a.entry-autoclean');
+function updateTuningOptionsStatus(percent) {
+    var _as = jQuery('a.entry-tuning')
     if(_as.length){
-        _as.find('.entry-name').html(txt);
-        _as.find('.entry-label').html(inactive ? Lang.AUTO_TUNING : '<font class="faclr-red">'+Lang.CLICK_AGAIN_TO_CANCEL+'</font>');
+        let label = '<font class="faclr-red">'+Lang.STOP+'</font>', txt = ('{0} {1}%').format(Lang.TESTING, parseInt(percent))
+        if(percent >= 100 || percent === -1){ 
+            label = '', txt = Lang.TEST_THEM_ALL
+        }
+        txt += ' <span class="entry-label"></span>'
+        _as.find('.entry-name').removeClass('marquee marquee-adjusted').html(txt)
+        _as.find('.entry-label').html(label)
     }
 }
 
@@ -2236,9 +2249,14 @@ function checkPlaybackHealth(_step, _cb, type){
     var step = () => {
         console.warn('checkPlaybackHealth', succeeded, failed)
         if(entries && entries.length){
+            let h = Math.ceil((succeeded.length + failed.length) ? succeeded.length / ((succeeded.length + failed.length) / 100) : 0)
+            let p = Math.ceil((succeeded.length + failed.length + skipped.length) / (entries.length / 100))
+            if(p > 100){
+                p = 100
+            }
             update(
-                '<i class="fas fa-circle-notch pulse-spin"></i> ' + Lang.PROCESSING + ' ' + Math.ceil((succeeded.length + failed.length + skipped.length) / (entries.length / 100)) + '%', 
-                Lang.SUCCESS_RATE + ': ' + Math.ceil((succeeded.length + failed.length) ? succeeded.length / ((succeeded.length + failed.length) / 100) : 0) + '%'
+                '<i class="fas fa-circle-notch pulse-spin"></i> ' + Lang.PROCESSING + ' ' + p + '%', 
+                Lang.SUCCESS_RATE + ': ' + h + '%'
             )
             if(typeof(_step) == 'function'){
                 _step(succeeded.length, failed.length, entries.length)
@@ -2511,16 +2529,18 @@ function setBackgroundAnimationCallback(data){
 }
 
 function pickLogoFromEntries(entries, type){
+    let logo = '', avoidDomains = ['app.megacubo.net']
     if(!type){
-        type = 'stream';
+        type = 'stream'
     }
-    var rgx = new RegExp('( |fa\-)');
     for(var i in entries){
-        if(entries[i].logo && !entries[i].logo.match(rgx)){
-            return entries[i].logo;
+        if(entries[i].logo && entries[i].logo.indexOf('//') != -1){
+            if(!logo || avoidDomains.indexOf(getDomain(logo)) != -1){
+                logo = entries[i].logo
+            }
         }
     }
-    return defaultIcons[type];
+    return logo || defaultIcons[type]
 }
 
 function alternateStream(intent, cb, doSearch){
@@ -2616,7 +2636,7 @@ function adjustMainCategoriesEntry(entry, type){
     //console.warn('CONTINUE', entry.logo, showLogos);
     entry.type = 'group';
     entry.class = 'entry-meta-stream';
-    entry.logo = showLogos && entry.logo != defaultIcons['group'] ? entry.logo || getAutoLogo(entry.name) : defaultIcons['stream'];
+    entry.logo = showLogos && entry.logo != defaultIcons['group'] ? entry.logo || getAutoLogo(entry) : defaultIcons['stream'];
     entry.defaultLogo = defaultIcons['stream'];
 
     //console.warn('CONTINUE', entry.logo);
@@ -2802,7 +2822,7 @@ addFilter('liveMetaEntries', (entries) => {
         renderer: () => {
             var path = assumePath(Lang.MORE_CATEGORIES);
             setTimeout(() => {
-                var entries = sharedGroupsAsEntries('live');
+                var entries = sharedGroupsAsEntries('live')
                 if(Menu.path == path){
                     Menu.asyncResult(path, entries)
                 }
@@ -2830,29 +2850,32 @@ addFilter('videosMetaEntries', (entries) => {
     return entries
 })
 
-
 function getRadioEntries(data){
-    var path = assumePath(data.name);
+    var path = assumePath(data.name)
     setTimeout(() => {
-        var entries = sharedGroupsAsEntries('audio')
+        var entries = sharedGroupsAsEntries('audio-' + data.mediaType, data.mediaType, (entries) => {
+            return entries.filter(entry => {
+                return entry.isAudio
+            })
+        })
         if(Menu.path == path){
             Menu.loaded();
             entries = Menu.mergeEntries(Menu.getEntries(true, false, true), entries);
             Menu.asyncResult(path, entries)
         }
     }, 200);
-    return [
-        {name: Lang.BEEN_WATCHED, logo: 'fa-users', class: 'entry-nosub', labeler: parseLabelCount, type: 'group', renderer: () => { return getWatchingEntries('audio') }, entries: []},
-        {name: Lang.SEARCH, logo: 'fa-search', type: 'group', renderer: () => {
-            Menu.setBackTo(path);
-            setupSearch(lastSearchTerm, 'audio')
-        }, entries: []},
-        Menu.loadingEntry()
-    ];
+    return [Menu.loadingEntry()]
 }
 
-addFilter('toolsEntries', entries => {
-    entries.unshift({name: Lang.RADIOS, homeId: 'radios', labeler: parseLabelCount, logo:'fa-headphones-alt', class: 'entry-nosub search-index-vary', type: 'group', entries: [], renderer: getRadioEntries})
+addFilter('liveMetaEntries', entries => {
+    let opt = {name: Lang.AUDIOS, homeId: 'radios', logo:'fa-headphones-alt', class: 'entry-nosub search-index-vary', type: 'group', entries: [], mediaType: 'live', renderer: getRadioEntries}
+    entries.splice(2, 0, opt)
+    return entries
+})
+
+addFilter('videosMetaEntries', entries => {
+    let opt = {name: Lang.AUDIOS, homeId: 'radios', logo:'fa-headphones-alt', class: 'entry-nosub search-index-vary', type: 'group', entries: [], mediaType: 'video', renderer: getRadioEntries}
+    entries.splice(2, 0, opt)
     return entries
 })
   

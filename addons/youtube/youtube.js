@@ -344,17 +344,14 @@ function goYTVideosSearch(searchTerm, _backTo, live){
 }
 
 addFilter('videosMetaEntries', entries => {
-    entries.push({name: 'Youtube', logo: 'fab fa-youtube', label: Lang.VIDEOS, class: 'entry-nosub', type: 'group', renderer: getYoutubeVideoEntries, entries: []})
+    let opt = {name: 'Youtube', logo: 'fab fa-youtube', label: Lang.VIDEOS, class: 'entry-nosub', type: 'group', renderer: getYoutubeVideoEntries, entries: []}
+    entries.splice(2, 0, opt)
     return entries
 })
 
 addFilter('liveMetaEntries', entries => {
-    entries.push({name: 'Youtube', logo: 'fab fa-youtube', label: Lang.LIVE, class: 'entry-nosub', type: 'group', renderer: getYoutubeLiveEntries, entries: []})
-    return entries
-})
-
-addFilter('toolsEntries', entries => {
-    entries.unshift({name: 'Youtube', logo: 'fab fa-youtube', class: 'entry-nosub', type: 'group', renderer: getYoutubeEntries, entries: []})
+    let opt = {name: 'Youtube', logo: 'fab fa-youtube', label: Lang.LIVE, class: 'entry-nosub', type: 'group', renderer: getYoutubeLiveEntries, entries: []}
+    entries.splice(2, 0, opt)
     return entries
 })
 

@@ -72,12 +72,13 @@ class PlaybackTsIntent extends PlaybackTranscodeIntent {
                     this.confirm()
                 })
             })
+            this.proxy.intent = this.proxy
             this.proxy.on('timeout', (...args) => {
                 console.warn('TIMEOUTT', JSON.stringify(args))
             })
             this.proxy.on('destroy', () => {
                 if(!this.error && !this.destroyed){
-                    this.fail(this.proxy.statusCode || 'invalid')
+                    this.fail(this.proxy.statusCode || 504)
                 }
             })
         } else {

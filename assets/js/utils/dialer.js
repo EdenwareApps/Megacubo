@@ -21,6 +21,11 @@ const dialer = (() => {
             console.warn('WHEEL ignored');
             return;
         }
+        var v = jQuery('input[type="text"]:visible:eq(0)')
+        if(v.length){ // that's some input field on ui?
+            v.get(0).focus()
+            return
+        }
         var ok, bms, bd = Config.get('bookmark-dialing'), tp = Config.get('dialing-action'), charCode = (evt.which) ? evt.which : evt.keyCode, chr = (evt.key && evt.key.length == 1) ? evt.key : String.fromCharCode(charCode);
         console.warn('KEY', self.nowDialing, evt, chr);
         if(!self.nowDialing && !isNumeric(chr) && !isLetter(chr)){

@@ -20,8 +20,8 @@ class TSInfiniteProxy extends Events {
 			bufferSize: 0,
 			joinMethod: 2,
 			addNullPaddings: 1,
-			idleTimeout: 0,
-			needleSize: 36 * 1024,
+			idleTimeout: 10000,
+			needleSize: 64 * 1024,
 			intersectBufferSize: 12 * (1024 * 1024),
 			maxBufferSize: 28 * (1024 * 1024),
 			initialErrorLimit: 1,
@@ -58,13 +58,13 @@ class TSInfiniteProxy extends Events {
 				return
 			}
 			this.clients.push(client)
-			this.connected++
 			clearTimeout(this.idleTimer)
             var closed, writer = new Writer(client), headers = { 
                 'Cache-Control': 'no-cache',
                 'Access-Control-Allow-Origin': '*',
                 'Content-Type': 'video/MP2T',
-                'Transfer-Encoding': 'chunked'
+				'Transfer-Encoding': 'chunked',
+				'Content-Length': 99999999999999
             }
             if(this.debug){
                 console.log('[ts] serving (timeout reset)', this.url)
@@ -83,7 +83,6 @@ class TSInfiniteProxy extends Events {
 				if(this.destroyed){
 					return
 				}
-				this.connected--
 				let i = this.clients.indexOf(client)
 				if(i != -1){
 					delete this.clients[i]
@@ -91,21 +90,26 @@ class TSInfiniteProxy extends Events {
 						return item !== undefined
 					})
 				}
-				if(!this.connected && this.opts.idleTimeout){
-					if(this.debug){
-						console.warn('[ts] timeout start')
-					}
-					clearTimeout(this.idleTimer)
-					this.idleTimer = setTimeout(() => {
+				if(!this.clients.length){
+					let finish = () => {
 						if(this.debug){
 							console.warn('[ts] timeout')
 						}
-						this.emit('timeout', this.connected, this.clients.length)
+						this.emit('timeout', this.clients.length)
 						this.destroy()
-					}, this.opts.idleTimeout)
+					}
+					if(this.opts.idleTimeout){
+						if(this.debug){
+							console.warn('[ts] timeout start')
+						}
+						clearTimeout(this.idleTimer)
+						this.idleTimer = setTimeout(finish, this.opts.idleTimeout)
+					} else {
+						finish()
+					}
 				}
 				if(this.debug){
-					console.log('[ts] disconnect', this.connected)
+					console.log('[ts] disconnect', this.clients.length, traceback())
 				}
 				this.emit('client-disconnect', client)
 				this.removeListener('destroy', clean)
@@ -134,9 +138,12 @@ class TSInfiniteProxy extends Events {
 	}
 	handleData(data, enc, cb){
 		if(this.debug){
-			console.log('[ts] Buffer received')
+			console.log('[ts] Buffer received', this.destroyed) // , this.destroyed, this.currentRequest, this.intent)
 		}
-		if(this.destroyed || !data){
+		if(!data){
+			return
+		}
+		if(this.destroyed){
 			return
 		}
 		let len = this.len(data)
@@ -260,7 +267,7 @@ class TSInfiniteProxy extends Events {
 				this.errors++
 				console.warn('[ts] error', this.statusCode, this.headers)
 				if(this.errors >= (this.connectable ? this.opts.errorLimit : this.opts.initialErrorLimit)){
-					console.warn('[ts] error limit reached', this.errors, this.opts.errorLimit)
+					console.warn('[ts] error limit reached*', this.errors, this.opts.errorLimit)
 					this.destroy()
 				}
 			} else {
@@ -272,9 +279,6 @@ class TSInfiniteProxy extends Events {
 		this.currentRequest.pipe(h)
 	}
 	len(data){
-		if(this.debug){
-			console.log('[ts] len')
-		}
 		if(!data){
 			return 0
 		} else if(Array.isArray(data)) {
@@ -302,15 +306,25 @@ class TSInfiniteProxy extends Events {
 		this.outputBuffers = []
 		this.intersectingBuffers = []
 		this.errors = 0
-		this.connected = 0
 		this.needle = false
 		this.nullBuffer = new Buffer([0x00])
+	}
+	endRequest(){
+		if(this.currentRequest){
+			try {
+				this.currentRequest.abort()
+			} catch(e) {
+				console.error(e)	
+				this.currentRequest.end()
+			}
+		}
 	}
 	destroy(){
 		console.log('TSInfiniteProxy DESTROY', traceback())
 		if(this.debug){
 			console.log('[ts] destroy')
 		}
+		this.endRequest()
 		if(!this.destroyed){
 			if(this.debug){
 				console.warn('[ts] destroying...', this.currentRequest, traceback())
@@ -318,10 +332,6 @@ class TSInfiniteProxy extends Events {
 			this.destroyed = true
 			this.emit('destroy')
 			this.server.close()
-			if(this.currentRequest){
-				this.currentRequest.abort()
-				this.currentRequest = false
-			}
 			Object.keys(this).forEach(k => {
 				if(typeof(this[k]) == 'object'){
 					this[k] = null

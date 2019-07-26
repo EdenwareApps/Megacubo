@@ -21,15 +21,15 @@ const Tuning = (() => {
             })
         },
         concurrency(){
-            var downlink = window.navigator.connection.downlink || 5, cpuLimit = cpuCount * 2
+            var downlink = window.navigator.connection.downlink || 5, cpuLimit = cpuCount * 4
             var ret = Math.round(downlink / averageStreamingBandwidth())
             if(ret > cpuLimit){
                 ret = cpuLimit
             }
             if(ret < 3){
                 ret = 3
-            } else if(ret > 8) {
-                ret = 8
+            } else if(ret > 12) {
+                ret = 12
             }
             return ret
         },
@@ -94,7 +94,7 @@ class Tuner extends Events {
     constructor(entries, megaUrl, type){
         super()
         this.master = Tuning
-        this.debug = debugAllow(true)
+        this.debug = debugAllow(false)
         this.id = megaUrl + ':' + type
         this.type = type
         this.originalUrl = megaUrl
@@ -113,6 +113,7 @@ class Tuner extends Events {
         this.status = 0
         this.types = this.master.types
         this.skipPlaybackTest = false
+        this.sameDomainDelay = 5000
         if(typeof(this.types[this.type]) != 'undefined'){
             this.allowedTypes = this.types[this.type]
             if(this.type == 'live' && !Config.get('tuning-ignore-webpages')){
@@ -156,10 +157,10 @@ class Tuner extends Events {
         return n
     }
     process(){
-        console.warn('PROCESS')
+        // console.warn('PROCESS')
         if(!this.suspended && !this.finished){
             // emit results
-            console.warn('PROCESS')
+            // console.warn('PROCESS')
             let ret = this.testMap.some((state, i) => {
                 switch(state){
                     case -1:
@@ -184,7 +185,7 @@ class Tuner extends Events {
                 }
                 return false
             })
-            console.warn('PROCESS')
+            // console.warn('PROCESS')
             // finished?
             if(this.testMap.filter(t => { return t != 0 }).length == this.entries.length){
                 this.scanState = 3
@@ -192,7 +193,7 @@ class Tuner extends Events {
                     this.finish()   
                 }
             }
-            console.warn('PROCESS')
+            // console.warn('PROCESS')
             // should suspend?
             if(ret){
                 console.warn('PROCESS')
@@ -211,39 +212,43 @@ class Tuner extends Events {
                         break
                 }
             }
-            console.warn('PROCESS')
+            // console.warn('PROCESS')
             // spawn new tests
             if(!this.suspended && !this.finished && this.active < this.concurrency){
-                console.warn('PROCESS')
+                // console.warn('PROCESS')
                 this.scanState = 1
-                // spawn by stream type priority
-                this.allowedTypes.some(type => {
-                    return this.typeMap.some((t, i) => {
-                        if(typeof(this.testMap[i]) == 'undefined' && Array.isArray(t) && t.indexOf(type) != -1){
-                            this.test(i)
-                            return true
+                var self = this
+                let next = () => { // spawn by stream type priority
+                    let success = false
+                    this.allowedTypes.forEach(type => {
+                        if(this.active < this.concurrency){
+                            this.typeMap.forEach((t, i) => {
+                                if(this.active < this.concurrency && typeof(this.testMap[i]) == 'undefined' && Array.isArray(t) && t.indexOf(type) != -1){
+                                    let domain = getDomain(this.entries[i].url)
+                                    if(typeof(this.sameDomainCtl[domain]) == 'undefined' || (typeof(this.sameDomainCtl[domain]) == 'number' && time() >= this.sameDomainCtl[domain])){
+                                        this.sameDomainCtl[domain] = true
+                                        this.test(i, () => {
+                                            if(self.sameDomainCtl){
+                                                self.sameDomainCtl[domain] = time() + (self.sameDomainDelay / 1000)
+                                            }
+                                        })
+                                        success = true
+                                    }
+                                }
+                            })
                         }
                     })
-                })
-                console.warn('PROCESS')
-                // spawn any to fill the concurrency limit
-                while(this.active < this.concurrency){
-                    let ret = this.typeMap.some((t, i) => {
-                        if(typeof(this.testMap[i]) == 'undefined' && Array.isArray(t)){
-                            this.test(i)
-                            return true
-                        }
-                    })
-                    if(!ret){ // no where to go
-                        break
-                    }
+                    // console.warn('PROCESS')
+                    return success
                 }
+                // fill the concurrency limit
+                while(this.active < this.concurrency && next());
                 console.warn('PROCESS')
             }
-            console.warn('PROCESS')
+            // console.warn('PROCESS')
             // update progress
             this.progress()
-            console.warn('PROCESS')
+            // console.warn('PROCESS')
         }
     }
     next(cb){
@@ -283,7 +288,7 @@ class Tuner extends Events {
     shouldSuspend(){
         return (this.resultBufferSize != -1 && this.buffered() >= this.resultBufferSize)
     }
-    test(i){
+    test(i, tcb){
         let entry = this.entries[i], t = this.typeMap[i]
         this.testMap[i] = 0 // undefined to zero, the zero will act as a lock to pick once
         this.active++
@@ -330,6 +335,7 @@ class Tuner extends Events {
                     intent.tested = true
                 }
                 intent.run()
+                intent.setTimeout(Config.get('tune-timeout') * 2) // extend timeout as tests are simultaneous
             }, () => {
                 if(this.finished){
                     return
@@ -348,6 +354,9 @@ class Tuner extends Events {
                     delete this.actives[p]
                 }
                 this.process()
+                if(typeof(tcb) == 'function'){
+                    tcb()
+                }
             })
         })
     }
@@ -356,6 +365,7 @@ class Tuner extends Events {
             this.scanState = 1
             this.testMap = []
             this.typeMap = []
+            this.sameDomainCtl = {}
             this.resume()
             this.entries = this.entries.filter((e, i) => {
                 return !isMegaURL(e.url)
@@ -423,8 +433,12 @@ class Tuner extends Events {
             }).length
             if(complete != this.complete){
                 this.complete = complete
-                this.status = this.complete / (this.entries.length / 100)
-                this.emit('progress', this.status, this.complete, this.entries.length)
+                if(this.complete >= this.entries.length){
+                    this.process()
+                } else {
+                    this.status = this.complete / (this.entries.length / 100)
+                    this.emit('progress', this.status, this.complete, this.entries.length)
+                }
             }
         }
     }

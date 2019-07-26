@@ -2,9 +2,9 @@
 var torrentsSearchEngines = {}
 
 function torrentsSearch(terms, callback) {
-    var already = [], cheerio = require('cheerio')
-    if(terms.indexOf(' mp4') == -1){
-        terms += ' mp4'
+    var cheerio = require('cheerio')
+    if(terms.indexOf(' aac') == -1){
+        terms += ' aac'
     }
     if(!Array.isArray(torrentsSearchEngines)){
         torrentsSearchEngines = [];
@@ -19,22 +19,36 @@ function torrentsSearch(terms, callback) {
             torrentsSearch(terms, callback)
         })
     } else {
-        let complete = 0
-        Object.keys(torrentsSearchEngines).forEach((n) => {
+        let complete = 0, tentries = []
+        async.forEach(Object.keys(torrentsSearchEngines), (n, cb) => {
             torrentsSearchEngines[n](terms, (err, entries, url, html, len) => {
                 complete++;
+                if(err){
+                    console.error('TORRENT SEARCH ERROR', err)
+                }
                 console.warn('TORRENT SEARCH', n, err, entries, Object.keys(torrentsSearchEngines))
                 console.warn('TORRENT SEARCH*', url, html, len)
                 entries = entries.filter((entry) => {
                     var hash = getMagnetHash(entry.url)
-                    if(already.indexOf(hash) != -1){
-                        return false
-                    }
-                    already.push(hash)
-                    return true
+                    return !tentries.some((e, i) => {
+                        console.warn('TORRENT SEARCH**', e, i)
+                        if(e && hash == getMagnetHash(e.url)){
+                            if(e.score < entry.score){
+                                tentries[i].score = entry.score
+                            }
+                            tentries[i].url = Trackers.add(tentries[i].url, e.url)
+                            return true
+                        }
+                    })
                 })
-                callback(err, entries, complete == torrentsSearchEngines.length)
+                console.warn('TORRENT SEARCH***', tentries, entries)
+                tentries = tentries.concat(entries)
+                cb()
             }, {path, cheerio, request})
+        }, () => {
+            callback(null, tentries.sort((a, b) => {
+                return (a.score > b.score) ? -1 : ((b.score > a.score) ? 1 : 0)
+            }), complete == torrentsSearchEngines.length)
         })
     }
 }
@@ -170,8 +184,8 @@ var torrentOption = registerMediaType({
     }
 }, false)
 
-addFilter('toolsEntries', entries => {
-    entries.unshift(torrentOption)
+addFilter('videosMetaEntries', entries => {
+    entries.splice(2, 0, torrentOption)
     return entries
 })
 

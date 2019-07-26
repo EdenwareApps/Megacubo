@@ -261,34 +261,71 @@ function getWatchingEntries(mediaType){
         mediaType = ''
     }
     setTimeout(() => { // avoid mess the loading entry returned, getting overridden by him
-        getWatchingData((_options) => {
-            if(_options.length){
-                var options = _options;
-                console.log('fetchen', options);
-                options = options.filter((option) => {
-                    return !mediaType || option.mediaType == mediaType;
-                });
-                if(options.length && options[0].label.indexOf('ordm')==-1){
-                    options.forEach((entry, i) => {
-                        if(!entry.__parsed){
-                            options[i].label = (i + 1)+'&ordm; &middot; '+(mediaType == 'audio' ? Lang.LISTENING : Lang.X_WATCHING).format(parseCounter(extractInt(options[i].label)))
-                            if(typeof(entry.url) == 'string' && isMegaURL(entry.url)){
-                                //console.log('FETCH WATCHING', entry.url, mediaType);
-                                options[i].url = updateMegaURLQSAppend(entry.url, {mediaType: mediaType})
-                            }
-                            entry.__parsed = true;
-                        }                      
-                        if(!options[i].logo){
-                            options[i].logo = 'http://app.megacubo.net/logos/'+encodeURIComponent(options[i].name)+'.png';
-                        }
+        getWatchingData(entries => {
+            indexerAdultFilter(entries, _options => {
+                if(_options.length){
+                    var options = _options
+                    console.log('fetchen', options)
+                    options = options.filter((option) => {
+                        return !mediaType || option.mediaType == mediaType;
                     })
+                    if(options.length && options[0].label.indexOf('ordm')==-1){
+                        let groups = {}, gcount = {}, gentries = []
+                        options = options.map(entry => {
+                            entry.users = extractInt(entry.label)
+                            return entry
+                        })
+                        options.forEach((entry, i) => {
+                            let term = searchTermFromEntry(entry)
+                            if(term){
+                                if(typeof(groups[term]) == 'undefined'){
+                                    groups[term] = []
+                                    gcount[term] = 0
+                                }
+                                groups[term].push(entry)
+                                gcount[term] += entry.users
+                                delete options[i]
+                            }
+                        })
+                        Object.keys(groups).forEach(n => {
+                            let e = {
+                                name: ucWords(n), 
+                                type: 'group', 
+                                logo: pickLogoFromEntries(groups[n]),
+                                entries: groups[n],
+                                users: gcount[n]
+                            }
+                            gentries.push(e)
+                        })
+                        //console.warn('GENTR', options)
+                        options = options.filter(e => {
+                            return !!e
+                        }).concat(gentries).sort((a,b) => {
+                            return (a.users > b.users) ? -1 : ((b.users > a.users) ? 1 : 0)
+                        })
+                        options.forEach((entry, i) => {
+                            if(!entry.__parsed){
+                                options[i].label = (i + 1)+'&ordm; &middot; '+(mediaType == 'audio' ? Lang.LISTENING : Lang.X_WATCHING).format(parseCounter(options[i].users))
+                                if(typeof(entry.url) == 'string' && isMegaURL(entry.url)){
+                                    //console.log('FETCH WATCHING', entry.url, mediaType);
+                                    options[i].url = updateMegaURLQSAppend(entry.url, {mediaType: mediaType})
+                                }
+                                entry.__parsed = true;
+                            }                      
+                            if(!options[i].logo){
+                                options[i].logo = 'http://app.megacubo.net/logos/'+encodeURIComponent(options[i].name)+'.png';
+                            }
+                        })
+                        options = paginateEntries(options)
+                    }
+                    //console.log('fetchen', options, name, path)
+                    //console.log('fetchen2', options)
+                    Menu.asyncResult(path, options)
+                } else {
+                    notify(Lang.DATA_FETCHING_FAILURE, 'fa-exclamation-triangle faclr-red', 'normal');
+                    Menu.asyncResult(path, -1)
                 }
-                console.log('fetchen', options, name, path);
-                Menu.asyncResult(path, options.slice(0, 96))
-            } else {
-                notify(Lang.DATA_FETCHING_FAILURE, 'fa-exclamation-triangle faclr-red', 'normal');
-                Menu.asyncResult(path, -1)
-            }
+            })
         })
     }, loadingToActionDelay);
     return [Menu.loadingEntry()];
@@ -302,9 +339,10 @@ function getWatchingData(cb, update, locale){
     }
     var url = 'http://app.megacubo.net/stats/data/watching.' + locale + '.json';
     data = fetchEntries(url, (_entries) => {
-        var entries = _entries.slice(0);
-        if(!Array.isArray(entries)){
-            entries = [];
+        if(!Array.isArray(_entries)){
+            entries = []
+        } else {
+            entries = _entries.slice(0)
         }
         for(var i=0; i<entries.length; i++){
             if(isMegaURL(entries[i].url)){
@@ -321,7 +359,7 @@ function getWatchingData(cb, update, locale){
             }
             entries[i].label = entries[i].label.format(Lang.USER, Lang.USERS)
         } 
-        watchingData = entries;
+        watchingData = entries
         if(filter){
             entries = applyFilters('getWatchingData', entries)
             if(!Array.isArray(entries)){
@@ -333,8 +371,8 @@ function getWatchingData(cb, update, locale){
         if(typeof(cb)=='function'){
             cb(entries)
         }
-    }, update);
-    return data;
+    }, update)
+    return data
 }
 
 addFilter('getWatchingData', (entries) => {
@@ -345,7 +383,8 @@ addFilter('getWatchingData', (entries) => {
 })
 
 function parseLabelCount(data){
-    var count = 0, ctl = '', type = 'total';
+    var count = 0, ctl = '', type = 'total', fmt = Lang.X_WATCHING
+    /*
     if(typeof(data.mediaType) != 'undefined' && typeof(mediaTypeStreamsCount[data.mediaType]) != 'undefined'){
         count = mediaTypeStreamsCount[data.mediaType];
         type = data.mediaType;
@@ -361,6 +400,7 @@ function parseLabelCount(data){
                 break;
         }
     }
+    */
     if(typeof(data.name) != 'undefined'){
         var n = data.name;
         //console.warn('BEENNNNNNNNN#########', n, Menu.path);
@@ -369,44 +409,44 @@ function parseLabelCount(data){
             //console.warn('BEENNNNNNNNN#########', n, Menu.path);
             switch(n){
                 case Lang.LIVE:
-                    type = 'w-live', fmt = Lang.X_WATCHING, n = false;
+                    type = 'live', n = false;
                     break;
                 case Lang.VIDEOS:
-                    type = 'w-video', fmt = Lang.X_WATCHING, n = false;
+                    type = 'video', n = false;
                     break;
                 case Lang.RADIOS:
-                    type = 'w-radio', fmt = Lang.X_LISTENING, n = false;
+                    type = 'radio', n = false;
                     break;
             }
         } 
         if(n) {
             switch(n){
                 case Lang.LIVE:
-                    type = 'live', fmt = Lang.X_BROADCASTS;
+                    type = 'live';
                     break;
                 case Lang.VIDEOS:
-                    type = 'video', fmt = Lang.X_VIDEOS;
+                    type = 'video';
                     break;
                 case Lang.RADIOS:
-                    type = 'audio', fmt = Lang.X_STATIONS;
+                    type = 'audio';
                     break;
                 default:
-                    type = 'total', fmt = Lang.X_WATCHING;
+                    type = 'total';
                     break;
             }
         }
     }
-    if(type) {
+    if(type && typeof(onlineUsersCount[type]) != 'undefined'){
+        count = onlineUsersCount[type];
+        return fmt.format(parseCounter(count))
+        /*
         if(typeof(mediaTypeStreamsCount[type]) != 'undefined'){
             if(!indexerVarsAvailable){
                 return '<i class="fas fa-circle-notch pulse-spin search-index-vary"></i> '+Lang.PROCESSING
             }
             count = type == 'total' ? onlineUsersCount['total'] : mediaTypeStreamsCount[type];
             return fmt.format(parseCounter(count))
-        } else if(typeof(onlineUsersCount[type.substr(2)]) != 'undefined'){
-            count = onlineUsersCount[type.substr(2)];
-            return fmt.format(parseCounter(count))
-        }
+        */
     }
     return '';
 }
@@ -1229,7 +1269,7 @@ addAction('getWatchingData', (entries) => {
 
 function setMiniPlayerContinueData(entry, prepend){
     if(entry && entry.name){
-        var html = '<img src="[logo]" onerror="lazyLoad(this, [\'[auto-logo]\', \'[default-logo]\'])" title="" />', autoLogo = getAutoLogo(entry.name);
+        var html = '<img src="[logo]" onerror="lazyLoad(this, [\'[auto-logo]\', \'[default-logo]\'])" title="" />', autoLogo = getAutoLogo(entry)
         if(entry.logo.substr(0, 3)=="fa-"){
             html = html.replace(new RegExp('<img[^>]+>', 'mi'), '<i class="fas '+entry.logo+' entry-logo-fa" aria-hidden="true"></i>')
         } else if(entry.logo.indexOf(" fa-")!=-1){
@@ -1525,7 +1565,7 @@ function getAddBookmarkByNameEntriesPhase2(){
         })
         Menu.asyncResult(_path, entries)
     }, type, currentBookmarkAddingByName.name, true, true)
-    return [Menu.loadingEntry]
+    return [Menu.loadingEntry()]
 }
 
 function expandMegaURL(url, cb){
@@ -1837,77 +1877,114 @@ function getListingGroups(type){
         sharedListsGroups = {video: [], live: [], audio: [], adult: []}
         // processing offloaded for indexer.js
     }
-    switch(type){
-        case 'live':
-            return sharedListsGroups['live'];
-            break;
-        case 'video':
-            return sharedListsGroups['video'];
-            break;
-        case 'audio':
-            return sharedListsGroups['audio'];
-            break;
-        case 'adult':
-            return sharedListsGroups['adult'];
-            break;
-        default:
-            var r = sharedListsGroups['live'];
-            r = r.concat(sharedListsGroups['video']);
-            r = r.concat(sharedListsGroups['audio']);
-            r = r.sort();
-            return r;
+    if(typeof(sharedListsGroups[type]) != 'undefined'){
+        return sharedListsGroups[type]
+    } else if(type.indexOf('-') != -1){
+        return getListingGroups(type.split('-')[0])
+    } else {
+        return []
     }
 }
 
 function sharedGroupsAsEntries(type, mediaType, filter){
-    var groups = getListingGroups(type);
-    groups = groups.map((group) => {
+    if(!mediaType){
+        mediaType = type
+    }
+    var groups = getListingGroups(type)
+    return foldEntries(groups.map(group => {
         return {
             name: group,
             type: 'group',
-            mediaType: mediaType || type,
-            renderer: (data) => {
+            mediaType,
+            renderer: data => {
                 _path = assumePath(group)
                 search(entries => {
                     Menu.asyncResult(_path, entries)
                 }, data.mediaType, data.name, true, false, filter)
-                return [Menu.loadingEntry]
+                return [Menu.loadingEntry()]
             }
         }
-    });
-    var masterGroups = {}, firstChar;
-    for(var i=0; i<groups.length; i++){
-        firstChar = groups[i].name.toUpperCase().match(new RegExp('[A-Z0-9]'));
-        firstChar = (firstChar && firstChar.length >= 1) ? firstChar[0] : '0';
-        if(typeof(masterGroups[firstChar])=='undefined'){
-            masterGroups[firstChar] = [];
-        }
-        masterGroups[firstChar].push(groups[i])
+    }))
+}
+
+function foldEntries(entries){
+    if(entries.length > 24){
+        return indexateEntries(entries)
+    } else if(entries.length > 12){
+        return paginateEntries(entries)
+    } else {
+        return entries
     }
-    var masterGroupsParsed = [], parsingGroup = [], parsingGroupIndexStart = false, parsingGroupIndexEnd = false;
-    for(var key in masterGroups){
+}
+
+function indexateEntries(entries, mask){    
+    var groups = {}, firstChar
+    if(!mask){
+		mask = Lang.CATEGORIES + ' {0}'
+	}
+    for(var i=0; i<entries.length; i++){
+        firstChar = entries[i].name.toUpperCase().match(new RegExp('[A-Z0-9]'));
+        firstChar = (firstChar && firstChar.length >= 1) ? firstChar[0] : '0';
+        if(typeof(groups[firstChar])=='undefined'){
+            groups[firstChar] = []
+        }
+        groups[firstChar].push(entries[i])
+    }
+    var groupsParsed = [], parsingGroup = [], parsingGroupIndexStart = false, parsingGroupIndexEnd = false;
+    for(var key in groups){
         if(parsingGroupIndexStart === false){
             parsingGroupIndexStart = key;
         }
-        if((parsingGroup.length + masterGroups[key].length) >= folderSizeLimit){
-            masterGroupsParsed.push({
-                name: Lang.CATEGORIES + ' ' + lettersToRange(parsingGroupIndexStart, parsingGroupIndexEnd)+' ('+parsingGroup.length+')',
+        if((parsingGroup.length + groups[key].length) >= folderSizeLimit){
+            groupsParsed.push({
+                name: mask.format(lettersToRange(parsingGroupIndexStart, parsingGroupIndexEnd)+' ('+parsingGroup.length+')'),
                 type: 'group',
                 entries: parsingGroup
             });
-            parsingGroup = masterGroups[key];
+            parsingGroup = groups[key];
             parsingGroupIndexStart = key;
         } else {
-            parsingGroup = parsingGroup.concat(masterGroups[key])
+            parsingGroup = parsingGroup.concat(groups[key])
         }
         parsingGroupIndexEnd = key;
     }
     if(parsingGroup.length){
-        masterGroupsParsed.push({
-            name: Lang.CATEGORIES + ' ' + lettersToRange(parsingGroupIndexStart, parsingGroupIndexEnd)+' ('+parsingGroup.length+')',
+        groupsParsed.push({
+            name: mask.format(lettersToRange(parsingGroupIndexStart, parsingGroupIndexEnd)+' ('+parsingGroup.length+')'),
             type: 'group',
             entries: parsingGroup
         })
     }
-    return masterGroupsParsed;
+    return groupsParsed
+}
+
+function paginateEntries(entries, limit){
+    if(typeof(limit) != 'number'){
+        limit = 24
+    }
+    let ranges = [], result = []
+    entries.forEach((e, i) => {
+        let ib = parseInt(i / limit)
+        if(typeof(ranges[ib]) == 'undefined'){
+            ranges[ib] = []
+        }
+        ranges[ib].push(e)
+    })
+    console.log('R', ranges)
+    var r = ranges.length - 1
+	for(var i = ranges.length - 1; i > 0; i--){
+		let pvi = i - 1
+		//console.log('I', i, pvi)
+        let e = {
+            name: Lang.NEXT + ' ' + i + '&#47;' + r,
+            type: 'group',
+            logo: 'fa-angle-right',
+            entries: ranges[i]
+        }
+		//console.log('I', ranges, pvi)
+        ranges[pvi].push(e)
+        delete ranges[i]
+    }
+    console.log('R', ranges)
+    return ranges.filter(Array.isArray).shift()
 }

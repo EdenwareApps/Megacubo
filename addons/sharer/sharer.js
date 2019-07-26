@@ -34,7 +34,3 @@ addFilter('playingMetaEntries', (entries, path) => {
     entries.push(shareEntry())
 	return entries;
 })
-
-addAction('preMenuInit', () => {
-    Menu.entries = Menu.insert(Menu.entries, Lang.ABOUT, shareEntry())
-})

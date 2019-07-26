@@ -39,7 +39,7 @@ Playback.proxy = ((parent) => { // handle http / p2p with original url
         return ipcache;
     }
     self.isFragment = (url) => {
-        return ['m2ts', 'ts', 'm4s', 'm4v', 'm4a'].indexOf(getExt(url)) != -1
+        return ['m2ts', 'ts', 'm4s', 'm4v', 'm4a', 'aac'].indexOf(getExt(url)) != -1
     }
     self.listen = () => {
         var ip = self.ip(true)
@@ -319,7 +319,7 @@ Playback.proxy = ((parent) => { // handle http / p2p with original url
 Playback.proxyLow = ((parent) => { // handle low level connection from http manager with app cookies, for hls ts segments only
     var self = {
         parent,
-        debug: false,
+        debug: true,
         closed: false, 
         started: false,
         addr: '127.0.0.1',
