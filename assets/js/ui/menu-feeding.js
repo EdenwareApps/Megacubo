@@ -288,6 +288,13 @@ function getWatchingEntries(mediaType){
                             }
                         })
                         Object.keys(groups).forEach(n => {
+                            groups[n].sort((a, b) => {
+                                let ai = isMegaURL(a.url), bi = isMegaURL(b.url)
+                                if(ai != bi){
+                                    return ai ? -1 : 1
+                                }
+                                return (a.users > b.users) ? -1 : ((b.users > a.users) ? 1 : 0)
+                            })
                             let e = {
                                 name: ucWords(n), 
                                 type: 'group', 

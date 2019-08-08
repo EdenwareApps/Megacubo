@@ -738,7 +738,7 @@ function sendStatsPrepareEntry(stream){
     return stream;
 }
 
-var autoCleanHintShown = false;
+var tuningHintShown = false;
 patchMaximizeButton();
 
 jQuery(() => {
@@ -3682,7 +3682,7 @@ addAction('afterAppShow', updateInternetState)
 var menuFooterTooltipCorrection = false;
 addFilter('filterEntries', (entries, path) => {
     if(path == ''){
-        var focusMinLength = entries.length > 8 ? 4 : 3, focusMaxLength = 8, minColumnsLength = 4, maxColumnsLength = 7, sections = Config.get('initial-sections'), only = Config.get('initial-sections-only');
+        var focusMinLength = entries.length > 8 ? 4 : 3, focusMaxLength = 8, minColumnsLength = 3, maxColumnsLength = 7, sections = Config.get('initial-sections'), only = Config.get('initial-sections-only');
         var posEntries = [];
         if(only && sections.indexOf('options') == -1){
             sections.push('options')

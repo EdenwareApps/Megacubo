@@ -70,7 +70,7 @@ indexerFilter = opts => {
 indexerAdultFilter = opts => {
     let ks = Object.keys(Indexer.lists)
     opts.entries = opts.entries.map(e => {
-        ks.forEach(u => {
+        ks.some(u => {
             if(e.parentalControlSafe !== false){
                 let found = false
                 Indexer.lists[u].some(n => {

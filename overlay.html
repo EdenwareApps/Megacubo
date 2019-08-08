@@ -26,6 +26,9 @@
             }
             function processFile(file){
                 var c = (top || parent)
+                if(typeof(Lang) == 'undefined'){
+                    Lang = c.Lang
+                }
                 var probeSize = 120000;
                 if(file && file.substr(0, 2)=='//'){
                     file = 'http:'+file;
@@ -33,20 +36,20 @@
                 if(['m3u', 'm3u8'].indexOf(getExt(file))!=-1){
                     openFile(file)
                 } else if(['png', 'jpg', 'jpeg'].indexOf(getExt(file))!=-1){
-                    if(confirm(top.Lang.APPLY_AS_BACKGROUND)){
+                    if(confirm(Lang.APPLY_AS_BACKGROUND)){
                         c.applyBackgroundImage(file)
                     }
                 } else if(getExt(file) == 'json'){
-                    if(confirm(top.Lang.IMPORT_THEME_CONFIRM)){
+                    if(confirm(Lang.IMPORT_THEME_CONFIRM)){
                         c.importThemeFile(file, top.loadTheming)
-                    } else if(confirm(top.Lang.IMPORT_CONFIG_CONFIRM)){
+                    } else if(confirm(Lang.IMPORT_CONFIG_CONFIRM)){
                         c.importConfig(file, restartApp)
                     }
                 } else if(isMedia(file) || isMegaURL(file) || c.hasCustomMediaType(file)) {
                     c.playCustomFile(file)
                 } else {
                     if(file.match(new RegExp('^https?://'))){
-                        var n = notify(top.Lang.PROCESSING, 'fa-spin fa-circle-notch', 'wait')
+                        var n = c.notify(Lang.PROCESSING, 'fa-spin fa-circle-notch', 'wait')
                         var fetchOptions = {redirect: 'follow'}
                         fetchTimeout(file, (r) => {
                             n.close()
@@ -113,7 +116,7 @@
                         } else if(type == 'stream' || (isValidPath(url) || hasCustomMediaType(url))){ 
                             c.playCustomURL(url, true)
                         } else { // type=error so
-                            notify(top.Lang.INVALID_URL_MSG, 'fa-exclamation-triangle faclr-red', 'normal')
+                            c.notify(Lang.INVALID_URL_MSG, 'fa-exclamation-triangle faclr-red', 'normal')
                         }
                     })
                 }
@@ -127,7 +130,7 @@
             var dragDrop = require('drag-drop')
             jQuery(function (){
                 top.applyCSSTemplate('assets/css/overlay.src.css', getFrame('overlay'))
-                var dropTarget = document.querySelector('#drop-target'), dragOverColorTimer = 0;
+                var dropTarget = document.querySelector('#drop-target'), dragOverColorTimer = 0
                 dragDrop(dropTarget, {
                     onDrop: function (files, pos) {
                         clearTimeout(dragOverColorTimer)

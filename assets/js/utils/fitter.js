@@ -1282,7 +1282,7 @@ var Fitter = (() => {
             }
         } else {
             setTimeout(() => {
-                if(frame && intent && intent.allowFitter()){
+                if(frame && intent && intent.allowFitter && intent.allowFitter()){
                     self.watchFrame(frame, intent)
                 }
             }, 400)

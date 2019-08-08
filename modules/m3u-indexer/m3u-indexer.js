@@ -50,11 +50,12 @@ class M3UIndexer extends Events {
 					this.applyFilters(url)
 					this.store.set(key, this.lists[url], (24 * 3600))
 					this.store.set(fbkey, this.lists[url], 30 * (24 * 3600))
+					this.emit('stats', this.stats(), this.allGroups())
 				}
 				cb()
 			})
 		}, () => {
-			this.emit('stats', this.stats(), this.allGroups())
+			// ...
 		})
 	}
 	addFilter(f){

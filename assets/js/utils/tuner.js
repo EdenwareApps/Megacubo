@@ -21,7 +21,7 @@ const Tuning = (() => {
             })
         },
         concurrency(){
-            var downlink = window.navigator.connection.downlink || 5, cpuLimit = cpuCount * 4
+            var downlink = window.navigator.connection.downlink || 5, cpuLimit = cpuCount * 8
             var ret = Math.round(downlink / averageStreamingBandwidth())
             if(ret > cpuLimit){
                 ret = cpuLimit
@@ -113,7 +113,7 @@ class Tuner extends Events {
         this.status = 0
         this.types = this.master.types
         this.skipPlaybackTest = false
-        this.sameDomainDelay = 5000
+        this.sameDomainDelay = 3000
         if(typeof(this.types[this.type]) != 'undefined'){
             this.allowedTypes = this.types[this.type]
             if(this.type == 'live' && !Config.get('tuning-ignore-webpages')){
@@ -158,6 +158,9 @@ class Tuner extends Events {
     }
     process(){
         // console.warn('PROCESS')
+        if(this.processTimer){
+            clearTimeout(this.processTimer)
+        }
         if(!this.suspended && !this.finished){
             // emit results
             // console.warn('PROCESS')
@@ -202,20 +205,15 @@ class Tuner extends Events {
                 }
             } else {
                 console.warn('PROCESS')
-                switch(this.scanState){
-                    case 2:
-                        // kkk
-                        break
-                    case 3:
-                        this.suspend()
-                        this.emit('finish')
-                        break
+                if(this.scanState == 3){
+                    this.suspend()
+                    this.emit('finish')
                 }
             }
             // console.warn('PROCESS')
             // spawn new tests
             if(!this.suspended && !this.finished && this.active < this.concurrency){
-                // console.warn('PROCESS')
+                console.warn('PROCESS')
                 this.scanState = 1
                 var self = this
                 let next = () => { // spawn by stream type priority
@@ -226,6 +224,7 @@ class Tuner extends Events {
                                 if(this.active < this.concurrency && typeof(this.testMap[i]) == 'undefined' && Array.isArray(t) && t.indexOf(type) != -1){
                                     let domain = getDomain(this.entries[i].url)
                                     if(typeof(this.sameDomainCtl[domain]) == 'undefined' || (typeof(this.sameDomainCtl[domain]) == 'number' && time() >= this.sameDomainCtl[domain])){
+                                        console.warn('PROCESS', this.entries[i].url)
                                         this.sameDomainCtl[domain] = true
                                         this.test(i, () => {
                                             if(self.sameDomainCtl){
@@ -233,16 +232,24 @@ class Tuner extends Events {
                                             }
                                         })
                                         success = true
+                                        console.warn('PROCESS')
                                     }
                                 }
                             })
                         }
                     })
-                    // console.warn('PROCESS')
                     return success
                 }
                 // fill the concurrency limit
-                while(this.active < this.concurrency && next());
+                next()
+                if(this.active < this.concurrency){
+                    if(this.processTimer){
+                        clearTimeout(this.processTimer)
+                    }
+                    this.processTimer = setTimeout(() => {
+                        this.process()
+                    }, this.sameDomainDelay)
+                }
                 console.warn('PROCESS')
             }
             // console.warn('PROCESS')
@@ -335,7 +342,7 @@ class Tuner extends Events {
                     intent.tested = true
                 }
                 intent.run()
-                intent.setTimeout(Config.get('tune-timeout') * 2) // extend timeout as tests are simultaneous
+                intent.setTimeout(Config.get('tune-timeout') * 1.5) // extend timeout as tests are simultaneous
             }, () => {
                 if(this.finished){
                     return

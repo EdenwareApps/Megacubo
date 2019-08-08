@@ -257,7 +257,7 @@ class PlaybackHtmlIntent extends PlaybackBaseIntent {
         }
     }
     fitterCallback(result){
-        if(result && result.element && this.allowFitter()){
+        if(result && result.element && this.allowFitter && this.allowFitter()){
             console.log('fitterCallback', result);
             var video = result.element;
             if(video.tagName.toLowerCase() != 'video'){
@@ -297,27 +297,29 @@ class PlaybackHtmlIntent extends PlaybackBaseIntent {
         }
     }
     runFitter(){
-        var interval = 3000;
+        var interval = 3000
         if(this.fitterTimer){
             clearTimeout(this.fitterTimer)
         }
-        console.log('intent.runFitter() -1', traceback());
+        console.log('intent.runFitter() -1', traceback())
         this.fitterTimer = setTimeout(() => {
             if(this.fitterTimer){
                 clearTimeout(this.fitterTimer)
             }
-            var c = this.allowFitter();
-            if(c){
-                console.log('intent.runFitter()', time(), this.fittedElement);
-                Fitter.start(c, this);
-                this.fitterTimer = setTimeout(() => {
-                    this.runFitter()
-                }, interval);
-                console.log('intent.runFitter() OK')
+            if(this.allowFitter){
+                var c = this.allowFitter()
+                if(c){
+                    console.log('intent.runFitter()', time(), this.fittedElement)
+                    Fitter.start(c, this)
+                    this.fitterTimer = setTimeout(() => {
+                        this.runFitter()
+                    }, interval)
+                    console.log('intent.runFitter() OK')
+                }
             }
-        }, 50);
-        //console.log('intent.runFitter() -1', time());
-        return this.started;
+        }, 50)
+        //console.log('intent.runFitter() -1', time())
+        return this.started
     }      
     commit(){
         jQuery(document).find('iframe#sandbox').not(this.frame).remove();

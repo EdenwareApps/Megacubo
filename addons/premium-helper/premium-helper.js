@@ -125,6 +125,7 @@ if(typeof(PremiumHelper) == 'undefined'){
                         p = Math.round(received_bytes / (total_bytes / 100))
                     }
                     self.notification.update(Lang.ENABLING_PREMIUM_FEATURES.format(p), 'fa-mega spin-x-alt', 'forever')
+                    jQuery(element).find('.entry-name').html('<i class="fas fa-circle-notch pulse-spin"></i> &nbsp;' + Lang.ENABLING_PREMIUM_FEATURES.format(p))
                 })
             }
         }

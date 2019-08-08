@@ -601,40 +601,54 @@ function playEntry(oentry, opts, types, tuning, cb){
     }
 }
 
-function allowAutoClean(curPath, entries){
-    // should append autoclean in this path?
+/*
+function allowTuningEntry(curPath, entries){
+    // should append tuning in this path?
     if(!curPath){
         return false
     }
-    var offerAutoClean = false, autoCleanAllowPaths = [Lang.LIVE, Lang.VIDEOS, Lang.MY_LISTS, Lang.SEARCH], ignorePaths = [Lang.BEEN_WATCHED, Lang.HISTORY, Lang.RECORDINGS, Lang.BOOKMARKS, Lang.NEXT, 'Youtube']
+    var offerTuning = false, tuningAllowPaths = [Lang.LIVE, Lang.VIDEOS, Lang.MY_LISTS, Lang.SEARCH], ignorePaths = [Lang.BEEN_WATCHED, Lang.HISTORY, Lang.RECORDINGS, Lang.BOOKMARKS, Lang.NEXT, 'Youtube']
     if(Array.isArray(entries)){
         entries.some((entry) => {
             var type = getMediaType(entry)
             if(type){
-                if(['live', 'video', 'audio'].indexOf(type) != -1){
-                    offerAutoClean = true
+                if(['live', 'video'].indexOf(type) != -1){
+                    offerTuning = true
                 } else if(typeof(customMediaTypes[type]) != 'undefined' && customMediaTypes[type]['testable']) {
-                    offerAutoClean = true
+                    offerTuning = true
                 }
             }   
-            return offerAutoClean 
+            return offerTuning 
         })
     } else {  // no entries, check for path so
-        autoCleanAllowPaths.forEach((path) => {
+        tuningAllowPaths.forEach((path) => {
             if(curPath.length && curPath.indexOf(path) != -1){
-                offerAutoClean = true
+                offerTuning = true
             }
         })
     }
-    if(offerAutoClean){
+    if(offerTuning){
         ignorePaths.every((path) => {
             if(basename(curPath) == path){
-                offerAutoClean = false
+                offerTuning = false
             }
-            return offerAutoClean
+            return offerTuning
         })
     }
-    return offerAutoClean
+    return offerTuning
+}
+*/
+
+function allowTuningEntry(curPath, entries){
+    // should append tuning in this path?
+    if(curPath){
+        if(curPath.indexOf(Lang.MANUAL_TUNING) != -1){ // station manual tuning
+            return true
+        }
+        if(curPath.indexOf(Lang.VIDEOS) != -1 && curPath.indexOf(Lang.BEEN_WATCHED) == -1){ // videos folder
+            return true
+        }
+    }
 }
 
 function updateStreamEntriesFlags(){
@@ -655,8 +669,8 @@ function updateStreamEntriesFlags(){
         loadingurls.push(isPending)
     }
     console.log(loadingurls, isPending);
-    var doSort = allowAutoClean(Menu.path);
-    var fas = jQuery('.entry-stream'), autoCleaning = jQuery('.entry-tuning').filter((i, e) => { 
+    var doSort = allowTuningEntry(Menu.path);
+    var fas = jQuery('.entry-stream'), tuning = jQuery('.entry-tuning').filter((i, e) => { 
         return e.innerHTML.indexOf('% ') != -1; 
     }).length, firstStreamOffset = false;
     fas.each((i, element) => {
@@ -673,7 +687,7 @@ function updateStreamEntriesFlags(){
                 n.find('.stream-state').remove();
                 n.prepend('<span class="stream-state"><i class="fas fa-thumbs-up faclr-green" style="font-size: 90%;position: relative;top: -1px;"></i></span> ');
                 e.removeClass('entry-offline');
-            } else if(autoCleaning) {
+            } else if(tuning) {
                 let e = jQuery(element), n = e.find('.entry-label');
                 n.find('.stream-state').remove();
                 n.prepend('<span class="stream-state"><i class="fas fa-clock" style="color: #eee;font-size: 90%;position: relative;top: -1px;"></i></span> ');

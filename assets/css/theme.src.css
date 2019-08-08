@@ -338,8 +338,9 @@ progress::-webkit-progress-value {
 html .prompt-footer .button {
     background: (background-color);
     color: (font-color);
-    min-height: calc(2 * (icon-size)px);
+    min-height: calc(3 * (icon-size)px);
     text-shadow: 1px 1px 1px (background-color);
+    box-shadow: inset 1px 1px 6px (background-color-playing)44;
 }
 
 html .prompt-footer .button svg, .prompt-close a svg {
@@ -369,7 +370,7 @@ html .prompt-footer .button:hover, html .prompt-footer .button.focused {
 .prompt-input {
     color: (background-color-playing);
     background: (font-color);
-    min-height: calc(2 * (icon-size)px);
+    min-height: calc(3 * (icon-size)px);
 }
 
 div#modal-overlay .prompt textarea, div#modal-overlay .prompt input {

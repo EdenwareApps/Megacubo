@@ -467,7 +467,7 @@ div#modal-overlay > div > div {
 div#modal-overlay .prompt {
     display: inline-block;
     width: 100%;
-    max-width: calc(80% + 4px);
+    max-width: calc(86% + 4px);
     border-radius: 3px;
     overflow: hidden;
     box-shadow: 2px 2px 60px 0 #000;
@@ -510,18 +510,14 @@ div#modal-overlay .prompt textarea {
 
 .prompt-footer, .prompt-header {
     width: 100.1%;
-    min-height: 36px;
+    min-height: calc(3 * (font-size)px);
     margin: 0 auto;
     box-sizing: border-box;
 }
 
 .prompt-footer, .prompt-header, .prompt input, .prompt-close a {
     font-size: 1.5rem;
-    line-height: 175%;
-}
-
-.prompt-header, .prompt-footer, .prompt-close a {
-    line-height: 175%;
+    line-height: 250%;
 }
 
 .prompt-header {
@@ -541,6 +537,15 @@ div#modal-overlay .prompt textarea {
     border-width: 0;
     font-size: inherit;
     vertical-align: bottom;
+}
+
+.prompt-footer .button small {
+    display: block;
+    font-size: 72%;
+    position: relative;
+    top: 1px;
+    height: 0;
+    opacity: 0.33;
 }
 
 .prompt-1-columns .button {

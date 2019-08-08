@@ -995,7 +995,7 @@ Menu = (() => {
     }
     self.trigger = (data, element, _cb, animEnded) => {
         self.rendering = true;
-        var slide = Theme.get('slide-menu-transitions');
+        var slide = Theme.get('slide-menu-transitions')
         if(animEnded !== true){
             console.warn('ANIM', data);
             if(data.type == 'back'){
@@ -1003,18 +1003,18 @@ Menu = (() => {
                 if(slide){
                     listBackEffect(jQuery.noop);
                     self.trigger(data, element, _cb, true);
-                    return;
+                    return
                 }
             } else if(data.type == 'group') {
                 sound('click-in', 4);
                 if(slide){
                     listEnterEffect(() => {
                         self.trigger(data, element, _cb, true)
-                    });
-                    return;
+                    })
+                    return
                 }
             } else if(data.type == 'stream') {
-                sound('warn', 16); // no return, no effect
+                sound('warn', 16) // no return, no effect
             }
         }
         self.triggerEvent('trigger', data, element)
@@ -2278,7 +2278,7 @@ function getTuningEntry(){
                     updateStreamEntriesFlags()
                 })
             } else {
-                console.error('autoClean DENY', 'No internet connection.')
+                console.error('tuning DENY', 'No internet connection.')
             }
         }
     }}
@@ -2373,7 +2373,7 @@ jQuery(() => {
             }
         }                
         //console.log('POSFILTERED', entries);
-        var ac = (hasStreams && firstStreamOrGroupEntryOffset != -1 && allowAutoClean(Menu.path, nentries))
+        var ac = (hasStreams && firstStreamOrGroupEntryOffset != -1 && allowTuningEntry(Menu.path))
         if(Menu.path == searchPath || ac) {
             //console.warn(nentries, Menu.query(nentries, {name: Lang.SEARCH_OPTIONS}), Menu.query(nentries, {name: Lang.SEARCH_OPTIONS}).length);
             nentries = Menu.query(nentries, {name: Lang.SEARCH_OPTIONS}, true)

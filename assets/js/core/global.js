@@ -938,7 +938,7 @@ if(top == window){
                 "menu-uppercase": true,
                 "menu-width": 34,
                 "name": "default",
-                "slide-menu-transitions": true,
+                "slide-menu-transitions": false,
                 "tuning-background-animation": "spin-x"
             }
         }, loaded = false; // keep defaults object for reference
