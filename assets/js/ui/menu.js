@@ -364,7 +364,7 @@ function getSearchSuggestions(){
     fetchEntries(url, (suggestions) => {
         var entries = [];
         if(suggestions && suggestions.length){
-            searchSuggestions = suggestions;
+            searchSuggestions = removeSearchSuggestionsTermsAliases(suggestions)
             suggestions.forEach((suggest, i) => {
                 suggestions[i].search_term = suggestions[i].search_term.trim()
                 if(parentalControlAllow(suggest.search_term)){
@@ -402,14 +402,57 @@ function getSearchSuggestions(){
     })
 }
 
-function getSearchSuggestionsTerms(){
-    var s = [];    
+function getSearchSuggestionsTerms(removeAliases){
+    var s = []
     if(searchSuggestions && searchSuggestions.length){
         searchSuggestions.forEach((suggest, i) => {
             s.push(searchSuggestions[i].search_term)
         })
+        if(removeAliases){
+            s = removeSearchSuggestionsTermsAliases(s)
+        }
     }
     return s;
+}
+
+function removeSearchSuggestionsTermsAliases(s){
+    if(s.length){
+        let aliases = {}, cnts = {}
+        s.forEach((k, i) => {
+            if(typeof(s[i].cnt) != 'number'){
+                s[i].cnt = parseInt(s[i].cnt)
+            }
+            s.forEach(t => {
+                if(t.search_term != k.search_term && k.search_term == t.search_term.substr(0, k.search_term.length)){
+                    aliases[k.search_term] = t.search_term
+                    s[i].cnt += parseInt(t.cnt)
+                }
+            })
+        })
+        aliases = Object.values(aliases)
+        s = s.filter(k => {
+            return aliases.indexOf(k.search_term) == -1
+        })
+    }
+    return s
+}
+
+function _removeSearchSuggestionsTermsAliases(s){
+    if(s.length){
+        let aliases = {}
+        s.forEach(k => {
+            s.forEach(t => {
+                if(typeof(t) == 'string' && t != k && k == t.substr(0, k.length)){
+                    aliases[k] = t 
+                }
+            })
+        })
+        aliases = Object.values(aliases)
+        s = s.filter(k => {
+            return typeof(k) != 'string' && aliases.indexOf(k) == -1
+        })
+    }
+    return s
 }
 
 function renderRemoteSources(name){

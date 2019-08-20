@@ -37,17 +37,17 @@
         "http://*/",
         "https://*/"
     ],
-    "version": "15.3.7",
+    "version": "15.3.8",
     "webkit": {
         "page-cache": true
     },
     "window": {
-        "frame": false,
         "icon": "default_icon.png",
-        "show": false,
+        "position": "center",
         "title": "Megacubo",
-        "width": 1000,
+        "frame": false,
         "height": 562,
-        "position": "center"
+        "width": 1000,
+        "show": false
     }
 }

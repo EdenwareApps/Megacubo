@@ -323,7 +323,7 @@ function getWatchingEntries(mediaType){
                                 options[i].logo = 'http://app.megacubo.net/logos/'+encodeURIComponent(options[i].name)+'.png';
                             }
                         })
-                        options = paginateEntries(options)
+                        // options = paginateEntries(options, 48)
                     }
                     //console.log('fetchen', options, name, path)
                     //console.log('fetchen2', options)

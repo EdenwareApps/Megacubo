@@ -125,7 +125,7 @@ function getYTLiveFeeds(term, cb){
     var locale = getDefaultLocale(false, false)
     var country = Countries.select(locale, 'country_'+locale.substr(0, 2)+',country_iso', 'locale', true)
     if(!term){
-        var terms = getSearchSuggestionsTerms()
+        var terms = getSearchSuggestionsTerms(true)
         terms = terms.slice(0, 3)
         terms.push(country)
         term = terms.join(' OR ')
@@ -159,7 +159,7 @@ function getYTVideoFeeds(term, cb){
     var locale = getDefaultLocale(false, false)
     var country = Countries.select(locale, 'country_'+locale.substr(0, 2)+',country_iso', 'locale', true)
     if(!term){
-        var terms = getSearchSuggestionsTerms()
+        var terms = getSearchSuggestionsTerms(true)
         terms = terms.slice(0, 3)
         terms.push(country)
         term = terms.join(' OR ')
