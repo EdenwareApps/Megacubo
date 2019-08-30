@@ -469,7 +469,7 @@ div#modal-overlay .prompt {
     width: 100%;
     max-width: calc(86% + 4px);
     border-radius: 3px;
-    overflow: hidden;
+    overflow: visible;
     box-shadow: 2px 2px 60px 0 #000;
 }
 
@@ -483,6 +483,48 @@ div#modal-overlay .prompt textarea, div#modal-overlay .prompt input {
 
 div#modal-overlay .prompt textarea {
     height: 160px;
+}
+
+span.modal-prompt-hint-balloon {
+    position: absolute;
+    box-sizing: border-box;
+    z-index: 99999999;
+    width: -webkit-fill-available;
+    left: 0;
+    top: 92%;
+    overflow: visible;
+}
+
+span.modal-prompt-hint-balloon > span {
+    position: relative;
+    overflow: visible;
+}
+
+span.modal-prompt-hint-balloon-arrow {
+    display: inline-block;
+    width: 0px;
+    height: 0px;
+    content: ' ';
+    border-width: 9px 9px 9px 9px;
+    border-style: solid;
+    border-color: transparent transparent red transparent;
+    margin: 0;
+}
+
+span.modal-prompt-hint-balloon-text {
+    text-align: center;
+    width: 100%;
+    display: inline-block;
+    overflow: visible;
+    color: #ffffff;
+    border-radius: 4px;
+    font-size: 72%;
+    padding: 6px;
+    box-sizing: border-box;
+    margin: 0;
+    position: relative;
+    top: -6px;
+    background: red;
 }
 
 .prompt-close {
@@ -517,7 +559,7 @@ div#modal-overlay .prompt textarea {
 
 .prompt-footer, .prompt-header, .prompt input, .prompt-close a {
     font-size: 1.5rem;
-    line-height: 250%;
+    line-height: 150%;
 }
 
 .prompt-header {

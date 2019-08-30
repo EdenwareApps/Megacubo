@@ -27,7 +27,7 @@ function fetchXXXSearchResults(q, cb){
                 cb(entries)
             }, 'all', q, true, false, entries => {
                 return entries.filter(entry => {
-                    return entry.parentalControlSafe === false
+                    return entry.isSafe === false
                 }).slice(0)
             }, true)
         } else {
@@ -44,9 +44,9 @@ function fetchXXXSearchResults(q, cb){
 }
 
 function getXXXEntries(data, type){
-    var entries = sharedGroupsAsEntries('adult-'+type, type, (entries) => {
+    var entries = sharedGroupsAsEntries('adult', type, (entries) => {
         return entries.filter(entry => {
-            return entry.parentalControlSafe === false
+            return entry.isSafe === false
         }).slice(0)
     })
     return [
@@ -62,14 +62,12 @@ function getXXXEntries(data, type){
                 ]
             },
             callback: (data) => {
+                let path = assumePath(data.name, Menu.path)
                 getXXXWatchingEntries((entries) => {
                     if(!entries.length){
                         entries = [Menu.emptyEntry()]
                     }
-                    if(basename(Menu.path) == data.name){
-                        Menu.loaded(true)
-                        Menu.list(entries, Menu.path)
-                    }
+                    Menu.asyncResult(path, entries)
                 }) 
             }, 
             entries: []
@@ -117,20 +115,11 @@ function getXXXWatchingEntries(_cb){
 
 const adCtName = 'XXX' // Lang.ADULT_CONTENT
 
-addFilter('videosMetaEntries', (entries) => {
-    let opt = {name: adCtName, homeId: 'adult-content', parentalControlSafe: false, logo: 'fa-fire', label: '', class: 'entry-nosub', type: 'group', renderer: (data) => {
-        return getXXXEntries(null, 'video')
+addAction('preMenuInit', () => {
+    let opt = {name: adCtName, homeId: 'adult-content', isSafe: false, logo: 'fa-fire', label: '', class: 'entry-nosub', type: 'group', renderer: (data) => {
+        return getXXXEntries(null, 'all')
     }, entries: []}
-    entries.splice(2, 0, opt)
-    return entries
-})
-
-addFilter('liveMetaEntries', (entries) => {
-    let opt = {name: adCtName, homeId: 'adult-content', parentalControlSafe: false, logo: 'fa-fire', label: '', class: 'entry-nosub', type: 'group', renderer: (data) => {
-        return getXXXEntries(null, 'live')
-    }, entries: []}
-    entries.splice(2, 0, opt)
-    return entries
+    Menu.entries.splice(5, 0, opt)
 })
 
 addAction('appReady', () => {

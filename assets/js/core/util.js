@@ -245,7 +245,7 @@ function parentalControlAllow(entry, ignoreSetting){
     }
     if(typeof(entry) == 'string'){
         entry = {
-            parentalControlSafe: !hasTerms(entry, terms),
+            isSafe: !hasTerms(entry, terms),
             name: entry
         }
     }
@@ -255,69 +255,39 @@ function parentalControlAllow(entry, ignoreSetting){
     if(['group', 'stream'].indexOf(entry.type) == -1){
         return true; // not applicable, return immediately
     }
-    if(typeof(entry.parentalControlSafe) == 'undefined'){
-        entry.parentalControlSafe = true;
+    if(typeof(entry.isSafe) == 'undefined'){
+        entry.isSafe = true;
         if(terms.length){
             if(typeof(entry.name)=='string' && hasTerms(entry.name, terms)){
-                entry.parentalControlSafe = false;
+                entry.isSafe = false;
             }
             //if(typeof(entry.url)=='string' && hasTerms(entry.url, terms)){
-            //    entry.parentalControlSafe = false;
+            //    entry.isSafe = false;
             //}
             if(typeof(entry.label)=='string' && hasTerms(entry.label, terms)){
-                entry.parentalControlSafe = false;
+                entry.isSafe = false;
             }
             if(typeof(entry.group)=='string' && hasTerms(entry.group, terms)){
-                entry.parentalControlSafe = false;
+                entry.isSafe = false;
             }
         }
     }
     if(ignoreSetting){
-        return entry.parentalControlSafe;
+        return entry.isSafe;
     }
     switch(adultContentPolicy){
         case 'allow':
             return true; // allow any
             break;
         case 'block':
-            return entry.parentalControlSafe; // block adult
+            return entry.isSafe; // block adult
             break;
     }
     return true // allow as error fallback
 }
 
-function validateIPTVListURL(url, placeholder){
-    if(url && url.length >= 13 && url != placeholder){
-        return url;
-    }
-    return false;
-}
-
-function getIPTVListAddr(callback, value) {
-    var key = 'iptvlisturl', placeholder = 'http://[...].m3u8';
-    if(value) placeholder = value;
-    var def = getActiveSource();
-    var url = validateIPTVListURL(def, placeholder);
-    if(url){
-        registerSource(url)
-    }
-    callback(url);
-    //return 'http://pastebin.com/raw/TyG4tRKP';
-    //  you find it at Google searching for \"iptv list m3u8 {0} {1}\".
-}
-
-function getIPTVListSearchTerm(){
-    var locale = getDefaultLocale(false, false);
-    var country = Countries.select(locale, 'country_'+locale.substr(0, 2)+',country_iso', 'locale', true); //getLocale();
-    var q = "iptv list m3u8 {0} {1}".format(country, (new Date()).getFullYear());
-    return q;
-}
-
-function getIPTVListSearchURL(){
-    var q = getIPTVListSearchTerm();
-    q = q.replaceAll(" ", "+");
-    return "https://www.google.com/search?safe=off&tbs=qdr:m&q="+q+"&oq="+q;
-}
+var watchingData = Store.get('watchingData') || [], remoteXtrasAppended = false;
+var onlineUsersCount = Object.assign({}, mediaTypeStreamsCountTemplate), mediaTypeStreamsCount = Object.assign({}, mediaTypeStreamsCountTemplate);
 
 function updateOnlineUsersCount(){
     var callback = (n) => {
@@ -332,6 +302,17 @@ function updateOnlineUsersCount(){
             callback(response)
         }
     })
+    if(Array.isArray(watchingData)){
+        if(watchingData.length){
+            onlineUsersCount = Object.assign({}, mediaTypeStreamsCountTemplate);
+            watchingData.forEach(entry => {
+                if(typeof(onlineUsersCount[entry.mediaType])=='undefined'){
+                    onlineUsersCount[entry.mediaType] = 0;
+                }
+                onlineUsersCount[entry.mediaType] += extractInt(entry.label)
+            })
+        }
+    }
     var n = GStore.get('usersonline')
     if(n){
         callback(n)
@@ -343,8 +324,6 @@ var mediaTypeStreamsCountTemplate = {
     'video': 0,
     'audio': 0
 }
-
-var onlineUsersCount = Object.assign({}, mediaTypeStreamsCountTemplate), mediaTypeStreamsCount = Object.assign({}, mediaTypeStreamsCountTemplate);
 
 var msi
 function getMediaType(entry){
@@ -642,12 +621,19 @@ function allowTuningEntry(curPath, entries){
 function allowTuningEntry(curPath, entries){
     // should append tuning in this path?
     if(curPath){
-        if(curPath.indexOf(Lang.MANUAL_TUNING) != -1){ // station manual tuning
-            return true
+        let b = basename(curPath)
+        if([Lang.BEEN_WATCHED].indexOf(b) != -1){
+            return false
         }
-        if(curPath.indexOf(Lang.VIDEOS) != -1 && curPath.indexOf(Lang.BEEN_WATCHED) == -1){ // videos folder
-            return true
+        if(Array.isArray(entries)){
+            let already = entries.some((entry) => {
+                return entry.class && entry.class.indexOf('entry-tuning') != -1
+            })
+            if(already){
+                return false
+            }
         }
+        return true
     }
 }
 
@@ -669,10 +655,10 @@ function updateStreamEntriesFlags(){
         loadingurls.push(isPending)
     }
     console.log(loadingurls, isPending);
-    var doSort = allowTuningEntry(Menu.path);
-    var fas = jQuery('.entry-stream'), tuning = jQuery('.entry-tuning').filter((i, e) => { 
+    var fas = jQuery('.entry-stream'), tne = jQuery('.entry-tuning'), tuning = tne.filter((i, e) => { 
         return e.innerHTML.indexOf('% ') != -1; 
     }).length, firstStreamOffset = false;
+    var doSort = !tne.length && allowTuningEntry(Menu.path);
     fas.each((i, element) => {
         if(doSort && !isMegaURL(element.href)){
             let state = getStreamStateCache(element.href)
@@ -879,121 +865,6 @@ function binUnserialize(buf, cb){
         }
     })
 }
-    
-function askForSource(question, callback, onclose, notCloseable, keepOpened){
-    if(typeof(onclose) != 'function'){
-        onclose = jQuery.noop
-    }
-    if(isMiniPlayerActive()){
-        leaveMiniPlayer()
-    }
-    var defaultValue = Store.get('last-ask-for-source-value');
-    var cb = clipboard.get('text'), go = () => {
-        // parse lines for names and urls and use registerSource(url, name) for each
-        var v = modalPromptVal()
-        if(v){
-            if(v.substr(0, 2)=='//'){
-                v = 'http:'+v
-            }
-            Store.set('last-ask-for-source-value', v, true)
-        }
-        if(callback(v) && !keepOpened){
-            modalClose()
-        }
-    }
-    if(cb.match(new RegExp('^(//|https?://)'))){
-        defaultValue = cb;
-    }
-    var options = [
-        ['<i class="fas fa-folder-open" aria-hidden="true"></i> '+Lang.OPEN_FILE, () => {
-            openFileDialog((file) => {
-                modalPromptInput().val(file)
-                go()
-            })
-        }],
-        ['<i class="fas fa-check-circle" aria-hidden="true"></i> OK', go]
-    ]
-    modalPrompt(question, options, Lang.PASTE_URL_HINT, defaultValue, !notCloseable, onclose)
-}
-        
-function playCustomURL(placeholder, direct, cb){
-    var url
-    if(placeholder && direct){
-        url = placeholder;
-    } else {
-        if(!placeholder){
-            placeholder = Store.get('lastCustomPlayURL')
-        }
-        return askForSource(Lang.PASTE_URL_HINT, (val) => {
-            playCustomURL(val, true, cb)
-            return true
-        })            
-    }
-    if(url){
-        if(url.substr(0, 2)=='//'){
-            url = 'http:'+url;
-        }
-        Store.set('lastCustomPlayURL', url, true);
-        var name = false;
-        if(isValidPath(url)){
-            name = 'Megacubo '+url.split('/')[2];
-        }
-        if(name){
-            console.log('lastCustomPlayURL', url, name);
-            Store.set('lastCustomPlayURL', url, true);
-            var entry = {url: url, allowWebPages: true, name: name, logo: defaultIcons['stream']}
-            playEntry(entry, null, null, null, cb)
-        }
-    }
-}
-
-function playCustomFile(file){
-    Store.set('lastCustomPlayFile', file, true);
-    Playback.createIntent({url: file, name: basename(file, true)}, {manual: true})
-}
-
-var addNewSourceNotification
-
-function addNewSource(cb, label, allowStreams, notCloseable){
-    if(!label){
-        label = Lang.PASTE_URL_HINT
-    }
-    if(typeof(cb) != 'function'){
-        cb = jQuery.noop
-    }
-    askForSource(label, (val) => {
-        var url = val
-        console.log('CHECK', url)
-        if(!addNewSourceNotification){
-            addNewSourceNotification = notify(Lang.PROCESSING, 'fa-spin fa-circle-notch', 'forever', true)
-        } else {
-            addNewSourceNotification.update(Lang.PROCESSING, 'fa-spin fa-circle-notch', 'forever')
-        }
-        checkStreamType(url, (url, type) => {
-            console.log('CHECK CALLBACK', url, type, traceback())
-            addNewSourceNotification.hide()
-            modalClose(true)
-            if(type == 'list'){
-                registerSource(url)
-                cb(null, 'list')
-            } else if(allowStreams && (isValidPath(url) || hasCustomMediaType(url))){
-                playCustomURL(url, true, (err, intent, statusCode) => {
-                    if(err){
-                        var message = getPlaybackErrorMessage(intent, statusCode || err)
-                        notify(message, 'fa-exclamation-circle faclr-red', 'normal')
-                    }
-                })
-                cb(null, 'stream')
-            } else {
-                addNewSourceNotification.update(Lang.INVALID_URL_MSG, 'fa-exclamation-circle faclr-red', 'normal')
-                cb(Lang.INVALID_URL_MSG, '')
-            }
-        })
-        return true
-    }, () => {
-        cb('Prompt closed', '')
-    }, notCloseable, true)
-}
 
 function isFreePort(port, cb) {
     var server = http.createServer()
@@ -1061,13 +932,16 @@ function untar(file, dest, cb, validator){
 }
 
 function registerSource(url, name, silent, norefresh){
-    var chknam, key = 'sources';
-    var sources = getSources();
+    if(!validateURL(url) && !isLocal(url)){
+        return false
+    }
+    var chknam, key = 'sources'
+    var sources = getSources()
     for(var i in sources){
         if(sources[i][1] == url){
             notify(Lang.LIST_ALREADY_ADDED, 'fa-exclamation-circle faclr-red', 'normal');
-            return false;
-            break;
+            return false
+            break
         }
     }
     if(!name){
@@ -1075,12 +949,12 @@ function registerSource(url, name, silent, norefresh){
         name = getNameFromSourceURL(url)
     }
     name = basename(name)
-    sources.push([name, url]);
-    Config.set(key, sources);
+    sources.push([name, url])
+    Config.set(key, sources)
     if(!silent){
         notify(Lang.LIST_ADDED, 'fa-star en', 'normal')
     }
-    setActiveSource(url);
+    setActiveSource(url)
     indexerSync()
     if(!norefresh){
         Menu.refresh()
@@ -1095,7 +969,7 @@ function registerSource(url, name, silent, norefresh){
             }
         })
     }
-    return true;
+    return true
 }
 
 function setSourceName(url, name){

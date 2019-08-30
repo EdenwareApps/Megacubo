@@ -105,7 +105,7 @@ var hotkeysActions = {
     "OPENURLORLIST": [
         () => {
             if(!isModal()){
-                addNewSource(false, false, true)
+                askForList()
             }
         }, 
         null, 
@@ -114,14 +114,14 @@ var hotkeysActions = {
     "PASTEPLAY": [
         () => {
             if(!isModal()){
-                var cb = top.clipboard.get('text');
+                var cb = top.clipboard.get('text')
                 if(cb){
                     cb = cb.trim(cb);
                         if(cb.match(new RegExp('^(//|(https?|rtmp)://)'))){
                         return playCustomURL(cb, true)
                     }
                 }
-                addNewSource(false, false, true)	
+                askForList()	
             }		
         }, 
         null, 
@@ -316,6 +316,11 @@ var hotkeysActions = {
     "ESCAPE": [
         () => {
             escapePressed()
+        }, null, true
+    ],
+    "STREAM_URL": [
+        () => {
+            goExport()
         }, null, true
     ]
 }

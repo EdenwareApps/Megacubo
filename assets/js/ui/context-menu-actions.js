@@ -43,7 +43,7 @@ window.contextMenuActions = {
     ],
     "OPENURLORLIST": [
         () => {
-            addNewSource(false, false, true)
+            askForList()
         }
     ],
     "CHANGELANG": [
@@ -127,6 +127,11 @@ window.contextMenuActions = {
                 goReload()
             }
         }
+    ],
+    "STREAM_URL": [
+        () => {
+            goExport()
+        }, null, true
     ],
     "ABOUT": [
         () => {

@@ -51,15 +51,6 @@ class MediaStreamInfo {
 		}
 		return 'live' // "live" by default
 	}
-	isRadio(name){
-		if(name.match(new RegExp('r(aá|&aacute;)dio', 'i'))){
-			return true;
-		}
-		if(name.match(new RegExp('\\b[FA]M( |$)'))){
-			return true;
-		}
-		return false;
-	}
 	isM3U8(url){
 		return ['m3u8', 'm3u'].indexOf(this.ext(url)) != -1          
 	}
@@ -100,6 +91,15 @@ class MediaStreamInfo {
 	}
 	isAudio(url){
 		return 'wma|mp3|mka|m4a|flac|aac|ogg|pls|nsv'.split('|').indexOf(this.ext(url)) != -1          
+	}
+	isRadio(name){
+		if(name.match(new RegExp('r(aá|&aacute;)dio', 'i'))){
+			return true;
+		}
+		if(name.match(new RegExp('\\b[FA]M( |$)'))){
+			return true;
+		}
+		return false;
 	}
 	isLive(url){
 		return this.isM3U8(url)||this.isRTP(url)||this.isRemoteTS(url)

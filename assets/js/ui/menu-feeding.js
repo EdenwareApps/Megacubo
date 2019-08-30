@@ -243,7 +243,7 @@ function loadSource(url, name, callback, filter, isVirtual){
                     callback(parsed, path)
                 }
             } else {
-                if(!isVirtual()) {
+                if(!isVirtual) {
                     failed()
                 }
             }
@@ -252,8 +252,6 @@ function loadSource(url, name, callback, filter, isVirtual){
     return [Menu.loadingEntry()];
 }
 
-var watchingData = [], remoteXtrasAppended = false;
-
 function getWatchingEntries(mediaType){
     var name = Lang.BEEN_WATCHED;
     var path = assumePath(name);
@@ -261,112 +259,91 @@ function getWatchingEntries(mediaType){
         mediaType = ''
     }
     setTimeout(() => { // avoid mess the loading entry returned, getting overridden by him
-        getWatchingData(entries => {
-            indexerAdultFilter(entries, _options => {
-                if(_options.length){
-                    var options = _options
-                    console.log('fetchen', options)
-                    options = options.filter((option) => {
-                        return !mediaType || option.mediaType == mediaType;
+        getWatchingData(_options => {
+            if(_options.length){
+                var options = _options
+                console.log('fetchen', options)
+                options = options.filter((option) => {
+                    return option.isSafe && (!mediaType || mediaType == 'all' || option.mediaType == mediaType)
+                })
+                console.log('fetchenw', options, path)
+                if(options.length && options[0].label.indexOf('ordm')==-1){
+                    let groups = {}, gcount = {}, gentries = []
+                    options = options.map(entry => {
+                        entry.users = extractInt(entry.label)
+                        return entry
                     })
-                    if(options.length && options[0].label.indexOf('ordm')==-1){
-                        let groups = {}, gcount = {}, gentries = []
-                        options = options.map(entry => {
-                            entry.users = extractInt(entry.label)
-                            return entry
-                        })
-                        options.forEach((entry, i) => {
-                            let term = searchTermFromEntry(entry)
-                            if(term){
-                                if(typeof(groups[term]) == 'undefined'){
-                                    groups[term] = []
-                                    gcount[term] = 0
-                                }
-                                groups[term].push(entry)
-                                gcount[term] += entry.users
-                                delete options[i]
+                    options.forEach((entry, i) => {
+                        let term = searchTermFromEntry(entry)
+                        if(term){
+                            if(typeof(groups[term]) == 'undefined'){
+                                groups[term] = []
+                                gcount[term] = 0
                             }
-                        })
-                        Object.keys(groups).forEach(n => {
-                            groups[n].sort((a, b) => {
-                                let ai = isMegaURL(a.url), bi = isMegaURL(b.url)
-                                if(ai != bi){
-                                    return ai ? -1 : 1
-                                }
-                                return (a.users > b.users) ? -1 : ((b.users > a.users) ? 1 : 0)
-                            })
-                            let e = {
-                                name: ucWords(n), 
-                                type: 'group', 
-                                logo: pickLogoFromEntries(groups[n]),
-                                entries: groups[n],
-                                users: gcount[n]
+                            groups[term].push(entry)
+                            gcount[term] += entry.users
+                            delete options[i]
+                        }
+                    })
+                    Object.keys(groups).forEach(n => {
+                        groups[n].sort((a, b) => {
+                            let ai = isMegaURL(a.url), bi = isMegaURL(b.url)
+                            if(ai != bi){
+                                return ai ? -1 : 1
                             }
-                            gentries.push(e)
-                        })
-                        //console.warn('GENTR', options)
-                        options = options.filter(e => {
-                            return !!e
-                        }).concat(gentries).sort((a,b) => {
                             return (a.users > b.users) ? -1 : ((b.users > a.users) ? 1 : 0)
                         })
-                        options.forEach((entry, i) => {
-                            if(!entry.__parsed){
-                                options[i].label = (i + 1)+'&ordm; &middot; '+(mediaType == 'audio' ? Lang.LISTENING : Lang.X_WATCHING).format(parseCounter(options[i].users))
-                                if(typeof(entry.url) == 'string' && isMegaURL(entry.url)){
-                                    //console.log('FETCH WATCHING', entry.url, mediaType);
-                                    options[i].url = updateMegaURLQSAppend(entry.url, {mediaType: mediaType})
-                                }
-                                entry.__parsed = true;
-                            }                      
-                            if(!options[i].logo){
-                                options[i].logo = 'http://app.megacubo.net/logos/'+encodeURIComponent(options[i].name)+'.png';
+                        let e = {
+                            name: ucWords(n), 
+                            type: 'group', 
+                            logo: pickLogoFromEntries(groups[n]),
+                            entries: groups[n],
+                            users: gcount[n]
+                        }
+                        gentries.push(e)
+                    })
+                    //console.warn('GENTR', options)
+                    options = options.filter(e => {
+                        return !!e
+                    }).concat(gentries).sort((a,b) => {
+                        return (a.users > b.users) ? -1 : ((b.users > a.users) ? 1 : 0)
+                    })
+                    options.forEach((entry, i) => {
+                        if(!entry.__parsed){
+                            options[i].label = (i + 1)+'&ordm; &middot; '+(mediaType == 'audio' ? Lang.LISTENING : Lang.X_WATCHING).format(parseCounter(options[i].users))
+                            if(typeof(entry.url) == 'string' && isMegaURL(entry.url)){
+                                //console.log('FETCH WATCHING', entry.url, mediaType);
+                                options[i].url = updateMegaURLQSAppend(entry.url, {mediaType: mediaType})
                             }
-                        })
-                        // options = paginateEntries(options, 48)
-                    }
-                    //console.log('fetchen', options, name, path)
-                    //console.log('fetchen2', options)
-                    Menu.asyncResult(path, options)
-                } else {
-                    notify(Lang.DATA_FETCHING_FAILURE, 'fa-exclamation-triangle faclr-red', 'normal');
-                    Menu.asyncResult(path, -1)
+                            entry.__parsed = true;
+                        }                      
+                        if(!options[i].logo){
+                            options[i].logo = 'http://app.megacubo.net/logos/'+encodeURIComponent(options[i].name)+'.png';
+                        }
+                    })
+                    // options = paginateEntries(options, 48)
                 }
-            })
+                console.log('fetchen', options, name, path)
+                //console.log('fetchen2', options)
+                Menu.asyncResult(path, options)
+            } else {
+                notify(Lang.DATA_FETCHING_FAILURE, 'fa-exclamation-triangle faclr-red', 'normal');
+                Menu.asyncResult(path, -1)
+            }
         })
-    }, loadingToActionDelay);
-    return [Menu.loadingEntry()];
+    }, loadingToActionDelay)
+    return [Menu.loadingEntry()]
 }
 
 function getWatchingData(cb, update, locale){
-    var filter = false;
+    var filter = false
     if(typeof(locale) != 'string'){
-        locale = getLocale(true);
-        filter = true;
+        locale = getLocale(true)
+        filter = true
     }
-    var url = 'http://app.megacubo.net/stats/data/watching.' + locale + '.json';
-    data = fetchEntries(url, (_entries) => {
-        if(!Array.isArray(_entries)){
-            entries = []
-        } else {
-            entries = _entries.slice(0)
-        }
-        for(var i=0; i<entries.length; i++){
-            if(isMegaURL(entries[i].url)){
-                var data = parseMegaURL(entries[i].url);
-                if(data && data.type == 'play' && data.name && data.name.length < entries[i].name.length) {
-                    entries[i].name = data.name;
-                }
-            }
-            if(!entries[i].logo){
-                entries[i].logo = 'http://app.megacubo.net/logos/'+encodeURIComponent(entries[i].name)+'.png';
-            }
-            if(typeof(entries[i].mediaType) == 'undefined' || entries[i].mediaType == -1){
-                entries[i].mediaType = getMediaType(entries[i])
-            }
-            entries[i].label = entries[i].label.format(Lang.USER, Lang.USERS)
-        } 
+    indexerWatchingData((entries) => {
         watchingData = entries
+        Store.set('watchingData', entries, true)
         if(filter){
             entries = applyFilters('getWatchingData', entries)
             if(!Array.isArray(entries)){
@@ -378,8 +355,8 @@ function getWatchingData(cb, update, locale){
         if(typeof(cb)=='function'){
             cb(entries)
         }
-    }, update)
-    return data
+    }, update, locale)
+    return watchingData
 }
 
 addFilter('getWatchingData', (entries) => {
@@ -1129,7 +1106,7 @@ function getSettingsEntries(){
                 name: Lang.ADULT_CONTENT,
                 logo: 'fa-user-lock',
                 type: 'group',
-                parentalControlSafe: true,
+                isSafe: true,
                 callback: () => {
                     setActiveEntry({
                         value: Config.get('adult-content-policy')
@@ -1151,7 +1128,7 @@ function getSettingsEntries(){
                             value: n.key,
                             logo: n.logo,
                             type: 'option',
-                            parentalControlSafe: true,
+                            isSafe: true,
                             callback: (data) => {
                                 adultContentPolicy = n.key;
                                 Config.set('adult-content-policy', n.key)
@@ -1169,7 +1146,7 @@ function getSettingsEntries(){
                 },
                 value: userParentalControlTerms().join(','),
                 placeholder: Lang.FILTER_WORDS,
-                parentalControlSafe: true,
+                isSafe: true,
                 name: Lang.FILTER_WORDS
             }
         ]},
@@ -1379,7 +1356,16 @@ function updateHomeMetaOptions(){
 (() => {
     var waiting = false;
     prepareContinueOptions(History.get(), () => {
+        if(watchingData.length){
+            console.log('SUICIDE SQUAD!')
+            if(waiting === true){
+                updateHomeMetaOptions()
+            }
+        }
+    })
+    addAction('indexerLoad', () => {
         getWatchingData((entries) => {
+            console.log('SUICIDE SQUAD!')
             if(waiting === true){
                 updateHomeMetaOptions()
             }
@@ -1404,7 +1390,7 @@ function updateHomeMetaOptions(){
 })()
 
 function getSearchRangeEntries(){
-    var options = [];
+    var options = []
     var callback = (entry, r) => {
         if(entry.value != Config.get('search-range-size')){
             Config.set('search-range-size', entry.value);        
@@ -1412,12 +1398,15 @@ function getSearchRangeEntries(){
         }
         setActiveEntry({value: entry.value})
     }
-    options.push({name: Lang.MY_LISTS_ONLY, value: 0, logo:'fa-search-minus', type: 'option', callback: callback, class: getSources().length?'':'entry-disable'});
-    options.push({name: Lang.LOW+' ('+Lang.LISTS+': 18)', value: 18, logo:'fa-search-minus', type: 'option', callback: callback});
-    options.push({name: Lang.MEDIUM+' ('+Lang.LISTS+': 36)', value: 36, logo:'fa-search', type: 'option', callback: callback});
-    options.push({name: Lang.HIGH+' ('+Lang.LISTS+': 64)', value: 64, logo:'fa-search-plus', type: 'option', callback: callback});
-    options.push({name: Lang.XTREME+' ('+Lang.LISTS+': 96, '+Lang.SLOW+')', value: 96, logo:'fa-search-plus', type: 'option', callback: callback});
-    return options;
+    if(Config.get('search-range-size') < 1){
+        options.push({name: Lang.EXCLUSIVE_MODE, label: Lang.MY_LISTS_ONLY, value: 0, logo:'fa-search-minus', type: 'option', callback: callback, class: getSources().length?'':'entry-disable'})
+    } else {
+        options.push({name: Lang.LOW+' ('+Lang.LISTS+': 18)', value: 18, logo:'fa-search-minus', type: 'option', callback: callback})
+        options.push({name: Lang.MEDIUM+' ('+Lang.LISTS+': 36)', value: 36, logo:'fa-search', type: 'option', callback: callback})
+        options.push({name: Lang.HIGH+' ('+Lang.LISTS+': 64)', value: 64, logo:'fa-search-plus', type: 'option', callback: callback})
+        options.push({name: Lang.XTREME+' ('+Lang.LISTS+': 96, '+Lang.SLOW+')', value: 96, logo:'fa-search-plus', type: 'option', callback: callback})
+    }
+    return options
 }
 
 function getKeyboardMappingEntries(){
@@ -1796,15 +1785,19 @@ function getThemeEntriesForRemoval(){
 function getListsEntries(notActive, noManagement, isVirtual){
     var options = [
         {name: Lang.MY_LISTS, label: Lang.IPTV_LISTS, type: 'group', renderer: () => {
-            var sources = getSources(), active = getActiveSource(), options = [];
+            var sources = getSources(), active = getActiveSource(), options = []
             for(var i in sources) {
-                var entry = sources[i], length = '-', groups = '-';
-                if(!Array.isArray(entry)) continue;
-                if(notActive === true && entry[1] == active) continue;
+                var entry = sources[i], length = '-', groups = '-'
+                if(!Array.isArray(entry)){
+                    continue
+                }
+                if(notActive === true && entry[1] == active){
+                    continue
+                }
                 if(typeof(entry[2])=='object') {
-                    var locale = getLocale(false, true);
-                    length = Number(entry[2].length).toLocaleString(locale);
-                    groups = Number(entry[2]['groups']).toLocaleString(locale);
+                    var locale = getLocale(false, true)
+                    length = Number(entry[2].length).toLocaleString(locale)
+                    groups = Number(entry[2]['groups']).toLocaleString(locale)
                 }
                 options.push({
                     name: basename(entry[0]), 
@@ -1813,11 +1806,20 @@ function getListsEntries(notActive, noManagement, isVirtual){
                     url: entry[1], 
                     label: Lang.STREAMS+': '+length, 
                     renderer: (data, element, isVirtual) => {
-                        return loadSource(data.url, data.name, null, null, isVirtual)
+                        // return loadSource(data.url, data.name, null, null, isVirtual)
+                        var path = assumePath(data.name)
+                        console.warn('GHOST', path, data.url)
+                        indexerQueryList(data.url, (ret) => {
+                            console.warn('GHOST', entries)
+                            ListMan.deepParse(ret.results, (parsed) => {
+                                Menu.asyncResult(path, parsed)
+                            })
+                        })
+                        return [Menu.loadingEntry()]
                     },
                     delete: (data) => {
-                        unRegisterSource(data.url);
-                        markActiveSource();  
+                        unRegisterSource(data.url)
+                        markActiveSource()
                         Menu.refresh()          
                     }, 
                     rename: (name, data) => {   
@@ -1828,30 +1830,21 @@ function getListsEntries(notActive, noManagement, isVirtual){
             if(!options.length){
                 options.push(Menu.emptyEntry())
             }
-            return options;            
+            return options            
         }},
-        {name: Lang.ADD_NEW_LIST, logo: 'fa-plus', type: 'option', callback: () => {
-            addNewSource(false, false, true)
+        {name: Lang.ADD_LIST, logo: 'fa-plus', type: 'option', callback: () => {
+            askForList()
         }}
-    ];
+    ]
     if(getSources().length){
-        options.push({name: Lang.REMOVE_LIST, logo: 'fa-trash', type: 'group', renderer: getListsEntriesForRemoval, callback: markActiveSource});
-        options.push({name: Lang.LIST_SHARING, type: 'check', check: function (checked) {
-            var v = checked ? Config.defaults['search-range-size'] : 0
-            Config.set('search-range-size', v);        
-            ipc.server.broadcast('indexer-update')
-            Menu.refresh()
-        },  checked: () => {
-                return isListSharingActive()
-            }
-        })
+        options.push({name: Lang.REMOVE_LIST, logo: 'fa-trash', type: 'group', renderer: getListsEntriesForRemoval, callback: markActiveSource})
     }
-    if(!isVirtual){
+    if(!isVirtual && Config.get('search-range-size') > 0){
         options.push({name: Lang.ALL_LISTS, logo: 'fa-users', type: 'group', renderer: (data) => {
             return renderRemoteSources(data.name)
         }, entries: []})
     }
-    return options;
+    return options
 }
 
 function getListsEntriesForRemoval(){
@@ -1915,10 +1908,8 @@ function sharedGroupsAsEntries(type, mediaType, filter){
 }
 
 function foldEntries(entries){
-    if(entries.length > 24){
+    if(entries.length > 96){
         return indexateEntries(entries)
-    } else if(entries.length > 12){
-        return paginateEntries(entries)
     } else {
         return entries
     }

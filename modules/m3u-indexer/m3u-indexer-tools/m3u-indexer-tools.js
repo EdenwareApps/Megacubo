@@ -19,7 +19,7 @@ class M3UTools {
 			str = str.substring(pos + 1)
 		}
 		if(!rqs && qs){
-			str += '?'+qs
+			str += '?' + qs
 		}
 		return str
 	}
@@ -30,18 +30,18 @@ class M3UTools {
 		_str = _str.substring(0, pos)
 		return _str
 	}
-	labelify(){
+	labelify(list){
 		var count
 		for (var i=0; i<list.length; i++){
 			if(list[i].type=='group'){
-				count = Number(list[i].entries.length);
+				count = Number(list[i].entries.length)
 				if(count == 1){
-					list[i] = list[i].entries[0];
-					list[i].path = this.dirname(list[i].path);
-					list[i].group = this.dirname(list[i].group);
+					list[i] = list[i].entries[0]
+					list[i].path = this.dirname(list[i].path)
+					list[i].group = this.dirname(list[i].group)
 				} else {
-					list[i].label = count+' '+lngStr;
-					list[i].entries = this.labelify(list[i].entries, locale, lngStr)
+					list[i].label = count+' entries'
+					list[i].entries = this.labelify(list[i].entries)
 				}
 			} else if(list[i].type=='stream') {
 				list[i].label = this.basename(list[i].path || list[i].group)

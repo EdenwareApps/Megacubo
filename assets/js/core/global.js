@@ -350,6 +350,7 @@ function time(){
     return ((new Date()).getTime() / 1000)
 }
 
+/*
 function fetchTimeout(url, _callback, ms, opts){
     let didTimeOut = false, callback = (response, type) => {
         if(typeof(_callback)=='function'){
@@ -385,6 +386,7 @@ function fetchTimeout(url, _callback, ms, opts){
         callback(false, false)
     })
 }
+*/
 
 function fetchTimeout(url, _callback, ms, opts){
     request({url, timeout: ms}, (error, response, body) => {
@@ -439,8 +441,8 @@ var absolutize = (url, base) => {
     return a.protocol + '//' + a.hostname + (a.port && a.port != 80 ? ':' + a.port : '') + base.join('/');
 }
 
-function validateUrl(value) {
-    return /^(?:(?:(?:https?|ftp):)?\/\/)(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,})))(?::\d{2,5})?(?:[/?#]\S*)?$/i.test(value);
+function validateURL(value, placeholder) {
+    return typeof(value) == 'string' && value != placeholder && value.length >= 13 && /^(?:(?:(?:https?|ftp):)?\/\/)(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,})))(?::\d{2,5})?(?:[/?#]\S*)?$/i.test(value);
 }
 
 function getHeaders(url, callback, timeoutSecs){
@@ -448,7 +450,7 @@ function getHeaders(url, callback, timeoutSecs){
     if(typeof(callback)!='function'){
         callback = jQuery.noop
     }
-    if(validateUrl(url)){
+    if(validateURL(url)){
         console.warn(url, traceback())
         if(typeof(timeoutSecs) != 'number'){
             timeoutSecs = 20;
@@ -753,6 +755,7 @@ if(top == window){
                         "SEARCH",
                         "BOOKMARKS",
                         "TOOLS",
+                        "STREAM_URL",
                         -1,
                         "FULLSCREEN",
                         "MINIPLAYER",
@@ -768,6 +771,7 @@ if(top == window){
                     "Ctrl+T": "TOOLS",
                     "Ctrl+W": "STOP",
                     "Ctrl+Z": "UNDO",
+                    "Ctrl+E": "STREAM_URL",
                     "F1 Ctrl+I": "ABOUT",
                     "F3 Ctrl+F Ctrl+F3": "SEARCH",
                     "F5": "RELOAD",
@@ -1223,6 +1227,17 @@ function goHome(){
         if(c.isMiniPlayerActive()){
             c.leaveMiniPlayer()
         }
+    }
+}
+
+function goExport(){
+    if(Playback.active){
+        let opts = [
+            ['<i class="fas fa-check-circle" aria-hidden="true"></i> OK', () => {}]
+        ]
+        modalPrompt(Lang.STREAM_URL, opts, Playback.active.entry.url, Playback.active.entry.url, true, () => { return true })
+    } else {
+        notify(Lang.START_PLAYBACK_FIRST, 'fa-exclamation-triangle faclr-red', 'normal')
     }
 }
 
@@ -2908,14 +2923,14 @@ function isRTSP(url){
 }
 
 function isLocal(str){
-    if(typeof(str)!='string'){
-        return false;
+    if(typeof(str) != 'string'){
+        return false
     }
     if(str.match('[A-Z]:')){ // windows drive letter
-        return true;
+        return true
     }
     if(str.substr(0, 5)=='file:'){
-        return true;
+        return true
     }
     return fs.existsSync(str)
 }
@@ -3126,7 +3141,21 @@ function traceback() {
 }
 
 if(typeof(logErr) != 'function'){
-    logErr = top.logErr
+    logErr = (...args) => {
+        let log = '', a = Array.from(args)
+        try {
+            log += JSON.stringify(a, censor(a)) + "\r\n"
+        } catch(e) { }
+        log += traceback()+"\r\n\r\n"
+        if(!fs){
+            fs = require('fs')
+        }
+        if(fs.existsSync('error.log')){
+            fs.appendFileSync('error.log', log)
+        } else {
+            fs.writeFileSync('error.log', log)
+        }
+    }
 }
 
 var openFileDialogChooser = false;

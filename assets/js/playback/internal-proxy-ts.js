@@ -95,7 +95,7 @@ class TSInfiniteProxy extends Events {
 						if(this.debug){
 							console.warn('[ts] timeout')
 						}
-						this.emit('timeout', this.clients.length)
+						this.emit('timeout', this.clients ? this.clients.length : 0)
 						this.destroy()
 					}
 					if(this.opts.idleTimeout){

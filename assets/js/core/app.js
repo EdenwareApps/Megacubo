@@ -87,7 +87,9 @@ function escapePressed(){
     //win.leaveKioskMode();
     //win.leaveFullscreen();
     if(isModal()){
-        modalClose()
+        if(modalCloseable()){
+            modalClose()
+        }
     } else if(Tuning.is(i => { return i.resultBufferSize != -1 })){ // stop only play intents tuning, not folder checkings
         Tuning.stop(i => { return i.resultBufferSize != -1 })
     } else if(isFullScreen()) {
@@ -485,13 +487,16 @@ function makeModal(content){
     jQuery('#modal-overlay').show()
 }
 
+function modalCloseable(){
+    return jQuery('.prompt-close a:visible').length
+}
+
 function modalClose(silent){
     console.warn('modalClose', traceback());
     if(silent !== true){
         doAction('modalClose')
         removeAction('modalClose')
     }
-
     var d = jQuery(
         (top && top != window && typeof(top.document) !== 'undefined') ? top.document : document
     )
@@ -515,12 +520,12 @@ function modalConfirm(question, answers, closeable){
 
 function modalPrompt(question, answers, placeholder, value, closeable, onclose){    
     sound('warn', 16);
-    var a = [], noHeader = !question, notCloseable = typeof(onclose) != 'function';
+    var a = [], noHeader = !question
     answers.forEach((answer) => {
         a.push(jQuery('<button class="button">' + answer[0] + '</button>').on('click', answer[1]).label(stripHTML(answer[0]), 'up'))
     });
     var b = jQuery('<div class="prompt prompt-' + a.length + '-columns '+(noHeader ? ' prompt-no-header' : '')+'">'+
-        (notCloseable ? '' : '<span class="prompt-close"><a href="javascript:modalClose();void(0)"><i class="fas fa-times-circle" aria-hidden="true"></i></a></span>')+
+        (closeable ? '<span class="prompt-close"><a href="javascript:modalClose();void(0)"><i class="fas fa-times-circle" aria-hidden="true"></i></a></span>' : '')+
         '<span class="prompt-header">' + nl2br(question) + '</span>' +
         '<span class="prompt-input"><input type="text" /></span>' +
         '<span class="prompt-footer"></span></div>');
@@ -557,7 +562,7 @@ function modalPrompt(question, answers, placeholder, value, closeable, onclose){
                     if(t.val().length){
                         a.pop().click()
                     }
-                } else if (event.keyCode === 27 && !notCloseable) {
+                } else if (event.keyCode === 27 && closeable) {
                     pc.trigger('click')
                 }
             }
@@ -569,6 +574,21 @@ function modalPrompt(question, answers, placeholder, value, closeable, onclose){
         n.focus()
         n.select()
     }, 400)
+}
+
+function modalPromptHint(text, target){
+    let bgc = Theme.get('background-color'), fgc = Theme.get('font-color'), tpl = `
+<span class="modal-prompt-hint-balloon">
+    <span>
+        <span class="modal-prompt-hint-balloon-arrow" style="border-color: transparent transparent {1} transparent;"> </span>
+        <span class="modal-prompt-hint-balloon-text" style="background-color: {1};color: {2};">{0}</span>
+    </span>
+</span>
+`
+    if(typeof(target) == 'number'){
+        target = jQuery('.prompt button').eq(target)
+    }
+    return target.prepend(tpl.format(text, bgc, fgc))
 }
 
 function modalPromptInput(){
@@ -593,6 +613,232 @@ function shouldOpenSandboxURL(url, callback){
             callback(url)
         }
     })
+}
+
+function askForStream(cb, onclose){
+    let next = typeof(cb) == 'function' ? cb : (url) => {
+        if(url.substr(0, 2)=='//'){
+            url = 'http:' + url
+        }
+        var name = false
+        if(isValidPath(url)){
+            name = 'Megacubo ' + url.split('/')[2]
+        }
+        if(name){
+            console.log('lastCustomPlayURL', url, name)
+            Store.set('lastCustomPlayURL', url, true)
+            var entry = {url: url, allowWebPages: true, name: name, logo: defaultIcons['stream']}
+            playEntry(entry, null, null, null, cb)
+        }
+    }
+    let readInput = () => {
+        var v = modalPromptVal()
+        if(v){
+            if(v.substr(0, 2)=='//'){
+                v = 'http:'+v
+            }
+            Store.set('lastAskForStreamVal', v, true)
+        }
+        modalClose()
+        next(v)
+    }
+    let options = [
+        ['<i class="fas fa-plus" aria-hidden="true"></i> ' + Lang.ADD_LIST, () => {
+            askForList()
+        }],
+        ['<i class="fas fa-check-circle" aria-hidden="true"></i> OK', readInput]
+    ]
+    askForInput(Lang.OPEN_STREAM, options, Lang.PASTE_STREAM_URL_HINT, Store.get('lastAskForStreamVal') || '', readInput, false, false, false)
+}
+    
+function askForList(callback, onclose, notCloseable, keepOpened){
+    if(typeof(onclose) != 'function'){
+        onclose = jQuery.noop
+    }
+    if(isMiniPlayerActive()){
+        leaveMiniPlayer()
+    }
+    if(typeof(callback) != 'function'){
+        callback = url => {
+            return registerSource(url)
+        }
+    }
+    var def = Store.get('lastAskForListVal')
+    var cb = clipboard.get('text'), next = () => {
+        var v = modalPromptVal()
+        if(v){
+            if(v.substr(0, 2)=='//'){
+                v = 'http:' + v
+            }
+            Store.set('lastAskForListVal', v, true)
+        }
+        if(callback(v) && !keepOpened){
+            modalClose()
+        }
+    }
+    if(cb.match(new RegExp('^(//|https?://)'))){
+        def = cb;
+    }
+    var options = [
+        ['<i class="fas fa-folder-open" aria-hidden="true"></i> '+Lang.OPEN_FILE, () => {
+            openFileDialog((file) => {
+                modalPromptInput().val(file)
+                next()
+            })
+        }],
+        ['<i class="fas fa-play-circle" aria-hidden="true"></i> '+Lang.OPEN_STREAM, () => {
+            askForStream()
+        }],
+        ['<i class="fas fa-check-circle" aria-hidden="true"></i> OK', next]
+    ]
+    askForInput(Lang.ADD_LIST, options, Lang.PASTE_LIST_URL_HINT, Store.get('lastAskForStreamVal') || '', next, false, notCloseable, false)
+}
+    
+function askForListEx(cb){
+    if(isMiniPlayerActive()){
+        leaveMiniPlayer()
+    }
+    let callback = url => {
+        let hr
+        hr = registerSource(url)
+        if(typeof(cb) == 'function') {
+            return cb(hr)
+        } else {
+            return hr
+        }
+    }
+    let def = Store.get('lastAskForListVal')
+    let c = clipboard.get('text'), next = () => {
+        var v = modalPromptVal()
+        if(v){
+            if(v.substr(0, 2)=='//'){
+                v = 'http:' + v
+            }
+            Store.set('lastAskForListVal', v, true)
+        }
+        return callback(v)
+    }, options = [
+        ['<i class="fas fa-folder-open" aria-hidden="true"></i> ' + Lang.OPEN_FILE, () => {
+            openFileDialog(file => {
+                modalPromptInput().val(file)
+                next()
+            })
+        }],
+        ['<i class="fas fa-check-circle" aria-hidden="true"></i> OK', next]
+    ]
+    if(c.match(new RegExp('^(//|https?://)'))){
+        def = c
+    }
+    askForInput(Lang.ADD_LIST, options, Lang.PASTE_LIST_URL_HINT, Store.get('lastAskForStreamVal') || '', next, false, true, false)
+}
+
+function askForInput(question, options, hint, def, callback, onclose, notCloseable, keepOpened){
+    if(typeof(onclose) != 'function'){
+        onclose = jQuery.noop
+    }
+    if(isMiniPlayerActive()){
+        leaveMiniPlayer()
+    }
+    var cb = clipboard.get('text'), go = () => {
+        var v = modalPromptVal()
+        if(v){
+            if(v.substr(0, 2)=='//'){
+                v = 'http:'+v
+            }
+            Store.set('lastAskForListVal', v, true)
+        }
+        if(callback(v) && keepOpened !== true){
+            modalClose()
+        }
+    }
+    if(cb.match(new RegExp('^(//|https?://)'))){
+        def = cb
+    }
+    modalPrompt(question, options, hint, def, !notCloseable, onclose)
+}
+        
+function playCustomURL(placeholder, direct, cb){
+    var url
+    if(placeholder && direct){
+        url = placeholder;
+    } else {
+        if(!placeholder){
+            placeholder = Store.get('lastCustomPlayURL')
+        }
+        return askForStream()            
+    }
+    if(url){
+        if(url.substr(0, 2)=='//'){
+            url = 'http:'+url;
+        }
+        Store.set('lastCustomPlayURL', url, true);
+        var name = false;
+        if(isValidPath(url)){
+            name = 'Megacubo '+url.split('/')[2];
+        }
+        if(name){
+            console.log('lastCustomPlayURL', url, name);
+            Store.set('lastCustomPlayURL', url, true);
+            var entry = {url: url, allowWebPages: true, name: name, logo: defaultIcons['stream']}
+            playEntry(entry, null, null, null, cb)
+        }
+    }
+}
+
+function playCustomFile(file){
+    Store.set('lastCustomPlayFile', file, true);
+    Playback.createIntent({url: file, name: basename(file, true)}, {manual: true})
+}
+
+var askForInputNotification = notify('...', 'fa-spin fa-circle-notch', 'forever', true)
+askForInputNotification.hide()
+
+function openListOrStream(url, cb, allowStreams, confirmType){
+    console.log('CHECK', url)
+    var icb = (url, type) => {
+        console.log('CHECK CALLBACK', url, type, traceback())
+        askForInputNotification.hide()
+        modalClose(true)
+        if(type == 'list'){
+            registerSource(url)
+            if(type(cb) == 'function'){
+                cb(null, 'list')
+            }
+        } else if(allowStreams && (isValidPath(url) || hasCustomMediaType(url))){
+            playCustomURL(url, true, (err, intent, statusCode) => {
+                if(err){
+                    var message = getPlaybackErrorMessage(intent, statusCode || err)
+                    notify(message, 'fa-exclamation-circle faclr-red', 'normal')
+                }
+            })
+            if(type(cb) == 'function'){
+                cb(null, 'stream')
+            }
+        } else {
+            askForInputNotification.update(Lang.INVALID_URL_MSG, 'fa-exclamation-circle faclr-red', 'normal')
+            if(type(cb) == 'function'){
+                cb(Lang.INVALID_URL_MSG, '')
+            }
+        }
+    }
+    if(confirmType){
+        modalClose()
+        modalConfirm(Lang.OPEN_FILE, [
+            [Lang.PLAY, () => {
+                icb(url, 'stream')
+            }], 
+            [Lang.ADD_LIST, () => {
+                icb(url, 'list')
+            }]
+        ])
+    } else {
+        if(!askForInputNotification){
+            askForInputNotification = notify(Lang.PROCESSING, 'fa-spin fa-circle-notch', 'forever', true)
+        } else {
+            askForInputNotification.update(Lang.PROCESSING, 'fa-spin fa-circle-notch', 'forever')
+        }
+        checkStreamType(url, icb)
+    }
 }
 
 var inFullScreen = false;
@@ -1883,6 +2129,7 @@ function ipcSrvClose(cb){
 
 function precloseApp(){
     if(!preClosingWindow){
+        ipc.server.broadcast('app-unload');
         doAction('appUnload');
         preClosingWindow = true;
         fixLocalStateFile();
@@ -1894,22 +2141,22 @@ function precloseApp(){
 $win.on('beforeunload unload', precloseApp);
 
 function closeApp(force){
-    if(ipc && ipc.server.server.listening){        
-        if(!ipcIsClosing){
-            ipcIsClosing = true;
-            ipcSrvClose(() => {
-                ipc = false;
-                closeApp(force)
-            })
-        }
-        return;
-    }
     var doClose = (force === true || applyFilters('closeApp', true))
     if(doClose){
         precloseApp()
         if(!closingWindow && force !== true){
-            console.warn('CASE A');
-            closingWindow = true;
+            console.warn('CASE A')
+            closingWindow = true
+            if(ipc && ipc.server.server.listening){        
+                if(!ipcIsClosing){
+                    ipcIsClosing = true
+                    ipcSrvClose(() => {
+                        ipc = false
+                        closeApp()
+                    })
+                    return
+                }
+            }
             win.close()
         } else {
             console.warn('CASE B')
@@ -1963,6 +2210,11 @@ function initSearchIndex(_cb) {
             'indexer-load': () => {
                 console.warn('INDEXER LOAD')
                 focusApp()
+                doAction('indexerLoad')
+            },
+            'indexer-register': () => {
+                console.warn('INDEXER REGISTER MAIN PID')
+                ipc.server.broadcast('indexer-register-cb', process.pid)
             },
             'indexer-vars': (data) => {
                 console.warn('INDEXER', data)
@@ -2011,9 +2263,12 @@ addAction('appLoad', () => {
             setupSearch(term, lastSearchType || 'all')
         }},
         {name: Lang.BOOKMARKS, homeId: 'bookmarks', logo:'fa-star', type: 'group', renderer: getBookmarksEntries, entries: []},  
+        {name: Lang.AUDIOS, homeId: 'radios', logo:'fa-headphones-alt', class: 'entry-nosub search-index-vary', type: 'group', entries: [], mediaType: 'live', renderer: getAudioEntries},
         {name: Lang.TOOLS, homeId: 'tools', logo:'fa-box-open', class: 'entry-nosub', callback: () => { timerLabel = false; }, type: 'group', entries: [], renderer: getToolsEntries},
         {name: Lang.OPTIONS, homeId: 'options', logo:'fa-cog', class: 'entry-nosub', callback: () => { timerLabel = false; }, type: 'group', entries: [], renderer: getSettingsEntries},
-        {name: Lang.OPEN_FILE, append: getActionHotkey('OPENURLORLIST'), homeId: 'open_file', logo:'fa-folder-open', type: 'option', callback: () => {playCustomURL()}},
+        {name: Lang.OPEN, append: getActionHotkey('OPENURLORLIST'), homeId: 'open_file', logo:'fa-folder-open', type: 'option', callback: () => {
+            askForList()
+        }},
         {name: Lang.ABOUT, append: getActionHotkey('ABOUT'), homeId: 'about', logo:'fa-info-circle', type: 'option', callback: about},
     ])    
     let iptvEntry = {name: Lang.IPTV_LISTS, homeId: 'iptv_lists', label: Lang.MY_LISTS, class: 'entry-nosub', logo:'fa-list', type: 'group', entries: [], renderer: (data, element, isVirtual) => {
@@ -2850,35 +3105,89 @@ addFilter('videosMetaEntries', (entries) => {
     return entries
 })
 
-function getRadioEntries(data){
-    var path = assumePath(data.name)
-    setTimeout(() => {
-        var entries = sharedGroupsAsEntries('audio-' + data.mediaType, data.mediaType, (entries) => {
-            return entries.filter(entry => {
-                return entry.isAudio
-            })
-        })
-        if(Menu.path == path){
-            Menu.loaded();
-            entries = Menu.mergeEntries(Menu.getEntries(true, false, true), entries);
-            Menu.asyncResult(path, entries)
+function getAudioEntries(data, type){
+    var entries = sharedGroupsAsEntries('audio', 'all', (entries) => {
+        return entries.filter(entry => {
+            return entry.isAudio === false
+        }).slice(0)
+    })
+    return [
+        {
+            name: Lang.BEEN_WATCHED, 
+            logo: 'fa-users', 
+            labeler: parseLabelCount, 
+            type: 'group',
+            class: 'entry-nosub',
+            renderer: () => { 
+                return [
+                    Menu.loadingEntry()
+                ]
+            },
+            callback: (data) => {
+                let path = assumePath(data.name, Menu.path)
+                getAudioWatchingEntries((entries) => {
+                    if(!entries.length){
+                        entries = [Menu.emptyEntry()]
+                    }
+                    Menu.asyncResult(path, entries)
+                }) 
+            }, 
+            entries: []
+        },
+        {
+            name: Lang.SEARCH,
+            type: 'group',
+            logo: 'fa-search',
+            renderer: () => {
+                return [
+                    Menu.loadingEntry()
+                ]
+            },
+            callback: () => {
+                goSearch(null, 'audio')
+            }
         }
-    }, 200);
-    return [Menu.loadingEntry()]
+    ].concat(entries)
+}
+ 
+
+function fetchAudioSearchResults(q, cb){
+    search(cb, 'all', q, true, false, entries => {
+        return entries.filter(entry => {
+            return entry.isAudio
+        }).slice(0)
+    }, true)
 }
 
-addFilter('liveMetaEntries', entries => {
-    let opt = {name: Lang.AUDIOS, homeId: 'radios', logo:'fa-headphones-alt', class: 'entry-nosub search-index-vary', type: 'group', entries: [], mediaType: 'live', renderer: getRadioEntries}
-    entries.splice(2, 0, opt)
-    return entries
+function getAudioWatchingEntries(_cb){
+    getWatchingData((_options) => {
+        var entries = []
+        if(_options.length){
+            var options = _options;
+            options = options.filter((option) => {
+                return option.isAudio
+            })
+            if(options.length && options[0].label.indexOf('ordm')==-1){
+                var i = 0
+                options = options.map((entry, k) => {
+                    if(!entry.__parsed){
+                        entry.label = (i + 1)+'&ordm; &middot; '+ Lang.LISTENING.format(parseCounter(entry.label.split(' ')[0]))
+                        i++;
+                        entry.__parsed = true;
+                    }   
+                    return entry
+                })
+            }
+            entries = options.slice(0, 96)
+        }
+        _cb(entries)
+    })
+}
+
+addAction('appReady', () => {
+    registerSearchEngine(Lang.AUDIOS, 'audio', fetchAudioSearchResults, true)
 })
 
-addFilter('videosMetaEntries', entries => {
-    let opt = {name: Lang.AUDIOS, homeId: 'radios', logo:'fa-headphones-alt', class: 'entry-nosub search-index-vary', type: 'group', entries: [], mediaType: 'video', renderer: getRadioEntries}
-    entries.splice(2, 0, opt)
-    return entries
-})
-  
 function registerMediaType(struct, registerToHome){
     customMediaTypes[struct.type] = struct;
     if(struct.name && struct.icon){

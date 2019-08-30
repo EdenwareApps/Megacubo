@@ -5,10 +5,17 @@ if(typeof(PremiumHelper) == 'undefined'){
             shouldInstall: false
         }
         self.entry = () => {
+            let lic = applyFilters('appLicense', 'free'), nam = Lang.ENABLE_PREMIUM_FEATURES, lbl = ''
+            if(lic.indexOf('sponsor') != -1){
+                nam = Lang.PREMIUM_IDLE_RESOURCES
+            } else if(lic.indexOf('license') != -1) {
+                nam = Lang.LICENSE_KEY
+                lbl = Lang.PREMIUM_MODE
+            }
             var entry = {
-                name: Lang.ENABLE_PREMIUM_FEATURES,
+                name: nam,
                 class: 'entry-premium',
-                label: '<i class="fas fa-rocket"></i>',
+                label: '<i class="fas fa-rocket"></i> '+lbl,
                 type: 'check',
                 checked: (data) => {
                     return self.installed(true)
@@ -147,8 +154,12 @@ if(typeof(PremiumHelper) == 'undefined'){
         }
         self.notification = notify('...', 'fa-rocket', 'forever')
         self.notification.hide()
+        addFilter('optionsEntries', (entries) => {
+            entries.splice(entries.length - 1, 0, self.entry())
+            return entries
+        })
         addFilter('afterToolsEntries', (entries) => {
-            var ns = applyFilters('premiumEntries', [self.entry()])
+            var ns = applyFilters('premiumEntries', [])
             if(ns && ns.length){
                 entries = entries.concat(ns)
             }

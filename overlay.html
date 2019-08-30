@@ -88,37 +88,7 @@
             function openFile(file){
                 var c = (top || parent)
                 if(c){
-                    c.checkStreamType(file, (url, type) => {
-                        console.log(url, type)
-                        if(type == 'list'){
-                            c.modalClose()
-                            c.modalConfirm(c.Lang.OPEN_FILE, [
-                                [c.Lang.PLAY, () => {
-                                    c.ListMan.parse(url, (entries) => {
-                                        var cpath = String(parseInt(time()))
-                                        c.Menu.renderBackEntry(null, c.Menu.path)
-                                        entries.unshift(c.getTuningEntry())
-                                        c.Menu.entries.push({name: cpath, class: 'entry-hide', entries: entries})
-                                        c.Menu.list(entries, cpath)
-                                        c.jQuery('.entry-tuning').trigger('click')
-                                    })
-                                    c.modalClose() 
-                                }], 
-                                [c.Lang.ADD_NEW_LIST, () => {
-                                    var d = new Date()
-                                    var datestring = " "+d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0" + d.getDate()).slice(-2) + " " + ("0" + d.getHours()).slice(-2) + "-" + ("0" + d.getMinutes()).slice(-2)
-                                    var name = c.basename(url, true)+' - '+datestring;
-                                    console.log(name)
-                                    c.registerSource(url, name)
-                                    c.modalClose()
-                                }]
-                            ])
-                        } else if(type == 'stream' || (isValidPath(url) || hasCustomMediaType(url))){ 
-                            c.playCustomURL(url, true)
-                        } else { // type=error so
-                            c.notify(Lang.INVALID_URL_MSG, 'fa-exclamation-triangle faclr-red', 'normal')
-                        }
-                    })
+                    c.openListOrStream(file, null, true)
                 }
             }
             var show = function (){

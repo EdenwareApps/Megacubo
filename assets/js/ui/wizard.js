@@ -14,35 +14,36 @@ const Wizard = (() => {
             {
                 question: Lang.SHARED_EXCLUSIVE_MODE_QUESTION, 
                 answers: [
-                    ['<i class="fas fa-users"></i> '+Lang.SHARED_MODE, () => {
+                    ['<i class="fas fa-users"></i> ' + Lang.SHARED_MODE, () => {
                         jQuery('.prompt .fa-users').parent('button').html('<i class="fas fa-circle-notch pulse-spin"></i> ' + Lang.PROCESSING)
                         Config.set('search-range-size', sharedDefaultSearchRangeSize)
-                        process.nextTick(self.next)
-                        if(typeof(addNewSourceNotification) != 'undefined'){
-                            addNewSourceNotification.hide()
+                        if(typeof(askForInputNotification) != 'undefined'){
+                            askForInputNotification.hide()
                         }
+                        process.nextTick(self.next)
                     }], 
-                    ['<i class="fas fa-user-shield"></i> '+Lang.EXCLUSIVE_MODE, () => {
+                    ['<i class="fas fa-user-shield"></i> ' + Lang.EXCLUSIVE_MODE, () => {
                         const done = () => {
                             Config.set('search-range-size', 0)
-                            self.next()
-                            if(typeof(addNewSourceNotification) != 'undefined'){
-                                addNewSourceNotification.hide()
+                            if(typeof(askForInputNotification) != 'undefined'){
+                                askForInputNotification.hide()
                             }
+                            process.nextTick(self.next)
                         }, validate = () => {
                             return getSources().length
                         }
                         if(validate()){
                             done()
                         } else {
-                            addNewSource((err, type) => {
+                            askForListEx((err, type) => {
                                 if(validate()){
                                     done()
                                 } else {
                                     console.warn('No list provided, try again.')
+                                    askForInputNotification.update(Lang.INVALID_URL_MSG, 'fa-exclamation-circle faclr-red', 'normal')
                                     setTimeout(self.prev, 0)
                                 }
-                            }, Lang.ASK_IPTV_LIST, false, true)
+                            })
                         }
                     }]
                 ],

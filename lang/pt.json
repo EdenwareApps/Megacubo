@@ -34,7 +34,7 @@
 "BOOKMARKS": "Favoritos",
 "FAV_ADDED":"{0} adicionado aos favoritos.",
 "FAV_REMOVED":"{0} removido dos favoritos.",
-"PASTE_URL_HINT":"Cole a URL de sua transmissão ou lista IPTV aqui...",
+"PASTE_LIST_URL_HINT":"Cole a URL de sua lista IPTV aqui...",
 "LOADING":"Carregando...",
 "RECORDINGS":"Gravações",
 "START_RECORDING":"Iniciar gravação",
@@ -66,7 +66,7 @@
 "NEW_VERSION_AVAILABLE": "Já está disponível uma nova versão do programa. Deseja realizar o download agora?",
 "OTHER_PACKAGES":"Outros pacotes",
 "LISTS": "Listas",
-"ADD_NEW_LIST": "Adicionar lista",
+"ADD_LIST": "Adicionar uma lista IPTV",
 "REMOVE_LIST": "Remover lista",
 "LIST_REMOVED": "Lista removida.",
 "LIST_ADDED": "Lista adicionada.",
@@ -376,7 +376,7 @@
 "P2P_ACCELERATION": "Aceleração P2P",
 "P2P_DISABLED": "P2P desativado",
 "START_PLAYBACK_FIRST": "Inicie a reprodução do conteúdo primeiro.",
-"TRANSMIT": "Transmitir",
+"CAST": "Transmitir",
 "TOOLS": "Ferramentas",
 "SHARED_EXCLUSIVE_MODE_QUESTION": "O Megacubo é uma ferramenta para reproduzir listas de IPTV.\r\n\r\nVocê pode usá-lo em modo compartilhado, tendo acesso automático à todas as listas IPTV compartilhadas por outros usuários, ou em modo exclusivo, somente com as listas IPTV que você adicionar.",
 "SHARED_MODE": "Modo compartilhado",
@@ -392,5 +392,9 @@
 "TUNE_TIMEOUT":"Tempo limite de sintonia",
 "NEXT": "Próximo",
 "AUDIOS": "Áudios",
-"ADULT_CONTENT_BLOCKED": "Conteúdo adulto bloqueado"
+"ADULT_CONTENT_BLOCKED": "Conteúdo adulto bloqueado",
+"OPEN": "Abrir",
+"OPEN_STREAM": "Abrir uma transmissão",
+"PASTE_STREAM_URL_HINT":"Cole a URL da transmissão aqui...",
+"STREAM_URL": "URL da transmissão"
 }

@@ -52,7 +52,7 @@ function goSearch(searchTerm, type, _backTo){
 
 function setupSearch(term, type, onRender){
     if(typeof(searchEngines[type]) == 'undefined'){
-        return;
+        return
     }
     var prevPath = Menu.path.indexOf(Lang.SEARCH) == -1 ? Menu.path : ''
     Menu.path = assumePath(Lang.SEARCH)
@@ -166,6 +166,7 @@ function indexerSync(){
 }
 
 function indexerAdultFilter(entries, cb){
+    return cb(entries)
     let uid = 0
     while(typeof(indexerQueryCallbacks[uid]) == 'function'){
         uid = rand(1, 1000000)
@@ -185,6 +186,26 @@ function indexerSearch(type, term, matchAll, strict, cb, adult){
     ipc.server.broadcast('indexer-query', {uid, type, term, matchAll, strict, adult})
 }
 
+function indexerQueryList(url, cb){
+    let uid = 0
+    while(typeof(indexerQueryCallbacks[uid]) == 'function'){
+        uid = rand(1, 1000000)
+    }
+    indexerQueryCallbacks[uid] = cb
+    ipc.server.broadcast('indexer-query-list', {uid, url})
+}
+
+function indexerWatchingData(cb, update, locale){
+    let uid = 0
+    while(typeof(indexerQueryCallbacks[uid]) == 'function'){
+        uid = rand(1, 1000000)
+    }
+    indexerQueryCallbacks[uid] = (ret) => {
+        cb(ret.results)
+    }
+    ipc.server.broadcast('indexer-query-watching-list', {uid, update, locale})
+}
+
 function indexerFilter(type, names, matchAll, strict, cb){
     let uid = 0
     while(typeof(indexerQueryCallbacks[uid]) == 'function'){
@@ -200,6 +221,10 @@ ipc.server.on('indexer-query-result', (results) => {
         indexerQueryCallbacks[results.uid](results)
         delete indexerQueryCallbacks[results.uid]
     }
+})
+
+ipc.server.on('indexer-empty', (results) => {
+    askForInputNotification.update(Lang.NO_LIST_PROVIDED.format(Lang.SEARCH_RANGE), 'fa-exclamation-circle faclr-red', 'normal')
 })
 
 var sharedListsSearchCaching = false;

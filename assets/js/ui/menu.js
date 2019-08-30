@@ -481,8 +481,8 @@ function renderRemoteSources(name){
                     entry.renderer = (data, element, isVirtual) => {
                         return loadSource(data.url, data.name, null, null, isVirtual)
                     }
-                    return entry;
-                });
+                    return entry
+                })
                 // index = writeIndexPathEntries(Menu.path, entries);
                 // Menu.go(Menu.path);
                 Menu.asyncResult(path, entries);
@@ -689,9 +689,10 @@ Menu = (() => {
     self.initialized = false;
     self.window = jQuery(window);
     self.body = jQuery('body');
-    self.debug = debugAllow(false);
+    self.debug = debugAllow(true);
     self.path = '';
     self.vpath = false;
+    self.entries = [];
     self.events = {};
     self.rendering = false;
     self.lastListScrollTop = 0;
@@ -708,6 +709,7 @@ Menu = (() => {
     self.appOverState = true;
     self.appOverBindState = false;
     self.caching = {}
+    self.pages = {}
     self.cache = (path, value) => {
         if(basename(path) != Lang.SEARCH){
             if(value && value instanceof jQuery && typeof(self.caching[path]) == 'undefined'){
@@ -788,6 +790,12 @@ Menu = (() => {
             console.log('ASYNCRESULT', path, self.path)
         }
         self.asyncResults[path] = entries;
+        if(path != searchPath){
+            self.pages[path] = entries.slice(0)
+            if(!self.pages[path].length || !self.pages[path][0].class || self.pages[path][0].class.indexOf('entry-back') == -1){
+                self.pages[path].unshift(self.backEntry(basename(path)))
+            }
+        }
         if(silent !== true && path == self.path){
             if(self.debug){
                 console.log('ASYNCRESULT', entries, path, self.path)
@@ -1118,79 +1126,86 @@ Menu = (() => {
         }
         //console.log('TRIGGER DATA', npath, data, data.path, entries);
         if(data.type == 'group'){
+            var ok = false;
             self.triggerer(npath, data);
             console.log('TRIGGER DATA 2', data.path, npath, entries);
             if(Array.isArray(entries)){
-                entries = applyFilters('internalFilterEntries', entries, npath);
-                var ok = false;
-                //console.error('XXXXXXXX', entries, data, self.path && entries.length <= self.subMenuSizeLimit);
-                if(entries.length <= self.subMenuSizeLimit && (!data.class || (data.class.indexOf('entry-nosub') == -1 && data.class.indexOf('entry-compact') == -1))){
-                    //console.error('XXXXXXXX', entries, data);
-                    if(!element){
-                        var es = self.queryElements(self.getEntries(false, false), {name: data.name, type: data.type});
-                        if(es.length){
-                            element = es.get(0)
-                        }
-                    }
-                    var issub, issubsub, insub = false, insubsub = false, offset = -1
-                    if(element){
-                        issub = element.className && element.className.indexOf('entry-sub') != -1
-                        issubsub = element.className && element.className.indexOf('entry-sub-sub') != -1
-                    } else {
-                        issub = issubsub = false
-                    }
-                    self.container().find('a.entry').show().each((i, entry) => {
-                        if(offset == -1 && entry.className && entry.className.indexOf('entry-sub') != -1){
-                            insub = true
-                            offset = i
-                            console.warn('SUBMENU', offset)
-                            if(entry.className.indexOf('entry-sub-sub') != -1){
-                                insubsub = true
+                if(entries.length == 1 && entries[0].class && entries[0].class.indexOf('entry-loading') != -1){
+                    let dat = self.renderEntry(entries[0], element.tabIndexOffset, false)
+                    jQuery(element).replaceWith(dat.html)
+                    self.path = npath
+                    ok = true
+                } else {
+                    entries = applyFilters('internalFilterEntries', entries, npath);
+                    //console.error('XXXXXXXX', entries, data, self.path && entries.length <= self.subMenuSizeLimit);
+                    if(entries.length <= self.subMenuSizeLimit && (!data.class || (data.class.indexOf('entry-nosub') == -1 && data.class.indexOf('entry-compact') == -1))){
+                        //console.error('XXXXXXXX', entries, data);
+                        if(!element){
+                            var es = self.queryElements(self.getEntries(false, false), {name: data.name, type: data.type});
+                            if(es.length){
+                                element = es.get(0)
                             }
                         }
-                    })
-                    if(offset == -1){
-                        self.getEntries(true, false).every((entry, i) => {
-                            if(entry.class && entry.class.indexOf('entry-loading') != -1){
-                                //offset = -1;
-                                //return false;
-                            }
-                            if(entry.name == data.name){
-                                offset = i;
+                        var issub, issubsub, insub = false, insubsub = false, offset = -1
+                        if(element){
+                            issub = element.className && element.className.indexOf('entry-sub') != -1
+                            issubsub = element.className && element.className.indexOf('entry-sub-sub') != -1
+                        } else {
+                            issub = issubsub = false
+                        }
+                        self.container().find('a.entry').show().each((i, entry) => {
+                            if(offset == -1 && entry.className && entry.className.indexOf('entry-sub') != -1){
+                                insub = true
+                                offset = i
                                 console.warn('SUBMENU', offset)
+                                if(entry.className.indexOf('entry-sub-sub') != -1){
+                                    insubsub = true
+                                }
                             }
-                            return offset == -1;
                         })
+                        if(offset == -1){
+                            self.getEntries(true, false).every((entry, i) => {
+                                if(entry.class && entry.class.indexOf('entry-loading') != -1){
+                                    //offset = -1;
+                                    //return false;
+                                }
+                                if(entry.name == data.name){
+                                    offset = i;
+                                    console.warn('SUBMENU', offset)
+                                }
+                                return offset == -1;
+                            })
+                        }
+                        console.warn('SUBMENU', entries.length, data, offset, insub, insubsub, issub, issubsub);
+                        if(offset != -1 && !insubsub){
+                            ok = true;
+                            var pas = self.container().find('a.entry')
+                            pas.filter('.entry-sub').remove()
+                            var nentries = entries.slice(0)
+                            nentries.unshift(self.backEntry(data.name)) // do not alter entries
+                            self.list(nentries, npath, offset ? offset - 1 : 0, true)
+                            var rv = self.container().find('a.entry').not(pas)
+                            //console.warn('RV', rv, offset);
+                            rv.each((i, e) => {
+                                //console.warn('PPPPPPPP', e, i);
+                                if(!e.className) {
+                                    e.className = '';
+                                }
+                                e.className += ' entry-sub';
+                                if(issub){
+                                    e.className += ' entry-sub-sub';
+                                }
+                                if(i == 0){
+                                    e.className += ' entry-sub-first';
+                                } else if(i == (rv.length - 1)){
+                                    e.className += ' entry-sub-last';
+                                }
+                                return e;
+                            })
+                            self.fitSubMenuScroll()
+                        }
                     }
-                    console.warn('SUBMENU', entries.length, data, offset, insub, insubsub, issub, issubsub);
-                    if(offset != -1 && !insubsub){
-                        ok = true;
-                        var pas = self.container().find('a.entry')
-                        pas.filter('.entry-sub').remove()
-                        var nentries = entries.slice(0)
-                        nentries.unshift(self.backEntry(data.name)) // do not alter entries
-                        self.list(nentries, npath, offset ? offset - 1 : 0, true)
-                        var rv = self.container().find('a.entry').not(pas)
-                        //console.warn('RV', rv, offset);
-                        rv.each((i, e) => {
-                            //console.warn('PPPPPPPP', e, i);
-                            if(!e.className) {
-                                e.className = '';
-                            }
-                            e.className += ' entry-sub';
-                            if(issub){
-                                e.className += ' entry-sub-sub';
-                            }
-                            if(i == 0){
-                                e.className += ' entry-sub-first';
-                            } else if(i == (rv.length - 1)){
-                                e.className += ' entry-sub-last';
-                            }
-                            return e;
-                        })
-                        self.fitSubMenuScroll()
-                    }
-                }
+                } 
                 if(!ok){
                     self.renderBackEntry(self.container(true), dirname(npath), data.name);
                     //self.path = ltrimPathBar(npath);
@@ -1255,7 +1270,7 @@ Menu = (() => {
     self.list = (entries, path, at, sub) => {
         var cached, container = self.container(false)
         if(!entries){
-            entries = self.entries || []
+            entries = applyFilters('homeEntries', self.entries.slice(0)) || []
         }
         if(self.path && self.path == dirname(path)){
             let cs = container.children().not('.entry-loading')
@@ -1279,6 +1294,17 @@ Menu = (() => {
             entries[i].path = path
         }
         self.path = path
+        if(path != searchPath){
+            self.pages[self.path] = entries.slice(0)
+            if(!self.pages[self.path].length || !self.pages[self.path][0].class || self.pages[self.path][0].class.indexOf('entry-back') == -1){
+                self.pages[self.path].unshift(self.backEntry(basename(self.path)))
+            }
+        }
+        Object.keys(self.pages).forEach(k => {
+            if(self.path.indexOf[k] == -1){
+                self.pages[k] = undefined
+            }
+        })
         if(self.debug){
             console.log('menuList', container.html().substr(0, 1024))
         }
@@ -1321,6 +1347,166 @@ Menu = (() => {
         }
         return html;
     }
+    self.renderEntry = (entry, tabIndexOffset, isCompact) => {
+        if(entry == null || typeof(entry)!='object'){
+            if(self.debug){
+                console.log('BAD BAD ENTRY', entry, typeof(entry))
+            }
+            return
+        }
+        if(!entry.type){
+            if(!entry.url || entry.url.substr(0, 10)=='javascript'){
+                entry.type = 'option'
+            } else {
+                entry.type = 'stream'
+            }
+        }
+        if(entry.offline === true){
+            entry.class = (entry.class || '') + ' entry-offline';
+        } else {
+            if(entry.class && entry.class.indexOf('entry-offline')!=-1){
+                entry.class = entry.class.replace('entry-offline', '')
+            }
+        }
+        //console.log('WWWWWWWWWWWWW', entry);
+        if(typeof(menuTemplates[entry.type])=='undefined'){
+            if(self.debug){
+                console.log('BAD BAD ENTRY', entry)
+            }
+            return
+        }
+        var label = entry.label || ''
+        if(typeof(entry.labeler) == 'function'){
+            label = entry.labeler(entry)
+        }
+        var cleanLabel = stripHTML(label || entry.group || '').replaceAll('"', '&amp;quot;');
+        var cleanName = displayPrepareName(entry.name, false, entry.prepend || '', entry.append || '', true);
+
+        var html = menuTemplates[entry.type], atts = {};
+        html = html.replace('<a ', '<a tabindex="'+tabIndexOffset+'" ').replace('<input ', '<input tabindex="'+tabIndexOffset+'" ');
+        html = html.replaceAll('[name-n-label]', cleanName + (cleanLabel ? ' - ' + cleanLabel : ''));
+        html = html.replaceAll('[name]', cleanName);
+        html = html.replaceAll('[label]', cleanLabel);           
+        html = html.replaceAll('[format-label]', (label || entry.group || ''));
+        
+        if(html.indexOf('[format-name]')!=-1){
+            var minLengthToMarquee = 32, n = entry.rawname ? parseM3U8NameTags(entry.rawname) : entry.name
+            var fhtml = displayPrepareName(n, label || entry.group || '', entry.prepend || '', entry.append || '')
+            if(entry.url && isMegaURL(entry.url)){
+                fhtml = '<i class="fas fa-satellite-dish"></i> ' + fhtml
+            }
+            if(String(entry.name + entry.label).length >= minLengthToMarquee){
+                fhtml = '<span>' + fhtml + '</span>';
+                html = html.replace('entry-name', 'entry-name marquee')
+            }
+            html = html.replaceAll('[format-name]', fhtml)
+        }
+
+        var fallbacks = [entry.logo];
+        if(typeof(entry.defaultLogo) != 'undefined'){
+            fallbacks.push(entry.defaultLogo)
+        } 
+        fallbacks.push(defaultIcons[entry.type]);
+
+        var icon = self.renderIcon(entry, fallbacks);
+        
+        html = html.replace(new RegExp('<img[^>]+>', 'mi'), icon);
+
+        if(icon.toLowerCase().indexOf('<img') == -1){
+            html = html.replaceAll('entry-logo-img-c', 'entry-logo-fa-c')
+        }
+
+        html = html.replaceAll('[group]', entry.group && entry.group != 'undefined' ? entry.group : '');
+        html = html.replaceAll('[class]', entry.class || '');
+        html = html.replaceAll('[url]', entry.url || entry.originalUrl || ' ');
+        html = html.replaceAll('[value]', typeof(entry.mask)!='undefined' ? entry.mask.format(entry.value) : entry.value);
+
+        if(!isCompact && entry.class && entry.class.indexOf('entry-compact') != -1){
+            isCompact = true
+            html = '<div class="menu-footer">' + html
+        }
+
+        atts.data = entry;
+        if(entry.type != 'disabled'){
+            atts.click = (event) => {
+                var me = jQuery(event.currentTarget);
+                var data = me.data('entry-data');
+                if(data.type == 'check') {
+                    var checked = typeof(data.checked)!='undefined' && data.checked(data);
+                    checked = !checked;
+                    handleEntryInputChecking(me, checked);
+                    if(typeof(data.check)=='function') data.check(checked, data, event.currentTarget);
+                    sound('switch', 12);
+                    //console.warn('OK?', data, checked, data.check);
+                } else {
+                    self.trigger(data, event.currentTarget)
+                }
+            }
+            if(entry.type == 'check') {
+                atts.checked = typeof(entry.checked)!='undefined' && entry.checked(entry)
+            }
+        }
+        var actions = ['delete', 'rename'];
+        for(var i=0;i<actions.length;i++){
+            if(entry[actions[i]]){
+                atts[actions[i]] = (event) => {
+                    entry[event.type](entry, event.currentTarget);
+                }
+            }
+        }
+        if(['input', 'slider'].indexOf(entry.type) == -1){
+            atts.dragstart = (event) => {
+                var data = jQuery(event.target).data('entry-data');
+                if(data){
+                    const f = nw.App.dataPath + path.sep + prepareFilename(data.name, false) + '.m3u'
+                    fs.writeFileSync(f, "Generating, open again in some seconds...", "utf-8")
+                    ListMan.exportEntriesAsM3U([data], false, txt => {
+                        fs.writeFileSync(f, txt, "utf-8")
+                    })
+                    var file = new File(f, '')
+                    event.originalEvent.dataTransfer.setData('DownloadURL', file.type + ':' + file.name + ':' + file.path)
+                }
+            }
+        } else {
+            if(typeof(entry['value'])!='undefined'){
+                if(typeof(entry.getValue) == 'function'){
+                    entry['value'] = entry.getValue(entry);
+                }
+                atts.value = entry['value'];
+            }
+            if(entry['change']){
+                atts.input = (event) => {
+                    self.body.trigger('wake');
+                    var n = event.currentTarget.getElementsByTagName('input')[0], v = n.value;
+                    if(n.type == 'range'){
+                        v = parseInt(entry.range.start + (parseInt(v) * ((entry.range.end - entry.range.start) / 100)));
+                        event.currentTarget.querySelector('span.entry-slider-value').innerText = typeof(entry.mask)!='undefined' ? entry.mask.format(v) : v;
+                    }
+                    entry.value = v;
+                    entry['change'](entry, event.currentTarget, v)
+                }
+            }
+            if(entry['placeholder']){
+                atts.placeholder = entry['placeholder'];
+            }
+            atts.focus = (event) => {
+                event.currentTarget.querySelector('input').focus()
+            }
+        }
+        atts.mouseenter = atts.mouseover = (event) => {
+            if(!isWheeling){
+                clearTimeout(listEntryFocusOnMouseEnterTimer);
+                var e = event.currentTarget;
+                listEntryFocusOnMouseEnterTimer = setTimeout(() => {
+                    Pointer.focus(jQuery(e), true)
+                }, 200)
+            }
+        }
+        atts.mouseleave = (event) => {
+            clearTimeout(listEntryFocusOnMouseEnterTimer)
+        }
+        return {html, atts, isCompact}
+    }
     self.render = (entries, tabIndexOffset, at, sub) => { // render entries
         if(self.debug){
             console.log('render', entries)
@@ -1334,168 +1520,13 @@ Menu = (() => {
         entries = applyFilters('renderEntries', entries, self.path);
         var isCompact = false, allEvents = [], allHTML = '';
         entries.forEach((entry, i) => { // append
-            if(entry == null || typeof(entry)!='object'){
-                if(self.debug){
-                    console.log('BAD BAD ENTRY', entry, typeof(entry))
-                }
-                return
+            let dat = self.renderEntry(entry, tabIndexOffset, isCompact)
+            if(typeof(dat) == 'object' && dat){
+                allHTML += dat.html
+                allEvents.push(dat.atts)
+                isCompact = dat.isCompact
+                tabIndexOffset++
             }
-            if(!entry.type){
-                if(!entry.url || entry.url.substr(0, 10)=='javascript'){
-                    entry.type = 'option';
-                } else {
-                    entry.type = 'stream';
-                }
-            }
-            if(entry.offline === true){
-                entry.class = (entry.class || '') + ' entry-offline';
-            } else {
-                if(entry.class && entry.class.indexOf('entry-offline')!=-1){
-                    entry.class = entry.class.replace('entry-offline', '')
-                }
-            }
-            //console.log('WWWWWWWWWWWWW', entry);
-            if(typeof(menuTemplates[entry.type])=='undefined'){
-                if(self.debug){
-                    console.log('BAD BAD ENTRY', entry)
-                }
-                return;
-            }
-
-            var label = entry.label || '';
-            if(typeof(entry.labeler) == 'function'){
-                label = entry.labeler(entry)
-            }
-            var cleanLabel = stripHTML(label || entry.group || '').replaceAll('"', '&amp;quot;');
-            var cleanName = displayPrepareName(entry.name, false, entry.prepend || '', entry.append || '', true);
-
-            var html = menuTemplates[entry.type], atts = {};
-            html = html.replace('<a ', '<a tabindex="'+tabIndexOffset+'" ').replace('<input ', '<input tabindex="'+tabIndexOffset+'" ');
-            html = html.replaceAll('[name-n-label]', cleanName + (cleanLabel ? ' - ' + cleanLabel : ''));
-            html = html.replaceAll('[name]', cleanName);
-            html = html.replaceAll('[label]', cleanLabel);           
-            html = html.replaceAll('[format-label]', (label || entry.group || ''));
-            
-            if(html.indexOf('[format-name]')!=-1){
-                var minLengthToMarquee = 32, n = entry.rawname ? parseM3U8NameTags(entry.rawname) : entry.name
-                var fhtml = displayPrepareName(n, label || entry.group || '', entry.prepend || '', entry.append || '')
-                if(entry.url && isMegaURL(entry.url)){
-                    fhtml = '<i class="fas fa-satellite-dish"></i> ' + fhtml
-                }
-                if(String(entry.name + entries.name).length >= minLengthToMarquee){
-                    fhtml = '<span>' + fhtml + '</span>';
-                    html = html.replace('entry-name', 'entry-name marquee')
-                }
-                html = html.replaceAll('[format-name]', fhtml)
-            }
-
-            var fallbacks = [entry.logo];
-            if(typeof(entry.defaultLogo) != 'undefined'){
-                fallbacks.push(entry.defaultLogo)
-            } 
-            fallbacks.push(defaultIcons[entry.type]);
-
-            var icon = self.renderIcon(entry, fallbacks);
-            
-            html = html.replace(new RegExp('<img[^>]+>', 'mi'), icon);
-
-            if(icon.toLowerCase().indexOf('<img') == -1){
-                html = html.replaceAll('entry-logo-img-c', 'entry-logo-fa-c')
-            }
-
-            html = html.replaceAll('[group]', entry.group && entry.group != 'undefined' ? entry.group : '');
-            html = html.replaceAll('[class]', entry.class || '');
-            html = html.replaceAll('[url]', entry.url || entry.originalUrl || ' ');
-            html = html.replaceAll('[value]', typeof(entry.mask)!='undefined' ? entry.mask.format(entry.value) : entry.value);
-
-            if(!isCompact && entry.class && entry.class.indexOf('entry-compact') != -1){
-                isCompact = true;
-                html = '<div class="menu-footer">' + html;
-            }
-
-            // console.log('#####################', typeof(label), entry, label, html);
-            allHTML += html;
-            atts.data = entry;
-            if(entry.type != 'disabled'){
-                atts.click = (event) => {
-                    var me = jQuery(event.currentTarget);
-                    var data = me.data('entry-data');
-                    if(data.type == 'check') {
-                        var checked = typeof(data.checked)!='undefined' && data.checked(data);
-                        checked = !checked;
-                        handleEntryInputChecking(me, checked);
-                        if(typeof(data.check)=='function') data.check(checked, data, event.currentTarget);
-                        sound('switch', 12);
-                        //console.warn('OK?', data, checked, data.check);
-                    } else {
-                        self.trigger(data, event.currentTarget)
-                    }
-                }
-                if(entry.type == 'check') {
-                    atts.checked = typeof(entry.checked)!='undefined' && entry.checked(entry)
-                }
-            }
-            var actions = ['delete', 'rename'];
-            for(var i=0;i<actions.length;i++){
-                if(entry[actions[i]]){
-                    atts[actions[i]] = (event) => {
-                        entry[event.type](entry, event.currentTarget);
-                    }
-                }
-            }
-            if(['input', 'slider'].indexOf(entry.type) == -1){
-                atts.dragstart = (event) => {
-                    var data = jQuery(event.target).data('entry-data');
-                    if(data){
-                        const f = nw.App.dataPath + path.sep + prepareFilename(data.name, false) + '.m3u'
-                        fs.writeFileSync(f, "Generating, open again in some seconds...", "utf-8")
-                        ListMan.exportEntriesAsM3U([data], false, txt => {
-                            fs.writeFileSync(f, txt, "utf-8")
-                        })
-                        var file = new File(f, '')
-                        event.originalEvent.dataTransfer.setData('DownloadURL', file.type + ':' + file.name + ':' + file.path)
-                    }
-                }
-            } else {
-                if(typeof(entry['value'])!='undefined'){
-                    if(typeof(entry.getValue) == 'function'){
-                        entry['value'] = entry.getValue(entry);
-                    }
-                    atts.value = entry['value'];
-                }
-                if(entry['change']){
-                    atts.input = (event) => {
-                        self.body.trigger('wake');
-                        var n = event.currentTarget.getElementsByTagName('input')[0], v = n.value;
-                        if(n.type == 'range'){
-                            v = parseInt(entry.range.start + (parseInt(v) * ((entry.range.end - entry.range.start) / 100)));
-                            event.currentTarget.querySelector('span.entry-slider-value').innerText = typeof(entry.mask)!='undefined' ? entry.mask.format(v) : v;
-                        }
-                        entry.value = v;
-                        entry['change'](entry, event.currentTarget, v)
-                    }
-                }
-                if(entry['placeholder']){
-                    atts.placeholder = entry['placeholder'];
-                }
-                atts.focus = (event) => {
-                    event.currentTarget.querySelector('input').focus()
-                }
-            }
-            atts.mouseenter = atts.mouseover = (event) => {
-                if(!isWheeling){
-                    clearTimeout(listEntryFocusOnMouseEnterTimer);
-                    var e = event.currentTarget;
-                    listEntryFocusOnMouseEnterTimer = setTimeout(() => {
-                        Pointer.focus(jQuery(e), true)
-                    }, 200)
-                }
-            }
-            atts.mouseleave = (event) => {
-                clearTimeout(listEntryFocusOnMouseEnterTimer)
-            }
-            allEvents.push(atts);
-            tabIndexOffset++;
         })
         if(self.debug){
             console.log('render', at, allHTML)   
@@ -1642,7 +1673,7 @@ Menu = (() => {
         }
         if(insub){
             if(self.debug){
-                console.warn('RESTORE SCROLL', Menu.path, p.scrollTop(), self.body.hasClass('submenu'))
+                console.warn('RESTORE SCROLL', self.path, p.scrollTop(), self.body.hasClass('submenu'))
             }
             self.fitSubMenuScroll()
         }
@@ -1663,8 +1694,8 @@ Menu = (() => {
         if(self.debug){
             console.log('BACK', subs.length, self.path, traceback())
         }
-        var r = Menu.path, _cb = () => {
-            if(r == Menu.path){
+        var r = self.path, _cb = () => {
+            if(r == self.path){
                 Pointer.focus(false)
             }
             if(typeof(cb) == 'function'){
@@ -1779,6 +1810,12 @@ Menu = (() => {
         if(fullPath === self.path){
             return cb(true)
         }
+        if(typeof(self.pages[fullPath]) != 'undefined'){
+            self.path = fullPath
+            console.warn('GO CACHED', fullPath)
+            self.list(self.pages[fullPath], self.path)
+            return cb(true)
+        }
         if(dirname(fullPath) == self.path){
             var es = self.query(self.getEntries(true, false), {name: basename(fullPath), type: 'group'})
             if(es.length){
@@ -1848,13 +1885,18 @@ Menu = (() => {
                 return
             }
         }
-        var read = (entry, path, isVirtual) => {
+        var read = (entry, path) => { // , isVirtual
             var nentries = []
+            isVirtual = false
+            console.log('RENDERR', path, entry, isVirtual)
             if(typeof(entry.renderer)=='function'){
                 if(self.debug){
                     console.log('RENDERING', self.path, path)
                 }
-                nentries = entry.renderer(entry, null, isVirtual)
+                if(!nentries || !nentries.length){
+                    nentries = entry.renderer(entry, null, isVirtual)
+                    console.log('RENDERR', path, nentries, isVirtual)
+                }
             } else {
                 if(typeof(entry.entries) != 'undefined'){
                     nentries = entry.entries;
@@ -2172,7 +2214,7 @@ Menu = (() => {
             }
             var adjustScrollIcons = (up, dw) => {
                 clearTimeout(icTimer);
-                if(!Menu.path){
+                if(!self.path){
                     up = dw = false;
                 }
                 if(up || dw){
@@ -2371,7 +2413,7 @@ jQuery(() => {
         })
     })
     addFilter('filterEntries', (entries, path) => {
-        //console.log('PREFILTERED', entries);
+        console.log('PREFILTERED', entries, path);
         var hasStreams = false, hasVisibleStreams = false, firstStreamOrGroupEntryOffset = -1, nentries = [];
         for(var i=0; i<entries.length; i++){
             // entry properties are randomly(?!) coming as buffers instead of strings, treat it until we discover the reason
@@ -2416,14 +2458,14 @@ jQuery(() => {
             }
         }                
         //console.log('POSFILTERED', entries);
-        var ac = (hasStreams && firstStreamOrGroupEntryOffset != -1 && allowTuningEntry(Menu.path))
+        var ac = (hasStreams && firstStreamOrGroupEntryOffset != -1 && allowTuningEntry(path, nentries))
         if(Menu.path == searchPath || ac) {
             //console.warn(nentries, Menu.query(nentries, {name: Lang.SEARCH_OPTIONS}), Menu.query(nentries, {name: Lang.SEARCH_OPTIONS}).length);
             nentries = Menu.query(nentries, {name: Lang.SEARCH_OPTIONS}, true)
             if(!Menu.query(Menu.getEntries(true), {name: Lang.SEARCH_OPTIONS}).length){
                 //console.log('HEREEE!', Menu.path, searchPath, Menu.path == searchPath, lastSearchTerm);
+                let aopt = getTuningEntry()
                 if(Menu.path == searchPath){
-                    var aopt = getTuningEntry()
                     //console.log('HEREEE!', aopt, Menu.path);
                     var opts = {name: Lang.SEARCH_OPTIONS, label: Lang.SEARCH, type: 'group', logo: 'fa-cog', 
                         callback: () => {
@@ -2463,7 +2505,6 @@ jQuery(() => {
                     }
                     nentries.splice(firstStreamOrGroupEntryOffset, 0, opts)
                 } else if(ac) {
-                    var aopt = getTuningEntry();
                     nentries = Menu.query(nentries, {name: aopt.name}, true);
                     nentries.splice(firstStreamOrGroupEntryOffset, 0, aopt)
                 }
