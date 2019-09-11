@@ -283,6 +283,8 @@
 "ACTION_DESC_MINIPLAYER": "Abilita / Disabilita miniplayer",
 "ACTION_DESC_PLAYALTERNATE": "Trova canale alternativo dal canale corrente",
 "ACTION_DESC_ESCAPE": "Chiudi finestre di dialogo e uscita a schermo intero",
+"ACTION_DESC_TVGUIDE": "Guida del programma",
+"ACTION_DESC_OPENURLORLIST": "Apri URL o elenco",
 "NOT_FOUND": "Non trovato",
 "ALLOW_LIVE": "Consenti trasmissioni in diretta",
 "ALLOW_VOD": "Consenti video",
@@ -375,7 +377,6 @@
 "START_PLAYBACK_FIRST": "Inizia a riprodurre i contenuti per primi.",
 "CAST": "Trasmetti",
 "TOOLS": "Strumenti",
-"SHARED_EXCLUSIVE_MODE_QUESTION": "Megacubo è uno strumento per la riproduzione di elenchi IPTV.\r\n\r\nÈ possibile utilizzarlo in modalità condivisa, con accesso automatico a tutti gli elenchi IPTV condivisi da altri utenti o in modalità esclusiva, solo con gli elenchi IPTV che aggiungi.",
 "SHARED_MODE": "Modalità condivisa",
 "EXCLUSIVE_MODE": "Modalità esclusiva",
 "ICON_ROUNDING": "Arrotondare l'icona",
@@ -393,5 +394,7 @@
 "OPEN": "Apri",
 "OPEN_STREAM": "Apri una trasmissione",
 "PASTE_STREAM_URL_HINT": "Incolla l'URL de la transmissione qui...",
-"STREAM_URL": "URL de la transmissione"
+"STREAM_URL": "URL de la transmissione",
+"HELP": "Hai bisogno di aiuto?",
+"SHARED_EXCLUSIVE_MODE_QUESTION": "Megacubo è uno strumento per la riproduzione di elenchi IPTV che puoi utilizzare in due modi:\r\n\r\n1. <u>Esclusivo</u>: Aggiungi e usa i tuoi elenchi IPTV.\r\n2. <u>Condivisi</u>: Utilizza gli elenchi IPTV condivisi da altri utenti.</p> "
 }

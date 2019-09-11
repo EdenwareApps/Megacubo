@@ -357,6 +357,10 @@ function about(){
     }
 }
 
+function help(){
+    nw.Shell.openExternal(nw.App.manifest.bugs)
+}
+
 var searchSuggestions = [];
 
 function getSearchSuggestions(){

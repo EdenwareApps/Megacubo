@@ -429,7 +429,7 @@ body.miniplayer #player, body.miniplayer  iframe#sandbox, body:not(.show-menu) #
     width: 100% !important;
 }
 
-body.modal div#menu, body.modal #player {
+body.modal div#menu, body.modal #player, body.modal .background-logo-container {
     display: none !important;
 }
 
@@ -461,7 +461,7 @@ div#modal-overlay > div > div {
     display: table-cell;
     vertical-align: middle;
     align-items: center;
-    text-align: center;    
+    text-align: center;        
 }
 
 div#modal-overlay .prompt {
@@ -470,7 +470,6 @@ div#modal-overlay .prompt {
     max-width: calc(86% + 4px);
     border-radius: 3px;
     overflow: visible;
-    box-shadow: 2px 2px 60px 0 #000;
 }
 
 div#modal-overlay .prompt textarea, div#modal-overlay .prompt input {
@@ -568,7 +567,6 @@ span.modal-prompt-hint-balloon-text {
 }
 
 .prompt-footer {
-    border-radius: 0 0 4px 4px;
     display: table;
 }
 
@@ -579,6 +577,7 @@ span.modal-prompt-hint-balloon-text {
     border-width: 0;
     font-size: inherit;
     vertical-align: bottom;
+    outline: 0;
 }
 
 .prompt-footer .button small {

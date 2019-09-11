@@ -35,5 +35,8 @@
 "LICENSE_KEY": "License Key",
 "PREMIUM_IDLE_RESOURCES": "Idle resources (Luminati)",
 "PREMIUM_SHARE_IDLE_RESOURCES": "Share idle resources (Luminati)",
-"PREMIUM_BALLOON_HINT": "With Premium you can watch on your TV with Google Chromecast™ and record live streams."
+"PREMIUM_BALLOON_HINT": "Watch on your TV with Google Chromecast™ and record live streams.",
+"PREMIUM_ENABLE_SPECIAL_FEATURES": "Enable special features",
+"PREMIUM_USE_FOR_FREE": "Use for free",
+"PREMIUM_NO_THANKS": "No, thanks"
 }

@@ -284,6 +284,8 @@
 "ACTION_DESC_MINIPLAYER": "Enable / Disable Miniplayer",
 "ACTION_DESC_PLAYALTERNATE": "Find alternative channel from the current channel",
 "ACTION_DESC_ESCAPE": "Close dialogs and exit full screen",
+"ACTION_DESC_TVGUIDE": "Program Guide",
+"ACTION_DESC_OPENURLORLIST": "Open URL or list",
 "NOT_FOUND": "Not found",
 "ALLOW_LIVE": "Allow live broadcasts",
 "ALLOW_VOD": "Allow videos",
@@ -376,7 +378,6 @@
 "START_PLAYBACK_FIRST": "Start playing content first.",
 "CAST": "Cast",
 "TOOLS": "Tools",
-"SHARED_EXCLUSIVE_MODE_QUESTION": "Megacubo is a tool for playing IPTV lists.\r\n\r\nYou can use it in shared mode, having automatic access to all IPTV lists shared by other users, or in exclusive mode, only with the IPTV lists you add.",
 "SHARED_MODE": "Shared mode",
 "EXCLUSIVE_MODE": "Exclusive mode",
 "ICON_ROUNDING": "Icon rounding",
@@ -394,5 +395,7 @@
 "OPEN": "Open",
 "OPEN_STREAM": "Open stream URL",
 "PASTE_STREAM_URL_HINT": "Paste the stream URL here...",
-"STREAM_URL": "Casting URL"
+"STREAM_URL": "Casting URL",
+"HELP": "Need help?",
+"SHARED_EXCLUSIVE_MODE_QUESTION": "Megacubo is a tool for playing IPTV playlists that can be used in two modes:\r\n\r\n1. <u>Exclusive</u>: Add and use your own IPTV playlists.\r\n2. <u>Shared</u>: Use IPTV lists shared by other users.</p>"
 }

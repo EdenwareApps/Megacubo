@@ -378,7 +378,6 @@
 "START_PLAYBACK_FIRST": "Inicie a reprodução do conteúdo primeiro.",
 "CAST": "Transmitir",
 "TOOLS": "Ferramentas",
-"SHARED_EXCLUSIVE_MODE_QUESTION": "O Megacubo é uma ferramenta para reproduzir listas de IPTV.\r\n\r\nVocê pode usá-lo em modo compartilhado, tendo acesso automático à todas as listas IPTV compartilhadas por outros usuários, ou em modo exclusivo, somente com as listas IPTV que você adicionar.",
 "SHARED_MODE": "Modo compartilhado",
 "EXCLUSIVE_MODE": "Modo exclusivo",
 "ICON_ROUNDING": "Arredondamento do ícone",
@@ -396,5 +395,7 @@
 "OPEN": "Abrir",
 "OPEN_STREAM": "Abrir uma transmissão",
 "PASTE_STREAM_URL_HINT":"Cole a URL da transmissão aqui...",
-"STREAM_URL": "URL da transmissão"
+"STREAM_URL": "URL da transmissão",
+"HELP": "Precisa de ajuda?",
+"SHARED_EXCLUSIVE_MODE_QUESTION": "O Megacubo é uma ferramenta para reproduzir listas de IPTV que pode usado em dois modos:\r\n\r\n1. <u>Exclusivo</u>: Adicione e use suas próprias listas IPTV\r\n2. <u>Compartilhado</u>: Use as listas IPTV compartilhadas por outros usuários.</p>"
 }

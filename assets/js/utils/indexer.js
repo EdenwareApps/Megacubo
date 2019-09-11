@@ -115,8 +115,9 @@ indexerAdultFilter = opts => {
 }
 
 indexerQuery = (opts) => {
-    let limit = searchResultsLimit, ret = Indexer.search(opts.term, !opts.strict, true, [opts.type], typeof(opts.adult) == 'boolean' ? opts.adult : null)    
+    let limit = searchResultsLimit, ret = Indexer.search(opts.term, !opts.strict, true, [opts.type], typeof(opts.adult) == 'boolean' ? opts.adult : null)        
     let maybe = searchResultsLimit > ret.results.length ? ret.maybe.slice(0, searchResultsLimit - ret.results.length) : []
+    console.warn('INDEXER QUERY', searchResultsLimit, ret, opts)   
     return {uid: opts.uid, results: ret.results.slice(0, searchResultsLimit), maybe}
 }
 

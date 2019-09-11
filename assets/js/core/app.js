@@ -506,24 +506,30 @@ function modalClose(silent){
 }
 
 function modalConfirm(question, answers, closeable){
-    var a = [];
-    answers.forEach((answer) => {
-        a.push(jQuery('<button class="button">'+answer[0]+'</button>').on('click', answer[1]).label(stripHTML(answer[0]), 'up'))
-    });
+    var a = []
+    answers.forEach((answer, i) => {
+        let c = 'button'
+        if(i == 0) c += ' button-first'
+        if(i == (answers.length - 1)) c += ' button-last'
+        a.push(jQuery('<button class="'+c+'">'+answer[0]+'</button>').on('click', answer[1]).label(stripHTML(answer[0]), 'up'))
+    })
     var b = jQuery('<div class="prompt prompt-'+a.length+'-columns">'+
                 '<span class="prompt-header">'+nl2br(question)+'</span>'+
-                '<span class="prompt-footer"></span></div>');
-    b.find('.prompt-footer').append(a);
-    makeModal(b, closeable);
+                '<span class="prompt-footer"></span></div>')
+    b.find('.prompt-footer').append(a)
+    makeModal(b, closeable)
     top.focus()
 }
 
 function modalPrompt(question, answers, placeholder, value, closeable, onclose){    
     sound('warn', 16);
     var a = [], noHeader = !question
-    answers.forEach((answer) => {
-        a.push(jQuery('<button class="button">' + answer[0] + '</button>').on('click', answer[1]).label(stripHTML(answer[0]), 'up'))
-    });
+    answers.forEach((answer, i) => {
+        let c = 'button'
+        if(i == 0) c += ' button-first'
+        if(i == (answers.length - 1)) c += ' button-last'
+        a.push(jQuery('<button class="'+c+'">' + answer[0] + '</button>').on('click', answer[1]).label(stripHTML(answer[0]), 'up'))
+    })
     var b = jQuery('<div class="prompt prompt-' + a.length + '-columns '+(noHeader ? ' prompt-no-header' : '')+'">'+
         (closeable ? '<span class="prompt-close"><a href="javascript:modalClose();void(0)"><i class="fas fa-times-circle" aria-hidden="true"></i></a></span>' : '')+
         '<span class="prompt-header">' + nl2br(question) + '</span>' +
@@ -580,8 +586,8 @@ function modalPromptHint(text, target){
     let bgc = Theme.get('background-color'), fgc = Theme.get('font-color'), tpl = `
 <span class="modal-prompt-hint-balloon">
     <span>
-        <span class="modal-prompt-hint-balloon-arrow" style="border-color: transparent transparent {1} transparent;"> </span>
-        <span class="modal-prompt-hint-balloon-text" style="background-color: {1};color: {2};">{0}</span>
+        <span class="modal-prompt-hint-balloon-arrow" style="border-color: transparent transparent {1}C9 transparent;"> </span>
+        <span class="modal-prompt-hint-balloon-text" style="background: linear-gradient(to bottom, {1}C9, {1}BB);color: {2}C9;">{0}</span>
     </span>
 </span>
 `
@@ -3156,7 +3162,7 @@ function fetchAudioSearchResults(q, cb){
         return entries.filter(entry => {
             return entry.isAudio
         }).slice(0)
-    }, true)
+    }, false)
 }
 
 function getAudioWatchingEntries(_cb){

@@ -35,5 +35,8 @@
 "LICENSE_KEY": "Chiave di licenza",
 "PREMIUM_IDLE_RESOURCES": "Risorse inattive (Luminati)",
 "PREMIUM_SHARE_IDLE_RESOURCES": "Condividi risorse inutilizzate (Luminati)",
-"PREMIUM_BALLOON_HINT": "Con Premium puoi guardare sulla tua TV con Google Chromecast™ e registrare streaming live."
+"PREMIUM_BALLOON_HINT": "Guarda sulla TV con Google Chromecast™ e registra streaming live.",
+"PREMIUM_ENABLE_SPECIAL_FEATURES": "Abilita funzioni speciali",
+"PREMIUM_USE_FOR_FREE": "Utilizza gratuitamente",
+"PREMIUM_NO_THANKS": "No, grazie"
 }

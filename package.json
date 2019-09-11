@@ -37,7 +37,7 @@
         "http://*/",
         "https://*/"
     ],
-    "version": "15.3.9",
+    "version": "15.4.0",
     "webkit": {
         "page-cache": true
     },
@@ -48,6 +48,6 @@
         "frame": false,
         "height": 562,
         "width": 1000,
-        "show": false
+        "show": true
     }
 }

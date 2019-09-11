@@ -245,7 +245,7 @@ html .entry-logo-fa, #video-controls svg {
 }
 
 html div#modal-overlay {
-    background: linear-gradient(#00000000 0%, #000000FF 25%);
+    background: linear-gradient(#00000000 0%, #000000FF 50%);
 }
 
 body.playing.transparent-menu #player, 
@@ -336,11 +336,19 @@ progress::-webkit-progress-value {
 }
 
 html .prompt-footer .button {
-    background: (background-color);
-    color: (font-color);
+    background: linear-gradient((font-color)FF, (font-color)AD);
+    color: (background-color);
     min-height: calc(3 * (icon-size)px);
-    text-shadow: 1px 1px 1px (background-color);
+    text-shadow: 1px 1px 1px (background-color)44;
     box-shadow: inset 1px 1px 6px (background-color-playing)44;
+}
+
+html .prompt-footer .button-first {
+    border-radius: 0 0 0 4px;
+}
+
+html .prompt-footer .button-last {
+    border-radius: 0 0 4px 0;
 }
 
 html .prompt-footer .button svg, .prompt-close a svg {
@@ -350,27 +358,39 @@ html .prompt-footer .button svg, .prompt-close a svg {
 }
 
 html .prompt-footer .button:hover, html .prompt-footer .button.focused {
-    background: (background-color)DD;
+    background: (font-color)DD;
 }
 
 .prompt-close a {
-    color: (background-color-playing);
+    color: (font-color);
 }
 
 .prompt-close a.focused {
-    color: (background-color-playing)77;
+    color: (font-color)77;
 }
 
 .prompt-header, .prompt-footer {
-    color: (background-color-playing);
-    text-shadow: 1px 1px 1px (background-color-playing)77;
-    background: linear-gradient(to bottom, (font-color)FF, (font-color)E0);
+    color: (font-color);
+    text-shadow: 1px 1px 1px (background-color-playing)44;
+}
+
+.prompt-header {
+    background: (background-color)C9;
+    border-radius: 4px 4px 0 0;
+}
+
+.prompt-footer {
+    background: (background-color);
 }
 
 .prompt-input {
     color: (background-color-playing);
     background: (font-color);
     min-height: calc(3 * (icon-size)px);
+}
+
+div#modal-overlay .prompt {
+    box-shadow: 0 0 96px 0 (background-color);
 }
 
 div#modal-overlay .prompt textarea, div#modal-overlay .prompt input {

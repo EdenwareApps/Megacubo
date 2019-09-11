@@ -911,9 +911,11 @@ function getToolsEntries(){
         {name: Lang.HISTORY, append: getActionHotkey('HISTORY'), logo:'fa-history', type: 'group', renderer: getHistoryEntries, entries: []}, 
         {name: Lang.TIMER, logo:'fa-stopwatch', class: 'entry-timer', type: 'group', renderer: timer},    
         {name: ucWords(Lang.USERS), type: 'group', logo: 'fa-user', renderer: getProfileEntries},
-        {name: Lang.BEEN_WATCHED, logo: 'fa-users', class: 'entry-nosub', labeler: parseLabelCount, type: 'group', renderer: getWatchingEntries, entries: []}    
+        {name: Lang.BEEN_WATCHED, logo: 'fa-users', class: 'entry-nosub', labeler: parseLabelCount, type: 'group', renderer: getWatchingEntries, entries: []}
     ]
-    return applyFilters('afterToolsEntries', applyFilters('toolsEntries', opts))
+    opts = applyFilters('afterToolsEntries', applyFilters('toolsEntries', opts))
+    opts.push({name: Lang.HELP, logo: 'fa-question-circle', class: 'entry-nosub', type: 'option', callback: help})
+    return opts
 }
 
 function getTranscodeEntries(){

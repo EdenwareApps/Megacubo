@@ -14,14 +14,6 @@ const Wizard = (() => {
             {
                 question: Lang.SHARED_EXCLUSIVE_MODE_QUESTION, 
                 answers: [
-                    ['<i class="fas fa-users"></i> ' + Lang.SHARED_MODE, () => {
-                        jQuery('.prompt .fa-users').parent('button').html('<i class="fas fa-circle-notch pulse-spin"></i> ' + Lang.PROCESSING)
-                        Config.set('search-range-size', sharedDefaultSearchRangeSize)
-                        if(typeof(askForInputNotification) != 'undefined'){
-                            askForInputNotification.hide()
-                        }
-                        process.nextTick(self.next)
-                    }], 
                     ['<i class="fas fa-user-shield"></i> ' + Lang.EXCLUSIVE_MODE, () => {
                         const done = () => {
                             Config.set('search-range-size', 0)
@@ -45,6 +37,14 @@ const Wizard = (() => {
                                 }
                             })
                         }
+                    }],
+                    ['<i class="fas fa-users"></i> ' + Lang.SHARED_MODE, () => {
+                        jQuery('.prompt .fa-users').parent('button').html('<i class="fas fa-circle-notch pulse-spin"></i> ' + Lang.PROCESSING)
+                        Config.set('search-range-size', sharedDefaultSearchRangeSize)
+                        if(typeof(askForInputNotification) != 'undefined'){
+                            askForInputNotification.hide()
+                        }
+                        process.nextTick(self.next)
                     }]
                 ],
                 condition: () => {

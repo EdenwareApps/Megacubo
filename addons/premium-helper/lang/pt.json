@@ -35,5 +35,8 @@
 "LICENSE_KEY": "Chave de licença",
 "PREMIUM_IDLE_RESOURCES": "Recursos ociosos (Luminati)",
 "PREMIUM_SHARE_IDLE_RESOURCES": "Compartilhar recursos ociosos (Luminati)",
-"PREMIUM_BALLOON_HINT": "Com o Premium você pode assistir em sua TV com o Google Chromecast™ e gravar transmissões ao vivo."
+"PREMIUM_BALLOON_HINT": "Assista em sua TV com o Google Chromecast™ e gravar transmissões ao vivo.",
+"PREMIUM_ENABLE_SPECIAL_FEATURES": "Ativar recursos especiais",
+"PREMIUM_USE_FOR_FREE": "Usar gratuitamente",
+"PREMIUM_NO_THANKS": "Não, obrigado"
 }
