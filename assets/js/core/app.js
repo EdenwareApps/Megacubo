@@ -353,7 +353,7 @@ function goSideload(url, referer) {
 }
 
 function applyBlockedDomains(blocked_domains){
-    var debug = debugAllow(true)
+    var debug = debugAllow(false)
     if(typeof(blocked_domains)=='object' && Array.isArray(blocked_domains) && blocked_domains.length){
         chrome.webRequest.onBeforeRequest.addListener(
             (details) => {
@@ -1167,18 +1167,6 @@ function minimizeCallback() {
         restoreInitialSize()
         enterMiniPlayer()
     }
-}
-
-function logoLoad(image, name){
-    search(entries => {
-        var check = () => {
-            var entry = entries.shift()
-            checkImage(entry.logo, () => {
-                image.src = entry.logo
-            }, check)
-        }
-        check()
-    }, 'live', name, true, true)
 }
 
 var notificationVolume = notify('...', 'fa-volume-up', 'forever', true);
@@ -2208,7 +2196,8 @@ function initSearchIndex(_cb) {
             Object.keys(data).forEach(k => {
                 window[k] = data[k]
             })
-            if(jQuery('a.entry.search-index-vary').length){
+            doAction('getWatchingData', watchingData)
+            if(jQuery('a.entry.search-index-vary').length || basename(Menu.path) == Lang.BEEN_WATCHED){
                 Menu.refresh()
             }
         }
@@ -2256,8 +2245,7 @@ win.on('resize', applyResolutionLimit)
 addAction('appLoad', () => {
     hideSeekbar(Theme.get('hide-seekbar'))
     Menu.setup([
-        {name: Lang.LIVE, homeId: 'live', labeler: parseLabelCount, logo:'fa-tv', class: 'entry-nosub search-index-vary', type: 'group', entries: [], renderer: getLiveEntries},
-        {name: Lang.VIDEOS, homeId: 'videos', labeler: parseLabelCount, logo:'fa-film', class: 'entry-nosub search-index-vary', type: 'group', entries: [], renderer: getVideosEntries},
+        {name: Lang.CATEGORIES, homeId: 'categories', labeler: parseLabelCount, logo:'fa-tv', class: 'entry-nosub search-index-vary', type: 'group', entries: [], renderer: getCategoriesEntries},
         {name: Lang.SEARCH, homeId: 'search', label: '', logo: 'fa-search', type: 'option', class: 'entry-hide entry-nosub search-index-vary', callback: () => { 
             var term = lastSearchTerm, n = Playback.active;
             if(n && n.entry.originalUrl && isMegaURL(n.entry.originalUrl)){
@@ -2269,7 +2257,6 @@ addAction('appLoad', () => {
             setupSearch(term, lastSearchType || 'all')
         }},
         {name: Lang.BOOKMARKS, homeId: 'bookmarks', logo:'fa-star', type: 'group', renderer: getBookmarksEntries, entries: []},  
-        {name: Lang.AUDIOS, homeId: 'radios', logo:'fa-headphones-alt', class: 'entry-nosub search-index-vary', type: 'group', entries: [], mediaType: 'live', renderer: getAudioEntries},
         {name: Lang.TOOLS, homeId: 'tools', logo:'fa-box-open', class: 'entry-nosub', callback: () => { timerLabel = false; }, type: 'group', entries: [], renderer: getToolsEntries},
         {name: Lang.OPTIONS, homeId: 'options', logo:'fa-cog', class: 'entry-nosub', callback: () => { timerLabel = false; }, type: 'group', entries: [], renderer: getSettingsEntries},
         {name: Lang.OPEN, append: getActionHotkey('OPENURLORLIST'), homeId: 'open_file', logo:'fa-folder-open', type: 'option', callback: () => {
@@ -2280,11 +2267,7 @@ addAction('appLoad', () => {
     let iptvEntry = {name: Lang.IPTV_LISTS, homeId: 'iptv_lists', label: Lang.MY_LISTS, class: 'entry-nosub', logo:'fa-list', type: 'group', entries: [], renderer: (data, element, isVirtual) => {
         return getListsEntries(false, false, isVirtual)
     }}
-    if(Config.get('search-range-size') <= 0){
-        Menu.entries = Menu.insert(Menu.entries, Lang.BOOKMARKS, iptvEntry)
-    } else {
-        Menu.entries.unshift(iptvEntry)
-    }
+    Menu.entries = Menu.insert(Menu.entries, Lang.CATEGORIES, iptvEntry, true)
     soundSetup('warn', 16); // reload it
     var p = getFrame('player'), o = getFrame('overlay');
     p.init();
@@ -2344,43 +2327,6 @@ addAction('appLoad', () => {
     handleOpenArguments(nw.App.argv)
 })
 
-function getDurationFromMediaInfo(nfo) {
-    var dat = nfo.match(new RegExp('[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{2}'));
-    return  dat ? hmsClockToSeconds(dat[0]) : 0;
-}
-
-function getFileBitrate(file, cb, length){
-    var next = () => {
-        getMediaInfo(file, (nfo) => {
-            //console.warn('NFO', nfo);
-            top.nfo = nfo;
-            var secs = getDurationFromMediaInfo(nfo);
-            if(secs){
-                //console.warn('NFO', secs, length, length / secs);
-                if(secs){
-                    cb(null, parseInt(length / secs), file)
-                } else {
-                    cb('Failed to get duration for '+file, 0, file)
-                }
-            } else {
-                cb('FFmpeg unable to process '+file, 0, file)
-            }
-        })
-    }
-    if(length){
-        next()
-    } else {
-        fs.stat(file, (err, stat) => {
-            if(err) { 
-                cb('File not found or empty.', 0, file)
-            } else {
-                length = stat.size;
-                next()
-            }
-        })
-    }
-}
-
 var currentBitrate = 0, averageStreamingBandwidthData;
 
 function averageStreamingBandwidth(data){
@@ -2404,7 +2350,7 @@ function averageStreamingBandwidth(data){
 function averageStreamingBandwidthCollectSample(url, file, length) {
     if(!Tuning.is()){
         removeAction('media-received', averageStreamingBandwidthCollectSample) // once per commit
-        getFileBitrate(file, (err, bitrate, file) => {
+        getFileBitrate(file, (err, bitrate, codecs) => {
             if(err){
                 console.error('Bitrate collect error', file, fs.existsSync(file))
             } else {
@@ -2603,13 +2549,6 @@ function checkPlaybackHealth(_step, _cb, type){
         cb(succeeded.length, failed.length)
     })
     update('<i class="fas fa-circle-notch pulse-spin"></i> ' + Lang.PROCESSING, '')
-    getWatchingData((es) => {
-        if(!es || es.length < 10){
-            getWatchingData(process, true, 'pt') //'en')
-        } else {
-            process(es)
-        }
-    }, true)
 }
 
 function tune(entries, name, originalUrl, cb, type, keepOrder, step){ // entries can be a string search term
@@ -2627,7 +2566,7 @@ function tune(entries, name, originalUrl, cb, type, keepOrder, step){ // entries
         const terms = entries
         search(entries => {
             tune(entries, name, originalUrl, cb, type, true)
-        }, type, terms, 'auto')
+        }, type, terms, false, false)
         return
     }
     var failure = (msg) => {
@@ -2789,19 +2728,14 @@ function setBackgroundAnimationCallback(data){
     setActiveEntry({animation: data.animation})
 }
 
-function pickLogoFromEntries(entries, type){
-    let logo = '', avoidDomains = ['app.megacubo.net']
-    if(!type){
-        type = 'stream'
-    }
+function pickLogosFromEntries(entries){
+    let logos = []
     for(var i in entries){
-        if(entries[i].logo && entries[i].logo.indexOf('//') != -1){
-            if(!logo || avoidDomains.indexOf(getDomain(logo)) != -1){
-                logo = entries[i].logo
-            }
+        if(entries[i].logo && entries[i].logo.indexOf('//') != -1 && logos.indexOf(entries[i].logo) == -1){
+            logos.push(entries[i].logo)
         }
     }
-    return logo || defaultIcons[type]
+    return logos
 }
 
 function alternateStream(intent, cb, doSearch){
@@ -2855,7 +2789,15 @@ function alternateStream(intent, cb, doSearch){
                 return true
             }
         } else {
-            goSearch(playingStreamKeyword(intent.entry) || intent.entry.name, intent.entry.mediaType, Menu.path)
+            let action = Config.get('connecting-error-action'), terms = playingStreamKeyword(intent.entry) || intent.entry.name
+            switch(action){
+                case 'tune':
+                    tuneNPlay(terms, null, 'mega://play|'+encodeURIComponent(terms.toLowerCase()), null, intent.entry.mediaType)
+                    break
+                case 'search':
+                    goSearch(terms, intent.entry.mediaType, Menu.path)
+                    break
+            }
         }
     }
 }
@@ -2878,9 +2820,9 @@ function playingStreamKeyword(entry){
 }
 
 function searchTermFromEntry(entry){
-    var term = false
+    var term = false, nlc = entry.name.toLowerCase()
     searchSuggestions.forEach((t) => {
-        if(typeof(entry.name)=='string' && entry.name.toLowerCase().indexOf(t.search_term)!=-1){
+        if(typeof(entry.name)=='string' && nlc.indexOf(t.search_term)!=-1){
 			if(!term || term.length < t.search_term.length){
             	term = t.search_term
             }
@@ -2897,9 +2839,14 @@ function adjustMainCategoriesEntry(entry, type){
     //console.warn('CONTINUE', entry.logo, showLogos);
     entry.type = 'group';
     entry.class = 'entry-meta-stream';
-    entry.logo = showLogos && entry.logo != defaultIcons['group'] ? entry.logo || getAutoLogo(entry) : defaultIcons['stream'];
-    entry.defaultLogo = defaultIcons['stream'];
+    entry.logos = []
+    
+    if(entry.logo && entry.logo.indexOf('//') != -1){
+        entry.logos.push(entry.logo)
+    }
 
+    entry.logo = defaultIcons['stream']
+   
     //console.warn('CONTINUE', entry.logo);
     entry.renderer = (data) => {
         console.warn("HOORAY", entry)
@@ -2911,7 +2858,7 @@ function adjustMainCategoriesEntry(entry, type){
         search(entries => {
             entries = listManJoinDuplicates(entries)
             entries = entries.filter(e => {
-                return e.name.length < 256
+                return e.name.length < 256 && !e.isAudio
             })
             if(!entries.length){
                 sound('static', 16);
@@ -2953,9 +2900,10 @@ function adjustMainCategoriesEntry(entry, type){
                 return ret
             }
             //console.warn('isPlayingSame', Playback.active ? Playback.active.entry.originalUrl.toLowerCase() : '-', megaUrl.toLowerCase());
-            var logo = showLogos ? entry.logo || pickLogoFromEntries(entries) : '';
+            var logo = showLogos ? (entry.logo || defaultIcons['stream']) : '';
+            var logos = showLogos ? pickLogosFromEntries(entries) : []
             var metaEntries = [
-                {type: 'stream', class: 'entry-vary-play-state entry-no-wrap', name: data.name, logo: logo, 
+                {type: 'stream', class: 'entry-vary-play-state entry-no-wrap', name: data.name, logos, logo, 
                     label: isPlayingSame() ? Lang.TRY_OTHER_STREAM : Lang.AUTO_TUNING, 
                     url: megaUrl, 
                     callback: () => {
@@ -3007,61 +2955,86 @@ function adjustMainCategoriesEntry(entry, type){
                 })
             }
             Menu.asyncResult(_path, metaEntries)
-        }, type || data.mediaType, data.name, 'auto', false)
-        console.warn("SEARCH", type, data.name, 'auto', false)
+        }, type || data.mediaType, data.name, false, false)
+        console.warn("SEARCH", type, data.name, false, 'auto')
         return [Menu.loadingEntry()]
     }
     return entry;
 }
 
-function getLiveEntries(){
-    var category, ppath = assumePath(Lang.LIVE), cb = (entries) => {
-        return applyFilters('liveMetaEntries', entries)
+function getCategoriesEntries(){
+    var category, ppath = assumePath(Lang.CATEGORIES), cb = (entries) => {
+        return applyFilters('categoriesMetaEntries', entries)
     }
-    return fetchAndRenderEntries("http://app.megacubo.net/stats/data/categories."+getLocale(true)+".json", ppath, (category) => {
-        category.renderer = (data) => {
-            let catStations = [], _path = assumePath(data.name, ppath)
-            process.nextTick(() => {
-                /*
-                async.forEach(data.entries, (entry, callback) => {
-                    search(es => {
-                        console.warn(es)
-                        if(es.length){
-                            catStations.push(entry)
-                        }
-                        callback()
-                    }, 'live', entry.name, true, true)
-                }, () => {
-                    Menu.asyncResult(_path, catStations.length ? catStations : [Menu.emptyEntry()])
-                })
-                */
-                indexerFilter('live', data.entries.map(e => { return e.name }), true, true, (ret) => {
-                    catStations = data.entries.filter(e => {
-                        return ret.names.indexOf(e.name) != -1
+    getKnownChannels(categories => {
+        categories = categories.map(category => {
+            category.renderer = (data) => {
+                let catStations = [], _path = assumePath(data.name, ppath)
+                process.nextTick(() => {
+                    indexerFilter('live', data.entries.map(e => { return e.name }), true, true, (ret) => {
+                        catStations = data.entries.filter(e => {
+                            return ret.names.indexOf(e.name) != -1
+                        })
+                        Menu.asyncResult(_path, catStations.length ? catStations : [Menu.emptyEntry()])
                     })
-                    Menu.asyncResult(_path, catStations.length ? catStations : [Menu.emptyEntry()])
                 })
+                return [Menu.loadingEntry()]
+            }
+            category.entries = category.entries.map((entry) => { 
+                entry.type = 'stream'; 
+                // entry.mediaType = 'live'; 
+                entry.logo = entry.logo || defaultIcons['stream']; 
+                return adjustMainCategoriesEntry(entry, 'live') 
             })
-            return [Menu.loadingEntry()]
-        }
-        category.entries = category.entries.map((entry) => { 
-            entry.type = 'stream'; 
-            // entry.mediaType = 'live'; 
-            entry.logo = entry.logo || defaultIcons['stream']; 
-            return adjustMainCategoriesEntry(entry) 
+            return category
         })
-        return category;
-    }, cb)
+        if(!categories.length){
+            categories = [Menu.emptyEntry()]
+        }
+        categories = applyFilters('categoriesMetaEntries', categories)
+        Menu.asyncResult(ppath, categories) 
+    }, true)
+    return [Menu.loadingEntry()]
 }
 
-addFilter('liveMetaEntries', (entries) => {
+function getKnownChannelsData(cb){
+    jQuery.getJSON("http://app.megacubo.net/stats/data/categories."+getLocale(true)+".json", data => {
+        if(Array.isArray(data)){
+            Store.set('knownChannelsData', data, true)
+        } else {
+            data = Store.get('knownChannelsData')
+            if(!Array.isArray(data)){
+                data = []
+            }
+        }
+        cb(data)
+    })
+}
+
+function getKnownChannels(cb, full){
+    getKnownChannelsData(data => {
+        if(full){
+            cb(data)
+        } else {
+            let list = []
+            data.forEach(l => {
+                l.entries.forEach(e => {
+                    list.push(e.name)
+                })
+            })
+            cb(list.sort())
+        }
+    })
+}
+
+addFilter('categoriesMetaEntries', (entries) => {
     entries.unshift({
         name: Lang.SEARCH, 
         logo: 'fa-search', 
         type: 'group', 
         renderer: () => {
             Menu.setBackTo(path);
-            setupSearch(lastSearchTerm, 'live')
+            setupSearch(lastSearchTerm, 'all')
         }, 
         entries: []
     })
@@ -3072,7 +3045,7 @@ addFilter('liveMetaEntries', (entries) => {
         labeler: parseLabelCount, 
         type: 'group', 
         renderer: () => { 
-            return getWatchingEntries('live') 
+            return getWatchingEntries('all') 
         }, 
         entries: []
     })        
@@ -3083,79 +3056,16 @@ addFilter('liveMetaEntries', (entries) => {
         renderer: () => {
             var path = assumePath(Lang.MORE_CATEGORIES);
             setTimeout(() => {
-                var entries = sharedGroupsAsEntries('live')
+                var entries = sharedGroupsAsEntries('all')
                 if(Menu.path == path){
                     Menu.asyncResult(path, entries)
                 }
             }, 100);
-            return [Menu.loadingEntry()];
+            return [Menu.loadingEntry()]
         }
     })
     return entries
-})
-
-function getVideosEntries(data){
-    return applyFilters('videosMetaEntries', sharedGroupsAsEntries('video'))
-}
-
-addFilter('videosMetaEntries', (entries) => {
-    [
-        {name: Lang.BEEN_WATCHED, logo: 'fa-users', class: 'entry-nosub', labeler: parseLabelCount, type: 'group', renderer: () => { return getWatchingEntries('video') }, entries: []},
-        {name: Lang.SEARCH, logo: 'fa-search', type: 'group', renderer: () => {
-            Menu.setBackTo(path);
-            setupSearch(lastSearchTerm, 'video')
-        }, entries: []}
-    ].forEach(entry => {
-        entries.unshift(entry)
-    })
-    return entries
-})
-
-function getAudioEntries(data, type){
-    var entries = sharedGroupsAsEntries('audio', 'all', (entries) => {
-        return entries.filter(entry => {
-            return entry.isAudio === false
-        }).slice(0)
-    })
-    return [
-        {
-            name: Lang.BEEN_WATCHED, 
-            logo: 'fa-users', 
-            labeler: parseLabelCount, 
-            type: 'group',
-            class: 'entry-nosub',
-            renderer: () => { 
-                return [
-                    Menu.loadingEntry()
-                ]
-            },
-            callback: (data) => {
-                let path = assumePath(data.name, Menu.path)
-                getAudioWatchingEntries((entries) => {
-                    if(!entries.length){
-                        entries = [Menu.emptyEntry()]
-                    }
-                    Menu.asyncResult(path, entries)
-                }) 
-            }, 
-            entries: []
-        },
-        {
-            name: Lang.SEARCH,
-            type: 'group',
-            logo: 'fa-search',
-            renderer: () => {
-                return [
-                    Menu.loadingEntry()
-                ]
-            },
-            callback: () => {
-                goSearch(null, 'audio')
-            }
-        }
-    ].concat(entries)
-}
- 
+}) 
 
 function fetchAudioSearchResults(q, cb){
     search(cb, 'all', q, true, false, entries => {

@@ -177,7 +177,7 @@ var ListMan = (() => {
                                     ct += txt
                                     callback()
                                 })
-                            }, 'all', mega.name, true, true)
+                            }, 'all', mega.name, true, false)
                         } else {
                             callback()
                         }

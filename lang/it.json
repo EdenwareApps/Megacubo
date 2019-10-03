@@ -396,5 +396,8 @@
 "PASTE_STREAM_URL_HINT": "Incolla l'URL de la transmissione qui...",
 "STREAM_URL": "URL de la transmissione",
 "HELP": "Hai bisogno di aiuto?",
-"SHARED_EXCLUSIVE_MODE_QUESTION": "Megacubo è uno strumento per la riproduzione di elenchi IPTV che puoi utilizzare in due modi:\r\n\r\n1. <u>Esclusivo</u>: Aggiungi e usa i tuoi elenchi IPTV.\r\n2. <u>Condivisi</u>: Utilizza gli elenchi IPTV condivisi da altri utenti.</p> "
+"SHARED_EXCLUSIVE_MODE_QUESTION": "Megacubo è uno strumento per la riproduzione di elenchi IPTV che puoi utilizzare in due modi:\r\n\r\n1. <u>Esclusivo</u>: Aggiungi e usa i tuoi elenchi IPTV.\r\n2. <u>Condivisi</u>: Utilizza gli elenchi IPTV condivisi da altri utenti.</p> ",
+"WHEN_TRANSMISSION_FAILS": "Quando una trasmissione fallisce...",
+"SEARCH_ALTERNATIVES": "Cerca trasmissioni alternative",
+"TUNE_ALTERNATIVE": "Sintonizza trasmissione alternativa"
 }

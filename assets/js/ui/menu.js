@@ -7,8 +7,8 @@ menuTemplates['option'] = `
             <tr>
                 <td class="entry-logo-c">
                     <span class="entry-logo">
-                        <span class="entry-logo-img-c">
-                            <img src="[logo]" onerror="this.onerror=null;this.src=\'[default-logo]\';" />
+                        <span class="entry-logo-fa-c">
+                            [logo-tag]
                         </span>
                     </span>
                 </td>
@@ -29,8 +29,8 @@ menuTemplates['back'] = `
 		<tr>
             <td class="entry-logo-c">
                 <span class="entry-logo">
-                    <span class="entry-logo-img-c">
-                        <img src="[logo]" onerror="this.onerror=null;this.src=\'[default-logo]\';" />
+                    <span class="entry-logo-fa-c">
+                        [logo-tag]
                     </span>
                 </span>
 			</td>
@@ -51,7 +51,9 @@ menuTemplates['disabled'] = `
         <tr>
             <td class="entry-logo-c">
                 <span class="entry-logo">
-                    <img src="[logo]" title="[name] - [group]" onerror="this.onerror=null;this.src=\'[default-logo]\';" />
+                    <span class="entry-logo-fa-c">
+                        [logo-tag]
+                    </span>
                 </span>
             </td>
             <td>
@@ -71,7 +73,9 @@ menuTemplates['input'] = `
         <tr>
             <td>
                 <span class="entry-input-logo">
-                    <img src="[logo]" onerror="this.onerror=null;this.src=\'[default-logo]\';" />
+                    <span class="entry-logo-fa-c">
+                        [logo-tag]
+                    </span>
                 </span>
                 <input type="text" placeholder="[label]" />
             </td>
@@ -107,8 +111,8 @@ menuTemplates['stream'] = `
         <tr>
             <td class="entry-logo-c">
                 <span class="entry-logo">
-                    <span class="entry-logo-img-c">
-                        <img src="[logo]" onerror="lazyLoad(this, [\'[auto-logo]\', \'[default-logo]\'])" title="[name] - [group]" alt="[name]" />
+                    <span class="entry-logo-fa-c">
+                        [logo-tag]
                     </span>
                 </span>
             </td>
@@ -129,8 +133,8 @@ menuTemplates['group'] = `
         <tr>
             <td class="entry-logo-c">
                 <span class="entry-logo">
-                    <span class="entry-logo-img-c">
-                        <img src="[logo]" onerror="lazyLoad(this, [\'[auto-logo]\', \'[default-logo]\'])" title="[name] - [group]" alt="[name]" />
+                    <span class="entry-logo-fa-c">
+                        [logo-tag]
                     </span>
                 </span>
             </td>
@@ -151,7 +155,9 @@ menuTemplates['slider'] = `
         <tr>
             <td class="entry-logo-c">
                 <span class="entry-logo">
-                    <img src="[logo]" onerror="this.onerror=null;this.src=\'[default-logo]\';" />
+                    <span class="entry-logo-fa-c">
+                        [logo-tag]
+                    </span>
                 </span>
             </td>
             <td>
@@ -170,7 +176,7 @@ var defaultIcons = {
     'option': 'fa-cog',
     'slider': 'fa-cog',
     'input': 'fa-keyboard',
-    'stream': 'fa-play fa-xs',
+    'stream': 'far fa-play-circle',
     'check': 'fa-toggle-off',
     'group': 'fa-folder-open'
 };
@@ -222,75 +228,6 @@ function isLoadingEntryRendered(){
 
 function handleEntryInputChecking(element, docheck) {
     element.css('opacity', docheck ? 1 : 0.75).find('svg, i:eq(0)').replaceWith('<i class="fas ' + ( docheck ? 'fa-toggle-on' : 'fa-toggle-off') + ' entry-logo-fa" aria-hidden="true"></i>')
-}
-
-function writeIndexPathEntries(path, entries, _index){
-    var debug = debugAllow(false), name = String(getRootFolderFromStr(path));
-    if(typeof(_index)=='undefined'){
-        _index = Menu.entries;
-    }
-    if(debug){
-        console.log('SEARCH '+name+' (from '+path+') in...', _index, entries)
-    }
-    for(var k in _index){
-        if(debug){
-            console.log(name)
-        }
-        if(typeof(_index[k]['name'])=='string' && _index[k]['name']==name){
-            if(debug){
-                console.log('KEY '+k+', '+name+', '+path)
-            }
-            if(name == path){
-                if(debug){
-                    console.log('OK '+k+', '+name+', '+path)
-                }
-                _index[k].entries = entries;
-            } else {
-                if(debug){
-                    console.log('ENTER '+k+', '+name+', '+path, ltrimPathBar(stripRootFolderFromStr(path)), _index[k].entries, _index[k])
-                }
-                if(!Array.isArray(_index[k].entries)){
-                    _index[k].entries = [];
-                }
-                _index[k].entries = writeIndexPathEntries(ltrimPathBar(stripRootFolderFromStr(path)), entries, _index[k].entries)
-            }
-            break;
-        }
-    }
-    return _index;
-}
-
-function readIndexSubEntries(_index, name){
-    for(var k in _index){
-        if(['string', 'object'].indexOf(typeof(_index[k]['name']))!=-1 && _index[k]['name']==name){
-            return _index[k].entries || [];
-        }
-    }
-    return [];
-}
-
-function readIndexPath(path){
-    var sub = Menu.entries;
-    if(!path) return Menu.entries;
-    paths = path.split('/')
-    for(var i=0;i<paths.length;i++){
-        if(Array.isArray(sub)){
-            sub = readIndexSubEntries(sub, paths[i]) || [];
-        } else {
-            sub = sub[paths[i]] || [];
-        }
-        //console.log(paths[i], sub);
-        if(Array.isArray(sub)){
-            if(!sub.length){
-                break;
-            }
-        } else {
-            if(!Object.keys(sub).length){
-                break;
-            }
-        }
-    }
-    return sub;
 }
 
 var effectRevealDelay = 50, effectContainer = jQuery('.list > div'), effectDuration = 75;
@@ -368,7 +305,7 @@ function getSearchSuggestions(){
     fetchEntries(url, (suggestions) => {
         var entries = [];
         if(suggestions && suggestions.length){
-            searchSuggestions = removeSearchSuggestionsTermsAliases(suggestions)
+            searchSuggestions = removeSearchSuggestionsTermsAliasesObject(suggestions)
             suggestions.forEach((suggest, i) => {
                 suggestions[i].search_term = suggestions[i].search_term.trim()
                 if(parentalControlAllow(suggest.search_term)){
@@ -406,54 +343,72 @@ function getSearchSuggestions(){
     })
 }
 
-function getSearchSuggestionsTerms(removeAliases){
-    var s = []
-    if(searchSuggestions && searchSuggestions.length){
-        searchSuggestions.forEach((suggest, i) => {
-            s.push(searchSuggestions[i].search_term)
-        })
-        if(removeAliases){
-            s = removeSearchSuggestionsTermsAliases(s)
+function removeSearchSuggestionsCheckNames(a, b){
+    return (a != b && (a.substr(b.length * -1) == b || (a.indexOf(b) != -1 && a.length <= (b.length + 3))))
+}
+
+function removeSearchSuggestionsGetAliases(o){
+    let aliases = {}
+    if(o.length){
+        s = o.slice(0)
+        if(typeof(s[0]) == 'object'){
+            s = s.map(t => {
+                return t.search_term
+            })
         }
+        s.forEach((k, i) => {
+            s.forEach(t => {
+                if(removeSearchSuggestionsCheckNames(t, k)){
+                    if(typeof(aliases[k]) == 'undefined'){
+                        aliases[k] = []
+                    }
+                    aliases[k].push(t)
+                }
+            })
+        })
     }
-    return s;
+    return aliases
 }
 
 function removeSearchSuggestionsTermsAliases(s){
     if(s.length){
-        let aliases = {}, cnts = {}
-        s.forEach((k, i) => {
-            if(typeof(s[i].cnt) != 'number'){
-                s[i].cnt = parseInt(s[i].cnt)
-            }
-            s.forEach(t => {
-                if(t.search_term != k.search_term && k.search_term == t.search_term.substr(0, k.search_term.length)){
-                    aliases[k.search_term] = t.search_term
-                    s[i].cnt += parseInt(t.cnt)
-                }
-            })
-        })
-        aliases = Object.values(aliases)
-        s = s.filter(k => {
-            return aliases.indexOf(k.search_term) == -1
+        let aliases = removeSearchSuggestionsGetAliases(s)
+        s = s.filter(v => {
+			let keep = true
+        	Object.keys(aliases).some(k => {
+				if(aliases[k].indexOf(v) != -1){
+                    keep = false
+					return true
+				}
+			})
+			return keep
         })
     }
     return s
 }
 
-function _removeSearchSuggestionsTermsAliases(s){
+function removeSearchSuggestionsTermsAliasesObject(s){
     if(s.length){
-        let aliases = {}
-        s.forEach(k => {
-            s.forEach(t => {
-                if(typeof(t) == 'string' && t != k && k == t.substr(0, k.length)){
-                    aliases[k] = t 
-                }
+        let aliases = removeSearchSuggestionsGetAliases(s), cnts = {}
+        s = s.filter((o, i) => {
+            let keep = true
+            if(typeof(o.cnt) != 'number'){
+                o.cnt = parseInt(o.cnt)
+            }
+        	Object.keys(aliases).some(k => {
+				if(aliases[k].indexOf(o.search_term) != -1){
+                    let rem = s.some((t, j) => {
+                        if(t.search_term == k){
+                            s[j].cnt = parseInt(s[j].cnt) + o.cnt
+                            return true
+                        }
+                    })  
+                    if(rem){
+                        keep = false
+                    }                  
+				}
             })
-        })
-        aliases = Object.values(aliases)
-        s = s.filter(k => {
-            return typeof(k) != 'string' && aliases.indexOf(k) == -1
+            return keep
         })
     }
     return s
@@ -688,165 +643,135 @@ function getAutoLogo(entry){
     return 'http://app.megacubo.net/logos/'+encodeURIComponent(entry.name)+'.png'
 }
 
-Menu = (() => {
-    var self = {};
-    self.initialized = false;
-    self.window = jQuery(window);
-    self.body = jQuery('body');
-    self.debug = debugAllow(true);
-    self.path = '';
-    self.vpath = false;
-    self.entries = [];
-    self.events = {};
-    self.rendering = false;
-    self.lastListScrollTop = 0;
-    self.subMenuSizeLimit = 0;
-    self._container = false;
-    self._containerParent = false;
-    self.currentPlayState = false;
-    self.currentRecordingState = false;
-    self.asyncResults = {};
-    self.scrollCache = {};
-    self.scrollContainerCache = false;
-    self.triggeringCache = {};
-    self.appOverTimer = 0;
-    self.appOverState = true;
-    self.appOverBindState = false;
-    self.caching = {}
-    self.pages = {}
-    self.cache = (path, value) => {
+class VirtualMenu extends Events {
+	constructor(opts){
+        super()
+		this.j = jQuery;
+		this.window = this.j(window);
+		this.body = this.j('body');
+		this.initialized = false;
+		this.debug = false;
+		this.path = '';
+		this.vpath = false;
+		this.entries = [];
+		this.events = {};
+		this.rendering = false;
+		this.lastListScrollTop = 0;
+		this.subMenuSizeLimit = 0;
+		this._container = false;
+		this._containerParent = false;
+		this.currentPlayState = false;
+		this.currentRecordingState = false;
+		this.asyncResults = {};
+		this.scrollCache = {};
+		this.scrollContainerCache = false;
+		this.triggeringCache = {};
+		this.appOverTimer = 0;
+		this.appOverState = true;
+		this.appOverBindState = false;
+		this.caching = {}
+		this.pages = {}
+		Object.keys(opts).forEach(k => {
+			this[k] = opts[k]
+		})
+		this.on('render', (firstRender) => {
+			if(firstRender){
+				this.restoreScroll()
+			}
+		})
+	}
+    cache(path, value){
         if(basename(path) != Lang.SEARCH){
-            if(value && value instanceof jQuery && typeof(self.caching[path]) == 'undefined'){
+            if(value && value instanceof this.j && typeof(this.caching[path]) == 'undefined'){
                 let p = path.length
-                Object.keys(self.caching).forEach(t => {
+                Object.keys(this.caching).forEach(t => {
                     if(t != path.substr(0, t.length)){
-                        self.caching[t].remove()
-                        delete self.caching[t]
+                        this.caching[t].remove()
+                        delete this.caching[t]
                     }
                 })
-                self.caching[path] = value.clone(true)
+                this.caching[path] = value.clone(true)
             }
-            if(typeof(self.caching[path]) != 'undefined' && self.caching[path]){
-                return self.caching[path].clone(true)
+            if(typeof(this.caching[path]) != 'undefined' && this.caching[path]){
+                return this.caching[path].clone(true)
             }
         }
         return false
     }
-    self.on = (action, callback) => { // register, commit
-        action = action.split(' ')
-        for(var i=0;i<action.length;i++){
-            if(typeof(self.events[action[i]])=='undefined'){
-                self.events[action[i]] = []
-            }
-            self.events[action[i]].push(callback)
+    scrollContainer(){
+        if(!this.scrollContainerCache || !this.scrollContainerCache.length){
+            this.scrollContainerCache = this.j('#menu div.list > div > div').eq(0);
         }
+        return this.scrollContainerCache;
     }
-    self.off = (action, callback) => { // register, commit
-        if(self && self.events){
-            if(action){
-                action = action.split(' ')
-            } else {
-                action = Object.keys(self.events)
-            }
-            for(var i=0;i<action.length;i++){
-                if(typeof(self.events[action[i]])!='undefined'){
-                    if(callback){
-                        var p = self.events[action[i]].indexOf(callback)
-                        if(p != -1){
-                            delete self.events[action[i]][p];
-                        }
-                    } else {
-                        self.events[action[i]] = [];
-                    }
-                }
-            }
-        }
-    }
-    self.triggerEvent = (action, ...arguments) => {
-        var _args = Array.from(arguments);
-        if(self && self.events && Array.isArray(self.events[action])){
-            console.log(action, traceback());
-            console.log(self.events[action]);
-            console.log(self.events[action].length);
-            for(var i=0; self && self.events[action] && i<self.events[action].length; i++){
-                self.events[action][i].apply(null, _args)
-            }
-        }
-    }
-    self.scrollContainer = () => {
-        if(!self.scrollContainerCache || !self.scrollContainerCache.length){
-            self.scrollContainerCache = jQuery('#menu div.list > div > div').eq(0);
-        }
-        return self.scrollContainerCache;
-    }
-    self.asyncResult = (path, _entries, silent) => {
+    asyncResult(path, _entries, silent){
         if(typeof(_entries)=='undefined'){
-            return (typeof(self.asyncResults[path])=='undefined' ? false : self.asyncResults[path])
+            return (typeof(this.asyncResults[path])=='undefined' ? false : this.asyncResults[path])
         }
         if(!Array.isArray(_entries)){
-            _entries = [self.emptyEntry()]
+            _entries = [this.emptyEntry()]
         }
         var entries = _entries.slice(0);
         if(typeof(entries.toArray) == 'function'){
             entries = entries.toArray()
         }
-        if(self.debug){
-            console.log('ASYNCRESULT', path, self.path)
+        if(this.debug){
+            console.log('ASYNCRESULT', path, this.path)
         }
-        self.asyncResults[path] = entries;
+        this.asyncResults[path] = entries;
         if(path != searchPath){
-            self.pages[path] = entries.slice(0)
-            if(!self.pages[path].length || !self.pages[path][0].class || self.pages[path][0].class.indexOf('entry-back') == -1){
-                self.pages[path].unshift(self.backEntry(basename(path)))
+            this.pages[path] = entries.slice(0)
+            if(!this.pages[path].length || !this.pages[path][0].class || this.pages[path][0].class.indexOf('entry-back') == -1){
+                this.pages[path].unshift(this.backEntry(basename(path)))
             }
         }
-        if(silent !== true && path == self.path){
-            if(self.debug){
-                console.log('ASYNCRESULT', entries, path, self.path)
+        if(silent !== true && path == this.path){
+            if(this.debug){
+                console.log('ASYNCRESULT', entries, path, this.path)
             }
-            var container = self.container(true);
-            self.renderBackEntry(container, dirname(path), basename(path))
+            var container = this.container(true);
+            this.renderBackEntry(container, dirname(path), basename(path))
             if(Array.isArray(entries)){
                 if(!entries.length){
-                    entries.push(self.emptyEntry())
+                    entries.push(this.emptyEntry())
                 }
-                self.list(entries, path)
+                this.list(entries, path)
             } else if(entries === -1) {
-                self.back()
+                this.back()
             }
         }
     }
-    self.containerParent = () => {
-        if(!self._containerParent){
-            self._containerParent = jQuery('#menu div.list')
+    containerParent(){
+        if(!this._containerParent){
+            this._containerParent = this.j('#menu div.list')
         }
-        return self._containerParent
+        return this._containerParent
     }
-    self.container = (reset) => {
-        if(!self._container){
-            self._container = self.containerParent().find('div > div').eq(0)
+    container(reset){
+        if(!this._container){
+            this._container = this.containerParent().find('div > div').eq(0)
         }
         if(reset){
-            if(self.debug){
+            if(this.debug){
                 console.log('container reset')
             }
-            self.body.removeClass('submenu')
-            self.containerParent().prop('scrollTop', 0)
-            self._container.empty()
+            this.body.removeClass('submenu')
+            this.containerParent().prop('scrollTop', 0)
+            this._container.empty()
             lastTabIndex = 1
         }
-        return self._container;
+        return this._container;
     }
-    self.isVisible = () => {
-        return self.body.hasClass('show-menu')
+    isVisible(){
+        return this.body.hasClass('show-menu')
     }
-    self.isHiding = () => {
-        return self.controlsHiding || false
+    isHiding(){
+        return this.controlsHiding || false
     }
-    self.show = () => {
-        if(!self.isVisible()){
+    show(){
+        if(!this.isVisible()){
             sound('menu', 9)
-            var b = self.body, o = getFrame('overlay')
+            var b = this.body, o = getFrame('overlay')
             if(o && o.document && o.document.body){
                 b = b.add(o.document.body)
             }
@@ -856,13 +781,13 @@ Menu = (() => {
             console.log('DD')
         }
     }
-    self.hide = () => {
+    hide(){
         //console.log('EE', traceback())
-        if(self.isVisible()){
+        if(this.isVisible()){
             sound('menu', 9);
             //console.log('HH')
-            self.controlsHiding = true;
-            self.body.add(getFrame('overlay').document.body).removeClass('isdialing show-menu paused');
+            this.controlsHiding = true;
+            this.body.add(getFrame('overlay').document.body).removeClass('isdialing show-menu paused');
             var controlsActiveElement = document.activeElement;
             //console.log('HIDE', controlsActiveElement)
             if(controlsActiveElement && controlsActiveElement.tagName.toLowerCase()=='input'){
@@ -870,44 +795,44 @@ Menu = (() => {
                 Pointer.focusPrevious()
             }
             setTimeout(() => {
-                self.controlsHiding = false;
+                this.controlsHiding = false;
             }, 600);
             doAction('menuHide')
         }
     }
-    self.toggle = () => {
-        self[self.isVisible()?'hide':'show']()
+    toggle(){
+        this[this.isVisible()?'hide':'show']()
     }
-    self.autoHide = (state, force) => {
+    autoHide(state, force){
         if(state && (force === true || true || Playback.active)){
-            self.body.addClass('auto-hide');
-            if(!self.appOverBindState){
-                self.appOverBindState = true;
-                jQuery('div#menu-left-border').css({
+            this.body.addClass('auto-hide');
+            if(!this.appOverBindState){
+                this.appOverBindState = true;
+                this.j('div#menu-left-border').css({
                     'height': '100%',
                     'top': 0
                 });
-                jQuery('#menu-trigger, #menu-toggle').hide()
+                this.j('#menu-trigger, #menu-toggle').hide()
             }
         } else {
-            self.body.removeClass('auto-hide');
-            if(self.appOverBindState){
-                self.appOverBindState = false;
-                jQuery('div#menu-left-border').css({
+            this.body.removeClass('auto-hide');
+            if(this.appOverBindState){
+                this.appOverBindState = false;
+                this.j('div#menu-left-border').css({
                     'height': 'calc(100% - 33px)',
                     'top': '33px'
                 });
-                jQuery('#menu-trigger, #menu-toggle').show()
+                this.j('#menu-trigger, #menu-toggle').show()
             }
         }
     }
-    self.renameSelected = () => {
+    renameSelected(){
         var element = Pointer.selected(true, true);
         if(element && element.length && element.is('a')){
             var entry = element.data('entry-data');
             if(typeof(entry.rename)=='function'){
                 var name = element.find('.entry-name');
-                var input = jQuery('<input type="text" class="entry-name" />');
+                var input = this.j('<input type="text" class="entry-name" />');
                 input.val(name.text());
                 name.replaceWith(input);
                 input.trigger('focus').trigger('select');
@@ -922,20 +847,20 @@ Menu = (() => {
                         element.trigger('focus')
                     }).on('keyup', function(e){
                         if(e.keyCode == 13){
-                            jQuery(this).trigger("blur");
+                            this.j(this).trigger("blur");
                         }
                     })
                 }, 400)
             }
         }
     }
-    self.backEntry = (label) => {
+    backEntry(label){
         var back = {
             name: Lang.BACK,
             type: 'back',
             class: 'entry-back',
             logo: 'fa-chevron-left',
-            callback: self.back
+            callback: this.back
         };
         if(label){
             back.label = '<i class="fas fa-map-marker-alt"></i>&nbsp; '+label;
@@ -945,22 +870,22 @@ Menu = (() => {
         }
         return back;
     }
-    self.renderBackEntry = (container, backPath, label) => {
-        if(self.debug){
+    renderBackEntry(container, backPath, label){
+        if(this.debug){
             console.warn('renderBackEntry', backPath, traceback())
         }
-        self.container(true); // reset always for back button
-        var back = self.backEntry(label);
-        self.render([back], 1)
+        this.container(true); // reset always for back button
+        var back = this.backEntry(label);
+        this.render([back], 1)
     }
-    self.emptyEntry = (txt, icon) => {
+    emptyEntry(txt, icon){
         return {
             name: txt || Lang.EMPTY, 
             logo: icon || 'fa-sticky-note', 
             type: 'option'
         }
     }
-    self.loadingEntry = (txt) => {
+    loadingEntry(txt){
         if(!txt) txt = Lang.LOADING;
         return {
             type: 'option',
@@ -970,69 +895,69 @@ Menu = (() => {
             class: 'entry-loading'
         }
     }
-    self.renderLoadingEntry = () => {
-        if(self.debug){
+    renderLoadingEntry(){
+        if(this.debug){
             console.warn('renderLoadingEntry', traceback())
         }
-        self.renderBackEntry();
-        var loader = self.loadingEntry();
-        self.render([loader])
+        this.renderBackEntry();
+        var loader = this.loadingEntry();
+        this.render([loader])
     }
-    self.loaded = () => {
-        jQuery('.entry-loading').remove()
+    loaded(){
+        this.j('.entry-loading').remove()
     }
-    self.setBackTo = (path) => {
-        if(path != self.path) {
+    setBackTo(path){
+        if(path != this.path) {
             var c = (top || parent);
             console.warn('SETBACK TO', path, traceback());
-            jQuery(c.document).find('.entry-back').off('mousedown click').on('click', () => {
-                self.go(path, null, () => {
+            this.j(c.document).find('.entry-back').off('mousedown click').on('click', () => {
+                this.go(path, null, () => {
                     if(path){
-                        self.go('')
+                        this.go('')
                     }
                 })
             })
         }
     }
-    self.setBackToHome = () => {
-        self.setBackTo('')
+    setBackToHome(){
+        this.setBackTo('')
     }
-    self.refresh = (ifmatch, _cb) => {
+    refresh(ifmatch, _cb){
         var cb = () => {
             if(typeof(_cb) == 'function'){
                 _cb()
-                _cb = null;
+                _cb = null
             }
         }
-        if(typeof(ifmatch) != 'string' || self.path.indexOf(ifmatch) != -1){
-            var lst = self.containerParent(), top = lst.prop('scrollTop'), inSearch = (self.path.indexOf(Lang.SEARCH) != -1)
+        if(typeof(ifmatch) != 'string' || this.path.indexOf(ifmatch) != -1){
+            var lst = this.containerParent(), top = lst.prop('scrollTop'), inSearch = (this.path.indexOf(Lang.SEARCH) != -1)
             var previouslySelected = Pointer.selected(true, false)
             previouslySelected = previouslySelected ? previouslySelected.data('entry-data') : false;
             if(inSearch){
-                self.containerParent().find('input').trigger('input')
+                this.containerParent().find('input').trigger('input')
             } else {
-                var scrl = self.saveScroll(true)
-                var cur = self.path;
+                var scrl = this.saveScroll(true)
+                var cur = this.path;
                 console.warn('no triggerer', scrl, cur)
                 if(cur){
-                    self.back(() => {
-                        self.getEntries().each((i, element) => {
-                            var data = jQuery(element).data('entry-data')
+                    this.back(() => {
+                        this.getEntries().each((i, element) => {
+                            var data = this.j(element).data('entry-data')
                             if(data && data.name == basename(cur) && data.type == 'group'){
                                 console.warn('retrigger', data, traceback())
-                                self.trigger(data, element, () => {
-                                    self.restoreScroll(scrl)
+                                this.trigger(data, element, () => {
+                                    this.restoreScroll(scrl)
                                     cb()
                                 })
                             }
                         })
                     })
                 } else {
-                    self.path = '-';                    
-                    self.go(cur, () => {
-                        self.restoreScroll(scrl)
-                        if(self.debug){
-                            console.log('after refresh', self.container().html())
+                    this.path = '-';                    
+                    this.go(cur, () => {
+                        this.restoreScroll(scrl)
+                        if(this.debug){
+                            console.log('after refresh', this.container().html())
                         }
                         cb()
                     })
@@ -1042,29 +967,29 @@ Menu = (() => {
         }
         cb()
     }
-    self.triggerer = (path, entry) => {
+    triggerer(path, entry){
         if(entry){
-            self.triggeringCache[path] = entry;
+            this.triggeringCache[path] = entry;
         }
-        return self.triggeringCache[path] || false;
+        return this.triggeringCache[path] || false;
     }
-    self.trigger = (data, element, _cb, animEnded) => {
-        self.rendering = true;
+    trigger(data, element, _cb, animEnded){
+        this.rendering = true;
         var slide = Theme.get('slide-menu-transitions')
         if(animEnded !== true){
             console.warn('ANIM', data);
             if(data.type == 'back'){
                 sound('click-out', 3);
                 if(slide){
-                    listBackEffect(jQuery.noop);
-                    self.trigger(data, element, _cb, true);
+                    listBackEffect(this.j.noop);
+                    this.trigger(data, element, _cb, true);
                     return
                 }
             } else if(data.type == 'group') {
                 sound('click-in', 4);
                 if(slide){
                     listEnterEffect(() => {
-                        self.trigger(data, element, _cb, true)
+                        this.trigger(data, element, _cb, true)
                     })
                     return
                 }
@@ -1072,7 +997,7 @@ Menu = (() => {
                 sound('warn', 16) // no return, no effect
             }
         }
-        self.triggerEvent('trigger', data, element)
+        this.emit('trigger', data, element)
         var cb = () => {
             if(typeof(_cb)=='function'){
                 _cb()
@@ -1080,40 +1005,40 @@ Menu = (() => {
         }
         // console.log('TRIGGER', data, element, traceback());
         if(data.type == 'input' || (typeof(data.class)=='string' && data.class.indexOf('entry-disable')!=-1)){
-            self.rendering = false;
+            this.rendering = false;
             return cb()
         }
         if(data.type == 'group'){ // prior to dealing with the back entry
-            self.lastListScrollTop = jQuery('.list').scrollTop()
+            this.lastListScrollTop = this.j('.list').scrollTop()
         }
         if(data.type == 'back'){
             //console.log(data.path);
             /*
-            var newPath = dirname(self.path);
+            var newPath = dirname(this.path);
             // console.log('BACK', newPath);
-            var triggerer = self.triggerer(newPath);
-            self.go(newPath);
+            var triggerer = this.triggerer(newPath);
+            this.go(newPath);
             setTimeout(() => { // without this delay the callback was being triggered too quick.
-                // console.warn('BACK TRIGGER', triggerer, self.path, newPath);
-                if(self.path == newPath && triggerer && typeof(triggerer.callback)=='function'){
+                // console.warn('BACK TRIGGER', triggerer, this.path, newPath);
+                if(this.path == newPath && triggerer && typeof(triggerer.callback)=='function'){
                     triggerer.callback();
                 }
-                if(self.lastListScrollTop && !jQuery('.list').scrollTop()){
-                    jQuery('.list').scrollTop(self.lastListScrollTop)
+                if(this.lastListScrollTop && !this.j('.list').scrollTop()){
+                    this.j('.list').scrollTop(this.lastListScrollTop)
                 }
             }, loadingToActionDelay);
             */
-            self.back();
-            self.rendering = false;
+            this.back();
+            this.rendering = false;
             cb();
             return true;
         }
-        self.saveScroll(true);  
+        this.saveScroll(true);  
         if(typeof(data.path)=='undefined'){
-            data.path = self.path;
+            data.path = this.path;
         }
         var entries = null, listDirectly = false, npath = assumePath(data.name, data.path);
-        console.log('TRIGGER DATA 1', data, data.path, self.path, data.name, npath);
+        console.log('TRIGGER DATA 1', data, data.path, this.path, data.name, npath);
         if(Array.isArray(data.entries)){
             listDirectly = true;
             entries = data.entries;
@@ -1122,7 +1047,7 @@ Menu = (() => {
             entries = data.renderer(data, element, false);
             console.log('TRIGGER DATA 1.5', entries);
             if(entries === -1){
-                self.rendering = false;
+                this.rendering = false;
                 return cb()
             } else if(!Array.isArray(entries)){
                 console.log('!! RENDERER DIDNT RETURNED A ARRAY', entries, data.path);
@@ -1131,21 +1056,21 @@ Menu = (() => {
         //console.log('TRIGGER DATA', npath, data, data.path, entries);
         if(data.type == 'group'){
             var ok = false;
-            self.triggerer(npath, data);
+            this.triggerer(npath, data);
             console.log('TRIGGER DATA 2', data.path, npath, entries);
             if(Array.isArray(entries)){
                 if(entries.length == 1 && entries[0].class && entries[0].class.indexOf('entry-loading') != -1){
-                    let dat = self.renderEntry(entries[0], element.tabIndexOffset, false)
-                    jQuery(element).replaceWith(dat.html)
-                    self.path = npath
+                    let dat = this.renderEntry(entries[0], element.tabIndexOffset, false)
+                    this.j(element).replaceWith(dat.html)
+                    this.path = npath
                     ok = true
                 } else {
                     entries = applyFilters('internalFilterEntries', entries, npath);
-                    //console.error('XXXXXXXX', entries, data, self.path && entries.length <= self.subMenuSizeLimit);
-                    if(entries.length <= self.subMenuSizeLimit && (!data.class || (data.class.indexOf('entry-nosub') == -1 && data.class.indexOf('entry-compact') == -1))){
+                    //console.error('XXXXXXXX', entries, data, this.path && entries.length <= this.subMenuSizeLimit);
+                    if(entries.length <= this.subMenuSizeLimit && (!data.class || (data.class.indexOf('entry-nosub') == -1 && data.class.indexOf('entry-compact') == -1))){
                         //console.error('XXXXXXXX', entries, data);
                         if(!element){
-                            var es = self.queryElements(self.getEntries(false, false), {name: data.name, type: data.type});
+                            var es = this.queryElements(this.getEntries(false, false), {name: data.name, type: data.type});
                             if(es.length){
                                 element = es.get(0)
                             }
@@ -1157,7 +1082,7 @@ Menu = (() => {
                         } else {
                             issub = issubsub = false
                         }
-                        self.container().find('a.entry').show().each((i, entry) => {
+                        this.container().find('a.entry').show().each((i, entry) => {
                             if(offset == -1 && entry.className && entry.className.indexOf('entry-sub') != -1){
                                 insub = true
                                 offset = i
@@ -1168,7 +1093,7 @@ Menu = (() => {
                             }
                         })
                         if(offset == -1){
-                            self.getEntries(true, false).every((entry, i) => {
+                            this.getEntries(true, false).every((entry, i) => {
                                 if(entry.class && entry.class.indexOf('entry-loading') != -1){
                                     //offset = -1;
                                     //return false;
@@ -1183,12 +1108,12 @@ Menu = (() => {
                         console.warn('SUBMENU', entries.length, data, offset, insub, insubsub, issub, issubsub);
                         if(offset != -1 && !insubsub){
                             ok = true;
-                            var pas = self.container().find('a.entry')
+                            var pas = this.container().find('a.entry')
                             pas.filter('.entry-sub').remove()
                             var nentries = entries.slice(0)
-                            nentries.unshift(self.backEntry(data.name)) // do not alter entries
-                            self.list(nentries, npath, offset ? offset - 1 : 0, true)
-                            var rv = self.container().find('a.entry').not(pas)
+                            nentries.unshift(this.backEntry(data.name)) // do not alter entries
+                            this.list(nentries, npath, offset ? offset - 1 : 0, true)
+                            var rv = this.container().find('a.entry').not(pas)
                             //console.warn('RV', rv, offset);
                             rv.each((i, e) => {
                                 //console.warn('PPPPPPPP', e, i);
@@ -1206,21 +1131,21 @@ Menu = (() => {
                                 }
                                 return e;
                             })
-                            self.fitSubMenuScroll()
+                            this.fitSubMenuScroll()
                         }
                     }
                 } 
                 if(!ok){
-                    self.renderBackEntry(self.container(true), dirname(npath), data.name);
-                    //self.path = ltrimPathBar(npath);
+                    this.renderBackEntry(this.container(true), dirname(npath), data.name);
+                    //this.path = ltrimPathBar(npath);
                     if(Array.isArray(entries)){
                         console.log('TRIGGER DATA 3', data.name, data.path, npath, entries);
-                        self.list(entries, npath)
+                        this.list(entries, npath)
                     }
                 }
             }
         }
-        self.rendering = false;
+        this.rendering = false;
         var t = typeof(data.callback);
         //console.log('CALLBACK', t, data);
         if(t == 'function'){
@@ -1233,127 +1158,136 @@ Menu = (() => {
         }
         return cb()
     }
-    self.adjustBodyClass = (inHome, force) => {
-        if(!self.vpath || force === true){
-            if(inHome && !self.path){
-                if(self.debug){
-                    console.warn('INHOME', traceback(), inHome, self.path)
+    adjustBodyClass(inHome, force){
+        if(!this.vpath || force === true){
+            if(inHome && !this.path){
+                if(this.debug){
+                    console.warn('INHOME', traceback(), inHome, this.path)
                 }
-                self.adjustBodyClassDirectly(true)
+                this.adjustBodyClassDirectly(true)
             } else {
-                self.adjustBodyClassDirectly(false)
+                this.adjustBodyClassDirectly(false)
             }
         }
     }
-    self.adjustBodyClassDirectly = (inHome) => {
-        if(self.debug){
-            console.warn('INHOME', traceback(), inHome, self.path)
+    adjustBodyClassDirectly(inHome){
+        if(this.debug){
+            console.warn('INHOME', traceback(), inHome, this.path)
         }
         if(inHome){
-            if(self.debug){
-                console.warn('INHOME', traceback(), inHome, self.path)
+            if(this.debug){
+                console.warn('INHOME', traceback(), inHome, this.path)
             }
-            self.body.addClass('home').removeClass('submenu')
+            this.body.addClass('home').removeClass('submenu')
         } else {
-            self.body.removeClass('home')
+            this.body.removeClass('home')
         }
         doAction('Menu.adjustBodyClass', inHome)
-        if(self.debug){
+        if(this.debug){
             console.warn('INHOME OK')
         }
     }
-    self.getEntries = (getData, visibleOnly, noBackEntry) => {
-        var c = self.container(), e = c.find('a.entry'+(visibleOnly?':visible':'')+(noBackEntry?':not(.entry-back)':'')), f = e.filter('.entry-sub');
+    getEntries(getData, visibleOnly, noBackEntry){
+        var c = this.container(), e = c.find('a.entry'+(visibleOnly?':visible':'')+(noBackEntry?':not(.entry-back)':'')), f = e.filter('.entry-sub');
         if(f.length){
             e = f
         }
         return getData ? e.toArray().map((e) => {
-            return jQuery(e).data('entry-data')
+            return this.j(e).data('entry-data')
         }) : e
     }
-    self.list = (entries, path, at, sub) => {
-        var cached, container = self.container(false)
+    list(entries, path, at, sub){
+        var cached, container = this.container(false)
         if(!entries){
-            entries = applyFilters('homeEntries', self.entries.slice(0)) || []
+            entries = applyFilters('homeEntries', this.entries.slice(0)) || []
         }
-        if(self.path && self.path == dirname(path)){
+        if(this.path && this.path == dirname(path)){
             let cs = container.children().not('.entry-loading')
             if(cs.length > 1 && cs.filter('.entry-back').length){
-                self.cache(self.path, cs)
+                this.cache(this.path, cs)
             }
         }
-        self.saveScroll()
-        var lst = self.containerParent()
-        if(self.debug){
+        this.saveScroll()
+        var lst = this.containerParent()
+        if(this.debug){
             console.log('Menu.list PREFILTER', at, entries, path, traceback())
         }
         var tabIndexOffset = getTabIndexOffset()
         entries = applyFilters('allowEntries', entries, path)
         entries = applyFilters('internalFilterEntries', entries, path)
         entries = applyFilters('filterEntries', entries, path)
-        if(self.debug){
+        if(this.debug){
             console.log('Menu.list POSFILTER', entries, path, traceback())
         }
         for(var i=0; i<entries.length; i++){
             entries[i].path = path
         }
-        self.path = path
+        this.path = path
         if(path != searchPath){
-            self.pages[self.path] = entries.slice(0)
-            if(!self.pages[self.path].length || !self.pages[self.path][0].class || self.pages[self.path][0].class.indexOf('entry-back') == -1){
-                self.pages[self.path].unshift(self.backEntry(basename(self.path)))
+            this.pages[this.path] = entries.slice(0)
+            if(!this.pages[this.path].length || !this.pages[this.path][0].class || this.pages[this.path][0].class.indexOf('entry-back') == -1){
+                this.pages[this.path].unshift(this.backEntry(basename(this.path)))
             }
         }
-        Object.keys(self.pages).forEach(k => {
-            if(self.path.indexOf[k] == -1){
-                self.pages[k] = undefined
+        Object.keys(this.pages).forEach(k => {
+            if(this.path.indexOf[k] == -1){
+                this.pages[k] = undefined
             }
         })
-        if(self.debug){
+        if(this.debug){
             console.log('menuList', container.html().substr(0, 1024))
         }
-        self.render(entries, tabIndexOffset, at, sub)
-        if(self.debug){
+        this.render(entries, tabIndexOffset, at, sub)
+        if(this.debug){
             console.log('menuList', container.find('a').length, container.html().substr(0, 1024))
         }
         if(sub && typeof(at)=='number'){            
-            self.body.addClass('submenu')
+            this.body.addClass('submenu')
         } else {     
-            self.body.removeClass('submenu')
+            this.body.removeClass('submenu')
             updateStreamEntriesFlags()
         }   
-        if(self.debug){
+        if(this.debug){
             console.log('menuList', container.find('a').length, container.html().substr(0, 1024))
         }
         var lps = 7
         lst.find('.marquee:not(.marquee-adjusted)').each((i, e) => {
-            jQuery(e).addClass('marquee-adjusted').find('*:eq(0)').css('animation-duration', parseInt(e.innerText.length / lps)+'s')
+            this.j(e).addClass('marquee-adjusted').find('*:eq(0)').css('animation-duration', parseInt(e.innerText.length / lps)+'s')
         })
-        if(self.debug){
+        if(this.debug){
             console.log('menuList', container.find('a').length, container.html().substr(0, 1024))
         }        
-        self.triggerEvent('list', entries, path, at)
+        this.emit('list', entries, path, at)
         return entries
     }
-    self.renderIcon = (entry, fallbacks) => {
-        var html, autoLogo = getAutoLogo(entry), logo = entry.logo || (entry.type == 'stream' ? autoLogo : false) || defaultIcons[entry.type || 'option'];
+    renderIcon(entry, fallbacks){
+        var html, logo = defaultIcons[entry.type || 'option']
+        if(entry.logo){
+            if(entry.logo.indexOf('//') != -1){
+                if(fallbacks.indexOf(entry.logo) == -1){
+                    fallbacks.unshift(entry.logo)
+                }
+            } else if(entry.logo.indexOf('fa-') != -1){
+                logo = entry.logo
+            }
+        }
+        if(entry.logos){
+            fallbacks = fallbacks.concat(entry.logos).getUnique()
+        }
         var logoColor = typeof(entry.logoColor) == 'undefined' ? '' : 'color: '+entry.logoColor+';';
         if(logo.indexOf('fa-mega') != -1){
             html = '<i class="'+logo+' entry-logo-fa" style="'+logoColor+'" aria-hidden="true"></i>'
-        } else if(logo.match(new RegExp('(^fa-| fa-)'))){
+        } else {
             if(logo.substr(0, 3) == 'fa-'){
-                logo = 'fas ' + logo;
+                logo = 'fas ' + logo
             }
             html = '<i class="'+logo+' entry-logo-fa" style="'+logoColor+'" aria-hidden="true"></i>'
-        } else {
-            // html = '<img src="'+logo+'" onerror="this.onerror=null;this.src=\''+defaultLogo+'\';" />'
-            html = '<img src="'+logo+'" onerror=\'lazyLoad(this, '+JSON.stringify(fallbacks)+')\' />';
         }
-        return html;
+        return {html, fallbacks}
     }
-    self.renderEntry = (entry, tabIndexOffset, isCompact) => {
+    renderEntry(entry, tabIndexOffset, isCompact){
         if(entry == null || typeof(entry)!='object'){
-            if(self.debug){
+            if(this.debug){
                 console.log('BAD BAD ENTRY', entry, typeof(entry))
             }
             return
@@ -1372,9 +1306,12 @@ Menu = (() => {
                 entry.class = entry.class.replace('entry-offline', '')
             }
         }
+        if(entry.type == 'group' && entry.logos){
+            entry.class = (entry.class || '') + ' entry-meta-stream'
+        }
         //console.log('WWWWWWWWWWWWW', entry);
         if(typeof(menuTemplates[entry.type])=='undefined'){
-            if(self.debug){
+            if(this.debug){
                 console.log('BAD BAD ENTRY', entry)
             }
             return
@@ -1406,20 +1343,12 @@ Menu = (() => {
             html = html.replaceAll('[format-name]', fhtml)
         }
 
-        var fallbacks = [entry.logo];
-        if(typeof(entry.defaultLogo) != 'undefined'){
-            fallbacks.push(entry.defaultLogo)
-        } 
-        fallbacks.push(defaultIcons[entry.type]);
-
-        var icon = self.renderIcon(entry, fallbacks);
-        
-        html = html.replace(new RegExp('<img[^>]+>', 'mi'), icon);
-
-        if(icon.toLowerCase().indexOf('<img') == -1){
-            html = html.replaceAll('entry-logo-img-c', 'entry-logo-fa-c')
+        var icon = this.renderIcon(entry, [])
+        if(entry.type == 'stream' || (entry.type == 'group' && entry.class && entry.class.indexOf('entry-meta-stream') != -1)){
+            entry.logos = icon.fallbacks
         }
 
+        html = html.replace('[logo-tag]', icon.html)
         html = html.replaceAll('[group]', entry.group && entry.group != 'undefined' ? entry.group : '');
         html = html.replaceAll('[class]', entry.class || '');
         html = html.replaceAll('[url]', entry.url || entry.originalUrl || ' ');
@@ -1433,7 +1362,7 @@ Menu = (() => {
         atts.data = entry;
         if(entry.type != 'disabled'){
             atts.click = (event) => {
-                var me = jQuery(event.currentTarget);
+                var me = this.j(event.currentTarget);
                 var data = me.data('entry-data');
                 if(data.type == 'check') {
                     var checked = typeof(data.checked)!='undefined' && data.checked(data);
@@ -1443,7 +1372,7 @@ Menu = (() => {
                     sound('switch', 12);
                     //console.warn('OK?', data, checked, data.check);
                 } else {
-                    self.trigger(data, event.currentTarget)
+                    this.trigger(data, event.currentTarget)
                 }
             }
             if(entry.type == 'check') {
@@ -1460,7 +1389,7 @@ Menu = (() => {
         }
         if(['input', 'slider'].indexOf(entry.type) == -1){
             atts.dragstart = (event) => {
-                var data = jQuery(event.target).data('entry-data');
+                var data = this.j(event.target).data('entry-data');
                 if(data){
                     const f = nw.App.dataPath + path.sep + prepareFilename(data.name, false) + '.m3u'
                     fs.writeFileSync(f, "Generating, open again in some seconds...", "utf-8")
@@ -1480,7 +1409,7 @@ Menu = (() => {
             }
             if(entry['change']){
                 atts.input = (event) => {
-                    self.body.trigger('wake');
+                    this.body.trigger('wake');
                     var n = event.currentTarget.getElementsByTagName('input')[0], v = n.value;
                     if(n.type == 'range'){
                         v = parseInt(entry.range.start + (parseInt(v) * ((entry.range.end - entry.range.start) / 100)));
@@ -1502,7 +1431,7 @@ Menu = (() => {
                 clearTimeout(listEntryFocusOnMouseEnterTimer);
                 var e = event.currentTarget;
                 listEntryFocusOnMouseEnterTimer = setTimeout(() => {
-                    Pointer.focus(jQuery(e), true)
+                    Pointer.focus(this.j(e), true)
                 }, 200)
             }
         }
@@ -1511,8 +1440,8 @@ Menu = (() => {
         }
         return {html, atts, isCompact}
     }
-    self.render = (entries, tabIndexOffset, at, sub) => { // render entries
-        if(self.debug){
+    render(entries, tabIndexOffset, at, sub){ // render entries
+        if(this.debug){
             console.log('render', entries)
         }
         if(typeof(at) != 'number' || at < 0){
@@ -1521,10 +1450,10 @@ Menu = (() => {
         if(typeof(tabIndexOffset)!='number'){
             tabIndexOffset = getTabIndexOffset()
         }
-        entries = applyFilters('renderEntries', entries, self.path);
+        entries = applyFilters('renderEntries', entries, this.path);
         var isCompact = false, allEvents = [], allHTML = '';
         entries.forEach((entry, i) => { // append
-            let dat = self.renderEntry(entry, tabIndexOffset, isCompact)
+            let dat = this.renderEntry(entry, tabIndexOffset, isCompact)
             if(typeof(dat) == 'object' && dat){
                 allHTML += dat.html
                 allEvents.push(dat.atts)
@@ -1532,7 +1461,7 @@ Menu = (() => {
                 tabIndexOffset++
             }
         })
-        if(self.debug){
+        if(this.debug){
             console.log('render', at, allHTML)   
         }
         if(isCompact){
@@ -1541,116 +1470,117 @@ Menu = (() => {
         var ri = allEvents.length, rv = null;
         if(sub && typeof(at)=='number'){
             //console.warn('AAAAAAAAAAAAA', at);
-            self.saveScroll();
-            var as = self.container().find('a.entry'), eq = as.eq(at)
+            this.saveScroll();
+            var as = this.container().find('a.entry'), eq = as.eq(at)
             if(eq.length){
                 as.filter('.entry-sub').not(eq).remove()
                 as.show().slice(at, at + allEvents.length).hide()
                 eq.after(allHTML)
-                rv = self.container().find('a.entry').not(as).reverse()
+                rv = this.container().find('a.entry').not(as).reverse()
             } else {
-                self.container().append(allHTML)
-                rv = self.container().find('a').reverse()
+                this.container().append(allHTML)
+                rv = this.container().find('a').reverse()
             }
         } else {
-            self.container().append(allHTML)
-            rv = self.container().find('a').reverse()
+            this.container().append(allHTML)
+            rv = this.container().find('a').reverse()
         }
-        if(self.debug){
-            console.log('render', self.container().html(), sub, at)  
+        if(this.debug){
+            console.log('render', this.container().html(), sub, at)  
             console.log('render', allHTML)  
         }
         rv.each((i, element) => {
             ri--
             if(ri >= 0){
                 for(var key in allEvents[ri]){
-                    if(self.debug){
+                    if(this.debug){
                         console.log('render ev', key)  
                     }
                     switch(key){
                         case 'data': 
-                            jQuery(element).data('entry-data', allEvents[ri][key]);
+                            this.j(element).data('entry-data', allEvents[ri][key]);
                             break;
                         case 'change': 
-                            jQuery(element).find('input').on('input', () => {
-                                var data = jQuery(this).data('entry-data');
-                                self.body.trigger('wake');
+                            this.j(element).find('input').on('input', () => {
+                                var data = this.j(this).data('entry-data');
+                                this.body.trigger('wake');
                                 allEvents[ri][key](data, this, this.value)
                             })
                             break;
                         case 'placeholder': 
-                            jQuery(element).find('input').prop('placeholder', allEvents[ri][key]);
+                            this.j(element).find('input').prop('placeholder', allEvents[ri][key]);
                             break;
                         case 'value': 
-                            var v = allEvents[ri][key], n = jQuery(element).find('input');
+                            var v = allEvents[ri][key], n = this.j(element).find('input');
                             if(n.attr('type') == 'range'){
-                                var entry = jQuery(element).data('entry-data');
+                                var entry = this.j(element).data('entry-data');
                                 v = parseInt((v - entry.range.start) / ((entry.range.end - entry.range.start) / 100))
                             }
                             n.val(v);
                             break;
                         case 'checked': 
-                            handleEntryInputChecking(jQuery(element), allEvents[ri][key]);
+                            handleEntryInputChecking(this.j(element), allEvents[ri][key]);
                             break;
                         default: 
-                            jQuery(element).on(key, allEvents[ri][key]);
+                            this.j(element).on(key, allEvents[ri][key]);
                             break;
                     }
                 }
             }
         })  
-        if(self.debug){
-            console.log('render', self.container().html())  
+        if(this.debug){
+            console.log('render', this.container().html())  
         }
-        self.triggerEvent('render', typeof(at)!='number' || at === 0)
-        if(self.debug){
-            console.log('render', self.container().html())  
+        this.emit('render', typeof(at)!='number' || at === 0)
+        if(this.debug){
+            console.log('render', this.container().html())  
         }
+        LogoFind.go()
     }
-    self.fitSubMenuScroll = () => {
-        var subs = self.getEntries(false, true, false)
+    fitSubMenuScroll(){
+        var subs = this.getEntries(false, true, false)
         if(subs.length){
             var first = subs.first(), last = subs.last();
-            var subHeight = (last.offset().top + last.outerHeight()) - first.offset().top, y = self.scrollContainer().scrollTop() + first.position().top;
-            if(self.scrollContainer().scrollTop() > y){
-                self.scrollContainer().scrollTop(y)
+            var subHeight = (last.offset().top + last.outerHeight()) - first.offset().top, y = this.scrollContainer().scrollTop() + first.position().top;
+            if(this.scrollContainer().scrollTop() > y){
+                this.scrollContainer().scrollTop(y)
             } else {
-                y = ((last.position().top + last.outerHeight()) - self.scrollContainer().outerHeight()) - self.scrollContainer().scrollTop();
-                if(y > self.scrollContainer().scrollTop()){
-                    self.scrollContainer().scrollTop(y)
+                y = ((last.position().top + last.outerHeight()) - this.scrollContainer().outerHeight()) - this.scrollContainer().scrollTop();
+                if(y > this.scrollContainer().scrollTop()){
+                    this.scrollContainer().scrollTop(y)
                 }
             }
         }
     }
-    self.saveScroll = (force) => {
-        var p = self.path || '_', c = self.scrollContainer(), l = c.scrollTop();
-        if(typeof(self.scrollCache[p])=='undefined'){
-            self.scrollCache[p] = {offset: 0, data: false}
+    saveScroll(force){
+        var p = this.path || '_', c = this.scrollContainer(), l = c.scrollTop();
+        if(typeof(this.scrollCache[p])=='undefined'){
+            this.scrollCache[p] = {offset: 0, data: false}
         }
         if(l || force === true){
-            var s = self.selectedData();
-            self.scrollCache[p].offset = l;
-            self.scrollCache[p].data = s || (typeof(self.scrollCache[p].data) != 'undefined' ? self.scrollCache[p].data : false);
-            return self.scrollCache[p];
+            var s = this.selectedData();
+            this.scrollCache[p].offset = l;
+            this.scrollCache[p].data = s || (typeof(this.scrollCache[p].data) != 'undefined' ? this.scrollCache[p].data : false);
+            return this.scrollCache[p];
         }
     }
-    self.restoreScroll = (data, cb) => {
+    restoreScroll(data, cb){
         var ok = false;
-        var _path = self.path;
-        var p = self.scrollContainer(), pt = self.path || '_', insub = self.body.find('.entry-sub').length // use it instead of self.body.hasClass('submenu') to prevent error on entering ALL_LISTS
+        var _path = this.path;
+        var p = this.scrollContainer(), pt = this.path || '_', insub = this.body.find('.entry-sub').length // use it instead of this.body.hasClass('submenu') to prevent error on entering ALL_LISTS
         if(!data || typeof(data) != 'object'){
-            data = self.scrollCache[pt]
+            data = this.scrollCache[pt]
         }
-        if(self.debug){
+        if(this.debug){
             console.warn('RESTORE SCROLL', data, insub)
         }
         if(data){
             if(data.data){
-                self.getEntries(false, true).each((i, element) => {
+                this.getEntries(false, true).each((i, element) => {
                     if(!ok){
-                        var j = jQuery(element), entry = j.data('entry-data');
+                        var j = this.j(element), entry = j.data('entry-data');
                         if(entry && entry.name == data.data.name){
-                            if(self.debug){
+                            if(this.debug){
                                 console.warn('RESTORE SCROLL', data, p.scrollTop())
                             }
                             Pointer.focus(j, false);
@@ -1660,46 +1590,46 @@ Menu = (() => {
                 })
             } else if(typeof(data.offset)=='number' && !insub) {
                 p.scrollTop(data.offset);
-                if(self.debug){
+                if(this.debug){
                     console.warn('RESTORE SCROLL', data, p.scrollTop())
                 }
-                Pointer.focus(jQuery('a.entry:not(.entry-back):visible:in-viewport:eq(0)'), false);
+                Pointer.focus(this.j('a.entry:not(.entry-back):visible:in-viewport:eq(0)'), false);
                 ok = true;
             }
         }
-        self.adjustBodyClass(insub ? self.path.indexOf('/') == -1 : (!_path))
+        this.adjustBodyClass(insub ? this.path.indexOf('/') == -1 : (!_path))
         if(!ok){
-            if(self.debug){
+            if(this.debug){
                 console.warn('RESTORE SCROLL', p.scrollTop())
             }
             Pointer.focus(false, true);
             ok = true;
         }
         if(insub){
-            if(self.debug){
-                console.warn('RESTORE SCROLL', self.path, p.scrollTop(), self.body.hasClass('submenu'))
+            if(this.debug){
+                console.warn('RESTORE SCROLL', this.path, p.scrollTop(), this.body.hasClass('submenu'))
             }
-            self.fitSubMenuScroll()
+            this.fitSubMenuScroll()
         }
         if(typeof(cb) == 'function'){
             cb(!ok, data)
         }
     }
-    self.triggerKey = (type) => {
+    triggerKey(type){
         var s = Pointer.selected(true, false);
         if(s) {
             s.trigger(type)
         }
     }
-    self.back = (cb) => {   
-        self.vpath = false;
-        self.body.removeClass('submenu'); 
-        var redraw, container = self.container(), subs = container.find('a.entry-sub')
-        if(self.debug){
-            console.log('BACK', subs.length, self.path, traceback())
+    back(cb){   
+        this.vpath = false;
+        this.body.removeClass('submenu'); 
+        var redraw, container = this.container(), subs = container.find('a.entry-sub')
+        if(this.debug){
+            console.log('BACK', subs.length, this.path, traceback())
         }
-        var r = self.path, _cb = () => {
-            if(r == self.path){
+        var r = this.path, _cb = () => {
+            if(r == this.path){
                 Pointer.focus(false)
             }
             if(typeof(cb) == 'function'){
@@ -1712,8 +1642,8 @@ Menu = (() => {
         }
         if(subs.length){  
             var subsub = subs.filter('a.entry-sub-sub')
-            self.path = dirname(self.path)
-            self.adjustBodyClass(self.path.indexOf('/') == -1)
+            this.path = dirname(this.path)
+            this.adjustBodyClass(this.path.indexOf('/') == -1)
             r = container.find('a.entry:not(:visible)').eq(1);
             if(!r.length){
                 r = container.find('a.entry:not(.entry-back)').eq(0)
@@ -1724,12 +1654,12 @@ Menu = (() => {
             //console.warn('SHOULD REDRAW', subsub, subsub.length)
             if(subsub && subsub.length){
                 subsub.remove()
-                var es = self.queryElements(self.getEntries(false, false), {name: basename(self.path), type: 'group'})
+                var es = this.queryElements(this.getEntries(false, false), {name: basename(this.path), type: 'group'})
                 if(es && es.length){
                     es.eq(0).trigger('click')
                     _cb()
                 } else {
-                    self.go(self.path, _cb)
+                    this.go(this.path, _cb)
                 }
                 return
             } else {
@@ -1738,44 +1668,44 @@ Menu = (() => {
             //console.warn('WWWW', r);
             _cb()
         } else {
-            self.go(dirname(self.path), _cb)
+            this.go(dirname(this.path), _cb)
         }
     }
-    self.enter = () => {
+    enter(){
         var e = Pointer.selected(true, false);
         if(e){
             e.trigger('click')
         }
     }
-    self.playState = (state) => {
-        if(self.currentPlayState != state){
-            self.currentPlayState = state;
-            var refresh = false, es = self.getEntries(true, false);
+    playState(state){
+        if(this.currentPlayState != state){
+            this.currentPlayState = state;
+            var refresh = false, es = this.getEntries(true, false);
             es.forEach((e, i) => {
                 if(!refresh && e.class && e.class.indexOf('entry-vary-play-state') !=-1){
                     refresh = true;
                 }
             });
             if(refresh){
-                self.refresh()
+                this.refresh()
             }
         }
     }
-    self.recordingState = (state) => {
-        if(self.currentRecordingState != state){
-            self.currentRecordingState = state;
-            var refresh = false, es = self.getEntries(true, false);
+    recordingState(state){
+        if(this.currentRecordingState != state){
+            this.currentRecordingState = state;
+            var refresh = false, es = this.getEntries(true, false);
             es.forEach((e, i) => {
                 if(!refresh && e.class && e.class.indexOf('entry-vary-recording-state') !=-1){
                     refresh = true;
                 }
             });
             if(refresh){
-                self.refresh()
+                this.refresh()
             }
         }
     }
-    self.mergeEntries = (_entries, nentries) => {
+    mergeEntries(_entries, nentries){
         var entries = _entries.slice(0);
         nentries.forEach((nentry) => {
             var ok = false;
@@ -1790,12 +1720,12 @@ Menu = (() => {
         });
         return entries;
     }
-    self.go = (fullPath, _cb, failureCb) => {
-        if(self.debug){
+    go(fullPath, _cb, failureCb){
+        if(this.debug){
             console.log('GO', fullPath)
         }
-        self.vpath = false;
-        var timeout = 10000, ms = 50, container = self.container(true), retries = timeout / ms, cb = (worked) => {
+        this.vpath = false;
+        var cs, timeout = 10000, ms = 50, container = this.container(true), retries = timeout / ms, cb = (worked) => {
             if(worked === false){
                 if(typeof(failureCb) == 'function'){
                     failureCb()
@@ -1807,43 +1737,48 @@ Menu = (() => {
             }
         }
         if(!fullPath){ // just to reset entries in view
-            self.path = ''
-            self.list(null, self.path)
+            this.path = ''
+            this.list(null, this.path)
             return cb(true)
         }
-        if(fullPath === self.path){
+        if(fullPath === this.path){
             return cb(true)
         }
-        if(typeof(self.pages[fullPath]) != 'undefined'){
-            self.path = fullPath
+        if(typeof(this.pages[fullPath]) != 'undefined'){
+            this.path = fullPath
             console.warn('GO CACHED', fullPath)
-            self.list(self.pages[fullPath], self.path)
+            this.list(this.pages[fullPath], this.path)
             return cb(true)
         }
-        if(dirname(fullPath) == self.path){
-            var es = self.query(self.getEntries(true, false), {name: basename(fullPath), type: 'group'})
+        if(dirname(fullPath) == this.path){
+            var es = this.query(this.getEntries(true, false), {name: basename(fullPath), type: 'group'})
             if(es.length){
-                return self.trigger(es[0], null, cb)
+                return this.trigger(es[0], null, cb)
             }
         }
-        if(cs = self.cache(fullPath)){
+        if(cs = this.cache(fullPath)){
             container.empty()
             container.append(cs)
-            self.path = fullPath
+            this.path = fullPath
+            if(this.debug){
+                console.log('render', this.container().html())  
+            }
+            this.emit('render', typeof(at)!='number' || at === 0)
+            LogoFind.go()
             return cb(true)
         }
-        self.path = ''
+        this.path = ''
         var path = fullPath.split('/')
         var cumulatedPath = ''
         var scan = (entries, next) => {
-            if(self.debug){
+            if(this.debug){
                 console.warn('NTRIES', entries, next, cumulatedPath)
             }
             for(var i=0; i<entries.length; i++){
                 if(entries[i] && entries[i].name == next){
                     var nentries = read(entries[i], cumulatedPath, basename(fullPath) != next)
                     nentries = applyFilters('internalFilterEntries', nentries, cumulatedPath)
-                    if(self.debug){
+                    if(this.debug){
                         console.warn('OPENED', nentries,  entries[i].name, next, fullPath, path)
                     }
                     if(next == basename(fullPath)){
@@ -1860,21 +1795,21 @@ Menu = (() => {
                     loading = true;
                 }
             })
-            if(self.debug) {
+            if(this.debug) {
                 console.warn('OPEN', next,  'IN', entries, cumulatedPath)
             }
             var nentries = scan(entries, next)
-            if(self.debug) {
+            if(this.debug) {
                 console.warn('NTR', nentries)
             }
             if(!nentries && loading){
-                var r = self.asyncResult(cumulatedPath)
-                if(self.debug) {
+                var r = this.asyncResult(cumulatedPath)
+                if(this.debug) {
                     console.warn('NTR', r)
                 }
                 if(Array.isArray(r) && r.length){
                     nentries = scan(r, next)
-                    if(self.debug) {
+                    if(this.debug) {
                         console.warn('NTR', nentries)
                     }
                 } 
@@ -1883,19 +1818,18 @@ Menu = (() => {
                 return nentries;
             }
             if(r === -1 || !loading) { 
-                if(self.debug) {
+                if(this.debug) {
                     console.warn('ARE WE CANCELLING?!')
                 }
                 return
             }
         }
         var read = (entry, path) => { // , isVirtual
-            var nentries = []
-            isVirtual = false
+            var nentries = [], isVirtual = false
             console.log('RENDERR', path, entry, isVirtual)
             if(typeof(entry.renderer)=='function'){
-                if(self.debug){
-                    console.log('RENDERING', self.path, path)
+                if(this.debug){
+                    console.log('RENDERING', this.path, path)
                 }
                 if(!nentries || !nentries.length){
                     nentries = entry.renderer(entry, null, isVirtual)
@@ -1909,27 +1843,27 @@ Menu = (() => {
                     entry.callback(entry)
                 }
             }
-            var r = self.asyncResult(path)
+            var r = this.asyncResult(path)
             if(r){
-                nentries = self.mergeEntries(nentries, r)
+                nentries = this.mergeEntries(nentries, r)
             } 
             nentries = applyFilters('internalFilterEntries', nentries)
             return nentries
         }
         var enter = (entries, next) => {
-            if(self.debug){
+            if(this.debug){
                 console.log('enter(next=', next, ')', cumulatedPath, entries, path)
             }
             if(entries.length){
                 if(typeof(entries[0]) == 'undefined'){
                     entries = entries.slice()
                 }
-                if(self.debug){
+                if(this.debug){
                     console.log('BOOO', entries)
                 }
                 if(entries[0].class != 'entry-loading') {
                     if(next){ 
-                        if(self.debug){
+                        if(this.debug){
                             console.log('enter(next=', next, ')')
                         }
                         var nentries = open(entries, next)
@@ -1937,46 +1871,46 @@ Menu = (() => {
                             entries = nentries
                             var next = path.shift()
                             if(next){
-                                self.vpath = cumulatedPath = assumePath(next, cumulatedPath)
-                                if(self.debug){
+                                this.vpath = cumulatedPath = assumePath(next, cumulatedPath)
+                                if(this.debug){
                                     console.log('cumulatedPath', cumulatedPath, next)
                                 }
                             }
                             return enter(nentries, next)
                         }
-                        if(self.debug){
+                        if(this.debug){
                             console.log('open failed for', next, 'IN', entries, 'result:', nentries, fullPath, '-', path, '-', cumulatedPath)
                         }
                         cb(false)
                     } else {
-                        self.vpath = false;
-                        self.path = fullPath;
-                        if(self.debug){
-                            console.log('NO NEXT', self.path, path, entries)
+                        this.vpath = false;
+                        this.path = fullPath;
+                        if(this.debug){
+                            console.log('NO NEXT', this.path, path, entries)
                         }
-                        self.container(true) // just to reset entries in view
-                        self.renderBackEntry(container, dirname(fullPath), basename(fullPath));
-                        self.list(entries, fullPath);
-                        if(self.debug){
+                        this.container(true) // just to reset entries in view
+                        this.renderBackEntry(container, dirname(fullPath), basename(fullPath));
+                        this.list(entries, fullPath);
+                        if(this.debug){
                             console.warn('listed successfully', entries, container.html().substr(0, 1024))
                         }
                         cb(true);
-                        if(self.debug){
+                        if(this.debug){
                             console.warn('listed successfully 2', entries, container.html().substr(0, 1024))
                         }
                     }
                 } else {
                     if(retries){
-                        if(self.debug){
+                        if(this.debug){
                             console.log('retry')
                         }
                         retries--;
                         setTimeout(() => {
                             var n = next ? dirname(cumulatedPath) : cumulatedPath;
-                            if(self.debug){
-                                console.log('WAITING FOR', n, 'IN', self.asyncResults)
+                            if(this.debug){
+                                console.log('WAITING FOR', n, 'IN', this.asyncResults)
                             }
-                            var r = n ? self.asyncResult(n) : index;
+                            var r = n ? this.asyncResult(n) : index;
                             if(Array.isArray(r)){
                                 entries = r;
                             } else if(r === -1){
@@ -1985,8 +1919,8 @@ Menu = (() => {
                             enter(entries, next) 
                         }, ms)
                     } else {
-                        self.vpath = false;
-                        if(self.debug){
+                        this.vpath = false;
+                        if(this.debug){
                             console.log('give it up!')
                         }
                         cb(true)
@@ -1995,12 +1929,12 @@ Menu = (() => {
             }
         }
         cumulatedPath = path.shift();
-        enter(applyFilters('internalFilterEntries', self.entries), cumulatedPath)
+        enter(applyFilters('internalFilterEntries', this.entries), cumulatedPath)
     }
-    self.queryElements = (entries, atts) => {
+    queryElements(entries, atts){
         var results = [], attLen = Object.keys(atts).length
         entries.each((i, e) => {
-            var entry = jQuery(entries[i]).data('entry-data'), hits = 0;
+            var entry = this.j(entries[i]).data('entry-data'), hits = 0;
             if(entry){
                 for(var key in atts){
                     if(typeof(entry[key])=='undefined'){
@@ -2021,14 +1955,14 @@ Menu = (() => {
                     results.push(entries[i])
                 }
             } else {
-                if(self.debug){
+                if(this.debug){
                     console.warn('ENTRY WITH NO DATA?', entries[i], entry)
                 }
             }
         });
-        return jQuery(results);
+        return this.j(results);
     }
-    self.query = (entries, atts, remove) => {
+    query(entries, atts, remove){
         var results = [], attLen = Object.keys(atts).length;
         entries.forEach((e, i) => {
             if(e){
@@ -2064,7 +1998,7 @@ Menu = (() => {
         }
         return results;
     }
-    self.insertByAtts = (entries, atts, insEntry, insertAfter) => {
+    insertByAtts(entries, atts, insEntry, insertAfter){
         var j = null, results = [], attLen = Object.keys(atts).length;
         for(var i in entries) {
             var entry = entries[i], hits = 0;
@@ -2093,7 +2027,7 @@ Menu = (() => {
             if(insertAfter){
                 j += 1;
             }
-            entries = self.query(entries, insEntry, true);
+            entries = this.query(entries, insEntry, true);
             entries.splice(j, 0, insEntry);
             //console.warn('IINNNSSEERRTTT', entries, insEntry, j);
             return entries.slice(0) // reset
@@ -2101,7 +2035,7 @@ Menu = (() => {
         //console.warn('IINNNSSEERRTTT', j);
         return entries;
     }
-    self.insert = (entries, name, entry, insertAfter, replace) => {
+    insert(entries, name, entry, insertAfter, replace){
         var cleanup, j = null;
         entries = entries.slice(0)
         for(var i in entries) {
@@ -2138,91 +2072,91 @@ Menu = (() => {
         }
         return entries;
     }
-    self.setup = (entries) => {
-        self.entries = entries;    
+    setup(entries){
+        this.entries = entries;    
     }
-    self.init = (callback) => {
-        self.path = ltrimPathBar(Store.get('Menu.path')) || '', pos = self.path.indexOf(Lang.MY_LISTS);
+    init(callback){
+        this.path = ltrimPathBar(Store.get('Menu.path')) || '', pos = this.path.indexOf(Lang.MY_LISTS);
         if(pos == -1 || pos > 3){
-            self.path = '';
+            this.path = '';
         }
-        self.window.on('unload', function (){
-            Store.set('Menu.path', self.path, true)
+        this.window.on('unload', function (){
+            Store.set('Menu.path', this.path, true)
         })
 
-        self.container().on('mousedown', (event) => {
+        this.container().on('mousedown', (event) => {
             //console.warn(event);
-            if(jQuery(event.target).is('div') && jQuery('.entry-sub').length){
-                self.back()
+            if(this.j(event.target).is('div') && this.j('.entry-sub').length){
+                this.back()
             }
         })
 
-        self.window.on('appover', () => { 
-            clearTimeout(self.appOverTimer);
-            self.appOverTimer = setTimeout(() => {
-                self.appOverState = true;
-                if(self.appOverBindState){
-                    self.show()
+        this.window.on('appover', () => { 
+            clearTimeout(this.appOverTimer);
+            this.appOverTimer = setTimeout(() => {
+                this.appOverState = true;
+                if(this.appOverBindState){
+                    this.show()
                 }
             }, 400)
         })
 
-        self.window.on('appout', () => { 
-            clearTimeout(self.appOverTimer);
-            self.appOverTimer = setTimeout(() => {
-                self.appOverState = false;
-                if(self.appOverBindState){
+        this.window.on('appout', () => { 
+            clearTimeout(this.appOverTimer);
+            this.appOverTimer = setTimeout(() => {
+                this.appOverState = false;
+                if(this.appOverBindState){
                     if(Playback.active) { 
-                        self.hide() 
+                        this.hide() 
                     }
                 } 
             }, 400)
         })
         
         Playback.on('commit', () => {
-            if(self.appOverBindState){
-                self.autoHide(Theme.get('hide-menu-auto'), true);
-                if(!self.appOverState){
-                    self.hide()
+            if(this.appOverBindState){
+                this.autoHide(Theme.get('hide-menu-auto'), true);
+                if(!this.appOverState){
+                    this.hide()
                 }
             }
         })
         
         Playback.on('stop', () => {
-            self.autoHide(Theme.get('hide-menu-auto'))
-            self.show()
+            this.autoHide(Theme.get('hide-menu-auto'))
+            this.show()
         }); // keep this comma
 
-        //console.warn('UPPPPDATE', self.subMenuSizeLimit);
+        //console.warn('UPPPPDATE', this.subMenuSizeLimit);
         (() => {
-            //console.warn('UPPPPDATE', self.subMenuSizeLimit);
-            var timer, icTimer, scrUp = jQuery('#menu-scrolling-up'), scrDw = jQuery('#menu-scrolling-down'), eh = 0, h = 0, interval = 200, initialDelay = 500, container = self.scrollContainer();
+            //console.warn('UPPPPDATE', this.subMenuSizeLimit);
+            var timer, icTimer, scrUp = this.j('#menu-scrolling-up'), scrDw = this.j('#menu-scrolling-down'), eh = 0, h = 0, interval = 200, initialDelay = 500, container = this.scrollContainer();
             var update = () => {
-                var e = jQuery('.entry:visible');
+                var nh, e = this.j('.entry:visible')
                 if(e.length){
-                    nh = e.outerHeight();
+                    nh = e.outerHeight()
                     if(nh){
                         eh = nh;
                     }
-                    nh = container.innerHeight();
+                    nh = container.innerHeight()
                     if(nh){
                         h = nh;
                     }
                     if(h && eh){
-                        self.subMenuSizeLimit = Math.floor(h / eh) - 1
+                        this.subMenuSizeLimit = Math.floor(h / eh) - 1
                     }
                 }
-                if(!self.subMenuSizeLimit) {
+                if(!this.subMenuSizeLimit) {
                     setTimeout(update, 1000)
                 }
             }
             var adjustScrollIcons = (up, dw) => {
                 clearTimeout(icTimer);
-                if(!self.path){
+                if(!this.path){
                     up = dw = false;
                 }
                 if(up || dw){
-                    var es = self.getEntries(false, true);
+                    var es = this.getEntries(false, true);
                     if(up){
                         if(es.first().is(':in-viewport')){
                             up = false;
@@ -2254,8 +2188,8 @@ Menu = (() => {
                     timer = 0;
                 }
             }
-            self.on('render', clearTimer);
-            jQuery('#menu').on('mousemove', (e) => {
+            this.on('render', clearTimer);
+            this.j('#menu').on('mousemove', (e) => {
                 var areaSize = 0.1, x = e.pageX, y = e.pageY - container.offset().top;
                 clearTimer();
                 if(!eh){
@@ -2264,7 +2198,7 @@ Menu = (() => {
                 if(y > (h * (1 - areaSize)) && x <= (win.width - 32)){
                     timer = setTimeout(() => {
                         timer = setInterval(() => {
-                            if(!self.rendering && !self.body.hasClass('submenu')){
+                            if(!this.rendering && !this.body.hasClass('submenu')){
                                 //console.log('DOWN', eh, x, win.width - 32);
                                 adjustScrollIcons(false, true);
                                 container.scrollTop(container.scrollTop() + eh)
@@ -2274,7 +2208,7 @@ Menu = (() => {
                 } else if(y < (h * areaSize)){
                     timer = setTimeout(() => {
                         timer = setInterval(() => {
-                            if(!self.rendering && !self.body.hasClass('submenu')){
+                            if(!this.rendering && !this.body.hasClass('submenu')){
                                 //console.log('UP', eh);	
                                 adjustScrollIcons(true, false);
                                 container.scrollTop(container.scrollTop() - eh)
@@ -2286,61 +2220,27 @@ Menu = (() => {
                 clearTimer();
                 adjustScrollIcons(false, false)
             });
-            self.window.on('load resize', update);
+            this.window.on('load resize', update);
             addAction('afterLoadTheming', update);
             update()
         })()
         var cb = () => {
             overlayedMenu(Theme.get('menu-opacity') <= 99);
             setHasMenuMargin(Theme.get('menu-margin') >= 1);
-            self.autoHide(Theme.get('hide-menu-auto'))
+            this.autoHide(Theme.get('hide-menu-auto'))
         }
         addAction('afterLoadTheming', cb);
         cb()
-        self.initialized = true;
-        self.go('', callback)
+        this.initialized = true;
+        this.go('', callback)
     }
-    self.selectedData = () => {
+    selectedData(){
         var s = Pointer.selected(true, true);
         return s ? s.data('entry-data') : false;
     }
-    self.on('render', (firstRender) => {
-        if(firstRender){
-            self.restoreScroll()
-        }
-    })
-    return self;
-})()
-
-function lazyLoad(element, srcs){
-    //console.warn('LAZYLOAD');
-    var src,j = jQuery(element), iterator = j.data('lazy-load-iterator');
-    srcs = srcs.filter((s, i) => { 
-        return !!s;
-    });
-    if(typeof(iterator) != 'number'){
-        iterator = 0;
-    }
-    console.warn('LAZYLOAD', element.tagName, element.src || element, srcs, iterator);
-    if(typeof(srcs[iterator]) != 'undefined'){
-        src = srcs[iterator];
-    } else {
-        console.warn('LAZYLOAD END', element.tagName, element.src || element, srcs, iterator);
-        element.onerror = null;
-        src = defaultIcons['stream'];
-    }
-    iterator++;
-    if(src.match(new RegExp('(^fa-| fa-)'))){
-        if(src.substr(0, 3) == 'fa-'){
-            src = 'fas ' + src;
-        }
-        j.replaceWith('<i class="'+src+' entry-logo-fa" aria-hidden="true"></i>').data('lazy-load-iterator', iterator)
-    } else {
-        element.src = src;
-        j.data('lazy-load-iterator', iterator)
-    }
-    //console.warn('LAZYLOAD');
 }
+
+const Menu = new VirtualMenu({j: jQuery, debug: debugAllow(false)})
 
 function getTuningEntry(){
     var mega = 'mega://play|'+Menu.path.replaceAll('/', '-'), type = 'all', t = Tuning.get(mega, type), n = t && !t.suspended ? ('{0} {1}%').format(Lang.TESTING, parseInt(t.status)) : Lang.TEST_THEM_ALL
@@ -2364,7 +2264,7 @@ function getTuningEntry(){
                     } else {
                         updateTuningOptionsStatus(-1)
                     }
-                    updateStreamEntriesFlags()
+                    process.nextTick(updateStreamEntriesFlags)
                 })
             } else {
                 console.error('tuning DENY', 'No internet connection.')
@@ -2411,7 +2311,7 @@ jQuery(() => {
                 if(typeof(opt.mediaType) == 'undefined'){
                     //opt.mediaType = getMediaType(opt)
                 }
-                opt = adjustMainCategoriesEntry(opt, 'all')
+                opt = adjustMainCategoriesEntry(opt, 'live')
             }
             return opt
         })

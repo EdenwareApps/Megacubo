@@ -1,5 +1,5 @@
 
-var Menu, $win = jQuery(window), $body = jQuery('body'), isSDKBuild = (window.navigator.plugins.namedItem('Native Client') !== null), searchResultsLimit = 196
+var $win = jQuery(window), $body = jQuery('body'), isSDKBuild = (window.navigator.plugins.namedItem('Native Client') !== null), searchResultsLimit = 196
 
 function debugAllow(def){
     return isSDKBuild && (typeof(def) == 'undefined' || def)
@@ -730,7 +730,6 @@ if(top == window){
         return self;
     })(profilePath + path.sep + 'Users');
 
-    var Writer = require(path.resolve('modules/writer'))
     var StorageController = require(path.resolve('modules/storage-controller'))
     var GStore = new StorageController(profilePath + path.sep + 'Store')
     var Store = new StorageController(profilePath + path.sep + 'Users' + path.sep + Users.logged + path.sep + 'Store')
@@ -747,6 +746,7 @@ if(top == window){
                 "autoscroll": true,
                 "bookmark-dialing": true,
                 "connect-timeout": 10,
+                "connecting-error-action": "search",
                 "context-menu": {
                     "window": [
                         "HOME",
@@ -820,6 +820,8 @@ if(top == window){
                 "theme-current": "default",
                 "tooltips": true,
                 "transcode-fps": 0,
+                "ts-joining-needle-size": 512, // KB
+                "ts-joining-stack-size": 10, // MB
                 "tune-timeout": 45,
                 "tuning-ignore-webpages": true,
                 "volume": 1.0,
@@ -1623,6 +1625,50 @@ function getMediaInfo(path, callback){
     })
 }
 
+function getDurationFromMediaInfo(nfo) {
+    var dat = nfo.match(new RegExp('[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{2}'));
+    return  dat ? hmsClockToSeconds(dat[0]) : 0;
+}
+
+function getCodecsFromMediaInfo(nfo) {
+    var video = nfo.match(new RegExp("Video: ([^,\r\n]+)")), audio = nfo.match(new RegExp("Audio: ([^,\r\n]+)"))
+    video = Array.isArray(video) ? video[1] : ''
+    audio = Array.isArray(audio) ? audio[1] : ''
+    return {video, audio}
+}
+
+function getFileBitrate(file, cb, length){
+    var next = () => {
+        getMediaInfo(file, (nfo) => {
+            //console.warn('NFO', nfo);
+            var codecs = getCodecsFromMediaInfo(nfo)
+            var secs = getDurationFromMediaInfo(nfo)
+            if(secs){
+                //console.warn('NFO', secs, length, length / secs);
+                if(secs){
+                    cb(null, parseInt(length / secs), codecs)
+                } else {
+                    cb('Failed to get duration for '+file, 0, codecs)
+                }
+            } else {
+                cb('FFmpeg unable to process '+file, 0, codecs)
+            }
+        })
+    }
+    if(length){
+        next()
+    } else {
+        fs.stat(file, (err, stat) => {
+            if(err) { 
+                cb('File not found or empty.', 0, false)
+            } else {
+                length = stat.size;
+                next()
+            }
+        })
+    }
+}
+
 function hmsClockToSeconds(str) {
     var cs = str.split('.'), p = cs[0].split(':'), s = 0, m = 1;    
     while (p.length > 0) {
@@ -1984,7 +2030,7 @@ function fixUTF8(str) {
 function kfmt(num, digits) {
     var si = [
         { value: 1, symbol: "" },
-        { value: 1E3, symbol: "k" },
+        { value: 1E3, symbol: "K" },
         { value: 1E6, symbol: "M" },
         { value: 1E9, symbol: "G" },
         { value: 1E12, symbol: "T" },
@@ -2189,67 +2235,45 @@ function spawnOut(options, callback){
     stop()
 }
 
-var imageCheckingCache = {};
+var imageCheckingCache = {}
 
-function checkImage(url, load, error){
+function checkImage(url, load, error, timeout){
     if(url.indexOf('/') == -1){
-        error();
-        return;
+        return error()
     }
     if(typeof(imageCheckingCache[url])=='boolean'){
-        if(imageCheckingCache[url]){
-            load()
-        } else {
+        return (imageCheckingCache[url]?load:error)()        
+    }
+    var solved
+    if(!timeout){
+        timeout = 30
+    }
+    setTimeout(() => {
+        delete _testImageObject
+        if(!solved){
+            imageCheckingCache[url] = false
+            solved = true
             error()
         }
-        return;
-    }
-    var _testImageObject = new Image();
+    }, timeout * 1000)
+    let _testImageObject = new Image()
     _testImageObject.onerror = () => {
-        delete _testImageObject;
-        imageCheckingCache[url] = false;
-        error()
+        imageCheckingCache[url] = false
+        delete _testImageObject
+        if(!solved){
+            solved = true
+            error()
+        }
     }
     _testImageObject.onload = () => {
-        delete _testImageObject;
-        imageCheckingCache[url] = true;
-        load()
-    }
-    _testImageObject.src = url;
-}
-
-function prepareWindowIcon(src, cb){
-    var image = document.createElement('img'),
-        canvas = document.createElement('canvas'),
-        targetSize = {width: 128, height: 128},
-        nww, nwh, nwx = 0, nwy = 0;
-    
-    canvas.width = targetSize.width;
-    canvas.height = targetSize.height;
-    image.onload = () => {
-        if((image.width / image.height) > (canvas.width / canvas.height)){ // horizontally larger
-            nww = canvas.width;
-            nwh = (image.height / image.width) * nww;
-            nwy = (canvas.height - nwh) / 2;
-        } else {
-            nwh = canvas.height;
-            nww = (image.width / image.height) * nwh;
-            nwx = (canvas.width - nww) / 2;
+        imageCheckingCache[url] = true
+        delete _testImageObject
+        if(!solved){
+            solved = true
+            load()
         }
-        console.warn('PREPAREICON', image, 0, 0, image.width, image.height, nwx, nwy, nww, nwh);  
-        canvas.getContext('2d').drawImage(image, 0, 0, image.width, image.height, nwx, nwy, nww, nwh);  
-        var dataUrl = canvas.toDataURL('image/png'); 
-        image = canvas = null;
-        if(dataUrl){
-            cb(false, dataUrl)
-        } else {
-            cb(false, src)
-        }   
-    };
-    image.onerror = () => {
-        cb('Image load error.', null)
-    };
-    image.src = src;
+    }
+    _testImageObject.src = url
 }
 
 function applyIcon(icon){
@@ -2603,19 +2627,19 @@ function displayPrepareName(name, label, prepend, append, raw){
         }
     }
     name = name.replaceAll(' - ', ' · ').replaceAll(' | ', ' · ').trim();
-    if(label){
-        if(raw){
-            name += ' ' + label;
-        } else {
-            name += '<span class="entry-label">' + label.trim() + '</span>';
+    if(raw){
+        if(label){
+            name += ' ' + label
         }
+    } else {
+        name += '<span class="entry-label">' + (label ? label.trim() : '') + '</span>'
     }
     return name.trim()
 }
 
 function setTitleData(title, icon) {
     console.log('TITLE = '+title)
-    title = displayPrepareName(urldecode(title))
+    title = displayPrepareName(urldecode(title), '', '', '', true)
     defaultTitle = title
     if(top){
         var defaultIcon = 'default_icon.png';
@@ -2983,8 +3007,8 @@ function getExt(url){
 }
 
 function showPlayers(stream, sandbox){
-    console.log('showPlayers('+stream+', '+sandbox+')')
     if(top){
+        console.log('showPlayers('+stream+', '+sandbox+')', traceback())
         var doc = top.document;
         var pstream = doc.getElementById('player');
         var psandbox = doc.getElementById('sandbox');
@@ -3220,6 +3244,12 @@ function isYoutubeURL(source){
                 return true;
             }
         }
+    }
+}
+
+function isMagnetURL(source){
+    if(typeof(source)=='string'){
+        return source.substr(0, 7) == 'magnet:'
     }
 }
 

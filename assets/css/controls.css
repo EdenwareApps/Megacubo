@@ -387,24 +387,6 @@ body.submenu a.entry:not(.entry-sub) {
     max-width: 100%;
 }
 
-.entry-logo-fa-c .fa-xs {
-    position: relative;
-    font-size: 1.25em;
-    left: -0.1225em;
-    top: -0.25em;
-    border-radius: 12px;
-    padding: 33%;
-}
-
-.entry-logo-img-c .fa-xs {
-    position: relative;
-    font-size: 1.25em;
-    top: 0.0125em;
-    left: -0.1225em;
-    border-radius: 12px;
-    padding: 33%;
-}
-
 .entry-label, .entry-name {
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: subpixel-antialiased;

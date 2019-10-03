@@ -4,6 +4,7 @@ var start = time(),
     terminated, 
     processingInterval = 1800, 
     reportingInterval = 60, 
+    watchingDataIsVisible = time(),
     leftWindowDiffTimer, 
     leftWindowDiff,
     Indexer,
@@ -11,7 +12,7 @@ var start = time(),
     mediaTypeStreamsCount = mediaTypeStreamsCountTemplate,
     ParentalControl = require(path.resolve('modules/parental-control'))
 
-const ipc = require('node-ipc'), 
+var ipc = require('node-ipc'), 
     win = nw.Window.get()
 
 ipc.config.id = 'indexer'
@@ -62,11 +63,8 @@ const connect = () => {
                 opts.results = indexerQueryList(opts)
                 ipc.of.main.emit('indexer-query-result', opts)
             },
-            'indexer-query-watching-list': (opts) => {
-                watchingData((entries) => {
-                    opts.results = entries
-                    ipc.of.main.emit('indexer-query-result', opts)
-                }, opts.update, opts.locale)
+            'indexer-is-watching-visible': () => {
+                watchingDataIsVisible = time()
             }
         }
         Object.keys(events).forEach(name => {
@@ -79,6 +77,11 @@ const connect = () => {
 connect()
 
 indexerFilter = opts => {
+    if(typeof(Indexer) != 'object'){
+        return setTimeout(() => {
+            indexerFilter(opts)
+        }, 1000)
+    }
     opts.names = opts.names.filter(name => {
         if(!Indexer.has){
             console.warn('Indexer.has', Indexer, typeof(Indexer))
@@ -89,6 +92,11 @@ indexerFilter = opts => {
 }
 
 indexerAdultFilter = opts => {
+    if(typeof(Indexer) != 'object'){
+        return setTimeout(() => {
+            indexerAdultFilter(opts)
+        }, 1000)
+    }
     let ks = Object.keys(Indexer.lists)
     opts.entries = opts.entries.map(e => {
         ks.some(u => {
@@ -115,13 +123,23 @@ indexerAdultFilter = opts => {
 }
 
 indexerQuery = (opts) => {
-    let limit = searchResultsLimit, ret = Indexer.search(opts.term, !opts.strict, true, [opts.type], typeof(opts.adult) == 'boolean' ? opts.adult : null)        
+    if(typeof(Indexer) != 'object'){
+        return setTimeout(() => {
+            indexerQuery(opts)
+        }, 1000)
+    }
+    let limit = searchResultsLimit, ret = Indexer.search(opts.term, opts.matchGroup, opts.matchPartial, [opts.type], typeof(opts.adult) == 'boolean' ? opts.adult : null)        
     let maybe = searchResultsLimit > ret.results.length ? ret.maybe.slice(0, searchResultsLimit - ret.results.length) : []
     console.warn('INDEXER QUERY', searchResultsLimit, ret, opts)   
     return {uid: opts.uid, results: ret.results.slice(0, searchResultsLimit), maybe}
 }
 
 indexerQueryList = (opts) => {
+    if(typeof(Indexer) != 'object'){
+        return setTimeout(() => {
+            indexerQueryList(opts)
+        }, 1000)
+    }
     return opts.url && Array.isArray(Indexer.lists[opts.url]) ? Indexer.lists[opts.url] : []
 }
 
@@ -140,25 +158,35 @@ function terminate() {
     }
 }
 
-function report(){
-    ipc.of.main.emit('indexer-vars', {mediaTypeStreamsCount, leftWindowDiff, sharedListsGroups})
+function emitVars(){
+    ipc.of.main.emit('indexer-vars', {watchingData, mediaTypeStreamsCount, leftWindowDiff, sharedListsGroups})
 }
 
-function init(loadcb){
-    ipc.of.main.emit('indexer-register')
-    mediaTypeStreamsCount = Object.assign({}, mediaTypeStreamsCountTemplate)
-    var listRetrieveTimeout = 10 // make timeout low, we have caches anyway in case of timeouts
+function report(){
+    if(time() < (watchingDataIsVisible + (reportingInterval - 1)) || !Array.isArray(watchingData) || !watchingData.length){
+        updateWatchingData(emitVars)
+    } else {
+        emitVars()
+    }
+}
+
+function init(){
+    if(!Indexer){
+        ipc.of.main.emit('indexer-register')
+        mediaTypeStreamsCount = Object.assign({}, mediaTypeStreamsCountTemplate)
+    }
     Config.reload()
-    var parentalControl = new ParentalControl()
-    parentalControl.terms = parentalControlTerms()
     getActiveLists((urls) => {
         console.warn('BUILD*', Config.get('search-range-size'), urls)
         if(!Indexer){
+            var parentalControl = new ParentalControl()
+            parentalControl.terms = parentalControlTerms()
             Indexer = new (require(path.resolve('modules/m3u-indexer')))({
                 store: GStore, 
                 request
             })
             Indexer.ttl = processingInterval - 30 // 30 secs tolerance from processingInterval to ensure purge caching
+            Indexer.stopWords = ['tv', 'channel', 'fhd', 'hd', 'sd', 'h265', 'h.265', 'rede']
             Indexer.isSafe = (entry) => {
                 return typeof(Indexer.unsafeIndex[entry.url]) == 'undefined' && parentalControl.allow(entry)
             }
@@ -167,6 +195,7 @@ function init(loadcb){
                 sharedListsGroups = groups
                 report()
             })
+            ipc.of.main.emit('indexer-ready')
         }
         Indexer.setLists(urls, () => {
             let cnt = 0
@@ -177,20 +206,18 @@ function init(loadcb){
                 ipc.of.main.emit('indexer-empty')
             }
         }) 
-        if(typeof(loadcb) == 'function'){
-            loadcb(urls)
-        }
     })
 }
 
 var watchingDataCBs = [], watchingDataFetching = false
 
-function watchingData(cb, update, locale){
-    var filter = false
-    if(typeof(locale) != 'string'){
-        locale = getLocale(true)
-        filter = true
+function updateWatchingData(cb){
+    if(typeof(Indexer) != 'object'){
+        return setTimeout(() => {
+            updateWatchingData(cb)
+        }, 1000)
     }
+    var locale = getLocale(true)
     watchingDataCBs.push(cb)
     if(!watchingDataFetching){
         watchingDataFetching = true
@@ -199,7 +226,10 @@ function watchingData(cb, update, locale){
             if(!Array.isArray(entries)){
                 entries = []
             }
-            for(var i=0; i<entries.length; i++){
+            if(entries.length){
+                watchingData = entries
+            }
+            async.eachOfLimit(entries, 2, (e, i, acb) => {
                 if(isMegaURL(entries[i].url)){
                     var data = parseMegaURL(entries[i].url);
                     if(data && data.type == 'play' && data.name && data.name.length < entries[i].name.length) {
@@ -215,13 +245,15 @@ function watchingData(cb, update, locale){
                 entries[i].label = entries[i].label.format(Lang.USER, Lang.USERS)
                 entries[i].isAudio = Indexer.msi.isAudio(entries[i].url) || Indexer.msi.isRadio(entries[i].name)
                 entries[i].isSafe = Indexer.isSafe(entries[i])
-            } 
-            watchingDataFetching = false
-            watchingDataCBs.map(f => {
-                f(entries)
-            })
-            watchingDataCBs = []
-        }, update)
+                acb()
+            }, () => {
+                watchingDataFetching = false
+                watchingDataCBs.map(f => {
+                    f(entries)
+                })
+                watchingDataCBs = []
+            }) 
+        }, true)
     }
 }
 

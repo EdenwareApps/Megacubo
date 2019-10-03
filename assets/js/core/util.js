@@ -286,7 +286,7 @@ function parentalControlAllow(entry, ignoreSetting){
     return true // allow as error fallback
 }
 
-var watchingData = Store.get('watchingData') || [], remoteXtrasAppended = false;
+var watchingData = [], remoteXtrasAppended = false;
 var onlineUsersCount = Object.assign({}, mediaTypeStreamsCountTemplate), mediaTypeStreamsCount = Object.assign({}, mediaTypeStreamsCountTemplate);
 
 function updateOnlineUsersCount(){
@@ -298,21 +298,10 @@ function updateOnlineUsersCount(){
     }
     jQuery.getJSON('http://app.megacubo.net/stats/data/usersonline.json', (response) => {
         if(!isNaN(parseInt(response))){
-            GStore.set('usersonline', response, true);
             callback(response)
+            GStore.set('usersonline', response, true)
         }
     })
-    if(Array.isArray(watchingData)){
-        if(watchingData.length){
-            onlineUsersCount = Object.assign({}, mediaTypeStreamsCountTemplate);
-            watchingData.forEach(entry => {
-                if(typeof(onlineUsersCount[entry.mediaType])=='undefined'){
-                    onlineUsersCount[entry.mediaType] = 0;
-                }
-                onlineUsersCount[entry.mediaType] += extractInt(entry.label)
-            })
-        }
-    }
     var n = GStore.get('usersonline')
     if(n){
         callback(n)
@@ -345,10 +334,11 @@ function getEngine(entry){
 }
 
 function prepareSearchTerms(txt){
-    var blacklist = ['tv'];
-    return txt.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().split(' ').filter((kw) => {
-        return kw.length >= 2 && blacklist.indexOf(kw) == -1;
+    var ignores = []
+    txt = txt.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().split(' ').filter((kw) => {
+        return kw.length >= 2 && ignores.indexOf(kw) == -1
     })
+    return txt
 }
 
 function nextLogoForGroup(element){
@@ -516,10 +506,13 @@ function getStreamStateCache(_url, ttl){
 }
 
 function setStreamStateCache(entry, state, commit){
-    var urls = [entry.url];
-    if(entry.originalUrl && !isMegaURL(entry.originalUrl)){
+    var urls = [entry.url]
+    if(entry.originalUrl){
         urls.push(entry.originalUrl)
     }
+    urls = urls.filter(u => {
+        return !(isYoutubeURL(u) || isMagnetURL(u) || isMegaURL(u))
+    })
     urls.forEach((url) => {
         streamStateCache[streamCacheNormalizeURL(url)] = {'state': state, 'time': time()};
     })
@@ -625,6 +618,9 @@ function allowTuningEntry(curPath, entries){
         if([Lang.BEEN_WATCHED].indexOf(b) != -1){
             return false
         }
+        if(b.indexOf(Lang.NEXT) != -1 && curPath.indexOf(Lang.BEEN_WATCHED) != -1){
+            return false
+        }
         if(Array.isArray(entries)){
             let already = entries.some((entry) => {
                 return entry.class && entry.class.indexOf('entry-tuning') != -1
@@ -658,7 +654,7 @@ function updateStreamEntriesFlags(){
     var fas = jQuery('.entry-stream'), tne = jQuery('.entry-tuning'), tuning = tne.filter((i, e) => { 
         return e.innerHTML.indexOf('% ') != -1; 
     }).length, firstStreamOffset = false;
-    var doSort = !tne.length && allowTuningEntry(Menu.path);
+    var doSort = allowTuningEntry(Menu.path);
     fas.each((i, element) => {
         if(doSort && !isMegaURL(element.href)){
             let state = getStreamStateCache(element.href)
@@ -672,12 +668,16 @@ function updateStreamEntriesFlags(){
                 let e = jQuery(element), n = e.find('.entry-label');
                 n.find('.stream-state').remove();
                 n.prepend('<span class="stream-state"><i class="fas fa-thumbs-up faclr-green" style="font-size: 90%;position: relative;top: -1px;"></i></span> ');
-                e.removeClass('entry-offline');
+                e.removeClass('entry-offline')
             } else if(tuning) {
                 let e = jQuery(element), n = e.find('.entry-label');
                 n.find('.stream-state').remove();
                 n.prepend('<span class="stream-state"><i class="fas fa-clock" style="color: #eee;font-size: 90%;position: relative;top: -1px;"></i></span> ');
-                e.removeClass('entry-offline');
+                e.removeClass('entry-offline')
+            } else {
+                let e = jQuery(element), n = e.find('.entry-label');
+                n.find('.stream-state').remove();
+                e.removeClass('entry-offline')
             }
         }
         if(activeurls.indexOf(element.href)!=-1){
@@ -1104,7 +1104,7 @@ function sortEntriesStateKey(entry, historyData, watchingData){
 }
 
 function sortEntriesByState(entries){
-    var isLiveOrAudio = false, historyData = History.get(), watchingData = getWatchingData()
+    var isLiveOrAudio = false, historyData = History.get()
     if(entries instanceof jQuery){
         var ct = Menu.container(), sentries = jQuery([]), pentries = jQuery([])
         entries.each((i, o) => {

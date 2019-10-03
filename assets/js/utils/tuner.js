@@ -26,10 +26,10 @@ const Tuning = (() => {
             if(ret > cpuLimit){
                 ret = cpuLimit
             }
-            if(ret < 3){
-                ret = 3
-            } else if(ret > 12) {
-                ret = 12
+            if(ret < 2){
+                ret = 2
+            } else if(ret > 8) {
+                ret = 8
             }
             return ret
         },
@@ -410,12 +410,19 @@ class Tuner extends Events {
                             }
                             return
                         }
-                        types = types.split(',').filter(value => {
-                            return this.allowedTypes.includes(value)
-                        })
-                        this.typeMap[i] = types && types.length ? types : 0
-                        if(!this.typeMap[i]){
-                            this.testMap[i] = 3
+                        if(types){
+                            let otypes = types
+                            types = types.split(',').filter(value => {
+                                return this.allowedTypes.includes(value)
+                            })
+                            this.typeMap[i] = types && types.length ? types : 0
+                            if(!this.typeMap[i]){
+                                this.testMap[i] = 3
+                                this.errors[i] = 'No compatible intents '+JSON.stringify(otypes)
+                            }
+                        } else {
+                            this.testMap[i] = -1
+                            this.errors[i] = 'Seems offline '+JSON.stringify(types)
                         }
                         if(typeof(acb) == 'function'){
                             acb()

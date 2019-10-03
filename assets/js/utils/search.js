@@ -159,13 +159,23 @@ function setupSearch(term, type, onRender){
     jQuery('a.entry input').trigger('focus').trigger('input')
 }
 
-var indexerQueryCallbacks = {}
+var indexerReady, indexerQueryCallbacks = {}
 
 function indexerSync(){
+    if(!indexerReady){
+        return setTimeout(() => {
+            indexerSync()
+        }, 1000)
+    }
     ipc.server.broadcast('indexer-sync', {})
 }
 
 function indexerAdultFilter(entries, cb){
+    if(!indexerReady){
+        return setTimeout(() => {
+            indexerAdultFilter(entries, cb)
+        }, 1000)
+    }
     return cb(entries)
     let uid = 0
     while(typeof(indexerQueryCallbacks[uid]) == 'function'){
@@ -177,16 +187,26 @@ function indexerAdultFilter(entries, cb){
     ipc.server.broadcast('indexer-adult-filter', {uid, entries})
 }
 
-function indexerSearch(type, term, matchAll, strict, cb, adult){
+function indexerSearch(type, term, matchGroup, matchPartial, cb, adult){
+    if(!indexerReady){
+        return setTimeout(() => {
+            indexerSearch(type, term, matchGroup, matchPartial, cb, adult)
+        }, 1000)
+    }
     let uid = 0
     while(typeof(indexerQueryCallbacks[uid]) == 'function'){
         uid = rand(1, 1000000)
     }
     indexerQueryCallbacks[uid] = cb
-    ipc.server.broadcast('indexer-query', {uid, type, term, matchAll, strict, adult})
+    ipc.server.broadcast('indexer-query', {uid, type, term, matchGroup, matchPartial, adult})
 }
 
 function indexerQueryList(url, cb){
+    if(!indexerReady){
+        return setTimeout(() => {
+            indexerQueryList(url, cb)
+        }, 1000)
+    }
     let uid = 0
     while(typeof(indexerQueryCallbacks[uid]) == 'function'){
         uid = rand(1, 1000000)
@@ -195,18 +215,12 @@ function indexerQueryList(url, cb){
     ipc.server.broadcast('indexer-query-list', {uid, url})
 }
 
-function indexerWatchingData(cb, update, locale){
-    let uid = 0
-    while(typeof(indexerQueryCallbacks[uid]) == 'function'){
-        uid = rand(1, 1000000)
-    }
-    indexerQueryCallbacks[uid] = (ret) => {
-        cb(ret.results)
-    }
-    ipc.server.broadcast('indexer-query-watching-list', {uid, update, locale})
-}
-
 function indexerFilter(type, names, matchAll, strict, cb){
+    if(!indexerReady){
+        return setTimeout(() => {
+            indexerFilter(type, names, matchAll, strict, cb)
+        }, 1000)
+    }
     let uid = 0
     while(typeof(indexerQueryCallbacks[uid]) == 'function'){
         uid = rand(1, 1000000)
@@ -223,12 +237,16 @@ ipc.server.on('indexer-query-result', (results) => {
     }
 })
 
+ipc.server.on('indexer-ready', (results) => {
+    indexerReady = true
+})
+
 ipc.server.on('indexer-empty', (results) => {
     askForInputNotification.update(Lang.NO_LIST_PROVIDED.format(Lang.SEARCH_RANGE), 'fa-exclamation-circle faclr-red', 'normal')
 })
 
 var sharedListsSearchCaching = false;
-function search(cb, type, term, matchAll, _strict, filter, adult){
+function search(cb, type, term, matchGroup, matchPartial, filter, adult){
     var r = [], limit = searchResultsLimit
     if(!term){
         var c = jQuery('.list > div > div input')
@@ -240,13 +258,13 @@ function search(cb, type, term, matchAll, _strict, filter, adult){
     }
     if(term && term.length > 2){
         console.warn('SEARCH FETCH', type, traceback())
-        const autoStrict = (_strict == 'auto'), done = ret => {
+        const autoStrict = (matchPartial == 'auto'), done = ret => {
             console.warn('SEARCH RESULT', ret)
             //console.warn("GOLD", r, maybe);
             if(typeof(filter) == 'function'){
                 ret.results = filter(ret.results)
             }
-            if(ret.results.length < limit && !matchAll){
+            if(ret.results.length < limit && !matchGroup){
                 if(typeof(filter) == 'function'){
                     ret.maybe = filter(ret.maybe)
                 }
@@ -258,11 +276,11 @@ function search(cb, type, term, matchAll, _strict, filter, adult){
             cb(ret.results)
         }
         if(autoStrict){
-            _strict = true
+            matchPartial = false
         }
-        indexerSearch(type, term, matchAll, _strict, (ret) => {
+        indexerSearch(type, term, matchGroup, matchPartial, (ret) => {
             if(autoStrict && !ret.results.length){
-                indexerSearch(type, term, matchAll, false, (ret) => { // query again unstrictly
+                indexerSearch(type, term, matchGroup, true, (ret) => { // query again allow partial matching
                     done(ret)
                 }, adult)
             } else {

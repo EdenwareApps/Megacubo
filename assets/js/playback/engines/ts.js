@@ -1,10 +1,7 @@
 
-const TSPool = new TSInfiniteProxyPool(requestForever)
-
 class PlaybackTsIntent extends PlaybackTranscodeIntent {  
     constructor(entry, options){
         super(entry, options)
-        this.audioCodec = 'aac'
         this.type = 'ts';
         this.folder = '';
         this.proxify = true;
@@ -22,6 +19,11 @@ class PlaybackTsIntent extends PlaybackTranscodeIntent {
             this.apply(options)
             //console.log('ZZZZ', options, this);
         }  
+        this.on('restart-decoder', () => {            
+            if(this.proxy){
+                this.proxy.prepareQuickRecovering()
+            }
+        })
         this.on('error', () => {
             if(this.proxy){
                 this.proxy.destroy()
@@ -54,6 +56,7 @@ class PlaybackTsIntent extends PlaybackTranscodeIntent {
                             this.proxy.opts.idleTimeout = 30000
                         }
                         this.start(true)
+                        console.log('M3U8 file created.', this.started)
                     } else {
                         console.error('M3U8 file creation timeout.');
                         this.fail('transcode')
@@ -72,7 +75,12 @@ class PlaybackTsIntent extends PlaybackTranscodeIntent {
                     this.confirm()
                 })
             })
-            this.proxy.intent = this.proxy
+            this.proxy.prepareQuickRecovering()
+            this.proxy.on('codecData', (codecData) => {
+                if(!this.destroyed && !this.error && !this.unloaded){
+                    this.emit('codecData', codecData)
+                }
+            })
             this.proxy.on('timeout', (...args) => {
                 console.warn('TIMEOUTT', JSON.stringify(args))
             })
@@ -93,6 +101,62 @@ PlaybackTsIntent.supports = (entry) => {
 }
         
 Playback.registerEngine('ts', PlaybackTsIntent, 1)
+
+const TSInfiniteProxy = require(path.resolve('modules/infinite-ts'))
+
+class TSInfiniteProxyPool {
+	constructor(request){
+		this.pool = {}
+		this.request = request	
+		this.debug = debugAllow(false) ? console.warn : false
+	}
+	updateConfig(){
+		Object.keys(this.pool).forEach(u => {
+			if(!this.pool[u].destroyed){
+				this.pool[u].updateConfig()
+			}
+		})
+	}
+	get(url, cb, opts){
+		let ready = (endpoint) => {
+			if(typeof(cb) == 'function'){
+				cb(endpoint)
+				cb = null
+			}
+		}
+		if(typeof(this.pool[url]) == 'undefined' || this.pool[url].destroyed){
+			console.warn('TSPOOLCREATE', url, traceback())
+			if(typeof(this.pool[url]) != 'undefined'){
+				console.warn('TSPOOLNFO', this.pool[url].destroyed, !this.pool[url].endpoint)
+			}
+			this.pool[url] = new TSInfiniteProxy(url, Object.assign({
+				ready, 
+				request: this.request,
+                debug: this.debug,
+                ffmpeg: path.resolve('../ffmpeg/ffmpeg')
+			}, opts || {}))
+			this.pool[url].on('destroy', () => {
+				delete this.pool[url]
+			})
+		} else {
+			console.warn('TSPOOLREUSE', url, traceback())
+			this.pool[url].on('ready', ready)
+			if(this.pool[url].endpoint){
+				ready(this.pool[url].endpoint)
+			}
+		}
+		return this.pool[url]
+	}
+	destroy(){
+        console.warn('TSPool.destroy()', traceback())
+		Object.keys(this.pool).forEach(url => {
+			this.pool[url].destroy()
+		})
+		this.pool = []
+	}
+}
+
+const TSPool = new TSInfiniteProxyPool(requestForever)
 
 $win.on('beforeunload', () =>{
     console.warn('Closing servers');

@@ -112,10 +112,6 @@ html .entry-logo .entry-logo-fa {
     color: (font-color);
 }
 
-.entry-logo-fa-c .fa-xs, .entry-logo-img-c .fa-xs {
-    background: (font-color)17;
-}
-
 body.playing #menu-toggle, body.paused #menu-toggle {
     color: (font-color)55; 
 }

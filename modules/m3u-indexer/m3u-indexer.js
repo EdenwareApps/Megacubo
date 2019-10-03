@@ -1,10 +1,12 @@
 const async = require('async'), M3UParser = require('./m3u-ext-parser'), M3UTools = require('./m3u-indexer-tools'), MediaStreamInfo = require('./media-stream-info'), Events = require('events')
+
 class M3UIndexer extends Events {
 	constructor(opts){  // opts.store is required
 		super()
         Object.keys(opts).forEach(k => {
             this[k] = opts[k]
-        })
+		})
+		this.stopWords = []
 		this.lists = {}
 		this.groupsCaching = {}
 		this.tools = new M3UTools()
@@ -39,7 +41,7 @@ class M3UIndexer extends Events {
 				delete this.lists[u]
 			}
 		})
-		urls.forEach(url => {
+		async.eachOfLimit(urls, 1, (url, i, acb) => {
 			if(typeof(this.lists[url]) == 'undefined'){
 				let key = 'iptv-read-'+url, fbkey = key + '-bak', flatList = this.store.get(key)
 				if(Array.isArray(flatList)){
@@ -51,31 +53,33 @@ class M3UIndexer extends Events {
 				}
 				this.updateSafetyIndex(url)
 			}
-		})
-		this.updateStatsNGroups()
-		async.forEach(fetchs, (url, cb) => {
-			this.parser.parse(url, (flatList) => {
-				if(Array.isArray(flatList) && flatList.length){
-					let key = 'iptv-read-'+url, fbkey = key + '-bak'
-					this.lists[url] = this.joinDups(flatList).map(entry => {
-						entry.terms = {
-							name: this.terms(entry.name),
-							group: this.terms(entry.group || '')
-						}
-						entry.mediaType = this.msi.mediaType(entry)
-						entry.isAudio = this.msi.isAudio(entry.url) || this.msi.isRadio(entry.name)
-						entry.isSafe = this.isSafe(entry)
-						return entry
-					})
-					this.updateSafetyIndex(url)
-					this.store.set(key, this.lists[url], (24 * 3600))
-					this.store.set(fbkey, this.lists[url], 30 * (24 * 3600))
-					this.updateStatsNGroups()
-				}
+			acb()
+		}, () => {
+			this.updateStatsNGroups()
+			async.eachOfLimit(fetchs, 2, (url, i, acb) => {
+				this.parser.parse(url, (flatList) => {
+					if(Array.isArray(flatList) && flatList.length){
+						let key = 'iptv-read-'+url, fbkey = key + '-bak'
+						this.lists[url] = this.joinDups(flatList).map(entry => {
+							entry.terms = {
+								name: this.terms(entry.name),
+								group: this.terms(entry.group || '')
+							}
+							entry.mediaType = this.msi.mediaType(entry)
+							entry.isAudio = this.msi.isAudio(entry.url) || this.msi.isRadio(entry.name)
+							entry.isSafe = this.isSafe(entry)
+							return entry
+						})
+						this.updateSafetyIndex(url)
+						this.store.set(key, this.lists[url], (24 * 3600))
+						this.store.set(fbkey, this.lists[url], 30 * (24 * 3600))
+						this.updateStatsNGroups()
+					}
+				})
+				acb()
+			}, () => {
 				cb()
 			})
-		}, () => {
-			// ...
 		})
 	}
 	updateGroups(){
@@ -145,20 +149,33 @@ class M3UIndexer extends Events {
 		if(!txt){
 			return []
 		}
-		return txt.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().split(' ').filter(s => { return s.length > 2 })
+		return txt.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().split(' ').filter(s => {
+			return s.length > 2 && this.stopWords.indexOf(s) == -1
+		})
 	}
 	match(aTerms, bTerms){
 		let score = 0
-		if(bTerms.length){
+		if(aTerms.length && bTerms.length){
 			aTerms.forEach(term => {
 				if(bTerms.indexOf(term) != -1){
 					score++
 				}
 			})
+			if(score){
+				if(score == aTerms.length) { // all search terms are present
+					if(score == bTerms.length){ // terms are equal
+						return 3
+					} else {
+						return 2
+					}
+				} else if(aTerms.length >= 3 && score == (aTerms.length - 1)){
+					return 1
+				}
+			}
 		}
-		return score == aTerms.length ? 2 : (score && score == (aTerms.length - 1)) ? 1 : 0
+		return 0
 	}
-	has(terms, matchGroup, allowPartialMatch, types){
+	has(terms, matchGroup, matchPartial, types){
 		let results = [], maybe = [] 
 		if(!terms){
 			return results
@@ -171,9 +188,9 @@ class M3UIndexer extends Events {
 			return list.some(entry => {
 				if(types.indexOf(entry.mediaType) != -1){
 					const score = this.match(terms, entry.terms.name)
-					if(score == 2){
+					if(score >= 2){
 						return true
-					} else if((score == 1 && allowPartialMatch) || (matchGroup && this.match(terms, entry.terms.group))){
+					} else if((score == 1 && matchPartial) || (matchGroup && this.match(terms, entry.terms.group))){
 						maybe.push(entry)
 					}
 				}
@@ -188,8 +205,9 @@ class M3UIndexer extends Events {
 		}
 		return results.length
 	}
-	search(terms, matchGroup, allowPartialMatch, types, unsafe){
-		let results = [], maybe = [], all = types.indexOf('all') != -1
+	search(terms, matchGroup, matchPartial, types, unsafe){
+		console.warn('M3U SEARCH', terms, matchGroup, matchPartial, types, unsafe)
+		let bestResults = [], results = [], maybe = [], all = types.indexOf('all') != -1
 		if(!terms){
 			return results
 		}
@@ -201,10 +219,13 @@ class M3UIndexer extends Events {
 				if(all || types.indexOf(entry.mediaType) != -1){
 					if(typeof(unsafe) != 'boolean' || entry.isSafe === !unsafe){
 						const score = this.match(terms, entry.terms.name)
-						if(score == 2){
+						if(score == 3) {
+							entry.source = source
+							bestResults.push(entry)
+						} else if(score == 2) {
 							entry.source = source
 							results.push(entry)
-						} else if((score == 1 && allowPartialMatch) || (matchGroup && this.match(terms, entry.terms.group))){
+						} else if((matchPartial && score == 1) || (matchGroup && this.match(terms, entry.terms.group))){
 							entry.source = source
 							maybe.push(entry)
 						}
@@ -212,12 +233,17 @@ class M3UIndexer extends Events {
 				}
 			})
 		})
-		if(matchGroup && !results.length && maybe.length){
-			results = maybe
-			maybe = []
+		console.warn('M3U SEARCH RESULTS', terms, bestResults.slice(0), results.slice(0), maybe.slice(0))
+		results = bestResults.concat(results)
+		if(maybe.length){
+			if(!results.length){
+				results = maybe
+				maybe = []
+			}
+		} else {
+			maybe = this.joinDups(maybe)
 		}
 		results = this.joinDups(results)
-		maybe = this.joinDups(maybe)
 		return {results, maybe}
 	}
 	queryGroup(group, atts){

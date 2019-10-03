@@ -370,23 +370,25 @@ class M3UExtParser {
             })
         } else {
             this.debug('PARSING', content.length)
-            var parsingStream = null, flatList = [], slist = content.split("\n");
-            for(var i in slist){
-                if(slist[i].length > 12){
-                    if(slist[i].substr(0, 3).indexOf('#')!=-1){
-                        parsingStream = this.parseMeta(slist[i])
-                    } else if(parsingStream) {
-                        parsingStream.url = slist[i].trim();
-                        parsingStream.source = url;
-                        if(parsingStream.url && this.badexts.indexOf(this.ext(parsingStream.url)) == -1 && parsingStream.url.match(this.regexes['validateprotocol']) && !parsingStream.url.match(this.regexes['validatehost'])){ // ignore bad stream urls
-                            flatList.push(parsingStream)
-                        }
-                        parsingStream = null;
-                    }
-                }
-            }
-            this.debug('PARSED')
-            cb(flatList)
+			var parsingStream = null, flatList = []
+			async.eachOfLimit(content.split("\n"), 1, (v, i, acb) => {
+				if(v.length > 12){
+					if(v.substr(0, 3).indexOf('#')!=-1){
+						parsingStream = this.parseMeta(v)
+					} else if(parsingStream) {
+						parsingStream.url = v.trim();
+						parsingStream.source = url;
+						if(parsingStream.url && this.badexts.indexOf(this.ext(parsingStream.url)) == -1 && parsingStream.url.match(this.regexes['validateprotocol']) && !parsingStream.url.match(this.regexes['validatehost'])){ // ignore bad stream urls
+							flatList.push(parsingStream)
+						}
+						parsingStream = null
+					}
+				}
+				acb()
+			}, () => {
+				this.debug('PARSED')
+				cb(flatList)
+			})
         }
     }
 }

@@ -277,10 +277,12 @@ class PlaybackManager extends Events {
                     } else {
                         if(message.indexOf('Failed to send video') != -1 && this.active.videoCodec == 'copy'){
                             this.active.videoCodec = 'libx264'
+                            this.active.videoCodecLock = true
                             c = true
                         }
                         if(message.indexOf('Failed to send audio') != -1 && this.active.audioCodec == 'copy'){
                             this.active.audioCodec = 'aac'
+                            this.active.audioCodecLock = true
                             c = true
                         }
                     }

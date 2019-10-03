@@ -101,7 +101,7 @@
 			win.show()
 			var loader = document.getElementById('loader')
 			addAction("app-load-progress", (lc, tc, pc) => {
-				console.warn('PC', pc+'%', lc, tc)
+				// console.warn('PC', pc+'%', lc, tc)
 				if(pc > 99) pc = 99;
 				loader.style.width = pc+'%'; // update width instead of value to allow css transition
 			})
@@ -225,7 +225,6 @@
 							'playback.js',
 							'internal-proxy.js',
 							'internal-proxy-hls.js',
-							'internal-proxy-ts.js',
 							'engines/base.js',
 							'engines/hls.js',
 							'engines/html.js',
@@ -252,6 +251,7 @@
 							'ui/menu.js',
 							'ui/menu-feeding.js',
 							'ui/pointer.js',
+							'ui/logos.js',
 							'ui/winstate.js',
 							'ui/wizard.js'
 						]

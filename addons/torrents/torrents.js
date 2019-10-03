@@ -184,8 +184,8 @@ var torrentOption = registerMediaType({
     }
 }, false)
 
-addFilter('videosMetaEntries', entries => {
-    entries.splice(2, 0, torrentOption)
+addFilter('categoriesMetaEntries', entries => {
+    entries.push(torrentOption)
     return entries
 })
 

@@ -252,114 +252,96 @@ function loadSource(url, name, callback, filter, isVirtual){
     return [Menu.loadingEntry()];
 }
 
-function getWatchingEntries(mediaType){
-    var name = Lang.BEEN_WATCHED;
-    var path = assumePath(name);
-    if(typeof(mediaType) != 'string'){
-        mediaType = ''
-    }
-    setTimeout(() => { // avoid mess the loading entry returned, getting overridden by him
-        getWatchingData(_options => {
-            if(_options.length){
-                var options = _options
-                console.log('fetchen', options)
-                options = options.filter((option) => {
-                    return option.isSafe && (!mediaType || mediaType == 'all' || option.mediaType == mediaType)
-                })
-                console.log('fetchenw', options, path)
-                if(options.length && options[0].label.indexOf('ordm')==-1){
-                    let groups = {}, gcount = {}, gentries = []
-                    options = options.map(entry => {
-                        entry.users = extractInt(entry.label)
-                        return entry
-                    })
-                    options.forEach((entry, i) => {
-                        let term = searchTermFromEntry(entry)
-                        if(term){
-                            if(typeof(groups[term]) == 'undefined'){
-                                groups[term] = []
-                                gcount[term] = 0
-                            }
-                            groups[term].push(entry)
-                            gcount[term] += entry.users
-                            delete options[i]
-                        }
-                    })
-                    Object.keys(groups).forEach(n => {
-                        groups[n].sort((a, b) => {
-                            let ai = isMegaURL(a.url), bi = isMegaURL(b.url)
-                            if(ai != bi){
-                                return ai ? -1 : 1
-                            }
-                            return (a.users > b.users) ? -1 : ((b.users > a.users) ? 1 : 0)
-                        })
-                        let e = {
-                            name: ucWords(n), 
-                            type: 'group', 
-                            logo: pickLogoFromEntries(groups[n]),
-                            entries: groups[n],
-                            users: gcount[n]
-                        }
-                        gentries.push(e)
-                    })
-                    //console.warn('GENTR', options)
-                    options = options.filter(e => {
-                        return !!e
-                    }).concat(gentries).sort((a,b) => {
-                        return (a.users > b.users) ? -1 : ((b.users > a.users) ? 1 : 0)
-                    })
-                    options.forEach((entry, i) => {
-                        if(!entry.__parsed){
-                            options[i].label = (i + 1)+'&ordm; &middot; '+(mediaType == 'audio' ? Lang.LISTENING : Lang.X_WATCHING).format(parseCounter(options[i].users))
-                            if(typeof(entry.url) == 'string' && isMegaURL(entry.url)){
-                                //console.log('FETCH WATCHING', entry.url, mediaType);
-                                options[i].url = updateMegaURLQSAppend(entry.url, {mediaType: mediaType})
-                            }
-                            entry.__parsed = true;
-                        }                      
-                        if(!options[i].logo){
-                            options[i].logo = 'http://app.megacubo.net/logos/'+encodeURIComponent(options[i].name)+'.png';
-                        }
-                    })
-                    // options = paginateEntries(options, 48)
-                }
-                console.log('fetchen', options, name, path)
-                //console.log('fetchen2', options)
-                Menu.asyncResult(path, options)
-            } else {
-                notify(Lang.DATA_FETCHING_FAILURE, 'fa-exclamation-triangle faclr-red', 'normal');
-                Menu.asyncResult(path, -1)
+var watchingEntries = []
+
+addAction('getWatchingData', (entries) => {
+    var options = entries.slice(0)
+    let groups = {}, gcount = {}, gentries = []
+    options = options.map(entry => {
+        if(entry.label.indexOf('{') != -1){
+            entry.label = entry.label.format(Lang.USER, Lang.USERS)
+        }
+        entry.users = extractInt(entry.label)
+        return entry
+    })
+    options.forEach((entry, i) => {
+        let term = searchTermFromEntry(entry)
+        if(term){
+            if(typeof(groups[term]) == 'undefined'){
+                groups[term] = []
+                gcount[term] = 0
             }
+            groups[term].push(entry)
+            gcount[term] += entry.users
+            delete options[i]
+        }
+    })
+    Object.keys(groups).forEach(n => {
+        groups[n].sort((a, b) => {            
+            let ai = isMegaURL(a.url), bi = isMegaURL(b.url)
+            if(ai != bi){
+                return ai ? -1 : 1
+            }
+            return (a.users > b.users) ? -1 : ((b.users > a.users) ? 1 : 0)
         })
-    }, loadingToActionDelay)
-    return [Menu.loadingEntry()]
+        let e = {
+            name: ucWords(n), 
+            type: 'group',
+            logo: defaultIcons['stream'], 
+            logos: pickLogosFromEntries(groups[n]),
+            entries: groups[n],
+            users: gcount[n]
+        }
+        gentries.push(e)
+    })
+    //console.warn('GENTR', options)
+    options = options.filter(e => {
+        return !!e
+    }).concat(gentries).sort((a,b) => {
+        return (a.users > b.users) ? -1 : ((b.users > a.users) ? 1 : 0)
+    })
+    options.forEach((entry, i) => {
+        if(!entry.__parsed){
+            options[i].label = (i + 1)+'&ordm; &middot; '+(entry.isAudio ? Lang.LISTENING : Lang.X_WATCHING).format(parseCounter(options[i].users))
+            if(typeof(entry.url) == 'string' && isMegaURL(entry.url)){
+                //console.log('FETCH WATCHING', entry.url, mediaType);
+                options[i].url = updateMegaURLQSAppend(entry.url, {mediaType: entry.mediaType})
+            }
+            entry.__parsed = true
+        }   
+    })
+    if(!options.length){
+        options.push(Menu.emptyEntry())
+    }
+    watchingEntries = options
+})
+
+function getWatchingEntries(mediaType){
+    var options = watchingEntries.slice(0)
+    if(mediaType && mediaType != 'all'){
+        options = options.filter(e => {
+            return mediaType == e.mediaType || (e.url && e.url.indexOf('mediaType='+mediaType) != -1)
+        })
+    }
+    if(!options.length){
+        if(watchingEntries.length){
+            options.push(Menu.emptyEntry())
+        } else {
+            options.push(Menu.loadingEntry())
+        }
+    }
+    return paginateEntries(options)
 }
 
 function getWatchingData(cb, update, locale){
-    var filter = false
-    if(typeof(locale) != 'string'){
-        locale = getLocale(true)
-        filter = true
+    let entries = watchingData.slice(0)
+    if(typeof(cb)=='function'){
+        cb(entries)
     }
-    indexerWatchingData((entries) => {
-        watchingData = entries
-        Store.set('watchingData', entries, true)
-        if(filter){
-            entries = applyFilters('getWatchingData', entries)
-            if(!Array.isArray(entries)){
-                console.error('getWatchingData filter error')
-                entries = []
-            }
-        }
-        doAction('getWatchingData', entries, filter)
-        if(typeof(cb)=='function'){
-            cb(entries)
-        }
-    }, update, locale)
-    return watchingData
+    return entries
 }
 
-addFilter('getWatchingData', (entries) => {
+addAction('getWatchingData', (entries) => {
     return entries.map((entry) => {
         setStreamStateCache(entry, true)
         return entry
@@ -401,10 +383,16 @@ function parseLabelCount(data){
                 case Lang.RADIOS:
                     type = 'radio', n = false;
                     break;
+                case Lang.CATEGORIES:
+                    type = 'total', n = false;
+                    break;
             }
         } 
         if(n) {
             switch(n){
+                case Lang.CATEGORIES:
+                    type = 'total';
+                    break;
                 case Lang.LIVE:
                     type = 'live';
                     break;
@@ -1185,7 +1173,32 @@ function getSettingsEntries(){
                     return Config.get('autofit')
                 }
             },  
-            {name: Lang.FORCE_TRANSCODE_BROADCAST, logo: 'fa-cogs', type: 'group', renderer: getTranscodeEntries}
+            {name: Lang.FORCE_TRANSCODE_BROADCAST, logo: 'fa-cogs', type: 'group', renderer: getTranscodeEntries},
+            {name: Lang.ADVANCED, logo:'fa-cogs', type: 'group', renderer: () => {
+                return [
+                    {name: 'TS JOINING NEEDLE SIZE', type: 'slider', logo: 'fa-cut', mask: '{0} KB', value: Config.get('ts-joining-needle-size'), range: {start: 64, end: 9136}, change: (data, element) => {
+                        Config.set("ts-joining-needle-size", data.value)
+                        if(TSPool){
+                            TSPool.updateConfig()
+                        }
+                    }},
+                    {name: 'TS JOINING STACK SIZE', type: 'slider', logo: 'fa-ruler-horizontal', mask: '{0} MB', value: Config.get('ts-joining-stack-size'), range: {start: 2, end: 24}, change: (data, element) => {
+                        Config.set("ts-joining-stack-size", data.value)
+                        if(TSPool){
+                            TSPool.updateConfig()
+                        }
+                    }},
+                    {name: Lang.RESTORE, logo:'fa-undo', type: 'option', callback: function (){
+                        ["ts-joining-needle-size", "ts-joining-stack-size"].forEach((r) => {
+                            Config.set(r, Config.defaults[r])
+                        })
+                        Menu.refresh()
+                        if(TSPool){
+                            TSPool.updateConfig()
+                        }
+                    }}
+                ]
+            }}
         ]},
         {name: Lang.TUNE, logo: 'fas fa-satellite-dish', type: 'group', entries: [
             {name: Lang.P2P_ACCELERATION, label: '&nbsp;', type: 'check', class: 'entry-allow-p2p', check: (checked) => {
@@ -1206,15 +1219,20 @@ function getSettingsEntries(){
             }, checked: () => {
                 return Config.get('tuning-ignore-webpages')
             }},
+            {name: Lang.BOOKMARKS_DIALING, type: 'check', check: (checked) => {
+                Config.set('bookmark-dialing', checked)
+            }, checked: () => {
+                return Config.get('bookmark-dialing')
+            }},
             {name: Lang.SEARCH_RANGE, logo: 'fa-search', type: 'group', renderer: getSearchRangeEntries, entries: [], callback: () => {
                 setActiveEntry({
                     value: Config.get('search-range-size')
                 })
             }},
-            {name: Lang.BOOKMARKS_DIALING, type: 'check', check: (checked) => {
-                Config.set('bookmark-dialing', checked)
-            }, checked: () => {
-                return Config.get('bookmark-dialing')
+            {name: Lang.WHEN_TRANSMISSION_FAILS, logo: 'fa-times-circle', type: 'group', renderer: getConnectingErrorEntries, entries: [], callback: () => {
+                setActiveEntry({
+                    value: Config.get('connecting-error-action')
+                })
             }},
             {name: Lang.DIAGNOSTIC_TOOL, type: 'group', logo: 'fa-medkit', renderer: checkPlaybackHealthEntries},
             {name: Lang.ADVANCED, logo:'fa-cogs', type: 'group', renderer: () => {
@@ -1227,6 +1245,12 @@ function getSettingsEntries(){
                     }},
                     {name: Lang.MIN_BUFFER_BEFORE_COMMIT, type: 'slider', logo: 'fa-stopwatch', mask: '{0}s', value: Config.get('min-buffer-secs-before-commit'), range: {start: 2, end: 60}, change: (data, element) => {
                         Config.set("min-buffer-secs-before-commit", data.value)
+                    }},
+                    {name: Lang.RESTORE, logo:'fa-undo', type: 'option', callback: function (){
+                        ["connect-timeout", "tune-timeout", "min-buffer-secs-before-commit"].forEach((r) => {
+                            Config.set(r, Config.defaults[r])
+                        })
+                        Menu.refresh()
                     }}
                 ]
             }}
@@ -1242,34 +1266,47 @@ function getSettingsEntries(){
 
 addAction('getWatchingData', (entries) => {
     if(entries.length){
-        onlineUsersCount = Object.assign({}, mediaTypeStreamsCountTemplate);
-        entries.forEach((entry)  => {
+        Object.keys(mediaTypeStreamsCountTemplate).forEach(k => {
+            if(typeof(onlineUsersCount[k]) == 'undefined'){
+                onlineUsersCount[k] = 0
+            }
+        })
+        let total = 0
+        entries.forEach(entry => {
             if(typeof(onlineUsersCount[entry.mediaType])=='undefined'){
                 onlineUsersCount[entry.mediaType] = 0;
             }
-            onlineUsersCount[entry.mediaType] += extractInt(entry.label)
+            let n = extractInt(entry.label)
+            onlineUsersCount[entry.mediaType] += n
+            total += n
         })
+        if(typeof(onlineUsersCount['total']) == 'undefined' || onlineUsersCount['total'] < total){
+            onlineUsersCount['total'] = total
+        }
     }
     return entries;
 })
 
 function setMiniPlayerContinueData(entry, prepend){
     if(entry && entry.name){
-        var html = '<img src="[logo]" onerror="lazyLoad(this, [\'[auto-logo]\', \'[default-logo]\'])" title="" />', autoLogo = getAutoLogo(entry)
-        if(entry.logo.substr(0, 3)=="fa-"){
-            html = html.replace(new RegExp('<img[^>]+>', 'mi'), '<i class="fas '+entry.logo+' entry-logo-fa" aria-hidden="true"></i>')
-        } else if(entry.logo.indexOf(" fa-")!=-1){
-            html = html.replace(new RegExp('<img[^>]+>', 'mi'), '<i class="'+entry.logo+' entry-logo-fa" aria-hidden="true"></i>')
-        } else {
-            html = html.replaceAll('[logo]', entry.logo);
-            html = html.replaceAll('[auto-logo]', autoLogo);
-            html = html.replaceAll('[default-logo]', defaultIcons['stream'])
+        var srcs = [], html = '<i class="fas '+defaultIcons['stream']+' entry-logo-fa" aria-hidden="true"></i>'
+        if(entry.logo){
+            if(entry.logo.substr(0, 3)=="fa-"){
+                html = '<i class="fas '+entry.logo+' entry-logo-fa" aria-hidden="true"></i>'
+            } else if(entry.logo.indexOf(" fa-")!=-1){
+                html = '<i class="'+entry.logo+' entry-logo-fa" aria-hidden="true"></i>'
+            } else if(entry.logo.indexOf('//') != -1){
+                srcs.push(entry.logo)
+            }
         }
         jQuery('.miniplayer-continue-logo').html(html);
         jQuery('.miniplayer-continue-text').html((prepend ? (prepend + ' ') : '') + entry.name);
         jQuery('#miniplayer-continue').off('click').on('click', () => {
             playEntry(entry)
-        }).label((prepend ? (prepend + ' ') : '') + entry.name, 'up')
+        }).label((prepend ? (prepend + ' ') : '') + entry.name, 'up').data('entry-data', entry)
+        entry.logos = srcs
+        jQuery('#miniplayer-continue').data('entry-data', entry)
+        LogoFind.add(document.querySelector('#miniplayer-continue'))
     } else {
         jQuery('#miniplayer-continue').off('click')
         jQuery('.miniplayer-continue-logo').html('')
@@ -1357,26 +1394,17 @@ function updateHomeMetaOptions(){
 
 (() => {
     var waiting = false;
-    prepareContinueOptions(History.get(), () => {
-        if(watchingData.length){
-            console.log('SUICIDE SQUAD!')
-            if(waiting === true){
-                updateHomeMetaOptions()
-            }
-        }
-    })
+    prepareContinueOptions(History.get(), () => {})
     addAction('indexerLoad', () => {
         getWatchingData((entries) => {
-            console.log('SUICIDE SQUAD!')
             if(waiting === true){
                 updateHomeMetaOptions()
             }
         })
     })
     addAction('preMenuInit', () => {
-        if(homeMetaOptions['featured'] && homeMetaOptions['featured'].length){
-            updateHomeMetaOptions()
-        } else {
+        updateHomeMetaOptions()
+        if(!homeMetaOptions['featured'] || !homeMetaOptions['featured'].length){
             waiting = true
         }
         History.on('change', (entries) => {
@@ -1390,6 +1418,20 @@ function updateHomeMetaOptions(){
         })
     })
 })()
+
+function getConnectingErrorEntries(){
+    var options = []
+    var callback = (entry, r) => {
+        if(entry.value != Config.get('connecting-error-action')){
+            Config.set('connecting-error-action', entry.value)
+        }
+        setActiveEntry({value: entry.value})
+    }
+    options.push({name: Lang.SEARCH_ALTERNATIVES, value: 'search', logo:'fa-search-plus', type: 'option', callback: callback})
+    options.push({name: Lang.TUNE_ALTERNATIVE, value: 'tune', logo:'fa-satellite-dish', type: 'option', callback: callback})
+    options.push({name: Lang.STOP, value: '', logo:'fa-stop', type: 'option', callback: callback})
+    return options
+}
 
 function getSearchRangeEntries(){
     var options = []
@@ -1562,7 +1604,7 @@ function getAddBookmarkByNameEntriesPhase2(){
             }
         })
         Menu.asyncResult(_path, entries)
-    }, type, currentBookmarkAddingByName.name, true, true)
+    }, type, currentBookmarkAddingByName.name, true, false)
     return [Menu.loadingEntry()]
 }
 
@@ -1577,7 +1619,7 @@ function expandMegaURL(url, cb){
             }])
             return
         } else if(data.type == 'play') {
-            search(cb, data.mediaType || 'live', data.name, true, true)
+            search(cb, data.mediaType || 'live', data.name, true, false)
             return
         }
     } else {
@@ -1812,7 +1854,7 @@ function getListsEntries(notActive, noManagement, isVirtual){
                         var path = assumePath(data.name)
                         console.warn('GHOST', path, data.url)
                         indexerQueryList(data.url, (ret) => {
-                            console.warn('GHOST', entries)
+                            console.warn('GHOST', ret.results)
                             ListMan.deepParse(ret.results, (parsed) => {
                                 Menu.asyncResult(path, parsed)
                             })
@@ -1879,7 +1921,15 @@ function getListingGroups(type){
         sharedListsGroups = {video: [], live: [], audio: [], adult: []}
         // processing offloaded for indexer.js
     }
-    if(typeof(sharedListsGroups[type]) != 'undefined'){
+    if(type == 'all'){
+        let ret = []
+        Object.keys(sharedListsGroups).forEach(t => {
+            if(t != 'adult'){
+                ret = ret.concat(sharedListsGroups[t])
+            }
+        })
+        return [...new Set(ret.sort())]
+    } else if(typeof(sharedListsGroups[type]) != 'undefined'){
         return sharedListsGroups[type]
     } else if(type.indexOf('-') != -1){
         return getListingGroups(type.split('-')[0])
@@ -1979,7 +2029,11 @@ function paginateEntries(entries, limit){
             name: Lang.NEXT + ' ' + i + '&#47;' + r,
             type: 'group',
             logo: 'fa-angle-right',
-            entries: ranges[i]
+            entries: ranges[i],
+            callback: () => {
+                Menu.scrollCache[dirname(Menu.path)] = {offset: 0, data: false}
+                Menu.scrollContainer().scrollTop(0)
+            }
         }
 		//console.log('I', ranges, pvi)
         ranges[pvi].push(e)

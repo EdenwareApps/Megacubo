@@ -4,7 +4,7 @@ const PLAYBACK_FRAME_AUTO_COMMIT_FLAGS_REGEX = new RegExp('#(catalog|nosandbox|n
 class PlaybackHtmlIntentSideloadHelper { 
     constructor(intent){
         this.intent = intent
-        this.debug = debugAllow(true)
+        this.debug = debugAllow(false)
         this.complete = false
         this.testers = []
         this.URLs = []

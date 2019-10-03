@@ -397,5 +397,8 @@
 "PASTE_STREAM_URL_HINT": "Paste the stream URL here...",
 "STREAM_URL": "Casting URL",
 "HELP": "Need help?",
-"SHARED_EXCLUSIVE_MODE_QUESTION": "Megacubo is a tool for playing IPTV playlists that can be used in two modes:\r\n\r\n1. <u>Exclusive</u>: Add and use your own IPTV playlists.\r\n2. <u>Shared</u>: Use IPTV lists shared by other users.</p>"
+"SHARED_EXCLUSIVE_MODE_QUESTION": "Megacubo is a tool for playing IPTV playlists that can be used in two modes:\r\n\r\n1. <u>Exclusive</u>: Add and use your own IPTV playlists.\r\n2. <u>Shared</u>: Use IPTV lists shared by other users.</p>",
+"WHEN_TRANSMISSION_FAILS": "When a transmission fails...",
+"SEARCH_ALTERNATIVES": "Search alternate broadcasts",
+"TUNE_ALTERNATIVE": "Tune alternate broadcast"
 }

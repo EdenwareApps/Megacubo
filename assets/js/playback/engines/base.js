@@ -144,7 +144,6 @@ class PlaybackBaseIntent extends Events {
         }
     } 
     commit(){
-        jQuery('#player').removeClass('hide').addClass('show')
         this.playback.connect(this.streamURL, this.mimetype)
         this.getVideo()
         this.attached = true
@@ -288,7 +287,7 @@ class PlaybackBaseIntent extends Events {
         this.FF.log = []
         this.file = path.resolve(this.workDir + path.sep + this.uid + path.sep + 'output.m3u8')
         mkdirr(dirname(this.file))
-        let ret = ffmpeg(url).
+        let ret = this.FF.instance = ffmpeg(url).
             addOption('-threads', 0).
             inputOptions('-fflags +genpts').
             addOption('-err_detect', 'ignore_err').
@@ -301,8 +300,8 @@ class PlaybackBaseIntent extends Events {
             addOption('-hls_time', this.FF.segmentDuration).
             addOption('-hls_init_time', 2). // 1 causes manifestParsingError "invalid target duration"
             addOption('-hls_list_size', 0).
-            addOption('-map', '0:a').
-            addOption('-map', '0:v').
+            addOption('-map', '0:a?').
+            addOption('-map', '0:v?').
             addOption('-loglevel', 'warning').
             // addOption('-copyts').
             addOption('-sn').
@@ -386,6 +385,10 @@ class PlaybackBaseIntent extends Events {
             }
         }).
         on('codecData', (codecData) => {
+            this.emit('codecData', codecData)
+        })
+        //
+        this.on('codecData', (codecData) => { // allow it to be emitted from elsewhere
             console.warn('CODECDATA', codecData);
             if(!this.error && !this.ended){
                 let r, tv = codecData.video && codecData.video.substr(0, 4) != 'h264'
@@ -396,7 +399,7 @@ class PlaybackBaseIntent extends Events {
                         r = true
                     }
                 } else {
-                    if(this.videoCodec != 'copy'){
+                    if(this.videoCodec != 'copy' && !this.videoCodecLock){
                         this.videoCodec = 'copy'
                         r = true
                     }
@@ -407,13 +410,14 @@ class PlaybackBaseIntent extends Events {
                         r = true
                     }
                 } else {
-                    if(this.audioCodec != 'copy'){
+                    if(this.audioCodec != 'copy' && !this.audioCodecLock){
                         this.audioCodec = 'copy'
                         r = true
                     }
                 }
                 if(r){                    
-                    console.warn('CODECDATA TRANSCODE REQUIRED', tv, ta);
+                    console.warn('CODECDATA TRANSCODE REQUIRED', tv, ta)
+                    this.emit('restart-decoder')
                     this.restartDecoder()
                 }
             }
@@ -425,7 +429,7 @@ class PlaybackBaseIntent extends Events {
         if(!this.destroyed && !this.error && !this.unloaded){
             console.error('INTENT FAIL', this.type, this.entry.name, this.entry.url, err, this.FF.log.join("\r\n"), traceback())
             if(this.proxy){
-                console.error('INTENT FAIL', this.proxy.buffers.map(b => { return this.proxy.len(b) }), fs.readdirSync(this.workDir + path.sep + this.uid), this.decoder ? this.decoder.log : '')
+                console.error('INTENT FAIL', this.proxy, fs.readdirSync(this.workDir + path.sep + this.uid), this.decoder ? this.decoder.log : '')
             }
             this.error = err
             this.emit('error', this)
@@ -450,14 +454,12 @@ class PlaybackBaseIntent extends Events {
             this.unload()
             this.emit('destroy')
             this.removeAllListeners()
-            let keeps = ['entry', 'tuning']
-            Object.keys(this).forEach(k => {
-                if(keeps.indexOf(k) == -1){
-                    if(typeof(this[k]) == 'object'){
-                        this[k] = null
-                    } else if(typeof(this[k]) == 'function'){
-                        this[k] = () => {}
-                    }
+            let atts = ["playback", "top", "decoder", "decoderOutputAppending", "videoEvents", "video", "FF", "controller", "tester"]
+            atts.forEach(t => {
+                if(typeof(this[t]) == 'object'){
+                    this[t] = null
+                } else if(typeof(this[t]) == 'function'){
+                    this[t] = () => {}
                 }
             })
         }
