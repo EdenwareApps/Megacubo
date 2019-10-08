@@ -253,13 +253,29 @@ class PlaybackBaseIntent extends Events {
             this.killDecoder()
             this.resetTimeout()
             this.genUID()
+            if(typeof(this.playback.transcodingNotify) != 'object'){
+                this.playback.transcodingNotify = notify(Lang.TRANSCODING, 'fa-cog fa-spin', 'forever', true)
+            } else {
+                this.playback.transcodingNotify.show()
+            }
             this.once('start', () => {
                 this.commit()
             })
+            this.on('start', () => {
+                this.playback.transcodingNotify.hide()
+                this.off('state-pause', setLoading)
+            })
+            this.on('destroy', () => {
+                this.playback.transcodingNotify.hide()
+            })
+            let setLoading = () => {
+                this.playback.setState('load')
+            }
+            this.on('state-pause', setLoading)
             process.nextTick(() => {
                 this.confirm()
-                this.playback.setState('load')
             })
+            this.emit('kill-decoder')
             return true
         }
     }
@@ -275,9 +291,6 @@ class PlaybackBaseIntent extends Events {
             if (dec.file) {
                 removeFolder(dirname(dec.file), true)
             }     
-            if(this.proxy){
-                this.proxy.reset()
-            }
             process.nextTick(() => {
                 dec = null
             })
@@ -500,7 +513,24 @@ class PlaybackTranscodeIntent extends PlaybackBaseIntent {
         this.decoder.output(this.decoder.file).run()
     }    
     run(){
-        this.confirm()
+        if(isLocal(this.entry.url)){
+            this.confirm()
+        } else if(isHTTP(this.entry.url)){
+            this.ping((result) => {
+                if(!this.error && !this.ended && !this.destroyed){
+                    console.log('Content-Type', this.entry.url, result)
+                    if(result === true || (this.validateContentType(result.type) && this.validateStatusCode(result.status))){
+                        this.confirm()
+                    } else if(!this.started) {
+                        console.error('Bad HTTP response for '+this.type, result)
+                        this.fail(status || 'connect')
+                    }
+                }
+            })        
+        } else {
+            console.error('Not HTTP(s)', this.entry.url)
+            this.fail('invalid')
+        }
     }
 }
 

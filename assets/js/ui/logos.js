@@ -19,7 +19,7 @@ class LogoFinder {
         this.pool = []
     }
     go(){
-        this.container.find('a.entry-stream:in-viewport, a.entry-meta-stream:in-viewport').each((i, element) => {
+        entriesViewportFilter(this.container.find('a.entry-stream, a.entry-meta-stream')).forEach((element, i) => {
             if(this.pool.indexOf(element) == -1){
                 this.pool.push(element)
             }
@@ -166,3 +166,24 @@ LogoFind.container.on('scrollend', () => {
 Menu.on('render', () => {
     process.nextTick(processLogos)
 })
+
+function applyIconFramingMode(){
+    let css = '', mode = Theme.get('icon-framing')
+    switch(mode){
+        case 'y':
+            css = ' .entry-logo img { width: auto; height: 100%; } '
+            break
+        case 'x':
+            css = ' .entry-logo img { width: 100%; height: auto; } '
+            break
+        default:
+            css = ' .entry-logo img { width: 100%; height: 100%; } '
+            break
+    }
+    console.warn('APPLY ICON FRAMING', css);
+    stylizer(css, 'icon-framing', window)
+}
+
+addAction('afterLoadTheming', applyIconFramingMode)
+applyIconFramingMode()
+

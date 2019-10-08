@@ -153,13 +153,39 @@ class M3UIndexer extends Events {
 			return s.length > 2 && this.stopWords.indexOf(s) == -1
 		})
 	}
-	match(aTerms, bTerms){
+	matchStrict(aTerms, bTerms){
 		let score = 0
 		if(aTerms.length && bTerms.length){
 			aTerms.forEach(term => {
 				if(bTerms.indexOf(term) != -1){
 					score++
 				}
+			})
+			if(score){
+				if(score == aTerms.length) { // all search terms are present
+					if(score == bTerms.length){ // terms are equal
+						return 3
+					} else {
+						return 2
+					}
+				} else if(aTerms.length >= 3 && score == (aTerms.length - 1)){
+					return 1
+				}
+			}
+		}
+		return 0
+	}
+	match(aTerms, bTerms){
+		let score = 0
+		if(aTerms.length && bTerms.length){
+			aTerms.forEach(term => {
+				let len = term.length
+				bTerms.some(bTerm => {
+					if(term == bTerm.substr(0, len)){
+						score++
+						return true
+					}
+				})
 			})
 			if(score){
 				if(score == aTerms.length) { // all search terms are present
@@ -218,7 +244,7 @@ class M3UIndexer extends Events {
 			this.lists[source].forEach(entry => {
 				if(all || types.indexOf(entry.mediaType) != -1){
 					if(typeof(unsafe) != 'boolean' || entry.isSafe === !unsafe){
-						const score = this.match(terms, entry.terms.name)
+						const score = this[matchPartial?'match':'matchStrict'](terms, entry.terms.name)
 						if(score == 3) {
 							entry.source = source
 							bestResults.push(entry)

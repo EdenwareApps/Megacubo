@@ -933,6 +933,7 @@ if(top == window){
                 "hide-back-button": false,
                 "hide-menu-auto": false,
                 "highlight-opacity": 8,
+                "icon-framing": "y",
                 "icon-size": 20,
                 "icon-rounding": 50,
                 "inline-css": "",
@@ -992,10 +993,11 @@ if(top == window){
             }
             fs.readdirSync(self.dir).forEach(file => {
                 if(file.indexOf('.json') != -1){
-                    var data = String(fs.readFileSync(self.dir + path.sep + file));
+                    let def = Object.assign({}, self.defaults), data = String(fs.readFileSync(self.dir + path.sep + file))
                     if(data){
-                        data = JSON.parse(data);
+                        data = JSON.parse(data)
                         if(data){
+                            data = Object.assign(def, data)
                             if(!original && typeof(customizedThemes[data.name]) !== 'undefined'){
                                 data = self.assign(customizedThemes[data.name], data)   
                             }

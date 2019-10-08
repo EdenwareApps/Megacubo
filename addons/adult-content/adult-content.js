@@ -82,7 +82,7 @@ function getXXXEntries(data, type){
                 ]
             },
             callback: () => {
-                goSearch(null, 'adult-content')
+                goSearch(null, 'adult-content', dirname(Menu.path))
             }
         }
     ].concat(entries)
@@ -115,11 +115,11 @@ function getXXXWatchingEntries(_cb){
 
 const adCtName = 'XXX' // Lang.ADULT_CONTENT
 
-addAction('preMenuInit', () => {
-    let opt = {name: adCtName, homeId: 'adult-content', isSafe: false, logo: 'fa-fire', label: '', class: 'entry-nosub', type: 'group', renderer: (data) => {
+addFilter('categoriesMetaEntries', (entries) => {
+    entries.push({name: adCtName, homeId: 'adult-content', isSafe: false, logo: 'fa-fire', label: '', class: 'entry-nosub', type: 'group', renderer: (data) => {
         return getXXXEntries(null, 'all')
-    }, entries: []}
-    Menu.entries.splice(5, 0, opt)
+    }, entries: []})
+    return entries
 })
 
 addAction('appReady', () => {

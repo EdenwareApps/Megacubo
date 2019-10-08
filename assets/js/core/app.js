@@ -939,7 +939,7 @@ function sendStats(action, data){
     }
     data.uiLocale = getLocale(false, false);
     data.arch = (process.arch == 'ia32') ? 32 : 64;
-    data.ver = installedVersion || 0;
+    data.ver = nw.App.manifest.version;
     data.verinf = verinf();
     if(data.source && !isListSharingActive() && getSourcesURLs().indexOf(data.source) != -1){
         console.warn('Source URL not shareable.');
@@ -1469,13 +1469,17 @@ function getImageColorsForTheming(file, cb){
 
 function applyLogoImage(file){    
     if(file){
-        copyFile(file, 'default_icon.png');
+        if(file != path.resolve('default_icon.png')){
+            copyFile(file, 'default_icon.png')
+        }
         fileToBase64(file, (err, b64) => {
             var done = () => {
                 Menu.go('', () => {
                     var path = optionsPath + '/' + Lang.APPEARANCE;
                     setTimeout(() => {
-                        Menu.go(path, Menu.setBackToHome)
+                        Menu.go(path, () => {
+                            Menu.setBackToHome()
+                        })
                     }, 100)
                 })
             }
@@ -1497,7 +1501,9 @@ function applyBackgroundImage(file){
                 Menu.go('', () => {
                     var path = optionsPath+'/'+Lang.APPEARANCE;
                     setTimeout(() => {
-                        Menu.go(path, Menu.setBackToHome)
+                        Menu.go(path, () => {
+                            Menu.setBackToHome()
+                        })
                     }, 100)
                 })
             }
@@ -2197,9 +2203,6 @@ function initSearchIndex(_cb) {
                 window[k] = data[k]
             })
             doAction('getWatchingData', watchingData)
-            if(jQuery('a.entry.search-index-vary').length || basename(Menu.path) == Lang.BEEN_WATCHED){
-                Menu.refresh()
-            }
         }
         const events = {
             'indexer-load': () => {
@@ -2237,6 +2240,17 @@ function initSearchIndex(_cb) {
     }
 }
 
+function setupControlFrames(){
+    var p = getFrame('player'), o = getFrame('overlay');
+    if(p && typeof(p.init) == 'function'){
+        p.init()
+        attachMouseObserver(p)
+        attachMouseObserver(o)
+    } else {
+        setTimeout(setupControlFrames, 1000)
+    }
+}
+
 enableSetFullScreenWindowResizing = true;
     
 applyResolutionLimit();
@@ -2246,17 +2260,8 @@ addAction('appLoad', () => {
     hideSeekbar(Theme.get('hide-seekbar'))
     Menu.setup([
         {name: Lang.CATEGORIES, homeId: 'categories', labeler: parseLabelCount, logo:'fa-tv', class: 'entry-nosub search-index-vary', type: 'group', entries: [], renderer: getCategoriesEntries},
-        {name: Lang.SEARCH, homeId: 'search', label: '', logo: 'fa-search', type: 'option', class: 'entry-hide entry-nosub search-index-vary', callback: () => { 
-            var term = lastSearchTerm, n = Playback.active;
-            if(n && n.entry.originalUrl && isMegaURL(n.entry.originalUrl)){
-                var data = parseMegaURL(n.entry.originalUrl);
-                if(data && data.type == 'play'){
-                    term = data.name;
-                }
-            }
-            setupSearch(term, lastSearchType || 'all')
-        }},
         {name: Lang.BOOKMARKS, homeId: 'bookmarks', logo:'fa-star', type: 'group', renderer: getBookmarksEntries, entries: []},  
+        {name: Lang.SEARCH, homeId: 'search', label: '', logo: 'fa-search', type: 'group', class: 'entry-nosub search-index-vary', renderer: getSearchingEntries, callback: getSearchSuggestions},
         {name: Lang.TOOLS, homeId: 'tools', logo:'fa-box-open', class: 'entry-nosub', callback: () => { timerLabel = false; }, type: 'group', entries: [], renderer: getToolsEntries},
         {name: Lang.OPTIONS, homeId: 'options', logo:'fa-cog', class: 'entry-nosub', callback: () => { timerLabel = false; }, type: 'group', entries: [], renderer: getSettingsEntries},
         {name: Lang.OPEN, append: getActionHotkey('OPENURLORLIST'), homeId: 'open_file', logo:'fa-folder-open', type: 'option', callback: () => {
@@ -2269,10 +2274,6 @@ addAction('appLoad', () => {
     }}
     Menu.entries = Menu.insert(Menu.entries, Lang.CATEGORIES, iptvEntry, true)
     soundSetup('warn', 16); // reload it
-    var p = getFrame('player'), o = getFrame('overlay');
-    p.init();
-    attachMouseObserver(p);
-    attachMouseObserver(o);
     attachMouseObserver(window);
     Pointer.setup();
     [
@@ -2376,6 +2377,8 @@ Playback.on('commit', () => {
 addFilter('about', (txt) => {
     txt += Lang.DOWNLOAD_SPEED+': '+window.navigator.connection.downlink.toFixed(1)+"MBps\n";
     if(Playback.active){
+        txt = txt.split("\n\n")
+        txt = txt.shift() + "\n\n" + Playback.active.entry.name + " (" + Lang.X_WATCHING.format(Playback.watching()) + ")\n" + txt.join("\n\n")
         if(currentBitrate){
             txt += Lang.BITRATE+': '+(currentBitrate / 1024 / 1024).toFixed(1)+"MBps\n"
         } else {
@@ -3029,16 +3032,6 @@ function getKnownChannels(cb, full){
 
 addFilter('categoriesMetaEntries', (entries) => {
     entries.unshift({
-        name: Lang.SEARCH, 
-        logo: 'fa-search', 
-        type: 'group', 
-        renderer: () => {
-            Menu.setBackTo(path);
-            setupSearch(lastSearchTerm, 'all')
-        }, 
-        entries: []
-    })
-    entries.unshift({
         name: Lang.BEEN_WATCHED, 
         logo: 'fa-users', 
         class: 'entry-nosub', 
@@ -3121,7 +3114,7 @@ function registerMediaType(struct, registerToHome){
                 entries = entries.concat([
                     {name: Lang.SEARCH, logo: 'fa-search', type: 'group', renderer: () => {
                         Menu.setBackTo(path);
-                        setupSearch(lastSearchTerm, struct.type)
+                        goSearch(lastSearchTerm, struct.type, Menu.path)
                     }, entries: []},
                     Menu.loadingEntry()
                 ]);
@@ -3327,9 +3320,10 @@ function goOptions(){
 }
 
 function goChangeLang(){
-    var c = (top || parent);
-    if(c.langPath){
-        c.Menu.go(c.langPath, c.Menu.setBackToHome)
+    if(langPath){
+        Menu.go(langPath, () => {
+            Menu.setBackToHome()
+        })
     }
 }
 
@@ -3621,8 +3615,6 @@ var Controls = (() => {
             self.switchButton.off('click').on('click', () => { 
                 continuePlayback(Playback.active, false)
             })
-            self.switchButton.find('.fa-random').attr('title', Lang.NOT_WORKED + ' - ' + Lang.TRY_OTHER_STREAM)
-            self.switchButton.find('.fa-step-forward').attr('title', Lang.NEXT)
             self.seekSlider.val(0).off('change input').on('change input', self.seekCallback)
             self.volumeSlider.off('change input').on('change input', self.volumeCallback)
             var as = self.box.find('a');
@@ -3752,6 +3744,12 @@ var Controls = (() => {
 
 Playback.on('setRatio', (ratio) => {
     Controls.box.find('.video-scale').html(ratio)
+})
+
+Playback.on('commit', () => {
+    let live = Playback.active.entry.mediaType == 'live'
+    let title = live ? Lang.NOT_WORKED + ' - ' + Lang.TRY_OTHER_STREAM : Lang.NEXT
+    Controls.switchButton.attr('title', title).label(title, 'up')
 })
 
 /*
@@ -3993,8 +3991,7 @@ var afterLanguageLoad = (cb) => {
 
 afterLanguageLoad(() => {
     optionsPath = Lang.OPTIONS;
-    livePath = Lang.LIVE;
-    videosPath = Lang.VIDEOS;
+    categoriesPath = Lang.CATEGORIES;
     searchPath = Lang.SEARCH;
     searchVideoPath = Lang.VIDEO_SEARCH;
     bookmarksPath = Lang.BOOKMARKS;

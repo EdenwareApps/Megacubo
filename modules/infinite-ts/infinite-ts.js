@@ -531,7 +531,7 @@ class MediaInfo {
 	rawBitrate(nfo){
 		// bitrate: 1108 kb/s
 		let raw = nfo.match(new RegExp("bitrate: ([0-9]+) ([a-z]+)"))
-		if(raw.length){
+		if(raw && raw.length){
 			let n = parseFloat(raw[1])
 			switch(raw[2]){
 				case "kb":
@@ -554,7 +554,7 @@ class MediaInfo {
 					}
 					cb(null, rate, codecs)
 				} else {
-					cb('FFmpeg unable to process ' + file + ' ' + JSON.stringify(nfo), 0, codecs)
+					cb('FFmpeg unable to process ' + file + ' ' + JSON.stringify(nfo), 0)
 				}
 			})
 		}
@@ -589,6 +589,7 @@ class MediaInfo {
 			if(this.opts.debug){
 				this.opts.debug('MediaInfo.info() err', err, data)
 			}
+			callback(data, 0)
 		})
 		var timeout = setTimeout(() => {
 			child.kill()

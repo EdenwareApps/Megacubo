@@ -18,145 +18,38 @@ function goSearch(searchTerm, type, _backTo){
     if(isMiniPlayerActive()){
         leaveMiniPlayer()
     }
-    var s = Store.get('search-history')
-    s = s && s.length ? s[0] : {type: lastSearchType, term: lastSearchTerm}
+    var s
     if(searchTerm){
         lastSearchTerm = searchTerm;
-    } else {
-        lastSearchTerm = Playback.active ? getDefaultSearchTerms() : s.term
+    } else if(Playback.active) {
+        lastSearchTerm = getDefaultSearchTerms()
+    } else if(s = Store.get('search-history')){
+        lastSearchTerm = s[0].term
     }
-    if(!type){
-        lastSearchType = s.type
+    if(typeof(type) == 'string' && typeof(searchEngines[type]) != 'undefined'){
+        lastSearchType = type
     }
-    lastSearchType = type;
-    console.warn('BACKTO', _backTo, ',', Menu.path);
+    console.warn('BACKTO', _backTo, ',', Menu.path)
     var callback = () => {
         Menu.show()
-        if(searchTerm) {
-            console.warn('BACKTO');
-            var n = jQuery(document).find('.list input');
-            console.log('AA', Menu.path, searchTerm);
-            n.val(searchTerm).trigger('input');
-            console.log('BB', n.length)
-        }
         if(typeof(_backTo) == 'string'){
             Menu.setBackTo(_backTo)
         }
+        if(lastSearchTerm){
+            Menu.container().find('.entry-input input').val(lastSearchTerm).trigger('input')
+        } else {
+            getSearchSuggestions()
+        }
     }
     if(Menu.path == searchPath){
-        callback()
+        Menu.refresh(null, () => {
+            callback()
+        })
     } else {
-        Menu.go(searchPath, callback)
+        Menu.go(searchPath, () => {
+            callback()
+        })
     }
-}
-
-function setupSearch(term, type, onRender){
-    if(typeof(searchEngines[type]) == 'undefined'){
-        return
-    }
-    var prevPath = Menu.path.indexOf(Lang.SEARCH) == -1 ? Menu.path : ''
-    Menu.path = assumePath(Lang.SEARCH)
-    var container = Menu.container(true)
-    Menu.renderBackEntry(container, dirname(Menu.path), searchEngines[type].name)
-    if(!term){
-        if(Playback.active){
-            var url = Playback.active.entry.originalUrl;
-            if(isMegaURL(url)){
-                var data = parseMegaURL(url);
-                if(data && data.type=='play'){
-                    term = data.name;
-                }
-            }
-        }
-    }
-    lastSearchTerm = term;
-    lastSearchType = type;
-    const load = () => {
-        if(!container.find('a.entry-loading').length){
-            clear()
-            Menu.list([
-                Menu.loadingEntry()
-            ], Menu.path)
-        }
-    }
-    const clear = () => {
-        container.find('a.entry-stream, a.entry-loading, a.entry-tuning, a.entry-empty').remove()
-    }
-    const entry = {
-        type: 'input',
-        name: Lang.SEARCH,
-        change: (e, element, val) => {
-            load()
-            var np = container.find('a.entry-input'), initPath = Menu.path;
-            clearTimeout(searchKeypressTimer);
-            container.find('a.entry-stream, a.entry-loading, a.entry-tuning, a.entry-empty').remove();
-            if(val){
-                lastSearchTerm = val;
-                Store.set('last-search-term', val, true);
-                Menu.list([Menu.loadingEntry()], Menu.path)
-            } else {
-                Menu.list([], Menu.path) // just to update the body class
-            }
-            Pointer.focus(np)
-            np.find('input').get(0).focus()
-            var initialPath = Menu.path, initialTerms = val, callback = (results) => {
-                if(Menu.path == initialPath && initialTerms == lastSearchTerm){
-                    var append = Menu.query(Menu.getEntries(true, true, true), {type: 'stream'}).length;
-                    console.log('QQQ', results, val, type, Menu.path);
-                    results = results.map((e) => {
-                        e.origin = {
-                            term: val,
-                            searchType: type
-                        }
-                        return e
-                    })
-                    if(append){
-                        if(results.length){
-                            Menu.list(results, Menu.path, Menu.getEntries(false, false, false).length)
-                        }
-                    } else {
-                        container.find('a.entry-stream, a.entry-loading, a.entry-tuning, a.entry-group, a.entry-suggest, a.entry-option:not(.entry-back)').remove();
-                        if(!results.length){
-                            results = [{name: Lang.NO_RESULTS, logo:'fa-ban', type: 'option', class: 'entry-empty'}]
-                        }
-                        Menu.list(results, Menu.path)
-                    }
-                    Pointer.focus(np)
-                    np.find('input').get(0).focus()
-                    if(typeof(onRender)=='function'){
-                        setTimeout(onRender, 200)
-                    }
-                }
-            }
-            searchKeypressTimer = setTimeout(() => {
-                clearTimeout(searchKeypressTimer);
-                if(initPath == Menu.path){
-                    if(val.length < 2){
-                        callback([])
-                        if(type == 'live'){
-                            getSearchSuggestions()
-                        }
-                        return
-                    }
-                    load()
-                    var parentalControlAllowed = parentalControlAllow(val, true)
-                    if(adultContentPolicy == 'allow' || parentalControlAllowed){   
-                        searchEngines[type].callback(val, callback)
-                    } else {
-                        callback([{name: Lang.NO_RESULTS, logo:'fa-ban', type: 'option', class: 'entry-empty'}])
-                    }
-                    sendStats('search', {query: val, type: type})
-                }
-            }, 750)
-        },
-        value: term,
-        placeholder: Lang.SEARCH_PLACEHOLDER
-    }
-    Menu.render([entry]);
-    Menu.vpath = '';
-    Menu.adjustBodyClass(false);
-    Menu.setBackToHome();
-    jQuery('a.entry input').trigger('focus').trigger('input')
 }
 
 var indexerReady, indexerQueryCallbacks = {}
@@ -316,33 +209,22 @@ addAction('appLoad', () => {
     } else {
         lastSearchTerm = '', lastSearchType = 'all';
     }
-    registerSearchEngine(Lang.LIVE, 'live', (val, callback) => {
-        search(callback, 'live', val, true)
+    registerSearchEngine([Lang.LIVE, Lang.VIDEOS].join(', '), 'all', (val, callback) => {
+        search(callback, 'all', val, true, true)
     }, true)
-    registerSearchEngine(Lang.VIDEOS, 'video', (val, callback) => {
-        search(callback, 'video', val, true)
-    }, true)
-    registerSearchEngine(Lang.ALL, 'all', (val, cb) => {
-        var results = {}
-        async.each(['live', 'video'], (n, done) => {
-            let engine = searchEngines[n]
-            console.warn(engine, engine.callback)
-            if(engine.mode == 'public' && typeof(results[engine.slug]) == 'undefined'){
-                engine.callback(val, (entries) => {
-                    results[engine.slug] = entries
-                    done()
-                })
-            } else {
-                done()
+    Playback.on('commit', (intent, entry) => {
+        console.warn('PLAYBACK COMMIT', intent, entry)
+        if(entry.origin && (typeof(entry.origin.searchType) != 'undefined' || typeof(searchEngines[entry.origin.searchType]) != 'undefined')){
+            var add = {term: entry.origin.term, type: entry.origin.searchType}
+            var sugs = Store.get('search-history')
+            if(!Array.isArray(sugs)){
+                sugs = []
             }
-        }, (err) => {
-            console.warn('COMPLETE', err)
-            var nresults = []
-            Object.keys(results).forEach(type => {
-                nresults = nresults.concat(results[type])
-            })
-            console.warn('COMPLETE', val, results, nresults)
-            cb(nresults)
-        })
+            if(sugs.indexOf(add) == -1) {
+                sugs.push(add)
+                console.warn('PLAYBACK COMMIT', sugs)
+                Store.set('search-history', sugs, true)
+            }
+        }
     })
 })

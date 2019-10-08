@@ -41,7 +41,7 @@ if(typeof(PremiumHelper) == 'undefined'){
                                 } else {
                                     restartApp(true)
                                 }
-                            })
+                            }, element)
                         }
                     } else {
                         self.shouldInstall = false;
@@ -82,7 +82,7 @@ if(typeof(PremiumHelper) == 'undefined'){
             }
             return !deep || (typeof(premiumAddonsLoaded) != 'undefined' && premiumAddonsLoaded)
         }
-        self.install = (cb) => {
+        self.install = (cb, element) => {
             if(!self.installed(true) && !applyFilters('installPremium')){
                 self.shouldInstall = true;
                 var tmp = Store.folder, endpoint = 'http://megacubo.tv/bin/premium/{0}/premium_{1}-{2}.tar.gz'.format(nw.App.manifest.version, process.platform, process.arch), file = tmp + path.sep + basename(endpoint)

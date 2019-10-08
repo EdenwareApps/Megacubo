@@ -277,20 +277,42 @@ addAction('getWatchingData', (entries) => {
         }
     })
     Object.keys(groups).forEach(n => {
-        groups[n].sort((a, b) => {            
-            let ai = isMegaURL(a.url), bi = isMegaURL(b.url)
-            if(ai != bi){
-                return ai ? -1 : 1
+        let e, already = [], megas = [], streams = []
+        groups[n].forEach((e, i) => {            
+            if(isMegaURL(e.url)){
+                let atts = parseMegaURL(e.url)
+                if(atts.name){
+                    let nl = atts.name.toLowerCase()
+                    if(already.indexOf(nl) == -1){
+                        groups[n][i].name = ucWords(atts.name)
+                        already.push(nl)
+                        megas.push(groups[n][i])
+                    }
+                }
+            } else {
+                streams.push(e)
             }
-            return (a.users > b.users) ? -1 : ((b.users > a.users) ? 1 : 0)
         })
-        let e = {
-            name: ucWords(n), 
-            type: 'group',
-            logo: defaultIcons['stream'], 
-            logos: pickLogosFromEntries(groups[n]),
-            entries: groups[n],
-            users: gcount[n]
+        if(megas.length > 1){
+            e = {
+                name: ucWords(n), 
+                type: 'group',
+                logo: defaultIcons['stream'], 
+                logos: pickLogosFromEntries(groups[n]),
+                entries: megas,
+                users: gcount[n]
+            }
+        } else if(megas.length == 1) {
+            e = megas[0]
+        } else {
+            e = {
+                name: ucWords(n), 
+                type: 'stream',
+                logo: defaultIcons['stream'], 
+                logos: pickLogosFromEntries(groups[n]),
+                url: 'mega://play|'+ucWords(n),
+                users: gcount[n]
+            }
         }
         gentries.push(e)
     })
@@ -349,7 +371,7 @@ addAction('getWatchingData', (entries) => {
 })
 
 function parseLabelCount(data){
-    var count = 0, ctl = '', type = 'total', fmt = Lang.X_WATCHING
+    var count = 0, ctl = '', type = 'total', fmt = Lang.X_WATCHING, type = 'total'
     /*
     if(typeof(data.mediaType) != 'undefined' && typeof(mediaTypeStreamsCount[data.mediaType]) != 'undefined'){
         count = mediaTypeStreamsCount[data.mediaType];
@@ -367,48 +389,7 @@ function parseLabelCount(data){
         }
     }
     */
-    if(typeof(data.name) != 'undefined'){
-        var n = data.name;
-        //console.warn('BEENNNNNNNNN#########', n, Menu.path);
-        if(n == Lang.BEEN_WATCHED && Menu.path){
-            n = basename(Menu.path);
-            //console.warn('BEENNNNNNNNN#########', n, Menu.path);
-            switch(n){
-                case Lang.LIVE:
-                    type = 'live', n = false;
-                    break;
-                case Lang.VIDEOS:
-                    type = 'video', n = false;
-                    break;
-                case Lang.RADIOS:
-                    type = 'radio', n = false;
-                    break;
-                case Lang.CATEGORIES:
-                    type = 'total', n = false;
-                    break;
-            }
-        } 
-        if(n) {
-            switch(n){
-                case Lang.CATEGORIES:
-                    type = 'total';
-                    break;
-                case Lang.LIVE:
-                    type = 'live';
-                    break;
-                case Lang.VIDEOS:
-                    type = 'video';
-                    break;
-                case Lang.RADIOS:
-                    type = 'audio';
-                    break;
-                default:
-                    type = 'total';
-                    break;
-            }
-        }
-    }
-    if(type && typeof(onlineUsersCount[type]) != 'undefined'){
+    if(typeof(onlineUsersCount[type]) != 'undefined'){
         count = onlineUsersCount[type];
         return fmt.format(parseCounter(count))
         /*
@@ -489,6 +470,32 @@ function getAppearanceOptionsEntries(){
                 Theme.set('icon-rounding', value);
                 clearTimeout(window['loadThemingApplyTimer']);
                 window['loadThemingApplyTimer'] = setTimeout(loadTheming, 400)
+            }
+        },       
+        {
+            name: Lang.ICON_FRAMING, 
+            type: 'group',
+            logo: 'fa-adjust',
+            entries: [],
+            renderer: () => {
+                return ['x', 'y', 'disabled'].map((o) => {
+                    let u = o.toUpperCase(), n = typeof(Lang[u]) == 'string' ? Lang[u] : u
+                    return {
+                        name: n,
+                        type: 'option',
+                        mode: o,
+                        callback: (data) => {
+                            if(Theme.get('icon-framing') != data.mode){
+                                Theme.set('icon-framing', o);
+                                loadTheming();
+                                setActiveEntry({mode: Theme.get('icon-framing')})
+                            }
+                        }
+                    }
+                })
+            },
+            callback: () => {
+                setActiveEntry({mode: Theme.get('icon-framing')})
             }
         }
     ]
@@ -898,8 +905,7 @@ function getToolsEntries(){
     var opts = [
         {name: Lang.HISTORY, append: getActionHotkey('HISTORY'), logo:'fa-history', type: 'group', renderer: getHistoryEntries, entries: []}, 
         {name: Lang.TIMER, logo:'fa-stopwatch', class: 'entry-timer', type: 'group', renderer: timer},    
-        {name: ucWords(Lang.USERS), type: 'group', logo: 'fa-user', renderer: getProfileEntries},
-        {name: Lang.BEEN_WATCHED, logo: 'fa-users', class: 'entry-nosub', labeler: parseLabelCount, type: 'group', renderer: getWatchingEntries, entries: []}
+        {name: ucWords(Lang.USERS), type: 'group', logo: 'fa-user', renderer: getProfileEntries}
     ]
     opts = applyFilters('afterToolsEntries', applyFilters('toolsEntries', opts))
     opts.push({name: Lang.HELP, logo: 'fa-question-circle', class: 'entry-nosub', type: 'option', callback: help})
@@ -999,6 +1005,146 @@ function getTranscodeEntries(){
         })
     }
     return opts
+}
+
+function searchingEntriesSetLoading(){
+    let container = Menu.container()
+    if(!container.find('a.entry-loading').length){
+        container.find('a.entry-stream, a.entry-loading, a.entry-tuning, a.entry-empty').remove()
+        Menu.render([
+            Menu.loadingEntry()
+        ], -1, container.find('a.entry').length)
+    }
+}
+
+function getSearchingEntries(){
+    let term = lastSearchTerm, type = lastSearchType, n = Playback.active, container = Menu.container()
+    if(n && n.entry.originalUrl && isMegaURL(n.entry.originalUrl)){
+        var data = parseMegaURL(n.entry.originalUrl)
+        if(data && data.type == 'play'){
+            term = data.name
+        }
+    }
+    let entries = [
+        {
+            type: 'input',
+            name: Lang.SEARCH,
+            change: (e, element, val) => {
+                var np = container.find('a.entry-input'), initPath = Menu.path;
+                clearTimeout(searchKeypressTimer);
+                if(val){
+                    lastSearchTerm = val
+                    Store.set('last-search-term', val, true)
+                    searchingEntriesSetLoading()
+                } else {
+                    if(!container.find('a.entry-empty').length){
+                        container.find('a.entry-stream, a.entry-loading, a.entry-tuning, a.entry-empty').remove()
+                        Menu.list([Menu.emptyEntry()], Menu.path)
+                    }
+                }
+                Pointer.focus(np)
+                np.find('input').get(0).focus()
+                var initialTerms = val, callback = (results) => {
+                    if(Menu.path == initPath && initialTerms == lastSearchTerm){
+                        var append = Menu.query(Menu.getEntries(true, true, true), {type: 'stream'}).length;
+                        console.log('QQQ', results, val, type, Menu.path);
+                        results = results.map((e) => {
+                            e.origin = {
+                                term: val,
+                                searchType: type
+                            }
+                            return e
+                        })
+                        if(append){
+                            if(results.length){
+                                Menu.list(results, Menu.path, Menu.getEntries(false, false, false).length)
+                            }
+                        } else {
+                            container.find('a.entry-stream, a.entry-loading, a.entry-tuning, a.entry-group:not(.entry-search-meta), a.entry-suggest, a.entry-empty').remove();
+                            if(!results.length){
+                                results = [Menu.emptyEntry(Lang.NO_RESULTS, 'fa-ban')]
+                            }
+                            Menu.list(results, Menu.path)
+                        }
+                        Pointer.focus(np)
+                        np.find('input').get(0).focus()
+                    }
+                }
+                searchKeypressTimer = setTimeout(() => {
+                    clearTimeout(searchKeypressTimer)
+                    if(initPath == Menu.path){
+                        if(val.length < 2){
+                            callback([])
+                            if(type == 'live'){
+                                getSearchSuggestions()
+                            }
+                            return
+                        }
+                        searchingEntriesSetLoading()
+                        var parentalControlAllowed = parentalControlAllow(val, true)
+                        console.warn('SEARCHING...', type, parentalControlAllowed)
+                        if(adultContentPolicy == 'allow' || parentalControlAllowed){   
+                            searchEngines[type].callback(val, callback)
+                        } else if(!parentalControlAllowed) {
+                            let e = Menu.emptyEntry(Lang.ADULT_CONTENT_BLOCKED, 'fa-ban')
+                            e.callback = () => {
+                                Menu.go(secPath, () => {
+                                    Menu.setBackTo(initPath)
+                                })
+                            }
+                            callback([e])
+                        } else {
+                            callback([Menu.emptyEntry(Lang.NO_RESULTS, 'fa-ban')])
+                        }
+                        sendStats('search', {query: val, type})
+                    }
+                }, 750)
+            },
+            value: term,
+            placeholder: Lang.SEARCH_PLACEHOLDER
+        },
+        {
+            name: Lang.SEARCH_OPTIONS, 
+            label: Lang.SEARCH, 
+            type: 'group', 
+            logo: 'fa-cog', 
+            class: 'entry-search-meta',
+            callback: () => {
+                Menu.setBackTo(searchPath)
+                setTimeout(() => {
+                    if(basename(Menu.path) == Lang.SEARCH_OPTIONS){
+                        Menu.setBackTo(searchPath)
+                    }
+                }, 200)
+            },
+            entries: [
+                {name: Lang.SEARCH_FOR, type: 'group', logo: 'fa-search', renderer: () => { 
+                    return Object.values(searchEngines).map(engine => {
+                        return {
+                            name: engine.name,
+                            slug: engine.slug,
+                            logo: 'fa-search',
+                            type: 'option',
+                            callback: (data) => {
+                                goSearch(null, data.slug)
+                            }
+                        }
+                    })
+                }, callback: () => {
+                    setActiveEntry({slug: lastSearchType})
+                }},
+                {name: Lang.SECURITY, type: 'option', logo: 'fa-shield-alt', callback: () => { 
+                    Menu.go(secPath);
+                    Menu.setBackTo(searchPath)
+                }},
+                {name: Lang.TUNE, type: 'option', logo: 'fa-broadcast-tower', callback: () => { 
+                    Menu.go(tunePath);
+                    Menu.setBackTo(searchPath)
+                }}
+            ]
+        }
+    ]
+    return entries
 }
 
 function getSettingsEntries(){

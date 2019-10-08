@@ -26,10 +26,10 @@ const Tuning = (() => {
             if(ret > cpuLimit){
                 ret = cpuLimit
             }
-            if(ret < 2){
-                ret = 2
-            } else if(ret > 8) {
-                ret = 8
+            if(ret < 1){
+                ret = 1
+            } else if(ret > 3) {
+                ret = 3
             }
             return ret
         },
@@ -104,7 +104,7 @@ class Tuner extends Events {
         this.testMap = null
         this.entries = entries
         this.suspended = true
-        this.resultBufferSize = 1
+        this.resultBufferSize = 0
         this.scanState = 0 // 0=not started, 1=started, 2=internally suspended, 3=done
         this.finished = false
         this.destroyed = false
@@ -293,7 +293,7 @@ class Tuner extends Events {
         this.resume()
     }
     shouldSuspend(){
-        return (this.resultBufferSize != -1 && this.buffered() >= this.resultBufferSize)
+        return (this.resultBufferSize != -1 && this.resultBufferSize && this.buffered() >= this.resultBufferSize)
     }
     test(i, tcb){
         let entry = this.entries[i], t = this.typeMap[i]
@@ -328,8 +328,19 @@ class Tuner extends Events {
                     }                    
                 }
                 intent.on('start', () => {
-                    types.push(intent.type)
-                    icb()
+                    if(this.skipPlaybackTest === true){
+                        types.push(intent.type)
+                        icb()
+                    } else {
+                        intent.test(worked => {
+                            if(worked){
+                                types.push(intent.type)
+                            } else {
+                                errors.push(intent.error || 'Test failed')
+                            }
+                            icb()
+                        })
+                    }
                 })
                 intent.on('error', () => {
                     errors.push(intent.error)

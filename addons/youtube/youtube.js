@@ -126,7 +126,13 @@ function getYTLiveFeeds(term, cb){
     var country = Countries.select(locale, 'country_'+locale.substr(0, 2)+',country_iso', 'locale', true)
     if(!term){
         var terms = getSearchSuggestionsTerms(true)
-        terms = terms.slice(0, 3)
+        terms = terms.slice(0, 4)
+        terms = terms.map(term => {
+            if(term.indexOf(' ') != -1){
+                term = '"'+term+'"'
+            }
+            return term
+        })
         terms.push(country)
         term = terms.join(' OR ')
     }
@@ -157,11 +163,15 @@ function getYTLiveFeeds(term, cb){
 
 function getYTVideoFeeds(term, cb){
     var locale = getDefaultLocale(false, false)
-    var country = Countries.select(locale, 'country_'+locale.substr(0, 2)+',country_iso', 'locale', true)
     if(!term){
         var terms = getSearchSuggestionsTerms(true)
         terms = terms.slice(0, 3)
-        terms.push(country)
+        terms = terms.map(term => {
+            if(term.indexOf(' ') != -1){
+                term = '"'+term+'"'
+            }
+            return term
+        })
         term = terms.join(' OR ')
     }
     if(term.length > 128){

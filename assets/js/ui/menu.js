@@ -298,49 +298,64 @@ function help(){
     nw.Shell.openExternal(nw.App.manifest.bugs)
 }
 
-var searchSuggestions = [];
+var searchSuggestions = [], searchSuggestionsEntries = []
 
 function getSearchSuggestions(){
-    var url = 'http://app.megacubo.net/stats/data/searching.'+getLocale(true)+'.json';
-    fetchEntries(url, (suggestions) => {
-        var entries = [];
-        if(suggestions && suggestions.length){
-            searchSuggestions = removeSearchSuggestionsTermsAliasesObject(suggestions)
-            suggestions.forEach((suggest, i) => {
-                suggestions[i].search_term = suggestions[i].search_term.trim()
-                if(parentalControlAllow(suggest.search_term)){
-                    var t = Lang.SEARCH + ': ' + suggest.search_term, c = ucWords(suggest.search_term), s = encodeURIComponent(c), entry = {name: c, logo: 'http://app.megacubo.net/logos/'+encodeURIComponent(s)+'.png', type: 'stream', label: Lang.MOST_SEARCHED, url: 'mega://play|'+s};
-                    entries.push({
-                        name: suggest.search_term, 
-                        defaultLogo: defaultIcons['stream'], 
-                        logo: 'http://app.megacubo.net/logos/{0}.png'.format(encodeURIComponent(suggest.search_term)), 
-                        type: 'option', 
-                        class: 'entry-suggest', 
-                        label: Lang.SEARCH, 
-                        callback: (data, element) => {
-                            goSearch(suggest.search_term)
-                            if(element){
-                                setEntryFlag(element, 'fa-mega spin-x-alt')
-                            }
-                        }
-                    })
-                    var a = jQuery('<a href="#" title="'+t+'" aria-label="'+t+'">'+suggest.search_term+'</a>&nbsp;');
-                    a.data('entry-data', entry).on('click', (event) => {
-                        var entry = jQuery(event.currentTarget).data('entry-data');
-                        // goSearch(entry.name.toLowerCase())
-                        playEntry(entry)
-                    }).on('click', (event) => {
-                        event.preventDefault()
-                    })
-                }
-            });
-            //console.warn('INPUT', basename(Menu.path), basename(searchPath), Menu.path, searchPath, lastSearchTerm, lastSearchTerm.length);
-            if(basename(Menu.path) == basename(searchPath) && jQuery('.entry-search input').val().length <= 2){
-                jQuery('.entry-suggest').remove();
-                Menu.list(entries, searchPath)
-            }
+    let allow = () => {
+        return basename(Menu.path) == basename(searchPath) && jQuery('.entry-search input').val().length <= 2 && !jQuery('.entry-suggest').length
+    }
+    let done = (entries) => {
+        if(allow()){
+            jQuery('.entry-suggest').remove()
+            Menu.list(entries, searchPath)
         }
-    })
+    }
+    let getEntries = (cb) => {
+        if(searchSuggestionsEntries.length){
+            cb(searchSuggestionsEntries)
+        } else {
+            getSuggestions(suggestions => {
+                let entries = []
+                suggestions.forEach((suggest, i) => {
+                    suggestions[i].search_term = suggestions[i].search_term.trim()
+                    if(parentalControlAllow(suggest.search_term)){
+                        var t = Lang.SEARCH + ': ' + suggest.search_term, c = ucWords(suggest.search_term), s = encodeURIComponent(c), entry = {name: c, logo: 'http://app.megacubo.net/logos/'+encodeURIComponent(s)+'.png', type: 'stream', label: Lang.MOST_SEARCHED, url: 'mega://play|'+s};
+                        entries.push({
+                            name: suggest.search_term, 
+                            logo: 'fa-search', 
+                            type: 'option', 
+                            class: 'entry-suggest', 
+                            label: Lang.SEARCH, 
+                            callback: (data, element) => {
+                                goSearch(suggest.search_term)
+                                if(element){
+                                    setEntryFlag(element, 'fa-mega spin-x-alt')
+                                }
+                            }
+                        })
+                    }
+                })
+                searchSuggestionsEntries = entries
+                cb(searchSuggestionsEntries)
+            })
+        }
+    }
+    let getSuggestions = (cb) => {
+        if(searchSuggestions.length){
+            cb(searchSuggestions)
+        } else {
+            var url = 'http://app.megacubo.net/stats/data/searching.'+getLocale(true)+'.json';
+            fetchEntries(url, (suggestions) => {
+                searchSuggestions = removeSearchSuggestionsTermsAliasesObject(suggestions)
+                cb(searchSuggestions)
+            })
+        }
+    }
+    getEntries(done)
+}
+
+function getSearchSuggestionsTerms(){
+    return searchSuggestions.map(s => s.search_term)
 }
 
 function removeSearchSuggestionsCheckNames(a, b){
@@ -882,7 +897,8 @@ class VirtualMenu extends Events {
         return {
             name: txt || Lang.EMPTY, 
             logo: icon || 'fa-sticky-note', 
-            type: 'option'
+            type: 'option',
+            class: 'entry-empty'
         }
     }
     loadingEntry(txt){
@@ -894,14 +910,6 @@ class VirtualMenu extends Events {
             logo: 'fa-mega spin-x-alt',
             class: 'entry-loading'
         }
-    }
-    renderLoadingEntry(){
-        if(this.debug){
-            console.warn('renderLoadingEntry', traceback())
-        }
-        this.renderBackEntry();
-        var loader = this.loadingEntry();
-        this.render([loader])
     }
     loaded(){
         this.j('.entry-loading').remove()
@@ -2242,6 +2250,23 @@ class VirtualMenu extends Events {
 
 const Menu = new VirtualMenu({j: jQuery, debug: debugAllow(false)})
 
+function entriesViewportFilter(entries){
+    let skip, ret = [], c = Menu.container(), start = c.scrollTop(), end = start + c.height()
+    entries.filter((a, b) => {
+        if(skip){
+            return false
+        }
+		let element = typeof(a) == 'number' ? b : a
+        let scrTop = element.offsetTop
+        if(scrTop > start && scrTop < end) {
+            ret.push(element)
+        } else if(scrTop > end) {
+            skip = true
+        }
+    })
+    return ret
+}
+
 function getTuningEntry(){
     var mega = 'mega://play|'+Menu.path.replaceAll('/', '-'), type = 'all', t = Tuning.get(mega, type), n = t && !t.suspended ? ('{0} {1}%').format(Lang.TESTING, parseInt(t.status)) : Lang.TEST_THEM_ALL
     return {type: 'option', name: n, label: '', logo: 'fa-magic', class: 'entry-tuning', callback: () => {
@@ -2362,57 +2387,15 @@ jQuery(() => {
             }
         }                
         //console.log('POSFILTERED', entries);
+        // var ac = (hasStreams && firstStreamOrGroupEntryOffset != -1 && allowTuningEntry(path, nentries))
+
+
+
         var ac = (hasStreams && firstStreamOrGroupEntryOffset != -1 && allowTuningEntry(path, nentries))
-        if(Menu.path == searchPath || ac) {
-            //console.warn(nentries, Menu.query(nentries, {name: Lang.SEARCH_OPTIONS}), Menu.query(nentries, {name: Lang.SEARCH_OPTIONS}).length);
-            nentries = Menu.query(nentries, {name: Lang.SEARCH_OPTIONS}, true)
-            if(!Menu.query(Menu.getEntries(true), {name: Lang.SEARCH_OPTIONS}).length){
-                //console.log('HEREEE!', Menu.path, searchPath, Menu.path == searchPath, lastSearchTerm);
-                let aopt = getTuningEntry()
-                if(Menu.path == searchPath){
-                    //console.log('HEREEE!', aopt, Menu.path);
-                    var opts = {name: Lang.SEARCH_OPTIONS, label: Lang.SEARCH, type: 'group', logo: 'fa-cog', 
-                        callback: () => {
-                            Menu.setBackTo(searchPath)
-                            setTimeout(() => {
-                                if(basename(Menu.path) == Lang.SEARCH_OPTIONS){
-                                    Menu.setBackTo(searchPath)
-                                }
-                            }, 200)
-                        },
-                        entries: [
-                            {name: Lang.SEARCH_FOR, type: 'group', logo: 'fa-search', renderer: () => { 
-                                return Object.values(searchEngines).map(engine => {
-                                    return {
-                                        name: engine.name,
-                                        slug: engine.slug,
-                                        logo: 'fa-search',
-                                        type: 'option',
-                                        callback: (data) => {
-                                            goSearch(null, data.slug)
-                                        }
-                                    }
-                                })
-                            }},
-                            {name: Lang.SECURITY, type: 'option', logo: 'fa-shield-alt', callback: () => { 
-                                Menu.go(secPath);
-                                Menu.setBackTo(searchPath)
-                            }},
-                            {name: Lang.TUNE, type: 'option', logo: 'fa-broadcast-tower', callback: () => { 
-                                Menu.go(tunePath);
-                                Menu.setBackTo(searchPath)
-                            }}
-                        ]
-                    };
-                    if(ac){
-                        nentries.splice(firstStreamOrGroupEntryOffset, 0, aopt)
-                    }
-                    nentries.splice(firstStreamOrGroupEntryOffset, 0, opts)
-                } else if(ac) {
-                    nentries = Menu.query(nentries, {name: aopt.name}, true);
-                    nentries.splice(firstStreamOrGroupEntryOffset, 0, aopt)
-                }
-            }
+        if(ac) {
+            let aopt = getTuningEntry()
+            nentries = Menu.query(nentries, {name: aopt.name}, true);
+            nentries.splice(firstStreamOrGroupEntryOffset, 0, aopt)
         }
         if(hasStreams && !hasVisibleStreams){ // has stream entries, but them're blocked by the parental control
             nentries.push(Menu.emptyEntry())

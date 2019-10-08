@@ -573,44 +573,6 @@ function playEntry(oentry, opts, types, tuning, cb){
     }
 }
 
-/*
-function allowTuningEntry(curPath, entries){
-    // should append tuning in this path?
-    if(!curPath){
-        return false
-    }
-    var offerTuning = false, tuningAllowPaths = [Lang.LIVE, Lang.VIDEOS, Lang.MY_LISTS, Lang.SEARCH], ignorePaths = [Lang.BEEN_WATCHED, Lang.HISTORY, Lang.RECORDINGS, Lang.BOOKMARKS, Lang.NEXT, 'Youtube']
-    if(Array.isArray(entries)){
-        entries.some((entry) => {
-            var type = getMediaType(entry)
-            if(type){
-                if(['live', 'video'].indexOf(type) != -1){
-                    offerTuning = true
-                } else if(typeof(customMediaTypes[type]) != 'undefined' && customMediaTypes[type]['testable']) {
-                    offerTuning = true
-                }
-            }   
-            return offerTuning 
-        })
-    } else {  // no entries, check for path so
-        tuningAllowPaths.forEach((path) => {
-            if(curPath.length && curPath.indexOf(path) != -1){
-                offerTuning = true
-            }
-        })
-    }
-    if(offerTuning){
-        ignorePaths.every((path) => {
-            if(basename(curPath) == path){
-                offerTuning = false
-            }
-            return offerTuning
-        })
-    }
-    return offerTuning
-}
-*/
-
 function allowTuningEntry(curPath, entries){
     // should append tuning in this path?
     if(curPath){
@@ -1236,7 +1198,7 @@ function fetchEntries(url, callback, update){
             callback(data)
         }
     }
-    return data;
+    return data
 }
 
 var uiSounds = [];

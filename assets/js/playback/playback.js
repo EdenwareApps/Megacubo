@@ -169,6 +169,9 @@ class PlaybackManager extends Events {
                     }                    
                 }
             })
+            if(!ret){
+                ret = 1 // I'm watching
+            }
         }
         return ret
     }
@@ -269,26 +272,28 @@ class PlaybackManager extends Events {
                         message = err.message
                     } catch (e) {}
                     console.error('Playback error.', err || data, video, message)
-                    let c
-                    if(message.indexOf('stream parsing failed') != -1 && [this.active.videoCodec, this.active.audioCodec].indexOf('copy') != -1){
-                        this.active.videoCodec = 'libx264'
-                        this.active.audioCodec = 'aac'
-                        c = true
-                    } else {
-                        if(message.indexOf('Failed to send video') != -1 && this.active.videoCodec == 'copy'){
+                    if(video.currentTime < 10){
+                        let c
+                        if(message.indexOf('stream parsing failed') != -1 && [this.active.videoCodec, this.active.audioCodec].indexOf('copy') != -1){
                             this.active.videoCodec = 'libx264'
-                            this.active.videoCodecLock = true
-                            c = true
-                        }
-                        if(message.indexOf('Failed to send audio') != -1 && this.active.audioCodec == 'copy'){
                             this.active.audioCodec = 'aac'
-                            this.active.audioCodecLock = true
                             c = true
+                        } else {
+                            if(message.indexOf('Failed to send video') != -1 && this.active.videoCodec == 'copy'){
+                                this.active.videoCodec = 'libx264'
+                                this.active.videoCodecLock = true
+                                c = true
+                            }
+                            if(message.indexOf('Failed to send audio') != -1 && this.active.audioCodec == 'copy'){
+                                this.active.audioCodec = 'aac'
+                                this.active.audioCodecLock = true
+                                c = true
+                            }
                         }
-                    }
-                    if(c){
-                        this.active.restartDecoder()
-                        this.active.resetTimeout()
+                        if(c){
+                            this.active.restartDecoder()
+                            this.active.resetTimeout()
+                        }
                     }
                 }
                 /*
@@ -530,17 +535,6 @@ class PlaybackManager extends Events {
                         console.warn('prePlayEntryAllow COMMIT', entry, types)
                         if(tuning){
                             intent.tuning = [tuning.originalUrl, tuning.type]
-                        }
-                        if(entry.origin && entry.origin.type == 'search'){
-                            var add = {term: origin.term, type: origin.searchType}
-                            var sugs = Store.get('search-history')
-                            if(!Array.isArray(sugs)){
-                                sugs = []
-                            }
-                            if(sugs.indexOf(add) == -1) {
-                                sugs.push(add)
-                                Store.set('search-history', sugs, true)
-                            }
                         }
                     }
                 })
@@ -1393,7 +1387,7 @@ function getPlaybackErrorMessage(intentOrEntry, error){
     if(intentOrEntry){
         if(typeof(intentOrEntry.entry) != 'undefined'){
             entry = intentOrEntry.entry
-            if(intentOrEntry.error){
+            if(intentOrEntry.error && typeof(intentOrEntry.error) != 'boolean'){
                 error = intentOrEntry.error
             }
             if(intentOrEntry.statusCode && intentOrEntry.statusCode != 200){
@@ -1479,7 +1473,7 @@ function setMediaTypeClass(c){
 
 Playback.on('register', (intent, entry) => {
     intent.on('error', () => {
-        if(!Playback.active || Playback.active == intent){
+        if(!Playback.active || Playback.active == intent || intent.manual){
             setTimeout(() => {
                 continuePlayback(intent, true)
             }, 200)
@@ -1500,7 +1494,7 @@ Playback.on('register', (intent, entry) => {
 
 Playback.on('commit', (intent) => {
     console.log('COMMIT TRIGGERED');
-    setMediaTypeClass(intent.entry.mediaType||'video')
+    setMediaTypeClass(intent.entry.mediaType || 'video')
     Menu.playState(true)
     setStreamStateCache(intent.entry, true)
     onIntentCommit(intent)

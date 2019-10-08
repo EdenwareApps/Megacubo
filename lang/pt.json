@@ -400,5 +400,7 @@
 "SHARED_EXCLUSIVE_MODE_QUESTION": "O Megacubo é uma ferramenta para reproduzir listas de IPTV que pode usado em dois modos:\r\n\r\n1. <u>Exclusivo</u>: Adicione e use suas próprias listas IPTV\r\n2. <u>Compartilhado</u>: Use as listas IPTV compartilhadas por outros usuários.</p>",
 "WHEN_TRANSMISSION_FAILS": "Quando uma transmissão falhar...",
 "SEARCH_ALTERNATIVES": "Pesquisar transmissões alternativas",
-"TUNE_ALTERNATIVE": "Sintonizar transmissão alternativa"
+"TUNE_ALTERNATIVE": "Sintonizar transmissão alternativa",
+"TRANSCODING": "Transcodificando...",
+"ICON_FRAMING": "Enquadramento do ícone"
 }
