@@ -91,7 +91,11 @@
                     n = '<video class="background-image fit-screen" loop autoplay muted src="' + content + '" />';
                     break;
                 default:
-                    n = '<img class="background-image fit-screen" src="' + defaultBackground + '" style="background: ' + content+ '" />';
+                    if(content.charAt(0) == '#' || content.substr(0, 3) == 'rgb'){
+                        n = '<img class="background-image fit-screen" src="' + defaultBackground + '" style="background: ' + content+ '" />';
+                    } else {
+                        n = '<img class="background-image fit-screen" src="' + defaultBackground + '" style="background-size: cover; background-image: url(' + content+ ');" />';
+                    }
                     break;
             }
             if(n){

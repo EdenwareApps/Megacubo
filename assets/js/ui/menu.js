@@ -446,7 +446,7 @@ function renderRemoteSources(name){
                     if(!entry.name){
                         entry.name = getNameFromSourceURL(entry.url)
                     }
-                    entry.type = "group";
+                    entry.type = 'group';
                     if(!entry.label){
                         entry.label = '';
                     }
@@ -457,16 +457,14 @@ function renderRemoteSources(name){
                     }
                     return entry
                 })
-                // index = writeIndexPathEntries(Menu.path, entries);
-                // Menu.go(Menu.path);
                 Menu.asyncResult(path, entries);
                 setTimeout(markActiveSource, 250) // wait rendering
             } else {
                 failed()
             }
         })
-    }, 150);
-    return [Menu.loadingEntry()];
+    }, loadingToActionDelay);
+    return [Menu.loadingEntry()]
 }
 
 function fetchAndRenderEntries(url, name, filter, callback){
@@ -1069,6 +1067,7 @@ class VirtualMenu extends Events {
             if(Array.isArray(entries)){
                 if(entries.length == 1 && entries[0].class && entries[0].class.indexOf('entry-loading') != -1){
                     let dat = this.renderEntry(entries[0], element.tabIndexOffset, false)
+                    console.log('TRIGGER DATA 3', entries, entries.length, entries[0].class, element, dat.html);
                     this.j(element).replaceWith(dat.html)
                     this.path = npath
                     ok = true
@@ -2248,7 +2247,7 @@ class VirtualMenu extends Events {
     }
 }
 
-const Menu = new VirtualMenu({j: jQuery, debug: debugAllow(false)})
+const Menu = new VirtualMenu({j: jQuery, debug: debugAllow(true)})
 
 function entriesViewportFilter(entries){
     let skip, ret = [], c = Menu.container(), start = c.scrollTop(), end = start + c.height()

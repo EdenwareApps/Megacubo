@@ -1074,7 +1074,7 @@ class PlaybackManager extends Events {
                         if(ct && ct.toLowerCase().indexOf("mp2t") != -1){
                             if(!allowedTypes || allowedTypes.indexOf('ts') != -1){
                                 if(currentPlaybackTypePriotity == -1 || Playback.intentTypesPriorityOrder.indexOf('ts') < currentPlaybackTypePriotity){
-                                    console.log('CREATEINTENT FOR TS', entry.url, ct);
+                                    console.log('CREATEINTENT FOR TS', entry.url, ct, traceback());
                                     types.push('ts')
                                 }
                             }

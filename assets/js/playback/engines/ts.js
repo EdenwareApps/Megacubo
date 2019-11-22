@@ -19,7 +19,7 @@ class PlaybackTsIntent extends PlaybackTranscodeIntent {
             this.apply(options)
             //console.log('ZZZZ', options, this);
         }  
-        this.on('restart-decoder', () => {            
+        this.on('restart-decoder', () => {
             if(this.proxy){
                 this.proxy.prepareQuickRecovering()
             }
@@ -108,12 +108,13 @@ class TSInfiniteProxyPool {
 	constructor(request){
 		this.pool = {}
 		this.request = request	
-		this.debug = debugAllow(false) ? console.warn : false
+		this.debug = debugAllow(true) ? console.warn : false
 	}
 	updateConfig(){
 		Object.keys(this.pool).forEach(u => {
 			if(!this.pool[u].destroyed){
-				this.pool[u].updateConfig()
+				this.pool[u].opts.needleSize = Config.get('ts-joining-needle-size') * 1024 
+                this.pool[u].opts.backBufferSize = Config.get('ts-joining-stack-size') * (1024 * 1024)
 			}
 		})
 	}
@@ -133,7 +134,9 @@ class TSInfiniteProxyPool {
 				ready, 
 				request: this.request,
                 debug: this.debug,
-                ffmpeg: path.resolve('../ffmpeg/ffmpeg')
+                ffmpeg: path.resolve('../ffmpeg/ffmpeg'),
+                backBufferSize: Config.get('ts-joining-stack-size') * (1024 * 1024),
+                needleSize: Config.get('ts-joining-needle-size') * 1024
 			}, opts || {}))
 			this.pool[url].on('destroy', () => {
 				delete this.pool[url]

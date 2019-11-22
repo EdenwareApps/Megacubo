@@ -390,7 +390,8 @@ function fetchTimeout(url, _callback, ms, opts){
 
 function fetchTimeout(url, _callback, ms, opts){
     request({url, timeout: ms}, (error, response, body) => {
-        _callback(body, response.headers['content-type'] || '')
+        let type = response ? (response.headers['content-type'] || '') : ''
+        _callback(body || '', type)
     })
 }
 
@@ -820,8 +821,8 @@ if(top == window){
                 "theme-current": "default",
                 "tooltips": true,
                 "transcode-fps": 0,
-                "ts-joining-needle-size": 512, // KB
-                "ts-joining-stack-size": 10, // MB
+                "ts-joining-needle-size": 128, // KB
+                "ts-joining-stack-size": 12, // MB
                 "tune-timeout": 45,
                 "tuning-ignore-webpages": true,
                 "volume": 1.0,
@@ -920,9 +921,9 @@ if(top == window){
             active: 'default',
             dir: path.resolve('themes'),
             defaults: {
-                "compability": 1.1, // increment to purge default theme
+                "compability": 1.2, // increment to purge default theme
                 "hide-logos": false,
-                "background-image": "linear-gradient(to top, #000004 0%, #150055 75%)",
+                "background-image": "assets/images/wallpaper.png",
                 "background-color": "#150055",
                 "background-color-playing": "#020006",
                 "background-opacity": 100,

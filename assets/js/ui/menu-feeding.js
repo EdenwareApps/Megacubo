@@ -205,10 +205,6 @@ function getRemoteSources(callback){
 
 function loadSource(url, name, callback, filter, isVirtual){
     var path = assumePath(name);
-    if(!isVirtual) {
-        var container = Menu.container(true);
-        Menu.renderBackEntry(container, dirname(path), name)
-    }
     var failed = () => {
         notify(Lang.DATA_FETCHING_FAILURE, 'fa-exclamation-triangle faclr-red', 'normal');
         Menu.back()
@@ -2030,7 +2026,7 @@ function getListsEntries(notActive, noManagement, isVirtual){
         options.push({name: Lang.REMOVE_LIST, logo: 'fa-trash', type: 'group', renderer: getListsEntriesForRemoval, callback: markActiveSource})
     }
     if(!isVirtual && Config.get('search-range-size') > 0){
-        options.push({name: Lang.ALL_LISTS, logo: 'fa-users', type: 'group', renderer: (data) => {
+        options.push({name: Lang.ALL_LISTS, label: Lang.SHARED_LISTS, logo: 'fa-users', type: 'group', renderer: (data) => {
             return renderRemoteSources(data.name)
         }, entries: []})
     }
@@ -2156,7 +2152,7 @@ function indexateEntries(entries, mask){
 
 function paginateEntries(entries, limit){
     if(typeof(limit) != 'number'){
-        limit = 24
+        limit = 48
     }
     let ranges = [], result = []
     entries.forEach((e, i) => {

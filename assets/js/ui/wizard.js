@@ -52,6 +52,7 @@ const Wizard = (() => {
                 }
             }
         ]
+        self.steps = applyFilters('wizardSteps', self.steps)
         self.go()
     }
     self.go = () => {

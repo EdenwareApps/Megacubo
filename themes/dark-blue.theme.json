@@ -4,7 +4,7 @@
   "background-color-playing": "#000004",
   "background-image": "linear-gradient(to top, #000004 0%, #0a0a20 75%)",
   "background-opacity": 100,
-  "compability": 1.1,
+  "compability": 1.2,
   "font-color": "#FFFFFF",
   "font-family": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Oxygen-Sans, Ubuntu, Cantarell, \"Helvetica Neue\", sans-serif",
   "font-size": 13,

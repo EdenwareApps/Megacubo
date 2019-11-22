@@ -24,24 +24,7 @@ if(typeof(PremiumHelper) == 'undefined'){
                     console.warn('CHECKK', checked, data)
                     if(checked){
                         if(!self.installed(true)){
-                            self.shouldInstall = true;
-                            self.notification.update(Lang.ENABLING_PREMIUM_FEATURES.format(0), 'fa-mega spin-x-alt', 'forever')
-                            jQuery(element).find('.entry-name').html('<i class="fas fa-circle-notch pulse-spin"></i> &nbsp;' + Lang.ENABLING_PREMIUM_FEATURES.format(0))
-                            self.install((err) => {
-                                self.notification.hide()
-                                if(!self.installed(false)){
-                                    console.error(err)
-                                    Menu.refresh()                                    
-                                    self.notification.update(Lang.ENABLE_PREMIUM_FEATURES_FAILURE, 'fa-exclamation-circle faclr-red', 'normal')
-                                    setTimeout(() => {
-                                        if(!isFullScreen()){
-                                            nw.Shell.openExternal(appDownloadUrl())
-                                        }
-                                    }, notifyParseTime('normal') * 1000)
-                                } else {
-                                    restartApp(true)
-                                }
-                            }, element)
+                            self.installProcess(element)
                         }
                     } else {
                         self.shouldInstall = false;
@@ -120,20 +103,48 @@ if(typeof(PremiumHelper) == 'undefined'){
                     total_bytes = parseInt(data.headers['content-length' ])
                     console.log('INSTALL PREMIUM', 'DOWNLOAD', 'STATUS',  received_bytes, '/', total_bytes)
                 })
-                req.on('data', function(chunk) {
+                req.on('data', (chunk) => {
                     if(!self.shouldInstall){
                         self.notification.hide()
                         req.abort()
                     }
                     received_bytes += chunk.length;
                     console.log('INSTALL PREMIUM', 'DOWNLOAD', 'STATUS',  received_bytes, '/', total_bytes)
-                    var p = '0';
+                    var p = '0'
                     if(total_bytes){
                         p = Math.round(received_bytes / (total_bytes / 100))
                     }
                     self.notification.update(Lang.ENABLING_PREMIUM_FEATURES.format(p), 'fa-mega spin-x-alt', 'forever')
                     jQuery(element).find('.entry-name').html('<i class="fas fa-circle-notch pulse-spin"></i> &nbsp;' + Lang.ENABLING_PREMIUM_FEATURES.format(p))
                 })
+            }
+        }
+        self.installProcess = (element) => {
+            self.shouldInstall = true
+            self.notification.update(Lang.ENABLING_PREMIUM_FEATURES.format(0), 'fa-mega spin-x-alt', 'forever')
+            if(element){
+                jQuery(element).find('.entry-name').html('<i class="fas fa-circle-notch pulse-spin"></i> &nbsp;' + Lang.ENABLING_PREMIUM_FEATURES.format(0))
+            }
+            self.install((err) => {
+                self.notification.hide()
+                if(!self.installed(false)){
+                    console.error(err)
+                    Menu.refresh()                                    
+                    self.notification.update(Lang.ENABLE_PREMIUM_FEATURES_FAILURE, 'fa-exclamation-circle faclr-red', 'normal')
+                    setTimeout(() => {
+                        if(!isFullScreen()){
+                            nw.Shell.openExternal(appDownloadUrl())
+                        }
+                    }, notifyParseTime('normal') * 1000)
+                } else {
+                    restartApp(true)
+                }
+            }, element)
+        }
+        self.shouldOffer = () => {
+            let lVer = Store.get('last-premium-offer-ver')
+            if(!lVer || lVer != nw.App.manifest.version){
+                return !self.installed(false)
             }
         }
         self.uninstall = (cb, force) => {
@@ -164,6 +175,28 @@ if(typeof(PremiumHelper) == 'undefined'){
                 entries = entries.concat(ns)
             }
             return entries
+        })
+        addFilter('wizardSteps', steps => {
+            let close = () => {                
+                modalClose()
+                Store.set('last-premium-offer-ver', nw.App.manifest.version, true)
+            }, opt = {
+                question: Lang.PREMIUM_OFFER_QUESTION, 
+                answers: [
+                    ['<i class="fas fa-check-circle"></i> ' + Lang.ENABLE_PREMIUM_FEATURES, () => {
+                        close()
+                        self.installProcess(false)
+                    }],
+                    ['<i class="fas fa-ban"></i> ' + Lang.PREMIUM_NO_THANKS, () => {
+                        close()
+                    }]
+                ],
+                condition: () => {
+                    return self.shouldOffer()
+                }
+            }
+            steps.push(opt)
+            return steps
         })
         return self
     })()

@@ -1,58 +1,4 @@
 
-var torrentsSearchEngines = {}
-
-function torrentsSearch(terms, callback) {
-    var cheerio = require('cheerio')
-    if(terms.indexOf(' aac') == -1){
-        terms += ' aac'
-    }
-    if(!Array.isArray(torrentsSearchEngines)){
-        torrentsSearchEngines = [];
-        let dir = path.resolve('addons/torrents/search_engines')
-        fs.readdir(path.resolve(dir), (err, files) => {
-            files.forEach((file) => {
-                let f = require(dir + '/' + file), n = file.replace('.js', '').replace(new RegExp('[^A-Za-z0-9]+'), '')
-                if(typeof(f) == 'function'){
-                    torrentsSearchEngines[n] = f;
-                }
-            })
-            torrentsSearch(terms, callback)
-        })
-    } else {
-        let complete = 0, tentries = []
-        async.forEach(Object.keys(torrentsSearchEngines), (n, cb) => {
-            torrentsSearchEngines[n](terms, (err, entries, url, html, len) => {
-                complete++;
-                if(err){
-                    console.error('TORRENT SEARCH ERROR', err)
-                }
-                console.warn('TORRENT SEARCH', n, err, entries, Object.keys(torrentsSearchEngines))
-                console.warn('TORRENT SEARCH*', url, html, len)
-                entries = entries.filter((entry) => {
-                    var hash = getMagnetHash(entry.url)
-                    return !tentries.some((e, i) => {
-                        console.warn('TORRENT SEARCH**', e, i)
-                        if(e && hash == getMagnetHash(e.url)){
-                            if(e.score < entry.score){
-                                tentries[i].score = entry.score
-                            }
-                            tentries[i].url = Trackers.add(tentries[i].url, e.url)
-                            return true
-                        }
-                    })
-                })
-                console.warn('TORRENT SEARCH***', tentries, entries)
-                tentries = tentries.concat(entries)
-                cb()
-            }, {path, cheerio, request})
-        }, () => {
-            callback(null, tentries.sort((a, b) => {
-                return (a.score > b.score) ? -1 : ((b.score > a.score) ? 1 : 0)
-            }), complete == torrentsSearchEngines.length)
-        })
-    }
-}
-
 function torrentLabel(uri){
     var p = torrentPercentage(uri)
     return p >= 0 ? Lang.RECEIVING+': '+parseInt(p) + '%' : Lang.RECEIVED
@@ -161,16 +107,11 @@ var torrentOption = registerMediaType({
     'recordable': false,
     'categories': false,
     'categories_cb': (entries, cb) => {
-        console.warn('RIGHTT', entries)
+        console.warn('RIGHT', entries)
         torrentsAddLocal(entries, cb)
     },
     'search': (terms, cb) => {
-        torrentsSearch(terms, (err, results) => {
-            if(err){
-                console.error(err)
-            }
-            cb(results)
-        })
+        cb([])
     },
     'check': (url) => {
         if(typeof(url)!='string') return false;
@@ -187,8 +128,4 @@ var torrentOption = registerMediaType({
 addFilter('categoriesMetaEntries', entries => {
     entries.push(torrentOption)
     return entries
-})
-
-registerDialingAction('magnet-search', 'fa-magnet', (terms) => {
-    goSearch(terms.toLowerCase(), 'magnet')
 })

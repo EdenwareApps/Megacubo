@@ -3,7 +3,7 @@ class LogoFinder {
     constructor(opts){
         this.j = window.jQuery
         this.debug = false
-        this.concurrency = 2
+        this.concurrency = 0
         this.image = '<img src="{0}" />';
         ['log', 'warn', 'error'].forEach(f => {
             this[f] = this.debug ? console[f] : () => {}
@@ -33,7 +33,7 @@ class LogoFinder {
         }
     }
     next(){
-        if(this.pool.length && this.processing < this.concurrency){
+        if(this.pool.length && (!this.concurrency || this.processing < this.concurrency)){
             this.processing++
             this.process(this.pool.shift(), () => {
                 this.processing--

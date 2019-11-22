@@ -33,6 +33,7 @@ class TSInfiniteProxy extends Events {
 			delayLevelIncrement: 0.1,
 			ffmpeg: path.resolve('ffmpeg/ffmpeg')
 		}
+		this.defaults = this.opts
 		this.bitrate = false
 		this.downloadLogging = {}
 		this.clients = []
@@ -58,6 +59,18 @@ class TSInfiniteProxy extends Events {
 					this.opts[k] = opts[k]
 				}
 			})
+		}
+		if(typeof(this.opts.needleSize) != 'number' || this.opts.needleSize < (this.opts.minNeedleSize * 2) || this.opts.needleSize >= this.opts.backBufferSize){
+			if(this.opts.debug){
+				this.opts.debug('[ts] invalid needle size', this.opts.needleSize, 'default used', this.defaults.needleSize)
+			}
+			this.opts.needleSize = this.defaults.needleSize
+		}
+		if(typeof(this.opts.backBufferSize) != 'number' || this.opts.backBufferSize < (this.opts.needleSize * 10) || this.opts.backBufferSize > (this.defaults.backBufferSize * 3)){
+			if(this.opts.debug){
+				this.opts.debug('[ts] invalid back buffer (stack) size', this.opts.backBufferSize, 'default used', this.defaults.backBufferSize)
+			}
+			this.opts.backBufferSize = this.defaults.backBufferSize
 		}
 		this.mediainfo = new MediaInfo(this.opts)
 		this.hermes = Hermes

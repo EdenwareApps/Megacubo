@@ -1,6 +1,5 @@
 
-var torrentsFolder = Users.loggedFolder + path.sep + 'Torrents';
-var torrentsEntryName = 'Torrents', torrentSearchPath = torrentsEntryName + '/' + Lang.SEARCH; 
+var torrentsEntryName = 'Torrents', torrentsFolder = Users.loggedFolder + path.sep + 'Torrents'
 
 var torrentsDefaultTrackers = [
     "udp://tracker.tiny-vps.com:6969/announce", 
