@@ -31,12 +31,17 @@
 "CAST_ERR_UNEXPECTED": "Erro inesperado ao transmitir.",
 "CAST_ERR_NO_DEST": "Nenhum dispositivo encontrado.",
 "CAST_FINISH": "Transmissão finalizada.",
-"PREMIUM_ALREADY_ENABLED": "Os recursos Premium já estão ativados. Deseja mante-los ativados?",
+"PREMIUM_ALREADY_ENABLED": "Os recursos especiais já estão ativados. Deseja mante-los ativados?",
 "LICENSE_KEY": "Chave de licença",
 "PREMIUM_IDLE_RESOURCES": "Recursos ociosos (Luminati)",
 "PREMIUM_SHARE_IDLE_RESOURCES": "Compartilhar recursos ociosos (Luminati)",
 "PREMIUM_BALLOON_HINT": "Assista em sua TV com o Google Chromecast™ e gravar transmissões ao vivo.",
 "PREMIUM_ENABLE_SPECIAL_FEATURES": "Ativar recursos especiais",
 "PREMIUM_USE_FOR_FREE": "Usar gratuitamente",
-"PREMIUM_NO_THANKS": "Não, obrigado"
+"PREMIUM_NO_THANKS": "Não, obrigado",
+"PREMIUM_OFFER_QUESTION": "O Megacubo possui recursos especiais que permitem que você assista em sua TV com o Google Chromecast™ e grave transmissões ao vivo.\r\n\r\nDeseja ativar estes recursos?",
+"ENABLE_PREMIUM_FEATURES": "Ativar recursos especiais",
+"DISABLE_PREMIUM_FEATURES": "Desativar recursos especiais",
+"ENABLING_PREMIUM_FEATURES": "Ativando recursos especiais {0}%",
+"ENABLE_PREMIUM_FEATURES_FAILURE": "Falha ao baixar os recursos especiais. Experimente baixar diretamente em nosso site."
 }

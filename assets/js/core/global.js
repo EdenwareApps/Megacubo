@@ -2491,7 +2491,7 @@ function notify(str, fa, secs, eternal){
                     if(!(n && n.parent() && n.parent().parent())){
                         n = notify(str, fa, secs)
                     }
-                    return n;
+                    return n
                 }
                 timer = 0
                 if(secs){
@@ -2505,7 +2505,7 @@ function notify(str, fa, secs, eternal){
                     element: () => {
                         return getElement()
                     },
-                    update: (str, _fa, secs, keepHidden) => {
+                    update: (str, _fa, secs) => {
                         lastNotifyCall = (str + _fa);
                         n = getElement();
                         if(notifyDebug){
@@ -2543,6 +2543,7 @@ function notify(str, fa, secs, eternal){
                                     destroy()
                                 }, secs * 1000)
                             }
+                            n.remove().prependTo(a)
                             if(!n.is(":visible")){
                                 n.show().animate({left: 0, opacity: 1}, 250)
                             }

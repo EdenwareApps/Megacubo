@@ -108,7 +108,7 @@ class TSInfiniteProxyPool {
 	constructor(request){
 		this.pool = {}
 		this.request = request	
-		this.debug = debugAllow(true) ? console.warn : false
+		this.debug = debugAllow(false) ? console.warn : false
 	}
 	updateConfig(){
 		Object.keys(this.pool).forEach(u => {

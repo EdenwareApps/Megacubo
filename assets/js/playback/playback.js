@@ -116,6 +116,14 @@ class PlaybackManager extends Events {
             }
         }
     }
+    showChannelName(){
+        let s = 'normal', c = currentStream(), r = jQuery('.video-switch svg.fa-random')
+        c = c ? c.name : Lang.PLAY
+        if(r && r.length && r.is(':visible')){
+            notify('Se a transmissão não funcionar, clique no ícone <i class="fa fas fa-random"></i> para troca-la.', 'fa-info-circle', s)
+        }
+        this.notification.update(c, this.active.entry.logo || 'fa-play', s)
+    }
     setState(state){
         if(typeof(state) != 'string'){
             state = this.checkState()
@@ -125,15 +133,13 @@ class PlaybackManager extends Events {
             state = 'stop'
         }
         if(state != this.state){
-            console.warn('STATECHANGE', state, traceback())
+            console.warn('STATECHANGE', this.state, '=>', state, traceback())
             switch(state){
                 case 'play':
-                    let wasPaused = this.state == 'paused';
-                    var c = currentStream();
-                    c = c ? c.name : Lang.PLAY;
+                    let wasPaused = this.state == 'paused'
                     this.setStateContainers().addClass('playing').removeClass('loading').removeClass('paused')
                     if(wasPaused){
-                        this.notification.update(c, this.active.entry.logo || 'fa-play', 4)
+                        this.showChannelName()
                     }
                     break;
                 case 'pause':
@@ -1304,12 +1310,12 @@ function onIntentCommit(intent){
     onIntentTitle(intent);
     intent.on('rename', onIntentTitle);
     updateStreamEntriesFlags()
+    Playback.showChannelName()
 }
 
 function onIntentTitle(intent){
     setTitleData(intent.entry.name, intent.entry.logo);
     setStreamStateCache(intent.entry, true); // this already update entries flags
-    notify(intent.entry.name, 'fa-play', 'short');
 }
 
 function unfocus(e){ // unfocus from sandbox frame to catch keypresses

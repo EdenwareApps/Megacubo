@@ -1826,12 +1826,12 @@ function getBookmarksForRemoval(){
 function getLanguageEntries(){
     var options = []; 
     fs.readdirSync('lang').forEach(file => {
-        if(file.indexOf('.json')!=-1){
-            console.log(file);
-            var locale = file.split('.')[0];
-            var logoPath = 'assets/images/flags/'+locale+'.png';
+        if(file.indexOf('.json') != -1){
+            console.log(file)
+            var locale = file.split('.')[0]
+            var logoPath = 'assets/images/flags/'+locale+'.png'
             if(!fs.existsSync(logoPath)){
-                logoPath = 'fa-language';
+                logoPath = 'fa-language'
             }
             options.push({
                 name: availableLanguageNames[locale] || Lang.LANGUAGE+': '+locale.toUpperCase(),

@@ -1573,7 +1573,7 @@ var isOver, mouseOutGraceTime = 4000, miniPlayerMouseOutTimer = 0, miniPlayerMou
 var mouseMoveTimeout = () => {
     clearTimeout(miniPlayerMouseOutTimer);
     miniPlayerMouseOutTimer = setTimeout(() => {
-        isOver = false;
+        top.isOver = false;
         if(miniPlayerActive){
             _b.addClass('frameless') 
         }
@@ -1587,7 +1587,7 @@ var mouseMoveTimeout = () => {
 }
 
 var miniPlayerMouseOut = () => {
-    if(!isOver){
+    if(!top.isOver){
         if(miniPlayerActive){
             _b.addClass('frameless');
             _b.off('mousemove', mouseMoveTimeout)
@@ -1707,6 +1707,7 @@ function updateWindowOverClass(state) {
 }
 
 function attachMouseObserver(win){
+    let ctrl = 'amo-'+ process.ppid
     if(!win || !win.document){
         console.error('Bad observe', win, win.document, traceback())
         return;
@@ -1718,7 +1719,11 @@ function attachMouseObserver(win){
         }, 1000);
         return;
     }
-    var x = 0, y = 0, showing = false, margin = 6, v = false, t = 0, ht = 0, jw = jQuery(win), tb = jQuery(document).find('body');
+    if(typeof(win[ctrl]) == 'boolean'){
+        return
+    }
+    win[ctrl] = true
+    var x = 0, y = 0, showing = false, margin = 6, v = false, t = 0, ht = 0, jw = jQuery(win), tb = jQuery(document).find('body')
     try {
         var w = jw.width();
         var h = jw.height();
@@ -1726,14 +1731,14 @@ function attachMouseObserver(win){
         jQuery(win.document).on('mousemove', (e) => {
             top.mousePos.x = x = e.pageX;
             top.mousePos.y = y = e.pageY;
-            if(isOver) {
+            if(top.isOver) {
                 top.updateWindowOverClass();
                 return;
             } 
             if(typeof(menuTriggerIconTrigger)!='undefined') {
                 clearTimeout(menuTriggerIconTrigger)
             }
-            isOver = true;
+            top.isOver = true;
             let c = Playback.setStateContainers();
             if(!c.hasClass('over')) {
                 setWindowOverClass(true);
@@ -1742,7 +1747,7 @@ function attachMouseObserver(win){
                 top.updateWindowOverClass()
             }
             menuTriggerIconTrigger = setTimeout(() => {
-                isOver = false;
+                top.isOver = false;
                 let c = Playback.setStateContainers();
                 if(c.hasClass('over')){
                     setWindowOverClass(false);
@@ -1763,7 +1768,7 @@ function attachMouseObserver(win){
 }
 
 $body.on('mouseenter mousemove', () => {
-    isOver = true;
+    top.isOver = true;
     if(!top.isFullScreen()){
         _b.removeClass('frameless')
     }
@@ -1778,7 +1783,7 @@ $body.on('mouseenter mousemove', () => {
     fixMaximizeButton();
     mouseMoveTimeout()
 }).on('mouseleave', () => {
-    isOver = false;
+    top.isOver = false;
     clearTimeout(miniPlayerMouseHoverDelay)
     miniPlayerMouseHoverDelay = setTimeout(miniPlayerMouseOut, 2000)
 });
@@ -2244,8 +2249,8 @@ function setupControlFrames(){
     var p = getFrame('player'), o = getFrame('overlay');
     if(p && typeof(p.init) == 'function'){
         p.init()
-        attachMouseObserver(p)
         attachMouseObserver(o)
+        attachMouseObserver(p)
     } else {
         setTimeout(setupControlFrames, 1000)
     }
@@ -2273,8 +2278,9 @@ addAction('appLoad', () => {
         return getListsEntries(false, false, isVirtual)
     }}
     Menu.entries = Menu.insert(Menu.entries, Lang.CATEGORIES, iptvEntry, true)
-    soundSetup('warn', 16); // reload it
-    attachMouseObserver(window);
+    soundSetup('warn', 16) // reload it
+    attachMouseObserver(window)
+    setupControlFrames()
     Pointer.setup();
     [
         ['modal', '#modal-overlay input, #modal-overlay textarea, #modal-overlay .button:visible, .prompt-close a', () => {

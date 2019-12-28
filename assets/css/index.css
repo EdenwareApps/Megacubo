@@ -228,10 +228,14 @@ html.ui-transparent-menu #background-overlay {
 }
 
 #background-overlay .background-logo {
-    max-width: 36%;    
+    max-width: 28%;    
     max-height: 42%;
     position: absolute;
     transform-origin: center bottom 0px;
+}
+
+body.splash #background-overlay .background-logo {
+    max-width: 18%;    
 }
 
 .background-logo-container {

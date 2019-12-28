@@ -211,10 +211,6 @@ html #menu a.entry, #video-controls {
     height: calc((icon-size)px + (menu-entry-vertical-padding)px);
 }
 
-.menu-footer {
-    background: (background-color-playing)44;
-}
-
 html #menu a.entry:not(.entry-compact):not(.entry-input) td, td.entry-slider span.entry-slider-value {
     padding-left: calc((font-size)px * 0.5);
 }
@@ -484,7 +480,7 @@ body.tuning #background-overlay .background-logo, .spin-x {
     transform-origin: center bottom 0px;
 }
 
-.spin-x-alt {    
+.spin-x-alt, body.splash #background-overlay .background-logo {    
     animation: bga-spin-x-alt 3s infinite;
     display: inline-block;
 }

@@ -19,14 +19,16 @@ class TSInfiniteProxy extends Events {
 		this.url = url
 		this.opts = {
 			debug: false,
+			join: true,
 			idleTimeout: 10000,
 			initialErrorLimit: 2, // at last 2
 			errorLimit: 5,
-			minNeedleSize: 36 * 1024, // needle
-			needleSize: 128 * 1024, // needle
+			minNeedleSize: 96 * 1024, // needle
+			needleSize: 256 * 1024, // needle
 			backBufferSize: 12 * (1024 * 1024), // stack
 			sniffingSizeLimit: 128 * 1024, 
-			delaySecsLimit: 3,
+			minDelaySecs: 0.5,
+			delaySecsLimit: 7,
 			minBitrateCheckSize: 2 * (1024 * 1024),
 			bitrateCheckingAmount: 3,
 			quickRecoveringTimeout: 10,
@@ -297,22 +299,24 @@ class TSInfiniteProxy extends Events {
 	}
 	join(){
 		let done, needle = Buffer.concat(this.nextBuffer), ns = this.len(needle)
-		if(ns >= this.opts.minNeedleSize){
-			let start = this.time(), stack = Buffer.concat(this.backBuffer), pos = stack.lastIndexOf(needle)
-			if(pos != -1){
-				let sl = this.len(stack)
-				this.bytesToIgnore = sl - pos
-				if(this.opts.debug && this.bytesToIgnore){
-					this.opts.debug('[ts] ignoring next ' + this.kfmt(this.bytesToIgnore) + 'B', 'took ' + Math.round(this.time() - start, 1) + 's')
+		if(this.opts.join){
+			if(ns >= this.opts.minNeedleSize){
+				let start = this.time(), stack = Buffer.concat(this.backBuffer), pos = stack.lastIndexOf(needle)
+				if(pos != -1){
+					let sl = this.len(stack)
+					this.bytesToIgnore = sl - pos
+					if(this.opts.debug && this.bytesToIgnore){
+						this.opts.debug('[ts] ignoring next ' + this.kfmt(this.bytesToIgnore) + 'B', 'took ' + Math.round(this.time() - start, 1) + 's')
+					}
+				} else {
+					if(this.opts.debug){
+						this.opts.debug('[ts] no intersection', 'took ' + Math.round(this.time() - start, 1) + 's')
+					}
 				}
 			} else {
 				if(this.opts.debug){
-					this.opts.debug('[ts] no intersection', 'took ' + Math.round(this.time() - start, 1) + 's')
+					this.opts.debug('[ts] insufficient needle size, bypassing', this.kfmt(ns) + 'B' + ' < ' + this.kfmt(this.opts.minNeedleSize) + 'B', needle)
 				}
-			}
-		} else {
-			if(this.opts.debug){
-				this.opts.debug('[ts] insufficient needle size, bypassing', this.kfmt(ns) + 'B' + ' < ' + this.kfmt(this.opts.minNeedleSize) + 'B', needle)
 			}
 		}
 		this.output(needle) // release nextBuffer, bytesToIgnore is the key here to joining
@@ -379,22 +383,26 @@ class TSInfiniteProxy extends Events {
 			let speed = this.speed()
 			/* break leaking here by avoiding nested call to next pump */
 			if([400, 401, 403].indexOf(statusCode) == -1 && (!this.bitrate || speed < this.bitrate)){
-				this.delayLevel = 0
-				process.nextTick(this.pump.bind(this))
+				this.delayLevel = this.opts.minDelaySecs
 			} else {
 				if(this.delayLevel < this.opts.delaySecsLimit){
 					this.delayLevel += this.opts.delayLevelIncrement
 				}
-				setTimeout(this.pump.bind(this), this.opts.delaySecsLimit * 1000)
 				if(this.opts.debug){
 					this.opts.debug('[ts] delaying ' + this.delayLevel + ' seconds', statusCode == 200, ctype.indexOf('text') == -1, (!this.bitrate || speed < this.bitrate))
 				}
 			}
+			setTimeout(this.pump.bind(this), this.opts.delayLevel * 1000)
 		}
 		this.currentRequest = this.opts.request({
 			method: 'GET', 
 			uri: this.url, 
-			ttl: 0
+			ttl: 0,
+			headers: {
+				'Cache-Control': 'no-cache',
+				'Connection': 'keep-alive',
+				'Date': (new Date()).toUTCString()
+			}
 		})
 		this.currentRequest.on('error', (err) => {
 			if(this.destroyed){
@@ -483,7 +491,7 @@ class TSInfiniteProxy extends Events {
 		this.nextBuffer = false
 		this.errors = 0
 		this.bytesToIgnore = 0
-		this.delayLevel = 0
+		this.delayLevel = this.opts.minDelaySecs
 	}
 	triggerError(...args){
 		this.errors++

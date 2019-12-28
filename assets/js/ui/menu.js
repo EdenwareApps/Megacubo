@@ -2247,7 +2247,7 @@ class VirtualMenu extends Events {
     }
 }
 
-const Menu = new VirtualMenu({j: jQuery, debug: debugAllow(true)})
+const Menu = new VirtualMenu({j: jQuery, debug: debugAllow(false)})
 
 function entriesViewportFilter(entries){
     let skip, ret = [], c = Menu.container(), start = c.scrollTop(), end = start + c.height()

@@ -38,5 +38,10 @@
 "PREMIUM_BALLOON_HINT": "Guarda sulla TV con Google Chromecast™ e registra streaming live.",
 "PREMIUM_ENABLE_SPECIAL_FEATURES": "Abilita funzioni speciali",
 "PREMIUM_USE_FOR_FREE": "Utilizza gratuitamente",
-"PREMIUM_NO_THANKS": "No, grazie"
+"PREMIUM_NO_THANKS": "No, grazie",
+"PREMIUM_OFFER_QUESTION": "Megacubo ha funzioni speciali che ti consentono di guardare la tua TV con Google Chromecast™ e registrare streaming live.\r\n\r\nVuoi abilitare queste funzionalità?",
+"ENABLE_PREMIUM_FEATURES": "Abilita funzioni Premium",
+"DISABLE_PREMIUM_FEATURES": "Disattiva funzionalità premium",
+"ENABLING_PREMIUM_FEATURES": "Abilitazione Premium {0}%",
+"ENABLE_PREMIUM_FEATURES_FAILURE": "Impossibile scaricare funzionalità premium.Prova a scaricare direttamente dal nostro sito."
 }

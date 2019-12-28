@@ -31,12 +31,17 @@
 "CAST_ERR_UNEXPECTED": "Unexpected error while casting.",
 "CAST_ERR_NO_DEST": "No device found.",
 "CAST_FINISH": "Casting completed.",
-"PREMIUM_ALREADY_ENABLED": "Premium features are already enabled. Do you want to keep them enabled?",
+"PREMIUM_ALREADY_ENABLED": "Special features are already enabled. Do you want to keep them enabled?",
 "LICENSE_KEY": "License Key",
 "PREMIUM_IDLE_RESOURCES": "Idle resources (Luminati)",
 "PREMIUM_SHARE_IDLE_RESOURCES": "Share idle resources (Luminati)",
 "PREMIUM_BALLOON_HINT": "Watch on your TV with Google Chromecast™ and record live streams.",
 "PREMIUM_ENABLE_SPECIAL_FEATURES": "Enable special features",
 "PREMIUM_USE_FOR_FREE": "Use for free",
-"PREMIUM_NO_THANKS": "No, thanks"
+"PREMIUM_NO_THANKS": "No, thanks",
+"PREMIUM_OFFER_QUESTION": "Megacubo has special features that allow you to watch your TV with Google Chromecast™ and record live streams.\r\n\r\nDo you want to enable these features?",
+"ENABLE_PREMIUM_FEATURES": "Enable special features",
+"DISABLE_PREMIUM_FEATURES": "Disable special features",
+"ENABLING_PREMIUM_FEATURES": "Enabling special features {0}%",
+"ENABLE_PREMIUM_FEATURES_FAILURE": "Failed to download special features. Try downloading directly from our site."
 }
