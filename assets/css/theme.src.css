@@ -54,9 +54,9 @@ body.playing div#notify-area, body.paused div#notify-area, body.miniplayer div#n
 
 html #menu-trigger, html #menu-toggle {
     background: transparent;
-    border-bottom-color: (font-color)10;
-    border-right-color: (font-color)03;
-    border-left-color: (font-color)03;
+    border-bottom-color: (font-color)20;
+    border-right-color: (font-color)13;
+    border-left-color: (font-color)13;
     color: (font-color)55; 
     font-size: 174%;
 }
@@ -194,7 +194,7 @@ html div#menu-left-border {
     left: 0;
     top: calc(0.75rem * 2 + 2px);
     height: calc(100% - (0.75rem * 2 + 2px));
-    background: linear-gradient(to top, (font-color)03 0%, (font-color)03 90%, (font-color)10 100%);
+    background: linear-gradient(to top, (font-color)03 0%, (font-color)13 90%, (font-color)20 100%);
 }
 
 body.has-menu-margin div#menu-left-border {

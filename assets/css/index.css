@@ -668,6 +668,18 @@ td.miniplayer-continue-logo {
     min-width: 52px;
 }
 
+td.miniplayer-continue-logo:empty:before {
+    height: 100%;
+    width: 100%;
+    display: inline-block;
+    content: ' ';
+    white-space: pre;
+    background-image: url(assets/icons/white/white_logo.png);
+    background-repeat: no-repeat;
+    background-size: contain;
+    margin-bottom: 2%;
+}
+
 td.miniplayer-continue-text {
     text-decoration: underline;
     padding-bottom: 6px;

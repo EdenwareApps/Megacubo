@@ -87,14 +87,14 @@ Array.prototype.getUnique = function() {
 String.prototype.replaceAll = function(search, replacement) {
     var target = this;
     if(target.indexOf(search)!=-1){
-        target = target.split(search).join(replacement);
+        target = target.split(search).join(replacement)
     }
-    return String(target);
+    return String(target)
 }   
 
 Function.prototype.delay = function (delay, context) {
-    this.self = context;
-    this.args = Array.prototype.slice.call(arguments, 2);
+    this.self = context
+    this.args = Array.prototype.slice.call(arguments, 2)
     return setTimeout(this, delay)
 }
 
@@ -724,7 +724,7 @@ if(top == window){
         self.logon = (name) => {
             if(self.list.indexOf(name) != -1){
                 localStorage.setItem('logged-user', name);
-                restartApp(false)
+                restartApp()
             }
         }
         self.load();
@@ -921,7 +921,7 @@ if(top == window){
             active: 'default',
             dir: path.resolve('themes'),
             defaults: {
-                "compability": 1.2, // increment to purge default theme
+                "compability": 1.3, // increment to purge default theme
                 "hide-logos": false,
                 "background-image": "assets/images/wallpaper.png",
                 "background-color": "#150055",
@@ -1248,32 +1248,36 @@ function goExport(){
 }
 
 function restartApp(){
-    if(ipc && ipc.server.server.listening){        
+    console.log('restartApp')  
+    win.hide()
+    const next = () => {
+        console.log('restartApp app unload')  
+        doAction('appUnload')
+        console.log('restartApp app unloaded')  
+        return chrome.runtime.reload()
+        /*
+        require('child_process').spawn(process.execPath, nw.App.argv, {
+            shell: false,
+            detached: true
+        }) 
+        console.log('restartApp app exit')  
+        process.abort(0)
+        */
+    }
+    if(ipc && ipc.server.server.listening){     
+        console.log('restartApp IPC unloading') 
         if(!ipcIsClosing){
             ipcIsClosing = true
             ipcSrvClose(() => {
+                console.log('restartApp IPC unloaded')  
                 ipc = false
-                restartApp()
+                next()
             })
         }
         return
     }
-    doAction('appUnload')
-    var delay = 3, templates = {
-        // win32: ['restartApp.cmd', "@echo off\r\nping 127.0.0.1 -n {0} > nul\r\n{1} {2}"], 
-        win32: ['restartApp.cmd', "@echo off\r\ntimeout /T {0} > nul\r\n{1} {2}"], 
-        linux: ['restartApp.sh', "sleep {0}\r\n{1} {2}"]
-    }, cmd = templates[process.platform]
-    cmd[0] = GStore.folder + path.sep + cmd[0]
-    cmd[1] = cmd[1].format(delay, process.execPath, nw.App.argv.join(' '))
-    fs.writeFileSync(cmd[0], cmd[1], {flag: 'w'})
-    require('child_process').spawn(cmd[0], [], {
-        detached: true,
-        windowsHide: true
-    })
-    process.abort(0)
+    next()
 }
-
 function bufferize(buffer) {
     if(buffer.constructor.name == 'ArrayBuffer'){
         buffer = Buffer.from(buffer)
@@ -1501,12 +1505,14 @@ function setPriority(priority, pid, cb){
             cb(err, output)
         }
     }
-    if(process.platform == 'win32'){
-        require('child_process').exec('wmic process where processid='+(pid||process.pid)+' CALL setpriority "'+priority+'"', callback)
+    if(!pid){
+        pid = process.pid
+    }
+    if(process.platform == 'win32') {
+        console.warn('SETPRIORITY', pid, traceback())
+        require('child_process').exec('wmic process where processid='+ (pid || process.pid) +' CALL setpriority "'+priority+'"', callback)
     } else {
-        if(typeof(cb) =='function'){
-            cb('Not win32', '')
-        }
+        callback('Not win32', '')
     }
 }
 

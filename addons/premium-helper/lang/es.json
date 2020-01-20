@@ -15,6 +15,7 @@
 "INSTALL_LIMITED_VERSION": "Oops, necesita instalar la versión limitada de Megacubo para usar el programa sin compartir los recursos de su computadora.\r\n\r\nObtenga más información en https://megacubo.tv/about-premium",
 "INSTALL_DOTNET": "Oops, necesitas actualizar tu Microsoft .NET Framework para ejecutar este software",
 "INSTALL_CORRUPTED": "Oops, su instalación tiene archivos dañados. Vuelva a instalar el programa",
+"INSTALL_CORRUPTED_REPAIR": "Vaya, tu instalación ha dañado archivos. ¿Quieres reparar?",
 "ALREADY_ENABLED": "El modo Premium ya está habilitado, ¿quieres conservarlo?",
 "ASK_FOR_LICENSE": "Si tiene una clave de licencia Megacubo Premium, ingrésela en el campo abajo:",
 "INVALID_LICENSE": "Clave de licencia inválida",

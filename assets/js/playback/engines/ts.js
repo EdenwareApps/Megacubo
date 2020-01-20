@@ -7,6 +7,7 @@ class PlaybackTsIntent extends PlaybackTranscodeIntent {
         this.proxify = true;
         this.streamURL = false;
         this.streamType = 'live'
+        this.audioCodec = 'aac'
         this.videoEvents = {
             'ended': [
                 () => {

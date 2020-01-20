@@ -1900,7 +1900,7 @@ function getThemeEntries() {
                     }},
                     {name: Lang.RESET_THEME, logo:'fa-trash', type: 'option', callback: () => {
                         resetTheme(() => {
-                            restartApp(false)
+                            restartApp()
                         })
                     }}
                 ]

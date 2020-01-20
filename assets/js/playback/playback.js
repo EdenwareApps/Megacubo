@@ -280,6 +280,7 @@ class PlaybackManager extends Events {
                     console.error('Playback error.', err || data, video, message)
                     if(video.currentTime < 10){
                         let c
+                        /*  AVOID VIDEO TRANSCODING DUE TO HIGH CPU USAGE
                         if(message.indexOf('stream parsing failed') != -1 && [this.active.videoCodec, this.active.audioCodec].indexOf('copy') != -1){
                             this.active.videoCodec = 'libx264'
                             this.active.audioCodec = 'aac'
@@ -290,11 +291,11 @@ class PlaybackManager extends Events {
                                 this.active.videoCodecLock = true
                                 c = true
                             }
-                            if(message.indexOf('Failed to send audio') != -1 && this.active.audioCodec == 'copy'){
-                                this.active.audioCodec = 'aac'
-                                this.active.audioCodecLock = true
-                                c = true
-                            }
+                        */
+                       if((message.indexOf('stream parsing failed') != -1  || message.indexOf('Failed to send audio') != -1) && this.active.audioCodec == 'copy'){
+                            this.active.audioCodec = 'aac'
+                            this.active.audioCodecLock = true
+                            c = true
                         }
                         if(c){
                             this.active.restartDecoder()
@@ -1430,7 +1431,7 @@ function getPlaybackErrorMessage(intentOrEntry, error){
 
 function continueLivePlayback(intent, hasErrors){
     let alternate = () => {
-        if(!alternateStream(intent) && hasErrors){
+        if(!alternateStream(intent, false, hasErrors) && hasErrors){
             sound('static', 16)
             var message = getPlaybackErrorMessage(intent)
             notify(message, intent.entry.logo || 'fa-exclamation-circle faclr-red', 'normal');

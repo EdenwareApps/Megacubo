@@ -2134,11 +2134,13 @@ function ipcSrvClose(cb){
 
 function precloseApp(){
     if(!preClosingWindow){
-        ipc.server.broadcast('app-unload');
-        doAction('appUnload');
-        preClosingWindow = true;
-        fixLocalStateFile();
-        console.warn('precloseApp()');
+        if(ipc && ipc.server){
+            ipc.server.broadcast('app-unload')
+        }
+        doAction('appUnload')
+        preClosingWindow = true
+        fixLocalStateFile()
+        console.warn('precloseApp()')
         stop()
     }
 }
@@ -2152,7 +2154,7 @@ function closeApp(force){
         if(!closingWindow && force !== true){
             console.warn('CASE A')
             closingWindow = true
-            if(ipc && ipc.server.server.listening){        
+            if(ipc && ipc.server && ipc.server.server && ipc.server.server.listening){        
                 if(!ipcIsClosing){
                     ipcIsClosing = true
                     ipcSrvClose(() => {
@@ -2799,6 +2801,9 @@ function alternateStream(intent, cb, doSearch){
             }
         } else {
             let action = Config.get('connecting-error-action'), terms = playingStreamKeyword(intent.entry) || intent.entry.name
+            if(action == 'search' && doSearch === false){
+                action = 'tune'
+            }
             switch(action){
                 case 'tune':
                     tuneNPlay(terms, null, 'mega://play|'+encodeURIComponent(terms.toLowerCase()), null, intent.entry.mediaType)
@@ -3866,7 +3871,7 @@ function getProfileEntries(){
                             logo: 'fa-trash',
                             callback: () => {
                                 removeProfile(data.user, () => {
-                                    restartApp(false)
+                                    restartApp()
                                 })
                             }
                         })

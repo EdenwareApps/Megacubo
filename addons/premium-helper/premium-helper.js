@@ -18,36 +18,37 @@ if(typeof(PremiumHelper) == 'undefined'){
                 label: '<i class="fas fa-rocket"></i> '+lbl,
                 type: 'check',
                 checked: (data) => {
-                    return self.installed(true)
+                    return self.loaded(true)
                 },
-                check: (checked, data, element) => {
+                check: (checked, data, element) => {                 
+                    var shouldRestart = false
                     console.warn('CHECKK', checked, data)
                     if(checked){
-                        if(!self.installed(true)){
-                            self.installProcess(element)
+                        if(Config.get('premium-disabled') != false){
+                            Config.set('premium-disabled', false)
+                            if(!self.loaded()){
+                                self.lockEntry()
+                                if(self.available()){                            
+                                    self.notification.update(Lang.ENABLING_PREMIUM_FEATURES.format(99), 'fa-mega spin-x-alt', 'forever')
+                                    addAction('premiumCommit', () => {
+                                        self.notification.update(Lang.WELCOME, 'fa-check-circle', 'normal')
+                                        Menu.refresh()
+                                    })
+                                    premiumStart.call(global)
+                                } else if(!self.shouldInstall) {
+                                    self.installProcess(element)
+                                }
+                            }
                         }
                     } else {
-                        self.shouldInstall = false;
-                        if(self.installed(true)){
-                            var ok = false;
-                            if(typeof(premiumReset) == 'function'){
-                                premiumReset()
-                                askForLicense()
-                                ok = true
-                                Menu.refresh()
+                        if(Config.get('premium-disabled') != process.execPath){
+                            if(confirm(Lang.USE_FREE_MODE_CONFIRM)){
+                                self.lockEntry()
+                                self.disable()  
+                            } else {  
+                                Menu.refresh()  
                             }
-                            if(!ok){
-                                self.notification.update(Lang.PROCESSING, 'fa-mega spin-x-alt', 'forever')
-                                jQuery(element).find('.entry-name').html('<i class="fas fa-circle-notch pulse-spin"></i> &nbsp;' + Lang.PROCESSING)
-                                self.uninstall((ret) => {
-                                    self.notification.hide()
-                                    Menu.refresh()
-                                    if(ret){
-                                        restartApp(false)
-                                    }
-                                })
-                            }
-                        }                        
+                        }
                     }
                 },
                 callback: () => {
@@ -56,16 +57,45 @@ if(typeof(PremiumHelper) == 'undefined'){
             }
             return entry
         }
-        self.installed = (deep) => {
-            if(!deep && (
-                !fs.existsSync(path.resolve('addons/premium/premium.bin')) &&
-                !fs.existsSync(path.resolve('addons/premium/premium.js'))
-            )){
-                return false;
+        self.lockEntry = () => {
+            let e = document.querySelector('.entry-premium')
+            if(e){
+                e.className += ' entry-disable'
             }
-            return !deep || (typeof(premiumAddonsLoaded) != 'undefined' && premiumAddonsLoaded)
+        }
+        self.disable = () => {
+            console.warn("PREMIUM HELPER DISABLE")
+            if(self.loaded() && closeApp != restartApp){
+                let closeAllowed = false
+                const restart = restartApp
+                premiumStart = askForLicense = closeApp = restartApp = () => {
+                    if(closeAllowed){
+                        restart()
+                    }
+                }
+                self.shouldInstall = false
+                Config.set('premium-disabled', process.execPath)
+                premiumReset(() => {
+                    console.warn("PREMIUM HELPER DISABLE RESTART", restart)                    
+                    closeAllowed = true
+                    restart()
+                })
+            }
+        }
+        self.installed = () => {
+            let lum = '../net_updater'+ (process.arch == 'ia32' ? '32' : '64') +'.exe'
+            return fs.existsSync(path.resolve('addons/premium/premium.bin')) && fs.existsSync(path.resolve(lum))
+        }
+        self.available = () => {
+            return (typeof(premiumStart) != 'undefined' && premiumStart)
+        }
+        self.loaded = () => {
+            return (typeof(premiumAddonsLoaded) != 'undefined' && premiumAddonsLoaded)
         }
         self.install = (cb, element) => {
+            if(typeof(cb) != 'function'){
+                cb = () => {}
+            }
             if(!self.installed(true) && !applyFilters('installPremium')){
                 self.shouldInstall = true;
                 var tmp = Store.folder, endpoint = 'http://megacubo.tv/bin/premium/{0}/premium_{1}-{2}.tar.gz'.format(nw.App.manifest.version, process.platform, process.arch), file = tmp + path.sep + basename(endpoint)
@@ -141,28 +171,6 @@ if(typeof(PremiumHelper) == 'undefined'){
                 }
             }, element)
         }
-        self.shouldOffer = () => {
-            let lVer = Store.get('last-premium-offer-ver')
-            if(!lVer || lVer != nw.App.manifest.version){
-                return !self.installed(false)
-            }
-        }
-        self.uninstall = (cb, force) => {
-            if(force === true || applyFilters('uninstallPremium') === true){
-                Config.set('license-key', '')
-                if(typeof(cb) != 'function'){
-                    cb = () => {
-                        restartApp(true)
-                    }
-                }
-                removeFolder(path.resolve('addons/premium'), true, () => {
-                    cb(true)
-                })
-                return true;
-            } else if(typeof(cb)=='function'){
-                cb(false)
-            }
-        }
         self.notification = notify('...', 'fa-rocket', 'forever')
         self.notification.hide()
         addFilter('optionsEntries', (entries) => {
@@ -175,28 +183,6 @@ if(typeof(PremiumHelper) == 'undefined'){
                 entries = entries.concat(ns)
             }
             return entries
-        })
-        addFilter('wizardSteps', steps => {
-            let close = () => {                
-                modalClose()
-                Store.set('last-premium-offer-ver', nw.App.manifest.version, true)
-            }, opt = {
-                question: Lang.PREMIUM_OFFER_QUESTION, 
-                answers: [
-                    ['<i class="fas fa-check-circle"></i> ' + Lang.ENABLE_PREMIUM_FEATURES, () => {
-                        close()
-                        self.installProcess(false)
-                    }],
-                    ['<i class="fas fa-ban"></i> ' + Lang.PREMIUM_NO_THANKS, () => {
-                        close()
-                    }]
-                ],
-                condition: () => {
-                    return self.shouldOffer()
-                }
-            }
-            steps.push(opt)
-            return steps
         })
         return self
     })()

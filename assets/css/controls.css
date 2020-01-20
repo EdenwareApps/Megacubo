@@ -61,6 +61,9 @@ a.entry {
     position: relative;
     scroll-snap-align: start;
 }
+a.entry-disable {
+    pointer-events: none;
+}
 a.entry-disable td > span {
     opacity: .1;
 }

@@ -15,6 +15,7 @@
 "INSTALL_LIMITED_VERSION": "Oops, you need to install the limited version of Megacubo to use the program without sharing the resources of your computer.\r\n\r\nKnow more at https://megacubo.tv/about-premium",
 "INSTALL_DOTNET": "Oops, you need to upgrade your Microsoft .NET Framework to run this software.",
 "INSTALL_CORRUPTED": "Oops, your installation has corrupted files. Please reinstall the program.",
+"INSTALL_CORRUPTED_REPAIR": "Oops, your installation has corrupted files. Do you want to repair?",
 "ALREADY_ENABLED": "The Premium mode is already enabled, want to keep it?",
 "ASK_FOR_LICENSE": "If you have a Megacubo Premium license key, enter it in the field below:",
 "INVALID_LICENSE": "Invalid license key.",
@@ -43,5 +44,5 @@
 "ENABLE_PREMIUM_FEATURES": "Enable special features",
 "DISABLE_PREMIUM_FEATURES": "Disable special features",
 "ENABLING_PREMIUM_FEATURES": "Enabling special features {0}%",
-"ENABLE_PREMIUM_FEATURES_FAILURE": "Failed to download special features. Try downloading directly from our site."
+"ENABLE_PREMIUM_FEATURES_FAILURE": "Failed to download special features. Try downloading directly from our website."
 }

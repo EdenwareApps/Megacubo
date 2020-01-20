@@ -404,7 +404,7 @@ class PlaybackBaseIntent extends Events {
         this.on('codecData', (codecData) => { // allow it to be emitted from elsewhere
             console.warn('CODECDATA', codecData);
             if(!this.error && !this.ended){
-                let r, tv = codecData.video && codecData.video.substr(0, 4) != 'h264'
+                let r, tv = false // codecData.video && codecData.video.substr(0, 4) != 'h264' // AVOID VIDEO TRANSCODING DUE TO HIGH CPU USAGE
                 let ta = codecData.audio && codecData.audio.indexOf('aac (LC)') == -1
                 if(tv){
                     if(this.videoCodec == 'copy'){

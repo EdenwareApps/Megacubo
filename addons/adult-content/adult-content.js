@@ -35,12 +35,6 @@ function fetchXXXSearchResults(q, cb){
         }
     }
     callback([])
-    /*
-    var Searcher = new (require('pornsearch'))(q)
-    Searcher.videos().then(callback).catch(() => {
-        callback([])
-    })
-    */
 }
 
 function getXXXEntries(data, type){
