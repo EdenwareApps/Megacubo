@@ -1,18 +1,7 @@
 
 const tmpDir = require('os').tmpdir(), http = require('http'), path = require('path'), fs = require('fs') 
-const Writer = require('./writer'), Transform = require('stream').Transform
-const util = require('util'), Events = require('events')
+const Writer = require('./writer'), util = require('util'), Events = require('events')
 
-function Hermes(options){
-	// allow use without new
-	if (!(this instanceof Hermes)) {
-		return new Hermes(options)
-	}
-	Transform.call(this, options)
-}
-
-util.inherits(Hermes, Transform)
-	
 class TSInfiniteProxy extends Events {
 	constructor(url, opts){
 		super()
@@ -75,10 +64,6 @@ class TSInfiniteProxy extends Events {
 			this.opts.backBufferSize = this.defaults.backBufferSize
 		}
 		this.mediainfo = new MediaInfo(this.opts)
-		this.hermes = Hermes
-        this.hermes.prototype._transform = (data, enc, cb) => {
-			this.handleData(data, enc, cb)
-		}
         this.server = http.createServer((request, client) => {
 			if(request.url != ('/' + this.endpointName)){
 				client.end()
@@ -247,43 +232,38 @@ class TSInfiniteProxy extends Events {
 		}
 		return (num / si[i].value).toFixed(digits).replace(rx, "$1") + si[i].symbol
 	}
-	handleData(data, enc, cb){
+	handleData(data){
 		if(this.opts.debug){
 			// this.opts.debug('[ts] data received', this.destroyed) // , this.destroyed, this.currentRequest, this.intent)
 		}
-		if(!data){
-			return
-		}
-		if(this.destroyed){
-			return
-		}
-		let skip, len = this.len(data)
-		if(!len){
-			skip = true
-		} else if(len < this.opts.sniffingSizeLimit){
-			let bin = this.isBin(data)
-			if(!bin){
+		if(data && !this.destroyed){
+			let skip, len = this.len(data)
+			if(!len){
 				skip = true
-				this.triggerError('bad data', String(data))
-			}
-		}
-		if(!skip){
-			this.errors = 0
-			this.connectable = true
-			// this.downloadLogging[this.time()] = len // moved to output()
-			if(Array.isArray(this.nextBuffer)){
-				this.nextBuffer.push(data)
-				if(this.len(this.nextBuffer) >= this.opts.needleSize){
-					if(this.opts.debug){
-						this.opts.debug('[ts] calling join() from handleData')
-					}
-					this.join()
+			} else if(len < this.opts.sniffingSizeLimit){
+				let bin = this.isBin(data)
+				if(!bin){
+					skip = true
+					this.triggerError('bad data', String(data))
 				}
-			} else {
-				this.output(data)
+			}
+			if(!skip){
+				this.errors = 0
+				this.connectable = true
+				// this.downloadLogging[this.time()] = len // moved to output()
+				if(Array.isArray(this.nextBuffer)){
+					this.nextBuffer.push(data)
+					if(this.len(this.nextBuffer) >= this.opts.needleSize){
+						if(this.opts.debug){
+							this.opts.debug('[ts] calling join() from handleData')
+						}
+						this.join()
+					}
+				} else {
+					this.output(data)
+				}
 			}
 		}
-		cb()
 	}
 	isBin(buf){
 		let bin, sample = buf.slice(0, 24).toString()
@@ -358,7 +338,7 @@ class TSInfiniteProxy extends Events {
 		if(this.destroyed){
 			return
 		}
-		let ctype = '', statusCode = 0, headers = {}, h = new this.hermes()
+		let ctype = '', statusCode = 0, headers = {};
 		let next = () => {
 			next = null
 			if(this.opts.debug){
@@ -367,7 +347,6 @@ class TSInfiniteProxy extends Events {
 			if(this.currentRequest && typeof(this.currentRequest.abort) == 'function'){
 				this.currentRequest.abort()
 			}
-			h.end()
 			if(this.destroyed){
 				return
 			}
@@ -379,7 +358,7 @@ class TSInfiniteProxy extends Events {
 			}
 			this.bytesToIgnore = 0 // bytesToIgnore should be discarded here, as we're starting a new connection which will return data in different offset
 			this.nextBuffer = []
-			this.currentRequest = h = null
+			this.currentRequest = null
 			let speed = this.speed()
 			/* break leaking here by avoiding nested call to next pump */
 			if([400, 401, 403].indexOf(statusCode) == -1 && (!this.bitrate || speed < this.bitrate)){
@@ -440,9 +419,7 @@ class TSInfiniteProxy extends Events {
 					}
 				}
 			} else {
-				if(this.currentRequest){
-					this.currentRequest.pipe(h)
-				}
+				this.currentRequest.on('data', this.handleData.bind(this))
 			}
 		})
 		this.currentRequest.on('end', () => {

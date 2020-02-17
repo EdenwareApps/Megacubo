@@ -36,7 +36,7 @@
         "http://*/",
         "https://*/"
     ],
-    "version": "15.4.6",
+    "version": "15.4.7",
     "webkit": {
         "page-cache": true
     },

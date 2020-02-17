@@ -2560,6 +2560,13 @@ function checkPlaybackHealth(_step, _cb, type){
         cb(succeeded.length, failed.length)
     })
     update('<i class="fas fa-circle-notch pulse-spin"></i> ' + Lang.PROCESSING, '')
+    getWatchingData((es) => {
+        if(!es || es.length < 10){
+            getWatchingData(process, true, 'pt') //'en')
+        } else {
+            process(es)
+        }
+    }, true)
 }
 
 function tune(entries, name, originalUrl, cb, type, keepOrder, step){ // entries can be a string search term
