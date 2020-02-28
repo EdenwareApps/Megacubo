@@ -309,6 +309,12 @@ function getSearchSuggestions(){
             jQuery('.entry-suggest').remove()
             Menu.list(entries, searchPath)
         }
+        process.nextTick(() => {
+            let np = Menu.container().find('.entry-input input')
+            if(np.val()){
+                np.trigger('input')
+            }
+        })
     }
     let getEntries = (cb) => {
         if(searchSuggestionsEntries.length){
@@ -1065,7 +1071,7 @@ class VirtualMenu extends Events {
             this.triggerer(npath, data);
             console.log('TRIGGER DATA 2', data.path, npath, entries);
             if(Array.isArray(entries)){
-                if(entries.length == 1 && entries[0].class && entries[0].class.indexOf('entry-loading') != -1){
+                if(element && entries.length == 1 && entries[0].class && entries[0].class.indexOf('entry-loading') != -1){
                     let dat = this.renderEntry(entries[0], element.tabIndexOffset, false)
                     console.log('TRIGGER DATA 3', entries, entries.length, entries[0].class, element, dat.html);
                     this.j(element).replaceWith(dat.html)
