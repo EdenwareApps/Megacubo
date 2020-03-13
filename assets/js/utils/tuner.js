@@ -137,14 +137,14 @@ class Tuner extends Events {
         if(this.suspended || !this.active){
             this.suspended = false
             this.process()
-            setPriority('high priority')
+            //setPriority('high priority')
         }
     }
 	suspend(){
         if(!this.suspended){
             this.suspended = true
             this.emit('suspend')
-            setPriority('normal')
+            //setPriority('normal')
         }
     }
     buffered(){

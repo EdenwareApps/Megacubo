@@ -1253,16 +1253,12 @@ function restartApp(){
     const next = () => {
         console.log('restartApp app unload')  
         doAction('appUnload')
-        console.log('restartApp app unloaded')  
-        return chrome.runtime.reload()
-        /*
+        console.log('restartApp app unloaded') 
         require('child_process').spawn(process.execPath, nw.App.argv, {
             shell: false,
             detached: true
-        }) 
-        console.log('restartApp app exit')  
-        process.abort(0)
-        */
+        })  
+        return chrome.runtime.reload()
     }
     if(ipc && ipc.server.server.listening){     
         console.log('restartApp IPC unloading') 
@@ -1291,11 +1287,10 @@ function bufferize(buffer) {
     return buffer
 }
 
-function toTitleCase(str)
-{
-    return str.replace(/\w\S*/g, function(txt){
+function toTitleCase(str) {
+    return str.replace(/\w\S*/g, (txt) => {
         return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
-    });
+    })
 }
 
 function parseQueryString(url) {
@@ -1489,6 +1484,7 @@ function getActionHotkey(action, nowrap) {
 }
 
 function setPriority(priority, pid, cb){
+    return
     /*
     idle: 64 (or "idle")
     below normal: 16384 (or "below normal")
@@ -1497,6 +1493,7 @@ function setPriority(priority, pid, cb){
     high priority: 128 (or "high priority")
     real time: 256 (or "realtime")
     */
+    /*
     var callback = (err, output) => {
         if(err){
             console.error(err)
@@ -1514,6 +1511,7 @@ function setPriority(priority, pid, cb){
     } else {
         callback('Not win32', '')
     }
+    */
 }
 
 function getHash(file, cb){
@@ -3144,10 +3142,13 @@ function mainPID(pid, cb){
     }
 }
 
+const psnode = require('ps-node')
+
 function isPIDRunning(pid, cb){
-    require('ps-node').lookup({
+    psnode.lookup({
         command: 'megacubo'
     }, (err, resultList) => {
+        console.log('isPIDRunning', resultList)
     	if (err && !(Array.isArray(resultList) && resultList.length)) {
 	        cb(err, false, resultList)
 	    } else {

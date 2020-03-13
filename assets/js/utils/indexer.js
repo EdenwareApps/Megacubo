@@ -19,7 +19,7 @@ ipc.config.id = 'indexer'
 ipc.config.socketRoot = Store.folder + path.sep;
 
 const connect = () => {
-    ipc.connectTo('main', () => {
+    ipc.connectToNet('main', () => {
         console.log('IPC connected', time())
         var events = {
             'disconnect': () => {

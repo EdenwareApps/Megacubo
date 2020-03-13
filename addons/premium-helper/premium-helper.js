@@ -21,10 +21,11 @@ if(typeof(PremiumHelper) == 'undefined'){
                     return self.loaded(true)
                 },
                 check: (checked, data, element) => {                 
-                    var shouldRestart = false
+                    var shouldRestart = false, override = Config.get('premium-process-path') != process.execPath
                     console.warn('CHECKK', checked, data)
                     if(checked){
-                        if(Config.get('premium-disabled') != false){
+                        if(override || Config.get('premium-disabled') != false){
+                            Config.set('premium-process-path', process.execPath)
                             Config.set('premium-disabled', false)
                             if(!self.loaded()){
                                 self.lockEntry()
@@ -41,7 +42,7 @@ if(typeof(PremiumHelper) == 'undefined'){
                             }
                         }
                     } else {
-                        if(Config.get('premium-disabled') != process.execPath){
+                        if(override || Config.get('premium-disabled') != true || self.loaded()){
                             if(confirm(Lang.USE_FREE_MODE_CONFIRM)){
                                 self.lockEntry()
                                 self.disable()  
@@ -74,7 +75,8 @@ if(typeof(PremiumHelper) == 'undefined'){
                     }
                 }
                 self.shouldInstall = false
-                Config.set('premium-disabled', process.execPath)
+                Config.set('premium-process-path', process.execPath)
+                Config.set('premium-disabled', true)
                 premiumReset(() => {
                     console.warn("PREMIUM HELPER DISABLE RESTART", restart)                    
                     closeAllowed = true

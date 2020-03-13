@@ -134,53 +134,6 @@ function getWindowModeEntries(short){
             }
         })
     }
-    /*
-    // DISABLED UNTIL THE CHROMECAST NPM MODULE BE FIXED
-
-    
-    {request: {…}, error: "mime-unknown"}
-    error
-    :
-    "mime-unknown"
-    request
-    :
-    entity
-    :
-    {v: "cKG5HDyTW8o"}
-    headers
-    :
-    {Content-Type: "application/x-www-form-urlencoded.js", Accept: "application/x-www-form-urlencoded.js, application/json;q=0.8, text/plain;q=0.5, *;q=0.2"}
-    method
-    :
-    "POST"
-    originator
-    :
-    ƒ interceptedClient(request)
-    path
-    :
-    "http://192.168.1.6:8008/apps/YouTube"
-    __proto__
-    :
-    Object
-    __proto__
-    :
-    Object
-    "Unhandled Rejection at Promise" 
-    Rejected {id: 19, value: {…}, handled: false, reported: true}
-    process.on	@	index.html:49
-    emit	@	events.js:182
-    (anonymous)	@	F:\NWJS_SDK\package.…\makePromise.js:917
-    ReportTask.run	@	F:\NWJS_SDK\package.…\makePromise.js:654
-    Scheduler._drain	@	F:\NWJS_SDK\package.…lib\Scheduler.js:70
-    Scheduler.drain	@	F:\NWJS_SDK\package.…lib\Scheduler.js:27
-    _tickCallback	@	internal/process/next_tick.js:61
-
-
-    options.push({name: 'Chromecast', logo:'fa-chrome', type: 'option', callback: function (){
-        castManagerInit();
-        Menu.refresh()
-    }})
-    */
     return options;
 }
 

@@ -1056,11 +1056,11 @@ function killCrashpad(){
     })
 }
 
-// addAction('appUnload', () => {
-//    process.nextTick(killCrashpad)
-// })
+addAction('appUnload', () => {
+    process.nextTick(killCrashpad)
+})
 
-var $tray = false;
+var $tray = false
 
 function showInTray() {
     if(!$tray){
@@ -2107,7 +2107,7 @@ mainPID(process.pid)
 var ipc = require('node-ipc'), leftWindowDiff = 0, ipcIsClosing;
 ipc.config.id = 'main';
 ipc.config.socketRoot = Store.folder + path.sep;
-ipc.serve(() => {
+ipc.serveNet(() => {
     console.log('## connected to main ##', 77)
     ipc.server.on('connect', (a, b) => {
         console.log('## connected to main ##', a, '##', b)
@@ -2120,6 +2120,7 @@ var ipcSrvCloseTimer;
 function ipcSrvClose(cb){
     let delay = 100 // ms
     if(ipc && ipc.server.server.listening){    
+        console.warn('IPC server close', traceback())
         if(ipcSrvCloseTimer){
             clearTimeout(ipcSrvCloseTimer)
         }
