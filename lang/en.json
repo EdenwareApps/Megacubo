@@ -398,5 +398,8 @@
 "SEARCH_ALTERNATIVES": "Search alternate broadcasts",
 "TUNE_ALTERNATIVE": "Tune alternate broadcast",
 "TRANSCODING": "Transcoding...",
-"ICON_FRAMING": "Icon Framing"
+"ICON_FRAMING": "Icon Framing",
+"STARTUP": "Initialization",
+"MENU": "Menu",
+"NONE": "None"
 }

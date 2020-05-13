@@ -104,8 +104,9 @@ Playback.proxy = ((parent) => { // handle http / p2p with original url
                         self.log('start segment fetching...')
                     }
                     req.connection.on('close', () => {
-                        console.warn('SEGMENT ABORT', url)
-                        self.parent.HLSManager.cancelDownload(url)
+                        if(self.parent.HLSManager.cancelDownload(url)){
+                            console.warn('SEGMENT ABORT', url)
+                        }
                         response.end()
                     })
                     self.parent.HLSManager.download(url, (err, buffer, location) => {

@@ -2,7 +2,7 @@
 
 Playback.HLSManager = ((parent) => {
     var self = {
-        debug: debugAllow(false),
+        debug: debugAllow(true),
         callbacks: {},
         minBufferSecs: 5,
         maxQueueLength: 10,
@@ -439,18 +439,21 @@ Playback.HLSManager = ((parent) => {
         if(typeof(self.downloading[id]) == 'number' && self.downloading[id]){
             self.downloading[id]--
         }
-        self.load(self.loader.segmentsQueue.filter(s => { 
-            if(s.id == id){
-                if(self.loader.httpManager.isDownloading(s)){
-                    self.loader.httpManager.abort(s)
+        let has = self.loader.segmentsQueue.filter(s => s.id == id).length
+        if(has){
+            self.load(self.loader.segmentsQueue.filter(s => { 
+                if(s.id == id){
+                    if(self.loader.httpManager.isDownloading(s)){
+                        self.loader.httpManager.abort(s)
+                    }
+                    if(!self.loader.p2pManager.isDownloading(s)){
+                        self.loader.p2pManager.download(s)
+                    }
                 }
-                if(!self.loader.p2pManager.isDownloading(s)){
-                    self.loader.p2pManager.download(s)
-                }
-                self.log('not cancelling, just moving to p2p queue', url)
-            }
+                return true
+            }))
             return true
-        }))
+        }
     }
     self.destroy = () => {
         self.log('closing...')
@@ -463,7 +466,7 @@ Playback.HLSManager = ((parent) => {
     addFilter('about', txt => {
         if(self.parent.active && self.parent.active.type == 'hls'){
             if(self.stats.p2p.in || self.loader.p2pManager.peers.size){
-                txt += 'P2P: '+parseInt(self.stats.p2p.in / ((self.stats.http.in + self.stats.p2p.in) / 100)) + '%'
+                txt += 'P2P: '+Math.round(parseFloat(self.stats.p2p.in / ((self.stats.http.in + self.stats.p2p.in) / 100)), 1) + '%'
                 if(self.loader.p2pManager.peers.size > 1){
                     txt += ' (' + self.loader.p2pManager.peers.size + ' ' + Lang.USERS + ')'
                 }

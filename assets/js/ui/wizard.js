@@ -1,16 +1,17 @@
 
-const Wizard = (() => {
-    var self = {}
-    self.step = 0
-    self.finished = false
-    self.finish = () => {
-        if(!self.finished){
-            self.finished = true
+class Wizard {
+    constructor(){
+        this.step = 0
+        this.finished = false
+    }
+    finish(){
+        if(!this.finished){
+            this.finished = true
             doAction('appReady')
         }
     }
-    self.start = () => {
-        self.steps = [
+    start(){
+        this.steps = [
             {
                 question: Lang.SHARED_EXCLUSIVE_MODE_QUESTION, 
                 answers: [
@@ -20,7 +21,7 @@ const Wizard = (() => {
                             if(typeof(askForInputNotification) != 'undefined'){
                                 askForInputNotification.hide()
                             }
-                            process.nextTick(self.next)
+                            process.nextTick(this.next.bind(this))
                         }, validate = () => {
                             return getSources().length
                         }
@@ -33,7 +34,7 @@ const Wizard = (() => {
                                 } else {
                                     console.warn('No list provided, try again.')
                                     askForInputNotification.update(Lang.INVALID_URL_MSG, 'fa-exclamation-circle faclr-red', 'normal')
-                                    setTimeout(self.prev, 0)
+                                    setTimeout(this.prev.bind(this), 0)
                                 }
                             })
                         }
@@ -44,7 +45,7 @@ const Wizard = (() => {
                         if(typeof(askForInputNotification) != 'undefined'){
                             askForInputNotification.hide()
                         }
-                        process.nextTick(self.next)
+                        process.nextTick(this.next.bind(this))
                     }]
                 ],
                 condition: () => {
@@ -52,34 +53,36 @@ const Wizard = (() => {
                 }
             }
         ]
-        self.steps = applyFilters('wizardSteps', self.steps)
-        self.go()
+        this.steps = applyFilters('wizardSteps', this.steps)
+        this.go()
     }
-    self.go = () => {
+    go(){
         if(isModal()){
             modalClose(true)
         }
-        if(typeof(self.steps[self.step]) != 'undefined'){
-            if(self.steps[self.step].condition()){
-                modalConfirm(self.steps[self.step].question, self.steps[self.step].answers, false)
+        if(typeof(this.steps[this.step]) != 'undefined'){
+            if(this.steps[this.step].condition()){
+                modalConfirm(this.steps[this.step].question, this.steps[this.step].answers, false)
             } else {
-                self.next()
+                this.next()
             }
         } else {
-            self.finish()
+            this.finish()
         }
     }
-    self.prev = () => {
-        if(self.step > 0){
-            self.step--
+    prev(){
+        if(this.step > 0){
+            this.step--
         }
-        self.go()
+        this.go()
     }
-    self.next = () => {
-        self.step++
-        self.go()
+    next(){
+        this.step++
+        this.go()
     }
-    return self;
-})()
+}
 
-addAction('appStart', Wizard.start)
+const wizard = new Wizard()
+addAction('appStart', () => {
+    wizard.start()
+})

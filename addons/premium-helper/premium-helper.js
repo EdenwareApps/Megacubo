@@ -3,11 +3,14 @@ if(typeof(PremiumHelper) == 'undefined'){
     var PremiumHelper = (() => {
         var self = {
             shouldInstall: false
-        }
+        };
         self.entry = () => {
+            if(premiumChecking == true){
+                return {name: Lang.ACTIVATING_PREMIUM_MODE, logo: 'fas fa-hourglass', class: 'entry-disable entry-offline', type: 'option'}
+            }
             let lic = applyFilters('appLicense', 'free'), nam = Lang.ENABLE_PREMIUM_FEATURES, lbl = ''
-            if(lic.indexOf('sponsor') != -1){
-                nam = Lang.PREMIUM_IDLE_RESOURCES
+            if(lic.indexOf('sponsor') != -1  || self.loaded() || Config.get('premium-disabled') === false){
+                nam = Lang.PREMIUM_SHARE_IDLE_RESOURCES
             } else if(lic.indexOf('license') != -1) {
                 nam = Lang.LICENSE_KEY
                 lbl = Lang.PREMIUM_MODE

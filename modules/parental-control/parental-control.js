@@ -2,7 +2,7 @@
 class ParentalControl {
 	constructor(terms){
 		if(typeof(terms) != 'string'){
-			terms = 'adult,erotic,erótic,sex,porn,+18';
+			terms = 'adult,erotic,erótic,sex,xxx,porn,+18';
 		}
 		this.terms = this.keywords(terms)
 	}

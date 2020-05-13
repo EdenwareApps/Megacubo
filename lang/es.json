@@ -35,7 +35,7 @@
 "FAV_ADDED": "{0} agregado a los favoritos.",
 "FAV_REMOVED": "{0} eliminado de los favoritos.",
 "PASTE_LIST_URL_HINT": "Pegue la URL de su lista IPTV aquí ...",
-"LOADING": "Cargando ...",
+"LOADING": "Cargando...",
 "RECORDINGS": "Grabaciones",
 "START_RECORDING": "Iniciar grabación",
 "STOP_RECORDING": "Detener grabación",
@@ -398,5 +398,8 @@
 "SEARCH_ALTERNATIVES": "Buscar transmisiones alternativas",
 "TUNE_ALTERNATIVE": "Sintoniza transmisión alternativa",
 "TRANSCODING": "Transcodificación...",
-"ICON_FRAMING": "Icon Framing"
+"ICON_FRAMING": "Icon Framing",
+"INICIO": "Inicialización",
+"MENU": "Menú",
+"NONE": "Ninguno"
 }

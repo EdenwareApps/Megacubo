@@ -174,10 +174,10 @@
 			<input id="saveas" type="file" nwsaveas />
 		</div>
 		<div id="notify-area" class="fit-player"></div>
-		<div id="menu-trigger" onfocus="Menu.show()">
+		<a id="menu-trigger" onfocus="Menu.show()" href="javascript:;">
 			<i class="fas fa-chevron-left"></i>
-		</div>
-		<div id="menu" class="fit-screen" tabindex="-1">
+		</a>
+		<div id="menu" class="fit-screen" tabindex="-1" aria-hidden="true">
 			<div id="menu-left-border"></div>
 			<div id="menu-wrapper" tabindex="-1">
 				<span id="menu-toggle-container">

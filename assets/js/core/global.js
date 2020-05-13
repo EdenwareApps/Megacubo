@@ -817,6 +817,7 @@ if(top == window){
                 "resume": false,
                 "search-range-size": 0,
                 "sources": [],
+                "startup-window": "",
                 "themes": {},
                 "theme-current": "default",
                 "tooltips": true,
@@ -3279,14 +3280,38 @@ if(window == top){
         jar: requestJar,
         headers: {'User-Agent': navigator.userAgent} // without user-agent some hosts return 403
     }
-    let setup = r => {
+    let crFolder = GStore.folder + path.sep + 'request', crSetup = r => {
         r = _crequest(r.defaults(defs))
         r.setValue('ttl', 3600)
-        r.setCacheDirectory(GStore.folder + path.sep + 'request')
+        r.setCacheDirectory(crFolder)
         return r
+    }, crTTL = 600, crClean = () => {
+        // console.log('crClean') // request caching TTL (implemented for segments caching)
+        fs.readdir(crFolder, (err, files) => {
+            let now = time()
+            // console.log('crClean', files)
+            files.forEach((file, index) => {
+                fs.stat(path.join(crFolder, file), (err, stat) => {
+                    if (err) {
+                        return console.error(err)
+                    }
+                    let endTime = parseInt(stat['ctimeMs'] / 1000) + crTTL
+                    // console.log('crClean', now, endTime)
+                    if (now > endTime) {
+                        fs.unlink(path.join(crFolder, file), err => {
+                            if (err) {
+                                return console.error('crClean ERR', err)
+                            }
+                            // console.warn('crClean successfully deleted', file)
+                        })
+                    }
+                })
+            })
+        })
     }
-    var requestForever = setup(_request.forever())
-    var request = setup(_request)
+    var requestForever = crSetup(_request.forever())
+    var request = crSetup(_request)
+    setInterval(crClean, crTTL * 1000)
 } else {
     var request = top.request, requestJar = top.requestJar, requestForever = top.requestForever
 }

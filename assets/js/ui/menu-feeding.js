@@ -77,7 +77,7 @@ function getWindowModeEntries(short){
             name: Lang.ACTION_ON_TYPING, 
             type: 'group', 
             logo: 'fa-keyboard',
-            entries: [],
+            
             renderer: () => {
                 return Object.keys(dialingActions).map((action) => {
                     return {
@@ -424,8 +424,7 @@ function getAppearanceOptionsEntries(){
         {
             name: Lang.ICON_FRAMING, 
             type: 'group',
-            logo: 'fa-adjust',
-            entries: [],
+            logo: 'fa-adjust',            
             renderer: () => {
                 return ['x', 'y', 'disabled'].map((o) => {
                     let u = o.toUpperCase(), n = typeof(Lang[u]) == 'string' ? Lang[u] : u
@@ -705,8 +704,7 @@ function getAppearanceFontEntries(){
         {
             name: Lang.FONT, 
             type: 'group',
-            logo: 'fa-font',
-            entries: [],
+            logo: 'fa-font',            
             renderer: () => {
                 return getFontList().map((font) => {
                     return {
@@ -1101,76 +1099,132 @@ function getSettingsEntries(){
         jQuery('.entry-p2p-port')[(show?'remove':'add')+'Class']('entry-hide')
     }
     var opts = [
-        {name: Lang.PREFERRED_SECTIONS, type: 'group', logo: 'fa-th-list', entries: [],
-            renderer: () => {
-                return Menu.entries.filter((e) => { return typeof(e.homeId) != 'undefined' }).map((e) => { return e.homeId }).
-                map((type) => {
-                    return {
-                        name: Lang[type.toUpperCase().replaceAll('-', '_')] || type,
-                        homeId: type,
-                        type: 'check', 
-                        check: (checked, data) => {
-                            var curs = Config.get('initial-sections');
-                            if(checked){
-                                if(curs.indexOf(data.homeId) == -1){
-                                    curs.push(data.homeId)
-                                }
-                            } else {
-                                var i = curs.indexOf(data.homeId);
-                                if(i != -1){
-                                    curs.splice(i, 1);
-                                }
+        {name: Lang.STARTUP, type: 'group', logo: 'fas fa-star-of-life', entries: [
+            {name: Lang.RESUME_PLAYBACK, type: 'check', check: (checked) => {
+                Config.set('resume', checked)
+            }, checked: () => {
+                return Config.get('resume')
+            }},
+            {
+                name: Lang.WINDOW,
+                logo:'fa-window-maximize', 
+                type: 'group', 
+                callback: () => {
+                    setActiveEntry({'value': Config.get('startup-window')})
+                },
+                renderer: () => {
+                    return [
+                        {
+                            name: Lang.NONE,
+                            logo: 'fa-ban',
+                            type: 'option',
+                            value: '',
+                            callback: (data) => {
+                                Config.set('startup-window', data.value)
+                                setActiveEntry({'value': data.value})
                             }
-                            Config.set('initial-sections', curs)
-                        }, 
-                        checked: (data) => {
-                            var curs = Config.get('initial-sections');
-                            return curs.indexOf(data.homeId) != -1;
+                        },
+                        {name: Lang.FULLSCREEN, logo:'fa-window-maximize', type: 'option',
+                            value: 'fullscreen',
+                            callback: (data) => {
+                                Config.set('startup-window', data.value)
+                                setActiveEntry({'value': data.value})
+                            }
+                        },
+                        {name: 'Miniplayer', logo:'fa-level-down-alt', type: 'option',
+                            value: 'miniplayer',
+                            callback: (data) => {
+                                Config.set('startup-window', data.value)
+                                setActiveEntry({'value': data.value})
+                            }
                         }
-                    }
-                })
+                    ]
+                }
             }
-        },  
-        {name: Lang.PREFERRED_SECTIONS_ONLY, type: 'check', 
-            check: (checked) => {
-                Config.set('initial-sections-only', checked)
-            }, 
-            checked: () => {
-                return Config.get('initial-sections-only')
-            }
-        },
-        {name: Lang.INITIAL_SECTION, type: 'group', logo: 'fa-home', entries: [],
-            renderer: () => {
-                var entries = Menu.entries.filter((e) => { return typeof(e.homeId) != 'undefined' && e.type =='group' }).map((e) => { return e.homeId }).
-                map((type) => {
-                    return {
-                        name: Lang[type.toUpperCase().replaceAll('-', '_')] || type,
-                        homeId: type,
+        ]},
+        {name: Lang.MENU, type: 'group', logo: 'fa-th-list', entries: [
+            {
+                name: Lang.HIDE_LOGOS,
+                type: 'check',
+                check: (checked) => {
+                    Theme.set('hide-logos', checked);
+                    showLogos = !checked;
+                }, 
+                checked: () => {
+                    return Theme.get('hide-logos')
+                }
+            },
+            {name: Lang.PREFERRED_SECTIONS, type: 'group', logo: 'fa-th-list',
+                renderer: () => {
+                    return Menu.entries.filter((e) => { return typeof(e.homeId) != 'undefined' }).map((e) => { return e.homeId }).
+                    map((type) => {
+                        return {
+                            name: Lang[type.toUpperCase().replaceAll('-', '_')] || type,
+                            homeId: type,
+                            type: 'check', 
+                            check: (checked, data) => {
+                                var curs = Config.get('initial-sections');
+                                if(checked){
+                                    if(curs.indexOf(data.homeId) == -1){
+                                        curs.push(data.homeId)
+                                    }
+                                } else {
+                                    var i = curs.indexOf(data.homeId);
+                                    if(i != -1){
+                                        curs.splice(i, 1);
+                                    }
+                                }
+                                Config.set('initial-sections', curs)
+                            }, 
+                            checked: (data) => {
+                                var curs = Config.get('initial-sections');
+                                return curs.indexOf(data.homeId) != -1;
+                            }
+                        }
+                    })
+                }
+            },  
+            {name: Lang.PREFERRED_SECTIONS_ONLY, type: 'check', 
+                check: (checked) => {
+                    Config.set('initial-sections-only', checked)
+                }, 
+                checked: () => {
+                    return Config.get('initial-sections-only')
+                }
+            },
+            {name: Lang.INITIAL_SECTION, type: 'group', logo: 'fa-home', 
+                renderer: () => {
+                    var entries = Menu.entries.filter((e) => { return typeof(e.homeId) != 'undefined' && e.type =='group' }).map((e) => { return e.homeId }).
+                    map((type) => {
+                        return {
+                            name: Lang[type.toUpperCase().replaceAll('-', '_')] || type,
+                            homeId: type,
+                            type: 'option', 
+                            callback: (data) => {
+                                Config.set('initial-section', data.homeId);
+                                setActiveEntry({homeId: data.homeId})
+                            }
+                        }
+                    });
+                    entries.unshift({
+                        name: Lang['HOME'],
+                        homeId: '',
                         type: 'option', 
                         callback: (data) => {
                             Config.set('initial-section', data.homeId);
                             setActiveEntry({homeId: data.homeId})
                         }
-                    }
-                });
-                entries.unshift({
-                    name: Lang['HOME'],
-                    homeId: '',
-                    type: 'option', 
-                    callback: (data) => {
-                        Config.set('initial-section', data.homeId);
-                        setActiveEntry({homeId: data.homeId})
-                    }
-                });
-                return entries;
-            },
-            callback: () => {
-                setActiveEntry({homeId: Config.get('initial-section')})
+                    });
+                    return entries;
+                },
+                callback: () => {
+                    setActiveEntry({homeId: Config.get('initial-section')})
+                }
             }
-        },             
+        ]},             
         {name: Lang.LANGUAGE, homeId: 'live', append: getActionHotkey('CHANGELANG'), logo:'fa-language', type: 'group', renderer: getLanguageEntries, callback: markActiveLocale, entries: []},
-        {name: Lang.WINDOW, homeId: 'live', logo:'fa-window-maximize', type: 'group', renderer: getWindowModeEntries, entries: []},
-        {name: Lang.APPEARANCE, homeId: 'live', logo:'fa-palette', type: 'group', renderer: getThemeEntries, entries: [], callback: () => {
+        {name: Lang.WINDOW, homeId: 'live', logo:'fa-window-maximize', type: 'group', renderer: getWindowModeEntries},
+        {name: Lang.APPEARANCE, homeId: 'live', logo:'fa-palette', type: 'group', renderer: getThemeEntries,  callback: () => {
             setActiveEntry({
                 name: Theme.data.name
             })
@@ -1319,12 +1373,12 @@ function getSettingsEntries(){
             }, checked: () => {
                 return Config.get('bookmark-dialing')
             }},
-            {name: Lang.SEARCH_RANGE, logo: 'fa-search', type: 'group', renderer: getSearchRangeEntries, entries: [], callback: () => {
+            {name: Lang.SEARCH_RANGE, logo: 'fa-search', type: 'group', renderer: getSearchRangeEntries,  callback: () => {
                 setActiveEntry({
                     value: Config.get('search-range-size')
                 })
             }},
-            {name: Lang.WHEN_TRANSMISSION_FAILS, logo: 'fa-times-circle', type: 'group', renderer: getConnectingErrorEntries, entries: [], callback: () => {
+            {name: Lang.WHEN_TRANSMISSION_FAILS, logo: 'fa-times-circle', type: 'group', renderer: getConnectingErrorEntries,  callback: () => {
                 setActiveEntry({
                     value: Config.get('connecting-error-action')
                 })
@@ -1350,7 +1404,7 @@ function getSettingsEntries(){
                 ]
             }}
         ]},
-        {name: Lang.KEYBOARD_MAPPING, logo: 'fa-keyboard', type: 'group', class: 'entry-nosub', entries: [], renderer: getKeyboardMappingEntries},
+        {name: Lang.KEYBOARD_MAPPING, logo: 'fa-keyboard', type: 'group', class: 'entry-nosub',  renderer: getKeyboardMappingEntries},
         {name: Lang.OPEN_DEBUG_CONSOLE, type: 'option', logo: 'fa-terminal', class: isSDKBuild ? '' : 'entry-disable entry-hide', callback: () => { if(isSDKBuild) win.showDevTools() }},
         {name: Lang.RESET_CONFIG, logo:'fa-trash', type: 'option', callback: resetConfig},
         {name: Lang.EXIT, homeId: 'exit', logo:'fa-power-off', type: 'option', callback: closeApp}
@@ -1384,7 +1438,7 @@ addAction('getWatchingData', (entries) => {
 
 function setMiniPlayerContinueData(entry, prepend){
     if(entry && entry.name){
-        var srcs = [], html = '<i class="fas '+defaultIcons['stream']+' entry-logo-fa" aria-hidden="true"></i>'
+        var srcs = [], html = '<i class="fas '+ defaultIcons['stream'] +' entry-logo-fa" aria-hidden="true"></i>'
         if(entry.logo){
             if(entry.logo.substr(0, 3)=="fa-"){
                 html = '<i class="fas '+entry.logo+' entry-logo-fa" aria-hidden="true"></i>'
@@ -1398,7 +1452,7 @@ function setMiniPlayerContinueData(entry, prepend){
         jQuery('.miniplayer-continue-text').html((prepend ? (prepend + ' ') : '') + entry.name);
         jQuery('#miniplayer-continue').off('click').on('click', () => {
             playEntry(entry)
-        }).label((prepend ? (prepend + ' ') : '') + entry.name, 'up').data('entry-data', entry)
+        }).attr('aria-label', entry.name).label((prepend ? (prepend + ' ') : '') + entry.name, 'up').data('entry-data', entry)
         entry.logos = srcs
         jQuery('#miniplayer-continue').data('entry-data', entry)
         LogoFind.add(document.querySelector('#miniplayer-continue'))
@@ -1740,7 +1794,7 @@ function getBookmarksEntries(reportEmpty){
             opt.label = '<i class="fas fa-star"></i> ' + opt.bookmarkId;
             return opt;
         }));
-        options.push({name: Lang.REMOVE, logo: 'fa-trash', type: 'group', entries: [], renderer: getBookmarksForRemoval})
+        options.push({name: Lang.REMOVE, logo: 'fa-trash', type: 'group',  renderer: getBookmarksForRemoval})
     } else if(reportEmpty === true) {
         options.push(Menu.emptyEntry())
     }
@@ -1792,9 +1846,10 @@ function getLanguageEntries(){
                 logo: logoPath,
                 type: 'option',
                 callback: function (data){
+                    Config.set('override-locale', locale)
                     if(locale != Config.get('locale')){
-                        Config.set('locale', locale);
-                        markActiveLocale();
+                        Config.set('locale', locale)
+                        markActiveLocale()
                         setTimeout(function (){
                             restartApp(true)
                         }, 1000)

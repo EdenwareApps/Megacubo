@@ -464,11 +464,11 @@ function playPrevious(){ // PCH
     })
 }
 
-function playResume(){
+function playResume(cb){
     History.get().some((entry) => {
         if(!Playback.active && !Playback.lastActive && !Playback.intents.length){
-            playEntry(entry)
-            return true;
+            playEntry(entry, null, null, null, cb)
+            return true
         }
     })
 }
@@ -537,6 +537,7 @@ function playEntry(oentry, opts, types, tuning, cb){
                 if(!intent.started){
                     if(typeof(cb) == 'function'){
                         cb('playEntry() ended', intent)
+                        cb = null
                     }
                 }
             },
@@ -544,12 +545,14 @@ function playEntry(oentry, opts, types, tuning, cb){
                 if(!intent.started){
                     if(typeof(cb) == 'function'){
                         cb('playEntry() error', intent)
+                        cb = null
                     }
                 }
             },
             start: (intent) => {
                 if(typeof(cb) == 'function'){
                     cb(null, intent)
+                    cb = null
                 }
             }
         }
@@ -557,6 +560,7 @@ function playEntry(oentry, opts, types, tuning, cb){
             tuning: (tuning ? [tuning.originalUrl, tuning.type] : false), 
             manual: true
         }, opts || {})
+        opts = Object.assign(atts, opts)
         var entry = Object.assign({allowWebPages: true}, oentry)        
         entry.prepend = ''
         enterPendingState((decodeURIComponent(entry.name) || entry.name), Lang.CONNECTING, entry.originalUrl || '')

@@ -3,7 +3,7 @@ var menuTemplates = {};
 
 menuTemplates['option'] = `
     <a href="[url]" role="button" onclick="return false;" class="entry entry-option [class]" title="[name-n-label]" aria-label="[name-n-label]" data-balloon="[name-n-label]" data-balloon-pos="up-left">
-        <table>
+        <table aria-hidden="true">
             <tr>
                 <td class="entry-logo-c">
                     <span class="entry-logo">
@@ -25,7 +25,7 @@ menuTemplates['option'] = `
 
 menuTemplates['back'] = `
 <a href="[url]" role="button" onclick="return false;" class="entry entry-option [class]" title="[name-n-label]" aria-label="[name-n-label]" data-balloon="[name-n-label]" data-balloon-pos="up-left">
-	<table>
+	<table aria-hidden="true">
 		<tr>
             <td class="entry-logo-c">
                 <span class="entry-logo">
@@ -47,7 +47,7 @@ menuTemplates['back'] = `
 
 menuTemplates['disabled'] = `
 <a href="[url]" role="button" onclick="return false;" class="entry entry-disable entry-offline [class]" aria-hidden="true">
-    <table>
+    <table aria-hidden="true">
         <tr>
             <td class="entry-logo-c">
                 <span class="entry-logo">
@@ -69,7 +69,7 @@ menuTemplates['disabled'] = `
 
 menuTemplates['input'] = `
 <a href="[url]" draggable="false" role="button" onclick="return false;" class="entry entry-input [class]" title="[name-n-label]" aria-label="[name-n-label]" data-balloon="[name-n-label]" data-balloon-pos="up-left">
-    <table class="entry-search">
+    <table aria-hidden="true" class="entry-search">
         <tr>
             <td>
                 <span class="entry-input-logo">
@@ -87,7 +87,7 @@ menuTemplates['input'] = `
 
 menuTemplates['check'] = `
 <a href="[url]" role="button" onclick="return false;" class="entry entry-option [class]" title="[name-n-label]" aria-label="[name-n-label]" data-balloon="[name-n-label]" data-balloon-pos="up-left">
-    <table>
+    <table aria-hidden="true">
         <tr>
             <td class="entry-logo-c">
                 <span class="entry-logo">
@@ -107,7 +107,7 @@ menuTemplates['check'] = `
 
 menuTemplates['stream'] = `
 <a href="[url]" role="button" onclick="return false;" class="entry entry-stream [class]" title="[name-n-label]" aria-label="[name-n-label]" data-balloon="[name-n-label]" data-balloon-pos="up-left">
-    <table>
+    <table aria-hidden="true">
         <tr>
             <td class="entry-logo-c">
                 <span class="entry-logo">
@@ -129,7 +129,7 @@ menuTemplates['stream'] = `
 
 menuTemplates['group'] = `
 <a href="[url]" role="button" onclick="return false;" class="entry entry-group [class]" title="[name-n-label]" aria-label="[name-n-label]" data-balloon="[name-n-label]" data-balloon-pos="up-left">
-    <table>
+    <table aria-hidden="true">
         <tr>
             <td class="entry-logo-c">
                 <span class="entry-logo">
@@ -151,7 +151,7 @@ menuTemplates['group'] = `
 
 menuTemplates['slider'] = `
 <a href="[url]" role="button" onclick="return false;" class="entry entry-slider [class]" title="[name-n-label]" aria-label="[name-n-label]" data-balloon="[name-n-label]" data-balloon-pos="up-left">
-    <table>
+    <table aria-hidden="true">
         <tr>
             <td class="entry-logo-c">
                 <span class="entry-logo">
@@ -2253,7 +2253,7 @@ class VirtualMenu extends Events {
     }
 }
 
-const Menu = new VirtualMenu({j: jQuery, debug: debugAllow(false)})
+var Menu = new VirtualMenu({j: jQuery, debug: debugAllow(false)}) // don't make Menu a constant
 
 function entriesViewportFilter(entries){
     let skip, ret = [], c = Menu.container(), start = c.scrollTop(), end = start + c.height()

@@ -482,8 +482,8 @@ function moveFile(from, to, callback){
 }
 
 function makeModal(content){
-    jQuery(top.document).find('body').addClass('modal');
-    jQuery(content).appendTo(jQuery('#modal-overlay > div > div').html(''));
+    jQuery(top.document).find('body').addClass('modal')
+    jQuery(content).appendTo(jQuery('#modal-overlay > div > div').html(''))
     jQuery('#modal-overlay').show()
 }
 
@@ -508,10 +508,10 @@ function modalClose(silent){
 function modalConfirm(question, answers, closeable){
     var a = []
     answers.forEach((answer, i) => {
-        let c = 'button'
+        let c = 'button', l = stripHTML(answer[0])
         if(i == 0) c += ' button-first'
         if(i == (answers.length - 1)) c += ' button-last'
-        a.push(jQuery('<button class="'+c+'">'+answer[0]+'</button>').on('click', answer[1]).label(stripHTML(answer[0]), 'up'))
+        a.push(jQuery('<button class="'+c+'">'+answer[0]+'</button>').attr('aria-label', l).on('click', answer[1]).label(l, 'up'))
     })
     var b = jQuery('<div class="prompt prompt-'+a.length+'-columns">'+
                 '<span class="prompt-header">'+nl2br(question)+'</span>'+
@@ -523,21 +523,20 @@ function modalConfirm(question, answers, closeable){
 
 function modalPrompt(question, answers, placeholder, value, closeable, onclose){    
     sound('warn', 16);
-    var a = [], noHeader = !question
+    let a = [], noHeader = !question, nq = nl2br(question)
     answers.forEach((answer, i) => {
-        let c = 'button'
+        let c = 'button', l = stripHTML(answer[0])
         if(i == 0) c += ' button-first'
         if(i == (answers.length - 1)) c += ' button-last'
-        a.push(jQuery('<button class="'+c+'">' + answer[0] + '</button>').on('click', answer[1]).label(stripHTML(answer[0]), 'up'))
+        a.push(jQuery('<button class="'+c+'">' + answer[0] + '</button>').attr('aria-label', l).on('click', answer[1]).label(l, 'up'))
     })
-    var b = jQuery('<div class="prompt prompt-' + a.length + '-columns '+(noHeader ? ' prompt-no-header' : '')+'">'+
-        (closeable ? '<span class="prompt-close"><a href="javascript:modalClose();void(0)"><i class="fas fa-times-circle" aria-hidden="true"></i></a></span>' : '')+
-        '<span class="prompt-header">' + nl2br(question) + '</span>' +
+    let b = jQuery('<div class="prompt prompt-' + a.length + '-columns '+ (noHeader ? ' prompt-no-header' : '') +'">' + 
+        (closeable ? '<span class="prompt-close"><a href="javascript:modalClose();void(0)"><i class="fas fa-times-circle" aria-hidden="true" aria-label="'+ Lang.CLOSE +'"></i></a></span>' : '') +
+        '<span class="prompt-header">' + nq + '</span>' +
         '<span class="prompt-input"><input type="text" /></span>' +
         '<span class="prompt-footer"></span></div>');
-
     b.find('.prompt-footer').append(a)
-    var t = b.find('input')
+    let t = b.find('input')
     if(placeholder){
         t.prop('placeholder', placeholder)
     }
@@ -545,8 +544,8 @@ function modalPrompt(question, answers, placeholder, value, closeable, onclose){
         t.val(value)
     }
     makeModal(b)
-    b.find('.prompt-header')[noHeader?'hide':'show']()
-    var pc = b.find('.prompt-close a')
+    b.find('.prompt-header').attr('aria-label', nq)[noHeader?'hide':'show']()
+    let pc = b.find('.prompt-close a')
     if(closeable){
         pc.label(Lang.CLOSE, 'left')
         pc.on('click', () => {
@@ -594,19 +593,19 @@ function modalPromptHint(text, target){
     if(typeof(target) == 'number'){
         target = jQuery('.prompt button').eq(target)
     }
-    return target.prepend(tpl.format(text, bgc, fgc))
+    return target.prepend(jQuery(tpl.format(text, bgc, fgc)).attr('aria-label', text))
 }
 
 function modalPromptInput(){
-    return jQuery('.prompt').find('input, textarea');
+    return jQuery('.prompt').find('input, textarea')
 }
 
 function isModal(){
-    return jQuery('.prompt').length;
+    return jQuery('.prompt').length
 }
 
 function modalPromptVal(){
-    return modalPromptInput().val().trim() || '';
+    return modalPromptInput().val().trim() || ''
 }
 
 function shouldOpenSandboxURL(url, callback){
@@ -937,19 +936,20 @@ function sendStats(action, data){
     if(!data){
         data = {}
     }
-    data.uiLocale = getLocale(false, false);
-    data.arch = (process.arch == 'ia32') ? 32 : 64;
-    data.ver = nw.App.manifest.version;
-    data.verinf = verinf();
+    data.uiLocale = getLocale(false, false)
+    data.arch = process.arch
+    data.platform = process.platform
+    data.ver = nw.App.manifest.version
+    data.verinf = verinf()
     if(data.source && !isListSharingActive() && getSourcesURLs().indexOf(data.source) != -1){
-        console.warn('Source URL not shareable.');
-        data.source = '';
+        console.warn('Source URL not shareable')
+        data.source = ''
     }
-    var postData = jQuery.param(data);
+    var postData = jQuery.param(data)
     var options = {
         hostname: 'app.megacubo.net',
         port: 80,
-        path: '/stats/'+action,
+        path: '/stats/'+ action,
         family: 4, // https://github.com/nodejs/node/issues/5436
         method: 'POST',
         headers: {
@@ -958,21 +958,21 @@ function sendStats(action, data){
             'Cache-Control': 'no-cache'
         }
     }
-    console.log('sendStats', options, postData, traceback());
-    var req = http.request(options, function (res){
-        res.setEncoding('utf8');
-        var data = '';
-        res.on('data', function (d){
-            data += d;
-        });
+    console.log('sendStats', options, postData, traceback())
+    var req = http.request(options, res => {
+        res.setEncoding('utf8')
+        var data = ''
+        res.on('data', d => {
+            data += d
+        })
         res.on('end', function (){
-            console.log('sendStats('+action+')', data);
-        });
-    });    
+            console.log('sendStats('+ action +')', data)
+        })
+    })
     req.on('error', (e) => {
-        console.log('Houve um erro', e);
+        console.log('Houve um erro', e)
     });
-    req.write(postData);
+    req.write(postData)
     req.end()
 }
 
@@ -1622,31 +1622,28 @@ $win.on('resize', () => {
     setTimeout(updateMenuDimensions, 200)
 })
 
-addAction('appReady', () => {
-    setTimeout(updateMenuDimensions, 200)
-})
-
 addAction('afterLoadTheming', () => {
     setTimeout(updateMenuDimensions, 50)
 })
 
-addAction('menuShow', () => {
+addAction('appReady', () => {
+    switch(Config.get('startup-window')){
+        case 'fullscreen':
+            setFullScreen(true)
+            break
+        case 'miniplayer':
+            enterMiniPlayer()
+            break
+    }
     setTimeout(updateMenuDimensions, 50)
-})
-
-addAction('menuShow', () => {
-    setTimeout(() => {
-        if(Config.get('resume') && !Playback.intents.length && Menu.path == ''){
-            playResume()
-        }
-    }, 5000)
+    if(Config.get('resume') && !Playback.intents.length){
+        playResume(Menu.hide.bind(Menu))
+    }
 })
 
 function isOverMenu() {
     return menuDimensions && (mousePos.x >= menuDimensions.x && mousePos.x <= (menuDimensions.x + menuDimensions.width)) && 
             (mousePos.y >= menuDimensions.y && mousePos.y <= (menuDimensions.y + menuDimensions.height))
-    //return menuDimensions && (mousePos.x >= menuDimensions.x && mousePos.x <= (menuDimensions.x + menuDimensions.width)) && 
-    //    (mousePos.y >= menuDimensions.y && mousePos.y <= (menuDimensions.y + menuDimensions.height))
 }
 
 function isOverPlayerControls() {
@@ -4074,7 +4071,7 @@ jQuery(function (){
 
     /* ignore focus handling while scrolling, with mouse or keyboard */
     (() => {
-        var unlockDelay = 0;
+        var unlockDelay = 0
         var lock = () => { 
             Menu.getEntries().css("pointer-events", "none") 
         }
@@ -4087,25 +4084,25 @@ jQuery(function (){
         }
         b.on("wheelstart", lock).on("wheelend", unlocker)
     })()
-});
+})
 
-currentVersion = false;
+currentVersion = false
 
 addAction('appReady', () => {
-    jQuery('#menu-toggle').label(Lang.SHOW_HIDE_MENU, 'down-right')
-    jQuery.getJSON('http://app.megacubo.net/configure.json?'+time(), (data) => {
-        if(!data || !data.version) return;
-        currentVersion = data.version;
+    jQuery('#menu-toggle').label(Lang.SHOW_HIDE_MENU, 'down-right').add('#menu-trigger').attr('aria-label', Lang.SHOW_HIDE_MENU)
+    jQuery.getJSON('http://app.megacubo.net/configure.json', (data) => {
+        if(!data || !data.version) return
+        currentVersion = data.version
         if(typeof(data.adultTerms)!='undefined'){
             if(typeof(data.adultTerms) != 'string'){
                 data.adultTerms = String(data.adultTerms)
             }   
             Config.set('default-parental-control-terms', fixUTF8(data.adultTerms), 30 * (24 * 3600))
         }
-        console.log('VERSION', nw.App.manifest.version, currentVersion);
-        installedVersion = nw.App.manifest.version;
+        console.log('VERSION', nw.App.manifest.version, currentVersion)
+        installedVersion = nw.App.manifest.version
         if(installedVersion < currentVersion){
-            availableVersion = currentVersion;
+            availableVersion = currentVersion
             if(confirm(Lang.NEW_VERSION_AVAILABLE)){
                 nw.Shell.openExternal(appDownloadUrl())
             }
@@ -4298,22 +4295,23 @@ function init(){
                 jQuery(el).label(el.title, 'down-right')
             });
             var close = jQuery('.nw-cf-close');
-            close.replaceWith(close.outerHTML()); // override closing behaviour
+            close.replaceWith(close.outerHTML()) // override closing behaviour
             jQuery('#menu-trigger').label(Lang.SHOW_HIDE_MENU, 'down-right');
             jQuery.getScript("node_modules/@fortawesome/fontawesome-free/js/all.min.js");
-            jQuery('.nw-cf-close').on('click', closeApp);
+            jQuery('.nw-cf-close').on('click', closeApp).attr('aria-label', Lang.CLOSE)
             //win.on('minimize', minimizeCallback);
-            jQuery('.nw-cf-btn.nw-cf-minimize').on('click', minimizeCallback);
-            var cl = Config.get('locale');
-            console.log('Current language:', cl, typeof(cl));
+            jQuery('.nw-cf-btn.nw-cf-minimize').on('click', minimizeCallback).attr('aria-label', Lang.MINIMIZE)
+            jQuery('.nw-cf-btn.nw-cf-maximize').attr('aria-label', Lang.MAXIMIZE)
+            jQuery('.nw-cf-btn.nw-cf-restore').attr('aria-label', Lang.RESTORE)
+            var cl = Config.get('locale')
+            console.log('Current language:', cl, typeof(cl))
             if(!cl || cl == 'en') {
-                var locale = getLocale(true);
+                var locale = getLocale(true)
                 if(locale == 'en'){
                     jQuery.getJSON('http://app.megacubo.net/get-lang', (data) => {
                         console.log('IP language:', data, data.length);
                         if(data && data.length == 2 && data != 'en' && data != Config.get('override-locale')) {
                             // unsure of language, ask user
-                            Config.set('override-locale', data);
                             setTimeout(goChangeLang, 1000)
                         } else {
                             Config.set('locale', 'en')
