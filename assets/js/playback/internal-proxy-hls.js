@@ -2,7 +2,7 @@
 
 Playback.HLSManager = ((parent) => {
     var self = {
-        debug: debugAllow(true),
+        debug: debugAllow(false),
         callbacks: {},
         minBufferSecs: 5,
         maxQueueLength: 10,
@@ -455,6 +455,9 @@ Playback.HLSManager = ((parent) => {
             return true
         }
     }
+    self.enableP2P = (activate) => {
+        self.loader.settings.httpDownloadProbability = activate ? 0 : 1
+    }
     self.destroy = () => {
         self.log('closing...')
         self.closed = true;
@@ -476,5 +479,19 @@ Playback.HLSManager = ((parent) => {
         return txt      
     })
     self.init()
+
+    self.parent.on('state-load', () => {
+        self.enableP2P(false) 
+    })
+    self.parent.on('state-pause', () => {
+        self.enableP2P(false)
+    })
+    self.parent.on('state-stop', () => {
+        self.enableP2P(false)
+    })
+    self.parent.on('state-play', () => {
+        self.enableP2P(true)
+    })
+
     return self
 })(Playback)

@@ -4171,6 +4171,7 @@ function openTVGuide() {
         url = 'https://meuguia.tv';
     }
     nw.Shell.openExternal(url)
+    enterMiniPlayer()
 }
 
 nw.App.on('open', function (argString) {

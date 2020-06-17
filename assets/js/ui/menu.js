@@ -2341,6 +2341,7 @@ jQuery(() => {
                 if(typeof(opt.mediaType) == 'undefined'){
                     //opt.mediaType = getMediaType(opt)
                 }
+                opt.type = 'stream'
                 opt = adjustMainCategoriesEntry(opt, 'live')
             }
             return opt
