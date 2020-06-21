@@ -5,7 +5,7 @@ if(typeof(PremiumHelper) == 'undefined'){
             shouldInstall: false
         };
         self.entry = () => {
-            if(premiumChecking == true){
+            if(typeof(premiumChecking) != 'undefined' && premiumChecking == true){
                 return {name: Lang.ACTIVATING_PREMIUM_MODE, logo: 'fas fa-hourglass', class: 'entry-disable entry-offline', type: 'option'}
             }
             let lic = applyFilters('appLicense', 'free'), nam = Lang.ENABLE_PREMIUM_FEATURES, lbl = ''
