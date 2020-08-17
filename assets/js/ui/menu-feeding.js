@@ -621,7 +621,7 @@ function getAppearanceColorsEntries(){
                     });
                     if(curPath == Menu.path){
                         Menu.container(true);
-                        Menu.renderBackEntry(Menu.container(true), dirname(curPath), basename(curPath));
+                        Menu.renderBackEntry(dirname(curPath), basename(curPath));
                         Menu.render(entries, curPath);
                         if(alreadyChosenIndex != -1){
                             setEntryFlag(Menu.getEntries(false, false).get(alreadyChosenIndex + 1), 'fa-check-circle', true)
@@ -672,7 +672,7 @@ function getAppearanceColorsEntries(){
                     });
                     if(curPath == Menu.path){
                         Menu.container(true);
-                        Menu.renderBackEntry(Menu.container(true), dirname(curPath), basename(curPath));
+                        Menu.renderBackEntry(dirname(curPath), basename(curPath));
                         Menu.render(entries, curPath);
                         if(alreadyChosenIndex != -1){
                             setEntryFlag(Menu.getEntries(false, false).get(alreadyChosenIndex + 1), 'fa-check-circle', true)
@@ -797,7 +797,7 @@ function getAppearanceFontEntries(){
                     });
                     if(curPath == Menu.path){
                         Menu.container(true);
-                        Menu.renderBackEntry(Menu.container(true), dirname(curPath), basename(curPath));
+                        Menu.renderBackEntry(dirname(curPath), basename(curPath));
                         Menu.render(entries, curPath);
                         if(alreadyChosenIndex != -1){
                             setEntryFlag(Menu.getEntries(false, false).get(alreadyChosenIndex + 1), 'fa-check-circle', true)
@@ -1043,7 +1043,7 @@ function getSearchingEntries(){
                         } else {
                             callback([Menu.emptyEntry(Lang.NO_RESULTS, 'fa-ban')])
                         }
-                        sendStats('search', {query: val, type})
+                        sendStatsSearch({query: val, type})
                     }
                 }, 750)
             },
@@ -1331,7 +1331,7 @@ function getSettingsEntries(){
                             TSPool.updateConfig()
                         }
                     }},
-                    {name: 'TS JOINING STACK SIZE', type: 'slider', logo: 'fa-ruler-horizontal', mask: '{0} MB', value: Config.get('ts-joining-stack-size'), range: {start: 2, end: 24}, change: (data, element) => {
+                    {name: 'TS JOINING BUFFER SIZE', type: 'slider', logo: 'fa-ruler-horizontal', mask: '{0} MB', value: Config.get('ts-joining-stack-size'), range: {start: 2, end: 24}, change: (data, element) => {
                         Config.set("ts-joining-stack-size", data.value)
                         if(TSPool){
                             TSPool.updateConfig()
@@ -1406,6 +1406,7 @@ function getSettingsEntries(){
         ]},
         {name: Lang.KEYBOARD_MAPPING, logo: 'fa-keyboard', type: 'group', class: 'entry-nosub',  renderer: getKeyboardMappingEntries},
         {name: Lang.OPEN_DEBUG_CONSOLE, type: 'option', logo: 'fa-terminal', class: isSDKBuild ? '' : 'entry-disable entry-hide', callback: () => { if(isSDKBuild) win.showDevTools() }},
+        {name: Lang.CLEAR_CACHE, logo:'fa-broom', type: 'option', callback: () => { clearCache(true) }},
         {name: Lang.RESET_CONFIG, logo:'fa-trash', type: 'option', callback: resetConfig},
         {name: Lang.EXIT, homeId: 'exit', logo:'fa-power-off', type: 'option', callback: closeApp}
     ]

@@ -43,6 +43,8 @@
 "RECORDING_SAVED": "Recording saved",
 "RECORDING_SAVE_ERROR": "Unexpected error while saving recording.",
 "CLEAR": "Clear",
+"CLEAR_CACHE": "Clear cache",
+"CLEANING_CACHE": "Cleaning cache...",
 "HISTORY": "History",
 "WINDOW": "Window",
 "FULLSCREEN": "Fullscreen",

@@ -723,7 +723,7 @@ if(top == window){
         }
         self.logon = (name) => {
             if(self.list.indexOf(name) != -1){
-                localStorage.setItem('logged-user', name);
+                localStorage.setItem('logged-user', name)
                 restartApp()
             }
         }

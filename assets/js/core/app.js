@@ -932,7 +932,7 @@ function verinf(){
     return applyFilters('verinf', '')
 }
 
-function sendStats(action, data){
+function sendStats(action, data, cb){
     if(!data){
         data = {}
     }
@@ -966,12 +966,18 @@ function sendStats(action, data){
             data += d
         })
         res.on('end', function (){
-            console.log('sendStats('+ action +')', data)
+            console.log('sendStats('+ action +')', postData, data)
+            if(typeof(cb) == 'function'){
+                cb(null, data)
+            }
         })
     })
     req.on('error', (e) => {
         console.log('Houve um erro', e)
-    });
+        if(typeof(cb) == 'function'){
+            cb(e)
+        }
+    })
     req.write(postData)
     req.end()
 }
@@ -984,11 +990,66 @@ function sendStatsPrepareEntry(stream){
         stream.source_nam = getSourceMeta(stream.source, 'name');
         stream.source_len = getSourceMeta(stream.source, 'length');
         if(isNaN(parseInt(stream.source_len))){
-            stream.source_len = -1; // -1 = unknown
+            stream.source_len = -1 // -1 = unknown
         }
     }
     return stream;
 }
+
+var sendStatsSearchQueue = []
+
+function sendStatsSearch(data){
+    if(data && data.query.length > 2){
+        let k = -1
+        data.query = prepareSearchTerms(data.query.replaceAll(',', '')).join(' ')
+        sendStatsSearchQueue.some((v, i) => {
+            if(v.query == data.query){
+                sendStatsSearchQueue[i].type = v.type
+                k = -2
+                return true
+            } else if(v.query.length > data.query.length) {
+                if(v.query.substr(0, data.query.length) == data.query){
+                    sendStatsSearchQueue[i].type = v.type
+                    k = -2
+                    return true
+                }
+            } else if(v.query.length < data.query.length) {
+                if(data.query.substr(0, v.query.length) == v.query){
+                    k = i
+                    return true
+                }
+            }
+        })
+        if(k == -1){
+            sendStatsSearchQueue.push(data)
+        } else if(k >= 0) {
+            sendStatsSearchQueue[k] = data
+        }
+    }
+}
+
+function sendStatsSearchProcess(entry){
+    const queue = sendStatsSearchQueue.slice(0)
+    sendStatsSearchQueue = []
+    let data = {}
+    queue.forEach(v => {
+        if(typeof(data[v.type]) == 'undefined'){
+            data[v.type] = []
+        }
+        data[v.type].push(v.query)
+    })
+    async.eachOf(Object.keys(data), (type, i, acb) => {
+        let query = data[type].join(',')
+        console.log('sendStatsSearchProcess', type, query)
+        sendStats('search', {query, type}, acb)
+    }, () => {
+        console.log('sendStatsSearchProcess OK')
+    })
+}
+
+Playback.on('commit', intent => {
+    sendStatsSearchProcess(intent.entry)
+})
 
 var tuningHintShown = false;
 patchMaximizeButton();
@@ -1495,7 +1556,6 @@ function applyLogoImage(file){
 
 function applyBackgroundImage(file){  
     if(file){
-        copyFile(file, 'assets/images/wallpaper.png');
         fileToBase64(file, (err, b64) => {
             var done = () => {
                 Menu.go('', () => {
@@ -1507,8 +1567,10 @@ function applyBackgroundImage(file){
                     }, 100)
                 })
             }
-            if(!err) {
-                Theme.set("background", b64);
+            if(err) {
+                console.error(err)
+            } else {
+                Theme.set('background-image', b64)
                 loadTheming()
             }
             done()
@@ -3791,18 +3853,78 @@ function parseCounter(n){
     return parseThousands(n)
 }
 
-function changeProfileImage(userName, cb){
+var clearCacheNotification = false
+
+function clearRequestCache(cb){
+    let folder = GStore.folder + path.sep + 'request'
+    removeFolder(folder, false, cb)
+}
+
+function clearIPTVReadCache(cb){
+    let folder = GStore.folder + path.sep
+    fs.readdir(folder, (err, files) => {
+        if(err){
+            console.error(err)
+            cb()
+        } else {
+            async.eachOf(files, (file, i, acb) => {
+                if(file.substr(0, 10) == 'iptv-read-'){
+                    fs.unlink(folder + file, acb)
+                } else {
+                    acb()
+                }
+            }, cb)
+        }
+    })
+}
+
+function clearStreamingCache(cb){
+    removeFolder(Playback.proxyLocal.folder + path.sep + 'stream', false, cb)
+}
+
+function clearCache(ui){
+    if(ui === true){
+        if(!clearCacheNotification){
+            clearCacheNotification = notify(Lang.CLEANING_CACHE, 'fa-mega spin-x-alt', 'forever', true)
+        } else {
+            clearCacheNotification.update(Lang.CLEANING_CACHE, 'fa-mega spin-x-alt', 'forever')
+        }
+    }
+    Playback.stop()
+    nw.App.clearCache()
+    async.parallel([
+        clearStreamingCache,
+        clearIPTVReadCache,
+        clearRequestCache
+    ], () => {
+		if(ui === true){
+            clearCacheNotification.update('OK', 'fa-check-circle', 'normal')
+        }
+    })
+}
+
+function changeProfileImage(cb){
     openFileDialog((file) => {
-        copyFile(file, Users.loggedFolder + path.sep + 'default_icon.png', cb)
+        changeProfileImageCallback(file, cb)
+    })
+}
+
+function changeProfileImageCallback(file, cb){
+    fileToBase64(file, (err, b64) => {
+        if(b64){
+            Config.set('avatar', b64)
+        }
+        cb()
+        jQuery('.nw-cf-btn.nw-cf-profile').replaceWith(getProfileButton())
     })
 }
 
 function renameProfile(from, to, cb){
     fs.rename(Users.folder + path.sep + from, Users.folder + path.sep + to, (err) => {
-        Users.load();
-        cb(err);
+        Users.load()
+        cb(err)
         if(err) {
-            throw err;
+            throw err
         } 
     })
 }
@@ -3811,14 +3933,14 @@ function removeProfile(name, cb){
     removeFolder(Users.folder + path.sep + name, true, cb)
 }
 
-function createNewProfile(name, avatar, cb){
+function createNewProfile(name, cb){
     var _cb = () => {
-        Users.load();
+        Users.load()
         cb()
     }
     fs.mkdir(Users.folder + path.sep + name, (err) => {
         if(avatar){
-            copyFile(avatar, Users.folder + path.sep + name + path.sep + 'default_icon.png', _cb)
+            changeProfileImageCallback(avatar, _cb)
         } else {
             _cb()
         }
@@ -3828,30 +3950,38 @@ function createNewProfile(name, avatar, cb){
 var currentAddingProfile = {}
 function getProfileEntries(){
     var entries = Users.list.map((user) => {
-        let src = Users.folder + path.sep + user + path.sep + 'default_icon.png';
+        let src = Config.get('avatar')
         return {
             name: user,
             label: (user == Users.logged) ? '<i class="fas fa-user-check"></i> ' + Lang.EDIT_PROFILE : '<i class="fas fa-sign-in-alt"></i> ' + Lang.LOAD_PROFILE,
             user: user,
             type: 'group',
-            logo: fs.existsSync(src) ? src : ((user == Users.logged) ? 'fa-user' : 'fa-sign-in-alt'),
+            logo: src ? src : ((user == Users.logged) ? 'fa-user' : 'fa-sign-in-alt'),
             renderer: (data) => {
                 if(data.user == Users.logged){
                     var entries = [
-                        {name: '', value: data.user, placeholder: data.user, type: 'input', logo: 'fa-keyboard'},
-                        {name: Lang.CHANGE_PROFILE_IMAGE, type: 'option', logo: 'fa-image', callback: () => { 
-                            changeProfileImage(data.user, () => { 
-                                Menu.back(() => {
-                                    Menu.refresh()
-                                }) 
-                            }) 
+                        {name: Lang.RENAME, value: data.user, placeholder: data.user, type: 'option', logo: 'fa-keyboard', callback: () => {
+                            let opts = [
+                                ['<i class="fas fa-check-circle" aria-hidden="true"></i> OK', () => {
+                                    let name = modalPromptVal()
+                                    modalClose()
+                                    if(name){
+                                        name = prepareFilename(name, true)
+                                        renameProfile(data.user, name, () => { 
+                                            Users.setLogged(name)
+                                            Users.list = null
+                                            Users.load()
+                                            jQuery('.nw-cf-profile').triggerHandler('click')
+                                        })
+                                    }
+                                }]
+                            ]
+                            modalPrompt(Lang.RENAME, opts, data.user, data.user, true)
                         }},
-                        {name: Lang.SAVE, type: 'option', logo: 'fa-save', callback: () => { 
-                            renameProfile(data.user, jQuery('div.list input').val(), () => { 
-                                Menu.back(() => {
-                                    Menu.refresh()
-                                }) 
-                            })
+                        {name: Lang.CHANGE_PROFILE_IMAGE, type: 'option', logo: 'fa-image', callback: () => { 
+                            changeProfileImage(() => { 
+                                Menu.refresh()
+                            }) 
                         }},
                         {name: Lang.EXPORT_IMPORT, logo:'fa-cogs', type: 'group', entries: [
                             {name: Lang.EXPORT_CONFIG, logo:'fa-file-export', type: 'option', callback: () => {
@@ -3888,20 +4018,44 @@ function getProfileEntries(){
             }
         }
     });
-    entries.push({name: Lang.CREATE_NEW_PROFILE, type: 'group', logo: 'fa-user-plus', renderer: () => {
-        return [
-            {name: '', value: '', placeholder: '', type: 'input', logo: 'fa-keyboard'},
-            {name: Lang.CHANGE_PROFILE_IMAGE, type: 'option', logo: 'fa-user', callback: () => { 
-                openFileDialog((file) => {
-                    currentAddingProfile.avatar = file;
-                })
-            }},
-            {name: Lang.SAVE, type: 'option', logo: 'fa-save', callback: () => { 
-                createNewProfile(jQuery('div.list input').val(), currentAddingProfile.avatar, () => { Menu.back() })
-            }}
+    entries.push({name: Lang.CREATE_NEW_PROFILE, type: 'option', logo: 'fa-user-plus', callback: () => {
+        let opts = [
+            ['<i class="fas fa-check-circle" aria-hidden="true"></i> OK', () => {
+                let name = modalPromptVal()
+                modalClose()
+                if(name){
+                    name = prepareFilename(name, true)
+                    createNewProfile(name, () => { Menu.back() })
+                    Users.list = null
+                    Users.load()
+                    jQuery('.nw-cf-profile').triggerHandler('click')
+                }
+            }]
         ]
+        modalPrompt(Lang.CREATE_NEW_PROFILE, opts, '', '', true)
     }});
     return entries;
+}
+
+function getProfileButton(){
+    let image, height = '30px', title = Lang.PROFILE, avatar = Config.get('avatar')
+    if(avatar){
+        avatar = '<img src="assets/images/blank.png" style="background-image: url(' + avatar + '); width: 100%; height: 28px; margin-top: 2px; display: block; background-size: contain; background-repeat: no-repeat; background-position: center center;" />'
+    } else {
+        avatar = '<i class="nw-cf-icon fas fa-user" style="position: relative; top: 2px;"></i>'
+    }
+    let bt = jQuery(`
+<button class="nw-cf-btn nw-cf-profile"  title="${title}" aria-label="${title}" data-balloon="${title}" data-balloon-pos="down-right" style="display: inline-flex; height: ${height}; line-height: ${height};">
+	${avatar}
+</button>
+`)
+    avatar = null
+    bt.on('click', () => {
+        Menu.path = Lang.TOOLS + '/' + Lang.USERS
+        Menu.renderBackEntry('')
+        Menu.render(getProfileEntries())
+    })
+    return bt
 }
 
 var internetStateNotification, updateInternetState = () => {
@@ -3931,7 +4085,7 @@ addFilter('filterEntries', (entries, path) => {
             if(!ret && !only){
                 posEntries.push(entry)
             }
-            return ret;
+            return ret
         }).concat(posEntries);
         var diff, focusLength, columnsLength, totalCount = entries.filter((entry) => {
             return (!entry.class || entry.class.indexOf('entry-hide') == -1) 
@@ -4266,6 +4420,7 @@ function init(){
             }
             setInterval(statsAlive, 600000); // each 600 secs
             addAction('afterAppShow', statsAlive);
+            addAction('afterAppShow', clearCache);
             setTimeout(() => {
                 doAction('afterAppShow')
             }, 5000);
@@ -4301,9 +4456,10 @@ function init(){
             jQuery.getScript("node_modules/@fortawesome/fontawesome-free/js/all.min.js");
             jQuery('.nw-cf-close').on('click', closeApp).attr('aria-label', Lang.CLOSE)
             //win.on('minimize', minimizeCallback);
-            jQuery('.nw-cf-btn.nw-cf-minimize').on('click', minimizeCallback).attr('aria-label', Lang.MINIMIZE)
             jQuery('.nw-cf-btn.nw-cf-maximize').attr('aria-label', Lang.MAXIMIZE)
             jQuery('.nw-cf-btn.nw-cf-restore').attr('aria-label', Lang.RESTORE)
+            jQuery('.nw-cf-btn.nw-cf-minimize').on('click', minimizeCallback).attr('aria-label', Lang.MINIMIZE).before(getProfileButton())
+
             var cl = Config.get('locale')
             console.log('Current language:', cl, typeof(cl))
             if(!cl || cl == 'en') {

@@ -43,6 +43,8 @@
 "RECORDING_SAVED": "Grabación guardada.",
 "RECORDING_SAVE_ERROR": "Error inesperado al guardar la grabación.",
 "CLEAR": "Limpio",
+"CLEAR_CACHE": "Limpiar cache",
+"CLEANING_CACHE": "Limpiando cache...",
 "HISTORY": "Historia",
 "WINDOW": "Ventana",
 "FULLSCREEN": "Pantalla completa",

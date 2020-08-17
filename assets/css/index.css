@@ -192,6 +192,7 @@ body.frameless #nw-custom-frame {
     width: 42px;
     display: inline-block;
     text-align: center;
+    justify-content: center;
     vertical-align: top;
     outline: 0 !important;
 }	
@@ -211,6 +212,10 @@ body.frameless #nw-custom-frame {
 .nw-cf-btn .nw-cf-icon { 
     vertical-align: middle;
 }		
+
+body.miniplayer .nw-cf-profile {
+    display: none;
+}
 
 #background-overlay {
     top: 30px;

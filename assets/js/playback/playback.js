@@ -1536,7 +1536,7 @@ Playback.on('load-out', () => {
     updateStreamEntriesFlags()
 })
 
-var engagingTimer = 0, engageTime = 180;
+var engagingTimer = 0, engageTime = 180
 
 Playback.on('commit', (intent) => {
     clearTimeout(engagingTimer)

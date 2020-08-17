@@ -749,7 +749,7 @@ class VirtualMenu extends Events {
                 console.log('ASYNCRESULT', entries, path, this.path)
             }
             var container = this.container(true);
-            this.renderBackEntry(container, dirname(path), basename(path))
+            this.renderBackEntry(dirname(path), basename(path))
             if(Array.isArray(entries)){
                 if(!entries.length){
                     entries.push(this.emptyEntry())
@@ -889,13 +889,16 @@ class VirtualMenu extends Events {
         }
         return back;
     }
-    renderBackEntry(container, backPath, label){
+    renderBackEntry(backPath, label){
         if(this.debug){
             console.warn('renderBackEntry', backPath, traceback())
         }
         this.container(true); // reset always for back button
         var back = this.backEntry(label);
         this.render([back], 1)
+        if(typeof(backPath) == 'string'){
+            Menu.setBackTo(backPath)
+        }
     }
     emptyEntry(txt, icon){
         return {
@@ -1149,7 +1152,7 @@ class VirtualMenu extends Events {
                     }
                 } 
                 if(!ok){
-                    this.renderBackEntry(this.container(true), dirname(npath), data.name);
+                    this.renderBackEntry(dirname(npath), data.name);
                     //this.path = ltrimPathBar(npath);
                     if(Array.isArray(entries)){
                         console.log('TRIGGER DATA 3', data.name, data.path, npath, entries);
@@ -1901,8 +1904,7 @@ class VirtualMenu extends Events {
                         if(this.debug){
                             console.log('NO NEXT', this.path, path, entries)
                         }
-                        this.container(true) // just to reset entries in view
-                        this.renderBackEntry(container, dirname(fullPath), basename(fullPath));
+                        this.renderBackEntry(dirname(fullPath), basename(fullPath));
                         this.list(entries, fullPath);
                         if(this.debug){
                             console.warn('listed successfully', entries, container.html().substr(0, 1024))

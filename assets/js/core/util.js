@@ -336,7 +336,7 @@ function getEngine(entry){
 function prepareSearchTerms(txt){
     var ignores = []
     txt = txt.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().split(' ').filter((kw) => {
-        return kw.length >= 2 && ignores.indexOf(kw) == -1
+        return kw.length >= 2 && (!ignores.length || ignores.indexOf(kw) == -1)
     })
     return txt
 }

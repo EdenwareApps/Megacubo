@@ -43,6 +43,8 @@
 "RECORDING_SAVED":"Gravação salva.",
 "RECORDING_SAVE_ERROR": "Erro inesperado ao salvar gravação.",
 "CLEAR":"Limpar",
+"CLEAR_CACHE": "Limpar cache",
+"CLEANING_CACHE": "Limpando cache...",
 "HISTORY":"Histórico",
 "WINDOW":"Janela",
 "FULLSCREEN":"Tela inteira",
