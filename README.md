@@ -1,2 +1,6 @@
 # Megacubo
-New version of Megacubo targetting Android and iOS devices. In development.
+A intuitive, multi-language and cross-platform IPTV player.
+
+Platforms: Windows, Linux, MacOS and Android.
+
+Know more: https://megacubo.tv/
