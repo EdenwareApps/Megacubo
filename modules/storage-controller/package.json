@@ -1,7 +1,0 @@
-{
-   "main": "storage-controller.js",
-   "name": "storage-controller",
-   "version": "0.0.1",
-   "dependencies": {
-   }   
-}

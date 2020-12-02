@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Megacubo</title>
+        <link rel="stylesheet" href="assets/icons/icons.css" />
+		<style type="text/css">
+			html {						
+				width: 100vw;
+				height: 100vh;
+				margin: 0;
+				padding: 0;
+			}
+			html, body, iframe {
+				margin: 0;
+				padding: 0;
+				border-width: 0;
+				width: 100%;
+				height: 100%;
+				font-size: 5vh;
+				overflow: hidden;
+				box-sizing: border-box;
+			}
+			body {
+				display: flex;
+				align-items: flex-end;
+				justify-content: left;
+				background-color: transparent;
+				background-image: url(./assets/images/default_icon_white.png);
+				background-position: center center;
+				background-repeat: no-repeat;
+				background-size: 20vh 20vh;
+			}
+			player {
+				width: 100%;
+				height: 100%;
+				display: none;
+				pointer-events: none;
+				align-items: center;				
+				justify-content: center;
+				z-index: -1;
+				background: #000;
+			}	
+			img {
+				height: auto;
+				width: 25vh;
+				opacity: 0.75;
+			}
+			iframe {
+				top: 0;
+				left: 0;
+				position: absolute;
+				visibility: hidden;
+				display: inline-block;
+			}
+			video {
+    			object-fit: fill;
+				width: inherit;
+				height: inherit;
+				display: block;
+			}
+			#info {
+				overflow: auto;
+				max-height: 100vh;
+				box-sizing: border-box;
+				padding-left: 1.75vh;
+				opacity: 0.25;
+				position: absolute;
+				z-index: 1;
+			}
+			#info > div {
+				padding: 1vh;
+				color: #ffffff;
+				border-radius: 4px;
+				margin-bottom: 1vh;
+				box-sizing: border-box;
+			}
+			div#background {
+				background-size: cover;
+				background-position: center center;
+				position: absolute;
+				top: 0;
+				width: 100vw;
+				height: 100vh;
+				z-index: -1;
+				visibility: hidden;
+			}
+			div#splash {
+				width: 100vw;
+				height: 100vh;
+				position: absolute;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+			}
+			div#splash i {
+				font-size: 25vh;
+			}
+			body.animate-background-slow div#background {
+				animation-name: background-breathing;
+				animation-duration: 20s;
+				animation-timing-function: cubic-bezier(.48,.7,.51,.3);
+				animation-iteration-count: infinite;
+			}
+			body.animate-background-fast div#background {
+				animation-name: background-breathing;
+				animation-duration: 13s;
+				animation-timing-function: cubic-bezier(.48,.7,.51,.3);
+				animation-iteration-count: infinite;
+			}
+			@keyframes background-breathing {
+				0% {
+					transform: translateY(0) scale(1);
+				}
+				50% {
+					transform: translateY(2%) scale(1.05);
+				}
+				100% {
+					transform: translateY(0) scale(1);
+				}
+			}
+			html.playing div#background {
+				background-image: none !important;
+				animation-name: none !important;
+			}
+			html.playing body {
+				background-color: transparent !important;
+    			background-image: none;
+			}
+		</style>
+	</head>
+	<body>	
+        <div id="background"></div>
+		<div id="info"></div> 
+		<div id="splash"><i class="fa-mega"></i></div>
+		<script type="text/javascript">
+			console.log('INDEX HTML START', document.URL)
+			if(document.URL.indexOf('cordova') != -1){
+				document.write('<scr'+'ipt type="text/javascript" src="../cordova.js"></scr'+'ipt>')
+			}
+		</script>
+		<player>
+			<div>
+				<video plays-inline webkit-playsinline muted></video>
+				<audio plays-inline webkit-playsinline muted></audio>
+			</div>
+		</player>
+		<iframe src="app.html" allowFullScreen scrolling="no" frameborder="0"></iframe> 
+        <script type="text/javascript" src="assets/js/libs/events.js"></script>
+        <script type="text/javascript" src="assets/js/index/index.js"></script>
+        <script type="text/javascript" src="node_modules/jquery/dist/jquery.min.js"></script>
+        <script type="text/javascript" src="node_modules/hls.js/dist/hls.light.js"></script> 
+	</body>
+</html>

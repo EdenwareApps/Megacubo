@@ -1,0 +1,76 @@
+{
+    "bugs": "https://www.facebook.com/messages/t/MegacuboTV",
+    "dependencies": {
+        "@fortawesome/fontawesome-free": "^5.15.1",
+        "agentkeepalive": "^4.1.3",
+        "async": "^3.2.0",
+        "buzz": "^1.2.1",
+        "bytenode": "^1.1.7",
+        "chromecasts": "^1.9.1",
+        "color-thief-jimp": "^2.0.2",
+        "decode-entities": "^1.0.7",
+        "env-paths": "^2.2.0",
+        "express": "^4.17.1",
+        "fluent-ffmpeg": "^2.1.2",
+        "formidable": "^1.2.2",
+        "fs-chmod": "^1.0.6",
+        "got": "^11.8.0",
+        "hls.js": "^0.14.16",
+        "jimp": "^0.16.1",
+        "jquery": "^3.5.1",
+        "m3u8-parser": "^4.5.0",
+        "moment": "^2.29.1",
+        "moment-timezone": "^0.5.31",
+        "node-cleanup": "^2.1.2",
+        "nw-custom-frame": "github:efoxbr/nw-custom-frame",
+        "on-finished": "^2.3.0",
+        "open": "^7.3.0",
+        "range-parser": "^1.2.1",
+        "sanitize-filename": "^1.6.3",
+        "socket.io": "^3.0.1",
+        "swipey.js": "^1.0.3",
+        "tar-stream": "^2.1.4",
+        "tiny-worker": "^2.3.0",
+        "torrent-stream": "^1.2.0",
+        "tough-cookie": "^4.0.0",
+        "url-search-params-polyfill": "^8.1.0",
+        "xmltv": "github:AlbertMaristany/node-xmltv"
+    },
+    "description": "A simple and intuitive IPTV player.",
+    "name": "megacubo",
+    "icon": "./default_icon.png",
+    "version": "16.0.0",
+    "theme": {
+        "fullScreen": true
+    },
+    "permission": [
+        "android.permission.INTERNET",
+        "<all_urls>",
+        "alwaysOnTopWindows",
+        "http://*/",
+        "https://*/"
+    ],
+    "main": "nw.html",
+    "node-main": "main.js",
+    "chromium-args": "--enable-node-worker --experimental-worker --ignore-urlfetcher-cert-requests --tls13-variant=disabled --disable-web-security --allow-hidden-media-playback --disable-features=NetworkPrediction --disable-background-timer-throttling --proxy-auto-detect --no-zygote --no-sandbox --enable-gpu-async-worker-context --password-store=basic --force-device-scale-factor=1 --process-per-tab --enable-smooth-scrolling --disable-crash-handler=true --disable-breakpad --no-experiments --no-pings --disable-transparency --remote-debugging-port=9000",
+    "js-flags": "--max_old_space_size=2048",
+    "webkit": {
+        "page-cache": true
+    },
+    "window": {
+        "icon": "default_icon.png",
+        "position": "center",
+        "title": "Megacubo",
+        "frame": false,
+        "height": 562,
+        "width": 1000,
+        "show": true
+    },
+    "build": {
+        "nwVersion": "0.37.4"
+    },
+    "scripts": {
+        "dist": "build --tasks win-x86,win-x64,linux-x86,linux-x64,mac-x64 --mirror https://dl.nwjs.io/ .",
+        "start": "run --x86 --mirror https://dl.nwjs.io/ ."
+    }
+}

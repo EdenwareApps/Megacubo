@@ -1,0 +1,5 @@
+{
+    "name": "ffmpeg",
+    "main": "ffmpeg.js"
+  }
+  

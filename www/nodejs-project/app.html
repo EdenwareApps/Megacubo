@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+    <head>
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=contain" name="viewport" />
+        <title>Megacubo</title>
+        <script type="text/javascript" defer src="node_modules/jquery/dist/jquery.min.js"></script>
+        <script type="text/javascript" defer src="assets/js/libs/events.js"></script>
+        <script type="text/javascript" defer src="assets/js/app/utils.js"></script> 
+        <script type="text/javascript" defer src="modules/bridge/client.js"></script> 
+        <script type="text/javascript" defer src="node_modules/buzz/dist/buzz.min.js"></script>
+        <script type="text/javascript" defer src="assets/js/app/idle.js"></script>
+        <script type="text/javascript" defer src="modules/supercharge/supercharge.js"></script>   
+        <script type="text/javascript" defer src="modules/osd/client.js"></script>           
+        <script type="text/javascript" defer src="modules/icon-server/client.js"></script>
+        <script type="text/javascript" defer src="modules/streamer/client.js"></script>
+        <script type="text/javascript" defer src="assets/js/libs/jquery.shortcuts.min.js"></script>
+        <script type="text/javascript" defer src="assets/js/libs/swipey.min.js"></script>          
+        <script type="text/javascript" defer src="assets/js/libs/moment.min.js"></script>          
+        <script type="text/javascript" defer src="assets/js/libs/moment-timezone-with-data.min.js"></script>            
+        <script type="text/javascript" defer src="assets/js/app/clock.js"></script>
+        <script type="text/javascript" defer src="assets/js/app/pointer.js"></script>      
+        <script type="text/javascript" defer src="assets/js/app/hotkeys-actions.js"></script>
+        <script type="text/javascript" defer src="assets/js/app/hotkeys-utils.js"></script>
+        <script type="text/javascript" defer src="modules/explorer/client.js"></script>
+        <script type="text/javascript" defer src="assets/js/app/sound.js"></script>
+        <script type="text/javascript" defer src="assets/js/app/setup.js"></script>
+        <link rel="stylesheet" href="assets/css/index.css" />
+        <link rel="stylesheet" href="assets/icons/icons.css" />
+        <link rel="stylesheet" href="node_modules/@fortawesome/fontawesome-free/css/all.min.css" />
+        <script type="text/javascript">
+            var frm, q, ptr, config, lang, explorer
+        </script>
+    </head>
+    <body>
+        <div id="main">
+            <div id="explorer">
+                <header>
+                    <div>
+                        <span class="explorer-location">
+                            <span class="explorer-location-icon"></span>
+                            <span class="explorer-location-text"></span>
+                            <span class="explorer-location-pagination">
+                                <i class="fas fa-stream"></i>
+                                <span></span>
+                            </span>
+                        </span>
+                        <span class="explorer-time">
+                            <time></time>
+                            <svg class="logo" height="100%" width="100%" viewBox="0 0 100 100">
+                                <text x="0" y="94%" font-family="'megacubo'" font-size="100" textLength="100" lengthAdjust="spacingAndGlyphs" style="fill: var(--font-color);">&#xe901;</text>
+                            </svg>
+                        </span>
+                    </div>
+                </header>
+                <div class="content-out">
+                    <content>
+                        <wrap></wrap>
+                    </content>
+                </div>
+                <div id="home-arrows">
+                    <div>
+                        <span id="home-arrows-top">
+                            <i class="fas fa-chevron-up"></i>
+                        </span>
+                        <span id="home-arrows-bottom">
+                            <i class="fas fa-chevron-down"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div id="modal">
+                <div>
+                    <div>
+                        <div id="modal-content"></div>
+                    </div>
+                </div>
+            </div>
+            <controls></controls>
+        </div>
+        <div id="paused-layer">
+            <i class="fas fa-play-circle"></i>
+        </div>
+        <div id="audio-layer">
+            <i class="fas fa-headphones"></i>
+        </div>
+        <div id="osd-root"></div>
+        <script type="text/javascript" defer src="assets/js/app/app.js"></script>
+    </body>
+</html>

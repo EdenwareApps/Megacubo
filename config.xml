@@ -1,0 +1,59 @@
+<?xml version='1.0' encoding='utf-8'?>
+<widget android-versionCode="13" id="tv.megacubo.app" version="16.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+    <name>Megacubo</name>
+    <description>
+        An intuitive, free and open source IPTV player.
+    </description>
+    <author email="contact@megacubo.tv" href="https://megacubo.tv">
+        Megacubo Team
+    </author>
+    <content src="index.html" />
+    <access origin="*" />
+    <allow-intent href="http://*/*" />
+    <allow-intent href="https://*/*" />
+    <allow-intent href="tel:*" />
+    <allow-intent href="sms:*" />
+    <allow-intent href="mailto:*" />
+    <allow-intent href="geo:*" />
+    <platform name="android">
+        <config-file parent="/manifest" target="AndroidManifest.xml">
+            <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+            <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+            <uses-permission android:name="android.permission.WAKE_LOCK" />
+            <uses-permission android:name="android.permission.INTERNET" />
+            <uses-permission android:name="android.permission.READ_INTERNAL_STORAGE" />
+            <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+            <uses-permission android:name="android.permission.WRITE_INTERNAL_STORAGE" />
+            <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+        </config-file>
+        <edit-config file="AndroidManifest.xml" mode="merge" target="/manifest">
+            <application android:hardwareAccelerated="true" />
+        </edit-config>
+        <edit-config file="AndroidManifest.xml" mode="merge" target="/manifest/uses-sdk">
+            <uses-sdk android:minSdkVersion="21" />
+        </edit-config>
+        <edit-config file="AndroidManifest.xml" mode="merge" target="/manifest/application">
+            <application android:hardwareAccelerated="true" android:theme="@android:style/Theme.DeviceDefault.NoActionBar" android:usesCleartextTraffic="true" />
+        </edit-config>
+        <allow-intent href="market:*" />
+        <preference name="AllowInlineMediaPlayback" value="true" />
+        <preference name="AndroidLaunchMode" value="singleInstance" />
+        <preference name="AndroidPersistentFileLocation" value="Compatibility" />
+        <preference name="AndroidExtraFilesystems" value="files,files-external,documents,sdcard,root" />
+        <preference name="Fullscreen" value="true" />
+        <preference name="KeyboardResize" value="false" />
+        <preference name="loadUrlTimeoutValue" value="300000" />
+        <preference name="MediaPlaybackRequiresUserAction" value="false" />
+        <preference name="MixedContentMode" value="0" />
+        <preference name="ResolveServiceWorkerRequests" value="true" />
+        <preference name="resizeOnFullScreen" value="false" />
+        <hook src="scripts/update_build_gradle.js" type="before_build" />
+        <resource-file src="resources/values/colors.xml" target="/app/src/main/res/values/colors.xml" />
+        <icon background="resources/android/icon/ldpi-background.png" density="ldpi" foreground="resources/android/icon/ldpi-foreground.png" src="resources/android/icon/drawable-ldpi-icon.png" />
+        <icon background="resources/android/icon/mdpi-background.png" density="mdpi" foreground="resources/android/icon/mdpi-foreground.png" src="resources/android/icon/drawable-mdpi-icon.png" />
+        <icon background="resources/android/icon/hdpi-background.png" density="hdpi" foreground="resources/android/icon/hdpi-foreground.png" src="resources/android/icon/drawable-hdpi-icon.png" />
+        <icon background="resources/android/icon/xhdpi-background.png" density="xhdpi" foreground="resources/android/icon/xhdpi-foreground.png" src="resources/android/icon/drawable-xhdpi-icon.png" />
+        <icon background="resources/android/icon/xxhdpi-background.png" density="xxhdpi" foreground="resources/android/icon/xxhdpi-foreground.png" src="resources/android/icon/drawable-xxhdpi-icon.png" />
+        <icon background="resources/android/icon/xxxhdpi-background.png" density="xxxhdpi" foreground="resources/android/icon/xxxhdpi-foreground.png" src="resources/android/icon/drawable-xxxhdpi-icon.png" />
+    </platform>
+</widget>
