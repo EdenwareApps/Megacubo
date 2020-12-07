@@ -48,14 +48,17 @@ const Storage = require(APPDIR + '/modules/storage')
 
 onexit(() => {
     console.log('APP_EXIT', traceback())
+    if(streamer && streamer.active){
+        streamer.stop()
+    }
+    if(tuning){
+        tuning.destroy()
+    }
+    removeFolder(paths['data'] + '/ffmpeg', false, true)
     storage.cleanup()
     if(typeof(ui) != 'undefined' && ui){
         ui.emit('exit')
-    }
-    removeFolder(paths['data'] +'/ffmpeg', false, true)
-    if(typeof(ui) != 'undefined' && ui){
         ui.destroy()
-        ui = null
     }
 })
 
@@ -227,7 +230,7 @@ function init(language){
                 }).catch(err => {
                     osd.show(lang.EPG_LOAD_FAILURE + ': ' + String(err), 'fas fa-check-circle', 'epg', 'normal')
                 }).finally(() => {
-                    if(explorer.path.indexOf(lang.TV_GUIDE) != -1){
+                    if(explorer.path.indexOf(lang.EPG) != -1){
                         explorer.refresh()
                     }
                 })
@@ -623,7 +626,7 @@ function init(language){
                         }
                     })
                     cloud.get('configure').then(c => {
-                        console.log('checking update...', c)
+                        console.log('checking update...')
                         let vkey = 'version', newVersion = MANIFEST.version
                         if(c[vkey] > MANIFEST.version){
                             console.log('new version found', c[vkey])

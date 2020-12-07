@@ -67,7 +67,7 @@ class Bookmarks extends EntriesGroup {
                     } else {
                         e.type = 'group'
                         e.renderer = () => {
-                            return new Promise(resolve => {
+                            return new Promise((resolve, reject) => {
                                 let terms = atts.terms && Array.isArray(atts.terms) ? atts.terms : global.lists.terms(atts.name, true)
                                 global.lists.search(terms, {type: 'video'}).then(es => {
                                     resolve(es.results)

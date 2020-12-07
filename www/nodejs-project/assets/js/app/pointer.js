@@ -565,8 +565,12 @@ class ExplorerPointer extends ExplorerSelectionMemory {
             if(this.debug){
                 console.warn('POINTER', closer, closerDist)
             }
-            closer = this.j(closer)
-            this.focus(closer)
+            let jcloser = this.j(closer)
+            this.focus(jcloser)
+            if(!view.default){
+                closer.scrollIntoViewIfNeeded({ behavior: 'smooth', block: 'nearest', inline: 'start' })
+            }
+            closer = jcloser
         }
         this.emit('arrow', closer, direction)
     }

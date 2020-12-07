@@ -1,6 +1,6 @@
 if(typeof(themeRefresh) == 'undefined'){
     function themeRefresh(){
-        let nfs = 0.02 + (config['font-size'] * 0.0025), mbg = hexToRGBA(config['background-color'], 0.75), sfg = hexToRGBA(config['font-color'], 0.75)
+        let family = config['font-family'], nfs = 0.02 + (config['font-size'] * 0.0025), mbg = hexToRGBA(config['background-color'], 0.75), sfg = hexToRGBA(config['font-color'], 0.75)
         let cssCode = `
 :root {
     --explorer-entry-name-font-size: calc(((100vmin + 100vmax) * 0.333) * ${nfs});
@@ -20,6 +20,9 @@ if(typeof(themeRefresh) == 'undefined'){
         --entries-per-row: ${config['view-size-y']};
         --entries-per-col: ${config['view-size-x']};
     }
+}
+body {
+    font-family: ${family};
 }
 `
         let ucase = config['uppercase-menu'] ? 'uppercase' : 'none'

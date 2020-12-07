@@ -3,16 +3,16 @@ const Events = require('events'), http = require('http')
 class AnalyticsBase extends Events {
     constructor(){
         super()
-        this.debug = false
+        this.debug = true
         this.keepAliveTTL = 600000
     }
-    serialize(obj){
+    toQS(obj){
         let str = []
-        for(let p in obj){
-            if(obj.hasOwnProperty(p)){
-                str.push(encodeURIComponent(p) + '=' + encodeURIComponent(obj[p]))
+        Object.keys(obj).forEach(k => {
+            if(typeof(obj[k]) == 'string'){
+                str.push(encodeURIComponent(k) + '=' + encodeURIComponent(obj[k]))
             }
-        }
+        })
         return str.join('&')
     }
     register(action, data){
@@ -24,16 +24,19 @@ class AnalyticsBase extends Events {
         data.platform = process.platform
         data.ver = global.MANIFEST.version
         data.verinf = ''
+        if(global.premium && global.premium.active){
+            data.verinf = global.premium.active
+        }
         if(data.source && global.config.get('shared-mode-lists-amount') == 0){
             console.log('Source URL not shareable.')
             data.source = ''
         }
-        let postData = this.serialize(data)
+        let postData = this.toQS(data)
         let options = {
             port: 80,
             family: 4, // https://github.com/nodejs/node/issues/5436
             method: 'POST',
-            path: '/analytics/' + action,
+            path: '/stats/' + action,
             hostname: 'app.megacubo.net',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -78,7 +81,7 @@ class AnalyticsEvents extends AnalyticsBase {
     }
     data(){
         let data = {}
-        if(global.streamer.active){
+        if(global.streamer && global.streamer.active){
             data = global.streamer.active.data
         }
         return this.prepareEntry(data)
@@ -105,13 +108,15 @@ class AnalyticsEvents extends AnalyticsBase {
 }
 
 class Analytics extends AnalyticsEvents {
-    init(){
+    constructor(){
+        super()
         setInterval(this.alive.bind(this), this.keepAliveTTL)
         global.streamer.on('commit', this.success.bind(this))
         global.streamer.on('stop', this.stop.bind(this))
         global.search.on('search', data => {
             this.search(data)
         })
+        this.alive()
     }
 }
 

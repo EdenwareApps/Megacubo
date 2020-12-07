@@ -379,10 +379,18 @@ class StreamerBase extends StreamerTools {
 				}
 				this.handleFailure(intent.data, err)
 			})
-			if(!global.cordova){
+			if(!global.cordova){ // only desktop version can't play hevc
 				intent.on('codecData', codecData => {
-					if(codecData && codecData.video.indexOf('hevc') != -1){
-						intent.fail('unsupported format')
+					if(codecData && codecData.video.indexOf('hevc') != -1 && intent == this.active){
+						if(intent.type == 'ts' && global.config.get('allow-transcoding')){
+							if(intent.opts.videoCodec != 'libx264'){
+								console.warn('HEVC transcoding started')
+								intent.opts.videoCodec = 'libx264'
+								this.intentFromInfo(intent.data, intent.opts, false, intent.info)
+							}
+						} else {
+							intent.fail('unsupported format') // we can transcode .ts segments, but transcode a mp4 video would cause request ranging errors
+						}
 					}
 				})
 				if(intent.codecData){
@@ -800,7 +808,7 @@ class Streamer extends StreamerAbout {
 		}
 	}
 	handleFailure(e, r, silent){		
-		let c = global.config.get('connection-error-action'), trace = traceback()
+		let c = 'stop', trace = traceback()
 		if(!this.isEntry(e)){
 			if(this.active){
 				e = this.active.data
@@ -820,22 +828,15 @@ class Streamer extends StreamerAbout {
 		console.error('handleFailure', c, e, e.url, global.tuning)
 		if(c == 'stop'){
 			return
-		}
-		if(!e){
-			return false
-		}
-		if(c == 'tune') {
+		} else {
+			if(!e){
+				return false
+			}
 			if(!global.mega.isMega(e.url)){
 				if(!this.tune(e)){
 					this.stop({err: 'tune failure', trace})
 				}
 			}
-		} else if(c == 'search') {
-			global.search.termsFromEntry(e).then(terms => {
-				global.search.results(terms || e.name).then(es => {
-					global.explorer.render(global.search.fixedEntries().concat(es), global.lang.SEARCH, 'fas fa-search', global.explorer.path)
-				})
-			})
 		}
 	}
 	handleFailureMessage(r){
@@ -871,6 +872,7 @@ class Streamer extends StreamerAbout {
 						msg = global.lang.PLAYBACK_PROTECTED_STREAM
 						break
 					case '404':
+					case '410':
 						msg = global.lang.PLAYBACK_OFFLINE_STREAM
 						break
 					case '500':

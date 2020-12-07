@@ -606,7 +606,7 @@ class IconServer extends IconFetchQueue {
                         response.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Cache-Control, Accept, Authorization')
                         response.setHeader('Cache-Control', 'max-age=0, no-cache, no-store')
                         response.setHeader('Connection', 'close')
-                        fs.createReadStream(file).pipe(response)
+                        fs.createReadStream(file).pipe(response, {end: true})
                     })
                 } else {
                     this.get(url).then(data => {

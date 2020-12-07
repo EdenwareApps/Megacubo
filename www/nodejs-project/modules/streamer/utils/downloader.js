@@ -40,14 +40,13 @@ class Downloader extends StreamerAdapterBase {
 		this.pump()
 	}
 	internalError(e){
-		this.internalErrorLevel++
-		this.internalErrors.push(e)
-		if(this.internalErrorLevel >= (this.connectable ? this.opts.errorLimit : this.opts.initialErrorLimit)){
-			console.error('[' + this.type + '] error limit reached', this.committed, this.internalErrorLevel, this.internalErrors, this.opts.errorLimit)
-			if(!this.committed){
+		if(!this.committed){
+			this.internalErrorLevel++
+			this.internalErrors.push(e)
+			if(this.internalErrorLevel >= (this.connectable ? this.opts.errorLimit : this.opts.initialErrorLimit)){
+				console.error('[' + this.type + '] error limit reached', this.committed, this.internalErrorLevel, this.internalErrors, this.opts.errorLimit)
 				this.emit('fail', 'timeout')
 			}
-			this.internalErrorLevel = 0
 		}
 		return this.destroyed || this._destroyed
 	}
@@ -122,60 +121,6 @@ class Downloader extends StreamerAdapterBase {
 		}
 		this.finishBitrateSample()
 		let contentType = '', statusCode = 0, headers = {}
-		this.currentRequest = new global.Download({
-			url: this.url,
-			keepalive: this.committed && global.config.get('use-keepalive'),
-			followRedirect: true,
-			retries: 0
-		})
-		this.currentRequest.on('error', (error) => {
-            console.warn('['+ this.type +'] ERR', error, body, response, this.url)
-			if(this.committed && global.config.get('debug-messages')){
-				global.osd.show('Timeout: ' + String(error), 'fas fa-times-circle', 'debug-conn-err', 'normal')
-			}
-		})
-		this.currentRequest.on('response', (responseStatusCode, responseHeaders) => {
-			statusCode = responseStatusCode
-			headers = responseHeaders
-			contentType = typeof(headers['content-type']) != 'undefined' ? headers['content-type'] : ''
-			if(this.opts.debug){
-				this.opts.debug('[' + this.type + '] headers received', headers, statusCode, contentType) // 200
-			}
-			if(this.currentRequest && statusCode >= 200 && statusCode <= 300){
-				if(this.opts.debug){
-					this.opts.debug('[' + this.type + '] handleData hooked') // 200
-				}
-				this.currentRequest.on('data', chunk => {
-					if(this.destroyed || this._destroyed){
-						return this.endRequest()
-					}
-					this.handleData(chunk)
-				})
-			} else {
-				this.endRequest()
-				if(this.committed && global.config.get('debug-messages')){
-					global.osd.show(statusCode + ' error', 'fas fa-times-circle', 'debug-conn-err', 'normal')
-				}
-				this.internalError('bad response: ' + contentType + ', ' + statusCode)
-				this.afterDownload('bad response', callback, {contentType, statusCode, headers})
-				callback = null
-			}
-		})
-		this.currentRequest.on('end', () => {
-			this.endRequest()
-			if(callback){
-				this.afterDownload(null, callback, {contentType, statusCode, headers})
-				callback = null
-			}
-		})
-	}
-	download(callback){
-        clearTimeout(this.timer)
-		if(this.destroyed || this._destroyed){
-			return
-		}
-		this.finishBitrateSample()
-		let contentType = '', statusCode = 0, headers = {}
 		const download = this.currentRequest = new global.Download({
 			url: this.url,
 			keepalive: this.committed && global.config.get('use-keepalive'),
@@ -183,8 +128,13 @@ class Downloader extends StreamerAdapterBase {
 			followRedirect: true
 		})
 		download.on('error', error => {
+            console.warn('['+ this.type +'] ERR', error, this.url)
 			if(this.committed && global.config.get('debug-messages')){
-				global.osd.show('Timeout: ' + String(error), 'fas fa-times-circle', 'debug-conn-err', 'normal')
+				let statusCode = 0
+				if(error && error.response && error.response.statusCode){
+					statusCode = error.response.statusCode
+				}
+				global.osd.show((statusCode ? statusCode : 'timeout') + ' error', 'fas fa-times-circle', 'debug-conn-err', 'normal')
 			}
 		})
 		download.on('response', (statusCode, headers) => {
@@ -204,22 +154,24 @@ class Downloader extends StreamerAdapterBase {
 				download.on('data', chunk => {
 					this.handleData(chunk)
 				})
+				download.on('end', () => {
+					this.endRequest()
+					if(callback){
+						this.afterDownload(null, callback, {contentType, statusCode, headers})
+						callback = null
+					}
+				})
 			} else {
+				download.end()
 				if(this.committed && global.config.get('debug-messages')){
-					global.osd.show(statusCode + ' error', 'fas fa-times-circle', 'debug-conn-err', 'normal')
+					global.osd.show((statusCode ? statusCode : 'timeout') + ' error', 'fas fa-times-circle', 'debug-conn-err', 'normal')
 				}
 				this.internalError('bad response: ' + contentType + ', ' + statusCode)
-				this.afterDownload('bad response', callback, {contentType, statusCode, headers})
-				if(statusCode == 400){
-					download.end()
-				}
-			}
-		})
-		download.on('end', () => {
-			this.endRequest()
-			if(callback){
-				this.afterDownload(null, callback, {contentType, statusCode, headers})
-				callback = null
+				if(statusCode){
+					setTimeout(() => this.afterDownload('bad response', callback, {contentType, statusCode, headers}), 1000) // delay to avoid abusing
+				} else {
+					this.afterDownload('bad response', callback, {contentType, statusCode, headers}) // timeout, no delay so
+				}				
 			}
 		})
 	}

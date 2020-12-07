@@ -132,6 +132,7 @@ class StreamerAdapterBase extends Events {
 				if(this.opts.debug){
 					this.opts.debug('getBitrate', tmpFile, this.url, len, this.opts.minBitrateCheckSize, traceback())
 				}
+				console.error('getBitrate', tmpFile, this.url, len, this.opts.minBitrateCheckSize, traceback())
 				fs.writeFile(tmpFile, buffer, (err) => {
 					if(this.opts.debug){
 						this.opts.debug('getBitrate', err, this.url)

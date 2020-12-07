@@ -89,7 +89,7 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 				enableWorker: true,
 				autoStartLoad: false,
 				defaultAudioCodec: 'mp4a.40.2',
-				liveBackBufferLength: 10 // secs, limited due to memory usage
+				liveBackBufferLength: 30 // secs, limited due to memory usage
 				/*
 				debug: true,
 				enableSoftwareAES: false,

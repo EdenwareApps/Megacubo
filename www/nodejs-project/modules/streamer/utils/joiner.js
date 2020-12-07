@@ -12,7 +12,7 @@ class Joiner extends Downloader {
 			this.output(data)
 		})
 		this.on('bitrate', bitrate => {
-			let idealBufferSize = 5 * bitrate
+			let idealBufferSize = 3 * bitrate
 			if(this.processor.bufferSize < idealBufferSize){
 				console.warn('TSPACKETPROCESSOR BUFFERSIZE INCREASE', idealBufferSize)
 				this.processor.bufferSize = idealBufferSize

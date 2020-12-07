@@ -1,20 +1,4 @@
 
-function menuPlayingEnter(){
-    body.addClass('menu-playing')
-    explorer.overScrollAction = menuPlayingLeave
-    explorer.reset()
-}
-
-function menuPlayingAllow(){
-    return false
-}
-
-function menuPlayingLeave(){
-    body.removeClass('menu-playing')
-    explorer.overScrollAction = null
-    setTimeout(explorer.reset.bind(explorer), 400)
-}
-
 function escapePressed(){
     console.log('Escape pressed')
     if(explorer.inModal()) {
@@ -25,7 +9,6 @@ function escapePressed(){
         let playing = explorer.inPlayer(), exploring = playing && explorer.isExploring()
         if(playing && !exploring){
             if(arePlayerControlsVisible()){
-                // menuPlayingLeave()
                 idleStart()
                 idleLock(1)
             } else {
@@ -36,7 +19,6 @@ function escapePressed(){
                 app.emit('explorer-back')
             } else {
                 if(playing){
-                    // menuPlayingLeave()
                     idleStart()
                 } else {
                     askExit()
@@ -52,12 +34,8 @@ function arePlayerControlsVisible(){
 
 function arrowUpPressed(){
     if(!explorer.inModal() && explorer.inPlayer() && !explorer.isExploring()){
-        if(menuPlayingAllow() && arePlayerControlsVisible()){
-            menuPlayingEnter()
-        } else {
-            menuPlayingLeave()
-            body.removeClass('idle')
-        }
+        streamer.seekFwd()
+        idleStart()
     } else {
         explorer.arrow('up')
     }
@@ -65,8 +43,8 @@ function arrowUpPressed(){
 
 function arrowDownPressed(){
     if(!explorer.inModal() && explorer.inPlayer() && !explorer.isExploring()){
-        menuPlayingLeave()
-        body.addClass('idle')
+        streamer.seekBack()
+        idleStart()
     } else {
         explorer.arrow('down')
     }

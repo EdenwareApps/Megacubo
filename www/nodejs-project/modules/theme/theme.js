@@ -152,7 +152,7 @@ class Theme extends Events {
                     fa: 'fas fa-image',
                     safe: true,
                     renderer: () => {
-                        return new Promise(resolve => {
+                        return new Promise((resolve, reject) => {
                             let def = global.config.get('animate-background'), options = [
                                 {
                                     name: global.lang.STOP,
@@ -245,6 +245,26 @@ class Theme extends Events {
                         return global.config.get('background-color')
                     },
                     placeholder: '#000000'
+                },       
+                {
+                    name: global.lang.FONT, 
+                    type: 'select',
+                    fa: 'fas fa-font',            
+                    renderer: () => {
+                        return new Promise((resolve, reject) => {
+                            global.ui.on('fontlist', list => {
+                                global.ui.removeAllListeners('fontlist')
+                                resolve(list.map(name => {
+                                    return {name, type: 'action', action: () => {
+                                        console.warn("CHOSEN FONT", name)
+                                        global.config.set('font-family', name)
+                                        this.refresh()
+                                    }}
+                                }))
+                            })
+                            global.ui.emit('fontlist')
+                        })
+                    }
                 },
                 {
                     name: global.lang.FONT_COLOR,
@@ -331,7 +351,7 @@ class Theme extends Events {
         })
     }
     viewSizeEntries(){
-        return new Promise(resolve => {
+        return new Promise((resolve, reject) => {
             resolve([
                 {
                     name: global.lang.HORIZONTAL, 

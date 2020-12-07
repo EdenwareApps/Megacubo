@@ -113,10 +113,18 @@ class Tools {
 		let c = chr.charCodeAt(0)
 		return ((c >= 48 && c <= 57) || (c >= 65 && c <= 90) || (c >= 97 && c <= 122))
 	}
+	groupDetails(entries){
+		let streams, categories, details = []
+		streams = entries.filter(e => e.url).length
+		categories = entries.length - streams
+		if(streams) details.push(global.lang.X_BROADCASTS.format(streams))
+		if(categories) details.push(global.lang.X_CATEGORIES.format(categories))
+		return details.join(', ')
+	}
 	paginateList(sentries){
 		sentries = this.sortList(sentries)
-		let folderSizeLimit = Math.min(this.opts.folderSizeLimit, sentries.length / 8) // generate at least 8 pages to ease navigation
-		if(sentries.length > (folderSizeLimit + this.opts.folderSizeLimitTolerance)){
+		if(sentries.length > (this.opts.folderSizeLimit + this.opts.folderSizeLimitTolerance)){
+			let folderSizeLimit = Math.min(this.opts.folderSizeLimit, sentries.length / 8) // generate at least 8 pages to ease navigation
 			let group, nextName, lastName, entries = [], template = {type: 'group', fa: 'fas fa-folder-open'}, n = 1
 			for(let i=0; i<sentries.length; i += folderSizeLimit){
 				group = Object.assign({}, template);
@@ -127,7 +135,7 @@ class Tools {
 				group.name = this.getRangeName(gentries, lastName, nextName)
 				if(gentries.length){
 					lastName = gentries[gentries.length - 1].name
-					group.details = global.lang.X_CATEGORIES.format(gentries.length)
+					group.details = this.groupDetails(gentries)
 				}
 				// console.log('DC', gentries.length);
 				group.entries = gentries

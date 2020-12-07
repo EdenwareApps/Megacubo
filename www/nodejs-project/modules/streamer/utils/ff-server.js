@@ -7,6 +7,7 @@ class FFServer extends Events {
         this.timeout = 30
         this.timeoutTimer = 0
         this.started = false
+        this.type = 'ffserver'
         this.opts = {
             debug: false,
             workDir: process.cwd(),
@@ -107,10 +108,25 @@ class FFServer extends Events {
                         response.end('404 Not Found\n')
                         return
                     }
-                    let ended, stream = fs.createReadStream(file)
-                    response.writeHead(200, {
+                    let headers = {
                         'Access-Control-Allow-Origin': '*'
-                    })
+                    }
+                    switch(global.streamer.ext(file)){
+                        case 'm3u8':
+                            headers['content-type'] =  'application/x-mpegURL'
+                            break
+                        case 'mp4':
+                        case 'm4v':
+                            headers['content-type'] =  'video/mp4'
+                            break
+                        case 'ts':
+                        case 'mpegts':
+                        case 'mts':
+                            headers['content-type'] =  'video/MP2T'
+                            break
+                    }
+                    let ended, stream = fs.createReadStream(file)
+                    response.writeHead(200, headers)
                     const end = () => {
                         if(!ended){
                             ended = true
@@ -119,12 +135,14 @@ class FFServer extends Events {
                         }
                     }
                     finished(response, end)
+                    /*
                     req.on('close', () => { // req disconnected
                         if(!ended){
                             console.warn('client aborted the request')
                             end()
                         }
                     })
+                    */
                     stream.pipe(response) 
                 })
             }).listen(0, this.opts.addr, (err) => {
@@ -142,11 +160,12 @@ class FFServer extends Events {
         return new Promise((resolve, reject) => {
             const startTime = this.time()
             this.genUID()
+            let cores = Math.min(require('os').cpus().length, 4)
             this.decoder = global.ffmpeg.create(this.source).
                 // inputOptions('-re').
                 // inputOption('-ss', 1). // https://trac.ffmpeg.org/ticket/2220
                 //inputOptions('-fflags +genpts').
-                addOption('-threads', 0).
+                addOption('-threads', cores).
                 addOption('-err_detect', 'ignore_err').
                 // addOption('-analyzeduration 2147483647').
                 // addOption('-probesize', '2147483647').
@@ -174,12 +193,19 @@ class FFServer extends Events {
             if(this.opts.videoCodec == null){
                 this.decoder.addOption('-vn')
             } else {
-                this.decoder.videoCodec(this.opts.videoCodec)
+                this.decoder.videoCodec(this.opts.videoCodec)                
             }
             this.decoder.log = []
             this.decoder.addOption('-hls_flags ' + (fs.existsSync(this.decoder.file) ? 'delete_segments+append_list' :  'delete_segments'))
-            if(this.videoCodec == 'libx264') {
-                this.decoder.addOption('-pix_fmt', 'yuv420p').addOption('-vprofile', 'baseline').addOption('-preset:v', 'ultrafast')
+            if(this.opts.videoCodec == 'libx264') {
+                this.decoder.
+                /* HTML5 compat start */
+                addOption('-profile:v', 'baseline').
+                addOption('-shortest').
+                addOption('-movflags', 'faststart').
+                addOption('-pix_fmt', 'yuv420p').
+                addOption('-preset:v', 'ultrafast')
+                /* HTML5 compat end */
             }
             if(this.opts.audioCodec == 'aac'){
                 this.decoder.addOption('-profile:a', 'aac_low').

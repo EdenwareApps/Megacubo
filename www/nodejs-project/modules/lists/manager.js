@@ -34,12 +34,12 @@ class Manager extends Events {
         return lists
     }
     getURLs(){
-        return new Promise(resolve => {
+        return new Promise((resolve, reject) => {
             resolve(this.get().map(o => { return o[1] }))
         })
     }
     getAll(){
-        return new Promise(resolve => {
+        return new Promise((resolve, reject) => {
             this.allListsEntries().then(resolve).catch(err => {
                 console.error(err)
                 resolve([])
@@ -47,7 +47,7 @@ class Manager extends Events {
         })
     }
     getAllURLs(){
-        return new Promise(resolve => {
+        return new Promise((resolve, reject) => {
             this.getAll().then(opts => {
                 resolve(opts.map(o => { return o.url }))
             })
@@ -145,7 +145,7 @@ class Manager extends Events {
         return (url[0].split('.')[0] + ' ' + url[url.length - 1]).replace(new RegExp('\\?.*$'), '')
     }
     name(url, content=''){
-        return new Promise(resolve => {
+        return new Promise((resolve, reject) => {
             let name = this.getMeta(url, 'name')
             //console.log('name::get', name, url, content.length)
             if(name){
@@ -353,7 +353,7 @@ class Manager extends Events {
         }}
     }
     listsEntries(){
-        return new Promise(resolve => {
+        return new Promise((resolve, reject) => {
             let options = [], lists = this.get()
             options.push(this[lists.length ? 'myListsEntry' : 'addListEntry']())
             options.push(this.listSharingEntry())

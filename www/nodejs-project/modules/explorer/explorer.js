@@ -451,7 +451,7 @@ class Explorer extends Events {
         if(this.opts.debug){
             this.opts.debug('select', destPath, tabindex)
         }
-        return new Promise(resolve => {
+        return new Promise((resolve, reject) => {
             this.read(destPath, tabindex).then(ret => {
                 let d = this.dirname(destPath)
                 let icon = ret.parent ? (ret.parent.servedIcon ? ret.parent.servedIcon : ret.parent.fa) : ''

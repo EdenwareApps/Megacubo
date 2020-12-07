@@ -69,7 +69,17 @@ var hotkeysActions = {
     ],
     "SEARCH": [
         () => {
-            explorer.triggerAction(lang.CATEGORIES + '/' + lang.SEARCH, lang.SEARCH).catch(console.error)
+            explorer.dialog([
+                {template: 'question', text: lang.SEARCH_FOR, fa: 'fas fa-search'},
+                {template: 'option', text: lang.LIVE, fa: 'fas fa-tv', id: 'live'},
+                {template: 'option', text: lang.ALL, fa: 'fas fa-folder-open', id: 'all'}
+            ], c => {
+                if(c == 'live'){
+                    explorer.triggerAction(lang.LIVE + '/' + lang.SEARCH, lang.SEARCH).catch(console.error)
+                } else if(c == 'all') {
+                    explorer.triggerAction(lang.CATEGORIES + '/' + lang.SEARCH, lang.SEARCH).catch(console.error)
+                }
+            }, 'no')
         }, "up", true
     ],
     "OPENURL": [

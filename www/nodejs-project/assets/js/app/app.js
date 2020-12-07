@@ -212,25 +212,11 @@ function initApp(){
         hideBackButton()
         parent.animateBackground(config['animate-background'])
     })
-    app.on('render', (entries, path, icon) => {
-        //console.log('ENTRIES', path, entries, icon)
-        explorer.render(entries, path, icon)
-    })
-    app.on('explorer-select', (entries, path, icon) => {
-        //console.log('ENTRIES', path, entries, icon)
-        explorer.setupSelect(entries, path, icon)
+    app.on('fontlist', () => {
+        app.emit('fontlist', getFontList())
     })
     app.on('sound', (n, v) => {
         sound(n, v)
-    })
-    app.on('info', function (a, b, c, d){
-        explorer.info(a, b, c, d)
-    })
-    app.on('dialog', function (a, b, c){
-        explorer.dialog(a, b, c)
-    })
-    app.on('prompt', function (a, b, c, d, e, f){
-        explorer.prompt(a, b, c,  d, e, f)
     })
     app.on('ask-exit', () => {
         askExit()
@@ -494,7 +480,6 @@ function initApp(){
         streamer.on('show', explorer.reset.bind(explorer))
         streamer.on('stop', () => {
             explorer.reset()
-            menuPlayingLeave()
             if(explorer.modalContainer && explorer.modalContainer.querySelector('#modal-template-option-wait')){
                 explorer.endModal()
             }
@@ -518,20 +503,12 @@ function initApp(){
                     switch(e.direction){
                         case 'left':
                             if(explorer.inPlayer()){                            
-                                if(explorer.isExploring()){
-                                    menuPlayingLeave()
-                                } else {
-                                    streamer.seekFwd()
-                                }
+                                streamer.seekFwd()
                             }
-                            break                        
+                            break
                         case 'right':                        
                             if(explorer.inPlayer()){
-                                if(explorer.isExploring()){
-                                    menuPlayingLeave()
-                                } else {
-                                    streamer.seekBack()
-                                }
+                                streamer.seekBack()
                             } else {
                                 escapePressed()
                             }

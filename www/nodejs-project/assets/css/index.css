@@ -27,6 +27,7 @@
     --explorer-entry-icon-height: calc(var(--explorer-entry-height) * 0.625);
     --font-color: #ffffff;
     --frameless-window-titlebar-height: 0px;
+    --modal-height: calc(100vh - var(--frameless-window-titlebar-height) - (2 * var(--padding)));
     --opacity-level-1: 0.075;
     --opacity-level-2: 0.25;
     --opacity-level-3: 0.5;
@@ -75,7 +76,6 @@ body {
     margin: 0;
     overflow: hidden;
     height: 100vh;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
 }
 body.video {
     background-color: transparent !important;
@@ -392,8 +392,9 @@ seekbar {
     display: block;
     opacity: var(--opacity-level-4);
     pointer-events: auto;
+    cursor: wait;
 }
-body.video-loading seekbar {
+body.video-loading seekbar input {
     pointer-events: none;
 }
 seekbar > div {
@@ -407,6 +408,7 @@ seekbar input[type="range"] {
     margin: 0;
     height: 100%;
     display: block;
+    cursor: pointer;
 }
 seekbar label {
     top: 0;
@@ -611,33 +613,39 @@ body.video #osd-root {
 }
 div#modal {
     visibility: hidden;
-    position: absolute;
+    position: fixed;
     width: 100vw;
     height: 100vh;
     z-index: 9;
+    background: var(--modal-background-color);
     transform: scale(1.05);
     transition: transform 0.2s ease-in-out 0s;
 }
 div#modal > div {
-    position: absolute;
+    position: fixed;
     top: 0;
     left: 0;
-    width: inherit;
-    height: inherit;
+    width: auto;
+    height: var(--modal-height);
     z-index: 4;
     color: #000;
-    display: table;
-    background: var(--modal-background-color);
-    padding-top: calc(var(--frameless-window-titlebar-height) / 2);
+    display: block;
+    box-sizing: border-box;
+    top: calc(var(--frameless-window-titlebar-height) + var(--padding));
+    box-sizing: border-box;
+    left: var(--padding);
+    right: var(--padding);
 }
 div#modal > div > div {
-    display: table-cell;
+    display: table;
     vertical-align: middle;
     text-align: center;
+    height: var(--modal-height);
 }
 div#modal > div > div > div {
-    display: inline-block;
+    display: table-cell;
     width: var(--explorer-width);
+    vertical-align: middle;
 }
 body.modal div#home-arrows {
     visibility: hidden;
@@ -732,21 +740,27 @@ span.modal-template-text input:focus, span.modal-template-textarea textarea:focu
     opacity: 1;
 }
 .modal-wrap {
-    overflow: auto;
-    max-height: 100vh;
+    max-height: var(--modal-height);
     padding: 0;
-    background: var(--background-color);
     border-radius: var(--radius);
 }
 .modal-wrap > div {
-    overflow: auto;
-    max-height: 100vh;
+    overflow: hidden;
+    max-height: var(--modal-height);
     padding: var(--padding);
     background: linear-gradient(to bottom, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 1) 5%, rgba(255, 255, 255, 1) 72%, rgba(255, 255, 255, 0.75) 100%);
     border-radius: var(--radius);
+    box-sizing: border-box;    
+    flex-direction: column;
+    display: flex;
 }
 .modal-template-options {
     background: linear-gradient(to bottom, #fff -100%, var(--modal-background-color) 400%);
+    box-sizing: border-box;
+    overflow: auto;
+    max-height: inherit;
+    display: flex;
+    flex-direction: column;
 }
 .modal-template-options > *:first-child {
     border-top-left-radius: var(--radius);
@@ -778,6 +792,9 @@ span.modal-template-text input:focus, span.modal-template-textarea textarea:focu
 span.modal-template-slider a:first-child, span.modal-template-slider a:last-child {
     width: 4.9%;
     display: inline-block;
+}
+span.modal-template-slider {
+    background: #fff;
 }
 span.modal-template-slider .modal-template-slider-track {
     width: calc(100% - (8 * var(--padding)));

@@ -518,7 +518,7 @@ class Lists extends Index {
 		})
 	}
 	epg(channelsList, limit){
-		return new Promise(resolve => {
+		return new Promise((resolve, reject) => {
 			if(!this._epg){
 				return reject('no epg')
 			}
@@ -559,7 +559,7 @@ class Lists extends Index {
 		})		
 	}
 	epgChannelsList(){
-		return new Promise(resolve => {
+		return new Promise((resolve, reject) => {
 			if(!this._epg){
 				return reject('no epg')
 			}
@@ -572,7 +572,7 @@ class Lists extends Index {
 		})		
 	}
 	epgChannelsTermsList(){
-		return new Promise(resolve => {
+		return new Promise((resolve, reject) => {
 			if(!this._epg){
 				return reject('no epg')
 			}
@@ -585,7 +585,7 @@ class Lists extends Index {
 		})		
 	}
 	configChanged(){
-		return new Promise(resolve => {
+		return new Promise((resolve, reject) => {
 			config.reload()
 			resolve(true)
 		})
@@ -1174,6 +1174,29 @@ class Lists extends Index {
                 list = this.prepareEntries(list)
 				list = this.tools.deepify(list)
 				this.tools.offload(list, url, next)
+            } else {
+                next()
+            }
+        })
+    }
+    allListsMerged(){
+        return new Promise((resolve, reject) => {
+			let next = es => {
+				console.warn('POS Memory usage: ' + global.kbfmt(process.memoryUsage().rss), es.length)
+				if(es && es.length){
+					resolve(es)
+				} else {
+					resolve([])
+				}
+			}			
+			console.warn('PRE Memory usage: ' + global.kbfmt(process.memoryUsage().rss))
+			let list = [].concat.apply([], Object.values(this.lists).map(l => l.url == this.watchingListId ? [] : l.fetchAll()))
+            if(list.length){
+                list = this.parentalControl.filter(list)
+                list = this.tools.dedup(list)
+                list = this.prepareEntries(list)
+				list = this.tools.deepify(list)
+				this.tools.offload(list, 'all-llists-merged', next)
             } else {
                 next()
             }

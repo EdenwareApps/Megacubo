@@ -859,3 +859,70 @@ function hexToRGBA(hex, alpha){
     const [r, g, b, a] = hexArr.map(convertHexUnitTo256)
     return `rgba(${r}, ${g}, ${b}, ${getAlphafloat(a, alpha)})`
 }
+
+function setupFontDetector(){
+    if(typeof(window.isFontAvailable) != 'function'){
+        var width, body = document.body || document.querySelector('body')  
+        var container = document.createElement('span')
+        container.innerHTML = Array(100).join('wi')
+        container.style.cssText = [
+            'position:absolute',
+            'width:auto',
+            'font-size:128px',
+            'left:-99999px'
+        ].join(' !important;')
+        var getWidth = fontFamily => {
+            container.style.fontFamily = fontFamily
+            body.appendChild(container)
+            width = container.clientWidth
+            body.removeChild(container)        
+            return width
+        }
+        // Pre compute the widths of monospace, serif & sans-serif
+        // to improve performance.
+        var monoWidth  = getWidth('monospace')
+        var serifWidth = getWidth('serif')
+        var sansWidth  = getWidth('sans-serif')  
+        window.isFontAvailable = font => {
+          return monoWidth !== getWidth(font + ',monospace') ||
+            sansWidth !== getWidth(font + ',sans-serif') ||
+            serifWidth !== getWidth(font + ',serif');
+        }
+    }
+}
+
+function getFontList(){
+    setupFontDetector()
+    return [
+        '-apple-system',
+        'Arial',
+        'BlinkMacSystemFont', 
+        'Calibri',
+        'Cantarell', 
+        'Century Gothic',
+        'Comic Sans',
+        'Consolas',
+        'Courier',
+        'Dejavu Sans',
+        'Dejavu Serif',
+        'Georgia',
+        'Gill Sans',
+        'Helvetica',
+        'Helvetica Neue', 
+        'Impact',
+        'Lucida Sans',
+        'Myriad Pro',
+        'Open Sans',
+        'Oxygen-Sans', 
+        'Palatino',
+        'Roboto',
+        'Segoe UI', 
+        'sans-serif',
+        'Tahoma',
+        'Times New Roman',
+        'Trebuchet',
+        'Ubuntu', 
+        'Verdana',
+        'Zapfino'
+    ].filter(isFontAvailable)
+}

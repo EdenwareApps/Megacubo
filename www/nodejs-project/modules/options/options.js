@@ -57,23 +57,6 @@ class Options extends Events {
             resolve(options)
         })
     }
-    connectingErrorEntries(){
-        return new Promise(resolve => {
-            let def = global.config.get('connection-error-action'), options = [], action = (entry) => {
-                if(entry.value != def){
-                    global.config.set('connection-error-action', entry.value)
-                }
-            }
-            options.push({name: global.lang.SEARCH_ALTERNATIVES, value: 'search', fa: 'fas fa-search-plus', type: 'action', action})
-            options.push({name: global.lang.TUNE_ALTERNATIVE, value: 'tune', fa: 'fas fa-satellite-dish', type: 'action', action})
-            options.push({name: global.lang.STOP, value: 'stop', fa: 'fas fa-stop', type: 'action', action})
-            options = options.map(p => {
-                p.selected = (def == p.value)
-                return p
-            })
-            resolve(options)
-        })
-    }
     encodeHTMLEntities(str){
         return str.replace(/[\u00A0-\u9999<>&](?!#)/gim, (i) => {
           return '&#' + i.charCodeAt(0) + ';'
@@ -105,16 +88,9 @@ class Options extends Events {
         ], 'about-callback', 'ok')
     }
     aboutMem(){
-        if(global.cordova){
-            require('child_process').exec('top -n 1', (err, stdout, stderr) => {
-				stdout = stdout.replace(new RegExp(' ', 'gm'), '&nbsp;').split("\n").slice(0, 10).join('<br />')
-                ui.emit('info', 'Memory usage', '<pre style="text-align: left;">' + stdout + '</pre>')
-            })
-        } else {
-            const used = process.memoryUsage().rss
-            let data = 'Memory usage: ' + global.kbfmt(used) + '<br />'  
-            ui.emit('info', 'Memory usage', data)
-        }
+        const used = process.memoryUsage().rss
+        let data = 'Memory usage: ' + global.kbfmt(used) + '<br />'  
+        ui.emit('info', 'Memory usage', data)
     }
     resetConfig(){
         let text = global.lang.RESET_CONFIRM
@@ -129,7 +105,7 @@ class Options extends Events {
         global.energy.exit()
     }
     tuneEntries(){
-        return new Promise(resolve => {
+        return new Promise((resolve, reject) => {
             let opts = [
                 {
                     name: global.lang.TEST_STREAMS, type: 'check', action: (data, checked) => {
@@ -137,7 +113,6 @@ class Options extends Events {
                 }, checked: () => {
                     return global.config.get('auto-testing')
                 }},
-                {name: global.lang.WHEN_TRANSMISSION_FAILS, fa: 'fas fa-times-circle', type: 'select', renderer: this.connectingErrorEntries.bind(this)},
                 {
                     name: global.lang.TUNING_CONCURRENCY_LIMIT, 
                     fa: 'fas fa-poll-h', 
@@ -184,7 +159,7 @@ class Options extends Events {
         })
     }
     playbackEntries(){
-        return new Promise(resolve => {
+        return new Promise((resolve, reject) => {
             let opts = [
                 {name: global.lang.RESUME_PLAYBACK, type: 'check', action: (data,checked) => {
                     global.config.set('resume', checked)
@@ -196,34 +171,7 @@ class Options extends Events {
                 }, checked: () => {
                     return global.config.get('warn-on-connection-errors')
                 }},
-                {name: global.lang.FFMPEG_VERSION, fa: 'fas fa-info-circle', type: 'action', action: this.ffmpegVersion.bind(this)},
-                {name: global.lang.ADVANCED, fa: 'fas fa-cogs', type: 'group', renderer: () => {
-                    return new Promise((resolve, reject) => {
-                        resolve([
-                            {
-                                name: 'Debug messages', type: 'check', action: (data, checked) => {
-                                global.config.set('debug-messages', checked)
-                            }, checked: () => {
-                                return global.config.get('debug-messages')
-                            }},
-                            {
-                                name: 'Enable console logging', type: 'check', action: (data, checked) => {
-                                global.config.set('enable-console', checked)
-                            }, checked: () => {
-                                return global.config.get('enable-console')
-                            }},
-                            {
-                                name: 'Use keepalive connections', type: 'check', action: (data, checked) => {
-                                global.config.set('use-keepalive', checked)
-                            }, checked: () => {
-                                return global.config.get('use-keepalive')
-                            }},
-                            {
-                                name: 'Memory usage', fa: 'fas fa-memory', type: 'action', action: this.aboutMem.bind(this)
-                            }
-                        ])
-                    })
-                }}
+                {name: global.lang.FFMPEG_VERSION, fa: 'fas fa-info-circle', type: 'action', action: this.ffmpegVersion.bind(this)}
             ]
             resolve(opts)
         })
@@ -239,7 +187,7 @@ class Options extends Events {
                         type: 'select',
                         safe: true,
                         renderer: () => {
-                            return new Promise(resolve => {
+                            return new Promise((resolve, reject) => {
                                 let def = global.config.get('parental-control-policy'), options = [
                                     {
                                         key: 'allow',
@@ -293,6 +241,39 @@ class Options extends Events {
                 {name: global.lang.CHANNEL_LIST, fa: 'fas fa-list', type: 'group', renderer: global.channels.options.bind(global.channels)},
                 {name: global.lang.PLAYBACK, fa: 'fas fa-play', type: 'group', renderer: this.playbackEntries.bind(this)},
                 {name: global.lang.TUNE, fa: 'fas fa-satellite-dish', type: 'group', renderer: this.tuneEntries.bind(this)},
+                {name: global.lang.ADVANCED, fa: 'fas fa-cogs', type: 'group', renderer: () => {
+                    return new Promise((resolve, reject) => {
+                        resolve([
+                            {
+                                name: 'Debug messages', type: 'check', action: (data, checked) => {
+                                global.config.set('debug-messages', checked)
+                            }, checked: () => {
+                                return global.config.get('debug-messages')
+                            }},
+                            {
+                                name: 'Enable console logging', type: 'check', action: (data, checked) => {
+                                global.config.set('enable-console', checked)
+                            }, checked: () => {
+                                return global.config.get('enable-console')
+                            }},
+                            {
+                                name: 'Use keepalive connections', type: 'check', action: (data, checked) => {
+                                global.config.set('use-keepalive', checked)
+                            }, checked: () => {
+                                return global.config.get('use-keepalive')
+                            }},
+                            {
+                                name: 'Allow transcoding', type: 'check', action: (data, checked) => {
+                                global.config.set('allow-transcoding', checked)
+                            }, checked: () => {
+                                return global.config.get('allow-transcoding')
+                            }},
+                            {
+                                name: 'Memory usage', fa: 'fas fa-memory', type: 'action', action: this.aboutMem.bind(this)
+                            }
+                        ])
+                    })
+                }},
                 {name: global.lang.RESET_CONFIG, fa: 'fas fa-trash', type: 'action', action: this.resetConfig.bind(this)}
             ]
             resolve(opts)

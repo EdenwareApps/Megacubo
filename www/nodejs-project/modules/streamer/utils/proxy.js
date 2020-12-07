@@ -223,6 +223,9 @@ class StreamerProxy extends StreamerProxyBase {
 		/* Prevent never-ending responses bug on v10.5.0. Is it needed yet? */
 		if(response.socket){
 			response.socket.on('close', () => {
+				if(this.opts.debug){
+					this.opts.debug('response socket close', ended, response.ended)
+				}
 				setTimeout(() => {
 					if(response.writable){
 						if(this.opts.debug){
@@ -250,7 +253,7 @@ class StreamerProxy extends StreamerProxyBase {
 		if(global.config.get('debug-messages')){
 			download.on('error', err => {
 				if(this.committed){
-					global.osd.show((err.response ? err.response.statusCode : 'unknown') + ' error', 'fas fa-times-circle', 'debug-conn-err', 'normal')
+					global.osd.show((err.response ? err.response.statusCode : 'timeout') + ' error', 'fas fa-times-circle', 'debug-conn-err', 'normal')
 				}
 			})
 		}
@@ -363,7 +366,7 @@ class StreamerProxy extends StreamerProxyBase {
 			end()
 		}
 		console.warn('handleVideoResponse', doBitrateCheck, this.opts.forceFirstBitrateDetection, statusCode, headers)
-		if(0 && doBitrateCheck && this.opts.forceFirstBitrateDetection){
+		if(doBitrateCheck && this.opts.forceFirstBitrateDetection){
 			response.on(this.internalRequestAbortedEvent, () => { // client disconnected
 				console.warn('forceFirstBitrateDetection hack applied')
 				download.preventDestroy = true
@@ -396,6 +399,7 @@ class StreamerProxy extends StreamerProxyBase {
 		if(!response.headersSent){
 			response.writeHead(statusCode, headers)
 		}
+        console.log('handleGenericResponse', headers)
 		download.on('data', chunk => response.write(chunk))
 		download.on('end', () => end())
 	}	

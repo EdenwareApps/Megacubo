@@ -1,14 +1,15 @@
 module.exports = {
 	'allow-edit-channel-list': true,
+	'allow-transcoding': true,
 	'animate-background': 'none',
 	'auto-testing': true,
 	'autocrop-logos': true,
 	'background-color': '#15002C',
-	'connection-error-action': 'stop',
 	'custom-background-image': '',
 	'debug-messages': false,
 	'epg': '',
 	'font-color': '#FFFFFF',
+	'font-family': '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;',
 	'font-size': 4,
 	'hide-back-button': false,
 	'hotkeys': {

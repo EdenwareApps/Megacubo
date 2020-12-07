@@ -117,7 +117,7 @@ class ChannelsEPG extends ChannelsData {
     }
     epgEntry(e, name){
         return {
-            name: global.lang.TV_GUIDE,
+            name: global.lang.EPG,
             type: 'group',
             fa: this.epgIcon,
             renderer: () => {
@@ -184,7 +184,7 @@ class ChannelsEPG extends ChannelsData {
     }
     updateStatus(){
         let p = global.explorer.path
-        if(p.indexOf(global.lang.TV_GUIDE) == -1){
+        if(p.indexOf(global.lang.EPG) == -1){
             clearInterval(this.epgStatusTimer)
             this.epgStatusTimer = false
         } else {
@@ -743,11 +743,13 @@ class Channels extends ChannelsEditing {
                             })
                         }
                     }
-                    epgEntry =  {
-                        name: global.lang.TV_GUIDE, 
-                        type: 'group', 
-                        fa: this.epgIcon,
-                        renderer: this.epgChannelEntries.bind(this, e)
+                    if(global.config.get('epg')){
+                        epgEntry =  {
+                            name: global.lang.EPG, 
+                            type: 'group', 
+                            fa: this.epgIcon,
+                            renderer: this.epgChannelEntries.bind(this, e)
+                        }
                     }
                 } else {    
                     entries.push(Object.assign(this.emptyEntry, {name: global.lang.NONE_STREAM_FOUND}))
@@ -783,7 +785,9 @@ class Channels extends ChannelsEditing {
                     } 
                 }
                 if(streamsEntry){
-                    entries.push(epgEntry)
+                    if(epgEntry){
+                        entries.push(epgEntry)
+                    }
                     entries.push(this.shareChannelEntry(e))
                     entries.push(streamsEntry)
                 }
@@ -837,7 +841,7 @@ class Channels extends ChannelsEditing {
                             }
                             entries = entries.map(e => this.toMetaEntry(e, category))
                             if(global.config.get('epg')){
-                                entries.unshift({name: global.lang.TV_GUIDE, fa: this.epgIcon, type: 'group', renderer: () => {
+                                entries.unshift({name: global.lang.EPG, fa: this.epgIcon, type: 'group', renderer: () => {
                                     return this.epgEntries(category)
                                 }})
                             }
@@ -969,28 +973,7 @@ class Channels extends ChannelsEditing {
             if(!global.activeLists.length){ // one list available on index beyound meta watching list
                 return resolve([global.lists.manager.noListsEntry()])
             }
-            global.lists.groups().then(gs => {
-                gs = gs.map(group => {
-                    return {
-                        name: global.ucWords(group),
-                        type: 'group',
-                        renderer: () => {
-                            return new Promise((resolve, reject) => {
-                                console.log('GROUP', group)
-                                global.lists.group(group).then(list => {
-                                    list = global.lists.tools.paginateList(list)
-                                    global.lists.tools.offload(list, 'group-' + group, resolve)
-                                }).catch(reject)
-                            })
-                        }
-                    }
-                })
-                if(gs.length > global.lists.opts.folderSizeLimit){
-                   gs = global.lists.tools.paginateList(gs)
-                   console.log('GROUPS', gs)
-                }
-                resolve(gs)
-            }).catch(global.displayErr)
+            global.lists.allListsMerged().then(resolve).catch(reject)
         })
     }
 }

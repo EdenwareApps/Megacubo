@@ -6,19 +6,11 @@ class StreamerPlaybackTimeout extends EventEmitter {
         this.controls = controls
         this.playbackTimeout = 25000
         this.playbackTimeoutTimer = 0
-        this.playbackTimeoutOSDStart = 0
-        this.playbackTimeoutOSDTimer = 0
         this.on('state', s => {
             if(s == 'loading'){
                 if(!this.playbackTimeoutTimer){
-                    if(config['debug-messages']){
-                        this.playbackTimeoutOSDStart = this.time()
-                        this.playbackTimeoutOSDTimer = setInterval(() => {
-                            osd.show('timeout: '+ parseInt(this.time() - this.playbackTimeoutOSDStart), 'fas fa-clock', 'debug-timeout', 'persistent')
-                        }, 1000)
-                    }
                     this.playbackTimeoutTimer = setTimeout(() => {
-                        clearInterval(this.playbackTimeoutOSDTimer)
+                        clearTimeout(this.playbackTimeoutTimer)
                         this.app.emit('video-error', 'timeout', this.prepareErrorData({type: 'timeout', details: 'client playback timeout'}))
                     }, this.playbackTimeout)
                 }
@@ -30,7 +22,6 @@ class StreamerPlaybackTimeout extends EventEmitter {
             this.cancelTimeout()
         })
         this.app.on('streamer-reset-timeout', err => {
-            clearInterval(this.playbackTimeoutOSDTimer)
             clearTimeout(this.playbackTimeoutTimer)
             this.playbackTimeoutTimer = 0
         })
@@ -40,7 +31,6 @@ class StreamerPlaybackTimeout extends EventEmitter {
             osd.hide('debug-timeout')
         }
         osd.hide('timeout')
-        clearInterval(this.playbackTimeoutOSDTimer)
         clearTimeout(this.playbackTimeoutTimer)
         this.playbackTimeoutTimer = 0
         if(this.isTryOtherDlgActive()){
@@ -319,6 +309,10 @@ class StreamerSpeedo extends StreamerBodyIdleClass {
 class StreamerSeek extends StreamerSpeedo {
     constructor(controls, app){
         super(controls, app)
+        this.seekOsdID = 'seek-osd-id'
+        this.seekOsdTime = 1000
+        this.seekCounter = 0
+        this.seekCounterDelay = 2000
         this.seekSkipSecs = 5
         this.seekbar = false
         this.seekBarShowTime = 5000
@@ -411,34 +405,52 @@ class StreamerSeek extends StreamerSpeedo {
     seekBack(){
         if(this.active && !this.seekLocked){
             this.seekLocked = true
+            this.seekCounter -= this.seekSkipSecs
             setTimeout(() => {
                 this.seekLocked = false
             }, this.seekStepDelay) 
+            clearTimeout(this.seekCounterTimer)
+            this.seekCounterTimer = setTimeout(() => {
+                this.seekCounter = 0
+            }, this.seekCounterDelay) 
             let now = parent.player.time(), nct = now - this.seekSkipSecs
             if(nct < 0){
                 nct = 0
             }
             if(nct < now){
                 parent.player.time(nct)
-                osd.show(lang.SEEK_REWIND, 'fas fa-backward', this.osdID, 'normal')
+                let txt = lang.SEEKREWIND
+                if(this.seekCounter < 0){
+                    txt += ' ' + Math.abs(this.seekCounter) + 's'
+                }
+                osd.show(txt, 'fas fa-backward', this.seekOsdID, this.seekOsdTime)
             } else {
-                osd.show(lang.PLAY, 'fas fa-forward', this.osdID, 'persistent')
+                osd.show(lang.PLAY, 'fas fa-play', this.seekOsdID, this.seekOsdTime)
             }
         }
     }
     seekFwd(){
-        if(this.active && !this.seekLocked){
+        if(this.active && this.state == 'playing' && !this.seekLocked){
             this.seekLocked = true
+            this.seekCounter += this.seekSkipSecs
             setTimeout(() => {
                 this.seekLocked = false
             }, this.seekStepDelay) 
+            clearTimeout(this.seekCounterTimer)
+            this.seekCounterTimer = setTimeout(() => {
+                this.seekCounter = 0
+            }, this.seekCounterDelay) 
             let now = parent.player.time(), nct = now + this.seekSkipSecs
             if(nct > parent.player.duration()){
                 nct = parent.player.duration()
             }
             if(nct > now){
                 parent.player.time(nct)
-                osd.show(lang.SEEK_FORWARD, 'fas fa-forward', this.osdID, 'persistent')
+                let txt = lang.SEEKFORWARD
+                if(this.seekCounter > 0){
+                    txt += ' ' + this.seekCounter + 's'
+                }
+                osd.show(txt, 'fas fa-forward', this.seekOsdID, this.seekOsdTime)
             }
         }
     }

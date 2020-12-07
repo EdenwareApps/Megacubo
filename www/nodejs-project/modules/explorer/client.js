@@ -44,10 +44,10 @@ class ExplorerModal extends ExplorerPointer {
 		this.modalTemplates = {}
 		this.modalContainer = document.getElementById('modal')
 		this.modalContent = this.modalContainer.querySelector('#modal-content')
-		this.modalContainer.addEventListener('click', e => {	
-            if(e.target.parentNode.parentNode.id == 'modal'){
-				if(!explorer.inModalMandatory()){
-					explorer.endModal()
+		this.modalContent.parentNode.addEventListener('click', e => {	
+            if(e.target.id == 'modal-content'){
+				if(!this.inModalMandatory()){
+					this.endModal()
 				}
             }	
 		})
@@ -608,7 +608,7 @@ class ExplorerStatusFlags extends ExplorerSlider {
 	processStatusFlags(){
 		let results = []
 		this.currentEntries.forEach((e, i) => {
-			if(!explorer.ranging || (i >= explorer.range.start && i <= explorer.range.end)){
+			if(!this.ranging || (i >= this.range.start && i <= this.range.end)){
 				if(e.url && typeof(this.statusFlags[e.url]) != 'undefined'){
 					let element = this.currentElements[i], fa = this.statusFlags[e.url]
 					if(element && element.getAttribute('data-type') != 'spacer'){
@@ -631,6 +631,19 @@ class ExplorerLoading extends ExplorerStatusFlags {
 	constructor(jQuery, container, app){
 		super(jQuery, container, app)
 		this.originalNames = {}
+		this.app.on('set-loading', (data, active, txt) => {
+			if(!data) return
+			console.log('set-loading', data, active, txt)
+			this.get(data).forEach(e => {
+				this.setLoading(e, active, txt)
+			})
+		})
+		this.app.on('unset-loading', () => {
+			this.unsetLoading()
+		})
+		this.app.on('display-error', () => {
+			this.unsetLoading()
+		})
 	}
 	setLoading(element, active, txt){
 		var e = this.j(element), c = e.find('.entry-name label')
@@ -657,11 +670,33 @@ class ExplorerLoading extends ExplorerStatusFlags {
 			}
 		}
 	}
+	unsetLoading(){ // remove any loading state entry
+		this.container.find('a.entry-loading').each((i, e) => {
+			this.setLoading(e, false)
+		})
+	}
 }
 
 class Explorer extends ExplorerLoading {
 	constructor(jQuery, container, app){
-		super(jQuery, container, app)
+		super(jQuery, container, app)		
+		this.app.on('render', (entries, path, icon) => {
+			//console.log('ENTRIES', path, entries, icon)
+			this.render(entries, path, icon)
+		})
+		this.app.on('explorer-select', (entries, path, icon) => {
+			//console.log('ENTRIES', path, entries, icon)
+			this.setupSelect(entries, path, icon)
+		})
+		this.app.on('info', (a, b, c, d) => {
+			this.info(a, b, c, d)
+		})
+		this.app.on('dialog', (a, b, c) => {
+			this.dialog(a, b, c)
+		})
+		this.app.on('prompt', (a, b, c, d, e, f) => {
+			this.prompt(a, b, c,  d, e, f)
+		})
 		this.initialized = false
 		this.currentEntries = []
 		this.currentElements = []
@@ -736,7 +771,7 @@ class Explorer extends ExplorerLoading {
 				<span class="entry-status-flags"></span>
 				<label>{name}</label>
 			</span>
-			<span class="entry-details">{value}</span>
+			<span class="entry-details">{details} {value}</span>
 		</span>
 		<span class="entry-icon-image">
 			<i class="{fa}"></i>
@@ -773,14 +808,7 @@ class Explorer extends ExplorerLoading {
 		</span>
 	</span>
 </a>`
-		}  
-		this.app.on('set-loading', (data, active, txt) => {
-			if(!data) return
-			console.log('set-loading', data, active, txt)
-			this.get(data).forEach(e => {
-				this.setLoading(e, active, txt)
-			})
-		})                         
+		}                      
 		this.app.on('trigger', data => {
 			if(this.debug){
 				console.warn('TRIGGER', data)
