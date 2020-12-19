@@ -2,14 +2,14 @@
 A intuitive, multi-language and cross-platform IPTV player.
 
 Platforms: Windows, Linux, MacOS and Android.
-
-
-
+   
+   
+   
 # Releases
 Want to use the software, go to [our releases folder](https://github.com/efoxbr/megacubo/releases) to get it.
-
-
-
+   
+   
+   
 # Development
 
 ### On Cordova:
