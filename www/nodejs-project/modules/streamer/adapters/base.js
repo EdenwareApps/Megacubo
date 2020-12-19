@@ -126,13 +126,14 @@ class StreamerAdapterBase extends Events {
 	getBitrate(buffer){
 		process.nextTick(() => {
 			let len = this.len(buffer)
+			//console.log('getBitrate', this.destroyed, len, this.opts.minBitrateCheckSize, this.activeBitrateChecks, this.bitrates.length, this.opts.bitrateCheckingAmount)
 			if(!this.destroyed && len >= this.opts.minBitrateCheckSize && (this.activeBitrateChecks + this.bitrates.length) < this.opts.bitrateCheckingAmount){
 				this.activeBitrateChecks++
 				let i = Math.random(), tmpFile = tmpDir + path.sep + i + '.mp4'
 				if(this.opts.debug){
 					this.opts.debug('getBitrate', tmpFile, this.url, len, this.opts.minBitrateCheckSize, traceback())
 				}
-				console.error('getBitrate', tmpFile, this.url, len, this.opts.minBitrateCheckSize, traceback())
+				//console.log('getBitrate', tmpFile, this.url, len, this.opts.minBitrateCheckSize, traceback())
 				fs.writeFile(tmpFile, buffer, (err) => {
 					if(this.opts.debug){
 						this.opts.debug('getBitrate', err, this.url)
@@ -142,6 +143,7 @@ class StreamerAdapterBase extends Events {
 					} else {
 						global.ffmpeg.mediainfo.bitrate(tmpFile, (err, bitrate, codecData, dimensions, nfo) => {
 							this.activeBitrateChecks--
+							//this.opts.debug('getBitrate', err, tmpFile)
 							fs.unlink(tmpFile, () => {})
 							if(!this.destroyed){
 								if(codecData && (codecData.video || codecData.audio) && codecData != this.codecData){
@@ -181,13 +183,19 @@ class StreamerAdapterBase extends Events {
 			this.bitrateCheckBuffer[id].push(chunk)
 			if(this.len(this.bitrateCheckBuffer[id]) >= this.opts.maxBitrateCheckSize){
 				this.finishBitrateSample(id)
+				return false
 			}
+			return true
 		}
 	}
 	finishBitrateSample(id = 'default'){
+		console.log('finishBitrateSample', this.bitrateCheckBuffer[id], id)
 		if(typeof(this.bitrateCheckBuffer[id]) != 'undefined'){
+			console.log('finishBitrateSample', this.bitrates.length, this.opts.bitrateCheckingAmount)
 			if(this.bitrates.length < this.opts.bitrateCheckingAmount){
+				console.log('finishBitrateSample', this.len(this.bitrateCheckBuffer[id]), this.opts.minBitrateCheckSize)
 				if(this.len(this.bitrateCheckBuffer[id]) >= this.opts.minBitrateCheckSize){
+					console.log('finishBitrateSample', this.len(this.bitrateCheckBuffer[id]), this.opts.minBitrateCheckSize)
 					this.getBitrate(Buffer.concat(this.bitrateCheckBuffer[id]))
 				}
 			}
@@ -204,7 +212,7 @@ class StreamerAdapterBase extends Events {
 	}
 	removeHeaders(headers, keys){
 		keys.forEach(key => {
-			if(['transfer-encoding', 'content-encoding'].includes(key)){
+			if(['transfer-encoding', 'accept-encoding', 'content-encoding'].includes(key)){
 				headers[key] = 'identity'
 			} else {
 				delete headers[key]

@@ -22,7 +22,7 @@ module.exports = (forceLocale, folder) => {
     }
     let loadLanguage = (locales, folder) => {
         return new Promise((resolve, reject) => {
-            let localeMask = folder + path.sep + '{0}.json', ret = {}, texts
+            let localeMask = path.join(folder, '{0}.json'), ret = {}, texts
             let doConcat = (texts, locale, cb) => {
                 if(texts){
                     ret = Object.assign(texts, ret)
@@ -37,7 +37,7 @@ module.exports = (forceLocale, folder) => {
             let run = (v, i, cb) => {
                 if(locales.length){
                     let locale = locales.shift()
-                    file = localeMask.replace('{0}', locale)
+                    let file = localeMask.replace('{0}', locale)
                     if(debug){
                         console.log('Language loadFile', file)
                     }
@@ -101,10 +101,21 @@ module.exports = (forceLocale, folder) => {
             if(typeof(ret) == 'string' && (ret.length == 2 || ret.length == 5)){
                 locales.unshift(ret)
             }
+            let countryCode = locales[0]
+            if(countryCode.length < 5){
+                let flocs = locales.filter(l => l.length == 5 && l.substr(0, 2) == countryCode)
+                if(flocs.length){
+                    countryCode = flocs[0]
+                }
+            }
+            countryCode = countryCode.substr(-2).toLowerCase()
             if(debug){
                 console.log('Loading language', locales.slice(0))
             }
-            loadLanguage(locales, folder).then(resolve).catch(reject)
+            loadLanguage(locales, folder).then(data => {
+                data.countryCode = countryCode
+                resolve(data)
+            }).catch(reject)
         }
         if(debug){
             console.log('Language loading...', forceLocale, typeof(forceLocale))

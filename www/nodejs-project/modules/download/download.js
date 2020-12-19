@@ -13,6 +13,7 @@ class Download extends Events {
 				'user-agent': global.config.get('ua'),
 				'accept-language': global.lang.locale + ';q=0.9, *;q=0.5'
 			},
+			permanentErrorCodes: [400, 404, 405, 410],
 			timeout: 5,
 			followRedirect: false,
 			decompress: true
@@ -25,6 +26,10 @@ class Download extends Events {
 		}
 		this.currentURL = this.opts.url
 		this.opts.headers['connection'] = this.opts.keepalive ? 'keep-alive' : 'close'
+		if(this.opts.responseType && this.opts.responseType == 'json'){
+			this.opts.headers['accept'] = 'application/json,text/*;q=0.99'
+		}
+		this.opts.headers['accept-language'] = global.lang.locale +'-'+ global.lang.countryCode.toUpperCase() +','+ global.lang.locale +';q=0.9,*;q=0.5'
 		this.buffer = []
 		this.failed = false
 		this.retryCount = 0
@@ -38,8 +43,10 @@ class Download extends Events {
 		this.authErrors = 0
 		this.statusCode = 0
 		this.ignoreBytes = 0
-		this.retryDelay = 100
+		this.retryDelay = 200
 		this.preventDestroy = false
+		this.currentRequestError = ''
+		this.currentResponse = null
 		if(typeof(this.opts.headers['range']) != 'undefined'){
 			this.checkRequestingRange(this.opts.headers['range'])
 		}
@@ -60,6 +67,16 @@ class Download extends Events {
 	}
 	connect(){
 		if(this.destroyed) return
+		if(this.stream){
+			console.error('Download error, stream already connected')
+			return
+		}
+		if(this.delayNextTimer){
+			clearTimeout(this.delayNextTimer)
+		}
+		if(this.currentRequestError){
+			this.currentRequestError = ''
+		}
 		const opts = {
 			responseType: 'buffer',
 			url: this.currentURL,		
@@ -90,12 +107,12 @@ class Download extends Events {
 		opts.headers = requestHeaders
 		opts.timeout = this.getTimeoutOptions()
 		if(this.opts.debug){
-			console.log('>> Download request', this.received, opts.headers.range, this.requestingRange, this.opts.headers['range'], global.traceback())
+			console.log('>> Download request', this.currentURL, this.received, JSON.stringify(opts.headers), this.requestingRange, this.opts.headers['range'], global.traceback())
 		}
 		const stream = (this.opts.keepalive ? got.ka : got).stream(opts)
 		stream.on('redirect', response => {
 			if(this.opts.debug){
-				console.log('>> Download redirect', response.headers['content-range'], opts.headers.range)
+				console.log('>> Download redirect', response.headers['location'])
 			}
 			if(response.headers && response.headers['location']){
 				this.currentURL = this.absolutize(response.headers['location'], this.currentURL)
@@ -106,12 +123,18 @@ class Download extends Events {
 			}
 		})
 		stream.on('response', this.parseResponse.bind(this))
-		stream.on('data', () => {}) // if no data handler on stream, response.on('data') will not receive too, WTF!
+		stream.on('data', () => {}) // if no data handler on stream, response.on('data') will not receive too, WTF?!
 		stream.on('error', this.errorCallback.bind(this))
 		stream.on('download-error', this.errorCallback.bind(this)) // from got-wrapper hook
 		stream.on('end', () => {
 			if(this.opts.debug){
 				console.log('>> Download finished')
+			}
+			if(this.contentLength == -1 && !this.currentRequestError){ // ended fine
+				this.contentLength = this.received // avoid loop retrying
+				if(this.opts.debug){
+					console.log('>> Download content length adjusted to', this.contentLength)
+				}
 			}
 			this.delayNext()
 		})
@@ -126,6 +149,9 @@ class Download extends Events {
 		}
 		if(this.opts.debug){
 			console.warn('>> Download error', err, global.traceback())
+		}
+		if(!this.currentRequestError){
+			this.currentRequestError = 'error'
 		}
 		if(this.listenerCount('error')){
 			this.emit('error', err)
@@ -153,15 +179,27 @@ class Download extends Events {
 			return timeout
 		}
 	}
+	removeHeaders(headers, keys){
+		keys.forEach(key => {
+			if(['transfer-encoding', 'accept-encoding', 'content-encoding'].includes(key)){
+				headers[key] = 'identity'
+			} else {
+				delete headers[key]
+			}
+		})
+		return headers
+	}
 	parseResponse(response){
 		if(this.opts.debug){
-			console.log('>> Download response',response.statusCode, response.headers['content-range'], this.currentURL, this.retryCount)
+			console.log('>> Download response', response.statusCode, JSON.stringify(response.headers), this.currentURL, this.retryCount)
 		}
-		if(this.validateResponse(response)){
+		this.currentResponse = response
+		let validate = this.validateResponse(response)
+		if(validate === true){
 			if(!this.acceptRanges && typeof(response.headers['accept-ranges']) && response.headers['accept-ranges'] != 'none'){
 				this.acceptRanges = true
 			}
-			if(this.contentLength == -1 && typeof(response.headers['content-length']) != 'undefined'){
+			if(this.contentLength == -1 && typeof(response.headers['content-length']) != 'undefined' && response.statusCode == 200){
 				this.contentLength = parseInt(response.headers['content-length'])
 				if(this.totalContentLength < this.contentLength){
 					this.totalContentLength = this.contentLength
@@ -186,14 +224,21 @@ class Download extends Events {
 					}
 				}
 				const ranges = parseRange(this.totalContentLength, range)
-				console.log('>> Download response range', this.totalContentLength, range, ranges)
+				if(this.opts.debug){
+					console.log('>> Download response range', this.totalContentLength, range, ranges)
+				}
 				if (Array.isArray(ranges)) { // TODO: enable multi-ranging support
 					this.receivingRange = ranges[0]
-					if(!this.requestingRange){
-						this.requestingRange = this.receivingRange
-					}
 					if(this.contentLength == -1 && this.receivingRange.end && this.receivingRange.end > 0){
-						this.contentLength = this.receivingRange.end - this.receivingRange.start
+						if(this.opts.debug){
+							console.log('Download update content length', this.requestingRange ? this.requestingRange.start : -1, this.receivingRange, this.received, fullLength, response.headers['content-range'])
+						}
+						if(this.requestingRange){
+							// if(this.requestingRange.end will be not available here, as contentLength == -1
+							this.contentLength = this.totalContentLength - this.requestingRange.start
+						} else {
+							this.contentLength = this.received + (this.receivingRange.end - this.receivingRange.start) + 1
+						}
 					}
 				}
 			} else { // no range support, so skip received bytes + requestingRange.start
@@ -237,10 +282,14 @@ class Download extends Events {
 					if(this.contentLength != -1){
 						headers['content-length'] = this.contentLength
 					}
+					headers = this.removeHeaders(headers, ['transfer-encoding', 'cookie']) // cookies will be handled internally by got module
+					if(this.opts.debug){
+						console.log('>> Download response emit', this.statusCode, headers)
+					}
 					this.emit('response', this.statusCode, headers)
 				}
 				response.on('data', chunk => {
-					if(this.destroyed){
+					if(this.ended || this.destroyed){
 						return this.destroyStream()
 					}
 					if(this.retryCount){
@@ -274,6 +323,9 @@ class Download extends Events {
 					}
 					this.updateProgress()
 					if(this.contentLength != -1 && this.received >= this.contentLength){ // already received whole content requested
+						if(this.opts.debug){
+							console.log('>> Download content received', this.requestingRange, this.received, this.contentLength, this.totalContentLength)
+						}
 						this.end()
 					}
 				})
@@ -283,6 +335,7 @@ class Download extends Events {
 						if(this.opts.debug){
 							console.warn('aborted', global.traceback())
 						}
+						this.currentRequestError = 'aborted'
 						let err = 'request aborted'
 						if(this.listenerCount('error')){
 							this.emit('error', err)
@@ -294,7 +347,7 @@ class Download extends Events {
 					console.log('>> Download receiving response', this.opts.url)
 				}
 			}
-		} else {
+		} else if(validate === false) {
 			this.delayNext()
 		}
 	}
@@ -303,12 +356,23 @@ class Download extends Events {
 			return false // return false to skip parseResponse
 		} else {
 			if(response.statusCode < 200 || response.statusCode >= 400){ // bad response, not a redirect
-				let authErrorCodes = [401, 403]
+				let finalize, authErrorCodes = [401, 403]
 				if(authErrorCodes.includes(response.statusCode)){
 					this.authErrors++
 					if(this.authErrors >= this.opts.maxAuthErrors){
-						return true // accept bad response
+						finalize = true
 					}
+				}
+				if(this.opts.permanentErrorCodes.includes(response.statusCode)){
+					finalize = true
+				}
+				if(this.acceptRanges && response.statusCode == 416){ // reached end, abort it
+					finalize = true
+				}
+				if(finalize){
+					this.statusCode = response.statusCode
+					this.end()
+					return undefined // accept bad response and finalize
 				}
 				if(this.retryCount < this.opts.retries){
 					return false // return false to skip parseResponse and keep trying
@@ -340,16 +404,18 @@ class Download extends Events {
 		return headers
 	}
   	next(){
+		if(this.opts.debug){
+			console.log('next', global.traceback())
+		}
 		this.destroyStream()
 		let retry
-		const permanentErrorCodes = [400, 404, 405, 410]
 		if(this.destroyed || this.ended){
 			return this._destroy()
-		} else if(permanentErrorCodes.includes(this.statusCode) || this.retryCount >= this.opts.retries) { // no more retrying, permanent error
+		} else if(this.opts.permanentErrorCodes.includes(this.statusCode) || this.retryCount >= this.opts.retries) { // no more retrying, permanent error
 			retry = false
 		} else if(
 			(this.contentLength >= 0 && this.received >= this.contentLength) || // requested content already received
-			(this.contentLength == -1 && (this.statusCode >= 200 && this.statusCode < 300)) // unknown content length + good response received = no more retrying
+			((!this.acceptRanges || this.statusCode == 416) && this.contentLength == -1 && (this.statusCode >= 200 && this.statusCode < 300)) // unknown content length + good response received = no more retrying
 			){
 			retry = false
     	} else { // keep trying
@@ -359,16 +425,19 @@ class Download extends Events {
 		}
 		if(retry){
 			if(this.opts.debug){
-				console.log('will retry', this.destroyed, this.statusCode, 'content: ' + this.received + '/' + this.contentLength, 'retries: ' + this.retryCount + '/'+ this.opts.retries)
+				console.log('retrying', this.destroyed, this.statusCode, this.currentURL, 'content: ' + this.received + '/' + this.contentLength, 'retries: ' + this.retryCount + '/'+ this.opts.retries)
 			}
 		} else {
 			if(this.opts.debug){
-				console.log('no retry', this.destroyed, this.statusCode, 'content: ' + this.received + '/' + this.contentLength, 'retries: ' + this.retryCount + '/'+ this.opts.retries)
+				console.log('no retry', this.destroyed, this.statusCode, this.currentURL, 'content: ' + this.received + '/' + this.contentLength, 'retries: ' + this.retryCount + '/'+ this.opts.retries)
 			}
 			this.end()
 		}
 	}
 	delayNext(){
+		if(this.opts.debug){
+			console.log('delayNext', global.traceback())
+		}
 		this.destroyStream()
 		if(this.delayNextTimer){
 			clearTimeout(this.delayNextTimer)
@@ -390,10 +459,14 @@ class Download extends Events {
 		}
 	}
 	destroyStream(){
+		if(this.currentResponse){
+			this.currentResponse.removeAllListeners('data')
+			this.currentResponse.removeAllListeners('error')
+		}
 		if(this.stream){	
 			this.ignoreBytes = 0 // reset it
 			if(this.opts.debug){
-				console.log('destroyStream')		
+				console.log('destroyStream', global.traceback())		
 			}
 			this.stream.removeAllListeners('response')
 			this.stream.removeAllListeners('data')

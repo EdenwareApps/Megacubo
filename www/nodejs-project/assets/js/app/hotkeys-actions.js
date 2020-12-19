@@ -1,4 +1,13 @@
 var hotkeysActions = {
+    "HOME": [
+        () => {
+            if(explorer.scrollContainer.scrollTop()){
+                explorer.scrollContainer.scrollTop(0)
+            } else {
+                explorer.triggerAction('').catch(console.error)
+            }
+        }, "up", true
+    ],
     "PLAYPAUSE": [
         () => {
             if(explorer.inPlayer()){
@@ -69,22 +78,38 @@ var hotkeysActions = {
     ],
     "SEARCH": [
         () => {
-            explorer.dialog([
-                {template: 'question', text: lang.SEARCH_FOR, fa: 'fas fa-search'},
-                {template: 'option', text: lang.LIVE, fa: 'fas fa-tv', id: 'live'},
-                {template: 'option', text: lang.ALL, fa: 'fas fa-folder-open', id: 'all'}
-            ], c => {
-                if(c == 'live'){
-                    explorer.triggerAction(lang.LIVE + '/' + lang.SEARCH, lang.SEARCH).catch(console.error)
-                } else if(c == 'all') {
-                    explorer.triggerAction(lang.CATEGORIES + '/' + lang.SEARCH, lang.SEARCH).catch(console.error)
-                }
-            }, 'no')
+            omni.focus()
         }, "up", true
     ],
     "OPENURL": [
         () => {
             explorer.triggerAction(lang.TOOLS, lang.OPEN_URL).catch(console.error)
+        }, "up", true
+    ],
+    "HISTORY": [
+        () => {
+            explorer.triggerAction(lang.TOOLS, lang.HISTORY).catch(console.error)
+        }, "up", true
+    ],
+    "FAV": [
+        () => {
+            app.emit('toggle-fav')
+        }, "up", true
+    ],
+    "MINIPLAYER": [
+        () => {
+            if(top.Manager){
+                if(top.Manager.miniPlayerActive){
+                    top.Manager.leaveMiniPlayer()
+                } else {
+                    top.Manager.enterMiniPlayer()
+                }
+            }
+        }, "up", true
+    ],
+    "RECORDING": [
+        () => {
+            app.emit('recording')
         }, "up", true
     ],
     "ABOUT": [

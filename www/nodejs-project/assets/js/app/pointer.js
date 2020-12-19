@@ -299,6 +299,10 @@ class ExplorerPointer extends ExplorerSelectionMemory {
                 }
             }
             f.focus({preventScroll: true})
+            let n = f.querySelector('input, textarea')
+            if(n){
+                n.focus({preventScroll: true})
+            }
             if(index != -1){ // is main menu entry
                 let lastIndex = this.selectedIndex
                 this.selectedIndex = index
@@ -363,7 +367,9 @@ class ExplorerPointer extends ExplorerSelectionMemory {
         } else {
             e = e.concat(sel)
         }
-		return e
+		return e.filter(n => {
+            return !n.className || n.className.indexOf('explorer-not-navigable') == -1
+        })
     }
     addView(view){
         if(view.default === true || !this.defaultNavGroup){
@@ -552,9 +558,7 @@ class ExplorerPointer extends ExplorerSelectionMemory {
             }
         }
         if(!closer && noCycle !== true){
-            if(typeof(this.overScrollAction) == 'function'){
-                this.overScrollAction()
-            } else {
+            if(typeof(view.overScrollAction) != 'function' || view.overScrollAction(direction) !== true){
                 closer = this.opposite(e, items, direction)                
                 if(this.debug){
                     console.log('opposite', e, items, direction, closer)

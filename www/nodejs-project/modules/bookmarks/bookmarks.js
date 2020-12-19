@@ -9,33 +9,56 @@ class Bookmarks extends EntriesGroup {
             live: true,
             icon: ''
         }
+        global.ui.on('toggle-fav', () => {
+            if(this.current()){
+                this.toggle()
+            } else {
+                global.explorer.open(global.lang.BOOKMARKS)
+            }
+        })
         global.streamer.aboutDialogRegisterOption('addfav', data => {
             if(!this.has(data)){
                 return {template: 'option', fa: 'fas fa-star', text: global.lang.ADD_TO.format(global.lang.BOOKMARKS), id: 'addfav'}
             }
-        }, data => {
-            this.add(this.simplify(data))
-            global.osd.show(global.lang.FAV_ADDED.format(data.name), 'fas fa-star', 'bookmarks', 'normal')
-        })
+        }, this.toggle.bind(this))
         global.streamer.aboutDialogRegisterOption('remfav', data => {
             if(this.has(data)){
                 return {template: 'option', fa: 'fas fa-star-half', text: global.lang.REMOVE_FROM.format(global.lang.BOOKMARKS), id: 'remfav'}
             }
-        }, data => {
-            this.remove(data)
-            global.osd.show(global.lang.FAV_REMOVED.format(data.name), 'fas fa-star-half', 'bookmarks', 'normal')
-        })
+        }, this.toggle.bind(this))
     }
     hook(entries, path){
         return new Promise((resolve, reject) => {
-            if(path == ''){
+            if(path == '' && !entries.some(e => e.name == global.lang.BOOKMARKS)){
                 entries.push({name: global.lang.BOOKMARKS, fa: 'fas fa-star', type: 'group', renderer: this.entries.bind(this)})
             }
             resolve(entries)
         })
     }
+    toggle(){
+        let data = this.current()
+        if(data){
+            if(this.has(data)){
+                this.remove(data)
+                global.osd.show(global.lang.FAV_REMOVED.format(data.name), 'fas fa-star-half', 'bookmarks', 'normal')
+            } else {
+                this.add(data)
+                global.osd.show(global.lang.FAV_ADDED.format(data.name), 'fas fa-star', 'bookmarks', 'normal')
+            }
+        }
+    }
+    current(){
+        if(global.streamer.active){
+            return this.simplify(global.streamer.active.data)
+        } else {
+            let streams = global.explorer.currentEntries.filter(e => e.url)
+            if(streams.length){
+                return this.simplify(streams[0])
+            }
+        }
+    }
     simplify(e){
-        return {name: e.name, type: 'stream', details: e.group || '', url: e.url}
+        return {name: e.name, type: 'stream', details: e.group || '', terms: {'name': global.channels.entryTerms(e)}, url: e.url}
     }
     entries(e){
         return new Promise((resolve, reject) => {
@@ -60,6 +83,8 @@ class Bookmarks extends EntriesGroup {
             es.push({name: global.lang.ADD_BY_NAME, fa: 'fas fa-star', type: 'group', renderer: this.addByNameEntries.bind(this)})
             es = es.concat(this.get().map((e, i) => {
                 const isMega = global.mega.isMega(e.url)
+                e.fa = 'fas fa-star'
+                e.details = '<i class="fas fa-star"></i> ' + e.bookmarkId
                 if(isMega){
                     let atts = global.mega.parse(e.url)
                     if(atts.mediaType == 'live'){
@@ -78,8 +103,6 @@ class Bookmarks extends EntriesGroup {
                 } else {
                     e.type = 'stream'
                 }
-                e.fa = 'fas fa-star'
-                e.details = '<i class="fas fa-star"></i> ' + e.bookmarkId
                 return e
             }))
             if(this.get().length){

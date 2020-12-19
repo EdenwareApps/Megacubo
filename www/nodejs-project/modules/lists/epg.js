@@ -3,6 +3,7 @@ const xmltv = require('xmltv'), fs = require('fs'), Events = require('events')
 class EPG extends Events {
     constructor(url){
         super()
+        this.debug = false
         this.url = url
         this.key = 'epg-' + this.url
         this.termsKey = 'epg-terms-' + this.url
@@ -16,16 +17,18 @@ class EPG extends Events {
         this.transferred = 0
         this.loaded = false
         this.ttl = 72 * 3600
+        this.minExpectedEntries = 72
         this.state = 'uninitialized'
+        this.error = null
         this.start()
     }
     start(){
         if(!Object.keys(this.data).length){ // initialize
             this.state = 'loading'
             this.load().then(() => {
-                // console.log('epg loaded', JSON.stringify(this.data))
+                console.log('epg loaded', Object.keys(this.data).length)
                 if(!this.loaded){
-                    if(Object.keys(this.data).length){
+                    if(Object.keys(this.data).length >= this.minExpectedEntries){
                         this.state = 'loaded'
                         this.loaded = true
                         this.emit('load')
@@ -39,10 +42,11 @@ class EPG extends Events {
     update(){
         storage.get(this.fetchCtrlKey, lastFetchedAt => {
             const now = this.time()
-            if(!Object.keys(this.data).length || !lastFetchedAt || lastFetchedAt < (this.time() - (this.ttl / 2))){
+            if(Object.keys(this.data).length < this.minExpectedEntries || !lastFetchedAt || lastFetchedAt < (this.time() - (this.ttl / 2))){
                 if(!this.loaded){
                     this.state = 'connecting'
                 }
+                this.error = null
                 console.log('epg updating...')
                 if(!this.parser){ // initialize
                     this.parser = new xmltv.Parser()
@@ -54,11 +58,13 @@ class EPG extends Events {
                     })
                     this.parser.on('end', this.save.bind(this))
                 }
+                let received = 0
                 const req = {
+                    debug: false,
                     url: this.url,
                     followRedirect: true,
                     keepalive: false,
-                    retries: 10,
+                    retries: 5,
                     headers: {}
                 }
                 this.request = new global.Download(req)
@@ -72,23 +78,36 @@ class EPG extends Events {
                     }
                 })
                 this.request.on('data', chunk => {
+                    received += chunk.length
+                    // console.log('epg received', String(chunk))
                     this.parser.write(chunk)
                 })
                 this.request.on('end', () => {
-                    console.log('EPG REQUEST ENDED')
+                    console.log('EPG REQUEST ENDED', received)
                     global.storage.set(this.fetchCtrlKey, now, this.ttl)
                     if(Object.keys(this.data).length){
                         this.state = 'loaded'
                         this.loaded = true
                         this.emit('load')
                     } else {
-                        this.emit('error', 'Bad EPG format')
+                        this.state = 'error'
+                        let errMessage = 'Bad EPG format'
+                        this.error = errMessage
+                        this.emit('error', errMessage)
                     }
+                    this.parser.end()
+                    this.parser.destroy()
                 })
             } else {
                 console.log('epg update skipped')
             }
         })
+    }
+    forceUpdate(){        
+        this.data = {}
+        this.terms = {}
+        this.loaded = false
+        this.update()
     }
     prepareProgrammeData(programme, end){
         if(!end){
@@ -97,10 +116,12 @@ class EPG extends Events {
         return {e: end, t: programme.title.shift() || 'No title', c: programme.category || ''}
     }
     programme(programme){
-        const now = this.time(), start = this.time(programme.start), end = this.time(programme.end)
-        programme.channel = this.prepareChannelName(programme.channel)
-        if(end >= now && end <= (now + this.ttl) && !this.hasProgramme(programme.channel, start)){
-            this.indexate(programme.channel, start, this.prepareProgrammeData(programme, end))
+        if(programme && programme.channel){
+            const now = this.time(), start = this.time(programme.start), end = this.time(programme.end)
+            programme.channel = this.prepareChannelName(programme.channel)
+            if(end >= now && end <= (now + this.ttl) && !this.hasProgramme(programme.channel, start)){
+                this.indexate(programme.channel, start, this.prepareProgrammeData(programme, end))
+            }
         }
     }
     channelsList(){
@@ -163,9 +184,23 @@ class EPG extends Events {
         }
         return parseInt(dt.getTime() / 1000)
     }
+    extractTerms(c){
+        if(Array.isArray(c)){
+            return c.slice(0)
+        } else if(c.terms) {
+            if(typeof(c.terms.name) != 'undefined' && Array.isArray(c.terms.name)){
+                return c.terms.name.slice(0)
+            } else if(Array.isArray(c.terms)) {
+                return c.terms.slice(0)
+            }
+        }
+        return []
+    }
     get(channel, limit){
         if(typeof(this.data[channel.name]) == 'undefined'){
-            channel.name = this.findChannel(channel.terms)
+            console.log('EPGGETCHANNEL', this.extractTerms(channel))
+            channel.name = this.findChannel(this.extractTerms(channel))
+            console.log('EPGGETCHANNEL', channel.name)
             if(!channel.name || typeof(this.data[channel.name]) == 'undefined'){
                 return false
             }
@@ -219,11 +254,16 @@ class EPG extends Events {
             resolve(log)
         })
     }
-    search(terms){
+    search(terms, nowLive){
         return new Promise((resolve, reject) => {
-            let epgData = {}
+            let epgData = {}, now = this.time()
             Object.keys(this.data).forEach(channel => {
                 Object.keys(this.data[channel]).forEach(start => {
+                    if(nowLive === true){
+                        if(start > now || this.data[channel][start].e < now){
+                            return
+                        }
+                    }
                     let pterms = global.lists.terms(this.data[channel][start].t)
                     if(global.lists.match(terms, pterms, true)){
                         if(typeof(epgData[channel]) == 'undefined'){

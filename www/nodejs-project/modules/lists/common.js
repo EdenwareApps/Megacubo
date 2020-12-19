@@ -38,7 +38,8 @@ class Common extends Events {
 			map(s => {
 				if(s.charAt(0) == '-'){
 					if(allowModifier){
-						return '-' + s.replace(this.parser.regexes['non-alpha'], '').replace(this.parser.regexes['hyphen-not-modifier'], '')
+						s = s.replace(this.parser.regexes['non-alpha'], '').replace(this.parser.regexes['hyphen-not-modifier'], '')
+						return s.length ? '-' + s : ''
 					} else {
 						return ''
 					}

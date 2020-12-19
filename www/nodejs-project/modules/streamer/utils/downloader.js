@@ -125,7 +125,10 @@ class Downloader extends StreamerAdapterBase {
 			url: this.url,
 			keepalive: this.committed && global.config.get('use-keepalive'),
 			retries: 0,
-			followRedirect: true
+			followRedirect: true,
+			headers: {
+				'accept-encoding': 'identity' // https://github.com/sindresorhus/got/issues/145
+			}
 		})
 		download.on('error', error => {
             console.warn('['+ this.type +'] ERR', error, this.url)

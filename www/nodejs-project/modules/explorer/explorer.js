@@ -69,6 +69,14 @@ class Explorer extends Events {
             }
         }).catch(global.displayErr)
     }
+    updateHomeFilters(){
+        this.applyFilters(this.pages[''], '').then(es => {
+            this.pages[""] = es
+            if(this.path == ""){
+                this.refresh()
+            }
+        }).catch(console.error)
+    }
     checkFlags(entries){
         return entries.map(n => {
             let e = Object.assign({}, n)
@@ -339,7 +347,10 @@ class Explorer extends Events {
                 resolve({entries, parent})
             }
             if(!basePath){
-                finish(this.pages[parentPath])
+                this.applyFilters(this.pages[parentPath], parentPath).then(es => {
+                    this.pages[parentPath] = es
+                    finish(this.pages[parentPath])
+                })
                 return
             }
             let page = this.pages[parentPath]
@@ -425,7 +436,7 @@ class Explorer extends Events {
             if(typeof(e.renderer) == 'function'){
                 e.renderer(e).then(resolve).catch(reject)
             } else if(typeof(e.renderer) == 'string'){
-                global.storage.get(e.renderer, entries => {
+                global.tstorage.get(e.renderer, entries => {
                     if(Array.isArray(entries)){
                         resolve(entries)
                     } else {

@@ -45,7 +45,7 @@ const got = require('got').extend({
 			error => {
 				try {
 					let serr = String(error)
-					console.warn('gotError', serr)
+					console.warn('gotError', serr, error.response && error.response.url ? error.response.url : '')
 					error.request.emit('download-error', serr)
 					try {
 						throw error // avoid process crashing with uncaught exception, TODO: find a better way

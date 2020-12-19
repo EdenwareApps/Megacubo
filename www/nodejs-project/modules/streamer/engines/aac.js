@@ -35,11 +35,11 @@ StreamerAACIntent.mediaType = 'audio'
 StreamerAACIntent.supports = (info) => {
     if(info.contentType){
         let c = info.contentType.toLowerCase()
-        if(c.indexOf('audio/') != -1){
+        if(c.indexOf('audio/') != -1 && c.indexOf('mpegurl') == -1){
             return true
         }
     }
-    if(info.ext && ['aac', 'ogg', 'mp3', 'm4a'].includes(info.ext)){
+    if(info.ext && ['aac', 'ogg', 'mp3', 'm4a', 'flac'].includes(info.ext)){
         return true
     }
     return false

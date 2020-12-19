@@ -193,23 +193,24 @@ class StreamerProxy extends StreamerProxyBase {
 			this.debug('req starting...', req, req.url)
 		}
 		let url = this.unproxify(req.url)
-		let headers = req.headers, dom = this.getDomain(url)
-		headers.host = dom;
-		['cookie', 'referer', 'origin', 'Origin', 'Referer'].forEach(k => {
-			if(typeof(headers[k]) != 'undefined'){
-				delete headers[k]
+		let reqHeaders = req.headers, dom = this.getDomain(url)
+		reqHeaders.host = dom;
+		['cookie', 'referer', 'origin'].forEach(k => {
+			if(typeof(reqHeaders[k]) != 'undefined'){
+				delete reqHeaders[k]
 			}
 		})
+		reqHeaders['accept-encoding'] = 'identity' // https://github.com/sindresorhus/got/issues/145
 		if(this.debug){
-			this.debug('serving', url, req, path.basename(url), url, req.headers)
+			this.debug('serving', url, req, path.basename(url), url, reqHeaders)
 		}
 		const uid = this.uid()
 		let ended
 		const download = new global.Download({
 			url,
-			retries: 10,
-			headers,
-			keepalive: this.committed && global.config.get('use-keepalive')
+			retries: 5,
+			keepalive: this.committed && global.config.get('use-keepalive'),
+			headers: reqHeaders
 		})
 		this.connections[uid] = {response, download}
 		const end = data => {
@@ -258,7 +259,7 @@ class StreamerProxy extends StreamerProxyBase {
 			})
 		}
 		download.on('response', (statusCode, headers) => {
-			headers = this.removeHeaders(headers, ['content-encoding', 'transfer-encoding'])
+			headers = this.removeHeaders(headers, ['transfer-encoding'])
 			headers['access-control-allow-origin'] = '*'
 			if(statusCode >= 200 && statusCode < 300){ // is data response
 				if(req.method == 'HEAD'){
@@ -315,18 +316,23 @@ class StreamerProxy extends StreamerProxyBase {
 		let type = '', minSegmentSize = 96 * 1024
 		if(typeof(headers['content-type']) != 'undefined' && (headers['content-type'].indexOf('video/') != -1 || headers['content-type'].indexOf('audio/') != -1)){
 			type = 'video'
-		} else if(typeof(headers['content-type']) != 'undefined' && (headers['content-type'].toLowerCase().indexOf('mpegurl') != -1 || headers['content-type'].indexOf('text/') != -1)){
+		} else if(typeof(headers['content-type']) != 'undefined' && headers['content-type'].toLowerCase().indexOf('linguist') != -1){ // .ts bad mimetype "text/vnd.trolltech.linguist"
+			type = 'video'
+		}  else if(typeof(headers['content-type']) != 'undefined' && (headers['content-type'].toLowerCase().indexOf('mpegurl') != -1 || headers['content-type'].indexOf('text/') != -1)){
 			type = 'meta'
 		} else if(typeof(headers['content-type']) == 'undefined' && this.ext(url) == 'm3u8') {
 			type = 'meta'
 		} else if(typeof(headers['content-length']) != 'undefined' && parseInt(headers['content-length']) >= minSegmentSize){
 			type = 'video'
-		} else if(typeof(headers['content-type']) != 'undefined' && headers['content-type'] == 'application/octet-stream') { // force download video
+		} else if(typeof(headers['content-type']) != 'undefined' && headers['content-type'] == 'application/octet-stream') { // force download video header
 			type = 'video'
 		}
 		return type
 	}
 	handleMetaResponse(download, statusCode, headers, response, end, url){
+		if(!headers['content-type']){
+			headers['content-type'] = 'application/x-mpegURL'
+		}
 		headers = this.removeHeaders(headers, ['content-length']) // we'll change the content
 		headers = this.addCachingHeaders(headers, 4) // set a min cache to this m3u8 to prevent his overfetching
 		download.on('end', data => {
@@ -348,27 +354,38 @@ class StreamerProxy extends StreamerProxyBase {
 		})
 	}	
 	handleVideoResponse(download, statusCode, headers, response, end, url, uid){
+		if(!headers['content-type'] || !headers['content-type'].match(new RegExp('^(audio|video)'))){ // fix bad mimetypes
+			switch(this.ext(url)){
+				case 'ts':
+				case 'mts':
+				case 'm2ts':
+					headers['content-type'] = 'video/MP2T'
+					break
+				default:
+					headers['content-type'] = 'video/mp4'
+			}
+		}
 		if(!response.headersSent){
 			response.writeHead(statusCode, headers)
 		}
 		let offset = download.requestingRange ? download.requestingRange.start : 0
-		let doBitrateCheck = offset == 0 && this.bitrates.length < this.opts.bitrateCheckingAmount
+		let sampleCollected, doBitrateCheck = offset == 0 && this.bitrates.length < this.opts.bitrateCheckingAmount
 		let onend = () => {
-			console.warn('download ended')
+			//console.warn('download ended')
 			if(doBitrateCheck){
 				this.finishBitrateSample(uid)
 			}
 			if(download.preventDestroy){
-				console.warn('download.destroy() forceFirstBitrateDetection hack removed')
+				//console.warn('download.destroy() forceFirstBitrateDetection hack removed', offset)
 				download.preventDestroy = false
 				download.destroy()
 			}
 			end()
 		}
-		console.warn('handleVideoResponse', doBitrateCheck, this.opts.forceFirstBitrateDetection, statusCode, headers)
+		console.warn('handleVideoResponse', doBitrateCheck, this.opts.forceFirstBitrateDetection, offset, download, statusCode, headers)
 		if(doBitrateCheck && this.opts.forceFirstBitrateDetection){
 			response.on(this.internalRequestAbortedEvent, () => { // client disconnected
-				console.warn('forceFirstBitrateDetection hack applied')
+				//console.warn('forceFirstBitrateDetection hack applied')
 				download.preventDestroy = true
 			})
 		}
@@ -381,12 +398,16 @@ class StreamerProxy extends StreamerProxyBase {
 				this.emit('data', url, chunk, len, offset)
 			}
 			offset += len
-			if(doBitrateCheck){
-				this.collectBitrateSample(chunk, len, uid)
-				if(download.preventDestroy && offset >= this.minBitrateCheckSize){
-					console.warn('download.destroy() forceFirstBitrateDetection hack removed, destroying')
-					download.preventDestroy = false
-					download.end()
+			if(doBitrateCheck && !sampleCollected){
+				//console.warn('forceFirstBitrateDetection data', this.bitrateCheckBuffer[uid], offset, chunk)
+				if(!this.collectBitrateSample(chunk, len, uid)){                       
+					sampleCollected = true
+					//console.warn('forceFirstBitrateDetection done', download.preventDestroy, download.ended, download.destroyed)
+					if(download.preventDestroy){
+						//console.warn('download.destroy() forceFirstBitrateDetection hack removed, destroying', offset)
+						download.preventDestroy = false
+						download.end()
+					}
 				}
 			}
 		})

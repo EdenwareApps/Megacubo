@@ -107,7 +107,7 @@ class AutoTuner extends Events {
                 this.tuner.resume()
             }
         }
-        index = index.concat(ks.filter(i => this.succeededs[i] == 2)) // already returned entries after to avoid return the same
+        //index = index.concat(ks.filter(i => this.succeededs[i] == 2)) // already returned entries after to avoid return the same
         index = index.concat(ks.filter(i => this.succeededs[i] == 3)) // starting failed entries after, as last resort
         console.log('auto-tuner pump()', index)
         if(index.length){

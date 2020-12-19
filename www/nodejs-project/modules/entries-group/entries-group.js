@@ -5,6 +5,7 @@ class EntriesGroup extends Events {
 		super()
 		this.key = key
         this.limit = 0
+        this.allowDupes = false
         this.emptyEntry = {name: global.lang.EMPTY, fa: 'fas fa-info-circle', type: 'action'}
         this.data = []
 		this.load()
@@ -15,6 +16,7 @@ class EntriesGroup extends Events {
                 data = []
             }
             this.data = this.prepare(data)
+            this.emit('load')
         })
 	}
 	prepare(entries){ // override to use
@@ -43,14 +45,16 @@ class EntriesGroup extends Events {
         if(typeof(nentry.type)!='undefined'){
             delete nentry.type
         }
-        for(var i in this.data){
-            if(this.data[i].url == nentry.url){
-                delete this.data[i]
+        if(!this.allowDupes){
+            for(var i in this.data){
+                if(this.data[i].url == nentry.url){
+                    delete this.data[i]
+                }
             }
+            this.data = this.data.filter((item) => {
+                return !!item
+            })
         }
-        this.data = this.data.filter((item) => {
-            return !!item
-        })
         this.data.unshift(nentry)
         if(this.limit){
 			this.data = this.data.slice(0, this.limit)

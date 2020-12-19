@@ -38,7 +38,8 @@ class Base64 {
             global.Download.promise({
                 url,
                 responseType: 'buffer',
-                resolveBodyOnly: true
+                resolveBodyOnly: true,
+                retries: 2
             }).then(content => {
                 if(!content){
                     console.error('Failed to read URL', err, url)

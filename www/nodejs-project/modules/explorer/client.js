@@ -756,7 +756,7 @@ class Explorer extends ExplorerLoading {
 				<span class="entry-status-flags"></span>
 				<label>{name}</label>
 			</span>
-			<span class="entry-details"></span>
+			<span class="entry-details">{details}</span>
 		</span>
 		<span class="entry-icon-image">
 			<i class="{fa}"></i>

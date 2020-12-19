@@ -5,7 +5,7 @@ class Search extends Events {
     constructor(){
         super()
         this.emptyEntry = {name: global.lang.EMPTY, fa: 'fas fa-info-circle', type: 'action', class: 'entry-empty'}
-        this.searchMediaType = null
+        this.searchMediaType = 'all'
         this.searchInaccurate = true
         this.searchStrict = false
         this.searchSuggestions = []
@@ -55,12 +55,19 @@ class Search extends Events {
     }
     go(value, mediaType){
         if(value){
+            if(!mediaType){
+                mediaType = 'all'
+            }
             console.log('search-start', value)
             global.ui.emit('set-loading', {name: global.lang.SEARCH}, true, global.lang.SEARCHING)
             global.osd.show(global.lang.SEARCHING, 'fas fa-search spin-x-alt', 'search', 'persistent')
+            this.searchMediaType = mediaType
             this[mediaType == 'live' ? 'channelsResults' : 'results'](value).then(rs => {
                 this.emit('search', {query: value})
                 this.currentEntries = this.fixedEntries(mediaType).concat(rs)
+                if(!global.explorer.path){
+                    global.explorer.path = global.lang.SEARCH
+                }
                 global.explorer.render(this.currentEntries, global.explorer.path, 'fas fa-search', '/')
             }).catch(global.displayErr).finally(() => {
                 global.osd.hide('search')
@@ -70,130 +77,21 @@ class Search extends Events {
     }
     refresh(){
         if(this.currentSearch){
-            this.go(this.currentSearch.name)
+            this.go(this.currentSearch.name, this.currentSearchType)
         }
     }
-    searchOptionsEntry(mediaType){
-        return {
-            name: global.lang.OPTIONS, 
-            type: 'group', 
-            fa: 'fas fa-cog', 
-            renderer: () => {
-                return new Promise((resolve, reject) => {
-                    let opts = [
-                        {name: global.lang.INCLUDE_INACCURATE_RESULTS, type: 'check', checked: () => {
-                            return this.searchInaccurate
-                        }, action: (e, value) => {
-                            this.searchInaccurate = value
-                            this.refresh()
-                        }},
-                        {name: global.lang.INCLUDE_RESULTS_WITH_UNIDENTIFIED_TYPE, type: 'check', checked: () => {
-                            return !this.searchStrict
-                        }, action: (e, value) => {
-                            this.searchStrict = !value
-                            this.refresh()
-                        }}
-                    ]
-                    if(!mediaType || mediaType == 'all'){
-                        opts.unshift({
-                            name: global.lang.SEARCH_FOR, 
-                            type: 'select', 
-                            fa: 'fas fa-search-plus', 
-                            renderer: () => {
-                                return new Promise((resolve, reject) => {
-                                    let es = [
-                                        {
-                                            name: global.lang.LIVE, 
-                                            type: 'action', 
-                                            value: 'live',
-                                            action: (data) => {
-                                                this.searchMediaType = data.value
-                                                this.refresh()
-                                            }
-                                        },
-                                        {
-                                            name: global.lang.VIDEOS, 
-                                            type: 'action', 
-                                            value: 'video',
-                                            action: (data) => {
-                                                this.searchMediaType = data.value
-                                                this.refresh()
-                                            }
-                                        },
-                                        {
-                                            name: global.lang.AUDIOS, 
-                                            type: 'action', 
-                                            value: 'audio',
-                                            action: (data) => {
-                                                this.searchMediaType = data.value
-                                                this.refresh()
-                                            }
-                                        },
-                                        {
-                                            name: global.lang.ALL, 
-                                            type: 'action', 
-                                            value: null,
-                                            action: (data) => {
-                                                this.searchMediaType = data.value
-                                                this.refresh()
-                                            }
-                                        }
-                                    ]
-                                    resolve(es.map(e => {
-                                        e.selected = e.value == this.searchMediaType
-                                        return e
-                                    }))
-                                })
-                            }
-                        })
-                    }
-                    if(this.currentSearch){
-                        let bookmarking = Object.assign({}, this.currentSearch)
-                        if(global.bookmarks.has(bookmarking)){
-                            opts.unshift({
-                                type: 'action',
-                                fa: 'fas fa-star-half',
-                                name: global.lang.REMOVE_FROM.format(global.lang.BOOKMARKS),
-                                details: this.currentSearch.name,
-                                action: () => {
-                                    global.bookmarks.remove(bookmarking)
-                                    global.explorer.refresh()
-                                }
-                            })
-                        } else {
-                            opts.unshift({
-                                type: 'action',
-                                fa: 'fas fa-star',
-                                name: global.lang.ADD_TO.format(global.lang.BOOKMARKS),
-                                details: this.currentSearch.name,
-                                action: () => {
-                                    global.bookmarks.add(bookmarking)
-                                    global.explorer.refresh()
-                                }
-                            })
-                        } 
-                        if(this.currentResults.length && !global.config.get('auto-testing')) {
-                            opts.unshift({
-                                name: global.lang.TEST_STREAMS,
-                                details: global.lang.X_BROADCASTS.format(this.currentResults.length),
-                                fa: 'fas fa-satellite-dish',
-                                type: 'action',
-                                action: () => {
-                                    global.explorer.back()
-                                    global.streamState.test(this.currentResults)
-                                }
-                            })
-                        }
-                    }
-                    resolve(opts)
-                })
-            }
+    mediaTypeName(){
+        let type = String(this.searchMediaType).toUpperCase()
+        if(typeof(global.lang[type]) == 'string'){
+            type = global.lang[type]
         }
+        return type
     }
     fixedEntries(mediaType){
         let entries = [
             {
                 name: global.lang.SEARCH,
+                details: this.mediaTypeName(),
                 type: 'input',
                 fa: 'fas fa-search',
                 action: (e, value) => {
@@ -205,9 +103,6 @@ class Search extends Events {
                 placeholder: global.lang.SEARCH_PLACEHOLDER
             }
         ]
-        if(mediaType != 'live'){
-            entries.push(this.searchOptionsEntry(mediaType))
-        }
         return entries
     }
     results(terms){
@@ -217,6 +112,19 @@ class Search extends Events {
                 name: u, 
                 icon: global.icons.generate(terms, null), 
                 url: global.mega.build(u, {terms, mediaType: this.searchMediaType})
+            }
+            if(global.updatingLists){
+                return resolve([{
+                    name: global.lang.UPDATING_LISTS, 
+                    fa: 'fa-mega spin-x-alt',
+                    type: 'action',
+                    action: () => {
+                        global.explorer.refresh()
+                    }
+                }])
+            }
+            if(!global.activeLists.length){ // one list available on index beyound meta watching list
+                return resolve([global.lists.manager.noListsEntry()])
             }
             global.lists.search(terms, {
                 partial: this.searchInaccurate, 
@@ -257,6 +165,19 @@ class Search extends Events {
                 name: u, 
                 icon: global.icons.generate(terms, null), 
                 url: global.mega.build(u, {terms, mediaType: this.searchMediaType})
+            }
+            if(global.updatingLists){
+                return resolve([{
+                    name: global.lang.UPDATING_LISTS, 
+                    fa: 'fa-mega spin-x-alt',
+                    type: 'action',
+                    action: () => {
+                        global.explorer.refresh()
+                    }
+                }])
+            }
+            if(!global.activeLists.length){ // one list available on index beyound meta watching list
+                return resolve([global.lists.manager.noListsEntry()])
             }
             global.channels.search(terms, this.searchInaccurate).then(resolve).catch(reject)
         })

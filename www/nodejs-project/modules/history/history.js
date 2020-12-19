@@ -7,7 +7,7 @@ class History extends EntriesGroup {
         this.limit = 36
         this.resumed = false
         global.streamer.on('commit', () => {
-            let time = global.storage.time()
+            let time = global.time()
             if(this.timer){
                 clearTimeout(this.timer)
             }
@@ -25,6 +25,11 @@ class History extends EntriesGroup {
                 clearTimeout(this.timer)
             }
         })
+        this.on('load', () => {
+            if(explorer.path == ''){
+                explorer.updateHomeFilters()
+            }
+        })
     }
     resume(){
         if(!this.resumed && global.streamer && global.config.get('resume')){
@@ -35,11 +40,36 @@ class History extends EntriesGroup {
             }
         }
     }
+    entry(){
+        return {name: global.lang.HISTORY, fa: 'fas fa-history', type: 'group', hookId: this.key, renderer: this.entries.bind(this)}
+    }
     hook(entries, path){
         return new Promise((resolve, reject) => {
             this.resume()
-            if(path == ''){
-                entries.push({name: global.lang.HISTORY, fa: 'fas fa-history', type: 'group', renderer: this.entries.bind(this)})
+            if(path == global.lang.TOOLS){
+                entries.push(this.entry())
+            } else if(path == '') {
+                let pos = -1, es = this.get()
+                console.log('HISTHOOK', es, es.length)
+                entries = entries.filter(e => {
+                    return e.hookId != this.key
+                })
+                entries.some((e, i) => {
+                    if(e.name == global.lang.IPTV_LISTS){
+                        pos = i
+                        return true
+                    }
+                })
+                if(es.length){
+                    pos = 0
+                    let defs = {hookId: this.key, fa: 'fas fa-undo', details: '<i class="fas fa-play-circle"></i> '+ global.lang.CONTINUE}
+                    if(global.config.get('show-logos')){
+                        defs.servedIcon = global.icons.generate(global.channels.entryTerms(es[0]), es[0].icon)
+                    }
+                    entries.splice(pos, 0, Object.assign(Object.assign({}, es[0]), defs))
+                } else {
+                    entries.splice(pos, 0, this.entry())
+                }
             }
             resolve(entries)
         })

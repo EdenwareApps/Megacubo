@@ -124,7 +124,7 @@ class StreamerAdapterMagnet extends StreamerAdapterBase {
       return type + ' ' + (range ? range.start + '-' + range.end : '*') + '/' + size
     }
     handleReq(req, res){
-        let stream, file = this.selected
+        let sampleCollected, stream, file = this.selected
         let offset = 0, len = file.length
         res.setHeader('Content-Type', 'video/mp4')
         res.setHeader('Content-Length', len)
@@ -161,7 +161,9 @@ class StreamerAdapterMagnet extends StreamerAdapterBase {
             if(this.listenerCount('data')){
                 this.emit('data', this.data.url, chunk, ln, offset)
             }
-            this.collectBitrateSample(chunk, ln)
+            if(!sampleCollected && !this.collectBitrateSample(chunk, ln)){
+                sampleCollected = true
+            }
         })
         return stream
     }

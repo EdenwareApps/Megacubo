@@ -6,8 +6,8 @@ class Watching extends EntriesGroup {
     }
     hook(entries, path){
         return new Promise((resolve, reject) => {
-            if(path == ''){
-                entries.push({name: global.lang.BEEN_WATCHED, fa: 'fas fa-users', type: 'group', renderer: this.entries.bind(this)})
+            if(path == '' && !entries.some(e => e.name == global.lang.BEEN_WATCHED)) {
+                entries.push(this.entry())
             }
             resolve(entries)
         })
@@ -136,6 +136,9 @@ class Watching extends EntriesGroup {
                             }).concat(gentries).sort((a, b) => {
                                 return (a.users > b.users) ? -1 : ((b.users > a.users) ? 1 : 0)
                             })
+                            if(data.length) {
+                                this.data = data
+                            }
                             resolve(data)
                         })
                 } else {
@@ -165,6 +168,9 @@ class Watching extends EntriesGroup {
                 resolve(up.concat(es.filter(e => { return !!e })))
             }).catch(reject)          
         })
+    }
+    entry(){
+        return {name: global.lang.BEEN_WATCHED, fa: 'fas fa-users', hookId: this.key, type: 'group', renderer: this.entries.bind(this)}
     }
 }
 

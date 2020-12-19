@@ -23,6 +23,9 @@ class EventEmitter {
   listenerCount(event) {
     return this.events[event].length
   }
+  listeners(event) {
+    return this.events[event] ? this.events[event].slice(0) : []
+  }
   emit(event, ...args) {
     if (typeof this.events[event] === 'object') {
       this.events[event].forEach(listener => listener.apply(this, args))

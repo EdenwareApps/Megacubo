@@ -83,6 +83,9 @@ class TunerTask extends TunerUtils {
 			this.streamer.info(e.url).then(info => {
 				if(!this.aborted){
 					console.warn('TEST SUCCESS', e, info, this.opts.allowedTypes)
+					if(info.type == 'hls' && String(info.sample).toLowerCase().indexOf('endlist') != -1){
+						info.type = 'video' // dirty hack to bypass vod hls when searching for live
+					}
 					if(!Array.isArray(this.opts.allowedTypes) || this.opts.allowedTypes.includes(info.type)){
 						this.info[i] = info
 						this.states[i] = 2

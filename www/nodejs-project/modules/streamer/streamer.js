@@ -67,7 +67,9 @@ class StreamerTools extends Events {
                     followRedirect: true,
                     keepalive: false,
                     retries,
-                    headers: {}
+                    headers: {
+						'accept-encoding': 'identity' // https://github.com/sindresorhus/got/issues/145
+					}
                 }
                 let download = new global.Download(req), ended = false, sampleSize = 1024, abort = () => {
 					if(this.opts.debug){
@@ -248,7 +250,7 @@ class StreamerBase extends StreamerTools {
 	constructor(opts){
 		super(opts)
         this.opts = {
-			workDir: global.paths['data'] +'/ffmpeg',
+			workDir: global.paths['data'] +'/ffmpeg/data',
 			shadow: false,
 			debug: false,
 			osd: false
@@ -256,8 +258,10 @@ class StreamerBase extends StreamerTools {
         this.engines = {
             aac: require('./engines/aac'),
             hls: require('./engines/hls'),
+            rtmp: require('./engines/rtmp'),
             ts: require('./engines/ts'),
             video: require('./engines/video'),
+            vodhls: require('./engines/vodhls'),
             magnet: require('./engines/magnet')
 		}
 		this.loadingIntents = []
@@ -382,15 +386,23 @@ class StreamerBase extends StreamerTools {
 			if(!global.cordova){ // only desktop version can't play hevc
 				intent.on('codecData', codecData => {
 					if(codecData && codecData.video.indexOf('hevc') != -1 && intent == this.active){
-						if(intent.type == 'ts' && global.config.get('allow-transcoding')){
-							if(intent.opts.videoCodec != 'libx264'){
-								console.warn('HEVC transcoding started')
-								intent.opts.videoCodec = 'libx264'
-								this.intentFromInfo(intent.data, intent.opts, false, intent.info)
+						if(global.config.get('allow-transcoding')){
+							if(intent.type == 'ts' || intent.type == 'hls'){
+								if(!intent.transcoder){
+									console.warn('HEVC transcoding started')
+									global.ui.emit('streamer-connect-suspend')
+									intent.transcode().then(() => {
+										this.emit('streamer-connect', intent.endpoint, intent.mimetype, intent.data)
+									}).catch(err => {
+										console.error(err)
+										intent.fail('unsupported format')
+									})
+								}
+								return
 							}
-						} else {
-							intent.fail('unsupported format') // we can transcode .ts segments, but transcode a mp4 video would cause request ranging errors
 						}
+						console.error('unsupported format', codecData)
+						intent.fail('unsupported format') // we can transcode .ts segments, but transcode a mp4 video would cause request ranging errors
 					}
 				})
 				if(intent.codecData){

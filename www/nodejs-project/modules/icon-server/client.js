@@ -4,7 +4,7 @@ class IconServerClient extends EventEmitter {
         super()
         this.debug = false
         this.concurrency = 8
-        if(navigator.app){
+        if(parent.cordova){
             this.concurrency = 3
         }
         this.image = '<img src="{0}" />';

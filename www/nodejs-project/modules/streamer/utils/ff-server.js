@@ -170,41 +170,44 @@ class FFServer extends Events {
                 // addOption('-analyzeduration 2147483647').
                 // addOption('-probesize', '2147483647').
                 // addOption('-vf', 'setpts=PTS').
-                audioCodec(this.opts.audioCodec).
                 // addOption('-vsync', '1').
                 // addOption('-vsync', '0').
                 // addOption('-async', '-1').
                 // addOption('-async', '2').
                 addOption('-strict', '-2').
                 // addOption('-flags:a', '+global_header').
-                addOption('-hls_time', 5).
+                addOption('-hls_time', 2).
                 // addOption('-hls_init_time', 2). // 1 causes manifestParsingError "invalid target duration"
-                addOption('-hls_list_size', 60).
+                addOption('-hls_flags', 'delete_segments'). // ?? https://www.reddit.com/r/ffmpeg/comments/e9n7nb/ffmpeg_not_deleting_hls_segments/
+                addOption('-hls_list_size', 5).
                 addOption('-map', '0:a?').
                 addOption('-map', '0:v?').
                 // addOption('-packetsize', 188).
                 addOption('-loglevel', 'error').
                 addOption('-sn').
-                addOption('-movflags', '+faststart').
+                addOption('-preset', 'ultrafast').
+                addOption('-crf', 12). // we are encoding for watching, so avoid to waste too much time and cpu with encoding, at cost of bigger disk space usage
                 format('hls')
             if(this.opts.inputFormat){
                 this.decoder.inputOption('-f', this.opts.inputFormat)
             }
-            if(this.opts.videoCodec == null){
+            if(this.opts.audioCodec){
+                this.decoder.audioCodec(this.opts.audioCodec)
+            }
+            if(this.opts.videoCodec === null){
                 this.decoder.addOption('-vn')
-            } else {
+            } else if(this.opts.videoCodec) {
                 this.decoder.videoCodec(this.opts.videoCodec)                
             }
             this.decoder.log = []
-            this.decoder.addOption('-hls_flags ' + (fs.existsSync(this.decoder.file) ? 'delete_segments+append_list' :  'delete_segments'))
             if(this.opts.videoCodec == 'libx264') {
                 this.decoder.
                 /* HTML5 compat start */
                 addOption('-profile:v', 'baseline').
                 addOption('-shortest').
-                addOption('-movflags', 'faststart').
                 addOption('-pix_fmt', 'yuv420p').
-                addOption('-preset:v', 'ultrafast')
+                addOption('-preset:v', 'ultrafast').
+                addOption('-movflags', '+faststart')
                 /* HTML5 compat end */
             }
             if(this.opts.audioCodec == 'aac'){
@@ -216,16 +219,13 @@ class FFServer extends Events {
                 addOption('-af', 'aresample=async=1:min_hard_comp=0.100000:first_pts=0')      
             }
             if (typeof(this.source) == 'string' && this.source.indexOf('http') == 0) { // skip other protocols
-                if(['mp4'].indexOf(this.type) == -1){
-                    this.decoder.
-                        inputOptions('-stream_loop -1').
-                        inputOptions('-reconnect_at_eof 1').
-                        inputOptions('-timeout -1').
-                        inputOptions('-reconnect 1').
-                        inputOptions('-reconnect_at_eof 1').
-                        inputOptions('-reconnect_streamed 1').
-                        inputOptions('-reconnect_delay_max 20')
-                }            
+                this.decoder.
+                    inputOptions('-stream_loop -1').
+                    // inputOptions('-timeout -1').
+                    inputOptions('-reconnect 1').
+                    // inputOptions('-reconnect_at_eof 1').
+                    inputOptions('-reconnect_streamed 1').
+                    inputOptions('-reconnect_delay_max 20')
                 this.decoder.
                 inputOptions('-icy 0').
                 inputOptions('-seekable -1').
@@ -286,6 +286,7 @@ class FFServer extends Events {
                         return
                     }
                     if(err){
+                        console.log('FFS', err)
                         console.error('FFMPEG cannot write')
                         reject('playback')
                     } else {

@@ -6,12 +6,12 @@ class ChannelsData extends Events {
         super()
         this.emptyEntry = {name: global.lang.EMPTY, type: 'action', fa: 'fas fa-info-circle', class: 'entry-empty'}
         this.categories = []
-		global.config.on('change', (key, data) => {
-            console.warn('CONFIG CHANGED', key)
-            if(['parental-control-policy', 'parental-control-terms'].indexOf(key) != -1){
+		global.config.on('change', (keys, data) => {
+            if(['parental-control-policy', 'parental-control-terms'].some(k => keys.includes(k))){
                 this.setup()
             }
         })
+        this.radioTerms = ['radio', 'fm', 'am']
         this.setup()
     }
     setup(cb){
@@ -652,18 +652,27 @@ class Channels extends ChannelsEditing {
             }
         })
         if(chosenScore > 1){
-            let excludes = []
+            let excludes = [], chTerms = chs[chosen]
             Object.keys(alts).forEach(n => {
-                excludes = excludes.concat(alts[n].filter(t => !chs[chosen].includes(t)))
+                excludes = excludes.concat(alts[n].filter(t => !chTerms.includes(t)))
             })
-            return {name: chosen, terms: chs[chosen].concat(excludes.map(s => '-' + s)), alts, excludes}
+            if(!chTerms.some(c => this.radioTerms.includes(c))){ // is not radio
+                this.radioTerms.forEach(rterm => {
+                    if(!chTerms.some(cterm => cterm.substr(0, rterm.length) == rterm)){ // this radio term can mess with our search (specially AM)
+                        chTerms.push('-'+ rterm)
+                    }
+                })
+            }
+            return {name: chosen, terms: [...new Set(chTerms.concat(excludes.map(s => '-' + s)))], alts, excludes}
         }
     }
     get(terms){
         return new Promise((resolve, reject) => {
+            console.warn('sentries', terms)
             if(typeof(terms) == 'string'){
                 terms = global.lists.terms(terms)
             }
+            console.warn('sentries', terms)
             global.lists.search(terms, {
                 partial: false, 
                 safe: (global.config.get('parental-control-policy') == 'block'),
@@ -695,7 +704,13 @@ class Channels extends ChannelsEditing {
                     }))
                 }
             })
-            resolve(entries)
+            global.lists.epgSearch(terms, true).then(epgData => {  
+                console.warn('epgSearch', epgData)
+                Object.keys(epgData).forEach(ch => {
+                    let terms = global.lists.terms(ch), servedIcon = global.icons.generate(terms)
+                    entries = entries.concat(this.epgDataToEntries(epgData[ch], ch, terms, servedIcon))
+                })
+            }).catch(console.error).finally(() => resolve(entries))
         })
     }
     entryTerms(e){        
@@ -715,6 +730,7 @@ class Channels extends ChannelsEditing {
     }
     toMetaEntryRenderer(e, category){
         return new Promise((resolve, reject) => {
+            console.log('toMetaEntryRenderer', global.time())
             if(typeof(category) != 'string' && category !== false){
                 category = ''
                 let c = this.getChannelCategory(e.name)
@@ -723,8 +739,10 @@ class Channels extends ChannelsEditing {
                     return
                 }
             }
+            console.log('toMetaEntryRenderer', global.time())
             let terms = this.entryTerms(e), streamsEntry, epgEntry, entries = [], url = e.url || global.mega.build(e.name, {terms})
             this.get(terms).then(sentries => {
+                console.log('toMetaEntryRenderer', global.time())
                 if(sentries.length){
                     entries.push({
                         name: e.name,
@@ -758,6 +776,7 @@ class Channels extends ChannelsEditing {
                 console.error(e)
                 category = false
             }).finally(() => {
+                console.log('toMetaEntryRenderer', global.time())
                 if(entries.length){
                     let bookmarking = {name: e.name, type: 'stream', label: e.group || '', url}
                     if(global.bookmarks.has(bookmarking)){
@@ -791,7 +810,9 @@ class Channels extends ChannelsEditing {
                     entries.push(this.shareChannelEntry(e))
                     entries.push(streamsEntry)
                 }
+                console.log('toMetaEntryRenderer', global.time())
                 entries.push(this.editChannelEntry(e, category, {name: category ? global.lang.EDIT_CHANNEL : global.lang.EDIT, details: '', class: 'no-icon', fa: 'fas fa-edit', path: undefined, servedIcon: undefined, url: undefined}))
+                console.log('toMetaEntryRenderer', global.time())
                 resolve(entries)
             })
         })
@@ -834,10 +855,11 @@ class Channels extends ChannelsEditing {
             let categories = this.getCategories(), list = categories.map(category => {
                 category.renderer = (c, e) => {
                     return new Promise((resolve, reject) => {
+                        this.currentCategory = category
                         global.lists.has(category.entries.map(e => e.name), {}).then(ret => {
                             let entries = category.entries.filter(e => ret[e.name])
                             if(global.config.get('show-logos')  && global.config.get('search-missing-logos')){
-                               // global.icons.prefetch(entries.map(e => this.entryTerms(e)).slice(0, global.config.get('view-size-x')))
+                               global.icons.prefetch(entries.map(e => this.entryTerms(e)).slice(0, global.config.get('view-size-x')))
                             }
                             entries = entries.map(e => this.toMetaEntry(e, category))
                             if(global.config.get('epg')){
@@ -921,8 +943,8 @@ class Channels extends ChannelsEditing {
                         }
                     ]
                 },
-                {name: 'EPG', fa: this.epgIcon, type: 'action', action: () => {
-                    global.ui.emit('prompt', 'EPG', 'http://.../epg.xml', global.config.get('epg'), 'set-epg', false, this.epgIcon)
+                {name: global.lang.EPG, fa: this.epgIcon, type: 'action', action: () => {
+                    global.ui.emit('prompt', global.lang.EPG, 'http://.../epg.xml', global.config.get('epg'), 'set-epg', false, this.epgIcon)
                 }},
                 {
                     name: global.lang.ALLOW_EDIT_CHANNEL_LIST,

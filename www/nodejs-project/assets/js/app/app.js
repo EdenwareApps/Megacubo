@@ -108,6 +108,7 @@ function hideBackButton(){
 
 function initApp(){ 
     console.log('INITAPP')
+    app.on('open-external-url', url => parent.openExternalURL(url)) 
     app.on('load-js', (src) => {
         console.warn('LOADJS ' + src)
         var s = document.createElement('script')
@@ -316,14 +317,21 @@ function initApp(){
         ([
             {
                 level: 'default', 
-                selector: '#explorer wrap a', 
+                selector: '#explorer wrap a, .explorer-omni span', 
                 condition: () => {
                     return explorer.isExploring()
                 },
                 resetSelector(){
                     return getViewportEntries(false)
                 },
-                default: true
+                default: true,
+                overScrollAction: direction => {
+                    if(direction == 'up'){
+                        console.log('OVERSCROLLACTION!!!!!!!')
+                        explorer.focus(explorer.container.find('.explorer-omni > span'), true)
+                        return true
+                    }
+                }
             },
             {
                 level: 'modal', 
@@ -408,6 +416,9 @@ function initApp(){
         })
 
         app.emit('init')
+
+        omni = new OMNI()
+        jQuery(document).on('keyup', omni.eventHandler.bind(omni))
         
         window.streamer = new StreamerClient(document.querySelector('controls'), app)
         window.dispatchEvent(new CustomEvent('appready'))
@@ -558,7 +569,7 @@ function initApp(){
                     console.error('share error', err)
                 })
             } else {
-                window.open('https://megacubo.tv/share/?url=' + encodeURIComponent(url) + '&title=' + encodeURIComponent(title) + '&text=' + encodeURIComponent(text))
+                parent.openExternalURL('https://megacubo.tv/share/?url=' + encodeURIComponent(url) + '&title=' + encodeURIComponent(title) + '&text=' + encodeURIComponent(text))
             }
         })
 
@@ -571,24 +582,6 @@ function initApp(){
         })
         window.addEventListener('idle-stop', () => {
             setTimeout(explorer.reset.bind(explorer), 400)
-        })
-
-        jQuery('html').on('keypress', e => {
-            if(!e.shiftKey && !e.metaKey && !e.ctrlKey && !e.altKey && explorer.isExploring()){
-                const key = String(e.key).toLowerCase()
-                if(key.match(new RegExp('[A-Za-z0-9]'))){
-                    let pos = -1
-                    explorer.currentEntries.some((n, i) => {
-                        if(n.name.charAt(0).toLowerCase() == key){
-                            pos = i 
-                            return true
-                        }
-                    })
-                    if(pos > 0){
-                        explorer.focus(explorer.currentElements[pos])
-                    }
-                }
-            }
         })
     })
 }

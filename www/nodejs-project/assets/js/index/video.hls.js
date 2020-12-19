@@ -89,6 +89,9 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 				enableWorker: true,
 				autoStartLoad: false,
 				defaultAudioCodec: 'mp4a.40.2',
+				maxBufferSize: 600, // When doing internal transcoding with low crf, fragments will become bigger
+				maxBufferLength: 10,
+				maxMaxBufferLength: 120,
 				liveBackBufferLength: 30 // secs, limited due to memory usage
 				/*
 				debug: true,
@@ -114,7 +117,7 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 							break
 						case Hls.ErrorTypes.NETWORK_ERROR:
 							console.error('network error', data.networkDetails)
-							//this.handleNetworkError(data)
+							this.handleNetworkError(data)
 							break
 						default:
 							console.error('unrecoverable error', data.details)
@@ -172,6 +175,11 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 						case Hls.ErrorDetails.BUFFER_APPEND_ERROR:
 							console.error('Buffer append error', parseInt(this.object.duration))
 							// it happens when handleNetworkError is in progress, ignore
+							break
+						case Hls.ErrorDetails.BUFFER_FULL_ERROR:
+							console.error('Buffer full error')
+							// it happens when segments are bigger
+							this.hls.recoverMediaError()
 							break
 						case Hls.ErrorDetails.BUFFER_ADD_CODEC_ERROR:
 							console.error('Buffer add codec error for ' + data.mimeType + ':' + data.err.message)

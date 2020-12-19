@@ -31,7 +31,7 @@ class CloudData {
     }
     get(key, raw, softTimeout){
         return new Promise((resolve, reject) => {
-            // console.log('cloud get', key)
+            console.log('cloud get', key, traceback())
             const store = raw === true ? global.rstorage : global.storage
             store.get(this.cachingDomain + key, data => {
                 if(data){
@@ -43,7 +43,7 @@ class CloudData {
                             if(!solved){
                                 solved = true
                                 if(data){
-                                    console.warn(err, key)
+                                    //console.warn(err, key)
                                     resolve(data) // fallback
                                 } else {
                                     console.error('cloud get error', key, err)
@@ -65,7 +65,7 @@ class CloudData {
                             if(!body){
                                 error('Server returned empty')
                             } else {
-                                // console.warn('cloud get', body, this.expires[key])
+                                //console.warn('cloud get', body, this.expires[key])
                                 if(typeof(this.expires[key]) != 'undefined'){
                                     store.set(this.cachingDomain + key, body, this.expires[key])
                                     store.set(this.cachingDomain + key + '-fallback', body, true)
@@ -77,13 +77,16 @@ class CloudData {
                                     resolve(body)
                                 }
                             }
-                        }).catch(error)
+                        }).catch(err => {
+                            console.log('cloud get error: '+ String(err))
+                            error(err)
+                        })
                         if(typeof(softTimeout) != 'number'){
                             softTimeout = 10000
                         }
                         setTimeout(() => {
                             if(data || softTimeout == 0){
-                                error('cloud soft timeout ('+ key +'), keeping request to update data in background')
+                                error('cloud soft timeout ('+ key +', '+ softTimeout+'), keeping request to update data in background')
                             }
                         }, softTimeout)
                     })

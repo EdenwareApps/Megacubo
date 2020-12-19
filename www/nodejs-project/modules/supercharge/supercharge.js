@@ -26,7 +26,7 @@ function patch(scope){
 			saveFileDialogChooser.val('')
 			saveFileDialogChooser.on('change', (evt) => {
 				callback(saveFileDialogChooser.val())
-			});    
+			})
 			saveFileDialogChooser.trigger('click')
 		}
 		scope.saveFolderDialogChooser = false
@@ -41,9 +41,22 @@ function patch(scope){
 			saveFolderDialogChooser.val('')
 			saveFolderDialogChooser.on('change', (evt) => {
 				callback(saveFolderDialogChooser.val())
-			});    
+			})
 			saveFolderDialogChooser.trigger('click')
 		}
+	}
+
+	scope.deepClone = from => {
+		if (from == null || typeof from != "object") return from;
+		if (from.constructor != Object && from.constructor != Array) return from;
+		if (from.constructor == Date || from.constructor == RegExp || from.constructor == Function ||
+			from.constructor == String || from.constructor == Number || from.constructor == Boolean)
+			return new from.constructor(from)
+		let to = new from.constructor()
+		for (var name in from){
+			to[name] = typeof to[name] == "undefined" ? scope.deepClone(from[name]) : to[name];
+		}
+		return to
 	}
 
 	scope.kfmt = (num, digits) => {

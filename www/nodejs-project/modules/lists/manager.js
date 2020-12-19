@@ -1,5 +1,5 @@
 
-const Events = require('events'), fs = require('fs'), path = require('path'), async = require('async')
+const Events = require('events'), fs = require('fs'), path = require('path'), async = require('async'), LegalIPTV = require('../legal-iptv')
 
 class Manager extends Events {
     constructor(){
@@ -9,6 +9,7 @@ class Manager extends Events {
         this.listFaIcon = 'fas fa-broadcast-tower'
         this.key = 'lists'
         this.openingList = false
+        this.legalIPTV = new LegalIPTV()
         global.ui.on('explorer-back', () => {
             if(this.openingList){
                 global.osd.hide('list-open')
@@ -357,8 +358,8 @@ class Manager extends Events {
             let options = [], lists = this.get()
             options.push(this[lists.length ? 'myListsEntry' : 'addListEntry']())
             options.push(this.listSharingEntry())
-            options.push({name: 'EPG', fa: global.channels.epgIcon, type: 'action', action: () => {
-                global.ui.emit('prompt', 'EPG', 'http://.../epg.xml', global.config.get('epg'), 'set-epg', false, global.channels.epgIcon)
+            options.push({name: global.lang.EPG, fa: global.channels.epgIcon, type: 'action', action: () => {
+                global.ui.emit('prompt', global.lang.EPG, 'http://.../epg.xml', global.config.get('epg'), 'set-epg', false, global.channels.epgIcon)
             }})
             resolve(options)
         })
@@ -466,7 +467,7 @@ class Manager extends Events {
                 const download = new global.Download({
                     url: v.url,
                     keepalive: false,
-                    retries: 10,
+                    retries: 5,
                     followRedirect: true
                 })
                 download.on('progress', progress => {
@@ -516,7 +517,7 @@ class Manager extends Events {
                 const download = new global.Download({
                     url,
                     keepalive: false,
-                    retries: 10,
+                    retries: 3,
                     followRedirect: true
                 })
                 download.on('progress', progress => {
@@ -638,10 +639,10 @@ class Manager extends Events {
     }
     hook(entries, path){
         return new Promise((resolve, reject) => {
-            if(path == ''){
+            if(path == '' && !entries.some(e => e.name == global.lang.IPTV_LISTS)){
                 entries.push({name: global.lang.IPTV_LISTS, fa: 'fas fa-list', type: 'group', renderer: this.listsEntries.bind(this)})
             }
-            resolve(entries)
+            this.legalIPTV.hook(entries, path).then(resolve).catch(reject)
         })
     }
 }

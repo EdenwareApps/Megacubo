@@ -13,6 +13,41 @@ class StreamerTSIntent extends StreamerBaseIntent {
         this.mimetype = this.mimeTypes.hls
         this.mediaType = 'live'
     }  
+    transcode(){ 
+        return new Promise((resolve, reject) => {
+            this.transcoder = true
+            if(this.downloader){
+                this.downloader.destroy()
+            }
+            if(this.ts2hls){
+                this.ts2hls.destroy()
+            }
+            delete this.opts.videoCodec
+            delete this.opts.audioCodec
+            this.downloader = new StreamerAdapterTS(this.data.url, this.opts)
+            this.connectAdapter(this.downloader)
+            this.downloader.start().then(() => {
+                let opts = {
+                    audioCodec: undefined, // auto
+                    videoCodec: undefined, // auto
+                    workDir: this.opts.workDir, 
+                    debug: this.opts.debug
+                }
+                this.transcoder = new FFServer(this.downloader.source.stream, opts)
+                this.connectAdapter(this.transcoder)
+                if(typeof(this.transcoder.audioCodec) != 'undefined'){
+                    delete this.transcoder.audioCodec
+                }
+                if(typeof(this.transcoder.audioCodec) != 'undefined'){
+                    delete this.transcoder.videoCodec
+                }
+                this.transcoder.start().then(() => {
+                    this.endpoint = this.transcoder.endpoint
+                    resolve()
+                }).catch(reject)
+            }).catch(reject)
+        })
+    }
     _start(){ 
         return new Promise((resolve, reject) => {
             this.downloader = new StreamerAdapterTS(this.data.url, this.opts)

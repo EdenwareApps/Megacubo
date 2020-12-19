@@ -1,5 +1,5 @@
 
-const async = require('async'), path = require('path'), Events = require('events'), fs = require('fs'), crypto = require('crypto'), lodash = require('lodash')
+const async = require('async'), path = require('path'), Events = require('events'), fs = require('fs'), crypto = require('crypto')
 
 const Common = require(global.APPDIR + '/modules/lists/common.js')
 const EPG = require(global.APPDIR + '/modules/lists/epg.js')
@@ -10,8 +10,14 @@ const Mega = require(APPDIR + '/modules/mega')
 
 require(APPDIR + '/modules/supercharge')(global)
 
+const FETCHER_CACHE_KEY_MASK = 'data-{0}'
+const FETCHER_CACHE_TIME_KEY_MASK = 'time-{0}'
+
+const LIST_HASH_KEY_MASK = 'list-hash-{0}'
+const LIST_DATA_KEY_MASK = 'list-data-{0}'
+
 storage = new Storage()  
-tstorage = new Storage({temp: true, clear: false, cleanup: false})  
+tstorage = new Storage('', {temp: true, clear: false, cleanup: false})  
 rstorage = new Storage() 
 rstorage.useJSON = false
 
@@ -29,8 +35,8 @@ class List {
 		this.url = url
 		this.inMemory = false
 		this.inMemoryEntriesLimit = 1
-        this.hashKey = 'list-hash-'+ url
-		this.dataKey = 'list-data-'+ url
+        this.hashKey = LIST_HASH_KEY_MASK.format(url)
+		this.dataKey = LIST_DATA_KEY_MASK.format(url)
 		this.data = []
         this.constants = {
 			BREAK: -1
@@ -180,6 +186,12 @@ class List {
 			global.rstorage.delete(k)
 		})
 	}
+	destroy(){
+		delete this.parent
+		delete this.inMemory
+		delete this.data
+		delete this._log
+	}
 }
 
 class WatchingList extends List {
@@ -268,7 +280,7 @@ class Fetcher extends Events {
 			path = 'http:' + path
 		}
 		if(path.match('^https?:')){
-			let cacheKey = 'data-' + path, cacheTimeKey = 'time-' + path, caches = {}
+			let cacheKey = FETCHER_CACHE_KEY_MASK.format(path), cacheTimeKey = FETCHER_CACHE_TIME_KEY_MASK.format(path), caches = {}
 			async.eachOf([cacheKey, cacheTimeKey], (key, i, acb) => {
 				global.rstorage.get(key, ret => {
 					caches[key] = ret
@@ -283,11 +295,13 @@ class Fetcher extends Events {
 						return
 					}
 				}
-				if(!resolved || !caches[cacheTimeKey] || parseInt(caches[cacheTimeKey]) < (time() + this.ttl)){ // should update
+				let now = global.time(), validFrom = now - this.ttl
+				if(!resolved || !caches[cacheTimeKey] || parseInt(caches[cacheTimeKey]) < validFrom){ // should update
+					//console.log('FETCHER CACHE INVALID', path, resolved, this.validate(caches[cacheKey]), caches[cacheKey], caches[cacheTimeKey], validFrom, now, this.ttl)
 					const opts = {
 						url: path,
 						keepalive: false,
-						retries: 10,
+						retries: 2,
 						followRedirect: true
 					}
 					if(cancelable){ // it's a shared list
@@ -295,6 +309,7 @@ class Fetcher extends Events {
 					}					
 					const download = new global.Download(opts), onerr = err => {
 						if(!resolved){
+							resolved = true
 							if(String(err).indexOf('Promise was cancelled') == -1){
 								console.error(err)
 							}
@@ -307,13 +322,15 @@ class Fetcher extends Events {
 					download.on('response', (statusCode, headers) => {
 						let length = headers['content-length'] || 0
 						if(caches[cacheKey] && length == caches[cacheKey].length){ // not changed
+							//console.log('Valid, list content unchanged at ' + path + ' ('+ content.length +')', cacheTimeKey, now)
 							download.destroy()
+							global.rstorage.set(cacheTimeKey, now, 30 * (24 * 3600))
 							if(!resolved){
+								resolved = true
 								resolve(caches[cacheKey])
 							}
 						}
 					})
-					download.on('error', console.warn)
 					download.on('end', content => {
 						if(content){
 							content = this.extract(String(content))
@@ -323,8 +340,9 @@ class Fetcher extends Events {
 								resolved = true
 								callback(null, content)
 							}
+							//console.log('Valid list content at ' + path + ' ('+ content.length +')', cacheTimeKey, now)
 							global.rstorage.set(cacheKey, content, 30 * (24 * 3600))
-							global.rstorage.set(cacheTimeKey, time(), 30 * (24 * 3600))
+							global.rstorage.set(cacheTimeKey, now, 30 * (24 * 3600))
 						} else {
 							if(!resolved){
 								resolved = true
@@ -385,12 +403,77 @@ class Fetcher extends Events {
 	}
 }
 
-class Index extends Common {
+class EPGDefaultImport extends Common {
+	constructor(opts){
+		super(opts)
+        global.config.on('change', (keys, data) => {
+            if(keys.includes('setup-complete') && data['setup-complete']){
+                this.importDefault()
+            }
+        })
+    }
+    importDefault(){
+        if(!global.config.get('epg')){
+            cloud.get('configure').then(c => {
+                let key = 'default-epg-' + lang.countryCode
+                if(c[key] && !global.config.get('epg')){
+                    global.config.set('epg', c[key])
+                }
+            })
+        }
+    }
+}
+
+class Index extends EPGDefaultImport {
 	constructor(opts){
 		super(opts)
 		this.key = 'lists-terms'
 		this.data = {urls: {}, terms: {}, groups: {}}
-		this.loadData() // must be sync
+		this.searchRedirects = []
+		this.isReady = false
+		this.loadData()		
+		this.loadSearchRedirects()
+	}
+	ready(fn){
+		if(this.isReady){
+			fn()
+		} else {
+			this.on('ready', fn)
+		}
+	}
+	loadSearchRedirects(){
+		fs.readFile(path.join(__dirname, 'search-redirects.json'), (err, content) => { // redirects to find right channel names, as sometimes they're commonly refered by shorter names on IPTV lists
+			if(!err){
+				let data = JSON.parse(String(content))
+				if(data && typeof(data) == 'object'){
+					let results = []
+					Object.keys(data).forEach(k => {
+						results.push({from: lists.terms(k), to: lists.terms(data[k])})
+					})
+					this.searchRedirects = results
+				}
+			}
+		})
+	}
+	applySearchRedirects(terms){
+		this.searchRedirects.forEach(redirect => {
+			if(redirect.from && redirect.from.length && redirect.from.every(t => terms.includes(t))){
+				terms = terms.filter(t => !redirect.from.includes(t)).concat(redirect.to)
+			}
+		})
+		return terms
+	}
+	applySearchRedirectsOnObject(e){
+		if(Array.isArray(e)){
+			e = this.applySearchRedirects(e)
+		} else if(e.terms) {
+			if(typeof(e.terms.name) != 'undefined' && Array.isArray(e.terms.name)){
+				e.terms.name = this.applySearchRedirects(e.terms.name)
+			} else if(Array.isArray(e.terms)) {
+				e.terms = this.applySearchRedirects(e.terms)
+			}
+		}
+		return e
 	}
 	initListData(listUrl){
 		if(typeof(this.data.urls[listUrl]) == 'undefined'){
@@ -477,18 +560,18 @@ class Index extends Common {
 		})
 	}
 	loadData(){
-		console.log('LSTS LOADDATA')
-		let data = global.storage.getSync(this.key)
-		if(data){
-			this.data = data
-		}
-		console.log('LSTS LOADDATA OK')
+		global.storage.get(this.key, data => {
+			if(data){
+				this.data = data
+			}
+			this.isReady = true
+			this.emit('ready')
+		})
 	}
 	saveData(cb){
 		const uid = parseInt(Math.random() * 10000)
-		console.log('LSTS SAVEDATA', uid)
 		global.storage.set(this.key, this.data, true, () => {
-			console.log('LSTS SAVEDATA OK', uid)
+			// console.log('LSTS SAVEDATA OK', uid)
 		})
 	}
 }
@@ -505,12 +588,18 @@ class Lists extends Index {
         this.myUrls = []
         this.sharingUrls = []
         this.fetcher = new Fetcher()
-		this.loadWatchingList()
+		this.ready(this.loadWatchingList.bind(this))
 	}
 	loadEPG(url){
 		return new Promise((resolve, reject) => {
-			if(this._epg && this._epg.url != url){
-				this._epg.destroy()
+			if(this._epg){
+				if(this._epg.url == url){
+					console.log('EPG FORCE UPDATE')
+					this._epg.forceUpdate()
+					return resolve(true)
+				} else {
+					this._epg.destroy()
+				}
 			}
 			this._epg = new EPG(url)
 			this._epg.once('load', resolve)
@@ -523,23 +612,31 @@ class Lists extends Index {
 				return reject('no epg')
 			}
 			let data
-			if(this._epg.state == 'loaded'){
-				data = this._epg[Array.isArray(channelsList) ? 'getMulti' : 'get'](channelsList, limit)
+			if(this._epg.state == 'loaded' || Object.values(this._epg.data) >= 200){ // loaded enough
+				if(Array.isArray(channelsList)){
+					channelsList = channelsList.map(c => this.applySearchRedirectsOnObject(c))
+					data = this._epg.getMulti(channelsList, limit)
+				} else {
+					channelsList = this.applySearchRedirectsOnObject(channelsList)
+					data = this._epg.get(channelsList, limit)
+				}
 			} else {
 				data = [this._epg.state]
-				if(this._epg.request){
+				if(this._epg.state == 'error'){
+					data.push(this._epg.error)
+				} else if(this._epg.request){
 					data.push(this._epg.request.progress)
 				}
 			}
 			resolve(data)
 		})		
 	}
-	epgSearch(terms){
+	epgSearch(terms, nowLive){
 		return new Promise((resolve, reject) => {
 			if(!this._epg){
 				return reject('no epg')
 			}
-			return this._epg.search(terms).then(resolve).catch(reject)
+			return this._epg.search(this.applySearchRedirects(terms), nowLive).then(resolve).catch(reject)
 		})		
 	}
 	epgFindChannelLog(terms){
@@ -547,7 +644,7 @@ class Lists extends Index {
 			if(!this._epg){
 				return reject('no epg')
 			}
-			return this._epg.findChannelLog(terms).then(resolve).catch(reject)
+			return this._epg.findChannelLog(this.applySearchRedirects(terms)).then(resolve).catch(reject)
 		})		
 	}
 	epgData(){
@@ -584,146 +681,182 @@ class Lists extends Index {
 			}
 		})		
 	}
-	configChanged(){
-		return new Promise((resolve, reject) => {
-			config.reload()
-			resolve(true)
-		})
-	}
 	loadWatchingList(){
 		this.initListData(this.watchingListId)
 		this.lists[this.watchingListId] = new WatchingList(this.watchingListId, this)
 		this.lists[this.watchingListId].load()
 	}
+	unloadAllLists(){ // except watchingList
+		Object.keys(this.lists).forEach(name => {
+			if(name != this.watchingListId){
+				this.lists[name].destroy()
+				delete this.lists[name]
+			}
+		})
+	}
+	orderByCacheAvailability(urls, cb){
+		let uncachedUrls = []
+		//console.log('orderByCacheAvailability', urls.join("\r\n"))
+		async.eachOfLimit(urls, 8, (url, i, done) => {
+			let fine = true, keys = [FETCHER_CACHE_KEY_MASK, FETCHER_CACHE_TIME_KEY_MASK, LIST_HASH_KEY_MASK, LIST_DATA_KEY_MASK]
+			async.eachOf(keys.map(s => s.format(url)), (key, i, adone) => {
+				if(fine){
+					global.rstorage.has(key, has => {
+						//console.log('orderByCacheAvailability', url, key, has, fine)
+						if(!has){
+							fine = false
+						}
+						adone()
+					})
+				} else {
+					adone()	
+				}
+			}, () => {
+				if(!fine){
+					uncachedUrls.push(url)
+				}
+				done()
+			})
+		}, () => {
+			urls = urls.filter(u => !uncachedUrls.includes(u)).concat(uncachedUrls)
+			//console.log('orderByCacheAvailability', urls.join("\r\n"))
+			cb(urls)
+		})
+	}
 	setLists(myUrls, altUrls, sharingListsLimit){
 		return new Promise((resolve, reject) => {
-            if(this.debug){
-				console.log('Adding lists...', myUrls, altUrls, sharingListsLimit)
-			}
-            this.myUrls = myUrls
-			this.sharedUrls = []
-			async.parallel([
-				cb => {
-					async.eachOf(this.myUrls, (url, i, acb) => {
-						this.fetcher.fetch(url, false, true, (err, content) => {
-							if(err){
-								console.error('Adding list error', err)
-								if(acb){
-									acb()
-									acb = null
-								}
-							} else {
-								if(typeof(this.lists[url]) == 'undefined'){
-									if(this.debug){
-										console.log('Adding list...', url, content.length)
-									}
-									this.initListData(url)
-									this.lists[url] = new List(url, this)
-								} else {
-									if(this.debug){
-										console.log('Updating list...', url, content.length)
-									}
-								}
-								this.lists[url].load(content).finally(() => {
-									if(this.debug){
-										console.log('List added.', url, global.kbfmt(content.length))
-									}
-									content = null
-									if(acb){
-										acb()
-										acb = null
-									}
-								})
-							}
-						})
-					}, cb)
-				},
-				cb => {
-					let amount = 0
-					if(this.debug){
-						console.log('Adding alternate lists... (' + sharingListsLimit + '/' + amount + ')', altUrls)
-					}
-					if(sharingListsLimit){
-						async.eachOfLimit(altUrls, sharingListsLimit * 2, (url, i, acb) => {
-							if(amount >= sharingListsLimit){
-								if(acb){
-									acb()
-									acb = null
-								}
-								return
-							}
-							if(this.debug){
-								console.log('Requesting alternate list... '+ url)
-							}
-							this.fetcher.fetch(url, true, true, (err, content) => {
-								if(err){
-									if(String(err).indexOf('Promise was cancelled') == -1){
-										console.error('Adding alternate list error', err)
-									}
-									if(acb){
-										acb()
-										acb = null
-									}
-								} else {
-									if(typeof(this.lists[url]) == 'undefined'){
-										amount++
-										if(this.debug){
-											console.log('Received alternate list ('+sharingListsLimit+'/'+amount+') '+ content.length, url, content.length)
-										}
-										if(amount == sharingListsLimit){
-											this.fetcher.cancel()
-											if(this.debug){
-												console.log('Quota reached', url, amount, sharingListsLimit)
-											}
-										} else if(amount > sharingListsLimit) {
-											if(this.debug){
-												console.log('Quota exceeded', url, amount, sharingListsLimit)
-											}
-											content = null
-											if(acb){
-												acb()
-												acb = null
-											}
-											return
-										}
-										if(this.debug){
-											console.log('Adding alternate list...', url, content.length)
-										}
-										this.sharedUrls.push(url)
-										this.initListData(url)
-										if(typeof(this.lists[url]) == 'undefined'){
-											this.lists[url] = new List(url, this)
+			this.ready(() => {
+				if(this.debug){
+					console.log('Adding lists...', myUrls, altUrls, sharingListsLimit)
+				}
+				this.unloadAllLists()
+				this.myUrls = myUrls
+				this.sharedUrls = []
+				this.orderByCacheAvailability(altUrls, altUrls => {
+					async.parallel([
+						cb => {
+							async.eachOf(this.myUrls, (url, i, acb) => {
+								this.fetcher.fetch(url, false, true, (err, content) => {
+									if(err){
+										console.error('Adding list error', err)
+										if(acb){
+											acb()
+											acb = null
 										}
 									} else {
-										if(this.debug){
-											console.log('Updating alternate list...', url, content.length)
-										}
-									}
-									this.lists[url].load(content).finally(() => {
-										if(acb){
+										if(typeof(this.lists[url]) == 'undefined'){
 											if(this.debug){
-												console.log('Shared list added.', url, global.kbfmt(content.length))
+												console.log('Adding list...', url, content.length)
+											}
+											this.initListData(url)
+											this.lists[url] = new List(url, this)
+										} else {
+											if(this.debug){
+												console.log('Updating list...', url, content.length)
+											}
+										}
+										this.lists[url].load(content).finally(() => {
+											if(this.debug){
+												console.log('List added.', url, global.kbfmt(content.length))
 											}
 											content = null
 											if(acb){
 												acb()
 												acb = null
 											}
+										})
+									}
+								})
+							}, cb)
+						},
+						cb => {
+							let amount = 0
+							if(sharingListsLimit){
+								if(this.debug){
+									console.log('Adding alternate lists... (' + sharingListsLimit + '/' + altUrls.length + ')')
+								}
+								async.eachOfLimit(altUrls, Math.min(8, sharingListsLimit * 2), (url, i, acb) => {
+									if(amount >= sharingListsLimit){
+										if(acb){
+											acb()
+											acb = null
+										}
+										return
+									}
+									if(this.debug){
+										console.log('Requesting alternate list... '+ url)
+									}
+									this.fetcher.fetch(url, true, true, (err, content) => {
+										if(err){
+											if(String(err).indexOf('Promise was cancelled') == -1){
+												console.error('Adding alternate list error', err)
+											}
+											if(acb){
+												acb()
+												acb = null
+											}
+										} else {
+											if(typeof(this.lists[url]) == 'undefined'){
+												amount++
+												if(this.debug){
+													console.log('Received alternate list ('+sharingListsLimit+'/'+amount+') '+ content.length, url, content.length)
+												}
+												if(amount == sharingListsLimit){
+													this.fetcher.cancel()
+													if(this.debug){
+														console.log('Quota reached', url, amount, sharingListsLimit)
+													}
+												} else if(amount > sharingListsLimit) {
+													if(this.debug){
+														console.log('Quota exceeded', url, amount, sharingListsLimit)
+													}
+													content = null
+													if(acb){
+														acb()
+														acb = null
+													}
+													return
+												}
+												if(this.debug){
+													console.log('Adding alternate list...', url, content.length)
+												}
+												this.sharedUrls.push(url)
+												this.initListData(url)
+												if(typeof(this.lists[url]) == 'undefined'){
+													this.lists[url] = new List(url, this)
+												}
+											} else {
+												if(this.debug){
+													console.log('Updating alternate list...', url, content.length)
+												}
+											}
+											this.lists[url].load(content).finally(() => {
+												if(acb){
+													if(this.debug){
+														console.log('Shared list added.', url, global.kbfmt(content.length))
+													}
+													content = null
+													if(acb){
+														acb()
+														acb = null
+													}
+												}
+											})
 										}
 									})
-								}
-							})
-						}, cb)
-					} else {
-						cb()
-					}
-				}
-			], () => {
-				if(this.debug){
-					console.log('Removing deprecated lists', Object.keys(this.lists), this.myUrls, this.sharedUrls)
-				}
-				this.delimitActiveListsData(this.myUrls.concat(this.sharedUrls))
-                this.getLists().then(resolve).catch(reject)
+								}, cb)
+							} else {
+								cb()
+							}
+						}
+					], () => {
+						if(this.debug){
+							console.log('Removing deprecated lists', Object.keys(this.lists), this.myUrls, this.sharedUrls)
+						}
+						this.delimitActiveListsData(this.myUrls.concat(this.sharedUrls))
+						this.getLists().then(resolve).catch(reject)
+					})
+				})
 			})
 		})
     }	
@@ -769,12 +902,12 @@ class Lists extends Index {
 	has(terms, opts){
 		return new Promise((resolve, reject) => {	
 			let ret = {}, map = {}
-			console.log('has()', terms, opts)
+			// console.log('has()', terms, opts)
 			if(!terms.length){
                 return resolve({})
             }
             terms.map(t => {
-                ret[t] = this.terms(t)
+                ret[t] = this.applySearchRedirects(this.terms(t))
 			})
 			if(!opts){
 				opts = {}
@@ -789,7 +922,7 @@ class Lists extends Index {
 						if(ssmap){
 							ssmap = this.intersectMap(this.data.terms[term], ssmap)
 						} else {
-							ssmap = lodash.cloneDeep(this.data.terms[term])
+							ssmap = global.deepClone(this.data.terms[term])
 						}
                     }
 				})
@@ -819,6 +952,7 @@ class Lists extends Index {
             if(!Array.isArray(terms)){
                 terms = this.terms(terms, true)
 			}
+			terms = this.applySearchRedirects(terms)
             if(opts.partial){
 				let allTerms = Object.keys(this.data.terms)
 				terms.forEach(term => {
@@ -835,7 +969,7 @@ class Lists extends Index {
                 if(isExclude){
                     let xterm = term.substr(1)
                     if(typeof(this.data.terms[xterm]) != 'undefined'){
-						let xtms = lodash.cloneDeep(this.data.terms[xterm])
+						let xtms = global.deepClone(this.data.terms[xterm])
                         if(xmap){
 							xmap = this.joinMap(xmap, xtms)
                         } else {
@@ -850,7 +984,7 @@ class Lists extends Index {
 					}
 					tms.forEach(term => {
 						if(typeof(this.data.terms[term]) != 'undefined'){
-							let ttms = lodash.cloneDeep(this.data.terms[term])
+							let ttms = global.deepClone(this.data.terms[term])
 							if(tmap){
 								tmap = this.joinMap(tmap, ttms)
 							} else {
@@ -1049,7 +1183,7 @@ class Lists extends Index {
 		return c
 	}
 	joinMap(a, b){
-		let c = lodash.cloneDeep(a) // clone it
+		let c = global.deepClone(a) // clone it
 		Object.keys(b).forEach(listId => {
 			if(typeof(c[listId]) == 'undefined'){
 				c[listId] = {g: [], n: []}
@@ -1072,7 +1206,7 @@ class Lists extends Index {
 		return c
 	}
 	diffMap(a, b){
-		let c = lodash.cloneDeep(a) // clone it
+		let c = global.deepClone(a) // clone it
 		Object.keys(b).forEach(listId => {
 			if(typeof(c[listId]) != 'undefined'){
 				Object.keys(b[listId]).forEach(type => {
@@ -1181,25 +1315,34 @@ class Lists extends Index {
     }
     allListsMerged(){
         return new Promise((resolve, reject) => {
-			let next = es => {
+			const key = 'all-lists-merged', next = es => {
 				console.warn('POS Memory usage: ' + global.kbfmt(process.memoryUsage().rss), es.length)
 				if(es && es.length){
 					resolve(es)
 				} else {
 					resolve([])
 				}
-			}			
+			}
 			console.warn('PRE Memory usage: ' + global.kbfmt(process.memoryUsage().rss))
-			let list = [].concat.apply([], Object.values(this.lists).map(l => l.url == this.watchingListId ? [] : l.fetchAll()))
-            if(list.length){
-                list = this.parentalControl.filter(list)
-                list = this.tools.dedup(list)
-                list = this.prepareEntries(list)
-				list = this.tools.deepify(list)
-				this.tools.offload(list, 'all-llists-merged', next)
-            } else {
-                next()
-            }
+			global.tstorage.get(key, list => {
+				if(Array.isArray(list) && list.length){ // already generated
+					next(list)
+				} else {
+					list = [].concat.apply([], Object.values(this.lists).map(l => l.url == this.watchingListId ? [] : l.fetchAll()))
+					if(list.length){
+						list = this.parentalControl.filter(list)
+						list = this.tools.dedup(list)
+						list = this.prepareEntries(list)
+						list = this.tools.deepify(list)
+						this.tools.offload(list, key, list => {
+							global.tstorage.set(key, list, 600)
+							next(list)
+						})
+					} else {
+						next()
+					}
+				}
+			})
         })
     }
     groups(){

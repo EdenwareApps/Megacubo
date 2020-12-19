@@ -13,8 +13,13 @@ module.exports = (file, opts) => {
 			this.Worker = require('worker_threads').Worker
 			this.worker = new this.Worker(global.APPDIR + '/modules/driver/worker.js', {workerData, stdout: true, stderr: true})
 			this.worker.on('error', err => {
+				let serr = String(err)
 				this.err = err
-				console.error('error ' + file, String(err))
+				console.error('error ' + file, serr)
+				if(serr.match(new RegExp('(out of memory|out_of_memory)', 'i'))){
+					let msg = 'Worker #' + file.split('/').pop() + ' exitted out of memory, fix the settings and restart the app.'
+					global.osd.show(msg, 'fas fa-exclamation-triagle faclr-red', 'out-of-memory', 'persistent')
+				}
 				if(typeof(err.preventDefault) == 'function'){
 					err.preventDefault()
 				}
@@ -59,8 +64,13 @@ module.exports = (file, opts) => {
 			this.promises = {}
 			this.worker = new Worker(global.APPDIR + '/modules/driver/web-worker.js', {name: JSON.stringify(workerData)})
 			this.worker.onerror = err => {
+				let serr = String(err)
 				this.err = err
-				console.error('error ' + file, String(err), err)
+				console.error('error ' + file, serr)
+				if(serr.match(new RegExp('(out of memory|out_of_memory)', 'i'))){
+					let msg = 'Worker #' + file.split('/').pop() + ' exitted out of memory, fix the settings and restart the app.'
+					global.osd.show(msg, 'fas fa-exclamation-triagle faclr-red', 'out-of-memory', 'persistent')
+				}
 				if(typeof(err.preventDefault) == 'function'){
 					err.preventDefault()
 				}
@@ -75,9 +85,14 @@ module.exports = (file, opts) => {
 					} else {
 						console.error('Worker error', ret)
 					}
+				} else if(ret.type && ret.type == 'event') {
+					if(ret.data == 'config-change'){
+						global.config.reload()
+					}
 				}
 			}
 			global.config.on('change', () => {
+				console.log('CONFIG CHANGED!')
 				this.worker.postMessage({method: 'configChange', id: 0})
 			})
 			return new Proxy(this, {

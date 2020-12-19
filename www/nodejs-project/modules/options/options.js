@@ -63,12 +63,12 @@ class Options extends Events {
         })
     }
     tos(){
-        global.open('https://megacubo.tv/tos')
+        global.ui.emit('open-external-url', 'https://megacubo.tv/tos')
     }
     help(){
         global.cloud.get('configure').then(c => {
             const url = (c && typeof(c.help) == 'string') ? c.help : global.MANIFEST.bugs
-            global.open(url)
+            global.ui.emit('open-external-url', url)
         }).catch(global.displayErr)
     }
     ffmpegVersion(){
@@ -281,7 +281,7 @@ class Options extends Events {
     }
     hook(entries, path){
         return new Promise((resolve, reject) => {
-            if(path == ''){
+            if(path == '' && !entries.some(e => e.name == global.lang.TOOLS)){
                 entries = entries.concat([
                     {name: global.lang.TOOLS, fa: 'fas fa-box-open', type: 'group', renderer: this.tools.bind(this)},
                     {name: global.lang.OPTIONS, fa: 'fas fa-cog', type: 'group', renderer: this.entries.bind(this)},

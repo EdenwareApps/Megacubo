@@ -47,6 +47,7 @@ Object.keys(paths).forEach(k => {
 const Storage = require(APPDIR + '/modules/storage')
 
 onexit(() => {
+    global.isExiting = true
     console.log('APP_EXIT', traceback())
     if(streamer && streamer.active){
         streamer.stop()
@@ -54,7 +55,7 @@ onexit(() => {
     if(tuning){
         tuning.destroy()
     }
-    removeFolder(paths['data'] + '/ffmpeg', false, true)
+    removeFolder(paths['data'] + '/ffmpeg/data', false, true)
     storage.cleanup()
     if(typeof(ui) != 'undefined' && ui){
         ui.emit('exit')
@@ -63,13 +64,12 @@ onexit(() => {
 })
 
 storage = new Storage()  
-tstorage = new Storage({temp: true, clear: true})  
+tstorage = new Storage('', {temp: true, clear: true})  
 rstorage = new Storage()     
 rstorage.useJSON = false
 
 config = new (require(APPDIR + '/modules/config'))(paths['data'] + '/config.json')
 Download = require(APPDIR + '/modules/download')
-open = require(APPDIR + '/modules/open-wrapper')
 jimp = require(APPDIR + '/modules/jimp-wrapper')
 base64 = require(APPDIR + '/modules/base64')
 
@@ -78,8 +78,8 @@ enableConsole = (enable) => {
     if(typeof(originalConsole) == 'undefined'){ // initialize
         originalConsole = {}
         fns.forEach(f => originalConsole[f] = console[f].bind(console))
-        config.on('change', (key, data) => key == 'enable-console'&&enableConsole(data[key]))
-        if(enable) return
+        config.on('change', (keys, data) => keys.includes('enable-console') && enableConsole(data['enable-console']))
+        if(enable) return // enabled by default, stop here
     }
     if(enable){
         fns.forEach(f => { global.console[f] = console[f] = originalConsole[f] })
@@ -111,6 +111,7 @@ const Energy = require(APPDIR + '/modules/energy')
 const Analytics = require(APPDIR + '/modules/analytics')
 const StreamState = require(APPDIR + '/modules/stream-state')
 const Serve = require(APPDIR + '/modules/serve')
+const OMNI = require(APPDIR + '/modules/omni')
 const Mega = require(APPDIR + '/modules/mega')
 
 Premium = require(APPDIR + '/modules/premium-helper')
@@ -255,12 +256,10 @@ function init(language){
 
         osd = new OSD()
         lists = new Lists()
-		config.on('change', (key, data) => {
-            console.warn('CONFIG CHANGED', key)
-            if(['parental-control-policy', 'parental-control-terms'].indexOf(key) != -1){
-                lists.configChanged().catch(console.error)
-            } else if(key == 'epg'){
-                loadEPG(data[key])
+		config.on('change', (keys, data) => {
+            console.warn('CONFIG CHANGED', keys)
+            if(keys.includes('epg')){
+                loadEPG(data['epg'])
             }
         })
         
@@ -275,6 +274,7 @@ function init(language){
             updateLists(true)
         }
 
+        omni = new OMNI()
         mega = new Mega()
         energy = new Energy()
         channels = new Channels()
@@ -409,6 +409,7 @@ function init(language){
             }
         })
         ui.on('video-error', (type, errData) => {
+            console.error('VIDEO ERROR', type, errData)
             if(streamer.active){
                 if(type == 'timeout'){
                     let opts = [{template: 'question', text: lang.SLOW_TRANSMISSION}], def = 'stop'
@@ -484,7 +485,11 @@ function init(language){
             if(typeof(url) == 'string'){
                 epgSetup = true
                 if(!url || lists.manager.validateURL(url)){
-                    config.set('epg', url)
+                    if(url == config.get('epg')){
+                        lists.loadEPG(url).catch(console.error) // force update
+                    } else {
+                        config.set('epg', url)
+                    }
                 } else {
                     osd.show(lang.INVALID_URL, 'fas fa-exclamation-circle faclr-red', 'epg', 'normal')
                 }
@@ -593,11 +598,9 @@ function init(language){
             ui.emit('set-loading', data, false)
             ui.emit('streamer-stop')
         })
-        config.on('change', (key, data) => {
+        config.on('change', (keys, data) => {
             ui.emit('config', data)
-            console.warn('CONFIG CHANGED', key)
-            if(['lists', 'shared-mode-lists-amount'].indexOf(key) != -1){
-                console.warn('CONFIG CHANGED', key)
+            if(['lists', 'shared-mode-lists-amount'].some(k => keys.includes(k))){
                 explorer.refresh()
                 updateLists(true)
             }
@@ -634,7 +637,7 @@ function init(language){
                             ui.on('updater-cb', chosen => {
                                 console.log('update callback', chosen)
                                 if(chosen == 'yes'){
-                                    open('https://megacubo.tv/update?ver=' + newVersion)
+                                    ui.emit('open-external-url', 'https://megacubo.tv/update?ver=' + newVersion)
                                 }
                             })
                             ui.emit('dialog', [
@@ -668,6 +671,8 @@ function init(language){
                 streamState.testing.abort()
             }
         })
+
+        removeFolder(paths['data'] + '/ffmpeg/data', false, () => {}) // clear any left temp ffmpeg files from previous encoding
 
         console.warn('Prepared to connect...')
         ui.emit('backend-ready', config.all(), lang)

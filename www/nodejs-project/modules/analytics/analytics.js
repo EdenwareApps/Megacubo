@@ -3,7 +3,7 @@ const Events = require('events'), http = require('http')
 class AnalyticsBase extends Events {
     constructor(){
         super()
-        this.debug = true
+        this.debug = false
         this.keepAliveTTL = 600000
     }
     toQS(obj){

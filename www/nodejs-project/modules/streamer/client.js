@@ -104,7 +104,7 @@ class StreamerState extends StreamerOSD {
     constructor(controls, app){
         super(controls, app)
         this.state = ''
-        parent.player.on('state', (s, data) => {            
+        this.stateListener = (s, data) => {
             if(s != this.state){
                 this.state = s
                 console.log('STREAMER-STATE', this.state)
@@ -133,8 +133,20 @@ class StreamerState extends StreamerOSD {
                 }
                 this.emit('state', this.state)
             }
-        })
-    }    
+        }
+        this.bindStateListener()
+    }
+    bindStateListener(){
+        if(!parent.player.listeners().includes(this.stateListener)){
+            console.warn('NOT LISTENING')
+            parent.player.on('state', this.stateListener)
+        } else {
+            console.warn('ALREADY LISTENING')
+        }
+    } 
+    unbindStateListener(){
+        parent.player.removeListener('state', this.stateListener)
+    }
     playOrPause(){
         if(this.active){
             let b = jQuery(this.controls).css('bottom')
@@ -149,6 +161,7 @@ class StreamerState extends StreamerOSD {
             }
         }
     }
+    stateListener
 }
 
 class StreamerUnmuteHack extends StreamerState { // unmute player on browser restrictions
@@ -727,6 +740,7 @@ class StreamerClient extends StreamerClientController {
             }
         })
         this.app.on('streamer-connect', (src, mimetype, data, autoTuning) => {
+            this.bindStateListener()
             if(explorer.inModal()){
                 explorer.endModal()
             }
@@ -735,6 +749,10 @@ class StreamerClient extends StreamerClientController {
             console.warn('CONNECT', src, mimetype, data, autoTuning)
             this.start(src, mimetype)
             osd.hide('streamer')
+        })
+        this.app.on('streamer-connect-suspend', () => { // used to wait for transcoding setup when supported codec is found on stream
+            this.unbindStateListener()
+            this.state = 'loading'
         })
         this.app.on('streamer-disconnect', (err, autoTuning) => {
             console.warn('DISCONNECT', err, autoTuning)

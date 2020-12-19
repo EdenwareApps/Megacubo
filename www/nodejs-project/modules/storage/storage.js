@@ -45,12 +45,14 @@ class StorageBase {
 	time(){
 		return parseInt((new Date()).getTime() / 1000)
 	}
-	resolve(key, expiralFile){
-		key = key.replace(new RegExp('[^A-Za-z0-9\\._\\- ]', 'g'), '').substr()
-		return this.dir + key.substr(0, 128) + (expiralFile === true ? '.expires.json' : '.json')
+	resolve(key, expiralFile){ // key to file
+		return this.dir + this.prepareKey(key) + (expiralFile === true ? '.expires.json' : '.json')
 	}
-	unresolve(file){
+	unresolve(file){ // file to key
 		return path.basename(file).replace('.expires', '').replace('.json', '')
+	}
+	prepareKey(key){ // should give same result if called multiple times
+		return key.replace(new RegExp('[^A-Za-z0-9\\._\\- ]', 'g'), '').substr(0, 128)
 	}
 }
 
@@ -59,13 +61,19 @@ class StorageAsync extends StorageBase {
 		super(label, opts)
 	}
 	get(key, cb, encoding){
+		key = this.prepareKey(key)
 		this.queue.add(key, this._get.bind(this, key, cb, encoding))
 	}
 	set(key, val, expiration, cb){
+		key = this.prepareKey(key)
+		if(global.isExiting){
+			this.setSync(key, val, expiration)
+			return cb()
+		}
 		this.queue.add(key, this._set.bind(this, key, val, expiration, cb))
 	}
 	_get(key, cb, encoding){
-		return new Promise((resolve, reject) => {
+		return new Promise((resolve, reject) => { // promise is used by queue
 			if(encoding !== null && typeof(encoding) != 'string'){
 				encoding = 'utf-8'
 			}
@@ -125,7 +133,7 @@ class StorageAsync extends StorageBase {
 		})
 	}
 	_set(key, val, expiration, cb){
-		return new Promise((resolve, reject) => {
+		return new Promise((resolve, reject) => { // promise is used by queue
 			let j, x, f = this.resolve(key), fe = this.resolve(key, true)
 			if(expiration === false) {
 				expiration = 600 // default = 10min
@@ -137,12 +145,17 @@ class StorageAsync extends StorageBase {
 				j = JSON.stringify(val)
 				this.cacheExpiration[key] = x
 			}
-			this.write(f, typeof(j) == 'undefined' ? val : j, 'utf8', cb)	
+			this.write(f, typeof(j) == 'undefined' ? val : j, 'utf8', () => {
+				if(typeof(cb) == 'function'){
+					cb()
+				}
+				resolve(true)
+			})	
 			this.write(fe, x, 'utf8', () => {})
-			resolve(true)
 		})
 	}
 	expiration(key, cb){
+		key = this.prepareKey(key)
 		if(typeof(this.cacheExpiration[key]) == 'undefined'){
 			let n = 0, f = this.resolve(key, true)
 			fs.stat(f, (err, stat) => {
@@ -169,9 +182,28 @@ class StorageAsync extends StorageBase {
 		}
 	}
 	ttl(key, cb){
+		key = this.prepareKey(key)
 		this.expiration(key, expires => {
 			let now = this.time()
 			cb((!expires || now > expires) ? 0 : (expires - now))
+		})
+	}
+	has(key, cb){
+		key = this.prepareKey(key)
+		this.expiration(key, expiral => {
+			if(expiral > this.time()){
+				let f = this.resolve(key)
+				fs.stat(f, (err, stat) => {
+					if(stat && stat.size){
+						cb(stat.size)
+					} else {
+						cb(false)
+					}
+				})
+				return fs.existsSync(f)
+			} else {
+				cb(false)
+			}
 		})
 	}
 	write(file, val, enc, cb){
@@ -181,7 +213,21 @@ class StorageAsync extends StorageBase {
 		if(typeof(cb) != 'function'){
 			cb = () => {}
 		}
-		fs.writeFile(file, val, enc, cb)
+		let tmpFile = path.join(path.dirname(file), String(parseInt(Math.random() * 1000000))) +'.commit'	
+		fs.writeFile(tmpFile, val, enc, err => { // to avoid corrupting, we'll write to a temp file first
+			if(err){
+				console.error(err)
+				cb(err)
+			} else {
+				fs.rename(tmpFile, file, err => {
+					if(err){
+						console.error(err)
+						fs.unlink(tmpFile, () => {})
+					}
+					cb(err)
+				})
+			}
+		})
 	}
 }
 
@@ -191,6 +237,7 @@ class StorageSync extends StorageAsync {
 	}
 	getSync(key){
 		let data = undefined
+		key = this.prepareKey(key)
 		if(this.hasSync(key)){
 			let expiral = typeof(this.cacheExpiration[key]) == 'undefined' ? this.expirationSync(key) : this.cacheExpiration[key]
 			let f = this.resolve(key), _json = null
@@ -246,10 +293,11 @@ class StorageSync extends StorageAsync {
 		}
 	}
 	ttlSync(key){
-		let expires = typeof(this.cacheExpiration[key]) == 'undefined' ? this.expirationSync(key) : this.cacheExpiration[key], now = this.time()
+		let expires = this.expirationSync(key), now = this.time()
 		return (!expires || now > expires) ? 0 : (expires - now)
 	}
 	expirationSync(key){
+		key = this.prepareKey(key)
 		if(typeof(this.cacheExpiration[key]) == 'undefined'){
 			let n = 0, f = this.resolve(key, true)
 			if(fs.existsSync(f)){
@@ -264,9 +312,9 @@ class StorageSync extends StorageAsync {
 		}
 	}
 	hasSync(key){
-		let expiral = typeof(this.cacheExpiration[key]) == 'undefined' ? this.expirationSync(key) : this.cacheExpiration[key]
+		let expiral = this.expirationSync(key)
 		if(expiral > this.time()){
-			let f = this.resolve(key), _json = null
+			let f = this.resolve(key)
 			return fs.existsSync(f)
 		}
 		return false
@@ -284,17 +332,28 @@ class Storage extends StorageSync {
 		super(label, opts)
 	}
 	delete(key, cb){
+		key = this.prepareKey(key)
 		let f = this.resolve(key), fe = this.resolve(key, true)
 		fs.unlink(f, typeof(cb) == 'function' ? cb : (() => {}))
 		fs.unlink(fe, () => {})
 		delete this.cacheExpiration[key]
+	}
+	deleteAny(key){
+		let suffix = '.expires.json', now = this.time()
+		fs.readdir(this.folder, {}, (err, files) => {
+			files.forEach(f => {
+				if(f.substr(0, key.length) == key){
+					fs.unlink(path.join(this.folder, f), () => {})
+				}
+			})
+		})
 	}
 	cleanup(){
 		let suffix = '.expires.json', now = this.time()
 		fs.readdir(this.folder, {}, (err, files) => {
 			files.filter(f => {
 				return f.indexOf(suffix) != -1
-			}).map(f => {
+			}).forEach(f => {
 				let key = f.replace(suffix, '')
 				if(this.expirationSync(key) <= now){
 					fs.unlink(f, () => {})

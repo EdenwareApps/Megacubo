@@ -117,7 +117,7 @@
 "IPTV_LISTS": "Listas de IPTV",
 "ALL_LISTS": "Todas las listas",
 "FIND_VIDEOS": "Encontrar videos",
-"WHAT_TO_WATCH": "Qué ver?",
+"WHAT_TO_WATCH": "¿Qué quieres ver?",
 "FEATURED": "Destacado",
 "SEARCH_RANGE": "Rango de búsqueda",
 "XTREME": "Extremo",
@@ -478,5 +478,8 @@
 "IMPORT_EPG_CHANNELS": "¿Desea importar la lista de canales de su EPG?",
 "IMPORT_FROM_EPG": "Importar desde EPG",
 "ENABLE_PREMIUM_FEATURES": "Abilita funzioni speciali",
-"ENABLE_PREMIUM_MESSAGE": "La versione installata non ha caratteristiche speciali. Per ottenerle, scarica il programma completo dal nostro sito web e installalo."
+"ENABLE_PREMIUM_MESSAGE": "La versione installata non ha caratteristiche speciali. Per ottenerle, scarica il programma completo dal nostro sito web e installalo.",
+"LEGAL_IPTV_INFO": "Las listas de esta sección son proporcionadas y mantenidas por la comunidad, como listas de acceso legal y gratuito.",
+"KNOW_MORE": "Saber más",
+"LEGAL_IPTV": "IPTV Legal"
 }

@@ -82,6 +82,19 @@ function exit(){
 	}
 }
 
+function openExternalURL(url){
+	if(parent.navigator.app){
+		if(url.match(new RegExp('https://megacubo.tv', 'i'))){
+			ul = url.replace('https:', 'http:') // bypass Ionic Deeplink
+		}
+		parent.navigator.app.loadUrl(url, {openExternal: true})
+	} else if(top.nw) {
+		top.nw.Shell.openExternal(url)
+	} else {
+		window.open(url)
+	}
+}
+
 function loaded(){
 	if(document.getElementById('splash').style.display != 'none'){
 		var s = document.querySelector('iframe').style

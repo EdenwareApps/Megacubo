@@ -19,7 +19,8 @@ class StreamerVideoIntent extends StreamerBaseIntent {
             } else {
                 this.adapter = new StreamerProxy(this.opts)
                 this.adapter.opts.forceFirstBitrateDetection = true
-                this.adapter.opts.minBitrateCheckSize = 1 * (1024 * 1024) // 2MB
+                this.adapter.opts.minBitrateCheckSize = 3 * (1024 * 1024) // 4MB
+                this.adapter.opts.maxBitrateCheckSize = this.adapter.opts.minBitrateCheckSize * 2
                 this.adapter.opts.bitrateCheckingAmount = 1
                 this.connectAdapter(this.adapter)
                 this.adapter.start().then(() => {

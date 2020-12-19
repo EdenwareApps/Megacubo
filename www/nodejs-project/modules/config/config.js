@@ -53,7 +53,7 @@ class Config extends Events {
 	reload(){
 		let oldData
 		if(this.loaded){
-			oldData = this.data
+			oldData = Object.assign({}, this.data)
 		}
 		this.loaded = false
 		this.load()
@@ -120,7 +120,8 @@ class Config extends Events {
 			if(this.debug){
 				console.log('SSSET', jso, this.data)
 			}
-			this.emit('change', key, this.data)
+			this.emit('set', key)
+			this.emit('change', [key], this.data)
 		}
 	}
 }

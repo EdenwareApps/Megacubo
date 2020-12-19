@@ -1,11 +1,11 @@
 const StreamerBaseIntent = require('./base.js'), StreamerProxy = require('../utils/proxy.js'), fs = require('fs'), FFServer = require('../utils/ff-server')
 
-class StreamerHLSIntent extends StreamerBaseIntent {    
+class StreamerVODHLSIntent extends StreamerBaseIntent {    
     constructor(data, opts, info){
         super(data, opts, info)
-        this.type = 'hls'
+        this.type = 'vodhls'
         this.mimetype = this.mimeTypes.hls
-        this.mediaType = 'live'
+        this.mediaType = 'video'
     }  
     transcode(){
         return new Promise((resolve, reject) => {
@@ -37,35 +37,21 @@ class StreamerHLSIntent extends StreamerBaseIntent {
                 resolve({endpoint: this.endpoint, mimetype: this.mimetype})
             }).catch(e => {
                 console.warn('COMMITERR', this.endpoint, e)
-                reject(e || 'hls adapter failed')
+                reject(e || 'vod hls adapter failed')
             })
         })
     }
 }
 
-StreamerHLSIntent.mediaType = 'live'
-StreamerHLSIntent.supports = (info) => {
+StreamerVODHLSIntent.mediaType = 'video'
+StreamerVODHLSIntent.supports = info => {
     if(info.sample){
         let sample = String(info.sample).toLowerCase()
-        if(sample.match(new RegExp('#ext(m3u|inf)'))){
-            if(sample.indexOf('#ext-x-endlist') == -1){
-                return true
-            } else {
-                return false // is vodhls
-            }
-        }
-    }
-    if(info.contentType){
-        if(info.contentType.indexOf('mpegurl') != -1){
+        if(sample.match(new RegExp('#ext(m3u|inf)')) && sample.indexOf('#ext-x-endlist') != -1){
             return true
-        } else {
-            return false // other video content type
         }
-    }
-    if(info.ext && info.ext == 'm3u8'){
-        return true
     }
     return false
 }
 
-module.exports = StreamerHLSIntent
+module.exports = StreamerVODHLSIntent

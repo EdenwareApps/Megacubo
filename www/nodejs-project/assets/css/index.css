@@ -137,8 +137,56 @@ body.video.menu-playing #explorer .content-out {
 #explorer header time, #explorer header .explorer-location {
     font-size: var(--explorer-entry-name-font-size);
     color: var(--font-color);
-    display: flex;
+    display: inline-flex;
     align-items: center;
+}
+#explorer header .explorer-omni {
+    display: inline-table;
+    align-self: center;
+    flex-grow: inherit;    
+    text-align: right;
+}
+body.video #explorer header .explorer-omni {
+    visibility: hidden;
+}
+#explorer header .explorer-omni > span {
+    background: var(--modal-background-color);
+    border-radius: calc(var(--padding) * 2);
+    display: none;
+    min-width: calc(var(--explorer-entry-width) * 1.2);
+    text-align: left;
+    align-items: center;
+    margin-right: calc(var( --padding) * 2);
+    padding: var(--explorer-padding) calc(2 * var(--explorer-padding));
+}
+#explorer header .explorer-omni input {
+    border-width: 0;
+    width: calc(100% - var(--explorer-entry-name-font-size));
+    background: transparent;
+    font-size: var(--explorer-entry-name-font-size);
+}
+@media (orientation: portrait) {
+    #explorer header .explorer-omni > span:not(.selected) input {
+        display: none;
+    }
+    #explorer header .explorer-omni > span {
+        min-width: 0;
+    }
+}
+#explorer header .explorer-omni > span.selected {
+    background: linear-gradient(to bottom, var(--font-color) 0%, var(--secondary-font-color) 100%);
+}
+#explorer header .explorer-omni input, #explorer header .explorer-omni i, #explorer header .explorer-omni input::-webkit-input-placeholder {
+    color: var(--secondary-font-color);
+    text-shadow: none;
+}
+#explorer header .explorer-omni > span.selected input, #explorer header .explorer-omni > span.selected i, #explorer header .explorer-omni > span.selected input::-webkit-input-placeholder {
+    color: var(--background-color);
+}
+#explorer header .explorer-omni i {
+    display: inline-block;
+    box-sizing: border-box;
+    cursor: pointer;
 }
 #explorer header .explorer-location-text {
     margin-top: calc(var(--padding) * -0.075);

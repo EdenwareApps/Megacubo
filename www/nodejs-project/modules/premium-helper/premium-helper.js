@@ -4,7 +4,7 @@ class PremiumHelper {
         global.explorer.prependFilter(this.hook.bind(this))
     }
     open(){
-        global.open('https://megacubo.tv/online/'+ global.lang.locale + '/')
+        global.ui.emit('open-external-url', 'https://megacubo.tv/online/'+ global.lang.locale + '/')
     }
     entry(){
         if(!global.ui.listenerCount('premium-helper')){

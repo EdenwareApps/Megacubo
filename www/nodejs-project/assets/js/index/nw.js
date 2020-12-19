@@ -52,7 +52,10 @@ class WindowManager extends ClassesHandler {
 			//this.app.document.documentElement.className = (this.app.document.documentElement.className || '') + ' frameless-window'
 			this.app.restart = this.restart.bind(this)
 			this.patch()
-			this.app.document.body.focus()
+			setTimeout(() => {
+				this.focusApp()
+				this.app.explorer.reset()
+			}, 100)
 		})
 	}
 	restart(){
@@ -88,6 +91,12 @@ class WindowManager extends ClassesHandler {
 		} else {
 			this.app.css(' :root { --frameless-window-titlebar-height: 30px; } ', 'frameless-window')
 		}
+	}
+	focusApp(){
+		[document.querySelector('iframe'), this.container.document.querySelector('iframe')].forEach(f => {
+			f.focus()
+			f.addEventListener('blur', () => f.focus())
+		})
 	}
 	waitApp(fn){
 		if(this.waitAppTimer){
@@ -207,9 +216,8 @@ class WindowManager extends ClassesHandler {
 	}
 	leaveMiniPlayer(){
 		this.prepareLeaveMiniPlayer()
-		this.win.width = this.initialSize[0]
-		this.win.height = this.initialSize[1]
-		this.centralizeWindow(this.win.width, this.win.height)
+		window.resizeTo.apply(window, this.initialSize)
+		this.centralizeWindow.apply(this, this.initialSize)
 	}
 	fixMaximizeButton(){
 		if(this.isMaximized() || this.miniPlayerActive){

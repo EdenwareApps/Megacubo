@@ -148,7 +148,9 @@ class IconSearch extends IconCache {
         })
     }
     search(ntms, liveOnly){
-        console.log('icons.search', ntms, traceback())
+        if(this.opts.debug){
+            console.log('icons.search', ntms, global.traceback())
+        }
         return new Promise((resolve, reject) => {
             const isRadio = global.lists.msi.isRadio(ntms.join(' '))
             if(this.opts.debug){
@@ -221,9 +223,7 @@ class IconFetcher extends IconTransform {
         this.opts.folder = path.resolve(this.opts.folder)
 		fs.stat(this.opts.folder, (err, stat) => {
 			if(err !== null) {
-				fs.mkdir(this.opts.folder, (err) => {
-
-				})
+				fs.mkdir(this.opts.folder, () => {})
 			}
 		})
     }
@@ -264,7 +264,8 @@ class IconFetcher extends IconTransform {
                     url,
                     responseType: 'buffer',
                     resolveBodyOnly: true,
-                    downloadLimit: this.opts.downloadLimit
+                    downloadLimit: this.opts.downloadLimit,
+                    retries: 2
                 })
                 if(typeof(rcb) == 'function'){
                     rcb(req)

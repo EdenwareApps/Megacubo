@@ -46,7 +46,12 @@ function arrowDownPressed(){
         streamer.seekBack()
         idleStart()
     } else {
-        explorer.arrow('down')
+        let s = explorer.selected()
+        if(s && s.tagName.toLowerCase() == 'input' && s.id && s.id == 'explorer-omni-input'){
+            explorer.focus(explorer.currentElements[explorer.selectedIndex])
+        } else {
+            explorer.arrow('down')
+        }
     }
 }
 
