@@ -474,7 +474,7 @@ class StreamerClientVideoFullScreen extends StreamerSeek {
         super(controls, app)
         this.inFullScreen = false
         this.allowFullScreenControlInAndroid = false
-        if(parent.AndroidFullScreen && !this.allowFullScreenControlInAndroid){
+        if(!this.allowFullScreenControlInAndroid || !parent.AndroidFullScreen){
             this.allowFullScreenControl(false)
         } else {
             this.on('fullscreenchange', fs => {

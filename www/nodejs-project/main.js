@@ -328,9 +328,10 @@ function init(language){
             }
             switch(e.type){
                 case 'stream':
-                    streamer.play(e)
                     if(typeof(e.action) == 'function') { // execute action for stream, if any
                         e.action(e)
+                    } else {
+                        streamer.play(e)
                     }
                     break
                 case 'action':

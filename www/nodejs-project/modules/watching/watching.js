@@ -101,7 +101,7 @@ class Watching extends EntriesGroup {
                 if(removeAliases === true){
                     let groups = {}, gcount = {}, gentries = [], onlyKnownChannels = global.config.get('only-known-channels-in-been-watched')
                         async.eachOf(data, (entry, i, cb) => {
-                            let ch = global.channels.isChannel(entry.terms.name, onlyKnownChannels)
+                            let ch = global.channels.isChannel(entry.terms.name)
                             if(ch){
                                 let term = ch.name
                                 if(typeof(groups[term]) == 'undefined'){

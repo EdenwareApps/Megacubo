@@ -952,6 +952,23 @@ class Lists extends Index {
             if(!Array.isArray(terms)){
                 terms = this.terms(terms, true)
 			}
+            terms = terms.filter(term => {
+				let isExclude = term.charAt(0) == '-'
+                if(isExclude){
+                    let xterm = term.substr(1)
+                    if(typeof(this.data.terms[xterm]) != 'undefined'){
+						let xtms = global.deepClone(this.data.terms[xterm])
+                        if(xmap){
+							xmap = this.joinMap(xmap, xtms)
+                        } else {
+                            xmap = xtms
+						}
+					}
+					excludeTerms.push(xterm)
+					return false
+                }
+				return true
+			})
 			terms = this.applySearchRedirects(terms)
             if(opts.partial){
 				let allTerms = Object.keys(this.data.terms)
@@ -964,51 +981,33 @@ class Lists extends Index {
 					}
 				})
 			}
-            terms.forEach((term, i) => {
-				let isExclude = term.charAt(0) == '-'
-                if(isExclude){
-                    let xterm = term.substr(1)
-                    if(typeof(this.data.terms[xterm]) != 'undefined'){
-						let xtms = global.deepClone(this.data.terms[xterm])
-                        if(xmap){
-							xmap = this.joinMap(xmap, xtms)
-                        } else {
-                            xmap = xtms
-						}
-					}
-					excludeTerms.push(term)
-                } else {
-					let tmap, tms = [term]
-					if(typeof(aliases[term]) != 'undefined'){
-						tms = tms.concat(aliases[term])
-					}
-					tms.forEach(term => {
-						if(typeof(this.data.terms[term]) != 'undefined'){
-							let ttms = global.deepClone(this.data.terms[term])
-							if(tmap){
-								tmap = this.joinMap(tmap, ttms)
-							} else {
-								tmap = ttms
-							}
-						}
-					})
-					if(tmap){
-						if(smap){
-							smap = this.intersectMap(smap, tmap)
+			terms = terms.filter(t => !excludeTerms.includes(t))
+            terms.some(term => {
+				let tmap, tms = [term]
+				if(typeof(aliases[term]) != 'undefined'){
+					tms = tms.concat(aliases[term])
+				}
+				tms.forEach(term => {
+					if(typeof(this.data.terms[term]) != 'undefined'){
+						let ttms = global.deepClone(this.data.terms[term])
+						if(tmap){
+							tmap = this.joinMap(tmap, ttms)
 						} else {
-							smap = tmap
+							tmap = ttms
 						}
-					} else {
-						smap = false
-						return true
 					}
+				})
+				if(tmap){
+					if(smap){
+						smap = this.intersectMap(smap, tmap)
+					} else {
+						smap = tmap
+					}
+				} else {
+					smap = false
+					return true
 				}
 			})
-			if(excludeTerms.length){
-				terms = terms.filter(t => !excludeTerms.includes(t)) // remove excludes from terms
-				excludeTerms = excludeTerms.map(t => t.substr(1))
-				terms = terms.filter(t => !excludeTerms.includes(t)) // now remove excluded terms
-			}
             if(smap){
                 let results = []
                 if(xmap){

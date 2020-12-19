@@ -250,21 +250,31 @@ if(typeof(IonicDeeplink) != 'undefined'){
 }
 
 if(typeof(Keyboard) != 'undefined'){
-	window.addEventListener('keyboardWillShow', (event) => {
-		const h = window.innerHeight - event.keyboardHeight, m = app.document.body.querySelector('#modal'), mi = m.querySelector('.modal-wrap > div')
-		m.style.height = h + 'px'
-		if(mi.offsetHeight > h){
-			const mq = mi.querySelector('span.modal-template-question')
-			if(mq){
-				mq.style.display = 'none'
+	function adjustLayoutForKeyboard(keyboardHeight){
+		const m = app.document.body.querySelector('div#modal > div > div')
+		if(m){
+			const mi = m.querySelector('.modal-wrap')
+			if(keyboardHeight){		
+				const h = window.innerHeight - keyboardHeight
+				m.style.height = h + 'px'
+				if(mi.offsetHeight > h){
+					const mq = mi.querySelector('span.modal-template-question')
+					if(mq){
+						mq.style.display = 'none'
+					}
+				}
+			} else {
+				m.style.height = '100vh'
+				if(mi){
+					mi.querySelector('span.modal-template-question').style.display = 'flex'
+				}
 			}
 		}
+	}
+	window.addEventListener('keyboardWillShow', event => {
+		adjustLayoutForKeyboard(event.keyboardHeight)
 	})
 	window.addEventListener('keyboardWillHide', () => {
-		const m = app.document.body.querySelector('#modal'), mi = m.querySelector('.modal-wrap > div')
-		m.style.height = '100vh'
-		if(mi){
-			mi.querySelector('span.modal-template-question').style.display = 'flex'
-		}
+		adjustLayoutForKeyboard(false)
 	})
 }

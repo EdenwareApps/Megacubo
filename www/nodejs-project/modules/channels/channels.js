@@ -627,34 +627,34 @@ class Channels extends ChannelsEditing {
         })
         return ct
     }
-    isChannel(terms, partial){
+    isChannel(terms){
         let tms = Array.isArray(terms) ? terms : global.lists.terms(terms, true), chs = this.getChannelsIndex()
         let chosen, alts = {}, chosenScore = -1
         Object.keys(chs).forEach(name => {
-            if(chosenScore < 3){
-                let score = global.lists.match(chs[name], tms, partial)
-                if(score){
-                    if(score > chosenScore){
-                        if(chosen){
-                            alts[chosen] = chs[chosen]
-                        }
-                        chosen = name
-                        chosenScore = score
-                    } else {
-                        alts[name] = chs[name]
+            let score = global.lists.match(chs[name], tms, false)
+            if(score){
+                if(score > chosenScore){
+                    if(chosen){
+                        alts[chosen] = chs[chosen]
                     }
+                    chosen = name
+                    chosenScore = score
                 } else {
-                    let exs = chs[name].filter(t => !tms.includes(t))
-                    if(exs.length < chs[name].length){
-                        alts[name] = chs[name]
-                    }
+                    alts[name] = chs[name]
+                }
+            } else {
+                let stms = chs[name].filter(t => t.charAt(0) != '-')
+                if(stms.some(s => tms.includes(s))){
+                    alts[name] = chs[name]
                 }
             }
         })
         if(chosenScore > 1){
             let excludes = [], chTerms = chs[chosen]
             Object.keys(alts).forEach(n => {
-                excludes = excludes.concat(alts[n].filter(t => !chTerms.includes(t)))
+                excludes = excludes.concat(alts[n].filter(t => {
+                    return t.charAt(0) != '-' && !chTerms.includes(t)
+                }))
             })
             if(!chTerms.some(c => this.radioTerms.includes(c))){ // is not radio
                 this.radioTerms.forEach(rterm => {
@@ -665,6 +665,16 @@ class Channels extends ChannelsEditing {
             }
             return {name: chosen, terms: [...new Set(chTerms.concat(excludes.map(s => '-' + s)))], alts, excludes}
         }
+    }
+    expandTerms(terms){
+        if(typeof(terms) == 'string'){
+            terms = global.lists.terms(terms)
+        }
+        let ch = this.isChannel(terms)
+        if(ch){
+            return ch.terms
+        }
+        return terms
     }
     get(terms){
         return new Promise((resolve, reject) => {
@@ -722,11 +732,7 @@ class Channels extends ChannelsEditing {
         } else {
             terms = e.terms.name
         }
-        ch = this.isChannel(terms)
-        if(ch){
-            terms = ch.terms
-        }
-        return terms
+        return this.expandTerms(terms)
     }
     toMetaEntryRenderer(e, category){
         return new Promise((resolve, reject) => {
@@ -750,7 +756,10 @@ class Channels extends ChannelsEditing {
                         type: 'action', 
                         icon: e.servedIcon, 
                         fa: 'fas fa-play-circle',
-                        url
+                        url,
+                        action: data => {
+                            global.streamer.play(data, sentries)
+                        }
                     })
                     streamsEntry = {
                         name: global.lang.STREAMS + ' (' + sentries.length + ')', 
@@ -859,7 +868,7 @@ class Channels extends ChannelsEditing {
                         global.lists.has(category.entries.map(e => e.name), {}).then(ret => {
                             let entries = category.entries.filter(e => ret[e.name])
                             if(global.config.get('show-logos')  && global.config.get('search-missing-logos')){
-                               global.icons.prefetch(entries.map(e => this.entryTerms(e)).slice(0, global.config.get('view-size-x')))
+                               //global.icons.prefetch(entries.map(e => this.entryTerms(e)).slice(0, global.config.get('view-size-x')))
                             }
                             entries = entries.map(e => this.toMetaEntry(e, category))
                             if(global.config.get('epg')){

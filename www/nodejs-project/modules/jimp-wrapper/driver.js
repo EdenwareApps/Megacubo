@@ -7,7 +7,7 @@ class JimpDriver {
             this.jimpCustomAutocrop = require(APPDIR +'/modules/jimp-autocrop-custom')
         }
     }
-    autoCropValidateAlpha(image){
+    isAlpha(image){
         let err, alphas = [], corners = [
             [0, 0],
             [0, image.bitmap.width - 1],
@@ -20,14 +20,12 @@ class JimpDriver {
                 return px.a < 255
             }
         })
-        if(!valid){
-            err = 'not transparent image, corners: ' + JSON.stringify(corners) + ', alphas: ' + JSON.stringify(alphas)
-        }
-        return {valid, err}
+        // if(!valid) console.log('not transparent image, corners: ' + JSON.stringify(corners) + ', alphas: ' + JSON.stringify(alphas))
+        return valid
     }
     transform(data, opts){
         const maxWidth = 500, maxHeight = 500
-        opts = Object.assign({autocrop: true, alphaOnly: true}, opts)
+        opts = Object.assign({autocrop: true}, opts)
         return new Promise((resolve, reject) => {
             this.load()
             if(data && data.length > 32){
@@ -36,22 +34,20 @@ class JimpDriver {
                 }
                 this.jimp.read(data).then(image => {
                     if(image.bitmap.width > 0 && image.bitmap.height > 0) {
-                        let ret = !opts.alphaOnly || (this.autoCropValidateAlpha(image))
-                        if(!opts.alphaOnly || ret.valid){
-                            if(opts.autocrop){
-                                image.autocrop = this.jimpCustomAutocrop
-                                image = image.autocrop({tolerance: 0.002})
-                            }
-                            if(image.bitmap.width > maxWidth){
-                                image = image.resize(maxWidth, this.jimp.AUTO)
-                            }
-                            if(image.bitmap.height > maxHeight) {
-                                image = image.resize(this.jimp.AUTO, maxHeight)
-                            }
-                            image.getBufferAsync(this.jimp.AUTO).then(resolve).catch(reject)
-                        } else {
-                            reject('not transparent image ' + ret.err)
+                        if(opts.autocrop){
+                            image.autocrop = this.jimpCustomAutocrop
+                            image = image.autocrop({tolerance: 0.002})
                         }
+                        if(image.bitmap.width > maxWidth){
+                            image = image.resize(maxWidth, this.jimp.AUTO)
+                        }
+                        if(image.bitmap.height > maxHeight) {
+                            image = image.resize(this.jimp.AUTO, maxHeight)
+                        }
+                        let alpha = this.isAlpha(image)
+                        image.getBufferAsync(this.jimp.AUTO).then(data => {
+                            resolve({data, alpha})
+                        }).catch(reject)
                     } else {
                         reject('invalid image** ' + image.bitmap.width +'x'+ image.bitmap.height + ' ' + data.length)
                     }

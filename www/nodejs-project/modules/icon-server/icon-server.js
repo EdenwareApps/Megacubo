@@ -152,9 +152,8 @@ class IconSearch extends IconCache {
             console.log('icons.search', ntms, global.traceback())
         }
         return new Promise((resolve, reject) => {
-            const isRadio = global.lists.msi.isRadio(ntms.join(' '))
             if(this.opts.debug){
-                this.opts.debug('is channel', ntms, isRadio)
+                this.opts.debug('is channel', ntms)
             }
             global.lists.search(ntms, {
                 type: liveOnly ? 'live' : null
@@ -166,16 +165,6 @@ class IconSearch extends IconCache {
                     ret = ret.results.filter(e => {
                         return e.icon.indexOf('//') != -1
                     }).sortByProp('score', true)
-                    if(liveOnly){
-                        let maybeNotLive = []
-                        ret = ret.filter(e => {
-                            let seemsLive = e.name.toLowerCase().indexOf('tv') != -1 || global.lists.msi.isRadio(e.name) == isRadio
-                            if(seemsLive){
-                                return true
-                            }
-                            maybeNotLive.push(e)
-                        }).concat(maybeNotLive)
-                    }
                     if(this.opts.debug){
                         this.opts.debug('fetch from terms', JSON.stringify(ret))
                     }
@@ -197,17 +186,11 @@ class IconTransform extends IconSearch {
     constructor(opts){
         super(opts)
     }
-    transform(data, isInternal){
+    transform(data){
         return new Promise((resolve, reject) => {
-            const opts = {
-                alphaOnly: isInternal ? global.config.get('transparent-logos-only') : false,
+            global.jimp.transform(data, {
                 autocrop: global.config.get('autocrop-logos')
-            }
-            if(opts.autocrop || opts.alphaOnly){
-                global.jimp.transform(data, opts).then(resolve).catch(reject)
-            } else {
-                resolve(data)
-            }
+            }).then(resolve).catch(reject)
         })
     }
 }
@@ -227,16 +210,13 @@ class IconFetcher extends IconTransform {
 			}
 		})
     }
-    fetchURLCallback(content, isInternal){
+    fetchURLCallback(content){
         return new Promise((resolve, reject) => { 
             if(!content || !content.length){
                 return reject('Image not found or empty')
             }
             this.validate(content).then(body => {
-                const next = cbody => {
-                    resolve(cbody)
-                }
-                this.transform(body, isInternal).then(next).catch(err => {
+                this.transform(body).then(resolve).catch(err => {
                     reject('Invalid image data* ' + String(err))
                 })
             }).catch(err => {
@@ -244,7 +224,7 @@ class IconFetcher extends IconTransform {
             })
         })
     }
-    fetchURL(url, isInternal, rcb){  
+    fetchURL(url, rcb){  
         return new Promise((resolve, reject) => { 
             if(url.indexOf('//') == -1){
                 return reject('bad url')
@@ -255,7 +235,7 @@ class IconFetcher extends IconTransform {
                 if(this.opts.debug){
 					this.opts.debug('fetchURL', url, 'cached')
                 }
-                this.fetchURLCallback(content, isInternal).then(resolve).catch(reject)
+                this.fetchURLCallback(content).then(resolve).catch(reject)
             }).catch(err => {
                 if(this.opts.debug){
 					this.opts.debug('fetchURL', url, 'request')
@@ -276,7 +256,7 @@ class IconFetcher extends IconTransform {
                         console.error('Failed to read URL', err, url)
                         reject('Failed to read URL (1): ' + url)
                     } else {
-                        this.fetchURLCallback(content, isInternal).then(resolve).catch(reject)
+                        this.fetchURLCallback(content).then(resolve).catch(reject)
                     }
                 }).catch(err => {
                     if(String(err).indexOf('Promise was cancelled') == -1){
@@ -298,7 +278,7 @@ class IconFetcher extends IconTransform {
             if(terms && terms.length){
                 if(this.queue(terms, resolve, reject)){
                     this.search(terms, true).then(srcs => {
-                        let done, requests = [], images = []
+                        let done, maybe, requests = [], images = []
                         if(url){
                             images.push(url)
                         }
@@ -307,14 +287,21 @@ class IconFetcher extends IconTransform {
                             if(done || src.indexOf('/blank.png') != -1){
                                 return acb()
                             }
-                            this.fetchURL(src, true, req => {
+                            this.fetchURL(src, req => {
                                 requests.push(req)
-                            }).then(content => {
-                                done = content
+                            }).then(ret => {
+                                if(ret.alpha){
+                                    done = ret.data
+                                } else if(!maybe || ret.data.length > maybe.length){
+                                    maybe = ret.data
+                                }
                             }).catch(err => {
                                 console.error(err)
                             }).finally(acb)
                         }, () => {
+                            if(maybe && !done){
+                                done = maybe
+                            }
                             if(done){
                                 this.unqueue(terms, 'resolve', done)
                                 requests.forEach(r => r.cancel())
@@ -325,8 +312,8 @@ class IconFetcher extends IconTransform {
                     }).catch(err => {
                         console.error(err)
                         if(url && url.indexOf('/blank.png') == -1){
-                            this.fetchURL(url, false).then(content => {
-                                this.unqueue(terms, 'resolve', content)
+                            this.fetchURL(url).then(ret => {
+                                this.unqueue(terms, 'resolve', ret.data)
                             }).catch(err => {
                                 this.unqueue(terms, 'reject', err)
                             })
@@ -338,7 +325,7 @@ class IconFetcher extends IconTransform {
                 }
             } else {
                 if(url){
-                    this.fetchURL(url, false).then(resolve).catch(reject)
+                    this.fetchURL(url).then(ret => resolve(ret.data)).catch(reject)
                 } else {
                     reject('no terms, no url')
                 }
@@ -376,12 +363,12 @@ class IconFetcher extends IconTransform {
                                     reject(err)
                                 })
                             } else {
-                                this.fetchURL(url, false).then(resolve).catch(reject)
+                                this.fetchURL(url).then(ret => resolve(ret.data)).catch(reject)
                             }
                         }
                     })
                 } else {
-                    this.fetchURL(url, false).then(resolve).catch(reject)
+                    this.fetchURL(ret => resolve(ret.data)).then(resolve).catch(reject)
                 }
             })
         })

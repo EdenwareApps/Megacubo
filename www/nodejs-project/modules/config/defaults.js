@@ -44,7 +44,6 @@ module.exports = {
 	'shared-mode-lists-amount': 0,
 	'show-logos': true,
 	'trackers-list-url': 'https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all.txt',
-	'transparent-logos-only': true,
 	'tuning-concurrency': 3,
 	'uppercase-menu': false,
 	'use-keepalive': true,

@@ -126,16 +126,6 @@ class Theme extends Events {
                     }
                 },
                 {
-                    name: global.lang.PREFER_LOGOS_WITH_TRANSPARENCY,
-                    type: 'check',
-                    action: (e, checked) => {
-                        global.config.set('transparent-logos-only', checked)
-                    }, 
-                    checked: () => {
-                        return global.config.get('transparent-logos-only')
-                    }
-                },
-                {
                     name: global.lang.HIDE_BACK_BUTTON, 
                     type: 'check', 
                     action: (data, value) => {

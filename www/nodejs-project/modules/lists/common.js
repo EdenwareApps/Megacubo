@@ -50,7 +50,7 @@ class Common extends Events {
 				return s && this.stopWords.indexOf(s) == -1
 			})
 	}
-	match(needleTerms, stackTerms, partial){
+	match(needleTerms, stackTerms, partial){ // partial=true will match "starts with" terms too
 		if(needleTerms.length && stackTerms.length){
 			let score = 0, excludeMatch
 			needleTerms = needleTerms.filter(t => {
