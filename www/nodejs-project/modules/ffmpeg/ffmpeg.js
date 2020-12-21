@@ -5,6 +5,12 @@ class FFMPEGHelper extends Events {
 	constructor(){
 		super()
 	}
+	fmtExecutableSlashes(path){
+		if(['darwin'].includes(process.platform)){
+			return path.replace(new RegExp(' ', 'g'), '\\ ')
+		}
+		return path
+	}
 	copy(source, callback){
 		const chmod = () => {
 			fs.access(this.path, fs.constants.X_OK, err => {
@@ -114,6 +120,7 @@ class FFMPEG extends FFMPEGHelper {
 		if(!this.isReady){
 			const callback = () => {
 				ffmpeg.setFfmpegPath(this.path)
+				this.path = this.fmtExecutableSlashes(this.path)
 				this.mediainfo.opts.ffmpegPath = this.path
 				this.isReady = true
 				this.emit('ready')
@@ -141,7 +148,8 @@ class FFMPEG extends FFMPEGHelper {
 		})
 	}
 	prepareLinux(callback){
-		this.copy(file, callback)
+		let sourceFile = path.resolve(path.join(global.APPDIR, './ffmpeg/ffmpeg'))
+		this.copy(sourceFile, callback)
 	}
     version(cb){
         const next = data => {
@@ -153,11 +161,7 @@ class FFMPEG extends FFMPEGHelper {
 				cb(false)
 			}
         }
-        if(fs.existsSync(this.path)){
-            this.mediainfo.version(next)
-        } else {
-            next('')
-        }
+        this.mediainfo.version(next)
     }
 }
 
