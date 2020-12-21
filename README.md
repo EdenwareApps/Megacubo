@@ -12,7 +12,7 @@ Want to use the software, go to [our releases folder](https://github.com/efoxbr/
    
 # Development
 
-### On Cordova:
+### With Cordova:
 ```
 git clone https://github.com/efoxbr/megacubo.git
 cd megacubo
@@ -20,14 +20,14 @@ cordova prepare
 ```
 After that, edit the file build-extras.gradle to choose the target ABIs.
 
-### On NW.js (>=0.37.4):
+### With NW.js (>=0.37.4):
 ```
 git clone https://github.com/efoxbr/megacubo.git
 cd megacubo
 nw --nwapp=www/nodejs-project
 ```
 
-### Using browser + node (>= 11.14.0):
+### With browser + node (>= 11.14.0):
 ```
 git clone https://github.com/efoxbr/megacubo.git
 cd megacubo/www/nodejs-project
