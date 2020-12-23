@@ -17,7 +17,6 @@ Want to use the software, go to [our releases folder](https://github.com/efoxbr/
 git clone https://github.com/efoxbr/megacubo.git
 cd megacubo
 cordova prepare
-npm install
 ```
 After that, edit the file build-extras.gradle to choose the target ABIs.
 
