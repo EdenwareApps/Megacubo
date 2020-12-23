@@ -2,7 +2,7 @@
 class IconServerClient extends EventEmitter {
     constructor(opts){
         super()
-        this.debug = true
+        this.debug = false
         this.concurrency = 8
         this.minValidIconSize = 32
         if(parent.cordova){

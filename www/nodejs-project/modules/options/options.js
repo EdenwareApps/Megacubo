@@ -1,7 +1,104 @@
 
 const Events = require('events'), fs = require('fs'), path = require('path')
 
-class Options extends Events {
+class Timer extends Events {
+    constructor(){
+        super()
+        this.timerTimer = 0
+        this.timerData = 0
+        this.timerLabel = false
+    }
+    timer(){
+        return new Promise((resolve, reject) => {
+            let opts = [];
+            [5, 15, 30, 45].forEach((m) => {
+                opts.push({name: global.lang.AFTER_X_MINUTES.format(m), details: global.lang.TIMER, fa: 'fas fa-clock', type: 'group', entries: [], renderer: this.timerChooseAction.bind(this, m)});
+            });
+            [1, 2, 3].forEach((h) => {
+                opts.push({name: global.lang.AFTER_X_HOURS.format(h), details: global.lang.TIMER, fa: 'fas fa-clock', type: 'group', entries: [], renderer: this.timerChooseAction.bind(this, h * 60)});
+            })
+            resolve(opts)
+        })
+    }
+    timerEntry(){
+        let details = ''
+        if(this.timerData){
+            details = this.timerData.action +': '+ global.moment(this.timerData.end * 1000).fromNow()
+            return {
+                name: global.lang.TIMER, 
+                fa: 'fas fa-stopwatch',
+                type: 'action', 
+                details,
+                action: () => {
+                    clearTimeout(this.timerData['timer'])
+                    this.timerData = 0
+                    global.explorer.refresh()
+                }
+            }
+        } else {
+            return {
+                name: global.lang.TIMER, 
+                fa: 'fas fa-stopwatch',
+                type: 'group', 
+                renderer: this.timer.bind(this)
+            }
+        }
+    }
+    timerChooseAction(minutes){
+        return new Promise((resolve, reject) => {
+            var opts = [
+                {name: global.lang.STOP, type: 'action', fa: 'fas fa-stop', action: () => this.timerChosen(minutes, global.lang.STOP)},
+                {name: global.lang.CLOSE, type: 'action', fa: 'fas fa-times-circle', action: () => this.timerChosen(minutes, global.lang.CLOSE)}
+            ]
+            if(!global.cordova){
+                opts.push({name: global.lang.SHUTDOWN, type: 'action', fa: 'fas fa-power-off', action: () => this.timerChosen(minutes, global.lang.SHUTDOWN)})
+            }
+            resolve(opts)
+        })
+    }
+    timerChosen(minutes, action){
+        let t = global.time()
+        this.timerData = {minutes, action, start: t, end: t + (minutes * 60)}
+        this.timerData['timer'] = setTimeout(() => {
+            console.warn('TIMER ACTION', this.timerData)
+            let action = this.timerData.action
+            if(global.streamer.active){
+                if(global.tuning){
+                    global.tuning.destroy()
+                }
+                global.streamer.stop()
+            }
+            if(action != global.lang.STOP){
+                let recording = global.recorder && global.recorder.active() ? global.recorder.capture : false, next = () => {
+                    if(action == global.lang.CLOSE){
+                        global.energy.exit()
+                    } else if(action == global.lang.SHUTDOWN){
+                        this.timerActionShutdown()
+                        global.energy.exit()
+                    }
+                }
+                if(recording){
+                    recording.on('destroy', next)
+                } else {
+                    next()
+                }
+            }
+            this.timerData = 0
+        }, this.timerData.minutes * 60000)
+        global.explorer.open(global.lang.TOOLS).catch(global.displayErr)
+    }
+    timerActionShutdown(){
+        var cmd, secs = 7, exec = require("child_process").exec;
+        if(process.platform === 'win32') {
+            cmd = 'shutdown -s -f -t '+secs+' -c "Shutdown system in '+secs+'s"';
+        } else {
+            cmd = 'shutdown -h +'+secs+' "Shutdown system in '+secs+'s"';
+        }
+        return exec(cmd)
+    }
+}
+
+class Options extends Timer {
     constructor(){
         super()
         this.languageNames = {
@@ -18,7 +115,8 @@ class Options extends Events {
             let entries = [
                 {name: global.lang.OPEN_URL, fa: 'fas fa-link', type: 'action', action: () => {
                     global.ui.emit('prompt', global.lang.OPEN_URL, 'http://.../example.m3u8', '', 'open-url', false, 'fas fa-link')
-                }}
+                }},
+                this.timerEntry()
             ]
             resolve(entries)
         })

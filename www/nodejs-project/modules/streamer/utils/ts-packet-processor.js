@@ -192,7 +192,7 @@ class TSPacketProcessor extends Events {
         return ret
     }
     isPCRAligned(prevPCR, nextPCR){
-        let pcrGapLimit = 699999999
+        let pcrGapLimit = 899999999
         return prevPCR && Math.abs(nextPCR - prevPCR) <= pcrGapLimit
     }
     checkSyncByte(c, pos){
