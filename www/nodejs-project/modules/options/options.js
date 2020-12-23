@@ -133,10 +133,10 @@ class Options extends Events {
                     range: {start: 5, end: 60},
                     action: (data, value) => {
                         console.warn('CONNECT_TIMEOUT', data, value)
-                        global.config.set('request-timeout', value)
+                        global.config.set('connect-timeout', value)
                     }, 
                     value: () => {
-                        return global.config.get('request-timeout')
+                        return global.config.get('connect-timeout')
                     }
                 }
             ]
@@ -149,7 +149,7 @@ class Options extends Events {
                     value: () => {
                         return global.config.get('shared-mode-lists-amount')
                     }, 
-                    range: {start: 3, end: 24}, 
+                    range: {start: 3, end: global.cordova ? 8 : 12}, // lower for smartphones to prevent OOM
                     action: (data, value) => {
                         global.config.set('shared-mode-lists-amount', value)
                     }

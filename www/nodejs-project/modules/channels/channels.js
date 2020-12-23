@@ -394,23 +394,23 @@ class ChannelsEditing extends ChannelsEPG {
                                         action: () => {
                                             console.log(image)
                                             global.icons.fetchURL(image).then(content => {
-                                                global.icons.saveCache(terms, content, () => {
+                                                global.icons.saveCache(terms, content.data, () => {
                                                     console.log('icon changed', terms, content)
                                                     global.explorer.deepRefresh(global.explorer.dirname(global.explorer.path))
                                                     global.osd.show(global.lang.ICON_CHANGED, 'fas fa-check-circle', 'channels', 'normal')
                                                 })
-                                            }).catch(console.error)
+                                            }).catch(global.displayErr)
                                         }
                                     }
                                 })
                                 ret.push({name: global.lang.OPEN_URL, type: 'input', fa: 'fas fa-link', action: (err, val) => {   
                                     console.log('from-url', terms, '') 
                                     global.icons.fetchURL(val).then(content => {
-                                        global.icons.saveCache(terms, content, () => {
+                                        global.icons.saveCache(terms, content.data, () => {
                                             global.explorer.deepRefresh(global.explorer.dirname(global.explorer.path))
                                             global.osd.show(global.lang.ICON_CHANGED, 'fas fa-check-circle', 'channels', 'normal')
                                         })
-                                    }).catch(console.error)
+                                    }).catch(global.displayErr)
                                 }})
                                 ret.push({name: global.lang.NO_ICON, type: 'action', fa: 'fas fa-play-circle', action: () => {   
                                     console.log('savecache', terms, '') 

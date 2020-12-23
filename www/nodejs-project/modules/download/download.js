@@ -14,7 +14,7 @@ class Download extends Events {
 				'accept-language': global.lang.locale + ';q=0.9, *;q=0.5'
 			},
 			permanentErrorCodes: [400, 404, 405, 410],
-			timeout: 5,
+			timeout: null,
 			followRedirect: false,
 			decompress: true
 		}		
@@ -166,16 +166,17 @@ class Download extends Events {
         return uri.href
     }
 	getTimeoutOptions(){
-		let timeout = {} 
-		if(this.opts.timeout > 0){
-			let ms = this.opts.timeout * 1000
+		if(this.opts.timeout && typeof(this.opts.timeout) == 'object' && this.opts.timeout.lookup){
+			return this.opts.timeout
+		} else {
+			let ms, timeout = {}
+			if(typeof(this.opts.timeout) == 'number' && this.opts.timeout > 0){
+				ms = this.opts.timeout * 1000
+			} else {
+				ms = (global.config.get('connect-timeout') || 5) * 1000
+			}
 			'lookup,connect,secureConnect,socket,response'.split(',').forEach(s => timeout[s] = ms)
 			'send,request'.split(',').forEach(s => timeout[s] = ms * 2)
-			return timeout
-		} else {
-			let ms = 10000
-			'lookup,connect,secureConnect,socket,response'.split(',').forEach(s => timeout[s] = ms)
-			'send,request'.split(',').forEach(s => timeout[s] = ms * 99)
 			return timeout
 		}
 	}

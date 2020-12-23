@@ -38,6 +38,7 @@ module.exports = {
 	'parental-control-policy': 'block',
 	'parental-control-terms': '.',
 	'playback-renderer': '',
+	'connect-timeout': 5,
 	'resume': false,
 	'search-missing-logos': true,
 	'setup-complete': false,

@@ -93,7 +93,32 @@ class LegalIPTV {
                         renderer: data => {
                             return new Promise((resolve, reject) => {
                                 this.get(name).then(content => {
-                                    global.lists.directListRendererParse(content, this.data[name]).then(resolve).catch(reject)
+                                    global.lists.directListRendererParse(content, this.data[name]).then(list => {
+                                        let url = this.url(name)
+                                        if(global.activeLists.my.includes(url)){
+                                            list.unshift({
+                                                type: 'action',
+                                                name: global.lang.LIST_ALREADY_ADDED,
+                                                details: global.lang.REMOVE_LIST, 
+                                                fa: 'fas fa-minus-square',
+                                                action: () => {             
+                                                    global.lists.manager.remove(url)
+                                                    global.osd.show(global.lang.LIST_REMOVED, 'fas fa-info-circle', 'options', 'normal')
+                                                    global.explorer.back()
+                                                }
+                                            })
+                                        } else {
+                                            list.unshift({
+                                                type: 'action',
+                                                fa: 'fas fa-plus-square',
+                                                name: global.lang.ADD_TO.format(global.lang.MY_LISTS),
+                                                action: () => {
+                                                    global.lists.manager.addList(url).catch(console.error)
+                                                }
+                                            })
+                                        }
+                                        resolve(list)
+                                    }).catch(reject)
                                 }).catch(reject)
                             })
                         }

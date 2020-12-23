@@ -22,13 +22,14 @@ class AnalyticsBase extends Events {
         data.uiLocale = global.lang.locale
         data.arch = process.arch
         data.platform = process.platform
+        data.country = global.lang.countryCode
         data.ver = global.MANIFEST.version
         data.verinf = ''
         if(global.premium && global.premium.active){
             data.verinf = global.premium.active
         }
-        if(data.source && global.config.get('shared-mode-lists-amount') == 0){
-            console.log('Source URL not shareable.')
+        if(data.source && !global.config.get('shared-mode-lists-amount')){
+            // console.log('Source URL not shareable.')
             data.source = ''
         }
         let postData = this.toQS(data)

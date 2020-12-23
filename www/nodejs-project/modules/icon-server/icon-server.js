@@ -226,6 +226,7 @@ class IconFetcher extends IconTransform {
     }
     fetchURL(url, rcb){  
         return new Promise((resolve, reject) => { 
+            console.warn('WILLFETCH', url, typeof(url))
             if(url.indexOf('//') == -1){
                 return reject('bad url')
             }
@@ -366,9 +367,9 @@ class IconFetcher extends IconTransform {
                                 this.fetchURL(url).then(ret => resolve(ret.data)).catch(reject)
                             }
                         }
-                    })
+                    }).catch(console.error)
                 } else {
-                    this.fetchURL(ret => resolve(ret.data)).then(resolve).catch(reject)
+                    this.fetchURL(url).then(ret => resolve(ret.data)).catch(reject)
                 }
             })
         })
@@ -629,7 +630,7 @@ class IconServer extends IconFetchQueue {
                         }
                     }).catch(err => {
                         if(this.opts.debug){
-                            this.opts.debug('get() catched', url)
+                            this.opts.debug('get() catched', url, global.traceback())
                         }
                         response.writeHead(404, {
                             'Access-Control-Allow-Origin': '*',

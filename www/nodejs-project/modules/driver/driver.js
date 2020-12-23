@@ -1,7 +1,7 @@
 const fs = require('fs')
 
 function prepare(file){ // workaround, macos throws not found for local files when calling Worker
-	return 'data:application/x-javascript;base64,' + btoa(fs.readFileSync(file))
+	return 'data:application/x-javascript;base64,' + Buffer.from(fs.readFileSync(file)).toString('base64')
 }
 
 module.exports = (file, opts) => {
@@ -17,7 +17,7 @@ module.exports = (file, opts) => {
 			this.err = null
 			this.promises = {}
 			this.Worker = require('worker_threads').Worker
-			this.worker = new this.Worker(prepare(global.APPDIR + '/modules/driver/worker.js'), {workerData, stdout: true, stderr: true})
+			this.worker = new this.Worker(global.APPDIR + '/modules/driver/worker.js', {workerData, stdout: true, stderr: true})
 			this.worker.on('error', err => {
 				let serr = String(err)
 				this.err = err

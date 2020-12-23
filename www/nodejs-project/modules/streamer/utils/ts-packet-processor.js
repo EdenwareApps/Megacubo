@@ -85,11 +85,6 @@ class TSPacketProcessor extends Events {
         }
         let pointer = 0, pcrs = {}, buf = Buffer.concat(this.buffering)
         if(!this.checkSyncByte(buf, 0)){
-            if(this.parsingPCR){ // continue receiving the parsingPCR, no need for further checking cause it comes from same connection
-                if(typeof(pcrs[this.parsingPCR]) == 'undefined'){
-                    pcrs[this.parsingPCR] = pointer // pointer is zero yet
-                }
-            }
             pointer = this.nextSyncByte(buf, 0)
             if(pointer == -1){
                 if(clear){
@@ -134,7 +129,7 @@ class TSPacketProcessor extends Events {
             const x = this.parsePacket(buf.slice(pointer, pointer + size))
             if(x.adaptationField && x.adaptationField.pcr){ // is pcr packet
                 if(this.parsingPCR){ // already receiving a specific pcr
-                    if(parseInt(x.adaptationField.pcr) > parseInt(this.parsingPCR)){ // go to new pcr
+                    if(parseInt(x.adaptationField.pcr) != parseInt(this.parsingPCR)){ // go to new pcr
                         this.currentPCR = this.parsingPCR = x.adaptationField.pcr
                         pcrs[this.parsingPCR] = pointer
                     } else { // continue receiving the parsingPCR, no need for further checking cause it comes from same connection
@@ -143,9 +138,14 @@ class TSPacketProcessor extends Events {
                         }
                     }
                 } else { // new connection
-                    if(!this.currentPCR || (parseInt(x.adaptationField.pcr) > parseInt(this.currentPCR))){ // first connection OR next pcr
+                    if(this.debug){
+                        this.debug('packet', this.currentPCR, parseInt(x.adaptationField.pcr) +' > '+ parseInt(this.currentPCR))
+                    }
+                    if(!this.currentPCR || parseInt(x.adaptationField.pcr) > parseInt(this.currentPCR)){ // first connection OR next pcr
                         this.currentPCR = this.parsingPCR = x.adaptationField.pcr
                         pcrs[this.parsingPCR] = pointer
+                    } else if(!this.isPCRAligned(this.currentPCR, x.adaptationField.pcr)){ // pcr gap
+                        console.log('PCR GAP', this.currentPCR, x.adaptationField.pcr, Math.abs(this.currentPCR - x.adaptationField.pcr))
                     }
                 }
             } else { // not a pcr packet
@@ -191,6 +191,10 @@ class TSPacketProcessor extends Events {
         }
         return ret
     }
+    isPCRAligned(prevPCR, nextPCR){
+        let pcrGapLimit = 699999999
+        return prevPCR && Math.abs(nextPCR - prevPCR) <= pcrGapLimit
+    }
     checkSyncByte(c, pos){
         if(pos < 0 || pos > (c.length - 4)){
             return false
@@ -222,7 +226,13 @@ class TSPacketProcessor extends Events {
             const now = global.time()
             if(clear || ((this.lastFlushTime - now) >= this.minFlushInterval)){
                 this.lastFlushTime = now
+                if(this.debug){
+                    this.debug('preproc', global.kbfmt(this.len(this.buffering)))
+                }
                 let data = this.process(clear)
+                if(this.debug){
+                    this.debug('posproc', global.kbfmt(this.len(data)))
+                }
                 if(data){
                     if(this.debug){
                         this.debug('data', global.kbfmt(this.len(data)))

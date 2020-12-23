@@ -9,15 +9,15 @@ class StreamerAdapterBase extends Events {
 			addr: '127.0.0.1',
 			minBitrateCheckSize: 48 * 1024,
 			maxBitrateCheckSize: 3 * (1024 * 1024),
-			requestTimeout: global.config.get('request-timeout') || 5,
+			connectTimeout: global.config.get('connect-timeout') || 5,
 			bitrateCheckingAmount: 3,
 			debug: false,
 			port: 0
 		};
-		this.gotTimeout = {}
-		let ms = this.opts.requestTimeout * 1000
-		'lookup,connect,secureConnect,socket,response'.split(',').forEach(s => this.gotTimeout[s] = ms)
-		'send,request'.split(',').forEach(s => this.gotTimeout[s] = ms * 2)
+		this.downloadTimeout = {}
+		let ms = this.opts.connectTimeout * 1000
+		'lookup,connect,secureConnect,socket,response'.split(',').forEach(s => this.downloadTimeout[s] = ms)
+		'send,request'.split(',').forEach(s => this.downloadTimeout[s] = ms * 2)
 		this.defaults = this.opts
 		if(opts){
 			this.setOpts(opts)
@@ -189,7 +189,6 @@ class StreamerAdapterBase extends Events {
 		}
 	}
 	finishBitrateSample(id = 'default'){
-		console.log('finishBitrateSample', this.bitrateCheckBuffer[id], id)
 		if(typeof(this.bitrateCheckBuffer[id]) != 'undefined'){
 			console.log('finishBitrateSample', this.bitrates.length, this.opts.bitrateCheckingAmount)
 			if(this.bitrates.length < this.opts.bitrateCheckingAmount){

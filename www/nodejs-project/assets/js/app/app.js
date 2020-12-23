@@ -48,13 +48,17 @@ function exitUI(){
 
 function restart(){
     console.log('restart()')
-    explorer.dialog([
-        {template: 'question', text: 'Megacubo', fa: 'fas fa-info-circle'},
-        {template: 'message', text: lang.SHOULD_RESTART},
-        {template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle'}
-    ], () => {
-        exit()
-    })
+    if(parent.plugins && parent.plugins.megacubo){
+        parent.plugins.megacubo.restartApp()
+    } else {
+        explorer.dialog([
+            {template: 'question', text: 'Megacubo', fa: 'fas fa-info-circle'},
+            {template: 'message', text: lang.SHOULD_RESTART},
+            {template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle'}
+        ], () => {
+            exit()
+        })
+    }
 }
 
 function exit(){

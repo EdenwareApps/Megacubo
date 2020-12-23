@@ -2,8 +2,9 @@
 class IconServerClient extends EventEmitter {
     constructor(opts){
         super()
-        this.debug = false
+        this.debug = true
         this.concurrency = 8
+        this.minValidIconSize = 32
         if(parent.cordova){
             this.concurrency = 3
         }
@@ -42,6 +43,9 @@ class IconServerClient extends EventEmitter {
                 }
                 if(this.testers[url]){
                     delete this.testers[url]
+                }
+                if(!ret || ret.length < this.minValidIconSize){
+                    ret = ''
                 }
                 if(Array.isArray(this.callbacks[url])){
                     var fss = this.callbacks[url]
@@ -83,7 +87,7 @@ class IconServerClient extends EventEmitter {
         let found, shouldCancel = () => {
             return (found || !element || !element.parentNode)
         }, next = () => {
-            this.log('IconServerClient.process(), VALIDATE RESULT', element, found)
+            this.log('IconServerClient.process(), VALIDATE RESULT', element, src, found)
             this.emit('validate', element, src, found)
             cb()
             element = null
@@ -122,7 +126,7 @@ class IconServerClient extends EventEmitter {
             }
         }, timeout * 1000)
         this.load(url, ret => {
-            if(ret){
+            if(ret instanceof Blob && ret.size >= this.minValidIconSize){
                 this.log('IconServerClient checkImage.load()', url, ret)
                 if(!solved){
                     solved = true
