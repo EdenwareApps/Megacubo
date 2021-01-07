@@ -31,7 +31,7 @@
 "PLAY":"Reproduzir",
 "PAUSE":"Pausar",
 "PAUSED": "Pausado",
-"ESC_TO_EXIT":"Pressione a tecla ESC para sair",
+"EXIT_FS_HINT":"Pressione a tecla {0} para sair da tela cheia",
 "BOOKMARKS": "Favoritos",
 "FAV_ADDED":"{0} adicionado aos favoritos",
 "FAV_REMOVED":"{0} removido dos favoritos",
@@ -402,7 +402,7 @@
 "SEARCH_MISSING_LOGOS": "Buscar logos ausentes em listas",
 "TUNING_NO_ACTIVE_STREAM_IN_LISTS": "Não há transmissão ativa deste conteúdo em suas listas",
 "AVOID_TS_TRANSMISSIONS": "Evitar transmissões TS",
-"TRANSMISSION_NOT_WORKING_HINT": "Se a transmissão não funcionar, clique no ícone <i class=\"{0}\"></i> para troca-la",
+"TRANSMISSION_NOT_WORKING_HINT": "Problema na transmissão? Clique em <i class=\"{0}\"></i> para trocar",
 "TOS": "Termos de Uso",
 "FFMPEG_VERSION": "Versão do FFmpeg",
 "ASK_EXIT": "Deseja fechar o Megacubo?",
@@ -480,5 +480,12 @@
 "ENABLE_PREMIUM_MESSAGE": "A versão instalada não possui os recursos especiais. Para obte-los faça o download do programa completo em nosso site e instale-o.",
 "LEGAL_IPTV_INFO": "As listas desta seção são fornecidas e mantidas pela comunidade, como listas de acesso livre e legal.",
 "KNOW_MORE": "Saiba mais",
-"LEGAL_IPTV": "IPTV Legal"
+"LEGAL_IPTV": "IPTV Legal",
+"LOW_DISK_SPACE_AVAILABLE": "Seu dispositivo está ficando sem espaço ({0} disponível). Isso pode afetar o desempenho do aplicativo.",
+"LOW_MEMORY_AVAILABLE": "Seu dispositivo está com pouca memória ({0} disponível). Isso pode afetar o desempenho do aplicativo.",
+"STARTUP": "Inicialização",
+"NONE": "Nenhum",
+"STARTING_LISTS": "Iniciando listas...",
+"SELECT": "Selecionar",
+"MORE_RESULTS": "Mais resultados"
 }

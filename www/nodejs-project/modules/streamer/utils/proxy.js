@@ -200,7 +200,6 @@ class StreamerProxy extends StreamerProxyBase {
 				delete reqHeaders[k]
 			}
 		})
-		reqHeaders['accept-encoding'] = 'identity' // https://github.com/sindresorhus/got/issues/145
 		if(this.debug){
 			this.debug('serving', url, req, path.basename(url), url, reqHeaders)
 		}
@@ -210,16 +209,18 @@ class StreamerProxy extends StreamerProxyBase {
 			url,
 			retries: 5,
 			keepalive: this.committed && global.config.get('use-keepalive'),
-			headers: reqHeaders
+			headers: reqHeaders,
+			followRedirect: false
 		})
 		this.connections[uid] = {response, download}
 		const end = data => {
 			if(!ended){
 				ended = true
-				console.warn('ended', uid, traceback())
 				this.destroyConn(uid, data, false)
 			}
-			console.warn('ended', uid, traceback())
+			if(this.opts.debug){
+				this.opts.debug('ended', uid, traceback())
+			}
 		}
 		/* Prevent never-ending responses bug on v10.5.0. Is it needed yet? */
 		if(response.socket){
@@ -251,7 +252,7 @@ class StreamerProxy extends StreamerProxyBase {
 				end()
 			}
 		})
-		if(global.config.get('debug-messages')){
+		if(this.committed && global.config.get('debug-messages')){
 			download.on('error', err => {
 				if(this.committed){
 					global.osd.show((err.response ? err.response.statusCode : 'timeout') + ' error', 'fas fa-times-circle', 'debug-conn-err', 'normal')
@@ -279,6 +280,9 @@ class StreamerProxy extends StreamerProxyBase {
 					}
 				}
 			} else {
+				if(this.committed && global.config.get('debug-messages')){
+					global.osd.show((statusCode || 'timeout') + ' error', 'fas fa-times-circle', 'debug-conn-err', 'normal')
+				}
 				let fallback, location
 				if(statusCode == 404){
 					Object.keys(this.playlists).some(masterUrl => {
@@ -382,7 +386,7 @@ class StreamerProxy extends StreamerProxyBase {
 			}
 			end()
 		}
-		console.warn('handleVideoResponse', doBitrateCheck, this.opts.forceFirstBitrateDetection, offset, download, statusCode, headers)
+		// console.warn('handleVideoResponse', doBitrateCheck, this.opts.forceFirstBitrateDetection, offset, download, statusCode, headers)
 		if(doBitrateCheck && this.opts.forceFirstBitrateDetection){
 			response.on(this.internalRequestAbortedEvent, () => { // client disconnected
 				//console.warn('forceFirstBitrateDetection hack applied')

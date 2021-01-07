@@ -31,10 +31,11 @@ if(global.bytenode){
 const Driver = require(file), driver = new Driver()
 parentPort.on('message', msg => {
     if(msg.method == 'configChange'){
-        console.log('CONFIG CHANGED!', file)
+        //console.log('CONFIG CHANGED!', file)
         global.config.reload()
     } else if(typeof(driver[msg.method]) == 'undefined'){
-        parentPort.postMessage({id: msg.id, type: 'reject', data: 'method not exists'})
+        data = {id: msg.id, type: 'reject', data: 'method not exists'}
+        parentPort.postMessage(data)
     } else {
         let type, data = null
         driver[msg.method].apply(driver, msg.args).then(ret => {
@@ -44,7 +45,8 @@ parentPort.on('message', msg => {
             type = 'reject'
             data = err
         }).finally(() => {
-            parentPort.postMessage({id: msg.id, type, data})
+            data = {id: msg.id, type, data}
+            parentPort.postMessage(data)
         })
     }
 })

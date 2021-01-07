@@ -40,11 +40,12 @@ class EntriesGroup extends Events {
     }
     add(entry){
         console.log('[entries-group-'+this.key+'] ADD', entry)
-        let nentry = Object.assign({}, entry)
-        nentry.class = ''
-        if(typeof(nentry.type)!='undefined'){
-            delete nentry.type
-        }
+        let nentry = Object.assign({}, entry);
+        ['class', 'type', 'path', 'users', 'position'].forEach(k => {
+            if(typeof(nentry[k])!='undefined'){
+                delete nentry[k]
+            }
+        })
         if(!this.allowDupes){
             for(var i in this.data){
                 if(this.data[i].url == nentry.url){

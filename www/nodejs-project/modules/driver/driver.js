@@ -21,7 +21,7 @@ module.exports = (file, opts) => {
 			this.worker.on('error', err => {
 				let serr = String(err)
 				this.err = err
-				console.error('error ' + file, serr)
+				console.error('error ' + file, err, serr)
 				if(serr.match(new RegExp('(out of memory|out_of_memory)', 'i'))){
 					let msg = 'Worker #' + file.split('/').pop() + ' exitted out of memory, fix the settings and restart the app.'
 					global.osd.show(msg, 'fas fa-exclamation-triagle faclr-red', 'out-of-memory', 'persistent')
@@ -72,7 +72,7 @@ module.exports = (file, opts) => {
 			this.worker.onerror = err => {
 				let serr = String(err)
 				this.err = err
-				console.error('error ' + file, serr)
+				console.error('error ' + file, err, serr)
 				if(serr.match(new RegExp('(out of memory|out_of_memory)', 'i'))){
 					let msg = 'Worker #' + file.split('/').pop() + ' exitted out of memory, fix the settings and restart the app.'
 					global.osd.show(msg, 'fas fa-exclamation-triagle faclr-red', 'out-of-memory', 'persistent')
@@ -98,7 +98,7 @@ module.exports = (file, opts) => {
 				}
 			}
 			global.config.on('change', () => {
-				console.log('CONFIG CHANGED!')
+				//console.log('CONFIG CHANGED!')
 				this.worker.postMessage({method: 'configChange', id: 0})
 			})
 			return new Proxy(this, {

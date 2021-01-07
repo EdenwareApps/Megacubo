@@ -5,30 +5,47 @@ class ParentalControl extends Events {
 	constructor(){
 		super()
 		this.termsRegex = false
-		this.setTerms(global.config.get('parental-control-terms'))
+		this.setupTerms()
+		this.update()
 	}
-	setTerms(terms){
-		if(terms.length == 1){ // initial value, do setup
-			this.terms = []
-			//console.warn('TERMS', this.terms)
-			global.cloud.get('configure').then(c => {
-				//console.warn('TERMS', c.adultTerms)
-				this.terms = this.terms.concat(this.keywords(c.adultTerms))
-				//console.warn('TERMS', this.keywords(c.adultTerms), this.terms)
-				if(this.terms.length){
-					this.terms = [...new Set(this.terms)]
-					global.config.set('parental-control-terms', this.terms.join(','))
-				}
-				this.emit('updated')
-			}).catch(console.error)
-		} else {
-			this.terms = this.keywords(terms)			
-			//console.warn('TERMS', this.terms)
-		}
+	setupTerms(){
+		this.terms = this.keywords(global.config.get('parental-control-terms'))		
 		if(this.terms.length){
 			this.termsRegex = new RegExp(this.terms.join('|').replace(new RegExp('\\+', 'g'), '\\+'), 'i')
 		} else {
 			this.termsRegex = false
+		}
+		this.update()
+	}
+	setTerms(terms){
+		if(typeof(terms) == 'string'){
+			this.terms = this.keywords(terms)	
+		} else if(!Array.isArray(terms)) {
+			console.error('Bad terms format', terms)
+			return
+		}
+		this.terms = [...new Set(this.terms)] // make unique
+		let sterms = this.terms.join(',')
+		global.config.set('parental-control-terms', sterms)
+		this.emit('updated')
+		if(this.terms.length){
+			this.termsRegex = new RegExp(this.terms.join('|').replace(new RegExp('\\+', 'g'), '\\+'), 'i')
+		} else {
+			this.termsRegex = false
+		}
+	}
+	update(){
+		if(global.config.get('parental-control-terms') == global.config.defaults['parental-control-terms']){ // update only if the user didn't customized
+			global.cloud.get('configure').then(c => {
+				if(c && c.adultTerms){
+					this.terms = this.terms.concat(this.keywords(c.adultTerms))
+					if(this.terms.length){
+						this.terms = [...new Set(this.terms)]
+						global.config.set('parental-control-terms', this.terms.join(','))
+					}
+				}
+				this.emit('updated')
+			}).catch(console.error)
 		}
 	}
 	keywords(str){

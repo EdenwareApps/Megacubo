@@ -1,17 +1,22 @@
+const Countries = require('../countries')
 
 class LegalIPTV {
-    constructor(opts){
+    constructor(opts={}){
+        this.opts = opts
         this.title = global.lang.LEGAL_IPTV
         this.repo = 'Free-IPTV/Countries'
         this.cachingDomain = 'legal-iptv-'
         this.cachingTTL = 12 * 3600
         this.data = {}
         this.icon = 'fas fa-thumbs-up'
-        global.ui.on('legal-iptv', ret => {
-            if(ret == 'know'){
-                global.ui.emit('open-external-url', 'https://github.com/{0}'.format(this.repo))
-            }
-        })
+        this.countries = new Countries()
+        if(!this.opts.shadow){
+            global.ui.on('legal-iptv', ret => {
+                if(ret == 'know'){
+                    global.ui.emit('open-external-url', 'https://github.com/{0}'.format(this.repo))
+                }
+            })
+        }
     }
     url(file){
         if(file){
@@ -70,30 +75,40 @@ class LegalIPTV {
             })
         })
     }
-    prepareName(name){
+    prepareName(name, countryCode){
+        let n = this.countries.nameFromCountryCode(countryCode, global.lang.locale)
+        if(n){
+            return n
+        }
         return name.replace(new RegExp('\\.m3u.*', 'i'), '').replace(new RegExp('[_\\-]+', 'g'), ' ')
     }
     entries(){
         return new Promise((resolve, reject) => {  
-            if(!Object.values(this.data).length){
+            if(!this.opts.shadow && !Object.values(this.data).length){
                 this.showInfo()
             }
             this.get().then(() => {
-                let entries = [{
-                    name: global.lang.KNOW_MORE,
-                    fa: 'fas fa-info-circle',
-                    type: 'action',
-                    action: this.showInfo.bind(this)
-                }]
+                let already = {}, entries = []
                 entries = entries.concat(Object.keys(this.data).map(name => {
+                    let countryCode = this.countries.extractCountryCodes(name)
+                    countryCode = countryCode.length ? countryCode.shift() : ''
+                    let displayName = this.prepareName(name, countryCode)
+                    if(typeof(already[displayName]) == 'undefined'){
+                        already[displayName] = 1
+                    } else {
+                        already[displayName]++
+                        displayName += ' '+ already[displayName]
+                    }
                     return {
-                        name: this.prepareName(name),
+                        name: displayName,
                         fa: 'fas fa-satellite-dish',
                         type: 'group',
+                        countryCode,
+                        file: name,
                         renderer: data => {
                             return new Promise((resolve, reject) => {
                                 this.get(name).then(content => {
-                                    global.lists.directListRendererParse(content, this.data[name]).then(list => {
+                                    global.lists.directListRendererParse(content).then(list => {
                                         let url = this.url(name)
                                         if(global.activeLists.my.includes(url)){
                                             list.unshift({
@@ -124,17 +139,46 @@ class LegalIPTV {
                         }
                     }
                 }))
+                let loc = global.lang.locale.substr(0, 2), cc = global.lang.countryCode
+                entries.sort((a, b) => {
+                    let sa = a.countryCode == cc ? 2 : ((a.countryCode == loc) ? 1 : 0)
+                    let sb = b.countryCode == cc ? 2 : ((b.countryCode == loc) ? 1 : 0)
+                    return sa < sb ? 1 : (sa > sb ? -1 : 0)
+                })
+                entries.push({
+                    name: global.lang.KNOW_MORE,
+                    fa: 'fas fa-info-circle',
+                    type: 'action',
+                    action: this.showInfo.bind(this)
+                })
                 resolve(entries)
-            })
+            }).catch(reject)
+        })
+    }
+    getLocalLists(){
+        return new Promise((resolve, reject) => {
+            this.entries().then(es => {
+                let locs = [global.lang.locale.substr(0, 2), global.lang.countryCode]
+                es = es.filter(e => {
+                    return e.countryCode && locs.includes(e.countryCode)
+                }).map(e => this.url(e.file))
+                if(es.length){
+                    resolve(es)
+                } else {
+                    reject('no list found for this language or country')
+                }
+            }).catch(reject)
         })
     }
     showInfo(){
-        global.ui.emit('dialog', [
-            {template: 'question', text: this.title, fa: this.icon},
-            {template: 'message', text: global.lang.LEGAL_IPTV_INFO},
-            {template: 'option', text: 'OK', id: 'ok', fa: 'fas fa-check-circle'},
-            {template: 'option', text: global.lang.KNOW_MORE, id: 'know', fa: 'fas fa-info-circle'}
-        ], 'legal-iptv', 'ok')
+        if(!this.opts.shadow){
+            global.ui.emit('dialog', [
+                {template: 'question', text: this.title, fa: this.icon},
+                {template: 'message', text: global.lang.LEGAL_IPTV_INFO},
+                {template: 'option', text: 'OK', id: 'ok', fa: 'fas fa-check-circle'},
+                {template: 'option', text: global.lang.KNOW_MORE, id: 'know', fa: 'fas fa-info-circle'}
+            ], 'legal-iptv', 'ok')
+        }
     }
     hook(entries, path){
         return new Promise((resolve, reject) => {

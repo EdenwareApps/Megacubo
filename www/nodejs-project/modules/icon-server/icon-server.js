@@ -156,7 +156,8 @@ class IconSearch extends IconCache {
                 this.opts.debug('is channel', ntms)
             }
             global.lists.search(ntms, {
-                type: liveOnly ? 'live' : null
+                type: liveOnly ? 'live' : null,
+                group: !liveOnly
             }).then(ret => {
                 if(this.opts.debug){
                     this.opts.debug('fetch from terms', ntms, JSON.stringify(ret))
@@ -284,28 +285,36 @@ class IconFetcher extends IconTransform {
                             images.push(url)
                         }
                         images = [...new Set(images.concat(srcs))]
+                        console.log('GOFETCH', images)
                         async.eachOfLimit(images, 8, (src, i, acb) => {
                             if(done || src.indexOf('/blank.png') != -1){
+                                console.log('GOFETCH', src, 'SKIP', done)
                                 return acb()
                             }
                             this.fetchURL(src, req => {
                                 requests.push(req)
                             }).then(ret => {
+                                console.log('GOFETCH', src, 'THEN')
                                 if(ret.alpha){
                                     done = ret.data
                                 } else if(!maybe || ret.data.length > maybe.length){
                                     maybe = ret.data
                                 }
                             }).catch(err => {
+                                console.log('GOFETCH', src, 'CATCH', err)
                                 console.error(err)
                             }).finally(acb)
                         }, () => {
                             if(maybe && !done){
                                 done = maybe
                             }
+                            console.log('GOFETCH', images, 'OKK', done)
                             if(done){
                                 this.unqueue(terms, 'resolve', done)
-                                requests.forEach(r => r.cancel())
+                                requests.forEach(r => {
+                                    if(r.cancel) r.cancel() 
+                                })
+                                requests = null
                             } else {
                                 this.unqueue(terms, 'reject', 'Couldn\'t find a logo for: ' + JSON.stringify(terms) + '  ' + JSON.stringify(images))
                             }
@@ -569,7 +578,7 @@ class IconServer extends IconFetchQueue {
                 if(this.opts.debug){
 					this.opts.debug('serving', domain, port)            
                 }
-                let headers = req.headers, finalUrl = url
+                let headers = req.headers, directURL = url
                 headers.connection = 'close'
                 headers.host = domain
                 if(this.opts.debug){

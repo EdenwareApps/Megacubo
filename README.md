@@ -2,14 +2,20 @@
 A intuitive, multi-language and cross-platform IPTV player.
 
 Platforms: Windows, Linux, MacOS and Android.
-   
-   
-   
+
+Available languages: English, Spanish, Portuguese and Italian. You can help us adding [more languages](https://github.com/efoxbr/megacubo/tree/master/www/nodejs-project/lang)?
+
+<br/>
+
 # Releases
 Want to use the software, go to [our releases folder](https://github.com/efoxbr/megacubo/releases) to get it.
-   
-   
-   
+
+<br/>
+
+![Megacubo UI screenshot](https://megacubo.tv/files/screenshot-en.jpg) 
+
+<br/>
+
 # Development
 
 ### With Cordova:

@@ -112,13 +112,19 @@ class Options extends Timer {
     }
     tools(){
         return new Promise((resolve, reject) => {
-            let entries = [
-                {name: global.lang.OPEN_URL, fa: 'fas fa-link', type: 'action', action: () => {
-                    global.ui.emit('prompt', global.lang.OPEN_URL, 'http://.../example.m3u8', '', 'open-url', false, 'fas fa-link')
-                }},
-                this.timerEntry()
-            ]
-            resolve(entries)
+            let defaultURL = ''
+            global.rstorage.get('open-url', url => {
+                if(url){
+                    defaultURL = url
+                }
+                let entries = [
+                    {name: global.lang.OPEN_URL, fa: 'fas fa-link', type: 'action', action: () => {
+                        global.ui.emit('prompt', global.lang.OPEN_URL, 'http://.../example.m3u8', defaultURL, 'open-url', false, 'fas fa-link')
+                    }},
+                    this.timerEntry()
+                ]
+                resolve(entries)
+            })
         })
     }
     languageEntries(){
@@ -238,112 +244,134 @@ class Options extends Timer {
                     }
                 }
             ]
-            if(global.config.get('shared-mode-lists-amount')){
+            if(global.config.get('shared-mode-reach')){
                 opts.push({
                     name: global.lang.SHARED_LISTS, 
                     type: 'slider', 
                     fa: 'fas fa-users', 
                     mask: '{0} ' + global.lang.SHARED_LISTS.toLowerCase(), 
                     value: () => {
-                        return global.config.get('shared-mode-lists-amount')
+                        return global.config.get('shared-mode-reach')
                     }, 
-                    range: {start: 3, end: global.cordova ? 8 : 12}, // lower for smartphones to prevent OOM
+                    range: {start: 5, end: 24},
                     action: (data, value) => {
-                        global.config.set('shared-mode-lists-amount', value)
+                        global.config.set('shared-mode-reach', value)
                     }
                 })
             }
             resolve(opts)
         })
     }
-    playbackEntries(){
-        return new Promise((resolve, reject) => {
-            let opts = [
-                {name: global.lang.RESUME_PLAYBACK, type: 'check', action: (data,checked) => {
-                    global.config.set('resume', checked)
-                }, checked: () => {
-                    return global.config.get('resume')
-                }},
-                {name: global.lang.WARN_ON_CONN_ERR, type: 'check', action: (data, checked) => {
-                    global.config.set('warn-on-connection-errors', checked)
-                }, checked: () => {
-                    return global.config.get('warn-on-connection-errors')
-                }},
-                {name: global.lang.FFMPEG_VERSION, fa: 'fas fa-info-circle', type: 'action', action: this.ffmpegVersion.bind(this)}
-            ]
-            resolve(opts)
-        })
-    }
     entries(){
         return new Promise((resolve, reject) => {
-            var opts = [
-                {name: global.lang.LANGUAGE, fa: 'fas fa-language', type: 'select', renderer: this.languageEntries.bind(this)},
-                {name: global.lang.SECURITY, fa: 'fas fa-shield-alt', type: 'group', entries: [
-                    {
-                        name: global.lang.ADULT_CONTENT,
-                        fa: 'fas fa-user-lock',
-                        type: 'select',
-                        safe: true,
-                        renderer: () => {
-                            return new Promise((resolve, reject) => {
-                                let def = global.config.get('parental-control-policy'), options = [
-                                    {
-                                        key: 'allow',
-                                        fa: 'fas fa-lock-open'
-                                    }, 
-                                    {
-                                        key: 'block',
-                                        fa: 'fas fa-lock'
-                                    }, 
-                                    {
-                                        key: 'only',
-                                        fa: 'fas fa-fire'
+            let secOpt = {
+                name: global.lang.SECURITY, fa: 'fas fa-shield-alt', type: 'group', 
+                entries: [
+                {
+                    name: global.lang.ADULT_CONTENT,
+                    fa: 'fas fa-user-lock',
+                    type: 'select',
+                    safe: true,
+                    renderer: () => {
+                        return new Promise((resolve, reject) => {
+                            let def = global.config.get('parental-control-policy'), options = [
+                                {
+                                    key: 'allow',
+                                    fa: 'fas fa-lock-open'
+                                }, 
+                                {
+                                    key: 'block',
+                                    fa: 'fas fa-lock'
+                                }, 
+                                {
+                                    key: 'only',
+                                    fa: 'fas fa-fire'
+                                }
+                            ].map(n => {
+                                return {
+                                    name: global.lang[n.key.replaceAll('-', '_').toUpperCase()],
+                                    value: n.key,
+                                    icon: n.fa,
+                                    type: 'action',
+                                    safe: true,
+                                    action: (data) => {
+                                        global.config.set('parental-control-policy', n.key)
+                                        global.explorer.refresh()
                                     }
-                                ].map(n => {
-                                    return {
-                                        name: global.lang[n.key.replaceAll('-', '_').toUpperCase()],
-                                        value: n.key,
-                                        icon: n.fa,
-                                        type: 'action',
-                                        safe: true,
-                                        action: (data) => {
-                                            global.config.set('parental-control-policy', n.key)
-                                        }
-                                    }
-                                })                                
-                                options = options.map(p => {
-                                    p.selected = (def == p.value)
-                                    return p
-                                })
-                                resolve(options)
+                                }
+                            })                                
+                            options = options.map(p => {
+                                p.selected = (def == p.value)
+                                return p
                             })
+                            resolve(options)
+                        })
+                    }
+                }]
+            }
+            if(global.config.get('parental-control-policy') != 'allow'){
+                secOpt.entries.push({
+                    name: global.lang.FILTER_WORDS,
+                    type: 'input',
+                    fa: 'fas fa-shield-alt',
+                    action: (e, v) => {
+                        if(v !== false){
+                            global.config.set('parental-control-terms', v)
                         }
                     },
-                    {
-                        name: global.lang.FILTER_WORDS,
-                        type: 'input',
-                        fa: 'fas fa-shield-alt',
-                        action: (e, v) => {
-                            if(v !== false){
-                                global.config.set('parental-control-terms', v)
-                            }
-                        },
-                        value: () => {
-                            return global.config.get('parental-control-terms')
-                        },
-                        placeholder: global.lang.FILTER_WORDS,
-                        multiline: true,
-                        safe: true
-                    }
-                ]},
+                    value: () => {
+                        return global.config.get('parental-control-terms')
+                    },
+                    placeholder: global.lang.FILTER_WORDS,
+                    multiline: true,
+                    safe: true
+                })
+            }
+            let opts = [
+                {name: global.lang.STARTUP, type: 'group', fa: 'fas fa-star-of-life', renderer: () => {
+                    return new Promise((resolve, reject) => {
+                        let opts = [
+                            {name: global.lang.RESUME_PLAYBACK, type: 'check', action: (data, checked) => {
+                                global.config.set('resume', checked)
+                            }, checked: () => {
+                                return global.config.get('resume')
+                            }}
+                        ]
+                        if(!global.cordova){
+                            opts.push({
+                                name: global.lang.WINDOW,
+                                fa: 'fas fa-window-maximize', 
+                                type: 'select', 
+                                renderer: () => {
+                                    return new Promise((resolve, reject) => {
+                                        let def = global.config.get('startup-window')
+                                        resolve([
+                                            {name: global.lang.NORMAL, fa:  'fas fa-ban', type: 'action', selected: (def == ''), action: (data) => {
+                                                global.config.set('startup-window', '')
+                                            }},
+                                            {name: global.lang.FULLSCREEN, fa: 'fas fa-window-maximize', type: 'action', selected: (def == 'fullscreen'), action: (data) => {
+                                                global.config.set('startup-window', 'fullscreen')
+                                            }},
+                                            {name: 'Miniplayer', fa: 'fas fa-level-down-alt', type: 'action', selected: (def == 'miniplayer'), action: (data) => {
+                                                global.config.set('startup-window', 'miniplayer')
+                                            }}
+                                        ])
+                                    })
+                                }
+                            })
+                        }
+                        resolve(opts)
+                    })
+                }},
+                {name: global.lang.LANGUAGE, fa: 'fas fa-language', type: 'select', renderer: this.languageEntries.bind(this)},
+                secOpt,
                 {name: global.lang.CHANNEL_LIST, fa: 'fas fa-list', type: 'group', renderer: global.channels.options.bind(global.channels)},
-                {name: global.lang.PLAYBACK, fa: 'fas fa-play', type: 'group', renderer: this.playbackEntries.bind(this)},
                 {name: global.lang.TUNE, fa: 'fas fa-satellite-dish', type: 'group', renderer: this.tuneEntries.bind(this)},
                 {name: global.lang.ADVANCED, fa: 'fas fa-cogs', type: 'group', renderer: () => {
                     return new Promise((resolve, reject) => {
                         resolve([
                             {
-                                name: 'Debug messages', type: 'check', action: (data, checked) => {
+                                name: 'Debug messages on screen', type: 'check', action: (data, checked) => {
                                 global.config.set('debug-messages', checked)
                             }, checked: () => {
                                 return global.config.get('debug-messages')
@@ -368,7 +396,8 @@ class Options extends Timer {
                             }},
                             {
                                 name: 'Memory usage', fa: 'fas fa-memory', type: 'action', action: this.aboutMem.bind(this)
-                            }
+                            },
+                            {name: global.lang.FFMPEG_VERSION, fa: 'fas fa-info-circle', type: 'action', action: this.ffmpegVersion.bind(this)}
                         ])
                     })
                 }},

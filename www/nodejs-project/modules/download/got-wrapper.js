@@ -17,26 +17,6 @@ const got = require('got').extend({
 	ignoreInvalidCookies: true,
 	resolveBodyOnly: true,
 	retry: 0,
-	handlers: [
-		(options, next) => {
-			let promiseOrStream = next(options)
-			if (typeof options.downloadLimit === 'number') {
-				promiseOrStream.on('downloadProgress', progress => {
-					if (progress.transferred > options.downloadLimit && progress.percent !== 1) {
-						promiseOrStream.cancel(`Exceeded the download limit of ${options.downloadLimit} bytes`)
-					}
-				})
-			}
-			if (typeof options.uploadLimit === 'number') {
-				promiseOrStream.on('uploadProgress', progress => {
-					if (progress.transferred > options.uploadLimit && progress.percent !== 1) {
-						promiseOrStream.cancel(`Exceeded the upload limit of ${options.uploadLimit} bytes`)
-					}
-				})
-			}
-			return promiseOrStream
-		}
-	],
 	https: {
 		rejectUnauthorized: false
 	},
@@ -45,7 +25,7 @@ const got = require('got').extend({
 			error => {
 				try {
 					let serr = String(error)
-					console.warn('gotError', serr, error.response && error.response.url ? error.response.url : '')
+					console.warn('gotError', serr, error.response && error.response.url ? error.response.url : '', global.traceback())
 					error.request.emit('download-error', serr)
 					try {
 						throw error // avoid process crashing with uncaught exception, TODO: find a better way

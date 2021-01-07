@@ -17,7 +17,7 @@ class Manager extends Events {
         })
     }
     check(){
-        if(!config.get('lists').length && !config.get('shared-mode-lists-amount')){
+        if(!config.get('lists').length && !config.get('shared-mode-reach')){
             global.ui.emit('no-lists')
         }
     }
@@ -51,7 +51,7 @@ class Manager extends Events {
         return new Promise((resolve, reject) => {
             this.getAll().then(opts => {
                 resolve(opts.map(o => { return o.url }))
-            })
+            }).catch(reject)
         })
     }
     add(url, name){
@@ -176,8 +176,8 @@ class Manager extends Events {
         }
         return fs.existsSync(str)
     }
-    validateURL(value, placeholder) {
-        return typeof(value) == 'string' && value != placeholder && value.length >= 13 && /^(?:(?:(?:https?|ftp):)?\/\/)(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,})))(?::\d{2,5})?(?:[/?#]\S*)?$/i.test(value)
+    validateURL(value) {
+        return typeof(value) == 'string' && value.length >= 13 && /^(?:(?:(?:https?|ftp):)?\/\/)(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,})))(?::\d{2,5})?(?:[/?#]\S*)?$/i.test(value)
     }
 	validate(content){
 		return typeof(content) == 'string' && content.length >= 2048 && content.toLowerCase().indexOf('#ext') != -1
@@ -248,9 +248,29 @@ class Manager extends Events {
             global.osd.show(name, fa, 'update', 'normal')
         }
     }
+    watchListsUpdating(){
+        let done, lp = -1, timer = setInterval(() => {
+            global.lists.listsUpdateProgress().then(p => {
+                if(!done){
+                    if(p.done){
+                        done = true
+                        global.osd.hide('update')
+                        clearInterval(timer)
+                    } else if(typeof(global.osd) != 'undefined' && p.progress > lp){
+                        lp = p.progress
+                        global.osd.show(global.lang[p.firstRun? 'STARTING_LISTS' : 'UPDATING_LISTS'] +' '+ p.progress +'%', 'fa-mega spin-x-alt', 'update', 'persistent')
+                    } 
+                }
+            }).catch(console.error)
+        }, 1000)
+        this.on('lists-updated', () => {
+            done = true
+            clearInterval(timer)
+        })
+    }
     updateLists(force, onErr){
-        const n = global.config.get('shared-mode-lists-amount')
-        if(force === true || !global.activeLists.length || global.activeLists.shared.length < n){
+        const n = global.config.get('shared-mode-reach')
+        if(force === true || !global.activeLists.length || global.activeLists.length < n){
             global.updatingLists = true
             const cb = () => {
                 if(global.activeLists.length){ // one list available on index beyound meta watching list
@@ -268,23 +288,23 @@ class Manager extends Events {
                     }
                 }
             }
-            if(typeof(global.osd) != 'undefined'){
-                global.osd.show(global.lang.UPDATING_LISTS, 'fa-mega spin-x-alt', 'update', 'persistent')
-            } 
             this.getURLs().then(myUrls => {
                 this.getAllURLs().then(urls => {
+                    console.log('getAllURLs', urls)
                     urls = urls.filter(u => myUrls.indexOf(u) == -1)
                     global.lists.setLists(myUrls, urls, n).then(ret => {
                         global.activeLists = ret
                     }).catch(err => {
                         global.displayErr(err)
                     }).finally(cb)
+                    this.watchListsUpdating()
                 }).catch(e => {
-                    console.error(e)
+                    console.error('getAllURLs err', e)
                     cb()
                 })
             }).catch(err => {
                 global.displayErr(err)
+                cb()
             })
         } else {
             if(global.activeLists.length){
@@ -379,14 +399,14 @@ class Manager extends Events {
                                     {template: 'option', id: 'agree', fa: 'fas fa-check-circle', text: global.lang.I_AGREE}
                                 ], 'lists-manager', 'back')                
                             } else {
-                                global.config.set('shared-mode-lists-amount', 0)
+                                global.config.set('shared-mode-reach', 0)
                                 global.explorer.refresh()
                             }
                         }, checked: () => {
-                            return global.config.get('shared-mode-lists-amount') > 0
+                            return global.config.get('shared-mode-reach') > 0
                         }}
                     ]
-                    if(global.config.get('shared-mode-lists-amount') > 0){
+                    if(global.config.get('shared-mode-reach') > 0){
                         options.push({name: global.lang.SHARED_LISTS, fa: 'fas fa-users', type: 'group', renderer: this.sharedListsEntries.bind(this)})
                         options.push({name: global.lang.ALL_LISTS, fa: 'fas fa-users', type: 'group', renderer: this.allListsEntries.bind(this)})
                     }
@@ -432,7 +452,7 @@ class Manager extends Events {
             }
             let cb = list => {
                 if(list.length){
-                    if(global.activeLists.my.includes(v.url)){
+                    if(this.has(v.url)){
                         list.unshift({
                             type: 'action',
                             name: global.lang.LIST_ALREADY_ADDED,
@@ -441,7 +461,7 @@ class Manager extends Events {
                             action: () => {             
                                 this.remove(v.url)
                                 global.osd.show(global.lang.LIST_REMOVED, 'fas fa-info-circle', 'options', 'normal')
-                                global.explorer.back()
+                                global.explorer.refresh()
                             }
                         })
                     } else {
@@ -450,7 +470,7 @@ class Manager extends Events {
                             fa: 'fas fa-plus-square',
                             name: global.lang.ADD_TO.format(global.lang.MY_LISTS),
                             action: () => {
-                                this.addList(v.url).catch(console.error)
+                                this.addList(v.url).catch(console.error).finally(() => global.explorer.refresh())
                             }
                         })
                     }
@@ -460,24 +480,29 @@ class Manager extends Events {
                 console.warn('DIRECT', list, JSON.stringify(list[0]))
                 resolve(list)
             }
+            console.warn('DIRECT', isMine, isShared)
             if(isMine || isShared){
                 global.lists.directListRenderer(v).then(cb).catch(onerr)
-            } else {
-                let content = '', percent = -1
+            } else {               
                 const download = new global.Download({
                     url: v.url,
                     keepalive: false,
                     retries: 5,
+                    headers: {
+                        'accept-charset': 'utf-8, *;q=0.1'
+                    },
                     followRedirect: true
                 })
                 download.on('progress', progress => {
                     global.osd.show(global.lang.OPENING_LIST +' '+ progress +'%', 'fa-mega spin-x-alt', 'list-open', 'persistent')
                 })
+                download.on('response', console.warn)
                 download.on('error', console.warn)
                 download.on('end', content => {
+                    console.warn('DIRECT', content)
                     content = String(content)
                     if(content){
-                        global.lists.directListRendererParse(content, v.url).then(cb).catch(onerr)
+                        global.lists.directListRendererParse(content).then(cb).catch(onerr)
                     } else {
                         onerr('failed to fetch')
                     }
@@ -491,13 +516,13 @@ class Manager extends Events {
             if(!url){
                 return reject(global.lang.INVALID_URL_MSG)
             }
-            const isMine = global.activeLists.my.includes(url), isShared = global.activeLists.shared.includes(url), isLocal = this.isLocal(url)
             const onErr = err => {
-                console.error(err)
+                console.error('error', err, global.traceback())
                 reject(global.lang.LIST_OPENING_FAILURE)
                 global.osd.hide('add-list')
             }
             const onContent = content => {
+                //console.log('content', content)
                 content = String(content)
                 if(this.validate(content)){
                     if(saveCache){
@@ -511,26 +536,27 @@ class Manager extends Events {
                     onErr(global.lists.INVALID_URL_MSG)
                 }
             }
-            if(isMine || isShared || isLocal){
-                global.lists.fetchList(url).then(onContent).catch(onErr)
-            } else {
-                const download = new global.Download({
-                    url,
-                    keepalive: false,
-                    retries: 3,
-                    followRedirect: true
-                })
-                download.on('progress', progress => {
-                    global.osd.show(global.lang.OPENING_LIST +' '+ progress +'%', 'fa-mega spin-x-alt', 'add-list', 'persistent')
-                })
-                download.on('error', console.warn)
-                download.on('end', onContent)
-            }
+            const download = new global.Download({
+                url,
+                keepalive: false,
+                retries: 3,
+                headers: {
+                    'accept-charset': 'utf-8, *;q=0.1'
+                },
+                followRedirect: true
+            })
+            download.on('progress', progress => {
+                global.osd.show(global.lang.OPENING_LIST +' '+ progress +'%', 'fa-mega spin-x-alt', 'add-list', 'persistent')
+            })
+            download.on('error', err => {
+                console.warn('Download error', err)
+            })
+            download.on('end', onContent)
         })
     }
     sharedLists(){
         return new Promise((resolve, reject) => {
-            let limit = global.config.get('shared-mode-lists-amount')
+            let limit = global.config.get('shared-mode-reach')
             if(limit){
                 this.allLists().then(lists => {
                     lists = lists.slice(0, limit)
@@ -569,7 +595,7 @@ class Manager extends Events {
     }
     allLists(){
         return new Promise((resolve, reject) => {
-            let limit = global.config.get('shared-mode-lists-amount')
+            let limit = global.config.get('shared-mode-reach')
             if(limit){
                 global.cloud.get('sources').then(s => {
                     resolve(s.map(e => e.url))
@@ -583,10 +609,14 @@ class Manager extends Events {
         })
     }
     allListsEntries(){
+        console.log('calling')
         return new Promise((resolve, reject) => {
-            let limit = global.config.get('shared-mode-lists-amount')
+            let limit = global.config.get('shared-mode-reach')
+            console.log('calling', limit)
             if(limit){
-                global.cloud.get('sources').then(lists => {
+                console.log('calling', lists)
+                global.cloud.get('sources', false, 30000).then(lists => {
+                    console.log('sources', lists)
                     if(Array.isArray(lists) && lists.length){
                         async.eachOfLimit(lists, 8, (v, i, cb) => {
                             this.name(v.url, false).then(name => {
@@ -614,22 +644,26 @@ class Manager extends Events {
                                     })
                                 }
                                 lists[i] = v
-                                cb()
                             }).catch(err => {
                                 global.displayErr(err)
-                            })
+                            }).finally(cb)
                         }, () => {
+                            console.log('sources', lists)
                             if(lists.length){
-                                lists = global.lists.parentalControl.filter(lists)
+                                if(global.config.get('parental-control-policy') == 'block'){
+                                    lists = global.lists.parentalControl.filter(lists)
+                                }
                             } else {
                                 lists = [this.emptyEntry]
                             }
                             resolve(lists)
                         })
                     } else {
-                        reject('no shared lists')
+                        console.error('no shared lists found', lists)
+                        reject('no shared lists found')
                     }
                 }).catch(e => {
+                    console.error('no sources found', e)
                     reject(e)
                 })
             } else {

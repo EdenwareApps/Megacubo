@@ -87,11 +87,20 @@ function setupShortcuts(){
 }
 
 function getActionHotkey(action, nowrap) {
-    if(typeof(hotkeysActions) != 'undefined' && typeof(hotkeysActions[action]) == 'string'){
-        if(nowrap) {
-            return hotkeysActions[action][0]
+    if(config['hotkeys']){
+        let key = ''
+        Object.keys(config['hotkeys']).forEach(k => {
+            if(config['hotkeys'][k] == 'FULLSCREEN'){
+                key = k
+            }
+        })
+        if(!key){
+            return ''
         }
-        return ' (' + hotkeysActions[action][0] + ')'
+        if(nowrap) {
+            return key
+        }
+        return ' (' + key + ')'
     }
     return ''
 }

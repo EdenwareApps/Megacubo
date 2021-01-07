@@ -91,6 +91,11 @@ var hotkeysActions = {
             explorer.triggerAction(lang.TOOLS, lang.HISTORY).catch(console.error)
         }, "up", true
     ],
+    "LANGUAGE": [
+        () => {
+            explorer.triggerAction(lang.OPTIONS, lang.LANGUAGE).catch(console.error)
+        }, "up", true
+    ],
     "FAV": [
         () => {
             app.emit('toggle-fav')
@@ -115,6 +120,13 @@ var hotkeysActions = {
     "ABOUT": [
         () => {
             app.emit('about')
+        }, "up", true
+    ],
+    'FULLSCREEN': [
+        () => {
+            if(top.Manager){
+                top.Manager.toggleFullScreen()
+            }
         }, "up", true
     ]
 }

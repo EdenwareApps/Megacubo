@@ -19,11 +19,18 @@ class ExplorerURLInputHelper {
             }]
         ]
         this.active = false
-    }
+	}
+	getInputElement(){
+		return document.querySelector('.modal-wrap input, .modal-wrap textarea')
+	}
     start(){
         if(!this.active){
 			this.active = true
 			this.apply('on')
+			let e = this.getInputElement()
+			if(e){
+				e.select()
+			}
         }
     }
     stop(){
@@ -152,7 +159,26 @@ class ExplorerFx extends ExplorerPlayer {
 	}
 }
 
-class ExplorerDialog extends ExplorerFx {
+
+class ExplorerDialogQueue extends ExplorerFx {
+	constructor(jQuery, container, app){
+		super(jQuery, container, app)
+		this.dialogQueue = []
+		this.on('pos-modal-end', this.nextDialog.bind(this))
+	}	
+	queueDialog(cb){
+		this.dialogQueue.push(cb)
+		this.nextDialog()
+	}
+	nextDialog(){
+		if(!this.inModal() && this.dialogQueue.length){
+			let next = this.dialogQueue.shift()
+			next()
+		}
+	}
+}
+
+class ExplorerDialog extends ExplorerDialogQueue {
 	constructor(jQuery, container, app){
 		super(jQuery, container, app)
 		this.lastSelectTriggerer = false
@@ -208,104 +234,108 @@ class ExplorerDialog extends ExplorerFx {
 		return txt.toLowerCase().replace(new RegExp('[^a-z0-9]+', 'g'), '')
 	}
 	dialog(entries, cb, defaultIndex){
-		console.log('DIALOG', entries, traceback(), cb)
-		let html = '', opts = '', complete, callback = k => {
-			complete = true
-			if(this.debug){
-				console.log('DIALOG CALLBACK', k, parseInt(k), traceback())
-			}
-			// k = parseInt(k)
-			if(k == -1){
-				k = false
-			}
-			if(k == 'submit'){
-				let el = this.modalContainer.querySelector('input, textarea')
-				if(el){
-					k = el.value
-				}
-			}
-			this.endModal()
-			if(typeof(cb) == 'function'){
-				cb(k)
-			} else if(typeof(cb) == 'string'){
-				cb = [cb, k]
-				if(this.debug){
-					console.warn('STRCB', cb)
-				}
-				this.app.emit.apply(this.app, cb)
-			} else if(Array.isArray(cb)){
-				cb.push(k)
-				if(this.debug){
-					console.warn('ARRCB', cb)
-				}
-				this.app.emit.apply(this.app, cb)
-			}
-		}
-		entries.forEach(e => {
-			let tpl = this.modalTemplates[e.template]
-			e['tag-icon'] = ''
-			if(e.fa){
-				e['tag-icon'] = '<i class="'+ e.fa + '"></i> '
-			}
-			if(!e.plainText){
-				e.plainText = this.plainText(e.text)
-			}
-			tpl = this.replaceTags(tpl, e, true)
-			if(this.debug){
-				console.log(tpl, e)
-			}
-			if(e.template == 'option'){
-				opts += tpl
-			} else {
-				html += tpl
-			}
-		})
-		if(opts){
-			html += this.replaceTags(this.modalTemplates['options-group'], {opts}, true)
-		}
-		console.log('MODALFOCUS', defaultIndex)
-		this.startModal('<div class="modal-wrap"><div>' + html + '</div></div>')
-		let m = this.modalContent
-		entries.forEach(e => {
-			let p = m.querySelector('#modal-template-option-' + e.id)
-			if(p){
-				if(e.template == 'option'){
-					p.addEventListener('click', callback.bind(null, e.id))				
-				}
-				if(String(e.id) == String(defaultIndex)){
-					setTimeout(() => {
-						console.log('MODALFOCUS', p, defaultIndex)
-						this.focus(p, false)
-					}, 150)
-				}
-			}
-		})
-		this.on('modal-end', () => {
-			if(!complete){
-				callback(-1)
-			}
-		})
-		this.emit('dialog-start')
-	}
-	info(title, text, cb){
-		let complete, mpt = [
-            {template: 'question', text: title, fa: 'fas fa-info-circle'},
-            {template: 'message', text},
-            {template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle'}
-		];
-		this.dialog(mpt, id => {
-			if(this.debug){
-				console.log('infocb', complete)
-			}
-			if(!complete){
+		this.queueDialog(() => {
+			console.log('DIALOG', entries, traceback(), cb)
+			let html = '', opts = '', complete, callback = k => {
 				complete = true
+				if(this.debug){
+					console.log('DIALOG CALLBACK', k, parseInt(k), traceback())
+				}
+				// k = parseInt(k)
+				if(k == -1){
+					k = false
+				}
+				if(k == 'submit'){
+					let el = this.modalContainer.querySelector('input, textarea')
+					if(el){
+						k = el.value
+					}
+				}
 				this.endModal()
 				if(typeof(cb) == 'function'){
-					cb()
+					cb(k)
+				} else if(typeof(cb) == 'string'){
+					cb = [cb, k]
+					if(this.debug){
+						console.warn('STRCB', cb)
+					}
+					this.app.emit.apply(this.app, cb)
+				} else if(Array.isArray(cb)){
+					cb.push(k)
+					if(this.debug){
+						console.warn('ARRCB', cb)
+					}
+					this.app.emit.apply(this.app, cb)
 				}
 			}
-			return true
-        }, 'submit')
+			entries.forEach(e => {
+				let tpl = this.modalTemplates[e.template]
+				e['tag-icon'] = ''
+				if(e.fa){
+					e['tag-icon'] = '<i class="'+ e.fa + '"></i> '
+				}
+				if(!e.plainText){
+					e.plainText = this.plainText(e.text)
+				}
+				tpl = this.replaceTags(tpl, e, true)
+				if(this.debug){
+					console.log(tpl, e)
+				}
+				if(e.template == 'option'){
+					opts += tpl
+				} else {
+					html += tpl
+				}
+			})
+			if(opts){
+				html += this.replaceTags(this.modalTemplates['options-group'], {opts}, true)
+			}
+			console.log('MODALFOCUS', defaultIndex)
+			this.startModal('<div class="modal-wrap"><div>' + html + '</div></div>')
+			let m = this.modalContent
+			entries.forEach(e => {
+				let p = m.querySelector('#modal-template-option-' + e.id)
+				if(p){
+					if(e.template == 'option'){
+						p.addEventListener('click', callback.bind(null, e.id))				
+					}
+					if(String(e.id) == String(defaultIndex)){
+						setTimeout(() => {
+							console.log('MODALFOCUS', p, defaultIndex)
+							this.focus(p, false)
+						}, 150)
+					}
+				}
+			})
+			this.on('modal-end', () => {
+				if(!complete){
+					callback(-1)
+				}
+			})
+			this.emit('dialog-start')
+		})
+	}
+	info(title, text, cb){
+		this.queueDialog(() => {
+			let complete, mpt = [
+				{template: 'question', text: title, fa: 'fas fa-info-circle'},
+				{template: 'message', text},
+				{template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle'}
+			];
+			this.dialog(mpt, id => {
+				if(this.debug){
+					console.log('infocb', complete)
+				}
+				if(!complete){
+					complete = true
+					this.endModal()
+					if(typeof(cb) == 'function'){
+						cb()
+					}
+				}
+				return true
+			}, 'submit')
+		})
 	}
 }
 
@@ -314,33 +344,35 @@ class ExplorerSelect extends ExplorerDialog {
 		super(jQuery, container, app)
 	}
 	select(question, entries, fa, callback){
-		let def, map = {}
-		if(this.debug){
-			console.warn('SELECT', entries)
-		}
-        this.dialog([
-            {template: 'question', text: question, fa}
-        ].concat(entries.map(e => {
-			e.template = 'option'
-			if(!e.text){
-				e.text = String(e.name)
+		this.queueDialog(() => {
+			let def, map = {}
+			if(this.debug){
+				console.warn('SELECT', entries)
 			}
-			e.id = this.text2id(e.text)
-			map[e.id] = e.text
-			if(e.selected){
-				e.fa = 'fas fa-check-circle'
-				def = e.id
-			}
-			return e
-		})), k => {
-			if(typeof(map[k]) != 'undefined'){
-				k = map[k]
-			}
-			callback(k)
-			this.endModal()
-			this.emit('select-end', k)
-		}, def)
-		this.emit('select-start')
+			this.dialog([
+				{template: 'question', text: question, fa}
+			].concat(entries.map(e => {
+				e.template = 'option'
+				if(!e.text){
+					e.text = String(e.name)
+				}
+				e.id = this.text2id(e.text)
+				map[e.id] = e.text
+				if(e.selected){
+					e.fa = 'fas fa-check-circle'
+					def = e.id
+				}
+				return e
+			})), k => {
+				if(typeof(map[k]) != 'undefined'){
+					k = map[k]
+				}
+				callback(k)
+				this.endModal()
+				this.emit('select-end', k)
+			}, def)
+			this.emit('select-start')
+		})
 	}
 }
 
@@ -397,59 +429,61 @@ class ExplorerPrompt extends ExplorerOpenFile {
 		super(jQuery, container, app)
 	}
 	prompt(question, placeholder, defaultValue, callback, multiline, fa, message){
-		if(this.debug){
-			console.log('PROMPT', {question, placeholder, defaultValue, callback, multiline, fa})
-		}
-		let p, mpt = [
-            {template: 'question', text: question, fa},
-            {template: multiline === 'true' ? 'textarea' : 'text', text: defaultValue, id: 'text', placeholder},
-            {template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle'}
-		];
-		if(message){
-			mpt.splice(1, 0, {template: 'message', text: message})
-		}
-		this.dialog(mpt, id => {
-			let ret = true
+		this.queueDialog(() => {
 			if(this.debug){
-				console.log('PROMPT CALLBACK', id, callback, typeof(callback))
+				console.log('PROMPT', {question, placeholder, defaultValue, callback, multiline, fa})
 			}
-			if(typeof(callback) == 'function'){
-				ret = callback(id)
-			} else if(typeof(callback) == 'string'){
-				callback = [callback, id]
+			let p, mpt = [
+				{template: 'question', text: question, fa},
+				{template: multiline === 'true' ? 'textarea' : 'text', text: defaultValue, id: 'text', placeholder},
+				{template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle'}
+			];
+			if(message){
+				mpt.splice(1, 0, {template: 'message', text: message})
+			}
+			this.dialog(mpt, id => {
+				let ret = true
 				if(this.debug){
-					console.warn('STRCB', callback)
+					console.log('PROMPT CALLBACK', id, callback, typeof(callback))
 				}
-				this.app.emit.apply(this.app, callback)
-			} else if(Array.isArray(callback)){
-				callback.push(id)
+				if(typeof(callback) == 'function'){
+					ret = callback(id)
+				} else if(typeof(callback) == 'string'){
+					callback = [callback, id]
+					if(this.debug){
+						console.warn('STRCB', callback)
+					}
+					this.app.emit.apply(this.app, callback)
+				} else if(Array.isArray(callback)){
+					callback.push(id)
+					if(this.debug){
+						console.warn('ARRCB', callback)
+					}
+					this.app.emit.apply(this.app, callback)
+				}
+				if(ret !== false){
+					this.endModal()
+					this.emit('prompt-end', id)
+				}
+			}, config['shared-mode-reach'])
+			this.inputHelper.stop()
+
+			this.emit('prompt-start')
+
+			p = this.modalContent.querySelector('#modal-template-option-submit')
+			p.addEventListener('keypress', (event) => {
 				if(this.debug){
-					console.warn('ARRCB', callback)
+					console.log(event.keyCode)
 				}
-				this.app.emit.apply(this.app, callback)
-			}
-			if(ret !== false){
-				this.endModal()
-				this.emit('prompt-end', id)
-			}
-        }, config['shared-mode-lists-amount'])
-		this.inputHelper.stop()
-
-		this.emit('prompt-start')
-
-		p = this.modalContent.querySelector('#modal-template-option-submit')
-		p.addEventListener('keypress', (event) => {
-			if(this.debug){
-				console.log(event.keyCode)
-			}
-			if (event.keyCode != 13) {
-				arrowUpPressed()
-			}
+				if (event.keyCode != 13) {
+					arrowUpPressed()
+				}
+			})
+			arrowUpPressed()
+			setTimeout(() => {
+				this.inputHelper.start()
+			}, 200)
 		})
-		arrowUpPressed()
-		setTimeout(() => {
-			this.inputHelper.start()
-		}, 200)
 	}
 }
 
@@ -522,53 +556,55 @@ class ExplorerSlider extends ExplorerPrompt {
 		return value
 	}
 	slider(question, range, value, mask, callback, fa){
-		let m, s, n, e, step = 1
-        this.dialog([
-            {template: 'question', text: question, fa},
-            {template: 'option', text: 'OK', fa: 'fas fa-check-circle', id: 'submit'}
-        ], () => {
-			let ret = this.sliderVal(e, range)
-			if(callback(ret) !== false){
-				this.endModal()
-				this.emit('slider-end', ret, e)
-			}
-        }, '')
+		this.queueDialog(() => {
+			let m, s, n, e, step = 1
+			this.dialog([
+				{template: 'question', text: question, fa},
+				{template: 'option', text: 'OK', fa: 'fas fa-check-circle', id: 'submit'}
+			], () => {
+				let ret = this.sliderVal(e, range)
+				if(callback(ret) !== false){
+					this.endModal()
+					this.emit('slider-end', ret, e)
+				}
+			}, '')
 
-		s = this.j(this.modalContent.querySelector('#modal-template-option-submit'))
-		s.before(this.modalTemplates['slider'])
-		s.on('keydown', event => {
-			switch(event.keyCode) {
-				case 37: // left
-					event.preventDefault()
-					value = this.sliderIncreaseLeft(e, value, range, mask, step)
-					break
-				case 39:  // right
-					event.preventDefault()
-					value = this.sliderIncreaseRight(e, value, range, mask, step)
-					break
-			  }
-		})
-		n = this.modalContent.querySelector('.modal-template-slider-track')
-		e = n.parentNode
-		if(this.debug){
-			console.warn('SLIDER VAL', e, n)
-		}
-		this.emit('slider-start')
-		n.setAttribute('min', range.start)
-		n.setAttribute('max', range.end)
-		n.setAttribute('step', step)
-		n.addEventListener('input', () => {
-			this.sliderSync(e, range, mask)
-		})
-		n.addEventListener('change', () => {
-			this.sliderSync(e, range, mask)
-		})
-		this.sliderSetValue(e, value, range, mask)
-		this.modalContent.querySelector('.modal-template-slider-left').addEventListener('click', event => {
-			value = this.sliderIncreaseLeft(e, value, range, mask, step)
-		})
-		this.modalContent.querySelector('.modal-template-slider-right').addEventListener('click', event => {
-			value = this.sliderIncreaseRight(e, value, range, mask, step)
+			s = this.j(this.modalContent.querySelector('#modal-template-option-submit'))
+			s.before(this.modalTemplates['slider'])
+			s.on('keydown', event => {
+				switch(event.keyCode) {
+					case 37: // left
+						event.preventDefault()
+						value = this.sliderIncreaseLeft(e, value, range, mask, step)
+						break
+					case 39:  // right
+						event.preventDefault()
+						value = this.sliderIncreaseRight(e, value, range, mask, step)
+						break
+				}
+			})
+			n = this.modalContent.querySelector('.modal-template-slider-track')
+			e = n.parentNode
+			if(this.debug){
+				console.warn('SLIDER VAL', e, n)
+			}
+			this.emit('slider-start')
+			n.setAttribute('min', range.start)
+			n.setAttribute('max', range.end)
+			n.setAttribute('step', step)
+			n.addEventListener('input', () => {
+				this.sliderSync(e, range, mask)
+			})
+			n.addEventListener('change', () => {
+				this.sliderSync(e, range, mask)
+			})
+			this.sliderSetValue(e, value, range, mask)
+			this.modalContent.querySelector('.modal-template-slider-left').addEventListener('click', event => {
+				value = this.sliderIncreaseLeft(e, value, range, mask, step)
+			})
+			this.modalContent.querySelector('.modal-template-slider-right').addEventListener('click', event => {
+				value = this.sliderIncreaseRight(e, value, range, mask, step)
+			})
 		})
 	}
 }
@@ -987,15 +1023,24 @@ class Explorer extends ExplorerLoading {
 	}
 	setupSelect(entries, path, fa){
 		this.select(path.split('/').pop(), entries, fa, retPath => {
-			console.warn('NAVSELECT', path, retPath)
+			console.warn('NAVSELECT', path, entries, retPath)
 			if(retPath){
 				if(this.debug){
-					console.warn('NAVSELECT', path, retPath)
+					console.warn('NAVSELECT', path, entries, retPath)
 				}
-				this.app.emit('explorer-action', path +'/'+ retPath)
+				let actionPath = path +'/'+ retPath
+				entries.some(e => {
+					if(e.name == retPath){						
+						if(e.path){
+							actionPath = e.path
+						}
+						return true
+					}
+				})
+				this.app.emit('explorer-action', actionPath)
 				var element = this.container.find('[data-path="'+path+'"]').get(0)
 				if(element){
-					element.setAttribute('data-default-value', path +'/'+ retPath)
+					element.setAttribute('data-default-value', retPath)
 				}
 			}
 			this.delayedFocus(this.lastSelectTriggerer)

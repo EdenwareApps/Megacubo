@@ -94,7 +94,7 @@ class Bookmarks extends EntriesGroup {
                         e.renderer = () => {
                             return new Promise((resolve, reject) => {
                                 let terms = atts.terms && Array.isArray(atts.terms) ? atts.terms : global.lists.terms(atts.name, true)
-                                global.lists.search(terms, {type: 'video'}).then(es => {
+                                global.lists.search(terms, {type: 'video', group: true}).then(es => {
                                     resolve(es.results)
                                 }).catch(reject)
                             })
@@ -135,7 +135,8 @@ class Bookmarks extends EntriesGroup {
                 }, 50)
             }
             global.lists.search(this.currentBookmarkAddingByName.name, {
-                partial: true
+                partial: true,
+                group: !this.currentBookmarkAddingByName.live
             }).then(results => {
                 let mediaType = 'all', entries = []
                 if(this.currentBookmarkAddingByName.live){

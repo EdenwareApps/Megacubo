@@ -10,8 +10,10 @@ class TSPacketProcessor extends Events {
         this.minFlushInterval = 3 // secs
         this.buffering = []
         this.bufferSize = (512 * 1024) // 512KB
-        // this.debug = console.log
-        this.debug = false
+        this.pcrRepeatCheckerTimeout = 10 // after X seconds without receiving a valid pcr, give up and reset the pcr checking
+        this.pcrRepeatCheckerLastValidPCRFoundTime = global.time()
+        this.debug = console.log
+        // this.debug = false
     }
 	len(data){
 		if(!data){
@@ -83,7 +85,7 @@ class TSPacketProcessor extends Events {
             }
             return null // nothing to process
         }
-        let pointer = 0, pcrs = {}, buf = Buffer.concat(this.buffering)
+        let pointer = 0, pcrs = {}, buf = Buffer.concat(this.buffering), lastPCR = 0
         if(!this.checkSyncByte(buf, 0)){
             pointer = this.nextSyncByte(buf, 0)
             if(pointer == -1){
@@ -128,6 +130,7 @@ class TSPacketProcessor extends Events {
             }
             const x = this.parsePacket(buf.slice(pointer, pointer + size))
             if(x.adaptationField && x.adaptationField.pcr){ // is pcr packet
+                lastPCR = x.adaptationField.pcr
                 if(this.parsingPCR){ // already receiving a specific pcr
                     if(parseInt(x.adaptationField.pcr) != parseInt(this.parsingPCR)){ // go to new pcr
                         this.currentPCR = this.parsingPCR = x.adaptationField.pcr
@@ -144,8 +147,12 @@ class TSPacketProcessor extends Events {
                     if(!this.currentPCR || parseInt(x.adaptationField.pcr) > parseInt(this.currentPCR)){ // first connection OR next pcr
                         this.currentPCR = this.parsingPCR = x.adaptationField.pcr
                         pcrs[this.parsingPCR] = pointer
-                    } else if(!this.isPCRAligned(this.currentPCR, x.adaptationField.pcr)){ // pcr gap
-                        console.log('PCR GAP', this.currentPCR, x.adaptationField.pcr, Math.abs(this.currentPCR - x.adaptationField.pcr))
+                    } else if(this.isPCRDiscontinuity(this.currentPCR, x.adaptationField.pcr)){ // pcr seems unaligned, reset pcr checking
+                        if(this.debug){
+                            console.log('pcr discontinuity', this.currentPCR, x.adaptationField.pcr, x.adaptationField.opcr)
+                        }
+                        this.parsingPCR = x.adaptationField.pcr // don't change currentPCR here, next packet will define the new one
+                        pcrs[this.parsingPCR] = pointer
                     }
                 }
             } else { // not a pcr packet
@@ -159,12 +166,25 @@ class TSPacketProcessor extends Events {
         }
         let ret, result = {}, pcrTimes = Object.keys(pcrs)
         if(pcrTimes.length > 1){
+            if(this.debug){
+                console.log('packets received', pcrTimes.length)
+            }
+            this.pcrRepeatCheckerLastValidPCRFoundTime = global.time() // reset pcr checking timeout counter
             result = {
                 start: parseInt(pcrs[pcrTimes[0]]),
                 end: parseInt(pcrs[pcrTimes[pcrTimes.length - 1]]),
                 leftover: parseInt(pcrs[pcrTimes[pcrTimes.length - 1]])
             }
-        } else { // if only one pcr or less found, just save for further processing
+        } else { // only one pcr or less found
+            if(this.debug){
+                console.log('few packets received', pcrTimes.length, (global.time() - this.pcrRepeatCheckerLastValidPCRFoundTime), global.kbfmt(buf.length))
+            }
+            if(!pcrTimes.length && this.isPCRDiscontinuity(this.currentPCR, lastPCR) && (global.time() - this.pcrRepeatCheckerLastValidPCRFoundTime) > this.pcrRepeatCheckerTimeout){
+                // after X seconds without receiving a valid pcr, give up and reset the pcr checking for next data
+                console.log('PCR CHECKER RESET', '('+ global.time() +' - '+ this.pcrRepeatCheckerLastValidPCRFoundTime +') > '+ this.pcrRepeatCheckerTimeout)
+                this.pcrRepeatCheckerLastValidPCRFoundTime = global.time() // reset pcr checking timeout counter
+                this.currentPCR = 0
+            }
             result = {
                 leftover: 0
             }
@@ -191,9 +211,9 @@ class TSPacketProcessor extends Events {
         }
         return ret
     }
-    isPCRAligned(prevPCR, nextPCR){
-        let pcrGapLimit = 899999999
-        return prevPCR && Math.abs(nextPCR - prevPCR) <= pcrGapLimit
+    isPCRDiscontinuity(prevPCR, nextPCR){
+        let pcrGapLimit = 699999999
+        return !prevPCR || Math.abs(nextPCR - prevPCR) > pcrGapLimit
     }
     checkSyncByte(c, pos){
         if(pos < 0 || pos > (c.length - 4)){

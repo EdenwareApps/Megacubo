@@ -57,8 +57,8 @@ class OMNI extends OMNIUtils {
     }
 	setup(){
 		this.element.on('click', event => {
-			if(!event.target.tagName || event.target.tagName.toLowerCase() != 'i' || !this.element.hasClass('selected') || !this.focus()){
-				this.focus()
+			if(!event.target.tagName || event.target.tagName.toLowerCase() != 'i' || !this.element.hasClass('selected') || !this.submit()){
+				this.focus(true)
 			}
 		})
 		this.input.attr('placeholder', lang.WHAT_TO_WATCH).on('keydown', event => {
@@ -67,8 +67,11 @@ class OMNI extends OMNIUtils {
 			}
 		})
 	}
-	focus(){
-		this.input.val(this.defaultValue)
+	focus(select){
+        this.input.val(this.defaultValue)
+        if(select){
+            this.input.trigger('select')
+        }
         explorer.focus(this.element, true)
         this.input.trigger('focus').one('blur', () => {
 			explorer.focus(explorer.currentElements[0])
@@ -131,7 +134,7 @@ class OMNI extends OMNIUtils {
         if(evt.target && (evt.target != this.input.get(0))){
             if(evt.key && evt.key.length == 1){
                 this.defaultValue = evt.key
-                this.focus()
+                this.focus(false)
                 this.update()
             }
         } else {

@@ -65,6 +65,7 @@ class StreamerTools extends Events {
                 const req = {
                     url,
                     followRedirect: true,
+					acceptRanges: false,
                     keepalive: false,
                     retries,
                     headers: {
@@ -94,7 +95,7 @@ class StreamerTools extends Events {
 						const ping = this.time() - start
 						const received = JSON.stringify(headers).length + this.len(sample)
 						const speed = received / ping
-						const ret = {status, headers, sample, ping, speed, url, finalUrl: download.currentURL}
+						const ret = {status, headers, sample, ping, speed, url, directURL: download.currentURL}
 						console.log('data', ping, received, speed, ret)
 						resolve(ret)
 					}
@@ -165,10 +166,10 @@ class StreamerTools extends Events {
 							ret.status = st
 							ret.contentType = ct.toLowerCase()
 							ret.contentLength = cl
-							if(!ret.finalUrl){
-								ret.finalUrl = ret.url
+							if(!ret.directURL){
+								ret.directURL = ret.url
 							}
-							ret.ext = this.ext(ret.finalUrl) || this.ext(url)
+							ret.ext = this.ext(ret.directURL) || this.ext(url)
 							resolve(ret)
 						}
 					}
@@ -181,7 +182,7 @@ class StreamerTools extends Events {
 				ret.contentType = ''
 				ret.contentLength = 999999
 				ret.url = url
-				ret.finalUrl = url
+				ret.directURL = url
 				ret.ext = this.ext(url)
 				resolve(ret)
 			} else {
@@ -189,23 +190,25 @@ class StreamerTools extends Events {
 			}
 		})
 	}
-	info(url, retries = 2){
+	info(url, retries = 2, source=''){
 		return new Promise((resolve, reject) => {
-			this.probe(url, retries).then(nfo => {
-				let type = false
-				Object.keys(this.engines).some(name => {
-					if(this.engines[name].supports(nfo)){
-						type = name
-						return true
+			this.pingSource(source, () => {
+				this.probe(url, retries).then(nfo => {
+					let type = false
+					Object.keys(this.engines).some(name => {
+						if(this.engines[name].supports(nfo)){
+							type = name
+							return true
+						}
+					})
+					if(type){
+						nfo.type = type
+						resolve(nfo)
+					} else {
+						reject('unsupported stream type')
 					}
-				})
-				if(type){
-					nfo.type = type
-					resolve(nfo)
-				} else {
-					reject('unsupported stream type')
-				}
-			}).catch(reject)
+				}).catch(reject)
+			})
 		})
 	}
 	proto(url, len){
@@ -250,7 +253,7 @@ class StreamerBase extends StreamerTools {
 	constructor(opts){
 		super(opts)
         this.opts = {
-			workDir: global.paths['data'] +'/ffmpeg/data',
+			workDir: global.paths['temp'] +'/ffmpeg/data',
 			shadow: false,
 			debug: false,
 			osd: false
@@ -293,19 +296,74 @@ class StreamerBase extends StreamerTools {
 			if(!this.throttle(data.url)){
 				return reject('401')
 			}
-            this.info(data.url, opts).then(nfo => {
+			this.info(data.url, 2, data.source).then(nfo => {
 				this.intentFromInfo(data, opts, aside, nfo).then(resolve).catch(reject)
-            }).catch(err => {
+			}).catch(err => {
 				if(this.opts.debug){
 					this.opts.debug('ERR', err)
 				}
 				if(String(err).match(new RegExp("(: 401|^401$)"))){
 					this.forbid(data.url)
 				}
-                reject(err)
-            })
+				reject(err)
+			})
         })
 	}
+	pingSource(url, cb){
+        if(typeof(global.streamerPingSourceTTLs) == 'undefined'){ // using global here to make it unique between any tuning and streamer
+            global.streamerPingSourceTTLs = {}            
+        }
+        if(typeof(global.streamerPingSourceCallbacks) == 'undefined'){
+            global.streamerPingSourceCallbacks = {}
+        }
+		if(lists.manager.validateURL(url)){
+			let now = global.time()
+			if(!global.streamerPingSourceTTLs[url] || global.streamerPingSourceTTLs[url] < now){
+				if(this.pingSourceQueue(url, cb, cb)){
+					let ret = ''
+					global.Download.promise({
+						url,
+						timeout: 10000,
+						retry: 0,
+						downloadLimit: 100,
+						followRedirect: true
+					}).then(body => {
+						console.log('pingSource: ok', body)	
+						ret = String(body)
+					}).catch(err => {
+						console.warn('pingSource error?: '+ String(err))
+					}).finally(() => {
+						console.log('pingSource: unqueue resolving', ret)	
+						global.streamerPingSourceTTLs[url] = now + 600
+						this.pingSourceUnqueue(url, 'resolve', ret)
+					})
+				}
+			} else {
+				cb()
+			}
+		} else {
+			cb()
+		}
+	}	
+    pingSourceQueue(k, resolve, reject){
+        // console.log('name', JSON.stringify(k))
+        let ret
+        if(typeof(global.streamerPingSourceCallbacks[k]) == 'undefined'){
+            global.streamerPingSourceCallbacks[k] = []
+            ret = true
+        }
+        global.streamerPingSourceCallbacks[k].push({resolve, reject})
+        return ret
+    }
+    pingSourceUnqueue(k, type, body){
+        let ret
+        if(typeof(global.streamerPingSourceCallbacks[k]) != 'undefined'){
+            global.streamerPingSourceCallbacks[k].forEach(r => {
+                r[type](body)
+            })
+            delete global.streamerPingSourceCallbacks[k]
+        }        
+    }
 	intentFromInfo(data, opts, aside, nfo){
         return new Promise((resolve, reject) => {
 			opts = Object.assign(Object.assign({}, this.opts), opts || {})
@@ -385,21 +443,19 @@ class StreamerBase extends StreamerTools {
 			})
 			if(!global.cordova){ // only desktop version can't play hevc
 				intent.on('codecData', codecData => {
-					if(codecData && codecData.video.indexOf('hevc') != -1 && intent == this.active){
-						if(global.config.get('allow-transcoding')){
-							if(intent.type == 'ts' || intent.type == 'hls'){
-								if(!intent.transcoder){
-									console.warn('HEVC transcoding started')
-									global.ui.emit('streamer-connect-suspend')
-									intent.transcode().then(() => {
-										this.emit('streamer-connect', intent.endpoint, intent.mimetype, intent.data)
-									}).catch(err => {
-										console.error(err)
-										intent.fail('unsupported format')
-									})
-								}
-								return
+					if(codecData && codecData.video.match(new RegExp('(hevc|mpeg2video)')) && intent == this.active){
+						if(global.config.get('allow-transcoding') && ['ts', 'hls'].includes(intent.type)){
+							if(!intent.transcoder){
+								console.warn('HEVC transcoding started')
+								global.ui.emit('streamer-connect-suspend')
+								intent.transcode().then(() => {
+									this.emit('streamer-connect', intent.endpoint, intent.mimetype, intent.data)
+								}).catch(err => {
+									console.error(err)
+									intent.fail('unsupported format')
+								})
 							}
+							return
 						}
 						console.error('unsupported format', codecData)
 						intent.fail('unsupported format') // we can transcode .ts segments, but transcode a mp4 video would cause request ranging errors
@@ -743,7 +799,8 @@ class Streamer extends StreamerAbout {
 				}
 			})
 		} else {
-			global.ui.emit('tuneable', global.channels.isChannel(e.terms.name))
+			let terms = global.channels.entryTerms(e)
+			global.ui.emit('tuneable', global.channels.isChannel(terms))
 			global.osd.show(global.lang.CONNECTING + ' ' + e.name + '...', 'fa-mega spin-x-alt', 'streamer', 'persistent')
 			this.intent(e).then(n => {
 				console.warn('STREAMER INTENT SUCCESS', e);

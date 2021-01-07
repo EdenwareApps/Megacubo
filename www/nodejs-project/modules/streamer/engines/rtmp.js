@@ -4,9 +4,13 @@ class StreamerRTMPIntent extends StreamerBaseIntent {
     constructor(data, opts, info){
         console.log('RTMPOPTS', opts)
         opts = Object.assign(opts, {
+            videoCodec: 'libx264', // rtmp can get flickering on HTML5 without transcode
             audioCodec: !global.cordova ? 
                 'aac' : // force audio recode for RTMP to prevent HLS.js playback hangs
-                'copy' // aac disabled for performance
+                'copy', // aac disabled for performance
+                videoCodec: !global.cordova ? 
+                'libx264' : // rtmp can get flickering on HTML5 without transcode
+                'copy'
         })
         super(data, opts, info)
         this.type = 'rtmp'
@@ -33,6 +37,11 @@ StreamerRTMPIntent.mediaType = 'live'
 StreamerRTMPIntent.supports = (info) => {
     if(info.url && info.url.match(new RegExp('^rtmp[a-z]*://', 'i'))){
         return true
+    }
+    if(info.contentType){
+        if(info.contentType.toLowerCase() == 'application/octet-stream' && !['ts', 'aac'].includes(info.ext)){
+            return true
+        }
     }
     return false
 }

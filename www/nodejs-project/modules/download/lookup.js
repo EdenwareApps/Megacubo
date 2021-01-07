@@ -86,7 +86,9 @@ class Lookup extends Events {
 						console.log('lookup->get solve response', domain, err, ips, finished)
 					}
 					if(err){
-						console.error(err)
+						if(this.debug){
+							console.error('lookup->get err on '+ servers.join(','), err)
+						}
 					} else if(!finished) {
 						finished = true
 						this.finish(domain, ips)

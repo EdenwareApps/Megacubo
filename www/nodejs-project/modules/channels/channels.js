@@ -115,6 +115,7 @@ class ChannelsEPG extends ChannelsData {
         this.epgIcon = 'fas fa-th'
         this.clockIcon = '<i class="fas fa-clock"></i> '
     }
+    /* unused
     epgEntry(e, name){
         return {
             name: global.lang.EPG,
@@ -145,6 +146,7 @@ class ChannelsEPG extends ChannelsData {
             }
         }
     }
+    */
     clock(start, data, includeEnd){
         let t = this.clockIcon
         t += global.ts2clock(start)
@@ -154,30 +156,30 @@ class ChannelsEPG extends ChannelsData {
         return t
     }
     epgLoadingEntry(epgStatus){
-        let details = ''
+        let name = ''
         switch(epgStatus[0]){
             case 'uninitialized':
-                details = '<i class="fas fa-clock"></i>'
+                name = '<i class="fas fa-clock"></i>'
                 break
             case 'loading':
-                details = global.lang.LOADING
+                name = global.lang.LOADING
                 break
             case 'connecting':
-                details = global.lang.CONNECTING
+                name = global.lang.CONNECTING
                 break
             case 'connected':
-                details = global.lang.PROCESSING + ' ' + epgStatus[1] + '%'
+                name = global.lang.PROCESSING + ' ' + epgStatus[1] + '%'
                 break
             case 'loaded':
-                details = 'OK'
+                name = 'OK'
                 break
             case 'error':
-                details = 'Error: ' + epgStatus[1]
+                name = 'Error: ' + epgStatus[1]
                 break
         }
         return {
-            name: ['connected'].includes(epgStatus[0]) ? global.lang.EPG_AVAILABLE_SOON : global.lang.EPG_NOT_AVAILABLE, 
-            details, 
+            name, 
+            details: ['connected'].includes(epgStatus[0]) ? global.lang.EPG_AVAILABLE_SOON : global.lang.EPG_NOT_AVAILABLE, 
             fa: 'fas fa-info-circle', 
             type: 'action'
         }
@@ -286,6 +288,11 @@ class ChannelsEPG extends ChannelsData {
     epgDataToEntries(epgData, ch, terms, servedIcon){
         console.warn('epgDataToEntries', epgData, ch, terms, servedIcon)
         return Object.keys(epgData).map((start, i) => {
+            let icon = ''
+            if(epgData[start].i && epgData[start].i.indexOf('//') != -1){
+                icon = epgData[start].i
+                servedIcon = global.icons.proxify(icon)
+            }
             return {
                 name: epgData[start].t,
                 details: ch + ' | ' + (i ? this.clock(start, epgData[start]) : global.lang.LIVE),
@@ -299,9 +306,18 @@ class ChannelsEPG extends ChannelsData {
     }
     epgChannelEntries(e){
         return new Promise((resolve, reject) => {
-            let terms = this.entryTerms(e), name = e.name
+            let terms = this.entryTerms(e), name = e.name, searchName = name
             console.log('epgChannelEntries', name, terms)
-            global.lists.epg({name, terms}, 72).then(epgData => {
+            let map = global.config.get('epg-map') || {}
+            Object.keys(map).some(n => {
+                if(n == name){
+                    console.log('epgChannelEntries MAP', searchName, map[n])
+                    searchName = map[n]
+                    terms = global.lists.terms(name)
+                    return true
+                }
+            })
+            global.lists.epg({name, searchName, terms}, 72).then(epgData => {
                 let centries = []
                 if(epgData){
                     if(typeof(epgData[0]) == 'string'){
@@ -330,13 +346,59 @@ class ChannelsEPG extends ChannelsData {
                         })
                         if(current){
                             centries = this.epgDataToEntries(epgData, name, terms, servedIcon)
-                        }
+                            if(centries.length){
+                                centries.unshift(this.adjustEPGChannelEntry(e))
+                            }
+                        }                        
                     }
                 }
                 if(!centries.length){
                     centries.push({name: global.lang.EMPTY, fa: 'fas fa-info-circle', type: 'action'})
                 }
                 resolve(centries)
+            }).catch(reject)
+        })
+    }
+    adjustEPGChannelEntry(e){
+        return {
+            name: global.lang.SELECT,
+            fa: 'fas fa-th-large',
+            type: 'group',
+            renderer: this.adjustEPGChannelEntryRenderer.bind(this, e)
+        }
+    }
+    adjustEPGChannelEntryRenderer(e){
+        return new Promise((resolve, reject) => {
+            let terms = this.entryTerms(e)
+            console.log('adjustEPGChannelEntryRenderer', e, terms)
+            terms = terms.filter(t => {
+                return t.charAt(0) != '-'
+            })
+            global.lists.epgSearchChannel(terms, 2).then(results => {
+                let options = []
+                console.log('adjustEPGChannelEntryRenderer', results)
+                Object.keys(results).forEach(name => {
+                    let keys = Object.keys(results[name])
+                    options.push({
+                        name,
+                        details: results[name][keys[0]].t,
+                        fa: 'fas fa-th-large',
+                        type: 'action',
+                        action: () => {
+                            console.log('adjustEPGChannelEntryRenderer RESULT', e.name, name)
+                            let map = global.config.get('epg-map') || {}
+                            if(e.name != name){
+                                map[e.name] = name
+                            } else if(map[e.name]) {
+                                delete map[e.name]
+                            }
+                            global.config.set('epg-map', map)
+                            global.explorer.deepBack()
+                        }
+                    })
+                })
+                console.log('adjustEPGChannelEntryRenderer', options)
+                resolve(options)
             }).catch(reject)
         })
     }

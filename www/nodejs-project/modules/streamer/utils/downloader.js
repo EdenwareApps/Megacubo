@@ -45,7 +45,7 @@ class Downloader extends StreamerAdapterBase {
 			this.internalErrors.push(e)
 			if(this.internalErrorLevel >= (this.connectable ? this.opts.errorLimit : this.opts.initialErrorLimit)){
 				console.error('[' + this.type + '] error limit reached', this.committed, this.internalErrorLevel, this.internalErrors, this.opts.errorLimit)
-				this.emit('fail', 'timeout')
+				this.emit('fail', 'request error')
 			}
 		}
 		return this.destroyed || this._destroyed
@@ -124,8 +124,9 @@ class Downloader extends StreamerAdapterBase {
 		const download = this.currentRequest = new global.Download({
 			url: this.url,
 			keepalive: this.committed && global.config.get('use-keepalive'),
-			retries: 0,
 			followRedirect: true,
+			acceptRanges: false,
+			retries: 0,
 			headers: {
 				'accept-encoding': 'identity' // https://github.com/sindresorhus/got/issues/145
 			}

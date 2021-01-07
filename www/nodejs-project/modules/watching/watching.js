@@ -37,6 +37,10 @@ class Watching extends EntriesGroup {
             this.getWatching(true).then(entries => {
                 let list = entries
                 list = global.lists.parentalControl.filter(list)
+                list = list.map((e, i) => {
+                    e.position = (i + 1)
+                    return e
+                })
                 if(!list.length){
                     list = [{name: global.lang.EMPTY, fa: 'fas fa-info-circle', type: 'action', class: 'entry-empty'}]
                 }
@@ -77,7 +81,7 @@ class Watching extends EntriesGroup {
                 if(!Array.isArray(data)){
                     data = []
                 }
-                let recoverNameFromMegaURL = true, ex = !global.config.get('shared-mode-lists-amount') // we'll make entries URLless for exclusive mode, to use the provided lists only
+                let recoverNameFromMegaURL = true, ex = !global.config.get('shared-mode-reach') // we'll make entries URLless for exclusive mode, to use the provided lists only
                 data = global.lists.prepareEntries(data)
                 data = data.map(e => {
                     if(e && typeof(e) == 'object' && typeof(e.name) == 'string'){

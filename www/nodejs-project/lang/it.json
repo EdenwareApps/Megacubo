@@ -31,7 +31,7 @@
 "PLAY": "Riprodurre",
 "PAUSE": "Pausa",
 "PAUSED": "In pausa",
-"ESC_TO_EXIT": "Premere il tasto ESC per uscire da schermo intero",
+"EXIT_FS_HINT": "Premere il tasto {0} per uscire da schermo intero",
 "BOOKMARKS": "I miei preferiti",
 "FAV_ADDED": "{0} aggiunto ai preferiti",
 "FAV_REMOVED": "{0} rimosso dai preferiti",
@@ -401,7 +401,7 @@
 "SEARCH_MISSING_LOGOS": "Cerca i loghi mancanti negli elenchi",
 "TUNING_NO_ACTIVE_STREAM_IN_LISTS": "Non esiste alcuna trasmissione attiva di questo contenuto nei tuoi elenchi",
 "AVOID_TS_TRANSMISSIONS": "Evita trasmissioni TS",
-"TRANSMISSION_NOT_WORKING_HINT": "Se la trasmissione non funziona, fai clic sull'icona <i class=\"{0}\"></i> per cambiarla",
+"TRANSMISSION_NOT_WORKING_HINT": "Problema di trasmissione? Fai clic su <i class=\"{0}\"></i> per cambiare",
 "TOS": "Condizioni d'uso",
 "FFMPEG_VERSION": "Versione FFmpeg",
 "ASK_EXIT": "Vuoi chiudere il programma?",
@@ -479,5 +479,12 @@
 "ENABLE_PREMIUM_MESSAGE": "La versione installata non ha caratteristiche speciali. Per ottenerle, scarica il programma completo dal nostro sito web e installalo.",
 "LEGAL_IPTV_INFO": "Gli elenchi in questa sezione sono forniti e gestiti dalla comunità, come elenchi di accesso gratuito e legale.",
 "KNOW_MORE": "Saperne di più",
-"LEGAL_IPTV": "IPTV Legal"
+"LEGAL_IPTV": "IPTV Legal",
+"LOW_DISK_SPACE_AVAILABLE": "Lo spazio sul dispositivo sta esaurendo ({0} disponibile). Ciò potrebbe influire sulle prestazioni dell'applicazione.",
+"LOW_MEMORY_AVAILABLE": "La memoria del dispositivo è insufficiente ({0} disponibile). Ciò potrebbe influire sulle prestazioni dell'applicazione.",
+"STARTUP": "Inizializzazione",
+"NONE": "Nessuno",
+"STARTING_LISTS": "Iniziando elenchi...",
+"SELECT": "Seleziona",
+"MORE_RESULTS": "Altri risultati"
 }

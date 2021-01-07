@@ -62,6 +62,8 @@ class StreamerPlaybackTimeout extends EventEmitter {
 class StreamerOSD extends StreamerPlaybackTimeout {
     constructor(controls, app){
         super(controls, app)
+        this.transmissionNotWorkingHintDelay = 10000
+        this.transmissionNotWorkingHintTimer = 0
         this.state = 'loading'
         this.osdID = 'video'
         this.OSDNameShown = false
@@ -71,17 +73,20 @@ class StreamerOSD extends StreamerPlaybackTimeout {
         this.on('state', (s) => {
             switch(s){
                 case 'paused':
+                    clearTimeout(this.transmissionNotWorkingHintTimer)
                     this.OSDNameShown = false
                     osd.hide(this.osdID + '-sub')
                     osd.show(lang.PAUSED, 'fas fa-play-circle', this.osdID, 'persistent')
                     break
                 case 'loading':
-                    if(!this.seekLocked){
+                    clearTimeout(this.transmissionNotWorkingHintTimer)
+                    this.transmissionNotWorkingHintTimer = setTimeout(() => {
                         osd.show(lang.TRANSMISSION_NOT_WORKING_HINT.format(this.tuningIcon), '', this.osdID + '-sub', 'persistent')
                         osd.hide(this.osdID)
-                    }
+                    }, this.transmissionNotWorkingHintDelay)
                     break
                 case 'playing':
+                    clearTimeout(this.transmissionNotWorkingHintTimer)
                     osd.hide('video-slow')
                     osd.hide(this.osdID + '-sub')
                     osd.hide(this.osdID)
@@ -90,6 +95,9 @@ class StreamerOSD extends StreamerPlaybackTimeout {
                         osd.show(this.data.name, this.data.servedIcon || '', this.osdID, 'normal')
                     }
                     break
+                case '':
+                    osd.hide(this.osdID + '-sub')
+                    osd.hide(this.osdID)
             }
         })        
         this.on('stop', () => {
@@ -138,10 +146,7 @@ class StreamerState extends StreamerOSD {
     }
     bindStateListener(){
         if(!parent.player.listeners().includes(this.stateListener)){
-            console.warn('NOT LISTENING')
             parent.player.on('state', this.stateListener)
-        } else {
-            console.warn('ALREADY LISTENING')
         }
     } 
     unbindStateListener(){
@@ -405,7 +410,17 @@ class StreamerSeek extends StreamerSpeedo {
     }
     seekTimeFromPercentage(percent){
         if(!this.active) return 0
-        return percent * (parent.player.duration() / 100)
+        let minTime = 0, time = percent * (parent.player.duration() / 100)
+        if(this.activeMimetype && this.activeMimetype.indexOf('mpegurl') != -1){
+            minTime = parent.player.duration() - config['live-window-time']
+            if(minTime < 0){
+                minTime = 0
+            }
+        }
+        if(time < minTime){
+            time = minTime
+        }
+        return time
     }
     seekByPercentage(percent){        
         if(this.active){
@@ -427,8 +442,15 @@ class StreamerSeek extends StreamerSpeedo {
                 this.seekCounter = 0
             }, this.seekCounterDelay) 
             let now = parent.player.time(), nct = now - this.seekSkipSecs
-            if(nct < 0){
-                nct = 0
+            let minTime = 0
+            if(this.activeMimetype && this.activeMimetype.indexOf('mpegurl') != -1){
+                minTime = parent.player.duration() - config['live-window-time']
+                if(minTime < 0){
+                    minTime = 0
+                }
+            }
+            if(nct < minTime){
+                nct = minTime
             }
             if(nct < now){
                 parent.player.time(nct)
@@ -474,7 +496,7 @@ class StreamerClientVideoFullScreen extends StreamerSeek {
         super(controls, app)
         this.inFullScreen = false
         this.allowFullScreenControlInAndroid = false
-        if(!this.allowFullScreenControlInAndroid || !parent.AndroidFullScreen){
+        if(config['startup-window'] == 'fullscreen' || !this.allowFullScreenControlInAndroid || !parent.AndroidFullScreen){
             this.allowFullScreenControl(false)
         } else {
             this.on('fullscreenchange', fs => {
@@ -549,16 +571,15 @@ class StreamerClientVideoFullScreen extends StreamerSeek {
 class StreamerAudioUI extends StreamerClientVideoFullScreen {
     constructor(controls, app){
         super(controls, app)
-        this.pausedLayer = document.getElementById('audio-layer')
         this.app.on('codecData', codecData => {
             if(codecData.audio && !codecData.video){
-                this.pausedLayer.style.display = 'flex'
+                $(document.body).addClass('audio')
             } else {
-                this.pausedLayer.style.display = 'none'
+                $(document.body).removeClass('audio')
             }
         })
         this.on('stop', () => {
-            this.pausedLayer.style.display = 'none'
+            $(document.body).removeClass('audio')
         })
     }
 }
@@ -682,11 +703,13 @@ class StreamerClientController extends StreamerClientControls {
     }
     start(src, mimetype){
         this.active = true
+        this.activeMimetype = (mimetype || '').toLowerCase()
         parent.player.load(src, mimetype, '')
     }
     stop(fromServer){
         if(this.active){
             this.active = false
+            this.activeMimetype = ''
             console.log('STOPCLIENT', fromServer, traceback())
             if(fromServer !== true){
                 this.app.emit('stop')

@@ -31,7 +31,7 @@
 "PLAY": "Play",
 "PAUSE": "Pause",
 "PAUSED": "Paused",
-"ESC_TO_EXIT": "Press ESC key to exit fullscreen",
+"EXIT_FS_HINT": "Press {0} key to exit fullscreen",
 "BOOKMARKS": "Bookmarks",
 "FAV_ADDED": "{0} added to bookmarks",
 "FAV_REMOVED": "{0} removed from bookmarks",
@@ -401,7 +401,7 @@
 "SEARCH_MISSING_LOGOS": "Search for missing logos in lists",
 "TUNING_NO_ACTIVE_STREAM_IN_LISTS": "There is no active stream of this content in your lists",
 "AVOID_TS_TRANSMISSIONS": "Avoid TS streams",
-"TRANSMISSION_NOT_WORKING_HINT": "If the stream does not work, click on the <i class=\"{0}\"></i> icon to change it",
+"TRANSMISSION_NOT_WORKING_HINT": "Transmission problem? Click on <i class=\"{0}\"></i> to switch",
 "TOS": "Terms of Use",
 "FFMPEG_VERSION": "FFmpeg version",
 "ASK_EXIT": "Do you want to close the program?",
@@ -479,5 +479,12 @@
 "ENABLE_PREMIUM_MESSAGE": "The version installed does not have special features. To obtain them, download the complete program from our website and install it.",
 "LEGAL_IPTV_INFO": "The lists in this section are provided and maintained by the community, as free and legal access lists.",
 "KNOW_MORE": "Know more",
-"LEGAL_IPTV": "Legal IPTV"
+"LEGAL_IPTV": "Legal IPTV",
+"LOW_DISK_SPACE_AVAILABLE": "Your device is running out of space ({0} available). This may affect the performance of the application.",
+"LOW_MEMORY_AVAILABLE": "Your device is low on memory ({0} available). This may affect the performance of the application.",
+"STARTUP": "Initialization",
+"NONE": "None",
+"STARTING_LISTS": "Starting lists...",
+"SELECT": "Select",
+"MORE_RESULTS": "More results"
 }

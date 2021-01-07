@@ -29,7 +29,8 @@ var aggregation = (baseClass, ...mixins) => {
 class Aggregated extends aggregation(Lists, Common) {
 	constructor(...args){
 		super()
-		this.manager = new Manager(this)
+        this.manager = new Manager(this)
+        this.loadSearchRedirects()
 	}
 }
 

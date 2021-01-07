@@ -9,7 +9,7 @@ class StreamerBaseIntent extends Events {
             video: 'video/mp4'
         }        
         this.opts = {
-            workDir: global.paths['data'] +'/ffmpeg/data',
+            workDir: global.paths['temp'] +'/ffmpeg/data',
             videoCodec: 'copy',
             audioCodec: 'copy'
         }

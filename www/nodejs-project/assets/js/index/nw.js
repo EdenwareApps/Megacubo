@@ -130,12 +130,6 @@ class WindowManager extends ClassesHandler {
 	isPlaying(){
 		return this.app.streamer.state != ''
 	}
-	osd(){
-		if(!this._osd){
-			this._osd = document.querySelector('iframe').contentWindow.document.querySelector('iframe').contentWindow.osd
-		}
-		return this._osd
-	}
 	isFullScreen(){
 		return (this.win && this.win.width >= screen.width && this.win.height >= screen.height) || !!(this.win.isKioskMode || this.win.isFulscreen)
 	}
@@ -152,12 +146,17 @@ class WindowManager extends ClassesHandler {
 		} else {
 			this.inFullScreen = true;
 			this.win.enterFullscreen()
-			this.osd().show(this.app.lang.ESC_TO_EXIT, 'fas fa-info-circle', 'esc-to-exit', 'normal')
+			if(this.app && this.app.osd && this.app.getActionHotkey){
+				let key = this.app.getActionHotkey('FULLSCREEN', true)
+				if(key){
+					this.app.osd.show(this.app.lang.EXIT_FS_HINT.replace('{0}', key), 'fas fa-info-circle', 'esc-to-exit', 'normal')
+				}
+			}
 		}
 		var f = () => {
 			console.log('FSOUT1');
 			var _fs = this.isFullScreen();
-			this.win.setAlwaysOnTop(_fs || miniPlayerActive);
+			this.win.setAlwaysOnTop(_fs || this.miniPlayerActive);
 			this.win.requestAttention(_fs);
 			if(_fs) {
 				this.win.blur();

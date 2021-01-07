@@ -1,4 +1,4 @@
-const Events = require('events'), parseRange = require('range-parser'), got = require('./got-wrapper')
+const Events = require('events'), parseRange = require('range-parser'), got = require('./got-wrapper'), zlib = require('zlib')
 
 class Download extends Events {
    constructor(opts){
@@ -11,12 +11,13 @@ class Download extends Events {
 			headers: {
 				'accept': '*/*',
 				'user-agent': global.config.get('ua'),
-				'accept-language': global.lang.locale + ';q=0.9, *;q=0.5'
+				'accept-language': this.defaultAcceptLanguage(),
+				'accept-encoding': 'gzip, deflate'
 			},
 			permanentErrorCodes: [400, 404, 405, 410],
 			timeout: null,
-			followRedirect: false,
-			decompress: true
+			followRedirect: true,
+			acceptRanges: true
 		}		
 		if(opts){
 			if(opts.headers){
@@ -29,12 +30,11 @@ class Download extends Events {
 		if(this.opts.responseType && this.opts.responseType == 'json'){
 			this.opts.headers['accept'] = 'application/json,text/*;q=0.99'
 		}
-		this.opts.headers['accept-language'] = global.lang.locale +'-'+ global.lang.countryCode.toUpperCase() +','+ global.lang.locale +';q=0.9,*;q=0.5'
 		this.buffer = []
 		this.failed = false
 		this.retryCount = 0
 		this.received = 0
-		this.acceptRanges = false
+		this.isResponseCompressed = false
 		this.receivingRange = false
 		this.requestingRange = false
 		this.headersSent = false
@@ -52,6 +52,9 @@ class Download extends Events {
 		}
 		this.stream = this.connect()
 	}
+	ext(url){
+		return String(url).split('?')[0].split('#')[0].split('.').pop().toLowerCase();        
+	}
 	checkRequestingRange(range){
 		const maxInt = Number.MAX_SAFE_INTEGER
 		const ranges = parseRange(maxInt, range)
@@ -63,7 +66,11 @@ class Download extends Events {
 			if(this.requestingRange.end && this.requestingRange.end > 0){
 				this.contentLength = this.requestingRange.end - this.requestingRange.start
 			}
+			this.opts.headers['accept-encoding'] = 'identity' // don't handle decompression with ranging requests
 		}
+	}
+	defaultAcceptLanguage(){
+		return global.lang.locale +'-'+ global.lang.countryCode.toUpperCase() +','+ global.lang.locale +';q=0.9,*;q=0.5'
 	}
 	connect(){
 		if(this.destroyed) return
@@ -80,14 +87,11 @@ class Download extends Events {
 		const opts = {
 			responseType: 'buffer',
 			url: this.currentURL,		
-			decompress: this.opts.decompress,
+			decompress: false, // we'll decompress manually to have better control on ranging
 			followRedirect: this.opts.followRedirect,
 			retry: 0,
 			headers: this.opts.headers,
 			throwHttpErrors: false
-		}
-		if(this.opts.downloadLimit){
-			opts.downloadLimit = this.opts.downloadLimit
 		}
     	const requestHeaders = this.opts.headers
     	if(this.requestingRange){
@@ -97,7 +101,7 @@ class Download extends Events {
 				range += this.requestingRange.end
 			}
 			requestHeaders['range'] = range // we dont know yet if the server support ranges, so check again on parseResponse
-		} else if(this.acceptRanges) {
+		} else if(this.opts.acceptRanges) {
 			requestHeaders['range'] = 'bytes=' + this.received + '-'
 		} else {
 			if(this.received){
@@ -197,8 +201,24 @@ class Download extends Events {
 		this.currentResponse = response
 		let validate = this.validateResponse(response)
 		if(validate === true){
-			if(!this.acceptRanges && typeof(response.headers['accept-ranges']) && response.headers['accept-ranges'] != 'none'){
-				this.acceptRanges = true
+			if(!this.isResponseCompressed){
+				if(typeof(response.headers['content-encoding']) != 'undefined' && response.headers['content-encoding'] != 'identity'){
+					this.isResponseCompressed = response.headers['content-encoding']
+				}
+				if(this.ext(this.currentURL) == 'gz'){
+					this.isResponseCompressed = 'gzip'
+				}
+			}
+			if(this.opts.acceptRanges){
+				if(typeof(response.headers['accept-ranges']) == 'undefined' || response.headers['accept-ranges'] == 'none'){
+					if(typeof(response.headers['content-range']) == 'undefined'){
+						this.opts.acceptRanges = false
+					}
+				}
+			} else {
+				if(typeof(response.headers['accept-ranges']) != 'undefined' && response.headers['accept-ranges'] != 'none'){
+					this.opts.acceptRanges = true
+				}
 			}
 			if(this.contentLength == -1 && typeof(response.headers['content-length']) != 'undefined' && response.statusCode == 200){
 				this.contentLength = parseInt(response.headers['content-length'])
@@ -214,8 +234,8 @@ class Download extends Events {
 				}
 			}
 			if (typeof(response.headers['content-range']) != 'undefined') { // server support ranges, so we received the right data
-				if(!this.acceptRanges){
-					this.acceptRanges = true
+				if(!this.opts.acceptRanges){
+					this.opts.acceptRanges = true
 				}
 				let fullLength = 0, range = response.headers['content-range'].replace("bytes ", "bytes=")
 				if(range.indexOf('/') != -1){
@@ -252,6 +272,7 @@ class Download extends Events {
 				this.emit('error', 'Download limit exceeds ' + this.contentLength + ' > ' + this.opts.downloadLimit)
 				if(!this.headersSent){
 					this.statusCode = 500
+					this.headersSent = true
 					this.emit('response', this.statusCode, {})
 				}
 				this.end()
@@ -259,12 +280,7 @@ class Download extends Events {
 				if(!this.headersSent){
 					this.headersSent = true
 					let headers = response.headers
-					if(typeof(headers['content-length']) != 'undefined'){
-						delete headers['content-length']
-					}
-					if(typeof(headers['content-range']) != 'undefined'){
-						delete headers['content-range']
-					}
+					headers = this.removeHeaders(headers, ['content-range', 'content-length', 'content-encoding', 'transfer-encoding', 'cookie']) // cookies will be handled internally by got module
 					if(!this.statusCode || this.isPreferredStatusCode(response.statusCode)){
 						this.statusCode = response.statusCode
 					}
@@ -280,12 +296,11 @@ class Download extends Events {
 							}
 						}
 					}
-					if(this.contentLength != -1){
+					if(!this.isResponseCompressed && this.contentLength != -1){
 						headers['content-length'] = this.contentLength
 					}
-					headers = this.removeHeaders(headers, ['transfer-encoding', 'cookie']) // cookies will be handled internally by got module
 					if(this.opts.debug){
-						console.log('>> Download response emit', this.statusCode, headers)
+						console.log('>> Download response emit', this.statusCode, headers, this.isResponseCompressed)
 					}
 					this.emit('response', this.statusCode, headers)
 				}
@@ -313,16 +328,16 @@ class Download extends Events {
 						chunk = chunk.slice(0, this.contentLength - this.received)
 					}
 					this.received += chunk.length
-					if(!this.listenerCount('data')){ // do buffering if no data handler yet
-						this.buffer.push(chunk)
-					} else {
-						if(this.buffer.length){ // data handler binded, freeup any buffer
-							this.emit('data', Buffer.concat(this.buffer))
-							this.buffer = []
-						}
-						this.emit('data', chunk)
-					}
+					this.emitData(chunk)
 					this.updateProgress()
+					if(this.opts.downloadLimit && this.received > this.opts.downloadLimit){
+						this.statusCode = 400
+						this.isResponseCompressed = false
+						if(this.opts.debug){
+							console.log('>> Download length exceeded downloadLimit', this.requestingRange, this.received, this.contentLength, this.totalContentLength)
+						}
+						this.end()
+					}
 					if(this.contentLength != -1 && this.received >= this.contentLength){ // already received whole content requested
 						if(this.opts.debug){
 							console.log('>> Download content received', this.requestingRange, this.received, this.contentLength, this.totalContentLength)
@@ -352,6 +367,44 @@ class Download extends Events {
 			this.delayNext()
 		}
 	}
+	_emitData(chunk){
+		if(this.listenerCount('data')){
+			this.emit('data', chunk)
+		} else {
+			this.buffer.push(chunk)
+		}
+	}
+	emitData(chunk){
+		if(this.isResponseCompressed){
+			if(!this.decompressor){
+				switch(this.isResponseCompressed){
+					case 'gzip':
+						this.decompressor = zlib.createGunzip()
+						break
+					case 'deflate':
+						this.decompressor = zlib.createInflate()
+						break
+					default:
+						this.decompressor = zlib.createUnzip()
+						break
+				}
+				this.decompressor.on('data', this._emitData.bind(this))
+				this.decompressor.on('error', err => {
+					console.error('Zlib err', err, this.currentURL)
+					this.decompressEnded = true
+					this.end()
+				})
+				//this.decompressor.on('end', chunk => console.log('ZLIB END'))
+				this.decompressor.on('finish', chunk => {
+					this.decompressEnded = true
+				})
+				//this.decompressor.on('close', chunk => console.log('ZLIB CLS'))
+			}
+			this.decompressor.write(chunk)
+		} else {
+			this._emitData(chunk)
+		}
+	}
 	validateResponse(response){
 		if(this.checkRedirect(response)){ // true = location handled
 			return false // return false to skip parseResponse
@@ -367,7 +420,7 @@ class Download extends Events {
 				if(this.opts.permanentErrorCodes.includes(response.statusCode)){
 					finalize = true
 				}
-				if(this.acceptRanges && response.statusCode == 416){ // reached end, abort it
+				if(this.opts.acceptRanges && response.statusCode == 416){ // reached end, abort it
 					finalize = true
 				}
 				if(finalize){
@@ -416,12 +469,14 @@ class Download extends Events {
 			retry = false
 		} else if(
 			(this.contentLength >= 0 && this.received >= this.contentLength) || // requested content already received
-			((!this.acceptRanges || this.statusCode == 416) && this.contentLength == -1 && (this.statusCode >= 200 && this.statusCode < 300)) // unknown content length + good response received = no more retrying
+			((!this.opts.acceptRanges || this.statusCode == 416) && this.contentLength == -1 && (this.statusCode >= 200 && this.statusCode < 300)) // unknown content length + good response received = no more retrying
 			){
 			retry = false
     	} else { // keep trying
 			retry = true
-     		this.retryCount++
+			if(!this.statusCode || (this.statusCode < 200 || this.statusCode >= 400)){
+				this.retryCount++
+			}
      		this.stream = this.connect()
 		}
 		if(retry){
@@ -447,15 +502,19 @@ class Download extends Events {
 	}
 	updateProgress(){
 		let current = this.progress
-		if(this.contentLength != -1){
-			this.progress = parseInt(this.received / (this.contentLength / 100))
-			if(this.progress > 99){
+		if(this.ended){
+			this.progress = 100
+		} else {
+			if(this.contentLength != -1){
+				this.progress = parseInt(this.received / (this.contentLength / 100))
+				if(this.progress > 99){
+					this.progress = 99
+				}
+			} else {
 				this.progress = 99
 			}
-		} else {
-			this.progress = 99
 		}
-		if(this.progress != current && this.listenerCount('progress')){
+		if(this.progress != current && this.listenerCount('progress') && this.progress < 100){
 			this.emit('progress', this.progress)
 		}
 	}
@@ -477,6 +536,25 @@ class Download extends Events {
 			this.stream = null
 		}
 	}
+	prepareOutputData(data){
+		if(Array.isArray(data)){
+			data = Buffer.concat(data)
+		}
+		switch(this.opts.responseType){
+			case 'text':
+				data = String(data)
+				break
+			case 'json':
+				try {
+					data = JSON.parse(String(data))
+				} catch(e) {
+					console.error(e, String(data))
+					data = undefined
+				}
+				break
+		}
+		return data
+	}
 	end(){
 		if(!this.ended){
 			if(this.destroyed){
@@ -485,17 +563,35 @@ class Download extends Events {
 			this.ended = true
 			this.destroyStream()
 			if(!this.headersSent){
+				this.headersSent = true
 				this.emit('response', this.statusCode, {})
 			}
-			this.emit('end', this.buffer.length ? Buffer.concat(this.buffer) : Buffer.from(''))
-			this.buffer = []
-			this._destroy()
+			if(!this.isResponseCompressed || this.decompressEnded || !this.decompressor){
+				this.emit('end', this.prepareOutputData(this.buffer))
+				this._destroy()
+			} else {
+				this.decompressor.on('error', err => {
+					console.error('zlib err', err, this.currentURL)
+					this.emit('end', this.prepareOutputData(this.buffer))
+					this._destroy()
+				})
+				this.decompressor.on('finish', () => {
+					console.log('decompressor end', this.buffer)
+					this.emit('end', this.prepareOutputData(this.buffer))
+					this._destroy()
+				})
+				this.decompressor.flush()
+				this.decompressor.end()
+			}
 		}
 	}
 	_destroy(){
 		if(!this.destroyed){
 			if(this.opts.debug){
 				console.log('_destroy')
+			}
+			if(this.decompressor){
+				this.decompressor.end()
 			}
 			this.ended = true
 			this.destroyed = true
@@ -505,6 +601,7 @@ class Download extends Events {
 				this.statusCode = 504
 			}
 			this.removeAllListeners()
+			this.buffer = []
 		}
 	}
 	destroy(){
@@ -518,7 +615,26 @@ class Download extends Events {
 }
 
 Download.promise = (...args) => {
-	return got.apply(got, args)
+	let g, opts = args[0]
+	let promise = new Promise((resolve, reject) => {
+		g = new Download(opts)
+		g.on('end', buf => {
+			console.log('Download', g, global.traceback(), buf)
+			if(g.statusCode >= 200 && g.statusCode < 400){
+				resolve(buf)
+			} else {
+				reject('http error '+ g.statusCode)
+			}
+			g.destroy()
+		})
+	})
+	promise.cancel = () => {
+		if(!g.ended){
+			reject('Promise was cancelled')
+			g.destroy()
+		}
+	}
+	return promise
 }
 
 module.exports = Download

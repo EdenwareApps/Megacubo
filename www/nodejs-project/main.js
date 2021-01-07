@@ -27,6 +27,7 @@ moment = require('moment-timezone')
 onexit = require('node-cleanup')
 APPDIR = path.resolve(typeof(__dirname) != 'undefined' ? __dirname : process.cwd()).replace(new RegExp('\\\\', 'g'), '/')
 MANIFEST = require(APPDIR + '/package.json')
+SHARED_LISTS_DEFAULT_AMOUNT = 10
 tuning = false
 
 require(APPDIR + '/modules/supercharge')(global)
@@ -49,10 +50,10 @@ const Storage = require(APPDIR + '/modules/storage')
 onexit(() => {
     global.isExiting = true
     console.log('APP_EXIT', traceback())
-    if(streamer && streamer.active){
+    if(typeof(streamer) != 'undefined' && streamer.active){
         streamer.stop()
     }
-    if(tuning){
+    if(typeof(tuning) != 'undefined' && tuning){
         tuning.destroy()
     }
     removeFolder(paths['data'] + '/ffmpeg/data', false, true)
@@ -109,6 +110,7 @@ const Watching = require(APPDIR + '/modules/watching')
 const Theme = require(APPDIR + '/modules/theme')
 const Energy = require(APPDIR + '/modules/energy')
 const Analytics = require(APPDIR + '/modules/analytics')
+const Diagnostics = require(APPDIR + '/modules/diagnostics')
 const StreamState = require(APPDIR + '/modules/stream-state')
 const Serve = require(APPDIR + '/modules/serve')
 const OMNI = require(APPDIR + '/modules/omni')
@@ -128,9 +130,17 @@ removeFolder = (folder, itself, cb) => {
         dir += '/*'
     }
     if(cb === true){ // sync
-        rimraf.sync(dir)
+        try {
+            rimraf.sync(dir)
+        } catch(e) {}
     } else {
-        rimraf(dir, cb || (() => {}))
+        try {
+            rimraf(dir, cb || (() => {}))
+        } catch(e) {
+            if(typeof(cb) == 'function'){
+                cb()
+            }
+        }
     }
 }
 
@@ -241,7 +251,7 @@ function init(language){
         updateLists = force => {
             if(global.updatingLists) return
             lists.manager.updateLists(force === true, err => {
-                console.error(err)
+                console.error('lists-manager', err, loaded)
                 if(loaded){
                     ui.emit('dialog', [
                         {template: 'question', text: lang.NO_SHARED_LISTS_FOUND, fa: 'fas fa-users'},
@@ -257,7 +267,7 @@ function init(language){
         osd = new OSD()
         lists = new Lists()
 		config.on('change', (keys, data) => {
-            console.warn('CONFIG CHANGED', keys)
+            //console.warn('CONFIG CHANGED', keys)
             if(keys.includes('epg')){
                 loadEPG(data['epg'])
             }
@@ -285,8 +295,6 @@ function init(language){
         options = new Options()
         watching = new Watching()
         bookmarks = new Bookmarks()
-        analytics = new Analytics() 
-        serve = new Serve(paths.temp)
 
         explorer = new Explorer({},
             [
@@ -357,7 +365,7 @@ function init(language){
                 case 'agree':
                     ui.emit('explorer-reset-selection')
                     explorer.open('', 0).catch(displayErr)
-                    config.set('shared-mode-lists-amount', 5)
+                    config.set('shared-mode-reach', SHARED_LISTS_DEFAULT_AMOUNT)
                     ui.emit('info', lang.LEGAL_NOTICE, lang.TOS_CONTENT)
                     updateLists(true)
                     break
@@ -499,6 +507,7 @@ function init(language){
         ui.on('open-url', url => {
             console.log('OPENURL', url)
             if(url){
+                global.rstorage.set('open-url', url, true)
                 const name = lists.manager.nameFromSourceURL(url), e = {
                     name, 
                     url, 
@@ -601,7 +610,7 @@ function init(language){
         })
         config.on('change', (keys, data) => {
             ui.emit('config', data)
-            if(['lists', 'shared-mode-lists-amount'].some(k => keys.includes(k))){
+            if(['lists', 'shared-mode-reach'].some(k => keys.includes(k))){
                 explorer.refresh()
                 updateLists(true)
             }
@@ -611,12 +620,12 @@ function init(language){
             explorer.start()  
             if(updatingLists){
                 osd.show(lang.UPDATING_LISTS, 'fa-mega spin-x-alt', 'update', 'persistent')
-            } 
+            }
             streamState.sync()
             if(!loaded){
                 loaded = true
                 const afterListUpdate = () => {
-                    if(!updatingLists && !activeLists.length && config.get('shared-mode-lists-amount')){
+                    if(!updatingLists && !activeLists.length && config.get('shared-mode-reach')){
                         updateLists()
                     }
                     loadEPG()
@@ -657,6 +666,9 @@ function init(language){
                 } else {
                     afterListUpdate()
                 }
+                analytics = new Analytics() 
+                diagnostics = new Diagnostics() 
+                serve = new Serve(paths.temp)
             }
         })
         ui.on('close', () => {
@@ -668,8 +680,8 @@ function init(language){
             if(tuning){
                 tuning.destroy()
             }
-            if(streamState.testing){
-                streamState.testing.abort()
+            if(streamState){
+                streamState.cancelTests()
             }
         })
 

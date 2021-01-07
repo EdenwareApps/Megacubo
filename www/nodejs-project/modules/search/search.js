@@ -24,7 +24,6 @@ class Search extends Events {
             if(this.currentEntries){
                 return resolve(this.currentEntries)
             }
-            let ntries = this.fixedEntries('live')
             this.searchSuggestionEntries().then(es => {
                 es = es.map(e => {
                     return {
@@ -35,7 +34,7 @@ class Search extends Events {
                 })
                 es = es.map(e => global.channels.toMetaEntry(e, false))
                 es = global.lists.parentalControl.filter(es)
-                es = ntries.concat(es)
+                es = this.addFixedEntries(this.currentSearchType, es)
                 resolve(es)
             }).catch(global.displayErr)
         })
@@ -50,7 +49,7 @@ class Search extends Events {
             if(this.currentEntries){
                 return resolve(this.currentEntries)
             }
-            resolve(this.fixedEntries('all'))
+            resolve(this.addFixedEntries(this.currentSearchType, []))
         })
     }
     go(value, mediaType){
@@ -63,12 +62,14 @@ class Search extends Events {
             global.osd.show(global.lang.SEARCHING, 'fas fa-search spin-x-alt', 'search', 'persistent')
             this.searchMediaType = mediaType
             this[mediaType == 'live' ? 'channelsResults' : 'results'](value).then(rs => {
+                if(!rs.length && mediaType == 'live'){
+                    return this.go(value, 'all')
+                }
                 this.emit('search', {query: value})
-                this.currentEntries = this.fixedEntries(mediaType).concat(rs)
                 if(!global.explorer.path){
                     global.explorer.path = global.lang.SEARCH
                 }
-                global.explorer.render(this.currentEntries, global.explorer.path, 'fas fa-search', '/')
+                global.explorer.render(this.addFixedEntries(mediaType, rs), global.explorer.path, 'fas fa-search', '/')
             }).catch(global.displayErr).finally(() => {
                 global.osd.hide('search')
                 global.ui.emit('set-loading', {name: global.lang.SEARCH}, false)
@@ -87,23 +88,35 @@ class Search extends Events {
         }
         return type
     }
-    fixedEntries(mediaType){
-        let entries = [
-            {
-                name: global.lang.SEARCH,
-                details: this.mediaTypeName(),
-                type: 'input',
-                fa: 'fas fa-search',
-                action: (e, value) => {
-                    this.go(value, mediaType)
-                },
-                value: () => {
-                    return this.defaultTerms()
-                },
-                placeholder: global.lang.SEARCH_PLACEHOLDER
+    addFixedEntries(mediaType, es){
+        es.unshift({
+            name: global.lang.SEARCH,
+            details: this.mediaTypeName(),
+            type: 'input',
+            fa: 'fas fa-search',
+            action: (e, value) => {
+                console.log('new search', e, value, mediaType)
+                this.go(value, mediaType)
+            },
+            value: () => {
+                return this.defaultTerms()
+            },
+            placeholder: global.lang.SEARCH_PLACEHOLDER
+        })
+        if(this.currentSearch){
+            if(mediaType == 'live'){
+                es.push({
+                    name: global.lang.MORE_RESULTS,
+                    details: this.currentSearch.name,
+                    type: 'action',
+                    fa: 'fas fa-search-plus',
+                    action: () => {
+                        this.go(this.currentSearch.name, 'all')
+                    }
+                })
             }
-        ]
-        return entries
+        }
+        return es
     }
     results(terms){
         return new Promise((resolve, reject) => {
@@ -129,7 +142,8 @@ class Search extends Events {
             global.lists.search(terms, {
                 partial: this.searchInaccurate, 
                 type: this.searchMediaType, 
-                typeStrict: this.searchStrict
+                typeStrict: this.searchStrict,
+                group: this.searchMediaType != 'live'
             }).then(es => {
                 es = (es.results && es.results.length) ? es.results : ((es.maybe && es.maybe.length) ? es.maybe : [])
                 if(!es || !es.length){
@@ -290,7 +304,11 @@ class Search extends Events {
         return s
     }
     defaultTerms(){
-        return ''
+        let def = ''
+        if(this.currentSearch){
+            def = this.currentSearch.name
+        }
+        return def
     }
     hook(entries, path){
         return new Promise((resolve, reject) => {

@@ -398,8 +398,8 @@ div#paused-layer, div#audio-layer {
     font-size: calc(1.5 * var(--controls-height));
     background: linear-gradient(to bottom, #000 0%, rgba(0, 0, 0, 0.1) 10%, rgba(0, 0, 0, 0.1) 90%, transparent 100%);
 }
-body.video-playing.idle div#audio-layer {
-    bottom: 0;
+body.audio:not(.video-paused) div#audio-layer {
+    display: flex;
 }
 div#paused-layer svg, div#paused-layer i, div#audio-layer svg, div#audio-layer i {
     filter: drop-shadow(0 0 0.75vmin black);
@@ -418,7 +418,7 @@ controls {
     z-index: 1;
     width: inherit;
     height: inherit;
-    position: absolute;
+    position: fixed;
     height: auto;
     left: auto; 
     right: 0;
@@ -474,7 +474,7 @@ seekbar label {
     transition: color 0.5s linear 0s;
     overflow: hidden;
 }
-body.video-playing:not(.idle):not(.menu-playing) controls, body.video-loading:not(.menu-playing) controls, body.video-paused:not(.menu-playing) controls {
+body.audio controls, body.video-playing:not(.idle):not(.menu-playing) controls, body.video-loading:not(.menu-playing) controls, body.video-paused:not(.menu-playing) controls {
     bottom: 0;
     transform: none;
 }

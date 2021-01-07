@@ -34,7 +34,7 @@ const Driver = require(file), driver = new Driver()
 onmessage = e => {
     const msg = e.data
     if(msg.method == 'configChange'){
-        console.log('CONFIG CHANGED!', file)
+        //console.log('CONFIG CHANGED!', file)
         global.config.reload()
     } else if(typeof(driver[msg.method]) == 'undefined'){
         postMessage({id: msg.id, type: 'reject', data: 'method not exists ' + JSON.stringify(msg.data)})
@@ -49,10 +49,11 @@ onmessage = e => {
                 type = 'reject'
                 data = err
             }).finally(() => {
+                data = {id: msg.id, type, data}
                 try {
-                    postMessage({id: msg.id, type, data})
+                    postMessage(data)
                 } catch(err) {
-                    console.error('driver.postMessage error', err, {id: msg.id, type, data}, file)
+                    console.error('driver.postMessage error', err, data, file)
                 }
             })
         }

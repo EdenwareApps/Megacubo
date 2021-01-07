@@ -16,10 +16,8 @@ class OMNI extends Events {
                 }
             } else {           
                 global.channels.search(text, true).then(results => {
-                    if(results.length > 1){
+                    if(results.length){
                         global.search.go(text, 'live')
-                    } else if(results.length == 1) {
-                        streamer.play(results[0])
                     } else {
                         throw new Error('no channel found, going to general search')
                     }

@@ -42,7 +42,7 @@ class Explorer extends Events {
         })
         global.ui.on('explorer-open', (path, tabindex) => {
             if(this.opts.debug){
-                this.opts.debug('explorer-open', path, tabindex)
+                console.log('explorer-open', path, tabindex)
             }
             this.open(path, tabindex).catch(global.displayErr)
         })
@@ -50,6 +50,9 @@ class Explorer extends Events {
             this.check(path, val)
         })
         global.ui.on('explorer-input', (path, val) => {
+            if(this.opts.debug){
+                console.log('explorer-input', path)
+            }
             this.input(path, val)
         })
         global.ui.on('explorer-action', (path, tabindex) => {
@@ -87,6 +90,9 @@ class Explorer extends Events {
             if(e.users){
                 let c = e.users > 1 ? 'users' : 'user'
                 details.push('<i class="fas fa-' + c + '"></i> ' + e.users)
+            }
+            if(e.position && this.path == global.lang.BEEN_WATCHED){
+                details.push('<i class="fas fa-trophy" style="transform: scale(0.8)"></i> '+ e.position)
             }
             e.details = details.join(' &middot ')
             return e
@@ -135,9 +141,15 @@ class Explorer extends Events {
     }
     back(level, deep){
         let p = this.path
+        if(this.opts.debug){
+            console.log('back', this.path)
+        }
         if(this.path) {
             if(this.inSelect()){
                 this.path = this.dirname(this.path)
+            }
+            if(this.opts.debug){
+                console.log('back', this.path, p)
             }
             if(typeof(level) != 'number'){
                 level = 1
@@ -145,6 +157,9 @@ class Explorer extends Events {
             while(p && level){
                 p = this.dirname(p)
                 level--
+            }
+            if(this.opts.debug){
+                console.log('back', p, deep)
             }
             this.open(p, undefined, deep).catch(global.displayErr)
         }
@@ -159,20 +174,15 @@ class Explorer extends Events {
                 let parent = this.selectEntry(this.pages[this.dirname(e.path)], this.basename(e.path))
                 this.render(this.pages[e.path], e.path, parent.servedIcon || parent.fa || 'fas fa-folder-open')
             }
-            if(typeof(level) == 'number'){
-                while(p && level){
-                    p = this.dirname(p)
-                    level--
-                }
-                p = this.selectEntry(this.pages[this.dirname(p)], this.basename(p))
-                next(p)
-            } else {
-                let e = this.pages[this.path][0]
-                if(e.type != 'back'){
-                    return this.back(1)
-                }
-                next(e)
+            if(typeof(level) != 'number'){
+                level = 1
             }
+            while(p && level){
+                p = this.dirname(p)
+                level--
+            }
+            p = this.selectEntry(this.pages[this.dirname(p)], this.basename(p))
+            next(p)
         }
     }
     prependFilter(f){
@@ -185,6 +195,15 @@ class Explorer extends Events {
         return new Promise((resolve, reject) => {
             let i = 0, next = () => {
                 if(typeof(this.filters[i]) == 'undefined'){
+                    entries = entries.map(e => {
+                        if(typeof(e.path) != 'string'){
+                            e.path = path || ''
+                        }
+                        if(e.path && this.basename(e.path) != e.name){
+                            e.path += '/'+ e.name
+                        }
+                        return e
+                    })
                     resolve(entries)
                 } else {
                     this.filters[i](entries, path).then(es => {
@@ -230,11 +249,14 @@ class Explorer extends Events {
         }
     }
     input(destPath, value){
-        let name = this.basename(destPath), dir = this.dirname(destPath)
+        let name = this.basename(destPath), dir = this.dirname(destPath)        
+        if(this.opts.debug){
+            console.log('input()', destPath, value, name, dir)
+        }
         if(typeof(this.pages[dir]) == 'undefined'){
             console.error(dir + 'NOT FOUND IN', this.pages)
         } else {
-            this.pages[dir].some((e, k) => {
+            let trustedActionTriggered = this.pages[dir].some((e, k) => {
                 if(e.name == name){
                     this.pages[dir][k].value = value
                     if(typeof(e.action) == 'function'){
@@ -243,10 +265,25 @@ class Explorer extends Events {
                     return true
                 }
             })
+            if(!trustedActionTriggered){
+                dir = this.path
+                this.pages[dir].some((e, k) => {
+                    if(e.name == name){
+                        this.pages[dir][k].value = value
+                        if(typeof(e.action) == 'function'){
+                            e.action(e, value)
+                        }
+                        return true
+                    }
+                })
+            }
         }
     }
     action(destPath, tabindex){
         let name = this.basename(destPath), dir = this.dirname(destPath)
+        if(this.opts.debug){
+            console.log('action '+ destPath, tabindex)
+        }
         if(typeof(this.pages[dir]) == 'undefined'){
             console.error(dir + 'NOT FOUND IN', this.pages)
         } else {
@@ -267,7 +304,7 @@ class Explorer extends Events {
                     }
                 }
             })){
-                console.warn('ACTION '+ destPath +' NOT FOUND IN ', this.pages)
+                console.warn('ACTION '+ name +' ('+ tabindex +') NOT FOUND IN ', dir, this.pages)
             }
         }
     }
@@ -308,7 +345,7 @@ class Explorer extends Events {
                         p = np
                         if(['group', 'select'].indexOf(e.type) != -1){
                             parent = e
-                            this.readEntry(e).then(es => {
+                            this.readEntry(e, p).then(es => {
                                 this.applyFilters(es, p).then(es => {
                                     if(e.type == 'group'){
                                         es = this.addMetaEntries(es, p)
@@ -318,6 +355,10 @@ class Explorer extends Events {
                                 })
                             }).catch(reject)
                         } else {
+                            if(typeof(this.pages[destPath]) != 'undefined'){ // fallback
+                                console.error('deep path not found, falling back', destPath, this.pages[destPath])
+                                return finish(this.pages[destPath])
+                            }
                             reject('deep path not found')
                         }
                     } else {
@@ -337,13 +378,14 @@ class Explorer extends Events {
             if(['.', '/'].includes(destPath)){
                 destPath = ''
             }
-            let parent = null
             let parentPath = this.dirname(destPath)
             if(typeof(this.pages[parentPath]) == 'undefined'){
                 return this.deepRead(destPath, tabindex).then(resolve).catch(reject)
             }
-            let basePath = this.basename(destPath), finish = entries => {
-                this.path = destPath
+            let basePath = this.basename(destPath), finish = (entries, parent) => {
+                if(!parent || !['select'].includes(parent.type)){
+                    this.path = destPath
+                }
                 resolve({entries, parent})
             }
             if(!basePath){
@@ -357,7 +399,7 @@ class Explorer extends Events {
             let hr = page.some((e, i) => {
                 if(e.name == basePath && (typeof(tabindex) != 'number' || i == tabindex)){
                     if(['group', 'select'].indexOf(e.type) != -1){
-                        this.readEntry(e).then(es => {
+                        this.readEntry(e, parentPath).then(es => {
                             this.applyFilters(es, destPath).then(es => {
                                 if(e.type == 'group'){
                                     es = this.addMetaEntries(es, destPath, parentPath)
@@ -371,6 +413,10 @@ class Explorer extends Events {
                 }
             })
             if(!hr){
+                if(typeof(this.pages[destPath]) != 'undefined'){ // fallback
+                    console.error('path not found, falling back', destPath, this.pages[destPath])
+                    return finish(this.pages[destPath])
+                }
                 console.error('path not found', page, basePath)
                 reject('path not found')
             }
@@ -381,36 +427,42 @@ class Explorer extends Events {
             destPath = ''
         }
         if(this.opts.debug){
-            this.opts.debug('open', destPath, tabindex, traceback())
+            console.log('open', destPath, tabindex, traceback())
         }
         return new Promise((resolve, reject) => {
             this.emit('open', destPath)
-            let name = this.basename(destPath), parentPath = this.dirname(destPath)
+            let icon = '', name = this.basename(destPath), parentPath = this.dirname(destPath)
+            let finish = es => {                
+                console.log('explorer.opened', destPath, es, parentPath)
+                this.path = destPath
+                es = this.addMetaEntries(es, destPath, parentPath)
+                this.pages[this.path] = es
+                this.render(this.pages[this.path], this.path, icon)
+                resolve(true)
+            }
             let next = ret => {
                 if(this.opts.debug){
-                    this.opts.debug('readen', destPath, tabindex, ret, traceback())
+                    console.log('readen', destPath, tabindex, ret, traceback())
                 }
-                let icon = ret.parent ? (ret.parent.servedIcon || ret.parent.fa || '') : ''
+                icon = ret.parent ? (ret.parent.servedIcon || ret.parent.fa || '') : ''
                 if(name){
                     let e = this.selectEntry(ret.entries, name, tabindex)
                     if(e){
                         icon = e.servedIcon || e.fa || ''
                         if(e.type && ['group', 'select'].includes(e.type)){
-                            this.readEntry(e).then(es => {
-                                this.applyFilters(es, destPath).then(es => {
-                                    this.path = destPath
-                                    es = this.addMetaEntries(es, destPath, parentPath)
-                                    this.pages[this.path] = es
-                                    this.render(this.pages[this.path], this.path, icon)
-                                    resolve(true)
-                                })
+                            this.readEntry(e, parentPath).then(es => {
+                                this.applyFilters(es, destPath).then(finish).catch(reject)
                             }).catch(reject)
                         } else {
                             this.action(destPath, tabindex)
                             resolve(true)
                         }
                     } else {
-                        this.open(this.dirname(destPath), undefined, deep).then(resolve).catch(reject)
+                        if(typeof(this.pages[destPath]) != 'undefined'){
+                            finish(this.pages[destPath])
+                        } else {
+                            this.open(this.dirname(destPath), undefined, deep).then(resolve).catch(reject)
+                        }
                     }
                 } else {
                     this.path = destPath
@@ -422,6 +474,9 @@ class Explorer extends Events {
                 next({parent: this.selectEntry(this.pages[this.dirname(parentPath)], this.basename(parentPath)), entries: this.pages[this.path]})
                 return
             }
+            if(this.opts.debug){
+                console.log('readen', deep, parentPath, name)
+            }
             this[deep === true ? 'deepRead' : 'read'](parentPath).then(next).catch(err => {
                 global.displayErr(err)
                 if(name){
@@ -432,19 +487,33 @@ class Explorer extends Events {
         })
     }
     readEntry(e){
-        return new Promise((resolve, reject) => {        
+        return new Promise((resolve, reject) => {  
+            let next = entries => {
+                entries = entries.map(n => {
+                    if(typeof(n.path) != 'string'){
+                        n.path = e.path || ''
+                    }
+                    if(n.path){
+                        if(this.basename(n.path) != n.name || n.name == e.name){
+                            n.path += '/'+ n.name
+                        }
+                    }
+                    return n
+                })
+                resolve(entries)
+            }
             if(typeof(e.renderer) == 'function'){
-                e.renderer(e).then(resolve).catch(reject)
+                e.renderer(e).then(next).catch(reject)
             } else if(typeof(e.renderer) == 'string'){
                 global.tstorage.get(e.renderer, entries => {
                     if(Array.isArray(entries)){
-                        resolve(entries)
+                        next(entries)
                     } else {
-                        resolve([])
+                        next([])
                     }
                 })
             } else {
-                resolve(e.entries || [])
+                next(e.entries || [])
             }
         })
     }
@@ -460,13 +529,13 @@ class Explorer extends Events {
     }
     select(destPath, tabindex){
         if(this.opts.debug){
-            this.opts.debug('select', destPath, tabindex)
+            console.log('select', destPath, tabindex)
         }
         return new Promise((resolve, reject) => {
             this.read(destPath, tabindex).then(ret => {
                 let d = this.dirname(destPath)
                 let icon = ret.parent ? (ret.parent.servedIcon ? ret.parent.servedIcon : ret.parent.fa) : ''
-                global.ui.emit('explorer-select', ret.entries, this.path, icon)
+                global.ui.emit('explorer-select', ret.entries, destPath, icon)
             }).catch(global.displayErr)
         })
     }
@@ -527,7 +596,7 @@ class Explorer extends Events {
     }
     render(es, path, icon, backTo){
         if(this.opts.debug){
-            this.opts.debug('render', es, path, icon, backTo)
+            console.log('render', es, path, icon, backTo)
         }
         if(Array.isArray(es)){
             this.currentEntries = es.slice(0)
@@ -535,6 +604,14 @@ class Explorer extends Events {
             this.currentEntries = this.currentEntries.map((e, i) => {
                 if(!e.type){
                     e.type = 'stream'
+                }
+                if(typeof(e.path) != 'string'){
+                    e.path = path || ''
+                }
+                if(e.path){
+                    if(this.basename(e.path) != e.name){
+                        e.path += '/'+ e.name
+                    }
                 }
                 return e
             })

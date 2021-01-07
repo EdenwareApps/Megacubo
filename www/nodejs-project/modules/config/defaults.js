@@ -9,6 +9,7 @@ module.exports = {
 	'debug-messages': false,
 	'enable-console': false,
 	'epg': '',
+	'epg-map': {},
 	'font-color': '#FFFFFF',
 	'font-family': '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;',
 	'font-size': 4,
@@ -27,12 +28,15 @@ module.exports = {
 		'F3 Ctrl+F': 'SEARCH',
 		'Ctrl+M': 'MINIPLAYER',
 		'Ctrl+H': 'HISTORY',
+		'Ctrl+L': 'LANGUAGE',
 		'Ctrl+U Ctrl+O': 'OPENURL',
 		'Ctrl+D Ctrl+Shift+D': 'FAV',
 		'F9': 'RECORDING',
-		'F1 Ctrl+I': 'ABOUT'
+		'F1 Ctrl+I': 'ABOUT',
+		'F11': 'FULLSCREEN'
 	},
 	'lists': [],
+	'live-window-time': 120,
 	'locale': '',
 	'only-known-channels-in-been-watched': true,
 	'parental-control-policy': 'block',
@@ -42,13 +46,13 @@ module.exports = {
 	'resume': false,
 	'search-missing-logos': true,
 	'setup-complete': false,
-	'shared-mode-lists-amount': 0,
+	'shared-mode-reach': 0,
 	'show-logos': true,
+	'startup-window': '',
 	'trackers-list-url': 'https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_all.txt',
 	'tuning-concurrency': 3,
 	'uppercase-menu': false,
 	'use-keepalive': true,
 	'view-size-x': 5,
-	'view-size-y': 2,
-	'warn-on-connection-errors': true
+	'view-size-y': 2
 }

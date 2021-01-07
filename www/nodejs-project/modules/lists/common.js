@@ -1,10 +1,11 @@
 
-const Events = require('events'),  ParentalControl = require(global.APPDIR + '/modules/lists/parental-control')
+const Events = require('events'), fs = require('fs'), ParentalControl = require(global.APPDIR + '/modules/lists/parental-control')
 const M3UParser = require(global.APPDIR + '/modules/lists/parser'), M3UTools = require(global.APPDIR + '/modules/lists/tools'), MediaStreamInfo = require(global.APPDIR + '/modules/lists/media-info')
 
 class Common extends Events {
 	constructor(opts){
 		super()
+		this.searchRedirects = []
 		this.stopWords = ['sd', 'hd', 'tv', 'h264', 'h.264', 'fhd'] // common words to ignore on searching
 		this.watchingListId = 'watching.list'
 		this.opts = {
@@ -21,7 +22,55 @@ class Common extends Events {
         this.parser = new M3UParser()
         this.tools = new M3UTools(opts)
         this.msi = new MediaStreamInfo()
-        this.parentalControl = new ParentalControl()
+		this.parentalControl = new ParentalControl()
+		this.loadSearchRedirects()
+	}
+    joinPath(folder, file){
+        let ret = folder
+        if(ret.charAt(ret.length - 1) != '/'){
+            ret += '/'
+        }
+        ret += file
+        return ret
+    }
+	loadSearchRedirects(){
+		if(!this.searchRedirects.length){
+			fs.readFile(this.joinPath(__dirname, 'search-redirects.json'), (err, content) => { // redirects to find right channel names, as sometimes they're commonly refered by shorter names on IPTV lists
+				console.warn('loadSearchRedirects', err, content)
+				if(err){
+					console.error(err)
+				} else {
+					let data = JSON.parse(String(content))
+					if(data && typeof(data) == 'object'){
+						let results = []
+						Object.keys(data).forEach(k => {
+							results.push({from: lists.terms(k), to: lists.terms(data[k])})
+						})
+						this.searchRedirects = results
+					}
+				}
+			})
+		}
+	}
+	applySearchRedirects(terms){
+		this.searchRedirects.forEach(redirect => {
+			if(redirect.from && redirect.from.length && redirect.from.every(t => terms.includes(t))){
+				terms = terms.filter(t => !redirect.from.includes(t)).concat(redirect.to)
+			}
+		})
+		return terms
+	}
+	applySearchRedirectsOnObject(e){
+		if(Array.isArray(e)){
+			e = this.applySearchRedirects(e)
+		} else if(e.terms) {
+			if(typeof(e.terms.name) != 'undefined' && Array.isArray(e.terms.name)){
+				e.terms.name = this.applySearchRedirects(e.terms.name)
+			} else if(Array.isArray(e.terms)) {
+				e.terms = this.applySearchRedirects(e.terms)
+			}
+		}
+		return e
 	}
 	terms(txt, allowModifier){
 		if(!txt){
@@ -31,7 +80,7 @@ class Common extends Events {
 			txt = txt.split('/').join(' ')
 		}
 		txt = txt.toLowerCase()
-		return txt.replace(this.parser.regexes['plus-signal'], 'plus').
+		return this.applySearchRedirects(txt.replace(this.parser.regexes['plus-signal'], 'plus').
 			replace(this.parser.regexes['between-brackets'], ' ').
 			normalize('NFD').toLowerCase().replace(this.parser.regexes['accents'], ''). // replace/normalize accents
 			split(' ').
@@ -48,7 +97,7 @@ class Common extends Events {
 			}).
 			filter(s => {
 				return s && this.stopWords.indexOf(s) == -1
-			})
+			}))
 	}
 	match(needleTerms, stackTerms, partial){ // partial=true will match "starts with" terms too
 		if(needleTerms.length && stackTerms.length){
@@ -136,9 +185,6 @@ class Common extends Events {
 				name: this.terms(e.name),
 				group: this.terms(e.group || '')
 			}
-		}
-		if(typeof(e.safe) == 'undefined'){
-			e.safe = this.parentalControl.allow(e)
 		}
 		return e
 	}

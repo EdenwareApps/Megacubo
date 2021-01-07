@@ -278,3 +278,16 @@ if(typeof(Keyboard) != 'undefined'){
 		adjustLayoutForKeyboard(false)
 	})
 }
+
+if(!parent.cordova){
+	onBackendReady(() => {
+		switch(config['startup-window']){
+			case 'fullscreen':
+				top.Manager.setFullScreen(true)
+				break
+			case 'miniplayer':
+				top.Manager.enterMiniPlayer()
+				break
+		}
+	})
+}

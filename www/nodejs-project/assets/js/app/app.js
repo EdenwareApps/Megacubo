@@ -211,7 +211,7 @@ function initApp(){
         restart()
     })
     app.on('config', c => {
-        console.warn('CONFIG CHANGED FROM CLIENT', c)
+        //console.warn('CONFIG CHANGED FROM CLIENT', c)
         config = c
         explorer.setViewSize(config['view-size-x'], config['view-size-y'])
         hideBackButton()

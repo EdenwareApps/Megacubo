@@ -8,6 +8,7 @@ class EPG extends Events {
         this.key = 'epg-' + this.url
         this.termsKey = 'epg-terms-' + this.url
         this.fetchCtrlKey = 'epg-fetch-' + this.url
+        this.icons = {}
         this.data = {}
         this.terms = {}
         this.errorCount = 0
@@ -53,19 +54,27 @@ class EPG extends Events {
                     let i = 0
                     this.parser.on('programme', this.programme.bind(this))
                     this.parser.on('error', err => {
-                        console.error(err)
+                        //console.error(err)
                         return true
                     })
-                    this.parser.on('end', this.save.bind(this))
+                    this.parser.on('end', () => {
+                        this.applyIcons()
+                        this.save.bind(this)
+                        this.request.destroy()
+                        this.parser.destroy()
+                        this.parser = null
+                    })
                 }
                 let received = 0
                 const req = {
-                    debug: false,
+                    debug: true,
                     url: this.url,
                     followRedirect: true,
                     keepalive: false,
                     retries: 5,
-                    headers: {}
+                    headers: {
+                        'accept-charset': 'utf-8, *;q=0.1'
+                    }
                 }
                 this.request = new global.Download(req)
                 this.request.on('error', err => {
@@ -96,7 +105,6 @@ class EPG extends Events {
                         this.emit('error', errMessage)
                     }
                     this.parser.end()
-                    this.parser.destroy()
                 })
             } else {
                 console.log('epg update skipped')
@@ -113,16 +121,37 @@ class EPG extends Events {
         if(!end){
             end = this.time(programme.end)
         }
-        return {e: end, t: programme.title.shift() || 'No title', c: programme.category || ''}
+        return {e: end, t: programme.title.shift() || 'No title', c: programme.category || '', i: programme.icon || ''}
     }
     programme(programme){
         if(programme && programme.channel){
             const now = this.time(), start = this.time(programme.start), end = this.time(programme.end)
             programme.channel = this.prepareChannelName(programme.channel)
-            if(end >= now && end <= (now + this.ttl) && !this.hasProgramme(programme.channel, start)){
-                this.indexate(programme.channel, start, this.prepareProgrammeData(programme, end))
+            if(end >= now && end <= (now + this.ttl)){
+                if(programme.icon){
+                    [...new Set(programme.title)].forEach(t => {
+                        if(programme.icon != this.icons[t]){
+                            this.icons[t] = programme.icon
+                        }
+                    })
+                }
+                if(!this.hasProgramme(programme.channel, start)){
+                    this.indexate(programme.channel, start, this.prepareProgrammeData(programme, end))
+                }
             }
         }
+    }
+    applyIcons(){
+        Object.keys(this.data).forEach(channel => {
+            Object.keys(this.data[channel]).forEach(start => {
+                if(!this.data[channel][start].i){
+                    let t = this.data[channel][start].t
+                    if(this.icons[t]){
+                        this.data[channel][start].i = this.icons[t]
+                    }
+                }
+            })
+        })
     }
     channelsList(){
         let already = [], data = {}, maxCategoriesCount = 3
@@ -197,15 +226,22 @@ class EPG extends Events {
         return []
     }
     get(channel, limit){
-        if(typeof(this.data[channel.name]) == 'undefined'){
-            console.log('EPGGETCHANNEL', this.extractTerms(channel))
-            channel.name = this.findChannel(this.extractTerms(channel))
-            console.log('EPGGETCHANNEL', channel.name)
-            if(!channel.name || typeof(this.data[channel.name]) == 'undefined'){
+        let data
+        if(channel.searchName && typeof(this.data[channel.searchName]) != 'undefined'){
+            data = this.data[channel.searchName]
+        } else if(typeof(this.data[channel.name]) != 'undefined'){
+            data = this.data[channel.name]
+        } else {
+            //console.log('EPGGETCHANNEL', this.extractTerms(channel))
+            let n = this.findChannel(this.extractTerms(channel))
+            //console.log('EPGGETCHANNEL', n)
+            if(n && typeof(this.data[n]) != 'undefined'){
+                data = this.data[n]
+            } else {
                 return false
             }
         }
-        return this.order(this.data[channel.name], limit)
+        return this.order(data, limit)
     }
     getMulti(channelsList, limit){
         let results = {}
@@ -223,6 +259,16 @@ class EPG extends Events {
             }
         })
         return ndata
+    }
+    searchChannel(terms, limit=2){
+        let results = {}
+        Object.keys(this.terms).forEach(name => {
+            let score = global.lists.match(terms, this.terms[name], true)
+            if(score){
+                results[name] = this.order(this.data[name], limit)
+            }
+        })
+        return results
     }
     findChannel(terms){
         let score, current

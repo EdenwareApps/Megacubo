@@ -80,7 +80,7 @@ class TunerTask extends TunerUtils {
 			1 = success, queued
 			2 = success, emitted
 			*/
-			this.streamer.info(e.url).then(info => {
+			this.streamer.info(e.url, 2, e.source).then(info => {
 				if(!this.aborted){
 					console.warn('TEST SUCCESS', e, info, this.opts.allowedTypes)
 					if(info.type == 'hls' && String(info.sample).toLowerCase().indexOf('endlist') != -1){

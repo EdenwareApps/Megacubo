@@ -1,6 +1,7 @@
 
 class CloudData {
     constructor(opts){
+        this.debug = false
         this.domain = 'app.megacubo.net'
         this.base = 'http://' + this.domain
         this.baseURL = this.base +'/stats/data/'
@@ -31,28 +32,43 @@ class CloudData {
     }
     get(key, raw, softTimeout){
         return new Promise((resolve, reject) => {
-            console.log('cloud get', key, traceback())
+            if(this.debug){
+                console.log('cloud: get', key, traceback())
+            }
             const store = raw === true ? global.rstorage : global.storage
             store.get(this.cachingDomain + key, data => {
                 if(data){
-                    // console.log('cloud get', key)
+                    if(this.debug){
+                        console.log('cloud: get cached', key)
+                    }
                     return resolve(data)
                 } else {
+                    if(this.debug){
+                        console.log('cloud: no stored data', key)
+                    }
                     store.get(this.cachingDomain + key + '-fallback', data => {
-                        let solved, error = err => {                
+                        if(this.debug){
+                            console.log('cloud: get', key)
+                        }
+                        let solved, error = err => {   
+                            if(this.debug){
+                                console.log('cloud: solve', err, solved) 
+                            }
                             if(!solved){
                                 solved = true
                                 if(data){
                                     //console.warn(err, key)
                                     resolve(data) // fallback
                                 } else {
-                                    console.error('cloud get error', key, err)
+                                    console.error('cloud: error', key, err)
                                     reject('connection error')
                                 }
                             }
                         }
                         let url = this.url(key)
-                        console.log('cloud get', key, url)
+                        if(this.debug){
+                            console.log('cloud: get', key, url)
+                        }
                         global.Download.promise({
                             url,
                             responseType: raw === true ? 'text' : 'json',
@@ -65,7 +81,9 @@ class CloudData {
                             if(!body){
                                 error('Server returned empty')
                             } else {
-                                //console.warn('cloud get', body, this.expires[key])
+                                if(this.debug){
+                                    console.log('cloud: got', key, body, this.expires[key])
+                                }
                                 if(typeof(this.expires[key]) != 'undefined'){
                                     store.set(this.cachingDomain + key, body, this.expires[key])
                                     store.set(this.cachingDomain + key + '-fallback', body, true)
@@ -78,7 +96,7 @@ class CloudData {
                                 }
                             }
                         }).catch(err => {
-                            console.log('cloud get error: '+ String(err))
+                            console.log('cloud: error: '+ String(err))
                             error(err)
                         })
                         if(typeof(softTimeout) != 'number'){
@@ -86,7 +104,7 @@ class CloudData {
                         }
                         setTimeout(() => {
                             if(data || softTimeout == 0){
-                                error('cloud soft timeout ('+ key +', '+ softTimeout+'), keeping request to update data in background')
+                                error('cloud: soft timeout ('+ key +', '+ softTimeout+'), keeping request to update data in background', data)
                             }
                         }, softTimeout)
                     })

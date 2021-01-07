@@ -160,7 +160,13 @@ class FFServer extends Events {
         return new Promise((resolve, reject) => {
             const startTime = this.time()
             this.genUID()
-            let cores = Math.min(require('os').cpus().length, 4)
+            let cores = Math.min(require('os').cpus().length, 4), fragTime = 4, lwt = global.config.get('live-window-time')
+            if(typeof(lwt) != 'number'){
+                lwt = 120
+            } else if(lwt < 30) { // too low will cause isBehindLiveWindowError
+                lwt = 30
+            }
+            let hlsListSize = Math.ceil(lwt / fragTime)
             this.decoder = global.ffmpeg.create(this.source).
                 // inputOptions('-re').
                 // inputOption('-ss', 1). // https://trac.ffmpeg.org/ticket/2220
@@ -176,17 +182,16 @@ class FFServer extends Events {
                 // addOption('-async', '2').
                 addOption('-strict', '-2').
                 // addOption('-flags:a', '+global_header').
-                addOption('-hls_time', 2).
-                // addOption('-hls_init_time', 2). // 1 causes manifestParsingError "invalid target duration"
                 addOption('-hls_flags', 'delete_segments'). // ?? https://www.reddit.com/r/ffmpeg/comments/e9n7nb/ffmpeg_not_deleting_hls_segments/
-                addOption('-hls_list_size', 5).
+                addOption('-hls_init_time', 2). // 1 may cause manifestParsingError "invalid target duration"
+                addOption('-hls_time', fragTime).
+                addOption('-hls_list_size', hlsListSize).
                 addOption('-map', '0:a?').
                 addOption('-map', '0:v?').
                 // addOption('-packetsize', 188).
                 addOption('-loglevel', 'error').
                 addOption('-sn').
                 addOption('-preset', 'ultrafast').
-                addOption('-crf', 12). // we are encoding for watching, so avoid to waste too much time and cpu with encoding, at cost of bigger disk space usage
                 format('hls')
             if(this.opts.inputFormat){
                 this.decoder.inputOption('-f', this.opts.inputFormat)
@@ -207,8 +212,10 @@ class FFServer extends Events {
                 addOption('-shortest').
                 addOption('-pix_fmt', 'yuv420p').
                 addOption('-preset:v', 'ultrafast').
-                addOption('-movflags', '+faststart')
+                addOption('-movflags', '+faststart').
                 /* HTML5 compat end */
+
+                addOption('-crf', 18) // we are encoding for watching, so avoid to waste too much time and cpu with encoding, at cost of bigger disk space usage
             }
             if(this.opts.audioCodec == 'aac'){
                 this.decoder.addOption('-profile:a', 'aac_low').
