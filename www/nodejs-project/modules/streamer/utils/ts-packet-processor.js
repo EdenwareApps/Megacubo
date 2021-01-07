@@ -179,11 +179,13 @@ class TSPacketProcessor extends Events {
             if(this.debug){
                 console.log('few packets received', pcrTimes.length, (global.time() - this.pcrRepeatCheckerLastValidPCRFoundTime), global.kbfmt(buf.length))
             }
-            if(!pcrTimes.length && this.isPCRDiscontinuity(this.currentPCR, lastPCR) && (global.time() - this.pcrRepeatCheckerLastValidPCRFoundTime) > this.pcrRepeatCheckerTimeout){
-                // after X seconds without receiving a valid pcr, give up and reset the pcr checking for next data
-                console.log('PCR CHECKER RESET', '('+ global.time() +' - '+ this.pcrRepeatCheckerLastValidPCRFoundTime +') > '+ this.pcrRepeatCheckerTimeout)
-                this.pcrRepeatCheckerLastValidPCRFoundTime = global.time() // reset pcr checking timeout counter
-                this.currentPCR = 0
+            if(clear){
+                if(!pcrTimes.length && this.isPCRDiscontinuity(this.currentPCR, lastPCR) && (global.time() - this.pcrRepeatCheckerLastValidPCRFoundTime) > this.pcrRepeatCheckerTimeout){
+                    // after X seconds without receiving a valid pcr, give up and reset the pcr checking for next data
+                    console.log('PCR CHECKER RESET', '('+ global.time() +' - '+ this.pcrRepeatCheckerLastValidPCRFoundTime +') > '+ this.pcrRepeatCheckerTimeout)
+                    this.pcrRepeatCheckerLastValidPCRFoundTime = global.time() // reset pcr checking timeout counter
+                    this.currentPCR = 0
+                }
             }
             result = {
                 leftover: 0
