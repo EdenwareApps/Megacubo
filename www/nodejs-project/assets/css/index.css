@@ -395,8 +395,14 @@ div#paused-layer, div#audio-layer {
     align-items: center;				
     justify-content: center;
     color: var(--font-color);
-    font-size: calc(1.5 * var(--controls-height));
     background: linear-gradient(to bottom, #000 0%, rgba(0, 0, 0, 0.1) 10%, rgba(0, 0, 0, 0.1) 90%, transparent 100%);
+}
+div#paused-layer {
+    font-size: var(--controls-button-height);
+    opacity: 0.75;
+}
+div#audio-layer {
+    font-size: calc(1.5 * var(--controls-height));
 }
 body.audio:not(.video-paused) div#audio-layer {
     display: flex;
@@ -519,9 +525,6 @@ controls label.status {
     color: #fff;
     margin-left: 2%;
     font-size: var(--explorer-entry-name-font-size);
-}
-controls label.status .faclr-red {
-    font-weight: bold;
 }
 body.video-playing:not(.idle):not(.menu-playing) controls button.selected label, body.video-loading:not(.menu-playing) controls button.selected label, body.video-paused:not(.menu-playing) controls button.selected label {
     display: flex;

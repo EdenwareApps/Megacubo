@@ -634,7 +634,12 @@ function init(language){
                             if(playOnLoaded){
                                 streamer.play(playOnLoaded)
                             } else if(config.get('resume')){
-                                histo.resume()
+                                if(global.explorer.path){
+                                    console.log('resume skipped, user navigated away')
+                                } else {
+                                    console.log('resuming', histo.resumed, global.streamer)
+                                    histo.resume()
+                                }
                             }
                         }
                     })

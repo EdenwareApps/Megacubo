@@ -76,13 +76,15 @@ class StreamerOSD extends StreamerPlaybackTimeout {
                     clearTimeout(this.transmissionNotWorkingHintTimer)
                     this.OSDNameShown = false
                     osd.hide(this.osdID + '-sub')
-                    osd.show(lang.PAUSED, 'fas fa-play-circle', this.osdID, 'persistent')
+                    osd.show(lang.PAUSED, 'fas fa-play', this.osdID, 'persistent')
                     break
                 case 'loading':
                     clearTimeout(this.transmissionNotWorkingHintTimer)
                     this.transmissionNotWorkingHintTimer = setTimeout(() => {
-                        osd.show(lang.TRANSMISSION_NOT_WORKING_HINT.format(this.tuningIcon), '', this.osdID + '-sub', 'persistent')
-                        osd.hide(this.osdID)
+                        if(this.active){
+                            osd.show(lang.TRANSMISSION_NOT_WORKING_HINT.format(this.tuningIcon), '', this.osdID + '-sub', 'persistent')
+                            osd.hide(this.osdID)
+                        }
                     }, this.transmissionNotWorkingHintDelay)
                     break
                 case 'playing':
@@ -101,6 +103,7 @@ class StreamerOSD extends StreamerPlaybackTimeout {
             }
         })        
         this.on('stop', () => {
+            clearTimeout(this.transmissionNotWorkingHintTimer)
             this.OSDNameShown = false
             osd.hide(this.osdID + '-sub')
             osd.hide(this.osdID)

@@ -87,14 +87,17 @@ class Explorer extends Events {
             if(e.details){
                 details.push(e.details)
             }
-            if(e.users){
+            if(e.usersPercentage){
+                let c = e.users > 1 ? 'users' : 'user', p = e.usersPercentage >= 1 ? Math.round(e.usersPercentage) : e.usersPercentage.toFixed(e.usersPercentage >= 0.1 ? 1 : 2)
+                details.push('<i class="fas fa-' + c + '"></i> ' + p +'%')
+            } else if(e.users){
                 let c = e.users > 1 ? 'users' : 'user'
                 details.push('<i class="fas fa-' + c + '"></i> ' + e.users)
             }
             if(e.position && this.path == global.lang.BEEN_WATCHED){
                 details.push('<i class="fas fa-trophy" style="transform: scale(0.8)"></i> '+ e.position)
             }
-            e.details = details.join(' &middot ')
+            e.details = details.join(' <span style="opacity: 0.25">&middot</span> ')
             return e
         })
     }

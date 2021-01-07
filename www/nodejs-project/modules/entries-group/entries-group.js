@@ -8,7 +8,15 @@ class EntriesGroup extends Events {
         this.allowDupes = false
         this.emptyEntry = {name: global.lang.EMPTY, fa: 'fas fa-info-circle', type: 'action'}
         this.data = []
+        this.isReady = false
 		this.load()
+	}
+	ready(fn){
+		if(this.isReady){
+			fn()
+		} else {
+			this.on('ready', fn)
+		}
 	}
 	load(){
 		global.storage.get(this.key, data => {
@@ -17,6 +25,8 @@ class EntriesGroup extends Events {
             }
             this.data = this.prepare(data)
             this.emit('load')
+            this.isReady = true
+            this.emit('ready')
         })
 	}
 	prepare(entries){ // override to use

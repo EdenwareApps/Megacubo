@@ -64,7 +64,7 @@ function restart(){
 function exit(){
     console.log('exit()', traceback())
     app.emit('close')
-    exitUI()
+    setTimeout(exitUI, 10)
 }
 
 function waitMessage(action, cb){

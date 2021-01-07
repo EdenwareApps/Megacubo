@@ -75,29 +75,36 @@ class Watching extends EntriesGroup {
             })
         })
     }
+    applyUsersPercentages(entries){
+        let totalUsersCount = 0
+        entries.forEach(e => totalUsersCount += e.users)
+        let pp = totalUsersCount / 100
+        entries.forEach((e, i) => {
+            entries[i].usersPercentage = e.users / pp
+        })
+        return entries
+    }
     getWatching(removeAliases, softTimeout){
         return new Promise((resolve, reject) => {
             global.cloud.get('watching', false, softTimeout).then(data => {
                 if(!Array.isArray(data)){
                     data = []
                 }
-                let recoverNameFromMegaURL = true, ex = !global.config.get('shared-mode-reach') // we'll make entries URLless for exclusive mode, to use the provided lists only
+                let usePercentages = true, recoverNameFromMegaURL = true, ex = !global.config.get('shared-mode-reach') // we'll make entries URLless for exclusive mode, to use the provided lists only
                 data = global.lists.prepareEntries(data)
-                data = data.map(e => {
-                    if(e && typeof(e) == 'object' && typeof(e.name) == 'string'){
-                        let isMega = global.mega.isMega(e.url)
-                        if(isMega && recoverNameFromMegaURL){
-                            let n = global.mega.parse(e.url)
-                            if(n && n.name){
-                                e.name = global.ucWords(n.name)
-                            }
+                data = data.filter(e => (e && typeof(e) == 'object' && typeof(e.name) == 'string')).map(e => {
+                    let isMega = global.mega.isMega(e.url)
+                    if(isMega && recoverNameFromMegaURL){
+                        let n = global.mega.parse(e.url)
+                        if(n && n.name){
+                            e.name = global.ucWords(n.name)
                         }
-                        e.name = global.lists.parser.sanitizeName(e.name)
-                        e.users = this.extractUsersCount(e)
-                        e.details = ''
-                        if(ex && !isMega){
-                            e.url = global.mega.build(e.name)
-                        }
+                    }
+                    e.name = global.lists.parser.sanitizeName(e.name)
+                    e.users = this.extractUsersCount(e)
+                    e.details = ''
+                    if(ex && !isMega){
+                        e.url = global.mega.build(e.name)
                     }
                     return e
                 })
@@ -143,9 +150,15 @@ class Watching extends EntriesGroup {
                             if(data.length) {
                                 this.data = data
                             }
+                            if(usePercentages){
+                                data = this.applyUsersPercentages(data)
+                            }
                             resolve(data)
                         })
                 } else {
+                    if(usePercentages){
+                        data = this.applyUsersPercentages(data)
+                    }
                     resolve(data)
                 }
             }).catch(err => {

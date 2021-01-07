@@ -18,7 +18,7 @@ class History extends EntriesGroup {
                     this.remove(entry)
                     this.add(entry)
                 }
-            }, 120000)
+            }, 90000)
         })
         global.streamer.on('uncommit', () => {
             if(this.timer){
@@ -32,13 +32,17 @@ class History extends EntriesGroup {
         })
     }
     resume(){
-        if(!this.resumed && global.streamer && global.config.get('resume')){
-            this.resumed = true
-            let es = this.get()
-            if(es.length){
-                global.streamer.play(es[0])
+        this.ready(() => {
+            if(!this.resumed && global.streamer){
+                this.resumed = true
+                let es = this.get()
+                console.log('resuming', es)
+                if(es.length){
+                    console.log('resuming', es[0], es)
+                    global.streamer.play(es[0])
+                }
             }
-        }
+        })
     }
     entry(){
         return {name: global.lang.HISTORY, fa: 'fas fa-history', type: 'group', hookId: this.key, renderer: this.entries.bind(this)}
