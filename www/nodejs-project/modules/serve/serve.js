@@ -129,6 +129,10 @@ class Serve {
 			}
 		}
 	}
+	keepAwake(enable){
+		this._keepAwake = enable
+		this.resetTimeout()
+	}
 	import(file){
         return new Promise((resolve, reject) => {	
 			const name = path.basename(file)
@@ -177,7 +181,9 @@ class Serve {
 	}
 	resetTimeout(){
 		clearTimeout(this.timer)
-		setTimeout(this.sleep.bind(this), this.ttl * 1000)
+		if(!this._keepAwake){
+			setTimeout(this.sleep.bind(this), this.ttl * 1000)
+		}
 	}
     clear(){
 		console.log('serve clear', traceback())

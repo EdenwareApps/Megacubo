@@ -13,8 +13,9 @@ class MediaInfo {
 		}
 	}
 	duration(nfo) {
-	    let dat = nfo.match(new RegExp('[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{2}'))
-	    return dat ? this.clockToSeconds(dat[0]) : 0
+		let dat = nfo.match(new RegExp(': +([0-9]{2}:[0-9]{2}:[0-9]{2})\\.[0-9]{2}'))
+		console.log('duration', nfo, dat)
+	    return dat ? this.clockToSeconds(dat[1]) : 0
 	}
 	codecs(nfo, raw) {
 		let rp = raw === true ? ': ([^\r\n]+)' : ': ([^,\r\n]+)'
@@ -58,6 +59,35 @@ class MediaInfo {
 			}
 		}
 		return bitrate ? bitrate : false
+	}
+	getFileDuration(file, cb){
+		let next = () => {
+			this.info(file, nfo => {
+				if(nfo){
+					// console.log('mediainfo', nfo)
+					let duration = this.duration(nfo)
+					if(isNaN(duration)){
+						console.error('duration() failure', nfo, duration)
+						cb('duration check failure', 0)
+					} else {
+						cb(null, duration)
+					}
+				} else {
+					cb('FFmpeg unable to process ' + file + ' ' + JSON.stringify(nfo), 0)
+				}
+			})
+		}
+		if(length){
+			next()
+		} else {
+			fs.stat(file, (err, stat) => {
+				if(err) { 
+					cb('File not found or empty.', 0)
+				} else {
+					next()
+				}
+			})
+		}
 	}
 	bitrate(file, cb, length){
 		let next = () => {

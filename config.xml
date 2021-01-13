@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget android-versionCode="41" id="tv.megacubo.app" version="16.0.7" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget android-versionCode="61" id="tv.megacubo.app" version="16.0.9" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>Megacubo</name>
     <description>
         An intuitive, free and open source IPTV player.
@@ -49,11 +49,12 @@
         <preference name="resizeOnFullScreen" value="false" />
         <hook src="scripts/update_build_gradle.js" type="before_build" />
         <resource-file src="resources/values/colors.xml" target="/app/src/main/res/values/colors.xml" />
-        <icon background="resources/android/icon/ldpi-background.png" density="ldpi" foreground="resources/android/icon/ldpi-foreground.png" src="resources/android/icon/drawable-ldpi-icon.png" />
-        <icon background="resources/android/icon/mdpi-background.png" density="mdpi" foreground="resources/android/icon/mdpi-foreground.png" src="resources/android/icon/drawable-mdpi-icon.png" />
-        <icon background="resources/android/icon/hdpi-background.png" density="hdpi" foreground="resources/android/icon/hdpi-foreground.png" src="resources/android/icon/drawable-hdpi-icon.png" />
-        <icon background="resources/android/icon/xhdpi-background.png" density="xhdpi" foreground="resources/android/icon/xhdpi-foreground.png" src="resources/android/icon/drawable-xhdpi-icon.png" />
-        <icon background="resources/android/icon/xxhdpi-background.png" density="xxhdpi" foreground="resources/android/icon/xxhdpi-foreground.png" src="resources/android/icon/drawable-xxhdpi-icon.png" />
-        <icon background="resources/android/icon/xxxhdpi-background.png" density="xxxhdpi" foreground="resources/android/icon/xxxhdpi-foreground.png" src="resources/android/icon/drawable-xxxhdpi-icon.png" />
+        <icon src="resources/android/icon/drawable-ldpi-icon.png" />
+        <icon background="resources/android/icon/ldpi-background.png" qualifier="ldpi" density="ldpi" foreground="resources/android/icon/ldpi-foreground.png" src="resources/android/icon/drawable-ldpi-icon.png" />
+        <icon background="resources/android/icon/mdpi-background.png" qualifier="mdpi" density="mdpi" foreground="resources/android/icon/mdpi-foreground.png" src="resources/android/icon/drawable-mdpi-icon.png" />
+        <icon background="resources/android/icon/hdpi-background.png" qualifier="hdpi" density="hdpi" foreground="resources/android/icon/hdpi-foreground.png" src="resources/android/icon/drawable-hdpi-icon.png" />
+        <icon background="resources/android/icon/xhdpi-background.png" qualifier="xhdpi" density="xhdpi" foreground="resources/android/icon/xhdpi-foreground.png" src="resources/android/icon/drawable-xhdpi-icon.png" />
+        <icon background="resources/android/icon/xxhdpi-background.png" qualifier="xxhdpi" density="xxhdpi" foreground="resources/android/icon/xxhdpi-foreground.png" src="resources/android/icon/drawable-xxhdpi-icon.png" />
+        <icon background="resources/android/icon/xxxhdpi-background.png" qualifier="xxxhdpi" density="xxxhdpi" foreground="resources/android/icon/xxxhdpi-foreground.png" src="resources/android/icon/drawable-xxxhdpi-icon.png" />
     </platform>
 </widget>

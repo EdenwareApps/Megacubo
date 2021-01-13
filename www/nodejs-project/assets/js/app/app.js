@@ -302,7 +302,9 @@ function initApp(){
                 body.addClass('home')
             }
             setTimeout(() => {
-                window.haUpdate()
+                if(typeof(haUpdate) == 'function'){
+                    haUpdate()
+                }
             }, 0)
         })           
         explorer.on('update-range', icons.run.bind(icons))
@@ -357,7 +359,9 @@ function initApp(){
         explorer.on('focus', element => {
             setTimeout(() => {
                 sound('menu', 1)
-                haUpdate()
+                if(typeof(haUpdate) == 'function'){
+                    haUpdate()
+                }
             }, 0)
         })
 

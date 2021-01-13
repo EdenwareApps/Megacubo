@@ -12,8 +12,8 @@ class TSPacketProcessor extends Events {
         this.bufferSize = (512 * 1024) // 512KB
         this.pcrRepeatCheckerTimeout = 10 // after X seconds without receiving a valid pcr, give up and reset the pcr checking
         this.pcrRepeatCheckerLastValidPCRFoundTime = global.time()
-        this.debug = console.log
-        // this.debug = false
+        // this.debug = console.log
+        this.debug = false
     }
 	len(data){
 		if(!data){
@@ -104,7 +104,7 @@ class TSPacketProcessor extends Events {
             if((pointer + PACKET_SIZE) < (buf.length + 4)){
                 if(!this.checkSyncByte(buf, pointer + PACKET_SIZE)){
                     if(this.debug){
-                        this.debug('bad syncByte at next packet')
+                        this.debug('bad syncByte for next packet')
                     }
                     offset = this.nextSyncByte(buf, pointer + PACKET_SIZE)
                     if(offset != -1){

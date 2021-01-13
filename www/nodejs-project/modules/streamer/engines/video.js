@@ -15,7 +15,16 @@ class StreamerVideoIntent extends StreamerBaseIntent {
         return new Promise((resolve, reject) => {
             if(this.opts['direct']){
                 this.endpoint = this.data.url
-                resolve()
+                if(this.info && this.info.isLocalFile){
+                    global.serve.serve(this.data.url, false, false).then(url => {
+                        this.endpoint = url
+                        global.serve.keepAwake(true)
+                        this.on('uncommit', () => global.serve.keepAwake(false))
+                        resolve()
+                    }).catch(reject)
+                } else {
+                    resolve()
+                }
             } else {
                 this.adapter = new StreamerProxy(this.opts)
                 this.adapter.opts.forceFirstBitrateDetection = true
@@ -36,6 +45,9 @@ class StreamerVideoIntent extends StreamerBaseIntent {
 
 StreamerVideoIntent.mediaType = 'video'
 StreamerVideoIntent.supports = (info) => {
+    if(info.isLocalFile){
+        return true
+    }
     if(info.contentType){
         let c = info.contentType.toLowerCase()
         if(c.indexOf('mp2t') != -1){

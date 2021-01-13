@@ -371,12 +371,6 @@ class Options extends Timer {
                     return new Promise((resolve, reject) => {
                         resolve([
                             {
-                                name: 'Debug messages on screen', type: 'check', action: (data, checked) => {
-                                global.config.set('debug-messages', checked)
-                            }, checked: () => {
-                                return global.config.get('debug-messages')
-                            }},
-                            {
                                 name: 'Enable console logging', type: 'check', action: (data, checked) => {
                                 global.config.set('enable-console', checked)
                             }, checked: () => {

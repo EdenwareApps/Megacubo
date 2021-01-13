@@ -27,9 +27,7 @@ class StreamerPlaybackTimeout extends EventEmitter {
         })
     }
     cancelTimeout(){
-        if(config['debug-messages']){
-            osd.hide('debug-timeout')
-        }
+        osd.hide('debug-timeout')
         osd.hide('timeout')
         clearTimeout(this.playbackTimeoutTimer)
         this.playbackTimeoutTimer = 0
@@ -169,7 +167,6 @@ class StreamerState extends StreamerOSD {
             }
         }
     }
-    stateListener
 }
 
 class StreamerUnmuteHack extends StreamerState { // unmute player on browser restrictions
@@ -192,37 +189,70 @@ class StreamerClientVideoAspectRatio extends StreamerUnmuteHack {
         this.aspectRatioList = [
             {h: 16, v: 9},
             {h: 4, v: 3},
-            {h: 16, v: 10}
+            {h: 16, v: 10},
+            {h: 21, v: 9}
         ]
         this.activeAspectRatio = this.aspectRatioList[0]
+        this.lanscape = window.innerWidth > window.innerHeight
         window.addEventListener('resize', () => {
-            this.applyAspectRatio(this.activeAspectRatio)
+            let landscape = window.innerWidth > window.innerHeight
+            if(landscape != this.landscape){ // orientation changed
+                this.landscape = landscape
+                setTimeout(() => this.applyAspectRatio(this.activeAspectRatio), 500) // give a delay to avoid confusion
+            } else {
+                this.applyAspectRatio(this.activeAspectRatio)
+            }
+        })
+        parent.player.on('setup-ratio', r => {
+            console.log('SETUP-RATIO', r)
+            this.setupAspectRatio()
         })
         this.app.on('ratio', () => {
             this.switchAspectRatio()
         })
         this.on('stop', () => {
+            this.aspectRatioList = this.aspectRatioList.filter(m => typeof(m.custom) == 'undefined')
             this.activeAspectRatio = this.aspectRatioList[0]
         })
     }
+    generateAspectRatioMetrics(r){
+        let h = r, v = 1
+        while(h < Number.MAX_SAFE_INTEGER && (!Number.isSafeInteger(h) || !Number.isSafeInteger(v))){
+            v++
+            h = v * r;
+        }
+        console.log('generateAspectRatioMetrics', r, {v, h})
+        return {v, h}
+    }
+    registerAspectRatio(metrics){
+        let found = this.aspectRatioList.some(m => {
+            return (m.v == metrics.v && m.h == metrics.h)
+        })
+        if(!found){
+            metrics.custom = true
+            this.aspectRatioList.push(metrics)
+        }
+        return metrics
+    }
     detectAspectRatio(){
-        return parent.player.ratio()
+        return parent.player.videoRatio()
     }
     setupAspectRatio(){
-        var r = this.detectAspectRatio()
-        this.applyAspectRatio(r)
+        let r = this.detectAspectRatio(), metrics = this.generateAspectRatioMetrics(r)
+        this.applyAspectRatio(metrics)
+        this.registerAspectRatio(metrics)
     }
     switchAspectRatio(){
         var nxt = this.aspectRatioList[0], i = this.aspectRatioList.indexOf(this.activeAspectRatio)
         if(i < (this.aspectRatioList.length - 1)){
             nxt = this.aspectRatioList[i + 1]
         }
-        console.warn('RATIO', nxt, this.activeAspectRatio, i, this.aspectRatioList)
+        console.log('RATIO', nxt, this.activeAspectRatio, i, this.aspectRatioList)
         this.applyAspectRatio(nxt)
     }
     applyAspectRatio(r){
         this.activeAspectRatio = r        
-        parent.player.ratio(this.activeAspectRatio.h / this.activeAspectRatio.v)
+        parent.player.ratio(r.h / r.v)
     }
 }
 
@@ -621,7 +651,8 @@ class StreamerClientControls extends StreamerAudioUI {
         })
         this.addPlayerButton('ratio', lang.ASPECT_RATIO, 'fas fa-expand-alt', -1, () => {
             this.switchAspectRatio()
-            osd.show(lang.ASPECT_RATIO +': '+ this.activeAspectRatio.h + ':' + this.activeAspectRatio.v, '', 'ratio', 'normal')
+            let label = this.activeAspectRatio.custom ? lang.ORIGINAL_SIZE : (this.activeAspectRatio.h + ':' + this.activeAspectRatio.v)
+            osd.show(lang.ASPECT_RATIO +': '+ label, '', 'ratio', 'normal')
         }, 0.9)
         this.addPlayerButton('fullscreen', lang.FULLSCREEN, 'fas fa-expand', -1, () => {
             this.toggleFullScreen()
@@ -646,6 +677,9 @@ class StreamerClientControls extends StreamerAudioUI {
             <label><span>${name}</span></label>
         </button>
 `
+        if(container.querySelector('#' + id)){
+            return
+        }
         if(scale != -1){
             template = template.replace('></i>', ' style="transform: scale('+ scale +')"></i>')
         }

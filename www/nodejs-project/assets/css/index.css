@@ -653,6 +653,9 @@ body.video #osd-root {
 #osd-root .osd-text > div {
     display: block;
 }
+body:not(.video-loading) #osd-entry-debug-conn-err { /* Show connection debug only if video is in loading state */
+    display: none !important;
+}
 .faclr-green {
     color: #094 !important;
 }

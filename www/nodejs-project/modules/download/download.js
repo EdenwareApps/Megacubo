@@ -4,7 +4,7 @@ class Download extends Events {
    constructor(opts){
 	   	super()
 		this.opts = {
-			debug: true,
+			debug: false,
 			keepalive: false,
 			maxAuthErrors: 2,
 			retries: 3,

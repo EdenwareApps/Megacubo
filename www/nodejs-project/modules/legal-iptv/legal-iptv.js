@@ -145,7 +145,7 @@ class LegalIPTV {
                     let sb = b.countryCode == cc ? 2 : ((b.countryCode == loc) ? 1 : 0)
                     return sa < sb ? 1 : (sa > sb ? -1 : 0)
                 })
-                entries.push({
+                entries.unshift({
                     name: global.lang.KNOW_MORE,
                     fa: 'fas fa-info-circle',
                     type: 'action',
@@ -182,7 +182,7 @@ class LegalIPTV {
     }
     hook(entries, path){
         return new Promise((resolve, reject) => {
-            if(path == global.lang.IPTV_LISTS){
+            if(path.split('/').pop() == global.lang.SHARED_MODE && config.get('shared-mode-reach')){
                 entries.push({name: this.title, fa: this.icon, type: 'group', renderer: this.entries.bind(this)})
             }
             resolve(entries)

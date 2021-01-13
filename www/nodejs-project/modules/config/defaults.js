@@ -6,7 +6,6 @@ module.exports = {
 	'autocrop-logos': true,
 	'background-color': '#15002C',
 	'custom-background-image': '',
-	'debug-messages': false,
 	'enable-console': false,
 	'epg': '',
 	'epg-map': {},

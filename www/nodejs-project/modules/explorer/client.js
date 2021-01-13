@@ -573,6 +573,9 @@ class ExplorerSlider extends ExplorerPrompt {
 			s.before(this.modalTemplates['slider'])
 			s.on('keydown', event => {
 				switch(event.keyCode) {
+					case 13:  // enter
+						s.get().submit()
+						break
 					case 37: // left
 						event.preventDefault()
 						value = this.sliderIncreaseLeft(e, value, range, mask, step)
@@ -597,6 +600,14 @@ class ExplorerSlider extends ExplorerPrompt {
 			})
 			n.addEventListener('change', () => {
 				this.sliderSync(e, range, mask)
+			})
+			n.parentNode.addEventListener('keydown', event => {
+				console.log('SLIDERINPUT', event, s)
+				switch(event.keyCode) {
+					case 13:  // enter
+						s.get(0).click()
+						break
+				}
 			})
 			this.sliderSetValue(e, value, range, mask)
 			this.modalContent.querySelector('.modal-template-slider-left').addEventListener('click', event => {

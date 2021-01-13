@@ -133,7 +133,7 @@ class Downloader extends StreamerAdapterBase {
 		})
 		download.on('error', error => {
             console.warn('['+ this.type +'] ERR', error, this.url)
-			if(this.committed && global.config.get('debug-messages')){
+			if(this.committed){
 				let statusCode = 0
 				if(error && error.response && error.response.statusCode){
 					statusCode = error.response.statusCode
@@ -167,7 +167,7 @@ class Downloader extends StreamerAdapterBase {
 				})
 			} else {
 				download.end()
-				if(this.committed && global.config.get('debug-messages')){
+				if(this.committed && (!statusCode || statusCode < 200 || statusCode >= 400)){ // skip redirects
 					global.osd.show((statusCode ? statusCode : 'timeout') + ' error', 'fas fa-times-circle', 'debug-conn-err', 'normal')
 				}
 				this.internalError('bad response: ' + contentType + ', ' + statusCode)

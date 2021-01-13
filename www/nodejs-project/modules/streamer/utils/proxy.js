@@ -252,13 +252,11 @@ class StreamerProxy extends StreamerProxyBase {
 				end()
 			}
 		})
-		if(this.committed && global.config.get('debug-messages')){
-			download.on('error', err => {
-				if(this.committed){
-					global.osd.show((err.response ? err.response.statusCode : 'timeout') + ' error', 'fas fa-times-circle', 'debug-conn-err', 'normal')
-				}
-			})
-		}
+		download.on('error', err => {
+			if(this.committed){
+				global.osd.show((err.response ? err.response.statusCode : 'timeout') + ' error', 'fas fa-times-circle', 'debug-conn-err', 'normal')
+			}
+		})
 		download.on('response', (statusCode, headers) => {
 			headers = this.removeHeaders(headers, ['transfer-encoding'])
 			headers['access-control-allow-origin'] = '*'
@@ -280,7 +278,7 @@ class StreamerProxy extends StreamerProxyBase {
 					}
 				}
 			} else {
-				if(this.committed && global.config.get('debug-messages')){
+				if(this.committed && (!statusCode || statusCode < 200 || statusCode >= 400)){ // skip redirects
 					global.osd.show((statusCode || 'timeout') + ' error', 'fas fa-times-circle', 'debug-conn-err', 'normal')
 				}
 				let fallback, location

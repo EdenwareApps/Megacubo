@@ -185,6 +185,22 @@ class StreamerTools extends Events {
 				ret.directURL = url
 				ret.ext = this.ext(url)
 				resolve(ret)
+			} else if(this.isLocalFile(url)) {
+				fs.stat(url, (err, stat) => {
+					if(stat && stat.size){
+						let ret = {}
+						ret.status = 200
+						ret.contentType = 'video/mp4'
+						ret.contentLength = stat.size
+						ret.url = url
+						ret.directURL = url
+						ret.ext = this.ext(url)
+						ret.isLocalFile = true
+						resolve(ret)
+					} else {
+						reject('file not found')
+					}
+				})
 			} else {
 				reject('invalid url')
 			}
@@ -222,6 +238,19 @@ class StreamerTools extends Events {
 			ret = ret.substr(0, len)
 		}
 		return ret
+	}
+	isLocalFile(file){
+		if(typeof(file) != 'string'){
+			return
+		}
+		let m = file.match(new RegExp('^([a-z]{1,6}):', 'i'))
+		if(m.length && (m[1].length == 1 || m[1].toLowerCase() == 'file')){ // drive letter or file protocol
+			return true
+		} else {
+			if(file.length >= 2 && file.charAt(0) == '/' && file.charAt(1) != '/'){ // unix path
+				return true
+			}
+		}
 	}
     ext(file){
 		let basename = String(file).split('?')[0].split('#')[0].split('/').pop()

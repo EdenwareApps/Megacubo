@@ -49,7 +49,6 @@ class History extends EntriesGroup {
     }
     hook(entries, path){
         return new Promise((resolve, reject) => {
-            this.resume()
             if(path == global.lang.TOOLS){
                 entries.push(this.entry())
             } else if(path == '') {

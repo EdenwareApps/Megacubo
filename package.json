@@ -1,7 +1,7 @@
 {
   "name": "tv.megacubo.app",
   "displayName": "Megacubo",
-  "version": "16.0.7",
+  "version": "16.0.9",
   "description": "A intuitive and multi-language IPTV player.",
   "main": "index.js",
   "scripts": {
@@ -21,7 +21,6 @@
       "cordova-plugin-console": {},
       "nodejs-mobile-cordova": {},
       "cordova-plugin-webview-checker": {},
-      "cordova-megacubo-player-plugin": {},
       "cordova-plugin-ionic-webview": {},
       "cordova-plugin-ionic-keyboard": {},
       "cordova-plugin-insomnia": {},
@@ -53,14 +52,15 @@
       },
       "com.hughisaacs2.cordova.plugins.androidtvplugin": {},
       "cordova-plugin-inapppurchase": {},
-      "cordova-plugin-network-information": {}
+      "cordova-plugin-network-information": {},
+      "cordova-megacubo-player-plugin": {}
     },
     "platforms": []
   },
   "devDependencies": {
     "com.hughisaacs2.cordova.plugins.androidtvplugin": "git+https://github.com/efoxbr/Cordova-Android-TV-Plugin.git",
     "cordova-android": "^9.0.0",
-    "cordova-megacubo-player-plugin": "git+https://github.com/efoxbr/cordova-megacubo-player-plugin.git",
+    "cordova-megacubo-player-plugin": "file:../cordova-megacubo-player-plugin",
     "cordova-plugin-android-permissions": "^1.1.2",
     "cordova-plugin-console": "^1.1.0",
     "cordova-plugin-exclude-files": "^1.0.1",

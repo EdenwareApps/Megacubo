@@ -46,6 +46,12 @@ class VideoControl extends EventEmitter {
 		}
 		return 0
 	}
+	videoRatio(){
+		if(this.current){
+			return this.current.videoRatio()
+		}
+		return 0
+	}
 	show(){
 		$('html').addClass('playing')
 		if(!(this.current instanceof VideoControlAdapterAndroidNative)){
@@ -104,6 +110,10 @@ class VideoControl extends EventEmitter {
 				}
 				this.emit('state', this.state, this.hasErr)
 			})
+			a.on('setup-ratio', r => {
+				if(!this.current) return
+				this.emit('setup-ratio', r)
+			})
 			a.on('timeupdate', () => {
 				if(!this.current) return
 				this.emit('timeupdate')
@@ -153,6 +163,7 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
         this.lastSeenTime = 0
 		this.state = ''
 		this._ratio = 0
+		this.hasReceivedRatio = false
 	}
 	setup(tag){
 		console.log('adapter setup')
@@ -188,18 +199,21 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 		})
         v.on('loadedmetadata', event => {
 			if(this.object.videoHeight){
-				this.ratio(this.object.videoWidth / this.object.videoHeight)
+				let r = this.object.videoWidth / this.object.videoHeight
+				if(r > 0 && !this.hasReceivedRatio){
+					this.hasReceivedRatio = true
+					this.emit('setup-ratio', r)
+				}
+				this.ratio(r)
 			}
 		});
 		['abort', 'canplay', 'canplaythrough', 'durationchange', 'emptied', 'ended', 'error', 'loadeddata', 'loadedmetadata', 'loadstart', 'pause', 'play', 'playing', 'seeked', 'stalled', 'suspend', 'waiting'].forEach(n => {
 			v.on(n, this.processState.bind(this))
 		})
-		window.addEventListener('resize', this.resizeEvent.bind(this))
 	}
 	disconnect(){
 		let v = $(this.object)
 		v.off()
-		window.removeEventListener('resize', this.resizeEvent.bind(this))
 	}
 	load(src, mimetype){
 		this.unload()
@@ -219,6 +233,7 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 	}
 	unload(){
 		console.log('adapter unload')
+		this.hasReceivedRatio = false
 		if(this.active){
 			this.active = false
 			this.disconnect()
@@ -267,11 +282,11 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 				let invRatio = 1 - (s - 1)
 				this.ratioDirection = rd
 				if(this.inPortrait){
-					if(this.ratioDirection){
+					//if(this.ratioDirection){
+					//	css = 'player > div { height: 100vh; width: calc(100vh * ' + this._ratio + '); }'
+					//} else {
 						css = 'player > div { width: 100vw; height: calc(100vw / ' + this._ratio + '); }'
-					} else {
-						css = 'player > div { height: 100vh; width: calc(100vh * ' + this._ratio + '); }'
-					}
+					//}
 				} else {
 					if(this.ratioDirection){
 						css = 'player > div { height: 100vh; width: calc(100vh * ' + this._ratio + '); }'
@@ -287,15 +302,14 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
             	document.querySelector("head, body").appendChild(this.ratioCSS)
 				console.log('ratioupdated', this.inPortrait)
 			}
-		} else {
-			console.error('bad ratio change', s, this._ratio)
 		}
 		return this._ratio
 	}
-	resizeEvent(){
-		if(this.active && this._ratio > 0){
-			this.ratio(this._ratio)
+	videoRatio(){
+		if(!this.object.videoWidth){
+			return 1.7777777777777777
 		}
+		return this.object.videoWidth / this.object.videoHeight
 	}
 	processState(){
 		var s = ''
@@ -358,6 +372,15 @@ class VideoControlAdapterAndroidNative extends VideoControlAdapter {
 		this.state = ''
 		this.duration = 0
 		this.currentTime = 0
+		this.hasReceivedRatio = false
+		this.aspectRatio = 1.7777777777777777
+		this.object.on('ratio', e => {
+			console.log('RECEIVED RATIO', e)
+			if(e.ratio > 0 && !this.hasReceivedRatio){
+				this.hasReceivedRatio = true
+				this.emit('setup-ratio', e.ratio)
+			}
+		})
 		this.object.on('state', state => {
 			if(state != this.state){
 				this.state = state
@@ -388,12 +411,13 @@ class VideoControlAdapterAndroidNative extends VideoControlAdapter {
 	}
 	errorCallback(...args){
 		console.error('exoplayer err', args)
-		this.emit('error', err)
+		this.emit('error', args)
 		//console.error(err, arguments)
 		//this.stop()
 		//this.emit('error', err)
 	}
 	unload(){
+		this.hasReceivedRatio = false
 		this.active = false
 		this.object.stop()
 	}
@@ -414,7 +438,10 @@ class VideoControlAdapterAndroidNative extends VideoControlAdapter {
 			this.object.ratio(s)
 		}
 		return this.object.aspectRatio
-	}
+	}	
+	videoRatio(){
+		return this.object.aspectRatio
+	}	
 	destroy(){
 		this.unload()
 	}
