@@ -7,6 +7,30 @@ class Timer extends Events {
         this.timerTimer = 0
         this.timerData = 0
         this.timerLabel = false
+        global.ui.on('about-callback', ret => {
+            console.log('about-callback', ret)
+            switch(ret){
+                case 'tos':
+                    this.tos()
+                    break
+                case 'share':
+                    this.share()
+                    break
+                case 'help':
+                    this.help()
+                    break
+            }
+        })
+        global.ui.on('reset-callback', ret => {
+            console.log('reset-callback', ret)
+            switch(ret){
+                case 'yes':
+                    global.removeFolder(paths['data'], false, true)
+                    global.removeFolder(paths['temp'], false, true)
+                    global.energy.restart()
+                    break
+            }
+        })
     }
     timer(){
         return new Promise((resolve, reject) => {
@@ -108,7 +132,6 @@ class Options extends Timer {
             it: 'Italiano'
         }
         this.emptyEntry = {name: global.lang.EMPTY, type: 'action', fa: 'fas fa-info-circle', class: 'entry-empty'}
-        this.languageLabelMask = "LANG: {0}"
     }
     tools(){
         return new Promise((resolve, reject) => {
@@ -140,7 +163,6 @@ class Options extends Timer {
                     }
                     options.push({
                         name: typeof(this.languageNames[locale]) != 'undefined' ? this.languageNames[locale] : (global.lang.LANGUAGE +': '+ locale.toUpperCase()),
-                        details: this.languageLabelMask.format(locale.toUpperCase()),
                         type: 'action',
                         fa: 'fas fa-language',
                         icon,
@@ -161,11 +183,6 @@ class Options extends Timer {
             resolve(options)
         })
     }
-    encodeHTMLEntities(str){
-        return str.replace(/[\u00A0-\u9999<>&](?!#)/gim, (i) => {
-          return '&#' + i.charCodeAt(0) + ';'
-        })
-    }
     tos(){
         global.ui.emit('open-external-url', 'https://megacubo.tv/tos')
     }
@@ -175,20 +192,18 @@ class Options extends Timer {
             global.ui.emit('open-external-url', url)
         }).catch(global.displayErr)
     }
-    ffmpegVersion(){
-        global.ffmpeg.version(data => {
-            console.warn('FFMPEG INFO', data)
-            global.ui.emit('info', data ? lang.FFMPEG_VERSION : lang.FFMPEG_NOT_FOUND, this.encodeHTMLEntities(data || lang.FFMPEG_NOT_FOUND) +"<br />"+ global.ffmpeg.path)
-        })
-    }
+	share(){
+		global.ui.emit('share', global.ucWords(global.MANIFEST.name), global.ucWords(global.MANIFEST.name), 'https://megacubo.tv/online/')
+	}
     about(){
         let text = lang.LEGAL_NOTICE +": "+ lang.ABOUT_LEGAL_NOTICE
         ui.emit('dialog', [
             {template: 'question', text: global.ucWords(global.MANIFEST.name) +' v'+ global.MANIFEST.version +' (' + process.platform + ', '+ require('os').arch() +')'},
             {template: 'message', text},
             {template: 'option', text: 'OK', fa: 'fas fa-info-circle', id: 'ok'},
-            {template: 'option', text: global.lang.TOS, fa: 'fas fa-info-circle', id: 'tos'},
-            {template: 'option', text: global.lang.HELP, fa: 'fas fa-question-circle', id: 'help'}
+            {template: 'option', text: global.lang.HELP, fa: 'fas fa-question-circle', id: 'help'},
+            {template: 'option', text: global.lang.SHARE, fa: 'fas fa-share-alt', id: 'share'},
+            {template: 'option', text: global.lang.TOS, fa: 'fas fa-info-circle', id: 'tos'}
         ], 'about-callback', 'ok')
     }
     aboutMem(){
@@ -383,15 +398,35 @@ class Options extends Timer {
                                 return global.config.get('use-keepalive')
                             }},
                             {
+                                name: global.lang.MINIPLAYER, type: 'check', action: (data, checked) => {
+                                global.config.set('miniplayer-auto', checked)
+                            }, checked: () => {
+                                return global.config.get('miniplayer-auto')
+                            }},
+                            {
                                 name: 'Allow transcoding', type: 'check', action: (data, checked) => {
                                 global.config.set('allow-transcoding', checked)
                             }, checked: () => {
                                 return global.config.get('allow-transcoding')
                             }},
                             {
+                                name: global.lang.ELAPSED_TIME_TO_KEEP_CACHED, 
+                                details: global.lang.LIVE,
+                                fa: 'fas fa-hdd', 
+                                type: 'slider', 
+                                range: {start: 30, end: 7200},
+                                action: (data, value) => {
+                                    console.warn('ELAPSED_TIME_TO_KEEP_CACHED', data, value)
+                                    global.config.set('live-window-time', value)
+                                }, 
+                                value: () => {
+                                    return global.config.get('live-window-time')
+                                }
+                            },
+                            {
                                 name: 'Memory usage', fa: 'fas fa-memory', type: 'action', action: this.aboutMem.bind(this)
                             },
-                            {name: global.lang.FFMPEG_VERSION, fa: 'fas fa-info-circle', type: 'action', action: this.ffmpegVersion.bind(this)}
+                            {name: global.lang.FFMPEG_VERSION, fa: 'fas fa-info-circle', type: 'action', action: global.ffmpeg.diagnosticDialog.bind(global.ffmpeg)}
                         ])
                     })
                 }},

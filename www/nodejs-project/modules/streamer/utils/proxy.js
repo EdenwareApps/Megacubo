@@ -7,6 +7,7 @@ class StreamerProxy extends StreamerProxyBase {
 		super('', opts)
 		this.type = 'proxy'
 		this.connections = {}
+		this.journal = {}
 		this.internalRequestAbortedEvent = 'request-aborted'
 		// this.opts.debug = console.log
 		if(this.opts.debug){
@@ -19,6 +20,7 @@ class StreamerProxy extends StreamerProxyBase {
 			this.server.close()
 		})
 		this.playlists = {} // fallback mirrors for when one playlist of these returns 404, it happens, strangely...
+		this.playlistBitrates = {}
 	}
 	destroyConn(uid, data=false, force=true){
 		if(this.connections[uid]){
@@ -82,16 +84,38 @@ class StreamerProxy extends StreamerProxyBase {
         }
         return url
 	}
+	keepJournal(url, segments){
+		console.log('SEGMENTS', segments)
+		if(typeof(this.journal[url]) == 'undefined'){
+			this.journal[url] = []
+		}
+		let addingSegments = []
+		for(let i = (segments.length - 1); i>= 0; i--){
+			let has = this.journal[url].some(jseg => jseg.uri == segments[i].uri)
+			if(has){
+				console.log('SEGMENTS HAS', i, segments.length,  this.journal[url].length)
+				break
+			} else {
+				addingSegments.push(segments[i])
+			}
+		}
+		console.log('SEGMENTS ADD', addingSegments.length)
+		if(addingSegments.length){
+			this.journal[url] = this.journal[url].concat(addingSegments.reverse())
+		}
+	}
 	proxifyM3U8(body, url){
 		body = body.replace(new RegExp('^ +', 'gm'), '')
 		body = body.replace(new RegExp(' +$', 'gm'), '')
 		let parser = new m3u8Parser.Parser(), replaces = {}, u
 		parser.push(body)
 		parser.end()
+		// console.log('M3U8 PARSED', url, parser)
 		if(parser.manifest){
 			let qs = url.indexOf('?') ? url.split('?')[1] : ''
 			if(parser.manifest.segments && parser.manifest.segments.length){
-				parser.manifest.segments.forEach(segment => {
+				// this.keepJournal(url, parser.manifest.segments) // TODO
+				parser.manifest.segments.map(segment => {
 					segment.uri = segment.uri.trim()
 					let dn = this.getURLRoot(segment.uri)
 					if(typeof(replaces[dn]) == 'undefined'){
@@ -117,7 +141,7 @@ class StreamerProxy extends StreamerProxyBase {
 					this.playlists[url] = {}
 				}
 				parser.manifest.playlists.forEach(playlist => {
-					let dn = this.dirname(playlist.uri)
+					let dn = this.dirname(url)
 					if(typeof(replaces[dn]) == 'undefined'){
 						if(this.opts.debug){
 							this.opts.debug('dn', dn)
@@ -133,6 +157,13 @@ class StreamerProxy extends StreamerProxyBase {
 						body = this.applyM3U8Replace(body, dn, replaces[dn])
 						if(this.opts.debug){
 							this.opts.debug('ok')
+						}
+						if(playlist.attributes){
+							if(playlist.attributes["AVERAGE-BANDWIDTH"] && parseInt(playlist.attributes["AVERAGE-BANDWIDTH"]) > 128){
+								this.playlistBitrates[u] = parseInt(playlist.attributes["AVERAGE-BANDWIDTH"])
+							} else if(playlist.attributes["BANDWIDTH"] && parseInt(playlist.attributes["BANDWIDTH"]) > 128){
+								this.playlistBitrates[u] = parseInt(playlist.attributes["BANDWIDTH"])
+							}
 						}
 					}
 				})
@@ -285,17 +316,23 @@ class StreamerProxy extends StreamerProxyBase {
 				if(statusCode == 404){
 					Object.keys(this.playlists).some(masterUrl => {
 						if(Object.keys(this.playlists[masterUrl]).includes(url)){ // we have mirrors for this playlist
-							return Object.keys(this.playlists[masterUrl]).some(playlist => {
+							Object.keys(this.playlists[masterUrl]).some(playlist => {
 								if(playlist == url){
 									this.playlists[masterUrl][playlist] = false // means offline
-								} else {
-									if(this.playlists[masterUrl][playlist] === true){
-										fallback = playlist
-										console.warn('Fallback playlist redirect', url, '>>', playlist, this.playlists)
-										return true
-									}
+									return true
 								}
 							})
+							let hasFallback = Object.keys(this.playlists[masterUrl]).some(playlist => {
+								if(playlist != url && this.playlists[masterUrl][playlist] === true){
+									fallback = playlist
+									console.warn('Fallback playlist redirect', url, '>>', playlist, JSON.stringify(this.playlists))
+									return true
+								}
+							})
+							if(!hasFallback){
+								console.warn('No more fallbacks', url, JSON.stringify(this.playlists))
+								this.fail(404)
+							}
 						}
 					})
 				} else if(typeof(headers.location) != 'undefined') {
@@ -308,7 +345,8 @@ class StreamerProxy extends StreamerProxyBase {
 					headers['location'] = location
 					response.writeHead((statusCode >= 300 && statusCode < 400) ? statusCode : 307, headers)					
 				} else {
-					response.writeHead(statusCode || 504, headers)
+					// we'll avoid to passthrough 403 errors to the client as some streamsmay return it esporadically
+					response.writeHead(statusCode && ![401, 403].includes(statusCode) ? statusCode : 504, headers)
 				}
 				end()
 			}
@@ -335,6 +373,10 @@ class StreamerProxy extends StreamerProxyBase {
 		if(!headers['content-type']){
 			headers['content-type'] = 'application/x-mpegURL'
 		}
+		if(typeof(this.playlistBitrates[url]) != 'undefined' && this.bitrates.length < this.opts.bitrateCheckingAmount){
+			console.log('METARESPONSE BITRATE SAVE!!', url, this.playlistBitrates[url])
+			this.saveBitrate(this.playlistBitrates[url])
+		}
 		headers = this.removeHeaders(headers, ['content-length']) // we'll change the content
 		headers = this.addCachingHeaders(headers, 4) // set a min cache to this m3u8 to prevent his overfetching
 		download.on('end', data => {
@@ -349,7 +391,7 @@ class StreamerProxy extends StreamerProxyBase {
 			} else {
 				console.error('Invalid response from server', url, data)
 				if(!response.headersSent){
-					response.writeHead(500, headers)
+					response.writeHead(504, headers)
 				}
 			}
 			end(data)

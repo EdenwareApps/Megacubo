@@ -46,7 +46,7 @@ class LegalIPTV {
                     global.Download.promise({
                         url,
                         responseType: file ? 'text' : 'json',
-                        timeout: 60000,
+                        timeout: 60,
                         retry: 2
                     }).then(body => {
                         if(!body){

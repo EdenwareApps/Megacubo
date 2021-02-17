@@ -19,13 +19,18 @@ class StreamerVODHLSIntent extends StreamerBaseIntent {
                 workDir: this.opts.workDir, 
                 debug: this.opts.debug
             }
+            this.transcoderStarting = true
             this.resetTimeout()
             this.transcoder = new FFServer(this.data.url, opts)
             this.connectAdapter(this.transcoder)
             this.transcoder.start().then(() => {
+                this.transcoderStarting = false
                 this.endpoint = this.transcoder.endpoint
                 resolve({endpoint: this.endpoint, mimetype: this.mimetype})
-            }).catch(reject)
+            }).catch(e => {                
+                this.transcoderStarting = false
+                reject(e)
+            })
         })
     }
     _start(){ 
@@ -45,11 +50,8 @@ class StreamerVODHLSIntent extends StreamerBaseIntent {
 
 StreamerVODHLSIntent.mediaType = 'video'
 StreamerVODHLSIntent.supports = info => {
-    if(info.sample){
-        let sample = String(info.sample).toLowerCase()
-        if(sample.match(new RegExp('#ext(m3u|inf)')) && sample.indexOf('#ext-x-endlist') != -1){
-            return true
-        }
+    if(info.sample && global.isVODM3U8(info.sample)){
+        return true
     }
     return false
 }

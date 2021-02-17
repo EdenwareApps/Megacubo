@@ -26,7 +26,7 @@ function patch(scope){
 	}
 
 	if(typeof(scope.URLSearchParams) == 'undefined'){ // node
-		scope.URLSearchParams = require('url-search-params-polyfill')
+		scope.URLSearchParams = (scope.require || require)('url-search-params-polyfill')
 	} else { // browser
 		scope.saveFileDialogChooser = false
 		scope.saveFileDialog = function (callback, placeholder) {
@@ -208,6 +208,11 @@ function patch(scope){
 
 	scope.time = () => {
 		return ((new Date()).getTime() / 1000)
+	}
+
+	scope.isVODM3U8 = content => {
+        let sample = String(content).toLowerCase()
+        return sample.indexOf('#ext-x-playlist-type:vod') != -1 || sample.indexOf('#ext-x-endlist') != -1
 	}
 
 	return scope

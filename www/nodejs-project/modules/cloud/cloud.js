@@ -72,7 +72,7 @@ class CloudData {
                         global.Download.promise({
                             url,
                             responseType: raw === true ? 'text' : 'json',
-                            timeout: 60000,
+                            timeout: 60,
                             retry: 2,
                             headers: {
                                 'host': this.domain

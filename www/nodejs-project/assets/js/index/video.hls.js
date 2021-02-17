@@ -113,7 +113,11 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 					switch (data.type) {
 						case Hls.ErrorTypes.MEDIA_ERROR:
 							console.error('media error', data.details)
-							this.handleMediaError(data)
+							if(data.details == 'manifestIncompatibleCodecsError'){
+								this.emit('request-transcode')
+							} else {
+								this.handleMediaError(data)
+							}
 							break
 						case Hls.ErrorTypes.NETWORK_ERROR:
 							console.error('network error', data.networkDetails)

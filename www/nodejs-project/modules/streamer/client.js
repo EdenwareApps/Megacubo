@@ -77,6 +77,7 @@ class StreamerOSD extends StreamerPlaybackTimeout {
                     osd.show(lang.PAUSED, 'fas fa-play', this.osdID, 'persistent')
                     break
                 case 'loading':
+                    osd.hide(this.osdID) // clear paused osd
                     clearTimeout(this.transmissionNotWorkingHintTimer)
                     this.transmissionNotWorkingHintTimer = setTimeout(() => {
                         if(this.active){
@@ -151,6 +152,7 @@ class StreamerState extends StreamerOSD {
         }
     } 
     unbindStateListener(){
+        console.log('STREAMER-UNBINDSTATELISTENER')
         parent.player.removeListener('state', this.stateListener)
     }
     playOrPause(){
@@ -169,7 +171,16 @@ class StreamerState extends StreamerOSD {
     }
 }
 
-class StreamerUnmuteHack extends StreamerState { // unmute player on browser restrictions
+class StreamerTranscode extends StreamerState { // request stream transcode 
+    constructor(controls, app){
+        super(controls, app)
+        if(!parent.cordova){
+            parent.player.on('request-transcode', () => this.app.emit('video-transcode'))
+        }
+    }
+}
+
+class StreamerUnmuteHack extends StreamerTranscode { // unmute player on browser restrictions
     constructor(controls, app){
         super(controls, app)
         if(!parent.cordova){
@@ -314,7 +325,7 @@ class StreamerSpeedo extends StreamerBodyIdleClass {
     endSpeedo(){
         this.app.emit('speedo-end')
     }
-    speedoUpdate(speed, bitrate){
+    speedoUpdate(speed, bitrate, starting){
         if(parent.player.state == 'loading'){
             let lowSpeedThreshold = (250 * 1024) /* 250kbps */, clientSpeed = navigator.connection && navigator.connection.downlink ? navigator.connection.downlink : 0
             if(clientSpeed){ // mbs to bits
@@ -348,7 +359,11 @@ class StreamerSpeedo extends StreamerBodyIdleClass {
                 } else {
                     t += lang.SERVER_CONNECTION + ': ' + kbsfmt(speed)
                     if(speed <= lowSpeedThreshold){
-                        t = '<span class="faclr-red">' + t + '</span>'
+                        if(starting){
+                            t = lang.WAITING_CONNECTION
+                        } else {
+                            t = '<span class="faclr-red">' + t + '</span>'
+                        }
                     }
                 }
                 this.seekbarLabel.innerHTML = t
@@ -435,7 +450,24 @@ class StreamerSeek extends StreamerSpeedo {
     }
     seekPercentage(){
         if(!this.active) return 0
-        let percent = parent.player.time() / (parent.player.duration() / 100)
+        let minTime = 0, time = parent.player.time(), duration = parent.player.duration()
+        if(this.activeMimetype && this.activeMimetype.indexOf('mpegurl') != -1){
+            minTime = duration - config['live-window-time']
+            if(minTime < 0){
+                minTime = 0
+            }
+        }
+        if(minTime){
+            time -= minTime
+            duration -= minTime
+            if(time < 0){
+                time = 0
+            }
+            if(duration < 0){
+                duration = 0
+            }
+        }
+        let percent = time / (duration / 100)
         if(isNaN(percent) || percent > 100){ // ?!
             percent = 100
         }
@@ -443,22 +475,31 @@ class StreamerSeek extends StreamerSpeedo {
     }
     seekTimeFromPercentage(percent){
         if(!this.active) return 0
-        let minTime = 0, time = percent * (parent.player.duration() / 100)
+        let minTime = 0, time = parent.player.time(), duration = parent.player.duration()
         if(this.activeMimetype && this.activeMimetype.indexOf('mpegurl') != -1){
-            minTime = parent.player.duration() - config['live-window-time']
+            minTime = duration - config['live-window-time']
             if(minTime < 0){
                 minTime = 0
             }
         }
-        if(time < minTime){
-            time = minTime
+        if(minTime){
+            time -= minTime
+            duration -= minTime
+            if(time < 0){
+                time = 0
+            }
+            if(duration < 0){
+                duration = 0
+            }
         }
-        return time
+        let ret = parseInt(minTime + (percent * (duration / 100)))
+        console.log('SEEK PERCENT', percent, minTime, parent.player.time(), parent.player.duration(), duration, ret)
+        return ret
     }
     seekByPercentage(percent){        
         if(this.active){
             let s = this.seekTimeFromPercentage(percent)
-            parent.player.time(s)            
+            parent.player.time(s)
             this.app.emit('streamer-seek', s)
             this.seekBarUpdate(true)
         }
@@ -528,8 +569,7 @@ class StreamerClientVideoFullScreen extends StreamerSeek {
     constructor(controls, app){
         super(controls, app)
         this.inFullScreen = false
-        this.allowFullScreenControlInAndroid = false
-        if(config['startup-window'] == 'fullscreen' || !this.allowFullScreenControlInAndroid || !parent.AndroidFullScreen){
+        if(parent.cordova || config['startup-window'] == 'fullscreen'){
             this.allowFullScreenControl(false)
         } else {
             this.on('fullscreenchange', fs => {
@@ -542,6 +582,9 @@ class StreamerClientVideoFullScreen extends StreamerSeek {
         }
     }
     allowFullScreenControl(enable){
+        if(parent.cordova){
+            enable = false
+        }
         let b = this.controls.querySelector('button.fullscreen')
         if(b) {
             b.style.display = enable ? 'inline-flex' : 'none'
@@ -551,17 +594,15 @@ class StreamerClientVideoFullScreen extends StreamerSeek {
         return (window.innerHeight >= screen.height && window.innerWidth >= screen.width)
     }
     isFullScreen(){
-        if(parent.AndroidFullScreen){
-            return !this.allowFullScreenControlInAndroid || this.isFullScreenSized()
+        if(parent.cordova){
+            return true
         } else {
             const d = parent.document
             return (d.fullscreenElement || d.mozFullScreenElement || d.webkitFullscreenElement || d.msFullscreenElement)
         }
     }
     enterFullScreen(){
-        if(parent.AndroidFullScreen){
-            parent.AndroidFullScreen.immersiveMode(console.log, console.error)
-        } else {
+        if(!parent.cordova){
             let e = parent.document.body // document.documentElement
             if (e.requestFullscreen) {
                 e.requestFullscreen()
@@ -572,25 +613,27 @@ class StreamerClientVideoFullScreen extends StreamerSeek {
             } else if (e.webkitRequestFullscreen) {
                 e.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT)
             }
+            this.inFullScreen = true
+            this.emit('fullscreenchange', this.inFullScreen)
         }
-        this.inFullScreen = true
-        this.emit('fullscreenchange', this.inFullScreen)
     }
     leaveFullScreen(){
-        if(this.isFullScreen()){
-            let e = parent.document // document.documentElement
-            if (e.exitFullscreen) {
-                e.exitFullscreen()
-            } else if (e.msExitFullscreen) {
-                e.msExitFullscreen()
-            } else if (e.mozCancelFullScreen) {
-                e.mozCancelFullScreen()
-            } else if (e.webkitExitFullscreen) {
-                e.webkitExitFullscreen()
+        if(!parent.cordova){
+            if(this.isFullScreen()){
+                let e = parent.document // document.documentElement
+                if (e.exitFullscreen) {
+                    e.exitFullscreen()
+                } else if (e.msExitFullscreen) {
+                    e.msExitFullscreen()
+                } else if (e.mozCancelFullScreen) {
+                    e.mozCancelFullScreen()
+                } else if (e.webkitExitFullscreen) {
+                    e.webkitExitFullscreen()
+                }
             }
+            this.inFullScreen = false
+            this.emit('fullscreenchange', this.inFullScreen)
         }
-        this.inFullScreen = false
-        this.emit('fullscreenchange', this.inFullScreen)
     }
     toggleFullScreen(){
         if(this.isFullScreen()){
@@ -742,6 +785,8 @@ class StreamerClientController extends StreamerClientControls {
         this.active = true
         this.activeMimetype = (mimetype || '').toLowerCase()
         parent.player.load(src, mimetype, '')
+        this.emit('start')
+        this.stateListener('loading')
     }
     stop(fromServer){
         if(this.active){
@@ -812,7 +857,7 @@ class StreamerClient extends StreamerClientController {
         })
         this.app.on('streamer-connect-suspend', () => { // used to wait for transcoding setup when supported codec is found on stream
             this.unbindStateListener()
-            this.state = 'loading'
+            this.stateListener('loading')
         })
         this.app.on('streamer-disconnect', (err, autoTuning) => {
             console.warn('DISCONNECT', err, autoTuning)

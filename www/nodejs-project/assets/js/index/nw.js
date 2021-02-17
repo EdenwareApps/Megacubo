@@ -4,7 +4,7 @@ class ClassesHandler {
 		return !!element.className.match(new RegExp('(\\s|^)'+cls+'(\\s|$)'))
 	}
 	addClass(element, cls) {
-		if (!this.hasClass(element, cls)) element.className += " "+ cls
+		if (!this.hasClass(element, cls)) element.className += ' '+ cls
 	}
 	removeClass(element, cls) {
 		if (this.hasClass(element, cls)) {
@@ -17,6 +17,7 @@ class ClassesHandler {
 class WindowManager extends ClassesHandler {
 	constructor(){
 		super()
+		this.trayMode = false
 		this.win = nw.Window.get()
 		this.leftWindowDiff = 0
 		this.miniPlayerActive = false
@@ -25,19 +26,23 @@ class WindowManager extends ClassesHandler {
 		this.inFullScreen = false
 		this.nwcf = require('nw-custom-frame')
 		this.nwcf.attach(window, {
-			"icon": "assets/images/default_icon_white.png",
-			"size": 30, // You can specify the size in em,rem, etc...
-			"frameIconSize": 21 // You can specify the size in em,rem, etc...
+			'icon': 'assets/images/default_icon_white.png',
+			'size': 30, // You can specify the size in em,rem, etc...
+			'frameIconSize': 21 // You can specify the size in em,rem, etc...
 		})
-		this.addAction('miniplayer-on', () => {
-			this.win.setAlwaysOnTop(true);
-			this.win.setShowInTaskbar(false);
-			this.fixMaximizeButton();
+		this.on('miniplayer-on', () => {
+			console.warn('MINIPLAYER ON')
+			this.win.setAlwaysOnTop(true)
+			this.win.setShowInTaskbar(false)
+			this.fixMaximizeButton()
+			this.app.streamer.emit('miniplayer-on')
 		})
-		this.addAction('miniplayer-off', () => {
-			this.win.setAlwaysOnTop(false);
-			this.win.setShowInTaskbar(true);
-			this.fixMaximizeButton();
+		this.on('miniplayer-off', () => {
+			console.warn('MINIPLAYER OFF')
+			this.win.setAlwaysOnTop(false)
+			this.win.setShowInTaskbar(true)
+			this.fixMaximizeButton()
+			this.app.streamer.emit('miniplayer-off')
 		})
 		this.waitApp(() => {
 			this.app.css(' :root { --frameless-window-titlebar-height: 30px; } ', 'frameless-window')
@@ -58,11 +63,52 @@ class WindowManager extends ClassesHandler {
 			}, 100)
 		})
 	}
+	prepareTray(){
+		if(!this.tray){
+			const title = 'Megacubo'
+			this.tray = new nw.Tray({
+				title, 
+				icon: 'default_icon.png', 
+				click: () => this.restoreFromTray()
+			})
+			this.tray.on('click', () => this.restoreFromTray())
+			const menu = new nw.Menu()
+			menu.append(new nw.MenuItem({
+				label: title,
+				click: () => this.restoreFromTray()
+			}))
+			menu.append(new nw.MenuItem({
+				label: this.app.lang.CLOSE,
+				click: () => {
+					this.tray = false
+					this.close()
+				}
+			}))
+			this.tray.menu = menu
+			this.tray.tooltip = title
+		}
+	}
+	removeFromTray(){
+		if(this.tray){
+			this.tray.remove();
+			this.tray = false;
+			this.win.setShowInTaskbar(true)
+		}
+	}
+	goToTray(){
+		this.prepareTray()
+		this.win.hide()
+		this.win.setShowInTaskbar(false)
+	}
+	restoreFromTray(){
+		this.win.show()
+		this.removeFromTray()
+	}
 	restart(){
 		console.log('restartApp')  
 		this.win.hide()
-		process.on("exit", function () {
-			require("child_process").spawn(process.execPath, nw.App.argv, {
+		process.on('exit', function () {
+			require('child_process').spawn(process.execPath, nw.App.argv, {
 				shell: false,
 				detached: true
 			})
@@ -110,7 +156,7 @@ class WindowManager extends ClassesHandler {
 			if(this.app.streamer){
 				fn()
 			} else {
-				this.app.addEventListener('appready', fn)
+				this.app.addEventListener('streamer-ready', fn)
 			}
 		} else if(!this.container){
 			document.querySelector('iframe').addEventListener('load', () => {
@@ -120,10 +166,10 @@ class WindowManager extends ClassesHandler {
 			this.waitAppTimer = setTimeout(this.waitApp.bind(this, fn), 250)
 		}
 	}
-	addAction(name, fn, useCapture){
+	on(name, fn, useCapture){
 		document.addEventListener(name, fn, useCapture)
 	}
-	doAction(name){
+	emit(name){
 		var event = new CustomEvent(name)
 		document.dispatchEvent(event)
 	}
@@ -137,7 +183,7 @@ class WindowManager extends ClassesHandler {
 		console.warn('setFullscreen()', enter);
 		if(!enter){
 			this.inFullScreen = this.miniPlayerActive = false;
-			this.doAction('miniplayer-off');
+			this.emit('miniplayer-off');
 			this.win.leaveKioskMode(); // bugfix, was remembering to enter fullscreen irreversibly
 			this.win.leaveFullscreen();
 			console.log('FSOUT');
@@ -170,23 +216,22 @@ class WindowManager extends ClassesHandler {
 		this.win.show()
 	}
 	restore(){
-		console.warn('restore()');
 		if(this.isFullScreen()){
 			this.setFullScreen(false)
 		} else if(this.miniPlayerActive) {
 			this.leaveMiniPlayer()
 		} else {
+			console.warn('restore()', this.initialSize);
 			this.win.width = this.initialSize[0]
 			this.win.height = this.initialSize[1]
-			this.centralizeWindow(this.win.width, this.win.height)
+			this.centralizeWindow.apply(this, this.initialSize)
 		}
 		this.showMaximizeButton()
 	}
 	centralizeWindow(w, h){
-		console.warn('centralizeWindow()');
+		console.warn('centralizeWindow()', w, h);
 		var x = Math.round((screen.availWidth - (w || window.outerWidth)) / 2);
 		var y = Math.round((screen.availHeight - (h || window.outerHeight)) / 2);
-		//window.moveTo(x, y)
 		this.win.x = x;
 		this.win.y = y;
 		console.log('POS', x, y);
@@ -195,12 +240,11 @@ class WindowManager extends ClassesHandler {
 		const v = document.querySelector('iframe').contentWindow.document.querySelector('video')
 		return v && v.offsetWidth ? (v.offsetWidth / v.offsetHeight) : (16 / 9)
 	}
-	enterMiniPlayer(){
+	enterMiniPlayer(w, h){
 		this.win.hide()
 		setTimeout(() => { 
 			this.miniPlayerActive = true;  
-			this.doAction('miniplayer-on');
-			var h = screen.availHeight / 3, w = this.getVideoRatio() * h;
+			this.emit('miniplayer-on');
 			window.resizeTo(w, h);
 			window.moveTo(screen.availWidth - w - this.miniPlayerRightMargin, screen.availWidth - h)
 		}, 100)
@@ -211,7 +255,7 @@ class WindowManager extends ClassesHandler {
 	prepareLeaveMiniPlayer(){
 		this.miniPlayerActive = false;  
 		this.win.setAlwaysOnTop(false)
-		this.doAction('miniplayer-off')
+		this.emit('miniplayer-off')
 	}
 	leaveMiniPlayer(){
 		this.prepareLeaveMiniPlayer()
@@ -223,13 +267,6 @@ class WindowManager extends ClassesHandler {
 			this.showRestoreButton()
 		} else {
 			this.showMaximizeButton()
-		}
-	}
-	toggleMiniPlayer(){
-		if(this.miniPlayerActive){
-			this.leaveMiniPlayer()
-		} else {
-			this.enterMiniPlayer()
 		}
 	}
 	toggleFullScreen(){
@@ -256,17 +293,8 @@ class WindowManager extends ClassesHandler {
 		this.showRestoreButton()
 	}
 	minimizeWindow(){
-		if(this.miniPlayerActive){
-			this.prepareLeaveMiniPlayer()
-			this.win.hide()
-			this.restore()
-			setTimeout(() => {
-				this.win.show()
-				this.win.minimize()
-			}, 0)
-		} else {
-			this.enterMiniPlayer()
-		}
+		this.win.show()
+		this.win.minimize()
 	}
 	showMaximizeButton(){
 		var e = document.querySelector('.nw-cf-maximize');
@@ -282,6 +310,9 @@ class WindowManager extends ClassesHandler {
 			document.querySelector('.nw-cf-maximize').style.display = 'none';
 		}
 	}
+	setCloseToTray(enable){		
+		this.closeToTray = enable
+	}
 	patchButton(sel, fn, label){
 		let old_element = document.querySelector(sel), new_element = old_element.cloneNode(true)
 		old_element.parentNode.replaceChild(new_element, old_element)
@@ -289,19 +320,21 @@ class WindowManager extends ClassesHandler {
 		['title', 'aria-label'].forEach(k => new_element.setAttribute(k, label))
 	}
 	patch(){    
-		if(!document.querySelector(".nw-cf-maximize")){
+		if(!document.querySelector('.nw-cf-maximize')){
 			return setTimeout(this.patch.bind(this), 250)
 		}    
-		this.patchButton(".nw-cf-maximize", this.maximize.bind(this), this.app.lang.MAXIMIZE)
-		this.patchButton(".nw-cf-restore", () => {
+		this.patchButton('.nw-cf-maximize', this.maximize.bind(this), this.app.lang.MAXIMIZE)
+		this.patchButton('.nw-cf-restore', () => {
 			setTimeout(this.fixMaximizeButton.bind(this), 50);
 			this.restore()
 		}, this.app.lang.RESTORE)
-		this.patchButton(".nw-cf-minimize", () => {
-			this.minimizeWindow()
-		}, this.app.lang.MINIMIZE)
-		this.patchButton(".nw-cf-close", () => {
-			this.close()
+		this.patchButton('.nw-cf-minimize', () => this.minimizeWindow(), this.app.lang.MINIMIZE)
+		this.patchButton('.nw-cf-close', () => {
+			if(this.closeToTray){
+				this.goToTray()
+			} else {
+				this.close()
+			}
 		}, this.app.lang.CLOSE)
 		this.patch = () => {}
 	}

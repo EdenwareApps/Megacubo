@@ -24,11 +24,7 @@ class StreamerTools extends Events {
         return ((new Date()).getTime() / 1000)
     }
 	validate(value) {
-		let v = value.toLowerCase()
-		if(v.substr(0, 7) == 'magnet:'){
-			return true
-		}
-		let prt = v.substr(0, 4), pos = v.indexOf('://')
+		let v = value.toLowerCase(), prt = v.substr(0, 4), pos = v.indexOf('://')
 		if(['http', 'rtmp', 'rtsp'].includes(prt) && pos >= 4 && pos <= 6){
 			return true // /^(?:(?:(?:https?|rt[ms]p[a-z]?):)?\/\/)(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,})))(?::\d{2,5})?(?:[/?#]\S*)?$/i.test(value);
 		}
@@ -244,7 +240,7 @@ class StreamerTools extends Events {
 			return
 		}
 		let m = file.match(new RegExp('^([a-z]{1,6}):', 'i'))
-		if(m.length && (m[1].length == 1 || m[1].toLowerCase() == 'file')){ // drive letter or file protocol
+		if(m && m.length > 1 && (m[1].length == 1 || m[1].toLowerCase() == 'file')){ // drive letter or file protocol
 			return true
 		} else {
 			if(file.length >= 2 && file.charAt(0) == '/' && file.charAt(1) != '/'){ // unix path
@@ -293,8 +289,7 @@ class StreamerBase extends StreamerTools {
             rtmp: require('./engines/rtmp'),
             ts: require('./engines/ts'),
             video: require('./engines/video'),
-            vodhls: require('./engines/vodhls'),
-            magnet: require('./engines/magnet')
+            vodhls: require('./engines/vodhls')
 		}
 		this.loadingIntents = []
 		this.setOpts(opts)
@@ -352,9 +347,9 @@ class StreamerBase extends StreamerTools {
 					let ret = ''
 					global.Download.promise({
 						url,
-						timeout: 10000,
+						timeout: 10,
 						retry: 0,
-						downloadLimit: 100,
+						receiveLimit: 100,
 						followRedirect: true
 					}).then(body => {
 						console.log('pingSource: ok', body)	
@@ -453,6 +448,7 @@ class StreamerBase extends StreamerTools {
 			this.active = intent // keep referring below as intent to avoid confusion on changing intents, specially inside events
 			this.lastActiveData = this.active.data
 			intent.committed = true
+			intent.commitTime = global.time()
 			intent.on('destroy', () => {
 				if(intent == this.active){
 					if(this.opts.debug){
@@ -473,17 +469,7 @@ class StreamerBase extends StreamerTools {
 			if(!global.cordova){ // only desktop version can't play hevc
 				intent.on('codecData', codecData => {
 					if(codecData && codecData.video.match(new RegExp('(hevc|mpeg2video)')) && intent == this.active){
-						if(global.config.get('allow-transcoding') && ['ts', 'hls'].includes(intent.type)){
-							if(!intent.transcoder){
-								console.warn('HEVC transcoding started')
-								global.ui.emit('streamer-connect-suspend')
-								intent.transcode().then(() => {
-									this.emit('streamer-connect', intent.endpoint, intent.mimetype, intent.data)
-								}).catch(err => {
-									console.error(err)
-									intent.fail('unsupported format')
-								})
-							}
+						if(this.transcode(intent)){
 							return
 						}
 						console.error('unsupported format', codecData)
@@ -502,8 +488,30 @@ class StreamerBase extends StreamerTools {
 				this.opts.debug('VIDEOINTENT2', intent.endpoint, intent.mimetype, data, intent.opts, intent.info)
 			}
 			this.emit('streamer-connect', intent.endpoint, intent.mimetype, data)
+			if(intent.transcoderStarting){
+				global.ui.emit('streamer-connect-suspend')
+			}
 			if(!this.opts.shadow){
 				global.osd.hide('streamer')
+			}
+			return true
+		}
+	}
+	transcode(intent){
+		if(!intent && this.active){
+			intent = this.active
+		}
+		if(global.config.get('allow-transcoding') && ['ts', 'hls'].includes(intent.type)){
+			if(!intent.transcoder){
+				console.warn('HEVC transcoding started')
+				global.ui.emit('streamer-connect-suspend')
+				intent.transcode().then(() => {
+					this.emit('streamer-connect', intent.endpoint, intent.mimetype, intent.data)
+					intent.emit('transcode-started')
+				}).catch(err => {
+					console.error(err)
+					intent.fail('unsupported format')
+				})
 			}
 			return true
 		}
@@ -523,6 +531,15 @@ class StreamerBase extends StreamerTools {
 		if(this.active){
 			let data = this.active.data
             this.emit('streamer-disconnect', err)
+			console.log('STREAMER->STOP', err)
+			if(!err){ // stopped with no error
+				let longWatchingThreshold = 15 * 60, watchingDuration = (global.time() - this.active.commitTime)
+				console.log('STREAMER->STOP', watchingDuration, this.active.commitTime)
+				if(this.active.commitTime && watchingDuration > longWatchingThreshold){
+					global.ui.emit('streamer-long-watching', watchingDuration)
+					this.emit('streamer-long-watching', watchingDuration)
+				}
+			}
             this.active.destroy()
 			this.active = null
 			this.emit('stop', err, data)
@@ -580,7 +597,7 @@ class StreamerSpeedo extends StreamerBase {
 			this.endSpeedo()
 			return
 		}
-		global.ui.emit('speedo', this.active.speed(), this.active.bitrate)
+		global.ui.emit('speedo', this.active.speed(), this.active.bitrate, this.active.commitTime && (global.time() - this.active.commitTime) < 10)
 	}
 }
 
@@ -684,7 +701,7 @@ class StreamerAbout extends StreamerThrottling {
 			codecs = codecs.map(c => c = c.replace(new RegExp('\\([^\\)]*[^A-Za-z\\)][^\\)]*\\)', 'g'), '').replace(new RegExp(' +', 'g'), ' ').trim())
 			meta = meta.concat(codecs)
 		}
-		text += "\r\n" + meta.join(' | ')
+		text = '<div><div>'+ text + '</div><div>' + meta.join(' | ') +'</div></div>'
 		return text
 	}
     about(){
@@ -875,7 +892,11 @@ class Streamer extends StreamerAbout {
 		}
 		if(this.isEntry(e)){
 			this.stop()
-			const same = global.tuning && !global.tuning.finished && (global.tuning.has(e.url) || global.tuning.megaUrl == e.url)
+			let ch = global.channels.isChannel(global.channels.entryTerms(e))
+			if(ch){
+				e.name = ch.name
+			}
+			const same = global.tuning && !global.tuning.finished && !global.tuning.destroyed && (global.tuning.has(e.url) || global.tuning.megaUrl == e.url)
 			const loadingEntriesData = [e, global.lang.AUTO_TUNING]
 			console.log('tuneEntry', e, same)
 			if(same){
@@ -957,13 +978,11 @@ class Streamer extends StreamerAbout {
 			case 'invalid url':
 				msg = global.lang.PLAYBACK_UNSUPPORTED_STREAM
 				break
-			case 'ffmpeg fail':
-				msg = global.lang.FFMPEG_DISABLED
-				break
 			default:
-				let m = r.match(new RegExp('error: ([0-9]+)'))
-				m = (m && m.length) ? m[1] : r
-				switch(m){
+				msg = String(r)
+				let code = msg.match(new RegExp('error: ([0-9]+)'))
+				code = (code && code.length) ? code[1] : msg
+				switch(code){
 					case '400':
 					case '401':
 					case '403':

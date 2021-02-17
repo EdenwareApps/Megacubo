@@ -15,7 +15,7 @@
     --entries-per-col: 2;
     --explorer-padding: calc(var(--explorer-height) * 0.01);
     --explorer-entry-width: calc((var(--explorer-width) - var(--explorer-scrollbar-width) - (var(--explorer-padding) * (var(--entries-per-row) * 2)) - 1px) / var(--entries-per-row));
-    --explorer-entry-details-font-size: calc(var(--explorer-entry-name-font-size) * 0.75);
+    --explorer-entry-details-font-size: calc(var(--explorer-entry-name-font-size) * 0.8);
     --explorer-scrollbar-width: 12px;
     --explorer-scrollbar-color: rgba(255, 255, 255, 0.25);
     --explorer-header-height: 6vmax;
@@ -99,6 +99,9 @@ body.video:not(.menu-playing) #explorer #home-arrows {
 body.video.menu-playing #explorer header .explorer-location,
 body.video.menu-playing #explorer .content-out {
     visibility: visible;
+}
+body.miniplayer-cordova {
+    pointer-events: none;
 }
 #main {
     width: 100%;
@@ -378,7 +381,6 @@ body.menu-playing #explorer .content-out {
     line-height: 150%;
     font-size: var(--explorer-entry-details-font-size);
     min-height: var(--explorer-entry-details-font-size);
-    text-shadow: 0 0 0.75vmin rgba(0, 0, 0, 1);
     color: var(--secondary-font-color);
 }
 div#paused-layer, div#audio-layer {
@@ -410,6 +412,12 @@ body.audio:not(.video-paused) div#audio-layer {
 div#paused-layer svg, div#paused-layer i, div#audio-layer svg, div#audio-layer i {
     filter: drop-shadow(0 0 0.75vmin black);
     margin-top: calc(var(--frameless-window-titlebar-height) / 2);
+}
+body:not(.video).miniplayer-cordova div#paused-layer {
+    display: flex;
+    background-color: #000000;
+    height: 100vh;
+    opacity: 1;
 }
 body.video-paused:not(.menu-playing) div#paused-layer {
     display: flex;
@@ -480,13 +488,19 @@ seekbar label {
     transition: color 0.5s linear 0s;
     overflow: hidden;
 }
-body.audio controls, body.video-playing:not(.idle):not(.menu-playing) controls, body.video-loading:not(.menu-playing) controls, body.video-paused:not(.menu-playing) controls {
+body.audio:not(.miniplayer-cordova) controls, body.video-playing:not(.idle):not(.menu-playing):not(.miniplayer-cordova) controls, body.video-loading:not(.miniplayer-cordova):not(.menu-playing) controls, body.video-paused:not(.miniplayer-cordova):not(.menu-playing) controls {
     bottom: 0;
     transform: none;
 }
 body.modal controls {
     visibility: visible;
     transform: scale(0.96) !important;
+}
+body.miniplayer-cordova controls, body.miniplayer-cordova div#modal, body.miniplayer-cordova #explorer header  {
+    display: none !important;
+}
+body.miniplayer-cordova div#paused-layer {
+    padding: 0;
 }
 controls span.filler {
     flex-grow: 1;
@@ -665,6 +679,9 @@ body:not(.video-loading) #osd-entry-debug-conn-err { /* Show connection debug on
 .faclr-red {
     color: #f05 !important;
 }
+.faclr-purple {
+    color: #af07c1 !important;
+}
 div#modal {
     visibility: hidden;
     position: fixed;
@@ -715,8 +732,11 @@ span.modal-template-message {
     font-size: var(--explorer-entry-name-font-size);
     margin-bottom: var(--padding);
     padding: calc(var(--padding) *2) var(--padding);
-    display: inline-block;
+    display: flex;
+    justify-content: center;
     line-height: 175%;
+    flex-shrink: 999;
+    overflow: auto;
 }
 span.modal-template-spacer {
     max-width: var(--explorer-modal-option-min-width);
@@ -765,7 +785,7 @@ span.modal-template-question {
 span.modal-template-question svg, span.modal-template-question i {
     margin-right: var(--padding);
 }
-.modal-template-slider, .modal-template-option, .modal-template-question {
+.modal-template-slider, .modal-template-option, .modal-template-option-detailed, .modal-template-question {
     box-sizing: border-box;
     padding: 2.5vmax 0;
     max-width: var(--explorer-modal-option-min-width);
@@ -774,19 +794,33 @@ span.modal-template-question svg, span.modal-template-question i {
     display: flex;
     align-items: center;
 }
-a.modal-template-option {
-    color: #000;
+a.modal-template-option, a.modal-template-option-detailed {
+    color: var(--background-color);
     border-bottom: 2px solid rgba(0,0,0,0.02);
+    box-shadow: 0 -0.5vmin 1vmin 0.5vmin rgba(0, 0, 0, 0.01);
     justify-content: center;
 }
-a.modal-template-option svg, a.modal-template-option i {
+a.modal-template-option svg, a.modal-template-option i, a.modal-template-option-detailed svg, a.modal-template-option-detailed i {
     margin-right: var(--padding);
 }
-a.modal-template-option.selected {
-    box-shadow: 0 0 2vh 0.5vh rgba(0, 0, 0, 0.1);
+a.modal-template-option.selected, a.modal-template-option-detailed.selected {
+    box-shadow: 0 0 2vh 0.5vh rgba(0, 0, 0, 0.125);
     background: var(--font-color);
-    color: var(--background-color);
     opacity: 1;
+}
+div.modal-template-option-detailed-name {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: calc(var(--padding) / 2);
+    justify-content: center;
+}
+div.modal-template-option-detailed-details {
+    display: block;
+    width: 100%;
+    font-size: var(--explorer-entry-details-font-size);
+    opacity: var(--opacity-level-3);
+    height: auto;
 }
 span.modal-template-text.selected-parent svg, span.modal-template-text.selected-parent i, span.modal-template-text.selected-parent input, 
 span.modal-template-textarea.selected-parent svg, span.modal-template-textarea.selected-parent i, span.modal-template-textarea.selected-parent textarea, 
@@ -802,19 +836,21 @@ span.modal-template-text input:focus, span.modal-template-textarea textarea:focu
     overflow: hidden;
     max-height: var(--modal-height);
     padding: var(--padding);
-    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 1) 5%, rgba(255, 255, 255, 1) 72%, rgba(255, 255, 255, 0.75) 100%);
+    background: rgba(255, 255, 255, 0.9);
     border-radius: var(--radius);
     box-sizing: border-box;    
     flex-direction: column;
     display: flex;
 }
-.modal-template-options {
-    background: linear-gradient(to bottom, #fff -100%, var(--modal-background-color) 400%);
+.modal-template-options {    
+    box-shadow: inset 0 0 0.1vmin 0.1vmin rgba(0, 0, 0, 0.1);
+    background: rgba(0, 0, 0, 0.075);
     box-sizing: border-box;
     overflow: auto;
     max-height: inherit;
     display: flex;
     flex-direction: column;
+    flex-shrink: 0;
 }
 .modal-template-options > *:first-child {
     border-top-left-radius: var(--radius);

@@ -95,6 +95,31 @@
 			div#splash i {
 				font-size: 25vh;
 			}
+			div#splash-progress {
+				position: absolute;
+				width: 100vw;
+				height: 1vh;
+				background: rgba(255, 255, 255, 0.075);
+				bottom: 0;
+			}
+			div#splash-progress > div {
+				width: 0%;
+				background: rgba(255, 255, 255, 0.33);
+				display: inline-block;
+				height: 100%;
+				position: inherit;
+				transition: width 3s ease-in-out;
+				overflow: hidden;
+			}
+			div#splash-progress > div > div {
+				background: linear-gradient(to right, transparent, white, transparent);
+				height: 100%;
+				width: 10vw;
+				animation-name: splash-progress-spinner;
+				animation-duration: 14s;
+				animation-timing-function: ease-in-out;
+				animation-iteration-count: infinite;
+			}
 			body.animate-background-slow div#background {
 				animation-name: background-breathing;
 				animation-duration: 20s;
@@ -118,6 +143,20 @@
 					transform: translateY(0) scale(1);
 				}
 			}
+			@keyframes splash-progress-spinner {
+				0% {
+					transform: translateX(-10vw) scaleX(0.1);
+				}
+				49.99% {
+					transform: translateX(100vw) scaleX(3);
+				}
+				50% {
+					transform: translateX(-10vw) scaleX(3);
+				}
+				100% {
+					transform: translateX(100vw) scaleX(0.1);
+				}
+			}
 			html.playing div#background {
 				background-image: none !important;
 				animation-name: none !important;
@@ -131,7 +170,14 @@
 	<body>	
         <div id="background"></div>
 		<div id="info"></div> 
-		<div id="splash"><i class="fa-mega"></i></div>
+		<div id="splash">
+			<i class="fa-mega"></i>
+			<div id="splash-progress">
+				<div>
+					<div></div>
+				</div>
+			</div>
+		</div>
 		<script type="text/javascript">
 			console.log('INDEX HTML START', document.URL)
 			if(document.URL.indexOf('cordova') != -1){

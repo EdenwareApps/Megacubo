@@ -11,6 +11,7 @@ class StreamerAdapterBase extends Events {
 			maxBitrateCheckSize: 3 * (1024 * 1024),
 			connectTimeout: global.config.get('connect-timeout') || 5,
 			bitrateCheckingAmount: 3,
+			maxBitrateCheckingFails: 8,
 			debug: false,
 			port: 0
 		};
@@ -30,6 +31,7 @@ class StreamerAdapterBase extends Events {
 		this.bitrates = []
 		this.errors = []
         this.type = 'base'
+		this.bitrateCheckFails = 0
 		this.activeBitrateChecks = 0
 		this.bitrateCheckBuffer = {}
 		this.downloadLogging = {}
@@ -123,6 +125,10 @@ class StreamerAdapterBase extends Events {
 		}
 		return ret
 	}
+	saveBitrate(bitrate){
+		this.bitrates.push(bitrate)
+		this.bitrate = this.bitrates.reduce((a, b) => a + b, 0) / this.bitrates.length
+	}
 	getBitrate(buffer){
 		process.nextTick(() => {
 			let len = this.len(buffer)
@@ -141,7 +147,7 @@ class StreamerAdapterBase extends Events {
 					if(err){
 						this.activeBitrateChecks--
 					} else {
-						global.ffmpeg.mediainfo.bitrate(tmpFile, (err, bitrate, codecData, dimensions, nfo) => {
+						global.ffmpeg.bitrate(tmpFile, (err, bitrate, codecData, dimensions, nfo) => {
 							this.activeBitrateChecks--
 							//this.opts.debug('getBitrate', err, tmpFile)
 							fs.unlink(tmpFile, () => {})
@@ -159,8 +165,7 @@ class StreamerAdapterBase extends Events {
 										this.opts.debug('getBitrate', err, bitrate, codecData, dimensions, this.url)
 									}
 									if(bitrate){
-										this.bitrates.push(bitrate)
-										this.bitrate = this.bitrates.reduce((a, b) => a + b, 0) / this.bitrates.length
+										this.saveBitrate(bitrate)
 										this.emit('bitrate', this.bitrate, this.speed())	
 									}
 									if(this.opts.debug){
@@ -176,7 +181,7 @@ class StreamerAdapterBase extends Events {
 	}
 	collectBitrateSample(chunk, len, id = 'default'){
 		this.downloadLog(len)
-		if(this.bitrates.length < this.opts.bitrateCheckingAmount){
+		if(this.bitrates.length < this.opts.bitrateCheckingAmount && this.bitrateCheckFails < this.opts.maxBitrateCheckingFails){
 			if(typeof(this.bitrateCheckBuffer[id]) == 'undefined'){
 				this.bitrateCheckBuffer[id] = []
 			}

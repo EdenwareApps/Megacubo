@@ -20,12 +20,17 @@ class StreamerHLSIntent extends StreamerBaseIntent {
                 debug: this.opts.debug
             }
             this.resetTimeout()
+            this.transcoderStarting = true
             this.transcoder = new FFServer(this.data.url, opts)
             this.connectAdapter(this.transcoder)
             this.transcoder.start().then(() => {
+                this.transcoderStarting = false
                 this.endpoint = this.transcoder.endpoint
                 resolve({endpoint: this.endpoint, mimetype: this.mimetype})
-            }).catch(reject)
+            }).catch(e => {                
+                this.transcoderStarting = false
+                reject(e)
+            })
         })
     }
     _start(){ 
@@ -44,14 +49,13 @@ class StreamerHLSIntent extends StreamerBaseIntent {
 }
 
 StreamerHLSIntent.mediaType = 'live'
-StreamerHLSIntent.supports = (info) => {
+StreamerHLSIntent.supports = info => {
     if(info.sample){
-        let sample = String(info.sample).toLowerCase()
-        if(sample.match(new RegExp('#ext(m3u|inf)'))){
-            if(sample.indexOf('#ext-x-endlist') == -1){
-                return true
-            } else {
+        if(String(info.sample).match(new RegExp('#ext(m3u|inf)', 'i'))){
+            if(global.isVODM3U8(info.sample)){
                 return false // is vodhls
+            } else {
+                return true
             }
         }
     }

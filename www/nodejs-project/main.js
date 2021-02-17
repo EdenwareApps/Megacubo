@@ -27,22 +27,21 @@ moment = require('moment-timezone')
 onexit = require('node-cleanup')
 APPDIR = path.resolve(typeof(__dirname) != 'undefined' ? __dirname : process.cwd()).replace(new RegExp('\\\\', 'g'), '/')
 MANIFEST = require(APPDIR + '/package.json')
-SHARED_LISTS_DEFAULT_AMOUNT = 10
+SHARED_LISTS_DEFAULT_AMOUNT = cordova ? 8 : 12
 tuning = false
 
 require(APPDIR + '/modules/supercharge')(global)
 
 if(cordova){
-    paths = {
-        data: cordova.app.datadir() + path.sep + 'Megacubo',
-        temp: require('os').tmpdir() + path.sep + 'Megacubo'
-    }
+    let datadir = cordova.app.datadir(), temp = path.join(path.dirname(datadir), 'cache')
+    paths = {data: datadir + path.sep + 'Data', temp}
 } else {
 	paths = require('env-paths')('Megacubo', {suffix: ''})
 }
 
 Object.keys(paths).forEach(k => {
     paths[k] = paths[k].replaceAll('\\', '/')
+    console.log('DEFAULT PATH ' + k + '=' + paths[k])
 })
 
 const Storage = require(APPDIR + '/modules/storage')
@@ -57,7 +56,7 @@ onexit(() => {
         tuning.destroy()
     }
     removeFolder(paths['data'] + '/ffmpeg/data', false, true)
-    storage.cleanup()
+    removeFolder(paths['temp'], false, true)
     if(typeof(ui) != 'undefined' && ui){
         ui.emit('exit')
         ui.destroy()
@@ -409,17 +408,26 @@ function init(language){
                 streamer.play(data)
             }
         })
+        ui.on('video-transcode', () => {
+            console.error('VIDEO TRANSCODE')
+            if(!streamer.transcode()){
+                streamer.handleFailure(null, 'unsupported format')
+            }
+        })
         ui.on('video-ended', (ctime, duration) => {
             console.error('VIDEO ENDED', ctime, duration)
-            if(streamer.active.type == 'video'){
-                streamer.stop()
-            } else {
-                streamer.handleFailure(null, 'playback')
+            let active = streamer.active
+            if(active && !active.transcoderStarting){
+                if(active.type == 'video'){
+                    streamer.stop()
+                } else {
+                    streamer.handleFailure(null, 'playback')
+                }
             }
         })
         ui.on('video-error', (type, errData) => {
-            console.error('VIDEO ERROR', type, errData)
-            if(streamer.active){
+            if(streamer.active && !streamer.active.transcoderStarting){
+                console.error('VIDEO ERROR', type, errData)
                 if(type == 'timeout'){
                     let opts = [{template: 'question', text: lang.SLOW_TRANSMISSION}], def = 'stop'
                     let isCH = streamer.active.type != 'mp4' && channels.isChannel(streamer.active.data.terms.name)
@@ -449,27 +457,6 @@ function init(language){
                 streamer.stop()
             } else {
                 ui.emit('streamer-reset-timeout')
-            }
-        })
-        ui.on('about-callback', ret => {
-            console.log('about-callback', ret)
-            switch(ret){
-                case 'tos':
-                    options.tos()
-                    break
-                case 'help':
-                    options.help()
-                    break
-            }
-        })
-        ui.on('reset-callback', ret => {
-            console.log('reset-callback', ret)
-            switch(ret){
-                case 'yes':
-                    removeFolder(paths['data'], false, true)
-                    removeFolder(paths['temp'], false, true)
-                    energy.restart()
-                    break
             }
         })
         ui.on('video-slow', () => {
@@ -545,7 +532,7 @@ function init(language){
         })
         ui.on('download-in-background', (url, name, target) => {  
             target = target.replace('file:///', '/')  
-            console.log('Download', url, name, target)
+            // console.log('Download', url, name, target)
             osd.show(lang.PROCESSING, 'fa-mega spin-x-alt', 'download', 'persistent')
             Download.promise({
                 url,
@@ -624,25 +611,26 @@ function init(language){
             streamState.sync()
             if(!loaded){
                 loaded = true
+                ffmpeg.ready(() => {
+                    if(!streamer.active){
+                        if(playOnLoaded){
+                            streamer.play(playOnLoaded)
+                        } else if(config.get('resume')){
+                            if(global.explorer.path){
+                                console.log('resume skipped, user navigated away')
+                            } else {
+                                console.log('resuming', histo.resumed, global.streamer)
+                                histo.resume()
+                            }
+                        }
+                    }
+                })
+                ffmpeg.init()
                 const afterListUpdate = () => {
                     if(!updatingLists && !activeLists.length && config.get('shared-mode-reach')){
                         updateLists()
                     }
                     loadEPG()
-                    ffmpeg.ready(() => {
-                        if(!streamer.active){
-                            if(playOnLoaded){
-                                streamer.play(playOnLoaded)
-                            } else if(config.get('resume')){
-                                if(global.explorer.path){
-                                    console.log('resume skipped, user navigated away')
-                                } else {
-                                    console.log('resuming', histo.resumed, global.streamer)
-                                    histo.resume()
-                                }
-                            }
-                        }
-                    })
                     cloud.get('configure').then(c => {
                         console.log('checking update...')
                         let vkey = 'version', newVersion = MANIFEST.version
@@ -680,8 +668,10 @@ function init(language){
             console.warn('Client closed!')
             energy.exit()
         })
-        ui.on('suspend', () => {
-            streamer.stop()
+        ui.on('suspend', () => { // cordova only
+            if(streamer.active && !config.get('miniplayer-auto')){
+                streamer.stop()
+            }
             if(tuning){
                 tuning.destroy()
             }

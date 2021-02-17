@@ -88,17 +88,17 @@ class OMNI extends OMNIUtils {
 		}
 		return val
 	}
-    validateEvent(evt){        
-        if(evt.target && evt.target.tagName.match(new RegExp('^(input|textarea)$', 'i')) && evt.target != this.input.get(0)){
-            console.warn('INPUT ignored')
-            return
-        }
+    validateEvent(evt){    
         if(evt.altKey || evt.ctrlKey || evt.metaKey || evt.shiftKey){
             console.warn('MODKEY ignored')
             return
         }
-        if(['Up', 'Down'].indexOf(evt.key) != -1){
-            console.warn('WHEEL ignored')
+        if(['Up', 'Down', 'Left', 'Right'].indexOf(evt.key) != -1){
+            console.warn('ARROW ignored')
+            return
+        }    
+        if(evt.target && evt.target.tagName.match(new RegExp('^(input|textarea)$', 'i')) && evt.target != this.input.get(0)){
+            console.warn('INPUT ignored')
             return
         }
         if(explorer.inModal()){
@@ -130,7 +130,6 @@ class OMNI extends OMNIUtils {
     }
     eventHandler(evt){
         if(!this.validateEvent(evt)) return
-        let chr = evt.key
         if(evt.target && (evt.target != this.input.get(0))){
             if(evt.key && evt.key.length == 1){
                 this.defaultValue = evt.key

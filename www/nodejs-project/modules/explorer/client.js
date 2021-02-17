@@ -117,7 +117,7 @@ class ExplorerPlayer extends ExplorerModal {
 		super(jQuery, container, app)
 	}
 	inPlayer(){
-		return parent.player && parent.player.state != ''
+		return typeof(streamer) != 'undefined' && streamer.active
 	}
 	isExploring(){
 		return !this.inModal() && (!this.inPlayer() || this.body.hasClass('menu-playing'))
@@ -185,7 +185,21 @@ class ExplorerDialog extends ExplorerDialogQueue {
 		this.modalTemplates['option'] = `
 			<a href="javascript:;" class="modal-template-option" id="modal-template-option-{id}" title="{plainText}" aria-label="{plainText}">
 				{tag-icon}
-				{text}
+				<div>
+					<div>
+						{text}
+					</div>
+				</div>
+			</a>
+		`
+		this.modalTemplates['option-detailed'] = `
+			<a href="javascript:;" class="modal-template-option-detailed" id="modal-template-option-detailed-{id}" title="{plainText}" aria-label="{plainText}">
+				<div>
+					<div class="modal-template-option-detailed-name">
+						{tag-icon} {text}
+					</div>
+					<div class="modal-template-option-detailed-details">{details}</div>
+				</div>
 			</a>
 		`
 		this.modalTemplates['options-group'] = `
@@ -269,7 +283,11 @@ class ExplorerDialog extends ExplorerDialogQueue {
 				}
 			}
 			entries.forEach(e => {
-				let tpl = this.modalTemplates[e.template]
+				let template = e.template, isOption = ['option', 'option-detailed'].includes(template)
+				if(template == 'option' && e.details){
+					template = 'option-detailed'
+				}
+				let tpl = this.modalTemplates[template]
 				e['tag-icon'] = ''
 				if(e.fa){
 					e['tag-icon'] = '<i class="'+ e.fa + '"></i> '
@@ -281,7 +299,7 @@ class ExplorerDialog extends ExplorerDialogQueue {
 				if(this.debug){
 					console.log(tpl, e)
 				}
-				if(e.template == 'option'){
+				if(isOption){
 					opts += tpl
 				} else {
 					html += tpl
@@ -294,10 +312,13 @@ class ExplorerDialog extends ExplorerDialogQueue {
 			this.startModal('<div class="modal-wrap"><div>' + html + '</div></div>')
 			let m = this.modalContent
 			entries.forEach(e => {
-				let p = m.querySelector('#modal-template-option-' + e.id)
+				let p = m.querySelector('#modal-template-option-' + e.id+', #modal-template-option-detailed-' + e.id)
 				if(p){
-					if(e.template == 'option'){
-						p.addEventListener('click', callback.bind(null, e.id))				
+					if(['option', 'option-detailed'].includes(e.template)){
+						p.addEventListener('click', () => {
+							console.log('OPTCLK', e.id)
+							callback(e.id)
+						})
 					}
 					if(String(e.id) == String(defaultIndex)){
 						setTimeout(() => {
@@ -561,11 +582,13 @@ class ExplorerSlider extends ExplorerPrompt {
 			this.dialog([
 				{template: 'question', text: question, fa},
 				{template: 'option', text: 'OK', fa: 'fas fa-check-circle', id: 'submit'}
-			], () => {
-				let ret = this.sliderVal(e, range)
-				if(callback(ret) !== false){
-					this.endModal()
-					this.emit('slider-end', ret, e)
+			], ret => {
+				if(ret !== false){
+					ret = this.sliderVal(e, range)
+					if(callback(ret) !== false){
+						this.endModal()
+						this.emit('slider-end', ret, e)
+					}
 				}
 			}, '')
 
@@ -771,14 +794,14 @@ class Explorer extends ExplorerLoading {
 <a tabindex="{tabindex}" href="{url}" title="{name}" aria-label="{name}" data-original-icon="{fa}" data-icon="{servedIcon}" data-path="{path}" data-type="{type}" onclick="explorer.action(event, this)">
 	<span class="entry-wrapper">
 		<span class="entry-data-in">
-			<span class="entry-name">
+			<span class="entry-name" aria-hidden="true">
 				<span class="entry-status-flags"></span>
-				<label>{name}</label>
+				<label>{prepend}{name}</label>
 			</span>
 			<span class="entry-details">{details}</span>
 		</span>
 		<span class="entry-icon-image">
-			<i class="{fa}"></i>
+			<i class="{fa}" aria-hidden="true"></i>
 		</span>
 	</span>
 </a>`,
@@ -786,12 +809,12 @@ class Explorer extends ExplorerLoading {
 <a tabindex="{tabindex}" href="{url}" title="{name}" aria-label="{name}" data-path="{path}" data-type="{type}" onclick="explorer.action(event, this)">
 	<span class="entry-wrapper">
 		<span class="entry-data-in">
-			<span class="entry-name">
+			<span class="entry-name" aria-hidden="true">
 				<label>{name}</label>
 			</span>
 		</span>
 		<span class="entry-icon-image">
-			<i class="{fa}"></i>
+			<i class="{fa}" aria-hidden="true"></i>
 		</span>
 	</span>
 </a>`,
@@ -799,14 +822,14 @@ class Explorer extends ExplorerLoading {
 <a tabindex="{tabindex}" href="{url}" title="{name}" aria-label="{name}" data-default-value="{value}" data-original-icon="{fa}" data-icon="{servedIcon}" data-question="{question}" data-path="{path}" data-type="{type}" data-multiline="{multiline}" data-placeholder="{placeholder}" onclick="explorer.action(event, this)">
 	<span class="entry-wrapper">
 		<span class="entry-data-in">
-			<span class="entry-name">
+			<span class="entry-name" aria-hidden="true">
 				<span class="entry-status-flags"></span>
 				<label>{name}</label>
 			</span>
 			<span class="entry-details">{details}</span>
 		</span>
 		<span class="entry-icon-image">
-			<i class="{fa}"></i>
+			<i class="{fa}" aria-hidden="true"></i>
 		</span>
 	</span>
 </a>`,
@@ -814,14 +837,14 @@ class Explorer extends ExplorerLoading {
 <a tabindex="{tabindex}" href="{url}" title="{name}" aria-label="{name}" data-original-icon="{fa}" data-icon="{servedIcon}" data-question="{question}" data-path="{path}" data-type="{type}" onclick="explorer.action(event, this)">
 	<span class="entry-wrapper">
 		<span class="entry-data-in">			
-			<span class="entry-name">
+			<span class="entry-name" aria-hidden="true">
 				<span class="entry-status-flags"></span>
 				<label>{name}</label>
 			</span>
 			<span class="entry-details">{details} {value}</span>
 		</span>
 		<span class="entry-icon-image">
-			<i class="{fa}"></i>
+			<i class="{fa}" aria-hidden="true"></i>
 		</span>
 	</span>
 </a>`,
@@ -829,14 +852,14 @@ class Explorer extends ExplorerLoading {
 <a tabindex="{tabindex}" href="{url}" title="{name}" aria-label="{name}" data-default-value="{value}" data-range-start="{range.start}" data-range-end="{range.end}" data-mask="{mask}" data-original-icon="{fa}" data-icon="{servedIcon}" data-question="{question}" data-path="{path}" data-type="{type}" onclick="explorer.action(event, this)">
 	<span class="entry-wrapper">
 		<span class="entry-data-in">		
-			<span class="entry-name">
+			<span class="entry-name" aria-hidden="true">
 				<span class="entry-status-flags"></span>
 				<label>{name}</label>
 			</span>
 			<span class="entry-details">{value}</span>
 		</span>
 		<span class="entry-icon-image">
-			<i class="{fa}"></i>
+			<i class="{fa}" aria-hidden="true"></i>
 		</span>
 	</span>
 </a>`,
@@ -844,9 +867,9 @@ class Explorer extends ExplorerLoading {
 <a tabindex="{tabindex}" href="{url}" title="{name}" aria-label="{name}" data-icon="" data-path="{path}" data-type="{type}" onclick="explorer.action(event, this)">
 	<span class="entry-wrapper">
 		<span class="entry-data-in">		
-			<span class="entry-name">
+			<span class="entry-name" aria-hidden="true">
 				<span class="entry-status-flags"></span>
-				<label>{name}</label>
+				<label>{prepend}{name}</label>
 			</span>
 			<span class="entry-details">{details}</span>
 		</span>

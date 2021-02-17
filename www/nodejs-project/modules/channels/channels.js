@@ -786,13 +786,13 @@ class Channels extends ChannelsEditing {
         })
     }
     entryTerms(e){        
-        let terms, ch
-        if(Array.isArray(e.terms)){
+        let terms
+        if(Array.isArray(e.terms) && e.terms.length){
             terms = e.terms
-        } else if(typeof(e.terms) == 'undefined') {
-            terms = global.lists.terms(e.name)
-        } else {
+        } else if(typeof(e.terms) != 'undefined' && typeof(e.terms.name) != 'undefined' && Array.isArray(e.terms.name) && e.terms.name.length) {
             terms = e.terms.name
+        } else {
+            terms = global.lists.terms(e.name)
         }
         return this.expandTerms(terms)
     }

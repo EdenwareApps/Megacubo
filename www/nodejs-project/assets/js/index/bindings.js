@@ -105,7 +105,7 @@ function loaded(){
 		document.getElementById('info').style.display = 'none'
 		document.getElementById('splash').style.display = 'none'
 		document.getElementById('background').style.visibility = 'visible'
-		app.postMessage({action: 'player_ready'}, location.origin)
+		app.postMessage({action: 'player-ready'}, location.origin)
 	}
 }
 
@@ -119,7 +119,6 @@ function traceback() {
 }
 
 var nodejs, channel, app = document.querySelector('iframe').contentWindow
-log('..', 'state')
 
 window.addEventListener('message', function (e){
 	if(e.data.action){
@@ -179,16 +178,17 @@ function channelCallback(){
 }
 
 if(window.cordova){
+	fakeUpdateProgress()
 	channel = nodejs.channel
 	channel.on('message', (...args) => {
 		channelCallback.apply(null, args[0])
 	})
 	nodejs.start('main.js', err => {
-		let txt = '...'
+		updateSplashProgress()
+		console.log('Node main script loaded.')
 		if (err) {
-			txt += ' ' + String(err)
+			log(String(err))
 		} 	
-		log(txt, 'state')
 	})
 } else {
 	class Channel extends EventEmitter {
@@ -226,7 +226,7 @@ if(window.cordova){
 		}		
 	}
     channel = new Channel()
-	log('...', 'state')
+	updateSplashProgress()
 }
 channel.post('message', ['get-lang-callback', window.navigator.userLanguage || window.navigator.language, Intl.DateTimeFormat().resolvedOptions().timeZone, window.navigator.userAgent])
 
@@ -239,12 +239,19 @@ if(typeof(IonicDeeplink) != 'undefined'){
 			// alert('IonicDeeplink match: ' + JSON.stringify(match))
 			let p = match['$args']['chId']
 			onBackendReady(() => {
-				alert('IonicDeeplink match: ' + p)
+				// alert('IonicDeeplink match: ' + p)
 				channel.post('message', ['open-name', p])
 			})
 		}, 
 		nomatch => {
-			alert('IonicDeeplink nomatch: ' + JSON.stringify(nomatch))
+			let p = match['$args']['url'].trim()
+			if(p.match('^[a-z]*:?//')){
+				onBackendReady(() => {
+					channel.post('message', ['open-url', p])
+				})
+			} else {
+				alert('IonicDeeplink nomatch: ' + JSON.stringify(nomatch, null, 3))
+			}
 		}
 	)
 }
@@ -276,18 +283,5 @@ if(typeof(Keyboard) != 'undefined'){
 	})
 	window.addEventListener('keyboardWillHide', () => {
 		adjustLayoutForKeyboard(false)
-	})
-}
-
-if(!parent.cordova){
-	onBackendReady(() => {
-		switch(config['startup-window']){
-			case 'fullscreen':
-				top.Manager.setFullScreen(true)
-				break
-			case 'miniplayer':
-				top.Manager.enterMiniPlayer()
-				break
-		}
 	})
 }

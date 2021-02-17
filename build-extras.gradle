@@ -1,7 +1,0 @@
-android {
-    defaultConfig {
-        ndk {
-                abiFilters "x86"
-            }
-    }
-}

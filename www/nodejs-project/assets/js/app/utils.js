@@ -823,12 +823,6 @@ function isYoutubeURL(source){
     }
 }
 
-function isMagnetURL(source){
-    if(typeof(source)=='string'){
-        return source.substr(0, 7) == 'magnet:'
-    }
-}
-
 function isValidHex(hex){
     return /^#([A-Fa-f0-9]{3,4}){1,2}$/.test(hex)
 }

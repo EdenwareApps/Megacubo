@@ -160,6 +160,31 @@ class IPTVPlaylistStreamParser extends Events {
 	isExtInf(line){
 		return String(line).toLowerCase().indexOf('#extinf') != -1
 	}
+	nameFromURL(url){
+		let name
+		if(url.indexOf('?') != -1){
+			let qs = {}
+			url.split('?')[1].split('&').forEach(s => {
+				s = s.split('=')
+				if(s.length > 1){
+					if(['name', 'dn', 'title'].includes(s[0])){
+						if(!name || name.length < s[1].length){
+							name = s[1]
+						}
+					}
+				}
+			})
+		}
+		if(name){
+			name = decodeURIComponent(name)
+			if(name.indexOf(' ') == -1 && name.indexOf('+') != -1){
+				name = name.replaceAll('+', ' ')
+			}
+			return name
+		}
+		url = url.replace(new RegExp('^[a-z]*://'), '').split('/').filter(s => s.length)
+		return (url[0].split('.')[0] + ' ' + url[url.length - 1]).replace(new RegExp('\\?.*$'), '')
+	}
 	extractEntries(txt){
 		if(this.expectingHeader){
 			const matches = txt.match(this.headerRegex)
@@ -216,6 +241,9 @@ class IPTVPlaylistStreamParser extends Events {
 						g = this.mergePath(g, sg)
 					}
 					e.name = this.sanitizeName(n)
+					if(!e.name){
+						e.name = this.nameFromURL(e.url)
+					}
 					g = this.preSanitizeGroup(g)
 					e.groupName = g.split('/').pop()
 					g = this.sanitizeGroup(g)
@@ -251,9 +279,6 @@ class IPTVPlaylistStreamParser extends Events {
 	validateURL(url){
 		if(url){
 			let u = url.toLowerCase()
-			if(u.substr(0, 7) == 'magnet:'){
-				return true
-			}
 			if(['http', 'rtmp', 'rtsp'].includes(u.substr(0, 4)) && u.indexOf('://') != -1){
 				return true
 			}

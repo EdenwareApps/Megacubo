@@ -25,32 +25,20 @@ function updateWebView(){
 	var msg
 	switch(navigator.language.substr(0, 2)){
 		case 'pt':
-			msg = "Oops, você precisa atualizar o WebView de seu sistema para rodar este aplicativo.\r\nDeseja faze-lo agora?"
+			msg = "Oops, você precisa atualizar o WebView de seu sistema para rodar este aplicativo."
 			break
 		case 'es':
-			msg = "Vaya, debe actualizar el WebView de su sistema para ejecutar esta aplicación. ¿Quieres hacerlo ahora?"
+			msg = "Vaya, debe actualizar el WebView de su sistema para ejecutar esta aplicación."
 			break
 		case 'it':
-			msg = "Spiacenti, è necessario aggiornare WebView del sistema per eseguire questa applicazione. Vuoi farlo adesso?"
+			msg = "Spiacenti, è necessario aggiornare WebView del sistema per eseguire questa applicazione."
 			break
 		default:
-			msg = "Oops, you need to update your system's WebView in order to run this application. Do you want to do it now?"
+			msg = "Oops, you need to update your system's WebView in order to run this application."
 			break
 	}
-	if(typeof(plugins) == 'undefined'){
-		alert(msg.split("\n")[0].trim())
-	} else {
-		if(confirm(msg)){
-			plugins.webViewChecker.openGooglePlayPage().then(function() {
-				log('Google Play page has been opened.')
-			}).catch(function(error) {
-				log(String(error))
-			})
-		}
-	}
-	setTimeout(function (){
-		top.close()
-	}, 15000)
+	alert(msg)
+	top.close()
 }
 
 function theming(image, color, fontColor, animate){
@@ -60,7 +48,7 @@ function theming(image, color, fontColor, animate){
 	if(data){
 		data = JSON.parse(data)
 	} else {
-		data = {image: defImage, color: '#15002C', fontColor: '#FFFFFF', animate: 'none'} // defaults
+		data = {image: defImage, color: '#E0E4EF', fontColor: '#B0B4BF', animate: 'none'} // defaults
 		try {
 			localStorage.setItem('background-data', JSON.stringify(data))
 		} catch(e) {
@@ -148,11 +136,38 @@ function loadJS(url, cb){
 }
 
 function loadScripts(){
-	log('.', 'state')
-	loadJS('./assets/js/index/bindings.js')
-	loadJS('./assets/js/index/video.js', () => {
-		loadJS('./assets/js/index/video.hls.js')
+	updateSplashProgress()
+	loadJS('./assets/js/index/bindings.js', function (){
+		updateSplashProgress()
+		loadJS('./assets/js/index/video.js', function (){
+			updateSplashProgress()
+			loadJS('./assets/js/index/video.hls.js', function (){
+				updateSplashProgress()
+			})
+		})
 	})
+}
+
+var tasksCount = 8, tasksCompleted = 0, fakeTasksCount = 0
+
+if(window.cordova){
+	fakeTasksCount = 15
+	tasksCount += fakeTasksCount
+}
+
+function updateSplashProgress(increase = 1){
+	tasksCompleted += increase
+	document.querySelector('#splash-progress > div').style.width = (tasksCompleted / (tasksCount / 100)) +'%'
+}
+
+function fakeUpdateProgress(){
+	let timer = setInterval(() => {
+		updateSplashProgress()
+		fakeTasksCount--
+		if(!fakeTasksCount){
+			clearInterval(timer)
+		}
+	}, 1000)
 }
 
 window.onerror = log
@@ -160,7 +175,9 @@ theming()
 
 if(window.cordova){
 	console.log('ISCORDOVA')
-	document.addEventListener('deviceready', function (){
+	updateSplashProgress()
+	document.addEventListener('deviceready', function (){		
+		updateSplashProgress()
 		if(!isES6()){
 			log('No ES6 support')
 			updateWebView()
@@ -180,6 +197,7 @@ if(window.cordova){
 		}
 	}, false)
 } else {
+	updateSplashProgress(2)
 	console.log('NOTCORDOVA')
 	loadJS('/socket.io/socket.io.js', loadScripts)
 }

@@ -15,6 +15,8 @@ class StreamerTSIntent extends StreamerBaseIntent {
     }  
     transcode(){ 
         return new Promise((resolve, reject) => {
+            this.resetTimeout()
+            this.transcoderStarting = true
             this.transcoder = true
             if(this.downloader){
                 this.downloader.destroy()
@@ -42,10 +44,17 @@ class StreamerTSIntent extends StreamerBaseIntent {
                     delete this.transcoder.videoCodec
                 }
                 this.transcoder.start().then(() => {
+                    this.transcoderStarting = false
                     this.endpoint = this.transcoder.endpoint
                     resolve()
-                }).catch(reject)
-            }).catch(reject)
+                }).catch(e => {                
+                    this.transcoderStarting = false
+                    reject(e)
+                })
+            }).catch(e => {
+                this.transcoderStarting = false
+                reject(e)
+            })
         })
     }
     _start(){ 

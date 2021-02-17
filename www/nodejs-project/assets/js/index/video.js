@@ -122,15 +122,25 @@ class VideoControl extends EventEmitter {
 				if(!this.current) return
 				this.emit('durationchange')
 			})
-			a.on('error', err => {
+			a.on('request-transcode', () => {
+				if(!this.current) return
+				this.emit('request-transcode')
+			})
+			a.on('error', (err, fatal) => {
 				if(!this.current) return
 				if(this.clearErrTimer){
 					clearTimeout(this.clearErrTimer)
 				}
-				this.hasErr = err
-				this.clearErrTimer = setTimeout(() => {
-					this.hasErr = null
-				}, 5000)
+				if(fatal === true){
+					this.state = 'error'
+					this.emit('state', this.state, err)
+					a.unload()
+				} else {
+					this.hasErr = err
+					this.clearErrTimer = setTimeout(() => {
+						this.hasErr = null
+					}, 5000)
+				}
 			})
 			this.adapters[this.adapter] = a
 		}
@@ -398,7 +408,7 @@ class VideoControlAdapterAndroidNative extends VideoControlAdapter {
 		})
 		this.object.on('error', (err, data) => {
 			console.log('Error: ', err, 'data:', data)
-			this.emit('error', err)
+			this.emit('error', String(err), true)
 		})
 	}
 	load(src, mimetype, cookie){
@@ -411,7 +421,7 @@ class VideoControlAdapterAndroidNative extends VideoControlAdapter {
 	}
 	errorCallback(...args){
 		console.error('exoplayer err', args)
-		this.emit('error', args)
+		this.emit('error', args.length ? args[0] : 'Exoplayer error')
 		//console.error(err, arguments)
 		//this.stop()
 		//this.emit('error', err)
@@ -447,4 +457,221 @@ class VideoControlAdapterAndroidNative extends VideoControlAdapter {
 	}
 }
 
+class MiniPlayerBase extends EventEmitter {
+	constructor(){
+		super()
+		this.enabled = true
+        this.pipListening = null
+        this.inPIP = false
+	}
+	set(inPIP){
+		if(inPIP != this.inPIP){
+			if(!inPIP || this.enabled){
+				this.inPIP = inPIP === true || inPIP === 'true'
+				this.emit(this.inPIP ? 'enter' : 'leave')
+			}
+		}
+	}
+	toggle(){
+		return this.inPIP ? this.leave() : this.enter()
+	}
+    leave(){	
+        return new Promise((resolve, reject) => {
+			this.set(false)
+			resolve(true)
+		})
+	}
+	getAppFrame(){
+		return document.querySelector('iframe')
+	}
+	getAppWindow(){
+		let f = this.getAppFrame()
+		if(f && f.contentWindow){
+			return f.contentWindow
+		}
+	}
+	getStreamer(){
+		let w = this.getAppWindow()
+		if(w && w.streamer){
+			return w.streamer
+		}		
+	}
+	getDimensions(){
+		let width = Math.min(screen.width, screen.height) / 2, aw = Math.max(screen.width, screen.height) / 3, streamer = this.getStreamer()
+		if(aw < width){
+			width = aw
+		}
+		width = parseInt(width)
+		let r = window.innerWidth / window.innerHeight
+		if(streamer){
+			r = streamer.activeAspectRatio.h / streamer.activeAspectRatio.v			
+		}
+		let height = parseInt(width / r)
+		return {width, height}
+	}
+	enterIfPlaying(){
+		let streamer = this.getStreamer()
+		if(this.enabled && streamer && streamer.active && !this.inPIP) {
+			this.enter().catch(err => console.error('PIP FAILURE', err))
+			return true
+		}
+	}
+}
+
+class CordovaMiniplayer extends MiniPlayerBase {
+    constructor(){
+		super()
+		this.leaveOnStop = null
+		this.pip = top.PictureInPicture
+		this.setup()
+		this.on('enter', () => {
+			let app = this.getAppWindow()
+			if(app){
+				app.$(app.document.body).addClass('miniplayer-cordova')
+				if(!this.leaveOnStop){
+					let streamer = this.getStreamer()
+					if(streamer){
+						this.leaveOnStop = true
+						streamer.on('stop', this.leave.bind(this))
+					}
+				}
+			}
+		})
+		this.on('leave', () => {
+			let app = this.getAppWindow()
+			if(app){
+				app.$(app.document.body).removeClass('miniplayer-cordova')
+			}
+		})
+	}
+	setup(){
+		if(this.pip){
+			parent.document.addEventListener('pause', () => this.enterIfPlaying())
+		}
+	}
+    prepare(){
+        return new Promise((resolve, reject) => {
+            if(this.pip){
+                if(this.pipListening){
+                    resolve(true)
+                } else {
+                    try {
+                        this.pipListening = true
+                        top.PictureInPicture.onPipModeChanged(s => this.set(s), function(error){
+                            console.error('onPipModeChanged', error)
+                        })
+                        this.pip.isPipModeSupported(success => {
+                            if(success){
+                                resolve(true)
+                            } else {
+                                reject('pip mode not supported')
+                            }
+                        }, error => {
+                            console.error(error)
+                            reject('pip not supported: '+ String(error))
+                        })
+                    } catch(e) {
+                        console.error(e)
+                        reject('PIP error: '+ String(e))
+                    } 
+                }
+            } else {
+                reject('PIP unavailable')
+            }
+        })
+    }
+    enter(){
+        return new Promise((resolve, reject) => {
+			if(!this.enabled){
+				return reject('miniplayer disabled')
+			}
+            this.prepare().then(() => {
+				console.warn('ABOUT TO PIP', this.inPIP)
+				let m = this.getDimensions()
+                this.pip.enter(m.width, m.height, success => {
+                    if(success){
+                        console.log('enter: '+ String(success))	
+                        this.set(true)
+                        resolve(success)
+                    } else {
+						console.error('pip.enter() failed to enter pip mode')	
+                        this.set(false)
+                        reject('failed to enter pip mode')
+                    }							
+                }, function(error){
+                    this.set(false)
+                    console.error('pip.enter() error', error)
+                    reject(error)
+                })
+            }).catch(reject)
+        })
+    }
+}
+
+class NWJSMiniplayer extends MiniPlayerBase {
+    constructor(){
+		super()
+        this.pip = top.Manager
+		this.setup()
+    }
+	setup(){
+		if(this.pip){
+			this.pip.minimizeWindow = () => {
+				if(this.pip.miniPlayerActive){	// if already in miniplayer, minimize it				
+					this.pip.prepareLeaveMiniPlayer()
+					this.pip.win.hide()
+					this.pip.restore()
+					setTimeout(() => {
+						this.pip.win.show()
+						this.pip.win.minimize()
+					}, 0)
+				} else if(!this.enterIfPlaying()){
+					this.pip.win.minimize()
+				}
+			}
+			this.pip.on('miniplayer-on', () => this.set(true))
+			this.pip.on('miniplayer-off', () => this.set(false))
+		}
+	}
+    enter(w, h){
+        return new Promise((resolve, reject) => {
+			if(!this.enabled){
+				return reject('miniplayer disabled')
+			}
+            if(!this.inPIP){
+				let m = this.getDimensions()
+				this.pip.enterMiniPlayer(m.width, m.height)
+				this.set(true)
+			}
+			resolve(true)
+        })
+    }
+    leave(){	
+        return new Promise((resolve, reject) => {	
+			if(this.inPIP){
+				this.pip.leaveMiniPlayer()
+				this.set(false)
+			}
+			resolve(true)
+		})
+	}
+}
+
 window.player = new VideoControl(document.querySelector('player'))
+window.player.mini = new (top.cordova ? CordovaMiniplayer : NWJSMiniplayer)
+
+if(!parent.cordova){
+	onBackendReady(() => {
+		if(config){
+			switch(config['startup-window']){
+				case 'fullscreen':
+					top.Manager.setFullScreen(true)
+					break
+				case 'miniplayer':
+					player.mini.enter()
+					break
+			}
+			player.mini.enabled = config['miniplayer-auto']
+		}
+	})
+}

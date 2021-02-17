@@ -30,12 +30,20 @@ class FFServer extends Events {
             })
         }
     }
-    genUID(){          
-        this.uid = parseInt(Math.random() * 1000000000)
-        let files = fs.readdirSync(this.opts.workDir)
-        while(files.indexOf(String(this.uid)) != -1){
-            this.uid++
+    genUID(cb){          
+        if(!this.uid){
+            this.uid = parseInt(Math.random() * 1000000000)
         }
+        fs.readdir(this.opts.workDir, (err, files) => {
+            if(err){
+                fs.mkdir(path.dirname(this.opts.workDir), {recursive: true}, cb)
+            } else if(Array.isArray(files)) {
+                while(files.includes(String(this.uid))) {
+                    this.uid++
+                }
+                cb()
+            }
+        })
     }
     time(){
 		return ((new Date()).getTime() / 1000)
@@ -100,6 +108,7 @@ class FFServer extends Events {
             this.server = http.createServer((req, response) => {
 				var file = this.unproxify(req.url.split('#')[0])
                 fs.stat(file, (err, stat) => {
+                    //console.log('FFMPEG SERVE', file, stat)
                     if (!stat || !stat.size) {
                         response.writeHead(404, { 
                             'Content-Type': 'text/plain',
@@ -119,6 +128,9 @@ class FFServer extends Events {
                         case 'm4v':
                             headers['content-type'] =  'video/mp4'
                             break
+                        case 'm4s':
+                            headers['content-type'] = 'video/iso.segment'
+                            break
                         case 'ts':
                         case 'mpegts':
                         case 'mts':
@@ -127,6 +139,14 @@ class FFServer extends Events {
                     }
                     let ended, stream = fs.createReadStream(file)
                     response.writeHead(200, headers)
+                    if(this.listenerCount('data') && headers['content-type'] && headers['content-type'].substr(0, 6) == 'video/'){
+                        let offset = 0
+                        stream.on('data', chunk => {
+                            let len = chunk.length
+                            this.emit('data', req.url, chunk, len, offset)
+                            offset += len
+                        })
+                    }
                     const end = () => {
                         if(!ended){
                             ended = true
@@ -151,6 +171,7 @@ class FFServer extends Events {
                 }
                 this.opts.port = this.server.address().port
                 this.endpoint = this.proxify(this.decoder.file)
+                console.log('FFMPEG SERVE', this.decoder.file)
                 this.emit('ready')
                 resolve()
             })
@@ -159,153 +180,157 @@ class FFServer extends Events {
     start(){
         return new Promise((resolve, reject) => {
             const startTime = this.time()
-            this.genUID()
-            let cores = Math.min(require('os').cpus().length, 4), fragTime = 4, lwt = global.config.get('live-window-time')
-            if(typeof(lwt) != 'number'){
-                lwt = 120
-            } else if(lwt < 30) { // too low will cause isBehindLiveWindowError
-                lwt = 30
-            }
-            let hlsListSize = Math.ceil(lwt / fragTime)
-            this.decoder = global.ffmpeg.create(this.source).
-                // inputOptions('-re').
-                // inputOption('-ss', 1). // https://trac.ffmpeg.org/ticket/2220
-                //inputOptions('-fflags +genpts').
-                addOption('-threads', cores).
-                addOption('-err_detect', 'ignore_err').
-                // addOption('-analyzeduration 2147483647').
-                // addOption('-probesize', '2147483647').
-                // addOption('-vf', 'setpts=PTS').
-                // addOption('-vsync', '1').
-                // addOption('-vsync', '0').
-                // addOption('-async', '-1').
-                // addOption('-async', '2').
-                addOption('-strict', '-2').
-                // addOption('-flags:a', '+global_header').
-                addOption('-hls_flags', 'delete_segments'). // ?? https://www.reddit.com/r/ffmpeg/comments/e9n7nb/ffmpeg_not_deleting_hls_segments/
-                addOption('-hls_init_time', 2). // 1 may cause manifestParsingError "invalid target duration"
-                addOption('-hls_time', fragTime).
-                addOption('-hls_list_size', hlsListSize).
-                addOption('-map', '0:a?').
-                addOption('-map', '0:v?').
-                // addOption('-packetsize', 188).
-                addOption('-loglevel', 'error').
-                addOption('-sn').
-                addOption('-preset', 'ultrafast').
-                format('hls')
-            if(this.opts.inputFormat){
-                this.decoder.inputOption('-f', this.opts.inputFormat)
-            }
-            if(this.opts.audioCodec){
-                this.decoder.audioCodec(this.opts.audioCodec)
-            }
-            if(this.opts.videoCodec === null){
-                this.decoder.addOption('-vn')
-            } else if(this.opts.videoCodec) {
-                this.decoder.videoCodec(this.opts.videoCodec)                
-            }
-            this.decoder.log = []
-            if(this.opts.videoCodec == 'libx264') {
-                this.decoder.
-                /* HTML5 compat start */
-                addOption('-profile:v', 'baseline').
-                addOption('-shortest').
-                addOption('-pix_fmt', 'yuv420p').
-                addOption('-preset:v', 'ultrafast').
-                addOption('-movflags', '+faststart').
-                /* HTML5 compat end */
+            this.genUID(() => {
+                let cores = Math.min(require('os').cpus().length, 2), fragTime = 4, lwt = global.config.get('live-window-time')
+                if(typeof(lwt) != 'number'){
+                    lwt = 120
+                } else if(lwt < 30) { // too low will cause isBehindLiveWindowError
+                    lwt = 30
+                }
+                let hlsListSize = Math.ceil(lwt / fragTime)
+                this.decoder = global.ffmpeg.create(this.source).
+                    // inputOptions('-re').
+                    // inputOption('-ss', 1). // https://trac.ffmpeg.org/ticket/2220
+                    //inputOptions('-fflags +genpts').
+                    addOption('-threads', cores).
+                    addOption('-max_muxing_queue_size', 2048). // https://stackoverflow.com/questions/49686244/ffmpeg-too-many-packets-buffered-for-output-stream-01
+                    addOption('-err_detect', 'ignore_err').
+                    // addOption('-analyzeduration 2147483647').
+                    // addOption('-probesize', '2147483647').
+                    // addOption('-vf', 'setpts=PTS').
+                    // addOption('-vsync', '1').
+                    // addOption('-vsync', '0').
+                    // addOption('-async', '-1').
+                    // addOption('-async', '2').
+                    addOption('-strict', '-2').
+                    // addOption('-flags:a', '+global_header').
+                    addOption('-hls_flags', 'delete_segments'). // ?? https://www.reddit.com/r/ffmpeg/comments/e9n7nb/ffmpeg_not_deleting_hls_segments/
+                    addOption('-hls_init_time', 2). // 1 may cause manifestParsingError "invalid target duration"
+                    addOption('-hls_time', fragTime).
+                    addOption('-hls_list_size', hlsListSize).
+                    addOption('-map', '0:a?').
+                    addOption('-map', '0:v?').
+                    // addOption('-packetsize', 188).
+                    addOption('-loglevel', 'error').
+                    addOption('-sn').
+                    addOption('-preset', 'ultrafast').
+                    format('hls')
+                if(this.opts.inputFormat){
+                    this.decoder.inputOption('-f', this.opts.inputFormat)
+                }
+                if(this.opts.audioCodec){
+                    this.decoder.audioCodec(this.opts.audioCodec)
+                }
+                if(this.opts.videoCodec === null){
+                    this.decoder.addOption('-vn')
+                } else if(this.opts.videoCodec) {
+                    this.decoder.videoCodec(this.opts.videoCodec)                
+                }
+                this.decoder.log = []
+                if(this.opts.videoCodec == 'libx264') {
+                    this.decoder.
+                    /* HTML5 compat start */
+                    addOption('-profile:v', 'baseline').
+                    addOption('-shortest').
+                    addOption('-pix_fmt', 'yuv420p').
+                    addOption('-preset:v', 'ultrafast').
+                    addOption('-movflags', '+faststart').
+                    /* HTML5 compat end */
 
-                addOption('-crf', 18) // we are encoding for watching, so avoid to waste too much time and cpu with encoding, at cost of bigger disk space usage
-            }
-            if(this.opts.audioCodec == 'aac'){
-                this.decoder.addOption('-profile:a', 'aac_low').
-                addOption('-preset:a', 'ultrafast').
-                addOption('-b:a', '128k').
-                addOption('-ac', '2').
-                addOption('-ar', '48000').
-                addOption('-af', 'aresample=async=1:min_hard_comp=0.100000:first_pts=0')      
-            }
-            if (typeof(this.source) == 'string' && this.source.indexOf('http') == 0) { // skip other protocols
-                this.decoder.
-                    inputOptions('-stream_loop -1').
-                    // inputOptions('-timeout -1').
-                    inputOptions('-reconnect 1').
-                    // inputOptions('-reconnect_at_eof 1').
-                    inputOptions('-reconnect_streamed 1').
-                    inputOptions('-reconnect_delay_max 20')
-                this.decoder.
-                inputOptions('-icy 0').
-                inputOptions('-seekable -1').
-                inputOptions('-multiple_requests 1')
-                if(this.agent){
-                    this.decoder.inputOptions('-user_agent', '"' + this.agent + '"') //  -headers ""
+                    addOption('-crf', 18) // we are encoding for watching, so avoid to waste too much time and cpu with encoding, at cost of bigger disk space usage
                 }
-                if (this.source.indexOf('https') == 0) {
-                    this.decoder.inputOptions('-tls_verify 0')
+                if(this.opts.audioCodec == 'aac'){
+                    this.decoder.addOption('-profile:a', 'aac_low').
+                    addOption('-preset:a', 'ultrafast').
+                    addOption('-b:a', '128k').
+                    addOption('-ac', '2').
+                    addOption('-ar', '48000').
+                    addOption('-af', 'aresample=async=1:min_hard_comp=0.100000:first_pts=0')      
                 }
-            }
-            this.decoder.
-            on('end', () => {
-                if(!this.destroyed){
-                    console.warn('file ended', traceback())
-                    // this.retry() // will already call error on fail
-                    this.destroy()
-                }
-            }).
-            on('error', (err) => {
-                if(!this.destroyed && this.decoder){
-                    console.error('an error happened after '+ (this.time() - startTime) +'s: ' + err.message)
-                    err = err.message || err
-                    let m = err.match(new RegExp('Server returned ([0-9]+)'))
-                    if(m && m.length > 1){
-                        err = parseInt(m[1])
+                if (typeof(this.source) == 'string' && this.source.indexOf('http') == 0) { // skip other protocols
+                    this.decoder.
+                        inputOptions('-stream_loop -1').
+                        // inputOptions('-timeout -1').
+                        inputOptions('-reconnect 1').
+                        // inputOptions('-reconnect_at_eof 1').
+                        inputOptions('-reconnect_streamed 1').
+                        inputOptions('-reconnect_delay_max 20')
+                    this.decoder.
+                    inputOptions('-icy 0').
+                    inputOptions('-seekable -1').
+                    inputOptions('-multiple_requests 1')
+                    if(this.agent){
+                        this.decoder.inputOptions('-user_agent', '"' + this.agent + '"') //  -headers ""
                     }
-                    this.emit('fail', 'ffmpeg fail', err)
-                }
-            }).
-            on('start', (commandLine) => {
-                if(this.destroyed){ // already destroyed
-                    return
-                }
-                console.log('Spawned FFmpeg with command: ' + commandLine, 'file:', this.decoder.file, 'workDir:', this.opts.workDir, 'cwd:', process.cwd(), 'PATHs', global.paths, 'cordova:', !!global.cordova)
-                // setPriority('idle', this.decoder.ffmpegProc.pid) // doesnt't help on tuning performance
-                // ok, but wait file creation to trigger "start"
-            }).
-            on('stderr', (stderrLine) => {
-                if(this.opts.debug){
-                    this.opts.debug(stderrLine)
-                }
-                if(!this.destroyed){
-                    if(!stderrLine.match(new RegExp('frame=.*fps=', 'i'))){
-                        this.decoder.log.push(stderrLine)
+                    if (this.source.indexOf('https') == 0) {
+                        this.decoder.inputOptions('-tls_verify 0')
                     }
                 }
-            })
-            this.decoder.file = path.resolve(this.opts.workDir + path.sep + this.uid + path.sep + 'output.m3u8')
-			fs.mkdir(path.dirname(this.decoder.file), {
-				recursive: true
-			}, () => {
-                if(this.destroyed){
-                    return
-                }
-                fs.access(path.dirname(this.decoder.file), fs.constants.W_OK, (err) => {
+                this.decoder.
+                on('end', () => {
+                    if(!this.destroyed){
+                        console.warn('file ended', traceback())
+                        // this.retry() // will already call error on fail
+                        this.destroy()
+                    }
+                }).
+                on('error', (err) => {
+                    if(!this.destroyed && this.decoder){
+                        console.error('an error happened after '+ (this.time() - startTime) +'s: ' + err.message, this.decoder)
+                        err = err.message || err || 'ffmpeg fail'
+                        let m = err.match(new RegExp('Server returned ([0-9]+)'))
+                        if(m && m.length > 1){
+                            err = parseInt(m[1])
+                        }
+                        this.emit('fail', err)
+                    }
+                }).
+                on('start', (commandLine) => {
+                    if(this.destroyed){ // already destroyed
+                        return
+                    }
+                    console.log('Spawned FFmpeg with command: ' + commandLine, 'file:', this.decoder.file, 'workDir:', this.opts.workDir, 'cwd:', process.cwd(), 'PATHs', global.paths, 'cordova:', !!global.cordova)
+                    // setPriority('idle', this.decoder.ffmpegProc.pid) // doesnt't help on tuning performance
+                    // ok, but wait file creation to trigger "start"
+                }).
+                on('stderr', (stderrLine) => {
+                    if(this.opts.debug){
+                        this.opts.debug(stderrLine)
+                    }
+                    console.log('ffmpeg stderr: '+ stderrLine)
+                    if(!this.destroyed){
+                        if(!stderrLine.match(new RegExp('frame=.*fps=', 'i'))){
+                            this.decoder.log.push(stderrLine)
+                        }
+                    }
+                })
+                this.decoder.file = path.resolve(this.opts.workDir + path.sep + this.uid + path.sep + 'output.m3u8')
+                fs.mkdir(path.dirname(this.decoder.file), {
+                    recursive: true
+                }, () => {
                     if(this.destroyed){
                         return
                     }
-                    if(err){
-                        console.log('FFS', err)
-                        console.error('FFMPEG cannot write')
-                        reject('playback')
-                    } else {
-                        this.decoder.output(this.decoder.file).run()
-                        this.emit('decoder', this.decoder)
-                        this.waitDecoder().then(() => {
-                            this.serve().then(resolve).catch(reject)
-                        }).catch(e => {
-                            this.destroy()
-                            reject(e)
-                        })
-                    }
+                    fs.access(path.dirname(this.decoder.file), fs.constants.W_OK, (err) => {
+                        if(this.destroyed){
+                            return
+                        }
+                        if(err){
+                            console.error('FFMPEG cannot write', err)
+                            reject('playback')
+                        } else {
+                            console.log('FFMPEG run: '+ this.source, this.decoder.file)
+                            this.decoder.output(this.decoder.file).run()
+                            this.emit('decoder', this.decoder)
+                            this.waitDecoder().then(() => {
+                                this.serve().then(resolve).catch(reject)
+                            }).catch(e => {
+                                console.error('waitDecoder timeout', this.decoder ? this.decoder.log : null, e)
+                                this.destroy()
+                                reject(e)
+                            })
+                        }
+                    })
                 })
             })
         })
@@ -314,10 +339,8 @@ class FFServer extends Events {
         this.destroyed = true
         if(this.decoder){
             const file = this.decoder.file
+            console.log('ffmpeg destroy: '+ file, global.traceback())
             this.decoder.kill()
-            if(this.opts.debug){
-                this.opts.debug('ffmpeg destroy', file)
-            }
             if(file){
                 global.removeFolder(path.dirname(file), true)
             }

@@ -27,10 +27,13 @@ function askExit(){
     explorer.dialog([
         {template: 'question', text: lang.ASK_EXIT, fa: 'fas fa-times-circle'},
         {template: 'option', text: lang.NO, id: 'no'},
-        {template: 'option', text: lang.YES, id: 'yes'}
+        {template: 'option', text: lang.YES, id: 'yes'},
+        {template: 'option', text: lang.RESTARTAPP, id: 'restart'}
     ], c => {
         if(c == 'yes'){
             exit()
+        } else if(c == 'restart'){
+            restart()
         }
     }, 'no')
 }
@@ -49,6 +52,7 @@ function exitUI(){
 function restart(){
     console.log('restart()')
     if(parent.plugins && parent.plugins.megacubo){
+        app.emit('close')
         parent.plugins.megacubo.restartApp()
     } else {
         explorer.dialog([
@@ -102,18 +106,44 @@ function getViewportEntries(onlyWithIcons){
     return ret
 }
 
-function hideBackButton(){
-    if(config['hide-back-button']){
-        css(' #explorer a[data-type="back"] { display: none; } ', 'hide-back-button')
-    } else {
-        css(' ', 'hide-back-button')
+var hidingBackButton = false
+function hideBackButton(doHide){
+    if(doHide != hidingBackButton){
+        hidingBackButton = doHide
+        if(hidingBackButton){
+            css(' #explorer a[data-type="back"] { display: none; } ', 'hide-back-button')
+        } else {
+            css(' ', 'hide-back-button')
+        }
     }
+}
+
+var reviewAlreadyRequested
+
+function requestReview(){
+    console.log('requesting review')
+    if(top.cordova && top.cordova.plugins && top.cordova.plugins.AppReview){
+        if(!reviewAlreadyRequested){
+            console.log('requesting review')
+            reviewAlreadyRequested = true
+            top.cordova.plugins.AppReview.requestReview().catch(function() {
+                return top.cordova.plugins.AppReview.openStoreScreen('tv.megacubo.app')
+            })
+        }
+    }
+}
+
+function configUpdated(){
+    parent.player.mini.enabled = config['miniplayer-auto']
+    explorer.setViewSize(config['view-size-x'], config['view-size-y'])
+    hideBackButton(config['hide-back-button'])
+    parent.animateBackground(config['animate-background'])
 }
 
 function initApp(){ 
     console.log('INITAPP')
     app.on('open-external-url', url => parent.openExternalURL(url)) 
-    app.on('load-js', (src) => {
+    app.on('load-js', src => {
         console.warn('LOADJS ' + src)
         var s = document.createElement('script')
         s.src = src
@@ -211,11 +241,9 @@ function initApp(){
         restart()
     })
     app.on('config', c => {
-        //console.warn('CONFIG CHANGED FROM CLIENT', c)
+        console.warn('CONFIG CHANGED ON CLIENT', c)
         config = c
-        explorer.setViewSize(config['view-size-x'], config['view-size-y'])
-        hideBackButton()
-        parent.animateBackground(config['animate-background'])
+        configUpdated()
     })
     app.on('fontlist', () => {
         app.emit('fontlist', getFontList())
@@ -233,13 +261,13 @@ function initApp(){
     /* icons start */
     icons = new IconServerClient()
     icons.on('validate', (element, src, buf) => {
-        if(src && element.parentNode && config['show-logos']){
+        if(src && element.parentNode){
             if(buf){
                 let u = URL.createObjectURL(buf), m = document.createElement('img')
                 m.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQYV2NgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII=' // transparent pixel
                 m.style.backgroundImage = 'url(' + u + ')'
                 m.onload = m.onerror = () => {
-                    // URL.revokeObjectURL(u)
+                    setTimeout(() => URL.revokeObjectURL(u), 250)
                 }
                 if(element.className == 'explorer-location-icon-placeholder'){
                     jQuery(element).replaceWith(m)
@@ -260,7 +288,7 @@ function initApp(){
                 var src = element.getAttribute('data-icon')
                 element.removeAttribute('data-icon')
                 if(src){
-                    // console.warn('validating', element, src)
+                    console.warn('validating', element, src)
                     icons.add(element, src)
                 }
                 element = null
@@ -356,7 +384,7 @@ function initApp(){
         ]).forEach(explorer.addView.bind(explorer))
         explorer.start()
 
-        explorer.on('focus', element => {
+        explorer.on('arrow', element => {
             setTimeout(() => {
                 sound('menu', 1)
                 if(typeof(haUpdate) == 'function'){
@@ -373,30 +401,6 @@ function initApp(){
                 }
             }, 100)
         }, true)
-
-        var elp = $('.explorer-location-pagination'), elpTxt = elp.find('span'), elpTimer = 0, elpDuration = 5000, elpShown = false, elpShow = txt => {
-            clearTimeout(elpTimer)
-            if(!elpShown){
-                elpShown = true
-                elp.show()
-            }
-            if(typeof(txt) == 'string'){
-                elpTxt.html(txt)
-            }
-            if(explorer.selectedIndex < 2){
-                elpTimer = setTimeout(() => {
-                    if(elpShown){
-                        elpShown = false
-                        elp.hide()
-                    }
-                }, elpDuration)
-            }
-        }
-        explorer.on('focus', element => {
-            let offset = explorer.path ? 0 : 1
-            elpShow(' '+ (explorer.selectedIndex + offset) +'/'+ (explorer.currentEntries.length - 1 + offset))
-        })
-        explorer.on('arrow', elpShow)
 
         explorer.on('prompt-start', explorer.reset.bind(explorer))
         explorer.on('ask-start', explorer.reset.bind(explorer))
@@ -425,171 +429,209 @@ function initApp(){
 
         app.emit('init')
 
-        omni = new OMNI()
-        jQuery(document).on('keyup', omni.eventHandler.bind(omni))
-        
-        window.streamer = new StreamerClient(document.querySelector('controls'), app)
+        waitMessage('player-ready', () => {
+            setup = new Setup()        
+            window.streamer = new StreamerClient(document.querySelector('controls'), app)        
+            streamer.on('show', explorer.reset.bind(explorer))
+            streamer.on('stop', () => {
+                explorer.reset()
+                if(explorer.modalContainer && explorer.modalContainer.querySelector('#modal-template-option-wait')){
+                    explorer.endModal()
+                }
+            })
+            window.dispatchEvent(new CustomEvent('streamer-ready'))
+        })
+
         window.dispatchEvent(new CustomEvent('appready'))
+        configUpdated()
         console.log('loaded app')
 
-        explorer.on('scroll', y => {
-            elpShow()
-            haUpdate()
-            explorer.updateRange(y)
-        })
+        requestIdleCallback(() => {
 
-        var haTop = $('#home-arrows-top'), haBottom = $('#home-arrows-bottom')
-        haTop.on('click', () => {
-            explorer.arrow('up')
-        })
-        haBottom.on('click', () => {
-            explorer.arrow('down')
-        })
+            omni = new OMNI()
+            jQuery(document).on('keyup', omni.eventHandler.bind(omni))
 
-        window['home-arrows-active'] = {bottom: null, top: null, timer: 0};
-        window.haUpdate = () => {
-            var as = wrap.getElementsByTagName('a')
-            if(as.length > (explorer.viewSizeX * explorer.viewSizeY)){
-                var lastY = (as[as.length - 1].offsetTop) - wrap.scrollTop, firstY = as[0].offsetTop - wrap.scrollTop
-                if(lastY >= wrap.parentNode.offsetHeight){
-                    if(window['home-arrows-active'].bottom !== true){
-                        window['home-arrows-active'].bottom = true
-                        haBottom.css('opacity', 'var(--opacity-level-2)')
-                    }
-                } else {
-                    if(window['home-arrows-active'].bottom !== false){
-                        window['home-arrows-active'].bottom = false
-                        haBottom.css('opacity', 0)
-                    }
-                }
-                if(firstY < 0){
-                    if(window['home-arrows-active'].top !== true){
-                        window['home-arrows-active'].top = true
-                        haTop.css('opacity', 'var(--opacity-level-2)')
-                    }
-                } else {
-                    if(window['home-arrows-active'].top !== false){
-                        window['home-arrows-active'].top = false
-                        haTop.css('opacity', 0)
-                    }
-                }
-            } else {
-                window['home-arrows-active'].top = window['home-arrows-active'].bottom = false
-                haBottom.add(haTop).css('opacity', 0)
-            }
-            /*
-            let mask = 'none'
-            if(window['home-arrows-active'].top || window['home-arrows-active'].bottom){
-                if(window['home-arrows-active'].top){
-                    mask = 'transparent 1%, #fff 3%, '
-                } else {
-                    mask = '#fff 0%, '
-                }
-                if(window['home-arrows-active'].bottom){
-                    mask += '#fff 97%, transparent 99%'
-                } else {
-                    mask += '#fff 100%'
-                }
-                mask = 'linear-gradient(to bottom, ' + mask + ')'
-            }
-            wrapper.css('-webkit-mask-image', mask) // linear-gradient(to top, transparent 2%, #fff 8%, #fff 92%, transparent 98%);
-            */
-        }
-
-        streamer.on('show', explorer.reset.bind(explorer))
-        streamer.on('stop', () => {
-            explorer.reset()
-            if(explorer.modalContainer && explorer.modalContainer.querySelector('#modal-template-option-wait')){
-                explorer.endModal()
-            }
-        })
-
-        moment.tz.setDefault(Intl.DateTimeFormat().resolvedOptions().timeZone)
-        if(lang.locale && !moment.locales().includes(lang.locale)){
-            importMomentLocale(lang.locale, () => {
-                moment.locale(lang.locale)
-                clock.update()
-            })
-        }
-
-        clock = new Clock(document.querySelector('header time'))
-
-        if(parent.cordova){
-            function handleSwipe(e){
-                console.log('swipey', e)
-                let swipeDist = (innerHeight < innerWidth ? innerHeight : innerWidth) / 2
-                if(swipeDist <= e.swipeLength){
-                    switch(e.direction){
-                        case 'left':
-                            if(explorer.inPlayer()){                            
-                                streamer.seekFwd()
-                            }
-                            break
-                        case 'right':                        
-                            if(explorer.inPlayer()){
-                                streamer.seekBack()
-                            } else {
-                                escapePressed()
-                            }
-                            break
-                        case 'up':
-                            if(explorer.inPlayer()){
-                                if(!explorer.isExploring()){
-                                    arrowDownPressed()
-                                }
-                            }
-                            break
-                        case 'down':
-                            if(explorer.inPlayer()){
-                                if(!explorer.isExploring()){
-                                    arrowDownPressed()
-                                }
-                            }
-                            break
-                    }
-                }
-            }
-            swipey.add(document.body, handleSwipe, {diagonal: false})
-        }
-
-        var setup = new Setup()
-
-        var internetConnStateOsdID = 'network-state', updateInternetConnState = () => {
-            if(navigator.onLine){
-                app.emit('network-state-up')
-                osd.hide(internetConnStateOsdID)
-            } else {
-                app.emit('network-state-down')
-                osd.show(lang.NO_INTERNET_CONNECTION, 'fas fa-exclamation-triangle faclr-red', internetConnStateOsdID, 'persistent')
-            }
-        }
-        jQuery(window).on('online', updateInternetConnState).on('offline', updateInternetConnState)
-        if(!navigator.onLine){
-            updateInternetConnState()
-        }
-        
-        app.on('share', (title, text, url) => {
-            console.log('share', title, text, url)
-            if(typeof(parent.navigator.share) == 'function'){
-                parent.navigator.share(text + "\r\n" + url, title, 'text/plain', (...args) => {
-                    console.log('share', args)
-                }, err => {
-                    console.error('share error', err)
+            explorer.on('scroll', y => {
+                requestIdleCallback(() => {
+                    explorer.updateRange(y)
+                    elpShow()
+                    haUpdate()            
                 })
-            } else {
-                parent.openExternalURL('https://megacubo.tv/share/?url=' + encodeURIComponent(url) + '&title=' + encodeURIComponent(title) + '&text=' + encodeURIComponent(text))
-            }
-        })
+            })
 
-        window.addEventListener('idle-start', () => {
-            if(explorer.inPlayer() && !explorer.isExploring()){
-                if(document.activeElement != document.body){
-                    document.activeElement.blur()
+            var elp = $('.explorer-location-pagination'), elpTxt = elp.find('span'), elpTimer = 0, elpDuration = 5000, elpShown = false, elpShow = txt => {
+                clearTimeout(elpTimer)
+                if(!elpShown){
+                    elpShown = true
+                    elp.show()
+                }
+                if(typeof(txt) == 'string'){
+                    elpTxt.html(txt)
+                }
+                if(explorer.selectedIndex < 2){
+                    elpTimer = setTimeout(() => {
+                        if(elpShown){
+                            elpShown = false
+                            elp.hide()
+                        }
+                    }, elpDuration)
                 }
             }
-        })
-        window.addEventListener('idle-stop', () => {
-            setTimeout(explorer.reset.bind(explorer), 400)
+            explorer.on('focus', element => {
+                let offset = explorer.path ? 0 : 1
+                elpShow(' '+ (explorer.selectedIndex + offset) +'/'+ (explorer.currentEntries.length - 1 + offset))
+            })
+            explorer.on('arrow', () => requestIdleCallback(elpShow))
+
+            var haTop = $('#home-arrows-top'), haBottom = $('#home-arrows-bottom')
+            haTop.on('click', () => {
+                explorer.arrow('up')
+            })
+            haBottom.on('click', () => {
+                explorer.arrow('down')
+            })
+    
+            window['home-arrows-active'] = {bottom: null, top: null, timer: 0};
+            window.haUpdate = () => {
+                var as = wrap.getElementsByTagName('a')
+                if(as.length > (explorer.viewSizeX * explorer.viewSizeY)){
+                    var lastY = (as[as.length - 1].offsetTop) - wrap.scrollTop, firstY = as[0].offsetTop - wrap.scrollTop
+                    if(lastY >= wrap.parentNode.offsetHeight){
+                        if(window['home-arrows-active'].bottom !== true){
+                            window['home-arrows-active'].bottom = true
+                            haBottom.css('opacity', 'var(--opacity-level-2)')
+                        }
+                    } else {
+                        if(window['home-arrows-active'].bottom !== false){
+                            window['home-arrows-active'].bottom = false
+                            haBottom.css('opacity', 0)
+                        }
+                    }
+                    if(firstY < 0){
+                        if(window['home-arrows-active'].top !== true){
+                            window['home-arrows-active'].top = true
+                            haTop.css('opacity', 'var(--opacity-level-2)')
+                        }
+                    } else {
+                        if(window['home-arrows-active'].top !== false){
+                            window['home-arrows-active'].top = false
+                            haTop.css('opacity', 0)
+                        }
+                    }
+                } else {
+                    window['home-arrows-active'].top = window['home-arrows-active'].bottom = false
+                    haBottom.add(haTop).css('opacity', 0)
+                }
+                /*
+                let mask = 'none'
+                if(window['home-arrows-active'].top || window['home-arrows-active'].bottom){
+                    if(window['home-arrows-active'].top){
+                        mask = 'transparent 1%, #fff 3%, '
+                    } else {
+                        mask = '#fff 0%, '
+                    }
+                    if(window['home-arrows-active'].bottom){
+                        mask += '#fff 97%, transparent 99%'
+                    } else {
+                        mask += '#fff 100%'
+                    }
+                    mask = 'linear-gradient(to bottom, ' + mask + ')'
+                }
+                wrapper.css('-webkit-mask-image', mask) // linear-gradient(to top, transparent 2%, #fff 8%, #fff 92%, transparent 98%);
+                */
+            }
+    
+            moment.tz.setDefault(Intl.DateTimeFormat().resolvedOptions().timeZone)
+            if(lang.locale && !moment.locales().includes(lang.locale)){
+                importMomentLocale(lang.locale, () => {
+                    moment.locale(lang.locale)
+                    clock.update()
+                })
+            }
+    
+            clock = new Clock(document.querySelector('header time'))
+    
+            if(parent.cordova){
+                function handleSwipe(e){
+                    console.log('swipey', e)
+                    let swipeDist = (['up', 'down'].includes(e.direction) ? innerHeight : innerWidth) / 2
+                    if(swipeDist <= e.swipeLength){
+                        switch(e.direction){
+                            case 'left':
+                                if(explorer.inPlayer()){                            
+                                    streamer.seekFwd()
+                                }
+                                break
+                            case 'right':                        
+                                if(explorer.inPlayer()){
+                                    streamer.seekBack()
+                                } else {
+                                    escapePressed()
+                                }
+                                break
+                            case 'up':
+                                if(explorer.inPlayer()){
+                                    if(!explorer.isExploring()){
+                                        arrowDownPressed()
+                                    }
+                                }
+                                break
+                            case 'down':
+                                if(explorer.inPlayer()){
+                                    if(!explorer.isExploring()){
+                                        arrowDownPressed()
+                                    }
+                                }
+                                break
+                        }
+                    }
+                }
+                swipey.add(document.body, handleSwipe, {diagonal: false})
+            }
+    
+            var internetConnStateOsdID = 'network-state', updateInternetConnState = () => {
+                if(navigator.onLine){
+                    app.emit('network-state-up')
+                    osd.hide(internetConnStateOsdID)
+                } else {
+                    app.emit('network-state-down')
+                    osd.show(lang.NO_INTERNET_CONNECTION, 'fas fa-exclamation-triangle faclr-red', internetConnStateOsdID, 'persistent')
+                }
+            }
+            jQuery(window).on('online', updateInternetConnState).on('offline', updateInternetConnState)
+            if(!navigator.onLine){
+                updateInternetConnState()
+            }
+            
+            if(1||top.cordova){
+                app.on('streamer-long-watching', requestReview)
+            }
+            app.on('share', (title, text, url) => {
+                console.log('share', title, text, url)
+                if(typeof(parent.navigator.share) == 'function'){
+                    parent.navigator.share(text + "\r\n" + url, title, 'text/plain', (...args) => {
+                        console.log('share', args)
+                    }, err => {
+                        console.error('share error', err)
+                    })
+                } else {
+                    parent.openExternalURL('https://megacubo.tv/share/?url=' + encodeURIComponent(url) + '&title=' + encodeURIComponent(title) + '&text=' + encodeURIComponent(text))
+                }
+            })
+    
+            window.addEventListener('idle-start', () => {
+                if(explorer.inPlayer() && !explorer.isExploring()){
+                    if(document.activeElement != document.body){
+                        document.activeElement.blur()
+                    }
+                }
+            })
+
+            /*
+            window.addEventListener('idle-stop', () => {
+                setTimeout(explorer.reset.bind(explorer), 400)
+            })
+            */
         })
     })
 }

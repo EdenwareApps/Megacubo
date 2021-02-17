@@ -103,13 +103,7 @@ var hotkeysActions = {
     ],
     "MINIPLAYER": [
         () => {
-            if(top.Manager){
-                if(top.Manager.miniPlayerActive){
-                    top.Manager.leaveMiniPlayer()
-                } else {
-                    top.Manager.enterMiniPlayer()
-                }
-            }
+            parent.player.mini.toggle().catch(console.error)
         }, "up", true
     ],
     "RECORDING": [

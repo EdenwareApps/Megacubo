@@ -904,7 +904,7 @@ class Lists extends Index {
 					progress += (p * val)
 				})
 			}
-			resolve({progress: Math.min(parseInt(progress), 99), firstRun, done: this.listsUpdateData.done})
+			resolve({progress: Math.min(parseInt(progress), 99), firstRun, done: this.listsUpdateData && this.listsUpdateData.done})
 		})
 	}
 	setLists(myUrls, altUrls, sharingListsLimit){ // prevent config.sync errors reeiving sharingListsLimit as parameter, instead of access a not yet updated the config.
@@ -1357,7 +1357,7 @@ class Lists extends Index {
 							}
 						}
 					}
-					console.warn('M3U SEARCH RESULTS', (global.time() - start) +'s (cumulated time)', terms)
+					console.warn('M3U SEARCH RESULTS', (global.time() - start) +'s (total time)', terms)
 					resolve({results, maybe})
 					xmap = smap = bestResults = results = maybe = null
                 })
@@ -1564,6 +1564,22 @@ class Lists extends Index {
 				this.fetcher.fetch(v.url).then(flatList => {
 					this.directListRendererPrepare(flatList, v.url).then(resolve).catch(reject)
 				}).catch(reject)
+            }
+        })
+    }
+    directListFileRenderer(file, url){
+        return new Promise((resolve, reject) => {
+            if(typeof(this.lists[file]) != 'undefined'){
+                let entries = this.lists[file].fetchAll()
+                this.directListRendererPrepare(entries, v.url).then(resolve).catch(reject)
+            } else {
+				let stream = fs.createReadStream(file), entries = [], parser = new Parser()
+				parser.on('entry', e => entries.push(e))
+				parser.on('end', () => {
+					this.directListRendererPrepare(entries, url || file).then(resolve).catch(reject)
+				})
+				stream.on('data', chunk => parser.write(chunk))
+				stream.on('close', () => parser.end())
             }
         })
     }

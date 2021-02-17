@@ -1,7 +1,7 @@
 {
   "name": "tv.megacubo.app",
   "displayName": "Megacubo",
-  "version": "16.0.9",
+  "version": "Deseja",
   "description": "A intuitive and multi-language IPTV player.",
   "main": "index.js",
   "scripts": {
@@ -10,27 +10,18 @@
   "author": "Apache Cordova Team",
   "license": "Apache-2.0",
   "dependencies": {
-    "@ionic-native/in-app-purchase": "^5.30.0",
     "cordova": "10.0.0"
   },
   "cordova": {
     "plugins": {
-      "cordova-plugin-file-selector": {},
-      "cordova-plugin-file": {},
       "cordova-plugin-whitelist": {},
-      "cordova-plugin-console": {},
       "nodejs-mobile-cordova": {},
-      "cordova-plugin-webview-checker": {},
       "cordova-plugin-ionic-webview": {},
       "cordova-plugin-ionic-keyboard": {},
       "cordova-plugin-insomnia": {},
-      "cordova-webintent": {},
+      "cordova-plugin-file": {},
       "nl.madebymark.share": {},
-      "cordova-plugin-statusbar": {},
-      "cordova-plugin-fullscreen": {},
-      "cordova-plugin-exclude-files": {},
       "cordova-plugin-android-permissions": {},
-      "cordova-plugin-file-transfer": {},
       "cordova-plugin-filechooser": {},
       "ionic-plugin-deeplinks": {
         "URL_SCHEME": "mega",
@@ -50,35 +41,27 @@
         "DEEPLINK_5_SCHEME": " ",
         "DEEPLINK_5_HOST": " "
       },
-      "com.hughisaacs2.cordova.plugins.androidtvplugin": {},
-      "cordova-plugin-inapppurchase": {},
-      "cordova-plugin-network-information": {},
-      "cordova-megacubo-player-plugin": {}
+      "cordova-plugin-app-review": {
+        "ANDROID_PLAY_CORE_VERSION": "1.8.+"
+      },
+      "cordova-plugin-purchase": {
+        "BILLING_KEY": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA5Dc4UpVp6tysJOPQTcIWO2dr7ZcsfXwBcNhlNrs23nNOANA4XkXDXqch99CB0gfC/nbvEoy+vqD76ITXsuedVE+iEINjt/PBGFJ9W80SWKDRUFJYj35oCD9YC01An5WJrI/r5U3BNtliFwTF7fMifXzlBc9rkBVoki5T72FSDrmPwo7q7baXkON5c1Byh2V+Lfp0KTAUnN3/AKeMdxqcicwCR0wb9U3ZQRjeyQSzD0a6YJZMokxpwDJWYd+iz9AaH2aFxAOFeGYNFQsJJ3qYqGYNFJll8Oe9c5MxQL/HpZBuwW3XaSvfikv2EKAWQ+vIu97MYaTlMF2aGDFJAOSj0wIDAQAB"
+      },
+      "cordova-plugin-android-tv": {},
+      "cordova-megacubo-player-plugin": {},
+      "tv.megacubo.pip": {}
     },
     "platforms": []
   },
   "devDependencies": {
-    "com.hughisaacs2.cordova.plugins.androidtvplugin": "git+https://github.com/efoxbr/Cordova-Android-TV-Plugin.git",
     "cordova-android": "^9.0.0",
     "cordova-megacubo-player-plugin": "file:../cordova-megacubo-player-plugin",
-    "cordova-plugin-android-permissions": "^1.1.2",
-    "cordova-plugin-console": "^1.1.0",
-    "cordova-plugin-exclude-files": "^1.0.1",
-    "cordova-plugin-file": "^6.0.2",
-    "cordova-plugin-file-transfer": "^1.7.1",
+    "cordova-plugin-android-tv": "git+https://github.com/frontyard/cordova-plugin-android-tv.git",
     "cordova-plugin-filechooser": "git+https://github.com/luckypal/cordova-filechooser.git",
-    "cordova-plugin-fullscreen": "^1.3.0",
-    "cordova-plugin-inapppurchase": "^1.2.0",
     "cordova-plugin-insomnia": "git+https://github.com/EddyVerbruggen/Insomnia-PhoneGap-Plugin.git",
-    "cordova-plugin-ionic-keyboard": "^2.2.0",
     "cordova-plugin-ionic-webview": "^5.0.0",
-    "cordova-plugin-network-information": "^2.0.2",
+    "cordova-plugin-purchase": "^10.5.3",
     "cordova-plugin-share": "^0.1.3",
-    "cordova-plugin-statusbar": "^2.4.3",
-    "cordova-plugin-webview-checker": "^1.0.1",
-    "cordova-plugin-whitelist": "^1.3.4",
-    "cordova-webintent": "github:cordova-misc/cordova-webintent",
-    "ionic-plugin-deeplinks": "^1.0.20",
-    "nodejs-mobile-cordova": "^0.4.2"
+    "tv.megacubo.pip": "file:../PictureInPicture"
   }
 }

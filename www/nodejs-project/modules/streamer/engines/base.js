@@ -110,14 +110,16 @@ class StreamerBaseIntent extends Events {
     findAdapters(base, types){
         if(base.adapters){
             let ret
-            base.adapters.some(a => {
-                if(a.type && types.includes(a.type)){
-                    ret = a
+            for(let i = base.adapters.length - 1; i >= 0; i--){ // reverse lookup to find the higher level adapter, so it should be HTML5 compatible already
+                if(base.adapters[i].type && types.includes(base.adapters[i].type)){
+                    ret = base.adapters[i]
                 } else {
-                    ret = this.findAdapters(a, types)
+                    ret = this.findAdapters(base.adapters[i], types)
                 }
-                return !!ret // break
-            })
+                if(ret){
+                    break
+                }
+            }
             return ret
         }
     }
@@ -208,18 +210,20 @@ class StreamerBaseIntent extends Events {
             })
         })
     }
-    startCapture(onData, onFinish){
+    startCapture(onData, onFinish, onReset){
         this.endCapture()
-        let a = this.findAdapters(this, ['downloader', 'joiner', 'proxy']) // suitable adapters for capturing
+        let a = this.findAdapters(this, ['proxy', 'ffserver', 'downloader', 'joiner']) // suitable adapters for capturing, by priority
         if(a){
-            this.capturing = [a, onData, onFinish]
+            this.capturing = [a, onData, onFinish, onReset]
             this.capturing[0].on('data', this.capturing[1])
+            this.capturing[0].on('transcode-started', this.capturing[3])
             return true
         }
     }
     endCapture(){
         if(Array.isArray(this.capturing)){
             this.capturing[0].removeListener('data', this.capturing[1])
+            this.capturing[0].removeListener('transcode-started', this.capturing[3])
             this.capturing[2]()
             this.capturing = false
         }

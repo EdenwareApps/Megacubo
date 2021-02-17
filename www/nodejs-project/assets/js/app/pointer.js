@@ -10,6 +10,19 @@ class ExplorerBase extends EventEmitter {
 		this.body = this.j('body')
 		this.container = this.j(container)
 	}
+    addClass(element, className){
+        if(!this.hasClass(element, className)){
+            element.className = (element.className || '') + ' ' + className
+        }
+    }
+    removeClass(element, className){
+        if(this.hasClass(element, className)){
+            element.className = element.className.replace(className, '')
+        }
+    }
+    hasClass(element, className){
+        return element.className && element.className.indexOf(className) != -1
+    }
 }
 
 class ExplorerSelectionMemory extends ExplorerBase {
@@ -17,9 +30,14 @@ class ExplorerSelectionMemory extends ExplorerBase {
 		super(jQuery, container, app)
 		this.selectionMemory = {}
 		this.on('open', (type, path, element, tabindex) => {
-			if(type == 'group'){
+			//if(type == 'group'){
 				this.selectionMemory[this.path] = {scroll: this._wrapper.scrollTop, index: this.selectedIndex}
-			}
+			//}
+		})
+		this.on('arrow', (type, path, element, tabindex) => {
+			//if(type == 'group'){
+				this.selectionMemory[this.path] = {scroll: this._wrapper.scrollTop, index: this.selectedIndex}
+			//}
 		})
 		this.on('pre-modal-start', () => {
 			let e = this.selected()
@@ -39,23 +57,28 @@ class ExplorerSelectionMemory extends ExplorerBase {
 		if(this.isExploring()){
             this.scrollDirection = ''
             this.scrollSnapping = true
-			let target = 0, index = 0, isSearch = path.split('/').pop() == lang.SEARCH
-			if(!isSearch){
+			let target = 0, index = 1, isSearch = path.split('/').pop() == lang.SEARCH
+			if(isSearch){
+                this._scrollContainer.scrollTop = target
+                this.focusIndex(index)
+                this.scrollSnapping = false
+            } else {
                 this.touchMoving = false
 				this.restoreSelection()
 			}
-            this._scrollContainer.scrollTop = target
-            this.focusIndex(index)
-            this.scrollSnapping = false
 		}
     }
     restoreSelection(){
         let data = {scroll: 0, index: this.path ? 1 : 0}
         if(typeof(this.selectionMemory[this.path]) != 'undefined'){
             data = this.selectionMemory[this.path]
+            if(data.index == 0 && this.path){
+                data.index = 1
+            }
         }
+        console.log('EXP RESTORE', data, this.path)
         this._scrollContainer.scrollTop = data.scroll
-        this.focusIndex(data.index)
+        this.focusIndex(data.index, true) // true = force re-selecting the same entry on refresh
     }
 }
 
@@ -262,8 +285,11 @@ class ExplorerPointer extends ExplorerSelectionMemory {
     }
     focusIndex(a, force){
         if(force || a != this.selectedIndex){
-            a = this.scrollContainer.find('a[tabindex="'+ (a ? a : '') +'"]')
-            if(a && a.length){
+            a = this.scrollContainer.find('a[tabindex="'+ (a ? a : '') +'"]').get(0)
+            if(this.debug){
+                console.log('FOCUSINDEX', a)
+            }
+            if(a){
                 this.focus(a)
             }
         }
@@ -273,55 +299,63 @@ class ExplorerPointer extends ExplorerSelectionMemory {
         if(this.debug){
             console.log('focus', a, noScroll, traceback())
         }
-        if(a && !(a instanceof this.j)){
-            a = this.j(a)
-        }
-        if(!a || !a.length){
-            a = $(this.entries().shift())
-        }
-        if(a && a.length){
+        if(!a) {
+            a = this.entries().shift()
+        } else if(a instanceof this.j) {
             if(this.debug){
-                console.log('FOCUSENTRY', a.length, a.html())
+                console.error('focus received jQuery element', a, noScroll, traceback())
             }
-            this.j('.' + this.className).removeClass(this.className).parent().removeClass(this.parentClassName)
-            let f = a.addClass(this.className).get(0), index = f.tabIndex
-            if(!f.parentNode) return // fix
-            if(typeof(index) != 'number') index = -1
-            a.parent().addClass(this.parentClassName)
-            a.triggerHandler('focus')
-            if(document.activeElement){
-                // dirty hack to force input to lose focus
-                if(document.activeElement.tagName.toLowerCase() == 'input'){
-                    let t = document.activeElement
-                    t.style.visibility = 'hidden'
-                    f.focus({preventScroll: true})
-                    t.style.visibility = 'inherit'
+            a = a.get(0)
+        }
+        if(a && !this.hasClass(a, this.className)){
+            if(!a.parentNode) return // fix
+            if(this.debug){
+                console.log('FOCUSENTRY', a)
+            }
+            document.querySelectorAll('.' + this.className).forEach(e => {
+                if(e != a){
+                    this.removeClass(e, this.className)
+                    this.removeClass(e.parentNode, this.parentClassName)
                 }
+            })
+            this.addClass(a, this.className)
+            this.addClass(a.parentNode, this.parentClassName)
+            let index = a.tabIndex
+            if(typeof(index) != 'number'){
+                index = -1
             }
-            f.focus({preventScroll: true})
-            let n = f.querySelector('input, textarea')
-            if(n){
+            if(document.activeElement && document.activeElement.tagName.toLowerCase() == 'input'){
+                // dirty hack to force input to lose focus
+                let t = document.activeElement
+                t.style.visibility = 'hidden'
+                a.focus({preventScroll: true})
+                t.style.visibility = 'inherit'
+            } else {
+                a.focus({preventScroll: true})
+            }
+            let n = a.querySelector('input, textarea')
+            if(n) {
                 n.focus({preventScroll: true})
             }
-            if(index != -1){ // is main menu entry
+            if(index != -1) { // is main menu entry
                 let lastIndex = this.selectedIndex
                 this.selectedIndex = index
-                if(this.debug){
-                    console.log('pointer selectedIndex =', f.tabIndex, f)
+                if(this.debug) {
+                    console.log('pointer selectedIndex =', a.tabIndex, a)
                 }
-                if(!noScroll){
-                    if(lastIndex != this.selectedIndex){
-                        let s = f.offsetTop
-                        if(s < 0){
+                if(!noScroll) {
+                    if(lastIndex != this.selectedIndex) {
+                        let s = a.offsetTop
+                        if(s < 0) {
                             s = 0
                         }
-                        if(s != f.parentNode.scrollTop){
-                            f.parentNode.scrollTop = ret = s
+                        if(s != a.parentNode.scrollTop) {
+                            a.parentNode.scrollTop = ret = s
                         }
                     }
                 }
             }
-            this.emit('focus', f, index)
+            this.emit('focus', a, index)
         }
         return ret
     }  
@@ -342,7 +376,7 @@ class ExplorerPointer extends ExplorerSelectionMemory {
         if(this.debug){
             console.log('reset', traceback())
         }
-        let elements, selected = this.findSelected(), view = this.activeView()
+        let elements, view = this.activeView()
         if(typeof(view.resetSelector) == 'function'){
             elements = view.resetSelector()
         } else {
@@ -569,12 +603,10 @@ class ExplorerPointer extends ExplorerSelectionMemory {
             if(this.debug){
                 console.warn('POINTER', closer, closerDist)
             }
-            let jcloser = this.j(closer)
-            this.focus(jcloser)
+            this.focus(closer)
             if(!view.default){
                 closer.scrollIntoViewIfNeeded({ behavior: 'smooth', block: 'nearest', inline: 'start' })
             }
-            closer = jcloser
         }
         this.emit('arrow', closer, direction)
     }

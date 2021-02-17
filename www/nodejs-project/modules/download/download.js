@@ -71,7 +71,11 @@ class Download extends Events {
 		}
 	}
 	defaultAcceptLanguage(){
-		return global.lang.locale +'-'+ global.lang.countryCode.toUpperCase() +','+ global.lang.locale +';q=0.9,*;q=0.5'
+		if(global.lang){
+			return global.lang.locale +'-'+ global.lang.countryCode.toUpperCase() +','+ global.lang.locale +';q=0.9,*;q=0.5'
+		} else {
+			return '*'
+		}
 	}
 	connect(){
 		if(this.destroyed) return
@@ -146,22 +150,24 @@ class Download extends Events {
 		return stream
 	}
 	errorCallback(err){
-		if(err.response){
-			if(this.checkRedirect(err.response)){
-				return
+		if(!this.destroyed && !this.ended){
+			if(err.response){
+				if(this.checkRedirect(err.response)){
+					return
+				}
+				this.parseResponse(err.response)
 			}
-			this.parseResponse(err.response)
+			if(this.opts.debug){
+				console.warn('>> Download error', err, global.traceback())
+			}
+			if(!this.currentRequestError){
+				this.currentRequestError = 'error'
+			}
+			if(this.listenerCount('error')){
+				this.emit('error', err)
+			}
+			this.delayNext()
 		}
-		if(this.opts.debug){
-			console.warn('>> Download error', err, global.traceback())
-		}
-		if(!this.currentRequestError){
-			this.currentRequestError = 'error'
-		}
-		if(this.listenerCount('error')){
-			this.emit('error', err)
-		}
-		this.delayNext()
 	}
     absolutize(path, url){
         if(path.match(new RegExp('^[htps:]*?//'))){
@@ -333,11 +339,19 @@ class Download extends Events {
 					this.received += chunk.length
 					this.emitData(chunk)
 					this.updateProgress()
-					if(this.opts.downloadLimit && this.received > this.opts.downloadLimit){
-						this.statusCode = 400
+					let receiveLimit = 0
+					if(typeof(this.opts.receiveLimit) == 'number'){
+						receiveLimit = this.opts.receiveLimit
+					}
+					if(typeof(this.opts.downloadLimit) == 'number'){
+						if(receiveLimit <= 0 || receiveLimit > this.opts.downloadLimit){
+							receiveLimit = this.opts.downloadLimit
+						}
+					}
+					if(receiveLimit && this.received > receiveLimit){
 						this.isResponseCompressed = false
 						if(this.opts.debug){
-							console.log('>> Download length exceeded downloadLimit', this.received + ' > ' + this.opts.downloadLimit, this.requestingRange, this.received, this.contentLength, this.totalContentLength)
+							console.log('>> Download receiving exceeded', this.received + ' > ' + receiveLimit, this.requestingRange, this.received, this.contentLength, this.totalContentLength)
 						}
 						this.end()
 					}
@@ -350,16 +364,23 @@ class Download extends Events {
 				})
 				response.on('error', this.errorCallback.bind(this))
 				response.on('aborted', () => {
-					if(!this.destroyed){
-						if(this.opts.debug){
-							console.warn('aborted', global.traceback())
+					if(!this.destroyed && !this.ended){
+						if(this.contentLength != -1 && this.received < this.contentLength){ // already received whole content requested
+							if(this.opts.debug){
+								console.warn('aborted', global.traceback())
+							}
+							this.currentRequestError = 'aborted'
+							let err = 'request aborted '+ this.received +'<'+ this.contentLength
+							if(this.listenerCount('error')){
+								this.emit('error', err)
+							}
+							this.delayNext()
+						} else {
+							if(this.opts.debug){
+								console.log('>> Download server aborted, end it', this.contentLength)
+							}
+							this.end()
 						}
-						this.currentRequestError = 'aborted'
-						let err = 'request aborted'
-						if(this.listenerCount('error')){
-							this.emit('error', err)
-						}
-						this.delayNext()
 					}
 				})
 				if(this.opts.debug){
@@ -625,7 +646,7 @@ Download.promise = (...args) => {
 	let promise = new Promise((resolve, reject) => {
 		g = new Download(opts)
 		g.on('end', buf => {
-			console.log('Download', g, global.traceback(), buf)
+			// console.log('Download', g, global.traceback(), buf)
 			if(g.statusCode >= 200 && g.statusCode < 400){
 				resolve(buf)
 			} else {

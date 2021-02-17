@@ -281,7 +281,7 @@
 "PLAYNEXT": "Riproduci il prossimo canale nell'elenco",
 "BACKNOTINPUT": "Backspace (tranne nei campi di testo)",
 "CHANGESCALE": "Cambia proporzioni video",
-"MINIPLAYER": "Abilita / Disabilita miniplayer",
+"MINIPLAYER": "Abilita Miniplayer",
 "PLAYALTERNATE": "Trova un altro stream da questo canale",
 "ESCAPE": "Chiudi finestre di dialogo e uscita a schermo intero",
 "OPENURLORLIST": "Apri URL o elenco",
@@ -390,7 +390,6 @@
 "OPEN_STREAM": "Apri una trasmissione",
 "PASTE_STREAM_URL_HINT": "Incolla l'URL de la transmissione qui...",
 "STREAM_URL": "URL de la transmissione",
-"SHARED_EXCLUSIVE_MODE_QUESTION": "Megacubo può essere utilizzato in due modi:\r\n\r\n1. Esclusivo: aggiungi e usa i tuoi elenchi.\r\n2. Condiviso: usa gli elenchi condivisi da altri utenti",
 "WHEN_LIVE_TRANSMISSION_FAILS": "Quando una trasmissione in diretta non riesce...",
 "SEARCH_ALTERNATIVES": "Cerca trasmissioni alternative",
 "TUNE_ALTERNATIVE": "Sintonizza trasmissione alternativa",
@@ -486,5 +485,8 @@
 "NONE": "Nessuno",
 "STARTING_LISTS": "Iniziando elenchi...",
 "SELECT": "Seleziona",
-"MORE_RESULTS": "Altri risultati"
+"MORE_RESULTS": "Altri risultati",
+"ELAPSED_TIME_TO_KEEP_CACHED": "Tempo trascorso da memorizzare nella cache",
+"INSTALL_CORRUPTED": "Oops, l'installazione ha danneggiato i file. Installa il programma.",
+"INSTALL_CORRUPTED_REPAIR": "Spiacenti, la tua installazione ha file danneggiati. Vuoi riparare?"
 }

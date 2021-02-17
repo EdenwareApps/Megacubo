@@ -4,6 +4,7 @@ const path = require('path'), Tuner = require(path.resolve(__dirname, '../tuner'
 class StreamState extends Events {
     constructor(){
         super()
+        this.debug = false
         this.ttl = (6 * 3600)
         this.data = {}
         this.waiting = {}
@@ -131,11 +132,15 @@ class StreamState extends Events {
         }
     }
     success(entry){
-        console.log('success', entry.url, entry.name)
+        if(this.debug){
+            console.log('success', entry.url, entry.name)
+        }
         this.set(entry.url, true)
     }
     failure(entry){
-        console.log('failure', entry.url, entry.name)
+        if(this.debug){
+            console.log('failure', entry.url, entry.name)
+        }
         this.set(entry.url, false)
     }
     test(entries, name){
@@ -146,7 +151,9 @@ class StreamState extends Events {
             if(!entries.length){
                 return resolve(true)
             }
-            console.log('streamState about to test', entries)
+            if(this.debug){
+                console.log('streamState about to test', entries)
+            }
             const len = entries.length, nt = {name: global.lang.TEST_STREAMS}, autoTesting = global.config.get('auto-testing')
             if(!autoTesting){
                 global.ui.emit('set-loading', nt, true, global.lang.TESTING)
@@ -194,7 +201,9 @@ class StreamState extends Events {
             })
             this.testing.on('finish', () => {
                 if(this.testing){
-                    console.warn('TESTER FINISH!', nt, this.testing.results, this.testing.states)
+                    if(this.debug){
+                        console.warn('TESTER FINISH!', nt, this.testing.results, this.testing.states)
+                    }
                     global.ui.emit('set-loading', nt, false)
                     if(!autoTesting){
                         global.osd.hide('stream-state-tester')
@@ -211,7 +220,9 @@ class StreamState extends Events {
     }
     cancelTests(){
         if(this.testing){
-            console.log('streamState cancelTests', traceback())
+            if(this.debug){
+                console.log('streamState cancelTests', global.traceback())
+            }
             this.testing.finish()
         }
     }

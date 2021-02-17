@@ -522,12 +522,14 @@ class Explorer extends Events {
     }
     selectEntry(entries, name, tabindex){
         let ret = false
-        entries.some((e, i) => {
-            if(e.name == name && (typeof(tabindex) != 'number' || tabindex == i)){
-                ret = e
-                return true
-            }
-        })
+        if(Array.isArray(entries)){
+            entries.some((e, i) => {
+                if(e.name == name && (typeof(tabindex) != 'number' || tabindex == i)){
+                    ret = e
+                    return true
+                }
+            })
+        }
         return ret
     }
     select(destPath, tabindex){

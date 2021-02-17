@@ -2,16 +2,13 @@
 class IconServerClient extends EventEmitter {
     constructor(opts){
         super()
-        this.debug = false
+        this.debug = true
         this.concurrency = 8
         this.minValidIconSize = 32
         if(parent.cordova){
             this.concurrency = 3
         }
-        this.image = '<img src="{0}" />';
-        ['log', 'warn', 'error'].forEach(f => {
-            this[f] = this.debug ? console[f] : () => {}
-        })
+        this.image = '<img src="{0}" />'
         if(opts){
 		    Object.keys(opts).forEach(k => {
     			this[k] = opts[k]
@@ -87,24 +84,34 @@ class IconServerClient extends EventEmitter {
         let found, shouldCancel = () => {
             return (found || !element || !element.parentNode)
         }, next = () => {
-            this.log('IconServerClient.process(), VALIDATE RESULT', element, src, found)
+            if(this.debug){
+                console.log('IconServerClient.process(), VALIDATE RESULT', element, src, found)
+            }
             this.emit('validate', element, src, found)
             cb()
             element = null
         }
-        this.log('IconServerClient.process()', element)
+        if(this.debug){
+            console.log('IconServerClient.process()', element)
+        }
         if(shouldCancel()) {
             cb()
         } else if(src) {
-            this.log('IconServerClient checkImage()', element, src)
+            if(this.debug){
+                console.log('IconServerClient checkImage()', element, src)
+            }
             this.check(src, b => {
                 if(!found){
-                    this.log('IconServerClient checkImage() OK', element, src, b)
+                    if(this.debug){
+                        console.log('IconServerClient checkImage() OK', element, src, b)
+                    }
                     found = b
                     next()
                 }
             }, () => {
-                this.log('IconServerClient checkImage() ERR', element, src)
+                if(this.debug){
+                    console.log('IconServerClient checkImage() ERR', element, src)
+                }
                 next()
             })
         } else {
@@ -127,13 +134,17 @@ class IconServerClient extends EventEmitter {
         }, timeout * 1000)
         this.load(url, ret => {
             if(ret instanceof Blob && ret.size >= this.minValidIconSize){
-                this.log('IconServerClient checkImage.load()', url, ret)
+                if(this.debug){
+                    console.log('IconServerClient checkImage.load()', url, ret)
+                }
                 if(!solved){
                     solved = true
                     load(ret)
                 }
             } else {
-                this.log('IconServerClient checkImage.error()', url, ret)
+                if(this.debug){
+                    console.log('IconServerClient checkImage.error()', url, ret)
+                }
                 if(!solved){
                     solved = true
                     error()
