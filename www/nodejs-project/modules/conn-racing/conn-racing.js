@@ -8,6 +8,7 @@ class ConnRacing extends Events {
         this.callbacks = []
         this.downloads = []
         this.ended = false
+        this.readyIterator = 0
         this.start()
     }
     start(){
@@ -32,6 +33,7 @@ class ConnRacing extends Events {
             }, finish = () => {
                 if(!ended){
                     ended = true
+                    this.readyIterator++
                     const result = {
                         time: global.time() - start,
                         url,
@@ -84,6 +86,9 @@ class ConnRacing extends Events {
             this.destroy()
         }
     }
+    progress(){
+        return this.readyIterator / (this.urls.length / 100)
+    }
     destroy(){
         if(!this.destroyed){
             this.destroyed = true
@@ -91,6 +96,7 @@ class ConnRacing extends Events {
             this.callbacks = [] // keep before
             this.downloads.forEach(d => d.destroy())
             this.downloads = []
+            this.removeAllListeners()
         }
     }
 }

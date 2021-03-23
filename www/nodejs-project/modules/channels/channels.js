@@ -4,22 +4,36 @@ const path = require('path'), fs = require('fs'), Events = require('events'), as
 class ChannelsData extends Events {
     constructor(opts){
         super()
-        this.emptyEntry = {name: global.lang.EMPTY, type: 'action', fa: 'fas fa-info-circle', class: 'entry-empty'}
+        this.emptyEntry = {
+            name: global.lang.EMPTY, 
+            type: 'action', 
+            fa: 'fas fa-info-circle', 
+            class: 'entry-empty'
+        }
         this.categories = []
 		global.config.on('change', (keys, data) => {
             if(['parental-control-policy', 'parental-control-terms'].some(k => keys.includes(k))){
-                this.setup()
+                this.load()
             }
         })
         this.radioTerms = ['radio', 'fm', 'am']
-        this.setup()
+        this.load()
     }
-    setup(cb){
+    updateCategoriesCacheKey(){
         const adult = global.config.get('parental-control-policy') == 'only'
-        this.categoriesCacheKey = 'categories-' + global.lang.locale
-        if(adult){
-            this.categoriesCacheKey += '-adult'
+        const useEPGChannels = global.config.get('epg') && global.config.get('epg-channels-list')
+        let categoriesCacheKey = 'categories-'+ global.lang.locale
+        if(useEPGChannels) {
+            categoriesCacheKey += '-epg'
+        } else if(adult) {
+            categoriesCacheKey += '-adult'
         }
+        this.categoriesCacheKey = categoriesCacheKey
+        return categoriesCacheKey
+    }
+    load(cb){
+        this.updateCategoriesCacheKey()
+        const adult = this.categoriesCacheKey.substr(-6) == '-adult'
         global.rstorage.get(this.categoriesCacheKey, data => {
             if(data){
                 this.channelsIndex = null
@@ -49,12 +63,14 @@ class ChannelsData extends Events {
     getCategories(compact){
         return compact ? this.categories : this.expand(this.categories)
     }
-    setCategories(data){
+    setCategories(data, silent){
         this.categories = data
         this.channelsIndex = null
         this.save(() => {
             console.log('Categories file imported')
-            global.osd.show(global.lang.IMPORTED_FILE, 'fas fa-check-circle', 'options', 'normal')
+            if(silent !== true){
+                global.osd.show(global.lang.IMPORTED_FILE, 'fas fa-check-circle', 'options', 'normal')
+            }
         })
     }
     compactName(name, terms){
@@ -753,9 +769,7 @@ class Channels extends ChannelsEditing {
             }).then(sentries => {
                 console.warn('sentries', sentries)
                 let entries = sentries.results
-                console.warn('entries', entries)
                 global.watching.order(entries).then(resolve).catch(err => {
-                    console.warn('entries', entries)
                     resolve(entries)
                 })
             }).catch(reject)
@@ -798,7 +812,6 @@ class Channels extends ChannelsEditing {
     }
     toMetaEntryRenderer(e, category){
         return new Promise((resolve, reject) => {
-            console.log('toMetaEntryRenderer', global.time())
             if(typeof(category) != 'string' && category !== false){
                 category = ''
                 let c = this.getChannelCategory(e.name)
@@ -807,10 +820,8 @@ class Channels extends ChannelsEditing {
                     return
                 }
             }
-            console.log('toMetaEntryRenderer', global.time())
             let terms = this.entryTerms(e), streamsEntry, epgEntry, entries = [], url = e.url || global.mega.build(e.name, {terms})
             this.get(terms).then(sentries => {
-                console.log('toMetaEntryRenderer', global.time())
                 if(sentries.length){
                     entries.push({
                         name: e.name,
@@ -847,7 +858,6 @@ class Channels extends ChannelsEditing {
                 console.error(e)
                 category = false
             }).finally(() => {
-                console.log('toMetaEntryRenderer', global.time())
                 if(entries.length){
                     let bookmarking = {name: e.name, type: 'stream', label: e.group || '', url}
                     if(global.bookmarks.has(bookmarking)){
@@ -881,9 +891,7 @@ class Channels extends ChannelsEditing {
                     entries.push(this.shareChannelEntry(e))
                     entries.push(streamsEntry)
                 }
-                console.log('toMetaEntryRenderer', global.time())
                 entries.push(this.editChannelEntry(e, category, {name: category ? global.lang.EDIT_CHANNEL : global.lang.EDIT, details: '', class: 'no-icon', fa: 'fas fa-edit', path: undefined, servedIcon: undefined, url: undefined}))
-                console.log('toMetaEntryRenderer', global.time())
                 resolve(entries)
             })
         })
@@ -908,9 +916,24 @@ class Channels extends ChannelsEditing {
         }
         return meta
     }
+    keywords(){
+        let keywords = [];
+        ['histo', 'bookmarks'].forEach(k => {
+            if(global[k]){
+                global[k].get().forEach(e => {
+                    keywords = keywords.concat(this.entryTerms(e))
+                })
+            }
+        })
+        this.getAllChannels().forEach(e => {
+            keywords = keywords.concat(this.entryTerms(e))
+        })
+        keywords = [...new Set(keywords.filter(w => w.charAt(0) != '-'))]
+        return keywords
+    }
     entries(){
         return new Promise((resolve, reject) => {
-            if(global.updatingLists){
+            if(lists.manager.updatingLists){
                 return resolve([{
                     name: global.lang.UPDATING_LISTS, 
                     fa: 'fa-mega spin-x-alt',
@@ -1006,7 +1029,7 @@ class Channels extends ChannelsEditing {
                                 global.osd.show(global.lang.PROCESSING, 'fa-mega spin-x-alt', 'options', 'persistent')
                                 delete this.categories
                                 global.rstorage.delete(this.categoriesCacheKey, () => {
-                                    this.setup(() => {
+                                    this.load(() => {
                                         global.osd.show('OK', 'fas fa-check-circle', 'options', 'normal')
                                     })
                                 })
@@ -1038,22 +1061,12 @@ class Channels extends ChannelsEditing {
                     }
                 }
             ]
-            if(global.config.get('epg')){
-                entries[1].entries.splice(2, 0, {
-                    name: global.lang.IMPORT_FROM_EPG,
-                    type: 'action',
-                    fa: 'fas fa-file-import', 
-                    action: () => {
-                        global.askEPGImport()
-                    }
-                })
-            }
             resolve(entries)
         })
     }
     more(){
         return new Promise((resolve, reject) => {
-            if(global.updatingLists){
+            if(lists.manager.updatingLists){
                 return resolve([{
                     name: global.lang.UPDATING_LISTS, 
                     fa: 'fa-mega spin-x-alt',

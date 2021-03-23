@@ -25,7 +25,7 @@ class Lookup extends Events {
 		if(this.isReady){
 			fn()
 		} else {
-			this.on('ready', fn)
+			this.once('ready', fn)
 		}
 	}
     time(){

@@ -79,6 +79,10 @@ class Download extends Events {
 	}
 	connect(){
 		if(this.destroyed) return
+		if(!Download.isNetworkConnected){
+			this.end()
+			return
+		}
 		if(this.stream){
 			console.error('Download error, stream already connected')
 			return
@@ -490,7 +494,9 @@ class Download extends Events {
 		}
 		this.destroyStream()
 		let retry
-		if(this.destroyed || this.ended){
+		if(!Download.isNetworkConnected){
+			retry = false
+		} else if(this.destroyed || this.ended){
 			return this._destroy()
 		} else if(this.opts.permanentErrorCodes.includes(this.statusCode) || this.retryCount >= this.opts.retries) { // no more retrying, permanent error
 			retry = false
@@ -575,7 +581,7 @@ class Download extends Events {
 				try {
 					data = JSON.parse(String(data))
 				} catch(e) {
-					console.error(e, String(data))
+					console.error(e, String(data), this.opts.url)
 					data = undefined
 				}
 				break
@@ -591,7 +597,7 @@ class Download extends Events {
 			this.destroyStream()
 			if(!this.headersSent){
 				this.headersSent = true
-				this.emit('response', this.statusCode, {})
+				this.emit('response', this.statusCode || 504, {})
 			}
 			if(!this.isResponseCompressed || this.decompressEnded || !this.decompressor){
 				this.emit('end', this.prepareOutputData(this.buffer))
@@ -639,6 +645,11 @@ class Download extends Events {
 			this._destroy()
 		}
 	}
+}
+
+Download.isNetworkConnected = true
+Download.setNetworkConnectionState = state => {
+	Download.isNetworkConnected = state
 }
 
 Download.promise = (...args) => {

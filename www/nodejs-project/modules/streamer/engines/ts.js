@@ -4,8 +4,8 @@ class StreamerTSIntent extends StreamerBaseIntent {
     constructor(data, opts, info){
         console.log('TSOPTS', opts)
         opts = Object.assign(opts, {
-            audioCodec: !global.cordova ? 
-                'aac' : // force audio recode for TS to prevent HLS.js playback hangs
+            audioCodec: global.config.get('ffmpeg-audio-repair') ? 
+                'aac' : // force audio recode for TS to prevent playback hangs
                 'copy' // aac disabled for performance
         })
         super(data, opts, info)
@@ -35,7 +35,7 @@ class StreamerTSIntent extends StreamerBaseIntent {
                     workDir: this.opts.workDir, 
                     debug: this.opts.debug
                 }
-                this.transcoder = new FFServer(this.downloader.source.stream, opts)
+                this.transcoder = new FFServer(this.downloader.source.endpoint, opts)
                 this.connectAdapter(this.transcoder)
                 if(typeof(this.transcoder.audioCodec) != 'undefined'){
                     delete this.transcoder.audioCodec
@@ -62,7 +62,7 @@ class StreamerTSIntent extends StreamerBaseIntent {
             this.downloader = new StreamerAdapterTS(this.data.url, this.opts)
             this.connectAdapter(this.downloader)
             this.downloader.start().then(() => {
-                this.ts2hls = new FFServer(this.downloader.source.stream, this.opts)
+                this.ts2hls = new FFServer(this.downloader.source.endpoint, this.opts)
                 this.connectAdapter(this.ts2hls)
                 this.ts2hls.audioCodec = this.opts.audioCodec
                 this.ts2hls.start().then(() => {

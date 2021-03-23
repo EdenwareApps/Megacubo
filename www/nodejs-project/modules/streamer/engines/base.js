@@ -16,7 +16,7 @@ class StreamerBaseIntent extends Events {
         this.mediaType = 'video'
         this.codecData = null
         this.type = 'base'
-        this.timeout = 60
+        this.timeout = Math.max(30, global.config.get('connect-timeout'))
         this.committed = false
         this.manual = false
         this.loaded = false
@@ -38,11 +38,6 @@ class StreamerBaseIntent extends Events {
         this.info = info
         this.on('error', err => {
             this.unload()
-        })
-        this.on('commit', () => {
-            if(this.server){
-                this.server.committed = true
-            }
         })
 	}
     setOpts(opts){
@@ -101,20 +96,36 @@ class StreamerBaseIntent extends Events {
             }
         })
         this.on('uncommit', () => {
-            adapter.emit('uncommit')
             if(adapter.committed){
+                adapter.emit('uncommit')
                 adapter.committed = false
             }
         })
     }
-    findAdapters(base, types){
+    findAdapter(base, types){
         if(base.adapters){
             let ret
             for(let i = base.adapters.length - 1; i >= 0; i--){ // reverse lookup to find the higher level adapter, so it should be HTML5 compatible already
                 if(base.adapters[i].type && types.includes(base.adapters[i].type)){
                     ret = base.adapters[i]
                 } else {
-                    ret = this.findAdapters(base.adapters[i], types)
+                    ret = this.findAdapter(base.adapters[i], types)
+                }
+                if(ret){
+                    break
+                }
+            }
+            return ret
+        }
+    }
+    findLowAdapter(base, types){
+        if(base.adapters){
+            let ret
+            for(let i = 0; i < base.adapters.length; i++){ // not reverse, to find the lower level adapter, useful to get stream download speed
+                if(base.adapters[i].type && types.includes(base.adapters[i].type)){
+                    ret = base.adapters[i]
+                } else {
+                    ret = this.findAdapter(base.adapters[i], types)
                 }
                 if(ret){
                     break
@@ -124,10 +135,6 @@ class StreamerBaseIntent extends Events {
         }
     }
     destroyAdapters(){
-        if(this.server){
-            this.adapters.push(this.server)
-            this.server = null
-        }
         this.adapters.forEach(a => {
             if(a){
                 if(a.destroy){
@@ -145,19 +152,6 @@ class StreamerBaseIntent extends Events {
             }
         })
         this.adapters = []
-    }
-    speed(){
-        let speed = this.info.speed
-        this.adapters.some(a => {
-            if(typeof(a.speed) == 'function'){
-                const s = a.speed()
-                if(typeof(s) == 'number' && s > 0){
-                    speed = s
-                    return true // the first adapter should be the lowest level downloader to trust
-                }
-            }
-        })
-        return speed
     }
     dimensions(){
         let dimensions = ''
@@ -212,7 +206,7 @@ class StreamerBaseIntent extends Events {
     }
     startCapture(onData, onFinish, onReset){
         this.endCapture()
-        let a = this.findAdapters(this, ['proxy', 'ffserver', 'downloader', 'joiner']) // suitable adapters for capturing, by priority
+        let a = this.findAdapter(this, ['proxy', 'ffserver', 'downloader', 'joiner']) // suitable adapters for capturing, by priority
         if(a){
             this.capturing = [a, onData, onFinish, onReset]
             this.capturing[0].on('data', this.capturing[1])
@@ -242,6 +236,9 @@ class StreamerBaseIntent extends Events {
             this.destroyAdapters()
             this.endCapture()
             this.destroyed = true
+            if(this.committed){
+                this.emit('uncommit')
+            }
             this.emit('destroy')
             this.removeAllListeners()
             this.adapters.forEach(a => a.destroy())

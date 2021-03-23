@@ -14,6 +14,70 @@ class ClassesHandler {
 	}
 }
 
+class FFMpeg {
+	constructor(){
+		this.childs = {}
+		this.executable = require('path').resolve('ffmpeg/ffmpeg')
+		if(this.executable.indexOf(' ') != -1){
+			this.executable = '"'+ this.executable +'"'
+			if(['darwin'].includes(process.platform)){
+				this.executable = this.executable.replace(new RegExp(' ', 'g'), '\\ ')
+			}
+		}
+		if(process.platform == 'win32'){
+			this.executable += '.exe'
+			this.executable = this.executable.replace(new RegExp('\\\\', 'g'), '/')
+		}
+		this.tmpdir = require('os').tmpdir()
+	}
+	exec(cmd, cb){
+		if(!this.cp){
+			this.cp = top.require('child_process')
+		}
+		let stdout = '', stderr = '', child = this.cp.spawn(this.executable, cmd, {
+			cwd: this.tmpdir, 
+			killSignal: 'SIGINT'
+		})
+		child.stdout.on('data', s => stdout += s)
+		child.stderr.on('data', s => stderr += s)
+		child.on('error', err => {
+			delete this.childs[child.pid]
+			console.log('FFEXEC DONE', cmd, child, err, stdout, stderr)
+			if (err) {
+				cb(String(err || stderr) || 'error')
+			}
+		})
+		child.on('close', () => {
+			delete this.childs[child.pid]
+			console.log('FFEXEC DONE', cmd, child, stdout, stderr)
+			cb('return-'+ (stderr || stdout))
+		})
+		console.log('FFEXEC '+ this.executable, cmd, child)
+		this.childs[child.pid] = child
+		cb('start-'+ child.pid)
+	}
+	kill(pid){
+		if(typeof(this.childs[pid]) != 'undefined'){
+			this.childs[pid].kill('SIGINT')
+			delete this.childs[pid]
+		} else {
+			console.log('CANTKILL', pid)
+		}
+	}
+	cleanup(keepIds){
+		Object.keys(this.childs).forEach(pid => {
+			if(keepIds.includes(pid)){				
+				console.log("Cleanup keeping " + pid)
+			} else {
+				console.log("Cleanup kill " + pid)
+				this.kill(pid)
+			}
+		})
+	}
+}
+
+ffmpeg = new FFMpeg()
+
 class WindowManager extends ClassesHandler {
 	constructor(){
 		super()
@@ -45,7 +109,7 @@ class WindowManager extends ClassesHandler {
 			this.app.streamer.emit('miniplayer-off')
 		})
 		this.waitApp(() => {
-			this.app.css(' :root { --frameless-window-titlebar-height: 30px; } ', 'frameless-window')
+			this.app.css(' :root { --explorer-padding-top: 30px; } ', 'frameless-window')
 			this.app.streamer.on('fullscreenchange', fs => {
 				console.warn('FULLSCREEN CHANGE', fs)
 				this.inFullScreen = fs
@@ -54,14 +118,38 @@ class WindowManager extends ClassesHandler {
 			this.app.addEventListener('idle-start', this.idleChange.bind(this))
 			this.app.addEventListener('idle-stop', this.idleChange.bind(this))
 			this.app.streamer.on('state', this.idleChange.bind(this))
-			//this.app.document.documentElement.className = (this.app.document.documentElement.className || '') + ' frameless-window'
 			this.app.restart = this.restart.bind(this)
 			this.patch()
 			setTimeout(() => {
 				this.focusApp()
 				this.app.explorer.reset()
+				nw.App.on('open', this.handleArgs.bind(this))
+				this.handleArgs(nw.App.argv)
 			}, 100)
 		})
+	}
+	handleArgs(cmd){
+		console.log('cmdline: ' + cmd)
+		if(!Array.isArray(cmd)){
+			cmd = cmd.split(' ').filter(s => s)
+		}
+		if(cmd.length){
+			cmd = cmd.pop()
+			if(cmd.length && cmd.charAt(0) != '-'){
+				console.log('cmdline*: ' + cmd)
+				let sharing = '/assistir/', pos = cmd.indexOf(sharing)
+				if(pos != -1){
+					cmd = cmd.substr(pos + sharing.length)
+				}
+				if(cmd.indexOf('//') == -1){
+					cmd = 'mega://'+ cmd
+				}
+				console.log('cmdline**: ' + cmd)
+				this.container.onBackendReady(() => {
+					channel.post('message', ['open-url', cmd])
+				})
+			}
+		}
 	}
 	prepareTray(){
 		if(!this.tray){
@@ -133,9 +221,9 @@ class WindowManager extends ClassesHandler {
 	updateTitlebarHeight(){
 		let idle = this.app.isIdle
 		if (this.inFullScreen || (idle && this.app.streamer.state.indexOf('video-playing') != -1)) {
-			this.app.css(' :root { --frameless-window-titlebar-height: 0px; } ', 'frameless-window')
+			this.app.css(' :root { --explorer-padding-top: 0px; } ', 'frameless-window')
 		} else {
-			this.app.css(' :root { --frameless-window-titlebar-height: 30px; } ', 'frameless-window')
+			this.app.css(' :root { --explorer-padding-top: 30px; } ', 'frameless-window')
 		}
 	}
 	focusApp(){
@@ -189,6 +277,9 @@ class WindowManager extends ClassesHandler {
 			console.log('FSOUT');
 			this.fixMaximizeButton()
 			console.log('FSOUT');
+			if(this.app && this.app.osd){
+				this.app.osd.hide('esc-to-exit')
+			}
 		} else {
 			this.inFullScreen = true;
 			this.win.enterFullscreen()

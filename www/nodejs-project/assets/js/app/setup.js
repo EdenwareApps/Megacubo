@@ -46,7 +46,7 @@ class Setup extends EventEmitter {
                 if(choose == 'no'){
                     this.done()
                 } else if(choose == 'sh') {
-                    this.sharedMode()
+                    this.communityMode()
                 } else {
                     this.ask()
                 }
@@ -54,7 +54,7 @@ class Setup extends EventEmitter {
             return true
         }, def)
     }
-    sharedMode(){        
+    communityMode(){        
         explorer.dialog([
             {template: 'question', text: lang.SHARED_MODE, fa: 'fas fa-users'},
             {template: 'message', text: lang.ASK_COMMUNITY_LIST},
@@ -90,7 +90,7 @@ class Setup extends EventEmitter {
                 if(choose == 'no'){
                     this.done()
                 } else if(choose == 'sh') {
-                    this.sharedMode()
+                    this.communityMode()
                 } else {
                     this.ask()
                 }

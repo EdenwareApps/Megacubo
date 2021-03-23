@@ -52,8 +52,9 @@ function exitUI(){
 function restart(){
     console.log('restart()')
     if(parent.plugins && parent.plugins.megacubo){
-        app.emit('close')
         parent.plugins.megacubo.restartApp()
+        exitUI()
+        // app.emit('close') // breaks restart sometimes
     } else {
         explorer.dialog([
             {template: 'question', text: 'Megacubo', fa: 'fas fa-info-circle'},
@@ -126,15 +127,15 @@ function requestReview(){
         if(!reviewAlreadyRequested){
             console.log('requesting review')
             reviewAlreadyRequested = true
-            top.cordova.plugins.AppReview.requestReview().catch(function() {
-                return top.cordova.plugins.AppReview.openStoreScreen('tv.megacubo.app')
-            })
+            top.cordova.plugins.AppReview.requestReview().catch(console.error) // dont use fallback
         }
     }
 }
 
 function configUpdated(){
-    parent.player.mini.enabled = config['miniplayer-auto']
+    if(parent.updateConfig){
+        parent.updateConfig(config)
+    }
     explorer.setViewSize(config['view-size-x'], config['view-size-y'])
     hideBackButton(config['hide-back-button'])
     parent.animateBackground(config['animate-background'])
@@ -143,6 +144,7 @@ function configUpdated(){
 function initApp(){ 
     console.log('INITAPP')
     app.on('open-external-url', url => parent.openExternalURL(url)) 
+    app.on('open-external-file', (url, mimetype) => parent.openExternalFile(url, mimetype)) 
     app.on('load-js', src => {
         console.warn('LOADJS ' + src)
         var s = document.createElement('script')
@@ -266,9 +268,7 @@ function initApp(){
                 let u = URL.createObjectURL(buf), m = document.createElement('img')
                 m.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQYV2NgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII=' // transparent pixel
                 m.style.backgroundImage = 'url(' + u + ')'
-                m.onload = m.onerror = () => {
-                    setTimeout(() => URL.revokeObjectURL(u), 250)
-                }
+                setTimeout(() => URL.revokeObjectURL(u), 10000)// the load|error refers to the base64 blank png, so give a time to the image load on css
                 if(element.className == 'explorer-location-icon-placeholder'){
                     jQuery(element).replaceWith(m)
                 } else {
@@ -288,7 +288,6 @@ function initApp(){
                 var src = element.getAttribute('data-icon')
                 element.removeAttribute('data-icon')
                 if(src){
-                    console.warn('validating', element, src)
                     icons.add(element, src)
                 }
                 element = null
@@ -499,7 +498,7 @@ function initApp(){
                     if(lastY >= wrap.parentNode.offsetHeight){
                         if(window['home-arrows-active'].bottom !== true){
                             window['home-arrows-active'].bottom = true
-                            haBottom.css('opacity', 'var(--opacity-level-2)')
+                            haBottom.css('opacity', 'var(--opacity-level-3)')
                         }
                     } else {
                         if(window['home-arrows-active'].bottom !== false){
@@ -510,7 +509,7 @@ function initApp(){
                     if(firstY < 0){
                         if(window['home-arrows-active'].top !== true){
                             window['home-arrows-active'].top = true
-                            haTop.css('opacity', 'var(--opacity-level-2)')
+                            haTop.css('opacity', 'var(--opacity-level-3)')
                         }
                     } else {
                         if(window['home-arrows-active'].top !== false){
@@ -522,23 +521,6 @@ function initApp(){
                     window['home-arrows-active'].top = window['home-arrows-active'].bottom = false
                     haBottom.add(haTop).css('opacity', 0)
                 }
-                /*
-                let mask = 'none'
-                if(window['home-arrows-active'].top || window['home-arrows-active'].bottom){
-                    if(window['home-arrows-active'].top){
-                        mask = 'transparent 1%, #fff 3%, '
-                    } else {
-                        mask = '#fff 0%, '
-                    }
-                    if(window['home-arrows-active'].bottom){
-                        mask += '#fff 97%, transparent 99%'
-                    } else {
-                        mask += '#fff 100%'
-                    }
-                    mask = 'linear-gradient(to bottom, ' + mask + ')'
-                }
-                wrapper.css('-webkit-mask-image', mask) // linear-gradient(to top, transparent 2%, #fff 8%, #fff 92%, transparent 98%);
-                */
             }
     
             moment.tz.setDefault(Intl.DateTimeFormat().resolvedOptions().timeZone)
@@ -554,17 +536,17 @@ function initApp(){
             if(parent.cordova){
                 function handleSwipe(e){
                     console.log('swipey', e)
-                    let swipeDist = (['up', 'down'].includes(e.direction) ? innerHeight : innerWidth) / 2
+                    let swipeDist = (['up', 'down'].includes(e.direction) ? innerHeight : innerWidth) / 3
                     if(swipeDist <= e.swipeLength){
                         switch(e.direction){
                             case 'left':
-                                if(explorer.inPlayer()){                            
-                                    streamer.seekFwd()
+                                if(explorer.inPlayer()){  
+                                    streamer.seekBack()         
                                 }
                                 break
                             case 'right':                        
-                                if(explorer.inPlayer()){
-                                    streamer.seekBack()
+                                if(explorer.inPlayer()){                 
+                                    streamer.seekFwd()
                                 } else {
                                     escapePressed()
                                 }
@@ -603,7 +585,7 @@ function initApp(){
                 updateInternetConnState()
             }
             
-            if(1||top.cordova){
+            if(top.cordova){
                 app.on('streamer-long-watching', requestReview)
             }
             app.on('share', (title, text, url) => {
@@ -632,6 +614,8 @@ function initApp(){
                 setTimeout(explorer.reset.bind(explorer), 400)
             })
             */
+
+            ffmpeg.bind()
         })
     })
 }

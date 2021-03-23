@@ -3,15 +3,13 @@ const StreamerBaseIntent = require('./base.js'), StreamerAdapterHLS = require('.
 class StreamerRTMPIntent extends StreamerBaseIntent {    
     constructor(data, opts, info){
         console.log('RTMPOPTS', opts)
-        opts = Object.assign(opts, {
-            videoCodec: 'libx264', // rtmp can get flickering on HTML5 without transcode
-            audioCodec: !global.cordova ? 
-                'aac' : // force audio recode for RTMP to prevent HLS.js playback hangs
-                'copy', // aac disabled for performance
-                videoCodec: !global.cordova ? 
-                'libx264' : // rtmp can get flickering on HTML5 without transcode
-                'copy'
-        })
+        let audioCodec = global.config.get('ffmpeg-audio-repair') ? 
+            'aac' : // force audio recode for RTMP to prevent HLS.js playback hangs
+            'copy' // aac disabled for performance
+        let videoCodec = global.cordova ? 
+            'copy' :
+            'libx264' // rtmp can get flickering on HTML5 without transcode
+        opts = Object.assign(opts, {audioCodec, videoCodec})
         super(data, opts, info)
         this.type = 'rtmp'
         this.mimetype = this.mimeTypes.hls

@@ -31,6 +31,13 @@ class Timer extends Events {
                     break
             }
         })
+        global.ui.on('locale-callback', locale => {
+            let def = global.lang.locale
+            if(locale != def){
+                global.config.set('locale', locale)
+                global.energy.restart()
+            }
+        })
     }
     timer(){
         return new Promise((resolve, reject) => {
@@ -150,37 +157,29 @@ class Options extends Timer {
             })
         })
     }
-    languageEntries(){
-        return new Promise((resolve, reject) => {
-            let options = [], def = global.lang.locale
-            let files = fs.readdirSync(global.APPDIR + path.sep + 'lang')
-            files.forEach(file => {
-                if(file.indexOf('.json') != -1){
-                    console.log(file)
-                    let locale = file.split('.')[0], icon = 'assets/images/flags/'+ locale +'.png'
-                    if(!fs.existsSync(icon)){
-                        icon = ''
+    showLanguageEntriesDialog(){
+        let options = [], def = global.lang.locale
+        let files = fs.readdirSync(global.APPDIR + path.sep + 'lang')
+        fs.readdir(global.APPDIR + path.sep + 'lang', (err, files) => {
+            if(err){
+                console.error(err)
+            } else {
+                files.forEach(file => {
+                    if(file.indexOf('.json') != -1){
+                        console.log(file)
+                        let locale = file.split('.')[0]
+                        options.push({
+                            text: typeof(this.languageNames[locale]) != 'undefined' ? this.languageNames[locale] : (global.lang.LANGUAGE +': '+ locale.toUpperCase()),
+                            template: 'option',
+                            fa: 'fas fa-language',
+                            id: locale
+                        })
                     }
-                    options.push({
-                        name: typeof(this.languageNames[locale]) != 'undefined' ? this.languageNames[locale] : (global.lang.LANGUAGE +': '+ locale.toUpperCase()),
-                        type: 'action',
-                        fa: 'fas fa-language',
-                        icon,
-                        value: locale,
-                        action: (data) => {
-                            if(data.value != def){
-                                global.config.set('locale', data.value)
-                                global.energy.restart()
-                            }
-                        }
-                    })    
-                }
-            })
-            options = options.map(p => {
-                p.selected = (def == p.value)
-                return p
-            })    
-            resolve(options)
+                })
+                ui.emit('dialog', [
+                    {template: 'question', text: global.lang.LANGUAGE, fa: 'fas fa-language'}
+                ].concat(options), 'locale-callback', def)
+            }
         })
     }
     tos(){
@@ -261,10 +260,10 @@ class Options extends Timer {
             ]
             if(global.config.get('shared-mode-reach')){
                 opts.push({
-                    name: global.lang.SHARED_LISTS, 
+                    name: global.lang.COMMUNITY_LISTS, 
                     type: 'slider', 
                     fa: 'fas fa-users', 
-                    mask: '{0} ' + global.lang.SHARED_LISTS.toLowerCase(), 
+                    mask: '{0} ' + global.lang.COMMUNITY_LISTS.toLowerCase(), 
                     value: () => {
                         return global.config.get('shared-mode-reach')
                     }, 
@@ -352,33 +351,33 @@ class Options extends Timer {
                                 return global.config.get('resume')
                             }}
                         ]
-                        if(!global.cordova){
-                            opts.push({
-                                name: global.lang.WINDOW,
-                                fa: 'fas fa-window-maximize', 
-                                type: 'select', 
-                                renderer: () => {
-                                    return new Promise((resolve, reject) => {
-                                        let def = global.config.get('startup-window')
-                                        resolve([
-                                            {name: global.lang.NORMAL, fa:  'fas fa-ban', type: 'action', selected: (def == ''), action: (data) => {
-                                                global.config.set('startup-window', '')
-                                            }},
-                                            {name: global.lang.FULLSCREEN, fa: 'fas fa-window-maximize', type: 'action', selected: (def == 'fullscreen'), action: (data) => {
-                                                global.config.set('startup-window', 'fullscreen')
-                                            }},
-                                            {name: 'Miniplayer', fa: 'fas fa-level-down-alt', type: 'action', selected: (def == 'miniplayer'), action: (data) => {
-                                                global.config.set('startup-window', 'miniplayer')
-                                            }}
-                                        ])
-                                    })
-                                }
-                            })
-                        }
+                        opts.push({
+                            name: global.lang.WINDOW,
+                            fa: 'fas fa-window-maximize', 
+                            type: 'select', 
+                            renderer: () => {
+                                return new Promise((resolve, reject) => {
+                                    let def = global.config.get('startup-window'), opts = [
+                                        {name: global.lang.NORMAL, fa:  'fas fa-ban', type: 'action', selected: (def == ''), action: (data) => {
+                                            global.config.set('startup-window', '')
+                                        }},
+                                        {name: global.lang.FULLSCREEN, fa: 'fas fa-window-maximize', type: 'action', selected: (def == 'fullscreen'), action: (data) => {
+                                            global.config.set('startup-window', 'fullscreen')
+                                        }}
+                                    ]
+                                    if(!global.cordova){
+                                        opts.push({name: 'Miniplayer', fa: 'fas fa-level-down-alt', type: 'action', selected: (def == 'miniplayer'), action: (data) => {
+                                            global.config.set('startup-window', 'miniplayer')
+                                        }})
+                                    }
+                                    resolve(opts)
+                                })
+                            }
+                        })
                         resolve(opts)
                     })
                 }},
-                {name: global.lang.LANGUAGE, fa: 'fas fa-language', type: 'select', renderer: this.languageEntries.bind(this)},
+                {name: global.lang.LANGUAGE, fa: 'fas fa-language', type: 'action', action: () => this.showLanguageEntriesDialog()},
                 secOpt,
                 {name: global.lang.CHANNEL_LIST, fa: 'fas fa-list', type: 'group', renderer: global.channels.options.bind(global.channels)},
                 {name: global.lang.TUNE, fa: 'fas fa-satellite-dish', type: 'group', renderer: this.tuneEntries.bind(this)},
@@ -386,22 +385,34 @@ class Options extends Timer {
                     return new Promise((resolve, reject) => {
                         resolve([
                             {
+                                name: global.lang.AUTO_MINIPLAYER, type: 'check', action: (data, checked) => {
+                                global.config.set('miniplayer-auto', checked)
+                            }, checked: () => {
+                                return global.config.get('miniplayer-auto')
+                            }},
+                            {
                                 name: 'Enable console logging', type: 'check', action: (data, checked) => {
                                 global.config.set('enable-console', checked)
                             }, checked: () => {
                                 return global.config.get('enable-console')
                             }},
                             {
+                                name: 'FFMPEG audio repair', type: 'check', action: (data, checked) => {
+                                global.config.set('ffmpeg-audio-repair', checked)
+                            }, checked: () => {
+                                return global.config.get('ffmpeg-audio-repair')
+                            }},
+                            {
+                                name: 'Control playback rate according to the buffer', type: 'check', action: (data, checked) => {
+                                global.config.set('playback-rate-control', checked)
+                            }, checked: () => {
+                                return global.config.get('playback-rate-control')
+                            }},
+                            {
                                 name: 'Use keepalive connections', type: 'check', action: (data, checked) => {
                                 global.config.set('use-keepalive', checked)
                             }, checked: () => {
                                 return global.config.get('use-keepalive')
-                            }},
-                            {
-                                name: global.lang.MINIPLAYER, type: 'check', action: (data, checked) => {
-                                global.config.set('miniplayer-auto', checked)
-                            }, checked: () => {
-                                return global.config.get('miniplayer-auto')
                             }},
                             {
                                 name: 'Allow transcoding', type: 'check', action: (data, checked) => {

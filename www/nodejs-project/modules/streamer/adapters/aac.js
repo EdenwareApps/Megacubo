@@ -28,12 +28,12 @@ class StreamerAdapterAAC extends StreamerAdapterBase {
 			})
 			this.source = new Downloader(this.url, this.opts)
 			this.connectAdapter(this.source)
-			resolve(true)
+			this.source.start().then(resolve).catch(reject)
 		})
 	}
 	speed(){
 		this.downloadLogging = this.source.downloadLogging
-		return super.speed()
+		return super.currentSpeed
 	}
 }
 

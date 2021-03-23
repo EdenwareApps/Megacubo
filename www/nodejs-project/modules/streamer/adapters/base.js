@@ -95,8 +95,8 @@ class StreamerAdapterBase extends Events {
             }
         })
         this.on('uncommit', () => {
-            adapter.emit('uncommit')
             if(adapter.committed){
+            	adapter.emit('uncommit')
                 adapter.committed = false
             }
 		})
@@ -135,7 +135,7 @@ class StreamerAdapterBase extends Events {
 			//console.log('getBitrate', this.destroyed, len, this.opts.minBitrateCheckSize, this.activeBitrateChecks, this.bitrates.length, this.opts.bitrateCheckingAmount)
 			if(!this.destroyed && len >= this.opts.minBitrateCheckSize && (this.activeBitrateChecks + this.bitrates.length) < this.opts.bitrateCheckingAmount){
 				this.activeBitrateChecks++
-				let i = Math.random(), tmpFile = tmpDir + path.sep + i + '.mp4'
+				let i = Math.random(), tmpFile = tmpDir + path.sep + i + '.ts'
 				if(this.opts.debug){
 					this.opts.debug('getBitrate', tmpFile, this.url, len, this.opts.minBitrateCheckSize, traceback())
 				}
@@ -149,8 +149,7 @@ class StreamerAdapterBase extends Events {
 					} else {
 						global.ffmpeg.bitrate(tmpFile, (err, bitrate, codecData, dimensions, nfo) => {
 							this.activeBitrateChecks--
-							//this.opts.debug('getBitrate', err, tmpFile)
-							fs.unlink(tmpFile, () => {})
+							// fs.unlink(tmpFile, () => {})
 							if(!this.destroyed){
 								if(codecData && (codecData.video || codecData.audio) && codecData != this.codecData){
 									this.codecData = codecData
@@ -166,7 +165,7 @@ class StreamerAdapterBase extends Events {
 									}
 									if(bitrate){
 										this.saveBitrate(bitrate)
-										this.emit('bitrate', this.bitrate, this.speed())	
+										this.emit('bitrate', this.bitrate, this.currentSpeed)	
 									}
 									if(this.opts.debug){
 										this.opts.debug('[' + this.type + '] analyzing: ' + tmpFile, 'sample len: '+ global.kbfmt(len), 'bitrate: '+ global.kbsfmt(this.bitrate), this.bitrates, this.url)
@@ -181,7 +180,7 @@ class StreamerAdapterBase extends Events {
 	}
 	collectBitrateSample(chunk, len, id = 'default'){
 		this.downloadLog(len)
-		if(this.bitrates.length < this.opts.bitrateCheckingAmount && this.bitrateCheckFails < this.opts.maxBitrateCheckingFails){
+		if(this.committed && this.bitrates.length < this.opts.bitrateCheckingAmount && this.bitrateCheckFails < this.opts.maxBitrateCheckingFails){
 			if(typeof(this.bitrateCheckBuffer[id]) == 'undefined'){
 				this.bitrateCheckBuffer[id] = []
 			}
@@ -195,39 +194,45 @@ class StreamerAdapterBase extends Events {
 	}
 	finishBitrateSample(id = 'default'){
 		if(typeof(this.bitrateCheckBuffer[id]) != 'undefined'){
-			console.log('finishBitrateSample', this.bitrates.length, this.opts.bitrateCheckingAmount)
 			if(this.bitrates.length < this.opts.bitrateCheckingAmount){
-				console.log('finishBitrateSample', this.len(this.bitrateCheckBuffer[id]), this.opts.minBitrateCheckSize)
 				if(this.len(this.bitrateCheckBuffer[id]) >= this.opts.minBitrateCheckSize){
-					console.log('finishBitrateSample', this.len(this.bitrateCheckBuffer[id]), this.opts.minBitrateCheckSize)
-					this.getBitrate(Buffer.concat(this.bitrateCheckBuffer[id]))
+					this.getBitrate(this.concatSlice(this.bitrateCheckBuffer[id], this.opts.maxBitrateCheckSize))
 				}
 			}
 			delete this.bitrateCheckBuffer[id]
 		}
 	}
+	concatSlice(bufArr, limit){
+		let len = 0
+		bufArr.forEach((chunk, i) => {
+			if(len >= limit){
+				bufArr[i] = null
+			} else if((len + chunk.length) > limit){
+				let exceeds = (len + chunk.length) - limit
+				bufArr[i] = bufArr[i].slice(0, chunk.length - exceeds)
+			} else {
+				len += chunk.length
+			}
+		})
+		return Buffer.concat(bufArr.filter(c => c))
+	}
 	downloadLog(bytes){
+		if(this.downloadLogCalcTimer){
+			clearTimeout(this.downloadLogCalcTimer)
+		}
 		let now = parseInt(this.time())
 		if(typeof(this.downloadLogging[now]) == 'undefined'){
 			this.downloadLogging[now] = bytes
 		} else {
 			this.downloadLogging[now] += bytes
 		}
+		this.downloadLogCalcTimer = setTimeout(() => this.downloadLogCalc(), 1000)
 	}
-	removeHeaders(headers, keys){
-		keys.forEach(key => {
-			if(['transfer-encoding', 'accept-encoding', 'content-encoding'].includes(key)){
-				headers[key] = 'identity'
-			} else {
-				delete headers[key]
-			}
-		})
-		return headers
-	}
-	speed(){
+	downloadLogCalc(){
+		let now = parseInt(this.time())
 		let ks = Object.keys(this.downloadLogging)
 		if(ks.length){
-			let windowSecs = 15, ftime = 0, now = this.time(), since = now - windowSecs, downloaded = 0
+			let windowSecs = 15, ftime = 0, since = now - windowSecs, downloaded = 0
 			ks.reverse().forEach(time => {
 				let rtime = parseInt(time)
 				if(typeof(rtime) == 'number' && rtime){
@@ -242,14 +247,26 @@ class StreamerAdapterBase extends Events {
 				}					
 			})
 			let speed = parseInt(downloaded / (now - ftime)) * 8 // bytes to bits
+			/*
 			if(this.opts.debug){
-				// this.opts.debug('[' + this.type + '] download speed:', downloaded, now, ftime, speed, global.kbsfmt(speed) + ((this.bitrate) ? ', required: ' + global.kbsfmt(this.bitrate): ''))
+				this.opts.debug('[' + this.type + '] download speed:', downloaded, now, ftime, speed, global.kbsfmt(speed) + ((this.bitrate) ? ', required: ' + global.kbsfmt(this.bitrate): ''))
 			}
-			this.currentSpeed = speed
-			return speed
-		} else {
-			return this.currentSpeed
+			*/
+			if(speed != this.currentSpeed){
+				this.currentSpeed = speed
+				this.emit('speed', this.currentSpeed)
+			}
 		}
+	}
+	removeHeaders(headers, keys){
+		keys.forEach(key => {
+			if(['transfer-encoding', 'accept-encoding', 'content-encoding'].includes(key)){
+				headers[key] = 'identity'
+			} else {
+				delete headers[key]
+			}
+		})
+		return headers
 	}
 	time(){
 		return ((new Date()).getTime() / 1000)
@@ -287,13 +304,15 @@ class StreamerAdapterBase extends Events {
 		})
 	}
 	fail(err){
-		if(!this.destroyed){
+		if(!this.destroyed && !this.failed){
+			this.failed = err || true
             console.log('fail', err)
 			this.errors.push(err)
 			if(this.opts.debug){
 				this.opts.debug('[' + this.type + '] error', this.errors)
 			}
 			this.emit('fail', err)
+			process.nextTick(() => this.destroy())
 		}
 	}
 	destroy(){

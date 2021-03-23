@@ -82,7 +82,7 @@ class TunerTask extends TunerUtils {
 			*/
 			this.streamer.info(e.url, 2, e.source).then(info => {
 				if(!this.aborted){
-					console.warn('TEST SUCCESS', e, info, this.opts.allowedTypes)
+					//console.warn('TEST SUCCESS', e, info, this.opts.allowedTypes)
 					if(info.type == 'hls' && String(info.sample).toLowerCase().indexOf('endlist') != -1){
 						info.type = 'video' // dirty hack to bypass vod hls when searching for live
 					}
@@ -101,7 +101,7 @@ class TunerTask extends TunerUtils {
 				}
 			}).catch(err => {   
 				if(!this.aborted){
-					console.warn('TEST FAILURE', e, err)   
+					//console.warn('TEST FAILURE', e, err)   
 					this.states[i] = -1       
 					if(this.opts.debug){
 						this.opts.debug('Tuner', err, i)

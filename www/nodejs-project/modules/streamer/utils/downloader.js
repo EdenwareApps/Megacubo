@@ -1,5 +1,7 @@
 
-const StreamerAdapterBase = require('../adapters/base.js'), ReadableStream = require('stream').Readable
+const path = require('path'), http = require('http'), StreamerAdapterBase = require('../adapters/base.js'), closed = require(global.APPDIR +'/modules/on-closed')
+
+const SYNC_BYTE = 0x47
 
 class Downloader extends StreamerAdapterBase {
 	constructor(url, opts){
@@ -8,7 +10,8 @@ class Downloader extends StreamerAdapterBase {
 			initialErrorLimit: 2, // at last 2
 			errorLimit: 5,
 			sniffingSizeLimit: 196 * 1024, // if minor, check if is binary or ascii (maybe some error page)
-			bitrateCheckingAmount: 3
+			bitrateCheckingAmount: 3,
+			checkSyncByte: false
 		}, opts || {})
 		super(url, opts)
 		this.type = 'downloader'
@@ -17,27 +20,107 @@ class Downloader extends StreamerAdapterBase {
 		this.connectable = false
         this._destroyed = false
         this.timer = 0
-		this.clients = []
+		this.buffer = []
+		this.ext = 'ts'
+		let m = url.match(new RegExp('\\.([a-z0-9]{2,4})($|[\\?#])', 'i'))
+		if(m && m.length > 1){
+			this.ext = m[1]
+		}
 		this.on('destroy', () => {
 			if(!this._destroyed){
 				console.log('DOWNLOADER DESTROY', this._destroyed)
 				this._destroyed = true
 				this.endRequest()
-				this.stream.removeAllListeners()
-				this.stream.destroy()
+				if(this.server){
+					this.server.close()
+				}
 				this.currentRequest = null
-				this.stream = null
 			}
-		})
-		this.stream = new ReadableStream()
-		this.stream._read = () => {}
-		this.stream.on('error', err => {
-			console.error('DOWNLOADER STREAM ERROR', err, traceback())
-		})
-		this.stream.on('close', () => {
-			console.log('DOWNLOADER STREAM CLOSED', traceback())
-		})
+		})		
 		this.pump()
+	}
+	getContentType(){
+		if(this.opts.contentType){
+			return this.opts.contentType
+		} else {
+			switch(this.ext){
+				case 'aac':
+				case 'aacp':
+					return 'audio/aacp'
+				case 'mp3':
+					return 'audio/mpeg'
+			}
+			return 'video/MP2T'
+		}
+	}
+    checkSyncByte(c, pos){
+        if(pos < 0 || pos > (c.length - 4)){
+            return false
+        } else {
+            const header = c.readUInt32BE(pos || 0), packetSync = (header & 0xff000000) >> 24
+            return packetSync == SYNC_BYTE
+        }
+    }
+    nextSyncByte(c, pos){
+        while(pos < (c.length - 4)){
+            if(this.checkSyncByte(c, pos)){
+                return pos
+            }
+            pos++
+        }
+        return -1
+    }
+	start(){
+		return new Promise((resolve, reject) => {
+			this.server = http.createServer((req, res) => {
+				if(path.basename(req.url) == 'stream.'+ this.ext){
+					res.writeHead(200, {
+						'content-type': this.getContentType()
+					})
+					let byteSyncFound, finished
+					const listener = (url, chunk) => {
+						if(!byteSyncFound && this.opts.checkSyncByte){
+							let pos = this.nextSyncByte(chunk, 0)
+							if(pos == -1){
+								return // ignore this chunk
+							}
+							byteSyncFound = true
+							if(pos > 0){
+								chunk = chunk.slice(pos)
+							}
+						}
+						if(chunk.length){
+							res.write(chunk)
+						}
+					}, finish = () => {
+						if(!finished){
+							finished = true
+							this.removeListener('data', listener)
+							this.removeListener('destroy', finish)
+							res.end()
+						}
+					}
+					closed(req, res, finish)
+					if(this.buffer.length){
+						listener('', Buffer.concat(this.buffer))
+						this.buffer = []
+					}
+					this.on('data', listener)
+					this.on('destroy', finish)
+				} else {
+					res.statusCode = 404
+					res.end('File not found!')
+				}
+			}).listen(this.opts.port, '127.0.0.1', err => {
+				if(err){
+					console.error('unable to listen on port', err)
+					return reject(err)
+				}
+				this.opts.port = this.server.address().port
+				this.endpoint = 'http://127.0.0.1:'+ this.opts.port +'/stream.'+ this.ext
+				resolve(this.opts.port)
+			}) 
+		})
 	}
 	internalError(e){
 		if(!this.committed){
@@ -45,7 +128,7 @@ class Downloader extends StreamerAdapterBase {
 			this.internalErrors.push(e)
 			if(this.internalErrorLevel >= (this.connectable ? this.opts.errorLimit : this.opts.initialErrorLimit)){
 				console.error('[' + this.type + '] error limit reached', this.committed, this.internalErrorLevel, this.internalErrors, this.opts.errorLimit)
-				this.emit('fail', 'request error')
+				this.fail('request error')
 			}
 		}
 		return this.destroyed || this._destroyed
@@ -87,14 +170,11 @@ class Downloader extends StreamerAdapterBase {
             len = this.len(data)
         }
 		if(len > 1){
-			try{
-				this.stream.push(data)
-			} catch(e) {
-				console.error('stream.push err', e)
-			}
 		    this.collectBitrateSample(data, len)
 			if(this.listenerCount('data')){
 				this.emit('data', this.url, data, len)
+			} else {
+				this.buffer.push(data)
 			}
 		}
     }
@@ -120,13 +200,13 @@ class Downloader extends StreamerAdapterBase {
 			return
 		}
 		this.finishBitrateSample()
-		let contentType = '', statusCode = 0, headers = {}
 		const download = this.currentRequest = new global.Download({
 			url: this.url,
 			keepalive: this.committed && global.config.get('use-keepalive'),
 			followRedirect: true,
 			acceptRanges: false,
 			retries: 0,
+			timeout: 30,
 			headers: {
 				'accept-encoding': 'identity' // https://github.com/sindresorhus/got/issues/145
 			}
@@ -138,10 +218,11 @@ class Downloader extends StreamerAdapterBase {
 				if(error && error.response && error.response.statusCode){
 					statusCode = error.response.statusCode
 				}
-				global.osd.show((statusCode ? statusCode : 'timeout') + ' error', 'fas fa-times-circle', 'debug-conn-err', 'normal')
+				global.osd.show(global.streamer.humanizeFailureMessage(statusCode || 'timeout'), 'fas fa-times-circle', 'debug-conn-err', 'normal')
 			}
 		})
 		download.on('response', (statusCode, headers) => {
+			let contentType = ''
             if(this.opts.debug){
                 this.opts.debug('[' + this.type + '] response', statusCode, headers)
             }
@@ -152,6 +233,9 @@ class Downloader extends StreamerAdapterBase {
 				this.opts.debug('[' + this.type + '] headers received', headers, statusCode, contentType) // 200
 			}
 			if(statusCode >= 200 && statusCode <= 300){
+				if(!this.opts.contentType && contentType.match(new RegExp('^(audio|video)'))){
+					this.opts.contentType = contentType
+				}
 				if(this.opts.debug){
 					this.opts.debug('[' + this.type + '] handleData hooked') // 200
 				}
@@ -168,7 +252,7 @@ class Downloader extends StreamerAdapterBase {
 			} else {
 				download.end()
 				if(this.committed && (!statusCode || statusCode < 200 || statusCode >= 400)){ // skip redirects
-					global.osd.show((statusCode ? statusCode : 'timeout') + ' error', 'fas fa-times-circle', 'debug-conn-err', 'normal')
+					global.osd.show(global.streamer.humanizeFailureMessage(statusCode || 'timeout'), 'fas fa-times-circle', 'debug-conn-err', 'normal')
 				}
 				this.internalError('bad response: ' + contentType + ', ' + statusCode)
 				if(statusCode){
@@ -188,7 +272,8 @@ class Downloader extends StreamerAdapterBase {
 			if(this.destroyed || this._destroyed){
 				return
 			}
-            this.timer = setTimeout(this.pump.bind(this), 0) /* avoiding nested call to next pump to prevent mem leaking */
+            this.timer = setTimeout(this.pump.bind(this), 0) 
+			/* avoiding nested call to next pump to prevent mem leaking */
 		})
 	}
 	endRequest(){

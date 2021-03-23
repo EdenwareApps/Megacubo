@@ -451,6 +451,7 @@ class StreamerBase extends StreamerTools {
 			intent.commitTime = global.time()
 			intent.on('destroy', () => {
 				if(intent == this.active){
+					this.emit('uncommit', intent)
 					if(this.opts.debug){
 						this.opts.debug('ACTIVE INTENT UNCOMMITTED & DESTROYED!!', intent, this.active)
 					}
@@ -460,7 +461,11 @@ class StreamerBase extends StreamerTools {
 					this.opts.debug('INTENT UNCOMMITTED & DESTROYED!!', intent)
 				}
 			})
+			intent.on('bitrate', bitrate => {
+				global.ui.emit('streamer-bitrate', bitrate)
+			})
 			intent.on('fail', err => {
+				this.emit('uncommit', intent)
 				if(this.opts.debug){
 					this.opts.debug('INTENT FAILED !!')
 				}
@@ -531,7 +536,10 @@ class StreamerBase extends StreamerTools {
 		if(this.active){
 			let data = this.active.data
             this.emit('streamer-disconnect', err)
-			console.log('STREAMER->STOP', err)
+			console.log('STREAMER->STOP', err, global.traceback())
+			if(!err && this.active.failed){
+				err = 'failed'
+			}
 			if(!err){ // stopped with no error
 				let longWatchingThreshold = 15 * 60, watchingDuration = (global.time() - this.active.commitTime)
 				console.log('STREAMER->STOP', watchingDuration, this.active.commitTime)
@@ -562,42 +570,35 @@ class StreamerBase extends StreamerTools {
 class StreamerSpeedo extends StreamerBase {
 	constructor(opts){
 		super(opts)
-		this.speedoTimer = 0
-		this.speedoClientSpeed = 0
+		this.downlink = 0
 		if(!this.opts.shadow){
-			global.ui.on('speedo-start', this.startSpeedo.bind(this))
-			global.ui.on('speedo-end', this.endSpeedo.bind(this))
+			global.ui.on('downlink', downlink => this.downlink = downlink)
+			this.on('commit', this.startSpeedo.bind(this))
+			this.on('uncommit', this.endSpeedo.bind(this))
+			this.on('speed', speed => global.ui.emit('streamer-speed', speed))
+			this.speedoSpeedListener = speed => this.emit('speed', speed)
 		}
 	}
-	startSpeedo(clientSpeed){
-		if(this.opts.shadow){
-			return
+	bindSpeedo(){
+		this.unbindSpeedo()
+		this.speedoAdapter = this.active.findLowAdapter(this.active, ['proxy', 'downloader', 'joiner']) // suitable adapters to get download speed
+		if(this.speedoAdapter){
+			this.speedoAdapter.on('speed', this.speedoSpeedListener)
 		}
-		if(clientSpeed){
-			this.speedoClientSpeed = clientSpeed
+	}
+	unbindSpeedo(){
+		if(this.speedoAdapter){
+			this.speedoAdapter.removeListener('speed', this.speedoSpeedListener)
+			this.speedoAdapter = false
 		}
-		if(!this.speedoTimer && this.active){
-			this.speedoTimer = global.setInterval(this.updateSpeedo.bind(this), 1000)
+	}
+	startSpeedo(){
+		if(this.active && !this.speedoAdapter){
+			this.bindSpeedo()
 		}
 	}
 	endSpeedo(){
-		if(this.opts.shadow){
-			return
-		}
-		if(this.speedoTimer){
-			clearInterval(this.speedoTimer)
-			this.speedoTimer = 0
-		}
-	}
-	updateSpeedo(){
-		if(this.opts.shadow){
-			return
-		}
-		if(!this.active){
-			this.endSpeedo()
-			return
-		}
-		global.ui.emit('speedo', this.active.speed(), this.active.bitrate, this.active.commitTime && (global.time() - this.active.commitTime) < 10)
+		this.unbindSpeedo()
 	}
 }
 
@@ -674,22 +675,34 @@ class StreamerAbout extends StreamerThrottling {
 	aboutText(){
 		let text = ''
 		if(this.active.bitrate){
-			const speed = this.active.speed(), tuneable = !!global.tuning, icon = '<i class="fas fa-circle {0}"></i> '
-			if(this.speedoClientSpeed < speed){
-				this.speedoClientSpeed = speed
+			const currentSpeed = (this.speedoAdapter || this.active).currentSpeed, tuneable = !!global.tuning, icon = '<i class="fas fa-circle {0}"></i> '
+			if(this.downlink < currentSpeed){
+				this.downlink = currentSpeed
 			}
-			if(this.speedoClientSpeed && (this.speedoClientSpeed < this.active.bitrate)){
-				text += icon.format('faclr-red')
-				if(tuneable){
-					text += global.lang.YOUR_CONNECTION_IS_SLOW_TIP.format('<i class="fas fa-random"></i>')
-				} else {
-					text += global.lang.YOUR_CONNECTION_IS_SLOW
-				}
-				text += ' (' + global.kbsfmt(this.speedoClientSpeed) + ' < ' + global.kbsfmt(this.active.bitrate) + ')'
-			} else if(speed && (speed < this.active.bitrate)) {
-				text += icon.format('faclr-orange') + global.lang['SLOW_SERVER'] + ' (' + global.kbsfmt(speed) + ' < ' + global.kbsfmt(this.active.bitrate)+')'
+			let p = parseInt(currentSpeed / (this.active.bitrate / 100))
+			if(p > 100){
+				p = 100
+			}
+			console.log('about conn', currentSpeed, this.downlink, this.active.bitrate, p +'%')
+			if(p == 100) {
+				text += icon.format('faclr-green')
+				text += global.lang.STABLE_CONNECTION + ' (' + global.kbsfmt(this.active.bitrate) +')'
 			} else {
-				text += icon.format('faclr-green') + global.lang['STABLE_CONNECTION'] + ' (' + global.kbsfmt(this.active.bitrate) +')'
+				if(p < 80){
+					text += icon.format('faclr-red')
+				} else {
+					text += icon.format('faclr-orange')
+				}
+				if(this.downlink && (this.downlink < this.active.bitrate)){
+					if(tuneable){
+						text += global.lang.YOUR_CONNECTION_IS_SLOW_TIP.format('<i class="fas fa-random"></i>')
+					} else {
+						text += global.lang.YOUR_CONNECTION_IS_SLOW
+					}
+					text += ' (' + global.kbsfmt(this.downlink) + ' < ' + global.kbsfmt(this.active.bitrate) + ')'
+				} else if(currentSpeed && (currentSpeed < this.active.bitrate)) {
+					text += global.lang.SLOW_SERVER + ' (' + global.kbsfmt(currentSpeed) + ' < ' + global.kbsfmt(this.active.bitrate)+')'
+				}
 			}
 		}
 		let meta = [this.active.type], dimensions = this.active.dimensions()
@@ -944,7 +957,7 @@ class Streamer extends StreamerAbout {
 		if(r && (c != 'tune' || !e) && (silent !== true || c == 'stop' || !e)){
 			this.handleFailureMessage(r)
 		}
-		console.error('handleFailure', c, e, e.url, global.tuning)
+		console.error('handleFailure', c, e, e.url)
 		if(c == 'stop'){
 			return
 		} else {
@@ -958,10 +971,10 @@ class Streamer extends StreamerAbout {
 			}
 		}
 	}
-	handleFailureMessage(r){
+	humanizeFailureMessage(r){
 		r = String(r)
 		let msg = global.lang.PLAYBACK_OFFLINE_STREAM
-		switch(String(r)){
+		switch(r){
 			case 'playback':
 				msg = lang.PLAYBACK_ERROR
 				break
@@ -979,10 +992,13 @@ class Streamer extends StreamerAbout {
 				msg = global.lang.PLAYBACK_UNSUPPORTED_STREAM
 				break
 			default:
-				msg = String(r)
-				let code = msg.match(new RegExp('error: ([0-9]+)'))
+				msg = r
+				let code = msg.match(new RegExp('error:? ([0-9]+)'))
 				code = (code && code.length) ? code[1] : msg
 				switch(code){
+					case '0':
+						msg = global.lang.PLAYBACK_TIMEOUT
+						break
 					case '400':
 					case '401':
 					case '403':
@@ -1000,7 +1016,10 @@ class Streamer extends StreamerAbout {
 						break
 				}
 		}
-		global.osd.show(msg, 'fas fa-exclamation-circle faclr-red', '', 'normal')
+		return msg
+	}
+	handleFailureMessage(r){
+		global.osd.show(this.humanizeFailureMessage(r), 'fas fa-exclamation-circle faclr-red', '', 'normal')
 	}
 }
 

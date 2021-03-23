@@ -164,7 +164,7 @@ class IconSearch extends IconCache {
                 }
                 if(ret.results.length){
                     ret = ret.results.filter(e => {
-                        return e.icon.indexOf('//') != -1
+                        return e.icon && e.icon.indexOf('//') != -1
                     }).sortByProp('score', true)
                     if(this.opts.debug){
                         this.opts.debug('fetch from terms', JSON.stringify(ret))
@@ -211,7 +211,7 @@ class IconFetcher extends IconTransform {
 			}
 		})
     }
-    fetchURLCallback(content){
+    fetchURLCallback(content, url){
         return new Promise((resolve, reject) => { 
             if(!content || !content.length){
                 return reject('Image not found or empty')
@@ -237,7 +237,7 @@ class IconFetcher extends IconTransform {
                 if(this.opts.debug){
 					this.opts.debug('fetchURL', url, 'cached')
                 }
-                this.fetchURLCallback(content).then(resolve).catch(reject)
+                this.fetchURLCallback(content, url).then(resolve).catch(reject)
             }).catch(err => {
                 if(this.opts.debug){
 					this.opts.debug('fetchURL', url, 'request')
@@ -258,7 +258,7 @@ class IconFetcher extends IconTransform {
                         console.error('Failed to read URL', err, url)
                         reject('Failed to read URL (1): ' + url)
                     } else {
-                        this.fetchURLCallback(content).then(resolve).catch(reject)
+                        this.fetchURLCallback(content, url).then(resolve).catch(reject)
                     }
                 }).catch(err => {
                     if(String(err).indexOf('Promise was cancelled') == -1){

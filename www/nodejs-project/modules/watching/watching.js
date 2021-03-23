@@ -21,7 +21,7 @@ class Watching extends EntriesGroup {
     }
     entries(e){
         return new Promise((resolve, reject) => {
-            if(global.updatingLists){
+            if(lists.manager.updatingLists){
                 return resolve([{
                     name: global.lang.UPDATING_LISTS, 
                     fa: 'fa-mega spin-x-alt',
@@ -134,7 +134,6 @@ class Watching extends EntriesGroup {
                             cb()
                         }, () => {
                             Object.keys(groups).forEach(n => {
-                                let e, already = [], megas = [], streams = []
                                 gentries.push(global.channels.toMetaEntry({
                                     name: global.ucWords(n), 
                                     type: 'group',

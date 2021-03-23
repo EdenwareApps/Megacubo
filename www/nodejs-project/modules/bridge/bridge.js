@@ -1,7 +1,7 @@
 
 
 const path = require('path'), http = require('http'), Events = require('events'), fs = require('fs'), url = require('url')
-const finished = require('on-finished'), formidable = require('formidable'), decodeEntities = require('decode-entities')
+const formidable = require('formidable'), closed = require(global.APPDIR +'/modules/on-closed')
 
 if(typeof(localStorage) != 'undefined' && localStorage.debug){
     localStorage.debug = ''
@@ -85,7 +85,13 @@ class BridgeServer extends Events {
                     res.setHeader('Cache-Control', 'max-age=0, no-cache, no-store')
                     res.setHeader('Connection', 'close')
                     let stream = fs.createReadStream(pathname)
-                    finished(res, () => stream && stream.destroy())
+                    closed(req, res, () => {
+                        if(stream){
+                            stream.destroy()
+                            stream = null
+                        }
+                        res.end()
+                    })
                     stream.pipe(res)
                 })
             }

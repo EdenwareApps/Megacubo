@@ -26,7 +26,7 @@ function patch(scope){
 	}
 
 	if(typeof(scope.URLSearchParams) == 'undefined'){ // node
-		scope.URLSearchParams = (scope.require || require)('url-search-params-polyfill')
+		scope.URLSearchParams = require('url-search-params-polyfill')
 	} else { // browser
 		scope.saveFileDialogChooser = false
 		scope.saveFileDialog = function (callback, placeholder) {
@@ -215,6 +215,115 @@ function patch(scope){
         return sample.indexOf('#ext-x-playlist-type:vod') != -1 || sample.indexOf('#ext-x-endlist') != -1
 	}
 
+    scope.isNetworkIP = addr => {
+        return addr && (addr.startsWith('10.') || addr.startsWith('192.'))
+    }
+
+	scope.execSync = cmd => {
+		let stdout
+		try {
+			stdout = require('child_process').execSync(cmd)
+		} catch(e) {
+			stdout = e.stdout + ' ' + e.stderr
+		}
+		return String(stdout)
+	}
+
+	scope.androidSDKVer = () => {
+		if(!scope.androidSDKVerCache){
+			scope.androidSDKVerCache = parseInt(scope.execSync('getprop ro.build.version.sdk').trim())
+		}
+		return scope.androidSDKVerCache
+	}
+	scope.androidNetworkIP = () => {
+		let addr, time = scope.time()
+		if(scope.networkIpCache && (scope.networkIpCache.time + scope.networkIpCacheTTL) > time){
+			addr = scope.networkIpCache.addr
+		} else {
+			let output = scope.execSync('ip route get 8.8.8.8')
+			addr = output.match(new RegExp('src +([0-9\.]+)'))
+			if(addr){
+				addr = addr[1]
+			} else {
+				addr = scope.networkIpCache ? scope.networkIpCache.addr : '127.0.0.1'
+			}
+			scope.networkIpCache = {addr, time}
+		}
+		return addr
+	}
+	scope.os = () => {
+		if(!scope.osCache){
+			scope.osCache = require('os')
+		}
+		return scope.osCache
+	}
+	scope.networkIpCache = false
+	scope.networkIpCacheTTL = 10
+	scope.networkInterfaces = () => {
+		if(process.platform == 'android'){
+			let sdkVer = scope.androidSDKVer()
+			if(isNaN(sdkVer) || sdkVer < 20 || sdkVer >= 29){
+				// on most recent sdks, os.networkInterces() crashes nodejs-mobile-cordova with a uv_interface_addresses error
+				let addr, time = scope.time()
+				if(scope.networkIpCache && (scope.networkIpCache.time + scope.networkIpCacheTTL) > time){
+					addr = scope.networkIpCache.addr
+				} else {
+					let output = scope.execSync('ip route get 8.8.8.8')
+					addr = output.match(new RegExp('src +([0-9\.]+)'))
+					if(addr){
+						addr = addr[1]
+					} else {
+						addr = scope.networkIpCache ? scope.networkIpCache.addr : '127.0.0.1'
+					}
+					scope.networkIpCache = {addr, time}
+				}
+				return {
+					"Wi-Fi": [
+						{
+							"address": addr,
+							"netmask": "255.255.255.0",
+							"family": "IPv4",
+							"mac": "00:00:00:00:00:00",
+							"internal": false
+						}
+					],
+					"Loopback Pseudo-Interface 1": [
+						{
+							"address": "127.0.0.1",
+							"netmask": "255.0.0.0",
+							"family": "IPv4",
+							"mac": "00:00:00:00:00:00",
+							"internal": true,
+							"cidr": "127.0.0.1/8"
+						}
+					]
+				}
+			}
+		}
+		return scope.os().networkInterfaces()
+	}
+
+    scope.networkIP = () => {
+		let nis = scope.networkInterfaces(), dat = Object.keys(nis)
+			// flatten interfaces to an array
+			.reduce((a, key) => [
+				...a,
+				...nis[key]
+			], [])
+			// non-internal ipv4 addresses only
+			.filter(iface => iface.family === 'IPv4' && !iface.internal)
+			// project ipv4 address as a 32-bit number (n)
+			.map(iface => ({...iface, n: (d => ((((((+d[0])*256)+(+d[1]))*256)+(+d[2]))*256)+(+d[3]))(iface.address.split('.'))}))
+			// set a hi-bit on (n) for reserved addresses so they will sort to the bottom
+			.map(iface => scope.isNetworkIP(iface.address) ? {...iface, n: Math.pow(2,32) + iface.n} : iface)
+			// sort ascending on (n)
+			.sort((a, b) => a.n - b.n)
+			.map(a => a.address)
+			.filter(a => scope.isNetworkIP(a))
+		if(dat.length){
+			return dat[0].address
+		}
+    }
 	return scope
 }
 

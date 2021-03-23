@@ -27,7 +27,7 @@ moment = require('moment-timezone')
 onexit = require('node-cleanup')
 APPDIR = path.resolve(typeof(__dirname) != 'undefined' ? __dirname : process.cwd()).replace(new RegExp('\\\\', 'g'), '/')
 MANIFEST = require(APPDIR + '/package.json')
-SHARED_LISTS_DEFAULT_AMOUNT = cordova ? 8 : 12
+COMMUNITY_LISTS_DEFAULT_AMOUNT = cordova ? 8 : 12
 tuning = false
 
 require(APPDIR + '/modules/supercharge')(global)
@@ -55,8 +55,6 @@ onexit(() => {
     if(typeof(tuning) != 'undefined' && tuning){
         tuning.destroy()
     }
-    removeFolder(paths['data'] + '/ffmpeg/data', false, true)
-    removeFolder(paths['temp'], false, true)
     if(typeof(ui) != 'undefined' && ui){
         ui.emit('exit')
         ui.destroy()
@@ -69,9 +67,9 @@ rstorage = new Storage()
 rstorage.useJSON = false
 
 config = new (require(APPDIR + '/modules/config'))(paths['data'] + '/config.json')
+base64 = new (require(APPDIR + '/modules/base64'))()
 Download = require(APPDIR + '/modules/download')
 jimp = require(APPDIR + '/modules/jimp-wrapper')
-base64 = require(APPDIR + '/modules/base64')
 
 enableConsole = (enable) => {
     let fns = ['log', 'warn']
@@ -147,6 +145,21 @@ ui = new Bridge()
 ffmpeg = new FFMPEG()
 lang = false
 
+displayErr = (...args) => {
+    console.error.apply(null, args)
+    ui.emit('display-error', args.map(v => String(v)).join(", "))
+}
+
+setNetworkConnectionState = state => {
+    Download.setNetworkConnectionState(state)
+    if(typeof(lists) != 'undefined'){
+        lists.setNetworkConnectionState(state).catch(console.error)
+        if(state){
+            lists.manager.UIUpdateLists()
+        }
+    }
+}
+
 importFileFromClient = (data, target) => {
     return new Promise((resolve, reject) => {
         const process = (file, callback) => {
@@ -201,7 +214,9 @@ importFileFromClient = (data, target) => {
     })
 }
 
-var loaded, playOnLoaded
+isUILoaded = false
+
+var playOnLoaded
 
 function init(language){
     console.log('Language', language)
@@ -210,77 +225,22 @@ function init(language){
        
         let epgSetup = false
         lang = ret
-        updatingLists = false
 
         moment.locale(lang.locale)    
 
         cloud = new Cloud()
         icons = new IconServer({folder: paths['data'] + '/icons'})
         
-        askEPGImport = () => {
-            ui.emit('dialog', [
-                {template: 'question', text: ucWords(MANIFEST.name), fa: channels.epgIcon},
-                {template: 'message', text: lang.IMPORT_EPG_CHANNELS},
-                {template: 'option', text: lang.YES, id: 'yes', fa: 'fas fa-check-circle'},
-                {template: 'option', text: lang.NO, id: 'no', fa: 'fas fa-times-circle'}
-            ], 'epg-import', 'yes')
-        }
-
-        loadEPG = url => {
-            if(!url){
-                url = config.get('epg')
-            }
-            if(url){
-                console.log('loadEPG', url)
-                lists.loadEPG(url).then(() => {
-                    if(epgSetup){
-                        askEPGImport()
-                    }
-                    epgSetup = false
-                }).catch(err => {
-                    osd.show(lang.EPG_LOAD_FAILURE + ': ' + String(err), 'fas fa-check-circle', 'epg', 'normal')
-                }).finally(() => {
-                    if(explorer.path.indexOf(lang.EPG) != -1){
-                        explorer.refresh()
-                    }
-                })
-            }
-        }
-
-        updateLists = force => {
-            if(global.updatingLists) return
-            lists.manager.updateLists(force === true, err => {
-                console.error('lists-manager', err, loaded)
-                if(loaded){
-                    ui.emit('dialog', [
-                        {template: 'question', text: lang.NO_SHARED_LISTS_FOUND, fa: 'fas fa-users'},
-                        {template: 'option', id: 'retry', fa: 'fas fa-redo', text: lang.RETRY},
-                        {template: 'option', id: 'add-list', fa: 'fas fa-plus-square', text: lang.ADD_LIST}
-                    ], 'lists-manager', 'retry') 
-                }
-            })
-        }
-        
         const Lists = require(APPDIR + '/modules/lists')
 
         osd = new OSD()
         lists = new Lists()
-		config.on('change', (keys, data) => {
-            //console.warn('CONFIG CHANGED', keys)
-            if(keys.includes('epg')){
-                loadEPG(data['epg'])
-            }
-        })
-        
-        displayErr = (...args) => {
-            console.error.apply(null, args)
-            ui.emit('display-error', args.map(v => String(v)).join(", "))
-        }
+        lists.setNetworkConnectionState(Download.isNetworkConnected).catch(console.error)
 
-        activeLists = {my: [], shared: [], length: 0}
+        activeLists = {my: [], community: [], length: 0}
 
         if(config.get('setup-complete')){
-            updateLists(true)
+            lists.manager.UIUpdateLists(true)
         }
 
         omni = new OMNI()
@@ -294,6 +254,8 @@ function init(language){
         options = new Options()
         watching = new Watching()
         bookmarks = new Bookmarks()
+
+        removeFolder(streamer.opts.workDir, false, true)
 
         explorer = new Explorer({},
             [
@@ -364,12 +326,12 @@ function init(language){
                 case 'agree':
                     ui.emit('explorer-reset-selection')
                     explorer.open('', 0).catch(displayErr)
-                    config.set('shared-mode-reach', SHARED_LISTS_DEFAULT_AMOUNT)
+                    config.set('shared-mode-reach', COMMUNITY_LISTS_DEFAULT_AMOUNT)
                     ui.emit('info', lang.LEGAL_NOTICE, lang.TOS_CONTENT)
-                    updateLists(true)
+                    lists.manager.UIUpdateLists(true)
                     break
                 case 'retry':
-                    updateLists(true)
+                    lists.manager.UIUpdateLists(true)
                     break
                 case 'add-list':
                     ui.emit('prompt', lang.ASK_IPTV_LIST, 'http://.../example.m3u', '', 'lists-manager', false, 'fas fa-plus-square')
@@ -477,19 +439,8 @@ function init(language){
             }
         })  
         ui.on('set-epg', url => {
-            console.log('SETEPG', url)
-            if(typeof(url) == 'string'){
-                epgSetup = true
-                if(!url || lists.manager.validateURL(url)){
-                    if(url == config.get('epg')){
-                        lists.loadEPG(url).catch(console.error) // force update
-                    } else {
-                        config.set('epg', url)
-                    }
-                } else {
-                    osd.show(lang.INVALID_URL, 'fas fa-exclamation-circle faclr-red', 'epg', 'normal')
-                }
-            }
+            epgSetup = true
+            lists.manager.setEPG(url)
         })
         ui.on('open-url', url => {
             console.log('OPENURL', url)
@@ -503,7 +454,7 @@ function init(language){
                         group: []
                     }
                 }
-                if(loaded){
+                if(isUILoaded){
                     streamer.play(e)
                 } else {
                     playOnLoaded = e
@@ -514,20 +465,11 @@ function init(language){
             console.log('OPEN STREAM BY NAME', name)
             if(name){
                 const e = {name, url: mega.build(name)}
-                if(loaded){
+                if(isUILoaded){
                     streamer.play(e)
                 } else {
                     playOnLoaded = e
                 }
-            }
-        })        
-        ui.on('epg-import', chosen => {
-            console.log('epg import', chosen)
-            if(chosen == 'yes'){
-                lists.epgChannelsList().then(list => {
-                    console.log('CHANNELS LIST IMPORT', list)
-                    channels.setCategories(list)
-                }).catch(displayErr)
             }
         })
         ui.on('download-in-background', (url, name, target) => {  
@@ -569,7 +511,8 @@ function init(language){
                 options.about()
             }
         })
-        ui.on('network-state-up', updateLists)
+        ui.on('network-state-up', () => setNetworkConnectionState(true))
+        ui.on('network-state-down', () => setNetworkConnectionState(false))
         /*
         ui.assign('playback', () => {
             return new Promise((resolve, reject) => {
@@ -599,38 +542,35 @@ function init(language){
             ui.emit('config', data)
             if(['lists', 'shared-mode-reach'].some(k => keys.includes(k))){
                 explorer.refresh()
-                updateLists(true)
+                lists.manager.UIUpdateLists(true)
             }
         })     
         ui.on('init', () => {
             console.warn('Client init')
             explorer.start()  
-            if(updatingLists){
+            if(lists.manager.updatingLists){
                 osd.show(lang.UPDATING_LISTS, 'fa-mega spin-x-alt', 'update', 'persistent')
             }
             streamState.sync()
-            if(!loaded){
-                loaded = true
-                ffmpeg.ready(() => {
-                    if(!streamer.active){
-                        if(playOnLoaded){
-                            streamer.play(playOnLoaded)
-                        } else if(config.get('resume')){
-                            if(global.explorer.path){
-                                console.log('resume skipped, user navigated away')
-                            } else {
-                                console.log('resuming', histo.resumed, global.streamer)
-                                histo.resume()
-                            }
+            if(!isUILoaded){
+                isUILoaded = true
+                if(!streamer.active){
+                    if(playOnLoaded){
+                        streamer.play(playOnLoaded)
+                    } else if(config.get('resume')){
+                        if(global.explorer.path){
+                            console.log('resume skipped, user navigated away')
+                        } else {
+                            console.log('resuming', histo.resumed, global.streamer)
+                            histo.resume()
                         }
                     }
-                })
-                ffmpeg.init()
+                }
                 const afterListUpdate = () => {
-                    if(!updatingLists && !activeLists.length && config.get('shared-mode-reach')){
-                        updateLists()
+                    if(!lists.manager.updatingLists && !activeLists.length && config.get('shared-mode-reach')){
+                        lists.manager.UIUpdateLists()
                     }
-                    loadEPG()
+                    lists.manager.loadEPG(null, false)
                     cloud.get('configure').then(c => {
                         console.log('checking update...')
                         let vkey = 'version', newVersion = MANIFEST.version
@@ -654,7 +594,7 @@ function init(language){
                         }
                     }).catch(console.error)
                 }
-                if(updatingLists || !config.get('setup-complete')){
+                if(lists.manager.updatingLists || !config.get('setup-complete')){
                     lists.manager.once('lists-updated', afterListUpdate)                
                 } else {
                     afterListUpdate()
@@ -680,22 +620,23 @@ function init(language){
             }
         })
 
-        removeFolder(paths['data'] + '/ffmpeg/data', false, () => {}) // clear any left temp ffmpeg files from previous encoding
-
         console.warn('Prepared to connect...')
         ui.emit('backend-ready', config.all(), lang)
     })
 }
 
 let language = config.get('locale')
-ui.on('get-lang-callback', (locale, timezone, ua) => {
-    console.log('get-lang-callback 0', language, timezone, ua)
+ui.on('get-lang-callback', (locale, timezone, ua, online) => {
+    console.log('get-lang-callback', language, timezone, ua, online)
     if(timezone && (timezone != config.get('timezone'))){
         config.set('timezone', timezone)
     }
     moment.tz.setDefault(timezone)
     if(ua && ua != config.get('ua')){
         config.set('ua', ua)
+    }
+    if(typeof(online) == 'boolean'){
+        setNetworkConnectionState(online)
     }
     if(!language){
         locale = locale.replace(new RegExp(' +', 'g'), '').split(',').filter(s => [2, 5].includes(s.length))

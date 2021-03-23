@@ -30,17 +30,19 @@ class List extends Events {
 		super()
 		this.debug = false
 		this.meta = {}
-		this.parent = parent
 		if(url.substr(0, 2) == '//'){
 			url = 'http:'+ url
 		}
 		this.url = url
 		this.directURL = directURL || url
 		this.data = []
+		this.groups = []
+		this.index = {}
 		this.indexateIterator = 0
 		this.dataKey = LIST_DATA_KEY_MASK.format(url)
 		this.metaDataKey = LIST_META_KEY_MASK.format(url)
 		this.updateAfterKey = LIST_UPDATE_FROM_KEY_MASK.format(url)
+		this.minListQualityLevel = 60;
         this.constants = {
 			BREAK: -1
 		}
@@ -48,6 +50,7 @@ class List extends Events {
 			this.url
 		]
 		this.loaded = false
+		this.relevance = 50
 		this.on('destroy', () => {
 			if(this.stream){
 				this.stream.destroy()
@@ -61,12 +64,36 @@ class List extends Events {
 				this.parser.destroy()
 			}
 		})
-	}	
+		this.parent = (() => parent)
+	}
+	indexate(entry, i){
+		entry = this.parent().prepareEntry(entry)
+		entry.terms.name.concat(entry.terms.group).forEach(term => {
+			if(typeof(this.index[term]) == 'undefined'){
+				this.index[term] = {n: [], g: []}
+			}
+		})
+		entry.terms.name.forEach(term => {
+			if(!this.index[term].n.includes(i)){
+				this.index[term].n.push(i)
+			}
+		})
+		entry.terms.group.forEach(term => {
+			if(!this.index[term].g.includes(i)){
+				this.index[term].g.push(i)
+			}
+		})
+		entry.groups.forEach(group => {
+			if(!this.groups.includes(group)){
+				this.groups.push(group)
+			}
+		})
+		return entry
+	}
 	start(){
 		this.loadCache()
 	}
 	clear(){
-		this.parent.removeListData(this.url)
 		if(this.destroyed) return
 		this.data = []
 		this.indexateIterator = 0
@@ -80,13 +107,13 @@ class List extends Events {
 		if(Array.isArray(t)){
 			return t.map(s => this.termify(s))
 		}
-		return this.parent.terms(t).join(' ')
+		return this.parent().terms(t).join(' ')
 	}
 	ready(fn){
 		if(this.isReady){
 			fn()
 		} else {
-			this.on('ready', fn)
+			this.once('ready', fn)
 		}
 	}
 	loadCache(){
@@ -107,28 +134,30 @@ class List extends Events {
 					crlfDelay: Infinity
 				})
 				let initialized
+				this.indexateIterator = 0
 				this.rl.on('line', (line) => {
 					if(!this.destroyed){
-						if(line.length > 8){
+						if(line && line.charAt(0) == '{'){
 							if(!initialized){
 								initialized = true
 								this.clear()
 							}
 							this.data.push(line)
 							let entry = JSON.parse(line)
-							this.indexateEntry(entry)
+							this.indexate(entry, this.indexateIterator)
 						}
+						this.indexateIterator++
 					}
 				})
 				this.rl.on('close', () => {
 					if(initialized){
 						if(!this.loaded){
-							this.validateListQuality().then(() => {
+							this.validate().then(() => {
 								this.loaded = true
 								this.emit('load')
 							}).catch(err => {
 								if(this.debug){
-									console.log('validateListQuality failed on loadCache()', this.url, err)
+									console.log('validate failed on loadCache()', this.url, err)
 								}
 								this.load().catch(console.error)
 							})
@@ -163,7 +192,11 @@ class List extends Events {
 					if(this.debug){
 						console.log('load', should)
 					}
-					if(should){
+					if(this.destroyed){
+						let msg = 'already destroyed'
+						this.emit('failure', msg)
+						reject(msg)
+					} else if(should) {
 						let now = global.time()
 						global.storage.set(this.updateAfterKey, now + 180, true) // initial updating lock
 						let path = this.directURL
@@ -173,7 +206,7 @@ class List extends Events {
 						if(path.match('^https?:')){
 							const opts = {
 								url: path,
-								retries: 1,
+								retries: 5,
 								followRedirect: true,
 								keepalive: false,
 								headers: {
@@ -221,13 +254,32 @@ class List extends Events {
 				})
 			})
 		})
+	}	
+	progress(){
+		let p = 0, f = 0
+		if(this.stream){
+			p += this.stream.progress || 0
+			f++
+		} else if(this.data.length) {
+			p += 100
+			f++
+		}
+		if(this.validator){
+			p += this.validator.progress()
+			f++
+		}
+		return (p / f)
+	}
+	validate(){
+		this.validateListRelevance()
+		return this.validateListQuality()
 	}
 	validateListQuality(){
 		return new Promise((resolve, reject) => {
 			if(this.skipValidating){
 				return resolve(true)
 			}
-			let tests = 4, hits = 0, dls = [], entries = [], results = [], len = this.data.length, mtp = Math.floor((len - 1) / (tests - 1))
+			let tests = 5, hits = 0, entries = [], results = [], len = this.data.length, mtp = Math.floor((len - 1) / (tests - 1))
 			if(len < tests){
 				return reject('insufficient streams')
 			}
@@ -236,35 +288,60 @@ class List extends Events {
 					let e = JSON.parse(this.data[i])
 					entries.push(e)
 				} catch(err) {
-					console.error(err, this.data[i])
+					console.error(err, this.url, i, this.data)
 				}
 			}
 			if(this.debug){
-				console.log('validateListQuality', this.url, tests, mtp, entries)
+				console.log('validating list quality', this.url, tests, mtp, entries)
 			}
-			const racing = new ConnRacing(entries.map(e => e.url)), next = () => {
+			const racing = new ConnRacing(entries.map(e => e.url)), end = () => {
+				racing.end()
+				delete this.validator
+				let quality = hits / (entries.length / 100)
+				if(this.debug){
+					console.log('validated list quality', this.url, quality)
+				}
+				this.quality = quality
+				if(quality >= this.minListQualityLevel){
+					resolve(quality)
+				} else {
+					reject('bad quality list: ' + quality + '%')
+				}
+			}, next = () => {
 				if(racing.ended){
-					if(this.debug){
-						console.log('validateListQuality FAIL', this.url, results)
-					}
-					reject('list streams doesn\'t connect')
+					end()
 				} else {
 					racing.next(res => {
 						results.push(res)
 						if(res && res.valid){
-							if(this.debug){
-								console.log('validateListQuality SUCCESS', this.url)
-							}
-							resolve(true)
-							racing.end()
-						} else {
-							next()
+							hits++
 						}
+						next()
 					})
 				}
 			}
+			this.validator = racing
 			next()
 		})
+	}
+	validateListRelevance(){
+		if(this.skipValidating){
+			return
+		}
+		let rks = this.parent().relevantKeywords
+		if(!rks || !rks.length){
+			console.error('no parent keywords')
+			return
+		}
+		let hits = 0
+		rks.forEach(term => {
+			if(typeof(this.index[term]) != 'undefined'){
+				hits++
+			}
+		})
+		this.relevance = hits / (rks.length / 100)
+		rks = null
+		return this.relevance
 	}
 	parseStream(stream){	
 		return new Promise((resolve, reject) => {
@@ -272,9 +349,11 @@ class List extends Events {
 				this.stream = stream
 			}
 			this.log('parsing...')
-			let initialized, s = time(), i = 0, entries = []
+			let initialized, s = time()
+			this.indexateIterator = 0
 			this.parser = new Parser(this.stream)
 			this.parser.on('meta', meta => {
+				this.parent().setListMeta(this.url, meta)
 				if(this.destroyed || !Object.keys(meta).length){
 					return	
 				}
@@ -290,18 +369,19 @@ class List extends Events {
 					initialized = true
 					this.clear()
 				}
-				entry = this.indexateEntry(entry)
+				entry = this.indexate(entry, this.indexateIterator)
 				this.data.push(JSON.stringify(entry))
+				this.indexateIterator++
 			})
 			this.parser.on('end', () => {
 				if(initialized){
 					if(!this.loaded){
-						this.validateListQuality().then(() => {
+						this.validate().then(() => {
 							this.loaded = true
 							this.emit('load')
 						}).catch(err => {
 							if(this.debug){
-								console.log('validateListQuality failed', this.url, err)
+								console.log('validate failed', this.url, err)
 							}
 							this.emit('failure', err, this.stream)
 							this.destroy()
@@ -326,16 +406,6 @@ class List extends Events {
 				}
 			})
 		})
-	}
-	indexateEntry(entry){
-		if(this.destroyed) return
-		entry = this.parent.prepareEntry(entry)
-		if(!entry.source){
-			entry.source = this.url
-		}
-		this.parent.addTerms(entry, this.indexateIterator, this.url)
-		this.indexateIterator++
-		return entry
 	}
 	iterate(fn, map){
 		if(!Array.isArray(map)){
@@ -392,12 +462,20 @@ class List extends Events {
 			if(this.rl){
 				this.rl.close()
 			}
+			if(this.stream){
+				this.stream.destroy()
+				this.stream = null
+			}
+			if(this.validator){
+				this.validator.destroy()
+				this.validator = null
+			}
 			this.clear()
 			this.destroyed = true
 			this.data = []
 			this.emit('destroy')
-			delete this.parent
-			delete this._log
+			this.parent = (() => {return {}})
+			this._log = []
 		}
 	}
 }
@@ -431,7 +509,11 @@ class WatchingList extends List {
 								}
 								return e
 							})
-							entries = entries.map(e => this.indexateEntry(e))
+							this.indexateIterator = 0
+							entries = entries.map(e => {
+								this.indexate(e, this.indexateIterator)								
+								this.indexateIterator++
+							})
 							this.log('parsed in ' + Math.round(time() - s, 2) + 's, now saving...', entries)
 							this.data = entries.map(JSON.stringify)
 							this.loaded = true
@@ -488,7 +570,7 @@ class Fetcher extends Events {
 						const opts = {
 							url: path,
 							keepalive: false,
-							retries: 1,
+							retries: 10,
 							followRedirect: true,
 							headers: {
 								'accept-charset': 'utf-8, *;q=0.1'
@@ -497,7 +579,7 @@ class Fetcher extends Events {
 						}
 						let entries = [], stream = new global.Download(opts)
 						stream.on('response', (statusCode, headers) => {
-							if(statusCode >= 200 && statusCode < 300){
+							if(statusCode >= 200 && statusCode < 300) {
 								let parser = new Parser(stream)
 								parser.on('entry', entry => {
 									entries.push(entry)
@@ -509,7 +591,7 @@ class Fetcher extends Events {
 										global.rstorage.set(dataKey, entries.map(JSON.stringify).join("\r\n"), true)
 										resolve(entries)
 									} else {
-										reject('invvalid list')
+										reject('invalid list')
 									}
 									parser.destroy()
 								})
@@ -557,6 +639,7 @@ class Fetcher extends Events {
 	*/
 }
 
+/*
 class EPGDefaultImport extends Common {
 	constructor(opts){
 		super(opts)
@@ -582,128 +665,9 @@ class EPGDefaultImport extends Common {
 		}
     }
 }
+*/
 
-class Index extends EPGDefaultImport {
-	constructor(opts){
-		super(opts)
-		this.key = 'lists-terms'
-		this.epgs = []
-		this.data = {urls: {}, terms: {}, groups: {}}
-		this.isReady = false
-		this.loadData()		
-	}
-	ready(fn){
-		if(this.isReady){
-			fn()
-		} else {
-			this.on('ready', fn)
-		}
-	}
-	initListData(listUrl){
-		if(typeof(this.data.urls[listUrl]) == 'undefined'){
-			let i = 0, vs = Object.values(this.data.urls)
-			while(vs.indexOf(i) != -1){
-				i++
-			}
-			this.data.urls[listUrl] = i
-		}
-		if(typeof(this.data.groups[listUrl]) == 'undefined'){
-			this.data.groups[listUrl] = []
-		}
-		return this.data.urls[listUrl]
-	}
-	hasListData(listUrl){
-		return typeof(this.data.urls[listUrl]) != 'undefined' && typeof(this.data.groups[listUrl]) != 'undefined' && this.data.groups[listUrl].length
-	}
-	removeListData(listUrl){
-		if(typeof(this.data.urls[listUrl]) != 'undefined'){
-			let i = this.data.urls[listUrl]
-			delete this.data.urls[listUrl]
-			Object.keys(this.data.terms).forEach(term => {
-				if(typeof(this.data.terms[term][i]) != 'undefined'){
-					delete this.data.terms[term][i]
-				}
-			})
-		}
-		if(typeof(this.data.groups[listUrl]) != 'undefined'){
-			delete this.data.groups[listUrl]
-		}
-	}
-	delimitActiveListsData(activeListsURLs){
-		if(!activeListsURLs.includes(this.watchingListId)){
-			activeListsURLs.push(this.watchingListId)
-		}
-		Object.keys(this.data.groups).forEach(url => {
-			if(!activeListsURLs.includes(url)){
-				this.removeListData(url)
-			}
-		})
-		Object.keys(this.data.terms).forEach(term => { // remove orphan terms
-			if(!Object.keys(this.data.terms[term]).length){
-				delete this.data.terms[term]
-			}
-		})
-		Object.keys(this.lists).forEach(url => {
-			if(!activeListsURLs.includes(url)){
-				this.lists[url].destroy()
-				delete this.lists[url]
-			}
-		})
-		this.saveData()
-	}
-	/*
-	{
-		'http://...': 123
-	}
-	{
-	band: {
-		'123': { // listId
-			name: [0, 4, 7], // array of channel index on lists
-			group: [0, 4, 7]
-		}
-	}
-	*/
-	addTerms(e, i, listUrl){
-		let terms = e.terms.name, groupKeywords = e.terms.group, listId = this.initListData(listUrl)
-		terms.concat(groupKeywords).forEach(term => { // prepare creating empty groups
-			if(typeof(this.data.terms[term]) == 'undefined'){
-				this.data.terms[term] = {}
-			}
-			if(typeof(this.data.terms[term][listId]) == 'undefined'){
-				this.data.terms[term][listId] = {n:[],g:[]}
-			}
-		})
-		terms.forEach(term => {
-			if(this.data.terms[term][listId]['n'].indexOf(i) == -1){
-				this.data.terms[term][listId]['n'].push(i)
-			}
-		})
-		groupKeywords.forEach(term => {
-			if(this.data.terms[term][listId]['g'].indexOf(i) == -1){
-				this.data.terms[term][listId]['g'].push(i)
-			}
-		})
-		e.groups.forEach(group => {
-			if(!this.data.groups[listUrl].includes(group)){
-				this.data.groups[listUrl].push(group)
-			}
-		})
-	}
-	loadData(){
-		global.storage.get(this.key, data => {
-			if(data){
-				this.data = data
-			}
-			this.isReady = true
-			this.emit('ready')
-		})
-	}
-	saveData(){
-		global.storage.set(this.key, this.data, true)
-	}
-}
-
-class Lists extends Index {
+class Lists extends Common {
     constructor(opts){
 		super(opts)
 		this.setMaxListeners(99)
@@ -713,10 +677,13 @@ class Lists extends Index {
 		this._epg = false
         this.debug = false
         this.lists = {}
+		this.epgs = []
         this.myUrls = []
         this.sharingUrls = []
+		this.relevantKeywords = []
+		this.syncSatisfyLevel = 0.5 // allow user to navigate after this ratio of community lists is loaded
         this.fetcher = new Fetcher()
-		this.ready(this.loadWatchingList.bind(this))
+		this.loadWatchingList.bind(this)
 	}
 	isListCached(url, cb){
 		let dataKey = LIST_DATA_KEY_MASK.format(url)
@@ -728,17 +695,19 @@ class Lists extends Index {
 	loadEPG(url){
 		return new Promise((resolve, reject) => {
 			if(this._epg){
-				if(this._epg.url == url){
-					console.log('EPG FORCE UPDATE')
-					this._epg.forceUpdate()
-					return resolve(true)
-				} else {
-					this._epg.destroy()
-				}
+				this._epg.destroy()
+				delete this._epg
 			}
-			this._epg = new EPG(url)
-			this._epg.once('load', resolve)
-			this._epg.once('error', reject)
+			if(url){
+				this._epg = new EPG(url)
+				this._epg.once('load', () => {				
+					console.log('loadEPG success') //, JSON.stringify(this._epg.data))
+					resolve()
+				})
+				this._epg.once('error', reject)
+			} else {
+				resolve()
+			}
 		})
 	}
 	epg(channelsList, limit){
@@ -798,6 +767,9 @@ class Lists extends Index {
 			resolve(this._epg.data)
 		})		
 	}
+	foundEPGs(){
+		return new Promise(resolve => resolve(this.epgs))
+	}
 	epgChannelsList(){
 		return new Promise((resolve, reject) => {
 			if(!this._epg){
@@ -807,6 +779,7 @@ class Lists extends Index {
 			if(data && Object.keys(data).length){
 				resolve(data)
 			} else {
+				console.error('epgChannelsList FAILED', JSON.stringify(data), JSON.stringify(this._epg.data))
 				reject('failed')
 			}
 		})		
@@ -824,20 +797,7 @@ class Lists extends Index {
 			}
 		})		
 	}
-	renameList(url, name){
-		let lists = global.config.get('sources')
-		for(let i in lists){
-			if(lists[i][1] == url){
-				if(lists[i][0] != name){
-					lists[i][0] = name
-					global.config.set('lists', lists)
-					break
-				}
-			}
-		}
-	}
 	loadWatchingList(){
-		this.initListData(this.watchingListId)
 		this.lists[this.watchingListId] = new WatchingList(this.watchingListId, null, this)
 		this.lists[this.watchingListId].start()
 	}
@@ -888,113 +848,132 @@ class Lists extends Index {
 	}
 	listsUpdateProgress(){
 		return new Promise((resolve, reject) => {
-			let progress = 0, firstRun = true
+			let progress = 0, progresses = [], firstRun = true
 			if(this.listsUpdateData){
 				firstRun = this.listsUpdateData.firstRun
-				let limit = this.listsUpdateData.sharingListsLimit
-				let val = (100 / limit) / 100
-				Object.keys(this.lists).forEach(url => {
-					if(url == lists.watchingListId) return
-					let p = 0
-					if(this.lists[url].loaded){
-						p = 100
-					} else if(this.lists[url].stream){
-						p = this.lists[url].stream.progress || 0
-					}
-					progress += (p * val)
-				})
+				if(this.myUrls.length){
+					progresses = progresses.concat(this.myUrls.map(url => this.lists[url] ? this.lists[url].progress() : 0))
+				}
+				if(this.listsUpdateData.sharingListsLimit){
+					let satisfyAmount = Math.floor(this.listsUpdateData.sharingListsLimit * this.syncSatisfyLevel)
+					progresses = progresses.concat(Object.keys(this.lists).filter(url => url != lists.watchingListId).filter(url => !this.listsUpdateData.myUrls.includes(url)).map(url => this.lists[url].progress()).sort().reverse().slice(0, satisfyAmount))
+				}
+				console.log('LISTSUPDATEPROGRESS', progresses)
+				progress = progresses.reduce((a, b) => a + b, 0) / progresses.length
 			}
+			console.log('LISTSUPDATEPROGRESS', progress)
 			resolve({progress: Math.min(parseInt(progress), 99), firstRun, done: this.listsUpdateData && this.listsUpdateData.done})
 		})
 	}
-	setLists(myUrls, altUrls, sharingListsLimit){ // prevent config.sync errors reeiving sharingListsLimit as parameter, instead of access a not yet updated the config.
+	getUniqueAltUrls(myUrls, altUrls){ // remove duplicated altUrls, even from different protocols
+		let already = []
+		myUrls.forEach(u => {
+			let i = u.indexOf('//')
+			already.push(i == -1 ? u : u.substr(i + 2))
+		})
+		return altUrls.filter(u => {
+			let i = u.indexOf('//')
+			u = i == -1 ? u : u.substr(i + 2)
+			if(!already.includes(u)){
+				already.push(u)
+				return true
+			}
+		})
+	}
+	sync(myUrls, altUrls, sharingListsLimit, relevantKeywords){ // prevent config.sync errors reeiving sharingListsLimit as parameter, instead of access a not yet updated the config.
 		return new Promise((resolve, reject) => {
-			this.ready(() => {
-				if(this.debug){
-					console.log('Adding lists...', myUrls, altUrls, sharingListsLimit)
-				}
-				this.prepareSetLists(myUrls, altUrls, sharingListsLimit)
-				this.myUrls = myUrls
-				altUrls = altUrls.filter(u => !myUrls.includes(u))
-				this.sharedUrls = Object.keys(this.lists).filter(u => {
-					return u != this.watchingListId && !myUrls.includes(u)
-				})
-				let amount = myUrls.concat(this.sharedUrls).length
+			if(relevantKeywords && relevantKeywords.length){
+				this.relevantKeywords = relevantKeywords
+			}
+			if(!this.legalIPTV){
+				this.legalIPTV = new LegalIPTV({shadow: true})
+			}
+			if(this.debug){
+				console.log('Adding lists...', myUrls, altUrls, sharingListsLimit)
+			}
+			altUrls = altUrls.filter(u => !this.legalIPTV.isKnownURL(u)) // remove urls from other countries/languages
+			this.prepareSetLists(myUrls, altUrls, sharingListsLimit) // helps to avoid too many lists in memory
+			this.myUrls = myUrls
+			altUrls = this.getUniqueAltUrls(myUrls, altUrls).slice(0, sharingListsLimit * 2)
+			let amount = Object.keys(this.lists).filter(u => {
+				return u != this.watchingListId && !myUrls.includes(u)
+			}).length + myUrls.length
+			if(!global.listsRequesting){
 				global.listsRequesting = {}
-				this.orderByCacheAvailability(altUrls, (altUrls, hasCache) => {
-					async.parallel([
-						cb => {
-							async.eachOf(this.myUrls, (url, i, acb) => {	
-								if(this.debug){
-									console.log('Adding my list...', url)
-								}
-								if(typeof(this.lists[url]) != 'undefined'){
-									return acb()
-								}
-								global.listsRequesting[url] = 'loading'
-								this.initListData(url)
-								this.lists[url] = new List(url, null, this)
-								this.lists[url].skipValidating = true
-								this.lists[url].on('meta', meta => {
-									if(meta['epg'] && !this.epgs.includes(meta['epg'])){
-										this.epgs.push(meta['epg'])
-									}
-									if(meta['name']){
-										this.renameList(url, meta['name'])
-									}
-								})
-								this.lists[url].on('load', () => {
-									delete global.listsRequesting[url]
-									if(this.debug){
-										console.log('Added my list...', url, this.lists[url].data.length)
-									}
-									if(acb){
-										acb()
-										acb = null
-									}
-								})
-								this.lists[url].on('failure', err => {
-									global.listsRequesting[url] = err
-									if(acb){
-										acb()
-										acb = null
-									}
-								})
-								this.lists[url].on('destroy', () => {
-									if(global.listsRequesting[url] == 'loading'){
-										global.listsRequesting[url] = 'destroyed'
-									}
-									if(acb){
-										acb()
-										acb = null
-									}
-								})
-								this.lists[url].start()
-							}, cb)
-						},
-						cb => {
-							if(sharingListsLimit && altUrls.length){
-								let legalIPTV = new LegalIPTV({shadow: true})
-								legalIPTV.getLocalLists().then(lurls => {
-									altUrls = lurls.concat(altUrls)
+			}
+			async.parallel([
+				cb => {
+					async.eachOf(this.myUrls, (url, i, acb) => {	
+						if(this.debug){
+							console.log('Adding my list...', url)
+						}
+						if(typeof(this.lists[url]) != 'undefined'){
+							return acb()
+						}
+						global.listsRequesting[url] = 'loading'
+						this.lists[url] = new List(url, null, this)
+						this.lists[url].skipValidating = true
+						this.lists[url].on('meta', meta => {
+							this.setListMeta(url, meta)
+							if(meta['epg'] && !this.epgs.includes(meta['epg'])){
+								this.epgs.push(meta['epg'])
+							}
+						})
+						this.lists[url].on('load', () => {
+							delete global.listsRequesting[url]
+							if(this.debug){
+								console.log('Added my list...', url, this.lists[url].data.length)
+							}
+							if(acb){
+								acb()
+								acb = null
+							}
+						})
+						this.lists[url].on('failure', err => {
+							global.listsRequesting[url] = err
+							if(acb){
+								acb()
+								acb = null
+							}
+						})
+						this.lists[url].on('destroy', () => {
+							if(global.listsRequesting[url] == 'loading'){
+								global.listsRequesting[url] = 'destroyed'
+							}
+							if(acb){
+								acb()
+								acb = null
+							}
+						})
+						this.lists[url].start()
+					}, cb)
+				},
+				cb => {
+					if(sharingListsLimit && altUrls.length){
+						this.orderByCacheAvailability(altUrls, (altUrls, hasCacheCount) => {
+							if(this.debug){
+								console.log('Pre cached URLs count:', hasCacheCount)
+							}
+							this.legalIPTV.countries.ready(() => {
+								this.legalIPTV.getLocalLists().then(lurls => {
+									lurls.forEach(lurl => {
+										if(!this.myUrls.includes(lurl) && !altUrls.includes(lurl)){
+											altUrls.unshift(lurl)
+										}
+									})
 								}).catch(console.error).finally(() => {
 									if(this.debug){
-										console.log('Adding shared lists... (' + sharingListsLimit + '/' + amount + ')', altUrls.length)
+										console.log('Adding community lists... (' + sharingListsLimit + '/' + amount + ')', altUrls)
 									}
-									let ended
+									let ended, satisfied
 									const process = (directURL, url, pcb) => {
-										if(ended || typeof(this.lists[url]) != 'undefined' || amount >= sharingListsLimit){
-											if(pcb){
-												pcb()
-												pcb = null
-											}
-											return
+										if(ended || typeof(this.lists[url]) != 'undefined'){
+											return pcb()
 										}
 										if(this.debug){
-											console.log('Requesting shared list... '+ url + ' | ' + directURL)
+											console.log('Requesting community list... '+ url + ' | ' + directURL)
 										}						
-										global.listsRequesting[url] = 'loading'		
-										this.initListData(url)
+										global.listsRequesting[url] = 'loading'	
 										this.lists[url] = new List(url, directURL, this)
 										this.lists[url].on('load', () => {
 											if(!this.lists[url]){
@@ -1009,48 +988,82 @@ class Lists extends Index {
 													pcb()
 													pcb = null
 												}
-											} else if(amount > sharingListsLimit) {
-												global.listsRequesting[url] = 'quota exceeded'
-												if(this.debug){
-													console.log('Quota exceeded', url, amount, sharingListsLimit)
-												}
-												end()
-												if(pcb){
-													pcb()
-													pcb = null
-												}
-											} else {
-												delete global.listsRequesting[url]
-												amount++
-												if(this.debug){
-													console.log('Added shared list...', url, this.lists[url].data.length, amount, sharingListsLimit)
-												}
-												this.sharedUrls.push(url)											
+											} else {							
 												if(this.lists[url].meta['epg'] && !this.epgs.includes(this.lists[url].meta['epg'])){
 													this.epgs.push(this.lists[url].meta['epg'])
 												}
-												if(amount == sharingListsLimit){
+												let contentAlreadyLoaded = this.isContentAlreadyLoaded(this.lists[url])												
+												if(contentAlreadyLoaded){
+													global.listsRequesting[url] = 'content already loaded'
 													if(this.debug){
-														console.log('Quota reached', url, amount, sharingListsLimit)
+														console.log('Content already loaded', url, amount, sharingListsLimit)
 													}
-													this.delimitActiveListsData(this.myUrls.concat(this.sharedUrls)) // callc delimitActiveListsData asap to freeup mem, already calls this.saveData()
-													end()
-												}	
-												if(pcb){
-													pcb()
-													pcb = null
+													if(amount > (sharingListsLimit * 1.5)){
+														this.delimitActiveCommunityLists(sharingListsLimit)
+														end()
+													}
+													if(pcb){
+														pcb()
+														pcb = null
+													}
+												} else {
+													let replace
+													if(Object.keys(this.lists).length > sharingListsLimit) {
+														replace = this.shouldReplace(this.lists[url])
+														if(replace){
+															if(this.debug){
+																console.log('List', url, this.lists[url].relevance, 'will replace', replace, this.lists[replace].relevance)
+															}
+															this.lists[replace].destroy()
+															global.listsRequesting[replace] = 'replaced by '+ url
+														}
+													}
+													if(!replace && Object.keys(this.lists).length > sharingListsLimit) {
+														global.listsRequesting[url] = 'quota exceeded'
+														if(this.debug){
+															console.log('Quota exceeded', url, amount, sharingListsLimit)
+														}
+														if(amount > (sharingListsLimit * 1.5) || amount >= altUrls.length){
+															this.delimitActiveCommunityLists(sharingListsLimit)
+															end()
+														}
+														if(pcb){
+															pcb()
+															pcb = null
+														}
+													} else {
+														delete global.listsRequesting[url]
+														amount++
+														if(this.debug){
+															console.log('Added community list...', url, this.lists[url].data.length, amount, sharingListsLimit)
+														}
+														if(amount == sharingListsLimit){
+															if(this.debug){
+																console.log('Quota reached', url, amount, sharingListsLimit)
+															}
+														}	
+														if(pcb){
+															pcb()
+															pcb = null
+														}
+													}
+													if(Object.keys(this.lists).length > (sharingListsLimit * this.syncSatisfyLevel)) {
+														satisfy()
+													}
 												}
 											}
 										})
 										this.lists[url].on('failure', err => {
 											//console.warn('LOAD LIST FAIL', url, this.lists[url])
-											global.listsRequesting[url] = err
+											if(global.listsRequesting[url] == 'loading'){
+												global.listsRequesting[url] = err
+											}
 											if(pcb){
 												pcb()
 												pcb = null
 											}
 											if(this.lists[url]){
-												this.lists[url].destroy()
+												this.lists[url].destroy()												
 											}
 										})
 										this.lists[url].on('destroy', () => {
@@ -1069,9 +1082,21 @@ class Lists extends Index {
 									}
 									const end = () => {
 										if(!ended){
+											console.log('sync pre done')
 											ended = true
 											racing.end()
-											cb()
+											satisfy()
+											this.updateAfterSync(sharingListsLimit)
+										}
+									}
+									const satisfy = () => {
+										if(!satisfied){
+											console.log('sync satisfied')
+											satisfied = true
+											if(cb){
+												cb()
+												cb = null
+											}
 										}
 									}
 									const racing = new ConnRacing(altUrls), cbs = Array(altUrls.length).fill(_acb => {
@@ -1096,62 +1121,90 @@ class Lists extends Index {
 									})
 									console.log('racing', racing)
 									async.parallelLimit(cbs, sharingListsLimit, end)
-									altUrls.forEach(url => {
-										if(!ended){
-											this.isListCached(url, res => {
-												if(res){
-													process(url, url, () => {})
-												}
-											})
-										}
-									})
-								})
-							} else {
-								cb()
-							}
-						}
-					], () => {
-						this.listsUpdateData.done = true
-						this.getLists().then(data => {
-							resolve(data)
-							if(this.debug){
-								console.log('QQQ Lists loaded', Object.keys(this.lists), this.myUrls, this.sharedUrls)
-							}
-							async.eachOfLimit(Object.keys(this.lists), 2, (url, i, acb) => {
-								if(this.lists[url]){
-									if(this.debug){
-										console.log('QQQ List updating', url)
-									}
-									this.lists[url].load().catch(console.error).finally(() => {
-										if(this.debug){
-											console.log('QQQ List updated OK', url)
-										}
-										acb()
-									}) // now force the list cache update, if it haven't did yet
-								} else {
-									if(this.debug){
-										console.log('QQQ List disappeared?!', url, this.lists)
-									}
-									acb()
-								}
-							}, () => {
-								if(this.debug){
-									console.log('QQQ Lists fully updated', Object.keys(this.lists), this.myUrls, this.sharedUrls)
-								}
-								this.saveData()
-							})
-						}).catch(reject)
-					})
-				})
+								})									
+							})								
+						})
+					} else {
+						cb()
+					}
+				}
+			], () => {
+				if(this.debug){
+					console.log('sync satisfied', Object.keys(this.lists), this.myUrls)
+				}
+				this.listsUpdateData.done = true
+				this.getLists().then(data => {
+					resolve(data)
+				}).catch(reject)
 			})
 		})
-    }	
+    }
+	updateAfterSync(sharingListsLimit){		
+		if(this.debug){
+			console.log('QQQ Lists loaded', Object.keys(this.lists), this.myUrls)
+		}
+		this.delimitActiveCommunityLists(sharingListsLimit)
+		async.eachOfLimit(Object.keys(this.lists), 2, (url, i, acb) => {
+			if(this.lists[url]){
+				if(this.debug){
+					console.log('QQQ List updating', url)
+				}
+				this.lists[url].load().catch(console.error).finally(() => {
+					if(this.debug){
+						console.log('QQQ List updated OK', url)
+					}
+					acb()
+				}) // now force the list cache update, if it haven't did yet
+			} else {
+				if(this.debug){
+					console.log('QQQ List discarded?!', url, this.lists)
+				}
+				acb()
+			}
+		}, () => {
+			if(this.debug){
+				console.log('QQQ Lists fully updated', Object.keys(this.lists), this.myUrls)
+			}
+			this.delimitActiveCommunityLists(sharingListsLimit)
+		})
+	}
+	shouldReplace(list){
+		let weaker
+		Object.keys(this.lists).forEach(k => {
+			if(this.watchingListId == k || this.myUrls.includes(k)){
+				return
+			}
+			if(!weaker || this.lists[k].relevance < this.lists[weaker].relevance){
+				weaker = k
+			}
+		})
+		if(weaker && this.lists[weaker].relevance < list.relevance){
+			return weaker
+		}
+	}
+	isContentAlreadyLoaded(list){
+		return Object.keys(this.lists).some(url => {
+			if(url != list.url){
+				return this.compareListData(list, this.lists[url])
+			}
+		})		
+	}
+	compareListData(listA, listB){ // return true if are equals
+		return !listA.data.some((line, i) => {
+			if(typeof(listB[i]) == 'undefined' || listA[i] != listB[i]){
+				return true
+			}
+		})
+	}
     getLists(){
         return new Promise((resolve, reject) => {
+			let communityUrls = Object.keys(this.lists).filter(u => {
+				return u != this.watchingListId && !this.myUrls.includes(u)
+			})
             resolve({
                 my: this.myUrls,
-                shared: this.sharedUrls,
-                length: this.myUrls.length + this.sharedUrls.length
+                community: communityUrls,
+                length: this.myUrls.length + communityUrls.length
             })
         })
     }	
@@ -1165,12 +1218,28 @@ class Lists extends Index {
             }
         })
     }
+	delimitActiveCommunityLists(communityListsLimit){
+		if(Object.keys(this.lists).length > communityListsLimit){
+			let results = {}
+			console.log('delimitActiveCommunityLists', Object.keys(this.lists), communityListsLimit)
+			Object.keys(this.lists).forEach(url => {
+				if(url != this.watchingListId && !this.myUrls.includes(url)){
+					results[url] = this.lists[url].relevance
+				}
+			})
+			let sorted = Object.keys(results).sort((a,b) => results[b] - results[a])
+			sorted.slice(communityListsLimit).forEach(u => {
+				this.lists[u].destroy()
+				delete this.lists[u]
+			})
+			console.log('delimitActiveCommunityLists', Object.keys(this.lists), communityListsLimit, results, sorted)
+		}
+	}
 	remove(u){
 		if(typeof(this.lists[u]) != 'undefined'){
 			this.lists[u].remove()
 			delete this.lists[u]
 		}
-		this.removeListData(u)
 		console.log('Removed list', u)
 	}
 	/*
@@ -1187,40 +1256,48 @@ class Lists extends Index {
 	*/
 	has(terms, opts){
 		return new Promise((resolve, reject) => {	
-			let ret = {}, map = {}
-			// console.log('has()', terms, opts)
+			let ret = {}, results = {}
 			if(!terms.length){
                 return resolve({})
             }
             terms.map(t => {
                 ret[t] = this.applySearchRedirects(this.terms(t))
+				results[t] = false
 			})
 			if(!opts){
 				opts = {}
 			}
-            Object.keys(ret).forEach(k => {
-				let ssmap
-                ret[k].some((term, i) => {
-                    if(typeof(this.data.terms[term]) == 'undefined'){
-                        ret[k] = false
-                        return true
-                    } else {
-						if(ssmap){
-							ssmap = this.intersectMap(this.data.terms[term], ssmap)
-						} else {
-							ssmap = global.deepClone(this.data.terms[term])
-						}
-                    }
-				})
-				if(ret[k] != false){
-					if(ssmap){
-						ret[k] = this.mapSize(ssmap) || false
-					} else {
-						ret[k] = false
+			Object.keys(this.lists).forEach((listUrl, i) => {
+            	Object.keys(ret).forEach(k => {
+					if(results[k] == true) { // already found
+						return
 					}
-				}
+					let ssmap
+					ret[k].some(term => {
+						if(typeof(this.lists[listUrl].index[term]) == 'undefined'){
+							ssmap = undefined
+							return true
+						} else {
+							let map = {}
+							map[listUrl] = global.deepClone(this.lists[listUrl].index[term])
+							if(ssmap){
+								ssmap = this.intersectMap(map, ssmap)
+							} else {
+								ssmap = map
+							}
+							if(!Object.keys(ssmap).length){
+								ssmap = undefined
+								return true
+							}
+						}
+					})
+					if(ssmap && this.mapSize(ssmap)){
+						// found on this list
+						results[k] = true
+					}
+				})
             })
-            resolve(ret)
+            resolve(results)
         })
 	}
 	search(terms, opts){	
@@ -1228,7 +1305,7 @@ class Lists extends Index {
             if(this.debug){
                 console.warn('M3U SEARCH', terms, opts)
             }
-            let start = global.time(), xmap, smap, aliases = {}, bestResults = [], results = [], maybe = [], excludeTerms = [], limit = 1024
+            let start = global.time(), xmap, smap, aliases = {}, bestResults = [], results = [], maybe = [], excludeTerms = [], limit = 256
             if(!terms){
                 return resolve({results, maybe})
             }
@@ -1242,14 +1319,17 @@ class Lists extends Index {
 				let isExclude = term.charAt(0) == '-'
                 if(isExclude){
                     let xterm = term.substr(1)
-                    if(typeof(this.data.terms[xterm]) != 'undefined'){
-						let xtms = global.deepClone(this.data.terms[xterm])
-                        if(xmap){
-							xmap = this.joinMap(xmap, xtms)
-                        } else {
-                            xmap = xtms
+					Object.keys(this.lists).forEach(listUrl => {
+						if(typeof(this.lists[listUrl].index[xterm]) != 'undefined'){
+							let map = {}
+							map[listUrl] = global.deepClone(this.lists[listUrl].index[xterm])
+							if(xmap){
+								xmap = this.joinMap(xmap, map)
+							} else {
+								xmap = map
+							}
 						}
-					}
+					})
 					excludeTerms.push(xterm)
 					return false
                 }
@@ -1257,7 +1337,14 @@ class Lists extends Index {
 			})
 			terms = this.applySearchRedirects(terms)
             if(opts.partial){
-				let allTerms = Object.keys(this.data.terms)
+				let allTerms = []
+				Object.keys(this.lists).forEach(listUrl => {
+					Object.keys(this.lists[listUrl].index).forEach(term => {
+						if(!allTerms.includes(term)){
+							allTerms.push(term)
+						}
+					})
+				})
 				terms.forEach(term => {
 					let tlen = term.length, nterms = allTerms.filter(t => {
 						return t != term && t.length > tlen && (t.substr(0, tlen) == term || t.substr(t.length - tlen) == term)
@@ -1274,14 +1361,17 @@ class Lists extends Index {
 					tms = tms.concat(aliases[term])
 				}
 				tms.forEach(term => {
-					if(typeof(this.data.terms[term]) != 'undefined'){
-						let ttms = global.deepClone(this.data.terms[term])
-						if(tmap){
-							tmap = this.joinMap(tmap, ttms)
-						} else {
-							tmap = ttms
+					Object.keys(this.lists).forEach(listUrl => {
+						if(typeof(this.lists[listUrl].index[term]) != 'undefined'){
+							let map = {}
+							map[listUrl] = global.deepClone(this.lists[listUrl].index[term])
+							if(tmap){
+								tmap = this.joinMap(tmap, map)
+							} else {
+								tmap = map
+							}
 						}
-					}
+					})
 				})
 				if(tmap){
 					if(smap){
@@ -1300,16 +1390,15 @@ class Lists extends Index {
 					smap = this.diffMap(smap, xmap)
 				}
 				const ks = Object.keys(smap)
-				ks.forEach(listId => {
-					let ls = smap[listId]['n']
+				ks.forEach(listUrl => {
+					let ls = smap[listUrl]['n']
 					if(opts.group){
-						console.log('ggroup', smap[listId]['g'])
-						ls = ls.concat(smap[listId]['g'])
+						console.log('ggroup', smap[listUrl]['g'])
+						ls = ls.concat(smap[listUrl]['g'])
 					}
-					smap[listId] = ls
+					smap[listUrl] = ls
 				})
-                async.eachOf(ks, (listId, i, icb) => {
-                    let listUrl = Object.keys(this.data.urls).filter(u => this.data.urls[u] == listId).shift()
+                async.eachOf(ks, (listUrl, i, icb) => {
                     if(listUrl && typeof(this.lists[listUrl]) != 'undefined'){
 						this.lists[listUrl].iterate(e => {
 							if(opts.type){
@@ -1325,7 +1414,7 @@ class Lists extends Index {
 							} else {
 								bestResults.push(e)
 							}
-						}, smap[listId])
+						}, smap[listUrl])
                     }
                     icb()
                 }, () => {
@@ -1382,7 +1471,14 @@ class Lists extends Index {
                 terms = this.terms(terms, true)
 			}
             if(opts.partial){ // like glob to globo
-				let allTerms = Object.keys(this.data.terms)
+				let allTerms = []
+				Object.keys(this.lists).forEach(listUrl => {
+					Object.keys(this.lists[listUrl].index).forEach(term => {
+						if(!allTerms.includes(term)){
+							allTerms.push(term)
+						}
+					})
+				})
 				terms.forEach(term => {
 					let tlen = term.length, nterms = allTerms.filter(t => {
 						return t != term && t.length > tlen && (t.substr(0, tlen) == term || t.substr(t.length - tlen) == term)
@@ -1458,11 +1554,11 @@ class Lists extends Index {
 	}
 	intersectMap(a, b){
 		let c = {}
-		Object.keys(b).forEach(listId => {
-			if(typeof(a[listId]) != 'undefined'){
-				c[listId] = {
-					g: a[listId].g ? a[listId].g.filter(n => b[listId].g.includes(n)).sort() : [], 
-					n: a[listId].n ? a[listId].n.filter(n => b[listId].n.includes(n)).sort() : []
+		Object.keys(b).forEach(listUrl => {
+			if(typeof(a[listUrl]) != 'undefined'){
+				c[listUrl] = {
+					g: a[listUrl].g ? a[listUrl].g.filter(n => b[listUrl].g.includes(n)).sort() : [], 
+					n: a[listUrl].n ? a[listUrl].n.filter(n => b[listUrl].n.includes(n)).sort() : []
 				}
 			}
 		})
@@ -1470,32 +1566,32 @@ class Lists extends Index {
 	}
 	mapSize(a, group){
 		let c = 0
-		Object.keys(a).forEach(listId => {
-			c += a[listId].n.length
+		Object.keys(a).forEach(listUrl => {
+			c += a[listUrl].n.length
 			if(group){
-				c += a[listId].g.length
+				c += a[listUrl].g.length
 			}
 		})
 		return c
 	}
 	joinMap(a, b){
 		let c = global.deepClone(a) // clone it
-		Object.keys(b).forEach(listId => {
-			if(typeof(c[listId]) == 'undefined'){
-				c[listId] = {g: [], n: []}
+		Object.keys(b).forEach(listUrl => {
+			if(typeof(c[listUrl]) == 'undefined'){
+				c[listUrl] = {g: [], n: []}
 			}
-			Object.keys(b[listId]).forEach(type => {
+			Object.keys(b[listUrl]).forEach(type => {
 				let changed
-				b[listId][type].forEach(n => {
-					if(!c[listId][type].includes(n)){
-						c[listId][type].push(n)
+				b[listUrl][type].forEach(n => {
+					if(!c[listUrl][type].includes(n)){
+						c[listUrl][type].push(n)
 						if(!changed){
 							changed = true
 						}
 					}
 				})
 				if(changed){
-					c[listId][type].sort()
+					c[listUrl][type].sort()
 				}
 			})
 		})
@@ -1503,14 +1599,14 @@ class Lists extends Index {
 	}
 	diffMap(a, b){
 		let c = global.deepClone(a) // clone it
-		Object.keys(b).forEach(listId => {
-			if(typeof(c[listId]) != 'undefined'){
-				Object.keys(b[listId]).forEach(type => {
-					if(typeof(c[listId][type]) != 'undefined'){
-						b[listId][type].forEach(n => {
-							let i = c[listId][type].indexOf(n)
+		Object.keys(b).forEach(listUrl => {
+			if(typeof(c[listUrl]) != 'undefined'){
+				Object.keys(b[listUrl]).forEach(type => {
+					if(typeof(c[listUrl][type]) != 'undefined'){
+						b[listUrl][type].forEach(n => {
+							let i = c[listUrl][type].indexOf(n)
 							if(i != -1){
-								c[listId][type].splice(i, 1)
+								c[listUrl][type].splice(i, 1)
 							}
 						})
 					}
@@ -1523,12 +1619,11 @@ class Lists extends Index {
 		return new Promise((resolve, reject) => {
 			let entries = [], ks = atts ? Object.keys(atts) : []
 			async.eachOf(Object.keys(this.lists), (listUrl, i, _icb) => {
-				let groups = this.data.groups[listUrl] || []
 				let icb = () => {
 					// console.log(listUrl, i, 'done')
 					_icb()
 				}
-				if(groups.indexOf(group) != -1){
+				if(this.lists[listUrl].groups.indexOf(group) != -1){
 					this.lists[listUrl].iterate(e => {
 						if(e.groups && e.groups.indexOf(group) != -1){
 							if(ks.length){
@@ -1578,8 +1673,12 @@ class Lists extends Index {
 				parser.on('end', () => {
 					this.directListRendererPrepare(entries, url || file).then(resolve).catch(reject)
 				})
-				stream.on('data', chunk => parser.write(chunk))
-				stream.on('close', () => parser.end())
+				stream.on('data', chunk => {
+					parser.write(chunk)
+				})
+				stream.on('close', () => {
+					parser.end()
+				})
             }
         })
     }
@@ -1648,17 +1747,25 @@ class Lists extends Index {
     }
     groups(){
         return new Promise((resolve, reject) => {
-            let gs = [...new Set([].concat.apply([], Object.keys(this.data.groups).map(k => this.data.groups[k].filter(s => s))))]
-            gs = [...new Set(gs.filter(s => s && s.length >= 2).sort())]
+			let gs = []
+			Object.keys(this.lists).forEach(listUrl => {
+				this.lists[listUrl].groups.forEach(group => {
+					if(!gs.includes(group)){
+						gs.push(group)
+					}
+				})
+			})
             gs = this.parentalControl.filter(gs)
+            gs.sort()
             resolve(gs)
         })
     }
-    getData(){
+	setNetworkConnectionState(state){
         return new Promise((resolve, reject) => {
-            resolve(this.data)
-        })
-    }
+			Download.setNetworkConnectionState(state)
+			resolve(true)
+		})
+	}
 }
 
 module.exports = Lists

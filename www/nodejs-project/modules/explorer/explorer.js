@@ -168,25 +168,7 @@ class Explorer extends Events {
         }
     }
     deepBack(level){
-        let p = this.path
-        if(this.path) {
-            if(this.inSelect()){
-                this.path = this.dirname(this.path)
-            }
-            let next = (e) => {
-                let parent = this.selectEntry(this.pages[this.dirname(e.path)], this.basename(e.path))
-                this.render(this.pages[e.path], e.path, parent.servedIcon || parent.fa || 'fas fa-folder-open')
-            }
-            if(typeof(level) != 'number'){
-                level = 1
-            }
-            while(p && level){
-                p = this.dirname(p)
-                level--
-            }
-            p = this.selectEntry(this.pages[this.dirname(p)], this.basename(p))
-            next(p)
-        }
+        this.back(level, true)
     }
     prependFilter(f){
         this.filters.unshift(f)
@@ -436,7 +418,6 @@ class Explorer extends Events {
             this.emit('open', destPath)
             let icon = '', name = this.basename(destPath), parentPath = this.dirname(destPath)
             let finish = es => {                
-                console.log('explorer.opened', destPath, es, parentPath)
                 this.path = destPath
                 es = this.addMetaEntries(es, destPath, parentPath)
                 this.pages[this.path] = es

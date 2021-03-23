@@ -1,6 +1,6 @@
 
-const http = require('http'), path = require('path'), parseRange = require('range-parser'), finished = require('on-finished')
-const StreamerProxyBase = require('./proxy-base'), decodeEntities = require('decode-entities'), m3u8Parser = require('m3u8-parser')
+const http = require('http'), path = require('path'), parseRange = require('range-parser'), closed = require(global.APPDIR +'/modules/on-closed')
+const StreamerProxyBase = require('./proxy-base'), sanitize = require('sanitize-filename'), decodeEntities = require('decode-entities'), m3u8Parser = require('m3u8-parser')
 
 class StreamerProxy extends StreamerProxyBase {
 	constructor(opts){
@@ -203,7 +203,7 @@ class StreamerProxy extends StreamerProxyBase {
 					if(this.opts.debug){
 						this.opts.debug('unable to listen on port', err)
 					}
-					this.emit('fail')
+					this.fail()
 					reject(err)
 					return
 				}
@@ -253,30 +253,13 @@ class StreamerProxy extends StreamerProxyBase {
 				this.opts.debug('ended', uid, traceback())
 			}
 		}
-		/* Prevent never-ending responses bug on v10.5.0. Is it needed yet? */
-		if(response.socket){
-			response.socket.on('close', () => {
+		closed(req, response, () => {
+			if(!ended){ // req disconnected
 				if(this.opts.debug){
-					this.opts.debug('response socket close', ended, response.ended)
+					this.opts.debug('response closed', ended, response.ended)
 				}
-				setTimeout(() => {
-					if(response.writable){
-						if(this.opts.debug){
-							this.opts.debug('response socket close timeout', ended, response.ended)
-						}
-						response.emit(this.internalRequestAbortedEvent)
-						response.end()
-					}
-				}, 2000)
-			})
-		} else {
-			console.warn('no socket, already disconnected?!')
-			return end()
-		}
-		
-		req.on('close', () => { // req disconnected
-			if(!ended){
-				console.warn('client aborted the request')
+				response.emit(this.internalRequestAbortedEvent)
+				response.end()
 				if(this.connections[uid] && this.connections[uid].response){
 					this.connections[uid].response.emit(this.internalRequestAbortedEvent)
 				}
@@ -285,13 +268,25 @@ class StreamerProxy extends StreamerProxyBase {
 		})
 		download.on('error', err => {
 			if(this.committed){
-				global.osd.show((err.response ? err.response.statusCode : 'timeout') + ' error', 'fas fa-times-circle', 'debug-conn-err', 'normal')
+				global.osd.show(global.streamer.humanizeFailureMessage(err.response ? err.response.statusCode : 'timeout'), 'fas fa-times-circle', 'debug-conn-err', 'normal')
 			}
 		})
 		download.on('response', (statusCode, headers) => {
 			headers = this.removeHeaders(headers, ['transfer-encoding'])
 			headers['access-control-allow-origin'] = '*'
 			if(statusCode >= 200 && statusCode < 300){ // is data response
+				if(!headers['content-disposition'] || headers['content-disposition'].indexOf('attachment') == -1 || headers['content-disposition'].indexOf('filename=') == -1){
+					// setting filename to allow future file download feature
+					// using sanitize to prevent net::ERR_RESPONSE_HEADERS_MULTIPLE_CONTENT_DISPOSITION on bad filename
+					let filename = url.split('?')[0].split('/').filter(s => s).pop()
+					if(!filename || filename.indexOf('=') != -1){
+						filename = 'video'
+					}
+					if(filename.indexOf('.') == -1){
+						filename += '.mp4'
+					}
+					headers['content-disposition'] = 'attachment; filename="' + filename + '"'
+				}
 				if(req.method == 'HEAD'){
 					response.writeHead(statusCode, headers)
 					end()
@@ -310,7 +305,7 @@ class StreamerProxy extends StreamerProxyBase {
 				}
 			} else {
 				if(this.committed && (!statusCode || statusCode < 200 || statusCode >= 400)){ // skip redirects
-					global.osd.show((statusCode || 'timeout') + ' error', 'fas fa-times-circle', 'debug-conn-err', 'normal')
+					global.osd.show(global.streamer.humanizeFailureMessage(statusCode || 'timeout'), 'fas fa-times-circle', 'debug-conn-err', 'normal')
 				}
 				let fallback, location
 				if(statusCode == 404){
@@ -372,9 +367,8 @@ class StreamerProxy extends StreamerProxyBase {
 	handleMetaResponse(download, statusCode, headers, response, end, url){
 		if(!headers['content-type']){
 			headers['content-type'] = 'application/x-mpegURL'
-		}
+		}	
 		if(typeof(this.playlistBitrates[url]) != 'undefined' && this.bitrates.length < this.opts.bitrateCheckingAmount){
-			console.log('METARESPONSE BITRATE SAVE!!', url, this.playlistBitrates[url])
 			this.saveBitrate(this.playlistBitrates[url])
 		}
 		headers = this.removeHeaders(headers, ['content-length']) // we'll change the content
@@ -413,7 +407,7 @@ class StreamerProxy extends StreamerProxyBase {
 			response.writeHead(statusCode, headers)
 		}
 		let offset = download.requestingRange ? download.requestingRange.start : 0
-		let sampleCollected, doBitrateCheck = offset == 0 && this.bitrates.length < this.opts.bitrateCheckingAmount
+		let sampleCollected, doBitrateCheck = offset == 0 && this.committed && this.bitrates.length < this.opts.bitrateCheckingAmount
 		let onend = () => {
 			//console.warn('download ended')
 			if(doBitrateCheck){

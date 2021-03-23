@@ -4,6 +4,7 @@ const Downloader = require('./downloader.js'), TSPacketProcessor = require('./ts
 class Joiner extends Downloader {
 	constructor(url, opts){
 		super(url, opts)
+		this.opts.checkSyncByte = true
 		this.type = 'joiner'
 		this.joinerDestroyed = false
 		this.delayUntil = 0

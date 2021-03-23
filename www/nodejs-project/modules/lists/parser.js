@@ -1,4 +1,3 @@
-//let parsing = parser.parseStream(dwStream).then(es => {}).catch(err => {})
 
 const Events = require('events'), bsplit = require('buffer-split')
 
@@ -12,8 +11,19 @@ class IPTVPlaylistStreamParser extends Events {
 		this.nl = "\n"
 		this.bnl = Buffer.from(this.nl)
 		this.expectingHeader = true
-		this.headerRegex = new RegExp('#(extm3u|playlistv)[^\r\n]*', 'gim')
+		this.attrMap = {
+			'logo': 'icon',
+			'm3u-name': 'name',
+			'tvg-id': 'gid', 
+			'tvg-name': 'name', 
+			'tvg-logo': 'icon',
+			'tvg-language': 'lang',
+			'tvg-country': 'country', 
+			'group-title': 'group', 
+			'pltv-subgroup': 'sub-group'
+		}
 		this.headerAttrMap = {
+			'url-tvg': 'epg',
 			'x-tvg-url': 'epg',
 			'pltv-cover': 'icon', // before pltv-logo
 			'pltv-logo': 'icon',
@@ -24,21 +34,11 @@ class IPTVPlaylistStreamParser extends Events {
 			'pltv-name': 'name',
 			'pltv-description': 'description'
 		}
-		this.headerAttrMapRegex = new RegExp('('+ Object.keys(this.headerAttrMap).join('|').replace('-', '\-') +')\s*=\s*[\'"]([^\r\n\'"]+)', 'g')
-		this.attrMap = {
-			'tvg-id': 'gid', 
-			'tvg-name': 'name', 
-			'tvg-logo': 'icon',
-			'tvg-language': 'lang',
-			'tvg-country': 'country', 
-			'group-title': 'group', 
-			'pltv-subgroup': 'sub-group'
-		}
-		this.attrMapRegex = new RegExp('('+ Object.keys(this.attrMap).join('|').replace('-', '\-') +')\s*=\s*[\'"]([^\r\n\'"]+)', 'g')
-		this.entriesRegex = new RegExp('(^(#[^\r\n]+),\s*([^\r\n]*)\s*[\r\n]+\s*([^#\r\n ]*)$)', 'gim')
+		this.attrMapRegex = this.generateAttrMapRegex(this.attrMap)
+		this.headerAttrMapRegex = this.generateAttrMapRegex(this.headerAttrMap)
+		this.headerRegex = new RegExp('#(extm3u|playlistv)[^\r\n]*', 'gim')
 		this.regexes = {
 			'notags': new RegExp('\\[[^\\]]*\\]', 'g'),
-			'nullgroup': new RegExp('(^[^A-Za-z0-9])N/A([^A-Za-z0-9]$)', 'i'),
 			'non-alpha': new RegExp('^[^0-9A-Za-zÀ-ÖØ-öø-ÿ!\n]+|[^0-9A-Za-zÀ-ÖØ-öø-ÿ!\n]+$', 'g'), // match non alphanumeric on start or end,
 			'between-brackets': new RegExp('[\(\\[].*[\)\\]]'), // match data between brackets
 			'accents': new RegExp('[\\u0300-\\u036f]', 'g'), // match accents
@@ -51,6 +51,9 @@ class IPTVPlaylistStreamParser extends Events {
 			stream.on('data', this.write.bind(this))
 			stream.on('end', this.end.bind(this))
 		}
+	}
+	generateAttrMapRegex(attrs){
+		return new RegExp('('+ Object.keys(attrs).join('|').replace(new RegExp('-', 'g'), '\\-') +')\\s*=\\s*[\'"]([^\r\n\'"]*)', 'gi')
 	}
 	write(chunk){
 		if(!Buffer.isBuffer(chunk)){
@@ -120,23 +123,33 @@ class IPTVPlaylistStreamParser extends Events {
 		replace(this.regexes['spaces'], ' ')
 	}
 	parseBuffer(ended){
-		let buf = Buffer.concat(this.buffer)
+		let data, buf = Buffer.concat(this.buffer)
 		if(!this.validated){
-			this.validated = true
-			if(String(buf).toLowerCase().indexOf('#ext') == -1){
-				this.buffer = []
-				if(this.stream){
-					this.stream.destroy()
+			if(this.len(buf) >= this.bufferSize || ended){
+				this.validated = true
+				if(String(buf).toLowerCase().indexOf('#ext') == -1){
+					this.buffer = []
+					if(this.stream){
+						this.stream.destroy()
+					}
+					this.end()
+					return
 				}
-				this.end()
-				return
 			}
 		}
-		let lines = bsplit(buf, this.bnl)
-		this.buffer = []
-		if(!ended){
+		if(ended){
+			data = String(buf)
+			this.buffer = []
+		} else {
+			let lines = bsplit(buf, this.bnl)
+			this.buffer = []
 			let left = [], n
-			lines = lines.map(l => Buffer.concat([l, this.bnl]))
+			lines = lines.map((l, i) => {
+				if(i < (lines.length - 1)){
+					return Buffer.concat([l, this.bnl])
+				}
+				return l 
+			})
 			for(let i=lines.length - 1; i >= 0; i--){
 				if(this.isExtInf(lines[i])){
 					n = i
@@ -151,17 +164,21 @@ class IPTVPlaylistStreamParser extends Events {
 				lines = lines.slice(0, n) // ?!				
 			}
 			this.buffer.unshift(Buffer.concat(left))
+			data = lines.map(s => String(s)).join('')
 		}
-		if(lines.length){
-			let data = lines.map(s => String(s)).join('')
+		if(data){
 			this.extractEntries(data)
 		}
 	}
 	isExtInf(line){
 		return String(line).toLowerCase().indexOf('#extinf') != -1
 	}
+	isExtM3U(line){
+		let lcline = String(line).toLowerCase()
+		return lcline.indexOf('#extm3u') != -1 || lcline.indexOf('#playlistv') != -1
+	}
 	nameFromURL(url){
-		let name
+		let name, ourl = url
 		if(url.indexOf('?') != -1){
 			let qs = {}
 			url.split('?')[1].split('&').forEach(s => {
@@ -178,71 +195,94 @@ class IPTVPlaylistStreamParser extends Events {
 		if(name){
 			name = decodeURIComponent(name)
 			if(name.indexOf(' ') == -1 && name.indexOf('+') != -1){
-				name = name.replaceAll('+', ' ')
+				name = name.replaceAll('+', ' ').replaceAll('<', '').replaceAll('>', '')
 			}
 			return name
 		}
 		url = url.replace(new RegExp('^[a-z]*://'), '').split('/').filter(s => s.length)
-		return (url[0].split('.')[0] + ' ' + url[url.length - 1]).replace(new RegExp('\\?.*$'), '')
+		if(url.length > 1){
+			return (url[0].split('.')[0] + ' ' + url[url.length - 1]).replace(new RegExp('\\?.*$'), '')
+		} else {
+			console.error('Failed to generate list name from URL', ourl, url)
+			return 'Untitled ' + parseInt(Math.random() * 100000)
+		}
 	}
 	extractEntries(txt){
-		if(this.expectingHeader){
-			const matches = txt.match(this.headerRegex)
-			if(matches){
-				matches.forEach(line => {
-					for(const t of line.matchAll(this.headerAttrMapRegex)){
-						if(this.destroyed) break
-						if(t && t[2]){
-							if(this.headerAttrMap[t[1]]){
-								this.meta[this.headerAttrMap[t[1]]] = t[2]
-							} else {
-								this.meta[t[1]] = t[2]
+		let g = '', e = {url: '', icon: ''}
+		txt.split("\n").filter(s => s.length > 6).map(s => s.trim()).forEach(line => {
+			if(this.isExtM3U(line)) {
+				if(this.expectingHeader){
+					const matches = line.match(this.headerRegex)
+					if(matches){
+						matches.forEach(l => {
+							for(const t of l.matchAll(this.headerAttrMapRegex)){
+								if(this.destroyed) break
+								if(t && t[2]){
+									if(this.headerAttrMap[t[1]]){
+										this.meta[this.headerAttrMap[t[1]]] = t[2]
+									} else {
+										this.meta[t[1]] = t[2]
+									}
+								}
 							}
-						}
+						})
 					}
-				})
-			}
-		}
-		const matches = txt.matchAll(this.entriesRegex)
-		for(const match of matches){
-			if(this.destroyed) break
-			if(match[4].indexOf('/') != -1){
+				}
+			} else if(this.isExtInf(line)) {
 				if(this.expectingHeader){
 					this.expectingHeader = false
 					this.emit('meta', this.meta)
 				}
-				let e = {url: match[4].trim(), icon: ''}
+				let n = '', sg = '', pos = line.lastIndexOf(',')
+				if(pos != -1){
+					n = line.substr(pos + 1).trim()
+				}
+				for(const t of line.matchAll(this.attrMapRegex)){
+					if(t && t[2]){
+						if(this.attrMap[t[1]] == 'name') {
+							if(!n || n == 'N/A'){
+								n = t[2]
+							}
+						} else if(this.attrMap[t[1]] == 'group') {
+							if(!g || g == 'N/A'){
+								g = t[2]
+							}
+						} else if(this.attrMap[t[1]] == 'sub-group') {
+							if(!sg || sg == 'N/A'){
+								sg = t[2]
+							}
+						} else if(!e[this.attrMap[t[1]]]) {
+							e[this.attrMap[t[1]]] = t[2]
+						}
+					}
+				}
+				g = this.trimPath(g)
+				if(sg){
+					g = this.mergePath(g, sg)
+				}
+				if(n){
+					e.name = this.sanitizeName(n)
+				}
+			} else if(line.charAt(0) == '#') {
+				// parse here extra info like #EXTGRP and #EXTVLCOPT
+				let ucline = line.toLowerCase()
+				if(ucline.indexOf('#EXTGRP') != -1){
+					let i = ucline.indexOf(':')
+					if(i != -1){
+						let nwg = line.substr(i + 1).trim()
+						if(nwg.length && (!g || g.length < nwg.length)){
+							g = nwg
+						}
+					}
+				}
+			} else if(line.charAt(0) == '/' || line.substr(0, 7) == 'magnet:' || line.indexOf('://') != -1) {
+				e.url = line
 				if(e.url.substr(0, 2) == '//'){
 					e.url = 'http:' + e.url
 				}
 				if(this.validateURL(e.url)){
-					let g = '', n = match[3], sg = ''
-					for(const t of match[2].matchAll(this.attrMapRegex)){
-						if(t && t[2]){
-							if(this.attrMap[t[1]] == 'name'){
-								if(!n || n == 'N/A'){
-									n = t[2]
-								}
-							} else if(this.attrMap[t[1]] == 'group'){
-								if(!g || g == 'N/A'){
-									g = t[2]
-								}
-							} else if(this.attrMap[t[1]] == 'sub-group'){
-								if(!sg || sg == 'N/A'){
-									sg = t[2]
-								}
-							} else if(!e[this.attrMap[t[1]]]){
-								e[this.attrMap[t[1]]] = t[2]
-							}
-						}
-					}
-					g = this.trimPath(g)
-					if(sg){
-						g = this.mergePath(g, sg)
-					}
-					e.name = this.sanitizeName(n)
 					if(!e.name){
-						e.name = this.nameFromURL(e.url)
+						e.name = e.gid || this.nameFromURL(e.url)
 					}
 					g = this.preSanitizeGroup(g)
 					e.groupName = g.split('/').pop()
@@ -251,8 +291,10 @@ class IPTVPlaylistStreamParser extends Events {
 					e.groups = g.split('/')
 					this.emit('entry', e)
 				}
+				e = {url: '', icon: ''}
+				g = ''
 			}
-		}
+		})
 	}
 	trimPath(b){
 		if(b){
@@ -277,7 +319,7 @@ class IPTVPlaylistStreamParser extends Events {
 		return a
 	}
 	validateURL(url){
-		if(url){
+		if(url && url.length > 11){
 			let u = url.toLowerCase()
 			if(['http', 'rtmp', 'rtsp'].includes(u.substr(0, 4)) && u.indexOf('://') != -1){
 				return true

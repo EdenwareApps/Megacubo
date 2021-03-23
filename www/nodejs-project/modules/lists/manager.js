@@ -3,13 +3,15 @@ const Events = require('events'), fs = require('fs'), path = require('path'), as
 const sanitize = require('sanitize-filename'), LegalIPTV = require('../legal-iptv')
 
 class Manager extends Events {
-    constructor(){
+    constructor(parent){
         super()
+        this.parent = parent
         this.emptyEntry = {name: global.lang.EMPTY, type: 'action', fa: 'fas fa-info-circle', class: 'entry-empty'}
         // this.listFaIcon = 'fas fa-satellite-dish'
         this.listFaIcon = 'fas fa-broadcast-tower'
         this.key = 'lists'
         this.openingList = false
+        this.updatingLists = false
         this.legalIPTV = new LegalIPTV()
         global.ui.on('explorer-back', () => {
             if(this.openingList){
@@ -243,7 +245,7 @@ class Manager extends Events {
     }
     updatedLists(name, fa){
         this.watchListsUpdating(false)
-        global.updatingLists = false
+        this.updatingLists = false
         if(global.explorer && global.explorer.currentEntries && global.explorer.currentEntries.some(e => e.name == global.lang.UPDATING_LISTS)){
             global.explorer.refresh()
         }
@@ -256,7 +258,7 @@ class Manager extends Events {
             let done, lp = -1
             if(!this.watchListsUpdatingTimer){
                 this.watchListsUpdatingTimer = setInterval(() => {
-                    global.lists.listsUpdateProgress().then(p => {
+                    this.parent.listsUpdateProgress().then(p => {
                         if(!done && this.watchListsUpdatingTimer){
                             if(p.done){
                                 done = true
@@ -271,7 +273,7 @@ class Manager extends Events {
                 }, 1000)
             }
         } else {
-            if(!this.watchListsUpdatingTimer){
+            if(this.watchListsUpdatingTimer){
                 clearInterval(this.watchListsUpdatingTimer)
                 this.watchListsUpdatingTimer = false
             }
@@ -280,7 +282,8 @@ class Manager extends Events {
     updateLists(force, onErr){
         const n = global.config.get('shared-mode-reach')
         if(force === true || !global.activeLists.length || global.activeLists.length < n){
-            global.updatingLists = true
+            this.updatingLists = true
+            global.osd.show(global.lang.UPDATING_LISTS, 'fa-mega spin-x-alt', 'update', 'persistent')
             const cb = () => {
                 this.watchListsUpdating(false)
                 if(global.activeLists.length){ // one list available on index beyound meta watching list
@@ -302,7 +305,7 @@ class Manager extends Events {
                 this.getAllURLs().then(urls => {
                     console.log('getAllURLs', urls.length)
                     urls = urls.filter(u => myUrls.indexOf(u) == -1)
-                    global.lists.setLists(myUrls, urls, n).then(ret => {
+                    this.parent.sync(myUrls, urls, n, global.channels.keywords()).then(ret => {
                         global.activeLists = ret
                     }).catch(err => {
                         global.displayErr(err)
@@ -322,14 +325,54 @@ class Manager extends Events {
             }
         }
     }
-    noListsEntry(){
+    UIUpdateLists(force){
+        if(global.Download.isNetworkConnected) {
+            if(this.updatingLists) return
+            this.updateLists(force === true, err => {
+                console.error('lists-manager', err, isUILoaded)
+                if(isUILoaded){ // if error and lists hasn't loaded
+                    ui.emit('dialog', [
+                        {template: 'question', text: lang.NO_COMMUNITY_LISTS_FOUND, fa: 'fas fa-users'},
+                        {template: 'option', id: 'retry', fa: 'fas fa-redo', text: lang.RETRY},
+                        {template: 'option', id: 'add-list', fa: 'fas fa-plus-square', text: lang.ADD_LIST}
+                    ], 'lists-manager', 'retry') 
+                }
+            })
+        } else {
+            global.ui.emit('info', global.lang.NO_INTERNET_CONNECTION, global.lang.NO_INTERNET_CONNECTION)
+        }
+    }
+    noListsRetryDialog(){
+        if(global.Download.isNetworkConnected) {
+            global.ui.emit('dialog', [
+                {template: 'question', text: global.lang.NO_COMMUNITY_LISTS_FOUND, fa: 'fas fa-users'},
+                {template: 'option', id: 'retry', fa: 'fas fa-redo', text: global.lang.RETRY},
+                {template: 'option', id: 'add-list', fa: 'fas fa-plus-square', text: global.lang.ADD_LIST}
+            ], 'lists-manager', 'retry') 
+        } else {
+            global.ui.emit('info', global.lang.NO_INTERNET_CONNECTION, global.lang.NO_INTERNET_CONNECTION)
+        }
+    }
+    noListsEntry(){        
+        if(global.config.get('shared-mode-reach') > 0){
+            return this.noListsRetryEntry()
+        } else {
+            return {
+                name: global.lang.NO_LISTS_ADDED,
+                fa: 'fas fa-plus-square',
+                type: 'action',
+                action: () => {
+                    global.explorer.open(global.lang.IPTV_LISTS).catch(console.error)
+                }
+            }
+        }
+    }
+    noListsRetryEntry(){
         return {
-            name: global.lang.NO_LISTS_ADDED,
+            name: global.lang.LOAD_COMMUNITY_LISTS,
             fa: 'fas fa-plus-square',
             type: 'action',
-            action: () => {
-                global.explorer.open(global.lang.IPTV_LISTS).catch(console.error)
-            }
+            action: () => this.UIUpdateLists(true)
         }
     }
     addListEntry(){
@@ -342,55 +385,178 @@ class Manager extends Events {
     myListsEntry(){
         return {name: global.lang.MY_LISTS, details: global.lang.IPTV_LISTS, type: 'group', renderer: () => {
             return new Promise((resolve, reject) => {
-                let lists = this.get(), options = lists.map(data => {
-                    const name = data[0], url = data[1]
-                    return {
-                        name, 
-                        url,
-                        fa: 'fas fa-satellite-dish', 
-                        type: 'group', 
-                        renderer: data => {
-                            return new Promise((resolve, reject) => {
-                                let es
-                                global.lists.getList(url, true).then(ret => {
-                                    es = ret
-                                }).catch(err => {
-                                    global.displayErr(err)
-                                }).finally(() => {
-                                    if(es.length){
-                                        es = global.lists.parentalControl.filter(es)
-                                        es = global.lists.tools.deepify(es, url)  
-                                    } else {
-                                        es = [this.emptyEntry]
-                                    }
-                                    es.unshift({name: global.lang.REMOVE_LIST, fa: 'fas fa-minus-square', type: 'action', url, action: this.removeList.bind(this)})
-                                    resolve(es)
+                let lists = this.get(), opts = []
+                async.eachOfLimit(lists, 8, (data, i, done) => {
+                    let name = data[0], url = data[1]
+                    this.parent.getListMetaValue(url, 'name', _name => {
+                        if(_name){
+                            name = _name
+                        }
+                        opts.push({
+                            name, 
+                            url,
+                            fa: 'fas fa-satellite-dish', 
+                            type: 'group', 
+                            renderer: data => {
+                                return new Promise((resolve, reject) => {
+                                    let es
+                                    this.parent.getList(url, true).then(ret => {
+                                        es = ret
+                                    }).catch(err => {
+                                        global.displayErr(err)
+                                    }).finally(() => {
+                                        if(es.length){
+                                            es = this.parent.parentalControl.filter(es)
+                                            es = this.parent.tools.deepify(es, url)  
+                                        } else {
+                                            es = [this.emptyEntry]
+                                        }
+                                        es.unshift({name: global.lang.REMOVE_LIST, fa: 'fas fa-minus-square', type: 'action', url, action: this.removeList.bind(this)})
+                                        resolve(es)
+                                    })
                                 })
-                            })
+                            }
+                        })
+                        done()
+                    })
+                }, () => {
+                    opts.push(this.addListEntry())
+                    if(!lists.length){
+                        opts.push({
+                            name: global.lang.NO_LIST,
+                            fa: 'fas fa-info-circle',
+                            type: 'action',
+                            action: () => {}
+                        })
+                    }
+                    resolve(opts)
+                })
+            })
+        }}
+    }
+    epgOptionsEntries(){
+        return new Promise((resolve, reject) => {
+            let options = [], epgs = []
+            this.parent.foundEPGs().then(urls => {
+                epgs = epgs.concat(urls)
+            }).catch(console.error).finally(() => {
+                let activeEPG = global.config.get('epg')
+                if(activeEPG && !epgs.includes(activeEPG)){
+                    epgs.push(activeEPG)
+                }
+                options = epgs.sort().map(url => {
+                    let name = this.parent.manager.nameFromSourceURL(url)
+                    return {
+                        name,
+                        type: 'action',
+                        fa: 'fas fa-th-large',
+                        prepend: (url == activeEPG) ? '<i class="fas fa-check-circle faclr-green"></i> ' : '',
+                        action: () => {
+                            if(url == global.config.get('epg')){
+                                global.config.set('epg', '')
+                                global.channels.load()
+                                global.explorer.refresh()
+                            } else {
+                                this.setEPG(url)
+                            }
                         }
                     }
                 })
-                options.push(this.addListEntry())
-                if(!lists.length){
-                    options.push({
-                        name: global.lang.NO_LIST,
-                        fa: 'fas fa-info-circle',
-                        type: 'action',
-                        action: () => {}
-                    })
-                }
+                options.push({name: global.lang.ADD, fa: 'fas fa-plus-square', type: 'action', action: () => {
+                    global.ui.emit('prompt', global.lang.EPG, 'http://.../epg.xml', global.config.get('epg'), 'set-epg', false, global.channels.epgIcon)
+                }})
+                options.push({
+                    name: global.lang.IMPORT_EPG_CHANNELS,
+                    type: 'check',
+                    action: (e, checked) => {
+                        global.config.set('epg-channels-list', checked)
+                        global.channels.load()
+                    }, 
+                    checked: () => {
+                        return global.config.get('epg-channels-list')
+                    }
+                })
                 resolve(options)
             })
-        }}
+        })
+    }
+    setEPG(url, ui){
+        console.log('SETEPG', url)
+        if(typeof(url) == 'string'){
+            if(!url || this.validateURL(url)){
+                if(url != global.config.get('epg')){
+                    global.config.set('epg', url)
+                    global.explorer.refresh()
+                }
+                this.loadEPG(url, true).then(() => {
+                    let doImportChannelsList = () => { // user changed his mind in the meantime
+                        return url == global.config.get('epg') && global.config.get('epg-channels-list')
+                    }
+                    let refresh = () => {
+                        if(global.explorer.path.indexOf(global.lang.EPG) != -1 || global.explorer.path.indexOf(global.lang.CHANNELS) != -1){
+                            global.explorer.refresh()
+                        }
+                    }
+                    if(!url){
+                        global.channels.updateCategoriesCacheKey()
+                        global.channels.load()
+                        refresh()
+                    } else if(doImportChannelsList()){
+                        global.lists.epgChannelsList().then(list => {
+                            if(doImportChannelsList()){
+                                console.log('CHANNELS LIST IMPORT', list)
+                                global.channels.updateCategoriesCacheKey()
+                                global.channels.setCategories(list, true)
+                                refresh()
+                            }
+                        }).catch(err => {
+                            console.error(err)
+                            global.osd.show(global.lang.IMPORT_EPG_CHANNELS_FAILED, 'fas fa-exclamation-circle faclr-red', 'epg', 'normal')
+                            global.config.set('epg-channels-list', false)
+                            refresh()
+                        })
+                    }
+                }).catch(err => console.error(err))
+            } else {
+                if(ui){
+                    global.osd.show(global.lang.INVALID_URL, 'fas fa-exclamation-circle faclr-red', 'epg', 'normal')
+                }
+            }
+        }
+    }
+    loadEPG(url, ui){
+        return new Promise((resolve, reject) => {
+            if(!url){
+                url = global.config.get('epg')
+            }
+            if(url){
+                let refresh = () => {
+                    if(global.explorer.path.indexOf(global.lang.EPG) != -1 || global.explorer.path.indexOf(global.lang.CHANNELS) != -1){
+                        global.explorer.refresh()
+                    }
+                }
+                if(ui){
+                    global.osd.show(global.lang.EPG_AVAILABLE_SOON, 'fas fa-check-circle', 'epg', 'normal')
+                }
+                console.log('loadEPG', url)
+                this.parent.loadEPG(url).then(() => {
+                    if(ui){
+                        global.osd.show(global.lang.EPG_LOAD_SUCCESS, 'fas fa-check-circle', 'epg', 'normal')
+                    }
+                    resolve(true)
+                }).catch(err => {
+                    global.osd.show(global.lang.EPG_LOAD_FAILURE + ': ' + String(err), 'fas fa-check-circle', 'epg', 'normal')
+                    reject(err)
+                }).finally(refresh)
+            }
+        })
     }
     listsEntries(){
         return new Promise((resolve, reject) => {
             let options = [], lists = this.get()
             options.push(this[lists.length ? 'myListsEntry' : 'addListEntry']())
             options.push(this.listSharingEntry())
-            options.push({name: global.lang.EPG, fa: global.channels.epgIcon, type: 'action', action: () => {
-                global.ui.emit('prompt', global.lang.EPG, 'http://.../epg.xml', global.config.get('epg'), 'set-epg', false, global.channels.epgIcon)
-            }})
+            options.push({name: global.lang.EPG, fa: global.channels.epgIcon, type: 'group', renderer: this.epgOptionsEntries.bind(this)})
             resolve(options)
         })
     }
@@ -417,7 +583,7 @@ class Manager extends Events {
                         }}
                     ]
                     if(global.config.get('shared-mode-reach') > 0){
-                        options.push({name: global.lang.SHARED_LISTS, fa: 'fas fa-users', type: 'group', renderer: this.sharedListsEntries.bind(this)})
+                        options.push({name: global.lang.COMMUNITY_LISTS, fa: 'fas fa-users', type: 'group', renderer: this.communityListsEntries.bind(this)})
                         options.push({name: global.lang.ALL_LISTS, fa: 'fas fa-users', type: 'group', renderer: this.allListsEntries.bind(this)})
                     }
                     resolve(options)
@@ -454,7 +620,7 @@ class Manager extends Events {
     directListRenderer(data){
         console.warn('DIRECT', data, traceback())
         return new Promise((resolve, reject) => {
-            let v = Object.assign({}, data), isMine = global.activeLists.my.includes(v.url), isShared = global.activeLists.shared.includes(v.url)
+            let v = Object.assign({}, data), isMine = global.activeLists.my.includes(v.url), isCommunity = global.activeLists.community.includes(v.url)
             delete v.renderer
             let onerr = err => {
                 console.error(err)
@@ -490,9 +656,9 @@ class Manager extends Events {
                 console.warn('DIRECT', list, JSON.stringify(list[0]))
                 resolve(list)
             }
-            console.warn('DIRECT', isMine, isShared)
-            if(isMine || isShared){
-                global.lists.directListRenderer(v).then(cb).catch(onerr)
+            console.warn('DIRECT', isMine, isCommunity)
+            if(isMine || isCommunity){
+                this.parent.directListRenderer(v).then(cb).catch(onerr)
             } else {   
                 const tmpFile = path.join(global.paths.temp, sanitize(v.url) +'.tmp')
                 fs.stat(tmpFile, (err, stat) => {
@@ -515,12 +681,12 @@ class Manager extends Events {
                         download.on('data', chunk => stream.write(chunk))
                         download.on('end', () => {
                             stream.on('finish', () => {
-                                global.lists.directListFileRenderer(tmpFile, v.url).then(cb).catch(onerr)
+                                this.parent.directListFileRenderer(tmpFile, v.url).then(cb).catch(onerr)
                             })
                             stream.end()
                         })
                     } else {
-                        global.lists.directListFileRenderer(tmpFile, v.url).then(cb).catch(onerr)
+                        this.parent.directListFileRenderer(tmpFile, v.url).then(cb).catch(onerr)
                     }
                 })
             }
@@ -549,7 +715,7 @@ class Manager extends Events {
                     resolve(content)
                     global.osd.hide('add-list')
                 } else {
-                    onErr(global.lists.INVALID_URL_MSG)
+                    onErr(this.parent.INVALID_URL_MSG)
                 }
             }
             const download = new global.Download({
@@ -570,7 +736,7 @@ class Manager extends Events {
             download.on('end', onContent)
         })
     }
-    sharedLists(){
+    communityLists(){
         return new Promise((resolve, reject) => {
             let limit = global.config.get('shared-mode-reach')
             if(limit){
@@ -586,9 +752,9 @@ class Manager extends Events {
             }
         })
     }
-    sharedListsEntries(){
+    communityListsEntries(){
         return new Promise((resolve, reject) => {
-            if(global.updatingLists){
+            if(this.updatingLists){
                 return resolve([{
                     name: global.lang.UPDATING_LISTS, 
                     fa: 'fa-mega spin-x-alt',
@@ -598,15 +764,31 @@ class Manager extends Events {
                     }
                 }])
             }
-            resolve(global.activeLists.shared.map(u => {
-                return {
-                    name: this.nameFromSourceURL(u),
-                    fa: 'fas fa-satellite-dish',
-                    type: 'group',
-                    url: u,
-                    renderer: this.directListRenderer.bind(this)
+            this.parent.getLists().then(active => {
+                global.activeLists = active
+                if(active.community.length){
+                    let opts = []
+                    async.eachOfLimit(active.community, 8, (url, i, done) => {
+                        this.parent.getListMetaValue(url, 'name', name => {
+                            if(!name) {
+                                name = this.nameFromSourceURL(url)
+                            }
+                            opts.push({
+                                name,
+                                fa: 'fas fa-satellite-dish',
+                                type: 'group',
+                                url,
+                                renderer: this.directListRenderer.bind(this)
+                            })
+                            done()
+                        })
+                    }, () => {
+                        resolve(opts)
+                    })
+                } else {
+                    resolve([this.noListsRetryEntry()])
                 }
-            }))
+            }).catch(reject)
         })
     }
     allLists(){
@@ -663,16 +845,16 @@ class Manager extends Events {
                             //console.log('sources', lists)
                             if(lists.length){
                                 if(global.config.get('parental-control-policy') == 'block'){
-                                    lists = global.lists.parentalControl.filter(lists)
+                                    lists = this.parent.parentalControl.filter(lists)
                                 }
                             } else {
-                                lists = [this.emptyEntry]
+                                lists = [this.noListsRetryEntry()]
                             }
                             resolve(lists)
                         })
                     } else {
-                        console.error('no shared lists found', lists)
-                        reject('no shared lists found')
+                        console.error('no community lists found', lists)
+                        reject('no community lists found')
                     }
                 }).catch(e => {
                     console.error('no sources found', e)
@@ -680,6 +862,18 @@ class Manager extends Events {
                 })
             } else {
                 resolve([])
+            }
+        })
+    }
+    relevantKeywords(){
+        return new Promise(resolve => {
+            let keywords = []
+            if(global.histo){
+                ['histo', 'bookmarks'].forEach(k => {
+                    global[k].get().forEach(e => {
+                        keywords = keywords.concat(global.channels.entryTerms(e))
+                    })
+                })
             }
         })
     }

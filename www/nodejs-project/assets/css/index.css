@@ -9,8 +9,8 @@
     --animation-duration-normal: 0.36s;
     --animation-duration-long: 0.5s;
     --animation-duration-timing: ease-in-out;
-    --explorer-width: calc(100vw - 4vmin);
-    --explorer-height: calc(100vh - 2vmin - var(--frameless-window-titlebar-height));
+    --explorer-width: calc(100vw - 4vmin - var(--explorer-padding-right) - var(--explorer-padding-left));
+    --explorer-height: calc(100vh - 2vmin - var(--explorer-padding-top) - var(--explorer-padding-bottom));
     --entries-per-row: 2;
     --entries-per-col: 2;
     --explorer-padding: calc(var(--explorer-height) * 0.01);
@@ -26,8 +26,11 @@
     --explorer-entry-icon-width: calc(0.92 * (var(--explorer-entry-width) - (2 * var(--explorer-padding))));
     --explorer-entry-icon-height: calc(var(--explorer-entry-height) * 0.625);
     --font-color: #ffffff;
-    --frameless-window-titlebar-height: 0px;
-    --modal-height: calc(100vh - var(--frameless-window-titlebar-height) - (2 * var(--padding)));
+    --explorer-padding-top: 0px;
+    --explorer-padding-bottom: 0px;
+    --explorer-padding-right: 0px;
+    --explorer-padding-left: 0px;
+    --modal-height: calc(100vh - var(--explorer-padding-top) - var(--explorer-padding-bottom) - (2 * var(--padding)));
     --opacity-level-1: 0.075;
     --opacity-level-2: 0.25;
     --opacity-level-3: 0.5;
@@ -113,7 +116,10 @@ body.miniplayer-cordova {
 #explorer {
     width: var(--explorer-width);
     height: var(--explorer-height);
-    margin-top: var(--frameless-window-titlebar-height);
+    margin-top: var(--explorer-padding-top);
+    margin-bottom: var(--explorer-padding-bottom);
+    margin-right: var(--explorer-padding-right);
+    margin-left: var(--explorer-padding-left);
     display: flex;
     flex-wrap: wrap;
     border-radius: var(--radius);
@@ -144,7 +150,7 @@ body.miniplayer-cordova {
     align-items: center;
 }
 #explorer header .explorer-omni {
-    display: inline-table;
+    display: table;
     align-self: center;
     flex-grow: inherit;    
     text-align: right;
@@ -383,7 +389,7 @@ body.menu-playing #explorer .content-out {
     min-height: var(--explorer-entry-details-font-size);
     color: var(--secondary-font-color);
 }
-div#paused-layer, div#audio-layer {
+.control-layer {
     position: absolute;
     top: 0;
     left: 0;
@@ -403,15 +409,31 @@ div#paused-layer {
     font-size: var(--controls-button-height);
     opacity: 0.75;
 }
+div#seek-back, div#seek-fwd {
+    font-size: var(--controls-button-height);    
+    flex-direction: column;
+}
+div#seek-back > span, div#seek-fwd > span {
+    display: block;
+    height: 0;
+    font-size: 75%;
+}
 div#audio-layer {
     font-size: calc(1.5 * var(--controls-height));
 }
-body.audio:not(.video-paused) div#audio-layer {
+body.audio:not(.video-paused):not(.video-ended):not(.seek-back):not(.seek-fwd) div#audio-layer {
     display: flex;
 }
-div#paused-layer svg, div#paused-layer i, div#audio-layer svg, div#audio-layer i {
+body.seek-back div#seek-back {
+    display: flex;
+}
+body.seek-fwd div#seek-fwd {
+    display: flex;
+}
+.control-layer svg, .control-layer i {
     filter: drop-shadow(0 0 0.75vmin black);
-    margin-top: calc(var(--frameless-window-titlebar-height) / 2);
+    margin-top: calc(var(--explorer-padding-top) / 2);
+    margin-left: calc(var(--explorer-padding-left) / 2);
 }
 body:not(.video).miniplayer-cordova div#paused-layer {
     display: flex;
@@ -419,10 +441,10 @@ body:not(.video).miniplayer-cordova div#paused-layer {
     height: 100vh;
     opacity: 1;
 }
-body.video-paused:not(.menu-playing) div#paused-layer {
+body.video-paused:not(.menu-playing):not(.seek-back):not(.seek-fwd) div#paused-layer, body.video-ended:not(.menu-playing):not(.seek-back):not(.seek-fwd) div#paused-layer {
     display: flex;
 }
-body.video-paused div#audio-layer {
+body.video-paused div#audio-layer, body.video-ended div#audio-layer {
     display: none !important;
 }
 body.fullscreen.idle {
@@ -465,6 +487,15 @@ seekbar > div {
     pointer-events: none;
     height: var(--padding);
     margin-top: calc(-1 * var(--padding));
+    background-color: rgba(255, 255, 255, 0.1);
+}
+seekbar > div > div {
+    padding: 0;
+    display: block;
+    pointer-events: none;
+    height: inherit;
+    background-color: #fff;
+    transition: width 0.1s ease-in-out 0s;
 }
 seekbar input[type="range"] {
     margin: 0;
@@ -488,7 +519,7 @@ seekbar label {
     transition: color 0.5s linear 0s;
     overflow: hidden;
 }
-body.audio:not(.miniplayer-cordova) controls, body.video-playing:not(.idle):not(.menu-playing):not(.miniplayer-cordova) controls, body.video-loading:not(.miniplayer-cordova):not(.menu-playing) controls, body.video-paused:not(.miniplayer-cordova):not(.menu-playing) controls {
+body.audio:not(.miniplayer-cordova) controls, body.video-playing:not(.idle):not(.menu-playing):not(.miniplayer-cordova) controls, body.video-loading:not(.miniplayer-cordova):not(.menu-playing) controls, body.video-paused:not(.miniplayer-cordova):not(.menu-playing) controls, body.video-ended:not(.miniplayer-cordova):not(.menu-playing) controls {
     bottom: 0;
     transform: none;
 }
@@ -525,9 +556,13 @@ controls button.play-pause {
     margin-left: 1.75%;
     padding: 0;
 }
-controls button.selected, controls button:hover, controls button:active {
+controls button.selected:not(#info), controls button:hover:not(#info), controls button:active:not(#info) {
     opacity: 1;
     filter: drop-shadow(0 0 1vmin var(--font-color));
+}
+controls button#info.selected .about-icon-dot, controls button#info:hover .about-icon-dot, controls button#info:active .about-icon-dot {
+    opacity: 1;
+    filter: drop-shadow(0 0 0.33vmin var(--font-color));
 }
 controls button label {
     display: none;
@@ -540,7 +575,7 @@ controls label.status {
     margin-left: 2%;
     font-size: var(--explorer-entry-name-font-size);
 }
-body.video-playing:not(.idle):not(.menu-playing) controls button.selected label, body.video-loading:not(.menu-playing) controls button.selected label, body.video-paused:not(.menu-playing) controls button.selected label {
+body.video-playing:not(.idle):not(.menu-playing) controls button.selected label, body.video-loading:not(.menu-playing) controls button.selected label, body.video-paused:not(.menu-playing) controls button.selected label, body.video-ended:not(.menu-playing) controls button.selected label {
     display: flex;
     justify-content: center;
 }
@@ -569,6 +604,28 @@ controls button.play-pause svg, controls button.play-pause i {
     display: none;
     font-size: var(--controls-button-height);
 }
+controls button.info i.about-icon-dot {
+    background: white;
+    display: inline-flex;
+    width: calc((var(--controls-button-height) / 8) * 1.33) !important;
+    height: calc((var(--controls-button-height) / 8) * 1.33) !important;
+    border-radius: 100%;    
+}
+controls button.info i.about-icon-dot-second {
+    margin: calc((var(--controls-button-height) / 8) / 2) 0;
+}
+controls button.info.faclr-green i.about-icon-dot-first {
+    background: #0f0;
+    box-shadow: 0 0 2vmin 0.2vmin #0f0;
+}
+controls button.info.faclr-orange i.about-icon-dot-second {
+    background: #f3c41b;
+    box-shadow: 0 0 2vmin 0.2vmin #f3c41b;
+}
+controls button.info.faclr-red i.about-icon-dot-third {
+    background: #f05;
+    box-shadow: 0 0 2vmin 0.2vmin #f05;
+}
 controls volume {
     display: none;
 }
@@ -588,8 +645,8 @@ volume input[type="range"] {
 }
 #osd-root {
     position: absolute;
-    top: var(--frameless-window-titlebar-height);
-    left: 0;
+    top: var(--explorer-padding-top);
+    left: var(--explorer-padding-left);
     width: 100%;  
     padding: 0 2vmin;
     z-index: 10;
@@ -702,10 +759,10 @@ div#modal > div {
     color: #000;
     display: block;
     box-sizing: border-box;
-    top: calc(var(--frameless-window-titlebar-height) + var(--padding));
-    box-sizing: border-box;
-    left: var(--padding);
-    right: var(--padding);
+    top: calc(var(--explorer-padding-top) + var(--padding));
+    bottom: calc(var(--explorer-padding-bottom) + var(--padding));
+    right: calc(var(--explorer-padding-right) + var(--padding));
+    left: calc(var(--explorer-padding-left) + var(--padding));
 }
 div#modal > div > div {
     display: table;

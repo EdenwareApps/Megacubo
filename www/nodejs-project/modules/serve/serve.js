@@ -1,4 +1,4 @@
-const path = require('path'), http = require('http'), Events = require('events'), fs = require('fs'), url = require('url'), finished = require('on-finished')
+const path = require('path'), http = require('http'), fs = require('fs'), url = require('url'), closed = require(global.APPDIR +'/modules/on-closed')
 const parseRange = require('range-parser')
 
 class Serve {
@@ -70,7 +70,7 @@ class Serve {
 						res.end(`File ${pathname} not found!`)
 						return
 					}
-					let start = 0, end = stat.size, len = stat.size
+					let start = 0, end = stat.size - 1, len = stat.size
 					if (req.headers.range) {
 					  const ranges = parseRange(len, req.headers.range, { combine: true })
 					  if (ranges === -1) {
@@ -94,19 +94,28 @@ class Serve {
 					res.setHeader('Access-Control-Allow-Methods', 'GET')
 					res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Content-Length, Cache-Control, Accept, Authorization')
 					res.setHeader('Cache-Control', 'max-age=0, no-cache, no-store')
+					res.setHeader('Content-Disposition', 'attachment; filename=' + path.basename(pathname));
 					res.setHeader('Connection', 'close')
 					res.setHeader('X-Debug', [start, end].join(','))
 					if (req.method === 'HEAD') return res.end()
 					let stream = fs.createReadStream(pathname, {start, end})
-					finished(res, () => {
-						stream && stream.destroy()
+					let sent = 0
+					closed(req, res, () => {
+						console.log('serve res finished', sent, start, end)
+						if(stream){
+							stream.destroy()
+							stream = null
+						}
 						let i = this.clients.indexOf(uid)
 						if(i != -1){
 							this.clients.splice(i, 1)
 						}
 						this.resetTimeout()
+						res.end()
 					})
+					stream.on('data', chunk => sent += chunk.length)
 					stream.pipe(res)
+					console.log('serve res started')
 				})
 			}).listen(this.opts.port, this.opts.addr, (err) => {
 				if (err) {
@@ -186,6 +195,7 @@ class Serve {
 		}
 	}
     clear(){
+		return
 		console.log('serve clear', traceback())
         fs.access(this.folder, error => {
             if (error) {

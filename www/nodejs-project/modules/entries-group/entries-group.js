@@ -15,7 +15,7 @@ class EntriesGroup extends Events {
 		if(this.isReady){
 			fn()
 		} else {
-			this.on('ready', fn)
+			this.once('ready', fn)
 		}
 	}
 	load(){

@@ -82,10 +82,20 @@ function exit(){
 	}
 }
 
+function openExternalFile(file, mimetype){
+	if(parent.cordova){
+		alert('cannot open file ' + file.split('/').pop())
+	} else if(top.nw) {
+		top.nw.Shell.openExternal(file)
+	} else {
+		window.open(file, '_system')
+	}
+}
+
 function openExternalURL(url){
 	if(parent.navigator.app){
 		if(url.match(new RegExp('https://megacubo.tv', 'i'))){
-			ul = url.replace('https:', 'http:') // bypass Ionic Deeplink
+			url = url.replace('https:', 'http:') // bypass Ionic Deeplink
 		}
 		parent.navigator.app.loadUrl(url, {openExternal: true})
 	} else if(top.nw) {
@@ -96,15 +106,16 @@ function openExternalURL(url){
 }
 
 function loaded(){
-	if(document.getElementById('splash').style.display != 'none'){
+	let splash = document.getElementById('splash')
+	if(splash){
 		var s = document.querySelector('iframe').style
     	s.display = 'none'
     	s.visibility = 'visible'
 		s.display = 'block'
 		document.body.style.background = 'transparent'
 		document.getElementById('info').style.display = 'none'
-		document.getElementById('splash').style.display = 'none'
 		document.getElementById('background').style.visibility = 'visible'
+		splash.parentNode.removeChild(splash)
 		app.postMessage({action: 'player-ready'}, location.origin)
 	}
 }
@@ -162,12 +173,16 @@ window.addEventListener('beforeunload', () => {
 	//channel.post('message', ['unbind'])
 })
 
+function channelGetLangCallback(){
+	channel.post('message', ['get-lang-callback', window.navigator.userLanguage || window.navigator.language, Intl.DateTimeFormat().resolvedOptions().timeZone, window.navigator.userAgent, window.navigator.onLine])
+}
+
 function channelCallback(){
 	// console.log('APPR', arguments)
 	if(arguments[0] == 'backend-ready'){
 		frontendBackendReadyCallback('backend', arguments[1], arguments[2])
 	} else if(arguments[0] == 'get-lang'){
-		channel.post('message', ['get-lang-callback', window.navigator.userLanguage || window.navigator.language, Intl.DateTimeFormat().resolvedOptions().timeZone, window.navigator.userAgent])
+		channelGetLangCallback()
 	} else {
 		if(window.cordova){
 			app.postMessage({action: 'channel', args: Array.from(arguments)}, location.origin)
@@ -228,8 +243,8 @@ if(window.cordova){
     channel = new Channel()
 	updateSplashProgress()
 }
-channel.post('message', ['get-lang-callback', window.navigator.userLanguage || window.navigator.language, Intl.DateTimeFormat().resolvedOptions().timeZone, window.navigator.userAgent])
 
+channelGetLangCallback()
 app.postMessage({action: 'app_js_ready'}, location.origin)
 
 if(typeof(IonicDeeplink) != 'undefined'){

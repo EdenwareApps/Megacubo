@@ -22,12 +22,12 @@ class StreamerAdapterTS extends StreamerAdapterBase {
 			this.connectAdapter(this.source)
 			this.server = false
 			this.connectable = false
-			resolve(true)
+			this.source.start().then(resolve).catch(reject)
 		})
 	}
 	speed(){
 		this.downloadLogging = this.source.downloadLogging
-		return super.speed()
+		return super.currentSpeed
 	}
 }
 

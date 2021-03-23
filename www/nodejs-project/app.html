@@ -23,6 +23,7 @@
         <script type="text/javascript" defer src="assets/js/app/hotkeys-actions.js"></script>
         <script type="text/javascript" defer src="assets/js/app/hotkeys-utils.js"></script>
         <script type="text/javascript" defer src="modules/explorer/client.js"></script>
+        <script type="text/javascript" defer src="modules/ffmpeg/client.js"></script>
         <script type="text/javascript" defer src="modules/omni/client.js"></script>
         <script type="text/javascript" defer src="assets/js/app/sound.js"></script>
         <script type="text/javascript" defer src="assets/js/app/setup.js"></script>
@@ -85,11 +86,23 @@
             </div>
             <controls></controls>
         </div>
-        <div id="paused-layer" aria-hidden="true">
+        <div id="paused-layer" class="control-layer" aria-hidden="true">
             <i class="fas fa-play"></i>
         </div>
-        <div id="audio-layer" aria-hidden="true">
+        <div id="audio-layer" class="control-layer" aria-hidden="true">
             <i class="fas fa-headphones"></i>
+        </div>
+        <div id="seek-back" class="control-layer" aria-hidden="true">
+            <i class="fas fas fa-backward"></i>
+            <span>
+                <span></span>
+            </span>
+        </div>
+        <div id="seek-fwd" class="control-layer" aria-hidden="true">
+            <i class="fas fas fa-forward"></i>
+            <span>
+                <span></span>
+            </span>
         </div>
         <div id="osd-root"></div>
         <script type="text/javascript" defer src="assets/js/app/app.js"></script>

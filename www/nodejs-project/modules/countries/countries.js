@@ -1,8 +1,9 @@
-const fs = require('fs'), path = require('path')
+const fs = require('fs'), path = require('path'), Events = require('events')
 
-class Countries {
+class Countries extends Events {
 	constructor(){
-		this.data = {}
+		super()
+		this.data = []
 		this.load()
 	}
 	load(){
@@ -15,7 +16,16 @@ class Countries {
 					console.error(e)
 				}
 			}
+			this.isReady = true
+			this.emit('ready')
 		})
+	}
+	ready(fn){
+		if(this.isReady){
+			fn()
+		} else {
+			this.once('ready', fn)
+		}
 	}
 	select(code, retrieveKeys, by, unique){
 		if(!by) by = 'code'

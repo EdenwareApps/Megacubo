@@ -47,41 +47,64 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
                 this.recover()
             } else {
                 msg = 'fatal video error'
-                this.emit('error', 'playback', this.prepareErrorData(data))
+                this.emit('error', this.prepareErrorDataStr(data), true)
             }
         }
         console.warn(msg)
     }	
-    handleNetworkError(data) {	
+    handleNetworkError(data, force) {	
 		if(!this.active) return
-		if(!isNaN(this.object.duration) && this.object.duration) { // 
-			let now = performance.now()	
-			this.recoverNetworkCodecDate = now
+		if(force === true || (!isNaN(this.object.duration) && this.object.duration)) {
+			let offset = this.object.duration - this.object.currentTime
 			this.hls.stopLoad()
 			this.hls.detachMedia(this.object)
 			setTimeout(() => {
-				console.warn('trying to recover from network Error...')
+				console.warn('trying to recover from network Error...', this.active)
 				if(this.active){
+					const loadListener = () => {
+						this.object.removeEventListener('loadedmetadata', loadListener)
+						let time = this.object.duration - offset
+						if(time < 0 || isNaN(time)){
+							time = 0
+						}
+						this.object.currentTime = time
+						this.resume()
+					}
+					this.object.addEventListener('loadedmetadata', loadListener)
 					this.hls.attachMedia(this.object)
 					this.hls.startLoad() // ffmpeg/server slow response
 					try{
 						this.object.load()
 					}catch(e){
-						console.error(e)
+						console.error('PLAYER OBJECT LOAD ERROR', e)
 					}
 				}
 			}, 0)
-			this.emit('slow')
 		} else {
 			let msg = 'fatal video error'
 			console.error(msg, this.object.duration)
-			this.emit('error', 'playback', this.prepareErrorData(data))
+			this.emit('error', this.prepareErrorDataStr(data), true)
 			this.state = ''
 			this.emit('state', '')
 		}
-    }	
+		/*
+		if(force === true || (!isNaN(this.object.duration) && this.object.duration)) {
+			console.warn('trying to recover from network Error...')
+			this.hls.startLoad()
+		} else {
+			let msg = 'fatal video error'
+			console.error(msg, this.object.duration)
+			this.emit('error', this.prepareErrorDataStr(data), true)
+			this.state = ''
+			this.emit('state', '')
+		}
+		*/
+    }
     prepareErrorData(data){
         return {type: data.type || 'playback', details: data.details || ''}
+    }
+    prepareErrorDataStr(data){
+        return (typeof(data) != 'string' && data.details) ? data.details : String(data)
     }
     loadHLS(cb){
 		if(!this.hls){
@@ -89,10 +112,10 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 				enableWorker: true,
 				autoStartLoad: false,
 				defaultAudioCodec: 'mp4a.40.2',
-				maxBufferSize: 600, // When doing internal transcoding with low crf, fragments will become bigger
-				maxBufferLength: 10,
+				maxBufferSize: 128, // When doing internal transcoding with low crf, fragments will become bigger
+				backBufferLength: this.config['live-window-time'],
+				maxBufferLength: 30,
 				maxMaxBufferLength: 120,
-				liveBackBufferLength: 30 // secs, limited due to memory usage
 				/*
 				debug: true,
 				enableSoftwareAES: false,
@@ -108,8 +131,14 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 			})
 			this.hls.on(Hls.Events.ERROR, (event, data) => {
 				if(!this.active) return
-				console.error('hlserr', data)
+				console.error('hlserr', data, data.fatal)
 				if (data.fatal) {
+					let forceNetworkRecover
+					if(data.type == Hls.ErrorTypes.OTHER_ERROR && event == 'demuxerWorker'){
+						// Uncaught RangeError: byte length of Int32Array should be a multiple of 4
+						data.type = Hls.ErrorTypes.NETWORK_ERROR
+						forceNetworkRecover = true
+					}
 					switch (data.type) {
 						case Hls.ErrorTypes.MEDIA_ERROR:
 							console.error('media error', data.details)
@@ -121,11 +150,11 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 							break
 						case Hls.ErrorTypes.NETWORK_ERROR:
 							console.error('network error', data.networkDetails)
-							this.handleNetworkError(data)
+							this.handleNetworkError(data, forceNetworkRecover)
 							break
 						default:
 							console.error('unrecoverable error', data.details)
-							this.emit('error', 'playback', this.prepareErrorData(data))
+							this.emit('error', this.prepareErrorDataStr(data), true)
 							break
 					}
 				} else {
@@ -171,10 +200,18 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 							console.error('Parsing error:' + data.reason)
 							break
 						case Hls.ErrorDetails.KEY_LOAD_ERROR:
-							console.error('Error while loading key ' + data.frag.decryptdata.uri)
+							if(this.object.currentTime){
+								console.error('Error while loading key ' + data.frag.decryptdata.uri)
+							} else {
+								this.emit('error', 'key load error', true)
+							}
 							break
 						case Hls.ErrorDetails.KEY_LOAD_TIMEOUT:
-							console.error('Timeout while loading key ' + data.frag.decryptdata.uri)
+							if(this.object.currentTime){
+								console.error('Timeout while loading key ' + data.frag.decryptdata.uri)
+							} else {
+								this.emit('error', 'key load timeout', true)
+							}
 							break
 						case Hls.ErrorDetails.BUFFER_APPEND_ERROR:
 							console.error('Buffer append error', parseInt(this.object.duration))
@@ -195,7 +232,21 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 						case Hls.ErrorDetails.BUFFER_STALLED_ERROR:
 							console.error('Buffer stalled error', parseInt(this.object.duration))
 							// not fatal, would not be needed to handle, BUT, the playback hangs even it not saying that it's a fatal error, so call handleNetworkError(/*startLoad()*/) to ensure
-							// this.handleNetworkError(data)
+							let time = this.object.currentTime, duration = this.object.duration			
+							this.hls.stopLoad()
+							if((duration - time) > this.config['live-window-time']){
+								let averageLoadTime = 5
+								console.log('out of live window', time, duration, this.config)
+								time = (duration - this.config['live-window-time']) + averageLoadTime
+								if(time < 0){
+									time = 0
+								}
+								this.object.currentTime = time
+								this.hls.startLoad()
+							} else {
+								console.log('in live window', time, duration, this.config)
+								this.handleNetworkError(data)
+							}
 							break
 						case Hls.ErrorDetails.BUFFER_NUDGE_ON_STALL:
 							console.error('Buffer nudge on stall', parseInt(this.object.duration))
@@ -225,6 +276,20 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 			cb()
 		}
 	}	
+	restart(){
+		this.disconnect()
+		try{ // due to some nightmare errors crashing nwjs
+			this.hls.destroy()
+			this.hls = null
+		}catch(e){
+			console.error(e)
+		}
+		this.time(0)
+		this.loadHLS(() => {
+			this.hls.loadSource(this.src)
+			this.connect()
+		})
+	}
 	load(src, mimetype, cookie){
 		console.warn('LOAD SRC')
 		this.active = true

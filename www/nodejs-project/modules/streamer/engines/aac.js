@@ -4,9 +4,7 @@ class StreamerAACIntent extends StreamerBaseIntent {
     constructor(data, opts, info){
         console.log('AACOPTS', opts)
         opts = Object.assign(opts, {
-            audioCodec: (!global.cordova || data.url.indexOf('aac') == -1) ? 
-                'aac' : // force audio recode for AAC to prevent HLS.js playback hangs
-                'copy', // aac disabled for performance
+            audioCodec: global.config.get('ffmpeg-audio-repair') ? 'aac' : 'copy',
             videoCodec: null
         })
         super(data, opts, info)
@@ -19,7 +17,7 @@ class StreamerAACIntent extends StreamerBaseIntent {
             this.downloader = new StreamerAdapterAAC(this.data.url, this.opts)
             this.connectAdapter(this.downloader)
             this.downloader.start().then(() => {
-                this.ts2hls = new FFServer(this.downloader.source.stream, this.opts)
+                this.ts2hls = new FFServer(this.downloader.source.endpoint, this.opts)
                 this.ts2hls.audioCodec = this.opts.audioCodec
                 this.connectAdapter(this.ts2hls)
                 this.ts2hls.start().then(() => {

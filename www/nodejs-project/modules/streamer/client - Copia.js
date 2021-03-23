@@ -3,7 +3,6 @@ class StreamerPlaybackTimeout extends EventEmitter {
     constructor(controls, app){
         super()
         this.app = app
-        this.jbody = $(document.body)
         this.controls = controls
         this.playbackTimeout = 25000
         this.playbackTimeoutTimer = 0
@@ -81,11 +80,7 @@ class StreamerOSD extends StreamerPlaybackTimeout {
                     clearTimeout(this.transmissionNotWorkingHintTimer)
                     this.OSDNameShown = false
                     osd.hide(this.osdID + '-sub')
-                    if(this.seekTimer){
-                        osd.hide(this.osdID)
-                    } else {
-                        osd.show(lang.PAUSED, 'fas fa-play', this.osdID, 'persistent')
-                    }
+                    osd.show(lang.PAUSED, 'fas fa-play', this.osdID, 'persistent')
                     break
                 case 'loading':
                     osd.hide(this.osdID) // clear paused osd
@@ -163,7 +158,7 @@ class StreamerState extends StreamerOSD {
         this.bindStateListener()
     }
     bindStateListener(){
-        if(!parent.player.listeners('state').includes(this.stateListener)){
+        if(!parent.player.listeners().includes(this.stateListener)){
             parent.player.on('state', this.stateListener)
         }
     } 
@@ -323,117 +318,76 @@ class StreamerSpeedo extends StreamerBodyIdleClass {
         this.on('state', state => {
             switch(state){
                 case 'loading':
-                    this.speedoUpdate()
+                    this.startSpeedo()
                     break
                 case 'paused':
+                    this.endSpeedo()
                     this.seekbarLabel.innerHTML = lang.PAUSED
                     break
                 case 'ended':
+                    this.endSpeedo()
                     this.seekbarLabel.innerHTML = lang.ENDED
                     break
                 default:
+                    this.endSpeedo()
                     this.seekbarLabel.innerHTML = lang.WAITING_CONNECTION
             }
         })
-        this.on('start', () => {
-            this.commitTime = time()
-            this.app.emit('downlink', this.downlink())            
-            this.speedoUpdate()
-        })
-        this.on('stop', () => {
-            this.bitrate = 0
-            this.currentSpeed = 0
-        })
-        this.app.on('streamer-speed', speed => {
-            this.currentSpeed = speed
-            this.speedoUpdate()
-        })
-        this.app.on('streamer-bitrate', bitrate => {
-            this.bitrate = bitrate
-            this.speedoUpdate()
-        })
-        navigator.connection.addEventListener('change', () => {            
-            this.speedoUpdate()
-            this.app.emit('downlink', this.downlink())
-        })
+        this.app.on('speedo', this.speedoUpdate.bind(this))
     }
-    downlink(minimal){
-        if(!navigator.onLine){
-            return 0
+    startSpeedo(){
+        let clientSpeed = navigator.connection && navigator.connection.downlink ? navigator.connection.downlink : 0
+        if(clientSpeed){ // mbs to bits
+            clientSpeed = clientSpeed * (1024 * 1024)
         }
-        let downlink = navigator.connection && navigator.connection.downlink ? navigator.connection.downlink : 0
-        if(downlink){ // mbs to bits
-            downlink = downlink * (1024 * 1024)
-        }
-        if(minimal && downlink < minimal){
-            downlink = minimal
-        }
-        return downlink
+        this.app.emit('speedo-start', clientSpeed)
     }
-    speedoUpdate(){
-        if(!parent.player.state){
-            return
-        }
-        let starting = (time() - this.commitTime) < 10
-        let lowSpeedThreshold = (250 * 1024) /* 250kbps */, downlink = this.downlink(this.currentSpeed)
-        if(this.invalidSpeeds.includes(this.currentSpeed)) {
-            this.seekbarLabel.innerHTML = lang.WAITING_CONNECTION
-            this.speedoSemSet(1)
-        } else {
-            let t = ''
-            if(this.bitrate && !this.invalidSpeeds.includes(this.bitrate)){
-                let p = parseInt(this.currentSpeed / (this.bitrate / 100))
-                if(p > 100){
-                    p = 100
-                }
-                if(downlink && downlink < this.bitrate){ // client connection is the throattling factor
-                    t += lang.YOUR_CONNECTION + ': '
-                } else { // slow server?
-                    t += lang.SERVER_CONNECTION + ': '
-                }
-                t += p + '%'
-                if(p < 80){
-                    t = '<span class="faclr-red">' + t + '</span>'
-                    this.speedoSemSet(2)
-                } else if(p < 100){
-                    t = '<span class="faclr-orange">' + t + '</span>'
-                    this.speedoSemSet(1)
-                } else {
-                    t = '<span class="faclr-green">' + t + '</span>'
-                    this.speedoSemSet(0)
-                }
-            } else {
-                t += lang.SERVER_CONNECTION + ': ' + kbsfmt(this.currentSpeed)
-                if(this.currentSpeed <= lowSpeedThreshold){
-                    if(starting){
-                        t = lang.WAITING_CONNECTION
-                        this.speedoSemSet(1)
-                    } else {
-                        t = '<span class="faclr-red">' + t + '</span>'
-                        this.speedoSemSet(2)
-                    }
-                } else {                    
-                    this.speedoSemSet(1)
+    endSpeedo(){
+        this.app.emit('speedo-end')
+    }
+    speedoUpdate(speed, bitrate, starting){
+        if(parent.player.state == 'loading'){
+            let lowSpeedThreshold = (250 * 1024) /* 250kbps */, clientSpeed = navigator.connection && navigator.connection.downlink ? navigator.connection.downlink : 0
+            if(clientSpeed){ // mbs to bits
+                clientSpeed = clientSpeed * (1024 * 1024)
+                if(clientSpeed < speed){
+                    clientSpeed = speed
                 }
             }
-            if(parent.player.state == 'loading'){
+            if(this.invalidSpeeds.includes(speed)) {
+                this.seekbarLabel.innerHTML = lang.WAITING_CONNECTION
+            } else {
+                let t = ''
+                if(bitrate && !this.invalidSpeeds.includes(bitrate)){
+                    let p = parseInt(speed / (bitrate / 100))
+                    if(p > 100){
+                        p = 100
+                    }
+                    if(clientSpeed && clientSpeed < bitrate){ // client connection is the throattling factor
+                        t += lang.YOUR_CONNECTION + ': '
+                    } else { // slow server?
+                        t += lang.SERVER_CONNECTION + ': '
+                    }
+                    t += p + '%'
+                    if(p < 80){
+                        t = '<span class="faclr-red">' + t + '</span>'
+                    } else if(p < 90){
+                        t = '<span class="faclr-orange">' + t + '</span>'
+                    } else {
+                        t = '<span class="faclr-green">' + t + '</span>'
+                    }
+                } else {
+                    t += lang.SERVER_CONNECTION + ': ' + kbsfmt(speed)
+                    if(speed <= lowSpeedThreshold){
+                        if(starting){
+                            t = lang.WAITING_CONNECTION
+                        } else {
+                            t = '<span class="faclr-red">' + t + '</span>'
+                        }
+                    }
+                }
                 this.seekbarLabel.innerHTML = t
             }
-        }
-    }
-    speedoSemSet(s){
-        if(s !== this.currentSem){
-            this.currentSem = s
-            if(!this.speedoSemInfoButton){
-                this.speedoSemInfoButton = $(this.getPlayerButton('info'))
-            }
-            ['green', 'orange', 'red'].forEach((color, i) => {
-                if(i == s){
-                    this.speedoSemInfoButton.addClass('faclr-'+ color)
-                } else {
-                    this.speedoSemInfoButton.removeClass('faclr-'+ color)
-                }
-            })
         }
     }
 }
@@ -441,59 +395,34 @@ class StreamerSpeedo extends StreamerBodyIdleClass {
 class StreamerSeek extends StreamerSpeedo {
     constructor(controls, app){
         super(controls, app)
+        this.seekOsdID = 'seek-osd-id'
+        this.seekOsdTime = 1000
+        this.seekCounter = 0
+        this.seekCounterDelay = 2000
         this.seekSkipSecs = 5
         this.seekbar = false
         this.seekBarShowTime = 5000
         this.seekBarShowTimer = 0
         this.seekStepDelay = 400
-        this.seekTimer = 0
-        this.mouseWheelMovingTime = 0
-        this.mouseWheelMovingInterval = 200
         this.on('draw', () => {
             this.seekbar = this.controls.querySelector('seekbar')
             this.seekbarLabel = this.controls.querySelector('label.status')
             this.seekbarNput = this.seekbar.querySelector('input')
-            this.seekbarNputVis = this.seekbar.querySelector('div > div')
+            this.seekbarNputVis = this.seekbar.querySelector('div#seek-active')
+            this.seekbarNputDeadVis = this.seekbar.querySelector('div#seek-dead')
             this.seekbarNput.addEventListener('input', () => {
                 if(this.active){
                     console.log('INPUTINPUT', this.seekbarNput.value)
                     this.seekByPercentage(this.seekbarNput.value)
                 }
             })
-            this.seekBackLayerCounter = document.querySelector('div#seek-back > span > span') 
-            this.seekFwdLayerCounter = document.querySelector('div#seek-fwd > span > span') 
             window.addEventListener('idle-stop', this.seekBarUpdate.bind(this))  
             this.seekBarUpdate(true)
-        })
-        this.on('state', s => {
-            if(['playing', 'error', ''].includes(s)){
-                this.seekingFrom = null
-                console.log('removing seek layers', s)
-                this.jbody.removeClass('seek-back').removeClass('seek-fwd')
-            }
         })
         parent.player.on('timeupdate', this.seekBarUpdate.bind(this))
         parent.player.on('play', () => {
             this.seekBarUpdate(true)
-        });
-        ['mousewheel', 'DOMMouseScroll'].forEach(n => {
-            window.addEventListener(n, event => {
-                if(!this.active){
-                    return
-                }
-                let now = (new Date()).getTime()
-                if(now > (this.mouseWheelMovingTime + this.mouseWheelMovingInterval)){
-                    this.mouseWheelMovingTime = now
-                    let delta = (event.wheelDelta || -event.detail)
-                    console.log('seek mousewheel', (delta > 0) ? 'up' : 'down')
-                    if(delta > 0){   
-                        this.seekFwd()
-                    } else {
-                        this.seekBack()
-                    }
-                }
-            })
-        }) 
+        })
     }    
     hmsPrependZero(n){
         if (n < 10){
@@ -508,34 +437,12 @@ class StreamerSeek extends StreamerSpeedo {
         let seconds = this.hmsPrependZero(sec_num - (hours * 3600) - (minutes * 60))
         return hours + ':' + minutes + ':' + seconds
     }
-    hmsMin(secs){
-        if(secs < 0){
-            secs = Math.abs(secs)
-        }
-        if(secs <= 60){
-            return secs + 's'
-        } else {
-            let sec_num = parseInt(secs, 10) // don't forget the second param
-            let hours   = Math.floor(sec_num / 3600)
-            let minutes = this.hmsPrependZero(Math.floor((sec_num - (hours * 3600)) / 60))
-            let seconds = this.hmsPrependZero(sec_num - (hours * 3600) - (minutes * 60))
-            if(hours >= 1){
-                hours = this.hmsPrependZero(hours)
-                return hours + ':' + minutes + ':' + seconds
-            } else {
-                return minutes + ':' + seconds
-            }
-        }
-    }
-    seekBarUpdate(force, time){
+    seekBarUpdate(force){
         if(this.active && this.state){
             if(!['paused', 'ended', 'loading'].includes(parent.player.state) || force === true){
                 if(this.seekbarNput && (!window.isIdle || parent.player.state != 'playing' || force === true)){
-                    if(typeof(time) != 'number'){
-                        time = parent.player.time()
-                    }
-                    let percent = this.seekPercentage(time), duration = parent.player.duration()
-                    this.seekbarLabel.innerHTML = this.hms(time) +' <font style="opacity: var(--opacity-level-2);">/</font> '+ this.hms(duration)
+                    let percent = this.seekCurrentPlaybackPercentage(), d = parent.player.duration()
+                    this.seekbarLabel.innerHTML = this.hms(parent.player.time()) +' <font style="opacity: var(--opacity-level-2);">/</font> '+ this.hms(d)
                     if(percent != this.lastPercent){
                         this.seekBarUpdateView(percent)
                     }
@@ -543,48 +450,32 @@ class StreamerSeek extends StreamerSpeedo {
             }
         }
     }
-    seekBarUpdateView(percent){
+    seekBarUpdateView(percent, duration){
         if(this.active && this.state){
-            let d = parent.player.duration()
+            if(typeof(duration) != 'number'){
+                duration = parent.player.duration()
+            }
             this.lastPercent = percent
-            if(percent == 100 && isNaN(d)){
+            if(percent == 100 && isNaN(duration)){
                 percent = 0
             }
-            //this.seekbarNputVis.style.background = 'linear-gradient(to right, rgb(255, 255, 255) '+ percent +'%, rgba(255, 255, 255, 0.1) '+ percent +'.01%)'
-            this.seekbarNputVis.style.width = percent +'%'
+            let deadPercent = this.seekDeadPercentage(null, duration)
+            this.seekbarNputDeadVis.style.width = deadPercent +'%'
+            this.seekbarNputVis.style.width = (percent - deadPercent) +'%'
         }
     }
     seekBarUpdateSpeed(){
         if(this.active && this.seekbarNput && parent.player.state == 'loading'){
-            let percent = this.seekPercentage(), d = parent.player.duration()
-            this.seekbarLabel.innerText = this.hms(parent.player.time()) +' / '+ this.hms(d)
+            let percent = this.seekCurrentPlaybackPercentage(), duration = parent.player.duration()
+            this.seekbarLabel.innerText = this.hms(parent.player.time()) +' / '+ this.hms(duration)
             if(percent != this.lastPercent){
                 this.seekBarUpdateView(percent)
             }
         }
     }
-    seekPercentage(time){
+    seekCurrentPlaybackPercentage(){
         if(!this.active) return 0
-        if(typeof(time) != 'number'){
-            time = parent.player.time()
-        }
-        let minTime = 0, duration = parent.player.duration()
-        if(this.activeMimetype && this.activeMimetype.indexOf('mpegurl') != -1){
-            minTime = duration - config['live-window-time']
-            if(minTime < 0){
-                minTime = 0
-            }
-        }
-        if(minTime){
-            time -= minTime
-            duration -= minTime
-            if(time < 0){
-                time = 0
-            }
-            if(duration < 0){
-                duration = 0
-            }
-        }
+        let time = parent.player.time(), duration = parent.player.duration()
         let percent = time / (duration / 100)
         if(isNaN(percent) || percent > 100){ // ?!
             percent = 100
@@ -593,125 +484,118 @@ class StreamerSeek extends StreamerSpeedo {
     }
     seekTimeFromPercentage(percent){
         if(!this.active) return 0
-        let minTime = 0, time = parent.player.time(), duration = parent.player.duration()
-        if(this.activeMimetype && this.activeMimetype.indexOf('mpegurl') != -1){
-            minTime = duration - config['live-window-time']
-            if(minTime < 0){
-                minTime = 0
-            }
-        }
-        if(minTime){
-            time -= minTime
-            duration -= minTime
-            if(time < 0){
-                time = 0
-            }
-            if(duration < 0){
-                duration = 0
-            }
-        }
-        let ret = parseInt(minTime + (percent * (duration / 100)))
-        console.log('SEEK PERCENT', percent, minTime, parent.player.time(), parent.player.duration(), duration, ret)
+        let time = parent.player.time(), duration = parent.player.duration()
+        let ret = this.seekTimeCap(percent * (duration / 100), time, duration)
+        console.log('SEEK PERCENT', percent, time, duration, ret)
         return ret
     }
     seekByPercentage(percent){        
         if(this.active){
             let s = this.seekTimeFromPercentage(percent)
-            this.seekTo(s)
+            parent.player.time(s)
             this.app.emit('streamer-seek', s)
             this.seekBarUpdate(true)
         }
     }
-    seekTo(s){
-        clearTimeout(this.seekTimer)
-        this.seekTimer = setTimeout(() => {
-            parent.player.resume()
-            this.seekTimer = 0
-        }, 2000)
-        parent.player.pause()
-        if(typeof(this.seekingFrom) != 'number'){
-            this.seekingFrom = parent.player.time()
+    seekDeadTime(time, duration){ // from which point we can't backward seeking anymore
+        if(!this.active) return 0
+        let minTime = 0
+        if(typeof(time) != 'number'){
+            time = parent.player.time()
         }
-        let minTime = 0, duration = parent.player.duration(), maxTime = Math.max(0, duration - 2)
+        if(typeof(duration) != 'number'){
+            duration = parent.player.duration()
+        }
         if(this.activeMimetype && this.activeMimetype.indexOf('mpegurl') != -1){
             minTime = duration - config['live-window-time']
             if(minTime < 0){
                 minTime = 0
             }
         }
+        return minTime
+    }
+    seekDeadPercentage(time, duration){ // from which point we can't backward seeking anymore
+        if(!this.active) return 0
+        if(typeof(time) != 'number'){
+            time = parent.player.time()
+        }
+        if(typeof(duration) != 'number'){
+            duration = parent.player.duration()
+        }
+        let minTime = this.seekDeadTime(time, duration)
+        let ret = Math.ceil(minTime / (duration / 100))
+        console.log('SEEK DEADPERCENT', minTime, duration, ret)
+        return ret
+    }
+    seekTimeCap(s, time, duration){
+        if(!this.active) return 0
+        if(typeof(time) != 'number'){
+            time = parent.player.time()
+        }
+        if(typeof(duration) != 'number'){
+            duration = parent.player.duration()
+        }
+        let minTime = this.seekDeadTime(time, duration)
         if(s < minTime){
             s = minTime
-        } else if(s > maxTime){
+        }
+        let maxTime = duration - 2
+        if(s > maxTime){
             s = maxTime
         }
-        let diff = parseInt(s - this.seekingFrom)
-        parent.player.time(s)
-        console.log('seeking prefwd ', diff, s, this.seekingFrom)
-        if(diff < 0){
-            this.seekBackLayerCounter.innerText = '-' + this.hmsMin(diff)
-            this.jbody.removeClass('seek-fwd').addClass('seek-back')
-        } else if(diff > 0) {
-            console.log('seeking fwd ', diff, s, this.seekingFrom)
-            this.seekFwdLayerCounter.innerText = '+' + this.hmsMin(diff)
-            this.jbody.removeClass('seek-back').addClass('seek-fwd')
-        } else {
-            console.log('removing seek layers', diff, s, this.seekingFrom)
-            this.jbody.removeClass('seek-back').removeClass('seek-fwd')
-        }
-        this.seekBarUpdate(true, s)
+        return s
     }
     seekBack(){
-        if(this.active){
-            let now = parent.player.time(), nct = now - this.seekSkipSecs
-            this.seekTo(nct)
+        if(this.active && !this.seekLocked){
+            this.seekLocked = true
+            this.seekCounter -= this.seekSkipSecs
+            setTimeout(() => {
+                this.seekLocked = false
+            }, this.seekStepDelay) 
+            clearTimeout(this.seekCounterTimer)
+            this.seekCounterTimer = setTimeout(() => {
+                this.seekCounter = 0
+            }, this.seekCounterDelay) 
+            let now = parent.player.time(), nct = this.seekTimeCap(now - this.seekSkipSecs, now)
+            if(nct < now){
+                parent.player.time(nct)
+                let txt = lang.SEEKREWIND
+                if(this.seekCounter < 0){
+                    txt += ' ' + Math.abs(this.seekCounter) + 's'
+                }
+                osd.show(txt, 'fas fa-backward', this.seekOsdID, this.seekOsdTime)
+            } else {
+                osd.show(lang.PLAY, 'fas fa-play', this.seekOsdID, this.seekOsdTime)
+            }
         }
     }
     seekFwd(){
-        if(this.active){
-            let now = parent.player.time(), nct = now + this.seekSkipSecs
-            this.seekTo(nct)
-        }
-    }
-}
-class StreamerClientTimeWarp extends StreamerSeek {
-    constructor(controls, app){
-        super(controls, app)
-        this.currentPlaybackRate = 1
-        parent.player.on('timeupdate', this.doTimeWarp.bind(this))
-    }
-    doTimeWarp(){
-        if(config['playback-rate-control']){
-            let thresholds = {low: 8, high: 30}
-            let rate = this.currentPlaybackRate
-            let rates = {slow: 0.9, normal: 1, fast: 1.1}, time = parent.player.time(), duration = parent.player.duration(), buffered = duration - time
-            // generate intermediary values
-            thresholds.midLow = thresholds.low + ((thresholds.high - thresholds.low) / 3)
-            thresholds.midHigh = thresholds.high - ((thresholds.high - thresholds.low) / 3)
-            if(buffered <= thresholds.low) {
-                rate = rates.slow
-            } else if(buffered.between(thresholds.low, thresholds.midLow)) {
-                if(rate != rates.slow && rate != rates.normal){
-                    rate = rates.normal
+        if(this.active && this.state == 'playing' && !this.seekLocked){
+            this.seekLocked = true
+            this.seekCounter += this.seekSkipSecs
+            setTimeout(() => {
+                this.seekLocked = false
+            }, this.seekStepDelay) 
+            clearTimeout(this.seekCounterTimer)
+            this.seekCounterTimer = setTimeout(() => {
+                this.seekCounter = 0
+            }, this.seekCounterDelay) 
+            let now = parent.player.time(), nct = this.seekTimeCap(now + this.seekSkipSecs, now)
+            if(nct > now){
+                parent.player.time(nct)
+                let txt = lang.SEEKFORWARD
+                if(this.seekCounter > 0){
+                    txt += ' ' + this.seekCounter + 's'
                 }
-            } else if(buffered.between(thresholds.midLow, thresholds.midHigh)) {
-                rate = rates.normal
-            } else if(buffered.between(thresholds.midHigh, thresholds.high)) {
-                if(rate != rates.normal && rate != rates.fast){
-                    rate = rates.normal
-                }
-            } else if(buffered > thresholds.high){
-                rate = rates.fast
-            }
-            if(rate != this.currentPlaybackRate){
-                this.currentPlaybackRate = rate
-                console.warn('PLAYBACKRATE=*', rate, buffered + 's')
-                parent.player.playbackRate(rate)
+                osd.show(txt, 'fas fa-forward', this.seekOsdID, this.seekOsdTime)
+            } else {
+                osd.show(lang.PLAY, 'fas fa-play', this.seekOsdID, this.seekOsdTime)
             }
         }
     }
 }
 
-class StreamerClientVideoFullScreen extends StreamerClientTimeWarp {
+class StreamerClientVideoFullScreen extends StreamerSeek {
     constructor(controls, app){
         super(controls, app)
         let b = this.controls.querySelector('button.fullscreen')
@@ -731,14 +615,14 @@ class StreamerClientVideoFullScreen extends StreamerClientTimeWarp {
             }
             this.on('fullscreenchange', fs => {
                 if(fs){
-                    this.jbody.addClass('fullscreen')
+                    $(document.body).addClass('fullscreen')
                 } else {
-                    this.jbody.removeClass('fullscreen')
+                    $(document.body).removeClass('fullscreen')
                 }
             })
         } else {
             this.inFullScreen = true
-            this.jbody.addClass('fullscreen')
+            $(document.body).addClass('fullscreen')
             if(b) b.style.display = 'none'
             this.enterFullScreen()
         }
@@ -809,13 +693,13 @@ class StreamerAudioUI extends StreamerClientVideoFullScreen {
         super(controls, app)
         this.app.on('codecData', codecData => {
             if(codecData.audio && !codecData.video){
-                this.jbody.addClass('audio')
+                $(document.body).addClass('audio')
             } else {
-                this.jbody.removeClass('audio')
+                $(document.body).removeClass('audio')
             }
         })
         this.on('stop', () => {
-            this.jbody.removeClass('audio')
+            $(document.body).removeClass('audio')
         })
     }
 }
@@ -831,20 +715,20 @@ class StreamerClientControls extends StreamerAudioUI {
     <seekbar>
         <input type="range" min="0" max="100" value="100" />
         <div>
-            <div></div>
+            <div id="seek-dead"></div>
+            <div id="seek-active"></div>
         </div>
     </seekbar>
     <div id="buttons">
+        <button class="play-pause" title="${lang.PLAY} / ${lang.PAUSE}">
+            <i class="fas fa-circle-notch fa-spin loading-button"></i>
+            <i class="fas fa-play-circle play-button"></i>
+            <i class="fas fa-pause-circle pause-button"></i>
+        </button>
         <label class="status"></label>
         <span class="filler"></span>  
     </div>         
 `
-        this.addPlayerButton('play-pause', lang.PLAY +' / '+ lang.PAUSE, `
-            <i class="fas fa-circle-notch fa-spin loading-button"></i>
-            <i class="fas fa-play-circle play-button"></i>
-            <i class="fas fa-pause-circle pause-button"></i>`, 0, () => {
-            this.playOrPause()
-        })
         this.controls.querySelector('button.play-pause').addEventListener('click', () => {
             this.playOrPause()
         })
@@ -865,10 +749,7 @@ class StreamerClientControls extends StreamerAudioUI {
                 this.toggleFullScreen()
             }, 0.85)
         }
-        this.addPlayerButton('info', lang.ABOUT, `
-            <i class="about-icon-dot about-icon-dot-first"></i>
-            <i class="about-icon-dot about-icon-dot-second"></i>
-            <i class="about-icon-dot about-icon-dot-third"></i>`, -1, 'about')
+        this.addPlayerButton('info', lang.ABOUT, 'fas fa-ellipsis-v', -1, 'about', 0.74)
         this.controls.querySelectorAll('button').forEach(bt => {
             bt.addEventListener('touchstart', () => {
                 explorer.focus(bt)
@@ -882,18 +763,15 @@ class StreamerClientControls extends StreamerAudioUI {
         })
     }
     addPlayerButton(cls, name, fa, position = -1, action, scale = -1){
-        let id = cls.split(' ')[0]
-        if(this.getPlayerButton(id)){
-            return
-        }
-        let container = this.controls.querySelector('#buttons')
-        let iconTpl = fa.indexOf('<') == -1 ? '<i class="'+ fa +'"></i>' : fa
-        let template = `
+        let container = this.controls.querySelector('#buttons'), id = cls.split(' ')[0], template = `
         <button id="${id}" class="${cls}" title="${name}">
-            ${iconTpl}
+            <i class="${fa}"></i>
             <label><span>${name}</span></label>
         </button>
 `
+        if(container.querySelector('#' + id)){
+            return
+        }
         if(scale != -1){
             template = template.replace('></i>', ' style="transform: scale('+ scale +')"></i>')
         }
@@ -922,11 +800,10 @@ class StreamerClientControls extends StreamerAudioUI {
             })
         }
     }
-    getPlayerButton(id){
-        return this.controls.querySelector('#buttons #' + id.split(' ')[0])
-    }
     updatePlayerButton(id, name, fa, scale = -1){
-        let button = this.getPlayerButton(id)
+        id = id.split(' ')[0]
+        let container = this.controls.querySelector('#buttons')
+        let button = container.querySelector('#' + id)
         if(name){
             button.querySelector('label span').innerText = name
         }
@@ -939,7 +816,9 @@ class StreamerClientControls extends StreamerAudioUI {
         }
     }
     enablePlayerButton(id, show){
-        let button = this.getPlayerButton(id)
+        id = id.split(' ')[0]
+        let container = this.controls.querySelector('#buttons')
+        let button = container.querySelector('#' + id)
         button.style.display = show ? 'inline-flex' : 'none'
     }
 }

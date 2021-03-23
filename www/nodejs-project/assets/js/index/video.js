@@ -8,6 +8,7 @@ class VideoControl extends EventEmitter {
 			this.innerContainer = document.createElement('div')
 			this.container.appendChild(this.innerContainer)
 		}
+		this.config = {}
 		this.adapters = {}
 		this.adapter = ''
 		this.current = null
@@ -46,6 +47,15 @@ class VideoControl extends EventEmitter {
 		}
 		return 0
 	}
+	playbackRate(rate){
+		if(this.current){
+			if(typeof(rate) == 'number'){
+				return this.current.playbackRate(rate)
+			}
+			return this.current.playbackRate()
+		}
+		return 1
+	}
 	videoRatio(){
 		if(this.current){
 			return this.current.videoRatio()
@@ -67,7 +77,11 @@ class VideoControl extends EventEmitter {
 	}
 	resume(){
 		if(this.current){
-			this.current.resume()
+			if(this.state == 'ended'){
+				this.current.restart()
+			} else {
+				this.current.resume()
+			}
 		}
 	}
 	pause(){
@@ -127,7 +141,10 @@ class VideoControl extends EventEmitter {
 				this.emit('request-transcode')
 			})
 			a.on('error', (err, fatal) => {
-				if(!this.current) return
+				if(!this.current){
+					a.disconnect()
+					return a.unload()
+				}
 				if(this.clearErrTimer){
 					clearTimeout(this.clearErrTimer)
 				}
@@ -136,12 +153,18 @@ class VideoControl extends EventEmitter {
 					this.emit('state', this.state, err)
 					a.unload()
 				} else {
-					this.hasErr = err
+					this.hasErr = String(err)
 					this.clearErrTimer = setTimeout(() => {
 						this.hasErr = null
 					}, 5000)
 				}
 			})
+			a.on('ended', (err, fatal) => {
+				if(!this.current) return
+				this.state = 'ended'
+				this.emit('state', this.state)
+			})
+			a.config = this.config
 			this.adapters[this.adapter] = a
 		}
 		this.current = this.adapters[this.adapter]
@@ -198,7 +221,11 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
         })
         v.on('error', e => {
 			console.error('video err', e)
-            this.emit('error', e)
+            this.emit('error', String(e))
+		})
+        v.on('ended', e => {
+			console.log('video ended', e)
+            this.emit('ended', String(e))
 		})
         v.on('timeupdate', event => {
             this.emit('timeupdate')
@@ -222,8 +249,7 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 		})
 	}
 	disconnect(){
-		let v = $(this.object)
-		v.off()
+		$(this.object).off()
 	}
 	load(src, mimetype){
 		this.unload()
@@ -240,6 +266,7 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 		this.connect()
 		this.object.load()
 		this.resume()
+		console.log('adapter resume', this.object.outerHTML, src, mimetype)
 	}
 	unload(){
 		console.log('adapter unload')
@@ -247,10 +274,14 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 		if(this.active){
 			this.active = false
 			this.disconnect()
-			if(this.object.src){
+			if(this.object.currentSrc){
 				this.object._pause()
+				Array.from(this.object.getElementsByTagName('source')).forEach(s => {
+					s.src = ''
+					s.parentNode.removeChild(s)
+				})
+				this.object.innerHTML = '<source type="video/mp4" src="" />'
 				this.object.removeAttribute('src')
-				this.object.innerHTML = ''
 				this.object.load()
 				this.object._pause()
 			}
@@ -268,6 +299,10 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 	}
 	pause(){
 		this.object._pause()
+	}
+	restart(){
+		this.time(0)
+		this.resume()
 	}
 	time(s){
 		if(typeof(s) == 'number'){
@@ -314,6 +349,12 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 			}
 		}
 		return this._ratio
+	}
+	playbackRate(rate){
+		if(typeof(rate) == 'number'){
+			this.object.playbackRate = rate
+		}
+		return this.object.playbackRate
 	}
 	videoRatio(){
 		if(!this.object.videoWidth){
@@ -437,8 +478,13 @@ class VideoControlAdapterAndroidNative extends VideoControlAdapter {
 	pause(){
 		this.object.pause()
 	}
+	restart(){
+		this.time(0)
+		this.resume()
+	}
 	time(s){
 		if(typeof(s) == 'number'){
+			this.currentTime = s
 			this.object.seek(s)
 		}
 		return this.currentTime
@@ -449,6 +495,12 @@ class VideoControlAdapterAndroidNative extends VideoControlAdapter {
 		}
 		return this.object.aspectRatio
 	}	
+	playbackRate(rate){
+		if(typeof(rate) == 'number'){
+			this.object.setPlaybackRate(rate)
+		}
+		return this.object.playbackRate
+	}
 	videoRatio(){
 		return this.object.aspectRatio
 	}	
@@ -467,6 +519,7 @@ class MiniPlayerBase extends EventEmitter {
 	set(inPIP){
 		if(inPIP != this.inPIP){
 			if(!inPIP || this.enabled){
+				console.warn('SET PIP', inPIP, this.inPIP, traceback())	
 				this.inPIP = inPIP === true || inPIP === 'true'
 				this.emit(this.inPIP ? 'enter' : 'leave')
 			}
@@ -521,26 +574,21 @@ class MiniPlayerBase extends EventEmitter {
 class CordovaMiniplayer extends MiniPlayerBase {
     constructor(){
 		super()
-		this.leaveOnStop = null
 		this.pip = top.PictureInPicture
 		this.setup()
 		this.on('enter', () => {
 			let app = this.getAppWindow()
 			if(app){
 				app.$(app.document.body).addClass('miniplayer-cordova')
-				if(!this.leaveOnStop){
-					let streamer = this.getStreamer()
-					if(streamer){
-						this.leaveOnStop = true
-						streamer.on('stop', this.leave.bind(this))
-					}
-				}
 			}
 		})
 		this.on('leave', () => {
 			let app = this.getAppWindow()
 			if(app){
 				app.$(app.document.body).removeClass('miniplayer-cordova')
+				if(app.streamer && app.streamer.active){
+					app.streamer.enterFullScreen()	
+				}
 			}
 		})
 	}
@@ -557,7 +605,10 @@ class CordovaMiniplayer extends MiniPlayerBase {
                 } else {
                     try {
                         this.pipListening = true
-                        top.PictureInPicture.onPipModeChanged(s => this.set(s), function(error){
+                        top.PictureInPicture.onPipModeChanged((s, x) => {
+							console.warn('onPipModeChanged', s, x, this.inPIP, this.enabled)
+							this.set(s)
+						}, function(error){
                             console.error('onPipModeChanged', error)
                         })
                         this.pip.isPipModeSupported(success => {
@@ -657,21 +708,33 @@ class NWJSMiniplayer extends MiniPlayerBase {
 	}
 }
 
-window.player = new VideoControl(document.querySelector('player'))
-window.player.mini = new (top.cordova ? CordovaMiniplayer : NWJSMiniplayer)
+player = new VideoControl(document.querySelector('player'))
+player.mini = new (top.cordova ? CordovaMiniplayer : NWJSMiniplayer)
 
-if(!parent.cordova){
-	onBackendReady(() => {
-		if(config){
+var configReceived
+function updateConfig(config){
+	if(config){
+		if(!configReceived){ // run once
+			configReceived = true
 			switch(config['startup-window']){
 				case 'fullscreen':
-					top.Manager.setFullScreen(true)
+					if(top.Manager && top.Manager.setFullScreen){
+						top.Manager.setFullScreen(true)
+					}
 					break
 				case 'miniplayer':
 					player.mini.enter()
 					break
 			}
-			player.mini.enabled = config['miniplayer-auto']
 		}
-	})
+		player.config = config
+		Object.keys(player.adapters).forEach(k => {
+			player.adapters[k].config = config
+		})
+		player.mini.enabled = config['miniplayer-auto']
+	}
+}
+
+if(!parent.cordova){
+	onBackendReady(updateConfig)
 }

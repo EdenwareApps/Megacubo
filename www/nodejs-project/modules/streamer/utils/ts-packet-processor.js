@@ -30,6 +30,7 @@ class TSPacketProcessor extends Events {
 			return data.length
 		}
 	}
+    /*
     parsePacket(x){
         const header = x.readUInt32BE(0), packet = {
           type : 'TSPacket',
@@ -78,6 +79,22 @@ class TSPacketProcessor extends Events {
         }
         return packet
     }
+    */
+    pcr(x){
+        const header = x.readUInt32BE(0), adaptationFieldControl = (header & 0x30) >>> 4
+        if ((adaptationFieldControl & 0x2) !== 0) {
+          var adaptationLength = x.readUInt8(4)
+          if (adaptationLength !== 0) {
+            let flags = x.readUInt8(5), pcrFlag = (flags & 0x10) !== 0
+            if (pcrFlag === true) {
+              let adaptationPosition = 6, pcrBase = x.readUInt32BE(adaptationPosition), pcrExtension = x.readUInt16BE(adaptationPosition + 4)
+              pcrBase = pcrBase * 2 + (((pcrExtension & 0x8000) !== 0) ? 1 : 0)
+              pcrExtension = pcrExtension & 0x1ff
+              return pcrBase * 300 + pcrExtension
+            }
+          }
+        }
+    }
     process(clear){ // TODO: process try to remove repeated fragments by trusting in pcr times, seems not the better approach, someone has a better idea?
         if(this.len(this.buffering) < 4){
             if(clear){
@@ -85,7 +102,7 @@ class TSPacketProcessor extends Events {
             }
             return null // nothing to process
         }
-        let pointer = 0, pcrs = {}, buf = Buffer.concat(this.buffering), lastPCR = 0
+        let pointer = 0, pcrs = {}, buf = Buffer.concat(this.buffering), lastPCR = 0, discontinuityLevel = 0, pcrLog = [], pcrLogIrregular = false
         if(!this.checkSyncByte(buf, 0)){
             pointer = this.nextSyncByte(buf, 0)
             if(pointer == -1){
@@ -123,17 +140,28 @@ class TSPacketProcessor extends Events {
                 }
             }
             let size = offset == -1 ? PACKET_SIZE : (offset - pointer)
-            if(this.debug){
-                if(size != PACKET_SIZE){
-                    this.debug('weirdo packet size', size, offset, buf.length)
-                }
+            if(size != PACKET_SIZE){
+                console.log('weirdo packet size: '+ size)
             }
-            const x = this.parsePacket(buf.slice(pointer, pointer + size))
-            if(x.adaptationField && x.adaptationField.pcr){ // is pcr packet
-                lastPCR = x.adaptationField.pcr
+            const pcr = this.pcr(buf.slice(pointer, pointer + size))
+            if(pcr){ // is pcr packet
+                if(lastPCR && pcr < lastPCR){
+                    pcrLogIrregular = true        
+                    pcrLog.push('> ' + pcr + ' ('+lastPCR+'|'+this.currentPCR+')')
+                } else {                    
+                    pcrLog.push(pcr)
+                }
+                lastPCR = pcr
                 if(this.parsingPCR){ // already receiving a specific pcr
-                    if(parseInt(x.adaptationField.pcr) != parseInt(this.parsingPCR)){ // go to new pcr
-                        this.currentPCR = this.parsingPCR = x.adaptationField.pcr
+                    if(pcr != this.parsingPCR){ // go to new pcr
+                        this.parsingPCR = pcr
+                        if(discontinuityLevel <= 2 && this.isPCRDiscontinuity(pcr)){
+                            console.log('pcr discontinuity', pcr)
+                            discontinuityLevel++
+                        } else {
+                            discontinuityLevel = 0
+                            this.currentPCR = pcr
+                        }
                         pcrs[this.parsingPCR] = pointer
                     } else { // continue receiving the parsingPCR, no need for further checking cause it comes from same connection
                         if(typeof(pcrs[this.parsingPCR]) == 'undefined'){
@@ -141,17 +169,15 @@ class TSPacketProcessor extends Events {
                         }
                     }
                 } else { // new connection
-                    if(this.debug){
-                        this.debug('packet', this.currentPCR, parseInt(x.adaptationField.pcr) +' > '+ parseInt(this.currentPCR))
-                    }
-                    if(!this.currentPCR || parseInt(x.adaptationField.pcr) > parseInt(this.currentPCR)){ // first connection OR next pcr
-                        this.currentPCR = this.parsingPCR = x.adaptationField.pcr
-                        pcrs[this.parsingPCR] = pointer
-                    } else if(this.isPCRDiscontinuity(this.currentPCR, x.adaptationField.pcr)){ // pcr seems unaligned, reset pcr checking
-                        if(this.debug){
-                            console.log('pcr discontinuity', this.currentPCR, x.adaptationField.pcr, x.adaptationField.opcr)
+                    if(!this.currentPCR || pcr > this.currentPCR){ // first connection OR next pcr
+                        this.parsingPCR = pcr
+                        if(discontinuityLevel <= 2 && this.isPCRDiscontinuity(pcr)){
+                            console.log('pcr discontinuity', pcr)
+                            discontinuityLevel++
+                        } else {
+                            discontinuityLevel = 0
+                            this.currentPCR = pcr
                         }
-                        this.parsingPCR = x.adaptationField.pcr // don't change currentPCR here, next packet will define the new one
                         pcrs[this.parsingPCR] = pointer
                     }
                 }
@@ -180,9 +206,9 @@ class TSPacketProcessor extends Events {
                 console.log('few packets received', pcrTimes.length, (global.time() - this.pcrRepeatCheckerLastValidPCRFoundTime), global.kbfmt(buf.length))
             }
             if(clear){
-                if(!pcrTimes.length && this.isPCRDiscontinuity(this.currentPCR, lastPCR) && (global.time() - this.pcrRepeatCheckerLastValidPCRFoundTime) > this.pcrRepeatCheckerTimeout){
+                if(!pcrTimes.length && this.isPCRDiscontinuity(lastPCR) && (global.time() - this.pcrRepeatCheckerLastValidPCRFoundTime) > this.pcrRepeatCheckerTimeout){
                     // after X seconds without receiving a valid pcr, give up and reset the pcr checking for next data
-                    console.log('PCR CHECKER RESET', '('+ global.time() +' - '+ this.pcrRepeatCheckerLastValidPCRFoundTime +') > '+ this.pcrRepeatCheckerTimeout)
+                    console.log('PCR CHECKER RESET', '('+ global.time() +'s - '+ this.pcrRepeatCheckerLastValidPCRFoundTime +'s) > '+ this.pcrRepeatCheckerTimeout, this.currentPCR, lastPCR)
                     this.pcrRepeatCheckerLastValidPCRFoundTime = global.time() // reset pcr checking timeout counter
                     this.currentPCR = 0
                 }
@@ -211,11 +237,14 @@ class TSPacketProcessor extends Events {
                 this.debug('process', 'no leftover? should not happen', JSON.stringify(pcrs), JSON.stringify(result), buf.length)
             }
         }
+        if(pcrLogIrregular && this.debug){
+            this.debug('PCRLOG', pcrLog.join("\r\n"))
+        }
         return ret
     }
-    isPCRDiscontinuity(prevPCR, nextPCR){
+    isPCRDiscontinuity(pcr){
         let pcrGapLimit = 699999999
-        return !prevPCR || Math.abs(nextPCR - prevPCR) > pcrGapLimit
+        return this.currentPCR && Math.abs(this.currentPCR - pcr) > pcrGapLimit
     }
     checkSyncByte(c, pos){
         if(pos < 0 || pos > (c.length - 4)){

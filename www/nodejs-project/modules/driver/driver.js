@@ -15,6 +15,7 @@ module.exports = (file, opts) => {
 	class WorkerThreadDriver {
 		constructor(){
 			this.err = null
+			this.finished = false
 			this.promises = {}
 			this.Worker = require('worker_threads').Worker
 			this.worker = new this.Worker(global.APPDIR + '/modules/driver/worker.js', {workerData, stdout: true, stderr: true})
@@ -31,6 +32,7 @@ module.exports = (file, opts) => {
 				}
 			}, true, true)
 			this.worker.on('exit', () => {
+				this.finished = true
 				console.warn('Worker exit. ' + file, this.err)
 			})
 			this.worker.on('message', ret => {
@@ -50,6 +52,9 @@ module.exports = (file, opts) => {
 					}
 					return (...args) => {
 						return new Promise((resolve, reject) => {
+							if(this.finished){
+								return reject('worker exited')
+							}
 							let id
 							for(id = 1; typeof(self.promises[id]) != 'undefined'; id++);
 							self.promises[id] = {resolve, reject}
@@ -67,9 +72,10 @@ module.exports = (file, opts) => {
 	class WebWorkerDriver {
 		constructor(){
 			this.err = null
+			this.finished = false
 			this.promises = {}
 			this.worker = new Worker(prepare(global.APPDIR + '/modules/driver/web-worker.js'), {name: JSON.stringify(workerData)})
-			this.worker.onerror = err => {
+			this.worker.onerror = err => {  
 				let serr = String(err)
 				this.err = err
 				console.error('error ' + file, err, serr)

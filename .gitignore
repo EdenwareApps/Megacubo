@@ -110,13 +110,9 @@ $RECYCLE.BIN/
 .apdisk
 
 # Custom
-# www/nodejs-project/node_modules/image-q/demo/
-# www\nodejs-project\node_modules\gifwrap\test/
-# www\nodejs-project\node_modules\@jimp\tiff\test\
-# www\nodejs-project\node_modules\xmltv\test\
-demo/
-test/
+www/.vscode
 www/nodejs-project/modules/premium/
+www/nodejs-project/node_modules/
 www/nodejs-project/ffmpeg/*
 www/nodejs-project/.arch
 build-extras.gradle

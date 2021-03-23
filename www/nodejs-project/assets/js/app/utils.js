@@ -18,6 +18,11 @@ String.prototype.replaceAll = function(search, replacement) {
     return String(target);
 }   
 
+Number.prototype.between = function(a, b) {
+    var min = Math.min(a, b), max = Math.max(a, b)
+    return this >= min && this <= max
+}
+
 if(typeof($) != 'undefined'){
     $.ajaxSetup({ cache: false })
     $.fn.reverse = function() {

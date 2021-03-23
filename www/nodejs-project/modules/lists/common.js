@@ -8,6 +8,7 @@ class Common extends Events {
 		this.searchRedirects = []
 		this.stopWords = ['sd', 'hd', 'tv', 'h264', 'h.264', 'fhd'] // common words to ignore on searching
 		this.watchingListId = 'watching.list'
+		this.listMetaKeyPrefix = 'meta-cache-'
 		this.opts = {
 			folderSizeLimit: 96,
 			folderSizeLimitTolerance: 12,
@@ -190,6 +191,41 @@ class Common extends Events {
 	}
 	prepareEntries(es){		
 		return es.map(this.prepareEntry.bind(this))
+	}
+	listMetaKey(url){
+		return this.listMetaKeyPrefix + url
+	}
+	getListMeta(url, cb){
+		global.storage.get(this.listMetaKey(url), meta => {
+			if(!meta){
+				meta = {}
+			}
+			cb(meta)
+		})
+	}
+	setListMeta(url, newMeta){
+		this.getListMeta(url, meta => {
+			Object.keys(newMeta).forEach(k => {
+				if(newMeta[k]){
+					meta[k] = newMeta[k]
+				}
+			})
+			if(Object.keys(meta).length){
+				global.storage.set(this.listMetaKey(url), meta, true)
+			}
+		})
+	}
+	getListMetaValue(url, key, cb){
+		this.getListMeta(url, meta => cb(meta[key] || undefined))
+	}
+	setListMetaValue(url, key, value){
+		this.getListMeta(url, meta => {
+			meta[key] = value
+			this.setListMeta(url, meta)
+		})
+	}
+	trimListMeta(cb){
+		global.storage.deleteAnyStartsWithOlder(this.listMetaKeyPrefix, 30 * (24 * 3600), cb)
 	}
 }
 

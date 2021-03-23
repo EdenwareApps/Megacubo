@@ -21,6 +21,7 @@ class EPG extends Events {
         this.minExpectedEntries = 72
         this.state = 'uninitialized'
         this.error = null
+        this.channels = {}
         this.start()
     }
     start(){
@@ -53,6 +54,7 @@ class EPG extends Events {
                     this.parser = new xmltv.Parser()
                     let i = 0
                     this.parser.on('programme', this.programme.bind(this))
+                    this.parser.on('channel', this.channel.bind(this))
                     this.parser.on('error', err => {
                         //console.error(err)
                         return true
@@ -73,7 +75,8 @@ class EPG extends Events {
                     keepalive: false,
                     retries: 5,
                     headers: {
-                        'accept-charset': 'utf-8, *;q=0.1'
+                        'accept-charset': 'utf-8, *;q=0.1',
+                        'range': 'bytes=0-'
                     }
                 }
                 this.request = new global.Download(req)
@@ -92,7 +95,7 @@ class EPG extends Events {
                     this.parser.write(chunk)
                 })
                 this.request.on('end', () => {
-                    console.log('EPG REQUEST ENDED', received)
+                    console.log('EPG REQUEST ENDED', received, Object.keys(this.data).length)
                     global.storage.set(this.fetchCtrlKey, now, this.ttl)
                     if(Object.keys(this.data).length){
                         this.state = 'loaded'
@@ -104,7 +107,9 @@ class EPG extends Events {
                         this.error = errMessage
                         this.emit('error', errMessage)
                     }
-                    this.parser.end()
+                    if(this.parser){
+                        this.parser.end()
+                    }
                 })
             } else {
                 console.log('epg update skipped')
@@ -123,10 +128,23 @@ class EPG extends Events {
         }
         return {e: end, t: programme.title.shift() || 'No title', c: programme.category || '', i: programme.icon || ''}
     }
+    channel(channel){
+        let cid = channel.name || channel.displayName
+        let name = channel.displayName || channel.name
+        if(typeof(this.channels[cid]) == 'undefined'){
+            this.channels[cid] = {name}
+        }
+        if(channel.icon){
+            this.channels[cid].icon = channel.icon
+        }
+    }
+    cidToDisplayName(cid){
+        return typeof(this.channels[cid]) == 'undefined' ? cid : this.channels[cid].name
+    }
     programme(programme){
         if(programme && programme.channel){
             const now = this.time(), start = this.time(programme.start), end = this.time(programme.end)
-            programme.channel = this.prepareChannelName(programme.channel)
+            programme.channel = this.prepareChannelName(this.cidToDisplayName(programme.channel))
             if(end >= now && end <= (now + this.ttl)){
                 if(programme.icon){
                     [...new Set(programme.title)].forEach(t => {

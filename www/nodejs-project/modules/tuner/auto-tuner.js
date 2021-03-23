@@ -71,7 +71,7 @@ class AutoTuner extends Events {
             let resolved
             this.emit('progress', this.tuner.getStats())
             this.once('success', n => {
-                console.log('auto-tuner tune commit', n)
+                //console.log('auto-tuner tune commit', n)
                 this.pause()
                 if(!resolved){
                     resolved = true

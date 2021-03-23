@@ -1,33 +1,107 @@
-const Events = require('events'), fs = require('fs'), path = require('path')
-const async = require('async'), ffmpeg = require('fluent-ffmpeg')
+const Events = require('events'), fs = require('fs'), path = require('path'), async = require('async')
+
+let FFmpegControllerUIDIterator = 1
+
+class FFmpegController extends Events {
+	constructor(input){
+		super()
+		this.input = input
+		this.options = {
+			input: [],
+			output: []
+		}
+		this.uid = FFmpegControllerUIDIterator
+		FFmpegControllerUIDIterator++
+	}
+    cmdArr(){
+		let cmd = []
+		this.options.input.forEach(a => cmd = cmd.concat(a))
+		if(this.input){ 
+			// add these input options only if we have an input, not in -version, per example
+			cmd = cmd.concat([
+				'-loglevel', this.dest ? 'error' : 'info', // if logerror=(warning|error) it will not return the codec and bitrate data
+				'-analyzeduration', 10000000, // 10s in microseconds
+				'-probesize', 10485760,	// 10MB
+				'-err_detect', 'ignore_err',
+				'-i', this.input
+			])
+		}
+		this.options.output.forEach(a => cmd = cmd.concat(a))
+		if(this.dest){
+			cmd = cmd.concat(['-strict', 'experimental']) // cmd = cmd.concat(['-strict', '-2'])
+			cmd = cmd.concat(['-max_muxing_queue_size', 2048]) // https://stackoverflow.com/questions/49686244/ffmpeg-too-many-packets-buffered-for-output-stream-01	
+			cmd.push(this.dest.replace(new RegExp('\\\\', 'g'), '/'))
+		}
+		return cmd
+    }
+	adjustOptions(k, v){
+		if(Array.isArray(k)){
+			return k
+		}
+		if(typeof(v) == 'number'){
+			v = String(v)
+		}
+		if(typeof(v) != 'string'){
+			if(typeof(k) != 'string'){
+				console.error('BADTYPE: '+ typeof(k) +' '+ k)
+			}
+			return k.split(' ')
+		}
+		return [k, v]
+	}
+	inputOptions(k, v){
+		this.options.input.push(this.adjustOptions(k, v))
+		return this
+	}
+	outputOptions(k, v){
+		this.options.output.push(this.adjustOptions(k, v))
+		return this
+	}
+	format(fmt){
+		this.outputOptions('-f', fmt)
+		return this
+	}
+	audioCodec(codec){
+		this.outputOptions('-acodec', codec)
+		return this
+	}
+	videoCodec(codec){
+		this.outputOptions('-vcodec', codec)
+		return this
+	}
+	output(dest){
+		this.dest = dest
+		return this
+	}
+	run(){
+		let cmdArr = this.cmdArr()
+		global.ui.on('ffmpeg-callback-'+ this.uid, this.callback.bind(this))
+		global.ui.emit('ffmpeg-exec', this.uid, cmdArr)
+		this.emit('start', cmdArr.join(' '))
+	}
+	kill(){
+		global.ui.emit('ffmpeg-kill', this.uid)
+		this.options.input = this.options.output = []
+		global.ui.removeAllListeners('ffmpeg-callback-'+ this.uid)
+	}
+	callback(err, output){
+		//console.log('ffmpeg.callback '+ this.uid +', '+ err +', '+ output)
+		if(err){
+			this.emit('error', err)
+		} else {
+			this.emit('end', output)
+		}
+	}
+}
 
 class FFMPEGHelper extends Events {
 	constructor(){
 		super()
 		this.debug = true
-		this.binaryBasename = 'ffmpeg'
+		this.executable = require('path').resolve('ffmpeg/ffmpeg')
 		if(process.platform == 'win32'){
-			this.binaryBasename += '.exe'
+			this.executable += '.exe'
 		}
-		this.tmpDir = path.join(global.paths['temp'], 'ffmpeg')
-		this.path = path.resolve(path.join(global.APPDIR, './ffmpeg/'+ this.binaryBasename))
-		this.minBinarySize = 10000000
-	}
-	grantExecPerms(file, callback){
-		fs.access(file, fs.constants.X_OK, err => {
-			if(err){
-				// set ffmpeg +x permission
-				let fschmod = require('fs-chmod')
-				fschmod.chmod(file, '+x').then(() => {
-					callback(null)
-				}).catch(err => {
-					console.error(err)
-					callback(err)
-				})
-			} else {
-				callback(null)
-			}
-		})
 	}
 	clockToSeconds(str) {
 		let cs = str.split('.'), p = cs[0].split(':'), s = 0, m = 1
@@ -55,12 +129,6 @@ class FFMPEGHelper extends Events {
 	fmtSlashes(file){
 		return file.replace(new RegExp("[\\\\/]+", "g"), "/")
 	}
-	fmtExecutableSlashes(path){
-		if(['darwin'].includes(process.platform)){
-			return path.replace(new RegExp(' ', 'g'), '\\ ')
-		}
-		return path
-	}
 }
 
 class FFMPEGMediaInfo extends FFMPEGHelper {
@@ -69,7 +137,6 @@ class FFMPEGMediaInfo extends FFMPEGHelper {
 	}
 	duration(nfo) {
 		let dat = nfo.match(new RegExp(': +([0-9]{2}:[0-9]{2}:[0-9]{2})\\.[0-9]{2}'))
-		console.log('duration', nfo, dat)
 	    return dat ? this.clockToSeconds(dat[1]) : 0
 	}
 	codecs(nfo, raw) {
@@ -136,7 +203,6 @@ class FFMPEGMediaInfo extends FFMPEGHelper {
 		let next = () => {
 			this.info(file, nfo => {
 				if(nfo){
-					// console.log('mediainfo', nfo)
 					let codecs = this.codecs(nfo), rate = this.rawBitrate(nfo), dimensions = this.dimensions(nfo)
 					if(!rate){
 						rate = parseInt(length / this.duration(nfo))
@@ -166,7 +232,7 @@ class FFMPEGMediaInfo extends FFMPEGHelper {
 		}
 	}
 	info(path, cb){
-		this.exec(this.path +' -i "'+ this.fmtSlashes(path) +'"', (error, output) => {
+		this.exec(path, [], (error, output) => {
 			cb(String(error || output))
 		})
 	}
@@ -177,7 +243,6 @@ class FFMPEGDiagnostic extends FFMPEGMediaInfo {
 		super()
 		this.log = []
 		global.ui.on('dl-ffmpeg', ret => {
-			console.warn("DL-FFMPEG", ret)
 			switch(ret){
 				case 'log':
 					this.diagnosticDialog(true)
@@ -200,9 +265,8 @@ class FFMPEGDiagnostic extends FFMPEGMediaInfo {
 		})
 	}
 	diagnosticDialog(forceLog){
-        global.ffmpeg.version((data, output) => {
-            console.warn('FFMPEG INFO', data)
-			let text = this.encodeHTMLEntities(data || lang.FFMPEG_NOT_FOUND) +"<br />"+ global.ffmpeg.path
+        this.version((data, output) => {
+			let text = this.encodeHTMLEntities(data || lang.FFMPEG_NOT_FOUND) +"<br />"+ this.executable
             if(data && forceLog !== true){
                 global.ui.emit('dialog', [
                     {template: 'question', text: data ? lang.FFMPEG_VERSION : lang.FFMPEG_NOT_FOUND, fa: 'fas fa-info-circle'},
@@ -233,11 +297,18 @@ class FFMPEGDiagnostic extends FFMPEGMediaInfo {
 		return new Promise((resolve, reject) => {
 			this.arch(arch => {
 				let log = 'Arch: '+ arch +"\r\n"
-				fs.stat(this.path, (err, stat) => {
-					log += 'File: '+ this.path +' '+ ((err || !stat) ? 'NOT EXISTS' : global.kbfmt(stat.size)) +"\r\n"
+				let finish = () => {
 					log += "\r\n" + this.log.join(', ')
 					resolve(log)
-				})
+				}
+				if(process.platform == 'android'){
+					finish()
+				} else {
+					fs.stat(this.executable, (err, stat) => {
+						log += 'File: '+ this.executable +' '+ ((err || !stat) ? 'NOT EXISTS' : global.kbfmt(stat.size)) +"\r\n"
+						finish()
+					})
+				}
 			})
 		})
 	}
@@ -266,11 +337,8 @@ class FFMPEGDiagnostic extends FFMPEGMediaInfo {
 		if(process.platform == 'android'){
 			let archHintFile = global.APPDIR + '/arch.dat'
 			fs.stat(archHintFile, (err, stat) => {
-				console.error('ARCHHINTFILE*'+(err ? String(err) : stat.size))
 				if(stat && stat.size){
-					console.error('ARCHHINTFILE READING')
 					fs.readFile(archHintFile, (err, ret) => {
-						console.error('ARCHHINTFILE '+ret)
 						if(ret){
 							cb(String(ret).trim())
 						} else {
@@ -278,7 +346,6 @@ class FFMPEGDiagnostic extends FFMPEGMediaInfo {
 						}
 					})
 				} else {
-					console.error('ARCHHINTFILE FAIL')
 					cb(this._arch())
 				}
 			})
@@ -286,63 +353,18 @@ class FFMPEGDiagnostic extends FFMPEGMediaInfo {
 			cb(this._arch())
 		}
 	}
-	checkBinaryIntegrity(file, testOutput, cb){
-		fs.stat(file, (err, stat) => {
-			if(stat && stat.size && stat.size > this.minBinarySize){
-				if(testOutput){
-					this.version((version, output) => {
-						cb(!!version, output)
-					}, file)
-				} else {
-					cb(true)
-				}
-			} else {
-				cb(false)
-			}
-		})
-	}
 }
 
 class FFMPEG extends FFMPEGDiagnostic {
 	constructor(){
 		super()
-		this.isReady = false
-		this.runFromAppDataFolder = ['win32', 'android'].includes(process.platform)
-		this.lastDiagnosticAlertTime = 0
-		this.diagnosticAlertsInterval = 120 // secs
 	}
-	ready(cb){
-		if(this.isReady){
-			cb()
-		} else {
-			this.on('ready', cb)
-		}
+	create(input){
+		let ret = new FFmpegController(input)
+		return ret
 	}
-	create(...args){
-		if(typeof(args['cwd']) == 'undefined'){
-			args['cwd'] = this.tmpDir
-		}
-		const proc = ffmpeg.apply(ffmpeg, args)
-		proc.on('stderr', (stderrLine) => {
-			let now = global.time()
-			if((now - this.lastDiagnosticAlertTime) > this.diagnosticAlertsInterval){
-				if(stderrLine.indexOf('Out of memory') != -1){
-					global.diagnostics.checkMemoryUI().catch(console.error)
-				} else if(stderrLine.indexOf('No space left on device') != -1) {
-					global.diagnostics.checkDiskUI().catch(console.error)
-				}
-			}
-		})
-		return proc
-	}
-	exec(cmd, cb, ffmpegPath){
-		if(!ffmpegPath){
-			ffmpegPath = this.path
-		}
-		if(!this._exec){
-			this._exec = require('child_process').exec
-		}		
-		let child, timeout = setTimeout(() => {
+	exec(input, cmd, cb){
+		const child = this.create(input), timeout = setTimeout(() => {
 			if(child){
 				child.kill()
 			}
@@ -350,86 +372,26 @@ class FFMPEG extends FFMPEGDiagnostic {
 				cb('timeout', '')
 			}
 		}, 20000)
-		child = this._exec(cmd, {
-			windowsHide: true, 
-			shell: true,
-			cwd: this.tmpDir
-		}, (error, stdout, stderr) => {
+		child.outputOptions(cmd)
+		child.on('end', data => {
 			clearTimeout(timeout)
-			if(typeof(cb) == 'function'){
-				if(error || stderr){
-					cb(error || stderr, stdout)
-				} else {
-					cb(null, stdout)
-				}
-				cb = null
-			}
+			cb(null, data)
 		})
+		child.on('error', err => {
+			clearTimeout(timeout)
+			cb(err)
+		})
+		child.run()
 	}
-	init(){
-		if(!this.isReady){
-			let log = []
-			const callback = () => {
-				ffmpeg.setFfmpegPath(this.path)
-				this.log = log
-				this.path = this.fmtExecutableSlashes(this.path)
-				this.isReady = true
-				this.emit('ready')
+    version(cb){
+		this.exec('', ['-version'], (error, output) => {
+			let data = String(error || output)
+			let m = data.match(new RegExp('ffmpeg version ([^ ]*)'))
+			if(m && m.length > 1){
+				cb(m[1], data)
+			} else {
+				cb(false, data)
 			}
-			const fail = () => {
-				log.push('failed.')
-				global.ui.emit('dialog', [
-                    {template: 'question', text: global.lang.FFMPEG_NOT_FOUND, fa: 'fas fa-exclamation-triangle faclr-red'},
-                    {template: 'message', text: global.lang.INSTALL_CORRUPTED},
-                    {template: 'option', text: 'OK', fa: 'fas fa-check-circle', id: 'ok'}
-                ], 'dl-ffmpeg', 'ok')
-				callback()
-			}
-			const tests = cb => {					
-				fs.access(path.dirname(this.path), fs.constants.W_OK, err => {
-					log.push('ffmpeg path writing: '+ (err || 'FINE'))					
-					fs.access(path.dirname(this.path), fs.constants.X_OK, err => {
-						log.push('ffmpeg path executing: '+ (err || 'FINE'))				
-						fs.access(this.path, fs.constants.X_OK, err => {
-							log.push('ffmpeg executing: '+ (err || 'FINE'))
-							fs.stat(this.path, (err, stat) => {
-								log.push(err || JSON.stringify(stat, null, 3))
-								cb()
-							})
-						})
-					})
-				})
-			}
-			this.checkBinaryIntegrity(this.path, true, (succeeded, output) => { // check installed ffmpeg binary
-				if(succeeded){
-					log.push('installed ffmpeg found and has exec perms')
-					callback()
-					this.log = log
-				} else {
-					log.push('installed ffmpeg not found or has not exec perms')
-					log.push(output)
-					tests(() => {
-						fail()
-					})
-				}
-			})
-			fs.mkdir(this.tmpDir, {recursive: true}, err => { if(err) console.error(err) })
-		}
-	}
-    version(cb, ffmpegPath){
-		if(!ffmpegPath){
-			ffmpegPath = this.path
-		}
-		this.grantExecPerms(ffmpegPath, () => {
-			this.exec(ffmpegPath +' -version', (error, output) => {
-				let data = String(error || output)
-				let m = data.match(new RegExp('ffmpeg version ([^ ]*)'))
-				if(m && m.length > 1){
-					cb(m[1], data)
-				} else {
-					cb(false, data)
-				}
-			})
 		})
     }
 }

@@ -126,7 +126,7 @@ class Search extends Events {
                 icon: global.icons.generate(terms, null), 
                 url: global.mega.build(u, {terms, mediaType: this.searchMediaType})
             }
-            if(global.updatingLists){
+            if(lists.manager.updatingLists){
                 return resolve([{
                     name: global.lang.UPDATING_LISTS, 
                     fa: 'fa-mega spin-x-alt',
@@ -180,7 +180,7 @@ class Search extends Events {
                 icon: global.icons.generate(terms, null), 
                 url: global.mega.build(u, {terms, mediaType: this.searchMediaType})
             }
-            if(global.updatingLists){
+            if(lists.manager.updatingLists){
                 return resolve([{
                     name: global.lang.UPDATING_LISTS, 
                     fa: 'fa-mega spin-x-alt',
@@ -312,7 +312,7 @@ class Search extends Events {
     }
     hook(entries, path){
         return new Promise((resolve, reject) => {
-            if(!global.updatingLists && global.activeLists.length){
+            if(!lists.manager.updatingLists && global.activeLists.length){
                 if(path == global.lang.LIVE){
                     entries.unshift({name: global.lang.SEARCH, fa: 'fas fa-search', type: 'group', renderer: this.entriesLive.bind(this)})
                 }

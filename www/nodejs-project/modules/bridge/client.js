@@ -39,7 +39,7 @@ window.addEventListener('message', e => {
         console.log('ready', e.data)
         app = setupIOCalls(new CordovaCustomEmitter())
         app.emit('bind')
-        app.emit('get-lang-callback', window.navigator.userLanguage || window.navigator.language, Intl.DateTimeFormat().resolvedOptions().timeZone, window.navigator.userAgent)
+        parent.channelGetLangCallback()
         //window.addEventListener('beforeunload', () => app.emit('unbind'))
         initApp()
         console.log('ready OK')  

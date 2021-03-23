@@ -48,7 +48,7 @@ function theming(image, color, fontColor, animate){
 	if(data){
 		data = JSON.parse(data)
 	} else {
-		data = {image: defImage, color: '#E0E4EF', fontColor: '#B0B4BF', animate: 'none'} // defaults
+		data = {image: defImage, color: '#15002C', fontColor: '#FFFFFF', animate: 'none'} // defaults
 		try {
 			localStorage.setItem('background-data', JSON.stringify(data))
 		} catch(e) {
@@ -156,17 +156,20 @@ if(window.cordova){
 }
 
 function updateSplashProgress(increase = 1){
-	tasksCompleted += increase
-	document.querySelector('#splash-progress > div').style.width = (tasksCompleted / (tasksCount / 100)) +'%'
+	let sd = document.querySelector('#splash-progress > div')
+	if(sd){
+		tasksCompleted += increase
+		sd.style.width = (tasksCompleted / (tasksCount / 100)) +'%'
+	}
 }
 
 function fakeUpdateProgress(){
 	let timer = setInterval(() => {
-		updateSplashProgress()
 		fakeTasksCount--
 		if(!fakeTasksCount){
 			clearInterval(timer)
 		}
+		updateSplashProgress()
 	}, 1000)
 }
 
