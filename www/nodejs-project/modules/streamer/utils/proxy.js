@@ -168,7 +168,7 @@ class StreamerProxy extends StreamerProxyBase {
 					}
 				})
 			}
-			// console.warn('PRXBODY', body, parser.manifest, replaces)
+			//console.warn('PRXBODY', body, parser.manifest, replaces)
 		}
 		return body
 	}
@@ -225,12 +225,9 @@ class StreamerProxy extends StreamerProxyBase {
 		}
 		let url = this.unproxify(req.url)
 		let reqHeaders = req.headers, dom = this.getDomain(url)
-		reqHeaders.host = dom;
-		['cookie', 'referer', 'origin'].forEach(k => {
-			if(typeof(reqHeaders[k]) != 'undefined'){
-				delete reqHeaders[k]
-			}
-		})
+		reqHeaders['accept-encoding'] =  'identity' // not needed and problematic
+		reqHeaders.host = dom
+		reqHeaders = this.removeHeaders(reqHeaders, ['cookie', 'referer', 'origin'])
 		if(this.debug){
 			this.debug('serving', url, req, path.basename(url), url, reqHeaders)
 		}
@@ -272,7 +269,7 @@ class StreamerProxy extends StreamerProxyBase {
 			}
 		})
 		download.on('response', (statusCode, headers) => {
-			headers = this.removeHeaders(headers, ['transfer-encoding'])
+			headers = this.removeHeaders(headers, ['transfer-encoding', 'content-encoding'])
 			headers['access-control-allow-origin'] = '*'
 			if(statusCode >= 200 && statusCode < 300){ // is data response
 				if(!headers['content-disposition'] || headers['content-disposition'].indexOf('attachment') == -1 || headers['content-disposition'].indexOf('filename=') == -1){
@@ -285,7 +282,7 @@ class StreamerProxy extends StreamerProxyBase {
 					if(filename.indexOf('.') == -1){
 						filename += '.mp4'
 					}
-					headers['content-disposition'] = 'attachment; filename="' + filename + '"'
+					headers['content-disposition'] = 'attachment; filename="' + sanitize(filename) + '"'
 				}
 				if(req.method == 'HEAD'){
 					response.writeHead(statusCode, headers)
@@ -375,10 +372,11 @@ class StreamerProxy extends StreamerProxyBase {
 		headers = this.addCachingHeaders(headers, 4) // set a min cache to this m3u8 to prevent his overfetching
 		download.on('end', data => {
 			if(data.length > 12){
+				data = this.proxifyM3U8(String(data), url)
+				headers['content-length'] = data.length
 				if(!response.headersSent){
 					response.writeHead(statusCode, headers)
 				}
-				data = this.proxifyM3U8(String(data), url)
 				if(this.opts.debug){
 					this.opts.debug('M3U8 ' + data, url)
 				}
@@ -447,6 +445,8 @@ class StreamerProxy extends StreamerProxyBase {
 						download.end()
 					}
 				}
+			} else {
+				this.downloadLog(len)
 			}
 		})
 		download.on('end', onend)

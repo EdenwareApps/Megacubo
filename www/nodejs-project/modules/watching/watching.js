@@ -22,14 +22,7 @@ class Watching extends EntriesGroup {
     entries(e){
         return new Promise((resolve, reject) => {
             if(lists.manager.updatingLists){
-                return resolve([{
-                    name: global.lang.UPDATING_LISTS, 
-                    fa: 'fa-mega spin-x-alt',
-                    type: 'action',
-                    action: () => {
-                        global.explorer.refresh()
-                    }
-                }])
+                return resolve([global.lists.manager.updatingListsEntry()])
             }
             if(!global.activeLists.length){
                 return resolve([global.lists.manager.noListsEntry()])

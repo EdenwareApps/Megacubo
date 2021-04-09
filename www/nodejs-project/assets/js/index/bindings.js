@@ -83,10 +83,11 @@ function exit(){
 }
 
 function openExternalFile(file, mimetype){
+	console.log('openExternalFile', file)
 	if(parent.cordova){
 		alert('cannot open file ' + file.split('/').pop())
 	} else if(top.nw) {
-		top.nw.Shell.openExternal(file)
+		top.nw.Shell.openItem(file)
 	} else {
 		window.open(file, '_system')
 	}
@@ -112,7 +113,6 @@ function loaded(){
     	s.display = 'none'
     	s.visibility = 'visible'
 		s.display = 'block'
-		document.body.style.background = 'transparent'
 		document.getElementById('info').style.display = 'none'
 		document.getElementById('background').style.visibility = 'visible'
 		splash.parentNode.removeChild(splash)
@@ -251,21 +251,23 @@ if(typeof(IonicDeeplink) != 'undefined'){
 	IonicDeeplink.route(
 		{'/assistir/:chId': {target: 'ch', parent: 'chs'}},
 		match => {
-			// alert('IonicDeeplink match: ' + JSON.stringify(match))
+			console.log('IonicDeeplink match: ' + JSON.stringify(match))
 			let p = match['$args']['chId']
 			onBackendReady(() => {
-				// alert('IonicDeeplink match: ' + p)
-				channel.post('message', ['open-name', p])
+				console.log('IonicDeeplink match: ' + p)
+				channel.post('message', ['open-url', 'mega://' + p])
 			})
 		}, 
 		nomatch => {
-			let p = match['$args']['url'].trim()
+			let p = nomatch['$args']['url'].trim()
 			if(p.match('^[a-z]*:?//')){
+				console.log('IonicDeeplink nomatch, waiting backend: ' + p)
 				onBackendReady(() => {
-					channel.post('message', ['open-url', p])
+					console.log('IonicDeeplink nomatch, backend ready: ' + p)
+					channel.post('message', ['open-url', p.replace(new RegExp('.*megacubo\.tv/assistir/', ''), 'mega://')])
 				})
 			} else {
-				alert('IonicDeeplink nomatch: ' + JSON.stringify(nomatch, null, 3))
+				console.log('IonicDeeplink nomatch: ' + JSON.stringify(nomatch, null, 3))
 			}
 		}
 	)

@@ -35,27 +35,39 @@ class ChannelsData extends Events {
         this.updateCategoriesCacheKey()
         const adult = this.categoriesCacheKey.substr(-6) == '-adult'
         global.rstorage.get(this.categoriesCacheKey, data => {
-            if(data){
-                this.channelsIndex = null
-                this.categories = JSON.parse(data)
+            const next = () => {
+                if(!this.categories || typeof(this.categories) != 'object'){
+                    this.categories = {}
+                }
                 if(typeof(cb) == 'function'){
                     cb()
                 }
-            } else {
-                const next = () => {
-                    this.categories = []
-                    if(typeof(cb) == 'function'){
-                        cb()
-                    }
+                this.loaded = true
+                this.emit('loaded')
+            }
+            if(data){
+                this.channelsIndex = null
+                try {
+                    this.categories = JSON.parse(data)
+                } catch(e) {
+                    console.error(e)
                 }
+                next()
+            } else {
                 if(adult){
                     next()
                 } else {
                     global.cloud.get('categories').then(data => {
+                        if(!Object.keys(data).length){
+                            console.log('channel.load', data)
+                        }
                         this.channelsIndex = null
                         this.categories = this.compact(data)
-                        this.save(cb)
-                    }).catch(next)
+                        this.save(next)
+                    }).catch(err => {
+                        console.error('channel.load error: '+ err)
+                        next()
+                    })
                 }
             }
         })
@@ -916,7 +928,10 @@ class Channels extends ChannelsEditing {
         }
         return meta
     }
-    keywords(){
+    keywords(cb){
+        if(!this.loaded){
+            return this.once('loaded', () => this.keywords(cb))
+        }
         let keywords = [];
         ['histo', 'bookmarks'].forEach(k => {
             if(global[k]){
@@ -929,19 +944,12 @@ class Channels extends ChannelsEditing {
             keywords = keywords.concat(this.entryTerms(e))
         })
         keywords = [...new Set(keywords.filter(w => w.charAt(0) != '-'))]
-        return keywords
+        cb(keywords)
     }
     entries(){
         return new Promise((resolve, reject) => {
             if(lists.manager.updatingLists){
-                return resolve([{
-                    name: global.lang.UPDATING_LISTS, 
-                    fa: 'fa-mega spin-x-alt',
-                    type: 'action',
-                    action: () => {
-                        global.explorer.refresh()
-                    }
-                }])
+                return resolve([global.lists.manager.updatingListsEntry()])
             }
             if(!global.activeLists.length){ // one list available on index beyound meta watching list
                 return resolve([global.lists.manager.noListsEntry()])
@@ -1067,19 +1075,76 @@ class Channels extends ChannelsEditing {
     more(){
         return new Promise((resolve, reject) => {
             if(lists.manager.updatingLists){
-                return resolve([{
-                    name: global.lang.UPDATING_LISTS, 
-                    fa: 'fa-mega spin-x-alt',
-                    type: 'action',
-                    action: () => {
-                        global.explorer.refresh()
-                    }
-                }])
+                return resolve([global.lists.manager.updatingListsEntry()])
             }
             if(!global.activeLists.length){ // one list available on index beyound meta watching list
                 return resolve([global.lists.manager.noListsEntry()])
+            }		
+            global.lists.groups().then(es => this.moreGroupsToEntries(es).then(resolve).catch(reject)).catch(reject)
+        })
+    }
+    moreGroupsToEntries(groups){		
+        this.moreGroups = groups
+        return new Promise((resolve, reject) => {		
+            global.lists.group('').then(entries => {		
+                let already = []
+                entries = entries.map(e => {
+                    e.group = ''
+                    return e
+                })		
+                this.moreGroups.forEach(group => {
+                    let p = group.split('/')[0]
+                    if(already.includes(p)) return
+                    already.push(p)
+                    entries.push({
+                        name: p,
+                        type: 'group',
+                        renderer: this.moreRenderGroup.bind(this, p)
+                    })
+                })		
+                already = null
+                entries = global.lists.tools.deepify(entries)		
+                resolve(entries)
+                entries = null		
+            }).catch(reject)
+        })
+    }
+    moreRenderGroup(p){
+        return new Promise((resolve, reject) => {
+            let entries = []
+            let next = () => {
+                let gentries = []
+                this.moreGroups.forEach(g => {
+                    if(g.substr(0, p.length) == p && g != p){
+                        let gp, pos = g.indexOf('/', p.length + 1)
+                        if(pos == -1){
+                            gp = g
+                        } else {
+                            gp = g.substr(0, pos)
+                        }
+                        gentries.push({
+                            name: gp.split('/').pop(),
+                            type: 'group',
+                            renderer: this.moreRenderGroup.bind(this, gp)
+                        })
+                    }
+                })
+                entries = global.lists.tools.deepify(entries.concat(gentries))
+                gentries = null
+                if(entries.length == 1){
+                    entries = entries[0].entries
+                }
+                resolve(entries)
+                entries = null
             }
-            global.lists.allListsMerged().then(resolve).catch(reject)
+            if(this.moreGroups.includes(p)){
+                global.lists.group(p).then(es => entries = es.map(e => {
+                    e.group = ''
+                    return e
+                })).catch(console.error).finally(next)
+            } else {
+                next()
+            }
         })
     }
 }

@@ -397,5 +397,8 @@
 "INSTALL_CORRUPTED_REPAIR": "Oops, your installation has corrupted files. Do you want to repair?",
 "LOAD_COMMUNITY_LISTS": "Load shared lists",
 "ENDED": "Finished",
-"AUTO_MINIPLAYER": "Activate Miniplayer automatically"
+"AUTO_MINIPLAYER": "Activate Miniplayer automatically",
+"CLEANING_CACHE": "Clearing temporary files...",
+"CLEAR_CACHE": "Clear temporary files",
+"CLEAR_CACHE_WARNING": "By clearing the temporary files ({0}) the lists and icons will be downloaded again, this will slow down the program for the next few minutes. Do you want to proceed?"
 }

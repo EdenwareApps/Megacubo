@@ -333,7 +333,7 @@ class ExplorerPointer extends ExplorerSelectionMemory {
             } else {
                 a.focus({preventScroll: true})
             }
-            let n = a.querySelector('input, textarea')
+            let n = a.querySelector('input:not([type="range"]), textarea')
             if(n) {
                 n.focus({preventScroll: true})
             }

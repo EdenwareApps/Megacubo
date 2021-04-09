@@ -73,9 +73,10 @@ class CloudData {
                             url,
                             responseType: raw === true ? 'text' : 'json',
                             timeout: 60,
-                            retry: 2,
+                            retry: 10,
                             headers: {
-                                'host': this.domain
+                                'host': this.domain,
+                                'accept-encoding': 'identity' // not needed and problematic
                             }
                         }).then(body => {
                             if(!body){

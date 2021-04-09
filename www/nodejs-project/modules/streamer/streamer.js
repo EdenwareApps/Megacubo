@@ -473,7 +473,7 @@ class StreamerBase extends StreamerTools {
 			})
 			if(!global.cordova){ // only desktop version can't play hevc
 				intent.on('codecData', codecData => {
-					if(codecData && codecData.video.match(new RegExp('(hevc|mpeg2video)')) && intent == this.active){
+					if(codecData && codecData.video.match(new RegExp('(hevc|mpeg2video|mpeg4)')) && intent == this.active){
 						if(this.transcode(intent)){
 							return
 						}
@@ -555,7 +555,14 @@ class StreamerBase extends StreamerTools {
 	}
 	share(){
 		if(this.active && !this.opts.shadow){
-			global.ui.emit('share', global.ucWords(global.MANIFEST.name), this.active.data.name, 'https://megacubo.tv/assistir/' + encodeURIComponent(this.active.data.name))
+			let url = this.active.data.originalUrl || this.active.data.url
+			let name = this.active.data.originalName || this.active.data.name
+			if(global.mega.isMega(url)){
+				global.ui.emit('share', global.ucWords(global.MANIFEST.name), name, 'https://megacubo.tv/assistir/' + encodeURIComponent(name))
+			} else {
+				url = global.mega.build(name, {url, icon: this.active.data.icon, mediaType: this.active.mediaType})
+				global.ui.emit('share', global.ucWords(global.MANIFEST.name), name, url.replace('mega://', 'https://megacubo.tv/assistir/'))
+			}
 		}
 	}
     unload(){
@@ -843,6 +850,11 @@ class Streamer extends StreamerAbout {
 				//console.warn('ABOUT TO TUNE', name, JSON.stringify(entries))
 				entries = entries.results
 				if(entries.length){
+					entries = entries.map(s => {
+						s.originalName = name
+						s.originalUrl = e.url
+						return s
+					})
 					this.playFromEntries(entries, name, e.url, txt, succeeded => {
 						if(!succeeded){
 							this.connectId = false

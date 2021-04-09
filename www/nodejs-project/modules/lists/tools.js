@@ -46,7 +46,7 @@ class Tools {
 	shortenSingleFolders(list){
 		for (var i=0; i<list.length; i++){
 			if(list[i].type == 'group'){
-				if(list[i].entries.length == 1){
+				if(typeof(list[i].entries) != 'undefined' && list[i].entries.length == 1){
 					list[i].entries[0].name = this.mergeNames(list[i].name, list[i].entries[0].name)
 					list[i] = list[i].entries[0]
 					list[i].path = this.dirname(list[i].path)
@@ -56,28 +56,17 @@ class Tools {
 		}
 		return list
 	}
-	/*
-	mapRecursively(list, cb, root){
-		for (var i = 0; i < list.length; i++){
-			if(list[i].type == 'group'){
-				list[i].entries = this.mapRecursively(list[i].entries, cb, true)
-			}
-		}
-		if(root){
-			list = cb(list)
-		}
-		return list
-	}
-	*/
 	mapRecursively(list, cb, root){
 		for (var i = list.length - 1; i >= 0; i--){
 			if(list[i].type && list[i].type == 'group'){
-				let ret = this.mapRecursively(list[i].entries, cb, true)
-				if(Array.isArray(ret)){
-					list[i].entries = ret
-				} else {					
-					list[i].renderer = ret
-					delete list[i].entries
+				if(typeof(list[i].entries) != 'undefined'){
+					let ret = this.mapRecursively(list[i].entries, cb, true)
+					if(Array.isArray(ret)){
+						list[i].entries = ret
+					} else {					
+						list[i].renderer = ret
+						delete list[i].entries
+					}
 				}
 			}
 		}

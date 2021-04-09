@@ -49,20 +49,23 @@ function exitUI(){
     }
 }
 
+function restartUI(cb){
+    explorer.dialog([
+        {template: 'question', text: 'Megacubo', fa: 'fas fa-info-circle'},
+        {template: 'message', text: lang.SHOULD_RESTART},
+        {template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle'}
+    ], cb)
+}
+
 function restart(){
     console.log('restart()')
     if(parent.plugins && parent.plugins.megacubo){
-        parent.plugins.megacubo.restartApp()
-        exitUI()
+        restartUI(() => {
+            parent.plugins.megacubo.restartApp()
+        })
         // app.emit('close') // breaks restart sometimes
     } else {
-        explorer.dialog([
-            {template: 'question', text: 'Megacubo', fa: 'fas fa-info-circle'},
-            {template: 'message', text: lang.SHOULD_RESTART},
-            {template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle'}
-        ], () => {
-            exit()
-        })
+        restartUI(exit)
     }
 }
 
@@ -238,6 +241,11 @@ function initApp(){
     })
     app.on('display-error', txt => {
         osd.show(txt, 'fas fa-exclamation-circle faclr-red', 'error', 'normal')
+    })
+    app.on('clear-cache', () => {
+        if(top.nw){
+            top.nw.App.clearCache()
+        }
     })
     app.on('restart', () => {
         restart()
@@ -439,6 +447,7 @@ function initApp(){
                 }
             })
             window.dispatchEvent(new CustomEvent('streamer-ready'))
+            app.emit('streamer-ready')
         })
 
         window.dispatchEvent(new CustomEvent('appready'))
@@ -536,17 +545,32 @@ function initApp(){
             if(parent.cordova){
                 function handleSwipe(e){
                     console.log('swipey', e)
-                    let swipeDist = (['up', 'down'].includes(e.direction) ? innerHeight : innerWidth) / 3
-                    if(swipeDist <= e.swipeLength){
+                    let orientation = innerHeight > innerWidth ? 'portrait' : 'landscape'
+                    let swipeArea = ['up', 'down'].includes(e.direction) ? innerHeight : innerWidth
+                    let swipeDist
+                    switch(e.direction){
+                        case 'left':
+                        case 'right':                        
+                            swipeDist = swipeArea / (orientation == 'portrait' ? 3 : 4)
+                            break
+                        case 'up':
+                        case 'down': // dont use default here to ignore diagonal moves
+                            swipeDist = swipeArea / (orientation == 'portrait' ? 4 : 3)
+                            break
+                    }
+                    if(swipeDist && e.swipeLength >= swipeDist){
+                        let swipeWeight = Math.round((e.swipeLength - swipeDist) / swipeDist)
+                        if(swipeWeight < 1) swipeWeight = 1
+                        console.log('SWIPE WEIGHT', swipeWeight)
                         switch(e.direction){
                             case 'left':
                                 if(explorer.inPlayer()){  
-                                    streamer.seekBack()         
+                                    streamer.seekBack(swipeWeight)         
                                 }
                                 break
                             case 'right':                        
                                 if(explorer.inPlayer()){                 
-                                    streamer.seekFwd()
+                                    streamer.seekFwd(swipeWeight)
                                 } else {
                                     escapePressed()
                                 }
@@ -554,14 +578,14 @@ function initApp(){
                             case 'up':
                                 if(explorer.inPlayer()){
                                     if(!explorer.isExploring()){
-                                        arrowDownPressed()
+                                        streamer.volumeUp(swipeWeight * 5)
                                     }
                                 }
                                 break
                             case 'down':
                                 if(explorer.inPlayer()){
                                     if(!explorer.isExploring()){
-                                        arrowDownPressed()
+                                        streamer.volumeDown(swipeWeight * 5)
                                     }
                                 }
                                 break
@@ -608,13 +632,7 @@ function initApp(){
                     }
                 }
             })
-
-            /*
-            window.addEventListener('idle-stop', () => {
-                setTimeout(explorer.reset.bind(explorer), 400)
-            })
-            */
-
+            
             ffmpeg.bind()
         })
     })

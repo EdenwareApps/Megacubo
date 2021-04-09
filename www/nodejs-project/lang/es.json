@@ -397,5 +397,8 @@
 "INSTALL_CORRUPTED_REPAIR": "Vaya, tu instalación ha dañado archivos. ¿Quieres reparar?",
 "LOAD_COMMUNITY_LISTS": "Cargar listas de la comunidad",
 "ENDED": "Finalizado",
-"AUTO_MINIPLAYER": "Activar Miniplayer automáticamente"
+"AUTO_MINIPLAYER": "Activar Miniplayer automáticamente",
+"CLEANING_CACHE": "Borrando archivos temporales...",
+"CLEAR_CACHE": "Borrar archivos temporales",
+"CLEAR_CACHE_WARNING": "Al borrar los archivos temporales ({0}) las listas y los iconos se descargarán nuevamente, esto ralentizará el programa durante los próximos minutos. ¿Desea continuar?"
 }

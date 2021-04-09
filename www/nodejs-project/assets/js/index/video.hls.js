@@ -233,8 +233,8 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 							console.error('Buffer stalled error', parseInt(this.object.duration))
 							// not fatal, would not be needed to handle, BUT, the playback hangs even it not saying that it's a fatal error, so call handleNetworkError(/*startLoad()*/) to ensure
 							let time = this.object.currentTime, duration = this.object.duration			
-							this.hls.stopLoad()
 							if((duration - time) > this.config['live-window-time']){
+								this.hls.stopLoad()
 								let averageLoadTime = 5
 								console.log('out of live window', time, duration, this.config)
 								time = (duration - this.config['live-window-time']) + averageLoadTime
@@ -243,6 +243,9 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 								}
 								this.object.currentTime = time
 								this.hls.startLoad()
+							} else if((duration - time) < 1){
+								console.log('out of buffer, trust on hls.js', time, duration, this.config)
+								// ...
 							} else {
 								console.log('in live window', time, duration, this.config)
 								this.handleNetworkError(data)
@@ -291,7 +294,11 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 		})
 	}
 	load(src, mimetype, cookie){
-		console.warn('LOAD SRC')
+		if(!src){
+			console.error('Bad source', src, mimetype, traceback())
+			return
+		}
+		console.warn('Load source', src)
 		this.active = true
 		this.src = src
 		this.loadHLS(() => {

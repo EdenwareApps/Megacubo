@@ -283,7 +283,7 @@ class ExplorerDialog extends ExplorerDialogQueue {
 				}
 			}
 			entries.forEach(e => {
-				let template = e.template, isOption = ['option', 'option-detailed'].includes(template)
+				let template = e.template, isOption = ['option', 'option-detailed', 'text', 'slider'].includes(template)
 				if(template == 'option' && e.details){
 					template = 'option-detailed'
 				}
@@ -316,8 +316,9 @@ class ExplorerDialog extends ExplorerDialogQueue {
 				if(p){
 					if(['option', 'option-detailed'].includes(e.template)){
 						p.addEventListener('click', () => {
-							console.log('OPTCLK', e.id)
-							callback(e.id)
+							let id = e.oid || e.id
+							console.log('OPTCLK', id)
+							callback(id)
 						})
 					}
 					if(String(e.id) == String(defaultIndex)){
@@ -449,20 +450,24 @@ class ExplorerPrompt extends ExplorerOpenFile {
 	constructor(jQuery, container, app){
 		super(jQuery, container, app)
 	}
-	prompt(question, placeholder, defaultValue, callback, multiline, fa, message){
+	prompt(question, placeholder, defaultValue, callback, multiline, fa, message, extraOpts){
 		this.queueDialog(() => {
 			if(this.debug){
-				console.log('PROMPT', {question, placeholder, defaultValue, callback, multiline, fa})
+				console.log('PROMPT', {question, placeholder, defaultValue, callback, multiline, fa, extraOpts})
 			}
-			let p, mpt = [
-				{template: 'question', text: question, fa},
-				{template: multiline === 'true' ? 'textarea' : 'text', text: defaultValue, id: 'text', placeholder},
-				{template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle'}
+			let p, opts = [
+				{template: 'question', text: question, fa}
 			];
 			if(message){
-				mpt.splice(1, 0, {template: 'message', text: message})
+				opts.splice(1, 0, {template: 'message', text: message})
 			}
-			this.dialog(mpt, id => {
+			opts.push({template: multiline === 'true' ? 'textarea' : 'text', text: defaultValue, id: 'text', placeholder})
+			if(Array.isArray(extraOpts) && extraOpts.length){
+				opts = opts.concat(extraOpts)
+			} else {
+				opts.push({template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle'})
+			}
+			this.dialog(opts, id => {
 				let ret = true
 				if(this.debug){
 					console.log('PROMPT CALLBACK', id, callback, typeof(callback))
@@ -764,8 +769,8 @@ class Explorer extends ExplorerLoading {
 		this.app.on('dialog', (a, b, c) => {
 			this.dialog(a, b, c)
 		})
-		this.app.on('prompt', (a, b, c, d, e, f) => {
-			this.prompt(a, b, c,  d, e, f)
+		this.app.on('prompt', (...args) => {
+			this.prompt.apply(this, args)
 		})
 		this.initialized = false
 		this.currentEntries = []

@@ -16,6 +16,11 @@ class VideoControl extends EventEmitter {
 		this.hasErr = null
 		this.clearErrTimer = null
 	}
+	uiVisible(visible){
+		if(this.current){
+			return this.current.uiVisible(visible)
+		}
+	}
 	time(s){
 		if(this.current){
 			if(typeof(s) == 'number'){
@@ -89,6 +94,11 @@ class VideoControl extends EventEmitter {
 			this.current.pause()
 		}
 	}
+	volume(l){
+		if(this.current){
+			this.current.volume(l)
+		}
+	}
 	load(src, mimetype, cookie){
 		if(this.current){
 			this.current.unload()
@@ -110,6 +120,7 @@ class VideoControl extends EventEmitter {
 		}
 		this.current.load(src, mimetype, cookie)
 		this.show()
+		this.current.volume(this.config['volume'])
 		return this.current
 	}
 	setup(adapter, cls){
@@ -197,6 +208,9 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 		this.state = ''
 		this._ratio = 0
 		this.hasReceivedRatio = false
+		this.uiVisibility = true
+		this.currentSrc = ''
+		this.currentMimetype = ''
 	}
 	setup(tag){
 		console.log('adapter setup')
@@ -205,6 +219,9 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 			this.object._pause = this.object.pause
 			this.object.pause = () => {} // prevent browser from pausing stream unexpectedly on Android
 		}
+	}
+	uiVisible(visible){
+		this.uiVisibility = visible
 	}
 	connect(){
 		this.object.currentTime = 0
@@ -220,19 +237,29 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
             }
         })
         v.on('error', e => {
+			if(this.object.error){
+				e = this.object.error
+			}
 			console.error('video err', e)
-            this.emit('error', String(e))
+			let t = this.time()
+			this.load(this.currentSrc, this.currentMimetype)
+			this.object.currentTime = t
+            //this.emit('error', String(e), true)
 		})
         v.on('ended', e => {
 			console.log('video ended', e)
             this.emit('ended', String(e))
 		})
         v.on('timeupdate', event => {
-            this.emit('timeupdate')
+            if(this.uiVisibility){
+				this.emit('timeupdate')
+			}
 		})
         v.on('durationchange', event => {
 			this.duration = this.object.duration
-            this.emit('durationchange')
+			if(this.uiVisibility){
+				this.emit('durationchange')
+			}
 		})
         v.on('loadedmetadata', event => {
 			if(this.object.videoHeight){
@@ -252,6 +279,10 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 		$(this.object).off()
 	}
 	load(src, mimetype){
+		if(this.currentSrc != src){
+			this.currentSrc = src
+			this.currentMimetype = mimetype
+		}
 		this.unload()
 		this.active = true
 		console.log('adapter load')
@@ -394,6 +425,9 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 			this.emit('state')
 		}
 	}
+	volume(l){
+		this.object.volume = l / 100
+	}
 	destroy(){
 		console.log('adapter destroy')
 		this.pause()
@@ -452,9 +486,14 @@ class VideoControlAdapterAndroidNative extends VideoControlAdapter {
 			this.emit('error', String(err), true)
 		})
 	}
+	uiVisible(visible){
+		this.object.uiVisible(visible)
+	}
 	load(src, mimetype, cookie){
-		console.warn('LOAD SRC')
+		console.warn('Load source', src)
 		this.active = true
+		this.currentTime = 0
+		this.duration = 0
 		this.object.play(src, mimetype, cookie, this.successCallback.bind(this), this.errorCallback.bind(this))
 	}
 	successCallback(){
@@ -504,6 +543,9 @@ class VideoControlAdapterAndroidNative extends VideoControlAdapter {
 	videoRatio(){
 		return this.object.aspectRatio
 	}	
+	volume(l){
+		this.object.volume(l)
+	}
 	destroy(){
 		this.unload()
 	}

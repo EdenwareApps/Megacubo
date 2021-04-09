@@ -113,6 +113,7 @@ const Serve = require(APPDIR + '/modules/serve')
 const OMNI = require(APPDIR + '/modules/omni')
 const Mega = require(APPDIR + '/modules/mega')
 
+console.log('Initializing premium...')
 Premium = require(APPDIR + '/modules/premium-helper')
 
 console.log('Modules loaded.')
@@ -215,6 +216,7 @@ importFileFromClient = (data, target) => {
 }
 
 isUILoaded = false
+isStreamerReady = false
 
 var playOnLoaded
 
@@ -454,7 +456,7 @@ function init(language){
                         group: []
                     }
                 }
-                if(isUILoaded){
+                if(isStreamerReady){
                     streamer.play(e)
                 } else {
                     playOnLoaded = e
@@ -465,7 +467,7 @@ function init(language){
             console.log('OPEN STREAM BY NAME', name)
             if(name){
                 const e = {name, url: mega.build(name)}
-                if(isUILoaded){
+                if(isStreamerReady){
                     streamer.play(e)
                 } else {
                     playOnLoaded = e
@@ -548,24 +550,9 @@ function init(language){
         ui.on('init', () => {
             console.warn('Client init')
             explorer.start()  
-            if(lists.manager.updatingLists){
-                osd.show(lang.UPDATING_LISTS, 'fa-mega spin-x-alt', 'update', 'persistent')
-            }
             streamState.sync()
             if(!isUILoaded){
                 isUILoaded = true
-                if(!streamer.active){
-                    if(playOnLoaded){
-                        streamer.play(playOnLoaded)
-                    } else if(config.get('resume')){
-                        if(global.explorer.path){
-                            console.log('resume skipped, user navigated away')
-                        } else {
-                            console.log('resuming', histo.resumed, global.streamer)
-                            histo.resume()
-                        }
-                    }
-                }
                 const afterListUpdate = () => {
                     if(!lists.manager.updatingLists && !activeLists.length && config.get('shared-mode-reach')){
                         lists.manager.UIUpdateLists()
@@ -586,7 +573,7 @@ function init(language){
                             ui.emit('dialog', [
                                 {template: 'question', text: ucWords(MANIFEST.name) +' v'+ MANIFEST.version +' > v'+ c[vkey], fa: 'fas fa-star'},
                                 {template: 'message', text: lang.NEW_VERSION_AVAILABLE},
-                                {template: 'option', text: lang.YES, fa: 'fas ra-random', id: 'yes', fa: 'fas fa-check-circle'},
+                                {template: 'option', text: lang.YES, id: 'yes', fa: 'fas fa-check-circle'},
                                 {template: 'option', text: lang.NO, id: 'no', fa: 'fas fa-times-circle'}
                             ], 'updater-cb', 'yes')
                         } else {
@@ -602,6 +589,21 @@ function init(language){
                 analytics = new Analytics() 
                 diagnostics = new Diagnostics() 
                 serve = new Serve(paths.temp)
+            }
+        })
+        ui.on('streamer-ready', () => {        
+            isStreamerReady = true    
+            if(!streamer.active){
+                if(playOnLoaded){
+                    streamer.play(playOnLoaded)
+                } else if(config.get('resume')){
+                    if(global.explorer.path){
+                        console.log('resume skipped, user navigated away')
+                    } else {
+                        console.log('resuming', histo.resumed, global.streamer)
+                        histo.resume()
+                    }
+                }
             }
         })
         ui.on('close', () => {

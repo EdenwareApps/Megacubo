@@ -270,7 +270,7 @@ class EPG extends Events {
     }
     order(data, limit){
         let ndata = {}, now = this.time()
-        Object.keys(data).sort().forEach(start => {
+        Object.keys(data).sort((a, b) => a - b).forEach(start => {
             if(limit && data[start].e > now){
                 ndata[start] = data[start]
                 limit--

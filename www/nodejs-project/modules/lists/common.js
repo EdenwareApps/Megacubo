@@ -2,12 +2,14 @@
 const Events = require('events'), fs = require('fs'), ParentalControl = require(global.APPDIR + '/modules/lists/parental-control')
 const M3UParser = require(global.APPDIR + '/modules/lists/parser'), M3UTools = require(global.APPDIR + '/modules/lists/tools'), MediaStreamInfo = require(global.APPDIR + '/modules/lists/media-info')
 
+LIST_DATA_KEY_MASK = 'list-data-{0}'
+LIST_UPDATE_META_KEY_MASK = 'list-time-{0}'
+
 class Common extends Events {
 	constructor(opts){
 		super()
 		this.searchRedirects = []
 		this.stopWords = ['sd', 'hd', 'tv', 'h264', 'h.264', 'fhd'] // common words to ignore on searching
-		this.watchingListId = 'watching.list'
 		this.listMetaKeyPrefix = 'meta-cache-'
 		this.opts = {
 			folderSizeLimit: 96,
@@ -25,6 +27,26 @@ class Common extends Events {
         this.msi = new MediaStreamInfo()
 		this.parentalControl = new ParentalControl()
 		this.loadSearchRedirects()
+	}
+	communityListsRequiredAmount(n, foundCommunityListsCount){
+		let satisfyLevel = 0.5
+		if(typeof(n) != 'number'){
+			n = global.config.get('shared-mode-reach')
+		}
+		return Math.min(n * satisfyLevel, foundCommunityListsCount)
+	}
+	getUpdateMeta(url, cb){
+		const updateMetaKey = LIST_UPDATE_META_KEY_MASK.format(url)
+		global.storage.get(updateMetaKey, updateMeta => {
+			if(!updateMeta){
+				updateMeta = {updateAfter: 0, contentLength: 0}
+			}
+			cb(updateMeta)
+		})
+	}
+	setUpdateMeta(url, updateMeta){
+		const updateMetaKey = LIST_UPDATE_META_KEY_MASK.format(url)
+		global.storage.set(updateMetaKey, updateMeta, true)
 	}
     joinPath(folder, file){
         let ret = folder
@@ -45,7 +67,7 @@ class Common extends Events {
 					if(data && typeof(data) == 'object'){
 						let results = []
 						Object.keys(data).forEach(k => {
-							results.push({from: lists.terms(k), to: lists.terms(data[k])})
+							results.push({from: this.terms(k), to: this.terms(data[k])})
 						})
 						this.searchRedirects = results
 					}

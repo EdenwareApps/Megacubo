@@ -397,5 +397,8 @@
 "INSTALL_CORRUPTED_REPAIR": "Spiacenti, la tua installazione ha file danneggiati. Vuoi riparare?",
 "LOAD_COMMUNITY_LISTS": "Carica elenchi di comunità",
 "ENDED": "Finito",
-"AUTO_MINIPLAYER": "Attiva il Miniplayer automaticamente"
+"AUTO_MINIPLAYER": "Attiva il Miniplayer automaticamente",
+"CLEANING_CACHE": "Eliminazione dei file temporanei...",
+"CLEAR_CACHE": "Elimina file temporanei",
+"CLEAR_CACHE_WARNING": "Eliminando i file temporanei ({0}) gli elenchi e le icone verranno scaricati di nuovo, questo rallenterà il programma per i prossimi minuti. Continuare?"
 }

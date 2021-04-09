@@ -90,10 +90,11 @@ function theming(image, color, fontColor, animate){
 	if(!data.image){
 		data.image = defImage
 	}
-	document.body.style.backgroundColor = data.color
 	bg.style.backgroundImage = 'url(' + data.image + ')'
-	splash.style.backgroundColor = data.color
-	splash.style.color = data.fontColor
+	if(splash){
+		splash.style.backgroundColor = data.color
+		splash.style.color = data.fontColor
+	}
 	animateBackground(data.animate)
 }
 

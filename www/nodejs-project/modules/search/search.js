@@ -127,14 +127,7 @@ class Search extends Events {
                 url: global.mega.build(u, {terms, mediaType: this.searchMediaType})
             }
             if(lists.manager.updatingLists){
-                return resolve([{
-                    name: global.lang.UPDATING_LISTS, 
-                    fa: 'fa-mega spin-x-alt',
-                    type: 'action',
-                    action: () => {
-                        global.explorer.refresh()
-                    }
-                }])
+                return resolve([global.lists.manager.updatingListsEntry()])
             }
             if(!global.activeLists.length){ // one list available on index beyound meta watching list
                 return resolve([global.lists.manager.noListsEntry()])
@@ -181,14 +174,7 @@ class Search extends Events {
                 url: global.mega.build(u, {terms, mediaType: this.searchMediaType})
             }
             if(lists.manager.updatingLists){
-                return resolve([{
-                    name: global.lang.UPDATING_LISTS, 
-                    fa: 'fa-mega spin-x-alt',
-                    type: 'action',
-                    action: () => {
-                        global.explorer.refresh()
-                    }
-                }])
+                return resolve([global.lists.manager.updatingListsEntry()])
             }
             if(!global.activeLists.length){ // one list available on index beyound meta watching list
                 return resolve([global.lists.manager.noListsEntry()])

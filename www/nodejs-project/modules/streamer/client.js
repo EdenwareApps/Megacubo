@@ -121,7 +121,36 @@ class StreamerOSD extends StreamerPlaybackTimeout {
     }    
 }
 
-class StreamerState extends StreamerOSD {
+class StreamerCasting extends StreamerOSD {
+    constructor(controls, app){
+        super(controls, app)
+        this.casting = false
+        this.castingPaused = false
+        app.on('cast-start', () => {
+            if(!this.casting){
+                this.casting = true
+                this.castingPaused = false
+                this.unbindStateListener()
+                parent.player.pause()
+                this.stateListener('playing')
+                this.jbody.addClass('casting')
+            }
+        })
+        app.on('cast-stop', () => {
+            if(this.casting){
+                this.casting = false
+                this.castingPaused = false
+                this.jbody.removeClass('casting')
+                if(this.active){
+                    this.bindStateListener()
+                    parent.player.resume()
+                }
+            }
+        })
+    }
+}
+
+class StreamerState extends StreamerCasting {
     constructor(controls, app){
         super(controls, app)
         this.state = ''
@@ -160,7 +189,6 @@ class StreamerState extends StreamerOSD {
                 this.emit('state', this.state)
             }
         }
-        this.bindStateListener()
     }
     bindStateListener(){
         if(!parent.player.listeners('state').includes(this.stateListener)){
@@ -176,8 +204,20 @@ class StreamerState extends StreamerOSD {
             let b = jQuery(this.controls).css('bottom')
             if(b == 0 || b == '0px'){
                 if(['paused', 'ended'].includes(parent.player.state)){
-                    parent.player.resume()
-                    this.app.emit('streamer-resume')
+                    if(this.casting){
+                        if(this.castingPaused){
+                            this.castingPaused = false
+                            this.stateListener('playing')
+                            this.app.emit('streamer-resume')
+                        } else {
+                            this.castingPaused = true
+                            this.stateListener('paused')
+                            this.app.emit('streamer-pause')
+                        }
+                    } else {
+                        parent.player.resume()
+                        this.app.emit('streamer-resume')
+                    }
                 } else if(parent.player.state) {
                     parent.player.pause()
                     this.app.emit('streamer-pause')
@@ -200,13 +240,17 @@ class StreamerUnmuteHack extends StreamerTranscode { // unmute player on browser
     constructor(controls, app){
         super(controls, app)
         if(!parent.cordova){
-            jQuery(document).one('touchstart mousedown', () => {
+            this.once('start', () => this.unmuteHack())
+            jQuery(document).one('touchstart mousedown keydown', () => {
                 console.log('unmute player on browser restrictions')
-                parent.player.container.querySelectorAll('video, audio').forEach(e => {
-                    e.muted = false
-                })
+                this.unmuteHack()
             })
         }
+    }
+    unmuteHack(){
+        parent.player.container.querySelectorAll('video, audio').forEach(e => {
+            e.muted = false
+        })
     }
 }
 
@@ -283,7 +327,7 @@ class StreamerClientVideoAspectRatio extends StreamerUnmuteHack {
     }
 }
 
-class StreamerBodyIdleClass extends StreamerClientVideoAspectRatio {
+class StreamerIdle extends StreamerClientVideoAspectRatio {
     constructor(controls, app){
         super(controls, app)
         const rx = new RegExp('(^| )video[\\-a-z]*', 'g'), rx2 = new RegExp('(^| )idle', 'g')
@@ -306,17 +350,19 @@ class StreamerBodyIdleClass extends StreamerClientVideoAspectRatio {
             if(!c.match(rx2)){
                 document.body.className += ' idle'
             }
+            parent.player.uiVisible(false)
         })
         window.addEventListener('idle-stop', () => {
             let c = document.body.className || ''
             if(c.match(rx2)){
                 document.body.className = c.replace(rx2, ' ').trim()
             }
+            parent.player.uiVisible(true)
         }) 
     }   
 }
 
-class StreamerSpeedo extends StreamerBodyIdleClass {
+class StreamerSpeedo extends StreamerIdle {
     constructor(controls, app){
         super(controls, app)
         this.invalidSpeeds = ['N/A', 0]
@@ -324,6 +370,9 @@ class StreamerSpeedo extends StreamerBodyIdleClass {
             switch(state){
                 case 'loading':
                     this.speedoUpdate()
+                    break
+                case 'playing':
+                    this.seekBarUpdate(true)
                     break
                 case 'paused':
                     this.seekbarLabel.innerHTML = lang.PAUSED
@@ -337,8 +386,10 @@ class StreamerSpeedo extends StreamerBodyIdleClass {
         })
         this.on('start', () => {
             this.commitTime = time()
-            this.app.emit('downlink', this.downlink())            
-            this.speedoUpdate()
+            this.state = 'loading'
+            this.speedoReset()
+            this.seekBarReset()
+            this.app.emit('downlink', this.downlink())
         })
         this.on('stop', () => {
             this.bitrate = 0
@@ -370,11 +421,15 @@ class StreamerSpeedo extends StreamerBodyIdleClass {
         }
         return downlink
     }
+    speedoReset(){
+        this.seekbarLabel.innerHTML = lang.WAITING_CONNECTION
+        this.speedoSemSet(1)
+    }
     speedoUpdate(){
         if(!parent.player.state){
             return
         }
-        let starting = (time() - this.commitTime) < 10
+        let starting = !this.commitTime || (time() - this.commitTime) < 10
         let lowSpeedThreshold = (250 * 1024) /* 250kbps */, downlink = this.downlink(this.currentSpeed)
         if(this.invalidSpeeds.includes(this.currentSpeed)) {
             this.seekbarLabel.innerHTML = lang.WAITING_CONNECTION
@@ -527,6 +582,9 @@ class StreamerSeek extends StreamerSpeedo {
             }
         }
     }
+    seekBarReset(){
+        this.seekBarUpdate(true, 0)
+    }
     seekBarUpdate(force, time){
         if(this.active && this.state){
             if(!['paused', 'ended', 'loading'].includes(parent.player.state) || force === true){
@@ -545,12 +603,7 @@ class StreamerSeek extends StreamerSpeedo {
     }
     seekBarUpdateView(percent){
         if(this.active && this.state){
-            let d = parent.player.duration()
             this.lastPercent = percent
-            if(percent == 100 && isNaN(d)){
-                percent = 0
-            }
-            //this.seekbarNputVis.style.background = 'linear-gradient(to right, rgb(255, 255, 255) '+ percent +'%, rgba(255, 255, 255, 0.1) '+ percent +'.01%)'
             this.seekbarNputVis.style.width = percent +'%'
         }
     }
@@ -569,6 +622,9 @@ class StreamerSeek extends StreamerSpeedo {
             time = parent.player.time()
         }
         let minTime = 0, duration = parent.player.duration()
+        if(!duration){
+            return 0
+        }
         if(this.activeMimetype && this.activeMimetype.indexOf('mpegurl') != -1){
             minTime = duration - config['live-window-time']
             if(minTime < 0){
@@ -624,9 +680,9 @@ class StreamerSeek extends StreamerSpeedo {
     }
     seekTo(s){
         clearTimeout(this.seekTimer)
+        if(this.casting) return
         this.seekTimer = setTimeout(() => {
             parent.player.resume()
-            this.seekTimer = 0
         }, 2000)
         parent.player.pause()
         if(typeof(this.seekingFrom) != 'number'){
@@ -660,15 +716,15 @@ class StreamerSeek extends StreamerSpeedo {
         }
         this.seekBarUpdate(true, s)
     }
-    seekBack(){
+    seekBack(steps=1){
         if(this.active){
-            let now = parent.player.time(), nct = now - this.seekSkipSecs
+            let now = parent.player.time(), nct = now - (steps * this.seekSkipSecs)
             this.seekTo(nct)
         }
     }
-    seekFwd(){
+    seekFwd(steps=1){
         if(this.active){
-            let now = parent.player.time(), nct = now + this.seekSkipSecs
+            let now = parent.player.time(), nct = now + (steps * this.seekSkipSecs)
             this.seekTo(nct)
         }
     }
@@ -718,7 +774,7 @@ class StreamerClientVideoFullScreen extends StreamerClientTimeWarp {
         if(config['startup-window'] != 'fullscreen'){
             this.inFullScreen = false
             if(parent.cordova){
-                parent.AndroidFullScreen.showUnderStatusBar(() => {}, console.error);
+                parent.AndroidFullScreen.showSystemUI(() => {}, console.error);
                 parent.AndroidFullScreen.showUnderSystemUI(() => {}, console.error);
                 parent.plugins.megacubo.on('appmetrics', this.updateAndroidAppMetrics.bind(this))
                 this.updateAndroidAppMetrics(parent.plugins.megacubo.appMetrics)
@@ -777,9 +833,10 @@ class StreamerClientVideoFullScreen extends StreamerClientTimeWarp {
         if(this.inFullScreen){
             this.inFullScreen = false
             if(parent.cordova){
+                parent.AndroidFullScreen.immersiveMode(() => {}, console.error);
                 parent.AndroidFullScreen.showSystemUI(() => {}, console.error);
-                parent.AndroidFullScreen.showUnderStatusBar(() => {}, console.error);
                 parent.AndroidFullScreen.showUnderSystemUI(() => {}, console.error);
+                //parent.AndroidFullScreen.showUnderStatusBar(() => {}, console.error);
             } else {
                 let e = parent.document // document.documentElement
                 if (e.exitFullscreen) {
@@ -817,6 +874,105 @@ class StreamerAudioUI extends StreamerClientVideoFullScreen {
         this.on('stop', () => {
             this.jbody.removeClass('audio')
         })
+        this.volumeInitialized = false
+        this.volumeLastClickTime = 0
+    }
+    volumeBarVisible(){
+        return this.volumeBar.style.display != 'none'
+    }
+    volumeBarShow(){
+        this.volumeBar.style.display = 'inline-table'
+    }
+    volumeBarHide(){
+        this.volumeBar.style.display = 'none'
+    }
+    volumeToggle(e){
+        console.log('VOLUMETOGGLE', e, this.volumeBar.style.display)
+        if(e.target && e.target.tagName && ['button', 'volume-wrap', 'i'].includes(e.target.tagName.toLowerCase())){
+            if(this.volumeBarVisible()){
+                let now = time()
+                if(this.volumeLastClickTime < (now - 0.4)){
+                    this.volumeLastClickTime = now
+                    this.volumeBarHide()
+                    console.log('VOLUMETOGGLE HIDE')
+                } else {
+                    console.log('VOLUMETOGGLE DENY', this.volumeLastClickTime, now)
+                }
+            } else {
+                console.log('VOLUMETOGGLE SHOW')
+                this.volumeBarShow()
+            }
+        }
+    }
+    setupVolume(){        
+        this.addPlayerButton('volume', lang.VOLUME, 'fas fa-volume-up', 2, this.volumeToggle.bind(this))
+        this.volumeButton = this.getPlayerButton('volume')
+        jQuery('<volume><volume-wrap><input type="range" min="0" max="100" step="1" value="'+ config['volume'] +'" /></volume-wrap></volume>').appendTo(this.volumeButton)
+        this.volumeBar = this.volumeButton.querySelector('volume')
+        this.volumeInput = this.volumeBar.querySelector('input')
+        this.volumeInput.addEventListener('input', this.volumeChanged.bind(this))
+        this.volumeInput.addEventListener('change', this.volumeChanged.bind(this))
+        this.once('start', () => this.volumeChanged())
+        window.addEventListener('idle-start', () => this.volumeBarHide())
+        explorer.on('focus', e => {
+            if(e == this.volumeButton){
+                if(!this.volumeBarVisible()){
+                    this.volumeLastClickTime = time()
+                    this.volumeBarShow()
+                }
+            } else {
+                this.volumeBarHide()
+            }
+        })
+        this.volumeButton.addEventListener('change', () => this.volumeBarHide())
+        /*
+        this.volumeButton.addEventListener('focus', () => {
+            if(!this.volumeBarVisible()){
+                this.volumeLastClickTime = time()
+                this.volumeBarShow()
+            }
+        })
+        this.volumeButton.addEventListener('blur', () => {
+            console.log('VOLUMEBLUR', document.activeElement, explorer.selected())
+            if(document.activeElement == document.body){
+                this.volumeBarHide()
+            }
+        })
+        */
+    }
+    isVolumeButtonActive(){
+        let s = explorer.selected()
+        return s && s.id && s.id == 'volume'
+    }
+    volumeUp(){
+        this.volumeInput.value = Math.min(parseInt(this.volumeInput.value) + 1, 100)
+        this.volumeChanged()
+    }
+    volumeDown(){
+        this.volumeInput.value = Math.max(parseInt(this.volumeInput.value) - 1, 0)
+        this.volumeChanged()
+    }
+    volumeChanged(){
+        let nvolume = parseInt(this.volumeInput.value)
+        if(!this.volumeInitialized || nvolume != this.volume){        
+            this.volume = nvolume
+            this.volumeInput.style.background = 'linear-gradient(to right, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 1) '+ nvolume +'%, rgba(0, 0, 0, 0.68) '+ nvolume +'.01%)'
+            parent.player.volume(nvolume)
+            if(this.volumeInitialized){
+                osd.show(lang.VOLUME + ': ' + nvolume, 'fas fa-volume-up', 'volume', 'normal')
+                this.saveVolume()
+            } else {
+                this.volumeInitialized = true
+            }
+        }
+    }
+    saveVolume(){
+        if(this.saveVolumeTimer){
+            clearTimeout(this.saveVolumeTimer)
+        }
+        this.saveVolumeTimer = setTimeout(() => {
+            app.emit('config-set', 'volume', this.volume)
+        }, 3000)
     }
 }
 
@@ -845,12 +1001,10 @@ class StreamerClientControls extends StreamerAudioUI {
             <i class="fas fa-pause-circle pause-button"></i>`, 0, () => {
             this.playOrPause()
         })
-        this.controls.querySelector('button.play-pause').addEventListener('click', () => {
-            this.playOrPause()
-        })
         this.addPlayerButton('stop', lang.STOP, 'fas fa-stop-circle', 1, () => {
             this.stop()
         })
+        this.setupVolume()
         this.addPlayerButton('tune', lang.TRY_OTHER, this.tuningIcon, -1, () => {
             this.stop()
             this.app.emit('tune')
@@ -860,7 +1014,7 @@ class StreamerClientControls extends StreamerAudioUI {
             let label = this.activeAspectRatio.custom ? lang.ORIGINAL : (this.activeAspectRatio.h + ':' + this.activeAspectRatio.v)
             osd.show(lang.ASPECT_RATIO +': '+ label, '', 'ratio', 'normal')
         }, 0.9)
-        if(config['startup-window'] != 'fullscreen'){
+        if(!parent.cordova && config['startup-window'] != 'fullscreen'){
             this.addPlayerButton('fullscreen', lang.FULLSCREEN, 'fas fa-expand', -1, () => {
                 this.toggleFullScreen()
             }, 0.85)
@@ -1030,6 +1184,7 @@ class StreamerClient extends StreamerClientController {
             this.stateListener('loading')
         })
         this.app.on('streamer-disconnect', (err, autoTuning) => {
+            this.unbindStateListener()
             console.warn('DISCONNECT', err, autoTuning)
             this.autoTuning = autoTuning
             this.stop(true)  

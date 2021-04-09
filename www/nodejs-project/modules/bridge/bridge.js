@@ -54,14 +54,14 @@ class BridgeServer extends Events {
           '.pdf': 'application/pdf',
           '.doc': 'application/msword'
         }
-        this.server = http.createServer((req, res) => {
+        this.server = http.createServer((req, response) => {
             console.log(`${req.method} ${req.url}`)
             const parsedUrl = url.parse(req.url)
             if(parsedUrl.pathname == '/upload') {
                 const form = formidable({ multiples: true })
                 form.parse(req, (err, fields, files) => {
-                    res.writeHead(200, { 'content-type': 'text/plain' })
-                    res.end('OK')
+                    response.writeHead(200, { 'content-type': 'text/plain' })
+                    response.end('OK')
                     if(fields['cbid'] && fields['cbid'].length){
                         this.localEmit(fields['cbid'], files)
                     }
@@ -74,25 +74,25 @@ class BridgeServer extends Events {
                 const ext = path.parse(pathname).ext
                 fs.stat(pathname, (err, stat) => {
                     if(err) { 
-                        res.statusCode = 404
-                        res.end(`File ${pathname} not found!`)
+                        response.statusCode = 404
+                        response.end(`File ${pathname} not found!`)
                         return
                     }
-                    res.setHeader('Content-type', mimes[ext] || 'text/plain' )
-                    res.setHeader('Access-Control-Allow-Origin', '*')
-                    res.setHeader('Access-Control-Allow-Methods', 'GET')
-                    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Cache-Control, Accept, Authorization')
-                    res.setHeader('Cache-Control', 'max-age=0, no-cache, no-store')
-                    res.setHeader('Connection', 'close')
+                    response.setHeader('Content-type', mimes[ext] || 'text/plain' )
+                    response.setHeader('Access-Control-Allow-Origin', '*')
+                    response.setHeader('Access-Control-Allow-Methods', 'GET')
+                    response.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Cache-Control, Accept, Authorization')
+                    response.setHeader('Cache-Control', 'max-age=0, no-cache, no-store')
+                    response.setHeader('Connection', 'close')
                     let stream = fs.createReadStream(pathname)
-                    closed(req, res, () => {
+                    closed(req, response, () => {
                         if(stream){
                             stream.destroy()
                             stream = null
                         }
-                        res.end()
+                        response.end()
                     })
-                    stream.pipe(res)
+                    stream.pipe(response)
                 })
             }
         })

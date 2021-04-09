@@ -216,7 +216,11 @@ function patch(scope){
 	}
 
     scope.isNetworkIP = addr => {
-        return addr && (addr.startsWith('10.') || addr.startsWith('192.'))
+        if(addr){
+			if(addr.startsWith('10.') || addr.startsWith('172.') || addr.startsWith('192.')){
+				return 'ipv4'
+			}
+		}
     }
 
 	scope.execSync = cmd => {
@@ -321,7 +325,7 @@ function patch(scope){
 			.map(a => a.address)
 			.filter(a => scope.isNetworkIP(a))
 		if(dat.length){
-			return dat[0].address
+			return dat[0]
 		}
     }
 	return scope

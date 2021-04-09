@@ -41,7 +41,6 @@ class Setup extends EventEmitter {
             opts.push({template: 'option', text: lang.SHARED_MODE, fa: 'fas fa-users', id: 'sh'})
         }
         explorer.dialog(opts, choose => {
-            console.log('CHH', choose)
             setTimeout(() => {
                 if(choose == 'no'){
                     this.done()
@@ -61,7 +60,6 @@ class Setup extends EventEmitter {
             {template: 'option', id: 'back', fa: 'fas fa-times-circle', text: lang.BACK},
             {template: 'option', id: 'agree', fa: 'fas fa-check-circle', text: lang.I_AGREE}
         ], choose => {
-            console.log('CHH', choose)
             setTimeout(() => {
                 if(choose == 'agree'){
                     app.emit('config-set', 'setup-complete', true)
@@ -85,7 +83,6 @@ class Setup extends EventEmitter {
             opts.push({template: 'option', text: lang.SHARED_MODE, fa: 'fas fa-users', id: 'sh'})
         }
         explorer.dialog(opts, choose => {
-            console.log('CHH', choose, traceback())
             setTimeout(() => {
                 if(choose == 'no'){
                     this.done()

@@ -397,5 +397,8 @@
 "INSTALL_CORRUPTED_REPAIR": "Oops, sua instalação possui arquivos corrompidos. Deseja reparar?",
 "LOAD_COMMUNITY_LISTS": "Carregar listas da comunidade",
 "ENDED": "Finalizado",
-"AUTO_MINIPLAYER": "Ativar Miniplayer automaticamente"
+"AUTO_MINIPLAYER": "Ativar Miniplayer automaticamente",
+"CLEANING_CACHE": "Limpando arquivos temporários...",
+"CLEAR_CACHE": "Limpar arquivos temporários",
+"CLEAR_CACHE_WARNING": "Limpando os arquivos temporários ({0}) as listas e ícones serão baixados novamente, isso deixará o programa mais lento pelos próximos minutos. Deseja prosseguir?"
 }

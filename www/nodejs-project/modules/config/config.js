@@ -107,21 +107,25 @@ class Config extends Events {
 		}
 		if(this.data[key] !== val){
 			this.data[key] = val
-			if(!fs.existsSync(path.dirname(this.file))){
-				fs.mkdirSync(path.dirname(this.file), {
-					recursive: true
-				})
-			} 
-			if(fs.existsSync(this.file)){
-				fs.truncateSync(this.file, 0)
-			}
-			var jso = JSON.stringify(Object.assign({}, this.data), null, 3);
-			fs.writeFileSync(this.file, jso, "utf8")
-			if(this.debug){
-				console.log('SSSET', jso, this.data)
-			}
+			this.save()
 			this.emit('set', key)
 			this.emit('change', [key], this.data)
+		}
+	}
+	save(){ // sync to prevent confusion
+		if(!fs.existsSync(path.dirname(this.file))){
+			fs.mkdirSync(path.dirname(this.file), {
+				recursive: true
+			})
+		} 
+		if(fs.existsSync(this.file)){
+			fs.truncateSync(this.file, 0)
+		}
+		try {
+			var jso = JSON.stringify(Object.assign({}, this.data), null, 3);
+			fs.writeFileSync(this.file, jso, "utf8")
+		} catch(e) {
+			console.error(e)
 		}
 	}
 }

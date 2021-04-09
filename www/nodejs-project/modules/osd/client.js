@@ -78,7 +78,7 @@ class OSD extends OSDDOMClassHandler {
         c = this._template.replace('%text%', text).replace('%icon%', icon || '')
         return c
     }
-	show(text, icon, name, time){ // if time=persistent
+	show(text, icon, name, time){
         let id = 'osd-entry-' + name, c = this.root.querySelector('#' + id), textOnly
         if(c){
             this.removeClass(c, 'osd-hidden')
@@ -93,11 +93,6 @@ class OSD extends OSDDOMClassHandler {
         } else {
             c.innerHTML = this.template(text, icon, name)
         }
-        /*
-        if(this.root.lastElementChild != c){
-            this.root.appendChild(c)
-        }
-        */
         if(this.root.firstElementChild != c){
             $(this.root).prepend(c)
         }

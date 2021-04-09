@@ -21,7 +21,7 @@ function sound(tag, vol){
                 uiSounds[tag].setVolume(vol)
             }
         }
-        if(top.navigator && top.navigator.vibrate){
+        if(parent.cordova && top.navigator && top.navigator.vibrate){
             top.navigator.vibrate(75)
         }
     }

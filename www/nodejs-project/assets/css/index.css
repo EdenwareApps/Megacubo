@@ -14,7 +14,7 @@
     --entries-per-row: 2;
     --entries-per-col: 2;
     --explorer-padding: calc(var(--explorer-height) * 0.01);
-    --explorer-entry-width: calc((var(--explorer-width) - var(--explorer-scrollbar-width) - (var(--explorer-padding) * (var(--entries-per-row) * 2)) - 1px) / var(--entries-per-row));
+    --explorer-entry-width: calc((var(--explorer-width) - var(--explorer-scrollbar-width)) / var(--entries-per-row));
     --explorer-entry-details-font-size: calc(var(--explorer-entry-name-font-size) * 0.8);
     --explorer-scrollbar-width: 12px;
     --explorer-scrollbar-color: rgba(255, 255, 255, 0.25);
@@ -22,7 +22,7 @@
     --explorer-content-border-size: calc(var(--explorer-height) * 0.005);
     --explorer-content-vertical-padding: calc((var(--explorer-height) * 0.025) - (2 * var(--explorer-content-border-size)));
     --explorer-content-height: calc(var(--explorer-height) - var(--explorer-header-height));
-    --explorer-entry-height: calc((var(--explorer-content-height) - (var(--explorer-padding) * (2 * var(--entries-per-col)))) / var(--entries-per-col));
+    --explorer-entry-height: calc((var(--explorer-content-height) - 1px) / var(--entries-per-col));
     --explorer-entry-icon-width: calc(0.92 * (var(--explorer-entry-width) - (2 * var(--explorer-padding))));
     --explorer-entry-icon-height: calc(var(--explorer-entry-height) * 0.625);
     --font-color: #ffffff;
@@ -294,10 +294,9 @@ body.menu-playing #explorer .content-out {
     transition: transform 0.2s ease-in-out 0s;
 }
 #explorer content a {
-    width: var(--explorer-entry-width);
+    width: calc(100% / var(--entries-per-row));
     height: var(--explorer-entry-height);
-    min-width: var(--explorer-entry-width);
-    box-sizing: content-box;
+    box-sizing: border-box;
     padding: var(--explorer-padding);
     display: inline-block;
     overflow: hidden;
@@ -323,15 +322,15 @@ body.menu-playing #explorer .content-out {
 }
 #explorer content a .entry-icon-image {
     width: 92%;
-    height: var(--explorer-entry-icon-height);
-    max-height: var(--explorer-entry-icon-height);
-    display: flex;                
+    height: 64%;
+    display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
     border-radius: var(--radius);
-    margin-top: calc(var(--explorer-entry-height) - var(--explorer-entry-icon-height) - var(--padding));
     margin-left: 4%;
+    position: absolute;
+    bottom: 4%;
 }
 #explorer content a .entry-icon-image svg, #explorer content a .entry-icon-image i {
     width: auto;
@@ -403,9 +402,7 @@ body.menu-playing #explorer .content-out {
     align-items: center;				
     justify-content: center;
     color: var(--font-color);
-    background: linear-gradient(to bottom, #000 0%, rgba(0, 0, 0, 0.1) 10%, rgba(0, 0, 0, 0.1) 90%, transparent 100%);
-}
-div#paused-layer {
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.5) 80%, rgba(0, 0, 0, 0.25) 90%, transparent 100%);
     font-size: var(--controls-button-height);
     opacity: 0.75;
 }
@@ -421,7 +418,7 @@ div#seek-back > span, div#seek-fwd > span {
 div#audio-layer {
     font-size: calc(1.5 * var(--controls-height));
 }
-body.audio:not(.video-paused):not(.video-ended):not(.seek-back):not(.seek-fwd) div#audio-layer {
+body.audio:not(.video-paused):not(.video-ended):not(.seek-back):not(.seek-fwd):not(.casting) div#audio-layer {
     display: flex;
 }
 body.seek-back div#seek-back {
@@ -519,7 +516,7 @@ seekbar label {
     transition: color 0.5s linear 0s;
     overflow: hidden;
 }
-body.audio:not(.miniplayer-cordova) controls, body.video-playing:not(.idle):not(.menu-playing):not(.miniplayer-cordova) controls, body.video-loading:not(.miniplayer-cordova):not(.menu-playing) controls, body.video-paused:not(.miniplayer-cordova):not(.menu-playing) controls, body.video-ended:not(.miniplayer-cordova):not(.menu-playing) controls {
+body.audio:not(.miniplayer-cordova) controls, body.casting controls, body.video-playing:not(.idle):not(.menu-playing):not(.miniplayer-cordova) controls, body.video-loading:not(.miniplayer-cordova):not(.menu-playing) controls, body.video-paused:not(.miniplayer-cordova):not(.menu-playing) controls, body.video-ended:not(.miniplayer-cordova):not(.menu-playing) controls {
     bottom: 0;
     transform: none;
 }
@@ -556,8 +553,13 @@ controls button.play-pause {
     margin-left: 1.75%;
     padding: 0;
 }
+controls button.play-pause label {
+    display: none !important;
+}
 controls button.selected:not(#info), controls button:hover:not(#info), controls button:active:not(#info) {
     opacity: 1;
+}
+controls button.selected:not(#info) i, controls button:hover:not(#info) i, controls button:active:not(#info) i {
     filter: drop-shadow(0 0 1vmin var(--font-color));
 }
 controls button#info.selected .about-icon-dot, controls button#info:hover .about-icon-dot, controls button#info:active .about-icon-dot {
@@ -626,22 +628,49 @@ controls button.info.faclr-red i.about-icon-dot-third {
     background: #f05;
     box-shadow: 0 0 2vmin 0.2vmin #f05;
 }
-controls volume {
-    display: none;
-}
 volume {
-    width: 15%;
-    height: 7.5%;
+    display: none;
+    pointer-events: auto;
+    position: absolute;
+    width: 0;
+    height: 0;
 }
-volume input[type="range"] {
-    height: 100%;
-    width: 100%;
-    margin: 0;
+volume-wrap {
+    position: relative;
+    height: calc(var(--controls-button-height) * 0.6);
+    width: calc(var(--controls-button-height) * 3);
+    display: inline-block;
+}
+volume-wrap input[type=range] {
+    position: static;
+    width: inherit;
+    height: inherit;
+    transform: rotate(270deg) translate(calc((var(--controls-button-height) * -2.35) * -1), calc((var(--controls-button-height) * 1.1) * -1));
+    cursor: pointer;
+    display: inline-block;
+    border-radius: var(--radius);
+    box-shadow: 0 0 2vmin -1vmin var(--font-color);
+}
+volume-wrap input[type=range]::-webkit-slider-thumb {
+    height: var(--controls-button-height);
+    width: 0;
+    display: inline-block;
+}
+volume-wrap input[type=range]::-webkit-slider-runnable-track {
+    height: inherit;
+    width: inherit;
+    display: inline-block;
 }
 @media all and (orientation:portrait) {
-    controls label.status, button.fullscreen, button.ratio {
+    controls label.status, button.fullscreen, button.volume, button.ratio {
         display: none;
     }
+}
+body.casting seekbar, body.casting button.volume, body.casting button.ratio, body.casting button.fullscreen, body.casting label.status {
+    display: none;
+}
+body.casting.video-playing #cast-layer {
+    display: flex;
 }
 #osd-root {
     position: absolute;
@@ -681,7 +710,7 @@ body.video #osd-root {
     max-width: calc(100% - (9 * var(--explorer-entry-name-font-size))); /* dont override clock */ 
 }
 #osd-root > div:not(.osd-highlight) {
-    background: var(--background-color);
+    background: #000;
     padding: calc(var(--padding) / 8) calc(var(--padding) / 2) calc(var(--padding) / 8)  calc(var(--padding) / 2);
 }
 #osd-root > div.osd-highlight {
@@ -795,6 +824,9 @@ span.modal-template-message {
     flex-shrink: 999;
     overflow: auto;
 }
+span.modal-template-message font {
+    display: contents;
+}
 span.modal-template-spacer {
     max-width: var(--explorer-modal-option-min-width);
     padding: var(--padding);
@@ -810,7 +842,6 @@ span.modal-template-text, span.modal-template-textarea {
     box-sizing: border-box;
     background: var(--font-color);
     align-items: center;    
-    border-radius: var(--radius);
     font-size: var(--explorer-entry-name-font-size);
 }
 span.modal-template-text svg, span.modal-template-textarea svg, span.modal-template-text i, span.modal-template-textarea i {
@@ -828,7 +859,7 @@ span.modal-template-text input, span.modal-template-textarea textarea {
     background: transparent;
     padding: 0;
     width: inherit;
-    min-height: 6vmax;
+    min-height: 7vmax;
     border: 0;
     outline: 0;
     max-width: 97%;
@@ -963,13 +994,6 @@ input[type=range]::-webkit-slider-thumb {
 }
 input[type=range]:focus {
     outline: none;
-}
-input[type=range]::-ms-track {
-    width: 100%;
-    cursor: pointer;
-    background: transparent; 
-    border-color: transparent;
-    color: transparent;
 }
 input.modal-template-slider-track {
     overflow: hidden;

@@ -5,7 +5,7 @@ class IPTVPlaylistStreamParser extends Events {
 	constructor(stream){
 		super()
 		this.buffer = []
-		this.bufferSize = 4096
+		this.bufferSize = 256 * 1024
 		this.meta = {}
 		this.data = {}
 		this.nl = "\n"

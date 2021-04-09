@@ -2,7 +2,7 @@
 const fs = require('fs')
 
 function logErr(data){
-    postMessage({id: -1, type: 'error', data})
+    postMessage({id: -1, type: 'error', data, file})
 }
 
 process.on('unhandledRejection', (reason, promise) => {
@@ -34,7 +34,7 @@ const Driver = require(file), driver = new Driver()
 onmessage = e => {
     const msg = e.data
     if(msg.method == 'configChange'){
-        //console.log('CONFIG CHANGED!', file)
+        console.log('CONFIG CHANGED!', file)
         global.config.reload()
     } else if(typeof(driver[msg.method]) == 'undefined'){
         postMessage({id: msg.id, type: 'reject', data: 'method not exists ' + JSON.stringify(msg.data)})

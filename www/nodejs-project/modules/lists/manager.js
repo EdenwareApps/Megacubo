@@ -12,11 +12,63 @@ class Manager extends Events {
         this.key = 'lists'
         this.openingList = false
         this.updatingLists = false
+        this.lastProgress = 0
+        this.firstRun = true
         this.legalIPTV = new LegalIPTV()
         global.ui.on('explorer-back', () => {
             if(this.openingList){
                 global.osd.hide('list-open')
             }
+        })
+        this.updater = new (require(global.APPDIR + '/modules/driver')(global.APPDIR + '/modules/lists/driver-updater'))
+        this.updater.on('list-updated', url => {
+            console.log('List updated', url)
+            global.lists.syncList(url, config.get('shared-mode-reach')).then(() => {
+                console.log('List updated and synced', url)
+            }).catch(err => {
+                console.error('List not synced', url, err)
+            })
+        })
+        this.parent.on('list-added', p => {
+            if(this.updatingLists){
+                if(p.progress > 99){                
+                    global.activeLists = p.activeLists
+                    if(global.activeLists.length){ // at least one list available
+                        this.updatedLists(global.lang.LISTS_UPDATED, 'fas fa-check-circle')
+                        this.emit('lists-updated')
+                        if(typeof(this.updatingLists.onSuccess) == 'function'){
+                            this.updatingLists.onSuccess()
+                        }
+                    } else {
+                        const n = global.config.get('shared-mode-reach')
+                        if(n){
+                            console.warn('data-fetch-fail', n, global.activeLists)
+                            this.updatedLists(global.lang.DATA_FETCHING_FAILURE, 'fas fa-exclamation-circle')
+                            if(typeof(this.updatingLists.onErr) == 'function'){
+                                this.updatingLists.onErr()
+                            }
+                        } else {
+                            this.updatedLists(global.lang.NO_LIST_PROVIDED, 'fas fa-exclamation-circle') // warn user if there's no lists
+                        }
+                    }
+                    this.lastProgress = 0
+                } else if(typeof(global.osd) != 'undefined' && p.progress > this.lastProgress){
+                    this.lastProgress = p.progress
+                    this.firstRun = p.firstRun
+                    global.osd.show(global.lang[this.firstRun ? 'STARTING_LISTS' : 'UPDATING_LISTS'] + (p.progress ? ' '+ p.progress +'%' : ''), 'fa-mega spin-x-alt', 'update', 'persistent')
+                } 
+            }
+            if(global.explorer && global.explorer.currentEntries && global.explorer.currentEntries.some(e => [global.lang.PROCESSING].includes(e.name))){
+                global.explorer.refresh()
+            }
+        })
+    }
+    callUpdater(keywords, urls, cb){
+        this.updater.setRelevantKeywords(keywords).then(() => {
+            this.updater.update(urls).catch(console.error).finally(cb)
+        }).catch(err => {
+            console.error(err)
+            cb()
         })
     }
     check(){
@@ -40,21 +92,6 @@ class Manager extends Events {
     getURLs(){
         return new Promise((resolve, reject) => {
             resolve(this.get().map(o => { return o[1] }))
-        })
-    }
-    getAll(){
-        return new Promise((resolve, reject) => {
-            this.allListsEntries().then(resolve).catch(err => {
-                console.error(err)
-                resolve([])
-            })
-        })
-    }
-    getAllURLs(){
-        return new Promise((resolve, reject) => {
-            this.getAll().then(opts => {
-                resolve(opts.map(o => { return o.url }))
-            }).catch(reject)
         })
     }
     add(url, name){
@@ -244,80 +281,64 @@ class Manager extends Events {
         })
     }
     updatedLists(name, fa){
-        this.watchListsUpdating(false)
         this.updatingLists = false
-        if(global.explorer && global.explorer.currentEntries && global.explorer.currentEntries.some(e => e.name == global.lang.UPDATING_LISTS)){
+        if(global.explorer && global.explorer.currentEntries && global.explorer.currentEntries.some(e => [global.lang.LOAD_COMMUNITY_LISTS, global.lang.UPDATING_LISTS, global.lang.STARTING_LISTS, global.lang.PROCESSING].includes(e.name))){
             global.explorer.refresh()
         }
         if(typeof(global.osd) != 'undefined'){
             global.osd.show(name, fa, 'update', 'normal')
         }
     }
-    watchListsUpdating(enable){
-        if(enable){
-            let done, lp = -1
-            if(!this.watchListsUpdatingTimer){
-                this.watchListsUpdatingTimer = setInterval(() => {
-                    this.parent.listsUpdateProgress().then(p => {
-                        if(!done && this.watchListsUpdatingTimer){
-                            if(p.done){
-                                done = true
-                                global.osd.hide('update')
-                                clearInterval(this.watchListsUpdatingTimer)
-                            } else if(typeof(global.osd) != 'undefined' && p.progress > lp){
-                                lp = p.progress
-                                global.osd.show(global.lang[p.firstRun? 'STARTING_LISTS' : 'UPDATING_LISTS'] +' '+ p.progress +'%', 'fa-mega spin-x-alt', 'update', 'persistent')
-                            } 
-                        }
-                    }).catch(console.error)
-                }, 1000)
-            }
-        } else {
-            if(this.watchListsUpdatingTimer){
-                clearInterval(this.watchListsUpdatingTimer)
-                this.watchListsUpdatingTimer = false
-            }
-        }
-    }
     updateLists(force, onErr){
-        const n = global.config.get('shared-mode-reach')
-        if(force === true || !global.activeLists.length || global.activeLists.length < n){
-            this.updatingLists = true
-            global.osd.show(global.lang.UPDATING_LISTS, 'fa-mega spin-x-alt', 'update', 'persistent')
-            const cb = () => {
-                this.watchListsUpdating(false)
-                if(global.activeLists.length){ // one list available on index beyound meta watching list
-                    this.updatedLists(global.lang.LISTS_UPDATED, 'fas fa-check-circle')
-                    this.emit('lists-updated')
-                } else {
-                    if(n){
-                        console.warn('data-fetch-fail', n, global.activeLists)
-                        this.updatedLists(global.lang.DATA_FETCHING_FAILURE, 'fas fa-exclamation-circle')
-                        if(typeof(onErr) == 'function'){
-                            onErr()
+        if(force === true || !global.activeLists.length || global.activeLists.length < global.config.get('shared-mode-reach')){
+            this.updatingLists = {onErr}
+            global.osd.show(global.lang.STARTING_LISTS, 'fa-mega spin-x-alt', 'update', 'persistent')
+            this.getURLs().then(myLists => {
+                this.allCommunityLists(30000).then(communityLists => {
+                    console.log('allCommunityLists', communityLists.length)
+                    const next = () => {
+                        if(communityLists.length || myLists.length){
+                            let maxListsToTry = 2 * global.config.get('shared-mode-reach')
+                            if(communityLists.length > maxListsToTry){
+                                communityLists = communityLists.slice(0, maxListsToTry)
+                            }
+                            console.log('Updating lists', myLists, communityLists)
+                            this.parent.updaterFinished(false).catch(console.error)
+                            global.channels.keywords(keywords => {
+                                this.parent.sync(myLists, communityLists, global.config.get('shared-mode-reach'), keywords).catch(err => {
+                                    global.displayErr(err)
+                                })
+                                this.callUpdater(keywords, myLists.concat(communityLists), () => {
+                                    this.parent.updaterFinished(true).catch(console.error)
+                                })
+                            })
+                        } else {
+                            this.updatedLists(global.lang.NO_LIST_PROVIDED, 'fas fa-exclamation-circle') // warn user if there's no lists
                         }
-                    } else {
-                        this.updatedLists(global.lang.NO_LIST_PROVIDED, 'fas fa-exclamation-circle') // warn user if there's no lists
                     }
-                }
-            }
-            this.getURLs().then(myUrls => {
-                this.getAllURLs().then(urls => {
-                    console.log('getAllURLs', urls.length)
-                    urls = urls.filter(u => myUrls.indexOf(u) == -1)
-                    this.parent.sync(myUrls, urls, n, global.channels.keywords()).then(ret => {
-                        global.activeLists = ret
-                    }).catch(err => {
-                        global.displayErr(err)
-                    }).finally(cb)
-                    this.watchListsUpdating(true)
+                    this.legalIPTV.ready(() => {
+                        this.legalIPTV.countries.ready(() => {
+                            if(global.config.get('shared-mode-reach')){
+                                communityLists = communityLists.filter(u => myLists.indexOf(u) == -1)
+                                communityLists = communityLists.filter(u => !this.legalIPTV.isKnownURL(u)) // remove communityLists from other countries/languages
+                                this.legalIPTV.getLocalLists().then(legalIPTVLocalLists => {
+                                    communityLists = legalIPTVLocalLists.concat(communityLists)
+                                }).catch(console.error).finally(next)
+                            } else {
+                                next()
+                            }
+                        })
+                    })
                 }).catch(e => {
-                    console.error('getAllURLs err', e)
-                    cb()
+                    this.updatingLists = false
+                    console.error('allCommunityLists err', e)
+                    global.osd.hide('update')
+                    this.noListsRetryDialog()
                 })
             }).catch(err => {
                 global.displayErr(err)
-                cb()
+                this.updatedLists(global.lang.NO_LIST_PROVIDED, 'fas fa-exclamation-circle') // warn user if there's no lists
+                this.updatingLists = false
             })
         } else {
             if(global.activeLists.length){
@@ -327,15 +348,10 @@ class Manager extends Events {
     }
     UIUpdateLists(force){
         if(global.Download.isNetworkConnected) {
-            if(this.updatingLists) return
             this.updateLists(force === true, err => {
                 console.error('lists-manager', err, isUILoaded)
                 if(isUILoaded){ // if error and lists hasn't loaded
-                    ui.emit('dialog', [
-                        {template: 'question', text: lang.NO_COMMUNITY_LISTS_FOUND, fa: 'fas fa-users'},
-                        {template: 'option', id: 'retry', fa: 'fas fa-redo', text: lang.RETRY},
-                        {template: 'option', id: 'add-list', fa: 'fas fa-plus-square', text: lang.ADD_LIST}
-                    ], 'lists-manager', 'retry') 
+                    this.noListsRetryDialog()
                 }
             })
         } else {
@@ -375,6 +391,16 @@ class Manager extends Events {
             action: () => this.UIUpdateLists(true)
         }
     }
+    updatingListsEntry(name){
+        return {
+            name: name || global.lang[this.firstRun ? 'STARTING_LISTS' : 'UPDATING_LISTS'],
+            fa: 'fa-mega spin-x-alt',
+            type: 'action',
+            action: () => {
+                global.explorer.refresh()
+            }
+        }
+    }
     addListEntry(){
         return {name: global.lang.ADD_LIST, fa: 'fas fa-plus-square', type: 'input', action: (data, value) => {                
             if(value){
@@ -405,14 +431,24 @@ class Manager extends Events {
                                     }).catch(err => {
                                         global.displayErr(err)
                                     }).finally(() => {
+                                        let next = isUpdating => {
+                                            es.unshift({name: global.lang.REMOVE_LIST, fa: 'fas fa-minus-square', type: 'action', url, action: this.removeList.bind(this)})
+                                            resolve(es)
+                                        }
                                         if(es.length){
                                             es = this.parent.parentalControl.filter(es)
                                             es = this.parent.tools.deepify(es, url)  
+                                            next()
                                         } else {
-                                            es = [this.emptyEntry]
+                                            global.lists.isUpdating().then(isUpdating => {
+                                                if(isUpdating){
+                                                    es = [global.lists.manager.updatingListsEntry(global.lang.PROCESSING)]
+                                                } else {
+                                                    es = []
+                                                }
+                                                next()
+                                            })
                                         }
-                                        es.unshift({name: global.lang.REMOVE_LIST, fa: 'fas fa-minus-square', type: 'action', url, action: this.removeList.bind(this)})
-                                        resolve(es)
                                     })
                                 })
                             }
@@ -584,7 +620,7 @@ class Manager extends Events {
                     ]
                     if(global.config.get('shared-mode-reach') > 0){
                         options.push({name: global.lang.COMMUNITY_LISTS, fa: 'fas fa-users', type: 'group', renderer: this.communityListsEntries.bind(this)})
-                        options.push({name: global.lang.ALL_LISTS, fa: 'fas fa-users', type: 'group', renderer: this.allListsEntries.bind(this)})
+                        options.push({name: global.lang.ALL_LISTS, fa: 'fas fa-users', type: 'group', renderer: this.allCommunityListsEntries.bind(this)})
                     }
                     resolve(options)
                 })
@@ -740,7 +776,7 @@ class Manager extends Events {
         return new Promise((resolve, reject) => {
             let limit = global.config.get('shared-mode-reach')
             if(limit){
-                this.allLists().then(lists => {
+                this.allCommunityLists().then(lists => {
                     lists = lists.slice(0, limit)
                     resolve(lists)
                 }).catch(e => {
@@ -754,16 +790,6 @@ class Manager extends Events {
     }
     communityListsEntries(){
         return new Promise((resolve, reject) => {
-            if(this.updatingLists){
-                return resolve([{
-                    name: global.lang.UPDATING_LISTS, 
-                    fa: 'fa-mega spin-x-alt',
-                    type: 'action',
-                    action: () => {
-                        global.explorer.refresh()
-                    }
-                }])
-            }
             this.parent.getLists().then(active => {
                 global.activeLists = active
                 if(active.community.length){
@@ -791,22 +817,22 @@ class Manager extends Events {
             }).catch(reject)
         })
     }
-    allLists(){
+    allCommunityLists(timeout){
         return new Promise((resolve, reject) => {
             let limit = global.config.get('shared-mode-reach')
             if(limit){
-                global.cloud.get('sources').then(s => {
+                global.cloud.get('sources', false, timeout).then(s => {
                     resolve(s.map(e => e.url))
                 }).catch(e => {
                     console.error(e)
-                    reject(e)
+                    resolve([])
                 })
             } else {
                 resolve([])
             }
         })
     }
-    allListsEntries(){
+    allCommunityListsEntries(){
         return new Promise((resolve, reject) => {
             let limit = global.config.get('shared-mode-reach')
             if(limit){
@@ -862,18 +888,6 @@ class Manager extends Events {
                 })
             } else {
                 resolve([])
-            }
-        })
-    }
-    relevantKeywords(){
-        return new Promise(resolve => {
-            let keywords = []
-            if(global.histo){
-                ['histo', 'bookmarks'].forEach(k => {
-                    global[k].get().forEach(e => {
-                        keywords = keywords.concat(global.channels.entryTerms(e))
-                    })
-                })
             }
         })
     }

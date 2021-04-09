@@ -17,12 +17,12 @@ class Bookmarks extends EntriesGroup {
             }
         })
         global.streamer.aboutDialogRegisterOption('addfav', data => {
-            if(!this.has(data)){
+            if(!this.has(this.simplify(data))){
                 return {template: 'option', fa: 'fas fa-star', text: global.lang.ADD_TO.format(global.lang.BOOKMARKS), id: 'addfav'}
             }
         }, this.toggle.bind(this))
         global.streamer.aboutDialogRegisterOption('remfav', data => {
-            if(this.has(data)){
+            if(this.has(this.simplify(data))){
                 return {template: 'option', fa: 'fas fa-star-half', text: global.lang.REMOVE_FROM.format(global.lang.BOOKMARKS), id: 'remfav'}
             }
         }, this.toggle.bind(this))
@@ -58,7 +58,7 @@ class Bookmarks extends EntriesGroup {
         }
     }
     simplify(e){
-        return {name: e.name, type: 'stream', details: e.group || '', terms: {'name': global.channels.entryTerms(e)}, url: e.url}
+        return {name: e.originalName || e.name, type: 'stream', details: e.group || '', terms: {'name': global.channels.entryTerms(e)}, url: e.originalUrl || e.url}
     }
     entries(e){
         return new Promise((resolve, reject) => {

@@ -1,4 +1,4 @@
-const fs = require('fs')
+const fs = require('fs'), Events = require('events')
 
 function prepare(file){ // workaround, macos throws not found for local files when calling Worker
 	return 'data:application/x-javascript;base64,' + Buffer.from(fs.readFileSync(file)).toString('base64')
@@ -12,8 +12,9 @@ module.exports = (file, opts) => {
 	if(opts && opts.bytenode){
 		workerData.bytenode = true
 	}
-	class WorkerThreadDriver {
+	class WorkerThreadDriver extends Events {
 		constructor(){
+			super()
 			this.err = null
 			this.finished = false
 			this.promises = {}
@@ -41,7 +42,19 @@ module.exports = (file, opts) => {
 						this.promises[ret.id][ret.type](ret.data)
 						delete this.promises[ret.id]
 					} else {
-						console.error('Worker error', file, ret)
+						console.error('Worker error', ret)
+					}
+				} else if(ret.type && ret.type == 'event') {
+					let pos = ret.data.indexOf(':')
+					if(pos != -1){
+						let evtType = ret.data.substr(0, pos)
+						let evtContent = ret.data.substr(pos + 1)
+						if(evtContent.length){
+							evtContent = JSON.parse(evtContent)
+						}
+						this.emit(evtType, evtContent)
+					} else {
+						this.emit(ret.data)
 					}
 				}
 			})
@@ -69,8 +82,9 @@ module.exports = (file, opts) => {
 			})
 		}
 	}
-	class WebWorkerDriver {
+	class WebWorkerDriver extends Events {
 		constructor(){
+			super()
 			this.err = null
 			this.finished = false
 			this.promises = {}
@@ -98,11 +112,23 @@ module.exports = (file, opts) => {
 						console.error('Worker error', ret)
 					}
 				} else if(ret.type && ret.type == 'event') {
-					if(ret.data == 'config-change'){
-						global.config.reload()
+					let pos = ret.data.indexOf(':')
+					if(pos != -1){
+						let evtType = ret.data.substr(0, pos)
+						let evtContent = ret.data.substr(pos + 1)
+						if(evtContent.length){
+							evtContent = JSON.parse(evtContent)
+						}
+						this.emit(evtType, evtContent)
+					} else {
+						this.emit(ret.data)
 					}
 				}
 			}
+			this.on('config-change', () => {
+				console.log('Config changed from worker driver')
+				global.config.reload()
+			})
 			global.config.on('change', () => {
 				//console.log('CONFIG CHANGED!')
 				this.worker.postMessage({method: 'configChange', id: 0})
@@ -140,7 +166,8 @@ module.exports = (file, opts) => {
 		if(typeof(Worker) != 'undefined'){
 			return WebWorkerDriver
 		} else {
-			return require(file) // load inline
+			console.error('Driver loading inline, bad for performance: '+ file)
+			process.exit(1)
 		}
 	} else {
 		return WorkerThreadDriver

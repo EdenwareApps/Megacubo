@@ -32,11 +32,13 @@ var hotkeysActions = {
     ],
     "NAVUP": [
         () => {
+            console.log('NAVUP')
             arrowUpPressed()
-        }
+        }, "hold", true
     ],
     "NAVDOWN": [
         () => {
+            console.log('NAVDOWN')
             arrowDownPressed()
         }, "hold", true
     ],

@@ -1,5 +1,5 @@
 const path = require('path'), http = require('http'), fs = require('fs'), url = require('url'), closed = require(global.APPDIR +'/modules/on-closed')
-const parseRange = require('range-parser')
+const parseRange = require('range-parser'), sanitize = require('sanitize-filename')
 
 class Serve {
     constructor(folder){
@@ -70,7 +70,7 @@ class Serve {
 						res.end(`File ${pathname} not found!`)
 						return
 					}
-					let start = 0, end = stat.size - 1, len = stat.size
+					let start = 0, end = stat.size - 1, len = stat.size, name = sanitize(path.basename(pathname).replace(/[^\x00-\x7F]/g, ''))
 					if (req.headers.range) {
 					  const ranges = parseRange(len, req.headers.range, { combine: true })
 					  if (ranges === -1) {
@@ -94,7 +94,7 @@ class Serve {
 					res.setHeader('Access-Control-Allow-Methods', 'GET')
 					res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Content-Length, Cache-Control, Accept, Authorization')
 					res.setHeader('Cache-Control', 'max-age=0, no-cache, no-store')
-					res.setHeader('Content-Disposition', 'attachment; filename=' + path.basename(pathname));
+					res.setHeader('Content-Disposition', 'attachment; filename="' + name + '"');
 					res.setHeader('Connection', 'close')
 					res.setHeader('X-Debug', [start, end].join(','))
 					if (req.method === 'HEAD') return res.end()

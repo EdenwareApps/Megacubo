@@ -34,8 +34,12 @@ function arePlayerControlsVisible(){
 
 function arrowUpPressed(){
     if(!explorer.inModal() && explorer.inPlayer() && !explorer.isExploring()){
-        streamer.seekFwd()
-        idleStart()
+        if(streamer.isVolumeButtonActive()){
+            streamer.volumeUp(1)
+        } else {
+            streamer.seekFwd()
+            idleStart()
+        }
     } else {
         explorer.arrow('up')
     }
@@ -43,8 +47,12 @@ function arrowUpPressed(){
 
 function arrowDownPressed(){
     if(!explorer.inModal() && explorer.inPlayer() && !explorer.isExploring()){
-        streamer.seekBack()
-        idleStart()
+        if(streamer.isVolumeButtonActive()){
+            streamer.volumeDown(1)
+        } else {
+            streamer.seekBack()
+            idleStart()
+        }
     } else {
         let s = explorer.selected()
         if(s && s.tagName.toLowerCase() == 'input' && s.id && s.id == 'explorer-omni-input'){

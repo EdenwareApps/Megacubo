@@ -220,13 +220,20 @@ class StreamerAdapterBase extends Events {
 		if(this.downloadLogCalcTimer){
 			clearTimeout(this.downloadLogCalcTimer)
 		}
-		let now = parseInt(this.time())
+		let nowMs = this.time(), now = parseInt(nowMs)
 		if(typeof(this.downloadLogging[now]) == 'undefined'){
 			this.downloadLogging[now] = bytes
 		} else {
 			this.downloadLogging[now] += bytes
 		}
-		this.downloadLogCalcTimer = setTimeout(() => this.downloadLogCalc(), 1000)
+		let downloadLogCalcMinInterval = 1 // 1s
+		if(!this.downloadLogCalcLastTime || this.downloadLogCalcLastTime < (nowMs - downloadLogCalcMinInterval)){
+			this.downloadLogCalcLastTime = nowMs
+			this.downloadLogCalc()
+		} else {
+			let delay = (this.downloadLogCalcLastTime + downloadLogCalcMinInterval) - nowMs
+			this.downloadLogCalcTimer = setTimeout(() => this.downloadLogCalc(), delay * 1000)
+		}
 	}
 	downloadLogCalc(){
 		let now = parseInt(this.time())

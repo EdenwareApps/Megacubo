@@ -19,6 +19,7 @@ class Lookup extends Events {
 				this.servers[name] = servers[name]
 			}
 		})
+		this.setMaxListeners(999)
 		this.load()
 	}
 	ready(fn){

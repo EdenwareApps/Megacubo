@@ -72,9 +72,9 @@ class Downloader extends StreamerAdapterBase {
     }
 	start(){
 		return new Promise((resolve, reject) => {
-			this.server = http.createServer((req, res) => {
+			this.server = http.createServer((req, response) => {
 				if(path.basename(req.url) == 'stream.'+ this.ext){
-					res.writeHead(200, {
+					response.writeHead(200, {
 						'content-type': this.getContentType()
 					})
 					let byteSyncFound, finished
@@ -90,17 +90,17 @@ class Downloader extends StreamerAdapterBase {
 							}
 						}
 						if(chunk.length){
-							res.write(chunk)
+							response.write(chunk)
 						}
 					}, finish = () => {
 						if(!finished){
 							finished = true
 							this.removeListener('data', listener)
 							this.removeListener('destroy', finish)
-							res.end()
+							response.end()
 						}
 					}
-					closed(req, res, finish)
+					closed(req, response, finish)
 					if(this.buffer.length){
 						listener('', Buffer.concat(this.buffer))
 						this.buffer = []
@@ -108,8 +108,8 @@ class Downloader extends StreamerAdapterBase {
 					this.on('data', listener)
 					this.on('destroy', finish)
 				} else {
-					res.statusCode = 404
-					res.end('File not found!')
+					response.statusCode = 404
+					response.end('File not found!')
 				}
 			}).listen(this.opts.port, '127.0.0.1', err => {
 				if(err){

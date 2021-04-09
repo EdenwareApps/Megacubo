@@ -1,12 +1,13 @@
 
 const fs = require('fs'), { workerData, parentPort } = require('worker_threads')
+postMessage = parentPort.postMessage.bind(parentPort)
 
 function logErr(data){
-    parentPort.postMessage({id: -1, type: 'error', data})
+    parentPort.postMessage({id: -1, type: 'error', data, file})
 }
 
 process.on('unhandledRejection', (reason, promise) => {
-    const msg = 'Unhandled Rejection at: '+String(promise)+ ', reason: '+ String(reason)
+    const msg = 'Unhandled Rejection at: '+String(promise)+ ', reason: '+ String(reason) + ' | ' + JSON.stringify(reason.stack)
     logErr(msg)
 })
 process.on('uncaughtException', (exception) => {
@@ -28,10 +29,11 @@ if(global.bytenode){
     global.bytenode = require('bytenode')
 }
 
-const Driver = require(file), driver = new Driver()
+const Driver = require(file)
+driver = new Driver()
 parentPort.on('message', msg => {
     if(msg.method == 'configChange'){
-        //console.log('CONFIG CHANGED!', file)
+        console.log('CONFIG CHANGED!', file)
         global.config.reload()
     } else if(typeof(driver[msg.method]) == 'undefined'){
         data = {id: msg.id, type: 'reject', data: 'method not exists'}

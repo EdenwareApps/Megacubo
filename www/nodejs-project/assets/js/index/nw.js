@@ -146,7 +146,7 @@ class WindowManager extends ClassesHandler {
 				}
 				console.log('cmdline**: ' + cmd)
 				this.container.onBackendReady(() => {
-					channel.post('message', ['open-url', cmd])
+					this.container.channel.post('message', ['open-url', decodeURIComponent(cmd)])
 				})
 			}
 		}

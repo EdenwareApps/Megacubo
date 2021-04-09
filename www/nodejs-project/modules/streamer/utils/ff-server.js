@@ -366,7 +366,7 @@ class FFServer extends Events {
                             this.waitFile(this.decoder.file, this.timeout).then(() => {
                                 this.serve().then(resolve).catch(reject)
                             }).catch(e => {
-                                console.error('waitFile timeout', this.timeout, e)
+                                console.error('waitFile failed', this.timeout, e)
                                 this.destroy()
                                 reject(e)
                             })

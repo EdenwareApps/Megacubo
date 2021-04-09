@@ -20,6 +20,7 @@ class Mega {
 	}	
 	parse(megaUrl){
 		if(this.isMega(megaUrl)){
+			megaUrl = decodeURIComponent(megaUrl)
 			let mediaType = 'live', url = '', name = '', qs = {}, type = 'name'
 			let parts = megaUrl.substr(7).split('#')[0]
 			if(parts[0].charAt(parts[0].length - 1) == '/'){
@@ -45,6 +46,8 @@ class Mega {
 			}
 			if(url && !name){
 				name = 'Megacubo '+ this.getDomain(url)
+			} else if(name.charAt(name.length - 1) == '/'){
+				name = name.substr(0, name.length - 1)
 			}
 			let ret = {name, type, mediaType, url}
 			Object.keys(qs).forEach(k => {

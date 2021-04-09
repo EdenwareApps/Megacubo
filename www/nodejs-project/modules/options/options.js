@@ -1,5 +1,5 @@
 
-const Events = require('events'), fs = require('fs'), path = require('path')
+const Events = require('events'), fs = require('fs'), path = require('path'), async = require('async')
 
 class Timer extends Events {
     constructor(){
@@ -7,37 +7,6 @@ class Timer extends Events {
         this.timerTimer = 0
         this.timerData = 0
         this.timerLabel = false
-        global.ui.on('about-callback', ret => {
-            console.log('about-callback', ret)
-            switch(ret){
-                case 'tos':
-                    this.tos()
-                    break
-                case 'share':
-                    this.share()
-                    break
-                case 'help':
-                    this.help()
-                    break
-            }
-        })
-        global.ui.on('reset-callback', ret => {
-            console.log('reset-callback', ret)
-            switch(ret){
-                case 'yes':
-                    global.removeFolder(paths['data'], false, true)
-                    global.removeFolder(paths['temp'], false, true)
-                    global.energy.restart()
-                    break
-            }
-        })
-        global.ui.on('locale-callback', locale => {
-            let def = global.lang.locale
-            if(locale != def){
-                global.config.set('locale', locale)
-                global.energy.restart()
-            }
-        })
     }
     timer(){
         return new Promise((resolve, reject) => {
@@ -132,6 +101,40 @@ class Timer extends Events {
 class Options extends Timer {
     constructor(){
         super()
+        global.ui.on('about-callback', ret => {
+            console.log('about-callback', ret)
+            switch(ret){
+                case 'tos':
+                    this.tos()
+                    break
+                case 'share':
+                    this.share()
+                    break
+                case 'help':
+                    this.help()
+                    break
+            }
+        })
+        global.ui.on('reset-callback', ret => {
+            console.log('reset-callback', ret)
+            switch(ret){
+                case 'yes':
+                    global.removeFolder(global.paths['data'], false, true)
+                    global.removeFolder(global.paths['temp'], false, true)
+                    global.energy.restart()
+                    break
+            }
+        })
+        global.ui.on('locale-callback', locale => {
+            let def = global.lang.locale
+            if(locale != def){
+                global.config.set('locale', locale)
+                global.energy.restart()
+            }
+        })
+        global.ui.on('clear-cache', ret => {
+            if(ret == 'yes') this.clearCache()
+        })
         this.languageNames = {
             en: 'English',
             es: 'Español',
@@ -274,6 +277,42 @@ class Options extends Timer {
                 })
             }
             resolve(opts)
+        })
+    }
+    requestClearCache(){
+        let folders = [global.paths['data'], global.paths['temp']], size = 0, gfs = require('get-folder-size')
+        async.eachOf(folders, (folder, i, done) => {
+            gfs(folder, (err, s) => {
+                if(!err){
+                    size += s
+                }
+                done()
+            })
+        }, () => {
+            let highUsage = size > (512 * (1024 * 1024))
+            size = '<font class="faclr-' + (highUsage ? 'red' : 'green') + '">' + global.kbfmt(size) + '</font>'
+            global.ui.emit('dialog', [
+                {template: 'question', text: global.lang.CLEAR_CACHE, fa: 'fas fa-broom'},
+                {template: 'message', text: global.lang.CLEAR_CACHE_WARNING.format(size)},
+                {template: 'option', text: global.lang.YES, id: 'yes', fa: 'fas fa-check-circle'},
+                {template: 'option', text: global.lang.NO, id: 'no', fa: 'fas fa-times-circle'}
+            ], 'clear-cache', 'no')
+        })
+    }
+    clearCache(){
+        global.osd.show(global.lang.CLEANING_CACHE, 'fa-mega spin-x-alt', 'clear-cache', 'persistent')
+        global.ui.emit('clear-cache')
+        global.streamer.stop()
+        if(global.tuning){
+            global.tuning.stop()
+        }
+        let folders = [global.paths['data'], global.paths['temp']]
+        async.eachOf(folders, (folder, i, done) => {
+            global.removeFolder(folder, false, done)
+        }, () => {
+            global.osd.show('OK', 'fas fa-check-circle', 'clear-cache', 'normal')
+            global.config.save()
+			global.energy.restart()
         })
     }
     entries(){
@@ -433,6 +472,9 @@ class Options extends Timer {
                                 value: () => {
                                     return global.config.get('live-window-time')
                                 }
+                            },
+                            {  
+                                name: global.lang.CLEAR_CACHE, icon: 'fas fa-broom', type: 'action', action: () => this.requestClearCache()
                             },
                             {
                                 name: 'Memory usage', fa: 'fas fa-memory', type: 'action', action: this.aboutMem.bind(this)

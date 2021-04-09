@@ -56,5 +56,6 @@ module.exports = {
 	'uppercase-menu': false,
 	'use-keepalive': true,
 	'view-size-x': 5,
-	'view-size-y': 2
+	'view-size-y': 2,
+	'volume': 100
 }

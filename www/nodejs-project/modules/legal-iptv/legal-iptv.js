@@ -106,9 +106,6 @@ class LegalIPTV extends Events {
     entries(){
         return new Promise((resolve, reject) => {
             this.ready(() => {
-                if(!this.opts.shadow && !Object.values(this.data).length){
-                    this.showInfo()
-                }
                 this.get().then(() => {
                     this.countries.ready(() => {
                         let already = {}, entries = []
@@ -169,7 +166,7 @@ class LegalIPTV extends Events {
                             return sa < sb ? 1 : (sa > sb ? -1 : 0)
                         })
                         entries.unshift({
-                            name: global.lang.KNOW_MORE,
+                            name: global.lang.LEGAL_NOTICE,
                             fa: 'fas fa-info-circle',
                             type: 'action',
                             action: this.showInfo.bind(this)
