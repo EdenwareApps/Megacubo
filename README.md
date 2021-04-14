@@ -45,6 +45,6 @@ cd megacubo/www/nodejs-project
 npm install
 node --inspect main.js
 ```
-...now open your browser at http://localhost:5000/
+...now open your browser at http://localhost:13733/
 
 Any errors along the way? Let us know.
