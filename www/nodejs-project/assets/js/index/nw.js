@@ -47,7 +47,7 @@ class FFMpeg {
 				cb(String(err || stderr) || 'error')
 			}
 		})
-		child.on('close', () => {
+		child.once('close', () => {
 			delete this.childs[child.pid]
 			console.log('FFEXEC DONE', cmd, child, stdout, stderr)
 			cb('return-'+ (stderr || stdout))

@@ -6,6 +6,9 @@ function logErr(data){
     parentPort.postMessage({id: -1, type: 'error', data, file})
 }
 
+process.on('warning', e => {
+    console.warn(e, e.stack)
+})
 process.on('unhandledRejection', (reason, promise) => {
     const msg = 'Unhandled Rejection at: '+String(promise)+ ', reason: '+ String(reason) + ' | ' + JSON.stringify(reason.stack)
     logErr(msg)

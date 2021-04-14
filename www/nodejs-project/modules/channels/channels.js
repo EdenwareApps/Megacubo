@@ -1132,7 +1132,11 @@ class Channels extends ChannelsEditing {
                 entries = global.lists.tools.deepify(entries.concat(gentries))
                 gentries = null
                 if(entries.length == 1){
-                    entries = entries[0].entries
+                    if(typeof(entries[0].renderer) == 'function'){
+                        return entries[0].renderer().then(resolve).catch(reject)
+                    } else if(Array.isArray(entries[0].entries)) {
+                        entries = entries[0].entries
+                    }
                 }
                 resolve(entries)
                 entries = null

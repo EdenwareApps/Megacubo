@@ -37,7 +37,7 @@ module.exports = {
 		'F11': 'FULLSCREEN'
 	},
 	'lists': [],
-	'live-window-time': 120,
+	'live-window-time': 300,
 	'locale': '',
 	'miniplayer-auto': true,
 	'only-known-channels-in-been-watched': true,

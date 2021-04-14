@@ -56,13 +56,13 @@ class Fetcher extends Events {
 							downloadLimit: 20 * (1024 * 1024) // 20Mb
 						}
 						let entries = [], stream = new global.Download(opts)
-						stream.on('response', (statusCode, headers) => {
+						stream.once('response', (statusCode, headers) => {
 							if(statusCode >= 200 && statusCode < 300) {
 								let parser = new Parser(stream)
 								parser.on('entry', entry => {
 									entries.push(entry)
 								})
-								parser.on('end', () => {
+								parser.once('end', () => {
 									stream.destroy()
 									stream = null
 									if(entries.length){
@@ -606,6 +606,10 @@ class Lists extends Index {
 		})
 	}
 	shouldReplace(list){
+		if(!list){
+			console.error('shouldReplace error: no list given', list)
+			return
+		}
 		let weaker
 		Object.keys(this.lists).forEach(k => {
 			if(this.myLists.includes(k)){
@@ -615,7 +619,7 @@ class Lists extends Index {
 				weaker = k
 			}
 		})
-		if(weaker && this.lists[weaker].relevance < list.relevance){
+		if(weaker && this.lists[weaker] && this.lists[weaker].relevance < list.relevance){
 			return weaker
 		}
 	}
@@ -730,13 +734,13 @@ class Lists extends Index {
             } else {
 				let stream = fs.createReadStream(file), entries = [], parser = new Parser()
 				parser.on('entry', e => entries.push(e))
-				parser.on('end', () => {
+				parser.once('end', () => {
 					this.directListRendererPrepare(entries, url || file).then(resolve).catch(reject)
 				})
 				stream.on('data', chunk => {
 					parser.write(chunk)
 				})
-				stream.on('close', () => {
+				stream.once('close', () => {
 					parser.end()
 				})
             }
@@ -746,7 +750,7 @@ class Lists extends Index {
         return new Promise((resolve, reject) => {
 			let entries = [], parser = new Parser()
 			parser.on('entry', e => entries.push(e))
-			parser.on('end', () => {
+			parser.once('end', () => {
 				resolve(entries)
 			})
 			parser.write(content)

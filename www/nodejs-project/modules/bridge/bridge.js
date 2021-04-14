@@ -28,7 +28,7 @@ class BridgeServer extends Events {
         this.opts = {
             addr: '127.0.0.1',
             workDir: global.paths['data'] +'/bridge',
-            port: 5000
+            port: 13733
         }
         if(opts){
             Object.keys(opts).forEach((k) => {
@@ -39,7 +39,7 @@ class BridgeServer extends Events {
             this.io = require("socket.io")(this.port)
         }
         this.closed = false
-        this.bindings = []
+        this.bindings = {on: [], once: []}
         const mimes = {
           '.ico': 'image/x-icon',
           '.html': 'text/html',
@@ -134,13 +134,13 @@ class Bridge extends BridgeServer {
             }
             console.warn('BINDING')
             this.client = socket  
-            this.bindings.forEach(c => {
-                if(c[0] == 'connect'){
-                    c[1]()
-                } else {
-                    this.client.on.apply(this.client, c)
-                }
+            this.bindings.on.forEach(c => {
+                this.client.on.apply(this.client, c)
             })
+            this.bindings.once.forEach(c => {
+                this.client.once.apply(this.client, c)
+            })
+            this.bindings.once = []
             this.client.on('unbind', () => {
                 if(this.client){
                     this.client.removeAllListeners()
@@ -150,9 +150,16 @@ class Bridge extends BridgeServer {
         }
     }
     on(...args){
-        this.bindings.push(args)
+        this.bindings.on.push(args)
         if(this.client){
             this.client.on.apply(this.client, args)
+        }
+    }
+    once(...args){
+        if(this.client){
+            this.client.once.apply(this.client, args)
+        } else {
+            this.bindings.once.push(args)
         }
     }
     emit(...args){
@@ -165,9 +172,16 @@ class Bridge extends BridgeServer {
     localEmit(...args){
         let a = Array.from(args), id = a.shift()
         console.log('localEmit', id, a)
-        this.bindings.forEach(c => {
+        this.bindings.on.forEach(c => {
             if(c[0] == id){
                 c[1].apply(null, a)
+            }
+        })
+        this.bindings.once = this.bindings.once.filter(c => {
+            if(c[0] == id){
+                c[1].apply(null, a)
+            } else {
+                return true
             }
         })
     }

@@ -5,6 +5,9 @@ function logErr(data){
     postMessage({id: -1, type: 'error', data, file})
 }
 
+process.on('warning', e => {
+    console.warn(e, e.stack)
+})
 process.on('unhandledRejection', (reason, promise) => {
     const msg = 'Unhandled Rejection at: '+ String(promise) + ', reason: '+ String(reason)
     logErr(msg)

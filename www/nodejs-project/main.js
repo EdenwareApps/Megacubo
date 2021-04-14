@@ -15,6 +15,9 @@ try {
 Buffer = require('safe-buffer').Buffer
 const fs = require('fs'), path = require('path')
 
+process.on('warning', e => {
+    console.warn(e, e.stack)
+})
 process.on('unhandledRejection', (reason, promise) => {
     console.error('Unhandled Rejection at:', promise, 'reason:', reason)
 })
@@ -547,7 +550,7 @@ function init(language){
                 lists.manager.UIUpdateLists(true)
             }
         })     
-        ui.on('init', () => {
+        ui.once('init', () => {
             console.warn('Client init')
             explorer.start()  
             streamState.sync()
@@ -567,7 +570,7 @@ function init(language){
                             ui.on('updater-cb', chosen => {
                                 console.log('update callback', chosen)
                                 if(chosen == 'yes'){
-                                    ui.emit('open-external-url', 'https://megacubo.tv/update?ver=' + newVersion)
+                                    ui.emit('open-external-url', 'https://megacubo.net/update?ver=' + newVersion)
                                 }
                             })
                             ui.emit('dialog', [
@@ -594,19 +597,26 @@ function init(language){
         ui.on('streamer-ready', () => {        
             isStreamerReady = true    
             if(!streamer.active){
-                if(playOnLoaded){
-                    streamer.play(playOnLoaded)
-                } else if(config.get('resume')){
-                    if(global.explorer.path){
-                        console.log('resume skipped, user navigated away')
-                    } else {
-                        console.log('resuming', histo.resumed, global.streamer)
-                        histo.resume()
+                let next = () => {                
+                    if(playOnLoaded){
+                        streamer.play(playOnLoaded)
+                    } else if(config.get('resume')){
+                        if(global.explorer.path){
+                            console.log('resume skipped, user navigated away')
+                        } else {
+                            console.log('resuming', histo.resumed, global.streamer)
+                            histo.resume()
+                        }
                     }
+                }
+                if(lists.manager.updatingLists || !config.get('setup-complete')){
+                    lists.manager.once('lists-updated', next)
+                } else {
+                    next()
                 }
             }
         })
-        ui.on('close', () => {
+        ui.once('close', () => {
             console.warn('Client closed!')
             energy.exit()
         })

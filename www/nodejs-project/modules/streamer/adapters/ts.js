@@ -7,7 +7,7 @@ class StreamerAdapterTS extends StreamerAdapterBase {
 		this.bitrate = false
 		this.clients = []
 		this.bitrates = []
-		this.port = 0
+		this.opts.port = 0
 	}
 	start(){
 		return new Promise((resolve, reject) => {

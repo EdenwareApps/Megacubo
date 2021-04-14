@@ -59,7 +59,7 @@ class EPG extends Events {
                         //console.error(err)
                         return true
                     })
-                    this.parser.on('end', () => {
+                    this.parser.once('end', () => {
                         this.applyIcons()
                         this.save.bind(this)
                         this.request.destroy()
@@ -84,7 +84,7 @@ class EPG extends Events {
                     console.warn(err)
                     return true
                 })
-                this.request.on('response', () => {
+                this.request.once('response', () => {
                     if(!this.loaded){
                         this.state = 'connected'
                     }
@@ -94,7 +94,7 @@ class EPG extends Events {
                     // console.log('epg received', String(chunk))
                     this.parser.write(chunk)
                 })
-                this.request.on('end', () => {
+                this.request.once('end', () => {
                     console.log('EPG REQUEST ENDED', received, Object.keys(this.data).length)
                     global.storage.set(this.fetchCtrlKey, now, this.ttl)
                     if(Object.keys(this.data).length){

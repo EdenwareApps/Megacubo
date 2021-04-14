@@ -127,11 +127,30 @@ class Downloader extends StreamerAdapterBase {
 			this.internalErrorLevel++
 			this.internalErrors.push(e)
 			if(this.internalErrorLevel >= (this.connectable ? this.opts.errorLimit : this.opts.initialErrorLimit)){
-				console.error('[' + this.type + '] error limit reached', this.committed, this.internalErrorLevel, this.internalErrors, this.opts.errorLimit)
-				this.fail('request error')
+				let status = this.internalErrorStatusCode()
+				console.error('[' + this.type + '] error limit reached', this.committed, this.internalErrorLevel, this.internalErrors, status, this.opts.errorLimit)
+				this.fail(status)
 			}
 		}
 		return this.destroyed || this._destroyed
+	}
+	internalErrorStatusCode(){
+		let status = 0
+		this.internalErrors.some(code => {
+			if(code >= 400 && code < 500){
+				status = code
+				return true
+			}
+		})
+		if(!status){
+			this.internalErrors.some(code => {
+				if(code >= 500){
+					status = code
+					return true
+				}
+			})
+		}
+		return status
 	}
 	handleDataValidate(data){
 		if(!data || this.destroyed || this._destroyed){
@@ -221,7 +240,7 @@ class Downloader extends StreamerAdapterBase {
 				global.osd.show(global.streamer.humanizeFailureMessage(statusCode || 'timeout'), 'fas fa-times-circle', 'debug-conn-err', 'normal')
 			}
 		})
-		download.on('response', (statusCode, headers) => {
+		download.once('response', (statusCode, headers) => {
 			let contentType = ''
             if(this.opts.debug){
                 this.opts.debug('[' + this.type + '] response', statusCode, headers)
@@ -242,7 +261,7 @@ class Downloader extends StreamerAdapterBase {
 				download.on('data', chunk => {
 					this.handleData(chunk)
 				})
-				download.on('end', () => {
+				download.once('end', () => {
 					this.endRequest()
 					if(callback){
 						this.afterDownload(null, callback, {contentType, statusCode, headers})
@@ -254,7 +273,7 @@ class Downloader extends StreamerAdapterBase {
 				if(this.committed && (!statusCode || statusCode < 200 || statusCode >= 400)){ // skip redirects
 					global.osd.show(global.streamer.humanizeFailureMessage(statusCode || 'timeout'), 'fas fa-times-circle', 'debug-conn-err', 'normal')
 				}
-				this.internalError('bad response: ' + contentType + ', ' + statusCode)
+				this.internalError(statusCode)
 				if(statusCode){
 					setTimeout(() => this.afterDownload('bad response', callback, {contentType, statusCode, headers}), 1000) // delay to avoid abusing
 				} else {

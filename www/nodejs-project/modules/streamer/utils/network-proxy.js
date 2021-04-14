@@ -9,16 +9,18 @@ class StreamerNetworkProxy extends StreamerProxy {
         this.sourcePort = port
 	}
     proxify(url){
-        if(typeof(url) == 'string' && url.indexOf('//') != -1){
-            return url.replace('http://127.0.0.1:' + this.sourcePort + '/', 'http://'+ this.addr + ':' + this.port + '/')
-        } else if(url.charAt(0) == '/') { // path url
-            url = 'http://'+ this.addr + ':' + this.port + url
+        if(this.opts.port){
+            if(typeof(url) == 'string' && url.indexOf('//') != -1){
+                return url.replace('http://127.0.0.1:' + this.sourcePort + '/', 'http://'+ this.addr + ':' + this.opts.port + '/')
+            } else if(url.charAt(0) == '/') { // path url
+                url = 'http://'+ this.addr + ':' + this.opts.port + url
+            }
         }
         return url
     }
     unproxify(url){
         if(typeof(url) == 'string' && url.indexOf('//') != -1){
-            return url.replace('http://'+ this.addr + ':' + this.port + '/', 'http://127.0.0.1:' + this.sourcePort + '/')
+            return url.replace('http://'+ this.addr + ':' + this.opts.port + '/', 'http://127.0.0.1:' + this.sourcePort + '/')
         } else if(url.charAt(0) == '/') { // path url
             url = 'http://127.0.0.1:' + this.sourcePort + url
         }
@@ -38,7 +40,7 @@ class StreamerNetworkProxy extends StreamerProxy {
                     reject(err)
                 } else {
                     this.connectable = true
-                    this.port = this.server.address().port
+                    this.opts.port = this.server.address().port
                     resolve(true)
                 }
             })

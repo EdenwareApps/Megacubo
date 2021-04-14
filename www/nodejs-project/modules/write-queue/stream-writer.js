@@ -5,8 +5,8 @@ class StreamWriter {
 		this.queue = []
 		this.needDrain = false
 		this.target.on('drain', this.flush.bind(this))
-		this.target.on('close', this.end.bind(this))
-		this.target.on('end', this.end.bind(this))
+		this.target.once('close', this.end.bind(this))
+		this.target.once('end', this.end.bind(this))
 	}
 	write(...args){
 		if(this.needDrain){

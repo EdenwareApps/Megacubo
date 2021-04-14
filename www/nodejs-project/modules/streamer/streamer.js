@@ -112,14 +112,14 @@ class StreamerTools extends Events {
 						finish()
 					}
 				})
-				download.on('response', (statusCode, responseHeaders) => {
+				download.once('response', (statusCode, responseHeaders) => {
 					if(this.opts.debug){
 						this.opts.debug(url, statusCode, responseHeaders)
 					}
 					headers = responseHeaders
 					status = statusCode
 				})
-				download.on('end', finish)
+				download.once('end', finish)
 				if(this.opts.debug){
 					this.opts.debug(url, timeoutSecs)
 				}
@@ -707,7 +707,7 @@ class StreamerAbout extends StreamerThrottling {
 						text += global.lang.YOUR_CONNECTION_IS_SLOW
 					}
 					text += ' (' + global.kbsfmt(this.downlink) + ' < ' + global.kbsfmt(this.active.bitrate) + ')'
-				} else if(currentSpeed && (currentSpeed < this.active.bitrate)) {
+				} else {
 					text += global.lang.SLOW_SERVER + ' (' + global.kbsfmt(currentSpeed) + ' < ' + global.kbsfmt(this.active.bitrate)+')'
 				}
 			}
@@ -765,7 +765,7 @@ class Streamer extends StreamerAbout {
 				return
 			}
 			console.log('tuning', entries, name)
-			let tuning = new AutoTuner(entries, {}, megaUrl, mediaType)
+			let tuning = new AutoTuner(entries, {}, name, megaUrl, mediaType)
 			global.tuning = tuning
 			tuning.txt = txt
 			tuning.on('progress', i => {
@@ -820,7 +820,7 @@ class Streamer extends StreamerAbout {
 		const opts = isMega ? global.mega.parse(e.url) : {mediaType: 'live'};		
 		const loadingEntriesData = [e, global.lang.AUTO_TUNING]
 		this.setUILoadingEntries(loadingEntriesData, true, txt)
-		if(global.config.get('show-logos') ){
+		if(global.config.get('show-logos')){
 			e = global.icons.prepareEntry(e)
 		}
 		console.log(e)

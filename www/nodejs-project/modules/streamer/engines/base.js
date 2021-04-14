@@ -102,14 +102,17 @@ class StreamerBaseIntent extends Events {
             }
         })
     }
-    findAdapter(base, types){
+    findAdapter(base, types, filter){
+        if(!base){
+            base = this
+        }
         if(base.adapters){
             let ret
             for(let i = base.adapters.length - 1; i >= 0; i--){ // reverse lookup to find the higher level adapter, so it should be HTML5 compatible already
-                if(base.adapters[i].type && types.includes(base.adapters[i].type)){
+                if(base.adapters[i].type && types.includes(base.adapters[i].type) && (!filter || filter(base.adapters[i]))){
                     ret = base.adapters[i]
                 } else {
-                    ret = this.findAdapter(base.adapters[i], types)
+                    ret = this.findAdapter(base.adapters[i], types, filter)
                 }
                 if(ret){
                     break
@@ -118,14 +121,17 @@ class StreamerBaseIntent extends Events {
             return ret
         }
     }
-    findLowAdapter(base, types){
+    findLowAdapter(base, types, filter){
+        if(!base){
+            base = this
+        }
         if(base.adapters){
             let ret
             for(let i = 0; i < base.adapters.length; i++){ // not reverse, to find the lower level adapter, useful to get stream download speed
-                if(base.adapters[i].type && types.includes(base.adapters[i].type)){
+                if(base.adapters[i].type && types.includes(base.adapters[i].type) && (!filter || filter(base.adapters[i]))){
                     ret = base.adapters[i]
                 } else {
-                    ret = this.findAdapter(base.adapters[i], types)
+                    ret = this.findLowAdapter(base.adapters[i], types, filter)
                 }
                 if(ret){
                     break
@@ -206,7 +212,7 @@ class StreamerBaseIntent extends Events {
     }
     startCapture(onData, onFinish, onReset){
         this.endCapture()
-        let a = this.findAdapter(this, ['downloader', 'joiner', 'proxy', 'ffserver']) // suitable adapters for capturing, by priority
+        let a = this.findLowAdapter(null, ['downloader', 'joiner', 'proxy', 'ffserver']) // suitable adapters for capturing, by priority
         if(a){
             this.capturing = [a, onData, onFinish, onReset]
             this.capturing[0].on('data', this.capturing[1])

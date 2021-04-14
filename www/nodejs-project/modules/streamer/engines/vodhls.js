@@ -14,8 +14,8 @@ class StreamerVODHLSIntent extends StreamerBaseIntent {
                 this.adapter = null
             }
             let opts = {
-                audioCodec: undefined, // auto
-                videoCodec: undefined, // auto
+                audioCodec: 'aac',
+                videoCodec: 'libx264',
                 workDir: this.opts.workDir, 
                 debug: this.opts.debug
             }

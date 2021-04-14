@@ -475,9 +475,6 @@ seekbar {
     pointer-events: auto;
     cursor: wait;
 }
-body.video-loading seekbar input {
-    pointer-events: none;
-}
 seekbar > div {
     padding: 0;
     display: block;

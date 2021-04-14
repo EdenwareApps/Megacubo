@@ -1,20 +1,27 @@
 module.exports = function closed(req, response, cb){
-	let callback = () => {
+	let socket
+	const socketCloseListener = () => {
+		setTimeout(() => {
+			if(response.writable){
+				callback()
+			}
+		}, 2000)
+	}
+	const callback = () => {
 		process.nextTick(() => {
 			if(cb && !response.ended && response.writable){
-				cb()		
-			}
-			cb = null	
+				if(socket){
+					socket.removeListener('close', socketCloseListener)
+					socket = null
+				}
+				cb()	
+				cb = null	
+			}	
 		})
 	}
-	let onSocket = () => {
-		response.socket.once('close', () => {
-			setTimeout(() => {
-				if(response.writable){
-					callback()
-				}
-			}, 2000)
-		})
+	const onSocket = () => {
+		socket = response.socket
+		socket.once('close', socketCloseListener)
 	}
 	/* Prevent never-ending responses bug on v10.5.0. Is it needed yet? */
 	if(response.socket){

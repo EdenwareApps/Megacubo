@@ -364,24 +364,31 @@ class FFMPEG extends FFMPEGDiagnostic {
 		return ret
 	}
 	exec(input, cmd, cb){
-		const child = this.create(input), timeout = setTimeout(() => {
-			if(child){
-				child.kill()
+		const proc = this.create(input), timeout = setTimeout(() => {
+			if(proc){
+				proc.kill()
 			}
 			if(typeof(cb) == 'function'){
 				cb('timeout', '')
+				cb = null
 			}
-		}, 20000)
-		child.outputOptions(cmd)
-		child.on('end', data => {
+		}, 30000)
+		proc.outputOptions(cmd)
+		proc.once('end', data => {
 			clearTimeout(timeout)
-			cb(null, data)
+			if(typeof(cb) == 'function'){
+				cb(null, data)
+				cb = null
+			}
 		})
-		child.on('error', err => {
+		proc.on('error', err => {
 			clearTimeout(timeout)
-			cb(err)
+			if(typeof(cb) == 'function'){
+				cb(err)
+				cb = null
+			}
 		})
-		child.run()
+		proc.run()
 	}
     version(cb){
 		this.exec('', ['-version'], (error, output) => {

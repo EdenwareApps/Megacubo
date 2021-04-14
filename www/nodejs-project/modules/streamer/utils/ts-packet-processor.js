@@ -172,7 +172,9 @@ class TSPacketProcessor extends Events {
                     if(!this.currentPCR || pcr > this.currentPCR){ // first connection OR next pcr
                         this.parsingPCR = pcr
                         if(discontinuityLevel <= 2 && this.isPCRDiscontinuity(pcr)){
-                            console.log('pcr discontinuity', pcr)
+                            if(this.debug){
+                                console.log('pcr discontinuity', pcr)
+                            }
                             discontinuityLevel++
                         } else {
                             discontinuityLevel = 0
@@ -208,7 +210,9 @@ class TSPacketProcessor extends Events {
             if(clear){
                 if(!pcrTimes.length && this.isPCRDiscontinuity(lastPCR) && (global.time() - this.pcrRepeatCheckerLastValidPCRFoundTime) > this.pcrRepeatCheckerTimeout){
                     // after X seconds without receiving a valid pcr, give up and reset the pcr checking for next data
-                    console.log('PCR CHECKER RESET', '('+ global.time() +'s - '+ this.pcrRepeatCheckerLastValidPCRFoundTime +'s) > '+ this.pcrRepeatCheckerTimeout, this.currentPCR, lastPCR)
+                    if(this.debug){
+                        console.log('PCR CHECKER RESET', '('+ global.time() +'s - '+ this.pcrRepeatCheckerLastValidPCRFoundTime +'s) > '+ this.pcrRepeatCheckerTimeout, this.currentPCR, lastPCR)
+                    }
                     this.pcrRepeatCheckerLastValidPCRFoundTime = global.time() // reset pcr checking timeout counter
                     this.currentPCR = 0
                 }

@@ -282,6 +282,7 @@ class ExplorerDialog extends ExplorerDialogQueue {
 					this.app.emit.apply(this.app, cb)
 				}
 			}
+			let validatedDefaultIndex
 			entries.forEach(e => {
 				let template = e.template, isOption = ['option', 'option-detailed', 'text', 'slider'].includes(template)
 				if(template == 'option' && e.details){
@@ -300,6 +301,9 @@ class ExplorerDialog extends ExplorerDialogQueue {
 					console.log(tpl, e)
 				}
 				if(isOption){
+					if(!validatedDefaultIndex || e.id == defaultIndex){
+						validatedDefaultIndex = e.id
+					}
 					opts += tpl
 				} else {
 					html += tpl
@@ -308,7 +312,7 @@ class ExplorerDialog extends ExplorerDialogQueue {
 			if(opts){
 				html += this.replaceTags(this.modalTemplates['options-group'], {opts}, true)
 			}
-			console.log('MODALFOCUS', defaultIndex)
+			console.log('MODALFOCUS', defaultIndex, validatedDefaultIndex)
 			this.startModal('<div class="modal-wrap"><div>' + html + '</div></div>')
 			let m = this.modalContent
 			entries.forEach(e => {
@@ -321,7 +325,7 @@ class ExplorerDialog extends ExplorerDialogQueue {
 							callback(id)
 						})
 					}
-					if(String(e.id) == String(defaultIndex)){
+					if(String(e.id) == String(validatedDefaultIndex)){
 						setTimeout(() => {
 							console.log('MODALFOCUS', p, defaultIndex)
 							this.focus(p, false)

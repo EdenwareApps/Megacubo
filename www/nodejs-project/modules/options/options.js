@@ -186,7 +186,7 @@ class Options extends Timer {
         })
     }
     tos(){
-        global.ui.emit('open-external-url', 'https://megacubo.tv/tos')
+        global.ui.emit('open-external-url', 'https://megacubo.net/tos')
     }
     help(){
         global.cloud.get('configure').then(c => {
@@ -195,7 +195,7 @@ class Options extends Timer {
         }).catch(global.displayErr)
     }
 	share(){
-		global.ui.emit('share', global.ucWords(global.MANIFEST.name), global.ucWords(global.MANIFEST.name), 'https://megacubo.tv/online/')
+		global.ui.emit('share', global.ucWords(global.MANIFEST.name), global.ucWords(global.MANIFEST.name), 'https://megacubo.net/online/')
 	}
     about(){
         let text = lang.LEGAL_NOTICE +": "+ lang.ABOUT_LEGAL_NOTICE

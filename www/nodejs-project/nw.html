@@ -55,6 +55,9 @@
 		<iframe src="about:blank" frameborder="0" scrolling="no" allowFullScreen></iframe>
 		<script type="text/javascript" src="assets/js/index/nw.js"></script>
 		<script>
+			process.on('warning', e => {
+				console.warn(e, e.stack)
+			})
 			process.on('unhandledRejection', (reason, promise) => {
 				console.error('Unhandled Rejection at:', promise, 'reason:', reason)
 			})
@@ -67,7 +70,7 @@
 					fr.style.visibility = 'visible'
 				})	
 			}
-			fr.src = 'http://127.0.0.1:5000/index.html'
+			fr.src = 'http://127.0.0.1:13733/index.html'
 			Manager = new WindowManager()
 		</script>
     </body>

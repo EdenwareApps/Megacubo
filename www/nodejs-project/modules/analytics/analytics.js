@@ -54,7 +54,7 @@ class AnalyticsBase extends Events {
             res.on('data', (d) => {
                 data += d
             })
-            res.on('end', () => {
+            res.once('end', () => {
                 if(this.debug){
                     console.log('register('+action+')', data)
                 }
@@ -69,10 +69,11 @@ class AnalyticsBase extends Events {
         req.end()
     }
     prepareEntry(entry){
-        if(!entry || typeof(entry)!='object'){
-            entry = {}
+        if(!entry || typeof(entry) != 'object'){
+            return {}
+        } else {
+            return Object.assign({}, entry)
         }
-        return entry
     }
 }
 

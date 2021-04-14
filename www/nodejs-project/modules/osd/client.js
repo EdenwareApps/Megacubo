@@ -82,7 +82,7 @@ class OSD extends OSDDOMClassHandler {
         let id = 'osd-entry-' + name, c = this.root.querySelector('#' + id), textOnly
         if(c){
             this.removeClass(c, 'osd-hidden')
-            textOnly = c.innerHTML.indexOf(icon) != -1
+            textOnly = c.innerHTML.indexOf(icon +'"') != -1
         } else {
             c = document.createElement('div')
             c.id = id
@@ -154,10 +154,7 @@ class OSD extends OSDDOMClassHandler {
         observer.observe(this.root, atts)
     }
     updateLayout(){
-        let shown = 0, entries = this.root.querySelectorAll('.osd-entry:not(.osd-hidden)')
-        if(entries.length){
-            // FILTER BY DISPLAY, VISIBLE ONLY
-        }    
+        let entries = this.root.querySelectorAll('.osd-entry:not(.osd-hidden)')
         if(entries.length){
             this.body.addClass('osd')
             let l = 0

@@ -53,8 +53,9 @@ class FFServer extends Events {
                 return reject('no file specified')
             }
             let finished, watcher, timer = 0
+            const s = global.time()
             const dir = path.dirname(file), basename = path.basename(file)
-            const finish = err => {
+            const finish = oerr => {
                 clearTimeout(timer)
                 if(watcher){
                     watcher.close()
@@ -62,14 +63,34 @@ class FFServer extends Events {
                 }
                 if(!finished){
                     finished = true
-                    if(err) return reject(err)
-                    fs.stat(file, (err, stat) => {
-                        if(!stat || !stat.size){
-                            reject('file not found or empty')
-                        } else {
-                            resolve(stat)
-                        }
-                    })
+                    if(this.destroyed){
+                        reject('destroyed')
+                    } else {
+                        const elapsed = global.time() - s
+                        const timeouted = elapsed >= timeout
+                        const t = timeouted ? ', timeout' : ' after '+ elapsed +'/'+ timeout +'s'
+                        fs.access(dir, aerr => {
+                            if (aerr) {
+                                reject('dir not exists anymore'+ t)
+                            } else {
+                                fs.stat(file, (err, stat) => {
+                                    if(stat && stat.size){
+                                        resolve(stat)
+                                    } else {
+                                        if(timeouted){
+                                            if(err){
+                                                reject('file not found'+ t)
+                                            } else {
+                                                reject('file empty'+ t)
+                                            }
+                                        } else {
+                                            reject(oerr)
+                                        }
+                                    }
+                                })
+                            }
+                        })
+                    }
                 }
             }
             try {
@@ -143,9 +164,6 @@ class FFServer extends Events {
                     fs.readdir(this.opts.workDir + path.sep + this.uid, (err, files) => {
                         if(Array.isArray(files)){
                             let basename = path.basename(file)
-                            if(files.includes(basename)){
-                                cb(false)
-                            }
                             let firstFile = files.sort().filter(f => f.indexOf('m3u8') == -1).shift()
                             if(basename < firstFile){
                                 console.warn('Outdated file', basename, firstFile, files)
@@ -161,16 +179,49 @@ class FFServer extends Events {
             })
         })
     }
+    contentTypeFromExt(ext){
+        let ct = ''
+        switch(ext){
+            case 'm3u8':
+                ct =  'application/x-mpegURL'
+                break
+            case 'mp4':
+            case 'm4v':
+                ct =  'video/mp4'
+                break
+            case 'm4s':
+                ct = 'video/iso.segment'
+                break
+            case 'ts':
+            case 'mpegts':
+            case 'mts':
+                ct =  'video/MP2T'
+                break
+        }
+        return ct
+    }
     serve(){
         return new Promise((resolve, reject) => {
             this.server = http.createServer((req, response) => {
 				const file = this.unproxify(req.url.split('#')[0]), fail = err => {
                     console.log('FFMPEG SERVE', err, file, this.destroyed)
+                    /*
                     response.writeHead(404, { 
                         'Content-Type': 'text/plain',
                         'Access-Control-Allow-Origin': '*'
                     })
                     response.end(err)
+                    */
+                    let headers = { 
+                        'access-control-allow-origin': '*',
+                        'content-length': 0
+                    }
+                    let ctype = this.contentTypeFromExt(global.streamer.ext(file))
+                    if(ctype){
+                        headers['content-type'] =  ctype
+                    }
+                    response.writeHead(200, headers)
+                    response.end()
                 }
                 if(this.destroyed){
                     fail('destroyed')
@@ -180,22 +231,9 @@ class FFServer extends Events {
                             'access-control-allow-origin': '*',
                             'content-length': stat.size
                         }
-                        switch(global.streamer.ext(file)){
-                            case 'm3u8':
-                                headers['content-type'] =  'application/x-mpegURL'
-                                break
-                            case 'mp4':
-                            case 'm4v':
-                                headers['content-type'] =  'video/mp4'
-                                break
-                            case 'm4s':
-                                headers['content-type'] = 'video/iso.segment'
-                                break
-                            case 'ts':
-                            case 'mpegts':
-                            case 'mts':
-                                headers['content-type'] =  'video/MP2T'
-                                break
+                        let ctype = this.contentTypeFromExt(global.streamer.ext(file))
+                        if(ctype){
+                            headers['content-type'] =  ctype
                         }
                         let ended, stream = fs.createReadStream(file)
                         response.writeHead(200, headers)
@@ -321,7 +359,7 @@ class FFServer extends Events {
                     }
                 }
                 this.decoder.
-                on('end', data => {
+                once('end', data => {
                     if(!this.destroyed){
                         console.warn('file ended '+ data, traceback())
                         this.destroy()

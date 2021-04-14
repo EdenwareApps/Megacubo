@@ -57,12 +57,12 @@ class ConnRacing extends Events {
             }, this.opts)
             download = new global.Download(req)
             this.downloads.push(download)
-            download.on('response', (statusCode, responseHeaders) => {
+            download.once('response', (statusCode, responseHeaders) => {
                 headers = responseHeaders
                 status = statusCode
                 finish()
             })
-            download.on('end', finish)
+            download.once('end', finish)
         }, () => {
             this.racingEnded = true
             this.pump()

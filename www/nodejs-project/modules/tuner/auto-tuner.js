@@ -1,8 +1,9 @@
 const async = require('async'), Tuner = require('./tuner'), Events = require('events')
 
 class AutoTuner extends Events {
-    constructor(entries, opts, megaURL, mediaType){
+    constructor(entries, opts, name, megaURL, mediaType){
         super()
+        this.name = name
         this.paused = false
         this.headless = false
         this.megaURL = megaURL
@@ -38,7 +39,6 @@ class AutoTuner extends Events {
                 this.pump()
             }
         })
-
     }
     pause(){
         console.log('autotuner PAUSE', traceback())
@@ -76,6 +76,7 @@ class AutoTuner extends Events {
                 if(!resolved){
                     resolved = true
                     if(n.nid){
+                        n = this.prepareIntentToEmit(n)
                         if(!this.headless){
                             global.streamer.commit(n)
                         }
@@ -96,6 +97,15 @@ class AutoTuner extends Events {
             this.resume()
             this.pump()
         })
+    }
+    prepareIntentToEmit(e){
+        if(this.mediaType == 'live'){
+            e.data = Object.assign({
+                originalUrl: this.megaURL,
+                originalName: this.name
+            }, e.data)            
+        }
+        return e
     }
     pump(){
         if(this.paused || this.destroyed){

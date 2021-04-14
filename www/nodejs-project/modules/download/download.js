@@ -135,11 +135,11 @@ class Download extends Events {
 				this.end()
 			}
 		})
-		stream.on('response', this.parseResponse.bind(this))
+		stream.once('response', this.parseResponse.bind(this))
 		stream.on('data', () => {}) // if no data handler on stream, response.on('data') will not receive too, WTF?!
 		stream.on('error', this.errorCallback.bind(this))
 		stream.on('download-error', this.errorCallback.bind(this)) // from got-wrapper hook
-		stream.on('end', () => {
+		stream.once('end', () => {
 			if(this.opts.debug){
 				console.log('>> Download finished')
 			}
@@ -190,8 +190,8 @@ class Download extends Events {
 			} else {
 				ms = (global.config.get('connect-timeout') || 5) * 1000
 			}
-			'lookup,connect,secureConnect,socket,response'.split(',').forEach(s => timeout[s] = ms)
-			'send,request'.split(',').forEach(s => timeout[s] = ms * 2)
+			'lookup,connect,secureConnect,response'.split(',').forEach(s => timeout[s] = ms)
+			'socket,send,request'.split(',').forEach(s => timeout[s] = ms * 2)
 			return timeout
 		}
 	}
@@ -291,7 +291,6 @@ class Download extends Events {
 				this.end()
 			} else {
 				if(!this.headersSent){
-					this.headersSent = true
 					let headers = response.headers
 					headers = this.removeHeaders(headers, ['content-range', 'content-length', 'content-encoding', 'transfer-encoding', 'cookie']) // cookies will be handled internally by got module
 					if(!this.statusCode || this.isPreferredStatusCode(response.statusCode)){
@@ -315,6 +314,7 @@ class Download extends Events {
 					if(this.opts.debug){
 						console.log('>> Download response emit', this.statusCode, headers, this.isResponseCompressed)
 					}
+					this.headersSent = true
 					this.emit('response', this.statusCode, headers)
 				}
 				response.on('data', chunk => {
@@ -424,11 +424,11 @@ class Download extends Events {
 					this.decompressEnded = true
 					this.end()
 				})
-				//this.decompressor.on('end', chunk => console.log('ZLIB END'))
+				//this.decompressor.once('end', chunk => console.log('ZLIB END'))
 				this.decompressor.on('finish', chunk => {
 					this.decompressEnded = true
 				})
-				//this.decompressor.on('close', chunk => console.log('ZLIB CLS'))
+				//this.decompressor.once('close', chunk => console.log('ZLIB CLS'))
 			}
 			//console.log('decompressor.write', chunk)
 			this.decompressor.write(chunk)
@@ -656,7 +656,7 @@ Download.promise = (...args) => {
 	let g, opts = args[0]
 	let promise = new Promise((resolve, reject) => {
 		g = new Download(opts)
-		g.on('end', buf => {
+		g.once('end', buf => {
 			// console.log('Download', g, global.traceback(), buf)
 			if(g.statusCode >= 200 && g.statusCode < 400){
 				resolve(buf)

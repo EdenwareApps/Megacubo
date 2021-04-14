@@ -58,7 +58,12 @@ class Manager extends Events {
                     global.osd.show(global.lang[this.firstRun ? 'STARTING_LISTS' : 'UPDATING_LISTS'] + (p.progress ? ' '+ p.progress +'%' : ''), 'fa-mega spin-x-alt', 'update', 'persistent')
                 } 
             }
-            if(global.explorer && global.explorer.currentEntries && global.explorer.currentEntries.some(e => [global.lang.PROCESSING].includes(e.name))){
+            if(global.explorer && global.explorer.currentEntries && 
+                (
+                    global.explorer.currentEntries.some(e => [global.lang.PROCESSING, global.lang.SHARE].includes(e.name)) ||
+                    global.explorer.basename(global.explorer.path) == global.lang.COMMUNITY_LISTS
+                )
+                ){
                 global.explorer.refresh()
             }
         })
@@ -712,10 +717,10 @@ class Manager extends Events {
                         download.on('progress', progress => {
                             global.osd.show(global.lang.OPENING_LIST +' '+ progress +'%', 'fa-mega spin-x-alt', 'list-open', 'persistent')
                         })
-                        download.on('response', console.warn)
+                        download.once('response', console.warn)
                         download.on('error', console.warn)
                         download.on('data', chunk => stream.write(chunk))
-                        download.on('end', () => {
+                        download.once('end', () => {
                             stream.on('finish', () => {
                                 this.parent.directListFileRenderer(tmpFile, v.url).then(cb).catch(onerr)
                             })
@@ -769,7 +774,7 @@ class Manager extends Events {
             download.on('error', err => {
                 console.warn('Download error', err)
             })
-            download.on('end', onContent)
+            download.once('end', onContent)
         })
     }
     communityLists(){

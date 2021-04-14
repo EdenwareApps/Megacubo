@@ -57,7 +57,7 @@ class UpdateListIndex extends ListIndexUtils {
                     downloadLimit: 28 * (1024 * 1024) // 28Mb
                 }
                 this.stream = new global.Download(opts)
-                this.stream.on('response', (statusCode, headers) => {
+                this.stream.once('response', (statusCode, headers) => {
                     now = global.time()
                     if(statusCode >= 200 && statusCode < 300){
                         this.contentLength = this.stream.totalContentLength
@@ -127,7 +127,7 @@ class UpdateListIndex extends ListIndexUtils {
                     reject('destroyed')
                 }
             })
-			this.parser.on('end', () => {
+			this.parser.once('end', () => {
                 this.index.length = this.indexateIterator
                 if(this.index.length){
                     writer.write(JSON.stringify(this.index))

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget android-versionCode="99" id="tv.megacubo.app" version="16.1.2" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget android-versionCode="103" id="tv.megacubo.app" version="16.1.3" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>Megacubo</name>
     <description>
         An intuitive, free and open source IPTV player.
@@ -24,10 +24,11 @@
 			<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 			<uses-permission android:name="android.permission.WRITE_INTERNAL_STORAGE" />
 			<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+			<uses-permission android:name="android.permission.WAKE_LOCK" />
 			<uses-permission android:name="android.permission.VIBRATE" />
         </config-file>
         <edit-config file="AndroidManifest.xml" mode="merge" target="/manifest/uses-sdk">
-            <uses-sdk android:minSdkVersion="24" android:targetSdkVersion="29" />
+            <uses-sdk android:minSdkVersion="24" android:maxSdkVersion="30" android:targetSdkVersion="30" />
         </edit-config>
         <edit-config file="AndroidManifest.xml" mode="merge" target="/manifest/application">
             <application android:hardwareAccelerated="true" android:theme="@android:style/Theme.DeviceDefault.NoActionBar" android:usesCleartextTraffic="true" />
@@ -38,7 +39,6 @@
         <preference name="AndroidLaunchMode" value="singleInstance" />
         <preference name="AndroidPersistentFileLocation" value="Compatibility" />
         <preference name="AndroidExtraFilesystems" value="files,files-external,documents,sdcard,root" />
-        <preference name="Fullscreen" value="false" />
         <preference name="KeyboardResize" value="false" />
         <preference name="loadUrlTimeoutValue" value="300000" />
         <preference name="MediaPlaybackRequiresUserAction" value="false" />

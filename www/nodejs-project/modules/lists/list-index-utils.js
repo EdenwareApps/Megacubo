@@ -36,7 +36,7 @@ class ListIndexUtils extends Events {
                         i++
                     }
                 })
-                rl.on('close', () => {
+                rl.once('close', () => {
                     cb(lines)
                     rl = null
                 })
@@ -67,7 +67,7 @@ class ListIndexUtils extends Events {
                         }
                     }
                 })
-                rl.on('close', () => {
+                rl.once('close', () => {
                     cb(lastLine)
                     rl = null
                 })

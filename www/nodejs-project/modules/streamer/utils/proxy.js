@@ -3,13 +3,16 @@ const http = require('http'), path = require('path'), parseRange = require('rang
 const StreamerProxyBase = require('./proxy-base'), sanitize = require('sanitize-filename'), decodeEntities = require('decode-entities'), m3u8Parser = require('m3u8-parser')
 
 class StreamerProxy extends StreamerProxyBase {
-	constructor(opts){
+	constructor(opts={}){
 		super('', opts)
+		this.opts.port = 0
 		this.type = 'proxy'
+		this.networkOnly = false
 		this.connections = {}
 		this.journal = {}
 		this.internalRequestAbortedEvent = 'request-aborted'
-		// this.opts.debug = console.log
+		this.opts.followRedirect = false
+		this.opts.forceExtraHeaders = null
 		if(this.opts.debug){
 			this.opts.debug('OPTS', this.opts)
 		}
@@ -45,20 +48,21 @@ class StreamerProxy extends StreamerProxyBase {
 			delete this.connections[uid]
 		}
 	}
+	destroyAllConns(){
+		Object.keys(this.connections).forEach(uid => {
+			this.destroyConn(uid, false, true)
+		})
+	}
     proxify(url){
         if(typeof(url) == 'string' && url.indexOf('//') != -1){
-            if(!this.port){
-                if(this.server && typeof(this.server.address) == 'function'){
-                    this.port = this.server.address().port
-                } else {
-                    return url // srv not ready
-                }
+            if(!this.opts.port){
+                return url // srv not ready
             }
 			url = this.unproxify(url)
 			if(url.substr(0, 7) == 'http://') {
-				url = 'http://'+ this.opts.addr +':'+this.port+'/' + url.substr(7)
+				url = 'http://'+ this.opts.addr +':'+this.opts.port+'/'+ url.substr(7)
 			} else if(url.substr(0, 8) == 'https://') {
-				url = 'http://'+ this.opts.addr +':'+ this.port +'/s/' + url.substr(8)
+				url = 'http://'+ this.opts.addr +':'+ this.opts.port +'/s/'+ url.substr(8)
 			}
         }
         return url
@@ -208,10 +212,14 @@ class StreamerProxy extends StreamerProxyBase {
 					return
 				}
 				this.connectable = true
-				this.port = this.server.address().port
+				this.opts.port = this.server.address().port
 				resolve(true)
 			})
 		})
+	}
+	setNetworkOnly(enable){
+		this.networkOnly = enable
+		this.destroyAllConns()
 	}
 	handleRequest(req, response){
 		if(this.destroyed || req.url.indexOf('favicon.ico') != -1){
@@ -220,25 +228,42 @@ class StreamerProxy extends StreamerProxyBase {
 			})
 			return response.end()
 		}
+		if(this.networkOnly){
+			if(this.type != 'network-proxy'){
+				if(!req.headers['x-from-network-proxy'] && !req.rawHeaders.includes('x-from-network-proxy')){
+					console.warn('networkOnly block', this.type, req.rawHeaders)
+					response.writeHead(504, {
+						'Access-Control-Allow-Origin': '*'
+					})
+					return response.end()
+				}
+			}
+		}
 		if(this.debug){
 			this.debug('req starting...', req, req.url)
 		}
-		let url = this.unproxify(req.url)
+		const uid = this.uid()
+		let ended, url = this.unproxify(req.url)
 		let reqHeaders = req.headers, dom = this.getDomain(url)
 		reqHeaders['accept-encoding'] =  'identity' // not needed and problematic
 		reqHeaders.host = dom
 		reqHeaders = this.removeHeaders(reqHeaders, ['cookie', 'referer', 'origin'])
-		if(this.debug){
-			this.debug('serving', url, req, path.basename(url), url, reqHeaders)
+		if(this.type == 'network-proxy'){
+			reqHeaders['x-from-network-proxy'] = '1'
+		} else {
+			if(reqHeaders['x-from-network-proxy']){
+				delete reqHeaders['x-from-network-proxy']
+			}
 		}
-		const uid = this.uid()
-		let ended
+		if(this.debug){
+			this.debug('serving', url, req, path.basename(url), url, reqHeaders, uid)
+		}
 		const download = new global.Download({
 			url,
 			retries: 5,
 			keepalive: this.committed && global.config.get('use-keepalive'),
 			headers: reqHeaders,
-			followRedirect: false
+			followRedirect: this.opts.followRedirect
 		})
 		this.connections[uid] = {response, download}
 		const end = data => {
@@ -266,11 +291,28 @@ class StreamerProxy extends StreamerProxyBase {
 		download.on('error', err => {
 			if(this.committed){
 				global.osd.show(global.streamer.humanizeFailureMessage(err.response ? err.response.statusCode : 'timeout'), 'fas fa-times-circle', 'debug-conn-err', 'normal')
+				if(this.debug){
+					this.debug('download err', err)
+				}
 			}
 		})
-		download.on('response', (statusCode, headers) => {
-			headers = this.removeHeaders(headers, ['transfer-encoding', 'content-encoding'])
+		download.once('response', (statusCode, headers) => {
+			headers = this.removeHeaders(headers, [
+				'transfer-encoding', 
+				'content-encoding', 
+				'keep-alive',
+				'strict-transport-security',
+				'content-security-policy',
+				'x-xss-protection',
+				'cross-origin-resource-policy'
+			])
 			headers['access-control-allow-origin'] = '*'
+			if(this.opts.forceExtraHeaders){
+				headers = Object.assign(headers, this.opts.forceExtraHeaders)
+			}
+			if(this.debug){
+				this.debug('download response', statusCode, headers, uid)
+			}
 			if(statusCode >= 200 && statusCode < 300){ // is data response
 				if(!headers['content-disposition'] || headers['content-disposition'].indexOf('attachment') == -1 || headers['content-disposition'].indexOf('filename=') == -1){
 					// setting filename to allow future file download feature
@@ -284,7 +326,14 @@ class StreamerProxy extends StreamerProxyBase {
 					}
 					headers['content-disposition'] = 'attachment; filename="' + sanitize(filename) + '"'
 				}
+				if(this.type == 'network-proxy' && headers['content-length'] && !headers['content-range']){
+					let len = parseInt(headers['content-length'])
+					headers['content-range'] = 'bytes 0-'+ (len - 1) +'/'+ len
+				}
 				if(req.method == 'HEAD'){
+					if(this.debug){
+						this.debug('download sent response headers', statusCode, headers)
+					}
 					response.writeHead(statusCode, headers)
 					end()
 				} else {
@@ -305,6 +354,8 @@ class StreamerProxy extends StreamerProxyBase {
 					global.osd.show(global.streamer.humanizeFailureMessage(statusCode || 'timeout'), 'fas fa-times-circle', 'debug-conn-err', 'normal')
 				}
 				let fallback, location
+				headers['connection'] = 'close' // always force connection close on local servers, keepalive will be broken
+				headers['content-length'] = 0
 				if(statusCode == 404){
 					Object.keys(this.playlists).some(masterUrl => {
 						if(Object.keys(this.playlists[masterUrl]).includes(url)){ // we have mirrors for this playlist
@@ -333,12 +384,24 @@ class StreamerProxy extends StreamerProxyBase {
 				if(fallback){
 					headers['location'] = fallback
 					response.writeHead(301, headers)
+					if(this.debug){
+						this.debug('download sent response headers', 301, headers)
+					}
 				} else if(location){
 					headers['location'] = location
-					response.writeHead((statusCode >= 300 && statusCode < 400) ? statusCode : 307, headers)					
+					statusCode = (statusCode >= 300 && statusCode < 400) ? statusCode : 307
+					response.writeHead(statusCode, headers)		
+					if(this.debug){
+						this.debug('download sent response headers', statusCode, headers)
+					}			
 				} else {
 					// we'll avoid to passthrough 403 errors to the client as some streamsmay return it esporadically
-					response.writeHead(statusCode && ![401, 403].includes(statusCode) ? statusCode : 504, headers)
+					statusCode = statusCode && ![401, 403].includes(statusCode) ? statusCode : 504
+					response.writeHead(statusCode, headers)	
+					if(this.debug){
+						this.debug('download sent response headers', statusCode, headers)
+					}			
+
 				}
 				end()
 			}
@@ -370,12 +433,15 @@ class StreamerProxy extends StreamerProxyBase {
 		}
 		headers = this.removeHeaders(headers, ['content-length']) // we'll change the content
 		headers = this.addCachingHeaders(headers, 4) // set a min cache to this m3u8 to prevent his overfetching
-		download.on('end', data => {
+		download.once('end', data => {
 			if(data.length > 12){
 				data = this.proxifyM3U8(String(data), url)
 				headers['content-length'] = data.length
 				if(!response.headersSent){
 					response.writeHead(statusCode, headers)
+					if(this.debug){
+						this.debug('download sent response headers', statusCode, headers)
+					}
 				}
 				if(this.opts.debug){
 					this.opts.debug('M3U8 ' + data, url)
@@ -384,13 +450,18 @@ class StreamerProxy extends StreamerProxyBase {
 				console.error('Invalid response from server', url, data)
 				if(!response.headersSent){
 					response.writeHead(504, headers)
+					if(this.debug){
+						this.debug('download sent response headers', 504, headers)
+					}
 				}
 			}
 			end(data)
 		})
 	}	
 	handleVideoResponse(download, statusCode, headers, response, end, url, uid){
-		if(!headers['content-type'] || !headers['content-type'].match(new RegExp('^(audio|video)'))){ // fix bad mimetypes
+		if(this.opts.forceVideoContentType){
+			headers['content-type'] = this.opts.forceVideoContentType
+		} else if(!headers['content-type'] || !headers['content-type'].match(new RegExp('^(audio|video)'))){ // fix bad mimetypes
 			switch(this.ext(url)){
 				case 'ts':
 				case 'mts':
@@ -402,6 +473,9 @@ class StreamerProxy extends StreamerProxyBase {
 			}
 		}
 		if(!response.headersSent){
+			if(this.debug){
+				this.debug('download sent response headers', statusCode, headers)
+			}
 			response.writeHead(statusCode, headers)
 		}
 		let offset = download.requestingRange ? download.requestingRange.start : 0
@@ -449,7 +523,7 @@ class StreamerProxy extends StreamerProxyBase {
 				this.downloadLog(len)
 			}
 		})
-		download.on('end', onend)
+		download.once('end', onend)
 		if(download.ended){
 			onend()
 		}
@@ -457,10 +531,13 @@ class StreamerProxy extends StreamerProxyBase {
 	handleGenericResponse(download, statusCode, headers, response, end){
 		if(!response.headersSent){
 			response.writeHead(statusCode, headers)
+			if(this.debug){
+				this.debug('download sent response headers', statusCode, headers)
+			}
 		}
         console.log('handleGenericResponse', headers)
 		download.on('data', chunk => response.write(chunk))
-		download.on('end', () => end())
+		download.once('end', () => end())
 	}	
 	addCachingHeaders(headers, secs){		
 		return Object.assign(headers, {

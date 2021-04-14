@@ -69,7 +69,7 @@ class StreamerOSD extends StreamerPlaybackTimeout {
         this.on('draw', () => {
             this.OSDLoadingHintShown = false
         })
-        this.on('state', (s) => {
+        this.on('state', s => {
             switch(s){
                 case 'ended':
                     clearTimeout(this.transmissionNotWorkingHintTimer)
@@ -144,6 +144,18 @@ class StreamerCasting extends StreamerOSD {
                 if(this.active){
                     this.bindStateListener()
                     parent.player.resume()
+                }
+            }
+        })
+        this.on('state', s => {
+            if(this.casting){
+                if(s == 'playing'){
+                    this.unbindStateListener()
+                    parent.player.pause()
+                } else if(s == ''){
+                    this.casting = false
+                    this.castingPaused = false
+                    this.jbody.removeClass('casting')
                 }
             }
         })
@@ -954,15 +966,25 @@ class StreamerAudioUI extends StreamerClientVideoFullScreen {
     }
     volumeChanged(){
         let nvolume = parseInt(this.volumeInput.value)
-        if(!this.volumeInitialized || nvolume != this.volume){        
+        if(!this.volumeInitialized || nvolume != this.volume){
+            let volIcon = 'fas fa-volume-up'
             this.volume = nvolume
+            if(!this.volume){
+                volIcon = 'fas fa-volume-mute'
+            } else if(this.volume <= 50){
+                volIcon = 'fas fa-volume-down'
+            }
             this.volumeInput.style.background = 'linear-gradient(to right, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 1) '+ nvolume +'%, rgba(0, 0, 0, 0.68) '+ nvolume +'.01%)'
             parent.player.volume(nvolume)
             if(this.volumeInitialized){
-                osd.show(lang.VOLUME + ': ' + nvolume, 'fas fa-volume-up', 'volume', 'normal')
+                osd.show(this.volume ? lang.VOLUME + ': ' + nvolume : lang.MUTE, volIcon, 'volume', 'normal')
                 this.saveVolume()
             } else {
                 this.volumeInitialized = true
+            }
+            if(volIcon != this.lastVolIcon){
+                this.lastVolIcon = volIcon
+                this.updatePlayerButton('volume', null, volIcon)
             }
         }
     }
