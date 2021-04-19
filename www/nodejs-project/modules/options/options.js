@@ -452,29 +452,23 @@ class Options extends Timer {
                                 global.config.set('use-keepalive', checked)
                             }, checked: () => {
                                 return global.config.get('use-keepalive')
-                            }},
+                            }},                         
                             {
-                                name: 'Allow transcoding', type: 'check', action: (data, checked) => {
-                                global.config.set('transcoding', checked)
-                            }, checked: () => {
-                                return global.config.get('transcoding')
-                            }},                            
-                            {
-                                name: 'Transcoding resolution limit', type: 'select', fa: 'fas fa-film',
+                                name: 'Transcoding', type: 'select', fa: 'fas fa-film',
                                 renderer: () => {
                                     return new Promise((resolve, reject) => {
-                                        let def = global.config.get('transcoding-resolution-limit'), opts = [
-                                            {name: global.lang.NONE, type: 'action', selected: !def, action: (data) => {
-                                                global.config.set('transcoding-resolution-limit', '')
+                                        let def = global.config.get('transcoding'), opts = [
+                                            {name: global.lang.NEVER, type: 'action', selected: !def, action: (data) => {
+                                                global.config.set('transcoding', '')
                                             }},
                                             {name: '480p', type: 'action', selected: (def == '480p'), action: (data) => {
-                                                global.config.set('transcoding-resolution-limit', '480p')
+                                                global.config.set('transcoding', '480p')
                                             }},
                                             {name: '720p', type: 'action', selected: (def == '720p'), action: (data) => {
-                                                global.config.set('transcoding-resolution-limit', '720p')
+                                                global.config.set('transcoding', '720p')
                                             }},
                                             {name: '1080p', type: 'action', selected: (def == '1080p'), action: (data) => {
-                                                global.config.set('transcoding-resolution-limit', '1080p')
+                                                global.config.set('transcoding', '1080p')
                                             }}
                                         ]
                                         resolve(opts)

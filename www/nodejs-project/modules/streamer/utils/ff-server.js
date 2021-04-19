@@ -360,7 +360,7 @@ class FFServer extends Events {
 
                     outputOptions('-crf', 18) // we are encoding for watching, so avoid to waste too much time and cpu with encoding, at cost of bigger disk space usage
 
-                    let resolutionLimit = global.config.get('transcoding-resolution-limit')
+                    let resolutionLimit = global.config.get('transcoding')
                     switch(resolutionLimit){
                         case '480p':
                             this.decoder.outputOptions('-vf', 'scale=\'min(852,iw)\':min\'(480,ih)\':force_original_aspect_ratio=decrease,pad=852:480:(ow-iw)/2:(oh-ih)/2')

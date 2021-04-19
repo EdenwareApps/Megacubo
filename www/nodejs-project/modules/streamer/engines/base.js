@@ -177,12 +177,16 @@ class StreamerBaseIntent extends Events {
     }
     dimensions(){
         let dimensions = ''
-        this.adapters.some(a => {
-            if(a._dimensions){
-                dimensions = a._dimensions
-                return true
-            }
-        })
+        if(this._dimensions){
+            dimensions = this._dimensions
+        } else {
+            this.adapters.some(a => {
+                if(a._dimensions){
+                    dimensions = a._dimensions
+                    return true
+                }
+            })
+        }
         return dimensions
     }
     time(){
