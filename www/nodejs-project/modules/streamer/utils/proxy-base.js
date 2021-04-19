@@ -85,6 +85,17 @@ class StreamerProxyBase extends StreamerAdapterBase {
 		}
 		return ''
 	}
+    destroy(){
+		if(!this.destroyed){
+			this.destroyed = true
+			this.emit('destroy')
+			this.removeAllListeners()
+			if(this.server){
+				this.server.close()
+				delete this.server
+			}
+		}
+    }
 }
 
 module.exports = StreamerProxyBase

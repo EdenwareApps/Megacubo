@@ -111,6 +111,7 @@ class EPG extends Events {
                         this.parser.end()
                     }
                 })
+                this.request.start()
             } else {
                 console.log('epg update skipped')
             }

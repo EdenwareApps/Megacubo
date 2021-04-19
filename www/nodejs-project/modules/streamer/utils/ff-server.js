@@ -4,12 +4,12 @@ class FFServer extends Events {
     constructor(source, opts){
         super()
         this.source = source 
-        this.timeout = Math.max(30, global.config.get('connect-timeout'))
+        this.timeout = global.config.get('connect-timeout') * 6
         this.started = false
         this.type = 'ffserver'
         this.opts = {
             debug: false,
-            workDir: process.cwd(),
+            workDir: global.paths.temp,
             addr: '127.0.0.1',
             port: 0,
             videoCodec: 'copy',
@@ -129,14 +129,26 @@ class FFServer extends Events {
         })
     }
     proxify(file){
-        if(typeof(file)=='string'){
-            if(file.indexOf(this.uid) != -1){
-                file = file.split(this.uid)[1]
-            }
+        if(typeof(file) == 'string'){
             if(!this.opts.port){
-                return file // server not ready
+				console.error('proxify() before server is ready', file, global.traceback())
+                return file // srv not ready
+            }
+            let host = 'http://'+ this.opts.addr +':'+ this.opts.port +'/'
+            if(file.indexOf(host) != -1){
+                return file
+            }
+			console.log('proxify before', file)
+            let uid = '/'+ this.uid +'/', pos = file.indexOf(uid)
+            if(pos != -1){
+                file = '/'+ file.substr(pos + uid.length)
+            }
+            uid = '\\'+ this.uid +'\\', pos = file.indexOf(uid)
+            if(pos != -1){
+                file = '/'+ file.substr(pos + uid.length)
             }
             file = 'http://127.0.0.1:' + this.opts.port + file.replaceAll('\\', '/')
+			console.log('proxify before', file)
         }
         return file
     }
@@ -169,7 +181,8 @@ class FFServer extends Events {
                                 console.warn('Outdated file', basename, firstFile, files)
                                 reject('outdated file')
                             } else {
-                                this.waitFile(file, 5).then(resolve).catch(reject)
+                                console.warn('File not ready??', basename, firstFile, files)
+                                this.waitFile(file, 10).then(resolve).catch(reject)
                             }
                         } else {
                             reject('readdir failed')
@@ -216,11 +229,13 @@ class FFServer extends Events {
                         'access-control-allow-origin': '*',
                         'content-length': 0
                     }
+                    /*
                     let ctype = this.contentTypeFromExt(global.streamer.ext(file))
                     if(ctype){
                         headers['content-type'] =  ctype
                     }
-                    response.writeHead(200, headers)
+                    */
+                    response.writeHead(404, headers)
                     response.end()
                 }
                 if(this.destroyed){
@@ -248,8 +263,8 @@ class FFServer extends Events {
                         const end = () => {
                             if(!ended){
                                 ended = true
-                                stream && stream.destroy()
                                 response.end()
+                                stream && stream.destroy()
                             }
                         }
                         closed(req, response, () => {
@@ -265,6 +280,13 @@ class FFServer extends Events {
             }).listen(0, this.opts.addr, (err) => {
                 if (err) {
                     return reject('unable to listen on any port')
+                }
+                if(this.destroyed){
+                    if(this.server){
+                        this.server.close()
+                        this.server = null
+                    }
+                    return reject('destroyed')
                 }
                 this.opts.port = this.server.address().port
                 this.endpoint = this.proxify(this.decoder.file)
@@ -299,6 +321,8 @@ class FFServer extends Events {
                     // outputOptions('-async', 2).
                     // outputOptions('-flags:a', '+global_header').
                     // outputOptions('-packetsize', 188).
+                    // outputOptions('-level', '4.1').
+                    // outputOptions('-x264opts', 'vbv-bufsize=50000:vbv-maxrate=50000:nal-hrd=vbr').
                     outputOptions('-hls_flags', 'delete_segments'). // ?? https://www.reddit.com/r/ffmpeg/comments/e9n7nb/ffmpeg_not_deleting_hls_segments/
                     outputOptions('-hls_init_time', 2). // 1 may cause manifestParsingError "invalid target duration"
                     outputOptions('-hls_time', fragTime).
@@ -317,7 +341,12 @@ class FFServer extends Events {
                 if(this.opts.videoCodec === null){
                     this.decoder.outputOptions('-vn')
                 } else if(this.opts.videoCodec) {
-                    this.decoder.videoCodec(this.opts.videoCodec)                
+                    if(this.opts.videoCodec == 'h264'){
+                        this.opts.videoCodec = 'libx264'
+                    }
+                    if(this.opts.videoCodec){
+                        this.decoder.videoCodec(this.opts.videoCodec)
+                    }
                 }
                 if(this.opts.videoCodec == 'libx264') {
                     this.decoder.
@@ -330,12 +359,25 @@ class FFServer extends Events {
                     /* HTML5 compat end */
 
                     outputOptions('-crf', 18) // we are encoding for watching, so avoid to waste too much time and cpu with encoding, at cost of bigger disk space usage
+
+                    let resolutionLimit = global.config.get('transcoding-resolution-limit')
+                    switch(resolutionLimit){
+                        case '480p':
+                            this.decoder.outputOptions('-vf', 'scale=\'min(852,iw)\':min\'(480,ih)\':force_original_aspect_ratio=decrease,pad=852:480:(ow-iw)/2:(oh-ih)/2')
+                            break
+                        case '720p':
+                            this.decoder.outputOptions('-vf', 'scale=\'min(1280,iw)\':min\'(720,ih)\':force_original_aspect_ratio=decrease,pad=1280:720:(ow-iw)/2:(oh-ih)/2')
+                            break
+                        case '1080p':
+                            this.decoder.outputOptions('-vf', 'scale=\'min(1920,iw)\':min\'(1080,ih)\':force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2')
+                            break
+                    }
                 }
                 if(this.opts.audioCodec == 'aac'){
                     this.decoder.outputOptions('-profile:a', 'aac_low').
                     outputOptions('-preset:a', 'ultrafast').
                     outputOptions('-b:a', '128k').
-                    outputOptions('-ac', 2).
+                    outputOptions('-ac', 2). // stereo
                     outputOptions('-ar', 48000).
                     outputOptions('-af', 'aresample=async=1:min_hard_comp=0.100000:first_pts=0')      
                 }
@@ -348,9 +390,9 @@ class FFServer extends Events {
                         inputOptions('-reconnect_streamed', 1).
                         inputOptions('-reconnect_delay_max', 20)
                     this.decoder.
-                    inputOptions('-icy', 0).
-                    inputOptions('-seekable', -1).
-                    inputOptions('-multiple_requests', 1)
+                        inputOptions('-icy', 0).
+                        inputOptions('-seekable', -1).
+                        inputOptions('-multiple_requests', 1)
                     if(this.agent){
                         this.decoder.inputOptions('-user_agent', this.agent) //  -headers ""
                     }
@@ -387,13 +429,9 @@ class FFServer extends Events {
                 fs.mkdir(path.dirname(this.decoder.file), {
                     recursive: true
                 }, () => {
-                    if(this.destroyed){
-                        return
-                    }
+                    if(this.destroyed) return
                     fs.access(path.dirname(this.decoder.file), fs.constants.W_OK, (err) => {
-                        if(this.destroyed){
-                            return
-                        }
+                        if(this.destroyed) return
                         if(err){
                             console.error('FFMPEG cannot write', err)
                             reject('playback')

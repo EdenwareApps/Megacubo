@@ -10,6 +10,9 @@ class StreamerVideoIntent extends StreamerBaseIntent {
         } else {
             this.mimetype = this.mimeTypes.video
         }
+        this.opts.minBitrateCheckSize = 6 * (1024 * 1024)
+        this.opts.maxBitrateCheckSize = 3 * this.opts.minBitrateCheckSize
+        this.opts.bitrateCheckingAmount = 1
     }  
     _start(){   
         return new Promise((resolve, reject) => {
@@ -27,10 +30,6 @@ class StreamerVideoIntent extends StreamerBaseIntent {
                 }
             } else {
                 this.adapter = new StreamerProxy(this.opts)
-                this.adapter.opts.forceFirstBitrateDetection = true
-                this.adapter.opts.minBitrateCheckSize = 3 * (1024 * 1024) // 4MB
-                this.adapter.opts.maxBitrateCheckSize = this.adapter.opts.minBitrateCheckSize * 2
-                this.adapter.opts.bitrateCheckingAmount = 1
                 this.connectAdapter(this.adapter)
                 this.adapter.start().then(() => {
                     this.endpoint = this.adapter.proxify(this.data.url)

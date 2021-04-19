@@ -18,7 +18,7 @@ class StreamerAACIntent extends StreamerBaseIntent {
             this.connectAdapter(this.downloader)
             this.downloader.start().then(() => {
                 this.ts2hls = new FFServer(this.downloader.source.endpoint, this.opts)
-                this.ts2hls.audioCodec = this.opts.audioCodec
+                this.ts2hls.opts.audioCodec = this.opts.audioCodec
                 this.connectAdapter(this.ts2hls)
                 this.ts2hls.start().then(() => {
                     this.endpoint = this.ts2hls.endpoint

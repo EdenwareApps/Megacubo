@@ -120,14 +120,14 @@ class Options extends Timer {
             switch(ret){
                 case 'yes':
                     global.removeFolder(global.paths['data'], false, true)
-                    global.removeFolder(global.paths['temp'], false, true)
+                    global.removeFolder(global.paths.temp, false, true)
                     global.energy.restart()
                     break
             }
         })
         global.ui.on('locale-callback', locale => {
             let def = global.lang.locale
-            if(locale != def){
+            if(locale && (locale != def)){
                 global.config.set('locale', locale)
                 global.energy.restart()
             }
@@ -280,7 +280,7 @@ class Options extends Timer {
         })
     }
     requestClearCache(){
-        let folders = [global.paths['data'], global.paths['temp']], size = 0, gfs = require('get-folder-size')
+        let folders = [global.paths['data'], global.paths.temp], size = 0, gfs = require('get-folder-size')
         async.eachOf(folders, (folder, i, done) => {
             gfs(folder, (err, s) => {
                 if(!err){
@@ -306,7 +306,7 @@ class Options extends Timer {
         if(global.tuning){
             global.tuning.stop()
         }
-        let folders = [global.paths['data'], global.paths['temp']]
+        let folders = [global.paths['data'], global.paths.temp]
         async.eachOf(folders, (folder, i, done) => {
             global.removeFolder(folder, false, done)
         }, () => {
@@ -455,10 +455,32 @@ class Options extends Timer {
                             }},
                             {
                                 name: 'Allow transcoding', type: 'check', action: (data, checked) => {
-                                global.config.set('allow-transcoding', checked)
+                                global.config.set('transcoding', checked)
                             }, checked: () => {
-                                return global.config.get('allow-transcoding')
-                            }},
+                                return global.config.get('transcoding')
+                            }},                            
+                            {
+                                name: 'Transcoding resolution limit', type: 'select', fa: 'fas fa-film',
+                                renderer: () => {
+                                    return new Promise((resolve, reject) => {
+                                        let def = global.config.get('transcoding-resolution-limit'), opts = [
+                                            {name: global.lang.NONE, type: 'action', selected: !def, action: (data) => {
+                                                global.config.set('transcoding-resolution-limit', '')
+                                            }},
+                                            {name: '480p', type: 'action', selected: (def == '480p'), action: (data) => {
+                                                global.config.set('transcoding-resolution-limit', '480p')
+                                            }},
+                                            {name: '720p', type: 'action', selected: (def == '720p'), action: (data) => {
+                                                global.config.set('transcoding-resolution-limit', '720p')
+                                            }},
+                                            {name: '1080p', type: 'action', selected: (def == '1080p'), action: (data) => {
+                                                global.config.set('transcoding-resolution-limit', '1080p')
+                                            }}
+                                        ]
+                                        resolve(opts)
+                                    })
+                                }
+                            },
                             {
                                 name: global.lang.ELAPSED_TIME_TO_KEEP_CACHED, 
                                 details: global.lang.LIVE,

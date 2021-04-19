@@ -316,7 +316,7 @@ function initApp(){
                 } else if(icon.indexOf('//') != -1) {
                     iconTag = '<i class="explorer-location-icon-placeholder"></i>'                    
                 } else {     
-                    iconTag = '<i class="fas '+ icon +'"></i>'                         
+                    iconTag = '<i class="'+ icon +'"></i>'                         
                 }
             } else {
                 iconTag = '<i class="fas fa-home"></i>'

@@ -5,12 +5,20 @@ class WriteQueueFile extends Events {
 		super()
 		this.debug = false
 		this.file = file
+		this.written = 0
 		this.writing = false
 		this.writeQueue = []
 	}
 	write(data, position){
 		this.writeQueue.push({data, position})
 		this.pump()
+	}
+	ready(cb){
+		if(this.writting || this.writeQueue.length){
+			this.once('end', cb)
+		} else {
+			cb()
+		}
 	}
 	prepare(cb){
 		fs.stat(this.file, (err) => {
@@ -59,6 +67,7 @@ class WriteQueueFile extends Events {
 					console.error('writeat error', err)
 					this.writeQueue.push({data, position})
 				} else {
+					this.written += writtenBytes
 					if(writtenBytes < len){
 						if(this.debug){
 							console.warn('writeat written PARTIALLY', this.file, fs.statSync(this.file).size)

@@ -16,7 +16,7 @@ class StorageBase {
 		this.cacheExpiration = {}
 		this.maxExpiration = 100 * (365 * (24 * 3600))
 		if(this.opts.temp){
-			this.folder = global.paths['temp']
+			this.folder = global.paths.temp
 		} else {
 			this.folder = global.paths['data']
 		} 

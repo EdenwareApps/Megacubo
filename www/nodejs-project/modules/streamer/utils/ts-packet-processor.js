@@ -6,6 +6,7 @@ const PACKET_SIZE = 188
 class TSPacketProcessor extends Events {
 	constructor(){
         super()
+        this.forcePacketSize = true
         this.lastFlushTime = 0
         this.minFlushInterval = 3 // secs
         this.buffering = []
@@ -141,7 +142,16 @@ class TSPacketProcessor extends Events {
             }
             let size = offset == -1 ? PACKET_SIZE : (offset - pointer)
             if(size != PACKET_SIZE){
-                console.log('weirdo packet size: '+ size)
+                console.log('weird packet size: '+ size)
+                if(this.forcePacketSize){
+                    if(size < PACKET_SIZE){
+                        let padding = Buffer.alloc(PACKET_SIZE - size, '\0', 'utf8')
+                        buf = Buffer.concat([buf.slice(0, pointer), padding, buf.slice(pointer + size)])
+                    } else { 
+                        buf = Buffer.concat([buf.slice(0, pointer + PACKET_SIZE), buf.slice(pointer + size)]) // trim
+                    }
+                    size = PACKET_SIZE
+                }
             }
             const pcr = this.pcr(buf.slice(pointer, pointer + size))
             if(pcr){ // is pcr packet

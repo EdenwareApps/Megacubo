@@ -20,6 +20,7 @@ class AutoTuner extends Events {
                 }
             })
         }
+        this.opts = opts
         this.tuner = new Tuner(entries, opts, megaURL)
         this.tuner.on('success', (entry, nfo, n) => {
             this.succeededs[n] = 0
@@ -41,7 +42,9 @@ class AutoTuner extends Events {
         })
     }
     pause(){
-        console.log('autotuner PAUSE', traceback())
+        if(this.opts.debug){
+            console.log('autotuner PAUSE', traceback())
+        }
         this.paused = true
         Object.keys(this.succeededs).forEach(n => {
             if(this.succeededs[n] == 1){
@@ -54,7 +57,9 @@ class AutoTuner extends Events {
     }
     resume(){
         if(!this.destroyed){
-            console.log('autotuner RESUME', traceback())
+            if(this.opts.debug){
+				console.log('autotuner RESUME', traceback())
+            }
             this.paused = false
             if(this.tuner.finished){
                 this.pump()
@@ -66,7 +71,9 @@ class AutoTuner extends Events {
         }
     }
     tune(){
-        console.log('auto-tuner tune')
+        if(this.opts.debug){
+            console.log('auto-tuner tune')
+        }
         return new Promise((resolve, reject) => {
             let resolved
             this.emit('progress', this.tuner.getStats())
@@ -87,7 +94,9 @@ class AutoTuner extends Events {
                 }
             })
             this.once('finish', () => {
-                console.log('auto-tuner tune finish')
+                if(this.opts.debug){
+                    console.log('auto-tuner tune finish')
+                }
                 this.pause()
                 if(!resolved){
                     resolved = true
@@ -119,7 +128,9 @@ class AutoTuner extends Events {
         }
         //index = index.concat(ks.filter(i => this.succeededs[i] == 2)) // already returned entries after to avoid return the same
         index = index.concat(ks.filter(i => this.succeededs[i] == 3)) // starting failed entries after, as last resort
-        console.log('auto-tuner pump()', index)
+        if(this.opts.debug){
+            console.log('auto-tuner pump()', index)
+        }
         if(index.length){
             let intents = index.map(n => {
                 if(!this.tuner.info[n]){
@@ -182,16 +193,22 @@ class AutoTuner extends Events {
                             this.pump()
                         }
                     }
-                    console.log('auto-tuner pump() OK')
+                    if(this.opts.debug){
+                        console.log('auto-tuner pump() OK')
+                    }
                 }
             })
         } else {
             if(finished && !this.pending()){
-                console.log('auto-tuner pump() finished')
+                if(this.opts.debug){
+                    console.log('auto-tuner pump() finished')
+                }
                 this.finished = true
                 this.emit('finish')
             }
-            console.log('auto-tuner pump() OK')
+            if(this.opts.debug){
+				console.log('auto-tuner pump() OK')
+            }
         }
     }
     pending(){ // has "still loading" intents?
@@ -201,7 +218,9 @@ class AutoTuner extends Events {
         return this.tuner.entries.some(e => e.url == url)
     }
     destroy(){
-        console.log('auto-tuner destroy')
+        if(this.opts.debug){
+            console.log('auto-tuner destroy')
+        }
         this.paused = true
         this.destroyed = true
         this.emit('destroy')

@@ -421,10 +421,10 @@ div#audio-layer {
 body.audio:not(.video-paused):not(.video-ended):not(.seek-back):not(.seek-fwd):not(.casting) div#audio-layer {
     display: flex;
 }
-body.seek-back div#seek-back {
+body.video.seek-back div#seek-back {
     display: flex;
 }
-body.seek-fwd div#seek-fwd {
+body.video.seek-fwd div#seek-fwd {
     display: flex;
 }
 .control-layer svg, .control-layer i {

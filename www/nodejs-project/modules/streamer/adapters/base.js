@@ -1,5 +1,6 @@
 
-const tmpDir = require('os').tmpdir(), path = require('path'), fs = require('fs'), http = require('http'), Events = require('events')
+const path = require('path'), fs = require('fs'), http = require('http'), Events = require('events'), sanitize = require('sanitize-filename')
+const WriteQueueFile = require(global.APPDIR + '/modules/write-queue/write-queue-file')
 
 class StreamerAdapterBase extends Events {
 	constructor(url, opts){
@@ -10,7 +11,7 @@ class StreamerAdapterBase extends Events {
 			minBitrateCheckSize: 48 * 1024,
 			maxBitrateCheckSize: 3 * (1024 * 1024),
 			connectTimeout: global.config.get('connect-timeout') || 5,
-			bitrateCheckingAmount: 3,
+			bitrateCheckingAmount: 2,
 			maxBitrateCheckingFails: 8,
 			debug: false,
 			port: 0
@@ -31,8 +32,9 @@ class StreamerAdapterBase extends Events {
 		this.bitrates = []
 		this.errors = []
         this.type = 'base'
+		this.getBitrateQueue = []
+		this.bitrateChecking = false
 		this.bitrateCheckFails = 0
-		this.activeBitrateChecks = 0
 		this.bitrateCheckBuffer = {}
 		this.downloadLogging = {}
     }
@@ -129,63 +131,82 @@ class StreamerAdapterBase extends Events {
 		this.bitrates.push(bitrate)
 		this.bitrate = this.bitrates.reduce((a, b) => a + b, 0) / this.bitrates.length
 	}
-	getBitrate(buffer){
-		process.nextTick(() => {
-			let len = this.len(buffer)
-			//console.log('getBitrate', this.destroyed, len, this.opts.minBitrateCheckSize, this.activeBitrateChecks, this.bitrates.length, this.opts.bitrateCheckingAmount)
-			if(!this.destroyed && len >= this.opts.minBitrateCheckSize && (this.activeBitrateChecks + this.bitrates.length) < this.opts.bitrateCheckingAmount){
-				this.activeBitrateChecks++
-				let i = Math.random(), tmpFile = tmpDir + path.sep + i + '.ts'
-				if(this.opts.debug){
-					this.opts.debug('getBitrate', tmpFile, this.url, len, this.opts.minBitrateCheckSize, traceback())
-				}
-				//console.log('getBitrate', tmpFile, this.url, len, this.opts.minBitrateCheckSize, traceback())
-				fs.writeFile(tmpFile, buffer, (err) => {
-					if(this.opts.debug){
-						this.opts.debug('getBitrate', err, this.url)
-					}
-					if(err){
-						this.activeBitrateChecks--
-					} else {
-						global.ffmpeg.bitrate(tmpFile, (err, bitrate, codecData, dimensions, nfo) => {
-							this.activeBitrateChecks--
-							// fs.unlink(tmpFile, () => {})
-							if(!this.destroyed){
-								if(codecData && (codecData.video || codecData.audio) && codecData != this.codecData){
-									this.codecData = codecData
-									this.emit('codecData', codecData)	
-								}
-								if(dimensions && !this._dimensions){
-									this._dimensions = dimensions
-									this.emit('dimensions', this._dimensions)
-								}
-								if(!err){
-									if(this.opts.debug){
-										this.opts.debug('getBitrate', err, bitrate, codecData, dimensions, this.url)
-									}
-									if(bitrate){
-										this.saveBitrate(bitrate)
-										this.emit('bitrate', this.bitrate, this.currentSpeed)	
-									}
-									if(this.opts.debug){
-										this.opts.debug('[' + this.type + '] analyzing: ' + tmpFile, 'sample len: '+ global.kbfmt(len), 'bitrate: '+ global.kbsfmt(this.bitrate), this.bitrates, this.url)
-									}
-								}
+	pumpGetBitrateQueue(){
+		this.bitrateChecking = false
+		if(this.getBitrateQueue.length && !this.destroyed){
+			this.getBitrate(this.getBitrateQueue.shift())
+		}
+	}
+	getBitrate(file){
+		if(this.bitrateChecking){
+			if(!this.getBitrateQueue.includes(file)){
+				this.getBitrateQueue.push(file)
+			}
+			return
+		}
+		this.bitrateChecking = true
+		fs.stat(file, (err, stat) => {
+			if(this.destroyed || this.bitrates.length >= this.opts.bitrateCheckingAmount || this.bitrateCheckFails >= this.opts.maxBitrateCheckingFails){
+				this.bitrateChecking = false
+				this.getBitrateQueue = []
+				this.clearBitrateSampleFiles()
+			} else if(err || stat.size < this.opts.minBitrateCheckSize){
+				this.pumpGetBitrateQueue()
+			} else {
+				console.log('getBitrate', file, this.url, stat.size, this.opts.minBitrateCheckSize, traceback())
+				global.ffmpeg.bitrate(file, (err, bitrate, codecData, dimensions, nfo) => {
+					// fs.unlink(file, () => {})
+					if(!this.destroyed){
+						if(codecData && (codecData.video || codecData.audio) && codecData != this.codecData){
+							this.codecData = codecData
+							this.emit('codecData', codecData)	
+						}
+						if(dimensions && !this._dimensions){
+							this._dimensions = dimensions
+							this.emit('dimensions', this._dimensions)
+						}
+						if(err){
+							this.bitrateCheckFails++
+							this.opts.minBitrateCheckSize += this.opts.minBitrateCheckSize * 0.5
+							this.opts.maxBitrateCheckSize += this.opts.maxBitrateCheckSize * 0.5
+						} else {
+							if(this.opts.debug){
+								this.opts.debug('getBitrate', err, bitrate, codecData, dimensions, this.url)
 							}
-						}, buffer.length)
+							if(bitrate){
+								this.saveBitrate(bitrate)
+								this.emit('bitrate', this.bitrate, this.currentSpeed)	
+							}
+							if(this.opts.debug){
+								this.opts.debug('[' + this.type + '] analyzing: ' + file, 'sample len: '+ global.kbfmt(stat.size), 'bitrate: '+ global.kbsfmt(this.bitrate), this.bitrates, this.url)
+							}
+						}
+						this.pumpGetBitrateQueue()
 					}
-				})
+				}, stat.size)
 			}
 		})
 	}
-	collectBitrateSample(chunk, len, id = 'default'){
+	clearBitrateSampleFiles(){
+		Object.keys(this.bitrateCheckBuffer).forEach(id => {
+			let file = this.bitrateCheckBuffer[id].file
+			this.bitrateCheckBuffer[id].destroy()
+			fs.unlink(file, () => {})
+		})
+		this.bitrateCheckBuffer = {}
+	}
+	collectBitrateSample(chunk, offset, len, id = 'default'){
 		this.downloadLog(len)
 		if(this.committed && this.bitrates.length < this.opts.bitrateCheckingAmount && this.bitrateCheckFails < this.opts.maxBitrateCheckingFails){
 			if(typeof(this.bitrateCheckBuffer[id]) == 'undefined'){
-				this.bitrateCheckBuffer[id] = []
+				let filename = id.split('?')[0].split('/').pop()
+				if(!filename){
+					filename = String(Math.random())
+				}
+				this.bitrateCheckBuffer[id] = new WriteQueueFile(global.paths.temp +'/'+ sanitize(filename))
 			}
-			this.bitrateCheckBuffer[id].push(chunk)
-			if(this.len(this.bitrateCheckBuffer[id]) >= this.opts.maxBitrateCheckSize){
+			this.bitrateCheckBuffer[id].write(chunk, offset)
+			if(this.bitrateCheckBuffer[id].written >= this.opts.maxBitrateCheckSize){
 				this.finishBitrateSample(id)
 				return false
 			}
@@ -195,11 +216,12 @@ class StreamerAdapterBase extends Events {
 	finishBitrateSample(id = 'default'){
 		if(typeof(this.bitrateCheckBuffer[id]) != 'undefined'){
 			if(this.bitrates.length < this.opts.bitrateCheckingAmount){
-				if(this.len(this.bitrateCheckBuffer[id]) >= this.opts.minBitrateCheckSize){
-					this.getBitrate(this.concatSlice(this.bitrateCheckBuffer[id], this.opts.maxBitrateCheckSize))
-				}
+				this.bitrateCheckBuffer[id].ready(() => {
+					if(this.bitrateCheckBuffer[id].written >= this.opts.minBitrateCheckSize){
+						this.getBitrate(this.bitrateCheckBuffer[id].file)
+					}
+				})
 			}
-			delete this.bitrateCheckBuffer[id]
 		}
 	}
 	concatSlice(bufArr, limit){
@@ -329,8 +351,8 @@ class StreamerAdapterBase extends Events {
 		if(!this.destroyed){
 			this.destroyed = true
 			this.emit('destroy')
+			this.clearBitrateSampleFiles()
             this.adapters.forEach(a => a.destroy())
-			this.bitrateCheckBuffer = {}
 			this.downloadLogging = {}
 			if(this.server){
 				this.server.close()

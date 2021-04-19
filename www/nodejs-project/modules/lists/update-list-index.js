@@ -76,6 +76,7 @@ class UpdateListIndex extends ListIndexUtils {
                         reject('http error '+ statusCode)
                     }
                 })
+                this.stream.start()
             } else {
                 fs.stat(path, (err, stat) => {
                     if(stat && stat.size){

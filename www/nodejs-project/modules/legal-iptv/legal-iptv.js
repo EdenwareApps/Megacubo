@@ -210,7 +210,7 @@ class LegalIPTV extends Events {
     }
     hook(entries, path){
         return new Promise((resolve, reject) => {
-            if(path.split('/').pop() == global.lang.SHARED_MODE && config.get('shared-mode-reach')){
+            if(path.split('/').pop() == global.lang.COMMUNITY_MODE && config.get('shared-mode-reach')){
                 entries.push({name: this.title, fa: this.icon, type: 'group', renderer: this.entries.bind(this)})
             }
             resolve(entries)

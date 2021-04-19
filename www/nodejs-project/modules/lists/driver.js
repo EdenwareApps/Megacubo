@@ -79,6 +79,7 @@ class Fetcher extends Events {
 								reject('http error '+ statusCode)
 							}
 						})
+						stream.start()
 					}
 				})
 			} else {

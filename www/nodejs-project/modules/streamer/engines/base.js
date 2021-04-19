@@ -9,7 +9,7 @@ class StreamerBaseIntent extends Events {
             video: 'video/mp4'
         }        
         this.opts = {
-            workDir: global.paths['temp'] +'/ffmpeg/data',
+            workDir: global.paths.temp +'/ffmpeg/data',
             videoCodec: 'copy',
             audioCodec: 'copy'
         }
@@ -102,6 +102,25 @@ class StreamerBaseIntent extends Events {
             }
         })
     }
+    findLowAdapter(base, types, filter){
+        if(!base){
+            base = this
+        }
+        if(base.adapters){
+            let ret
+            for(let i = 0; i < base.adapters.length; i++){ // not reverse, to find the lower level adapter, useful to get stream download speed
+                if(base.adapters[i].type && types.includes(base.adapters[i].type) && (!filter || filter(base.adapters[i]))){
+                    ret = base.adapters[i]
+                } else {
+                    ret = this.findLowAdapter(base.adapters[i], types, filter)
+                }
+                if(ret){
+                    break
+                }
+            }
+            return ret
+        }
+    }
     findAdapter(base, types, filter){
         if(!base){
             base = this
@@ -121,24 +140,21 @@ class StreamerBaseIntent extends Events {
             return ret
         }
     }
-    findLowAdapter(base, types, filter){
+    findAllAdapters(base, types, filter){
         if(!base){
             base = this
         }
+        let adapters = []
         if(base.adapters){
-            let ret
-            for(let i = 0; i < base.adapters.length; i++){ // not reverse, to find the lower level adapter, useful to get stream download speed
+            for(let i = base.adapters.length - 1; i >= 0; i--){ // reverse lookup to find the higher level adapter, so it should be HTML5 compatible already
                 if(base.adapters[i].type && types.includes(base.adapters[i].type) && (!filter || filter(base.adapters[i]))){
-                    ret = base.adapters[i]
+                    adapters.push(base.adapters[i])
                 } else {
-                    ret = this.findLowAdapter(base.adapters[i], types, filter)
-                }
-                if(ret){
-                    break
+                    adapters = adapters.concat(this.findAllAdapters(base.adapters[i], types, filter))
                 }
             }
-            return ret
         }
+        return adapters
     }
     destroyAdapters(){
         this.adapters.forEach(a => {

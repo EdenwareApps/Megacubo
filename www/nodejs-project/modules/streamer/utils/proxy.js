@@ -38,12 +38,7 @@ class StreamerProxy extends StreamerProxyBase {
 				}
 			}
 			if(this.connections[uid].download){
-				if(!force && this.connections[uid].download.preventDestroy){
-					return // hold reference to ondestroy
-				} else {
-					this.connections[uid].download.preventDestroy = false
-					this.connections[uid].download.destroy()
-				}
+				this.connections[uid].download.destroy()
 			}
 			delete this.connections[uid]
 		}
@@ -56,6 +51,7 @@ class StreamerProxy extends StreamerProxyBase {
     proxify(url){
         if(typeof(url) == 'string' && url.indexOf('//') != -1){
             if(!this.opts.port){
+				console.error('proxify() before server is ready', url, global.traceback())
                 return url // srv not ready
             }
 			url = this.unproxify(url)
@@ -258,6 +254,9 @@ class StreamerProxy extends StreamerProxyBase {
 		if(this.debug){
 			this.debug('serving', url, req, path.basename(url), url, reqHeaders, uid)
 		}
+		if(this.type == 'network-proxy'){
+			console.log('serving', url, reqHeaders)
+		}
 		const download = new global.Download({
 			url,
 			retries: 5,
@@ -289,6 +288,9 @@ class StreamerProxy extends StreamerProxyBase {
 			}
 		})
 		download.on('error', err => {
+			if(this.type == 'network-proxy'){
+				console.log('serving', url, err)
+			}
 			if(this.committed){
 				global.osd.show(global.streamer.humanizeFailureMessage(err.response ? err.response.statusCode : 'timeout'), 'fas fa-times-circle', 'debug-conn-err', 'normal')
 				if(this.debug){
@@ -313,6 +315,7 @@ class StreamerProxy extends StreamerProxyBase {
 			if(this.debug){
 				this.debug('download response', statusCode, headers, uid)
 			}
+			headers['connection'] = 'close' // always force connection close on local servers, keepalive will be broken
 			if(statusCode >= 200 && statusCode < 300){ // is data response
 				if(!headers['content-disposition'] || headers['content-disposition'].indexOf('attachment') == -1 || headers['content-disposition'].indexOf('filename=') == -1){
 					// setting filename to allow future file download feature
@@ -354,7 +357,6 @@ class StreamerProxy extends StreamerProxyBase {
 					global.osd.show(global.streamer.humanizeFailureMessage(statusCode || 'timeout'), 'fas fa-times-circle', 'debug-conn-err', 'normal')
 				}
 				let fallback, location
-				headers['connection'] = 'close' // always force connection close on local servers, keepalive will be broken
 				headers['content-length'] = 0
 				if(statusCode == 404){
 					Object.keys(this.playlists).some(masterUrl => {
@@ -406,6 +408,7 @@ class StreamerProxy extends StreamerProxyBase {
 				end()
 			}
 		})
+		download.start()
 	}
 	getMediaType(headers, url){
 		let type = '', minSegmentSize = 96 * 1024
@@ -478,50 +481,32 @@ class StreamerProxy extends StreamerProxyBase {
 			}
 			response.writeHead(statusCode, headers)
 		}
-		let offset = download.requestingRange ? download.requestingRange.start : 0
-		let sampleCollected, doBitrateCheck = offset == 0 && this.committed && this.bitrates.length < this.opts.bitrateCheckingAmount
+		let initialOffset = download.requestingRange ? download.requestingRange.start : 0, offset = initialOffset
+		let sampleCollected, doBitrateCheck = this.committed && this.bitrates.length < this.opts.bitrateCheckingAmount
 		let onend = () => {
 			//console.warn('download ended')
 			if(doBitrateCheck){
-				this.finishBitrateSample(uid)
-			}
-			if(download.preventDestroy){
-				//console.warn('download.destroy() forceFirstBitrateDetection hack removed', offset)
-				download.preventDestroy = false
-				download.destroy()
+				console.log('finishBitrateSampleProxy', url, sampleCollected, initialOffset, offset)
+				this.finishBitrateSample(url)
 			}
 			end()
 		}
 		// console.warn('handleVideoResponse', doBitrateCheck, this.opts.forceFirstBitrateDetection, offset, download, statusCode, headers)
-		if(doBitrateCheck && this.opts.forceFirstBitrateDetection){
-			response.on(this.internalRequestAbortedEvent, () => { // client disconnected
-				//console.warn('forceFirstBitrateDetection hack applied')
-				download.preventDestroy = true
-			})
-		}
 		download.on('data', chunk => {
-			if(download.preventDestroy !== true){
-				response.write(chunk)
-			}
+			response.write(chunk)
 			let len = this.len(chunk)
 			if(this.listenerCount('data')){
 				this.emit('data', url, chunk, len, offset)
 			}
-			offset += len
+			this.downloadLog(len)
 			if(doBitrateCheck && !sampleCollected){
 				//console.warn('forceFirstBitrateDetection data', this.bitrateCheckBuffer[uid], offset, chunk)
-				if(!this.collectBitrateSample(chunk, len, uid)){                       
+				if(!this.collectBitrateSample(chunk, offset, len, url)){                       
 					sampleCollected = true
-					//console.warn('forceFirstBitrateDetection done', download.preventDestroy, download.ended, download.destroyed)
-					if(download.preventDestroy){
-						//console.warn('download.destroy() forceFirstBitrateDetection hack removed, destroying', offset)
-						download.preventDestroy = false
-						download.end()
-					}
+					console.log('collectBitrateSampleProxy', url, sampleCollected, initialOffset, offset)
 				}
-			} else {
-				this.downloadLog(len)
 			}
+			offset += len
 		})
 		download.once('end', onend)
 		if(download.ended){

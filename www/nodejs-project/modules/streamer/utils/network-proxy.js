@@ -5,7 +5,7 @@ class StreamerNetworkProxy extends StreamerProxy {
 	constructor(port){
 		super('', {})
 		this.type = 'network-proxy'
-        this.debug = console.log
+        this.debug = false
         this.sourcePort = port
 	}
     proxify(url){
@@ -13,8 +13,10 @@ class StreamerNetworkProxy extends StreamerProxy {
             if(typeof(url) == 'string' && url.indexOf('//') != -1){
                 return url.replace('http://127.0.0.1:' + this.sourcePort + '/', 'http://'+ this.addr + ':' + this.opts.port + '/')
             } else if(url.charAt(0) == '/') { // path url
-                url = 'http://'+ this.addr + ':' + this.opts.port + url
+                return 'http://'+ this.addr + ':' + this.opts.port + url
             }
+        } else {
+            console.error('proxify() accessed before server is ready', url)
         }
         return url
     }
@@ -22,7 +24,7 @@ class StreamerNetworkProxy extends StreamerProxy {
         if(typeof(url) == 'string' && url.indexOf('//') != -1){
             return url.replace('http://'+ this.addr + ':' + this.opts.port + '/', 'http://127.0.0.1:' + this.sourcePort + '/')
         } else if(url.charAt(0) == '/') { // path url
-            url = 'http://127.0.0.1:' + this.sourcePort + url
+            return 'http://127.0.0.1:' + this.sourcePort + url
         }
         return url
     }
@@ -44,14 +46,8 @@ class StreamerNetworkProxy extends StreamerProxy {
                     resolve(true)
                 }
             })
+            this.server.on('error', console.error)
         })
-    }
-    destroy(){
-        this.removeAllListeners()
-        if(this.server){
-            this.server.close()
-            delete this.server
-        }
     }
 }
 

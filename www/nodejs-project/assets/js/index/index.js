@@ -180,7 +180,7 @@ theming()
 if(window.cordova){
 	console.log('ISCORDOVA')
 	updateSplashProgress()
-	document.addEventListener('deviceready', function (){		
+	document.addEventListener('deviceready', function (){	
 		updateSplashProgress()
 		if(!isES6()){
 			log('No ES6 support')
@@ -192,10 +192,15 @@ if(window.cordova){
 			}
 			loadScripts()			
 			plugins.insomnia.keepAwake()
+			cordova.plugins.backgroundMode.enable()
 			document.addEventListener('pause', function (){
+				cordova.plugins.backgroundMode.isScreenOff(ret => {
+					player.emit('app-pause', ret)
+				})
 				plugins.insomnia.allowSleepAgain()   
 			})
-			document.addEventListener('resume', function (){
+			document.addEventListener('resume', () => {
+				player.emit('app-resume')
 				plugins.insomnia.keepAwake()
 			})
 		}

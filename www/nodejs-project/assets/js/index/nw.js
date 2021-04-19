@@ -85,8 +85,8 @@ class WindowManager extends ClassesHandler {
 		this.win = nw.Window.get()
 		this.leftWindowDiff = 0
 		this.miniPlayerActive = false
-		this.initialSize = [this.win.width, this.win.height]
 		this.miniPlayerRightMargin = 18
+		this.initialSize = [this.win.width, this.win.height]
 		this.inFullScreen = false
 		this.nwcf = require('nw-custom-frame')
 		this.nwcf.attach(window, {
@@ -94,11 +94,13 @@ class WindowManager extends ClassesHandler {
 			'size': 30, // You can specify the size in em,rem, etc...
 			'frameIconSize': 21 // You can specify the size in em,rem, etc...
 		})
+		this.resizeListenerDisabled = false
 		this.on('miniplayer-on', () => {
 			console.warn('MINIPLAYER ON')
 			this.win.setAlwaysOnTop(true)
 			this.win.setShowInTaskbar(false)
 			this.fixMaximizeButton()
+			this.win.show()
 			this.app.streamer.emit('miniplayer-on')
 		})
 		this.on('miniplayer-off', () => {
@@ -177,6 +179,7 @@ class WindowManager extends ClassesHandler {
 		}
 	}
 	removeFromTray(){
+		console.error('leaveMiniPlayer')
 		if(this.tray){
 			this.tray.remove();
 			this.tray = false;
@@ -189,6 +192,7 @@ class WindowManager extends ClassesHandler {
 		this.win.setShowInTaskbar(false)
 	}
 	restoreFromTray(){
+		console.error('leaveMiniPlayer')
 		this.win.show()
 		this.removeFromTray()
 	}
@@ -307,6 +311,7 @@ class WindowManager extends ClassesHandler {
 		this.win.show()
 	}
 	restore(){
+		console.error('leaveMiniPlayer')
 		if(this.isFullScreen()){
 			this.setFullScreen(false)
 		} else if(this.miniPlayerActive) {
@@ -320,6 +325,7 @@ class WindowManager extends ClassesHandler {
 		this.showMaximizeButton()
 	}
 	centralizeWindow(w, h){
+		console.error('leaveMiniPlayer')
 		console.warn('centralizeWindow()', w, h);
 		var x = Math.round((screen.availWidth - (w || window.outerWidth)) / 2);
 		var y = Math.round((screen.availHeight - (h || window.outerHeight)) / 2);
@@ -332,6 +338,7 @@ class WindowManager extends ClassesHandler {
 		return v && v.offsetWidth ? (v.offsetWidth / v.offsetHeight) : (16 / 9)
 	}
 	enterMiniPlayer(w, h){
+		console.error('leaveMiniPlayer')
 		this.win.hide()
 		setTimeout(() => { 
 			this.miniPlayerActive = true;  
@@ -344,11 +351,13 @@ class WindowManager extends ClassesHandler {
 		}, 250)
 	}
 	prepareLeaveMiniPlayer(){
+		console.error('leaveMiniPlayer')
 		this.miniPlayerActive = false;  
 		this.win.setAlwaysOnTop(false)
 		this.emit('miniplayer-off')
 	}
 	leaveMiniPlayer(){
+		console.error('leaveMiniPlayer')
 		this.prepareLeaveMiniPlayer()
 		window.resizeTo.apply(window, this.initialSize)
 		this.centralizeWindow.apply(this, this.initialSize)
@@ -361,6 +370,7 @@ class WindowManager extends ClassesHandler {
 		}
 	}
 	toggleFullScreen(){
+		console.error('leaveMiniPlayer')
 		this.setFullScreen(!this.isFullScreen());
 	}
 	isMaximized(){
@@ -383,9 +393,13 @@ class WindowManager extends ClassesHandler {
 		}
 		this.showRestoreButton()
 	}
-	minimizeWindow(){
+	minimizeWindow(){		
+		this.resizeListenerDisabled = true
 		this.win.show()
 		this.win.minimize()
+		setTimeout(() => {
+			this.resizeListenerDisabled = false
+		}, 500)
 	}
 	showMaximizeButton(){
 		var e = document.querySelector('.nw-cf-maximize');
@@ -419,7 +433,10 @@ class WindowManager extends ClassesHandler {
 			setTimeout(this.fixMaximizeButton.bind(this), 50);
 			this.restore()
 		}, this.app.lang.RESTORE)
-		this.patchButton('.nw-cf-minimize', () => this.minimizeWindow(), this.app.lang.MINIMIZE)
+		this.patchButton('.nw-cf-minimize', () => {
+			this.resizeListenerDisabled = true
+			this.minimizeWindow()
+		}, this.app.lang.MINIMIZE)
 		this.patchButton('.nw-cf-close', () => {
 			if(this.closeToTray){
 				this.goToTray()

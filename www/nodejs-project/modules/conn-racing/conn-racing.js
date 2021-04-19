@@ -63,6 +63,7 @@ class ConnRacing extends Events {
                 finish()
             })
             download.once('end', finish)
+            download.start()
         }, () => {
             this.racingEnded = true
             this.pump()

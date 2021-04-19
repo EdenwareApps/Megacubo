@@ -218,14 +218,18 @@ class TunerTask extends TunerUtils {
 	}
 	pause(){
 		if(!this.paused){
-			console.log('tuner paused', global.traceback())
+			if(this.opts.debug){
+				console.log('tuner paused', global.traceback())
+			}
 			this.paused = true
 			this.emit('pause')
 		}
 	}
 	resume(){
 		if(this.paused){
-			console.log('tuner resume', global.traceback())
+			if(this.opts.debug){
+				console.log('tuner resume', global.traceback())
+			}
 			this.aborted = false
 			this.paused = false
 			if(this.finished){
@@ -258,7 +262,9 @@ class TunerTask extends TunerUtils {
 		return !this.paused && !this.finished
 	}
 	abort(){
-		console.log('tuner abort', traceback())
+		if(this.opts.debug){
+			console.log('tuner abort', traceback())
+		}
 		if(!this.aborted){
 			this.aborted = true
 			if(!this.destroyed && !this.finished){

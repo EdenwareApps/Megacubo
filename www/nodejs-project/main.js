@@ -320,7 +320,7 @@ function init(language){
         ui.on('config-set', (k, v) => {
             config.set(k, v)
         })
-        ui.on('add-source', url => {
+        ui.on('add-list', url => {
             lists.manager.addList(url).then(() => {}).catch(err => {
                 lists.manager.check()
             })
@@ -377,9 +377,11 @@ function init(language){
         })
         ui.on('video-transcode', () => {
             console.error('VIDEO TRANSCODE')
-            if(!streamer.transcode()){
-                streamer.handleFailure(null, 'unsupported format')
-            }
+            streamer.transcode(null, err => {
+                if(err){
+                    streamer.handleFailure(null, 'unsupported format')
+                }
+            })
         })
         ui.on('video-ended', (ctime, duration) => {
             console.error('VIDEO ENDED', ctime, duration)

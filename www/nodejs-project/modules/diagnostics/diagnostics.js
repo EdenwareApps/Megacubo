@@ -3,7 +3,7 @@ const Events = require('events')
 class Diagnostics extends Events {
     constructor(){
 		super()
-		this.folder = global.paths['temp']
+		this.folder = global.paths.temp
 		this.minDiskSpaceRequired = 512 * (1024 * 1024) // 512MB
 		this.minFreeMemoryRequired = 350 * (1024 * 1024) // 350MB
 		this.run()

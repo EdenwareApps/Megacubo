@@ -17,7 +17,7 @@ class Setup extends EventEmitter {
             this.askList((ret) => {
                 console.log('ASKED', ret, traceback())
                 if(ret && ret != -1){
-                    app.emit('add-source', ret)
+                    app.emit('add-list', ret)
                     this.done()
                 } else {
                     setTimeout(() => {
@@ -38,7 +38,7 @@ class Setup extends EventEmitter {
         ]
         if(!this.isMobile()){
             opts.pop()
-            opts.push({template: 'option', text: lang.SHARED_MODE, fa: 'fas fa-users', id: 'sh'})
+            opts.push({template: 'option', text: lang.COMMUNITY_MODE, fa: 'fas fa-users', id: 'sh'})
         }
         explorer.dialog(opts, choose => {
             setTimeout(() => {
@@ -55,7 +55,7 @@ class Setup extends EventEmitter {
     }
     communityMode(){        
         explorer.dialog([
-            {template: 'question', text: lang.SHARED_MODE, fa: 'fas fa-users'},
+            {template: 'question', text: lang.COMMUNITY_MODE, fa: 'fas fa-users'},
             {template: 'message', text: lang.ASK_COMMUNITY_LIST},
             {template: 'option', id: 'back', fa: 'fas fa-times-circle', text: lang.BACK},
             {template: 'option', id: 'agree', fa: 'fas fa-check-circle', text: lang.I_AGREE}
@@ -80,7 +80,7 @@ class Setup extends EventEmitter {
         ]
         if(!this.isMobile()){
             opts.pop()
-            opts.push({template: 'option', text: lang.SHARED_MODE, fa: 'fas fa-users', id: 'sh'})
+            opts.push({template: 'option', text: lang.COMMUNITY_MODE, fa: 'fas fa-users', id: 'sh'})
         }
         explorer.dialog(opts, choose => {
             setTimeout(() => {

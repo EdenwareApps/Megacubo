@@ -636,7 +636,35 @@ class CordovaMiniplayer extends MiniPlayerBase {
 	}
 	setup(){
 		if(this.pip){
-			parent.document.addEventListener('pause', () => this.enterIfPlaying())
+			player.on('app-pause', screenOff => {
+				let streamer = this.getStreamer()
+				if(streamer){
+					if(screenOff){
+						if(streamer.casting || streamer.isAudio){
+							cordova.plugins.backgroundMode.moveToBackground()
+							return
+						}
+						streamer.stop()
+					} else {
+						if(streamer.casting || streamer.isAudio){
+							cordova.plugins.backgroundMode.moveToBackground()
+							return
+						}
+						this.enterIfPlaying() || streamer.stop()
+					}
+				} else {
+					let app = this.getAppWindow()
+					if(app){
+						app.app.emit('streamer-stop')
+					}
+				}
+			})
+			player.on('app-resume', () => {
+				let streamer = this.getStreamer()
+				if(streamer && streamer.casting && !this.inPIP){
+					cordova.plugins.backgroundMode.moveToForeground()
+				}
+			})
 		}
 	}
     prepare(){
@@ -712,10 +740,10 @@ class NWJSMiniplayer extends MiniPlayerBase {
 			this.pip.minimizeWindow = () => {
 				if(this.pip.miniPlayerActive){	// if already in miniplayer, minimize it				
 					this.pip.prepareLeaveMiniPlayer()
-					this.pip.win.hide()
-					this.pip.restore()
+					//this.pip.win.hide()
+					//this.pip.restore()
 					setTimeout(() => {
-						this.pip.win.show()
+						//this.pip.win.show()
 						this.pip.win.minimize()
 					}, 0)
 				} else if(!this.enterIfPlaying()){
@@ -724,6 +752,23 @@ class NWJSMiniplayer extends MiniPlayerBase {
 			}
 			this.pip.on('miniplayer-on', () => this.set(true))
 			this.pip.on('miniplayer-off', () => this.set(false))
+			window.addEventListener('resize', () => {
+				if(this.pip.resizeListenerDisabled !== false) return
+				let dimensions = this.getDimensions()
+				let smallWin = this.pip.win.width <= dimensions.width && this.pip.win.height <= dimensions.height
+				console.log('resize', smallWin, dimensions)
+				if(smallWin){
+					if(!this.pip.miniPlayerActive){
+						this.pip.miniPlayerActive = true  
+						this.pip.emit('miniplayer-on')
+					}
+				} else {
+					if(this.pip.miniPlayerActive){
+						this.pip.miniPlayerActive = false
+						this.pip.emit('miniplayer-off')
+					}
+				}
+			})
 		}
 	}
     enter(w, h){

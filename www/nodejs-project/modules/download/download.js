@@ -45,12 +45,13 @@ class Download extends Events {
 		this.statusCode = 0
 		this.ignoreBytes = 0
 		this.retryDelay = 200
-		this.preventDestroy = false
 		this.currentRequestError = ''
 		this.currentResponse = null
 		if(typeof(this.opts.headers['range']) != 'undefined'){
 			this.checkRequestingRange(this.opts.headers['range'])
 		}
+	}
+	start(){
 		this.stream = this.connect()
 	}
 	ext(url){
@@ -628,7 +629,6 @@ class Download extends Events {
 			}
 			this.ended = true
 			this.destroyed = true
-			this.preventDestroy = false
 			this.destroyStream()
 			if(!this.statusCode){
 				this.statusCode = 504
@@ -639,11 +639,9 @@ class Download extends Events {
 	}
 	destroy(){
 		if(this.opts.debug){
-			console.log('destroy', this.preventDestroy)
+			console.log('destroy')
 		}
-		if(!this.preventDestroy){
-			this._destroy()
-		}
+		this._destroy()
 	}
 }
 
@@ -665,6 +663,7 @@ Download.promise = (...args) => {
 			}
 			g.destroy()
 		})
+		g.start()
 	})
 	promise.cancel = () => {
 		if(!g.ended){

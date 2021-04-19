@@ -37,16 +37,11 @@ class StreamerTSIntent extends StreamerBaseIntent {
                 }
                 this.transcoder = new FFServer(this.downloader.source.endpoint, opts)
                 this.connectAdapter(this.transcoder)
-                if(typeof(this.transcoder.audioCodec) != 'undefined'){
-                    delete this.transcoder.audioCodec
-                }
-                if(typeof(this.transcoder.audioCodec) != 'undefined'){
-                    delete this.transcoder.videoCodec
-                }
                 this.transcoder.start().then(() => {
                     this.transcoderStarting = false
                     this.endpoint = this.transcoder.endpoint
                     resolve()
+                    this.emit('transcode-started')
                 }).catch(e => {                
                     this.transcoderStarting = false
                     reject(e)
@@ -64,7 +59,7 @@ class StreamerTSIntent extends StreamerBaseIntent {
             this.downloader.start().then(() => {
                 this.ts2hls = new FFServer(this.downloader.source.endpoint, this.opts)
                 this.connectAdapter(this.ts2hls)
-                this.ts2hls.audioCodec = this.opts.audioCodec
+                this.ts2hls.opts.audioCodec = this.opts.audioCodec
                 this.ts2hls.start().then(() => {
                     this.endpoint = this.ts2hls.endpoint
                     resolve()

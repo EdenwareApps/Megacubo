@@ -27,8 +27,10 @@ class StreamerHLSIntent extends StreamerBaseIntent {
                 this.transcoderStarting = false
                 this.endpoint = this.transcoder.endpoint
                 resolve({endpoint: this.endpoint, mimetype: this.mimetype})
+                this.emit('transcode-started')
             }).catch(e => {                
                 this.transcoderStarting = false
+                this.emit('transcode-failed', e)
                 reject(e)
             })
         })

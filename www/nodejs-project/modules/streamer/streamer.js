@@ -25,7 +25,7 @@ class StreamerTools extends Events {
     }
 	validate(value) {
 		let v = value.toLowerCase(), prt = v.substr(0, 4), pos = v.indexOf('://')
-		if(['http', 'rtmp', 'rtsp'].includes(prt) && pos >= 4 && pos <= 6){
+		if(['http'].includes(prt) && pos >= 4 && pos <= 6){
 			return true // /^(?:(?:(?:https?|rt[ms]p[a-z]?):)?\/\/)(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,})))(?::\d{2,5})?(?:[/?#]\S*)?$/i.test(value);
 		}
 	}
@@ -92,7 +92,7 @@ class StreamerTools extends Events {
 						const received = JSON.stringify(headers).length + this.len(sample)
 						const speed = received / ping
 						const ret = {status, headers, sample, ping, speed, url, directURL: download.currentURL}
-						console.log('data', ping, received, speed, ret)
+						//console.log('data', ping, received, speed, ret)
 						resolve(ret)
 					}
 				}
@@ -108,7 +108,7 @@ class StreamerTools extends Events {
 					}
 					sample.push(chunk)
 					if(this.len(sample) >= sampleSize){
-						console.log('sample', sample, sampleSize)
+						//console.log('sample', sample, sampleSize)
 						finish()
 					}
 				})
@@ -120,6 +120,7 @@ class StreamerTools extends Events {
 					status = statusCode
 				})
 				download.once('end', finish)
+				download.start()
 				if(this.opts.debug){
 					this.opts.debug(url, timeoutSecs)
 				}
@@ -278,7 +279,7 @@ class StreamerBase extends StreamerTools {
 	constructor(opts){
 		super(opts)
         this.opts = {
-			workDir: global.paths['temp'] +'/ffmpeg/data',
+			workDir: global.paths.temp +'/ffmpeg/data',
 			shadow: false,
 			debug: false,
 			osd: false
@@ -286,7 +287,6 @@ class StreamerBase extends StreamerTools {
         this.engines = {
             aac: require('./engines/aac'),
             hls: require('./engines/hls'),
-            rtmp: require('./engines/rtmp'),
             ts: require('./engines/ts'),
             video: require('./engines/video'),
             vodhls: require('./engines/vodhls')
@@ -471,14 +471,15 @@ class StreamerBase extends StreamerTools {
 				}
 				this.handleFailure(intent.data, err)
 			})
-			if(!global.cordova){ // only desktop version can't play hevc
+			if(!global.cordova && global.config.get('transcoding')){ // only desktop version can't play hevc
 				intent.on('codecData', codecData => {
 					if(codecData && codecData.video.match(new RegExp('(hevc|mpeg2video|mpeg4)')) && intent == this.active){
-						if(this.transcode(intent)){
-							return
-						}
-						console.error('unsupported format', codecData)
-						intent.fail('unsupported format') // we can transcode .ts segments, but transcode a mp4 video would cause request ranging errors
+						this.transcode(intent, err => {
+							if(err){
+								console.error('unsupported format', codecData)
+								intent.fail('unsupported format') // we can transcode .ts segments, but transcode a mp4 video would cause request ranging errors
+							}
+						})
 					}
 				})
 				if(intent.codecData){
@@ -502,23 +503,53 @@ class StreamerBase extends StreamerTools {
 			return true
 		}
 	}
-	transcode(intent){
-		if(!intent && this.active){
-			intent = this.active
+	transcode(intent, _cb, silent){
+		let transcoding = global.config.get('transcoding')
+		let cb = (err, transcoder) => {
+			if(typeof(_cb) == 'function'){
+				_cb(err, transcoder)
+				_cb = null
+			}
 		}
-		if(global.config.get('allow-transcoding') && ['ts', 'hls'].includes(intent.type)){
-			if(!intent.transcoder){
-				console.warn('HEVC transcoding started')
-				global.ui.emit('streamer-connect-suspend')
+		if(!intent){
+			if(this.active){
+				intent = this.active
+			} else {
+				return cb(global.lang.START_PLAYBACK_FIRST)
+			}
+		}
+		if((transcoding || silent) && intent.transcode){
+			if(intent.transcoder){
+				if(intent.transcoderStarting){
+					intent.transcoder.once('transcode-started', () => cb(null, intent.transcoder))
+					intent.transcoder.once('transcode-failed', cb)
+				} else {
+					cb(null, intent.transcoder)
+				}
+			} else {
+				console.warn('Transcoding started')
+				if(!silent){
+					global.ui.emit('streamer-connect-suspend')
+					global.osd.show(global.lang.TRANSCODING, 'fa-mega spin-x-alt', 'transcode', 'persistent')
+				}
 				intent.transcode().then(() => {
 					this.emit('streamer-connect', intent.endpoint, intent.mimetype, intent.data)
-					intent.emit('transcode-started')
+					if(!silent){
+						global.osd.hide('transcode')
+					}
+					cb(null, intent.transcoder)
 				}).catch(err => {
 					console.error(err)
-					intent.fail('unsupported format')
+					cb(err)
+					if(!silent){
+						global.osd.show(String(e), 'fas fa-times-circle faclr-red', 'transcode', 'normal')
+						intent.fail('unsupported format')
+					}
 				})
 			}
 			return true
+		} else {
+			cb('Transcoding unavailable')
 		}
 	}
 	pause(){
@@ -963,13 +994,13 @@ class Streamer extends StreamerAbout {
 		if(this.opts.shadow){
 			return
 		}
-		if(c != 'tune' && (global.tuning && global.tuning.has(e.url))){
+		if(c != 'tune' && e && (global.tuning && global.tuning.has(e.url))){
 			c = 'tune'
 		}
 		if(r && (c != 'tune' || !e) && (silent !== true || c == 'stop' || !e)){
 			this.handleFailureMessage(r)
 		}
-		console.error('handleFailure', c, e, e.url)
+		console.error('handleFailure', c, e)
 		if(c == 'stop'){
 			return
 		} else {

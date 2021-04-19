@@ -134,6 +134,9 @@ class StreamerCasting extends StreamerOSD {
                 parent.player.pause()
                 this.stateListener('playing')
                 this.jbody.addClass('casting')
+                if(this.activeMimetype && this.activeMimetype.indexOf('mpegurl') != -1){
+                    this.jbody.addClass('casting-live')
+                }
             }
         })
         app.on('cast-stop', () => {
@@ -141,10 +144,43 @@ class StreamerCasting extends StreamerOSD {
                 this.casting = false
                 this.castingPaused = false
                 this.jbody.removeClass('casting')
+                this.jbody.removeClass('casting-live')
                 if(this.active){
                     this.bindStateListener()
-                    parent.player.resume()
+                    if(parent.player.state){
+                        parent.player.resume()
+                    } else {
+                        parent.player.load(this.activeSrc, this.activeMimetype, '')
+                        this.stateListener('loading')
+                    }
                 }
+            }
+        })
+        this.on('before-seek', s => {
+            if(this.casting){
+                if(!parent.player.otime){
+                    parent.player.otime = parent.player.time
+                }
+                if(!parent.player.oresume){
+                    parent.player.oresume = parent.player.resume
+                }
+                parent.player.time = () => {}
+                parent.player.resume = () => {}
+                this.emit('state', 'paused')
+                this.seekBarUpdate(true, s)
+            }
+        })
+        this.on('after-seek', s => {
+            if(this.casting){
+                this.seekBarUpdate(true, s)
+                parent.player.time = parent.player.otime
+                parent.player.resume = parent.player.oresume
+                setTimeout(() => {
+                    if(this.casting){
+                        this.emit('state', 'playing')
+                        this.seekBarUpdate(true, s)
+                    }
+                }, 2500)
             }
         })
         this.on('state', s => {
@@ -370,7 +406,7 @@ class StreamerIdle extends StreamerClientVideoAspectRatio {
                 document.body.className = c.replace(rx2, ' ').trim()
             }
             parent.player.uiVisible(true)
-        }) 
+        })
     }   
 }
 
@@ -691,12 +727,7 @@ class StreamerSeek extends StreamerSpeedo {
         }
     }
     seekTo(s){
-        clearTimeout(this.seekTimer)
-        if(this.casting) return
-        this.seekTimer = setTimeout(() => {
-            parent.player.resume()
-        }, 2000)
-        parent.player.pause()
+        if(!this.state) return
         if(typeof(this.seekingFrom) != 'number'){
             this.seekingFrom = parent.player.time()
         }
@@ -712,8 +743,15 @@ class StreamerSeek extends StreamerSpeedo {
         } else if(s > maxTime){
             s = maxTime
         }
+        this.emit('before-seek', s)
+        clearTimeout(this.seekTimer)
+        this.seekTimer = setTimeout(() => {
+            parent.player.resume()
+        }, 2000)
         let diff = parseInt(s - this.seekingFrom)
+        parent.player.pause()
         parent.player.time(s)
+        this.emit('after-seek', s)
         console.log('seeking prefwd ', diff, s, this.seekingFrom)
         if(diff < 0){
             this.seekBackLayerCounter.innerText = '-' + this.hmsMin(diff)
@@ -748,7 +786,7 @@ class StreamerClientTimeWarp extends StreamerSeek {
         parent.player.on('timeupdate', this.doTimeWarp.bind(this))
     }
     doTimeWarp(){
-        if(config['playback-rate-control']){
+        if(this.activeMimetype && this.activeMimetype.indexOf('mpegurl') != -1 && config['playback-rate-control']){
             let thresholds = {low: 8, high: 30}
             let rate = this.currentPlaybackRate
             let rates = {slow: 0.9, normal: 1, fast: 1.1}, time = parent.player.time(), duration = parent.player.duration(), buffered = duration - time
@@ -876,14 +914,18 @@ class StreamerClientVideoFullScreen extends StreamerClientTimeWarp {
 class StreamerAudioUI extends StreamerClientVideoFullScreen {
     constructor(controls, app){
         super(controls, app)
+        this.isAudio = false
         this.app.on('codecData', codecData => {
             if(codecData.audio && !codecData.video){
+                this.isAudio = true
                 this.jbody.addClass('audio')
             } else {
+                this.isAudio = false
                 this.jbody.removeClass('audio')
             }
         })
         this.on('stop', () => {
+            this.isAudio = false
             this.jbody.removeClass('audio')
         })
         this.volumeInitialized = false
@@ -1007,7 +1049,7 @@ class StreamerClientControls extends StreamerAudioUI {
         this.tuningIcon = 'fas fa-random'
         this.controls.innerHTML = `
     <seekbar>
-        <input type="range" min="0" max="100" value="100" />
+        <input type="range" min="0" max="100" value="0" />
         <div>
             <div></div>
         </div>
@@ -1129,6 +1171,7 @@ class StreamerClientController extends StreamerClientControls {
     }
     start(src, mimetype){
         this.active = true
+        this.activeSrc = src
         this.activeMimetype = (mimetype || '').toLowerCase()
         parent.player.load(src, mimetype, '')
         this.emit('start')
@@ -1137,6 +1180,7 @@ class StreamerClientController extends StreamerClientControls {
     stop(fromServer){
         if(this.active){
             this.active = false
+            this.activeSrc = ''
             this.activeMimetype = ''
             console.log('STOPCLIENT', fromServer, traceback())
             if(fromServer !== true){

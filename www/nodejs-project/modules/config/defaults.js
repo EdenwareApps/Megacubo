@@ -1,6 +1,5 @@
 module.exports = {
 	'allow-edit-channel-list': true,
-	'allow-transcoding': true,
 	'animate-background': 'none',
 	'auto-testing': true,
 	'autocrop-logos': true,
@@ -52,6 +51,8 @@ module.exports = {
 	'shared-mode-reach': 0,
 	'show-logos': true,
 	'startup-window': '',
+	'transcoding': true,
+	'transcoding-resolution-limit': '',
 	'tuning-concurrency': 3,
 	'uppercase-menu': false,
 	'use-keepalive': true,

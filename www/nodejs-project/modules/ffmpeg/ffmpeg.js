@@ -204,7 +204,7 @@ class FFMPEGMediaInfo extends FFMPEGHelper {
 			this.info(file, nfo => {
 				if(nfo){
 					let codecs = this.codecs(nfo), rate = this.rawBitrate(nfo), dimensions = this.dimensions(nfo)
-					if(!rate){
+					if(!rate && length){
 						rate = parseInt(length / this.duration(nfo))
 					}
 					if(isNaN(rate)){
@@ -218,7 +218,7 @@ class FFMPEGMediaInfo extends FFMPEGHelper {
 				}
 			})
 		}
-		if(length){
+		if(length || !this.isLocal(file)){
 			next()
 		} else {
 			fs.stat(file, (err, stat) => {
@@ -229,6 +229,19 @@ class FFMPEGMediaInfo extends FFMPEGHelper {
 					next()
 				}
 			})
+		}
+	}
+	isLocal(file){
+		if(typeof(file) != 'string'){
+			return
+		}
+		let m = file.match(new RegExp('^([a-z]{1,6}):', 'i'))
+		if(m.length && (m[1].length == 1 || m[1].toLowerCase() == 'file')){ // drive letter or file protocol
+			return true
+		} else {
+			if(file.length >= 2 && file.charAt(0) == '/' && file.charAt(1) != '/'){ // unix path
+				return true
+			}
 		}
 	}
 	info(path, cb){

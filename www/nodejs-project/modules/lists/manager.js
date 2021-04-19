@@ -58,15 +58,55 @@ class Manager extends Events {
                     global.osd.show(global.lang[this.firstRun ? 'STARTING_LISTS' : 'UPDATING_LISTS'] + (p.progress ? ' '+ p.progress +'%' : ''), 'fa-mega spin-x-alt', 'update', 'persistent')
                 } 
             }
-            if(global.explorer && global.explorer.currentEntries && 
-                (
-                    global.explorer.currentEntries.some(e => [global.lang.PROCESSING, global.lang.SHARE].includes(e.name)) ||
+            if(global.explorer && global.explorer.currentEntries){
+                if(
+                    global.explorer.currentEntries.some(e => [global.lang.PROCESSING].includes(e.name)) ||
                     global.explorer.basename(global.explorer.path) == global.lang.COMMUNITY_LISTS
-                )
                 ){
-                global.explorer.refresh()
+                    global.explorer.refresh()
+                } else if(this.inChannelPage()){
+                    this.maybeRefreshChannelPage()
+                }
             }
         })
+    }
+    inChannelPage(){
+        return global.explorer.currentEntries.some(e => global.lang.SHARE == e.name)
+    }
+    maybeRefreshChannelPage(){
+        if(global.tuning) return
+        let mega, streamsCount = 0
+        global.explorer.currentEntries.some(e => {
+            if(e.url && global.mega.isMega(e.url)){
+                mega = global.mega.parse(e.url)
+                return true
+            }
+        })
+        global.explorer.currentEntries.some(e => {
+            if(e.name.indexOf(global.lang.STREAMS) != -1){
+                let match = e.name.match(new RegExp('\\(([0-9]+)\\)'))
+                if(match){
+                    streamsCount = parseInt(match[1])
+                }
+                return true
+            }
+        })
+        console.log('maybeRefreshChannelPage', streamsCount, mega)
+        if(mega && mega.terms){
+            global.lists.search(mega.terms.split(','), {
+                partial: false, 
+                safe: (global.config.get('parental-control-policy') == 'block'),
+                type: mega.mediaType, 
+                typeStrict: false,
+                group: mega.mediaType != 'live'
+            }).then(es => {
+                console.log('maybeRefreshChannelPage', streamsCount, es.results.length)
+                if(es.results.length > streamsCount){
+                    console.log('maybeRefreshChannelPage', streamsCount, '=>', es.results.length)
+                    global.explorer.refresh()
+                }
+            }).catch(console.error)
+        }
     }
     callUpdater(keywords, urls, cb){
         this.updater.setRelevantKeywords(keywords).then(() => {
@@ -272,6 +312,15 @@ class Manager extends Events {
     }
     addList(value){
         return new Promise((resolve, reject) => {
+            if(value.match(new RegExp('://(shared|community)$', 'i'))){
+                global.ui.emit('dialog', [
+                    {template: 'question', text: global.lang.COMMUNITY_MODE, fa: 'fas fa-users'},
+                    {template: 'message', text: global.lang.ASK_COMMUNITY_LIST},
+                    {template: 'option', id: 'back', fa: 'fas fa-times-circle', text: global.lang.BACK},
+                    {template: 'option', id: 'agree', fa: 'fas fa-check-circle', text: global.lang.I_AGREE}
+                ], 'lists-manager', 'back')
+                return resolve(true)
+            }
             global.osd.show(global.lang.PROCESSING, 'fa-mega spin-x-alt', 'add-list', 'persistent')
             this.add(value).then(() => {
                 global.osd.show(global.lang.LIST_ADDED, 'fas fa-check-circle', 'add-list', 'normal')
@@ -596,21 +645,23 @@ class Manager extends Events {
         return new Promise((resolve, reject) => {
             let options = [], lists = this.get()
             options.push(this[lists.length ? 'myListsEntry' : 'addListEntry']())
-            options.push(this.listSharingEntry())
+            if(!global.cordova || global.lang.locale != 'en' || global.config.get('shared-mode-reach')){
+                options.push(this.listSharingEntry())
+            }
             options.push({name: global.lang.EPG, fa: global.channels.epgIcon, type: 'group', renderer: this.epgOptionsEntries.bind(this)})
             resolve(options)
         })
     }
     listSharingEntry(){
         return {
-            name: global.lang.SHARED_MODE, type: 'group', fa: 'fas fa-users', 
+            name: global.lang.COMMUNITY_MODE, type: 'group', fa: 'fas fa-users', 
             renderer: () => {
                 return new Promise((resolve, reject) => {
                     let options = [
                         {name: global.lang.ENABLE, type: 'check', action: (data, checked) => {
                             if(checked){
                                 global.ui.emit('dialog', [
-                                    {template: 'question', text: global.lang.SHARED_MODE, fa: 'fas fa-users'},
+                                    {template: 'question', text: global.lang.COMMUNITY_MODE, fa: 'fas fa-users'},
                                     {template: 'message', text: global.lang.ASK_COMMUNITY_LIST},
                                     {template: 'option', id: 'back', fa: 'fas fa-times-circle', text: global.lang.BACK},
                                     {template: 'option', id: 'agree', fa: 'fas fa-check-circle', text: global.lang.I_AGREE}
@@ -726,6 +777,7 @@ class Manager extends Events {
                             })
                             stream.end()
                         })
+                        download.start()
                     } else {
                         this.parent.directListFileRenderer(tmpFile, v.url).then(cb).catch(onerr)
                     }
@@ -775,6 +827,7 @@ class Manager extends Events {
                 console.warn('Download error', err)
             })
             download.once('end', onContent)
+            download.start()
         })
     }
     communityLists(){

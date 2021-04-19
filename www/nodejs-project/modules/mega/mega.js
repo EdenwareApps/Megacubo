@@ -37,7 +37,7 @@ class Mega {
 			if(nparts.length > 1){
 				if(nparts[0] == 'link'){
 					type = 'link'
-					url = atob(nparts[1])
+					url = Buffer.from(nparts[1], 'base64').toString()
 				} else {
 					name = nparts[1]
 				}

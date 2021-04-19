@@ -10,7 +10,6 @@ class Downloader extends StreamerAdapterBase {
 			initialErrorLimit: 2, // at last 2
 			errorLimit: 5,
 			sniffingSizeLimit: 196 * 1024, // if minor, check if is binary or ascii (maybe some error page)
-			bitrateCheckingAmount: 3,
 			checkSyncByte: false
 		}, opts || {})
 		super(url, opts)
@@ -22,6 +21,8 @@ class Downloader extends StreamerAdapterBase {
         this.timer = 0
 		this.buffer = []
 		this.ext = 'ts'
+		this.currentDownloadUID = undefined
+		this.collectBitrateSampleOffset = {}
 		let m = url.match(new RegExp('\\.([a-z0-9]{2,4})($|[\\?#])', 'i'))
 		if(m && m.length > 1){
 			this.ext = m[1]
@@ -189,7 +190,11 @@ class Downloader extends StreamerAdapterBase {
             len = this.len(data)
         }
 		if(len > 1){
-		    this.collectBitrateSample(data, len)
+			if(typeof(this.collectBitrateSampleOffset[this.currentDownloadUID]) == 'undefined'){
+				this.collectBitrateSampleOffset[this.currentDownloadUID] = 0
+			}
+		    this.collectBitrateSample(data, this.collectBitrateSampleOffset[this.currentDownloadUID], len, this.currentDownloadUID)
+			this.collectBitrateSampleOffset[this.currentDownloadUID] += data.length
 			if(this.listenerCount('data')){
 				this.emit('data', this.url, data, len)
 			} else {
@@ -218,7 +223,8 @@ class Downloader extends StreamerAdapterBase {
 		if(this.destroyed || this._destroyed){
 			return
 		}
-		this.finishBitrateSample()
+		this.finishBitrateSample(this.currentDownloadUID)
+		this.currentDownloadUID = String(global.time())
 		const download = this.currentRequest = new global.Download({
 			url: this.url,
 			keepalive: this.committed && global.config.get('use-keepalive'),
@@ -281,6 +287,7 @@ class Downloader extends StreamerAdapterBase {
 				}				
 			}
 		})
+		download.start()
 	}
 	pump(){
 		this.download(() => {
