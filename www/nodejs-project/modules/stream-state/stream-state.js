@@ -72,7 +72,7 @@ class StreamState extends Events {
         if(typeof(this.clientFailures[url]) != 'undefined' && this.clientFailures[url] === true){
             return false
         }
-        if(typeof(this.data) == 'object' && typeof(this.data[url]) == 'object' && this.data[url] && typeof(this.data[url].time) != 'undefined' && global.time() < (this.data[url].time + this.ttl)){
+        if(typeof(this.data) == 'object' && typeof(this.data[url]) == 'object' && this.data[url] && typeof(this.data[url].time) != 'undefined' && this.time() < (this.data[url].time + this.ttl)){
             return this.data[url].state
         }
         return null
@@ -83,8 +83,8 @@ class StreamState extends Events {
                 return
             }
             let isMega = global.mega.isMega(url)
-            if(!isMega){
-                let changed, time = global.time()
+            if(!isMega || isTrusted){
+                let changed, time = this.time()
                 if(typeof(this.waiting[url]) != 'undefined'){
                     changed = true
                     delete this.waiting[url]
@@ -113,6 +113,9 @@ class StreamState extends Events {
                 }
             }
         }
+    }
+    time(){
+        return ((new Date()).getTime() / 1000)
     }
     sync(){
         if(global.ui){

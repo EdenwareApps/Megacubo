@@ -1,5 +1,5 @@
 
-const path = require('path'), fs = require('fs'), Events = require('events')
+const path = require('path'), fs = require('fs'), Events = require('events'), async = require('async')
 
 class ChannelsData extends Events {
     constructor(opts){
@@ -21,7 +21,7 @@ class ChannelsData extends Events {
     }
     updateCategoriesCacheKey(){
         const adult = global.config.get('parental-control-policy') == 'only'
-        const useEPGChannels = this.activeEPG && global.config.get('epg-channels-list')
+        const useEPGChannels = global.config.get('epg') && global.config.get('epg-channels-list')
         let categoriesCacheKey = 'categories-'+ global.lang.locale
         if(useEPGChannels) {
             categoriesCacheKey += '-epg'
@@ -30,13 +30,6 @@ class ChannelsData extends Events {
         }
         this.categoriesCacheKey = categoriesCacheKey
         return categoriesCacheKey
-    }
-    ready(cb){
-        if(this.loaded){
-            cb()
-        } else {
-            this.once('loaded', cb)
-        }
     }
     load(cb){
         this.updateCategoriesCacheKey()
@@ -190,6 +183,46 @@ class ChannelsEPG extends ChannelsData {
         }
         return t
     }
+    epgLoadingEntry(epgStatus){
+        let name = ''
+        switch(epgStatus[0]){
+            case 'uninitialized':
+                name = '<i class="fas fa-clock"></i>'
+                break
+            case 'loading':
+                name = global.lang.LOADING
+                break
+            case 'connecting':
+                name = global.lang.CONNECTING
+                break
+            case 'connected':
+                name = global.lang.PROCESSING + ' ' + epgStatus[1] + '%'
+                break
+            case 'loaded':
+                name = 'OK'
+                break
+            case 'error':
+                name = 'Error: ' + epgStatus[1]
+                break
+        }
+        return {
+            name, 
+            details: ['connected'].includes(epgStatus[0]) ? global.lang.EPG_AVAILABLE_SOON : global.lang.EPG_NOT_AVAILABLE, 
+            fa: 'fas fa-info-circle', 
+            type: 'action'
+        }
+    }
+    updateStatus(){
+        let p = global.explorer.path
+        if(p.indexOf(global.lang.EPG) == -1){
+            clearInterval(this.epgStatusTimer)
+            this.epgStatusTimer = false
+        } else {
+            this.epgEntries(this.currentCategory).then(es => {
+                global.explorer.render(es, p, this.epgIcon)
+            }).catch(global.displayErr)
+        }
+    }
     epgSearchEntry(){
         return {
             name: global.lang.SEARCH,
@@ -230,7 +263,16 @@ class ChannelsEPG extends ChannelsData {
             }).filter(e => e)
             global.lists.epg(channels, 72).then(epgData => {
                 let centries = []
-                if(!Array.isArray(epgData)){
+                if(Array.isArray(epgData)){
+                    if(!this.epgStatusTimer){
+                        this.epgStatusTimer = setInterval(this.updateStatus.bind(this), 3000)
+                    }
+                    centries.push(this.epgLoadingEntry(epgData))
+                } else {
+                    if(this.epgStatusTimer){
+                        clearInterval(this.epgStatusTimer)
+                        this.epgStatusTimer = false
+                    }
                     centries.push(this.epgSearchEntry())
                     Object.keys(epgData).forEach((ch, i) => {
                         if(!epgData[ch]) return
@@ -263,6 +305,9 @@ class ChannelsEPG extends ChannelsData {
                             })
                         }
                     })
+                    if(!centries.length){
+                        centries.push({name: global.lang.EMPTY, fa: 'fas fa-info-circle', type: 'action'})
+                    }
                 }
                 resolve(centries)
             }).catch(reject)
@@ -303,7 +348,16 @@ class ChannelsEPG extends ChannelsData {
             global.lists.epg({name, searchName, terms}, 72).then(epgData => {
                 let centries = []
                 if(epgData){
-                    if(typeof(epgData[0]) != 'string'){
+                    if(typeof(epgData[0]) == 'string'){
+                        if(!this.epgStatusTimer){
+                            this.epgStatusTimer = setInterval(this.updateStatus.bind(this), 3000)
+                        }
+                        centries.push(this.epgLoadingEntry(epgData))
+                    } else {
+                        if(this.epgStatusTimer){
+                            clearInterval(this.epgStatusTimer)
+                            this.epgStatusTimer = false
+                        }
                         console.log('epge', name, terms)
                         let current, next, servedIcon = global.icons.generate(terms)
                         Object.keys(epgData).some(start => {
@@ -325,6 +379,9 @@ class ChannelsEPG extends ChannelsData {
                             }
                         }                        
                     }
+                }
+                if(!centries.length){
+                    centries.push({name: global.lang.EMPTY, fa: 'fas fa-info-circle', type: 'action'})
                 }
                 resolve(centries)
             }).catch(reject)
@@ -364,7 +421,7 @@ class ChannelsEPG extends ChannelsData {
                                 delete map[e.name]
                             }
                             global.config.set('epg-map', map)
-                            global.explorer.back(null, true)
+                            global.explorer.deepBack()
                         }
                     })
                 })
@@ -389,12 +446,7 @@ class ChannelsEPG extends ChannelsData {
 class ChannelsEditing extends ChannelsEPG {
     constructor(opts){
         super(opts)
-        global.ui.on('channels-import-file', data => {
-            console.warn('!!! IMPORT FILE !!!', data)
-            global.importFileFromClient(data).then(ret => this.importFile(ret)).catch(err => {
-                global.displayErr(err)
-            })
-        })
+        global.ui.on('channels-import-file', this.importFile.bind(this))
     } 
     shareChannelEntry(e){
         return {
@@ -402,7 +454,7 @@ class ChannelsEditing extends ChannelsEPG {
             type: 'action',
             fa: 'fas fa-share-alt',
             action: () => {
-                global.ui.emit('share', 'Megacubo', e.name, 'https://megacubo.tv/assistir/' + encodeURIComponent(e.name))
+                ui.emit('share', 'Megacubo', e.name, 'https://megacubo.tv/assistir/' + encodeURIComponent(e.name))
             }
         }
     }
@@ -427,7 +479,7 @@ class ChannelsEditing extends ChannelsEPG {
                                         name: String(i + 1) + String.fromCharCode(186),
                                         type: 'action',
                                         icon: image,
-                                        fa: 'fa-mega spin-x-alt',
+                                        fa: 'fas fa-play-circle',
                                         servedIcon: global.icons.proxify(image),
                                         action: () => {
                                             console.log(image)
@@ -450,7 +502,7 @@ class ChannelsEditing extends ChannelsEPG {
                                         })
                                     }).catch(global.displayErr)
                                 }})
-                                ret.push({name: global.lang.NO_ICON, type: 'action', fa: 'fas fa-ban', action: () => {   
+                                ret.push({name: global.lang.NO_ICON, type: 'action', fa: 'fas fa-play-circle', action: () => {   
                                     console.log('savecache', terms, '') 
                                     global.icons.saveCache(terms, 'no-icon', () => {
                                         global.explorer.deepRefresh(global.explorer.dirname(global.explorer.path))
@@ -545,6 +597,9 @@ class ChannelsEditing extends ChannelsEPG {
             fa: 'fas fa-tasks',
             renderer: () => {
                 return new Promise((resolve, reject) => {
+                    let list = [
+                        this.emptyEntry
+                    ]
                     resolve(this.getCategories(false).map(c => this.editCategoryEntry(c, true)))
                 })
             }
@@ -800,7 +855,7 @@ class Channels extends ChannelsEditing {
                             })
                         }
                     }
-                    if(this.activeEPG){
+                    if(global.config.get('epg')){
                         epgEntry =  {
                             name: global.lang.EPG, 
                             type: 'group', 
@@ -825,7 +880,7 @@ class Channels extends ChannelsEditing {
                             action: () => {
                                 global.bookmarks.remove(bookmarking)
                                 global.explorer.refresh()
-                                global.osd.show(global.lang.BOOKMARK_REMOVED.format(bookmarking.name), 'fas fa-star-half', 'bookmarks', 'normal')
+                                global.osd.show(global.lang.FAV_REMOVED.format(bookmarking.name), 'fas fa-star-half', 'bookmarks', 'normal')
                             }
                         })
                     } else {
@@ -836,7 +891,7 @@ class Channels extends ChannelsEditing {
                             action: () => {
                                 global.bookmarks.add(bookmarking)
                                 global.explorer.refresh()
-                                global.osd.show(global.lang.BOOKMARK_ADDED.format(bookmarking.name), 'fas fa-star', 'bookmarks', 'normal')
+                                global.osd.show(global.lang.FAV_ADDED.format(bookmarking.name), 'fas fa-star', 'bookmarks', 'normal')
                             }
                         })
                     } 
@@ -848,8 +903,7 @@ class Channels extends ChannelsEditing {
                     entries.push(this.shareChannelEntry(e))
                     entries.push(streamsEntry)
                 }
-                const editEntry = this.editChannelEntry(e, category, {name: category ? global.lang.EDIT_CHANNEL : global.lang.EDIT, details: '', class: 'no-icon', fa: 'fas fa-edit', users: undefined, usersPercentage: undefined, path: undefined, servedIcon: undefined, url: undefined})
-                entries.push(editEntry)
+                entries.push(this.editChannelEntry(e, category, {name: category ? global.lang.EDIT_CHANNEL : global.lang.EDIT, details: '', class: 'no-icon', fa: 'fas fa-edit', path: undefined, servedIcon: undefined, url: undefined}))
                 resolve(entries)
             })
         })
@@ -910,7 +964,7 @@ class Channels extends ChannelsEditing {
                                //global.icons.prefetch(entries.map(e => this.entryTerms(e)).slice(0, global.config.get('view-size-x')))
                             }
                             entries = entries.map(e => this.toMetaEntry(e, category))
-                            if(this.activeEPG){
+                            if(global.config.get('epg')){
                                 entries.unshift({name: global.lang.EPG, fa: this.epgIcon, type: 'group', renderer: () => {
                                     return this.epgEntries(category)
                                 }})
@@ -928,13 +982,12 @@ class Channels extends ChannelsEditing {
             resolve(list)
         })
     }
-    importFile(data){
+    importFileCallback(data){
         console.log('Categories file', data)
         try {
             data = JSON.parse(data)
             if(typeof(data) == 'object'){
                 this.setCategories(data)
-                global.osd.show('OK', 'fas fa-check-circle', 'options', 'normal')
             } else {
                 throw new Error('Not a JSON file.')
             }
@@ -942,12 +995,18 @@ class Channels extends ChannelsEditing {
             global.displayErr('Invalid file', e)
         }
     }
+    importFile(data){
+        console.warn('!!! IMPORT FILE !!!', data)
+        global.importFileFromClient(data).then(ret => this.importFileCallback(ret)).catch(err => {
+            global.displayErr(err)
+        })
+    }
     options(){
         return new Promise((resolve, reject) => {
             let entries = [
                 this.editCategoriesEntry(),
                 {
-                    name: global.lang.EXPORT_IMPORT,
+                    name: global.lang.IMPORT + ' | ' + global.lang.EXPORT,
                     type: 'group',
                     fa: 'fas fa-file-import',
                     entries: [
@@ -956,9 +1015,9 @@ class Channels extends ChannelsEditing {
                             type: 'action',
                             fa: 'fas fa-file-export', 
                             action: () => {
-                                const filename = 'categories.json', file = global.downloads.folder + path.sep + filename
+                                const filename = 'categories.json', file = global.serve.folder + path.sep + filename
                                 fs.writeFile(file, JSON.stringify(this.getCategories(true), null, 3), {encoding: 'utf-8'}, err => {
-                                    global.downloads.serve(file, true, false).catch(global.displayErr)
+                                    global.serve.serve(file, true, false).catch(global.displayErr)
                                 })
                             }
                         },
@@ -987,7 +1046,7 @@ class Channels extends ChannelsEditing {
                     ]
                 },
                 {name: global.lang.EPG, fa: this.epgIcon, type: 'action', action: () => {
-                    global.ui.emit('prompt', global.lang.EPG, 'http://.../epg.xml', this.activeEPG, 'set-epg', false, this.epgIcon)
+                    global.ui.emit('prompt', global.lang.EPG, 'http://.../epg.xml', global.config.get('epg'), 'set-epg', false, this.epgIcon)
                 }},
                 {
                     name: global.lang.ALLOW_EDIT_CHANNEL_LIST,

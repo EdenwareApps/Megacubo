@@ -74,8 +74,8 @@ class Explorer extends Events {
     }
     updateHomeFilters(){
         this.applyFilters(this.pages[''], '').then(es => {
-            this.pages[''] = es
-            if(this.path == ''){
+            this.pages[""] = es
+            if(this.path == ""){
                 this.refresh()
             }
         }).catch(console.error)
@@ -164,8 +164,11 @@ class Explorer extends Events {
             if(this.opts.debug){
                 console.log('back', p, deep)
             }
-            this.open(p, undefined, deep, true).catch(global.displayErr)
+            this.open(p, undefined, deep).catch(global.displayErr)
         }
+    }
+    deepBack(level){
+        this.back(level, true)
     }
     prependFilter(f){
         this.filters.unshift(f)
@@ -178,9 +181,10 @@ class Explorer extends Events {
             let i = 0, next = () => {
                 if(typeof(this.filters[i]) == 'undefined'){
                     entries = entries.map(e => {
-                        if(!e.path){
-                            e.path = (path ? path +'/' : '') + e.name
-                        } else if(e.path && this.basename(e.path) != e.name){
+                        if(typeof(e.path) != 'string'){
+                            e.path = path || ''
+                        }
+                        if(e.path && this.basename(e.path) != e.name){
                             e.path += '/'+ e.name
                         }
                         return e
@@ -403,7 +407,7 @@ class Explorer extends Events {
             }
         })
     }
-    open(destPath, tabindex, deep, isFolder){
+    open(destPath, tabindex, deep){
         if(['.', '/'].includes(destPath)){
             destPath = ''
         }
@@ -426,10 +430,7 @@ class Explorer extends Events {
                 }
                 icon = ret.parent ? (ret.parent.servedIcon || ret.parent.fa || '') : ''
                 if(name){
-                    let e = this.selectEntry(ret.entries, name, tabindex, isFolder)
-                    if(this.opts.debug){
-                        console.log('selectEntry', ret.entries, name, tabindex, isFolder, e)
-                    }
+                    let e = this.selectEntry(ret.entries, name, tabindex)
                     if(e){
                         icon = e.servedIcon || e.fa || ''
                         if(e.type && ['group', 'select'].includes(e.type)){
@@ -474,13 +475,11 @@ class Explorer extends Events {
             let next = entries => {
                 entries = entries.map(n => {
                     if(typeof(n.path) != 'string'){
-                        n.path = (e.path ? e.path +'/' : '') + n.name
-                    } else {
-                        if(n.path){
-                            if(this.basename(n.path) != n.name || (n.name == e.name && this.basename(this.dirname(n.path)) != n.name)){
-                                console.log('npath', n.path, n.name, n, e)
-                                n.path += '/'+ n.name
-                            }
+                        n.path = e.path || ''
+                    }
+                    if(n.path){
+                        if(this.basename(n.path) != n.name || n.name == e.name){
+                            n.path += '/'+ n.name
                         }
                     }
                     return n
@@ -502,23 +501,13 @@ class Explorer extends Events {
             }
         })
     }
-    selectEntry(entries, name, tabindex, isFolder){
+    selectEntry(entries, name, tabindex){
         let ret = false
         if(Array.isArray(entries)){
             entries.some((e, i) => {
-                if(e.name == name){
-                    let fine
-                    if(typeof(tabindex) == 'number'){
-                        fine = tabindex == i
-                    } else if(isFolder) {
-                        fine = ['group', 'select'].includes(e.type)
-                    } else {
-                        fine = true
-                    }
-                    if(fine){
-                        ret = e
-                        return true
-                    }
+                if(e.name == name && (typeof(tabindex) != 'number' || tabindex == i)){
+                    ret = e
+                    return true
                 }
             })
         }

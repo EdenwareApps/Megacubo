@@ -247,7 +247,8 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 								console.log('out of buffer, trust on hls.js', time, duration, this.config)
 								// ...
 							} else {
-								console.log('in live window, trust on hls.js', time, duration, this.config)
+								console.log('in live window', time, duration, this.config)
+								this.handleNetworkError(data)
 							}
 							break
 						case Hls.ErrorDetails.BUFFER_NUDGE_ON_STALL:

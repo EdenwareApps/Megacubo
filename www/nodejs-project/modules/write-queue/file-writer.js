@@ -53,7 +53,7 @@ class Writer extends Events {
 			})
 		})
 	}
-	_write(fd, cb){ // we'll write once per time, not simultaneously, so no drain would be required anyway
+	_write(fd, cb){
 		if(this.writeQueue.length){
 			let {data, position} = this.writeQueue.shift(), len = data.length
 			if(this.debug){

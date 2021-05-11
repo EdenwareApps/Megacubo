@@ -23,6 +23,58 @@ function importMomentLocale(locale, cb){
     })
 }
 
+function askExit(){
+    explorer.dialog([
+        {template: 'question', text: lang.ASK_EXIT, fa: 'fas fa-times-circle'},
+        {template: 'option', text: lang.NO, id: 'no'},
+        {template: 'option', text: lang.YES, id: 'yes'},
+        {template: 'option', text: lang.RESTARTAPP, id: 'restart'}
+    ], c => {
+        if(c == 'yes'){
+            exit()
+        } else if(c == 'restart'){
+            restart()
+        }
+    }, 'no')
+}
+
+function exitUI(){
+    console.log('exitUI()')
+    try {
+        streamer.stop()
+        $('wrap').html('<div style="vertical-align: middle; height: 100%; display: flex; justify-content: center; align-items: center;"><i class="fa-mega" style="font-size: 25vh;color: var(--font-color);"></i></div>')
+        $('#home-arrows').hide()
+    } catch(e) {
+        console.error(e)
+    }
+}
+
+function restartUI(cb){
+    explorer.dialog([
+        {template: 'question', text: 'Megacubo', fa: 'fas fa-info-circle'},
+        {template: 'message', text: lang.SHOULD_RESTART},
+        {template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle'}
+    ], cb)
+}
+
+function restart(){
+    console.log('restart()')
+    if(parent.plugins && parent.plugins.megacubo){
+        restartUI(() => {
+            parent.plugins.megacubo.restartApp()
+        })
+        // app.emit('close') // breaks restart sometimes
+    } else {
+        restartUI(exit)
+    }
+}
+
+function exit(){
+    console.log('exit()', traceback())
+    app.emit('close')
+    setTimeout(exitUI, 10)
+}
+
 function waitMessage(action, cb){
     const listener = e => {
         if(e.data.action == action){
@@ -83,8 +135,7 @@ function requestReview(){
     }
 }
 
-function configUpdated(keys, c){
-    config = c
+function configUpdated(){
     if(parent.updateConfig){
         parent.updateConfig(config)
     }
@@ -197,9 +248,13 @@ function initApp(){
         }
     })
     app.on('restart', () => {
-        parent.winman.restart()
+        restart()
     })
-    app.on('config', configUpdated)
+    app.on('config', c => {
+        console.warn('CONFIG CHANGED ON CLIENT', c)
+        config = c
+        configUpdated()
+    })
     app.on('fontlist', () => {
         app.emit('fontlist', getFontList())
     })
@@ -207,16 +262,10 @@ function initApp(){
         sound(n, v)
     })
     app.on('ask-exit', () => {
-        parent.winman.askExit()
+        askExit()
     })
     app.on('exit', () => {
-        parent.winman.exit()
-    })
-    app.on('background-mode-lock', name => {
-        if(parent.player && parent.winman) parent.winman.backgroundModeLock(name)
-    })
-    app.on('background-mode-unlock', name => {
-        if(parent.player && parent.winman) parent.winman.backgroundModeUnlock(name)
+        exit()
     })
     
     /* icons start */
@@ -300,11 +349,9 @@ function initApp(){
                 document.dispatchEvent(new CustomEvent('init', {}))
             })
         }
-         
-        if(parent.updateConfig){
-            parent.updateConfig(config)
-        }
-        
+
+        setupShortcuts()
+                
         window.osd = new OSD(document.getElementById('osd-root'), app)
         explorer.setViewSize(config['view-size-x'], config['view-size-y']);
         
@@ -321,17 +368,9 @@ function initApp(){
                 default: true,
                 overScrollAction: direction => {
                     if(direction == 'up'){
-                        let playing = explorer.inPlayer()
-                        if(!playing){
-                            console.log('OVERSCROLLACTION!!!!!!!')
-                            explorer.focus(explorer.container.find('.explorer-omni > span'), true)
-                            return true
-                        } else {
-                            console.log('OVERSCROLLACTION!!!!!!!')
-                            explorer.body.removeClass('menu-playing')
-                            idleStop()
-                            idleLock(0.1)
-                        }
+                        console.log('OVERSCROLLACTION!!!!!!!')
+                        explorer.focus(explorer.container.find('.explorer-omni > span'), true)
+                        return true
                     }
                 }
             },
@@ -347,16 +386,6 @@ function initApp(){
                 selector: 'controls button', 
                 condition: () => {
                     return explorer.inPlayer() && !explorer.inModal() && !explorer.isExploring()
-                },
-                overScrollAction: direction => {
-                    if(direction == 'down'){
-                        explorer.body.addClass('menu-playing')
-                        setTimeout(() => explorer.reset(), 100)
-                        return true
-                    } else if(direction == 'up') {
-                        idleStart()
-                        return true
-                    }
                 }
             }
         ]).forEach(explorer.addView.bind(explorer))
@@ -415,26 +444,17 @@ function initApp(){
                 explorer.reset()
                 if(explorer.modalContainer && explorer.modalContainer.querySelector('#modal-template-option-wait')){
                     explorer.endModal()
-                }                
-                explorer.body.removeClass('menu-playing')
+                }
             })
             window.dispatchEvent(new CustomEvent('streamer-ready'))
             app.emit('streamer-ready')
         })
 
-        configUpdated([], config)
         window.dispatchEvent(new CustomEvent('appready'))
+        configUpdated()
         console.log('loaded app')
 
         requestIdleCallback(() => {
-
-            hotkeys = new Hotkeys()
-            hotkeys.start(config.hotkeys)
-            app.on('config', (keys, c) => {
-                if(keys.includes('hotkeys')){
-                    hotkeys.start(c.hotkeys)
-                }
-            })
 
             omni = new OMNI()
             jQuery(document).on('keyup', omni.eventHandler.bind(omni))
@@ -522,80 +542,59 @@ function initApp(){
     
             clock = new Clock(document.querySelector('header time'))
     
-            function handleSwipe(e){
-                if(explorer.inModal()) return
-                console.log('swipey', e)
-                let orientation = innerHeight > innerWidth ? 'portrait' : 'landscape'
-                let swipeDist, swipeArea = ['up', 'down'].includes(e.direction) ? innerHeight : innerWidth
-                switch(e.direction) {
-                    case 'left':
-                    case 'right':                        
-                        swipeDist = swipeArea / (orientation == 'portrait' ? 2 : 3)
-                        break
-                    case 'up':
-                    case 'down': // dont use default here to ignore diagonal moves
-                        swipeDist = swipeArea / (orientation == 'portrait' ? 3 : 2)
-                        break
-                }
-                if(swipeDist && e.swipeLength >= swipeDist){
-                    let swipeWeight = Math.round((e.swipeLength - swipeDist) / swipeDist)
-                    if(swipeWeight < 1) swipeWeight = 1
-                    console.log('SWIPE WEIGHT', swipeWeight)
+            if(parent.cordova){
+                function handleSwipe(e){
+                    console.log('swipey', e)
+                    let orientation = innerHeight > innerWidth ? 'portrait' : 'landscape'
+                    let swipeArea = ['up', 'down'].includes(e.direction) ? innerHeight : innerWidth
+                    let swipeDist
                     switch(e.direction){
                         case 'left':
-                            if(explorer.inPlayer()){  
-                                arrowLeftPressed(true)
-                            }
-                            break
                         case 'right':                        
-                            if(explorer.inPlayer()){            
-                                arrowRightPressed(true)
-                            } else {
-                                escapePressed()
-                            }
+                            swipeDist = swipeArea / (orientation == 'portrait' ? 3 : 4)
                             break
-                        case 'up': // go down
-                            if(explorer.inPlayer()){
-                                if(!explorer.isExploring()){
-                                    arrowDownPressed(true)
-                                }
-                            }
-                            break
-                        case 'down': // go up
-                            if(explorer.inPlayer()){
-                                if(explorer.isExploring()){
-                                    if(!explorer.scrollContainer.scrollTop()){
-                                        explorer.body.removeClass('menu-playing')
-                                    }
-                                } else {
-                                    arrowUpPressed(false)
-                                }
-                            }
+                        case 'up':
+                        case 'down': // dont use default here to ignore diagonal moves
+                            swipeDist = swipeArea / (orientation == 'portrait' ? 4 : 3)
                             break
                     }
-                }
-            }
-            swipey.add(document.body, handleSwipe, {diagonal: false})
-            
-            var mouseWheelMovingTime = 0, mouseWheelMovingInterval = 200;
-            ['mousewheel', 'DOMMouseScroll'].forEach(n => {
-                window.addEventListener(n, event => {
-                    if(!explorer.inPlayer() || explorer.isExploring()) return
-                    let now = (new Date()).getTime()
-                    if(now > (mouseWheelMovingTime + mouseWheelMovingInterval)){
-                        mouseWheelMovingTime = now
-                        let delta = (event.wheelDelta || -event.detail)
-                        if(delta > 0){   
-                            //this.seekForward()
-                            arrowUpPressed()
-                        } else {
-                            //this.seekRewind()
-                            arrowDownPressed()
+                    if(swipeDist && e.swipeLength >= swipeDist){
+                        let swipeWeight = Math.round((e.swipeLength - swipeDist) / swipeDist)
+                        if(swipeWeight < 1) swipeWeight = 1
+                        console.log('SWIPE WEIGHT', swipeWeight)
+                        switch(e.direction){
+                            case 'left':
+                                if(explorer.inPlayer()){  
+                                    streamer.seekBack(swipeWeight)         
+                                }
+                                break
+                            case 'right':                        
+                                if(explorer.inPlayer()){                 
+                                    streamer.seekFwd(swipeWeight)
+                                } else {
+                                    escapePressed()
+                                }
+                                break
+                            case 'up':
+                                if(explorer.inPlayer()){
+                                    if(!explorer.isExploring()){
+                                        streamer.volumeUp(swipeWeight * 5)
+                                    }
+                                }
+                                break
+                            case 'down':
+                                if(explorer.inPlayer()){
+                                    if(!explorer.isExploring()){
+                                        streamer.volumeDown(swipeWeight * 5)
+                                    }
+                                }
+                                break
                         }
                     }
-                })
-            }) 
-
+                }
+                swipey.add(document.body, handleSwipe, {diagonal: false})
+            }
+    
             var internetConnStateOsdID = 'network-state', updateInternetConnState = () => {
                 if(navigator.onLine){
                     app.emit('network-state-up')
@@ -635,26 +634,6 @@ function initApp(){
             })
             
             ffmpeg.bind()
-
-            jQuery('#menu-playing-close').on('click', () => {
-                explorer.body.removeClass('menu-playing')
-            })
-
-            if(parent.cordova){
-				parent.cordova.plugins.backgroundMode.disable()
-                parent.cordova.plugins.backgroundMode.setDefaults({
-                    title: 'Megacubo',
-                    text: lang.RUNNING_IN_BACKGROUND,                
-                    icon: 'icon', // this will look for icon.png in platforms/android/res/drawable|mipmap
-                    color: config['background-color'].slice(-6), // hex format like 'F14F4D'
-                    resume: true,
-                    hidden: true,
-                    silent: false,
-                    allowClose: true,
-                    closeTitle: lang.CLOSE
-                    //, bigText: Boolean
-                })
-            }
         })
     })
 }

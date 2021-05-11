@@ -1,134 +1,122 @@
 var hotkeysActions = {
-    'HOME': [
+    "HOME": [
         () => {
             if(explorer.scrollContainer.scrollTop()){
                 explorer.scrollContainer.scrollTop(0)
             } else {
                 explorer.triggerAction('').catch(console.error)
             }
-        }, 'up', true
+        }, "up", true
     ],
-    'PLAYPAUSE': [
+    "PLAYPAUSE": [
         () => {
             if(explorer.inPlayer()){
                 streamer.playOrPause()
             }
-        }, 'up'
+        }, "up"
     ],
-    'BACKNOTINPUT': [
+    "BACKNOTINPUT": [
         () => {
             escapePressed()
-        }, 'hold'
+        }, "hold"
     ],
-    'BACK': [
+    "BACK": [
         () => { // with Ctrl it work on inputs so
             // ...
-        }, 'up', true
+        }, "up", true
     ],
-    'ESCAPE': [
+    "ESCAPE": [
         () => {
             escapePressed()
-        }, 'up', true
+        }, "up", true
     ],
-    'STOP': [
+    "NAVUP": [
         () => {
-            streamer.stop()
-        }, 'up', true
-    ],
-    'VOLUMEUP': [
-        () => {
-            streamer.volumeUp(1)
-        }, 'hols', true
-    ],
-    'VOLUMEDOWN': [
-        () => {
-            streamer.volumeDown(1)
-        }, 'hold', true
-    ],
-    'VOLUMEMUTE': [
-        () => {
-            streamer.volumeMute()
-        }, 'up', true
-    ],
-    'SEEKREWIND': [
-        () => {
-            streamer.seekRewind()
-        }, 'hold', true
-    ],
-    'SEEKFORWARD': [
-        () => {
-            streamer.seekForward()
-        }, 'hold', true
-    ],
-    'NAVUP': [
-        () => {
+            console.log('NAVUP')
             arrowUpPressed()
-        }, 'hold', true
+        }, "hold", true
     ],
-    'NAVDOWN': [
+    "NAVDOWN": [
         () => {
+            console.log('NAVDOWN')
             arrowDownPressed()
-        }, 'hold', true
+        }, "hold", true
     ],
-    'NAVRIGHT': [
+    "NAVRIGHT": [
         () => {
-            arrowRightPressed()
-        }, 'hold', false
+            if(streamer.isSeeking && explorer.inPlayer()){
+                streamer.seekFwd()
+            } else {
+                explorer.arrow('right')
+            }
+        }, "hold", false
     ],
-    'NAVLEFT': [
+    "NAVLEFT": [
         () => {
-            arrowLeftPressed()
-        }, 'hold', false
+            if(streamer.isSeeking && explorer.inPlayer()){              
+                streamer.seekBack()
+            } else {
+                explorer.arrow('left')
+            }
+        }, "hold", false
     ],
-    'NAVENTER': [
+    "NAVENTER": [
         () => {
-            enterPressed()
-        }, 'up'
+            // ENTER PRESSED true true false <button class=​"menu selected">​…​</button>​ true false -1
+            console.log('ENTER PRESSED', explorer.inPlayer(), explorer.isExploring(), arePlayerControlsVisible(), document.activeElement, streamer.active, window.isIdle, document.body.className.indexOf('idle'))
+            //if(document.activeElement == document.body){
+                let e = explorer.selected(false)
+                if(e) {
+                    if(streamer.active && document.body.className.indexOf('idle') != -1){
+                        if(streamer.state != 'paused'){
+                            console.log('ENTER IGNORED ON IDLE OUT', e)
+                            return idleStop()
+                        }
+                    }
+                    // e.click()
+                }
+            //}
+        }, "up"
     ],
-    'SEARCH': [
+    "SEARCH": [
         () => {
             omni.focus()
-        }, 'up', true
+        }, "up", true
     ],
-    'OPENURL': [
+    "OPENURL": [
         () => {
             explorer.triggerAction(lang.TOOLS, lang.OPEN_URL).catch(console.error)
-        }, 'up', true
+        }, "up", true
     ],
-    'HISTORY': [
+    "HISTORY": [
         () => {
             explorer.triggerAction(lang.TOOLS, lang.HISTORY).catch(console.error)
-        }, 'up', true
+        }, "up", true
     ],
-    'BOOKMARKS': [
-        () => {
-            explorer.triggerAction(lang.BOOKMARKS).catch(console.error)
-        }, 'up', true
-    ],
-    'LANGUAGE': [
+    "LANGUAGE": [
         () => {
             explorer.triggerAction(lang.OPTIONS, lang.LANGUAGE).catch(console.error)
-        }, 'up', true
+        }, "up", true
     ],
-    'BOOKMARK': [
+    "FAV": [
         () => {
             app.emit('toggle-fav')
-        }, 'up', true
+        }, "up", true
     ],
-    'MINIPLAYER': [
+    "MINIPLAYER": [
         () => {
-            parent.winman.toggle().catch(console.error)
-        }, 'up', true
+            parent.player.mini.toggle().catch(console.error)
+        }, "up", true
     ],
-    'RECORDING': [
+    "RECORDING": [
         () => {
             app.emit('recording')
-        }, 'up', true
+        }, "up", true
     ],
-    'ABOUT': [
+    "ABOUT": [
         () => {
             app.emit('about')
-        }, 'up', true
+        }, "up", true
     ],
     'FULLSCREEN': [
         () => {
@@ -138,6 +126,6 @@ var hotkeysActions = {
                     window.idleStop()
                 }
             }
-        }, 'up', true
+        }, "up", true
     ]
 }

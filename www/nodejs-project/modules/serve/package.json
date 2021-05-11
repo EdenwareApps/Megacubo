@@ -1,0 +1,8 @@
+{
+    "main": "serve.js",
+    "name": "serve",
+    "version": "0.0.1",
+    "dependencies": {
+    }   
+ }
+ 

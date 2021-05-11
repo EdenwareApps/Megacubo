@@ -120,6 +120,7 @@ class WindowManager extends ClassesHandler {
 			this.app.addEventListener('idle-start', this.idleChange.bind(this))
 			this.app.addEventListener('idle-stop', this.idleChange.bind(this))
 			this.app.streamer.on('state', this.idleChange.bind(this))
+			this.app.restart = this.restart.bind(this)
 			this.patch()
 			setTimeout(() => {
 				this.focusApp()
@@ -196,29 +197,15 @@ class WindowManager extends ClassesHandler {
 		this.removeFromTray()
 	}
 	restart(){
-		console.log('restartApp') 
-		process.on('exit', () => {
+		console.log('restartApp')  
+		this.win.hide()
+		process.on('exit', function () {
 			require('child_process').spawn(process.execPath, nw.App.argv, {
-				shell: true,
-				detached: true,
-				stdio: 'inherit'
-			}).unref()
-		})
-		process.nextTick(() => process.exit())
-
-		/*
-			const child = require('child_process')
-			let argv = [...new Set(process.execArgv.concat(process.argv.slice(1)))]
-			child.spawn(process.argv[0], argv, {
-				detached : true,
-				stdio: 'inherit'
-			}).unref()
-			console.log('PREPARE TO EXIT')
-			process.nextTick(() => {
-				console.log('EXITING')
-				process.exit()
+				shell: false,
+				detached: true
 			})
-		*/
+		})
+		process.exit()
 	}
 	idleChange(){
 		setTimeout(() => {
@@ -288,24 +275,27 @@ class WindowManager extends ClassesHandler {
 		console.warn('setFullscreen()', enter);
 		if(!enter){
 			this.inFullScreen = this.miniPlayerActive = false;
-			this.emit('miniplayer-off')
-			this.win.leaveKioskMode() // bugfix, was remembering to enter fullscreen irreversibly
-			this.win.leaveFullscreen()
+			this.emit('miniplayer-off');
+			this.win.leaveKioskMode(); // bugfix, was remembering to enter fullscreen irreversibly
+			this.win.leaveFullscreen();
+			console.log('FSOUT');
 			this.fixMaximizeButton()
+			console.log('FSOUT');
 			if(this.app && this.app.osd){
 				this.app.osd.hide('esc-to-exit')
 			}
 		} else {
 			this.inFullScreen = true;
 			this.win.enterFullscreen()
-			if(this.app && this.app.osd && this.app.hotkeys && this.app.hotkeys){
-				let key = this.app.hotkeys.getHotkeyAction('FULLSCREEN', true)
+			if(this.app && this.app.osd && this.app.getActionHotkey){
+				let key = this.app.getActionHotkey('FULLSCREEN', true)
 				if(key){
 					this.app.osd.show(this.app.lang.EXIT_FS_HINT.replace('{0}', key), 'fas fa-info-circle', 'esc-to-exit', 'normal')
 				}
 			}
 		}
 		var f = () => {
+			console.log('FSOUT1');
 			var _fs = this.isFullScreen();
 			this.win.setAlwaysOnTop(_fs || this.miniPlayerActive);
 			this.win.requestAttention(_fs);
@@ -313,10 +303,11 @@ class WindowManager extends ClassesHandler {
 				this.win.blur();
 				this.win.focus()
 			}
+			console.log('FSOUT1OK');
 		}
-		setTimeout(f, 500)
-		setTimeout(f, 1000)
-		setTimeout(f, 2000)
+		setTimeout(f, 500);
+		setTimeout(f, 1000);
+		setTimeout(f, 2000);
 		this.win.show()
 	}
 	restore(){
@@ -347,7 +338,7 @@ class WindowManager extends ClassesHandler {
 		return v && v.offsetWidth ? (v.offsetWidth / v.offsetHeight) : (16 / 9)
 	}
 	enterMiniPlayer(w, h){
-		console.warn('enterMiniPlayer')
+		console.error('leaveMiniPlayer')
 		this.win.hide()
 		setTimeout(() => { 
 			this.miniPlayerActive = true;  
@@ -360,13 +351,13 @@ class WindowManager extends ClassesHandler {
 		}, 250)
 	}
 	prepareLeaveMiniPlayer(){
-		console.warn('prepareLeaveMiniPlayer')
+		console.error('leaveMiniPlayer')
 		this.miniPlayerActive = false;  
 		this.win.setAlwaysOnTop(false)
 		this.emit('miniplayer-off')
 	}
 	leaveMiniPlayer(){
-		console.warn('leaveMiniPlayer')
+		console.error('leaveMiniPlayer')
 		this.prepareLeaveMiniPlayer()
 		window.resizeTo.apply(window, this.initialSize)
 		this.centralizeWindow.apply(this, this.initialSize)
@@ -424,6 +415,9 @@ class WindowManager extends ClassesHandler {
 			document.querySelector('.nw-cf-maximize').style.display = 'none';
 		}
 	}
+	setCloseToTray(enable){		
+		this.closeToTray = enable
+	}
 	patchButton(sel, fn, label){
 		let old_element = document.querySelector(sel), new_element = old_element.cloneNode(true)
 		old_element.parentNode.replaceChild(new_element, old_element)
@@ -442,19 +436,27 @@ class WindowManager extends ClassesHandler {
 		this.patchButton('.nw-cf-minimize', () => {
 			this.resizeListenerDisabled = true
 			this.minimizeWindow()
-			setTimeout(() => {
-				this.resizeListenerDisabled = false
-			}, 500)
 		}, this.app.lang.MINIMIZE)
-		this.patchButton('.nw-cf-close', () => this.closeWindow(), this.app.lang.CLOSE)
+		this.patchButton('.nw-cf-close', () => {
+			if(this.closeToTray){
+				this.goToTray()
+			} else {
+				this.close()
+			}
+		}, this.app.lang.CLOSE)
 		this.patch = () => {}
 	}
-	closeWindow(){ // will be overwritten by winman
-		this.close()
+	forceClose(){
+		nw.App.closeAllWindows()
+		this.win.close(true)
 	}
 	close(){
 		console.error('nw close()')
-		nw.App.closeAllWindows()
-		this.win.close(true)
+		try {
+			this.app.exit()
+			setTimeout(() => this.forceClose(), 3000)
+		} catch(e) {
+			this.forceClose()
+		}
 	}
 }

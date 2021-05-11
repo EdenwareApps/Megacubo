@@ -119,7 +119,7 @@ class Options extends Timer {
             console.log('reset-callback', ret)
             switch(ret){
                 case 'yes':
-                    global.removeFolder(global.paths.data, false, true)
+                    global.removeFolder(global.paths['data'], false, true)
                     global.removeFolder(global.paths.temp, false, true)
                     global.energy.restart()
                     break
@@ -135,73 +135,13 @@ class Options extends Timer {
         global.ui.on('clear-cache', ret => {
             if(ret == 'yes') this.clearCache()
         })
-        global.ui.on('config-import-file', data => {
-            console.warn('!!! IMPORT FILE !!!', data)
-            global.importFileFromClient(data).then(ret => this.importConfigFile(ret)).catch(err => {
-                global.displayErr(err)
-            })
-        })
         this.languageNames = {
             en: 'English',
             es: 'Español',
             pt: 'Português',
             it: 'Italiano'
         }
-    }
-    importConfigFile(data, keysToImport){
-        console.log('Config file', data)
-        try {
-            data = JSON.parse(String(data))
-            if(typeof(data) == 'object'){
-                data = this.prepareImportConfigFile(data, keysToImport)
-                global.config.setMulti(data)
-                global.osd.show('OK', 'fas fa-check-circle', 'options', 'normal')
-                global.theme.update()
-            } else {
-                throw new Error('Not a JSON file.')
-            }
-        } catch(e) {
-            global.displayErr('Invalid file', e)
-        }
-    }
-    prepareImportConfigFile(atts, keysToImport){
-        let natts = {}
-        if(Array.isArray(keysToImport)){
-            Object.keys(atts).forEach(k => {
-                if(keysToImport.includes(k)){
-                    natts[k] = atts[k]
-                }
-            })
-        } else {
-            natts = Object.assign(natts, atts)
-        }
-        if(natts['custom-background-image']){
-            const buf = Buffer.from(natts['custom-background-image'], 'base64')
-            fs.writeFileSync(global.theme.customBackgroundImagePath, buf)
-            natts['custom-background-image'] = global.theme.customBackgroundImagePath
-        }
-        return natts
-    }
-    prepareExportConfigFile(atts, keysToExport){
-        let natts = {}
-        if(Array.isArray(keysToExport)){
-            Object.keys(atts).forEach(k => {
-                if(keysToExport.includes(k)){
-                    natts[k] = atts[k]
-                }
-            })
-        } else {
-            natts = Object.assign(natts, atts)
-        }
-        if(typeof(natts['custom-background-image']) == 'string' && natts['custom-background-image']){
-            let buf = fs.readFileSync(natts['custom-background-image'])
-            if(buf){
-                natts['custom-background-image'] = buf.toString('base64')
-            } else {
-                delete natts['custom-background-image']
-            }
-        }
-        return natts
+        this.emptyEntry = {name: global.lang.EMPTY, type: 'action', fa: 'fas fa-info-circle', class: 'entry-empty'}
     }
     tools(){
         return new Promise((resolve, reject) => {
@@ -239,7 +179,7 @@ class Options extends Timer {
                         })
                     }
                 })
-                global.ui.emit('dialog', [
+                ui.emit('dialog', [
                     {template: 'question', text: global.lang.LANGUAGE, fa: 'fas fa-language'}
                 ].concat(options), 'locale-callback', def)
             }
@@ -258,8 +198,8 @@ class Options extends Timer {
 		global.ui.emit('share', global.ucWords(global.MANIFEST.name), global.ucWords(global.MANIFEST.name), 'https://megacubo.net/online/')
 	}
     about(){
-        let text = lang.LEGAL_NOTICE +': '+ lang.ABOUT_LEGAL_NOTICE
-        global.ui.emit('dialog', [
+        let text = lang.LEGAL_NOTICE +": "+ lang.ABOUT_LEGAL_NOTICE
+        ui.emit('dialog', [
             {template: 'question', text: global.ucWords(global.MANIFEST.name) +' v'+ global.MANIFEST.version +' (' + process.platform + ', '+ require('os').arch() +')'},
             {template: 'message', text},
             {template: 'option', text: 'OK', fa: 'fas fa-info-circle', id: 'ok'},
@@ -270,19 +210,12 @@ class Options extends Timer {
     }
     aboutMem(){
         const used = process.memoryUsage().rss
-        let data = 'Memory usage: '+ global.kbfmt(used) +'<br />'  
-        global.ui.emit('info', 'Memory usage', data)
-    }
-    aboutNetwork(){
-        let data = 'Network IP: '+ global.networkIP()
-        if(process.platform == 'android'){
-            data += '<br />'+ global.androidIPCommand()
-        } 
-        global.ui.emit('info', 'Network IP', data)
+        let data = 'Memory usage: ' + global.kbfmt(used) + '<br />'  
+        ui.emit('info', 'Memory usage', data)
     }
     resetConfig(){
         let text = global.lang.RESET_CONFIRM
-        global.ui.emit('dialog', [
+        ui.emit('dialog', [
             {template: 'question', text: global.ucWords(global.MANIFEST.name)},
             {template: 'message', text},
             {template: 'option', text: global.lang.YES, fa: 'fas fa-info-circle', id: 'yes'},
@@ -291,79 +224,6 @@ class Options extends Timer {
     }
     closeApp(){
         global.energy.exit()
-    }
-    playbackEntries(){
-        return new Promise((resolve, reject) => {
-            let opts = [
-                {
-                    name: 'Control playback rate according to the buffer', type: 'check', action: (data, checked) => {
-                    global.config.set('playback-rate-control', checked)
-                }, checked: () => {
-                    return global.config.get('playback-rate-control')
-                }, details: 'Recommended'}, 
-                {
-                    name: 'FFmpeg audio repair', type: 'check', action: (data, checked) => {
-                    global.config.set('ffmpeg-audio-repair', checked)
-                }, checked: () => {
-                    return global.config.get('ffmpeg-audio-repair')
-                }},
-                {
-                    name: 'FFmpeg CRF',
-                    fa: 'fas fa-film',
-                    type: 'slider', 
-                    range: {start: 15, end: 30},
-                    action: (data, value) => {
-                        global.config.set('ffmpeg-crf', value)
-                    }, 
-                    value: () => {
-                        return global.config.get('ffmpeg-crf')
-                    }
-                },                      
-                {
-                    name: 'Transcoding', type: 'select', fa: 'fas fa-film',
-                    renderer: () => {
-                        return new Promise((resolve, reject) => {
-                            let def = global.config.get('transcoding'), opts = [
-                                {name: global.lang.NEVER, type: 'action', selected: !def, action: (data) => {
-                                    global.config.set('transcoding', '')
-                                }},
-                                {name: global.lang.TRANSCODING_ENABLED_LIMIT_X.format('480p'), type: 'action', selected: (def == '480p'), action: (data) => {
-                                    global.config.set('transcoding', '480p')
-                                }},
-                                {name: global.lang.TRANSCODING_ENABLED_LIMIT_X.format('720p'), type: 'action', selected: (def == '720p'), action: (data) => {
-                                    global.config.set('transcoding', '720p')
-                                }},
-                                {name: global.lang.TRANSCODING_ENABLED_LIMIT_X.format('1080p'), type: 'action', selected: (def == '1080p'), action: (data) => {
-                                    global.config.set('transcoding', '1080p')
-                                }}
-                            ]
-                            resolve(opts)
-                        })
-                    }
-                },
-                {
-                    name: global.lang.ELAPSED_TIME_TO_KEEP_CACHED, 
-                    details: global.lang.LIVE,
-                    fa: 'fas fa-hdd', 
-                    type: 'slider', 
-                    range: {start: 30, end: 7200},
-                    action: (data, value) => {
-                        console.warn('ELAPSED_TIME_TO_KEEP_CACHED', data, value)
-                        global.config.set('live-window-time', value)
-                    }, 
-                    value: () => {
-                        return global.config.get('live-window-time')
-                    }
-                },
-                {
-                    name: 'Use keepalive connections', type: 'check', action: (data, checked) => {
-                    global.config.set('use-keepalive', checked)
-                }, checked: () => {
-                    return global.config.get('use-keepalive')
-                }, details: 'Recommended'}
-            ]
-            resolve(opts)
-        })
     }
     tuneEntries(){
         return new Promise((resolve, reject) => {
@@ -420,7 +280,7 @@ class Options extends Timer {
         })
     }
     requestClearCache(){
-        let folders = [global.storage.folder, global.paths.temp], size = 0, gfs = require('get-folder-size')
+        let folders = [global.paths['data'], global.paths.temp], size = 0, gfs = require('get-folder-size')
         async.eachOf(folders, (folder, i, done) => {
             gfs(folder, (err, s) => {
                 if(!err){
@@ -446,7 +306,7 @@ class Options extends Timer {
         if(global.tuning){
             global.tuning.stop()
         }
-        let folders = [global.storage.folder, global.paths.temp]
+        let folders = [global.paths['data'], global.paths.temp]
         async.eachOf(folders, (folder, i, done) => {
             global.removeFolder(folder, false, done)
         }, () => {
@@ -521,60 +381,23 @@ class Options extends Timer {
                 })
             }
             let opts = [
-                {name: global.lang.BEHAVIOUR, type: 'group', fa: 'fas fa-window-restore', renderer: () => {
+                {name: global.lang.STARTUP, type: 'group', fa: 'fas fa-star-of-life', renderer: () => {
                     return new Promise((resolve, reject) => {
                         let opts = [
                             {name: global.lang.RESUME_PLAYBACK, type: 'check', action: (data, checked) => {
                                 global.config.set('resume', checked)
                             }, checked: () => {
                                 return global.config.get('resume')
-                            }},
-                            {
-                                name: global.lang.AUTO_MINIPLAYER, type: 'check', action: (data, checked) => {
-                                global.config.set('miniplayer-auto', checked)
-                            }, checked: () => {
-                                return global.config.get('miniplayer-auto')
-                            }},                            
-                            {
-                                name: global.lang.SHOW_LOGOS,
-                                type: 'check',
-                                action: (e, checked) => {
-                                    global.config.set('show-logos', checked)
-                                }, 
-                                checked: () => {
-                                    return global.config.get('show-logos')
-                                }
-                            },
-                            {
-                                name: global.lang.SEARCH_MISSING_LOGOS,
-                                type: 'check',
-                                action: (e, checked) => {
-                                    global.config.set('search-missing-logos', checked)
-                                }, 
-                                checked: () => {
-                                    return global.config.get('search-missing-logos')
-                                }
-                            },
-                            {
-                                name: global.lang.HIDE_BACK_BUTTON, 
-                                type: 'check', 
-                                action: (data, value) => {
-                                    global.config.set('hide-back-button', value)
-                                    global.explorer.refresh()
-                                }, 
-                                checked: () => {
-                                    return global.config.get('hide-back-button')
-                                }
-                            }
+                            }}
                         ]
                         opts.push({
-                            name: global.lang.WINDOW_MODE_TO_START,
+                            name: global.lang.WINDOW,
                             fa: 'fas fa-window-maximize', 
                             type: 'select', 
                             renderer: () => {
                                 return new Promise((resolve, reject) => {
                                     let def = global.config.get('startup-window'), opts = [
-                                        {name: global.lang.NORMAL, fa: 'fas fa-ban', type: 'action', selected: (def == ''), action: (data) => {
+                                        {name: global.lang.NORMAL, fa:  'fas fa-ban', type: 'action', selected: (def == ''), action: (data) => {
                                             global.config.set('startup-window', '')
                                         }},
                                         {name: global.lang.FULLSCREEN, fa: 'fas fa-window-maximize', type: 'action', selected: (def == 'fullscreen'), action: (data) => {
@@ -596,69 +419,87 @@ class Options extends Timer {
                 {name: global.lang.LANGUAGE, fa: 'fas fa-language', type: 'action', action: () => this.showLanguageEntriesDialog()},
                 secOpt,
                 {name: global.lang.CHANNEL_LIST, fa: 'fas fa-list', type: 'group', renderer: global.channels.options.bind(global.channels)},
+                {name: global.lang.TUNE, fa: 'fas fa-satellite-dish', type: 'group', renderer: this.tuneEntries.bind(this)},
                 {name: global.lang.ADVANCED, fa: 'fas fa-cogs', type: 'group', renderer: () => {
                     return new Promise((resolve, reject) => {
                         resolve([
-                            {name: global.lang.TUNE, fa: 'fas fa-satellite-dish', type: 'group', renderer: this.tuneEntries.bind(this)},
-                            {name: global.lang.PLAYBACK, fa: 'fas fa-play', type: 'group', renderer: this.playbackEntries.bind(this)},
+                            {
+                                name: global.lang.AUTO_MINIPLAYER, type: 'check', action: (data, checked) => {
+                                global.config.set('miniplayer-auto', checked)
+                            }, checked: () => {
+                                return global.config.get('miniplayer-auto')
+                            }},
                             {
                                 name: 'Enable console logging', type: 'check', action: (data, checked) => {
                                 global.config.set('enable-console', checked)
                             }, checked: () => {
                                 return global.config.get('enable-console')
-                            }}, 
+                            }},
                             {
-                                name: 'Unoptimized search', type: 'check', action: (data, checked) => {
-                                global.config.set('unoptimized-search', checked)
+                                name: 'FFMPEG audio repair', type: 'check', action: (data, checked) => {
+                                global.config.set('ffmpeg-audio-repair', checked)
                             }, checked: () => {
-                                return global.config.get('unoptimized-search')
-                            }},  
+                                return global.config.get('ffmpeg-audio-repair')
+                            }},
+                            {
+                                name: 'Control playback rate according to the buffer', type: 'check', action: (data, checked) => {
+                                global.config.set('playback-rate-control', checked)
+                            }, checked: () => {
+                                return global.config.get('playback-rate-control')
+                            }},
+                            {
+                                name: 'Use keepalive connections', type: 'check', action: (data, checked) => {
+                                global.config.set('use-keepalive', checked)
+                            }, checked: () => {
+                                return global.config.get('use-keepalive')
+                            }},                         
+                            {
+                                name: 'Transcoding', type: 'select', fa: 'fas fa-film',
+                                renderer: () => {
+                                    return new Promise((resolve, reject) => {
+                                        let def = global.config.get('transcoding'), opts = [
+                                            {name: global.lang.NEVER, type: 'action', selected: !def, action: (data) => {
+                                                global.config.set('transcoding', '')
+                                            }},
+                                            {name: '480p', type: 'action', selected: (def == '480p'), action: (data) => {
+                                                global.config.set('transcoding', '480p')
+                                            }},
+                                            {name: '720p', type: 'action', selected: (def == '720p'), action: (data) => {
+                                                global.config.set('transcoding', '720p')
+                                            }},
+                                            {name: '1080p', type: 'action', selected: (def == '1080p'), action: (data) => {
+                                                global.config.set('transcoding', '1080p')
+                                            }}
+                                        ]
+                                        resolve(opts)
+                                    })
+                                }
+                            },
+                            {
+                                name: global.lang.ELAPSED_TIME_TO_KEEP_CACHED, 
+                                details: global.lang.LIVE,
+                                fa: 'fas fa-hdd', 
+                                type: 'slider', 
+                                range: {start: 30, end: 7200},
+                                action: (data, value) => {
+                                    console.warn('ELAPSED_TIME_TO_KEEP_CACHED', data, value)
+                                    global.config.set('live-window-time', value)
+                                }, 
+                                value: () => {
+                                    return global.config.get('live-window-time')
+                                }
+                            },
                             {  
                                 name: global.lang.CLEAR_CACHE, icon: 'fas fa-broom', type: 'action', action: () => this.requestClearCache()
                             },
                             {
                                 name: 'Memory usage', fa: 'fas fa-memory', type: 'action', action: this.aboutMem.bind(this)
                             },
-                            {
-                                name: 'Network IP', fa: 'fas fa-globe', type: 'action', action: this.aboutNetwork.bind(this)
-                            },
                             {name: global.lang.FFMPEG_VERSION, fa: 'fas fa-info-circle', type: 'action', action: global.ffmpeg.diagnosticDialog.bind(global.ffmpeg)}
                         ])
                     })
                 }},
-                {
-                    name: global.lang.EXPORT_IMPORT,
-                    type: 'group',
-                    fa: 'fas fa-file-import',
-                    entries: [
-                        {
-                            name: global.lang.EXPORT_CONFIG,
-                            type: 'action',
-                            fa: 'fas fa-file-export', 
-                            action: () => {
-                                const filename = 'megacubo.config.json', file = global.downloads.folder + path.sep + filename
-                                const atts = this.prepareExportConfigFile(global.config.data)
-                                fs.writeFile(file, JSON.stringify(atts, null, 3), {encoding: 'utf-8'}, err => {
-                                    global.downloads.serve(file, true, false).catch(global.displayErr)
-                                })
-                            }
-                        },
-                        {
-                            name: global.lang.IMPORT_CONFIG,
-                            type: 'action',
-                            fa: 'fas fa-file-import', 
-                            action: () => {
-                                global.ui.emit('open-file', global.ui.uploadURL, 'config-import-file', 'application/json')
-                            }
-                        }
-                    ]
-                },
-                {
-                    name: global.lang.RESET_CONFIG, 
-                    type: 'action',
-                    fa: 'fas fa-undo-alt', 
-                    action: () => this.resetConfig()
-                }
+                {name: global.lang.RESET_CONFIG, fa: 'fas fa-trash', type: 'action', action: this.resetConfig.bind(this)}
             ]
             resolve(opts)
         })

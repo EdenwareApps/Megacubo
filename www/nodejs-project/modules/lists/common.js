@@ -95,7 +95,7 @@ class Common extends Events {
 		}
 		return e
 	}
-	terms(txt, allowModifier, keepStopWords){
+	terms(txt, allowModifier){
 		if(!txt){
 			return []
 		}
@@ -103,7 +103,7 @@ class Common extends Events {
 			txt = txt.split('/').join(' ')
 		}
 		txt = txt.toLowerCase()
-		let tms = this.applySearchRedirects(txt.replace(this.parser.regexes['plus-signal'], 'plus').
+		return this.applySearchRedirects(txt.replace(this.parser.regexes['plus-signal'], 'plus').
 			replace(this.parser.regexes['between-brackets'], ' ').
 			normalize('NFD').toLowerCase().replace(this.parser.regexes['accents'], ''). // replace/normalize accents
 			split(' ').
@@ -117,13 +117,10 @@ class Common extends Events {
 					}
 				}
 				return s.replace(this.parser.regexes['non-alpha'], '').replace(this.parser.regexes['hyphen-not-modifier'], '')
-			}));	
-		if(!keepStopWords){
-			tms = tms.filter(s => {
+			}).
+			filter(s => {
 				return s && this.stopWords.indexOf(s) == -1
-			})
-		}
-		return tms
+			}))
 	}
 	match(needleTerms, stackTerms, partial){ // partial=true will match "starts with" terms too
 		if(needleTerms.length && stackTerms.length){

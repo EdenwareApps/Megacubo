@@ -88,12 +88,12 @@ class StreamerOSD extends StreamerPlaybackTimeout {
                     }
                     break
                 case 'loading':
-                    osd.show(lang.LOADING, this.data.servedIcon || '', this.osdID, 'persistent')
+                    osd.hide(this.osdID) // clear paused osd
                     clearTimeout(this.transmissionNotWorkingHintTimer)
                     this.transmissionNotWorkingHintTimer = setTimeout(() => {
                         if(this.active){
-                            osd.hide(this.osdID)
                             osd.show(lang.TRANSMISSION_NOT_WORKING_HINT.format(this.tuningIcon), '', this.osdID + '-sub', 'persistent')
+                            osd.hide(this.osdID)
                         }
                     }, this.transmissionNotWorkingHintDelay)
                     break
@@ -108,7 +108,6 @@ class StreamerOSD extends StreamerPlaybackTimeout {
                     }
                     break
                 case '':
-                    clearTimeout(this.transmissionNotWorkingHintTimer)
                     osd.hide(this.osdID + '-sub')
                     osd.hide(this.osdID)
             }
@@ -135,7 +134,7 @@ class StreamerCasting extends StreamerOSD {
                 parent.player.pause()
                 this.stateListener('playing')
                 this.jbody.addClass('casting')
-                if(this.inLiveStream){
+                if(this.activeMimetype && this.activeMimetype.indexOf('mpegurl') != -1){
                     this.jbody.addClass('casting-live')
                 }
             }
@@ -151,7 +150,7 @@ class StreamerCasting extends StreamerOSD {
                     if(parent.player.state){
                         parent.player.resume()
                     } else {
-                        parent.player.load(this.activeSrc, this.activeMimetype, this.activeCookie, this.activeMediatype)
+                        parent.player.load(this.activeSrc, this.activeMimetype, '')
                         this.stateListener('loading')
                     }
                 }
@@ -250,32 +249,28 @@ class StreamerState extends StreamerCasting {
     }
     playOrPause(){
         if(this.active){
-            if(['paused', 'ended'].includes(parent.player.state)){
-                if(this.casting){
-                    if(this.castingPaused){
-                        this.castingPaused = false
-                        this.stateListener('playing')
-                        this.app.emit('streamer-resume')
+            let b = jQuery(this.controls).css('bottom')
+            if(b == 0 || b == '0px'){
+                if(['paused', 'ended'].includes(parent.player.state)){
+                    if(this.casting){
+                        if(this.castingPaused){
+                            this.castingPaused = false
+                            this.stateListener('playing')
+                            this.app.emit('streamer-resume')
+                        } else {
+                            this.castingPaused = true
+                            this.stateListener('paused')
+                            this.app.emit('streamer-pause')
+                        }
                     } else {
-                        this.castingPaused = true
-                        this.stateListener('paused')
-                        this.app.emit('streamer-pause')
+                        parent.player.resume()
+                        this.app.emit('streamer-resume')
                     }
-                } else {
-                    parent.player.resume()
-                    this.app.emit('streamer-resume')
+                } else if(parent.player.state) {
+                    parent.player.pause()
+                    this.app.emit('streamer-pause')
                 }
-            } else if(parent.player.state) {
-                parent.player.pause()
-                this.app.emit('streamer-pause')
             }
-        }
-    }
-    playOrPauseNotIdle(){
-        let idle = isIdle || lastIdleTime > (((new Date()).getTime() / 1000) - 0.5)
-        console.error('playOrPauseNotIdle() '+ (idle?'Y':'N'), isIdle, lastIdleTime)
-        if(!idle){
-            this.playOrPause()
         }
     }
 }
@@ -426,13 +421,6 @@ class StreamerSpeedo extends StreamerIdle {
                     break
                 case 'playing':
                     this.seekBarUpdate(true)
-                    if(!this.speedoDurationReported && !this.inLiveStream){
-                        let duration = parent.player.duration()
-                        if(duration && duration > 0){
-                            this.speedoDurationReported = true
-                            this.app.emit('streamer-duration', duration)
-                        }
-                    }
                     break
                 case 'paused':
                     this.seekbarLabel.innerHTML = lang.PAUSED
@@ -454,7 +442,6 @@ class StreamerSpeedo extends StreamerIdle {
         this.on('stop', () => {
             this.bitrate = 0
             this.currentSpeed = 0
-            this.speedoDurationReported = false
         })
         this.app.on('streamer-speed', speed => {
             this.currentSpeed = speed
@@ -563,6 +550,8 @@ class StreamerSeek extends StreamerSpeedo {
         this.seekBarShowTimer = 0
         this.seekStepDelay = 400
         this.seekTimer = 0
+        this.mouseWheelMovingTime = 0
+        this.mouseWheelMovingInterval = 200
         this.on('draw', () => {
             this.seekbar = this.controls.querySelector('seekbar')
             this.seekbarLabel = this.controls.querySelector('label.status')
@@ -574,8 +563,8 @@ class StreamerSeek extends StreamerSpeedo {
                     this.seekByPercentage(this.seekbarNput.value)
                 }
             })
-            this.seekRewindLayerCounter = document.querySelector('div#seek-back > span > span') 
-            this.seekForwardLayerCounter = document.querySelector('div#seek-fwd > span > span') 
+            this.seekBackLayerCounter = document.querySelector('div#seek-back > span > span') 
+            this.seekFwdLayerCounter = document.querySelector('div#seek-fwd > span > span') 
             window.addEventListener('idle-stop', this.seekBarUpdate.bind(this))  
             this.seekBarUpdate(true)
         })
@@ -589,7 +578,25 @@ class StreamerSeek extends StreamerSpeedo {
         parent.player.on('timeupdate', this.seekBarUpdate.bind(this))
         parent.player.on('play', () => {
             this.seekBarUpdate(true)
-        })
+        });
+        ['mousewheel', 'DOMMouseScroll'].forEach(n => {
+            window.addEventListener(n, event => {
+                if(!this.active){
+                    return
+                }
+                let now = (new Date()).getTime()
+                if(now > (this.mouseWheelMovingTime + this.mouseWheelMovingInterval)){
+                    this.mouseWheelMovingTime = now
+                    let delta = (event.wheelDelta || -event.detail)
+                    console.log('seek mousewheel', (delta > 0) ? 'up' : 'down')
+                    if(delta > 0){   
+                        this.seekFwd()
+                    } else {
+                        this.seekBack()
+                    }
+                }
+            })
+        }) 
     }    
     hmsPrependZero(n){
         if (n < 10){
@@ -666,7 +673,7 @@ class StreamerSeek extends StreamerSpeedo {
         if(!duration){
             return 0
         }
-        if(this.inLiveStream){
+        if(this.activeMimetype && this.activeMimetype.indexOf('mpegurl') != -1){
             minTime = duration - config['live-window-time']
             if(minTime < 0){
                 minTime = 0
@@ -691,7 +698,7 @@ class StreamerSeek extends StreamerSpeedo {
     seekTimeFromPercentage(percent){
         if(!this.active) return 0
         let minTime = 0, time = parent.player.time(), duration = parent.player.duration()
-        if(this.inLiveStream){
+        if(this.activeMimetype && this.activeMimetype.indexOf('mpegurl') != -1){
             minTime = duration - config['live-window-time']
             if(minTime < 0){
                 minTime = 0
@@ -725,7 +732,7 @@ class StreamerSeek extends StreamerSpeedo {
             this.seekingFrom = parent.player.time()
         }
         let minTime = 0, duration = parent.player.duration(), maxTime = Math.max(0, duration - 2)
-        if(this.inLiveStream){
+        if(this.activeMimetype && this.activeMimetype.indexOf('mpegurl') != -1){
             minTime = duration - config['live-window-time']
             if(minTime < 0){
                 minTime = 0
@@ -747,11 +754,11 @@ class StreamerSeek extends StreamerSpeedo {
         this.emit('after-seek', s)
         console.log('seeking prefwd ', diff, s, this.seekingFrom)
         if(diff < 0){
-            this.seekRewindLayerCounter.innerText = '-' + this.hmsMin(diff)
+            this.seekBackLayerCounter.innerText = '-' + this.hmsMin(diff)
             this.jbody.removeClass('seek-fwd').addClass('seek-back')
         } else if(diff > 0) {
             console.log('seeking fwd ', diff, s, this.seekingFrom)
-            this.seekForwardLayerCounter.innerText = '+' + this.hmsMin(diff)
+            this.seekFwdLayerCounter.innerText = '+' + this.hmsMin(diff)
             this.jbody.removeClass('seek-back').addClass('seek-fwd')
         } else {
             console.log('removing seek layers', diff, s, this.seekingFrom)
@@ -759,13 +766,13 @@ class StreamerSeek extends StreamerSpeedo {
         }
         this.seekBarUpdate(true, s)
     }
-    seekRewind(steps=1){
+    seekBack(steps=1){
         if(this.active){
             let now = parent.player.time(), nct = now - (steps * this.seekSkipSecs)
             this.seekTo(nct)
         }
     }
-    seekForward(steps=1){
+    seekFwd(steps=1){
         if(this.active){
             let now = parent.player.time(), nct = now + (steps * this.seekSkipSecs)
             this.seekTo(nct)
@@ -779,10 +786,10 @@ class StreamerClientTimeWarp extends StreamerSeek {
         parent.player.on('timeupdate', this.doTimeWarp.bind(this))
     }
     doTimeWarp(){
-        if(this.inLiveStream && config['playback-rate-control']){
+        if(this.activeMimetype && this.activeMimetype.indexOf('mpegurl') != -1 && config['playback-rate-control']){
             let thresholds = {low: 8, high: 30}
             let rate = this.currentPlaybackRate
-            let rates = {slow: 0.9, normal: 1, fast: 1.1}, time = parent.player.time(), duration = Math.max(time, parent.player.duration()), buffered = duration - time
+            let rates = {slow: 0.9, normal: 1, fast: 1.1}, time = parent.player.time(), duration = parent.player.duration(), buffered = duration - time
             // generate intermediary values
             thresholds.midLow = thresholds.low + ((thresholds.high - thresholds.low) / 3)
             thresholds.midHigh = thresholds.high - ((thresholds.high - thresholds.low) / 3)
@@ -843,7 +850,7 @@ class StreamerClientVideoFullScreen extends StreamerClientTimeWarp {
         }
     }
     updateAndroidAppMetrics(metrics){
-        if(metrics && metrics.top){
+        if(metrics){
             this.lastMetrics = metrics
         } else {
             metrics = this.lastMetrics
@@ -911,17 +918,14 @@ class StreamerAudioUI extends StreamerClientVideoFullScreen {
         this.app.on('codecData', codecData => {
             if(codecData.audio && !codecData.video){
                 this.isAudio = true
-                parent.winman.backgroundModeLock('audio')
                 this.jbody.addClass('audio')
             } else {
                 this.isAudio = false
-                parent.winman.backgroundModeUnlock('audio')
                 this.jbody.removeClass('audio')
             }
         })
         this.on('stop', () => {
             this.isAudio = false
-            parent.winman.backgroundModeUnlock('audio')
             this.jbody.removeClass('audio')
         })
         this.volumeInitialized = false
@@ -957,7 +961,7 @@ class StreamerAudioUI extends StreamerClientVideoFullScreen {
     setupVolume(){        
         this.addPlayerButton('volume', lang.VOLUME, 'fas fa-volume-up', 2, this.volumeToggle.bind(this))
         this.volumeButton = this.getPlayerButton('volume')
-        jQuery('<volume><volume-wrap><div><input type="range" min="0" max="100" step="1" value="'+ config['volume'] +'" /><div id="volume-arrow"></div></div></volume-wrap></volume>').appendTo(this.volumeButton)
+        jQuery('<volume><volume-wrap><input type="range" min="0" max="100" step="1" value="'+ config['volume'] +'" /></volume-wrap></volume>').appendTo(this.volumeButton)
         this.volumeBar = this.volumeButton.querySelector('volume')
         this.volumeInput = this.volumeBar.querySelector('input')
         this.volumeInput.addEventListener('input', this.volumeChanged.bind(this))
@@ -1000,10 +1004,6 @@ class StreamerAudioUI extends StreamerClientVideoFullScreen {
     }
     volumeDown(){
         this.volumeInput.value = Math.max(parseInt(this.volumeInput.value) - 1, 0)
-        this.volumeChanged()
-    }
-    volumeMute(){
-        this.volumeInput.value = 0
         this.volumeChanged()
     }
     volumeChanged(){
@@ -1060,10 +1060,10 @@ class StreamerClientControls extends StreamerAudioUI {
     </div>         
 `
         this.addPlayerButton('play-pause', lang.PLAY +' / '+ lang.PAUSE, `
-            <i class="fa-mega spin-x-alt loading-button"></i>
+            <i class="fas fa-circle-notch fa-spin loading-button"></i>
             <i class="fas fa-play-circle play-button"></i>
             <i class="fas fa-pause-circle pause-button"></i>`, 0, () => {
-            this.playOrPauseNotIdle()
+            this.playOrPause()
         })
         this.addPlayerButton('stop', lang.STOP, 'fas fa-stop-circle', 1, () => {
             this.stop()
@@ -1095,9 +1095,7 @@ class StreamerClientControls extends StreamerAudioUI {
         this.emit('draw')
         $('#explorer').on('click', e => {
             if(e.target.id == 'explorer'){
-                if(this.active && !explorer.inModal() && !explorer.isExploring()){
-                    this.playOrPauseNotIdle()
-                }
+                this.playOrPause()
             }
         })
     }
@@ -1109,7 +1107,7 @@ class StreamerClientControls extends StreamerAudioUI {
         let container = this.controls.querySelector('#buttons')
         let iconTpl = fa.indexOf('<') == -1 ? '<i class="'+ fa +'"></i>' : fa
         let template = `
-        <button id="${id}" class="${cls}" title="${name}" aria-label="${name}">
+        <button id="${id}" class="${cls}" title="${name}">
             ${iconTpl}
             <label><span>${name}</span></label>
         </button>
@@ -1149,8 +1147,6 @@ class StreamerClientControls extends StreamerAudioUI {
         let button = this.getPlayerButton(id)
         if(name){
             button.querySelector('label span').innerText = name
-            button.setAttribute('title', name)
-            button.setAttribute('aria-label', name)
         }
         if(fa){
             let template = `<i class="${fa}"></i>`
@@ -1173,14 +1169,11 @@ class StreamerClientController extends StreamerClientControls {
         parent.player.on('show', () => this.emit('show'))
         parent.player.on('hide', () => this.emit('hide'))
     }
-    start(src, mimetype, cookie, mediatype){
+    start(src, mimetype){
         this.active = true
         this.activeSrc = src
-        this.activeCookie = cookie
         this.activeMimetype = (mimetype || '').toLowerCase()
-        this.activeMediatype = mediatype
-        this.inLiveStream = this.activeMediatype == 'live'
-        parent.player.load(src, mimetype, cookie, this.activeMediatype)
+        parent.player.load(src, mimetype, '')
         this.emit('start')
         this.stateListener('loading')
     }
@@ -1241,15 +1234,15 @@ class StreamerClient extends StreamerClientController {
                 b.style.display = enable ? 'inherit' : 'none'
             }
         })
-        this.app.on('streamer-connect', (src, mimetype, cookie, mediatype, data, autoTuning) => {
+        this.app.on('streamer-connect', (src, mimetype, data, autoTuning) => {
             this.bindStateListener()
             if(explorer.inModal()){
                 explorer.endModal()
             }
             this.data = data
             this.autoTuning = autoTuning
-            console.warn('CONNECT', src, mimetype, cookie, mediatype, data, autoTuning)
-            this.start(src, mimetype, cookie, mediatype)
+            console.warn('CONNECT', src, mimetype, data, autoTuning)
+            this.start(src, mimetype)
             osd.hide('streamer')
         })
         this.app.on('streamer-connect-suspend', () => { // used to wait for transcoding setup when supported codec is found on stream

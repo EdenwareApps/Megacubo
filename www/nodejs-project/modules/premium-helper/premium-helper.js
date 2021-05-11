@@ -19,14 +19,14 @@ class PremiumHelper {
                     {template: 'question', text: global.lang.ENABLE_PREMIUM_FEATURES, fa: 'fas fa-rocket'},
                     {template: 'message', text: global.lang.ENABLE_PREMIUM_MESSAGE},
                     {template: 'option', id: 'ok', fa: 'fas fa-check-circle', text: 'OK'}
-                ], 'premium-helper', 'retry', true) 
+                ], 'premium-helper', 'retry') 
             }
         }
     }
     hook(entries, path){
         return new Promise((resolve, reject) => {
             if(path == global.lang.OPTIONS){
-                entries.push(this.entry())
+                entries.splice(entries.length - 1, 0, this.entry())
             }
             resolve(entries)
         })

@@ -17,8 +17,7 @@ class StreamerVODHLSIntent extends StreamerBaseIntent {
                 audioCodec: 'aac',
                 videoCodec: 'libx264',
                 workDir: this.opts.workDir, 
-                debug: this.opts.debug,
-                authURL: this.data.source
+                debug: this.opts.debug
             }
             this.transcoderStarting = true
             this.resetTimeout()

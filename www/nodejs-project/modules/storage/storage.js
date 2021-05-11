@@ -42,6 +42,9 @@ class StorageBase {
 			}
 		})
 	}
+	time(){
+		return parseInt((new Date()).getTime() / 1000)
+	}
 	resolve(key, expiralFile){ // key to file
 		return this.dir + this.prepareKey(key) + (expiralFile === true ? '.expires.json' : '.json')
 	}
@@ -69,11 +72,6 @@ class StorageAsync extends StorageBase {
 		}
 		this.queue.add(key, this._set.bind(this, key, val, expiration, cb))
 	}
-	checkDiskSpace(err){		
-		if(global.diagnostics && String(err).match(new RegExp('(out of space|space left)', 'i'))){
-			global.diagnostics.checkDiskOSD()
-		}
-	}
 	_get(key, cb, encoding){
 		return new Promise((resolve, reject) => { // promise is used by queue
 			if(encoding !== null && typeof(encoding) != 'string'){
@@ -83,7 +81,7 @@ class StorageAsync extends StorageBase {
 				cb = () => {}
 			}
 			this.expiration(key, expiral => {
-				let now = global.time()
+				let now = this.time()
 				if(expiral > now){										
 					if(this.cacheExpiration[key] != expiral){
 						this.cacheExpiration[key] = expiral
@@ -146,7 +144,7 @@ class StorageAsync extends StorageBase {
 			} else if(expiration === true || typeof(expiration) != 'number') {
 				expiration = this.maxExpiration // true = forever (100 years)
 			}
-			x = global.time() + expiration
+			x = this.time() + expiration
 			this.cacheExpiration[key] = x
 			if(this.useJSON){
 				j = JSON.stringify(val)
@@ -192,14 +190,14 @@ class StorageAsync extends StorageBase {
 	ttl(key, cb){
 		key = this.prepareKey(key)
 		this.expiration(key, expires => {
-			let now = global.time()
+			let now = this.time()
 			cb((!expires || now > expires) ? 0 : (expires - now))
 		})
 	}
 	has(key, cb){
 		key = this.prepareKey(key)
 		this.expiration(key, expiral => {
-			if(expiral > global.time()){
+			if(expiral > this.time()){
 				let f = this.resolve(key)
 				fs.stat(f, (err, stat) => {
 					if(stat && stat.size){
@@ -225,7 +223,6 @@ class StorageAsync extends StorageBase {
 		fs.writeFile(tmpFile, val, enc, err => { // to avoid corrupting, we'll write to a temp file first
 			if(err){
 				console.error(err)
-				this.checkDiskSpace(err)
 				cb(err)
 			} else {
 				fs.rename(tmpFile, file, err => {
@@ -288,7 +285,7 @@ class StorageSync extends StorageAsync {
 			expiration = this.maxExpiration // true = forever (100 years)
 		}
 		try {
-			let x = global.time() + expiration
+			let x = this.time() + expiration
 			if(this.useJSON){
 				let j = JSON.stringify(val)
 				this.cacheExpiration[key] = x
@@ -298,12 +295,11 @@ class StorageSync extends StorageAsync {
 			}
 			this.writeSync(fe, x, 'utf8')
 		} catch(e){
-			this.checkDiskSpace(err)
 			console.error(e)
 		}
 	}
 	ttlSync(key){
-		let expires = this.expirationSync(key), now = global.time()
+		let expires = this.expirationSync(key), now = this.time()
 		return (!expires || now > expires) ? 0 : (expires - now)
 	}
 	expirationSync(key){
@@ -323,7 +319,7 @@ class StorageSync extends StorageAsync {
 	}
 	hasSync(key){
 		let expiral = this.expirationSync(key)
-		if(expiral > global.time()){
+		if(expiral > this.time()){
 			let f = this.resolve(key)
 			return fs.existsSync(f)
 		}
@@ -368,7 +364,7 @@ class Storage extends StorageSync {
 	}
 	deleteAnyStartsWithOlder(startsWithText, olderThanSecs, cb){
 		startsWithText = this.prepareKey(startsWithText)
-		let expiralSuffix = '.expires.json', deadline = global.time() - olderThanSecs
+		let expiralSuffix = '.expires.json', deadline = this.time() - olderThanSecs
 		fs.readdir(this.folder, {}, (err, files) => {
 			if(Array.isArray(files) && files.length){
 				async.eachOfLimit(files.filter(f => f.indexOf(expiralSuffix) != -1), 8, (f, i, done) => {
@@ -396,7 +392,7 @@ class Storage extends StorageSync {
 		})
 	}
 	cleanup(cb){
-		let expiralSuffix = '.expires.json', now = global.time()
+		let expiralSuffix = '.expires.json', now = this.time()
 		fs.readdir(this.folder, {}, (err, files) => {
 			if(Array.isArray(files) && files.length){
 				async.eachOfLimit(files.filter(f => f.indexOf(expiralSuffix) != -1), 8, (f, i, done) => {

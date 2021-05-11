@@ -19,8 +19,6 @@ class Downloader extends StreamerAdapterBase {
 		this.connectable = false
         this._destroyed = false
         this.timer = 0
-		this.connectTime = -1
-		this.lastConnectionEndTime = 0
 		this.buffer = []
 		this.ext = 'ts'
 		this.currentDownloadUID = undefined
@@ -155,19 +153,6 @@ class Downloader extends StreamerAdapterBase {
 		}
 		return status
 	}
-	isMetaData(data){
-		let sample, limit = 4096
-		if(data.length > limit){
-			sample = String(data.slice(0, limit / 2)) + String(data.slice(0, -1 * (limit / 2)))
-		} else {
-			sample = String(data)
-		}
-		if(sample){
-			if(sample.match(new RegExp('<\/?(xmp|rdf)'))){
-				return true
-			}
-		}
-	}
 	handleDataValidate(data){
 		if(!data || this.destroyed || this._destroyed){
 			return
@@ -181,9 +166,9 @@ class Downloader extends StreamerAdapterBase {
 		if(!len){
 			skip = true
 		} else if(len < this.opts.sniffingSizeLimit){
-			if(!global.streamer.isBin(data) && !this.isMetaData(data)){
+			if(!global.streamer.isBin(data)){
 				skip = true
-				console.error('bad data', len, data, this.url)
+				console.error('bad data', len, data)
 			}
         }
 		if(!skip){
@@ -239,17 +224,14 @@ class Downloader extends StreamerAdapterBase {
 			return
 		}
 		this.finishBitrateSample(this.currentDownloadUID)
-
-		let connTime, connStart = global.time()
-		this.currentDownloadUID = String(connStart)
+		this.currentDownloadUID = String(global.time())
 		const download = this.currentRequest = new global.Download({
 			url: this.url,
-			authURL: this.opts.authURL || false, 
 			keepalive: this.committed && global.config.get('use-keepalive'),
 			followRedirect: true,
 			acceptRanges: false,
 			retries: 0,
-			timeout: 5,
+			timeout: 30,
 			headers: {
 				'accept-encoding': 'identity' // https://github.com/sindresorhus/got/issues/145
 			}
@@ -283,14 +265,9 @@ class Downloader extends StreamerAdapterBase {
 					this.opts.debug('[' + this.type + '] handleData hooked') // 200
 				}
 				download.on('data', chunk => {
-					if(typeof(connTime) == 'undefined'){
-						connTime = global.time() - connStart
-						this.connectTime = connTime
-					}
 					this.handleData(chunk)
 				})
 				download.once('end', () => {
-					this.lastConnectionEndTime = global.time()
 					this.endRequest()
 					if(callback){
 						this.afterDownload(null, callback, {contentType, statusCode, headers})

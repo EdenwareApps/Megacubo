@@ -4,6 +4,7 @@ const Events = require('events')
 class Search extends Events {
     constructor(){
         super()
+        this.emptyEntry = {name: global.lang.EMPTY, fa: 'fas fa-info-circle', type: 'action', class: 'entry-empty'}
         this.searchMediaType = 'all'
         this.searchInaccurate = true
         this.searchStrict = false
@@ -131,20 +132,16 @@ class Search extends Events {
             if(!global.activeLists.length){ // one list available on index beyound meta watching list
                 return resolve([global.lists.manager.noListsEntry()])
             }
-            console.log('will search', terms, {
-                partial: this.searchInaccurate, 
-                type: this.searchMediaType, 
-                typeStrict: this.searchStrict,
-                group: this.searchMediaType != 'live'
-            })
-            global.lists[global.config.get('unoptimized-search') ? 'unoptimizedSearch' : 'search'](terms, {
+            global.lists.search(terms, {
                 partial: this.searchInaccurate, 
                 type: this.searchMediaType, 
                 typeStrict: this.searchStrict,
                 group: this.searchMediaType != 'live'
             }).then(es => {
                 es = (es.results && es.results.length) ? es.results : ((es.maybe && es.maybe.length) ? es.maybe : [])
-                if(es && es.length){
+                if(!es || !es.length){
+                    es = [this.emptyEntry]
+                } else {
                     if(global.config.get('show-logos') ){
                         es = global.icons.prepareEntries(es)
                     }

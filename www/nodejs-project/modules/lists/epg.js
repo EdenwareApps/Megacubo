@@ -67,9 +67,9 @@ class EPG extends Events {
                         this.parser = null
                     })
                 }
-                let validEPG, received = 0
+                let received = 0
                 const req = {
-                    debug: false,
+                    debug: true,
                     url: this.url,
                     followRedirect: true,
                     keepalive: false,
@@ -91,13 +91,11 @@ class EPG extends Events {
                 })
                 this.request.on('data', chunk => {
                     received += chunk.length
-                    if(!validEPG && String(chunk).indexOf('<programme ') != -1){
-                        validEPG = true
-                    }
+                    // console.log('epg received', String(chunk))
                     this.parser.write(chunk)
                 })
                 this.request.once('end', () => {
-                    console.log('EPG REQUEST ENDED', validEPG, received, Object.keys(this.data).length)
+                    console.log('EPG REQUEST ENDED', received, Object.keys(this.data).length)
                     global.storage.set(this.fetchCtrlKey, now, this.ttl)
                     if(Object.keys(this.data).length){
                         this.state = 'loaded'
@@ -105,8 +103,9 @@ class EPG extends Events {
                         this.emit('load')
                     } else {
                         this.state = 'error'
-                        this.error = validEPG ? global.lang.EPG_OUTDATED : global.lang.EPG_BAD_FORMAT
-                        this.emit('error', this.error)
+                        let errMessage = 'Bad EPG format'
+                        this.error = errMessage
+                        this.emit('error', errMessage)
                     }
                     if(this.parser){
                         this.parser.end()
@@ -198,6 +197,7 @@ class EPG extends Events {
                     }
                     return categories[c] >= (max / 2)
                 })
+                console.warn('CHANNEL CATEGORIES', channel, channel, categories)
                 categories.forEach(c => {
                     if(typeof(data[c]) == 'undefined'){
                         data[c] = []

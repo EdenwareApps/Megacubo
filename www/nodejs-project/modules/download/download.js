@@ -3,7 +3,6 @@ const Events = require('events'), parseRange = require('range-parser'), got = re
 class Download extends Events {
    constructor(opts){
 	   	super()
-		this.uid = parseInt(Math.random() * 100000)
 		this.opts = {
 			debug: false,
 			keepalive: false,
@@ -15,7 +14,6 @@ class Download extends Events {
 				'accept-language': this.defaultAcceptLanguage(),
 				'accept-encoding': 'gzip, deflate'
 			},
-			authErrorCodes: [401, 403],
 			permanentErrorCodes: [400, 404, 405, 410],
 			timeout: null,
 			followRedirect: true,
@@ -49,24 +47,8 @@ class Download extends Events {
 		this.retryDelay = 200
 		this.currentRequestError = ''
 		this.currentResponse = null
-		this.authURLPingAfter = 0
 		if(typeof(this.opts.headers['range']) != 'undefined'){
 			this.checkRequestingRange(this.opts.headers['range'])
-		}
-	}
-	pingAuthURL(){
-		const now = global.time()
-		if(this.opts.authURL && now > this.authURLPingAfter){
-			this.authURLPingAfter = now + 10
-			Download.promise({
-				url: this.opts.authURL,
-				timeout: 10,
-				retry: 0,
-				receiveLimit: 1,
-				followRedirect: true
-			}).catch(err => {
-				console.error('pingAuthURL error: '+ String(err))
-			})
 		}
 	}
 	start(){
@@ -74,31 +56,6 @@ class Download extends Events {
 	}
 	ext(url){
 		return String(url).split('?')[0].split('#')[0].split('.').pop().toLowerCase();        
-	}
-	getDomain(u){
-		if(u && u.indexOf('//') != -1){
-			let d = u.split('//')[1].split('/')[0]
-			if(d == 'localhost' || d.indexOf('.') != -1){
-				if(d.substr(-3) == ':80'){
-					d = d.substr(0, d.length - 3)
-				}
-				return d
-			}
-		}
-		return ''
-	}
-	titleCaseHeaders(headers){
-		const nheaders = {}
-		Object.keys(headers).forEach(name => {
-			let tname = name
-			if(name.toLowerCase() == name){
-				tname = name.replace(/([^\W_]+[^\s-]*) */g, function(txt) {
-					return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
-				})
-			}
-			nheaders[tname] = headers[name]
-		})
-		return nheaders
 	}
 	checkRequestingRange(range){
 		const maxInt = Number.MAX_SAFE_INTEGER
@@ -116,7 +73,7 @@ class Download extends Events {
 	}
 	defaultAcceptLanguage(){
 		if(global.lang){
-			return global.lang.locale +'-'+ global.lang.countryCode.toUpperCase() +','+ global.lang.locale +';q=1,*;q=0.7'
+			return global.lang.locale +'-'+ global.lang.countryCode.toUpperCase() +','+ global.lang.locale +';q=0.9,*;q=0.5'
 		} else {
 			return '*'
 		}
@@ -143,28 +100,28 @@ class Download extends Events {
 			decompress: false, // we'll decompress manually to have better control on ranging
 			followRedirect: this.opts.followRedirect,
 			retry: 0,
+			headers: this.opts.headers,
 			throwHttpErrors: false
 		}
-    	const requestHeaders = Object.assign({}, this.opts.headers)
+    	const requestHeaders = this.opts.headers
     	if(this.requestingRange){
 			let range = 'bytes='
 			range += (this.requestingRange.start + this.receivedUncompressed) + '-'
 			if(this.requestingRange.end){
 				range += this.requestingRange.end
 			}
-			requestHeaders.range = range // we dont know yet if the server support ranges, so check again on parseResponse
+			requestHeaders['range'] = range // we dont know yet if the server support ranges, so check again on parseResponse
 		} else if(this.opts.acceptRanges && this.receivedUncompressed) {
-			requestHeaders.range = 'bytes=' + this.receivedUncompressed + '-'
+			requestHeaders['range'] = 'bytes=' + this.receivedUncompressed + '-'
 		} else {
 			if(this.received){ // here use received instead of receiveUncompressed
 				this.ignoreBytes = this.received // ignore data already received on last connection so
 			}
 		}
-		requestHeaders.host = this.getDomain(opts.url)
 		opts.headers = requestHeaders
 		opts.timeout = this.getTimeoutOptions()
 		if(this.opts.debug){
-			console.log('>> Download request', opts.url, this.received, JSON.stringify(opts.headers), this.requestingRange, this.opts.headers['range'], global.traceback())
+			console.log('>> Download request', this.currentURL, this.received, JSON.stringify(opts.headers), this.requestingRange, this.opts.headers['range'], global.traceback())
 		}
 		const stream = (this.opts.keepalive ? got.ka : got).stream(opts)
 		stream.on('redirect', response => {
@@ -172,7 +129,7 @@ class Download extends Events {
 				console.log('>> Download redirect', response.headers['location'])
 			}
 			if(response.headers && response.headers['location']){
-				this.currentURL = this.absolutize(response.headers['location'], opts.url)
+				this.currentURL = this.absolutize(response.headers['location'], this.currentURL)
 			}
 			if(!this.opts.followRedirect){
 				this.checkRedirect(response)
@@ -241,7 +198,7 @@ class Download extends Events {
 	}
 	removeHeaders(headers, keys){
 		keys.forEach(key => {
-			if(['accept-encoding', 'content-encoding'].includes(key)){
+			if(['transfer-encoding', 'accept-encoding', 'content-encoding'].includes(key)){
 				headers[key] = 'identity'
 			} else {
 				delete headers[key]
@@ -485,16 +442,11 @@ class Download extends Events {
 			return false // return false to skip parseResponse
 		} else {
 			if(response.statusCode < 200 || response.statusCode >= 400){ // bad response, not a redirect
-				let finalize
-				if(response.statusCode == 406){
-					console.error('406 error', response.headers, this.opts.url)
-				}
-				if(this.opts.authErrorCodes.includes(response.statusCode)){
+				let finalize, authErrorCodes = [401, 403]
+				if(authErrorCodes.includes(response.statusCode)){
 					this.authErrors++
 					if(this.authErrors >= this.opts.maxAuthErrors){
 						finalize = true
-					} else {
-						this.pingAuthURL()
 					}
 				}
 				if(this.opts.permanentErrorCodes.includes(response.statusCode)){
@@ -630,9 +582,7 @@ class Download extends Events {
 				try {
 					data = JSON.parse(String(data))
 				} catch(e) {
-					if(this.opts.debug){
-						console.error(e, String(data), this.opts.url)
-					}
+					console.error(e, String(data), this.opts.url)
 					data = undefined
 				}
 				break
@@ -695,7 +645,6 @@ class Download extends Events {
 	}
 }
 
-Download.got = got
 Download.isNetworkConnected = true
 Download.setNetworkConnectionState = state => {
 	Download.isNetworkConnected = state

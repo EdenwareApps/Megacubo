@@ -1,7 +1,7 @@
 {
   "name": "tv.megacubo.app",
   "displayName": "Megacubo",
-  "version": "16.1.5",
+  "version": "16.1.4",
   "description": "A intuitive and multi-language IPTV player.",
   "main": "index.js",
   "scripts": {
@@ -14,11 +14,11 @@
   },
   "cordova": {
     "plugins": {
+      "cordova-plugin-advanced-background-mode": {},
       "cordova-plugin-whitelist": {},
       "nodejs-mobile-cordova": {},
       "tv.megacubo.pip": {},
       "tv.megacubo.player": {},
-      "tv.megacubo.ffmpeg": {},
       "cordova-plugin-ionic-webview": {},
       "cordova-plugin-ionic-keyboard": {},
       "cordova-plugin-insomnia": {},
@@ -46,26 +46,22 @@
         "DEEPLINK_5_SCHEME": " ",
         "DEEPLINK_5_HOST": " "
       },
-      "cordova-plugin-background-mode": {},
       "cordova-plugin-app-review": {
         "ANDROID_PLAY_CORE_VERSION": "1.8.+"
       },
-      "cordova-custom-config": {},
       "cordova-plugin-purchase": {
         "BILLING_KEY": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA5Dc4UpVp6tysJOPQTcIWO2dr7ZcsfXwBcNhlNrs23nNOANA4XkXDXqch99CB0gfC/nbvEoy+vqD76ITXsuedVE+iEINjt/PBGFJ9W80SWKDRUFJYj35oCD9YC01An5WJrI/r5U3BNtliFwTF7fMifXzlBc9rkBVoki5T72FSDrmPwo7q7baXkON5c1Byh2V+Lfp0KTAUnN3/AKeMdxqcicwCR0wb9U3ZQRjeyQSzD0a6YJZMokxpwDJWYd+iz9AaH2aFxAOFeGYNFQsJJ3qYqGYNFJll8Oe9c5MxQL/HpZBuwW3XaSvfikv2EKAWQ+vIu97MYaTlMF2aGDFJAOSj0wIDAQAB"
-      }
+      },
+      "tv.megacubo.ffmpeg": {}
     },
-    "platforms": [
-      "android"
-    ]
+    "platforms": []
   },
   "devDependencies": {
     "cordova-android": "^9.1.0",
-    "cordova-custom-config": "^5.1.0",
+    "cordova-plugin-advanced-background-mode": "^1.1.1",
     "cordova-plugin-android-permissions": "^1.1.2",
     "cordova-plugin-android-tv": "git+https://github.com/frontyard/cordova-plugin-android-tv.git",
     "cordova-plugin-app-review": "^2.0.3",
-    "cordova-plugin-background-mode": "git+https://bitbucket.org/TheBosZ/cordova-plugin-run-in-background.git",
     "cordova-plugin-device": "^2.0.3",
     "cordova-plugin-ffmpeg": "file:../tv.megacubo.ffmpeg",
     "cordova-plugin-file": "^6.0.2",

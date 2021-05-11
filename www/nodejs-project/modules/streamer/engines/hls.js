@@ -13,7 +13,7 @@ class StreamerHLSIntent extends StreamerBaseIntent {
                 this.adapter.destroy()
                 this.adapter = null
             }
-            let resolved, opts = {
+            let opts = {
                 audioCodec: 'aac',
                 videoCodec: 'libx264',
                 workDir: this.opts.workDir, 
@@ -23,33 +23,21 @@ class StreamerHLSIntent extends StreamerBaseIntent {
             this.transcoderStarting = true
             this.transcoder = new FFServer(this.data.url, opts)
             this.connectAdapter(this.transcoder)
-            this.transcoder.on('destroy', () => {
-                if(!resolved){
-                    resolved = true
-                    reject('destroyed')
-                }
-            })
-            this.transcoder.start().then(() => {        
-                if(!resolved){
-                    resolved = true
-                    this.transcoderStarting = false
-                    this.endpoint = this.transcoder.endpoint
-                    resolve({endpoint: this.endpoint, mimetype: this.mimetype})
-                    this.emit('transcode-started')
-                }
+            this.transcoder.start().then(() => {
+                this.transcoderStarting = false
+                this.endpoint = this.transcoder.endpoint
+                resolve({endpoint: this.endpoint, mimetype: this.mimetype})
+                this.emit('transcode-started')
             }).catch(e => {                
-                if(!resolved){
-                    resolved = true
-                    this.transcoderStarting = false
-                    this.emit('transcode-failed', e)
-                    reject(e)
-                }
+                this.transcoderStarting = false
+                this.emit('transcode-failed', e)
+                reject(e)
             })
         })
     }
     _start(){ 
         return new Promise((resolve, reject) => {
-            this.adapter = new StreamerProxy(Object.assign({authURL: this.data.source}, this.opts))
+            this.adapter = new StreamerProxy(this.opts)
             this.connectAdapter(this.adapter)
             this.adapter.start().then(() => {
                 this.endpoint = this.adapter.proxify(this.data.url)

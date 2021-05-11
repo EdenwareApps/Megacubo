@@ -20,6 +20,9 @@ class StreamerTools extends Events {
 	isEntry(e){
 		return typeof(e) == 'object' && e && typeof(e.url) == 'string'
 	}
+    time(){
+        return ((new Date()).getTime() / 1000)
+    }
 	validate(value) {
 		let v = value.toLowerCase(), prt = v.substr(0, 4), pos = v.indexOf('://')
 		if(['http'].includes(prt) && pos >= 4 && pos <= 6){
@@ -50,7 +53,7 @@ class StreamerTools extends Events {
 	}
 	_probe(url, timeoutSecs, retries = 0){
 		return new Promise((resolve, reject) => {
-			let headers = {}, status = 0, sample = [], start = global.time(), timer = 0, currentURL = url
+			let headers = {}, status = 0, sample = [], start = this.time(), timer = 0, currentURL = url
 			if(this.validate(url)){
 				if(typeof(timeoutSecs) != 'number'){
 					timeoutSecs = 10
@@ -85,7 +88,7 @@ class StreamerTools extends Events {
 							download.destroy()
 						}
 						sample = Buffer.concat(sample)
-						const ping = global.time() - start
+						const ping = this.time() - start
 						const received = JSON.stringify(headers).length + this.len(sample)
 						const speed = received / ping
 						const ret = {status, headers, sample, ping, speed, url, directURL: download.currentURL}
@@ -129,7 +132,7 @@ class StreamerTools extends Events {
 	}
 	probe(url, retries = 2){
 		return new Promise((resolve, reject) => {
-			const timeout = global.config.get('connect-timeout') * 2
+			const timeout = 10
 			if(this.proto(url, 4) == 'http'){
 				this._probe(url, timeout, retries).then(ret => { 
 					//console.warn('PROBED', ret)
@@ -276,7 +279,7 @@ class StreamerBase extends StreamerTools {
 	constructor(opts){
 		super(opts)
         this.opts = {
-			workDir: global.paths.temp +'/streamer',
+			workDir: global.paths.temp +'/ffmpeg/data',
 			shadow: false,
 			debug: false,
 			osd: false
@@ -346,7 +349,7 @@ class StreamerBase extends StreamerTools {
 						url,
 						timeout: 10,
 						retry: 0,
-						receiveLimit: 1,
+						receiveLimit: 100,
 						followRedirect: true
 					}).then(body => {
 						console.log('pingSource: ok', body)	
@@ -468,11 +471,6 @@ class StreamerBase extends StreamerTools {
 				}
 				this.handleFailure(intent.data, err)
 			})
-			intent.on('codecData', codecData => {
-				if(codecData && intent == this.active){
-					global.ui.emit('codecData', codecData)
-				}
-			})
 			if(!global.cordova && global.config.get('transcoding')){ // only desktop version can't play hevc
 				intent.on('codecData', codecData => {
 					if(codecData && codecData.video.match(new RegExp('(hevc|mpeg2video|mpeg4)')) && intent == this.active){
@@ -484,9 +482,9 @@ class StreamerBase extends StreamerTools {
 						})
 					}
 				})
-			}
-			if(intent.codecData){
-				intent.emit('codecData', intent.codecData)
+				if(intent.codecData){
+					intent.emit('codecData', intent.codecData)
+				}
 			}
 			this.emit('commit', intent)
 			intent.emit('commit')
@@ -544,7 +542,7 @@ class StreamerBase extends StreamerTools {
 					console.error(err)
 					cb(err)
 					if(!silent){
-						global.osd.show(String(err), 'fas fa-times-circle faclr-red', 'transcode', 'normal')
+						global.osd.show(String(e), 'fas fa-times-circle faclr-red', 'transcode', 'normal')
 						intent.fail('unsupported format')
 					}
 				})
@@ -651,7 +649,7 @@ class StreamerThrottling extends StreamerSpeedo {
 	throttle(url){
 		let rule = 'allow', domain = this.getDomain(url)
 		if(typeof(this.throttling[domain]) != 'undefined'){
-			let now = global.time()
+			let now = this.time()
 			if(this.throttling[domain] > now){
 				rule = 'deny'
 			} else {
@@ -661,7 +659,7 @@ class StreamerThrottling extends StreamerSpeedo {
 		return rule == 'allow'
 	}
 	forbid(url){
-		this.throttling[this.getDomain(url)] = global.time() + this.throttleTTL
+		this.throttling[this.getDomain(url)] = this.time() + this.throttleTTL
 	}
 	getDomain(u){
 		if(u && u.indexOf('//') != -1){
@@ -754,9 +752,6 @@ class StreamerAbout extends StreamerThrottling {
 			codecs = codecs.map(c => c = c.replace(new RegExp('\\([^\\)]*[^A-Za-z\\)][^\\)]*\\)', 'g'), '').replace(new RegExp(' +', 'g'), ' ').trim())
 			meta = meta.concat(codecs)
 		}
-		if(this.active.transcoder){
-			meta.push(global.lang.TRANSCODING.replaceAll('.', ''))
-		}
 		text = '<div><div>'+ text + '</div><div>' + meta.join(' | ') +'</div></div>'
 		return text
 	}
@@ -778,21 +773,13 @@ class StreamerAbout extends StreamerThrottling {
 class Streamer extends StreamerAbout {
 	constructor(opts){
 		super(opts)
-		if(!this.opts.shadow){
-			global.ui.once('init', () => {
-				global.explorer.on('open', path => {
-					if(global.tuning && path.indexOf(global.lang.STREAMS) != -1){
-						global.tuning.destroy()
-					}
-				})
-			})
-			global.ui.on('streamer-duration', duration => {
-				if(this.active && this.active.info.contentLength){
-					this.active.bitrate = (this.active.info.contentLength / duration) * 8
-					global.ui.emit('streamer-bitrate', this.active.bitrate)
+		global.ui.once('init', () => {
+			global.explorer.on('open', () => {
+				if(global.tuning){
+					global.tuning.destroy()
 				}
 			})
-		}
+		})
 	}
 	playFromEntries(entries, name, megaUrl, txt, callback, connectId, mediaType){
 		if(this.opts.shadow){
@@ -877,7 +864,7 @@ class Streamer extends StreamerAbout {
 					}
 				}
 			}, connectId, opts.mediaType)
-		} else if(isMega && !opts.url) {
+		} else if(isMega) {
 			let name = e.name
 			if(opts.name){
 				name = opts.name
@@ -914,12 +901,6 @@ class Streamer extends StreamerAbout {
 				}
 			})
 		} else {
-			if(opts.url){
-				e = Object.assign(Object.assign({}, e), opts)
-				if(e.icon && !e.servedIcon){
-					e.servedIcon = global.icons.proxify(e.icon)
-				}
-			}
 			let terms = global.channels.entryTerms(e)
 			global.ui.emit('tuneable', global.channels.isChannel(terms))
 			global.osd.show(global.lang.CONNECTING + ' ' + e.name + '...', 'fa-mega spin-x-alt', 'streamer', 'persistent')

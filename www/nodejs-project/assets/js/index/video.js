@@ -8,16 +8,13 @@ class VideoControl extends EventEmitter {
 			this.innerContainer = document.createElement('div')
 			this.container.appendChild(this.innerContainer)
 		}
+		this.config = {}
 		this.adapters = {}
 		this.adapter = ''
 		this.current = null
 		this.state = ''
 		this.hasErr = null
 		this.clearErrTimer = null
-		this.config = {}
-		if(typeof(config) != 'undefined'){
-			this.config = config
-		}
 	}
 	uiVisible(visible){
 		if(this.current){
@@ -102,7 +99,7 @@ class VideoControl extends EventEmitter {
 			this.current.volume(l)
 		}
 	}
-	load(src, mimetype, cookie, mediatype){
+	load(src, mimetype, cookie){
 		if(this.current){
 			this.current.unload()
 			this.current = null
@@ -121,8 +118,7 @@ class VideoControl extends EventEmitter {
 		} else {
 			this.setup('native', VideoControlAdapterAndroidNative)
 		}
-		this.current.errorsCount = 0
-		this.current.load(src, mimetype, cookie, mediatype)
+		this.current.load(src, mimetype, cookie)
 		this.show()
 		this.current.volume(this.config['volume'])
 		return this.current
@@ -240,30 +236,16 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 				this.emit('click')
             }
         })
-		let onerr = e => {
+        v.on('error', e => {
 			if(this.object.error){
 				e = this.object.error
 			}
-			console.error('video error', this.errorsCount, e, String(e), [this.object.networkState, this.object.readyState])
-			let isFailed = this.object.networkState == 3 || this.object.readyState < 2
-			if(isFailed){
-				this.errorsCount++
-				if(this.errorsCount >= 2){
-					this.emit('error', String(e), true)
-				} else {
-					let t = this.time()
-					this.load(this.currentSrc, this.currentMimetype)
-					if(t){
-						this.object.currentTime = t
-					}
-				}
-			}
-		}
-        v.on('error', onerr)
-        let source = this.object.querySelector('source')
-		if(source){ // for video only, will be skiped for hls.js
-			source.addEventListener('error', onerr)
-		}
+			console.error('video err', e)
+			let t = this.time()
+			this.load(this.currentSrc, this.currentMimetype)
+			this.object.currentTime = t
+            //this.emit('error', String(e), true)
+		})
         v.on('ended', e => {
 			console.log('video ended', e)
             this.emit('ended', String(e))
@@ -275,9 +257,6 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 		})
         v.on('durationchange', event => {
 			this.duration = this.object.duration
-			if(this.duration && this.errorsCount){
-				this.errorsCount = 0
-			}
 			if(this.uiVisibility){
 				this.emit('durationchange')
 			}
@@ -307,17 +286,13 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 		this.unload()
 		this.active = true
 		console.log('adapter load')
-        /*
-		let codec = mimetype.replace(new RegExp('"+', 'g'), "'").split(';'), type = codec[0]
+        let codec = mimetype.replace(new RegExp('"+', 'g'), "'").split(';'), type = codec[0]
         codec = codec.length > 1 ? codec[1].split("'")[1] : ''
 		let h = '<source type="'+ type +'" src="'+ src +'" '
 		if(codec){
 			h += ' codecs="'+ codec +'" '
 		}
 		h += ' />'
-		*/
-		let h = ''
-		this.object.src = src
 		this.object.innerHTML = h
 		this.connect()
 		this.object.load()
@@ -451,9 +426,7 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 		}
 	}
 	volume(l){
-		if(typeof(l) == 'number'){
-			this.object.volume = l / 100
-		}
+		this.object.volume = l / 100
 	}
 	destroy(){
 		console.log('adapter destroy')
@@ -516,12 +489,12 @@ class VideoControlAdapterAndroidNative extends VideoControlAdapter {
 	uiVisible(visible){
 		this.object.uiVisible(visible)
 	}
-	load(src, mimetype, cookie, mediatype){
+	load(src, mimetype, cookie){
 		console.warn('Load source', src)
 		this.active = true
 		this.currentTime = 0
 		this.duration = 0
-		this.object.play(src, mimetype, cookie, mediatype, this.successCallback.bind(this), this.errorCallback.bind(this))
+		this.object.play(src, mimetype, cookie, this.successCallback.bind(this), this.errorCallback.bind(this))
 	}
 	successCallback(){
 		console.warn('exoplayer success', arguments)
@@ -578,18 +551,30 @@ class VideoControlAdapterAndroidNative extends VideoControlAdapter {
 	}
 }
 
-class WinMan extends EventEmitter {
+class MiniPlayerBase extends EventEmitter {
 	constructor(){
 		super()
-		this.backgroundModeLocks = []
+		this.enabled = true
+        this.pipListening = null
+        this.inPIP = false
 	}
-	backgroundModeLock(name){
-		if(!this.backgroundModeLocks.includes(name)){
-			this.backgroundModeLocks.push(name)
+	set(inPIP){
+		if(inPIP != this.inPIP){
+			if(!inPIP || this.enabled){
+				console.warn('SET PIP', inPIP, this.inPIP, traceback())	
+				this.inPIP = inPIP === true || inPIP === 'true'
+				this.emit(this.inPIP ? 'enter' : 'leave')
+			}
 		}
 	}
-	backgroundModeUnlock(name){
-		this.backgroundModeLocks = this.backgroundModeLocks.filter(n => n != name)
+	toggle(){
+		return this.inPIP ? this.leave() : this.enter()
+	}
+    leave(){	
+        return new Promise((resolve, reject) => {
+			this.set(false)
+			resolve(true)
+		})
 	}
 	getAppFrame(){
 		return document.querySelector('iframe')
@@ -606,95 +591,6 @@ class WinMan extends EventEmitter {
 			return w.streamer
 		}		
 	}
-	askExit(){
-		let w = this.getAppWindow()
-		w.explorer.dialog([
-			{template: 'question', text: w.lang.ASK_EXIT, fa: 'fas fa-times-circle'},
-			{template: 'option', text: w.lang.NO, id: 'no'},
-			{template: 'option', text: w.lang.YES, id: 'yes'},
-			{template: 'option', text: w.lang.RESTARTAPP, id: 'restart'}
-		], c => {
-			if(c == 'yes'){
-				this.exit()
-			} else if(c == 'restart'){
-				this.restart()
-			}
-		}, 'no')
-	}
-	exitUI(){
-		let w = this.getAppWindow()
-		console.log('exitUI()')
-		try {
-			w.streamer.stop()
-			w.$('wrap').html('<div style="vertical-align: middle; height: 100%; display: flex; justify-content: center; align-items: center;"><i class="fa-mega" style="font-size: 25vh;color: var(--font-color);"></i></div>')
-			w.$('#home-arrows').hide()
-		} catch(e) {
-			console.error(e)
-		}
-	}
-	restartUI(cb){
-		let w = this.getAppWindow()
-		w.explorer.dialog([
-			{template: 'question', text: 'Megacubo', fa: 'fas fa-info-circle'},
-			{template: 'message', text: lang.SHOULD_RESTART},
-			{template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle'}
-		], cb)
-	}
-	restart(){
-		console.log('restart()')
-		if(typeof(plugins) != 'undefined' && plugins.megacubo){ // cordova
-			this.restartUI(() => {
-				plugins.megacubo.restartApp()
-			})
-		} else { // nwjs
-			top.Manager.restart()
-		}
-	}
-	exit(){
-		console.log('exit()', traceback())
-		if(this.backgroundModeLocks.length){
-			if(typeof(cordova) != 'undefined'){
-				cordova.plugins.backgroundMode.enable()
-				cordova.plugins.backgroundMode.moveToBackground()
-			} else {
-				top.Manager.goToTray()
-			}
-		} else {
-			this.exitUI()
-			if(navigator.app){ // cordova
-				navigator.app.exitApp()
-			} else { // nwjs
-				top.Manager.close()
-			}
-		}
-	}
-}
-
-class MiniPlayerBase extends WinMan {
-	constructor(){
-		super()
-		this.enabled = true
-        this.pipSupported = null
-        this.inPIP = false
-	}
-	set(inPIP){
-		if(inPIP != this.inPIP){
-			if(!inPIP || this.enabled){
-				console.warn('SET PIP', inPIP, this.inPIP, traceback())	
-				this.inPIP = inPIP === true || inPIP === 'true'
-				this.emit(this.inPIP ? 'enter' : 'leave')
-			}
-		}
-	}
-	toggle(){
-		return this.inPIP ? this.leave() : this.enter()
-	}
-    leave(){
-        return new Promise((resolve, reject) => {
-			this.set(false)
-			resolve(true)
-		})
-	}
 	getDimensions(){
 		let width = Math.min(screen.width, screen.height) / 2, aw = Math.max(screen.width, screen.height) / 3, streamer = this.getStreamer()
 		if(aw < width){
@@ -702,7 +598,7 @@ class MiniPlayerBase extends WinMan {
 		}
 		width = parseInt(width)
 		let r = window.innerWidth / window.innerHeight
-		if(streamer && streamer.active){
+		if(streamer){
 			r = streamer.activeAspectRatio.h / streamer.activeAspectRatio.v			
 		}
 		let height = parseInt(width / r)
@@ -721,7 +617,6 @@ class CordovaMiniplayer extends MiniPlayerBase {
     constructor(){
 		super()
 		this.pip = top.PictureInPicture
-		this.appPaused = false
 		this.setup()
 		this.on('enter', () => {
 			let app = this.getAppWindow()
@@ -730,7 +625,6 @@ class CordovaMiniplayer extends MiniPlayerBase {
 			}
 		})
 		this.on('leave', () => {
-			console.warn('leaved miniplayer')
 			let app = this.getAppWindow()
 			if(app){
 				app.$(app.document.body).removeClass('miniplayer-cordova')
@@ -738,75 +632,56 @@ class CordovaMiniplayer extends MiniPlayerBase {
 					app.streamer.enterFullScreen()	
 				}
 			}
-			if(this.appPaused){
-				clearTimeout(this.waitAppResumeTimer)
-				this.waitAppResumeTimer = setTimeout(() => {
-					if(this.appPaused){
-						player.emit('app-pause', true)
-					}
-				}, 2000)
-			}
 		})
 	}
 	setup(){
 		if(this.pip){
 			player.on('app-pause', screenOff => {
-				this.appPaused = true
-				let streamer = this.getStreamer(), keepInBackground = this.backgroundModeLocks.length
-				let keepPlaying = this.backgroundModeLocks.filter(l => l != 'schedules').length
-				console.warn('app-pause', screenOff, keepInBackground, this.inPIP)
+				let streamer = this.getStreamer()
 				if(streamer){
-					if(!keepPlaying){
-						keepPlaying = streamer.casting || streamer.isAudio
-					}
-					if(streamer.casting || streamer.isAudio){
-						keepInBackground = true
-					} else {
-						if(screenOff){ // skip miniplayer
-							if(!keepPlaying){ // not doing anything important
-								streamer.stop()
-							}
-						} else {
-							if(this.enterIfPlaying()) {
-								console.warn('app-pause', 'entered miniplayer')
-								keepInBackground = true
-							} else if(!keepPlaying) { // no reason to keep playing
-								streamer.stop()
-							}
+					if(screenOff){
+						if(streamer.casting || streamer.isAudio){
+							cordova.plugins.backgroundMode.moveToBackground()
+							return
 						}
+						streamer.stop()
+					} else {
+						if(streamer.casting || streamer.isAudio){
+							cordova.plugins.backgroundMode.moveToBackground()
+							return
+						}
+						this.enterIfPlaying() || streamer.stop()
 					}
-				}
-				if(keepInBackground){
-					cordova.plugins.backgroundMode.enable()
-					//cordova.plugins.backgroundMode.moveToBackground()
+				} else {
+					let app = this.getAppWindow()
+					if(app){
+						app.app.emit('streamer-stop')
+					}
 				}
 			})
 			player.on('app-resume', () => {
-				console.warn('app-resume', this.inPIP)
-				this.appPaused = false
-				cordova.plugins.backgroundMode.disable()
-				if(this.inPIP){
-					this.set(false)
+				let streamer = this.getStreamer()
+				if(streamer && streamer.casting && !this.inPIP){
+					cordova.plugins.backgroundMode.moveToForeground()
 				}
-			});
-			(new ResizeObserver(() => {
-				let seemsPIP = this.seemsPIP()
-				if(seemsPIP != this.inPIP){
-					console.warn('miniplayer change on resize')
-					this.set(seemsPIP)
-				}
-			})).observe(document.body)
+			})
 		}
 	}
     prepare(){
         return new Promise((resolve, reject) => {
             if(this.pip){
-                if(typeof(this.pipSupported) == 'boolean'){
+                if(this.pipListening){
                     resolve(true)
                 } else {
                     try {
+                        this.pipListening = true
+                        top.PictureInPicture.onPipModeChanged((s, x) => {
+							console.warn('onPipModeChanged', s, x, this.inPIP, this.enabled)
+							this.set(s)
+						}, function(error){
+                            console.error('onPipModeChanged', error)
+                        })
                         this.pip.isPipModeSupported(success => {
-							this.pipSupported = success
                             if(success){
                                 resolve(true)
                             } else {
@@ -826,15 +701,6 @@ class CordovaMiniplayer extends MiniPlayerBase {
             }
         })
     }
-	seemsPIP(){
-		let seemsPIP		
-		if(screen.width < screen.height) {
-			seemsPIP = window.innerHeight < (screen.height / 2)
-		} else {
-			seemsPIP = window.innerWidth < (screen.width / 2)
-		}
-		return seemsPIP
-	}
     enter(){
         return new Promise((resolve, reject) => {
 			if(!this.enabled){
@@ -845,14 +711,15 @@ class CordovaMiniplayer extends MiniPlayerBase {
 				let m = this.getDimensions()
                 this.pip.enter(m.width, m.height, success => {
                     if(success){
-                        console.log('enter: '+ String(success))
+                        console.log('enter: '+ String(success))	
+                        this.set(true)
                         resolve(success)
                     } else {
 						console.error('pip.enter() failed to enter pip mode')	
                         this.set(false)
                         reject('failed to enter pip mode')
                     }							
-                }, error => {
+                }, function(error){
                     this.set(false)
                     console.error('pip.enter() error', error)
                     reject(error)
@@ -883,18 +750,14 @@ class NWJSMiniplayer extends MiniPlayerBase {
 					this.pip.win.minimize()
 				}
 			}
-			this.pip.closeWindow = () => {
-				if(this.backgroundModeLocks.length){
-					this.pip.goToTray()
-				} else {
-					this.pip.close()
-				}
-			}
 			this.pip.on('miniplayer-on', () => this.set(true))
 			this.pip.on('miniplayer-off', () => this.set(false))
 			window.addEventListener('resize', () => {
 				if(this.pip.resizeListenerDisabled !== false) return
-				if(this.seemsPIP()){
+				let dimensions = this.getDimensions()
+				let smallWin = this.pip.win.width <= dimensions.width && this.pip.win.height <= dimensions.height
+				console.log('resize', smallWin, dimensions)
+				if(smallWin){
 					if(!this.pip.miniPlayerActive){
 						this.pip.miniPlayerActive = true  
 						this.pip.emit('miniplayer-on')
@@ -907,13 +770,6 @@ class NWJSMiniplayer extends MiniPlayerBase {
 				}
 			})
 		}
-	}
-	seemsPIP(){
-		let dimensions = this.getDimensions();
-		['height', 'width'].forEach(m => dimensions[m] = dimensions[m] * 1.5)
-		let seemsPIP = window.innerWidth <= dimensions.width && window.innerHeight <= dimensions.height
-		console.log('resize', seemsPIP, dimensions)
-		return seemsPIP
 	}
     enter(w, h){
         return new Promise((resolve, reject) => {
@@ -940,45 +796,32 @@ class NWJSMiniplayer extends MiniPlayerBase {
 }
 
 player = new VideoControl(document.querySelector('player'))
-winman = new (top.cordova ? CordovaMiniplayer : NWJSMiniplayer)
+player.mini = new (top.cordova ? CordovaMiniplayer : NWJSMiniplayer)
 
-var cfgReceived
-function updateConfig(cfg){
-	console.log('updateConfig', config)
-	if(!cfg){
-		cfg = config
-	}
-	if(cfg){
-		if(!cfgReceived){ // run once
-			cfgReceived = true
-			switch(cfg['startup-window']){
+var configReceived
+function updateConfig(config){
+	if(config){
+		if(!configReceived){ // run once
+			configReceived = true
+			switch(config['startup-window']){
 				case 'fullscreen':
 					if(top.Manager && top.Manager.setFullScreen){
 						top.Manager.setFullScreen(true)
 					}
 					break
 				case 'miniplayer':
-					winman.enter()
+					player.mini.enter()
 					break
 			}
 		}
-		player.config = cfg
+		player.config = config
 		Object.keys(player.adapters).forEach(k => {
-			player.adapters[k].config = cfg
+			player.adapters[k].config = config
 		})
-		winman.enabled = cfg['miniplayer-auto']
+		player.mini.enabled = config['miniplayer-auto']
 	}
 }
 
-frontendBackendReadyCallback(updateConfig)
-
 if(!parent.cordova){
-	['play', 'pause', 'seekRewindward', 'seekforward', 'seekto', 'previoustrack', 'nexttrack', 'skipad'].forEach(n => {
-		// disable media keys on this frame
-		try {
-			navigator.mediaSession.setActionHandler(n, function() {})
-		} catch(e){}
-	})
+	onBackendReady(updateConfig)
 }
-
-

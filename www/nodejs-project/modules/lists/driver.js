@@ -1,10 +1,9 @@
 
 const async = require('async'), path = require('path'), Events = require('events'), fs = require('fs')
-
 const Index = require(global.APPDIR + '/modules/lists/index.js')
 const List = require(global.APPDIR + '/modules/lists/list.js')
 const EPG = require(global.APPDIR + '/modules/lists/epg.js')
-const Parser = require(global.APPDIR + '/modules/lists/parser')
+
 const Storage = require(APPDIR + '/modules/storage')
 const Cloud = require(APPDIR + '/modules/cloud')
 const Mega = require(APPDIR + '/modules/mega')
@@ -118,6 +117,34 @@ class Fetcher extends Events {
 	}
 	*/
 }
+
+/*
+class EPGDefaultImport extends Common {
+	constructor(opts){
+		super(opts)
+		this.enabled = false  // auto-epg-import disabled while we improve it
+		if(this.enabled){
+			global.config.on('change', (keys, data) => {
+				if(keys.includes('setup-complete') && data['setup-complete']){
+					this.importDefault()
+				}
+			})
+		}
+    }
+    importDefault(){
+		if(this.enabled){
+			if(!global.config.get('epg') && !global.cordova){
+				cloud.get('configure').then(c => {
+					let key = 'default-epg-' + lang.countryCode
+					if(c[key] && !global.config.get('epg')){
+						global.config.set('epg', c[key])
+					}
+				})
+			}
+		}
+    }
+}
+*/
 
 class Lists extends Index {
     constructor(opts){

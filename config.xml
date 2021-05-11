@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget android-versionCode="111" id="tv.megacubo.app" version="16.1.5" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget android-versionCode="107" id="tv.megacubo.app" version="16.1.4" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>Megacubo</name>
     <description>
         An intuitive, free and open source IPTV player.
@@ -15,45 +15,36 @@
     <allow-intent href="sms:*" />
     <allow-intent href="mailto:*" />
     <allow-intent href="geo:*" />
-    <preference name="cordova-custom-config-autorestore" value="true" />
     <platform name="android">
-		<custom-config-file target="AndroidManifest.xml" parent="/*" mode="replace">
-            <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+        <config-file parent="/manifest" target="AndroidManifest.xml">
+			<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 			<uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
 			<uses-permission android:name="android.permission.INTERNET" />
+			<uses-permission android:name="android.permission.READ_INTERNAL_STORAGE" />
 			<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+			<uses-permission android:name="android.permission.WRITE_INTERNAL_STORAGE" />
 			<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 			<uses-permission android:name="android.permission.WAKE_LOCK" />
 			<uses-permission android:name="android.permission.VIBRATE" />
-		</custom-config-file>
-		<custom-config-file target="AndroidManifest.xml" parent="./application" mode="replace">
-			<service android:name="de.appplant.cordova.plugin.background.ForegroundService" />
-		</custom-config-file>
+        </config-file>
+        <edit-config file="AndroidManifest.xml" mode="merge" target="/manifest/uses-sdk">
+            <uses-sdk android:minSdkVersion="24" android:maxSdkVersion="30" android:targetSdkVersion="30" />
+        </edit-config>
+        <edit-config file="AndroidManifest.xml" mode="merge" target="/manifest/application">
+            <application android:hardwareAccelerated="true" android:theme="@android:style/Theme.DeviceDefault.NoActionBar" android:usesCleartextTraffic="true" />
+        </edit-config>
         <allow-intent href="market:*" />
-		<preference name="android-minSdkVersion" value="24" /> <!-- not custom-preference here, seemed more effective in a specific scenario //-->
-		<preference name="android-targetSdkVersion" value="29" />
-        <custom-preference name="android-manifest/uses-sdk/@android:minSdkVersion" value="24" />
-        <custom-preference name="android-manifest/uses-sdk/@android:targetSdkVersion" value="29" />
-        <custom-preference name="android-manifest/application/@android:usesCleartextTraffic" value="true" />
-        <custom-preference name="android-manifest/application/@android:theme" value="@android:style/Theme.DeviceDefault.NoActionBar" />
-        <custom-preference name="android-manifest/application/@android:hardwareAccelerated" value="true" />
-        <custom-preference name="android-manifest/application/@android:requestLegacyExternalStorage" value="true" />
-        <custom-preference name="android-manifest/@android:hardwareAccelerated" value="true" />        
-        <custom-preference name="android-AllowInlineMediaPlayback" value="true" />
-        <custom-preference name="android-AndroidLaunchMode" value="singleInstance" />
-        <custom-preference name="android-AndroidPersistentFileLocation" value="Compatibility" />
-        <custom-preference name="android-AndroidExtraFilesystems" value="files,files-external,documents,sdcard,root" />
-        <custom-preference name="android-KeyboardResize" value="false" />
-        <custom-preference name="android-loadUrlTimeoutValue" value="300000" />
-        <custom-preference name="android-MediaPlaybackRequiresUserAction" value="false" />
-        <custom-preference name="android-MixedContentMode" value="0" />
-        <custom-preference name="android-ResolveServiceWorkerRequests" value="false" />
-        <custom-preference name="android-resizeOnFullScreen" value="false" />
-        <resource-file src="resources/android/notification.png" target="app/src/main/res/mipmap-ldpi/icon.png" />
-		<resource-file src="resources/android/notification.png" target="app/src/main/res/mipmap-mdpi/icon.png" />
-		<resource-file src="resources/android/notification.png" target="app/src/main/res/mipmap-hdpi/icon.png" />
-		<resource-file src="resources/android/notification.png" target="app/src/main/res/mipmap-xhdpi/icon.png" />
-		<resource-file src="resources/android/notification.png" target="app/src/main/res/mipmap-xxhdpi/icon.png" />
+		<preference name="android-minSdkVersion" value="24"/> 
+        <preference name="AllowInlineMediaPlayback" value="true" />
+        <preference name="AndroidLaunchMode" value="singleInstance" />
+        <preference name="AndroidPersistentFileLocation" value="Compatibility" />
+        <preference name="AndroidExtraFilesystems" value="files,files-external,documents,sdcard,root" />
+        <preference name="KeyboardResize" value="false" />
+        <preference name="loadUrlTimeoutValue" value="300000" />
+        <preference name="MediaPlaybackRequiresUserAction" value="false" />
+        <preference name="MixedContentMode" value="0" />
+        <preference name="ResolveServiceWorkerRequests" value="false" />
+        <preference name="resizeOnFullScreen" value="false" />
         <resource-file src="resources/android/banner.png" target="/app/src/main/res/drawable/banner.png" />
         <resource-file src="resources/values/colors.xml" target="/app/src/main/res/values/colors.xml" />
         <icon src="resources/android/icon/drawable-ldpi-icon.png" />

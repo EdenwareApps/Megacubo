@@ -9,7 +9,7 @@ class FFServer extends Events {
         this.type = 'ffserver'
         this.opts = {
             debug: false,
-            workDir: global.streamer.opts.workDir,
+            workDir: global.paths.temp,
             addr: '127.0.0.1',
             port: 0,
             videoCodec: 'copy',
@@ -34,19 +34,19 @@ class FFServer extends Events {
             this.uid = parseInt(Math.random() * 1000000000)
         }
         fs.readdir(this.opts.workDir, (err, files) => {
-            let next = files => {                
+            if(err){
+                fs.mkdir(path.dirname(this.opts.workDir), {recursive: true}, cb)
+            } else if(Array.isArray(files)) {
                 while(files.includes(String(this.uid))) {
                     this.uid++
                 }
                 cb()
             }
-            if(err){
-                fs.mkdir(path.dirname(this.opts.workDir), {recursive: true}, () => next([]))
-            } else {
-                next(files)
-            }
         })
     }
+    time(){
+		return ((new Date()).getTime() / 1000)
+	}
     waitFile(file, timeout) {
         return new Promise((resolve, reject) => {
             if(!file){
@@ -98,11 +98,7 @@ class FFServer extends Events {
                     if(this.destroyed){
                         finish('destroyed')
                     } else if (type === 'rename' && filename === basename) {
-                        fs.stat(file, (err, stat) => {
-                            if(stat && stat.size){
-                                finish()
-                            }
-                        })
+                        finish()
                     }
                 })
                 watcher.on('error', finish)
@@ -302,7 +298,7 @@ class FFServer extends Events {
     }
     start(){
         return new Promise((resolve, reject) => {
-            const startTime = global.time()
+            const startTime = this.time()
             this.genUID(() => {
                 if(this.destroyed){
                     return reject('destroyed')
@@ -315,22 +311,18 @@ class FFServer extends Events {
                 }
                 let hlsListSize = Math.ceil(lwt / fragTime)
                 this.decoder = global.ffmpeg.create(this.source).
-                    
-                    /* cast fix try
-                    inputOptions('-re').
-                    inputOptions('-ss', 1). // https://trac.ffmpeg.org/ticket/2220
-                    inputOptions('-fflags +genpts').
-                    //outputOptions('-vf', 'setpts=PTS').
-                    outputOptions('-vsync', 1).
+                    // inputOptions('-re').
+                    // inputOption('-ss', 1). // https://trac.ffmpeg.org/ticket/2220
+                    // inputOptions('-fflags +genpts').
+                    // outputOptions('-vf', 'setpts=PTS').
+                    // outputOptions('-vsync', 1).
                     // outputOptions('-vsync', 0).
                     // outputOptions('-async', -1).
-                    outputOptions('-async', 2).
-                    outputOptions('-flags:a', '+global_header').
+                    // outputOptions('-async', 2).
+                    // outputOptions('-flags:a', '+global_header').
                     // outputOptions('-packetsize', 188).
-                    outputOptions('-level', '4.1').
-                    outputOptions('-x264opts', 'vbv-bufsize=50000:vbv-maxrate=50000:nal-hrd=vbr').
-                    cast fix try end */
-
+                    // outputOptions('-level', '4.1').
+                    // outputOptions('-x264opts', 'vbv-bufsize=50000:vbv-maxrate=50000:nal-hrd=vbr').
                     outputOptions('-hls_flags', 'delete_segments'). // ?? https://www.reddit.com/r/ffmpeg/comments/e9n7nb/ffmpeg_not_deleting_hls_segments/
                     outputOptions('-hls_init_time', 2). // 1 may cause manifestParsingError "invalid target duration"
                     outputOptions('-hls_time', fragTime).
@@ -366,7 +358,7 @@ class FFServer extends Events {
                     outputOptions('-movflags', '+faststart').
                     /* HTML5 compat end */
 
-                    outputOptions('-crf', global.config.get('ffmpeg-crf')) // we are encoding for watching, so avoid to waste too much time and cpu with encoding, at cost of bigger disk space usage
+                    outputOptions('-crf', 18) // we are encoding for watching, so avoid to waste too much time and cpu with encoding, at cost of bigger disk space usage
 
                     let resolutionLimit = global.config.get('transcoding')
                     switch(resolutionLimit){
@@ -418,7 +410,7 @@ class FFServer extends Events {
                 on('error', err => {
                     if(!this.destroyed && this.decoder){
                         err = err.message || err || 'ffmpeg fail'
-                        console.error('an error happened after '+ (global.time() - startTime) +'s'+ (this.committed ? ' (committed)':'') +': ' + err)
+                        console.error('an error happened after '+ (this.time() - startTime) +'s'+ (this.committed ? ' (committed)':'') +': ' + err)
                         let m = err.match(new RegExp('Server returned ([0-9]+)'))
                         if(m && m.length > 1){
                             err = parseInt(m[1])

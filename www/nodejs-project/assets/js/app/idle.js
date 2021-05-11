@@ -15,13 +15,14 @@
         }
     }, start = () => {
         if(!lck){
+            let now = ((new Date()).getTime() / 1000)
             if (!idle){
                 w.idleTime = ((new Date()).getTime() / 1000)
                 w.isIdle = idle = true
                 w.dispatchEvent(new CustomEvent('idle-start'))
             }
         }
-    }, lock = secs => {
+    }, lock = (secs) => {
         if(lckTimer){
             clearTimeout(lckTimer)
         }

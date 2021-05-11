@@ -19,17 +19,17 @@ class StreamerVideoIntent extends StreamerBaseIntent {
             if(this.opts['direct']){
                 this.endpoint = this.data.url
                 if(this.info && this.info.isLocalFile){
-                    global.downloads.serve(this.data.url, false, false).then(url => {
+                    global.serve.serve(this.data.url, false, false).then(url => {
                         this.endpoint = url
-                        global.downloads.keepAwake(true)
-                        this.on('uncommit', () => global.downloads.keepAwake(false))
+                        global.serve.keepAwake(true)
+                        this.on('uncommit', () => global.serve.keepAwake(false))
                         resolve()
                     }).catch(reject)
                 } else {
                     resolve()
                 }
             } else {
-                this.adapter = new StreamerProxy(Object.assign({authURL: this.data.source}, this.opts))
+                this.adapter = new StreamerProxy(this.opts)
                 this.connectAdapter(this.adapter)
                 this.adapter.start().then(() => {
                     this.endpoint = this.adapter.proxify(this.data.url)

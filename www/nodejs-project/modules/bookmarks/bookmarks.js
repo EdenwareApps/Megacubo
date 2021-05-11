@@ -40,12 +40,11 @@ class Bookmarks extends EntriesGroup {
         if(data){
             if(this.has(data)){
                 this.remove(data)
-                global.osd.show(global.lang.BOOKMARK_REMOVED.format(data.name), 'fas fa-star-half', 'bookmarks', 'normal')
+                global.osd.show(global.lang.FAV_REMOVED.format(data.name), 'fas fa-star-half', 'bookmarks', 'normal')
             } else {
                 this.add(data)
-                global.osd.show(global.lang.BOOKMARK_ADDED.format(data.name), 'fas fa-star', 'bookmarks', 'normal')
+                global.osd.show(global.lang.FAV_ADDED.format(data.name), 'fas fa-star', 'bookmarks', 'normal')
             }
-            global.explorer.refresh()
         }
     }
     current(){
@@ -59,7 +58,7 @@ class Bookmarks extends EntriesGroup {
         }
     }
     simplify(e){
-        return {name: e.originalName || e.name, type: 'stream', details: e.group || '', icon: e.icon || '', terms: {'name': global.channels.entryTerms(e)}, url: e.originalUrl || e.url}
+        return {name: e.originalName || e.name, type: 'stream', details: e.group || '', terms: {'name': global.channels.entryTerms(e)}, url: e.originalUrl || e.url}
     }
     entries(e){
         return new Promise((resolve, reject) => {
@@ -75,7 +74,7 @@ class Bookmarks extends EntriesGroup {
                     current = cs.shift()
                 }
             }
-            if(current && !this.has(current)){
+            if(current){
                 es.push({name: global.lang.ADD + ': ' + current.name, fa: 'fas fa-star', icon: current.icon, type: 'action', action: () => {
                     this.add(current)
                     global.explorer.refresh()
@@ -115,21 +114,15 @@ class Bookmarks extends EntriesGroup {
     addByNameEntries(){
         return new Promise((resolve, reject) => {
             resolve([
-                {name: global.lang.CHANNEL_OR_CONTENT_NAME, type: 'input', value: this.currentBookmarkAddingByName.name, action: (data, value) => {
-                    this.currentBookmarkAddingByName.name = value
-                }},
-                {name: global.lang.STREAM_URL, type: 'input', value: this.currentBookmarkAddingByName.url, details: global.lang.LEAVE_EMPTY, placeholder: global.lang.LEAVE_EMPTY, action: (data, value) => {
-                    this.currentBookmarkAddingByName.url = value
-                }},
-                {name: global.lang.ICON_URL, type: 'input', value: this.currentBookmarkAddingByName.icon, details: global.lang.LEAVE_EMPTY, placeholder: global.lang.LEAVE_EMPTY, action: (data, value) => {
-                    this.currentBookmarkAddingByName.icon = value
+                {name: global.lang.CHANNEL_OR_CONTENT_NAME, type: 'input', value: this.currentBookmarkAddingByName.name, details: global.lang.CHANNEL_OR_CONTENT_NAME, action: (data, value) => {
+                    this.currentBookmarkAddingByName['name'] = value
                 }},
                 {name: global.lang.LIVE, type: 'check', checked: () => {
                     return this.currentBookmarkAddingByName.live
                 }, action: (e, value) => {
                     this.currentBookmarkAddingByName.live = value
                 }},
-                {name: global.lang.SAVE, fa: 'fas fa-check-circle', type: 'group', renderer: this.addByNameEntries2.bind(this)}
+                {name: global.lang.SAVE, fa: 'fas fa-save', type: 'group', renderer: this.addByNameEntries2.bind(this)}
             ])
         })
     }
@@ -144,22 +137,19 @@ class Bookmarks extends EntriesGroup {
             global.lists.search(this.currentBookmarkAddingByName.name, {
                 partial: true,
                 group: !this.currentBookmarkAddingByName.live
-            }).then(results => {                
-                if(!this.currentBookmarkAddingByName.url || this.currentBookmarkAddingByName.url.indexOf('/') == -1){
-                    let mediaType = 'all', entries = []
-                    if(this.currentBookmarkAddingByName.live){
-                        mediaType = 'live'
-                    } else {
-                        mediaType = 'video'
-                    }
-                    this.currentBookmarkAddingByName.url = global.mega.build(this.currentBookmarkAddingByName.name, {mediaType})
+            }).then(results => {
+                let mediaType = 'all', entries = []
+                if(this.currentBookmarkAddingByName.live){
+                    mediaType = 'live'
+                } else {
+                    mediaType = 'video'
                 }
-                if(global.config.get('show-logos') && (!this.currentBookmarkAddingByName.icon || this.currentBookmarkAddingByName.icon.indexOf('/') == -1)){
-                    let entries = []
+                this.currentBookmarkAddingByName.url = global.mega.build(this.currentBookmarkAddingByName.name, {mediaType})
+                if(global.config.get('show-logos')){
                     Array.from(new Set(results.results.map(entry => { return entry.icon }))).slice(0, 96).forEach((logoUrl) => {
                         entries.push({
                             name: global.lang.SELECT_ICON,
-                            fa: 'fa-mega spin-x-alt',
+                            fa: 'fas fa-play',
                             icon: logoUrl,
                             url: logoUrl,
                             value: logoUrl,
@@ -167,24 +157,18 @@ class Bookmarks extends EntriesGroup {
                             action: this.addByNameEntries3.bind(this)
                         })
                     })
-                    if(entries.length){
-                        entries.push({
-                            name: global.lang.NO_ICON,
-                            type: 'action',
-                            fa: 'fas fa-ban',
-                            url: '',
-                            action: () => {
-                                this.addByNameEntries3({value: ''})
-                            }
-                        })
-                        resolve(entries)
-                    } else {
-                        resolve([])
-                        this.addByNameEntries3({value: this.currentBookmarkAddingByName.icon}, 1)
-                    }
+                    entries.push({
+                        name: global.lang.SELECT_ICON,
+                        type: 'action',
+                        fa: 'fas fa-play',
+                        url: '',
+                        action: () => {
+                            this.addByNameEntries3({value: ''})
+                        }
+                    })
+                    resolve(entries)
                 } else {
-                    resolve([])
-                    this.addByNameEntries3({value: this.currentBookmarkAddingByName.icon}, 1)
+                    this.addByNameEntries3({value: ''}, 1)
                 }
             })
         })
@@ -201,11 +185,6 @@ class Bookmarks extends EntriesGroup {
             icon: this.currentBookmarkAddingByName.icon,
             url: this.currentBookmarkAddingByName.url
         })
-        this.currentBookmarkAddingByName = {
-            name: '',
-            live: true,
-            icon: ''
-        }
         global.explorer.back(backLvl)
     }
     removalEntries(){
@@ -254,7 +233,15 @@ class Bookmarks extends EntriesGroup {
                 entries[i].bookmarkId = j
             }
         })
-        return entries.slice(0).sortByProp('bookmarkId')
+        return entries.sort((a, b) => {
+            if (a.bookmarkId < b.bookmarkId){
+                return -1;
+            }
+            if (a.bookmarkId > b.bookmarkId){
+                return 1;
+            }
+            return 0;
+        }).slice(0)
     }
 }
 

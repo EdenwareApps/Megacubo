@@ -54,7 +54,7 @@ class StreamerTSIntent extends StreamerBaseIntent {
     }
     _start(){ 
         return new Promise((resolve, reject) => {
-            this.downloader = new StreamerAdapterTS(this.data.url, Object.assign({authURL: this.data.source}, this.opts))
+            this.downloader = new StreamerAdapterTS(this.data.url, this.opts)
             this.connectAdapter(this.downloader)
             this.downloader.start().then(() => {
                 this.ts2hls = new FFServer(this.downloader.source.endpoint, this.opts)

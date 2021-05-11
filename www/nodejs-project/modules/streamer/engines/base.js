@@ -5,11 +5,11 @@ class StreamerBaseIntent extends Events {
 	constructor(data, opts, info){
         super()
         this.mimeTypes = {
-            hls: 'application/x-mpegURL', //; codecs="avc1.42E01E, mp4a.40.2"
+            hls: 'application/x-mpegURL; codecs="avc1.42E01E, mp4a.40.2"',
             video: 'video/mp4'
         }        
         this.opts = {
-            workDir: global.streamer.opts.workDir +'/ffmpeg/data',
+            workDir: global.paths.temp +'/ffmpeg/data',
             videoCodec: 'copy',
             audioCodec: 'copy'
         }
@@ -81,11 +81,6 @@ class StreamerBaseIntent extends Events {
 			if(bitrate && this.bitrate != bitrate){
 				this.bitrate = bitrate
                 this.emit('bitrate', this.bitrate, this.currentSpeed)
-			}
-        })
-        adapter.on('speed', speed => {
-			if(speed > 0 && this.currentSpeed != speed){
-				this.currentSpeed = speed
 			}
         })
         adapter.on('fail', err => {
@@ -194,10 +189,13 @@ class StreamerBaseIntent extends Events {
         }
         return dimensions
     }
+    time(){
+        return ((new Date()).getTime() / 1000)
+    }
     setTimeout(secs){
         this.timeout = secs
         this.clearTimeout()
-        var s = global.time()
+        var s = this.time()
         this.timeoutTimer = setTimeout(() => {
             if(this && !this.failed && !this.destroyed && !this.committed){
                 this.fail('timeout')
@@ -232,22 +230,22 @@ class StreamerBaseIntent extends Events {
             })
         })
     }
-    startCapture(onData, onFinish){
+    startCapture(onData, onFinish, onReset){
         this.endCapture()
-        let a = this.findLowAdapter(null, ['joiner', 'downloader', 'proxy', 'ffserver']) // suitable adapters for capturing, by priority
+        let a = this.findLowAdapter(null, ['downloader', 'joiner', 'proxy', 'ffserver']) // suitable adapters for capturing, by priority
         if(a){
-            this.capturing = [a, onData, onFinish]
+            this.capturing = [a, onData, onFinish, onReset]
             this.capturing[0].on('data', this.capturing[1])
-            global.ui.emit('background-mode-lock', 'capture-'+ this.data.url)
+            this.capturing[0].on('transcode-started', this.capturing[3])
             return true
         }
     }
     endCapture(){
         if(Array.isArray(this.capturing)){
             this.capturing[0].removeListener('data', this.capturing[1])
+            this.capturing[0].removeListener('transcode-started', this.capturing[3])
             this.capturing[2]()
             this.capturing = false
-            global.ui.emit('background-mode-unlock', 'capture-'+ this.data.url)
         }
     }
     fail(err){

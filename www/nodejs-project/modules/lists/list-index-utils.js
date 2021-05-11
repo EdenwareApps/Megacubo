@@ -10,20 +10,12 @@ class ListIndexUtils extends Events {
         }
     }
     readLines(file, map, cb){
-        if(map && !map.length){
-            return cb([])
-        }
         fs.stat(file, (err, stat) => {
             if(stat && stat.size){
-                let max, i = 0, lines = [], rl = readline.createInterface({
+                let i = 0, max = Math.max.apply(null, map), lines = [], rl = readline.createInterface({
                     input: fs.createReadStream(file),
                     crlfDelay: Infinity
                 })
-                if(map){
-                    max = global.getArrayMax(map)
-                } else {
-                    max = -1
-                }
                 rl.on('line', line => {
                     if(this.destroyed){
                         if(rl){
@@ -35,19 +27,16 @@ class ListIndexUtils extends Events {
                         if(!line || line.charAt(0) != '{'){
                             console.error('Bad line readen', line, file, i)
                         }
-                        if(!map || map.includes(i)){
+                        if(map.includes(i)){
                             lines.push(line)
-                        }
-                        if(max > 0 && i == max){
-                            rl.close()
+                            if(i == max){
+                                rl.close()
+                            }
                         }
                         i++
                     }
                 })
                 rl.once('close', () => {
-                    if(!map){
-                        lines.pop() // remove index from entries
-                    }
                     cb(lines)
                     rl = null
                 })
