@@ -41,6 +41,11 @@ class Joiner extends Downloader {
             len = this.len(data)
         }
 		if(len){
+			if(this.bitrate){
+				this.delayUntil = this.lastConnectionEndTime + (len / this.bitrate) - this.connectTime
+			} else {
+				this.delayUntil = 0
+			}
 			super.output(data, len)
 		}
 	}
@@ -50,7 +55,7 @@ class Joiner extends Downloader {
 		}
 		let next = (err, data) => { 
 			this.processor.flush(true) // join prematurely to be ready for next connection anyway
-			let now = this.time(), ms = 0
+			let now = global.time(), ms = 0
 			if(this.delayUntil && now < this.delayUntil){
 				ms = this.delayUntil - now
 				if(ms < 0){

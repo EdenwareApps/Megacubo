@@ -7,16 +7,14 @@ class CloudData {
         this.baseURL = this.base +'/stats/data/'
         this.locale = global.lang.locale
         this.expires = {
-            'searching': 12 * 3600,
-            'categories': 24 * 3600,
-            'configure': 3 * 3600,
-            'sources': 12 * 3600,
+            'searching': 6 * 3600,
+            'categories': 6 * 3600,
+            'configure': 1 * 3600,
+            'sources': 6 * 3600,
             'watching': 60
         }
 		if(opts){
-			Object.keys(opts).forEach((k) => {
-				this[k] = opts[k]
-			})
+			Object.keys(opts).forEach(k => this[k] = opts[k])
         }
         if(this.locale.length > 2){
             this.locale = this.locale.substr(0, 2)

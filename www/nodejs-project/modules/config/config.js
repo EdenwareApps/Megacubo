@@ -60,14 +60,25 @@ class Config extends Events {
 		if(oldData){
 			let changed = []
 			Object.keys(oldData).forEach(k => {
-				if(oldData[k] != this.data[k]){
+				if(!this.equal(oldData[k], this.data[k])){
 					changed.push(k)
 				}
 			})
 			if(changed.length){
+				//changed.forEach(k => console.warn('config changed on reload', k, oldData[k], this.data[k]))
 				this.emit('change', changed, this.data)
 			}
 		}
+	}
+	equal(a, b){
+		if(a instanceof Object && b instanceof Object){
+			if(JSON.stringify(a) != JSON.stringify(b)){
+				return false
+			}
+		} else if(a != b){
+			return false
+		}
+		return true
 	}
 	all(){
 		this.load()
@@ -108,8 +119,25 @@ class Config extends Events {
 		if(this.data[key] !== val){
 			this.data[key] = val
 			this.save()
-			this.emit('set', key)
 			this.emit('change', [key], this.data)
+		}
+	}
+	setMulti(atts){
+		if(this.debug){
+			console.log('MULTISET', atts)
+		}
+		this.load()
+		let changed = []
+		Object.keys(atts).forEach(k => {
+			let d = typeof(this.data[k])
+			if((d == 'undefined' || d == typeof(atts[k])) && !this.equal(this.data[k], atts[k])){
+				this.data[k] = atts[k]
+				changed.push(k)
+			}
+		})
+		if(changed.length){
+			this.save()
+			this.emit('change', changed, this.data)
 		}
 	}
 	save(){ // sync to prevent confusion

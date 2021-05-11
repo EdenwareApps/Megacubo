@@ -78,7 +78,9 @@ class ExplorerSelectionMemory extends ExplorerBase {
         }
         console.log('EXP RESTORE', data, this.path)
         this._scrollContainer.scrollTop = data.scroll
-        this.focusIndex(data.index, true) // true = force re-selecting the same entry on refresh
+        if(this.activeView().level == 'default'){
+            this.focusIndex(data.index, true) // true = force re-selecting the same entry on refresh
+        }
     }
 }
 
@@ -141,6 +143,7 @@ class ExplorerPointer extends ExplorerSelectionMemory {
                     if(now > (this.mouseWheelMovingTime + this.mouseWheelMovingInterval)){
                         this.mouseWheelMovingTime = now
                         let delta = (event.originalEvent.wheelDelta || -event.originalEvent.detail)
+                        console.log('mousewheel', delta)
                         this.arrow((delta > 0) ? 'up' : 'down', true)
                         this.emit('scroll', this.lastScrollTop, this.scrollDirection)
                     }
@@ -591,8 +594,8 @@ class ExplorerPointer extends ExplorerSelectionMemory {
                 closerDist = 99999
             }
         }
-        if(!closer && noCycle !== true){
-            if(typeof(view.overScrollAction) != 'function' || view.overScrollAction(direction) !== true){
+        if(!closer){
+            if(typeof(view.overScrollAction) != 'function' || view.overScrollAction(direction) !== true && noCycle !== true){
                 closer = this.opposite(e, items, direction)                
                 if(this.debug){
                     console.log('opposite', e, items, direction, closer)

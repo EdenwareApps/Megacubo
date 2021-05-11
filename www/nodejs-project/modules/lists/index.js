@@ -154,10 +154,10 @@ class Index extends Common {
 							if(opts.type){
 								if(this.validateType(e, opts.type, opts.typeStrict === true)){
 									if(opts.typeStrict === true) {
-										e.listUrl = listUrl
+										e.source = listUrl
 										bestResults.push(e)
 									} else {
-										e.listUrl = listUrl
+										e.source = listUrl
 										results.push(e)
 									}
 								}
@@ -206,11 +206,8 @@ class Index extends Common {
             }
         })
 	}
-	unoptimizedSearch(terms, opts){	// for debugging reasons
+	unoptimizedSearch(terms, opts){
 		return new Promise((resolve, reject) => {
-            if(this.debug){
-                console.warn('M3U SEARCH', terms, opts)
-            }
             let xmap, smap, aliases = {}, bestResults = [], results = [], maybe = [], excludeTerms = []
             if(!terms){
                 return resolve({results, maybe})
@@ -219,7 +216,7 @@ class Index extends Common {
                 opts.type = false
             }
             if(!Array.isArray(terms)){
-                terms = this.terms(terms, true)
+                terms = this.terms(terms, true, true)
 			}
             if(opts.partial){ // like glob to globo
 				let allTerms = []
@@ -253,19 +250,19 @@ class Index extends Common {
             if(terms.length){
                 let results = []
                 async.eachOf(Object.keys(this.lists), (listUrl, i, acb) => {
-					let hits = 0
                     if(listUrl && this.lists[listUrl]){
 						this.lists[listUrl].iterate(e => {
 							if(!e.terms.name.some(t => excludeTerms.includes(t))){
-								if(this.match(terms, e.terms.name, true)){
+								let name = e.name.toLowerCase()
+								if(terms.every(t => name.indexOf(t) != -1)){
 									if(opts.type){
 										if(this.validateType(e, opts.type, opts.typeStrict === true)){
 											if(opts.typeStrict === true) {
-												e.listUrl = listUrl
+												e.source = listUrl
 												bestResults.push(e)
 												hits++
 											} else {
-												e.listUrl = listUrl
+												e.source = listUrl
 												results.push(e)
 												hits++
 											}

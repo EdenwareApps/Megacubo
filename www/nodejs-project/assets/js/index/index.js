@@ -101,6 +101,13 @@ function theming(image, color, fontColor, animate){
 function animateBackground(val){
 	console.warn('animateBackground', val)
 	let c = document.body.className || '', r = new RegExp('animate-background-[a-z]+', 'g')
+	if(val.indexOf('-desktop') != -1){
+		if(window.cordova){
+			val = 'none'
+		} else {
+			val = val.replace('-desktop', '')
+		}
+	}
 	if(val == 'fast'){
 		let n = 'animate-background-fast'
 		if(c.indexOf(n) == -1) {
@@ -192,11 +199,8 @@ if(window.cordova){
 			}
 			loadScripts()			
 			plugins.insomnia.keepAwake()
-			cordova.plugins.backgroundMode.enable()
 			document.addEventListener('pause', function (){
-				cordova.plugins.backgroundMode.isScreenOff(ret => {
-					player.emit('app-pause', ret)
-				})
+				cordova.plugins.backgroundMode.isScreenOff(ret => player.emit('app-pause', ret))
 				plugins.insomnia.allowSleepAgain()   
 			})
 			document.addEventListener('resume', () => {

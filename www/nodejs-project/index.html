@@ -77,12 +77,13 @@
 			div#background {
 				background-size: cover;
 				background-position: center center;
-				position: absolute;
+				position: fixed;
 				top: 0;
 				width: 100vw;
 				height: 100.2vh; /* prevent blank line on bottom for some devices */
 				z-index: -1;
 				visibility: hidden;
+				transform-origin: center center;
 			}
 			div#splash {
 				width: 100vw;
@@ -122,25 +123,37 @@
 			}
 			body.animate-background-slow div#background {
 				animation-name: background-breathing;
-				animation-duration: 20s;
-				animation-timing-function: cubic-bezier(.48,.7,.51,.3);
+				animation-duration: 30s;
+				animation-timing-function: linear;
 				animation-iteration-count: infinite;
 			}
 			body.animate-background-fast div#background {
 				animation-name: background-breathing;
-				animation-duration: 13s;
-				animation-timing-function: cubic-bezier(.48,.7,.51,.3);
+				animation-duration: 15s;
+				animation-timing-function: linear;
 				animation-iteration-count: infinite;
 			}
 			@keyframes background-breathing {
 				0% {
-					transform: translateY(0) scale(1);
+					transform: scale(1.1) rotateZ(0deg);
+				}
+				5% {
+					transform: scale(1.1) rotateZ(-0.8deg);
+				}
+				45% {
+					transform: scale(1.2) rotateZ(-0.8deg);
 				}
 				50% {
-					transform: translateY(2%) scale(1.05);
+					transform: scale(1.2) rotateZ(0deg);
+				}
+				55% {
+					transform: scale(1.2) rotateZ(0.8deg);
+				}
+				95% {
+					transform: scale(1.1) rotateZ(0.8deg);
 				}
 				100% {
-					transform: translateY(0) scale(1);
+					transform: scale(1.1) rotateZ(0deg);
 				}
 			}
 			@keyframes splash-progress-spinner {
@@ -158,7 +171,7 @@
 				}
 			}
 			html.playing div#background {
-				background-image: none !important;
+				display: none !important;
 				animation-name: none !important;
 			}
 			html.playing body {

@@ -6,12 +6,8 @@ class Diagnostics extends Events {
 		this.folder = global.paths.temp
 		this.minDiskSpaceRequired = 512 * (1024 * 1024) // 512MB
 		this.minFreeMemoryRequired = 350 * (1024 * 1024) // 350MB
-		this.run()
-	}
-	run(){
-		//this.checkMemoryUI().catch(console.error).finally(() => {
-			this.checkDiskUI().catch(console.error)
-		//})
+		this.lowDiskSpaceWarnInterval = 5 * 50 // 5min
+		this.checkDiskUI().catch(console.error)
 	}
     checkDisk(){
 		return new Promise((resolve, reject) => {
@@ -19,6 +15,14 @@ class Diagnostics extends Events {
 				resolve(diskSpace) // // {diskPath: "C:", free: 12345678, size: 98756432}
 			})				
 		})
+    }
+    checkDiskOSD(){
+		this.checkDisk().then(data => {
+			let fine = data.free >= this.minDiskSpaceRequired
+			if(!fine){
+				global.osd.show(global.lang.LOW_DISK_SPACE_AVAILABLE.format(global.kbfmt(data.free)), 'fas fa-exclamation-triangle faclr-red', 'diagnostics', 'long')
+			}
+		}).catch(console.error)
     }
     checkDiskUI(force){
 		return new Promise((resolve, reject) => {

@@ -1,5 +1,5 @@
 
-const path = require('path'), fs = require('fs'), http = require('http'), Events = require('events'), sanitize = require('sanitize-filename')
+const path = require('path'), fs = require('fs'), http = require('http'), Events = require('events')
 const WriteQueueFile = require(global.APPDIR + '/modules/write-queue/write-queue-file')
 
 class StreamerAdapterBase extends Events {
@@ -11,7 +11,7 @@ class StreamerAdapterBase extends Events {
 			minBitrateCheckSize: 48 * 1024,
 			maxBitrateCheckSize: 3 * (1024 * 1024),
 			connectTimeout: global.config.get('connect-timeout') || 5,
-			bitrateCheckingAmount: 2,
+			bitrateCheckingAmount: 3,
 			maxBitrateCheckingFails: 8,
 			debug: false,
 			port: 0
@@ -84,6 +84,11 @@ class StreamerAdapterBase extends Events {
 				this.emit('bitrate', this.bitrate, this.currentSpeed)
 			}
         })
+        adapter.on('speed', speed => {
+			if(speed > 0 && this.currentSpeed != speed){
+				this.currentSpeed = speed
+			}
+        })
         adapter.on('fail', err => {
 			if(!this.destroyed){
 				console.log('adapter fail', err)
@@ -127,9 +132,33 @@ class StreamerAdapterBase extends Events {
 		}
 		return ret
 	}
+	findTwoClosestValues(values){
+		let distances = [], closest = [], results = []
+		values.forEach((n, i) => {
+			distances[i] = []
+			values.forEach((m, j) => {
+				if(i == j){
+					distances[i][j] = Number.MAX_SAFE_INTEGER
+				} else {
+					distances[i][j] = Math.abs(m - n)
+				}
+			})
+			let minimal = Math.min.apply(null, distances[i])
+			closest[i] = distances[i].indexOf(minimal)
+			distances[i] = minimal
+		})
+		let minimal = Math.min.apply(null, distances)
+		let a = distances.indexOf(minimal)
+		let b = closest[a]
+		return [values[a], values[b]]		
+	}
 	saveBitrate(bitrate){
 		this.bitrates.push(bitrate)
-		this.bitrate = this.bitrates.reduce((a, b) => a + b, 0) / this.bitrates.length
+		if(this.bitrates.length >= 3){
+			this.bitrate = this.findTwoClosestValues(this.bitrates).reduce((a, b) => a + b, 0) / 2
+		} else {
+			this.bitrate = this.bitrates.reduce((a, b) => a + b, 0) / this.bitrates.length
+		}
 	}
 	pumpGetBitrateQueue(){
 		this.bitrateChecking = false
@@ -203,7 +232,7 @@ class StreamerAdapterBase extends Events {
 				if(!filename){
 					filename = String(Math.random())
 				}
-				this.bitrateCheckBuffer[id] = new WriteQueueFile(global.paths.temp +'/'+ sanitize(filename))
+				this.bitrateCheckBuffer[id] = new WriteQueueFile(global.streamer.opts.workDir +'/'+ global.sanitize(filename))
 			}
 			this.bitrateCheckBuffer[id].write(chunk, offset)
 			if(this.bitrateCheckBuffer[id].written >= this.opts.maxBitrateCheckSize){
@@ -242,7 +271,7 @@ class StreamerAdapterBase extends Events {
 		if(this.downloadLogCalcTimer){
 			clearTimeout(this.downloadLogCalcTimer)
 		}
-		let nowMs = this.time(), now = parseInt(nowMs)
+		let nowMs = global.time(), now = parseInt(nowMs)
 		if(typeof(this.downloadLogging[now]) == 'undefined'){
 			this.downloadLogging[now] = bytes
 		} else {
@@ -258,14 +287,14 @@ class StreamerAdapterBase extends Events {
 		}
 	}
 	downloadLogCalc(){
-		let now = parseInt(this.time())
+		let now = parseInt(global.time())
 		let ks = Object.keys(this.downloadLogging)
 		if(ks.length){
 			let windowSecs = 15, ftime = 0, since = now - windowSecs, downloaded = 0
-			ks.reverse().forEach(time => {
+			ks.reverse().forEach((time, i) => {
 				let rtime = parseInt(time)
 				if(typeof(rtime) == 'number' && rtime){
-					if(rtime >= since){ // keep
+					if(rtime >= since || i < 10){ // keep at minimum 5 to prevent currentSpeed=N/A
 						if(!ftime || ftime > rtime){
 							ftime = rtime
 						}
@@ -289,16 +318,13 @@ class StreamerAdapterBase extends Events {
 	}
 	removeHeaders(headers, keys){
 		keys.forEach(key => {
-			if(['transfer-encoding', 'accept-encoding', 'content-encoding'].includes(key)){
+			if(['accept-encoding', 'content-encoding'].includes(key)){
 				headers[key] = 'identity'
 			} else {
 				delete headers[key]
 			}
 		})
 		return headers
-	}
-	time(){
-		return ((new Date()).getTime() / 1000)
 	}
 	len(data){
 		if(!data){

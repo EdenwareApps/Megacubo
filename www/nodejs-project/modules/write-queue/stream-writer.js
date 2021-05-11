@@ -22,9 +22,12 @@ class StreamWriter {
 		}
 	}
 	end(){
-		this.target = null
-		this.queue = null
-		this.needDrain = null
+		if(this.target){
+			this.target.end()
+			this.target = null
+			this.queue = null
+			this.needDrain = null
+		}
 	}
 }
 

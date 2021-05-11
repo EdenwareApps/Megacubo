@@ -254,12 +254,8 @@ class FFMPEGMediaInfo extends FFMPEGHelper {
 class FFMPEGDiagnostic extends FFMPEGMediaInfo {
 	constructor(){
 		super()
-		this.log = []
 		global.ui.on('dl-ffmpeg', ret => {
 			switch(ret){
-				case 'log':
-					this.diagnosticDialog(true)
-					break
 				case 'savelog':
 					this.saveLog()
 					break
@@ -271,57 +267,58 @@ class FFMPEGDiagnostic extends FFMPEGMediaInfo {
           return '&#' + i.charCodeAt(0) + ';'
         })
 	}
-	saveLog(){		
-		const filename = 'megacubo-ffmpeg-log.txt', file = global.serve.folder + path.sep + filename
-		fs.writeFile(file, this.log.join("\r\n"), {encoding: 'utf-8'}, err => {
-			global.serve.serve(file, true, false).catch(global.displayErr)
-		})
+	saveLog(){	
+		let text = ''
+		this.diagnostic().then(txt => {
+			text = txt
+		}).catch(err => {
+			text = String(err)
+		}).finally(() => {
+			const filename = 'megacubo-ffmpeg-log.txt', file = global.downloads.folder + path.sep + filename
+			fs.writeFile(file, text, {encoding: 'utf-8'}, err => {
+				global.downloads.serve(file, true, false).catch(global.displayErr)
+			})
+		})	
 	}
-	diagnosticDialog(forceLog){
-        this.version((data, output) => {
-			let text = this.encodeHTMLEntities(data || lang.FFMPEG_NOT_FOUND) +"<br />"+ this.executable
-            if(data && forceLog !== true){
-                global.ui.emit('dialog', [
-                    {template: 'question', text: data ? lang.FFMPEG_VERSION : lang.FFMPEG_NOT_FOUND, fa: 'fas fa-info-circle'},
-                    {template: 'message', text},
-                    {template: 'option', text: 'OK', fa: 'fas fa-check-circle', id: 'ok'},
-					{template: 'option', text: 'Log', fa: 'fas fa-clipboard', id: 'log'}
-                ], 'dl-ffmpeg', 'ok')
-            } else {
-				let fa, text
-				this.diagnostic().then(txt => {
-					fa = 'fas fa-info-circle'
-					text = txt
-				}).catch(err => {
-					fa = 'fas fa-exclamation-triangle faclr-red'
-					text = String(err)
-				}).finally(() => {
-					global.ui.emit('dialog', [
-						{template: 'question', text: global.lang.ABOUT +': FFmpeg', fa},
-						{template: 'message', text},
-						{template: 'option', text: 'OK', id: 'ok', fa: 'fas fa-check-circle'},
-						{template: 'option', text: global.lang.SAVE, id: 'savelog', fa: 'fas fa-save'}
-					], 'dl-ffmpeg', 'ok')
-				})
-			}
+	diagnosticDialog(){
+		let fa, text
+		this.diagnostic().then(txt => {
+			fa = 'fas fa-info-circle'
+			text = txt
+		}).catch(err => {
+			fa = 'fas fa-exclamation-triangle faclr-red'
+			text = String(err)
+		}).finally(() => {
+			global.ui.emit('dialog', [
+				{template: 'question', text: global.lang.ABOUT +': FFmpeg', fa},
+				{template: 'message', text: this.encodeHTMLEntities(text)},
+				{template: 'option', text: 'OK', id: 'ok', fa: 'fas fa-check-circle'},
+				{template: 'option', text: global.lang.SAVE, id: 'savelog', fa: 'fas fa-save'}
+			], 'dl-ffmpeg', 'ok')
 		})
 	}
 	diagnostic(){
 		return new Promise((resolve, reject) => {
+			if(this.log){
+				return resolve(this.log)
+			}
 			this.arch(arch => {
-				let log = 'Arch: '+ arch +"\r\n"
-				let finish = () => {
-					log += "\r\n" + this.log.join(', ')
-					resolve(log)
-				}
-				if(process.platform == 'android'){
-					finish()
-				} else {
-					fs.stat(this.executable, (err, stat) => {
-						log += 'File: '+ this.executable +' '+ ((err || !stat) ? 'NOT EXISTS' : global.kbfmt(stat.size)) +"\r\n"
+				this.version((data, output) => {
+					const nl = "\r\n"
+					this.log = (data || lang.FFMPEG_NOT_FOUND) + nl
+					this.log += 'Arch: '+ arch + nl
+					let finish = () => {
+						resolve(this.log)
+					}
+					if(process.platform == 'android'){
 						finish()
-					})
-				}
+					} else {
+						fs.stat(this.executable, (err, stat) => {
+							this.log += 'File: '+ this.executable +' '+ ((err || !stat) ? 'NOT EXISTS' : global.kbfmt(stat.size)) + nl
+							finish()
+						})
+					}
+				})
 			})
 		})
 	}

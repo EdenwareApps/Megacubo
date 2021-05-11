@@ -1,17 +1,5 @@
 const path = require('path'), fs = require('fs'), http = require('http'), async = require('async'), os = require('os'), decodeEntities = require('decode-entities'), crypto = require('crypto');
 
-if (!Array.prototype.sortByProp) {
-    Array.prototype.sortByProp = function (p, reverse) {
-        if(this instanceof Array){ // this.slice is not a function
-            return this.slice(0).sort((a,b) => {
-                if(reverse) return (a[p] > b[p]) ? -1 : (a[p] < b[p]) ? 1 : 0;
-                return (a[p] > b[p]) ? 1 : (a[p] < b[p]) ? -1 : 0;
-            })
-        }
-        return this;
-    }
-}
-
 class IconLookup {
     constructor(){
         this.opts = {
@@ -103,10 +91,13 @@ class IconCache extends IconLookup {
         })
     }
     saveCache(terms, content, cb){
+        if(global.lists.manager.updatingLists || !global.activeLists.length){ // we may find a better logo after
+            return
+        }
         if(terms && terms.length){
             let name = this.prepareCacheName(terms) + '.png', file = this.opts.folder + path.sep + name
             if(this.opts.debug){
-                this.opts.debug('saveCache', terms, content, name, file)
+                console.log('saveCache', terms, content, name, file)
             }
             fs.writeFile(file, content, 'binary', cb || (() => {}))
         }
@@ -147,32 +138,42 @@ class IconSearch extends IconCache {
             }
         })
     }
+    sortImages(srcs){
+        let c = {}
+        srcs.forEach(src => {
+            if(typeof(c[src]) == 'undefined'){
+                c[src] = 0
+            }
+            c[src]++
+        });
+        return [...new Set(srcs)].sort((a, b) => (c[a] < c[b]) ? 1 : ((c[b] < c[a]) ? -1 : 0))
+    }
     search(ntms, liveOnly){
         if(this.opts.debug){
             console.log('icons.search', ntms, global.traceback())
         }
         return new Promise((resolve, reject) => {
             if(this.opts.debug){
-                this.opts.debug('is channel', ntms)
+                console.log('is channel', ntms)
             }
             global.lists.search(ntms, {
                 type: liveOnly ? 'live' : null,
                 group: !liveOnly
             }).then(ret => {
                 if(this.opts.debug){
-                    this.opts.debug('fetch from terms', ntms, JSON.stringify(ret))
+                    console.log('fetch from terms', ntms, JSON.stringify(ret))
                 }
                 if(ret.results.length){
                     ret = ret.results.filter(e => {
                         return e.icon && e.icon.indexOf('//') != -1
-                    }).sortByProp('score', true)
+                    }).sortByProp('score', true).sortByProp('gid', true) // gid here serves as a hint of a live stream
                     if(this.opts.debug){
-                        this.opts.debug('fetch from terms', JSON.stringify(ret))
+                        console.log('fetch from terms', JSON.stringify(ret))
                     }
                     ret = ret.map(e => e.icon)
-                    ret = [...new Set(ret)]    
+                    ret = this.sortImages(ret)
                     if(this.opts.debug){
-                        this.opts.debug('search() result', ret)
+                        console.log('search() result', ret)
                     }
                     resolve(ret)   
                 } else {
@@ -227,20 +228,24 @@ class IconFetcher extends IconTransform {
     }
     fetchURL(url, rcb){  
         return new Promise((resolve, reject) => { 
-            console.warn('WILLFETCH', url, typeof(url))
+            if(this.opts.debug){
+                console.warn('WILLFETCH', url, typeof(url))
+            }
             if(url.indexOf('//') == -1){
                 return reject('bad url')
             }
             url = this.stripTerms(url)
-            console.warn('WILLFETCH', url)
+            if(this.opts.debug){
+                console.warn('WILLFETCH', url)
+            }
             this.getHTTPCache(url).then(content => {
                 if(this.opts.debug){
-					this.opts.debug('fetchURL', url, 'cached')
+					console.log('fetchURL', url, 'cached')
                 }
                 this.fetchURLCallback(content, url).then(resolve).catch(reject)
             }).catch(err => {
                 if(this.opts.debug){
-					this.opts.debug('fetchURL', url, 'request')
+					console.log('fetchURL', url, 'request')
                 }
                 let req = global.Download.promise({
                     url,
@@ -285,30 +290,40 @@ class IconFetcher extends IconTransform {
                             images.push(url)
                         }
                         images = [...new Set(images.concat(srcs))]
-                        console.log('GOFETCH', images)
+                        if(this.opts.debug){
+                            console.log('GOFETCH', images)
+                        }
                         async.eachOfLimit(images, 8, (src, i, acb) => {
                             if(done || src.indexOf('/blank.png') != -1){
-                                console.log('GOFETCH', src, 'SKIP', done)
+                                if(this.opts.debug){
+                                    console.log('GOFETCH', src, 'SKIP', done)
+                                }
                                 return acb()
                             }
                             this.fetchURL(src, req => {
                                 requests.push(req)
                             }).then(ret => {
-                                console.log('GOFETCH', src, 'THEN')
+                                if(this.opts.debug){
+                                    console.log('GOFETCH', src, 'THEN')
+                                }
                                 if(ret.alpha){
                                     done = ret.data
                                 } else if(!maybe || ret.data.length > maybe.length){
                                     maybe = ret.data
                                 }
                             }).catch(err => {
-                                console.log('GOFETCH', src, 'CATCH', err)
+                                if(this.opts.debug){
+                                    console.log('GOFETCH', src, 'CATCH', err)
+                                }
                                 console.error(err)
                             }).finally(acb)
                         }, () => {
                             if(maybe && !done){
                                 done = maybe
                             }
-                            console.log('GOFETCH', images, 'OKK', done)
+                            if(this.opts.debug){
+                                console.log('GOFETCH', images, 'OK', done)
+                            }
                             if(done){
                                 this.unqueue(terms, 'resolve', done)
                                 requests.forEach(r => {
@@ -352,7 +367,7 @@ class IconFetcher extends IconTransform {
                 if(isCH){
                     this.getCache(terms).then(content => {
                         if(this.opts.debug){
-                            this.opts.debug('get > getCache', url, terms, content)
+                            console.log('get > getCache', url, terms, content)
                         }
                         if(content){
                             if(content == 'no-icon'){
@@ -364,7 +379,7 @@ class IconFetcher extends IconTransform {
                             if(global.config.get('search-missing-logos')){
                                 this.fetch(terms, this.stripTerms(url)).then(content => {
                                     if(this.opts.debug){
-                                        this.opts.debug('get > fetch', terms, content)
+                                        console.log('get > fetch', terms, content)
                                     }
                                     this.saveCache(terms, content)
                                     resolve(content)
@@ -385,7 +400,7 @@ class IconFetcher extends IconTransform {
     }
     prefetch(termsArr){ // warm up cache
         if(this.opts.debug){
-            this.opts.debug('prefetch > terms', termsArr)
+            console.log('prefetch > terms', termsArr)
         }
         async.eachOfLimit(termsArr, global.config.get('view-size-x'), terms => {
             this.name(terms).then(ntms => {
@@ -396,12 +411,12 @@ class IconFetcher extends IconTransform {
                 this.getCache(terms).then(content => {
                     if(content){
                         if(this.opts.debug){
-                            this.opts.debug('prefetch > already cached', terms, content)
+                            console.log('prefetch > already cached', terms, content)
                         }
                     } else {
                         this.fetch(terms).then(content => {
                             if(this.opts.debug){
-                                this.opts.debug('prefetch > fetch', terms, content)
+                                console.log('prefetch > fetch', terms, content)
                             }
                             this.saveCache(terms, content)
                         }).catch(err => {
@@ -549,14 +564,13 @@ class IconServer extends IconFetchQueue {
         return ret
     }
     listen(){
-        let cacheTTL = 3600, badCacheTTL = 300
         if(!this.server){
             if(this.server){
                 this.server.close()
             }
             this.server = http.createServer((req, response) => {
                 if(this.opts.debug){
-                    this.opts.debug('req starting...', req)
+                    console.log('req starting...', req)
                 }
                 if(req.method == 'OPTIONS' || this.closed){
                     response.writeHead(200, {
@@ -572,22 +586,21 @@ class IconServer extends IconFetchQueue {
                 }
                 let url = this.unproxify(req.url.split('#')[0]), domain = this.domain(url), ext = this.ext(url), port = url.match(new RegExp(':([0-9]+)'))
                 if(this.opts.debug){
-					this.opts.debug('serving', url, req.url)
+					console.log('serving', url, req.url)
                 }
                 port = port ? parseInt(port[1]) : 80    
                 if(this.opts.debug){
-					this.opts.debug('serving', domain, port)            
+					console.log('serving', domain, port)            
                 }
                 let headers = req.headers, directURL = url
                 headers.connection = 'close'
                 headers.host = domain
                 if(this.opts.debug){
-					this.opts.debug('open', url, req, ext)
+					console.log('open', url, req, ext)
                 }
                 req.url = url
-                var err, sent
                 if(this.opts.debug){
-                    this.opts.debug('get()', url)
+                    console.log('get()', url)
                 }
                 if(url.indexOf('.json') != -1 && url.indexOf(this.termsKey) == -1){
                     let file = path.resolve(this.opts.folder + path.sep + path.basename(url))
@@ -610,7 +623,7 @@ class IconServer extends IconFetchQueue {
                     this.get(url).then(data => {
                         if(data && data.length){
                             if(this.opts.debug){
-                                this.opts.debug('get() resolved', data)
+                                console.log('get() resolved', data)
                             }
                             response.writeHead(200, {
                                 'Access-Control-Allow-Origin': '*',
@@ -619,13 +632,12 @@ class IconServer extends IconFetchQueue {
                                 'Content-Length': data.length,
                                 'Connection': 'close',
                                 'Cache-Control': 'max-age=0, no-cache, no-store',
-                                // 'Cache-Control': 'max-age='+ cacheTTL +', public'
                                 'Content-Type': 'image/png'
                             })
                             response.end(Buffer.from(data))
                         } else {
                             if(this.opts.debug){
-                                this.opts.debug('BADDATA', url, data)
+                                console.log('BADDATA', url, data)
                             }
                             response.writeHead(404, {
                                 'Access-Control-Allow-Origin': '*',
@@ -633,13 +645,12 @@ class IconServer extends IconFetchQueue {
                                 'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Cache-Control, Accept, Authorization',
                                 'Connection': 'close',
                                 'Cache-Control': 'max-age=0, no-cache, no-store'
-                                // 'Cache-Control': 'max-age='+ badCacheTTL +', public'
                             })
                             response.end()
                         }
                     }).catch(err => {
                         if(this.opts.debug){
-                            this.opts.debug('get() catched', url, global.traceback())
+                            console.log('get() catched', url, global.traceback())
                         }
                         response.writeHead(404, {
                             'Access-Control-Allow-Origin': '*',
@@ -647,7 +658,6 @@ class IconServer extends IconFetchQueue {
                             'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Cache-Control, Accept, Authorization',
                             'Connection': 'close',
                             'Cache-Control': 'max-age=0, no-cache, no-store'
-                            // 'Cache-Control': 'max-age='+ badCacheTTL +', public'
                         })
                         response.end(err+' - '+this.unproxify(req.url.split('#')[0]) + ' - ' + req.url.split('#')[0])
                     })
@@ -664,7 +674,7 @@ class IconServer extends IconFetchQueue {
     }
     destroy(){
         if(this.opts.debug){
-            this.opts.debug('closing...')
+            console.log('closing...')
         }
         this.closed = true
         if(this.server){

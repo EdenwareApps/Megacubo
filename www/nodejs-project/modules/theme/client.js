@@ -1,6 +1,6 @@
 if(typeof(themeRefresh) == 'undefined'){
     function themeRefresh(){
-        let family = config['font-family'], nfs = 0.02 + (config['font-size'] * 0.0025), mbg = hexToRGBA(config['background-color'], 0.75), sfg = hexToRGBA(config['font-color'], 0.75)
+        let family = config['font-family'], nfs = 0.02 + (config['font-size'] * 0.0025), mbg = hexToRGBA(config['background-color'], config['background-color-transparency'] / 100), sfg = hexToRGBA(config['font-color'], 0.75)
         let cssCode = `
 :root {
     --explorer-entry-name-font-size: calc(((100vmin + 100vmax) * 0.333) * ${nfs});

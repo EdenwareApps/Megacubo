@@ -24,7 +24,7 @@ Object.keys(workerData).forEach(k => global[k] = workerData[k])
 
 const Config = require(APPDIR + '/modules/config')
 global.config = new Config(global.paths['data'] + '/config.json')
-global.config.on('set', () => {
+global.config.on('change', () => {
     parentPort.postMessage({id: 0, type: 'event', data: 'config-change'})
 })
 
@@ -36,7 +36,7 @@ const Driver = require(file)
 driver = new Driver()
 parentPort.on('message', msg => {
     if(msg.method == 'configChange'){
-        console.log('CONFIG CHANGED!', file)
+        //console.log('CONFIG CHANGED!', file)
         global.config.reload()
     } else if(typeof(driver[msg.method]) == 'undefined'){
         data = {id: msg.id, type: 'reject', data: 'method not exists'}
