@@ -29,9 +29,6 @@ class Lookup extends Events {
 			this.once('ready', fn)
 		}
 	}
-    time(){
-        return ((new Date()).getTime() / 1000)
-    }
 	reset(){
 		if(this.debug){
 			console.log('lookup->reset', domain)
@@ -46,7 +43,7 @@ class Lookup extends Events {
 		if(this.debug){
 			console.log('lookup->get', domain)
 		}
-		const now = this.time()
+		const now = global.time()
 		if(typeof(this.data[domain]) != 'undefined'){
 			if(Array.isArray(this.data[domain]) && this.ttlData[domain] >= now){
 				if(this.debug){
@@ -107,7 +104,7 @@ class Lookup extends Events {
 		})
 	}
 	finish(domain, value){
-		this.ttlData[domain] = this.time() + (value === false ? this.failureTTL : this.ttl)
+		this.ttlData[domain] = global.time() + (value === false ? this.failureTTL : this.ttl)
 		if(typeof(this.data[domain]) == 'undefined' || value !== false){
 			this.data[domain] = value
 		}

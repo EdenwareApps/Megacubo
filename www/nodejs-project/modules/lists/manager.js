@@ -1,12 +1,11 @@
 
 const Events = require('events'), fs = require('fs'), path = require('path'), async = require('async')
-const sanitize = require('sanitize-filename'), LegalIPTV = require('../legal-iptv')
+const LegalIPTV = require('../legal-iptv')
 
 class Manager extends Events {
     constructor(parent){
         super()
         this.parent = parent
-        this.emptyEntry = {name: global.lang.EMPTY, type: 'action', fa: 'fas fa-info-circle', class: 'entry-empty'}
         // this.listFaIcon = 'fas fa-satellite-dish'
         this.listFaIcon = 'fas fa-broadcast-tower'
         this.key = 'lists'
@@ -318,7 +317,7 @@ class Manager extends Events {
                     {template: 'message', text: global.lang.ASK_COMMUNITY_LIST},
                     {template: 'option', id: 'back', fa: 'fas fa-times-circle', text: global.lang.BACK},
                     {template: 'option', id: 'agree', fa: 'fas fa-check-circle', text: global.lang.I_AGREE}
-                ], 'lists-manager', 'back')
+                ], 'lists-manager', 'back', true)
                 return resolve(true)
             }
             global.osd.show(global.lang.PROCESSING, 'fa-mega spin-x-alt', 'add-list', 'persistent')
@@ -344,6 +343,7 @@ class Manager extends Events {
         }
     }
     updateLists(force, onErr){
+        console.log('Update lists', global.traceback())
         if(force === true || !global.activeLists.length || global.activeLists.length < global.config.get('shared-mode-reach')){
             this.updatingLists = {onErr}
             global.osd.show(global.lang.STARTING_LISTS, 'fa-mega spin-x-alt', 'update', 'persistent')
@@ -356,7 +356,7 @@ class Manager extends Events {
                             if(communityLists.length > maxListsToTry){
                                 communityLists = communityLists.slice(0, maxListsToTry)
                             }
-                            console.log('Updating lists', myLists, communityLists)
+                            console.log('Updating lists', myLists, communityLists, global.traceback())
                             this.parent.updaterFinished(false).catch(console.error)
                             global.channels.keywords(keywords => {
                                 this.parent.sync(myLists, communityLists, global.config.get('shared-mode-reach'), keywords).catch(err => {
@@ -418,7 +418,7 @@ class Manager extends Events {
                 {template: 'question', text: global.lang.NO_COMMUNITY_LISTS_FOUND, fa: 'fas fa-users'},
                 {template: 'option', id: 'retry', fa: 'fas fa-redo', text: global.lang.RETRY},
                 {template: 'option', id: 'add-list', fa: 'fas fa-plus-square', text: global.lang.ADD_LIST}
-            ], 'lists-manager', 'retry') 
+            ], 'lists-manager', 'retry', true) 
         } else {
             global.ui.emit('info', global.lang.NO_INTERNET_CONNECTION, global.lang.NO_INTERNET_CONNECTION)
         }
@@ -524,49 +524,152 @@ class Manager extends Events {
             })
         }}
     }
-    epgOptionsEntries(){
+    searchEPGs(){
+        return new Promise((resolve, reject) => {
+            let epgs = []
+            this.parent.foundEPGs().then(urls => {
+                epgs = epgs.concat(urls)
+            }).catch(console.error).finally(() => {
+				cloud.get('configure').then(c => {
+					if(c){
+                        let key = 'epg-' + global.lang.countryCode
+					    if(c[key] && !epgs.includes(c[key])){
+    						epgs.push(c[key])
+					    }
+                    }
+                    epgs = epgs.concat(global.watching.currentRawEntries.map(e => e.epg).filter(e => !!e))
+                    epgs = [...new Set(epgs)].sort()
+                    resolve(epgs)
+				})
+            })
+        })
+    }
+    epgLoadingStatus(epgStatus){
+        let details = ''
+        switch(epgStatus[0]){
+            case 'uninitialized':
+                details = '<i class="fas fa-clock"></i>'
+                break
+            case 'loading':
+                details = global.lang.LOADING
+                break
+            case 'connecting':
+                details = global.lang.CONNECTING
+                break
+            case 'connected':
+                details = global.lang.PROCESSING + ' ' + epgStatus[1] + '%'
+                break
+            case 'loaded':
+                details = global.lang.ENABLED
+                break
+            case 'error':
+                details = 'Error: ' + epgStatus[1]
+                break
+        }
+        return details
+    }
+    updateEPGStatus(){
+        let p = global.explorer.path
+        if(p.indexOf(global.lang.EPG) == -1){
+            clearInterval(this.epgStatusTimer)
+            this.epgStatusTimer = false
+        } else {
+            global.lists.epg([], 2).then(epgData => {
+                let activeEPGDetails = this.epgLoadingStatus(epgData)
+                if(activeEPGDetails != this.lastActiveEPGDetails){
+                    this.lastActiveEPGDetails = activeEPGDetails
+                    this.epgOptionsEntries(activeEPGDetails).then(es => {
+                        if(p == global.explorer.path){
+                            es = es.map(e => {
+                                if(e.name == global.lang.IMPORT_EPG_CHANNELS){
+                                    e.value = e.checked()
+                                }
+                                return e
+                            })
+                            global.explorer.render(es, p, global.channels.epgIcon)
+                        }
+                    }).catch(console.error)
+                }                
+            }).catch(err => {
+                clearInterval(this.epgStatusTimer)
+                this.epgStatusTimer = false
+            })
+        }
+    }
+    epgOptionsEntries(activeEPGDetails){
         return new Promise((resolve, reject) => {
             let options = [], epgs = []
-            this.parent.foundEPGs().then(urls => {
+            this.searchEPGs().then(urls => {
                 epgs = epgs.concat(urls)
             }).catch(console.error).finally(() => {
                 let activeEPG = global.config.get('epg')
                 if(activeEPG && !epgs.includes(activeEPG)){
                     epgs.push(activeEPG)
                 }
-                options = epgs.sort().map(url => {
-                    let name = this.parent.manager.nameFromSourceURL(url)
-                    return {
-                        name,
-                        type: 'action',
-                        fa: 'fas fa-th-large',
-                        prepend: (url == activeEPG) ? '<i class="fas fa-check-circle faclr-green"></i> ' : '',
-                        action: () => {
-                            if(url == global.config.get('epg')){
-                                global.config.set('epg', '')
-                                global.channels.load()
-                                global.explorer.refresh()
-                            } else {
-                                this.setEPG(url)
+                const next = () => {
+                    options = epgs.sort().map(url => {
+                        let name = this.parent.manager.nameFromSourceURL(url)
+                        return {
+                            name,
+                            type: 'action',
+                            fa: 'fas fa-th-large',
+                            prepend: (url == activeEPG) ? '<i class="fas fa-check-circle faclr-green"></i> ' : '',
+                            details: (url == activeEPG) ? activeEPGDetails : '',
+                            action: () => {
+                                if(url == global.config.get('epg')){
+                                    global.config.set('epg', '')
+                                    global.channels.activeEPG = ''
+                                    global.channels.load()
+                                    global.explorer.refresh()
+                                } else {
+                                    this.setEPG(url)
+                                }
                             }
                         }
+                    })
+                    options.push({name: global.lang.ADD, fa: 'fas fa-plus-square', type: 'action', action: () => {
+                        global.ui.emit('prompt', global.lang.EPG, 'http://.../epg.xml', global.config.get('epg'), 'set-epg', false, global.channels.epgIcon)
+                    }})
+                    options.push({
+                        name: global.lang.IMPORT_EPG_CHANNELS,
+                        type: 'check',
+                        action: (e, checked) => {
+                            global.config.set('epg-channels-list', checked)
+                            global.channels.load()
+                        }, 
+                        checked: () => global.config.get('epg-channels-list')
+                    })
+                    resolve(options)
+                }
+                if(activeEPG){
+                    const epgNext = () => {
+                        if(activeEPGDetails == global.lang.ENABLED){
+                            if(this.epgStatusTimer){
+                                clearInterval(this.epgStatusTimer)
+                                this.epgStatusTimer = false
+                            }
+                        } else {
+                            if(!this.epgStatusTimer){
+                                this.epgStatusTimer = setInterval(this.updateEPGStatus.bind(this), 3000)
+                            }
+                        }
+                        next()
                     }
-                })
-                options.push({name: global.lang.ADD, fa: 'fas fa-plus-square', type: 'action', action: () => {
-                    global.ui.emit('prompt', global.lang.EPG, 'http://.../epg.xml', global.config.get('epg'), 'set-epg', false, global.channels.epgIcon)
-                }})
-                options.push({
-                    name: global.lang.IMPORT_EPG_CHANNELS,
-                    type: 'check',
-                    action: (e, checked) => {
-                        global.config.set('epg-channels-list', checked)
-                        global.channels.load()
-                    }, 
-                    checked: () => {
-                        return global.config.get('epg-channels-list')
+                    if(typeof(activeEPGDetails) == 'string'){
+                        epgNext()
+                    } else {
+                        global.lists.epg([], 2).then(epgData => {
+                            this.lastActiveEPGDetails = activeEPGDetails = this.epgLoadingStatus(epgData)
+                            epgNext()
+                        }).catch(err => {
+                            console.error(err)
+                            activeEPGDetails = ''
+                            epgNext()
+                        })
                     }
-                })
-                resolve(options)
+                } else {
+                    next()
+                }
             })
         })
     }
@@ -593,7 +696,7 @@ class Manager extends Events {
                         refresh()
                     } else if(doImportChannelsList()){
                         global.lists.epgChannelsList().then(list => {
-                            if(doImportChannelsList()){
+                            if(doImportChannelsList()){ // check again if user didn't changed his mind
                                 console.log('CHANNELS LIST IMPORT', list)
                                 global.channels.updateCategoriesCacheKey()
                                 global.channels.setCategories(list, true)
@@ -602,7 +705,6 @@ class Manager extends Events {
                         }).catch(err => {
                             console.error(err)
                             global.osd.show(global.lang.IMPORT_EPG_CHANNELS_FAILED, 'fas fa-exclamation-circle faclr-red', 'epg', 'normal')
-                            global.config.set('epg-channels-list', false)
                             refresh()
                         })
                     }
@@ -616,6 +718,7 @@ class Manager extends Events {
     }
     loadEPG(url, ui){
         return new Promise((resolve, reject) => {
+            global.channels.activeEPG = ''
             if(!url){
                 url = global.config.get('epg')
             }
@@ -630,6 +733,7 @@ class Manager extends Events {
                 }
                 console.log('loadEPG', url)
                 this.parent.loadEPG(url).then(() => {
+                    global.channels.activeEPG = url
                     if(ui){
                         global.osd.show(global.lang.EPG_LOAD_SUCCESS, 'fas fa-check-circle', 'epg', 'normal')
                     }
@@ -665,7 +769,7 @@ class Manager extends Events {
                                     {template: 'message', text: global.lang.ASK_COMMUNITY_LIST},
                                     {template: 'option', id: 'back', fa: 'fas fa-times-circle', text: global.lang.BACK},
                                     {template: 'option', id: 'agree', fa: 'fas fa-check-circle', text: global.lang.I_AGREE}
-                                ], 'lists-manager', 'back')                
+                                ], 'lists-manager', 'back', true)                
                             } else {
                                 global.config.set('shared-mode-reach', 0)
                                 global.explorer.refresh()
@@ -696,8 +800,6 @@ class Manager extends Events {
                         action: this.removeList.bind(this)
                     })
                 })
-            } else {
-                entries.push(this.emptyEntry)
             }
             resolve(entries)
         })
@@ -743,7 +845,7 @@ class Manager extends Events {
                         })
                     }
                 } else {
-                    list = [this.emptyEntry]
+                    list = []
                 }
                 console.warn('DIRECT', list, JSON.stringify(list[0]))
                 resolve(list)
@@ -752,7 +854,7 @@ class Manager extends Events {
             if(isMine || isCommunity){
                 this.parent.directListRenderer(v).then(cb).catch(onerr)
             } else {   
-                const tmpFile = path.join(global.paths.temp, sanitize(v.url) +'.tmp')
+                const tmpFile = path.join(global.paths.temp, global.sanitize(v.url) +'.tmp')
                 fs.stat(tmpFile, (err, stat) => {
                     if(err || !stat.size){
                         const stream = fs.createWriteStream(tmpFile, {flags:'w'})           

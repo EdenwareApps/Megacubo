@@ -3,11 +3,63 @@ const path = require('path'), async = require('async'), EntriesGroup = require(p
 class Watching extends EntriesGroup {
     constructor(){
         super('watching')
+        this.timer = 0
+        this.currentEntries = null
+        this.currentRawEntries = null
+        this.updateIntervalSecs = global.cloud.expires.watching
+        global.channels.ready(() => this.update())
+        global.config.on('change', (keys, data) => keys.includes('only-known-channels-in-been-watched') && this.update())
+    }
+    ready(cb){
+        if(this.currentRawEntries){
+            cb()
+        } else {
+            this.once('ready', cb)
+        }
+    }
+    showChannelOnHome(){
+        return global.lists.manager.get().length || global.config.get('shared-mode-reach')
+    }
+    update(){
+        clearTimeout(this.timer)
+        let prv = this.entry()
+        this.process().then(() => {}).catch(err => {
+            console.error('watching '+ err)
+            if(!this.currentRawEntries){
+                this.currentEntries = []
+                this.currentRawEntries = []
+            }
+        }).finally(() => {
+            clearTimeout(this.timer) // clear again to be sure
+            this.timer = setTimeout(() => this.update(), this.updateIntervalSecs * 1000)
+            this.emit('ready')
+            let nxt = this.entry()
+            if(this.showChannelOnHome() && global.explorer.path == '' && (prv.details != nxt.details || prv.name != nxt.name)){
+                global.explorer.updateHomeFilters()
+            }
+        })
     }
     hook(entries, path){
         return new Promise((resolve, reject) => {
-            if(path == '' && !entries.some(e => e.name == global.lang.BEEN_WATCHED)) {
-                entries.push(this.entry())
+            if(path == ''){
+                let has, pos = 0, entry = this.entry()
+                if(this.currentEntries && this.currentEntries.length && entry.name != global.lang.BEEN_WATCHED){
+                    entries.some((e, i) => {
+                        if(i == 0 && e.hookId == 'history'){ // let continue option as first
+                            pos = 1
+                        }
+                        if(e.hookId == this.key){
+                            has = e.name
+                            return true
+                        }
+                    })
+                }
+                if(has){
+                    entries = entries.filter(e => e.hookId != this.key)
+                    entries.splice(pos, 0, entry)
+                } else if(!entries.some(e => e.hookId == this.key)) {
+                    entries.push(entry)
+                }
             }
             resolve(entries)
         })
@@ -19,7 +71,7 @@ class Watching extends EntriesGroup {
         let n = String(e.label || e.details).match(new RegExp('([0-9]+)($|[^&])'))
         return n && n.length ? parseInt(n[1]) : 0 
     }
-    entries(e){
+    entries(){
         return new Promise((resolve, reject) => {
             if(lists.manager.updatingLists){
                 return resolve([global.lists.manager.updatingListsEntry()])
@@ -27,9 +79,8 @@ class Watching extends EntriesGroup {
             if(!global.activeLists.length){
                 return resolve([global.lists.manager.noListsEntry()])
             }
-            this.getWatching(true).then(entries => {
-                let list = entries
-                list = global.lists.parentalControl.filter(list)
+            this.ready(() => {
+                let list = this.currentEntries.slice(0)
                 list = list.map((e, i) => {
                     e.position = (i + 1)
                     return e
@@ -39,33 +90,7 @@ class Watching extends EntriesGroup {
                 }
                 list = this.prepare(list)
                 resolve(list)
-            }).catch(err => {
-                reject(err)
             })       
-        })
-    }
-    lists(){
-        return new Promise((resolve, reject) => {
-            this.getWatching(false).then(es => {
-                let lists = {}
-                es.forEach(e => {
-                    if(e.source){
-                        if(typeof(lists[e.source]) == 'undefined'){
-                            lists[e.source] = 0
-                        }
-                        lists[e.source] += parseInt(e.count)
-                    }
-                })
-                lists = Object.keys(lists).sort((a,b) => {
-                    return lists[b]-lists[a]
-                })
-                lists = lists.map(url => {
-                    return {name: global.lists.manager.nameFromSourceURL(url), url, type: "group", fa: "fas fa-shopping-bag"}
-                })
-                resolve(lists)
-            }).catch(e => {
-                console.error('lists err', e)
-            })
         })
     }
     applyUsersPercentages(entries){
@@ -77,13 +102,13 @@ class Watching extends EntriesGroup {
         })
         return entries
     }
-    getWatching(removeAliases, softTimeout){
+    process(){
         return new Promise((resolve, reject) => {
-            global.cloud.get('watching', false, softTimeout).then(data => {
+            global.cloud.get('watching', false).then(data => {
                 if(!Array.isArray(data)){
                     data = []
                 }
-                let usePercentages = true, recoverNameFromMegaURL = true, ex = !global.config.get('shared-mode-reach') // we'll make entries URLless for exclusive mode, to use the provided lists only
+                let recoverNameFromMegaURL = true, ex = !global.config.get('shared-mode-reach') // we'll make entries URLless for exclusive mode, to use the provided lists only
                 data = global.lists.prepareEntries(data)
                 data = data.filter(e => (e && typeof(e) == 'object' && typeof(e.name) == 'string')).map(e => {
                     let isMega = global.mega.isMega(e.url)
@@ -101,70 +126,57 @@ class Watching extends EntriesGroup {
                     }
                     return e
                 })
-                this.watching = data
-                if(removeAliases === true){
-                    let groups = {}, gcount = {}, gentries = [], onlyKnownChannels = global.config.get('only-known-channels-in-been-watched')
-                        async.eachOf(data, (entry, i, cb) => {
-                            let ch = global.channels.isChannel(entry.terms.name)
-                            if(ch){
-                                let term = ch.name
-                                if(typeof(groups[term]) == 'undefined'){
-                                    groups[term] = []
-                                    gcount[term] = 0
-                                }
-                                if(typeof(entry.users) != 'undefined'){
-                                    entry.users = this.extractUsersCount(entry)
-                                }
-                                gcount[term] += entry.users
-                                delete data[i]
-                            } else {
-                                if(onlyKnownChannels){
-                                    delete data[i]
-                                } else if(global.mega.isMega(entry.url)) {
-                                    data[i] = global.channels.toMetaEntry(entry)
-                                }
-                            }
-                            cb()
-                        }, () => {
-                            Object.keys(groups).forEach(n => {
-                                gentries.push(global.channels.toMetaEntry({
-                                    name: global.ucWords(n), 
-                                    type: 'group',
-                                    fa: 'fas fa-play-circle',
-                                    users: gcount[n]
-                                }))
-                            })
-                            data = data.filter(e => {
-                                return !!e
-                            }).concat(gentries).sort((a, b) => {
-                                return (a.users > b.users) ? -1 : ((b.users > a.users) ? 1 : 0)
-                            })
-                            if(data.length) {
-                                this.data = data
-                            }
-                            if(usePercentages){
-                                data = this.applyUsersPercentages(data)
-                            }
-                            resolve(data)
-                        })
-                } else {
-                    if(usePercentages){
-                        data = this.applyUsersPercentages(data)
+                data = global.lists.parentalControl.filter(data)
+                this.currentRawEntries = data.slice(0)
+                let groups = {}, gcount = {}, gentries = [], onlyKnownChannels = global.config.get('only-known-channels-in-been-watched')
+                async.eachOf(data, (entry, i, cb) => {
+                    let ch = global.channels.isChannel(entry.terms.name)
+                    if(ch){
+                        let term = ch.name
+                        if(typeof(groups[term]) == 'undefined'){
+                            groups[term] = []
+                            gcount[term] = 0
+                        }
+                        if(typeof(entry.users) != 'undefined'){
+                            entry.users = this.extractUsersCount(entry)
+                        }
+                        gcount[term] += entry.users
+                        delete data[i]
+                    } else {
+                        if(onlyKnownChannels){
+                            delete data[i]
+                        } else if(global.mega.isMega(entry.url)) {
+                            data[i] = global.channels.toMetaEntry(entry)
+                        }
                     }
+                    cb()
+                }, () => {
+                    Object.keys(groups).forEach(n => {
+                        gentries.push(global.channels.toMetaEntry({
+                            name: global.ucWords(n), 
+                            type: 'group',
+                            fa: 'fas fa-play-circle',
+                            users: gcount[n]
+                        }))
+                    })
+                    data = data.filter(e => {
+                        return !!e
+                    }).concat(gentries).sortByProp('users', true)
+                    data = this.applyUsersPercentages(data)
+                    this.currentEntries = data
                     resolve(data)
-                }
+                })
             }).catch(err => {
                 console.error(err)
-                this.watching = []
-                resolve(this.watching)
+                resolve([])
             })   
         })
     }
     order(entries){
         return new Promise((resolve, reject) => {
-            let up = [], es = entries.slice(0)
-            this.getWatching(false, 0).then(ret => {
-                ret.forEach((r, i) => {
+            if(this.currentRawEntries){
+                let up = [], es = entries.slice(0)
+                this.currentRawEntries.forEach(r => {
                     es.some((e, i) => {
                         if(r.url == e.url){
                             e.users = r.users
@@ -175,11 +187,29 @@ class Watching extends EntriesGroup {
                     })
                 })
                 resolve(up.concat(es.filter(e => { return !!e })))
-            }).catch(reject)          
+            } else {
+                resolve(entries)
+            }     
         })
     }
     entry(){
-        return {name: global.lang.BEEN_WATCHED, fa: 'fas fa-users', hookId: this.key, type: 'group', renderer: this.entries.bind(this)}
+        const entry = {name: global.lang.BEEN_WATCHED, fa: 'fas fa-users', hookId: this.key, type: 'group', renderer: this.entries.bind(this)}
+        if(this.currentEntries && this.showChannelOnHome()){
+            let top, rootPage = global.explorer.pages['']
+            this.currentEntries.some(e => {
+                if(!rootPage.some(r => (r.name == e.name && r.hookId != this.key)) && global.channels.isChannel(e.name)){
+                    top = e
+                    return true
+                }
+            })
+            if(top){
+                let s = top.users == 1 ? 'user' : 'users', terms = global.channels.entryTerms(top)
+                entry.name = top.name
+                entry.servedIcon = global.icons.generate(terms, null)
+                entry.details = '<i class="fas fa-'+ s +'"></i> '+ global.lang.X_WATCHING.format(top.users)
+            }
+        }
+        return entry
     }
 }
 

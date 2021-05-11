@@ -125,8 +125,8 @@ module.exports = (file, opts) => {
 					}
 				}
 			}
-			this.on('config-change', () => {
-				console.log('Config changed from worker driver')
+			this.on('config-change', data => {
+				//console.log('Config changed from worker driver', data)
 				global.config.reload()
 			})
 			global.config.on('change', () => {

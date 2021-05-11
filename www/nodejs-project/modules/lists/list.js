@@ -160,7 +160,7 @@ class List extends Events {
 			map = false
 		}
 		let line, ne, buf = []
-        this.indexer.entries(map ? map : [...Array(this.index.length).keys()]).then(entries => {
+        this.indexer.entries(map).then(entries => {
             entries.some(e => {
                 let ret = fn(e)
                 return ret === this.constants.BREAK
@@ -168,7 +168,7 @@ class List extends Events {
         }).catch(console.error).finally(cb)
 	}
 	fetchAll(cb){
-        this.indexer.entries([...Array(this.index.length).keys()]).then(entries => {
+        this.indexer.entries().then(entries => {
             cb(entries)
         }).catch(err => {
             console.error(err)

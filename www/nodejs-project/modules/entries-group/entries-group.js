@@ -7,7 +7,6 @@ class EntriesGroup extends Events {
         this.limit = 0
         this.preferMegaUrls = true
         this.allowDupes = false
-        this.emptyEntry = {name: global.lang.EMPTY, fa: 'fas fa-info-circle', type: 'action'}
         this.data = []
         this.isReady = false
 		this.load()
@@ -77,7 +76,7 @@ class EntriesGroup extends Events {
         if(this.limit){
 			this.data = this.data.slice(0, this.limit)
 		}
-        console.log('[entries-group-'+this.key+'] ADDED', this.data)
+        console.log('[entries-group-'+ this.key +'] ADDED', this.data)
         global.storage.set(this.key, this.data, true)
         this.data = this.prepare(this.data)
         this.emit('change', this.data)

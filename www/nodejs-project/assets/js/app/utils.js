@@ -607,19 +607,6 @@ function isValidPath(url){ // poor checking for now
     return true;
 }
 
-function createShortcut(key, callback, type, enableInInput){
-    key = key.replaceAll(' ', ',');
-    return $.Shortcuts.add({
-        type: type ? type : 'down',
-        mask: key,
-        enableInInput: !!enableInInput,
-        handler: () => {
-            console.log(key+' pressed', document.URL)
-            callback.call(window.top)
-        }
-    })
-}
-
 var installedVersion = 0;
 function getManifest(callback){
     $.get('package.json', function (data){
@@ -851,7 +838,7 @@ function getAlphafloat(a, alpha){
 
 function hexToRGBA(hex, alpha){
     if (!isValidHex(hex)) {
-        throw new Error("Invalid HEX")
+        throw new Error('Invalid HEX '+ hex)
     }
     const chunkSize = Math.floor((hex.length - 1) / 3)
     const hexArr = getChunksFromString(hex.slice(1), chunkSize)

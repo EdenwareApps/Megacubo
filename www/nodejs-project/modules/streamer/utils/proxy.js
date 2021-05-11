@@ -1,17 +1,17 @@
 
 const http = require('http'), path = require('path'), parseRange = require('range-parser'), closed = require(global.APPDIR +'/modules/on-closed')
-const StreamerProxyBase = require('./proxy-base'), sanitize = require('sanitize-filename'), decodeEntities = require('decode-entities'), m3u8Parser = require('m3u8-parser')
+const StreamerProxyBase = require('./proxy-base'), decodeEntities = require('decode-entities'), m3u8Parser = require('m3u8-parser')
 
 class StreamerProxy extends StreamerProxyBase {
-	constructor(opts={}){
-		super('', opts)
+	constructor(opts){
+		super(opts)
 		this.opts.port = 0
 		this.type = 'proxy'
 		this.networkOnly = false
 		this.connections = {}
 		this.journal = {}
 		this.internalRequestAbortedEvent = 'request-aborted'
-		this.opts.followRedirect = false
+		this.opts.followRedirect = true // some servers require m3u8 to requested by original url, otherwise will trigger 406 status, while the player may call directly the "location" header url on next requests ¬¬
 		this.opts.forceExtraHeaders = null
 		if(this.opts.debug){
 			this.opts.debug('OPTS', this.opts)
@@ -20,10 +20,13 @@ class StreamerProxy extends StreamerProxyBase {
 			console.warn('proxy.destroy()', Object.keys(this.connections))
 			Object.keys(this.connections).forEach(this.destroyConn.bind(this))
 			this.connections = {}
-			this.server.close()
+			if(this.server){
+				this.server.close()
+			}
 		})
 		this.playlists = {} // fallback mirrors for when one playlist of these returns 404, it happens, strangely...
 		this.playlistBitrates = {}
+		this.playlistBitratesSaved = {}
 	}
 	destroyConn(uid, data=false, force=true){
 		if(this.connections[uid]){
@@ -159,10 +162,10 @@ class StreamerProxy extends StreamerProxyBase {
 							this.opts.debug('ok')
 						}
 						if(playlist.attributes){
-							if(playlist.attributes["AVERAGE-BANDWIDTH"] && parseInt(playlist.attributes["AVERAGE-BANDWIDTH"]) > 128){
-								this.playlistBitrates[u] = parseInt(playlist.attributes["AVERAGE-BANDWIDTH"])
-							} else if(playlist.attributes["BANDWIDTH"] && parseInt(playlist.attributes["BANDWIDTH"]) > 128){
-								this.playlistBitrates[u] = parseInt(playlist.attributes["BANDWIDTH"])
+							if(playlist.attributes['AVERAGE-BANDWIDTH'] && parseInt(playlist.attributes['AVERAGE-BANDWIDTH']) > 128){
+								this.playlistBitrates[u] = parseInt(playlist.attributes['AVERAGE-BANDWIDTH'])
+							} else if(playlist.attributes['BANDWIDTH'] && parseInt(playlist.attributes['BANDWIDTH']) > 128){
+								this.playlistBitrates[u] = parseInt(playlist.attributes['BANDWIDTH'])
 							}
 						}
 					}
@@ -193,8 +196,9 @@ class StreamerProxy extends StreamerProxyBase {
 		})
 		return lines.join("\n")
 	}
-    contentRange (type, size, range) {
-      return type + ' ' + (range ? range.start + '-' + range.end : '*') + '/' + size
+    contentRange(type, size, range) {
+		const irange = range || {start: 0, end: size - 1}
+    	return type + ' ' + irange.start + '-' + irange.end + '/' + (size || '*')
     }
 	start(){
 		return new Promise((resolve, reject) => {
@@ -240,9 +244,8 @@ class StreamerProxy extends StreamerProxyBase {
 		}
 		const uid = this.uid()
 		let ended, url = this.unproxify(req.url)
-		let reqHeaders = req.headers, dom = this.getDomain(url)
+		let reqHeaders = req.headers
 		reqHeaders['accept-encoding'] =  'identity' // not needed and problematic
-		reqHeaders.host = dom
 		reqHeaders = this.removeHeaders(reqHeaders, ['cookie', 'referer', 'origin'])
 		if(this.type == 'network-proxy'){
 			reqHeaders['x-from-network-proxy'] = '1'
@@ -255,13 +258,14 @@ class StreamerProxy extends StreamerProxyBase {
 			this.debug('serving', url, req, path.basename(url), url, reqHeaders, uid)
 		}
 		if(this.type == 'network-proxy'){
-			console.log('serving', url, reqHeaders)
+			console.log('network serving', url, reqHeaders)
 		}
 		const download = new global.Download({
 			url,
 			retries: 5,
-			keepalive: this.committed && global.config.get('use-keepalive'),
 			headers: reqHeaders,
+			authURL: this.opts.authURL || false, 
+			keepalive: this.committed && global.config.get('use-keepalive'),
 			followRedirect: this.opts.followRedirect
 		})
 		this.connections[uid] = {response, download}
@@ -319,19 +323,12 @@ class StreamerProxy extends StreamerProxyBase {
 			if(statusCode >= 200 && statusCode < 300){ // is data response
 				if(!headers['content-disposition'] || headers['content-disposition'].indexOf('attachment') == -1 || headers['content-disposition'].indexOf('filename=') == -1){
 					// setting filename to allow future file download feature
-					// using sanitize to prevent net::ERR_RESPONSE_HEADERS_MULTIPLE_CONTENT_DISPOSITION on bad filename
-					let filename = url.split('?')[0].split('/').filter(s => s).pop()
-					if(!filename || filename.indexOf('=') != -1){
-						filename = 'video'
-					}
-					if(filename.indexOf('.') == -1){
-						filename += '.mp4'
-					}
-					headers['content-disposition'] = 'attachment; filename="' + sanitize(filename) + '"'
+					// will use sanitize to prevent net::ERR_RESPONSE_HEADERS_MULTIPLE_CONTENT_DISPOSITION on bad filename
+					headers['content-disposition'] = 'attachment; filename="' + global.filenameFromURL(url) + '"'
 				}
-				if(this.type == 'network-proxy' && headers['content-length'] && !headers['content-range']){
-					let len = parseInt(headers['content-length'])
-					headers['content-range'] = 'bytes 0-'+ (len - 1) +'/'+ len
+				let len = parseInt(headers['content-length'])
+				if(len && typeof(headers['content-range']) == 'undefined'){
+					headers['content-range'] = 'bytes 0-'+ (len - 1) +'/'+ len // improve upnp compat
 				}
 				if(req.method == 'HEAD'){
 					if(this.debug){
@@ -384,13 +381,13 @@ class StreamerProxy extends StreamerProxyBase {
 					location = this.proxify(this.absolutize(headers.location, url))
 				}
 				if(fallback){
-					headers['location'] = fallback
+					headers.location = fallback
 					response.writeHead(301, headers)
 					if(this.debug){
 						this.debug('download sent response headers', 301, headers)
 					}
 				} else if(location){
-					headers['location'] = location
+					headers.location = location
 					statusCode = (statusCode >= 300 && statusCode < 400) ? statusCode : 307
 					response.writeHead(statusCode, headers)		
 					if(this.debug){
@@ -431,14 +428,20 @@ class StreamerProxy extends StreamerProxyBase {
 		if(!headers['content-type']){
 			headers['content-type'] = 'application/x-mpegURL'
 		}	
-		if(typeof(this.playlistBitrates[url]) != 'undefined' && this.bitrates.length < this.opts.bitrateCheckingAmount){
+		if(typeof(this.playlistBitrates[url]) != 'undefined' && typeof(this.playlistBitratesSaved[url]) == 'undefined'){
+			this.playlistBitratesSaved[url] = true
+			Object.values(this.playlistBitrates).forEach(n => {
+				if(this.bitrates.includes(n)){
+					this.bitrates = this.bitrates.filter(b => b != n)
+				}
+			})
 			this.saveBitrate(this.playlistBitrates[url])
 		}
 		headers = this.removeHeaders(headers, ['content-length']) // we'll change the content
-		headers = this.addCachingHeaders(headers, 4) // set a min cache to this m3u8 to prevent his overfetching
+		headers = this.addCachingHeaders(headers, 6) // set a min cache to this m3u8 to prevent his overfetching
 		download.once('end', data => {
 			if(data.length > 12){
-				data = this.proxifyM3U8(String(data), url)
+				data = this.proxifyM3U8(String(data), download.currentURL)
 				headers['content-length'] = data.length
 				if(!response.headersSent){
 					response.writeHead(statusCode, headers)
@@ -482,7 +485,7 @@ class StreamerProxy extends StreamerProxyBase {
 			response.writeHead(statusCode, headers)
 		}
 		let initialOffset = download.requestingRange ? download.requestingRange.start : 0, offset = initialOffset
-		let sampleCollected, doBitrateCheck = this.committed && this.bitrates.length < this.opts.bitrateCheckingAmount
+		let sampleCollected, doBitrateCheck = this.committed && this.type != 'network-proxy' && this.bitrates.length < this.opts.bitrateCheckingAmount
 		let onend = () => {
 			//console.warn('download ended')
 			if(doBitrateCheck){

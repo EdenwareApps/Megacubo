@@ -25,10 +25,6 @@ class StreamerAdapterTS extends StreamerAdapterBase {
 			this.source.start().then(resolve).catch(reject)
 		})
 	}
-	speed(){
-		this.downloadLogging = this.source.downloadLogging
-		return super.currentSpeed
-	}
 }
 
 module.exports = StreamerAdapterTS

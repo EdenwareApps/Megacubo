@@ -64,9 +64,6 @@ class ExplorerModal extends ExplorerPointer {
 		temp.innerHTML = html;
 		return temp.textContent; // Or return temp.innerText if you need to return only visible text. It's slower.
 	}
-    time(){
-        return ((new Date()).getTime() / 1000)
-    }
 	inModal(){
 		return this.body.hasClass('modal')
 	}
@@ -77,9 +74,9 @@ class ExplorerModal extends ExplorerPointer {
 		sound('warn', 16)
 		this.emit('pre-modal-start')
 		this.modalContent.innerHTML = content
+		this.body.addClass('modal')
 		mandatory && this.body.addClass('modal-mandatory')
 		this.inputHelper.start()
-		this.body.addClass('modal')
 		this.reset()
 	}
 	endModal(){
@@ -247,7 +244,7 @@ class ExplorerDialog extends ExplorerDialogQueue {
 	text2id(txt){
 		return txt.toLowerCase().replace(new RegExp('[^a-z0-9]+', 'g'), '')
 	}
-	dialog(entries, cb, defaultIndex){
+	dialog(entries, cb, defaultIndex, mandatory){
 		this.queueDialog(() => {
 			console.log('DIALOG', entries, traceback(), cb)
 			let html = '', opts = '', complete, callback = k => {
@@ -313,7 +310,7 @@ class ExplorerDialog extends ExplorerDialogQueue {
 				html += this.replaceTags(this.modalTemplates['options-group'], {opts}, true)
 			}
 			console.log('MODALFOCUS', defaultIndex, validatedDefaultIndex)
-			this.startModal('<div class="modal-wrap"><div>' + html + '</div></div>')
+			this.startModal('<div class="modal-wrap"><div>' + html + '</div></div>', mandatory)
 			let m = this.modalContent
 			entries.forEach(e => {
 				let p = m.querySelector('#modal-template-option-' + e.id+', #modal-template-option-detailed-' + e.id)
@@ -770,8 +767,8 @@ class Explorer extends ExplorerLoading {
 		this.app.on('info', (a, b, c, d) => {
 			this.info(a, b, c, d)
 		})
-		this.app.on('dialog', (a, b, c) => {
-			this.dialog(a, b, c)
+		this.app.on('dialog', (a, b, c, d) => {
+			this.dialog(a, b, c, d)
 		})
 		this.app.on('prompt', (...args) => {
 			this.prompt.apply(this, args)
@@ -833,7 +830,7 @@ class Explorer extends ExplorerLoading {
 		<span class="entry-data-in">
 			<span class="entry-name" aria-hidden="true">
 				<span class="entry-status-flags"></span>
-				<label>{name}</label>
+				<label>{prepend}{name}</label>
 			</span>
 			<span class="entry-details">{details}</span>
 		</span>
@@ -848,7 +845,7 @@ class Explorer extends ExplorerLoading {
 		<span class="entry-data-in">			
 			<span class="entry-name" aria-hidden="true">
 				<span class="entry-status-flags"></span>
-				<label>{name}</label>
+				<label>{prepend}{name}</label>
 			</span>
 			<span class="entry-details">{details} {value}</span>
 		</span>
@@ -863,7 +860,7 @@ class Explorer extends ExplorerLoading {
 		<span class="entry-data-in">		
 			<span class="entry-name" aria-hidden="true">
 				<span class="entry-status-flags"></span>
-				<label>{name}</label>
+				<label>{prepend}{name}</label>
 			</span>
 			<span class="entry-details">{value}</span>
 		</span>
@@ -1111,19 +1108,21 @@ class Explorer extends ExplorerLoading {
 	}
 	open(element){
 		this.focus(element, true)
-		let timeToLock = 3, path = element.getAttribute('data-path'), type = element.getAttribute('data-type')
-		if(this.lastOpenedElement == element && ['back', 'action', 'stream', 'group'].indexOf(type) != -1 && ((this.lastOpenedElementTime + timeToLock) > this.time())){
+		let timeToLock = 5, path = element.getAttribute('data-path'), type = element.getAttribute('data-type'), tabindex = element.tabIndex || 0
+		if(type == 'spacer'){
+			type = this.currentEntries[tabindex].type
+		}
+		if(this.lastOpenedElement == element && ['back', 'stream', 'group'].includes(type) && ((this.lastOpenedElementTime + timeToLock) > time())){
 			if(this.debug){
 				console.log('multi-click prevented')
 			}
 			return
 		}
 		this.lastOpenedElement = element
-		this.lastOpenedElementTime = this.time()
+		this.lastOpenedElementTime = time()
 		this.j(element).one('blur', () => {
 			this.lastOpenedElement = null
 		})
-		let tabindex = element.tabIndex
 		switch(type){
 			case 'back':
 				sound('click-out', 3)

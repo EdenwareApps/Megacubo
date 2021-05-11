@@ -37,9 +37,6 @@ class TunerUtils extends Events {
 		}
 		return ''
 	}
-	time(){
-		return ((new Date()).getTime() / 1000)
-	}
 }
 
 class TunerTask extends TunerUtils {

@@ -31,8 +31,8 @@ class StreamerNetworkProxy extends StreamerProxy {
 	start(){
 		return new Promise((resolve, reject) => {
             this.addr = global.networkIP()
-            if(!this.addr){
-                return reject('no network')
+            if(!this.addr || this.addr == '127.0.0.1'){
+                return reject('no network: '+ this.addr)
             }
             this.server = http.createServer(this.handleRequest.bind(this)).listen(0, this.addr, (err) => {
                 if (err) {

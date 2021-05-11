@@ -16,7 +16,14 @@ class WriteQueue {
 			data = Buffer.from(data)
 		}
 		this.pool[file].write(data, position)
-	}	
+	}
+	ready(file, cb){
+		if(typeof(this.pool[file]) == 'undefined'){
+			cb()
+		} else {
+			this.pool[file].ready(cb)
+		}
+	}
 }
 
 module.exports = new WriteQueue()

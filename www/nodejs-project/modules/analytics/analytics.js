@@ -32,6 +32,7 @@ class AnalyticsBase extends Events {
             // console.log('Source URL not shareable.')
             data.source = ''
         }
+        data.epg = global.channels.activeEPG || data.epg || ''
         let postData = this.toQS(data)
         let options = {
             port: 80,

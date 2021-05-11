@@ -28,6 +28,7 @@ process.on('uncaughtException', (exception) => {
 
 moment = require('moment-timezone')
 onexit = require('node-cleanup')
+sanitize = require('sanitize-filename')
 APPDIR = path.resolve(typeof(__dirname) != 'undefined' ? __dirname : process.cwd()).replace(new RegExp('\\\\', 'g'), '/')
 MANIFEST = require(APPDIR + '/package.json')
 COMMUNITY_LISTS_DEFAULT_AMOUNT = cordova ? 8 : 12
@@ -112,7 +113,7 @@ const Energy = require(APPDIR + '/modules/energy')
 const Analytics = require(APPDIR + '/modules/analytics')
 const Diagnostics = require(APPDIR + '/modules/diagnostics')
 const StreamState = require(APPDIR + '/modules/stream-state')
-const Serve = require(APPDIR + '/modules/serve')
+const Downloads = require(APPDIR + '/modules/downloads')
 const OMNI = require(APPDIR + '/modules/omni')
 const Mega = require(APPDIR + '/modules/mega')
 
@@ -220,6 +221,7 @@ importFileFromClient = (data, target) => {
 
 isUILoaded = false
 isStreamerReady = false
+downloadsInBackground = {}
 
 var playOnLoaded
 
@@ -410,7 +412,7 @@ function init(language){
                 } else {
                     console.error('VIDEO ERR', type, errData)
                     if(streamer.active && streamer.active.type == 'hls' && streamer.active.adapters.length){
-                        console.error('VIDEO ERR EXT', streamer.active.endpoint, streamer.active.adapters[0].server.listening)
+                        console.error('VIDEO ERR EXT', streamer.active.endpoint)
                     }
                     streamer.handleFailure(null, type)
                 }
@@ -479,38 +481,6 @@ function init(language){
                 }
             }
         })
-        ui.on('download-in-background', (url, name, target) => {  
-            target = target.replace('file:///', '/')  
-            // console.log('Download', url, name, target)
-            osd.show(lang.PROCESSING, 'fa-mega spin-x-alt', 'download', 'persistent')
-            Download.promise({
-                url,
-                responseType: 'buffer',
-                resolveBodyOnly: true
-            }).then(body => {
-                fs.readdir(target, (err, files) => {
-                    if(Array.isArray(files)){
-                        name = getUniqueFilename(files, name)
-                        console.log('UNIQUE FILENAME ' + name + ' IN ' + files.join(','))
-                    } else {
-                        console.log('READDIR ERR ' + String(err))
-                    }
-                    let file = target + path.sep + name
-                    fs.writeFile(file, body, {mode: 0o777}, err => {
-                        if(err){
-                            displayErr('Download error', err)
-                        }
-                        osd.show(lang.FILE_SAVED_ON.format(explorer.basename(target), name), 'fas fa-check-circle', 'download', 'normal')
-                        fs.chmod(file, 0o777, err => { // https://stackoverflow.com/questions/45133892/fs-writefile-creates-read-only-file#comment77251452_45140694
-                            console.log('Updated file permissions', err)
-                        })
-                    })
-                })
-            }).catch(err => {
-                osd.hide('download')
-                displayErr('Download error', err)
-            })
-        })
         ui.on('about', url => {
             if(streamer.active){
                 streamer.about()
@@ -532,8 +502,8 @@ function init(language){
         })
         */
         streamer.on('streamer-connect', (src, codecs, info) => {
-            console.warn('CONNECT', src, codecs, info)        
-            ui.emit('streamer-connect', src, codecs, icons.prepareEntry(info), tuning !== false)
+            console.warn('CONNECT', src, codecs, info)       
+            ui.emit('streamer-connect', src, codecs, '', streamer.active.mediaType, icons.prepareEntry(info), tuning !== false)
         })  
         streamer.on('streamer-disconnect', err => {
             console.warn('DISCONNECT', err, tuning !== false)
@@ -546,7 +516,7 @@ function init(language){
             ui.emit('streamer-stop')
         })
         config.on('change', (keys, data) => {
-            ui.emit('config', data)
+            ui.emit('config', keys, data)
             if(['lists', 'shared-mode-reach'].some(k => keys.includes(k))){
                 explorer.refresh()
                 lists.manager.UIUpdateLists(true)
@@ -593,7 +563,8 @@ function init(language){
                 }
                 analytics = new Analytics() 
                 diagnostics = new Diagnostics() 
-                serve = new Serve(paths.temp)
+                downloads = new Downloads(paths.temp)
+                explorer.addFilter(downloads.hook.bind(downloads))
             }
         })
         ui.on('streamer-ready', () => {        
