@@ -325,8 +325,7 @@ class Downloads extends Events {
 			global.ui.emit('background-mode-lock', 'saving-file-'+ uid)
 			global.osd.show(global.lang.SAVING_FILE_X.format(name), 'fa-mega spin-x-alt', uid, 'normal')
 			const file = target +'/'+ name
-			const writer = new FileWriter(file)
-			const download = new global.Download({
+			const writer = new FileWriter(file), download = new global.Download({
 				url,
 				keepalive: false,
 				retries: 999,

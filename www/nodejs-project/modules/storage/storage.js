@@ -65,7 +65,10 @@ class StorageAsync extends StorageBase {
 		key = this.prepareKey(key)
 		if(global.isExiting){
 			this.setSync(key, val, expiration)
-			return cb()
+			if(typeof(cb) == 'function'){
+				cb()
+			}
+			return
 		}
 		this.queue.add(key, this._set.bind(this, key, val, expiration, cb))
 	}

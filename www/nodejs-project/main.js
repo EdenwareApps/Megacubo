@@ -593,6 +593,9 @@ function init(language){
             console.warn('Client closed!')
             energy.exit()
         })
+        ui.once('exit', () => {
+            process.exit(0)
+        })
         ui.on('suspend', () => { // cordova only
             if(streamer.active && !config.get('miniplayer-auto')){
                 streamer.stop()

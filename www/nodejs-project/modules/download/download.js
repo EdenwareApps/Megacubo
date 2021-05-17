@@ -33,7 +33,6 @@ class Download extends Events {
 			this.opts.headers['accept'] = 'application/json,text/*;q=0.99'
 		}
 		this.buffer = []
-		this.failed = false
 		this.retryCount = 0
 		this.received = 0
 		this.receivedUncompressed = 0
@@ -250,6 +249,7 @@ class Download extends Events {
 		return headers
 	}
 	parseResponse(response){
+		if(this.destroyed) return
 		if(this.opts.debug){
 			console.log('>> Download response', response.statusCode, JSON.stringify(response.headers), this.currentURL, this.retryCount)
 		}
@@ -431,7 +431,7 @@ class Download extends Events {
 						}
 					}
 				})
-				if(this.opts.debug){
+				if(this.opts.debug && !this.destroyed){
 					console.log('>> Download receiving response', this.opts.url)
 				}
 			}
@@ -490,6 +490,9 @@ class Download extends Events {
 					console.error('406 error', response.headers, this.opts.url)
 				}
 				if(this.opts.authErrorCodes.includes(response.statusCode)){
+					if(this.retryDelay < 1000){
+						this.retryDelay = 1000
+					}
 					this.authErrors++
 					if(this.authErrors >= this.opts.maxAuthErrors){
 						finalize = true
@@ -546,7 +549,7 @@ class Download extends Events {
 		if(!Download.isNetworkConnected){
 			retry = false
 		} else if(this.destroyed || this.ended){
-			return this._destroy()
+			return this.destroy()
 		} else if(this.opts.permanentErrorCodes.includes(this.statusCode) || this.retryCount >= this.opts.retries) { // no more retrying, permanent error
 			retry = false
 		} else if(
@@ -652,27 +655,27 @@ class Download extends Events {
 			}
 			if(!this.isResponseCompressed || this.decompressEnded || !this.decompressor){
 				this.emit('end', this.prepareOutputData(this.buffer))
-				this._destroy()
+				this.destroy()
 			} else {
 				this.decompressor.on('error', err => {
 					console.error('zlib err', err, this.currentURL)
 					this.emit('end', this.prepareOutputData(this.buffer))
-					this._destroy()
+					this.destroy()
 				})
 				this.decompressor.on('finish', () => {
 					console.log('decompressor end', this.buffer)
 					this.emit('end', this.prepareOutputData(this.buffer))
-					this._destroy()
+					this.destroy()
 				})
 				this.decompressor.flush()
 				this.decompressor.end()
 			}
 		}
 	}
-	_destroy(){
+	destroy(){
 		if(!this.destroyed){
 			if(this.opts.debug){
-				console.log('_destroy')
+				console.log('destroy')
 			}
 			if(this.decompressor){
 				this.decompressor.end()
@@ -686,12 +689,6 @@ class Download extends Events {
 			this.removeAllListeners()
 			this.buffer = []
 		}
-	}
-	destroy(){
-		if(this.opts.debug){
-			console.log('destroy')
-		}
-		this._destroy()
 	}
 }
 

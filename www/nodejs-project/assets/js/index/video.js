@@ -647,6 +647,10 @@ class WinMan extends EventEmitter {
 				plugins.megacubo.restartApp()
 			})
 		} else { // nwjs
+			let w = this.getAppWindow()
+			if(w){
+				w.app.emit('exit')
+			}
 			top.Manager.restart()
 		}
 	}
@@ -661,6 +665,11 @@ class WinMan extends EventEmitter {
 			}
 		} else {
 			this.exitUI()
+			let w = this.getAppWindow()
+			if(w){
+				w.app.emit('exit')
+			}
+			return
 			if(navigator.app){ // cordova
 				navigator.app.exitApp()
 			} else { // nwjs
@@ -883,13 +892,7 @@ class NWJSMiniplayer extends MiniPlayerBase {
 					this.pip.win.minimize()
 				}
 			}
-			this.pip.closeWindow = () => {
-				if(this.backgroundModeLocks.length){
-					this.pip.goToTray()
-				} else {
-					this.pip.close()
-				}
-			}
+			this.pip.closeWindow = () => this.exit()
 			this.pip.on('miniplayer-on', () => this.set(true))
 			this.pip.on('miniplayer-off', () => this.set(false))
 			window.addEventListener('resize', () => {

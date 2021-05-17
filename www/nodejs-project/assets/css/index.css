@@ -406,9 +406,8 @@ div#home-arrows > div > * {
     align-items: center;				
     justify-content: center;
     color: var(--font-color);
-    background: linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.5) 80%, rgba(0, 0, 0, 0.25) 90%, transparent 100%);
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0.25) 80%, rgba(0, 0, 0, 0.125) 90%, transparent 100%);
     font-size: var(--controls-button-height);
-    opacity: 0.75;
 }
 div#seek-back, div#seek-fwd {
     font-size: var(--controls-button-height);    
@@ -422,7 +421,10 @@ div#seek-back > span, div#seek-fwd > span {
 div#audio-layer {
     font-size: calc(1.5 * var(--controls-height));
 }
-body.audio:not(.video-paused):not(.video-ended):not(.seek-back):not(.seek-fwd):not(.casting) div#audio-layer {
+body.audio:not(.video-paused):not(.video-ended):not(.video-loading):not(.seek-back):not(.seek-fwd):not(.casting) div#audio-layer {
+    display: flex;
+}
+body.video-loading:not(.video-paused):not(.menu-playing):not(.video-ended):not(.seek-back):not(.seek-fwd):not(.casting) div#loading-layer {
     display: flex;
 }
 body.video.seek-back div#seek-back {
@@ -431,12 +433,32 @@ body.video.seek-back div#seek-back {
 body.video.seek-fwd div#seek-fwd {
     display: flex;
 }
+div#loading-layer {
+    flex-direction: column;
+}
+div#loading-layer i.fa-mega {
+    font-size: 150%;
+}
+div#loading-layer > span {
+    height: 0;
+}
+div#loading-layer > span > span {
+    font-size: var(--explorer-entry-name-font-size);
+    background: var(--modal-background-color);
+    padding: var(--padding) calc(2 * var(--padding));
+    border-radius: 25vmin;
+    position: relative;
+    top: -4vmin;
+}
+div#loading-layer > span > span > span {
+    margin-left: var(--padding);
+}
 .control-layer svg, .control-layer i {
     filter: drop-shadow(0 0 0.75vmin black);
     margin-top: calc(var(--explorer-padding-top) / 2);
     margin-left: calc(var(--explorer-padding-left) / 2);
-    mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.9) 50%, rgba(0, 0, 0, 0.2) 100%);
-    -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.9) 50%, rgba(0, 0, 0, 0.2) 100%);
+    mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.9) 80%, rgba(0, 0, 0, 0.3) 100%);
+    -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.9) 80%, rgba(0, 0, 0, 0.3) 100%);
 }
 body:not(.video).miniplayer-cordova div#paused-layer {
     display: flex;
@@ -447,7 +469,7 @@ body:not(.video).miniplayer-cordova div#paused-layer {
 body.video-paused:not(.menu-playing):not(.seek-back):not(.seek-fwd) div#paused-layer, body.video-ended:not(.menu-playing):not(.seek-back):not(.seek-fwd) div#paused-layer {
     display: flex;
 }
-body.video-paused div#audio-layer, body.video-ended div#audio-layer {
+body.video-paused div#audio-layer, body.video-ended div#audio-layer, body.video-loading div#audio-layer {
     display: none !important;
 }
 body.fullscreen.idle {
@@ -519,7 +541,7 @@ seekbar label {
     transition: color 0.5s linear 0s;
     overflow: hidden;
 }
-body.audio:not(.miniplayer-cordova) controls, body.casting controls, body.video-playing:not(.idle):not(.menu-playing):not(.miniplayer-cordova) controls, body.video-loading:not(.miniplayer-cordova):not(.menu-playing) controls, body.video-paused:not(.miniplayer-cordova):not(.menu-playing) controls, body.video-ended:not(.miniplayer-cordova):not(.menu-playing) controls {
+body.audio:not(.miniplayer-cordova) controls, body.casting controls, body.video-playing:not(.idle):not(.menu-playing):not(.miniplayer-cordova) controls, body.video-paused:not(.miniplayer-cordova):not(.menu-playing) controls, body.video-ended:not(.miniplayer-cordova):not(.menu-playing) controls, body.video-loading:not(.miniplayer-cordova):not(.menu-playing):not(.idle) controls {
     bottom: 0;
     transform: none;
 }

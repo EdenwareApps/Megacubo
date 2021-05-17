@@ -101,10 +101,23 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 		*/
     }
     prepareErrorData(data){
-        return {type: data.type || 'playback', details: data.details || ''}
+        return {
+			type: data.type || 'playback', 
+			details: this.prepareErrorDataStr(data)
+		}
     }
     prepareErrorDataStr(data){
-        return (typeof(data) != 'string' && data.details) ? data.details : String(data)
+        if(typeof(data) != 'string' && data.details){
+			if(data.err){
+				let err = String(data.err)
+				if(err){
+					return err
+				}
+			}
+			return data.details
+		} else {
+			return String(data)
+		}
     }
     loadHLS(cb){
 		if(!this.hls){
@@ -118,6 +131,8 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 				maxMaxBufferLength: 120,
 				/*
 				debug: true,
+				progressive: true,
+				lowLatencyMode: false,
 				enableSoftwareAES: false,
 				nudgeMaxRetry: 12,
 				maxSeekHole: 30,
@@ -214,8 +229,12 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 							}
 							break
 						case Hls.ErrorDetails.BUFFER_APPEND_ERROR:
-							console.error('Buffer append error', parseInt(this.object.duration))
+							let errStr = this.prepareErrorDataStr(data)
+							console.error('Buffer append error', errStr)
 							// it happens when handleNetworkError is in progress, ignore
+							if(errStr.indexOf('This SourceBuffer has been removed') != -1){
+								this.hls.recoverMediaError()
+							}
 							break
 						case Hls.ErrorDetails.BUFFER_FULL_ERROR:
 							console.error('Buffer full error')
@@ -231,6 +250,15 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 							break
 						case Hls.ErrorDetails.BUFFER_STALLED_ERROR:
 							console.error('Buffer stalled error', parseInt(this.object.duration))
+							if(this.object.buffered.length){
+								// https://github.com/video-dev/hls.js/issues/3905
+								const start = this.object.buffered.start(0)
+							 	if(this.object.currentTime < start){
+									console.log('fixed by seeking from', this.object.currentTime, 'to', start)
+									this.object.currentTime = start
+									return
+								}
+							}
 							// not fatal, would not be needed to handle, BUT, the playback hangs even it not saying that it's a fatal error, so call handleNetworkError(/*startLoad()*/) to ensure
 							let time = this.object.currentTime, duration = this.object.duration			
 							if((duration - time) > this.config['live-window-time']){
@@ -245,9 +273,10 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 								this.hls.startLoad()
 							} else if((duration - time) < 1){
 								console.log('out of buffer, trust on hls.js', time, duration, this.config)
-								// ...
+								this.hls.startLoad()
 							} else {
 								console.log('in live window, trust on hls.js', time, duration, this.config)
+								this.hls.startLoad()
 							}
 							break
 						case Hls.ErrorDetails.BUFFER_NUDGE_ON_STALL:
@@ -270,13 +299,9 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 					})
 				}
 			})
-			this.hls.on(Hls.Events.MEDIA_ATTACHED, () => {
-				cb()
-			})
 			this.hls.attachMedia(this.object)
-		} else {
-			cb()
 		}
+		cb()
 	}	
 	restart(){
 		this.disconnect()

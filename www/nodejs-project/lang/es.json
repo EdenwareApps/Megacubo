@@ -95,6 +95,7 @@
 "CHOOSE_STREAM": "Elija transmisión",
 "TRY_OTHER_STREAM": "Cambiar transmisión",
 "RECORDING_TOO_SHORT": "Grabación muy corta",
+"RECORDING_RECODE_ON_JOINING": "Recodar al guardar grabación HLS",
 "SHARE": "Compartir",
 "SEARCH_FOR": "Buscar por...",
 "ADULT_SEARCH": "Búsqueda adulta",

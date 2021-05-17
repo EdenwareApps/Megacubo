@@ -95,6 +95,7 @@
 "CHOOSE_STREAM": "Escolher transmissão",
 "TRY_OTHER_STREAM": "Trocar transmissão",
 "RECORDING_TOO_SHORT": "Gravação muito curta",
+"RECORDING_RECODE_ON_JOINING": "Recodifique ao salvar gravação HLS",
 "SHARE": "Compartilhar",
 "SEARCH_FOR": "Pesquisar por...",
 "ADULT_SEARCH": "Pesquisa adulta",

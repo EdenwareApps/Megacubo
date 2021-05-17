@@ -135,7 +135,7 @@ class StreamerTools extends Events {
 					//console.warn('PROBED', ret)
 					let delay = 2000, cl = ret.headers['content-length'] || -1, ct = ret.headers['content-type'] || '', st = ret.status || 0
 					if(st < 200 || st >= 400){
-						reject('Failed to connect, error: ' + st)
+						reject(st)
 					} else {
 						if(ct){
 							ct = ct.split(',')[0].split(';')[0]
@@ -155,7 +155,8 @@ class StreamerTools extends Events {
 							}
 						}
 						if(ct.substr(0, 4) == 'text'){
-							reject('Bad content type: ' + ct)
+							console.error('Bad content type: ' + ct)
+							reject(404)
 						} else {
 							ret.status = st
 							ret.contentType = ct.toLowerCase()
@@ -192,11 +193,11 @@ class StreamerTools extends Events {
 						ret.isLocalFile = true
 						resolve(ret)
 					} else {
-						reject('file not found')
+						reject(global.lang.NOT_FOUND)
 					}
 				})
 			} else {
-				reject('invalid url')
+				reject(global.lang.INVALID_URL)
 			}
 		})
 	}
@@ -1056,7 +1057,7 @@ class Streamer extends StreamerAbout {
 			default:
 				msg = r
 				let code = msg.match(new RegExp('error:? ([0-9]+)'))
-				code = (code && code.length) ? code[1] : msg
+				code = String((code && code.length) ? code[1] : msg)
 				switch(code){
 					case '0':
 						msg = global.lang.PLAYBACK_TIMEOUT

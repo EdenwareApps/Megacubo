@@ -88,7 +88,6 @@ class StreamerOSD extends StreamerPlaybackTimeout {
                     }
                     break
                 case 'loading':
-                    osd.show(lang.LOADING, this.data.servedIcon || '', this.osdID, 'persistent')
                     clearTimeout(this.transmissionNotWorkingHintTimer)
                     this.transmissionNotWorkingHintTimer = setTimeout(() => {
                         if(this.active){
@@ -210,22 +209,15 @@ class StreamerState extends StreamerCasting {
                 switch(this.state){
                     case 'paused':
                         this.controls.querySelector('.play-button').style.display = 'block'
-                        this.controls.querySelector('.loading-button').style.display = 'none'
                         this.controls.querySelector('.pause-button').style.display = 'none'
                         break
                     case 'loading':
-                        this.controls.querySelector('.play-button').style.display = 'none'
-                        this.controls.querySelector('.loading-button').style.display = 'block'
-                        this.controls.querySelector('.pause-button').style.display = 'none'
-                        break
                     case 'playing':
                         this.controls.querySelector('.play-button').style.display = 'none'
-                        this.controls.querySelector('.loading-button').style.display = 'none'
                         this.controls.querySelector('.pause-button').style.display = 'block'
                         break
                     case 'ended':                    
                         this.controls.querySelector('.play-button').style.display = 'block'
-                        this.controls.querySelector('.loading-button').style.display = 'none'
                         this.controls.querySelector('.pause-button').style.display = 'none'
                         break
                     case 'error':                    
@@ -419,13 +411,13 @@ class StreamerSpeedo extends StreamerIdle {
     constructor(controls, app){
         super(controls, app)
         this.invalidSpeeds = ['N/A', 0]
+        this.speedoLabel = document.querySelector('#loading-layer > span > span')
         this.on('state', state => {
             switch(state){
                 case 'loading':
                     this.speedoUpdate()
                     break
                 case 'playing':
-                    this.seekBarUpdate(true)
                     if(!this.speedoDurationReported && !this.inLiveStream){
                         let duration = parent.player.duration()
                         if(duration && duration > 0){
@@ -434,14 +426,8 @@ class StreamerSpeedo extends StreamerIdle {
                         }
                     }
                     break
-                case 'paused':
-                    this.seekbarLabel.innerHTML = lang.PAUSED
-                    break
-                case 'ended':
-                    this.seekbarLabel.innerHTML = lang.ENDED
-                    break
                 default:
-                    this.seekbarLabel.innerHTML = lang.WAITING_CONNECTION
+                    this.speedoSemSet(1, lang.WAITING_CONNECTION)
             }
         })
         this.on('start', () => {
@@ -464,7 +450,8 @@ class StreamerSpeedo extends StreamerIdle {
             this.bitrate = bitrate
             this.speedoUpdate()
         })
-        navigator.connection.addEventListener('change', () => {            
+        navigator.connection.addEventListener('change', () => { // seems not reliable, so we'll be sending downlink in other moments too        
+            console.log('NAVIGATOR.CONNECTION CHANGED!!!')
             this.speedoUpdate()
             this.app.emit('downlink', this.downlink())
         })
@@ -480,21 +467,23 @@ class StreamerSpeedo extends StreamerIdle {
         if(minimal && downlink < minimal){
             downlink = minimal
         }
+        if(downlink != this.latestDownlink){
+            this.latestDownlink = downlink
+            this.app.emit('downlink', downlink)
+        }
         return downlink
     }
     speedoReset(){
-        this.seekbarLabel.innerHTML = lang.WAITING_CONNECTION
-        this.speedoSemSet(1)
+        this.speedoSemSet(1, lang.WAITING_CONNECTION)
     }
     speedoUpdate(){
         if(!parent.player.state){
             return
         }
-        let starting = !this.commitTime || (time() - this.commitTime) < 10
+        let semSet, starting = !this.commitTime || (time() - this.commitTime) < 10
         let lowSpeedThreshold = (250 * 1024) /* 250kbps */, downlink = this.downlink(this.currentSpeed)
         if(this.invalidSpeeds.includes(this.currentSpeed)) {
-            this.seekbarLabel.innerHTML = lang.WAITING_CONNECTION
-            this.speedoSemSet(1)
+            this.speedoSemSet(1, lang.WAITING_CONNECTION)
         } else {
             let t = ''
             if(this.bitrate && !this.invalidSpeeds.includes(this.bitrate)){
@@ -509,46 +498,55 @@ class StreamerSpeedo extends StreamerIdle {
                 }
                 t += p + '%'
                 if(p < 80){
-                    t = '<span class="faclr-red">' + t + '</span>'
-                    this.speedoSemSet(2)
+                    semSet = 2
                 } else if(p < 100){
-                    t = '<span class="faclr-orange">' + t + '</span>'
-                    this.speedoSemSet(1)
+                    semSet = 1
                 } else {
-                    t = '<span class="faclr-green">' + t + '</span>'
-                    this.speedoSemSet(0)
+                    semSet = 0
+                    t = lang.STABLE_CONNECTION
                 }
             } else {
                 t += lang.SERVER_CONNECTION + ': ' + kbsfmt(this.currentSpeed)
                 if(this.currentSpeed <= lowSpeedThreshold){
                     if(starting){
                         t = lang.WAITING_CONNECTION
-                        this.speedoSemSet(1)
+                        semSet = 1
                     } else {
-                        t = '<span class="faclr-red">' + t + '</span>'
-                        this.speedoSemSet(2)
+                        semSet = 2
                     }
-                } else {                    
-                    this.speedoSemSet(1)
+                } else {                   
+                    semSet = 1
                 }
             }
-            if(parent.player.state == 'loading'){
-                this.seekbarLabel.innerHTML = t
-            }
+            this.speedoSemSet(semSet, t)
         }
     }
-    speedoSemSet(s){
+    speedoSemSet(s, txt){
         if(s !== this.currentSem){
+            const colors = ['green', 'orange', 'red']
             this.currentSem = s
             if(!this.speedoSemInfoButton){
                 this.speedoSemInfoButton = $(this.getPlayerButton('info'))
             }
-            ['green', 'orange', 'red'].forEach((color, i) => {
-                if(i == s){
-                    this.speedoSemInfoButton.addClass('faclr-'+ color)
-                } else {
-                    this.speedoSemInfoButton.removeClass('faclr-'+ color)
+            let prepend, fa = this.speedoLabel.querySelector('i')
+            if(!fa){
+                prepend = true
+                fa = document.createElement('i')
+            }
+            let cls = 'fas fa-circle faclr-'+ colors[s]
+            if(fa.className != cls) {
+                fa.className = cls
+                if(prepend){
+                    this.speedoLabel.prepend(fa)
                 }
+            }
+            let t = prepend ? document.createElement('span') : this.speedoLabel.querySelector('span')
+            if(prepend || t.innerText != txt){
+                t.innerText = txt
+            }
+            this.speedoLabel.appendChild(t)
+            colors.forEach((color, i) => {
+                this.speedoSemInfoButton[i == s ? 'addClass' : 'removeClass']('faclr-'+ color)
             })
         }
     }
@@ -584,6 +582,9 @@ class StreamerSeek extends StreamerSpeedo {
                 this.seekingFrom = null
                 console.log('removing seek layers', s)
                 this.jbody.removeClass('seek-back').removeClass('seek-fwd')
+                if(s == 'playing'){                    
+                    this.seekBarUpdate(true)
+                }
             }
         })
         parent.player.on('timeupdate', this.seekBarUpdate.bind(this))
@@ -746,6 +747,9 @@ class StreamerSeek extends StreamerSpeedo {
         parent.player.time(s)
         this.emit('after-seek', s)
         console.log('seeking prefwd ', diff, s, this.seekingFrom)
+        if(this.seekLayerRemoveTimer){
+            clearTimeout(this.seekLayerRemoveTimer)
+        }
         if(diff < 0){
             this.seekRewindLayerCounter.innerText = '-' + this.hmsMin(diff)
             this.jbody.removeClass('seek-fwd').addClass('seek-back')
@@ -757,6 +761,9 @@ class StreamerSeek extends StreamerSpeedo {
             console.log('removing seek layers', diff, s, this.seekingFrom)
             this.jbody.removeClass('seek-back').removeClass('seek-fwd')
         }
+        this.seekLayerRemoveTimer = setTimeout(() => {            
+            this.jbody.removeClass('seek-back').removeClass('seek-fwd')
+        }, 3000)
         this.seekBarUpdate(true, s)
     }
     seekRewind(steps=1){
@@ -780,7 +787,7 @@ class StreamerClientTimeWarp extends StreamerSeek {
     }
     doTimeWarp(){
         if(this.inLiveStream && config['playback-rate-control']){
-            let thresholds = {low: 8, high: 30}
+            let thresholds = {low: 10, high: config['live-window-time'] * 0.8}
             let rate = this.currentPlaybackRate
             let rates = {slow: 0.9, normal: 1, fast: 1.1}, time = parent.player.time(), duration = Math.max(time, parent.player.duration()), buffered = duration - time
             // generate intermediary values
@@ -1060,7 +1067,6 @@ class StreamerClientControls extends StreamerAudioUI {
     </div>         
 `
         this.addPlayerButton('play-pause', lang.PLAY +' / '+ lang.PAUSE, `
-            <i class="fa-mega spin-x-alt loading-button"></i>
             <i class="fas fa-play-circle play-button"></i>
             <i class="fas fa-pause-circle pause-button"></i>`, 0, () => {
             this.playOrPauseNotIdle()

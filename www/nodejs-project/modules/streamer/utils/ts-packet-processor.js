@@ -82,8 +82,8 @@ class TSPacketProcessor extends Events {
                                 this.buffering = []
                             } else {
                                 this.buffering = [buf]
+                                return null
                             }
-                            return null
                             break
                         }
                     }
@@ -220,6 +220,66 @@ class TSPacketProcessor extends Events {
             console.log('PCRLOG', pcrLog.join("\r\n"))
         }
         return ret
+    }
+    filter(buf){ // only adjust packet sizes and startByte
+        let pointer = 0, pcrs = {}
+        if(!this.checkSyncByte(buf, 0)){
+            pointer = this.nextSyncByte(buf, 0)
+            if(pointer == -1){
+                return Buffer.alloc(0)
+            }
+        }
+        let end, start = pointer
+        while(pointer >= 0 && (pointer + PACKET_SIZE) <= buf.length){
+            let offset = -1
+            if((pointer + PACKET_SIZE) < (buf.length + 4)){ // has a next packet start
+                if(!this.checkSyncByte(buf, pointer + PACKET_SIZE)){
+                    if(this.debug){
+                        console.log('bad syncByte for next packet')
+                    }
+                    offset = this.nextSyncByte(buf, pointer + PACKET_SIZE)
+                    if(offset != -1){
+                        if(!this.checkSyncByte(buf, offset)){
+                            offset = -1
+                            console.error('HARD TO FIND NEXT SYNC BYTE, ABORT')
+							break
+                        }
+                    }
+                }
+            }
+            let size = offset == -1 ? PACKET_SIZE : (offset - pointer)
+            if(size != PACKET_SIZE){
+                switch(this.packetFilterPolicy){
+                    case 1:
+                        if(this.debug){
+                            console.log('bad packet size: '+ size +', trimming it')
+                        }
+                        if(size < PACKET_SIZE){
+                            let padding = Buffer.alloc(PACKET_SIZE - size, '\0', 'utf8')
+                            buf = Buffer.concat([buf.slice(0, pointer), padding, buf.slice(pointer + size)])
+                        } else { 
+                            buf = Buffer.concat([buf.slice(0, pointer + PACKET_SIZE), buf.slice(pointer + size)]) // trim
+                        }
+                        size = PACKET_SIZE
+                        break
+                    case 2:
+                        if(this.debug){
+                            console.log('bad packet size: '+ size +', removing it')
+                        }
+                        buf = Buffer.concat([buf.slice(0, pointer), buf.slice(pointer + size)])
+                        size = 0
+                        break
+                    default:
+                        if(this.debug){
+                            console.log('bad packet size: '+ size +', bypassing it')
+                        }
+                }
+            }
+            if(!size) continue
+            pointer += size
+            end = pointer
+        }
+        return buf.slice(start, end)
     }
     isPCRDiscontinuity(pcr){
         let pcrGapLimit = 699999999

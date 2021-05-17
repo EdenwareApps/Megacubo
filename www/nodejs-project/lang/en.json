@@ -95,6 +95,7 @@
 "CHOOSE_STREAM": "Choose stream",
 "TRY_OTHER_STREAM": "Change stream",
 "RECORDING_TOO_SHORT": "Recording too short",
+"RECORDING_RECODE_ON_JOINING": "Recode when saving HLS recording",
 "SHARE": "Share",
 "SEARCH_FOR": "Search for...",
 "ADULT_SEARCH": "Adult search",
