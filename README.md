@@ -16,7 +16,7 @@ Want to use the software, go to [our releases folder](https://github.com/efoxbr/
 
 <br/>
 
-# Development
+# Development setup
 
 ### With Cordova:
 ```
@@ -48,3 +48,7 @@ node --inspect main.js
 ...now open your browser at http://localhost:13733/
 
 Any errors along the way? Let us know.
+
+# Contributing
+
+Please, feel free to contribute to the project by opening a discussion under Issues section or sending your PR.
