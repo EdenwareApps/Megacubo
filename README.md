@@ -49,6 +49,8 @@ node --inspect main.js
 
 Any errors along the way? Let us know.
 
+<br/>
+
 # Contributing
 
 Please, feel free to contribute to the project by opening a discussion under Issues section or sending your PR.
