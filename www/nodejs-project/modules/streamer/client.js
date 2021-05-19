@@ -525,26 +525,10 @@ class StreamerSpeedo extends StreamerIdle {
         if(s !== this.currentSem){
             const colors = ['green', 'orange', 'red']
             this.currentSem = s
+            this.speedoLabel.innerText = txt
             if(!this.speedoSemInfoButton){
                 this.speedoSemInfoButton = $(this.getPlayerButton('info'))
             }
-            let prepend, fa = this.speedoLabel.querySelector('i')
-            if(!fa){
-                prepend = true
-                fa = document.createElement('i')
-            }
-            let cls = 'fas fa-circle faclr-'+ colors[s]
-            if(fa.className != cls) {
-                fa.className = cls
-                if(prepend){
-                    this.speedoLabel.prepend(fa)
-                }
-            }
-            let t = prepend ? document.createElement('span') : this.speedoLabel.querySelector('span')
-            if(prepend || t.innerText != txt){
-                t.innerText = txt
-            }
-            this.speedoLabel.appendChild(t)
             colors.forEach((color, i) => {
                 this.speedoSemInfoButton[i == s ? 'addClass' : 'removeClass']('faclr-'+ color)
             })
@@ -720,12 +704,12 @@ class StreamerSeek extends StreamerSpeedo {
             this.seekBarUpdate(true)
         }
     }
-    seekTo(s){
+    seekTo(_s, type){
         if(!this.state) return
         if(typeof(this.seekingFrom) != 'number'){
             this.seekingFrom = parent.player.time()
         }
-        let minTime = 0, duration = parent.player.duration(), maxTime = Math.max(0, duration - 2)
+        let s = _s, minTime = 0, duration = parent.player.duration(), maxTime = Math.max(0, duration - 2)
         if(this.inLiveStream){
             minTime = duration - config['live-window-time']
             if(minTime < 0){
@@ -736,6 +720,16 @@ class StreamerSeek extends StreamerSpeedo {
             s = minTime
         } else if(s > maxTime){
             s = maxTime
+        }
+        if(type == 'rewind'){
+            if(this.seekingFrom < s){
+                s = this.seekingFrom
+            }
+        }
+        if(type == 'forward'){
+            if(this.seekingFrom > s){
+                s = this.seekingFrom
+            }
         }
         this.emit('before-seek', s)
         clearTimeout(this.seekTimer)

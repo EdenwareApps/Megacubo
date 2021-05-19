@@ -13,7 +13,7 @@ try {
 }
 
 Buffer = require('safe-buffer').Buffer
-const fs = require('fs'), path = require('path')
+const fs = require('fs'), path = require('path'), sanitizeFilename = require('sanitize-filename')
 
 process.on('warning', e => {
     console.warn(e, e.stack)
@@ -26,13 +26,14 @@ process.on('uncaughtException', (exception) => {
     return false
 })
 
-moment = require('moment-timezone')
-onexit = require('node-cleanup')
-sanitize = require('sanitize-filename')
 APPDIR = path.resolve(typeof(__dirname) != 'undefined' ? __dirname : process.cwd()).replace(new RegExp('\\\\', 'g'), '/')
 MANIFEST = require(APPDIR + '/package.json')
 COMMUNITY_LISTS_DEFAULT_AMOUNT = cordova ? 8 : 12
+
 tuning = false
+moment = require('moment-timezone')
+onexit = require('node-cleanup')
+sanitize = txt => sanitizeFilename(txt).replace(new RegExp('[^\x00-\x7F]+', 'g'), '')
 
 require(APPDIR + '/modules/supercharge')(global)
 

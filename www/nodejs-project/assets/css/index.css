@@ -206,6 +206,7 @@ body.video #explorer header .explorer-omni {
     display: inline-block;
     box-sizing: border-box;
     cursor: pointer;
+    font-size: var(--explorer-entry-name-font-size);
 }
 #explorer header .explorer-location-text {
     margin-top: calc(var(--padding) * -0.075);
@@ -443,15 +444,12 @@ div#loading-layer > span {
     height: 0;
 }
 div#loading-layer > span > span {
+    padding: var(--padding) calc(2 * var(--padding));
     font-size: var(--explorer-entry-name-font-size);
     background: var(--modal-background-color);
-    padding: var(--padding) calc(2 * var(--padding));
     border-radius: 25vmin;
     position: relative;
     top: -4vmin;
-}
-div#loading-layer > span > span > span {
-    margin-left: var(--padding);
 }
 .control-layer svg, .control-layer i {
     filter: drop-shadow(0 0 0.75vmin black);
@@ -461,8 +459,8 @@ div#loading-layer > span > span > span {
     -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.9) 80%, rgba(0, 0, 0, 0.3) 100%);
 }
 body:not(.video).miniplayer-cordova div#paused-layer {
-    display: flex;
     background-color: #000000;
+    display: flex;
     height: 100vh;
     opacity: 1;
 }

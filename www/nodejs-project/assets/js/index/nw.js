@@ -18,15 +18,15 @@ class FFMpeg {
 	constructor(){
 		this.childs = {}
 		this.executable = require('path').resolve('ffmpeg/ffmpeg')
+		if(process.platform == 'win32'){
+			this.executable += '.exe'
+			this.executable = this.executable.replace(new RegExp('\\\\', 'g'), '/')
+		}
 		if(this.executable.indexOf(' ') != -1){
 			this.executable = '"'+ this.executable +'"'
 			if(['darwin'].includes(process.platform)){
 				this.executable = this.executable.replace(new RegExp(' ', 'g'), '\\ ')
 			}
-		}
-		if(process.platform == 'win32'){
-			this.executable += '.exe'
-			this.executable = this.executable.replace(new RegExp('\\\\', 'g'), '/')
 		}
 		this.tmpdir = require('os').tmpdir()
 	}

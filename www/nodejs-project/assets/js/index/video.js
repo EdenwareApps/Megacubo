@@ -669,11 +669,8 @@ class WinMan extends EventEmitter {
 			if(w){
 				w.app.emit('exit')
 			}
-			return
 			if(navigator.app){ // cordova
 				navigator.app.exitApp()
-			} else { // nwjs
-				top.Manager.close()
 			}
 		}
 	}

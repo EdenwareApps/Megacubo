@@ -543,13 +543,13 @@ function initApp(){
                     console.log('SWIPE WEIGHT', swipeWeight)
                     switch(e.direction){
                         case 'left':
-                            if(explorer.inPlayer()){  
-                                arrowLeftPressed(true)
+                            if(explorer.inPlayer()){       
+                                arrowRightPressed(true) 
                             }
                             break
                         case 'right':                        
-                            if(explorer.inPlayer()){            
-                                arrowRightPressed(true)
+                            if(explorer.inPlayer()){   
+                                arrowLeftPressed(true)   
                             } else {
                                 escapePressed()
                             }
