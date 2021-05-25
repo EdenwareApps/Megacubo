@@ -37,16 +37,6 @@ npm --prefix ./www/nodejs-project install ./www/nodejs-project
 nw --nwapp=www/nodejs-project
 ```
 
-### With browser + node (>= 11.14.0):
-```
-git clone https://github.com/efoxbr/megacubo.git
-# put ffmpeg binary at ./megacubo/www/nodejs-project/ffmpeg/ (named as ffmpeg or ffmpeg.exe)
-cd megacubo/www/nodejs-project
-npm install
-node --inspect main.js
-```
-...now open your browser at http://localhost:13733/
-
 Any errors along the way? Let us know.
 
 <br/>
