@@ -419,5 +419,6 @@
 "DOWNLOAD_START_HINT": "Puede administrar las descargas activas en \"{0}\".",
 "DOWNLOAD_CANCEL_CONFIRM": "¿Quieres cancelar la descarga del archivo \"{0}\"?",
 "EPG_BAD_FORMAT": "La EPG configurada tiene un formato incorrecto",
-"EPG_OUTDATED": "La EPG configurada no está actualizada"
+"EPG_OUTDATED": "La EPG configurada no está actualizada",
+"VIDEOS": "Videos"
 }

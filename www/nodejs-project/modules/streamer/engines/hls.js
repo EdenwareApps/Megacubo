@@ -1,5 +1,5 @@
 const StreamerBaseIntent = require('./base.js'), StreamerProxy = require('../utils/proxy.js'), StreamerHLSProxy = require('../utils/proxy-hls.js')
-const fs = require('fs'), FFServer = require('../utils/ff-server'), async = require('async'), m3u8Parser = require('m3u8-parser')
+const fs = require('fs'), Any2HLS = require('../utils/any2hls'), async = require('async'), m3u8Parser = require('m3u8-parser')
 
 class HLSTrackSelector {
     constructor(){
@@ -117,7 +117,7 @@ class StreamerHLSIntent extends StreamerBaseIntent {
             }
             this.resetTimeout()
             this.transcoderStarting = true
-            this.transcoder = new FFServer(this.prx.proxify(this.trackUrl), opts)
+            this.transcoder = new Any2HLS(this.prx.proxify(this.trackUrl), opts)
             this.connectAdapter(this.transcoder)
             this.transcoder.on('destroy', () => {
                 if(!resolved){
@@ -154,7 +154,7 @@ class StreamerHLSIntent extends StreamerBaseIntent {
                     this.trackSelector.select(this.data.url).then(ret => {
                         this.trackUrl = ret.url     
                         console.log('TRACKS', this.trackUrl, ret, this.trackSelector.tracks)
-                        this.ff = new FFServer(this.prx.proxify(this.trackUrl), this.opts)
+                        this.ff = new Any2HLS(this.prx.proxify(this.trackUrl), this.opts)
                         this.connectAdapter(this.ff)
                         this.ff.opts.audioCodec = this.opts.audioCodec
                         this.ff.start().then(() => {

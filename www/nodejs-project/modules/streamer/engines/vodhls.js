@@ -1,4 +1,4 @@
-const StreamerBaseIntent = require('./base.js'), StreamerProxyHLS = require('../utils/proxy.js'), fs = require('fs'), FFServer = require('../utils/ff-server')
+const StreamerBaseIntent = require('./base.js'), StreamerProxyHLS = require('../utils/proxy.js'), fs = require('fs'), Any2HLS = require('../utils/any2hls')
 
 class StreamerVODHLSIntent extends StreamerBaseIntent {    
     constructor(data, opts, info){
@@ -22,7 +22,7 @@ class StreamerVODHLSIntent extends StreamerBaseIntent {
             }
             this.transcoderStarting = true
             this.resetTimeout()
-            this.transcoder = new FFServer(this.data.url, opts)
+            this.transcoder = new Any2HLS(this.data.url, opts)
             this.connectAdapter(this.transcoder)
             this.transcoder.start().then(() => {
                 this.transcoderStarting = false

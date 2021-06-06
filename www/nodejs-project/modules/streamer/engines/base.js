@@ -247,7 +247,7 @@ class StreamerBaseIntent extends Events {
     }
     startCapture(onData, onFinish){
         this.endCapture()
-        let a = this.findLowAdapter(null, ['joiner', 'downloader', 'proxy', 'ffserver']) // suitable adapters for capturing, by priority
+        let a = this.findLowAdapter(null, ['joiner', 'downloader', 'proxy', 'any2hls']) // suitable adapters for capturing, by priority
         if(a){
             this.capturing = [a, onData, onFinish]
             this.capturing[0].on('data', this.capturing[1])

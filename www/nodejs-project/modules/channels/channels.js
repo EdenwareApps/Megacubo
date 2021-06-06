@@ -22,10 +22,12 @@ class ChannelsData extends Events {
     }
     updateCategoriesCacheKey(){
         const adult = global.config.get('parental-control-policy') == 'only'
-        const useEPGChannels = !adult && this.activeEPG && global.config.get('epg-channels-list')
+        const useEPGChannels = !adult && global.config.get('epg') && global.config.get('epg-channels-list')
         let categoriesCacheKey = 'categories-'+ global.lang.locale
         if(useEPGChannels) {
-            categoriesCacheKey += '-epg'
+            if(this.activeEPG || global.rstorage.hasSync(categoriesCacheKey +'-epg')){
+                categoriesCacheKey += '-epg'
+            }
         } else if(adult) {
             categoriesCacheKey += '-adult'
         }
@@ -239,7 +241,6 @@ class ChannelsEPG extends ChannelsData {
                     centries.push(this.epgSearchEntry())
                     Object.keys(epgData).forEach((ch, i) => {
                         if(!epgData[ch]) return
-                        console.log('epge', ch, terms[ch])
                         let current, next, servedIcon = global.icons.generate(terms[ch])
                         Object.keys(epgData[ch]).some(start => {
                             if(!current){
@@ -324,9 +325,10 @@ class ChannelsEPG extends ChannelsData {
                     if(typeof(epgData[0]) != 'string'){
                         let servedIcon = global.icons.generate(data.terms)
                         centries = this.epgDataToEntries(epgData, data.name, data.terms, servedIcon)
-                        if(centries.length){
-                            centries.unshift(this.adjustEPGChannelEntry(e))
-                        }          
+                        if(!centries.length){
+                            centries.push(global.explorer.emptyEntry(global.lang.NOT_FOUND))
+                        }
+                        centries.unshift(this.adjustEPGChannelEntry(e))
                     }
                 }
                 resolve(centries)
@@ -394,13 +396,13 @@ class ChannelsEPG extends ChannelsData {
     adjustEPGChannelEntryRenderer(e){
         return new Promise((resolve, reject) => {
             let terms = this.entryTerms(e)
-            console.log('adjustEPGChannelEntryRenderer', e, terms)
+            //console.log('adjustEPGChannelEntryRenderer', e, terms)
             terms = terms.filter(t => {
                 return t.charAt(0) != '-'
             })
-            global.lists.epgSearchChannel(terms, 2).then(results => {
+            global.lists.epgSearchChannel(terms).then(results => {
                 let options = []
-                console.log('adjustEPGChannelEntryRenderer', results)
+                //console.log('adjustEPGChannelEntryRenderer', results)
                 Object.keys(results).forEach(name => {
                     let keys = Object.keys(results[name])
                     options.push({
@@ -409,7 +411,7 @@ class ChannelsEPG extends ChannelsData {
                         fa: 'fas fa-th-large',
                         type: 'action',
                         action: () => {
-                            console.log('adjustEPGChannelEntryRenderer RESULT', e.name, name)
+                            //console.log('adjustEPGChannelEntryRenderer RESULT', e.name, name)
                             let map = global.config.get('epg-map') || {}
                             if(e.name != name){
                                 map[e.name] = name
@@ -421,7 +423,20 @@ class ChannelsEPG extends ChannelsData {
                         }
                     })
                 })
-                console.log('adjustEPGChannelEntryRenderer', options)
+                options.push({
+                    name: global.lang.NONE,
+                    details: global.lang.DISABLED,
+                    fa: 'fas fa-ban',
+                    type: 'action',
+                    action: () => {
+                        //console.log('adjustEPGChannelEntryRenderer RESULT', e.name, '-')
+                        let map = global.config.get('epg-map') || {}
+                        map[e.name] = '-'
+                        global.config.set('epg-map', map)
+                        global.explorer.back(null, true)
+                    }
+                })
+                //console.log('adjustEPGChannelEntryRenderer', options)
                 resolve(options)
             }).catch(reject)
         })
@@ -826,7 +841,9 @@ class Channels extends ChannelsEditing {
         return this.expandTerms(terms)
     }
     toMetaEntryRenderer(e, _category, epgNow){
+        console.warn('EPG DEBUGGG', e, _category, epgNow)
         return new Promise((resolve, reject) => {
+            console.warn('EPG DEBUGGG', epgNow)
             let category
             if(_category === false){
                 category = false
@@ -865,12 +882,13 @@ class Channels extends ChannelsEditing {
                             })
                         }
                     }
-                    if(this.activeEPG && epgNow && epgNow != category){
+                    console.warn('EPG DEBUG', this.activeEPG, epgNow, category)
+                    if(this.activeEPG){
                         epgEntry =  {
                             name: global.lang.EPG, 
                             type: 'group', 
                             fa: this.epgIcon,
-                            details: epgNow,
+                            details: (epgNow && epgNow != category) ? epgNow : '',
                             renderer: this.epgChannelEntries.bind(this, e)
                         }
                     }
@@ -907,10 +925,11 @@ class Channels extends ChannelsEditing {
                         })
                     } 
                 }
+                if(epgEntry){
+                    entries.push(epgEntry)
+                }
                 if(streamsEntry){
-                    if(epgEntry){
-                        entries.push(epgEntry)
-                    }
+                    console.warn('EPG DEBUG', epgEntry)
                     entries.push(this.shareChannelEntry(e))
                     entries.push(streamsEntry)
                 }
@@ -927,12 +946,14 @@ class Channels extends ChannelsEditing {
         if(typeof(meta.url) == 'undefined'){
             meta.url = global.mega.build(e.name, {terms})
         }
+        console.warn('EPG DEBUGGG', details)
         if(global.mega.isMega(meta.url)){
             meta = Object.assign(meta, {
                 type: 'group',
                 class: 'entry-meta-stream',
                 fa: 'fas fa-play-circle' ,
                 renderer: () => {
+                    console.warn('EPG DEBUGGG', meta, category, details)
                     return this.toMetaEntryRenderer(meta, category, details)
                 }
             })

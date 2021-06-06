@@ -1,4 +1,4 @@
-const StreamerBaseIntent = require('./base.js'), StreamerAdapterTS = require('../adapters/ts.js'), FFServer = require('../utils/ff-server')
+const StreamerBaseIntent = require('./base.js'), StreamerAdapterTS = require('../adapters/ts.js'), Any2HLS = require('../utils/any2hls')
 
 class StreamerTSIntent extends StreamerBaseIntent {    
     constructor(data, opts, info){
@@ -35,7 +35,7 @@ class StreamerTSIntent extends StreamerBaseIntent {
                     workDir: this.opts.workDir, 
                     debug: this.opts.debug
                 }
-                this.transcoder = new FFServer(this.downloader.source.endpoint, opts)
+                this.transcoder = new Any2HLS(this.downloader.source.endpoint, opts)
                 this.connectAdapter(this.transcoder)
                 this.transcoder.start().then(() => {
                     this.transcoderStarting = false
@@ -57,7 +57,7 @@ class StreamerTSIntent extends StreamerBaseIntent {
             this.downloader = new StreamerAdapterTS(this.data.url, Object.assign({authURL: this.data.source}, this.opts))
             this.connectAdapter(this.downloader)
             this.downloader.start().then(() => {
-                this.ts2hls = new FFServer(this.downloader.source.endpoint, this.opts)
+                this.ts2hls = new Any2HLS(this.downloader.source.endpoint, this.opts)
                 this.connectAdapter(this.ts2hls)
                 this.ts2hls.opts.audioCodec = this.opts.audioCodec
                 this.ts2hls.start().then(() => {

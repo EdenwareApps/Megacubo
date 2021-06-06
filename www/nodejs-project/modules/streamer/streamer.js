@@ -309,6 +309,8 @@ class StreamerBase extends StreamerTools {
         this.engines = {
             aac: require('./engines/aac'),
             hls: require('./engines/hls'),
+            rtmp: require('./engines/rtmp'),
+            dash: require('./engines/dash'),
             ts: require('./engines/ts'),
             video: require('./engines/video'),
             vodhls: require('./engines/vodhls')

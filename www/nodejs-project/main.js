@@ -441,7 +441,7 @@ function init(language){
         })  
         ui.on('set-epg', url => {
             epgSetup = true
-            lists.manager.setEPG(url)
+            lists.manager.setEPG(url, true)
         })
         ui.on('open-url', url => {
             console.log('OPENURL', url)
@@ -524,7 +524,9 @@ function init(language){
                     if(!lists.manager.updatingLists && !activeLists.length && config.get('shared-mode-reach')){
                         lists.manager.UIUpdateLists()
                     }
-                    lists.manager.loadEPG(null, false)
+                    if(global.config.get('epg')){
+                        lists.manager.setEPG(global.config.get('epg'), false)
+                    }
                     cloud.get('configure').then(c => {
                         console.log('checking update...')
                         let vkey = 'version', newVersion = MANIFEST.version

@@ -1,4 +1,4 @@
-const StreamerBaseIntent = require('./base.js'), StreamerAdapterAAC = require('../adapters/aac.js'), FFServer = require('../utils/ff-server'), fs = require('fs')
+const StreamerBaseIntent = require('./base.js'), StreamerAdapterAAC = require('../adapters/aac.js'), Any2HLS = require('../utils/any2hls'), fs = require('fs')
 
 class StreamerAACIntent extends StreamerBaseIntent {    
     constructor(data, opts, info){
@@ -17,7 +17,7 @@ class StreamerAACIntent extends StreamerBaseIntent {
             this.downloader = new StreamerAdapterAAC(this.data.url, this.opts)
             this.connectAdapter(this.downloader)
             this.downloader.start().then(() => {
-                this.ts2hls = new FFServer(this.downloader.source.endpoint, this.opts)
+                this.ts2hls = new Any2HLS(this.downloader.source.endpoint, this.opts)
                 this.ts2hls.opts.audioCodec = this.opts.audioCodec
                 this.connectAdapter(this.ts2hls)
                 this.ts2hls.start().then(() => {

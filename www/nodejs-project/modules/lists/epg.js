@@ -246,7 +246,10 @@ class EPG extends Events {
     }
     get(channel, limit){
         let data
-        if(channel.searchName && typeof(this.data[channel.searchName]) != 'undefined'){
+        //console.log('EPGGETCHANNEL', channel)
+        if(channel.searchName == '-'){
+            data = {}
+        } else if(channel.searchName && typeof(this.data[channel.searchName]) != 'undefined'){
             data = this.data[channel.searchName]
         } else if(typeof(this.data[channel.name]) != 'undefined'){
             data = this.data[channel.name]
@@ -260,6 +263,7 @@ class EPG extends Events {
                 return false
             }
         }
+        //console.log('EPGGETCHANNEL', data)
         return this.order(data, limit)
     }
     getMulti(channelsList, limit){
@@ -280,12 +284,14 @@ class EPG extends Events {
         return ndata
     }
     searchChannel(terms, limit=2){
-        let results = {}
+        let results = {}, data = []
         Object.keys(this.terms).forEach(name => {
-            let score = global.lists.match(terms, this.terms[name], true)
-            if(score){
-                results[name] = this.order(this.data[name], limit)
-            }
+            let score = this.terms[name].filter(t => terms.includes(t)).length
+            data.push({name, score})
+        })
+        data = data.filter(r => r.score).sortByProp('score', true).slice(0, 24)
+        data.forEach(r => {
+            results[r.name] = this.order(this.data[r.name], limit)
         })
         return results
     }

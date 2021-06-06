@@ -634,7 +634,7 @@ class Manager extends Events {
                                     global.explorer.refresh()
                                     this.setEPG('')
                                 } else {
-                                    this.setEPG(url)
+                                    this.setEPG(url, true)
                                 }
                             }
                         }
@@ -695,12 +695,12 @@ class Manager extends Events {
                     global.config.set('epg', url)
                     global.explorer.refresh()
                 }
-                this.loadEPG(url, true).then(() => {
+                this.loadEPG(url, ui).then(() => {
                     let doImportChannelsList = () => { // user changed his mind in the meantime
                         return global.config.get('parental-control-policy') != 'only' && url == global.config.get('epg') && global.config.get('epg-channels-list')
                     }
                     let refresh = () => {
-                        if(global.explorer.path.indexOf(global.lang.EPG) != -1 || global.explorer.path.indexOf(global.lang.CHANNELS) != -1){
+                        if(global.explorer.path.indexOf(global.lang.EPG) != -1 || global.explorer.path.indexOf(global.lang.LIVE) != -1){
                             global.explorer.refresh()
                         }
                     }
@@ -737,12 +737,6 @@ class Manager extends Events {
                 url = global.config.get('epg')
             }
             if(!url && ui) ui = false
-            let refresh = () => {
-                if(!url) return
-                if(global.explorer.path.indexOf(global.lang.EPG) != -1 || global.explorer.path.indexOf(global.lang.CHANNELS) != -1){
-                    global.explorer.refresh()
-                }
-            }
             if(ui){
                 global.osd.show(global.lang.EPG_AVAILABLE_SOON, 'fas fa-check-circle', 'epg', 'normal')
             }
@@ -756,7 +750,7 @@ class Manager extends Events {
             }).catch(err => {
                 global.osd.show(global.lang.EPG_LOAD_FAILURE + ': ' + String(err), 'fas fa-check-circle', 'epg', 'normal')
                 reject(err)
-            }).finally(refresh)
+            })
         })
     }
     listsEntries(){
