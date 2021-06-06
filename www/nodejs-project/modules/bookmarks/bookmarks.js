@@ -27,10 +27,41 @@ class Bookmarks extends EntriesGroup {
             }
         }, this.toggle.bind(this))
     }
+    streamFilter(e){
+        return e.url && (!e.type || e.type == 'stream')
+    }
     hook(entries, path){
         return new Promise((resolve, reject) => {
-            if(path == '' && !entries.some(e => e.name == global.lang.BOOKMARKS)){
+            if(path == '' && !entries.some(e => e.name == global.lang.BOOKMARKS)){ // add home option
                 entries.push({name: global.lang.BOOKMARKS, fa: 'fas fa-star', type: 'group', renderer: this.entries.bind(this)})
+            }
+            if((path.startsWith(global.lang.CATEGORIES) || path.startsWith(global.lang.BOOKMARKS) || path.startsWith(global.lang.IPTV_LISTS)) && entries.some(this.streamFilter)){
+                let bookmarker, bookmarkable = {name: path.split('/').pop(), type: 'group', entries: entries.filter(this.streamFilter)}
+                console.log('bookmarkable', bookmarkable)
+                if(this.has(bookmarkable)){
+                    bookmarker = {
+                        type: 'action',
+                        fa: 'fas fa-star-half',
+                        name: global.lang.REMOVE_FROM.format(global.lang.BOOKMARKS),
+                        action: () => {
+                            this.remove(bookmarkable)
+                            global.explorer.refresh()
+                            global.osd.show(global.lang.BOOKMARK_REMOVED.format(bookmarkable.name), 'fas fa-star-half', 'bookmarks', 'normal')
+                        }
+                    }
+                } else {
+                    bookmarker = {
+                        type: 'action',
+                        fa: 'fas fa-star',
+                        name: global.lang.ADD_TO.format(global.lang.BOOKMARKS),
+                        action: () => {
+                            this.add(bookmarkable)
+                            global.explorer.refresh()
+                            global.osd.show(global.lang.BOOKMARK_ADDED.format(bookmarkable.name), 'fas fa-star', 'bookmarks', 'normal')
+                        }
+                    }
+                } 
+                entries.unshift(bookmarker)
             }
             resolve(entries)
         })
@@ -59,6 +90,9 @@ class Bookmarks extends EntriesGroup {
         }
     }
     simplify(e){
+        if(e.type == 'group'){
+            return this.cleanAtts(e)
+        }
         return {name: e.originalName || e.name, type: 'stream', details: e.group || '', icon: e.icon || '', terms: {'name': global.channels.entryTerms(e)}, url: e.originalUrl || e.url}
     }
     entries(e){
@@ -83,7 +117,7 @@ class Bookmarks extends EntriesGroup {
             }
             es.push({name: global.lang.ADD_BY_NAME, fa: 'fas fa-star', type: 'group', renderer: this.addByNameEntries.bind(this)})
             es = es.concat(this.get().map((e, i) => {
-                const isMega = global.mega.isMega(e.url)
+                const isMega = e.url && global.mega.isMega(e.url)
                 e.fa = 'fas fa-star'
                 e.details = '<i class="fas fa-star"></i> ' + e.bookmarkId
                 if(isMega){
@@ -101,7 +135,7 @@ class Bookmarks extends EntriesGroup {
                             })
                         }
                     }
-                } else {
+                } else if(e.type != 'group'){
                     e.type = 'stream'
                 }
                 return e

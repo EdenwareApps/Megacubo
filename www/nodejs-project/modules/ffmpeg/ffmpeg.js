@@ -20,8 +20,8 @@ class FFmpegController extends Events {
 			// add these input options only if we have an input, not in -version, per example
 			cmd = cmd.concat([
 				'-loglevel', this.dest ? 'error' : 'info', // if logerror=(warning|error) it will not return the codec and bitrate data
-				'-analyzeduration', 10000000, // 10s in microseconds
-				'-probesize', 10485760,	// 10MB
+				// '-analyzeduration', 10000000, // 10s in microseconds
+				// '-probesize', 10485760,	// 10MB
 				'-err_detect', 'ignore_err',
 				'-i', this.input
 			])

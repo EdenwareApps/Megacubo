@@ -1,4 +1,4 @@
-const StreamerBaseIntent = require('./base.js'), StreamerProxy = require('../utils/proxy.js'), fs = require('fs'), FFServer = require('../utils/ff-server')
+const StreamerBaseIntent = require('./base.js'), StreamerProxyHLS = require('../utils/proxy.js'), fs = require('fs'), FFServer = require('../utils/ff-server')
 
 class StreamerVODHLSIntent extends StreamerBaseIntent {    
     constructor(data, opts, info){
@@ -37,7 +37,7 @@ class StreamerVODHLSIntent extends StreamerBaseIntent {
     }
     _start(){ 
         return new Promise((resolve, reject) => {
-            this.adapter = new StreamerProxy(this.opts)
+            this.adapter = new StreamerProxyHLS(this.opts)
             this.connectAdapter(this.adapter)
             this.adapter.start().then(() => {
                 this.endpoint = this.adapter.proxify(this.data.url)

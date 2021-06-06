@@ -16,7 +16,7 @@ class StreamerBaseIntent extends Events {
         this.mediaType = 'video'
         this.codecData = null
         this.type = 'base'
-        this.timeout = Math.max(30, global.config.get('connect-timeout'))
+        this.timeout = Math.max(40, global.config.get('connect-timeout'))
         this.committed = false
         this.manual = false
         this.loaded = false
@@ -27,6 +27,7 @@ class StreamerBaseIntent extends Events {
         this.started = false
         this.ignoreErrors = false
         this.mimetype = ''
+        this.failListener = this.onFail.bind(this)
         if(opts){
             this.setOpts(opts)
         }
@@ -74,26 +75,12 @@ class StreamerBaseIntent extends Events {
 				this.emit('codecData', this.codecData)
 			}
         })
-        adapter.on('bitrate', (bitrate, speed) => {
-			if(speed > 0){
-				this.currentSpeed = speed
-			}
-			if(bitrate && this.bitrate != bitrate){
-				this.bitrate = bitrate
-                this.emit('bitrate', this.bitrate, this.currentSpeed)
-			}
-        })
         adapter.on('speed', speed => {
 			if(speed > 0 && this.currentSpeed != speed){
 				this.currentSpeed = speed
 			}
         })
-        adapter.on('fail', err => {
-			if(!this.destroyed){
-				console.log('adapter fail', err)
-				this.fail(err)
-			}
-        })
+        adapter.on('fail', this.failListener)
         this.on('commit', () => {
             adapter.emit('commit')
             if(!adapter.committed){
@@ -106,6 +93,29 @@ class StreamerBaseIntent extends Events {
                 adapter.committed = false
             }
         })
+        adapter.on('bitrate', (bitrate, speed) => {
+			if(speed && speed > 0){
+				this.currentSpeed = speed
+			}
+			if(bitrate && this.bitrate != bitrate){
+				this.bitrate = bitrate
+				this.emit('bitrate', this.bitrate, this.currentSpeed)
+			}
+        })
+		if(adapter.bitrate){
+			this.bitrate = adapter.bitrate
+			this.emit('bitrate', adapter.bitrate, this.currentSpeed)
+		}
+    }
+    disconnectAdapter(adapter){
+        adapter.removeListener('fail', this.failListener);
+        ['dimensions', 'codecData', 'bitrate', 'speed', 'commit', 'uncommit'].forEach(n => adapter.removeAllListeners(n))
+    }
+    onFail(err){
+        if(!this.destroyed){
+            console.log('adapter fail', err)
+            this.fail(err)
+        }
     }
     findLowAdapter(base, types, filter){
         if(!base){
@@ -195,11 +205,14 @@ class StreamerBaseIntent extends Events {
         return dimensions
     }
     setTimeout(secs){
-        this.timeout = secs
+        if(this.timeout != secs){
+            this.timeout = secs
+        }
         this.clearTimeout()
-        var s = global.time()
+        this.timeoutStart = global.time()
         this.timeoutTimer = setTimeout(() => {
             if(this && !this.failed && !this.destroyed && !this.committed){
+                console.log('Timeouted engine after '+ (global.time() - this.timeoutStart))
                 this.fail('timeout')
             }
         }, secs * 1000)

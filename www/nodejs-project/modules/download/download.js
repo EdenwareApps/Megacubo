@@ -42,6 +42,8 @@ class Download extends Events {
 		this.headersSent = false
 		this.contentLength = -1
 		this.totalContentLength = -1
+		this.errorCount = []
+		this.errors = []
 		this.authErrors = 0
 		this.statusCode = 0
 		this.ignoreBytes = 0
@@ -207,6 +209,7 @@ class Download extends Events {
 			if(this.opts.debug){
 				console.warn('>> Download error', err, global.traceback())
 			}
+			this.errors.push(err || 'unknown request error')
 			if(!this.currentRequestError){
 				this.currentRequestError = 'error'
 			}
@@ -419,13 +422,16 @@ class Download extends Events {
 							}
 							this.currentRequestError = 'aborted'
 							let err = 'request aborted '+ this.received +'<'+ this.contentLength
+							this.errors.push(err)
 							if(this.listenerCount('error')){
 								this.emit('error', err)
 							}
 							this.delayNext()
 						} else {
+							let err = 'server aborted, ended '+ this.contentLength
+							this.errors.push(err)
 							if(this.opts.debug){
-								console.log('>> Download server aborted, end it', this.contentLength)
+								console.log(err)
 							}
 							this.end()
 						}
@@ -485,6 +491,7 @@ class Download extends Events {
 			return false // return false to skip parseResponse
 		} else {
 			if(response.statusCode < 200 || response.statusCode >= 400){ // bad response, not a redirect
+				this.errors.push(response.statusCode)
 				let finalize
 				if(response.statusCode == 406){
 					console.error('406 error', response.headers, this.opts.url)

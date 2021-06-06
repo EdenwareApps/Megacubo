@@ -1,5 +1,5 @@
 
-const Downloader = require('./downloader.js'), TSPacketProcessor = require('./ts-packet-processor.js')
+const Downloader = require('./downloader.js'), MPEGTSPacketProcessor = require('./ts-packet-processor.js')
 	
 class Joiner extends Downloader {
 	constructor(url, opts){
@@ -8,14 +8,14 @@ class Joiner extends Downloader {
 		this.type = 'joiner'
 		this.joinerDestroyed = false
 		this.delayUntil = 0
-		this.processor = new TSPacketProcessor()
+		this.processor = new MPEGTSPacketProcessor()
 		this.processor.on('data', data => {
 			this.output(data)
 		})
 		this.on('bitrate', bitrate => {
 			let idealBufferSize = 3 * bitrate
 			if(this.processor.bufferSize < idealBufferSize){
-				console.warn('TSPACKETPROCESSOR BUFFERSIZE INCREASE', idealBufferSize)
+				console.warn('MPEGTSPacketProcessor buffer size increase', idealBufferSize)
 				this.processor.bufferSize = idealBufferSize
 			}
         })

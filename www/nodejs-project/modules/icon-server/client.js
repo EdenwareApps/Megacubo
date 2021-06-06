@@ -122,7 +122,7 @@ class IconServerClient extends EventEmitter {
         if(url.indexOf('/') == -1){
             return error()
         }
-        let solved, started = true
+        let solved
         if(!timeout){
             timeout = 30
         }

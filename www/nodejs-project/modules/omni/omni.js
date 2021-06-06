@@ -12,7 +12,12 @@ class OMNI extends Events {
                 if(es.length){
                     global.ui.emit('omni-callback', text, !!es.length)
                     console.warn('omni-callback', text, !!es.length, es)
-                    return global.streamer.play(es.shift())
+                    let entry = es.shift()
+                    if(entry.type == 'group'){
+                        return global.explorer.open([global.lang.BOOKMARKS, entry.name].join('/'))
+                    } else {
+                        return global.streamer.play(entry)
+                    }
                 }
             }     
             global.channels.search(text, true).then(results => {

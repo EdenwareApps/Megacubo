@@ -123,7 +123,7 @@ Premium = require(APPDIR + '/modules/premium-helper')
 
 console.log('Modules loaded.')
 
-removeFolder = (folder, itself, cb) => {
+rmdir = (folder, itself, cb) => {
     const rimraf = require('rimraf')
     let dir = folder
     if(dir.charAt(dir.length - 1) == '/'){
@@ -254,8 +254,8 @@ function init(language){
         omni = new OMNI()
         mega = new Mega()
         energy = new Energy()
-        channels = new Channels()
         streamer = new Streamer()
+        channels = new Channels()
         theme = new Theme()
         search = new Search()
         histo = new History()
@@ -263,12 +263,12 @@ function init(language){
         watching = new Watching()
         bookmarks = new Bookmarks()
 
-        removeFolder(streamer.opts.workDir, false, true)
+        rmdir(streamer.opts.workDir, false, true)
 
         explorer = new Explorer({},
             [
-                {name: lang.LIVE, fa: 'fas fa-tv', type: 'group', renderer: channels.entries.bind(channels)},
-                {name: lang.CATEGORIES, fa: 'fas fa-folder-open', type: 'group', renderer: channels.more.bind(channels)}
+                {name: lang.LIVE, fa: 'fas fa-tv', details: lang.CHANNELS, type: 'group', renderer: channels.entries.bind(channels)},
+                {name: lang.CATEGORIES, fa: 'fas fa-folder-open', details: lang.VIDEOS, type: 'group', renderer: channels.more.bind(channels)}
             ]
         )
         
@@ -386,29 +386,20 @@ function init(language){
                 }
             })
         })
-        ui.on('video-ended', (ctime, duration) => {
-            console.error('VIDEO ENDED', ctime, duration)
-            let active = streamer.active
-            if(active && !active.transcoderStarting){
-                if(active.type == 'video'){
-                    streamer.stop()
-                } else {
-                    streamer.handleFailure(null, 'playback')
-                }
-            }
-        })
         ui.on('video-error', (type, errData) => {
             if(streamer.active && !streamer.active.transcoderStarting){
                 console.error('VIDEO ERROR', type, errData)
                 if(type == 'timeout'){
-                    let opts = [{template: 'question', text: lang.SLOW_TRANSMISSION}], def = 'stop'
+                    let opts = [{template: 'question', text: lang.SLOW_TRANSMISSION}], def = 'wait'
                     let isCH = streamer.active.type != 'mp4' && channels.isChannel(streamer.active.data.terms.name)
                     if(isCH){
-                        opts.push({template: 'option', text: lang.TRY_OTHER, fa: 'fas fa-random', id: 'try-other'})
+                        opts.push({template: 'option', text: lang.DO_TUNE, fa: 'fas fa-satellite-dish', id: 'try-other'})
                         def = 'try-other'
                     }
                     opts.push({template: 'option', text: lang.WAIT, fa: 'fas fa-clock', id: 'wait'})
-                    opts.push({template: 'option', text: lang.STOP, fa: 'fas fa-stop', id: 'stop'})
+                    if(!isCH){
+                        opts.push({template: 'option', text: lang.STOP, fa: 'fas fa-stop', id: 'stop'})                        
+                    }
                     ui.emit('dialog', opts, 'video-error-timeout-callback', def)
                 } else {
                     console.error('VIDEO ERR', type, errData)
@@ -423,7 +414,7 @@ function init(language){
             console.log('video-error-timeout-callback', ret)
             if(ret == 'try-other'){
                 console.error('VIDEO ERR', 'timeout', {details: 'try-other'})
-                streamer.handleFailure(null, 'timeout', true)
+                streamer.handleFailure(null, 'timeout', true, true)
             } else if(ret == 'stop'){
                 console.error('VIDEO ERR', 'timeout', {details: 'stop'})
                 streamer.stop()

@@ -306,13 +306,14 @@ class WindowManager extends ClassesHandler {
 			}
 		}
 		var f = () => {
-			var _fs = this.isFullScreen();
-			this.win.setAlwaysOnTop(_fs || this.miniPlayerActive);
-			this.win.requestAttention(_fs);
+			var _fs = this.isFullScreen()
+			this.win.setAlwaysOnTop(_fs || this.miniPlayerActive)
+			this.win.requestAttention(_fs)
 			if(_fs) {
-				this.win.blur();
+				this.win.blur()
 				this.win.focus()
 			}
+			this.fixMaximizeButton()
 		}
 		setTimeout(f, 500)
 		setTimeout(f, 1000)

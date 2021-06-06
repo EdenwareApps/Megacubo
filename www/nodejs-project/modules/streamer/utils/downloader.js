@@ -78,7 +78,8 @@ class Downloader extends StreamerAdapterBase {
 			this.server = http.createServer((req, response) => {
 				if(path.basename(req.url) == 'stream.'+ this.ext){
 					response.writeHead(200, {
-						'content-type': this.getContentType()
+						'content-type': this.getContentType(),
+						'connection': 'close'
 					})
 					let byteSyncFound, finished
 					const listener = (url, chunk) => {

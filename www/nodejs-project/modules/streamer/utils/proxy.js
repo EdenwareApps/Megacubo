@@ -9,9 +9,8 @@ class StreamerProxy extends StreamerProxyBase {
 		this.type = 'proxy'
 		this.networkOnly = false
 		this.connections = {}
-		this.journal = {}
 		this.internalRequestAbortedEvent = 'request-aborted'
-		this.opts.followRedirect = true // some servers require m3u8 to requested by original url, otherwise will trigger 406 status, while the player may call directly the "location" header url on next requests ¬¬
+		this.opts.followRedirect = true
 		this.opts.forceExtraHeaders = null
 		if(this.opts.debug){
 			this.opts.debug('OPTS', this.opts)
@@ -24,14 +23,11 @@ class StreamerProxy extends StreamerProxyBase {
 				this.server.close()
 			}
 		})
-		this.playlists = {} // fallback mirrors for when one playlist of these returns 404, it happens, strangely...
-		this.playlistBitrates = {}
-		this.playlistBitratesSaved = {}
 	}
 	destroyConn(uid, data=false, force=true){
 		if(this.connections[uid]){
 			if(this.connections[uid].response){
-				if(data && typeof(data) != 'number' && (this.connections[uid].response.writable || this.connections[uid].response.writeable)){
+				if(data && typeof(data) != 'number' && global.isWritable(this.connections[uid].response)){
 					if(!this.connections[uid].response.headersSent){
 						this.connections[uid].response.setHeader('access-control-allow-origin', '*')
 					}
@@ -87,26 +83,6 @@ class StreamerProxy extends StreamerProxyBase {
         }
         return url
 	}
-	keepJournal(url, segments){
-		console.log('SEGMENTS', segments)
-		if(typeof(this.journal[url]) == 'undefined'){
-			this.journal[url] = []
-		}
-		let addingSegments = []
-		for(let i = (segments.length - 1); i>= 0; i--){
-			let has = this.journal[url].some(jseg => jseg.uri == segments[i].uri)
-			if(has){
-				console.log('SEGMENTS HAS', i, segments.length,  this.journal[url].length)
-				break
-			} else {
-				addingSegments.push(segments[i])
-			}
-		}
-		console.log('SEGMENTS ADD', addingSegments.length)
-		if(addingSegments.length){
-			this.journal[url] = this.journal[url].concat(addingSegments.reverse())
-		}
-	}
 	proxifyM3U8(body, url){
 		body = body.replace(new RegExp('^ +', 'gm'), '')
 		body = body.replace(new RegExp(' +$', 'gm'), '')
@@ -160,13 +136,6 @@ class StreamerProxy extends StreamerProxyBase {
 						body = this.applyM3U8Replace(body, dn, replaces[dn])
 						if(this.opts.debug){
 							this.opts.debug('ok')
-						}
-						if(playlist.attributes){
-							if(playlist.attributes['AVERAGE-BANDWIDTH'] && parseInt(playlist.attributes['AVERAGE-BANDWIDTH']) > 128){
-								this.playlistBitrates[u] = parseInt(playlist.attributes['AVERAGE-BANDWIDTH'])
-							} else if(playlist.attributes['BANDWIDTH'] && parseInt(playlist.attributes['BANDWIDTH']) > 128){
-								this.playlistBitrates[u] = parseInt(playlist.attributes['BANDWIDTH'])
-							}
 						}
 					}
 				})
@@ -243,6 +212,7 @@ class StreamerProxy extends StreamerProxyBase {
 			this.debug('req starting...', req, req.url)
 		}
 		const uid = this.uid()
+		const keepalive = this.committed && global.config.get('use-keepalive')
 		let ended, url = this.unproxify(req.url)
 		let reqHeaders = req.headers
 		reqHeaders['accept-encoding'] =  'identity' // not needed and problematic
@@ -262,10 +232,10 @@ class StreamerProxy extends StreamerProxyBase {
 		}
 		const download = new global.Download({
 			url,
-			retries: 5,
+			retries: 10,
 			headers: reqHeaders,
 			authURL: this.opts.authURL || false, 
-			keepalive: this.committed && global.config.get('use-keepalive'),
+			keepalive,
 			followRedirect: this.opts.followRedirect
 		})
 		this.connections[uid] = {response, download}
@@ -319,7 +289,11 @@ class StreamerProxy extends StreamerProxyBase {
 			if(this.debug){
 				this.debug('download response', statusCode, headers, uid)
 			}
-			headers['connection'] = 'close' // always force connection close on local servers, keepalive will be broken
+			if(keepalive){
+				headers['connection'] = 'keep-alive' // force keep-alive to reduce cpu usage, even on local connections, is it meaningful? I don't remember why I commented below that it would be broken :/
+			} else {
+				headers['connection'] = 'close' // always force connection close on local servers, keepalive will be broken
+			}
 			if(statusCode >= 200 && statusCode < 300){ // is data response
 				if(!headers['content-disposition'] || headers['content-disposition'].indexOf('attachment') == -1 || headers['content-disposition'].indexOf('filename=') == -1){
 					// setting filename to allow future file download feature
@@ -353,40 +327,12 @@ class StreamerProxy extends StreamerProxyBase {
 				if(this.committed && (!statusCode || statusCode < 200 || statusCode >= 400)){ // skip redirects
 					global.osd.show(global.streamer.humanizeFailureMessage(statusCode || 'timeout'), 'fas fa-times-circle', 'debug-conn-err', 'normal')
 				}
-				let fallback, location
+				let location
 				headers['content-length'] = 0
-				if(statusCode == 404){
-					Object.keys(this.playlists).some(masterUrl => {
-						if(Object.keys(this.playlists[masterUrl]).includes(url)){ // we have mirrors for this playlist
-							Object.keys(this.playlists[masterUrl]).some(playlist => {
-								if(playlist == url){
-									this.playlists[masterUrl][playlist] = false // means offline
-									return true
-								}
-							})
-							let hasFallback = Object.keys(this.playlists[masterUrl]).some(playlist => {
-								if(playlist != url && this.playlists[masterUrl][playlist] === true){
-									fallback = playlist
-									console.warn('Fallback playlist redirect', url, '>>', playlist, JSON.stringify(this.playlists))
-									return true
-								}
-							})
-							if(!hasFallback){
-								console.warn('No more fallbacks', url, JSON.stringify(this.playlists))
-								this.fail(404)
-							}
-						}
-					})
-				} else if(typeof(headers.location) != 'undefined') {
+				if(typeof(headers.location) != 'undefined') {
 					location = this.proxify(this.absolutize(headers.location, url))
 				}
-				if(fallback){
-					headers.location = fallback
-					response.writeHead(301, headers)
-					if(this.debug){
-						this.debug('download sent response headers', 301, headers)
-					}
-				} else if(location){
+				if(location){
 					headers.location = location
 					statusCode = (statusCode >= 300 && statusCode < 400) ? statusCode : 307
 					response.writeHead(statusCode, headers)		
@@ -407,36 +353,10 @@ class StreamerProxy extends StreamerProxyBase {
 		})
 		download.start()
 	}
-	getMediaType(headers, url){
-		let type = '', minSegmentSize = 96 * 1024
-		if(typeof(headers['content-type']) != 'undefined' && (headers['content-type'].indexOf('video/') != -1 || headers['content-type'].indexOf('audio/') != -1)){
-			type = 'video'
-		} else if(typeof(headers['content-type']) != 'undefined' && headers['content-type'].toLowerCase().indexOf('linguist') != -1){ // .ts bad mimetype "text/vnd.trolltech.linguist"
-			type = 'video'
-		}  else if(typeof(headers['content-type']) != 'undefined' && (headers['content-type'].toLowerCase().indexOf('mpegurl') != -1 || headers['content-type'].indexOf('text/') != -1)){
-			type = 'meta'
-		} else if(typeof(headers['content-type']) == 'undefined' && this.ext(url) == 'm3u8') {
-			type = 'meta'
-		} else if(typeof(headers['content-length']) != 'undefined' && parseInt(headers['content-length']) >= minSegmentSize){
-			type = 'video'
-		} else if(typeof(headers['content-type']) != 'undefined' && headers['content-type'] == 'application/octet-stream') { // force download video header
-			type = 'video'
-		}
-		return type
-	}
 	handleMetaResponse(download, statusCode, headers, response, end, url){
 		if(!headers['content-type']){
 			headers['content-type'] = 'application/x-mpegURL'
 		}	
-		if(typeof(this.playlistBitrates[url]) != 'undefined' && typeof(this.playlistBitratesSaved[url]) == 'undefined'){
-			this.playlistBitratesSaved[url] = true
-			Object.values(this.playlistBitrates).forEach(n => {
-				if(this.bitrates.includes(n)){
-					this.bitrates = this.bitrates.filter(b => b != n)
-				}
-			})
-			this.saveBitrate(this.playlistBitrates[url])
-		}
 		headers = this.removeHeaders(headers, ['content-length']) // we'll change the content
 		headers = this.addCachingHeaders(headers, 6) // set a min cache to this m3u8 to prevent his overfetching
 		download.once('end', data => {
@@ -463,7 +383,7 @@ class StreamerProxy extends StreamerProxyBase {
 			}
 			end(data)
 		})
-	}	
+	}
 	handleVideoResponse(download, statusCode, headers, response, end, url, uid){
 		if(this.opts.forceVideoContentType){
 			headers['content-type'] = this.opts.forceVideoContentType
@@ -523,16 +443,9 @@ class StreamerProxy extends StreamerProxyBase {
 				this.debug('download sent response headers', statusCode, headers)
 			}
 		}
-        console.log('handleGenericResponse', headers)
 		download.on('data', chunk => response.write(chunk))
 		download.once('end', () => end())
 	}	
-	addCachingHeaders(headers, secs){		
-		return Object.assign(headers, {
-			'cache-control': 'max-age=' + secs + ', public',
-			'expires': (new Date(Date.now() + secs)).toUTCString()
-		})
-	}
 }
 
 module.exports = StreamerProxy

@@ -52,12 +52,13 @@ class JimpDriver {
                         reject('invalid image** ' + image.bitmap.width +'x'+ image.bitmap.height + ' ' + data.length)
                     }
                 }).catch(err => {
-                    console.error(err)
+                    console.error('Jimp failed to open', err, data)
                     reject('invalid image* ' + data.length)
+                    // resolve({data, alpha: false})
                 })
             } else {
-                console.error(err)
-                reject('invalid image* ' + data.length)
+                console.error(err, data)
+                reject('invalid image ' + data.length)
             }
         })
     }

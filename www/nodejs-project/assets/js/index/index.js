@@ -172,7 +172,7 @@ function updateSplashProgress(increase = 1){
 }
 
 function fakeUpdateProgress(){
-	let timer = setInterval(() => {
+	let timer = setInterval(function (){
 		fakeTasksCount--
 		if(!fakeTasksCount){
 			clearInterval(timer)
@@ -189,21 +189,26 @@ if(window.cordova){
 	updateSplashProgress()
 	document.addEventListener('deviceready', function (){	
 		updateSplashProgress()
+		if(navigator.splashscreen){
+			navigator.splashscreen.hide()
+		}
 		if(!isES6()){
 			log('No ES6 support')
 			updateWebView()
 		} else {
 			if(typeof(nodejs) == 'undefined'){
 				console.warn('Node.JS failure?')
-				console.log('Node.JS failure')
 			}
 			loadScripts()			
 			plugins.insomnia.keepAwake()
-			document.addEventListener('pause', function (){
-				cordova.plugins.backgroundMode.isScreenOff(ret => player.emit('app-pause', ret))
+			document.addEventListener('pause', function (){				
+				cordova.plugins.backgroundMode.enable() // enable once at startup to prevent service not registered crash
+				cordova.plugins.backgroundMode.isScreenOff(function (ret){
+					player.emit('app-pause', ret)
+				})
 				plugins.insomnia.allowSleepAgain()   
 			})
-			document.addEventListener('resume', () => {
+			document.addEventListener('resume', function (){
 				player.emit('app-resume')
 				plugins.insomnia.keepAwake()
 			})

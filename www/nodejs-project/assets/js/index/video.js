@@ -240,18 +240,19 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 				this.emit('click')
             }
         })
-		let onerr = e => {
+		const onerr = e => {
 			if(this.object.error){
 				e = this.object.error
 			}
-			console.error('video error', this.errorsCount, e, String(e), [this.object.networkState, this.object.readyState])
-			let isFailed = this.object.networkState == 3 || this.object.readyState < 2
+			const errStr = e ? String(e.message ? e.message : e) : 'unknown error'
+			const isFailed = this.object.networkState == 3 || this.object.readyState < 2 || errStr.match(new RegExp('(pipeline_error|demuxer)', 'i'))
+			console.error('video error', this.errorsCount, e, errStr, this.object.networkState +', '+ this.object.readyState, isFailed)
 			if(isFailed){
 				this.errorsCount++
-				if(this.errorsCount >= 2){
+				let t = this.time()
+				if(this.errorsCount >= (t > 0 ? 5 : 2)){
 					this.emit('error', String(e), true)
 				} else {
-					let t = this.time()
 					this.load(this.currentSrc, this.currentMimetype)
 					if(t){
 						this.object.currentTime = t

@@ -30,9 +30,7 @@ const got = require('got').extend({
 					try {
 						throw error // avoid process crashing with uncaught exception, TODO: find a better way
 					} catch(e) {}
-				} catch(e){
-					console.error(e)
-				}
+				} catch(e){}
 			}
 		],
 		beforeRetry: [

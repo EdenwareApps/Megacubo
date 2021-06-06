@@ -119,8 +119,8 @@ class Options extends Timer {
             console.log('reset-callback', ret)
             switch(ret){
                 case 'yes':
-                    global.removeFolder(global.paths.data, false, true)
-                    global.removeFolder(global.paths.temp, false, true)
+                    global.rmdir(global.paths.data, false, true)
+                    global.rmdir(global.paths.temp, false, true)
                     global.energy.restart()
                     break
             }
@@ -268,10 +268,20 @@ class Options extends Timer {
             {template: 'option', text: global.lang.TOS, fa: 'fas fa-info-circle', id: 'tos'}
         ], 'about-callback', 'ok')
     }
-    aboutMem(){
-        const used = process.memoryUsage().rss
-        let data = 'Memory usage: '+ global.kbfmt(used) +'<br />'  
-        global.ui.emit('info', 'Memory usage', data)
+    aboutResources(){
+        let txt = []
+        async.parallel([done => {
+            global.diagnostics.checkDisk().then(data => {
+                txt[1] = 'Free disk space: '+ global.kbfmt(data.free) +'<br />'
+            }).catch(console.error).finally(() => done())
+        }, done => {
+            global.diagnostics.checkMemory().then(freeMem => {
+                const used = process.memoryUsage().rss
+                txt[0] = 'Memory usage: '+ global.kbfmt(used) +'<br />Free memory: '+ global.kbfmt(freeMem) +'<br />'
+            }).catch(console.error).finally(() => done())
+        }], () => {
+            global.ui.emit('info', 'Resource usage', txt.join(''))
+        })
     }
     aboutNetwork(){
         let data = 'Network IP: '+ global.networkIP()
@@ -318,7 +328,13 @@ class Options extends Timer {
                     value: () => {
                         return global.config.get('ffmpeg-crf')
                     }
-                },                      
+                },   
+                {
+                    name: 'Use FFmpeg for HLS', details: 'Recommended', type: 'check', action: (data, checked) => {
+                    global.config.set('ffmpeg-hls', checked)
+                }, checked: () => {
+                    return global.config.get('ffmpeg-hls')
+                }},                
                 {
                     name: 'Transcoding', type: 'select', fa: 'fas fa-film',
                     renderer: () => {
@@ -420,7 +436,7 @@ class Options extends Timer {
         })
     }
     requestClearCache(){
-        let folders = [global.storage.folder, global.paths.temp], size = 0, gfs = require('get-folder-size')
+        let folders = [global.storage.folder, global.paths.temp, global.icons.opts.folder], size = 0, gfs = require('get-folder-size')
         async.eachOf(folders, (folder, i, done) => {
             gfs(folder, (err, s) => {
                 if(!err){
@@ -446,9 +462,9 @@ class Options extends Timer {
         if(global.tuning){
             global.tuning.stop()
         }
-        let folders = [global.storage.folder, global.paths.temp]
+        let folders = [global.storage.folder, global.paths.temp, global.icons.opts.folder]
         async.eachOf(folders, (folder, i, done) => {
-            global.removeFolder(folder, false, done)
+            global.rmdir(folder, false, done)
         }, () => {
             global.osd.show('OK', 'fas fa-check-circle', 'clear-cache', 'normal')
             global.config.save()
@@ -595,7 +611,7 @@ class Options extends Timer {
                 }},
                 {name: global.lang.LANGUAGE, fa: 'fas fa-language', type: 'action', action: () => this.showLanguageEntriesDialog()},
                 secOpt,
-                {name: global.lang.CHANNEL_LIST, fa: 'fas fa-list', type: 'group', renderer: global.channels.options.bind(global.channels)},
+                {name: global.lang.MANAGE_CHANNEL_LIST, fa: 'fas fa-list', type: 'group', details: global.lang.LIVE, renderer: global.channels.options.bind(global.channels)},
                 {name: global.lang.ADVANCED, fa: 'fas fa-cogs', type: 'group', renderer: () => {
                     return new Promise((resolve, reject) => {
                         resolve([
@@ -617,7 +633,7 @@ class Options extends Timer {
                                 name: global.lang.CLEAR_CACHE, icon: 'fas fa-broom', type: 'action', action: () => this.requestClearCache()
                             },
                             {
-                                name: 'Memory usage', fa: 'fas fa-memory', type: 'action', action: this.aboutMem.bind(this)
+                                name: 'Resource usage', fa: 'fas fa-memory', type: 'action', action: this.aboutResources.bind(this)
                             },
                             {
                                 name: 'Network IP', fa: 'fas fa-globe', type: 'action', action: this.aboutNetwork.bind(this)

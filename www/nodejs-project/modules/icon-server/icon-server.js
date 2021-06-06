@@ -1,6 +1,6 @@
 const path = require('path'), fs = require('fs'), http = require('http'), async = require('async'), os = require('os'), decodeEntities = require('decode-entities'), crypto = require('crypto');
 
-class IconLookup {
+class IconTerms {
     constructor(){
         this.opts = {
             addr: '127.0.0.1',
@@ -48,7 +48,7 @@ class IconLookup {
     }
 }
 
-class IconCache extends IconLookup {
+class IconCache extends IconTerms {
     constructor(opts){
         super()
     }
@@ -158,10 +158,11 @@ class IconSearch extends IconCache {
             }
             global.lists.search(ntms, {
                 type: liveOnly ? 'live' : null,
-                group: !liveOnly
+                group: !liveOnly,
+                typeStrict: true
             }).then(ret => {
                 if(this.opts.debug){
-                    console.log('fetch from terms', ntms, JSON.stringify(ret))
+                    console.log('fetch from terms', ntms, liveOnly, JSON.stringify(ret))
                 }
                 if(ret.results.length){
                     ret = ret.results.filter(e => {

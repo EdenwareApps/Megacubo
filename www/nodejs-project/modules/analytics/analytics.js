@@ -64,7 +64,7 @@ class AnalyticsBase extends Events {
         req.on('error', (e) => {
             console.error('Houve um erro', e)
         })
-        if(req.writable){
+        if(global.isWritable(req)){
             req.write(postData)
         }
         req.end()

@@ -10,140 +10,122 @@ class Index extends Common {
 			if(!terms.length){
                 return resolve({})
             }
-            terms.map(t => {
-                ret[t] = this.applySearchRedirects(this.terms(t))
-				results[t] = false
+            terms.forEach(t => {				
+                ret[t.name] = Array.isArray(t.terms) ? t.terms : this.terms(t.terms)
+				results[t.name] = false
 			})
 			if(!opts){
 				opts = {}
 			}
-			Object.keys(this.lists).forEach((listUrl, i) => {
-            	Object.keys(ret).forEach(k => {
-					if(results[k] == true) { // already found
-						return
-					}
-					let ssmap
-					ret[k].some(term => {
-						if(typeof(this.lists[listUrl].index.terms[term]) == 'undefined'){
-							ssmap = undefined
-							return true
-						} else {
-							let map = {}
-							map[listUrl] = global.deepClone(this.lists[listUrl].index.terms[term])
-							if(ssmap){
-								ssmap = this.intersectMap(map, ssmap)
-							} else {
-								ssmap = map
-							}
-							if(!Object.keys(ssmap).length){
-								ssmap = undefined
-								return true
-							}
-						}
-					})
-					if(ssmap && this.mapSize(ssmap)){
-						// found on this list
-						results[k] = true
-					}
-				})
-            })
+			Object.keys(ret).forEach(k => {
+				let smap = this.searchMap(ret[k], opts)
+				results[k] = this.mapSize(smap, opts.group) > 0
+			})
             resolve(results)
         })
+	}
+	searchMap(terms, opts){
+		let xmap, smap, aliases = {}, excludeTerms = []
+		if(!terms){
+			return {}
+		}
+		if(typeof(opts.type) != 'string'){
+			opts.type = false
+		}
+		if(!Array.isArray(terms)){
+			terms = this.terms(terms, true)
+		}
+		terms = terms.filter(term => { // separate excluding terms
+			let isExclude = term.charAt(0) == '-'
+			if(isExclude){
+				let xterm = term.substr(1)
+				excludeTerms.push(xterm)
+				return false
+			}
+			return true
+		})
+		terms = this.applySearchRedirects(terms)
+		if(opts.partial){
+			let allTerms = []
+			Object.keys(this.lists).forEach(listUrl => {
+				Object.keys(this.lists[listUrl].index).forEach(term => {
+					if(!allTerms.includes(term)){
+						allTerms.push(term)
+					}
+				})
+			})
+			terms.forEach(term => {
+				let tlen = term.length, nterms = allTerms.filter(t => {
+					return t != term && t.length > tlen && (t.substr(0, tlen) == term || t.substr(t.length - tlen) == term)
+				})
+				if(nterms.length){
+					aliases[term] = nterms
+				}
+			})
+		}
+		terms = terms.filter(t => !excludeTerms.includes(t))
+		terms.some(term => {
+			let tmap, tms = [term]
+			if(typeof(aliases[term]) != 'undefined'){
+				tms = tms.concat(aliases[term])
+			}
+			tms.forEach(term => {
+				Object.keys(this.lists).forEach(listUrl => {
+					if(typeof(this.lists[listUrl].index.terms[term]) != 'undefined'){
+						let map = {}
+						map[listUrl] = global.deepClone(this.lists[listUrl].index.terms[term])
+						if(tmap){
+							tmap = this.joinMap(tmap, map)
+						} else {
+							tmap = map
+						}
+					}
+				})
+			})
+			if(tmap){
+				if(smap){
+					smap = this.intersectMap(smap, tmap)
+				} else {
+					smap = tmap
+				}
+			} else {
+				smap = false
+				return true
+			}
+		})
+		if(smap){
+			if(excludeTerms.length){
+				let ms = this.mapSize(smap, opts.group)
+				if(ms){
+					excludeTerms.some(xterm => {
+						return Object.keys(this.lists).some(listUrl => {
+							if(typeof(this.lists[listUrl].index.terms[xterm]) != 'undefined'){
+								let xmap = {}
+								xmap[listUrl] = global.deepClone(this.lists[listUrl].index.terms[xterm])
+								smap = this.diffMap(smap, xmap)
+								ms = this.mapSize(smap, opts.group)
+								if(!ms) return true // break
+							}
+						})
+					})
+				}
+			}
+			return smap
+		}
+		return {}
 	}
 	search(terms, opts){	
 		return new Promise((resolve, reject) => {
             if(this.debug){
                 console.warn('M3U SEARCH', terms, opts)
             }
-            let start = global.time(), xmap, smap, aliases = {}, bestResults = [], results = [], maybe = [], excludeTerms = [], limit = 256
-            if(!terms){
-                return resolve({results, maybe})
-            }
-            if(typeof(opts.type) != 'string'){
-                opts.type = false
-            }
-            if(!Array.isArray(terms)){
-                terms = this.terms(terms, true)
-			}
-            terms = terms.filter(term => {
-				let isExclude = term.charAt(0) == '-'
-                if(isExclude){
-                    let xterm = term.substr(1)
-					Object.keys(this.lists).forEach(listUrl => {
-						if(typeof(this.lists[listUrl].index.terms[xterm]) != 'undefined'){
-							let map = {}
-							map[listUrl] = global.deepClone(this.lists[listUrl].index.terms[xterm])
-							if(xmap){
-								xmap = this.joinMap(xmap, map)
-							} else {
-								xmap = map
-							}
-						}
-					})
-					excludeTerms.push(xterm)
-					return false
-                }
-				return true
-			})
-			terms = this.applySearchRedirects(terms)
-            if(opts.partial){
-				let allTerms = []
-				Object.keys(this.lists).forEach(listUrl => {
-					Object.keys(this.lists[listUrl].index).forEach(term => {
-						if(!allTerms.includes(term)){
-							allTerms.push(term)
-						}
-					})
-				})
-				terms.forEach(term => {
-					let tlen = term.length, nterms = allTerms.filter(t => {
-						return t != term && t.length > tlen && (t.substr(0, tlen) == term || t.substr(t.length - tlen) == term)
-					})
-					if(nterms.length){
-						aliases[term] = nterms
-					}
-				})
-			}
-			terms = terms.filter(t => !excludeTerms.includes(t))
-            terms.some(term => {
-				let tmap, tms = [term]
-				if(typeof(aliases[term]) != 'undefined'){
-					tms = tms.concat(aliases[term])
-				}
-				tms.forEach(term => {
-					Object.keys(this.lists).forEach(listUrl => {
-						if(typeof(this.lists[listUrl].index.terms[term]) != 'undefined'){
-							let map = {}
-							map[listUrl] = global.deepClone(this.lists[listUrl].index.terms[term])
-							if(tmap){
-								tmap = this.joinMap(tmap, map)
-							} else {
-								tmap = map
-							}
-						}
-					})
-				})
-				if(tmap){
-					if(smap){
-						smap = this.intersectMap(smap, tmap)
-					} else {
-						smap = tmap
-					}
-				} else {
-					smap = false
-					return true
-				}
-			})
-            if(smap){
+            let start = global.time(), bestResults = [], results = [], maybe = [], limit = 256
+            let smap = this.searchMap(terms, opts), ks = Object.keys(smap)
+            if(ks.length){
                 let results = []
-                if(xmap){
-					smap = this.diffMap(smap, xmap)
-				}
-				const ks = Object.keys(smap)
 				ks.forEach(listUrl => {
 					let ls = smap[listUrl]['n']
 					if(opts.group){
-						console.log('ggroup', smap[listUrl]['g'])
 						ls = ls.concat(smap[listUrl]['g'])
 					}
 					smap[listUrl] = ls
@@ -199,7 +181,7 @@ class Index extends Common {
 					}
 					console.warn('M3U SEARCH RESULTS', (global.time() - start) +'s (total time)', terms)
 					resolve({results, maybe})
-					xmap = smap = bestResults = results = maybe = null
+					smap = bestResults = results = maybe = null
                 })
             } else {
                 resolve({results:[], maybe: []})
@@ -314,8 +296,10 @@ class Index extends Common {
 	mapSize(a, group){
 		let c = 0
 		Object.keys(a).forEach(listUrl => {
-			c += a[listUrl].n.length
-			if(group){
+			if(a[listUrl].n.length){
+				c += a[listUrl].n.length
+			}
+			if(group && a[listUrl].g.length){
 				c += a[listUrl].g.length
 			}
 		})

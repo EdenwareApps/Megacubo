@@ -41,14 +41,9 @@ class StreamerPlaybackTimeout extends EventEmitter {
     }
     ended(){
         clearTimeout(this.playbackTimeoutTimer)
-        /*
-        let v = this.object()
-        if(v.currentTime > 60){
-            this.app.emit('video-ended', v.currentTime, v.duration)
-        } else {
+        if(this.inLiveStream){
             this.app.emit('video-error', 'playback', this.prepareErrorData({type: 'timeout', details: 'client playback ended after '+ v.currentTime + 's'}))
         }
-        */
     }
     prepareErrorData(data){
         return {type: data.type || 'playback', details: data.details || ''}
@@ -88,6 +83,8 @@ class StreamerOSD extends StreamerPlaybackTimeout {
                     }
                     break
                 case 'loading':
+                    osd.hide(this.osdID + '-sub')
+                    osd.hide(this.osdID)
                     clearTimeout(this.transmissionNotWorkingHintTimer)
                     this.transmissionNotWorkingHintTimer = setTimeout(() => {
                         if(this.active){
@@ -230,6 +227,15 @@ class StreamerState extends StreamerCasting {
                 this.emit('state', this.state)
             }
         }
+        this.on('start', () => {
+            this.stateListener('loading')
+            parent.player.once('timeupdate', () => { // only on initial timeupdate of each stream to fix bad loading status on Exoplayer
+                if(this.state == 'loading'){
+                    this.stateListener('playing')
+                }
+            })
+        })
+        this.on('stop', () => this.stateListener(''))
     }
     bindStateListener(){
         if(!parent.player.listeners('state').includes(this.stateListener)){
@@ -411,7 +417,7 @@ class StreamerSpeedo extends StreamerIdle {
     constructor(controls, app){
         super(controls, app)
         this.invalidSpeeds = ['N/A', 0]
-        this.speedoLabel = document.querySelector('#loading-layer > span > span')
+        this.speedoLabel = document.querySelector('#loading-layer > span.loading-layer-status > span')
         this.on('state', state => {
             switch(state){
                 case 'loading':
@@ -455,6 +461,7 @@ class StreamerSpeedo extends StreamerIdle {
             this.speedoUpdate()
             this.app.emit('downlink', this.downlink())
         })
+        this.app.emit('downlink', this.downlink())
     }
     downlink(minimal){
         if(!navigator.onLine){
@@ -545,6 +552,9 @@ class StreamerSeek extends StreamerSpeedo {
         this.seekBarShowTimer = 0
         this.seekStepDelay = 400
         this.seekTimer = 0
+        this.seekPlaybackStartTime = 0
+        this.seekLastDuration = 0
+        this.useClockCounterInLiveStream = false
         this.on('draw', () => {
             this.seekbar = this.controls.querySelector('seekbar')
             this.seekbarLabel = this.controls.querySelector('label.status')
@@ -556,9 +566,9 @@ class StreamerSeek extends StreamerSpeedo {
                     this.seekByPercentage(this.seekbarNput.value)
                 }
             })
-            this.seekRewindLayerCounter = document.querySelector('div#seek-back > span > span') 
-            this.seekForwardLayerCounter = document.querySelector('div#seek-fwd > span > span') 
-            window.addEventListener('idle-stop', this.seekBarUpdate.bind(this))  
+            this.seekRewindLayerCounter = document.querySelector('div#seek-back > span.seek-layer-time > span') 
+            this.seekForwardLayerCounter = document.querySelector('div#seek-fwd > span.seek-layer-time > span') 
+            window.addEventListener('idle-stop', () => this.seekBarUpdate(true))
             this.seekBarUpdate(true)
         })
         this.on('state', s => {
@@ -570,8 +580,27 @@ class StreamerSeek extends StreamerSpeedo {
                     this.seekBarUpdate(true)
                 }
             }
+            switch(s){
+                case 'playing':
+                    if(!this.seekPlaybackStartTime){
+                        const duration = parent.player.duration()
+                        this.seekPlaybackStartTime = time() - duration
+                    }
+                    break
+                case '':
+                    this.seekPlaybackStartTime = 0
+                    break
+            }
         })
         parent.player.on('timeupdate', this.seekBarUpdate.bind(this))
+        parent.player.on('durationchange', () => {
+            const duration = parent.player.duration()
+            if(this.seekLastDuration > duration){ // player reset
+                this.seekPlaybackStartTime = time() - duration
+            }
+            this.seekLastDuration = duration
+            this.seekBarUpdate()
+        })
         parent.player.on('play', () => {
             this.seekBarUpdate(true)
         })
@@ -619,7 +648,7 @@ class StreamerSeek extends StreamerSpeedo {
                         time = parent.player.time()
                     }
                     let percent = this.seekPercentage(time), duration = parent.player.duration()
-                    this.seekbarLabel.innerHTML = this.hms(time) +' <font style="opacity: var(--opacity-level-2);">/</font> '+ this.hms(duration)
+                    this.seekbarLabel.innerHTML = this.seekbarLabelFormat(time, duration)
                     if(percent != this.lastPercent){
                         this.seekBarUpdateView(percent)
                     }
@@ -635,12 +664,22 @@ class StreamerSeek extends StreamerSpeedo {
     }
     seekBarUpdateSpeed(){
         if(this.active && this.seekbarNput && parent.player.state == 'loading'){
-            let percent = this.seekPercentage(), d = parent.player.duration()
-            this.seekbarLabel.innerText = this.hms(parent.player.time()) +' / '+ this.hms(d)
+            let percent = this.seekPercentage(), d = parent.player.duration(), t = parent.player.time()
+            this.seekbarLabel.innerHTML = this.seekbarLabelFormat(t, d)
             if(percent != this.lastPercent){
                 this.seekBarUpdateView(percent)
             }
         }
+    }
+    seekbarLabelFormat(t, d){        
+        let txt
+        if(this.inLiveStream && this.useClockCounterInLiveStream){
+            let s = this.seekPlaybackStartTime ? (this.seekPlaybackStartTime + t) : time()
+            txt = moment.unix(s + t).format('LTS') //.replace(new RegExp('(\\d\\d:\\d\\d)(:\\d\\d)'), '$1<font style="opacity: var(--opacity-level-2);">$2</font>')
+        } else {
+            txt = this.hms(t) +' <font style="opacity: var(--opacity-level-2);">/</font> '+ this.hms(d)
+        }
+        return txt
     }
     seekPercentage(time){
         if(!this.active) return 0
@@ -698,8 +737,8 @@ class StreamerSeek extends StreamerSpeedo {
     }
     seekByPercentage(percent){        
         if(this.active){
-            let s = this.seekTimeFromPercentage(percent)
-            this.seekTo(s)
+            let now = parent.player.time(), s = this.seekTimeFromPercentage(percent)
+            this.seekTo(s, now > s ? 'rewind' : 'forward')
             this.app.emit('streamer-seek', s)
             this.seekBarUpdate(true)
         }
@@ -712,6 +751,15 @@ class StreamerSeek extends StreamerSpeedo {
         let s = _s, minTime = 0, duration = parent.player.duration(), maxTime = Math.max(0, duration - 2)
         if(this.inLiveStream){
             minTime = duration - config['live-window-time']
+            if(this.seekingFrom < minTime){
+                minTime = this.seekingFrom
+            }
+            if(parent.player.current.object.buffered && parent.player.current.object.buffered.length){
+                let bs = parent.player.current.object.buffered.start(0)
+                if(bs < minTime){
+                    minTime = bs
+                }
+            }
             if(minTime < 0){
                 minTime = 0
             }
@@ -733,14 +781,12 @@ class StreamerSeek extends StreamerSpeedo {
         }
         this.emit('before-seek', s)
         clearTimeout(this.seekTimer)
-        this.seekTimer = setTimeout(() => {
-            parent.player.resume()
-        }, 2000)
+        this.seekTimer = setTimeout(() => parent.player.resume(), 1500)
         let diff = parseInt(s - this.seekingFrom)
         parent.player.pause()
         parent.player.time(s)
         this.emit('after-seek', s)
-        console.log('seeking prefwd ', diff, s, this.seekingFrom)
+        console.log('seeking pre', diff, s, this.seekingFrom)
         if(this.seekLayerRemoveTimer){
             clearTimeout(this.seekLayerRemoveTimer)
         }
@@ -748,12 +794,20 @@ class StreamerSeek extends StreamerSpeedo {
             this.seekRewindLayerCounter.innerText = '-' + this.hmsMin(diff)
             this.jbody.removeClass('seek-fwd').addClass('seek-back')
         } else if(diff > 0) {
-            console.log('seeking fwd ', diff, s, this.seekingFrom)
             this.seekForwardLayerCounter.innerText = '+' + this.hmsMin(diff)
             this.jbody.removeClass('seek-back').addClass('seek-fwd')
         } else {
-            console.log('removing seek layers', diff, s, this.seekingFrom)
-            this.jbody.removeClass('seek-back').removeClass('seek-fwd')
+            if(type){
+                if(type == 'rewind'){
+                    this.seekRewindLayerCounter.innerText = this.hmsMin(diff)
+                    this.jbody.addClass('seek-back').removeClass('seek-fwd')
+                } else {
+                    this.seekForwardLayerCounter.innerText = this.hmsMin(diff)
+                    this.jbody.removeClass('seek-back').addClass('seek-fwd')
+                }
+            } else {
+                this.jbody.removeClass('seek-back').removeClass('seek-fwd')
+            }
         }
         this.seekLayerRemoveTimer = setTimeout(() => {            
             this.jbody.removeClass('seek-back').removeClass('seek-fwd')
@@ -763,13 +817,13 @@ class StreamerSeek extends StreamerSpeedo {
     seekRewind(steps=1){
         if(this.active){
             let now = parent.player.time(), nct = now - (steps * this.seekSkipSecs)
-            this.seekTo(nct)
+            this.seekTo(nct, 'rewind')
         }
     }
     seekForward(steps=1){
         if(this.active){
             let now = parent.player.time(), nct = now + (steps * this.seekSkipSecs)
-            this.seekTo(nct)
+            this.seekTo(nct, 'forward')
         }
     }
 }
@@ -778,12 +832,13 @@ class StreamerClientTimeWarp extends StreamerSeek {
         super(controls, app)
         this.currentPlaybackRate = 1
         parent.player.on('timeupdate', this.doTimeWarp.bind(this))
+        parent.player.on('durationchange', this.doTimeWarp.bind(this))
     }
     doTimeWarp(){
         if(this.inLiveStream && config['playback-rate-control']){
-            let thresholds = {low: 10, high: config['live-window-time'] * 0.8}
+            let thresholds = {low: 10, high: 30}
             let rate = this.currentPlaybackRate
-            let rates = {slow: 0.9, normal: 1, fast: 1.1}, time = parent.player.time(), duration = Math.max(time, parent.player.duration()), buffered = duration - time
+            let rates = {slow: 0.9, normal: 1, fast: 1.1}, time = parent.player.time(), duration = parent.player.duration(), buffered = duration - time
             // generate intermediary values
             thresholds.midLow = thresholds.low + ((thresholds.high - thresholds.low) / 3)
             thresholds.midHigh = thresholds.high - ((thresholds.high - thresholds.low) / 3)
@@ -927,17 +982,25 @@ class StreamerAudioUI extends StreamerClientVideoFullScreen {
         })
         this.volumeInitialized = false
         this.volumeLastClickTime = 0
+        this.volumeShowTimer = 0
+        this.volumeHideTimer = 0
+    }
+    startVolumeHideTimer(){
+        clearTimeout(this.volumeHideTimer)
+        this.volumeHideTimer = setTimeout(() => this.volumeBarHide(), 1500)
     }
     volumeBarVisible(){
         return this.volumeBar.style.display != 'none'
     }
     volumeBarShow(){
         this.volumeBar.style.display = 'inline-table'
+        this.startVolumeHideTimer()
     }
     volumeBarHide(){
         this.volumeBar.style.display = 'none'
+        this.volumeInputRect = null
     }
-    volumeToggle(e){
+    volumeBarToggle(e){
         console.log('VOLUMETOGGLE', e, this.volumeBar.style.display)
         if(e.target && e.target.tagName && ['button', 'volume-wrap', 'i'].includes(e.target.tagName.toLowerCase())){
             if(this.volumeBarVisible()){
@@ -955,14 +1018,37 @@ class StreamerAudioUI extends StreamerClientVideoFullScreen {
             }
         }
     }
+    volumeBarCalcValueFromMove(e){
+        if(!this.volumeInputRect){
+            this.volumeInputRect = this.volumeInput.getBoundingClientRect()
+        }
+        const rect = this.volumeInputRect
+        const y = e.touches[0].clientY - rect.top
+        let percent = 100 - (y / (rect.height / 100))
+        percent = Math.max(0, Math.min(100, percent))
+        if(this.volumeInput.value != percent){
+            this.volumeInput.value = percent
+            this.volumeChanged()
+        }
+    }
     setupVolume(){        
-        this.addPlayerButton('volume', lang.VOLUME, 'fas fa-volume-up', 2, this.volumeToggle.bind(this))
+        this.addPlayerButton('volume', lang.VOLUME, 'fas fa-volume-up', 2, this.volumeBarShow.bind(this))
         this.volumeButton = this.getPlayerButton('volume')
         jQuery('<volume><volume-wrap><div><input type="range" min="0" max="100" step="1" value="'+ config['volume'] +'" /><div id="volume-arrow"></div></div></volume-wrap></volume>').appendTo(this.volumeButton)
         this.volumeBar = this.volumeButton.querySelector('volume')
         this.volumeInput = this.volumeBar.querySelector('input')
-        this.volumeInput.addEventListener('input', this.volumeChanged.bind(this))
-        this.volumeInput.addEventListener('change', this.volumeChanged.bind(this))
+        if(parent.cordova){
+            // input and change events are not triggering satisfatorely on mobile, so we'll use touchmove instead ;)
+            this.volumeInput.addEventListener('touchmove', this.volumeBarCalcValueFromMove.bind(this))
+        } else {
+            this.volumeInput.addEventListener('input', this.volumeChanged.bind(this))
+            jQuery(this.volumeButton).hover(() => {
+                clearTimeout(this.volumeShowTimer)
+                this.volumeShowTimer = setTimeout(() => this.volumeBarShow(), 400)
+            }, () => {
+                clearTimeout(this.volumeShowTimer)
+            })
+        }
         this.once('start', () => this.volumeChanged())
         window.addEventListener('idle-start', () => this.volumeBarHide())
         explorer.on('focus', e => {
@@ -975,21 +1061,11 @@ class StreamerAudioUI extends StreamerClientVideoFullScreen {
                 this.volumeBarHide()
             }
         })
-        this.volumeButton.addEventListener('change', () => this.volumeBarHide())
-        /*
-        this.volumeButton.addEventListener('focus', () => {
-            if(!this.volumeBarVisible()){
-                this.volumeLastClickTime = time()
-                this.volumeBarShow()
-            }
-        })
         this.volumeButton.addEventListener('blur', () => {
-            console.log('VOLUMEBLUR', document.activeElement, explorer.selected())
-            if(document.activeElement == document.body){
+            if(document.activeElement != this.volumeInput && !document.activeElement.contains(this.volumeInput)){
                 this.volumeBarHide()
             }
         })
-        */
     }
     isVolumeButtonActive(){
         let s = explorer.selected()
@@ -1030,6 +1106,7 @@ class StreamerAudioUI extends StreamerClientVideoFullScreen {
                 this.updatePlayerButton('volume', null, volIcon)
             }
         }
+        this.startVolumeHideTimer()
     }
     saveVolume(){
         if(this.saveVolumeTimer){
@@ -1047,7 +1124,7 @@ class StreamerClientControls extends StreamerAudioUI {
         this.app.on('add-player-button', this.addPlayerButton.bind(this))
         this.app.on('update-player-button', this.updatePlayerButton.bind(this))
         this.app.on('enable-player-button', this.enablePlayerButton.bind(this))
-        this.tuningIcon = 'fas fa-random'
+        this.tuningIcon = 'fas fa-satellite-dish'
         this.controls.innerHTML = `
     <seekbar>
         <input type="range" min="0" max="100" value="0" />
@@ -1060,16 +1137,16 @@ class StreamerClientControls extends StreamerAudioUI {
         <span class="filler"></span>  
     </div>         
 `
-        this.addPlayerButton('play-pause', lang.PLAY +' / '+ lang.PAUSE, `
-            <i class="fas fa-play-circle play-button"></i>
-            <i class="fas fa-pause-circle pause-button"></i>`, 0, () => {
+        this.addPlayerButton('play-pause', lang.PAUSE, `
+            <i class="fas fa-play play-button"></i>
+            <i class="fas fa-pause pause-button"></i>`, 0, () => {
             this.playOrPauseNotIdle()
         })
-        this.addPlayerButton('stop', lang.STOP, 'fas fa-stop-circle', 1, () => {
+        this.addPlayerButton('stop', lang.STOP, 'fas fa-stop', 1, () => {
             this.stop()
         })
         this.setupVolume()
-        this.addPlayerButton('tune', lang.TRY_OTHER, this.tuningIcon, -1, () => {
+        this.addPlayerButton('tune', lang.DO_TUNE, this.tuningIcon, -1, () => {
             this.stop()
             this.app.emit('tune')
         })
@@ -1110,7 +1187,7 @@ class StreamerClientControls extends StreamerAudioUI {
         let iconTpl = fa.indexOf('<') == -1 ? '<i class="'+ fa +'"></i>' : fa
         let template = `
         <button id="${id}" class="${cls}" title="${name}" aria-label="${name}">
-            ${iconTpl}
+            <span class="button-icon">${iconTpl}</span>
             <label><span>${name}</span></label>
         </button>
 `
@@ -1182,7 +1259,6 @@ class StreamerClientController extends StreamerClientControls {
         this.inLiveStream = this.activeMediatype == 'live'
         parent.player.load(src, mimetype, cookie, this.activeMediatype)
         this.emit('start')
-        this.stateListener('loading')
     }
     stop(fromServer){
         if(this.active){
@@ -1250,6 +1326,7 @@ class StreamerClient extends StreamerClientController {
             this.autoTuning = autoTuning
             console.warn('CONNECT', src, mimetype, cookie, mediatype, data, autoTuning)
             this.start(src, mimetype, cookie, mediatype)
+            this.jbody.addClass('video video-loading')
             osd.hide('streamer')
         })
         this.app.on('streamer-connect-suspend', () => { // used to wait for transcoding setup when supported codec is found on stream

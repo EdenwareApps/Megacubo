@@ -220,25 +220,14 @@ class FFServer extends Events {
     serve(){
         return new Promise((resolve, reject) => {
             this.server = http.createServer((req, response) => {
+                const keepalive = this.committed && global.config.get('use-keepalive')
 				const file = this.unproxify(req.url.split('#')[0]), fail = err => {
                     console.log('FFMPEG SERVE', err, file, this.destroyed)
-                    /*
-                    response.writeHead(404, { 
-                        'Content-Type': 'text/plain',
-                        'Access-Control-Allow-Origin': '*'
-                    })
-                    response.end(err)
-                    */
-                    let headers = { 
+                    const headers = { 
                         'access-control-allow-origin': '*',
-                        'content-length': 0
+                        'content-length': 0,
+                        'connection': keepalive ? 'keep-alive' : 'close'
                     }
-                    /*
-                    let ctype = this.contentTypeFromExt(global.streamer.ext(file))
-                    if(ctype){
-                        headers['content-type'] =  ctype
-                    }
-                    */
                     response.writeHead(404, headers)
                     response.end()
                 }
@@ -248,7 +237,8 @@ class FFServer extends Events {
                     this.prepareFile(file).then(stat => {
                         let headers = {
                             'access-control-allow-origin': '*',
-                            'content-length': stat.size
+                            'content-length': stat.size,
+                            'connection': keepalive ? 'keep-alive' : 'close'
                         }
                         let ctype = this.contentTypeFromExt(global.streamer.ext(file))
                         if(ctype){
@@ -307,7 +297,10 @@ class FFServer extends Events {
                 if(this.destroyed){
                     return reject('destroyed')
                 }
-                let cores = Math.min(require('os').cpus().length, 2), fragTime = 4, lwt = global.config.get('live-window-time')
+                // cores = Math.min(require('os').cpus().length, 2), 
+                // fragTime=2 to start playing asap, it will generate 3 segments before create m3u8, so hls_init_time isn't enough
+                // fragTime=1 may cause manifestParsingError "invalid target duration" on hls.js
+                let fragTime = 2, lwt = global.config.get('live-window-time')
                 if(typeof(lwt) != 'number'){
                     lwt = 120
                 } else if(lwt < 30) { // too low will cause isBehindLiveWindowError
@@ -317,7 +310,7 @@ class FFServer extends Events {
                 this.decoder = global.ffmpeg.create(this.source).
                     
                     /* cast fix try
-                    inputOptions('-re').
+                    inputOptions('-re'). // https://stackoverflow.com/questions/48479141/understanding-ffmpeg-re-parameter
                     inputOptions('-ss', 1). // https://trac.ffmpeg.org/ticket/2220
                     inputOptions('-fflags +genpts').
                     //outputOptions('-vf', 'setpts=PTS').
@@ -331,8 +324,8 @@ class FFServer extends Events {
                     outputOptions('-x264opts', 'vbv-bufsize=50000:vbv-maxrate=50000:nal-hrd=vbr').
                     cast fix try end */
 
+                    outputOptions('-fflags', '+igndts').
                     outputOptions('-hls_flags', 'delete_segments'). // ?? https://www.reddit.com/r/ffmpeg/comments/e9n7nb/ffmpeg_not_deleting_hls_segments/
-                    outputOptions('-hls_init_time', 2). // 1 may cause manifestParsingError "invalid target duration"
                     outputOptions('-hls_time', fragTime).
                     outputOptions('-hls_list_size', hlsListSize).
                     outputOptions('-map', '0:a?').
@@ -399,7 +392,7 @@ class FFServer extends Events {
                         inputOptions('-reconnect_delay_max', 20)
                     this.decoder.
                         inputOptions('-icy', 0).
-                        inputOptions('-seekable', -1).
+                        // inputOptions('-seekable', -1).
                         inputOptions('-multiple_requests', 1)
                     if(this.agent){
                         this.decoder.inputOptions('-user_agent', this.agent) //  -headers ""
@@ -472,7 +465,7 @@ class FFServer extends Events {
             this.decoder.kill()
             this.decoder = null
             if(file){
-                global.removeFolder(path.dirname(file), true)
+                global.rmdir(path.dirname(file), true)
             }
         }
     }

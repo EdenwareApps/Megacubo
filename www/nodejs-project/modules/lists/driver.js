@@ -195,7 +195,7 @@ class Lists extends Index {
 				return reject('no epg')
 			}
 			return this._epg.search(this.applySearchRedirects(terms), nowLive).then(resolve).catch(reject)
-		})		
+		})
 	}
 	epgSearchChannel(terms){
 		return new Promise((resolve, reject) => {

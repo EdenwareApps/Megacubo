@@ -75,26 +75,12 @@ class StreamerAdapterBase extends Events {
 				this.emit('codecData', this.codecData)
 			}
         })
-        adapter.on('bitrate', (bitrate, speed) => {
-			if(speed > 0){
-				this.currentSpeed = speed
-			}
-			if(bitrate && this.bitrate != bitrate){
-				this.bitrate = bitrate
-				this.emit('bitrate', this.bitrate, this.currentSpeed)
-			}
-        })
         adapter.on('speed', speed => {
 			if(speed > 0 && this.currentSpeed != speed){
 				this.currentSpeed = speed
 			}
         })
-        adapter.on('fail', err => {
-			if(!this.destroyed){
-				console.log('adapter fail', err)
-				this.fail(err)
-			}
-        })
+        adapter.on('fail', this.onFail)
         this.on('commit', () => {
             adapter.emit('commit')
             if(!adapter.committed){
@@ -107,6 +93,33 @@ class StreamerAdapterBase extends Events {
                 adapter.committed = false
             }
 		})
+        adapter.on('bitrate', (bitrate, speed) => {
+			if(speed && speed > 0){
+				this.currentSpeed = speed
+			}
+			if(bitrate && this.bitrate != bitrate){
+				this.bitrate = bitrate
+				this.emit('bitrate', this.bitrate, this.currentSpeed)
+			}
+        })
+		if(adapter.bitrate){
+			this.bitrate = adapter.bitrate
+			this.emit('bitrate', adapter.bitrate, this.currentSpeed)
+		}
+    }
+    disconnectAdapter(adapter){
+        adapter.removeListener('fail', this.onFail);
+        ['dimensions', 'codecData', 'bitrate', 'speed', 'commit', 'uncommit'].forEach(n => adapter.removeAllListeners(n))
+		let pos = this.adapters.indexOf(adapter)
+		if(pos != -1){
+			this.adapters.splice(pos, 1)
+		}
+    }
+    onFail(err){
+        if(!this.destroyed){
+            console.log('adapter fail', err)
+            this.fail(err)
+        }
     }
 	getDomain(u){
 		if(u && u.indexOf('//') != -1){

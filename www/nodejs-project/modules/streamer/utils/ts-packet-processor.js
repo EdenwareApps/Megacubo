@@ -3,16 +3,18 @@ const Events = require('events'), fs = require('fs')
 const SYNC_BYTE = 0x47
 const PACKET_SIZE = 188
 
-class TSPacketProcessor extends Events {
+class MPEGTSPacketProcessor extends Events {
 	constructor(){
         super()
-        this.packetFilterPolicy = 1 // 0=bypass, 1=force size, 2=remove
+        this.packetFilterPolicy = 1 // 0=bypass, 1=force size by trimming or padding, 2=remove
         this.lastFlushTime = 0
         this.minFlushInterval = 3 // secs
         this.buffering = []
         this.bufferSize = (512 * 1024) // 512KB
         this.pcrRepeatCheckerTimeout = 10 // after X seconds without receiving a valid pcr, give up and reset the pcr checking
         this.pcrRepeatCheckerLastValidPCRFoundTime = global.time()
+        this.keepInitialData = false
+        this.keepLeftOverData = false
         // this.debug = true
     }
 	len(data){
@@ -63,7 +65,7 @@ class TSPacketProcessor extends Events {
             }
         }
         if(this.debug){
-            console.log('process start', this.currentPCR, this.parsingPCR)
+            console.log('process start', pointer, this.currentPCR, this.parsingPCR)
         }
         this.buffering = []
         while(pointer >= 0 && (pointer + PACKET_SIZE) <= buf.length){
@@ -74,35 +76,25 @@ class TSPacketProcessor extends Events {
                         console.log('bad syncByte for next packet')
                     }
                     offset = this.nextSyncByte(buf, pointer + PACKET_SIZE)
-                    if(offset != -1){
-                        if(!this.checkSyncByte(buf, offset)){
-                            offset = -1
-                            console.error('HARD TO FIND NEXT SYNC BYTE, ABORT')
-                            if(clear){
-                                this.buffering = []
-                            } else {
-                                this.buffering = [buf]
-                                return null
-                            }
-                            break
-                        }
-                    }
                 }
             }
             let size = offset == -1 ? PACKET_SIZE : (offset - pointer)
             if(size != PACKET_SIZE){
                 switch(this.packetFilterPolicy){
                     case 1:
-                        if(this.debug){
-                            console.log('bad packet size: '+ size +', trimming it')
-                        }
                         if(size < PACKET_SIZE){
-                            let padding = Buffer.alloc(PACKET_SIZE - size, '\0', 'utf8')
-                            buf = Buffer.concat([buf.slice(0, pointer), padding, buf.slice(pointer + size)])
+                            if(this.debug){
+                                console.log('bad packet size: '+ size +', removing it', buf.slice(pointer, pointer + size))
+                            }
+                            buf = Buffer.concat([buf.slice(0, pointer), buf.slice(pointer + size)])
+                            size = 0
                         } else { 
+                            if(this.debug){
+                                console.log('bad packet size: '+ size +', trimming it', buf.slice(pointer, pointer + size))
+                            }
                             buf = Buffer.concat([buf.slice(0, pointer + PACKET_SIZE), buf.slice(pointer + size)]) // trim
+                            size = PACKET_SIZE
                         }
-                        size = PACKET_SIZE
                         break
                     case 2:
                         if(this.debug){
@@ -174,7 +166,7 @@ class TSPacketProcessor extends Events {
             }
             this.pcrRepeatCheckerLastValidPCRFoundTime = global.time() // reset pcr checking timeout counter
             result = {
-                start: parseInt(pcrs[pcrTimes[0]]),
+                start: this.keepInitialData ? 0 : parseInt(pcrs[pcrTimes[0]]),
                 end: parseInt(pcrs[pcrTimes[pcrTimes.length - 1]]),
                 leftover: parseInt(pcrs[pcrTimes[pcrTimes.length - 1]])
             }
@@ -197,9 +189,16 @@ class TSPacketProcessor extends Events {
             }
         }
         if(typeof(result.start) != 'undefined'){
+            if(this.debug){
+                console.log('process', JSON.stringify(result), buf.length)
+            }
+            if(this.keepLeftOverData){
+                result.end = buf.length
+                result.leftover = buf.length
+            } 
             ret = buf.slice(result.start, result.end)  
             if(this.debug){
-                console.log('process', 'start: '+ pcrTimes[0] +' ('+ pcrs[pcrTimes[0]] +'), end: '+ pcrTimes[pcrTimes.length - 1] +' ('+ pcrs[pcrTimes[pcrTimes.length - 1]] +')')
+                console.log('process', result, ret.length, 'start: '+ pcrTimes[0] +' ('+ pcrs[pcrTimes[0]] +'), end: '+ pcrTimes[pcrTimes.length - 1] +' ('+ pcrs[pcrTimes[pcrTimes.length - 1]] +')')
             }
         }
         if(result.leftover < buf.length){
@@ -213,73 +212,13 @@ class TSPacketProcessor extends Events {
             }
         } else {
             if(this.debug){
-                console.log('process', 'no leftover? should not happen', JSON.stringify(pcrs), JSON.stringify(result), buf.length)
+                console.log('process', 'no leftover')
             }
         }
         if(pcrLogIrregular && this.debug){
             console.log('PCRLOG', pcrLog.join("\r\n"))
         }
         return ret
-    }
-    filter(buf){ // only adjust packet sizes and startByte
-        let pointer = 0, pcrs = {}
-        if(!this.checkSyncByte(buf, 0)){
-            pointer = this.nextSyncByte(buf, 0)
-            if(pointer == -1){
-                return Buffer.alloc(0)
-            }
-        }
-        let end, start = pointer
-        while(pointer >= 0 && (pointer + PACKET_SIZE) <= buf.length){
-            let offset = -1
-            if((pointer + PACKET_SIZE) < (buf.length + 4)){ // has a next packet start
-                if(!this.checkSyncByte(buf, pointer + PACKET_SIZE)){
-                    if(this.debug){
-                        console.log('bad syncByte for next packet')
-                    }
-                    offset = this.nextSyncByte(buf, pointer + PACKET_SIZE)
-                    if(offset != -1){
-                        if(!this.checkSyncByte(buf, offset)){
-                            offset = -1
-                            console.error('HARD TO FIND NEXT SYNC BYTE, ABORT')
-							break
-                        }
-                    }
-                }
-            }
-            let size = offset == -1 ? PACKET_SIZE : (offset - pointer)
-            if(size != PACKET_SIZE){
-                switch(this.packetFilterPolicy){
-                    case 1:
-                        if(this.debug){
-                            console.log('bad packet size: '+ size +', trimming it')
-                        }
-                        if(size < PACKET_SIZE){
-                            let padding = Buffer.alloc(PACKET_SIZE - size, '\0', 'utf8')
-                            buf = Buffer.concat([buf.slice(0, pointer), padding, buf.slice(pointer + size)])
-                        } else { 
-                            buf = Buffer.concat([buf.slice(0, pointer + PACKET_SIZE), buf.slice(pointer + size)]) // trim
-                        }
-                        size = PACKET_SIZE
-                        break
-                    case 2:
-                        if(this.debug){
-                            console.log('bad packet size: '+ size +', removing it')
-                        }
-                        buf = Buffer.concat([buf.slice(0, pointer), buf.slice(pointer + size)])
-                        size = 0
-                        break
-                    default:
-                        if(this.debug){
-                            console.log('bad packet size: '+ size +', bypassing it')
-                        }
-                }
-            }
-            if(!size) continue
-            pointer += size
-            end = pointer
-        }
-        return buf.slice(start, end)
     }
     isPCRDiscontinuity(pcr){
         let pcrGapLimit = 699999999
@@ -352,4 +291,4 @@ class TSPacketProcessor extends Events {
     }
 }
 
-module.exports = TSPacketProcessor
+module.exports = MPEGTSPacketProcessor

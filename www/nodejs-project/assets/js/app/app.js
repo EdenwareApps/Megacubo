@@ -34,30 +34,6 @@ function waitMessage(action, cb){
     window.addEventListener('message', listener)
 }
 
-function getViewportRange(){
-    let as = explorer.currentElements, limit = (explorer.viewSizeX * explorer.viewSizeY)
-    if(as.length){
-        let i = Math.round(wrap.scrollTop / as[0].offsetHeight) * explorer.viewSizeX
-        return {start: i, end: Math.min(i + limit, as.length - 1)}
-    } else {
-        return {start: 0, end: Math.min(limit, as.length - 1)}
-    }
-}
-
-function getViewportEntries(onlyWithIcons){
-    let ret = [], as = explorer.currentElements
-    if(as.length){
-        let range = getViewportRange(wrap.scrollTop)
-        ret = as.slice(range.start, range.end)
-        if(onlyWithIcons){
-            ret = ret.filter(a => {
-                return a.getAttribute('data-icon')
-            })
-        }
-    }
-    return ret
-}
-
 var hidingBackButton = false
 function hideBackButton(doHide){
     if(doHide != hidingBackButton){
@@ -243,7 +219,7 @@ function initApp(){
     })
     icons.on('run', () => {
         if(config['show-logos']){
-            (explorer.ranging ? getViewportEntries(true) : wrap.querySelectorAll('a[data-icon]')).forEach(element => {
+            (explorer.ranging ? explorer.viewportEntries(true) : wrap.querySelectorAll('a[data-icon]')).forEach(element => {
                 var src = element.getAttribute('data-icon')
                 element.removeAttribute('data-icon')
                 if(src){
@@ -316,7 +292,7 @@ function initApp(){
                     return explorer.isExploring()
                 },
                 resetSelector(){
-                    return getViewportEntries(false)
+                    return explorer.viewportEntries(false)
                 },
                 default: true,
                 overScrollAction: direction => {
@@ -611,7 +587,11 @@ function initApp(){
             }
             
             if(top.cordova){
-                app.on('streamer-long-watching', requestReview)
+                app.on('streamer-long-watching', () => {
+                    if(typeof(premium) == 'undefined' || !premium.enabled){
+                        requestReview()
+                    }
+                })
             }
             app.on('share', (title, text, url) => {
                 console.log('share', title, text, url)

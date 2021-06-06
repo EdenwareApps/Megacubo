@@ -209,6 +209,9 @@ function patch(scope){
 		}
 		return scope.sanitize(filename)
 	}
+	scope.isWritable = stream => {
+		return stream.writable || stream.writeable
+	}
     scope.isNetworkIP = addr => {
         if(addr){
 			if(addr.startsWith('10.') || addr.startsWith('172.') || addr.startsWith('192.')){

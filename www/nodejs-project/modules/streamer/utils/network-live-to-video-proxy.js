@@ -309,6 +309,7 @@ class StreamerNetworkLiveToVideoProxy extends Events {
         })
     }
     handleRequest(req, response){
+        const keepalive = this.committed && global.config.get('use-keepalive')
         const file = this.file, fail = err => {
             console.log('FFMPEG SERVE', err, file, this.destroyed)
             let headers = { 
@@ -326,7 +327,8 @@ class StreamerNetworkLiveToVideoProxy extends Events {
             let len = 2 * (1024 * 1024 * 1024)
             let status = 200, headers = {
                 'access-control-allow-origin': '*',
-                'content-length': len // 2GB
+                'content-length': len, // 2GB
+                'connection': keepalive ? 'keep-alive' : 'close'
             }
 			if(this.opts.forceExtraHeaders){
 				headers = Object.assign(headers, this.opts.forceExtraHeaders)
@@ -381,7 +383,7 @@ class StreamerNetworkLiveToVideoProxy extends Events {
                 this.server.close()
                 delete this.server
             }
-            global.removeFolder(this.folder)
+            global.rmdir(this.folder)
             this.removeAllListeners()
         }
     }

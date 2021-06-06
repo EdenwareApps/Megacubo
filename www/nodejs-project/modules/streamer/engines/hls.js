@@ -1,4 +1,97 @@
-const StreamerBaseIntent = require('./base.js'), StreamerProxy = require('../utils/proxy.js'), fs = require('fs'), FFServer = require('../utils/ff-server')
+const StreamerBaseIntent = require('./base.js'), StreamerProxy = require('../utils/proxy.js'), StreamerHLSProxy = require('../utils/proxy-hls.js')
+const fs = require('fs'), FFServer = require('../utils/ff-server'), async = require('async'), m3u8Parser = require('m3u8-parser')
+
+class HLSTrackSelector {
+    constructor(){
+
+    }
+    absolutize(path, url){
+		if(path.substr(0, 2) == '//'){
+			path = 'http:' + path
+		}
+        if(['http://', 'https:/'].includes(path.substr(0, 7))){
+            return path
+		}
+		let uri = new URL(path, url)
+        return uri.href
+	}
+    fetch(url){
+        return new Promise((resolve, reject) => {
+            const download = new global.Download({
+                url,
+                keepalive: false,
+                retries: 2,
+                followRedirect: true
+            })
+            download.once('response', console.warn)
+            download.on('error', console.warn)
+            download.once('end', ret => {
+                resolve(ret)
+            })
+            download.start()
+        })
+    }
+    getPlaylistTracks(masterUrl){
+        return new Promise((resolve, reject) => {
+            this.fetch(masterUrl).then(body => {
+                let results, parser = new m3u8Parser.Parser()
+                parser.push(String(body))
+                parser.end()
+                //console.log('M3U8 PARSED', baseUrl, url, parser)
+                if(parser.manifest && parser.manifest.playlists && parser.manifest.playlists.length){
+                    results = parser.manifest.playlists.map(playlist => {
+                        let bandwidth = 0, url = this.absolutize(playlist.uri, masterUrl)
+                        if(playlist.attributes){
+                            if(playlist.attributes['AVERAGE-BANDWIDTH'] && parseInt(playlist.attributes['AVERAGE-BANDWIDTH']) > 128){
+                                bandwidth = parseInt(playlist.attributes['AVERAGE-BANDWIDTH'])
+                            } else if(playlist.attributes['BANDWIDTH'] && parseInt(playlist.attributes['BANDWIDTH']) > 128){
+                                bandwidth = parseInt(playlist.attributes['BANDWIDTH'])
+                            }
+                        }
+                        return {url, bandwidth}
+                    })
+                } else {
+                    results = [{url: masterUrl, bandwidth: 0}]
+                }
+                resolve(results)
+            }).catch(reject)
+        })
+    }
+    /*
+    testBandwidth(segmentUrl){
+        resolve(with the speed)
+    }
+    */
+    selectTrack(tracks, bandwidth){
+        let chosen, chosenBandwidth
+        tracks.sortByProp('bandwidth').some(track => {
+            if(!chosen){
+                chosen = track.url
+                chosenBandwidth = track.bandwidth
+            } else {
+                if(track.bandwidth <= bandwidth){
+                    chosen = track.url
+                    chosenBandwidth = track.bandwidth
+                } else {
+                    return true // to break
+                }
+            }
+        })
+        return {url: chosen, bandwidth: chosenBandwidth}
+    }
+    select(masterUrl){
+        return new Promise((resolve, reject) => {
+            this.getPlaylistTracks(masterUrl).then(tracks => {
+                this.tracks = tracks
+                if(tracks.length == 1){
+                    resolve(tracks[0])
+                } else {
+                    resolve(this.selectTrack(tracks, global.streamer.downlink))
+                }
+            })
+        })
+    }    
+}
 
 class StreamerHLSIntent extends StreamerBaseIntent {    
     constructor(data, opts, info){
@@ -6,12 +99,15 @@ class StreamerHLSIntent extends StreamerBaseIntent {
         this.type = 'hls'
         this.mimetype = this.mimeTypes.hls
         this.mediaType = 'live'
+        this.trackUrl = this.data.url
+        this.trackSelector = new HLSTrackSelector()
     }  
     transcode(){
         return new Promise((resolve, reject) => {
-            if(this.adapter){
-                this.adapter.destroy()
-                this.adapter = null
+            if(this.ff){
+                this.disconnectAdapter(this.ff)
+                this.ff.destroy()
+                this.ff = null
             }
             let resolved, opts = {
                 audioCodec: 'aac',
@@ -21,7 +117,7 @@ class StreamerHLSIntent extends StreamerBaseIntent {
             }
             this.resetTimeout()
             this.transcoderStarting = true
-            this.transcoder = new FFServer(this.data.url, opts)
+            this.transcoder = new FFServer(this.prx.proxify(this.trackUrl), opts)
             this.connectAdapter(this.transcoder)
             this.transcoder.on('destroy', () => {
                 if(!resolved){
@@ -49,15 +145,35 @@ class StreamerHLSIntent extends StreamerBaseIntent {
     }
     _start(){ 
         return new Promise((resolve, reject) => {
-            this.adapter = new StreamerProxy(Object.assign({authURL: this.data.source}, this.opts))
-            this.connectAdapter(this.adapter)
-            this.adapter.start().then(() => {
-                this.endpoint = this.adapter.proxify(this.data.url)
-                resolve({endpoint: this.endpoint, mimetype: this.mimetype})
-            }).catch(e => {
-                console.warn('COMMITERR', this.endpoint, e)
-                reject(e || 'hls adapter failed')
-            })
+            let useFF = global.config.get('ffmpeg-hls')
+            // useFF = useFF == 'always' || (useFF == 'desktop-only' && !global.cordova)            
+            this.prx = new (useFF ? StreamerProxy : StreamerHLSProxy)(Object.assign({authURL: this.data.source}, this.opts))
+            this.connectAdapter(this.prx)
+            this.prx.start().then(() => {
+                if(useFF){
+                    this.trackSelector.select(this.data.url).then(ret => {
+                        this.trackUrl = ret.url     
+                        console.log('TRACKS', this.trackUrl, ret, this.trackSelector.tracks)
+                        this.ff = new FFServer(this.prx.proxify(this.trackUrl), this.opts)
+                        this.connectAdapter(this.ff)
+                        this.ff.opts.audioCodec = this.opts.audioCodec
+                        this.ff.start().then(() => {
+                            this.endpoint = this.ff.endpoint
+                            resolve({endpoint: this.endpoint, mimetype: this.mimetype})                   
+                            if(ret.bandwidth){ // do it after resolve for right emit order on global.streamer
+                                this.bitrate = ret.bandwidth
+                                this.emit('bitrate', ret.bandwidth)
+                            }
+                        }).catch(reject)
+                    }).catch(e => {
+                        console.warn('COMMITERR', this.endpoint, e)
+                        reject(e || 'hls adapter failed')
+                    })
+                } else {
+                    this.endpoint = this.prx.proxify(this.data.url)
+                    resolve({endpoint: this.endpoint, mimetype: this.mimetype}) 
+                }
+            }).catch(reject)
         })
     }
 }

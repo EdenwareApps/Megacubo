@@ -909,12 +909,9 @@ class Explorer extends ExplorerLoading {
 		return ss
 	}
 	render(entries, path, icon){
-		if(this.debug){
-			console.log("RENDERING", entries)
-		}
 		this.rendering = true
 		clearTimeout(this.touchMovingTimer)
-		let tpl, html='', targetScrollTop = 0
+		let html='', targetScrollTop = 0
 		if(typeof(this.selectionMemory[path]) != 'undefined'){
 			targetScrollTop = this.selectionMemory[path].scroll
 		}
@@ -932,13 +929,7 @@ class Explorer extends ExplorerLoading {
 		this.lastOpenedElement = null
 		this.wrapper.html(html)
 		this.currentElements = Array.from(this._wrapper.getElementsByTagName('a'))
-		if(this.debug){
-			console.log("RENDERING", this.selectedIndex)
-		}
 		setTimeout(() => {
-			if(this.debug){
-				console.log("RENDERED")
-			}
 			this.restoreSelection() // keep it in this timer, or the hell gates will open
 			this.emit('render', this.path, icon)
 			if(!this.initialized){
@@ -948,19 +939,49 @@ class Explorer extends ExplorerLoading {
 			this.rendering = false
 		}, 0)
 	}
+	viewportRange(scrollTop, entriesCount){
+		let limit = (this.viewSizeX * this.viewSizeY)
+		if(this.currentElements.length){ // without elements (not initialized), we can't calc the element height
+			if(typeof(scrollTop) != 'number'){
+				scrollTop = wrap.scrollTop
+			}
+			if(typeof(entriesCount) != 'number'){
+				entriesCount = this.currentElements.length
+			}
+			let entryHeight = this.currentElements[0].offsetHeight
+			let i = Math.round(scrollTop / entryHeight) * this.viewSizeX
+			return {start: i, end: Math.min(i + limit, entriesCount - 1)}
+		} else {
+			return {start: 0, end: limit}
+		}
+	}
+	viewportEntries(onlyWithIcons){
+		let ret = [], as = this.currentElements
+		if(as.length){
+			let range = this.viewportRange()
+			ret = as.slice(range.start, range.end)
+			if(onlyWithIcons){
+				ret = ret.filter(a => {
+					return a.getAttribute('data-icon')
+				})
+			}
+		}
+		return ret
+	}
     getRange(targetScrollTop){
 		if(typeof(targetScrollTop) != 'number'){
 			targetScrollTop = this._wrapper.scrollTop
 		}
 		this.ranging = false
 		let entries = [], tolerance = this.viewSizeX, vs = Math.ceil(this.viewSizeX * this.viewSizeY), minLengthForRanging = vs + (tolerance * 2), shouldRange = config['show-logos'] && this.currentEntries.length >= minLengthForRanging
+		if(targetScrollTop == 0){
+			this.range = {start: 0, end: vs}
+		} else {
+			this.range = this.viewportRange(targetScrollTop, this.currentEntries.length)
+			this.range.end = this.range.start + (vs -1)
+		}
+		console.log('RANGE', targetScrollTop, shouldRange, this.range)
 		if(shouldRange){
-			if(targetScrollTop == 0){
-				this.range = {start: 0, end: vs}
-			} else {
-				this.range = getViewportRange(targetScrollTop)
-				this.range.end = this.range.start + (vs -1)
-			}
 			let trange = Object.assign({}, this.range)
 			trange.end += tolerance
 			if(trange.start >= tolerance){

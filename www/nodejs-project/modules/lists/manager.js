@@ -608,19 +608,31 @@ class Manager extends Events {
                 }
                 const next = () => {
                     options = epgs.sort().map(url => {
-                        let name = this.parent.manager.nameFromSourceURL(url)
+                        let details = '', name = this.parent.manager.nameFromSourceURL(url)
+                        if(url == activeEPG){
+                            if(activeEPGDetails){
+                                details = activeEPGDetails
+                            } else {
+                                if(global.channels.activeEPG == url){
+                                    details = global.lang.EPG_LOAD_SUCCESS
+                                } else {
+                                    details = global.lang.PROCESSING
+                                }
+                            }
+                        }
                         return {
                             name,
                             type: 'action',
                             fa: 'fas fa-th-large',
                             prepend: (url == activeEPG) ? '<i class="fas fa-check-circle faclr-green"></i> ' : '',
-                            details: (url == activeEPG) ? activeEPGDetails : '',
+                            details,
                             action: () => {
                                 if(url == global.config.get('epg')){
                                     global.config.set('epg', '')
                                     global.channels.activeEPG = ''
                                     global.channels.load()
                                     global.explorer.refresh()
+                                    this.setEPG('')
                                 } else {
                                     this.setEPG(url)
                                 }
@@ -630,15 +642,17 @@ class Manager extends Events {
                     options.push({name: global.lang.ADD, fa: 'fas fa-plus-square', type: 'action', action: () => {
                         global.ui.emit('prompt', global.lang.EPG, 'http://.../epg.xml', global.config.get('epg'), 'set-epg', false, global.channels.epgIcon)
                     }})
-                    options.push({
-                        name: global.lang.IMPORT_EPG_CHANNELS,
-                        type: 'check',
-                        action: (e, checked) => {
-                            global.config.set('epg-channels-list', checked)
-                            global.channels.load()
-                        }, 
-                        checked: () => global.config.get('epg-channels-list')
-                    })
+                    if(global.config.get('parental-control-policy') != 'only'){
+                        options.push({
+                            name: global.lang.IMPORT_EPG_CHANNELS,
+                            type: 'check',
+                            action: (e, checked) => {
+                                global.config.set('epg-channels-list', checked)
+                                global.channels.load()
+                            }, 
+                            checked: () => global.config.get('epg-channels-list')
+                        })
+                    }
                     resolve(options)
                 }
                 if(activeEPG){
@@ -683,7 +697,7 @@ class Manager extends Events {
                 }
                 this.loadEPG(url, true).then(() => {
                     let doImportChannelsList = () => { // user changed his mind in the meantime
-                        return url == global.config.get('epg') && global.config.get('epg-channels-list')
+                        return global.config.get('parental-control-policy') != 'only' && url == global.config.get('epg') && global.config.get('epg-channels-list')
                     }
                     let refresh = () => {
                         if(global.explorer.path.indexOf(global.lang.EPG) != -1 || global.explorer.path.indexOf(global.lang.CHANNELS) != -1){
@@ -722,27 +736,27 @@ class Manager extends Events {
             if(!url){
                 url = global.config.get('epg')
             }
-            if(url){
-                let refresh = () => {
-                    if(global.explorer.path.indexOf(global.lang.EPG) != -1 || global.explorer.path.indexOf(global.lang.CHANNELS) != -1){
-                        global.explorer.refresh()
-                    }
+            if(!url && ui) ui = false
+            let refresh = () => {
+                if(!url) return
+                if(global.explorer.path.indexOf(global.lang.EPG) != -1 || global.explorer.path.indexOf(global.lang.CHANNELS) != -1){
+                    global.explorer.refresh()
                 }
-                if(ui){
-                    global.osd.show(global.lang.EPG_AVAILABLE_SOON, 'fas fa-check-circle', 'epg', 'normal')
-                }
-                console.log('loadEPG', url)
-                this.parent.loadEPG(url).then(() => {
-                    global.channels.activeEPG = url
-                    if(ui){
-                        global.osd.show(global.lang.EPG_LOAD_SUCCESS, 'fas fa-check-circle', 'epg', 'normal')
-                    }
-                    resolve(true)
-                }).catch(err => {
-                    global.osd.show(global.lang.EPG_LOAD_FAILURE + ': ' + String(err), 'fas fa-check-circle', 'epg', 'normal')
-                    reject(err)
-                }).finally(refresh)
             }
+            if(ui){
+                global.osd.show(global.lang.EPG_AVAILABLE_SOON, 'fas fa-check-circle', 'epg', 'normal')
+            }
+            console.log('loadEPG', url)
+            this.parent.loadEPG(url).then(() => {
+                global.channels.activeEPG = url
+                if(ui){
+                    global.osd.show(global.lang.EPG_LOAD_SUCCESS, 'fas fa-check-circle', 'epg', 'normal')
+                }
+                resolve(true)
+            }).catch(err => {
+                global.osd.show(global.lang.EPG_LOAD_FAILURE + ': ' + String(err), 'fas fa-check-circle', 'epg', 'normal')
+                reject(err)
+            }).finally(refresh)
         })
     }
     listsEntries(){

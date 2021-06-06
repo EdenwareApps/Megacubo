@@ -41,21 +41,35 @@ class EntriesGroup extends Events {
         }
         return this.data.slice(0)
     }
-    has(entry){
-        for(var i in this.data){
-            if(this.data[i].url == entry.url || (entry.originalUrl && this.data[i].url == entry.originalUrl)){
-                return true
-            }
-        }
-    }
-    add(oentry){
-        console.log('[entries-group-'+this.key+'] ADD', oentry)
+    cleanAtts(oentry){
         let entry = Object.assign({}, oentry);
-        ['class', 'type', 'path', 'users', 'position'].forEach(k => {
+        ['class', 'path', 'users', 'position', 'renderer'].forEach(k => {
             if(typeof(entry[k]) != 'undefined'){
                 delete entry[k]
             }
         })
+        if(entry.entries){
+            entry.entries = entry.entries.map(e => this.cleanAtts(e))
+        }
+        return entry
+    }
+    equals(e, f){
+        if(e.type == 'group' || f.type == 'group'){
+            return e.type == 'group' && f.type == 'group' && e.name == f.name && e.entries.length == f.entries.length
+        } else {
+            return e.url == f.url || (e.originalUrl && f.url == e.originalUrl) || (f.originalUrl && e.url == f.originalUrl)
+        }
+    }
+    has(entry){
+        return this.data.some(e => {
+            if(this.equals(e, entry)){
+                return true
+            }
+        })
+    }
+    add(oentry){
+        console.log('[entries-group-'+this.key+'] ADD', oentry)
+        let entry = this.cleanAtts(oentry)
         if(this.preferMegaUrls){
             if(entry.originalUrl){
                 entry.url = entry.originalUrl
@@ -66,7 +80,7 @@ class EntriesGroup extends Events {
         }
         if(!this.allowDupes){
             for(var i in this.data){
-                if(this.data[i].url == entry.url){
+                if(this.equals(this.data[i], entry)){
                     delete this.data[i]
                 }
             }
@@ -83,7 +97,7 @@ class EntriesGroup extends Events {
     }
     remove(entry){
         for(var i in this.data){
-            if(this.data[i].url == entry.url){
+            if(this.equals(this.data[i], entry)){
                 delete this.data[i]
             }
         }

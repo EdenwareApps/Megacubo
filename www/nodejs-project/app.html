@@ -27,9 +27,9 @@
         <script type="text/javascript" defer src="modules/omni/client.js"></script>
         <script type="text/javascript" defer src="assets/js/app/sound.js"></script>
         <script type="text/javascript" defer src="assets/js/app/setup.js"></script>
+        <link rel="stylesheet" href="node_modules/@fortawesome/fontawesome-free/css/all.min.css" />
         <link rel="stylesheet" href="assets/css/index.css" />
         <link rel="stylesheet" href="assets/icons/icons.css" />
-        <link rel="stylesheet" href="node_modules/@fortawesome/fontawesome-free/css/all.min.css" />
         <script type="text/javascript">
             var frm, q, ptr, config, lang, explorer
         </script>
@@ -92,29 +92,41 @@
             <controls></controls>
         </div>
         <div id="paused-layer" class="control-layer" aria-hidden="true">
-            <i class="fas fa-play"></i>
+            <span class="control-layer-icon">
+                <i class="fas fa-play"></i>
+            </span>
         </div>
         <div id="audio-layer" class="control-layer" aria-hidden="true">
-            <i class="fas fa-headphones"></i>
+            <span class="control-layer-icon">
+                <i class="fas fa-headphones"></i>
+            </span>
         </div>
         <div id="loading-layer" class="control-layer" aria-hidden="true">
-            <i class="fa-mega spin-x-alt"></i>
-            <span>
+            <span class="control-layer-icon">
+                <i class="fa-mega spin-x-alt"></i>
+            </span>
+            <span class="loading-layer-status">
                 <span></span>
             </span>
         </div>
         <div id="cast-layer" class="control-layer" aria-hidden="true">
-            <i class="fab fa-chromecast"></i>
+            <span class="control-layer-icon">
+                <i class="fab fa-chromecast"></i>
+            </span>
         </div>
         <div id="seek-back" class="control-layer" aria-hidden="true">
-            <i class="fas fas fa-backward"></i>
-            <span>
+            <span class="control-layer-icon">
+                <i class="fas fas fa-backward"></i>
+            </span>
+            <span class="seek-layer-time">
                 <span></span>
             </span>
         </div>
         <div id="seek-fwd" class="control-layer" aria-hidden="true">
-            <i class="fas fas fa-forward"></i>
-            <span>
+            <span class="control-layer-icon">
+                <i class="fas fas fa-forward"></i>
+            </span>
+            <span class="seek-layer-time">
                 <span></span>
             </span>
         </div>

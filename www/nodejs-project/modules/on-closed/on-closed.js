@@ -2,14 +2,14 @@ module.exports = function closed(req, response, cb){
 	let socket
 	const socketCloseListener = () => {
 		setTimeout(() => {
-			if(response.writable){
+			if(global.isWritable(response)){
 				callback()
 			}
 		}, 2000)
 	}
 	const callback = () => {
 		process.nextTick(() => {
-			if(cb && !response.ended && response.writable){
+			if(cb && !response.ended && global.isWritable(response)){
 				if(socket){
 					socket.removeListener('close', socketCloseListener)
 					socket = null

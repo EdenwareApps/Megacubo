@@ -2,6 +2,17 @@
 const path = require('path'), Events = require('events'), fs = require('fs'), async = require('async')
 const AutoTuner = require('../tuner/auto-tuner')
 
+if(!Promise.allSettled){
+	Promise.allSettled = ((promises) => Promise.all(promises.map(p => p
+		.then(value => ({
+		status: 'fulfilled', value
+		}))
+		.catch(reason => ({
+		status: 'rejected', reason
+		}))
+	)))
+}
+
 class StreamerTools extends Events {
     constructor(){
         super()
@@ -81,16 +92,29 @@ class StreamerTools extends Events {
 					if(!ended){
 						ended = true
 						clearTimeout(timer)
+						const ping = global.time() - start
+						const done = () => {
+							const received = JSON.stringify(headers).length + this.len(sample)
+							const speed = received / ping
+							const ret = {status, headers, sample, ping, speed, url, directURL: download.currentURL}
+							//console.log('data', ping, received, speed, ret)
+							resolve(ret)
+						}
 						if(download){
 							download.destroy()
 						}
 						sample = Buffer.concat(sample)
-						const ping = global.time() - start
-						const received = JSON.stringify(headers).length + this.len(sample)
-						const speed = received / ping
-						const ret = {status, headers, sample, ping, speed, url, directURL: download.currentURL}
-						//console.log('data', ping, received, speed, ret)
-						resolve(ret)
+						let strSample = String(sample)
+						if(strSample.toLowerCase().indexOf('#ext-x-stream-inf') == -1){
+							done()
+						} else {
+							let trackUrl = strSample.split("\n").filter(line => line.length > 3 && line.charAt(0) != '#').shift()
+							trackUrl = this.absolutize(trackUrl, url)
+							return this._probe(trackUrl, timeoutSecs, retries).then(resolve).catch(err => {
+								console.error(err)
+								done()
+							})
+						}
 					}
 				}
 				if(this.opts.debug){
@@ -133,7 +157,7 @@ class StreamerTools extends Events {
 			if(this.proto(url, 4) == 'http'){
 				this._probe(url, timeout, retries).then(ret => { 
 					//console.warn('PROBED', ret)
-					let delay = 2000, cl = ret.headers['content-length'] || -1, ct = ret.headers['content-type'] || '', st = ret.status || 0
+					let cl = ret.headers['content-length'] || -1, ct = ret.headers['content-type'] || '', st = ret.status || 0
 					if(st < 200 || st >= 400){
 						reject(st)
 					} else {
@@ -331,7 +355,7 @@ class StreamerBase extends StreamerTools {
 			})
         })
 	}
-	pingSource(url, cb){
+	pingSource(url, cb){ // ensure to keep any auth
         if(typeof(global.streamerPingSourceTTLs) == 'undefined'){ // using global here to make it unique between any tuning and streamer
             global.streamerPingSourceTTLs = {}            
         }
@@ -350,12 +374,12 @@ class StreamerBase extends StreamerTools {
 						receiveLimit: 1,
 						followRedirect: true
 					}).then(body => {
-						console.log('pingSource: ok', body)	
+						//console.log('pingSource: ok', body)	
 						ret = String(body)
 					}).catch(err => {
-						console.warn('pingSource error?: '+ String(err))
+						//console.warn('pingSource error?: '+ String(err))
 					}).finally(() => {
-						console.log('pingSource: unqueue resolving', ret)	
+						//console.log('pingSource: unqueue resolving', ret)	
 						global.streamerPingSourceTTLs[url] = now + 600
 						this.pingSourceUnqueue(url, 'resolve', ret)
 					})
@@ -478,7 +502,7 @@ class StreamerBase extends StreamerTools {
 				intent.on('codecData', codecData => {
 					if(codecData && codecData.video.match(new RegExp('(hevc|mpeg2video|mpeg4)')) && intent == this.active){
 						this.transcode(intent, err => {
-							if(err){
+							if(err && this.active){
 								console.error('unsupported format', codecData)
 								intent.fail('unsupported format') // we can transcode .ts segments, but transcode a mp4 video would cause request ranging errors
 							}
@@ -542,11 +566,15 @@ class StreamerBase extends StreamerTools {
 					}
 					cb(null, intent.transcoder)
 				}).catch(err => {
-					console.error(err)
-					cb(err)
-					if(!silent){
-						global.osd.show(String(err), 'fas fa-times-circle faclr-red', 'transcode', 'normal')
-						intent.fail('unsupported format')
+					if(this.active){
+						console.error(err)
+						cb(err)
+						if(!silent){
+							global.osd.show(String(err), 'fas fa-times-circle faclr-red', 'transcode', 'normal')
+							intent.fail('unsupported format')
+						}
+					} else {
+						global.osd.hide('transcode')
 					}
 				})
 			}
@@ -696,7 +724,7 @@ class StreamerAbout extends StreamerThrottling {
 				console.log('about callback', chosen)
 				if(this.active.data){
 					this.aboutOptions.some(o => {
-						if(o.id == chosen){
+						if(o.id && o.id == chosen){
 							if(typeof(o.action) == 'function'){
 								o.action(this.active.data)
 							}
@@ -707,11 +735,57 @@ class StreamerAbout extends StreamerThrottling {
 			})	
 		}	
 	}
-	aboutDialogRegisterOption(id, renderer, action){
-		this.aboutOptions.push({id, renderer, action})
+	aboutDialogRegisterOption(id, renderer, action, position){
+		let e = {id, renderer, action}
+		if(typeof(position) == 'number'){
+			this.aboutOptions.splice(position, 0, e)
+		} else {
+			this.aboutOptions.push(e)
+		}
 	}
 	aboutDialogStructure(){
-		return this.aboutOptions.map(o => o.renderer(this.active.data)).filter(o => o)
+		return new Promise((resolve, reject) => {
+			Promise.allSettled(this.aboutOptions.map(o => {
+				return Promise.resolve(o.renderer(this.active.data))
+			})).then(results => {
+				let ret = [], textPos = -1, titlePos = -1
+				results.forEach(r => {
+					if(r.status == 'fulfilled' && r.value){
+						if(Array.isArray(r.value)){
+							ret = ret.concat(r.value)
+						} else {
+							ret.push(r.value)
+						}
+					}
+				})
+				ret = ret.filter((r, i) => {
+					if(r.template == 'question'){
+						if(titlePos == -1){
+							titlePos = i
+						} else {
+							ret[titlePos].text += ' &middot; '+ r.text
+							return false
+						}
+					}
+					if(r.template == 'message'){
+						if(textPos == -1){
+							textPos = i
+						} else {
+							ret[textPos].text += r.text
+							return false
+						}
+					}
+					return true
+				})
+				ret.some((r, i) => {
+					if(r.template == 'message'){
+						ret[i].text = '<div>'+ r.text +'</div>'
+						return true
+					}
+				})
+				resolve(ret)
+			}).catch(reject)
+		})
 	}
 	aboutText(){
 		let text = ''
@@ -758,7 +832,7 @@ class StreamerAbout extends StreamerThrottling {
 		if(this.active.transcoder){
 			meta.push(global.lang.TRANSCODING.replaceAll('.', ''))
 		}
-		text = '<div><div>'+ text + '</div><div>' + meta.join(' | ') +'</div></div>'
+		text = '<div>'+ text + '</div><div>' + meta.join(' | ') +'</div>'
 		return text
 	}
     about(){
@@ -767,7 +841,9 @@ class StreamerAbout extends StreamerThrottling {
 		}
 		let title, text = ''
 		if(this.active){
-			global.ui.emit('dialog', this.aboutDialogStructure(this.active.data), 'streamer-about-cb', 'ok')
+			this.aboutDialogStructure(this.active.data).then(struct => {
+				global.ui.emit('dialog', struct, 'streamer-about-cb', 'ok')
+			}).catch(global.displayErr)
 		} else {
 			title = global.ucWords(global.MANIFEST.name) +' v'+ global.MANIFEST.version +' - '+ process.arch
 			text = global.lang.NONE_STREAM_FOUND
@@ -802,7 +878,7 @@ class Streamer extends StreamerAbout {
 		const loadingEntriesData = [global.lang.AUTO_TUNING, name]
 		console.warn('playFromEntries', entries, name, connectId)
 		if(!this.active){
-			this.setUILoadingEntries(loadingEntriesData, true, txt)
+			global.explorer.setLoadingEntries(loadingEntriesData, true, txt)
 			global.osd.show(global.lang.TUNING + ' ' + name + '... 0%', 'fa-mega spin-x-alt', 'streamer', 'persistent')
 		}
 		global.watching.order(entries).then(entries => {
@@ -836,7 +912,7 @@ class Streamer extends StreamerAbout {
 					global.osd.show(global.lang.NONE_STREAM_WORKED_X.format(name), 'fas fa-exclamation-circle faclr-red', 'streamer', 'normal')
 				}
 			}).finally(() => {
-				this.setUILoadingEntries(loadingEntriesData, false)
+				global.explorer.setLoadingEntries(loadingEntriesData, false)
 			})
 		}).catch(err => {
 			global.displayErr(err)
@@ -864,7 +940,8 @@ class Streamer extends StreamerAbout {
 		const isMega = global.mega.isMega(e.url), txt = isMega ? global.lang.TUNING : undefined
 		const opts = isMega ? global.mega.parse(e.url) : {mediaType: 'live'};		
 		const loadingEntriesData = [e, global.lang.AUTO_TUNING]
-		this.setUILoadingEntries(loadingEntriesData, true, txt)
+		console.log('SETLOADINGENTRIES', loadingEntriesData)
+		global.explorer.setLoadingEntries(loadingEntriesData, true, txt)
 		if(global.config.get('show-logos')){
 			e = global.icons.prepareEntry(e)
 		}
@@ -911,7 +988,7 @@ class Streamer extends StreamerAbout {
 					this.emit('connecting-failure', e)
 					global.osd.show(global.lang.NONE_STREAM_WORKED_X.format(name), 'fas fa-exclamation-circle faclr-red', 'streamer', 'normal')
 					global.ui.emit('sound', 'static', 25)
-					this.setUILoadingEntries(loadingEntriesData, false)
+					global.explorer.setLoadingEntries(loadingEntriesData, false)
 				}
 			})
 		} else {
@@ -936,26 +1013,9 @@ class Streamer extends StreamerAbout {
 				this.emit('connecting-failure', e)
 				this.handleFailure(e, r)
 			}).finally(() => {
-				this.setUILoadingEntries(loadingEntriesData, false)
+				global.explorer.setLoadingEntries(loadingEntriesData, false)
 			})
 		}
-	}
-	setUILoadingEntries(es, state, txt){
-		es.map(e => {
-			if(typeof(e) == 'string'){
-				return {name: e}
-			} else {
-				['path', 'url', 'name'].some(att => {
-					if(e[att]){
-						let _e = {}
-						_e[att] = e[att]
-						e = _e
-						return true
-					}
-				})
-				return e
-			}
-		}).forEach(e => global.ui.emit('set-loading', e, state, txt))
 	}
 	tune(e){
 		if(this.opts.shadow){
@@ -985,7 +1045,7 @@ class Streamer extends StreamerAbout {
 						global.osd.show(global.lang.NONE_STREAM_WORKED_X.format(e.name), 'fas fa-exclamation-circle faclr-red', 'streamer', 'normal')
 					}
 				}).finally(() => {
-					this.setUILoadingEntries(loadingEntriesData, false)
+					global.explorer.setLoadingEntries(loadingEntriesData, false)
 				})
 			} else {
 				global.search.termsFromEntry(e, false).then(terms => {
@@ -1002,11 +1062,13 @@ class Streamer extends StreamerAbout {
 			return true
 		}
 	}
-	handleFailure(e, r, silent){		
-		let c = 'stop', trace = traceback()
+	handleFailure(e, r, silent, doTune){		
+		let c = doTune ? 'tune' : 'stop', trace = traceback()
 		if(!this.isEntry(e)){
 			if(this.active){
 				e = this.active.data
+			} else {
+				e = this.lastActiveData
 			}
 		}
 		this.stop({err: r, trace})

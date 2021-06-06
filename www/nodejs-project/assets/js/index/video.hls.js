@@ -119,22 +119,58 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 			return String(data)
 		}
     }
+	skipFragment(fragStart, fragDuration){
+		let newCurrentTime = fragStart + fragDuration + 0.1, minHLSWindow = 6
+		if(newCurrentTime > this.object.currentTime && newCurrentTime < (this.object.duration + minHLSWindow)){
+			this.hls.stopLoad()
+			this.object.currentTime = newCurrentTime
+			this.hls.startLoad()
+			return true
+		} else {
+			console.log('Could not skip fragment', this.object.currentTime, newCurrentTime, this.object.duration)
+		}
+	}
+	skipToFragment(frag){
+		let newCurrentTime = frag.start + 0.01
+		if(this.object.currentTime < newCurrentTime){
+			this.hls.stopLoad()
+			this.object.currentTime = newCurrentTime
+			this.hls.startLoad()
+			return true
+		}
+	}
+	skip(){
+		if(this.object.readyState >= 3) return
+		let time = parseInt(this.object.currentTime), fragments = Object.values(this.hls.streamController.fragmentTracker.fragments)
+		let skipped = fragments.some(frag => {
+			if(parseInt(frag.body.start) > time && frag.buffered){ // parseInt required due to floating precision diff
+				console.log('playback skipped from '+ time +' to '+ frag.body.start +' to prevent stalling')
+				this.object.currentTime = frag.body.start
+				return true
+			}
+		})
+		return skipped
+	}
     loadHLS(cb){
 		if(!this.hls){
 			this.hls = new Hls({
 				enableWorker: true,
-				autoStartLoad: false,
-				defaultAudioCodec: 'mp4a.40.2',
 				maxBufferSize: 128, // When doing internal transcoding with low crf, fragments will become bigger
-				backBufferLength: this.config['live-window-time'],
+				backBufferLength: 0,
 				maxBufferLength: 30,
 				maxMaxBufferLength: 120,
+				nudgeOffset: 0.3,
+				nudgeMaxRetry: 12,
+				fragLoadingMaxRetry: 2,
+				fragLoadingMaxRetryTimeout: 5000,
+				fragLoadingRetryDelay: 500,
 				/*
+				// https://github.com/video-dev/hls.js/blob/master/docs/API.md
+				defaultAudioCodec: 'mp4a.40.2',
 				debug: true,
 				progressive: true,
 				lowLatencyMode: false,
 				enableSoftwareAES: false,
-				nudgeMaxRetry: 12,
 				maxSeekHole: 30,
 				maxBufferSize: 20,
 				maxBufferHole: 10,
@@ -200,10 +236,10 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 							console.error('Error while trying to switch to level ' + data.level)
 							break
 						case Hls.ErrorDetails.FRAG_LOAD_ERROR:
-							console.error('Error while loading fragment ' + data.frag.url)
+							console.error('Error while loading fragment ' + data.frag.url, data.frag.start, data.frag.duration)
 							break
 						case Hls.ErrorDetails.FRAG_LOAD_TIMEOUT:
-							console.error('Timeout while loading fragment ' + data.frag.url)
+							console.error('Timeout while loading fragment ' + data.frag.url, data.frag.start, data.frag.duration)
 							break
 						case Hls.ErrorDetails.FRAG_LOOP_LOADING_ERROR:
 							console.error('Fragment-loop loading error')
@@ -212,7 +248,7 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 							console.error('Decrypting error:' + data.reason)
 							break
 						case Hls.ErrorDetails.FRAG_PARSING_ERROR:
-							console.error('Parsing error:' + data.reason)
+							console.error('Parsing error:' + data.reason, data.frag)
 							break
 						case Hls.ErrorDetails.KEY_LOAD_ERROR:
 							if(this.object.currentTime){
@@ -250,6 +286,8 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 							break
 						case Hls.ErrorDetails.BUFFER_STALLED_ERROR:
 							console.error('Buffer stalled error', parseInt(this.object.duration))
+							this.skip()
+							/*
 							if(this.object.buffered.length){
 								// https://github.com/video-dev/hls.js/issues/3905
 								const start = this.object.buffered.start(0)
@@ -259,7 +297,7 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 									return
 								}
 							}
-							// not fatal, would not be needed to handle, BUT, the playback hangs even it not saying that it's a fatal error, so call handleNetworkError(/*startLoad()*/) to ensure
+							// not fatal, would not be needed to handle, BUT, the playback hangs even it not saying that it's a fatal error, so call handleNetworkError() to ensure
 							let time = this.object.currentTime, duration = this.object.duration			
 							if((duration - time) > this.config['live-window-time']){
 								this.hls.stopLoad()
@@ -278,6 +316,7 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 								console.log('in live window, trust on hls.js', time, duration, this.config)
 								this.hls.startLoad()
 							}
+							*/
 							break
 						case Hls.ErrorDetails.BUFFER_NUDGE_ON_STALL:
 							console.error('Buffer nudge on stall', parseInt(this.object.duration))
@@ -289,7 +328,6 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 				}
 			})
 			this.hls.on(Hls.Events.MANIFEST_PARSED, () => {
-				this.hls.startLoad(0)
 				let promise = this.object.play()
 				if(promise){
 					promise.catch(err => {

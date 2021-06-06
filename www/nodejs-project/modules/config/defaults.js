@@ -12,9 +12,10 @@ module.exports = {
 	'epg-channels-list': true,
 	'ffmpeg-audio-repair': true,
 	'ffmpeg-crf': 18,
+	'ffmpeg-hls': true,
 	'font-color': '#FFFFFF',
 	'font-family': '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;',
-	'font-size': 4,
+	'font-size': 3,
 	'hide-back-button': false,
 	'hotkeys': {
 		'Up Shift+Tab': 'NAVUP',
@@ -40,7 +41,7 @@ module.exports = {
 		'Ctrl+D Ctrl+Shift+D': 'BOOKMARK',
 		'F9': 'RECORDING',
 		'F1 Ctrl+I': 'ABOUT',
-		'F11': 'FULLSCREEN'
+		'F11 Alt+Enter': 'FULLSCREEN'
 	},
 	'lists': [],
 	'live-window-time': 300,

@@ -51,7 +51,7 @@ class Explorer extends Events {
         })
         global.ui.on('explorer-input', (path, val) => {
             if(this.opts.debug){
-                console.log('explorer-input', path)
+                console.log('explorer-input', path, val)
             }
             this.input(path, val)
         })
@@ -238,25 +238,28 @@ class Explorer extends Events {
             console.error(dir + 'NOT FOUND IN', this.pages)
         } else {
             let trustedActionTriggered = this.pages[dir].some((e, k) => {
-                if(e.name == name){
+                if(e.name == name && e.type == 'input'){
                     this.pages[dir][k].value = value
                     if(typeof(e.action) == 'function'){
                         e.action(e, value)
                     }
+                    console.error('input ok', e)
                     return true
                 }
             })
             if(!trustedActionTriggered){
                 dir = this.path
                 this.pages[dir].some((e, k) => {
-                    if(e.name == name){
+                    if(e.name == name && e.type == 'input'){
                         this.pages[dir][k].value = value
                         if(typeof(e.action) == 'function'){
                             e.action(e, value)
                         }
+                        console.error('input ok', e, this.pages[dir][k])
                         return true
                     }
                 })
+                console.error('input ok?', dir)
             }
         }
     }
@@ -289,6 +292,21 @@ class Explorer extends Events {
             }
         }
     }
+	setLoadingEntries(es, state, txt){
+		es.map(e => {
+			if(typeof(e) == 'string'){
+				return {name: e}
+			} else {
+				let _e = {};
+				['path', 'url', 'name', 'tabindex'].forEach(att => {
+					if(e[att]){
+						_e[att] = e[att]
+					}
+				})
+				return _e
+			}
+		}).forEach(e => global.ui.emit('set-loading', e, state, txt))
+	}
     basename(path){
         let i = path.lastIndexOf('/')
         if(i == 0){

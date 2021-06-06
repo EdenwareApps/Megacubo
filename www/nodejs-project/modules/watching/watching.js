@@ -8,7 +8,11 @@ class Watching extends EntriesGroup {
         this.currentRawEntries = null
         this.updateIntervalSecs = global.cloud.expires.watching
         global.channels.ready(() => this.update())
-        global.config.on('change', (keys, data) => keys.includes('only-known-channels-in-been-watched') && this.update())
+        global.config.on('change', (keys, data) => {
+            if(keys.includes('only-known-channels-in-been-watched') || keys.includes('parental-control-policy')){
+                this.update()
+            }
+        })
     }
     ready(cb){
         if(this.currentRawEntries){
@@ -128,7 +132,7 @@ class Watching extends EntriesGroup {
                 })
                 data = global.lists.parentalControl.filter(data)
                 this.currentRawEntries = data.slice(0)
-                let groups = {}, gcount = {}, gentries = [], onlyKnownChannels = global.config.get('only-known-channels-in-been-watched')
+                let groups = {}, gcount = {}, gentries = [], onlyKnownChannels = global.config.get('only-known-channels-in-been-watched') && global.config.get('parental-control-policy') != 'only'
                 async.eachOf(data, (entry, i, cb) => {
                     let ch = global.channels.isChannel(entry.terms.name)
                     if(ch){

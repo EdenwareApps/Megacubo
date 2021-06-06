@@ -85,6 +85,29 @@ class StreamerProxyBase extends StreamerAdapterBase {
 		}
 		return ''
 	}
+	getMediaType(headers, url){
+		let type = '', minSegmentSize = 96 * 1024
+		if(typeof(headers['content-type']) != 'undefined' && (headers['content-type'].indexOf('video/') != -1 || headers['content-type'].indexOf('audio/') != -1)){
+			type = 'video'
+		} else if(typeof(headers['content-type']) != 'undefined' && headers['content-type'].toLowerCase().indexOf('linguist') != -1){ // .ts bad mimetype "text/vnd.trolltech.linguist"
+			type = 'video'
+		}  else if(typeof(headers['content-type']) != 'undefined' && (headers['content-type'].toLowerCase().indexOf('mpegurl') != -1 || headers['content-type'].indexOf('text/') != -1)){
+			type = 'meta'
+		} else if(typeof(headers['content-type']) == 'undefined' && this.ext(url) == 'm3u8') {
+			type = 'meta'
+		} else if(typeof(headers['content-length']) != 'undefined' && parseInt(headers['content-length']) >= minSegmentSize){
+			type = 'video'
+		} else if(typeof(headers['content-type']) != 'undefined' && headers['content-type'] == 'application/octet-stream') { // force download video header
+			type = 'video'
+		}
+		return type
+	}
+	addCachingHeaders(headers, secs){		
+		return Object.assign(headers, {
+			'cache-control': 'max-age=' + secs + ', public',
+			'expires': (new Date(Date.now() + secs)).toUTCString()
+		})
+	}
     destroy(){
 		if(!this.destroyed){
 			this.destroyed = true

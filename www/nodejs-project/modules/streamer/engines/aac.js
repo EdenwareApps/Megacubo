@@ -1,4 +1,4 @@
-const StreamerBaseIntent = require('./base.js'), StreamerAdapterAAC = require('../adapters/aac.js'), StreamerAdapterHLS = require('../adapters/hls.js'), FFServer = require('../utils/ff-server'), fs = require('fs')
+const StreamerBaseIntent = require('./base.js'), StreamerAdapterAAC = require('../adapters/aac.js'), FFServer = require('../utils/ff-server'), fs = require('fs')
 
 class StreamerAACIntent extends StreamerBaseIntent {    
     constructor(data, opts, info){
