@@ -518,7 +518,7 @@ class StreamerBase extends StreamerTools {
 			this.emit('commit', intent)
 			intent.emit('commit')
 			let data = intent.data
-			data.engine = intent.type == 'video' ? 'mp4' : intent.type
+			data.engine = intent.type
 			if(this.opts.debug){
 				this.opts.debug('VIDEOINTENT2', intent.endpoint, intent.mimetype, data, intent.opts, intent.info)
 			}

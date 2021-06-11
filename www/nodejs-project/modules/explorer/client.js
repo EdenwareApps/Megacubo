@@ -682,15 +682,24 @@ class ExplorerStatusFlags extends ExplorerSlider {
 		}
 	}
 	processStatusFlags(){
-		let results = []
 		this.currentEntries.forEach((e, i) => {
 			if(!this.ranging || (i >= this.range.start && i <= this.range.end)){
 				if(e.url && typeof(this.statusFlags[e.url]) != 'undefined'){
-					let element = this.currentElements[i], fa = this.statusFlags[e.url]
+					let element = this.currentElements[i], status = this.statusFlags[e.url]
 					if(element && element.getAttribute('data-type') != 'spacer'){
 						let content = ''
-						if(fa){
-							content = '<i class="' + fa + '"></i>'
+						if(status == 'tune'){
+							content = '<i class="fas fa-layer-group"></i>'
+						} else if(status == 'waiting'){
+							content = '<i class="fas fa-clock"></i>'
+						} else {
+							if(status == 'offline'){
+								content = '<span class="entry-status-flag entry-status-flag-failure"><i class="fas fa-times"></i></span>'
+							} else if(config['status-flags-type']){
+								content = '<span class="entry-status-flag entry-status-flag-success">'+ status +'</span>'
+							} else {
+								content = '<span class="entry-status-flag entry-status-flag-success"><i class="fas fa-check"></i></span>'
+							}
 						}
 						if(content != element.getAttribute('data-status-flags-html')){
 							element.setAttribute('data-status-flags-html', content)

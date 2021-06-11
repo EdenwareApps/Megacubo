@@ -297,8 +297,11 @@ class StreamerNetworkLiveToVideoProxy extends Events {
                                     resolve(true)
                                 }).catch(e => {
                                     console.error('waitFile failed', this.opts.timeout, e)
-                                    this.destroy()
+                                    if(String(e).indexOf('timeout') != -1){
+                                        e = 'timeout'
+                                    }
                                     reject(e)
+                                    this.destroy()
                                 })
                             }
                         })

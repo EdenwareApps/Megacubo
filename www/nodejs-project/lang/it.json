@@ -71,6 +71,7 @@
 "SEARCHING": "Alla ricerca..", 
 "SEARCH_PLACEHOLDER": "Digita il nome del canale...",
 "TEST_STREAMS": "Testare le trasmissioni",
+"TEST_STREAMS_TYPE": "Mostra il tipo di trasmissioni testato",
 "FILTER_WORDS": "Filtra queste parole",
 "IPTV_LISTS": "Elenchi IPTV",
 "ALL_LISTS": "Tutte le liste",

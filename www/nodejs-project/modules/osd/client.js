@@ -174,6 +174,9 @@ class OSD extends OSDDOMClassHandler {
             this.body.removeClass('osd')
         }
     }
+    textContent(){
+        return Array.from(this.root.querySelectorAll('.osd-entry:not(.osd-hidden)')).map(e => e.textContent).join("\r\n")
+    }
     destroy(name){
         let id = 'osd-entry-' + name, c = this.root.querySelector('#' + id)
         if(c){

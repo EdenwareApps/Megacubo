@@ -3,7 +3,7 @@ const fs = require('fs'), StreamerBaseIntent = require('./base.js'), StreamerPro
 class StreamerVideoIntent extends StreamerBaseIntent {    
     constructor(data, opts, info){
         super(data, opts, info)
-        this.type = 'mp4'
+        this.type = 'video'
         this.mediaType = 'video'
         if(this.info.contentType && this.info.contentType.indexOf('o/') != -1){
             this.mimetype = this.info.contentType

@@ -143,14 +143,24 @@ function loadJS(url, cb){
 	document.querySelector("head").appendChild(script)
 }
 
+function loadResizeObserverPolyfill(cb){
+	if(typeof(ResizeObserver) == 'undefined'){
+		loadJS('./node_modules/resize-observer/dist/resize-observer.js', cb)
+	} else {
+		cb()
+	}
+}
+
 function loadScripts(){
 	updateSplashProgress()
 	loadJS('./assets/js/index/bindings.js', function (){
 		updateSplashProgress()
-		loadJS('./assets/js/index/video.js', function (){
-			updateSplashProgress()
-			loadJS('./assets/js/index/video.hls.js', function (){
+		loadResizeObserverPolyfill(function (){
+			loadJS('./assets/js/index/video.js', function (){
 				updateSplashProgress()
+				loadJS('./assets/js/index/video.hls.js', function (){
+					updateSplashProgress()
+				})
 			})
 		})
 	})

@@ -9,13 +9,8 @@ class StreamState extends Events {
         this.data = {}
         this.waiting = {}
         this.clientFailures = {}
-        this.statusFlags = {
-            offline: 'fas fa-times-circle faclr-red', 
-            online: 'fas fa-check-circle faclr-green', 
-            waiting: 'fas fa-clock', 
-            mega: 'fas fa-layer-group'
-        }
-        global.storage.get('stream-state', data => {
+        this.key = 'streamstate'
+        global.storage.get(this.key, data => {
             if(data){
                 Object.assign(this.data, data)
                 this.sync()
@@ -26,7 +21,7 @@ class StreamState extends Events {
         })
         global.streamer.on('connecting-failure', data => {
             if(data){
-                this.set(data.url, false, true)
+                this.set(data.url, 'offline', true)
             }
             if(global.config.get('auto-testing')){
                 this.test(global.explorer.currentStreamEntries())
@@ -34,16 +29,16 @@ class StreamState extends Events {
         })
         global.streamer.on('commit', intent => {
             this.cancelTests()
-            this.set(intent.data.url, true, true)
+            this.set(intent.data.url, intent.type, true)
         })
         global.streamer.on('failure', data => {
             if(data){
-                this.set(data.url, false, true)
+                this.set(data.url, 'offline', true)
             }
         })
         global.streamer.on('stop', (err, e) => {
             setTimeout(() => {
-                if(!streamer.active && !streamer.connecting && config.get('auto-testing')){
+                if(!global.streamer.active && !global.streamer.connecting && global.config.get('auto-testing')){
                     this.test(global.explorer.currentStreamEntries())                    
                 }
             }, 500)
@@ -53,12 +48,12 @@ class StreamState extends Events {
         })
         global.explorer.on('render', entries => {
             this.cancelTests()
-            if(global.config.get('auto-testing') && global.explorer.canApplyStreamTesting(entries)){
+            if(global.config.get('auto-testing') && entries.some(e => this.supports(e))){
                 this.test(entries)
             }
         })
         this.on('state', (url, state) => {
-            global.ui.emit('set-status-flag', url, this.statusFlags[state ? 'online' : 'offline'])
+            global.ui.emit('set-status-flag', url, state)
         })
         global.onexit(() => {
             this.cancelTests()
@@ -66,7 +61,7 @@ class StreamState extends Events {
         })
     }
     supports(e){
-        return (e && (!e.type || e.type == 'stream' || (e.class && e.class.indexOf('entry-meta-stream') != -1)))
+        return (e && (!e.type || e.type == 'stream' || (e.class && e.class.indexOf('entry-meta-stream') != -1)) && e.url)
     }
     get(url){
         if(typeof(this.clientFailures[url]) != 'undefined' && this.clientFailures[url] === true){
@@ -116,29 +111,17 @@ class StreamState extends Events {
     }
     sync(){
         if(global.ui){
-            let syncData = {}
+            let syncMap = {}
             Object.keys(this.data).forEach(url => {
-                syncData[url] = this.statusFlags[this.data[url] ? 'online' : 'offline']
+                syncMap[url] = this.data[url].state
             })
-            global.ui.emit('sync-status-flags', syncData)
+            global.ui.emit('sync-status-flags', syncMap)
         }
     }
     save(){ // must be sync
         if(typeof(this.data) != 'undefined'){
-            global.storage.setSync('stream-state', this.data, true)
+            global.storage.setSync(this.key, this.data, true)
         }
-    }
-    success(entry){
-        if(this.debug){
-            console.log('success', entry.url, entry.name)
-        }
-        this.set(entry.url, true)
-    }
-    failure(entry){
-        if(this.debug){
-            console.log('failure', entry.url, entry.name)
-        }
-        this.set(entry.url, false)
     }
     test(entries, name){
         let ctl = new Promise((resolve, reject) => {
@@ -160,28 +143,29 @@ class StreamState extends Events {
             entries = entries.filter(e => {
                 if(e.url){
                     if(global.mega.isMega(e.url)){
-                        syncData[e.url] = this.statusFlags.mega
+                        syncData[e.url] = 'tune'
                     } else {
                         let state = this.get(e.url)
-                        if(typeof(state) == 'boolean'){
-                            if(state){
-                                syncData[e.url] = this.statusFlags.online
-                                this.success(e)
+                        if(typeof(state) == 'string'){
+                            if(state && state != 'offline'){
+                                syncData[e.url] = state
+                                this.set(e.url, state)
                             } else if(typeof(this.clientFailures[e.url]) != 'undefined') {
-                                syncData[e.url] = this.statusFlags.offline
+                                syncData[e.url] = 'offline'
                             } else { // if did it failed previously, move to end of queue to try again after the untested ones
-                                syncData[e.url] = this.statusFlags.waiting
+                                syncData[e.url] = 'waiting'
                                 this.waiting[e.url] = true
                                 retest.push(e)
                             }
                             return false
                         }
-                        syncData[e.url] = this.statusFlags.waiting
+                        syncData[e.url] = 'waiting'
                         this.waiting[e.url] = true
                         return true
                     }
                 }                
             })
+            console.warn('streamState', syncData, entries)
             global.ui.emit('sync-status-flags', syncData)
             if(retest.length){
                 entries = entries.concat(retest)
@@ -214,6 +198,12 @@ class StreamState extends Events {
             this.testing.start()
         })
         return ctl
+    }
+    success(entry, info){
+        this.set(entry.url, info.type)
+    }
+    failure(entry){
+        this.set(entry.url, 'offline')
     }
     cancelTests(){
         if(this.testing){

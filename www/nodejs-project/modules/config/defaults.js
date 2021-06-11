@@ -58,6 +58,7 @@ module.exports = {
 	'shared-mode-reach': 0,
 	'show-logos': true,
 	'startup-window': '',
+	'status-flags-type': false,
 	'theme-name': '',
 	'transcoding': '1080p',
 	'tuning-concurrency': 3,

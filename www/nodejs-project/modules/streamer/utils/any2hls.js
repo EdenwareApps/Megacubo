@@ -186,7 +186,10 @@ class Any2HLS extends Events {
                                 reject('outdated file')
                             } else {
                                 console.warn('File not ready??', basename, firstFile, files)
-                                this.waitFile(file, 10).then(resolve).catch(reject)
+                                this.waitFile(file, 10).then(resolve).catch(err => {
+                                    console.error(err)
+                                    reject(err)
+                                })
                             }
                         } else {
                             reject('readdir failed')
@@ -267,9 +270,7 @@ class Any2HLS extends Events {
                             }
                         })
                         stream.pipe(response) 
-                    }).catch(err => {
-                        fail(err)
-                    })
+                    }).catch(fail)
                 }
             }).listen(0, this.opts.addr, (err) => {
                 if (err) {
@@ -380,7 +381,8 @@ class Any2HLS extends Events {
                     outputOptions('-b:a', '128k').
                     outputOptions('-ac', 2). // stereo
                     outputOptions('-ar', 48000).
-                    outputOptions('-af', 'aresample=async=1:min_hard_comp=0.100000:first_pts=0')      
+                    outputOptions('-af', 'aresample=async=1:min_hard_comp=0.100000:first_pts=0')   
+                    // -bsf:a aac_adtstoasc // The aac_ adtstoasc switch may not be necessary with more recent versions of FFmpeg, which may insert the switch automatically. https://streaminglearningcenter.com/blogs/discover-six-ffmpeg-commands-you-cant-live-without.html
                 }
                 if (typeof(this.source) == 'string' && this.source.indexOf('http') == 0) { // skip other protocols
                     this.decoder.
@@ -444,8 +446,11 @@ class Any2HLS extends Events {
                                 this.serve().then(resolve).catch(reject)
                             }).catch(e => {
                                 console.error('waitFile failed', this.timeout, e)
-                                this.destroy()
+                                if(e.indexOf('timeout') != -1){
+                                    e = 'timeout'
+                                }
                                 reject(e)
+                                this.destroy()
                             })
                         }
                     })

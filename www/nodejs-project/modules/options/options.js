@@ -280,7 +280,8 @@ class Options extends Timer {
                 txt[0] = 'Memory usage: '+ global.kbfmt(used) +'<br />Free memory: '+ global.kbfmt(freeMem) +'<br />'
             }).catch(console.error).finally(() => done())
         }], () => {
-            global.ui.emit('info', 'Resource usage', txt.join(''))
+            txt[2] = global.config.get('ua') +'<br />'
+            global.ui.emit('info', 'System info', txt.join(''))
         })
     }
     aboutNetwork(){
@@ -391,6 +392,12 @@ class Options extends Timer {
                     return global.config.get('auto-testing')
                 }},
                 {
+                    name: global.lang.TEST_STREAMS_TYPE, type: 'check', action: (data, checked) => {
+                    global.config.set('status-flags-type', checked)
+                }, checked: () => {
+                    return global.config.get('status-flags-type')
+                }},
+                {
                     name: global.lang.TUNING_CONCURRENCY_LIMIT, 
                     fa: 'fas fa-poll-h', 
                     type: 'slider', 
@@ -415,7 +422,7 @@ class Options extends Timer {
                     value: () => {
                         return global.config.get('connect-timeout')
                     }
-                }
+                }   
             ]
             if(global.config.get('shared-mode-reach')){
                 opts.push({
@@ -633,7 +640,7 @@ class Options extends Timer {
                                 name: global.lang.CLEAR_CACHE, icon: 'fas fa-broom', type: 'action', action: () => this.requestClearCache()
                             },
                             {
-                                name: 'Resource usage', fa: 'fas fa-memory', type: 'action', action: this.aboutResources.bind(this)
+                                name: 'System info', fa: 'fas fa-memory', type: 'action', action: this.aboutResources.bind(this)
                             },
                             {
                                 name: 'Network IP', fa: 'fas fa-globe', type: 'action', action: this.aboutNetwork.bind(this)

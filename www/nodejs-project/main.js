@@ -391,7 +391,7 @@ function init(language){
                 console.error('VIDEO ERROR', type, errData)
                 if(type == 'timeout'){
                     let opts = [{template: 'question', text: lang.SLOW_TRANSMISSION}], def = 'wait'
-                    let isCH = streamer.active.type != 'mp4' && channels.isChannel(streamer.active.data.terms.name)
+                    let isCH = streamer.active.type != 'video' && channels.isChannel(streamer.active.data.terms.name)
                     if(isCH){
                         opts.push({template: 'option', text: lang.DO_TUNE, fa: 'fas fa-satellite-dish', id: 'try-other'})
                         def = 'try-other'

@@ -276,6 +276,10 @@ class StreamerState extends StreamerCasting {
             this.playOrPause()
         }
     }
+    isTuning(){
+        let txt = osd.textContent()
+        return txt.indexOf(lang.TUNING) != -1 || txt.indexOf(lang.CONNECTING) != -1
+    }
 }
 
 class StreamerTranscode extends StreamerState { // request stream transcode 
@@ -834,32 +838,38 @@ class StreamerClientTimeWarp extends StreamerSeek {
         parent.player.on('timeupdate', this.doTimeWarp.bind(this))
         parent.player.on('durationchange', this.doTimeWarp.bind(this))
     }
+    getTimewarpThresholds(){
+        let lwt = config['live-window-time']
+        let low = parseInt(lwt * 0.075)
+        let midLow = parseInt(lwt * 0.125)
+        let midHigh = lwt * 0.7
+        let high = lwt * 0.8
+        return {low, midLow, midHigh, high}
+    }
     doTimeWarp(){
         if(this.inLiveStream && config['playback-rate-control']){
-            let thresholds = {low: 10, high: 30}
-            let rate = this.currentPlaybackRate
-            let rates = {slow: 0.9, normal: 1, fast: 1.1}, time = parent.player.time(), duration = parent.player.duration(), buffered = duration - time
-            // generate intermediary values
-            thresholds.midLow = thresholds.low + ((thresholds.high - thresholds.low) / 3)
-            thresholds.midHigh = thresholds.high - ((thresholds.high - thresholds.low) / 3)
-            if(buffered <= thresholds.low) {
+           let rate = this.currentPlaybackRate
+            let rates = {slow: 0.9, normal: 1, fast: 1.1}
+            let thresholds = this.getTimewarpThresholds()
+            let remaining = parent.player.duration() - parent.player.time()
+            if(remaining <= thresholds.low) {
                 rate = rates.slow
-            } else if(buffered.between(thresholds.low, thresholds.midLow)) {
+            } else if(remaining.between(thresholds.low, thresholds.midLow)) {
                 if(rate != rates.slow && rate != rates.normal){
                     rate = rates.normal
                 }
-            } else if(buffered.between(thresholds.midLow, thresholds.midHigh)) {
+            } else if(remaining.between(thresholds.midLow, thresholds.midHigh)) {
                 rate = rates.normal
-            } else if(buffered.between(thresholds.midHigh, thresholds.high)) {
+            } else if(remaining.between(thresholds.midHigh, thresholds.high)) {
                 if(rate != rates.normal && rate != rates.fast){
                     rate = rates.normal
                 }
-            } else if(buffered > thresholds.high){
+            } else if(remaining > thresholds.high){
                 rate = rates.fast
             }
             if(rate != this.currentPlaybackRate){
                 this.currentPlaybackRate = rate
-                console.warn('PLAYBACKRATE=*', rate, buffered + 's')
+                console.warn('PLAYBACKRATE=*', rate, thresholds, remaining + 's')
                 parent.player.playbackRate(rate)
             }
         }

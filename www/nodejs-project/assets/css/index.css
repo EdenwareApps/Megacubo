@@ -2,6 +2,9 @@
     --playlist-width: 25vw;
     --main-icons-width: 5vw;
     --padding: 1vw;
+    --padding-quarter: 0.25vw;
+    --padding-half: 0.5vw;
+    --padding-2x: 2vw;
     --radius: 0.25vw;
     --line-width: 0.25vw;
     --drop-shadow: drop-shadow(2px 2px 2px rgba(0,0,0,0.5));
@@ -160,6 +163,9 @@ input {
     display: inline-flex;
     align-items: center;
 }
+#explorer header .explorer-location {
+    width: 100%; /* Android <9 compat */
+}
 #explorer header .explorer-omni {
     display: table;
     align-self: center;
@@ -171,7 +177,7 @@ body.video #explorer header .explorer-omni {
 }
 #explorer header .explorer-omni > span {
     background: var(--modal-background-color);
-    border-radius: calc(var(--padding) * 2);
+    border-radius: var(--padding-2x);
     display: none;
     min-width: calc(var(--explorer-entry-width) * 1.3);
     text-align: left;
@@ -226,7 +232,7 @@ body.video #explorer header .explorer-omni {
 }
 #explorer header .explorer-location-pagination {
     display: none;
-    margin-left: calc(var(--padding) * 2);
+    margin-left: var(--padding-2x);
 }
 #explorer header .logo {
     margin-left: var(--padding);
@@ -399,7 +405,7 @@ div#home-arrows > div > * {
     left: 0;
     bottom: calc(var(--controls-height) + var(--seekbar-height));
     width: 100%;
-    padding: calc(var(--padding) * 7) 0 calc(var(--padding) * 2) 0;
+    padding: calc(var(--padding) * 7) 0 var(--padding-2x) 0;
     z-index: 4;
     box-sizing: border-box;
     pointer-events: none;
@@ -783,13 +789,13 @@ body.video #osd-root {
     margin-bottom: var(--padding);
     border-radius: calc(var(--radius) * 2);
     text-shadow: 0 0 1vh #000, 0 0 6vh #000;
-    margin-bottom: calc(var(--padding) / 4);
+    margin-bottom: var(--padding-quarter);
     opacity: 1;
     max-width: calc(100% - (9 * var(--explorer-entry-name-font-size))); /* dont override clock */ 
 }
 #osd-root > div:not(.osd-highlight) {
     background: #000;
-    padding: calc(var(--padding) / 8) calc(var(--padding) / 2) calc(var(--padding) / 8)  calc(var(--padding) / 2);
+    padding: calc(var(--padding) / 8) var(--padding-half) calc(var(--padding) / 8)  var(--padding-half);
 }
 #osd-root > div.osd-highlight {
     font-size: var(--explorer-entry-name-font-size);
@@ -846,6 +852,25 @@ body:not(.video-loading) #osd-entry-debug-conn-err { /* Show connection debug on
 .faclr-purple {
     color: #af07c1 !important;
 }
+span.entry-status-flags {
+    line-height: 100%;    
+}
+span.entry-status-flag {
+    border-radius: var(--radius);
+    padding: 0 var(--padding-quarter);    
+    max-height: var(--explorer-entry-name-font-size);
+    font-weight: bold;
+    text-transform: uppercase;
+    display: inline-block;
+    opacity: var(--opacity-level-4);
+    box-sizing: border-box;    
+}
+span.entry-status-flag-success {
+    background: #094;
+}
+span.entry-status-flag-failure {
+    background: #f04;
+}
 div#modal {
     visibility: hidden;
     position: fixed;
@@ -895,7 +920,7 @@ body.modal #modal {
 span.modal-template-message {
     font-size: var(--explorer-entry-name-font-size);
     margin-bottom: var(--padding);
-    padding: calc(var(--padding) *2) var(--padding);
+    padding: var(--padding-2x) var(--padding);
     display: flex;
     justify-content: center;
     line-height: 175%;
@@ -927,7 +952,7 @@ span.modal-template-text i, span.modal-template-textarea i {
     opacity: var(--opacity-level-2);
 }
 span.modal-template-text i {
-    padding-right: calc(var(--padding) / 2);
+    padding-right: var(--padding-half);
 }
 span.modal-template-textarea i {
     padding-right: var(--padding);
@@ -978,7 +1003,7 @@ div.modal-template-option-detailed-name {
     display: flex;
     flex-direction: row;
     align-items: center;
-    margin-bottom: calc(var(--padding) / 2);
+    margin-bottom: var(--padding-half);
     justify-content: center;
 }
 div.modal-template-option-detailed-details {

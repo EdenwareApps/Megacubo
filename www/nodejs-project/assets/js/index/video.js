@@ -670,8 +670,10 @@ class WinMan extends EventEmitter {
 			if(w){
 				w.app.emit('exit')
 			}
-			if(navigator.app){ // cordova
+			if(typeof(cordova) != 'undefined'){
 				navigator.app.exitApp()
+			} else {
+				top.Manager.close()
 			}
 		}
 	}
@@ -717,7 +719,7 @@ class MiniPlayerBase extends WinMan {
 	}
 	enterIfPlaying(){
 		let streamer = this.getStreamer()
-		if(this.enabled && streamer && streamer.active && !this.inPIP) {
+		if(this.enabled && streamer && (streamer.active || streamer.isTuning()) && !this.inPIP) {
 			this.enter().catch(err => console.error('PIP FAILURE', err))
 			return true
 		}
@@ -916,7 +918,7 @@ class NWJSMiniplayer extends MiniPlayerBase {
 		console.log('resize', seemsPIP, dimensions)
 		return seemsPIP
 	}
-    enter(w, h){
+    enter(){
         return new Promise((resolve, reject) => {
 			if(!this.enabled){
 				return reject('miniplayer disabled')

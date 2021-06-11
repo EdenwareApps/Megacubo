@@ -1,7 +1,7 @@
 {
   "name": "tv.megacubo.app",
   "displayName": "Megacubo",
-  "version": "16.1.8",
+  "version": "16.1.9",
   "description": "A intuitive and multi-language IPTV player.",
   "main": "index.js",
   "scripts": {
@@ -17,7 +17,6 @@
       "cordova-plugin-whitelist": {},
       "nodejs-mobile-cordova": {},
       "tv.megacubo.pip": {},
-      "tv.megacubo.player": {},
       "tv.megacubo.ffmpeg": {},
       "cordova-plugin-ionic-webview": {},
       "cordova-plugin-ionic-keyboard": {},
@@ -54,7 +53,8 @@
       "cordova-custom-config": {},
       "cordova-plugin-purchase": {
         "BILLING_KEY": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA5Dc4UpVp6tysJOPQTcIWO2dr7ZcsfXwBcNhlNrs23nNOANA4XkXDXqch99CB0gfC/nbvEoy+vqD76ITXsuedVE+iEINjt/PBGFJ9W80SWKDRUFJYj35oCD9YC01An5WJrI/r5U3BNtliFwTF7fMifXzlBc9rkBVoki5T72FSDrmPwo7q7baXkON5c1Byh2V+Lfp0KTAUnN3/AKeMdxqcicwCR0wb9U3ZQRjeyQSzD0a6YJZMokxpwDJWYd+iz9AaH2aFxAOFeGYNFQsJJ3qYqGYNFJll8Oe9c5MxQL/HpZBuwW3XaSvfikv2EKAWQ+vIu97MYaTlMF2aGDFJAOSj0wIDAQAB"
-      }
+      },
+      "tv.megacubo.player": {}
     },
     "platforms": [
       "android"
