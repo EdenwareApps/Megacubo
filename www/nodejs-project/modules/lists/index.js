@@ -116,9 +116,7 @@ class Index extends Common {
 	}
 	search(terms, opts){	
 		return new Promise((resolve, reject) => {
-            if(this.debug){
-                console.warn('M3U SEARCH', terms, opts)
-            }
+            console.warn('M3U SEARCH', terms, opts)
             let start = global.time(), bestResults = [], results = [], maybe = [], limit = 256
             let smap = this.searchMap(terms, opts), ks = Object.keys(smap)
             if(ks.length){

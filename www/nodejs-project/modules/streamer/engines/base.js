@@ -113,7 +113,7 @@ class StreamerBaseIntent extends Events {
     }
     onFail(err){
         if(!this.destroyed){
-            console.log('adapter fail', err)
+            console.log('[' + this.type + '] adapter fail', err)
             this.fail(err)
         }
     }

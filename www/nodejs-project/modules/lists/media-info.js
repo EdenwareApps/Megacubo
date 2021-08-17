@@ -84,7 +84,7 @@ class MediaStreamInfo {
 		if(!proto){
 			proto = this.proto(url)
 		}
-		return ['https', 'http'].indexOf(proto) == -1
+		return ['https', 'http'].includes(proto)
 	}
 	isYT(url){
 		if(url.indexOf('youtube.com') != -1 || url.indexOf('youtu.be') != -1){

@@ -47,7 +47,7 @@ class Any2HLS extends Events {
             }
         })
     }
-    waitFile(file, timeout) {
+    waitFile(file, timeout, m3u8Verify) {
         return new Promise((resolve, reject) => {
             if(!file){
                 return reject('no file specified')
@@ -93,6 +93,19 @@ class Any2HLS extends Events {
                     }
                 }
             }
+            const verify = cb => {
+                if(m3u8Verify === true){
+                    fs.readFile(file, (err, content) => {
+                        if(err || String(content).split('.ts').length < 4){
+                            cb(false)
+                        } else {
+                            cb(true)
+                        }
+                    })
+                } else {
+                    cb(true)
+                }
+            }
             try {
                 watcher = fs.watch(dir, (type, filename) => {
                     if(this.destroyed){
@@ -100,7 +113,9 @@ class Any2HLS extends Events {
                     } else if (type === 'rename' && filename === basename) {
                         fs.stat(file, (err, stat) => {
                             if(stat && stat.size){
-                                finish()
+                                verify(fine => {
+                                    if(fine) finish()
+                                })
                             }
                         })
                     }
@@ -110,7 +125,11 @@ class Any2HLS extends Events {
                 finish(String(e))
             }
             fs.access(file, fs.constants.R_OK, err => {
-                if (!err) finish()
+                if(!err){
+                    verify(fine => {
+                        if(fine) finish()
+                    })
+                }
             })
             clearTimeout(timer)
             timer = setTimeout(() => {
@@ -125,7 +144,13 @@ class Any2HLS extends Events {
                             if (err) {
                                 return finish('timeout')
                             }
-                            finish()
+                            verify(fine => {
+                                if(fine){
+                                    finish()
+                                } else {
+                                    finish('timeout')
+                                }
+                            })
                         })
                     }
                 }
@@ -442,7 +467,7 @@ class Any2HLS extends Events {
                             console.log('FFMPEG run: '+ this.source, this.decoder.file)
                             this.decoder.output(this.decoder.file).run()
                             this.emit('decoder', this.decoder)
-                            this.waitFile(this.decoder.file, this.timeout).then(() => {
+                            this.waitFile(this.decoder.file, this.timeout, true).then(() => {
                                 this.serve().then(resolve).catch(reject)
                             }).catch(e => {
                                 console.error('waitFile failed', this.timeout, e)

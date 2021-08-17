@@ -494,7 +494,7 @@ class Download extends Events {
 				this.errors.push(response.statusCode)
 				let finalize
 				if(response.statusCode == 406){
-					console.error('406 error', response.headers, this.opts.url)
+					console.error('406 error', response.headers, this.stream, this.opts.url)
 				}
 				if(this.opts.authErrorCodes.includes(response.statusCode)){
 					if(this.retryDelay < 1000){

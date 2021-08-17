@@ -11,7 +11,7 @@ class CloudData {
             'categories': 6 * 3600,
             'configure': 1 * 3600,
             'sources': 6 * 3600,
-            'watching': 60
+            'watching': 300
         }
 		if(opts){
 			Object.keys(opts).forEach(k => this[k] = opts[k])

@@ -530,17 +530,23 @@ class Manager extends Events {
             this.parent.foundEPGs().then(urls => {
                 epgs = epgs.concat(urls)
             }).catch(console.error).finally(() => {
-				cloud.get('configure').then(c => {
-					if(c){
-                        let key = 'epg-' + global.lang.countryCode
-					    if(c[key] && !epgs.includes(c[key])){
-    						epgs.push(c[key])
-					    }
-                    }
-                    epgs = epgs.concat(global.watching.currentRawEntries.map(e => e.epg).filter(e => !!e))
+                const next = () => {
                     epgs = [...new Set(epgs)].sort()
                     resolve(epgs)
-				})
+                }
+                if(global.config.get('shared-mode-reach')){
+		    		cloud.get('configure').then(c => {
+                        if(c){
+                            let key = 'epg-' + global.lang.countryCode
+                            if(c[key] && !epgs.includes(c[key])){
+                                epgs.push(c[key])
+                            }
+                        }
+                        epgs = epgs.concat(global.watching.currentRawEntries.map(e => e.epg).filter(e => !!e))
+                    }).catch(console.error).finally(next)
+                } else {
+                    next()
+                }
             })
         })
     }
@@ -757,9 +763,7 @@ class Manager extends Events {
         return new Promise((resolve, reject) => {
             let options = [], lists = this.get()
             options.push(this[lists.length ? 'myListsEntry' : 'addListEntry']())
-            if(!global.cordova || global.lang.locale != 'en' || global.config.get('shared-mode-reach')){
-                options.push(this.listSharingEntry())
-            }
+            options.push(this.listSharingEntry())
             options.push({name: global.lang.EPG, fa: global.channels.epgIcon, type: 'group', renderer: this.epgOptionsEntries.bind(this)})
             resolve(options)
         })

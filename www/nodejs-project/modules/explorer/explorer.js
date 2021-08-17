@@ -238,7 +238,7 @@ class Explorer extends Events {
             console.error(dir + 'NOT FOUND IN', this.pages)
         } else {
             let trustedActionTriggered = this.pages[dir].some((e, k) => {
-                if(e.name == name && e.type == 'input'){
+                if(e.name == name && ['input', 'slider'].includes(e.type)){
                     this.pages[dir][k].value = value
                     if(typeof(e.action) == 'function'){
                         e.action(e, value)
@@ -248,17 +248,19 @@ class Explorer extends Events {
                 }
             })
             if(!trustedActionTriggered){
-                dir = this.path
-                this.pages[dir].some((e, k) => {
-                    if(e.name == name && e.type == 'input'){
-                        this.pages[dir][k].value = value
-                        if(typeof(e.action) == 'function'){
-                            e.action(e, value)
+                if(dir != this.path){
+                    dir = this.path
+                    this.pages[dir].some((e, k) => {
+                        if(e.name == name && ['input', 'slider'].includes(e.type)){
+                            this.pages[dir][k].value = value
+                            if(typeof(e.action) == 'function'){
+                                e.action(e, value)
+                            }
+                            console.error('input ok', e, this.pages[dir][k])
+                            return true
                         }
-                        console.error('input ok', e, this.pages[dir][k])
-                        return true
-                    }
-                })
+                    })
+                }
                 console.error('input ok?', dir)
             }
         }

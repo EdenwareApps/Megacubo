@@ -473,7 +473,7 @@ class Lists extends Index {
 					global.listsRequesting[url] = 'destroyed'
 				}
 				if(isMine){
-					console.error('Damn! My list got destroyed!')
+					console.error('Damn! My list got destroyed!', url)
 				}
 				this.remove(url)
 				if(!resolved){

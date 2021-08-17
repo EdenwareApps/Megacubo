@@ -4,6 +4,7 @@ const Downloader = require('./downloader.js'), MPEGTSPacketProcessor = require('
 class Joiner extends Downloader {
 	constructor(url, opts){
 		super(url, opts)
+		//this.opts.debug = console.log
 		this.opts.checkSyncByte = true
 		this.type = 'joiner'
 		this.joinerDestroyed = false

@@ -280,7 +280,8 @@ class Options extends Timer {
                 txt[0] = 'Memory usage: '+ global.kbfmt(used) +'<br />Free memory: '+ global.kbfmt(freeMem) +'<br />'
             }).catch(console.error).finally(() => done())
         }], () => {
-            txt[2] = global.config.get('ua') +'<br />'
+            txt[2] = 'Connection speed: '+ global.kbsfmt(global.streamer.downlink || 0) +'<br />'
+            txt[3] = global.config.get('ua') +'<br />'
             global.ui.emit('info', 'System info', txt.join(''))
         })
     }

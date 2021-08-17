@@ -2,6 +2,7 @@
 class Setup extends EventEmitter {
     constructor(){
         super()
+        this.offerCommunityMode = true
         this.check()
     }
     isMobile(){
@@ -33,13 +34,9 @@ class Setup extends EventEmitter {
         let def = 'ok', opts = [
             {template: 'question', text: 'Megacubo', fa: 'fas fa-exclamation-circle'},
             {template: 'message', text: lang.NO_LIST_PROVIDED},
-            {template: 'option', text: lang.ADD_LIST, fa: 'fas fa-plus-square', id: 'ok'},
-            {template: 'option', text: lang.ADD_LATER, fa: 'fas fa-clock', id: 'no'}
+            {template: 'option', text: lang.ADD_LIST, fa: 'fas fa-plus-square', id: 'ok'}
         ]
-        if(!this.isMobile()){
-            opts.pop()
-            opts.push({template: 'option', text: lang.COMMUNITY_MODE, fa: 'fas fa-users', id: 'sh'})
-        }
+        opts.push({template: 'option', text: lang.COMMUNITY_MODE, fa: 'fas fa-users', id: 'sh'})
         explorer.dialog(opts, choose => {
             setTimeout(() => {
                 if(choose == 'no'){
@@ -75,12 +72,12 @@ class Setup extends EventEmitter {
         let text = lang.ASK_IPTV_LIST_FIRST.split('. ').join(".\r\n"), def = 'ok', opts = [
             {template: 'question', text: 'Megacubo', fa: 'fas fa-star'},
             {template: 'message', text},
-            {template: 'option', text: lang.ADD_LIST, fa: 'fas fa-plus-square', id: 'ok'},
-            {template: 'option', text: lang.ADD_LATER, fa: 'fas fa-clock', id: 'no'}
+            {template: 'option', text: lang.ADD_LIST, fa: 'fas fa-plus-square', id: 'ok'}
         ]
-        if(!this.isMobile()){
-            opts.pop()
+        if(this.offerCommunityMode){
             opts.push({template: 'option', text: lang.COMMUNITY_MODE, fa: 'fas fa-users', id: 'sh'})
+        } else {
+            opts.push({template: 'option', text: lang.ADD_LATER, fa: 'fas fa-clock', id: 'no'})
         }
         explorer.dialog(opts, choose => {
             setTimeout(() => {

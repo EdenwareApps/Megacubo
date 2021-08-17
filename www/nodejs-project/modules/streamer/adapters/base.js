@@ -117,7 +117,7 @@ class StreamerAdapterBase extends Events {
     }
     onFail(err){
         if(!this.destroyed){
-            console.log('adapter fail', err)
+            console.log('[' + this.type + '] adapter fail', err)
             this.fail(err)
         }
     }
@@ -374,7 +374,7 @@ class StreamerAdapterBase extends Events {
 	fail(err){
 		if(!this.destroyed && !this.failed){
 			this.failed = err || true
-            console.log('fail', err)
+            console.log('[' + this.type + '] fail', err)
 			this.errors.push(err)
 			if(this.opts.debug){
 				this.opts.debug('[' + this.type + '] error', this.errors)

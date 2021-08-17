@@ -39,7 +39,7 @@ class Downloader extends StreamerAdapterBase {
 				}
 				this.currentRequest = null
 			}
-		})		
+		})
 		this.pump()
 	}
 	getContentType(){
@@ -249,14 +249,15 @@ class Downloader extends StreamerAdapterBase {
 			keepalive: this.committed && global.config.get('use-keepalive'),
 			followRedirect: true,
 			acceptRanges: false,
-			retries: 0,
+			retries: 3, // strangely, some servers always abort the first try, throwing "The server aborted pending request"
 			timeout: 5,
 			headers: {
 				'accept-encoding': 'identity' // https://github.com/sindresorhus/got/issues/145
 			}
 		})
 		download.on('error', error => {
-            console.warn('['+ this.type +'] ERR', error, this.url)
+			let elapsed = global.time() - connStart
+            console.warn('['+ this.type +'] ERR after '+ elapsed +'s', error, this.url, download)
 			if(this.committed){
 				let statusCode = 0
 				if(error && error.response && error.response.statusCode){

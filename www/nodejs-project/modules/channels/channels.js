@@ -294,7 +294,7 @@ class ChannelsEPG extends ChannelsData {
         })
     }
     epgPrepareSearch(e){
-        let ret = {name: e.name}, map = global.config.get('epg-map')
+        let ret = {name: e.originalName || e.name}, map = global.config.get('epg-map')
         Object.keys(map).some(n => {
             if(n == ret.name){
                 ret.searchName = map[n]
@@ -328,9 +328,9 @@ class ChannelsEPG extends ChannelsData {
                         if(!centries.length){
                             centries.push(global.explorer.emptyEntry(global.lang.NOT_FOUND))
                         }
-                        centries.unshift(this.adjustEPGChannelEntry(e))
                     }
                 }
+                centries.unshift(this.adjustEPGChannelEntry(e))
                 resolve(centries)
             }).catch(reject)
         })
@@ -397,9 +397,7 @@ class ChannelsEPG extends ChannelsData {
         return new Promise((resolve, reject) => {
             let terms = this.entryTerms(e)
             //console.log('adjustEPGChannelEntryRenderer', e, terms)
-            terms = terms.filter(t => {
-                return t.charAt(0) != '-'
-            })
+            terms = terms.filter(t => t.charAt(0) != '-')
             global.lists.epgSearchChannel(terms).then(results => {
                 let options = []
                 //console.log('adjustEPGChannelEntryRenderer', results)
@@ -841,9 +839,7 @@ class Channels extends ChannelsEditing {
         return this.expandTerms(terms)
     }
     toMetaEntryRenderer(e, _category, epgNow){
-        console.warn('EPG DEBUGGG', e, _category, epgNow)
         return new Promise((resolve, reject) => {
-            console.warn('EPG DEBUGGG', epgNow)
             let category
             if(_category === false){
                 category = false
@@ -946,14 +942,12 @@ class Channels extends ChannelsEditing {
         if(typeof(meta.url) == 'undefined'){
             meta.url = global.mega.build(e.name, {terms})
         }
-        console.warn('EPG DEBUGGG', details)
         if(global.mega.isMega(meta.url)){
             meta = Object.assign(meta, {
                 type: 'group',
                 class: 'entry-meta-stream',
                 fa: 'fas fa-play-circle' ,
                 renderer: () => {
-                    console.warn('EPG DEBUGGG', meta, category, details)
                     return this.toMetaEntryRenderer(meta, category, details)
                 }
             })
