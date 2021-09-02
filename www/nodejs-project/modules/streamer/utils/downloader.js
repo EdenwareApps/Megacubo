@@ -241,7 +241,7 @@ class Downloader extends StreamerAdapterBase {
 		}
 		this.finishBitrateSample(this.currentDownloadUID)
 
-		let connTime, connStart = global.time()
+		let received = 0, connTime, connStart = global.time()
 		this.currentDownloadUID = String(connStart)
 		const download = this.currentRequest = new global.Download({
 			url: this.url,
@@ -250,7 +250,7 @@ class Downloader extends StreamerAdapterBase {
 			followRedirect: true,
 			acceptRanges: false,
 			retries: 3, // strangely, some servers always abort the first try, throwing "The server aborted pending request"
-			timeout: 5,
+			timeout: 60,
 			headers: {
 				'accept-encoding': 'identity' // https://github.com/sindresorhus/got/issues/145
 			}
@@ -281,18 +281,22 @@ class Downloader extends StreamerAdapterBase {
 				if(!this.opts.contentType && contentType.match(new RegExp('^(audio|video)'))){
 					this.opts.contentType = contentType
 				}
-				if(this.opts.debug){
-					this.opts.debug('[' + this.type + '] handleData hooked') // 200
-				}
 				download.on('data', chunk => {
 					if(typeof(connTime) == 'undefined'){
 						connTime = global.time() - connStart
 						this.connectTime = connTime
+						if(this.opts.debug){
+							this.opts.debug('[' + this.type + '] receiving data, took '+ connTime +'s to connect') // 200
+						}
 					}
+					received += chunk.length
 					this.handleData(chunk)
 				})
 				download.once('end', () => {
 					this.lastConnectionEndTime = global.time()
+					if(this.opts.debug){
+						this.opts.debug('[' + this.type + '] received '+ global.kbfmt(received) +' in '+ (this.lastConnectionEndTime - connStart) +'s to connect') // 200
+					}
 					this.endRequest()
 					if(callback){
 						this.afterDownload(null, callback, {contentType, statusCode, headers})

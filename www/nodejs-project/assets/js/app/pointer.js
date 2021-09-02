@@ -136,34 +136,36 @@ class ExplorerPointer extends ExplorerSelectionMemory {
                 } else if(st < this.lastScrollTop) {
                     this.scrollDirection = 'up'
                 }
-                this.lastScrollTop = st   
-                if(['mousewheel', 'DOMMouseScroll'].indexOf(n) != -1){
-                    this.touchMoving = false
-                    let now = (new Date()).getTime()
-                    if(now > (this.mouseWheelMovingTime + this.mouseWheelMovingInterval)){
-                        this.mouseWheelMovingTime = now
-                        let delta = (event.originalEvent.wheelDelta || -event.originalEvent.detail)
-                        console.log('mousewheel', delta)
-                        this.arrow((delta > 0) ? 'up' : 'down', true)
-                        this.emit('scroll', this.lastScrollTop, this.scrollDirection)
-                    }
-                    event.preventDefault()
-                } else {   
-                    this.touchMoving = true
-                    this.touchMovingTimer = setTimeout(() => {
-                        if(this.rendering){
-                            return
+                if(this.lastScrollTop != st){
+                    this.lastScrollTop = st   
+                    if(['mousewheel', 'DOMMouseScroll'].indexOf(n) != -1){
+                        this.touchMoving = false
+                        let now = (new Date()).getTime()
+                        if(now > (this.mouseWheelMovingTime + this.mouseWheelMovingInterval)){
+                            this.mouseWheelMovingTime = now
+                            let delta = (event.originalEvent.wheelDelta || -event.originalEvent.detail)
+                            console.log('mousewheel', delta)
+                            this.arrow((delta > 0) ? 'up' : 'down', true)
+                            this.emit('scroll', this.lastScrollTop, this.scrollDirection)
                         }
-                        if(this.touchMoving){
-                            this.touchMoving = false
-                        }
-                        this.scrollSnap(this.lastScrollTop, this.scrollDirection, () => {
+                        event.preventDefault()
+                    } else {   
+                        this.touchMoving = true
+                        this.touchMovingTimer = setTimeout(() => {
                             if(this.rendering){
                                 return
                             }
-                            this.emit('scroll', this.lastScrollTop, this.scrollDirection)
-                        })
-                    }, 100)
+                            if(this.touchMoving){
+                                this.touchMoving = false
+                            }
+                            this.scrollSnap(this.lastScrollTop, this.scrollDirection, () => {
+                                if(this.rendering){
+                                    return
+                                }
+                                this.emit('scroll', this.lastScrollTop, this.scrollDirection)
+                            })
+                        }, 100)
+                    }
                 }
             })
         }) 
@@ -606,8 +608,15 @@ class ExplorerPointer extends ExplorerSelectionMemory {
             if(this.debug){
                 console.warn('POINTER', closer, closerDist)
             }
+            let pst = this._scrollContainer.scrollTop
             this.focus(closer)
-            if(!view.default){
+            if(view.default){   
+                this.lastScrollTop = this._scrollContainer.scrollTop
+                if(this.lastScrollTop != pst){
+                    this.scrollDirection = (this.lastScrollTop < pst) ? 'up' : 'down'
+                    this.emit('scroll', this.lastScrollTop, this.scrollDirection)
+                }
+            } else {
                 closer.scrollIntoViewIfNeeded({ behavior: 'smooth', block: 'nearest', inline: 'start' })
             }
         }

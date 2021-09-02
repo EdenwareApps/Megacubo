@@ -61,7 +61,7 @@ class StreamerTools extends Events {
 	}
 	_probe(url, timeoutSecs, retries = 0){
 		return new Promise((resolve, reject) => {
-			let headers = {}, status = 0, sample = [], start = global.time(), timer = 0, currentURL = url
+			let status = 0, timer = 0, headers = {}, sample = [], start = global.time()
 			if(this.validate(url)){
 				if(typeof(timeoutSecs) != 'number'){
 					timeoutSecs = 10
@@ -76,16 +76,7 @@ class StreamerTools extends Events {
 						'accept-encoding': 'identity' // https://github.com/sindresorhus/got/issues/145
 					}
                 }
-                let download = new global.Download(req), ended = false, sampleSize = 1024, abort = () => {
-					if(this.opts.debug){
-						this.opts.debug('abort', r)
-					}
-					clearTimeout(timer)
-					if(download){
-						download.destroy()		
-						download = null			
-					}
-				}, finish = () => {
+                let download = new global.Download(req), ended = false, sampleSize = 1024, finish = () => {
 					if(this.opts.debug){
 						this.opts.debug('finish', ended, sample, headers, traceback())
 					}

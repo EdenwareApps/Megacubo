@@ -46,19 +46,6 @@ function hideBackButton(doHide){
     }
 }
 
-var reviewAlreadyRequested
-
-function requestReview(){
-    console.log('requesting review')
-    if(top.cordova && top.cordova.plugins && top.cordova.plugins.AppReview){
-        if(!reviewAlreadyRequested){
-            console.log('requesting review')
-            reviewAlreadyRequested = true
-            top.cordova.plugins.AppReview.requestReview().catch(console.error) // dont use fallback
-        }
-    }
-}
-
 function configUpdated(keys, c){
     config = c
     if(parent.updateConfig){
@@ -586,13 +573,6 @@ function initApp(){
                 updateInternetConnState()
             }
             
-            if(top.cordova){
-                app.on('streamer-long-watching', () => {
-                    if(typeof(premium) == 'undefined' || !premium.enabled){
-                        requestReview()
-                    }
-                })
-            }
             app.on('share', (title, text, url) => {
                 console.log('share', title, text, url)
                 if(typeof(parent.navigator.share) == 'function'){

@@ -162,6 +162,13 @@ class Search extends Events {
                             global.streamer.play(this.currentSearch, es)
                         }
                     })
+                } else if(!global.lists.parentalControl.allow(u)) {
+                    es.unshift({
+                        name: global.lang.ADULT_CONTENT_BLOCKED,
+                        fa: 'fas fa-lock',
+                        type: 'action',
+                        action: () => {}
+                    })
                 }
                 resolve(es)
             }).catch(reject)
