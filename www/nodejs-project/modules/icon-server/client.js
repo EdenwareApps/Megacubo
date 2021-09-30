@@ -5,9 +5,6 @@ class IconServerClient extends EventEmitter {
         this.debug = false
         this.concurrency = 8
         this.minValidIconSize = 32
-        if(parent.cordova){
-            this.concurrency = 3
-        }
         this.image = '<img src="{0}" />'
         if(opts){
 		    Object.keys(opts).forEach(k => {

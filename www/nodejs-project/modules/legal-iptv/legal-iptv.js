@@ -49,7 +49,7 @@ class LegalIPTV extends Events {
     }
     get(file = ''){
         return new Promise((resolve, reject) => {
-            const store = file ? global.rstorage : global.storage
+            const store = file ? global.storage.raw : global.storage
             store.get(this.cachingDomain + file, data => {
                 if(data){
                     if(!file){
@@ -210,7 +210,7 @@ class LegalIPTV extends Events {
     }
     hook(entries, path){
         return new Promise((resolve, reject) => {
-            if(path.split('/').pop() == global.lang.COMMUNITY_MODE && config.get('shared-mode-reach')){
+            if(path.split('/').pop() == global.lang.COMMUNITARY_MODE && config.get('shared-mode-reach')){
                 entries.push({name: this.title, fa: this.icon, type: 'group', renderer: this.entries.bind(this)})
             }
             resolve(entries)

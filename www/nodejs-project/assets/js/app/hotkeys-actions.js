@@ -97,7 +97,7 @@ var hotkeysActions = {
     ],
     'HISTORY': [
         () => {
-            explorer.triggerAction(lang.TOOLS, lang.HISTORY).catch(console.error)
+            explorer.triggerAction(lang.TOOLS, lang.KEEP_WATCHING).catch(console.error)
         }, 'up', true
     ],
     'BOOKMARKS': [

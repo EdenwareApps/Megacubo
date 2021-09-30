@@ -87,7 +87,7 @@ class Tools {
 				return key
 			}, false)
 			async.eachOfLimit(Object.keys(map), 8, (key, i, acb) => {
-				global.tstorage.set(key, map[key], true, acb)
+				global.storage.temp.set(key, map[key], true, acb)
 			}, () => {
 				cb(list)
 			})

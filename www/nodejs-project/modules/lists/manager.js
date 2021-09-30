@@ -60,7 +60,7 @@ class Manager extends Events {
             if(global.explorer && global.explorer.currentEntries){
                 if(
                     global.explorer.currentEntries.some(e => [global.lang.PROCESSING].includes(e.name)) ||
-                    global.explorer.basename(global.explorer.path) == global.lang.COMMUNITY_LISTS
+                    global.explorer.basename(global.explorer.path) == global.lang.COMMUNITARY_LISTS
                 ){
                     global.explorer.refresh()
                 } else if(this.inChannelPage()){
@@ -220,7 +220,7 @@ class Manager extends Events {
             })
         }
         if(name){
-            name = decodeURIComponent(name)
+            name = global.decodeURIComponentSafe(name)
             if(name.indexOf(' ') == -1 && name.indexOf('+') != -1){
                 name = name.replaceAll('+', ' ')
             }
@@ -311,10 +311,10 @@ class Manager extends Events {
     }
     addList(value){
         return new Promise((resolve, reject) => {
-            if(value.match(new RegExp('://(shared|community)$', 'i'))){
+            if(value.match(new RegExp('://(shared|communitary)$', 'i'))){
                 global.ui.emit('dialog', [
-                    {template: 'question', text: global.lang.COMMUNITY_MODE, fa: 'fas fa-users'},
-                    {template: 'message', text: global.lang.ASK_COMMUNITY_LIST},
+                    {template: 'question', text: global.lang.COMMUNITARY_MODE, fa: 'fas fa-users'},
+                    {template: 'message', text: global.lang.ASK_COMMUNITARY_LIST},
                     {template: 'option', id: 'back', fa: 'fas fa-times-circle', text: global.lang.BACK},
                     {template: 'option', id: 'agree', fa: 'fas fa-check-circle', text: global.lang.I_AGREE}
                 ], 'lists-manager', 'back', true)
@@ -335,7 +335,7 @@ class Manager extends Events {
     }
     updatedLists(name, fa){
         this.updatingLists = false
-        if(global.explorer && global.explorer.currentEntries && global.explorer.currentEntries.some(e => [global.lang.LOAD_COMMUNITY_LISTS, global.lang.UPDATING_LISTS, global.lang.STARTING_LISTS, global.lang.PROCESSING].includes(e.name))){
+        if(global.explorer && global.explorer.currentEntries && global.explorer.currentEntries.some(e => [global.lang.LOAD_COMMUNITARY_LISTS, global.lang.UPDATING_LISTS, global.lang.STARTING_LISTS, global.lang.PROCESSING].includes(e.name))){
             global.explorer.refresh()
         }
         if(typeof(global.osd) != 'undefined'){
@@ -348,21 +348,21 @@ class Manager extends Events {
             this.updatingLists = {onErr}
             global.osd.show(global.lang.STARTING_LISTS, 'fa-mega spin-x-alt', 'update', 'persistent')
             this.getURLs().then(myLists => {
-                this.allCommunityLists(30000).then(communityLists => {
-                    console.log('allCommunityLists', communityLists.length)
+                this.allCommunitaryLists(30000).then(communitaryLists => {
+                    console.log('allCommunitaryLists', communitaryLists.length)
                     const next = () => {
-                        if(communityLists.length || myLists.length){
+                        if(communitaryLists.length || myLists.length){
                             let maxListsToTry = 2 * global.config.get('shared-mode-reach')
-                            if(communityLists.length > maxListsToTry){
-                                communityLists = communityLists.slice(0, maxListsToTry)
+                            if(communitaryLists.length > maxListsToTry){
+                                communitaryLists = communitaryLists.slice(0, maxListsToTry)
                             }
-                            console.log('Updating lists', myLists, communityLists, global.traceback())
+                            console.log('Updating lists', myLists, communitaryLists, global.traceback())
                             this.parent.updaterFinished(false).catch(console.error)
                             global.channels.keywords(keywords => {
-                                this.parent.sync(myLists, communityLists, global.config.get('shared-mode-reach'), keywords).catch(err => {
+                                this.parent.sync(myLists, communitaryLists, global.config.get('shared-mode-reach'), keywords).catch(err => {
                                     global.displayErr(err)
                                 })
-                                this.callUpdater(keywords, myLists.concat(communityLists), () => {
+                                this.callUpdater(keywords, myLists.concat(communitaryLists), () => {
                                     this.parent.updaterFinished(true).catch(console.error)
                                 })
                             })
@@ -373,10 +373,10 @@ class Manager extends Events {
                     this.legalIPTV.ready(() => {
                         this.legalIPTV.countries.ready(() => {
                             if(global.config.get('shared-mode-reach')){
-                                communityLists = communityLists.filter(u => myLists.indexOf(u) == -1)
-                                communityLists = communityLists.filter(u => !this.legalIPTV.isKnownURL(u)) // remove communityLists from other countries/languages
+                                communitaryLists = communitaryLists.filter(u => myLists.indexOf(u) == -1)
+                                communitaryLists = communitaryLists.filter(u => !this.legalIPTV.isKnownURL(u)) // remove communitaryLists from other countries/languages
                                 this.legalIPTV.getLocalLists().then(legalIPTVLocalLists => {
-                                    communityLists = legalIPTVLocalLists.concat(communityLists)
+                                    communitaryLists = legalIPTVLocalLists.concat(communitaryLists)
                                 }).catch(console.error).finally(next)
                             } else {
                                 next()
@@ -385,7 +385,7 @@ class Manager extends Events {
                     })
                 }).catch(e => {
                     this.updatingLists = false
-                    console.error('allCommunityLists err', e)
+                    console.error('allCommunitaryLists err', e)
                     global.osd.hide('update')
                     this.noListsRetryDialog()
                 })
@@ -415,7 +415,7 @@ class Manager extends Events {
     noListsRetryDialog(){
         if(global.Download.isNetworkConnected) {
             global.ui.emit('dialog', [
-                {template: 'question', text: global.lang.NO_COMMUNITY_LISTS_FOUND, fa: 'fas fa-users'},
+                {template: 'question', text: global.lang.NO_COMMUNITARY_LISTS_FOUND, fa: 'fas fa-users'},
                 {template: 'option', id: 'retry', fa: 'fas fa-redo', text: global.lang.RETRY},
                 {template: 'option', id: 'add-list', fa: 'fas fa-plus-square', text: global.lang.ADD_LIST}
             ], 'lists-manager', 'retry', true) 
@@ -439,7 +439,7 @@ class Manager extends Events {
     }
     noListsRetryEntry(){
         return {
-            name: global.lang.LOAD_COMMUNITY_LISTS,
+            name: global.lang.LOAD_COMMUNITARY_LISTS,
             fa: 'fas fa-plus-square',
             type: 'action',
             action: () => this.UIUpdateLists(true)
@@ -587,7 +587,7 @@ class Manager extends Events {
                     this.epgOptionsEntries(activeEPGDetails).then(es => {
                         if(p == global.explorer.path){
                             es = es.map(e => {
-                                if(e.name == global.lang.IMPORT_EPG_CHANNELS){
+                                if(e.name == global.lang.SYNC_EPG_CHANNELS){
                                     e.value = e.checked()
                                 }
                                 return e
@@ -608,7 +608,11 @@ class Manager extends Events {
             this.searchEPGs().then(urls => {
                 epgs = epgs.concat(urls)
             }).catch(console.error).finally(() => {
-                let activeEPG = global.config.get('epg')
+                let activeEPG = global.config.get('epg') || global.activeEPG
+                if(!activeEPG || activeEPG == 'disabled'){
+                    activeEPG = ''
+                }
+                console.log('SETT-EPG', activeEPG, epgs)
                 if(activeEPG && !epgs.includes(activeEPG)){
                     epgs.push(activeEPG)
                 }
@@ -634,29 +638,31 @@ class Manager extends Events {
                             details,
                             action: () => {
                                 if(url == global.config.get('epg')){
-                                    global.config.set('epg', '')
-                                    global.channels.activeEPG = ''
+                                    global.config.set('epg', 'disabled')
                                     global.channels.load()
-                                    global.explorer.refresh()
-                                    this.setEPG('')
+                                    this.setEPG('', true)
                                 } else {
+                                    global.config.set('epg', url)
                                     this.setEPG(url, true)
                                 }
+                                global.explorer.refresh()
                             }
                         }
                     })
                     options.push({name: global.lang.ADD, fa: 'fas fa-plus-square', type: 'action', action: () => {
-                        global.ui.emit('prompt', global.lang.EPG, 'http://.../epg.xml', global.config.get('epg'), 'set-epg', false, global.channels.epgIcon)
+                        global.ui.emit('prompt', global.lang.EPG, 'http://.../epg.xml', global.activeEPG || '', 'set-epg', false, global.channels.epgIcon)
                     }})
                     if(global.config.get('parental-control-policy') != 'only'){
                         options.push({
-                            name: global.lang.IMPORT_EPG_CHANNELS,
+                            name: global.lang.SYNC_EPG_CHANNELS,
                             type: 'check',
                             action: (e, checked) => {
-                                global.config.set('epg-channels-list', checked)
-                                global.channels.load()
+                                global.config.set('use-epg-channels-list', checked)
+                                if(global.activeEPG){
+                                    this.importEPGChannelsList(global.activeEPG)
+                                }
                             }, 
-                            checked: () => global.config.get('epg-channels-list')
+                            checked: () => global.config.get('use-epg-channels-list')
                         })
                     }
                     resolve(options)
@@ -670,7 +676,7 @@ class Manager extends Events {
                             }
                         } else {
                             if(!this.epgStatusTimer){
-                                this.epgStatusTimer = setInterval(this.updateEPGStatus.bind(this), 3000)
+                                this.epgStatusTimer = setInterval(this.updateEPGStatus.bind(this), 1000)
                             }
                         }
                         next()
@@ -693,41 +699,57 @@ class Manager extends Events {
             })
         })
     }
+    shouldImportEPGChannelsList(url){
+        return global.config.get('parental-control-policy') != 'only' && url == global.activeEPG && global.config.get('use-epg-channels-list')
+    }
+    importEPGChannelsList(url){
+        return new Promise((resolve, reject) => {            
+            global.lists.epgLiveNowChannelsList().then(data => {
+                let imported = false
+                global.channels.updateCategoriesCacheKey()
+                if(this.shouldImportEPGChannelsList(url)){ // check again if user didn't changed his mind
+                    console.log('CHANNELS LIST IMPORT', data.categories, data.updateAfter, url, global.activeEPG)
+                    global.channels.setCategories(data.categories, true)
+                    if(this.importEPGChannelsListTimer){
+                        clearTimeout(this.importEPGChannelsListTimer)                        
+                    }
+                    this.importEPGChannelsListTimer = setTimeout(() => {
+                        this.importEPGChannelsList(url)
+                    }, data.updateAfter * 1000)
+                    imported = true
+                }
+                global.channels.load()
+                resolve(imported)
+            }).catch(err => {
+                console.error(err)
+                global.osd.show(global.lang.SYNC_EPG_CHANNELS_FAILED, 'fas fa-exclamation-circle faclr-red', 'epg', 'normal')
+                reject()
+            })
+        })
+    }
     setEPG(url, ui){
         console.log('SETEPG', url)
         if(typeof(url) == 'string'){
             if(!url || this.validateURL(url)){
-                if(url != global.config.get('epg')){
-                    global.config.set('epg', url)
-                    global.explorer.refresh()
-                }
+                global.activeEPG = url
+                global.channels.activeEPG = ''
                 this.loadEPG(url, ui).then(() => {
-                    let doImportChannelsList = () => { // user changed his mind in the meantime
-                        return global.config.get('parental-control-policy') != 'only' && url == global.config.get('epg') && global.config.get('epg-channels-list')
-                    }
                     let refresh = () => {
                         if(global.explorer.path.indexOf(global.lang.EPG) != -1 || global.explorer.path.indexOf(global.lang.LIVE) != -1){
                             global.explorer.refresh()
                         }
                     }
+                    console.log('SETEPGc', url, ui, global.activeEPG)
                     if(!url){
                         global.channels.updateCategoriesCacheKey()
                         global.channels.load()
-                        refresh()
-                    } else if(doImportChannelsList()){
-                        global.lists.epgChannelsList().then(list => {
-                            if(doImportChannelsList()){ // check again if user didn't changed his mind
-                                console.log('CHANNELS LIST IMPORT', list)
-                                global.channels.updateCategoriesCacheKey()
-                                global.channels.setCategories(list, true)
-                                refresh()
-                            }
-                        }).catch(err => {
-                            console.error(err)
-                            global.osd.show(global.lang.IMPORT_EPG_CHANNELS_FAILED, 'fas fa-exclamation-circle faclr-red', 'epg', 'normal')
-                            refresh()
-                        })
+                        if(ui){
+                            global.osd.show(global.lang.EPG_DISABLED, 'fas fa-times-circle', 'epg', 'normal')                            
+                        }
+                    } else {
+                        this.importEPGChannelsList(url)
                     }
+                    refresh()
                 }).catch(err => console.error(err))
             } else {
                 if(ui){
@@ -739,7 +761,7 @@ class Manager extends Events {
     loadEPG(url, ui){
         return new Promise((resolve, reject) => {
             global.channels.activeEPG = ''
-            if(!url){
+            if(!url && global.config.get('epg') != 'disabled'){
                 url = global.config.get('epg')
             }
             if(!url && ui) ui = false
@@ -764,21 +786,21 @@ class Manager extends Events {
             let options = [], lists = this.get()
             options.push(this[lists.length ? 'myListsEntry' : 'addListEntry']())
             options.push(this.listSharingEntry())
-            options.push({name: global.lang.EPG, fa: global.channels.epgIcon, type: 'group', renderer: this.epgOptionsEntries.bind(this)})
+            options.push({name: global.lang.EPG, details: 'EPG', fa: global.channels.epgIcon, type: 'group', renderer: this.epgOptionsEntries.bind(this)})
             resolve(options)
         })
     }
     listSharingEntry(){
         return {
-            name: global.lang.COMMUNITY_MODE, type: 'group', fa: 'fas fa-users', 
+            name: global.lang.COMMUNITARY_MODE, type: 'group', fa: 'fas fa-users', 
             renderer: () => {
                 return new Promise((resolve, reject) => {
                     let options = [
                         {name: global.lang.ENABLE, type: 'check', action: (data, checked) => {
                             if(checked){
                                 global.ui.emit('dialog', [
-                                    {template: 'question', text: global.lang.COMMUNITY_MODE, fa: 'fas fa-users'},
-                                    {template: 'message', text: global.lang.ASK_COMMUNITY_LIST},
+                                    {template: 'question', text: global.lang.COMMUNITARY_MODE, fa: 'fas fa-users'},
+                                    {template: 'message', text: global.lang.ASK_COMMUNITARY_LIST},
                                     {template: 'option', id: 'back', fa: 'fas fa-times-circle', text: global.lang.BACK},
                                     {template: 'option', id: 'agree', fa: 'fas fa-check-circle', text: global.lang.I_AGREE}
                                 ], 'lists-manager', 'back', true)                
@@ -791,8 +813,8 @@ class Manager extends Events {
                         }}
                     ]
                     if(global.config.get('shared-mode-reach') > 0){
-                        options.push({name: global.lang.COMMUNITY_LISTS, fa: 'fas fa-users', type: 'group', renderer: this.communityListsEntries.bind(this)})
-                        options.push({name: global.lang.ALL_LISTS, fa: 'fas fa-users', type: 'group', renderer: this.allCommunityListsEntries.bind(this)})
+                        options.push({name: global.lang.COMMUNITARY_LISTS, fa: 'fas fa-users', type: 'group', renderer: this.communitaryListsEntries.bind(this)})
+                        options.push({name: global.lang.ALL_LISTS, fa: 'fas fa-users', type: 'group', renderer: this.allCommunitaryListsEntries.bind(this)})
                     }
                     resolve(options)
                 })
@@ -826,7 +848,7 @@ class Manager extends Events {
     directListRenderer(data){
         console.warn('DIRECT', data, traceback())
         return new Promise((resolve, reject) => {
-            let v = Object.assign({}, data), isMine = global.activeLists.my.includes(v.url), isCommunity = global.activeLists.community.includes(v.url)
+            let v = Object.assign({}, data), isMine = global.activeLists.my.includes(v.url), isCommunitary = global.activeLists.communitary.includes(v.url)
             delete v.renderer
             let onerr = err => {
                 console.error(err)
@@ -862,8 +884,8 @@ class Manager extends Events {
                 console.warn('DIRECT', list, JSON.stringify(list[0]))
                 resolve(list)
             }
-            console.warn('DIRECT', isMine, isCommunity)
-            if(isMine || isCommunity){
+            console.warn('DIRECT', isMine, isCommunitary)
+            if(isMine || isCommunitary){
                 this.parent.directListRenderer(v).then(cb).catch(onerr)
             } else {   
                 const tmpFile = path.join(global.paths.temp, global.sanitize(v.url) +'.tmp')
@@ -916,8 +938,8 @@ class Manager extends Events {
                 if(this.validate(content)){
                     if(saveCache){
                         const cacheKey = 'data-' + url, cacheTimeKey = 'time-' + url
-                        global.rstorage.set(cacheKey, content, 30 * (24 * 3600))
-                        global.rstorage.set(cacheTimeKey, global.time(), 30 * (24 * 3600))
+                        global.storage.raw.set(cacheKey, content, 30 * (24 * 3600))
+                        global.storage.raw.set(cacheTimeKey, global.time(), 30 * (24 * 3600))
                     } 
                     resolve(content)
                     global.osd.hide('add-list')
@@ -944,11 +966,11 @@ class Manager extends Events {
             download.start()
         })
     }
-    communityLists(){
+    communitaryLists(){
         return new Promise((resolve, reject) => {
             let limit = global.config.get('shared-mode-reach')
             if(limit){
-                this.allCommunityLists().then(lists => {
+                this.allCommunitaryLists().then(lists => {
                     lists = lists.slice(0, limit)
                     resolve(lists)
                 }).catch(e => {
@@ -960,13 +982,13 @@ class Manager extends Events {
             }
         })
     }
-    communityListsEntries(){
+    communitaryListsEntries(){
         return new Promise((resolve, reject) => {
             this.parent.getLists().then(active => {
                 global.activeLists = active
-                if(active.community.length){
+                if(active.communitary.length){
                     let opts = []
-                    async.eachOfLimit(active.community, 8, (url, i, done) => {
+                    async.eachOfLimit(active.communitary, 8, (url, i, done) => {
                         this.parent.getListMetaValue(url, 'name', name => {
                             if(!name) {
                                 name = this.nameFromSourceURL(url)
@@ -989,7 +1011,7 @@ class Manager extends Events {
             }).catch(reject)
         })
     }
-    allCommunityLists(timeout){
+    allCommunitaryLists(timeout){
         return new Promise((resolve, reject) => {
             let limit = global.config.get('shared-mode-reach')
             if(limit){
@@ -1004,7 +1026,7 @@ class Manager extends Events {
             }
         })
     }
-    allCommunityListsEntries(){
+    allCommunitaryListsEntries(){
         return new Promise((resolve, reject) => {
             let limit = global.config.get('shared-mode-reach')
             if(limit){
@@ -1051,8 +1073,8 @@ class Manager extends Events {
                             resolve(lists)
                         })
                     } else {
-                        console.error('no community lists found', lists)
-                        reject('no community lists found')
+                        console.error('no communitary lists found', lists)
+                        reject('no communitary lists found')
                     }
                 }).catch(e => {
                     console.error('no sources found', e)
@@ -1066,7 +1088,7 @@ class Manager extends Events {
     hook(entries, path){
         return new Promise((resolve, reject) => {
             if(path == '' && !entries.some(e => e.name == global.lang.IPTV_LISTS)){
-                entries.push({name: global.lang.IPTV_LISTS, fa: 'fas fa-list', type: 'group', renderer: this.listsEntries.bind(this)})
+                entries.push({name: global.lang.IPTV_LISTS, details: global.lang.CONFIGURE, fa: 'fas fa-list', type: 'group', renderer: this.listsEntries.bind(this)})
             }
             this.legalIPTV.hook(entries, path).then(resolve).catch(reject)
         })

@@ -193,7 +193,7 @@ class IPTVPlaylistStreamParser extends Events {
 			})
 		}
 		if(name){
-			name = decodeURIComponent(name)
+			name = global.decodeURIComponentSafe(name)
 			if(name.indexOf(' ') == -1 && name.indexOf('+') != -1){
 				name = name.replaceAll('+', ' ').replaceAll('<', '').replaceAll('>', '')
 			}

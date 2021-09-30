@@ -3,18 +3,14 @@ const async = require('async'), path = require('path'), Events = require('events
 
 const Index = require(global.APPDIR + '/modules/lists/index.js')
 const List = require(global.APPDIR + '/modules/lists/list.js')
-const EPG = require(global.APPDIR + '/modules/lists/epg.js')
+const EPG = require(global.APPDIR + '/modules/epg')
 const Parser = require(global.APPDIR + '/modules/lists/parser')
-const Storage = require(APPDIR + '/modules/storage')
 const Cloud = require(APPDIR + '/modules/cloud')
 const Mega = require(APPDIR + '/modules/mega')
 
 require(APPDIR + '/modules/supercharge')(global)
 
-storage = new Storage()  
-tstorage = new Storage('', {temp: true, clear: false, cleanup: false})  
-rstorage = new Storage() 
-rstorage.useJSON = false
+storage = require(APPDIR + '/modules/storage')({})
 
 Download = require(APPDIR + '/modules/download')
 cloud = new Cloud()
@@ -42,7 +38,7 @@ class Fetcher extends Events {
 			}
 			if(path.match('^https?:')){
 				const dataKey = LIST_DATA_KEY_MASK.format(path)
-				global.rstorage.get(dataKey, data => {
+				global.storage.raw.get(dataKey, data => {
 					if(this.validate(data)){
 						resolve(data.split("\n").filter(s => s.length > 8).map(JSON.stringify))
 					} else {
@@ -67,7 +63,7 @@ class Fetcher extends Events {
 									stream.destroy()
 									stream = null
 									if(entries.length){
-										global.rstorage.set(dataKey, entries.map(JSON.stringify).join("\r\n"), true)
+										global.storage.raw.set(dataKey, entries.map(JSON.stringify).join("\r\n"), true)
 										resolve(entries)
 									} else {
 										reject('invalid list')
@@ -141,7 +137,7 @@ class Lists extends Index {
 		})
 	}
 	isListCached(url, cb){
-		let file = global.rstorage.resolve(LIST_DATA_KEY_MASK.format(url))
+		let file = global.storage.raw.resolve(LIST_DATA_KEY_MASK.format(url))
 		fs.stat(file, (err, stat) => {
 			cb((stat && stat.size >= 1024))
 		})
@@ -205,6 +201,14 @@ class Lists extends Index {
 			resolve(this._epg.searchChannel(this.applySearchRedirects(terms)))
 		})		
 	}
+	epgSearchChannelIcon(terms){
+		return new Promise((resolve, reject) => {
+			if(!this._epg){
+				return reject('no epg')
+			}
+			resolve(this._epg.searchChannelIcon(this.applySearchRedirects(terms)))
+		})		
+	}
 	epgFindChannelLog(terms){
 		return new Promise((resolve, reject) => {
 			if(!this._epg){
@@ -234,6 +238,20 @@ class Lists extends Index {
 				resolve(data)
 			} else {
 				console.error('epgChannelsList FAILED', JSON.stringify(data), JSON.stringify(this._epg.data))
+				reject('failed')
+			}
+		})		
+	}
+	epgLiveNowChannelsList(){
+		return new Promise((resolve, reject) => {
+			if(!this._epg){
+				return reject('no epg')
+			}
+			let data = this._epg.liveNowChannelsList()
+			if(data && data['categories'] && Object.keys(data['categories']).length){
+				resolve(data)
+			} else {
+				console.error('epgLiveNowChannelsList FAILED', JSON.stringify(data), JSON.stringify(this._epg.data))
 				reject('failed')
 			}
 		})		
@@ -278,13 +296,13 @@ class Lists extends Index {
 			this.isUpdaterFinished = isFinished
 		})
 	}
-	getUniqueCommunityLists(communityLists){ // remove duplicated communityLists, even from different protocols
+	getUniqueCommunitaryLists(communitaryLists){ // remove duplicated communitaryLists, even from different protocols
 		let already = []
 		this.myLists.forEach(u => {
 			let i = u.indexOf('//')
 			already.push(i == -1 ? u : u.substr(i + 2))
 		})
-		return communityLists.filter(u => {
+		return communitaryLists.filter(u => {
 			let i = u.indexOf('//')
 			u = i == -1 ? u : u.substr(i + 2)
 			if(!already.includes(u)){
@@ -293,15 +311,15 @@ class Lists extends Index {
 			}
 		})
 	}
-	sync(myLists, communityLists, sharedModeReach, relevantKeywords){ // prevent config.sync errors receiving sharedModeReach as parameter, instead of access a not yet updated the config.
+	sync(myLists, communitaryLists, sharedModeReach, relevantKeywords){ // prevent config.sync errors receiving sharedModeReach as parameter, instead of access a not yet updated the config.
 		return new Promise((resolve, reject) => {
 			if(relevantKeywords && relevantKeywords.length){
 				this.relevantKeywords = relevantKeywords
 			}
 			if(this.debug){
-				console.log('Adding lists...', myLists, communityLists, sharedModeReach)
+				console.log('Adding lists...', myLists, communitaryLists, sharedModeReach)
 			}
-			communityLists = this.getUniqueCommunityLists(communityLists)
+			communitaryLists = this.getUniqueCommunitaryLists(communitaryLists)
 			if(this.myLists.length){
 				this.myLists.forEach(u => {
 					if(!myLists.includes(u)){
@@ -311,17 +329,17 @@ class Lists extends Index {
 			}
 			this.myLists = myLists
 			this.sharedModeReach = sharedModeReach
-			this.syncListProgressData = {myLists, communityLists} // pick communityLists before filtering
-			this.filterByAvailability(communityLists, communityLists => {
-				this.syncListProgressData.firstRun = !communityLists.length
+			this.syncListProgressData = {myLists, communitaryLists} // pick communitaryLists before filtering
+			this.filterByAvailability(communitaryLists, communitaryLists => {
+				this.syncListProgressData.firstRun = !communitaryLists.length
 				this.delimitActiveLists() // helps to avoid too many lists in memory
 				if(!global.listsRequesting){
 					global.listsRequesting = {}
 				}
-				if(!this.sharedModeReach && communityLists.length){
-					communityLists = []
+				if(!this.sharedModeReach && communitaryLists.length){
+					communitaryLists = []
 				}
-				async.eachOf(myLists.concat(communityLists), (url, i, acb) => {
+				async.eachOf(myLists.concat(communitaryLists), (url, i, acb) => {
 					this.syncList(url).catch(console.error).finally(acb)
 				}, () => {
 					if(this.debug){
@@ -346,7 +364,7 @@ class Lists extends Index {
 				progresses = progresses.concat(this.myLists.map(url => this.lists[url] ? this.lists[url].progress() : 0))
 			}
 			if(this.sharedModeReach){
-				satisfyAmount = this.communityListsRequiredAmount(this.sharedModeReach, this.syncListProgressData.communityLists.length)
+				satisfyAmount = this.communitaryListsRequiredAmount(this.sharedModeReach, this.syncListProgressData.communitaryLists.length)
 				progresses = progresses.concat(Object.keys(this.lists).filter(url => !this.syncListProgressData.myLists.includes(url)).map(url => this.lists[url].progress()).sort((a, b) => b - a).slice(0, satisfyAmount))
 			}
 			if(this.debug){
@@ -534,7 +552,7 @@ class Lists extends Index {
 							}														
 							global.listsRequesting[url] = 'added'
 							if(this.debug){
-								console.log('Added community list...', url, this.lists[url].index.length)
+								console.log('Added communitary list...', url, this.lists[url].index.length)
 							}
 							if(!resolved){
 								if(!replace){
@@ -632,11 +650,11 @@ class Lists extends Index {
 		})
 	}
     getListsRaw(){
-		let communityUrls = Object.keys(this.lists).filter(u => !this.myLists.includes(u))
+		let communitaryUrls = Object.keys(this.lists).filter(u => !this.myLists.includes(u))
 		return {
 			my: this.myLists,
-			community: communityUrls,
-			length: this.myLists.length + communityUrls.length
+			communitary: communitaryUrls,
+			length: this.myLists.length + communitaryUrls.length
 		}
     }	
     getLists(){

@@ -881,10 +881,9 @@ class StreamerClientVideoFullScreen extends StreamerClientTimeWarp {
         super(controls, app)
         let b = this.controls.querySelector('button.fullscreen')
         if(config['startup-window'] != 'fullscreen'){
-            this.inFullScreen = false
             if(parent.cordova){
-                parent.AndroidFullScreen.showSystemUI(() => {}, console.error);
-                parent.AndroidFullScreen.showUnderSystemUI(() => {}, console.error);
+                this.inFullScreen = true // bugfix for some devices
+                this.leaveFullScreen()
                 parent.plugins.megacubo.on('appmetrics', this.updateAndroidAppMetrics.bind(this))
                 this.updateAndroidAppMetrics(parent.plugins.megacubo.appMetrics)
                 this.on('fullscreenchange', this.updateAndroidAppMetrics.bind(this))
@@ -892,6 +891,7 @@ class StreamerClientVideoFullScreen extends StreamerClientTimeWarp {
                 this.on('start', () => this.enterFullScreen())
                 this.on('stop', () => this.leaveFullScreen())
             } else {
+                this.inFullScreen = false
                 if(b) b.style.display = 'inline-flex'
             }
             this.on('fullscreenchange', fs => {
@@ -909,15 +909,17 @@ class StreamerClientVideoFullScreen extends StreamerClientTimeWarp {
         }
     }
     updateAndroidAppMetrics(metrics){
-        if(metrics && metrics.top){
-            this.lastMetrics = metrics
-        } else {
-            metrics = this.lastMetrics
-        }
         if(this.inFullScreen){
             css(' :root { --explorer-padding-top: 0px; --explorer-padding-bottom: 0px; --explorer-padding-right: 0px; --explorer-padding-left: 0px; } ', 'frameless-window')
         } else {
-            css(' :root { --explorer-padding-top: ' + metrics.top + 'px; --explorer-padding-bottom: ' + metrics.bottom + 'px; --explorer-padding-right: ' + metrics.right + 'px; --explorer-padding-left: ' + metrics.left + 'px; } ', 'frameless-window')
+            if(metrics && metrics.top){
+                this.lastMetrics = metrics
+            } else {
+                metrics = this.lastMetrics
+            }            
+            if(metrics) {
+                css(' :root { --explorer-padding-top: ' + metrics.top + 'px; --explorer-padding-bottom: ' + metrics.bottom + 'px; --explorer-padding-right: ' + metrics.right + 'px; --explorer-padding-left: ' + metrics.left + 'px; } ', 'frameless-window')
+            }
         }
     }
     enterFullScreen(){
@@ -942,10 +944,15 @@ class StreamerClientVideoFullScreen extends StreamerClientTimeWarp {
         if(this.inFullScreen){
             this.inFullScreen = false
             if(parent.cordova){
-                parent.AndroidFullScreen.immersiveMode(() => {}, console.error);
-                parent.AndroidFullScreen.showSystemUI(() => {}, console.error);
-                parent.AndroidFullScreen.showUnderSystemUI(() => {}, console.error);
-                //parent.AndroidFullScreen.showUnderStatusBar(() => {}, console.error);
+                parent.AndroidFullScreen.immersiveMode(() => {
+                    setTimeout(() => { // bugfix for some devices
+                        parent.AndroidFullScreen.immersiveMode(() => {
+                            parent.AndroidFullScreen.showSystemUI(() => {
+                                parent.AndroidFullScreen.showUnderSystemUI(() => {}, console.error)
+                            }, console.error)
+                        }, console.error);
+                    }, 10)
+                }, console.error);
             } else {
                 let e = parent.document // document.documentElement
                 if (e.exitFullscreen) {

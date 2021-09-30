@@ -51,6 +51,7 @@ function configUpdated(keys, c){
     if(parent.updateConfig){
         parent.updateConfig(config)
     }
+    uiSoundsEnable = config['ui-sounds']
     explorer.setViewSize(config['view-size-x'], config['view-size-y'])
     hideBackButton(config['hide-back-button'])
     parent.animateBackground(config['animate-background'])
@@ -67,8 +68,8 @@ function initApp(){
         s.async = true
         document.querySelector('head, body').appendChild(s)
     }) 
-    app.on('theme-background', (path, color, fontColor, animate) => {
-        parent.theming(path, color, fontColor, animate)
+    app.on('theme-background', (image, video, color, fontColor, animate) => {
+        parent.theming(image, video, color, fontColor, animate)
     })
     app.on('download', (url, name) => {
         console.log('download', url, name)
@@ -102,7 +103,7 @@ function initApp(){
             document.body.removeChild(e)
         }
     })
-    app.on('open-file', (uploadURL, cbID, mimetypes) => {
+    app.on('open-file', (uploadURL, cbID, mimetypes, optionTitle) => {
         if(parent.cordova){
             parent.checkPermissions([
                 'READ_EXTERNAL_STORAGE', 
@@ -110,14 +111,14 @@ function initApp(){
             ], () => {
                 let finish = () => {
                     osd.hide('theme-upload')
-                    explorer.get({name: lang.CHANGE_BACKGROUND_IMAGE}).forEach(e => {
+                    explorer.get({name: optionTitle}).forEach(e => {
                         explorer.setLoading(e, false)
                     })
                 }
                 console.log('MIMETYPES: ' + mimetypes.replace(new RegExp(' *, *', 'g'), '|'))
                 parent.fileChooser.open(file => { // {"mime": mimetypes.replace(new RegExp(' *, *', 'g'), '|')}, 
                     osd.show(lang.PROCESSING, 'fa-mega spin-x-alt', 'theme-upload', 'normal')
-                    explorer.get({name: lang.CHANGE_BACKGROUND_IMAGE}).forEach(e => {
+                    explorer.get({name: optionTitle}).forEach(e => {
                         explorer.setLoading(e, true, lang.PROCESSING)
                     })
                     parent.resolveLocalFileSystemURL(file, fileEntry => {
@@ -403,11 +404,9 @@ function initApp(){
             jQuery(document).on('keyup', omni.eventHandler.bind(omni))
 
             explorer.on('scroll', y => {
-                requestIdleCallback(() => {
-                    explorer.updateRange(y)
-                    elpShow()
-                    haUpdate()            
-                })
+                explorer.updateRange(y)
+                elpShow()
+                haUpdate()  
             })
 
             var elp = $('.explorer-location-pagination'), elpTxt = elp.find('span'), elpTimer = 0, elpDuration = 5000, elpShown = false, elpShow = txt => {
@@ -613,6 +612,14 @@ function initApp(){
                     allowClose: true,
                     closeTitle: lang.CLOSE
                     //, bigText: Boolean
+                })
+            } else {
+                jQuery('body').on('dblclick', event => {
+                    if(streamer.active || !jQuery(event.target).parents('wrap').length){
+                        streamer.toggleFullScreen()
+                        event.preventDefault()
+                        event.stopPropagation()
+                    }
                 })
             }
         })

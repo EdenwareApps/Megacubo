@@ -88,7 +88,7 @@ class StreamerTools extends Events {
 							const received = JSON.stringify(headers).length + this.len(sample)
 							const speed = received / ping
 							const ret = {status, headers, sample, ping, speed, url, directURL: download.currentURL}
-							//console.log('data', ping, received, speed, ret)
+							console.log('data', url, status, download.statusCode, ping, received, speed, ret)
 							resolve(ret)
 						}
 						if(download){
@@ -491,15 +491,25 @@ class StreamerBase extends StreamerTools {
 					global.ui.emit('codecData', codecData)
 				}
 			})
-			if(!global.cordova && global.config.get('transcoding')){ // only desktop version can't play hevc
+			if(!global.cordova){ // only desktop version can't play hevc
 				intent.on('codecData', codecData => {
-					if(codecData && codecData.video.match(new RegExp('(hevc|mpeg2video|mpeg4)')) && intent == this.active){
-						this.transcode(intent, err => {
+					if(codecData && (codecData.video.match(new RegExp('(hevc|mpeg2video|mpeg4)')) || codecData.audio.match(new RegExp('(ac3)'))) && intent == this.active){
+						const fail = err => {
 							if(err && this.active){
 								console.error('unsupported format', codecData)
 								intent.fail('unsupported format') // we can transcode .ts segments, but transcode a mp4 video would cause request ranging errors
 							}
-						})
+						}
+						if(!global.config.get('transcoding')){
+							fail('Transcoding disabled')
+						} else {
+							this.transcode(intent, err => {
+								if(err && this.active){
+									console.error('unsupported format', codecData)
+									intent.fail('unsupported format') // we can transcode .ts segments, but transcode a mp4 video would cause request ranging errors
+								}
+							})
+						}
 					}
 				})
 			}
@@ -715,7 +725,7 @@ class StreamerAbout extends StreamerThrottling {
 			}, this.share.bind(this))
 			global.ui.on('streamer-about-cb', chosen => {
 				console.log('about callback', chosen)
-				if(this.active.data){
+				if(this.active && this.active.data){
 					this.aboutOptions.some(o => {
 						if(o.id && o.id == chosen){
 							if(typeof(o.action) == 'function'){
@@ -917,6 +927,7 @@ class Streamer extends StreamerAbout {
 		if(this.opts.shadow){
 			return
 		}
+		e = global.deepClone(e)
 		if(this.active){
 			this.stop()
 		}
@@ -1072,10 +1083,10 @@ class Streamer extends StreamerAbout {
 		if(c != 'tune' && e && (global.tuning && global.tuning.has(e.url))){
 			c = 'tune'
 		}
-		if(r && (c != 'tune' || !e) && (silent !== true || c == 'stop' || !e)){
+		if((r != null && typeof(r) != 'undefined') && (c != 'tune' || !e) && (silent !== true || c == 'stop' || !e)){
 			this.handleFailureMessage(r)
 		}
-		console.error('handleFailure', c, e)
+		console.error('handleFailure', r, c, e)
 		if(c == 'stop'){
 			return
 		} else {
@@ -1122,6 +1133,7 @@ class Streamer extends StreamerAbout {
 					case '403':
 						msg = global.lang.PLAYBACK_PROTECTED_STREAM
 						break
+					case '-1':
 					case '404':
 					case '410':
 						msg = global.lang.PLAYBACK_OFFLINE_STREAM

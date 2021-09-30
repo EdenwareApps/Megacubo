@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget android-versionCode="126" id="tv.megacubo.app" version="16.2.1" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget android-versionCode="130" id="tv.megacubo.app" version="16.2.3" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>Megacubo</name>
     <description>
         An intuitive, free and open source IPTV player.
@@ -31,11 +31,11 @@
 		<custom-config-file target="AndroidManifest.xml" parent="./application" mode="replace">
 			<service android:name="de.appplant.cordova.plugin.background.ForegroundService" />
 		</custom-config-file>
-        <allow-intent href="market:*" />
+		<allow-intent href="market:*" />
 		<preference name="android-minSdkVersion" value="24" /> <!-- not custom-preference here, seemed more effective in a specific scenario //-->
-		<preference name="android-targetSdkVersion" value="29" />
-        <custom-preference name="android-manifest/uses-sdk/@android:minSdkVersion" value="24" />
-        <custom-preference name="android-manifest/uses-sdk/@android:targetSdkVersion" value="29" />
+		<preference name="android-targetSdkVersion" value="30" />
+        <custom-preference name="android-manifest/uses-sdk" delete="true" />
+        <custom-preference name="android-manifest/application/@android:extractNativeLibs" value="true" />
         <custom-preference name="android-manifest/application/@android:usesCleartextTraffic" value="true" />
         <custom-preference name="android-manifest/application/@android:theme" value="@android:style/Theme.DeviceDefault.NoActionBar" />
         <custom-preference name="android-manifest/application/@android:hardwareAccelerated" value="true" />
@@ -54,13 +54,14 @@
         <preference name="AutoHideSplashScreen" value="false" />
         <preference name="SplashMaintainAspectRatio" value="true" />
         <preference name="ShowSplashScreenSpinner" value="false"/>
+        <preference name="AndroidXEnabled" value="true" />
         <resource-file src="resources/android/notification.png" target="app/src/main/res/mipmap-ldpi/icon.png" />
 		<resource-file src="resources/android/notification.png" target="app/src/main/res/mipmap-mdpi/icon.png" />
 		<resource-file src="resources/android/notification.png" target="app/src/main/res/mipmap-hdpi/icon.png" />
 		<resource-file src="resources/android/notification.png" target="app/src/main/res/mipmap-xhdpi/icon.png" />
 		<resource-file src="resources/android/notification.png" target="app/src/main/res/mipmap-xxhdpi/icon.png" />
-        <resource-file src="resources/android/banner.png" target="/app/src/main/res/drawable/banner.png" />
-        <resource-file src="resources/values/colors.xml" target="/app/src/main/res/values/colors.xml" />
+        <resource-file src="resources/android/banner.png" target="app/src/main/res/drawable/banner.png" />
+        <resource-file src="resources/values/colors.xml" target="app/src/main/res/values/colors.xml" />
         <icon src="resources/android/icon/drawable-ldpi-icon.png" />
         <icon background="resources/android/icon/ldpi-background.png" qualifier="ldpi" density="ldpi" foreground="resources/android/icon/ldpi-foreground.png" src="resources/android/icon/drawable-ldpi-icon.png" />
         <icon background="resources/android/icon/mdpi-background.png" qualifier="mdpi" density="mdpi" foreground="resources/android/icon/mdpi-foreground.png" src="resources/android/icon/drawable-mdpi-icon.png" />

@@ -1,5 +1,5 @@
 {
-   "main": "storage.js",
+   "main": "index.js",
    "name": "storage",
    "version": "0.0.1",
    "dependencies": {

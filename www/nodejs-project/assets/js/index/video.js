@@ -218,7 +218,7 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 	}
 	setup(tag){
 		console.log('adapter setup')
-		this.object = document.querySelector(tag)
+		this.object = this.container.querySelector(tag)
 		if(typeof(this.object._pause) == 'undefined'){
 			this.object._pause = this.object.pause
 			this.object.pause = () => {} // prevent browser from pausing stream unexpectedly on Android
@@ -625,6 +625,9 @@ class WinMan extends EventEmitter {
 	exitUI(){
 		let w = this.getAppWindow()
 		console.log('exitUI()')
+		if(typeof(cordova) != 'undefined'){
+			cordova.plugins.backgroundMode.disable()
+		}
 		try {
 			w.streamer.stop()
 			w.$('wrap').html('<div style="vertical-align: middle; height: 100%; display: flex; justify-content: center; align-items: center;"><i class="fa-mega" style="font-size: 25vh;color: var(--font-color);"></i></div>')

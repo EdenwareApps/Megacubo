@@ -866,7 +866,7 @@ class StreamerProxyHLS extends HLSRequests {
 						console.log('download sent response headers', statusCode, headers)
 					}			
 				} else {
-					if(!statusCode || [401, 403].includes(statusCode)){
+					if(!statusCode || [0, 401, 403].includes(statusCode)){
 						/* avoid to passthrough 403 errors to the client as some streams may return it esporadically */
 						statusCode = 504					
 					}

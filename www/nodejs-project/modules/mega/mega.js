@@ -20,7 +20,11 @@ class Mega {
 	}	
 	parse(megaUrl){
 		if(this.isMega(megaUrl)){
-			megaUrl = decodeURIComponent(megaUrl)
+			try {
+				megaUrl = global.decodeURIComponentSafe(megaUrl)
+			} catch(e) {
+				console.error(e, megaUrl)
+			}
 			let mediaType = 'live', url = '', name = '', qs = {}, type = 'name'
 			let parts = megaUrl.substr(7).split('#')[0]
 			if(parts[0].charAt(parts[0].length - 1) == '/'){
@@ -89,7 +93,7 @@ class Mega {
 	qs2Object(qs){
 		let _params = new URLSearchParams(qs)
 		let query = Array.from(_params.keys()).reduce((sum, value)=>{
-			return Object.assign({[value]: decodeURIComponent(_params.get(value))}, sum)
+			return Object.assign({[value]: global.decodeURIComponentSafe(_params.get(value))}, sum)
 		}, {})
 		return query
 	}

@@ -43,7 +43,7 @@ class EntriesGroup extends Events {
     }
     cleanAtts(oentry){
         let entry = Object.assign({}, oentry);
-        ['class', 'path', 'users', 'position', 'renderer'].forEach(k => {
+        ['class', 'path', 'users', 'position', 'renderer', 'servedIcon'].forEach(k => {
             if(typeof(entry[k]) != 'undefined'){
                 delete entry[k]
             }
@@ -77,6 +77,9 @@ class EntriesGroup extends Events {
             if(entry.originalName){
                 entry.name = entry.originalName
             }
+        }
+        if(entry.originalIcon){
+            entry.icon = entry.originalIcon
         }
         if(!this.allowDupes){
             for(var i in this.data){

@@ -37,12 +37,25 @@ function patch(scope){
 			return this;
 		}
 	}
+	scope.decodeURIComponentSafe = uri => {
+		try {
+			return decodeURIComponent(uri)
+		} catch(e) {
+			return uri.replace(new RegExp('%[A-Z0-9]{0,2}', 'gi'), x => {
+				try {
+					return decodeURIComponent(x)
+				} catch(e) {
+					return x
+				}
+			})
+		}
+	}
 	if(typeof(require) == 'function'){
 		if(typeof(scope.URLSearchParams) == 'undefined'){ // node
 			scope.URLSearchParams = require('url-search-params-polyfill')
 		}
 	}
-	scope.deepClone = from => {
+	scope.deepClone = (from, allowNonSerializable) => {
 		if (from == null || typeof from != "object") return from;
 		if (from.constructor != Object && from.constructor != Array) return from;
 		if (from.constructor == Date || from.constructor == RegExp || from.constructor == Function ||
@@ -50,7 +63,9 @@ function patch(scope){
 			return new from.constructor(from)
 		let to = new from.constructor()
 		for (var name in from){
-			to[name] = typeof to[name] == "undefined" ? scope.deepClone(from[name]) : to[name];
+			if(allowNonSerializable || ['string', 'object', 'number', 'boolean'].includes(typeof(from[name]))){
+				to[name] = typeof to[name] == "undefined" ? scope.deepClone(from[name], allowNonSerializable) : to[name];
+			}
 		}
 		return to
 	}
@@ -108,6 +123,14 @@ function patch(scope){
         return str.replace(new RegExp('(^|[ ])[A-zÀ-ú]', 'g'), (letra) => {
             return letra.toUpperCase()
         })
+	}
+	scope.ucFirst = (str, keepCase) => {
+		if(!keepCase){
+			str = str.toLowerCase()
+		}
+		return str.replace(/^[\u00C0-\u1FFF\u2C00-\uD7FF\w]/g, letter => {
+			return letter.toUpperCase()
+		})
 	}
 	scope.getArrayMax = arr => { // https://stackoverflow.com/questions/42623071/maximum-call-stack-size-exceeded-with-math-min-and-math-max
 		let len = arr.length
@@ -291,23 +314,15 @@ function patch(scope){
 		return scope.os().networkInterfaces()
 	}
     scope.networkIP = () => {
-		let nis = scope.networkInterfaces(), dat = Object.keys(nis)
-			// flatten interfaces to an array
-			.reduce((a, key) => [
-				...a,
-				...nis[key]
-			], [])
-			// non-internal ipv4 addresses only
-			.filter(iface => iface.family === 'IPv4' && !iface.internal)
-			// project ipv4 address as a 32-bit number (n)
-			.map(iface => ({...iface, n: (d => ((((((+d[0])*256)+(+d[1]))*256)+(+d[2]))*256)+(+d[3]))(iface.address.split('.'))}))
-			// set a hi-bit on (n) for reserved addresses so they will sort to the bottom
-			.map(iface => scope.isNetworkIP(iface.address) ? {...iface, n: Math.pow(2,32) + iface.n} : iface)
-			// sort ascending on (n)
-			.sort((a, b) => a.n - b.n)
-			.map(a => a.address)
-			.filter(a => scope.isNetworkIP(a))
-		if(dat.length) return dat.slice(0)[0]
+		let interfaces = scope.networkInterfaces()
+		for (let devName in interfaces) {
+		  let iface = interfaces[devName]
+		  for (let i = 0; i < iface.length; i++) {
+			let alias = iface[i]
+			if (alias.family === 'IPv4' && !alias.internal && scope.isNetworkIP(alias.address))
+			  return alias.address
+		  }
+		}
 		return '127.0.0.1'
 	}
 }

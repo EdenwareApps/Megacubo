@@ -6,10 +6,10 @@ module.exports = {
 	'background-color': '#15002C',
 	'background-color-transparency': 75,
 	'custom-background-image': '',
+	'custom-background-video': '',
 	'enable-console': false,
 	'epg': '',
 	'epg-map': {},
-	'epg-channels-list': true,
 	'ffmpeg-audio-repair': true,
 	'ffmpeg-crf': 18,
 	'ffmpeg-hls': true,
@@ -63,8 +63,10 @@ module.exports = {
 	'transcoding': '1080p',
 	'tuning-concurrency': 3,
 	'uppercase-menu': false,
+	'use-epg-channels-list': false,
 	'use-keepalive': true,
 	'view-size-x': 5,
 	'view-size-y': 2,
-	'volume': 100
+	'volume': 100,
+	'ui-sounds': true
 }

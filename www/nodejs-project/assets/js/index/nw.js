@@ -344,7 +344,7 @@ class WindowManager extends ClassesHandler {
 		console.log('POS', x, y);
 	}
 	getVideoRatio(){
-		const v = document.querySelector('iframe').contentWindow.document.querySelector('video')
+		const v = document.querySelector('iframe').contentWindow.document.querySelector('player video')
 		return v && v.offsetWidth ? (v.offsetWidth / v.offsetHeight) : (16 / 9)
 	}
 	enterMiniPlayer(w, h){

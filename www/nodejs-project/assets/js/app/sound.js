@@ -1,4 +1,4 @@
-var uiSounds = []
+var uiSounds = [], uiSoundsEnable = true
 
 function soundSetup(tag, vol){
     uiSounds[tag] = new buzz.sound('assets/sounds/'+ tag, {
@@ -9,7 +9,7 @@ function soundSetup(tag, vol){
 
 function sound(tag, vol){
     if(typeof(buzz) != 'undefined'){
-        if(parent.player.state != 'playing'){
+        if(uiSoundsEnable && parent.player.state != 'playing'){
             if(!vol){
                 vol = 100
             }

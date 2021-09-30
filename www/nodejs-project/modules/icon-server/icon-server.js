@@ -14,7 +14,7 @@ class IconTerms {
     terms(url, asArray){
         let terms = url.match(new RegExp(';'+ this.termsKey + ',([^&]+)&?'))
         if(terms && terms.length > 1 && terms[1].length > 2){
-            terms = global.lists.terms(decodeURIComponent(terms[1]), true)
+            terms = global.lists.terms(global.decodeURIComponentSafe(terms[1]), true)
             if(terms.length){
                 return asArray ? terms : terms.join(' ')
             }
@@ -107,7 +107,7 @@ class IconCache extends IconTerms {
             if(url.indexOf('127.0.0.1') != -1){
                 return reject('no cache')
             }
-            global.rstorage.get('icons-http-' + url, data => {
+            global.storage.rawTemp.get('icons-http-' + url, data => {
                 if(data){
                     resolve(data)
                 } else {
@@ -118,8 +118,8 @@ class IconCache extends IconTerms {
     }
     saveHTTPCache(url, content, cb){
         if(url.indexOf('127.0.0.1') == -1){
-            let time = content && content.length ? 24 * 3600 : 1800
-            global.rstorage.set('icons-http-' + url, content, time, cb || (() => {}))
+            const time = content && content.length ? 24 * 3600 : 1800
+            global.storage.rawTemp.set('icons-http-' + url, content, time, cb || (() => {}))
         }
     }
 }
@@ -156,31 +156,37 @@ class IconSearch extends IconCache {
             if(this.opts.debug){
                 console.log('is channel', ntms)
             }
-            global.lists.search(ntms, {
-                type: liveOnly ? 'live' : null,
-                group: !liveOnly,
-                typeStrict: true
-            }).then(ret => {
-                if(this.opts.debug){
-                    console.log('fetch from terms', ntms, liveOnly, JSON.stringify(ret))
-                }
-                if(ret.results.length){
-                    ret = ret.results.filter(e => {
-                        return e.icon && e.icon.indexOf('//') != -1
-                    }).sortByProp('score', true).sortByProp('gid', true) // gid here serves as a hint of a live stream
+            let images = []
+            const next = () => {
+                global.lists.search(ntms, {
+                    type: liveOnly ? 'live' : null,
+                    group: !liveOnly,
+                    typeStrict: true
+                }).then(ret => {
                     if(this.opts.debug){
-                        console.log('fetch from terms', JSON.stringify(ret))
+                        console.log('fetch from terms', ntms, liveOnly, JSON.stringify(ret))
                     }
-                    ret = ret.map(e => e.icon)
-                    ret = this.sortImages(ret)
-                    if(this.opts.debug){
-                        console.log('search() result', ret)
+                    if(ret.results.length){
+                        ret = ret.results.filter(e => {
+                            return e.icon && e.icon.indexOf('//') != -1
+                        }).sortByProp('score', true).sortByProp('gid', true) // gid here serves as a hint of a live stream
+                        if(this.opts.debug){
+                            console.log('fetch from terms', JSON.stringify(ret))
+                        }
+                        ret = ret.map(e => e.icon)
+                        ret = this.sortImages(ret)
+                        if(this.opts.debug){
+                            console.log('search() result', ret)
+                        }
+                        images = images.concat(ret)
                     }
-                    resolve(ret)   
-                } else {
-                    resolve([])
-                }
-            })
+                }).catch(console.error).finally(() => resolve(images))
+            }
+            if(global.channels.activeEPG){
+                global.lists.epgSearchChannelIcon(ntms).then(srcs => images = srcs).catch(console.error).finally(next)
+            } else {
+                next()
+            }
         })
     }
 }
@@ -360,42 +366,44 @@ class IconFetcher extends IconTransform {
     }
     get(url){
         return new Promise((resolve, reject) => {
-            let isCH, terms = this.terms(url, true)
-            this.name(terms).then(ntms => {
-                isCH = true
-                terms = ntms
-            }).catch(console.error).finally(() => {
-                if(isCH){
-                    this.getCache(terms).then(content => {
-                        if(this.opts.debug){
-                            console.log('get > getCache', url, terms, content)
-                        }
-                        if(content){
-                            if(content == 'no-icon'){
-                                reject('No icon setting')
-                            } else {
-                                resolve(content)
+            this.fetchURL(url).then(ret => resolve(ret.data)).catch(err => {
+                let isCH, terms = this.terms(url, true)
+                this.name(terms).then(ntms => {
+                    isCH = true
+                    terms = ntms
+                }).catch(console.error).finally(() => {
+                    if(isCH){
+                        this.getCache(terms).then(content => {
+                            if(this.opts.debug){
+                                console.log('get > getCache', url, terms, content)
                             }
-                        } else {
-                            if(global.config.get('search-missing-logos')){
-                                this.fetch(terms, this.stripTerms(url)).then(content => {
-                                    if(this.opts.debug){
-                                        console.log('get > fetch', terms, content)
-                                    }
-                                    this.saveCache(terms, content)
+                            if(content){
+                                if(content == 'no-icon'){
+                                    reject('No icon setting')
+                                } else {
                                     resolve(content)
-                                }).catch(err => {
-                                    console.error(err)
-                                    reject(err)
-                                })
+                                }
                             } else {
-                                this.fetchURL(url).then(ret => resolve(ret.data)).catch(reject)
+                                if(global.config.get('search-missing-logos')){
+                                    this.fetch(terms, this.stripTerms(url)).then(content => {
+                                        if(this.opts.debug){
+                                            console.log('get > fetch', terms, content)
+                                        }
+                                        this.saveCache(terms, content)
+                                        resolve(content)
+                                    }).catch(err => {
+                                        console.error(err)
+                                        reject(err)
+                                    })
+                                } else {
+                                    this.fetchURL(url).then(ret => resolve(ret.data)).catch(reject)
+                                }
                             }
-                        }
-                    }).catch(console.error)
-                } else {
-                    this.fetchURL(url).then(ret => resolve(ret.data)).catch(reject)
-                }
+                        }).catch(console.error)
+                    } else {
+                        this.fetchURL(url).then(ret => resolve(ret.data)).catch(reject)
+                    }
+                })
             })
         })
     }

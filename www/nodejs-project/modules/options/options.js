@@ -98,7 +98,86 @@ class Timer extends Events {
     }
 }
 
-class Options extends Timer {
+class PerformanceProfiles extends Timer {
+    constructor(){
+        super()
+        this.profiles = {
+            high: {
+                'allow-edit-channel-list': true,
+                'animate-background': 'slow-desktop',
+                'auto-testing': true,
+                'autocrop-logos': true,
+                'epg': '',
+                'ffmpeg-audio-repair': true,
+                'ffmpeg-hls': true,
+                'connect-timeout': 5,
+                'search-missing-logos': true,
+                'show-logos': true,
+                'transcoding': '1080p',
+                'tuning-concurrency': 3,
+                'ui-sounds': true
+            },
+            low: {
+                'allow-edit-channel-list': false,
+                'animate-background': 'none',
+                'auto-testing': false,
+                'autocrop-logos': false,
+                'custom-background-video': '',
+                'epg': 'disabled',
+                'ffmpeg-audio-repair': false,
+                'ffmpeg-hls': false,
+                'connect-timeout': 10,
+                'resume': false,
+                'search-missing-logos': false,
+                'show-logos': false,
+                'transcoding': '',
+                'tuning-concurrency': 2,
+                'ui-sounds': false
+            }
+        }
+        global.ui.on('performance', ret => {
+            console.log('performance-callback', ret)
+            if(typeof(this.profiles[ret]) != 'undefined'){
+                console.log('performance-callback set', this.profiles[ret])
+                global.config.setMulti(this.profiles[ret])
+                if(typeof(this.profiles[ret].epg) != 'undefined'){
+                    global.updateEPGConfig(this.profiles[ret].epg)
+                }
+            }
+        })
+        global.ui.on('performance-setup', ret => {
+            this.performance(true)
+        })
+    }
+    detectPerformanceMode(){
+        let scores = {low: 0, high: 0}
+        Object.keys(this.profiles.low).forEach(att => {
+            let cur = global.config.get(att)
+            if(cur == this.profiles.low[att]){
+                scores.low++
+            }
+            if(cur == this.profiles.high[att]){
+                scores.high++
+            }
+        })
+        return scores.low > scores.high ? 'low' : 'high'
+    }
+    performance(setup){
+        let cur = this.detectPerformanceMode()
+        let txt = global.lang.PERFORMANCE_MODE_MSG.format(global.lang.FOR_SLOW_DEVICES, global.lang.COMPLETE).replaceAll("\n", "<br />")
+        if(setup){
+            txt += '<br /><br />'+ global.lang.OPTION_CHANGE_AT_ANYTIME.format(global.lang.OPTIONS)
+        }
+        global.ui.emit('dialog', [
+            {template: 'question', text: global.lang.PERFORMANCE_MODE, fa: 'fas fa-tachometer-alt'},
+            {template: 'message', text: txt},
+            {template: 'option', id: 'low', fa: cur == 'low' ? 'fas fa-check-circle' : '', text: global.lang.FOR_SLOW_DEVICES},
+            {template: 'option', id: 'high', fa: cur == 'high' ? 'fas fa-check-circle' : '', text: global.lang.COMPLETE}
+        ], 'performance', cur)
+    }
+}
+
+class Options extends PerformanceProfiles {
     constructor(){
         super()
         global.ui.on('about-callback', ret => {
@@ -180,6 +259,11 @@ class Options extends Timer {
             fs.writeFileSync(global.theme.customBackgroundImagePath, buf)
             natts['custom-background-image'] = global.theme.customBackgroundImagePath
         }
+        if(natts['custom-background-video']){
+            const buf = Buffer.from(natts['custom-background-video'], 'base64')
+            fs.writeFileSync(global.theme.customBackgroundVideoPath, buf)
+            natts['custom-background-video'] = global.theme.customBackgroundVideoPath
+        }
         return natts
     }
     prepareExportConfigFile(atts, keysToExport){
@@ -201,12 +285,20 @@ class Options extends Timer {
                 delete natts['custom-background-image']
             }
         }
+        if(typeof(natts['custom-background-video']) == 'string' && natts['custom-background-video']){
+            let buf = fs.readFileSync(natts['custom-background-video'])
+            if(buf){
+                natts['custom-background-video'] = buf.toString('base64')
+            } else {
+                delete natts['custom-background-video']
+            }
+        }
         return natts
     }
     tools(){
         return new Promise((resolve, reject) => {
             let defaultURL = ''
-            global.rstorage.get('open-url', url => {
+            global.storage.raw.get('open-url', url => {
                 if(url){
                     defaultURL = url
                 }
@@ -277,7 +369,7 @@ class Options extends Timer {
         }, done => {
             global.diagnostics.checkMemory().then(freeMem => {
                 const used = process.memoryUsage().rss
-                txt[0] = 'Memory usage: '+ global.kbfmt(used) +'<br />Free memory: '+ global.kbfmt(freeMem) +'<br />'
+                txt[0] = 'App memory usage: '+ global.kbfmt(used) +'<br />Free memory: '+ global.kbfmt(freeMem) +'<br />'
             }).catch(console.error).finally(() => done())
         }], () => {
             txt[2] = 'Connection speed: '+ global.kbsfmt(global.streamer.downlink || 0) +'<br />'
@@ -427,10 +519,10 @@ class Options extends Timer {
             ]
             if(global.config.get('shared-mode-reach')){
                 opts.push({
-                    name: global.lang.COMMUNITY_LISTS, 
+                    name: global.lang.COMMUNITARY_LISTS, 
                     type: 'slider', 
                     fa: 'fas fa-users', 
-                    mask: '{0} ' + global.lang.COMMUNITY_LISTS.toLowerCase(), 
+                    mask: '{0} ' + global.lang.COMMUNITARY_LISTS.toLowerCase(), 
                     value: () => {
                         return global.config.get('shared-mode-reach')
                     }, 
@@ -545,6 +637,7 @@ class Options extends Timer {
                 })
             }
             let opts = [
+                {name: global.lang.PERFORMANCE_MODE, details: global.lang.SELECT, fa: 'fas fa-tachometer-alt', type: 'action', action: () => this.performance()},
                 {name: global.lang.BEHAVIOUR, type: 'group', fa: 'fas fa-window-restore', renderer: () => {
                     return new Promise((resolve, reject) => {
                         let opts = [
@@ -567,6 +660,16 @@ class Options extends Timer {
                                 }, 
                                 checked: () => {
                                     return global.config.get('show-logos')
+                                }
+                            },                       
+                            {
+                                name: global.lang.PLAY_UI_SOUNDS,
+                                type: 'check',
+                                action: (e, checked) => {
+                                    global.config.set('ui-sounds', checked)
+                                }, 
+                                checked: () => {
+                                    return global.config.get('ui-sounds')
                                 }
                             },
                             {
@@ -672,7 +775,7 @@ class Options extends Timer {
                             type: 'action',
                             fa: 'fas fa-file-import', 
                             action: () => {
-                                global.ui.emit('open-file', global.ui.uploadURL, 'config-import-file', 'application/json')
+                                global.ui.emit('open-file', global.ui.uploadURL, 'config-import-file', 'application/json', global.lang.IMPORT_CONFIG)
                             }
                         }
                     ]
@@ -690,9 +793,9 @@ class Options extends Timer {
     hook(entries, path){
         return new Promise((resolve, reject) => {
             if(path == '' && !entries.some(e => e.name == global.lang.TOOLS)){
+                entries.splice(entries.length - 2, 0, {name: global.lang.TOOLS, fa: 'fas fa-box-open', type: 'group', renderer: this.tools.bind(this)})
                 entries = entries.concat([
-                    {name: global.lang.TOOLS, fa: 'fas fa-box-open', type: 'group', renderer: this.tools.bind(this)},
-                    {name: global.lang.OPTIONS, fa: 'fas fa-cog', type: 'group', renderer: this.entries.bind(this)},
+                    {name: global.lang.OPTIONS, fa: 'fas fa-cog', type: 'group', details: global.lang.CONFIGURE, renderer: this.entries.bind(this)},
                     {name: global.lang.ABOUT, fa: 'fas fa-info-circle', type: 'action', action: this.about.bind(this)},
                     {name: global.lang.EXIT, fa: 'fas fa-power-off', type: 'action', action: global.energy.askExit.bind(global.energy)}
                 ])

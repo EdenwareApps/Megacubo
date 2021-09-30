@@ -2,7 +2,7 @@
 class Setup extends EventEmitter {
     constructor(){
         super()
-        this.offerCommunityMode = true
+        this.offerCommunitaryMode = true
         this.check()
     }
     isMobile(){
@@ -33,16 +33,18 @@ class Setup extends EventEmitter {
     infoIPTVList(){
         let def = 'ok', opts = [
             {template: 'question', text: 'Megacubo', fa: 'fas fa-exclamation-circle'},
-            {template: 'message', text: lang.NO_LIST_PROVIDED},
+            {template: 'message', text: lang[this.offerCommunitaryMode ? 'NO_LIST_PROVIDED_HINT' : 'NO_LIST_PROVIDED'].format(lang.COMMUNITARY_MODE)},
             {template: 'option', text: lang.ADD_LIST, fa: 'fas fa-plus-square', id: 'ok'}
         ]
-        opts.push({template: 'option', text: lang.COMMUNITY_MODE, fa: 'fas fa-users', id: 'sh'})
+        if(this.offerCommunitaryMode){
+            opts.push({template: 'option', text: lang.COMMUNITARY_MODE, fa: 'fas fa-users', id: 'sh'})
+        }
         explorer.dialog(opts, choose => {
             setTimeout(() => {
                 if(choose == 'no'){
                     this.done()
                 } else if(choose == 'sh') {
-                    this.communityMode()
+                    this.communitaryMode()
                 } else {
                     this.ask()
                 }
@@ -50,17 +52,16 @@ class Setup extends EventEmitter {
             return true
         }, def)
     }
-    communityMode(){        
+    communitaryMode(){        
         explorer.dialog([
-            {template: 'question', text: lang.COMMUNITY_MODE, fa: 'fas fa-users'},
-            {template: 'message', text: lang.ASK_COMMUNITY_LIST},
+            {template: 'question', text: lang.COMMUNITARY_MODE, fa: 'fas fa-users'},
+            {template: 'message', text: lang.SUGGEST_COMMUNITARY_LIST +"\r\n"+ lang.ASK_COMMUNITARY_LIST},
             {template: 'option', id: 'back', fa: 'fas fa-times-circle', text: lang.BACK},
             {template: 'option', id: 'agree', fa: 'fas fa-check-circle', text: lang.I_AGREE}
         ], choose => {
             setTimeout(() => {
                 if(choose == 'agree'){
-                    app.emit('config-set', 'setup-complete', true)
-                    setTimeout(() => app.emit('lists-manager', 'agree'), 200)
+                    this.done(true)
                 } else {
                     this.infoIPTVList()
                 }
@@ -69,13 +70,13 @@ class Setup extends EventEmitter {
         }, 'back')   
     }
     welcome(){
-        let text = lang.ASK_IPTV_LIST_FIRST.split('. ').join(".\r\n"), def = 'ok', opts = [
+        let text = lang.ASK_IPTV_LIST_FIRST.split('. ').join(".\r\n") +"\r\n"+ lang.SUGGEST_COMMUNITARY_LIST, def = 'ok', opts = [
             {template: 'question', text: 'Megacubo', fa: 'fas fa-star'},
             {template: 'message', text},
             {template: 'option', text: lang.ADD_LIST, fa: 'fas fa-plus-square', id: 'ok'}
         ]
-        if(this.offerCommunityMode){
-            opts.push({template: 'option', text: lang.COMMUNITY_MODE, fa: 'fas fa-users', id: 'sh'})
+        if(this.offerCommunitaryMode){
+            opts.push({template: 'option', text: lang.COMMUNITARY_MODE, fa: 'fas fa-users', id: 'sh'})
         } else {
             opts.push({template: 'option', text: lang.ADD_LATER, fa: 'fas fa-clock', id: 'no'})
         }
@@ -84,7 +85,7 @@ class Setup extends EventEmitter {
                 if(choose == 'no'){
                     this.done()
                 } else if(choose == 'sh') {
-                    this.communityMode()
+                    this.communitaryMode()
                 } else {
                     this.ask()
                 }
@@ -95,8 +96,16 @@ class Setup extends EventEmitter {
     askList(cb){
         explorer.prompt(lang.ASK_IPTV_LIST, 'http://', '', cb, true, 'fas fa-info-circle')
     }
-    done(){
+    done(enableCommunitaryMode){
+        console.log('PERFORMANCE-SETUP')
         app.emit('config-set', 'setup-complete', true)
+        if(enableCommunitaryMode){
+            app.emit('lists-manager', 'agree')
+        }
+        setTimeout(() => {
+            app.emit('performance-setup')            
+        }, 200)
+        console.log('PERFORMANCE-SETUP')
     }
 }
 

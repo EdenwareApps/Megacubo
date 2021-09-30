@@ -28,12 +28,12 @@ class Common extends Events {
 		this.parentalControl = new ParentalControl()
 		this.loadSearchRedirects()
 	}
-	communityListsRequiredAmount(n, foundCommunityListsCount){
+	communitaryListsRequiredAmount(n, foundCommunitaryListsCount){
 		let satisfyLevel = 0.5
 		if(typeof(n) != 'number'){
 			n = global.config.get('shared-mode-reach')
 		}
-		return Math.min(n * satisfyLevel, foundCommunityListsCount)
+		return Math.min(n * satisfyLevel, foundCommunitaryListsCount)
 	}
 	getUpdateMeta(url, cb){
 		const updateMetaKey = LIST_UPDATE_META_KEY_MASK.format(url)

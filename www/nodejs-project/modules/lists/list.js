@@ -11,7 +11,7 @@ class List extends Events {
         this.relevance = -1
         this.reset()
 		this.dataKey = global.LIST_DATA_KEY_MASK.format(url)
-        this.file = global.rstorage.resolve(this.dataKey)
+        this.file = global.storage.raw.resolve(this.dataKey)
         this.constants = {BREAK: -1}
 		this._log = [
 			this.url

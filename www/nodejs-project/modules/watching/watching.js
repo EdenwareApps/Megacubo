@@ -8,6 +8,7 @@ class Watching extends EntriesGroup {
         this.currentRawEntries = null
         this.updateIntervalSecs = global.cloud.expires.watching
         global.channels.ready(() => this.update())
+        global.channels.on('loaded', () => this.update())
         global.config.on('change', (keys, data) => {
             if(keys.includes('only-known-channels-in-been-watched') || keys.includes('parental-control-policy')){
                 this.update()
@@ -47,7 +48,7 @@ class Watching extends EntriesGroup {
         return new Promise((resolve, reject) => {
             if(path == ''){
                 let has, pos = 0, entry = this.entry()
-                if(this.currentEntries && this.currentEntries.length && entry.name != global.lang.BEEN_WATCHED){
+                if(this.currentEntries && this.currentEntries.length && entry.name != global.lang.TRENDING){
                     entries.some((e, i) => {
                         if(i == 0 && e.hookId == 'history'){ // let continue option as first
                             pos = 1
@@ -84,7 +85,7 @@ class Watching extends EntriesGroup {
                 return resolve([global.lists.manager.noListsEntry()])
             }
             this.ready(() => {
-                let list = this.currentEntries.slice(0)
+                let list = global.deepClone(this.currentEntries, true)
                 list = list.map((e, i) => {
                     e.position = (i + 1)
                     return e
@@ -92,8 +93,8 @@ class Watching extends EntriesGroup {
                 if(!list.length){
                     list = [{name: global.lang.EMPTY, fa: 'fas fa-info-circle', type: 'action', class: 'entry-empty'}]
                 }
-                list = this.prepare(list)
-                resolve(list)
+                list = this.prepare(list) 
+                global.channels.epgChannelsAddLiveNow(list, false, true).then(resolve).catch(reject)
             })       
         })
     }
@@ -135,7 +136,7 @@ class Watching extends EntriesGroup {
                 let groups = {}, gcount = {}, gentries = [], onlyKnownChannels = global.config.get('only-known-channels-in-been-watched') && global.config.get('parental-control-policy') != 'only'
                 async.eachOf(data, (entry, i, cb) => {
                     let ch = global.channels.isChannel(entry.terms.name)
-                    if(ch){
+                    if(ch){ 
                         let term = ch.name
                         if(typeof(groups[term]) == 'undefined'){
                             groups[term] = []
@@ -197,7 +198,7 @@ class Watching extends EntriesGroup {
         })
     }
     entry(){
-        const entry = {name: global.lang.BEEN_WATCHED, fa: 'fas fa-users', hookId: this.key, type: 'group', renderer: this.entries.bind(this)}
+        const entry = {name: global.lang.TRENDING, details: global.lang.BEEN_WATCHED, fa: 'fas fa-chart-bar', hookId: this.key, type: 'group', renderer: this.entries.bind(this)}
         if(this.currentEntries && this.showChannelOnHome()){
             let top, rootPage = global.explorer.pages['']
             this.currentEntries.some(e => {
@@ -211,6 +212,7 @@ class Watching extends EntriesGroup {
                 entry.name = top.name
                 entry.servedIcon = global.icons.generate(terms, null)
                 entry.details = '<i class="fas fa-'+ s +'"></i> '+ global.lang.X_WATCHING.format(top.users)
+                entry.details += ' &middot; '+ global.lang.TRENDING
             }
         }
         return entry

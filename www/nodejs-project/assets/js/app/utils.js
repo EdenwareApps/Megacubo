@@ -150,9 +150,12 @@ function ucWords(str){
     })
 }
 
-function ucFirst(str){
-    return str.toLowerCase().replace(/^[\u00C0-\u1FFF\u2C00-\uD7FF\w]/g, function(letter) {
-        return letter.toUpperCase();
+function ucFirst(str, keepCase){
+    if(!keepCase){
+        str = str.toLowerCase()
+    }
+    return str.replace(/^[\u00C0-\u1FFF\u2C00-\uD7FF\w]/g, letter => {
+        return letter.toUpperCase()
     })
 }
 

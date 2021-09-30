@@ -35,7 +35,7 @@ class Bookmarks extends EntriesGroup {
             if(path == '' && !entries.some(e => e.name == global.lang.BOOKMARKS)){ // add home option
                 entries.push({name: global.lang.BOOKMARKS, fa: 'fas fa-star', type: 'group', renderer: this.entries.bind(this)})
             }
-            if((path.startsWith(global.lang.CATEGORIES) || path.startsWith(global.lang.BOOKMARKS) || path.startsWith(global.lang.IPTV_LISTS)) && entries.some(this.streamFilter)){
+            if((path.startsWith(global.lang.VIDEOS) || path.startsWith(global.lang.BOOKMARKS) || path.startsWith(global.lang.IPTV_LISTS)) && entries.some(this.streamFilter)){
                 let bookmarker, bookmarkable = {name: path.split('/').pop(), type: 'group', entries: entries.filter(this.streamFilter)}
                 console.log('bookmarkable', bookmarkable)
                 if(this.has(bookmarkable)){
@@ -93,7 +93,7 @@ class Bookmarks extends EntriesGroup {
         if(e.type == 'group'){
             return this.cleanAtts(e)
         }
-        return {name: e.originalName || e.name, type: 'stream', details: e.group || '', icon: e.icon || '', terms: {'name': global.channels.entryTerms(e)}, url: e.originalUrl || e.url}
+        return {name: e.originalName || e.name, type: 'stream', details: e.group || '', icon: e.originalIcon || e.icon || '', terms: {'name': global.channels.entryTerms(e)}, url: e.originalUrl || e.url}
     }
     entries(e){
         return new Promise((resolve, reject) => {
@@ -116,14 +116,15 @@ class Bookmarks extends EntriesGroup {
                 }})
             }
             es.push({name: global.lang.ADD_BY_NAME, fa: 'fas fa-star', type: 'group', renderer: this.addByNameEntries.bind(this)})
-            es = es.concat(this.get().map((e, i) => {
+            const epgAddLiveNowMap = {}
+            let gentries = this.get().map((e, i) => {
                 const isMega = e.url && global.mega.isMega(e.url)
                 e.fa = 'fas fa-star'
                 e.details = '<i class="fas fa-star"></i> ' + e.bookmarkId
                 if(isMega){
                     let atts = global.mega.parse(e.url)
                     if(atts.mediaType == 'live'){
-                        return global.channels.toMetaEntry(e, false)
+                        return (epgAddLiveNowMap[i] = global.channels.toMetaEntry(e, false))
                     } else {
                         e.type = 'group'
                         e.renderer = () => {
@@ -139,11 +140,19 @@ class Bookmarks extends EntriesGroup {
                     e.type = 'stream'
                 }
                 return e
-            }))
-            if(this.get().length){
-                es.push({name: global.lang.REMOVE, fa: 'fas fa-trash', type: 'group', renderer: this.removalEntries.bind(this)})
-            }
-            resolve(es)
+            })
+            global.channels.epgChannelsAddLiveNow(Object.values(epgAddLiveNowMap), false, false).then(entries => {
+                const ks = Object.keys(epgAddLiveNowMap)
+                entries.forEach((e, i) => {
+                    gentries[ks[i]] = e
+                })
+            }).catch(console.error).finally(() => {
+                es = es.concat(gentries)
+                if(this.get().length){
+                    es.push({name: global.lang.REMOVE, fa: 'fas fa-trash', type: 'group', renderer: this.removalEntries.bind(this)})
+                }
+                resolve(es)
+            })
         })
     }
     addByNameEntries(){

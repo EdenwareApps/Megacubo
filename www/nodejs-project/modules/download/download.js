@@ -16,7 +16,8 @@ class Download extends Events {
 				'accept-encoding': 'gzip, deflate'
 			},
 			authErrorCodes: [401, 403],
-			permanentErrorCodes: [400, 404, 405, 410],
+			permanentErrorCodes: [-1, 400, 404, 405, 410], // -1 == permanentErrorRegex matched
+			permanentErrorRegex: new RegExp('(ENETUNREACH|ECONNREFUSED|cannot resolve)', 'i'),
 			timeout: null,
 			followRedirect: true,
 			acceptRanges: true
@@ -209,7 +210,10 @@ class Download extends Events {
 			if(this.opts.debug){
 				console.warn('>> Download error', err, global.traceback())
 			}
-			this.errors.push(err || 'unknown request error')
+			this.errors.push(String(err) || 'unknown request error')
+			if(String(err).match(this.opts.permanentErrorRegex)){
+				this.statusCode = -1
+			}
 			if(!this.currentRequestError){
 				this.currentRequestError = 'error'
 			}
@@ -658,7 +662,8 @@ class Download extends Events {
 			this.destroyStream()
 			if(!this.headersSent){
 				this.headersSent = true
-				this.emit('response', this.statusCode || 504, {})
+				this.checkStatusCode()
+				this.emit('response', this.statusCode, {})
 			}
 			if(!this.isResponseCompressed || this.decompressEnded || !this.decompressor){
 				this.emit('end', this.prepareOutputData(this.buffer))
@@ -679,6 +684,17 @@ class Download extends Events {
 			}
 		}
 	}
+	checkStatusCode(){
+		if(this.statusCode == 0){
+			let errs = this.errors.join(' ')
+			if(errs.match(this.opts.permanentErrorRegex) != -1){
+				this.statusCode = -1
+			} else {
+				this.statusCode = 504
+			}
+			console.log('CANNOT RESOLVE?', errs, this.statusCode)
+		}
+	}
 	destroy(){
 		if(!this.destroyed){
 			if(this.opts.debug){
@@ -690,9 +706,6 @@ class Download extends Events {
 			this.ended = true
 			this.destroyed = true
 			this.destroyStream()
-			if(!this.statusCode){
-				this.statusCode = 504
-			}
 			this.removeAllListeners()
 			this.buffer = []
 		}

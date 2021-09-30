@@ -94,7 +94,7 @@ class Explorer extends Events {
                 let c = e.users > 1 ? 'users' : 'user'
                 details.push('<i class="fas fa-' + c + '"></i> ' + e.users)
             }
-            if(e.position && this.path == global.lang.BEEN_WATCHED){
+            if(e.position && this.path == global.lang.TRENDING){
                 details.push('<i class="fas fa-trophy" style="transform: scale(0.8)"></i> '+ e.position)
             }
             e.details = details.join(' <span style="opacity: 0.25">&middot</span> ')
@@ -376,6 +376,7 @@ class Explorer extends Events {
     }
     read(destPath, tabindex){
         return new Promise((resolve, reject) => {
+            const refPath = this.path
             if(['.', '/'].includes(destPath)){
                 destPath = ''
             }
@@ -384,6 +385,10 @@ class Explorer extends Events {
                 return this.deepRead(destPath, tabindex).then(resolve).catch(reject)
             }
             let basePath = this.basename(destPath), finish = (entries, parent) => {
+                if(![refPath, destPath].includes(this.path)){
+                    console.warn('Out of sync read() blocked', refPath, destPath, this.path)
+                    return resolve(-1) // user already navigated away, abort it
+                }
                 if(!parent || !['select'].includes(parent.type)){
                     this.path = destPath
                 }
@@ -441,6 +446,7 @@ class Explorer extends Events {
                 resolve(true)
             }
             let next = ret => {
+                if(ret == -1) return
                 if(this.opts.debug){
                     console.log('readen', destPath, tabindex, ret, traceback())
                 }
@@ -510,7 +516,7 @@ class Explorer extends Events {
             if(typeof(e.renderer) == 'function'){
                 e.renderer(e).then(next).catch(reject)
             } else if(typeof(e.renderer) == 'string'){
-                global.tstorage.get(e.renderer, entries => {
+                global.storage.temp.get(e.renderer, entries => {
                     if(Array.isArray(entries)){
                         next(entries)
                     } else {
@@ -550,9 +556,11 @@ class Explorer extends Events {
         }
         return new Promise((resolve, reject) => {
             this.read(destPath, tabindex).then(ret => {
-                let d = this.dirname(destPath)
-                let icon = ret.parent ? (ret.parent.servedIcon ? ret.parent.servedIcon : ret.parent.fa) : ''
-                global.ui.emit('explorer-select', ret.entries, destPath, icon)
+                if(ret != -1){
+                    let d = this.dirname(destPath)
+                    let icon = ret.parent ? (ret.parent.servedIcon ? ret.parent.servedIcon : ret.parent.fa) : ''
+                    global.ui.emit('explorer-select', ret.entries, destPath, icon)
+                }
             }).catch(global.displayErr)
         })
     }

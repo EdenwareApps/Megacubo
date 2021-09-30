@@ -4,15 +4,11 @@ const LegalIPTV = require('../legal-iptv/legal-iptv')
 const UpdateListIndex = require(global.APPDIR + '/modules/lists/update-list-index.js')
 const ConnRacing = require(global.APPDIR + '/modules/conn-racing')
 const Common = require(global.APPDIR + '/modules/lists/common.js')
-const Storage = require(APPDIR + '/modules/storage')
 const Cloud = require(APPDIR + '/modules/cloud')
 
 require(APPDIR + '/modules/supercharge')(global)
 
-storage = new Storage()  
-tstorage = new Storage('', {temp: true, clear: false, cleanup: false})  
-rstorage = new Storage() 
-rstorage.useJSON = false
+storage = require(APPDIR + '/modules/storage')({})
 
 Download = require(APPDIR + '/modules/download')
 cloud = new Cloud()
@@ -134,7 +130,7 @@ class ListsUpdater extends Common {
 				}
 				if(updateMeta){
 					const now = global.time()
-					const file = global.rstorage.resolve(global.LIST_DATA_KEY_MASK.format(url))
+					const file = global.storage.raw.resolve(global.LIST_DATA_KEY_MASK.format(url))
 					const updater = new UpdateListIndex(url, url, file, this, Object.assign({}, updateMeta))
 					updateMeta.updateAfter = now + 180
 					this.setUpdateMeta(url, updateMeta)

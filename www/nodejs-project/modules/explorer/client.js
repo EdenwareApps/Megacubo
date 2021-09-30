@@ -87,7 +87,7 @@ class ExplorerModal extends ExplorerPointer {
 			this.inputHelper.stop()
 			this.body.removeClass('modal')
 			this.emit('modal-end')
-			this.emit('pos-modal-end')
+			setTimeout(() => this.emit('pos-modal-end'), 100)
 		}
 	}
 	replaceTags(text, replaces, noSlashes) {
@@ -367,35 +367,33 @@ class ExplorerSelect extends ExplorerDialog {
 		super(jQuery, container, app)
 	}
 	select(question, entries, fa, callback){
-		this.queueDialog(() => {
-			let def, map = {}
-			if(this.debug){
-				console.warn('SELECT', entries)
+		let def, map = {}
+		if(this.debug){
+			console.warn('SELECT', entries)
+		}
+		this.dialog([
+			{template: 'question', text: question, fa}
+		].concat(entries.map(e => {
+			e.template = 'option'
+			if(!e.text){
+				e.text = String(e.name)
 			}
-			this.dialog([
-				{template: 'question', text: question, fa}
-			].concat(entries.map(e => {
-				e.template = 'option'
-				if(!e.text){
-					e.text = String(e.name)
-				}
-				e.id = this.text2id(e.text)
-				map[e.id] = e.text
-				if(e.selected){
-					e.fa = 'fas fa-check-circle'
-					def = e.id
-				}
-				return e
-			})), k => {
-				if(typeof(map[k]) != 'undefined'){
-					k = map[k]
-				}
-				callback(k)
-				this.endModal()
-				this.emit('select-end', k)
-			}, def)
-			this.emit('select-start')
-		})
+			e.id = this.text2id(e.text)
+			map[e.id] = e.text
+			if(e.selected){
+				e.fa = 'fas fa-check-circle'
+				def = e.id
+			}
+			return e
+		})), k => {
+			if(typeof(map[k]) != 'undefined'){
+				k = map[k]
+			}
+			callback(k)
+			this.endModal()
+			this.emit('select-end', k)
+		}, def)
+		this.emit('select-start')
 	}
 }
 
@@ -452,65 +450,63 @@ class ExplorerPrompt extends ExplorerOpenFile {
 		super(jQuery, container, app)
 	}
 	prompt(question, placeholder, defaultValue, callback, multiline, fa, message, extraOpts){
-		this.queueDialog(() => {
+		if(this.debug){
+			console.log('PROMPT', {question, placeholder, defaultValue, callback, multiline, fa, extraOpts})
+		}
+		let p, opts = [
+			{template: 'question', text: question, fa}
+		];
+		if(message){
+			opts.splice(1, 0, {template: 'message', text: message})
+		}
+		opts.push({template: multiline === 'true' ? 'textarea' : 'text', text: defaultValue, id: 'text', placeholder})
+		if(Array.isArray(extraOpts) && extraOpts.length){
+			opts = opts.concat(extraOpts)
+		} else {
+			opts.push({template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle'})
+		}
+		this.dialog(opts, id => {
+			let ret = true
 			if(this.debug){
-				console.log('PROMPT', {question, placeholder, defaultValue, callback, multiline, fa, extraOpts})
+				console.log('PROMPT CALLBACK', id, callback, typeof(callback))
 			}
-			let p, opts = [
-				{template: 'question', text: question, fa}
-			];
-			if(message){
-				opts.splice(1, 0, {template: 'message', text: message})
-			}
-			opts.push({template: multiline === 'true' ? 'textarea' : 'text', text: defaultValue, id: 'text', placeholder})
-			if(Array.isArray(extraOpts) && extraOpts.length){
-				opts = opts.concat(extraOpts)
-			} else {
-				opts.push({template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle'})
-			}
-			this.dialog(opts, id => {
-				let ret = true
+			if(typeof(callback) == 'function'){
+				ret = callback(id)
+			} else if(typeof(callback) == 'string'){
+				callback = [callback, id]
 				if(this.debug){
-					console.log('PROMPT CALLBACK', id, callback, typeof(callback))
+					console.warn('STRCB', callback)
 				}
-				if(typeof(callback) == 'function'){
-					ret = callback(id)
-				} else if(typeof(callback) == 'string'){
-					callback = [callback, id]
-					if(this.debug){
-						console.warn('STRCB', callback)
-					}
-					this.app.emit.apply(this.app, callback)
-				} else if(Array.isArray(callback)){
-					callback.push(id)
-					if(this.debug){
-						console.warn('ARRCB', callback)
-					}
-					this.app.emit.apply(this.app, callback)
-				}
-				if(ret !== false){
-					this.endModal()
-					this.emit('prompt-end', id)
-				}
-			}, config['shared-mode-reach'])
-			this.inputHelper.stop()
-
-			this.emit('prompt-start')
-
-			p = this.modalContent.querySelector('#modal-template-option-submit')
-			p.addEventListener('keypress', (event) => {
+				this.app.emit.apply(this.app, callback)
+			} else if(Array.isArray(callback)){
+				callback.push(id)
 				if(this.debug){
-					console.log(event.keyCode)
+					console.warn('ARRCB', callback)
 				}
-				if (event.keyCode != 13) {
-					arrowUpPressed()
-				}
-			})
-			arrowUpPressed()
-			setTimeout(() => {
-				this.inputHelper.start()
-			}, 200)
+				this.app.emit.apply(this.app, callback)
+			}
+			if(ret !== false){
+				this.endModal()
+				this.emit('prompt-end', id)
+			}
+		}, config['shared-mode-reach'])
+		this.inputHelper.stop()
+
+		this.emit('prompt-start')
+
+		p = this.modalContent.querySelector('#modal-template-option-submit')
+		p.addEventListener('keypress', (event) => {
+			if(this.debug){
+				console.log(event.keyCode)
+			}
+			if (event.keyCode != 13) {
+				arrowUpPressed()
+			}
 		})
+		arrowUpPressed()
+		setTimeout(() => {
+			this.inputHelper.start()
+		}, 200)
 	}
 }
 
@@ -583,68 +579,66 @@ class ExplorerSlider extends ExplorerPrompt {
 		return value
 	}
 	slider(question, range, value, mask, callback, fa){
-		this.queueDialog(() => {
-			let m, s, n, e, step = 1
-			this.dialog([
-				{template: 'question', text: question, fa},
-				{template: 'option', text: 'OK', fa: 'fas fa-check-circle', id: 'submit'}
-			], ret => {
-				if(ret !== false){
-					ret = this.sliderVal(e, range)
-					if(callback(ret) !== false){
-						this.endModal()
-						this.emit('slider-end', ret, e)
-					}
+		let m, s, n, e, step = 1
+		this.dialog([
+			{template: 'question', text: question, fa},
+			{template: 'option', text: 'OK', fa: 'fas fa-check-circle', id: 'submit'}
+		], ret => {
+			if(ret !== false){
+				ret = this.sliderVal(e, range)
+				if(callback(ret) !== false){
+					this.endModal()
+					this.emit('slider-end', ret, e)
 				}
-			}, '')
-
-			s = this.j(this.modalContent.querySelector('#modal-template-option-submit'))
-			s.before(this.modalTemplates['slider'])
-			s.on('keydown', event => {
-				switch(event.keyCode) {
-					case 13:  // enter
-						s.get().submit()
-						break
-					case 37: // left
-						event.preventDefault()
-						value = this.sliderIncreaseLeft(e, value, range, mask, step)
-						break
-					case 39:  // right
-						event.preventDefault()
-						value = this.sliderIncreaseRight(e, value, range, mask, step)
-						break
-				}
-			})
-			n = this.modalContent.querySelector('.modal-template-slider-track')
-			e = n.parentNode
-			if(this.debug){
-				console.warn('SLIDER VAL', e, n)
 			}
-			this.emit('slider-start')
-			n.setAttribute('min', range.start)
-			n.setAttribute('max', range.end)
-			n.setAttribute('step', step)
-			n.addEventListener('input', () => {
-				this.sliderSync(e, range, mask)
-			})
-			n.addEventListener('change', () => {
-				this.sliderSync(e, range, mask)
-			})
-			n.parentNode.addEventListener('keydown', event => {
-				console.log('SLIDERINPUT', event, s)
-				switch(event.keyCode) {
-					case 13:  // enter
-						s.get(0).click()
-						break
-				}
-			})
-			this.sliderSetValue(e, value, range, mask)
-			this.modalContent.querySelector('.modal-template-slider-left').addEventListener('click', event => {
-				value = this.sliderIncreaseLeft(e, value, range, mask, step)
-			})
-			this.modalContent.querySelector('.modal-template-slider-right').addEventListener('click', event => {
-				value = this.sliderIncreaseRight(e, value, range, mask, step)
-			})
+		}, '')
+
+		s = this.j(this.modalContent.querySelector('#modal-template-option-submit'))
+		s.before(this.modalTemplates['slider'])
+		s.on('keydown', event => {
+			switch(event.keyCode) {
+				case 13:  // enter
+					s.get().submit()
+					break
+				case 37: // left
+					event.preventDefault()
+					value = this.sliderIncreaseLeft(e, value, range, mask, step)
+					break
+				case 39:  // right
+					event.preventDefault()
+					value = this.sliderIncreaseRight(e, value, range, mask, step)
+					break
+			}
+		})
+		n = this.modalContent.querySelector('.modal-template-slider-track')
+		e = n.parentNode
+		if(this.debug){
+			console.warn('SLIDER VAL', e, n)
+		}
+		this.emit('slider-start')
+		n.setAttribute('min', range.start)
+		n.setAttribute('max', range.end)
+		n.setAttribute('step', step)
+		n.addEventListener('input', () => {
+			this.sliderSync(e, range, mask)
+		})
+		n.addEventListener('change', () => {
+			this.sliderSync(e, range, mask)
+		})
+		n.parentNode.addEventListener('keydown', event => {
+			console.log('SLIDERINPUT', event, s)
+			switch(event.keyCode) {
+				case 13:  // enter
+					s.get(0).click()
+					break
+			}
+		})
+		this.sliderSetValue(e, value, range, mask)
+		this.modalContent.querySelector('.modal-template-slider-left').addEventListener('click', event => {
+			value = this.sliderIncreaseLeft(e, value, range, mask, step)
+		})
+		this.modalContent.querySelector('.modal-template-slider-right').addEventListener('click', event => {
+			value = this.sliderIncreaseRight(e, value, range, mask, step)
 		})
 	}
 }
@@ -919,7 +913,7 @@ class Explorer extends ExplorerLoading {
 	}
 	render(entries, path, icon){
 		this.rendering = true
-		clearTimeout(this.touchMovingTimer)
+		clearTimeout(this.scrollingTimer)
 		let html='', targetScrollTop = 0
 		if(typeof(this.selectionMemory[path]) != 'undefined'){
 			targetScrollTop = this.selectionMemory[path].scroll

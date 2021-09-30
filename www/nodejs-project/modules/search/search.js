@@ -311,7 +311,7 @@ class Search extends Events {
                 if(path == global.lang.LIVE){
                     entries.unshift({name: global.lang.SEARCH, details: global.lang.LIVE, fa: 'fas fa-search', type: 'group', renderer: this.entriesLive.bind(this)})
                 }
-                if(path == global.lang.CATEGORIES){
+                if(path == global.lang.VIDEOS){
                     entries.unshift({name: global.lang.SEARCH, details: global.lang.ALL, fa: 'fas fa-search', type: 'group', renderer: this.entries.bind(this)})
                 }
             }

@@ -28,7 +28,7 @@ process.on('uncaughtException', (exception) => {
 
 APPDIR = path.resolve(typeof(__dirname) != 'undefined' ? __dirname : process.cwd()).replace(new RegExp('\\\\', 'g'), '/')
 MANIFEST = require(APPDIR + '/package.json')
-COMMUNITY_LISTS_DEFAULT_AMOUNT = cordova ? 8 : 12
+COMMUNITARY_LISTS_DEFAULT_AMOUNT = cordova ? 8 : 12
 
 tuning = false
 moment = require('moment-timezone')
@@ -49,7 +49,7 @@ Object.keys(paths).forEach(k => {
     console.log('DEFAULT PATH ' + k + '=' + paths[k])
 })
 
-const Storage = require(APPDIR + '/modules/storage')
+storage = require(APPDIR + '/modules/storage')({main: true})
 
 onexit(() => {
     global.isExiting = true
@@ -65,11 +65,6 @@ onexit(() => {
         ui.destroy()
     }
 })
-
-storage = new Storage()  
-tstorage = new Storage('', {temp: true, clear: true})  
-rstorage = new Storage()     
-rstorage.useJSON = false
 
 config = new (require(APPDIR + '/modules/config'))(paths['data'] + '/config.json')
 base64 = new (require(APPDIR + '/modules/base64'))()
@@ -150,6 +145,10 @@ rmdir = (folder, itself, cb) => {
 ui = new Bridge()
 ffmpeg = new FFMPEG()
 lang = false
+activeEPG = ''
+isUILoaded = false
+isStreamerReady = false
+downloadsInBackground = {}
 
 displayErr = (...args) => {
     console.error.apply(null, args)
@@ -220,9 +219,27 @@ importFileFromClient = (data, target) => {
     })
 }
 
-isUILoaded = false
-isStreamerReady = false
-downloadsInBackground = {}
+updateEPGConfig = c => {
+    const next = c => {
+        activeEPG = global.config.get('epg')
+        console.log('SET-EPG', activeEPG, global.activeEPG)
+        if(activeEPG == 'disabled'){
+            activeEPG = false
+            lists.manager.setEPG('', false)
+        } else {
+            if(activeEPG == '' || activeEPG == 'auto'){
+                activeEPG = c['epg-'+ lang.countryCode] || c['epg-'+ lang.locale] || false
+            }
+            lists.manager.setEPG(activeEPG || '', false)
+        }
+    }
+    if(c){
+        next(c)
+    } else {
+        cloud.get('configure').then(next).catch(console.error)
+    }
+    console.log('SET-EPG', activeEPG)
+}
 
 var playOnLoaded
 
@@ -245,7 +262,7 @@ function init(language){
         lists = new Lists()
         lists.setNetworkConnectionState(Download.isNetworkConnected).catch(console.error)
 
-        activeLists = {my: [], community: [], length: 0}
+        activeLists = {my: [], communitary: [], length: 0}
 
         if(config.get('setup-complete')){
             lists.manager.UIUpdateLists(true)
@@ -256,6 +273,7 @@ function init(language){
         energy = new Energy()
         streamer = new Streamer()
         channels = new Channels()
+        downloads = new Downloads(paths.temp)
         theme = new Theme()
         search = new Search()
         histo = new History()
@@ -267,8 +285,8 @@ function init(language){
 
         explorer = new Explorer({},
             [
-                {name: lang.LIVE, fa: 'fas fa-tv', details: lang.CHANNELS, type: 'group', renderer: channels.entries.bind(channels)},
-                {name: lang.CATEGORIES, fa: 'fas fa-folder-open', details: lang.VIDEOS, type: 'group', renderer: channels.more.bind(channels)}
+                {name: lang.LIVE, fa: 'fas fa-tv', details: '<i class="fas fa-play-circle"></i> '+ lang.WATCH, type: 'group', renderer: channels.entries.bind(channels)},
+                {name: lang.VIDEOS, fa: 'fas fa-folder-open', details: lang.CATEGORIES, type: 'group', renderer: channels.more.bind(channels)}
             ]
         )
         
@@ -334,7 +352,7 @@ function init(language){
                 case 'agree':
                     ui.emit('explorer-reset-selection')
                     explorer.open('', 0).catch(displayErr)
-                    config.set('shared-mode-reach', COMMUNITY_LISTS_DEFAULT_AMOUNT)
+                    config.set('shared-mode-reach', COMMUNITARY_LISTS_DEFAULT_AMOUNT)
                     ui.emit('info', lang.LEGAL_NOTICE, lang.TOS_CONTENT)
                     lists.manager.UIUpdateLists(true)
                     break
@@ -441,12 +459,14 @@ function init(language){
         })  
         ui.on('set-epg', url => {
             epgSetup = true
+            console.log('SET-EPG', url, global.activeEPG)
+            global.config.set('epg', url || 'disabled')
             lists.manager.setEPG(url, true)
         })
         ui.on('open-url', url => {
             console.log('OPENURL', url)
             if(url){
-                global.rstorage.set('open-url', url, true)
+                global.storage.raw.set('open-url', url, true)
                 const name = lists.manager.nameFromSourceURL(url), e = {
                     name, 
                     url, 
@@ -524,10 +544,8 @@ function init(language){
                     if(!lists.manager.updatingLists && !activeLists.length && config.get('shared-mode-reach')){
                         lists.manager.UIUpdateLists()
                     }
-                    if(global.config.get('epg')){
-                        lists.manager.setEPG(global.config.get('epg'), false)
-                    }
                     cloud.get('configure').then(c => {
+                        updateEPGConfig(c)
                         console.log('checking update...')
                         let vkey = 'version', newVersion = MANIFEST.version
                         if(c[vkey] > MANIFEST.version){
@@ -557,12 +575,11 @@ function init(language){
                 }
                 analytics = new Analytics() 
                 diagnostics = new Diagnostics() 
-                downloads = new Downloads(paths.temp)
                 explorer.addFilter(downloads.hook.bind(downloads))
             }
         })
         ui.on('streamer-ready', () => {        
-            isStreamerReady = true    
+            isStreamerReady = true  
             if(!streamer.active){
                 let next = () => {                
                     if(playOnLoaded){

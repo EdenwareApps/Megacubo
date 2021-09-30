@@ -33,7 +33,7 @@ class CloudData {
             if(this.debug){
                 console.log('cloud: get', key, traceback())
             }
-            const store = raw === true ? global.rstorage : global.storage
+            const store = raw === true ? global.storage.raw : global.storage
             store.get(this.cachingDomain + key, data => {
                 if(data){
                     if(this.debug){

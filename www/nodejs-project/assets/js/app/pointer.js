@@ -63,7 +63,7 @@ class ExplorerSelectionMemory extends ExplorerBase {
                 this.focusIndex(index)
                 this.scrollSnapping = false
             } else {
-                this.touchMoving = false
+                this.scrolling = false
 				this.restoreSelection()
 			}
 		}
@@ -101,14 +101,19 @@ class ExplorerPointer extends ExplorerSelectionMemory {
         this.setViewSize(2, 7)
         window.addEventListener('resize', this.resize.bind(this))
         this.mouseWheelMovingTime = 0
-        this.mouseWheelMovingInterval = 200
-        this.touchMoving = false
-        this.touchMovingTimer = 0
+        this.mouseWheelMovingInterval = 300
+        this.scrolling = false
+        this.scrollingTimer = 0
         this.scrollDirection = 'down'
-        this.lastScrollTop = 0;
+        this.lastScrollTop = 0
+        this.scrollContainer.on('mousedown', () => this.manuallyScrolling = true)
+        this.scrollContainer.on('mouseup', () => this.manuallyScrolling = false);
         ['touchmove', 'scroll', 'mousewheel', 'DOMMouseScroll'].forEach(n => {
             this.scrollContainer.on(n, event => {
-               if(this.rendering){
+                if(this.debug){
+                    console.log('pointer.scroll', this.rendering)
+                }
+                if(this.rendering){
                     return
                 }
                 let isTrusted
@@ -121,50 +126,64 @@ class ExplorerPointer extends ExplorerSelectionMemory {
                         isTrusted = event.originalEvent.isTrusted
                     }
                 }
-                // console.log('pointer.scroll', n, this.scrollSnapping, isTrusted, event)
+                if(this.debug){
+                    console.log('pointer.scroll', n, this.scrollSnapping, isTrusted, event)
+                }
                 if(this.scrollSnapping){
                     if(isTrusted){
                         this.scrollContainer.stop(true, false)
-                    } else {
-                        return
+                        this.scrollSnapping = false
                     }
                 }
-                clearTimeout(this.touchMovingTimer)
+                clearTimeout(this.scrollingTimer)
                 let st = this._scrollContainer.scrollTop
                 if(st > this.lastScrollTop){
                     this.scrollDirection = 'down'
                 } else if(st < this.lastScrollTop) {
                     this.scrollDirection = 'up'
                 }
-                if(this.lastScrollTop != st){
-                    this.lastScrollTop = st   
-                    if(['mousewheel', 'DOMMouseScroll'].indexOf(n) != -1){
-                        this.touchMoving = false
-                        let now = (new Date()).getTime()
-                        if(now > (this.mouseWheelMovingTime + this.mouseWheelMovingInterval)){
-                            this.mouseWheelMovingTime = now
-                            let delta = (event.originalEvent.wheelDelta || -event.originalEvent.detail)
-                            console.log('mousewheel', delta)
-                            this.arrow((delta > 0) ? 'up' : 'down', true)
-                            this.emit('scroll', this.lastScrollTop, this.scrollDirection)
-                        }
-                        event.preventDefault()
-                    } else {   
-                        this.touchMoving = true
-                        this.touchMovingTimer = setTimeout(() => {
+                if(this.debug){
+                    console.log('pointer.scroll', n, this.lastScrollTop, st)
+                } 
+                if(['mousewheel', 'DOMMouseScroll'].indexOf(n) != -1){
+                    this.scrolling = false
+                    let now = (new Date()).getTime()
+                    if(now > (this.mouseWheelMovingTime + this.mouseWheelMovingInterval)){
+                        this.mouseWheelMovingTime = now
+                        let delta = (event.originalEvent.wheelDelta || -event.originalEvent.detail)
+                        this.arrow((delta > 0) ? 'up' : 'down', true)
+                        this.emit('scroll', this.lastScrollTop, this.scrollDirection)
+                    }
+                    event.preventDefault()
+                } else { 
+                    if(this.lastScrollTop != st){
+                        this.lastScrollTop = st    
+                        this.scrolling = true
+                        this.scrollingTimer = setTimeout(() => {
+                            if(this.debug){
+                                console.log('pointer.scroll', this.rendering)
+                            }
                             if(this.rendering){
                                 return
                             }
-                            if(this.touchMoving){
-                                this.touchMoving = false
+                            if(this.scrolling){
+                                this.scrolling = false
                             }
-                            this.scrollSnap(this.lastScrollTop, this.scrollDirection, () => {
+                            const done = () => {                                
+                                if(this.debug){
+                                    console.log('pointer.scroll', this.rendering)
+                                }
                                 if(this.rendering){
                                     return
                                 }
                                 this.emit('scroll', this.lastScrollTop, this.scrollDirection)
-                            })
-                        }, 100)
+                            }
+                            if(this.manuallyScrolling){
+                                done()
+                            } else {
+                                this.scrollSnap(this.lastScrollTop, this.scrollDirection, done)
+                            }
+                        }, 250)
                     }
                 }
             })

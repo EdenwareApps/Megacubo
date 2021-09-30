@@ -30,6 +30,7 @@ class BridgeServer extends Events {
             workDir: global.paths['data'] +'/bridge',
             port: 13733
         }
+        this.map = {}
         if(opts){
             Object.keys(opts).forEach((k) => {
                 this.opts[k] = opts[k]
@@ -50,6 +51,7 @@ class BridgeServer extends Events {
           '.jpg': 'image/jpeg',
           '.wav': 'audio/wav',
           '.mp3': 'audio/mpeg',
+          '.mp4': 'video/mp4',
           '.svg': 'image/svg+xml',
           '.pdf': 'application/pdf',
           '.doc': 'application/msword'
@@ -70,6 +72,9 @@ class BridgeServer extends Events {
                 let pathname = `.${parsedUrl.pathname}`
                 if(pathname == './'){
                     pathname = './index.html'
+                }
+                if(typeof(this.map[pathname]) != 'undefined'){
+                    pathname = this.map[pathname]
                 }
                 const ext = path.parse(pathname).ext
                 fs.stat(pathname, (err, stat) => {
@@ -103,6 +108,16 @@ class BridgeServer extends Events {
             console.log('Bridge server started', err)
         })  
         this.uploadURL = 'http://' + this.opts.addr + ':' + this.opts.port + '/upload'
+    }
+    serve(file){
+        let ext = file.match(new RegExp('\.[A-Za-z0-9]{0,5}$'))
+        let stat = fs.statSync(file)
+        let path = './'+ (stat ? stat.size : file.split('/').pop())
+        if(ext){
+            path += ext[0]
+        }
+        this.map[path] = file
+        return 'http://' + this.opts.addr + ':' + this.opts.port + '/'+ path.substr(2)
     }
     destroy(){
         if(this.opts.debug){

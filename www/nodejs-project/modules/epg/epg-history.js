@@ -47,7 +47,7 @@ class History extends EntriesGroup {
         })
     }
     entry(){
-        return {name: global.lang.KEEP_WATCHING, details: global.lang.WATCHED, fa: 'fas fa-history', type: 'group', hookId: this.key, renderer: this.entries.bind(this)}
+        return {name: global.lang.KEEP_WATCHING, fa: 'fas fa-history', type: 'group', hookId: this.key, renderer: this.entries.bind(this)}
     }
     hook(entries, path){
         return new Promise((resolve, reject) => {
@@ -67,7 +67,7 @@ class History extends EntriesGroup {
                 })
                 if(es.length){
                     pos = 0
-                    let defs = {hookId: this.key, fa: 'fas fa-undo', details: '<i class="fas fa-play-circle"></i> '+ global.lang.KEEP_WATCHING}
+                    let defs = {hookId: this.key, fa: 'fas fa-undo', details: '<i class="fas fa-play-circle"></i> '+ global.lang.CONTINUE}
                     if(global.config.get('show-logos')){
                         defs.servedIcon = global.icons.generate(global.channels.entryTerms(es[0]), es[0].icon)
                     }
@@ -81,45 +81,19 @@ class History extends EntriesGroup {
     }
     entries(e){
         return new Promise((resolve, reject) => {
-            const epgAddLiveNowMap = {}
-            let gentries = this.get().map((e, i) => {
-                e.details = global.ucFirst(global.moment(e.historyTime * 1000).fromNow(), true)
-                const isMega = e.url && global.mega.isMega(e.url)
-                if(isMega){
-                    let atts = global.mega.parse(e.url)
-                    if(atts.mediaType == 'live'){
-                        return (epgAddLiveNowMap[i] = global.channels.toMetaEntry(e, false))
-                    } else {
-                        e.type = 'group'
-                        e.renderer = () => {
-                            return new Promise((resolve, reject) => {
-                                let terms = atts.terms && Array.isArray(atts.terms) ? atts.terms : global.lists.terms(atts.name, true)
-                                global.lists.search(terms, {type: 'video', group: true}).then(es => {
-                                    resolve(es.results)
-                                }).catch(reject)
-                            })
-                        }
-                    }
-                } else if(e.type != 'group'){
-                    e.type = 'stream'
-                }
+            let es = this.get()
+            es = es.map(e => {
+                e.details = global.moment(e.historyTime * 1000).fromNow()
+                e = global.channels.toMetaEntry(e, false)
                 return e
             })
-            global.channels.epgChannelsAddLiveNow(Object.values(epgAddLiveNowMap), true, false).then(entries => {
-                const ks = Object.keys(epgAddLiveNowMap)
-                entries.forEach((e, i) => {
-                    gentries[ks[i]] = e
-                })
-            }).catch(console.error).finally(() => {
-                if(gentries.length){
-                    gentries.push({name: global.lang.CLEAR, fa: 'fas fa-trash', type: 'action', action: () => {
-                        this.clear()
-                        global.explorer.refresh()
-                    }})
-                }
-                resolve(gentries)
-            })
-
+            if(es.length){
+                es.push({name: global.lang.CLEAR, fa: 'fas fa-trash', type: 'action', action: () => {
+                    this.clear()
+                    global.explorer.refresh()
+                }})
+            }
+            resolve(es)
         })
     }
 }

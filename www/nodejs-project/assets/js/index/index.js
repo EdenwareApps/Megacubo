@@ -14,7 +14,7 @@ function log(msg, id){
 
 function isES6(){
     try{
-		Function('() => {};');
+		Function('() => { let a; };');
 		return true
     } catch(exception) {
         return false
@@ -41,27 +41,44 @@ function updateWebView(){
 	top.close()
 }
 
-function theming(image, color, fontColor, animate){
-	console.warn('theming', image, color, fontColor, animate)
+function theming(image, video, color, fontColor, animate){
+	console.warn('theming', image, video, color, fontColor, animate)
 	var bg = document.getElementById('background'), splash = document.getElementById('splash'), data = localStorage.getItem('background-data')
-	var defImage = screen.width > 1920 ? './assets/images/background-3840x2160.png' : './assets/images/background-1920x1080.png'
+	const defaultData = {
+		image: screen.width > 1920 ? './assets/images/background-3840x2160.png' : './assets/images/background-1920x1080.png', 
+		video: '', 
+		color: '#15002C', 
+		fontColor: '#FFFFFF', 
+		animate: 'none'
+	}
 	if(data){
 		data = JSON.parse(data)
+		Object.keys(defaultData).forEach(k => {
+			if(typeof(data[k]) == 'undefined'){
+				data[k] = defaultData[k]
+			}
+		})
 	} else {
-		data = {image: defImage, color: '#15002C', fontColor: '#FFFFFF', animate: 'none'} // defaults
+		data = defaultData // defaults
 		try {
 			localStorage.setItem('background-data', JSON.stringify(data))
 		} catch(e) {
 			console.error(e)
+			data.video = ''
 			data.image = ''
 			localStorage.setItem('background-data', JSON.stringify(data))
 			data.image = image
+			data.video = video
 		}
 	}
-	if(typeof(image) == 'string'){ // from node
+	if(typeof(image) == 'string' || typeof(video) == 'string'){ // from node
 		var changed
 		if(image != data.image){
-			data.image = image || defImage
+			data.image = image || defaultData.image
+			changed = true
+		}
+		if(video != data.video){
+			data.video = video || defaultData.video
 			changed = true
 		}
 		if(fontColor != data.fontColor){
@@ -73,7 +90,7 @@ function theming(image, color, fontColor, animate){
 			changed = true
 		}
 		if(animate != data.animate){
-			data.animate = animate
+			data.animate = animate || 'none'
 			changed = true
 		}
 		if(changed){
@@ -82,20 +99,41 @@ function theming(image, color, fontColor, animate){
 			} catch(e) {
 				console.error(e)
 				data.image = ''
+				data.video = ''
 				localStorage.setItem('background-data', JSON.stringify(data))
 				data.image = image
+				data.video = video
 			}
 		}					
 	}
 	if(!data.image){
-		data.image = defImage
+		data.image = defaultData.image
 	}
-	bg.style.backgroundImage = 'url(' + data.image + ')'
+	if(!data.video){
+		data.video = defaultData.video
+	}
+	if(data.video){
+		bg.style.backgroundImage = 'none'		
+		const v = bg.querySelector('video')
+		if(!v || v.src != data.video){
+			bg.innerHTML = '&nbsp;'
+			setTimeout(() => {
+				bg.innerHTML = '<video src="'+ data.video +'" onerror="setTimeout(() => {if(this.parentNode)this.load()}, 500)" loop muted autoplay style="background-color: black;object-fit: cover;"></video>'
+			}, 1000)
+		}
+	} else {
+		const m = 'url(' + data.image + ')'
+		if(bg.style.backgroundImage != m){
+			bg.style.backgroundImage = m
+		}
+		bg.innerHTML = ''
+	}
 	if(splash){
 		splash.style.backgroundColor = data.color
 		splash.style.color = data.fontColor
 	}
-	animateBackground(data.animate)
+	console.log('DATA', data)
+	animateBackground(data.video ? 'none' : data.animate)
 }
 
 function animateBackground(val){
