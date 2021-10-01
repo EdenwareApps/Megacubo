@@ -37,7 +37,7 @@ npm --prefix ./www/nodejs-project install ./www/nodejs-project
 nw --nwapp=www/nodejs-project
 ```
 
-Any errors along the way? Let us know.
+Any errors along the way? [Let us know](https://github.com/efoxbr/megacubo/issues).
 
 <br/>
 
