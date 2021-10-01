@@ -1,6 +1,5 @@
 # Cordova Global
 plugins/
-resources/
 
 # iOS Platform
 platforms/ios/build/
