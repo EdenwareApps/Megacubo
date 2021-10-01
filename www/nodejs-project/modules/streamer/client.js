@@ -876,7 +876,24 @@ class StreamerClientTimeWarp extends StreamerSeek {
     }
 }
 
-class StreamerClientVideoFullScreen extends StreamerClientTimeWarp {
+class StreamerAndroidNetworkIP extends StreamerClientTimeWarp {
+    constructor(controls, app){ // helper for Android 10+, Node.JS won't be able to pick the network IP by itself
+        super(controls, app)
+        if(parent.cordova){
+            parent.plugins.megacubo.on('network-ip', ip => {
+                console.warn('Network IP received: '+ ip)
+                this.app.emit('network-ip', ip)
+            })
+            this.updateNetworkIp()
+            this.on('start', () => this.updateNetworkIp())
+        }
+    }
+    updateNetworkIp(){
+        parent.plugins.megacubo.getNetworkIp()
+    }
+}
+
+class StreamerClientVideoFullScreen extends StreamerAndroidNetworkIP {
     constructor(controls, app){
         super(controls, app)
         let b = this.controls.querySelector('button.fullscreen')
@@ -887,7 +904,9 @@ class StreamerClientVideoFullScreen extends StreamerClientTimeWarp {
                 parent.plugins.megacubo.on('appmetrics', this.updateAndroidAppMetrics.bind(this))
                 this.updateAndroidAppMetrics(parent.plugins.megacubo.appMetrics)
                 this.on('fullscreenchange', this.updateAndroidAppMetrics.bind(this))
-                if(b) b.style.display = 'none'
+                if(b){
+                    b.style.display = 'none'
+                }
                 this.on('start', () => this.enterFullScreen())
                 this.on('stop', () => this.leaveFullScreen())
             } else {

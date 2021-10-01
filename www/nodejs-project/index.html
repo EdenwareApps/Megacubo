@@ -133,6 +133,12 @@
 				animation-timing-function: linear;
 				animation-iteration-count: infinite;
 			}
+			body.animate-background-slow div#background, body.animate-background-fast div#background {
+				transform: translateZ(0);
+				backface-visibility: hidden;
+				perspective: 1000;
+				will-change: transform;
+			}
 			@keyframes background-breathing {
 				0% {
 					transform: scale(1.1) rotateZ(0deg);

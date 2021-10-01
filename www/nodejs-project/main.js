@@ -502,6 +502,13 @@ function init(language){
         })
         ui.on('network-state-up', () => setNetworkConnectionState(true))
         ui.on('network-state-down', () => setNetworkConnectionState(false))
+        ui.on('network-ip', ip => {
+            if(ip){
+                global.networkIP = () => {
+                    return ip
+                }
+            }
+        })
         /*
         ui.assign('playback', () => {
             return new Promise((resolve, reject) => {
@@ -554,7 +561,7 @@ function init(language){
                             ui.on('updater-cb', chosen => {
                                 console.log('update callback', chosen)
                                 if(chosen == 'yes'){
-                                    ui.emit('open-external-url', 'https://megacubo.net/update?ver=' + newVersion)
+                                    ui.emit('open-external-url', 'https://megacubo.net/update?ver=' + MANIFEST.version)
                                 }
                             })
                             ui.emit('dialog', [
