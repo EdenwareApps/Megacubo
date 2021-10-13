@@ -182,42 +182,6 @@ function initApp(){
     app.on('background-mode-unlock', name => {
         if(parent.player && parent.winman) parent.winman.backgroundModeUnlock(name)
     })
-    
-    /* icons start */
-    icons = new IconServerClient()
-    icons.on('validate', (element, src, buf) => {
-        if(src && element.parentNode){
-            if(buf){
-                let u = URL.createObjectURL(buf), m = document.createElement('img')
-                m.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQYV2NgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII=' // transparent pixel
-                m.style.backgroundImage = 'url(' + u + ')'
-                setTimeout(() => URL.revokeObjectURL(u), 10000)// the load|error refers to the base64 blank png, so give a time to the image load on css
-                if(element.className == 'explorer-location-icon-placeholder'){
-                    jQuery(element).replaceWith(m)
-                } else {
-                    let c = element.querySelector('.entry-icon-image')
-                    if(c){
-                        c.innerHTML = ''
-                        c.appendChild(m)
-                    }
-                }
-            }
-        }
-        base64 = element = null
-    })
-    icons.on('run', () => {
-        if(config['show-logos']){
-            (explorer.ranging ? explorer.viewportEntries(true) : wrap.querySelectorAll('a[data-icon]')).forEach(element => {
-                var src = element.getAttribute('data-icon')
-                element.removeAttribute('data-icon')
-                if(src){
-                    icons.add(element, src)
-                }
-                element = null
-            })
-        }
-    })
-    /* icons end */
 
     $(() => {
         console.log('load app')
@@ -228,8 +192,6 @@ function initApp(){
             if(path){
                 if(!icon){
                     iconTag = '<i class="fas fa-folder-open"></i>'          
-                } else if(icon.indexOf('//') != -1) {
-                    iconTag = '<i class="explorer-location-icon-placeholder"></i>'                    
                 } else {     
                     iconTag = '<i class="'+ icon +'"></i>'                         
                 }
@@ -238,10 +200,6 @@ function initApp(){
             }
             document.querySelector('#explorer header span.explorer-location-icon').innerHTML = iconTag
             document.querySelector('#explorer header span.explorer-location-text').innerHTML = path ? path.split('/').pop() : '&nbsp;'
-            if(config['show-logos'] && icon && icon.indexOf('//') != -1) {
-                let e = document.querySelector('.explorer-location-icon-placeholder')
-                icons.add(e, icon)
-            }
         })
         explorer.on('render', path => {
             if(path){
@@ -256,9 +214,51 @@ function initApp(){
                     haUpdate()
                 }
             }, 0)
-        })           
-        explorer.on('update-range', icons.run.bind(icons))
-        explorer.on('render', icons.run.bind(icons)) // keep this order
+        })
+    
+        /* icons start */
+        iconCaching = {}
+        const icon = (src, path, tabIndex, name, force) => {
+            if(typeof(iconCaching[path]) == 'undefined'){
+                iconCaching[path] = {}
+            }
+            if(force || !iconCaching[path][tabIndex] || iconCaching[path][tabIndex].src != src || iconCaching[path][tabIndex].name != name){
+                iconCaching[path][tabIndex] = {src, name}
+            }
+            if(explorer.path == path){
+                let element = tabIndex == -1 ? document.querySelector('.explorer-location-icon i') : explorer.currentElements[tabIndex], m = document.createElement('img')
+                m.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQYV2NgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII=' // transparent pixel
+                m.style.backgroundImage = 'url(' + src + ')'
+                if(tabIndex == -1) {
+                    jQuery(element).replaceWith(m)
+                } else {
+                    let c = element.querySelector('.entry-icon-image')
+                    if(c){
+                        let g = c.querySelector('img')
+                        if(!g || force || m.style.backgroundImage != g.style.backgroundImage){
+                            c.innerHTML = ''
+                            c.appendChild(m)
+                        }
+                    }
+                }
+            }
+        }
+        const iconRange = () => {
+            if(typeof(iconCaching[explorer.path]) != 'undefined' && config['show-logos']){
+                Array.from(new Array(explorer.range.end - explorer.range.start), (x, i) => i + explorer.range.start).forEach(i => {
+                    if(explorer.currentEntries[i]){
+                        if(typeof(iconCaching[explorer.path][i]) != 'undefined' && iconCaching[explorer.path][i].name == explorer.currentEntries[i].name){
+                            icon(iconCaching[explorer.path][i].src, explorer.path, i, explorer.currentEntries[i].name)
+                        }
+                    }
+                })
+            }
+        }
+        app.on('icon', icon)
+        explorer.on('render', iconRange)
+        explorer.on('update-range', iconRange)
+        /* icons end */
+
         if(navigator.app){
             explorer.on('init', () => {
                 document.dispatchEvent(new CustomEvent('init', {}))

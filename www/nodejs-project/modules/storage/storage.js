@@ -154,14 +154,25 @@ class StorageAsync extends StorageBase {
 			if(this.useJSON){
 				j = JSON.stringify(val)
 			}
+			this.write(fe, x, 'utf8', () => {})
 			this.write(f, typeof(j) == 'undefined' ? val : j, 'utf8', () => {
+				resolve(true)
 				if(typeof(cb) == 'function'){
 					cb()
 				}
-				resolve(true)
-			})	
-			this.write(fe, x, 'utf8', () => {})
+			})
 		})
+	}
+	setExpiration(key, expiration, cb){
+		let x, fe = this.resolve(key, true)
+		if(expiration === false) {
+			expiration = 600 // default = 10min
+		} else if(expiration === true || typeof(expiration) != 'number') {
+			expiration = this.maxExpiration // true = forever (100 years)
+		}
+		x = global.time() + expiration
+		this.cacheExpiration[key] = x
+		this.write(fe, x, 'utf8', cb || (() => {}))
 	}
 	expiration(key, cb){
 		key = this.prepareKey(key)
@@ -205,13 +216,12 @@ class StorageAsync extends StorageBase {
 			if(expiral > global.time()){
 				let f = this.resolve(key)
 				fs.stat(f, (err, stat) => {
-					if(stat && stat.size){
+					if(stat){
 						cb(stat.size)
 					} else {
 						cb(false)
 					}
 				})
-				return fs.existsSync(f)
 			} else {
 				cb(false)
 			}

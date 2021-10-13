@@ -1,4 +1,4 @@
-const WriteQueueFile = require('./write-queue-file.js')
+const WriteQueueFile = require('./write-queue-file')
 
 class WriteQueue {
 	constructor(){

@@ -28,7 +28,7 @@ process.on('uncaughtException', (exception) => {
 
 APPDIR = path.resolve(typeof(__dirname) != 'undefined' ? __dirname : process.cwd()).replace(new RegExp('\\\\', 'g'), '/')
 MANIFEST = require(APPDIR + '/package.json')
-COMMUNITARY_LISTS_DEFAULT_AMOUNT = cordova ? 8 : 12
+COMMUNITARY_LISTS_DEFAULT_AMOUNT = cordova ? 12 : 16
 
 tuning = false
 moment = require('moment-timezone')
@@ -254,7 +254,6 @@ function init(language){
         moment.locale(lang.locale)    
 
         cloud = new Cloud()
-        icons = new IconServer({folder: paths['data'] + '/icons'})
         
         const Lists = require(APPDIR + '/modules/lists')
 
@@ -280,6 +279,7 @@ function init(language){
         options = new Options()
         watching = new Watching()
         bookmarks = new Bookmarks()
+        icons = new IconServer({folder: paths['data'] + '/icons'})
 
         rmdir(streamer.opts.workDir, false, true)
 
@@ -296,14 +296,6 @@ function init(language){
         
         streamState = new StreamState()
 
-        explorer.addFilter((es, path) => {
-            return new Promise((resolve, reject) => {
-                if(config.get('show-logos')){
-                    es = icons.prepareEntries(es)
-                }
-                resolve(es)
-            })
-        })
         explorer.addFilter(bookmarks.hook.bind(bookmarks))
         explorer.addFilter(histo.hook.bind(histo))
         explorer.addFilter(watching.hook.bind(watching))
@@ -311,6 +303,9 @@ function init(language){
         explorer.addFilter(options.hook.bind(options))
         explorer.addFilter(theme.hook.bind(theme))
         explorer.addFilter(search.hook.bind(search))
+
+        ui.on('explorer-update-range', icons.renderRange.bind(icons))
+        explorer.on('render', icons.render.bind(icons))
 
         explorer.on('action', e => {
             console.warn('ACTION', e, typeof(e.action))
@@ -522,8 +517,8 @@ function init(language){
         */
         streamer.on('streamer-connect', (src, codecs, info) => {
             console.warn('CONNECT', src, codecs, info)       
-            ui.emit('streamer-connect', src, codecs, '', streamer.active.mediaType, icons.prepareEntry(info), tuning !== false)
-        })  
+            ui.emit('streamer-connect', src, codecs, '', streamer.active.mediaType, info, tuning !== false)
+        })
         streamer.on('streamer-disconnect', err => {
             console.warn('DISCONNECT', err, tuning !== false)
             ui.emit('streamer-disconnect', err, tuning !== false)
@@ -544,6 +539,7 @@ function init(language){
         ui.once('init', () => {
             console.warn('Client init')
             explorer.start()  
+            icons.refresh()
             streamState.sync()
             if(!isUILoaded){
                 isUILoaded = true

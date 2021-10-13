@@ -102,6 +102,7 @@ class StreamerBaseIntent extends Events {
 				this.emit('bitrate', this.bitrate, this.currentSpeed)
 			}
         })
+		adapter.committed = this.committed
 		if(adapter.bitrate){
 			this.bitrate = adapter.bitrate
 			this.emit('bitrate', adapter.bitrate, this.currentSpeed)
@@ -212,7 +213,7 @@ class StreamerBaseIntent extends Events {
         this.timeoutStart = global.time()
         this.timeoutTimer = setTimeout(() => {
             if(this && !this.failed && !this.destroyed && !this.committed){
-                console.log('Timeouted engine after '+ (global.time() - this.timeoutStart))
+                console.log('Timeouted engine after '+ (global.time() - this.timeoutStart), this, this.committed)
                 this.fail('timeout')
             }
         }, secs * 1000)

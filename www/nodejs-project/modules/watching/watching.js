@@ -19,7 +19,7 @@ class Watching extends EntriesGroup {
         if(this.currentRawEntries){
             cb()
         } else {
-            this.once('ready', cb)
+            this.once('update', cb)
         }
     }
     showChannelOnHome(){
@@ -37,7 +37,7 @@ class Watching extends EntriesGroup {
         }).finally(() => {
             clearTimeout(this.timer) // clear again to be sure
             this.timer = setTimeout(() => this.update(), this.updateIntervalSecs * 1000)
-            this.emit('ready')
+            this.emit('update')
             let nxt = this.entry()
             if(this.showChannelOnHome() && global.explorer.path == '' && (prv.details != nxt.details || prv.name != nxt.name)){
                 global.explorer.updateHomeFilters()
@@ -113,6 +113,12 @@ class Watching extends EntriesGroup {
                 if(!Array.isArray(data)){
                     data = []
                 }
+                data.forEach((e, i) => {
+                    if(e.logo && !e.icon){
+                        data[i].icon = e.logo
+                        delete data[i].logo
+                    }
+                })
                 let recoverNameFromMegaURL = true, ex = !global.config.get('shared-mode-reach') // we'll make entries URLless for exclusive mode, to use the provided lists only
                 data = global.lists.prepareEntries(data)
                 data = data.filter(e => (e && typeof(e) == 'object' && typeof(e.name) == 'string')).map(e => {
@@ -210,7 +216,7 @@ class Watching extends EntriesGroup {
             if(top){
                 let s = top.users == 1 ? 'user' : 'users', terms = global.channels.entryTerms(top)
                 entry.name = top.name
-                entry.servedIcon = global.icons.generate(terms, null)
+                entry.class = 'entry-icon' 
                 entry.details = '<i class="fas fa-'+ s +'"></i> '+ global.lang.X_WATCHING.format(top.users)
                 entry.details += ' &middot; '+ global.lang.TRENDING
             }

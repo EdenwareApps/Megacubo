@@ -81,8 +81,8 @@ class EPG extends Events {
                     keepalive: false,
                     retries: 5,
                     headers: {
-                        'accept-charset': 'utf-8, *;q=0.1',
-                        'range': 'bytes=0-'
+                        'accept-charset': 'utf-8, *;q=0.1'
+                        // 'range': 'bytes=0-' // was getting wrong content-length from Cloudflare
                     }
                 }
                 this.request = new global.Download(req)

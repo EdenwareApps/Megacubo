@@ -5,7 +5,7 @@ class StreamerNetworkProxy extends StreamerProxy {
 	constructor(port){
 		super('', {})
 		this.type = 'network-proxy'
-        this.debug = false
+        this.opts.debug = true
         this.sourcePort = port
 	}
     proxify(url){
@@ -36,8 +36,8 @@ class StreamerNetworkProxy extends StreamerProxy {
             }
             this.server = http.createServer(this.handleRequest.bind(this)).listen(0, this.addr, (err) => {
                 if (err) {
-                    if(this.debug){
-                        this.debug('unable to listen on port', err)
+                    if(this.opts.debug){
+                        console.log('unable to listen on port', err)
                     }
                     reject(err)
                 } else {

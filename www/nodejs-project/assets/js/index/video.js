@@ -15,12 +15,14 @@ class VideoControl extends EventEmitter {
 		this.hasErr = null
 		this.clearErrTimer = null
 		this.config = {}
+		this.uiVisibility = true
 		if(typeof(config) != 'undefined'){
 			this.config = config
 		}
 	}
 	uiVisible(visible){
 		if(this.current){
+			this.uiVisibility = visible
 			return this.current.uiVisible(visible)
 		}
 	}
@@ -270,9 +272,7 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
             this.emit('ended', String(e))
 		})
         v.on('timeupdate', event => {
-            if(this.uiVisibility){
-				this.emit('timeupdate')
-			}
+			this.emit('timeupdate')
 		})
         v.on('durationchange', event => {
 			this.duration = this.object.duration
@@ -608,13 +608,15 @@ class WinMan extends EventEmitter {
 		}		
 	}
 	askExit(){
-		let w = this.getAppWindow()
-		w.explorer.dialog([
+		let w = this.getAppWindow(), opts = [
 			{template: 'question', text: w.lang.ASK_EXIT, fa: 'fas fa-times-circle'},
 			{template: 'option', text: w.lang.NO, id: 'no'},
-			{template: 'option', text: w.lang.YES, id: 'yes'},
-			{template: 'option', text: w.lang.RESTARTAPP, id: 'restart'}
-		], c => {
+			{template: 'option', text: w.lang.YES, id: 'yes'}
+		]
+		if(typeof(cordova) == 'undefined' || parseInt(top.device.version) >= 10){
+			opts.push({template: 'option', text: w.lang.RESTARTAPP, id: 'restart'})
+		}
+		w.explorer.dialog(opts, c => {
 			if(c == 'yes'){
 				this.exit()
 			} else if(c == 'restart'){
@@ -636,13 +638,17 @@ class WinMan extends EventEmitter {
 			console.error(e)
 		}
 	}
-	restartUI(cb){
-		let w = this.getAppWindow()
-		w.explorer.dialog([
-			{template: 'question', text: 'Megacubo', fa: 'fas fa-info-circle'},
-			{template: 'message', text: lang.SHOULD_RESTART},
-			{template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle'}
-		], cb)
+	restartUI(cb){		
+		if(typeof(cordova) == 'undefined' || parseInt(top.device.version) >= 10){
+			cb()
+		} else {
+			let w = this.getAppWindow()
+			w.explorer.dialog([
+				{template: 'question', text: 'Megacubo', fa: 'fas fa-info-circle'},
+				{template: 'message', text: lang.SHOULD_RESTART},
+				{template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle'}
+			], cb)
+		}
 	}
 	restart(){
 		console.log('restart()')
@@ -674,7 +680,9 @@ class WinMan extends EventEmitter {
 				w.app.emit('exit')
 			}
 			if(typeof(cordova) != 'undefined'){
-				navigator.app.exitApp()
+				setTimeout(() => { // give some time to backgroundMode.disable() to remove the notification
+					navigator.app.exitApp()
+				}, 400)
 			} else {
 				top.Manager.close()
 			}

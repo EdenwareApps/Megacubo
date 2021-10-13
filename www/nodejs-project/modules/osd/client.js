@@ -158,7 +158,7 @@ class OSD extends OSDDOMClassHandler {
         if(entries.length){
             this.body.addClass('osd')
             let l = 0
-            entries.forEach((e, i) => {
+            Array.from(entries).filter(e => e.clientHeight).forEach((e, i) => {
                 let has = this.hasClass(e, 'osd-highlight')
                 if(i != l){
                     if(has){

@@ -27,8 +27,7 @@ class Search extends Events {
                 es = es.map(e => {
                     return {
                         name: global.ucWords(e.search_term),
-                        fa: 'fas fa-search',
-                        icon: global.icons.generate(e.search_term, null)
+                        fa: 'fas fa-search'
                     }
                 })
                 es = es.map(e => global.channels.toMetaEntry(e, false))
@@ -122,7 +121,6 @@ class Search extends Events {
             let u = global.ucWords(terms)
             this.currentSearch = {
                 name: u, 
-                icon: global.icons.generate(terms, null), 
                 url: global.mega.build(u, {terms, mediaType: this.searchMediaType})
             }
             if(lists.manager.updatingLists){
@@ -145,9 +143,6 @@ class Search extends Events {
             }).then(es => {
                 es = (es.results && es.results.length) ? es.results : ((es.maybe && es.maybe.length) ? es.maybe : [])
                 if(es && es.length){
-                    if(global.config.get('show-logos') ){
-                        es = global.icons.prepareEntries(es)
-                    }
                     es = es.map(e => {
                         e.details = e.groupName || ''
                         return e
@@ -179,16 +174,17 @@ class Search extends Events {
             let u = global.ucWords(terms)
             this.currentSearch = {
                 name: u, 
-                icon: global.icons.generate(terms, null), 
                 url: global.mega.build(u, {terms, mediaType: this.searchMediaType})
             }
-            if(lists.manager.updatingLists){
+            if(global.lists.manager.updatingLists){
                 return resolve([global.lists.manager.updatingListsEntry()])
             }
             if(!global.activeLists.length){ // one list available on index beyound meta watching list
                 return resolve([global.lists.manager.noListsEntry()])
             }
-            global.channels.search(terms, this.searchInaccurate).then(resolve).catch(reject)
+            global.channels.search(terms, this.searchInaccurate).then(es => {
+                resolve(es.map(e => global.channels.toMetaEntry(e)))
+            }).catch(reject)
         })
     }
     matchTerms(nlc, precision, es){

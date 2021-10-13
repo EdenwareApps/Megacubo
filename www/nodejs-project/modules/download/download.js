@@ -1,4 +1,5 @@
-const Events = require('events'), parseRange = require('range-parser'), got = require('./got-wrapper'), zlib = require('zlib')
+const Events = require('events'), fs = require('fs'), parseRange = require('range-parser'), got = require('./got-wrapper')
+const zlib = require('zlib'), WriteQueueFile = require(global.APPDIR +'/modules/write-queue/write-queue-file')
 
 class Download extends Events {
    constructor(opts){
@@ -28,6 +29,9 @@ class Download extends Events {
 			}
 			this.opts = Object.assign(this.opts, opts)
 		}
+		if(this.opts.keepalive && this.isKeepAliveHanged(this.opts.url)){
+			this.opts.keepalive = false
+		}
 		this.currentURL = this.opts.url
 		this.opts.headers['connection'] = this.opts.keepalive ? 'keep-alive' : 'close'
 		if(this.opts.responseType && this.opts.responseType == 'json'){
@@ -54,6 +58,22 @@ class Download extends Events {
 		this.authURLPingAfter = 0
 		if(typeof(this.opts.headers['range']) != 'undefined'){
 			this.checkRequestingRange(this.opts.headers['range'])
+		}
+	}
+	isKeepAliveHanged(url){
+		let ddomain, domain = this.getDomain(url)
+		Object.keys(got.ka.defaults.options.agent.http.sockets).some(dd => {
+			if(dd.substr(0, domain.length) == domain){
+				ddomain = dd
+				return true
+			}
+		})
+		if(ddomain){
+			if(got.ka.defaults.options.agent.http.sockets[ddomain] && got.ka.defaults.options.agent.http.sockets[ddomain].length == got.ka.defaults.options.agent.http.maxSockets){
+				if(!got.ka.defaults.options.agent.http.freeSockets[ddomain] || !got.ka.defaults.options.agent.http.freeSockets[ddomain].length){
+					return true
+				}
+			}
 		}
 	}
 	pingAuthURL(){
@@ -166,7 +186,7 @@ class Download extends Events {
 		opts.headers = requestHeaders
 		opts.timeout = this.getTimeoutOptions()
 		if(this.opts.debug){
-			console.log('>> Download request', opts.url, this.received, JSON.stringify(opts.headers), this.requestingRange, this.opts.headers['range'], global.traceback())
+			console.log('>> Download request', opts, this.received, JSON.stringify(opts.headers), this.requestingRange, this.opts.headers['range'], global.traceback())
 		}
 		const stream = (this.opts.keepalive ? got.ka : got).stream(opts)
 		stream.on('redirect', response => {
@@ -616,8 +636,8 @@ class Download extends Events {
 	}
 	destroyStream(){
 		if(this.currentResponse){
-			this.currentResponse.removeAllListeners('data')
-			this.currentResponse.removeAllListeners('error')
+			this.currentResponse.removeAllListeners()
+			this.currentResponse = null
 		}
 		if(this.stream){	
 			this.ignoreBytes = 0 // reset it
@@ -719,8 +739,9 @@ Download.setNetworkConnectionState = state => {
 }
 
 Download.promise = (...args) => {
-	let g, opts = args[0]
+	let _reject, g, opts = args[0]
 	let promise = new Promise((resolve, reject) => {
+		_reject = reject
 		g = new Download(opts)
 		g.once('end', buf => {
 			// console.log('Download', g, global.traceback(), buf)
@@ -735,8 +756,59 @@ Download.promise = (...args) => {
 	})
 	promise.cancel = () => {
 		if(!g.ended){
-			reject('Promise was cancelled')
+			_reject('Promise was cancelled')
 			g.destroy()
+		}
+	}
+	return promise
+}
+
+Download.file = (...args) => {
+	let _reject, g, opts = args[0], file = opts && opts.file ? opts.file : global.paths.temp +'/'+ Math.random()
+	let promise = new Promise((resolve, reject) => {
+		_reject = reject
+		let writer
+		g = new Download(opts)
+		g.once('response', statusCode => {
+			// console.log('Download', g, global.traceback(), buf)
+			if(statusCode < 200 && statusCode >= 400){
+				g.destroy()	
+				reject('http error '+ statusCode)
+			}
+		})
+		g.on('data', buf => {
+			if(!writer){
+				writer = new WriteQueueFile(file)
+				writer.autoclose = false
+			}
+			writer.write(buf)			
+		})
+		g.once('end', () => {
+			g.destroy()
+			if(writer){
+				if(writer.hasErr){
+					reject(writer.hasErr)
+				} else {
+					writer.ready(() => {
+						writer.destroy()
+						resolve(file)
+					})
+				}
+			} else {
+				reject('empty data')
+			}
+		})
+		g.start()
+	})
+	promise.cancel = () => {
+		if(!g.ended){
+			_reject && _reject('Promise was cancelled')
+			g.destroy()
+			fs.stat(file, (err, stat) => {
+				if(stat && stat.size){
+					fs.unlink(file, () => {})
+				}
+			})
 		}
 	}
 	return promise

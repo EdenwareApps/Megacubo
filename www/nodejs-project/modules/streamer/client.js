@@ -100,7 +100,8 @@ class StreamerOSD extends StreamerPlaybackTimeout {
                     osd.hide(this.osdID)
                     if(!this.OSDNameShown){
                         this.OSDNameShown = true
-                        osd.show(this.data.name, this.data.servedIcon || '', this.osdID, 'normal')
+                        osd.show(lang.TRANSMISSION_NOT_WORKING_HINT.format(this.tuningIcon), '', this.osdID +'-sub', 'normal')
+                        osd.show(this.data.name, this.data.icon || '', this.osdID, 'normal')
                     }
                     break
                 case '':
@@ -596,7 +597,11 @@ class StreamerSeek extends StreamerSpeedo {
                     break
             }
         })
-        parent.player.on('timeupdate', this.seekBarUpdate.bind(this))
+        parent.player.on('timeupdate', () => {
+            if(parent.player.uiVisibility){
+                this.seekBarUpdate()
+            }
+        })
         parent.player.on('durationchange', () => {
             const duration = parent.player.duration()
             if(this.seekLastDuration > duration){ // player reset
@@ -836,22 +841,58 @@ class StreamerClientTimeWarp extends StreamerSeek {
         super(controls, app)
         this.currentPlaybackRate = 1
         parent.player.on('timeupdate', this.doTimeWarp.bind(this))
-        parent.player.on('durationchange', this.doTimeWarp.bind(this))
+        parent.player.on('durationchange', () => {
+            this.timewarpDetectPlayerReset()
+            this.doTimeWarp()
+        })
+        this.on('start', () => {
+            this.timewarpInitialTime = null // will be filled at the first playing state
+            this.timewarpInitialPlaybackTime = null // will be filled at the first playing state
+            this.timewarpLastDuration = 0
+        })
+        this.on('stop', () => {
+            this.timewarpInitialTime = null
+            this.timewarpInitialPlaybackTime = null
+            this.timewarpLastDuration = 0
+        })
+        this.on('state', state => {
+            switch(state){
+                case 'playing':
+                    this.timewarpDetectPlayerReset()
+                    if(this.timewarpInitialPlaybackTime == null){
+                        this.timewarpInitialTime = time()
+                        this.timewarpInitialPlaybackTime = parent.player.time()
+                    }
+                    break
+            }
+        })
+    }
+    timewarpDetectPlayerReset(){
+        const duration = parent.player.duration()
+        if(duration < this.timewarpLastDuration){ // player resetted
+            this.timewarpInitialTime = time()
+            this.timewarpInitialPlaybackTime = parent.player.time()
+        }
+        this.timewarpLastDuration = duration
     }
     getTimewarpThresholds(){
         let lwt = config['live-window-time']
-        let low = parseInt(lwt * 0.075)
-        let midLow = parseInt(lwt * 0.125)
-        let midHigh = lwt * 0.7
-        let high = lwt * 0.8
+        let low = parseInt(lwt * 0.05)
+        let midLow = parseInt(lwt * 0.1)
+        let midHigh = lwt * 0.5
+        let high = lwt * 0.7
         return {low, midLow, midHigh, high}
     }
+    expectedDuration(){
+        return (time() - this.timewarpInitialTime) + this.timewarpInitialPlaybackTime
+    }
     doTimeWarp(){
-        if(this.inLiveStream && config['playback-rate-control']){
-           let rate = this.currentPlaybackRate
+        if(this.inLiveStream && config['playback-rate-control'] && this.timewarpInitialPlaybackTime !== null){
+            let rate = this.currentPlaybackRate
             let rates = {slow: 0.9, normal: 1, fast: 1.1}
             let thresholds = this.getTimewarpThresholds()
-            let remaining = parent.player.duration() - parent.player.time()
+            let expectedDuration = (time() - this.timewarpInitialTime) + this.timewarpInitialPlaybackTime
+            let remaining = expectedDuration - parent.player.time()
             if(remaining <= thresholds.low) {
                 rate = rates.slow
             } else if(remaining.between(thresholds.low, thresholds.midLow)) {
@@ -867,6 +908,7 @@ class StreamerClientTimeWarp extends StreamerSeek {
             } else if(remaining > thresholds.high){
                 rate = rates.fast
             }
+            //osd.show(rate +'x, '+parseInt(parent.player.duration()) +', '+ parseInt(expectedDuration), 'fas fa-clock', 'tw', 'persistent')
             if(rate != this.currentPlaybackRate){
                 this.currentPlaybackRate = rate
                 console.warn('PLAYBACKRATE=*', rate, thresholds, remaining + 's')

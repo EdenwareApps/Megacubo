@@ -18,7 +18,8 @@ class StreamerVODHLSIntent extends StreamerBaseIntent {
                 videoCodec: 'libx264',
                 workDir: this.opts.workDir, 
                 debug: this.opts.debug,
-                authURL: this.data.source
+                authURL: this.data.source,
+                isLive: false
             }
             this.transcoderStarting = true
             this.resetTimeout()

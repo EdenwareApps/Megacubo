@@ -210,8 +210,8 @@ class ChannelsEPG extends ChannelsData {
                         let entries = []
                         console.warn('epgSearch', epgData)
                         Object.keys(epgData).forEach(ch => {
-                            let terms = global.lists.terms(ch), servedIcon = global.icons.generate(terms)
-                            entries = entries.concat(this.epgDataToEntries(epgData[ch], ch, terms, servedIcon))
+                            let terms = global.lists.terms(ch)
+                            entries = entries.concat(this.epgDataToEntries(epgData[ch], ch, terms))
                         })
                         entries = entries.sort((a, b) => {
                             return a.program.start - b.program.start 
@@ -233,7 +233,7 @@ class ChannelsEPG extends ChannelsData {
             let terms = {}, channels = category.entries.map(e => {
                 let data = this.isChannel(e.name)
                 if(data){
-                    terms[e.name] = e.terms.name
+                    e.terms.name = terms[e.name] = data.terms
                     return e
                 }
             }).filter(e => e)
@@ -255,17 +255,17 @@ class ChannelsEPG extends ChannelsData {
                                 return true
                             }
                         })
-                        if(current){      
-                            let servedIcon = global.icons.generate(terms[ch], current.i)
+                        if(current){
+                            current.ch = ch
                             centries.push({
                                 name: current.t,
                                 details: ch,
                                 type: 'group',
                                 fa: 'fas fa-play-circle',
-                                servedIcon,
+                                program: current,
                                 renderer: () => {
                                     return new Promise((resolve, reject) => {
-                                        resolve(this.epgDataToEntries(epgData[ch], ch, terms[ch], servedIcon))
+                                        resolve(this.epgDataToEntries(epgData[ch], ch, terms[ch]))
                                     })
                                 }
                             })
@@ -276,8 +276,8 @@ class ChannelsEPG extends ChannelsData {
             }).catch(reject)
         })
     }
-    epgDataToEntries(epgData, ch, terms, chServedIcon){
-        console.warn('epgDataToEntries', epgData, ch, terms, chServedIcon)
+    epgDataToEntries(epgData, ch, terms){
+        console.warn('epgDataToEntries', epgData, ch, terms)
         let now = global.time()
         let at = start => {
             if(start <= now && epgData[start].e > now){
@@ -286,18 +286,17 @@ class ChannelsEPG extends ChannelsData {
             return this.clock(start, epgData[start], true)
         }
         return Object.keys(epgData).filter(start => epgData[start].e > now).map((start, i) => {
-            let servedIcon = chServedIcon
+            let epgIcon = ''
             if(epgData[start].i && epgData[start].i.indexOf('//') != -1){
-                servedIcon = global.icons.proxify(epgData[start].i)
+                epgIcon = epgData[start].i
             }
             return {
                 name: epgData[start].t,
                 details: ch + ' | ' + at(start),
                 type: 'action',
                 fa: 'fas fa-play-circle',
-                servedIcon,
-                program: {start, ch},
-                action: this.epgProgramAction.bind(this, start, ch, epgData[start], terms, servedIcon)
+                program: {start, ch, i: epgIcon},
+                action: this.epgProgramAction.bind(this, start, ch, epgData[start], terms, epgIcon)
             }
         })
     }
@@ -331,8 +330,7 @@ class ChannelsEPG extends ChannelsData {
                 let centries = []
                 if(epgData){
                     if(typeof(epgData[0]) != 'string'){
-                        let servedIcon = global.icons.generate(data.terms)
-                        centries = this.epgDataToEntries(epgData, data.name, data.terms, servedIcon)
+                        centries = this.epgDataToEntries(epgData, data.name, data.terms)
                         if(!centries.length){
                             centries.push(global.explorer.emptyEntry(global.lang.NOT_FOUND))
                         }
@@ -409,9 +407,6 @@ class ChannelsEPG extends ChannelsData {
                             } else {
                                 entries[i].details = epg[e.name].t
                             }
-                            if(!keepIcon && epg[e.name].i){
-                                entries[i].servedIcon = global.icons.generate(global.icons.terms(entries[i].servedIcon, true), epg[e.name].i)
-                            }
                         }
                     })
                 }).catch(console.error).finally(() => resolve(entries))
@@ -474,14 +469,14 @@ class ChannelsEPG extends ChannelsData {
             }).catch(reject)
         })
     }
-    epgProgramAction(start, ch, program, terms, servedIcon){
+    epgProgramAction(start, ch, program, terms, icon){
         if(start <= (global.time() + 300)){ // if it will start in less than 5 min, open it anyway
             let url = global.mega.build(ch, {terms})
             global.streamer.play({
                 name: ch,
                 type: 'stream', 
                 fa: 'fas fa-play-circle',
-                icon: servedIcon, 
+                icon, 
                 url,
                 terms: {name: terms, group: []}
             })
@@ -519,36 +514,38 @@ class ChannelsEditing extends ChannelsEPG {
     editChannelEntry(o, _category, atts){ // category name
         const category = _category
         let e = Object.assign({}, o), terms = this.entryTerms(o)
-        Object.assign(e, {icon: global.icons.generate(terms, o.icon), fa: 'fas fa-play-circle', type: 'group', details: global.lang.EDIT_CHANNEL})
+        Object.assign(e, {fa: 'fas fa-play-circle', type: 'group', details: global.lang.EDIT_CHANNEL})
         Object.assign(e, atts)
         e.renderer = () => {
             return new Promise((resolve, reject) => {
                 const category = _category
                 let entries = []
                 if(global.config.get('show-logos')){
-                    entries.push({name: global.lang.SELECT_ICON, details: o.name, type: 'group', servedIcon: global.icons.generate(terms, o.icon), renderer: () => {
+                    entries.push({name: global.lang.SELECT_ICON, details: o.name, type: 'group', renderer: () => {
                         console.warn('render icons', terms)
                         return new Promise((resolve, reject) => {
                             let images = []
-                            global.icons.search(terms).then(srcs => {
-                                console.warn('render icons', srcs, terms)
-                                images = images.concat(srcs)
+                            global.icons.search(terms).then(ms => {
+                                console.warn('render icons', ms, terms)
+                                images = images.concat(ms.map(m => m.icon))
                             }).catch(console.error).finally(() => {
                                 let ret = images.map((image, i) => {
                                     const e =  {
                                         name: String(i + 1) + String.fromCharCode(186),
                                         type: 'action',
                                         icon: image,
+                                        class: 'entry-icon-no-fallback',
                                         fa: 'fa-mega spin-x-alt',
-                                        servedIcon: global.icons.proxify(image),
                                         action: () => {
                                             global.explorer.setLoadingEntries([e], true, global.lang.PROCESSING)
-                                            global.icons.fetchURL(image).then(content => {
-                                                global.icons.saveCache(terms, content.data, () => {
-                                                    console.log('icon changed', terms, content)
-                                                    global.explorer.deepRefresh(global.explorer.dirname(global.explorer.path))
-                                                    global.osd.show(global.lang.ICON_CHANGED, 'fas fa-check-circle', 'channels', 'normal')
-                                                })
+                                            global.icons.fetchURL(image).then(file => {
+                                                global.icons.adjust(file, {shouldBeAlpha: false}).then(ret => {
+                                                    global.icons.saveDefaultFile(terms, ret.file, destFile => {
+                                                        console.log('icon changed', terms, destFile)
+                                                        global.explorer.deepRefresh(global.explorer.dirname(global.explorer.path))
+                                                        global.osd.show(global.lang.ICON_CHANGED, 'fas fa-check-circle', 'channels', 'normal')
+                                                    })
+                                                }).catch(global.displayErr)
                                             }).catch(global.displayErr)
                                         }
                                     }
@@ -556,16 +553,19 @@ class ChannelsEditing extends ChannelsEPG {
                                 })
                                 ret.push({name: global.lang.OPEN_URL, type: 'input', fa: 'fas fa-link', action: (err, val) => {   
                                     console.log('from-url', terms, '') 
-                                    global.icons.fetchURL(val).then(content => {
-                                        global.icons.saveCache(terms, content.data, () => {
-                                            global.explorer.deepRefresh(global.explorer.dirname(global.explorer.path))
-                                            global.osd.show(global.lang.ICON_CHANGED, 'fas fa-check-circle', 'channels', 'normal')
+                                    global.icons.fetchURL(val).then(file => {
+                                        global.icons.adjust(file, {shouldBeAlpha: false}).then(ret => {
+                                            global.icons.saveDefaultFile(terms, ret.file, destFile => {
+                                                console.log('icon changed', terms, destFile)
+                                                global.explorer.deepRefresh(global.explorer.dirname(global.explorer.path))
+                                                global.osd.show(global.lang.ICON_CHANGED, 'fas fa-check-circle', 'channels', 'normal')
+                                            })
                                         })
                                     }).catch(global.displayErr)
                                 }})
                                 ret.push({name: global.lang.NO_ICON, type: 'action', fa: 'fas fa-ban', action: () => {   
-                                    console.log('savecache', terms, '') 
-                                    global.icons.saveCache(terms, 'no-icon', () => {
+                                    console.log('saveDefault', terms, '') 
+                                    global.icons.saveDefault(terms, 'no-icon', () => {
                                         global.explorer.deepRefresh(global.explorer.dirname(global.explorer.path))
                                         global.osd.show(global.lang.ICON_CHANGED, 'fas fa-check-circle', 'channels', 'normal')
                                     })
@@ -867,7 +867,7 @@ class Channels extends ChannelsEditing {
         } else if(typeof(e.terms) != 'undefined' && typeof(e.terms.name) != 'undefined' && Array.isArray(e.terms.name) && e.terms.name.length) {
             terms = e.terms.name
         } else {
-            terms = global.lists.terms(e.name)
+            terms = global.lists.terms(e.program ? e.program.ch : e.name)
         }
         return this.expandTerms(terms)
     }
@@ -894,8 +894,7 @@ class Channels extends ChannelsEditing {
                     entries.push({
                         name: e.name,
                         details: '<i class="fas fa-play-circle"></i> '+ global.lang.WATCH_NOW, 
-                        type: 'action', 
-                        icon: e.servedIcon, 
+                        type: 'action',
                         fa: 'fas fa-play-circle',
                         url,
                         action: data => {
@@ -963,7 +962,7 @@ class Channels extends ChannelsEditing {
                     entries.push(streamsEntry)
                 }
                 if(global.config.get('allow-edit-channel-list')){
-                    const editEntry = this.editChannelEntry(e, category, {name: category ? global.lang.EDIT_CHANNEL : global.lang.EDIT, details: e.name, class: 'no-icon', fa: 'fas fa-edit', users: undefined, usersPercentage: undefined, path: undefined, servedIcon: undefined, url: undefined})
+                    const editEntry = this.editChannelEntry(e, category, {name: category ? global.lang.EDIT_CHANNEL : global.lang.EDIT, details: e.name, class: 'no-icon', fa: 'fas fa-edit', users: undefined, usersPercentage: undefined, path: undefined, url: undefined})
                     entries.push(editEntry)
                 }
                 resolve(entries)
@@ -989,7 +988,6 @@ class Channels extends ChannelsEditing {
         if(details){
             meta.details = details
         }
-        meta.servedIcon = global.icons.generate(terms, e.icon)
         return meta
     }
     keywords(cb){
@@ -1027,9 +1025,6 @@ class Channels extends ChannelsEditing {
                             partial: false
                         }).then(ret => {
                             let entries = category.entries.filter(e => ret[e.name])
-                            if(global.config.get('show-logos')  && global.config.get('search-missing-logos')){
-                               //global.icons.prefetch(entries.map(e => this.entryTerms(e)).slice(0, global.config.get('view-size-x')))
-                            }             
                             entries = entries.map(e => {
                                 return this.toMetaEntry(e, category, c.name)
                             })

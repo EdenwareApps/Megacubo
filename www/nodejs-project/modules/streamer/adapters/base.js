@@ -81,6 +81,7 @@ class StreamerAdapterBase extends Events {
 			}
         })
         adapter.on('fail', this.onFail)
+		adapter.committed = this.committed
         this.on('commit', () => {
             adapter.emit('commit')
             if(!adapter.committed){

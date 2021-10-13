@@ -11,11 +11,9 @@ class MPEGTSPacketProcessor extends Events {
         this.minFlushInterval = 3 // secs
         this.buffering = []
         this.bufferSize = (512 * 1024) // 512KB
-        this.pcrRepeatCheckerTimeout = 10 // after X seconds without receiving a valid pcr, give up and reset the pcr checking
-        this.pcrRepeatCheckerLastValidPCRFoundTime = global.time()
-        this.keepInitialData = false
-        this.keepLeftOverData = false
-        // this.debug = true
+        this.maxPcrJournalSize = 2048
+        this.pcrJournal = []
+        this.debug = true
     }
 	len(data){
 		if(!data){
@@ -47,14 +45,14 @@ class MPEGTSPacketProcessor extends Events {
           }
         }
     }
-    process(clear){ // TODO: process try to remove repeated fragments by trusting in pcr times, seems not the better approach, someone has a better idea?
+    process(clear){
         if(this.len(this.buffering) < 4){
             if(clear){
                 this.buffering = []
             }
             return null // nothing to process
         }
-        let pointer = 0, pcrs = {}, buf = Buffer.concat(this.buffering), lastPCR = 0, discontinuityLevel = 0, pcrLog = [], pcrLogIrregular = false
+        let pointer = 0, pcrs = {}, buf = Buffer.concat(this.buffering)
         if(!this.checkSyncByte(buf, 0)){
             pointer = this.nextSyncByte(buf, 0)
             if(pointer == -1){
@@ -62,19 +60,15 @@ class MPEGTSPacketProcessor extends Events {
                     this.buffering = []
                 }
                 return null // keep this.buffering untouched (if no clear) and stop processing, pcrs ignored
+            } else {
+                console.log('skipping first '+ pointer + ' bytes')
             }
-        }
-        if(this.debug){
-            console.log('process start', pointer, this.currentPCR, this.parsingPCR)
         }
         this.buffering = []
         while(pointer >= 0 && (pointer + PACKET_SIZE) <= buf.length){
             let offset = -1
             if((pointer + PACKET_SIZE) < (buf.length + 4)){ // has a next packet start
                 if(!this.checkSyncByte(buf, pointer + PACKET_SIZE)){
-                    if(this.debug){
-                        console.log('bad syncByte for next packet')
-                    }
                     offset = this.nextSyncByte(buf, pointer + PACKET_SIZE)
                 }
             }
@@ -111,91 +105,39 @@ class MPEGTSPacketProcessor extends Events {
             }
             if(!size) continue
             const pcr = this.pcr(buf.slice(pointer, pointer + size))
-            if(pcr){ // is pcr packet
-                if(lastPCR && pcr < lastPCR){
-                    pcrLogIrregular = true        
-                    pcrLog.push('> ' + pcr + ' ('+ lastPCR +'|'+ this.currentPCR +'|'+ this.parsingPCR +')')
-                } else {                    
-                    pcrLog.push(pcr)
-                }
-                lastPCR = pcr
-                if(this.parsingPCR){ // already receiving a specific pcr
-                    if(pcr != this.parsingPCR){ // go to new pcr
-                        this.parsingPCR = pcr
-                        if(discontinuityLevel <= 2 && this.isPCRDiscontinuity(pcr)){
-                            console.log('pcr discontinuity', pcr)
-                            discontinuityLevel++
-                        } else {
-                            discontinuityLevel = 0
-                            this.currentPCR = pcr
-                        }
-                        pcrs[this.parsingPCR] = pointer
-                    } else { // continue receiving the parsingPCR, no need for further checking cause it comes from same connection
-                        if(typeof(pcrs[this.parsingPCR]) == 'undefined'){
-                            pcrs[this.parsingPCR] = pointer
-                        }
-                    }
-                } else { // new connection
-                    if(!this.currentPCR || pcr > this.currentPCR){ // first connection OR next pcr
-                        this.parsingPCR = pcr
-                        if(discontinuityLevel <= 2 && this.isPCRDiscontinuity(pcr)){
-                            if(this.debug){
-                                console.log('pcr discontinuity', pcr)
-                            }
-                            discontinuityLevel++
-                        } else {
-                            discontinuityLevel = 0
-                            this.currentPCR = pcr
-                        }
-                        pcrs[this.parsingPCR] = pointer
-                    }
-                }
-            } else { // not a pcr packet
-                if(this.parsingPCR){ // continue receiving the parsingPCR, no need for further checking cause it comes from same connection
-                    if(typeof(pcrs[this.parsingPCR]) == 'undefined'){
-                        pcrs[this.parsingPCR] = pointer
-                    }
-                } // else if no parsingPCR, is a new connection, ignore it until receive the first pcr packet to know where we are
+            if(pcr && typeof(pcrs[pcr]) == 'undefined'){
+                pcrs[pcr] = pointer
             }
             pointer += size
         }
-        let ret, result = {}, pcrTimes = Object.keys(pcrs)
+        let ret, result = {}
+        let pcrTimes = Object.keys(pcrs)
         if(pcrTimes.length > 1){
+            Object.keys(pcrs).slice(0, -1).forEach(pcr => {
+                if(this.pcrJournal.includes(pcr)){
+                    delete pcrs[pcr]
+                } else {
+                    this.pcrJournal.push(pcr)
+                }
+            })
+            pcrTimes = Object.keys(pcrs)
             if(this.debug){
                 console.log('pcrs received', pcrTimes.length)
             }
-            this.pcrRepeatCheckerLastValidPCRFoundTime = global.time() // reset pcr checking timeout counter
             result = {
-                start: this.keepInitialData ? 0 : parseInt(pcrs[pcrTimes[0]]),
+                start: parseInt(pcrs[pcrTimes[0]]),
                 end: parseInt(pcrs[pcrTimes[pcrTimes.length - 1]]),
                 leftover: parseInt(pcrs[pcrTimes[pcrTimes.length - 1]])
             }
         } else { // only one pcr or less found
             if(this.debug){
-                console.log('few pcrs received', pcrTimes.length, (global.time() - this.pcrRepeatCheckerLastValidPCRFoundTime), global.kbfmt(buf.length))
-            }
-            if(clear){
-                if(!pcrTimes.length && this.isPCRDiscontinuity(lastPCR) && (global.time() - this.pcrRepeatCheckerLastValidPCRFoundTime) > this.pcrRepeatCheckerTimeout){
-                    // after X seconds without receiving a valid pcr, give up and reset the pcr checking for next data
-                    if(this.debug){
-                        console.log('PCR CHECKER RESET', '('+ global.time() +'s - '+ this.pcrRepeatCheckerLastValidPCRFoundTime +'s) > '+ this.pcrRepeatCheckerTimeout, this.currentPCR, lastPCR)
-                    }
-                    this.pcrRepeatCheckerLastValidPCRFoundTime = global.time() // reset pcr checking timeout counter
-                    this.currentPCR = 0
-                }
+                console.log('few pcrs received', pcrTimes.length, global.kbfmt(buf.length))
             }
             result = {
                 leftover: 0
             }
         }
         if(typeof(result.start) != 'undefined'){
-            if(this.debug){
-                console.log('process', JSON.stringify(result), buf.length)
-            }
-            if(this.keepLeftOverData){
-                result.end = buf.length
-                result.leftover = buf.length
-            } 
             ret = buf.slice(result.start, result.end)  
             if(this.debug){
                 console.log('process', result, ret.length, 'start: '+ pcrTimes[0] +' ('+ pcrs[pcrTimes[0]] +'), end: '+ pcrTimes[pcrTimes.length - 1] +' ('+ pcrs[pcrTimes[pcrTimes.length - 1]] +')')
@@ -214,15 +156,9 @@ class MPEGTSPacketProcessor extends Events {
             if(this.debug){
                 console.log('process', 'no leftover')
             }
-        }
-        if(pcrLogIrregular && this.debug){
-            console.log('PCRLOG', pcrLog.join("\r\n"))
+            this.buffering = []
         }
         return ret
-    }
-    isPCRDiscontinuity(pcr){
-        let pcrGapLimit = 699999999
-        return this.currentPCR && Math.abs(this.currentPCR - pcr) > pcrGapLimit
     }
     checkSyncByte(c, pos){
         if(pos < 0 || pos > (c.length - 4)){
@@ -283,7 +219,9 @@ class MPEGTSPacketProcessor extends Events {
             console.log('clear')
         }
         this.buffering = []
-        this.parsingPCR = false
+        if(this.pcrJournal.length > this.maxPcrJournalSize){
+            this.pcrJournal = this.pcrJournal.slice(-this.maxPcrJournalSize)
+        }
     }
     destroy(){
         this.buffering = []

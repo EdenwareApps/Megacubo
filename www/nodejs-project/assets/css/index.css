@@ -12,6 +12,9 @@
     --animation-duration-normal: 0.36s;
     --animation-duration-long: 0.5s;
     --animation-duration-timing: ease-in-out;
+    --explorer-fx-nav-inflate: 1.06;
+    --explorer-fx-nav-deflate: 0.94;
+    --explorer-fx-nav-duration: 0.1s;
     --explorer-width: calc(100vw - 4vmin - var(--explorer-padding-right) - var(--explorer-padding-left));
     --explorer-height: calc(100vh - 2vmin - var(--explorer-padding-top) - var(--explorer-padding-bottom));
     --entries-per-row: 2;
@@ -78,25 +81,32 @@ html {
     max-width: 100vw;
     max-height: 100vh;
     touch-action: manipulation;
+    background-color: transparent !important;
 }
 body {
     margin: 0;
     overflow: hidden;
     height: 100vh;
+    background-color: transparent !important;
 }
 body.video {
-    background-color: transparent !important;
     --modal-background-color: rgba(0, 0, 0, 0.75);
 }
+#explorer, #explorer header, #osd-root, controls, wrap {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000;
+    will-change: transform;
+}
 body.video:not(.modal) #explorer header {
-    transition: transform 0.2s ease-in-out 0s;
-    transform: scale(1.04);
+    transition: transform var(--explorer-fx-nav-duration) ease-in-out 0s;
+    transform: scale(var(--explorer-fx-nav-inflate));
 }
 body.video #explorer, body.modal #explorer {
-    transform: scale(0.96);
+    transform: scale(var(--explorer-fx-nav-deflate));
 }
 body.video:not(.modal) #osd-root {
-    transform: scaleY(0.96);
+    transform: scaleY(var(--explorer-fx-nav-deflate));
 }
 body.video:not(.menu-playing) #explorer header .explorer-location, 
 body.video-playing.idle:not(.menu-playing) #explorer header .explorer-time, 
@@ -120,6 +130,7 @@ body.video.idle {
     display: flex;       
     align-items: baseline;
     justify-content: center;
+    background-color: transparent !important;
 }
 body:not(.video) #main {
     background: linear-gradient(to bottom, transparent 0%, var(--modal-background-color) calc(var(--explorer-header-height) + var(--explorer-padding-top) + (var(--explorer-padding) * 4)));
@@ -137,7 +148,7 @@ input {
     display: flex;
     flex-wrap: wrap;
     border-radius: var(--radius);
-    transition: transform 0.2s ease-in-out 0s;
+    transition: transform var(--explorer-fx-nav-duration) ease-in-out 0s;
     transform: none;    
 }
 #explorer header, #explorer content {
@@ -304,7 +315,7 @@ div#home-arrows > div > * {
     font-size: 0;
     width: var(--explorer-width);
     height: inherit;
-    transition: transform 0.2s ease-in-out 0s;
+    transition: transform var(--explorer-fx-nav-duration) ease-in-out 0s;
 }
 #explorer content a {
     width: calc(100% / var(--entries-per-row));
@@ -331,6 +342,9 @@ div#home-arrows > div > * {
 }
 #explorer content a .entry-icon-image i:not(.spin-x-alt) {
     opacity: var(--opacity-level-4);
+}
+#explorer content a .entry-icon-image i.fa-play-circle {
+    opacity: var(--opacity-level-3);
 }
 #explorer content a .entry-icon-image {
     width: 92%;
@@ -502,8 +516,8 @@ controls {
     box-sizing: border-box;
     background: linear-gradient(to bottom, transparent 0%, black 100%);   
     bottom: calc((var(--controls-height) + var(--seekbar-height)) * -1);
-    transition: bottom var(--animation-duration-normal), transform 0.2s ease-in-out 0s;
-    transform: scale(1.05);
+    transition: bottom var(--animation-duration-normal), transform var(--explorer-fx-nav-duration) ease-in-out 0s;
+    transform: scale(var(--explorer-fx-nav-inflate));
 }
 controls > div {
     display: flex;
@@ -564,7 +578,7 @@ body.audio:not(.miniplayer-cordova):not(.menu-playing) controls, body.casting:no
 }
 body.modal controls {
     visibility: visible;
-    transform: scale(0.96) !important;
+    transform: scale(var(--explorer-fx-nav-deflate)) !important;
 }
 body.miniplayer-cordova controls, body.miniplayer-cordova div#modal, body.miniplayer-cordova #explorer header  {
     display: none !important;
@@ -777,7 +791,7 @@ body.casting.video-playing #cast-layer {
     display: none; 
     flex-direction: column;
     align-items: flex-start;
-    transition: transform 0.2s ease-in-out 0s;
+    transition: transform var(--explorer-fx-nav-duration) ease-in-out 0s;
 }
 body.osd #osd-root {
     display: flex; 
@@ -789,9 +803,9 @@ body.video #osd-root {
     bottom: calc(var(--controls-height) + var(--padding) + var(--seekbar-height));
 }
 #osd-root > div {
-    font-size: var(--explorer-entry-details-font-size);
-    height: calc(1.5 * var(--explorer-entry-details-font-size));
-    color: var(--font-color);   
+    font-size: var(--explorer-entry-name-font-size);
+    height: calc(1.5 * var(--explorer-entry-name-font-size));
+    color: var(--font-color);
     display: flex;
     align-items: center;
     border-width: 0;
@@ -800,18 +814,21 @@ body.video #osd-root {
     text-shadow: 0 0 1vh #000, 0 0 6vh #000;
     margin-bottom: var(--padding-quarter);
     opacity: 1;
-    max-width: calc(100% - (9 * var(--explorer-entry-name-font-size))); /* dont override clock */ 
+    background: var(--modal-background-color);
+    max-width: calc(100% - (9 * var(--explorer-entry-name-font-size))); /* dont override clock */
 }
-#osd-root > div:not(.osd-highlight) {
-    background: #000;
-    padding: calc(var(--padding) / 8) var(--padding-half) calc(var(--padding) / 8)  var(--padding-half);
+#osd-root > div:not(.osd-highlight) {    
+    padding: calc(var(--padding) / 8) var(--padding) calc(var(--padding) / 8) var(--padding);
+    margin-left: var(--padding-half);
 }
 #osd-root > div.osd-highlight {
-    font-size: var(--explorer-entry-name-font-size);
-    height: var(--explorer-header-height);
+    font-size: calc(0.25 * var(--explorer-header-height));
+    height: calc(var(--explorer-header-height) - (2 * var(--padding)));
     opacity: 1;
-    margin-bottom: 0;
-    margin-left: var(--padding);
+    margin-bottom: calc(1.5 * var(--padding));
+    margin-left: var(--padding-half);
+    margin-top: var(--padding);
+    padding: 0 var(--padding);
 }
 #osd-root > div > div {
     /*
@@ -831,7 +848,7 @@ body.video #osd-root {
     align-items: center;
 }
 #osd-root > div.osd-highlight .osd-icon img, #osd-root > div.osd-highlight .osd-icon i {
-    font-size:  var(--explorer-entry-name-font-size);
+    font-size: calc(0.25 * var(--explorer-header-height));
 }
 #osd-root .osd-hidden {
     display: none !important;
@@ -887,8 +904,8 @@ div#modal {
     height: 100vh;
     z-index: 9;
     background: var(--modal-background-color);
-    transform: scale(1.05);
-    transition: transform 0.2s ease-in-out 0s;
+    transform: scale(var(--explorer-fx-nav-inflate));
+    transition: transform var(--explorer-fx-nav-duration) ease-in-out 0s;
 }
 div#modal > div {
     position: fixed;

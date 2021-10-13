@@ -43,7 +43,7 @@ class EntriesGroup extends Events {
     }
     cleanAtts(oentry){
         let entry = Object.assign({}, oentry);
-        ['class', 'path', 'users', 'position', 'renderer', 'servedIcon'].forEach(k => {
+        ['class', 'path', 'users', 'position', 'renderer'].forEach(k => {
             if(typeof(entry[k]) != 'undefined'){
                 delete entry[k]
             }

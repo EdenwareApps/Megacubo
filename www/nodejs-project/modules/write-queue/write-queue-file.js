@@ -3,21 +3,34 @@ const fs = require('fs'), Events = require('events')
 class WriteQueueFile extends Events {
 	constructor(file){
 		super()
+		this.autoclose = true
 		this.debug = false
 		this.file = file
 		this.written = 0
 		this.writing = false
 		this.writeQueue = []
+		this.defaultPosition = 0
 	}
 	write(data, position){
+		if(typeof(position) == 'undefined'){
+			position = this.defaultPosition
+			this.defaultPosition += data.length
+		}
 		this.writeQueue.push({data, position})
 		this.pump()
 	}
 	ready(cb){
-		if(this.writting || this.writeQueue.length){
-			this.once('end', cb)
-		} else {
+		let finish = () => {
+			if(this.fd){
+				fs.close(this.fd, () => {})
+				this.fd = null
+			}
 			cb()
+		}
+		if(this.writting || this.writeQueue.length){
+			this.once('end', finish)
+		} else {
+			finish()
 		}
 	}
 	prepare(cb){
@@ -41,20 +54,35 @@ class WriteQueueFile extends Events {
 		}
 		this.writing = true
 		this.prepare(() => {
-			fs.open(this.file, 'r+', (err, fd) => {
+			this.open(this.file, 'r+', err => {
 				if(err){
 					console.error(err)
 					this.writing = false
-					this.pump()
+					this.writeQueue = []
+					this.hasErr = err
+					this.emit('end')
 				} else {
-					this._write(fd, () => {
-						fs.close(fd, () => {})
+					this._write(this.fd, () => {
+						if(this.autoclose){
+							fs.close(this.fd, () => {})
+							this.fd = null
+						}
 						this.writing = false
-						return this.emit('end')
+						this.emit('end')
 					})
 				}
 			})
 		})
+	}
+	open(file, flags, cb){
+		if(this.fd){
+			cb(null)
+		} else {
+			fs.open(this.file, 'r+', (err, fd) => {
+				this.fd = fd
+				cb(err)
+			})
+		}
 	}
 	_write(fd, cb){
 		if(this.writeQueue.length){

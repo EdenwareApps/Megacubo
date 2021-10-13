@@ -523,6 +523,11 @@ class StreamerBase extends StreamerTools {
 			if(this.opts.debug){
 				this.opts.debug('VIDEOINTENT2', intent.endpoint, intent.mimetype, data, intent.opts, intent.info)
 			}
+			if(data.icon){
+				data.icon = global.icons.url + global.icons.key(data.icon)
+			} else {
+				data.icon = global.icons.url + global.channels.entryTerms(data).join(',')
+			}
 			this.emit('streamer-connect', intent.endpoint, intent.mimetype, data)
 			if(intent.transcoderStarting){
 				global.ui.emit('streamer-connect-suspend')
@@ -560,7 +565,7 @@ class StreamerBase extends StreamerTools {
 				console.warn('Transcoding started')
 				if(!silent){
 					global.ui.emit('streamer-connect-suspend')
-					global.osd.show(global.lang.TRANSCODING, 'fa-mega spin-x-alt', 'transcode', 'persistent')
+					global.osd.show(global.lang.TRANSCODING_WAIT, 'fa-mega spin-x-alt', 'transcode', 'persistent')
 				}
 				intent.transcode().then(() => {
 					this.emit('streamer-connect', intent.endpoint, intent.mimetype, intent.data)
@@ -946,9 +951,6 @@ class Streamer extends StreamerAbout {
 		const loadingEntriesData = [e, global.lang.AUTO_TUNING]
 		console.log('SETLOADINGENTRIES', loadingEntriesData)
 		global.explorer.setLoadingEntries(loadingEntriesData, true, txt)
-		if(global.config.get('show-logos')){
-			e = global.icons.prepareEntry(e)
-		}
 		console.log(e)
 		if(Array.isArray(results)){
 			this.playFromEntries(results, e.name, isMega ? e.url : '', txt, succeeded => {
@@ -998,9 +1000,6 @@ class Streamer extends StreamerAbout {
 		} else {
 			if(opts.url){
 				e = Object.assign(Object.assign({}, e), opts)
-				if(e.icon && !e.servedIcon){
-					e.servedIcon = global.icons.proxify(e.icon)
-				}
 			}
 			let terms = global.channels.entryTerms(e)
 			global.ui.emit('tuneable', global.channels.isChannel(terms))

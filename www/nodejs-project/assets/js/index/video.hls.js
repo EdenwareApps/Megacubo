@@ -5,7 +5,7 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 		super(container)
         this.recoverDecodingErrorDate = null
 		this.recoverSwapAudioCodecDate = null
-		this.src = ''
+		this.currentSrc = ''
         this.on('stop', () => {
             this.recoverDecodingErrorDate = null
 			this.recoverSwapAudioCodecDate = null
@@ -149,6 +149,13 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 				return true
 			}
 		})
+		this.hls.startLoad()
+		setTimeout(() => {
+			if(this.object.networkState == 2 && this.object.readyState == 2){
+				console.log('playback hanged, reskip')
+				this.skip()
+			}
+		}, 1000)
 		return skipped
 	}
     loadHLS(cb){
@@ -249,6 +256,11 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 							break
 						case Hls.ErrorDetails.FRAG_PARSING_ERROR:
 							console.error('Parsing error:' + data.reason, data.frag)
+							setTimeout(() => {
+								if(this.object.paused){
+									this.resume()
+								}
+							}, 500)
 							break
 						case Hls.ErrorDetails.KEY_LOAD_ERROR:
 							if(this.object.currentTime){
@@ -328,14 +340,7 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 				}
 			})
 			this.hls.on(Hls.Events.MANIFEST_PARSED, () => {
-				let promise = this.object.play()
-				if(promise){
-					promise.catch(err => {
-						if(this.active){
-							console.error(err, err.message, this.object.networkState, this.object.readyState)
-						}
-					})
-				}
+				this.resume()
 			})
 			this.hls.attachMedia(this.object)
 		}
@@ -351,7 +356,7 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 		}
 		this.time(0)
 		this.loadHLS(() => {
-			this.hls.loadSource(this.src)
+			this.hls.loadSource(this.currentSrc)
 			this.connect()
 		})
 	}
@@ -362,9 +367,12 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 		}
 		console.warn('Load source', src)
 		this.active = true
-		this.src = src
+		if(this.currentSrc != src){
+			this.currentSrc = src
+			this.currentMimetype = mimetype
+		}
 		this.loadHLS(() => {
-			this.hls.loadSource(this.src)
+			this.hls.loadSource(this.currentSrc)
 			this.connect()
 		})
 	}

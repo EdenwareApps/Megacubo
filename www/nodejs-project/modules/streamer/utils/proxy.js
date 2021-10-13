@@ -13,10 +13,10 @@ class StreamerProxy extends StreamerProxyBase {
 		this.opts.followRedirect = true
 		this.opts.forceExtraHeaders = null
 		if(this.opts.debug){
-			this.opts.debug('OPTS', this.opts)
+			console.log('OPTS', this.opts)
 		}
 		this.on('destroy', () => {
-			console.warn('proxy.destroy()', Object.keys(this.connections))
+			console.warn('proxy.destroy()', Object.keys(this.connections), global.traceback())
 			Object.keys(this.connections).forEach(this.destroyConn.bind(this))
 			this.connections = {}
 			if(this.server){
@@ -100,17 +100,17 @@ class StreamerProxy extends StreamerProxyBase {
 					if(typeof(replaces[dn]) == 'undefined'){
 						let df = segment.uri.length - dn.length
 						if(this.opts.debug){
-							this.opts.debug('dn', dn, df, segment.uri)
+							console.log('dn', dn, df, segment.uri)
 						}
 						u = this.absolutize(segment.uri, url)
 						let n = this.proxify(u)
 						replaces[dn] = n.substr(0, n.length - df)
 						if(this.opts.debug){
-							this.opts.debug('replace', dn, replaces[dn], df, n)
+							console.log('replace', dn, replaces[dn], df, n)
 						}
 						body = this.applyM3U8Replace(body, dn, replaces[dn])
 						if(this.opts.debug){
-							this.opts.debug('ok')
+							console.log('ok')
 						}
 					}
 				})
@@ -123,7 +123,7 @@ class StreamerProxy extends StreamerProxyBase {
 					let dn = this.dirname(url)
 					if(typeof(replaces[dn]) == 'undefined'){
 						if(this.opts.debug){
-							this.opts.debug('dn', dn)
+							console.log('dn', dn)
 						}
 						u = this.absolutize(playlist.uri, url)
 						if(!Object.keys(this.playlists[url]).includes(u)){
@@ -131,11 +131,11 @@ class StreamerProxy extends StreamerProxyBase {
 						}
 						replaces[dn] = this.dirname(this.proxify(u))
 						if(this.opts.debug){
-							this.opts.debug('replace', dn, replaces[dn])
+							console.log('replace', dn, replaces[dn])
 						}
 						body = this.applyM3U8Replace(body, dn, replaces[dn])
 						if(this.opts.debug){
-							this.opts.debug('ok')
+							console.log('ok')
 						}
 					}
 				})
@@ -174,7 +174,7 @@ class StreamerProxy extends StreamerProxyBase {
 			this.server = http.createServer(this.handleRequest.bind(this)).listen(0, this.opts.addr, (err) => {
 				if (err) {
 					if(this.opts.debug){
-						this.opts.debug('unable to listen on port', err)
+						console.log('unable to listen on port', err)
 					}
 					this.fail()
 					reject(err)
@@ -208,8 +208,8 @@ class StreamerProxy extends StreamerProxyBase {
 				}
 			}
 		}
-		if(this.debug){
-			this.debug('req starting...', req, req.url)
+		if(this.opts.debug){
+			console.log('req starting...', req, req.url)
 		}
 		const uid = this.uid()
 		const keepalive = this.committed && global.config.get('use-keepalive')
@@ -224,8 +224,8 @@ class StreamerProxy extends StreamerProxyBase {
 				delete reqHeaders['x-from-network-proxy']
 			}
 		}
-		if(this.debug){
-			this.debug('serving', url, req, path.basename(url), url, reqHeaders, uid)
+		if(this.opts.debug){
+			console.log('serving', url, req, path.basename(url), url, reqHeaders, uid)
 		}
 		if(this.type == 'network-proxy'){
 			console.log('network serving', url, reqHeaders)
@@ -236,7 +236,8 @@ class StreamerProxy extends StreamerProxyBase {
 			headers: reqHeaders,
 			authURL: this.opts.authURL || false, 
 			keepalive,
-			followRedirect: this.opts.followRedirect
+			followRedirect: this.opts.followRedirect,
+			debug: this.opts.debug
 		})
 		this.connections[uid] = {response, download}
 		const end = data => {
@@ -245,13 +246,13 @@ class StreamerProxy extends StreamerProxyBase {
 				this.destroyConn(uid, data, false)
 			}
 			if(this.opts.debug){
-				this.opts.debug('ended', uid, traceback())
+				console.log('ended', uid, traceback())
 			}
 		}
 		closed(req, response, () => {
 			if(!ended){ // req disconnected
 				if(this.opts.debug){
-					this.opts.debug('response closed', ended, response.ended)
+					console.log('response closed', ended, response.ended)
 				}
 				response.emit(this.internalRequestAbortedEvent)
 				response.end()
@@ -267,8 +268,8 @@ class StreamerProxy extends StreamerProxyBase {
 			}
 			if(this.committed){
 				global.osd.show(global.streamer.humanizeFailureMessage(err.response ? err.response.statusCode : 'timeout'), 'fas fa-times-circle', 'debug-conn-err', 'normal')
-				if(this.debug){
-					this.debug('download err', err)
+				if(this.opts.debug){
+					console.log('download err', err)
 				}
 			}
 		})
@@ -286,8 +287,8 @@ class StreamerProxy extends StreamerProxyBase {
 			if(this.opts.forceExtraHeaders){
 				headers = Object.assign(headers, this.opts.forceExtraHeaders)
 			}
-			if(this.debug){
-				this.debug('download response', statusCode, headers, uid)
+			if(this.opts.debug){
+				console.log('download response', statusCode, headers, uid)
 			}
 			if(keepalive){
 				headers['connection'] = 'keep-alive' // force keep-alive to reduce cpu usage, even on local connections, is it meaningful? I don't remember why I commented below that it would be broken :/
@@ -305,8 +306,8 @@ class StreamerProxy extends StreamerProxyBase {
 					headers['content-range'] = 'bytes 0-'+ (len - 1) +'/'+ len // improve upnp compat
 				}
 				if(req.method == 'HEAD'){
-					if(this.debug){
-						this.debug('download sent response headers', statusCode, headers)
+					if(this.opts.debug){
+						console.log('download sent response headers', statusCode, headers)
 					}
 					response.writeHead(statusCode, headers)
 					end()
@@ -336,15 +337,15 @@ class StreamerProxy extends StreamerProxyBase {
 					headers.location = location
 					statusCode = (statusCode >= 300 && statusCode < 400) ? statusCode : 307
 					response.writeHead(statusCode, headers)		
-					if(this.debug){
-						this.debug('download sent response headers', statusCode, headers)
+					if(this.opts.debug){
+						console.log('download sent response headers', statusCode, headers)
 					}			
 				} else {
 					// we'll avoid to passthrough 403 errors to the client as some streamsmay return it esporadically
 					statusCode = statusCode && ![401, 403].includes(statusCode) ? statusCode : 504
 					response.writeHead(statusCode, headers)	
-					if(this.debug){
-						this.debug('download sent response headers', statusCode, headers)
+					if(this.opts.debug){
+						console.log('download sent response headers', statusCode, headers)
 					}			
 
 				}
@@ -365,19 +366,19 @@ class StreamerProxy extends StreamerProxyBase {
 				headers['content-length'] = data.length
 				if(!response.headersSent){
 					response.writeHead(statusCode, headers)
-					if(this.debug){
-						this.debug('download sent response headers', statusCode, headers)
+					if(this.opts.debug){
+						console.log('download sent response headers', statusCode, headers)
 					}
 				}
 				if(this.opts.debug){
-					this.opts.debug('M3U8 ' + data, url)
+					console.log('M3U8 ' + data, url)
 				}
 			} else {
 				console.error('Invalid response from server', url, data)
 				if(!response.headersSent){
 					response.writeHead(504, headers)
-					if(this.debug){
-						this.debug('download sent response headers', 504, headers)
+					if(this.opts.debug){
+						console.log('download sent response headers', 504, headers)
 					}
 				}
 			}
@@ -399,8 +400,8 @@ class StreamerProxy extends StreamerProxyBase {
 			}
 		}
 		if(!response.headersSent){
-			if(this.debug){
-				this.debug('download sent response headers', statusCode, headers)
+			if(this.opts.debug){
+				console.log('download sent response headers', statusCode, headers)
 			}
 			response.writeHead(statusCode, headers)
 		}
@@ -439,8 +440,8 @@ class StreamerProxy extends StreamerProxyBase {
 	handleGenericResponse(download, statusCode, headers, response, end){
 		if(!response.headersSent){
 			response.writeHead(statusCode, headers)
-			if(this.debug){
-				this.debug('download sent response headers', statusCode, headers)
+			if(this.opts.debug){
+				console.log('download sent response headers', statusCode, headers)
 			}
 		}
 		download.on('data', chunk => response.write(chunk))

@@ -1,10 +1,11 @@
-const Events = require('events'), fs = require('fs'), path = require('path'), async = require('async')
+const Events = require('events'), fs = require('fs'), path = require('path')
 
 let FFmpegControllerUIDIterator = 1
 
 class FFmpegController extends Events {
-	constructor(input){
+	constructor(input, master){
 		super()
+		this.master = master
 		this.input = input
 		this.options = {
 			input: [],
@@ -19,7 +20,7 @@ class FFmpegController extends Events {
 		if(this.input){ 
 			// add these input options only if we have an input, not in -version, per example
 			cmd = cmd.concat([
-				'-loglevel', this.dest ? 'error' : 'info', // if logerror=(warning|error) it will not return the codec and bitrate data
+				'-loglevel', 'info', // if logerror=(warning|error) it will not return the codec and bitrate data
 				// '-analyzeduration', 10000000, // 10s in microseconds
 				// '-probesize', 10485760,	// 10MB
 				'-err_detect', 'ignore_err',
@@ -76,6 +77,7 @@ class FFmpegController extends Events {
 	run(){
 		let cmdArr = this.cmdArr()
 		global.ui.on('ffmpeg-callback-'+ this.uid, this.callback.bind(this))
+		global.ui.on('ffmpeg-metadata-'+ this.uid, this.metadataCallback.bind(this))
 		global.ui.emit('ffmpeg-exec', this.uid, cmdArr)
 		this.emit('start', cmdArr.join(' '))
 	}
@@ -83,6 +85,12 @@ class FFmpegController extends Events {
 		global.ui.emit('ffmpeg-kill', this.uid)
 		this.options.input = this.options.output = []
 		global.ui.removeAllListeners('ffmpeg-callback-'+ this.uid)
+		global.ui.removeAllListeners('ffmpeg-metadata-'+ this.uid)
+	}
+	metadataCallback(nfo){
+		let codecs = this.master.codecs(nfo), dimensions = this.master.dimensions(nfo)
+		if(codecs) this.emit('codecData', codecs)
+		if(dimensions) this.emit('dimensions', dimensions)
 	}
 	callback(err, output){
 		//console.log('ffmpeg.callback '+ this.uid +', '+ err +', '+ output)
@@ -370,7 +378,7 @@ class FFMPEG extends FFMPEGDiagnostic {
 		super()
 	}
 	create(input){
-		let ret = new FFmpegController(input)
+		let ret = new FFmpegController(input, this)
 		return ret
 	}
 	exec(input, cmd, cb){

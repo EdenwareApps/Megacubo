@@ -140,17 +140,17 @@ class ExplorerFx extends ExplorerPlayer {
 	}
 	fxNavIn(){
 		this.fxContainer.css('transition', 'none')
-		this.fxContainer.css('transform', 'scale(0.96)')
+		this.fxContainer.css('transform', 'scale(var(--explorer-fx-nav-deflate))')
 		setTimeout(() => {
-			this.fxContainer.css('transition', 'transform 0.2s ease-in-out 0s')
+			this.fxContainer.css('transition', 'transform var(--explorer-fx-nav-duration) ease-in-out 0s')
 			this.fxContainer.css('transform', 'none')
 		}, 0)
 	}
 	fxNavOut(){
 		this.fxContainer.css('transition', 'none')
-		this.fxContainer.css('transform', 'scale(1.04)')
+		this.fxContainer.css('transform', 'scale(var(--explorer-fx-nav-inflate))')
 		setTimeout(() => {
-			this.fxContainer.css('transition', 'transform 0.2s ease-in-out 0s')
+			this.fxContainer.css('transition', 'transform var(--explorer-fx-nav-duration) ease-in-out 0s')
 			this.fxContainer.css('transform', 'none')
 		}, 0)
 	}
@@ -800,7 +800,7 @@ class Explorer extends ExplorerLoading {
 		this._wrapper = this.wrapper.get(0)
 		this.templates = {
 			default: `
-<a tabindex="{tabindex}" href="{url}" title="{name}" aria-label="{name}" data-original-icon="{fa}" data-icon="{servedIcon}" data-path="{path}" data-type="{type}" onclick="explorer.action(event, this)">
+<a tabindex="{tabindex}" href="{url}" title="{name}" aria-label="{name}" data-original-icon="{fa}" data-path="{path}" data-type="{type}" onclick="explorer.action(event, this)">
 	<span class="entry-wrapper">
 		<span class="entry-data-in">
 			<span class="entry-name" aria-hidden="true">
@@ -828,7 +828,7 @@ class Explorer extends ExplorerLoading {
 	</span>
 </a>`,
 			input: `
-<a tabindex="{tabindex}" href="{url}" title="{name}" aria-label="{name}" data-default-value="{value}" data-original-icon="{fa}" data-icon="{servedIcon}" data-question="{question}" data-path="{path}" data-type="{type}" data-multiline="{multiline}" data-placeholder="{placeholder}" onclick="explorer.action(event, this)">
+<a tabindex="{tabindex}" href="{url}" title="{name}" aria-label="{name}" data-default-value="{value}" data-original-icon="{fa}" data-question="{question}" data-path="{path}" data-type="{type}" data-multiline="{multiline}" data-placeholder="{placeholder}" onclick="explorer.action(event, this)">
 	<span class="entry-wrapper">
 		<span class="entry-data-in">
 			<span class="entry-name" aria-hidden="true">
@@ -843,7 +843,7 @@ class Explorer extends ExplorerLoading {
 	</span>
 </a>`,
 			select: `
-<a tabindex="{tabindex}" href="{url}" title="{name}" aria-label="{name}" data-original-icon="{fa}" data-icon="{servedIcon}" data-question="{question}" data-path="{path}" data-type="{type}" onclick="explorer.action(event, this)">
+<a tabindex="{tabindex}" href="{url}" title="{name}" aria-label="{name}" data-original-icon="{fa}" data-question="{question}" data-path="{path}" data-type="{type}" onclick="explorer.action(event, this)">
 	<span class="entry-wrapper">
 		<span class="entry-data-in">			
 			<span class="entry-name" aria-hidden="true">
@@ -858,7 +858,7 @@ class Explorer extends ExplorerLoading {
 	</span>
 </a>`,
 			slider: `
-<a tabindex="{tabindex}" href="{url}" title="{name}" aria-label="{name}" data-default-value="{value}" data-range-start="{range.start}" data-range-end="{range.end}" data-mask="{mask}" data-original-icon="{fa}" data-icon="{servedIcon}" data-question="{question}" data-path="{path}" data-type="{type}" onclick="explorer.action(event, this)">
+<a tabindex="{tabindex}" href="{url}" title="{name}" aria-label="{name}" data-default-value="{value}" data-range-start="{range.start}" data-range-end="{range.end}" data-mask="{mask}" data-original-icon="{fa}" data-question="{question}" data-path="{path}" data-type="{type}" onclick="explorer.action(event, this)">
 	<span class="entry-wrapper">
 		<span class="entry-data-in">		
 			<span class="entry-name" aria-hidden="true">
@@ -914,7 +914,7 @@ class Explorer extends ExplorerLoading {
 	render(entries, path, icon){
 		this.rendering = true
 		clearTimeout(this.scrollingTimer)
-		let html='', targetScrollTop = 0
+		let html = '', targetScrollTop = 0
 		if(typeof(this.selectionMemory[path]) != 'undefined'){
 			targetScrollTop = this.selectionMemory[path].scroll
 		}
@@ -1016,7 +1016,8 @@ class Explorer extends ExplorerLoading {
 				})
 				if(this.debug){
 					console.warn("UPDATING RANGE", entries, traceback())
-				}			
+				}
+				this.app.emit('explorer-update-range', this.range, this.path)
 				entries.forEach(e => {
 					if(e.type){
 						var type = elements[e.tabindex].getAttribute('data-type')
@@ -1263,9 +1264,6 @@ class Explorer extends ExplorerLoading {
 				e.path +=  '/'
 			}
 			e.path += e.name
-		}
-		if(!e.servedIcon || e.servedIcon.indexOf('//') == -1){
-			e.servedIcon = ''
 		}
 		return e
 	}

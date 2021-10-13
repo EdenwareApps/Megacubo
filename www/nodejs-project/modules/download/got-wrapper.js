@@ -4,7 +4,7 @@ const agentOpts = {
 	keepAlive: true,
 	freeSocketTimeout: 10000,
 	timeout: 15000,
-	maxSockets: 3,
+	maxSockets: 8,
 	maxFreeSockets: 5,
 	socketActiveTTL: null
 }

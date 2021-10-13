@@ -67,10 +67,7 @@ class History extends EntriesGroup {
                 })
                 if(es.length){
                     pos = 0
-                    let defs = {hookId: this.key, fa: 'fas fa-undo', details: '<i class="fas fa-play-circle"></i> '+ global.lang.KEEP_WATCHING}
-                    if(global.config.get('show-logos')){
-                        defs.servedIcon = global.icons.generate(global.channels.entryTerms(es[0]), es[0].icon)
-                    }
+                    let defs = {hookId: this.key, fa: 'fas fa-undo', class: 'entry-icon', details: '<i class="fas fa-play-circle"></i> '+ global.lang.KEEP_WATCHING}
                     entries.splice(pos, 0, Object.assign(Object.assign({}, es[0]), defs))
                 } else {
                     entries.splice(pos, 0, this.entry())

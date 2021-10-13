@@ -14,7 +14,8 @@ class Any2HLS extends Events {
             port: 0,
             videoCodec: 'copy',
             audioCodec: 'copy',
-            inputFormat: null
+            inputFormat: null,
+            isLive: true
         };
         this.setOpts(opts)
     }
@@ -30,22 +31,24 @@ class Any2HLS extends Events {
         }
     }
     genUID(cb){          
-        if(!this.uid){
+        if(this.uid){
+            cb()
+        } else {
             this.uid = parseInt(Math.random() * 1000000000)
-        }
-        fs.readdir(this.opts.workDir, (err, files) => {
-            let next = files => {                
-                while(files.includes(String(this.uid))) {
-                    this.uid++
+            fs.readdir(this.opts.workDir, (err, files) => {
+                let next = files => {                
+                    while(files.includes(String(this.uid))) {
+                        this.uid++
+                    }
+                    cb()
                 }
-                cb()
-            }
-            if(err){
-                fs.mkdir(path.dirname(this.opts.workDir), {recursive: true}, () => next([]))
-            } else {
-                next(files)
-            }
-        })
+                if(err){
+                    fs.mkdir(path.dirname(this.opts.workDir), {recursive: true}, () => next([]))
+                } else {
+                    next(files)
+                }
+            })
+        }
     }
     waitFile(file, timeout, m3u8Verify) {
         return new Promise((resolve, reject) => {
@@ -247,6 +250,9 @@ class Any2HLS extends Events {
     }
     serve(){
         return new Promise((resolve, reject) => {
+            if(this.server){
+                return resolve()
+            }
             this.server = http.createServer((req, response) => {
                 const keepalive = this.committed && global.config.get('use-keepalive')
 				const file = this.unproxify(req.url.split('#')[0]), fail = err => {
@@ -316,7 +322,7 @@ class Any2HLS extends Events {
             })
         })
     }
-    start(){
+    start(restarting){
         return new Promise((resolve, reject) => {
             const startTime = global.time()
             this.genUID(() => {
@@ -332,7 +338,13 @@ class Any2HLS extends Events {
                 } else if(lwt < 30) { // too low will cause isBehindLiveWindowError
                     lwt = 30
                 }
-                let hlsListSize = Math.ceil(lwt / fragTime)
+                let hlsListSize = Math.ceil(lwt / fragTime), hlsFlags = 'delete_segments'
+                if(this.opts.isLive){
+                    hlsFlags += '+omit_endlist'
+                }
+                if(restarting){
+                    hlsFlags += '+append_list'
+                }
                 this.decoder = global.ffmpeg.create(this.source).
                     
                     /* cast fix try
@@ -351,7 +363,7 @@ class Any2HLS extends Events {
                     cast fix try end */
 
                     outputOptions('-fflags', '+igndts').
-                    outputOptions('-hls_flags', 'delete_segments'). // ?? https://www.reddit.com/r/ffmpeg/comments/e9n7nb/ffmpeg_not_deleting_hls_segments/
+                    outputOptions('-hls_flags', hlsFlags). // ?? https://www.reddit.com/r/ffmpeg/comments/e9n7nb/ffmpeg_not_deleting_hls_segments/
                     outputOptions('-hls_time', fragTime).
                     outputOptions('-hls_list_size', hlsListSize).
                     outputOptions('-map', '0:a?').
@@ -376,8 +388,8 @@ class Any2HLS extends Events {
                     }
                 }
                 if(this.opts.videoCodec == 'libx264') {
-                    this.decoder.
                     /* HTML5 compat start */
+                    this.decoder.
                     outputOptions('-profile:v', 'baseline').
                     outputOptions('-shortest').
                     outputOptions('-pix_fmt', 'yuv420p').
@@ -387,16 +399,18 @@ class Any2HLS extends Events {
 
                     outputOptions('-crf', global.config.get('ffmpeg-crf')) // we are encoding for watching, so avoid to waste too much time and cpu with encoding, at cost of bigger disk space usage
 
+                    //this.decoder.outputOptions('-filter_complex', 'scale=iw*min(1\,min(640/iw\,360/ih)):-1')
+
                     let resolutionLimit = global.config.get('transcoding')
                     switch(resolutionLimit){
                         case '480p':
-                            this.decoder.outputOptions('-vf', 'scale=\'min(852,iw)\':min\'(480,ih)\':force_original_aspect_ratio=decrease,pad=852:480:(ow-iw)/2:(oh-ih)/2')
+                            this.decoder.outputOptions('-vf', 'scale=\'min(852,iw)\':min\'(480,ih)\':force_original_aspect_ratio=decrease')
                             break
                         case '720p':
-                            this.decoder.outputOptions('-vf', 'scale=\'min(1280,iw)\':min\'(720,ih)\':force_original_aspect_ratio=decrease,pad=1280:720:(ow-iw)/2:(oh-ih)/2')
+                            this.decoder.outputOptions('-vf', 'scale=\'min(1280,iw)\':min\'(720,ih)\':force_original_aspect_ratio=decrease')
                             break
                         case '1080p':
-                            this.decoder.outputOptions('-vf', 'scale=\'min(1920,iw)\':min\'(1080,ih)\':force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2')
+                            this.decoder.outputOptions('-vf', 'scale=\'min(1920,iw)\':min\'(1080,ih)\':force_original_aspect_ratio=decrease')
                             break
                     }
                 }
@@ -432,7 +446,9 @@ class Any2HLS extends Events {
                 once('end', data => {
                     if(!this.destroyed){
                         console.warn('file ended '+ data, traceback())
-                        this.destroy()
+                        if(this.opts.isLive && this.committed){
+                            this.start(true).catch(console.error)
+                        }
                     }
                 }).
                 on('error', err => {
@@ -443,8 +459,12 @@ class Any2HLS extends Events {
                         if(m && m.length > 1){
                             err = parseInt(m[1])
                         }
-                        this.emit('fail', err)
-                        this.destroy()
+                        if([404].includes(err) || !this.opts.isLive || !this.committed){
+                            this.emit('fail', err)
+                            this.destroy()
+                        } else {
+                            this.start(true).catch(console.error)
+                        }
                     }
                 }).
                 on('start', (commandLine) => {
@@ -452,7 +472,9 @@ class Any2HLS extends Events {
                         return
                     }
                     console.log('Spawned FFmpeg with command: ' + commandLine, 'file:', this.decoder.file, 'workDir:', this.opts.workDir, 'cwd:', process.cwd(), 'PATHs', global.paths, 'cordova:', !!global.cordova)
-                })
+                }).
+                on('codecData', codecs => this.emit('codecData', codecs)).
+                on('dimensions', dimensions => this.emit('dimensions', dimensions))
                 this.decoder.file = path.resolve(this.opts.workDir + path.sep + this.uid + path.sep + 'output.m3u8')
                 fs.mkdir(path.dirname(this.decoder.file), {
                     recursive: true

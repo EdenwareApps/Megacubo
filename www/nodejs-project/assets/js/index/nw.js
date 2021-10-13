@@ -30,27 +30,41 @@ class FFMpeg {
 		}
 		this.tmpdir = require('os').tmpdir()
 	}
+	isMetadata(s){
+		return s.indexOf('Stream #0:0: ') != -1
+	}
 	exec(cmd, cb){
 		if(!this.cp){
 			this.cp = top.require('child_process')
 		}
-		let stdout = '', stderr = '', child = this.cp.spawn(this.executable, cmd, {
+		let gotMetadata, output = '', child = this.cp.spawn(this.executable, cmd, {
 			cwd: this.tmpdir, 
 			killSignal: 'SIGINT'
 		})
-		child.stdout.on('data', s => stdout += s)
-		child.stderr.on('data', s => stderr += s)
+		const maxLogLength = 1 * (1024 * 1024), log = s => {
+			s = String(s)
+			output += s
+			if(output.length > maxLogLength){
+				output = output.substr(-maxLogLength)
+			}
+			if(!gotMetadata && this.isMetadata(s)){
+				gotMetadata = true
+				cb('metadata-'+ output)
+			}
+		}
+		child.stdout.on('data', log)
+		child.stderr.on('data', log)
 		child.on('error', err => {
 			delete this.childs[child.pid]
-			console.log('FFEXEC DONE', cmd, child, err, stdout, stderr)
+			console.log('FFEXEC DONE', cmd, child, err, output)
 			if (err) {
-				cb(String(err || stderr) || 'error')
+				cb(String(err || output) || 'error')
 			}
 		})
 		child.once('close', () => {
 			delete this.childs[child.pid]
-			console.log('FFEXEC DONE', cmd, child, stdout, stderr)
-			cb('return-'+ (stderr || stdout))
+			console.log('FFEXEC DONE', cmd, child, output)
+			cb('return-'+ output)
 		})
 		console.log('FFEXEC '+ this.executable, cmd, child)
 		this.childs[child.pid] = child

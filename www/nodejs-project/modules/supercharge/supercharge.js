@@ -314,16 +314,18 @@ function patch(scope){
 		return scope.os().networkInterfaces()
 	}
     scope.networkIP = () => {
-		let interfaces = scope.networkInterfaces()
+		let interfaces = scope.networkInterfaces(), addr = '127.0.0.1', skipIfs = new RegExp('(vmware|virtualbox)', 'i')
 		for (let devName in interfaces) {
-		  let iface = interfaces[devName]
-		  for (let i = 0; i < iface.length; i++) {
-			let alias = iface[i]
-			if (alias.family === 'IPv4' && !alias.internal && scope.isNetworkIP(alias.address))
-			  return alias.address
-		  }
+			if(devName.match(skipIfs)) continue
+			let iface = interfaces[devName]
+			for (let i = 0; i < iface.length; i++) {
+				let alias = iface[i]
+				if (alias.family === 'IPv4' && !alias.internal && scope.isNetworkIP(alias.address)){
+					addr = alias.address
+				}
+			}
 		}
-		return '127.0.0.1'
+		return addr
 	}
 }
 

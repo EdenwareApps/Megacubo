@@ -437,12 +437,12 @@ class Explorer extends Events {
         }
         return new Promise((resolve, reject) => {
             this.emit('open', destPath)
-            let icon = '', name = this.basename(destPath), parentPath = this.dirname(destPath)
+            let parentEntry, name = this.basename(destPath), parentPath = this.dirname(destPath)
             let finish = es => {                
                 this.path = destPath
                 es = this.addMetaEntries(es, destPath, parentPath)
                 this.pages[this.path] = es
-                this.render(this.pages[this.path], this.path, icon)
+                this.render(this.pages[this.path], this.path, parentEntry)
                 resolve(true)
             }
             let next = ret => {
@@ -450,14 +450,14 @@ class Explorer extends Events {
                 if(this.opts.debug){
                     console.log('readen', destPath, tabindex, ret, traceback())
                 }
-                icon = ret.parent ? (ret.parent.servedIcon || ret.parent.fa || '') : ''
+                parentEntry = ret.parent
                 if(name){
                     let e = this.selectEntry(ret.entries, name, tabindex, isFolder)
                     if(this.opts.debug){
                         console.log('selectEntry', ret.entries, name, tabindex, isFolder, e)
                     }
                     if(e){
-                        icon = e.servedIcon || e.fa || ''
+                        parentEntry = e
                         if(e.type && ['group', 'select'].includes(e.type)){
                             this.readEntry(e, parentPath).then(es => {
                                 this.applyFilters(es, destPath).then(finish).catch(reject)
@@ -475,7 +475,7 @@ class Explorer extends Events {
                     }
                 } else {
                     this.path = destPath
-                    this.render(this.pages[this.path], this.path, icon)
+                    this.render(this.pages[this.path], this.path, parentEntry)
                     resolve(true)
                 }
             }
@@ -558,7 +558,7 @@ class Explorer extends Events {
             this.read(destPath, tabindex).then(ret => {
                 if(ret != -1){
                     let d = this.dirname(destPath)
-                    let icon = ret.parent ? (ret.parent.servedIcon ? ret.parent.servedIcon : ret.parent.fa) : ''
+                    let icon = ret.parent ? ret.parent.fa : ''
                     global.ui.emit('explorer-select', ret.entries, destPath, icon)
                 }
             }).catch(global.displayErr)
@@ -619,9 +619,9 @@ class Explorer extends Events {
         })
         return nentries
     }
-    render(es, path, icon, backTo){
+    render(es, path, parentEntryOrIcon, backTo){
         if(this.opts.debug){
-            console.log('render', es, path, icon, backTo)
+            console.log('render', es, path, parentEntryOrIcon, backTo)
         }
         if(Array.isArray(es)){
             this.currentEntries = es.slice(0)
@@ -648,8 +648,9 @@ class Explorer extends Events {
             this.syncPages()
         }
         if(this.rendering){
+            const icon = typeof(parentEntryOrIcon) == 'string' ? parentEntryOrIcon : (parentEntryOrIcon ? parentEntryOrIcon.fa : 'fas fa-home')
             global.ui.emit('render', this.cleanEntries(this.checkFlags(this.currentEntries), 'users,terms'), path, icon)
-            this.emit('render', this.currentEntries, path, icon, backTo)
+            this.emit('render', this.currentEntries, path, parentEntryOrIcon, backTo)
         }
     }
     suspendRendering(){

@@ -33,6 +33,8 @@ class FFmpegController {
                     } else {
                         this.executionIds[id] = executionId
                     }
+                } else if(type == 'metadata') {
+                    app.emit('ffmpeg-metadata-'+ id, info)
                 } else {
                     delete this.executionIds[id]
                     if(trimResponse) info = this.trimErrorMessage(info)
