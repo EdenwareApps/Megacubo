@@ -31,7 +31,7 @@ class FFMpeg {
 		this.tmpdir = require('os').tmpdir()
 	}
 	isMetadata(s){
-		return s.indexOf('Stream #0:0: ') != -1
+		return s.indexOf('Stream mapping:') != -1
 	}
 	exec(cmd, cb){
 		if(!this.cp){

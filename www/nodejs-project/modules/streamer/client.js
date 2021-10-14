@@ -923,8 +923,10 @@ class StreamerAndroidNetworkIP extends StreamerClientTimeWarp {
         super(controls, app)
         if(parent.cordova){
             parent.plugins.megacubo.on('network-ip', ip => {
-                console.warn('Network IP received: '+ ip)
-                this.app.emit('network-ip', ip)
+                if(ip){
+                    console.warn('Network IP received: '+ ip)
+                    this.app.emit('network-ip', ip)
+                }
             })
             this.updateNetworkIp()
             this.on('start', () => this.updateNetworkIp())

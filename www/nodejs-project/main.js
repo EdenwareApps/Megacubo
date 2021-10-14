@@ -498,7 +498,7 @@ function init(language){
         ui.on('network-state-up', () => setNetworkConnectionState(true))
         ui.on('network-state-down', () => setNetworkConnectionState(false))
         ui.on('network-ip', ip => {
-            if(ip){
+            if(ip && isNetworkIP(ip)){
                 global.networkIP = () => {
                     return ip
                 }

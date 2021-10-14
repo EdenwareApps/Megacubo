@@ -105,7 +105,7 @@ class FFmpegController extends Events {
 class FFMPEGHelper extends Events {
 	constructor(){
 		super()
-		this.debug = true
+		this.debug = false
 		this.executable = require('path').resolve('ffmpeg/ffmpeg')
 		if(process.platform == 'win32'){
 			this.executable += '.exe'

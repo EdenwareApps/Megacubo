@@ -146,7 +146,7 @@ class HLSRequests extends StreamerProxyBase {
 				}) 
 				if(mediaType == 'video'){
 					const processor = new MPEGTSPacketProcessor()
-					processor.debug = true
+					processor.debug = false
 					processor.packetFilterPolicy = this.packetFilterPolicy
 					processor.keepInitialData = this.keepInitialData
 					processor.keepLeftOverData = this.keepLeftOverData

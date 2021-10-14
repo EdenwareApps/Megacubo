@@ -5,7 +5,7 @@ class StreamerNetworkProxy extends StreamerProxy {
 	constructor(port){
 		super('', {})
 		this.type = 'network-proxy'
-        this.opts.debug = true
+        this.opts.debug = false
         this.sourcePort = port
 	}
     proxify(url){

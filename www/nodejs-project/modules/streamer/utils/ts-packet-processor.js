@@ -13,7 +13,7 @@ class MPEGTSPacketProcessor extends Events {
         this.bufferSize = (512 * 1024) // 512KB
         this.maxPcrJournalSize = 2048
         this.pcrJournal = []
-        this.debug = true
+        this.debug = false
     }
 	len(data){
 		if(!data){
