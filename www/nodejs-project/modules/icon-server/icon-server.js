@@ -217,7 +217,7 @@ class IconServerStore extends IconSearch {
                     return 1
                 }
             } else {
-                console.log('BAD MAGIC', magic, String(content).substr(0, 128))
+                console.log('BAD MAGIC', magic, content)
             }
         }
     }
@@ -285,13 +285,103 @@ class IconServerStore extends IconSearch {
     }
 }
 
-class IconServer extends IconServerStore {
+class IconFetchSem extends IconServerStore {
+    constructor(opts){    
+        super()
+        this.fetching = {}
+    }
+    isFetching(url){
+        return typeof(this.fetching[url]) != 'undefined'
+    }
+    setFetching(url){
+        if(!this.isFetching(url)){
+            this.fetching[url] = []
+        }
+    }
+    waitFetching(url, resolve, reject){
+        this.fetching[url].push({resolve, reject})
+    }
+    releaseFetching(url, ret){
+        const cbs = this.fetching[url].map(r => r.resolve)
+        delete this.fetching[url]
+        cbs.forEach(cb => cb(ret))
+    }
+    releaseFetchingErr(url, ret){
+        const cbs = this.fetching[url].map(r => r.reject)
+        delete this.fetching[url]
+        cbs.forEach(cb => cb(ret))
+    }
+    fetchURL(url){  
+        return new Promise((resolve, reject) => { 
+            if(typeof(url) != 'string' || url.indexOf('//') == -1){
+                return reject('bad url')
+            }
+            if(this.isFetching(url)){
+                return this.waitFetching(url, resolve, reject)
+            }
+            const key = this.key(url)
+            if(this.opts.debug){
+                console.warn('WILLFETCH', url)
+            }
+            this.setFetching(url)
+            this.checkHTTPCache(key).then(file => {
+                if(this.opts.debug){
+					console.log('fetchURL', url, 'cached')
+                }
+                this.releaseFetching(url, {key, file})
+                resolve({key, file})
+            }).catch(err => {
+                if(this.opts.debug){
+					console.log('fetchURL', url, 'request', err)
+                }
+                this.schedule('download', done => {
+                    const file = this.resolveHTTPCache(key)
+                    global.Download.file({
+                        url,
+                        downloadLimit: this.opts.downloadLimit,
+                        retries: 3,
+                        headers: {
+                            'content-encoding': 'identity'
+                        },
+                        file
+                    }).then(ret => {
+                        this.saveHTTPCacheExpiration(key, () => {
+                            this.validateFile(file).then(() => {
+                                if(this.opts.debug){
+                                    console.log('fetchURL', url, 'validated')
+                                }
+                                resolve({key, file})
+                                this.releaseFetching(url, {key, file})
+                            }).catch(err => {
+                                if(this.opts.debug){
+                                    console.log('fetchURL', url, 'NOT validated')
+                                }
+                                reject(err)
+                                this.releaseFetchingErr(url, err)
+                            }).finally(done)
+                        })
+                    }).catch(err => {
+                        err = 'Failed to read URL (2): '+ url +' '+ err
+                        if(this.opts.debug){
+                            console.log('fetchURL', err)
+                        }
+                        reject(err)
+                        this.releaseFetchingErr(url, err)
+                        done()
+                    })
+                })
+            })
+        })
+    }
+}
+
+class IconServer extends IconFetchSem {
     constructor(opts){    
         super()
         this.opts = {
             addr: '127.0.0.1',
             port: 0, // let the http.server sort
-            downloadLimit: 256 * 1024, // 256kb
+            downloadLimit: 2 * (1024 * 1024), // 2mb
             folder: './cache',
             debug: true
         }
@@ -308,7 +398,7 @@ class IconServer extends IconServerStore {
 		})
         this.closed = false
         this.server = false
-        this.schedulingLimits = {download: 12, adjust: 1}
+        this.schedulingLimits = {download: 20, adjust: 1}
         this.activeSchedules = {}
         this.schedules = {}
         this.rendering = {}
@@ -407,7 +497,6 @@ class IconServer extends IconServerStore {
         }
         if(path == global.explorer.path){
             range = this.addRenderTolerance(range, global.explorer.pages[path].length)
-            console.error('renderRange', range, path, this.renderingPath)
             if(path != this.renderingPath){
                 Object.keys(this.rendering).forEach(i => {
                     if(i != -1 && this.rendering[i]){
@@ -437,41 +526,6 @@ class IconServer extends IconServerStore {
                 })
             }
         }
-    }
-    fetchURL(url){  
-        return new Promise((resolve, reject) => { 
-            if(typeof(url) != 'string' || url.indexOf('//') == -1){
-                return reject('bad url')
-            }
-            const key = this.key(url)
-            if(this.opts.debug){
-                console.warn('WILLFETCH', url)
-            }
-            this.checkHTTPCache(key).then(file => {
-                if(this.opts.debug){
-					console.log('fetchURL', url, 'cached')
-                }
-                resolve(file)
-            }).catch(err => {
-                if(this.opts.debug){
-					console.log('fetchURL', url, 'request', err)
-                }
-                const file = this.resolveHTTPCache(key)
-                global.Download.file({
-                    url,
-                    responseType: 'buffer',
-                    resolveBodyOnly: true,
-                    downloadLimit: this.opts.downloadLimit,
-                    retries: 3,
-                    headers: {
-                        'content-encoding': 'identity'
-                    },
-                    file
-                }).then(resolve).catch(err => {
-                    reject('Failed to read URL (2): ' + url)
-                })
-            })
-        })
     }
     listen(){
         if(!this.server){

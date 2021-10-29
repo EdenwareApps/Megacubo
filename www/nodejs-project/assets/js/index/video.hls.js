@@ -25,6 +25,11 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
             })
         }
         this.hls.recoverMediaError()
+		setTimeout(() => {
+			if(this.object.paused){
+				this.resume()
+			}
+		}, 500)
     }
     handleMediaError(data) {
 		if(!this.active) return
@@ -290,7 +295,7 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 							this.hls.recoverMediaError()
 							break
 						case Hls.ErrorDetails.BUFFER_ADD_CODEC_ERROR:
-							console.error('Buffer add codec error for ' + data.mimeType + ':' + data.err.message)
+							console.error('Buffer add codec error for ' + data.mimeType + (data.err ? ':' + data.err.message : ''))
 							break
 						case Hls.ErrorDetails.BUFFER_APPENDING_ERROR:
 							console.error('Buffer appending error', parseInt(this.object.duration))

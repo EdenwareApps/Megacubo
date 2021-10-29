@@ -1,43 +1,50 @@
 // https://stackoverflow.com/a/668017
 
-(function (w){
-    const timeout = 5000
-    w.lastIdleTime = ((new Date()).getTime() / 1000)
-    let lck, lckTimer, j = w.jQuery, jw = j(w), idle = false, idleTimer = null, reset = () => {
-        if(!lck){
-            clearTimeout(idleTimer)
-            if(idle){
-                w.lastIdleTime = ((new Date()).getTime() / 1000)
-                w.isIdle = idle = false
-                w.dispatchEvent(new CustomEvent('idle-stop'))
+class Idle extends EventEmitter {
+    constructor(){
+        super()
+        this.timeout = 5000
+        this.lastIdleTime = ((new Date()).getTime() / 1000)
+        this.idle = false
+        this.idleTimer = null
+        window.addEventListener('appready', () => {
+            this.reset()
+            app.on('streamer-connect', () => this.reset())
+            app.on('streamer-disconnect', () => this.reset())
+            jQuery(window).on('focus resize mousemove mousedown touchstart touchmove keyup play', () => {
+                setTimeout(() => this.reset(), 400)
+            }).on('blur', () => this.start())
+        })
+    }
+    reset(){
+        if(!this.locked){
+            clearTimeout(this.idleTimer)
+            if(this.idle){
+                this.lastIdleTime = ((new Date()).getTime() / 1000)
+                this.isIdle = this.idle = false
+                this.emit('stop')
             }
-            idleTimer = setTimeout(start, timeout) //new timer
+            this.idleTimer = setTimeout(() => this.start(), this.timeout) //new timer
         }
-    }, start = () => {
-        if(!lck){
-            if (!idle){
-                w.idleTime = ((new Date()).getTime() / 1000)
-                w.isIdle = idle = true
-                w.dispatchEvent(new CustomEvent('idle-start'))
+    }
+    start(){
+        if(!this.locked){
+            if (!this.idle){
+                this.idleTime = ((new Date()).getTime() / 1000)
+                this.isIdle = this.idle = true
+                this.emit('start')
             }
         }
-    }, lock = secs => {
-        if(lckTimer){
-            clearTimeout(lckTimer)
+    }
+    lock(secs){
+        if(this.lockTimer){
+            clearTimeout(this.lockTimer)
         }
-        lck = true, lckTimer = setTimeout(() => {
-            lck = false
+        this.locked = true
+        this.lockTimer = setTimeout(() => {
+            this.locked = false
         }, secs * 1000)
     }
-    w.idleStart = start.bind(this)
-    w.idleStop = reset.bind(this)
-    w.idleLock = lock.bind(this)
-    w.addEventListener('appready', () => {
-        reset()
-        jw.on('focus resize mousemove mousedown touchstart touchmove keyup play', () => {
-            setTimeout(reset, 400)
-        }).on('blur', start)
-        app.on('streamer-connect', reset)
-        app.on('streamer-disconnect', reset)
-    })
-})(window)
+}
+
+window.idle = new Idle()

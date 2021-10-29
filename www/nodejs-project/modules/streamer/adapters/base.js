@@ -38,6 +38,12 @@ class StreamerAdapterBase extends Events {
 		this.bitrateCheckBuffer = {}
 		this.downloadLogging = {}
     }
+    isTranscoding(){
+        if(this.transcoderStarting || this.transcoder){
+			return true
+		}
+		return this.adapters.some(a => a.isTranscoding && a.isTranscoding())
+    }
     setOpts(opts){
         if(opts && typeof(opts) == 'object'){     
 			Object.keys(opts).forEach((k) => {
@@ -54,6 +60,7 @@ class StreamerAdapterBase extends Events {
 	}
     connectAdapter(adapter){  
 		this.adapters.push(adapter) 
+        adapter.mediaType = this.mediaType
         adapter.on('dimensions', dimensions => {
 			if(dimensions && this._dimensions != dimensions){
 				this._dimensions = dimensions

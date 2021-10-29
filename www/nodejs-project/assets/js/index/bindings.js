@@ -113,6 +113,7 @@ function loaded(){
     	s.display = 'none'
     	s.visibility = 'visible'
 		s.display = 'block'
+		document.body.style.backgroundImage = 'none'
 		document.getElementById('info').style.display = 'none'
 		document.getElementById('background').style.visibility = 'visible'
 		splash.parentNode.removeChild(splash)
@@ -247,30 +248,14 @@ if(window.cordova){
 channelGetLangCallback()
 app.postMessage({action: 'app_js_ready'}, location.origin)
 
-if(typeof(IonicDeeplink) != 'undefined'){
-	IonicDeeplink.route(
-		{'/assistir/:chId': {target: 'ch', parent: 'chs'}},
-		match => {
-			console.log('IonicDeeplink match: ' + JSON.stringify(match))
-			let p = match['$args']['chId']
+function handleOpenURL(url) { // cordova-plugin-customurlscheme helper method, will handle deeplinks too
+	setTimeout(() => {
+		if(url && url.match('^[a-z]*:?//')){
 			onBackendReady(() => {
-				console.log('IonicDeeplink match: ' + p)
-				channel.post('message', ['open-url', 'mega://' + p])
+				channel.post('message', ['open-url', url.replace(new RegExp('.*megacubo\.tv/assistir/', ''), 'mega://')])
 			})
-		}, 
-		nomatch => {
-			let p = nomatch['$args']['url'].trim()
-			if(p.match('^[a-z]*:?//')){
-				console.log('IonicDeeplink nomatch, waiting backend: ' + p)
-				onBackendReady(() => {
-					console.log('IonicDeeplink nomatch, backend ready: ' + p)
-					channel.post('message', ['open-url', p.replace(new RegExp('.*megacubo\.tv/assistir/', ''), 'mega://')])
-				})
-			} else {
-				console.log('IonicDeeplink nomatch: ' + JSON.stringify(nomatch, null, 3))
-			}
 		}
-	)
+	}, 0)
 }
 
 if(typeof(Keyboard) != 'undefined'){

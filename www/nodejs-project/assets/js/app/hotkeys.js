@@ -14,8 +14,8 @@ function escapePressed(){
         let playing = explorer.inPlayer(), exploring = playing && explorer.isExploring()
         if(playing && !exploring){
             if(streamer.state == 'playing' && arePlayerControlsVisible()){
-                idleStart()
-                idleLock(1)
+                idle.start()
+                idle.lock(1)
             } else {
                 streamer.stop()
             }
@@ -24,7 +24,7 @@ function escapePressed(){
                 app.emit('explorer-back')
             } else {
                 if(playing){
-                    idleStart()
+                    idle.start()
                 } else {
                     askExit()
                 }
@@ -39,9 +39,9 @@ function arrowUpPressed(noNav){
         if(!noNav && streamer.isVolumeButtonActive()){
             streamer.volumeUp(1)
         } else {
-            if((noNav || !isIdle) && playing && !exploring){
-                idleStart()
-                idleLock(1)
+            if((noNav || !idle.isIdle) && playing && !exploring){
+                idle.start()
+                idle.lock(1)
             } else if(noNav && exploring){
                 explorer.body.removeClass('menu-playing')
             } else {
@@ -61,8 +61,8 @@ function arrowDownPressed(noNav){
             if(!noNav && streamer.isVolumeButtonActive()){
                 streamer.volumeDown(1)
             } else {
-                if(isIdle) {
-                    idleStop()
+                if(idle.isIdle) {
+                    idle.stop()
                 } else if(noNav) {
                     explorer.body.addClass('menu-playing')
                 } else {
@@ -85,10 +85,10 @@ function arrowRightPressed(noNav){
     if(playing && !exploring){
         if(streamer.isSeeking){
             streamer.seekForward()
-        } else if(isIdle || noNav) {
+        } else if(idle.isIdle || noNav) {
             streamer.seekForward()
-            idleStart()
-            idleLock(1)
+            idle.start()
+            idle.lock(1)
         } else {
             if(!noNav) explorer.arrow('right')
         }
@@ -102,10 +102,10 @@ function arrowLeftPressed(noNav){
     if(playing && !exploring){
         if(streamer.isSeeking){
             streamer.seekRewind()
-        } else if(isIdle || noNav) {
+        } else if(idle.isIdle || noNav) {
             streamer.seekRewind()
-            idleStart()
-            idleLock(1)
+            idle.start()
+            idle.lock(1)
         } else {
             if(!noNav) explorer.arrow('left')
         }
@@ -116,14 +116,14 @@ function arrowLeftPressed(noNav){
 
 function enterPressed(){
     // ENTER PRESSED true true false <button class=​"menu selected">​…​</button>​ true false -1
-    console.log('ENTER PRESSED', explorer.inPlayer(), explorer.isExploring(), arePlayerControlsVisible(), document.activeElement, streamer.active, window.isIdle, document.body.className.indexOf('idle'))
+    console.log('ENTER PRESSED', explorer.inPlayer(), explorer.isExploring(), arePlayerControlsVisible(), document.activeElement, streamer.active, idle.isIdle, document.body.className.indexOf('idle'))
     if(explorer.inPlayer()){
         let e = explorer.selected(false)
         if(e) {
-            if(isIdle){
+            if(idle.isIdle){
                 if(streamer.state != 'paused'){
                     console.log('ENTER IGNORED ON IDLE OUT', e)
-                    return idleStop()
+                    return idle.stop()
                 }
             }
             // e.click()

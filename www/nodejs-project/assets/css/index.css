@@ -5,15 +5,19 @@
     --padding-quarter: 0.25vw;
     --padding-half: 0.5vw;
     --padding-2x: 2vw;
-    --radius: 0.25vw;
+    --radius: 9px;
     --line-width: 0.25vw;
     --drop-shadow: drop-shadow(2px 2px 2px rgba(0,0,0,0.5));
     --animation-duration-short: 0.2s;
     --animation-duration-normal: 0.36s;
     --animation-duration-long: 0.5s;
     --animation-duration-timing: ease-in-out;
-    --explorer-fx-nav-inflate: 1.06;
-    --explorer-fx-nav-deflate: 0.94;
+    --explorer-fx-nav-intensity-step: 0.06;
+    --explorer-fx-nav-intensity: var(--explorer-fx-nav-intensity-step);
+    --explorer-fx-nav-default-inflate: calc(1 + var(--explorer-fx-nav-intensity-step));
+    --explorer-fx-nav-default-deflate: calc(1 - var(--explorer-fx-nav-intensity-step));
+    --explorer-fx-nav-inflate: calc(1 + var(--explorer-fx-nav-intensity));
+    --explorer-fx-nav-deflate: calc(1 - var(--explorer-fx-nav-intensity));
     --explorer-fx-nav-duration: 0.1s;
     --explorer-width: calc(100vw - 4vmin - var(--explorer-padding-right) - var(--explorer-padding-left));
     --explorer-height: calc(100vh - 2vmin - var(--explorer-padding-top) - var(--explorer-padding-bottom));
@@ -81,13 +85,13 @@ html {
     max-width: 100vw;
     max-height: 100vh;
     touch-action: manipulation;
-    background-color: transparent !important;
+    background-color: transparent;
 }
 body {
     margin: 0;
     overflow: hidden;
     height: 100vh;
-    background-color: transparent !important;
+    background-color: transparent;
 }
 body.video {
     --modal-background-color: rgba(0, 0, 0, 0.75);
@@ -100,13 +104,13 @@ body.video {
 }
 body.video:not(.modal) #explorer header {
     transition: transform var(--explorer-fx-nav-duration) ease-in-out 0s;
-    transform: scale(var(--explorer-fx-nav-inflate));
+    transform: scale(var(--explorer-fx-nav-default-inflate));
 }
 body.video #explorer, body.modal #explorer {
-    transform: scale(var(--explorer-fx-nav-deflate));
+    transform: scale(var(--explorer-fx-nav-default-deflate));
 }
 body.video:not(.modal) #osd-root {
-    transform: scaleY(var(--explorer-fx-nav-deflate));
+    transform: scaleY(var(--explorer-fx-nav-default-deflate));
 }
 body.video:not(.menu-playing) #explorer header .explorer-location, 
 body.video-playing.idle:not(.menu-playing) #explorer header .explorer-time, 
@@ -130,7 +134,7 @@ body.video.idle {
     display: flex;       
     align-items: baseline;
     justify-content: center;
-    background-color: transparent !important;
+    background-color: transparent;
 }
 body:not(.video) #main {
     background: linear-gradient(to bottom, transparent 0%, var(--modal-background-color) calc(var(--explorer-header-height) + var(--explorer-padding-top) + (var(--explorer-padding) * 4)));
@@ -378,14 +382,14 @@ div#home-arrows > div > * {
 #explorer content a span.entry-wrapper {
     width: 100%;
     height: 100%;
+    overflow: hidden;
     position: relative;
     display: inline-block;    
-    overflow: hidden;
+    border-radius: var(--radius);
     background: linear-gradient(to top, rgba(255, 255, 255, 0.025) 0%, rgba(255, 255, 255, 0) 75%, rgba(255, 255, 255, 0.025) 100%);
 }
 #explorer content a.selected span.entry-wrapper {
     background: linear-gradient(to top, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 75%, rgba(255, 255, 255, 0.375) 100%);
-    border-radius: var(--radius);
     box-shadow: 0 0 2px white;
 }
 #explorer content a span.entry-name, #explorer content a span.entry-details {
@@ -408,7 +412,6 @@ div#home-arrows > div > * {
     letter-spacing: 0.033em;
     font-size: var(--explorer-entry-name-font-size);
     min-height: var(--explorer-entry-name-font-size);
-    border-radius: var(--radius);
     display: inline-block;
     line-height: 150%;
 }
@@ -516,6 +519,8 @@ controls {
     box-sizing: border-box;
     background: linear-gradient(to bottom, transparent 0%, black 100%);   
     bottom: calc((var(--controls-height) + var(--seekbar-height)) * -1);
+}
+body.video controls {
     transition: bottom var(--animation-duration-normal), transform var(--explorer-fx-nav-duration) ease-in-out 0s;
     transform: scale(var(--explorer-fx-nav-inflate));
 }
@@ -546,6 +551,8 @@ seekbar > div > div {
     pointer-events: none;
     height: inherit;
     background-color: #fff;
+}
+body.video seekbar > div > div {
     transition: width 0.1s ease-in-out 0s;
     mask-image: var(--controls-mask-image);
     -webkit-mask-image: var(--controls-mask-image);
@@ -569,8 +576,10 @@ seekbar label {
     line-height: var(--seekbar-height);
     color: #000;
     font-size: var(--explorer-entry-name-font-size);
-    transition: color 0.5s linear 0s;
     overflow: hidden;
+}
+body.video seekbar label {    
+    transition: color 0.5s linear 0s;
 }
 body.audio:not(.miniplayer-cordova):not(.menu-playing) controls, body.casting:not(.menu-playing) controls, body.video-playing:not(.idle):not(.menu-playing):not(.miniplayer-cordova) controls, body.video-paused:not(.miniplayer-cordova):not(.menu-playing) controls, body.video-ended:not(.miniplayer-cordova):not(.menu-playing) controls, body.video-loading:not(.miniplayer-cordova):not(.menu-playing):not(.idle) controls {
     bottom: 0;
@@ -578,7 +587,7 @@ body.audio:not(.miniplayer-cordova):not(.menu-playing) controls, body.casting:no
 }
 body.modal controls {
     visibility: visible;
-    transform: scale(var(--explorer-fx-nav-deflate)) !important;
+    transform: scale(var(--explorer-fx-nav-default-deflate)) !important;
 }
 body.miniplayer-cordova controls, body.miniplayer-cordova div#modal, body.miniplayer-cordova #explorer header  {
     display: none !important;
@@ -603,7 +612,7 @@ controls button {
     margin: 0 0 0 1.5%;
     padding: 2vmin;
 }
-controls button span.button-icon {
+body.video controls button span.button-icon {
     transition: -webkit-mask-image 0.2s linear;
     mask-image: var(--controls-mask-image);
     -webkit-mask-image: var(--controls-mask-image);
@@ -676,6 +685,20 @@ controls button i.fas, controls button i.fab, controls button span { /* classes 
     line-height: 100%;
     display: flex;
     justify-content: center;
+}
+div#arrow-down-hint {
+    justify-content: center;
+    width: 100vw;
+    height: 0;
+    opacity: var(--opacity-level-2);
+    pointer-events: none;
+}
+div#arrow-down-hint i {
+    display: inline;
+    color: var(--font-color);
+    font-size: var(--padding);
+    top: calc(-1 * var(--padding));
+    position: relative;
 }
 controls button.info i.about-icon-dot {
     background: white;
@@ -904,8 +927,7 @@ div#modal {
     height: 100vh;
     z-index: 9;
     background: var(--modal-background-color);
-    transform: scale(var(--explorer-fx-nav-inflate));
-    transition: transform var(--explorer-fx-nav-duration) ease-in-out 0s;
+    transition: visibility var(--explorer-fx-nav-duration) linear 0s;    
 }
 div#modal > div {
     position: fixed;
@@ -931,7 +953,12 @@ div#modal > div > div {
 div#modal > div > div > div {
     display: table-cell;
     width: var(--explorer-width);
-    vertical-align: middle;
+    vertical-align: middle;    
+    transform: scale(var(--explorer-fx-nav-deflate));
+    transition: transform var(--explorer-fx-nav-duration) ease-in-out 0s;    
+}
+body.modal div#modal > div > div > div {
+    transform: none;    
 }
 body.modal div#home-arrows {
     visibility: hidden;
@@ -941,7 +968,7 @@ body.modal wrap {
 }
 body.modal #modal {
     visibility: visible;
-    transform: none;
+    transform: visibility var(--explorer-fx-nav-duration) linear var(--explorer-fx-nav-duration);
 }
 span.modal-template-message {
     font-size: var(--explorer-entry-name-font-size);
@@ -1001,6 +1028,14 @@ span.modal-template-question {
 }
 span.modal-template-question i {
     margin-right: var(--padding);
+}
+span.modal-template-question img {
+    height: 2.5vmax;
+    width: 2.5vmax;
+    background-size: contain;
+    background-position: center center;
+    margin-right: var(--padding);
+    background-repeat: no-repeat;
 }
 .modal-template-slider, .modal-template-option, .modal-template-option-detailed, .modal-template-question {
     box-sizing: border-box;
@@ -1068,14 +1103,7 @@ span.modal-template-text input:focus, span.modal-template-textarea textarea:focu
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
-}
-.modal-template-options > *:first-child {
-    border-top-left-radius: var(--radius);
-    border-top-right-radius: var(--radius);
-}
-.modal-template-options > *:last-child {
-    border-bottom-left-radius: var(--radius);
-    border-bottom-right-radius: var(--radius);
+    border-radius: var(--radius);
 }
 .fa-blink-alpha {
     animation: blink-alpha 1.1s infinite linear;

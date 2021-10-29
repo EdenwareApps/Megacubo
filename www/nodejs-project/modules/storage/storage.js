@@ -241,12 +241,14 @@ class StorageAsync extends StorageBase {
 				this.checkDiskSpace(err)
 				cb(err)
 			} else {
-				fs.rename(tmpFile, file, err => {
-					if(err){
-						console.error(err)
-						fs.unlink(tmpFile, () => {})
-					}
-					cb(err)
+				fs.unlink(file, () => {
+					fs.rename(tmpFile, file, err => {
+						if(err){
+							console.error(err)
+							fs.unlink(tmpFile, () => {})
+						}
+						cb(err)
+					})
 				})
 			}
 		})

@@ -1,4 +1,6 @@
 
+const { Console } = require('console')
+const { resolve } = require('path')
 const path = require('path'), fs = require('fs'), Events = require('events')
 
 class ChannelsData extends Events {
@@ -154,9 +156,7 @@ class ChannelsData extends Events {
             let keys = Object.keys(index)
             keys.sort((a, b) => { return index[a].length > index[b].length ? -1 : (index[a].length < index[b].length) ? 1 : 0 })
             this.channelsIndex = {}
-            keys.forEach(k => {
-                this.channelsIndex[k] = index[k] 
-            })
+            keys.forEach(k => this.channelsIndex[k] = index[k])
         }
     }
     save(cb){
@@ -206,16 +206,7 @@ class ChannelsEPG extends ChannelsData {
             details: global.lang.EPG,
             action: (e, value) => {
                 if(value){
-                    global.lists.epgSearch(global.lists.terms(value, true)).then(epgData => {                                
-                        let entries = []
-                        console.warn('epgSearch', epgData)
-                        Object.keys(epgData).forEach(ch => {
-                            let terms = global.lists.terms(ch)
-                            entries = entries.concat(this.epgDataToEntries(epgData[ch], ch, terms))
-                        })
-                        entries = entries.sort((a, b) => {
-                            return a.program.start - b.program.start 
-                        })
+                    this.epgSearch(value).then(entries => {
                         entries.unshift(this.epgSearchEntry())
                         let path = global.explorer.path.split('/').filter(s => s != global.lang.SEARCH).join('/')
                         global.explorer.render(entries, path + '/' + global.lang.SEARCH, 'fas fa-search', path)
@@ -227,6 +218,25 @@ class ChannelsEPG extends ChannelsData {
             },
             placeholder: global.lang.SEARCH_PLACEHOLDER
         }
+    }
+    epgSearch(terms, liveNow){
+        return new Promise((resolve, reject) => {
+            if(typeof(terms) == 'string'){
+                terms = global.lists.terms(terms, true)
+            }
+            global.lists.epgSearch(terms, liveNow).then(epgData => {                                
+                let entries = []
+                console.warn('epgSearch', epgData)
+                Object.keys(epgData).forEach(ch => {
+                    let terms = global.lists.terms(ch)
+                    entries = entries.concat(this.epgDataToEntries(epgData[ch], ch, terms))
+                })
+                entries = entries.sort((a, b) => {
+                    return a.program.start - b.program.start 
+                })
+                resolve(entries)
+            }).catch(reject)
+        })
     }
     epgCategoryEntries(category){
         return new Promise((resolve, reject) => {
@@ -394,7 +404,7 @@ class ChannelsEPG extends ChannelsData {
     epgChannelsAddLiveNow(entries, keepIcon, checkIsChannel){
         return new Promise((resolve, reject) => {
             if(global.channels.activeEPG){
-                let cs = entries.filter(e => e.type == 'group')
+                let cs = entries.filter(e => e.terms || e.type == 'select') // filter by isMetaEntry or a isChannel result
                 if(checkIsChannel){
                     cs = cs.map(e => global.channels.isChannel(e.name))
                 }
@@ -538,8 +548,8 @@ class ChannelsEditing extends ChannelsEPG {
                                         fa: 'fa-mega spin-x-alt',
                                         action: () => {
                                             global.explorer.setLoadingEntries([e], true, global.lang.PROCESSING)
-                                            global.icons.fetchURL(image).then(file => {
-                                                global.icons.adjust(file, {shouldBeAlpha: false}).then(ret => {
+                                            global.icons.fetchURL(image).then(ret => {
+                                                global.icons.adjust(ret.file, {shouldBeAlpha: false}).then(ret => {
                                                     global.icons.saveDefaultFile(terms, ret.file, destFile => {
                                                         console.log('icon changed', terms, destFile)
                                                         global.explorer.deepRefresh(global.explorer.dirname(global.explorer.path))
@@ -553,8 +563,8 @@ class ChannelsEditing extends ChannelsEPG {
                                 })
                                 ret.push({name: global.lang.OPEN_URL, type: 'input', fa: 'fas fa-link', action: (err, val) => {   
                                     console.log('from-url', terms, '') 
-                                    global.icons.fetchURL(val).then(file => {
-                                        global.icons.adjust(file, {shouldBeAlpha: false}).then(ret => {
+                                    global.icons.fetchURL(val).then(ret => {
+                                        global.icons.adjust(ret.file, {shouldBeAlpha: false}).then(ret => {
                                             global.icons.saveDefaultFile(terms, ret.file, destFile => {
                                                 console.log('icon changed', terms, destFile)
                                                 global.explorer.deepRefresh(global.explorer.dirname(global.explorer.path))
@@ -733,7 +743,27 @@ class ChannelsEditing extends ChannelsEPG {
     }
 }
 
-class Channels extends ChannelsEditing {
+class ChannelsAutoWatchNow extends ChannelsEditing {
+    constructor(){
+        super()
+        this.watchNowAuto = ''
+        this.disableWatchNowAuto = false
+        global.ui.once('init', () => {
+            global.explorer.on('render', (entries, path) => {
+                if(path != this.watchNowAuto){
+                    this.watchNowAuto = ''
+                }
+            })
+        })
+    }
+    autoplay(){
+        if(this.disableWatchNowAuto) return false
+        let watchNowAuto = global.config.get('watch-now-auto')
+        return watchNowAuto == 'always' || (watchNowAuto == 'auto' && this.watchNowAuto)
+    }
+}
+
+class Channels extends ChannelsAutoWatchNow {
     constructor(opts){
         super()
 		if(opts){
@@ -793,7 +823,7 @@ class Channels extends ChannelsEditing {
             }
         })
         if(chosenScore > 1){
-            let excludes = [], chTerms = chs[chosen]
+            let excludes = [], chTerms = global.deepClone(chs[chosen])
             Object.keys(alts).forEach(n => {
                 excludes = excludes.concat(alts[n].filter(t => {
                     return t.charAt(0) != '-' && !chTerms.includes(t)
@@ -847,17 +877,38 @@ class Channels extends ChannelsEditing {
             if(typeof(terms) == 'string'){
                 terms = global.lists.terms(terms)
             }
-            let entries = [], chs = this.channelsIndex
-            Object.keys(chs).forEach(name => {
-                let score = global.lists.match(terms, chs[name], partial)
-                if(score){
-                    entries.push({
-                        name,
-                        terms: {name: chs[name]}
-                    })
-                }
+            let epgEntries = [], already = []
+            this.epgSearch(terms, true, true).then(es => {
+                epgEntries = es.map(e => {
+                    let ch = this.isChannel(e.program.ch)
+                    if(ch){
+                        if(!already.includes(ch.name)){
+                            already.push(ch.name)
+                            if(e.details){
+                                e.details = e.details.replace(e.program.ch, ch.name)
+                            }
+                            e.program.ch = ch.name
+                            return e
+                        }
+                    }
+                }).filter(e => !!e)
+            }).catch(console.error).finally(() => {
+                let entries = []
+                Object.keys(this.channelsIndex).forEach(name => {
+                    if(!already.includes(name)){
+                        let score = global.lists.match(terms, this.channelsIndex[name], partial)
+                        if(score){
+                            entries.push({
+                                name,
+                                terms: {name: this.channelsIndex[name]}
+                            })
+                        }
+                    }
+                })
+                this.epgChannelsAddLiveNow(entries, true, false).then(es => {
+                    resolve(epgEntries.concat(es))
+                }).catch(reject)
             })
-            this.epgChannelsAddLiveNow(entries, true, false).then(resolve).catch(reject)
         })
     }
     entryTerms(e){
@@ -888,45 +939,67 @@ class Channels extends ChannelsEditing {
                     category = false
                 }
             }
-            let terms = this.entryTerms(e), streamsEntry, epgEntry, entries = [], url = e.url || global.mega.build(e.name, {terms})
+            let terms = this.entryTerms(e), streamsEntry, epgEntry, entries = [], moreOptions = [], url = e.url
+            if(!url){
+                let name = e.program ? e.program.ch : e.name
+                let ch = this.isChannel(name)
+                if(ch){
+                    name = ch.name
+                    terms = ch.terms
+                }
+                e.url = url = global.mega.build(name, {terms})
+            }
+            let autoplay = this.autoplay()
             this.get(terms).then(sentries => {
-                if(sentries.length){
-                    entries.push({
-                        name: e.name,
-                        details: '<i class="fas fa-play-circle"></i> '+ global.lang.WATCH_NOW, 
-                        type: 'action',
-                        fa: 'fas fa-play-circle',
-                        url,
-                        action: data => {
-                            global.streamer.play(data, sentries)
-                        }
-                    })
-                    streamsEntry = {
-                        name: global.lang.STREAMS + ' (' + sentries.length + ')', 
-                        type: 'group', 
-                        renderer: () => {
-                            return new Promise((resolve, reject) => {
-                                resolve(sentries)
-                            })
-                        }
-                    }
-                    console.warn('EPG DEBUG', this.activeEPG, epgNow, category)
-                    if(this.activeEPG){
-                        epgEntry =  {
-                            name: global.lang.EPG, 
+                if(autoplay){
+                    if(sentries.length){
+                        global.streamer.play(e, sentries)                        
+                    } else {
+                        global.displayErr(global.lang.NONE_STREAM_FOUND)
+                    }         
+                } else {
+                    if(sentries.length){
+                        entries.push({
+                            name: global.lang.WATCH_NOW, 
+                            type: 'action',
+                            fa: 'fas fa-play-circle',
+                            url,
+                            action: data => {
+                                data.name = e.name
+                                global.streamer.play(data, sentries)
+                                this.watchNowAuto = global.explorer.path
+                            }
+                        })
+                        streamsEntry = {
+                            name: global.lang.STREAMS + ' (' + sentries.length + ')', 
                             type: 'group', 
-                            fa: this.epgIcon,
-                            details: (epgNow && epgNow != category) ? epgNow : '',
-                            renderer: this.epgChannelEntries.bind(this, e)
+                            renderer: () => {
+                                return new Promise((resolve, reject) => {
+                                    resolve(sentries)
+                                })
+                            }
                         }
+                        console.warn('EPG DEBUG', this.activeEPG, epgNow, category)
+                        if(this.activeEPG){
+                            epgEntry =  {
+                                name: global.lang.EPG, 
+                                type: 'group', 
+                                fa: this.epgIcon,
+                                details: (epgNow && epgNow != category) ? epgNow : '',
+                                renderer: this.epgChannelEntries.bind(this, e)
+                            }
+                        }
+                    } else {    
+                        entries.push(Object.assign(this.emptyEntry, {name: global.lang.NONE_STREAM_FOUND}))
                     }
-                } else {    
-                    entries.push(Object.assign(this.emptyEntry, {name: global.lang.NONE_STREAM_FOUND}))
                 }
             }).catch(e => {
                 console.error(e)
                 category = false
             }).finally(() => {
+                if(autoplay){
+                    return resolve(-1)
+                }
                 if(entries.length){
                     let bookmarkable = {name: e.name, type: 'stream', label: e.group || '', url}
                     if(global.bookmarks.has(bookmarkable)){
@@ -958,13 +1031,39 @@ class Channels extends ChannelsEditing {
                 }
                 if(streamsEntry){
                     console.warn('EPG DEBUG', epgEntry)
-                    entries.push(this.shareChannelEntry(e))
-                    entries.push(streamsEntry)
+                    moreOptions.push(this.shareChannelEntry(e))
+                    moreOptions.push(streamsEntry)
                 }
-                if(global.config.get('allow-edit-channel-list')){
-                    const editEntry = this.editChannelEntry(e, category, {name: category ? global.lang.EDIT_CHANNEL : global.lang.EDIT, details: e.name, class: 'no-icon', fa: 'fas fa-edit', users: undefined, usersPercentage: undefined, path: undefined, url: undefined})
-                    entries.push(editEntry)
+                if(global.config.get('allow-edit-channel-list') && (e.path || global.explorer.path).indexOf(global.lang.SEARCH) == -1){ // avoid it on search results to prevent bugs
+                    const editEntry = this.editChannelEntry(e, category, {name: category ? global.lang.EDIT_CHANNEL : global.lang.EDIT, details: undefined, class: 'no-icon', fa: 'fas fa-edit', users: undefined, usersPercentage: undefined, path: undefined, url: undefined})
+                    moreOptions.push(editEntry)
                 }
+                entries.push({name: global.lang.MORE_OPTIONS, type: 'select', fa: 'fas fa-ellipsis-v', entries: moreOptions})
+                entries = entries.map(e => {
+                    if(e.renderer || e.entries){
+                        let originalRenderer = e.renderer || e.entries
+                        e.renderer = data => {
+                            if(data.name != global.lang.WATCH_NOW){
+                                this.disableWatchNowAuto = true // learn that the user is interested in other functions instead of watchNow directly
+                            }
+                            if(Array.isArray(originalRenderer)){
+                                return new Promise(resolve => resolve(originalRenderer))                                
+                            } else {
+                                return originalRenderer(data)
+                            }
+                        }
+                    }
+                    if(e.action) {
+                        let originalAction = e.action
+                        e.action = data => {
+                            if(data.name != global.lang.WATCH_NOW){
+                                this.disableWatchNowAuto = true // learn that the user is interested in other functions instead of watchNow directly
+                            }
+                            return originalAction(data)
+                        }
+                    }
+                    return e
+                })
                 resolve(entries)
             })
         })
@@ -972,11 +1071,20 @@ class Channels extends ChannelsEditing {
     toMetaEntry(e, category, details){
         let meta = Object.assign({}, e), terms = this.entryTerms(e)        
         if(typeof(meta.url) == 'undefined'){
-            meta.url = global.mega.build(e.name, {terms})
+            let name = e.name
+            if(e.program){
+                name = e.program.ch
+            }
+            let ch = this.isChannel(name)
+            if(ch){
+                name = ch.name
+                terms = ch.terms
+            }
+            meta.url = global.mega.build(name, {terms})
         }
         if(global.mega.isMega(meta.url)){
             meta = Object.assign(meta, {
-                type: 'group',
+                type: 'select',
                 class: 'entry-meta-stream',
                 fa: 'fas fa-play-circle' ,
                 renderer: () => {
@@ -1149,6 +1257,27 @@ class Channels extends ChannelsEditing {
                     }, 
                     checked: () => {
                         return global.config.get('only-known-channels-in-been-watched')
+                    }
+                },
+                {
+                    name: global.lang.CHOOSE_WATCH_NOW_AUTOMATICALLY.format(global.lang.WATCH_NOW),
+                    type: 'select',
+                    fa: 'fas fa-step-forward',
+                    renderer: () => {
+                        return new Promise((resolve, reject) => {
+                            let def = global.config.get('watch-now-auto'), opts = [
+                                {name: 'Auto', type: 'action', selected: (def == 'auto'), action: (data) => {
+                                    global.config.set('watch-now-auto', 'auto')
+                                }},
+                                {name: global.lang.ALWAYS, type: 'action', selected: (def == 'always'), action: (data) => {
+                                    global.config.set('watch-now-auto', 'always')
+                                }},
+                                {name: global.lang.NEVER, type: 'action', selected: (def == 'never'), action: (data) => {
+                                    global.config.set('watch-now-auto', 'never')
+                                }}
+                            ]
+                            resolve(opts)
+                        })
                     }
                 }
             ])

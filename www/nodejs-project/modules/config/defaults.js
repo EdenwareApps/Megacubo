@@ -16,6 +16,7 @@ module.exports = {
 	'font-color': '#FFFFFF',
 	'font-family': '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;',
 	'font-size': 3,
+	'fx-nav-intensity': 3,
 	'hide-back-button': false,
 	'hotkeys': {
 		'Up Shift+Tab': 'NAVUP',
@@ -61,6 +62,7 @@ module.exports = {
 	'status-flags-type': false,
 	'theme-name': '',
 	'transcoding': '1080p',
+	'tuning-icon': 'fas fa-sync-alt',
 	'tuning-concurrency': 3,
 	'uppercase-menu': false,
 	'use-epg-channels-list': false,
@@ -68,5 +70,6 @@ module.exports = {
 	'view-size-x': 5,
 	'view-size-y': 2,
 	'volume': 100,
+	'watch-now-auto': 'auto',
 	'ui-sounds': true
 }

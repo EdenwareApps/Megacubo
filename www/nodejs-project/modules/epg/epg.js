@@ -7,6 +7,7 @@ class EPG extends Events {
         this.url = url
         this.key = 'epg-' + this.url
         this.termsKey = 'epg-terms-' + this.url
+        this.channelsKey = 'epg-channels-' + this.url
         this.fetchCtrlKey = 'epg-fetch-' + this.url
         this.iconsInfo = {}
         this.data = {}
@@ -411,7 +412,11 @@ class EPG extends Events {
                             return
                         }
                     }
-                    let pterms = global.lists.terms(this.data[channel][start].t)
+                    let t = this.data[channel][start].t
+                    if(this.data[channel][start].c.length){
+                        t += this.data[channel][start].c.join(' ')
+                    }
+                    let pterms = global.lists.terms(t)
                     if(global.lists.match(terms, pterms, true)){
                         if(typeof(epgData[channel]) == 'undefined'){
                             epgData[channel] = {}
@@ -443,6 +448,15 @@ class EPG extends Events {
                     })
                 }
                 if(loaded){
+                    global.storage.get(this.channelsKey, data => {
+                        if(data){
+                            Object.keys(data).forEach(name => {
+                                if(typeof(this.channels[name]) == 'undefined'){
+                                    this.channels[name] = {name}
+                                }
+                            })
+                        }
+                    })
                     global.storage.get(this.termsKey, data => {
                         if(data){
                             Object.keys(data).forEach(name => {
@@ -497,6 +511,7 @@ class EPG extends Events {
         })
         global.storage.set(this.key, this.data, 3 * this.ttl)
         global.storage.set(this.termsKey, this.terms, 3 * this.ttl)
+        global.storage.set(this.channelsKey, this.channels, 3 * this.ttl)
     }
     destroy(){
         this.data = {}

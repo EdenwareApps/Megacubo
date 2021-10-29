@@ -79,7 +79,7 @@ class StreamerOSD extends StreamerPlaybackTimeout {
                     if(this.seekTimer){
                         osd.hide(this.osdID)
                     } else {
-                        osd.show(lang.PAUSED, 'fas fa-play', this.osdID, 'persistent')
+                        osd.show(lang.PAUSED +'<span style="opacity: var(--opacity-level-2)"> &nbsp;&middot;&nbsp; </span>'+ this.data.name, 'fas fa-play', this.osdID, 'persistent')
                     }
                     break
                 case 'loading':
@@ -89,7 +89,7 @@ class StreamerOSD extends StreamerPlaybackTimeout {
                     this.transmissionNotWorkingHintTimer = setTimeout(() => {
                         if(this.active){
                             osd.hide(this.osdID)
-                            osd.show(lang.TRANSMISSION_NOT_WORKING_HINT.format(this.tuningIcon), '', this.osdID + '-sub', 'persistent')
+                            osd.show(lang.TRANSMISSION_NOT_WORKING_HINT.format(config['tuning-icon']), '', this.osdID + '-sub', 'persistent')
                         }
                     }, this.transmissionNotWorkingHintDelay)
                     break
@@ -100,7 +100,7 @@ class StreamerOSD extends StreamerPlaybackTimeout {
                     osd.hide(this.osdID)
                     if(!this.OSDNameShown){
                         this.OSDNameShown = true
-                        osd.show(lang.TRANSMISSION_NOT_WORKING_HINT.format(this.tuningIcon), '', this.osdID +'-sub', 'normal')
+                        osd.show(lang.TRANSMISSION_NOT_WORKING_HINT.format(config['tuning-icon']), '', this.osdID +'-sub', 'normal')
                         osd.show(this.data.name, this.data.icon || '', this.osdID, 'normal')
                     }
                     break
@@ -271,9 +271,9 @@ class StreamerState extends StreamerCasting {
         }
     }
     playOrPauseNotIdle(){
-        let idle = isIdle || lastIdleTime > (((new Date()).getTime() / 1000) - 0.5)
-        console.error('playOrPauseNotIdle() '+ (idle?'Y':'N'), isIdle, lastIdleTime)
-        if(!idle){
+        let _idle = idle.isIdle || idle.lastIdleTime > (((new Date()).getTime() / 1000) - 0.5)
+        console.error('playOrPauseNotIdle() '+ (_idle?'Y':'N'), idle.isIdle, idle.lastIdleTime)
+        if(!_idle){
             this.playOrPause()
         }
     }
@@ -401,14 +401,14 @@ class StreamerIdle extends StreamerClientVideoAspectRatio {
             }
             document.body.className = c.trim()
         });
-        window.addEventListener('idle-start', () => {
+        idle.on('start', () => {
             let c = document.body.className || ''
             if(!c.match(rx2)){
                 document.body.className += ' idle'
             }
             parent.player.uiVisible(false)
         })
-        window.addEventListener('idle-stop', () => {
+        idle.on('stop', () => {
             let c = document.body.className || ''
             if(c.match(rx2)){
                 document.body.className = c.replace(rx2, ' ').trim()
@@ -504,9 +504,9 @@ class StreamerSpeedo extends StreamerIdle {
                     p = 100
                 }
                 if(downlink && downlink < this.bitrate){ // client connection is the throattling factor
-                    t += lang.YOUR_CONNECTION + ': '
+                    t += lang.YOUR_CONNECTION_IS_SLOW_TIP.format('<i class="'+ config['tuning-icon'] +'"></i>') + ': '
                 } else { // slow server?
-                    t += lang.SERVER_CONNECTION + ': '
+                    t += lang.SLOW_SERVER + ': '
                 }
                 t += p + '%'
                 if(p < 80){
@@ -518,7 +518,7 @@ class StreamerSpeedo extends StreamerIdle {
                     t = lang.STABLE_CONNECTION
                 }
             } else {
-                t += lang.SERVER_CONNECTION + ': ' + kbsfmt(this.currentSpeed)
+                t += lang.SLOW_SERVER + ': ' + kbsfmt(this.currentSpeed)
                 if(this.currentSpeed <= lowSpeedThreshold){
                     if(starting){
                         t = lang.WAITING_CONNECTION
@@ -537,7 +537,7 @@ class StreamerSpeedo extends StreamerIdle {
         if(s !== this.currentSem){
             const colors = ['green', 'orange', 'red']
             this.currentSem = s
-            this.speedoLabel.innerText = txt
+            this.speedoLabel.innerHTML = txt
             if(!this.speedoSemInfoButton){
                 this.speedoSemInfoButton = $(this.getPlayerButton('info'))
             }
@@ -573,7 +573,7 @@ class StreamerSeek extends StreamerSpeedo {
             })
             this.seekRewindLayerCounter = document.querySelector('div#seek-back > span.seek-layer-time > span') 
             this.seekForwardLayerCounter = document.querySelector('div#seek-fwd > span.seek-layer-time > span') 
-            window.addEventListener('idle-stop', () => this.seekBarUpdate(true))
+            idle.on('stop', () => this.seekBarUpdate(true))
             this.seekBarUpdate(true)
         })
         this.on('state', s => {
@@ -790,7 +790,10 @@ class StreamerSeek extends StreamerSpeedo {
         }
         this.emit('before-seek', s)
         clearTimeout(this.seekTimer)
-        this.seekTimer = setTimeout(() => parent.player.resume(), 1500)
+        this.seekTimer = setTimeout(() => {
+            this.seekTimer = 0
+            parent.player.resume()
+        }, 1500)
         let diff = parseInt(s - this.seekingFrom)
         parent.player.pause()
         parent.player.time(s)
@@ -889,7 +892,7 @@ class StreamerClientTimeWarp extends StreamerSeek {
     doTimeWarp(){
         if(this.inLiveStream && config['playback-rate-control'] && this.timewarpInitialPlaybackTime !== null){
             let rate = this.currentPlaybackRate
-            let rates = {slow: 0.9, normal: 1, fast: 1.1}
+            let rates = {slow: 0.95, normal: 1, fast: 1.05}
             let thresholds = this.getTimewarpThresholds()
             let expectedDuration = (time() - this.timewarpInitialTime) + this.timewarpInitialPlaybackTime
             let remaining = expectedDuration - parent.player.time()
@@ -947,7 +950,10 @@ class StreamerClientVideoFullScreen extends StreamerAndroidNetworkIP {
                 this.leaveFullScreen()
                 parent.plugins.megacubo.on('appmetrics', this.updateAndroidAppMetrics.bind(this))
                 this.updateAndroidAppMetrics(parent.plugins.megacubo.appMetrics)
-                this.on('fullscreenchange', this.updateAndroidAppMetrics.bind(this))
+                this.on('fullscreenchange', () => {
+                    this.updateAndroidAppMetrics()
+                    parent.plugins.megacubo.getAppMetrics()
+                })
                 if(b){
                     b.style.display = 'none'
                 }
@@ -985,9 +991,23 @@ class StreamerClientVideoFullScreen extends StreamerAndroidNetworkIP {
             }
         }
     }
+    updateAfterLeaveAndroidMiniPlayer(){
+        if(screen.width == window.outerWidth && screen.height == window.outerHeight && this.active){
+            this.enterFullScreen()
+        }
+    }
     enterFullScreen(){
         if(parent.cordova){
-            parent.AndroidFullScreen.immersiveMode(() => {}, console.error);
+            if(!this.pipLeaveListener){
+                this.pipLeaveListener = () => {
+                    console.log('LEAVING PIP', screen.width, screen.height, window.outerWidth, window.outerHeight, this.active)
+                    this.updateAfterLeaveAndroidMiniPlayer()
+                }
+            }
+            parent.AndroidFullScreen.immersiveMode(() => {}, console.error)
+            if(!parent.winman.listeners('leave').includes(this.pipLeaveListener)){
+                parent.winman.on('leave', this.pipLeaveListener)
+            }
         } else {
             let e = parent.document.body // document.documentElement
             if (e.requestFullscreen) {
@@ -1007,15 +1027,20 @@ class StreamerClientVideoFullScreen extends StreamerAndroidNetworkIP {
         if(this.inFullScreen){
             this.inFullScreen = false
             if(parent.cordova){
-                parent.AndroidFullScreen.immersiveMode(() => {
-                    setTimeout(() => { // bugfix for some devices
-                        parent.AndroidFullScreen.immersiveMode(() => {
-                            parent.AndroidFullScreen.showSystemUI(() => {
-                                parent.AndroidFullScreen.showUnderSystemUI(() => {}, console.error)
-                            }, console.error)
-                        }, console.error);
-                    }, 10)
-                }, console.error);
+                if(this.pipLeaveListener){
+                    parent.winman.off('leave', this.pipLeaveListener)
+                }
+                //setTimeout(() => { // delay a bit trying to prevent GL_OUT_OF_MEMORY on stop()
+                    parent.AndroidFullScreen.immersiveMode(() => {
+                        setTimeout(() => { // bugfix for some devices
+                            parent.AndroidFullScreen.immersiveMode(() => {
+                                parent.AndroidFullScreen.showSystemUI(() => {
+                                    parent.AndroidFullScreen.showUnderSystemUI(() => {}, console.error)
+                                }, console.error)
+                            }, console.error);
+                        }, 10)
+                    }, console.error);
+                //}, 10)
             } else {
                 let e = parent.document // document.documentElement
                 if (e.exitFullscreen) {
@@ -1130,7 +1155,7 @@ class StreamerAudioUI extends StreamerClientVideoFullScreen {
             })
         }
         this.once('start', () => this.volumeChanged())
-        window.addEventListener('idle-start', () => this.volumeBarHide())
+        idle.on('start', () => this.volumeBarHide())
         explorer.on('focus', e => {
             if(e == this.volumeButton){
                 if(!this.volumeBarVisible()){
@@ -1204,7 +1229,6 @@ class StreamerClientControls extends StreamerAudioUI {
         this.app.on('add-player-button', this.addPlayerButton.bind(this))
         this.app.on('update-player-button', this.updatePlayerButton.bind(this))
         this.app.on('enable-player-button', this.enablePlayerButton.bind(this))
-        this.tuningIcon = 'fas fa-satellite-dish'
         this.controls.innerHTML = `
     <seekbar>
         <input type="range" min="0" max="100" value="0" />
@@ -1215,7 +1239,10 @@ class StreamerClientControls extends StreamerAudioUI {
     <div id="buttons">
         <label class="status"></label>
         <span class="filler"></span>  
-    </div>         
+    </div>    
+    <div id="arrow-down-hint">
+        <i class="fas fa-chevron-down"></i>
+    </div>
 `
         this.addPlayerButton('play-pause', lang.PAUSE, `
             <i class="fas fa-play play-button"></i>
@@ -1226,7 +1253,7 @@ class StreamerClientControls extends StreamerAudioUI {
             this.stop()
         })
         this.setupVolume()
-        this.addPlayerButton('tune', lang.DO_TUNE, this.tuningIcon, -1, () => {
+        this.addPlayerButton('tune', lang.PLAYALTERNATE, config['tuning-icon'], -1, () => {
             this.stop()
             this.app.emit('tune')
         })
@@ -1345,11 +1372,11 @@ class StreamerClientController extends StreamerClientControls {
             this.active = false
             this.activeSrc = ''
             this.activeMimetype = ''
+            parent.player.unload()
             console.log('STOPCLIENT', fromServer, traceback())
             if(fromServer !== true){
                 this.app.emit('stop')
             }
-            parent.player.unload()
             this.emit('stop')
         }
     }
@@ -1366,7 +1393,7 @@ class StreamerClient extends StreamerClientController {
         if(this.autoTuning && mimetype.indexOf('video/') == -1){ // seems live
             explorer.dialog([
                 {template: 'question', text: '', fa: 'fas fa-question-circle'},
-                {template: 'option', text: lang.PLAYALTERNATE, id: 'tune', fa: 'fas fa-random'},
+                {template: 'option', text: lang.PLAYALTERNATE, id: 'tune', fa: config['tuning-icon']},
                 {template: 'option', text: lang.STOP, id: 'stop', fa: 'fas fa-stop-circle'},
                 {template: 'option', text: lang.RETRY, id: 'retry', fa: 'fas fa-sync'}
             ], choose => {

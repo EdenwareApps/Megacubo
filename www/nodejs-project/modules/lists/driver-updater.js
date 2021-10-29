@@ -41,7 +41,7 @@ class ListsUpdater extends Common {
 			this.isUpdating = true		
 			this.racing = new ConnRacing(urls, {retries: 1, timeout: 5})
 			const retries = []
-			async.eachOfLimit(urls, 2, (url, i, acb) => {
+			async.eachOfLimit(urls, 3, (url, i, acb) => {
 				if(this.racing.ended){
 					if(this.debug){
 						console.log('updater - racing ended')
@@ -84,7 +84,7 @@ class ListsUpdater extends Common {
 					console.log('updater - retry', retries)
 				}
 				this.retryRacing = new ConnRacing(retries, {retries: 3, timeout: 20})
-				async.eachOfLimit(retries, 2, (url, i, acb) => {
+				async.eachOfLimit(retries, 3, (url, i, acb) => {
 					if(this.retryRacing.ended){
 						acb()
 					} else {

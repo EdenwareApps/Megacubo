@@ -301,19 +301,6 @@ class Search extends Events {
         }
         return def
     }
-    hook(entries, path){
-        return new Promise((resolve, reject) => {
-            if(!lists.manager.updatingLists && global.activeLists.length){
-                if(path == global.lang.LIVE){
-                    entries.unshift({name: global.lang.SEARCH, details: global.lang.LIVE, fa: 'fas fa-search', type: 'group', renderer: this.entriesLive.bind(this)})
-                }
-                if(path == global.lang.VIDEOS){
-                    entries.unshift({name: global.lang.SEARCH, details: global.lang.ALL, fa: 'fas fa-search', type: 'group', renderer: this.entries.bind(this)})
-                }
-            }
-            resolve(entries)
-        })
-    }
 }
 
 module.exports = Search

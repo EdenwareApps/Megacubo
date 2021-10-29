@@ -99,9 +99,11 @@ class Common extends Events {
 		if(!txt){
 			return []
 		}
-		if(txt.indexOf('/') != -1){
-			txt = txt.split('/').join(' ')
-		}
+		['"', '/', '='].forEach(c => {
+			if(txt.indexOf(c) != -1){
+				txt = txt.replaceAll(c, ' ')
+			}
+		})
 		txt = txt.toLowerCase()
 		let tms = this.applySearchRedirects(txt.replace(this.parser.regexes['plus-signal'], 'plus').
 			replace(this.parser.regexes['between-brackets'], ' ').

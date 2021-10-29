@@ -19,9 +19,11 @@ class StreamerTSIntent extends StreamerBaseIntent {
             this.transcoderStarting = true
             this.transcoder = true
             if(this.downloader){
+                this.disconnectAdapter(this.downloader)
                 this.downloader.destroy()
             }
             if(this.ts2hls){
+                this.disconnectAdapter(this.ts2hls)
                 this.ts2hls.destroy()
             }
             delete this.opts.videoCodec

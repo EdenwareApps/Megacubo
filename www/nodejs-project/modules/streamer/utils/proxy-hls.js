@@ -793,6 +793,10 @@ class StreamerProxyHLS extends HLSRequests {
 			} else {
 				headers['connection'] = 'close' // always force connection close on local servers, keepalive will be broken
 			}
+			if(!statusCode || [-1, 0, 401, 403].includes(statusCode)){
+				/* avoid to passthrough 403 errors to the client as some streams may return it esporadically */
+				return end()					
+			}
 			if(statusCode >= 200 && statusCode < 300){ // is data response
 				if(!headers['content-disposition'] || headers['content-disposition'].indexOf('attachment') == -1 || headers['content-disposition'].indexOf('filename=') == -1){
 					// setting filename to allow future file download feature
@@ -866,10 +870,6 @@ class StreamerProxyHLS extends HLSRequests {
 						console.log('download sent response headers', statusCode, headers)
 					}			
 				} else {
-					if(!statusCode || [0, 401, 403].includes(statusCode)){
-						/* avoid to passthrough 403 errors to the client as some streams may return it esporadically */
-						statusCode = 504					
-					}
 					response.writeHead(statusCode, headers)	
 					if(this.debug){
 						console.log('download sent response headers', statusCode, headers)
@@ -896,7 +896,9 @@ class StreamerProxyHLS extends HLSRequests {
 		headers = this.removeHeaders(headers, ['content-length']) // we'll change the content
 		//headers = this.addCachingHeaders(headers, this.mediaTypeCacheTTLs['meta']) // set a min cache to this m3u8 to prevent his overfetching
 		
-		if(statusCode == 206) statusCode = 200
+		if(statusCode == 206){
+			statusCode = 200
+		}
 
 		let data = []
 		download.on('data', chunk => data.push(chunk))

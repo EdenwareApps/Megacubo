@@ -103,7 +103,6 @@ class PerformanceProfiles extends Timer {
         super()
         this.profiles = {
             high: {
-                'allow-edit-channel-list': true,
                 'animate-background': 'slow-desktop',
                 'auto-testing': true,
                 'autocrop-logos': true,
@@ -118,7 +117,6 @@ class PerformanceProfiles extends Timer {
                 'ui-sounds': true
             },
             low: {
-                'allow-edit-channel-list': false,
                 'animate-background': 'none',
                 'auto-testing': false,
                 'autocrop-logos': false,
@@ -177,7 +175,155 @@ class PerformanceProfiles extends Timer {
     }
 }
 
-class Options extends PerformanceProfiles {
+class OptionsExportImport extends PerformanceProfiles {
+    constructor(){
+        super()
+    }
+    importConfigFile(data, keysToImport, cb){
+        console.log('Config file', data)
+        try {
+            data = JSON.parse(String(data))
+            if(typeof(data) == 'object'){
+                data = this.prepareImportConfigFile(data, keysToImport)
+                global.config.setMulti(data)
+                global.osd.show('OK', 'fas fa-check-circle', 'options', 'normal')
+                global.theme.update(cb)
+            } else {
+                throw new Error('Not a JSON file.')
+            }
+        } catch(e) {
+            if(typeof(cb) == 'function'){
+                cb()
+            }
+            global.displayErr('Invalid file', e)
+        }
+    }
+    prepareImportConfigFile(atts, keysToImport){
+        let natts = {}
+        Object.keys(atts).forEach(k => {
+            if(!Array.isArray(keysToImport) || keysToImport.includes(k)){
+                natts[k] = atts[k]
+            }
+        })
+        if(natts['custom-background-image']){
+            const buf = Buffer.from(natts['custom-background-image'], 'base64')
+            fs.writeFileSync(global.theme.customBackgroundImagePath, buf)
+            natts['custom-background-image'] = global.theme.customBackgroundImagePath
+        }
+        if(natts['custom-background-video']){
+            const buf = Buffer.from(natts['custom-background-video'], 'base64')
+            fs.writeFileSync(global.theme.customBackgroundVideoPath, buf)
+            natts['custom-background-video'] = global.theme.customBackgroundVideoPath
+        }
+        return natts
+    }
+    prepareExportConfig(atts, keysToExport){
+        let natts = {}
+        if(!atts){
+            atts = global.config.data
+        }
+        Object.keys(atts).forEach(k => {
+            if(!Array.isArray(keysToExport) || keysToExport.includes(k)){
+                if(atts[k] != global.config.defaults[k]){
+                    natts[k] = atts[k]
+                }
+            }
+        })
+        if(typeof(natts['custom-background-image']) == 'string' && natts['custom-background-image']){
+            let buf = fs.readFileSync(natts['custom-background-image'])
+            if(buf){
+                natts['custom-background-image'] = buf.toString('base64')
+            } else {
+                delete natts['custom-background-image']
+            }
+        }
+        if(typeof(natts['custom-background-video']) == 'string' && natts['custom-background-video']){
+            let buf = fs.readFileSync(natts['custom-background-video'])
+            if(buf){
+                natts['custom-background-video'] = buf.toString('base64')
+            } else {
+                delete natts['custom-background-video']
+            }
+        }
+        return natts
+    }
+    prepareExportConfigFile(file, atts, keysToExport, cb){
+        fs.writeFile(file, JSON.stringify(this.prepareExportConfig(atts, keysToExport), null, 3), {encoding: 'utf-8'}, err => {
+            cb(err, file)
+        })
+    }
+    import(data){
+        const sample = String(data.slice(0, 12))
+        if(sample.charAt(0) == '{' || sample.charAt(0) == '['){ // is json?
+            this.importConfigFile(data)            
+            global.osd.show(global.lang.IMPORTED_FILE, 'fas fa-check-circle', 'options', 'normal')
+        } else {
+            const zipFile = global.paths.temp +'/temp.zip'
+            fs.writeFile(zipFile, data, err => {
+                if(err){
+                    return global.displayErr(err)
+                }
+                const AdmZip = require('adm-zip')
+                const zip = new AdmZip(zipFile)
+                async.eachOf(zip.getEntries(), (entry, i, done) => {
+                    if(entry.entryName.startsWith('config')) {
+                        zip.extractEntryTo(entry, path.dirname(global.config.file), false, true)
+                        global.config.reload()
+                    }
+                    if(entry.entryName.startsWith('bookmarks')) {
+                        zip.extractEntryTo(entry, global.storage.folder, false, true)
+                        delete global.storage.cacheExpiration[global.bookmarks.key]
+                        global.bookmarks.load()
+                    }
+                    if(entry.entryName.startsWith('history')) {
+                        zip.extractEntryTo(entry, global.storage.folder, false, true)
+                        delete global.storage.cacheExpiration[global.histo.key]
+                        global.histo.load()
+                    }                    
+                    if(entry.entryName.startsWith('categories')) {
+                        zip.extractEntryTo(entry, global.storage.raw.folder, false, true, path.basename(global.storage.raw.resolve(global.channels.categoriesCacheKey)))
+                        delete global.storage.raw.cacheExpiration[global.channels.categoriesCacheKey]
+                        global.channels.load()
+                    }
+                    if(entry.entryName.startsWith('icons')) {
+                        zip.extractEntryTo(entry, path.dirname(global.icons.opts.folder), true, true)
+                    }
+                    if(entry.entryName.startsWith('Themes')) {
+                        zip.extractEntryTo(entry, path.dirname(global.theme.folder), true, true)
+                    }
+                    done()
+                }, () => {
+                    global.osd.show(global.lang.IMPORTED_FILE, 'fas fa-check-circle', 'options', 'normal')
+                })
+            })
+        }
+    }
+    export(cb){
+        const AdmZip = require('adm-zip')
+        const zip = new AdmZip(), files = []
+        const add = (path, subDir) => {
+            if(fs.existsSync(path)){
+                if(typeof(subDir) == 'string'){
+                    zip.addLocalFolder(path, subDir)
+                } else {
+                    zip.addLocalFile(path)
+                }
+            }
+        }
+        add(global.config.file);
+        [global.bookmarks.key, global.histo.key, global.channels.categoriesCacheKey].forEach(key => {
+            files.push(global.storage.resolve(key, false))
+            files.push(global.storage.resolve(key, true))
+        })
+        files.forEach(add)
+        add(global.theme.folder, 'Themes')
+        add(global.icons.opts.folder, 'icons')
+        zip.writeZip(global.paths.temp +'/megacubo.export.zip')
+        cb(global.paths.temp +'/megacubo.export.zip')
+    }
+}
+
+class Options extends OptionsExportImport {
     constructor(){
         super()
         global.ui.on('about-callback', ret => {
@@ -216,7 +362,7 @@ class Options extends PerformanceProfiles {
         })
         global.ui.on('config-import-file', data => {
             console.warn('!!! IMPORT FILE !!!', data)
-            global.importFileFromClient(data).then(ret => this.importConfigFile(ret)).catch(err => {
+            global.importFileFromClient(data).then(ret => this.import(ret)).catch(err => {
                 global.displayErr(err)
             })
         })
@@ -226,74 +372,6 @@ class Options extends PerformanceProfiles {
             pt: 'Português',
             it: 'Italiano'
         }
-    }
-    importConfigFile(data, keysToImport){
-        console.log('Config file', data)
-        try {
-            data = JSON.parse(String(data))
-            if(typeof(data) == 'object'){
-                data = this.prepareImportConfigFile(data, keysToImport)
-                global.config.setMulti(data)
-                global.osd.show('OK', 'fas fa-check-circle', 'options', 'normal')
-                global.theme.update()
-            } else {
-                throw new Error('Not a JSON file.')
-            }
-        } catch(e) {
-            global.displayErr('Invalid file', e)
-        }
-    }
-    prepareImportConfigFile(atts, keysToImport){
-        let natts = {}
-        if(Array.isArray(keysToImport)){
-            Object.keys(atts).forEach(k => {
-                if(keysToImport.includes(k)){
-                    natts[k] = atts[k]
-                }
-            })
-        } else {
-            natts = Object.assign(natts, atts)
-        }
-        if(natts['custom-background-image']){
-            const buf = Buffer.from(natts['custom-background-image'], 'base64')
-            fs.writeFileSync(global.theme.customBackgroundImagePath, buf)
-            natts['custom-background-image'] = global.theme.customBackgroundImagePath
-        }
-        if(natts['custom-background-video']){
-            const buf = Buffer.from(natts['custom-background-video'], 'base64')
-            fs.writeFileSync(global.theme.customBackgroundVideoPath, buf)
-            natts['custom-background-video'] = global.theme.customBackgroundVideoPath
-        }
-        return natts
-    }
-    prepareExportConfigFile(atts, keysToExport){
-        let natts = {}
-        if(Array.isArray(keysToExport)){
-            Object.keys(atts).forEach(k => {
-                if(keysToExport.includes(k)){
-                    natts[k] = atts[k]
-                }
-            })
-        } else {
-            natts = Object.assign(natts, atts)
-        }
-        if(typeof(natts['custom-background-image']) == 'string' && natts['custom-background-image']){
-            let buf = fs.readFileSync(natts['custom-background-image'])
-            if(buf){
-                natts['custom-background-image'] = buf.toString('base64')
-            } else {
-                delete natts['custom-background-image']
-            }
-        }
-        if(typeof(natts['custom-background-video']) == 'string' && natts['custom-background-video']){
-            let buf = fs.readFileSync(natts['custom-background-video'])
-            if(buf){
-                natts['custom-background-video'] = buf.toString('base64')
-            } else {
-                delete natts['custom-background-video']
-            }
-        }
-        return natts
     }
     tools(){
         return new Promise((resolve, reject) => {
@@ -354,7 +432,7 @@ class Options extends PerformanceProfiles {
         global.ui.emit('dialog', [
             {template: 'question', text: global.ucWords(global.MANIFEST.name) +' v'+ global.MANIFEST.version +' (' + process.platform + ', '+ require('os').arch() +')'},
             {template: 'message', text},
-            {template: 'option', text: 'OK', fa: 'fas fa-info-circle', id: 'ok'},
+            {template: 'option', text: 'OK', fa: 'fas fa-check-circle', id: 'ok'},
             {template: 'option', text: global.lang.HELP, fa: 'fas fa-question-circle', id: 'help'},
             {template: 'option', text: global.lang.SHARE, fa: 'fas fa-share-alt', id: 'share'},
             {template: 'option', text: global.lang.TOS, fa: 'fas fa-info-circle', id: 'tos'}
@@ -763,9 +841,7 @@ class Options extends PerformanceProfiles {
                             type: 'action',
                             fa: 'fas fa-file-export', 
                             action: () => {
-                                const filename = 'megacubo.config.json', file = global.downloads.folder + path.sep + filename
-                                const atts = this.prepareExportConfigFile(global.config.data)
-                                fs.writeFile(file, JSON.stringify(atts, null, 3), {encoding: 'utf-8'}, err => {
+                                this.export(file => {
                                     global.downloads.serve(file, true, false).catch(global.displayErr)
                                 })
                             }
@@ -775,7 +851,7 @@ class Options extends PerformanceProfiles {
                             type: 'action',
                             fa: 'fas fa-file-import', 
                             action: () => {
-                                global.ui.emit('open-file', global.ui.uploadURL, 'config-import-file', 'application/json', global.lang.IMPORT_CONFIG)
+                                global.ui.emit('open-file', global.ui.uploadURL, 'config-import-file', 'application/json, application/zip, application/octet-stream, application/x-zip-compressed, multipart/x-zip', global.lang.IMPORT_CONFIG)
                             }
                         }
                     ]

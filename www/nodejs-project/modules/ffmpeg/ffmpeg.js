@@ -88,8 +88,10 @@ class FFmpegController extends Events {
 		global.ui.removeAllListeners('ffmpeg-metadata-'+ this.uid)
 	}
 	metadataCallback(nfo){
-		let codecs = this.master.codecs(nfo), dimensions = this.master.dimensions(nfo)
+		console.log('ffmpeg.metadata', nfo)
+		let codecs = this.master.codecs(nfo), dimensions = this.master.dimensions(nfo), bitrate = this.master.rawBitrate(nfo)
 		if(codecs) this.emit('codecData', codecs)
+		//if(bitrate) this.emit('bitrate', bitrate)
 		if(dimensions) this.emit('dimensions', dimensions)
 	}
 	callback(err, output){

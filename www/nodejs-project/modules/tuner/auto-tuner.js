@@ -21,10 +21,13 @@ class AutoTuner extends Events {
             })
         }
         this.opts = opts
+        this.opts.debug = console.log
         this.tuner = new Tuner(entries, opts, megaURL)
         this.tuner.on('success', (entry, nfo, n) => {
-            this.succeededs[n] = 0
-            if(Object.keys(this.succeededs).length >= this.resultsBuffer){
+            if(typeof(this.succeededs[n]) == 'undefined' || ![0, 1, 2].includes(this.succeededs[n])){
+                this.succeededs[n] = 0
+            }
+            if(Object.values(this.succeededs).filter(v => [0, 1].includes(v)).length >= this.resultsBuffer){
                 this.tuner.pause()
             }
             if(!this.paused){
@@ -117,9 +120,10 @@ class AutoTuner extends Events {
         return e
     }
     pump(){
-        if(this.paused || this.destroyed){
+        if(this.paused || this.destroyed || this.pumping){
             return
         }
+        this.pumping = true
         let done, finished = this.tuner.finished, ks = Object.keys(this.succeededs), index = ks.filter(i => this.succeededs[i] == 0)
         if(index.length < this.resultsBuffer){
             if(!this.tuner.finished){
@@ -147,18 +151,18 @@ class AutoTuner extends Events {
                 intent.nid = n
                 return intent
             }).filter(n => n)
+            console.error('BEFORE DESTROYING OTHER INTENTS', intents, intents.map(n => n.data.url))
             async.eachOfLimit(intents, this.intentConcurrency, (n, i, acb) => {
                 if(this.paused || this.destroyed){
                     done = true
                     acb()
-                } else if(done){
+                } else if(done || n.destroyed){
                     acb()
                 } else {
                     this.succeededs[n.nid] = 1
-                    const url = n.data.url
                     n.start().then(() => {
                         if(this.paused){
-                            this.succeededs[nt.nid] = 0
+                            this.succeededs[n.nid] = 0
                             n.destroy()
                             return
                         }
@@ -166,9 +170,12 @@ class AutoTuner extends Events {
                         done = true
                         this.succeededs[n.nid] = 2
                         this.emit('success', n)
-                        intents.filter(nt => nt.nid != n.nid).forEach(nt => {
+                        console.error('DESTROYING OTHER INTENTS', n.nid, intents)
+                        intents.filter(nt => nt && nt.nid != n.nid).forEach(nt => {
                             if(nt.committed){
                                 console.error('DESTROYING COMMITTED INTENT?', nt, n, global.streamer.active, done)
+                            } else {
+                                console.error('DESTROYING INTENT OTHER', nt.nid)
                             }
                             this.succeededs[nt.nid] = 0
                             nt.destroy()
@@ -178,12 +185,19 @@ class AutoTuner extends Events {
                             this._intents.splice(offset, 1)
                         }
                     }).catch(err => {
+                        console.error('INTENT FAILED', err, n, traceback())
                         this.succeededs[n.nid] = 3
                         delete this.succeededs[n.nid]
-                        intents[n] = n = null
+                        let offset = this._intents.indexOf(n)
+                        if(offset != -1){
+                            this._intents.splice(offset, 1)
+                        }
+                        n.destroy()
+                        intents[i] = n = null
                     }).finally(acb)
                 }
             }, () => {
+                this.pumping = false
                 if(!this.paused){
                     if(!done){
                         if(finished){
@@ -199,6 +213,7 @@ class AutoTuner extends Events {
                 }
             })
         } else {
+            this.pumping = false
             if(finished && !this.pending()){
                 if(this.opts.debug){
                     console.log('auto-tuner pump() finished')

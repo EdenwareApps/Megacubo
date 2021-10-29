@@ -293,8 +293,8 @@ function initApp(){
                         } else {
                             console.log('OVERSCROLLACTION!!!!!!!')
                             explorer.body.removeClass('menu-playing')
-                            idleStop()
-                            idleLock(0.1)
+                            idle.stop()
+                            idle.lock(0.1)
                         }
                     }
                 }
@@ -318,7 +318,7 @@ function initApp(){
                         setTimeout(() => explorer.reset(), 100)
                         return true
                     } else if(direction == 'up') {
-                        idleStart()
+                        idle.start()
                         return true
                     }
                 }
@@ -585,7 +585,7 @@ function initApp(){
                 }
             })
     
-            window.addEventListener('idle-start', () => {
+            idle.on('start', () => {
                 if(explorer.inPlayer() && !explorer.isExploring()){
                     if(document.activeElement != document.body){
                         document.activeElement.blur()

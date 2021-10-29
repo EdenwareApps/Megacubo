@@ -19,6 +19,9 @@ class Any2HLS extends Events {
         };
         this.setOpts(opts)
     }
+    isTranscoding(){
+        return this.opts.videoCodec == 'libx264' || this.opts.audioCodec == 'aac'
+    }
     setOpts(opts){
         if(opts && typeof(opts) == 'object'){     
             Object.keys(opts).forEach((k) => {
@@ -272,7 +275,10 @@ class Any2HLS extends Events {
                         let headers = {
                             'access-control-allow-origin': '*',
                             'content-length': stat.size,
-                            'connection': keepalive ? 'keep-alive' : 'close'
+                            'connection': keepalive ? 'keep-alive' : 'close',
+                            'cache-control': 'private, no-cache, no-store, must-revalidate',
+                            'expires': '-1',
+                            'pragma': 'no-cache'
                         }
                         let ctype = this.contentTypeFromExt(global.streamer.ext(file))
                         if(ctype){
@@ -326,6 +332,17 @@ class Any2HLS extends Events {
         return new Promise((resolve, reject) => {
             const startTime = global.time()
             this.genUID(() => {
+                if(restarting){                    
+                    if(this.lastRestart && this.lastRestart >= (global.time() - 10)){
+                        if(this.opts.isLive){
+                            this.emit('fail', global.lang.PLAYBACK_CORRUPTED_STREAM)
+                            this.destroy()
+                        } else {
+                            return
+                        }
+                    }
+                    this.lastRestart = global.time()
+                }
                 if(this.destroyed){
                     return reject('destroyed')
                 }
@@ -442,15 +459,21 @@ class Any2HLS extends Events {
                         this.decoder.inputOptions('-tls_verify', 0)
                     }
                 }
-                this.decoder.
-                once('end', data => {
+                const endListener = data => {
                     if(!this.destroyed){
                         console.warn('file ended '+ data, traceback())
-                        if(this.opts.isLive && this.committed){
-                            this.start(true).catch(console.error)
+                        if(this.opts.isLive){
+                            if(this.committed){
+                                this.start(true).catch(console.error)
+                            } else {
+                                this.emit('fail', 'media error')
+                                this.destroy()
+                            }
                         }
                     }
-                }).
+                }
+                this.decoder.
+                once('end', endListener).
                 on('error', err => {
                     if(!this.destroyed && this.decoder){
                         err = err.message || err || 'ffmpeg fail'
@@ -473,7 +496,46 @@ class Any2HLS extends Events {
                     }
                     console.log('Spawned FFmpeg with command: ' + commandLine, 'file:', this.decoder.file, 'workDir:', this.opts.workDir, 'cwd:', process.cwd(), 'PATHs', global.paths, 'cordova:', !!global.cordova)
                 }).
-                on('codecData', codecs => this.emit('codecData', codecs)).
+                on('bitrate', bitrate => {
+                    this.bitrate = bitrate
+                    this.emit('bitrate', bitrate)
+                }).
+                on('codecData', codecData => {
+                    this.codecData = codecData
+                    this.emit('codecData', codecData)
+                    let transcode
+                    if(!global.cordova){
+                        if(codecData.video && codecData.video.match(new RegExp('(hevc|mpeg2video|mpeg4)')) && this.opts.videoCodec != 'libx264'){
+                            transcode = true
+                            this.opts.videoCodec = 'libx264'
+                        }
+                        if(codecData.audio && codecData.audio.match(new RegExp('(ac3)')) && this.opts.audioCodec != 'aac'){
+                            transcode = true
+                            this.opts.videoCodec = 'aac'
+                        }
+                    }
+                    if(this.decoder){
+                        if(transcode){
+                            this.decoder.removeListener('end', endListener)
+                            this.decoder.kill()
+                            this.start().then(resolve).catch(reject)
+                        } else {
+                            this.waitFile(this.decoder.file, this.timeout, true).then(() => {
+                                this.serve().then(resolve).catch(reject)
+                            }).catch(e => {
+                                console.error('waitFile failed', this.timeout, e)
+                                if(e.indexOf('timeout') != -1){
+                                    e = 'timeout'
+                                }
+                                reject(e)
+                                this.destroy()
+                            })
+                        }
+                    } else {
+                        reject('destroyed')
+                        this.destroy()
+                    }
+                }).
                 on('dimensions', dimensions => this.emit('dimensions', dimensions))
                 this.decoder.file = path.resolve(this.opts.workDir + path.sep + this.uid + path.sep + 'output.m3u8')
                 fs.mkdir(path.dirname(this.decoder.file), {
@@ -488,17 +550,6 @@ class Any2HLS extends Events {
                         } else {
                             console.log('FFMPEG run: '+ this.source, this.decoder.file)
                             this.decoder.output(this.decoder.file).run()
-                            this.emit('decoder', this.decoder)
-                            this.waitFile(this.decoder.file, this.timeout, true).then(() => {
-                                this.serve().then(resolve).catch(reject)
-                            }).catch(e => {
-                                console.error('waitFile failed', this.timeout, e)
-                                if(e.indexOf('timeout') != -1){
-                                    e = 'timeout'
-                                }
-                                reject(e)
-                                this.destroy()
-                            })
                         }
                     })
                 })

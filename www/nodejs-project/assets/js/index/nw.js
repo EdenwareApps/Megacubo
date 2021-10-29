@@ -131,9 +131,9 @@ class WindowManager extends ClassesHandler {
 				this.inFullScreen = fs
 				this.updateTitlebarHeight()
 			})
-			this.app.addEventListener('idle-start', this.idleChange.bind(this))
-			this.app.addEventListener('idle-stop', this.idleChange.bind(this))
 			this.app.streamer.on('state', this.idleChange.bind(this))
+			this.app.idle.on('start', this.idleChange.bind(this))
+			this.app.idle.on('stop', this.idleChange.bind(this))
 			this.patch()
 			setTimeout(() => {
 				this.focusApp()
@@ -165,6 +165,10 @@ class WindowManager extends ClassesHandler {
 				})
 			}
 		}
+		if(this.tray){
+			this.restoreFromTray()
+		}
+		this.win.focus()
 	}
 	prepareTray(){
 		if(!this.tray){
@@ -236,7 +240,7 @@ class WindowManager extends ClassesHandler {
 	}
 	idleChange(){
 		setTimeout(() => {
-			let idle = this.app.isIdle
+			let idle = this.app.idle.isIdle
 			if(idle){			
 				if(!this.hasClass(document.body, 'idle') && this.app.streamer.state == 'playing'){
 					this.addClass(document.body, 'idle')

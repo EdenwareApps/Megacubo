@@ -28,7 +28,7 @@ process.on('uncaughtException', (exception) => {
 
 APPDIR = path.resolve(typeof(__dirname) != 'undefined' ? __dirname : process.cwd()).replace(new RegExp('\\\\', 'g'), '/')
 MANIFEST = require(APPDIR + '/package.json')
-COMMUNITARY_LISTS_DEFAULT_AMOUNT = cordova ? 12 : 16
+COMMUNITARY_LISTS_DEFAULT_AMOUNT = cordova ? 10 : 12
 
 tuning = false
 moment = require('moment-timezone')
@@ -39,7 +39,9 @@ require(APPDIR + '/modules/supercharge')(global)
 
 if(cordova){
     let datadir = cordova.app.datadir(), temp = path.join(path.dirname(datadir), 'cache')
-    paths = {data: datadir + path.sep + 'Data', temp}
+    paths = {data: datadir +'/Data', temp}
+} else if(fs.existsSync(APPDIR +'/.portable')){
+    paths = {data: APPDIR +'/.portable/Data', temp: APPDIR +'/.portable/temp'}
 } else {
 	paths = require('env-paths')('Megacubo', {suffix: ''})
 }
@@ -302,7 +304,6 @@ function init(language){
         explorer.addFilter(lists.manager.hook.bind(lists.manager))
         explorer.addFilter(options.hook.bind(options))
         explorer.addFilter(theme.hook.bind(theme))
-        explorer.addFilter(search.hook.bind(search))
 
         ui.on('explorer-update-range', icons.renderRange.bind(icons))
         explorer.on('render', icons.render.bind(icons))
@@ -400,13 +401,13 @@ function init(language){
             })
         })
         ui.on('video-error', (type, errData) => {
-            if(streamer.active && !streamer.active.transcoderStarting){
+            if(streamer.active && !streamer.active.isTranscoding()){
                 console.error('VIDEO ERROR', type, errData)
                 if(type == 'timeout'){
                     let opts = [{template: 'question', text: lang.SLOW_TRANSMISSION}], def = 'wait'
                     let isCH = streamer.active.type != 'video' && channels.isChannel(streamer.active.data.terms.name)
                     if(isCH){
-                        opts.push({template: 'option', text: lang.DO_TUNE, fa: 'fas fa-satellite-dish', id: 'try-other'})
+                        opts.push({template: 'option', text: lang.PLAYALTERNATE, fa: global.config.get('tuning-icon'), id: 'try-other'})
                         def = 'try-other'
                     }
                     opts.push({template: 'option', text: lang.WAIT, fa: 'fas fa-clock', id: 'wait'})

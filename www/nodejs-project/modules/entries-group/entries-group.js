@@ -55,7 +55,12 @@ class EntriesGroup extends Events {
     }
     equals(e, f){
         if(e.type == 'group' || f.type == 'group'){
-            return e.type == 'group' && f.type == 'group' && e.name == f.name && e.entries.length == f.entries.length
+            if(e.name == f.name && e.type == 'group' && f.type == 'group'){
+                if(e.entries && f.entries && e.entries.length == f.entries.length){
+                    return true
+                }
+                return e.url && f.url && e.url == f.url
+            }
         } else {
             return e.url == f.url || (e.originalUrl && f.url == e.originalUrl) || (f.originalUrl && e.url == f.originalUrl)
         }

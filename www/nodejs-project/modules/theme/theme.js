@@ -32,10 +32,12 @@ class Theme extends Events {
         })
         global.ui.on('theme-import-file', data => {
             console.warn('!!! IMPORT FILE !!!', data)
-            global.importFileFromClient(data).then(ret => global.options.importConfigFile(ret, this.keys)).catch(err => {
+            global.importFileFromClient(data).then(ret => {
+                global.options.importConfigFile(ret, this.keys, () => {
+                    global.explorer.refresh()
+                })
+            }).catch(err => {
                 global.displayErr(err)
-            }).finally(() => {
-                global.explorer.refresh()
             })
         })
     }
@@ -133,6 +135,7 @@ class Theme extends Events {
         }).finally(() => {
             global.ui.emit('set-loading', {name: global.lang.CHANGE_BACKGROUND_VIDEO}, false)
             global.osd.hide('theme-upload')
+            global.osd.show(global.lang.BACKGROUND_VIDEO_BLACK_SCREEN_HINT, 'fas fa-info-circle', 'theme-upload-hint', 'long')
         })
     }
     importBackgroundImageCallback(err){
@@ -329,6 +332,7 @@ class Theme extends Events {
                                         },
                                         {
                                             name: global.lang.CHOOSE_BACKGROUND_VIDEO,
+                                            details: global.lang.HTML5_COMPAT_REQUIRED,
                                             type: 'action',
                                             fa: 'fas fa-film', 
                                             action: () => {
@@ -525,7 +529,20 @@ class Theme extends Events {
                                         }
                                     ]
                                 },
-                                {name: global.lang.LAYOUT_GRID_SIZE, fa: 'fas fa-th', type: 'group', renderer: this.viewSizeEntries.bind(this)}
+                                {name: global.lang.LAYOUT_GRID_SIZE, fa: 'fas fa-th', type: 'group', renderer: this.viewSizeEntries.bind(this)},
+                                {
+                                    name: 'FX Navigation Intensity',
+                                    fa: 'fas fa-film',
+                                    type: 'slider', 
+                                    range: {start: 0, end: 10},
+                                    action: (data, value) => {
+                                        global.config.set('fx-nav-intensity', value)
+                                        this.update()
+                                    }, 
+                                    value: () => {
+                                        return global.config.get('fx-nav-intensity')
+                                    }
+                                }
                             ]
                             resolve(opts)
                         })
@@ -615,22 +632,37 @@ class Theme extends Events {
             }
         })
     }
-    update(){
-        this.save()
+    update(cb){
+        this.save(cb)
         this.refresh()
     }
-    save(){
+    save(cb){
         const current = global.config.get('theme-name')
         if(current){
             const filename = global.sanitize(current) + '.theme.json', file = this.folder +'/'+ filename
-            const atts = global.options.prepareExportConfigFile(global.config.data, this.keys)
-            fs.writeFile(file +'.tmp', JSON.stringify(atts, null, 3), {encoding: 'utf-8'}, err => {
+            global.options.prepareExportConfigFile(file +'.tmp', null, this.keys, err => {
                 if(err){
-                    console.error(err)
+                    global.displayErr(err)
+                    if(typeof(cb) == 'function'){
+                        cb()
+                    }
                 } else {
-                    fs.rename(file +'.tmp', file, () => {})
+                    fs.unlink(file, () => {
+                        fs.rename(file +'.tmp', file, err => {
+                            if(err){
+                                global.displayErr(err)
+                            }
+                            if(typeof(cb) == 'function'){
+                                cb()
+                            }
+                        })
+                    })
                 }
             })
+        } else {
+            if(typeof(cb) == 'function'){
+                cb()
+            }
         }
     }
     hook(entries, path){

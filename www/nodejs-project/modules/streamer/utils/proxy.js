@@ -295,6 +295,10 @@ class StreamerProxy extends StreamerProxyBase {
 			} else {
 				headers['connection'] = 'close' // always force connection close on local servers, keepalive will be broken
 			}
+			if(!statusCode || [-1, 0].includes(statusCode)){
+				/* avoid to passthrough 403 errors to the client as some streams may return it esporadically */
+				return end()					
+			}
 			if(statusCode >= 200 && statusCode < 300){ // is data response
 				if(!headers['content-disposition'] || headers['content-disposition'].indexOf('attachment') == -1 || headers['content-disposition'].indexOf('filename=') == -1){
 					// setting filename to allow future file download feature
@@ -341,8 +345,6 @@ class StreamerProxy extends StreamerProxyBase {
 						console.log('download sent response headers', statusCode, headers)
 					}			
 				} else {
-					// we'll avoid to passthrough 403 errors to the client as some streamsmay return it esporadically
-					statusCode = statusCode && ![401, 403].includes(statusCode) ? statusCode : 504
 					response.writeHead(statusCode, headers)	
 					if(this.opts.debug){
 						console.log('download sent response headers', statusCode, headers)

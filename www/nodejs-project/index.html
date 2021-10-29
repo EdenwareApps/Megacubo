@@ -9,6 +9,7 @@
 				height: 100vh;
 				margin: 0;
 				padding: 0;
+				background-color: black;
 			}
 			html, body, iframe {
 				margin: 0;
@@ -19,7 +20,6 @@
 				font-size: 5vh;
 				overflow: hidden;
 				box-sizing: border-box;
-				background-color: transparent !important;
 			}
 			body {
 				display: flex;
@@ -51,7 +51,7 @@
 				position: absolute;
 				visibility: hidden;
 				display: inline-block;
-    			background-color: transparent !important;
+    			background-color: transparent;
 			}
 			video {
     			object-fit: fill;
@@ -177,13 +177,13 @@
 					transform: translateX(100vw) scaleX(0.1);
 				}
 			}
+			html.playing {
+    			background-color: transparent !important;
+			}
 			html.playing div#background {
 				display: none !important;
 				visibility: hidden !important;
 				animation-name: none !important;
-			}
-			html.playing body {
-    			background-image: none !important;
 			}
 		</style>
 	</head>

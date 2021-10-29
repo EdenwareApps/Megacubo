@@ -164,7 +164,7 @@ class Explorer extends Events {
             if(this.opts.debug){
                 console.log('back', p, deep)
             }
-            this.open(p, undefined, deep, true).catch(global.displayErr)
+            this.open(p, undefined, deep, true, true).catch(global.displayErr)
         }
     }
     prependFilter(f){
@@ -406,6 +406,9 @@ class Explorer extends Events {
                 if(e.name == basePath && (typeof(tabindex) != 'number' || i == tabindex)){
                     if(['group', 'select'].indexOf(e.type) != -1){
                         this.readEntry(e, parentPath).then(es => {
+                            if(!Array.isArray(es)){
+                                return resolve(es)
+                            }
                             this.applyFilters(es, destPath).then(es => {
                                 if(e.type == 'group'){
                                     es = this.addMetaEntries(es, destPath, parentPath)
@@ -428,7 +431,7 @@ class Explorer extends Events {
             }
         })
     }
-    open(destPath, tabindex, deep, isFolder){
+    open(destPath, tabindex, deep, isFolder, backInSelect){
         if(['.', '/'].includes(destPath)){
             destPath = ''
         }
@@ -438,7 +441,13 @@ class Explorer extends Events {
         return new Promise((resolve, reject) => {
             this.emit('open', destPath)
             let parentEntry, name = this.basename(destPath), parentPath = this.dirname(destPath)
-            let finish = es => {                
+            let finish = es => {
+                if(backInSelect && parentEntry && parentEntry.type == 'select'){
+                    if(this.opts.debug){
+                        console.log('backInSelect', backInSelect, parentEntry, destPath, global.traceback())
+                    }
+                    return this.open(this.dirname(destPath), -1, deep, isFolder, backInSelect)
+                }
                 this.path = destPath
                 es = this.addMetaEntries(es, destPath, parentPath)
                 this.pages[this.path] = es
@@ -454,23 +463,33 @@ class Explorer extends Events {
                 if(name){
                     let e = this.selectEntry(ret.entries, name, tabindex, isFolder)
                     if(this.opts.debug){
-                        console.log('selectEntry', ret.entries, name, tabindex, isFolder, e)
+                        console.log('selectEntry', destPath, ret.entries, name, tabindex, isFolder, e)
                     }
                     if(e){
                         parentEntry = e
-                        if(e.type && ['group', 'select'].includes(e.type)){
+                        if(e.type == 'group'){
                             this.readEntry(e, parentPath).then(es => {
                                 this.applyFilters(es, destPath).then(finish).catch(reject)
                             }).catch(reject)
+                        } else if(e.type == 'select'){
+                            if(backInSelect){
+                                return this.open(this.dirname(destPath), -1, deep, isFolder, backInSelect)
+                            } else {
+                                this.select(destPath, tabindex)
+                                resolve(true)
+                            }
                         } else {
                             this.action(destPath, tabindex)
                             resolve(true)
                         }
                     } else {
+                        if(this.opts.debug){
+                            console.log('noParentEntry', destPath, this.pages[destPath], ret)
+                        }
                         if(typeof(this.pages[destPath]) != 'undefined'){
                             finish(this.pages[destPath])
                         } else {
-                            this.open(this.dirname(destPath), undefined, deep).then(resolve).catch(reject)
+                            this.open(this.dirname(destPath), undefined, deep, undefined, backInSelect).then(resolve).catch(reject)
                         }
                     }
                 } else {
@@ -498,19 +517,21 @@ class Explorer extends Events {
     readEntry(e){
         return new Promise((resolve, reject) => {  
             let next = entries => {
-                entries = entries.map(n => {
-                    if(typeof(n.path) != 'string'){
-                        n.path = (e.path ? e.path +'/' : '') + n.name
-                    } else {
-                        if(n.path){
-                            if(this.basename(n.path) != n.name || (n.name == e.name && this.basename(this.dirname(n.path)) != n.name)){
-                                console.log('npath', n.path, n.name, n, e)
-                                n.path += '/'+ n.name
+                if(Array.isArray(entries)){
+                    entries = entries.map(n => {
+                        if(typeof(n.path) != 'string'){
+                            n.path = (e.path ? e.path +'/' : '') + n.name
+                        } else {
+                            if(n.path){
+                                if(this.basename(n.path) != n.name || (n.name == e.name && this.basename(this.dirname(n.path)) != n.name)){
+                                    console.log('npath', n.path, n.name, n, e)
+                                    n.path += '/'+ n.name
+                                }
                             }
                         }
-                    }
-                    return n
-                })
+                        return n
+                    })
+                }
                 resolve(entries)
             }
             if(typeof(e.renderer) == 'function'){
@@ -534,7 +555,7 @@ class Explorer extends Events {
             entries.some((e, i) => {
                 if(e.name == name){
                     let fine
-                    if(typeof(tabindex) == 'number'){
+                    if(typeof(tabindex) == 'number' && tabindex != -1){
                         fine = tabindex == i
                     } else if(isFolder) {
                         fine = ['group', 'select'].includes(e.type)

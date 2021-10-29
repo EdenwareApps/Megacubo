@@ -134,8 +134,8 @@ var hotkeysActions = {
         () => {
             if(top.Manager){
                 top.Manager.toggleFullScreen()
-                if(window.idleStop){
-                    window.idleStop()
+                if(window.idle.stop){
+                    window.idle.stop()
                 }
             }
         }, 'up', true

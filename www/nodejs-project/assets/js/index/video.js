@@ -127,6 +127,7 @@ class VideoControl extends EventEmitter {
 		this.current.load(src, mimetype, cookie, mediatype)
 		this.show()
 		this.current.volume(this.config['volume'])
+		document.body.style.backgroundColor = 'transparent'
 		return this.current
 	}
 	setup(adapter, cls){
@@ -666,6 +667,10 @@ class WinMan extends EventEmitter {
 	}
 	exit(){
 		console.log('exit()', traceback())
+		let w = this.getAppWindow()
+		if(w.streamer.active){
+			w.streamer.stop()
+		}
 		if(this.backgroundModeLocks.length){
 			if(typeof(cordova) != 'undefined'){
 				cordova.plugins.backgroundMode.enable()
@@ -675,7 +680,6 @@ class WinMan extends EventEmitter {
 			}
 		} else {
 			this.exitUI()
-			let w = this.getAppWindow()
 			if(w){
 				w.app.emit('exit')
 			}

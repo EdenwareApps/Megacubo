@@ -10,6 +10,7 @@ class StreamerVODHLSIntent extends StreamerBaseIntent {
     transcode(){
         return new Promise((resolve, reject) => {
             if(this.adapter){
+                this.disconnectAdapter(this.adapter)
                 this.adapter.destroy()
                 this.adapter = null
             }

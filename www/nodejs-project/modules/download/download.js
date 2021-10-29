@@ -764,7 +764,7 @@ Download.promise = (...args) => {
 }
 
 Download.file = (...args) => {
-	let _reject, g, opts = args[0], file = opts && opts.file ? opts.file : global.paths.temp +'/'+ Math.random()
+	let _reject, g, err, opts = args[0], file = opts && opts.file ? opts.file : global.paths.temp +'/'+ Math.random()
 	let promise = new Promise((resolve, reject) => {
 		_reject = reject
 		let writer
@@ -783,6 +783,9 @@ Download.file = (...args) => {
 			}
 			writer.write(buf)			
 		})
+		g.on('error', e => {
+			err = e
+		})
 		g.once('end', () => {
 			g.destroy()
 			if(writer){
@@ -795,7 +798,7 @@ Download.file = (...args) => {
 					})
 				}
 			} else {
-				reject('empty data')
+				reject(err || 'empty data '+ g.statusCode)
 			}
 		})
 		g.start()

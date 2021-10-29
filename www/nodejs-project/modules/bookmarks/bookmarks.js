@@ -30,12 +30,19 @@ class Bookmarks extends EntriesGroup {
     streamFilter(e){
         return e.url && (!e.type || e.type == 'stream')
     }
+    groupFilter(e){
+        return e.type && e.type == 'group'
+    }
     hook(entries, path){
         return new Promise((resolve, reject) => {
             if(path == '' && !entries.some(e => e.name == global.lang.BOOKMARKS)){ // add home option
                 entries.push({name: global.lang.BOOKMARKS, fa: 'fas fa-star', type: 'group', renderer: this.entries.bind(this)})
             }
-            if((path.startsWith(global.lang.VIDEOS) || path.startsWith(global.lang.BOOKMARKS) || path.startsWith(global.lang.IPTV_LISTS)) && entries.some(this.streamFilter)){
+            let isBookmarkable = path.startsWith(global.lang.VIDEOS) || path.startsWith(global.lang.BOOKMARKS)
+            if(!isBookmarkable && path.startsWith(global.lang.IPTV_LISTS) && !entries.some(this.groupFilter)){
+                isBookmarkable = true
+            }
+            if(isBookmarkable && entries.some(this.streamFilter)){
                 let bookmarker, bookmarkable = {name: path.split('/').pop(), type: 'group', entries: entries.filter(this.streamFilter)}
                 console.log('bookmarkable', bookmarkable)
                 if(this.has(bookmarkable)){

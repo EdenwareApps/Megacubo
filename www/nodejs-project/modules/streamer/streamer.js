@@ -491,28 +491,6 @@ class StreamerBase extends StreamerTools {
 					global.ui.emit('codecData', codecData)
 				}
 			})
-			if(!global.cordova){ // only desktop version can't play hevc
-				intent.on('codecData', codecData => {
-					if(codecData && (codecData.video.match(new RegExp('(hevc|mpeg2video|mpeg4)')) || codecData.audio.match(new RegExp('(ac3)'))) && intent == this.active){
-						const fail = err => {
-							if(err && this.active){
-								console.error('unsupported format', codecData)
-								intent.fail('unsupported format') // we can transcode .ts segments, but transcode a mp4 video would cause request ranging errors
-							}
-						}
-						if(!global.config.get('transcoding')){
-							fail('Transcoding disabled')
-						} else {
-							this.transcode(intent, err => {
-								if(err && this.active){
-									console.error('unsupported format', codecData)
-									intent.fail('unsupported format') // we can transcode .ts segments, but transcode a mp4 video would cause request ranging errors
-								}
-							})
-						}
-					}
-				})
-			}
 			if(intent.codecData){
 				intent.emit('codecData', intent.codecData)
 			}
@@ -520,10 +498,9 @@ class StreamerBase extends StreamerTools {
 			intent.emit('commit')
 			let data = intent.data
 			data.engine = intent.type
-			if(this.opts.debug){
-				this.opts.debug('VIDEOINTENT2', intent.endpoint, intent.mimetype, data, intent.opts, intent.info)
-			}
+			console.warn('STREAMER COMMIT '+ data.url)
 			if(data.icon){
+				data.originalIcon = data.icon
 				data.icon = global.icons.url + global.icons.key(data.icon)
 			} else {
 				data.icon = global.icons.url + global.channels.entryTerms(data).join(',')
@@ -601,6 +578,7 @@ class StreamerBase extends StreamerTools {
 	stop(err){
 		if(!this.opts.shadow){
 			global.osd.hide('streamer')
+			global.osd.hide('transcode')
 		}
 		this.unregisterAllLoadingIntents()
 		if(this.active){
@@ -627,10 +605,11 @@ class StreamerBase extends StreamerTools {
 		if(this.active && !this.opts.shadow){
 			let url = this.active.data.originalUrl || this.active.data.url
 			let name = this.active.data.originalName || this.active.data.name
+			let icon = this.active.data.originalIcon || this.active.data.icon
 			if(global.mega.isMega(url)){
-				global.ui.emit('share', global.ucWords(global.MANIFEST.name), name, 'https://megacubo.tv/assistir/' + encodeURIComponent(name))
+				global.ui.emit('share', global.ucWords(global.MANIFEST.name), name, 'https://megacubo.tv/assistir/' + encodeURIComponent(url.replace('mega://', '')))
 			} else {
-				url = global.mega.build(name, {url, icon: this.active.data.icon, mediaType: this.active.mediaType})
+				url = global.mega.build(name, {url, icon, mediaType: this.active.mediaType})
 				global.ui.emit('share', global.ucWords(global.MANIFEST.name), name, url.replace('mega://', 'https://megacubo.tv/assistir/'))
 			}
 		}
@@ -818,7 +797,7 @@ class StreamerAbout extends StreamerThrottling {
 				}
 				if(this.downlink && (this.downlink < this.active.bitrate)){
 					if(tuneable){
-						text += global.lang.YOUR_CONNECTION_IS_SLOW_TIP.format('<i class="fas fa-random"></i>')
+						text += global.lang.YOUR_CONNECTION_IS_SLOW_TIP.format('<i class="'+ global.config.get('tuning-icon') +'"></i>')
 					} else {
 						text += global.lang.YOUR_CONNECTION_IS_SLOW
 					}
@@ -951,9 +930,13 @@ class Streamer extends StreamerAbout {
 		const loadingEntriesData = [e, global.lang.AUTO_TUNING]
 		console.log('SETLOADINGENTRIES', loadingEntriesData)
 		global.explorer.setLoadingEntries(loadingEntriesData, true, txt)
-		console.log(e)
+		console.warn('STREAMER INTENT', e, results);
 		if(Array.isArray(results)){
-			this.playFromEntries(results, e.name, isMega ? e.url : '', txt, succeeded => {
+			let name = e.name
+			if(opts.name){
+				name = opts.name
+			}
+			this.playFromEntries(results, name, isMega ? e.url : '', txt, succeeded => {
 				if(this.connectId == connectId){
 					this.connectId = false
 					if(!succeeded){
@@ -966,8 +949,9 @@ class Streamer extends StreamerAbout {
 			if(opts.name){
 				name = opts.name
 			}
+			let terms = opts.terms ? opts.terms.split(',') : global.lists.terms(name, false)
 			global.osd.show(global.lang.TUNING + ' ' + name + '...', 'fa-mega spin-x-alt', 'streamer', 'persistent')   
-			global.lists.search(name, {
+			global.lists.search(terms, {
 				partial: false, 
 				type: 'live',
 				typeStrict: false
@@ -1001,6 +985,7 @@ class Streamer extends StreamerAbout {
 			if(opts.url){
 				e = Object.assign(Object.assign({}, e), opts)
 			}
+			console.warn('STREAMER INTENT', e);
 			let terms = global.channels.entryTerms(e)
 			global.ui.emit('tuneable', global.channels.isChannel(terms))
 			global.osd.show(global.lang.CONNECTING + ' ' + e.name + '...', 'fa-mega spin-x-alt', 'streamer', 'persistent')
@@ -1113,7 +1098,7 @@ class Streamer extends StreamerAbout {
 				msg = global.lang.PLAYBACK_OFFLINE_STREAM
 				break
 			case 'timeout':
-				msg = global.lang.PLAYBACK_TIMEOUT
+				msg = global.lang.SLOW_SERVER
 				break
 			case 'unsupported format':
 			case 'invalid url':
@@ -1125,7 +1110,7 @@ class Streamer extends StreamerAbout {
 				code = String((code && code.length) ? code[1] : msg)
 				switch(code){
 					case '0':
-						msg = global.lang.PLAYBACK_TIMEOUT
+						msg = global.lang.SLOW_SERVER
 						break
 					case '400':
 					case '401':

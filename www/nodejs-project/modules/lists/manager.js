@@ -54,7 +54,7 @@ class Manager extends Events {
                 } else if(typeof(global.osd) != 'undefined' && p.progress > this.lastProgress){
                     this.lastProgress = p.progress
                     this.firstRun = p.firstRun
-                    global.osd.show(global.lang[this.firstRun ? 'STARTING_LISTS' : 'UPDATING_LISTS'] + (p.progress ? ' '+ p.progress +'%' : ''), 'fa-mega spin-x-alt', 'update', 'persistent')
+                    global.osd.show(global.lang[this.firstRun ? 'STARTING_LISTS_FIRST_TIME_WAIT' : 'UPDATING_LISTS'] + (p.progress ? ' '+ p.progress +'%' : ''), 'fa-mega spin-x-alt', 'update', 'persistent')
                 } 
             }
             if(global.explorer && global.explorer.currentEntries){
@@ -335,7 +335,7 @@ class Manager extends Events {
     }
     updatedLists(name, fa){
         this.updatingLists = false
-        if(global.explorer && global.explorer.currentEntries && global.explorer.currentEntries.some(e => [global.lang.LOAD_COMMUNITARY_LISTS, global.lang.UPDATING_LISTS, global.lang.STARTING_LISTS, global.lang.PROCESSING].includes(e.name))){
+        if(global.explorer && global.explorer.currentEntries && global.explorer.currentEntries.some(e => [global.lang.LOAD_COMMUNITARY_LISTS, global.lang.UPDATING_LISTS, global.lang.STARTING_LISTS, global.lang.STARTING_LISTS_FIRST_TIME_WAIT, global.lang.PROCESSING].includes(e.name))){
             global.explorer.refresh()
         }
         if(typeof(global.osd) != 'undefined'){

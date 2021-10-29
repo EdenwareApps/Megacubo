@@ -141,6 +141,12 @@ class Config extends Events {
 		}
 	}
 	save(){ // sync to prevent confusion
+		let userConfig = {}
+		Object.keys(this.data).forEach(k => {
+			if(this.data[k] != this.defaults[k]){
+				userConfig[k] = this.data[k]
+			}
+		})
 		if(!fs.existsSync(path.dirname(this.file))){
 			fs.mkdirSync(path.dirname(this.file), {
 				recursive: true
@@ -150,7 +156,7 @@ class Config extends Events {
 			fs.truncateSync(this.file, 0)
 		}
 		try {
-			var jso = JSON.stringify(Object.assign({}, this.data), null, 3);
+			var jso = JSON.stringify(userConfig, null, 3);
 			fs.writeFileSync(this.file, jso, "utf8")
 		} catch(e) {
 			console.error(e)

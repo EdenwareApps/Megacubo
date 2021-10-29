@@ -1,6 +1,11 @@
 if(typeof(themeRefresh) == 'undefined'){
     function themeRefresh(){
-        let family = config['font-family'], nfs = 0.02 + (config['font-size'] * 0.0025), mbg = hexToRGBA(config['background-color'], config['background-color-transparency'] / 100), sfg = hexToRGBA(config['font-color'], 0.75)
+        let family = config['font-family'], nfs = 0.02 + (config['font-size'] * 0.0025)
+        let mbg = hexToRGBA(config['background-color'], config['background-color-transparency'] / 100)
+        let sfg = hexToRGBA(config['font-color'], 0.75)
+        let fxNavIntensityStep = parseFloat(window.getComputedStyle(document.documentElement).getPropertyValue('--explorer-fx-nav-intensity-step').trim())
+        let fxNavIntensity = config['fx-nav-intensity'] * fxNavIntensityStep
+        let radius = top.cordova ? '1vmax' : '9px'
         let cssCode = `
 :root {
     --explorer-entry-name-font-size: calc(((100vmin + 100vmax) * 0.333) * ${nfs});
@@ -8,6 +13,8 @@ if(typeof(themeRefresh) == 'undefined'){
     --secondary-font-color: ${sfg};
     --background-color: ${config['background-color']};
     --modal-background-color: ${mbg};
+    --explorer-fx-nav-intensity: ${fxNavIntensity};    
+    --radius: ${radius};
 }
 @media (orientation: landscape) {
     :root {

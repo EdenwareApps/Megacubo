@@ -41,6 +41,12 @@ class StreamerBaseIntent extends Events {
             this.unload()
         })
 	}
+    isTranscoding(){
+        if(this.transcoderStarting || this.transcoder){
+			return true
+		}
+		return this.adapters.some(a => a.isTranscoding && a.isTranscoding())
+    }
     setOpts(opts){
         if(opts && typeof(opts) == 'object'){     
             Object.keys(opts).forEach((k) => {
@@ -53,7 +59,8 @@ class StreamerBaseIntent extends Events {
         }
     }
     connectAdapter(adapter){    
-        this.adapters.push(adapter)  
+        this.adapters.push(adapter)
+        adapter.mediaType = this.mediaType
         adapter.on('dimensions', dimensions => {
 			if(dimensions && this._dimensions != dimensions){
 				this._dimensions = dimensions
@@ -122,16 +129,12 @@ class StreamerBaseIntent extends Events {
         if(!base){
             base = this
         }
-        if(base.adapters){
+        let adapters = this.findAllAdapters(base, types, filter)
+        if(adapters){
             let ret
-            for(let i = 0; i < base.adapters.length; i++){ // not reverse, to find the lower level adapter, useful to get stream download speed
-                if(base.adapters[i].type && types.includes(base.adapters[i].type) && (!filter || filter(base.adapters[i]))){
-                    ret = base.adapters[i]
-                } else {
-                    ret = this.findLowAdapter(base.adapters[i], types, filter)
-                }
-                if(ret){
-                    break
+            for(let i = 0; i < adapters.length; i++){ // not reverse, to find the lower level adapter, useful to get stream download speed
+                if(!ret || types.indexOf(adapters[i].type) < types.indexOf(ret.type)){
+                    ret = adapters[i]
                 }
             }
             return ret
@@ -141,16 +144,12 @@ class StreamerBaseIntent extends Events {
         if(!base){
             base = this
         }
-        if(base.adapters){
+        let adapters = this.findAllAdapters(base, types, filter)
+        if(adapters){
             let ret
-            for(let i = base.adapters.length - 1; i >= 0; i--){ // reverse lookup to find the higher level adapter, so it should be HTML5 compatible already
-                if(base.adapters[i].type && types.includes(base.adapters[i].type) && (!filter || filter(base.adapters[i]))){
-                    ret = base.adapters[i]
-                } else {
-                    ret = this.findAdapter(base.adapters[i], types, filter)
-                }
-                if(ret){
-                    break
+            for(let i = adapters.length - 1; i >= 0; i--){ // reverse lookup to find the higher level adapter, so it should be HTML5 compatible already
+                if(!ret || types.indexOf(adapters[i].type) < types.indexOf(ret.type)){
+                    ret = adapters[i]
                 }
             }
             return ret
@@ -248,7 +247,7 @@ class StreamerBaseIntent extends Events {
     }
     startCapture(onData, onFinish){
         this.endCapture()
-        let a = this.findLowAdapter(null, ['joiner', 'downloader', 'proxy', 'any2hls']) // suitable adapters for capturing, by priority
+        let a = this.findLowAdapter(null, ['joiner', 'downloader', 'any2hls', 'proxy']) // suitable adapters for capturing, by priority, prefer any2hls over proxy, as it can be a encrypted hls at proxy
         if(a){
             this.capturing = [a, onData, onFinish]
             this.capturing[0].on('data', this.capturing[1])
