@@ -63,7 +63,7 @@ class WriteQueueFile extends Events {
 					this.emit('end')
 				} else {
 					this._write(this.fd, () => {
-						if(this.autoclose){
+						if(this.autoclose && this.fd){
 							fs.close(this.fd, () => {})
 							this.fd = null
 						}

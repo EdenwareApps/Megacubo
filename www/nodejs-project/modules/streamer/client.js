@@ -1028,7 +1028,7 @@ class StreamerClientVideoFullScreen extends StreamerAndroidNetworkIP {
             this.inFullScreen = false
             if(parent.cordova){
                 if(this.pipLeaveListener){
-                    parent.winman.off('leave', this.pipLeaveListener)
+                    parent.winman.removeListener('leave', this.pipLeaveListener)
                 }
                 //setTimeout(() => { // delay a bit trying to prevent GL_OUT_OF_MEMORY on stop()
                     parent.AndroidFullScreen.immersiveMode(() => {
