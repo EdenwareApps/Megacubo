@@ -777,7 +777,7 @@ class StreamerAbout extends StreamerThrottling {
 	aboutText(){
 		let text = ''
 		if(this.active.bitrate){
-			const currentSpeed = (this.speedoAdapter || this.active).currentSpeed, tuneable = !!global.tuning, icon = '<i class="fas fa-circle {0}"></i> '
+			const currentSpeed = (this.speedoAdapter || this.active).currentSpeed, tuneable = this.isTuneable, icon = '<i class="fas fa-circle {0}"></i> '
 			if(this.downlink < currentSpeed){
 				this.downlink = currentSpeed
 			}
@@ -866,7 +866,7 @@ class Streamer extends StreamerAbout {
 		console.warn('playFromEntries', entries, name, connectId)
 		if(!this.active){
 			global.explorer.setLoadingEntries(loadingEntriesData, true, txt)
-			global.osd.show(global.lang.TUNING + ' ' + name + '... 0%', 'fa-mega spin-x-alt', 'streamer', 'persistent')
+			global.osd.show(global.lang.TUNING_WAIT_X.format(name) + ' 0%', 'fa-mega spin-x-alt', 'streamer', 'persistent')
 		}
 		global.watching.order(entries).then(entries => {
 			if(this.connectId != connectId){
@@ -878,7 +878,7 @@ class Streamer extends StreamerAbout {
 			tuning.txt = txt
 			tuning.on('progress', i => {
 				if(!this.active && i.progress && !isNaN(i.progress)){
-					global.osd.show(global.lang.TUNING + ' ' + name + '... ' + i.progress + '%', 'fa-mega spin-x-alt', 'streamer', 'persistent')
+					global.osd.show(global.lang.TUNING_WAIT_X.format(name) +' '+ i.progress + '%', 'fa-mega spin-x-alt', 'streamer', 'persistent')
 				}
 			})
 			tuning.on('finish', () => {
@@ -893,7 +893,7 @@ class Streamer extends StreamerAbout {
 			})
 			tuning.tune().then(() => {
 				callback(true)
-				global.ui.emit('tuneable', true)	
+				this.setTuneable(true)
 			}).catch(err => {
 				if(err != 'cancelled by user'){
 					global.osd.show(global.lang.NONE_STREAM_WORKED_X.format(name), 'fas fa-exclamation-circle faclr-red', 'streamer', 'normal')
@@ -906,6 +906,10 @@ class Streamer extends StreamerAbout {
 			global.osd.hide('streamer')
 			callback(false)
 		})
+	}
+	setTuneable(enable){
+		this.isTuneable = !!enable
+		global.ui.emit('tuneable', this.isTuneable)
 	}
 	play(e, results){
 		if(this.opts.shadow){
@@ -950,7 +954,7 @@ class Streamer extends StreamerAbout {
 				name = opts.name
 			}
 			let terms = opts.terms ? opts.terms.split(',') : global.lists.terms(name, false)
-			global.osd.show(global.lang.TUNING + ' ' + name + '...', 'fa-mega spin-x-alt', 'streamer', 'persistent')   
+			global.osd.show(global.lang.TUNING_WAIT_X.format(name), 'fa-mega spin-x-alt', 'streamer', 'persistent')   
 			global.lists.search(terms, {
 				partial: false, 
 				type: 'live',
@@ -987,7 +991,7 @@ class Streamer extends StreamerAbout {
 			}
 			console.warn('STREAMER INTENT', e);
 			let terms = global.channels.entryTerms(e)
-			global.ui.emit('tuneable', global.channels.isChannel(terms))
+			this.setTuneable(!global.lists.msi.isVideo(e.url) && global.channels.isChannel(terms))
 			global.osd.show(global.lang.CONNECTING + ' ' + e.name + '...', 'fa-mega spin-x-alt', 'streamer', 'persistent')
 			this.intent(e).then(n => {
 				console.warn('STREAMER INTENT SUCCESS', e);
@@ -1025,7 +1029,7 @@ class Streamer extends StreamerAbout {
 			console.log('tuneEntry', e, same)
 			if(same){
 				global.tuning.tune().then(() => {
-					global.ui.emit('tuneable', true)	
+					this.setTuneable(true)
 				}).catch(err => {
 					if(err != 'cancelled by user'){
 						this.emit('connecting-failure', e)

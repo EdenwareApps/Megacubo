@@ -264,11 +264,11 @@ class OptionsExportImport extends PerformanceProfiles {
                     return global.displayErr(err)
                 }
                 const AdmZip = require('adm-zip')
-                const zip = new AdmZip(zipFile)
+                const zip = new AdmZip(zipFile), imported = {}
                 async.eachOf(zip.getEntries(), (entry, i, done) => {
                     if(entry.entryName.startsWith('config')) {
                         zip.extractEntryTo(entry, path.dirname(global.config.file), false, true)
-                        global.config.reload()
+                        imported.config = entry.getData().toString('utf8')
                     }
                     if(entry.entryName.startsWith('bookmarks')) {
                         zip.extractEntryTo(entry, global.storage.folder, false, true)
@@ -293,6 +293,10 @@ class OptionsExportImport extends PerformanceProfiles {
                     }
                     done()
                 }, () => {
+                    if(imported.config) {
+                        console.warn('CONFIG', imported.config)
+                        global.config.reload(imported.config)
+                    }
                     global.osd.show(global.lang.IMPORTED_FILE, 'fas fa-check-circle', 'options', 'normal')
                 })
             })
@@ -430,7 +434,7 @@ class Options extends OptionsExportImport {
     about(){
         let text = lang.LEGAL_NOTICE +': '+ lang.ABOUT_LEGAL_NOTICE
         global.ui.emit('dialog', [
-            {template: 'question', text: global.ucWords(global.MANIFEST.name) +' v'+ global.MANIFEST.version +' (' + process.platform + ', '+ require('os').arch() +')'},
+            {template: 'question', fa: 'fas fa-info-circle', text: global.ucWords(global.MANIFEST.name) +' v'+ global.MANIFEST.version +' (' + process.platform + ', '+ require('os').arch() +')'},
             {template: 'message', text},
             {template: 'option', text: 'OK', fa: 'fas fa-check-circle', id: 'ok'},
             {template: 'option', text: global.lang.HELP, fa: 'fas fa-question-circle', id: 'help'},

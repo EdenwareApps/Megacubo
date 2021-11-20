@@ -15,7 +15,8 @@ class Any2HLS extends Events {
             videoCodec: 'copy',
             audioCodec: 'copy',
             inputFormat: null,
-            isLive: true
+            isLive: true,
+            vprofile: 'baseline'
         };
         this.setOpts(opts)
     }
@@ -407,7 +408,7 @@ class Any2HLS extends Events {
                 if(this.opts.videoCodec == 'libx264') {
                     /* HTML5 compat start */
                     this.decoder.
-                    outputOptions('-profile:v', 'baseline').
+                    outputOptions('-profile:v', this.opts.vprofile).
                     outputOptions('-shortest').
                     outputOptions('-pix_fmt', 'yuv420p').
                     outputOptions('-preset:v', 'ultrafast').

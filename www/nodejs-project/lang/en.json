@@ -87,6 +87,7 @@
 "CATEGORIES": "Categories",
 "REMOVE_FROM": "Remove from \"{0}\"",
 "TUNING": "Tuning",
+"TUNING_WAIT_X": "Tuning {0}, wait...",
 "FORWARD": "Forward",
 "SHOW_HIDE_MENU": "Hide or show channel menu",
 "MOST_SEARCHED": "Most searched",

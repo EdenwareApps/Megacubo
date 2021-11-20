@@ -918,7 +918,7 @@ class Channels extends ChannelsAutoWatchNow {
         } else if(typeof(e.terms) != 'undefined' && typeof(e.terms.name) != 'undefined' && Array.isArray(e.terms.name) && e.terms.name.length) {
             terms = e.terms.name
         } else {
-            terms = global.lists.terms(e.program ? e.program.ch : e.name)
+            terms = global.lists.terms(e.program ? e.program.ch : (e.channelName ? e.channelName : e.name))
         }
         return this.expandTerms(terms)
     }

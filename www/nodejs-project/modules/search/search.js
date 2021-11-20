@@ -187,6 +187,11 @@ class Search extends Events {
             }).catch(reject)
         })
     }
+    isSearching(){
+        return global.explorer.currentEntries.some(e => {
+            return e.name == global.lang.SEARCH
+        })
+    }
     matchTerms(nlc, precision, es){
         let term = false
         if(es.length){

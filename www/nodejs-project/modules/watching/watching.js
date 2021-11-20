@@ -48,7 +48,7 @@ class Watching extends EntriesGroup {
         return new Promise((resolve, reject) => {
             if(path == ''){
                 let has, pos = 0, entry = this.entry()
-                if(this.currentEntries && this.currentEntries.length && entry.name != global.lang.TRENDING){
+                if(this.currentEntries && this.currentEntries.length && entry.details != global.lang.BEEN_WATCHED){
                     entries.some((e, i) => {
                         if(i == 0 && e.hookId == 'history'){ // let continue option as first
                             pos = 1
@@ -214,11 +214,12 @@ class Watching extends EntriesGroup {
                 }
             })
             if(top){
-                let s = top.users == 1 ? 'user' : 'users', terms = global.channels.entryTerms(top)
-                entry.name = top.name
+                let s = top.users == 1 ? 'user' : 'users'
+                entry.name = global.lang.TRENDING
                 entry.class = 'entry-icon' 
-                entry.details = '<i class="fas fa-'+ s +'"></i> '+ global.lang.X_WATCHING.format(top.users)
-                entry.details += ' &middot; '+ global.lang.TRENDING
+                entry.channelName = top.name
+                entry.prepend = '<i class="fas fa-chart-bar"></i> '
+                entry.details = top.name + ' &middot; <i class="fas fa-'+ s +'"></i> '+ global.lang.X_WATCHING.format(top.users)
             }
         }
         return entry

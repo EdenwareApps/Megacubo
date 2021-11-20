@@ -21,10 +21,10 @@ class Config extends Events {
 		fs.unlink(this.file, () => {})
 		this.data = Object.assign({}, this.defaults)		
 	}
-	load(){
-		if(!this.loaded  && fs.existsSync(this.file)){
+	load(txt){
+		if(!this.loaded  && (txt || fs.existsSync(this.file))){
 			this.loaded = true
-			var _data = fs.readFileSync(this.file, "utf8")
+			var _data = typeof(txt) == 'string' ? txt : fs.readFileSync(this.file, 'utf8')
 			if(_data){
 				if(Buffer.isBuffer(_data)){ // is buffer
 					_data = String(_data)
@@ -33,7 +33,7 @@ class Config extends Events {
 					console.log('DATA', _data)
 				}
 				if(typeof(_data)=='string' && _data.length > 2){
-					_data = _data.replace(new RegExp("\n", "g"), "")
+					_data = _data.replace(new RegExp("\n", "g"), '')
 					//data = stripBOM(data.replace(new RegExp("([\r\n\t]| +)", "g"), "")); // with \n the array returns empty (?!)
 					_data = JSON.parse(_data);
 					if(typeof(_data)=='object'){
@@ -50,13 +50,13 @@ class Config extends Events {
 			console.log('CONFIG EXTENDED', this.defaults, this.data)
 		}
 	}
-	reload(){
+	reload(txt){
 		let oldData
 		if(this.loaded){
 			oldData = Object.assign({}, this.data)
 		}
 		this.loaded = false
-		this.load()
+		this.load(txt)
 		if(oldData){
 			let changed = []
 			Object.keys(oldData).forEach(k => {

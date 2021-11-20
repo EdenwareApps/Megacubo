@@ -87,6 +87,7 @@
 "CATEGORIES": "Categorías",
 "REMOVE_FROM": "Retirar de \"{0}\"",
 "TUNING": "Sintonizando",
+"TUNING_WAIT_X": "Sintonizando {0}, espera...",
 "FORWARD": "Avanzar",
 "SHOW_HIDE_MENU": "Ocultar o mostrar el menú de canales",
 "MOST_SEARCHED": "Más buscados",

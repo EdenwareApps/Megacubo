@@ -374,30 +374,22 @@ function init(language){
         })
         ui.on('tuning-stop', () => {
             console.warn('TUNING ABORT')
-            if(tuning){
-                tuning.destroy()
-            }
+            if(tuning) tuning.destroy()
         })
         ui.on('tune', () => {
             let data = streamer.active ? streamer.active.data : streamer.lastActiveData
             console.warn('RETUNNING', data)
-            if(data){
-                streamer.tune(data)
-            }
+            if(data) streamer.tune(data)
         })
         ui.on('retry', () => {
             console.warn('RETRYING')
             let data = streamer.active ? streamer.active.data : streamer.lastActiveData
-            if(data){
-                streamer.play(data)
-            }
+            if(data) streamer.play(data)
         })
         ui.on('video-transcode', () => {
             console.error('VIDEO TRANSCODE')
             streamer.transcode(null, err => {
-                if(err){
-                    streamer.handleFailure(null, 'unsupported format')
-                }
+                if(err) streamer.handleFailure(null, 'unsupported format')
             })
         })
         ui.on('video-error', (type, errData) => {
@@ -451,6 +443,10 @@ function init(language){
                     tuning.pause()
                 }
                 console.warn('STREAMER STOPPED')
+            }
+            let isEPGEnabledPath = !search.isSearching() && channels.activeEPG && [global.lang.TRENDING, global.lang.BOOKMARKS, global.lang.LIVE].some(p => explorer.path.substr(0, p.length) == p)
+            if(isEPGEnabledPath){ // update current section data for epg freshness
+                explorer.refresh()
             }
         })  
         ui.on('set-epg', url => {

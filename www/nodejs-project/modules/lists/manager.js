@@ -792,11 +792,11 @@ class Manager extends Events {
     }
     listSharingEntry(){
         return {
-            name: global.lang.COMMUNITARY_MODE, type: 'group', fa: 'fas fa-users', 
+            name: global.lang.COMMUNITARY_MODE, type: 'group', fa: 'fas fa-users', details: global.lang.LIST_SHARING,
             renderer: () => {
                 return new Promise((resolve, reject) => {
                     let options = [
-                        {name: global.lang.ENABLE, type: 'check', action: (data, checked) => {
+                        {name: global.lang.ENABLE, type: 'check', details: global.lang.LIST_SHARING, action: (data, checked) => {
                             if(checked){
                                 global.ui.emit('dialog', [
                                     {template: 'question', text: global.lang.COMMUNITARY_MODE, fa: 'fas fa-users'},
