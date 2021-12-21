@@ -54,7 +54,7 @@ Object.keys(paths).forEach(k => {
 storage = require(APPDIR + '/modules/storage')({main: true})
 
 onexit(() => {
-    global.isExiting = true
+    isExiting = true
     console.log('APP_EXIT', traceback())
     if(typeof(streamer) != 'undefined' && streamer.active){
         streamer.stop()
@@ -69,9 +69,9 @@ onexit(() => {
 })
 
 config = new (require(APPDIR + '/modules/config'))(paths['data'] + '/config.json')
-base64 = new (require(APPDIR + '/modules/base64'))()
 Download = require(APPDIR + '/modules/download')
-jimp = require(APPDIR + '/modules/jimp-wrapper')
+base64 = null
+jimp = null
 
 enableConsole = (enable) => {
     let fns = ['log', 'warn']
@@ -82,9 +82,9 @@ enableConsole = (enable) => {
         if(enable) return // enabled by default, stop here
     }
     if(enable){
-        fns.forEach(f => { global.console[f] = console[f] = originalConsole[f] })
+        fns.forEach(f => { console[f] = originalConsole[f] })
     } else {
-        fns.forEach(f => { global.console[f] = console[f] = () => {}})
+        fns.forEach(f => { console[f] = () => {}})
     }
 }
 
@@ -114,9 +114,6 @@ const StreamState = require(APPDIR + '/modules/stream-state')
 const Downloads = require(APPDIR + '/modules/downloads')
 const OMNI = require(APPDIR + '/modules/omni')
 const Mega = require(APPDIR + '/modules/mega')
-
-console.log('Initializing premium...')
-Premium = require(APPDIR + '/modules/premium-helper')
 
 console.log('Modules loaded.')
 
@@ -223,8 +220,8 @@ importFileFromClient = (data, target) => {
 
 updateEPGConfig = c => {
     const next = c => {
-        activeEPG = global.config.get('epg')
-        console.log('SET-EPG', activeEPG, global.activeEPG)
+        activeEPG = config.get('epg-'+ lang.locale)
+        console.log('SET-EPG', activeEPG, activeEPG)
         if(activeEPG == 'disabled'){
             activeEPG = false
             lists.manager.setEPG('', false)
@@ -246,15 +243,17 @@ updateEPGConfig = c => {
 var playOnLoaded
 
 function init(language){
-    console.log('Language', language)
-    Language(language, APPDIR + '/lang').then(ret => {  
-        console.warn('Language loaded.', typeof(ret))
+    if(lang) return
+    lang = new Language(language, config.get('locale'), APPDIR + '/lang')
+    lang.load().catch(displayErr).finally(() => {  
+        console.log('Language loaded.')
        
+        base64 = new (require(APPDIR + '/modules/base64'))()
+        jimp = require(APPDIR + '/modules/jimp-wrapper')
+        
+
         let epgSetup = false
-        lang = ret
-
-        moment.locale(lang.locale)    
-
+        moment.locale(lang.locale)
         cloud = new Cloud()
         
         const Lists = require(APPDIR + '/modules/lists')
@@ -292,6 +291,8 @@ function init(language){
             ]
         )
         
+        console.log('Initializing premium...')
+        Premium = require(APPDIR + '/modules/premium-helper')
         if(typeof(Premium) != 'undefined'){
 			premium = new Premium()
 		}
@@ -399,7 +400,7 @@ function init(language){
                     let opts = [{template: 'question', text: lang.SLOW_TRANSMISSION}], def = 'wait'
                     let isCH = streamer.active.type != 'video' && channels.isChannel(streamer.active.data.terms.name)
                     if(isCH){
-                        opts.push({template: 'option', text: lang.PLAYALTERNATE, fa: global.config.get('tuning-icon'), id: 'try-other'})
+                        opts.push({template: 'option', text: lang.PLAYALTERNATE, fa: config.get('tuning-icon'), id: 'try-other'})
                         def = 'try-other'
                     }
                     opts.push({template: 'option', text: lang.WAIT, fa: 'fas fa-clock', id: 'wait'})
@@ -444,21 +445,21 @@ function init(language){
                 }
                 console.warn('STREAMER STOPPED')
             }
-            let isEPGEnabledPath = !search.isSearching() && channels.activeEPG && [global.lang.TRENDING, global.lang.BOOKMARKS, global.lang.LIVE].some(p => explorer.path.substr(0, p.length) == p)
+            let isEPGEnabledPath = !search.isSearching() && channels.activeEPG && [lang.TRENDING, lang.BOOKMARKS, lang.LIVE].some(p => explorer.path.substr(0, p.length) == p)
             if(isEPGEnabledPath){ // update current section data for epg freshness
                 explorer.refresh()
             }
         })  
         ui.on('set-epg', url => {
             epgSetup = true
-            console.log('SET-EPG', url, global.activeEPG)
-            global.config.set('epg', url || 'disabled')
+            console.log('SET-EPG', url, activeEPG)
+            config.set('epg', url || 'disabled')
             lists.manager.setEPG(url, true)
         })
         ui.on('open-url', url => {
             console.log('OPENURL', url)
             if(url){
-                global.storage.raw.set('open-url', url, true)
+                storage.raw.set('open-url', url, true)
                 const name = lists.manager.nameFromSourceURL(url), e = {
                     name, 
                     url, 
@@ -496,7 +497,7 @@ function init(language){
         ui.on('network-state-down', () => setNetworkConnectionState(false))
         ui.on('network-ip', ip => {
             if(ip && isNetworkIP(ip)){
-                global.networkIP = () => {
+                networkIP = () => {
                     return ip
                 }
             }
@@ -585,10 +586,10 @@ function init(language){
                     if(playOnLoaded){
                         streamer.play(playOnLoaded)
                     } else if(config.get('resume')){
-                        if(global.explorer.path){
+                        if(explorer.path){
                             console.log('resume skipped, user navigated away')
                         } else {
-                            console.log('resuming', histo.resumed, global.streamer)
+                            console.log('resuming', histo.resumed, streamer)
                             histo.resume()
                         }
                     }
@@ -620,13 +621,12 @@ function init(language){
         })
 
         console.warn('Prepared to connect...')
-        ui.emit('backend-ready', config.all(), lang)
+        ui.emit('backend-ready', config.all(), lang.getTexts())
     })
 }
 
-let language = config.get('locale')
 ui.on('get-lang-callback', (locale, timezone, ua, online) => {
-    console.log('get-lang-callback', language, timezone, ua, online)
+    console.log('get-lang-callback', timezone, ua, online)
     if(timezone && (timezone != config.get('timezone'))){
         config.set('timezone', timezone)
     }
@@ -637,18 +637,17 @@ ui.on('get-lang-callback', (locale, timezone, ua, online) => {
     if(typeof(online) == 'boolean'){
         setNetworkConnectionState(online)
     }
-    if(!language){
-        locale = locale.replace(new RegExp(' +', 'g'), '').split(',').filter(s => [2, 5].includes(s.length))
-        language = locale.length ? locale[0] : ''
-        console.log('get-lang-callback 1', language)
-        init(language)
-    } else if(lang) {
-        console.log('get-lang-callback 2', language)
-        ui.emit('backend-ready', config.all(), lang)
+    if(!lang){
+        console.log('get-lang-callback 1', lang)
+        init(locale)
+    } else {
+        console.log('get-lang-callback 2', lang)
+        lang.ready(() => {
+            ui.emit('backend-ready', config.all(), lang.getTexts())
+        })
     }
 })
-if(language){
-    init(language)
-} else if(global.cordova) {
+
+if(cordova) {
     ui.emit('get-lang')
 }

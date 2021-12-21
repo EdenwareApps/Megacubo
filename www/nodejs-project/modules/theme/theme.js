@@ -4,7 +4,6 @@ const Events = require('events'), fs = require('fs'), path = require('path'), as
 class Theme extends Events {
     constructor(){
         super()
-        this.filtering = false
         this.customBackgroundImagePath = global.paths.data +'/background.png'
         this.customBackgroundVideoPath = global.paths.data +'/background.mp4'
         this.keys = ['theme-name', 'animate-background', 'background-color', 'background-color-transparency', 'custom-background-image', 'custom-background-video', 'font-color', 'font-family', 'font-size', 'uppercase-menu', 'view-size-x', 'view-size-y']
@@ -39,19 +38,6 @@ class Theme extends Events {
             }).catch(err => {
                 global.displayErr(err)
             })
-        })
-    }
-    setupFilter(){
-        if(!this.filtering && global.explorer){
-            this.filtering = true
-            global.explorer.addFilter(this.filter)
-        }
-    }
-    filter(es, path){
-        return new Promise((resolve, reject) => {
-            resolve(es.filter(e => {
-                return (!e.type || e.type != 'back') && (!e.fa || e.fa != global.explorer.backIcon)
-            }))
         })
     }
     colors(file, filter, limit){
@@ -128,12 +114,12 @@ class Theme extends Events {
         })
     }
     importBackgroundVideo(data){
-        global.ui.emit('set-loading', {name: global.lang.CHANGE_BACKGROUND_VIDEO}, true, global.lang.PROCESSING)
+        global.ui.emit('set-loading', {name: global.lang.CHOOSE_BACKGROUND_VIDEO}, true, global.lang.PROCESSING)
         global.osd.show(global.lang.PROCESSING, 'fas fa-cog fa-spin', 'theme-upload', 'persistent')
         global.importFileFromClient(data, this.customBackgroundVideoPath).then(ret => this.importBackgroundVideoCallback(ret)).catch(err => {
             global.displayErr(err)
         }).finally(() => {
-            global.ui.emit('set-loading', {name: global.lang.CHANGE_BACKGROUND_VIDEO}, false)
+            global.ui.emit('set-loading', {name: global.lang.CHOOSE_BACKGROUND_VIDEO}, false)
             global.osd.hide('theme-upload')
             global.osd.show(global.lang.BACKGROUND_VIDEO_BLACK_SCREEN_HINT, 'fas fa-info-circle', 'theme-upload-hint', 'long')
         })
@@ -492,7 +478,7 @@ class Theme extends Events {
                                                         global.ui.removeAllListeners('fontlist')
                                                         resolve(list.map(name => {
                                                             return {name, type: 'action', action: () => {
-                                                                console.warn("CHOSEN FONT", name)
+                                                                console.warn('CHOSEN FONT', name)
                                                                 global.config.set('font-family', name)
                                                                 this.update()
                                                             }}
@@ -667,7 +653,6 @@ class Theme extends Events {
     }
     hook(entries, path){
         return new Promise((resolve, reject) => {
-            this.setupFilter()
             if(path == global.lang.TOOLS){
                 entries.splice(2, 0, {name: global.lang.THEMES, fa: 'fas fa-palette', type: 'group', renderer: this.entries.bind(this)})
             }

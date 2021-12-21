@@ -1,4 +1,147 @@
+/**
+*
+*  Base64 encode / decode
+*  http://www.webtoolkit.info
+*
+**/
+var Base64 = {
+    _keyStr: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=", 
+	encode: function (input)
+    {
+        var output = "";
+        var chr1, chr2, chr3, enc1, enc2, enc3, enc4;
+        var i = 0;
 
+        input = Base64._utf8_encode(input);
+
+        while (i < input.length)
+        {
+            chr1 = input.charCodeAt(i++);
+            chr2 = input.charCodeAt(i++);
+            chr3 = input.charCodeAt(i++);
+
+            enc1 = chr1 >> 2;
+            enc2 = ((chr1 & 3) << 4) | (chr2 >> 4);
+            enc3 = ((chr2 & 15) << 2) | (chr3 >> 6);
+            enc4 = chr3 & 63;
+
+            if (isNaN(chr2))
+            {
+                enc3 = enc4 = 64;
+            }
+            else if (isNaN(chr3))
+            {
+                enc4 = 64;
+            }
+
+            output = output +
+                this._keyStr.charAt(enc1) + this._keyStr.charAt(enc2) +
+                this._keyStr.charAt(enc3) + this._keyStr.charAt(enc4);
+        } // Whend 
+
+        return output;
+    },
+	decode: function (input)
+    {
+        var output = "";
+        var chr1, chr2, chr3;
+        var enc1, enc2, enc3, enc4;
+        var i = 0;
+
+        input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
+        while (i < input.length)
+        {
+            enc1 = this._keyStr.indexOf(input.charAt(i++));
+            enc2 = this._keyStr.indexOf(input.charAt(i++));
+            enc3 = this._keyStr.indexOf(input.charAt(i++));
+            enc4 = this._keyStr.indexOf(input.charAt(i++));
+
+            chr1 = (enc1 << 2) | (enc2 >> 4);
+            chr2 = ((enc2 & 15) << 4) | (enc3 >> 2);
+            chr3 = ((enc3 & 3) << 6) | enc4;
+
+            output = output + String.fromCharCode(chr1);
+
+            if (enc3 != 64)
+            {
+                output = output + String.fromCharCode(chr2);
+            }
+
+            if (enc4 != 64)
+            {
+                output = output + String.fromCharCode(chr3);
+            }
+
+        } // Whend 
+
+        output = Base64._utf8_decode(output);
+
+        return output;
+    },
+	_utf8_encode: function (string)
+    {
+        var utftext = "";
+        string = string.replace(/\r\n/g, "\n");
+
+        for (var n = 0; n < string.length; n++)
+        {
+            var c = string.charCodeAt(n);
+
+            if (c < 128)
+            {
+                utftext += String.fromCharCode(c);
+            }
+            else if ((c > 127) && (c < 2048))
+            {
+                utftext += String.fromCharCode((c >> 6) | 192);
+                utftext += String.fromCharCode((c & 63) | 128);
+            }
+            else
+            {
+                utftext += String.fromCharCode((c >> 12) | 224);
+                utftext += String.fromCharCode(((c >> 6) & 63) | 128);
+                utftext += String.fromCharCode((c & 63) | 128);
+            }
+
+        } // Next n 
+
+        return utftext;
+    },
+	_utf8_decode: function (utftext)
+    {
+        var string = "";
+        var i = 0;
+        var c, c1, c2, c3;
+        c = c1 = c2 = 0;
+
+        while (i < utftext.length)
+        {
+            c = utftext.charCodeAt(i);
+
+            if (c < 128)
+            {
+                string += String.fromCharCode(c);
+                i++;
+            }
+            else if ((c > 191) && (c < 224))
+            {
+                c2 = utftext.charCodeAt(i + 1);
+                string += String.fromCharCode(((c & 31) << 6) | (c2 & 63));
+                i += 2;
+            }
+            else
+            {
+                c2 = utftext.charCodeAt(i + 1);
+                c3 = utftext.charCodeAt(i + 2);
+                string += String.fromCharCode(((c & 15) << 12) | ((c2 & 63) << 6) | (c3 & 63));
+                i += 3;
+            }
+
+        } // Whend 
+
+        return string;
+    }
+}
 
 class ExplorerURLInputHelper {
     constructor(){
@@ -95,7 +238,7 @@ class ExplorerSelectionMemory extends ExplorerBase {
         })
 	}
 	updateSelection(){
-		this.updateSelectionCB(this.path, '', true)
+		return this.updateSelectionCB(this.path, '', true)
 	}
 	updateSelectionCB(path, icon){
 		if(this.isExploring()){
@@ -106,9 +249,10 @@ class ExplorerSelectionMemory extends ExplorerBase {
                 this._scrollContainer.scrollTop = target
                 this.focusIndex(index, false, true)
                 this.scrollSnapping = false
+				return true
             } else {
                 this.scrolling = false
-				this.restoreSelection()
+				return this.restoreSelection()
 			}
 		}
     }
@@ -124,6 +268,7 @@ class ExplorerSelectionMemory extends ExplorerBase {
         this._scrollContainer.scrollTop = data.scroll
         if(this.activeView().level == 'default'){
             this.focusIndex(data.index, true, true) // true = force re-selecting the same entry on refresh
+			return true
         }
     }
 }
@@ -889,7 +1034,7 @@ class ExplorerDialog extends ExplorerDialogQueue {
 		`
 	}
 	text2id(txt){
-		return txt.toLowerCase().replace(new RegExp('[^a-z0-9]+', 'g'), '')
+		return Base64.encode(txt).toLowerCase().replace(new RegExp('[^a-z0-9]+', 'gi'), '')
 	}
 	dialog(entries, cb, defaultIndex, mandatory){
 		this.queueDialog(() => {
@@ -944,6 +1089,8 @@ class ExplorerDialog extends ExplorerDialogQueue {
 				if(!e.plainText){
 					e.plainText = this.plainText(e.text)
 				}
+				e.text = e.text.replaceAll('"', '&quot;')
+				e.plainText = e.plainText.replaceAll('"', '')
 				tpl = this.replaceTags(tpl, e, true)
 				if(this.debug){
 					console.log(tpl, e)
@@ -1655,10 +1802,9 @@ class Explorer extends ExplorerLoading {
 				trange.start -= tolerance
 			}
 			this.currentEntries.forEach((e, i) => {
-				if((i >= trange.start) && (i <= trange.end)) {
-					entries[i] = e
-				} else {
-					entries[i] = Object.assign(Object.assign({}, e), {type: 'spacer'})
+				let lazy = i < trange.start || i > trange.end
+				entries[i] = Object.assign({lazy}, e)
+				if(lazy && !this.ranging) {
 					this.ranging = true
 				}
 			})
@@ -1671,34 +1817,36 @@ class Explorer extends ExplorerLoading {
 		if(this.ranging){
 			var changed = [], shouldUpdateRange = config['show-logos'] && this.currentEntries.length > (this.viewSizeX * this.viewSizeY)
 			if(shouldUpdateRange){
-				var elements = this.currentElements, entries = this.getRange(this._wrapper.scrollTop)
-				entries.sort((a, b) => {
-					if(a.type == b.type){
-					  return a.tabindex > b.tabindex ? 1 : a.tabindex < b.tabindex ? -1 : 0;
-					}			
-					return a.type == 'spacer' ? 1 : -1
-				})
+				let rgx = new RegExp('<img', 'i'), elements = this.currentElements, entries = this.getRange(this._wrapper.scrollTop)
 				if(this.debug){
 					console.warn("UPDATING RANGE", entries, traceback())
 				}
-				this.app.emit('explorer-update-range', this.range, this.path)
 				entries.forEach(e => {
-					if(e.type){
-						var type = elements[e.tabindex].getAttribute('data-type')
-						if(this.debug){
-							console.warn(e.type, type, elements[e.tabindex], e.tabindex, this.selectedIndex)
-						}
-						if(e.type != type){
-							var tpl = this.templates['default']
-							if(typeof(this.templates[e.type]) != 'undefined'){
-								tpl = this.templates[e.type]
-							}
-							var n = this.j(this.renderEntry(e, tpl, this.path)).get(0)
-							elements[e.tabindex].parentNode.replaceChild(n, elements[e.tabindex])
-							changed.push(n)
+					let type = elements[e.tabindex].getAttribute('data-type')
+					let update = e.lazy != (type == 'spacer')
+					if(update && e.lazy){
+						if(!elements[e.tabindex].innerHTML.match(rgx)){
+							e.lazy = false
+							update = false
 						}
 					}
+					if(this.debug){
+						console.warn(e.type, type, elements[e.tabindex], e.tabindex, this.selectedIndex)
+					}
+					if(update){
+						if(e.lazy){
+							e.type = 'spacer'
+						}
+						let tpl = this.templates['default']
+						if(typeof(this.templates[e.type]) != 'undefined'){
+							tpl = this.templates[e.type]
+						}
+						let n = this.j(this.renderEntry(e, tpl, this.path)).get(0)
+						elements[e.tabindex].parentNode.replaceChild(n, elements[e.tabindex])
+						changed.push(n)
+					}
 				})
+				this.app.emit('explorer-update-range', this.range, this.path)
 				if(changed.length){
 					if(this.debug){
 						console.warn("UPDATING", changed, this.selectedIndex, this.range)

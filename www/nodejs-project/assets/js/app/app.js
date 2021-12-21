@@ -17,7 +17,8 @@ function importMomentLocale(locale, cb){
         dataType: 'text',
         cache: true
     }).done(content => {
-        jQuery('<script>').attr('type', 'text/javascript').text(this.parseMomentLocale(content) + ';importMomentLocaleCallback()').appendTo('head')
+        let txt = this.parseMomentLocale(content)
+        jQuery('<script>').attr('type', 'text/javascript').text('try{ '+ txt + '} catch(e) { console.error(e) };importMomentLocaleCallback()').appendTo('head')
     }).fail((jqXHR, textStatus) => {
         console.error( "Request failed: " + textStatus )
     })
@@ -172,6 +173,9 @@ function initApp(){
     })
     app.on('ask-exit', () => {
         parent.winman.askExit()
+    })
+    app.on('ask-restart', () => {
+        parent.winman.askRestart()
     })
     app.on('exit', () => {
         parent.winman.exit()
@@ -376,11 +380,11 @@ function initApp(){
             window.streamer = new StreamerClient(document.querySelector('controls'), app)        
             streamer.on('show', explorer.reset.bind(explorer))
             streamer.on('stop', () => {
-                explorer.reset()
                 if(explorer.modalContainer && explorer.modalContainer.querySelector('#modal-template-option-wait')){
                     explorer.endModal()
                 }                
                 explorer.body.removeClass('menu-playing')
+                explorer.updateSelection() || explorer.reset()
             })
             window.dispatchEvent(new CustomEvent('streamer-ready'))
             app.emit('streamer-ready')

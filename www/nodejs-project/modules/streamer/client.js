@@ -89,7 +89,7 @@ class StreamerOSD extends StreamerPlaybackTimeout {
                     this.transmissionNotWorkingHintTimer = setTimeout(() => {
                         if(this.active){
                             osd.hide(this.osdID)
-                            osd.show(lang.TRANSMISSION_NOT_WORKING_HINT.format(config['tuning-icon']), '', this.osdID + '-sub', 'persistent')
+                            osd.show(lang.TRANSMISSION_NOT_WORKING_HINT.format('<i class=\"'+ config['tuning-icon'] +'\"></i>'), '', this.osdID + '-sub', 'persistent')
                         }
                     }, this.transmissionNotWorkingHintDelay)
                     break
@@ -100,7 +100,7 @@ class StreamerOSD extends StreamerPlaybackTimeout {
                     osd.hide(this.osdID)
                     if(!this.OSDNameShown){
                         this.OSDNameShown = true
-                        osd.show(lang.TRANSMISSION_NOT_WORKING_HINT.format(config['tuning-icon']), '', this.osdID +'-sub', 'normal')
+                        osd.show(lang.TRANSMISSION_NOT_WORKING_HINT.format('<i class=\"'+ config['tuning-icon'] +'\"></i>'), '', this.osdID +'-sub', 'normal')
                         osd.show(this.data.name, this.data.icon || '', this.osdID, 'normal')
                     }
                     break
@@ -1106,19 +1106,14 @@ class StreamerAudioUI extends StreamerClientVideoFullScreen {
         this.volumeInputRect = null
     }
     volumeBarToggle(e){
-        console.log('VOLUMETOGGLE', e, this.volumeBar.style.display)
         if(e.target && e.target.tagName && ['button', 'volume-wrap', 'i'].includes(e.target.tagName.toLowerCase())){
             if(this.volumeBarVisible()){
                 let now = time()
                 if(this.volumeLastClickTime < (now - 0.4)){
                     this.volumeLastClickTime = now
                     this.volumeBarHide()
-                    console.log('VOLUMETOGGLE HIDE')
-                } else {
-                    console.log('VOLUMETOGGLE DENY', this.volumeLastClickTime, now)
                 }
             } else {
-                console.log('VOLUMETOGGLE SHOW')
                 this.volumeBarShow()
             }
         }

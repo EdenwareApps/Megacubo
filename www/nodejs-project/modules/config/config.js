@@ -88,6 +88,16 @@ class Config extends Events {
 		})
 		return data;
 	}
+	clone(val){
+		if(val !== null && typeof(val) == 'object'){
+			if(Array.isArray(val)){
+				return val.slice(0)
+			} else {
+				return Object.assign({}, val)
+			}
+		}
+		return val
+	}
 	get(key){
 		this.load()
 		//console.log('DATAb', JSON.stringify(data))
@@ -98,26 +108,29 @@ class Config extends Events {
 			t = typeof(this.defaults[key]);
 		}
 		if(t == 'undefined'){
-			return null;
-		} else if(t == 'object') {
-			if(Array.isArray(this.data[key])){ // avoid referencing
-				return this.data[key].slice(0)
-			} else {
-				return Object.assign({}, this.data[key])
-			}
+			return null
+		} else if(t == 'object') { // avoid referencing
+			return this.clone(this.data[key])
 		}
-		return this.data[key];
+		return this.data[key]
 	}
 	set(key, val){
 		if(this.debug){
 			console.log('SSSET', key, val, typeof(this.defaults[key]))
 		}
 		this.load()
-		if(this.debug){
-			console.log('SSSET', key, val, this.data)
+		// avoid referencing on val
+		let nval
+		if(typeof(val) == 'object'){
+			nval = this.clone(val)
+		} else {
+			nval = val
 		}
-		if(this.data[key] !== val){
-			this.data[key] = val
+		if(this.debug){
+			console.log('SSSET', key, nval, this.data)
+		}
+		if(!this.equal(this.data[key], nval)){
+			this.data[key] = nval
 			this.save()
 			this.emit('change', [key], this.data)
 		}
@@ -141,9 +154,9 @@ class Config extends Events {
 		}
 	}
 	save(){ // sync to prevent confusion
-		let userConfig = {}
+		const userConfig = {}
 		Object.keys(this.data).forEach(k => {
-			if(this.data[k] != this.defaults[k]){
+			if(!this.equal(this.data[k], this.defaults[k])){
 				userConfig[k] = this.data[k]
 			}
 		})
@@ -156,8 +169,8 @@ class Config extends Events {
 			fs.truncateSync(this.file, 0)
 		}
 		try {
-			var jso = JSON.stringify(userConfig, null, 3);
-			fs.writeFileSync(this.file, jso, "utf8")
+			const jso = JSON.stringify(Object.assign({}, userConfig), null, 3);
+			fs.writeFileSync(this.file, jso, 'utf8')
 		} catch(e) {
 			console.error(e)
 		}

@@ -1,5 +1,6 @@
 
 const Events = require('events'), fs = require('fs'), path = require('path'), async = require('async')
+const IPTV = require('../iptv')
 const LegalIPTV = require('../legal-iptv')
 
 class Manager extends Events {
@@ -14,6 +15,7 @@ class Manager extends Events {
         this.lastProgress = 0
         this.firstRun = true
         this.legalIPTV = new LegalIPTV()
+        this.IPTV = new IPTV()
         global.ui.on('explorer-back', () => {
             if(this.openingList){
                 global.osd.hide('list-open')
@@ -93,10 +95,8 @@ class Manager extends Events {
         console.log('maybeRefreshChannelPage', streamsCount, mega)
         if(mega && mega.terms){
             global.lists.search(mega.terms.split(','), {
-                partial: false, 
                 safe: (global.config.get('parental-control-policy') == 'block'),
                 type: mega.mediaType, 
-                typeStrict: false,
                 group: mega.mediaType != 'live'
             }).then(es => {
                 console.log('maybeRefreshChannelPage', streamsCount, es.results.length)
@@ -358,31 +358,33 @@ class Manager extends Events {
                             }
                             console.log('Updating lists', myLists, communitaryLists, global.traceback())
                             this.parent.updaterFinished(false).catch(console.error)
-                            global.channels.keywords(keywords => {
+                            global.channels.keywords().then(keywords => {
                                 this.parent.sync(myLists, communitaryLists, global.config.get('shared-mode-reach'), keywords).catch(err => {
                                     global.displayErr(err)
                                 })
                                 this.callUpdater(keywords, myLists.concat(communitaryLists), () => {
                                     this.parent.updaterFinished(true).catch(console.error)
                                 })
-                            })
+                            }).catch(global.displayErr)
                         } else {
                             this.updatedLists(global.lang.NO_LIST_PROVIDED, 'fas fa-exclamation-circle') // warn user if there's no lists
                         }
                     }
-                    this.legalIPTV.ready(() => {
-                        this.legalIPTV.countries.ready(() => {
-                            if(global.config.get('shared-mode-reach')){
-                                communitaryLists = communitaryLists.filter(u => myLists.indexOf(u) == -1)
-                                communitaryLists = communitaryLists.filter(u => !this.legalIPTV.isKnownURL(u)) // remove communitaryLists from other countries/languages
-                                this.legalIPTV.getLocalLists().then(legalIPTVLocalLists => {
-                                    communitaryLists = legalIPTVLocalLists.concat(communitaryLists)
-                                }).catch(console.error).finally(next)
-                            } else {
-                                next()
-                            }
+                    async.eachOf([this.legalIPTV, this.IPTV], (driver, i, done) => {
+                        driver.ready(() => {
+                            driver.countries.ready(() => {
+                                if(global.config.get('shared-mode-reach')){
+                                    communitaryLists = communitaryLists.filter(u => myLists.indexOf(u) == -1)
+                                    communitaryLists = communitaryLists.filter(u => !driver.isKnownURL(u)) // remove communitaryLists from other countries/languages
+                                    driver.getLocalLists().then(legalIPTVLocalLists => {
+                                        communitaryLists = legalIPTVLocalLists.concat(communitaryLists)
+                                    }).catch(console.error).finally(done)
+                                } else {
+                                    done()
+                                }
+                            })
                         })
-                    })
+                    }, next)
                 }).catch(e => {
                     this.updatingLists = false
                     console.error('allCommunitaryLists err', e)
@@ -608,7 +610,7 @@ class Manager extends Events {
             this.searchEPGs().then(urls => {
                 epgs = epgs.concat(urls)
             }).catch(console.error).finally(() => {
-                let activeEPG = global.config.get('epg') || global.activeEPG
+                let activeEPG = global.config.get('epg-'+ global.lang.locale) || global.activeEPG
                 if(!activeEPG || activeEPG == 'disabled'){
                     activeEPG = ''
                 }
@@ -637,12 +639,12 @@ class Manager extends Events {
                             prepend: (url == activeEPG) ? '<i class="fas fa-check-circle faclr-green"></i> ' : '',
                             details,
                             action: () => {
-                                if(url == global.config.get('epg')){
-                                    global.config.set('epg', 'disabled')
+                                if(url == global.config.get('epg-'+ global.lang.locale)){
+                                    global.config.set('epg-'+ global.lang.locale, 'disabled')
                                     global.channels.load()
                                     this.setEPG('', true)
                                 } else {
-                                    global.config.set('epg', url)
+                                    global.config.set('epg-'+ global.lang.locale, url)
                                     this.setEPG(url, true)
                                 }
                                 global.explorer.refresh()
@@ -659,7 +661,7 @@ class Manager extends Events {
                             action: (e, checked) => {
                                 global.config.set('use-epg-channels-list', checked)
                                 if(global.activeEPG){
-                                    this.importEPGChannelsList(global.activeEPG)
+                                    this.importEPGChannelsList(global.activeEPG).catch(console.error)
                                 }
                             }, 
                             checked: () => global.config.get('use-epg-channels-list')
@@ -714,16 +716,15 @@ class Manager extends Events {
                         clearTimeout(this.importEPGChannelsListTimer)                        
                     }
                     this.importEPGChannelsListTimer = setTimeout(() => {
-                        this.importEPGChannelsList(url)
+                        this.importEPGChannelsList(url).catch(console.error)
                     }, data.updateAfter * 1000)
                     imported = true
                 }
                 global.channels.load()
                 resolve(imported)
             }).catch(err => {
-                console.error(err)
                 global.osd.show(global.lang.SYNC_EPG_CHANNELS_FAILED, 'fas fa-exclamation-circle faclr-red', 'epg', 'normal')
-                reject()
+                reject(err)
             })
         })
     }
@@ -747,7 +748,7 @@ class Manager extends Events {
                             global.osd.show(global.lang.EPG_DISABLED, 'fas fa-times-circle', 'epg', 'normal')                            
                         }
                     } else {
-                        this.importEPGChannelsList(url)
+                        this.importEPGChannelsList(url).catch(console.error)
                     }
                     refresh()
                 }).catch(err => console.error(err))
@@ -761,8 +762,8 @@ class Manager extends Events {
     loadEPG(url, ui){
         return new Promise((resolve, reject) => {
             global.channels.activeEPG = ''
-            if(!url && global.config.get('epg') != 'disabled'){
-                url = global.config.get('epg')
+            if(!url && global.config.get('epg-'+ global.lang.locale) != 'disabled'){
+                url = global.config.get('epg-'+ global.lang.locale)
             }
             if(!url && ui) ui = false
             if(ui){
@@ -773,6 +774,9 @@ class Manager extends Events {
                 global.channels.activeEPG = url
                 if(ui){
                     global.osd.show(global.lang.EPG_LOAD_SUCCESS, 'fas fa-check-circle', 'epg', 'normal')
+                }
+                if(global.explorer.path == global.lang.TRENDING || (global.explorer.path.startsWith(global.lang.LIVE) || global.explorer.path.split('/').length == 2)){
+                    global.explorer.refresh()
                 }
                 resolve(true)
             }).catch(err => {
@@ -1090,6 +1094,7 @@ class Manager extends Events {
             if(path == '' && !entries.some(e => e.name == global.lang.IPTV_LISTS)){
                 entries.push({name: global.lang.IPTV_LISTS, details: global.lang.CONFIGURE, fa: 'fas fa-list', type: 'group', renderer: this.listsEntries.bind(this)})
             }
+            this.IPTV.hook(entries, path).then(resolve).catch(reject)
             this.legalIPTV.hook(entries, path).then(resolve).catch(reject)
         })
     }

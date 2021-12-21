@@ -7,7 +7,7 @@ class AutoTuner extends Events {
         this.paused = false
         this.headless = false
         this.megaURL = megaURL
-        this.mediaType = mediaType
+        this.mediaType = mediaType == 'audio' ? 'all' : mediaType // is we're searching a radio, no problem to return a radio studio webcam
         this.resultsBuffer = 2
         this.intentConcurrency = 1
         this._intents = []

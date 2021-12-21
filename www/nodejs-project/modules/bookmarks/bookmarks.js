@@ -137,7 +137,11 @@ class Bookmarks extends EntriesGroup {
                         e.renderer = () => {
                             return new Promise((resolve, reject) => {
                                 let terms = atts.terms && Array.isArray(atts.terms) ? atts.terms : global.lists.terms(atts.name, true)
-                                global.lists.search(terms, {type: 'video', group: true}).then(es => {
+                                global.lists.search(terms, {
+                                    type: 'video',
+                                    group: true,
+                                    safe: (global.config.get('parental-control-policy') == 'block')
+                                }).then(es => {
                                     resolve(es.results)
                                 }).catch(reject)
                             })
@@ -193,7 +197,8 @@ class Bookmarks extends EntriesGroup {
             }
             global.lists.search(this.currentBookmarkAddingByName.name, {
                 partial: true,
-                group: !this.currentBookmarkAddingByName.live
+                group: !this.currentBookmarkAddingByName.live,
+                safe: (global.config.get('parental-control-policy') == 'block')
             }).then(results => {                
                 if(!this.currentBookmarkAddingByName.url || this.currentBookmarkAddingByName.url.indexOf('/') == -1){
                     let mediaType = 'all', entries = []

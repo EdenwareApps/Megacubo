@@ -91,7 +91,11 @@ class History extends EntriesGroup {
                         e.renderer = () => {
                             return new Promise((resolve, reject) => {
                                 let terms = atts.terms && Array.isArray(atts.terms) ? atts.terms : global.lists.terms(atts.name, true)
-                                global.lists.search(terms, {type: 'video', group: true}).then(es => {
+                                global.lists.search(terms, {
+                                    type: 'video',
+                                    group: true,
+                                    safe: (global.config.get('parental-control-policy') == 'block')
+                                }).then(es => {
                                     resolve(es.results)
                                 }).catch(reject)
                             })

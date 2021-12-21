@@ -100,7 +100,6 @@ class StorageAsync extends StorageBase {
 									console.error(err)
 									cb(null)
 								} else {
-
 									if(this.useJSON){
 										if(Buffer.isBuffer(_json)){ // is buffer
 											_json = String(_json)
@@ -313,7 +312,7 @@ class StorageSync extends StorageAsync {
 			}
 			this.writeSync(fe, x, 'utf8')
 		} catch(e){
-			this.checkDiskSpace(err)
+			this.checkDiskSpace(e)
 			console.error(e)
 		}
 	}

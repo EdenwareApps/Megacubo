@@ -1,18 +1,18 @@
 const Countries = require('../countries'), Events = require('events'), async = require('async')
 
-class LegalIPTV extends Events {
+class IPTV extends Events {
     constructor(opts={}){
         super()
         this.repo = false
         this.opts = opts
-        this.title = global.lang.LEGAL_IPTV
-        this.cachingDomain = 'legal-iptv-'
+        this.title = 'IPTV'
+        this.cachingDomain = 'iptv-'
         this.cachingTTL = 12 * 3600
         this.data = {}
         this.icon = 'fas fa-thumbs-up'
         this.countries = new Countries()
         if(!this.opts.shadow){
-            global.ui.on('legal-iptv', ret => {
+            global.ui.on('iptv', ret => {
                 if(ret == 'know'){
                     global.ui.emit('open-external-url', 'https://github.com/{0}'.format(this.repo))
                 }
@@ -23,7 +23,7 @@ class LegalIPTV extends Events {
 	load(){
         if(!this.repo){
             global.cloud.get('configure').then(c => {
-                this.repo = c['legal-iptv-repo'] || 'Free-IPTV/Countries'
+                this.repo = c['iptv-repo'] || 'iptv-org/iptv'
                 this.isReady = true
                 this.emit('ready')
             }).catch(console.error)
@@ -44,7 +44,7 @@ class LegalIPTV extends Events {
                 return false
             }
         } else {
-            return 'https://api.github.com/repos/{0}/contents/'.format(this.repo)
+            return 'https://api.github.com/repos/{0}/contents/channels/'.format(this.repo)
         }
     }
     get(file = ''){
@@ -210,10 +210,10 @@ class LegalIPTV extends Events {
         if(!this.opts.shadow){
             global.ui.emit('dialog', [
                 {template: 'question', text: this.title, fa: this.icon},
-                {template: 'message', text: global.lang.LEGAL_IPTV_INFO},
+                {template: 'message', text: global.lang.IPTV_INFO},
                 {template: 'option', text: 'OK', id: 'ok', fa: 'fas fa-check-circle'},
                 {template: 'option', text: global.lang.KNOW_MORE, id: 'know', fa: 'fas fa-info-circle'}
-            ], 'legal-iptv', 'ok')
+            ], 'iptv', 'ok')
         }
     }
     hook(entries, path){
@@ -226,4 +226,4 @@ class LegalIPTV extends Events {
     }
 }
 
-module.exports = LegalIPTV
+module.exports = IPTV

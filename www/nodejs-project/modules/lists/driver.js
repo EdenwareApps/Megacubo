@@ -145,8 +145,25 @@ class Lists extends Index {
 	loadEPG(url){
 		return new Promise((resolve, reject) => {
 			if(this._epg){
-				this._epg.destroy()
-				delete this._epg
+				if(this._epg.url != url){
+					console.error('changed epg url', this._epg.url, url)
+					this._epg.destroy()
+					delete this._epg
+				} else {
+					console.error('same epg url', this._epg.url, !!this._epg.parser)
+					if(this._epg.loaded){						
+						resolve()
+					} else if(this._epg.error) {
+						reject(this._epg.error)
+					} else {
+						this._epg.once('load', () => {				
+							console.log('loadEPG success') //, JSON.stringify(this._epg.data))
+							resolve()
+						})
+						this._epg.once('error', reject)
+					}
+					return
+				}
 			}
 			if(url){
 				this._epg = new EPG(url)
@@ -294,6 +311,7 @@ class Lists extends Index {
 	updaterFinished(isFinished){
 		return new Promise((resolve, reject) => {
 			this.isUpdaterFinished = isFinished
+			resolve(this.isUpdaterFinished)
 		})
 	}
 	getUniqueCommunitaryLists(communitaryLists){ // remove duplicated communitaryLists, even from different protocols
@@ -560,6 +578,7 @@ class Lists extends Index {
 								}
 								resolved = true
 								resolve(true)
+								this.searchMapCacheInvalidate()
 							}
 						}
 					})
@@ -695,6 +714,7 @@ class Lists extends Index {
 		}
 	}
 	remove(u){
+		this.searchMapCacheInvalidate(u)
 		if(typeof(this.lists[u]) != 'undefined'){
 			this.lists[u].destroy()
 			delete this.lists[u]

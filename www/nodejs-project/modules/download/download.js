@@ -1,5 +1,6 @@
 const Events = require('events'), fs = require('fs'), parseRange = require('range-parser'), got = require('./got-wrapper')
 const zlib = require('zlib'), WriteQueueFile = require(global.APPDIR +'/modules/write-queue/write-queue-file')
+const StringDecoder = require('string_decoder').StringDecoder
 
 class Download extends Events {
    constructor(opts){
@@ -21,7 +22,8 @@ class Download extends Events {
 			permanentErrorRegex: new RegExp('(ENETUNREACH|ECONNREFUSED|cannot resolve)', 'i'),
 			timeout: null,
 			followRedirect: true,
-			acceptRanges: true
+			acceptRanges: true,
+			encoding: null
 		}		
 		if(opts){
 			if(opts.headers){
@@ -471,6 +473,12 @@ class Download extends Events {
 	}
 	_emitData(chunk){
 		// console.log('_emitData', chunk)
+		if(this.opts.encoding && this.opts.encoding != 'binary'){
+			if(!this.stringDecoder){
+				this.stringDecoder = new StringDecoder(this.opts.encoding)
+			}
+			chunk = this.stringDecoder.write(chunk)
+		}
 		this.receivedUncompressed += chunk.length
 		if(this.listenerCount('data')){
 			this.emit('data', chunk)

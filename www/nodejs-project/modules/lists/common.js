@@ -9,7 +9,7 @@ class Common extends Events {
 	constructor(opts){
 		super()
 		this.searchRedirects = []
-		this.stopWords = ['sd', 'hd', 'tv', 'h264', 'h.264', 'fhd'] // common words to ignore on searching
+		this.stopWords = ['sd', 'hd', 'h264', 'h.264', 'fhd'] // common words to ignore on searching
 		this.listMetaKeyPrefix = 'meta-cache-'
 		this.opts = {
 			folderSizeLimit: 96,
@@ -99,7 +99,7 @@ class Common extends Events {
 		if(!txt){
 			return []
 		}
-		['"', '/', '='].forEach(c => {
+		['"', '/', '=', '.', ','].forEach(c => {
 			if(txt.indexOf(c) != -1){
 				txt = txt.replaceAll(c, ' ')
 			}
@@ -112,40 +112,60 @@ class Common extends Events {
 			map(s => {
 				if(s.charAt(0) == '-'){
 					if(allowModifier){
-						s = s.replace(this.parser.regexes['non-alpha'], '').replace(this.parser.regexes['hyphen-not-modifier'], '')
-						return s.length ? '-' + s : ''
+						s = s.replace(this.parser.regexes['hyphen-not-modifier'], '$1')
+						return s.length > 1 ? s : ''
 					} else {
 						return ''
 					}
+				} else if(s == '|' && !allowModifier){
+					return ''
 				}
-				return s.replace(this.parser.regexes['non-alpha'], '').replace(this.parser.regexes['hyphen-not-modifier'], '')
-			}));	
+				return s.replace(this.parser.regexes['hyphen-not-modifier'], '$1')
+			}))
+		tms = tms.filter(s => s)
 		if(!keepStopWords){
-			tms = tms.filter(s => {
-				return s && this.stopWords.indexOf(s) == -1
-			})
+			tms = tms.filter(s => !this.stopWords.includes(s))
 		}
 		return tms
 	}
 	match(needleTerms, stackTerms, partial){ // partial=true will match "starts with" terms too
-		if(needleTerms.length && stackTerms.length){
-			let score = 0, excludeMatch
-			needleTerms = needleTerms.filter(t => {
-				if(!excludeMatch && t.charAt(0) == '-'){
-					if(stackTerms.includes(t.substr(1))){
-						excludeMatch = true
-					}
-					return false
+		if(needleTerms.includes('|')){
+			let needles = needleTerms.join(' ').split(' | ').map(s => s.split(' '))
+			let score = 0
+			needles.forEach(needle => {
+				let s = this.match(needle, stackTerms, partial)
+				if(s > score){
+					score = s
 				}
-				return true
 			})
-			if(excludeMatch || !needleTerms.length){
+			return score
+		}
+		if(needleTerms.length && stackTerms.length){
+			let score = 0, sTerms = [], nTerms = []
+			let excludeMatch = needleTerms.some(t => {
+				if(t.charAt(0) == '-'){
+					if(stackTerms.includes(t.substr(1))){
+						return true
+					}
+				} else {
+					nTerms.push(t)
+				}
+			}) || stackTerms.some(t => {
+				if(t.charAt(0) == '-'){
+					if(needleTerms.includes(t.substr(1))){
+						return true
+					}
+				} else {
+					sTerms.push(t)
+				}
+			})
+			if(excludeMatch || !sTerms.length || !nTerms.length){
 				return 0
 			}
-			needleTerms.forEach(term => {
+			nTerms.forEach(term => {
 				if(partial === true){
 					let len = term.length
-					stackTerms.filter(t => t.charAt(0) != '-').some(strm => {
+					sTerms.some(strm => {
 						if(len == strm.length){
 							if(strm == term){
 								score++
@@ -157,19 +177,19 @@ class Common extends Events {
 						}
 					})
 				} else {
-					if(stackTerms.filter(t => t.charAt(0) != '-').includes(term)){
+					if(sTerms.includes(term)){
 						score++
 					}
 				}
 			})
 			if(score){
-				if(score == needleTerms.length) { // all search terms are present
-					if(score == stackTerms.length){ // terms are equal
+				if(score == nTerms.length) { // all search terms are present
+					if(score == sTerms.length){ // terms are equal
 						return 3
 					} else {
 						return 2
 					}
-				} else if(needleTerms.length >= 3 && score == (needleTerms.length - 1)){
+				} else if(nTerms.length >= 3 && score == (nTerms.length - 1)){
 					return 1
 				}
 			}

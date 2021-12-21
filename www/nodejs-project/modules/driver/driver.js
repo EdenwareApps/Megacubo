@@ -7,7 +7,7 @@ function prepare(file){ // workaround, macos throws not found for local files wh
 module.exports = (file, opts) => {
 	const skipWorkerThreads = ((opts && opts.skipWorkerThreads) || (!global.cordova && typeof(Worker) != 'undefined')), workerData = {file, paths, APPDIR}
 	if(typeof(global.lang) != 'undefined'){
-		workerData.lang = global.lang
+		workerData.lang = global.lang.getTexts()
 	}
 	if(opts && opts.bytenode){
 		workerData.bytenode = true

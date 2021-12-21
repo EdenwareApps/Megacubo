@@ -7,8 +7,10 @@ class Watching extends EntriesGroup {
         this.currentEntries = null
         this.currentRawEntries = null
         this.updateIntervalSecs = global.cloud.expires.watching
-        global.channels.ready(() => this.update())
-        global.channels.on('loaded', () => this.update())
+        global.channels.ready(() => {
+            this.update()
+            global.channels.on('loaded', () => this.update()) // on each "loaded"
+        })
         global.config.on('change', (keys, data) => {
             if(keys.includes('only-known-channels-in-been-watched') || keys.includes('parental-control-policy')){
                 this.update()
@@ -85,7 +87,7 @@ class Watching extends EntriesGroup {
                 return resolve([global.lists.manager.noListsEntry()])
             }
             this.ready(() => {
-                let list = global.deepClone(this.currentEntries, true)
+                let list = this.currentEntries ? global.deepClone(this.currentEntries, true) : []
                 list = list.map((e, i) => {
                     e.position = (i + 1)
                     return e
@@ -179,6 +181,9 @@ class Watching extends EntriesGroup {
                 })
             }).catch(err => {
                 console.error(err)
+                if(!Array.isArray(this.currentRawEntries)){
+                    this.currentRawEntries = []
+                }
                 resolve([])
             })   
         })

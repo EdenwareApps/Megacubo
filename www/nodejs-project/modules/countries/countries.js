@@ -66,7 +66,7 @@ class Countries extends Events {
 				if(targetLanguage && c['country_' + targetLanguage]){
 					name = c['country_' + targetLanguage]
 				} else {
-					name = c['country_iso']					
+					name = c['country_iso']	|| c['code']				
 				}
 				return true
 			}

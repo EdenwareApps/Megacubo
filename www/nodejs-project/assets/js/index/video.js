@@ -625,6 +625,21 @@ class WinMan extends EventEmitter {
 			}
 		}, 'no')
 	}
+	askRestart(){
+		let w = this.getAppWindow()
+		w.explorer.dialog([
+			{template: 'question', text: 'Megacubo', fa: 'fas fa-info-circle'},
+			{template: 'message', text: lang.SHOULD_RESTART},
+			{template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle'},
+			{template: 'option', text: lang.RESTART_LATER, id: 'back', fa: 'fas fa-times-circle'}
+		], c => {
+			if(c == 'back'){
+				w.osd.show(lang.SHOULD_RESTART, 'fas fa-exclamation-circle faclr-red', 'restart', 'normal')
+			} else {
+				this.restart()
+			}
+		}, 'submit')
+	}
 	exitUI(){
 		let w = this.getAppWindow()
 		console.log('exitUI()')

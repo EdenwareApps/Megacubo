@@ -153,7 +153,8 @@ class Lookup extends Events {
 
 const lookup = new Lookup({
 	gg: ['8.8.4.4', '8.8.8.8', '4.4.4.4'], 
-	od: ['208.67.222.222', '208.67.220.220']
+	od: ['208.67.222.222', '208.67.220.220'],
+	fn: ['80.80.80.80', '80.80.81.81']
 })
 lookup.lookup = lookup.lookup.bind(lookup)
 module.exports = lookup

@@ -8,7 +8,6 @@ module.exports = {
 	'custom-background-image': '',
 	'custom-background-video': '',
 	'enable-console': false,
-	'epg': '',
 	'epg-map': {},
 	'ffmpeg-audio-repair': true,
 	'ffmpeg-crf': 18,

@@ -106,7 +106,6 @@ class PerformanceProfiles extends Timer {
                 'animate-background': 'slow-desktop',
                 'auto-testing': true,
                 'autocrop-logos': true,
-                'epg': '',
                 'ffmpeg-audio-repair': true,
                 'ffmpeg-hls': true,
                 'connect-timeout': 5,
@@ -133,6 +132,7 @@ class PerformanceProfiles extends Timer {
                 'ui-sounds': false
             }
         }
+        this.profiles.high['epg-'+ global.lang.locale] = ''
         global.ui.on('performance', ret => {
             console.log('performance-callback', ret)
             if(typeof(this.profiles[ret]) != 'undefined'){
@@ -355,10 +355,11 @@ class Options extends OptionsExportImport {
             }
         })
         global.ui.on('locale-callback', locale => {
-            let def = global.lang.locale
+            let def = global.config.get('locale') || global.lang.locale
             if(locale && (locale != def)){
                 global.config.set('locale', locale)
-                global.energy.restart()
+                global.config.set('countries', [])
+                global.energy.askRestart()
             }
         })
         global.ui.on('clear-cache', ret => {
@@ -370,12 +371,6 @@ class Options extends OptionsExportImport {
                 global.displayErr(err)
             })
         })
-        this.languageNames = {
-            en: 'English',
-            es: 'Español',
-            pt: 'Português',
-            it: 'Italiano'
-        }
     }
     tools(){
         return new Promise((resolve, reject) => {
@@ -396,27 +391,87 @@ class Options extends OptionsExportImport {
     }
     showLanguageEntriesDialog(){
         let options = [], def = global.lang.locale
-        let files = fs.readdirSync(global.APPDIR + path.sep + 'lang')
-        fs.readdir(global.APPDIR + path.sep + 'lang', (err, files) => {
-            if(err){
-                console.error(err)
-            } else {
-                files.forEach(file => {
-                    if(file.indexOf('.json') != -1){
-                        console.log(file)
-                        let locale = file.split('.')[0]
-                        options.push({
-                            text: typeof(this.languageNames[locale]) != 'undefined' ? this.languageNames[locale] : (global.lang.LANGUAGE +': '+ locale.toUpperCase()),
-                            template: 'option',
-                            fa: 'fas fa-language',
-                            id: locale
-                        })
+        global.lang.availableLocalesMap().then(map => {
+            Object.keys(map).forEach(id => {
+                options.push({
+                    text: map[id] || id,
+                    template: 'option',
+                    fa: 'fas fa-language',
+                    id
+                })
+            })
+            global.ui.emit('dialog', [
+                {template: 'question', text: global.lang.LANGUAGE, fa: 'fas fa-language'}
+            ].concat(options), 'locale-callback', def)
+        }).catch(global.displayErr)
+    }
+    countriesEntries(){
+        return new Promise((resolve, reject) => {
+            let entries = []
+            global.lang.getCountriesMap(global.config.get('locale') || global.lang.locale).then(map => {
+                let actives = global.config.get('countries') || []
+                if(typeof(this.countriesEntriesOriginalActives) == 'undefined'){
+                    this.countriesEntriesOriginalActives = actives.slice(0)
+                }
+                entries.push({
+                    name: global.lang.BACK,
+                    type: 'back',
+                    fa: global.explorer.backIcon,
+                    path: global.lang.OPTIONS,
+                    tabindex: 0,
+                    action: () => {
+                        let actives = global.config.get('countries') || []
+                        console.warn('COUNTRYBACK', this.countriesEntriesOriginalActives.sort().join(','), actives.sort().join(','))
+                        if(this.countriesEntriesOriginalActives.sort().join(',') != actives.sort().join(',')){
+                            global.energy.askRestart()
+                        }
                     }
                 })
-                global.ui.emit('dialog', [
-                    {template: 'question', text: global.lang.LANGUAGE, fa: 'fas fa-language'}
-                ].concat(options), 'locale-callback', def)
-            }
+                if(map.some(row => !actives.includes(row.code))){
+                    entries.push({
+                        name: global.lang.SELECT_ALL,
+                        type: 'action',
+                        fa: 'fas fa-check-circle',
+                        action: () => {
+                            global.config.set('countries', map.map(row => row.code))
+                            global.explorer.refresh()
+                        }
+                    })
+                } else {
+                    entries.push({
+                        name: global.lang.DESELECT_ALL,
+                        type: 'action',
+                        fa: 'fas fa-times-circle',
+                        action: () => {
+                            global.config.set('countries', [])
+                            global.explorer.refresh()
+                        }
+                    })
+                }
+                map.forEach(row => {
+                    entries.push({
+                        name : row.name,
+                        type: 'check',
+                        action: (e, checked) => {
+                            if(checked){
+                                if(!actives.includes(row.code)){
+                                    actives.push(row.code)
+                                }
+                            } else {
+                                let pos = actives.indexOf(row.code)
+                                if(pos != -1){
+                                    actives.splice(pos, 1)
+                                }
+                            }
+                            global.config.set('countries', actives)
+                        }, 
+                        checked: () => {
+                            return actives.includes(row.code)
+                        }
+                    })
+                })
+                resolve(entries)
+            }).catch(reject)
         })
     }
     tos(){
@@ -803,6 +858,7 @@ class Options extends OptionsExportImport {
                     })
                 }},
                 {name: global.lang.LANGUAGE, fa: 'fas fa-language', type: 'action', action: () => this.showLanguageEntriesDialog()},
+                {name: global.lang.COUNTRIES, details: global.lang.COUNTRIES_HINT, fa: 'fas fa-globe', type: 'group', renderer: () => this.countriesEntries()},
                 secOpt,
                 {name: global.lang.MANAGE_CHANNEL_LIST, fa: 'fas fa-list', type: 'group', details: global.lang.LIVE, renderer: global.channels.options.bind(global.channels)},
                 {name: global.lang.ADVANCED, fa: 'fas fa-cogs', type: 'group', renderer: () => {

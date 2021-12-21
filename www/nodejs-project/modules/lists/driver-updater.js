@@ -1,6 +1,5 @@
 
 const async = require('async')
-const LegalIPTV = require('../legal-iptv/legal-iptv')
 const UpdateListIndex = require(global.APPDIR + '/modules/lists/update-list-index.js')
 const ConnRacing = require(global.APPDIR + '/modules/conn-racing')
 const Common = require(global.APPDIR + '/modules/lists/common.js')

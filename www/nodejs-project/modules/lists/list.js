@@ -94,7 +94,7 @@ class List extends Events {
 			}
 			let resolved, tests = 5, hits = 0, urls = [], results = [], len = this.index.length, mtp = Math.floor((len - 1) / (tests - 1))
 			if(len < tests){
-				return reject('insufficient streams')
+				return reject('insufficient streams '+ len)
 			}
             let ids = []
 			for(let i = 0; i < len; i += mtp) ids.push(i)
@@ -159,7 +159,6 @@ class List extends Events {
 		if(!Array.isArray(map)){
 			map = false
 		}
-		let line, ne, buf = []
         this.indexer.entries(map).then(entries => {
             entries.some(e => {
                 let ret = fn(e)

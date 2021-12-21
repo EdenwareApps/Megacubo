@@ -10,6 +10,9 @@ class Energy extends Events {
     exit(){
 		global.ui.emit('exit')
 	}
+	askRestart(){
+		global.ui.emit('ask-restart')
+	}
 	askExit(){
 		global.ui.emit('ask-exit')
 	}

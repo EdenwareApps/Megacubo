@@ -28,7 +28,7 @@ class IconFetcher {
     fetchFromTerms(){
         return new Promise((resolve, reject) => {
             if(this.terms && this.terms.length){
-                this.master.search(this.terms, true).then(images => {
+                this.master.search(this.terms).then(images => {
                     let done
                     if(this.master.opts.debug){
                         console.log('GOFETCH', images)

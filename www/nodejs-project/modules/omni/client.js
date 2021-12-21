@@ -144,17 +144,29 @@ class OMNI extends OMNIUtils {
         console.warn('DIALER TRIGGER', this.type, this.typing)
         if(this.typing){
             if(this.type != 'numeric' && this.typing.length == 1){
-                if(this.typing.match(new RegExp('[A-Za-z0-9]'))){
-                    let pos = -1
-                    explorer.currentEntries.some((n, i) => {
-                        if(n.name.charAt(0).toLowerCase() == this.typing){
-                            pos = i 
-                            return true
-                        }
-                    })
-                    if(pos > 0){
-                        explorer.focus(explorer.currentElements[pos])
+                let lc = this.typing.toLowerCase(), pos = -1
+                explorer.currentEntries.some((n, i) => {
+					if(n.type == 'back') return
+                    if(n.name.charAt(0).toLowerCase() == lc){
+                        pos = i 
+                        return true
                     }
+                })
+                if(pos < 0){
+                    explorer.currentEntries.some((n, i) => {
+					if(n.type == 'back') return
+                        if(n.name.charAt(0).toLowerCase() < lc){
+                            pos = i 
+                        } else {
+							return true
+						}
+                    })
+                }
+                if(pos < 0){
+                    pos = explorer.currentEntries.length - 1
+                }
+                if(pos > 0){
+                    explorer.focus(explorer.currentElements[pos])
                 }
             } else {
                 app.emit('omni', this.typing, this.type)

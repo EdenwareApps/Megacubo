@@ -27,10 +27,10 @@ class Mega {
 			}
 			let mediaType = 'live', url = '', name = '', qs = {}, type = 'name'
 			let parts = megaUrl.substr(7).split('#')[0]
+			parts = parts.split('?')
 			if(parts[0].charAt(parts[0].length - 1) == '/'){
 				parts[0] = parts[0].substr(0, parts[0].length - 1)
 			}
-			parts = parts.split('?')
 			if(parts.length > 1){
 				qs = this.qs2Object(parts[1])
 				if(typeof(qs.mediaType) != 'undefined' && !['live', 'video'].includes(qs.mediaType)){

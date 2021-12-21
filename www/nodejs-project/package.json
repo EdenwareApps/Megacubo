@@ -10,6 +10,7 @@
         "bytenode": "github:efoxbr/bytenode",
         "check-disk-space": "^2.1.0",
         "color-thief-jimp": "^2.0.2",
+        "country-language": "^0.1.7",
         "decode-entities": "^1.0.7",
         "env-paths": "^2.2.1",
         "formidable": "^1.2.2",
@@ -38,7 +39,7 @@
     "description": "A simple and intuitive IPTV player.",
     "name": "megacubo",
     "icon": "./default_icon.png",
-    "version": "16.2.8",
+    "version": "16.2.9",
     "theme": {
         "fullScreen": true
     },

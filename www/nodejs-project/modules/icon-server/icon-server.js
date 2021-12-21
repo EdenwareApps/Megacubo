@@ -126,9 +126,8 @@ class IconSearch extends IconDefault {
             let images = []
             const next = () => {
                 global.lists.search(ntms, {
-                    type: liveOnly ? 'live' : null,
-                    group: !liveOnly,
-                    typeStrict: false
+                    type: 'live',
+                    safe: (global.config.get('parental-control-policy') == 'block')
                 }).then(ret => {
                     if(this.opts.debug){
                         console.log('fetch from terms', ntms, liveOnly, JSON.stringify(ret))
@@ -328,8 +327,13 @@ class IconFetchSem extends IconServerStore {
                 if(this.opts.debug){
 					console.log('fetchURL', url, 'cached')
                 }
-                this.releaseFetching(url, {key, file})
-                resolve({key, file})
+                this.validateFile(file).then(() => {
+                    this.releaseFetching(url, {key, file})
+                    resolve({key, file})
+                }).catch(err => {
+                    this.releaseFetchingErr(url, err)
+                    reject(err)
+                })
             }).catch(err => {
                 if(this.opts.debug){
 					console.log('fetchURL', url, 'request', err)

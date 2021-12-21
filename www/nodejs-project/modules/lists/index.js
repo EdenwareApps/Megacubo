@@ -3,7 +3,21 @@ const async = require('async'), Common = require(global.APPDIR + '/modules/lists
 class Index extends Common {
     constructor(opts){
 		super(opts)
-    }    
+		this.searchMapCache = {}
+		this.defaultsSearchOpts = {
+			group: undefined,
+			type: undefined,
+			typeStrict: undefined,
+			partial: undefined
+		}
+    }
+	applySearchOpts(opts){ // ensure opts will have the same order for a more effective searchMapCache key
+		let nopts = {}
+		Object.keys(this.defaultsSearchOpts).forEach(k => {
+			nopts[k] = opts[k] ? opts[k] : undefined
+		})
+		return nopts
+	}
 	has(terms, opts){
 		return new Promise((resolve, reject) => {	
 			let ret = {}, results = {}
@@ -24,11 +38,37 @@ class Index extends Common {
             resolve(results)
         })
 	}
+	searchMapCacheInvalidate(url){
+		if(!url){
+			this.searchMapCache = {}
+		} else {
+			Object.keys(this.searchMapCache).forEach(k => {
+				if(typeof(this.searchMapCache[k][url]) != 'undefined'){
+					delete this.searchMapCache[k][url]
+				}
+			})
+		}
+	}
 	searchMap(terms, opts){
-		let xmap, smap, aliases = {}, excludeTerms = []
 		if(!terms){
 			return {}
 		}
+		opts = this.applySearchOpts(opts)
+		let key = terms.join(',') + JSON.stringify(opts)
+		if(typeof(this.searchMapCache[key]) != 'undefined'){
+			return global.deepClone(this.searchMapCache[key])
+		}
+		if(terms.includes('|')){
+			let needles = terms.join(' ').split(' | ').map(s => s.split(' '))
+			let fullMap = {}
+			needles.forEach(needle => {
+				let map = this.searchMap(needle, opts)
+				fullMap = this.joinMap(fullMap, map)
+			})
+			this.searchMapCache[key] = fullMap
+			return global.deepClone(fullMap)
+		}
+		let xmap, smap, aliases = {}, excludeTerms = []
 		if(typeof(opts.type) != 'string'){
 			opts.type = false
 		}
@@ -73,11 +113,11 @@ class Index extends Common {
 				Object.keys(this.lists).forEach(listUrl => {
 					if(typeof(this.lists[listUrl].index.terms[term]) != 'undefined'){
 						let map = {}
-						map[listUrl] = global.deepClone(this.lists[listUrl].index.terms[term])
+						map[listUrl] = this.lists[listUrl].index.terms[term]
 						if(tmap){
 							tmap = this.joinMap(tmap, map)
 						} else {
-							tmap = map
+							tmap = global.deepClone(map)
 						}
 					}
 				})
@@ -101,7 +141,7 @@ class Index extends Common {
 						return Object.keys(this.lists).some(listUrl => {
 							if(typeof(this.lists[listUrl].index.terms[xterm]) != 'undefined'){
 								let xmap = {}
-								xmap[listUrl] = global.deepClone(this.lists[listUrl].index.terms[xterm])
+								xmap[listUrl] = this.lists[listUrl].index.terms[xterm]
 								smap = this.diffMap(smap, xmap)
 								ms = this.mapSize(smap, opts.group)
 								if(!ms) return true // break
@@ -110,16 +150,26 @@ class Index extends Common {
 					})
 				}
 			}
+			this.searchMapCache[key] = global.deepClone(smap)
 			return smap
 		}
+		this.searchMapCache[key] = {}
 		return {}
 	}
 	search(terms, opts){	
 		return new Promise((resolve, reject) => {
-            console.warn('M3U SEARCH', terms, opts)
-            let start = global.time(), bestResults = [], results = [], maybe = [], limit = 256
+            if(this.debug){
+				console.warn('M3U SEARCH', terms, opts)
+			}
+			if(typeof(terms) == 'string'){
+				terms = this.terms(terms, true, true)
+			}
+            let start = global.time(), bestResults = [], maybe = [], limit = 256
             let smap = this.searchMap(terms, opts), ks = Object.keys(smap)
             if(ks.length){
+				if(this.debug){
+					console.warn('M3U SEARCH RESULTS', (global.time() - start) +'s (pre time)', (global.time() - start) +'s', terms)
+				}
                 let results = []
 				ks.forEach(listUrl => {
 					let ls = smap[listUrl]['n']
@@ -150,7 +200,7 @@ class Index extends Common {
                     }
                 }, () => {
                     if(this.debug){
-						console.warn('M3U SEARCH RESULTS', (global.time() - start) +'s', terms, bestResults.slice(0), results.slice(0), maybe.slice(0))
+						console.warn('M3U SEARCH RESULTS', (global.time() - start) +'s (partial time)', (global.time() - start) +'s', terms, bestResults.slice(0), results.slice(0), maybe.slice(0))
 					}
                     results = bestResults.concat(results)
                     if(maybe.length){
@@ -177,7 +227,9 @@ class Index extends Common {
 							}
 						}
 					}
-					console.warn('M3U SEARCH RESULTS', (global.time() - start) +'s (total time)', terms)
+					if(this.debug){
+						console.warn('M3U SEARCH RESULTS', (global.time() - start) +'s (total time)', terms)
+					}
 					resolve({results, maybe})
 					smap = bestResults = results = maybe = null
                 })
@@ -327,14 +379,15 @@ class Index extends Common {
 		return c
 	}
 	diffMap(a, b){
-		let c = global.deepClone(a) // clone it
+		let c
 		Object.keys(b).forEach(listUrl => {
-			if(typeof(c[listUrl]) != 'undefined'){
+			if(typeof(a[listUrl]) != 'undefined'){
 				Object.keys(b[listUrl]).forEach(type => {
-					if(typeof(c[listUrl][type]) != 'undefined'){
+					if(typeof(a[listUrl][type]) != 'undefined'){
 						b[listUrl][type].forEach(n => {
-							let i = c[listUrl][type].indexOf(n)
+							let i = a[listUrl][type].indexOf(n)
 							if(i != -1){
+								if(!c) c = global.deepClone(a) // clone it lazily
 								c[listUrl][type].splice(i, 1)
 							}
 						})
@@ -342,7 +395,7 @@ class Index extends Common {
 				})
 			}
 		})
-		return c
+		return c || a
 	}
 	group(group, atts){
 		return new Promise((resolve, reject) => {

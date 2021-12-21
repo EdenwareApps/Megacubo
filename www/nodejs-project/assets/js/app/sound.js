@@ -16,13 +16,18 @@ function sound(tag, vol){
             if(typeof(uiSounds[tag]) == 'undefined'){
                 soundSetup(tag, vol)
             }
-            uiSounds[tag].stop().play()
-            if(vol && uiSounds[tag].getVolume() != vol){ // lazily for sooner playback
-                uiSounds[tag].setVolume(vol)
+            if(config && typeof(config['volume']) == 'number'){
+                vol *= (config['volume'] / 100)
             }
-        }
-        if(parent.cordova && top.navigator && top.navigator.vibrate){
-            top.navigator.vibrate(75)
+            if(vol){ // lazily for sooner playback
+                uiSounds[tag].stop().play()
+                if(uiSounds[tag].getVolume() != vol){
+                    uiSounds[tag].setVolume(vol)
+                }
+            }
+            if(parent.cordova && top.navigator && top.navigator.vibrate){
+                top.navigator.vibrate(75)
+            }
         }
     }
 }

@@ -5,10 +5,10 @@ const AutoTuner = require('../tuner/auto-tuner')
 if(!Promise.allSettled){
 	Promise.allSettled = ((promises) => Promise.all(promises.map(p => p
 		.then(value => ({
-		status: 'fulfilled', value
+			status: 'fulfilled', value
 		}))
 		.catch(reason => ({
-		status: 'rejected', reason
+			status: 'rejected', reason
 		}))
 	)))
 }
@@ -956,9 +956,8 @@ class Streamer extends StreamerAbout {
 			let terms = opts.terms ? opts.terms.split(',') : global.lists.terms(name, false)
 			global.osd.show(global.lang.TUNING_WAIT_X.format(name), 'fa-mega spin-x-alt', 'streamer', 'persistent')   
 			global.lists.search(terms, {
-				partial: false, 
 				type: 'live',
-				typeStrict: false
+				safe: (global.config.get('parental-control-policy') == 'block')
 			}).then(entries => {
 				if(this.connectId != connectId){
 					return
@@ -1034,7 +1033,7 @@ class Streamer extends StreamerAbout {
 					if(err != 'cancelled by user'){
 						this.emit('connecting-failure', e)
 						console.error('tune() ERR', err)
-						global.osd.show(global.lang.NONE_STREAM_WORKED_X.format(e.name), 'fas fa-exclamation-circle faclr-red', 'streamer', 'normal')
+						global.osd.show(global.lang.NO_MORE_STREAM_WORKED_X.format(e.name), 'fas fa-exclamation-circle faclr-red', 'streamer', 'normal')
 					}
 				}).finally(() => {
 					global.explorer.setLoadingEntries(loadingEntriesData, false)

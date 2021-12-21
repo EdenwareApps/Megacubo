@@ -8,7 +8,7 @@ class CloudData {
         this.locale = global.lang.locale
         this.expires = {
             'searching': 6 * 3600,
-            'categories': 6 * 3600,
+            'channels': 6 * 3600,
             'configure': 1 * 3600,
             'sources': 6 * 3600,
             'watching': 300
@@ -24,6 +24,8 @@ class CloudData {
     url(key){
         if(key == 'configure'){
             return this.base + '/' + key + '.json'
+        } else if(key.indexOf('/') != -1) {
+            return this.baseURL + key + '.json'
         } else {
             return this.baseURL + key + '.' + this.locale +'.json'
         }
@@ -33,6 +35,7 @@ class CloudData {
             if(this.debug){
                 console.log('cloud: get', key, traceback())
             }
+            const expiralKey = key.split('/')[0]
             const store = raw === true ? global.storage.raw : global.storage
             store.get(this.cachingDomain + key, data => {
                 if(data){
@@ -81,10 +84,10 @@ class CloudData {
                                 error('Server returned empty')
                             } else {
                                 if(this.debug){
-                                    console.log('cloud: got', key, body, this.expires[key])
+                                    console.log('cloud: got', key, body, this.expires[expiralKey])
                                 }
-                                if(typeof(this.expires[key]) != 'undefined'){
-                                    store.set(this.cachingDomain + key, body, this.expires[key])
+                                if(typeof(this.expires[expiralKey]) != 'undefined'){
+                                    store.set(this.cachingDomain + key, body, this.expires[expiralKey])
                                     store.set(this.cachingDomain + key + '-fallback', body, true)
                                 } else {
                                     console.error('"'+ key +'" is not cacheable (no expires set)')

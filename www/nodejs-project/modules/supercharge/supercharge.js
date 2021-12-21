@@ -56,15 +56,15 @@ function patch(scope){
 		}
 	}
 	scope.deepClone = (from, allowNonSerializable) => {
-		if (from == null || typeof from != "object") return from;
-		if (from.constructor != Object && from.constructor != Array) return from;
+		if (from == null || typeof from != "object") return from
+		if (from.constructor != Object && from.constructor != Array) return from
 		if (from.constructor == Date || from.constructor == RegExp || from.constructor == Function ||
 			from.constructor == String || from.constructor == Number || from.constructor == Boolean)
 			return new from.constructor(from)
 		let to = new from.constructor()
 		for (var name in from){
 			if(allowNonSerializable || ['string', 'object', 'number', 'boolean'].includes(typeof(from[name]))){
-				to[name] = typeof to[name] == "undefined" ? scope.deepClone(from[name], allowNonSerializable) : to[name];
+				to[name] = typeof to[name] == "undefined" ? scope.deepClone(from[name], allowNonSerializable) : to[name]
 			}
 		}
 		return to

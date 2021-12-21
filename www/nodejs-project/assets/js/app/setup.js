@@ -33,11 +33,11 @@ class Setup extends EventEmitter {
     infoIPTVList(){
         let def = 'ok', opts = [
             {template: 'question', text: 'Megacubo', fa: 'fas fa-exclamation-circle'},
-            {template: 'message', text: lang[this.offerCommunitaryMode ? 'NO_LIST_PROVIDED_HINT' : 'NO_LIST_PROVIDED'].format(lang.COMMUNITARY_MODE)},
+            {template: 'message', text: lang.NO_LIST_PROVIDED},
             {template: 'option', text: lang.ADD_LIST, fa: 'fas fa-plus-square', id: 'ok'}
         ]
         if(this.offerCommunitaryMode){
-            opts.push({template: 'option', text: lang.COMMUNITARY_MODE, fa: 'fas fa-users', id: 'sh'})
+            opts.push({template: 'option', text: lang.DONT_HAVE_LIST, fa: 'fas fa-times-circle', id: 'sh'})
         }
         explorer.dialog(opts, choose => {
             setTimeout(() => {
@@ -70,13 +70,13 @@ class Setup extends EventEmitter {
         }, 'back')   
     }
     welcome(){
-        let text = lang.ASK_IPTV_LIST_FIRST.split('. ').join(".\r\n") +"\r\n"+ lang.SUGGEST_COMMUNITARY_LIST, def = 'ok', opts = [
+        let text = lang.ASK_IPTV_LIST_FIRST.split('. ').join(".\r\n"), def = 'ok', opts = [
             {template: 'question', text: 'Megacubo', fa: 'fas fa-star'},
             {template: 'message', text},
             {template: 'option', text: lang.ADD_LIST, fa: 'fas fa-plus-square', id: 'ok'}
         ]
         if(this.offerCommunitaryMode){
-            opts.push({template: 'option', text: lang.COMMUNITARY_MODE, fa: 'fas fa-users', id: 'sh'})
+            opts.push({template: 'option', text: lang.DONT_HAVE_LIST, fa: 'fas fa-times-circle', id: 'sh'})
         } else {
             opts.push({template: 'option', text: lang.ADD_LATER, fa: 'fas fa-clock', id: 'no'})
         }

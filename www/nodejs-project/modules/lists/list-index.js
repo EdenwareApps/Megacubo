@@ -13,7 +13,12 @@ class ListIndex extends ListIndexUtils {
     entries(map){
         return new Promise((resolve, reject) => {
             this.readLines(this.file, map, lines => {
-                let entries = lines.length ? JSON.parse('['+ lines.join(',') +']') : []
+                let entries
+                try {
+                    entries = JSON.parse('['+ lines.join(',') +']')
+                } catch(e) {
+
+                }
                 if(Array.isArray(entries)){
                     resolve(entries)
                 } else {

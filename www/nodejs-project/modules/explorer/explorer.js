@@ -129,10 +129,8 @@ class Explorer extends Events {
             if(!p){
                 p = this.path
             }
-            this.suspendRendering()
-            this.open('').then(() => {
-                this.resumeRendering()
-                this.open(p, undefined, true).catch(global.displayErr)
+            this.deepRead(p).then(ret => {
+                this.render(ret.entries, p, (ret.parent ? ret.parent.fa : '') || 'fas fa-folder-open')
             }).catch(global.displayErr)
         }
     }
@@ -151,8 +149,12 @@ class Explorer extends Events {
             if(this.inSelect()){
                 this.path = this.dirname(this.path)
             }
+            let e = this.selectEntry(this.pages[this.path], global.lang.BACK)
             if(this.opts.debug){
-                console.log('back', this.path, p)
+                console.log('back', this.path, p, e)
+            }
+            if(e && e.action){
+                e.action()
             }
             if(typeof(level) != 'number'){
                 level = 1
@@ -165,6 +167,8 @@ class Explorer extends Events {
                 console.log('back', p, deep)
             }
             this.open(p, undefined, deep, true, true).catch(global.displayErr)
+        } else {
+            this.refresh()
         }
     }
     prependFilter(f){
@@ -189,7 +193,11 @@ class Explorer extends Events {
                 } else {
                     this.filters[i](entries, path).then(es => {
                         i++
-                        entries = es
+                        if(Array.isArray(es)){
+                            entries = es
+                        } else {
+                            console.error('Explorer filter failure', this.filters[i], es)
+                        }
                         next()
                     }).catch(e => {
                         i++
@@ -243,7 +251,7 @@ class Explorer extends Events {
                     if(typeof(e.action) == 'function'){
                         e.action(e, value)
                     }
-                    console.error('input ok', e)
+                    console.error('input ok', e, this.path, destPath)
                     return true
                 }
             })
@@ -327,7 +335,7 @@ class Explorer extends Events {
             return path.substr(0, i)
         }
     }
-    deepRead(destPath, tabindex){        
+    deepRead(destPath, tabindex){
         return new Promise((resolve, reject) => {
             if(['.', '/'].includes(destPath)){
                 destPath = ''
@@ -341,31 +349,28 @@ class Explorer extends Events {
                 if(parts.length){
                     let n = parts.shift()
                     let np = p ? p + '/' + n : n
-                    if(typeof(this.pages[np]) == 'undefined'){
-                        let e = this.selectEntry(pages[p], n)
-                        p = np
-                        if(['group', 'select'].indexOf(e.type) != -1){
-                            parent = e
-                            this.readEntry(e, p).then(es => {
-                                this.applyFilters(es, p).then(es => {
-                                    if(e.type == 'group'){
-                                        es = this.addMetaEntries(es, p)
-                                    }
-                                    this.pages[p] = pages[p] = es
-                                    next()
-                                })
-                            }).catch(reject)
-                        } else {
-                            if(typeof(this.pages[destPath]) != 'undefined'){ // fallback
-                                console.error('deep path not found, falling back', destPath, this.pages[destPath])
-                                return finish(this.pages[destPath])
-                            }
-                            reject('deep path not found')
-                        }
+                    let e = this.selectEntry(pages[p], n)
+                    p = np
+                    if(['group', 'select'].indexOf(e.type) != -1){
+                        parent = e
+                        this.readEntry(e, p).then(es => {
+                            this.applyFilters(es, p).then(es => {
+                                if(e.type == 'group'){
+                                    es = this.addMetaEntries(es, p)
+                                }
+                                this.pages[p] = pages[p] = es
+                                if(this.opts.debug){
+                                    console.log('updated page', p, es)
+                                }
+                                next()
+                            })
+                        }).catch(reject)
                     } else {
-                        pages[np] = this.pages[np]
-                        p = np
-                        next()
+                        if(typeof(this.pages[destPath]) != 'undefined'){ // fallback
+                            console.error('deep path not found, falling back', destPath, this.pages[destPath])
+                            return finish(this.pages[destPath])
+                        }
+                        reject('deep path not found')
                     }
                 } else {
                     finish(pages[destPath])
@@ -524,7 +529,9 @@ class Explorer extends Events {
                         } else {
                             if(n.path){
                                 if(this.basename(n.path) != n.name || (n.name == e.name && this.basename(this.dirname(n.path)) != n.name)){
-                                    console.log('npath', n.path, n.name, n, e)
+                                    if(this.opts.debug){
+                                        console.log('npath', n.path, n.name, n, e)
+                                    }
                                     n.path += '/'+ n.name
                                 }
                             }
