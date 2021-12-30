@@ -614,7 +614,7 @@ class WinMan extends EventEmitter {
 			{template: 'option', text: w.lang.NO, id: 'no'},
 			{template: 'option', text: w.lang.YES, id: 'yes'}
 		]
-		if(typeof(cordova) == 'undefined' || parseInt(top.device.version) >= 10){
+		if(this.canAutoRestart()){
 			opts.push({template: 'option', text: w.lang.RESTARTAPP, id: 'restart'})
 		}
 		w.explorer.dialog(opts, c => {
@@ -654,30 +654,35 @@ class WinMan extends EventEmitter {
 			console.error(e)
 		}
 	}
-	restartUI(cb){		
-		if(typeof(cordova) == 'undefined' || parseInt(top.device.version) >= 10){
-			cb()
+	canAutoRestart(){ 
+		let autoRestartSupport
+		if(top.process && top.process.platform == 'win32'){
+			autoRestartSupport = true
+		} else if(typeof(cordova) != 'undefined' && cordova && parseInt(top.device.version) < 10 && typeof(plugins) != 'undefined' && plugins.megacubo) {
+			autoRestartSupport = true
+		}
+		return autoRestartSupport
+	}
+	restart(){
+		let next = auto => {
+			if(auto){
+				if(typeof(plugins) != 'undefined' && plugins.megacubo){ // cordova
+					return plugins.megacubo.restartApp()
+				} else if(top.Manager) {
+					return top.Manager.restart()
+				}
+			}
+			this.exit()
+		}
+		if(this.canAutoRestart()){
+			next(true)
 		} else {
 			let w = this.getAppWindow()
 			w.explorer.dialog([
 				{template: 'question', text: 'Megacubo', fa: 'fas fa-info-circle'},
 				{template: 'message', text: lang.SHOULD_RESTART},
 				{template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle'}
-			], cb)
-		}
-	}
-	restart(){
-		console.log('restart()')
-		if(typeof(plugins) != 'undefined' && plugins.megacubo){ // cordova
-			this.restartUI(() => {
-				plugins.megacubo.restartApp()
-			})
-		} else { // nwjs
-			let w = this.getAppWindow()
-			if(w){
-				w.app.emit('exit')
-			}
-			top.Manager.restart()
+			], next)
 		}
 	}
 	exit(){

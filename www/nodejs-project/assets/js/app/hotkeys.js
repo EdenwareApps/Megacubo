@@ -25,8 +25,6 @@ function escapePressed(){
             } else {
                 if(playing){
                     idle.start()
-                } else {
-                    askExit()
                 }
             }
         }

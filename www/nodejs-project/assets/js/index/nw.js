@@ -222,7 +222,7 @@ class WindowManager extends ClassesHandler {
 				stdio: 'inherit'
 			}).unref()
 		})
-		process.nextTick(() => process.exit())
+		setTimeout(() => process.exit(), 50)
 
 		/*
 			const child = require('child_process')

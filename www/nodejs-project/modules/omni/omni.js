@@ -6,6 +6,11 @@ class OMNI extends Events {
         this.bind()
     }
     bind(){
+        global.ui.on('omni-client-ready', () => {
+            if(this.omniEnabled){
+                global.ui.emit('omni-enable') // on linux, ui was loading after lists update, this way the search field was not showing up
+            }
+        })
         global.ui.on('omni', (text, type) => {
             if(type == 'numeric'){
                 let es = global.bookmarks.get().filter(e => e.bookmarkId == parseInt(text))
@@ -33,8 +38,10 @@ class OMNI extends Events {
             })
         })
         global.lists.manager.once('lists-updated', () => {
+            this.omniEnabled = true
             global.ui.emit('omni-enable')
         })
+
     }
 }
 

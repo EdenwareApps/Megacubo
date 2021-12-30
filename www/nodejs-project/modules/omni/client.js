@@ -45,6 +45,7 @@ class OMNI extends OMNIUtils {
                 this.updateIcon('fas fa-times-circle')
             }
         })
+        app.emit('omni-client-ready')
     }
     submit(){
         let val = this.save()

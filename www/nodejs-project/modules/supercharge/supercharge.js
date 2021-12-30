@@ -106,7 +106,7 @@ function patch(scope){
 		return hex.length == 1 ? '0' + hex : hex
 	}
 	scope.rgbToHex = (r, g, b) => {
-		return '#' + scope.componentToHex(r) + scope.componentToHex(g) + scope.componentToHex(b)
+		return '#'+ scope.componentToHex(r) + scope.componentToHex(g) + scope.componentToHex(b)
 	}
 	scope.hexToRgb = ohex => {
 		var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i, hex = ohex.replace(shorthandRegex, (m, r, g, b) => {

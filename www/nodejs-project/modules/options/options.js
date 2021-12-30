@@ -487,15 +487,26 @@ class Options extends OptionsExportImport {
 		global.ui.emit('share', global.ucWords(global.MANIFEST.name), global.ucWords(global.MANIFEST.name), 'https://megacubo.net/online/')
 	}
     about(){
-        let text = lang.LEGAL_NOTICE +': '+ lang.ABOUT_LEGAL_NOTICE
-        global.ui.emit('dialog', [
-            {template: 'question', fa: 'fas fa-info-circle', text: global.ucWords(global.MANIFEST.name) +' v'+ global.MANIFEST.version +' (' + process.platform + ', '+ require('os').arch() +')'},
-            {template: 'message', text},
-            {template: 'option', text: 'OK', fa: 'fas fa-check-circle', id: 'ok'},
-            {template: 'option', text: global.lang.HELP, fa: 'fas fa-question-circle', id: 'help'},
-            {template: 'option', text: global.lang.SHARE, fa: 'fas fa-share-alt', id: 'share'},
-            {template: 'option', text: global.lang.TOS, fa: 'fas fa-info-circle', id: 'tos'}
-        ], 'about-callback', 'ok')
+        let outdated
+        cloud.get('configure').then(c => {
+            updateEPGConfig(c)
+            console.log('checking update...')
+            let vkey = 'version'
+            outdated = c[vkey] > global.MANIFEST.version
+        }).catch(console.error).finally(() => {
+            let text = lang.LEGAL_NOTICE +': '+ lang.ABOUT_LEGAL_NOTICE
+            let title = global.ucWords(global.MANIFEST.name) +' v'+ global.MANIFEST.version
+            let versionStatus = outdated ? global.lang.OUTDATED : global.lang.CURRENT_VERSION
+            title += ' ('+ versionStatus +', ' + process.platform + ' '+ require('os').arch() +')'
+            global.ui.emit('dialog', [
+                {template: 'question', fa: 'fas fa-info-circle', text: title},
+                {template: 'message', text},
+                {template: 'option', text: 'OK', fa: 'fas fa-check-circle', id: 'ok'},
+                {template: 'option', text: global.lang.HELP, fa: 'fas fa-question-circle', id: 'help'},
+                {template: 'option', text: global.lang.SHARE, fa: 'fas fa-share-alt', id: 'share'},
+                {template: 'option', text: global.lang.TOS, fa: 'fas fa-info-circle', id: 'tos'}
+            ], 'about-callback', 'ok')
+        })
     }
     aboutResources(){
         let txt = []
@@ -529,9 +540,6 @@ class Options extends OptionsExportImport {
             {template: 'option', text: global.lang.YES, fa: 'fas fa-info-circle', id: 'yes'},
             {template: 'option', text: global.lang.NO, fa: 'fas fa-times-circle', id: 'no'}
         ], 'reset-callback', 'no')
-    }
-    closeApp(){
-        global.energy.exit()
     }
     playbackEntries(){
         return new Promise((resolve, reject) => {
