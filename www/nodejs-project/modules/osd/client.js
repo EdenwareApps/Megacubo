@@ -32,6 +32,91 @@ if(typeof(EventEmitter) == 'undefined'){
     }
 }
 
+class Speaker {
+    constructor(){
+        this.messages = []
+        this.voice = null
+        this.currentMessage = null
+        this.pumpDelay = 250
+        window.speechSynthesis.addEventListener('voiceschanged', () => {
+            this.voice = null
+        })
+    }
+    prepareText(text){
+        if(!this.decoder){
+            this.decoder = jQuery('<textarea />')
+        }
+        return this.decoder.html(text.replace(new RegExp('(<([^>]+)>)', 'gi'), '')).text()
+    }
+    chooseVoice(){
+        if(this.voice) return this.voice
+        let locale
+        if(lang && lang.locale){
+            locale = lang.locale
+        }
+        let voices = window.speechSynthesis.getVoices()
+        if(voices.length){
+            let localeVoices = voices.filter(v => {
+                return v.lang.substr(0, 2) == locale
+            })
+            if(localeVoices.length){
+                voices = localeVoices
+            }
+            let defaultVoices = voices.filter(v => v.default)
+            this.voice = defaultVoices.length ? defaultVoices[0] : voices[0]
+            return this.voice
+        }
+    }
+    queue(id, text){
+        if(id.indexOf('-sub') != -1) return // skip -sub hint messages to avoid confusion
+        this.messages = this.messages.filter(m => {
+            if(m.id == id) console.warn('CANCELLING SPEAK', m)
+            return m.id != id
+        })
+        if(this.currentMessage && this.currentMessage.id == id){
+            console.warn('CANCELLING ACTIVE SPEAK', this.currentMessage.text)
+            window.speechSynthesis.cancel()
+            this.currentMessage = null
+        }
+        this.messages.push({id, text: this.prepareText(text)})
+        console.warn('SPEAK MESSAGES', this.messages.slice(0), this.currentMessage)
+        setTimeout(() => this.pump(), this.pumpDelay)
+    }
+    speak(id, text){
+        this.queue(id, text)
+    }
+    pump(){
+        if(this.messages.length && !window.speechSynthesis.speaking){
+            let message = this.messages.shift()
+            const voice = this.chooseVoice()
+            const u = new SpeechSynthesisUtterance()
+            u.id = message.id
+            u.text = message.text
+            u.voice = voice
+            u.addEventListener('boundary', () => {
+                if(!this.currentMessage || (this.currentMessage.id == u.id && this.currentMessage.text != u.text)){
+                    console.warn('CANCELLING ACTIVE SPEAK*', this.currentMessage ? this.currentMessage.text : null)
+                    window.speechSynthesis.cancel()
+                    setTimeout(() => this.pump(), this.pumpDelay)
+                }
+            })
+            u.addEventListener('end', () => {
+                console.log('SPEAKED', message.text)
+                if(this.currentMessage && this.currentMessage.id == u.id && this.currentMessage.text == u.text){
+                    this.currentMessage = null
+                }
+                setTimeout(() => this.pump(), this.pumpDelay)
+            })
+            this.currentMessage = message
+            window.speechSynthesis.speak(u)
+        }
+        window.speechSynthesis.resume()
+        if(this.messages.length){
+            setTimeout(() => this.pump(), this.pumpDelay)
+        }
+    }
+}
+
 class OSDDOMClassHandler extends EventEmitter {
 	constructor(){
         super()
@@ -106,6 +191,12 @@ class OSD extends OSDDOMClassHandler {
             this.timers[name] = setTimeout(() => {
                 this.hide(name)
             }, time)
+        }
+        if(config && config['osd-speak'] && window.speechSynthesis){
+            if(!this.speaker){
+                this.speaker = new Speaker()
+            }
+            this.speaker.speak(name, text)
         }
 	}
 	hide(name){

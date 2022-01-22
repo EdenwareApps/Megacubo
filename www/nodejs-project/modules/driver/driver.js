@@ -128,6 +128,9 @@ module.exports = (file, opts) => {
 			this.on('config-change', data => {
 				//console.log('Config changed from worker driver', data)
 				global.config.reload()
+				setTimeout(() => {
+					global.config.reload() // read again after some seconds, the config file may delay on writing
+				}, 3000)
 			})
 			global.config.on('change', () => {
 				//console.log('CONFIG CHANGED!')

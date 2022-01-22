@@ -532,6 +532,20 @@ class Options extends OptionsExportImport {
         } 
         global.ui.emit('info', 'Network IP', data)
     }
+    /*
+    aboutNetwork(){
+        let text = 'Network IP: '+ global.networkIP()
+        if(process.platform == 'android'){
+            text += '<br />'+ global.androidIPCommand()
+        } 
+        global.ui.emit('dialog', [
+            {template: 'question', text: 'Network IP'},
+            {template: 'message', text},
+            {template: 'option', text: 'OK', fa: 'fas fa-check-circle', id: 'ok'},
+            {template: 'option', text: global.lang.EDIT, fa: 'fas fa-edit', id: 'edit'}
+        ], 'about-network-callback', 'ok')
+    }
+    */
     resetConfig(){
         let text = global.lang.RESET_CONFIRM
         global.ui.emit('dialog', [
@@ -839,6 +853,18 @@ class Options extends OptionsExportImport {
                                 }
                             }
                         ]
+                        if(!global.cordova){
+                            opts.push({
+                                name: global.lang.SPEAK_NOTIFICATIONS, 
+                                type: 'check', 
+                                action: (data, value) => {
+                                    global.config.set('osd-speak', value)
+                                }, 
+                                checked: () => {
+                                    return global.config.get('osd-speak')
+                                }
+                            })
+                        }
                         opts.push({
                             name: global.lang.WINDOW_MODE_TO_START,
                             fa: 'fas fa-window-maximize', 

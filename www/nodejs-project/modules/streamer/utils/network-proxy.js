@@ -7,6 +7,7 @@ class StreamerNetworkProxy extends StreamerProxy {
 		this.type = 'network-proxy'
         this.opts.debug = false
         this.sourcePort = port
+        this.connectionsServed = 0
 	}
     proxify(url){
         if(this.opts.port){

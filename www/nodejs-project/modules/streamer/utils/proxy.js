@@ -211,6 +211,9 @@ class StreamerProxy extends StreamerProxyBase {
 		if(this.opts.debug){
 			console.log('req starting...', req, req.url)
 		}
+		if(typeof(this.connectionsServed) != 'undefined'){ // for networkproxy activity detection
+			this.connectionsServed++
+		}
 		const uid = this.uid()
 		const keepalive = this.committed && global.config.get('use-keepalive')
 		let ended, url = this.unproxify(req.url)

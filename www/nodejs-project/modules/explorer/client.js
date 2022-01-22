@@ -1038,7 +1038,7 @@ class ExplorerDialog extends ExplorerDialogQueue {
 	}
 	dialog(entries, cb, defaultIndex, mandatory){
 		this.queueDialog(() => {
-			console.log('DIALOG', entries, traceback(), cb)
+			console.log('DIALOG', entries, cb, defaultIndex, mandatory, traceback())
 			let html = '', opts = '', complete, callback = k => {
 				complete = true
 				if(this.debug){
@@ -1120,8 +1120,7 @@ class ExplorerDialog extends ExplorerDialogQueue {
 							callback(id)
 						})
 					}
-					if(String(e.id) == String(validatedDefaultIndex)){
-						
+					if(String(e.id) == String(validatedDefaultIndex)){						
 						setTimeout(() => {
 							console.log('MODALFOCUS', document.activeElement, p, defaultIndex)
 							this.focus(p, false)
@@ -1579,6 +1578,9 @@ class Explorer extends ExplorerLoading {
 		})
 		this.app.on('dialog', (a, b, c, d) => {
 			this.dialog(a, b, c, d)
+		})
+		this.app.on('dialog-close', (a, b, c, d) => {
+			this.endModal()
 		})
 		this.app.on('prompt', (...args) => {
 			this.prompt.apply(this, args)

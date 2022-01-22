@@ -48,6 +48,7 @@ module.exports = {
 	'locale': '',
 	'miniplayer-auto': true,
 	'only-known-channels-in-been-watched': true,
+	'osd-speak': false,
 	'parental-control-policy': 'block',
 	'parental-control-terms': '.',
 	'playback-rate-control': true,
