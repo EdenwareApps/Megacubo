@@ -1,5 +1,7 @@
 # Megacubo
-A intuitive, multi-language and cross-platform IPTV player.
+Megacubo is an intuitive, multi-language and cross-platform IPTV player with support for history, bookmarks and much more.
+
+You can add as many IPTV lists you want (M3U format) and with Miniplayer mode, you can work or navigate on your PC while watching any transmission.
 
 Platforms: Windows, Linux, MacOS and Android.
 
