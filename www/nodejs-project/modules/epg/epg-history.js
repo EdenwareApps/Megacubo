@@ -1,4 +1,4 @@
-
+// WORK IN PROGRESS NOT IN USE
 const path = require('path'), EntriesGroup = require(path.resolve(__dirname, '../entries-group'))
 
 class History extends EntriesGroup {

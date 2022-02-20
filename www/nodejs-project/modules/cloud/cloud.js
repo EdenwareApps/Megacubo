@@ -76,8 +76,7 @@ class CloudData {
                             timeout: 60,
                             retry: 10,
                             headers: {
-                                'host': this.domain,
-                                'accept-encoding': 'identity' // not needed and problematic
+                                'host': this.domain
                             }
                         }).then(body => {
                             if(!body){

@@ -123,6 +123,19 @@ class StreamState extends Events {
             global.storage.setSync(this.key, this.data, true)
         }
     }
+	isLocalFile(file){
+		if(typeof(file) != 'string'){
+			return
+		}
+		let m = file.match(new RegExp('^([a-z]{1,6}):', 'i'))
+		if(m && m.length > 1 && (m[1].length == 1 || m[1].toLowerCase() == 'file')){ // drive letter or file protocol
+			return true
+		} else {
+			if(file.length >= 2 && file.charAt(0) == '/' && file.charAt(1) != '/'){ // unix path
+				return true
+			}
+		}
+	}
     test(entries, name){
         let ctl = new Promise((resolve, reject) => {
             if(this.testing){
@@ -141,7 +154,7 @@ class StreamState extends Events {
             }
             let retest = [], syncData = {}
             entries = entries.filter(e => {
-                if(e.url){
+                if(e.url && e.name != global.lang.REMOVE_LIST){
                     if(global.mega.isMega(e.url)){
                         syncData[e.url] = 'tune'
                     } else {

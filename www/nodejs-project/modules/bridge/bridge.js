@@ -121,7 +121,7 @@ class BridgeServer extends Events {
     }
     destroy(){
         if(this.opts.debug){
-            this.opts.debug('closing...')
+            console.log('closing...')
         }
         this.closed = true
     }

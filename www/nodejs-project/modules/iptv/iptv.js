@@ -5,7 +5,8 @@ class IPTV extends Events {
         super()
         this.repo = false
         this.opts = opts
-        this.title = 'IPTV'
+        this.title = global.lang.COUNTRIES
+        this.details = ''
         this.cachingDomain = 'iptv-'
         this.cachingTTL = 12 * 3600
         this.data = {}
@@ -24,6 +25,7 @@ class IPTV extends Events {
         if(!this.repo){
             global.cloud.get('configure').then(c => {
                 this.repo = c['iptv-repo'] || 'iptv-org/iptv'
+                this.details = global.lang.FROM_X.format(this.repo.split('/')[0])
                 this.isReady = true
                 this.emit('ready')
             }).catch(console.error)
@@ -184,7 +186,7 @@ class IPTV extends Events {
                 global.lang.getCountries().then(nlocs => {
                     locs = [...new Set(locs.concat(nlocs))]
                 }).catch(console.error).finally(() => {
-                    let nes = [], maxLists = 12
+                    let nes = [], maxLists = 18
                     if(locs.includes(global.lang.countryCode)){
                         nes = es.filter(e => {
                             return e.countryCode && e.countryCode == global.lang.countryCode
@@ -219,7 +221,7 @@ class IPTV extends Events {
     hook(entries, path){
         return new Promise((resolve, reject) => {
             if(path.split('/').pop() == global.lang.COMMUNITARY_MODE && config.get('shared-mode-reach')){
-                entries.push({name: this.title, fa: this.icon, type: 'group', renderer: this.entries.bind(this)})
+                entries.push({name: this.title, fa: this.icon, details: this.details, type: 'group', renderer: this.entries.bind(this)})
             }
             resolve(entries)
         })

@@ -957,7 +957,14 @@ class StreamerClientVideoFullScreen extends StreamerAndroidNetworkIP {
                 if(b){
                     b.style.display = 'none'
                 }
-                this.on('start', () => this.enterFullScreen())
+                this.on('start', () => {
+                    this.enterFullScreen()
+                    setTimeout(() => {
+                        if(this.active){ // on Android, when fullscreen plugin slows to respond and stop+start calls got fast, it can happen that the fullscreen get messed, so ensure it after some seconds
+                            this.enterFullScreen()
+                        }
+                    }, 2000)
+                })
                 this.on('stop', () => this.leaveFullScreen())
             } else {
                 this.inFullScreen = false

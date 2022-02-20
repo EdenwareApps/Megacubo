@@ -167,11 +167,13 @@ class List extends Events {
         }).catch(console.error).finally(cb)
 	}
 	fetchAll(cb){
-        this.indexer.entries().then(entries => {
-            cb(entries)
-        }).catch(err => {
-            console.error(err)
-            cb([])
+        this.ready(() => {
+            this.indexer.entries().then(entries => {
+                cb(entries)
+            }).catch(err => {
+                console.error(err)
+                cb([])
+            })
         })
 	}
 	reset(){		

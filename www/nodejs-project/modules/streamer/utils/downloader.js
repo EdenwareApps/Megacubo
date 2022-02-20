@@ -23,6 +23,7 @@ class Downloader extends StreamerAdapterBase {
 		this.lastConnectionEndTime = 0
 		this.buffer = []
 		this.ext = 'ts'
+		this.debugConns = false
 		this.currentDownloadUID = undefined
 		this.collectBitrateSampleOffset = {}
 		let m = url.match(new RegExp('\\.([a-z0-9]{2,4})($|[\\?#])', 'i'))
@@ -175,7 +176,7 @@ class Downloader extends StreamerAdapterBase {
 		}
 		/*
 		if(this.opts.debug){
-			this.opts.debug('[' + this.type + '] data received', String(data))
+			console.log('[' + this.type + '] data received', String(data))
 		}
 		*/
 		let skip, len = this.len(data)
@@ -225,9 +226,9 @@ class Downloader extends StreamerAdapterBase {
         }
         if(this.opts.debug){
             if(err){
-                this.opts.debug('[' + this.type + '] DOWNLOAD ERR', err, data)   
+                console.log('[' + this.type + '] DOWNLOAD ERR', err, data)   
             } else {
-                this.opts.debug('[' + this.type + '] after download', data)
+                console.log('[' + this.type + '] after download', data)
             }
         }
         if(callback){
@@ -236,12 +237,9 @@ class Downloader extends StreamerAdapterBase {
     }
 	download(callback){
         clearTimeout(this.timer)
-		if(this.destroyed || this._destroyed){
-			return
-		}
+		if(this.destroyed || this._destroyed) return
+		let connTime, received = 0, connStart = global.time()
 		this.finishBitrateSample(this.currentDownloadUID)
-
-		let received = 0, connTime, connStart = global.time()
 		this.currentDownloadUID = String(connStart)
 		const download = this.currentRequest = new global.Download({
 			url: this.url,
@@ -251,9 +249,7 @@ class Downloader extends StreamerAdapterBase {
 			acceptRanges: false,
 			retries: 3, // strangely, some servers always abort the first try, throwing "The server aborted pending request"
 			timeout: 60,
-			headers: {
-				'accept-encoding': 'identity' // https://github.com/sindresorhus/got/issues/145
-			}
+			debug: this.debugConns
 		})
 		download.on('error', error => {
 			let elapsed = global.time() - connStart
@@ -269,13 +265,13 @@ class Downloader extends StreamerAdapterBase {
 		download.once('response', (statusCode, headers) => {
 			let contentType = ''
             if(this.opts.debug){
-                this.opts.debug('[' + this.type + '] response', statusCode, headers)
+                console.log('[' + this.type + '] response', statusCode, headers)
             }
 			statusCode = statusCode
 			headers = headers
 			contentType = typeof(headers['content-type']) != 'undefined' ? headers['content-type'] : ''
 			if(this.opts.debug){
-				this.opts.debug('[' + this.type + '] headers received', headers, statusCode, contentType) // 200
+				console.log('[' + this.type + '] headers received', headers, statusCode, contentType) // 200
 			}
 			if(statusCode >= 200 && statusCode <= 300){
 				if(!this.opts.contentType && contentType.match(new RegExp('^(audio|video)'))){
@@ -286,7 +282,7 @@ class Downloader extends StreamerAdapterBase {
 						connTime = global.time() - connStart
 						this.connectTime = connTime
 						if(this.opts.debug){
-							this.opts.debug('[' + this.type + '] receiving data, took '+ connTime +'s to connect') // 200
+							console.log('[' + this.type + '] receiving data, took '+ connTime +'s to connect') // 200
 						}
 					}
 					received += chunk.length
@@ -295,7 +291,7 @@ class Downloader extends StreamerAdapterBase {
 				download.once('end', () => {
 					this.lastConnectionEndTime = global.time()
 					if(this.opts.debug){
-						this.opts.debug('[' + this.type + '] received '+ global.kbfmt(received) +' in '+ (this.lastConnectionEndTime - connStart) +'s to connect') // 200
+						console.log('[' + this.type + '] received '+ global.kbfmt(received) +' in '+ (this.lastConnectionEndTime - connStart) +'s to connect') // 200
 					}
 					this.endRequest()
 					if(callback){
@@ -313,7 +309,7 @@ class Downloader extends StreamerAdapterBase {
 					setTimeout(() => this.afterDownload('bad response', callback, {contentType, statusCode, headers}), 1000) // delay to avoid abusing
 				} else {
 					this.afterDownload('bad response', callback, {contentType, statusCode, headers}) // timeout, no delay so
-				}				
+				}
 			}
 		})
 		download.start()
@@ -321,7 +317,7 @@ class Downloader extends StreamerAdapterBase {
 	pump(){
 		this.download(() => {
 			if(this.opts.debug){
-				this.opts.debug('[' + this.type + '] host closed', Array.isArray(this.nextBuffer))
+				console.log('[' + this.type + '] host closed', Array.isArray(this.nextBuffer))
 			}
 			this.endRequest()
 			if(this.destroyed || this._destroyed){

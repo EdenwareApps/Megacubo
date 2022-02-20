@@ -166,12 +166,31 @@ class Lists extends Index {
 				}
 			}
 			if(url){
-				this._epg = new EPG(url)
-				this._epg.once('load', () => {				
-					console.log('loadEPG success') //, JSON.stringify(this._epg.data))
-					resolve()
-				})
-				this._epg.once('error', reject)
+				let resolved, retries = 2
+				const load = () => {
+					this._epg = new EPG(url)
+					this._epg.once('load', () => {				
+						console.log('loadEPG success') //, JSON.stringify(this._epg.data))
+						if(!resolved){
+							resolve()
+							resolved = true
+						}
+					})
+					this._epg.once('error', err => {
+						if(!resolved){
+							if(retries){
+								this._epg.destroy()
+								retries--
+								load()
+							} else {
+								reject(err)
+								resolved = true
+							}
+						}
+					})
+					this._epg.on('error', console.error) // avoid ERR_UNHANDLED_ERROR
+				}
+				load()
 			} else {
 				resolve()
 			}
@@ -680,15 +699,6 @@ class Lists extends Index {
         return new Promise((resolve, reject) => {
 			resolve(this.getListsRaw())
         })
-    }	
-    getList(url){
-        return new Promise((resolve, reject) => {
-            if(typeof(this.lists[url]) == 'undefined'){
-                reject('list not loaded')
-            } else {
-                this.lists[url].fetchAll(resolve)
-            }
-        })
     }
 	delimitActiveLists(){
 		if(Object.keys(this.lists).length > (this.myLists.length + this.sharedModeReach)){
@@ -725,25 +735,26 @@ class Lists extends Index {
 	}
     directListRenderer(v){
         return new Promise((resolve, reject) => {
-            if(typeof(this.lists[v.url]) != 'undefined'){
-                this.lists[v.url].fetchAll(entries => {
-					this.directListRendererPrepare(entries, v.url).then(resolve).catch(reject)
-				})                
-            } else {
-				let fetcher = new Fetcher()
-				fetcher.fetch(v.url).then(flatList => {
-					this.directListRendererPrepare(flatList, v.url).then(resolve).catch(reject)
-				}).catch(reject)
-            }
+			console.log('DIRECTLISTRENDERER', v, this.isLocal(v.url))
+			if(this.isLocal(v.url)){
+				this.directListFileRenderer(v.url, v.url).then(resolve).catch(reject)
+			} else {
+				if(typeof(this.lists[v.url]) != 'undefined' && this.lists[v.url].isReady){ // if not loaded yet, fetch directly
+					this.lists[v.url].fetchAll(entries => {
+						this.directListRendererPrepare(entries, v.url).then(resolve).catch(reject)
+					})                
+				} else {
+					let fetcher = new Fetcher()
+					fetcher.fetch(v.url).then(flatList => {
+						this.directListRendererPrepare(flatList, v.url).then(resolve).catch(reject)
+					}).catch(reject)
+				}
+			}
         })
     }
     directListFileRenderer(file, url){
         return new Promise((resolve, reject) => {
-            if(typeof(this.lists[file]) != 'undefined'){
-                this.lists[file].fetchAll(entries => {
-					this.directListRendererPrepare(entries, v.url).then(resolve).catch(reject)
-				})                
-            } else {
+			const fallback = () => {
 				let stream = fs.createReadStream(file), entries = [], parser = new Parser()
 				parser.on('entry', e => entries.push(e))
 				parser.once('end', () => {
@@ -755,6 +766,17 @@ class Lists extends Index {
 				stream.once('close', () => {
 					parser.end()
 				})
+			}
+            if(typeof(this.lists[url]) != 'undefined' && this.lists[url].isReady){
+                this.lists[url].fetchAll(entries => {
+					if(entries && entries.length){
+						this.directListRendererPrepare(entries, url).then(resolve).catch(reject)
+					} else {
+						fallback()
+					}
+				})                
+            } else {
+				fallback()
             }
         })
     }
@@ -789,6 +811,19 @@ class Lists extends Index {
             }
         })
     }
+	isLocal(file){
+		if(typeof(file) != 'string'){
+			return
+		}
+		let m = file.match(new RegExp('^([a-z]{1,6}):', 'i'))
+		if(m.length && (m[1].length == 1 || m[1].toLowerCase() == 'file')){ // drive letter or file protocol
+			return true
+		} else {
+			if(file.length >= 2 && file.charAt(0) == '/' && file.charAt(1) != '/'){ // unix path
+				return true
+			}
+		}
+	}
 	setNetworkConnectionState(state){
         return new Promise((resolve, reject) => {
 			Download.setNetworkConnectionState(state)

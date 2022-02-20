@@ -1,13 +1,16 @@
 
-const {CookieJar} = require('tough-cookie'), HttpAgent = require('agentkeepalive'), {HttpsAgent} = HttpAgent, dnsCache = require('./lookup.js'), cookieJar = new CookieJar()
+const {CookieJar} = require('tough-cookie'), dnsCache = require('./lookup.js'), cookieJar = new CookieJar()
+const HttpAgent = require('agentkeepalive'), HttpsAgent = HttpAgent.HttpsAgent
+
 const agentOpts = {
 	keepAlive: true,
-	freeSocketTimeout: 10000,
-	timeout: 15000,
-	maxSockets: 8,
-	maxFreeSockets: 5,
-	socketActiveTTL: null
+	freeSocketTimeout: 4000, // The default server-side timeout is 5000 milliseconds, to avoid ECONNRESET exceptions, we set the default value to 4000 milliseconds.
+	maxSockets: 4,
+	maxFreeSockets: 2,
+	socketActiveTTL: 30,
+	rejectUnauthorized: false
 }
+
 const got = require('got').extend({
 	headers: {
 		'Connection': 'close'

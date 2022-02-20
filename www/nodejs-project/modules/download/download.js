@@ -11,11 +11,11 @@ class Download extends Events {
 			keepalive: false,
 			maxAuthErrors: 2,
 			retries: 3,
+			compression: true,
 			headers: {
 				'accept': '*/*',
 				'user-agent': global.config.get('ua'),
-				'accept-language': this.defaultAcceptLanguage(),
-				'accept-encoding': 'gzip, deflate'
+				'accept-language': this.defaultAcceptLanguage()
 			},
 			authErrorCodes: [401, 403],
 			permanentErrorCodes: [-1, 400, 404, 405, 410], // -1 == permanentErrorRegex matched
@@ -31,16 +31,18 @@ class Download extends Events {
 			}
 			this.opts = Object.assign(this.opts, opts)
 		}
-		if(this.opts.keepalive && this.isKeepAliveHanged(this.opts.url)){
-			this.opts.keepalive = false
-		}
 		this.currentURL = this.opts.url
 		this.opts.headers['connection'] = this.opts.keepalive ? 'keep-alive' : 'close'
 		if(this.opts.responseType && this.opts.responseType == 'json'){
 			this.opts.headers['accept'] = 'application/json,text/*;q=0.99'
 		}
+		this.opts.headers['accept-encoding'] = 'identity'
+		if(this.opts.compression){
+			this.opts.headers['accept-encoding'] = 'gzip, deflate'
+		}
 		this.buffer = []
 		this.retryCount = 0
+		this.retryDelay = 200
 		this.received = 0
 		this.receivedUncompressed = 0
 		this.isResponseCompressed = false
@@ -54,7 +56,7 @@ class Download extends Events {
 		this.authErrors = 0
 		this.statusCode = 0
 		this.ignoreBytes = 0
-		this.retryDelay = 200
+		this.connectCount = 0
 		this.currentRequestError = ''
 		this.currentResponse = null
 		this.authURLPingAfter = 0
@@ -62,21 +64,23 @@ class Download extends Events {
 			this.checkRequestingRange(this.opts.headers['range'])
 		}
 	}
-	isKeepAliveHanged(url){
-		let ddomain, domain = this.getDomain(url)
-		Object.keys(got.ka.defaults.options.agent.http.sockets).some(dd => {
-			if(dd.substr(0, domain.length) == domain){
-				ddomain = dd
-				return true
-			}
-		})
-		if(ddomain){
-			if(got.ka.defaults.options.agent.http.sockets[ddomain] && got.ka.defaults.options.agent.http.sockets[ddomain].length == got.ka.defaults.options.agent.http.maxSockets){
-				if(!got.ka.defaults.options.agent.http.freeSockets[ddomain] || !got.ka.defaults.options.agent.http.freeSockets[ddomain].length){
-					return true
-				}
-			}
+	avoidKeepAlive(url){ // on some servers, the number of sockets increase indefinitely causing downloads to hang up after some time, doesn't seems that these sockets are really being reused
+		const d = this.getDomain(url)
+		if(Download.keepAliveDomainBlacklist.includes(d)){
+			return true
 		}
+		return ['http', 'https'].some(method => {
+			return Object.keys(got.ka.defaults.options.agent[method].sockets).some(domain => {
+				if(domain.indexOf(d) == -1) return
+				if(got.ka.defaults.options.agent[method].sockets[domain] && got.ka.defaults.options.agent[method].sockets[domain].length == got.ka.defaults.options.agent[method].maxSockets){
+					if(!got.ka.defaults.options.agent[method].freeSockets[domain] || !got.ka.defaults.options.agent[method].freeSockets[domain].length){
+						Download.keepAliveDomainBlacklist.push(d)
+						console.warn('Keep alive exhausted for '+ domain)
+						return true
+					}
+				}
+			})
+		})
 	}
 	pingAuthURL(){
 		const now = global.time()
@@ -129,7 +133,7 @@ class Download extends Events {
 		const ranges = parseRange(maxInt, range)
 		if (Array.isArray(ranges)) { // TODO: enable multi-ranging support
 			this.requestingRange = ranges[0]
-			if(this.requestingRange.end == (maxInt - 1)){ // remove dummy value
+			if(this.requestingRange.end >= (maxInt - 1)){ // remove dummy value
 				delete this.requestingRange.end
 			}
 			if(this.requestingRange.end && this.requestingRange.end > 0){
@@ -147,6 +151,30 @@ class Download extends Events {
 	}
 	connect(){
 		if(this.destroyed) return
+		if(this.decompressor && this.opts.acceptRanges){
+			// resume with byte ranging should not use gzip
+			// if will not use ranging but redownload, why not keep using compression?
+			const continueWithoutCompression = () => {				
+				this.isResponseCompressed = false
+				this.decompressor = undefined
+				this.received = this.receivedUncompressed
+				this.contentLength = undefined
+				this.totalContentLength = undefined
+				this.opts.compression = false
+				this.connect()
+			}
+			this.decompressor.on('error', err => {
+				console.error('zlib err', err, this.currentURL)
+				continueWithoutCompression()
+			})
+			this.decompressor.on('finish', () => {
+				console.log('decompressor end')
+				continueWithoutCompression()
+			})
+			this.decompressor.flush()
+			this.decompressor.end()
+			return
+		}
 		if(!Download.isNetworkConnected){
 			this.end()
 			return
@@ -170,6 +198,13 @@ class Download extends Events {
 			throwHttpErrors: false
 		}
     	const requestHeaders = Object.assign({}, this.opts.headers)
+		if(this.opts.keepalive && this.avoidKeepAlive(this.currentURL)){
+			this.opts.keepalive = false
+		}
+		requestHeaders.connection = this.opts.keepalive ? 'keep-alive' : 'close'		
+		if(this.ext(this.currentURL) == 'gz'){
+			this.opts.acceptRanges = false
+		}
     	if(this.requestingRange){
 			let range = 'bytes='
 			range += (this.requestingRange.start + this.receivedUncompressed) + '-'
@@ -177,7 +212,7 @@ class Download extends Events {
 				range += this.requestingRange.end
 			}
 			requestHeaders.range = range // we dont know yet if the server support ranges, so check again on parseResponse
-		} else if(this.opts.acceptRanges && this.receivedUncompressed) {
+		} else if(this.opts.acceptRanges) { // should include even bytes=0-
 			requestHeaders.range = 'bytes=' + this.receivedUncompressed + '-'
 		} else {
 			if(this.received){ // here use received instead of receiveUncompressed
@@ -188,8 +223,9 @@ class Download extends Events {
 		opts.headers = requestHeaders
 		opts.timeout = this.getTimeoutOptions()
 		if(this.opts.debug){
-			console.log('>> Download request', opts, this.received, JSON.stringify(opts.headers), this.requestingRange, this.opts.headers['range'], global.traceback())
+			console.log('>> Download request', this.currentURL, opts, this.received, JSON.stringify(opts.headers), this.requestingRange, this.opts.headers['range'], global.traceback())
 		}
+		this.connectCount++
 		const stream = (this.opts.keepalive ? got.ka : got).stream(opts)
 		stream.on('redirect', response => {
 			if(this.opts.debug){
@@ -220,6 +256,12 @@ class Download extends Events {
 			this.delayNext()
 		})
 		return stream
+	}
+	reconnect(force){
+		if(force || !this.received){
+			this.destroyStream()
+			this.delayNext()
+		}
 	}
 	errorCallback(err){
 		if(!this.destroyed && !this.ended){
@@ -380,6 +422,8 @@ class Download extends Events {
 								headers['content-range'] += '/*'
 							}
 						}
+					} else if(this.statusCode == 206) { // we are internally processing ranges, but the client requested the full content
+						this.statusCode = 200
 					}
 					if(!this.isResponseCompressed && this.contentLength != -1){
 						headers['content-length'] = this.contentLength
@@ -584,6 +628,9 @@ class Download extends Events {
 			console.log('next', global.traceback())
 		}
 		this.destroyStream()
+		if(this.delayNextTimer){
+			clearTimeout(this.delayNextTimer)
+		}
 		let retry
 		if(!Download.isNetworkConnected){
 			retry = false
@@ -683,11 +730,11 @@ class Download extends Events {
 	}
 	end(){
 		if(!this.ended){
+			this.ended = true
+			this.destroyStream()
 			if(this.destroyed){
 				return this.emit('end')
 			}
-			this.ended = true
-			this.destroyStream()
 			if(!this.headersSent){
 				this.headersSent = true
 				this.checkStatusCode()
@@ -741,6 +788,7 @@ class Download extends Events {
 }
 
 Download.got = got
+Download.keepAliveDomainBlacklist = []
 Download.isNetworkConnected = true
 Download.setNetworkConnectionState = state => {
 	Download.isNetworkConnected = state
@@ -789,7 +837,7 @@ Download.file = (...args) => {
 				writer = new WriteQueueFile(file)
 				writer.autoclose = false
 			}
-			writer.write(buf)			
+			writer.write(buf)
 		})
 		g.on('error', e => {
 			err = e

@@ -1,7 +1,6 @@
 
 const Events = require('events'), fs = require('fs'), path = require('path'), async = require('async')
 const IPTV = require('../iptv')
-const LegalIPTV = require('../legal-iptv')
 
 class Manager extends Events {
     constructor(parent){
@@ -14,12 +13,27 @@ class Manager extends Events {
         this.updatingLists = false
         this.lastProgress = 0
         this.firstRun = true
-        this.legalIPTV = new LegalIPTV()
         this.IPTV = new IPTV()
         global.ui.on('explorer-back', () => {
             if(this.openingList){
                 global.osd.hide('list-open')
             }
+        })
+        global.ui.on('manager-add-list', id => {
+            if(id){
+                console.log('manager-add-list', id)
+                if(id == 'manager-add-list-file'){
+                    global.ui.emit('open-file', global.ui.uploadURL, 'manager-add-list-file', 'audio/x-mpegurl', global.lang.OPEN_M3U_LIST)
+                } else {
+                    this.addList(id).catch(global.displayErr)
+                }
+            }
+        })
+        global.ui.on('manager-add-list-file', data => {
+            console.warn('!!! IMPORT M3U FILE !!!', data)
+            global.resolveFileFromClient(data).then(file => this.addList(file)).catch(err => {
+                global.displayErr(err)
+            })
         })
         this.updater = new (require(global.APPDIR + '/modules/driver')(global.APPDIR + '/modules/lists/driver-updater'))
         this.updater.on('list-updated', url => {
@@ -153,6 +167,7 @@ class Manager extends Events {
             }
             console.log('name::add', name, url)
             this.directListFetch(url, true).then(content => {
+                console.log('name::add', content)
                 let finish = name => {
                     console.log('name::final', name, url)
                     let lists = this.get()
@@ -226,8 +241,13 @@ class Manager extends Events {
             }
             return name
         }
-        url = url.replace(new RegExp('^[a-z]*://'), '').split('/').filter(s => s.length)
-        return (url[0].split('.')[0] + ' ' + url[url.length - 1]).replace(new RegExp('\\?.*$'), '')
+        if(this.isLocal(url)){
+            url = global.forwardSlashes(url).split('/').pop()
+            return url.replace(new RegExp('\\.[A-Za-z0-9]{2,4}$', 'i'), '')
+        } else {
+            url = url.replace(new RegExp('^[a-z]*://', 'i'), '').split('/').filter(s => s.length)
+            return (url[0].split('.')[0] + ' ' + url[url.length - 1]).replace(new RegExp('\\?.*$'), '')
+        }
     }
     name(url, content=''){
         return new Promise((resolve, reject) => {
@@ -370,14 +390,14 @@ class Manager extends Events {
                             this.updatedLists(global.lang.NO_LIST_PROVIDED, 'fas fa-exclamation-circle') // warn user if there's no lists
                         }
                     }
-                    async.eachOf([this.legalIPTV, this.IPTV], (driver, i, done) => {
+                    async.eachOf([this.IPTV], (driver, i, done) => {
                         driver.ready(() => {
                             driver.countries.ready(() => {
                                 if(global.config.get('shared-mode-reach')){
                                     communitaryLists = communitaryLists.filter(u => myLists.indexOf(u) == -1)
                                     communitaryLists = communitaryLists.filter(u => !driver.isKnownURL(u)) // remove communitaryLists from other countries/languages
-                                    driver.getLocalLists().then(legalIPTVLocalLists => {
-                                        communitaryLists = legalIPTVLocalLists.concat(communitaryLists)
+                                    driver.getLocalLists().then(localLists => {
+                                        communitaryLists = localLists.concat(communitaryLists)
                                     }).catch(console.error).finally(done)
                                 } else {
                                     done()
@@ -458,11 +478,12 @@ class Manager extends Events {
         }
     }
     addListEntry(){
-        return {name: global.lang.ADD_LIST, fa: 'fas fa-plus-square', type: 'input', action: (data, value) => {                
-            if(value){
-                this.addList(value).catch(console.error)
-            }
-        }, question: global.lang.ASK_IPTV_LIST, placeholder: 'http://'}
+        return {name: global.lang.ADD_LIST, fa: 'fas fa-plus-square', type: 'action', action: () => {
+            let extraOpts = []
+            extraOpts.push({template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle'})
+            extraOpts.push({template: 'option', text: global.lang.OPEN_M3U_FILE, id: 'manager-add-list-file', fa: 'fas fa-folder-open'})
+            global.ui.emit('prompt', global.lang.ASK_IPTV_LIST, 'http://', '', 'manager-add-list', false, 'fas fa-plus-square', '', extraOpts)
+        }}
     }
     myListsEntry(){
         return {name: global.lang.MY_LISTS, details: global.lang.IPTV_LISTS, type: 'group', renderer: () => {
@@ -481,30 +502,22 @@ class Manager extends Events {
                             type: 'group', 
                             renderer: data => {
                                 return new Promise((resolve, reject) => {
-                                    let es
-                                    this.parent.getList(url, true).then(ret => {
+                                    let es = [], hasErr
+                                    this.parent.directListRenderer({url}).then(ret => {
                                         es = ret
+                                        console.log('DIRECTLISTRENDERER RET', ret)
                                     }).catch(err => {
                                         global.displayErr(err)
                                     }).finally(() => {
-                                        let next = isUpdating => {
+                                        let next = () => {
                                             es.unshift({name: global.lang.REMOVE_LIST, fa: 'fas fa-minus-square', type: 'action', url, action: this.removeList.bind(this)})
                                             resolve(es)
                                         }
-                                        if(es.length){
+                                        if(es && es.length){
                                             es = this.parent.parentalControl.filter(es)
                                             es = this.parent.tools.deepify(es, url)  
-                                            next()
-                                        } else {
-                                            global.lists.isUpdating().then(isUpdating => {
-                                                if(isUpdating){
-                                                    es = [global.lists.manager.updatingListsEntry(global.lang.PROCESSING)]
-                                                } else {
-                                                    es = []
-                                                }
-                                                next()
-                                            })
                                         }
+                                        next()
                                     })
                                 })
                             }
@@ -747,7 +760,7 @@ class Manager extends Events {
                         if(ui){
                             global.osd.show(global.lang.EPG_DISABLED, 'fas fa-times-circle', 'epg', 'normal')                            
                         }
-                    } else {
+                    } else if(this.shouldImportEPGChannelsList()) {
                         this.importEPGChannelsList(url).catch(console.error)
                     }
                     refresh()
@@ -780,6 +793,7 @@ class Manager extends Events {
                 }
                 resolve(true)
             }).catch(err => {
+                console.error(err)
                 global.osd.show(global.lang.EPG_LOAD_FAILURE + ': ' + String(err), 'fas fa-check-circle', 'epg', 'normal')
                 reject(err)
             })
@@ -817,8 +831,8 @@ class Manager extends Events {
                         }}
                     ]
                     if(global.config.get('shared-mode-reach') > 0){
-                        options.push({name: global.lang.COMMUNITARY_LISTS, fa: 'fas fa-users', type: 'group', renderer: this.communitaryListsEntries.bind(this)})
-                        options.push({name: global.lang.ALL_LISTS, fa: 'fas fa-users', type: 'group', renderer: this.allCommunitaryListsEntries.bind(this)})
+                        options.push({name: global.lang.COMMUNITARY_LISTS, details: global.lang.SHARED_AND_LOADED, fa: 'fas fa-users', type: 'group', renderer: this.communitaryListsEntries.bind(this)})
+                        options.push({name: global.lang.ALL_LISTS, details: global.lang.SHARED_FROM_ALL, fa: 'fas fa-users', type: 'group', renderer: this.allCommunitaryListsEntries.bind(this)})
                     }
                     resolve(options)
                 })
@@ -931,7 +945,7 @@ class Manager extends Events {
             if(!url){
                 return reject(global.lang.INVALID_URL_MSG)
             }
-            const onErr = err => {
+            const isFile = this.isLocal(url), onErr = err => {
                 console.error('error', err, global.traceback())
                 reject(global.lang.LIST_OPENING_FAILURE)
                 global.osd.hide('add-list')
@@ -940,34 +954,39 @@ class Manager extends Events {
                 //console.log('content', content)
                 content = String(content)
                 if(this.validate(content)){
-                    if(saveCache){
-                        const cacheKey = 'data-' + url, cacheTimeKey = 'time-' + url
-                        global.storage.raw.set(cacheKey, content, 30 * (24 * 3600))
-                        global.storage.raw.set(cacheTimeKey, global.time(), 30 * (24 * 3600))
-                    } 
                     resolve(content)
                     global.osd.hide('add-list')
                 } else {
                     onErr(this.parent.INVALID_URL_MSG)
                 }
             }
-            const download = new global.Download({
-                url,
-                keepalive: false,
-                retries: 3,
-                headers: {
-                    'accept-charset': 'utf-8, *;q=0.1'
-                },
-                followRedirect: true
-            })
-            download.on('progress', progress => {
-                global.osd.show(global.lang.OPENING_LIST +' '+ progress +'%', 'fa-mega spin-x-alt', 'add-list', 'persistent')
-            })
-            download.on('error', err => {
-                console.warn('Download error', err)
-            })
-            download.once('end', onContent)
-            download.start()
+            if(isFile){
+                fs.readFile(url, (err, content) => {
+                    if(content){
+                        onContent(content)
+                    } else {
+                        onErr(err || 'Empty file')
+                    }
+                })
+            } else {
+                const download = new global.Download({
+                    url,
+                    keepalive: false,
+                    retries: 3,
+                    headers: {
+                        'accept-charset': 'utf-8, *;q=0.1'
+                    },
+                    followRedirect: true
+                })
+                download.on('progress', progress => {
+                    global.osd.show(global.lang.OPENING_LIST +' '+ progress +'%', 'fa-mega spin-x-alt', 'add-list', 'persistent')
+                })
+                download.on('error', err => {
+                    console.warn('Download error', err)
+                })
+                download.once('end', onContent)
+                download.start()
+            }
         })
     }
     communitaryLists(){
@@ -1095,7 +1114,6 @@ class Manager extends Events {
                 entries.push({name: global.lang.IPTV_LISTS, details: global.lang.CONFIGURE, fa: 'fas fa-list', type: 'group', renderer: this.listsEntries.bind(this)})
             }
             this.IPTV.hook(entries, path).then(resolve).catch(reject)
-            this.legalIPTV.hook(entries, path).then(resolve).catch(reject)
         })
     }
 }

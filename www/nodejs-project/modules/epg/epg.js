@@ -65,10 +65,14 @@ class EPG extends Events {
                     console.error(err)
                     if(errorCount >= 128){
                         // sometimes we're receiving scrambled response, not sure about the reason, do a dirty workaround for now
-                        this.request.destroy() 
-                        this.parser.destroy() 
-                        this.request = null
-                        this.parser = null    
+                        if(this.request){
+                            this.request.destroy() 
+                            this.request = null
+                        }
+                        if(this.parser){
+                            this.parser.destroy() 
+                            this.parser = null    
+                        }
                         this.state = 'error'
                         this.error = global.lang.EPG_BAD_FORMAT
                         this.emit('error', global.lang.EPG_BAD_FORMAT)
@@ -161,14 +165,15 @@ class EPG extends Events {
         return {e: end, t: programme.title.shift() || 'No title', c: programme.category || '', i: programme.icon || ''}
     }
     channel(channel){
-        let cid = channel.name || channel.displayName
-        let name = channel.displayName || channel.name
-        if(typeof(this.channels[cid]) == 'undefined'){
-            this.channels[cid] = {name}
-        }
-        if(channel.icon){
-            this.channels[cid].icon = channel.icon
-        }
+        let name = channel.displayName || channel.name;
+        [channel.id, channel.name || channel.displayName].forEach(cid => {
+            if(typeof(this.channels[cid]) == 'undefined'){
+                this.channels[cid] = {name}
+            }
+            if(channel.icon){
+                this.channels[cid].icon = channel.icon
+            }
+        })
     }
     cidToDisplayName(cid){
         return typeof(this.channels[cid]) == 'undefined' ? cid : this.channels[cid].name

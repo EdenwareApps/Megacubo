@@ -147,7 +147,8 @@ class StreamerHLSIntent extends StreamerBaseIntent {
         return new Promise((resolve, reject) => {
             let useFF = global.config.get('ffmpeg-hls')
             // useFF = useFF == 'always' || (useFF == 'desktop-only' && !global.cordova)            
-            this.prx = new (useFF ? StreamerProxy : StreamerHLSProxy)(Object.assign({authURL: this.data.source}, this.opts))
+            // this.prx = new (useFF ? StreamerProxy : StreamerHLSProxy)(Object.assign({authURL: this.data.source}, this.opts))
+            this.prx = new StreamerHLSProxy(Object.assign({authURL: this.data.source}, this.opts))
             this.connectAdapter(this.prx)
             this.prx.start().then(() => {
                 if(useFF){
@@ -156,7 +157,9 @@ class StreamerHLSIntent extends StreamerBaseIntent {
                         console.log('TRACKS', this.trackUrl, ret, this.trackSelector.tracks)
                         this.ff = new Any2HLS(this.prx.proxify(this.trackUrl), this.opts)
                         this.connectAdapter(this.ff)
-                        this.ff.opts.audioCodec = this.opts.audioCodec
+                        this.ff.opts.audioCodec = global.config.get('ffmpeg-audio-repair') ? 
+                            'aac' : // force audio recode for TS to prevent playback hangs
+                            'copy' // aac disabled for performance
                         this.ff.start().then(() => {
                             this.endpoint = this.ff.endpoint
                             resolve({endpoint: this.endpoint, mimetype: this.mimetype})                   

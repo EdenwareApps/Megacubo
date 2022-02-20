@@ -51,11 +51,11 @@ class TunerTask extends TunerUtils {
 	}
 	test(e, i){
 		if(this.opts.debug){
-			this.opts.debug('Tuner')
+			console.log('Tuner')
 		}
 		return new Promise((resolve, reject) => {   
 			if(this.opts.debug){
-				this.opts.debug('Tuner')
+				console.log('Tuner')
 			}
 			this.states[i] = 1 
 			if(!this.streamer){
@@ -91,7 +91,7 @@ class TunerTask extends TunerUtils {
 						let err = 'Tuner bad intent type: ' + info.type
 						this.states[i] = -1
 						if(this.opts.debug){
-							this.opts.debug(err, i)
+							console.log(err, i)
 						}
 						reject(err)
 					}
@@ -101,7 +101,7 @@ class TunerTask extends TunerUtils {
 					//console.warn('TEST FAILURE', e, err)   
 					this.states[i] = -1       
 					if(this.opts.debug){
-						this.opts.debug('Tuner', err, i)
+						console.log('Tuner', err, i)
 					}
 				}
 				reject(err)
@@ -142,7 +142,7 @@ class TunerTask extends TunerUtils {
 	}
 	task(cb){
 		if(this.opts.debug){
-			this.opts.debug('TUNER TASK', this.paused)
+			console.log('TUNER TASK', this.paused)
 		}
         if(this.paused){
             this.once('resume', () => {
@@ -151,23 +151,23 @@ class TunerTask extends TunerUtils {
         } else {
             let data = this.nextEntry()
 			if(this.opts.debug){
-				this.opts.debug('TUNER nextEntry', data)
+				console.log('TUNER nextEntry', data)
 			}
             if(data.i != -1){
                 let e = this.entries[data.i]
                 this.results[data.i] = 0
                 this.states[data.i] = 0
 				if(this.opts.debug){
-					this.opts.debug('Tuner pre', data.i)
+					console.log('Tuner pre', data.i)
 				}
                 this.test(e, data.i).then(ret => {
 					if(this.opts.debug){
-						this.opts.debug('Tuner suc', data.i, ret)
+						console.log('Tuner suc', data.i, ret)
 					}
 					this.errors[data.i] = 'success'	
 					this.results[data.i] = 1
 					if(this.opts.debug){
-						this.opts.debug('Tuner suc', data.i)	
+						console.log('Tuner suc', data.i)	
 					}
 				    try {
 						this.pump()
@@ -175,38 +175,38 @@ class TunerTask extends TunerUtils {
 						console.error(e)	
 					}
 					if(this.opts.debug){
-						this.opts.debug('Tuner', data.i)
+						console.log('Tuner', data.i)
 					}
                     cb()	
 					if(this.opts.debug){
-						this.opts.debug('Tuner suc', data.i)
+						console.log('Tuner suc', data.i)
 					}
                 }).catch(err => {		
 					console.error('Tuner failure', err, e.url)
                     this.errors[data.i] = err
 					this.results[data.i] = -1
 					if(this.opts.debug){
-						this.opts.debug('Tuner fail', data.i)
+						console.log('Tuner fail', data.i)
 					}
                     cb()
 					if(this.opts.debug){
-						this.opts.debug('Tuner fail', data.i)
+						console.log('Tuner fail', data.i)
 					}
 				    this.pump()	
 					if(this.opts.debug){
-						this.opts.debug('Tuner fail', data.i)
+						console.log('Tuner fail', data.i)
 					}
                 })
             } else if(data.retryAfter != -1) {
                 setTimeout(() => {
 					if(this.opts.debug){
-						this.opts.debug('Tuner retry', data.retryAfter)
+						console.log('Tuner retry', data.retryAfter)
 					}
                     this.task(cb)
                 }, data.retryAfter * 1000)
             } else {
 				if(this.opts.debug){
-					this.opts.debug('Tuner end')
+					console.log('Tuner end')
 				}
                 cb()
                 this.finish()
@@ -307,12 +307,12 @@ class Tuner extends TunerTask {
 			this.paused = false
 			this.started = true
 			if(this.opts.debug){
-				this.opts.debug('TUNER STARTED')
+				console.log('TUNER STARTED')
 			}
 			this.stats()
 			async.parallelLimit(new Array(this.entries.length).fill(this.task.bind(this)), global.config.get('tuning-concurrency'), () => {
 				if(this.opts.debug){
-					this.opts.debug('TUNER FINISHED')
+					console.log('TUNER FINISHED')
 				}
 				this.finish()
 			})

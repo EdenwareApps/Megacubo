@@ -50,10 +50,7 @@ class ConnRacing extends Events {
                 followRedirect: true,
                 acceptRanges: false,
                 keepalive: false,
-                retries: 1,
-                headers: {
-                    'accept-encoding': 'identity' // https://github.com/sindresorhus/got/issues/145
-                }
+                retries: 1
             }, this.opts)
             download = new global.Download(req)
             this.downloads.push(download)

@@ -10,6 +10,12 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
             this.recoverDecodingErrorDate = null
 			this.recoverSwapAudioCodecDate = null
 			console.log('onstop')
+			try{ // due to some nightmare errors crashing nwjs
+				this.hls.destroy()
+				this.hls = null
+			}catch(e){
+				console.error(e)
+			}
         })
         this.setup('video')
     }
@@ -124,44 +130,127 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 			return String(data)
 		}
     }
+	currentFragment(){
+		let current, currentTime = this.object.currentTime
+		let fragments = Object.values(this.hls.streamController.fragmentTracker.fragments).map(f => f.body)
+		fragments.some(fragment => {
+			if(fragment.start <= currentTime && (fragment.start + fragment.duration) >= currentTime){
+				current = fragment // dont trust on .end, sometimes it's empty
+			}
+		})
+		return current
+	}
 	skipFragment(fragStart, fragDuration){
-		let newCurrentTime = fragStart + fragDuration + 0.1, minHLSWindow = 6
+		let minHLSWindow = 6
+		if(typeof(fragStart) != 'number'){
+			let current = this.currentFragment()
+			if(!current){
+				console.log('Cannot skip fragment, not found in tracker')
+				return
+			}
+			fragStart = current.start
+			fragDuration = current.duration
+		}
+		let newCurrentTime = fragStart + fragDuration + 0.1
 		if(newCurrentTime > this.object.currentTime && newCurrentTime < (this.object.duration + minHLSWindow)){
+			console.log('Skipping fragment, from '+ this.object.currentTime +' to '+ newCurrentTime)
 			this.hls.stopLoad()
 			this.object.currentTime = newCurrentTime
 			this.hls.startLoad()
+			$(this.object).one('playing', () => {
+				if(this.object.currentTime < newCurrentTime){
+					this.object.currentTime = newCurrentTime
+				}
+				console.log('Current time after nudging is '+ this.object.currentTime)
+			})
 			return true
 		} else {
 			console.log('Could not skip fragment', this.object.currentTime, newCurrentTime, this.object.duration)
 		}
+		setTimeout(() => {
+			if(this.object.paused) this.resume()
+		}, 500)
 	}
-	skipToFragment(frag){
-		let newCurrentTime = frag.start + 0.01
-		if(this.object.currentTime < newCurrentTime){
-			this.hls.stopLoad()
-			this.object.currentTime = newCurrentTime
-			this.hls.startLoad()
-			return true
+	watchRecovery(ms){
+		if(this.watchRecoveryTimer) clearTimeout(this.watchRecoveryTimer)
+		if(this.object.networkState == 2 && this.object.readyState <= 2){ // readyState may be 1 too
+			this.watchRecoveryTimer = setTimeout(() => {
+				if(this.object.networkState == 2 && this.object.readyState <= 2){
+					console.log('playback hanged, reskip')
+					this.skipFragment()
+				}
+			}, ms || 5000)
 		}
 	}
+	/*
 	skip(){
 		if(this.object.readyState >= 3) return
-		let time = parseInt(this.object.currentTime), fragments = Object.values(this.hls.streamController.fragmentTracker.fragments)
-		let skipped = fragments.some(frag => {
+		let time = parseFloat(this.object.currentTime), fragments = Object.values(this.hls.streamController.fragmentTracker.fragments)
+		let skipped = fragments.some(frag => { // try to skip to next buffered fragment
 			if(parseInt(frag.body.start) > time && frag.buffered){ // parseInt required due to floating precision diff
-				console.log('playback skipped from '+ time +' to '+ frag.body.start +' to prevent stalling')
+				console.log('playback skipped from '+ time +' to '+ frag.body.start +' to prevent stalling**')
 				this.object.currentTime = frag.body.start
 				return true
 			}
 		})
+		if(!skipped){
+			skipped = fragments.some(frag => { // try to skip to next fragment
+				if(parseInt(frag.body.start) > time){ // parseInt required due to floating precision diff
+					console.log('playback skipped from '+ time +' to '+ frag.body.start +' to prevent stalling*')
+					this.object.currentTime = frag.body.start
+					return true
+				}
+			})
+		}
+		if(!skipped){
+			// try to skip by time
+			let secs
+			if(this.object.duration > this.object.currentTime){
+				secs = (this.object.duration - this.object.currentTime) / 10
+			} else {
+				secs = this.fragDuration()
+			}
+			console.log('playback skipped from '+ time +' to '+ (time + secs) +' to prevent stalling')
+			this.object.currentTime = (time + secs)
+		}
 		this.hls.startLoad()
 		setTimeout(() => {
 			if(this.object.networkState == 2 && this.object.readyState == 2){
 				console.log('playback hanged, reskip')
 				this.skip()
 			}
-		}, 1000)
+		}, 5000)
 		return skipped
+	}
+	*/
+	fragmentDuration(){
+		let min = 0, fragments = Object.values(this.hls.streamController.fragmentTracker.fragments)
+		fragments.forEach(frag => {
+			if(frag.duration && (!min || frag.duration < min)){
+				min = frag.duration
+			}
+		})
+		if(min < 2){
+			min = 2
+		}
+		return min
+	}
+	nudge(from){
+		if(!from){
+			from = this.object.currentTime
+		}
+		let newCurrentTime = from + 0.1, maxNewCurrentTime = this.object.duration - 2
+		if(newCurrentTime > maxNewCurrentTime){
+			newCurrentTime = maxNewCurrentTime
+		}
+		console.log('Nudging from '+ this.object.currentTime +' to '+ newCurrentTime)
+		this.object.currentTime = newCurrentTime
+		$(this.object).one('playing', () => {
+			if(this.object.currentTime < (newCurrentTime - 1)){
+				this.nudge(newCurrentTime) // the new nudge will add 0.1s, this is expected
+			}
+		})
+		this.watchRecovery(1000)
 	}
     loadHLS(cb){
 		if(!this.hls){
@@ -171,11 +260,12 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 				backBufferLength: 0,
 				maxBufferLength: 30,
 				maxMaxBufferLength: 120,
-				nudgeOffset: 0.3,
-				nudgeMaxRetry: 12,
-				fragLoadingMaxRetry: 2,
+				highBufferWatchdogPeriod: 1,
+				fragLoadingMaxRetry: 1,
+				lowLatencyMode: false, // setting false here reduced dramatically the buffer stalled errors on a m3u8 from FFmpeg
 				fragLoadingMaxRetryTimeout: 5000,
-				fragLoadingRetryDelay: 500,
+				fragLoadingRetryDelay: 100,
+				defaultAudioCodec: 'mp4a.40.2', // AAC-LC from ffmpeg
 				/*
 				// https://github.com/video-dev/hls.js/blob/master/docs/API.md
 				defaultAudioCodec: 'mp4a.40.2',
@@ -249,9 +339,11 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 							break
 						case Hls.ErrorDetails.FRAG_LOAD_ERROR:
 							console.error('Error while loading fragment ' + data.frag.url, data.frag.start, data.frag.duration)
+							this.skipFragment(data.frag.start, data.frag.duration)
 							break
 						case Hls.ErrorDetails.FRAG_LOAD_TIMEOUT:
 							console.error('Timeout while loading fragment ' + data.frag.url, data.frag.start, data.frag.duration)
+							this.skipFragment(data.frag.start, data.frag.duration)
 							break
 						case Hls.ErrorDetails.FRAG_LOOP_LOADING_ERROR:
 							console.error('Fragment-loop loading error')
@@ -261,11 +353,7 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 							break
 						case Hls.ErrorDetails.FRAG_PARSING_ERROR:
 							console.error('Parsing error:' + data.reason, data.frag)
-							setTimeout(() => {
-								if(this.object.paused){
-									this.resume()
-								}
-							}, 500)
+							this.skipFragment(data.frag.start, data.frag.duration)
 							break
 						case Hls.ErrorDetails.KEY_LOAD_ERROR:
 							if(this.object.currentTime){
@@ -299,11 +387,19 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 							break
 						case Hls.ErrorDetails.BUFFER_APPENDING_ERROR:
 							console.error('Buffer appending error', parseInt(this.object.duration))
-							// this.hls.attachMedia(this.object) // 
+							this.hls.attachMedia(this.object)
+							break
+						case Hls.ErrorDetails.BUFFER_SEEK_OVER_HOLE_ERROR:
+							console.error('Buffer seek over hole error', parseInt(this.object.duration))
+							this.watchRecovery()
+							break
+						case Hls.ErrorDetails.BUFFER_NUDGE_ON_STALL_ERROR:
+							console.error('Buffer nudge on stall error', parseInt(this.object.duration))
+							this.watchRecovery(200)
 							break
 						case Hls.ErrorDetails.BUFFER_STALLED_ERROR:
 							console.error('Buffer stalled error', parseInt(this.object.duration))
-							this.skip()
+							this.watchRecovery()
 							/*
 							if(this.object.buffered.length){
 								// https://github.com/video-dev/hls.js/issues/3905
@@ -336,7 +432,8 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 							*/
 							break
 						case Hls.ErrorDetails.BUFFER_NUDGE_ON_STALL:
-							console.error('Buffer nudge on stall', parseInt(this.object.duration))
+							console.warn('Buffer nudge on stall', parseInt(this.object.duration))
+							this.watchRecovery(1000)
 							break
 						default:
 							console.error('Hls.js unknown error', data.type, data.details)

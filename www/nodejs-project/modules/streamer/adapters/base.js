@@ -221,14 +221,14 @@ class StreamerAdapterBase extends Events {
 							this.opts.maxBitrateCheckSize += this.opts.maxBitrateCheckSize * 0.5
 						} else {
 							if(this.opts.debug){
-								this.opts.debug('getBitrate', err, bitrate, codecData, dimensions, this.url)
+								console.log('getBitrate', err, bitrate, codecData, dimensions, this.url)
 							}
 							if(bitrate){
 								this.saveBitrate(bitrate)
 								this.emit('bitrate', this.bitrate, this.currentSpeed)	
 							}
 							if(this.opts.debug){
-								this.opts.debug('[' + this.type + '] analyzing: ' + file, 'sample len: '+ global.kbfmt(stat.size), 'bitrate: '+ global.kbsfmt(this.bitrate), this.bitrates, this.url)
+								console.log('[' + this.type + '] analyzing: ' + file, 'sample len: '+ global.kbfmt(stat.size), 'bitrate: '+ global.kbsfmt(this.bitrate), this.bitrates, this.url)
 							}
 						}
 						this.pumpGetBitrateQueue()
@@ -328,7 +328,7 @@ class StreamerAdapterBase extends Events {
 			let speed = parseInt(downloaded / (now - ftime)) * 8 // bytes to bits
 			/*
 			if(this.opts.debug){
-				this.opts.debug('[' + this.type + '] download speed:', downloaded, now, ftime, speed, global.kbsfmt(speed) + ((this.bitrate) ? ', required: ' + global.kbsfmt(this.bitrate): ''))
+				console.log('[' + this.type + '] download speed:', downloaded, now, ftime, speed, global.kbsfmt(speed) + ((this.bitrate) ? ', required: ' + global.kbsfmt(this.bitrate): ''))
 			}
 			*/
 			if(speed != this.currentSpeed){
@@ -385,7 +385,7 @@ class StreamerAdapterBase extends Events {
             console.log('[' + this.type + '] fail', err)
 			this.errors.push(err)
 			if(this.opts.debug){
-				this.opts.debug('[' + this.type + '] error', this.errors)
+				console.log('[' + this.type + '] error', this.errors)
 			}
 			this.emit('fail', err)
 			process.nextTick(() => this.destroy())
@@ -393,7 +393,7 @@ class StreamerAdapterBase extends Events {
 	}
 	destroy(){
 		if(this.opts.debug){
-			this.opts.debug('[' + this.type + '] destroy', global.traceback())
+			console.log('[' + this.type + '] destroy', global.traceback())
 		}
 		if(!this.destroyed){
 			this.destroyed = true

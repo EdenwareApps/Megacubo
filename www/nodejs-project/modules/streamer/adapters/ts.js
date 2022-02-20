@@ -1,5 +1,5 @@
 
-const StreamerAdapterBase = require('./base.js'), ReadableStream = require('stream').Readable, Joiner = require('../utils/joiner.js')
+const StreamerAdapterBase = require('./base.js'), Joiner = require('../utils/joiner.js')
 		
 class StreamerAdapterTS extends StreamerAdapterBase {
 	constructor(url, opts, cb){

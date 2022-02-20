@@ -116,9 +116,6 @@ class StreamerProxy extends StreamerProxyBase {
 				})
 			}
 			if(parser.manifest.playlists && parser.manifest.playlists.length){
-				if(typeof(this.playlists[url]) == 'undefined'){
-					this.playlists[url] = {}
-				}
 				parser.manifest.playlists.forEach(playlist => {
 					let dn = this.dirname(url)
 					if(typeof(replaces[dn]) == 'undefined'){
@@ -126,9 +123,6 @@ class StreamerProxy extends StreamerProxyBase {
 							console.log('dn', dn)
 						}
 						u = this.absolutize(playlist.uri, url)
-						if(!Object.keys(this.playlists[url]).includes(u)){
-							this.playlists[url][u] = true // true here means "online"
-						}
 						replaces[dn] = this.dirname(this.proxify(u))
 						if(this.opts.debug){
 							console.log('replace', dn, replaces[dn])
@@ -218,7 +212,6 @@ class StreamerProxy extends StreamerProxyBase {
 		const keepalive = this.committed && global.config.get('use-keepalive')
 		let ended, url = this.unproxify(req.url)
 		let reqHeaders = req.headers
-		reqHeaders['accept-encoding'] =  'identity' // not needed and problematic
 		reqHeaders = this.removeHeaders(reqHeaders, ['cookie', 'referer', 'origin'])
 		if(this.type == 'network-proxy'){
 			reqHeaders['x-from-network-proxy'] = '1'
@@ -413,7 +406,6 @@ class StreamerProxy extends StreamerProxyBase {
 		let initialOffset = download.requestingRange ? download.requestingRange.start : 0, offset = initialOffset
 		let sampleCollected, doBitrateCheck = this.committed && this.type != 'network-proxy' && this.bitrates.length < this.opts.bitrateCheckingAmount
 		let onend = () => {
-			//console.warn('download ended')
 			if(doBitrateCheck){
 				console.log('finishBitrateSampleProxy', url, sampleCollected, initialOffset, offset)
 				this.finishBitrateSample(url)

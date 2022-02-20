@@ -170,6 +170,31 @@ class WindowManager extends ClassesHandler {
 		}
 		this.win.focus()
 	}
+	openFile(accepts, cb){
+		if(!this.openFileDialogChooser){ // JIT
+			this.openFileDialogChooser = document.createElement('input')
+			this.openFileDialogChooser.type = 'file'
+			document.body.appendChild(this.openFileDialogChooser)
+		}
+		this.openFileDialogChooser.onchange = null
+		this.openFileDialogChooser.value = ''
+		if(accepts){
+			this.openFileDialogChooser.setAttribute('accept', accepts)
+		} else {
+			this.openFileDialogChooser.removeAttribute('accept')
+		}
+		this.openFileDialogChooser.onchange = evt => {
+			if(this.openFileDialogChooser.value){
+				console.warn(this.openFileDialogChooser.value)
+				cb(null, this.openFileDialogChooser.value)
+			} else {
+				console.error('Bad file selected')
+				cb('Bad file selected')
+			}
+		}
+		this.openFileDialogChooser.click()
+		return this.openFileDialogChooser
+	}
 	prepareTray(){
 		if(!this.tray){
 			const title = 'Megacubo'

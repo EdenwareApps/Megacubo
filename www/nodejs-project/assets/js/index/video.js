@@ -917,10 +917,10 @@ class NWJSMiniplayer extends MiniPlayerBase {
 			this.pip.minimizeWindow = () => {
 				if(this.pip.miniPlayerActive){	// if already in miniplayer, minimize it				
 					this.pip.prepareLeaveMiniPlayer()
-					//this.pip.win.hide()
-					//this.pip.restore()
+					this.pip.win.hide()
+					this.pip.restore()
 					setTimeout(() => {
-						//this.pip.win.show()
+						this.pip.win.show()
 						this.pip.win.minimize()
 					}, 0)
 				} else if(!this.enterIfPlaying()){

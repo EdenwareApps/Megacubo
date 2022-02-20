@@ -306,6 +306,33 @@ class Search extends Events {
         }
         return def
     }
+    entry(mediaType='live'){
+        this.searchMediaType = mediaType
+        return {
+            name: global.lang.SEARCH,
+            details: this.mediaTypeName(),
+            type: 'input',
+            fa: 'fas fa-search',
+            action: (e, value) => {
+                console.log('new search', e, value, mediaType)
+                this.go(value, mediaType)
+            },
+            value: () => {
+                return this.defaultTerms()
+            },
+            placeholder: global.lang.SEARCH_PLACEHOLDER
+        }
+    }
+    hook(entries, path){
+        return new Promise((resolve, reject) => {
+            if(path == global.lang.LIVE){
+                entries.unshift(this.entry('live'))
+            } else if(path == global.lang.VIDEOS){
+                entries.unshift(this.entry('all'))
+            }
+            resolve(entries)
+        })
+    }
 }
 
 module.exports = Search

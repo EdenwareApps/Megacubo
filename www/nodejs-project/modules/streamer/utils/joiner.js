@@ -52,7 +52,7 @@ class Joiner extends Downloader {
 	}
 	pump(){
 		if(this.opts.debug){
-			this.opts.debug('[' + this.type + '] pump', this.destroyed || this.joinerDestroyed)
+			console.log('[' + this.type + '] pump', this.destroyed || this.joinerDestroyed)
 		}
 		let next = (err, data) => { 
 			this.processor.flush(true) // join prematurely to be ready for next connection anyway
@@ -66,7 +66,7 @@ class Joiner extends Downloader {
 			}
             this.timer = setTimeout(this.pump.bind(this), ms) /* avoiding nested call to next pump to prevent mem leaking */
             if(this.opts.debug){
-                this.opts.debug('[' + this.type + '] delaying ' + ms + 'ms', 'now: ' + now, 'delayUntil: ' + this.delayUntil)
+                console.log('[' + this.type + '] delaying ' + ms + 'ms', 'now: ' + now, 'delayUntil: ' + this.delayUntil)
             }
 		}
 		this.download(next)

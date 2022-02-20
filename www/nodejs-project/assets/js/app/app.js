@@ -123,7 +123,7 @@ function initApp(){
                         explorer.setLoading(e, true, lang.PROCESSING)
                     })
                     parent.resolveLocalFileSystemURL(file, fileEntry => {
-                        let name = fileEntry.fullPath.split('/').pop().replace(new RegExp('[^0-9A-Za-z\\.]+', 'g'), '') + '.tmp', target = parent.cordova.file.cacheDirectory
+                        let name = fileEntry.fullPath.split('/').pop().replace(new RegExp('[^0-9A-Za-z\\._\\- ]+', 'g'), '') || 'file.tmp', target = parent.cordova.file.cacheDirectory
                         if(target.charAt(target.length - 1) != '/'){
                             target += '/'
                         }
@@ -148,6 +148,10 @@ function initApp(){
                     finish()
                     osd.show(String(err), 'fas fa-exclamation-circle', 'theme-upload', 'normal')
                 })
+            })
+        } else if(top.Manager) {
+            top.Manager.openFile(mimetypes, (err, file) => {
+                app.emit(cbID, [file])
             })
         } else {
             explorer.openFile(uploadURL, cbID, mimetypes)

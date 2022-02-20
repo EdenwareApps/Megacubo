@@ -164,6 +164,33 @@ setNetworkConnectionState = state => {
     }
 }
 
+resolveFileFromClient = data => {
+    return new Promise((resolve, reject) => {
+        const check = file => {
+            try {
+                fs.access(file, fs.constants.R_OK, err => {
+                    if(err) return reject(err)
+                    resolve(file)
+                })
+            } catch(err) {
+                reject(err)
+            }
+        }
+        console.warn('!!! RESOLVE FILE !!!', data)
+        if(data){
+            if(data.length){
+                check(data[0])
+            } else if(data.filename && data.filename.path) {
+                check(data.filename.path)
+            } else {
+                reject('invalid file data*')
+            }
+        } else {
+            reject('invalid file data')
+        }
+    })
+}
+
 importFileFromClient = (data, target) => {
     return new Promise((resolve, reject) => {
         const process = (file, callback) => {
@@ -188,33 +215,15 @@ importFileFromClient = (data, target) => {
             }
         }
         console.warn('!!! IMPORT FILE !!!', data)
-        if(data){
-            if(data.length){
-                data.forEach(file => {
-                   process(file, err => {
-                        if(err){
-                            reject(err)
-                        } else {
-                            resolve(file)
-                        }
-                    })
-                })
-            } else if(data.dataURI) {
-                resolve(base64.decode(data.dataURI))
-            } else if(data.filename && data.filename.path) {
-                process(data.filename.path, err => {
-                     if(err){
-                         reject(err)
-                     } else {
-                         resolve(file)
-                     }
-                })
-            } else {
-                reject('invalid file data*')
-            }
-        } else {
-            reject('invalid file data')
-        }
+        resolveFileFromClient(data).then(file => {
+            process(file, err => {
+                if(err){
+                    reject(err)
+                } else {
+                    resolve(file)
+                }
+            })
+        }).catch(reject)
     })
 }
 
@@ -305,6 +314,7 @@ function init(language){
         explorer.addFilter(lists.manager.hook.bind(lists.manager))
         explorer.addFilter(options.hook.bind(options))
         explorer.addFilter(theme.hook.bind(theme))
+        explorer.addFilter(search.hook.bind(search))
 
         ui.on('explorer-update-range', icons.renderRange.bind(icons))
         explorer.on('render', icons.render.bind(icons))

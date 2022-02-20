@@ -417,9 +417,26 @@ class ExplorerPointer extends ExplorerSelectionMemory {
             this.viewSizeX = this._viewSizeX
             this.viewSizeY = this._viewSizeY
         }
+		let e = document.querySelector('.entry-icon-image')
+		if(e){
+			let metrics = e.getBoundingClientRect()
+			if(metrics && metrics.width){
+				let min = Math.min(metrics.width, metrics.height) * 0.9
+				css(`
+
+				#explorer content a .entry-icon-image i {
+    				font-size: ${min}px;
+				}
+
+				`, 'entry-icon-i')
+			}			
+		} else {
+			console.log('Delaying icon size calc')
+			setTimeout(() => this.resize(), 1000)
+		}
     }
     isVisible(e) {
-        return (e.offsetParent !== null)
+        return e.offsetParent !== null
     }
     selector(s){
         return Array.from(this.body.get(0).querySelectorAll(s)).filter(this.isVisible)
@@ -1959,7 +1976,7 @@ class Explorer extends ExplorerLoading {
 	}
 	open(element){
 		this.focus(element, true)
-		let timeToLock = 5, path = element.getAttribute('data-path'), type = element.getAttribute('data-type'), tabindex = element.tabIndex || 0
+		let timeToLock = 3, path = element.getAttribute('data-path'), type = element.getAttribute('data-type'), tabindex = element.tabIndex || 0
 		if(type == 'spacer'){
 			type = this.currentEntries[tabindex].type
 		}

@@ -366,7 +366,10 @@ class Any2HLS extends Events {
                 this.decoder = global.ffmpeg.create(this.source).
                     
                     /* cast fix try
-                    inputOptions('-re'). // https://stackoverflow.com/questions/48479141/understanding-ffmpeg-re-parameter
+                    inputOptions('-use_wallclock_as_timestamp', 1). // using it the hls fragments on a hls got #EXT-X-TARGETDURATION:0 and the m3u8 wont load
+                    inputOptions('-fflags +genpts').
+                    outputOptions('-vsync', 1).
+                    inputOptions('-r').
                     inputOptions('-ss', 1). // https://trac.ffmpeg.org/ticket/2220
                     inputOptions('-fflags +genpts').
                     //outputOptions('-vf', 'setpts=PTS').
@@ -380,7 +383,7 @@ class Any2HLS extends Events {
                     outputOptions('-x264opts', 'vbv-bufsize=50000:vbv-maxrate=50000:nal-hrd=vbr').
                     cast fix try end */
 
-                    outputOptions('-fflags', '+igndts').
+                    inputOptions('-fflags', '+genpts+igndts').
                     outputOptions('-hls_flags', hlsFlags). // ?? https://www.reddit.com/r/ffmpeg/comments/e9n7nb/ffmpeg_not_deleting_hls_segments/
                     outputOptions('-hls_time', fragTime).
                     outputOptions('-hls_list_size', hlsListSize).
@@ -388,6 +391,16 @@ class Any2HLS extends Events {
                     outputOptions('-map', '0:v?').
                     outputOptions('-sn').
                     outputOptions('-preset', 'ultrafast').
+                    outputOptions('-master_pl_name', 'master.m3u8').
+
+                    /* lhls, seems not enabled in our ffmpeg yet
+                    outputOptions('-hls_playlist', 1).
+                    outputOptions('-seg_duration', 3).
+                    outputOptions('-streaming', 1).
+                    outputOptions('-strict', 'experimental').
+                    outputOptions('-lhls', 1).
+                    */
+
                     format('hls')
                 if(this.opts.inputFormat){
                     this.decoder.inputOption('-f', this.opts.inputFormat)
@@ -521,7 +534,7 @@ class Any2HLS extends Events {
                             this.decoder.kill()
                             this.start().then(resolve).catch(reject)
                         } else {
-                            this.waitFile(this.decoder.file, this.timeout, true).then(() => {
+                            this.waitFile(this.decoder.playlist, this.timeout, true).then(() => {
                                 this.serve().then(resolve).catch(reject)
                             }).catch(e => {
                                 console.error('waitFile failed', this.timeout, e)
@@ -538,7 +551,8 @@ class Any2HLS extends Events {
                     }
                 }).
                 on('dimensions', dimensions => this.emit('dimensions', dimensions))
-                this.decoder.file = path.resolve(this.opts.workDir + path.sep + this.uid + path.sep + 'output.m3u8')
+                this.decoder.file = path.resolve(this.opts.workDir + path.sep + this.uid + path.sep + 'master.m3u8')
+                this.decoder.playlist = path.resolve(this.opts.workDir + path.sep + this.uid + path.sep + 'output.m3u8')
                 fs.mkdir(path.dirname(this.decoder.file), {
                     recursive: true
                 }, () => {
@@ -550,7 +564,7 @@ class Any2HLS extends Events {
                             reject('playback')
                         } else {
                             console.log('FFMPEG run: '+ this.source, this.decoder.file)
-                            this.decoder.output(this.decoder.file).run()
+                            this.decoder.output(this.decoder.playlist).run()
                         }
                     })
                 })

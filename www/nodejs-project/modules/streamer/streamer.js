@@ -16,6 +16,7 @@ if(!Promise.allSettled){
 class StreamerTools extends Events {
     constructor(){
         super()
+		this.probeSampleSize = 1024
     }
     setOpts(opts){
         if(opts && typeof(opts) == 'object'){     
@@ -71,14 +72,11 @@ class StreamerTools extends Events {
                     followRedirect: true,
 					acceptRanges: false,
                     keepalive: false,
-                    retries,
-                    headers: {
-						'accept-encoding': 'identity' // https://github.com/sindresorhus/got/issues/145
-					}
+                    retries
                 }
-                let download = new global.Download(req), ended = false, sampleSize = 1024, finish = () => {
+                let download = new global.Download(req), ended = false, finish = () => {
 					if(this.opts.debug){
-						this.opts.debug('finish', ended, sample, headers, traceback())
+						console.log('finish', ended, sample, headers, traceback())
 					}
 					if(!ended){
 						ended = true
@@ -109,7 +107,7 @@ class StreamerTools extends Events {
 					}
 				}
 				if(this.opts.debug){
-					this.opts.debug(url, timeoutSecs)
+					console.log(url, timeoutSecs)
 				} 
 				download.on('error', err => {
 					console.warn(url, err)
@@ -119,14 +117,14 @@ class StreamerTools extends Events {
 						chunk = Buffer.from(chunk)
 					}
 					sample.push(chunk)
-					if(this.len(sample) >= sampleSize){
-						//console.log('sample', sample, sampleSize)
+					if(this.len(sample) >= this.probeSampleSize){
+						//console.log('sample', sample, this.probeSampleSize)
 						finish()
 					}
 				})
 				download.once('response', (statusCode, responseHeaders) => {
 					if(this.opts.debug){
-						this.opts.debug(url, statusCode, responseHeaders)
+						console.log(url, statusCode, responseHeaders)
 					}
 					headers = responseHeaders
 					status = statusCode
@@ -134,7 +132,7 @@ class StreamerTools extends Events {
 				download.once('end', finish)
 				download.start()
 				if(this.opts.debug){
-					this.opts.debug(url, timeoutSecs)
+					console.log(url, timeoutSecs)
 				}
 				timer = setTimeout(() => finish(), timeoutSecs * 1000)
 			} else {
@@ -161,7 +159,7 @@ class StreamerTools extends Events {
 							if(String(ret.sample).match(new RegExp('#EXT(M3U|INF)', 'i'))){
 								ct = 'application/x-mpegURL'
 							}
-							if(this.isBin(ret.sample)){
+							if(this.isBin(ret.sample) && ret.sample.length >= this.probeSampleSize){ // check length too to skip plain text error messages
 								if(global.lists.msi.isVideo(url)){
 									ct = 'video/mp4'
 								} else {
@@ -339,7 +337,7 @@ class StreamerBase extends StreamerTools {
 				this.intentFromInfo(data, opts, aside, nfo).then(resolve).catch(reject)
 			}).catch(err => {
 				if(this.opts.debug){
-					this.opts.debug('ERR', err)
+					console.log('ERR', err)
 				}
 				if(String(err).match(new RegExp("(: 401|^401$)"))){
 					this.forbid(data.url)
@@ -413,19 +411,19 @@ class StreamerBase extends StreamerTools {
 				this.unregisterAllLoadingIntents()
 				this.registerLoadingIntent(intent)
 				if(this.opts.debug){
-					this.opts.debug('RUN', intent, opts)
+					console.log('RUN', intent, opts)
 				}
 				intent.start().then(() => {
 					this.unregisterLoadingIntent(intent, true)
 					if(intent.cancel){
 						if(this.opts.debug){
-							this.opts.debug('CANCEL')
+							console.log('CANCEL')
 						}
 						intent.destroy()
 						reject('cancelled by user')
 					} else {
 						if(this.opts.debug){
-							this.opts.debug('COMMIT', intent)
+							console.log('COMMIT', intent)
 						}
 						this.commit(intent)
 						resolve(intent)
@@ -436,7 +434,7 @@ class StreamerBase extends StreamerTools {
 					}
 					this.unregisterLoadingIntent(intent)
 					if(this.opts.debug){
-						this.opts.debug('ERR', err)
+						console.log('ERR', err)
 					}
 					intent.destroy()
 					reject(err)
@@ -447,14 +445,14 @@ class StreamerBase extends StreamerTools {
 	commit(intent){
 		if(intent && this.active != intent){
 			if(this.opts.debug){
-				this.opts.debug('COMMITTING', global.traceback())
+				console.log('COMMITTING', global.traceback())
 			}
 			if(intent.destroyed){
 				console.error('COMMITTING DESTROYED INTENT', global.traceback(), intent)
 				return
 			}
 			if(this.opts.debug){
-				this.opts.debug('INTENT SWITCHED !!', this.active ? this.active.data : false, intent ? intent.data : false, intent.destroyed, global.traceback())
+				console.log('INTENT SWITCHED !!', this.active ? this.active.data : false, intent ? intent.data : false, intent.destroyed, global.traceback())
 				if(!intent.opts.debug){
 					intent.opts.debug = this.opts.debug
 				}
@@ -468,12 +466,12 @@ class StreamerBase extends StreamerTools {
 				if(intent == this.active){
 					this.emit('uncommit', intent)
 					if(this.opts.debug){
-						this.opts.debug('ACTIVE INTENT UNCOMMITTED & DESTROYED!!', intent, this.active)
+						console.log('ACTIVE INTENT UNCOMMITTED & DESTROYED!!', intent, this.active)
 					}
 					this.stop()
 				}
 				if(this.opts.debug){
-					this.opts.debug('INTENT UNCOMMITTED & DESTROYED!!', intent)
+					console.log('INTENT UNCOMMITTED & DESTROYED!!', intent)
 				}
 			})
 			intent.on('bitrate', bitrate => {
@@ -482,7 +480,7 @@ class StreamerBase extends StreamerTools {
 			intent.on('fail', err => {
 				this.emit('uncommit', intent)
 				if(this.opts.debug){
-					this.opts.debug('INTENT FAILED !!')
+					console.log('INTENT FAILED !!')
 				}
 				this.handleFailure(intent.data, err)
 			})

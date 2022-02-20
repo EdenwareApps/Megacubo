@@ -6,14 +6,14 @@ const PACKET_SIZE = 188
 class MPEGTSPacketProcessor extends Events {
 	constructor(){
         super()
-        this.packetFilterPolicy = 1 // 0=bypass, 1=force size by trimming or padding, 2=remove
+        this.joining = true // false for proxy hls
+        this.packetFilterPolicy = 1 // what to do with packets with bad size? 0=bypass, 1=force size by trimming or removing if minor, 2=remove
         this.lastFlushTime = 0
         this.minFlushInterval = 3 // secs
         this.buffering = []
         this.bufferSize = (512 * 1024) // 512KB
-        this.maxPcrJournalSize = 256
+        this.maxPcrJournalSize = 2048 // 256 was not enough
         this.pcrJournal = []
-        this.pcrSizesJournal = {}
         this.debug = false
     }
 	len(data){
@@ -34,24 +34,24 @@ class MPEGTSPacketProcessor extends Events {
     pcr(x){
         const header = x.readUInt32BE(0), adaptationFieldControl = (header & 0x30) >>> 4
         if ((adaptationFieldControl & 0x2) !== 0) {
-          var adaptationLength = x.readUInt8(4)
-          if (adaptationLength !== 0) {
-            let flags = x.readUInt8(5), pcrFlag = (flags & 0x10) !== 0
-            if (pcrFlag === true) {
-              let adaptationPosition = 6, pcrBase = x.readUInt32BE(adaptationPosition), pcrExtension = x.readUInt16BE(adaptationPosition + 4)
-              pcrBase = pcrBase * 2 + (((pcrExtension & 0x8000) !== 0) ? 1 : 0)
-              pcrExtension = pcrExtension & 0x1ff
-              return pcrBase * 300 + pcrExtension
+            var adaptationLength = x.readUInt8(4)
+            if (adaptationLength !== 0) {
+                let flags = x.readUInt8(5), pcrFlag = (flags & 0x10) !== 0
+                if (pcrFlag === true) {
+                    let adaptationPosition = 6, pcrBase = x.readUInt32BE(adaptationPosition), pcrExtension = x.readUInt16BE(adaptationPosition + 4)
+                    pcrBase = pcrBase * 2 + (((pcrExtension & 0x8000) !== 0) ? 1 : 0)
+                    pcrExtension = pcrExtension & 0x1ff
+                    return pcrBase * 300 + pcrExtension
+                }
             }
-          }
         }
     }
     readPCRS(buf){
-        let pointer = 0, pcrs = {}, errorCount = 0, currentPCR = 0, iterationsCounter = 0, batchPCRSizesJournal = {}
+        let pointer = 0, positions = {}, errorCount = 0, iterationsCounter = 0
         if(!this.checkSyncByte(buf, 0)){
             pointer = this.nextSyncByte(buf, 0)
             if(pointer == -1){
-                return {err: null, buf: null, pcrs: null} // keep this.buffering untouched (if no clear) and stop processing, pcrs ignored
+                return {err: null, buf: null, positions: null} // keep this.buffering untouched (if no clear) and stop processing, positions ignored
             } else {
                 if(this.debug){
                     console.log('skipping first '+ pointer + ' bytes')
@@ -71,18 +71,11 @@ class MPEGTSPacketProcessor extends Events {
                         if(this.debug){
                             console.log('seems not mpegts, discarding it')
                         }
-                        return {err: 'seems not mpegts', buffer: null, pcrs: null}
+                        return {err: 'seems not mpegts', buffer: null, positions: null}
                     }
                 }
             }
             let size = offset == -1 ? PACKET_SIZE : (offset - pointer)
-            if(currentPCR){
-                if(typeof(batchPCRSizesJournal[currentPCR]) == 'undefined'){
-                    batchPCRSizesJournal[currentPCR] = size
-                } else {
-                    batchPCRSizesJournal[currentPCR] += size
-                }
-            }
             if(size == PACKET_SIZE){
                 errorCount = 0
             } else {
@@ -118,40 +111,16 @@ class MPEGTSPacketProcessor extends Events {
             if(!size) continue
             const pcr = this.pcr(buf.slice(pointer, pointer + size))
             if(pcr){
-                if(typeof(pcrs[pcr]) == 'undefined'){
-                    pcrs[pcr] = pointer
-                    currentPCR = pcr
+                if(typeof(positions[pcr]) == 'undefined'){
+                    positions[pcr] = pointer
                 }
-                if(typeof(this.pcrSizesJournal[pcr]) != 'undefined'){
-                    // repeated pcr, check by journal how much we can ignore from here
-                    let pos = this.pcrJournal.indexOf(pcr), ignore = 0
-                    if(pos != -1){
-                        for(let i = pos; i < this.pcrJournal.length; i++){
-                            if(typeof(this.pcrSizesJournal[this.pcrJournal[i]]) == 'undefined'){
-                                break
-                            } else {
-                                ignore += this.pcrSizesJournal[this.pcrJournal[i]]
-                            }
-                        }
-                    }
-                    if(this.debug){
-                        console.log('pcrs ignoring', ignore)
-                    }
-                    pointer += (ignore || size)
-                } else {
-                    pointer += size
-                }
-            } else {
-                pointer += size
             }
+            pointer += size
         }
         if(this.debug){
             console.log('pcr iterations', iterationsCounter)
         }
-        Object.keys(batchPCRSizesJournal).slice(0, -1).map(Number).forEach(pcr => {
-            this.pcrSizesJournal[pcr] = batchPCRSizesJournal[pcr]
-        })
-        return {err: null, buf, pcrs}
+        return {err: null, buf, positions}
     }
     process(clear){
         if(this.len(this.buffering) < 4){
@@ -163,7 +132,7 @@ class MPEGTSPacketProcessor extends Events {
         if(this.debug){
             console.log('process start')
         }
-        let {err, buf, pcrs} = this.readPCRS(Buffer.concat(this.buffering))
+        let {err, buf, positions} = this.readPCRS(Buffer.concat(this.buffering))
         if(err == null && buf == null){ // insufficient buffer size, keep this.buffering
             return
         } else {
@@ -173,42 +142,70 @@ class MPEGTSPacketProcessor extends Events {
             }
         }
         let ret, result = {}
-        let pcrTimes = Object.keys(pcrs).map(Number)
-        if(pcrTimes.length > 1){
-            let pcrsPerBatch = buf.length / pcrs.length
+        if(this.joining){
+            let pcrs = Object.keys(positions).map(Number)
+            let pcrsPerBatch = buf.length / positions.length
             let minMaxPcrJournalSize = Math.min(100000, pcrsPerBatch * 60) // limit maxPcrJournalSize
             if(this.maxPcrJournalSize < minMaxPcrJournalSize){ // increase maxPcrJournalSize adaptively
                 this.maxPcrJournalSize = minMaxPcrJournalSize
             }
-            Object.keys(pcrs).slice(0, -1).map(Number).forEach(pcr => {
-                pcr = parseInt(pcr)
-                if(this.pcrJournal.includes(pcr)){
-                    delete pcrs[pcr]
-                } else {
-                    this.pcrJournal.push(pcr)
+            if(pcrs.length){
+                let lastKnownPCR
+                pcrs.forEach(pcr => {
+                    if(this.pcrJournal.includes(pcr)) lastKnownPCR = pcr
+                })
+                if(lastKnownPCR){
+                    pcrs.some(pcr => {
+                        delete positions[pcr]
+                        if(!this.pcrJournal.includes(pcr)){
+                            this.pcrJournal.push(pcr) // a past pcr not collected
+                        }
+                        if(pcr == lastKnownPCR) {
+                            return true
+                        }
+                    })
+                    pcrs = Object.keys(positions).map(Number) // update var
                 }
-            })
-            pcrTimes = Object.keys(pcrs).map(Number)
-            if(this.debug){
-                console.log('pcrs received', pcrTimes.length)
+                pcrs.slice(0, -1).forEach(pcr => this.pcrJournal.push(pcr)) // collect new pcrs, except the last one which may be partial yet
             }
+            if(pcrs.length > 1){
+                const batchLastPCR = pcrs.pop()
+                if(pcrs.length){
+                    if(this.debug){
+                        console.log('new pcrs received', pcrs, positions)
+                    }
+                    result = {
+                        start: positions[pcrs[0]],
+                        end: positions[batchLastPCR],
+                        leftover: positions[batchLastPCR]
+                    }
+                } else {
+                    if(this.debug){
+                        console.log('no new complete pcrs received', positions)
+                    }
+                    result = {
+                        leftover: 0
+                    }
+                }
+            } else { // no pcr found
+                if(this.debug){
+                    console.log('no new pcrs received', pcrs.length, global.kbfmt(buf.length))
+                }
+                result = {
+                    leftover: 0
+                }
+            }
+        } else {
             result = {
-                start: parseInt(pcrs[pcrTimes[0]]),
-                end: parseInt(pcrs[pcrTimes[pcrTimes.length - 1]]),
-                leftover: parseInt(pcrs[pcrTimes[pcrTimes.length - 1]])
-            }
-        } else { // only one pcr or less found
-            if(this.debug){
-                console.log('few pcrs received', pcrTimes.length, global.kbfmt(buf.length))
-            }
-            result = {
-                leftover: 0
+                start: 0,
+                end: buf.length,
+                leftover: buf.length
             }
         }
         if(typeof(result.start) != 'undefined'){
             ret = buf.slice(result.start, result.end)  
             if(this.debug){
-                console.log('process', result, ret.length, 'start: '+ pcrTimes[0] +' ('+ pcrs[pcrTimes[0]] +'), end: '+ pcrTimes[pcrTimes.length - 1] +' ('+ pcrs[pcrTimes[pcrTimes.length - 1]] +')')
+                console.log('process*', result, ret.length, ret.length % PACKET_SIZE, global.kbfmt(ret.length))
             }
         }
         if(result.leftover < buf.length){
@@ -264,11 +261,11 @@ class MPEGTSPacketProcessor extends Events {
     }
     flush(clear){
         if(this.buffering.length){
-            const now = global.time()
-            this.lastFlushTime = now
             if(this.debug){
                 console.log('preproc', global.kbfmt(this.len(this.buffering)))
             }
+            const now = global.time()
+            this.lastFlushTime = now // keep it after process()
             let data = this.process(clear)
             if(data){
                 if(this.debug){
@@ -291,9 +288,6 @@ class MPEGTSPacketProcessor extends Events {
         this.buffering = []
         if(this.pcrJournal.length > this.maxPcrJournalSize){
             let s = this.pcrJournal.length - this.maxPcrJournalSize
-            for(let i = 0; i < s; i++){
-                delete this.pcrSizesJournal[this.pcrJournal[i]]
-            }
             this.pcrJournal = this.pcrJournal.slice(s)
         }
     }

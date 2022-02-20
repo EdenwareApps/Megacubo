@@ -20,16 +20,17 @@ class Mega {
 	}	
 	parse(megaUrl){
 		if(this.isMega(megaUrl)){
-			try {
-				megaUrl = global.decodeURIComponentSafe(megaUrl)
-			} catch(e) {
-				console.error(e, megaUrl)
-			}
 			let mediaType = 'live', url = '', name = '', qs = {}, type = 'name'
 			let parts = megaUrl.substr(7).split('#')[0]
 			parts = parts.split('?')
 			if(parts[0].charAt(parts[0].length - 1) == '/'){
 				parts[0] = parts[0].substr(0, parts[0].length - 1)
+			}
+			try {
+				let tmp = global.decodeURIComponentSafe(parts[0])
+				parts[0] = tmp
+			} catch(e) {
+				console.error(e, megaUrl)
 			}
 			if(parts.length > 1){
 				qs = this.qs2Object(parts[1])
