@@ -8,7 +8,7 @@ class Energy extends Events {
 		global.ui.emit('restart')
 	}
     exit(){
-		global.ui.emit('exit')
+		global.ui.emit('exit', false)
 	}
 	askRestart(){
 		global.ui.emit('ask-restart')

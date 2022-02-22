@@ -1,7 +1,7 @@
 const async = require('async'), Tuner = require('./tuner'), Events = require('events')
 
 class AutoTuner extends Events {
-    constructor(entries, opts, name, megaURL, mediaType){
+    constructor(entries, opts, name, megaURL, mediaType, preferredStreamURL){
         super()
         this.name = name
         this.paused = false
@@ -22,6 +22,12 @@ class AutoTuner extends Events {
         }
         this.opts = opts
         this.opts.debug = console.log
+        if(global.config.get('tuning-prefer-hls')){
+            entries = this.preferHLS(entries)
+        }
+        if(preferredStreamURL){
+            entries =  this.ceilPreferredStreamURL(entries, preferredStreamURL)
+        }
         this.tuner = new Tuner(entries, opts, megaURL)
         this.tuner.on('success', (entry, nfo, n) => {
             if(typeof(this.succeededs[n]) == 'undefined' || ![0, 1, 2].includes(this.succeededs[n])){
@@ -43,6 +49,25 @@ class AutoTuner extends Events {
                 this.pump()
             }
         })
+    }
+    ext(file){
+        return String(file).split('?')[0].split('#')[0].split('.').pop().toLowerCase()
+    }
+    preferHLS(entries){
+        return entries.slice(0).sort((a, b) => {
+			let aa = this.ext(a.url) == 'm3u8'
+			let bb = this.ext(b.url) == 'm3u8'
+			return aa == bb ? 0 : (aa && !bb ? -1 : 1)
+        })
+    }
+    ceilPreferredStreamURL(entries, preferredStreamURL){
+        entries.some((entry, i) => {
+            if(entry.url == preferredStreamURL){
+                entries.splice(i, 1)
+                entries.unshift(entry)
+            }
+        })
+        return entries
     }
     pause(){
         if(this.opts.debug){

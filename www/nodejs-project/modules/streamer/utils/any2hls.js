@@ -532,7 +532,12 @@ class Any2HLS extends Events {
                         if(transcode){
                             this.decoder.removeListener('end', endListener)
                             this.decoder.kill()
-                            this.start().then(resolve).catch(reject)
+                            if(global.config.get('transcoding')){
+                                this.start().then(resolve).catch(reject)
+                            } else {
+                                this.emit('fail', 'transcoding disabled')
+                                this.destroy()
+                            }
                         } else {
                             this.waitFile(this.decoder.playlist, this.timeout, true).then(() => {
                                 this.serve().then(resolve).catch(reject)

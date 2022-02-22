@@ -273,7 +273,7 @@ class Manager extends Events {
 			return
 		}
 		let m = file.match(new RegExp('^([a-z]{1,6}):', 'i'))
-		if(m.length && (m[1].length == 1 || m[1].toLowerCase() == 'file')){ // drive letter or file protocol
+		if(m && m.length && (m[1].length == 1 || m[1].toLowerCase() == 'file')){ // drive letter or file protocol
 			return true
 		} else {
 			if(file.length >= 2 && file.charAt(0) == '/' && file.charAt(1) != '/'){ // unix path
@@ -285,7 +285,8 @@ class Manager extends Events {
         return typeof(value) == 'string' && value.length >= 13 && /^(?:(?:(?:https?|ftp):)?\/\/)(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,})))(?::\d{2,5})?(?:[/?#]\S*)?$/i.test(value)
     }
 	validate(content){
-		return typeof(content) == 'string' && content.length >= 2048 && content.toLowerCase().indexOf('#ext') != -1
+        // technically, a m3u8 may contain one stream only, so it can be really small
+		return typeof(content) == 'string' && content.length >= 32 && content.toLowerCase().indexOf('#ext') != -1
 	}
     rename(url, name){
         this.setMeta(url, 'name', name)
@@ -390,21 +391,21 @@ class Manager extends Events {
                             this.updatedLists(global.lang.NO_LIST_PROVIDED, 'fas fa-exclamation-circle') // warn user if there's no lists
                         }
                     }
-                    async.eachOf([this.IPTV], (driver, i, done) => {
-                        driver.ready(() => {
-                            driver.countries.ready(() => {
-                                if(global.config.get('shared-mode-reach')){
+                    if(global.config.get('shared-mode-reach')){
+                        async.eachOf([this.IPTV], (driver, i, done) => {
+                            driver.ready(() => {
+                                driver.countries.ready(() => {
                                     communitaryLists = communitaryLists.filter(u => myLists.indexOf(u) == -1)
                                     communitaryLists = communitaryLists.filter(u => !driver.isKnownURL(u)) // remove communitaryLists from other countries/languages
                                     driver.getLocalLists().then(localLists => {
                                         communitaryLists = localLists.concat(communitaryLists)
                                     }).catch(console.error).finally(done)
-                                } else {
-                                    done()
-                                }
+                                })
                             })
-                        })
-                    }, next)
+                        }, next)
+                    } else {
+                        next()
+                    }
                 }).catch(e => {
                     this.updatingLists = false
                     console.error('allCommunitaryLists err', e)

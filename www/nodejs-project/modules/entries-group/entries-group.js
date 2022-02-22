@@ -43,7 +43,7 @@ class EntriesGroup extends Events {
     }
     cleanAtts(oentry){
         let entry = Object.assign({}, oentry);
-        ['class', 'path', 'users', 'position', 'renderer'].forEach(k => {
+        ['class', 'path', 'users', 'position', 'renderer', 'action', 'prepend', 'append'].forEach(k => {
             if(typeof(entry[k]) != 'undefined'){
                 delete entry[k]
             }
@@ -75,6 +75,9 @@ class EntriesGroup extends Events {
     add(oentry){
         console.log('[entries-group-'+this.key+'] ADD', oentry)
         let entry = this.cleanAtts(oentry)
+        if(entry.url && !entry.url.startsWith('mega://')){
+            entry.preferredStreamURL = entry.url
+        }
         if(this.preferMegaUrls){
             if(entry.originalUrl){
                 entry.url = entry.originalUrl

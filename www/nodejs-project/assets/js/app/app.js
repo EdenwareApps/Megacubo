@@ -181,8 +181,8 @@ function initApp(){
     app.on('ask-restart', () => {
         parent.winman.askRestart()
     })
-    app.on('exit', () => {
-        parent.winman.exit()
+    app.on('exit', force => {
+        parent.winman.exit(force)
     })
     app.on('background-mode-lock', name => {
         if(parent.player && parent.winman) parent.winman.backgroundModeLock(name)
@@ -611,14 +611,14 @@ function initApp(){
 				parent.cordova.plugins.backgroundMode.disable()
                 parent.cordova.plugins.backgroundMode.setDefaults({
                     title: 'Megacubo',
-                    text: lang.RUNNING_IN_BACKGROUND,                
+                    text: lang.RUNNING_IN_BACKGROUND || '...',                
                     icon: 'icon', // this will look for icon.png in platforms/android/res/drawable|mipmap
                     color: config['background-color'].slice(-6), // hex format like 'F14F4D'
                     resume: true,
                     hidden: true,
                     silent: false,
                     allowClose: true,
-                    closeTitle: lang.CLOSE
+                    closeTitle: lang.CLOSE || 'X'
                     //, bigText: Boolean
                 })
             } else {

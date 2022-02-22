@@ -112,7 +112,7 @@ class PerformanceProfiles extends Timer {
                 'search-missing-logos': true,
                 'show-logos': true,
                 'transcoding': '1080p',
-                'tuning-concurrency': 3,
+                'tuning-concurrency': 4,
                 'ui-sounds': true
             },
             low: {
@@ -128,7 +128,8 @@ class PerformanceProfiles extends Timer {
                 'search-missing-logos': false,
                 'show-logos': false,
                 'transcoding': '',
-                'tuning-concurrency': 2,
+                'tuning-concurrency': 3,
+                'tuning-prefer-hls': true,
                 'ui-sounds': false
             }
         }
@@ -648,6 +649,12 @@ class Options extends OptionsExportImport {
                     global.config.set('status-flags-type', checked)
                 }, checked: () => {
                     return global.config.get('status-flags-type')
+                }},
+                {
+                    name: global.lang.PREFER_HLS, type: 'check', action: (data, checked) => {
+                    global.config.set('tuning-prefer-hls', checked)
+                }, checked: () => {
+                    return global.config.get('tuning-prefer-hls')
                 }},
                 {
                     name: global.lang.TUNING_CONCURRENCY_LIMIT, 

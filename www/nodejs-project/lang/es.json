@@ -239,6 +239,7 @@
    "PLAYBACK_TIMEOUT": "Tiempo de espera alcanzado",
    "PLAYBACK_UNSUPPORTED_STREAM": "Transmisión no válida o no admitida",
    "PLAY_UI_SOUNDS": "Reproducir sonidos de la interfaz",
+   "PREFER_HLS": "Preferir las transmisiones de HLS",
    "PREMIUM_ALREADY_ENABLED": "Los recursos especiales ya están activados. ¿Desea mantenerlos activados?",
    "PREMIUM_BALLOON_HINT": "Mire en su TV y grabe transmisiones en vivo",
    "PREMIUM_DEVICE_IDLE_RESOURCES": "Compartir recursos del dispositivo (brightdata.com)",

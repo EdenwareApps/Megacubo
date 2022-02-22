@@ -16,6 +16,8 @@ Download = require(APPDIR + '/modules/download')
 cloud = new Cloud()
 mega = new Mega()
 
+listsRequesting = {}
+
 const emit = (type, content) => {
 	postMessage({id: 0, type: 'event', data: type +':'+ JSON.stringify(content)})
 }
@@ -306,7 +308,7 @@ class Lists extends Index {
 		})		
 	}
 	filterByAvailability(urls, cb){
-		//console.log('filterByAvailability', urls.join("\r\n"))
+		if(this.debug) console.log('filterByAvailability', urls.join("\r\n"))
 		let loadedUrls = [], cachedUrls = []
 		urls = urls.filter(u => {
 			if(typeof(this.lists[u]) == 'undefined'){
@@ -316,14 +318,17 @@ class Lists extends Index {
 		})
 		async.eachOfLimit(urls, 8, (url, i, done) => {
 			this.isListCached(url, has => {
-				//console.log('filterByAvailability', url, key, has, fine)
+				if(this.debug) console.log('filterByAvailability', url, has)
 				if(has){
 					cachedUrls.push(url)
+					listsRequesting[url] = 'cached, not added'
+				} else {					
+					listsRequesting[url] = 'not cached'
 				}
 				done()
 			})
 		}, () => {
-			//console.log('filterByAvailability', urls.join("\r\n"))
+			if(this.debug) console.log('filterByAvailability', loadedUrls.concat(cachedUrls).join("\r\n"))
 			cb(loadedUrls.concat(cachedUrls))
 		})
 	}
@@ -370,9 +375,6 @@ class Lists extends Index {
 			this.filterByAvailability(communitaryLists, communitaryLists => {
 				this.syncListProgressData.firstRun = !communitaryLists.length
 				this.delimitActiveLists() // helps to avoid too many lists in memory
-				if(!global.listsRequesting){
-					global.listsRequesting = {}
-				}
 				if(!this.sharedModeReach && communitaryLists.length){
 					communitaryLists = []
 				}

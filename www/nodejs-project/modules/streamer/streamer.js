@@ -856,7 +856,7 @@ class Streamer extends StreamerAbout {
 			})
 		}
 	}
-	playFromEntries(entries, name, megaUrl, txt, callback, connectId, mediaType){
+	playFromEntries(entries, name, megaUrl, txt, callback, connectId, mediaType, preferredStreamURL){
 		if(this.opts.shadow){
 			return
 		}
@@ -871,7 +871,7 @@ class Streamer extends StreamerAbout {
 				return
 			}
 			console.log('tuning', entries, name)
-			let tuning = new AutoTuner(entries, {}, name, megaUrl, mediaType)
+			let tuning = new AutoTuner(entries, {}, name, megaUrl, mediaType, preferredStreamURL)
 			global.tuning = tuning
 			tuning.txt = txt
 			tuning.on('progress', i => {
@@ -945,7 +945,7 @@ class Streamer extends StreamerAbout {
 						this.emit('connecting-failure', e)
 					}
 				}
-			}, connectId, opts.mediaType)
+			}, connectId, opts.mediaType, e.preferredStreamURL)
 		} else if(isMega && !opts.url) {
 			let name = e.name
 			if(opts.name){
@@ -973,7 +973,7 @@ class Streamer extends StreamerAbout {
 							this.connectId = false
 							this.emit('connecting-failure')
 						}
-					}, connectId, opts.mediaType)
+					}, connectId, opts.mediaType, e.preferredStreamURL)
 				} else {			
 					this.connectId = false
 					this.emit('connecting-failure', e)

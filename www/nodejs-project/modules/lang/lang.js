@@ -29,16 +29,20 @@ class Language extends Events {
         return this.userLocales
     }
     findCountryCode(){
-        let loc, maybeLoc
-        this.userLocales.filter(l => l.length == 5).some(l => {
-            let ll = l.substr(-2).toLowerCase()
-            if(l.substr(0, 2) == this.locale){
-                loc = ll
-                return true
-            } else if(!maybeLoc) {
-                maybeLoc = ll
-            }
-        })
+        let loc, maybeLoc, countries = global.config.get('countries') || []
+        if(countries.length == 1){
+            loc = countries[0]
+        } else {
+            this.userLocales.filter(l => l.length == 5).some(l => {
+                let ll = l.substr(-2).toLowerCase()
+                if(l.substr(0, 2) == this.locale || countries.includes(ll)){
+                    loc = ll
+                    return true
+                } else if(!maybeLoc) {
+                    maybeLoc = ll
+                }
+            })
+        }
         if(!loc){
             if(this.cl.countryCodeExists(this.locale) || !maybeLoc){
                 loc = this.locale

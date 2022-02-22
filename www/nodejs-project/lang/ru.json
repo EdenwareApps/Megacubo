@@ -239,6 +239,7 @@
    "PLAYBACK_TIMEOUT": "Время вышло",
    "PLAYBACK_UNSUPPORTED_STREAM": "Неверный или неподдерживаемый трансляция",
    "PLAY_UI_SOUNDS": "Играть интерфейс звуки",
+   "PREFER_HLS": "Предпочитайте HLS-трансляции",
    "PREMIUM_ALREADY_ENABLED": "Специальные функции уже включены. Вы хотите сохранить их включенными?",
    "PREMIUM_BALLOON_HINT": "Смотрите на телевизор и записывайте живые потоки",
    "PREMIUM_DEVICE_IDLE_RESOURCES": "Поделиться ресурсами устройства (Brightdata.com)",

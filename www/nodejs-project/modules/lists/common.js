@@ -38,10 +38,19 @@ class Common extends Events {
 	getUpdateMeta(url, cb){
 		const updateMetaKey = LIST_UPDATE_META_KEY_MASK.format(url)
 		global.storage.get(updateMetaKey, updateMeta => {
-			if(!updateMeta){
-				updateMeta = {updateAfter: 0, contentLength: 0}
+			if(updateMeta){
+				const file = global.storage.raw.resolve(LIST_DATA_KEY_MASK.format(url))
+				fs.stat(file, (err, stat) => { // it happened of the meta data was cached but the data was not present, prevent it
+					if(err || !stat.size){
+						cb({updateAfter: 0, contentLength: 0})
+					} else {
+						cb(updateMeta)
+					}
+				})
+
+			} else {
+				cb({updateAfter: 0, contentLength: 0})
 			}
-			cb(updateMeta)
 		})
 	}
 	setUpdateMeta(url, updateMeta){

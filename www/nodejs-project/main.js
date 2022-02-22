@@ -63,7 +63,7 @@ onexit(() => {
         tuning.destroy()
     }
     if(typeof(ui) != 'undefined' && ui){
-        ui.emit('exit')
+        ui.emit('exit', true)
         ui.destroy()
     }
 })

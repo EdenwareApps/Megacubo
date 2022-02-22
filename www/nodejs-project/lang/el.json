@@ -239,6 +239,7 @@
    "PLAYBACK_TIMEOUT": "Εληξε ο χρόνος",
    "PLAYBACK_UNSUPPORTED_STREAM": "Μη έγκυρη ή μη υποστηριζόμενη εκπομπή",
    "PLAY_UI_SOUNDS": "Αναπαραγωγή ήχων διεπαφής",
+   "PREFER_HLS": "Προτιμούν τις εκπομπές HLS",
    "PREMIUM_ALREADY_ENABLED": "Ειδικά χαρακτηριστικά έχουν ήδη ενεργοποιηθεί. Θέλετε να τα διατηρήσετε ενεργοποιημένα;",
    "PREMIUM_BALLOON_HINT": "Παρακολουθήστε την τηλεόρασή σας με και καταγράψτε ζωντανά ρεύματα",
    "PREMIUM_DEVICE_IDLE_RESOURCES": "Μοιραστείτε τους πόρους της συσκευής (Brightdata.com)",

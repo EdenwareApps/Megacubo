@@ -248,7 +248,6 @@ class Downloader extends StreamerAdapterBase {
 			followRedirect: true,
 			acceptRanges: false,
 			retries: 3, // strangely, some servers always abort the first try, throwing "The server aborted pending request"
-			timeout: 60,
 			debug: this.debugConns
 		})
 		download.on('error', error => {

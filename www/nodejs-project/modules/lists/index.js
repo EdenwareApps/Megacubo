@@ -168,7 +168,7 @@ class Index extends Common {
             let smap = this.searchMap(terms, opts), ks = Object.keys(smap)
             if(ks.length){
 				if(this.debug){
-					console.warn('M3U SEARCH RESULTS', (global.time() - start) +'s (pre time)', (global.time() - start) +'s', terms)
+					console.warn('M3U SEARCH RESULTS', (global.time() - start) +'s (pre time)', Object.assign({}, smap), (global.time() - start) +'s', terms)
 				}
                 let results = []
 				ks.forEach(listUrl => {
@@ -180,7 +180,13 @@ class Index extends Common {
 				})
                 async.eachOf(ks, (listUrl, i, icb) => {
                     if(listUrl && typeof(this.lists[listUrl]) != 'undefined'){
+						if(this.debug){
+							console.warn('M3U SEARCH ITERATE', smap[listUrl].slice(0))
+						}
 						this.lists[listUrl].iterate(e => {
+							if(this.debug){
+								console.warn('M3U SEARCH ITERATE', e)
+							}
 							if(opts.type){
 								if(this.validateType(e, opts.type, opts.typeStrict === true)){
 									if(opts.typeStrict === true) {
@@ -213,19 +219,11 @@ class Index extends Common {
 					results = this.prepareEntries(results)					
 					results = this.parentalControl.filter(results)
 					maybe = this.parentalControl.filter(maybe)
-					if((results.length + maybe.length) > limit){
-						let mlen = maybe.length
-						if(mlen > limit){
-							maybe = maybe.slice(0, mlen - limit)
-						} else if(mlen == limit) {
-							maybe = []
-						} else {
-							maybe = []
-							limit -= mlen
-							if(results.length > limit){
-								results = results.slice(0, limit)
-							}
-						}
+					results = this.adjustSearchResults(results, limit)
+					if(results.length < limit){
+						maybe = this.adjustSearchResults(maybe, limit - results.length)
+					} else {
+						maybe = []
 					}
 					if(this.debug){
 						console.warn('M3U SEARCH RESULTS', (global.time() - start) +'s (total time)', terms)
@@ -238,6 +236,50 @@ class Index extends Common {
             }
         })
 	}
+	getDomain(u){
+    	if(u && u.indexOf('//')!=-1){
+	        let domain = u.split('//')[1].split('/')[0]
+        	if(domain == 'localhost' || domain.indexOf('.') != -1){
+	            return domain.split(':')[0]
+        	}
+    	}
+    	return ''
+	}
+	adjustSearchResults(entries, limit){
+		let map = {}, nentries = [];
+		(global.config.get('tuning-prefer-hls') ? this.preferHLS(entries) : entries).forEach(e => {
+			let domain = this.getDomain(e.url)
+			if(typeof(map[domain]) == 'undefined'){
+				map[domain] = []
+			}
+			map[domain].push(e)
+		})
+		let domains = Object.keys(map)
+		for(let i=0; nentries.length < limit; i++){
+			let keep
+			domains.forEach(domain => {
+				if(!map[domain] || nentries.length >= limit) return
+				if(map[domain].length > i){
+					keep = true
+					nentries.push(map[domain][i])
+				} else {
+					delete map[domain]
+				}
+			})
+			if(!keep) break
+		}
+		return nentries
+	}
+    ext(file){
+        return String(file).split('?')[0].split('#')[0].split('.').pop().toLowerCase()
+    }
+    preferHLS(entries){
+        return entries.slice(0).sort((a, b) => {
+			let aa = this.ext(a.url) == 'm3u8'
+			let bb = this.ext(b.url) == 'm3u8'
+			return aa == bb ? 0 : (aa && !bb ? -1 : 1)
+        })
+    }
 	unoptimizedSearch(terms, opts){
 		return new Promise((resolve, reject) => {
             let xmap, smap, aliases = {}, bestResults = [], results = [], maybe = [], excludeTerms = []

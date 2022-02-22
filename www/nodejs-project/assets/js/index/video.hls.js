@@ -261,6 +261,7 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 				maxBufferLength: 30,
 				maxMaxBufferLength: 120,
 				highBufferWatchdogPeriod: 1,
+				nudgeMaxRetry: Number.MAX_SAFE_INTEGER,
 				fragLoadingMaxRetry: 1,
 				lowLatencyMode: false, // setting false here reduced dramatically the buffer stalled errors on a m3u8 from FFmpeg
 				fragLoadingMaxRetryTimeout: 5000,

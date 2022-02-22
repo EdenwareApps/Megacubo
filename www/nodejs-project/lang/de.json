@@ -239,6 +239,7 @@
    "PLAYBACK_TIMEOUT": "Die Zeit ist um",
    "PLAYBACK_UNSUPPORTED_STREAM": "Ungültige oder nicht unterstützte Sendung",
    "PLAY_UI_SOUNDS": "Spieleroberfläche Sounds",
+   "PREFER_HLS": "Bevorzugen Sie HLS-Sendungen",
    "PREMIUM_ALREADY_ENABLED": "Besonderheiten sind bereits aktiviert. Möchten Sie sie aktiviert halten?",
    "PREMIUM_BALLOON_HINT": "Beobachten Sie auf Ihrem Fernseher mit Live-Streams",
    "PREMIUM_DEVICE_IDLE_RESOURCES": "Teilen Sie Geräteressourcen (helldata.com)",

@@ -239,6 +239,7 @@
    "PLAYBACK_TIMEOUT": "Zaman aşımına uğradı",
    "PLAYBACK_UNSUPPORTED_STREAM": "Geçersiz veya desteklenmeyen yayın",
    "PLAY_UI_SOUNDS": "Arayüz sesleri oyna",
+   "PREFER_HLS": "HLS yayınlarını tercih et",
    "PREMIUM_ALREADY_ENABLED": "Özel özellikler zaten etkin. Onları etkin tutmak ister misiniz?",
    "PREMIUM_BALLOON_HINT": "TV'nizi izleyin ve canlı akışları kaydedin",
    "PREMIUM_DEVICE_IDLE_RESOURCES": "Cihaz kaynaklarını paylaşın (brightdata.com)",

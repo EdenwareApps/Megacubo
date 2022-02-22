@@ -1,9 +1,9 @@
 @font-face {
   font-family: 'megacubo';
   src:
-    url('fonts/megacubo.ttf?hnwtr') format('truetype'),
-    url('fonts/megacubo.woff?hnwtr') format('woff'),
-    url('fonts/megacubo.svg?hnwtr#megacubo') format('svg');
+    url('fonts/megacubo.ttf?l2fgjh') format('truetype'),
+    url('fonts/megacubo.woff?l2fgjh') format('woff'),
+    url('fonts/megacubo.svg?l2fgjh#megacubo') format('svg');
   font-weight: lighter;
   font-style: normal;
 }
@@ -24,5 +24,5 @@
 }
 
 .fa-mega:before {
-  content: "\e901";
+  content: "\e900";
 }

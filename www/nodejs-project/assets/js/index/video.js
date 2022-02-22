@@ -685,13 +685,13 @@ class WinMan extends EventEmitter {
 			], next)
 		}
 	}
-	exit(){
+	exit(force){
 		console.log('exit()', traceback())
 		let w = this.getAppWindow()
 		if(w.streamer.active){
 			w.streamer.stop()
 		}
-		if(this.backgroundModeLocks.length){
+		if(!force && this.backgroundModeLocks.length){
 			if(typeof(cordova) != 'undefined'){
 				cordova.plugins.backgroundMode.enable()
 				cordova.plugins.backgroundMode.moveToBackground()
@@ -699,6 +699,9 @@ class WinMan extends EventEmitter {
 				top.Manager.goToTray()
 			}
 		} else {
+			if(typeof(cordova) != 'undefined'){
+				cordova.plugins.backgroundMode.disable()
+			}
 			this.exitUI()
 			if(w){
 				w.app.emit('exit')

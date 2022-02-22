@@ -46,7 +46,7 @@ class IPTV extends Events {
                 return false
             }
         } else {
-            return 'https://api.github.com/repos/{0}/contents/channels/'.format(this.repo)
+            return 'https://api.github.com/repos/{0}/contents/streams/'.format(this.repo)
         }
     }
     get(file = ''){
