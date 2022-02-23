@@ -485,6 +485,11 @@ class StreamerBase extends StreamerTools {
 				this.handleFailure(intent.data, err)
 			})
 			intent.on('codecData', codecData => {
+				if(!global.cordova && !global.config.get('ffmpeg-hls')){
+					if(codecData.video && codecData.video.match(new RegExp('(hevc|mpeg2video|mpeg4)')) && this.opts.videoCodec != 'libx264'){
+						return intent.fail('unsupported format')						
+					}
+				}
 				if(codecData && intent == this.active){
 					global.ui.emit('codecData', codecData)
 				}
@@ -909,6 +914,16 @@ class Streamer extends StreamerAbout {
 		this.isTuneable = !!enable
 		global.ui.emit('tuneable', this.isTuneable)
 	}
+	findPreferredStreamURL(name){
+		let ret = null
+		global.histo.get().some(e => {
+			if(e.name == name || e.originalName == name){
+				ret = e.preferredStreamURL
+				return true
+			}
+		})
+		return ret
+	}
 	play(e, results){
 		if(this.opts.shadow){
 			return
@@ -945,7 +960,7 @@ class Streamer extends StreamerAbout {
 						this.emit('connecting-failure', e)
 					}
 				}
-			}, connectId, opts.mediaType, e.preferredStreamURL)
+			}, connectId, opts.mediaType, e.preferredStreamURL || this.findPreferredStreamURL(name))
 		} else if(isMega && !opts.url) {
 			let name = e.name
 			if(opts.name){
@@ -973,7 +988,7 @@ class Streamer extends StreamerAbout {
 							this.connectId = false
 							this.emit('connecting-failure')
 						}
-					}, connectId, opts.mediaType, e.preferredStreamURL)
+					}, connectId, opts.mediaType, e.preferredStreamURL || this.findPreferredStreamURL(name))
 				} else {			
 					this.connectId = false
 					this.emit('connecting-failure', e)
