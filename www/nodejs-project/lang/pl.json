@@ -89,6 +89,7 @@
    "COMPLETE": "Kompletny",
    "CONFIGURE": "Konfiguracja.",
    "CONNECTING": "Złączony",
+   "CONNECTION_FAILURE": "Połączenie awarii",
    "CONNECT_TIMEOUT": "Connect Timeout.",
    "CONTINUE": "Kontyntynuj",
    "COUNTRIES": "Państwa",

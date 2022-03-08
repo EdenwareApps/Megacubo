@@ -4,7 +4,7 @@ class StreamerAACIntent extends StreamerBaseIntent {
     constructor(data, opts, info){
         console.log('AACOPTS', opts)
         opts = Object.assign(opts, {
-            audioCodec: global.config.get('ffmpeg-audio-repair') ? 'aac' : 'copy',
+            audioCodec: null,
             videoCodec: null
         })
         super(data, opts, info)

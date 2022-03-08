@@ -200,7 +200,7 @@ class ChannelsEPG extends ChannelsData {
         this.clockIcon = '<i class="fas fa-clock"></i> '
         global.streamer.aboutDialogRegisterOption('epg', () => {
             return new Promise((resolve, reject) => {
-                global.channels.epgChannelLiveNowAndNext(global.streamer.active.data).then(ret => {
+                this.epgChannelLiveNowAndNext(global.streamer.active.data).then(ret => {
                     let ks = Object.keys(ret)
                     ret = ks.map((k, i) => {
                         if(i == 0){
@@ -343,6 +343,7 @@ class ChannelsEPG extends ChannelsData {
             }
         })
         ret.terms = e.terms && Array.isArray(e.terms) ? e.terms : this.entryTerms(e)
+        ret.terms = this.expandTerms(ret.terms)
         return ret
     }
     epgChannel(e, limit){
@@ -425,15 +426,12 @@ class ChannelsEPG extends ChannelsData {
             }).catch(reject)
         })
     }
-    epgChannelsAddLiveNow(entries, keepIcon, checkIsChannel){
+    epgChannelsAddLiveNow(entries, keepIcon){
         return new Promise((resolve, reject) => {
-            if(global.channels.activeEPG){
-                let cs = entries.filter(e => e.terms || e.type == 'select') // filter by isMetaEntry or a isChannel result
-                if(checkIsChannel){
-                    cs = cs.map(e => global.channels.isChannel(e.name))
-                }
-                cs = cs.filter(e => e)
-                global.channels.epgChannelsLiveNow(cs).then(epg => {
+            if(this.activeEPG){
+                const cs = entries.filter(e => e.terms || e.type == 'select').map(e => this.isChannel(e.name)).filter(e => e)
+                this.epgChannelsLiveNow(cs).then(epg => {
+                    //console.warn('epgChannelsAddLiveNow', cs, entries, epg)
                     entries.forEach((e, i) => {
                         if(typeof(epg[e.name]) != 'undefined' && epg[e.name].t){
                             if(entries[i].details){
@@ -850,7 +848,7 @@ class Channels extends ChannelsAutoWatchNow {
         }
         let chosen, alts = {}, chosenScore = -1
         Object.keys(chs).forEach(name => {
-            let score = global.lists.match(chs[name], tms, false)
+            let score = global.lists.match(tms, chs[name], false)
             if(score){
                 if(score > chosenScore){
                     if(chosen){
@@ -863,6 +861,22 @@ class Channels extends ChannelsAutoWatchNow {
                 }
             }
         })
+        if(chosenScore < 1){
+            Object.keys(chs).forEach(name => {
+                let score = global.lists.match(chs[name], tms, false)
+                if(score){
+                    if(score > chosenScore){
+                        if(chosen){
+                            alts[chosen] = chs[chosen]
+                        }
+                        chosen = name
+                        chosenScore = score
+                    } else {
+                        alts[name] = chs[name]
+                    }
+                }
+            })
+        }
         if(chosenScore > 1){
             let excludes = [], chTerms = global.deepClone(chs[chosen])
             Object.keys(alts).forEach(n => {
@@ -885,11 +899,9 @@ class Channels extends ChannelsAutoWatchNow {
         if(typeof(terms) == 'string'){
             terms = global.lists.terms(terms)
         }
-        if(!terms.some(t => t.charAt(0) == '-')){
-            let ch = this.isChannel(terms)
-            if(ch){
-                return ch.terms
-            }
+        let ch = this.isChannel(terms)
+        if(ch){
+            return ch.terms
         }
         return terms
     }
@@ -945,7 +957,7 @@ class Channels extends ChannelsAutoWatchNow {
                         }
                     }
                 })
-                this.epgChannelsAddLiveNow(entries, true, false).then(es => {
+                this.epgChannelsAddLiveNow(entries, true).then(es => {
                     resolve(epgEntries.concat(es))
                 }).catch(reject)
             })
@@ -1179,7 +1191,7 @@ class Channels extends ChannelsAutoWatchNow {
                             let entries = category.entries.filter(e => ret[e.name])
                             entries = entries.map(e => this.toMetaEntry(e, category, c.name))
                             times['meta'] = global.time() - startTime - times['has']
-                            global.channels.epgChannelsAddLiveNow(entries, true, false).then(entries => {
+                            this.epgChannelsAddLiveNow(entries, true).then(entries => {
                                 if(editable){
                                     entries.push(this.editCategoryEntry(c))
                                     entries.push(this.addChannelEntry(c, true))

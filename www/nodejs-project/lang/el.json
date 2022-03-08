@@ -89,6 +89,7 @@
    "COMPLETE": "Πλήρης",
    "CONFIGURE": "Διαμορφώστε",
    "CONNECTING": "Συνδετικός",
+   "CONNECTION_FAILURE": "Η σύνδεση αποτυγχάνει",
    "CONNECT_TIMEOUT": "Συνδέστε το χρονικό όριο",
    "CONTINUE": "Να συνεχίσει",
    "COUNTRIES": "Χώρες",

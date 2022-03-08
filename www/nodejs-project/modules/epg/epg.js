@@ -83,6 +83,7 @@ class EPG extends Events {
                 this.parser.once('end', () => {
                     console.log('EPG PARSER END')
                     this.applyIcons()
+                    this.clean()
                     this.save()
                     this.parser.destroy() 
                     this.parser = null                                
@@ -140,6 +141,7 @@ class EPG extends Events {
             } else {
                 console.log('epg update skipped')
                 this.scheduleNextUpdate()
+                this.clean()
             }
         })
     }
@@ -380,7 +382,9 @@ class EPG extends Events {
         })
         data = data.filter(r => r.score).sortByProp('score', true).slice(0, 24)
         data.forEach(r => {
-            results[r.name] = this.order(this.data[r.name], limit)
+            if(this.data[r.name]){
+                results[r.name] = this.order(this.data[r.name], limit)
+            }
         })
         return results
     }
@@ -406,6 +410,16 @@ class EPG extends Events {
                 }
             }
         })
+        if(!current){
+            Object.keys(this.terms).forEach(name => {
+                score = global.lists.match(this.terms[name], terms, false)
+                if(score){
+                    if(!current || score > current.score){
+                        current = {name, score}
+                    }
+                }
+            })
+        }
         return current ? current.name : false
     }
     findChannelLog(terms){
@@ -527,6 +541,18 @@ class EPG extends Events {
             }		
         }
         return programmes
+    }
+    clean(){
+        Object.keys(this.terms).forEach(e => {
+            if(typeof(this.data[e]) == 'undefined'){
+                delete this.terms[e]
+            }
+        })
+        Object.keys(this.channels).forEach(k => {
+            if(typeof(this.data[this.channels[k].name]) == 'undefined'){
+                delete this.channels[k]
+            }
+        })
     }
     save(){
         console.log('SAVING EPG DATA')

@@ -64,14 +64,17 @@ class HLSTrackSelector {
     */
     selectTrack(tracks, bandwidth){
         let chosen, chosenBandwidth
-        tracks.sortByProp('bandwidth').some(track => {
+        tracks.sortByProp('bandwidth').some((track, i) => {
             if(!chosen){
                 chosen = track.url
                 chosenBandwidth = track.bandwidth
             } else {
-                if(track.bandwidth <= bandwidth){
+                if(!bandwidth || track.bandwidth <= bandwidth){
                     chosen = track.url
                     chosenBandwidth = track.bandwidth
+                    if(!bandwidth && i == 1){ // if we don't know the connection speed yet, use the #1 to skip a possible audio track
+                        return true
+                    }
                 } else {
                     return true // to break
                 }
@@ -101,81 +104,79 @@ class StreamerHLSIntent extends StreamerBaseIntent {
         this.mediaType = 'live'
         this.trackUrl = this.data.url
         this.trackSelector = new HLSTrackSelector()
-    }  
+    }
     transcode(){
         return new Promise((resolve, reject) => {
-            if(this.ff){
-                this.disconnectAdapter(this.ff)
-                this.ff.destroy()
-                this.ff = null
-            }
-            let resolved, opts = {
-                audioCodec: 'aac',
-                videoCodec: 'libx264',
-                workDir: this.opts.workDir, 
-                debug: this.opts.debug
-            }
             this.resetTimeout()
             this.transcoderStarting = true
-            this.transcoder = new Any2HLS(this.prx.proxify(this.trackUrl), opts)
-            this.connectAdapter(this.transcoder)
-            this.transcoder.on('destroy', () => {
-                if(!resolved){
-                    resolved = true
-                    reject('destroyed')
-                }
-            })
-            this.transcoder.start().then(() => {        
-                if(!resolved){
-                    resolved = true
-                    this.transcoderStarting = false
-                    this.endpoint = this.transcoder.endpoint
-                    resolve({endpoint: this.endpoint, mimetype: this.mimetype})
-                    this.emit('transcode-started')
-                }
-            }).catch(e => {                
-                if(!resolved){
-                    resolved = true
-                    this.transcoderStarting = false
-                    this.emit('transcode-failed', e)
-                    reject(e)
-                }
+            this.disconnectAdapter(this.prx)
+            this.prx.destroy()
+            this.trackSelector.select(this.data.url).then(ret => {
+                this.resetTimeout()
+                let resolved, opts = Object.assign({
+                    workDir: this.opts.workDir, 
+                    authURL: this.data.source,
+                    debug: this.opts.debug
+                }, this.getTranscodingCodecs())
+                this.trackUrl = ret.url     
+                console.log('TRACKS', this.trackUrl, ret, this.trackSelector.tracks)
+                this.prx = new StreamerProxy(Object.assign({authURL: this.data.source}, this.opts))
+                this.connectAdapter(this.prx)
+                this.prx.start().then(() => {
+                    this.transcoder = new Any2HLS(this.prx.proxify(this.trackUrl), opts)
+                    this.connectAdapter(this.transcoder)
+                    this.transcoder.on('destroy', () => {
+                        if(!resolved){
+                            this.transcoderStarting = false
+                            this.emit('transcode-failed', 'destroyed')
+                            resolved = true
+                            reject('destroyed')
+                        }
+                    })
+                    this.transcoder.start().then(() => {
+                        if(!resolved){
+                            resolved = true
+                            this.transcoderStarting = false
+                            this.endpoint = this.transcoder.endpoint
+                            resolve({endpoint: this.endpoint, mimetype: this.mimetype})
+                            this.emit('transcode-started')           
+                            if(ret.bandwidth){ // do it after resolve for right emit order on global.streamer
+                                this.bitrate = ret.bandwidth
+                                this.emit('bitrate', ret.bandwidth)
+                            }
+                        }       
+                    }).catch(err => {
+                        if(!resolved){
+                            resolved = true
+                            this.transcoderStarting = false
+                            this.emit('transcode-failed', err)
+                            reject(err)
+                        }
+                    })
+                }).catch(err => { 
+                    if(!resolved){
+                        resolved = true
+                        this.transcoderStarting = false
+                        this.emit('transcode-failed', err)
+                        reject(err)
+                    }
+                })
+            }).catch(err => {
+                this.transcoderStarting = false
+                this.emit('transcode-failed', err)
+                console.warn('COMMITERR', this.endpoint, err)
+                reject(err || 'hls adapter failed')
             })
         })
     }
     _start(){ 
         return new Promise((resolve, reject) => {
-            let useFF = global.config.get('ffmpeg-hls')
-            // useFF = useFF == 'always' || (useFF == 'desktop-only' && !global.cordova)            
-            // this.prx = new (useFF ? StreamerProxy : StreamerHLSProxy)(Object.assign({authURL: this.data.source}, this.opts))
-            this.prx = new StreamerHLSProxy(Object.assign({authURL: this.data.source}, this.opts))
+            const mw = global.config.get('hls-prefetch')
+            this.prx = new (mw ? StreamerHLSProxy : StreamerProxy)(Object.assign({authURL: this.data.source}, this.opts))
             this.connectAdapter(this.prx)
             this.prx.start().then(() => {
-                if(useFF){
-                    this.trackSelector.select(this.data.url).then(ret => {
-                        this.trackUrl = ret.url     
-                        console.log('TRACKS', this.trackUrl, ret, this.trackSelector.tracks)
-                        this.ff = new Any2HLS(this.prx.proxify(this.trackUrl), this.opts)
-                        this.connectAdapter(this.ff)
-                        this.ff.opts.audioCodec = global.config.get('ffmpeg-audio-repair') ? 
-                            'aac' : // force audio recode for TS to prevent playback hangs
-                            'copy' // aac disabled for performance
-                        this.ff.start().then(() => {
-                            this.endpoint = this.ff.endpoint
-                            resolve({endpoint: this.endpoint, mimetype: this.mimetype})                   
-                            if(ret.bandwidth){ // do it after resolve for right emit order on global.streamer
-                                this.bitrate = ret.bandwidth
-                                this.emit('bitrate', ret.bandwidth)
-                            }
-                        }).catch(reject)
-                    }).catch(e => {
-                        console.warn('COMMITERR', this.endpoint, e)
-                        reject(e || 'hls adapter failed')
-                    })
-                } else {
-                    this.endpoint = this.prx.proxify(this.data.url)
-                    resolve({endpoint: this.endpoint, mimetype: this.mimetype}) 
-                }
+                this.endpoint = this.prx.proxify(this.data.url)
+                resolve({endpoint: this.endpoint, mimetype: this.mimetype}) 
             }).catch(reject)
         })
     }

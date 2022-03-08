@@ -3,9 +3,7 @@ const StreamerBaseIntent = require('./base.js'), Any2HLS = require('../utils/any
 class StreamerRTMPIntent extends StreamerBaseIntent {    
     constructor(data, opts, info){
         console.log('RTMPOPTS', opts)
-        let audioCodec = global.config.get('ffmpeg-audio-repair') ? 
-            'aac' : // force audio recode for RTMP to prevent HLS.js playback hangs
-            'copy' // aac disabled for performance
+        let audioCodec = 'copy'
         let videoCodec = global.cordova ? 
             'copy' :
             'libx264' // rtmp can get flickering on HTML5 without transcode

@@ -13,11 +13,30 @@ class Setup extends EventEmitter {
             this.welcome()
         }
     }
+    validateURL(url){
+		if(url && url.length > 11){
+			let u = url.toLowerCase()
+			if((u.substr(0, 4) == 'http' || u.substr(0, 2) == '//') && u.indexOf('://') != -1 && u.indexOf('.') != -1){
+				return true
+			}
+			if((u.substr(0, 4) == 'http' || u.substr(0, 2) == '//') && u.indexOf('://') != -1 && u.indexOf('.') != -1){
+				return true
+			}
+            let m = u.match(new RegExp('^([a-z]{1,6}):', 'i'))
+            if(m.length && (m[1].length == 1 || m[1].toLowerCase() == 'file')){ // drive letter or file protocol
+                return true
+            } else {
+                if(u.length >= 2 && u.charAt(0) == '/' && u.charAt(1) != '/'){ // unix path
+                    return true
+                }
+            }
+		}
+    }
     ask(){
         setTimeout(() => {
             this.askList((ret) => {
                 console.log('ASKED', ret, traceback())
-                if(ret && ret != -1){
+                if(ret && ret != -1 && this.validateURL(ret)){
                     app.emit('add-list', ret)
                     this.done()
                 } else {

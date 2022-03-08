@@ -140,6 +140,14 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 		})
 		return current
 	}
+	time(s){
+		if(typeof(s) == 'number'){
+			//this.hls.stopLoad()
+			this.object.currentTime = s
+			//setTimeout(() => this.hls.startLoad(), 10)
+		}
+		return this.object.currentTime
+	}
 	skipFragment(fragStart, fragDuration){
 		let minHLSWindow = 6
 		if(typeof(fragStart) != 'number'){
@@ -154,9 +162,7 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 		let newCurrentTime = fragStart + fragDuration + 0.1
 		if(newCurrentTime > this.object.currentTime && newCurrentTime < (this.object.duration + minHLSWindow)){
 			console.log('Skipping fragment, from '+ this.object.currentTime +' to '+ newCurrentTime)
-			this.hls.stopLoad()
-			this.object.currentTime = newCurrentTime
-			this.hls.startLoad()
+			this.time(newCurrentTime)
 			$(this.object).one('playing', () => {
 				if(this.object.currentTime < newCurrentTime){
 					this.object.currentTime = newCurrentTime
@@ -256,15 +262,16 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 		if(!this.hls){
 			this.hls = new Hls({
 				enableWorker: true,
-				maxBufferSize: 128, // When doing internal transcoding with low crf, fragments will become bigger
-				backBufferLength: 0,
-				maxBufferLength: 30,
-				maxMaxBufferLength: 120,
+				liveSyncDuration: 999999999, // https://github.com/video-dev/hls.js/issues/3764
+				maxBufferSize: 128 * (1000 * 1000), // When doing internal transcoding with low crf, fragments will become bigger
+				backBufferLength: 30,
+				maxBufferLength: 60,
+				maxMaxBufferLength: 180,
 				highBufferWatchdogPeriod: 1,
 				nudgeMaxRetry: Number.MAX_SAFE_INTEGER,
-				fragLoadingMaxRetry: 1,
 				lowLatencyMode: false, // setting false here reduced dramatically the buffer stalled errors on a m3u8 from FFmpeg
-				fragLoadingMaxRetryTimeout: 5000,
+				fragLoadingMaxRetry: 2,
+				fragLoadingMaxRetryTimeout: 3000,
 				fragLoadingRetryDelay: 100,
 				defaultAudioCodec: 'mp4a.40.2', // AAC-LC from ffmpeg
 				/*
@@ -275,7 +282,7 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 				lowLatencyMode: false,
 				enableSoftwareAES: false,
 				maxSeekHole: 30,
-				maxBufferSize: 20,
+				maxBufferSize: 20 * (1000 * 1000),
 				maxBufferHole: 10,
 				maxBufferLength: 10,
 				maxMaxBufferLength: '120s',

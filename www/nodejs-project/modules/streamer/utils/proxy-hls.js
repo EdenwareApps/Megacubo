@@ -8,8 +8,15 @@ class HLSJournal {
 		this.url = url
 		this.header = ''
 		this.journal = {}
+		this.liveJournal = {}
 		this.maxLen = Math.ceil(global.config.get('live-window-time') / 3)
 		this.mediaSequence = {}
+		this.regexes = {
+			'unproxify': new RegExp('/127\.0\.0\.1:[0-9]+(/s/|/)'),
+			'protoNDomain': new RegExp('(https?://|//)[^/]+/'),
+			'tsBasename': new RegExp('[^/]*\\.ts', 'i'),
+			'ts': new RegExp('^.*\\.ts', 'i')			
+		}
 	}
     absolutize(path, url){
 		if(path.substr(0, 2) == '//'){
@@ -39,9 +46,10 @@ class HLSJournal {
 					header.push(line)
 				}
 			})
-			Object.keys(segments).forEach(url => {
-				if(typeof(this.journal[url]) == 'undefined' || this.journal[url] != segments[url]){
-					this.journal[url] = segments[url]
+			this.liveJournal = segments
+			Object.keys(segments).forEach(name => {
+				if(typeof(this.journal[name]) == 'undefined' || this.journal[name] != segments[name]){
+					this.journal[name] = segments[name]
 				}
 			})
 			this.header = header.join("\r\n")
@@ -59,22 +67,31 @@ class HLSJournal {
 				console.error('Media sequence missing')
 			}
 		}
-		return this.header +"\r\n"+ Object.values(this.journal).join("\r\n") +"\r\n"
 	}
 	segmentName(url, basename){
 		let match, nurl = url
+		if(nurl.match(this.regexes.unproxify)){
+			nurl = nurl.replace(this.regexes.unproxify, '/')
+		}
 		if(basename){				
-			match = nurl.match(new RegExp('[^/]*\\.ts', 'i'))
+			match = nurl.match(this.regexes.tsBasename)
 		} else {
-			if(nurl.match(new RegExp('(https?://|//)'))){
-				nurl = nurl.replace(new RegExp('(https?://|//)[^/]+/'), '')
+			if(nurl.match(this.regexes.protoNDomain)){
+				nurl = nurl.replace(this.regexes.protoNDomain, '')
 			}
-			match = nurl.match(new RegExp('^.*\\.ts', 'i'))
+			match = nurl.match(this.regexes.ts)
 		}
 		if(match){
 			return match[0]
 		}
 		return nurl
+	}
+	isLiveSegment(name){
+		let n = name
+		if(n.indexOf('://') != -1){
+			n = this.segmentName(n)
+		}
+		return typeof(this.liveJournal[n]) != 'undefined'
 	}
 }
 
@@ -90,7 +107,7 @@ class HLSRequestClient extends Events {
 				headers = {'content-length': 0, 'connection': 'keep-alive'}
 			}
 			this.emit('response', status, headers)
-			this.responded = true
+			return this.responded = true
 		}
 	}
 	end(){
@@ -110,11 +127,10 @@ class HLSRequestClient extends Events {
 class HLSRequests extends StreamerProxyBase {
 	constructor(opts){
 		super(opts)
-		this.debugConns = false
+		this.debugConns = true
 		this.debugUnfinishedRequests = false
+		this.prefetch = true
 		this.packetFilterPolicy = 1
-		this.keepInitialData = true
-		this.keepLeftOverData = true
 		this.requestCacheUID = parseInt(Math.random() * 1000000)
 		this.requestCacheDir = global.paths.temp +'/streamer/'+ this.requestCacheUID +'/'
 		this.requestCacheMap = {}
@@ -145,19 +161,15 @@ class HLSRequests extends StreamerProxyBase {
 		}).catch(console.error)
 	}
 	segmentName(url, basename){
-		let match, nurl = url
-		if(basename){				
-			match = url.match(new RegExp('[^/]*\\.ts', 'i'))
-		} else {
-			if(url.match(new RegExp('(https?://|//)'))){
-				url = url.replace(new RegExp('(https?://|//)[^/]+/'), '')
-			}
-			match = url.match(new RegExp('^.*\\.ts', 'i'))
+		let ret, fine = Object.keys(this.journals).some(j => {
+			ret = this.journals[j].segmentName(url, basename)
+			return true
+		})
+		if(!fine){
+			let j = new HLSJournal()
+			ret = j.segmentName(url, basename)
 		}
-		if(match){
-			return match[0]
-		}
-		return url
+		return ret
 	}
     url2file(url){
         return global.sanitize(url)
@@ -190,12 +202,6 @@ class HLSRequests extends StreamerProxyBase {
 			}
 		})
 	}
-	md5(txt){
-		if(!this.crypto){
-			this.crypto = require('crypto')
-		}
-		return this.crypto.createHash('md5').update(txt).digest('hex')
-	}
 	bindRequestCacheSaver(request, status, headers, cb){
 		const url = request.opts.url
 		const stream = fs.createWriteStream(this.requestCacheDir + this.requestCacheMap[url].file, {flags: 'w'})  
@@ -204,7 +210,7 @@ class HLSRequests extends StreamerProxyBase {
 		stream.on('error', err => {
 			console.error('request stream error', err)
 		}) 
-		if(0 && mediaType == 'video'){
+		if(0 && mediaType == 'video'){ // it will fail on aes based m3u8
 			/*
 			caused packet didn't start with ADTS stream
 
@@ -220,8 +226,6 @@ Stream #0:2[0x1f4]: Data: scte_35
 			const processor = new MPEGTSPacketProcessor()
 			processor.joining = false 
 			processor.packetFilterPolicy = this.packetFilterPolicy
-			processor.keepInitialData = this.keepInitialData
-			processor.keepLeftOverData = this.keepLeftOverData
 			request.on('data', chunk => {
 				processor.push(chunk)
 			})
@@ -270,23 +274,73 @@ Stream #0:2[0x1f4]: Data: scte_35
 			}
 			if(request.statusCode != 206){
 				headers['content-length'] = bytesWritten
-			}
-			fs.writeFile(this.requestCacheDir + this.requestCacheMap[url].headersFile, JSON.stringify({status, headers}), {}, () => {
-				if(this.debugConns) console.log('STREAM FINISH', hasErr, bytesWritten, request.received)
-				if(hasErr){
-					fs.unlink(this.requestCacheDir + this.requestCacheMap[url].file, cb)
-				} else {
-					let ttl = this.mediaTypeCacheTTLs['meta'] // mininal ttl, safer
-					let mediaType = this.getMediaType(headers, request.currentURL)
-					if(typeof(this.mediaTypeCacheTTLs[mediaType]) == 'number'){
-						ttl = this.mediaTypeCacheTTLs[mediaType]
+			}	
+			if(mediaType == 'video'){		
+				if(this.opts.forceVideoContentType){
+					headers['content-type'] = this.opts.forceVideoContentType
+				} else if(!headers['content-type'] || !headers['content-type'].match(new RegExp('^(audio|video)'))){ // fix bad mimetypes
+					switch(this.ext(url)){
+						case 'ts':
+						case 'mts':
+						case 'm2ts':
+							headers['content-type'] = 'video/MP2T'
+							break
+						default:
+							headers['content-type'] = 'video/mp4'
 					}
-					this.requestCacheMap[url].ttl = global.time() + ttl
-					this.requestCacheMap[url].cacheSize = bytesWritten
-					this.clean()
-					cb()
 				}
-			})
+				this.downloadLog(bytesWritten)
+				let doBitrateCheck = this.committed && this.type != 'network-proxy' && this.bitrates.length < this.opts.bitrateCheckingAmount
+				if(doBitrateCheck){
+					let file = this.bitrateSampleFilename(url)
+					fs.copyFile(this.requestCacheDir + this.requestCacheMap[url].file, file, () => {
+						this.getBitrate(file)
+					})
+				}
+			}
+			const next = (err, size) => {
+				if(err) console.error(err)
+				if(size === null) size = bytesWritten
+				headers['content-length'] = size
+				fs.writeFile(this.requestCacheDir + this.requestCacheMap[url].headersFile, JSON.stringify({status, headers}), {}, () => {
+					if(this.debugConns) console.log('STREAM FINISH', hasErr, bytesWritten, size, request.received)
+					if(hasErr){
+						fs.unlink(this.requestCacheDir + this.requestCacheMap[url].file, cb)
+					} else {
+						let ttl = this.mediaTypeCacheTTLs['meta'] // mininal ttl, safer
+						let mediaType = this.getMediaType(headers, request.currentURL)
+						if(typeof(this.mediaTypeCacheTTLs[mediaType]) == 'number'){
+							ttl = this.mediaTypeCacheTTLs[mediaType]
+						}
+						this.requestCacheMap[url].ttl = global.time() + ttl
+						this.requestCacheMap[url].cacheSize = size
+						cb()
+						this.clean()
+					}
+				})
+			}
+			if(mediaType == 'video'){
+				next(null, null)
+			} else {
+				if(!headers['content-type']){
+					headers['content-type'] = 'application/x-mpegURL'
+				}
+				if(typeof(this.playlistBitrates[url]) != 'undefined' && typeof(this.playlistBitratesSaved[url]) == 'undefined'){
+					this.playlistBitratesSaved[url] = true
+					let ns = Object.values(this.playlistBitrates)
+					this.bitrates = this.bitrates.filter(b => !ns.includes(n))
+					this.saveBitrate(this.playlistBitrates[url])
+				}
+				headers = this.removeHeaders(headers, ['content-length']) // we'll change the content
+				fs.readFile(this.requestCacheDir + this.requestCacheMap[url].file, (err, content) => {
+					this.proxifyM3U8(String(content), url, request.currentURL, body => {
+						headers['content-length'] = body.length
+						fs.writeFile(this.requestCacheDir + this.requestCacheMap[url].file, body, err => {
+							next(err, body.length)
+						})
+					})
+				})
+			}
 		})
 	}
 	validateRequestCache(url, allowExpired, cb){
@@ -321,7 +375,6 @@ Stream #0:2[0x1f4]: Data: scte_35
 			fs.stat(file, (err, stat) => {
 				const hasValidCache = stat && size && size == stat.size
 				if(hasValidCache){
-					this.requestCacheMap[url].ttl = global.time() + 1
 					this.sendRequestCache(url)
 					next()
 				} else {
@@ -419,6 +472,12 @@ Stream #0:2[0x1f4]: Data: scte_35
 		}
 		return next
 	}
+	isLiveSegment(url){
+		let pos = this.getSegmentJournal(url)
+		if(pos){
+			return this.journals[pos.journal].isLiveSegment(url)
+		}
+	}
 	report404ToJournal(url){
 		if(this.debugConns) console.log('report404')
 		let pos = this.getSegmentJournal(url)
@@ -455,7 +514,7 @@ Stream #0:2[0x1f4]: Data: scte_35
 			this.validateRequestCache(url, ext == 'ts', valid => {
 				if(valid || this.activeRequests[url]) return sendCacheWhenReady() // check activeRequests again too
 				const file = this.url2file(url)
-				if(this.debugConns) console.warn('REQUEST CONNECT START', global.time(), url)
+				if(this.debugConns) console.warn('REQUEST CONNECT START', global.time(), url, this.isLiveSegment(url) ? 'IS LIVE' : 'NOT LIVE')
 				const request = new global.Download(opts)
 				this.activeRequests[url] = request
 				if(typeof(this.requestCacheMap[url]) == 'undefined'){
@@ -478,7 +537,7 @@ Stream #0:2[0x1f4]: Data: scte_35
 				if(this.debugUnfinishedRequests) global.osd.show('unfinished: '+ Object.values(this.activeRequests).length, 'fas fa-info-circle', 'hlsu', 'persistent')
 				this.requestCacheMap[url].clients.push(client)
 				let timer = 0, ended, ttl = 60, end = () => {
-					if(this.debugConns) console.warn('REQUEST CONNECT END', global.time(), ext)
+					if(this.debugConns) console.warn('REQUEST CONNECT END', global.time() - now, url, request.statusCode, ext)
 					if(!ended){
 						ended = true
 						if(this.requestCacheMap[url] && !this.requestCacheMap[url].responseStarted){
@@ -491,20 +550,22 @@ Stream #0:2[0x1f4]: Data: scte_35
 							delete this.activeRequests[url]
 						}
 						setTimeout(() => {
-							if(this.activeManifest && Object.values(this.activeRequests).length < 2 && !this.destroyed) {
-								let next = this.getNextInactiveSegment(this.activeManifest)
-								if(next){
-									if(this.debugConns) console.warn('PREFETCHING', next, url)
-									const nopts = opts
-									nopts.url = next
-									this.download(nopts).start()
-								}
-								else {
-									let info
-									if(this.journals[this.activeManifest]){
-										info = Object.keys(this.journals[this.activeManifest].journal).slice(-5)
+							if(this.prefetch && this.activeManifest && !Object.keys(this.activeRequests).length && !this.destroyed) {
+								if(Object.keys(this.requestCacheMap).length >= 4){ // avoid to slow down on initial segment load order
+									let next = this.getNextInactiveSegment(this.activeManifest)
+									if(next){
+										if(this.debugConns) console.warn('PREFETCHING', next, url)
+										const nopts = opts
+										nopts.url = next
+										this.download(nopts).start()
 									}
-									if(this.debugConns) console.warn('NOT PREFETCHING', url, info)
+									else {
+										let info
+										if(this.journals[this.activeManifest]){
+											info = Object.keys(this.journals[this.activeManifest].journal).slice(-5)
+										}
+										if(this.debugConns) console.warn('NOT PREFETCHING', Object.values(this.activeRequests).length, url, info)
+									}
 								}
 							}
 						}, 50)
@@ -532,10 +593,16 @@ Stream #0:2[0x1f4]: Data: scte_35
 							//console[doWarn?'warn':'log']('Request finished', request.opts.url.split('/').pop(), request.getTimeoutOptions(), request.retryCount, request.authErrors, request.received, request.contentLength, request.totalContentLength, request)
 						})
 					} else {
-						console.error('Request error', status, headers, url)
+						console.error('Request error', status, headers, url, request, request.authErrors, request.opts.maxAuthErrors)
 						if(this.debugUnfinishedRequests){
 							global.osd.show('unfinished: '+ Object.values(this.activeRequests).length, 'fas fa-info-circle', 'hlsu', 'persistent')
 							global.osd.show('error '+ url.split('/').pop().split('?')[0] +' - '+ status, 'fas fa-info-circle', 'hlsr', 'long')
+						}
+						if(status == 410){
+							status = 404
+						}
+						if(status == 403){ // concurrent connection limit?
+							this.prefetch = false
 						}
 						if(status == 404){
 							this.report404ToJournal(url)
@@ -588,9 +655,17 @@ Stream #0:2[0x1f4]: Data: scte_35
 	removeClient(url, client){
 		client.end()
 		client.removeAllListeners()
-		this.requestCacheMap[url].clients = this.requestCacheMap[url].clients.filter(c => c.uid != client.uid)
-		if(!this.requestCacheMap[url].clients.length && !this.requestCacheMap[url].isReceiving){
-			this.requestCacheMap[url].request.destroy()
+		if(this.requestCacheMap[url]){
+			this.requestCacheMap[url].clients = this.requestCacheMap[url].clients.filter(c => c.uid != client.uid)
+		}
+		if(!this.requestCacheMap[url]){
+			if(this.activeRequests[url]){
+				delete this.activeRequests[url]
+			}
+		} else if(!this.requestCacheMap[url].clients.length && !this.requestCacheMap[url].isReceiving){
+			if(this.requestCacheMap[url]){
+				this.requestCacheMap[url].request.destroy()
+			}
 			if(this.activeRequests[url]){
 				delete this.activeRequests[url]
 			}
@@ -676,6 +751,24 @@ Stream #0:2[0x1f4]: Data: scte_35
 			console.warn('Request cache trimmed from '+ global.kbfmt(used) +' to '+ global.kbfmt(used - freed), freed, count)
 		}
 	}
+	clear(cb){
+		async.eachOf(Object.keys(this.requestCacheMap), (url, j, done) => {
+			if(!this.requestCacheMap[url].clients.length && !this.requestCacheMap[url].isReceiving){
+				async.eachOf([
+					this.requestCacheDir + this.requestCacheMap[url].headersFile,
+					this.requestCacheDir + this.requestCacheMap[url].file
+				], (file, i, _done) => fs.unlink(file, _done), () => {
+					//delete this.requestCacheMap[url]
+					done()
+				})
+			} else {
+				done()
+			}
+		}, () => {
+			console.warn('Request cache cleared')
+			if(cb) cb()
+		})
+	}
 }
 
 class StreamerProxyHLS extends HLSRequests {
@@ -740,7 +833,9 @@ class StreamerProxyHLS extends HLSRequests {
 		let parser = new m3u8Parser.Parser(), replaces = {}, u
 		parser.push(body)
 		parser.end()
-		//console.log('M3U8 PARSED', baseUrl, url, parser)
+		if(this.opts.debug){
+			console.log('M3U8 PARSED', baseUrl, url, parser)
+		}
 		if(parser.manifest){
 			if(parser.manifest.segments && parser.manifest.segments.length){
 				parser.manifest.segments.map(segment => {
@@ -766,7 +861,7 @@ class StreamerProxyHLS extends HLSRequests {
 				if(typeof(this.journals[baseUrl]) == 'undefined'){
 					this.journals[baseUrl] = new HLSJournal(baseUrl)
 				}
-				body = this.journals[baseUrl].process(body)
+				this.journals[baseUrl].process(body)
 			}
 			if(parser.manifest.playlists && parser.manifest.playlists.length){
 				if(typeof(this.playlists[url]) == 'undefined'){
@@ -800,7 +895,12 @@ class StreamerProxyHLS extends HLSRequests {
 					}
 				})
 			}
-			//console.warn('PRXBODY', body, parser.manifest, replaces)
+			body = body.replace(new RegExp('(URI="?)((https?://||//)[^\\n"\']+)', 'ig'), (...match) => { // for #EXT-X-KEY:METHOD=AES-128,URI="https://...
+				if(match[2].indexOf('127.0.0.1') == -1){
+					match[2] = this.proxify(match[2])
+				}
+				return match[1] + match[2]
+			})
 		}
 		cb(body)
 	}
@@ -863,7 +963,9 @@ class StreamerProxyHLS extends HLSRequests {
 				}
 			}
 		}
-		// console.log('req starting...', req, req.url)
+		if(this.opts.debug){
+			console.log('req starting...', req, req.url)
+		}
 		let ended, url = this.unproxify(req.url)
 		
 		let reqHeaders = req.headers
@@ -876,22 +978,35 @@ class StreamerProxyHLS extends HLSRequests {
 			}
 		}
 
-		if(this.debug){
-			console.log('serving', url, req, url, reqHeaders)
-		}
-		if(this.type == 'network-proxy'){
-			console.log('network serving', url, reqHeaders)
+		if(this.opts.debug){
+			if(this.type == 'network-proxy'){
+				console.log('network serving', url, reqHeaders)
+			} else {
+				console.log('serving', url, req, url, reqHeaders)
+			}
 		}
 		const keepalive = this.committed && global.config.get('use-keepalive')
 		const download = this.download({
 			url,
-			retries: 5,
 			debug: false,
 			headers: reqHeaders,
 			authURL: this.opts.authURL || false, 
 			keepalive,
-			followRedirect: this.opts.followRedirect
+			followRedirect: this.opts.followRedirect,
+			acceptRanges: url.indexOf('m3u') == -1 ? true : false,
+			maxAuthErrors: this.committed ? 10 : 3,
+			retries: this.committed ? 10 : 3
 		})
+		const abort = data => {
+			if(!ended){
+				ended = true
+			}
+			response.destroy()
+			download.destroy()
+			if(this.opts.debug){
+				console.log('abort', traceback())
+			}
+		}
 		const end = data => {
 			if(!ended){
 				ended = true
@@ -916,12 +1031,13 @@ class StreamerProxyHLS extends HLSRequests {
 		})
 		download.on('request-error', err => {
 			if(this.type == 'network-proxy'){
-				console.log('serving', url, err)
+				console.log('network request error', url, err)
 			}
 			if(this.committed){
-				global.osd.show(global.streamer.humanizeFailureMessage(err.response ? err.response.statusCode : 'timeout'), 'fas fa-times-circle', 'debug-conn-err', 'normal')
+				// global.osd.show(global.streamer.humanizeFailureMessage(err.response ? err.response.statusCode : 'timeout'), 'fas fa-times-circle', 'debug-conn-err', 'normal')
+				global.osd.show(global.lang.CONNECTION_FAILURE +' ('+ (err.response ? err.response.statusCode : 'timeout') +')', 'fas fa-times-circle', 'debug-conn-err', 'normal')
 				console.error('download err', err)
-				if(this.debug){
+				if(this.opts.debug){
 					console.log('download err', err)
 				}
 			}
@@ -940,9 +1056,7 @@ class StreamerProxyHLS extends HLSRequests {
 			if(this.opts.forceExtraHeaders){
 				headers = Object.assign(headers, this.opts.forceExtraHeaders)
 			}
-			if(this.debug){
-				console.log('download response', statusCode, headers)
-			}
+			//console.log('download response', url, statusCode, headers)
 			/* disable content ranging, as we are rewriting meta and video */
 			headers = this.removeHeaders(headers, ['content-range', 'accept-ranges'])
 			if(keepalive){
@@ -952,7 +1066,7 @@ class StreamerProxyHLS extends HLSRequests {
 			}
 			if(!statusCode || [-1, 0, 401, 403].includes(statusCode)){
 				/* avoid to passthrough 403 errors to the client as some streams may return it esporadically */
-				return end()					
+				return abort()					
 			}
 			if(statusCode >= 200 && statusCode < 300){ // is data response
 				if(!headers['content-disposition'] || headers['content-disposition'].indexOf('attachment') == -1 || headers['content-disposition'].indexOf('filename=') == -1){
@@ -964,27 +1078,18 @@ class StreamerProxyHLS extends HLSRequests {
 					statusCode = 200
 				}
 				if(req.method == 'HEAD'){
-					if(this.debug){
+					if(this.opts.debug){
 						console.log('download sent response headers', statusCode, headers)
 					}
 					response.writeHead(statusCode, headers)
 					end()
 				} else {
-					const mediaType = this.getMediaType(headers, url)
-					switch(mediaType){
-						case 'meta':
-							this.handleMetaResponse(download, statusCode, headers, response, end, url)
-							break
-						case 'video':
-							this.handleVideoResponse(download, statusCode, headers, response, end, url)
-							break
-						default:
-							this.handleGenericResponse(download, statusCode, headers, response, end)
-					}
+					this.handleResponse(download, statusCode, headers, response, end)
 				}
 			} else {
 				if(this.committed && (!statusCode || statusCode < 200 || statusCode >= 400)){ // skip redirects
-					global.osd.show(global.streamer.humanizeFailureMessage(statusCode || 'timeout'), 'fas fa-times-circle', 'debug-conn-err', 'normal')
+					// global.osd.show(global.streamer.humanizeFailureMessage(statusCode || 'timeout'), 'fas fa-times-circle', 'debug-conn-err', 'normal')
+					global.osd.show(global.lang.CONNECTION_FAILURE +' ('+ (statusCode || 'timeout') +')', 'fas fa-times-circle', 'debug-conn-err', 'normal')
 				}
 				let fallback, location
 				headers['content-length'] = 0
@@ -1016,19 +1121,19 @@ class StreamerProxyHLS extends HLSRequests {
 				if(fallback){
 					headers.location = fallback
 					response.writeHead(301, headers)
-					if(this.debug){
+					if(this.opts.debug){
 						console.log('download sent response headers', 301, headers)
 					}
 				} else if(location){
 					headers.location = location
 					statusCode = (statusCode >= 300 && statusCode < 400) ? statusCode : 307
 					response.writeHead(statusCode, headers)		
-					if(this.debug){
+					if(this.opts.debug){
 						console.log('download sent response headers', statusCode, headers)
 					}			
 				} else {
 					response.writeHead(statusCode, headers)	
-					if(this.debug){
+					if(this.opts.debug){
 						console.log('download sent response headers', statusCode, headers)
 					}
 				}
@@ -1037,112 +1142,14 @@ class StreamerProxyHLS extends HLSRequests {
 		})
 		download.start()
 	}
-	handleMetaResponse(download, statusCode, headers, response, end, url){
-		if(!headers['content-type']){
-			headers['content-type'] = 'application/x-mpegURL'
-		}	
-		if(typeof(this.playlistBitrates[url]) != 'undefined' && typeof(this.playlistBitratesSaved[url]) == 'undefined'){
-			this.playlistBitratesSaved[url] = true
-			Object.values(this.playlistBitrates).forEach(n => {
-				if(this.bitrates.includes(n)){
-					this.bitrates = this.bitrates.filter(b => b != n)
-				}
-			})
-			this.saveBitrate(this.playlistBitrates[url])
-		}
-		headers = this.removeHeaders(headers, ['content-length']) // we'll change the content
-		//headers = this.addCachingHeaders(headers, this.mediaTypeCacheTTLs['meta']) // set a min cache to this m3u8 to prevent his overfetching
-		
-		if(statusCode == 206){
-			statusCode = 200
-		}
-
-		let data = []
-		download.on('data', chunk => data.push(chunk))
-		download.once('end', () => {
-			data = String(Buffer.concat(data))
-			if(data.length > 12){
-				this.proxifyM3U8(String(data), url, download.request.currentURL, body => {
-					if(!response.headersSent){
-						headers['content-length'] = body.length
-						response.writeHead(statusCode, headers)
-						if(this.debug){
-							console.log('download sent response headers', statusCode, headers)
-						}
-					}
-					body = body.replace(new RegExp('#EXT-X-MEDIA-SEQUENCE:.*\n'), '')
-					end(body)
-				})
-			} else {
-				console.error('Invalid response from server', url, data)
-				if(!response.headersSent){
-					response.writeHead(statusCode, headers)
-					if(this.debug){
-						console.log('download sent response headers', statusCode || 504, headers)
-					}
-				}
-				end(data)
-			}
-		})
-	}	
-	handleVideoResponse(download, statusCode, headers, response, end, url){
-		if(this.opts.forceVideoContentType){
-			headers['content-type'] = this.opts.forceVideoContentType
-		} else if(!headers['content-type'] || !headers['content-type'].match(new RegExp('^(audio|video)'))){ // fix bad mimetypes
-			switch(this.ext(url)){
-				case 'ts':
-				case 'mts':
-				case 'm2ts':
-					headers['content-type'] = 'video/MP2T'
-					break
-				default:
-					headers['content-type'] = 'video/mp4'
-			}
-		}
-		let dataSent = 0, buffer = [], initialOffset = download.request.requestingRange ? download.request.requestingRange.start : 0, offset = initialOffset
-		let doBitrateCheck = this.committed && this.type != 'network-proxy' && this.bitrates.length < this.opts.bitrateCheckingAmount
-		let onend = () => {
-			// console.warn('download ended', url, dataSent, initialOffset, statusCode, headers, download.request.destroyed, download.request.retryCount, download.request.authErrors)
-			let chunk = Buffer.concat(buffer)
-			let len = this.len(chunk)
-			if(!response.headersSent){
-				if(this.debug){
-					console.log('download sent response headers', statusCode, headers)
-				}
-				headers['content-length'] = len
-				response.writeHead(statusCode, headers)
-			}
-			response.write(chunk)
-			if(doBitrateCheck){
-				this.collectBitrateSample(chunk, offset, len, url)
-				this.finishBitrateSample(url)
-				if(this.debug){
-					console.log('finishBitrateSampleProxy', url, initialOffset, offset)
-				}
-			}
-			if(this.listenerCount('data')){
-				this.emit('data', url, chunk, len, offset)
-			}
-			response.end()
-			end()
-		}
-		// console.warn('handleVideoResponse', doBitrateCheck, this.opts.forceFirstBitrateDetection, offset, download, statusCode, headers)
-		download.on('data', chunk => {
-			dataSent += chunk.length
-			buffer.push(chunk)
-			this.downloadLog(this.len(chunk))
-		})
-		download.once('end', onend)
-		if(download.ended) onend()
-	}	
-	handleGenericResponse(download, statusCode, headers, response, end){
+	handleResponse(download, statusCode, headers, response, end){
 		if(!response.headersSent){
 			response.writeHead(statusCode, headers)
-			if(this.debug){
+			if(this.opts.debug){
 				console.log('download sent response headers', statusCode, headers)
 			}
 		}
-        console.log('handleGenericResponse', headers)
+        // console.log('handleResponse', headers)
 		download.on('data', chunk => {
 			if(global.isWritable(response)){
 				response.write(chunk)

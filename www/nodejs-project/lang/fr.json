@@ -89,6 +89,7 @@
    "COMPLETE": "Compléter",
    "CONFIGURE": "Configurer",
    "CONNECTING": "De liaison",
+   "CONNECTION_FAILURE": "Échec de la connexion",
    "CONNECT_TIMEOUT": "Connecter le délai d'attente",
    "CONTINUE": "Continuez",
    "COUNTRIES": "Pays",

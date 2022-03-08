@@ -15,17 +15,6 @@ try {
 Buffer = require('safe-buffer').Buffer
 const fs = require('fs'), path = require('path'), sanitizeFilename = require('sanitize-filename')
 
-process.on('warning', e => {
-    console.warn(e, e.stack)
-})
-process.on('unhandledRejection', (reason, promise) => {
-    console.error('Unhandled Rejection at:', promise, 'reason:', reason)
-})
-process.on('uncaughtException', (exception) => {
-    console.error('uncaughtException', exception)
-    return false
-})
-
 APPDIR = path.resolve(typeof(__dirname) != 'undefined' ? __dirname : process.cwd()).replace(new RegExp('\\\\', 'g'), '/')
 MANIFEST = require(APPDIR + '/package.json')
 COMMUNITARY_LISTS_DEFAULT_AMOUNT = cordova ? 10 : 12
@@ -49,6 +38,55 @@ if(cordova){
 Object.keys(paths).forEach(k => {
     paths[k] = paths[k].replaceAll('\\', '/')
     console.log('DEFAULT PATH ' + k + '=' + paths[k])
+})
+
+const crashLogFile = paths.data + '/crashlog.txt'
+const saveCrashLog = (...args) => {
+    const os = require('os')
+    fs.appendFileSync(crashLogFile, JSON.stringify(args, (key, value) => {
+        if(value instanceof Error) {
+            var error = {}
+            Object.getOwnPropertyNames(value).forEach(function (propName) {
+                error[propName] = value[propName]
+            })
+            return error
+        }
+        return value
+    }, 3).replaceAll("\\n", "\n") +"\r\n"+ JSON.stringify({
+        version: global.MANIFEST.version,
+        platform: process.platform,
+        release: os.release(),
+        arch: os.arch(),
+        date: (new Date()).toString()
+    }) +"\r\n\r\n")
+}
+const sendCrashLogs = () => {
+    fs.stat(crashLogFile, (err, stat) => {
+        if(stat && stat.size){
+            fs.readFile(crashLogFile, (err, content) => {
+                const FormData = require('form-data'), got = require('got'), form = new FormData()
+                form.append('log', String(content))
+                got.post('http://app.megacubo.net/report/index.php', {body: form}).then(r => {
+                    if(r.body.indexOf('OK') != -1){
+                        fs.unlink(crashLogFile, () => {})
+                    }
+                }).catch(console.error)
+            })
+        }
+    })
+}
+
+process.on('warning', e => {
+    console.warn(e, e.stack)
+})
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('Unhandled Rejection at:', promise, 'reason:', reason)
+    saveCrashLog('Unhandled Rejection at:', promise, 'reason:', reason)
+})
+process.on('uncaughtException', (exception) => {
+    console.error('uncaughtException', exception)
+    saveCrashLog('uncaughtException', exception)
+    return false
 })
 
 storage = require(APPDIR + '/modules/storage')({main: true})
@@ -394,8 +432,7 @@ function init(language){
         })
         ui.on('retry', () => {
             console.warn('RETRYING')
-            let data = streamer.active ? streamer.active.data : streamer.lastActiveData
-            if(data) streamer.play(data)
+            streamer.retry()
         })
         ui.on('video-transcode', () => {
             console.error('VIDEO TRANSCODE')
@@ -414,6 +451,7 @@ function init(language){
                         def = 'try-other'
                     }
                     opts.push({template: 'option', text: lang.WAIT, fa: 'fas fa-clock', id: 'wait'})
+                    opts.push({template: 'option', text: lang.RETRY, fa: 'fas fa-clock', id: 'retry'})
                     if(!isCH){
                         opts.push({template: 'option', text: lang.STOP, fa: 'fas fa-stop', id: 'stop'})                        
                     }
@@ -430,18 +468,14 @@ function init(language){
         ui.on('video-error-timeout-callback', ret => {
             console.log('video-error-timeout-callback', ret)
             if(ret == 'try-other'){
-                console.error('VIDEO ERR', 'timeout', {details: 'try-other'})
                 streamer.handleFailure(null, 'timeout', true, true)
-            } else if(ret == 'stop'){
-                console.error('VIDEO ERR', 'timeout', {details: 'stop'})
+            } else if(ret == 'retry') {
+                streamer.retry()
+            } else if(ret == 'stop') {
                 streamer.stop()
             } else {
                 ui.emit('streamer-reset-timeout')
             }
-        })
-        ui.on('video-slow', () => {
-            console.error('VIDEO SLOW')
-            osd.show(lang.SLOW_SERVER, 'fas fa-info-circle', 'video-slow', 'normal')
         })
         ui.on('share', () => {
             streamer.share()
@@ -578,6 +612,7 @@ function init(language){
                             console.log('updated')
                         }
                     }).catch(console.error)
+                    sendCrashLogs()
                 }
                 if(lists.manager.updatingLists || !config.get('setup-complete')){
                     lists.manager.once('lists-updated', afterListUpdate)                

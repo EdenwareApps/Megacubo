@@ -80,7 +80,7 @@ class Watching extends EntriesGroup {
     }
     entries(){
         return new Promise((resolve, reject) => {
-            if(lists.manager.updatingLists){
+            if(global.lists.manager.updatingLists){
                 return resolve([global.lists.manager.updatingListsEntry()])
             }
             if(!global.activeLists.length){
@@ -96,7 +96,7 @@ class Watching extends EntriesGroup {
                     list = [{name: global.lang.EMPTY, fa: 'fas fa-info-circle', type: 'action', class: 'entry-empty'}]
                 }
                 list = this.prepare(list) 
-                global.channels.epgChannelsAddLiveNow(list, false, true).then(resolve).catch(reject)
+                global.channels.epgChannelsAddLiveNow(list, false).then(resolve).catch(reject)
             })       
         })
     }

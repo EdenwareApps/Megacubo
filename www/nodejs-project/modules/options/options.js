@@ -106,9 +106,9 @@ class PerformanceProfiles extends Timer {
                 'animate-background': 'slow-desktop',
                 'auto-testing': true,
                 'autocrop-logos': true,
-                'ffmpeg-audio-repair': true,
-                'ffmpeg-hls': true,
                 'connect-timeout': 5,
+                'fx-nav-intensity': 2,
+                'hls-prefetch': true,
                 'search-missing-logos': true,
                 'show-logos': true,
                 'transcoding': '1080p',
@@ -119,11 +119,11 @@ class PerformanceProfiles extends Timer {
                 'animate-background': 'none',
                 'auto-testing': false,
                 'autocrop-logos': false,
+                'connect-timeout': 10,
                 'custom-background-video': '',
                 'epg': 'disabled',
-                'ffmpeg-audio-repair': false,
-                'ffmpeg-hls': false,
-                'connect-timeout': 10,
+                'fx-nav-intensity': 0,
+                'hls-prefetch': false,
                 'resume': false,
                 'search-missing-logos': false,
                 'show-logos': false,
@@ -142,6 +142,7 @@ class PerformanceProfiles extends Timer {
                 if(typeof(this.profiles[ret].epg) != 'undefined'){
                     global.updateEPGConfig(this.profiles[ret].epg)
                 }
+                global.theme.refresh()
             }
         })
         global.ui.on('performance-setup', ret => {
@@ -495,10 +496,11 @@ class Options extends OptionsExportImport {
             let vkey = 'version'
             outdated = c[vkey] > global.MANIFEST.version
         }).catch(console.error).finally(() => {
+            const os = require('os')
             let text = lang.LEGAL_NOTICE +': '+ lang.ABOUT_LEGAL_NOTICE
             let title = global.ucWords(global.MANIFEST.name) +' v'+ global.MANIFEST.version
             let versionStatus = outdated ? global.lang.OUTDATED : global.lang.CURRENT_VERSION
-            title += ' ('+ versionStatus +', ' + process.platform + ' '+ require('os').arch() +')'
+            title += ' ('+ versionStatus +', ' + process.platform +' '+ os.arch() +')'
             global.ui.emit('dialog', [
                 {template: 'question', fa: 'fas fa-info-circle', text: title},
                 {template: 'message', text},
@@ -566,10 +568,10 @@ class Options extends OptionsExportImport {
                     return global.config.get('playback-rate-control')
                 }, details: 'Recommended'}, 
                 {
-                    name: 'FFmpeg audio repair', type: 'check', action: (data, checked) => {
-                    global.config.set('ffmpeg-audio-repair', checked)
+                    name: 'HLS prefetch', type: 'check', action: (data, checked) => {
+                    global.config.set('hls-prefetch', checked)
                 }, checked: () => {
-                    return global.config.get('ffmpeg-audio-repair')
+                    return global.config.get('hls-prefetch')
                 }},
                 {
                     name: 'FFmpeg CRF',
@@ -582,13 +584,7 @@ class Options extends OptionsExportImport {
                     value: () => {
                         return global.config.get('ffmpeg-crf')
                     }
-                },   
-                {
-                    name: 'Use FFmpeg for HLS', details: 'Recommended', type: 'check', action: (data, checked) => {
-                    global.config.set('ffmpeg-hls', checked)
-                }, checked: () => {
-                    return global.config.get('ffmpeg-hls')
-                }},                
+                },            
                 {
                     name: 'Transcoding', type: 'select', fa: 'fas fa-film',
                     renderer: () => {

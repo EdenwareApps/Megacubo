@@ -89,6 +89,7 @@
    "COMPLETE": "Completo",
    "CONFIGURE": "Configurar",
    "CONNECTING": "Conectando",
+   "CONNECTION_FAILURE": "Falha na conexão",
    "CONNECT_TIMEOUT": "Tempo limite de conexão",
    "CONTINUE": "Continue",
    "COUNTRIES": "Países",

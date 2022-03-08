@@ -383,10 +383,15 @@ function initApp(){
             setup = new Setup()        
             window.streamer = new StreamerClient(document.querySelector('controls'), app)        
             streamer.on('show', explorer.reset.bind(explorer))
+            streamer.on('state', s => {
+                if(s == 'playing' && explorer.modalContainer && explorer.modalContainer.querySelector('#modal-template-option-wait')){
+                    explorer.endModal()
+                }
+            })
             streamer.on('stop', () => {
                 if(explorer.modalContainer && explorer.modalContainer.querySelector('#modal-template-option-wait')){
                     explorer.endModal()
-                }                
+                }
                 explorer.body.removeClass('menu-playing')
                 explorer.updateSelection() || explorer.reset()
             })

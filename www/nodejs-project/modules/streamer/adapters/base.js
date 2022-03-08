@@ -58,6 +58,18 @@ class StreamerAdapterBase extends Events {
             })
         }
 	}
+	addCodecData(codecData){
+		if(!this.codecData){
+			this.codecData = {audio: '', video: ''}
+		};
+		['audio', 'video'].forEach(type => {
+			if((!this.codecData[type] || this.codecData[type] == 'unknown') && codecData[type]){
+				this.codecData[type] = codecData[type]
+			}
+		})
+		this.emit('codecData', this.codecData)
+		return this.codecData
+	}
     connectAdapter(adapter){  
 		this.adapters.push(adapter) 
         adapter.mediaType = this.mediaType
@@ -68,19 +80,7 @@ class StreamerAdapterBase extends Events {
 			}
         })
         adapter.on('codecData', codecData => {
-			if(codecData && this.codecData != codecData){
-				if(this.codecData){
-					const badCodecs = ['', 'unknown']
-					if(badCodecs.includes(codecData.video)){
-						codecData.video = this.codecData.video
-					}
-					if(badCodecs.includes(codecData.audio)){
-						codecData.audio = this.codecData.audio
-					}
-				}			
-				this.codecData = codecData
-				this.emit('codecData', this.codecData)
-			}
+			this.addCodecData(codecData)
         })
         adapter.on('speed', speed => {
 			if(speed > 0 && this.currentSpeed != speed){
@@ -88,6 +88,7 @@ class StreamerAdapterBase extends Events {
 			}
         })
         adapter.on('fail', this.onFail)
+		adapter.on('streamer-connect', () => this.emit('streamer-connect'))
 		adapter.committed = this.committed
         this.on('commit', () => {
             adapter.emit('commit')
@@ -173,6 +174,12 @@ class StreamerAdapterBase extends Events {
 		let b = closest[a]
 		return [values[a], values[b]]		
 	}
+	md5(txt){
+		if(!this.crypto){
+			this.crypto = require('crypto')
+		}
+		return this.crypto.createHash('md5').update(txt).digest('hex')
+	}
 	saveBitrate(bitrate){
 		this.bitrates.push(bitrate)
 		if(this.bitrates.length >= 3){
@@ -187,7 +194,7 @@ class StreamerAdapterBase extends Events {
 			this.getBitrate(this.getBitrateQueue.shift())
 		}
 	}
-	getBitrate(file){
+	getBitrate(file, cb){
 		if(this.bitrateChecking){
 			if(!this.getBitrateQueue.includes(file)){
 				this.getBitrateQueue.push(file)
@@ -205,11 +212,10 @@ class StreamerAdapterBase extends Events {
 			} else {
 				console.log('getBitrate', file, this.url, stat.size, this.opts.minBitrateCheckSize, traceback())
 				global.ffmpeg.bitrate(file, (err, bitrate, codecData, dimensions, nfo) => {
-					// fs.unlink(file, () => {})
+					fs.unlink(file, () => {})
 					if(!this.destroyed){
-						if(codecData && (codecData.video || codecData.audio) && codecData != this.codecData){
-							this.codecData = codecData
-							this.emit('codecData', codecData)	
+						if(codecData){
+							this.addCodecData(codecData)
 						}
 						if(dimensions && !this._dimensions){
 							this._dimensions = dimensions
@@ -245,15 +251,22 @@ class StreamerAdapterBase extends Events {
 		})
 		this.bitrateCheckBuffer = {}
 	}
+	bitrateSampleFilename(id){ // normally id is the URL
+		let filename = id.split('?')[0].split('/').pop()
+		if(!filename){
+			filename = String(Math.random())
+		}
+		if(filename.length >= 42){ // Android filename length limit may be lower https://www.reddit.com/r/AndroidQuestions/comments/65o0ds/filename_50character_limit/
+			filename = this.md5(filename)
+		}
+		return global.streamer.opts.workDir +'/'+ global.sanitize(filename)
+	}
 	collectBitrateSample(chunk, offset, len, id = 'default'){
 		this.downloadLog(len)
 		if(this.committed && this.bitrates.length < this.opts.bitrateCheckingAmount && this.bitrateCheckFails < this.opts.maxBitrateCheckingFails){
 			if(typeof(this.bitrateCheckBuffer[id]) == 'undefined'){
-				let filename = id.split('?')[0].split('/').pop()
-				if(!filename){
-					filename = String(Math.random())
-				}
-				this.bitrateCheckBuffer[id] = new WriteQueueFile(global.streamer.opts.workDir +'/'+ global.sanitize(filename))
+				let file = this.bitrateSampleFilename(id)
+				this.bitrateCheckBuffer[id] = new WriteQueueFile(file)
 			}
 			this.bitrateCheckBuffer[id].write(chunk, offset)
 			if(this.bitrateCheckBuffer[id].written >= this.opts.maxBitrateCheckSize){

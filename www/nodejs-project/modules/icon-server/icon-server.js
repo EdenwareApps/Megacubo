@@ -387,7 +387,7 @@ class IconServer extends IconFetchSem {
             port: 0, // let the http.server sort
             downloadLimit: 2 * (1024 * 1024), // 2mb
             folder: './cache',
-            debug: true
+            debug: false
         }
 		if(opts){
 			Object.keys(opts).forEach((k) => {

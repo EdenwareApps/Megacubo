@@ -89,6 +89,7 @@
    "COMPLETE": "I plotë",
    "CONFIGURE": "Konfiguro",
    "CONNECTING": "Lidh",
+   "CONNECTION_FAILURE": "Lidhja dështon",
    "CONNECT_TIMEOUT": "Lidhni timout",
    "CONTINUE": "Vazhdoj",
    "COUNTRIES": "Shtese",

@@ -106,7 +106,7 @@ class History extends EntriesGroup {
                 }
                 return e
             })
-            global.channels.epgChannelsAddLiveNow(Object.values(epgAddLiveNowMap), true, false).then(entries => {
+            global.channels.epgChannelsAddLiveNow(Object.values(epgAddLiveNowMap), true).then(entries => {
                 const ks = Object.keys(epgAddLiveNowMap)
                 entries.forEach((e, i) => {
                     gentries[ks[i]] = e

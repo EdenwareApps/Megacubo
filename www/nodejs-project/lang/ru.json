@@ -89,6 +89,7 @@
    "COMPLETE": "Полный",
    "CONFIGURE": "Настроить",
    "CONNECTING": "Соединение",
+   "CONNECTION_FAILURE": "Сбой соединения",
    "CONNECT_TIMEOUT": "Подключите тайм-аут",
    "CONTINUE": "Продолжать",
    "COUNTRIES": "Стран",

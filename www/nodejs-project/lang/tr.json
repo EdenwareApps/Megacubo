@@ -89,6 +89,7 @@
    "COMPLETE": "Tamamlayınız",
    "CONFIGURE": "Yapılandır",
    "CONNECTING": "Bağlanıyor",
+   "CONNECTION_FAILURE": "Bağlantı başarısız",
    "CONNECT_TIMEOUT": "Bağlantı zaman aşımı",
    "CONTINUE": "Devam et",
    "COUNTRIES": "Ülkeler",

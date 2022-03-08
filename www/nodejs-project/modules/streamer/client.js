@@ -86,16 +86,20 @@ class StreamerOSD extends StreamerPlaybackTimeout {
                     osd.hide(this.osdID + '-sub')
                     osd.hide(this.osdID)
                     clearTimeout(this.transmissionNotWorkingHintTimer)
-                    this.transmissionNotWorkingHintTimer = setTimeout(() => {
-                        if(this.active){
-                            osd.hide(this.osdID)
-                            osd.show(lang.TRANSMISSION_NOT_WORKING_HINT.format('<i class=\"'+ config['tuning-icon'] +'\"></i>'), '', this.osdID + '-sub', 'persistent')
-                        }
-                    }, this.transmissionNotWorkingHintDelay)
+                    if(this.transcodeStarting){
+                        osd.show(lang.TRANSCODING_WAIT, 'fas fa-circle-notch fa-spin', this.osdID, 'persistent')
+                        osd.hide(this.osdID +'-sub')
+                    } else {
+                        this.transmissionNotWorkingHintTimer = setTimeout(() => {
+                            if(this.active){
+                                osd.hide(this.osdID)
+                                osd.show(lang.TRANSMISSION_NOT_WORKING_HINT.format('<i class=\"'+ config['tuning-icon'] +'\"></i>'), '', this.osdID +'-sub', 'persistent')
+                            }
+                        }, this.transmissionNotWorkingHintDelay)                    
+                    }
                     break
                 case 'playing':
                     clearTimeout(this.transmissionNotWorkingHintTimer)
-                    osd.hide('video-slow')
                     osd.hide(this.osdID + '-sub')
                     osd.hide(this.osdID)
                     if(!this.OSDNameShown){
@@ -200,8 +204,8 @@ class StreamerState extends StreamerCasting {
     constructor(controls, app){
         super(controls, app)
         this.state = ''
-        this.stateListener = (s, data) => {
-            if(s != this.state){
+        this.stateListener = (s, data, force) => {
+            if(s != this.state || force){
                 this.state = s
                 console.log('STREAMER-STATE', this.state)
                 switch(this.state){
@@ -495,7 +499,7 @@ class StreamerSpeedo extends StreamerIdle {
         let semSet, starting = !this.commitTime || (time() - this.commitTime) < 10
         let lowSpeedThreshold = (250 * 1024) /* 250kbps */, downlink = this.downlink(this.currentSpeed)
         if(this.invalidSpeeds.includes(this.currentSpeed)) {
-            this.speedoSemSet(1, lang.WAITING_CONNECTION)
+            this.speedoSemSet(1, this.transcodeStarting ? lang.TRANSCODING_WAIT : lang.WAITING_CONNECTION)
         } else {
             let t = ''
             if(this.bitrate && !this.invalidSpeeds.includes(this.bitrate)){
@@ -530,11 +534,14 @@ class StreamerSpeedo extends StreamerIdle {
                     semSet = 1
                 }
             }
+            if(this.transcodeStarting){
+                t = lang.TRANSCODING_WAIT                
+            }
             this.speedoSemSet(semSet, t)
         }
     }
     speedoSemSet(s, txt){
-        if(s !== this.currentSem){
+        if(s !== this.currentSem || this.transcodeStarting){
             const colors = ['green', 'orange', 'red']
             this.currentSem = s
             this.speedoLabel.innerHTML = txt
@@ -1434,12 +1441,28 @@ class StreamerClient extends StreamerClientController {
             this.data = data
             this.autoTuning = autoTuning
             console.warn('CONNECT', src, mimetype, cookie, mediatype, data, autoTuning)
+            parent.player.playbackRate(1)
             this.start(src, mimetype, cookie, mediatype)
             this.jbody.addClass('video video-loading')
             osd.hide('streamer')
         })
+        this.app.on('transcode-starting', state => { // used to wait for transcoding setup when supported codec is found on stream
+            console.warn('TRANSCODING', state)
+            this.transcodeStarting = state
+            if(state){
+                osd.hide('debug-conn-err')
+                osd.hide('streamer')
+            }
+            state = state ? 'loading' : this.state
+            this.stateListener(state, null, true)
+            this.speedoUpdate()
+        })
         this.app.on('streamer-connect-suspend', () => { // used to wait for transcoding setup when supported codec is found on stream
             this.unbindStateListener()
+            if(parent.player.current && parent.player.current.hls){
+                parent.player.current.hls.stopLoad()
+            }
+            parent.player.playbackRate(0)
             this.stateListener('loading')
         })
         this.app.on('streamer-disconnect', (err, autoTuning) => {

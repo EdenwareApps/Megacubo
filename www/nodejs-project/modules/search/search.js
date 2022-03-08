@@ -123,7 +123,7 @@ class Search extends Events {
                 name: u, 
                 url: global.mega.build(u, {terms, mediaType: this.searchMediaType})
             }
-            if(lists.manager.updatingLists){
+            if(global.lists.manager.updatingLists){
                 return resolve([global.lists.manager.updatingListsEntry()])
             }
             if(!global.activeLists.length){ // one list available on index beyound meta watching list
@@ -325,10 +325,12 @@ class Search extends Events {
     }
     hook(entries, path){
         return new Promise((resolve, reject) => {
-            if(path == global.lang.LIVE){
-                entries.unshift(this.entry('live'))
-            } else if(path == global.lang.VIDEOS){
-                entries.unshift(this.entry('all'))
+            if(!global.lists.manager.updatingLists && global.activeLists.length){
+                if(path == global.lang.LIVE){
+                    entries.unshift(this.entry('live'))
+                } else if(path == global.lang.VIDEOS){
+                    entries.unshift(this.entry('all'))
+                }
             }
             resolve(entries)
         })

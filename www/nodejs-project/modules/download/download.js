@@ -205,15 +205,17 @@ class Download extends Events {
 		if(this.ext(this.currentURL) == 'gz'){
 			this.opts.acceptRanges = false
 		}
-    	if(this.requestingRange){
-			let range = 'bytes='
-			range += (this.requestingRange.start + this.receivedUncompressed) + '-'
-			if(this.requestingRange.end){
-				range += this.requestingRange.end
+    	if(this.opts.acceptRanges) { // should include even bytes=0-
+			if(this.requestingRange){
+				let range = 'bytes='
+				range += (this.requestingRange.start + this.receivedUncompressed) + '-'
+				if(this.requestingRange.end){
+					range += this.requestingRange.end
+				}
+				requestHeaders.range = range // we dont know yet if the server support ranges, so check again on parseResponse
+			} else {
+				requestHeaders.range = 'bytes=' + this.receivedUncompressed + '-'
 			}
-			requestHeaders.range = range // we dont know yet if the server support ranges, so check again on parseResponse
-		} else if(this.opts.acceptRanges) { // should include even bytes=0-
-			requestHeaders.range = 'bytes=' + this.receivedUncompressed + '-'
 		} else {
 			if(this.received){ // here use received instead of receiveUncompressed
 				this.ignoreBytes = this.received // ignore data already received on last connection so
@@ -586,8 +588,12 @@ class Download extends Events {
 				if(this.opts.permanentErrorCodes.includes(response.statusCode)){
 					finalize = true
 				}
-				if(this.opts.acceptRanges && response.statusCode == 416){ // reached end, abort it
-					finalize = true
+				if(this.opts.acceptRanges && response.statusCode == 416){
+					if(this.received){
+						finalize = true // reached end, abort it
+					} else {
+						this.opts.acceptRanges = false // url doesn't supports ranges
+					}
 				}
 				if(finalize){
 					this.statusCode = response.statusCode

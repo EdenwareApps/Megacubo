@@ -134,7 +134,7 @@ class StreamerProxy extends StreamerProxyBase {
 					}
 				})
 			}
-			//console.warn('PRXBODY', body, parser.manifest, replaces)
+			console.warn('PRXBODY', body, parser.manifest, replaces)
 		}
 		return body
 	}
@@ -228,7 +228,8 @@ class StreamerProxy extends StreamerProxyBase {
 		}
 		const download = new global.Download({
 			url,
-			retries: 10,
+			retries: this.committed ? 10 : 3,
+			maxAuthErrors: this.committed ? 10 : 3,
 			headers: reqHeaders,
 			authURL: this.opts.authURL || false, 
 			keepalive,
@@ -263,7 +264,8 @@ class StreamerProxy extends StreamerProxyBase {
 				console.log('serving', url, err)
 			}
 			if(this.committed){
-				global.osd.show(global.streamer.humanizeFailureMessage(err.response ? err.response.statusCode : 'timeout'), 'fas fa-times-circle', 'debug-conn-err', 'normal')
+				// global.osd.show(global.streamer.humanizeFailureMessage(err.response ? err.response.statusCode : 'timeout'), 'fas fa-times-circle', 'debug-conn-err', 'normal')
+				global.osd.show(global.lang.CONNECTION_FAILURE +' ('+ (err.response ? err.response.statusCode : 'timeout') +')', 'fas fa-times-circle', 'debug-conn-err', 'normal')
 				if(this.opts.debug){
 					console.log('download err', err)
 				}
@@ -326,7 +328,8 @@ class StreamerProxy extends StreamerProxyBase {
 				}
 			} else {
 				if(this.committed && (!statusCode || statusCode < 200 || statusCode >= 400)){ // skip redirects
-					global.osd.show(global.streamer.humanizeFailureMessage(statusCode || 'timeout'), 'fas fa-times-circle', 'debug-conn-err', 'normal')
+					// global.osd.show(global.streamer.humanizeFailureMessage(statusCode || 'timeout'), 'fas fa-times-circle', 'debug-conn-err', 'normal')
+					global.osd.show(global.lang.CONNECTION_FAILURE +' ('+ (statusCode || 'timeout') +')', 'fas fa-times-circle', 'debug-conn-err', 'normal')
 				}
 				let location
 				headers['content-length'] = 0

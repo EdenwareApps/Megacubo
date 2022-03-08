@@ -54,6 +54,21 @@ class Any2HLS extends Events {
             })
         }
     }
+    verify(file, cb){
+        fs.readFile(file, (err, content) => {
+            if(err){
+                cb(false)
+            } else {
+                let sample = String(content)
+                console.error('VERIFY', sample, sample.split('.ts').length, sample.split('.m3u8').length)
+                if(sample.split('.ts').length < 4 && sample.split('.m3u8').length < 2){
+                    cb(false)
+                } else {
+                    cb(true)
+                }
+            }
+        })
+    }
     waitFile(file, timeout, m3u8Verify) {
         return new Promise((resolve, reject) => {
             if(!file){
@@ -100,27 +115,14 @@ class Any2HLS extends Events {
                     }
                 }
             }
-            const verify = cb => {
-                if(m3u8Verify === true){
-                    fs.readFile(file, (err, content) => {
-                        if(err || String(content).split('.ts').length < 4){
-                            cb(false)
-                        } else {
-                            cb(true)
-                        }
-                    })
-                } else {
-                    cb(true)
-                }
-            }
             try {
                 watcher = fs.watch(dir, (type, filename) => {
                     if(this.destroyed){
                         finish('destroyed')
-                    } else if (type === 'rename' && filename === basename) {
+                    } else if (filename === basename) {
                         fs.stat(file, (err, stat) => {
                             if(stat && stat.size){
-                                verify(fine => {
+                                this.verify(file, fine => {
                                     if(fine) finish()
                                 })
                             }
@@ -133,7 +135,7 @@ class Any2HLS extends Events {
             }
             fs.access(file, fs.constants.R_OK, err => {
                 if(!err){
-                    verify(fine => {
+                    this.verify(file, fine => {
                         if(fine) finish()
                     })
                 }
@@ -151,7 +153,7 @@ class Any2HLS extends Events {
                             if (err) {
                                 return finish('timeout')
                             }
-                            verify(fine => {
+                            this.verify(file, fine => {
                                 if(fine){
                                     finish()
                                 } else {
@@ -257,60 +259,7 @@ class Any2HLS extends Events {
             if(this.server){
                 return resolve()
             }
-            this.server = http.createServer((req, response) => {
-                const keepalive = this.committed && global.config.get('use-keepalive')
-				const file = this.unproxify(req.url.split('#')[0]), fail = err => {
-                    console.log('FFMPEG SERVE', err, file, this.destroyed)
-                    const headers = { 
-                        'access-control-allow-origin': '*',
-                        'content-length': 0,
-                        'connection': keepalive ? 'keep-alive' : 'close'
-                    }
-                    response.writeHead(404, headers)
-                    response.end()
-                }
-                if(this.destroyed){
-                    fail('destroyed')
-                } else {
-                    this.prepareFile(file).then(stat => {
-                        let headers = {
-                            'access-control-allow-origin': '*',
-                            'content-length': stat.size,
-                            'connection': keepalive ? 'keep-alive' : 'close',
-                            'cache-control': 'private, no-cache, no-store, must-revalidate',
-                            'expires': '-1',
-                            'pragma': 'no-cache'
-                        }
-                        let ctype = this.contentTypeFromExt(global.streamer.ext(file))
-                        if(ctype){
-                            headers['content-type'] =  ctype
-                        }
-                        let ended, stream = fs.createReadStream(file)
-                        response.writeHead(200, headers)
-                        if(this.listenerCount('data') && headers['content-type'] && headers['content-type'].substr(0, 6) == 'video/'){
-                            let offset = 0
-                            stream.on('data', chunk => {
-                                let len = chunk.length
-                                this.emit('data', req.url, chunk, len, offset)
-                                offset += len
-                            })
-                        }
-                        const end = () => {
-                            if(!ended){
-                                ended = true
-                                response.end()
-                                stream && stream.destroy()
-                            }
-                        }
-                        closed(req, response, () => {
-                            if(!ended){
-                                end()
-                            }
-                        })
-                        stream.pipe(response) 
-                    }).catch(fail)
-                }
-            }).listen(0, this.opts.addr, (err) => {
+            this.server = http.createServer(this.handleRequest.bind(this)).listen(0, this.opts.addr, (err) => {
                 if (err) {
                     return reject('unable to listen on any port')
                 }
@@ -322,13 +271,80 @@ class Any2HLS extends Events {
                     return reject('destroyed')
                 }
                 this.opts.port = this.server.address().port
-                this.endpoint = this.proxify(this.decoder.file)
-                console.log('FFMPEG SERVE', this.decoder.file)
-                this.emit('ready')
-                resolve()
+                this.verify(this.decoder.file, fine => {
+                    this.endpoint = this.proxify(fine ? this.decoder.file : this.decoder.playlist) // happened with a plutotv stream that the master playlist got empty while playlist was functional
+                    console.log('FFMPEG SERVE', this.decoder.file)
+                    this.emit('ready')
+                    resolve()
+                })
             })
         })
     }
+    handleRequest(req, response){
+        const file = this.unproxify(req.url.split('#')[0]), fail = err => {
+            console.log('FFMPEG SERVE', err, file, this.destroyed)
+            const headers = { 
+                'access-control-allow-origin': '*',
+                'content-length': 0,
+                'connection': 'close'
+            }
+            response.writeHead(404, headers)
+            response.end()
+        }
+        if(this.destroyed){
+            fail('destroyed')
+        } else {
+            this.prepareFile(file).then(stat => {
+                let headers = {
+                    'access-control-allow-origin': '*',
+                    'content-length': stat.size,
+                    'connection': 'close',
+                    'cache-control': 'private, no-cache, no-store, must-revalidate',
+                    'expires': '-1',
+                    'pragma': 'no-cache'
+                }
+                let ctype = this.contentTypeFromExt(global.streamer.ext(file))
+                if(ctype){
+                    headers['content-type'] =  ctype
+                }
+                let ended, stream = fs.createReadStream(file)
+                response.writeHead(200, headers)
+                if(this.listenerCount('data') && headers['content-type'] && headers['content-type'].substr(0, 6) == 'video/'){
+                    let offset = 0
+                    stream.on('data', chunk => {
+                        let len = chunk.length
+                        this.emit('data', req.url, chunk, len, offset)
+                        offset += len
+                    })
+                }
+                const end = () => {
+                    if(!ended){
+                        ended = true
+                        response.end()
+                        stream && stream.destroy()
+                    }
+                }
+                closed(req, response, () => {
+                    if(!ended){
+                        end()
+                    }
+                })
+                stream.pipe(response) 
+            }).catch(fail)
+        }
+    }
+	addCodecData(codecData){
+		if(!this.codecData){
+			this.codecData = {audio: '', video: ''}
+		};
+		['audio', 'video'].forEach(type => {
+			if((!this.codecData[type] || this.codecData[type] == 'unknown') && codecData[type]){
+				this.codecData[type] = codecData[type]
+			}
+		});
+        this.emit('codecData', this.codecData)
+		return this.codecData
+	}
     start(restarting){
         return new Promise((resolve, reject) => {
             const startTime = global.time()
@@ -350,7 +366,7 @@ class Any2HLS extends Events {
                 // cores = Math.min(require('os').cpus().length, 2), 
                 // fragTime=2 to start playing asap, it will generate 3 segments before create m3u8, so hls_init_time isn't enough
                 // fragTime=1 may cause manifestParsingError "invalid target duration" on hls.js
-                let fragTime = 2, lwt = global.config.get('live-window-time')
+                let fragTime = 3, lwt = global.config.get('live-window-time')
                 if(typeof(lwt) != 'number'){
                     lwt = 120
                 } else if(lwt < 30) { // too low will cause isBehindLiveWindowError
@@ -365,8 +381,9 @@ class Any2HLS extends Events {
                 }
                 this.decoder = global.ffmpeg.create(this.source).
                     
+                    
                     /* cast fix try
-                    inputOptions('-use_wallclock_as_timestamp', 1). // using it the hls fragments on a hls got #EXT-X-TARGETDURATION:0 and the m3u8 wont load
+                    inputOptions('-use_wallclock_as_timestamps', 1). // using it the hls fragments on a hls got #EXT-X-TARGETDURATION:0 and the m3u8 wont load
                     inputOptions('-fflags +genpts').
                     outputOptions('-vsync', 1).
                     inputOptions('-r').
@@ -383,7 +400,8 @@ class Any2HLS extends Events {
                     outputOptions('-x264opts', 'vbv-bufsize=50000:vbv-maxrate=50000:nal-hrd=vbr').
                     cast fix try end */
 
-                    inputOptions('-fflags', '+genpts+igndts').
+                    //inputOptions('-fflags', '+genpts+igndts').
+                    inputOptions('-fflags', '+igndts'). // genpts was messing the duration of s hls adding "fake hours" on hls.js #wtf
                     outputOptions('-hls_flags', hlsFlags). // ?? https://www.reddit.com/r/ffmpeg/comments/e9n7nb/ffmpeg_not_deleting_hls_segments/
                     outputOptions('-hls_time', fragTime).
                     outputOptions('-hls_list_size', hlsListSize).
@@ -421,8 +439,8 @@ class Any2HLS extends Events {
                 if(this.opts.videoCodec == 'libx264') {
                     /* HTML5 compat start */
                     this.decoder.
-                    outputOptions('-profile:v', this.opts.vprofile).
                     outputOptions('-shortest').
+                    outputOptions('-profile:v', this.opts.vprofile || 'baseline').
                     outputOptions('-pix_fmt', 'yuv420p').
                     outputOptions('-preset:v', 'ultrafast').
                     outputOptions('-movflags', '+faststart').
@@ -463,9 +481,10 @@ class Any2HLS extends Events {
                         inputOptions('-reconnect_streamed', 1).
                         inputOptions('-reconnect_delay_max', 20)
                     this.decoder.
-                        inputOptions('-icy', 0).
+                        inputOptions('-icy', 0)
+                        
                         // inputOptions('-seekable', -1).
-                        inputOptions('-multiple_requests', 1)
+                        // inputOptions('-multiple_requests', 1) // will connect to 127.0.0.1 internal proxy
                     if(this.agent){
                         this.decoder.inputOptions('-user_agent', this.agent) //  -headers ""
                     }
@@ -515,15 +534,14 @@ class Any2HLS extends Events {
                     this.emit('bitrate', bitrate)
                 }).
                 on('codecData', codecData => {
-                    this.codecData = codecData
-                    this.emit('codecData', codecData)
+                    this.addCodecData(codecData)
                     let transcode
                     if(!global.cordova){
-                        if(codecData.video && codecData.video.match(new RegExp('(hevc|mpeg2video|mpeg4)')) && this.opts.videoCodec != 'libx264'){
+                        if(this.codecData.video && this.codecData.video.match(new RegExp('(hevc|mpeg2video|mpeg4)')) && this.opts.videoCodec != 'libx264'){
                             transcode = true
                             this.opts.videoCodec = 'libx264'
                         }
-                        if(codecData.audio && codecData.audio.match(new RegExp('(ac3)')) && this.opts.audioCodec != 'aac'){
+                        if(this.codecData.audio && this.codecData.audio.match(new RegExp('(ac3)')) && this.opts.audioCodec != 'aac'){
                             transcode = true
                             this.opts.videoCodec = 'aac'
                         }
@@ -540,7 +558,11 @@ class Any2HLS extends Events {
                             }
                         } else {
                             this.waitFile(this.decoder.playlist, this.timeout, true).then(() => {
-                                this.serve().then(resolve).catch(reject)
+                                console.error('CONTENTS', String(fs.readFileSync(this.decoder.playlist)), String(fs.readFileSync(this.decoder.file)))
+                                this.serve().then(resolve).catch(err => {
+                                    reject(err)
+                                    this.decoder.kill()
+                                })
                             }).catch(e => {
                                 console.error('waitFile failed', this.timeout, e)
                                 if(e.indexOf('timeout') != -1){

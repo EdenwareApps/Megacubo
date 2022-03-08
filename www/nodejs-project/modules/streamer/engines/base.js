@@ -47,6 +47,18 @@ class StreamerBaseIntent extends Events {
 		}
 		return this.adapters.some(a => a.isTranscoding && a.isTranscoding())
     }
+    getTranscodingCodecs(){
+        const opts = {audioCodec: 'aac', videoCodec: 'libx264'}
+        if(this.codecData){            
+            if(this.codecData.video && this.codecData.video.indexOf('h264') != -1){
+                opts.videoCodec = 'copy'
+            }
+            if(this.codecData.audio && this.codecData.audio.indexOf('aac') != -1){
+                opts.audioCodec = 'copy'
+            }
+        }
+        return opts
+    }
     setOpts(opts){
         if(opts && typeof(opts) == 'object'){     
             Object.keys(opts).forEach((k) => {
@@ -68,19 +80,8 @@ class StreamerBaseIntent extends Events {
 			}
         })
         adapter.on('codecData', codecData => {
-			if(codecData && this.codecData != codecData){
-                if(this.codecData){
-                    const badCodecs = ['', 'unknown']
-                    if(badCodecs.includes(codecData.video)){
-                        codecData.video = this.codecData.video
-                    }
-                    if(badCodecs.includes(codecData.audio)){
-                        codecData.audio = this.codecData.audio
-                    }
-                }
-				this.codecData = codecData
-				this.emit('codecData', this.codecData)
-			}
+            this.codecData = adapter.codecData
+			this.emit('codecData', this.codecData)
         })
         adapter.on('speed', speed => {
 			if(speed > 0 && this.currentSpeed != speed){
@@ -88,6 +89,7 @@ class StreamerBaseIntent extends Events {
 			}
         })
         adapter.on('fail', this.failListener)
+		adapter.on('streamer-connect', () => this.emit('streamer-connect'))
         this.on('commit', () => {
             adapter.emit('commit')
             if(!adapter.committed){
@@ -118,6 +120,10 @@ class StreamerBaseIntent extends Events {
     disconnectAdapter(adapter){
         adapter.removeListener('fail', this.failListener);
         ['dimensions', 'codecData', 'bitrate', 'speed', 'commit', 'uncommit'].forEach(n => adapter.removeAllListeners(n))
+        let pos = this.adapters.indexOf(adapter)
+		if(pos != -1){
+			this.adapters.splice(pos, 1)
+		}
     }
     onFail(err){
         if(!this.destroyed){

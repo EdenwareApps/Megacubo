@@ -204,7 +204,7 @@ if(window.cordova){
 		console.log('Node main script loaded.')
 		if (err) {
 			log(String(err))
-		} 	
+		}
 	})
 } else {
 	class Channel extends EventEmitter {

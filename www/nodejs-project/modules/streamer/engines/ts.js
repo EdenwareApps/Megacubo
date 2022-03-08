@@ -4,56 +4,13 @@ class StreamerTSIntent extends StreamerBaseIntent {
     constructor(data, opts, info){
         console.log('TSOPTS', opts)
         opts = Object.assign(opts, {
-            audioCodec: global.config.get('ffmpeg-audio-repair') ? 
-                'aac' : // force audio recode for TS to prevent playback hangs
-                'copy' // aac disabled for performance
+            audioCodec: 'copy'
         })
         super(data, opts, info)
         this.type = 'ts'
         this.mimetype = this.mimeTypes.hls
         this.mediaType = 'live'
     }  
-    transcode(){ 
-        return new Promise((resolve, reject) => {
-            this.resetTimeout()
-            this.transcoderStarting = true
-            this.transcoder = true
-            if(this.downloader){
-                this.disconnectAdapter(this.downloader)
-                this.downloader.destroy()
-            }
-            if(this.ts2hls){
-                this.disconnectAdapter(this.ts2hls)
-                this.ts2hls.destroy()
-            }
-            delete this.opts.videoCodec
-            delete this.opts.audioCodec
-            this.downloader = new StreamerAdapterTS(this.data.url, this.opts)
-            this.connectAdapter(this.downloader)
-            this.downloader.start().then(() => {
-                let opts = {
-                    audioCodec: 'aac',
-                    videoCodec: 'libx264',
-                    workDir: this.opts.workDir, 
-                    debug: this.opts.debug
-                }
-                this.transcoder = new Any2HLS(this.downloader.source.endpoint, opts)
-                this.connectAdapter(this.transcoder)
-                this.transcoder.start().then(() => {
-                    this.transcoderStarting = false
-                    this.endpoint = this.transcoder.endpoint
-                    resolve()
-                    this.emit('transcode-started')
-                }).catch(e => {                
-                    this.transcoderStarting = false
-                    reject(e)
-                })
-            }).catch(e => {
-                this.transcoderStarting = false
-                reject(e)
-            })
-        })
-    }
     _start(){ 
         return new Promise((resolve, reject) => {
             this.downloader = new StreamerAdapterTS(this.data.url, Object.assign({authURL: this.data.source}, this.opts))

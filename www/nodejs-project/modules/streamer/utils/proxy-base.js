@@ -87,7 +87,9 @@ class StreamerProxyBase extends StreamerAdapterBase {
 	}
 	getMediaType(headers, url){
 		let type = '', minSegmentSize = 96 * 1024
-		if(typeof(headers['content-type']) != 'undefined' && (headers['content-type'].indexOf('video/') != -1 || headers['content-type'].indexOf('audio/') != -1)){
+		if(typeof(headers['content-length']) != 'undefined' && parseInt(headers['content-length']) >= minSegmentSize && this.ext(url) == 'ts') { // a ts was being sent with m3u8 content-type
+			type = 'video'
+		} else if(typeof(headers['content-type']) != 'undefined' && (headers['content-type'].indexOf('video/') != -1 || headers['content-type'].indexOf('audio/') != -1)){
 			type = 'video'
 		} else if(typeof(headers['content-type']) != 'undefined' && headers['content-type'].toLowerCase().indexOf('linguist') != -1){ // .ts bad mimetype "text/vnd.trolltech.linguist"
 			type = 'video'
@@ -100,6 +102,7 @@ class StreamerProxyBase extends StreamerAdapterBase {
 		} else if(typeof(headers['content-type']) != 'undefined' && headers['content-type'] == 'application/octet-stream') { // force download video header
 			type = 'video'
 		}
+		console.warn('MEDIATYPE', type, headers, url)
 		return type
 	}
 	addCachingHeaders(headers, secs){		

@@ -442,6 +442,11 @@ class StreamerBase extends StreamerTools {
 			}
 		})
 	}
+	retry(){		
+		console.warn('RETRYING')
+		let data = this.active ? this.active.data : this.lastActiveData
+		if(data) this.play(data)
+	}
 	commit(intent){
 		if(intent && this.active != intent){
 			if(this.opts.debug){
@@ -485,15 +490,18 @@ class StreamerBase extends StreamerTools {
 				this.handleFailure(intent.data, err)
 			})
 			intent.on('codecData', codecData => {
-				if(!global.cordova && !global.config.get('ffmpeg-hls')){
-					if(codecData.video && codecData.video.match(new RegExp('(hevc|mpeg2video|mpeg4)')) && this.opts.videoCodec != 'libx264'){
-						return intent.fail('unsupported format')						
-					}
-				}
 				if(codecData && intent == this.active){
 					global.ui.emit('codecData', codecData)
 				}
+				if(!global.cordova && !intent.isTranscoding()){
+					if(codecData.video && codecData.video.match(new RegExp('(hevc|mpeg2video|mpeg4)')) && intent.opts.videoCodec != 'libx264'){
+						this.transcode(null, err => {
+							if(err) intent.fail('unsupported format')
+						})
+					}
+				}
 			})
+			intent.on('streamer-connect', () => this.connect())
 			if(intent.codecData){
 				intent.emit('codecData', intent.codecData)
 			}
@@ -515,8 +523,28 @@ class StreamerBase extends StreamerTools {
 			if(!this.opts.shadow){
 				global.osd.hide('streamer')
 			}
+			console.warn('STREAMER COMMIT'+ this.connect(intent).url)
 			return true
 		}
+	}
+	connect(intent){
+		if(!intent) intent = this.active
+		let data = intent.data
+		data.engine = intent.type
+		if(data.icon){
+			data.originalIcon = data.icon
+			data.icon = global.icons.url + global.icons.key(data.icon)
+		} else {
+			data.icon = global.icons.url + global.channels.entryTerms(data).join(',')
+		}
+		this.emit('streamer-connect', intent.endpoint, intent.mimetype, data)
+		if(intent.transcoderStarting){
+			global.ui.emit('streamer-connect-suspend')
+		}
+		if(!this.opts.shadow){
+			global.osd.hide('streamer')
+		}
+		return data
 	}
 	transcode(intent, _cb, silent){
 		let transcoding = global.config.get('transcoding')
@@ -545,25 +573,21 @@ class StreamerBase extends StreamerTools {
 				console.warn('Transcoding started')
 				if(!silent){
 					global.ui.emit('streamer-connect-suspend')
-					global.osd.show(global.lang.TRANSCODING_WAIT, 'fa-mega spin-x-alt', 'transcode', 'persistent')
+					global.ui.emit('transcode-starting', true)
 				}
 				intent.transcode().then(() => {
 					this.emit('streamer-connect', intent.endpoint, intent.mimetype, intent.data)
-					if(!silent){
-						global.osd.hide('transcode')
-					}
 					cb(null, intent.transcoder)
 				}).catch(err => {
 					if(this.active){
 						console.error(err)
 						cb(err)
 						if(!silent){
-							global.osd.show(String(err), 'fas fa-times-circle faclr-red', 'transcode', 'normal')
 							intent.fail('unsupported format')
 						}
-					} else {
-						global.osd.hide('transcode')
 					}
+				}).finally(() => {
+					global.ui.emit('transcode-starting', false)					
 				})
 			}
 			return true

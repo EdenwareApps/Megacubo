@@ -301,7 +301,8 @@ class Downloader extends StreamerAdapterBase {
 			} else {
 				download.end()
 				if(this.committed && (!statusCode || statusCode < 200 || statusCode >= 400)){ // skip redirects
-					global.osd.show(global.streamer.humanizeFailureMessage(statusCode || 'timeout'), 'fas fa-times-circle', 'debug-conn-err', 'normal')
+					//global.osd.show(global.streamer.humanizeFailureMessage(statusCode || 'timeout'), 'fas fa-times-circle', 'debug-conn-err', 'normal')
+					global.osd.show(global.lang.CONNECTION_FAILURE +' ('+ (statusCode || 'timeout') +')', 'fas fa-times-circle', 'debug-conn-err', 'normal')				
 				}
 				this.internalError(statusCode)
 				if(statusCode){

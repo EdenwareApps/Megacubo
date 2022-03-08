@@ -152,7 +152,7 @@ class Bookmarks extends EntriesGroup {
                 }
                 return e
             })
-            global.channels.epgChannelsAddLiveNow(Object.values(epgAddLiveNowMap), false, false).then(entries => {
+            global.channels.epgChannelsAddLiveNow(Object.values(epgAddLiveNowMap), false).then(entries => {
                 const ks = Object.keys(epgAddLiveNowMap)
                 entries.forEach((e, i) => {
                     gentries[ks[i]] = e
