@@ -499,7 +499,7 @@ class IconServer extends IconFetchSem {
         if(!global.config.get('show-logos')){
             return
         }
-        if(path == global.explorer.path){
+        if(path == global.explorer.path && Array.isArray(global.explorer.pages[path])){
             range = this.addRenderTolerance(range, global.explorer.pages[path].length)
             if(path != this.renderingPath){
                 Object.keys(this.rendering).forEach(i => {

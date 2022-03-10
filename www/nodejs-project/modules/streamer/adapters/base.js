@@ -63,7 +63,7 @@ class StreamerAdapterBase extends Events {
 			this.codecData = {audio: '', video: ''}
 		};
 		['audio', 'video'].forEach(type => {
-			if((!this.codecData[type] || this.codecData[type] == 'unknown') && codecData[type]){
+			if(codecData[type]){
 				this.codecData[type] = codecData[type]
 			}
 		})

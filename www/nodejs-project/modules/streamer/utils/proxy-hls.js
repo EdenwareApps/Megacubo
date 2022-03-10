@@ -226,9 +226,7 @@ Stream #0:2[0x1f4]: Data: scte_35
 			const processor = new MPEGTSPacketProcessor()
 			processor.joining = false 
 			processor.packetFilterPolicy = this.packetFilterPolicy
-			request.on('data', chunk => {
-				processor.push(chunk)
-			})
+			request.on('data', chunk => processor.push(chunk))
 			request.once('end', () => {
 				processor.flush(true)
 				processor.destroy()
@@ -260,7 +258,8 @@ Stream #0:2[0x1f4]: Data: scte_35
 				return cb()
 			}
 			if(request.contentLength && request.contentLength > request.received){
-				if(request.received && request.statusCode == 404){
+				const minSegmentSize = 96 * 1024
+				if(request.received > minSegmentSize && (request.statusCode == 404 || request.retryCount > 5)){
 					console.warn('incomplete download request '+ request.received +' < '+ request.contentLength, request, headers)
 					// segment was deleted on server while downloading, so release what we got
 					// fix content-length so
@@ -300,6 +299,7 @@ Stream #0:2[0x1f4]: Data: scte_35
 			}
 			const next = (err, size) => {
 				if(err) console.error(err)
+				if(this.destroyed || !this.requestCacheMap[url]) return
 				if(size === null) size = bytesWritten
 				headers['content-length'] = size
 				fs.writeFile(this.requestCacheDir + this.requestCacheMap[url].headersFile, JSON.stringify({status, headers}), {}, () => {
@@ -327,8 +327,8 @@ Stream #0:2[0x1f4]: Data: scte_35
 				}
 				if(typeof(this.playlistBitrates[url]) != 'undefined' && typeof(this.playlistBitratesSaved[url]) == 'undefined'){
 					this.playlistBitratesSaved[url] = true
-					let ns = Object.values(this.playlistBitrates)
-					this.bitrates = this.bitrates.filter(b => !ns.includes(n))
+					let bs = Object.values(this.playlistBitrates)
+					this.bitrates = this.bitrates.filter(b => !bs.includes(b))
 					this.saveBitrate(this.playlistBitrates[url])
 				}
 				headers = this.removeHeaders(headers, ['content-length']) // we'll change the content
@@ -368,8 +368,10 @@ Stream #0:2[0x1f4]: Data: scte_35
 			const file = this.requestCacheDir + this.requestCacheMap[url].file
 			const sendFailure = () => {
 				headers['content-length'] = 0
-				this.requestCacheMap[url].clients.forEach(client => client.fail(status, headers))
-				delete this.requestCacheMap[url]
+				if(this.requestCacheMap[url]){ // not deleted elsewhere
+					this.requestCacheMap[url].clients.forEach(client => client.fail(status, headers))
+					delete this.requestCacheMap[url]
+				}
 				next()
 			}
 			fs.stat(file, (err, stat) => {
@@ -831,8 +833,16 @@ class StreamerProxyHLS extends HLSRequests {
 	proxifyM3U8(body, baseUrl, url, cb){
 		body = body.trim()
 		let parser = new m3u8Parser.Parser(), replaces = {}, u
-		parser.push(body)
-		parser.end()
+		try{ 
+			parser.push(body)
+			parser.end()
+		} catch(e) {
+			/*
+			TypeError: Cannot read property 'slice' of null
+    at parseAttributes (/data/data/tv.megacubo.app/files/www/nodejs-project/node_modules/m3u8-parser/dist/m3u8-parser.cjs.js:115:41)
+			*/
+			console.error(e)
+		}
 		if(this.opts.debug){
 			console.log('M3U8 PARSED', baseUrl, url, parser)
 		}
@@ -1143,6 +1153,7 @@ class StreamerProxyHLS extends HLSRequests {
 		download.start()
 	}
 	handleResponse(download, statusCode, headers, response, end){
+		let closed
 		if(!response.headersSent){
 			response.writeHead(statusCode, headers)
 			if(this.opts.debug){
@@ -1151,8 +1162,13 @@ class StreamerProxyHLS extends HLSRequests {
 		}
         // console.log('handleResponse', headers)
 		download.on('data', chunk => {
-			if(global.isWritable(response)){
-				response.write(chunk)
+			if(global.isWritable(response) && !closed){
+				try {
+					response.write(chunk)
+				} catch(e){
+					console.error(e)
+					closed = true
+				}
 			}
 		})
 		download.once('end', () => end())

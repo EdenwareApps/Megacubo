@@ -93,7 +93,7 @@ class StreamerOSD extends StreamerPlaybackTimeout {
                         this.transmissionNotWorkingHintTimer = setTimeout(() => {
                             if(this.active){
                                 osd.hide(this.osdID)
-                                osd.show(lang.TRANSMISSION_NOT_WORKING_HINT.format('<i class=\"'+ config['tuning-icon'] +'\"></i>'), '', this.osdID +'-sub', 'persistent')
+                                osd.show(lang.BROADCAST_NOT_WORKING_HINT.format('<i class=\"'+ config['tuning-icon'] +'\"></i>'), '', this.osdID +'-sub', 'persistent')
                             }
                         }, this.transmissionNotWorkingHintDelay)                    
                     }
@@ -104,7 +104,7 @@ class StreamerOSD extends StreamerPlaybackTimeout {
                     osd.hide(this.osdID)
                     if(!this.OSDNameShown){
                         this.OSDNameShown = true
-                        osd.show(lang.TRANSMISSION_NOT_WORKING_HINT.format('<i class=\"'+ config['tuning-icon'] +'\"></i>'), '', this.osdID +'-sub', 'normal')
+                        osd.show(lang.BROADCAST_NOT_WORKING_HINT.format('<i class=\"'+ config['tuning-icon'] +'\"></i>'), '', this.osdID +'-sub', 'normal')
                         osd.show(this.data.name, this.data.icon || '', this.osdID, 'normal')
                     }
                     break
@@ -246,10 +246,12 @@ class StreamerState extends StreamerCasting {
         if(!parent.player.listeners('state').includes(this.stateListener)){
             parent.player.on('state', this.stateListener)
         }
+        this.stateListening = true
     } 
     unbindStateListener(){
         console.log('STREAMER-UNBINDSTATELISTENER')
         parent.player.removeListener('state', this.stateListener)
+        this.stateListening = false
     }
     playOrPause(){
         if(this.active){
@@ -1262,9 +1264,8 @@ class StreamerClientControls extends StreamerAudioUI {
             this.stop()
         })
         this.setupVolume()
-        this.addPlayerButton('tune', lang.PLAYALTERNATE, config['tuning-icon'], -1, () => {
-            this.stop()
-            this.app.emit('tune')
+        this.addPlayerButton('tune', lang.RETRY, config['tuning-icon'], -1, () => {
+            this.app.emit('reload-dialog')
         })
         this.addPlayerButton('ratio', lang.ASPECT_RATIO, 'fas fa-expand-alt', -1, () => {
             this.switchAspectRatio()
@@ -1399,7 +1400,7 @@ class StreamerClient extends StreamerClientController {
         this.bind()
     }
     errorCallback(src, mimetype){
-        if(this.autoTuning && mimetype.indexOf('video/') == -1){ // seems live
+        if(this.autoTuning && !this.transcodeStarting && this.stateListening && mimetype.indexOf('video/') == -1){ // seems live
             explorer.dialog([
                 {template: 'question', text: '', fa: 'fas fa-question-circle'},
                 {template: 'option', text: lang.PLAYALTERNATE, id: 'tune', fa: config['tuning-icon']},
@@ -1425,13 +1426,6 @@ class StreamerClient extends StreamerClientController {
         this.app.on('pause', () => {
             console.warn('PAUSE')
             parent.player.pause()
-        })
-        this.app.on('tuneable', enable => {
-            console.log('TUNEABLE', enable)
-            let b = this.controls.querySelector('button.tune')
-            if(b){
-                b.style.display = enable ? 'inherit' : 'none'
-            }
         })
         this.app.on('streamer-connect', (src, mimetype, cookie, mediatype, data, autoTuning) => {
             this.bindStateListener()

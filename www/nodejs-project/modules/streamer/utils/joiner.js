@@ -10,9 +10,8 @@ class Joiner extends Downloader {
 		this.joinerDestroyed = false
 		this.delayUntil = 0
 		this.processor = new MPEGTSPacketProcessor()
-		this.processor.on('data', data => {
-			this.output(data)
-		})
+		this.processor.on('data', data => this.output(data))
+		this.processor.on('fail', () => this.emit('fail'))
 		this.on('bitrate', bitrate => {
 			let idealBufferSize = 3 * bitrate
 			if(this.processor.bufferSize < idealBufferSize){

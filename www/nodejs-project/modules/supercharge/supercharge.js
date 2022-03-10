@@ -218,9 +218,26 @@ function patch(scope){
 	scope.time = () => {
 		return ((new Date()).getTime() / 1000)
 	}
-	scope.isVODM3U8 = content => {
+	scope.isVODM3U8 = (content, contentLength) => {
         let sample = String(content).toLowerCase()
-        return sample.indexOf('#ext-x-playlist-type:vod') != -1 || sample.indexOf('#ext-x-endlist') != -1
+		if(sample.indexOf('#ext-x-playlist-type:vod') != -1) return true
+		let pe = sample.indexOf('#ext-x-endlist')
+		let px = sample.lastIndexOf('#extinf')
+		if(pe != -1){
+			return pe > px
+		}
+		let pieces = sample.split('#extinf')
+		if(pieces.length > 30){
+			return true
+		}
+		if(typeof(contentLength) == 'number' && pieces.length > 2){ //  at least 3 pieces, to ensure that the first extinf is complete
+			let header = pieces.shift()
+			let pieceLen = pieces[0].length + 7
+			let totalEstimatedPieces = (contentLength - header.length) / pieceLen
+			if(totalEstimatedPieces > 30){
+				return true
+			}
+		}
 	}
 	scope.filenameFromURL = (url, defaultExt = 'mp4') => {
 		let filename = url.split('?')[0].split('/').filter(s => s).pop()

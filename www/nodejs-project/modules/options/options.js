@@ -722,7 +722,8 @@ class Options extends OptionsExportImport {
         global.ui.emit('clear-cache')
         global.streamer.stop()
         if(global.tuning){
-            global.tuning.stop()
+            global.tuning.destroy()
+            global.tuning = null
         }
         let folders = [global.storage.folder, global.paths.temp, global.icons.opts.folder]
         async.eachOf(folders, (folder, i, done) => {

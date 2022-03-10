@@ -105,6 +105,13 @@ class StreamerHLSIntent extends StreamerBaseIntent {
         this.trackUrl = this.data.url
         this.trackSelector = new HLSTrackSelector()
     }
+    getTranscodingOpts(){
+        return Object.assign({
+            workDir: this.opts.workDir, 
+            authURL: this.data.source,
+            debug: this.opts.debug
+        }, this.getTranscodingCodecs())
+    }
     transcode(){
         return new Promise((resolve, reject) => {
             this.resetTimeout()
@@ -113,11 +120,7 @@ class StreamerHLSIntent extends StreamerBaseIntent {
             this.prx.destroy()
             this.trackSelector.select(this.data.url).then(ret => {
                 this.resetTimeout()
-                let resolved, opts = Object.assign({
-                    workDir: this.opts.workDir, 
-                    authURL: this.data.source,
-                    debug: this.opts.debug
-                }, this.getTranscodingCodecs())
+                let resolved, opts = this.getTranscodingOpts()
                 this.trackUrl = ret.url     
                 console.log('TRACKS', this.trackUrl, ret, this.trackSelector.tracks)
                 this.prx = new StreamerProxy(Object.assign({authURL: this.data.source}, this.opts))
@@ -186,7 +189,7 @@ StreamerHLSIntent.mediaType = 'live'
 StreamerHLSIntent.supports = info => {
     if(info.sample){
         if(String(info.sample).match(new RegExp('#ext(m3u|inf)', 'i'))){
-            if(global.isVODM3U8(info.sample)){
+            if(global.isVODM3U8(info.sample, info.contentLength)){
                 return false // is vodhls
             } else {
                 return true

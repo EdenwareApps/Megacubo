@@ -417,6 +417,36 @@ function init(language){
                     break
             }
         })
+        ui.on('reload', ret => {
+            console.log('reload', ret)
+            switch(ret){
+                case 'agree':
+                    break
+                default:
+                    lists.manager.addList(ret).then(() => {}).catch(err => {
+                        lists.manager.check()
+                    })
+                    break
+            }
+        })
+        ui.on('reload-dialog', () => {
+            console.log('reload-dialog')
+            let opts = [{template: 'question', text: lang.RELOAD}], def = 'retry'
+            let isCH = streamer.active.type != 'video' && channels.isChannel(streamer.active.data.terms ? streamer.active.data.terms.name : streamer.active.data.name)
+            if(isCH){
+                opts.push({template: 'option', text: lang.PLAYALTERNATE, fa: config.get('tuning-icon'), id: 'try-other'})
+                def = 'try-other'
+            }
+            opts.push({template: 'option', text: lang.RELOAD_THIS_BROADCAST, fa: 'fas fa-redo', id: 'retry'})
+            if(typeof(streamer.active.transcode) == 'function' && !streamer.active.isTranscoding()){
+                opts.push({template: 'option', text: lang.TRANSCODE, fa: 'fas fa-film', id: 'transcode'})
+            }
+            if(opts.length > 2){
+                ui.emit('dialog', opts, 'video-error-timeout-callback', def)
+            } else { // only reload actionm is available
+                streamer.retry()
+            }
+        })
         ui.on('testing-stop', () => {
             console.warn('TESTING STOP')
             streamState.cancelTests()
@@ -444,14 +474,14 @@ function init(language){
             if(streamer.active && !streamer.active.isTranscoding()){
                 console.error('VIDEO ERROR', type, errData)
                 if(type == 'timeout'){
-                    let opts = [{template: 'question', text: lang.SLOW_TRANSMISSION}], def = 'wait'
-                    let isCH = streamer.active.type != 'video' && channels.isChannel(streamer.active.data.terms.name)
+                    let opts = [{template: 'question', text: lang.SLOW_BROADCAST}], def = 'wait'
+                    let isCH = streamer.active.type != 'video' && channels.isChannel(streamer.active.data.terms ? streamer.active.data.terms.name : streamer.active.data.name)
                     if(isCH){
                         opts.push({template: 'option', text: lang.PLAYALTERNATE, fa: config.get('tuning-icon'), id: 'try-other'})
                         def = 'try-other'
                     }
+                    opts.push({template: 'option', text: lang.RELOAD_THIS_BROADCAST, fa: 'fas fa-redo', id: 'retry'})
                     opts.push({template: 'option', text: lang.WAIT, fa: 'fas fa-clock', id: 'wait'})
-                    opts.push({template: 'option', text: lang.RETRY, fa: 'fas fa-clock', id: 'retry'})
                     if(!isCH){
                         opts.push({template: 'option', text: lang.STOP, fa: 'fas fa-stop', id: 'stop'})                        
                     }
@@ -471,6 +501,8 @@ function init(language){
                 streamer.handleFailure(null, 'timeout', true, true)
             } else if(ret == 'retry') {
                 streamer.retry()
+            } else if(ret == 'transcode') {
+                streamer.transcode()
             } else if(ret == 'stop') {
                 streamer.stop()
             } else {

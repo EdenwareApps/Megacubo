@@ -766,7 +766,7 @@ class ChannelsEditing extends ChannelsEPG {
                             console.log('ADDING')
                             let targetPath = global.explorer.path
                             if(inline !== true){
-                                targetPath = dirname(targetPath)
+                                targetPath = global.explorer.dirname(targetPath)
                             }
                             global.explorer.deepRefresh()
                             global.osd.show(global.lang.CHANNEL_ADDED, 'fas fa-check-circle', 'channels', 'normal')

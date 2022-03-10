@@ -126,8 +126,8 @@ class Language extends Events {
         return texts
     }
     getTexts(){
-        let ret = {}
-        this.textKeys.concat(['locale', 'countryCode']).forEach(k => ret[k] = this[k])
+        let ret = {};
+        (this.textKeys || []).concat(['locale', 'countryCode']).forEach(k => ret[k] = this[k])
         return ret
     }
     parseLanguageHint(hint){

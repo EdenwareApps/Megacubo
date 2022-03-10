@@ -61,7 +61,7 @@ class Diagnostics extends Events {
 						return reject('checkMemory err:' + String(err))
 					}
 					let data = stdout.match(new RegExp('Mem: +[0-9]+ +[0-9]+ +([0-9]+)'))
-					if(data.length > 1){
+					if(data && data.length > 1){
 						resolve(parseInt(data[1].trim()))
 					} else {
 						reject('checkMemory err: bad data, '+ String(data))

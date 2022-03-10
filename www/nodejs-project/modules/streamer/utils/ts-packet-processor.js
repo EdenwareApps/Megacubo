@@ -12,6 +12,7 @@ class MPEGTSPacketProcessor extends Events {
         this.minFlushInterval = 3 // secs
         this.buffering = []
         this.bufferSize = (512 * 1024) // 512KB
+        this.maxBufferSize = 10 * (1024 * 1024) // 10MB, if buffer grows more than this, something is going wrong and may fill up memory
         this.maxPcrJournalSize = 2048 // 256 was not enough
         this.pcrJournal = []
         this.debug = false
@@ -134,6 +135,10 @@ class MPEGTSPacketProcessor extends Events {
         }
         let {err, buf, positions} = this.readPCRS(Buffer.concat(this.buffering))
         if(err == null && buf == null){ // insufficient buffer size, keep this.buffering
+            if(this.len(this.buffering) > this.maxBufferSize){
+                this.emit('fail')
+                this.destroy()
+            }
             return
         } else {
             this.buffering = []
@@ -250,6 +255,9 @@ class MPEGTSPacketProcessor extends Events {
         return -1
     }
 	push(chunk){
+        if(this.destroyed){
+            return
+        }
         if(!Buffer.isBuffer(chunk)){ // is buffer
             chunk = Buffer.from(chunk)
         }
@@ -292,6 +300,7 @@ class MPEGTSPacketProcessor extends Events {
         }
     }
     destroy(){
+        this.destroyed = true
         this.buffering = []
         this.removeAllListeners()
     }

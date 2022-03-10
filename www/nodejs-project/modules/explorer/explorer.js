@@ -206,7 +206,11 @@ class Explorer extends Events {
                     })
                 }
             }
-            next()
+            if(Array.isArray(entries)){
+                next()
+            } else {
+                resolve(entries || [])
+            }
         })
     }
     syncPages(){

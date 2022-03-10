@@ -60,7 +60,6 @@ class Any2HLS extends Events {
                 cb(false)
             } else {
                 let sample = String(content)
-                console.error('VERIFY', sample, sample.split('.ts').length, sample.split('.m3u8').length)
                 if(sample.split('.ts').length < 4 && sample.split('.m3u8').length < 2){
                     cb(false)
                 } else {
@@ -338,7 +337,7 @@ class Any2HLS extends Events {
 			this.codecData = {audio: '', video: ''}
 		};
 		['audio', 'video'].forEach(type => {
-			if((!this.codecData[type] || this.codecData[type] == 'unknown') && codecData[type]){
+			if(codecData[type]){
 				this.codecData[type] = codecData[type]
 			}
 		});
@@ -558,7 +557,6 @@ class Any2HLS extends Events {
                             }
                         } else {
                             this.waitFile(this.decoder.playlist, this.timeout, true).then(() => {
-                                console.error('CONTENTS', String(fs.readFileSync(this.decoder.playlist)), String(fs.readFileSync(this.decoder.file)))
                                 this.serve().then(resolve).catch(err => {
                                     reject(err)
                                     this.decoder.kill()
