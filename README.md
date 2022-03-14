@@ -43,7 +43,9 @@ cd megacubo
 npm --prefix ./www/nodejs-project install ./www/nodejs-project
 cordova prepare
 ```
-After that, edit the file build-extras.gradle to choose the target ABIs
+After that, edit the file build-extras.gradle to choose the target ABIs. 
+
+If you are in doubt between NW.js and Cordova, we recommend NW.js as with Cordova it's more tricky to set up and running.
 
 Any errors along the way? [Let us know](https://github.com/efoxbr/megacubo/issues).
 
