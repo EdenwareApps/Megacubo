@@ -24,17 +24,7 @@ Want to use the software, go to [our releases folder](https://github.com/efoxbr/
 
 <br/>
 
-# Development setup
-
-### With Cordova:
-```
-git clone https://github.com/efoxbr/megacubo.git
-# ffmpeg binary not needed, it will install and use mobile-ffmpeg lib
-cd megacubo
-npm --prefix ./www/nodejs-project install ./www/nodejs-project
-cordova prepare
-```
-After that, edit the file build-extras.gradle to choose the target ABIs.
+# Development setup.
 
 ### With NW.js (>=0.37.4):
 ```
@@ -44,6 +34,16 @@ cd megacubo
 npm --prefix ./www/nodejs-project install ./www/nodejs-project
 nw --nwapp=www/nodejs-project
 ```
+
+### With Cordova:
+```
+git clone https://github.com/efoxbr/megacubo.git
+# ffmpeg binary not needed, it will install and use mobile-ffmpeg lib
+cd megacubo
+npm --prefix ./www/nodejs-project install ./www/nodejs-project
+cordova prepare
+```
+After that, edit the file build-extras.gradle to choose the target ABIs
 
 Any errors along the way? [Let us know](https://github.com/efoxbr/megacubo/issues).
 
