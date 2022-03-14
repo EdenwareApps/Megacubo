@@ -1,4 +1,8 @@
 # Megacubo
+<p align="center">
+  <img src="https://static.megacubo.tv/wp-content/uploads/2022/03/cropped-default_icon-192x192.png" alt="Megacubo logo" title="Megacubo logo" />
+</p>
+
 Megacubo is an intuitive, multi-language and cross-platform IPTV player with support for history, bookmarks and much more.
 
 You can add as many IPTV lists you want (M3U format) and with Miniplayer mode, you can work or navigate on your PC while watching any broadcast.
@@ -14,7 +18,9 @@ Want to use the software, go to [our releases folder](https://github.com/efoxbr/
 
 <br/>
 
-![Megacubo UI screenshot](https://megacubo.tv/files/screenshot-en.jpg) 
+<p align="center">
+  <img src="https://static.megacubo.tv/files/screenshot-en-680.jpg" alt="Megacubo UI screenshot" title="Megacubo UI screenshot" />
+</p>
 
 <br/>
 
