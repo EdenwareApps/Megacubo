@@ -75,20 +75,23 @@ class ParentalControl extends Events {
 		return allow
 	}
 	filter(entries){
+		if(entries.length && global.config.get('parental-control-policy') == 'block'){
+			entries = entries.filter(this.allow.bind(this))
+		}
+		return entries
+	}
+	only(entries){
 		if(entries.length){
-			switch(global.config.get('parental-control-policy')){
-				case 'block':
-					entries = entries.filter(this.allow.bind(this))
-					break
-				case 'only':
-					entries = entries.filter(e => {
-						if(typeof(e) != 'string' && e.type && !['group', 'stream'].includes(e.type)){
+			entries = entries.filter(e => {
+				if(typeof(e) != 'string' && e.type){
+					if(!e.class || e.class.indexOf('entry-meta-stream') == -1){
+						if(!['group', 'stream'].includes(e.type)){
 							return true
 						}
-						return !this.allow(e)
-					})
-					break
-			}
+					}
+				}
+				return !this.allow(e)
+			})
 		}
 		return entries
 	}

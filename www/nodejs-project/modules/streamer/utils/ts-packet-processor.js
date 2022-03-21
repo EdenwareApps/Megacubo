@@ -133,7 +133,16 @@ class MPEGTSPacketProcessor extends Events {
         if(this.debug){
             console.log('process start')
         }
-        let {err, buf, positions} = this.readPCRS(Buffer.concat(this.buffering))
+        try {
+            var {err, buf, positions} = this.readPCRS(Buffer.concat(this.buffering))
+        } catch(e) {
+            console.error(e)
+        }
+        if(typeof(buf) == 'undefined'){ // RangeError: Array buffer allocation failed | OOM?
+            this.emit('fail')
+            this.destroy()
+            return
+        }
         if(err == null && buf == null){ // insufficient buffer size, keep this.buffering
             if(this.len(this.buffering) > this.maxBufferSize){
                 this.emit('fail')

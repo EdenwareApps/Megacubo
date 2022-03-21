@@ -152,7 +152,7 @@ class VideoControl extends EventEmitter {
 			})
 			a.on('durationchange', () => {
 				if(!this.current) return
-				this.emit('durationchange')
+				this.emit('durationchange', this.uiVisibility)
 			})
 			a.on('request-transcode', () => {
 				if(!this.current) return
@@ -249,17 +249,19 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 			}
 			const errStr = e ? String(e.message ? e.message : e) : 'unknown error'
 			const isFailed = this.object.networkState == 3 || this.object.readyState < 2 || errStr.match(new RegExp('(pipeline_error|demuxer)', 'i'))
-			console.error('video error', this.errorsCount, e, errStr, this.object.networkState +', '+ this.object.readyState, isFailed)
+			const t = this.time()
+			console.error('video error', t, this.errorsCount, e, errStr, this.object.networkState +', '+ this.object.readyState, isFailed)
 			if(isFailed){
 				this.errorsCount++
-				let t = this.time()
-				if(this.errorsCount >= (t > 0 ? 5 : 2)){
+				if(this.errorsCount >= (t > 0 ? 200 : 2)){
 					this.emit('error', String(e), true)
 				} else {
+					const ec = this.errorsCount // load() will reset the counter
 					this.load(this.currentSrc, this.currentMimetype)
 					if(t){
-						this.object.currentTime = t
+						this.object.currentTime = t + 0.5 // nudge a bit to skip any decoding error on part of the file
 					}
+					this.errorsCount = ec
 				}
 			}
 		}
@@ -276,13 +278,13 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 			this.emit('timeupdate')
 		})
         v.on('durationchange', event => {
-			this.duration = this.object.duration
-			if(this.duration && this.errorsCount){
-				this.errorsCount = 0
+			if(this.object.duration && this.duration != this.object.duration){
+				this.duration = this.object.duration
+				if(this.duration && this.errorsCount){
+					this.errorsCount = 0
+				}
 			}
-			if(this.uiVisibility){
-				this.emit('durationchange')
-			}
+			this.emit('durationchange')
 		})
         v.on('loadedmetadata', event => {
 			if(this.object.videoHeight){

@@ -24,15 +24,12 @@ class ChannelsData extends Events {
     }
     async updateCategoriesCacheKey(){
         let countries = await global.lang.getActiveCountries()
-        const adult = global.config.get('parental-control-policy') == 'only'
-        const useEPGChannels = !adult && global.activeEPG && global.config.get('use-epg-channels-list')
+        const useEPGChannels = global.activeEPG && global.config.get('use-epg-channels-list')
         let categoriesCacheKey = 'categories-'+ countries.join('-')
         if(useEPGChannels) {
             if(this.activeEPG || global.storage.raw.hasSync(categoriesCacheKey +'-epg')){
                 categoriesCacheKey += '-epg'
             }
-        } else if(adult) {
-            categoriesCacheKey += '-adult'
         }
         this.categoriesCacheKey = categoriesCacheKey
         return categoriesCacheKey
@@ -198,8 +195,11 @@ class ChannelsEPG extends ChannelsData {
         this.epgStatusTimer = false
         this.epgIcon = 'fas fa-th'
         this.clockIcon = '<i class="fas fa-clock"></i> '
-        global.streamer.aboutDialogRegisterOption('epg', () => {
+        global.streamer.aboutDialogRegisterOption('epg', data => {
             return new Promise((resolve, reject) => {
+                if(data.isLocal){
+                    return reject('local file')
+                }
                 this.epgChannelLiveNowAndNext(global.streamer.active.data).then(ret => {
                     let ks = Object.keys(ret)
                     ret = ks.map((k, i) => {
@@ -663,6 +663,10 @@ class ChannelsEditing extends ChannelsEPG {
                         {name: global.lang.REMOVE, fa: 'fas fa-trash', type: 'action', details: o.name, action: () => {
                             const category = _category
                             console.warn('REMOVE', o.name)
+                            if(!this.categories[category]) {
+                                global.explorer.open(global.lang.LIVE)
+                                return
+                            }
                             this.categories[category] = this.categories[category].filter(c => {
                                 return c.split(',')[0] != o.name
                             })
@@ -741,7 +745,7 @@ class ChannelsEditing extends ChannelsEPG {
                     {name: global.lang.REMOVE_CATEGORY, fa: 'fas fa-trash', type: 'action', details: cat.name, action: () => {
                         delete this.categories[cat.name]
                         this.save(() => {
-                            global.explorer.deepRefresh(global.explorer.dirname(global.explorer.path))
+                            global.explorer.open(global.lang.LIVE)
                             global.osd.show(global.lang.CATEGORY_REMOVED, 'fas fa-check-circle', 'channels', 'normal')
                         })
                     }}
@@ -760,7 +764,7 @@ class ChannelsEditing extends ChannelsEPG {
                 this.disableWatchNowAuto = true
                 if(val && !Object.keys(this.categories).map(c => c.name).includes(val)){
                     console.warn('ADD', val)
-                    if(!this.categories[cat.name].includes(val)){
+                    if(this.categories[cat.name] && !this.categories[cat.name].includes(val)){
                         this.categories[cat.name].push(val)
                         this.save(() => {
                             console.log('ADDING')
@@ -1360,7 +1364,13 @@ class Channels extends ChannelsAutoWatchNow {
             global.lists.groups().then(es => this.moreGroupsToEntries(es).then(resolve).catch(reject)).catch(reject)
         })
     }
-    moreGroupsToEntries(groups){		
+    moreGroupsToEntries(groups){
+        const acpolicy = global.config.get('parental-control-policy')
+        if(acpolicy == 'block'){
+            groups = global.lists.parentalControl.filter(groups)		
+        } else if(acpolicy == 'only') {
+            groups = global.lists.parentalControl.only(groups)
+        }
         this.moreGroups = groups
         return new Promise((resolve, reject) => {
             let entries = [], already = []

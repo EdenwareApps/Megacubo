@@ -1,5 +1,5 @@
 
-const http = require('http'), os = require('os'), StreamerProxy = require('./proxy'), closed = require(global.APPDIR +'/modules/on-closed')
+const http = require('http'), StreamerProxy = require('./proxy')
 
 class StreamerNetworkProxy extends StreamerProxy {
 	constructor(port){

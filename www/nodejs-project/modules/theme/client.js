@@ -1,6 +1,12 @@
 if(typeof(themeRefresh) == 'undefined'){
     function themeRefresh(){
+        const systemFont = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif'
         let family = config['font-family'], nfs = 0.02 + (config['font-size'] * 0.0025)
+        if(!family){
+            family = systemFont
+        } else if(family.indexOf(systemFont) == -1) {
+            family += ','+ systemFont
+        }
         let mbg = hexToRGBA(config['background-color'], config['background-color-transparency'] / 100)
         let sfg = hexToRGBA(config['font-color'], 0.75)
         let fxNavIntensityStep = parseFloat(window.getComputedStyle(document.documentElement).getPropertyValue('--explorer-fx-nav-intensity-step').trim())

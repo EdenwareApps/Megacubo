@@ -53,11 +53,12 @@ const saveCrashLog = (...args) => {
         }
         return value
     }, 3).replaceAll("\\n", "\n") +"\r\n"+ JSON.stringify({
-        version: global.MANIFEST.version,
+        version: global.MANIFEST ? global.MANIFEST.version : '',
         platform: process.platform,
         release: os.release(),
         arch: os.arch(),
-        date: (new Date()).toString()
+        date: (new Date()).toString(), 
+        lang: typeof(lang) != 'undefined' && lang ? lang.locale : ''
     }) +"\r\n\r\n")
 }
 const sendCrashLogs = () => {
@@ -154,30 +155,6 @@ const OMNI = require(APPDIR + '/modules/omni')
 const Mega = require(APPDIR + '/modules/mega')
 
 console.log('Modules loaded.')
-
-rmdir = (folder, itself, cb) => {
-    const rimraf = require('rimraf')
-    let dir = folder
-    if(dir.charAt(dir.length - 1) == '/'){
-        dir = dir.substr(0, dir.length - 1)
-    }
-    if(!itself){
-        dir += '/*'
-    }
-    if(cb === true){ // sync
-        try {
-            rimraf.sync(dir)
-        } catch(e) {}
-    } else {
-        try {
-            rimraf(dir, cb || (() => {}))
-        } catch(e) {
-            if(typeof(cb) == 'function'){
-                cb()
-            }
-        }
-    }
-}
 
 ui = new Bridge()
 ffmpeg = new FFMPEG()
@@ -431,6 +408,7 @@ function init(language){
         })
         ui.on('reload-dialog', () => {
             console.log('reload-dialog')
+            if(!streamer.active) return
             let opts = [{template: 'question', text: lang.RELOAD}], def = 'retry'
             let isCH = streamer.active.type != 'video' && channels.isChannel(streamer.active.data.terms ? streamer.active.data.terms.name : streamer.active.data.name)
             if(isCH){
@@ -438,8 +416,10 @@ function init(language){
                 def = 'try-other'
             }
             opts.push({template: 'option', text: lang.RELOAD_THIS_BROADCAST, fa: 'fas fa-redo', id: 'retry'})
-            if(typeof(streamer.active.transcode) == 'function' && !streamer.active.isTranscoding()){
-                opts.push({template: 'option', text: lang.TRANSCODE, fa: 'fas fa-film', id: 'transcode'})
+            if(!cordova){
+                if(typeof(streamer.active.transcode) == 'function' && !streamer.active.isTranscoding() && config.get('transcoding')){
+                    opts.push({template: 'option', text: lang.FIX_AUDIO_OR_VIDEO +' &middot; '+ lang.TRANSCODE, fa: 'fas fa-film', id: 'transcode'})
+                }
             }
             if(opts.length > 2){
                 ui.emit('dialog', opts, 'video-error-timeout-callback', def)
@@ -471,6 +451,7 @@ function init(language){
             })
         })
         ui.on('video-error', (type, errData) => {
+            return // TODO REMOVEME
             if(streamer.active && !streamer.active.isTranscoding()){
                 console.error('VIDEO ERROR', type, errData)
                 if(type == 'timeout'){
@@ -590,7 +571,7 @@ function init(language){
         })
         */
         streamer.on('streamer-connect', (src, codecs, info) => {
-            console.warn('CONNECT', src, codecs, info)       
+            console.error('CONNECT', src, codecs, info)       
             ui.emit('streamer-connect', src, codecs, '', streamer.active.mediaType, info, tuning !== false)
         })
         streamer.on('streamer-disconnect', err => {

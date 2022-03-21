@@ -93,7 +93,9 @@ class StreamerOSD extends StreamerPlaybackTimeout {
                         this.transmissionNotWorkingHintTimer = setTimeout(() => {
                             if(this.active){
                                 osd.hide(this.osdID)
-                                osd.show(lang.BROADCAST_NOT_WORKING_HINT.format('<i class=\"'+ config['tuning-icon'] +'\"></i>'), '', this.osdID +'-sub', 'persistent')
+                                if(!this.data || !this.data.isLocal){
+                                    osd.show(lang.BROADCAST_NOT_WORKING_HINT.format('<i class=\"'+ config['tuning-icon'] +'\"></i>'), '', this.osdID +'-sub', 'persistent')
+                                }
                             }
                         }, this.transmissionNotWorkingHintDelay)                    
                     }
@@ -104,7 +106,9 @@ class StreamerOSD extends StreamerPlaybackTimeout {
                     osd.hide(this.osdID)
                     if(!this.OSDNameShown){
                         this.OSDNameShown = true
-                        osd.show(lang.BROADCAST_NOT_WORKING_HINT.format('<i class=\"'+ config['tuning-icon'] +'\"></i>'), '', this.osdID +'-sub', 'normal')
+                        if(!this.data || !this.data.isLocal){
+                            osd.show(lang.BROADCAST_NOT_WORKING_HINT.format('<i class=\"'+ config['tuning-icon'] +'\"></i>'), '', this.osdID +'-sub', 'normal')
+                        }
                         osd.show(this.data.name, this.data.icon || '', this.osdID, 'normal')
                     }
                     break
@@ -234,11 +238,13 @@ class StreamerState extends StreamerCasting {
         }
         this.on('start', () => {
             this.stateListener('loading')
-            parent.player.once('timeupdate', () => { // only on initial timeupdate of each stream to fix bad loading status on Exoplayer
-                if(this.state == 'loading'){
-                    this.stateListener('playing')
-                }
-            })
+            if(parent.cordova){
+                parent.player.once('timeupdate', () => { // only on initial timeupdate of each stream to fix bad loading status on Exoplayer, bad behaviour with hls.js on PC
+                    if(this.state == 'loading'){
+                        this.stateListener('playing')
+                    }
+                })
+            }
         })
         this.on('stop', () => this.stateListener(''))
     }
@@ -430,6 +436,7 @@ class StreamerSpeedo extends StreamerIdle {
         this.invalidSpeeds = ['N/A', 0]
         this.speedoLabel = document.querySelector('#loading-layer > span.loading-layer-status > span')
         this.on('state', state => {
+            if(this.isLocal()) return
             switch(state){
                 case 'loading':
                     this.speedoUpdate()
@@ -453,6 +460,9 @@ class StreamerSpeedo extends StreamerIdle {
             this.speedoReset()
             this.seekBarReset()
             this.app.emit('downlink', this.downlink())
+            if(this.isLocal()){
+                return this.speedoSemSet(4, '')
+            }
         })
         this.on('stop', () => {
             this.bitrate = 0
@@ -473,6 +483,9 @@ class StreamerSpeedo extends StreamerIdle {
             this.app.emit('downlink', this.downlink())
         })
         this.app.emit('downlink', this.downlink())
+    }
+    isLocal(){
+        return this.data && this.data.isLocal
     }
     downlink(minimal){
         if(!navigator.onLine){
@@ -498,8 +511,12 @@ class StreamerSpeedo extends StreamerIdle {
         if(!parent.player.state){
             return
         }
-        let semSet, starting = !this.commitTime || (time() - this.commitTime) < 10
+        if(this.isLocal()){
+            return this.speedoSemSet(4, '')
+        }
+        let semSet, starting = !this.commitTime || (time() - this.commitTime) < 15
         let lowSpeedThreshold = (250 * 1024) /* 250kbps */, downlink = this.downlink(this.currentSpeed)
+        console.error('SPEEDOUPDATE', starting, this.commitTime, time(), this.currentSpeed, this.bitrate, downlink)
         if(this.invalidSpeeds.includes(this.currentSpeed)) {
             this.speedoSemSet(1, this.transcodeStarting ? lang.TRANSCODING_WAIT : lang.WAITING_CONNECTION)
         } else {
@@ -509,7 +526,9 @@ class StreamerSpeedo extends StreamerIdle {
                 if(p > 100){
                     p = 100
                 }
-                if(downlink && downlink < this.bitrate){ // client connection is the throattling factor
+                if(starting){
+                    t = lang.WAITING_CONNECTION
+                } else if(downlink && downlink < this.bitrate){ // client connection is the throattling factor
                     t += lang.YOUR_CONNECTION_IS_SLOW_TIP.format('<i class="'+ config['tuning-icon'] +'"></i>') + ': '
                 } else { // slow server?
                     t += lang.SLOW_SERVER + ': '
@@ -524,14 +543,13 @@ class StreamerSpeedo extends StreamerIdle {
                     t = lang.STABLE_CONNECTION
                 }
             } else {
-                t += lang.SLOW_SERVER + ': ' + kbsfmt(this.currentSpeed)
+                if(starting){
+                    t = lang.WAITING_CONNECTION
+                } else {
+                    t = lang.SLOW_SERVER + ': ' + kbsfmt(this.currentSpeed)
+                }
                 if(this.currentSpeed <= lowSpeedThreshold){
-                    if(starting){
-                        t = lang.WAITING_CONNECTION
-                        semSet = 1
-                    } else {
-                        semSet = 2
-                    }
+                    semSet = starting ? 1 : 2
                 } else {                   
                     semSet = 1
                 }
@@ -611,13 +629,13 @@ class StreamerSeek extends StreamerSpeedo {
                 this.seekBarUpdate()
             }
         })
-        parent.player.on('durationchange', () => {
+        parent.player.on('durationchange', uiVisible => {
             const duration = parent.player.duration()
             if(this.seekLastDuration > duration){ // player reset
                 this.seekPlaybackStartTime = time() - duration
             }
             this.seekLastDuration = duration
-            this.seekBarUpdate()
+            if(uiVisible) this.seekBarUpdate()
         })
         parent.player.on('play', () => {
             this.seekBarUpdate(true)
@@ -882,29 +900,40 @@ class StreamerClientTimeWarp extends StreamerSeek {
     timewarpDetectPlayerReset(){
         const duration = parent.player.duration()
         if(duration < this.timewarpLastDuration){ // player resetted
-            this.timewarpInitialTime = time()
-            this.timewarpInitialPlaybackTime = parent.player.time()
+            this.timewarpReset()
         }
         this.timewarpLastDuration = duration
     }
+    timewarpReset(){
+        this.timewarpInitialTime = time()
+        this.timewarpInitialPlaybackTime = parent.player.time()
+    }
+    expectedDuration(){
+        return (time() - this.timewarpInitialTime) + this.timewarpInitialPlaybackTime
+    }
     getTimewarpThresholds(){
-        let lwt = config['live-window-time']
+        let lwt = Math.min(config['live-window-time'], 150)
         let low = parseInt(lwt * 0.05)
         let midLow = parseInt(lwt * 0.1)
         let midHigh = lwt * 0.5
         let high = lwt * 0.7
         return {low, midLow, midHigh, high}
     }
-    expectedDuration(){
-        return (time() - this.timewarpInitialTime) + this.timewarpInitialPlaybackTime
-    }
     doTimeWarp(){
         if(this.inLiveStream && config['playback-rate-control'] && this.timewarpInitialPlaybackTime !== null){
+            const duration = this.timewarpLastDuration, ptime = parent.player.time()
             let rate = this.currentPlaybackRate
-            let rates = {slow: 0.95, normal: 1, fast: 1.05}
+            let rates = {slow: 0.9, normal: 1, fast: 1.1}
             let thresholds = this.getTimewarpThresholds()
             let expectedDuration = (time() - this.timewarpInitialTime) + this.timewarpInitialPlaybackTime
-            let remaining = expectedDuration - parent.player.time()
+            if(expectedDuration < 0){
+                this.timewarpReset()
+                expectedDuration = (time() - this.timewarpInitialTime) + this.timewarpInitialPlaybackTime
+            }
+            //if(expectedDuration < duration){
+            //    expectedDuration = duration
+            //}
+            let remaining = expectedDuration - ptime
             if(remaining <= thresholds.low) {
                 rate = rates.slow
             } else if(remaining.between(thresholds.low, thresholds.midLow)) {
@@ -1334,6 +1363,9 @@ class StreamerClientControls extends StreamerAudioUI {
             button.addEventListener('click', () => {
                 this.app.emit(action)
             })
+        }
+        if(name == 'cast' && top.Manager){
+            top.Manager.exitPage.touch()
         }
     }
     getPlayerButton(id){

@@ -159,7 +159,7 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 			fragStart = current.start
 			fragDuration = current.duration
 		}
-		let newCurrentTime = fragStart + fragDuration + 0.1
+		let newCurrentTime = fragStart + fragDuration
 		if(newCurrentTime > this.object.currentTime && newCurrentTime < (this.object.duration + minHLSWindow)){
 			console.log('Skipping fragment, from '+ this.object.currentTime +' to '+ newCurrentTime)
 			this.time(newCurrentTime)
@@ -264,14 +264,16 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 				enableWorker: true,
 				liveSyncDuration: 999999999, // https://github.com/video-dev/hls.js/issues/3764
 				maxBufferSize: 128 * (1000 * 1000), // When doing internal transcoding with low crf, fragments will become bigger
-				backBufferLength: 30,
+				backBufferLength: this.config['live-window-time'],
 				maxBufferLength: 60,
 				maxMaxBufferLength: 180,
 				highBufferWatchdogPeriod: 1,
 				nudgeMaxRetry: Number.MAX_SAFE_INTEGER,
 				lowLatencyMode: false, // setting false here reduced dramatically the buffer stalled errors on a m3u8 from FFmpeg
-				fragLoadingMaxRetry: 2,
+				fragLoadingMaxRetry: 3,
 				fragLoadingMaxRetryTimeout: 3000,
+				manifestLoadingMaxRetryTimeout: 3000,
+				levelLoadingMaxRetryTimeout: 3000,
 				fragLoadingRetryDelay: 100,
 				defaultAudioCodec: 'mp4a.40.2', // AAC-LC from ffmpeg
 				/*
@@ -361,7 +363,7 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 							break
 						case Hls.ErrorDetails.FRAG_PARSING_ERROR:
 							console.error('Parsing error:' + data.reason, data.frag)
-							this.skipFragment(data.frag.start, data.frag.duration)
+							//this.skipFragment(data.frag.start, data.frag.duration)
 							break
 						case Hls.ErrorDetails.KEY_LOAD_ERROR:
 							if(this.object.currentTime){
@@ -488,23 +490,25 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 	}
 	unload(){
 		console.log('unload hls')
-		if(this.active){
+		if(this.hls && typeof(this.hls) != 'boolean'){
+			console.log('unload hls disconnect')
 			this.disconnect()
 			try{ // due to some nightmare errors crashing nwjs
+				this.hls.stopLoad()
 				this.hls.destroy()
 				this.hls = null
 			}catch(e){
 				console.error(e)
 			}
+			this.object.src = ''
+			console.log('unload hls super.unload')
 			super.unload()
 			console.log('unload hls OK')
 		}
 	}
     destroy(){
 		console.log('hls destroy')
+		this.unload()
 		super.destroy()
-        if(this.hls && typeof(this.hls) != 'boolean'){						
-            this.hls.destroy()
-        }    
     }
 }

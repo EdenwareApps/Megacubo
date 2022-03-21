@@ -216,9 +216,11 @@ class Index extends Common {
                         }
                     }
                     results = this.tools.dedup(results)
-					results = this.prepareEntries(results)					
-					results = this.parentalControl.filter(results)
-					maybe = this.parentalControl.filter(maybe)
+					results = this.prepareEntries(results)
+					if(opts.parentalControl !== false){
+						results = this.parentalControl.filter(results)
+						maybe = this.parentalControl.filter(maybe)
+					}
 					results = this.adjustSearchResults(results, limit)
 					if(results.length < limit){
 						maybe = this.adjustSearchResults(maybe, limit - results.length)
@@ -363,9 +365,11 @@ class Index extends Common {
                         }
                     }
                     results = this.tools.dedup(results)
-					results = this.prepareEntries(results)					
-					results = this.parentalControl.filter(results)
-					maybe = this.parentalControl.filter(maybe)
+					results = this.prepareEntries(results)	
+					if(typeof(opts.parentalControl) != 'undefined' && opts.parentalControl !== false){
+						results = this.parentalControl.filter(results)
+						maybe = this.parentalControl.filter(maybe)
+					}				
                     resolve({results, maybe})
                 })
             } else {
@@ -480,7 +484,6 @@ class Index extends Common {
 					}
 				})
 			})
-            gs = this.parentalControl.filter(gs)
             gs.sort((a, b) => a.localeCompare(b, undefined, {sensitivity: 'base'}))
             resolve(gs)
         })

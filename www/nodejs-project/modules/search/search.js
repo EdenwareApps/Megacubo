@@ -135,14 +135,29 @@ class Search extends Events {
                 typeStrict: this.searchStrict,
                 group: this.searchMediaType != 'live'
             })
+            const isAdultQueryBlocked = global.config.get('parental-control-policy') == 'block' && !global.lists.parentalControl.allow(u)
             global.lists[global.config.get('unoptimized-search') ? 'unoptimizedSearch' : 'search'](terms, {
                 partial: this.searchInaccurate, 
                 type: this.searchMediaType, 
                 typeStrict: this.searchStrict,
-                group: this.searchMediaType != 'live'
+                group: this.searchMediaType != 'live',
+                parentalControl: isAdultQueryBlocked ? false : undefined // allow us to count blocked results
             }).then(es => {
                 es = (es.results && es.results.length) ? es.results : ((es.maybe && es.maybe.length) ? es.maybe : [])
-                if(es && es.length){
+                if(isAdultQueryBlocked) {
+                    es = [
+                        {
+                            prepend: '<i class="fas fa-info-circle"></i> ',
+                            name: global.lang.X_BLOCKED_RESULTS.format(es.length),
+                            details: global.lang.ADULT_CONTENT_BLOCKED,
+                            fa: 'fas fa-lock',
+                            type: 'action',
+                            action: () => {
+                                global.ui.emit('info', global.lang.ADULT_CONTENT_BLOCKED, global.lang.ADULT_CONTENT_BLOCKED_INFO.format(global.lang.OPTIONS, global.lang.SECURITY))
+                            }
+                        }
+                    ]
+                } else if(es && es.length){
                     es = es.map(e => {
                         e.details = e.groupName || ''
                         return e
@@ -156,13 +171,6 @@ class Search extends Events {
                         action: () => {
                             global.streamer.play(this.currentSearch, es)
                         }
-                    })
-                } else if(!global.lists.parentalControl.allow(u)) {
-                    es.unshift({
-                        name: global.lang.ADULT_CONTENT_BLOCKED,
-                        fa: 'fas fa-lock',
-                        type: 'action',
-                        action: () => {}
                     })
                 }
                 resolve(es)

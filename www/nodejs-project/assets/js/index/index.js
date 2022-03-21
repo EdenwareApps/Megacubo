@@ -118,7 +118,7 @@ function theming(image, video, color, fontColor, animate){
 		if(!v || v.src != data.video){
 			bg.innerHTML = '&nbsp;'
 			setTimeout(() => {
-				bg.innerHTML = '<video src="'+ data.video +'" onerror="setTimeout(() => {if(this.parentNode)this.load()}, 500)" loop muted autoplay style="background-color: black;object-fit: cover;"></video>'
+				bg.innerHTML = '<video src="'+ data.video +'" onerror="setTimeout(() => {if(this.parentNode)this.load()}, 500)" loop muted autoplay style="background-color: black;object-fit: cover;" poster="assets/images/blank.png"></video>'
 			}, 1000)
 		}
 	} else {

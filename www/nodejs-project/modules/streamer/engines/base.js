@@ -251,24 +251,6 @@ class StreamerBaseIntent extends Events {
             })
         })
     }
-    startCapture(onData, onFinish){
-        this.endCapture()
-        let a = this.findLowAdapter(null, ['joiner', 'downloader', 'any2hls', 'proxy']) // suitable adapters for capturing, by priority, prefer any2hls over proxy, as it can be a encrypted hls at proxy
-        if(a){
-            this.capturing = [a, onData, onFinish]
-            this.capturing[0].on('data', this.capturing[1])
-            global.ui.emit('background-mode-lock', 'capture-'+ this.data.url)
-            return true
-        }
-    }
-    endCapture(){
-        if(Array.isArray(this.capturing)){
-            this.capturing[0].removeListener('data', this.capturing[1])
-            this.capturing[2]()
-            this.capturing = false
-            global.ui.emit('background-mode-unlock', 'capture-'+ this.data.url)
-        }
-    }
     fail(err){
         if(this && !this.failed && !this.destroyed){
             console.log('fail', err)
@@ -281,7 +263,6 @@ class StreamerBaseIntent extends Events {
     destroy(){
         if(!this.destroyed){
             this.destroyAdapters()
-            this.endCapture()
             this.destroyed = true
             if(this.committed){
                 this.emit('uncommit')

@@ -54,17 +54,23 @@ class EPG extends Events {
                 if(!this.loaded){
                     this.state = 'connecting'
                 }
-                let errorCount = 0
+                let errorCount = 0, failed, hasErr, initialBuffer = []
                 this.error = null
                 console.log('epg updating...')
                 this.parser = new xmltv.Parser()
                 this.parser.on('programme', this.programme.bind(this))
                 this.parser.on('channel', this.channel.bind(this))
                 this.parser.on('error', err => {
+                    if(failed){
+                        return
+                    }
+                    hasErr = true
+                    console.error('EPG FAILED DEBUG', initialBuffer)
                     errorCount++
                     console.error(err)
                     if(errorCount >= 128){
                         // sometimes we're receiving scrambled response, not sure about the reason, do a dirty workaround for now
+                        failed = true
                         if(this.request){
                             this.request.destroy() 
                             this.request = null
@@ -114,6 +120,7 @@ class EPG extends Events {
                 })
                 this.request.on('data', chunk => {
                     received += chunk.length
+                    if(!hasErr) initialBuffer.push(chunk)
                     this.parser.write(chunk)
                     if(!validEPG && chunk.toLowerCase().indexOf('<programme') != -1){
                         validEPG = true

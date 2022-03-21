@@ -123,14 +123,6 @@ class StreamerLiveToVideo extends Any2HLS {
                 }
                 let ended, stream = fs.createReadStream(file)
                 response.writeHead(200, headers)
-                if(this.listenerCount('data') && headers['content-type'] && headers['content-type'].substr(0, 6) == 'video/'){
-                    let offset = 0
-                    stream.on('data', chunk => {
-                        let len = chunk.length
-                        this.emit('data', req.url, chunk, len, offset)
-                        offset += len
-                    })
-                }
                 const end = () => {
                     if(!ended){
                         ended = true

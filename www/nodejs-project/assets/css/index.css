@@ -1047,7 +1047,7 @@ span.modal-template-question img {
     align-items: center;
 }
 a.modal-template-option, a.modal-template-option-detailed {
-    color: var(--background-color);
+    color: black;
     border-bottom: 2px solid rgba(0,0,0,0.02);
     box-shadow: 0 -0.5vmin 1vmin 0.5vmin rgba(0, 0, 0, 0.01);
     justify-content: center;

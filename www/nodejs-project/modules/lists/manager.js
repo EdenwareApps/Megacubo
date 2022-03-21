@@ -245,8 +245,14 @@ class Manager extends Events {
             url = global.forwardSlashes(url).split('/').pop()
             return url.replace(new RegExp('\\.[A-Za-z0-9]{2,4}$', 'i'), '')
         } else {
-            url = url.replace(new RegExp('^[a-z]*://', 'i'), '').split('/').filter(s => s.length)
-            return (url[0].split('.')[0] + ' ' + url[url.length - 1]).replace(new RegExp('\\?.*$'), '')
+            url = String(url).replace(new RegExp('^[a-z]*://', 'i'), '').split('/').filter(s => s.length)
+            if(!url.length){
+                return 'Untitled '+ parseInt(Math.random() * 9999)
+            } else if(url.length == 1) {
+                return url[0]
+            } else {
+                return (url[0].split('.')[0] + ' ' + url[url.length - 1]).replace(new RegExp('\\?.*$'), '')
+            }
         }
     }
     name(url, content=''){
@@ -668,19 +674,17 @@ class Manager extends Events {
                     options.push({name: global.lang.ADD, fa: 'fas fa-plus-square', type: 'action', action: () => {
                         global.ui.emit('prompt', global.lang.EPG, 'http://.../epg.xml', global.activeEPG || '', 'set-epg', false, global.channels.epgIcon)
                     }})
-                    if(global.config.get('parental-control-policy') != 'only'){
-                        options.push({
-                            name: global.lang.SYNC_EPG_CHANNELS,
-                            type: 'check',
-                            action: (e, checked) => {
-                                global.config.set('use-epg-channels-list', checked)
-                                if(global.activeEPG){
-                                    this.importEPGChannelsList(global.activeEPG).catch(console.error)
-                                }
-                            }, 
-                            checked: () => global.config.get('use-epg-channels-list')
-                        })
-                    }
+                    options.push({
+                        name: global.lang.SYNC_EPG_CHANNELS,
+                        type: 'check',
+                        action: (e, checked) => {
+                            global.config.set('use-epg-channels-list', checked)
+                            if(global.activeEPG){
+                                this.importEPGChannelsList(global.activeEPG).catch(console.error)
+                            }
+                        }, 
+                        checked: () => global.config.get('use-epg-channels-list')
+                    })
                     resolve(options)
                 }
                 if(activeEPG){
@@ -716,7 +720,7 @@ class Manager extends Events {
         })
     }
     shouldImportEPGChannelsList(url){
-        return global.config.get('parental-control-policy') != 'only' && url == global.activeEPG && global.config.get('use-epg-channels-list')
+        return url == global.activeEPG && global.config.get('use-epg-channels-list')
     }
     importEPGChannelsList(url){
         return new Promise((resolve, reject) => {            

@@ -17,12 +17,12 @@ class Bookmarks extends EntriesGroup {
             }
         })
         global.streamer.aboutDialogRegisterOption('addfav', data => {
-            if(!this.has(this.simplify(data))){
+            if(!data.isLocal && !this.has(this.simplify(data))){
                 return {template: 'option', fa: 'fas fa-star', text: global.lang.ADD_TO.format(global.lang.BOOKMARKS), id: 'addfav'}
             }
         }, this.toggle.bind(this))
         global.streamer.aboutDialogRegisterOption('remfav', data => {
-            if(this.has(this.simplify(data))){
+            if(!data.isLocal && this.has(this.simplify(data))){
                 return {template: 'option', fa: 'fas fa-star-half', text: global.lang.REMOVE_FROM.format(global.lang.BOOKMARKS), id: 'remfav'}
             }
         }, this.toggle.bind(this))

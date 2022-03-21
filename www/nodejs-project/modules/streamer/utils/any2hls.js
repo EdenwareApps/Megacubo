@@ -271,6 +271,9 @@ class Any2HLS extends Events {
                 }
                 this.opts.port = this.server.address().port
                 this.verify(this.decoder.file, fine => {
+                    if(this.destroyed){
+                        return reject('destroyed')
+                    }
                     this.endpoint = this.proxify(fine ? this.decoder.file : this.decoder.playlist) // happened with a plutotv stream that the master playlist got empty while playlist was functional
                     console.log('FFMPEG SERVE', this.decoder.file)
                     this.emit('ready')
@@ -308,14 +311,6 @@ class Any2HLS extends Events {
                 }
                 let ended, stream = fs.createReadStream(file)
                 response.writeHead(200, headers)
-                if(this.listenerCount('data') && headers['content-type'] && headers['content-type'].substr(0, 6) == 'video/'){
-                    let offset = 0
-                    stream.on('data', chunk => {
-                        let len = chunk.length
-                        this.emit('data', req.url, chunk, len, offset)
-                        offset += len
-                    })
-                }
                 const end = () => {
                     if(!ended){
                         ended = true

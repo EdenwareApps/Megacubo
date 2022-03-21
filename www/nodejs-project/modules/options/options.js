@@ -195,7 +195,7 @@ class OptionsExportImport extends PerformanceProfiles {
             }
         } catch(e) {
             if(typeof(cb) == 'function'){
-                cb()
+                cb(e)
             }
             global.displayErr('Invalid file', e)
         }
@@ -214,8 +214,11 @@ class OptionsExportImport extends PerformanceProfiles {
         }
         if(natts['custom-background-video']){
             const buf = Buffer.from(natts['custom-background-video'], 'base64')
-            fs.writeFileSync(global.theme.customBackgroundVideoPath, buf)
-            natts['custom-background-video'] = global.theme.customBackgroundVideoPath
+            const uid = parseInt(Math.random() * 1000)
+            const file = global.theme.customBackgroundVideoPath +'-'+ uid + '.mp4'
+            fs.writeFileSync(file, buf)
+            natts['custom-background-video'] = file
+            global.theme.cleanVideoBackgrounds(file)
         }
         return natts
     }
@@ -265,42 +268,48 @@ class OptionsExportImport extends PerformanceProfiles {
                 if(err){
                     return global.displayErr(err)
                 }
-                const AdmZip = require('adm-zip')
-                const zip = new AdmZip(zipFile), imported = {}
-                async.eachOf(zip.getEntries(), (entry, i, done) => {
-                    if(entry.entryName.startsWith('config')) {
-                        zip.extractEntryTo(entry, path.dirname(global.config.file), false, true)
-                        imported.config = entry.getData().toString('utf8')
-                    }
-                    if(entry.entryName.startsWith('bookmarks')) {
-                        zip.extractEntryTo(entry, global.storage.folder, false, true)
-                        delete global.storage.cacheExpiration[global.bookmarks.key]
-                        global.bookmarks.load()
-                    }
-                    if(entry.entryName.startsWith('history')) {
-                        zip.extractEntryTo(entry, global.storage.folder, false, true)
-                        delete global.storage.cacheExpiration[global.histo.key]
-                        global.histo.load()
-                    }                    
-                    if(entry.entryName.startsWith('categories')) {
-                        zip.extractEntryTo(entry, global.storage.raw.folder, false, true, path.basename(global.storage.raw.resolve(global.channels.categoriesCacheKey)))
-                        delete global.storage.raw.cacheExpiration[global.channels.categoriesCacheKey]
-                        global.channels.load()
-                    }
-                    if(entry.entryName.startsWith('icons')) {
-                        zip.extractEntryTo(entry, path.dirname(global.icons.opts.folder), true, true)
-                    }
-                    if(entry.entryName.startsWith('Themes')) {
-                        zip.extractEntryTo(entry, path.dirname(global.theme.folder), true, true)
-                    }
-                    done()
-                }, () => {
-                    if(imported.config) {
-                        console.warn('CONFIG', imported.config)
-                        global.config.reload(imported.config)
-                    }
-                    global.osd.show(global.lang.IMPORTED_FILE, 'fas fa-check-circle', 'options', 'normal')
-                })
+                try {
+                    const AdmZip = require('adm-zip')
+                    const zip = new AdmZip(zipFile), imported = {}
+                    async.eachOf(zip.getEntries(), (entry, i, done) => {
+                        if(entry.entryName.startsWith('config')) {
+                            zip.extractEntryTo(entry, path.dirname(global.config.file), false, true)
+                            imported.config = entry.getData().toString('utf8')
+                        }
+                        if(entry.entryName.startsWith('bookmarks')) {
+                            zip.extractEntryTo(entry, global.storage.folder, false, true)
+                            delete global.storage.cacheExpiration[global.bookmarks.key]
+                            global.bookmarks.load()
+                        }
+                        if(entry.entryName.startsWith('history')) {
+                            zip.extractEntryTo(entry, global.storage.folder, false, true)
+                            delete global.storage.cacheExpiration[global.histo.key]
+                            global.histo.load()
+                        }                    
+                        if(entry.entryName.startsWith('categories')) {
+                            zip.extractEntryTo(entry, global.storage.raw.folder, false, true, path.basename(global.storage.raw.resolve(global.channels.categoriesCacheKey)))
+                            delete global.storage.raw.cacheExpiration[global.channels.categoriesCacheKey]
+                            global.channels.load()
+                        }
+                        if(entry.entryName.startsWith('icons')) {
+                            try {
+                                zip.extractEntryTo(entry, path.dirname(global.icons.opts.folder), true, true) // Error: ENOENT: no such file or directory, chmod 'C:\\Users\\samsung\\AppData\\Local\\Megacubo\\Data\\icons\\a&e-|-a-&-e.png'
+                            } catch(e) {}
+                        }
+                        if(entry.entryName.startsWith('Themes')) {
+                            zip.extractEntryTo(entry, path.dirname(global.theme.folder), true, true)
+                        }
+                        done()
+                    }, () => {
+                        if(imported.config) {
+                            console.warn('CONFIG', imported.config)
+                            global.config.reload(imported.config)
+                        }
+                        global.osd.show(global.lang.IMPORTED_FILE, 'fas fa-check-circle', 'options', 'normal')
+                    })
+                } catch(e) {
+                    global.displayErr(e)
+                }
             })
         }
     }
@@ -925,7 +934,18 @@ class Options extends OptionsExportImport {
                             {
                                 name: 'Network IP', fa: 'fas fa-globe', type: 'action', action: this.aboutNetwork.bind(this)
                             },
-                            {name: global.lang.FFMPEG_VERSION, fa: 'fas fa-info-circle', type: 'action', action: global.ffmpeg.diagnosticDialog.bind(global.ffmpeg)}
+                            {
+                                name: global.lang.FFMPEG_VERSION, 
+                                fa: 'fas fa-info-circle', 
+                                type: 'action', 
+                                action: global.ffmpeg.diagnosticDialog.bind(global.ffmpeg)
+                            },
+                            {
+                                name: global.lang.RESET_CONFIG, 
+                                type: 'action',
+                                fa: 'fas fa-undo-alt', 
+                                action: () => this.resetConfig()
+                            }
                         ])
                     })
                 }},
@@ -953,12 +973,6 @@ class Options extends OptionsExportImport {
                             }
                         }
                     ]
-                },
-                {
-                    name: global.lang.RESET_CONFIG, 
-                    type: 'action',
-                    fa: 'fas fa-undo-alt', 
-                    action: () => this.resetConfig()
                 }
             ]
             resolve(opts)

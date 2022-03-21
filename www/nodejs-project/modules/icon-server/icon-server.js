@@ -7,7 +7,7 @@ class IconDefault {
         if(!Array.isArray(terms)){
             terms = global.lists.terms(terms)
         }
-        return terms.filter(s => s.length && s.charAt(0) != '-').join('-')
+        return global.sanitize(terms.filter(s => s.length && s.charAt(0) != '-').join('-'))
     }
     getDefault(terms){
         return new Promise((resolve, reject) => {
@@ -385,7 +385,7 @@ class IconServer extends IconFetchSem {
         this.opts = {
             addr: '127.0.0.1',
             port: 0, // let the http.server sort
-            downloadLimit: 2 * (1024 * 1024), // 2mb
+            downloadLimit: 1 * (1024 * 1024), // 1mb
             folder: './cache',
             debug: false
         }

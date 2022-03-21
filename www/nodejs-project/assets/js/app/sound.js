@@ -26,7 +26,7 @@ function sound(tag, vol){
                 }
             }
             if(parent.cordova && top.navigator && top.navigator.vibrate){
-                top.navigator.vibrate(75)
+                top.navigator.vibrate(25)
             }
         }
     }

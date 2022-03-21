@@ -98,7 +98,10 @@ class Download extends Events {
 		}
 	}
 	start(){
-		this.stream = this.connect()
+		if(!this.started){
+			this.started = true
+			this.stream = this.connect()
+		}
 	}
 	ext(url){
 		return String(url).split('?')[0].split('#')[0].split('.').pop().toLowerCase();        
@@ -188,6 +191,9 @@ class Download extends Events {
 		}
 		if(this.currentRequestError){
 			this.currentRequestError = ''
+		}
+		if(this.currentURL.substr(0, 2) == '//'){
+			this.currentURL = 'http:'+ this.currentURL
 		}
 		const opts = {
 			responseType: 'buffer',
@@ -715,7 +721,11 @@ class Download extends Events {
 	}
 	prepareOutputData(data){
 		if(Array.isArray(data)){
-			data = Buffer.concat(data)
+			if(data.length && typeof(data[0]) == 'string'){
+				data = data.join('')
+			} else {
+				data = Buffer.concat(data)
+			}
 		}
 		switch(this.opts.responseType){
 			case 'text':
@@ -863,6 +873,9 @@ Download.file = (...args) => {
 				reject(err || 'empty data '+ g.statusCode)
 			}
 		})
+		if(typeof(opts.progress) == 'function'){
+			g.on('progress', opts.progress)
+		}
 		g.start()
 	})
 	promise.cancel = () => {

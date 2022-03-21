@@ -48,7 +48,7 @@ class Downloads extends Events {
 			}
 		} else {
 			const cancelPrefix = 'downloads-cancel-'
-			if(ret.startsWith(cancelPrefix)){
+			if(String(ret).startsWith(cancelPrefix)){
 				const uid = ret.substr(cancelPrefix.length)
 				Object.keys(this.activeDownloads).some(url => {
 					if(this.activeDownloads[url].uid == uid){
@@ -134,7 +134,7 @@ class Downloads extends Events {
 						if(!resHeaders['content-length'] && download.contentLength > 0){
 							resHeaders['content-length'] = download.contentLength
 						}
-						res.writeHead(status, resHeaders)
+						res.writeHead(status <= 0 ? 500 : status, resHeaders)
 					})
 					download.on('error', console.error)
 					download.on('data', chunk => res.write(chunk))
@@ -379,6 +379,7 @@ class Downloads extends Events {
 					name,
 					details: global.lang.SAVING_FILE +' '+ download.progress +'%',
 					type: 'action',
+					fa: this.icon,
 					action: () => {
 						global.ui.emit('dialog', [
 							{template: 'question', text: 'Megacubo', fa: this.icon},

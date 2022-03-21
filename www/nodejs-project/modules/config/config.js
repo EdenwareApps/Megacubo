@@ -165,12 +165,16 @@ class Config extends Events {
 				recursive: true
 			})
 		} 
-		if(fs.existsSync(this.file)){
-			fs.truncateSync(this.file, 0)
-		}
-		try {
-			const jso = JSON.stringify(Object.assign({}, userConfig), null, 3);
-			fs.writeFileSync(this.file, jso, 'utf8')
+		try { // Error: EPERM: operation not permitted, open '[...]/config.json'
+			if(fs.existsSync(this.file)){
+				fs.truncateSync(this.file, 0)
+			}
+			try {
+				const jso = JSON.stringify(Object.assign({}, userConfig), null, 3);
+				fs.writeFileSync(this.file, jso, 'utf8')
+			} catch(e) {
+				console.error(e)
+			}
 		} catch(e) {
 			console.error(e)
 		}

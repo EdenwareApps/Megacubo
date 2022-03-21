@@ -22,7 +22,7 @@ class CloudData {
         this.cachingDomain = 'cloud-' + this.locale + '-'
     }
     url(key){
-        if(key == 'configure'){
+        if(['configure', 'themes'].includes(key)){
             return this.base + '/' + key + '.json'
         } else if(key.indexOf('/') != -1) {
             return this.baseURL + key + '.json'

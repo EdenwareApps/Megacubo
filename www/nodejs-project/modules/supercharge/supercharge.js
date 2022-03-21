@@ -250,15 +250,73 @@ function patch(scope){
 		return scope.sanitize(filename)
 	}
 	scope.isWritable = stream => {
-		return stream.writable || stream.writeable
+		return (stream.writable || stream.writeable) && !stream.finished
 	}
-    scope.isNetworkIP = addr => {
-        if(addr){
-			if(addr.startsWith('10.') || addr.startsWith('172.') || addr.startsWith('192.')){
-				return 'ipv4'
+	scope.rmdir = (folder, itself, cb) => {
+		const rimraf = require('rimraf')
+		let dir = folder
+		if(dir.charAt(dir.length - 1) == '/'){
+			dir = dir.substr(0, dir.length - 1)
+		}
+		if(!itself){
+			dir += '/*'
+		}
+		if(cb === true){ // sync
+			try {
+				rimraf.sync(dir)
+			} catch(e) {}
+		} else {
+			try {
+				rimraf(dir, cb || (() => {}))
+			} catch(e) {
+				if(typeof(cb) == 'function'){
+					cb()
+				}
 			}
 		}
-    }
+	}
+	scope.moveFile = (from, to, cb) => {
+		const fs = require('fs')
+		fs.stat(from, (err, stat) => {
+			if(err){
+				return cb(err)
+			}
+			fs.stat(to, (err, stat) => {
+				const next = () =>  {
+					fs.rename(from, to, err => {
+						if(err){
+							fs.copyFile(from, to, cb)
+						} else {
+							cb()
+						}
+					})
+				}
+				if(stat){
+					fs.unlink(to, next)
+				} else {
+					next()
+				}
+			})
+		})
+	}
+	scope.moveFileRetry = (from, to, cb, timeout=5, until=null) => {
+		let now = scope.time()
+		if(!until){
+			until = now + timeout
+		}
+		scope.moveFile(from, to, err => {
+			if(err){				
+				if(until <= now){
+					return cb(err)
+				}
+				setTimeout(() => {
+					scope.moveFileRetry(from, to, cb, timeout, until)
+				}, 50)
+			} else {
+				cb()
+			}
+		})
+	}
 	scope.execSync = cmd => {
 		let stdout
 		try {
@@ -268,6 +326,13 @@ function patch(scope){
 		}
 		return String(stdout)
 	}
+    scope.isNetworkIP = addr => {
+        if(addr){
+			if(addr.startsWith('10.') || addr.startsWith('172.') || addr.startsWith('192.')){
+				return 'ipv4'
+			}
+		}
+    }
 	scope.androidSDKVer = () => {
 		if(!scope.androidSDKVerCache){
 			scope.androidSDKVerCache = parseInt(scope.execSync('getprop ro.build.version.sdk').trim())

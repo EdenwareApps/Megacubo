@@ -90,11 +90,54 @@ class FFMpeg {
 	}
 }
 
+class ExitPage {
+	constructor(){
+		this.startTime = this.time()
+		this.interval = 72 * 3600
+		this.allowAfterExitPage = false
+		if(!this.get('last-open')){
+			this.set('last-open', this.startTime)
+		}
+	}
+	time(){
+		return ((new Date()).getTime() / 1000)
+	}
+	allow(){
+		const now = this.time(), lastOpen = parseInt(this.get('last-open'))
+		if((now - this.startTime) < 10){
+			return false
+		}
+		if((now - lastOpen) < this.interval){
+			return false
+		}
+		this.touch()
+		return true
+	}
+	touch(){
+		this.set('last-open', this.time())
+	}
+	url(){
+		return 'http://app.megacubo.net/out.php?ver='+ nw.App.manifest.version
+	}
+	open(){
+		if(this.allow()){
+			nw.Shell.openExternal(this.url()) 
+		}
+	}
+	get(key){
+		return localStorage.getItem(key)
+	}
+	set(key, val){
+		return localStorage.setItem(key, val)
+	}
+}
+
 ffmpeg = new FFMpeg()
 
 class WindowManager extends ClassesHandler {
 	constructor(){
 		super()
+		this.exitPage = new ExitPage()
 		this.trayMode = false
 		this.win = nw.Window.get()
 		this.leftWindowDiff = 0
@@ -116,6 +159,7 @@ class WindowManager extends ClassesHandler {
 			this.fixMaximizeButton()
 			this.win.show()
 			this.app.streamer.emit('miniplayer-on')
+			this.exitPage.open()
 		})
 		this.on('miniplayer-off', () => {
 			console.warn('MINIPLAYER OFF')
@@ -498,6 +542,7 @@ class WindowManager extends ClassesHandler {
 	}
 	close(){
 		console.error('nw close()')
+		this.exitPage.open()
 		nw.App.closeAllWindows()
 		this.win.close(true)
 	}

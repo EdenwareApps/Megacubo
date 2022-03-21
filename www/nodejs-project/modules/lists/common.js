@@ -139,7 +139,7 @@ class Common extends Events {
 	}
 	match(needleTerms, stackTerms, partial){ // partial=true will match "starts with" terms too
 		if(needleTerms.includes('|')){
-			let needles = needleTerms.join(' ').split(' | ').map(s => s.split(' '))
+			let needles = needleTerms.join(' ').split(' | ').map(s => s.trim()).filter(s => s).map(s => s.split(' '))
 			let score = 0
 			needles.forEach(needle => {
 				let s = this.match(needle, stackTerms, partial)

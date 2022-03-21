@@ -39,6 +39,7 @@ class StreamerTools extends Events {
 		}
 	}
     absolutize(path, url){
+		if(!path) return url
         if(path.match(new RegExp('^[htps:]?//'))){
             return path
         }
@@ -97,7 +98,7 @@ class StreamerTools extends Events {
 						if(strSample.toLowerCase().indexOf('#ext-x-stream-inf') == -1){
 							done()
 						} else {
-							let trackUrl = strSample.split("\n").filter(line => line.length > 3 && line.charAt(0) != '#').shift()
+							let trackUrl = strSample.split("\n").map(s => s.trim()).filter(line => line.length > 3 && line.charAt(0) != '#').shift()
 							trackUrl = this.absolutize(trackUrl, url)
 							return this._probe(trackUrl, timeoutSecs, retries).then(resolve).catch(err => {
 								console.error(err)
@@ -147,7 +148,7 @@ class StreamerTools extends Events {
 				this._probe(url, timeout, retries).then(ret => { 
 					//console.warn('PROBED', ret)
 					let cl = ret.headers['content-length'] || -1, ct = ret.headers['content-type'] || '', st = ret.status || 0
-					if(st < 200 || st >= 400){
+					if(st < 200 || st >= 400 || st == 204){ // 204=No content
 						reject(st)
 					} else {
 						if(ct){
@@ -507,23 +508,8 @@ class StreamerBase extends StreamerTools {
 			}
 			this.emit('commit', intent)
 			intent.emit('commit')
-			let data = intent.data
-			data.engine = intent.type
+			let data = this.connect(intent)
 			console.warn('STREAMER COMMIT '+ data.url)
-			if(data.icon){
-				data.originalIcon = data.icon
-				data.icon = global.icons.url + global.icons.key(data.icon)
-			} else {
-				data.icon = global.icons.url + global.channels.entryTerms(data).join(',')
-			}
-			this.emit('streamer-connect', intent.endpoint, intent.mimetype, data)
-			if(intent.transcoderStarting){
-				global.ui.emit('streamer-connect-suspend')
-			}
-			if(!this.opts.shadow){
-				global.osd.hide('streamer')
-			}
-			console.warn('STREAMER COMMIT'+ this.connect(intent).url)
 			return true
 		}
 	}
@@ -731,8 +717,10 @@ class StreamerAbout extends StreamerThrottling {
 			this.aboutDialogRegisterOption('ok', () => {
 				return {template: 'option', text: 'OK', id: 'ok', fa: 'fas fa-check-circle'}
 			})
-			this.aboutDialogRegisterOption('share', () => {
-				return {template: 'option', text: global.lang.SHARE, id: 'share', fa: 'fas fa-share-alt'}
+			this.aboutDialogRegisterOption('share', data => {
+				if(!data.isLocal){
+					return {template: 'option', text: global.lang.SHARE, id: 'share', fa: 'fas fa-share-alt'}
+				}
 			}, this.share.bind(this))
 			global.ui.on('streamer-about-cb', chosen => {
 				console.log('about callback', chosen)
@@ -767,7 +755,7 @@ class StreamerAbout extends StreamerThrottling {
 					if(r.status == 'fulfilled' && r.value){
 						if(Array.isArray(r.value)){
 							ret = ret.concat(r.value)
-						} else {
+						} else if(r.value) {
 							ret.push(r.value)
 						}
 					}
@@ -803,7 +791,7 @@ class StreamerAbout extends StreamerThrottling {
 	}
 	aboutText(){
 		let text = ''
-		if(this.active.bitrate){
+		if(this.active.bitrate && !this.active.data.isLocal){
 			const currentSpeed = (this.speedoAdapter || this.active).currentSpeed, tuneable = this.isTuneable, icon = '<i class="fas fa-circle {0}"></i> '
 			if(this.downlink < currentSpeed){
 				this.downlink = currentSpeed
@@ -1162,6 +1150,7 @@ class Streamer extends StreamerAbout {
 					case '410':
 						msg = global.lang.PLAYBACK_OFFLINE_STREAM
 						break
+					case '453':
 					case '500':
 					case '502':
 					case '503':

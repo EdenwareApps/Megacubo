@@ -134,7 +134,7 @@ class StreamerProxy extends StreamerProxyBase {
 					}
 				})
 			}
-			console.warn('PRXBODY', body, parser.manifest, replaces)
+			// console.warn('PRXBODY', body, parser.manifest, replaces)
 		}
 		return body
 	}
@@ -419,9 +419,6 @@ class StreamerProxy extends StreamerProxyBase {
 		download.on('data', chunk => {
 			response.write(chunk)
 			let len = this.len(chunk)
-			if(this.listenerCount('data')){
-				this.emit('data', url, chunk, len, offset)
-			}
 			this.downloadLog(len)
 			if(doBitrateCheck && !sampleCollected){
 				//console.warn('forceFirstBitrateDetection data', this.bitrateCheckBuffer[uid], offset, chunk)

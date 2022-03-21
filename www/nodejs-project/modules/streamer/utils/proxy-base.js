@@ -1,6 +1,5 @@
 
-const http = require('http'), path = require('path'), fs = require('fs')
-const StreamerAdapterBase = require('../adapters/base.js'), decodeEntities = require('decode-entities'), m3u8Parser = require('m3u8-parser')
+const StreamerAdapterBase = require('../adapters/base.js')
 
 class StreamerProxyBase extends StreamerAdapterBase {
 	constructor(opts){
@@ -67,14 +66,21 @@ class StreamerProxyBase extends StreamerAdapterBase {
 		return _uid
 	}
     absolutize(path, url){
+		if(!path) return url
+		if(!url) return path
 		if(path.substr(0, 2) == '//'){
 			path = 'http:' + path
 		}
         if(['http://', 'https:/'].includes(path.substr(0, 7))){
             return path
 		}
-		let uri = new URL(path, url)
-        return uri.href
+		try{
+			let uri = new URL(path, url)
+        	return uri.href
+		} catch(e) {
+			console.error(e)
+			return path
+		}
 	}
 	getDomain(u){
 		if(u && u.indexOf('//') != -1){
@@ -102,8 +108,11 @@ class StreamerProxyBase extends StreamerAdapterBase {
 		} else if(typeof(headers['content-type']) != 'undefined' && headers['content-type'] == 'application/octet-stream') { // force download video header
 			type = 'video'
 		}
-		console.warn('MEDIATYPE', type, headers, url)
+		//console.warn('MEDIATYPE', type, headers, url)
 		return type
+	}
+	isSegmentURL(url){
+		return ['ts', 'mts', 'm2ts', 'm4s'].includes(this.ext(url))
 	}
 	addCachingHeaders(headers, secs){		
 		return Object.assign(headers, {

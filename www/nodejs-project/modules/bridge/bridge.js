@@ -110,14 +110,18 @@ class BridgeServer extends Events {
         this.uploadURL = 'http://' + this.opts.addr + ':' + this.opts.port + '/upload'
     }
     serve(file){
-        let ext = file.match(new RegExp('\.[A-Za-z0-9]{0,5}$'))
-        let stat = fs.statSync(file)
-        let path = './'+ (stat ? stat.size : file.split('/').pop())
-        if(ext){
-            path += ext[0]
+        if(fs.existsSync(file)){
+            let ext = file.match(new RegExp('\.[A-Za-z0-9]{0,5}$'))
+            let stat = fs.statSync(file)
+            if(stat){
+                let path = './'+ (stat ? stat.size : file.split('/').pop())
+                if(ext){
+                    path += ext[0]
+                }
+                this.map[path] = file
+                return 'http://' + this.opts.addr + ':' + this.opts.port + '/'+ path.substr(2)
+            }
         }
-        this.map[path] = file
-        return 'http://' + this.opts.addr + ':' + this.opts.port + '/'+ path.substr(2)
     }
     destroy(){
         if(this.opts.debug){

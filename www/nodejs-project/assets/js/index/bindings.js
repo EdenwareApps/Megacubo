@@ -175,7 +175,17 @@ window.addEventListener('beforeunload', () => {
 })
 
 function channelGetLangCallback(){
-	channel.post('message', ['get-lang-callback', window.navigator.userLanguage || window.navigator.language, Intl.DateTimeFormat().resolvedOptions().timeZone, window.navigator.userAgent, window.navigator.onLine])
+	var next = lang => {
+		if(!lang){
+			lang = window.navigator.userLanguage || window.navigator.language
+		}
+		channel.post('message', ['get-lang-callback', lang, Intl.DateTimeFormat().resolvedOptions().timeZone, window.navigator.userAgent, window.navigator.onLine])
+	}
+	if(window.cordova){
+		navigator.globalization.getPreferredLanguage(language => next(language.value), () => next())
+	} else {
+		next()
+	}
 }
 
 function channelCallback(){

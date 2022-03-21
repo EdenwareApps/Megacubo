@@ -12,7 +12,7 @@ class Watching extends EntriesGroup {
             global.channels.on('loaded', () => this.update()) // on each "loaded"
         })
         global.config.on('change', (keys, data) => {
-            if(keys.includes('only-known-channels-in-been-watched') || keys.includes('parental-control-policy')){
+            if(keys.includes('only-known-channels-in-been-watched') || keys.includes('parental-control-policy') || keys.includes('parental-control-terms')){
                 this.update()
             }
         })
@@ -94,6 +94,13 @@ class Watching extends EntriesGroup {
                 })
                 if(!list.length){
                     list = [{name: global.lang.EMPTY, fa: 'fas fa-info-circle', type: 'action', class: 'entry-empty'}]
+                } else {
+                    const acpolicy = global.config.get('parental-control-policy')
+                    if(acpolicy == 'block'){
+                        list = global.lists.parentalControl.filter(list)		
+                    } else if(acpolicy == 'only') {
+                        list = global.lists.parentalControl.only(list)
+                    }     
                 }
                 list = this.prepare(list) 
                 global.channels.epgChannelsAddLiveNow(list, false).then(resolve).catch(reject)
@@ -141,7 +148,8 @@ class Watching extends EntriesGroup {
                 })
                 data = global.lists.parentalControl.filter(data)
                 this.currentRawEntries = data.slice(0)
-                let groups = {}, gcount = {}, gentries = [], onlyKnownChannels = global.config.get('only-known-channels-in-been-watched') && global.config.get('parental-control-policy') != 'only'
+                const adultContentOnly = global.config.get('parental-control-policy') == 'only', onlyKnownChannels = !adultContentOnly && global.config.get('only-known-channels-in-been-watched')
+                let groups = {}, gcount = {}, gentries = []
                 async.eachOf(data, (entry, i, cb) => {
                     let ch = global.channels.isChannel(entry.terms.name)
                     if(ch){ 
