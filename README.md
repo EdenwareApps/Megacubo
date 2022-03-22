@@ -19,7 +19,11 @@ Want to use the software, go to [our releases folder](https://github.com/efoxbr/
 <br/>
 
 <p align="center">
-  <img src="https://static.megacubo.tv/files/screenshot-en-680.jpg" alt="Megacubo UI screenshot" title="Megacubo UI screenshot" />
+  <img width="800" src="https://static.megacubo.tv/files/print-megacubo-en-1.jpg" alt="Megacubo UI screenshot" title="Megacubo UI screenshot" />
+</p>
+
+<p align="center">
+  <img  width="800" src="https://static.megacubo.tv/files/print-megacubo-en-2.jpg" alt="Megacubo player screenshot" title="Megacubo player screenshot" />
 </p>
 
 <br/>
