@@ -13,7 +13,7 @@ class Any2HLS extends Events {
             addr: '127.0.0.1',
             port: 0,
             videoCodec: 'copy',
-            audioCodec: 'copy',
+            audioCodec: global.cordova ? 'copy' : 'aac', // force aac transcode for HTML
             inputFormat: null,
             isLive: true,
             vprofile: 'baseline'
@@ -554,7 +554,7 @@ class Any2HLS extends Events {
                             this.waitFile(this.decoder.playlist, this.timeout, true).then(() => {
                                 this.serve().then(resolve).catch(err => {
                                     reject(err)
-                                    this.decoder.kill()
+                                    this.decoder && this.decoder.kill()
                                 })
                             }).catch(e => {
                                 console.error('waitFile failed', this.timeout, e)

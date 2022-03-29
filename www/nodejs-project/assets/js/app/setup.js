@@ -16,10 +16,7 @@ class Setup extends EventEmitter {
     validateURL(url){
 		if(url && url.length > 11){
 			let u = url.toLowerCase()
-			if((u.substr(0, 4) == 'http' || u.substr(0, 2) == '//') && u.indexOf('://') != -1 && u.indexOf('.') != -1){
-				return true
-			}
-			if((u.substr(0, 4) == 'http' || u.substr(0, 2) == '//') && u.indexOf('://') != -1 && u.indexOf('.') != -1){
+			if(u.substr(0, 4) == 'http' && u.indexOf('://') != -1 && u.indexOf('.') != -1){
 				return true
 			}
             let m = u.match(new RegExp('^([a-z]{1,6}):', 'i'))

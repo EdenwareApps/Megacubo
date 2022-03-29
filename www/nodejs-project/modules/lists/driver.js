@@ -17,6 +17,7 @@ cloud = new Cloud()
 mega = new Mega()
 
 listsRequesting = {}
+listsLoadTimes = {}
 
 const emit = (type, content) => {
 	postMessage({id: 0, type: 'event', data: type +':'+ JSON.stringify(content)})
@@ -223,12 +224,12 @@ class Lists extends Index {
 			resolve(data)
 		})		
 	}
-	epgSearch(terms, nowLive){
+	epgSearch(terms, nowLive, includeCategories){
 		return new Promise((resolve, reject) => {
 			if(!this._epg){
 				return reject('no epg')
 			}
-			return this._epg.search(this.applySearchRedirects(terms), nowLive).then(resolve).catch(reject)
+			return this._epg.search(this.applySearchRedirects(terms), nowLive, includeCategories).then(resolve).catch(reject)
 		})
 	}
 	epgSearchChannel(terms){
@@ -372,7 +373,19 @@ class Lists extends Index {
 			this.myLists = myLists
 			this.sharedModeReach = sharedModeReach
 			this.syncListProgressData = {myLists, communitaryLists} // pick communitaryLists before filtering
+			communitaryLists.forEach(url => {
+				if(!listsLoadTimes[url]){
+					listsLoadTimes[url] = {}
+				}
+				listsLoadTimes[url].sync = global.time()
+			})
 			this.filterByAvailability(communitaryLists, communitaryLists => {
+				communitaryLists.forEach(url => {
+					if(!listsLoadTimes[url]){
+						listsLoadTimes[url] = {}
+					}
+					listsLoadTimes[url].filtered = global.time()
+				})
 				this.syncListProgressData.firstRun = !communitaryLists.length
 				this.delimitActiveLists() // helps to avoid too many lists in memory
 				if(!this.sharedModeReach && communitaryLists.length){
@@ -483,7 +496,7 @@ class Lists extends Index {
 				if(this.isSyncing(url, resolve, reject)){
 					return
 				}
-				if(this.syncingActiveListsCount() >= 3){
+				if(this.syncingActiveListsCount() >= 6){
 					return this.syncEnqueue(url, resolve, reject)				
 				}
 			}
@@ -521,6 +534,7 @@ class Lists extends Index {
 			if(this.debug){
 				console.log('syncLoadList start', url)
 			}
+			listsLoadTimes[url].syncing = global.time()
 			global.listsRequesting[url] = 'loading'		
 			this.lists[url] = new List(url, this)
 			this.lists[url].skipValidating = isMine
@@ -542,6 +556,7 @@ class Lists extends Index {
 				}
 			})
 			this.lists[url].start().then(() => {
+				listsLoadTimes[url].synced = global.time()
 				if(this.debug){
 					console.log('syncLoadList started')
 				}
@@ -606,6 +621,7 @@ class Lists extends Index {
 				}
 			}).catch(err => {
 				//console.warn('LOAD LIST FAIL', url, this.lists[url])
+				listsLoadTimes[url].synced = global.time()
 				if(!global.listsRequesting[url] || (global.listsRequesting[url] == 'loading')){
 					global.listsRequesting[url] = String(err)
 				}

@@ -36,6 +36,15 @@ class JimpDriver {
                     if(opts.shouldBeAlpha == 2 && !alpha){
                         return reject('not an alpha image')
                     }
+                    if(opts.minWidth && opts.minWidth > image.bitmap.width){
+                        return reject('bad image dimensions')
+                    }
+                    if(opts.minHeight && opts.minHeight > image.bitmap.height){
+                        return reject('bad image dimensions')
+                    }
+                    if(opts.shouldBeAlpha == 2 && !alpha){
+                        return reject('not an alpha image')
+                    }
                     if(opts.autocrop){
                         image.autocrop = this.jimpCustomAutocrop
                         image = image.autocrop({tolerance: 0.002})

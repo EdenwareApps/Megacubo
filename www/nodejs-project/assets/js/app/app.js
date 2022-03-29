@@ -253,7 +253,9 @@ function initApp(){
         }
         const iconRange = () => {
             if(typeof(iconCaching[explorer.path]) != 'undefined' && config['show-logos']){
-                Array.from(new Array(explorer.range.end - explorer.range.start), (x, i) => i + explorer.range.start).forEach(i => {
+                let range = explorer.viewportRange()
+                //console.log('selectionMemory iconRange', iconCaching[explorer.path], range.start, range.end)
+                Array.from(new Array(range.end - range.start), (x, i) => i + range.start).forEach(i => {
                     if(explorer.currentEntries[i]){
                         if(typeof(iconCaching[explorer.path][i]) != 'undefined' && iconCaching[explorer.path][i].name == explorer.currentEntries[i].name){
                             icon(iconCaching[explorer.path][i].src, explorer.path, i, explorer.currentEntries[i].name)
@@ -417,6 +419,7 @@ function initApp(){
             jQuery(document).on('keyup', omni.eventHandler.bind(omni))
 
             explorer.on('scroll', y => {
+                //console.log('selectionMemory scroll', y)
                 explorer.updateRange(y)
                 elpShow()
                 haUpdate()  

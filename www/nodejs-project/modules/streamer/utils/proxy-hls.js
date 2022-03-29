@@ -114,7 +114,9 @@ class HLSRequestClient extends Events {
 	}
 	end(){
 		if(!this.ended){
-			console.error('end without responded')
+			if(!this.responded){
+				console.error('end without responded')
+			}
 			this.respond(500) // just to be sure
 			this.emit('end')
 			this.ended = true
@@ -189,6 +191,7 @@ class HLSRequest extends StreamerProxyBase {
 			if(typeof(this.headers['content-length']) != 'undefined'){
 				delete this.headers['content-length']
 			}
+			this.headers['connection'] = 'close'
 			//console.warn('HLSRequest HEAD', this.status, this.headers, this.mediaType)
 		}
 	}
@@ -326,7 +329,8 @@ class HLSRequest extends StreamerProxyBase {
 	}
 	offload(finalize, cb){
 		async.eachOfLimit(this.fragments, 2, (fragment, i, done) => {
-			if(fragment.buffer && (finalize || fragment.buffer.length >= this.fragmentSize)){
+			// TypeError: Cannot read property 'buffer' of undefined
+			if(fragment && fragment.buffer && (finalize || fragment.buffer.length >= this.fragmentSize)){
 				const file = this.file +'-'+ i
 				fs.writeFile(this.folder + file, fragment.buffer, (err, content) => {
 					if(err){
@@ -380,7 +384,7 @@ class HLSRequest extends StreamerProxyBase {
 class HLSRequests extends StreamerProxyBase {
 	constructor(opts){
 		super(opts)
-		this.debugConns = true
+		this.debugConns = false
 		this.debugUnfinishedRequests = false
 		this.prefetchMaxConcurrency = 2
 		this.packetFilterPolicy = 1
@@ -547,10 +551,10 @@ class HLSRequests extends StreamerProxyBase {
 				this.requestCacheMap[url].addTransform('meta', chunk => this.proxifyM3U8(String(chunk), url, request.currentURL))
 			}
 			if(this.debugUnfinishedRequests) global.osd.show('unfinished: '+ Object.values(this.activeRequests).length, 'fas fa-info-circle', 'hlsu', 'persistent')
-			this.requestCacheMap[url].addClient(client)
+			this.requestCacheMap[url].addClient(client)			
 			let ended, end = () => {
 				//console.error('HLSRequest end')
-				if(this.debugConns) console.warn('REQUEST CONNECT END', global.time() - now, url, request.statusCode, ext)
+				if(this.debugConns) console.error('REQUEST CONNECT END', global.time() - now, url, request.statusCode, ext)
 				if(this.requestCacheMap[url]){
 					this.requestCacheMap[url].end()
 				}
@@ -560,27 +564,33 @@ class HLSRequests extends StreamerProxyBase {
 				if(!ended){
 					ended = true
 				}
-				setTimeout(() => {
-					if(this.activeManifest && Object.keys(this.activeRequests).length < this.prefetchMaxConcurrency && !this.destroyed) {
-						if(Object.keys(this.requestCacheMap).length >= 4){ // avoid to slow down on initial segment load order
-							let next = this.getNextInactiveSegment(this.activeManifest)
-							if(next){
-								if(this.debugConns) console.warn('PREFETCHING', next, url)
-								const nopts = opts
-								nopts.url = next
-								this.download(nopts).start()
-							} else {
-								let info
-								if(this.journals[this.activeManifest]){
-									info = Object.keys(this.journals[this.activeManifest].journal).slice(-5)
+				if(this.activeManifest && Object.keys(this.requestCacheMap).length >= 4){ // avoid to slow down on initial segment load order
+					setTimeout(() => {
+						if(!this.destroyed && Object.keys(this.activeRequests).length < this.prefetchMaxConcurrency) {
+							if(Object.keys(this.activeRequests).length < this.prefetchMaxConcurrency) {
+								let next = this.getNextInactiveSegment(this.activeManifest)
+								if(next){
+									if(this.debugConns) console.warn('PREFETCHING', next, url)
+									const nopts = opts
+									nopts.url = next
+									this.download(nopts).start()
+								} else {
+									let info
+									if(this.journals[this.activeManifest]){
+										info = Object.keys(this.journals[this.activeManifest].journal).slice(-5)
+									}
+									if(this.debugConns) console.warn('NOT PREFETCHING', Object.values(this.activeRequests).length, url, info)
 								}
-								if(this.debugConns) console.warn('NOT PREFETCHING', Object.values(this.activeRequests).length, url, info)
 							}
 						}
+					}, 50)
+					if(this.committed && seg && this.bitrates.length < this.opts.bitrateCheckingAmount && !this.bitrateChecking){
+						this.getBitrate(this.proxify(url))
 					}
-				}, 50)
+				}
 			}
 			request.once('response', (status, headers) => {
+				console.warn('RESPONSE', status, headers)
 				this.requestCacheMap[url].responseStarted = true
 				if(this.requestCacheMap[url].validateStatus(status)) {
 					if(this.ext(request.currentURL) == 'm3u8' || (headers['content-type'] && headers['content-type'].indexOf('mpegurl') != -1)){
@@ -604,8 +614,14 @@ class HLSRequests extends StreamerProxyBase {
 					}
 				}
 				this.requestCacheMap[url].respond(status, headers)
+				// console.warn('RESPONSE OK', status, headers, this.requestCacheMap[url])
 			})
-			request.on('data', chunk => this.requestCacheMap[url].write(chunk))
+			request.on('data', chunk => {
+				// console.log('DATA', chunk)
+				let len = this.len(chunk)
+				this.requestCacheMap[url].write(chunk)
+				this.downloadLog(len)
+			})
 			request.on('error', err => {
 				console.error(err)
 				client.emit('request-error', err)

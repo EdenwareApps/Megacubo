@@ -26,6 +26,7 @@
         "node-cleanup": "^2.1.2",
         "nw-custom-frame": "github:efoxbr/nw-custom-frame",
         "range-parser": "^1.2.1",
+        "read-last-lines": "^1.8.0",
         "resize-observer": "^1.0.2",
         "rimraf": "^3.0.2",
         "safe-buffer": "^5.2.1",
@@ -39,7 +40,7 @@
     "description": "A simple and intuitive IPTV player.",
     "name": "megacubo",
     "icon": "./default_icon.png",
-    "version": "16.3.7",
+    "version": "16.3.8",
     "theme": {
         "fullScreen": true
     },

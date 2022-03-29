@@ -7,7 +7,7 @@ class Theme extends Events {
         this.backgroundVideoSizeLimit = 40 * (1024 * 1024)
         this.customBackgroundImagePath = global.paths.data +'/background.png'
         this.customBackgroundVideoPath = global.paths.data +'/background'
-        this.keys = ['theme-name', 'animate-background', 'background-color', 'background-color-transparency', 'custom-background-image', 'custom-background-video', 'font-color', 'font-family', 'font-size', 'uppercase-menu', 'view-size-x', 'view-size-y']
+        this.keys = ['theme-name', 'animate-background', 'background-color', 'background-color-transparency', 'custom-background-image', 'custom-background-video', 'font-color', 'font-family', 'font-size', 'uppercase-menu', 'view-size-x', 'view-size-y', 'fx-nav-intensity']
         this.folder = global.paths.data +'/Themes'
         global.ui.once('init', () => {
             this.refresh()
@@ -260,11 +260,12 @@ class Theme extends Events {
                     if(file.substr(-4) == '.tmp') return done()
                     let ffile = this.folder +'/'+ file
                     fs.readFile(ffile, (err, content) => {
+                        let n = file.replace('.theme.json', '')
                         if(err){
                             global.displayErr('Failed to open theme: '+ n)
                             done()
                         } else {
-                            let e, n = file.replace('.theme.json', '')
+                            let e
                             try {
                                 e = JSON.parse(String(content))
                                 if(e){

@@ -93,7 +93,7 @@ class StreamerOSD extends StreamerPlaybackTimeout {
                         this.transmissionNotWorkingHintTimer = setTimeout(() => {
                             if(this.active){
                                 osd.hide(this.osdID)
-                                if(!this.data || !this.data.isLocal){
+                                if(this.autoTuning){
                                     osd.show(lang.BROADCAST_NOT_WORKING_HINT.format('<i class=\"'+ config['tuning-icon'] +'\"></i>'), '', this.osdID +'-sub', 'persistent')
                                 }
                             }
@@ -106,7 +106,7 @@ class StreamerOSD extends StreamerPlaybackTimeout {
                     osd.hide(this.osdID)
                     if(!this.OSDNameShown){
                         this.OSDNameShown = true
-                        if(!this.data || !this.data.isLocal){
+                        if(this.autoTuning){
                             osd.show(lang.BROADCAST_NOT_WORKING_HINT.format('<i class=\"'+ config['tuning-icon'] +'\"></i>'), '', this.osdID +'-sub', 'normal')
                         }
                         osd.show(this.data.name, this.data.icon || '', this.osdID, 'normal')
@@ -450,8 +450,8 @@ class StreamerSpeedo extends StreamerIdle {
                         }
                     }
                     break
-                default:
-                    this.speedoSemSet(1, lang.WAITING_CONNECTION)
+                case '':
+                    this.speedoSemSet(-1, lang.WAITING_CONNECTION)
             }
         })
         this.on('start', () => {
@@ -461,7 +461,7 @@ class StreamerSpeedo extends StreamerIdle {
             this.seekBarReset()
             this.app.emit('downlink', this.downlink())
             if(this.isLocal()){
-                return this.speedoSemSet(4, '')
+                return this.speedoSemSet(-1, '')
             }
         })
         this.on('stop', () => {
@@ -505,20 +505,20 @@ class StreamerSpeedo extends StreamerIdle {
         return downlink
     }
     speedoReset(){
-        this.speedoSemSet(1, lang.WAITING_CONNECTION)
+        this.speedoSemSet(-1, lang.WAITING_CONNECTION)
     }
     speedoUpdate(){
         if(!parent.player.state){
             return
         }
         if(this.isLocal()){
-            return this.speedoSemSet(4, '')
+            return this.speedoSemSet(-1, '')
         }
         let semSet, starting = !this.commitTime || (time() - this.commitTime) < 15
         let lowSpeedThreshold = (250 * 1024) /* 250kbps */, downlink = this.downlink(this.currentSpeed)
         console.error('SPEEDOUPDATE', starting, this.commitTime, time(), this.currentSpeed, this.bitrate, downlink)
         if(this.invalidSpeeds.includes(this.currentSpeed)) {
-            this.speedoSemSet(1, this.transcodeStarting ? lang.TRANSCODING_WAIT : lang.WAITING_CONNECTION)
+            this.speedoSemSet(-1, this.transcodeStarting ? lang.TRANSCODING_WAIT : lang.WAITING_CONNECTION)
         } else {
             let t = ''
             if(this.bitrate && !this.invalidSpeeds.includes(this.bitrate)){
@@ -549,7 +549,7 @@ class StreamerSpeedo extends StreamerIdle {
                     t = lang.SLOW_SERVER + ': ' + kbsfmt(this.currentSpeed)
                 }
                 if(this.currentSpeed <= lowSpeedThreshold){
-                    semSet = starting ? 1 : 2
+                    semSet = starting ? -1 : 2
                 } else {                   
                     semSet = 1
                 }
@@ -566,7 +566,7 @@ class StreamerSpeedo extends StreamerIdle {
             this.currentSem = s
             this.speedoLabel.innerHTML = txt
             if(!this.speedoSemInfoButton){
-                this.speedoSemInfoButton = $(this.getPlayerButton('info'))
+                this.speedoSemInfoButton = $(this.getPlayerButton('info')).add($('seekbar')).add($('button.recording'))
             }
             colors.forEach((color, i) => {
                 this.speedoSemInfoButton[i == s ? 'addClass' : 'removeClass']('faclr-'+ color)

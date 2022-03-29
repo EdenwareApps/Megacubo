@@ -20,12 +20,12 @@ class Bookmarks extends EntriesGroup {
             if(!data.isLocal && !this.has(this.simplify(data))){
                 return {template: 'option', fa: 'fas fa-star', text: global.lang.ADD_TO.format(global.lang.BOOKMARKS), id: 'addfav'}
             }
-        }, this.toggle.bind(this))
+        }, this.toggle.bind(this), null, true)
         global.streamer.aboutDialogRegisterOption('remfav', data => {
             if(!data.isLocal && this.has(this.simplify(data))){
                 return {template: 'option', fa: 'fas fa-star-half', text: global.lang.REMOVE_FROM.format(global.lang.BOOKMARKS), id: 'remfav'}
             }
-        }, this.toggle.bind(this))
+        }, this.toggle.bind(this), null, true)
     }
     streamFilter(e){
         return e.url && (!e.type || e.type == 'stream')
@@ -101,6 +101,16 @@ class Bookmarks extends EntriesGroup {
             return this.cleanAtts(e)
         }
         return {name: e.originalName || e.name, type: 'stream', details: e.group || '', icon: e.originalIcon || e.icon || '', terms: {'name': global.channels.entryTerms(e)}, url: e.originalUrl || e.url}
+    }
+    search(terms){
+        return new Promise((resolve, reject) => {
+            if(typeof(terms) == 'string'){
+                terms = global.lists.terms(terms)
+            }
+            this.get().forEach(e => {
+                
+            })
+        })
     }
     entries(e){
         return new Promise((resolve, reject) => {

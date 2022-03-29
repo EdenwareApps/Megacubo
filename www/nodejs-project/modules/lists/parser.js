@@ -40,7 +40,7 @@ class IPTVPlaylistStreamParser extends Events {
 		this.regexes = {
 			'notags': new RegExp('\\[[^\\]]*\\]', 'g'),
 			'non-alpha': new RegExp('^[^0-9A-Za-zÀ-ÖØ-öø-ÿ!\n]+|[^0-9A-Za-zÀ-ÖØ-öø-ÿ!\n]+$', 'g'), // match non alphanumeric on start or end,
-			'between-brackets': new RegExp('[\(\\[].*[\)\\]]'), // match data between brackets
+			'between-brackets': new RegExp('[\(\\[](.*)[\)\\]]'), // match data between brackets
 			'accents': new RegExp('[\\u0300-\\u036f]', 'g'), // match accents
 			'plus-signal': new RegExp('\\+', 'g'), // match plus signal
 			'hyphen': new RegExp('\\-', 'g'), // match any hyphen
@@ -280,7 +280,7 @@ class IPTVPlaylistStreamParser extends Events {
 				if(e.url.substr(0, 2) == '//'){
 					e.url = 'http:' + e.url
 				}
-				if(this.validateURL(e.url)){
+				if(global.validateURL(e.url)){
 					if(!e.name){
 						e.name = e.gid || this.nameFromURL(e.url)
 					}
@@ -317,14 +317,6 @@ class IPTVPlaylistStreamParser extends Events {
 			}
 		}
 		return a
-	}
-	validateURL(url){
-		if(url && url.length > 11){
-			let u = url.toLowerCase()
-			if(['http', 'rtmp', 'rtsp'].includes(u.substr(0, 4)) && u.indexOf('://') != -1){
-				return true
-			}
-		}
 	}
 	destroy(){
 		if(!this.destroyed){

@@ -595,7 +595,7 @@ class IconServer extends IconFetchSem {
                 if(this.isHashKey(key)){
                     p = this.checkHTTPCache(key).then(send)
                 } else {
-                    p = this.getDefaultFile(decodeURIComponent(key).split(',')).then(send)
+                    p = this.getDefaultFile(global.decodeURIComponentSafe(key).split(',')).then(send)
                 }
                 p.catch(err => {
                     console.error('icons.get() catch', err, req.url, global.traceback())

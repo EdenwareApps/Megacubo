@@ -166,6 +166,7 @@ input {
     box-sizing: border-box;
     justify-content: space-between;
     padding: 0 var(--padding);
+    transition: opacity var(--explorer-fx-nav-duration) ease-out 0s;
 }
 #explorer header div {
     justify-content: space-between;
@@ -191,7 +192,7 @@ body.video #explorer header .explorer-omni {
     visibility: hidden;
 }
 #explorer header .explorer-omni > span {
-    background: var(--modal-background-color);
+    background: linear-gradient(to bottom, rgba(0,0,0, 0.3), rgba(255, 255, 255, 0.05));
     border-radius: var(--padding-2x);
     display: none;
     min-width: calc(var(--explorer-entry-width) * 1.3);
@@ -338,8 +339,8 @@ div#home-arrows > div > * {
     display: block;
 }
 #explorer .entry-icon-image i {
-    mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.9) 50%, rgba(0, 0, 0, 0.2) 100%);
-    -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.9) 50%, rgba(0, 0, 0, 0.2) 100%);
+    mask-image: radial-gradient(circle at 50% -10%, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.8) 45%, rgba(0, 0, 0, 0) 100%);
+    -webkit-mask-image: radial-gradient(circle at 50% -10%, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.8) 45%, rgba(0, 0, 0, 0) 100%);
 }
 #explorer content a * {
     color: inherit;
@@ -544,6 +545,7 @@ seekbar > div {
     height: var(--padding);
     margin-top: calc(-1 * var(--padding));
     background-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 12px rgba(0, 0, 0, 0.5);
 }
 seekbar > div > div {
     padding: 0;
@@ -551,9 +553,11 @@ seekbar > div > div {
     pointer-events: none;
     height: inherit;
     background-color: #fff;
+    border-top-right-radius: 6px;
+    border-bottom-right-radius: 6px;
+    transition: width 0.1s ease-in-out 0s, background-color 0.6s ease-in-out 0s;
 }
 body.video seekbar > div > div {
-    transition: width 0.1s ease-in-out 0s;
     mask-image: var(--controls-mask-image);
     -webkit-mask-image: var(--controls-mask-image);
 }
@@ -705,22 +709,32 @@ controls button.info i.about-icon-dot {
     display: inline-flex;
     width: calc((var(--controls-button-height) / 8) * 1.33) !important;
     height: calc((var(--controls-button-height) / 8) * 1.33) !important;
-    border-radius: 100%;  
+    border-radius: 100%;
+    transition: background-color 0.6s ease-in-out 0s;
 }
 controls button.info i.about-icon-dot-second {
     margin: calc((var(--controls-button-height) / 8) / 2) 0;
 }
-controls button.info.faclr-green i.about-icon-dot-first {
+controls button.info.faclr-green i.about-icon-dot-first, seekbar.faclr-green > div > div {
     background: #0f0;
     box-shadow: 0 0 2vmin 0.2vmin #0f0;
 }
-controls button.info.faclr-orange i.about-icon-dot-second {
-    background: #f3c41b;
-    box-shadow: 0 0 2vmin 0.2vmin #f3c41b;
+controls button.info.faclr-orange i.about-icon-dot-second, seekbar.faclr-orange > div > div {
+    background: #d6e600;
+    box-shadow: 0 0 2vmin 0.2vmin #d6e600;
 }
-controls button.info.faclr-red i.about-icon-dot-third {
+controls button.info.faclr-red i.about-icon-dot-third, seekbar.faclr-red > div > div {
     background: #f05;
     box-shadow: 0 0 2vmin 0.2vmin #f05;
+}
+controls button.recording.faclr-green i {
+    color: #0f0;
+}
+controls button.recording.faclr-orange i {
+    color: #d6e600;
+}
+controls button.recording.faclr-red i {
+    color: #f05;
 }
 .modal-template-message i.fa-circle.faclr-green {
     color: #0f0 !important;
@@ -728,8 +742,8 @@ controls button.info.faclr-red i.about-icon-dot-third {
     margin-right: 0.8vmin;
 }
 .modal-template-message i.fa-circle.faclr-orange {
-    color: #f3c41b !important;
-    filter: drop-shadow(0 0 0.4vmin #f3c41b);
+    color: #d6e600 !important;
+    filter: drop-shadow(0 0 0.4vmin #d6e600);
     margin-right: 0.8vmin;
 }
 .modal-template-message i.fa-circle.faclr-red {
@@ -813,14 +827,14 @@ body.casting.video-playing #cast-layer {
     pointer-events: none;
     display: none; 
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
     transition: transform var(--explorer-fx-nav-duration) ease-in-out 0s;
 }
 body.osd #osd-root {
     display: flex; 
 }
-body.osd .explorer-location {
-    visibility: hidden !important;   
+body.osd #explorer header {
+    opacity: 0.15 !important;   
 }
 body.video #osd-root {
     bottom: calc(var(--controls-height) + var(--padding) + var(--seekbar-height));

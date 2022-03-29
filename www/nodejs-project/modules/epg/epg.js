@@ -447,7 +447,7 @@ class EPG extends Events {
             resolve(log)
         })
     }
-    search(terms, nowLive){
+    search(terms, nowLive, includeCategories){
         return new Promise((resolve, reject) => {
             let epgData = {}, now = this.time()
             Object.keys(this.data).forEach(channel => {
@@ -459,7 +459,7 @@ class EPG extends Events {
                     }
                     let t = this.data[channel][start].t
                     if(this.data[channel][start].c.length){
-                        t += this.data[channel][start].c.join(' ')
+                        t += ' '+ this.data[channel][start].c.join(' ')
                     }
                     let pterms = global.lists.terms(t)
                     if(global.lists.match(terms, pterms, true)){

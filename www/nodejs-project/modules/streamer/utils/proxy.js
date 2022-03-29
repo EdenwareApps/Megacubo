@@ -88,7 +88,15 @@ class StreamerProxy extends StreamerProxyBase {
 		body = body.replace(new RegExp(' +$', 'gm'), '')
 		let parser = new m3u8Parser.Parser(), replaces = {}, u
 		parser.push(body)
-		parser.end()
+		try{
+			parser.end()
+		}catch(e){
+			console.error(e)
+			/*
+			TypeError: Cannot read property 'slice' of null
+			at parseAttributes (C:\\ProgramData\\Megacubo\\package.nw\node_modules\\m3u8-parser\\dist\\m3u8-parser.cjs.js:115:41)
+			*/
+		}
 		// console.log('M3U8 PARSED', url, parser)
 		if(parser.manifest){
 			let qs = url.indexOf('?') ? url.split('?')[1] : ''

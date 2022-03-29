@@ -30,12 +30,12 @@ class StreamerRTMPIntent extends StreamerBaseIntent {
 }
 
 StreamerRTMPIntent.mediaType = 'live'
-StreamerRTMPIntent.supports = (info) => {
-    if(info.url && info.url.match(new RegExp('^rtmp[a-z]*://', 'i'))){
+StreamerRTMPIntent.supports = info => {
+    if(info.url && info.url.match(new RegExp('^(rtsp|rtmp)[a-z]*://', 'i'))){
         return true
     }
     if(info.contentType){
-        if(info.contentType.toLowerCase() == 'application/octet-stream' && !['ts', 'aac'].includes(info.ext)){
+        if(info.contentType.toLowerCase() == 'application/octet-stream' && !['ts', 'aac','m3u8','mpd'].includes(info.ext)){
             return true
         }
     }

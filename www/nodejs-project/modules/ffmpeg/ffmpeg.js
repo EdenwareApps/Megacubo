@@ -88,14 +88,14 @@ class FFmpegController extends Events {
 		global.ui.removeAllListeners('ffmpeg-metadata-'+ this.uid)
 	}
 	metadataCallback(nfo){
-		console.log('ffmpeg.metadata', nfo)
 		let codecs = this.master.codecs(nfo), dimensions = this.master.dimensions(nfo), bitrate = this.master.rawBitrate(nfo)
-		if(codecs) this.emit('codecData', codecs)
+		//console.log('ffmpeg.metadata', nfo, codecs)
 		//if(bitrate) this.emit('bitrate', bitrate)
+		if(codecs) this.emit('codecData', codecs)
 		if(dimensions) this.emit('dimensions', dimensions)
 	}
 	callback(err, output){
-		//console.log('ffmpeg.callback '+ this.uid +', '+ err +', '+ output)
+		//console.log('ffmpeg.callback '+ this.uid +"\n::ERR:: "+ err +"\n::OUTPUT:: "+ output)
 		if(err){
 			this.emit('error', err)
 		} else {
@@ -128,10 +128,19 @@ class FFMPEGHelper extends Events {
 		let n = parseFloat(t)
 		switch(b){
 			case "kb":
+			case "kbit":
+			case "kbits":
 				n = n * 1024
 				break
 			case "mb":
+			case "mbit":
+			case "mbits":
 				n = n * (1024 * 1024)
+				break
+			case "gb":
+			case "gbit":
+			case "gbits":
+				n = n * (1024 * 1024 * 1024)
 				break
 		}
 		return parseInt(n)
@@ -165,15 +174,15 @@ class FFMPEGMediaInfo extends FFMPEGHelper {
 		let bitrate = 0, lines = nfo.match(new RegExp("Stream #[^\n]+", "g"))
 		if(lines){
 			lines.forEach(line => {
-				let raw = line.match(new RegExp('([0-9]+) ([a-z]+)/s'))
+				let raw = line.match(new RegExp('([0-9\\.]+) ([a-z]+)/s'))
 				if (raw) {
 					bitrate += this.parseBytes(raw[1], raw[2])
 				}
 			})
 		}
-		let raw = nfo.match(new RegExp("itrate: ([0-9]+) ([a-z]+)/s"))
-		if(raw && raw.length){
-			let n = this.parseBytes(raw[1], raw[2])
+		let matches = nfo.matchAll(new RegExp('itrate(: |=)([0-9\\.]+) ?([a-z]+)/s', 'g'))
+		for(let raw of matches){
+			let n = this.parseBytes(raw[2], raw[3])
 			if(!bitrate || n > bitrate){
 				bitrate = n
 			}
@@ -214,6 +223,7 @@ class FFMPEGMediaInfo extends FFMPEGHelper {
 			this.info(file, nfo => {
 				if(nfo){
 					let codecs = this.codecs(nfo), rate = this.rawBitrate(nfo), dimensions = this.dimensions(nfo)
+					// console.log('NFO BITRATE', codecs, rate, dimensions, Buffer.from(nfo))
 					if(!rate && length){
 						rate = parseInt(length / this.duration(nfo))
 					}
@@ -254,10 +264,28 @@ class FFMPEGMediaInfo extends FFMPEGHelper {
 			}
 		}
 	}
+    ext(file){
+        return String(file).split('?')[0].split('#')[0].split('.').pop().toLowerCase()
+    }
 	info(path, cb){
-		this.exec(path, [], (error, output) => {
-			cb(String(error || output))
-		})
+		if(path.indexOf('://') == -1){
+			this.exec(path, [], (error, output) => {
+				cb(String(error || output))
+			})
+		} else {
+			const ext = this.ext(path) || 'mp4', tempFile = global.paths.temp +'/'+ Math.random() +'.'+ ext
+			if(path.toLowerCase().indexOf('.m3u8') != -1){
+				path = 'hls+'+ path
+			}
+			this.exec(path, ['-c', 'copy', tempFile], (error, output) => {
+				cb(String(error || output))
+				fs.unlink(tempFile, err => {
+					if(err){
+						console.error('CANNOT DELETE', err)
+					}
+				})
+			}, ['-ss', '00:00:00', '-to', '00:00:02'])
+		}
 	}
 }
 
@@ -383,7 +411,7 @@ class FFMPEG extends FFMPEGDiagnostic {
 		let ret = new FFmpegController(input, this)
 		return ret
 	}
-	exec(input, cmd, cb){
+	exec(input, cmd, cb, inputOptions){
 		const proc = this.create(input), timeout = setTimeout(() => {
 			if(proc){
 				proc.kill()
@@ -394,6 +422,9 @@ class FFMPEG extends FFMPEGDiagnostic {
 			}
 		}, 30000)
 		proc.outputOptions(cmd)
+		if(inputOptions){
+			proc.inputOptions(inputOptions)
+		}
 		proc.once('end', data => {
 			clearTimeout(timeout)
 			if(typeof(cb) == 'function'){

@@ -49,10 +49,14 @@ class List extends Events {
                         } else {
                             resolve(true)
                         }
+                        this.isReady = true
+                        this.emit('ready')
                     })
                 } else {
                     reject('empty index')
-                }
+                    this.isReady = true
+                    this.emit('ready')
+                }                
             })
             this.indexer.start()
         })
@@ -80,19 +84,19 @@ class List extends Events {
 	}
 	verify(index){
 		return new Promise((resolve, reject) => {
-		    this.verifyListQuality(index).then(quality => {
+		    this.verifyListQuality().then(quality => {
                 resolve({quality, relevance: this.verifyListRelevance(index)})
             }).catch(err => {
                 reject(err)
             })
         })
 	}
-	verifyListQuality(index){
+	verifyListQuality(){
 		return new Promise((resolve, reject) => {
 			if(this.skipValidating){
 				return resolve(true)
 			}
-			let resolved, tests = 5, hits = 0, urls = [], results = [], len = this.index.length, mtp = Math.floor((len - 1) / (tests - 1))
+			let resolved, tests = 5, hits = 0, results = [], len = this.index.length, mtp = Math.floor((len - 1) / (tests - 1))
 			if(len < tests){
 				return reject('insufficient streams '+ len)
 			}
@@ -109,15 +113,22 @@ class List extends Events {
                         reject('destroyed')
                     }
                 })
-                const racing = new ConnRacing(urls, {retries: 2, timeout: 10}), end = () => {
-                    racing.end()
-                    delete this.validator
-                    let quality = hits / (urls.length / 100)
-                    if(this.debug){
-                        console.log('verified list quality', this.url, quality)
+                const racing = new ConnRacing(urls, {retries: 1, timeout: 5}), end = () => {
+                    if(this.validator){
+                        racing.end()
+                        delete this.validator
+                        if(hits){
+                            //let quality = hits / (urls.length / 100) // disabled for performance
+                            let quality = 100
+                            if(this.debug){
+                                console.log('verified list quality', this.url, quality)
+                            }
+                            resolved = true
+                            resolve(quality)
+                        } else {                        
+                            reject('no valid links')
+                        }
                     }
-                    resolved = true
-                    resolve(quality)
                 }, next = () => {
                     if(racing.ended){
                         end()
@@ -126,6 +137,7 @@ class List extends Events {
                             results.push(res)
                             if(res && res.valid){
                                 hits++
+                                end()
                             }
                             next()
                         })

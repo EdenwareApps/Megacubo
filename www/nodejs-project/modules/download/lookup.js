@@ -70,7 +70,7 @@ class Lookup extends Events {
 			return
 		}
 		this.queue[domain] = [cb]
-		let finished
+		let finished, resultIps = {}
 		async.eachOfLimit(Object.values(this.servers), 1, (servers, i, acb) => {
 			if(finished){
 				acb()
@@ -87,9 +87,17 @@ class Lookup extends Events {
 						if(this.debug){
 							console.error('lookup->get err on '+ servers.join(','), err)
 						}
-					} else if(!finished) {
-						finished = true
-						this.finish(domain, ips)
+					} else {
+						if(!finished) {
+							finished = true
+							this.finish(domain, ips)
+						}
+						ips.forEach(ip => {
+							if(typeof(resultIps[ip]) == 'undefined'){
+								resultIps[ip] = 0
+							}
+							resultIps[ip]++
+						})
 					}
 					acb()
 				})
@@ -98,19 +106,26 @@ class Lookup extends Events {
 			if(this.debug){
 				console.log('lookup->get solved', domain, finished)
 			}
-			if(!finished){
-				this.finish(domain, false)		
+			let sortedIps = Object.keys(resultIps).sort((a,b) => resultIps[b] - resultIps[a])
+			if(!sortedIps.length){
+				this.finish(domain, false, true)
+			} else {
+				let max = resultIps[sortedIps[0]] // ensure to get the most trusteable
+				let ips = sortedIps.filter(s => resultIps[s] == max)
+				this.finish(domain, ips, true)
 			}
 		})
 	}
-	finish(domain, value){
+	finish(domain, value, save){
 		this.ttlData[domain] = global.time() + (value === false ? this.failureTTL : this.ttl)
 		if(typeof(this.data[domain]) == 'undefined' || value !== false){
 			this.data[domain] = value
 		}
-		this.queue[domain].forEach(f => f(value, false))
-		delete this.queue[domain]
-		if(!Object.keys(this.queue).length){
+		if(this.queue[domain]){
+			this.queue[domain].forEach(f => f(value, false))
+			delete this.queue[domain]
+		}
+		if(save && !Object.keys(this.queue).length){
 			this.save()
 		}
 	}

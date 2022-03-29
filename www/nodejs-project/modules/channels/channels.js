@@ -195,7 +195,7 @@ class ChannelsEPG extends ChannelsData {
         this.epgStatusTimer = false
         this.epgIcon = 'fas fa-th'
         this.clockIcon = '<i class="fas fa-clock"></i> '
-        global.streamer.aboutDialogRegisterOption('epg', data => {
+        const aboutDialogInsertEPGTitle = data => {
             return new Promise((resolve, reject) => {
                 if(data.isLocal){
                     return reject('local file')
@@ -212,7 +212,31 @@ class ChannelsEPG extends ChannelsData {
                     resolve(ret)
                 }).catch(reject)
             })
-        }, null, 1)
+        }
+        global.streamer.aboutDialogRegisterOption('epg', aboutDialogInsertEPGTitle, null, 1)
+        global.streamer.aboutDialogRegisterOption('epg', aboutDialogInsertEPGTitle, null, 1, true)
+        global.streamer.aboutDialogRegisterOption('epg-more', data => {
+            if(!data.isLocal && streamer.active.mediaType == 'live'){
+                return {template: 'option', text: global.lang.EPG, id: 'epg-more', fa: this.epgIcon}
+            }
+        }, data => {
+            const name = data.originalName || data.name
+            const category = global.channels.getChannelCategory(name)
+            if(category){
+                this.epgChannelLiveNow(data).then(() => {
+                    const _path = [global.lang.LIVE, category, name, global.lang.EPG].join('/')
+                    global.channels.watchNowAuto = ''
+                    global.explorer.open(_path).catch(err => {
+                        console.error(err)
+                    })
+                    global.ui.emit('menu-playing')
+                }).catch(() => {
+                    global.displayErr(global.lang.CHANNEL_EPG_NOT_FOUND)
+                })
+            } else {
+                global.displayErr(global.lang.CHANNEL_EPG_NOT_FOUND)
+            }
+        }, null, true)
     }
     clock(start, data, includeEnd){
         let t = this.clockIcon
@@ -243,12 +267,12 @@ class ChannelsEPG extends ChannelsData {
             placeholder: global.lang.SEARCH_PLACEHOLDER
         }
     }
-    epgSearch(terms, liveNow){
+    epgSearch(terms, liveNow, includeCategories){
         return new Promise((resolve, reject) => {
             if(typeof(terms) == 'string'){
                 terms = global.lists.terms(terms, true)
             }
-            global.lists.epgSearch(terms, liveNow).then(epgData => {                                
+            global.lists.epgSearch(terms, liveNow, includeCategories).then(epgData => {                                
                 let entries = []
                 console.warn('epgSearch', epgData)
                 Object.keys(epgData).forEach(ch => {
@@ -419,8 +443,8 @@ class ChannelsEPG extends ChannelsData {
             global.lists.epg(channels, 1).then(epgData => {
                 let ret = {}
                 Object.keys(epgData).forEach(ch => {
-                    ret[ch] = Object.values(epgData[ch]).shift()
-                    ret[ch] = ret[ch] ? ret[ch] : false
+                    ret[ch] = epgData[ch] ? Object.values(epgData[ch]).shift() : false
+                    if(!ret[ch] && ret[ch] !== false) ret[ch] = false
                 })
                 resolve(ret)
             }).catch(reject)
@@ -811,6 +835,22 @@ class Channels extends ChannelsAutoWatchNow {
 			})
 		}
     }
+    async goChannelWebsite(name){
+        if(!name){
+            if(global.streamer.active){
+                name = global.streamer.active.data.originalName || global.streamer.active.data.name
+            } else {
+                return false
+            }
+        }
+        let url = 'https://www.google.com/search?btnI=1&lr=lang_{0}&q={1}'.format(global.lang.locale, encodeURIComponent('"'+ name +'" site'))
+        const body = String(await Download.promise({url}))
+        const matches = body.match(new RegExp('href *= *["\']([^"\']*://[^"\']*)'))
+        if(matches && matches[1] && matches[1].indexOf('google.com') == -1){
+            url = matches[1]
+        }        
+        global.ui.emit('open-external-url', url)
+    }
     getAllChannels(){
         let list = []
         this.getCategories().forEach(category => {
@@ -840,7 +880,7 @@ class Channels extends ChannelsAutoWatchNow {
         return ct
     }
     isChannel(terms){
-        let tms, chs = this.channelsIndex
+        let tms, chs = this.channelsIndex || {}
         if(Array.isArray(terms)){
             tms = terms
         } else {
@@ -1094,6 +1134,14 @@ class Channels extends ChannelsAutoWatchNow {
                     const editEntry = this.editChannelEntry(e, category, {name: category ? global.lang.EDIT_CHANNEL : global.lang.EDIT, details: undefined, class: 'no-icon', fa: 'fas fa-edit', users: undefined, usersPercentage: undefined, path: undefined, url: undefined})
                     moreOptions.push(editEntry)
                 }
+                moreOptions.push({
+                    type: 'action',
+                    fa: 'fas fa-globe',
+                    name: global.lang.CHANNEL_WEBSITE,
+                    action: () => {
+                        global.channels.goChannelWebsite(e.name).catch(global.displayErr)
+                    }
+                })
                 entries.push({name: global.lang.MORE_OPTIONS, type: 'select', fa: 'fas fa-ellipsis-v', entries: moreOptions})
                 entries = entries.map(e => {
                     if(e.renderer || e.entries){

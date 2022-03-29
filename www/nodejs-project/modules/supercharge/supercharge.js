@@ -34,9 +34,20 @@ function patch(scope){
 					return (a[p] > b[p]) ? 1 : (a[p] < b[p]) ? -1 : 0;
 				})
 			}
-			return this;
+			return this
 		}
 	}
+    scope.validateURL = url => {
+		if(url && url.length > 11){
+			let u = url.toLowerCase()
+			if(u.match(new RegExp('^(https?://|//)', 'i'))){
+				let domain = u.split('//')[1].split('/')[0]
+				if(domain.match(new RegExp('^[A-Za-z0-9\\-\\.\\:@]{4,}$'))){
+					return true
+				}
+			}
+		}
+    }
 	scope.decodeURIComponentSafe = uri => {
 		try {
 			return decodeURIComponent(uri)

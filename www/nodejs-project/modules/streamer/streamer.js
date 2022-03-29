@@ -87,7 +87,7 @@ class StreamerTools extends Events {
 							const received = JSON.stringify(headers).length + this.len(sample)
 							const speed = received / ping
 							const ret = {status, headers, sample, ping, speed, url, directURL: download.currentURL}
-							console.log('data', url, status, download.statusCode, ping, received, speed, ret)
+							// console.log('data', url, status, download.statusCode, ping, received, speed, ret)
 							resolve(ret)
 						}
 						if(download){
@@ -354,7 +354,7 @@ class StreamerBase extends StreamerTools {
         if(typeof(global.streamerPingSourceCallbacks) == 'undefined'){
             global.streamerPingSourceCallbacks = {}
         }
-		if(lists.manager.validateURL(url)){
+		if(global.validateURL(url)){
 			let now = global.time()
 			if(!global.streamerPingSourceTTLs[url] || global.streamerPingSourceTTLs[url] < now){
 				if(this.pingSourceQueue(url, cb, cb)){
@@ -708,9 +708,13 @@ class StreamerAbout extends StreamerThrottling {
 		super(opts)
 		if(!this.opts.shadow){
 			this.aboutOptions = []
+			this.moreAboutOptions = []
 			this.aboutDialogRegisterOption('title', data => {
 				return {template: 'question', text: data.name, fa: 'fas fa-info-circle'}
 			})
+			this.aboutDialogRegisterOption('title', data => {
+				return {template: 'question', text: data.name, fa: 'fas fa-info-circle'}
+			}, null, null, true)
 			this.aboutDialogRegisterOption('text', () => {
 				return {template: 'message', text: this.aboutText()}
 			})
@@ -722,10 +726,13 @@ class StreamerAbout extends StreamerThrottling {
 					return {template: 'option', text: global.lang.SHARE, id: 'share', fa: 'fas fa-share-alt'}
 				}
 			}, this.share.bind(this))
+			this.aboutDialogRegisterOption('more', data => {
+				return {template: 'option', text: global.lang.MORE_OPTIONS, id: 'more', fa: 'fas fa-ellipsis-v'}
+			}, this.moreAbout.bind(this))
 			global.ui.on('streamer-about-cb', chosen => {
 				console.log('about callback', chosen)
 				if(this.active && this.active.data){
-					this.aboutOptions.some(o => {
+					this.aboutOptions.concat(this.moreAboutOptions).some(o => {
 						if(o.id && o.id == chosen){
 							if(typeof(o.action) == 'function'){
 								o.action(this.active.data)
@@ -737,17 +744,62 @@ class StreamerAbout extends StreamerThrottling {
 			})	
 		}	
 	}
-	aboutDialogRegisterOption(id, renderer, action, position){
+	aboutDialogRegisterOption(id, renderer, action, position, more){
 		let e = {id, renderer, action}
+		let k = more ? 'moreAboutOptions' : 'aboutOptions'
 		if(typeof(position) == 'number'){
-			this.aboutOptions.splice(position, 0, e)
+			this[k].splice(position, 0, e)
 		} else {
-			this.aboutOptions.push(e)
+			this[k].push(e)
 		}
 	}
 	aboutDialogStructure(){
 		return new Promise((resolve, reject) => {
 			Promise.allSettled(this.aboutOptions.map(o => {
+				return Promise.resolve(o.renderer(this.active.data))
+			})).then(results => {
+				let ret = [], textPos = -1, titlePos = -1
+				results.forEach(r => {
+					if(r.status == 'fulfilled' && r.value){
+						if(Array.isArray(r.value)){
+							ret = ret.concat(r.value)
+						} else if(r.value) {
+							ret.push(r.value)
+						}
+					}
+				})
+				ret = ret.filter((r, i) => {
+					if(r.template == 'question'){
+						if(titlePos == -1){
+							titlePos = i
+						} else {
+							ret[titlePos].text += ' &middot; '+ r.text
+							return false
+						}
+					}
+					if(r.template == 'message'){
+						if(textPos == -1){
+							textPos = i
+						} else {
+							ret[textPos].text += r.text
+							return false
+						}
+					}
+					return true
+				})
+				ret.some((r, i) => {
+					if(r.template == 'message'){
+						ret[i].text = '<div>'+ r.text +'</div>'
+						return true
+					}
+				})
+				resolve(ret)
+			}).catch(reject)
+		})
+	}
+	moreAboutDialogStructure(){
+		return new Promise((resolve, reject) => {
+			Promise.allSettled(this.moreAboutOptions.map(o => {
 				return Promise.resolve(o.renderer(this.active.data))
 			})).then(results => {
 				let ret = [], textPos = -1, titlePos = -1
@@ -844,6 +896,21 @@ class StreamerAbout extends StreamerThrottling {
 		let title, text = ''
 		if(this.active){
 			this.aboutDialogStructure(this.active.data).then(struct => {
+				global.ui.emit('dialog', struct, 'streamer-about-cb', 'ok')
+			}).catch(global.displayErr)
+		} else {
+			title = global.ucWords(global.MANIFEST.name) +' v'+ global.MANIFEST.version +' - '+ process.arch
+			text = global.lang.NONE_STREAM_FOUND
+        	global.ui.emit('info', title, text.trim())
+		}
+    }
+    moreAbout(){
+		if(this.opts.shadow){
+			return
+		}
+		let title, text = ''
+		if(this.active){
+			this.moreAboutDialogStructure(this.active.data).then(struct => {
 				global.ui.emit('dialog', struct, 'streamer-about-cb', 'ok')
 			}).catch(global.displayErr)
 		} else {

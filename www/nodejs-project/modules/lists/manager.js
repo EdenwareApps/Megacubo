@@ -154,7 +154,7 @@ class Manager extends Events {
     }
     add(url, name){
         return new Promise((resolve, reject) => {
-            let isURL = this.validateURL(url), isFile = this.isLocal(url)
+            let isURL = global.validateURL(url), isFile = this.isLocal(url)
             console.log('name::add', name, url, isURL, isFile)
             if(!isFile && !isURL){
                 return reject(global.lang.INVALID_URL_MSG)
@@ -287,9 +287,6 @@ class Manager extends Events {
 			}
 		}
 	}
-    validateURL(value) {
-        return typeof(value) == 'string' && value.length >= 13 && /^(?:(?:(?:https?|ftp):)?\/\/)(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,})))(?::\d{2,5})?(?:[/?#]\S*)?$/i.test(value)
-    }
 	validate(content){
         // technically, a m3u8 may contain one stream only, so it can be really small
 		return typeof(content) == 'string' && content.length >= 32 && content.toLowerCase().indexOf('#ext') != -1
@@ -749,7 +746,7 @@ class Manager extends Events {
     setEPG(url, ui){
         console.log('SETEPG', url)
         if(typeof(url) == 'string'){
-            if(!url || this.validateURL(url)){
+            if(!url || global.validateURL(url)){
                 global.activeEPG = url
                 global.channels.activeEPG = ''
                 this.loadEPG(url, ui).then(() => {

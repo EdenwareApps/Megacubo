@@ -179,7 +179,7 @@ class Download extends Events {
 			return
 		}
 		if(!Download.isNetworkConnected){
-			this.end()
+			this.endWithError('No internet connection')
 			return
 		}
 		if(this.stream){
@@ -194,6 +194,10 @@ class Download extends Events {
 		}
 		if(this.currentURL.substr(0, 2) == '//'){
 			this.currentURL = 'http:'+ this.currentURL
+		}
+		if(!global.validateURL(this.currentURL)){
+			this.endWithError('Invalid URL: '+ this.currentURL)
+			return
 		}
 		const opts = {
 			responseType: 'buffer',
@@ -744,6 +748,21 @@ class Download extends Events {
 		}
 		return data
 	}
+	endWithError(err){
+		this.statusCode = 500
+		this.headers = {}
+		if(this.opts.debug){
+			console.warn('>> Download error', err, global.traceback())
+		}
+		this.errors.push(String(err) || 'unknown request error')
+		if(!this.currentRequestError){
+			this.currentRequestError = 'error'
+		}
+		if(this.listenerCount('error')){
+			this.emit('error', err)
+		}
+		this.end()
+	}
 	end(){
 		if(!this.ended){
 			this.ended = true
@@ -766,7 +785,7 @@ class Download extends Events {
 					this.destroy()
 				})
 				this.decompressor.on('finish', () => {
-					console.log('decompressor end', this.buffer)
+					// console.log('decompressor end', this.buffer)
 					this.emit('end', this.prepareOutputData(this.buffer))
 					this.destroy()
 				})

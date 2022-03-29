@@ -54,7 +54,7 @@ class IconFetcher {
                                         acb()
                                         return finish()
                                     }
-                                    this.master.adjust(ret.file, {shouldBeAlpha: true}).then(ret => {
+                                    this.master.adjust(ret.file, {shouldBeAlpha: true, minWidth: 100, minHeight: 100}).then(ret => {
                                         this.master.saveHTTPCacheExpiration(key, () => {
                                             if(ret.alpha){
                                                 if(!done || this.hasPriority(done.image, image, images)){

@@ -194,7 +194,41 @@ class StreamerAdapterBase extends Events {
 			this.getBitrate(this.getBitrateQueue.shift())
 		}
 	}
-	getBitrate(file, cb){
+	getTSFromM3U8(url, cb){
+		const download = new Download({
+			url,
+			responseType: 'text'
+		})
+		download.on('end', body => {
+			let matches = String(body).match(new RegExp('^[^#].+\\..+$','m'))
+			if(matches){
+				//TODO: Tem que usar a classe toda, pra poder usar o .currentURL no absolutize, lide também com master playlists, use um .getTSFromM3U8			
+				const basename = matches[0].trim()
+				const nurl = this.absolutize(basename, download.currentURL)
+				if(nurl && nurl != url){
+					if(basename.toLowerCase().indexOf('.m3u8') == -1){
+						cb(nurl)
+					} else {
+						this.getTSFromM3U8(nurl, cb)
+					}
+				} else {
+					cb(false)
+				}
+			} else {
+				cb(false)
+			}
+			download.destroy()
+		})
+		download.start()
+	}
+	getBitrateHLS(url){
+		this.getTSFromM3U8(url, url => {
+			if(url){
+				this.getBitrate(url)
+			}
+		})
+	}
+	getBitrate(file){
 		if(this.bitrateChecking){
 			if(!this.getBitrateQueue.includes(file)){
 				this.getBitrateQueue.push(file)
@@ -202,17 +236,20 @@ class StreamerAdapterBase extends Events {
 			return
 		}
 		this.bitrateChecking = true
-		fs.stat(file, (err, stat) => {
+		const isHTTP = file.match(new RegExp('^((rtmp|rtsp|https?://)|//)'))
+		const next = (err, stat) => {
 			if(this.destroyed || this.bitrates.length >= this.opts.bitrateCheckingAmount || this.bitrateCheckFails >= this.opts.maxBitrateCheckingFails){
 				this.bitrateChecking = false
 				this.getBitrateQueue = []
 				this.clearBitrateSampleFiles()
-			} else if(err || stat.size < this.opts.minBitrateCheckSize){
+			} else if(err || (!isHTTP && stat.size < this.opts.minBitrateCheckSize)) {
 				this.pumpGetBitrateQueue()
 			} else {
-				console.log('getBitrate', file, this.url, stat.size, this.opts.minBitrateCheckSize, traceback())
+				//console.log('getBitrate', file, this.url, isHTTP ? null : stat.size, this.opts.minBitrateCheckSize, traceback())
 				global.ffmpeg.bitrate(file, (err, bitrate, codecData, dimensions, nfo) => {
-					fs.unlink(file, () => {})
+					if(!isHTTP){
+						fs.unlink(file, () => {})
+					}
 					if(!this.destroyed){
 						if(codecData){
 							this.addCodecData(codecData)
@@ -234,14 +271,19 @@ class StreamerAdapterBase extends Events {
 								this.emit('bitrate', this.bitrate, this.currentSpeed)	
 							}
 							if(this.opts.debug){
-								console.log('[' + this.type + '] analyzing: ' + file, 'sample len: '+ global.kbfmt(stat.size), 'bitrate: '+ global.kbsfmt(this.bitrate), this.bitrates, this.url)
+								console.log('[' + this.type + '] analyzing: ' + file, isHTTP ? '' : 'sample len: '+ global.kbfmt(stat.size), 'bitrate: '+ global.kbsfmt(this.bitrate), this.bitrates, this.url, nfo)
 							}
 						}
 						this.pumpGetBitrateQueue()
 					}
 				}, stat.size)
 			}
-		})
+		}
+		if(isHTTP){
+			next(null, {})
+		} else {
+			fs.stat(file, next)
+		}
 	}
 	clearBitrateSampleFiles(){
 		Object.keys(this.bitrateCheckBuffer).forEach(id => {

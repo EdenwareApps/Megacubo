@@ -57,34 +57,55 @@ class ListIndexUtils extends Events {
         })
     }
     readLastLine(file, cb) {
-        fs.stat(file, (err, stat) => {
-            if(stat && stat.size){
-                let i = 0, lastLine = '', rl = readline.createInterface({
-                    input: fs.createReadStream(file),
-                    crlfDelay: Infinity
-                })
-                rl.on('line', line => {
-                    if(this.destroyed){
-                        if(rl){
-                            lastLine = ''
-                            rl.close()
-                            rl = null
-                        }
-                    } else {
-                        if(line && line.charAt(0) == '{'){
-                            lastLine = line
-                        } else {
-                            console.error('Bad line readen', line, file, i)
-                        }
+        let fs = require('fs').promises
+        let bufferSize = 512
+        const readPreviousChar = function(stat, file, currentCharacterCount) {
+            let readSize = Math.min(bufferSize, stat.size - currentCharacterCount)
+            return file.read(Buffer.alloc(readSize), 0, readSize, stat.size - readSize - currentCharacterCount)
+        }
+        let self = {
+            stat: null,
+            file: null,
+        }
+        let promises = []
+        promises.push(fs.stat(file).then(stat => self.stat = stat))
+        promises.push(fs.open(file, 'r').then(file => self.file = file))
+        Promise.all(promises).then(() => {
+            let chars = 0
+            let lineCount = 0
+            let lines = ''
+            const loop = () => {
+                if (lines.length > self.stat.size) {
+                    lines = lines.substring(lines.length - self.stat.size)
+                }
+                if (lines.length >= self.stat.size || lineCount >= 1) {
+                    let pos = lines.indexOf("\n")
+                    if (pos != -1) {
+                        lines = lines.substring(pos + 1);
                     }
-                })
-                rl.once('close', () => {
-                    cb(lastLine)
-                    rl = null
-                })
-            } else {
-                return cb([])
+                    self.file.close()
+                    self.file = null
+                    return cb(lines.split("\n").pop())
+                }
+                return readPreviousChar(self.stat, self.file, chars)
+                    .then((nextChunk) => {
+                        let chunk = String(nextChunk.buffer)
+                        lines = chunk + lines;
+                        if (chunk.indexOf("\n") != -1 && lines.length > 1) {
+                            lineCount++;
+                        }
+                        chars += nextChunk.bytesRead
+                    })
+                    .then(loop)
+            };
+            return loop()
+        }).catch((reason) => {
+            console.error(reason)
+            if (self.file !== null) {
+                self.file.close()
+                self.file = null
             }
+            cb('')
         })
     }
     readIndex(cb){

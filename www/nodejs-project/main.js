@@ -572,7 +572,17 @@ function init(language){
         */
         streamer.on('streamer-connect', (src, codecs, info) => {
             console.error('CONNECT', src, codecs, info)       
-            ui.emit('streamer-connect', src, codecs, '', streamer.active.mediaType, info, tuning !== false)
+            let cantune
+            if(streamer.active.mediaType == 'live'){
+                if(tuning){
+                    if(tuning.tuner && tuning.tuner.entries.length > 1){
+                        cantune = true
+                    }
+                } else if(channels.isChannel(info.name)) {
+                    cantune = true
+                }
+            }
+            ui.emit('streamer-connect', src, codecs, '', streamer.active.mediaType, info, cantune)
         })
         streamer.on('streamer-disconnect', err => {
             console.warn('DISCONNECT', err, tuning !== false)

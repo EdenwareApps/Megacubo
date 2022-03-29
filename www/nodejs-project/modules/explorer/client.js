@@ -216,13 +216,21 @@ class ExplorerSelectionMemory extends ExplorerBase {
 	constructor(jQuery, container, app){
 		super(jQuery, container, app)
 		this.selectionMemory = {}
-		this.on('open', (type, path, element, tabindex) => {
+		this.on('open', () => {
 			//if(type == 'group'){
+				//console.log('selectionMemory open', this._wrapper.scrollTop, this.selectedIndex)
 				this.selectionMemory[this.path] = {scroll: this._wrapper.scrollTop, index: this.selectedIndex}
 			//}
 		})
-		this.on('arrow', (type, path, element, tabindex) => {
+		this.on('arrow', () => {
 			//if(type == 'group'){
+				//console.log('selectionMemory arrow', this._wrapper.scrollTop, this.selectedIndex)
+				this.selectionMemory[this.path] = {scroll: this._wrapper.scrollTop, index: this.selectedIndex}
+			//}
+		})
+		this.on('pre-render', () => {
+			//if(type == 'group'){
+				//console.log('selectionMemory pre-render', this._wrapper.scrollTop, this.selectedIndex)
 				this.selectionMemory[this.path] = {scroll: this._wrapper.scrollTop, index: this.selectedIndex}
 			//}
 		})
@@ -264,9 +272,15 @@ class ExplorerSelectionMemory extends ExplorerBase {
                 data.index = 1
             }
         }
-        console.log('EXP RESTORE', data, this.path)
-        this._scrollContainer.scrollTop = data.scroll
+        //console.log('selectionMemory restore', data.scroll, data.index, this.path)
+		// this._scrollContainer.scrollTop = data.scroll
+        this._scrollContainer.scrollTo(0, data.scroll)
         if(this.activeView().level == 'default'){
+			let range = this.viewportRange(data.scroll)
+			if(data.index < range.start || data.index >= range.end){
+				data.index = range.start
+			}
+			this.focus(this.currentElements[data.index], true)
             this.focusIndex(data.index, true, true) // true = force re-selecting the same entry on refresh
 			return true
         }
@@ -1581,7 +1595,13 @@ class ExplorerLoading extends ExplorerStatusFlags {
 
 class Explorer extends ExplorerLoading {
 	constructor(jQuery, container, app){
-		super(jQuery, container, app)		
+		super(jQuery, container, app)	
+		this.app.on('menu-playing', () => {			
+			if(!this.body.hasClass('menu-playing')){
+				this.body.addClass('menu-playing')
+				setTimeout(() => this.reset(), 100)
+			}
+		})	
 		this.app.on('render', (entries, path, icon) => {
 			//console.log('ENTRIES', path, entries, icon)
 			this.render(entries, path, icon)
@@ -1756,20 +1776,24 @@ class Explorer extends ExplorerLoading {
 			html += this.renderEntry(e, tpl, path)
 		})
 		this.lastOpenedElement = null
-        this._scrollContainer.style.minHeight = (targetScrollTop + this._scrollContainer.offsetHeight) + 'px' // avoid scrolling
-        this._scrollContainer.scrollTop = targetScrollTop
+		this._scrollContainer.style.minHeight = (targetScrollTop + this._scrollContainer.offsetHeight) + 'px' // avoid scrolling
+		css('span.entry-wrapper {visibility: hidden; }', 'explorer-render-hack')
+        //this._scrollContainer.scrollTop = 
+		this._scrollContainer.scrollTo(0, targetScrollTop)
 		this._wrapper.innerHTML = html
-		this._scrollContainer.scrollTop = targetScrollTop
+		this._scrollContainer.scrollTo(0, targetScrollTop)
 		this.currentElements = Array.from(this._wrapper.getElementsByTagName('a'))
 		setTimeout(() => {
-			this.restoreSelection() // keep it in this timer, or the hell gates will open
-			this._scrollContainer.style.minHeight = '0px'
+			this.restoreSelection() // keep it in this timer, or the hell gates will open up!
+			this.rendering = false
 			this.emit('render', this.path, icon)
+        	this._scrollContainer.style.minHeight = 0
+			css('span.entry-wrapper {visibility: inherit;}', 'explorer-render-hack')
 			if(!this.initialized){
 				this.initialized = true
 				this.emit('init')
 			}
-			this.rendering = false
+			this.restoreSelection() // redundant, but needed
 		}, 0)
 	}
 	viewportRange(scrollTop, entriesCount){
@@ -1832,11 +1856,12 @@ class Explorer extends ExplorerLoading {
 		}
         return entries
     }
-	updateRange(){
+	updateRange(y){
 		if(this.ranging){
 			var changed = [], shouldUpdateRange = config['show-logos'] && this.currentEntries.length > (this.viewSizeX * this.viewSizeY)
 			if(shouldUpdateRange){
-				let rgx = new RegExp('<img', 'i'), elements = this.currentElements, entries = this.getRange(this._wrapper.scrollTop)
+				let rgx = new RegExp('<img', 'i'), elements = this.currentElements, entries = this.getRange(y || this._wrapper.scrollTop)
+				//console.log('selectionMemory upadeteRange', entries)
 				if(this.debug){
 					console.warn("UPDATING RANGE", entries, traceback())
 				}
@@ -1868,7 +1893,8 @@ class Explorer extends ExplorerLoading {
 				this.app.emit('explorer-update-range', this.range, this.path)
 				if(changed.length){
 					if(this.debug){
-						console.warn("UPDATING", changed, this.selectedIndex, this.range)
+						console.warn('UPDATING', changed, this.selectedIndex, this.range)
+						//console.log('selectionMemory updateRange', changed, this.selectedIndex, this.range, this._wrapper.scrollTop)
 					}
 					this.currentElements = Array.from(this._wrapper.getElementsByTagName('a'))
 					this.emit('update-range', changed)

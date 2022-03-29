@@ -9,11 +9,11 @@ module.exports = function closed(req, response, cb){
 	}
 	const callback = () => {
 		process.nextTick(() => {
+			if(socket){
+				socket.removeListener('close', socketCloseListener)
+				socket = null
+			}
 			if(cb && !response.ended && global.isWritable(response)){
-				if(socket){
-					socket.removeListener('close', socketCloseListener)
-					socket = null
-				}
 				cb()	
 				cb = null	
 			}	

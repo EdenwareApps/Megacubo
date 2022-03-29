@@ -4,6 +4,7 @@ class Watching extends EntriesGroup {
     constructor(){
         super('watching')
         this.timer = 0
+        this.title = global.lang.TRENDING
         this.currentEntries = null
         this.currentRawEntries = null
         this.updateIntervalSecs = global.cloud.expires.watching
@@ -43,8 +44,15 @@ class Watching extends EntriesGroup {
             let nxt = this.entry()
             if(this.showChannelOnHome() && global.explorer.path == '' && (prv.details != nxt.details || prv.name != nxt.name)){
                 global.explorer.updateHomeFilters()
+            } else {
+                this.updateView()
             }
         })
+    }
+    updateView(){
+        if(global.explorer.path == this.title){
+            global.explorer.refresh()
+        }
     }
     hook(entries, path){
         return new Promise((resolve, reject) => {
@@ -217,7 +225,7 @@ class Watching extends EntriesGroup {
         })
     }
     entry(){
-        const entry = {name: global.lang.TRENDING, details: global.lang.BEEN_WATCHED, fa: 'fas fa-chart-bar', hookId: this.key, type: 'group', renderer: this.entries.bind(this)}
+        const entry = {name: this.title, details: global.lang.BEEN_WATCHED, fa: 'fas fa-chart-bar', hookId: this.key, type: 'group', renderer: this.entries.bind(this)}
         if(this.currentEntries && this.showChannelOnHome()){
             let top, rootPage = global.explorer.pages['']
             this.currentEntries.some(e => {
@@ -228,7 +236,7 @@ class Watching extends EntriesGroup {
             })
             if(top){
                 let s = top.users == 1 ? 'user' : 'users'
-                entry.name = global.lang.TRENDING
+                entry.name = this.title
                 entry.class = 'entry-icon' 
                 entry.channelName = top.name
                 entry.prepend = '<i class="fas fa-chart-bar"></i> '
