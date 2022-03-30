@@ -20,6 +20,7 @@ class ChannelsData extends Events {
             }
         })
         this.radioTerms = ['radio', 'fm', 'am']
+        this.isChannelCache = {}
         this.load()
     }
     async updateCategoriesCacheKey(){
@@ -176,13 +177,22 @@ class ChannelsData extends Events {
             })
             let keys = Object.keys(index)
             keys.sort((a, b) => { return index[a].length > index[b].length ? -1 : (index[a].length < index[b].length) ? 1 : 0 })
+            this.isChannelCache = {}
             this.channelsIndex = {}
             keys.forEach(k => this.channelsIndex[k] = index[k])
         }
     }
     save(cb){
         let ordering = {}
-        Object.keys(this.categories).sort().forEach(k => ordering[k] = this.categories[k].sort())
+        Object.keys(this.categories).sort().forEach(k => {
+            ordering[k] = this.categories[k].sort((a, b) => {
+                let aa = a.indexOf(',')
+                let bb = b.indexOf(',')
+                aa = aa == -1 ? a : a.substr(0, aa)
+                bb = bb == -1 ? b : b.substr(0, bb)
+                return aa > bb ? 1 : -1
+            })
+        })
         this.categories = ordering
         this.updateChannelsIndex(true)
         global.storage.raw.set(this.categoriesCacheKey, JSON.stringify(this.categories, null, 3), true, cb)
@@ -879,6 +889,72 @@ class Channels extends ChannelsAutoWatchNow {
         })
         return ct
     }
+	cmatch(needleTerms, stackTerms){ 
+        // partial=true will match "starts with" terms too
+        // the difference from lists.match() is that cmatch will check partials from stackTerms instead
+		//console.log(needleTerms, stackTerms)
+		if(needleTerms.includes('|')){
+			let needles = needleTerms.join(' ').split('|').map(s => s.trim()).filter(s => s).map(s => s.split(' '))
+			let score = 0
+			needles.forEach(needle => {
+				let s = this.cmatch(needle, stackTerms)
+				if(s > score){
+					score = s
+				}
+			})
+			return score
+		}
+		if(needleTerms.length && stackTerms.length){
+			let score = 0, sTerms = [], nTerms = []
+			let excludeMatch = needleTerms.some(t => {
+				if(t.charAt(0) == '-'){
+					if(stackTerms.includes(t.substr(1))){
+						return true
+					}
+				} else {
+					nTerms.push(t)
+				}
+			}) || stackTerms.some(t => {
+				if(t.charAt(0) == '-'){
+					if(needleTerms.includes(t.substr(1))){
+						return true
+					}
+				} else {
+					sTerms.push(t)
+				}
+			})
+			if(excludeMatch || !sTerms.length || !nTerms.length){
+				return 0
+			}
+			nTerms.forEach(term => {
+                let len = term.length
+                sTerms.some(strm => {
+                    //console.log(term, strm)
+                    if(len == strm.length){
+                        if(strm == term){
+                            score++
+                            return true
+                        }
+                    } else if(term.length > strm.length && strm == term.substr(0, strm.length)){
+                        score++
+                        return true
+                    }
+                })
+			})
+			if(score){
+				if(score == sTerms.length) { // all search terms are present
+					if(score == nTerms.length){ // terms are equal
+						return 3
+					} else {
+						return 2
+					}
+				} else if(sTerms.length >= 3 && score == (sTerms.length - 1)){
+					return 1
+				}
+			}
+		}
+		return 0
+	}
     isChannel(terms){
         let tms, chs = this.channelsIndex || {}
         if(Array.isArray(terms)){
@@ -890,53 +966,48 @@ class Channels extends ChannelsAutoWatchNow {
                 tms = global.lists.terms(terms, true)
             }
         }
-        let chosen, alts = {}, chosenScore = -1
+        let chosen, chosenScore = -1
         Object.keys(chs).forEach(name => {
-            let score = global.lists.match(tms, chs[name], false)
+            let score = global.lists.match(chs[name], tms, false)
             if(score){
                 if(score > chosenScore){
-                    if(chosen){
-                        alts[chosen] = chs[chosen]
-                    }
                     chosen = name
                     chosenScore = score
-                } else {
-                    alts[name] = chs[name]
                 }
             }
         })
-        if(chosenScore < 1){
-            Object.keys(chs).forEach(name => {
-                let score = global.lists.match(chs[name], tms, false)
-                if(score){
-                    if(score > chosenScore){
-                        if(chosen){
-                            alts[chosen] = chs[chosen]
-                        }
-                        chosen = name
-                        chosenScore = score
-                    } else {
+        if(chosenScore > 1){
+            if(typeof(this.isChannelCache[chosen]) == 'undefined'){
+                let alts = {}, excludes = [], chTerms = global.deepClone(chs[chosen])
+                Object.keys(chs).forEach(name => {
+                    if(name == chosen) return
+                    let score = global.lists.match(chTerms, chs[name], false)
+                    if(score){
                         alts[name] = chs[name]
                     }
-                }
-            })
-        }
-        if(chosenScore > 1){
-            let excludes = [], chTerms = global.deepClone(chs[chosen])
-            Object.keys(alts).forEach(n => {
-                excludes = excludes.concat(alts[n].filter(t => {
-                    return t.charAt(0) != '-' && !chTerms.includes(t)
-                }))
-            })
-            if(!chTerms.some(c => this.radioTerms.includes(c))){ // is not radio
-                this.radioTerms.forEach(rterm => {
-                    if(!chTerms.some(cterm => cterm.substr(0, rterm.length) == rterm)){ // this radio term can mess with our search (specially AM)
-                        chTerms.push('-'+ rterm)
-                    }
                 })
+                const skipChrs = ['-', '|']
+                Object.keys(alts).forEach(n => {
+                    excludes = excludes.concat(alts[n].filter(t => {
+                        return !skipChrs.includes(t.charAt(0)) && !chTerms.includes(t)
+                    }))
+                })
+                excludes = [...new Set(excludes)]
+                const seemsRadio = chTerms.some(c => this.radioTerms.includes(c))
+                chTerms = chTerms.join(' ').split(' | ').map(s => s.split(' ')).filter(s => s).map(t => {
+                    t = t.concat(excludes.map(s => '-' + s))
+                    if(!seemsRadio){
+                        this.radioTerms.forEach(rterm => {
+                            if(!t.some(cterm => cterm.substr(0, rterm.length) == rterm)){ // this radio term can mess with our search (specially AM)
+                                t.push('-'+ rterm)
+                            }
+                        })
+                    }
+                    return t
+                }).map(s => s.join(' ')).join(' | ').split(' ')
+                this.isChannelCache[chosen] = {name: chosen, terms: chTerms, alts, excludes}
             }
-            chTerms = chTerms.join(' ').split(' | ').map(s => s.split(' ')).filter(s => s).map(t => t.concat(excludes.map(s => '-' + s))).map(s => s.join(' ')).join(' | ').split(' ')
-            return {name: chosen, terms: chTerms, alts, excludes}
+            return this.isChannelCache[chosen]
         }
     }
     expandTerms(terms){
@@ -990,9 +1061,9 @@ class Channels extends ChannelsAutoWatchNow {
                 }).filter(e => !!e)
             }).catch(console.error).finally(() => {
                 let entries = []
-                Object.keys(this.channelsIndex).forEach(name => {
+                Object.keys(this.channelsIndex).sort().forEach(name => {
                     if(!already.includes(name)){
-                        let score = global.lists.match(terms, this.channelsIndex[name], partial)
+                        let score = this.cmatch(this.channelsIndex[name], terms, partial)
                         if(score){
                             entries.push({
                                 name,
@@ -1001,6 +1072,7 @@ class Channels extends ChannelsAutoWatchNow {
                         }
                     }
                 })
+                console.log(global.deepClone(entries))
                 this.epgChannelsAddLiveNow(entries, true).then(es => {
                     resolve(epgEntries.concat(es))
                 }).catch(reject)

@@ -266,7 +266,7 @@ class ExplorerSelectionMemory extends ExplorerBase {
     }
     restoreSelection(){
         let data = {scroll: 0, index: this.path ? 1 : 0}
-        if(typeof(this.selectionMemory[this.path]) != 'undefined'){
+        if(typeof(this.selectionMemory[this.path]) != 'undefined' && this.path.indexOf(lang.SEARCH) == -1 && this.path.indexOf(lang.MORE_RESULTS) == -1){
             data = this.selectionMemory[this.path]
             if(data.index == 0 && this.path){
                 data.index = 1

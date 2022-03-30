@@ -40,7 +40,7 @@
     "description": "A simple and intuitive IPTV player.",
     "name": "megacubo",
     "icon": "./default_icon.png",
-    "version": "16.3.8",
+    "version": "16.3.9",
     "theme": {
         "fullScreen": true
     },

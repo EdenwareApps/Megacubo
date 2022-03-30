@@ -68,7 +68,7 @@ class Index extends Common {
 			this.searchMapCache[key] = fullMap
 			return global.deepClone(fullMap)
 		}
-		let xmap, smap, aliases = {}, excludeTerms = []
+		let smap, aliases = {}, excludeTerms = []
 		if(typeof(opts.type) != 'string'){
 			opts.type = false
 		}
@@ -88,7 +88,7 @@ class Index extends Common {
 		if(opts.partial){
 			let allTerms = []
 			Object.keys(this.lists).forEach(listUrl => {
-				Object.keys(this.lists[listUrl].index).forEach(term => {
+				Object.keys(this.lists[listUrl].index.terms).forEach(term => {
 					if(!allTerms.includes(term)){
 						allTerms.push(term)
 					}
@@ -140,6 +140,7 @@ class Index extends Common {
 					excludeTerms.some(xterm => {
 						return Object.keys(this.lists).some(listUrl => {
 							if(typeof(this.lists[listUrl].index.terms[xterm]) != 'undefined'){
+								let pms = this.mapSize(smap, opts.group)
 								let xmap = {}
 								xmap[listUrl] = this.lists[listUrl].index.terms[xterm]
 								smap = this.diffMap(smap, xmap)
@@ -336,16 +337,13 @@ class Index extends Common {
 											if(opts.typeStrict === true) {
 												e.source = listUrl
 												bestResults.push(e)
-												hits++
 											} else {
 												e.source = listUrl
 												results.push(e)
-												hits++
 											}
 										}
 									} else {
 										bestResults.push(e)
-										hits++
 									}
 								}
 							}
@@ -431,7 +429,7 @@ class Index extends Common {
 				Object.keys(b[listUrl]).forEach(type => {
 					if(typeof(a[listUrl][type]) != 'undefined'){
 						b[listUrl][type].forEach(n => {
-							let i = a[listUrl][type].indexOf(n)
+							let i = c ? c[listUrl][type].indexOf(n) : a[listUrl][type].indexOf(n)
 							if(i != -1){
 								if(!c) c = global.deepClone(a) // clone it lazily
 								c[listUrl][type].splice(i, 1)
