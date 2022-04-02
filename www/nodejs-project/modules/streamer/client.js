@@ -49,7 +49,7 @@ class StreamerPlaybackTimeout extends EventEmitter {
         return {type: data.type || 'playback', details: data.details || ''}
     }
     time(){
-        return ((new Date()).getTime() / 1000)
+        return Date.now() / 1000
     }
 }
 
@@ -283,7 +283,7 @@ class StreamerState extends StreamerCasting {
         }
     }
     playOrPauseNotIdle(){
-        let _idle = idle.isIdle || idle.lastIdleTime > (((new Date()).getTime() / 1000) - 0.5)
+        let _idle = idle.isIdle || idle.lastIdleTime > ((Date.now() / 1000) - 0.5)
         console.error('playOrPauseNotIdle() '+ (_idle?'Y':'N'), idle.isIdle, idle.lastIdleTime)
         if(!_idle){
             this.playOrPause()
@@ -516,7 +516,7 @@ class StreamerSpeedo extends StreamerIdle {
         }
         let semSet, starting = !this.commitTime || (time() - this.commitTime) < 15
         let lowSpeedThreshold = (250 * 1024) /* 250kbps */, downlink = this.downlink(this.currentSpeed)
-        console.error('SPEEDOUPDATE', starting, this.commitTime, time(), this.currentSpeed, this.bitrate, downlink)
+        //console.error('SPEEDOUPDATE', starting, this.commitTime, time(), this.currentSpeed, this.bitrate, downlink)
         if(this.invalidSpeeds.includes(this.currentSpeed)) {
             this.speedoSemSet(-1, this.transcodeStarting ? lang.TRANSCODING_WAIT : lang.WAITING_CONNECTION)
         } else {

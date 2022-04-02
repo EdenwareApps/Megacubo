@@ -227,7 +227,7 @@ function patch(scope){
 		return file.replaceAll('\\', '/').replaceAll('//', '/')
 	}
 	scope.time = () => {
-		return ((new Date()).getTime() / 1000)
+		return Date.now() / 1000
 	}
 	scope.isVODM3U8 = (content, contentLength) => {
         let sample = String(content).toLowerCase()

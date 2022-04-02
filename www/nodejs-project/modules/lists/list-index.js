@@ -15,11 +15,15 @@ class ListIndex extends ListIndexUtils {
             this.readLines(this.file, map, lines => {
                 let entries
                 try {
-                    entries = JSON.parse('['+ lines.join(',') +']')
+                    entries = JSON.parse('['+ lines.filter(l => l.length > 9).join(',') +']') // remove undefineds too
                 } catch(e) {
 
                 }
-                if(Array.isArray(entries)){
+                if(Array.isArray(entries) && entries.length){
+                    let last = entries.length - 1
+                    if(entries[last].length){ // remove index entry
+                        entries.splice(last, 1)
+                    }
                     resolve(entries)
                 } else {
                     console.error('Failed to get lines', lines, map, this.file)

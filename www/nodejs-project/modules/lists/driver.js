@@ -1,10 +1,10 @@
 
 const async = require('async'), path = require('path'), Events = require('events'), fs = require('fs')
 
-const Index = require(global.APPDIR + '/modules/lists/index.js')
-const List = require(global.APPDIR + '/modules/lists/list.js')
-const EPG = require(global.APPDIR + '/modules/epg')
 const Parser = require(global.APPDIR + '/modules/lists/parser')
+const Index = require(global.APPDIR + '/modules/lists/index')
+const List = require(global.APPDIR + '/modules/lists/list')
+const EPG = require(global.APPDIR + '/modules/epg')
 const Cloud = require(APPDIR + '/modules/cloud')
 const Mega = require(APPDIR + '/modules/mega')
 
@@ -21,101 +21,6 @@ listsLoadTimes = {}
 
 const emit = (type, content) => {
 	postMessage({id: 0, type: 'event', data: type +':'+ JSON.stringify(content)})
-}
-
-class Fetcher extends Events {
-	constructor(){		
-		super()
-		this.cancelables = []
-		this.minDataLength = 512
-		this.maxDataLength = 32 * (1024 * 1024) // 32Mb
-		this.ttl = 24 * 3600
-	}
-	validate(content){
-		return typeof(content) == 'string' && content.length >= this.minDataLength && content.toLowerCase().indexOf('#ext') != -1
-	}
-	fetch(path){
-		return new Promise((resolve, reject) => {
-			if(path.substr(0, 2)=='//'){
-				path = 'http:' + path
-			}
-			if(path.match('^https?:')){
-				const dataKey = LIST_DATA_KEY_MASK.format(path)
-				global.storage.raw.get(dataKey, data => {
-					if(this.validate(data)){
-						resolve(data.split("\n").filter(s => s.length > 8).map(JSON.stringify))
-					} else {
-						const opts = {
-							url: path,
-							keepalive: false,
-							retries: 10,
-							followRedirect: true,
-							headers: {
-								'accept-charset': 'utf-8, *;q=0.1'
-							},
-							downloadLimit: 20 * (1024 * 1024) // 20Mb
-						}
-						let entries = [], stream = new global.Download(opts)
-						stream.once('response', (statusCode, headers) => {
-							if(statusCode >= 200 && statusCode < 300) {
-								let parser = new Parser(stream)
-								parser.on('entry', entry => {
-									entries.push(entry)
-								})
-								parser.once('end', () => {
-									stream.destroy()
-									stream = null
-									if(entries.length){
-										global.storage.raw.set(dataKey, entries.map(JSON.stringify).join("\r\n"), true)
-										resolve(entries)
-									} else {
-										reject('invalid list')
-									}
-									parser.destroy()
-								})
-							} else {
-								stream.destroy()
-								stream = null
-								reject('http error '+ statusCode)
-							}
-						})
-						stream.start()
-					}
-				})
-			} else {
-				reject('bad URL')
-			}
-		})
-	}
-	/*
-	extract(content){ // extract inline lists from HTMLs
-		if(typeof(content) != 'string'){
-			content = String(content)
-		}
-		let pos = content.indexOf('#')
-		if(pos == -1){
-			return ''
-		} else {
-			content = content.substr(pos)
-			pos = content.substr(0, 80000).toLowerCase().indexOf('<body') // maybe a html page containing list embedded
-			if(pos != -1){
-				content = content.substr(pos)
-				var e = (new RegExp('#(EXTM3U|EXTINF).*', 'mis')).exec(content)
-				if(e && e.index){
-					content = content.substr(e.index)
-					content = content.replace(new RegExp('<[ /]*br[ /]*>', 'gi'), "\r\n")
-					e = (new RegExp('</[A-Za-z]+>')).exec(content)
-					if(e && e.index){
-						content = content.substr(0, e.index)
-					}
-				} else {
-					content = ''
-				}
-			}
-		}
-        return content
-	}
-	*/
 }
 
 class Lists extends Index {
@@ -543,7 +448,7 @@ class Lists extends Index {
 				if(!global.listsRequesting[url] || (global.listsRequesting[url] == 'loading')){
 					global.listsRequesting[url] = 'destroyed'
 				}
-				if(isMine){
+				if(isMine && this.myLists.includes(url)){ // isMine yet?
 					console.error('Damn! My list got destroyed!', url)
 				}
 				this.remove(url)
@@ -754,48 +659,16 @@ class Lists extends Index {
     directListRenderer(v){
         return new Promise((resolve, reject) => {
 			console.log('DIRECTLISTRENDERER', v, this.isLocal(v.url))
-			if(this.isLocal(v.url)){
-				this.directListFileRenderer(v.url, v.url).then(resolve).catch(reject)
+			if(typeof(this.lists[v.url]) != 'undefined' && this.lists[v.url].isReady){ // if not loaded yet, fetch directly
+				this.lists[v.url].fetchAll(entries => {
+					this.directListRendererPrepare(entries, v.url).then(resolve).catch(reject)
+				})
 			} else {
-				if(typeof(this.lists[v.url]) != 'undefined' && this.lists[v.url].isReady){ // if not loaded yet, fetch directly
-					this.lists[v.url].fetchAll(entries => {
-						this.directListRendererPrepare(entries, v.url).then(resolve).catch(reject)
-					})                
-				} else {
-					let fetcher = new Fetcher()
-					fetcher.fetch(v.url).then(flatList => {
-						this.directListRendererPrepare(flatList, v.url).then(resolve).catch(reject)
-					}).catch(reject)
-				}
+				let fetcher = new this.Fetcher()
+				fetcher.fetch(v.url).then(entries => {
+					this.directListRendererPrepare(entries, v.url).then(resolve).catch(reject)
+				}).catch(reject)
 			}
-        })
-    }
-    directListFileRenderer(file, url){
-        return new Promise((resolve, reject) => {
-			const fallback = () => {
-				let stream = fs.createReadStream(file), entries = [], parser = new Parser()
-				parser.on('entry', e => entries.push(e))
-				parser.once('end', () => {
-					this.directListRendererPrepare(entries, url || file).then(resolve).catch(reject)
-				})
-				stream.on('data', chunk => {
-					parser.write(chunk)
-				})
-				stream.once('close', () => {
-					parser.end()
-				})
-			}
-            if(typeof(this.lists[url]) != 'undefined' && this.lists[url].isReady){
-                this.lists[url].fetchAll(entries => {
-					if(entries && entries.length){
-						this.directListRendererPrepare(entries, url).then(resolve).catch(reject)
-					} else {
-						fallback()
-					}
-				})                
-            } else {
-				fallback()
-            }
         })
     }
     directListRendererParse(content){

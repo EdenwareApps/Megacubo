@@ -180,11 +180,11 @@ class HLSRequest extends StreamerProxyBase {
 	validateStatus(code){
 		return code >= 200 && code <= 400 && code != 204
 	}
-	respond(status, headers){
+	respond(status, headers, currentURL){
 		if(!this.headers){
 			this.status = status
 			this.headers = headers
-			this.mediaType = this.getMediaType(this.headers, this.url)
+			this.mediaType = this.getMediaType(this.headers, currentURL || this.url)
 			if(typeof(this.headers['accept-ranges']) != 'undefined'){
 				delete this.headers['accept-ranges']
 			}
@@ -533,9 +533,6 @@ class HLSRequests extends StreamerProxyBase {
 	download(opts){
 		const now = global.time(), client = new HLSRequestClient(), url = opts.url, ext = this.ext(url), seg = this.isSegmentURL(url)
 		client.destroy = () => this.removeClient(url, client)
-		if(ext == 'm3u8'){
-			this.activeManifest = url
-		}
 		if(this.activeRequests[url] || (this.requestCacheMap[url] && !this.requestCacheMap[url].expired())){
 			this.requestCacheMap[url].addClient(client)
 		} else {
@@ -560,6 +557,13 @@ class HLSRequests extends StreamerProxyBase {
 				}
 				if(this.activeRequests[url]){
 					delete this.activeRequests[url]
+				}
+				if(this.requestCacheMap[url].mediaType == 'meta'){
+					this.activeManifest = url
+					console.warn('BITRATE', url, this.playlistBitrates, this.playlistBitrates[url])
+					if(this.playlistBitrates[url]){
+						this.saveBitrate(this.playlistBitrates[url])
+					}
 				}
 				if(!ended){
 					ended = true
@@ -596,6 +600,10 @@ class HLSRequests extends StreamerProxyBase {
 					if(this.ext(request.currentURL) == 'm3u8' || (headers['content-type'] && headers['content-type'].indexOf('mpegurl') != -1)){
 						// detect too if url just redirects to the real m3u8
 						this.activeManifest = url
+						console.warn('BITRATE', url, this.playlistBitrates, this.playlistBitrates[url])
+						if(this.playlistBitrates[url]){
+							this.saveBitrate(this.playlistBitrates[url])
+						}
 					}
 				} else {
 					console.error('Request error', status, headers, url, request, request.authErrors, request.opts.maxAuthErrors)
@@ -613,7 +621,7 @@ class HLSRequests extends StreamerProxyBase {
 						this.report404ToJournal(url)
 					}
 				}
-				this.requestCacheMap[url].respond(status, headers)
+				this.requestCacheMap[url].respond(status, headers, request.currentURL)
 				// console.warn('RESPONSE OK', status, headers, this.requestCacheMap[url])
 			})
 			request.on('data', chunk => {
@@ -792,7 +800,7 @@ class StreamerProxyHLS extends HLSRequests {
 					this.playlists[url] = {}
 				}
 				parser.manifest.playlists.forEach(playlist => {
-					let dn = this.dirname(url)
+					let dn = this.dirname(playlist.uri)
 					if(typeof(replaces[dn]) == 'undefined'){
 						if(this.opts.debug){
 							console.log('dn', dn)
@@ -819,13 +827,22 @@ class StreamerProxyHLS extends HLSRequests {
 					}
 				})
 			}
+			/*
 			body = body.replace(new RegExp('(URI="?)((https?://||//)[^\\n"\']+)', 'ig'), (...match) => { // for #EXT-X-KEY:METHOD=AES-128,URI="https://...
 				if(match[2].indexOf('127.0.0.1') == -1){
 					match[2] = this.proxify(match[2])
 				}
 				return match[1] + match[2]
 			})
-			//console.log('PROXIFIED', body)
+			*/
+			body = body.replace(new RegExp('(URI="?)([^\\n"\']+)', 'ig'), (...match) => { // for #EXT-X-KEY:METHOD=AES-128,URI="https://...
+				if(match[2].indexOf('127.0.0.1') == -1){
+					match[2] = this.absolutize(match[2], url)
+					match[2] = this.proxify(match[2])
+				}
+				return match[1] + match[2]
+			})
+			console.log('PROXIFIED', body)
 		}
 		return body
 	}

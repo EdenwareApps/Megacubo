@@ -178,6 +178,7 @@ input {
     color: var(--font-color);
     display: inline-flex;
     align-items: center;
+    white-space: nowrap;
 }
 #explorer header .explorer-location {
     width: 100%; /* Android <9 compat */

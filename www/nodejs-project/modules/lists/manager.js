@@ -166,21 +166,33 @@ class Manager extends Events {
                 }
             }
             console.log('name::add', name, url)
-            this.directListFetch(url, true).then(content => {
-                console.log('name::add', content)
-                let finish = name => {
-                    console.log('name::final', name, url)
-                    let lists = this.get()
-                    lists.push([name, url])
-                    global.config.set(this.key, lists)
-                    resolve(true)
+            const fetcher = new this.parent.Fetcher()
+            fetcher.fetch(url, {
+                meta: meta => {
+                    if(!name && meta.name){
+                        name = meta.name
+                    }
+                },
+                progress: p => {
+                    global.osd.show(global.lang.PROCESSING +' '+ p +'%', 'fa-mega spin-x-alt', 'list-open', 'persistent')
                 }
-                if(name){
-                    finish(name)
-                } else {
-                    this.name(url, content).then(finish).catch(global.displayErr)
+            }).then(entries => {
+                if(entries.length){
+                    console.log('name::add')
+                    let finish = name => {
+                        console.log('name::final', name, url)
+                        let lists = this.get()
+                        lists.push([name, url])
+                        global.config.set(this.key, lists)
+                        resolve(true)
+                    }
+                    if(name){
+                        finish(name)
+                    } else {
+                        this.name(url).then(finish).catch(reject)
+                    }
                 }
-            }).catch(reject)
+            })
         })
     }
     remove(url){
@@ -344,15 +356,15 @@ class Manager extends Events {
                 ], 'lists-manager', 'back', true)
                 return resolve(true)
             }
-            global.osd.show(global.lang.PROCESSING, 'fa-mega spin-x-alt', 'add-list', 'persistent')
+            global.osd.show(global.lang.PROCESSING, 'fa-mega spin-x-alt', 'list-open', 'persistent')
             this.add(value).then(() => {
-                global.osd.show(global.lang.LIST_ADDED, 'fas fa-check-circle', 'add-list', 'normal')
+                global.osd.show(global.lang.LIST_ADDED, 'fas fa-check-circle', 'list-open', 'normal')
                 resolve(true)
             }).catch(err => {
                 if(typeof(err) != 'string'){
                     err = String(err)
                 }
-                global.osd.show(err, 'fas fa-exclamation-circle', 'add-list', 'normal')
+                global.osd.show(err, 'fas fa-exclamation-circle', 'list-open', 'normal')
                 reject(err)
             })
         })
@@ -443,7 +455,7 @@ class Manager extends Events {
             global.ui.emit('dialog', [
                 {template: 'question', text: global.lang.NO_COMMUNITARY_LISTS_FOUND, fa: 'fas fa-users'},
                 {template: 'option', id: 'retry', fa: 'fas fa-redo', text: global.lang.RETRY},
-                {template: 'option', id: 'add-list', fa: 'fas fa-plus-square', text: global.lang.ADD_LIST}
+                {template: 'option', id: 'list-open', fa: 'fas fa-plus-square', text: global.lang.ADD_LIST}
             ], 'lists-manager', 'retry', true) 
         } else {
             global.ui.emit('info', global.lang.NO_INTERNET_CONNECTION, global.lang.NO_INTERNET_CONNECTION)
@@ -506,7 +518,7 @@ class Manager extends Events {
                             type: 'group', 
                             renderer: data => {
                                 return new Promise((resolve, reject) => {
-                                    let es = [], hasErr
+                                    let es = []
                                     this.parent.directListRenderer({url}).then(ret => {
                                         es = ret
                                         console.log('DIRECTLISTRENDERER RET', ret)
@@ -861,7 +873,7 @@ class Manager extends Events {
     removeList(data){
         global.explorer.suspendRendering()
         this.remove(data.url)
-        global.osd.show(global.lang.LIST_REMOVED, 'fas fa-info-circle', 'options', 'normal')    
+        global.osd.show(global.lang.LIST_REMOVED, 'fas fa-info-circle', 'list-open', 'normal')    
         global.explorer.resumeRendering()
         global.explorer.back(2, true)    
     }
@@ -884,7 +896,7 @@ class Manager extends Events {
                             fa: 'fas fa-minus-square',
                             action: () => {             
                                 this.remove(v.url)
-                                global.osd.show(global.lang.LIST_REMOVED, 'fas fa-info-circle', 'options', 'normal')
+                                global.osd.show(global.lang.LIST_REMOVED, 'fas fa-info-circle', 'list-open', 'normal')
                                 global.explorer.refresh()
                             }
                         })
@@ -907,87 +919,17 @@ class Manager extends Events {
             console.warn('DIRECT', isMine, isCommunitary)
             if(isMine || isCommunitary){
                 this.parent.directListRenderer(v).then(cb).catch(onerr)
-            } else {   
-                const tmpFile = path.join(global.paths.temp, global.sanitize(v.url) +'.tmp')
-                fs.stat(tmpFile, (err, stat) => {
-                    if(err || !stat.size){
-                        const stream = fs.createWriteStream(tmpFile, {flags:'w'})           
-                        const download = new global.Download({
-                            url: v.url,
-                            keepalive: false,
-                            retries: 5,
-                            headers: {
-                                'accept-charset': 'utf-8, *;q=0.1'
-                            },
-                            followRedirect: true
-                        })
-                        download.on('progress', progress => {
-                            global.osd.show(global.lang.OPENING_LIST +' '+ progress +'%', 'fa-mega spin-x-alt', 'list-open', 'persistent')
-                        })
-                        download.once('response', console.warn)
-                        download.on('error', console.warn)
-                        download.on('data', chunk => stream.write(chunk))
-                        download.once('end', () => {
-                            stream.on('finish', () => {
-                                this.parent.directListFileRenderer(tmpFile, v.url).then(cb).catch(onerr)
-                            })
-                            stream.end()
-                        })
-                        download.start()
-                    } else {
-                        this.parent.directListFileRenderer(tmpFile, v.url).then(cb).catch(onerr)
-                    }
-                })
-            }
-        })
-    }
-    directListFetch(url, saveCache){
-        console.warn('DIRECTFETCH', url)
-        return new Promise((resolve, reject) => {
-            if(!url){
-                return reject(global.lang.INVALID_URL_MSG)
-            }
-            const isFile = this.isLocal(url), onErr = err => {
-                console.error('error', err, global.traceback())
-                reject(global.lang.LIST_OPENING_FAILURE)
-                global.osd.hide('add-list')
-            }
-            const onContent = content => {
-                //console.log('content', content)
-                content = String(content)
-                if(this.validate(content)){
-                    resolve(content)
-                    global.osd.hide('add-list')
-                } else {
-                    onErr(this.parent.INVALID_URL_MSG)
-                }
-            }
-            if(isFile){
-                fs.readFile(url, (err, content) => {
-                    if(content){
-                        onContent(content)
-                    } else {
-                        onErr(err || 'Empty file')
-                    }
-                })
             } else {
-                const download = new global.Download({
-                    url,
-                    keepalive: false,
-                    retries: 3,
-                    headers: {
-                        'accept-charset': 'utf-8, *;q=0.1'
-                    },
-                    followRedirect: true
-                })
-                download.on('progress', progress => {
-                    global.osd.show(global.lang.OPENING_LIST +' '+ progress +'%', 'fa-mega spin-x-alt', 'add-list', 'persistent')
-                })
-                download.on('error', err => {
-                    console.warn('Download error', err)
-                })
-                download.once('end', onContent)
-                download.start()
+                const fetcher = new this.parent.Fetcher()
+                fetcher.fetch(v.url, {
+                    progress: p => {
+                        global.osd.show(global.lang.OPENING_LIST +' '+ p +'%', 'fa-mega spin-x-alt', 'list-open', 'persistent')
+                    }
+                }).then(es => {                    
+                    es = this.parent.parentalControl.filter(es)
+                    es = this.parent.tools.deepify(es, v.url)  
+                    cb(es)
+                }).catch(onerr)
             }
         })
     }

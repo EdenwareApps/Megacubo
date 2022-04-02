@@ -11,6 +11,8 @@ const agentOpts = {
 	rejectUnauthorized: false
 }
 
+dnsCache.setPreferableIpVersion(global.config.get('prefer-ipv6') ? 6 : 4)
+
 const got = require('got').extend({
 	headers: {
 		'Connection': 'close'
@@ -28,7 +30,7 @@ const got = require('got').extend({
 			error => {
 				try {
 					let serr = String(error)
-					console.warn('gotError', serr, error.response && error.response.url ? error.response.url : '', global.traceback())
+					console.warn('gotError', serr, error, error.response && error.response.url ? error.response.url : '', global.traceback())
 					error.request.emit('download-error', serr)
 					try {
 						throw error // avoid process crashing with uncaught exception, TODO: find a better way

@@ -1,13 +1,160 @@
 
 const Events = require('events'), fs = require('fs'), ParentalControl = require(global.APPDIR + '/modules/lists/parental-control')
 const M3UParser = require(global.APPDIR + '/modules/lists/parser'), M3UTools = require(global.APPDIR + '/modules/lists/tools'), MediaStreamInfo = require(global.APPDIR + '/modules/lists/media-info')
+const Parser = require(global.APPDIR + '/modules/lists/parser')
 
 LIST_DATA_KEY_MASK = 'list-data-{0}'
 LIST_UPDATE_META_KEY_MASK = 'list-time-{0}'
 
+class Fetcher extends Events {
+	constructor(){		
+		super()
+		this.cancelables = []
+		this.minDataLength = 512
+		this.maxDataLength = 32 * (1024 * 1024) // 32Mb
+		this.ttl = 24 * 3600
+	}
+	validateCache(content){
+		return typeof(content) == 'string' && content.length >= this.minDataLength
+	}
+	isLocal(file){
+		if(typeof(file) != 'string'){
+			return
+		}
+		let m = file.match(new RegExp('^([a-z]{1,6}):', 'i'))
+		if(m && m.length > 1 && (m[1].length == 1 || m[1].toLowerCase() == 'file')){ // drive letter or file protocol
+			return true
+		} else {
+			if(file.length >= 2 && file.charAt(0) == '/' && file.charAt(1) != '/'){ // unix path
+				return true
+			}
+		}
+	}
+	fetch(path, atts){
+		return new Promise((resolve, reject) => {
+			if(path.substr(0, 2)=='//'){
+				path = 'http:' + path
+			}
+			if(this.isLocal(path)){
+				let stream = fs.createReadStream(path), entries = [], parser = new Parser()
+				if(atts){
+					if(atts.meta){
+						parser.on('meta', meta => atts.meta(meta))
+					}
+				}
+				parser.on('entry', e => entries.push(e))
+				parser.once('end',  () => {
+					stream.destroy()
+					stream = null
+					if(entries.length){
+						resolve(entries)
+					} else {
+						reject('invalid list')
+					}
+					parser.destroy()
+				})
+				stream.on('data', chunk => {
+					parser.write(chunk)
+				})
+				stream.once('close', () => {
+					parser.end()
+				})
+			} else if(path.match('^https?:')) {
+				const dataKey = LIST_DATA_KEY_MASK.format(path)
+				global.storage.raw.get(dataKey, data => {
+					if(this.validateCache(data)){
+						let entries = data.split("\n").filter(s => s.length > 8).map(JSON.parse)
+						let last = entries.length - 1
+						if(entries[last].length){ // remove index entry
+							entries.splice(last, 1)
+						}
+						resolve(entries)
+					} else {
+						const opts = {
+							url: path,
+							keepalive: false,
+							retries: 10,
+							followRedirect: true,
+							headers: {
+								'accept-charset': 'utf-8, *;q=0.1'
+							},
+							downloadLimit: 28 * (1024 * 1024) // 28Mb
+						}
+						let entries = [], stream = new global.Download(opts)
+						stream.once('response', (statusCode, headers) => {
+							if(statusCode >= 200 && statusCode < 300) {
+								let parser = new Parser(stream)
+								if(atts){
+									if(atts.meta){
+										parser.on('meta', meta => atts.meta(meta))
+									}
+									if(atts.progress){
+										stream.on('progress', p => atts.progress(p))
+									}
+								}
+								parser.on('entry', entry => {
+									entries.push(entry)
+								})
+								parser.once('end', () => {
+									stream.destroy()
+									stream = null
+									if(entries.length){
+										global.storage.raw.set(dataKey, entries.map(JSON.stringify).join("\r\n"), true)
+										resolve(entries)
+									} else {
+										reject('invalid list')
+									}
+									parser.destroy()
+								})
+							} else {
+								stream.destroy()
+								stream = null
+								reject('http error '+ statusCode)
+							}
+						})
+						stream.start()
+					}
+				})
+			} else {
+				reject('bad URL')
+			}
+		})
+	}
+	/*
+	extract(content){ // extract inline lists from HTMLs
+		if(typeof(content) != 'string'){
+			content = String(content)
+		}
+		let pos = content.indexOf('#')
+		if(pos == -1){
+			return ''
+		} else {
+			content = content.substr(pos)
+			pos = content.substr(0, 80000).toLowerCase().indexOf('<body') // maybe a html page containing list embedded
+			if(pos != -1){
+				content = content.substr(pos)
+				var e = (new RegExp('#(EXTM3U|EXTINF).*', 'mis')).exec(content)
+				if(e && e.index){
+					content = content.substr(e.index)
+					content = content.replace(new RegExp('<[ /]*br[ /]*>', 'gi'), "\r\n")
+					e = (new RegExp('</[A-Za-z]+>')).exec(content)
+					if(e && e.index){
+						content = content.substr(0, e.index)
+					}
+				} else {
+					content = ''
+				}
+			}
+		}
+        return content
+	}
+	*/
+}
+
 class Common extends Events {
 	constructor(opts){
 		super()
+		this.Fetcher = Fetcher
 		this.searchRedirects = []
 		this.stopWords = ['sd', 'hd', 'h264', 'h.264', 'fhd'] // common words to ignore on searching
 		this.listMetaKeyPrefix = 'meta-cache-'

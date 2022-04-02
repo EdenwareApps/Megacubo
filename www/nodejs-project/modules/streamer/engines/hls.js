@@ -2,9 +2,7 @@ const StreamerBaseIntent = require('./base.js'), StreamerProxy = require('../uti
 const fs = require('fs'), Any2HLS = require('../utils/any2hls'), async = require('async'), m3u8Parser = require('m3u8-parser')
 
 class HLSTrackSelector {
-    constructor(){
-
-    }
+    constructor(){}
     absolutize(path, url){
 		if(path.substr(0, 2) == '//'){
 			path = 'http:' + path

@@ -55,7 +55,7 @@ function css(code, id, scope){
 }
 
 function time(){
-    return ((new Date()).getTime() / 1000)
+    return Date.now() / 1000
 }
 
 var absolutize = (url, base) => {

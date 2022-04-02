@@ -100,7 +100,7 @@ class ExitPage {
 		}
 	}
 	time(){
-		return ((new Date()).getTime() / 1000)
+		return Date.now() / 1000
 	}
 	allow(){
 		const now = this.time(), lastOpen = parseInt(this.get('last-open'))

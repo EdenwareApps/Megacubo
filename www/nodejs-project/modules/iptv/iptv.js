@@ -140,8 +140,10 @@ class IPTV extends Events {
                                                         fa: 'fas fa-minus-square',
                                                         action: () => {             
                                                             global.lists.manager.remove(url)
-                                                            global.osd.show(global.lang.LIST_REMOVED, 'fas fa-info-circle', 'options', 'normal')
-                                                            global.explorer.back()
+                                                            global.osd.show(global.lang.LIST_REMOVED, 'fas fa-info-circle', 'list-open', 'normal')
+                                                            setTimeout(() => {
+                                                                global.explorer.refresh()
+                                                            }, 100)
                                                         }
                                                     })
                                                 } else {
@@ -150,7 +152,11 @@ class IPTV extends Events {
                                                         fa: 'fas fa-plus-square',
                                                         name: global.lang.ADD_TO.format(global.lang.MY_LISTS),
                                                         action: () => {
-                                                            global.lists.manager.addList(url).catch(console.error)
+                                                            global.lists.manager.addList(url).then(() => {
+                                                                setTimeout(() => {
+                                                                    global.explorer.refresh()
+                                                                }, 100)
+                                                            }).catch(console.error)
                                                         }
                                                     })
                                                 }

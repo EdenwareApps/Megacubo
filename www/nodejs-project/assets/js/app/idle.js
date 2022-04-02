@@ -4,7 +4,7 @@ class Idle extends EventEmitter {
     constructor(){
         super()
         this.timeout = 5000
-        this.lastIdleTime = ((new Date()).getTime() / 1000)
+        this.lastIdleTime = Date.now() / 1000
         this.idle = false
         this.idleTimer = null
         window.addEventListener('appready', () => {
@@ -20,7 +20,7 @@ class Idle extends EventEmitter {
         if(!this.locked){
             clearTimeout(this.idleTimer)
             if(this.idle){
-                this.lastIdleTime = ((new Date()).getTime() / 1000)
+                this.lastIdleTime = Date.now() / 1000
                 this.isIdle = this.idle = false
                 this.emit('stop')
             }
@@ -30,7 +30,7 @@ class Idle extends EventEmitter {
     start(){
         if(!this.locked){
             if (!this.idle){
-                this.idleTime = ((new Date()).getTime() / 1000)
+                this.idleTime = Date.now() / 1000
                 this.isIdle = this.idle = true
                 this.emit('start')
             }

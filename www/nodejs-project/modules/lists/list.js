@@ -20,7 +20,7 @@ class List extends Events {
 	}
 	log(...args){
 		if(this.destroyed) return
-		args.unshift((new Date()).getTime() / 1000)
+		args.unshift(Date.now() / 1000)
 		this._log.push(args)
 	}
 	ready(fn){

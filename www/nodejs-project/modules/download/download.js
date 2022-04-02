@@ -205,7 +205,8 @@ class Download extends Events {
 			decompress: false, // we'll decompress manually to have better control on ranging
 			followRedirect: this.opts.followRedirect,
 			retry: 0,
-			throwHttpErrors: false
+			throwHttpErrors: false,
+			dnsLookupIpVersion: 'auto'
 		}
     	const requestHeaders = Object.assign({}, this.opts.headers)
 		if(this.opts.keepalive && this.avoidKeepAlive(this.currentURL)){
@@ -559,12 +560,12 @@ class Download extends Events {
 				this.decompressor.on('data', this._emitData.bind(this))
 				this.decompressor.on('error', err => {
 					console.error('Zlib err', err, this.currentURL)
-					this.decompressEnded = true
+					this.decompressEnded = 'error'
 					this.end()
 				})
 				//this.decompressor.once('end', chunk => console.log('ZLIB END'))
 				this.decompressor.on('finish', chunk => {
-					this.decompressEnded = true
+					this.decompressEnded = 'finish'
 				})
 				//this.decompressor.once('close', chunk => console.log('ZLIB CLS'))
 			}

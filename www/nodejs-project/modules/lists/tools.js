@@ -139,7 +139,13 @@ class Tools {
 	sortList(list){
 		var result = list.slice(0)
 		result.sort((a, b) => {
-			return (a.type && a.type == 'option') ? 1 : ((a.name.toLowerCase() > b.name.toLowerCase()) ? 1 : ((b.name.toLowerCase() > a.name.toLowerCase()) ? -1 : 0))
+			try{
+				return (a.type && a.type == 'option') ? 1 : ((a.name.toLowerCase() > b.name.toLowerCase()) ? 1 : ((b.name.toLowerCase() > a.name.toLowerCase()) ? -1 : 0))
+			}catch(e){
+				console.error(e, a, b)
+				console.error(list)
+				return 1
+			}
 		})
 		return result
 	}

@@ -181,11 +181,16 @@ class StreamerAdapterBase extends Events {
 		return this.crypto.createHash('md5').update(txt).digest('hex')
 	}
 	saveBitrate(bitrate){
+		let prevBitrate = this.bitrate
 		this.bitrates.push(bitrate)
 		if(this.bitrates.length >= 3){
 			this.bitrate = this.findTwoClosestValues(this.bitrates).reduce((a, b) => a + b, 0) / 2
+			this.bitrates = this.bitrates.slice(-3)
 		} else {
 			this.bitrate = this.bitrates.reduce((a, b) => a + b, 0) / this.bitrates.length
+		}
+		if(this.bitrate != prevBitrate){
+			this.emit('bitrate', this.bitrate, this.currentSpeed)
 		}
 	}
 	pumpGetBitrateQueue(){
@@ -267,8 +272,7 @@ class StreamerAdapterBase extends Events {
 								console.log('getBitrate', err, bitrate, codecData, dimensions, this.url)
 							}
 							if(bitrate){
-								this.saveBitrate(bitrate)
-								this.emit('bitrate', this.bitrate, this.currentSpeed)	
+								this.saveBitrate(bitrate)	
 							}
 							if(this.opts.debug){
 								console.log('[' + this.type + '] analyzing: ' + file, isHTTP ? '' : 'sample len: '+ global.kbfmt(stat.size), 'bitrate: '+ global.kbsfmt(this.bitrate), this.bitrates, this.url, nfo)

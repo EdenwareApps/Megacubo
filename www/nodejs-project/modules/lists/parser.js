@@ -25,6 +25,7 @@ class IPTVPlaylistStreamParser extends Events {
 		this.headerAttrMap = {
 			'url-tvg': 'epg',
 			'x-tvg-url': 'epg',
+			'iptv-name': 'name',
 			'pltv-cover': 'icon', // before pltv-logo
 			'pltv-logo': 'icon',
 			'pltv-author': 'author',

@@ -125,7 +125,7 @@ class StreamerProxy extends StreamerProxyBase {
 			}
 			if(parser.manifest.playlists && parser.manifest.playlists.length){
 				parser.manifest.playlists.forEach(playlist => {
-					let dn = this.dirname(url)
+					let dn = this.dirname(playlist.uri)
 					if(typeof(replaces[dn]) == 'undefined'){
 						if(this.opts.debug){
 							console.log('dn', dn)
@@ -143,6 +143,13 @@ class StreamerProxy extends StreamerProxyBase {
 				})
 			}
 			// console.warn('PRXBODY', body, parser.manifest, replaces)
+			body = body.replace(new RegExp('(URI="?)([^\\n"\']+)', 'ig'), (...match) => { // for #EXT-X-KEY:METHOD=AES-128,URI="https://...
+				if(match[2].indexOf('127.0.0.1') == -1){
+					match[2] = this.absolutize(match[2], url)
+					match[2] = this.proxify(match[2])
+				}
+				return match[1] + match[2]
+			})
 		}
 		return body
 	}

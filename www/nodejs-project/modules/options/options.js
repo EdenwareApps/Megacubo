@@ -686,7 +686,13 @@ class Options extends OptionsExportImport {
                     value: () => {
                         return global.config.get('connect-timeout')
                     }
-                }   
+                },
+                {
+                    name: 'Prefer IPv6', type: 'check', action: (data, checked) => {
+                    global.config.set('prefer-ipv6', checked)
+                }, checked: () => {
+                    return global.config.get('prefer-ipv6')
+                }}  
             ]
             if(global.config.get('shared-mode-reach')){
                 opts.push({
