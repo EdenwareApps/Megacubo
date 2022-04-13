@@ -16,12 +16,12 @@ class Bookmarks extends EntriesGroup {
                 global.explorer.open(global.lang.BOOKMARKS)
             }
         })
-        global.streamer.aboutDialogRegisterOption('addfav', data => {
+        global.streamer.aboutRegisterEntry('addfav', data => {
             if(!data.isLocal && !this.has(this.simplify(data))){
                 return {template: 'option', fa: 'fas fa-star', text: global.lang.ADD_TO.format(global.lang.BOOKMARKS), id: 'addfav'}
             }
         }, this.toggle.bind(this), null, true)
-        global.streamer.aboutDialogRegisterOption('remfav', data => {
+        global.streamer.aboutRegisterEntry('remfav', data => {
             if(!data.isLocal && this.has(this.simplify(data))){
                 return {template: 'option', fa: 'fas fa-star-half', text: global.lang.REMOVE_FROM.format(global.lang.BOOKMARKS), id: 'remfav'}
             }
@@ -39,7 +39,7 @@ class Bookmarks extends EntriesGroup {
                 entries.push({name: global.lang.BOOKMARKS, fa: 'fas fa-star', type: 'group', renderer: this.entries.bind(this)})
             }
             let isBookmarkable = path.startsWith(global.lang.VIDEOS) || path.startsWith(global.lang.BOOKMARKS)
-            if(!isBookmarkable && path.startsWith(global.lang.IPTV_LISTS) && !entries.some(this.groupFilter)){
+            if(!isBookmarkable && (path.startsWith(global.lang.IPTV_LISTS) || path.startsWith(global.lang.TRENDING)) && !entries.some(this.groupFilter)){
                 isBookmarkable = true
             }
             if(isBookmarkable && entries.some(this.streamFilter)){
@@ -143,19 +143,9 @@ class Bookmarks extends EntriesGroup {
                     if(atts.mediaType == 'live'){
                         return (epgAddLiveNowMap[i] = global.channels.toMetaEntry(e, false))
                     } else {
-                        e.type = 'group'
-                        e.renderer = () => {
-                            return new Promise((resolve, reject) => {
-                                let terms = atts.terms && Array.isArray(atts.terms) ? atts.terms : global.lists.terms(atts.name, true)
-                                global.lists.search(terms, {
-                                    type: 'video',
-                                    group: true,
-                                    safe: (global.config.get('parental-control-policy') == 'block')
-                                }).then(es => {
-                                    resolve(es.results)
-                                }).catch(reject)
-                            })
-                        }
+                        let terms = atts.terms && Array.isArray(atts.terms) ? atts.terms : global.lists.terms(atts.name, true)
+                        e.url = global.mega.build(global.ucWords(terms.join(' ')), {terms, mediaType: 'video'})
+                        e = global.channels.toMetaEntry(e)
                     }
                 } else if(e.type != 'group'){
                     e.type = 'stream'

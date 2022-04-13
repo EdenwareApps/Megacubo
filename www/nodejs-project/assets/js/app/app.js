@@ -190,6 +190,9 @@ function initApp(){
     app.on('background-mode-unlock', name => {
         if(parent.player && parent.winman) parent.winman.backgroundModeUnlock(name)
     })
+    app.on('setup-skip-list', () => {
+        window.setupSkipList = true
+    })
 
     $(() => {
         console.log('load app')
@@ -234,18 +237,23 @@ function initApp(){
                 iconCaching[path][tabIndex] = {src, name}
             }
             if(explorer.path == path){
-                let element = tabIndex == -1 ? document.querySelector('.explorer-location-icon i') : explorer.currentElements[tabIndex], m = document.createElement('img')
-                m.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQYV2NgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII=' // transparent pixel
-                m.style.backgroundImage = 'url(' + src + ')'
+                const element = tabIndex == -1 ? document.querySelector('.explorer-location-icon i') : explorer.currentElements[tabIndex]
+                const bg = 'url("' + src + '")' // keep quotes
+                const m = () => {
+                    let g = document.createElement('img')
+                    g.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQYV2NgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII=' // transparent pixel
+                    g.style.backgroundImage = bg
+                    return g
+                }
                 if(tabIndex == -1) {
-                    jQuery(element).replaceWith(m)
+                    jQuery(element).replaceWith(m())
                 } else {
                     let c = element.querySelector('.entry-icon-image')
                     if(c){
                         let g = c.querySelector('img')
-                        if(!g || force || m.style.backgroundImage != g.style.backgroundImage){
+                        if(!g || force || bg != g.style.backgroundImage){
                             c.innerHTML = ''
-                            c.appendChild(m)
+                            c.appendChild(m())
                         }
                     }
                 }
@@ -303,7 +311,7 @@ function initApp(){
                         } else {
                             console.log('OVERSCROLLACTION!!!!!!!')
                             explorer.body.removeClass('menu-playing')
-                            idle.stop()
+                            idle.reset()
                             idle.lock(0.1)
                         }
                     }
@@ -521,12 +529,12 @@ function initApp(){
                     console.log('SWIPE WEIGHT', swipeWeight)
                     switch(e.direction){
                         case 'left':
-                            if(explorer.inPlayer()){       
+                            if(explorer.inPlayer() && !explorer.isExploring()){       
                                 arrowRightPressed(true) 
                             }
                             break
                         case 'right':                        
-                            if(explorer.inPlayer()){   
+                            if(explorer.inPlayer() && !explorer.isExploring()){   
                                 arrowLeftPressed(true)   
                             } else {
                                 escapePressed()

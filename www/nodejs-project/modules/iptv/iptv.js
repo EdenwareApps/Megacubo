@@ -216,12 +216,12 @@ class IPTV extends Events {
     }
     showInfo(){
         if(!this.opts.shadow){
-            global.ui.emit('dialog', [
+            global.explorer.dialog([
                 {template: 'question', text: this.title, fa: this.icon},
                 {template: 'message', text: global.lang.IPTV_INFO},
                 {template: 'option', text: 'OK', id: 'ok', fa: 'fas fa-check-circle'},
                 {template: 'option', text: global.lang.KNOW_MORE, id: 'know', fa: 'fas fa-info-circle'}
-            ], 'iptv', 'ok')
+            ], 'ok').catch(console.error)
         }
     }
     hook(entries, path){

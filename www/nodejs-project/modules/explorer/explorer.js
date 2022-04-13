@@ -80,6 +80,13 @@ class Explorer extends Events {
             }
         }).catch(console.error)
     }
+    dialog(opts, def, mandatory){
+        return new Promise((resolve, reject) => {
+            let uid = 'ac-'+ Date.now()
+            global.ui.once(uid, ret => resolve(ret))
+            global.ui.emit('dialog', opts, uid, def, mandatory)
+        })
+    }
     checkFlags(entries){
         return entries.map(n => {
             let e = Object.assign({}, n)
@@ -166,7 +173,7 @@ class Explorer extends Events {
             if(this.opts.debug){
                 console.log('back', p, deep)
             }
-            this.open(p, undefined, deep, true, true).catch(global.displayErr)
+            this.open(p, undefined, deep, true, true, true).catch(global.displayErr)
         } else {
             this.refresh()
         }
@@ -383,7 +390,7 @@ class Explorer extends Events {
             next()
         })
     }
-    read(destPath, tabindex){
+    read(destPath, tabindex, allowCache){
         return new Promise((resolve, reject) => {
             const refPath = this.path
             if(['.', '/'].includes(destPath)){
@@ -413,7 +420,10 @@ class Explorer extends Events {
             let page = this.pages[parentPath]
             let hr = page.some((e, i) => {
                 if(e.name == basePath && (typeof(tabindex) != 'number' || i == tabindex)){
-                    if(['group', 'select'].indexOf(e.type) != -1){
+                    if(['group', 'select'].indexOf(e.type) != -1){              
+                        if(allowCache && typeof(this.pages[destPath]) != 'undefined'){
+                            return finish(this.pages[destPath], e)
+                        }
                         this.readEntry(e, parentPath).then(es => {
                             if(!Array.isArray(es)){
                                 return resolve(es)
@@ -440,7 +450,7 @@ class Explorer extends Events {
             }
         })
     }
-    open(destPath, tabindex, deep, isFolder, backInSelect){
+    open(destPath, tabindex, deep, isFolder, backInSelect, allowCache){
         if(['.', '/'].includes(destPath)){
             destPath = ''
         }
@@ -448,6 +458,9 @@ class Explorer extends Events {
             console.log('open', destPath, tabindex, traceback())
         }
         return new Promise((resolve, reject) => {
+            if(allowCache){
+                allowCache = destPath.startsWith(global.lang.VIDEOS)
+            }
             this.emit('open', destPath)
             let parentEntry, name = this.basename(destPath), parentPath = this.dirname(destPath)
             let finish = es => {
@@ -455,7 +468,7 @@ class Explorer extends Events {
                     if(this.opts.debug){
                         console.log('backInSelect', backInSelect, parentEntry, destPath, global.traceback())
                     }
-                    return this.open(this.dirname(destPath), -1, deep, isFolder, backInSelect)
+                    return this.open(this.dirname(destPath), -1, deep, isFolder, backInSelect, allowCache)
                 }
                 this.path = destPath
                 es = this.addMetaEntries(es, destPath, parentPath)
@@ -464,12 +477,15 @@ class Explorer extends Events {
                 resolve(true)
             }
             let next = ret => {
+                if(this.opts.debug){
+                    console.log('readen', ret)
+                }
                 if(ret == -1) return
                 if(this.opts.debug){
                     console.log('readen', destPath, tabindex, ret, traceback())
                 }
                 parentEntry = ret.parent
-                if(name){
+                if(name && !allowCache){
                     let e = this.selectEntry(ret.entries, name, tabindex, isFolder)
                     if(this.opts.debug){
                         console.log('selectEntry', destPath, ret.entries, name, tabindex, isFolder, e)
@@ -482,7 +498,7 @@ class Explorer extends Events {
                             }).catch(reject)
                         } else if(e.type == 'select'){
                             if(backInSelect){
-                                return this.open(this.dirname(destPath), -1, deep, isFolder, backInSelect)
+                                return this.open(this.dirname(destPath), -1, deep, isFolder, backInSelect, allowCache)
                             } else {
                                 this.select(destPath, tabindex)
                                 resolve(true)
@@ -498,7 +514,7 @@ class Explorer extends Events {
                         if(typeof(this.pages[destPath]) != 'undefined'){
                             finish(this.pages[destPath])
                         } else {
-                            this.open(this.dirname(destPath), undefined, deep, undefined, backInSelect).then(resolve).catch(reject)
+                            this.open(this.dirname(destPath), undefined, deep, undefined, backInSelect, allowCache).then(resolve).catch(reject)
                         }
                     }
                 } else {
@@ -514,7 +530,7 @@ class Explorer extends Events {
             if(this.opts.debug){
                 console.log('readen', deep, parentPath, name)
             }
-            this[deep === true ? 'deepRead' : 'read'](parentPath).then(next).catch(err => {
+            this[deep === true ? 'deepRead' : 'read'](parentPath, undefined, allowCache).then(next).catch(err => {
                 global.displayErr(err)
                 if(name){
                     global.ui.emit('set-loading', {name}, false)

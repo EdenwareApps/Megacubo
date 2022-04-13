@@ -7,19 +7,17 @@ class PremiumHelper {
         global.ui.emit('open-external-url', 'https://megacubo.net/online/'+ global.lang.locale + '/')
     }
     entry(){
-        if(!global.ui.listenerCount('premium-helper')){
-            global.ui.on('premium-helper', () => this.open())
-        }
         return {
             name: global.lang.ENABLE_PREMIUM_FEATURES,
             type: 'action',
             fa: 'fas fa-rocket',
-            action: () => {
-                global.ui.emit('dialog', [
+            action: async () => {
+                await global.explorer.dialog([
                     {template: 'question', text: global.lang.ENABLE_PREMIUM_FEATURES, fa: 'fas fa-rocket'},
                     {template: 'message', text: global.lang.ENABLE_PREMIUM_MESSAGE},
                     {template: 'option', id: 'ok', fa: 'fas fa-check-circle', text: 'OK'}
-                ], 'premium-helper', 'retry', true) 
+                ], 'retry', true)
+                this.open()
             }
         }
     }

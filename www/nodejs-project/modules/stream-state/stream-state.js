@@ -39,7 +39,7 @@ class StreamState extends Events {
         global.streamer.on('stop', (err, e) => {
             setTimeout(() => {
                 if(!global.streamer.active && !global.streamer.connecting && global.config.get('auto-testing')){
-                    this.test(global.explorer.currentStreamEntries())                    
+                    this.test(global.explorer.currentStreamEntries())
                 }
             }, 500)
         })

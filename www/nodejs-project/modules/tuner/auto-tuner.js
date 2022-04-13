@@ -9,7 +9,7 @@ class AutoTuner extends Events {
         this.megaURL = megaURL
         this.mediaType = mediaType == 'audio' ? 'all' : mediaType // is we're searching a radio, no problem to return a radio studio webcam
         this.resultsBuffer = 2
-        this.intentConcurrency = 1
+        this.intentConcurrency = 2
         this._intents = []
         this.succeededs = {} // -1 = bad mediatype, 0 = initialized, 1 = intenting, 2 = committed, 3 = starting failed
         if(!opts.allowedTypes || !Array.isArray(opts.allowedTypes)){
@@ -21,7 +21,6 @@ class AutoTuner extends Events {
             })
         }
         this.opts = opts
-        this.opts.debug = console.log
         if(global.config.get('tuning-prefer-hls')){
             entries = this.preferHLS(entries)
         }
@@ -136,7 +135,7 @@ class AutoTuner extends Events {
         })
     }
     prepareIntentToEmit(e){
-        if(this.mediaType == 'live'){
+        if(this.mediaType == 'live' && this.megaURL && this.name){
             e.data = Object.assign({
                 originalUrl: this.megaURL,
                 originalName: this.name

@@ -2,7 +2,19 @@
 class Setup extends EventEmitter {
     constructor(){
         super()
+        this.currentStep = -1
         this.offerCommunitaryMode = true
+        this.skipList = window.setupSkipList
+        if(!this.skipList){                    
+            app.on('setup-skip-list', () => {
+                window.setupSkipList = this.skipList = true
+                this.applySkipList()
+            })   
+        }             
+        app.on('setup-revert-skip-list', () => {
+            window.setupSkipList = this.isDone = this.skipList = false
+            this.check()
+        })
         this.check()
     }
     isMobile(){
@@ -30,6 +42,8 @@ class Setup extends EventEmitter {
 		}
     }
     ask(){
+        if(this.skipList) return this.done()
+        this.active = true
         setTimeout(() => {
             this.askList((ret) => {
                 console.log('ASKED', ret, traceback())
@@ -47,6 +61,8 @@ class Setup extends EventEmitter {
         return true
     }
     infoIPTVList(){
+        if(this.skipList || config['shared-mode-reach']) return this.done()
+        this.active = true
         let def = 'ok', opts = [
             {template: 'question', text: 'Megacubo', fa: 'fas fa-exclamation-circle'},
             {template: 'message', text: lang.NO_LIST_PROVIDED},
@@ -68,7 +84,9 @@ class Setup extends EventEmitter {
             return true
         }, def)
     }
-    communitaryMode(){        
+    communitaryMode(){   
+        if(this.skipList || config['shared-mode-reach']) return this.done()
+        this.active = true     
         explorer.dialog([
             {template: 'question', text: lang.COMMUNITARY_MODE, fa: 'fas fa-users'},
             {template: 'message', text: lang.SUGGEST_COMMUNITARY_LIST +"\r\n"+ lang.ASK_COMMUNITARY_LIST},
@@ -85,7 +103,30 @@ class Setup extends EventEmitter {
             return true
         }, 'back')   
     }
+    applySkipList(){
+        /*
+        let interval = 250, times = 12, timer = setInterval(function (){
+            times--
+            if(this.active && explorer.inModal()){
+                this.active = false
+                explorer.endModal()
+                clearInterval(timer)
+            } else if(!times){
+                clearInterval(timer)
+            }
+        }, interval)
+        */
+        this.skipList = true
+        if(this.active && explorer.inModal()){
+            this.active = false
+            this.dialogQueue = []
+            explorer.endModal()
+        }
+        this.done()
+    }
     welcome(){
+        if(this.skipList || config['shared-mode-reach']) return this.done()
+        this.active = true
         let text = lang.ASK_IPTV_LIST_FIRST.split('. ').join(".\r\n"), def = 'ok', opts = [
             {template: 'question', text: 'Megacubo', fa: 'fas fa-star'},
             {template: 'message', text},
@@ -110,18 +151,24 @@ class Setup extends EventEmitter {
         }, def)
     }
     askList(cb){
+        if(this.skipList) return this.done()
+        this.active = true
         explorer.prompt(lang.ASK_IPTV_LIST, 'http://', '', cb, true, 'fas fa-info-circle')
     }
     done(enableCommunitaryMode){
-        console.log('PERFORMANCE-SETUP')
-        app.emit('config-set', 'setup-complete', true)
-        if(enableCommunitaryMode){
-            app.emit('lists-manager', 'agree')
+        if(!this.isDone){
+            this.isDone = true
+            this.active = false
+            console.log('PERFORMANCE-SETUP')
+            app.emit('config-set', 'setup-complete', true)
+            if(enableCommunitaryMode){
+                app.emit('lists-manager', 'agree')
+            }
+            setTimeout(() => {
+                app.emit('performance-setup')            
+            }, 200)
+            console.log('PERFORMANCE-SETUP')
         }
-        setTimeout(() => {
-            app.emit('performance-setup')            
-        }, 200)
-        console.log('PERFORMANCE-SETUP')
     }
 }
 

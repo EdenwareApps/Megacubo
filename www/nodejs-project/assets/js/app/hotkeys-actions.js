@@ -115,6 +115,11 @@ var hotkeysActions = {
             app.emit('toggle-fav')
         }, 'up', true
     ],
+    'ZAP': [
+        () => {
+            app.emit('zap')
+        }, 'up', true
+    ],
     'MINIPLAYER': [
         () => {
             parent.winman.toggle().catch(console.error)
@@ -134,8 +139,8 @@ var hotkeysActions = {
         () => {
             if(top.Manager){
                 top.Manager.toggleFullScreen()
-                if(window.idle.stop){
-                    window.idle.stop()
+                if(window.idle.reset){
+                    window.idle.reset()
                 }
             }
         }, 'up', true

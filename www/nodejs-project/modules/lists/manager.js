@@ -31,7 +31,7 @@ class Manager extends Events {
         })
         global.ui.on('manager-add-list-file', data => {
             console.warn('!!! IMPORT M3U FILE !!!', data)
-            global.resolveFileFromClient(data).then(file => this.addList(file)).catch(err => {
+            global.resolveFileFromClient(data).then(file => this.addList(file).catch(console.error)).catch(err => {
                 global.displayErr(err)
             })
         })
@@ -50,6 +50,7 @@ class Manager extends Events {
                     global.activeLists = p.activeLists
                     if(global.activeLists.length){ // at least one list available
                         this.updatedLists(global.lang.LISTS_UPDATED, 'fas fa-check-circle')
+                        console.error('LISTSUPDATED', JSON.stringify(p))
                         this.emit('lists-updated')
                         if(typeof(this.updatingLists.onSuccess) == 'function'){
                             this.updatingLists.onSuccess()
@@ -152,12 +153,15 @@ class Manager extends Events {
             resolve(this.get().map(o => { return o[1] }))
         })
     }
-    add(url, name){
+    add(url, name, unique){
         return new Promise((resolve, reject) => {
             let isURL = global.validateURL(url), isFile = this.isLocal(url)
             console.log('name::add', name, url, isURL, isFile)
             if(!isFile && !isURL){
                 return reject(global.lang.INVALID_URL_MSG)
+            }
+            let fail = msg => {
+                global.osd.show(msg, 'fas fa-exclamation-circle faclr-red', 'list-open', 'normal')
             }
             let lists = this.get()
             for(let i in lists){
@@ -181,7 +185,7 @@ class Manager extends Events {
                     console.log('name::add')
                     let finish = name => {
                         console.log('name::final', name, url)
-                        let lists = this.get()
+                        let lists = unique ? [] : this.get()
                         lists.push([name, url])
                         global.config.set(this.key, lists)
                         resolve(true)
@@ -191,8 +195,10 @@ class Manager extends Events {
                     } else {
                         this.name(url).then(finish).catch(reject)
                     }
+                } else {
+                    fail(global.lang.INVALID_URL)
                 }
-            })
+            }).catch(fail)
         })
     }
     remove(url){
@@ -345,7 +351,7 @@ class Manager extends Events {
             }
         }
     }
-    addList(value){
+    addList(value, name){
         return new Promise((resolve, reject) => {
             if(value.match(new RegExp('://(shared|communitary)$', 'i'))){
                 global.ui.emit('dialog', [
@@ -357,7 +363,7 @@ class Manager extends Events {
                 return resolve(true)
             }
             global.osd.show(global.lang.PROCESSING, 'fa-mega spin-x-alt', 'list-open', 'persistent')
-            this.add(value).then(() => {
+            this.add(value, name).then(() => {
                 global.osd.show(global.lang.LIST_ADDED, 'fas fa-check-circle', 'list-open', 'normal')
                 resolve(true)
             }).catch(err => {
@@ -434,6 +440,7 @@ class Manager extends Events {
             })
         } else {
             if(global.activeLists.length){
+                console.error('LISTSUPDATED', Object.assign({}, global.activeLists))
                 this.emit('lists-updated')
             }
         }
@@ -688,8 +695,12 @@ class Manager extends Events {
                         type: 'check',
                         action: (e, checked) => {
                             global.config.set('use-epg-channels-list', checked)
-                            if(global.activeEPG){
-                                this.importEPGChannelsList(global.activeEPG).catch(console.error)
+                            if(checked){
+                                if(global.activeEPG){
+                                    this.importEPGChannelsList(global.activeEPG).catch(console.error)
+                                }
+                            } else {
+                                global.channels.load()
                             }
                         }, 
                         checked: () => global.config.get('use-epg-channels-list')
@@ -774,7 +785,7 @@ class Manager extends Events {
                         if(ui){
                             global.osd.show(global.lang.EPG_DISABLED, 'fas fa-times-circle', 'epg', 'normal')                            
                         }
-                    } else if(this.shouldImportEPGChannelsList()) {
+                    } else if(this.shouldImportEPGChannelsList(url)) {
                         this.importEPGChannelsList(url).catch(console.error)
                     }
                     refresh()
@@ -802,8 +813,15 @@ class Manager extends Events {
                 if(ui){
                     global.osd.show(global.lang.EPG_LOAD_SUCCESS, 'fas fa-check-circle', 'epg', 'normal')
                 }
-                if(global.explorer.path == global.lang.TRENDING || (global.explorer.path.startsWith(global.lang.LIVE) || global.explorer.path.split('/').length == 2)){
+                if(global.explorer.path == global.lang.TRENDING || (global.explorer.path.startsWith(global.lang.LIVE) && global.explorer.path.split('/').length == 2)){
                     global.explorer.refresh()
+                }
+                if(this.shouldImportEPGChannelsList()) {
+                    this.importEPGChannelsList(url).then(() => {
+                        if(global.explorer.path == global.lang.TRENDING || (global.explorer.path.startsWith(global.lang.LIVE) && global.explorer.path.split('/').length == 2)){
+                            global.explorer.refresh()
+                        }
+                    }).catch(console.error)
                 }
                 resolve(true)
             }).catch(err => {

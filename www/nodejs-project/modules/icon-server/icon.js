@@ -148,10 +148,20 @@ class IconFetcher {
             }
             this.master.fetchURL(this.entry.icon).then(ret => this.ready(ret.key)).catch(err => {
                 if(!this.entry.class || this.entry.class.indexOf('entry-icon-no-fallback') == -1){
+                    let atts
                     this.terms = global.channels.entryTerms(this.entry)
                     this.isChannel = global.channels.isChannel(this.terms)
                     if(this.isChannel){
                         this.terms = this.isChannel.terms
+                        fromTerms()
+                    } else if(atts = global.mega.parse(this.entry.url)) {
+                        if(!atts.terms){
+                            atts.terms = this.entry.name
+                        }
+                        if(!Array.isArray(atts.terms)){
+                            atts.terms = global.lists.terms(atts.terms)
+                        }
+                        this.terms = atts.terms
                         fromTerms()
                     } else {
                         this.error = err

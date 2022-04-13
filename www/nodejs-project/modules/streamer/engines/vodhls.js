@@ -1,4 +1,4 @@
-const StreamerHLSIntent = require('./hls.js'), fs = require('fs'), Any2HLS = require('../utils/any2hls')
+const StreamerHLSIntent = require('./hls.js'), fs = require('fs')
 
 class StreamerVODHLSIntent extends StreamerHLSIntent {    
     constructor(data, opts, info){

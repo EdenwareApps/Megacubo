@@ -16,7 +16,7 @@
         "formidable": "^1.2.2",
         "fs-chmod": "^1.0.6",
         "get-folder-size": "^2.0.1",
-        "got": "^11.8.3",
+        "got": "github:efoxbr/got",
         "hls.js": "^1.1.4",
         "jimp": "^0.16.1",
         "jquery": "^3.6.0",
@@ -35,12 +35,14 @@
         "swipey.js": "^1.0.3",
         "tough-cookie": "^4.0.0",
         "url-search-params-polyfill": "^8.1.1",
-        "xmltv": "github:efoxbr/node-xmltv"
+        "xmltv": "github:efoxbr/node-xmltv",
+        "ytdl-core": "^4.11.0",
+        "ytsr": "^3.6.0"
     },
     "description": "A simple and intuitive IPTV player.",
     "name": "megacubo",
     "icon": "./default_icon.png",
-    "version": "16.4.0",
+    "version": "16.4.1",
     "theme": {
         "fullScreen": true
     },

@@ -186,6 +186,14 @@ class Lists extends Index {
 			}
 		})		
 	}
+	epgChannelsListSanityScore(data){
+		let count = Object.keys(data).length, idealCatCount = 8
+		if(count < 3){ // too few categories
+			return 0
+		}
+		let c = Math.abs(count - idealCatCount)
+		return 100 - c
+	}
 	epgLiveNowChannelsList(){
 		return new Promise((resolve, reject) => {
 			if(!this._epg){
@@ -193,7 +201,33 @@ class Lists extends Index {
 			}
 			let data = this._epg.liveNowChannelsList()
 			if(data && data['categories'] && Object.keys(data['categories']).length){
-				resolve(data)
+				let currentScore = this.epgChannelsListSanityScore(data['categories'])
+				async.eachOfLimit(Object.keys(this.lists), 2, (url, i, done) => {
+					if(this.lists[url].index.meta['epg'] == this._epg.url){
+						let categories = {}
+						this.lists[url].iterate(e => {
+							if(e.groupName && this._epg.findChannel(this.terms(e.name))){
+								if(typeof(categories[e.groupName]) == 'undefined'){
+									categories[e.groupName] = []
+								}
+								if(!categories[e.groupName].includes(e.name)){
+									categories[e.groupName].push(e.name)
+								}
+							}
+						}, null, () => {
+							let newScore = this.epgChannelsListSanityScore(categories)
+							console.warn('epgChannelsList', categories, currentScore, newScore)
+							if(newScore > currentScore){
+								data.categories = categories
+								data.updateAfter = 24 * 3600
+								currentScore = newScore
+							}
+							done()
+						})
+					} else done()
+				}, () => {
+					resolve(data)
+				})
 			} else {
 				console.error('epgLiveNowChannelsList FAILED', JSON.stringify(data), JSON.stringify(this._epg.data))
 				reject('failed')
@@ -227,7 +261,9 @@ class Lists extends Index {
 				if(this.debug) console.log('filterByAvailability', url, has)
 				if(has){
 					cachedUrls.push(url)
-					listsRequesting[url] = 'cached, not added'
+					if(!listsRequesting[url]){
+						listsRequesting[url] = 'cached, not added'
+					}
 				} else {					
 					listsRequesting[url] = 'not cached'
 				}
@@ -438,6 +474,9 @@ class Lists extends Index {
 			let resolved, isMine = this.myLists.includes(url)
 			if(this.debug){
 				console.log('syncLoadList start', url)
+			}
+			if(!listsLoadTimes[url]){
+				listsLoadTimes[url] = {}
 			}
 			listsLoadTimes[url].syncing = global.time()
 			global.listsRequesting[url] = 'loading'		

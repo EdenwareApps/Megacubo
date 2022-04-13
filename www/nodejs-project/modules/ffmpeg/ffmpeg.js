@@ -21,8 +21,8 @@ class FFmpegController extends Events {
 			// add these input options only if we have an input, not in -version, per example
 			cmd = cmd.concat([
 				'-loglevel', 'info', // if logerror=(warning|error) it will not return the codec and bitrate data
-				// '-analyzeduration', 10000000, // 10s in microseconds
-				// '-probesize', 10485760,	// 10MB
+				'-analyzeduration', 10000000, // 10s in microseconds
+				'-probesize', 10485760,	// 10MB
 				'-err_detect', 'ignore_err',
 				'-i', this.input
 			])
@@ -292,13 +292,6 @@ class FFMPEGMediaInfo extends FFMPEGHelper {
 class FFMPEGDiagnostic extends FFMPEGMediaInfo {
 	constructor(){
 		super()
-		global.ui.on('dl-ffmpeg', ret => {
-			switch(ret){
-				case 'savelog':
-					this.saveLog()
-					break
-			}
-		})
 	}
     encodeHTMLEntities(str){
         return str.replace(/[\u00A0-\u9999<>&](?!#)/gim, (i) => {
@@ -326,13 +319,16 @@ class FFMPEGDiagnostic extends FFMPEGMediaInfo {
 		}).catch(err => {
 			fa = 'fas fa-exclamation-triangle faclr-red'
 			text = String(err)
-		}).finally(() => {
-			global.ui.emit('dialog', [
+		}).finally(async () => {
+			let ret = await global.explorer.dialog([
 				{template: 'question', text: global.lang.ABOUT +': FFmpeg', fa},
 				{template: 'message', text: this.encodeHTMLEntities(text)},
 				{template: 'option', text: 'OK', id: 'ok', fa: 'fas fa-check-circle'},
 				{template: 'option', text: global.lang.SAVE, id: 'savelog', fa: 'fas fa-save'}
-			], 'dl-ffmpeg', 'ok')
+			], 'ok')
+			if(ret == 'savelog'){
+				this.saveLog()
+			}
 		})
 	}
 	diagnostic(){

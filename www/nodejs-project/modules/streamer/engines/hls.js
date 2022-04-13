@@ -60,7 +60,7 @@ class HLSTrackSelector {
         resolve(with the speed)
     }
     */
-    selectTrack(tracks, bandwidth){
+    selectTrackBW(tracks, bandwidth){
         let chosen, chosenBandwidth
         tracks.sortByProp('bandwidth').some((track, i) => {
             if(!chosen){
@@ -87,7 +87,7 @@ class HLSTrackSelector {
                 if(tracks.length == 1){
                     resolve(tracks[0])
                 } else {
-                    resolve(this.selectTrack(tracks, global.streamer.downlink))
+                    resolve(this.selectTrackBW(tracks, global.streamer.downlink))
                 }
             })
         })
@@ -103,6 +103,24 @@ class StreamerHLSIntent extends StreamerBaseIntent {
         this.trackUrl = this.data.url
         this.trackSelector = new HLSTrackSelector()
     }
+	getTracks(){
+		let tracks = {}
+        if(this.prx.playlists){
+            Object.keys(this.prx.playlists).forEach(masterUrl => {
+                Object.keys(this.prx.playlists[masterUrl]).forEach(uri => {
+                    tracks[this.prx.playlists[masterUrl][uri].name] = this.prx.proxify(uri)
+                })
+            })
+        }
+		return tracks
+	}
+	getActiveTrack(){
+		return this.prx.proxify(this.prx.activeManifest)
+	}
+	selectTrack(url){
+        this.endpoint = this.prx.proxify(url)
+		this.emit('streamer-connect')
+	}
     getTranscodingOpts(){
         return Object.assign({
             workDir: this.opts.workDir, 

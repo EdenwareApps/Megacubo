@@ -207,7 +207,6 @@ class StreamerAdapterBase extends Events {
 		download.on('end', body => {
 			let matches = String(body).match(new RegExp('^[^#].+\\..+$','m'))
 			if(matches){
-				//TODO: Tem que usar a classe toda, pra poder usar o .currentURL no absolutize, lide também com master playlists, use um .getTSFromM3U8			
 				const basename = matches[0].trim()
 				const nurl = this.absolutize(basename, download.currentURL)
 				if(nurl && nurl != url){

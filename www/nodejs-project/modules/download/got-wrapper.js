@@ -1,7 +1,5 @@
-
 const {CookieJar} = require('tough-cookie'), dnsCache = require('./lookup.js'), cookieJar = new CookieJar()
 const HttpAgent = require('agentkeepalive'), HttpsAgent = HttpAgent.HttpsAgent
-
 const agentOpts = {
 	keepAlive: true,
 	freeSocketTimeout: 4000, // The default server-side timeout is 5000 milliseconds, to avoid ECONNRESET exceptions, we set the default value to 4000 milliseconds.
@@ -10,9 +8,6 @@ const agentOpts = {
 	socketActiveTTL: 30,
 	rejectUnauthorized: false
 }
-
-dnsCache.setPreferableIpVersion(global.config.get('prefer-ipv6') ? 6 : 4)
-
 const got = require('got').extend({
 	headers: {
 		'Connection': 'close'
@@ -28,14 +23,9 @@ const got = require('got').extend({
 	hooks: {
 		beforeError: [
 			error => {
-				try {
-					let serr = String(error)
-					console.warn('gotError', serr, error, error.response && error.response.url ? error.response.url : '', global.traceback())
-					error.request.emit('download-error', serr)
-					try {
-						throw error // avoid process crashing with uncaught exception, TODO: find a better way
-					} catch(e) {}
-				} catch(e){}
+				let serr = String(error)
+				console.warn('gotError '+ serr, error.response && error.response.url ? error.response.url : '', global.traceback())
+				error.request.emit('download-error', serr)
 			}
 		],
 		beforeRetry: [
@@ -59,6 +49,4 @@ got.ka = got.extend({
 	}
 })
 got.cookieJar = cookieJar
-
 module.exports = got
-

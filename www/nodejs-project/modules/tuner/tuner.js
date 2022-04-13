@@ -3,6 +3,7 @@ const path = require('path'), Events = require('events'), async = require('async
 class TunerUtils extends Events {
     constructor(entries, opts, name){
         super()
+		this.setMaxListeners(20)
         this.paused = true
         this.opts = {
 			debug: false,
@@ -310,7 +311,7 @@ class Tuner extends TunerTask {
 				console.log('TUNER STARTED')
 			}
 			this.stats()
-			async.parallelLimit(new Array(this.entries.length).fill(this.task.bind(this)), global.config.get('tuning-concurrency'), () => {
+			async.parallelLimit(new Array(this.entries.length).fill(this.task.bind(this)), global.config.get('tuner-concurrency'), () => {
 				if(this.opts.debug){
 					console.log('TUNER FINISHED')
 				}

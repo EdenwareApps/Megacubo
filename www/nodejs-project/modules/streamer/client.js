@@ -94,7 +94,8 @@ class StreamerOSD extends StreamerPlaybackTimeout {
                             if(this.active){
                                 osd.hide(this.osdID)
                                 if(this.autoTuning){
-                                    osd.show(lang.BROADCAST_NOT_WORKING_HINT.format('<i class=\"'+ config['tuning-icon'] +'\"></i>'), '', this.osdID +'-sub', 'persistent')
+                                    const icon = this.isZapping ? this.zappingIcon : config['tuning-icon']
+                                    osd.show(lang.BROADCAST_NOT_WORKING_HINT.format('<i class=\"'+ icon +'\"></i>'), '', this.osdID +'-sub', 'persistent')
                                 }
                             }
                         }, this.transmissionNotWorkingHintDelay)                    
@@ -107,7 +108,8 @@ class StreamerOSD extends StreamerPlaybackTimeout {
                     if(!this.OSDNameShown){
                         this.OSDNameShown = true
                         if(this.autoTuning){
-                            osd.show(lang.BROADCAST_NOT_WORKING_HINT.format('<i class=\"'+ config['tuning-icon'] +'\"></i>'), '', this.osdID +'-sub', 'normal')
+                            const icon = this.isZapping ? this.zappingIcon : config['tuning-icon']
+                            osd.show(lang.BROADCAST_NOT_WORKING_HINT.format('<i class=\"'+ icon +'\"></i>'), '', this.osdID +'-sub', 'normal')
                         }
                         osd.show(this.data.name, this.data.icon || '', this.osdID, 'normal')
                     }
@@ -1269,7 +1271,21 @@ class StreamerClientControls extends StreamerAudioUI {
         this.app.on('add-player-button', this.addPlayerButton.bind(this))
         this.app.on('update-player-button', this.updatePlayerButton.bind(this))
         this.app.on('enable-player-button', this.enablePlayerButton.bind(this))
+        this.app.on('streamer-info', info => {
+            this.controls.querySelector('#streamer-info > div').innerHTML = info.replaceAll("\n", "<br />")
+        })
+        this.on('state', state => {
+            if(['loading', 'paused'].includes(state)){
+                this.app.emit('streamer-update-streamer-info')
+            }
+        })
+        idle.on('stop', () => {
+            this.app.emit('streamer-update-streamer-info')
+        })
         this.controls.innerHTML = `
+    <div id="streamer-info">
+        <div></div>
+    </div>
     <seekbar>
         <input type="range" min="0" max="100" value="0" />
         <div>

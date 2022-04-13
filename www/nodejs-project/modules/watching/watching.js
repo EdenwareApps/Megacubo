@@ -124,85 +124,90 @@ class Watching extends EntriesGroup {
         })
         return entries
     }
-    process(){
-        return new Promise((resolve, reject) => {
-            global.cloud.get('watching', false).then(data => {
-                if(!Array.isArray(data)){
-                    data = []
-                }
-                data.forEach((e, i) => {
-                    if(e.logo && !e.icon){
-                        data[i].icon = e.logo
-                        delete data[i].logo
-                    }
-                })
-                let recoverNameFromMegaURL = true, ex = !global.config.get('shared-mode-reach') // we'll make entries URLless for exclusive mode, to use the provided lists only
-                data = global.lists.prepareEntries(data)
-                data = data.filter(e => (e && typeof(e) == 'object' && typeof(e.name) == 'string')).map(e => {
-                    let isMega = global.mega.isMega(e.url)
-                    if(isMega && recoverNameFromMegaURL){
-                        let n = global.mega.parse(e.url)
-                        if(n && n.name){
-                            e.name = global.ucWords(n.name)
-                        }
-                    }
-                    e.name = global.lists.parser.sanitizeName(e.name)
-                    e.users = this.extractUsersCount(e)
-                    e.details = ''
-                    if(ex && !isMega){
-                        e.url = global.mega.build(e.name)
-                    }
-                    return e
-                })
-                data = global.lists.parentalControl.filter(data)
-                this.currentRawEntries = data.slice(0)
-                const adultContentOnly = global.config.get('parental-control-policy') == 'only', onlyKnownChannels = !adultContentOnly && global.config.get('only-known-channels-in-been-watched')
-                let groups = {}, gcount = {}, gentries = []
-                async.eachOf(data, (entry, i, cb) => {
-                    let ch = global.channels.isChannel(entry.terms.name)
-                    if(ch){ 
-                        let term = ch.name
-                        if(typeof(groups[term]) == 'undefined'){
-                            groups[term] = []
-                            gcount[term] = 0
-                        }
-                        if(typeof(entry.users) != 'undefined'){
-                            entry.users = this.extractUsersCount(entry)
-                        }
-                        gcount[term] += entry.users
-                        delete data[i]
-                    } else {
-                        if(onlyKnownChannels){
-                            delete data[i]
-                        } else if(global.mega.isMega(entry.url)) {
-                            data[i] = global.channels.toMetaEntry(entry)
-                        }
-                    }
-                    cb()
-                }, () => {
-                    Object.keys(groups).forEach(n => {
-                        gentries.push(global.channels.toMetaEntry({
-                            name: global.ucWords(n), 
-                            type: 'group',
-                            fa: 'fas fa-play-circle',
-                            users: gcount[n]
-                        }))
-                    })
-                    data = data.filter(e => {
-                        return !!e
-                    }).concat(gentries).sortByProp('users', true)
-                    data = this.applyUsersPercentages(data)
-                    this.currentEntries = data
-                    resolve(data)
-                })
-            }).catch(err => {
-                console.error(err)
-                if(!Array.isArray(this.currentRawEntries)){
-                    this.currentRawEntries = []
-                }
-                resolve([])
-            })   
+    async process(){
+        let data = await global.cloud.get('watching', false)
+        if(!Array.isArray(data)){
+            data = []
+        }
+        data.forEach((e, i) => {
+            if(e.logo && !e.icon){
+                data[i].icon = e.logo
+                delete data[i].logo
+            }
         })
+        let recoverNameFromMegaURL = true, ex = !global.config.get('shared-mode-reach') // we'll make entries URLless for exclusive mode, to use the provided lists only
+        data = global.lists.prepareEntries(data)
+        data = data.filter(e => (e && typeof(e) == 'object' && typeof(e.name) == 'string')).map(e => {
+            let isMega = global.mega.isMega(e.url)
+            if(isMega && recoverNameFromMegaURL){
+                let n = global.mega.parse(e.url)
+                if(n && n.name){
+                    e.name = global.ucWords(n.name)
+                }
+            }
+            e.name = global.lists.parser.sanitizeName(e.name)
+            e.users = this.extractUsersCount(e)
+            e.details = ''
+            if(ex && !isMega){
+                e.url = global.mega.build(e.name)
+            }
+            return e
+        })
+        data = global.lists.parentalControl.filter(data)
+        this.currentRawEntries = data.slice(0)
+        const adultContentOnly = global.config.get('parental-control-policy') == 'only', onlyKnownChannels = !adultContentOnly && global.config.get('only-known-channels-in-been-watched')
+        let groups = {}, gcount = {}, gentries = []
+        let sentries = await global.search.searchSuggestionEntries()
+        let gsearches = [], searchTerms = sentries.map(s => s.search_term).filter(s => !global.channels.isChannel(s)).filter(s => global.lists.parentalControl.allow(s)).map(s => global.lists.terms(s))
+        data.forEach((entry, i) => {
+            let ch = global.channels.isChannel(entry.terms.name)
+            if(!ch){
+                searchTerms.some(terms => {
+                    if(global.lists.match(terms, entry.terms.name)){
+                        const name = terms.join(' ')
+                        if(!gsearches.includes(name)){
+                            gsearches.push(name)
+                        }
+                        ch = {name}
+                        return true
+                    }
+                })
+            }
+            if(ch){ 
+                let term = ch.name
+                if(typeof(groups[term]) == 'undefined'){
+                    groups[term] = []
+                    gcount[term] = 0
+                }
+                if(typeof(entry.users) != 'undefined'){
+                    entry.users = this.extractUsersCount(entry)
+                }
+                gcount[term] += entry.users
+                delete data[i]
+            } else {
+                if(onlyKnownChannels){
+                    delete data[i]
+                } else if(global.mega.isMega(entry.url)) {
+                    data[i] = global.channels.toMetaEntry(entry)
+                }
+            }
+        })
+        Object.keys(groups).forEach(n => {
+            const name = global.ucWords(n)
+            gentries.push(global.channels.toMetaEntry({
+                name, 
+                type: 'group',
+                fa: 'fas fa-play-circle',
+                users: gcount[n],
+                url: gsearches.includes(n) ? global.mega.build(name, {terms: n.split(' '), mediaType: 'all'}) : undefined
+            }))
+        })
+        data = data.filter(e => {
+            return !!e
+        }).concat(gentries).sortByProp('users', true)
+        data = this.applyUsersPercentages(data)
+        this.currentEntries = data
+        return data
     }
     order(entries){
         return new Promise((resolve, reject) => {

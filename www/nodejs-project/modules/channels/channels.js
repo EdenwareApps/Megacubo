@@ -44,46 +44,53 @@ class ChannelsData extends Events {
     }
     load(cb){
         this.updateCategoriesCacheKey().catch(global.displayErr).finally(() => {
-            const adult = this.categoriesCacheKey.substr(-6) == '-adult'
             console.log('channels.load')
-            global.storage.raw.get(this.categoriesCacheKey, data => {
-                const next = () => {
-                    this.updateChannelsIndex(false)
-                    if(!this.categories || typeof(this.categories) != 'object'){
-                        this.categories = {}
-                    }
-                    if(typeof(cb) == 'function'){
-                        cb()
-                    }
-                    this.loaded = true
-                    this.emit('loaded')
-                }
-                if(data){
-                    try {
-                        let cs = JSON.parse(data)
-                        this.categories = cs
-                    } catch(e) {
-                        console.error(e)
-                    }
-                    next()
-                } else {
-                    if(adult){
-                        next()
-                    } else {
-                        this.getDefaultCategories().then(data => {
-                            if(!Object.keys(data).length){
-                                console.log('channel.load', data)
-                            }
-                            this.channelsIndex = null
-                            this.categories = data
-                            this.save(next)
-                        }).catch(err => {
-                            console.error('channel.load error: '+ err)
-                            next()
-                        })
-                    }
+            this.loadCategories(() => {
+                this.loaded = true
+                this.emit('loaded')
+                if(typeof(cb) == 'function'){
+                    cb()
                 }
             })
+        })
+    }
+    loadCategories(cb){
+        global.storage.raw.get(this.categoriesCacheKey, data => {
+            const next = () => {
+                this.updateChannelsIndex(false)
+                if(!this.categories || typeof(this.categories) != 'object'){
+                    this.categories = {}
+                }
+                if(typeof(cb) == 'function'){
+                    cb()
+                }
+            }
+            const rebuild = () => {
+                this.getDefaultCategories().then(data => {
+                    if(!Object.keys(data).length){
+                        console.log('channel.load', data)
+                    }
+                    this.channelsIndex = null
+                    this.categories = data
+                    this.save(next)
+                }).catch(err => {
+                    console.error('channel.load error: '+ err)
+                    next()
+                })
+            }
+            if(data){
+                try {
+                    let cs = JSON.parse(data)
+                    if(!Object.keys(cs).length){
+                        throw 'Empty list'
+                    }
+                    this.categories = cs
+                    return next()
+                } catch(e) {
+                    console.error(e)
+                }
+            }
+            rebuild()
         })
     }
     async getDefaultCategories(countryOnly){
@@ -113,14 +120,15 @@ class ChannelsData extends Events {
     }
     setCategories(data, silent){
         console.log('channels.setCategories')
-        this.updateCategoriesCacheKey()
-        this.categories = data
-        this.channelsIndex = null
-        this.save(() => {
-            console.log('Categories file imported')
-            if(silent !== true){
-                global.osd.show(global.lang.IMPORTED_FILE, 'fas fa-check-circle', 'options', 'normal')
-            }
+        this.updateCategoriesCacheKey().catch(global.displayErr).finally(() => {
+            this.categories = data
+            this.channelsIndex = null
+            this.save(() => {
+                console.log('Categories file imported')
+                if(silent !== true){
+                    global.osd.show(global.lang.IMPORTED_FILE, 'fas fa-check-circle', 'options', 'normal')
+                }
+            })
         })
     }
     compactName(name, terms){
@@ -205,7 +213,7 @@ class ChannelsEPG extends ChannelsData {
         this.epgStatusTimer = false
         this.epgIcon = 'fas fa-th'
         this.clockIcon = '<i class="fas fa-clock"></i> '
-        const aboutDialogInsertEPGTitle = data => {
+        const aboutInsertEPGTitle = data => {
             return new Promise((resolve, reject) => {
                 if(data.isLocal){
                     return reject('local file')
@@ -223,9 +231,9 @@ class ChannelsEPG extends ChannelsData {
                 }).catch(reject)
             })
         }
-        global.streamer.aboutDialogRegisterOption('epg', aboutDialogInsertEPGTitle, null, 1)
-        global.streamer.aboutDialogRegisterOption('epg', aboutDialogInsertEPGTitle, null, 1, true)
-        global.streamer.aboutDialogRegisterOption('epg-more', data => {
+        global.streamer.aboutRegisterEntry('epg', aboutInsertEPGTitle, null, 1)
+        global.streamer.aboutRegisterEntry('epg', aboutInsertEPGTitle, null, 1, true)
+        global.streamer.aboutRegisterEntry('epg-more', data => {
             if(!data.isLocal && streamer.active.mediaType == 'live'){
                 return {template: 'option', text: global.lang.EPG, id: 'epg-more', fa: this.epgIcon}
             }
@@ -548,11 +556,11 @@ class ChannelsEPG extends ChannelsData {
             })
         } else {
             let text = global.lang.START_DATE +': '+ global.moment(start * 1000).format('L LT')
-            global.ui.emit('dialog', [
+            global.explorer.dialog([
                 {template: 'question', text: program.t +' &middot; '+ ch, fa: 'fas fa-users'},
                 {template: 'message', text},
                 {template: 'option', id: 'ok', fa: 'fas fa-check-circle', text: 'OK'}
-            ], 'epg-future-program', 'ok')
+            ], 'ok').catch(console.error)
         }
     }
 }
@@ -1259,15 +1267,34 @@ class Channels extends ChannelsAutoWatchNow {
             meta.url = global.mega.build(name, {terms})
         }
         if(global.mega.isMega(meta.url)){
-            meta = Object.assign(meta, {
-                type: 'select',
-                class: 'entry-meta-stream',
-                fa: 'fas fa-play-circle' ,
-                renderer: () => {
-                    console.log(meta, category, details)
-                    return this.toMetaEntryRenderer(meta, category, details)
-                }
-            })
+            let atts = Object.assign({}, global.mega.parse(meta.url))
+            Object.assign(atts, meta)  
+            if(['all', 'video'].includes(atts.mediaType)){
+                meta = Object.assign(meta, {
+                    type: 'group',
+                    class: 'entry-meta-stream',
+                    fa: 'fas fa-play-circle' ,
+                    renderer: async () => {
+                        let terms = atts.terms && Array.isArray(atts.terms) ? atts.terms : global.lists.terms(atts.name, true)
+                        let es = await global.lists.search(terms, {
+                            type: atts.mediaType,
+                            group: true,
+                            safe: (global.config.get('parental-control-policy') == 'block')
+                        })
+                        return es.results
+                    }
+                })
+            } else {
+                meta = Object.assign(meta, {
+                    type: 'select',
+                    class: 'entry-meta-stream',
+                    fa: 'fas fa-play-circle' ,
+                    renderer: () => {
+                        console.log(meta, category, details)
+                        return this.toMetaEntryRenderer(meta, category, details)
+                    }
+                })
+            }
         }
         if(details){
             meta.details = details
@@ -1406,6 +1433,7 @@ class Channels extends ChannelsAutoWatchNow {
                     action: () => {
                         global.osd.show(global.lang.PROCESSING, 'fa-mega spin-x-alt', 'options', 'persistent')
                         delete this.categories
+                        global.config.set('use-epg-channels-list', false)
                         global.storage.raw.delete(this.categoriesCacheKey, () => {
                             this.load(() => {
                                 global.osd.show('OK', 'fas fa-check-circle', 'options', 'normal')
@@ -1455,7 +1483,7 @@ class Channels extends ChannelsAutoWatchNow {
                     renderer: () => {
                         return new Promise((resolve, reject) => {
                             let def = global.config.get('watch-now-auto'), opts = [
-                                {name: 'Auto', type: 'action', selected: (def == 'auto'), action: (data) => {
+                                {name: global.lang.AUTO, type: 'action', selected: (def == 'auto'), action: (data) => {
                                     global.config.set('watch-now-auto', 'auto')
                                 }},
                                 {name: global.lang.ALWAYS, type: 'action', selected: (def == 'always'), action: (data) => {

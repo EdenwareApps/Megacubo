@@ -87,13 +87,6 @@ class FFmpegController {
                 keepIds.push(this.executionIds[k])
             }
         })
-        /*
-        if(this.debug){
-            console.log('ffmpeg.cleanup keeping '+  keepIds.join(','))
-        }
-        top.ffmpeg.cleanup(keepIds.join(','))
-        TODO: fix it, for now it will kill executionIds non returned yet, and... executionIds can be repeated?!
-        */
     }
 }
 

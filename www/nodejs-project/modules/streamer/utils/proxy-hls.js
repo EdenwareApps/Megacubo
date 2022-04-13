@@ -560,7 +560,7 @@ class HLSRequests extends StreamerProxyBase {
 				}
 				if(this.requestCacheMap[url].mediaType == 'meta'){
 					this.activeManifest = url
-					console.warn('BITRATE', url, this.playlistBitrates, this.playlistBitrates[url])
+					// console.warn('BITRATE', url, this.playlistBitrates, this.playlistBitrates[url])
 					if(this.playlistBitrates[url]){
 						this.saveBitrate(this.playlistBitrates[url])
 					}
@@ -594,13 +594,13 @@ class HLSRequests extends StreamerProxyBase {
 				}
 			}
 			request.once('response', (status, headers) => {
-				console.warn('RESPONSE', status, headers)
+				// console.warn('RESPONSE', status, headers)
 				this.requestCacheMap[url].responseStarted = true
 				if(this.requestCacheMap[url].validateStatus(status)) {
 					if(this.ext(request.currentURL) == 'm3u8' || (headers['content-type'] && headers['content-type'].indexOf('mpegurl') != -1)){
 						// detect too if url just redirects to the real m3u8
 						this.activeManifest = url
-						console.warn('BITRATE', url, this.playlistBitrates, this.playlistBitrates[url])
+						// console.warn('BITRATE', url, this.playlistBitrates, this.playlistBitrates[url])
 						if(this.playlistBitrates[url]){
 							this.saveBitrate(this.playlistBitrates[url])
 						}
@@ -738,19 +738,51 @@ class StreamerProxyHLS extends HLSRequests {
             } else if(url.charAt(0) == '/' && url.charAt(1) != '/'){
                 url = 'http://' + url.substr(1)
             } else if(this.opts.addr && url.indexOf('//') != -1){
+				/*
 				if(!this.addrp){
 					this.addrp = this.opts.addr.split('.').slice(0, 3).join('.')
 				}
                 if(url.indexOf(this.addrp) != -1){
 					url = url.replace(new RegExp('^(http://|//)'+ this.addrp.replaceAll('.', '\\.') +'\\.[0-9]{0,3}:([0-9]+)/', 'g'), '$1')
 					url = url.replace('://s/', 's://')
-                }  
+                }
+				*/
+                if(url.indexOf(this.addr +':'+ this.opts.port +'/') != -1){
+					url = url.replace(new RegExp('^(http://|//)'+ this.addr.replaceAll('.', '\\.') +':'+ this.opts.port +'/', 'g'), '$1')
+					url = url.replace('://s/', 's://')
+                } 
             }                      
             if(url.indexOf('&') != -1 && url.indexOf(';') != -1){
                 url = decodeEntities(url)
             }
         }
         return url
+	}
+	trackNameChooseAttrs(attributes){
+		let attrs = Object.assign({}, attributes)
+		if(attrs['BANDWIDTH'] && attrs['AVERAGE-BANDWIDTH']){
+			delete attrs['AVERAGE-BANDWIDTH']
+		}
+		if(Object.keys(attrs).length > 2 && attrs['FRAME-RATE']){
+			delete attrs['FRAME-RATE']
+		}
+		if(Object.keys(attrs).length > 2 && attrs['CODECS']){
+			delete attrs['CODECS']
+		}
+		return Object.keys(attrs)
+	}
+	trackName(track){
+		let name = this.trackNameChooseAttrs(track.attributes).map(k => {
+			let v = track.attributes[k]
+			if(k == 'RESOLUTION'){
+				v = track.attributes[k].width +'x'+ track.attributes[k].height
+			}
+			if(['AVERAGE-BANDWIDTH', 'BANDWIDTH'].includes(k)){
+				v = global.kbsfmt(parseInt(v))
+			}
+			return global.ucWords(k, true) +': '+ v
+		}).join(' &middot; ')
+		return name || track.uri
 	}
 	proxifyM3U8(body, baseUrl, url){
 		body = body.trim()
@@ -801,13 +833,13 @@ class StreamerProxyHLS extends HLSRequests {
 				}
 				parser.manifest.playlists.forEach(playlist => {
 					let dn = this.dirname(playlist.uri)
+					u = this.absolutize(playlist.uri, url)
+					if(!Object.keys(this.playlists[url]).includes(u)){
+						this.playlists[url][u] = {state: true, name: this.trackName(playlist)} // state=true here means "online"
+					}
 					if(typeof(replaces[dn]) == 'undefined'){
 						if(this.opts.debug){
 							console.log('dn', dn)
-						}
-						u = this.absolutize(playlist.uri, url)
-						if(!Object.keys(this.playlists[url]).includes(u)){
-							this.playlists[url][u] = true // true here means "online"
 						}
 						replaces[dn] = this.dirname(this.proxify(u))
 						if(this.opts.debug){
@@ -842,7 +874,7 @@ class StreamerProxyHLS extends HLSRequests {
 				}
 				return match[1] + match[2]
 			})
-			console.log('PROXIFIED', body)
+			// console.log('PROXIFIED', body)
 		}
 		return body
 	}
@@ -1041,12 +1073,12 @@ class StreamerProxyHLS extends HLSRequests {
 						if(Object.keys(this.playlists[masterUrl]).includes(url)){ // we have mirrors for this playlist
 							Object.keys(this.playlists[masterUrl]).some(playlist => {
 								if(playlist == url){
-									this.playlists[masterUrl][playlist] = false // means offline
+									this.playlists[masterUrl][playlist].state = false // means offline
 									return true
 								}
 							})
 							let hasFallback = Object.keys(this.playlists[masterUrl]).some(playlist => {
-								if(playlist != url && this.playlists[masterUrl][playlist] === true){
+								if(playlist != url && this.playlists[masterUrl][playlist].state === true){
 									fallback = playlist
 									console.warn('Fallback playlist redirect', url, '>>', playlist, JSON.stringify(this.playlists))
 									return true

@@ -34,7 +34,7 @@ class Mega {
 			}
 			if(parts.length > 1){
 				qs = this.qs2Object(parts[1])
-				if(typeof(qs.mediaType) != 'undefined' && !['live', 'video'].includes(qs.mediaType)){
+				if(typeof(qs.mediaType) != 'undefined' && !['live', 'video', 'all'].includes(qs.mediaType)){
 					delete qs.mediaType // avoid bad mediaType
 				}
 			}

@@ -101,6 +101,7 @@ class Timer extends Events {
 class PerformanceProfiles extends Timer {
     constructor(){
         super()
+        this.uiSetup = false
         this.profiles = {
             high: {
                 'animate-background': 'slow-desktop',
@@ -112,7 +113,7 @@ class PerformanceProfiles extends Timer {
                 'search-missing-logos': true,
                 'show-logos': true,
                 'transcoding': '1080p',
-                'tuning-concurrency': 4,
+                'tuner-concurrency': 12,
                 'ui-sounds': true
             },
             low: {
@@ -128,25 +129,17 @@ class PerformanceProfiles extends Timer {
                 'search-missing-logos': false,
                 'show-logos': false,
                 'transcoding': '',
-                'tuning-concurrency': 3,
+                'tuner-concurrency': 6,
                 'tuning-prefer-hls': true,
                 'ui-sounds': false
             }
         }
         this.profiles.high['epg-'+ global.lang.locale] = ''
-        global.ui.on('performance', ret => {
-            console.log('performance-callback', ret)
-            if(typeof(this.profiles[ret]) != 'undefined'){
-                console.log('performance-callback set', this.profiles[ret])
-                global.config.setMulti(this.profiles[ret])
-                if(typeof(this.profiles[ret].epg) != 'undefined'){
-                    global.updateEPGConfig(this.profiles[ret].epg)
-                }
-                global.theme.refresh()
-            }
-        })
         global.ui.on('performance-setup', ret => {
-            this.performance(true)
+            if(!this.uiSetup){
+                this.uiSetup = true
+                this.performance(true)
+            }
         })
     }
     detectPerformanceMode(){
@@ -162,18 +155,27 @@ class PerformanceProfiles extends Timer {
         })
         return scores.low > scores.high ? 'low' : 'high'
     }
-    performance(setup){
+    async performance(setup){
         let cur = this.detectPerformanceMode()
         let txt = global.lang.PERFORMANCE_MODE_MSG.format(global.lang.FOR_SLOW_DEVICES, global.lang.COMPLETE).replaceAll("\n", "<br />")
         if(setup){
             txt += '<br /><br />'+ global.lang.OPTION_CHANGE_AT_ANYTIME.format(global.lang.OPTIONS)
         }
-        global.ui.emit('dialog', [
+        let ret = await global.explorer.dialog('dialog', [
             {template: 'question', text: global.lang.PERFORMANCE_MODE, fa: 'fas fa-tachometer-alt'},
             {template: 'message', text: txt},
             {template: 'option', id: 'low', fa: cur == 'low' ? 'fas fa-check-circle' : '', text: global.lang.FOR_SLOW_DEVICES},
             {template: 'option', id: 'high', fa: cur == 'high' ? 'fas fa-check-circle' : '', text: global.lang.COMPLETE}
-        ], 'performance', cur)
+        ], cur)        
+        console.log('performance-callback', ret)
+        if(typeof(this.profiles[ret]) != 'undefined'){
+            console.log('performance-callback set', this.profiles[ret])
+            global.config.setMulti(this.profiles[ret])
+            if(typeof(this.profiles[ret].epg) != 'undefined'){
+                global.updateEPGConfig(this.profiles[ret].epg)
+            }
+            global.theme.refresh()
+        }
     }
 }
 
@@ -341,41 +343,6 @@ class OptionsExportImport extends PerformanceProfiles {
 class Options extends OptionsExportImport {
     constructor(){
         super()
-        global.ui.on('about-callback', ret => {
-            console.log('about-callback', ret)
-            switch(ret){
-                case 'tos':
-                    this.tos()
-                    break
-                case 'share':
-                    this.share()
-                    break
-                case 'help':
-                    this.help()
-                    break
-            }
-        })
-        global.ui.on('reset-callback', ret => {
-            console.log('reset-callback', ret)
-            switch(ret){
-                case 'yes':
-                    global.rmdir(global.paths.data, false, true)
-                    global.rmdir(global.paths.temp, false, true)
-                    global.energy.restart()
-                    break
-            }
-        })
-        global.ui.on('locale-callback', locale => {
-            let def = global.config.get('locale') || global.lang.locale
-            if(locale && (locale != def)){
-                global.config.set('locale', locale)
-                global.config.set('countries', [])
-                global.energy.askRestart()
-            }
-        })
-        global.ui.on('clear-cache', ret => {
-            if(ret == 'yes') this.clearCache()
-        })
         global.ui.on('config-import-file', data => {
             console.warn('!!! IMPORT FILE !!!', data)
             global.importFileFromClient(data).then(ret => this.import(ret)).catch(err => {
@@ -400,21 +367,26 @@ class Options extends OptionsExportImport {
             })
         })
     }
-    showLanguageEntriesDialog(){
+    async showLanguageEntriesDialog(){
         let options = [], def = global.lang.locale
-        global.lang.availableLocalesMap().then(map => {
-            Object.keys(map).forEach(id => {
-                options.push({
-                    text: map[id] || id,
-                    template: 'option',
-                    fa: 'fas fa-language',
-                    id
-                })
+        let map = await global.lang.availableLocalesMap()
+        Object.keys(map).forEach(id => {
+            options.push({
+                text: map[id] || id,
+                template: 'option',
+                fa: 'fas fa-language',
+                id
             })
-            global.ui.emit('dialog', [
-                {template: 'question', text: global.lang.LANGUAGE, fa: 'fas fa-language'}
-            ].concat(options), 'locale-callback', def)
-        }).catch(global.displayErr)
+        })
+        let locale = await global.explorer.dialog([
+            {template: 'question', text: global.lang.LANGUAGE, fa: 'fas fa-language'}
+        ].concat(options), def)
+        let _def = global.config.get('locale') || global.lang.locale
+        if(locale && (locale != _def)){
+            global.config.set('locale', locale)
+            global.config.set('countries', [])
+            global.energy.askRestart()
+        }
     }
     countriesEntries(){
         return new Promise((resolve, reject) => {
@@ -497,28 +469,40 @@ class Options extends OptionsExportImport {
 	share(){
 		global.ui.emit('share', global.ucWords(global.MANIFEST.name), global.ucWords(global.MANIFEST.name), 'https://megacubo.net/online/')
 	}
-    about(){
+    async about(){
         let outdated
-        cloud.get('configure').then(c => {
+        let c = await cloud.get('configure').catch(console.error)
+        if(c){
             updateEPGConfig(c)
             console.log('checking update...')
             let vkey = 'version'
             outdated = c[vkey] > global.MANIFEST.version
-        }).catch(console.error).finally(() => {
-            const os = require('os')
-            let text = lang.LEGAL_NOTICE +': '+ lang.ABOUT_LEGAL_NOTICE
-            let title = global.ucWords(global.MANIFEST.name) +' v'+ global.MANIFEST.version
-            let versionStatus = outdated ? global.lang.OUTDATED : global.lang.CURRENT_VERSION
-            title += ' ('+ versionStatus +', ' + process.platform +' '+ os.arch() +')'
-            global.ui.emit('dialog', [
-                {template: 'question', fa: 'fas fa-info-circle', text: title},
-                {template: 'message', text},
-                {template: 'option', text: 'OK', fa: 'fas fa-check-circle', id: 'ok'},
-                {template: 'option', text: global.lang.HELP, fa: 'fas fa-question-circle', id: 'help'},
-                {template: 'option', text: global.lang.SHARE, fa: 'fas fa-share-alt', id: 'share'},
-                {template: 'option', text: global.lang.TOS, fa: 'fas fa-info-circle', id: 'tos'}
-            ], 'about-callback', 'ok')
-        })
+        }
+        const os = require('os')
+        let text = lang.LEGAL_NOTICE +': '+ lang.ABOUT_LEGAL_NOTICE
+        let title = global.ucWords(global.MANIFEST.name) +' v'+ global.MANIFEST.version
+        let versionStatus = outdated ? global.lang.OUTDATED : global.lang.CURRENT_VERSION
+        title += ' ('+ versionStatus +', ' + process.platform +' '+ os.arch() +')'
+        let ret = await global.explorer.dialog([
+            {template: 'question', fa: 'fas fa-info-circle', text: title},
+            {template: 'message', text},
+            {template: 'option', text: 'OK', fa: 'fas fa-check-circle', id: 'ok'},
+            {template: 'option', text: global.lang.HELP, fa: 'fas fa-question-circle', id: 'help'},
+            {template: 'option', text: global.lang.SHARE, fa: 'fas fa-share-alt', id: 'share'},
+            {template: 'option', text: global.lang.TOS, fa: 'fas fa-info-circle', id: 'tos'}
+        ], 'ok')
+        console.log('about-callback', ret)
+        switch(ret){
+            case 'tos':
+                this.tos()
+                break
+            case 'share':
+                this.share()
+                break
+            case 'help':
+                this.help()
+                break
+        }
     }
     aboutResources(){
         let txt = []
@@ -544,34 +528,70 @@ class Options extends OptionsExportImport {
         } 
         global.ui.emit('info', 'Network IP', data)
     }
-    /*
-    aboutNetwork(){
-        let text = 'Network IP: '+ global.networkIP()
-        if(process.platform == 'android'){
-            text += '<br />'+ global.androidIPCommand()
-        } 
-        global.ui.emit('dialog', [
-            {template: 'question', text: 'Network IP'},
-            {template: 'message', text},
-            {template: 'option', text: 'OK', fa: 'fas fa-check-circle', id: 'ok'},
-            {template: 'option', text: global.lang.EDIT, fa: 'fas fa-edit', id: 'edit'}
-        ], 'about-network-callback', 'ok')
-    }
-    */
-    resetConfig(){
+    async resetConfig(){
         let text = global.lang.RESET_CONFIRM
-        global.ui.emit('dialog', [
+        let ret = await global.explorer.dialog([
             {template: 'question', text: global.ucWords(global.MANIFEST.name)},
             {template: 'message', text},
             {template: 'option', text: global.lang.YES, fa: 'fas fa-info-circle', id: 'yes'},
             {template: 'option', text: global.lang.NO, fa: 'fas fa-times-circle', id: 'no'}
-        ], 'reset-callback', 'no')
+        ], 'no')
+        console.log('reset-callback', ret)
+        if(ret == 'yes'){
+            global.rmdir(global.paths.data, false, true)
+            global.rmdir(global.paths.temp, false, true)
+            global.energy.restart()
+        }
+    }
+    async transcodingEntries(){
+        let entries = [
+            {
+                name: global.lang.ENABLE, 
+                type: 'check', 
+                action: (data, checked) => {
+                    global.config.set('transcoding', checked)
+                },
+                checked: () => {
+                    return global.config.get('transcoding')
+                }
+            },
+            {
+                name: 'Enable when tuning', 
+                type: 'check', 
+                action: (data, checked) => {
+                    global.config.set('transcoding-tuning', checked)
+                },
+                checked: () => {
+                    return global.config.get('transcoding-tuning')
+                }
+            },
+            {
+                name: 'Resolution limit when transcoding', type: 'select', fa: 'fas fa-film',
+                renderer: () => {
+                    return new Promise((resolve, reject) => {
+                        let def = global.config.get('transcoding-resolution') || '720p', opts = [
+                            {name: global.lang.TRANSCODING_ENABLED_LIMIT_X.format('480p'), type: 'action', selected: (def == '480p'), action: (data) => {
+                                global.config.set('transcoding-resolution', '480p')
+                            }},
+                            {name: global.lang.TRANSCODING_ENABLED_LIMIT_X.format('720p'), type: 'action', selected: (def == '720p'), action: (data) => {
+                                global.config.set('transcoding-resolution', '720p')
+                            }},
+                            {name: global.lang.TRANSCODING_ENABLED_LIMIT_X.format('1080p'), type: 'action', selected: (def == '1080p'), action: (data) => {
+                                global.config.set('transcoding-resolution', '1080p')
+                            }}
+                        ]
+                        resolve(opts)
+                    })
+                }
+            }
+        ]
+        return entries
     }
     playbackEntries(){
         return new Promise((resolve, reject) => {
             let opts = [
                 {
-                    name: 'Control playback rate according to the buffer', type: 'check', action: (data, checked) => {
+                    name: global.lang.CONTROL_PLAYBACK_RATE, type: 'check', action: (data, checked) => {
                     global.config.set('playback-rate-control', checked)
                 }, checked: () => {
                     return global.config.get('playback-rate-control')
@@ -595,26 +615,7 @@ class Options extends OptionsExportImport {
                     }
                 },            
                 {
-                    name: 'Transcoding', type: 'select', fa: 'fas fa-film',
-                    renderer: () => {
-                        return new Promise((resolve, reject) => {
-                            let def = global.config.get('transcoding'), opts = [
-                                {name: global.lang.NEVER, type: 'action', selected: !def, action: (data) => {
-                                    global.config.set('transcoding', '')
-                                }},
-                                {name: global.lang.TRANSCODING_ENABLED_LIMIT_X.format('480p'), type: 'action', selected: (def == '480p'), action: (data) => {
-                                    global.config.set('transcoding', '480p')
-                                }},
-                                {name: global.lang.TRANSCODING_ENABLED_LIMIT_X.format('720p'), type: 'action', selected: (def == '720p'), action: (data) => {
-                                    global.config.set('transcoding', '720p')
-                                }},
-                                {name: global.lang.TRANSCODING_ENABLED_LIMIT_X.format('1080p'), type: 'action', selected: (def == '1080p'), action: (data) => {
-                                    global.config.set('transcoding', '1080p')
-                                }}
-                            ]
-                            resolve(opts)
-                        })
-                    }
+                    name: global.lang.TRANSCODE, type: 'group', fa: 'fas fa-film', renderer: this.transcodingEntries.bind(this)
                 },
                 {
                     name: global.lang.ELAPSED_TIME_TO_KEEP_CACHED, 
@@ -631,7 +632,7 @@ class Options extends OptionsExportImport {
                     }
                 },
                 {
-                    name: 'Use keepalive connections', type: 'check', action: (data, checked) => {
+                    name: global.lang.USE_KEEPALIVE, type: 'check', action: (data, checked) => {
                     global.config.set('use-keepalive', checked)
                 }, checked: () => {
                     return global.config.get('use-keepalive')
@@ -665,13 +666,13 @@ class Options extends OptionsExportImport {
                     name: global.lang.TUNING_CONCURRENCY_LIMIT, 
                     fa: 'fas fa-poll-h', 
                     type: 'slider', 
-                    range: {start: 1, end: 8},
+                    range: {start: 4, end: 32},
                     action: (data, value) => {
                         console.warn('TUNING_CONCURRENCY_LIMIT', data, value)
-                        global.config.set('tuning-concurrency', value)
+                        global.config.set('tuner-concurrency', value)
                     }, 
                     value: () => {
-                        return global.config.get('tuning-concurrency')
+                        return global.config.get('tuner-concurrency')
                     }
                 },
                 {
@@ -724,12 +725,14 @@ class Options extends OptionsExportImport {
         }, () => {
             let highUsage = size > (512 * (1024 * 1024))
             size = '<font class="faclr-' + (highUsage ? 'red' : 'green') + '">' + global.kbfmt(size) + '</font>'
-            global.ui.emit('dialog', [
+            global.explorer.dialog([
                 {template: 'question', text: global.lang.CLEAR_CACHE, fa: 'fas fa-broom'},
                 {template: 'message', text: global.lang.CLEAR_CACHE_WARNING.format(size)},
                 {template: 'option', text: global.lang.YES, id: 'yes', fa: 'fas fa-check-circle'},
                 {template: 'option', text: global.lang.NO, id: 'no', fa: 'fas fa-times-circle'}
-            ], 'clear-cache', 'no')
+            ], 'no').then(ret => {
+                if(ret == 'yes') this.clearCache()
+            }).catch(console.error)
         })
     }
     clearCache(){
@@ -930,7 +933,28 @@ class Options extends OptionsExportImport {
                                 global.config.set('unoptimized-search', checked)
                             }, checked: () => {
                                 return global.config.get('unoptimized-search')
-                            }},  
+                            }}, 
+                            {
+                                name: 'Config server base URL', 
+                                fa: 'fas fa-server', 
+                                type: 'input', 
+                                action: (e, value) => {
+                                    if(!value){
+                                        value = global.cloud.defaultServer // allow reset by leaving field empty
+                                    }
+                                    if(value != global.cloud.server){
+                                        global.cloud.testConfigServer(value).then(() => {
+                                            global.osd.show('OK', 'fas fa-check-circle faclr-green', 'config-server', 'persistent')
+                                            global.config.set('config-server', value)
+                                            setTimeout(() => this.clearCache(), 2000) // allow user to see OK message
+                                        }).catch(global.displayErr)
+                                    }
+                                },
+                                value: () => {
+                                    return global.config.get('config-server')
+                                },
+                                placeholder: global.cloud.defaultServer
+                            }, 
                             {  
                                 name: global.lang.CLEAR_CACHE, icon: 'fas fa-broom', type: 'action', action: () => this.requestClearCache()
                             },

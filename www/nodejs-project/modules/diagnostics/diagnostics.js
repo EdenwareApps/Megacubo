@@ -24,21 +24,18 @@ class Diagnostics extends Events {
 			}
 		}).catch(console.error)
     }
-    checkDiskUI(force){
-		return new Promise((resolve, reject) => {
-			this.checkDisk().then(data => {
-				let fine = data.free >= this.minDiskSpaceRequired
-				if(!fine || force){
-					global.ui.emit('dialog', [
-						{template: 'question', text: 'Megacubo', fa: 'fas fa-exclamation-triangle faclr-red'},
-						{template: 'message', text: global.lang.LOW_DISK_SPACE_AVAILABLE.format(global.kbfmt(data.free))},
-						{template: 'option', text: 'OK', id: 'ok'}
-					], 'diagnostics', 'ok') 
-					// {diskPath: "C:", free: 12345678, size: 98756432}
-				}
-				resolve(fine)
-			}).catch(reject)
-		})
+    async checkDiskUI(force){
+		let data = await this.checkDisk()
+		let fine = data.free >= this.minDiskSpaceRequired
+		if(!fine || force){
+			global.explorer.dialog([
+				{template: 'question', text: 'Megacubo', fa: 'fas fa-exclamation-triangle faclr-red'},
+				{template: 'message', text: global.lang.LOW_DISK_SPACE_AVAILABLE.format(global.kbfmt(data.free))},
+				{template: 'option', text: 'OK', id: 'ok'}
+			], 'ok').catch(console.error) // dont wait
+			// {diskPath: "C:", free: 12345678, size: 98756432}
+		}
+		return fine
     }
     checkMemory(){
 		return new Promise((resolve, reject) => {
@@ -70,21 +67,18 @@ class Diagnostics extends Events {
 			}
 		})
     }
-    checkMemoryUI(force){
-		return new Promise((resolve, reject) => {
-			this.checkMemory().then(freeBytes => {
-				let fine = freeBytes >= this.minFreeMemoryRequired
-				if(!fine || force){
-					global.ui.emit('dialog', [
-						{template: 'question', text: 'Megacubo', fa: 'fas fa-exclamation-triangle faclr-red'},
-						{template: 'message', text: global.lang.LOW_MEMORY_AVAILABLE.format(global.kbfmt(freeBytes))},
-						{template: 'option', text: 'OK', id: 'ok'}
-					], 'diagnostics', 'ok') 
-					// {diskPath: "C:", free: 12345678, size: 98756432}
-				}
-				resolve(fine)
-			}).catch(reject)
-		})
+    async checkMemoryUI(force){
+		let freeBytes = await this.checkMemory()
+		let fine = freeBytes >= this.minFreeMemoryRequired
+		if(!fine || force){
+			global.explorer.dialog([
+				{template: 'question', text: 'Megacubo', fa: 'fas fa-exclamation-triangle faclr-red'},
+				{template: 'message', text: global.lang.LOW_MEMORY_AVAILABLE.format(global.kbfmt(freeBytes))},
+				{template: 'option', text: 'OK', id: 'ok'}
+			], 'ok').catch(console.error) // dont wait
+			// {diskPath: "C:", free: 12345678, size: 98756432}
+		}
+		return fine
     }
 }
 

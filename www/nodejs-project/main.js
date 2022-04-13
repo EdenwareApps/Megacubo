@@ -41,9 +41,23 @@ Object.keys(paths).forEach(k => {
 })
 
 const crashLogFile = paths.data + '/crashlog.txt'
+const replaceCircular = function(val, cache) {
+    cache = cache || new WeakSet();
+    if (val && typeof(val) == 'object') {
+        if (cache.has(val)) return '[Circular]';
+        cache.add(val);
+        var obj = (Array.isArray(val) ? [] : {});
+        for(var idx in val) {
+            obj[idx] = replaceCircular(val[idx], cache);
+        }
+        cache.delete(val);
+        return obj;
+    }
+    return val;
+}
 const saveCrashLog = (...args) => {
     const os = require('os')
-    fs.appendFileSync(crashLogFile, JSON.stringify(args, (key, value) => {
+    fs.appendFileSync(crashLogFile, JSON.stringify(replaceCircular(args), (key, value) => {
         if(value instanceof Error) {
             var error = {}
             Object.getOwnPropertyNames(value).forEach(function (propName) {
@@ -148,11 +162,13 @@ const Watching = require(APPDIR + '/modules/watching')
 const Theme = require(APPDIR + '/modules/theme')
 const Energy = require(APPDIR + '/modules/energy')
 const Analytics = require(APPDIR + '/modules/analytics')
+const AutoConfig = require(APPDIR + '/modules/autoconfig')
 const Diagnostics = require(APPDIR + '/modules/diagnostics')
 const StreamState = require(APPDIR + '/modules/stream-state')
 const Downloads = require(APPDIR + '/modules/downloads')
 const OMNI = require(APPDIR + '/modules/omni')
 const Mega = require(APPDIR + '/modules/mega')
+const Zap = require(APPDIR + '/modules/zap')
 
 console.log('Modules loaded.')
 
@@ -162,6 +178,7 @@ lang = false
 activeEPG = ''
 isUILoaded = false
 isStreamerReady = false
+areListsReady = false
 downloadsInBackground = {}
 
 displayErr = (...args) => {
@@ -264,6 +281,21 @@ updateEPGConfig = c => {
     console.log('SET-EPG', activeEPG)
 }
 
+videoErrorTimeoutCallback = ret => {
+    console.log('video-error-timeout-callback', ret)
+    if(ret == 'try-other'){
+        streamer.handleFailure(null, 'timeout', true, true)
+    } else if(ret == 'retry') {
+        streamer.retry()
+    } else if(ret == 'transcode') {
+        streamer.transcode()
+    } else if(ret == 'stop') {
+        streamer.stop()
+    } else {
+        ui.emit('streamer-reset-timeout')
+    }
+}
+
 var playOnLoaded
 
 function init(language){
@@ -276,7 +308,7 @@ function init(language){
         jimp = require(APPDIR + '/modules/jimp-wrapper')
         
 
-        let epgSetup = false
+        epgSetup = false
         moment.locale(lang.locale)
         cloud = new Cloud()
         
@@ -284,9 +316,15 @@ function init(language){
 
         osd = new OSD()
         lists = new Lists()
-        lists.setNetworkConnectionState(Download.isNetworkConnected).catch(console.error)
+        lists.setNetworkConnectionState(Download.isNetworkConnected).catch(console.error)       
+        lists.manager.on('lists-updated', () => {
+            if(config.get('setup-complete')) areListsReady = true
+        })
 
         activeLists = {my: [], communitary: [], length: 0}
+
+        autoconfig = new AutoConfig()
+        autoconfig.start()
 
         if(config.get('setup-complete')){
             lists.manager.UIUpdateLists(true)
@@ -304,7 +342,7 @@ function init(language){
         options = new Options()
         watching = new Watching()
         bookmarks = new Bookmarks()
-        icons = new IconServer({folder: paths['data'] + '/icons'})
+        icons = new IconServer({folder: paths['data'] + '/icons'})        
 
         rmdir(streamer.opts.workDir, false, true)
 
@@ -322,6 +360,7 @@ function init(language){
 		}
         
         streamState = new StreamState()
+        zap = new Zap()
 
         explorer.addFilter(bookmarks.hook.bind(bookmarks))
         explorer.addFilter(histo.hook.bind(histo))
@@ -345,6 +384,7 @@ function init(language){
             }
             switch(e.type){
                 case 'stream':
+                    zap.setZapping(false)
                     if(typeof(e.action) == 'function') { // execute action for stream, if any
                         e.action(e)
                     } else {
@@ -355,6 +395,7 @@ function init(language){
                     if(typeof(e.action) == 'function') {
                         e.action(e)
                     } else if(e.url && mega.isMega(e.url)) {
+                        zap.setZapping(false)
                         streamer.play(e)
                     }
                     break
@@ -364,7 +405,7 @@ function init(language){
             config.set(k, v)
         })
         ui.on('add-list', url => {
-            lists.manager.addList(url).then(() => {}).catch(err => {
+            lists.manager.addList(url).catch(err => {
                 lists.manager.check()
             })
         })
@@ -388,7 +429,7 @@ function init(language){
                     explorer.refresh()
                     break
                 default:
-                    lists.manager.addList(ret).then(() => {}).catch(err => {
+                    lists.manager.addList(ret).catch(err => {
                         lists.manager.check()
                     })
                     break
@@ -400,13 +441,13 @@ function init(language){
                 case 'agree':
                     break
                 default:
-                    lists.manager.addList(ret).then(() => {}).catch(err => {
+                    lists.manager.addList(ret).catch(err => {
                         lists.manager.check()
                     })
                     break
             }
         })
-        ui.on('reload-dialog', () => {
+        ui.on('reload-dialog', async () => {
             console.log('reload-dialog')
             if(!streamer.active) return
             let opts = [{template: 'question', text: lang.RELOAD}], def = 'retry'
@@ -422,7 +463,8 @@ function init(language){
                 }
             }
             if(opts.length > 2){
-                ui.emit('dialog', opts, 'video-error-timeout-callback', def)
+                let ret = await explorer.dialog(opts, def)
+                videoErrorTimeoutCallback(ret)
             } else { // only reload actionm is available
                 streamer.retry()
             }
@@ -450,9 +492,10 @@ function init(language){
                 if(err) streamer.handleFailure(null, 'unsupported format')
             })
         })
-        ui.on('video-error', (type, errData) => {
-            return // TODO REMOVEME
-            if(streamer.active && !streamer.active.isTranscoding()){
+        ui.on('video-error', async (type, errData) => {
+            if(zap && zap.isZapping){
+                await zap.go()
+            } else if(streamer.active && !streamer.active.isTranscoding()) {
                 console.error('VIDEO ERROR', type, errData)
                 if(type == 'timeout'){
                     let opts = [{template: 'question', text: lang.SLOW_BROADCAST}], def = 'wait'
@@ -466,7 +509,8 @@ function init(language){
                     if(!isCH){
                         opts.push({template: 'option', text: lang.STOP, fa: 'fas fa-stop', id: 'stop'})                        
                     }
-                    ui.emit('dialog', opts, 'video-error-timeout-callback', def)
+                    let ret = await explorer.dialog(opts, def)
+                    videoErrorTimeoutCallback(ret)
                 } else {
                     console.error('VIDEO ERR', type, errData)
                     if(streamer.active && streamer.active.type == 'hls' && streamer.active.adapters.length){
@@ -474,20 +518,6 @@ function init(language){
                     }
                     streamer.handleFailure(null, type)
                 }
-            }
-        })
-        ui.on('video-error-timeout-callback', ret => {
-            console.log('video-error-timeout-callback', ret)
-            if(ret == 'try-other'){
-                streamer.handleFailure(null, 'timeout', true, true)
-            } else if(ret == 'retry') {
-                streamer.retry()
-            } else if(ret == 'transcode') {
-                streamer.transcode()
-            } else if(ret == 'stop') {
-                streamer.stop()
-            } else {
-                ui.emit('streamer-reset-timeout')
             }
         })
         ui.on('share', () => {
@@ -510,25 +540,37 @@ function init(language){
         ui.on('set-epg', url => {
             epgSetup = true
             console.log('SET-EPG', url, activeEPG)
-            config.set('epg', url || 'disabled')
+            config.set('epg-'+ lang.locale, url || 'disabled')
             lists.manager.setEPG(url, true)
         })
         ui.on('open-url', url => {
             console.log('OPENURL', url)
             if(url){
-                storage.raw.set('open-url', url, true)
-                const name = lists.manager.nameFromSourceURL(url), e = {
-                    name, 
-                    url, 
-                    terms: {
-                        name: lists.terms(name), 
-                        group: []
-                    }
-                }
-                if(isStreamerReady){
-                    streamer.play(e)
+                let parts = mega.parse(url)
+                if(parts && parts.name && parts.name == 'configure'){
+                    autoconfig.apply(parts)
                 } else {
-                    playOnLoaded = e
+                    storage.raw.set('open-url', url, true)
+                    const name = lists.manager.nameFromSourceURL(url), e = {
+                        name, 
+                        url, 
+                        terms: {
+                            name: lists.terms(name), 
+                            group: []
+                        }
+                    }
+                    const next = () => {                        
+                        if(isStreamerReady){
+                            streamer.play(e)
+                        } else {
+                            playOnLoaded = e
+                        }
+                    }
+                    if(parts && !areListsReady){                        
+                        lists.manager.once('lists-updated', next)
+                    } else {
+                        next()
+                    }
                 }
             }
         })
@@ -608,39 +650,36 @@ function init(language){
             streamState.sync()
             if(!isUILoaded){
                 isUILoaded = true
-                const afterListUpdate = () => {
+                const afterListUpdate = async () => {
                     if(!lists.manager.updatingLists && !activeLists.length && config.get('shared-mode-reach')){
                         lists.manager.UIUpdateLists()
                     }
-                    cloud.get('configure').then(c => {
-                        updateEPGConfig(c)
-                        console.log('checking update...')
-                        let vkey = 'version', newVersion = MANIFEST.version
-                        if(c[vkey] > MANIFEST.version){
-                            console.log('new version found', c[vkey])
-                            newVersion = c[vkey]
-                            ui.on('updater-cb', chosen => {
-                                console.log('update callback', chosen)
-                                if(chosen == 'yes'){
-                                    ui.emit('open-external-url', 'https://megacubo.net/update?ver=' + MANIFEST.version)
-                                }
-                            })
-                            ui.emit('dialog', [
-                                {template: 'question', text: ucWords(MANIFEST.name) +' v'+ MANIFEST.version +' > v'+ c[vkey], fa: 'fas fa-star'},
-                                {template: 'message', text: lang.NEW_VERSION_AVAILABLE},
-                                {template: 'option', text: lang.YES, id: 'yes', fa: 'fas fa-check-circle'},
-                                {template: 'option', text: lang.NO, id: 'no', fa: 'fas fa-times-circle'}
-                            ], 'updater-cb', 'yes')
-                        } else {
-                            console.log('updated')
-                        }
-                    }).catch(console.error)
+                    let c = await cloud.get('configure')
+                    updateEPGConfig(c)
+                    console.log('checking update...')
                     sendCrashLogs()
+                    let vkey = 'version'
+                    if(c[vkey] > MANIFEST.version){
+                        console.log('new version found', c[vkey])
+                        newVersion = c[vkey]
+                        let chosen = await global.explorer.dialog([
+                            {template: 'question', text: ucWords(MANIFEST.name) +' v'+ MANIFEST.version +' > v'+ c[vkey], fa: 'fas fa-star'},
+                            {template: 'message', text: lang.NEW_VERSION_AVAILABLE},
+                            {template: 'option', text: lang.YES, id: 'yes', fa: 'fas fa-check-circle'},
+                            {template: 'option', text: lang.NO, id: 'no', fa: 'fas fa-times-circle'}
+                        ], 'yes')
+                        console.log('update callback', chosen)
+                        if(chosen == 'yes'){
+                            ui.emit('open-external-url', 'https://megacubo.net/update?ver=' + MANIFEST.version)
+                        }
+                    } else {
+                        console.log('updated')
+                    }
                 }
-                if(lists.manager.updatingLists || !config.get('setup-complete')){
-                    lists.manager.once('lists-updated', afterListUpdate)                
+                if(areListsReady){
+                    afterListUpdate().catch(console.error)
                 } else {
-                    afterListUpdate()
+                    lists.manager.once('lists-updated', () => afterListUpdate().catch(console.error))
                 }
                 analytics = new Analytics() 
                 diagnostics = new Diagnostics() 
@@ -650,10 +689,12 @@ function init(language){
         ui.on('streamer-ready', () => {        
             isStreamerReady = true  
             if(!streamer.active){
-                let next = () => {                
+                console.error('STREAMER-READY', lists.manager.updatingLists, config.get('setup-complete'))
+                let next = () => {
+                    console.error('STREAMER-READY', lists.manager.updatingLists, config.get('setup-complete'))
                     if(playOnLoaded){
                         streamer.play(playOnLoaded)
-                    } else if(config.get('resume')){
+                    } else if(config.get('resume')) {
                         if(explorer.path){
                             console.log('resume skipped, user navigated away')
                         } else {
@@ -662,10 +703,10 @@ function init(language){
                         }
                     }
                 }
-                if(lists.manager.updatingLists || !config.get('setup-complete')){
-                    lists.manager.once('lists-updated', next)
-                } else {
+                if(areListsReady){
                     next()
+                } else {
+                    lists.manager.once('lists-updated', next)
                 }
             }
         })

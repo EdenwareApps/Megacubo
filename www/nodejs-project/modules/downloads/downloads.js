@@ -39,7 +39,6 @@ class Downloads extends Events {
 		this.clear()
 	   	this.activeDownloads = {}
 		global.ui.on('download-in-background', this.download.bind(this))
-		global.ui.on('downloads', this.dialogCallback.bind(this))
 	}
 	dialogCallback(ret){
 		if(ret == 'downloads-start'){
@@ -299,14 +298,15 @@ class Downloads extends Events {
             }
         })
     }
-	askDownload(url, name, target){		
+	async askDownload(url, name, target){		
 		this.askingDownloadStart = {url, name, target}
-		global.ui.emit('dialog', [
+		let ret = await global.explorer.dialog([
 			{template: 'question', text: 'Megacubo', fa: this.icon},
 			{template: 'message', text: global.lang.DOWNLOAD_START_CONFIRM.format(name) +"\r\n\r\n"+ global.lang.DOWNLOAD_START_HINT.format([global.lang.TOOLS, global.lang.ACTIVE_DOWNLOADS].join('/'))},
 			{template: 'option', text: lang.YES, id: 'downloads-start', fa: 'fas fa-check-circle'},
 			{template: 'option', text: lang.NO, id: 'no', fa: 'fas fa-times-circle'}
-		], 'downloads', 'no')
+		], 'no')
+		this.dialogCallback(ret)
 	}
 	download(url, name, target){  
 		target = target.replace('file:///', '/')  
@@ -380,13 +380,14 @@ class Downloads extends Events {
 					details: global.lang.SAVING_FILE +' '+ download.progress +'%',
 					type: 'action',
 					fa: this.icon,
-					action: () => {
-						global.ui.emit('dialog', [
+					action: async () => {
+						let ret = await global.explorer.dialog([
 							{template: 'question', text: 'Megacubo', fa: this.icon},
 							{template: 'message', text: global.lang.DOWNLOAD_CANCEL_CONFIRM.format(name)},
 							{template: 'option', text: lang.YES, id: 'downloads-cancel-'+ download.uid, fa: 'fas fa-check-circle'},
 							{template: 'option', text: lang.NO, id: 'no', fa: 'fas fa-times-circle'}
-						], 'downloads', 'no')
+						], 'no')
+						this.dialogCallback(ret)
 					}
 				}
 			})

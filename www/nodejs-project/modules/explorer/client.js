@@ -908,7 +908,7 @@ class ExplorerModal extends ExplorerPointer {
 				console.log('ENDMODAL', traceback())
 			}
 			this.inputHelper.stop()
-			this.body.removeClass('modal')
+			this.body.removeClass('modal modal-mandatory')
 			this.emit('modal-end')
 			setTimeout(() => this.emit('pos-modal-end'), 100)
 		}
@@ -1757,38 +1757,93 @@ class Explorer extends ExplorerLoading {
 		}
 		return ss
 	}
+	diffEntries(a, b){
+		let diff;
+		['name', 'details', 'fa', 'type'].some(p => { // url comparing give false positives like undefined != javascript:;
+			if(a[p] != b[p]){
+				diff = p
+				return true
+			}
+		})
+		return diff
+	}
+	insertElementAt(e, i){
+		if(i == 0){
+			this.wrapper.prepend(e)
+		} else {
+			this.wrapper.find('a:nth-child('+ i +')').after(e)
+		}
+	}
+	adaptiveRender(entries, path, prevEntries){
+		let move
+		entries.forEach((e, j) => {
+			let ne
+			prevEntries.some((n, i) => {
+				let diff = this.diffEntries(e, n)
+				if(!diff){
+					ne = this.currentElements[i]
+					if(i != j) {
+						move = true
+					}
+					ne.setAttribute('tabindex', j)
+					return true
+				}
+			})
+			if(!ne) {
+				let tpl = this.templates['default']
+				if(typeof(this.templates[e.type]) != 'undefined') {
+					tpl = this.templates[e.type]
+				}
+				ne = jQuery(this.renderEntry(e, tpl, path)).get(0)
+				move = true
+			}
+			if(!move) return
+			this.insertElementAt(ne, j)
+		})
+		this.wrapper.find('a:gt('+ (entries.length - 1) +')').remove()
+	}
 	render(entries, path, icon){
 		this.rendering = true
 		clearTimeout(this.scrollingTimer)
 		let html = '', targetScrollTop = 0
-		if(typeof(this.selectionMemory[path]) != 'undefined'){
+		if(typeof(this.selectionMemory[path]) != 'undefined') {
 			targetScrollTop = this.selectionMemory[path].scroll
+		}
+		let prevEntries, useAdaptiveRender = path == this.path
+		if(useAdaptiveRender) {
+			prevEntries = this.currentEntries
 		}
 		this.currentEntries = entries
 		entries = this.getRange(targetScrollTop)
 		this.emit('pre-render', path, this.path)
 		this.path = path
-		entries.forEach(e => {
-			let tpl = this.templates['default']
-			if(typeof(this.templates[e.type]) != 'undefined'){
-				tpl = this.templates[e.type]
-			}
-			html += this.renderEntry(e, tpl, path)
-		})
 		this.lastOpenedElement = null
-		this._scrollContainer.style.minHeight = (targetScrollTop + this._scrollContainer.offsetHeight) + 'px' // avoid scrolling
-		css('span.entry-wrapper {visibility: hidden; }', 'explorer-render-hack')
-        //this._scrollContainer.scrollTop = 
-		this._scrollContainer.scrollTo(0, targetScrollTop)
-		this._wrapper.innerHTML = html
-		this._scrollContainer.scrollTo(0, targetScrollTop)
+		if(useAdaptiveRender) {
+			this.adaptiveRender(entries, path, prevEntries)
+			prevEntries = null
+		} else {
+			this._scrollContainer.style.minHeight = (targetScrollTop + this._scrollContainer.offsetHeight) + 'px' // avoid scrolling
+			entries.forEach(e => {
+				let tpl = this.templates['default']
+				if(typeof(this.templates[e.type]) != 'undefined'){
+					tpl = this.templates[e.type]
+				}
+				html += this.renderEntry(e, tpl, path)
+			})
+			css('span.entry-wrapper {visibility: hidden; }', 'explorer-render-hack')
+			this._scrollContainer.scrollTo(0, targetScrollTop)
+			this._wrapper.innerHTML = html
+			this._scrollContainer.scrollTo(0, targetScrollTop)
+		}
 		this.currentElements = Array.from(this._wrapper.getElementsByTagName('a'))
 		setTimeout(() => {
 			this.restoreSelection() // keep it in this timer, or the hell gates will open up!
 			this.rendering = false
 			this.emit('render', this.path, icon)
-        	this._scrollContainer.style.minHeight = 0
-			css('span.entry-wrapper {visibility: inherit;}', 'explorer-render-hack')
+        	if(!useAdaptiveRender) {
+				this._scrollContainer.style.minHeight = 0
+				css('span.entry-wrapper {visibility: inherit;}', 'explorer-render-hack')
+			}
 			if(!this.initialized){
 				this.initialized = true
 				this.emit('init')

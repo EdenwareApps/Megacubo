@@ -88,7 +88,7 @@ class Search extends Events {
     }
     addFixedEntries(mediaType, es){
         es.unshift({
-            name: global.lang.SEARCH,
+            name: global.lang.NEW_SEARCH,
             details: this.mediaTypeName(),
             type: 'input',
             fa: 'fas fa-search',
@@ -116,88 +116,180 @@ class Search extends Events {
         }
         return es
     }
-    results(terms){
-        return new Promise((resolve, reject) => {
-            let u = global.ucWords(terms)
-            this.currentSearch = {
-                name: u, 
-                url: global.mega.build(u, {terms, mediaType: this.searchMediaType})
-            }
-            if(global.lists.manager.updatingLists){
-                return resolve([global.lists.manager.updatingListsEntry()])
-            }
-            if(!global.activeLists.length){ // one list available on index beyound meta watching list
-                return resolve([global.lists.manager.noListsEntry()])
-            }
-            console.log('will search', terms, {
-                partial: this.searchInaccurate, 
-                type: this.searchMediaType, 
-                typeStrict: this.searchStrict,
-                group: this.searchMediaType != 'live'
+    async results(terms){
+        let u = global.ucWords(terms)
+        this.currentSearch = {
+            name: u, 
+            url: global.mega.build(u, {terms, mediaType: this.searchMediaType})
+        }
+        if(global.lists.manager.updatingLists){
+            return [global.lists.manager.updatingListsEntry()]
+        }
+        if(!global.activeLists.length){ // one list available on index beyound meta watching list
+            return [global.lists.manager.noListsEntry()]
+        }
+        console.log('will search', terms, {
+            partial: this.searchInaccurate, 
+            type: this.searchMediaType, 
+            typeStrict: this.searchStrict,
+            group: this.searchMediaType != 'live'
+        })
+        const parentalControlActive = global.config.get('parental-control-policy') == 'block'
+        const isAdultQueryBlocked = parentalControlActive && !global.lists.parentalControl.allow(u)
+        let es = await global.lists[global.config.get('unoptimized-search') ? 'unoptimizedSearch' : 'search'](terms, {
+            partial: this.searchInaccurate, 
+            type: this.searchMediaType, 
+            typeStrict: this.searchStrict,
+            group: this.searchMediaType != 'live',
+            parentalControl: isAdultQueryBlocked ? false : undefined // allow us to count blocked results
+        })
+        es = (es.results && es.results.length) ? es.results : ((es.maybe && es.maybe.length) ? es.maybe : [])
+        if(isAdultQueryBlocked) {
+            es = [
+                {
+                    prepend: '<i class="fas fa-info-circle"></i> ',
+                    name: global.lang.X_BLOCKED_RESULTS.format(es.length),
+                    details: global.lang.ADULT_CONTENT_BLOCKED,
+                    fa: 'fas fa-lock',
+                    type: 'action',
+                    action: () => {
+                        global.ui.emit('info', global.lang.ADULT_CONTENT_BLOCKED, global.lang.ADULT_CONTENT_BLOCKED_INFO.format(global.lang.OPTIONS, global.lang.SECURITY))
+                    }
+                }
+            ]
+        } else if(es) {
+            let parentalControlBlockedCount = 0
+            es = es.map(e => {
+                e.details = e.groupName || ''
+                return e
+            }).filter(e => {
+                if(!parentalControlActive || global.lists.parentalControl.allow(e)){
+                    return true
+                }
+                parentalControlBlockedCount++
             })
-            const isAdultQueryBlocked = global.config.get('parental-control-policy') == 'block' && !global.lists.parentalControl.allow(u)
-            global.lists[global.config.get('unoptimized-search') ? 'unoptimizedSearch' : 'search'](terms, {
-                partial: this.searchInaccurate, 
-                type: this.searchMediaType, 
-                typeStrict: this.searchStrict,
-                group: this.searchMediaType != 'live',
-                parentalControl: isAdultQueryBlocked ? false : undefined // allow us to count blocked results
-            }).then(es => {
-                es = (es.results && es.results.length) ? es.results : ((es.maybe && es.maybe.length) ? es.maybe : [])
-                if(isAdultQueryBlocked) {
-                    es = [
-                        {
-                            prepend: '<i class="fas fa-info-circle"></i> ',
-                            name: global.lang.X_BLOCKED_RESULTS.format(es.length),
-                            details: global.lang.ADULT_CONTENT_BLOCKED,
-                            fa: 'fas fa-lock',
-                            type: 'action',
-                            action: () => {
-                                global.ui.emit('info', global.lang.ADULT_CONTENT_BLOCKED, global.lang.ADULT_CONTENT_BLOCKED_INFO.format(global.lang.OPTIONS, global.lang.SECURITY))
-                            }
-                        }
-                    ]
-                } else if(es && es.length){
-                    es = es.map(e => {
-                        e.details = e.groupName || ''
-                        return e
-                    })
-                    this.currentResults = es.slice(0)
-                    es.unshift({
-                        name: global.lang.AUTO_TUNING,
-                        details: u,
-                        fa: 'fas fa-play-circle',
-                        type: 'action',
-                        action: () => {
-                            global.streamer.play(this.currentSearch, es)
-                        }
+            this.currentResults = es.slice(0)
+            if(parentalControlBlockedCount){
+                es.push({
+                    prepend: '<i class="fas fa-info-circle"></i> ',
+                    name: global.lang.X_BLOCKED_RESULTS.format(parentalControlBlockedCount),
+                    details: global.lang.ADULT_CONTENT_BLOCKED,
+                    fa: 'fas fa-lock',
+                    type: 'action',
+                    action: () => {
+                        global.ui.emit('info', global.lang.ADULT_CONTENT_BLOCKED, global.lang.ADULT_CONTENT_BLOCKED_INFO.format(global.lang.OPTIONS, global.lang.SECURITY))
+                    }
+                })
+            }
+            let minResultsWanted = 48
+            if(es.length < minResultsWanted){                
+                let ys = await this.ytResults(terms).catch(console.error)
+                if(Array.isArray(ys)) {
+                    es = es.concat(ys)
+                }
+            }
+        }
+        return es
+    }
+    fixYTTitles(name){
+        return name.replaceAll('/', '|')
+    }
+    async ytResults(tms){
+        if(!this.ytsr){
+            this.ytsr = require('ytsr')
+        }
+        let terms = tms
+        if(Array.isArray(terms)){
+            terms = terms.join(' ')
+        }
+        const filters = await this.ytsr.getFilters(terms)
+        const filter = filters.get('Type').get('Video')
+        const options = {
+            pages: 2,
+            gl: global.lang.countryCode.toUpperCase(),
+            hl: global.lang.locale,    
+            requestOptions: {
+                rejectUnauthorized: false,
+                transform: (parsed) => {
+                    return Object.assign(parsed, {
+                        rejectUnauthorized: false
                     })
                 }
-                resolve(es)
-            }).catch(reject)
+            }
+        }
+        const results = await this.ytsr(filter.url, options)
+        return results.items.filter(t => !t.isLive).map(t => {
+            let icon = t.thumbnails.sortByProp('width').shift().url
+            return {
+                name: this.fixYTTitles(t.title),
+                icon,
+                type: 'stream',
+                url: t.url
+            }
         })
     }
-    channelsResults(terms){
-        return new Promise((resolve, reject) => {
-            let u = global.ucWords(terms)
-            this.currentSearch = {
-                name: u, 
-                url: global.mega.build(u, {terms, mediaType: this.searchMediaType})
+    async ytLiveResults(tms){
+        if(!this.ytsr){
+            this.ytsr = require('ytsr')
+        }
+        let terms = tms
+        if(Array.isArray(terms)){
+            terms = terms.join(' ')
+        }
+        const filters = await this.ytsr.getFilters(terms)
+        const filter = filters.get('Type').get('Video')
+        //const filters2 = await this.ytsr.getFilters(filter.url)
+        //const filter2 = filters2.get('Features').get('Live')
+        const options = {
+            pages: 1,
+            gl: global.lang.countryCode.toUpperCase(),
+            hl: global.lang.locale,    
+            requestOptions: {
+                rejectUnauthorized: false,
+                transform: (parsed) => {
+                    return Object.assign(parsed, {
+                        rejectUnauthorized: false
+                    })
+                }
             }
-            if(global.lists.manager.updatingLists){
-                return resolve([global.lists.manager.updatingListsEntry()])
+        }
+        const results = await this.ytsr(filter.url, options)
+        return results.items.map(t => {
+            let icon = t.thumbnails.sortByProp('width').shift().url
+            return {
+                name: this.fixYTTitles(t.title),
+                icon,
+                type: 'stream',
+                url: t.url
             }
-            if(!global.activeLists.length){ // one list available on index beyound meta watching list
-                return resolve([global.lists.manager.noListsEntry()])
-            }
-            global.channels.search(terms, this.searchInaccurate).then(es => {
-                resolve(es.map(e => global.channels.toMetaEntry(e)))
-            }).catch(reject)
         })
+    }
+    async channelsResults(terms){
+        let u = global.ucWords(terms)
+        this.currentSearch = {
+            name: u, 
+            url: global.mega.build(u, {terms, mediaType: this.searchMediaType})
+        }
+        if(global.lists.manager.updatingLists){
+            return resolve([global.lists.manager.updatingListsEntry()])
+        }
+        if(!global.activeLists.length){ // one list available on index beyound meta watching list
+            return resolve([global.lists.manager.noListsEntry()])
+        }
+        let es = await global.channels.search(terms, this.searchInaccurate)
+        es = es.map(e => global.channels.toMetaEntry(e))
+        let minResultsWanted = (global.config.get('view-size-x') * global.config.get('view-size-y')) - 3
+        if(es.length < minResultsWanted){
+            let ys = await this.ytLiveResults(terms).catch(console.error)
+            if(Array.isArray(ys)) {
+                es = es.concat(ys.slice(0, minResultsWanted - es.length))
+            }
+        }
+        return es
     }
     isSearching(){
         return global.explorer.currentEntries.some(e => {
-            return e.name == global.lang.SEARCH
+            return e.name == global.lang.SEARCH || e.name == global.lang.NEW_SEARCH
         })
     }
     matchTerms(nlc, precision, es){

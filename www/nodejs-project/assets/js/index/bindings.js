@@ -262,7 +262,7 @@ function handleOpenURL(url) { // cordova-plugin-customurlscheme helper method, w
 	setTimeout(() => {
 		if(url && url.match('^[a-z]*:?//')){
 			onBackendReady(() => {
-				channel.post('message', ['open-url', url.replace(new RegExp('.*megacubo\.tv/assistir/', ''), 'mega://')])
+				channel.post('message', ['open-url', url.replace(new RegExp('.*megacubo\.tv/(w|assistir)/', ''), 'mega://')])
 			})
 		}
 	}, 0)

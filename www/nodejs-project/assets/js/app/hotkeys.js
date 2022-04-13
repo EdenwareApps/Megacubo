@@ -60,7 +60,7 @@ function arrowDownPressed(noNav){
                 streamer.volumeDown(1)
             } else {
                 if(idle.isIdle) {
-                    idle.stop()
+                    idle.reset()
                 } else if(noNav) {
                     explorer.body.addClass('menu-playing')
                 } else {
@@ -121,7 +121,7 @@ function enterPressed(){
             if(idle.isIdle){
                 if(streamer.state != 'paused'){
                     console.log('ENTER IGNORED ON IDLE OUT', e)
-                    return idle.stop()
+                    return idle.reset()
                 }
             }
             // e.click()

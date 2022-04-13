@@ -69,6 +69,7 @@ class StreamerProxy extends StreamerProxyBase {
             } else if(url.charAt(0) == '/' && url.charAt(1) != '/'){
                 url = 'http://' + url.substr(1)
             } else if(this.opts.addr && url.indexOf('//') != -1){
+				/*
 				if(!this.addrp){
 					this.addrp = this.opts.addr.split('.').slice(0, 3).join('.')
 				}
@@ -76,6 +77,11 @@ class StreamerProxy extends StreamerProxyBase {
 					url = url.replace(new RegExp('^(http://|//)'+ this.addrp.replaceAll('.', '\\.') +'\\.[0-9]{0,3}:([0-9]+)/', 'g'), '$1')
 					url = url.replace('://s/', 's://')
                 }  
+				*/
+                if(url.indexOf(this.addr +':'+ this.opts.port +'/') != -1){
+					url = url.replace(new RegExp('^(http://|//)'+ this.addr.replaceAll('.', '\\.') +':'+ this.opts.port +'/', 'g'), '$1')
+					url = url.replace('://s/', 's://')
+                } 
             }                      
             if(url.indexOf('&') != -1 && url.indexOf(';') != -1){
                 url = decodeEntities(url)
@@ -101,7 +107,6 @@ class StreamerProxy extends StreamerProxyBase {
 		if(parser.manifest){
 			let qs = url.indexOf('?') ? url.split('?')[1] : ''
 			if(parser.manifest.segments && parser.manifest.segments.length){
-				// this.keepJournal(url, parser.manifest.segments) // TODO
 				parser.manifest.segments.map(segment => {
 					segment.uri = segment.uri.trim()
 					let dn = this.getURLRoot(segment.uri)
@@ -275,7 +280,7 @@ class StreamerProxy extends StreamerProxyBase {
 			}
 		})
 		download.on('error', err => {
-			if(this.type == 'network-proxy'){
+			if(this.type == 'network-proxy' && this.opts.debug){
 				console.log('serving', url, err)
 			}
 			if(this.committed){
@@ -425,7 +430,9 @@ class StreamerProxy extends StreamerProxyBase {
 		let sampleCollected, doBitrateCheck = this.committed && this.type != 'network-proxy' && this.bitrates.length < this.opts.bitrateCheckingAmount
 		let onend = () => {
 			if(doBitrateCheck){
-				console.log('finishBitrateSampleProxy', url, sampleCollected, initialOffset, offset)
+				if(this.opts.debug){
+					console.log('finishBitrateSampleProxy', url, sampleCollected, initialOffset, offset)
+				}
 				this.finishBitrateSample(url)
 			}
 			end()
@@ -439,7 +446,9 @@ class StreamerProxy extends StreamerProxyBase {
 				//console.warn('forceFirstBitrateDetection data', this.bitrateCheckBuffer[uid], offset, chunk)
 				if(!this.collectBitrateSample(chunk, offset, len, url)){                       
 					sampleCollected = true
-					console.log('collectBitrateSampleProxy', url, sampleCollected, initialOffset, offset)
+					if(this.opts.debug){
+						console.log('collectBitrateSampleProxy', url, sampleCollected, initialOffset, offset)
+					}
 				}
 			}
 			offset += len

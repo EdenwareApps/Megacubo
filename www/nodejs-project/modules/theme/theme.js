@@ -596,8 +596,36 @@ class Theme extends Events {
             })
         })
     }
+    applyRemoteTheme(url, name='Untitled'){
+        const file = this.folder +'/'+ global.sanitize(name) + '.theme.json'
+        fs.stat(file, (err, stat) => {
+            const next = () => {
+                global.Download.file({
+                    debug: false,
+                    file,
+                    url,
+                    progress: p => {
+                        global.osd.show(global.lang.LOADING +' '+ p +'%', 'fas fa-download', 'theme', 'persistent')
+                    }
+                }).then(file => {
+                    global.osd.hide('theme')
+                    this.load(file, err => {
+                        if(err){
+                            fs.unlink(file, () => {})
+                        }
+                    })
+                    global.explorer.refresh()
+                }).catch(global.displayErr)
+            }
+            if(stat && stat.size){
+                fs.unlink(file, next)
+            } else {
+                next()
+            }
+        })
+    }
     async remoteThemes(){
-        let themes = await global.Download.promise({url: global.cloud.base +'/themes/feed.json', responseType: 'json'})
+        let themes = await global.Download.promise({url: global.cloud.server +'/themes/feed.json', responseType: 'json'})
         if(Array.isArray(themes)){
             return themes.map(t => {
                 return {
@@ -608,32 +636,7 @@ class Theme extends Events {
                     icon: t.icon,
                     class: 'entry-icon-no-fallback',
                     action: () => {
-                        const file = this.folder +'/'+ global.sanitize(t.name) + '.theme.json'
-                        fs.stat(file, (err, stat) => {
-                            const next = () => {
-                                global.Download.file({
-                                    debug: true,
-                                    file,
-                                    url: t.url,
-                                    progress: p => {
-                                        global.osd.show(global.lang.LOADING +' '+ p +'%', 'fas fa-download', 'theme', 'persistent')
-                                    }
-                                }).then(file => {
-                                    global.osd.hide('theme')
-                                    this.load(file, err => {
-                                        if(err){
-                                            fs.unlink(file, () => {})
-                                        }
-                                    })
-                                    global.explorer.refresh()
-                                }).catch(global.displayErr)
-                            }
-                            if(stat && stat.size){
-                                fs.unlink(file, next)
-                            } else {
-                                next()
-                            }
-                        })
+                        this.applyRemoteTheme(t.url, t.name)
                     }
                 }
             })

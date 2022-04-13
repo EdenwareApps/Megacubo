@@ -30,6 +30,17 @@ class UpdateListIndex extends ListIndexUtils {
 				this.index.terms[term].g.push(i)
 			}
 		})
+        if(entry.name && entry.gid){
+            if(typeof(this.index.gids) == 'undefined'){
+                this.index.gids = {}
+            }
+            if(typeof(this.index.gids[entry.gid]) == 'undefined'){
+                this.index.gids[entry.gid] = []
+            }
+            if(!this.index.gids[entry.gid].includes(entry.name)){
+                this.index.gids[entry.gid].push(entry.name)
+            }
+        }
 		if(typeof(this.index.groups[entry.group]) == 'undefined'){
 			this.index.groups[entry.group] = []
 		}
@@ -107,6 +118,10 @@ class UpdateListIndex extends ListIndexUtils {
 			this.indexateIterator = 0
 			this.parser = new Parser(this.stream)
 			this.parser.on('meta', meta => {
+                if(!initialized){
+                    initialized = true
+                    this.reset()
+                }
 				this.index.meta = Object.assign(this.index.meta, meta)
 			})
 			this.parser.on('entry', entry => {
@@ -134,10 +149,9 @@ class UpdateListIndex extends ListIndexUtils {
                     writer.write(JSON.stringify(this.index))
                     writer.ended(() => {
                         writer.destroy()
-                        fs.copyFile(this.tmpfile, this.file, () => {
+                        global.moveFile(this.tmpfile, this.file, () => {
                             resolved = true
                             resolve(true)
-                            fs.unlink(this.tmpfile, () => {})
                         })
                     })
                 } else {
@@ -153,7 +167,8 @@ class UpdateListIndex extends ListIndexUtils {
             length: 0,
             terms: {},
             groups: {},
-            meta: {}
+            meta: {},
+            gids: {}
         }
 		this.indexateIterator = 0
 	}

@@ -1,7 +1,6 @@
 const Events = require('events'), fs = require('fs'), parseRange = require('range-parser'), got = require('./got-wrapper')
 const zlib = require('zlib'), WriteQueueFile = require(global.APPDIR +'/modules/write-queue/write-queue-file')
 const StringDecoder = require('string_decoder').StringDecoder
-
 class Download extends Events {
    constructor(opts){
 	   	super()
@@ -19,7 +18,7 @@ class Download extends Events {
 			},
 			authErrorCodes: [401, 403],
 			permanentErrorCodes: [-1, 400, 404, 405, 410], // -1 == permanentErrorRegex matched
-			permanentErrorRegex: new RegExp('(ENETUNREACH|ECONNREFUSED|cannot resolve)', 'i'),
+			permanentErrorRegex: new RegExp('(ENOTFOUND|ENODATA|ENETUNREACH|ECONNREFUSED|cannot resolve)', 'i'),
 			timeout: null,
 			followRedirect: true,
 			acceptRanges: true,
@@ -171,7 +170,9 @@ class Download extends Events {
 				continueWithoutCompression()
 			})
 			this.decompressor.on('finish', () => {
-				console.log('decompressor end')
+				if(this.opts.debug){
+					console.log('decompressor end')
+				}
 				continueWithoutCompression()
 			})
 			this.decompressor.flush()
@@ -294,11 +295,14 @@ class Download extends Events {
 			if(!this.currentRequestError){
 				this.currentRequestError = 'error'
 			}
-			if(this.listenerCount('error')){
-				this.emit('error', err)
-			}
-			this.delayNext()
+			setTimeout(() => { // setTimeout required to prevent crashing by destroying stream before finish error handling
+				if(this.listenerCount('error')){
+					this.emit('error', err)
+				}
+				this.delayNext()
+			}, 100)
 		}
+		return err
 	}
     absolutize(path, url){
         if(path.match(new RegExp('^[htps:]*?//'))){
@@ -559,7 +563,7 @@ class Download extends Events {
 				}
 				this.decompressor.on('data', this._emitData.bind(this))
 				this.decompressor.on('error', err => {
-					console.error('Zlib err', err, this.currentURL)
+					console.error('Zlib err', err, this.currentURL, this)
 					this.decompressEnded = 'error'
 					this.end()
 				})
@@ -822,14 +826,12 @@ class Download extends Events {
 		}
 	}
 }
-
 Download.got = got
 Download.keepAliveDomainBlacklist = []
 Download.isNetworkConnected = true
 Download.setNetworkConnectionState = state => {
 	Download.isNetworkConnected = state
 }
-
 Download.promise = (...args) => {
 	let _reject, g, opts = args[0]
 	let promise = new Promise((resolve, reject) => {
@@ -854,7 +856,6 @@ Download.promise = (...args) => {
 	}
 	return promise
 }
-
 Download.file = (...args) => {
 	let _reject, g, err, opts = args[0], file = opts && opts.file ? opts.file : global.paths.temp +'/'+ Math.random()
 	let promise = new Promise((resolve, reject) => {
@@ -911,5 +912,4 @@ Download.file = (...args) => {
 	}
 	return promise
 }
-
 module.exports = Download

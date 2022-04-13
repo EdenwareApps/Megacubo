@@ -2,9 +2,8 @@
 class CloudData {
     constructor(opts){
         this.debug = false
-        this.domain = 'app.megacubo.net'
-        this.base = 'http://' + this.domain
-        this.baseURL = this.base +'/stats/data/'
+        this.defaultServer = 'http://app.megacubo.net'
+        this.server = global.config.get('config-server') || this.defaultServer
         this.locale = global.lang.locale
         this.expires = {
             'searching': 6 * 3600,
@@ -21,13 +20,18 @@ class CloudData {
         }
         this.cachingDomain = 'cloud-' + this.locale + '-'
     }
+    async testConfigServer(baseUrl){
+        let data = await Download.promise({url: baseUrl + '/configure.json', responseType: 'json'})
+        if(data && data.version) return true
+        throw 'Bad config server URL'
+    }
     url(key){
         if(['configure', 'themes'].includes(key)){
-            return this.base + '/' + key + '.json'
+            return this.server + '/' + key + '.json'
         } else if(key.indexOf('/') != -1) {
-            return this.baseURL + key + '.json'
+            return this.server + '/stats/data/' + key + '.json'
         } else {
-            return this.baseURL + key + '.' + this.locale +'.json'
+            return this.server + '/stats/data/' + key + '.' + this.locale +'.json'
         }
     }
     get(key, raw, softTimeout){
@@ -74,10 +78,7 @@ class CloudData {
                             url,
                             responseType: raw === true ? 'text' : 'json',
                             timeout: 60,
-                            retry: 10,
-                            headers: {
-                                'host': this.domain
-                            }
+                            retry: 10
                         }).then(body => {
                             if(!body){
                                 error('Server returned empty')

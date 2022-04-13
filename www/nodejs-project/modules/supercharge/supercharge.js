@@ -130,7 +130,10 @@ function patch(scope){
 			b: parseInt(result[3], 16)
 		} : ohex
 	}
-    scope.ucWords = str => {
+    scope.ucWords = (str, lc) => {
+		if(lc){
+			str = str.toLowerCase()
+		}
         return str.replace(new RegExp('(^|[ ])[A-zÀ-ú]', 'g'), (letra) => {
             return letra.toUpperCase()
         })

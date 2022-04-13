@@ -159,15 +159,12 @@ class Index extends Common {
 	}
 	search(terms, opts){	
 		return new Promise((resolve, reject) => {
-            if(this.debug){
-				console.warn('M3U SEARCH', terms, opts)
-			}
 			if(typeof(terms) == 'string'){
 				terms = this.terms(terms, true, true)
 			}
             let start = global.time(), bestResults = [], maybe = [], limit = 256
             let smap = this.searchMap(terms, opts), ks = Object.keys(smap)
-            if(ks.length){
+			if(ks.length){
 				if(this.debug){
 					console.warn('M3U SEARCH RESULTS', (global.time() - start) +'s (pre time)', Object.assign({}, smap), (global.time() - start) +'s', terms)
 				}

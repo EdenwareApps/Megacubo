@@ -39,13 +39,22 @@ class Writer extends Events {
 		this.writing = true
 		this.prepare(() => {
 			fs.open(this.file, 'r+', (err, fd) => {
+				const close = () => {
+					if(fd){
+						fs.close(fd, () => {})
+						fd = null
+					}
+				}
+				if(fd){
+					this.once('destroy', close) // try to prevent E_PERM error, maybe at some cases the file is not correctly closed before destroy() call
+				}
 				if(err){
 					console.error(err)
 					this.writing = false
 					this.pump()
 				} else {
 					this._write(fd, () => {
-						fs.close(fd, () => {})
+						close()
 						this.writing = false
 						return this.emit('end')
 					})
@@ -91,6 +100,7 @@ class Writer extends Events {
 		}
 	}	
 	destroy(){
+		this.emit('destroy')
 		this.removeAllListeners()
 		this.writeQueue = []
 	}

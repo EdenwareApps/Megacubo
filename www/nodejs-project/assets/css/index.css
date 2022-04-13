@@ -531,6 +531,39 @@ controls > div {
     align-items: center;
     height: var(--controls-height);
 }
+div#streamer-info {
+    display: flex;
+    justify-content: center;    
+    position: relative;
+    bottom: 0;
+    align-items: flex-end;
+    opacity: 0;
+    transition: opacity var(--explorer-fx-nav-duration) ease-in-out 0s;
+}
+div#streamer-info > div {
+   background-color: rgba(0, 0, 0, 0.5);
+   color: #fff;
+   display: inline-flex;
+   flex-direction: column;
+   border-radius: var(--radius);
+   border-bottom-left-radius: 0;
+   border-bottom-right-radius: 0;
+   padding: var(--explorer-padding) var(--padding) var(--padding) var(--padding);
+   text-align: center;
+   line-height: 175%;
+   font-size: var(--explorer-entry-name-font-size);   
+   position: relative;
+   bottom: calc((var(--seekbar-height) - var(--padding)) * -1);
+}
+body.video:not(.idle):not(.casting):not(.menu-playing) div#streamer-info, body.video-paused div#streamer-info {
+    display: flex;
+    justify-content: center;    
+    position: relative;
+    bottom: 0;
+    align-items: flex-end;
+    opacity: 1;
+    transition: opacity var(--explorer-fx-nav-duration) ease-in-out 0s;
+}
 seekbar {
     height: var(--seekbar-height);
     width: inherit;

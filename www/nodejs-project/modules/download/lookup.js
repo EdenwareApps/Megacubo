@@ -1,6 +1,11 @@
-const async = require('async'), dns = require('dns'), Events = require('events')
-
-class Lookup extends Events {
+const async = require('async'), dns = require('dns'), Events = require('events'), CacheableLookup = require('cacheable-lookup')
+const {
+	V4MAPPED,
+	ADDRCONFIG,
+	ALL
+} = dns;
+const supportsALL = typeof ALL === 'number';
+class UltimateLookup extends Events {
 	constructor(servers){
 		super()
 		this.debug = false
@@ -10,16 +15,9 @@ class Lookup extends Events {
 		this.ttl = 3 * 3600
 		this.failureTTL = 300
 		this.cacheKey = 'lookup'
-		this.servers = {
-			'default': dns.getServers()
-		}
+		this.servers = servers
 		this.isReady = false
 		this.preferableIpVersion = 4
-		Object.keys(servers).forEach(name => {
-			if(!servers[name].some(ip => this.servers['default'].includes(ip))){
-				this.servers[name] = servers[name]
-			}
-		})
 		this.setMaxListeners(999)
 		this.load()
 	}
@@ -28,9 +26,6 @@ class Lookup extends Events {
 			return 4
 		}
 		return 6
-	}
-	isIpv4(ip){
-		return this.family(ip) == 4
 	}
 	setPreferableIpVersion(v){
 		this.preferableIpVersion = v
@@ -65,7 +60,7 @@ class Lookup extends Events {
 		if(this.debug){
 			console.log('lookup->get', domain, family)
 		}
-		if(family == 0){
+		if(![4, 6].includes(family)){
 			let ret = []
 			return async.eachOf([6, 4], (family, i, done) => {
 				this.get(domain, family, (results, cached) => {
@@ -84,12 +79,14 @@ class Lookup extends Events {
 		}
 		const now = global.time()
 		if(typeof(this.data[domain + family]) != 'undefined'){
-			if(Array.isArray(this.data[domain + family]) && this.ttlData[domain + family] >= now){
-				if(this.debug){
-					console.log('lookup->get cached cb', this.data[domain + family])
+			if(Array.isArray(this.data[domain + family])){
+				if(this.ttlData[domain + family] >= now){
+					if(this.debug){
+						console.log('lookup->get cached cb', this.data[domain + family])
+					}
+					cb(this.data[domain + family], true)
+					return
 				}
-				cb(this.data[domain + family], true)
-				return
 			} else {
 				let locked = now < this.ttlData[domain + family]
 				if(locked){
@@ -101,68 +98,78 @@ class Lookup extends Events {
 				}
 			}
 		}
-		if(typeof(this.queue[domain + family]) != 'undefined'){
+		const queueKey = domain + family
+		if(typeof(this.queue[queueKey]) != 'undefined'){
 			if(this.debug){
 				console.log('lookup->queued', domain)
 			}
-			this.queue[domain + family].push(cb)
+			this.queue[queueKey].push(cb)
 			return
 		}
-		this.queue[domain + family] = [cb]
+		this.queue[queueKey] = [cb]
 		let finished, resultIps = {}
-		async.eachOfLimit(Object.values(this.servers), 1, (servers, i, acb) => {
-			if(finished){
-				acb()
-			} else {
-				if(this.debug){
-					console.log('lookup->get solving', domain)
-				}
-				dns.setServers(servers)
-				dns['resolve'+ family](domain, (err, ips) => {
-					if(this.debug){
-						console.log('lookup->get solve response', domain, err, ips, finished)
-					}
-					if(err){
-						if(this.debug){
-							console.error('lookup->get err on '+ servers.join(','), err)
-						}
-					} else {
-						if(!finished) {
-							finished = true
-							this.finish(domain, family, ips)
-						}
-						ips.forEach(ip => {
-							if(typeof(resultIps[ip]) == 'undefined'){
-								resultIps[ip] = 0
-							}
-							resultIps[ip]++
-						})
-					}
-					acb()
-				})
+		async.eachOf(Object.values(this.servers), (servers, i, acb) => {
+			if(this.debug){
+				console.log('lookup->get solving', domain)
 			}
+			dns.setServers(servers)
+			dns['resolve'+ family](domain, (err, ips) => {
+				if(this.debug){
+					console.log('lookup->get solve response', domain, err, ips, finished)
+				}
+				if(err){
+					if(this.debug){
+						console.error('lookup->get err on '+ servers.join(','), err)
+					}
+				} else {
+					if(!finished) {
+						finished = true
+						this.finish(domain, queueKey, ips)
+					}
+					ips.forEach(ip => {
+						if(typeof(resultIps[ip]) == 'undefined'){
+							resultIps[ip] = 0
+						}
+						resultIps[ip]++
+					})
+				}
+				if(acb){
+					acb()
+					acb = null
+				}
+			})
+			const timeout = 5
+			let timer = setTimeout(() => {
+				if(!finished && acb){
+					acb()
+					acb = null
+				}
+			}, timeout * 1000)
 		}, () => {
 			if(this.debug){
 				console.log('lookup->get solved', domain, finished)
 			}
 			let sortedIps = Object.keys(resultIps).sort((a,b) => resultIps[b] - resultIps[a])
 			if(!sortedIps.length){
-				this.finish(domain, family, false, true)
+				this.finish(domain, queueKey, false, true)
 			} else {
 				let max = resultIps[sortedIps[0]] // ensure to get the most trusteable
 				let ips = sortedIps.filter(s => resultIps[s] == max)
-				this.finish(domain, family, ips, true)
+				this.finish(domain, queueKey, ips, true)
 			}
 		})
 	}
-	finish(domain, family, value, save){
-		this.ttlData[domain + family] = global.time() + (value === false ? this.failureTTL : this.ttl)
-		if(typeof(this.data[domain + family]) == 'undefined' || value !== false){
-			this.data[domain + family] = value
+	finish(domain, queueKey, value, save){
+		this.ttlData[queueKey] = global.time() + (value === false ? this.failureTTL : this.ttl)
+		if(typeof(this.data[queueKey]) == 'undefined' || value !== false){
+			this.data[queueKey] = value
 		}
-		if(this.queue[domain + family]){
-			this.queue[domain + family].forEach(f => f(value, false))
-			delete this.queue[domain + family]
+		if(this.queue[queueKey]){
+			if(this.debug){
+				console.log('lookup->finish', domain, queueKey, value)
+			}
+			this.queue[queueKey].forEach(f => f(value, false))
+			delete this.queue[queueKey]
 		}
 		if(save && !Object.keys(this.queue).length){
 			this.save()
@@ -186,7 +193,10 @@ class Lookup extends Events {
 							ips = ret.ips
 							family = ret.family
 						}
-						callback(null, ips, family)
+						ips = ips.map(address => {
+							return {address, family: this.family(address)}
+						})
+						callback(null, ips)
 					} else {
 						let ip
 						if(family){
@@ -200,10 +210,13 @@ class Lookup extends Events {
 						if(this.debug){
 							console.log('lookup callback', ip, family)
 						}
-						callback(null, ip, family)
+						const now = Date.now();
+						callback(null, ip, family, now + (300 * 1000), 300)
 					}
 				} else {
-					callback(new Error('cannot resolve'))
+					const error = new Error('cannot resolve')
+					error.code = 'ENOTFOUND'
+					callback(error)
 				}
 			})
 		})
@@ -225,11 +238,12 @@ class Lookup extends Events {
 		global.storage.set(this.cacheKey, {data: this.data, ttlData: this.ttlData}, true)
 	}
 }
-
-const lookup = new Lookup({
+const lookup = new UltimateLookup({
 	gg: ['8.8.4.4', '8.8.8.8', '4.4.4.4'], 
 	od: ['208.67.222.222', '208.67.220.220'],
 	fn: ['80.80.80.80', '80.80.81.81']
 })
+//lookup.debug = true
+lookup.setPreferableIpVersion(global.config.get('prefer-ipv6') ? 6 : 4)
 lookup.lookup = lookup.lookup.bind(lookup)
 module.exports = lookup

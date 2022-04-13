@@ -61,6 +61,10 @@ class StreamerTools extends Events {
 		}
 		return !isAscii
 	}
+	isYT(url){
+		const YTRegex = new RegExp('(youtube\.com|youtu\.be).*(v=|v/)([A-Za-z0-9\-_]+)', 'i')
+		return url.match(YTRegex)
+	}
 	_probe(url, timeoutSecs, retries = 0){
 		return new Promise((resolve, reject) => {
 			let status = 0, timer = 0, headers = {}, sample = [], start = global.time()
@@ -168,7 +172,7 @@ class StreamerTools extends Events {
 								}
 							}
 						}
-						if(ct.substr(0, 4) == 'text'){
+						if(ct.substr(0, 4) == 'text' && !this.isYT(url)){
 							console.error('Bad content type: ' + ct)
 							reject(404)
 						} else {
@@ -181,6 +185,14 @@ class StreamerTools extends Events {
 							ret.ext = this.ext(ret.directURL) || this.ext(url)
 							resolve(ret)
 						}
+						ret.status = st
+						ret.contentType = ct.toLowerCase()
+						ret.contentLength = cl
+						if(!ret.directURL){
+							ret.directURL = ret.url
+						}
+						ret.ext = this.ext(ret.directURL) || this.ext(url)
+						resolve(ret)
 					}
 				}).catch(err => {
 					reject(err)
@@ -303,7 +315,8 @@ class StreamerBase extends StreamerTools {
             dash: require('./engines/dash'),
             ts: require('./engines/ts'),
             video: require('./engines/video'),
-            vodhls: require('./engines/vodhls')
+            vodhls: require('./engines/vodhls'),
+            yt: require('./engines/yt')
 		}
 		this.loadingIntents = []
 		this.setOpts(opts)
@@ -568,6 +581,7 @@ class StreamerBase extends StreamerTools {
 					if(this.active){
 						console.error(err)
 						cb(err)
+						intent.fail('unsupported format', err, intent.codecData)
 						if(!silent){
 							intent.fail('unsupported format')
 						}
@@ -703,60 +717,97 @@ class StreamerThrottling extends StreamerSpeedo {
 	}
 }
 
-class StreamerAbout extends StreamerThrottling {
+class StreamerTracks extends StreamerThrottling {
+	constructor(opts){
+		super(opts)
+	}
+	getTrackOptions(tracks, activeTrack){
+		return Object.keys(tracks).map((name, i) => {
+			let opt = {template: 'option', text: name, id: 'track-'+ i}
+			if(tracks[name] == activeTrack){
+				opt.fa = 'fas fa-play'
+			}
+			return opt
+		})
+	}
+	async showTrackSelector(){
+		if(!this.active) return
+		let tracks = this.active.getTracks(), activeTrack = this.active.getActiveTrack(), opts = this.getTrackOptions(tracks, activeTrack)
+		opts.unshift({template: 'question', text: global.lang.SELECT_TRACK})
+		let ret = await global.explorer.dialog(opts)
+		if(ret){
+			let uri
+			opts.filter(o => o.id == ret).forEach(o => {
+				uri = tracks[o.text]
+			})
+			if(uri && uri != this.active.endpoint){
+				this.active.endpoint = uri
+				this.connect()
+			}
+		}
+		return {ret, opts}
+	}
+}
+
+class StreamerAbout extends StreamerTracks {
 	constructor(opts){
 		super(opts)
 		if(!this.opts.shadow){
-			this.aboutOptions = []
-			this.moreAboutOptions = []
-			this.aboutDialogRegisterOption('title', data => {
-				return {template: 'question', text: data.name, fa: 'fas fa-info-circle'}
+			this.aboutEntries = []
+			this.moreAboutEntries = []
+			const aboutTitleRenderer = (data, short) => {
+				let text
+				if(this.active.mediaType == 'live' || !data.groupName){
+					text = data.name
+				} else {
+					text = '<div style="display: flex;flex-direction: row;"><span style="opacity: 0.5;display: inline;">'+ data.groupName +'&nbsp;&nbsp;&#129170;&nbsp;&nbsp;</span>'+ data.name +'</div>'
+				}
+				return {template: 'question', text, fa: 'fas fa-info-circle'}
+			}
+			this.aboutRegisterEntry('title', aboutTitleRenderer)
+			this.aboutRegisterEntry('title', aboutTitleRenderer, null, null, true)
+			this.aboutRegisterEntry('text', (data, short) => {
+				if(!short) return {template: 'message', text: this.aboutText()}
 			})
-			this.aboutDialogRegisterOption('title', data => {
-				return {template: 'question', text: data.name, fa: 'fas fa-info-circle'}
-			}, null, null, true)
-			this.aboutDialogRegisterOption('text', () => {
-				return {template: 'message', text: this.aboutText()}
-			})
-			this.aboutDialogRegisterOption('ok', () => {
+			this.aboutRegisterEntry('ok', () => {
 				return {template: 'option', text: 'OK', id: 'ok', fa: 'fas fa-check-circle'}
 			})
-			this.aboutDialogRegisterOption('share', data => {
+			this.aboutRegisterEntry('share', data => {
 				if(!data.isLocal){
 					return {template: 'option', text: global.lang.SHARE, id: 'share', fa: 'fas fa-share-alt'}
 				}
 			}, this.share.bind(this))
-			this.aboutDialogRegisterOption('more', data => {
+			this.aboutRegisterEntry('more', data => {
 				return {template: 'option', text: global.lang.MORE_OPTIONS, id: 'more', fa: 'fas fa-ellipsis-v'}
 			}, this.moreAbout.bind(this))
-			global.ui.on('streamer-about-cb', chosen => {
-				console.log('about callback', chosen)
-				if(this.active && this.active.data){
-					this.aboutOptions.concat(this.moreAboutOptions).some(o => {
-						if(o.id && o.id == chosen){
-							if(typeof(o.action) == 'function'){
-								o.action(this.active.data)
-							}
-							return true
-						}
-					})
+			this.aboutRegisterEntry('tracks', () => {
+				if(this.active.getTracks && Object.keys(this.active.getTracks()).length){
+					return {template: 'option', fa: 'fas fa-bars', text: global.lang.SELECT_TRACK, id: 'tracks'}
 				}
-			})	
+			}, this.showTrackSelector.bind(this), null, true)
+			global.ui.on('streamer-update-streamer-info', async () => {
+				if(this.active){
+					let opts = await this.aboutStructure(true)
+					let	msgs = opts.filter(o => ['question','message'].includes(o.template)).map(o => o.text)
+					// msgs[1] = msgs[1].split('<i')[0].replace(new RegExp('<[^>]*>', 'g'), '')
+					global.ui.emit('streamer-info', msgs.join('<br />'))
+				}
+			})
 		}	
 	}
-	aboutDialogRegisterOption(id, renderer, action, position, more){
+	aboutRegisterEntry(id, renderer, action, position, more){
 		let e = {id, renderer, action}
-		let k = more ? 'moreAboutOptions' : 'aboutOptions'
+		let k = more ? 'moreAboutEntries' : 'aboutEntries'
 		if(typeof(position) == 'number'){
 			this[k].splice(position, 0, e)
 		} else {
 			this[k].push(e)
 		}
 	}
-	aboutDialogStructure(){
+	aboutStructure(short){
 		return new Promise((resolve, reject) => {
-			Promise.allSettled(this.aboutOptions.map(o => {
-				return Promise.resolve(o.renderer(this.active.data))
+			Promise.allSettled(this.aboutEntries.map(o => {
+				return Promise.resolve(o.renderer(this.active.data, short))
 			})).then(results => {
 				let ret = [], textPos = -1, titlePos = -1
 				results.forEach(r => {
@@ -797,9 +848,9 @@ class StreamerAbout extends StreamerThrottling {
 			}).catch(reject)
 		})
 	}
-	moreAboutDialogStructure(){
+	moreAboutStructure(){
 		return new Promise((resolve, reject) => {
-			Promise.allSettled(this.moreAboutOptions.map(o => {
+			Promise.allSettled(this.moreAboutEntries.map(o => {
 				return Promise.resolve(o.renderer(this.active.data))
 			})).then(results => {
 				let ret = [], textPos = -1, titlePos = -1
@@ -874,7 +925,7 @@ class StreamerAbout extends StreamerThrottling {
 				}
 			}
 		}
-		let meta = [this.active.type], dimensions = this.active.dimensions()
+		let meta = [this.active.type.toUpperCase()], dimensions = this.active.dimensions()
 		if(dimensions){
 			meta.push(dimensions)
 		}
@@ -889,36 +940,47 @@ class StreamerAbout extends StreamerThrottling {
 		text = '<div>'+ text + '</div><div>' + meta.join(' | ') +'</div>'
 		return text
 	}
-    about(){
+    async about(){
 		if(this.opts.shadow){
 			return
 		}
 		let title, text = ''
 		if(this.active){
-			this.aboutDialogStructure(this.active.data).then(struct => {
-				global.ui.emit('dialog', struct, 'streamer-about-cb', 'ok')
-			}).catch(global.displayErr)
+			let struct = await this.aboutStructure()
+			let ret = await global.explorer.dialog(struct, 'ok')
+			this.aboutCallback(ret)
 		} else {
 			title = global.ucWords(global.MANIFEST.name) +' v'+ global.MANIFEST.version +' - '+ process.arch
 			text = global.lang.NONE_STREAM_FOUND
         	global.ui.emit('info', title, text.trim())
 		}
     }
-    moreAbout(){
-		if(this.opts.shadow){
-			return
-		}
+    async moreAbout(){
+		if(this.opts.shadow) return
 		let title, text = ''
 		if(this.active){
-			this.moreAboutDialogStructure(this.active.data).then(struct => {
-				global.ui.emit('dialog', struct, 'streamer-about-cb', 'ok')
-			}).catch(global.displayErr)
+			let struct = await this.moreAboutStructure()
+			let ret = await global.explorer.dialog(struct, 'ok')
+			this.aboutCallback(ret)
 		} else {
 			title = global.ucWords(global.MANIFEST.name) +' v'+ global.MANIFEST.version +' - '+ process.arch
 			text = global.lang.NONE_STREAM_FOUND
         	global.ui.emit('info', title, text.trim())
 		}
     }
+	aboutCallback(chosen){
+		console.log('about callback', chosen)
+		if(this.active && this.active.data){
+			this.aboutEntries.concat(this.moreAboutEntries).some(o => {
+				if(o.id && o.id == chosen){
+					if(typeof(o.action) == 'function'){
+						o.action(this.active.data)
+					}
+					return true
+				}
+			})
+		}
+	}
 }
 
 class Streamer extends StreamerAbout {
@@ -940,55 +1002,6 @@ class Streamer extends StreamerAbout {
 			})
 		}
 	}
-	playFromEntries(entries, name, megaUrl, txt, callback, connectId, mediaType, preferredStreamURL){
-		if(this.opts.shadow){
-			return
-		}
-		const loadingEntriesData = [global.lang.AUTO_TUNING, name]
-		console.warn('playFromEntries', entries, name, connectId)
-		if(!this.active){
-			global.explorer.setLoadingEntries(loadingEntriesData, true, txt)
-			global.osd.show(global.lang.TUNING_WAIT_X.format(name) + ' 0%', 'fa-mega spin-x-alt', 'streamer', 'persistent')
-		}
-		global.watching.order(entries).then(entries => {
-			if(this.connectId != connectId){
-				return
-			}
-			console.log('tuning', entries, name)
-			let tuning = new AutoTuner(entries, {}, name, megaUrl, mediaType, preferredStreamURL)
-			global.tuning = tuning
-			tuning.txt = txt
-			tuning.on('progress', i => {
-				if(!this.active && i.progress && !isNaN(i.progress)){
-					global.osd.show(global.lang.TUNING_WAIT_X.format(name) +' '+ i.progress + '%', 'fa-mega spin-x-alt', 'streamer', 'persistent')
-				}
-			})
-			tuning.on('finish', () => {
-				tuning.destroy()
-			})
-			tuning.on('destroy', () => {
-				global.osd.hide('streamer')
-				if(tuning == global.tuning){
-					global.tuning = null
-				}
-				tuning = null
-			})
-			tuning.tune().then(() => {
-				callback(true)
-				this.setTuneable(true)
-			}).catch(err => {
-				if(err != 'cancelled by user'){
-					global.osd.show(global.lang.NONE_STREAM_WORKED_X.format(name), 'fas fa-exclamation-circle faclr-red', 'streamer', 'normal')
-				}
-			}).finally(() => {
-				global.explorer.setLoadingEntries(loadingEntriesData, false)
-			})
-		}).catch(err => {
-			global.displayErr(err)
-			global.osd.hide('streamer')
-			callback(false)
-		})
-	}
 	setTuneable(enable){
 		this.isTuneable = !!enable
 		global.ui.emit('tuneable', this.isTuneable)
@@ -1003,9 +1016,65 @@ class Streamer extends StreamerAbout {
 		})
 		return ret
 	}
-	play(e, results){
+	async playFromEntries(entries, name, megaUrl, txt, connectId, mediaType, preferredStreamURL, silent){
 		if(this.opts.shadow){
-			return
+			throw 'in shadow mode'
+		}
+		const loadingEntriesData = [global.lang.AUTO_TUNING, name]
+		console.warn('playFromEntries', entries, name, connectId)
+		if(!this.active){
+			global.explorer.setLoadingEntries(loadingEntriesData, true, txt)
+			if(!silent){
+				global.osd.show(global.lang.TUNING_WAIT_X.format(name) + ' 0%', 'fa-mega spin-x-alt', 'streamer', 'persistent')
+			}
+		}
+		entries = await global.watching.order(entries)
+		if(this.connectId != connectId){
+			throw 'another play intent in progress'
+		}
+		console.log('tuning', entries, name)
+		let tuning = new AutoTuner(entries, {}, name, megaUrl, mediaType, preferredStreamURL)
+		global.tuning = tuning
+		tuning.txt = txt
+		tuning.on('progress', i => {
+			if(!silent && !this.active && i.progress && !isNaN(i.progress)){
+				global.osd.show(global.lang.TUNING_WAIT_X.format(name) +' '+ i.progress + '%', 'fa-mega spin-x-alt', 'streamer', 'persistent')
+			}
+		})
+		tuning.on('finish', () => {
+			tuning.destroy()
+		})
+		tuning.on('destroy', () => {
+			global.osd.hide('streamer')
+			if(tuning == global.tuning){
+				global.tuning = null
+			}
+			tuning = null
+		})
+		let hasErr
+		await tuning.tune().catch(err => {
+			if(err != 'cancelled by user'){
+				hasErr = err
+			}
+		})
+		if(hasErr){
+			if(!silent){
+				global.osd.show(global.lang.NONE_STREAM_WORKED_X.format(name), 'fas fa-exclamation-circle faclr-red', 'streamer', 'normal')
+			}
+		} else {
+			this.setTuneable(true)
+		}
+		global.explorer.setLoadingEntries(loadingEntriesData, false)
+		return !hasErr
+	}
+    hlsOnly(entries){
+        return entries.filter(a => {
+			return this.ext(a.url) == 'm3u8'
+		})
+    }
+	async playPromise(e, results, silent){
+		if(this.opts.shadow){
+			throw 'in shadow mode'
 		}
 		e = global.deepClone(e)
 		if(this.active){
@@ -1024,58 +1093,69 @@ class Streamer extends StreamerAbout {
 		const isMega = global.mega.isMega(e.url), txt = isMega ? global.lang.TUNING : undefined
 		const opts = isMega ? global.mega.parse(e.url) : {mediaType: 'live'};		
 		const loadingEntriesData = [e, global.lang.AUTO_TUNING]
-		console.log('SETLOADINGENTRIES', loadingEntriesData)
-		global.explorer.setLoadingEntries(loadingEntriesData, true, txt)
-		console.warn('STREAMER INTENT', e, results);
+		if(!silent){
+			console.log('SETLOADINGENTRIES', loadingEntriesData)
+			global.explorer.setLoadingEntries(loadingEntriesData, true, txt)
+		}
+		console.warn('STREAMER INTENT', e, results, traceback());
+		let succeeded
 		if(Array.isArray(results)){
 			let name = e.name
 			if(opts.name){
 				name = opts.name
 			}
-			this.playFromEntries(results, name, isMega ? e.url : '', txt, succeeded => {
-				if(this.connectId == connectId){
-					this.connectId = false
-					if(!succeeded){
-						this.emit('connecting-failure', e)
-					}
+			succeeded = await this.playFromEntries(results, name, isMega ? e.url : '', txt, connectId, opts.mediaType, e.preferredStreamURL || this.findPreferredStreamURL(name), silent)
+			if(this.connectId == connectId){
+				this.connectId = false
+				if(!succeeded){
+					this.emit('connecting-failure', e)
 				}
-			}, connectId, opts.mediaType, e.preferredStreamURL || this.findPreferredStreamURL(name))
+			} else {
+				if(!silent){
+					global.explorer.setLoadingEntries(loadingEntriesData, false)
+				}
+				throw 'another play intent in progress'
+			}
 		} else if(isMega && !opts.url) {
 			let name = e.name
 			if(opts.name){
 				name = opts.name
 			}
 			let terms = opts.terms ? opts.terms.split(',') : global.lists.terms(name, false)
-			global.osd.show(global.lang.TUNING_WAIT_X.format(name), 'fa-mega spin-x-alt', 'streamer', 'persistent')   
-			global.lists.search(terms, {
+			if(!silent){
+				global.osd.show(global.lang.TUNING_WAIT_X.format(name), 'fa-mega spin-x-alt', 'streamer', 'persistent')   
+			}
+			let entries = await global.lists.search(terms, {
 				type: 'live',
 				safe: (global.config.get('parental-control-policy') == 'block')
-			}).then(entries => {
-				if(this.connectId != connectId){
-					return
-				}				
-				//console.warn('ABOUT TO TUNE', name, JSON.stringify(entries))
-				entries = entries.results
-				if(entries.length){
-					entries = entries.map(s => {
-						s.originalName = name
-						s.originalUrl = e.url
-						return s
-					})
-					this.playFromEntries(entries, name, e.url, txt, succeeded => {
-						if(!succeeded){
-							this.connectId = false
-							this.emit('connecting-failure')
-						}
-					}, connectId, opts.mediaType, e.preferredStreamURL || this.findPreferredStreamURL(name))
-				} else {			
-					this.connectId = false
-					this.emit('connecting-failure', e)
-					global.osd.show(global.lang.NONE_STREAM_WORKED_X.format(name), 'fas fa-exclamation-circle faclr-red', 'streamer', 'normal')
-					global.ui.emit('sound', 'static', 25)
+			})
+			if(this.connectId != connectId){
+				if(!silent){
 					global.explorer.setLoadingEntries(loadingEntriesData, false)
 				}
-			})
+				throw 'another play intent in progress'
+			}		
+			console.warn('ABOUT TO TUNE', name, JSON.stringify(entries), opts)
+			entries = entries.results		
+			if(opts.hlsOnly){
+				entries = this.hlsOnly(entries)
+			}
+			if(entries.length){
+				entries = entries.map(s => {
+					s.originalName = name
+					s.originalUrl = e.url
+					return s
+				})
+				succeeded = await this.playFromEntries(entries, name, e.url, txt, connectId, opts.mediaType, e.preferredStreamURL || this.findPreferredStreamURL(name), silent)
+			}
+			if(!succeeded){
+				this.connectId = false
+				this.emit('connecting-failure', e)
+				if(!silent){
+					global.osd.show(global.lang.NONE_STREAM_WORKED_X.format(name), 'fas fa-exclamation-circle faclr-red', 'streamer', 'normal')
+					global.ui.emit('sound', 'static', 25)
+				}
+			}
 		} else {
 			if(opts.url){
 				e = Object.assign(Object.assign({}, e), opts)
@@ -1083,22 +1163,35 @@ class Streamer extends StreamerAbout {
 			console.warn('STREAMER INTENT', e);
 			let terms = global.channels.entryTerms(e)
 			this.setTuneable(!global.lists.msi.isVideo(e.url) && global.channels.isChannel(terms))
-			global.osd.show(global.lang.CONNECTING + ' ' + e.name + '...', 'fa-mega spin-x-alt', 'streamer', 'persistent')
-			this.intent(e).then(n => {
-				console.warn('STREAMER INTENT SUCCESS', e);
-			}).catch(r => {
+			if(!silent){
+				global.osd.show(global.lang.CONNECTING + ' ' + e.name + '...', 'fa-mega spin-x-alt', 'streamer', 'persistent')
+			}
+			let hasErr
+			await this.intent(e).catch(r => hasErr = r)
+			if(hasErr){
 				if(this.connectId != connectId){
-					return
-				}				
-				console.warn('STREAMER INTENT ERROR', r, traceback())
+					if(!silent){
+						global.explorer.setLoadingEntries(loadingEntriesData, false)
+					}
+					throw 'another play intent in progress'
+				}		
+				console.warn('STREAMER INTENT ERROR', hasErr, traceback())
 				global.ui.emit('sound', 'static', 25);
 				this.connectId = false
 				this.emit('connecting-failure', e)
 				this.handleFailure(e, r)
-			}).finally(() => {
-				global.explorer.setLoadingEntries(loadingEntriesData, false)
-			})
+			} else {
+				console.warn('STREAMER INTENT SUCCESS', e)
+				succeeded = true
+			}
 		}
+		if(!silent){
+			global.explorer.setLoadingEntries(loadingEntriesData, false)
+		}
+		return succeeded
+	}
+	play(e, results, silent){
+		this.playPromise(e, results, silent).catch(console.error)
 	}
 	tune(e){
 		if(this.opts.shadow){
@@ -1201,8 +1294,8 @@ class Streamer extends StreamerAbout {
 				break
 			default:
 				msg = r
-				let code = msg.match(new RegExp('error:? ([0-9]+)'))
-				code = String((code && code.length) ? code[1] : msg)
+				let code = msg.match(new RegExp('(code|error):? ([0-9]+)'))
+				code = String((code && code.length) ? code[2] : msg)
 				switch(code){
 					case '0':
 						msg = global.lang.SLOW_SERVER
