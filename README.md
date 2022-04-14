@@ -28,36 +28,10 @@ Want to use the software, go to [our releases folder](https://github.com/efoxbr/
 
 <br/>
 
-# Development setup.
-
-### With NW.js (for desktop):
-Easier and recommended way. [NW.js installed version](https://subscription.packtpub.com/book/web-development/9781785280863/1/ch01lvl1sec10/downloading-and-installing-nw-js) should be >= 0.37.4.
-```
-git clone https://github.com/efoxbr/megacubo.git
-# put ffmpeg binary at ./megacubo/www/nodejs-project/ffmpeg/ (named as ffmpeg or ffmpeg.exe)
-cd megacubo
-npm --prefix ./www/nodejs-project install ./www/nodejs-project
-nw --nwapp=www/nodejs-project
-```
-
-### With Cordova (for Android):
-```
-git clone https://github.com/efoxbr/megacubo.git
-# ffmpeg binary not needed, it will install and use mobile-ffmpeg lib
-cd megacubo
-npm --prefix ./www/nodejs-project install ./www/nodejs-project
-cordova prepare
-```
-After that, edit the file build-extras.gradle to choose the target ABIs. 
-
-If you are in doubt, go with NW.js, as for Cordova it's tricky to set project up and running.
-
-Any errors along the way? [Let us know](https://github.com/efoxbr/megacubo/issues).
-
-<br/>
-
 # Contributing
 
-Please, feel free to contribute to the project by opening a discussion under Issues section or sending your PR.
+Please, feel free to contribute to the project by opening a discussion under Issues section or [sending your PR](https://github.com/efoxbr/megacubo/blob/master/DEVELOPING.md).
 
 You can help us by [improving/creating translations](https://github.com/efoxbr/megacubo/tree/master/www/nodejs-project/lang) and the [known channel names list for your country](https://github.com/efoxbr/world-tv-channels).
+
+If you want to thank me for developing this software you can buy me a coffee via [PayPal](https://www.paypal.com/donate/?item_name=megacubo.tv&cmd=_donations&business=efox.web%40gmail.com).
