@@ -1,7 +1,7 @@
 const Events = require('events'), ListIndex = require('./list-index'), ConnRacing = require(global.APPDIR + '/modules/conn-racing')
 
 class List extends Events {
-	constructor(url, parent){
+	constructor(url, parent, relevantKeywords){
 		super(url, parent)
 		this.debug = false
 		if(url.substr(0, 2) == '//'){
@@ -16,6 +16,7 @@ class List extends Events {
 		this._log = [
 			this.url
 		]
+        this.relevantKeywords = relevantKeywords
 		this.parent = (() => parent)
 	}
 	log(...args){
@@ -38,7 +39,7 @@ class List extends Events {
                     reject('destroyed')
                 }
             })
-            this.indexer = new ListIndex(this.file, this.parent())
+            this.indexer = new ListIndex(this.file)
             this.indexer.on('error', reject)
             this.indexer.on('data', index => {
                 if(index.length){
@@ -152,9 +153,9 @@ class List extends Events {
 		if(this.skipValidating){
 			return
 		}
-		let rks = this.parent().relevantKeywords
+		let rks = this.parent() ? this.parent().relevantKeywords : this.relevantKeywords
 		if(!rks || !rks.length){
-			console.error('no parent keywords', this.parent(), rks)
+			console.error('no parent keywords', this.parent(), this.relevantKeywords, rks)
 			return 100
 		}
 		let hits = 0

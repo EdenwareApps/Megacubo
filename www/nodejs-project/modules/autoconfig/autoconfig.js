@@ -3,9 +3,9 @@ class AutoConfig {
     validateDomain(domain){
         return domain.indexOf('.') != -1 && domain.match(new RegExp('^[a-z0-9\.]{4,}'))
     }
-    async start(){
-        let data = await this.detect()
-        if(data && data.domain && this.validateDomain(data.domain)){
+    async start(_data){
+        let data = _data || (await this.detect())
+        if(_data || (data && data.domain && this.validateDomain(data.domain))){
             global.ui.emit('setup-skip-list')
             let allow = await this.confirm(data.domain)
             if(allow){
@@ -28,7 +28,7 @@ class AutoConfig {
     async confirm(domain){
         let opts = [
             {template: 'question', text: global.lang.AUTOCONFIG, fa: 'fas fa-magic'},
-            {template: 'message', text: global.lang.AUTOCONFIG_WARN.format(domain)},
+            {template: 'message', text: global.lang.AUTOCONFIG_WARN.format(domain || '').replace('()', '')},
             {template: 'option', text: global.lang.ALLOW, fa: 'fas fa-check-circle', id: 'yes'},
             {template: 'option', text: global.lang.BLOCK, fa: 'fas fa-ban', id: 'no'}
         ], def = 'no'

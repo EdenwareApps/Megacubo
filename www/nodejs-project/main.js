@@ -548,7 +548,8 @@ function init(language){
             if(url){
                 let parts = mega.parse(url)
                 if(parts && parts.name && parts.name == 'configure'){
-                    autoconfig.apply(parts)
+                    console.log('OPENURL configure', parts)
+                    autoconfig.start(parts).catch(console.error)
                 } else {
                     storage.raw.set('open-url', url, true)
                     const name = lists.manager.nameFromSourceURL(url), e = {

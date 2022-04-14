@@ -69,6 +69,9 @@ class UpdateListIndex extends ListIndexUtils {
                 }
                 this.stream = new global.Download(opts)
                 this.stream.once('response', (statusCode, headers) => {
+                    if(this.debug){
+                        console.log('response', statusCode, headers, this.updateMeta)
+                    }
                     now = global.time()
                     if(statusCode >= 200 && statusCode < 300){
                         this.contentLength = this.stream.totalContentLength

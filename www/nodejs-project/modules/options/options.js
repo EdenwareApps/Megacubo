@@ -161,7 +161,7 @@ class PerformanceProfiles extends Timer {
         if(setup){
             txt += '<br /><br />'+ global.lang.OPTION_CHANGE_AT_ANYTIME.format(global.lang.OPTIONS)
         }
-        let ret = await global.explorer.dialog('dialog', [
+        let ret = await global.explorer.dialog([
             {template: 'question', text: global.lang.PERFORMANCE_MODE, fa: 'fas fa-tachometer-alt'},
             {template: 'message', text: txt},
             {template: 'option', id: 'low', fa: cur == 'low' ? 'fas fa-check-circle' : '', text: global.lang.FOR_SLOW_DEVICES},

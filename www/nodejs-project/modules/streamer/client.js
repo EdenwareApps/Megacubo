@@ -1404,7 +1404,11 @@ class StreamerClientControls extends StreamerAudioUI {
     }
     enablePlayerButton(id, show){
         let button = this.getPlayerButton(id)
-        button.style.display = show ? 'inline-flex' : 'none'
+        if(button){
+            button.style.display = show ? 'inline-flex' : 'none'
+        } else {
+            console.error('Button '+ id +' not found')
+        }
     }
 }
 

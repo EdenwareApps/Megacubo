@@ -604,6 +604,7 @@ class Theme extends Events {
                     debug: false,
                     file,
                     url,
+                    compression: false,
                     progress: p => {
                         global.osd.show(global.lang.LOADING +' '+ p +'%', 'fas fa-download', 'theme', 'persistent')
                     }

@@ -509,9 +509,13 @@ class StreamerBase extends StreamerTools {
 				}
 				if(!global.cordova && !intent.isTranscoding()){
 					if(codecData.video && codecData.video.match(new RegExp('(hevc|mpeg2video|mpeg4)')) && intent.opts.videoCodec != 'libx264'){
-						this.transcode(null, err => {
-							if(err) intent.fail('unsupported format')
-						})
+						if((!global.tuning && !global.zap.isZapping) || global.config.get('transcoding-tuning')){
+							this.transcode(null, err => {
+								if(err) intent.fail('unsupported format')
+							})
+						} else {
+							intent.fail('unsupported format')
+						}
 					}
 				}
 			})

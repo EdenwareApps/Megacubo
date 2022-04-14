@@ -1,5 +1,6 @@
 
 const async = require('async')
+const List = require(global.APPDIR + '/modules/lists/list.js')
 const UpdateListIndex = require(global.APPDIR + '/modules/lists/update-list-index.js')
 const ConnRacing = require(global.APPDIR + '/modules/conn-racing')
 const Common = require(global.APPDIR + '/modules/lists/common.js')
@@ -134,6 +135,9 @@ class ListsUpdater extends Common {
 					updateMeta.updateAfter = now + 180
 					this.setUpdateMeta(url, updateMeta)
 					updater.start().then(index => {
+						if(this.debug){
+							console.log('updater - index', url, index)
+						}
 						if(index){
 							updateMeta.contentLength = updater.contentLength
 							updateMeta.updateAfter = now + (24 * 3600)
@@ -149,13 +153,31 @@ class ListsUpdater extends Common {
 			})
 		})
 	}
+	validateIndex(url, cb){
+		const list = new List(url, null, this.relevantKeywords)
+		list.start().then(() => cb()).catch(err => cb(err))
+	}
 	shouldUpdate(url, cb){
 		this.getUpdateMeta(url, updateMeta => {
 			let now = global.time()
 			if(!updateMeta){
 				updateMeta = {updateAfter: 0, contentLength: 0}
 			}
-			cb((now >= updateMeta.updateAfter) ? updateMeta : false)
+			let should = (now >= updateMeta.updateAfter) ? updateMeta : false
+			if(should){
+				cb(should)
+			} else {
+				this.validateIndex(url, err => {
+					if(err){
+						console.error('Invalid index, should update', url)
+						cb({
+							updateAfter: global.time() - 1
+						})
+					} else {
+						cb(should)
+					}
+				})
+			}
 		})
 	}
 }
