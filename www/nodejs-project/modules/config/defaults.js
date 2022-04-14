@@ -53,7 +53,7 @@ module.exports = {
 	'parental-control-policy': 'block',
 	'parental-control-terms': '.',
 	'playback-rate-control': true,
-	'prefer-ipv6': true,
+	'prefer-ipv6': false,
 	'connect-timeout': 5,
 	'resume': false,
 	'search-missing-logos': true,
