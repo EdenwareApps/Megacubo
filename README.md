@@ -59,4 +59,4 @@ Any errors along the way? [Let us know](https://github.com/efoxbr/megacubo/issue
 
 Please, feel free to contribute to the project by opening a discussion under Issues section or sending your PR.
 
-You can help us by [improving translations](https://github.com/efoxbr/megacubo/tree/master/www/nodejs-project/lang) and the [known channel names list](https://github.com/efoxbr/world-tv-channels).
+You can help us by [improving/creating translations](https://github.com/efoxbr/megacubo/tree/master/www/nodejs-project/lang) and the [known channel names list for your country](https://github.com/efoxbr/world-tv-channels).
