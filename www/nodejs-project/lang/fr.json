@@ -351,6 +351,7 @@
    "TUNE": "Réglage",
    "TUNING": "Réglage",
    "TUNING_CONCURRENCY_LIMIT": "Limite de la concurrence de réglage",
+   "TUNING_FFMPEG_CONCURRENCY_LIMIT": "FFMPEG limite de concurrence à l'inverse",
    "TUNING_WAIT_X": "Tuning {0}, attends...",
    "UNSCHEDULE_PROGRAM_RECORDING": "Voulez-vous annuler l'enregistrement de ce programme?",
    "UPDATING_LISTS": "Mise à jour des listes...",
@@ -379,5 +380,5 @@
    "YOUR_CONNECTION_IS_SLOW_TIP": "Votre connexion est lente pour cette diffusion, cliquez sur {0} pour en essayer un autre.",
    "ZAP": "Aléatoire",
    "ZAPPING": "Ouverture de canal aléatoire...",
-   "ZAP_DESCRIPTION": "Ouvrir n'importe quelle chaîne au hasard"
+   "ZAP_DESCRIPTION": "Ouvrir des canaux aléatoires"
 }

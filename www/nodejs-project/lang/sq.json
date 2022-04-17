@@ -351,6 +351,7 @@
    "TUNE": "Akordim",
    "TUNING": "Akordim",
    "TUNING_CONCURRENCY_LIMIT": "Kufizimi i konkurrencës në akordim",
+   "TUNING_FFMPEG_CONCURRENCY_LIMIT": "Kufiri i Konkurrencës FFMPEG në akordim",
    "TUNING_WAIT_X": "Tuning {0}, prisni...",
    "UNSCHEDULE_PROGRAM_RECORDING": "A doni të anuloni regjistrimin e këtij programi?",
    "UPDATING_LISTS": "Përditësimi i listave...",
@@ -379,5 +380,5 @@
    "YOUR_CONNECTION_IS_SLOW_TIP": "Lidhja juaj është e ngadaltë për këtë transmetim, klikoni {0} për të provuar një tjetër",
    "ZAP": "I rastit",
    "ZAPPING": "Hapja e kanalit të rastit...",
-   "ZAP_DESCRIPTION": "Hapni çdo kanal rastësisht"
+   "ZAP_DESCRIPTION": "Hapni kanale rastësisht"
 }

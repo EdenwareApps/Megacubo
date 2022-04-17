@@ -113,7 +113,8 @@ class PerformanceProfiles extends Timer {
                 'search-missing-logos': true,
                 'show-logos': true,
                 'transcoding': '1080p',
-                'tuner-concurrency': 12,
+                'tune-concurrency': 12,
+                'tune-ffmpeg-concurrency': 2,
                 'ui-sounds': true
             },
             low: {
@@ -129,7 +130,8 @@ class PerformanceProfiles extends Timer {
                 'search-missing-logos': false,
                 'show-logos': false,
                 'transcoding': '',
-                'tuner-concurrency': 6,
+                'tune-concurrency': 4,
+                'tune-ffmpeg-concurrency': 1,
                 'tuning-prefer-hls': true,
                 'ui-sounds': false
             }
@@ -669,10 +671,23 @@ class Options extends OptionsExportImport {
                     range: {start: 4, end: 32},
                     action: (data, value) => {
                         console.warn('TUNING_CONCURRENCY_LIMIT', data, value)
-                        global.config.set('tuner-concurrency', value)
+                        global.config.set('tune-concurrency', value)
                     }, 
                     value: () => {
-                        return global.config.get('tuner-concurrency')
+                        return global.config.get('tune-concurrency')
+                    }
+                },
+                {
+                    name: global.lang.TUNING_FFMPEG_CONCURRENCY_LIMIT, 
+                    fa: 'fas fa-poll-h', 
+                    type: 'slider', 
+                    range: {start: 1, end: 4},
+                    action: (data, value) => {
+                        console.warn('TUNING_FFMPEG_CONCURRENCY_LIMIT', data, value)
+                        global.config.set('tune-ffmpeg-concurrency', value)
+                    }, 
+                    value: () => {
+                        return global.config.get('tune-ffmpeg-concurrency')
                     }
                 },
                 {

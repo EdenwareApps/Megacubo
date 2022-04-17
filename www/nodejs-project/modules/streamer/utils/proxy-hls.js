@@ -386,7 +386,7 @@ class HLSRequests extends StreamerProxyBase {
 		super(opts)
 		this.debugConns = false
 		this.debugUnfinishedRequests = false
-		this.prefetchMaxConcurrency = 2
+		this.prefetchMaxConcurrency = 1
 		this.packetFilterPolicy = 1
 		this.requestCacheUID = parseInt(Math.random() * 1000000)
 		this.requestCacheDir = global.paths.temp +'/streamer/'+ this.requestCacheUID +'/'

@@ -9,7 +9,6 @@ class AutoTuner extends Events {
         this.megaURL = megaURL
         this.mediaType = mediaType == 'audio' ? 'all' : mediaType // is we're searching a radio, no problem to return a radio studio webcam
         this.resultsBuffer = 2
-        this.intentConcurrency = 2
         this._intents = []
         this.succeededs = {} // -1 = bad mediatype, 0 = initialized, 1 = intenting, 2 = committed, 3 = starting failed
         if(!opts.allowedTypes || !Array.isArray(opts.allowedTypes)){
@@ -176,7 +175,7 @@ class AutoTuner extends Events {
                 return intent
             }).filter(n => n)
             console.error('BEFORE DESTROYING OTHER INTENTS', intents, intents.map(n => n.data.url))
-            async.eachOfLimit(intents, this.intentConcurrency, (n, i, acb) => {
+            async.eachOfLimit(intents, global.config.get('tune-concurrency'), (n, i, acb) => {
                 if(this.paused || this.destroyed){
                     done = true
                     acb()

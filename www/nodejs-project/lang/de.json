@@ -351,6 +351,7 @@
    "TUNE": "Tuning.",
    "TUNING": "Tuning.",
    "TUNING_CONCURRENCY_LIMIT": "Parallelitätsgrenze beim Tuning",
+   "TUNING_FFMPEG_CONCURRENCY_LIMIT": "FFMPEG-Parallelitätsgrenze beim Tuning",
    "TUNING_WAIT_X": "Tuning {0}, warten...",
    "UNSCHEDULE_PROGRAM_RECORDING": "Möchten Sie die Aufnahme dieses Programms stornieren?",
    "UPDATING_LISTS": "Aktualisierungslisten...",
@@ -379,5 +380,5 @@
    "YOUR_CONNECTION_IS_SLOW_TIP": "Ihre Verbindung ist für diese Sendung langsam, klicken Sie auf {0}, um einen anderen auszuprobieren",
    "ZAP": "Zufällig",
    "ZAPPING": "Öffnen zufälliger Kanal...",
-   "ZAP_DESCRIPTION": "Öffnen Sie einen beliebigen Kanal zufällig"
+   "ZAP_DESCRIPTION": "Zufällige Kanäle öffnen."
 }

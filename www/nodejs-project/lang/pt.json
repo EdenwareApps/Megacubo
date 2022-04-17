@@ -351,6 +351,7 @@
    "TUNE": "Sintonia",
    "TUNING": "Sintonizando",
    "TUNING_CONCURRENCY_LIMIT": "Limite de concorrência na sintonia",
+   "TUNING_FFMPEG_CONCURRENCY_LIMIT": "Limite de concorrência do FFmpeg na sintonia",
    "TUNING_WAIT_X": "Sintonizando {0}, aguarde...",
    "UNSCHEDULE_PROGRAM_RECORDING": "Deseja cancelar a gravação deste programa?",
    "UPDATING_LISTS": "Atualizando listas...",

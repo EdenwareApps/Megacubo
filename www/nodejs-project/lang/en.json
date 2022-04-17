@@ -351,6 +351,7 @@
    "TUNE": "Tuning",
    "TUNING": "Tuning",
    "TUNING_CONCURRENCY_LIMIT": "Concurrency limit in tuning",
+   "TUNING_FFMPEG_CONCURRENCY_LIMIT": "FFMPEG concurrency limit in tuning",
    "TUNING_WAIT_X": "Tuning {0}, wait...",
    "UNSCHEDULE_PROGRAM_RECORDING": "Do you want to cancel the recording of this program?",
    "UPDATING_LISTS": "Updating lists...",
@@ -379,5 +380,5 @@
    "YOUR_CONNECTION_IS_SLOW_TIP": "Your connection is slow for this broadcast, click {0} to try another one",
    "ZAP": "Zapping",
    "ZAPPING": "Zapping...",
-   "ZAP_DESCRIPTION": "Surf channels"
+   "ZAP_DESCRIPTION": "Randomly surf by channels"
 }

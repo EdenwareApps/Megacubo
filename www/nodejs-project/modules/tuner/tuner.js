@@ -311,7 +311,7 @@ class Tuner extends TunerTask {
 				console.log('TUNER STARTED')
 			}
 			this.stats()
-			async.parallelLimit(new Array(this.entries.length).fill(this.task.bind(this)), global.config.get('tuner-concurrency'), () => {
+			async.parallelLimit(new Array(this.entries.length).fill(this.task.bind(this)), global.config.get('tune-concurrency'), () => {
 				if(this.opts.debug){
 					console.log('TUNER FINISHED')
 				}

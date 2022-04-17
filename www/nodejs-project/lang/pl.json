@@ -351,6 +351,7 @@
    "TUNE": "Strojenie",
    "TUNING": "Strojenie",
    "TUNING_CONCURRENCY_LIMIT": "Limit współbieżności w strojeniu",
+   "TUNING_FFMPEG_CONCURRENCY_LIMIT": "Limit współbieżności FFMPEG w strojeniu",
    "TUNING_WAIT_X": "Tuning {0}, czekaj...",
    "UNSCHEDULE_PROGRAM_RECORDING": "Czy chcesz anulować nagrywanie tego programu?",
    "UPDATING_LISTS": "Trwa aktualizowanie listy...",
@@ -379,5 +380,5 @@
    "YOUR_CONNECTION_IS_SLOW_TIP": "Twoje połączenie jest powolne dla tego transmisji, kliknij {0}, aby spróbować innego",
    "ZAP": "Losowy",
    "ZAPPING": "Otwarcie losowego kanału...",
-   "ZAP_DESCRIPTION": "Otwórz losowo dowolny kanał"
+   "ZAP_DESCRIPTION": "Otwórz losowo kanały"
 }

@@ -351,6 +351,7 @@
    "TUNE": "Sintonizzare",
    "TUNING": "Sintonizzando",
    "TUNING_CONCURRENCY_LIMIT": "Limite di test simultaneo",
+   "TUNING_FFMPEG_CONCURRENCY_LIMIT": "Limite di concorrenza FFMpeg nella sintonizzazione",
    "TUNING_WAIT_X": "Sintonizzando {0}, aspetta...",
    "UNSCHEDULE_PROGRAM_RECORDING": "Vuoi annullare la registrazione di questo programma?",
    "UPDATING_LISTS": "Aggiornamento elenchi...",
@@ -379,5 +380,5 @@
    "YOUR_CONNECTION_IS_SLOW_TIP": "La connessione è lenta per questa trasmissione, fai clic su {0} per provarne un'altra",
    "ZAP": "Casuale",
    "ZAPPING": "Apertura del canale casuale...",
-   "ZAP_DESCRIPTION": "Apri qualsiasi canale a caso"
+   "ZAP_DESCRIPTION": "Apri canali casuali"
 }

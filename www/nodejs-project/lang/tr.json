@@ -351,6 +351,7 @@
    "TUNE": "Tüneleme",
    "TUNING": "Tüneleme",
    "TUNING_CONCURRENCY_LIMIT": "Ayarlamada Eşzamanlılık Sınırı",
+   "TUNING_FFMPEG_CONCURRENCY_LIMIT": "Tuning'de FFMPEG Eşzamanlılık Sınırı",
    "TUNING_WAIT_X": "Tuning {0}, bekle...",
    "UNSCHEDULE_PROGRAM_RECORDING": "Bu programın kaydını iptal etmek ister misiniz?",
    "UPDATING_LISTS": "Listeleri güncelleme...",
@@ -379,5 +380,5 @@
    "YOUR_CONNECTION_IS_SLOW_TIP": "Bağlantınız bu yayın için yavaş, başka birini denemek için {0} 'ı tıklayın.",
    "ZAP": "Rastgele",
    "ZAPPING": "Rastgele Kanal Açma...",
-   "ZAP_DESCRIPTION": "Herhangi bir kanalı rastgele açın"
+   "ZAP_DESCRIPTION": "Rastgele kanalları aç"
 }
