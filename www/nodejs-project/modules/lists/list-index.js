@@ -10,27 +10,21 @@ class ListIndex extends ListIndexUtils {
         this.emit('error', err)
         this.emit('end')
     }
-    entries(map){
-        return new Promise((resolve, reject) => {
-            this.readLines(this.file, map, lines => {
-                let entries
-                try {
-                    entries = JSON.parse('['+ lines.filter(l => l.length > 9).join(',') +']') // remove undefineds too
-                } catch(e) {
-
-                }
-                if(Array.isArray(entries) && entries.length){
-                    let last = entries.length - 1
-                    if(entries[last].length){ // remove index entry
-                        entries.splice(last, 1)
-                    }
-                    resolve(entries)
-                } else {
-                    console.error('Failed to get lines', lines, map, this.file)
-                    reject('failed to get lines')
-                }
-            })
-        })
+    async entries(map){
+        let lines = await this.readLines(this.file, map)
+        let entries
+        try {
+            entries = JSON.parse('['+ lines.filter(l => l.length > 9).join(',') +']') // remove undefineds too
+        } catch(e) {}
+        if(Array.isArray(entries) && entries.length) {
+            let last = entries.length - 1
+            if(entries[last].length){ // remove index entry
+                entries.splice(last, 1)
+            }
+            return entries
+        }
+        console.error('Failed to get lines', lines, map, this.file)
+        throw 'failed to get lines'
     }
 	start(){
 		fs.stat(this.file, (err, stat) => {
@@ -38,10 +32,10 @@ class ListIndex extends ListIndexUtils {
 				console.log('loadCache', this.url, stat)
 			}
 			if(stat && stat.size){
-                this.readIndex(index => {
+                this.readIndex().then(index => {
                     this.emit('data', index)
                     this.emit('end')                    
-                })
+                }).catch(console.error)
 			} else {
                 this.fail('file not found or empty')
 			}

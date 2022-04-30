@@ -1,4 +1,4 @@
-const fs = require('fs'), Events = require('events')
+const fs = require('fs'), path = require('path'), Events = require('events')
 
 class WriteQueueFile extends Events {
 	constructor(file){
@@ -34,12 +34,14 @@ class WriteQueueFile extends Events {
 		}
 	}
 	prepare(cb){
-		fs.stat(this.file, (err) => {
+		fs.access(this.file, err => {
 			if(err){
 				if(this.debug){
 					console.log('writeat creating', this.file)
 				}
-				fs.writeFile(this.file, '', cb)
+				fs.mkdir(path.dirname(this.file), {recursive: true}, () => {
+					fs.writeFile(this.file, '', cb)
+				})
 			} else {
 				cb()
 			}

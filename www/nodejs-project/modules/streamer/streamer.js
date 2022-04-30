@@ -1,6 +1,6 @@
 
 const path = require('path'), Events = require('events'), fs = require('fs'), async = require('async')
-const AutoTuner = require('../tuner/auto-tuner')
+const AutoTuner = require('../tuner/auto-tuner'), StreamInfo = require('../iptv-stream-info')
 
 if(!Promise.allSettled){
 	Promise.allSettled = ((promises) => Promise.all(promises.map(p => p
@@ -16,7 +16,7 @@ if(!Promise.allSettled){
 class StreamerTools extends Events {
     constructor(){
         super()
-		this.probeSampleSize = 1024
+		this.streamInfo = new StreamInfo()
     }
     setOpts(opts){
         if(opts && typeof(opts) == 'object'){     
@@ -38,14 +38,6 @@ class StreamerTools extends Events {
 			return true // /^(?:(?:(?:https?|rt[ms]p[a-z]?):)?\/\/)(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,})))(?::\d{2,5})?(?:[/?#]\S*)?$/i.test(value);
 		}
 	}
-    absolutize(path, url){
-		if(!path) return url
-        if(path.match(new RegExp('^[htps:]?//'))){
-            return path
-        }
-        let uri = new URL(path, url)
-        return uri.href
-    }
 	isBin(buf){
 		if(!buf) {
 			return false
@@ -61,176 +53,23 @@ class StreamerTools extends Events {
 		}
 		return !isAscii
 	}
-	isYT(url){
-		const YTRegex = new RegExp('(youtube\.com|youtu\.be).*(v=|v/)([A-Za-z0-9\-_]+)', 'i')
-		return url.match(YTRegex)
-	}
-	_probe(url, timeoutSecs, retries = 0){
-		return new Promise((resolve, reject) => {
-			let status = 0, timer = 0, headers = {}, sample = [], start = global.time()
-			if(this.validate(url)){
-				if(typeof(timeoutSecs) != 'number'){
-					timeoutSecs = 10
-				}
-                const req = {
-                    url,
-                    followRedirect: true,
-					acceptRanges: false,
-                    keepalive: false,
-                    retries
-                }
-                let download = new global.Download(req), ended = false, finish = () => {
-					if(this.opts.debug){
-						console.log('finish', ended, sample, headers, traceback())
-					}
-					if(!ended){
-						ended = true
-						clearTimeout(timer)
-						const ping = global.time() - start
-						const done = () => {
-							const received = JSON.stringify(headers).length + this.len(sample)
-							const speed = received / ping
-							const ret = {status, headers, sample, ping, speed, url, directURL: download.currentURL}
-							// console.log('data', url, status, download.statusCode, ping, received, speed, ret)
-							resolve(ret)
-						}
-						if(download){
-							download.destroy()
-						}
-						sample = Buffer.concat(sample)
-						let strSample = String(sample)
-						if(strSample.toLowerCase().indexOf('#ext-x-stream-inf') == -1){
-							done()
-						} else {
-							let trackUrl = strSample.split("\n").map(s => s.trim()).filter(line => line.length > 3 && line.charAt(0) != '#').shift()
-							trackUrl = this.absolutize(trackUrl, url)
-							return this._probe(trackUrl, timeoutSecs, retries).then(resolve).catch(err => {
-								console.error(err)
-								done()
-							})
-						}
-					}
-				}
-				if(this.opts.debug){
-					console.log(url, timeoutSecs)
-				} 
-				download.on('error', err => {
-					console.warn(url, err)
-				})
-				download.on('data', chunk => {
-					if(typeof(chunk) == 'string'){
-						chunk = Buffer.from(chunk)
-					}
-					sample.push(chunk)
-					if(this.len(sample) >= this.probeSampleSize){
-						//console.log('sample', sample, this.probeSampleSize)
-						finish()
-					}
-				})
-				download.once('response', (statusCode, responseHeaders) => {
-					if(this.opts.debug){
-						console.log(url, statusCode, responseHeaders)
-					}
-					headers = responseHeaders
-					status = statusCode
-				})
-				download.once('end', finish)
-				download.start()
-				if(this.opts.debug){
-					console.log(url, timeoutSecs)
-				}
-				timer = setTimeout(() => finish(), timeoutSecs * 1000)
-			} else {
-                reject('invalid url')
+	isLocalFile(file){
+		if(typeof(file) != 'string'){
+			return
+		}
+		let m = file.match(new RegExp('^([a-z]{1,6}):', 'i'))
+		if(m && m.length > 1 && (m[1].length == 1 || m[1].toLowerCase() == 'file')){ // drive letter or file protocol
+			return true
+		} else {
+			if(file.length >= 2 && file.charAt(0) == '/' && file.charAt(1) != '/'){ // unix path
+				return true
 			}
-		})
-	}
-	probe(url, retries = 2){
-		return new Promise((resolve, reject) => {
-			const timeout = global.config.get('connect-timeout') * 2
-			if(this.proto(url, 4) == 'http'){
-				this._probe(url, timeout, retries).then(ret => { 
-					//console.warn('PROBED', ret)
-					let cl = ret.headers['content-length'] || -1, ct = ret.headers['content-type'] || '', st = ret.status || 0
-					if(st < 200 || st >= 400 || st == 204){ // 204=No content
-						reject(st)
-					} else {
-						if(ct){
-							ct = ct.split(',')[0].split(';')[0]
-						} else {
-							ct = ''
-						}
-						if((!ct || ct.substr(0, 5) == 'text/') && ret.sample){							
-							if(String(ret.sample).match(new RegExp('#EXT(M3U|INF)', 'i'))){
-								ct = 'application/x-mpegURL'
-							}
-							if(this.isBin(ret.sample) && ret.sample.length >= this.probeSampleSize){ // check length too to skip plain text error messages
-								if(global.lists.msi.isVideo(url)){
-									ct = 'video/mp4'
-								} else {
-									ct = 'video/MP2T'
-								}
-							}
-						}
-						if(ct.substr(0, 4) == 'text' && !this.isYT(url)){
-							console.error('Bad content type: ' + ct)
-							reject(404)
-						} else {
-							ret.status = st
-							ret.contentType = ct.toLowerCase()
-							ret.contentLength = cl
-							if(!ret.directURL){
-								ret.directURL = ret.url
-							}
-							ret.ext = this.ext(ret.directURL) || this.ext(url)
-							resolve(ret)
-						}
-						ret.status = st
-						ret.contentType = ct.toLowerCase()
-						ret.contentLength = cl
-						if(!ret.directURL){
-							ret.directURL = ret.url
-						}
-						ret.ext = this.ext(ret.directURL) || this.ext(url)
-						resolve(ret)
-					}
-				}).catch(err => {
-					reject(err)
-				})
-			} else if(this.validate(url)) { // maybe rtmp
-				let ret = {}
-				ret.status = 200
-				ret.contentType = ''
-				ret.contentLength = 999999
-				ret.url = url
-				ret.directURL = url
-				ret.ext = this.ext(url)
-				resolve(ret)
-			} else if(this.isLocalFile(url)) {
-				fs.stat(url, (err, stat) => {
-					if(stat && stat.size){
-						let ret = {}
-						ret.status = 200
-						ret.contentType = 'video/mp4'
-						ret.contentLength = stat.size
-						ret.url = url
-						ret.directURL = url
-						ret.ext = this.ext(url)
-						ret.isLocalFile = true
-						resolve(ret)
-					} else {
-						reject(global.lang.NOT_FOUND)
-					}
-				})
-			} else {
-				reject(global.lang.INVALID_URL)
-			}
-		})
+		}
 	}
 	info(url, retries = 2, source=''){
 		return new Promise((resolve, reject) => {
 			this.pingSource(source, () => {
-				this.probe(url, retries).then(nfo => {
+				this.streamInfo.probe(url, retries).then(nfo => {
 					let type = false
 					Object.keys(this.engines).some(name => {
 						if(this.engines[name].supports(nfo)){
@@ -247,31 +86,6 @@ class StreamerTools extends Events {
 				}).catch(reject)
 			})
 		})
-	}
-	proto(url, len){
-		var ret = '', res = url.split(':')
-		if(res.length > 1 && res[0].length >= 3 && res[0].length <= 6){
-			ret = res[0]
-		} else if(url.match(new RegExp('^//[^/]+\\.'))){
-			ret = 'http'
-		}
-		if(ret && typeof(len) == 'number'){
-			ret = ret.substr(0, len)
-		}
-		return ret
-	}
-	isLocalFile(file){
-		if(typeof(file) != 'string'){
-			return
-		}
-		let m = file.match(new RegExp('^([a-z]{1,6}):', 'i'))
-		if(m && m.length > 1 && (m[1].length == 1 || m[1].toLowerCase() == 'file')){ // drive letter or file protocol
-			return true
-		} else {
-			if(file.length >= 2 && file.charAt(0) == '/' && file.charAt(1) != '/'){ // unix path
-				return true
-			}
-		}
 	}
     ext(file){
 		let basename = String(file).split('?')[0].split('#')[0].split('/').pop()
@@ -468,7 +282,7 @@ class StreamerBase extends StreamerTools {
 			}
 			if(intent.destroyed){
 				console.error('COMMITTING DESTROYED INTENT', global.traceback(), intent)
-				return
+				return 'COMMITTING DESTROYED INTENT'
 			}
 			if(this.opts.debug){
 				console.log('INTENT SWITCHED !!', this.active ? this.active.data : false, intent ? intent.data : false, intent.destroyed, global.traceback())
@@ -528,6 +342,8 @@ class StreamerBase extends StreamerTools {
 			let data = this.connect(intent)
 			console.warn('STREAMER COMMIT '+ data.url)
 			return true
+		} else {
+			return 'ALREADY COMMITTED OR NO INTENT'
 		}
 	}
 	connect(intent){
@@ -764,7 +580,7 @@ class StreamerAbout extends StreamerTracks {
 				if(this.active.mediaType == 'live' || !data.groupName){
 					text = data.name
 				} else {
-					text = '<div style="display: flex;flex-direction: row;"><span style="opacity: 0.5;display: inline;">'+ data.groupName +'&nbsp;&nbsp;&#129170;&nbsp;&nbsp;</span>'+ data.name +'</div>'
+					text = '<div style="display: flex;flex-direction: row;"><span style="opacity: 0.5;display: inline;">'+ data.groupName +'&nbsp;&nbsp;&rsaquo;&nbsp;&nbsp;</span>'+ data.name +'</div>'
 				}
 				return {template: 'question', text, fa: 'fas fa-info-circle'}
 			}
@@ -1020,6 +836,11 @@ class Streamer extends StreamerAbout {
 		})
 		return ret
 	}
+    hlsOnly(entries){
+        return entries.filter(a => {
+			return this.ext(a.url) == 'm3u8'
+		})
+    }
 	async playFromEntries(entries, name, megaUrl, txt, connectId, mediaType, preferredStreamURL, silent){
 		if(this.opts.shadow){
 			throw 'in shadow mode'
@@ -1031,6 +852,9 @@ class Streamer extends StreamerAbout {
 			if(!silent){
 				global.osd.show(global.lang.TUNING_WAIT_X.format(name) + ' 0%', 'fa-mega spin-x-alt', 'streamer', 'persistent')
 			}
+		}
+		if(global.tuning){
+			global.tuning.destroy()
 		}
 		entries = await global.watching.order(entries)
 		if(this.connectId != connectId){
@@ -1050,9 +874,6 @@ class Streamer extends StreamerAbout {
 		})
 		tuning.on('destroy', () => {
 			global.osd.hide('streamer')
-			if(tuning == global.tuning){
-				global.tuning = null
-			}
 			tuning = null
 		})
 		let hasErr
@@ -1064,6 +885,7 @@ class Streamer extends StreamerAbout {
 		if(hasErr){
 			if(!silent){
 				global.osd.show(global.lang.NONE_STREAM_WORKED_X.format(name), 'fas fa-exclamation-circle faclr-red', 'streamer', 'normal')
+				this.triggerCheckForListExpiral(entries)
 			}
 		} else {
 			this.setTuneable(true)
@@ -1071,11 +893,6 @@ class Streamer extends StreamerAbout {
 		global.explorer.setLoadingEntries(loadingEntriesData, false)
 		return !hasErr
 	}
-    hlsOnly(entries){
-        return entries.filter(a => {
-			return this.ext(a.url) == 'm3u8'
-		})
-    }
 	async playPromise(e, results, silent){
 		if(this.opts.shadow){
 			throw 'in shadow mode'
@@ -1085,11 +902,10 @@ class Streamer extends StreamerAbout {
 			this.stop()
 		}
 		if(global.tuning){
-			if(global.tuning.megaUrl && global.tuning.megaUrl == e.url){
+			if(!global.tuning.destroyed && global.tuning.megaUrl && global.tuning.megaUrl == e.url){
 				return this.tune(e)
 			}
 			global.tuning.destroy()
-			global.tuning = null
 		}
 		const connectId = global.time()
 		this.connectId = connectId
@@ -1129,6 +945,7 @@ class Streamer extends StreamerAbout {
 			if(!silent){
 				global.osd.show(global.lang.TUNING_WAIT_X.format(name), 'fa-mega spin-x-alt', 'streamer', 'persistent')   
 			}
+			await global.lists.manager.waitListsReady()
 			let entries = await global.lists.search(terms, {
 				type: 'live',
 				safe: (global.config.get('parental-control-policy') == 'block')
@@ -1141,9 +958,10 @@ class Streamer extends StreamerAbout {
 			}		
 			console.warn('ABOUT TO TUNE', name, JSON.stringify(entries), opts)
 			entries = entries.results		
-			if(opts.hlsOnly){
+			if(opts.hlsOnly === true){
 				entries = this.hlsOnly(entries)
 			}
+			console.warn('ABOUT TO TUNE', name, opts, entries.length)
 			if(entries.length){
 				entries = entries.map(s => {
 					s.originalName = name
@@ -1183,7 +1001,7 @@ class Streamer extends StreamerAbout {
 				global.ui.emit('sound', 'static', 25);
 				this.connectId = false
 				this.emit('connecting-failure', e)
-				this.handleFailure(e, r)
+				this.handleFailure(e, hasErr)
 			} else {
 				console.warn('STREAMER INTENT SUCCESS', e)
 				succeeded = true
@@ -1193,6 +1011,46 @@ class Streamer extends StreamerAbout {
 			global.explorer.setLoadingEntries(loadingEntriesData, false)
 		}
 		return succeeded
+	}
+	async triggerCheckForListExpiral(){
+		if(global.activeLists.my.length == 0 || !global.tuning){
+			return
+		}
+		const expiralCheckLockTime = 300
+		if(typeof(this.expiralCheckLock) == 'undefined'){
+			this.expiralCheckLock = {}
+		}
+		const now = global.time(), from = now - expiralCheckLockTime, validLiveTypes = ['hls', 'ts']
+		const csources = global.activeLists.my.filter(u => {
+			return !this.expiralCheckLock[u] || this.expiralCheckLock[u] < from
+		})
+		if(!csources.length){
+			return
+		}
+		const sources = {}, entries = Object.values(global.tuning.log())
+		csources.forEach(s => {
+			sources[s] = entries.filter(e => e.source == s)
+		})
+		Object.keys(sources).forEach(source => {
+			if(this.expiralCheckLock[source] && this.expiralCheckLock[source] > from){
+				return
+			}
+			if(sources[source].some(e => validLiveTypes.includes(e.type))){
+				return
+			}
+			let expiralStatusCodes = [401, 403], expiralMessageTypes = ['video', 'vodhls'], expiralScore = sources[source].filter(e => {
+				return expiralStatusCodes.includes(e.error) || expiralMessageTypes.includes(e.type)
+			}).length
+			if(expiralScore > (sources[source].length / 2)){	
+				console.warn('triggerCheckForListExpiral', source +' EXPIRED', expiralScore +'/'+ sources[source].length)
+				this.expiralCheckLock[source] = now				
+				global.explorer.dialog([
+					{template: 'question', text: 'Megacubo', fa: 'fas fa-info-circle'},
+					{template: 'message', text: global.lang.IPTV_LIST_EXPIRED +'<br /><br />'+ source},
+					{template: 'option', text: 'OK', id: 'ok'}
+				], 'ok').catch(console.error) // dont wait
+			}
+		})
 	}
 	play(e, results, silent){
 		this.playPromise(e, results, silent).catch(console.error)
@@ -1228,14 +1086,15 @@ class Streamer extends StreamerAbout {
 					global.explorer.setLoadingEntries(loadingEntriesData, false)
 				})
 			} else {
+				const name = e.originalName || e.name
 				global.search.termsFromEntry(e, false).then(terms => {
 					if(!terms){
-						terms = global.lists.terms(e.name)
+						terms = global.lists.terms(name)
 					}
 					if(Array.isArray(terms)){
 						terms = terms.join(' ')
 					}
-					e.url = global.mega.build(e.name, {terms})
+					e.url = global.mega.build(name, {terms})
 					this.play(e)
 				}).catch(console.error)
 			}

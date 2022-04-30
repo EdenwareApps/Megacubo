@@ -4,7 +4,6 @@ const M3UParser = require(global.APPDIR + '/modules/lists/parser'), M3UTools = r
 const Parser = require(global.APPDIR + '/modules/lists/parser')
 
 LIST_DATA_KEY_MASK = 'list-data-{0}'
-LIST_UPDATE_META_KEY_MASK = 'list-time-{0}'
 
 class Fetcher extends Events {
 	constructor(){		
@@ -49,7 +48,7 @@ class Fetcher extends Events {
 					if(entries.length){
 						resolve(entries)
 					} else {
-						reject('invalid list')
+						reject(global.lang.INVALID_URL_MSG)
 					}
 					parser.destroy()
 				})
@@ -102,7 +101,7 @@ class Fetcher extends Events {
 										global.storage.raw.set(dataKey, entries.map(JSON.stringify).join("\r\n"), true)
 										resolve(entries)
 									} else {
-										reject('invalid list')
+										reject(global.lang.INVALID_URL_MSG)
 									}
 									parser.destroy()
 								})
@@ -181,28 +180,6 @@ class Common extends Events {
 			n = global.config.get('shared-mode-reach')
 		}
 		return Math.min(n * satisfyLevel, foundCommunitaryListsCount)
-	}
-	getUpdateMeta(url, cb){
-		const updateMetaKey = LIST_UPDATE_META_KEY_MASK.format(url)
-		global.storage.get(updateMetaKey, updateMeta => {
-			if(updateMeta){
-				const file = global.storage.raw.resolve(LIST_DATA_KEY_MASK.format(url))
-				fs.stat(file, (err, stat) => { // it happened of the meta data was cached but the data was not present, prevent it
-					if(err || !stat.size){
-						cb({updateAfter: 0, contentLength: 0})
-					} else {
-						cb(updateMeta)
-					}
-				})
-
-			} else {
-				cb({updateAfter: 0, contentLength: 0})
-			}
-		})
-	}
-	setUpdateMeta(url, updateMeta){
-		const updateMetaKey = LIST_UPDATE_META_KEY_MASK.format(url)
-		global.storage.set(updateMetaKey, updateMeta, true)
 	}
     joinPath(folder, file){
         let ret = folder

@@ -9,6 +9,8 @@ class AutoTuner extends Events {
         this.megaURL = megaURL
         this.mediaType = mediaType == 'audio' ? 'all' : mediaType // is we're searching a radio, no problem to return a radio studio webcam
         this.resultsBuffer = 2
+        this.results = {}
+        this.commitResults = {}
         this._intents = []
         this.succeededs = {} // -1 = bad mediatype, 0 = initialized, 1 = intenting, 2 = committed, 3 = starting failed
         if(!opts.allowedTypes || !Array.isArray(opts.allowedTypes)){
@@ -20,12 +22,7 @@ class AutoTuner extends Events {
             })
         }
         this.opts = opts
-        if(global.config.get('tuning-prefer-hls')){
-            entries = this.preferHLS(entries)
-        }
-        if(preferredStreamURL){
-            entries =  this.ceilPreferredStreamURL(entries, preferredStreamURL)
-        }
+        entries = this.ceilPreferredStreams(entries, this.preferredStreamServers(), preferredStreamURL)
         this.tuner = new Tuner(entries, opts, megaURL)
         this.tuner.on('success', (entry, nfo, n) => {
             if(typeof(this.succeededs[n]) == 'undefined' || ![0, 1, 2].includes(this.succeededs[n])){
@@ -51,20 +48,52 @@ class AutoTuner extends Events {
     ext(file){
         return String(file).split('?')[0].split('#')[0].split('.').pop().toLowerCase()
     }
-    preferHLS(entries){
-        return entries.slice(0).sort((a, b) => {
-			let aa = this.ext(a.url) == 'm3u8'
-			let bb = this.ext(b.url) == 'm3u8'
-			return aa == bb ? 0 : (aa && !bb ? -1 : 1)
-        })
+    preferredStreamServers(){
+        return [...new Set(global.histo.get().map(e => e.preferredStreamURL || e.url).map(u => this.domain(u)))]
     }
-    ceilPreferredStreamURL(entries, preferredStreamURL){
-        entries.some((entry, i) => {
+	domain(u){
+		if(u && u.indexOf('//') != -1){
+			let d = u.split('//')[1].split('/')[0].split(':')[0]
+			if(d == 'localhost' || d.indexOf('.') != -1){
+				return d
+			}
+		}
+		return ''
+	}
+    ceilPreferredStreams(entries, preferredStreamServers, preferredStreamURL){
+        let preferredStreamEntry
+        const preferHLS = global.config.get('prefer-hls')
+        const deferredStreams = [], deferredHLSStreams = []
+        const preferredStreamServersLeveledEntries = {}
+        entries = entries.forEach(entry => {
             if(entry.url == preferredStreamURL){
-                entries.splice(i, 1)
-                entries.unshift(entry)
+                preferredStreamEntry = entry
+                return
+            }
+            if(preferredStreamServers.length){
+                let i = preferredStreamServers.indexOf(this.domain(entry.url))
+                if(i != -1){
+                    if(typeof(preferredStreamServersLeveledEntries[i]) == 'undefined'){
+                        preferredStreamServersLeveledEntries[i] = []
+                    }
+                    preferredStreamServersLeveledEntries[i].push(entry)
+                    return
+                }
+            }
+            if(preferHLS && this.ext(entry.url) == 'm3u8'){
+                deferredHLSStreams.push(entry)
+            } else {
+                deferredStreams.push(entry)
             }
         })
+        entries = []
+        Object.keys(preferredStreamServersLeveledEntries).sort().forEach(k => {
+            entries = entries.concat(preferredStreamServersLeveledEntries[k])
+        })
+        entries = entries.concat(deferredHLSStreams).concat(deferredStreams)
+        if(preferredStreamEntry){
+            entries.unshift(preferredStreamEntry)
+        }
         return entries
     }
     pause(){
@@ -101,24 +130,39 @@ class AutoTuner extends Events {
             console.log('auto-tuner tune')
         }
         return new Promise((resolve, reject) => {
+            if(this.destroyed){
+                return reject('destroyed')
+            }
             let resolved
             this.emit('progress', this.tuner.getStats())
-            this.once('success', n => {
+            const successListener = n => {
                 //console.log('auto-tuner tune commit', n)
                 this.pause()
-                if(!resolved){
+                if(resolved){
+                    console.error('Tuner success after finish, verify it')
+                } else {
                     resolved = true
                     if(n.nid){
                         n = this.prepareIntentToEmit(n)
                         if(!this.headless){
-                            global.streamer.commit(n)
+                            let ret = global.streamer.commit(n)
+                            if(global.debugTuning){
+                                global.displayErr('TUNER COMMITING '+ ret +' - '+ n.data.url)
+                            }
+                            this.commitResults[n.nid] = ret
+                            if(ret !== true) {
+                                this.once('success', successListener)
+                                this.succeededs[n.nid] = 0
+                                return // don't resolve on commit error
+                            }
                         }
                         resolve(n)
                     } else {
                         reject('cancelled by user') // maybe it's not a intent from the AutoTuner instance, but one else started by the user, resolve anyway
                     }
                 }
-            })
+            }
+            this.once('success', successListener)
             this.once('finish', () => {
                 if(this.opts.debug){
                     console.log('auto-tuner tune finish')
@@ -191,6 +235,7 @@ class AutoTuner extends Events {
                         }
                         this.pause()
                         done = true
+                        this.results[n.nid] = [true, n.type]
                         this.succeededs[n.nid] = 2
                         this.emit('success', n)
                         console.error('DESTROYING OTHER INTENTS', n.nid, intents)
@@ -209,6 +254,7 @@ class AutoTuner extends Events {
                         }
                     }).catch(err => {
                         console.error('INTENT FAILED', err, n, traceback())
+                        this.results[n.nid] = [false, String(err)]
                         this.succeededs[n.nid] = 3
                         delete this.succeededs[n.nid]
                         let offset = this._intents.indexOf(n)
@@ -248,6 +294,48 @@ class AutoTuner extends Events {
 				console.log('auto-tuner pump() OK')
             }
         }
+    }
+    log(){
+        let ret = {}
+        this.tuner.entries.forEach((e, i) => {
+            let v
+            if(typeof(this.tuner.errors[i]) == 'undefined'){
+                v = 'undefined'
+            } else {
+                if(this.tuner.errors[i] === 0) {
+                    v = 'timeout'
+                } else if(this.tuner.errors[i] === -1) {
+                    v = 'unreachable'
+                } else {
+                    v = this.tuner.errors[i]
+                }
+            }
+            const url = e.url
+            let state = v == 'success', error = state ? null : v
+            if(this.results[i]){
+                state = this.results[i][0]
+                error = state ? this.results[i][1] : null
+            }
+            if(typeof(this.commitResults[i]) != 'undefined'){
+                error = String(this.commitResults[i])
+            }
+            ret[i] = {
+                url,
+                source: e.source,
+                type: this.tuner.info[i] ? this.tuner.info[i].type : null,
+                state,
+                error
+            }
+        })
+        return ret
+    }
+    logText(){
+        let ret = [], info = Object.values(this.log())
+        ret.push(this.tuner.entries.length +' streams')
+        ret = ret.concat(info.map(e => {
+            return e.url +' => '+ (e.state ? 'success' : 'failed') + (e.error === null ? '' : ', '+ e.error)
+        }))
+        return ret.join("\r\n")
     }
     pending(){ // has "still loading" intents?
         return Object.values(this.succeededs).includes(1)

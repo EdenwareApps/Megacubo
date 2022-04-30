@@ -77,7 +77,7 @@ class BridgeServer extends Events {
                     pathname = this.map[pathname]
                 }
                 const ext = path.parse(pathname).ext
-                fs.stat(pathname, (err, stat) => {
+                fs.access(pathname, err => {
                     if(err) { 
                         response.statusCode = 404
                         response.end(`File ${pathname} not found!`)

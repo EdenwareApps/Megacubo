@@ -31,6 +31,8 @@ class ChannelsData extends Events {
             if(this.activeEPG || global.storage.raw.hasSync(categoriesCacheKey +'-epg')){
                 categoriesCacheKey += '-epg'
             }
+        } else if(global.config.get('parental-control-policy') == 'only') {
+            categoriesCacheKey += '-adult'
         }
         this.categoriesCacheKey = categoriesCacheKey
         return categoriesCacheKey
@@ -94,6 +96,9 @@ class ChannelsData extends Events {
         })
     }
     async getDefaultCategories(countryOnly){
+        if(global.config.get('parental-control-policy') == 'only'){
+            return await this.getAdultCategories()
+        }
         let fallback, ret = {}, locs = await global.lang.getActiveCountries()
         if(countryOnly && locs.includes(global.lang.countryCode)){
             fallback = locs.length > 1
@@ -114,6 +119,9 @@ class ChannelsData extends Events {
         })
         if(countryOnly && fallback && !Object.keys(ret).length) return await this.getDefaultCategories(false)
         return ret
+    }
+    async getAdultCategories(){
+        return await global.cloud.get('channels/adult')
     }
     getCategories(compact){
         return compact ? this.categories : this.expand(this.categories)
@@ -215,7 +223,7 @@ class ChannelsEPG extends ChannelsData {
         this.clockIcon = '<i class="fas fa-clock"></i> '
         const aboutInsertEPGTitle = data => {
             return new Promise((resolve, reject) => {
-                if(data.isLocal){
+                if(streamer.active.mediaType != 'live'){
                     return reject('local file')
                 }
                 this.epgChannelLiveNowAndNext(global.streamer.active.data).then(ret => {
@@ -234,7 +242,7 @@ class ChannelsEPG extends ChannelsData {
         global.streamer.aboutRegisterEntry('epg', aboutInsertEPGTitle, null, 1)
         global.streamer.aboutRegisterEntry('epg', aboutInsertEPGTitle, null, 1, true)
         global.streamer.aboutRegisterEntry('epg-more', data => {
-            if(!data.isLocal && streamer.active.mediaType == 'live'){
+            if(streamer.active.mediaType == 'live'){
                 return {template: 'option', text: global.lang.EPG, id: 'epg-more', fa: this.epgIcon}
             }
         }, data => {
@@ -436,7 +444,7 @@ class ChannelsEPG extends ChannelsData {
             let channel = this.epgPrepareSearch(entry)
             global.lists.epg(channel, 2).then(epgData => {
                 let now = Object.values(epgData).shift()
-                if(now){
+                if(now && now.t){
                     let ret = {
                         now: now.t
                     }
@@ -1150,9 +1158,7 @@ class Channels extends ChannelsAutoWatchNow {
                             name: global.lang.STREAMS + ' (' + sentries.length + ')', 
                             type: 'group', 
                             renderer: () => {
-                                return new Promise((resolve, reject) => {
-                                    resolve(sentries)
-                                })
+                                return new Promise((resolve, reject) => resolve(sentries))
                             }
                         }
                         console.warn('EPG DEBUG', this.activeEPG, epgNow, category)
@@ -1414,6 +1420,7 @@ class Channels extends ChannelsAutoWatchNow {
                     action: () => {
                         const filename = 'categories.json', file = global.downloads.folder + path.sep + filename
                         fs.writeFile(file, JSON.stringify(this.getCategories(true), null, 3), {encoding: 'utf-8'}, err => {
+                            if(err) return global.displayErr(err)
                             global.downloads.serve(file, true, false).catch(global.displayErr)
                         })
                     }

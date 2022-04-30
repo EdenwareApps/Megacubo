@@ -89,7 +89,7 @@ class HLSTrackSelector {
                 } else {
                     resolve(this.selectTrackBW(tracks, global.streamer.downlink))
                 }
-            })
+            }).catch(console.error)
         })
     }    
 }
@@ -190,7 +190,7 @@ class StreamerHLSIntent extends StreamerBaseIntent {
     }
     _start(){ 
         return new Promise((resolve, reject) => {
-            const mw = global.config.get('hls-prefetch')
+            const mw = global.config.get('hls-prefetching')
             this.prx = new (mw ? StreamerHLSProxy : StreamerProxy)(Object.assign({authURL: this.data.source}, this.opts))
             this.connectAdapter(this.prx)
             this.prx.start().then(() => {

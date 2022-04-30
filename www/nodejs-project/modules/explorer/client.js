@@ -157,7 +157,7 @@ class ExplorerURLInputHelper {
             }],
             ['.modal-wrap input[placeholder^="http"]', 'keyup', e => {
 				let v = e.target.value
-                if(v.length == 1 && v.charAt(0) != 'h'){
+                if(v.length == 6 && v.indexOf(':') == -1){
                     e.target.value = 'http://' + v
                 }
             }]
@@ -1521,12 +1521,14 @@ class ExplorerStatusFlags extends ExplorerSlider {
 						let content = ''
 						if(status == 'tune'){
 							content = '<i class="fas fa-layer-group"></i>'
-						} else if(status == 'waiting'){
+						} else if(status == 'folder') {
+							content = '<i class="fas fa-folder-open"></i>'
+						} else if(status == 'waiting') {
 							content = '<i class="fas fa-clock"></i>'
 						} else {
-							if(status == 'offline'){
+							if(status == 'offline') {
 								content = '<span class="entry-status-flag entry-status-flag-failure"><i class="fas fa-times"></i></span>'
-							} else if(config['status-flags-type']){
+							} else if(config['status-flags-type']) {
 								content = '<span class="entry-status-flag entry-status-flag-success">'+ status +'</span>'
 							} else {
 								content = '<span class="entry-status-flag entry-status-flag-success"><i class="fas fa-check"></i></span>'

@@ -133,7 +133,7 @@ class IconSearch extends IconDefault {
                         console.log('fetch from terms', ntms, liveOnly, JSON.stringify(ret))
                     }
                     if(ret.results.length){
-                        const already = {}
+                        const already = {}, alreadySources = {}
                         ret = ret.results.filter(e => {
                             return e.icon && e.icon.indexOf('//') != -1
                         })
@@ -143,6 +143,7 @@ class IconSearch extends IconDefault {
                         ret = ret.map((e, i) => {
                             if(typeof(already[e.icon]) == 'undefined'){
                                 already[e.icon] = i
+                                alreadySources[e.icon] = [e.source]
                                 return {
                                     icon: e.icon, 
                                     live: this.seemsLive(e) ? 1 : 0,
@@ -151,7 +152,10 @@ class IconSearch extends IconDefault {
                                     epg: 0
                                 }
                             } else {
-                                ret[already[e.icon]].hits++
+                                if(!alreadySources[e.icon].includes(e.source)){
+                                    alreadySources[e.icon].push(e.source)
+                                    ret[already[e.icon]].hits++
+                                }
                                 if(!ret[already[e.icon]].live && this.seemsLive(e)){
                                     ret[already[e.icon]].live = true
                                 }
@@ -222,7 +226,7 @@ class IconServerStore extends IconSearch {
     }
     validateFile(file){
         return new Promise((resolve, reject) => {
-            fs.stat(file, (err, stats) => {
+            fs.access(file, err => {
                 if(err) return reject(err)
                 fs.open(file, 'r', (err, fd) => {
                     if(err) return reject(err)
@@ -395,7 +399,7 @@ class IconServer extends IconFetchSem {
 			})
 		}
         this.opts.folder = path.resolve(this.opts.folder)
-		fs.stat(this.opts.folder, (err, stat) => {
+		fs.access(this.opts.folder, err => {
 			if(err !== null) {
 				fs.mkdir(this.opts.folder, () => {})
 			}

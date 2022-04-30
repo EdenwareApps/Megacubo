@@ -218,7 +218,7 @@ class Search extends Events {
             }
         }
         const results = await this.ytsr(filter.url, options)
-        return results.items.filter(t => !t.isLive).map(t => {
+        return results.items.filter(t => t && !t.isLive).map(t => {
             let icon = t.thumbnails.sortByProp('width').shift().url
             return {
                 name: this.fixYTTitles(t.title),
@@ -307,7 +307,7 @@ class Search extends Events {
     }
     termsFromEntry(entry, precision, searchSugEntries){
         return new Promise((resolve, reject) => {
-            let nlc = entry.name.toLowerCase()
+            let nlc = (entry.originalName || entry.name).toLowerCase()
             if(Array.isArray(searchSugEntries)){
                 resolve(this.matchTerms(nlc, precision, searchSugEntries))
             } else {
@@ -320,17 +320,34 @@ class Search extends Events {
             }
         })
     }
-    searchSuggestionEntries(removeAliases){
-        return new Promise((resolve, reject) => {
-            global.cloud.get('searching').then(es => {
-                if(removeAliases === true){
-                    es = this.removeSearchSuggestionsTermsAliasesObject(es)
-                }
-                resolve(es)
-            }).catch(err => {
-                reject(err)
-            })
+    async searchSuggestionEntries(removeAliases, countryOnly){
+        let ignoreKeywords = ['tv', 'hd', 'sd']
+        let fallback, ret = {}, locs = await global.lang.getActiveCountries()
+        if(countryOnly && locs.includes(global.lang.countryCode)){
+            fallback = locs.length > 1
+            locs = [global.lang.countryCode]
+        }
+        let results = await Promise.allSettled(locs.map(loc => global.cloud.get('searching.'+ loc)))
+        results.forEach(r => {
+            if(r.status == 'fulfilled' && r.value && typeof(r.value) == 'object'){
+                r.value.forEach(row => {
+                    if(ignoreKeywords.includes(row.search_term)) return
+					let count = parseInt(row.cnt)
+					if(typeof(ret[row.search_term]) != 'undefined') count += ret[row.search_term]
+					ret[row.search_term] = count
+                })
+            }
         })
+        ret = Object.keys(ret).map(search_term => {
+            return {search_term, cnt: ret[search_term]}
+        })
+        if(countryOnly && !ret.length) {
+            return this.searchSuggestionEntries(removeAliases, false)
+        }
+        if(removeAliases === true){
+            ret = this.removeSearchSuggestionsTermsAliasesObject(ret).sortByProp('cnt', true)
+        }
+        return ret
     }
     removeSearchSuggestionsCheckNames(a, b){
         return (a != b && (a.substr(b.length * -1) == b || (a.indexOf(b) != -1 && a.length <= (b.length + 3))))
@@ -338,7 +355,7 @@ class Search extends Events {
     removeSearchSuggestionsGetAliases(o){
         let aliases = {}
         if(o.length){
-            s = o.slice(0)
+            let s = o.slice(0)
             if(typeof(s[0]) == 'object'){
                 s = s.map(t => {
                     return t.search_term

@@ -65,7 +65,7 @@ class Mega {
 		return false
 	}	
 	build(name, params){
-		let mega = 'mega://' + name
+		let mega = 'mega://' + encodeURIComponent(name)
 		if(params){
 			mega += '?' + this.object2QS(params)
 		}

@@ -7,7 +7,7 @@ class MPEGTSPacketProcessor extends Events {
 	constructor(){
         super()
         this.joining = true // false for proxy hls
-        this.packetFilterPolicy = 1 // what to do with packets with bad size? 0=bypass, 1=force size by trimming or removing if minor, 2=remove
+        this.packetFilterPolicy = global.config.get('ts-packet-filter-policy') // what to do with packets with bad size? 0=bypass, 1=force size by trimming or removing if minor, 2=remove
         this.lastFlushTime = 0
         this.minFlushInterval = 3 // secs
         this.buffering = []

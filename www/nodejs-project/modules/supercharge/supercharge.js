@@ -289,47 +289,87 @@ function patch(scope){
 			}
 		}
 	}
-	scope.moveFile = (from, to, cb) => {
-		const fs = require('fs')
-		fs.stat(from, (err, stat) => {
-			if(err){
-				return cb(err)
-			}
-			fs.stat(to, (err, stat) => {
-				const next = () =>  {
-					fs.rename(from, to, err => {
-						if(err){
-							fs.copyFile(from, to, cb)
-						} else {
-							cb()
-						}
-					})
-				}
-				if(stat){
-					fs.unlink(to, next)
-				} else {
-					next()
-				}
-			})
-		})
+	scope.dirname = _path => {
+		let parts = _path.replace(new RegExp('\\\\', 'g'), '/').split('/')
+		parts.pop()
+		return parts.join('/')
 	}
-	scope.moveFileRetry = (from, to, cb, timeout=5, until=null) => {
+	scope.getFS = () => {
+		if(!scope.__fs){
+			scope.__fs = require('fs')
+		}
+		return scope.__fs
+	}
+	scope._moveFile = async (from, to) => {
+		const fs = scope.getFS().promises
+		const fstat = await fs.stat(from).catch(console.error)
+		if(!fstat) throw '"from" file not found'
+		let err
+		// await fs.rename(from, to).catch(e => err = e) // rename now and then gives perm errors to rename
+		await fs.copyFile(from, to).catch(e => err = e)
+		let tstat
+		if(err){
+			tstat = await fs.stat(to).catch(console.error)
+			if(tstat && tstat.size == fstat.size){
+				err = null
+			}
+		}
+		if(err){
+			throw err
+		}
+		fs.unlink(from).catch(() => {})
+		return true
+	}
+	scope.moveFile = (from, to, cb, timeout=5, until=null, startedAt = null, fromSize=null) => {
+		const fs = scope.getFS()
 		let now = scope.time()
-		if(!until){
+		if(until === null){
 			until = now + timeout
 		}
-		scope.moveFile(from, to, err => {
-			if(err){				
+		if(startedAt === null){
+			startedAt = now
+		}
+		const move = () => {
+			scope._moveFile(from, to).then(() => cb()).catch(err => {
 				if(until <= now){
-					return cb(err)
+					fs.access(from, (err, stat) => {
+						console.error('MOVERETRY GAVEUP AFTER '+ (now - startedAt) +' SECONDS', err, fromSize, err)
+						return cb(err)
+					})
+					return
 				}
-				setTimeout(() => {
-					scope.moveFileRetry(from, to, cb, timeout, until)
-				}, 50)
-			} else {
-				cb()
-			}
-		})
+				fs.stat(to, (ferr, stat) => {
+					if(stat && stat.size == fromSize){
+						cb()
+					} else {
+						fs.stat(from, (err, stat) => {
+							if(stat && stat.size == fromSize){
+								setTimeout(() => {
+									scope.moveFile(from, to, cb, timeout, until, startedAt, fromSize)
+								}, 500)
+							} else {
+								console.error('MOVERETRY FROM FILE WHICH DOESNT EXISTS ANYMORE', err, stat)
+								console.error(ferr, err)
+								cb(err || '"from" file changed')
+							}
+						})
+					}
+				})
+			})
+		}
+		if(fromSize === null){
+			fs.stat(from, (err, stat) => {
+				if(err){
+					console.error('MOVERETRY FROM FILE NEVER EXISTED', err)
+					cb(err)
+				} else {
+					fromSize = stat.size
+					move()
+				}
+			})
+		} else {
+			move()
+		}
 	}
 	scope.execSync = cmd => {
 		let stdout

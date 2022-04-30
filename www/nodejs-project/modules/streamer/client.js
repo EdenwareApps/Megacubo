@@ -1479,7 +1479,13 @@ class StreamerClient extends StreamerClientController {
             console.warn('PAUSE')
             parent.player.pause()
         })
+        this.app.on('debug-tuning', () => {
+            this.debugTuning = true
+        })
         this.app.on('streamer-connect', (src, mimetype, cookie, mediatype, data, autoTuning) => {
+            if(this.debugTuning){
+                osd.show('CONNECT '+ data.name, 'fas fa-info-circle faclr-red', 'debug2', 'normal')
+            }
             this.bindStateListener()
             if(explorer.inModal()){
                 explorer.endModal()

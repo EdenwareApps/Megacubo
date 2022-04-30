@@ -17,7 +17,7 @@ const fs = require('fs'), path = require('path'), sanitizeFilename = require('sa
 
 APPDIR = path.resolve(typeof(__dirname) != 'undefined' ? __dirname : process.cwd()).replace(new RegExp('\\\\', 'g'), '/')
 MANIFEST = require(APPDIR + '/package.json')
-COMMUNITARY_LISTS_DEFAULT_AMOUNT = cordova ? 10 : 12
+COMMUNITARY_LISTS_DEFAULT_AMOUNT = cordova ? 16 : 24
 
 tuning = false
 moment = require('moment-timezone')
@@ -384,7 +384,7 @@ function init(language){
             }
             switch(e.type){
                 case 'stream':
-                    zap.setZapping(false)
+                    zap.setZapping(false, null, true)
                     if(typeof(e.action) == 'function') { // execute action for stream, if any
                         e.action(e)
                     } else {
@@ -395,7 +395,7 @@ function init(language){
                     if(typeof(e.action) == 'function') {
                         e.action(e)
                     } else if(e.url && mega.isMega(e.url)) {
-                        zap.setZapping(false)
+                        zap.setZapping(false, null, true)
                         streamer.play(e)
                     }
                     break

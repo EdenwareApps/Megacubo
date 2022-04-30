@@ -340,17 +340,17 @@ div#home-arrows > div > * {
     display: block;
 }
 #explorer .entry-icon-image i {
-    mask-image: radial-gradient(circle at 50% -10%, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.8) 45%, rgba(0, 0, 0, 0) 100%);
-    -webkit-mask-image: radial-gradient(circle at 50% -10%, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.8) 45%, rgba(0, 0, 0, 0) 100%);
+    mask-image: radial-gradient(circle at 50% -30%, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.8) 35%, rgba(0, 0, 0, 0) 100%);
+    -webkit-mask-image: radial-gradient(circle at 50% -30%, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.8) 35%, rgba(0, 0, 0, 0) 100%);
 }
 #explorer content a * {
     color: inherit;
 }
 #explorer content a .entry-icon-image i:not(.spin-x-alt) {
-    opacity: var(--opacity-level-4);
+    opacity: 0.95;
 }
 #explorer content a .entry-icon-image i.fa-play-circle {
-    opacity: var(--opacity-level-3);
+    opacity: var(--opacity-level-4);
 }
 #explorer content a .entry-icon-image {
     width: 92%;
@@ -416,6 +416,7 @@ div#home-arrows > div > * {
     min-height: var(--explorer-entry-name-font-size);
     display: inline-block;
     line-height: 150%;
+    text-shadow: 1px 1px black, 0 0 4px black;
 }
 #explorer content a span.entry-details {
     line-height: 150%;
@@ -1021,7 +1022,7 @@ body.modal #modal {
 span.modal-template-message {
     font-size: var(--explorer-entry-name-font-size);
     margin-bottom: var(--padding);
-    padding: var(--padding-2x) var(--padding);
+    padding: 1.5vmax var(--padding);
     display: flex;
     justify-content: center;
     line-height: 175%;
@@ -1044,7 +1045,7 @@ span.modal-template-text, span.modal-template-textarea {
     max-width: var(--explorer-modal-option-min-width);
     width: 100%;
     box-sizing: border-box;
-    background: var(--font-color);
+    background: white;
     align-items: center;    
     font-size: var(--explorer-entry-name-font-size);
 }
@@ -1087,7 +1088,7 @@ span.modal-template-question img {
 }
 .modal-template-slider, .modal-template-option, .modal-template-option-detailed, .modal-template-question {
     box-sizing: border-box;
-    padding: 2.5vmax 0;
+    padding: 1.5vmax 0;
     max-width: var(--explorer-modal-option-min-width);
     width: 100%;
     font-size: var(--explorer-entry-name-font-size);
@@ -1099,13 +1100,14 @@ a.modal-template-option, a.modal-template-option-detailed {
     border-bottom: 2px solid rgba(0,0,0,0.02);
     box-shadow: 0 -0.5vmin 1vmin 0.5vmin rgba(0, 0, 0, 0.01);
     justify-content: center;
+    padding: 2.5vmax 0 ;
 }
 a.modal-template-option i, a.modal-template-option-detailed i {
     margin-right: var(--padding);
 }
 a.modal-template-option.selected, a.modal-template-option-detailed.selected {
     box-shadow: 0 0 2vh 0.5vh rgba(0, 0, 0, 0.125);
-    background: var(--font-color);
+    background: white;
     opacity: 1;
 }
 div.modal-template-option-detailed-name {

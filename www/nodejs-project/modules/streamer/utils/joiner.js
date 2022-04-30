@@ -53,7 +53,7 @@ class Joiner extends Downloader {
 		if(this.opts.debug){
 			console.log('[' + this.type + '] pump', this.destroyed || this.joinerDestroyed)
 		}
-		let next = (err, data) => { 
+		let next = () => { 
 			this.processor.flush(true) // join prematurely to be ready for next connection anyway
 			let now = global.time(), ms = 0
 			if(this.delayUntil && now < this.delayUntil){

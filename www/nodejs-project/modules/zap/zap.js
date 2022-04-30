@@ -69,9 +69,13 @@ class Zap extends Events {
         if(this.skips.length > 20){
             this.skips = this.skips.slice(-20)
         }
+        console.log('zap random', entries[ticket])
         return entries[ticket]
     }
     async go(){
+        if(this.zappingLocked){
+            return
+        }
         this.setZapping(true)
         if(this.connecting){
             return
@@ -81,8 +85,14 @@ class Zap extends Events {
         }
         this.connecting = true
         let entry = await this.random()
-        entry.url = global.mega.build(entry.name, {mediaType: 'live', hlsOnly: !!global.config.get('shared-mode-reach')})
+        entry.url = global.mega.build(entry.name, {
+            mediaType: 'live',
+            // hlsOnly: !!global.config.get('shared-mode-reach') // some lists will have only MPEGTS streams
+        })
+       
+        console.log('zap prom', entry)
         let succeeded = await global.streamer.playPromise(entry, undefined, true).catch(console.error)
+        console.log('zap prom', entry, succeeded)
         this.connecting = false
         this.setZapping(true, succeeded)
         global.tuning && global.tuning.destroy()
@@ -91,9 +101,16 @@ class Zap extends Events {
         }
         return succeeded === true
     }
-    setZapping(state, skipOSD){
+    setZapping(state, skipOSD, force){
+        if(state && this.zappingLocked){
+            return
+        }
         this.isZapping = state
         global.ui.emit('is-zapping', this.isZapping, skipOSD)
+        if(!state && force){
+            this.zappingLocked = true
+            setTimeout(() => this.zappingLocked = false, 3000)
+        }
     }
     async entries(){
         return await global.watching.entries()

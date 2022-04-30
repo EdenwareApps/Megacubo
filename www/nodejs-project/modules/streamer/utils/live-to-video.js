@@ -91,7 +91,7 @@ class StreamerLiveToVideo extends Any2HLS {
         this.file = this.folder + '/'+ this.basename
 	}
     verify(file, cb){
-        fs.stat(file, (err, stat) => cb(!err))
+        fs.access(file, err => cb(!err))
     }
     handleRequest(req, response){
         const keepalive = this.committed && global.config.get('use-keepalive')

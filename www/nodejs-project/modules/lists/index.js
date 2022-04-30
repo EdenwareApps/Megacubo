@@ -177,7 +177,7 @@ class Index extends Common {
 					smap[listUrl] = ls
 				})
                 async.eachOf(ks, (listUrl, i, icb) => {
-                    if(listUrl && typeof(this.lists[listUrl]) != 'undefined'){
+                    if(listUrl && typeof(this.lists[listUrl]) != 'undefined' && smap[listUrl].length){
 						if(this.debug){
 							console.warn('M3U SEARCH ITERATE', smap[listUrl].slice(0))
 						}

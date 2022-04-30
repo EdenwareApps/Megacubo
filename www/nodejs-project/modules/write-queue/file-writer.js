@@ -8,8 +8,12 @@ class Writer extends Events {
 		this.writing = false
 		this.writeQueue = []
 		this.position = 0
+		this.uid = (new Date()).getTime()
+		if(!global.writers) global.writers = {}
+		global.writers[this.uid] = this
 	}
 	write(data){
+		if(!data.length || this.destroyed) return
 		if(typeof(data) == 'string'){
 			data = Buffer.from(data, 'utf8')
 		}
@@ -51,7 +55,7 @@ class Writer extends Events {
 				if(err){
 					console.error(err)
 					this.writing = false
-					this.pump()
+					setTimeout(this.pump.bind(this), 500) // save resources
 				} else {
 					this._write(fd, () => {
 						close()
@@ -63,7 +67,7 @@ class Writer extends Events {
 		})
 	}
 	_write(fd, cb){ // we'll write once per time, not simultaneously, so no drain would be required anyway
-		if(this.writeQueue.length){
+		if(!this.destroyed && this.writeQueue.length){
 			let {data, position} = this.writeQueue.shift(), len = data.length
 			if(this.debug){
 				console.log('writeat writing', this.file, fs.statSync(this.file).size, len, fs.statSync(this.file).size + len, position)
@@ -73,7 +77,11 @@ class Writer extends Events {
 					if(this.debug){
 						console.error('writeat error', err)
 					}
-					this.writeQueue.unshift({data, position})
+					if(this.destroyed){
+						cb()
+					} else {
+						this.writeQueue.unshift({data, position})
+					}
 				} else {
 					if(writtenBytes < len){
 						if(this.debug){
@@ -82,7 +90,7 @@ class Writer extends Events {
 						this.writeQueue.push({data: data.slice(writtenBytes), position: position + writtenBytes})
 					} else {
 						if(this.debug){
-							console.log('writeat written', this.file, fs.statSync(this.file).size)
+							console.log('writeat written', this.file, fs.statSync(this.file).size, this.writeQueue.length)
 						}
 					}
 				}
@@ -100,9 +108,10 @@ class Writer extends Events {
 		}
 	}	
 	destroy(){
+		this.destroyed = parseInt(((new Date()).getTime() - this.uid) / 1000)
+		this.writeQueue = []
 		this.emit('destroy')
 		this.removeAllListeners()
-		this.writeQueue = []
 	}
 }
 

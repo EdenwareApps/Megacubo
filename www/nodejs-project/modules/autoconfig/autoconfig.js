@@ -14,7 +14,7 @@ class AutoConfig {
             } else {
                 if(!lists.manager.get().length && !global.config.get('shared-mode-reach')){
                     global.config.set('setup-complete', false)
-                    global.ui.emit('setup-revert-skip-list')
+                    global.ui.emit('setup-restart')
                 }                
             }
         }
@@ -45,6 +45,16 @@ class AutoConfig {
         let ret = await global.explorer.dialog(opts, def)
         return ret == 'yes'
     }
+    async confirmDisableParentalControl(){
+        let opts = [
+            {template: 'question', text: global.lang.AUTOCONFIG, fa: 'fas fa-magic'},
+            {template: 'message', text: global.lang.PROVIDER_DISABLE_PARENTAL_CONTROL},
+            {template: 'option', text: global.lang.CONFIRM, fa: 'fas fa-check-circle', id: 'yes'},
+            {template: 'option', text: global.lang.SKIP, fa: 'fas fa-times-circle', id: 'no'}
+        ], def = 'no'
+        let ret = await global.explorer.dialog(opts, def)
+        return ret == 'yes'
+    }
     shouldApplyM3U(data){ // prevent second dialog to show, if possible
         if(data.unique && global.config.get('shared-mode-reach')){
             return true
@@ -52,14 +62,15 @@ class AutoConfig {
         let lists = global.lists.manager.get()
         return lists.length != 1 || lists[0][1] != data.m3u
     }
+    shouldConfirmDisableParentalControl(v){ // prevent second dialog to show, if possible
+        return global.config.get('parental-control-policy') != v
+    }
     shouldConfirmDisableLists(data){ // prevent second dialog to show, if possible
-        if(data.unique){
-            if(global.config.get('shared-mode-reach')){
-                return true
-            }
-            let lists = global.lists.manager.get()
-            return lists.some(l => l[1] != data.m3u)
+        if(global.config.get('shared-mode-reach')){
+            return true
         }
+        let lists = global.lists.manager.get()
+        return lists.some(l => l[1] != data.m3u)
     }
     async apply(data){
         console.log('autoConfigure', data)
@@ -75,6 +86,14 @@ class AutoConfig {
                 }
             } else {
                 global.lists.manager.addList(data['m3u'], data['m3u_name']).catch(console.error)
+            }
+        }
+        if(data['parental-control-policy'] && global.config.get('parental-control-policy') != data['parental-control-policy']){
+            console.log('autoConfigure', data['parental-control-policy'])
+            let proceed = data['parental-control-policy'] == 'block' || (await this.confirmDisableParentalControl(data['parental-control-policy']))
+            if(proceed){
+                global.config.set('parental-control-policy', data['parental-control-policy'])
+                global.explorer.refresh()
             }
         }
         if(data['epg'] && data['epg'] != global.config.get('epg-'+ global.lang.locale)){

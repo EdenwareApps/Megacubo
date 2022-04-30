@@ -209,7 +209,7 @@ class FFMPEGMediaInfo extends FFMPEGHelper {
 		if(length){
 			next()
 		} else {
-			fs.stat(file, (err, stat) => {
+			fs.access(file, err => {
 				if(err) { 
 					cb('File not found or empty.', 0)
 				} else {
@@ -307,6 +307,7 @@ class FFMPEGDiagnostic extends FFMPEGMediaInfo {
 		}).finally(() => {
 			const filename = 'megacubo-ffmpeg-log.txt', file = global.downloads.folder + path.sep + filename
 			fs.writeFile(file, text, {encoding: 'utf-8'}, err => {
+				if(err) return global.displayErr(err)
 				global.downloads.serve(file, true, false).catch(global.displayErr)
 			})
 		})	

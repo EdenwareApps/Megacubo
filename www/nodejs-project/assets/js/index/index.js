@@ -41,6 +41,7 @@ function updateWebView(){
 	top.close()
 }
 
+var themeBackgroundReady
 function theming(image, video, color, fontColor, animate){
 	console.warn('theming', image, video, color, fontColor, animate)
 	var bg = document.getElementById('background'), splash = document.getElementById('splash'), data = localStorage.getItem('background-data')
@@ -112,21 +113,34 @@ function theming(image, video, color, fontColor, animate){
 	if(!data.video){
 		data.video = defaultData.video
 	}
-	if(data.video){
-		bg.style.backgroundImage = 'none'		
-		const v = bg.querySelector('video')
-		if(!v || v.src != data.video){
-			bg.innerHTML = '&nbsp;'
-			setTimeout(() => {
-				bg.innerHTML = '<video src="'+ data.video +'" onerror="setTimeout(() => {if(this.parentNode)this.load()}, 500)" loop muted autoplay style="background-color: black;object-fit: cover;" poster="assets/images/blank.png"></video>'
-			}, 1000)
+	const renderBackground = () => {
+		if(data.video){
+			bg.style.backgroundImage = 'none'		
+			const v = bg.querySelector('video')
+			if(!v || v.src != data.video){
+				bg.innerHTML = '&nbsp;'
+				setTimeout(() => {
+					bg.innerHTML = '<video src="'+ data.video +'" onerror="setTimeout(() => {if(this.parentNode)this.load()}, 500)" loop muted autoplay style="background-color: black;object-fit: cover;" poster="assets/images/blank.png"></video>'
+				}, 1000)
+			}
+		} else {
+			const m = 'url("' + data.image +'")'
+			if(bg.style.backgroundImage != m){
+				bg.style.backgroundImage = m
+			}
+			bg.innerHTML = ''
 		}
+	}
+	if(themeBackgroundReady){
+		renderBackground()
 	} else {
-		const m = 'url(' + data.image + ')'
-		if(bg.style.backgroundImage != m){
-			bg.style.backgroundImage = m
+		if(typeof(themeBackgroundReady) == 'undefined'){
+			themeBackgroundReady = false
+			window.addEventListener('themebackgroundready', () => {
+				themeBackgroundReady = true
+				renderBackground()
+			})
 		}
-		bg.innerHTML = ''
 	}
 	if(splash){
 		splash.style.backgroundColor = data.color

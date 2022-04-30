@@ -28,7 +28,10 @@ class Theme extends Events {
             const prevName = global.config.get('theme-name')
             if(this.creatingThemeName != prevName){
                 global.config.set('theme-name', this.creatingThemeName)
-                this.save()
+                this.save(() => {
+                    const ffile = this.folder +'/'+ global.sanitize(prevName) + '.theme.json'
+                    fs.unlink(ffile, () => {})
+                })
                 if(prevName && global.explorer.path.indexOf(prevName) != -1 && global.explorer.path.indexOf(global.lang.CREATE_THEME) == -1){
                     global.explorer.open(global.explorer.path.replace(prevName, this.creatingThemeName))
                 }
@@ -732,7 +735,7 @@ class Theme extends Events {
                         cb()
                     }
                 } else {
-                    global.moveFileRetry(file +'.tmp', file, err => {
+                    global.moveFile(file +'.tmp', file, err => {
                         if(err){
                             global.displayErr(err)
                         }

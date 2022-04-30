@@ -433,7 +433,7 @@ class Lists extends Index {
 	}
 	syncList(url, skipQueue){ // dont trust on config-change sync, it can be delayed
         return new Promise((resolve, reject) => {	
-			if(skipQueue !== true){
+			if(skipQueue !== true) {
 				if(this.isSyncing(url, resolve, reject)){
 					return
 				}
@@ -477,11 +477,13 @@ class Lists extends Index {
 			}
 			if(!listsLoadTimes[url]){
 				listsLoadTimes[url] = {}
+			} else {
+				this.remove(url)
 			}
 			listsLoadTimes[url].syncing = global.time()
 			global.listsRequesting[url] = 'loading'		
 			this.lists[url] = new List(url, this)
-			this.lists[url].skipValidating = isMine
+			this.lists[url].skipValidating = true // list is already validated at driver-updater, always
 			this.lists[url].contentLength = contentLength
 			this.lists[url].on('destroy', () => {
 				if(!global.listsRequesting[url] || (global.listsRequesting[url] == 'loading')){
@@ -583,7 +585,7 @@ class Lists extends Index {
 		})
 	}
 	getListContentLength(url, cb){
-		this.getUpdateMeta(url, updateMeta => {
+		this.getListMeta(url, updateMeta => {
 			cb(updateMeta.contentLength)
 		})
 	}

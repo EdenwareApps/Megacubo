@@ -325,7 +325,7 @@ class Downloads extends Events {
 			global.ui.emit('background-mode-lock', 'saving-file-'+ uid)
 			global.osd.show(global.lang.SAVING_FILE_X.format(name), 'fa-mega spin-x-alt', uid, 'normal')
 			const file = target +'/'+ name
-			const writer = new FileWriter(file), download = new global.Download({
+			const writer = fs.createWriteStream(file, {highWaterMark: Number.MAX_SAFE_INTEGER}), download = new global.Download({
 				url,
 				keepalive: false,
 				retries: 999,
@@ -347,7 +347,7 @@ class Downloads extends Events {
 			download.on('error', console.error)
 			download.on('data', chunk => writer.write(chunk))
 			download.once('end', () => {
-				writer.ended(() => {
+				const finished = () => {
 					writer.destroy()
 					global.osd.show(global.lang.FILE_SAVED_ON.format(explorer.basename(target) || target, name), 'fas fa-check-circle', uid, 'normal')
 					fs.chmod(file, 0o777, err => { // https://stackoverflow.com/questions/45133892/fs-writefile-creates-read-only-file#comment77251452_45140694
@@ -358,7 +358,10 @@ class Downloads extends Events {
 							global.explorer.refresh()
 						}
 					})
-				})
+				}
+				writer.on('finish', finished)
+				writer.on('error', finished)
+				writer.end()
 			})
 			download.start()
 		})

@@ -117,7 +117,8 @@ function loaded(){
 		document.getElementById('info').style.display = 'none'
 		document.getElementById('background').style.visibility = 'visible'
 		splash.parentNode.removeChild(splash)
-		app.postMessage({action: 'player-ready'}, location.origin)
+		app.postMessage({action: 'player-ready'}, location.origin)		
+        window.dispatchEvent(new CustomEvent('themebackgroundready'))
 	}
 }
 

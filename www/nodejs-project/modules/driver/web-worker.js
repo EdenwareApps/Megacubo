@@ -50,7 +50,7 @@ onmessage = e => {
                 data = ret
             }).catch(err => {
                 type = 'reject'
-                data = err
+                data = String(err)
             }).finally(() => {
                 data = {id: msg.id, type, data}
                 try {

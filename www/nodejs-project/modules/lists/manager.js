@@ -86,11 +86,19 @@ class Manager extends Events {
             }
         })
     }
+    waitListsReady(){
+        return new Promise((resolve, reject) => {
+            if(!this.updatingLists){
+                return resolve(true)
+            }
+            this.once('lists-updated', () => resolve(true))
+        })
+    }
     inChannelPage(){
         return global.explorer.currentEntries.some(e => global.lang.SHARE == e.name)
     }
     maybeRefreshChannelPage(){
-        if(global.tuning) return
+        if(global.tuning && !global.tuning.destroyed) return
         let mega, streamsCount = 0
         global.explorer.currentEntries.some(e => {
             if(e.url && global.mega.isMega(e.url)){
@@ -131,8 +139,14 @@ class Manager extends Events {
         })
     }
     check(){
-        if(!config.get('lists').length && !config.get('shared-mode-reach')){
-            global.ui.emit('no-lists')
+        if(
+            !global.config.get('lists').length && 
+            !global.config.get('shared-mode-reach') && 
+            !global.lists.manager.updatingLists && 
+            !global.activeLists.length
+        ){
+            global.config.set('setup-complete', false)
+            global.ui.emit('setup-restart')
         }
     }
     get(){
@@ -155,13 +169,18 @@ class Manager extends Events {
     }
     add(url, name, unique){
         return new Promise((resolve, reject) => {
+            if(url.substr(0, 2) == '//'){
+                url = 'http:'+ url
+            }
             let isURL = global.validateURL(url), isFile = this.isLocal(url)
             console.log('name::add', name, url, isURL, isFile)
             if(!isFile && !isURL){
                 return reject(global.lang.INVALID_URL_MSG)
             }
             let fail = msg => {
-                global.osd.show(msg, 'fas fa-exclamation-circle faclr-red', 'list-open', 'normal')
+                global.osd.hide('list-open')
+                global.displayErr(msg)
+                reject(msg)
             }
             let lists = this.get()
             for(let i in lists){
@@ -196,7 +215,7 @@ class Manager extends Events {
                         this.name(url).then(finish).catch(reject)
                     }
                 } else {
-                    fail(global.lang.INVALID_URL)
+                    fail(global.lang.INVALID_URL_MSG)
                 }
             }).catch(fail)
         })
@@ -367,10 +386,6 @@ class Manager extends Events {
                 global.osd.show(global.lang.LIST_ADDED, 'fas fa-check-circle', 'list-open', 'normal')
                 resolve(true)
             }).catch(err => {
-                if(typeof(err) != 'string'){
-                    err = String(err)
-                }
-                global.osd.show(err, 'fas fa-exclamation-circle', 'list-open', 'normal')
                 reject(err)
             })
         })

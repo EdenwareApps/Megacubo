@@ -189,10 +189,10 @@ class IPTV extends Events {
         return new Promise((resolve, reject) => {
             this.entries().then(es => {
                 let locs = []
-                global.lang.getCountries().then(nlocs => {
+                global.lang.getActiveCountries().then(nlocs => {
                     locs = [...new Set(locs.concat(nlocs))]
                 }).catch(console.error).finally(() => {
-                    let nes = [], maxLists = 18
+                    let nes = [], maxLists = 48
                     if(locs.includes(global.lang.countryCode)){
                         nes = es.filter(e => {
                             return e.countryCode && e.countryCode == global.lang.countryCode
@@ -226,7 +226,7 @@ class IPTV extends Events {
     }
     hook(entries, path){
         return new Promise((resolve, reject) => {
-            if(path.split('/').pop() == global.lang.COMMUNITARY_MODE && config.get('shared-mode-reach')){
+            if(path.split('/').pop() == global.lang.COMMUNITARY_MODE && global.config.get('shared-mode-reach')){
                 entries.push({name: this.title, fa: this.icon, details: this.details, type: 'group', renderer: this.entries.bind(this)})
             }
             resolve(entries)

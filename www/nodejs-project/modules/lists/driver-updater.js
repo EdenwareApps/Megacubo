@@ -124,29 +124,35 @@ class ListsUpdater extends Common {
     }
 	updateList(url){
 		return new Promise((resolve, reject) => {
-			this.shouldUpdate(url, updateMeta => {
+			this.shouldUpdate(url, should => {
+				const now = global.time()
 				if(this.debug){
-					console.log('updater - should', url, updateMeta)
+					console.log('updater - should', url, should)
 				}
-				if(updateMeta){
-					const now = global.time()
+				if(should){
+					const updateMeta = {}
 					const file = global.storage.raw.resolve(global.LIST_DATA_KEY_MASK.format(url))
 					const updater = new UpdateListIndex(url, url, file, this, Object.assign({}, updateMeta))
 					updateMeta.updateAfter = now + 180
-					this.setUpdateMeta(url, updateMeta)
-					updater.start().then(index => {
+					this.setListMeta(url, updateMeta)
+					updater.start().then(() => {
 						if(this.debug){
-							console.log('updater - index', url, index)
+							console.log('updater - result', url, updater.index)
 						}
-						if(index){
+						if(updater.index){
 							updateMeta.contentLength = updater.contentLength
 							updateMeta.updateAfter = now + (24 * 3600)
-							this.setUpdateMeta(url, updateMeta)
+							this.setListMeta(url, updater.index.meta)
+							this.setListMeta(url, updateMeta)
 							resolve(true)
 						} else {
+							console.log('updater - result', err)
 							resolve(false) // no need to update, by contentLength
 						}
-					}).catch(reject).finally(() => updater.destroy())
+					}).catch(err => {
+						console.log('updater - result', url, err)
+						reject(err)
+					}).finally(() => updater.destroy())
 				} else {
 					resolve(false) // no need to update, by updateAfter
 				}
@@ -158,23 +164,18 @@ class ListsUpdater extends Common {
 		list.start().then(() => cb()).catch(err => cb(err))
 	}
 	shouldUpdate(url, cb){
-		this.getUpdateMeta(url, updateMeta => {
+		this.getListMeta(url, updateMeta => {
 			let now = global.time()
-			if(!updateMeta){
-				updateMeta = {updateAfter: 0, contentLength: 0}
-			}
-			let should = (now >= updateMeta.updateAfter) ? updateMeta : false
+			let should = !updateMeta || now >= updateMeta.updateAfter
 			if(should){
 				cb(should)
 			} else {
 				this.validateIndex(url, err => {
 					if(err){
-						console.error('Invalid index, should update', url)
-						cb({
-							updateAfter: global.time() - 1
-						})
+						console.error('Invalid index, should update', url, err)
+						cb(true)
 					} else {
-						cb(should)
+						cb(false)
 					}
 				})
 			}

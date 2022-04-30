@@ -7,6 +7,7 @@ class TunerUtils extends Events {
         this.paused = true
         this.opts = {
 			debug: false,
+			debugLoop: false,
 			shadow: false,
 			allowedTypes: null
 		}
@@ -26,12 +27,9 @@ class TunerUtils extends Events {
             })
         }
 	}
-	host(u){
+	domain(u){
 		if(u && u.indexOf('//') != -1){
-			let d = u.split('//')[1].split('/')[0]
-			if(d.substr(-3) == ':80'){
-				d = d.substr(0, d.length - 3)
-			}
+			let d = u.split('//')[1].split('/')[0].split(':')[0]
 			if(d == 'localhost' || d.indexOf('.') != -1){
 				return d
 			}
@@ -81,11 +79,8 @@ class TunerTask extends TunerUtils {
 			this.streamer.info(e.url, 2, e.source).then(info => {
 				if(!this.aborted){
 					//console.warn('TEST SUCCESS', e, info, this.opts.allowedTypes)
-					if(info.type == 'hls' && String(info.sample).toLowerCase().indexOf('endlist') != -1){
-						info.type = 'video' // dirty hack to bypass vod hls when searching for live
-					}
+					this.info[i] = info
 					if(!Array.isArray(this.opts.allowedTypes) || this.opts.allowedTypes.includes(info.type)){
-						this.info[i] = info
 						this.states[i] = 2
 						resolve(e)
 					} else {
@@ -111,7 +106,7 @@ class TunerTask extends TunerUtils {
 	}
 	domainAt(i){
 		if(typeof(this.domains[i]) == 'undefined'){
-			this.domains[i] = this.host(this.entries[i].url)
+			this.domains[i] = this.domain(this.entries[i].url)
 		}
 		return this.domains[i]
 	}
@@ -128,17 +123,20 @@ class TunerTask extends TunerUtils {
 		return busy
 	}
 	nextEntry(){
-		let ret = -1, retryAfter = -1, busy = this.busyDomains()
-		this.entries.some((e, i) => {
-			if(typeof(this.results[i]) == 'undefined'){
-				if(!busy.length || !busy.includes(this.domainAt(i))){
-					ret = i
-					return true
-				} else if(retryAfter == -1) {
-					retryAfter = 3
+		let ret = -1, retryAfter = -1
+		if(!this.finished && !this.destroyed){
+			let busy = this.busyDomains()
+			this.entries.some((e, i) => {
+				if(typeof(this.results[i]) == 'undefined'){
+					if(!busy.length || !busy.includes(this.domainAt(i))){
+						ret = i
+						return true
+					} else if(retryAfter == -1) {
+						retryAfter = 3
+					}
 				}
-			}
-		})
+			})
+		}
 		return {i: ret, retryAfter}
 	}
 	task(cb){
@@ -146,9 +144,23 @@ class TunerTask extends TunerUtils {
 			console.log('TUNER TASK', this.paused)
 		}
         if(this.paused){
+			let resolved
             this.once('resume', () => {
+				resolved = true
                 this.task(cb)
             })
+			this.on('finish', () => {
+				resolved = true
+				if(!resolved){
+					cb()
+				}
+			})
+			this.on('destroy', () => {
+				resolved = true
+				if(!resolved){
+					cb()
+				}
+			})
         } else {
             let data = this.nextEntry()
 			if(this.opts.debug){
@@ -240,6 +252,9 @@ class TunerTask extends TunerUtils {
 					}
 				})
 				*/
+				if(this.opts.debugLoop){
+					console.log('TUNER ASYNC LOOP RESUME')
+				}
 				this.intents = []
 				this.results = []
 				this.states = []
@@ -257,7 +272,7 @@ class TunerTask extends TunerUtils {
 		}
 	}
 	active(){
-		return !this.paused && !this.finished
+		return !this.paused && !this.finished && !this.destroyed
 	}
 	abort(){
 		if(this.opts.debug){
@@ -289,9 +304,6 @@ class TunerTask extends TunerUtils {
 			this.emit('destroy')
 			this.abort()
 			this.removeAllListeners()
-			this.intents = []
-			this.results = []
-			this.states = []
 		}
 	}
 }
@@ -311,7 +323,31 @@ class Tuner extends TunerTask {
 				console.log('TUNER STARTED')
 			}
 			this.stats()
-			async.parallelLimit(new Array(this.entries.length).fill(this.task.bind(this)), global.config.get('tune-concurrency'), () => {
+			let concurrency = Array(global.config.get('tune-concurrency')).fill(1)
+			async.eachOfLimit(concurrency, concurrency.length, (i, j, adone) => {
+				if(this.opts.debugLoop){
+					console.log('TUNER ASYNC LOOP '+j)
+				}
+				async.until(done => {
+					let finished = this.finished || this.destroyed
+					if(!finished){
+						const next = this.nextEntry()
+						finished = next.i == -1 && next.retryAfter == -1
+					}
+					done(null, finished)
+				}, this.task.bind(this), err => {
+					if(err){
+						console.error(err)
+					}
+					if(this.opts.debugLoop){
+						console.log('TUNER ASYNC LOOP END '+j)
+					}
+					adone()
+				})
+			}, () => {
+				if(this.opts.debugLoop){
+					console.log('TUNER ASYNC LOOP FINISH')
+				}
 				if(this.opts.debug){
 					console.log('TUNER FINISHED')
 				}

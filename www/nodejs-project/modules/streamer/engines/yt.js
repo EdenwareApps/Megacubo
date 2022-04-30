@@ -66,15 +66,40 @@ class StreamerYTHLSIntent extends StreamerHLSIntent {
         if(!info) throw err
         return info
     }
-    selectTrackBW(tracks, bandwidth){
-        let chosen, chosenBandwidth
+    validateTrackConnectivity(url){
+        return new Promise((resolve, reject) => {
+            let resolved
+            console.log('validateTrackConnectivity', url)
+            const stream = new Download({url})
+            stream.on('response', (status, headers) => {
+                console.log('validateTrackConnectivity', url, status, headers)
+                resolved = true
+                if(status >= 200 && status < 400){
+                    resolve(true)
+                } else {
+                    reject('bad status '+ status)
+                }
+            })
+            stream.on('end', () => {
+                if(!resolved){
+                    console.log('validateTrackConnectivity', url, stream)
+                    reject('unreachable')
+                }
+            })
+            stream.start()
+        })
+    }
+    async selectTrackBW(tracks, bandwidth){
+        let chosen, chosenBandwidth, chosenMimeType
         tracks.sortByProp('bitrate').some((track, i) => {
             if(!chosen){
                 chosen = track.url
+                chosenMimeType = track.mimeType
                 chosenBandwidth = track.bitrate
             } else {
                 if(!bandwidth || track.bitrate <= bandwidth){
                     chosen = track.url
+                    chosenMimeType = track.mimeType
                     chosenBandwidth = track.bitrate
                     if(!bandwidth && i == 1){ // if we don't know the connection speed yet, use the #1 to skip a possible audio track
                         return true
@@ -84,17 +109,30 @@ class StreamerYTHLSIntent extends StreamerHLSIntent {
                 }
             }
         })
-        return {url: chosen, bandwidth: chosenBandwidth}
+        const valid = await this.validateTrackConnectivity(chosen).catch(console.error)
+        if(valid !== true){
+            tracks = tracks.filter(t => t.url != chosen)
+            if(tracks.length){
+                return (await this.selectTrackBW(tracks, bandwidth))
+            } else {
+                throw 'no valid track'
+            }
+        }
+        return {url: chosen, mimetype: chosenMimeType, bandwidth: chosenBandwidth}
     }
     async _startVideo(info){
         this.mimetype = this.mimeTypes.video
         this.mediaType = 'video'
-        let ret = this.selectTrackBW(info.formats, global.streamer.downlink)
+        info.formats = info.formats.filter(fmt => {
+            return fmt.hasAudio && fmt.hasVideo && !fmt.isDashMPD
+        })
+        let ret = await this.selectTrackBW(info.formats, global.streamer.downlink)
+        this.mimetype = ret.mimetype
         this.prx = new StreamerProxy(Object.assign({}, this.opts))
         this.connectAdapter(this.prx)
         await this.prx.start()
         this.endpoint = this.prx.proxify(ret.url)
-        console.warn('START', ret, this.endpoint)
+        console.warn('START', ret, this.endpoint, info)
         return {endpoint: this.endpoint, mimetype: this.mimetype}
     }
     async _start(){ 
@@ -106,7 +144,7 @@ class StreamerYTHLSIntent extends StreamerHLSIntent {
         if(!tracks.length){
             return this._startVideo(info)
         }        
-        const mw = global.config.get('hls-prefetch')
+        const mw = global.config.get('hls-prefetching')
         this.prx = new (mw ? StreamerHLSProxy : StreamerProxy)(Object.assign({}, this.opts))
         this.connectAdapter(this.prx)
         await this.prx.start()

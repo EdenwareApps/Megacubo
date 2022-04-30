@@ -18,7 +18,7 @@
         "get-folder-size": "^2.0.1",
         "got": "github:efoxbr/got",
         "hls.js": "^1.1.4",
-        "jimp": "^0.16.1",
+        "jimp": "^0.9.8",
         "jquery": "^3.6.0",
         "m3u8-parser": "^4.6.0",
         "moment": "^2.29.1",
@@ -32,6 +32,7 @@
         "safe-buffer": "^5.2.1",
         "sanitize-filename": "^1.6.3",
         "socket.io": "^4.0.0",
+        "string-similarity": "^4.0.4",
         "swipey.js": "^1.0.3",
         "tough-cookie": "^4.0.0",
         "url-search-params-polyfill": "^8.1.1",
@@ -42,7 +43,7 @@
     "description": "A simple and intuitive IPTV player.",
     "name": "megacubo",
     "icon": "./default_icon.png",
-    "version": "16.4.3",
+    "version": "16.4.4",
     "theme": {
         "fullScreen": true
     },

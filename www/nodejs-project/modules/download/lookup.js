@@ -17,7 +17,6 @@ class UltimateLookup extends Events {
 		this.cacheKey = 'lookup'
 		this.servers = servers
 		this.isReady = false
-		this.preferableIpVersion = 4
 		this.setMaxListeners(999)
 		this.load()
 	}
@@ -27,11 +26,8 @@ class UltimateLookup extends Events {
 		}
 		return 6
 	}
-	setPreferableIpVersion(v){
-		this.preferableIpVersion = v
-	}
 	promotePreferableIpVersion(ips){
-		let pref = this.preferableIpVersion
+		let pref = global.config.get('prefer-ipv6') ? 6 : 4
 		let nips = ips.filter(ip => this.family(ip) == pref)
 		if(nips.length){
 			return {ips: nips, family: pref}
@@ -244,6 +240,5 @@ const lookup = new UltimateLookup({
 	fn: ['80.80.80.80', '80.80.81.81']
 })
 //lookup.debug = true
-lookup.setPreferableIpVersion(global.config.get('prefer-ipv6') ? 6 : 4)
 lookup.lookup = lookup.lookup.bind(lookup)
 module.exports = lookup

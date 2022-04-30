@@ -31,8 +31,13 @@ class Diagnostics extends Events {
 			global.explorer.dialog([
 				{template: 'question', text: 'Megacubo', fa: 'fas fa-exclamation-triangle faclr-red'},
 				{template: 'message', text: global.lang.LOW_DISK_SPACE_AVAILABLE.format(global.kbfmt(data.free))},
+				{template: 'option', text: global.lang.CLEAR_CACHE, id: 'clear'},
 				{template: 'option', text: 'OK', id: 'ok'}
-			], 'ok').catch(console.error) // dont wait
+			], 'ok').then(ret => {
+				if(ret == 'clear'){
+					global.options.requestClearCache()
+				}
+			}).catch(console.error) // dont wait
 			// {diskPath: "C:", free: 12345678, size: 98756432}
 		}
 		return fine

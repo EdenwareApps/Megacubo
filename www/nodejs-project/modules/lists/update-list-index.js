@@ -1,5 +1,5 @@
 const fs = require('fs'), Events = require('events'), Parser = require('./parser')
-const ListIndexUtils = require('./list-index-utils'), FileWriter = require(global.APPDIR + '/modules/write-queue/file-writer')
+const ListIndexUtils = require('./list-index-utils')
 
 class UpdateListIndex extends ListIndexUtils {
 	constructor(url, directURL, file, parent, updateMeta){
@@ -7,7 +7,7 @@ class UpdateListIndex extends ListIndexUtils {
         this.url = url
         this.directURL = directURL
         this.file = file
-		this.tmpfile = file + '.tmp'
+		this.tmpfile = file +'.'+ parseInt(Math.random() * 100000) + '.tmp'
         this.updateMeta = updateMeta
 		this.contentLength = -1
         this.parent = (() => parent)
@@ -80,7 +80,8 @@ class UpdateListIndex extends ListIndexUtils {
                             resolve(false) // no need to update
                         } else {
                             this.parseStream().then(() => {
-                                resolve(this.index)
+                                this.contentLength = this.stream.received
+                                resolve(true)
                             }).catch(err => {
                                 reject(err)
                             })
@@ -100,7 +101,7 @@ class UpdateListIndex extends ListIndexUtils {
                         } else {
                             this.stream = fs.createReadStream(path)
                             this.parseStream().then(() => {
-                                resolve(this.index)
+                                resolve(true)
                             }).catch(err => {
                                 reject(err)
                             })
@@ -117,24 +118,20 @@ class UpdateListIndex extends ListIndexUtils {
 			if(stream && this.stream != stream){
 				this.stream = stream
 			}
-			let initialized, resolved, writer = new FileWriter(this.tmpfile)
+			let resolved, writer = fs.createWriteStream(this.tmpfile, {highWaterMark: Number.MAX_SAFE_INTEGER})
 			this.indexateIterator = 0
 			this.parser = new Parser(this.stream)
 			this.parser.on('meta', meta => {
-                if(!initialized){
-                    initialized = true
-                    this.reset()
-                }
 				this.index.meta = Object.assign(this.index.meta, meta)
 			})
 			this.parser.on('entry', entry => {
 				if(this.destroyed){
-					return reject('destroyed')
+                    if(!resolved){
+                        resolved = true
+                        reject('destroyed')
+                    }
+                    return
 				}
-                if(!initialized){
-                    initialized = true
-                    this.reset()
-                }
                 entry = this.indexate(entry, this.indexateIterator)
                 writer.write(JSON.stringify(entry) + "\r\n")
                 this.indexateIterator++
@@ -142,6 +139,7 @@ class UpdateListIndex extends ListIndexUtils {
             this.on('destroy', () => {
                 writer.destroy()
                 if(!resolved){
+                    resolved = true
                     fs.unlink(this.tmpfile, () => {})
                     reject('destroyed')
                 }
@@ -150,14 +148,29 @@ class UpdateListIndex extends ListIndexUtils {
                 this.index.length = this.indexateIterator
                 if(this.index.length){
                     writer.write(JSON.stringify(this.index))
-                    writer.ended(() => {
+                    const finished = err => {
+                        if(err) console.error(err)
+                        resolved = true
                         writer.destroy()
-                        global.moveFile(this.tmpfile, this.file, () => {
+                        this.parser.destroy()
+                        this.stream.destroy()
+                        global.moveFile(this.tmpfile, this.file, err => {
                             resolved = true
-                            resolve(true)
-                        })
-                    })
+                            if(err){
+                                reject(err)
+                            } else {
+                                resolve(true)
+                            }
+                            fs.access(this.tmpfile, err => {
+                                if(!err) fs.unlink(this.tmpfile, () => {})
+                            })
+                        }, 10)
+                    }                    
+                    writer.on('finish', finished)
+                    writer.on('error', finished)
+                    writer.end()
                 } else {
+                    resolved = true
                     writer.destroy()
                     fs.unlink(this.tmpfile, () => {})
                     reject('empty list')
@@ -165,6 +178,12 @@ class UpdateListIndex extends ListIndexUtils {
 			})
 		})
 	}
+    rdomain(u){
+        if(u && u.indexOf('//') != -1){
+            return u.split('//')[1].split('/')[0].split(':')[0].split('.').slice(-2)
+        }
+        return ''
+    }
 	reset(){	
 		this.index = {
             length: 0,

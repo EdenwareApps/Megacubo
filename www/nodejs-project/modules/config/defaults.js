@@ -16,7 +16,7 @@ module.exports = {
 	'font-size': 3,
 	'fx-nav-intensity': 2,
 	'hide-back-button': false,
-	'hls-prefetch': true,
+	'hls-prefetching': true,
 	'hotkeys': {
 		'Up Shift+Tab': 'NAVUP',
 		'Down Tab': 'NAVDOWN',
@@ -66,6 +66,7 @@ module.exports = {
 	'transcoding': true,
 	'transcoding-resolution': '720p',
 	'transcoding-tuning': false,
+	'ts-packet-filter-policy': 1,
 	'tune-concurrency': 12,
 	'tune-ffmpeg-concurrency': 2,
 	'tuning-icon': 'fas fa-sync-alt',

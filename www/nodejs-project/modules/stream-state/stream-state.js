@@ -156,7 +156,11 @@ class StreamState extends Events {
             entries = entries.filter(e => {
                 if(e.url && e.name != global.lang.REMOVE_LIST){
                     if(global.mega.isMega(e.url)){
-                        syncData[e.url] = 'tune'
+                        let s = 'tune', atts = global.mega.parse(e.url)
+                        if(atts && atts.mediaType && atts.mediaType != 'live'){
+                            s = 'folder'
+                        }
+                        syncData[e.url] = s
                     } else {
                         let state = this.get(e.url)
                         if(typeof(state) == 'string'){

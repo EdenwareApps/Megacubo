@@ -26,7 +26,7 @@ class StorageBase {
 		}
 		this.dir = this.folder + '/'
 		this.useJSON = true		
-		fs.stat(this.folder, (err, stat) => {
+		fs.access(this.folder, err => {
 			if(err){
 				fs.mkdir(this.dir, {recursive: true}, (err) => {
 					if (err){
@@ -92,7 +92,7 @@ class StorageAsync extends StorageBase {
 						this.cacheExpiration[key] = expiral
 					}
 					let data = null, f = this.resolve(key)
-					fs.stat(f, (err, stat) => {
+					fs.access(f, err => {
 						let exists = err === null
 						if(exists) {
 							fs.readFile(f, {encoding}, (err, _json) => {
@@ -177,7 +177,7 @@ class StorageAsync extends StorageBase {
 		key = this.prepareKey(key)
 		if(typeof(this.cacheExpiration[key]) == 'undefined'){
 			let n = 0, f = this.resolve(key, true)
-			fs.stat(f, err => {
+			fs.access(f, err => {
 				let exists = err === null
 				if(exists){
 					fs.readFile(f, (err, x) => {
@@ -243,10 +243,12 @@ class StorageAsync extends StorageBase {
 				global.moveFile(tmpFile, file, err => {
 					if(err){
 						console.error(err)
-						fs.unlink(tmpFile, () => {})
 					}
 					cb(err)
-				})
+					fs.access(tmpFile, err => {
+						if(!err) fs.unlink(tmpFile, () => {})
+					})
+				}, 5)
 			}
 		})
 	}
@@ -408,22 +410,34 @@ class Storage extends StorageSync {
 		})
 	}
 	cleanup(cb){
-		let expiralSuffix = '.expires.json', now = global.time()
+		let expiralSuffix = '.expires.json', now = global.time(), tempFilesExt = ['commit', 'tmp']
 		fs.readdir(this.folder, {}, (err, files) => {
 			if(Array.isArray(files) && files.length){
 				async.eachOfLimit(files.filter(f => f.indexOf(expiralSuffix) != -1), 8, (f, i, done) => {
-					let key = f.replace(expiralSuffix, '')
+					const file = this.folder +'/'+ f
+					const key = f.replace(expiralSuffix, '')
 					this.expiration(key, expiral => {
 						if(expiral <= now){
-							fs.unlink(f, () => {
+							fs.unlink(file, () => {
 								delete this.cacheExpiration[key]
 							})
-							fs.unlink(f.replace(expiralSuffix, '.json'), done)
+							fs.unlink(file.replace(expiralSuffix, '.json'), done)
 						} else {
 							done()
 						}
 					})
 				}, cb || (() => {}))
+				files.filter(f => tempFilesExt.includes(f.split('.').pop())).forEach(f => { // clean temp files left on disk for any reason
+					const file = this.folder +'/'+ f
+					fs.stat(file, (err, stat) => {
+						if(stat){
+							const mtime = stat.mtimeMs / 1000
+							if((now - mtime) > 300){
+								fs.unlink(file, () =>  {})
+							}
+						}
+					})
+				})
 			} else {
 				if(cb){
 					cb()

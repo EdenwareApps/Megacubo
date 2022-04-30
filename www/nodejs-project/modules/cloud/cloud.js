@@ -28,7 +28,7 @@ class CloudData {
     url(key){
         if(['configure', 'themes'].includes(key)){
             return this.server + '/' + key + '.json'
-        } else if(key.indexOf('/') != -1) {
+        } else if(key.indexOf('/') != -1 || key.indexOf('.') != -1) {
             return this.server + '/stats/data/' + key + '.json'
         } else {
             return this.server + '/stats/data/' + key + '.' + this.locale +'.json'
@@ -39,7 +39,7 @@ class CloudData {
             if(this.debug){
                 console.log('cloud: get', key, traceback())
             }
-            const expiralKey = key.split('/')[0]
+            const expiralKey = key.split('/')[0].split('.')[0]
             const store = raw === true ? global.storage.raw : global.storage
             store.get(this.cachingDomain + key, data => {
                 if(data){

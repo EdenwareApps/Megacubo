@@ -6,6 +6,14 @@ class JimpDriver {
         if(typeof(this.jimp) == 'undefined'){
             this.jimp = require('jimp')
             this.jimpCustomAutocrop = require(APPDIR +'/modules/jimp-autocrop-custom')
+            this.jimpVersion = require(global.APPDIR+'/node_modules/jimp/package.json').version
+            if(this.jimpVersion != '0.9.8'){
+                console.error(`
+                !! Buggy JIMP version detected, please use version 0.9.8 !!
+                https://github.com/oliver-moran/jimp/issues/915
+                https://github.com/oliver-moran/jimp/issues/153
+                `)
+            }
         }
     }
     isAlpha(image){
@@ -83,12 +91,16 @@ class JimpDriver {
         return new Promise((resolve, reject) => {
             this.load()
             this.jimp.read(file).then(image => {
-                image = image.resize(36, 36)
-                const ColorThief = require('color-thief-jimp'), palette = ColorThief.getPalette(image, 24)
-                const colors = Array.isArray(palette) ? palette.map(px => {
-                    return {r: px[0], g: px[1], b: px[2]}
-                }) : []
-                resolve(colors)
+                try {
+                    image = image.resize(36, 36)
+                    const ColorThief = require('color-thief-jimp'), palette = ColorThief.getPalette(image, 24)
+                    const colors = Array.isArray(palette) ? palette.map(px => {
+                        return {r: px[0], g: px[1], b: px[2]}
+                    }) : []
+                    resolve(colors)
+                } catch(e) {
+                    reject(e)
+                }
             }).catch(err => {
                 reject(err)
             })

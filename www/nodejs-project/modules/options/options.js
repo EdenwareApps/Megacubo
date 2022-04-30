@@ -109,10 +109,10 @@ class PerformanceProfiles extends Timer {
                 'autocrop-logos': true,
                 'connect-timeout': 5,
                 'fx-nav-intensity': 2,
-                'hls-prefetch': true,
                 'search-missing-logos': true,
                 'show-logos': true,
                 'transcoding': '1080p',
+                'ts-packet-filter-policy': 1,
                 'tune-concurrency': 12,
                 'tune-ffmpeg-concurrency': 2,
                 'ui-sounds': true
@@ -125,11 +125,11 @@ class PerformanceProfiles extends Timer {
                 'custom-background-video': '',
                 'epg': 'disabled',
                 'fx-nav-intensity': 0,
-                'hls-prefetch': false,
                 'resume': false,
                 'search-missing-logos': false,
                 'show-logos': false,
                 'transcoding': '',
+                'ts-packet-filter-policy': 0,
                 'tune-concurrency': 4,
                 'tune-ffmpeg-concurrency': 1,
                 'tuning-prefer-hls': true,
@@ -166,8 +166,8 @@ class PerformanceProfiles extends Timer {
         let ret = await global.explorer.dialog([
             {template: 'question', text: global.lang.PERFORMANCE_MODE, fa: 'fas fa-tachometer-alt'},
             {template: 'message', text: txt},
-            {template: 'option', id: 'low', fa: cur == 'low' ? 'fas fa-check-circle' : '', text: global.lang.FOR_SLOW_DEVICES},
-            {template: 'option', id: 'high', fa: cur == 'high' ? 'fas fa-check-circle' : '', text: global.lang.COMPLETE}
+            {template: 'option', id: 'high', fa: cur == 'high' ? 'fas fa-check-circle' : '', text: global.lang.COMPLETE},
+            {template: 'option', id: 'low', fa: cur == 'low' ? 'fas fa-check-circle' : '', text: global.lang.FOR_SLOW_DEVICES}
         ], cur)        
         console.log('performance-callback', ret)
         if(typeof(this.profiles[ret]) != 'undefined'){
@@ -600,9 +600,9 @@ class Options extends OptionsExportImport {
                 }, details: 'Recommended'}, 
                 {
                     name: 'HLS prefetch', type: 'check', action: (data, checked) => {
-                    global.config.set('hls-prefetch', checked)
+                    global.config.set('hls-prefetching', checked)
                 }, checked: () => {
-                    return global.config.get('hls-prefetch')
+                    return global.config.get('hls-prefetching')
                 }},
                 {
                     name: 'FFmpeg CRF',
@@ -719,7 +719,7 @@ class Options extends OptionsExportImport {
                     value: () => {
                         return global.config.get('shared-mode-reach')
                     }, 
-                    range: {start: 5, end: 24},
+                    range: {start: 5, end: 48},
                     action: (data, value) => {
                         global.config.set('shared-mode-reach', value)
                     }
@@ -756,7 +756,6 @@ class Options extends OptionsExportImport {
         global.streamer.stop()
         if(global.tuning){
             global.tuning.destroy()
-            global.tuning = null
         }
         let folders = [global.storage.folder, global.paths.temp, global.icons.opts.folder]
         async.eachOf(folders, (folder, i, done) => {
@@ -937,18 +936,15 @@ class Options extends OptionsExportImport {
                         resolve([
                             {name: global.lang.TUNE, fa: 'fas fa-satellite-dish', type: 'group', renderer: this.tuneEntries.bind(this)},
                             {name: global.lang.PLAYBACK, fa: 'fas fa-play', type: 'group', renderer: this.playbackEntries.bind(this)},
+                            {  
+                                name: global.lang.CLEAR_CACHE, icon: 'fas fa-broom', type: 'action', action: () => this.requestClearCache()
+                            },
                             {
-                                name: 'Enable console logging', type: 'check', action: (data, checked) => {
-                                global.config.set('enable-console', checked)
-                            }, checked: () => {
-                                return global.config.get('enable-console')
-                            }}, 
-                            {
-                                name: 'Unoptimized search', type: 'check', action: (data, checked) => {
-                                global.config.set('unoptimized-search', checked)
-                            }, checked: () => {
-                                return global.config.get('unoptimized-search')
-                            }}, 
+                                name: global.lang.RESET_CONFIG, 
+                                type: 'action',
+                                fa: 'fas fa-undo-alt', 
+                                action: () => this.resetConfig()
+                            },
                             {
                                 name: 'Config server base URL', 
                                 fa: 'fas fa-server', 
@@ -970,9 +966,12 @@ class Options extends OptionsExportImport {
                                 },
                                 placeholder: global.cloud.defaultServer
                             }, 
-                            {  
-                                name: global.lang.CLEAR_CACHE, icon: 'fas fa-broom', type: 'action', action: () => this.requestClearCache()
-                            },
+                            {
+                                name: 'Unoptimized search', type: 'check', action: (data, checked) => {
+                                global.config.set('unoptimized-search', checked)
+                            }, checked: () => {
+                                return global.config.get('unoptimized-search')
+                            }}, 
                             {
                                 name: 'System info', fa: 'fas fa-memory', type: 'action', action: this.aboutResources.bind(this)
                             },
@@ -986,11 +985,26 @@ class Options extends OptionsExportImport {
                                 action: global.ffmpeg.diagnosticDialog.bind(global.ffmpeg)
                             },
                             {
-                                name: global.lang.RESET_CONFIG, 
-                                type: 'action',
-                                fa: 'fas fa-undo-alt', 
-                                action: () => this.resetConfig()
-                            }
+                                name: 'Enable console logging', type: 'check', action: (data, checked) => {
+                                global.config.set('enable-console', checked)
+                            }, checked: () => {
+                                return global.config.get('enable-console')
+                            }},
+                            {
+                                name: 'Save last tuning log', 
+                                fa: 'fas fa-info-circle', 
+                                type: 'action', 
+                                action: () => {
+                                    if(!global.tuning) return global.displayErr('No tuning found')
+                                    const filename = 'megacubo-tuning-log.txt', file = global.downloads.folder + path.sep + filename
+                                    fs.writeFile(file, global.tuning.logText(), {encoding: 'utf-8'}, err => {
+                                        if(err) return global.displayErr(err)
+                                        global.debugTuning = true
+                                        global.downloads.serve(file, true, false).catch(global.displayErr)
+                                        global.ui.emit('debug-tuning', true)
+                                    })
+                                }
+                            }                            
                         ])
                     })
                 }},

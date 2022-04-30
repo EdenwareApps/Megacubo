@@ -455,28 +455,6 @@ class HLSRequests extends StreamerProxyBase {
 		})
 		return ret
 	}
-	getNextSegment(url){
-		let next, pos = this.getSegmentJournal(url)
-		if(pos){
-			let ks = Object.keys(this.journals[pos.journal].journal)
-			ks.some((k, i) => {
-				if(k == pos.segment){
-					// console.log('PREFETCH ..', needle, k)
-					let i = ks.indexOf(k)
-					if(ks[i + 1]){
-						this.journals[pos.journal].journal[ks[i + 1]].split("\n").some(line => {
-							if(line.length > 3 && !line.startsWith('#')){
-								next = this.unproxify(this.absolutize(line, pos.journal))
-								return true
-							}
-						})
-					}
-					return true
-				}
-			})
-		}
-		return next
-	}
 	getNextInactiveSegment(journalUrl){
 		if(typeof(this.journals[journalUrl]) == 'undefined') return
 		let next, lastDownloading
@@ -499,6 +477,7 @@ class HLSRequests extends StreamerProxyBase {
 					if(ks[i + 1]){
 						this.journals[journalUrl].journal[ks[i + 1]].split("\n").some(line => {
 							if(line.length > 3 && !line.startsWith('#')){
+								console.log('PREFETCH ..', line, k, i)
 								next = this.absolutize(this.unproxify(line), journalUrl)
 							}
 						})
