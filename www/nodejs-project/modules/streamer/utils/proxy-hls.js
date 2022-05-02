@@ -404,14 +404,13 @@ class HLSRequests extends StreamerProxyBase {
 			this.clear()
 			global.rmdir(this.requestCacheDir, true)
 		})
-		this.maxDiskUsage = 200 * (1024 * 1024)
+		this.maxDiskUsage = 200 * (1024 * 1024)		
 		global.diagnostics.checkDisk().then(data => {
-			const toUse = data.free * 0.2
-			if(toUse < this.maxDiskUsage){
-				global.diagnostics.checkDiskUI(true).catch(console.error)
-			}
-			this.maxDiskUsage = toUse
+			this.maxDiskUsage = data.free * 0.2
 		}).catch(console.error)
+	}
+	checkDiskSpace(){
+		const now = global.time()
 	}
     url2file(url){
         let f = global.sanitize(url)
@@ -477,7 +476,6 @@ class HLSRequests extends StreamerProxyBase {
 					if(ks[i + 1]){
 						this.journals[journalUrl].journal[ks[i + 1]].split("\n").some(line => {
 							if(line.length > 3 && !line.startsWith('#')){
-								console.log('PREFETCH ..', line, k, i)
 								next = this.absolutize(this.unproxify(line), journalUrl)
 							}
 						})
@@ -566,6 +564,7 @@ class HLSRequests extends StreamerProxyBase {
 								}
 							}
 						}
+						this.autoClean()
 					}, 50)
 					if(this.committed && seg && this.bitrates.length < this.opts.bitrateCheckingAmount && !this.bitrateChecking){
 						this.getBitrate(this.proxify(url))
@@ -598,6 +597,7 @@ class HLSRequests extends StreamerProxyBase {
 					}
 					if(status == 404){
 						this.report404ToJournal(url)
+						status = 204 // Exoplayer doesn't plays well with 404 errors
 					}
 				}
 				this.requestCacheMap[url].respond(status, headers, request.currentURL)
@@ -646,24 +646,32 @@ class HLSRequests extends StreamerProxyBase {
 		})
 		return size
 	}
+	autoClean(){
+		const now = global.time(), interval = 30
+		if(typeof(this.lastAutoClean) == 'undefined' || (now - this.lastAutoClean) > interval){
+			this.lastAutoClean = now
+			this.clean()
+		}
+	}
 	clean(){
 		let used = this.estimateDiskSpaceUsage()
 		if(used >= this.maxDiskUsage){
-			let index = [], count = 0, freed = 0, freeup = this.maxDiskUsage - used
+			let index = [], count = 0, freed = 0, freeup = used - (this.maxDiskUsage * 0.9)
 			Object.keys(this.requestCacheMap).forEach(url => {
 				if(!this.requestCacheMap[url].clients.length){
 					const cacheSize = this.requestCacheMap[url].fragments.length * this.requestCacheMap[url].fragmentSize
 					index.push({url, size: cacheSize, time: this.requestCacheMap[url].starttime})
 				}
 			})
-			index.sortByProp('time').some(e => {
+			let limit = index.length - 6
+			index.sortByProp('time').some((e, i) => {
 				const url = e.url
 				count++
 				if(typeof(e.size) == 'number'){
 					freed += e.size
 				}
 				this.requestCacheMap[url].destroy()
-				return freed >= freeup
+				return freed >= freeup || i >= limit
 			})
 			console.warn('Request cache trimmed from '+ global.kbfmt(used) +' to '+ global.kbfmt(used - freed), freed, count)
 		}
@@ -989,7 +997,6 @@ class StreamerProxyHLS extends HLSRequests {
 			if(this.committed){
 				// global.osd.show(global.streamer.humanizeFailureMessage(err.response ? err.response.statusCode : 'timeout'), 'fas fa-times-circle', 'debug-conn-err', 'normal')
 				global.osd.show(global.lang.CONNECTION_FAILURE +' ('+ (err.response ? err.response.statusCode : 'timeout') +')', 'fas fa-times-circle', 'debug-conn-err', 'normal')
-				console.error('download err', err)
 				if(this.opts.debug){
 					console.log('download err', err)
 				}

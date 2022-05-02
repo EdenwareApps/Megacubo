@@ -57,14 +57,12 @@ class ListsUpdater extends Common {
 								if(this.debug){
 									console.log('updater - updated', res.url, updated)
 								}
-								acb()
 								if(updated){
 									emit('list-updated', res.url)
 								}
 							}).catch(err => {
 								console.error('updater - err: '+ err)
-								acb()
-							})
+							}).finally(acb)
 						} else {
 							if(this.debug){
 								console.log('updater - failed', res.url, res)
@@ -146,11 +144,15 @@ class ListsUpdater extends Common {
 							this.setListMeta(url, updateMeta)
 							resolve(true)
 						} else {
-							console.log('updater - result', err)
+							if(this.debug){
+								console.log('updater - result', err)
+							}
 							resolve(false) // no need to update, by contentLength
 						}
 					}).catch(err => {
-						console.log('updater - result', url, err)
+						if(this.debug){
+							console.log('updater - result', url, err)
+						}
 						reject(err)
 					}).finally(() => updater.destroy())
 				} else {

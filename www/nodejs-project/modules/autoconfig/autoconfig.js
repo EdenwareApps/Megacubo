@@ -12,8 +12,8 @@ class AutoConfig {
                 this.apply(data)
                 return true
             } else {
-                if(!lists.manager.get().length && !global.config.get('shared-mode-reach')){
-                    global.config.set('setup-complete', false)
+                if(!lists.manager.get().length && !global.config.get('communitary-mode-lists-amount')){
+                    global.config.set('setup-completed', false)
                     global.ui.emit('setup-restart')
                 }                
             }
@@ -56,7 +56,7 @@ class AutoConfig {
         return ret == 'yes'
     }
     shouldApplyM3U(data){ // prevent second dialog to show, if possible
-        if(data.unique && global.config.get('shared-mode-reach')){
+        if(data.unique && global.config.get('communitary-mode-lists-amount')){
             return true
         }
         let lists = global.lists.manager.get()
@@ -66,7 +66,7 @@ class AutoConfig {
         return global.config.get('parental-control-policy') != v
     }
     shouldConfirmDisableLists(data){ // prevent second dialog to show, if possible
-        if(global.config.get('shared-mode-reach')){
+        if(global.config.get('communitary-mode-lists-amount')){
             return true
         }
         let lists = global.lists.manager.get()
@@ -81,7 +81,7 @@ class AutoConfig {
                 let unique = await this.confirmDisableLists()
                 global.lists.manager.addList(data['m3u'], data['m3u_name'], unique).catch(console.error)
                 if(unique){
-                    global.config.set('shared-mode-reach', 0)
+                    global.config.set('communitary-mode-lists-amount', 0)
                     global.explorer.refresh()
                 }
             } else {

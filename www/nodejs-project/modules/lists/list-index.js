@@ -7,6 +7,7 @@ class ListIndex extends ListIndexUtils {
 		this.indexateIterator = 0
     }
     fail(err){
+        this.hasFailed = err
         this.emit('error', err)
         this.emit('end')
     }

@@ -38,7 +38,7 @@ class Manager extends Events {
         this.updater = new (require(global.APPDIR + '/modules/driver')(global.APPDIR + '/modules/lists/driver-updater'))
         this.updater.on('list-updated', url => {
             console.log('List updated', url)
-            global.lists.syncList(url, config.get('shared-mode-reach')).then(() => {
+            global.lists.syncList(url, global.config.get('communitary-mode-lists-amount')).then(() => {
                 console.log('List updated and synced', url)
             }).catch(err => {
                 console.error('List not synced', url, err)
@@ -50,13 +50,13 @@ class Manager extends Events {
                     global.activeLists = p.activeLists
                     if(global.activeLists.length){ // at least one list available
                         this.updatedLists(global.lang.LISTS_UPDATED, 'fas fa-check-circle')
-                        console.error('LISTSUPDATED', JSON.stringify(p))
+                        console.log('LISTSUPDATED', JSON.stringify(p))
                         this.emit('lists-updated')
                         if(typeof(this.updatingLists.onSuccess) == 'function'){
                             this.updatingLists.onSuccess()
                         }
                     } else {
-                        const n = global.config.get('shared-mode-reach')
+                        const n = global.config.get('communitary-mode-lists-amount')
                         if(n){
                             console.warn('data-fetch-fail', n, global.activeLists)
                             this.updatedLists(global.lang.DATA_FETCHING_FAILURE, 'fas fa-exclamation-circle')
@@ -141,11 +141,11 @@ class Manager extends Events {
     check(){
         if(
             !global.config.get('lists').length && 
-            !global.config.get('shared-mode-reach') && 
+            !global.config.get('communitary-mode-lists-amount') && 
             !global.lists.manager.updatingLists && 
             !global.activeLists.length
         ){
-            global.config.set('setup-complete', false)
+            global.config.set('setup-completed', false)
             global.ui.emit('setup-restart')
         }
     }
@@ -401,7 +401,7 @@ class Manager extends Events {
     }
     updateLists(force, onErr){
         console.log('Update lists', global.traceback())
-        if(force === true || !global.activeLists.length || global.activeLists.length < global.config.get('shared-mode-reach')){
+        if(force === true || !global.activeLists.length || global.activeLists.length < global.config.get('communitary-mode-lists-amount')){
             this.updatingLists = {onErr}
             global.osd.show(global.lang.STARTING_LISTS, 'fa-mega spin-x-alt', 'update', 'persistent')
             this.getURLs().then(myLists => {
@@ -409,14 +409,14 @@ class Manager extends Events {
                     console.log('allCommunitaryLists', communitaryLists.length)
                     const next = () => {
                         if(communitaryLists.length || myLists.length){
-                            let maxListsToTry = 2 * global.config.get('shared-mode-reach')
+                            let maxListsToTry = 2 * global.config.get('communitary-mode-lists-amount')
                             if(communitaryLists.length > maxListsToTry){
                                 communitaryLists = communitaryLists.slice(0, maxListsToTry)
                             }
                             console.log('Updating lists', myLists, communitaryLists, global.traceback())
                             this.parent.updaterFinished(false).catch(console.error)
                             global.channels.keywords().then(keywords => {
-                                this.parent.sync(myLists, communitaryLists, global.config.get('shared-mode-reach'), keywords).catch(err => {
+                                this.parent.sync(myLists, communitaryLists, global.config.get('communitary-mode-lists-amount'), keywords).catch(err => {
                                     global.displayErr(err)
                                 })
                                 this.callUpdater(keywords, myLists.concat(communitaryLists), () => {
@@ -427,7 +427,7 @@ class Manager extends Events {
                             this.updatedLists(global.lang.NO_LIST_PROVIDED, 'fas fa-exclamation-circle') // warn user if there's no lists
                         }
                     }
-                    if(global.config.get('shared-mode-reach')){
+                    if(global.config.get('communitary-mode-lists-amount')){
                         async.eachOf([this.IPTV], (driver, i, done) => {
                             driver.ready(() => {
                                 driver.countries.ready(() => {
@@ -484,7 +484,7 @@ class Manager extends Events {
         }
     }
     noListsEntry(){        
-        if(global.config.get('shared-mode-reach') > 0){
+        if(global.config.get('communitary-mode-lists-amount') > 0){
             return this.noListsRetryEntry()
         } else {
             return {
@@ -587,7 +587,7 @@ class Manager extends Events {
                     epgs = [...new Set(epgs)].sort()
                     resolve(epgs)
                 }
-                if(global.config.get('shared-mode-reach')){
+                if(global.config.get('communitary-mode-lists-amount')){
 		    		cloud.get('configure').then(c => {
                         if(c){
                             let key = 'epg-' + global.lang.countryCode
@@ -870,14 +870,14 @@ class Manager extends Events {
                                     {template: 'option', id: 'agree', fa: 'fas fa-check-circle', text: global.lang.I_AGREE}
                                 ], 'lists-manager', 'back', true)                
                             } else {
-                                global.config.set('shared-mode-reach', 0)
+                                global.config.set('communitary-mode-lists-amount', 0)
                                 global.explorer.refresh()
                             }
                         }, checked: () => {
-                            return global.config.get('shared-mode-reach') > 0
+                            return global.config.get('communitary-mode-lists-amount') > 0
                         }}
                     ]
-                    if(global.config.get('shared-mode-reach') > 0){
+                    if(global.config.get('communitary-mode-lists-amount') > 0){
                         options.push({name: global.lang.COMMUNITARY_LISTS, details: global.lang.SHARED_AND_LOADED, fa: 'fas fa-users', type: 'group', renderer: this.communitaryListsEntries.bind(this)})
                         options.push({name: global.lang.ALL_LISTS, details: global.lang.SHARED_FROM_ALL, fa: 'fas fa-users', type: 'group', renderer: this.allCommunitaryListsEntries.bind(this)})
                     }
@@ -968,7 +968,7 @@ class Manager extends Events {
     }
     communitaryLists(){
         return new Promise((resolve, reject) => {
-            let limit = global.config.get('shared-mode-reach')
+            let limit = global.config.get('communitary-mode-lists-amount')
             if(limit){
                 this.allCommunitaryLists().then(lists => {
                     lists = lists.slice(0, limit)
@@ -1013,7 +1013,7 @@ class Manager extends Events {
     }
     allCommunitaryLists(timeout){
         return new Promise((resolve, reject) => {
-            let limit = global.config.get('shared-mode-reach')
+            let limit = global.config.get('communitary-mode-lists-amount')
             if(limit){
                 global.cloud.get('sources', false, timeout).then(s => {
                     resolve(s.map(e => e.url))
@@ -1028,7 +1028,7 @@ class Manager extends Events {
     }
     allCommunitaryListsEntries(){
         return new Promise((resolve, reject) => {
-            let limit = global.config.get('shared-mode-reach')
+            let limit = global.config.get('communitary-mode-lists-amount')
             if(limit){
                 global.cloud.get('sources', false, 30000).then(lists => {
                     if(Array.isArray(lists) && lists.length){

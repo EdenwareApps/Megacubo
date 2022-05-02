@@ -148,7 +148,7 @@ class IPTVStreamInfo {
 				ret.ext = this.ext(url)
 				resolve(ret)
 			} else if(this.isLocalFile(url)) {
-				fs.stat(url, (err, stat) => {
+				require('fs').stat(url, (err, stat) => {
 					if(stat && stat.size){
 						let ret = {}
 						ret.status = 200

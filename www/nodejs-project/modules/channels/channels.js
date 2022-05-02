@@ -843,6 +843,9 @@ class ChannelsAutoWatchNow extends ChannelsEditing {
                     this.watchNowAuto = ''
                 }
             })
+            global.streamer.on('stop-from-client', () => {
+                this.watchNowAuto = ''
+            })
         })
     }
     autoplay(){
@@ -1097,12 +1100,14 @@ class Channels extends ChannelsAutoWatchNow {
     }
     entryTerms(e){
         let terms
-        if(Array.isArray(e.terms) && e.terms.length){
+        if(e.originalName) {
+            terms = global.lists.terms(e.originalName)
+        } else if(Array.isArray(e.terms) && e.terms.length) {
             terms = e.terms
         } else if(typeof(e.terms) != 'undefined' && typeof(e.terms.name) != 'undefined' && Array.isArray(e.terms.name) && e.terms.name.length) {
             terms = e.terms.name
         } else {
-            terms = global.lists.terms(e.program ? e.program.ch : (e.channelName ? e.channelName : e.name))
+            terms = global.lists.terms(e.program ? e.program.ch : e.name)
         }
         return this.expandTerms(terms)
     }

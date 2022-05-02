@@ -595,6 +595,27 @@ class Explorer extends Events {
                     }
                 }
             })
+            if(!ret){
+                let candidates = entries.filter((e, i) => {
+                    if(e.name == name){
+                        return true
+                    }
+                })
+                if(candidates.length == 1){
+                    ret = candidates[0]
+                } else if(candidates.length) {
+                    ret = candidates.sort((a, b) => {
+                        return Math.abs(a.tabindex - tabindex) - Math.abs(b.tabindex - tabindex)
+                    }).shift()
+                }
+                if(this.opts.debug){
+                    if(ret){
+                        console.log('selectEntry did not found it by tabindex '+ tabindex +' picking nearest one ('+ ret.tabindex +')', ret)
+                    } else {
+                        console.log('selectEntry did not found it by name')
+                    }
+                }
+            }
         }
         return ret
     }

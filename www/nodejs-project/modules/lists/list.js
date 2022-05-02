@@ -78,7 +78,7 @@ class List extends Events {
 		let p = 0
 		if(this.validator){
 			p = this.validator.progress()
-		} else if(this.index.length) {
+		} else if(this.isReady || this.indexer.hasFailed) {
 			p = 100
 		}
 		return p
@@ -159,19 +159,36 @@ class List extends Events {
 		if(this.skipValidating){
 			return
 		}
+
+        const values = {}
+        const factors = {
+            relevantKeywords: 1,
+            hls: 0.5
+        }
+
+        // relevantKeywords
 		let rks = this.parent() ? this.parent().relevantKeywords : this.relevantKeywords
 		if(!rks || !rks.length){
 			console.error('no parent keywords', this.parent(), this.relevantKeywords, rks)
-			return 100
-		}
-		let hits = 0
-		rks.forEach(term => {
-			if(typeof(index.terms[term]) != 'undefined'){
-				hits++
-			}
-		})
-		let relevance = hits / (rks.length / 100)
-		rks = null
+			values.relevantKeywords = 100
+		} else {
+            let hits = 0
+            rks.forEach(term => {
+                if(typeof(index.terms[term]) != 'undefined'){
+                    hits++
+                }
+            })
+            values.relevantKeywords = hits / (rks.length / 100)
+        }
+
+        // hls
+        values.hls = index.hlsCount / (index.length / 100)
+
+        let relevance = 0
+        const ks = Object.keys(values)
+        ks.forEach(k => relevance += values[k])
+        relevance /= ks.length
+
 		return relevance
 	}
 	iterate(fn, map, cb){

@@ -13,6 +13,15 @@ class UpdateListIndex extends ListIndexUtils {
         this.parent = (() => parent)
         this.reset()
     }
+    ext(file){
+		let basename = String(file).split('?')[0].split('#')[0].split('/').pop()
+		basename = basename.split('.')
+		if(basename.length > 1){
+			return basename.pop().toLowerCase()
+		} else {
+			return ''
+		}
+    }
 	indexate(entry, i){
 		entry = this.parent().prepareEntry(entry)
 		entry.terms.name.concat(entry.terms.group).forEach(term => {
@@ -120,6 +129,7 @@ class UpdateListIndex extends ListIndexUtils {
 			}
 			let resolved, writer = fs.createWriteStream(this.tmpfile, {highWaterMark: Number.MAX_SAFE_INTEGER})
 			this.indexateIterator = 0
+			this.hlsCount = 0
 			this.parser = new Parser(this.stream)
 			this.parser.on('meta', meta => {
 				this.index.meta = Object.assign(this.index.meta, meta)
@@ -132,6 +142,9 @@ class UpdateListIndex extends ListIndexUtils {
                     }
                     return
 				}
+                if(this.ext(entry.url) == 'm3u8'){
+                    this.hlsCount++
+                }
                 entry = this.indexate(entry, this.indexateIterator)
                 writer.write(JSON.stringify(entry) + "\r\n")
                 this.indexateIterator++
@@ -146,6 +159,7 @@ class UpdateListIndex extends ListIndexUtils {
             })
 			this.parser.once('end', () => {
                 this.index.length = this.indexateIterator
+                this.index.hlsCount = this.hlsCount
                 if(this.index.length){
                     writer.write(JSON.stringify(this.index))
                     const finished = err => {

@@ -274,11 +274,14 @@ class Index extends Common {
         return String(file).split('?')[0].split('#')[0].split('.').pop().toLowerCase()
     }
     preferHLS(entries){
-        return entries.slice(0).sort((a, b) => {
-			let aa = this.ext(a.url) == 'm3u8'
-			let bb = this.ext(b.url) == 'm3u8'
-			return aa == bb ? 0 : (aa && !bb ? -1 : 1)
+        let notHLS = []
+		entries = entries.slice(0).filter(a => {
+			if(this.ext(a.url) == 'm3u8'){
+				return true
+			}
+			notHLS.push(a)
         })
+		return entries.concat(notHLS)
     }
 	unoptimizedSearch(terms, opts){
 		return new Promise((resolve, reject) => {

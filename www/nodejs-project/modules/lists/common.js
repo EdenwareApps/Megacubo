@@ -161,7 +161,8 @@ class Common extends Events {
 			folderSizeLimit: 96,
 			folderSizeLimitTolerance: 12,
 			paginateThreshold: 128,
-			offloadThreshold: 512
+			offloadThreshold: 512,
+			defaultCommunitaryModeReach: global.cordova ? 18 : 24
 		}
         if(opts){
             Object.keys(opts).forEach(k => {
@@ -177,7 +178,7 @@ class Common extends Events {
 	communitaryListsRequiredAmount(n, foundCommunitaryListsCount){
 		let satisfyLevel = 0.5
 		if(typeof(n) != 'number'){
-			n = global.config.get('shared-mode-reach')
+			n = global.config.get('communitary-mode-lists-amount')
 		}
 		return Math.min(n * satisfyLevel, foundCommunitaryListsCount)
 	}

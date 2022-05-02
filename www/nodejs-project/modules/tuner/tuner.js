@@ -3,7 +3,7 @@ const path = require('path'), Events = require('events'), async = require('async
 class TunerUtils extends Events {
     constructor(entries, opts, name){
         super()
-		this.setMaxListeners(20)
+		this.setMaxListeners(64)
         this.paused = true
         this.opts = {
 			debug: false,
@@ -145,22 +145,28 @@ class TunerTask extends TunerUtils {
 		}
         if(this.paused){
 			let resolved
-            this.once('resume', () => {
-				resolved = true
-                this.task(cb)
-            })
-			this.on('finish', () => {
-				resolved = true
+			const finishListener = () => {
 				if(!resolved){
+					resolved = true
 					cb()
 				}
-			})
-			this.on('destroy', () => {
-				resolved = true
+				removeListeners()
+			}
+			const resumeListener = () => {
 				if(!resolved){
-					cb()
+					resolved = true
+                	this.task(cb)
 				}
-			})
+				removeListeners()
+			}
+			const removeListeners = () => {
+				this.removeListener('resume', resumeListener)
+				this.removeListener('finish', finishListener)
+				this.removeListener('destroy', finishListener)
+			}
+            this.once('resume', resumeListener)
+			this.on('finish', finishListener)
+			this.on('destroy', finishListener)
         } else {
             let data = this.nextEntry()
 			if(this.opts.debug){

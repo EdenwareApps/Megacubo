@@ -28,7 +28,7 @@ class AnalyticsBase extends Events {
         if(global.premium && global.premium.active){
             data.verinf = global.premium.active
         }
-        if(data.source && !global.config.get('shared-mode-reach')){
+        if(data.source && !global.config.get('communitary-mode-lists-amount')){
             // console.log('Source URL not shareable.')
             data.source = ''
         }

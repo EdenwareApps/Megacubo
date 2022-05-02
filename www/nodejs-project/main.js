@@ -17,7 +17,6 @@ const fs = require('fs'), path = require('path'), sanitizeFilename = require('sa
 
 APPDIR = path.resolve(typeof(__dirname) != 'undefined' ? __dirname : process.cwd()).replace(new RegExp('\\\\', 'g'), '/')
 MANIFEST = require(APPDIR + '/package.json')
-COMMUNITARY_LISTS_DEFAULT_AMOUNT = cordova ? 16 : 24
 
 tuning = false
 moment = require('moment-timezone')
@@ -318,7 +317,7 @@ function init(language){
         lists = new Lists()
         lists.setNetworkConnectionState(Download.isNetworkConnected).catch(console.error)       
         lists.manager.on('lists-updated', () => {
-            if(config.get('setup-complete')) areListsReady = true
+            if(config.get('setup-completed')) areListsReady = true
         })
 
         activeLists = {my: [], communitary: [], length: 0}
@@ -326,7 +325,7 @@ function init(language){
         autoconfig = new AutoConfig()
         autoconfig.start()
 
-        if(config.get('setup-complete')){
+        if(config.get('setup-completed')){
             lists.manager.UIUpdateLists(true)
         }
 
@@ -415,7 +414,7 @@ function init(language){
                 case 'agree':
                     ui.emit('explorer-reset-selection')
                     explorer.open('', 0).catch(displayErr)
-                    config.set('shared-mode-reach', COMMUNITARY_LISTS_DEFAULT_AMOUNT)
+                    config.set('communitary-mode-lists-amount', lists.opts.defaultCommunitaryModeReach)
                     ui.emit('info', lang.LEGAL_NOTICE, lang.TOS_CONTENT)
                     lists.manager.UIUpdateLists(true)
                     break
@@ -457,10 +456,8 @@ function init(language){
                 def = 'try-other'
             }
             opts.push({template: 'option', text: lang.RELOAD_THIS_BROADCAST, fa: 'fas fa-redo', id: 'retry'})
-            if(!cordova){
-                if(typeof(streamer.active.transcode) == 'function' && !streamer.active.isTranscoding() && config.get('transcoding')){
-                    opts.push({template: 'option', text: lang.FIX_AUDIO_OR_VIDEO +' &middot; '+ lang.TRANSCODE, fa: 'fas fa-film', id: 'transcode'})
-                }
+            if(typeof(streamer.active.transcode) == 'function' && !streamer.active.isTranscoding() && config.get('transcoding')){
+                opts.push({template: 'option', text: lang.FIX_AUDIO_OR_VIDEO +' &middot; '+ lang.TRANSCODE, fa: 'fas fa-film', id: 'transcode'})
             }
             if(opts.length > 2){
                 let ret = await explorer.dialog(opts, def)
@@ -526,6 +523,7 @@ function init(language){
         ui.on('stop', () => {
             if(streamer.active){
                 console.warn('STREAMER STOP FROM CLIENT')
+                streamer.emit('stop-from-client')
                 streamer.stop()
                 if(tuning){
                     tuning.pause()
@@ -639,7 +637,7 @@ function init(language){
         })
         config.on('change', (keys, data) => {
             ui.emit('config', keys, data)
-            if(['lists', 'shared-mode-reach'].some(k => keys.includes(k))){
+            if(['lists', 'communitary-mode-lists-amount'].some(k => keys.includes(k))){
                 explorer.refresh()
                 lists.manager.UIUpdateLists(true)
             }
@@ -652,7 +650,7 @@ function init(language){
             if(!isUILoaded){
                 isUILoaded = true
                 const afterListUpdate = async () => {
-                    if(!lists.manager.updatingLists && !activeLists.length && config.get('shared-mode-reach')){
+                    if(!lists.manager.updatingLists && !activeLists.length && config.get('communitary-mode-lists-amount')){
                         lists.manager.UIUpdateLists()
                     }
                     let c = await cloud.get('configure')
@@ -690,9 +688,9 @@ function init(language){
         ui.on('streamer-ready', () => {        
             isStreamerReady = true  
             if(!streamer.active){
-                console.error('STREAMER-READY', lists.manager.updatingLists, config.get('setup-complete'))
+                console.error('STREAMER-READY', lists.manager.updatingLists, config.get('setup-completed'))
                 let next = () => {
-                    console.error('STREAMER-READY', lists.manager.updatingLists, config.get('setup-complete'))
+                    console.error('STREAMER-READY', lists.manager.updatingLists, config.get('setup-completed'))
                     if(playOnLoaded){
                         streamer.play(playOnLoaded)
                     } else if(config.get('resume')) {

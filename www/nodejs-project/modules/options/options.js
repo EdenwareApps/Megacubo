@@ -114,7 +114,7 @@ class PerformanceProfiles extends Timer {
                 'transcoding': '1080p',
                 'ts-packet-filter-policy': 1,
                 'tune-concurrency': 12,
-                'tune-ffmpeg-concurrency': 2,
+                'tune-ffmpeg-concurrency': 3,
                 'ui-sounds': true
             },
             low: {
@@ -131,7 +131,7 @@ class PerformanceProfiles extends Timer {
                 'transcoding': '',
                 'ts-packet-filter-policy': 0,
                 'tune-concurrency': 4,
-                'tune-ffmpeg-concurrency': 1,
+                'tune-ffmpeg-concurrency': 2,
                 'tuning-prefer-hls': true,
                 'ui-sounds': false
             }
@@ -694,7 +694,7 @@ class Options extends OptionsExportImport {
                     name: global.lang.CONNECT_TIMEOUT, 
                     fa: 'fas fa-plug', 
                     type: 'slider', 
-                    range: {start: 5, end: 60},
+                    range: {start: 3, end: 60},
                     action: (data, value) => {
                         console.warn('CONNECT_TIMEOUT', data, value)
                         global.config.set('connect-timeout', value)
@@ -710,18 +710,18 @@ class Options extends OptionsExportImport {
                     return global.config.get('prefer-ipv6')
                 }}  
             ]
-            if(global.config.get('shared-mode-reach')){
+            if(global.config.get('communitary-mode-lists-amount')){
                 opts.push({
                     name: global.lang.COMMUNITARY_LISTS, 
                     type: 'slider', 
                     fa: 'fas fa-users', 
                     mask: '{0} ' + global.lang.COMMUNITARY_LISTS.toLowerCase(), 
                     value: () => {
-                        return global.config.get('shared-mode-reach')
+                        return global.config.get('communitary-mode-lists-amount')
                     }, 
                     range: {start: 5, end: 48},
                     action: (data, value) => {
-                        global.config.set('shared-mode-reach', value)
+                        global.config.set('communitary-mode-lists-amount', value)
                     }
                 })
             }

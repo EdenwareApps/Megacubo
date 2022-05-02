@@ -563,7 +563,7 @@ class Download extends Events {
 				}
 				this.decompressor.on('data', this._emitData.bind(this))
 				this.decompressor.on('error', err => {
-					console.error('Zlib err', err, this.currentURL, this)
+					console.error('Zlib err', err, this.currentURL)
 					this.decompressEnded = 'error'
 					this.end()
 				})

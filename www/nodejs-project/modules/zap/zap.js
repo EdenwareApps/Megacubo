@@ -13,6 +13,9 @@ class Zap extends Events {
                 this.go().catch(console.error)
             }
         })
+        global.streamer.on('stop-from-client', err => {
+            this.setZapping(false, true, true)
+        })
         global.streamer.on('commit', () => {
             if(this.isZapping){
                 this.setZapping(true, true)
@@ -87,7 +90,7 @@ class Zap extends Events {
         let entry = await this.random()
         entry.url = global.mega.build(entry.name, {
             mediaType: 'live',
-            // hlsOnly: !!global.config.get('shared-mode-reach') // some lists will have only MPEGTS streams
+            hlsOnly: 'auto'
         })
        
         console.log('zap prom', entry)
@@ -109,7 +112,7 @@ class Zap extends Events {
         global.ui.emit('is-zapping', this.isZapping, skipOSD)
         if(!state && force){
             this.zappingLocked = true
-            setTimeout(() => this.zappingLocked = false, 3000)
+            setTimeout(() => this.zappingLocked = false, 2000)
         }
     }
     async entries(){

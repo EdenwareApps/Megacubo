@@ -567,6 +567,7 @@ class VideoControlAdapterAndroidNative extends VideoControlAdapter {
 	}	
 	playbackRate(rate){
 		if(typeof(rate) == 'number'){
+			console.warn('SET PLAYBACK RATE', rate)
 			this.object.setPlaybackRate(rate)
 		}
 		return this.object.playbackRate

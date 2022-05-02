@@ -11,7 +11,7 @@ class MPEGTSPacketProcessor extends Events {
         this.lastFlushTime = 0
         this.minFlushInterval = 3 // secs
         this.buffering = []
-        this.bufferSize = (512 * 1024) // 512KB
+        this.bufferSize = 5 * (512 * 1024) // 5MB
         this.maxBufferSize = 10 * (1024 * 1024) // 10MB, if buffer grows more than this, something is going wrong and may fill up memory
         this.maxPcrJournalSize = 2048 // 256 was not enough
         this.pcrJournal = []

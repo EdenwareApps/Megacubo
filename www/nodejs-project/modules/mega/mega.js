@@ -18,10 +18,10 @@ class Mega {
 		}
 		return url.substr(0, 7) == 'mega://'      
 	}	
-	parse(megaUrl){
-		if(this.isMega(megaUrl)){
+	parse(megaURL){
+		if(this.isMega(megaURL)){
 			let mediaType = 'live', url = '', name = '', qs = {}, type = 'name'
-			let parts = megaUrl.substr(7).split('#')[0]
+			let parts = megaURL.substr(7).split('#')[0]
 			parts = parts.split('?')
 			if(parts[0].charAt(parts[0].length - 1) == '/'){
 				parts[0] = parts[0].substr(0, parts[0].length - 1)
@@ -30,7 +30,7 @@ class Mega {
 				let tmp = global.decodeURIComponentSafe(parts[0])
 				parts[0] = tmp
 			} catch(e) {
-				console.error(e, megaUrl)
+				console.error(e, megaURL)
 			}
 			if(parts.length > 1){
 				qs = this.qs2Object(parts[1])

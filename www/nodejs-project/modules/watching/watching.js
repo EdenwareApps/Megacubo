@@ -26,7 +26,7 @@ class Watching extends EntriesGroup {
         }
     }
     showChannelOnHome(){
-        return global.lists.manager.get().length || global.config.get('shared-mode-reach')
+        return global.lists.manager.get().length || global.config.get('communitary-mode-lists-amount')
     }
     update(){
         clearTimeout(this.timer)
@@ -135,7 +135,7 @@ class Watching extends EntriesGroup {
                 delete data[i].logo
             }
         })
-        let recoverNameFromMegaURL = true, ex = !global.config.get('shared-mode-reach') // we'll make entries URLless for exclusive mode, to use the provided lists only
+        let recoverNameFromMegaURL = true, ex = !global.config.get('communitary-mode-lists-amount') // we'll make entries URLless for exclusive mode, to use the provided lists only
         data = global.lists.prepareEntries(data)
         data = data.filter(e => (e && typeof(e) == 'object' && typeof(e.name) == 'string')).map(e => {
             let isMega = global.mega.isMega(e.url)
@@ -243,7 +243,7 @@ class Watching extends EntriesGroup {
                 let s = top.users == 1 ? 'user' : 'users'
                 entry.name = this.title
                 entry.class = 'entry-icon' 
-                entry.channelName = top.name
+                entry.originalName = top.name
                 entry.prepend = '<i class="fas fa-chart-bar"></i> '
                 entry.details = top.name + ' &middot; <i class="fas fa-'+ s +'"></i> '+ global.lang.X_WATCHING.format(top.users)
             }

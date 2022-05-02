@@ -262,7 +262,7 @@ class StreamerState extends StreamerCasting {
         this.stateListening = false
     }
     playOrPause(){
-        if(this.active){
+        if(this.active && parent.player.state){
             if(['paused', 'ended'].includes(parent.player.state)){
                 if(this.casting){
                     if(this.castingPaused){
@@ -278,7 +278,7 @@ class StreamerState extends StreamerCasting {
                     parent.player.resume()
                     this.app.emit('streamer-resume')
                 }
-            } else if(parent.player.state) {
+            } else {
                 parent.player.pause()
                 this.app.emit('streamer-pause')
             }
@@ -1514,7 +1514,7 @@ class StreamerClient extends StreamerClientController {
             if(parent.player.current && parent.player.current.hls){
                 parent.player.current.hls.stopLoad()
             }
-            parent.player.playbackRate(0)
+            parent.player.pause()
             this.stateListener('loading')
         })
         this.app.on('streamer-disconnect', (err, autoTuning) => {

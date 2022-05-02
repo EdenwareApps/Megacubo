@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget android-versionCode="199" id="tv.megacubo.app" version="16.4.4" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget android-versionCode="202" id="tv.megacubo.app" version="16.5.0" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>Megacubo</name>
     <description>
         An intuitive, free and open source IPTV player.
@@ -33,7 +33,8 @@
         </custom-config-file>
         <allow-intent href="market:*" />
         <preference name="android-minSdkVersion" value="24" />
-        <preference name="android-targetSdkVersion" value="30" />
+        <preference name="android-targetSdkVersion" value="31" />
+        <preference name="android-compileSdkVersion" value="31" />
         <custom-preference delete="true" name="android-manifest/uses-sdk" />
         <custom-preference name="android-manifest/application/@android:extractNativeLibs" value="true" />
         <custom-preference name="android-manifest/application/@android:usesCleartextTraffic" value="true" />
@@ -41,6 +42,7 @@
         <custom-preference name="android-manifest/application/@android:hardwareAccelerated" value="true" />
         <custom-preference name="android-manifest/application/@android:requestLegacyExternalStorage" value="true" />
         <custom-preference name="android-manifest/@android:hardwareAccelerated" value="true" />
+        <custom-preference name="android-manifest/application/activity[@android:name='MainActivity']/@android:exported" value="true" />
         <preference name="AllowInlineMediaPlayback" value="true" />
         <preference name="AndroidLaunchMode" value="singleInstance" />
         <preference name="AndroidPersistentFileLocation" value="Compatibility" />

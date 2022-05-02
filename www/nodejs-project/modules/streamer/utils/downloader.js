@@ -252,7 +252,7 @@ class Downloader extends StreamerAdapterBase {
 		})
 		download.on('error', error => {
 			let elapsed = global.time() - connStart
-            console.warn('['+ this.type +'] ERR after '+ elapsed +'s', error, this.url, download)
+            console.warn('['+ this.type +'] ERR after '+ elapsed +'s', error, this.url)
 			if(this.committed){
 				let statusCode = 0
 				if(error && error.response && error.response.statusCode){

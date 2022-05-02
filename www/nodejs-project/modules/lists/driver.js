@@ -37,10 +37,10 @@ class Lists extends Index {
         this.sharingUrls = []
 		this.relevantKeywords = []
 		this.syncListsQueue = {}
-		this.sharedModeReach = global.config.get('shared-mode-reach')
+		this.sharedModeReach = global.config.get('communitary-mode-lists-amount')
 		global.config.on('change', (keys, data) => {
-			if(keys.includes('shared-mode-reach')){
-				this.sharedModeReach = data['shared-mode-reach']
+			if(keys.includes('communitary-mode-lists-amount')){
+				this.sharedModeReach = data['communitary-mode-lists-amount']
 			}
 		})
 	}

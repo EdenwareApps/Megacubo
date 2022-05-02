@@ -218,7 +218,7 @@ class StreamerBaseIntent extends Events {
         this.timeoutStart = global.time()
         this.timeoutTimer = setTimeout(() => {
             if(this && !this.failed && !this.destroyed && !this.committed){
-                console.log('Timeouted engine after '+ (global.time() - this.timeoutStart), this, this.committed)
+                console.log('Timeouted engine after '+ (global.time() - this.timeoutStart), this.committed)
                 this.fail('timeout')
             }
         }, secs * 1000)
@@ -230,6 +230,10 @@ class StreamerBaseIntent extends Events {
     resetTimeout(){
         this.setTimeout(this.timeout)
     }
+    timeoutStatus(){
+        const s = this.timeoutStart, e = s + this.timeout, now = global.time()
+        return (now - s) / ((e - s) / 100)
+    }
     start(){   
         let resolved 
         this.resetTimeout()
@@ -239,6 +243,14 @@ class StreamerBaseIntent extends Events {
                     resolved = true
                     reject(err)
                 }
+            })
+            this.on('destroy', () => {
+                setTimeout(() => { // allow other hooks to process before
+                    if(!resolved){
+                        resolved = true
+                        reject('destroyed')
+                    }
+                }, 400)
             })
             this._start().then(data => {
                 if(!resolved){

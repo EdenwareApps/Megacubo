@@ -837,11 +837,12 @@ class Streamer extends StreamerAbout {
 		return ret
 	}
     hlsOnly(entries){
-        return entries.filter(a => {
+        let nentries = entries.filter(a => {
 			return this.ext(a.url) == 'm3u8'
 		})
+		return nentries.length ? nentries : entries
     }
-	async playFromEntries(entries, name, megaUrl, txt, connectId, mediaType, preferredStreamURL, silent){
+	async playFromEntries(entries, name, megaURL, txt, connectId, mediaType, preferredStreamURL, silent){
 		if(this.opts.shadow){
 			throw 'in shadow mode'
 		}
@@ -861,7 +862,7 @@ class Streamer extends StreamerAbout {
 			throw 'another play intent in progress'
 		}
 		console.log('tuning', entries, name)
-		let tuning = new AutoTuner(entries, {}, name, megaUrl, mediaType, preferredStreamURL)
+		let tuning = new AutoTuner(entries, {preferredStreamURL, name, megaURL, mediaType})
 		global.tuning = tuning
 		tuning.txt = txt
 		tuning.on('progress', i => {
@@ -880,6 +881,7 @@ class Streamer extends StreamerAbout {
 		await tuning.tune().catch(err => {
 			if(err != 'cancelled by user'){
 				hasErr = err
+				console.error(err)
 			}
 		})
 		if(hasErr){
@@ -902,7 +904,7 @@ class Streamer extends StreamerAbout {
 			this.stop()
 		}
 		if(global.tuning){
-			if(!global.tuning.destroyed && global.tuning.megaUrl && global.tuning.megaUrl == e.url){
+			if(!global.tuning.destroyed && global.tuning.opts.megaURL && global.tuning.opts.megaURL == e.url){
 				return this.tune(e)
 			}
 			global.tuning.destroy()
@@ -1043,7 +1045,7 @@ class Streamer extends StreamerAbout {
 			}).length
 			if(expiralScore > (sources[source].length / 2)){	
 				console.warn('triggerCheckForListExpiral', source +' EXPIRED', expiralScore +'/'+ sources[source].length)
-				this.expiralCheckLock[source] = now				
+				this.expiralCheckLock[source] = now
 				global.explorer.dialog([
 					{template: 'question', text: 'Megacubo', fa: 'fas fa-info-circle'},
 					{template: 'message', text: global.lang.IPTV_LIST_EXPIRED +'<br /><br />'+ source},
@@ -1070,7 +1072,7 @@ class Streamer extends StreamerAbout {
 			if(ch){
 				e.name = ch.name
 			}
-			const same = global.tuning && !global.tuning.finished && !global.tuning.destroyed && (global.tuning.has(e.url) || global.tuning.megaUrl == e.url)
+			const same = global.tuning && !global.tuning.finished && !global.tuning.destroyed && (global.tuning.has(e.url) || global.tuning.opts.megaURL == e.url)
 			const loadingEntriesData = [e, global.lang.AUTO_TUNING]
 			console.log('tuneEntry', e, same)
 			if(same){

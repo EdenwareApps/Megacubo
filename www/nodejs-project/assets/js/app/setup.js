@@ -21,7 +21,7 @@ class Setup extends EventEmitter {
         return !!parent.cordova
     }
     check(){
-        if(!config['setup-complete']){
+        if(!config['setup-completed']){
             this.welcome()
         }
     }
@@ -69,7 +69,7 @@ class Setup extends EventEmitter {
         return true
     }
     communitaryMode(){   
-        if(this.skipList || config['shared-mode-reach']) return this.done()
+        if(this.skipList || config['communitary-mode-lists-amount']) return this.done()
         this.active = true     
         explorer.dialog([
             {template: 'question', text: lang.COMMUNITARY_MODE, fa: 'fas fa-users'},
@@ -97,7 +97,7 @@ class Setup extends EventEmitter {
         this.done()
     }
     welcome(){
-        if(this.skipList || config['shared-mode-reach']) return this.done()
+        if(this.skipList || config['communitary-mode-lists-amount']) return this.done()
         this.active = true
         let text = lang.ASK_IPTV_LIST_FIRST.split('. ').join(".\r\n"), def = 'ok', opts = [
             {template: 'question', text: 'Megacubo', fa: 'fas fa-star'},
@@ -135,7 +135,7 @@ class Setup extends EventEmitter {
             this.isDone = true
             this.active = false
             console.log('PERFORMANCE-SETUP')
-            app.emit('config-set', 'setup-complete', true)
+            app.emit('config-set', 'setup-completed', true)
             if(enableCommunitaryMode){
                 app.emit('lists-manager', 'agree')
             }
