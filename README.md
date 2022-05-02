@@ -9,7 +9,9 @@ You can add as many IPTV lists you want (M3U format) and with Miniplayer mode, y
 
 Platforms: Windows, Linux, MacOS and Android.
 
-Available languages: English, Spanish, Portuguese and Italian. You can help us adding [more languages](https://github.com/efoxbr/megacubo/tree/master/www/nodejs-project/lang)?
+Available languages: English, Español, Português, Deutsch, Ελληνικά, Français, Italiano, Polski, русский, Shqip and Türkçe.
+
+Can you help us by adding [more languages](https://github.com/efoxbr/megacubo/tree/master/www/nodejs-project/lang) or improving current ones?
 
 <br/>
 
