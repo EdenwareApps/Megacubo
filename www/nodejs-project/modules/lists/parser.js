@@ -324,6 +324,7 @@ class IPTVPlaylistStreamParser extends Events {
 			this.destroyed = true
 			this.emit('destroy')
 		}
+		this.removeAllListeners()
 	}
 }
 

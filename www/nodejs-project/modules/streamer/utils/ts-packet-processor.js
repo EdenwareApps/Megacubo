@@ -311,6 +311,7 @@ class MPEGTSPacketProcessor extends Events {
     destroy(){
         this.destroyed = true
         this.buffering = []
+        this.pcrJournal = []
         this.removeAllListeners()
     }
 }

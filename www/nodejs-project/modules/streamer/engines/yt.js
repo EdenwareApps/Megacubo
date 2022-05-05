@@ -70,7 +70,7 @@ class StreamerYTHLSIntent extends StreamerHLSIntent {
         return new Promise((resolve, reject) => {
             let resolved
             console.log('validateTrackConnectivity', url)
-            const stream = new Download({url})
+            const stream = new global.Download({url})
             stream.on('response', (status, headers) => {
                 console.log('validateTrackConnectivity', url, status, headers)
                 resolved = true
@@ -79,6 +79,7 @@ class StreamerYTHLSIntent extends StreamerHLSIntent {
                 } else {
                     reject('bad status '+ status)
                 }
+                stream.destroy()
             })
             stream.on('end', () => {
                 if(!resolved){

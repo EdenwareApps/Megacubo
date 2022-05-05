@@ -276,74 +276,78 @@ class StreamerBase extends StreamerTools {
 		if(data) this.play(data)
 	}
 	commit(intent){
-		if(intent && this.active != intent){
-			if(this.opts.debug){
-				console.log('COMMITTING', global.traceback())
-			}
-			if(intent.destroyed){
-				console.error('COMMITTING DESTROYED INTENT', global.traceback(), intent)
-				return 'COMMITTING DESTROYED INTENT'
-			}
-			if(this.opts.debug){
-				console.log('INTENT SWITCHED !!', this.active ? this.active.data : false, intent ? intent.data : false, intent.destroyed, global.traceback())
-				if(!intent.opts.debug){
-					intent.opts.debug = this.opts.debug
+		if(intent){
+			if(this.active != intent){
+				if(this.opts.debug){
+					console.log('COMMITTING', global.traceback())
 				}
-			}
-			this.unload()
-			this.active = intent // keep referring below as intent to avoid confusion on changing intents, specially inside events
-			this.lastActiveData = this.active.data
-			intent.committed = true
-			intent.commitTime = global.time()
-			intent.on('destroy', () => {
-				if(intent == this.active){
+				if(intent.destroyed){
+					console.error('COMMITTING DESTROYED INTENT', global.traceback(), intent)
+					return 'COMMITTING DESTROYED INTENT'
+				}
+				if(this.opts.debug){
+					console.log('INTENT SWITCHED !!', this.active ? this.active.data : false, intent ? intent.data : false, intent.destroyed, global.traceback())
+					if(!intent.opts.debug){
+						intent.opts.debug = this.opts.debug
+					}
+				}
+				this.unload()
+				this.active = intent // keep referring below as intent to avoid confusion on changing intents, specially inside events
+				this.lastActiveData = this.active.data
+				intent.committed = true
+				intent.commitTime = global.time()
+				intent.on('destroy', () => {
+					if(intent == this.active){
+						this.emit('uncommit', intent)
+						if(this.opts.debug){
+							console.log('ACTIVE INTENT UNCOMMITTED & DESTROYED!!', intent, this.active)
+						}
+						this.stop()
+					}
+					if(this.opts.debug){
+						console.log('INTENT UNCOMMITTED & DESTROYED!!', intent)
+					}
+				})
+				intent.on('bitrate', bitrate => {
+					global.ui.emit('streamer-bitrate', bitrate)
+				})
+				intent.on('fail', err => {
 					this.emit('uncommit', intent)
 					if(this.opts.debug){
-						console.log('ACTIVE INTENT UNCOMMITTED & DESTROYED!!', intent, this.active)
+						console.log('INTENT FAILED !!')
 					}
-					this.stop()
-				}
-				if(this.opts.debug){
-					console.log('INTENT UNCOMMITTED & DESTROYED!!', intent)
-				}
-			})
-			intent.on('bitrate', bitrate => {
-				global.ui.emit('streamer-bitrate', bitrate)
-			})
-			intent.on('fail', err => {
-				this.emit('uncommit', intent)
-				if(this.opts.debug){
-					console.log('INTENT FAILED !!')
-				}
-				this.handleFailure(intent.data, err)
-			})
-			intent.on('codecData', codecData => {
-				if(codecData && intent == this.active){
-					global.ui.emit('codecData', codecData)
-				}
-				if(!global.cordova && !intent.isTranscoding()){
-					if(codecData.video && codecData.video.match(new RegExp('(hevc|mpeg2video|mpeg4)')) && intent.opts.videoCodec != 'libx264'){
-						if((!global.tuning && !global.zap.isZapping) || global.config.get('transcoding-tuning')){
-							this.transcode(null, err => {
-								if(err) intent.fail('unsupported format')
-							})
-						} else {
-							intent.fail('unsupported format')
+					this.handleFailure(intent.data, err)
+				})
+				intent.on('codecData', codecData => {
+					if(codecData && intent == this.active){
+						global.ui.emit('codecData', codecData)
+					}
+					if(!global.cordova && !intent.isTranscoding()){
+						if(codecData.video && codecData.video.match(new RegExp('(hevc|mpeg2video|mpeg4)')) && intent.opts.videoCodec != 'libx264'){
+							if((!global.tuning && !global.zap.isZapping) || global.config.get('transcoding-tuning')){
+								this.transcode(null, err => {
+									if(err) intent.fail('unsupported format')
+								})
+							} else {
+								intent.fail('unsupported format')
+							}
 						}
 					}
+				})
+				intent.on('streamer-connect', () => this.connect())
+				if(intent.codecData){
+					intent.emit('codecData', intent.codecData)
 				}
-			})
-			intent.on('streamer-connect', () => this.connect())
-			if(intent.codecData){
-				intent.emit('codecData', intent.codecData)
+				this.emit('commit', intent)
+				intent.emit('commit')
+				let data = this.connect(intent)
+				console.warn('STREAMER COMMIT '+ data.url)
+				return true
+			} else {
+				return 'ALREADY COMMITTED'
 			}
-			this.emit('commit', intent)
-			intent.emit('commit')
-			let data = this.connect(intent)
-			console.warn('STREAMER COMMIT '+ data.url)
-			return true
 		} else {
-			return 'ALREADY COMMITTED OR NO INTENT'
+			return 'NO INTENT'
 		}
 	}
 	connect(intent){

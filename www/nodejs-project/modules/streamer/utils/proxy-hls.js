@@ -120,13 +120,16 @@ class HLSRequestClient extends Events {
 			this.respond(500) // just to be sure
 			this.emit('end')
 			this.ended = true
+			this.destroy()
 		}
 	}
 	fail(status, headers){
 		this.respond(status, headers)
 		this.end()
 	}
-	destroy(){}
+	destroy(){
+		this.removeAllListeners()
+	}
 }
 
 class HLSRequest extends StreamerProxyBase {

@@ -464,6 +464,7 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 		this.pause()
 		this.unload()
 		this.object = null
+		this.removeAllListeners()
 	}
 }
 
@@ -580,6 +581,7 @@ class VideoControlAdapterAndroidNative extends VideoControlAdapter {
 	}
 	destroy(){
 		this.unload()
+		this.removeAllListeners()
 	}
 }
 

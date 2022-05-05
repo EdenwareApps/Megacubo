@@ -238,6 +238,7 @@ class List extends Events {
 				this.validator = null
 			}
 			this.emit('destroy')
+            this.removeAllListeners()
 			this.parent = (() => {return {}})
 			this._log = []
 		}

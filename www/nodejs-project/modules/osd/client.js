@@ -271,6 +271,7 @@ class OSD extends OSDDOMClassHandler {
     destroy(name){
         let id = 'osd-entry-' + name, c = this.root.querySelector('#' + id)
         if(c){
+            c.innerHTML = ''
             c.parentNode.removeChild(c)
         }
     }

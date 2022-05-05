@@ -8,6 +8,7 @@ const agentOpts = {
 	socketActiveTTL: 30,
 	rejectUnauthorized: false
 }
+
 const got = require('got').extend({
 	headers: {
 		'Connection': 'close'

@@ -1,4 +1,4 @@
-const Events = require('events'), fs = require('fs'), parseRange = require('range-parser'), got = require('./got-wrapper')
+const Events = require('events'), parseRange = require('range-parser'), got = require('./got-wrapper')
 const zlib = require('zlib'), WriteQueueFile = require(global.APPDIR +'/modules/write-queue/write-queue-file')
 const StringDecoder = require('string_decoder').StringDecoder
 class Download extends Events {
@@ -64,7 +64,7 @@ class Download extends Events {
 		}
 	}
 	avoidKeepAlive(url){ // on some servers, the number of sockets increase indefinitely causing downloads to hang up after some time, doesn't seems that these sockets are really being reused
-		const d = this.getDomain(url)
+		const d = this.getDomain(url, true)
 		if(Download.keepAliveDomainBlacklist.includes(d)){
 			return true
 		}
@@ -97,7 +97,7 @@ class Download extends Events {
 		}
 	}
 	start(){
-		if(!this.started){
+		if(!this.started && !this.destroyed){
 			this.started = true
 			this.stream = this.connect()
 		}
@@ -105,12 +105,16 @@ class Download extends Events {
 	ext(url){
 		return String(url).split('?')[0].split('#')[0].split('.').pop().toLowerCase();        
 	}
-	getDomain(u){
+	getDomain(u, includePort){
 		if(u && u.indexOf('//') != -1){
 			let d = u.split('//')[1].split('/')[0]
-			if(d == 'localhost' || d.indexOf('.') != -1){
-				if(d.substr(-3) == ':80'){
-					d = d.substr(0, d.length - 3)
+			if(d == 'localhost' || d.indexOf('.') != -1) {
+				if(d.indexOf(':') != -1) {
+					if(!includePort) {
+						d = d.split(':')[0]
+					} else if(d.substr(-3) == ':80') {
+						d = d.substr(0, d.length - 3)
+					}
 				}
 				return d
 			}
@@ -233,7 +237,7 @@ class Download extends Events {
 				this.ignoreBytes = this.received // ignore data already received on last connection so
 			}
 		}
-		requestHeaders.host = this.getDomain(opts.url)
+		requestHeaders.host = this.getDomain(opts.url, true)
 		opts.headers = requestHeaders
 		opts.timeout = this.getTimeoutOptions()
 		if(this.opts.debug){
@@ -285,8 +289,13 @@ class Download extends Events {
 				}
 				this.parseResponse(err.response)
 			}
+			const currentDomain = this.getDomain(this.currentURL, false), resolvedIP = Download.got.defaults.options.dnsCache.lastResolvedIP[currentDomain]
+			console.warn('download failure', currentDomain, resolvedIP)
+			if(resolvedIP){
+				Download.got.defaults.options.dnsCache.defer(currentDomain, resolvedIP)
+			}
 			if(this.opts.debug){
-				console.warn('>> Download error', err, global.traceback())
+				console.error('>> Download error', err, this.opts.url, global.traceback())
 			}
 			this.errors.push(String(err) || 'unknown request error')
 			if(String(err).match(this.opts.permanentErrorRegex)){
@@ -903,6 +912,7 @@ Download.file = (...args) => {
 		if(!g.ended){
 			_reject && _reject('Promise was cancelled')
 			g.destroy()
+			const fs = require('fs')
 			fs.stat(file, (err, stat) => {
 				if(stat && stat.size){
 					fs.unlink(file, () => {})

@@ -128,6 +128,7 @@ class BridgeServer extends Events {
             console.log('closing...')
         }
         this.closed = true
+        this.removeAllListeners()
     }
 }
 
@@ -220,6 +221,7 @@ class Bridge extends BridgeServer {
             this.server.close()
             this.server = null
         }
+        this.removeAllListeners()
     }
 }
 

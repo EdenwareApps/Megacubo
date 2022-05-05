@@ -606,6 +606,7 @@ class Any2HLS extends Events {
                 global.rmdir(path.dirname(file), true)
             }
         }
+        this.removeAllListeners()
     }
 }
 

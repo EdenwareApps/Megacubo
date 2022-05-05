@@ -639,6 +639,7 @@ class IconServer extends IconFetchSem {
             this.server.close()
             this.server = null
         }
+        this.removeAllListeners()
     }
 }
 

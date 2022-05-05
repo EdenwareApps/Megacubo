@@ -124,12 +124,12 @@ class StreamerProxyBase extends StreamerAdapterBase {
 		if(!this.destroyed){
 			this.destroyed = true
 			this.emit('destroy')
-			this.removeAllListeners()
 			if(this.server){
 				this.server.close()
 				delete this.server
 			}
 		}
+		this.removeAllListeners()
     }
 }
 

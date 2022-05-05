@@ -20,7 +20,9 @@ class Downloader extends StreamerAdapterBase {
         this._destroyed = false
         this.timer = 0
 		this.connectTime = -1
+		this.lastConnectionStartTime = 0
 		this.lastConnectionEndTime = 0
+		this.lastConnectionReceived = 0
 		this.buffer = []
 		this.ext = 'ts'
 		this.debugConns = false
@@ -241,9 +243,10 @@ class Downloader extends StreamerAdapterBase {
 		let connTime, received = 0, connStart = global.time()
 		this.finishBitrateSample(this.currentDownloadUID)
 		this.currentDownloadUID = String(connStart)
+		this.lastConnectionStartTime = connStart
 		const download = this.currentRequest = new global.Download({
 			url: this.url,
-			authURL: this.opts.authURL || false, 
+			authURL: this.opts.authURL || false,
 			keepalive: this.committed && global.config.get('use-keepalive'),
 			followRedirect: true,
 			acceptRanges: false,
@@ -289,6 +292,7 @@ class Downloader extends StreamerAdapterBase {
 				})
 				download.once('end', () => {
 					this.lastConnectionEndTime = global.time()
+					this.lastConnectionReceived = received
 					if(this.opts.debug){
 						console.log('[' + this.type + '] received '+ global.kbfmt(received) +' in '+ (this.lastConnectionEndTime - connStart) +'s to connect') // 200
 					}

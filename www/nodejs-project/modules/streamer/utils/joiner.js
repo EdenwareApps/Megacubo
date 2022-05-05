@@ -5,9 +5,9 @@ class Joiner extends Downloader {
 	constructor(url, opts){
 		super(url, opts)
 		//this.opts.debug = console.log
+		this.minConnectionInterval = 1
 		this.opts.checkSyncByte = true
 		this.type = 'joiner'
-		this.joinerDestroyed = false
 		this.delayUntil = 0
 		this.processor = new MPEGTSPacketProcessor()
 		this.processor.on('data', data => this.output(data))
@@ -23,6 +23,7 @@ class Joiner extends Downloader {
 			if(!this.joinerDestroyed){
 				this.joinerDestroyed = true
 				this.processor.destroy()
+				this.processor = null
 			}
 		})
 	}
@@ -63,6 +64,11 @@ class Joiner extends Downloader {
 				}
 				ms = parseInt(ms * 1000)
 			}
+			const nextConnectionFrom = this.lastConnectionStartTime + this.minConnectionInterval
+			if(nextConnectionFrom > (now + (ms / 1000))){
+				ms = (nextConnectionFrom - now) * 1000
+			}
+			console.log('next connection after '+ ms)
             this.timer = setTimeout(this.pump.bind(this), ms) /* avoiding nested call to next pump to prevent mem leaking */
             if(this.opts.debug){
                 console.log('[' + this.type + '] delaying ' + ms + 'ms', 'now: ' + now, 'delayUntil: ' + this.delayUntil)

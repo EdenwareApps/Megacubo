@@ -200,7 +200,7 @@ class StreamerAdapterBase extends Events {
 		}
 	}
 	getTSFromM3U8(url, cb){
-		const download = new Download({
+		const download = new global.Download({
 			url,
 			responseType: 'text'
 		})

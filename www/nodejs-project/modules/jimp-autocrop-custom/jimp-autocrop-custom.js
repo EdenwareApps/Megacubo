@@ -1,7 +1,7 @@
 // thanks to @bengfarrell https://github.com/oliver-moran/jimp/issues/753#issuecomment-574852816
 
-const JIMP_AUTOCROP_ALPHA_IGNORE_LEVEL = 255 * 0.1
-const JIMP_AUTOCROP_STEP_COUNT = 36
+const JIMP_AUTOCROP_ALPHA_IGNORE_LEVEL = 255 * 0.2
+const JIMP_AUTOCROP_STEP_COUNT = 48
 
 function isTransparent(rgba){
 	return rgba.a === 0
@@ -100,7 +100,7 @@ function findLimits(scope, w, h, c){
 	return {t, l, r, b}
 }
 module.exports = function autocrop() {
-	const start = (new Date()).getTime(), benchmarks = {}
+	//const start = (new Date()).getTime(), benchmarks = {}
 	const w = this.bitmap.width
 	const h = this.bitmap.height
 	let firstPixelColor = this.constructor.intToRGBA(this.getPixelColor(0, 0))

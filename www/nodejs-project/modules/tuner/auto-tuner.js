@@ -1,10 +1,11 @@
-const async = require('async'), Tuner = require('./tuner'), Events = require('events')
+const Tuner = require('./tuner'), Events = require('events')
 
 class AutoTuner extends Events {
     constructor(entries, opts){
         super()
         this.paused = false
         this.headless = false
+        this.minProgress = 0
         this.resultsBuffer = 2
         this.results = {}
         this.commitResults = {}
@@ -21,6 +22,7 @@ class AutoTuner extends Events {
         }
         this.opts = opts
         this.entries = entries
+        this.ffmpegBasedTypes = ['ts', 'rtmp', 'dash', 'aac']
     }
     async start(){
         if(!this.tuner){
@@ -28,19 +30,15 @@ class AutoTuner extends Events {
             console.log('CEILED', this.entries.map(e => e.url))
             this.tuner = new Tuner(this.entries, this.opts, this.optsmegaURL)
             this.tuner.on('success', (e, nfo, n) => {
-                if(typeof(this.succeededs[n]) == 'undefined' || ![0, 1, 2].includes(this.succeededs[n])){
+                if(typeof(this.succeededs[n]) == 'undefined'){
                     this.succeededs[n] = 0
-                }
-                if(Object.values(this.succeededs).filter(v => [0, 1].includes(v)).length >= this.resultsBuffer){
-                    this.tuner.pause()
-                }
-                if(!this.paused){
-                    this.pump()
+                    if(!this.paused){
+                        this.pump()
+                    }
                 }
             })
-            this.tuner.on('progress', stats => {
-                this.stats = stats
-                this.emit('progress', stats)
+            this.tuner.on('progress', () => {
+                this.emit('progress', this.getStats())
             })
             this.tuner.on('finish', () => {
                 if(!this.paused){
@@ -110,11 +108,6 @@ class AutoTuner extends Events {
             console.log('autotuner PAUSE', traceback())
         }
         this.paused = true
-        Object.keys(this.succeededs).forEach(n => {
-            if(this.succeededs[n] == 1){
-                this.succeededs[n] = 0
-            }
-        })
         if(!this.tuner.finished){
             this.tuner.pause()
         }
@@ -131,7 +124,6 @@ class AutoTuner extends Events {
             if(this.tuner.finished){
                 this.pump()
             } else {
-                this.paused = false
                 this.tuner.resume()
             }
             if(this.listenerCount('progress')){
@@ -175,8 +167,9 @@ class AutoTuner extends Events {
                                 }
                                 this.commitResults[n.nid] = ret
                                 if(ret !== true) {
+                                    global.displayErr('TUNER COMMIT ERROR '+ ret +' - '+ n.data.name)
                                     this.once('success', successListener)
-                                    this.succeededs[n.nid] = 0
+                                    this.succeededs[n.nid] = 3
                                     return // don't resolve on commit error
                                 }
                             }
@@ -228,51 +221,69 @@ class AutoTuner extends Events {
 		}
 		return stats
     }
-    pump(){
-        if(this.paused || this.destroyed){
-            return
-        }
-
-        this.emit('progress', this.getStats())
-        const ffmpegBasedTypes = ['ts', 'rtmp', 'dash', 'aac']
+    getQueue(){
+        const busyDomains = this.tuner.busyDomains()
         let slotCount = global.config.get('tune-concurrency')
         let ffmpegBasedSlotCount = global.config.get('tune-ffmpeg-concurrency')
         let ks = Object.keys(this.succeededs).filter(i => {
             return this.tuner.info[i]
         }), index = ks.filter(i => this.succeededs[i] == 0), processingIndex = ks.filter(i => this.succeededs[i] == 1)
         index = index.concat(ks.filter(i => this.succeededs[i] == 3)) // starting failed entries after, as last resort
-        if(this.tuner.finished){
-            if(!index.length && !processingIndex.length){
-                this.finished = true
-                this.emit('finish')
+        processingIndex.forEach(i => {
+            slotCount--
+            if(this.ffmpegBasedTypes.includes(this.tuner.info[i].type)){
+                ffmpegBasedSlotCount--
+            }
+            busyDomains.push(this.tuner.domainAt(i))
+        })
+        console.log('slots', index, processingIndex)
+        index = index.filter(nid => {
+            if(slotCount <= 0){
                 return
             }
+            const domain = this.tuner.domainAt(nid)
+            if(busyDomains.includes(domain)){
+                return
+            }
+            return true
+        })
+        if(this.tuner.finished){
+            if(!index.length && !processingIndex.length){
+                this.finish()
+                index.length = 0
+            }
         } else {
-            if((index.length + processingIndex.length) < this.resultsBuffer){
+            if(slotCount){
                 this.tuner.paused && this.tuner.resume()
             } else {
                 !this.tuner.paused && this.tuner.pause()
             }
         }
-        processingIndex.forEach(i => {
-            slotCount--
-            if(ffmpegBasedTypes.includes(this.tuner.info[i].type)){
-                ffmpegBasedSlotCount--
-            }
-        })
-
-        console.log('slots', index, processingIndex)
+        return {index, busyDomains, slotCount, ffmpegBasedSlotCount}
+    }
+    pump(){
+        if(this.paused || this.destroyed) {
+            return
+        }
+        let {index, busyDomains, slotCount, ffmpegBasedSlotCount} = this.getQueue()
         index.forEach(nid => {
             if(slotCount <= 0){
                 return
             }
-
-            const nidType = this.tuner.info[nid].type
-            const nidFFmpeg = ffmpegBasedTypes.includes(nidType)
-            if(nidFFmpeg && ffmpegBasedSlotCount <= 0){
+            const domain = this.tuner.domainAt(nid)
+            if(busyDomains.includes(domain)){
                 return
             }
-    
+            const nidType = this.tuner.info[nid].type
+            const nidFFmpeg = this.ffmpegBasedTypes.includes(nidType)
+            if(nidFFmpeg){
+                if(ffmpegBasedSlotCount <= 0){
+                    return
+                }
+                if(!global.config.get('auto-testing')){
+                    return
+                }
+            }    
             let intent = new global.streamer.engines[this.tuner.info[nid].type](this.tuner.entries[nid], {}, this.tuner.info[nid])
             if(this.opts.mediaType && this.opts.mediaType != 'all' && intent.mediaType != this.opts.mediaType){
                 console.warn('bad mediaType, skipping', intent.data.url, intent.mediaType, this.opts.mediaType)
@@ -281,13 +292,12 @@ class AutoTuner extends Events {
                 return
             }
             this.intents.push(intent)
-            intent.nid = nid
-            
+            intent.nid = nid            
             slotCount--
             if(nidFFmpeg){
                 ffmpegBasedSlotCount--
             }
-
+            busyDomains.push(domain)
             this.succeededs[nid] = 1
             intent.on('destroy', () => {
                 setTimeout(() => { // allow catch to process before
@@ -312,7 +322,9 @@ class AutoTuner extends Events {
                 console.error('DESTROYING OTHER INTENTS', nid)
                 this.intents.filter(nt => nt && nt.nid != nid).forEach(nt => {
                     if(nt.committed) {
-                        console.error('DESTROYING COMMITTED INTENT?', nt, global.streamer.active)
+                        global.displayErr('DESTROYING COMMITTED INTENT?')
+                    } else if(nt.destroyed) {
+                        global.displayErr('DESTROYING ALREADY DESTROYED INTENT?')
                     } else {
                         console.error('DESTROYING INTENT OTHER', nt.nid)
                     }
@@ -329,179 +341,18 @@ class AutoTuner extends Events {
                         this.succeededs[nid] = 3
                     }
                     this.intents = this.intents.filter(n => n.nid != nid)
-                    intent.destroy()
+                    if(!intent.destroyed){
+                        intent.destroy()
+                    }
                     intent = null
                     this.pump()
                 }
             })
         })
-    }
-    /*
-    pump(){
-        if(this.paused || this.destroyed || this.pumping){
-            return
-        }
-        this.pumping = true
-        let done, finished = this.tuner.finished, ks = Object.keys(this.succeededs), index = ks.filter(i => this.succeededs[i] == 0)
-        if(index.length < this.resultsBuffer){
-            if(!this.tuner.finished){
-                this.tuner.resume()
-            }
-        }
-        index = index.concat(ks.filter(i => this.succeededs[i] == 3)) // starting failed entries after, as last resort
-        
-        const ffmpegBasedTypes = ['ts', 'rtmp', 'dash', 'aac']
-        let ffmpegBasedSlotCount = global.config.get('tune-ffmpeg-concurrency')
-        index = index.filter(i => {
-            if(this.tuner.info[i]){
-                if(ffmpegBasedTypes.includes(this.tuner.info[i].type)){
-                    if(ffmpegBasedSlotCount){
-                        ffmpegBasedSlotCount--
-                        return true
-                    }
-                } else {
-                    return true
-                }
-            } else {
-                console.error('INDEX NOT FOUND', index, this.succeededs, n, this.tuner.info)                
-            }
-        })
-        if(this.opts.debug){
-            console.log('auto-tuner pump()', index)
-        }
-        if(index.length){
-            let intents = index.map(n => {
-                if(!this.tuner.info[n]){
-                    console.error('INDEX NOT FOUND', index, this.succeededs, n, this.tuner.info)
-                }
-                let intent = new global.streamer.engines[this.tuner.info[n].type](this.tuner.entries[n], {}, this.tuner.info[n])
-                if(this.opts.mediaType && this.opts.mediaType != 'all' && intent.mediaType != this.opts.mediaType){
-                    console.warn('bad mediaType, skipping', intent.data.url, intent.mediaType, this.opts.mediaType)
-                    this.succeededs[n] = -1
-                    intent.destroy()
-                    return false
-                }
-                this.intents.push(intent)
-                intent.nid = n
-                return intent
-            }).filter(n => n)
-            console.error('BEFORE DESTROYING OTHER INTENTS', intents, intents.map(n => n.data.url))
-            async.eachOfLimit(intents, global.config.get('tune-concurrency'), (n, i, acb) => {
-                if(this.paused || this.destroyed){
-                    done = true
-                    acb()
-                } else if(done || n.destroyed){
-                    acb()
-                } else {
-                    let resolved, nid = n.nid
-                    this.succeededs[nid] = 1
-                    n.on('destroy', () => {
-                        setTimeout(() => { // allow catch to process before
-                            clearInterval(removeMeTimer)
-                            if(!resolved){
-                                this.succeededs[nid] = 0
-                                let offset = this.intents.indexOf(n)
-                                if(offset != -1){
-                                    this.intents.splice(offset, 1)
-                                }
-                                intents[i] = n = null
-                                acb()
-                            }
-                        }, 400)
-                    })
-                    n.start().then(() => {
-                        resolved = true
-                        if(this.paused){
-                            this.succeededs[nid] = 0
-                            n.destroy()
-                            return
-                        }
-                        this.pause()
-                        done = true
-                        this.results[nid] = [true, n.type]
-                        this.succeededs[nid] = 2
-                        this.emit('success', n)
-                        console.error('DESTROYING OTHER INTENTS', nid, intents)
-                        intents.filter(nt => nt && nt.nid != n.nid).forEach(nt => {
-                            if(nt.committed){
-                                console.error('DESTROYING COMMITTED INTENT?', nt, n, global.streamer.active, done)
-                            } else {
-                                console.error('DESTROYING INTENT OTHER', nt.nid)
-                            }
-                            this.succeededs[nt.nid] = 0
-                            nt.destroy()
-                        })
-                        let offset = this.intents.indexOf(n)
-                        if(offset != -1){
-                            this.intents.splice(offset, 1)
-                        }
-                    }).catch(err => {
-                        resolved = true
-                        if(this.succeededs[nid] != 0){ // not destroyed by other intent commit
-                            console.error('INTENT FAILED', err, traceback())
-                            this.results[nid] = [false, String(err)]
-                            this.succeededs[nid] = 3
-                        }
-                        let offset = this.intents.indexOf(n)
-                        if(offset != -1){
-                            this.intents.splice(offset, 1)
-                        }
-                        n.destroy()
-                        intents[i] = n = null
-                    }).finally(acb)
-                    const removeMeTimer = setInterval(() => {
-                        if(n && n.destroyed){
-                            setTimeout(() => { // allow catch to process before
-                                clearInterval(removeMeTimer)
-                                if(!resolved){
-                                    global.explorer.dialog([
-                                        {template: 'question', text: 'Megacubo', fa: 'fas fa-info-circle'},
-                                        {template: 'message', text: 'Missed destroy event.<br /><br />'+ this.succeededs[nid] +' - '+ JSON.stringify(this.results[nid])},
-                                        {template: 'option', text: 'OK', id: 'ok'}
-                                    ], 'ok').catch(console.error) // dont wait
-                                    this.succeededs[nid] = 0
-                                    let offset = this.intents.indexOf(n)
-                                    if(offset != -1){
-                                        this.intents.splice(offset, 1)
-                                    }
-                                    intents[i] = n = null
-                                    acb()
-                                }
-                            }, 1000)
-                        }
-                    }, 1000)
-                }
-            }, () => {
-                this.pumping = false
-                if(!this.paused){
-                    if(!done){
-                        if(finished){
-                            this.finished = true
-                            this.emit('finish')
-                        } else {
-                            this.pump()
-                        }
-                    }
-                    if(this.opts.debug){
-                        console.log('auto-tuner pump() OK')
-                    }
-                }
-            })
-        } else {
-            this.pumping = false
-            if(finished && !this.pending()){
-                if(this.opts.debug){
-                    console.log('auto-tuner pump() finished')
-                }
-                this.finished = true
-                this.emit('finish')
-            }
-            if(this.opts.debug){
-				console.log('auto-tuner pump() OK')
-            }
+        if(!this.paused && !this.finished && !this.destroyed) {
+            this.emit('progress', this.getStats())
         }
     }
-    */
     log(){
         let ret = {}
         if(this.tuner){
@@ -553,9 +404,10 @@ class AutoTuner extends Events {
     finish(){
         this.finished = true
         this.emit('finish')
-        if(this.timer){
-            clearInterval(this.timer)
-        }
+        this.timer && clearInterval(this.timer)
+        this.intents.forEach(n => n.destroy())                
+        this.intents = []
+        this.destroy()
     }
     destroy(){
         if(this.opts.debug){

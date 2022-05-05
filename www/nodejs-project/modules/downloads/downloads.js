@@ -85,7 +85,7 @@ class Downloads extends Events {
 					pathname = './index.html'
 				}
 				pathname = global.decodeURIComponentSafe(pathname)
-				const name = global.sanitize(path.basename(pathname.split('/').pop())), ext = path.parse(pathname).ext
+				const ext = path.parse(pathname).ext
 				if(typeof(this.map[pathname]) != 'undefined'){
 					console.log('serve ' + pathname)
 					pathname = this.map[pathname]

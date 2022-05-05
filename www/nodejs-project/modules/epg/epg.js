@@ -575,6 +575,7 @@ class EPG extends Events {
         if(this.parser) this.parser.destroy()
         this.data = {}
         this.terms = {}
+        this.removeAllListeners()
     }
 }
 

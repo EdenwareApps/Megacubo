@@ -1,10 +1,13 @@
-const async = require('async'), dns = require('dns'), Events = require('events'), CacheableLookup = require('cacheable-lookup')
+const async = require('async'), Events = require('events')
+
 const {
-	V4MAPPED,
-	ADDRCONFIG,
-	ALL
-} = dns;
-const supportsALL = typeof ALL === 'number';
+	NOTFOUND,
+	BADFAMILY,
+	promises: {
+		Resolver: AsyncResolver
+	}
+} = require('dns')
+
 class UltimateLookup extends Events {
 	constructor(servers){
 		super()
@@ -17,7 +20,15 @@ class UltimateLookup extends Events {
 		this.cacheKey = 'lookup'
 		this.servers = servers
 		this.isReady = false
-		this.setMaxListeners(999)
+		this.readyQueue = []
+		this.saveDelayMs = 3000
+		this.resolvers = {}
+		this.failedIPs = {}
+		this.lastResolvedIP = {}
+		Object.keys(servers).forEach(s => {
+			this.resolvers[s] = new AsyncResolver()
+			this.resolvers[s].setServers(servers[s])
+		})
 		this.load()
 	}
 	family(ip){
@@ -26,20 +37,34 @@ class UltimateLookup extends Events {
 		}
 		return 6
 	}
-	promotePreferableIpVersion(ips){
-		let pref = global.config.get('prefer-ipv6') ? 6 : 4
+	preferableIpVersion(){
+		return global.config.get('prefer-ipv6') ? 6 : 4
+	}
+	promotePreferableIpVersion(hostname, ips){
+		let family, pref = this.preferableIpVersion()
 		let nips = ips.filter(ip => this.family(ip) == pref)
 		if(nips.length){
-			return {ips: nips, family: pref}
+			family = pref
+			ips = nips
 		} else {
-			return {ips, family: pref == 4 ? 6 : 4}
+			family = pref == 4 ? 6 : 4
 		}
+		if(ips.length > 1){
+			ips = ips.sort((a, b) => {
+				if(!this.failedIPs[hostname]) return 0
+				let aa = this.failedIPs[hostname].indexOf(a)
+				let bb = this.failedIPs[hostname].indexOf(b)
+				return aa > bb ? 1: (bb > aa ? -1 : 0)
+			})
+			if(this.failedIPs[hostname]) console.log('promotin', ips, this.failedIPs[hostname])
+		}
+		return {ips, family}
 	}
 	ready(fn){
 		if(this.isReady){
 			fn()
 		} else {
-			this.once('ready', fn)
+			this.readyQueue.push(fn)
 		}
 	}
 	reset(){
@@ -57,25 +82,18 @@ class UltimateLookup extends Events {
 			console.log('lookup->get', domain, family)
 		}
 		if(![4, 6].includes(family)){
-			let ret = []
-			return async.eachOf([6, 4], (family, i, done) => {
-				this.get(domain, family, (results, cached) => {
-					if(results){
-						if(family == 6){
-							ret = ret.concat(results)
-						} else {
-							ret = results.concat(ret)
-						}
-					}
-					done()
-				})
-			}, () => {
-				cb(ret.length ? ret : false)
+			family = this.preferableIpVersion()
+			return this.get(domain, family, results => {
+				if(results && results.length){
+					cb(results.length ? results : false)
+				} else {
+					this.get(domain, family == 4 ? 6 : 4, cb)
+				}
 			})
 		}
 		const now = global.time()
 		if(typeof(this.data[domain + family]) != 'undefined'){
-			if(Array.isArray(this.data[domain + family])){
+			if(Array.isArray(this.data[domain + family]) && this.data[domain + family].length){
 				if(this.ttlData[domain + family] >= now){
 					if(this.debug){
 						console.log('lookup->get cached cb', this.data[domain + family])
@@ -104,43 +122,26 @@ class UltimateLookup extends Events {
 		}
 		this.queue[queueKey] = [cb]
 		let finished, resultIps = {}
-		async.eachOf(Object.values(this.servers), (servers, i, acb) => {
+		async.eachOf(Object.keys(this.resolvers), (k, i, done) => {
 			if(this.debug){
 				console.log('lookup->get solving', domain)
 			}
-			dns.setServers(servers)
-			dns['resolve'+ family](domain, (err, ips) => {
+			this.resolvers[k]['resolve'+ family](domain).then(ips => {
+				if(!finished) {
+					finished = true
+					this.finish(domain, queueKey, ips)
+				}
+				ips.forEach(ip => {
+					if(typeof(resultIps[ip]) == 'undefined'){
+						resultIps[ip] = 0
+					}
+					resultIps[ip]++
+				})
+			}).catch(err => {
 				if(this.debug){
-					console.log('lookup->get solve response', domain, err, ips, finished)
+					console.error('lookup->get err on '+ k, err)
 				}
-				if(err){
-					if(this.debug){
-						console.error('lookup->get err on '+ servers.join(','), err)
-					}
-				} else {
-					if(!finished) {
-						finished = true
-						this.finish(domain, queueKey, ips)
-					}
-					ips.forEach(ip => {
-						if(typeof(resultIps[ip]) == 'undefined'){
-							resultIps[ip] = 0
-						}
-						resultIps[ip]++
-					})
-				}
-				if(acb){
-					acb()
-					acb = null
-				}
-			})
-			const timeout = 5
-			let timer = setTimeout(() => {
-				if(!finished && acb){
-					acb()
-					acb = null
-				}
-			}, timeout * 1000)
+			}).finally(done)
 		}, () => {
 			if(this.debug){
 				console.log('lookup->get solved', domain, finished)
@@ -185,7 +186,7 @@ class UltimateLookup extends Events {
 							console.log('lookup callback', ips, family)
 						}
 						if(!family){
-							let ret = this.promotePreferableIpVersion(ips)
+							let ret = this.promotePreferableIpVersion(hostname, ips)
 							ips = ret.ips
 							family = ret.family
 						}
@@ -198,11 +199,12 @@ class UltimateLookup extends Events {
 						if(family){
 							ip = ips[Math.floor(Math.random() * ips.length)]
 						} else {
-							let ret = this.promotePreferableIpVersion(ips)
+							let ret = this.promotePreferableIpVersion(hostname, ips)
 							ips = ret.ips
 							family = ret.family
-							ip = ips[Math.floor(Math.random() * ips.length)]
+							ip = ips[0]
 						}
+						this.lastResolvedIP[hostname] = ip
 						if(this.debug){
 							console.log('lookup callback', ip, family)
 						}
@@ -211,11 +213,19 @@ class UltimateLookup extends Events {
 					}
 				} else {
 					const error = new Error('cannot resolve')
-					error.code = 'ENOTFOUND'
+					error.code = NOTFOUND
 					callback(error)
 				}
 			})
 		})
+	}
+	defer(hostname, ip){
+		if(typeof(this.failedIPs[hostname]) == 'undefined'){
+			this.failedIPs[hostname] = []
+		} else {
+			this.failedIPs[hostname] = this.failedIPs[hostname].filter(i => i != ip)
+		}
+		this.failedIPs[hostname].push(ip)
 	}
 	load(){
 		global.storage.get(this.cacheKey, data => {
@@ -227,11 +237,17 @@ class UltimateLookup extends Events {
 				console.log('lookup->ready')
 			}
 			this.isReady = true
-			this.emit('ready')
+			this.readyQueue.forEach(f => f())
+			this.readyQueue.length = 0
 		})
 	}
 	save(){
-		global.storage.set(this.cacheKey, {data: this.data, ttlData: this.ttlData}, true)
+		if(this.saveTimer){
+			clearTimeout(this.saveTimer)
+		}
+		this.saveTimer = setTimeout(() => {
+			global.storage.set(this.cacheKey, {data: this.data, ttlData: this.ttlData}, true)
+		}, this.saveDelayMs)
 	}
 }
 const lookup = new UltimateLookup({
