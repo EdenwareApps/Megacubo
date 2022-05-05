@@ -228,7 +228,6 @@ class AutoTuner extends Events {
         let ks = Object.keys(this.succeededs).filter(i => {
             return this.tuner.info[i]
         }), index = ks.filter(i => this.succeededs[i] == 0), processingIndex = ks.filter(i => this.succeededs[i] == 1)
-        index = index.concat(ks.filter(i => this.succeededs[i] == 3)) // starting failed entries after, as last resort
         processingIndex.forEach(i => {
             slotCount--
             if(this.ffmpegBasedTypes.includes(this.tuner.info[i].type)){
@@ -358,8 +357,8 @@ class AutoTuner extends Events {
         if(this.tuner){
             this.tuner.entries.forEach((e, i) => {
                 let v
-                if(typeof(this.tuner.errors[i]) == 'undefined'){
-                    v = 'undefined'
+                if(typeof(this.tuner.errors[i]) == 'undefined') {
+                    v = 'untested'
                 } else {
                     if(this.tuner.errors[i] === 0) {
                         v = 'timeout'
@@ -394,7 +393,13 @@ class AutoTuner extends Events {
         let ret = [], info = Object.values(this.log())
         ret.push(this.tuner.entries.length +' streams')
         ret = ret.concat(info.map(e => {
-            return e.url +' => '+ (e.state ? 'success' : 'failed') + (e.info === null ? '' : ', '+ e.info)
+            let row = e.name +' => '
+            if(e.info == 'untested'){
+                row += 'untested'
+            } else {
+                row += (e.state ? 'success' : 'failed') + (e.info === null ? '' : ', '+ e.info)
+            }
+            return row
         }))
         return ret.join("\r\n")
     }

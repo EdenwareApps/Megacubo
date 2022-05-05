@@ -2,7 +2,6 @@ const async = require('async'), Events = require('events')
 
 const {
 	NOTFOUND,
-	BADFAMILY,
 	promises: {
 		Resolver: AsyncResolver
 	}
@@ -21,7 +20,8 @@ class UltimateLookup extends Events {
 		this.servers = servers
 		this.isReady = false
 		this.readyQueue = []
-		this.saveDelayMs = 3000
+		this.syncDelayMs = 3000
+		this.lastFailedResolver = null
 		this.resolvers = {}
 		this.failedIPs = {}
 		this.lastResolvedIP = {}
@@ -56,7 +56,7 @@ class UltimateLookup extends Events {
 				let bb = this.failedIPs[hostname].indexOf(b)
 				return aa > bb ? 1: (bb > aa ? -1 : 0)
 			})
-			if(this.failedIPs[hostname]) console.log('promotin', ips, this.failedIPs[hostname])
+			//if(this.failedIPs[hostname]) console.log('promotin', ips, this.failedIPs[hostname])
 		}
 		return {ips, family}
 	}
@@ -101,7 +101,9 @@ class UltimateLookup extends Events {
 					cb(this.data[domain + family], true)
 					return
 				}
-			} else {
+			}
+			/*
+			 else {
 				let locked = now < this.ttlData[domain + family]
 				if(locked){
 					if(this.debug){
@@ -111,6 +113,7 @@ class UltimateLookup extends Events {
 					return
 				}
 			}
+			*/
 		}
 		const queueKey = domain + family
 		if(typeof(this.queue[queueKey]) != 'undefined'){
@@ -121,16 +124,24 @@ class UltimateLookup extends Events {
 			return
 		}
 		this.queue[queueKey] = [cb]
-		let finished, resultIps = {}
-		async.eachOf(Object.keys(this.resolvers), (k, i, done) => {
+		let resultIps = {}
+		async.eachOf(Object.keys(this.resolvers).filter(k => k != this.lastFailedResolver), (k, i, done) => {
 			if(this.debug){
 				console.log('lookup->get solving', domain)
 			}
-			this.resolvers[k]['resolve'+ family](domain).then(ips => {
-				if(!finished) {
-					finished = true
-					this.finish(domain, queueKey, ips)
+			const finish = () => {
+				clearTimeout(timer)
+				if(done){
+					done()
+					done = null
 				}
+			}, timer = setTimeout(() => {
+				console.error('timeout on '+ k)
+				this.lastFailedResolver = k
+				finish()
+			}, 2000)
+			this.resolvers[k]['resolve'+ family](domain).then(ips => {
+				this.finish(domain, queueKey, ips)
 				ips.forEach(ip => {
 					if(typeof(resultIps[ip]) == 'undefined'){
 						resultIps[ip] = 0
@@ -141,7 +152,7 @@ class UltimateLookup extends Events {
 				if(this.debug){
 					console.error('lookup->get err on '+ k, err)
 				}
-			}).finally(done)
+			}).finally(finish)
 		}, () => {
 			if(this.debug){
 				console.log('lookup->get solved', domain, finished)
@@ -165,11 +176,17 @@ class UltimateLookup extends Events {
 			if(this.debug){
 				console.log('lookup->finish', domain, queueKey, value)
 			}
-			this.queue[queueKey].forEach(f => f(value, false))
+			this.queue[queueKey].forEach(f => {
+				try {
+					f(value, false)
+				} catch(e) {
+					console.error(e)
+				}
+			})
 			delete this.queue[queueKey]
 		}
 		if(save && !Object.keys(this.queue).length){
-			this.save()
+			this.sync()
 		}
 	}
 	lookup(hostname, options, callback){
@@ -228,11 +245,7 @@ class UltimateLookup extends Events {
 		this.failedIPs[hostname].push(ip)
 	}
 	load(){
-		global.storage.get(this.cacheKey, data => {
-			if(data && data.data){
-				this.data = Object.assign(data.data, this.data)
-				this.ttlData = Object.assign(data.ttlData, this.ttlData)
-			}
+		this.syncNow(() => {
 			if(this.debug){
 				console.log('lookup->ready')
 			}
@@ -241,17 +254,28 @@ class UltimateLookup extends Events {
 			this.readyQueue.length = 0
 		})
 	}
-	save(){
-		if(this.saveTimer){
-			clearTimeout(this.saveTimer)
+	syncNow(cb){
+		global.storage.get(this.cacheKey, data => {
+			if(data && data.data){
+				this.data = Object.assign(data.data, this.data)
+				this.ttlData = Object.assign(data.ttlData, this.ttlData)
+			}
+			cb()
+		})
+	}
+	sync(){
+		if(this.syncTimer){
+			clearTimeout(this.syncTimer)
 		}
-		this.saveTimer = setTimeout(() => {
-			global.storage.set(this.cacheKey, {data: this.data, ttlData: this.ttlData}, true)
-		}, this.saveDelayMs)
+		this.syncTimer = setTimeout(() => {
+			this.syncNow(() => {
+				global.storage.set(this.cacheKey, {data: this.data, ttlData: this.ttlData}, true)
+			})
+		}, this.syncDelayMs)
 	}
 }
-const lookup = new UltimateLookup({
-	gg: ['8.8.4.4', '8.8.8.8', '4.4.4.4'], 
+const lookup = new UltimateLookup({ // at least 3
+	gg: ['8.8.4.4', '8.8.8.8'], 
 	od: ['208.67.222.222', '208.67.220.220'],
 	fn: ['80.80.80.80', '80.80.81.81']
 })

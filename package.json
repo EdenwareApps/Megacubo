@@ -1,7 +1,7 @@
 {
   "name": "tv.megacubo.app",
   "displayName": "Megacubo",
-  "version": "16.5.1",
+  "version": "16.5.2",
   "description": "A intuitive and multi-language IPTV player.",
   "main": "index.js",
   "scripts": {
@@ -16,10 +16,9 @@
   "cordova": {
     "plugins": {
       "nodejs-mobile-cordova": {},
-      "cordova-plugin-insomnia": {},
-      "cordova-plugin-background-mode": {},
       "cordova-plugin-ionic-webview": {},
       "cordova-plugin-ionic-keyboard": {},
+      "cordova-plugin-insomnia": {},
       "cordova-plugin-globalization": {},
       "cordova-plugin-file": {
         "ANDROIDX_WEBKIT_VERSION": "1.4.0"
@@ -54,12 +53,15 @@
         "DEEPLINK_5_SCHEME": " ",
         "DEEPLINK_5_HOST": " "
       },
+      "cordova-plugin-background-mode": {},
       "cordova-custom-config": {},
       "tv.megacubo.pip": {},
-      "tv.megacubo.ffmpeg": {},
-      "tv.megacubo.player": {}
+      "tv.megacubo.player": {},
+      "tv.megacubo.ffmpeg": {}
     },
-    "platforms": []
+    "platforms": [
+      "android"
+    ]
   },
   "devDependencies": {
     "cordova-android": "^10.1.2",
@@ -81,7 +83,7 @@
     "ionic-plugin-deeplinks": "^1.0.24",
     "nodejs-mobile-cordova": "github:nodejs-mobile/nodejs-mobile-cordova",
     "tv.megacubo.ffmpeg": "github:efoxbr/tv.megacubo.ffmpeg",
-    "tv.megacubo.pip": "file:../tv.megacubo.pip",
+    "tv.megacubo.pip": "github:efoxbr/tv.megacubo.pip",
     "tv.megacubo.player": "github:efoxbr/tv.megacubo.player"
   }
 }

@@ -289,11 +289,6 @@ class Download extends Events {
 				}
 				this.parseResponse(err.response)
 			}
-			const currentDomain = this.getDomain(this.currentURL, false), resolvedIP = Download.got.defaults.options.dnsCache.lastResolvedIP[currentDomain]
-			console.warn('download failure', currentDomain, resolvedIP)
-			if(resolvedIP){
-				Download.got.defaults.options.dnsCache.defer(currentDomain, resolvedIP)
-			}
 			if(this.opts.debug){
 				console.error('>> Download error', err, this.opts.url, global.traceback())
 			}

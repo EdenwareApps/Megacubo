@@ -1,4 +1,4 @@
-const {CookieJar} = require('tough-cookie'), dnsCache = require('./lookup.js'), cookieJar = new CookieJar()
+const {CookieJar} = require('tough-cookie'), cookieJar = new CookieJar()
 const HttpAgent = require('agentkeepalive'), HttpsAgent = HttpAgent.HttpsAgent
 const agentOpts = {
 	keepAlive: true,
@@ -9,6 +9,12 @@ const agentOpts = {
 	rejectUnauthorized: false
 }
 
+const resolver = new (require('dns').Resolver)()
+const CacheableLookup = require('cacheable-lookup')
+
+resolver.setServers(['8.8.8.8', '1.1.1.1'])
+
+const dnsCache = new CacheableLookup({resolver})
 const got = require('got').extend({
 	headers: {
 		'Connection': 'close'

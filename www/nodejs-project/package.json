@@ -8,6 +8,7 @@
         "buffer-split": "^1.0.0",
         "buzz": "^1.2.1",
         "bytenode": "github:efoxbr/bytenode",
+        "cacheable-lookup": "^6.0.4",
         "check-disk-space": "^2.1.0",
         "color-thief-jimp": "^2.0.2",
         "country-language": "^0.1.7",
@@ -43,7 +44,7 @@
     "description": "A simple and intuitive IPTV player.",
     "name": "megacubo",
     "icon": "./default_icon.png",
-    "version": "16.5.1",
+    "version": "16.5.2",
     "theme": {
         "fullScreen": true
     },

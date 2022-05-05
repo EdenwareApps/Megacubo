@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget android-versionCode="205" id="tv.megacubo.app" version="16.5.1" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget android-versionCode="208" id="tv.megacubo.app" version="16.5.2" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>Megacubo</name>
     <description>
         An intuitive, free and open source IPTV player.
@@ -43,6 +43,10 @@
         <custom-preference name="android-manifest/application/@android:requestLegacyExternalStorage" value="true" />
         <custom-preference name="android-manifest/@android:hardwareAccelerated" value="true" />
         <custom-preference name="android-manifest/application/activity[@android:name='MainActivity']/@android:exported" value="true" />
+        <custom-preference name="android-manifest/application/activity[@android:name='MainActivity']/@android:supportsPictureInPicture" value="true" />
+        <custom-preference name="android-manifest/application/activity[@android:name='MainActivity']/@android:configChanges" value="screenSize|smallestScreenSize|screenLayout|orientation" />
+        <custom-preference name="android-manifest/application/activity[@android:name='MainActivity']/@android:launchMode" value="singleTask" />
+        <custom-preference name="android-manifest/application/activity[@android:name='MainActivity']/@android:resizeableActivity" value="true" />
         <preference name="AllowInlineMediaPlayback" value="true" />
         <preference name="AndroidLaunchMode" value="singleInstance" />
         <preference name="AndroidPersistentFileLocation" value="Compatibility" />
