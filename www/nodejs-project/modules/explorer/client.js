@@ -1780,17 +1780,19 @@ class Explorer extends ExplorerLoading {
 		let move
 		entries.forEach((e, j) => {
 			let ne
-			prevEntries.some((n, i) => {
-				let diff = this.diffEntries(e, n)
-				if(!diff){
-					ne = this.currentElements[i]
-					if(i != j) {
-						move = true
+			if(!['select', 'check', 'slider'].includes(e.type)){
+				prevEntries.some((n, i) => {
+					let diff = this.diffEntries(e, n)
+					if(!diff){
+						ne = this.currentElements[i]
+						if(i != j) {
+							move = true
+						}
+						ne.setAttribute('tabindex', j)
+						return true
 					}
-					ne.setAttribute('tabindex', j)
-					return true
-				}
-			})
+				})
+			}
 			if(!ne) {
 				let tpl = this.templates['default']
 				if(typeof(this.templates[e.type]) != 'undefined') {
