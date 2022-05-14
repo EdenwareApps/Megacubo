@@ -64,6 +64,11 @@ class FFmpegController {
             this.executionIds[id] = 'kill'
         }
     }
+    cleanup(){
+        if(top.ffmpeg.cleanup){
+            top.ffmpeg.cleanup('99999')
+        }
+    }
     exit(){
         if(this.debug){
             console.log('ffmpeg.exec exit')

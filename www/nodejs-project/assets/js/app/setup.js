@@ -21,10 +21,10 @@ class Setup extends EventEmitter {
         return !!parent.cordova
     }
     check(){
-        if(!config['setup-completed']){
+        if(!config['setup-completed']) {
             this.welcome()
         }
-    }
+    } 
     validateURL(url){
 		if(url && url.length > 11){
 			let u = url.toLowerCase()

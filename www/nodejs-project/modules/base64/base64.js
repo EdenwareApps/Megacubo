@@ -38,7 +38,6 @@ class Base64 {
             global.Download.promise({
                 url,
                 responseType: 'buffer',
-                resolveBodyOnly: true,
                 retries: 2
             }).then(content => {
                 if(!content){

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget android-versionCode="208" id="tv.megacubo.app" version="16.5.2" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget android-versionCode="214" id="tv.megacubo.app" version="16.5.3" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>Megacubo</name>
     <description>
         An intuitive, free and open source IPTV player.
@@ -17,6 +17,9 @@
     <allow-intent href="geo:*" />
     <preference name="cordova-custom-config-autorestore" value="true" />
     <platform name="android">
+        <custom-config-file mode="replace" parent="./application" target="AndroidManifest.xml">
+            <service android:name="de.appplant.cordova.plugin.background.ForegroundService" />
+        </custom-config-file>
         <custom-config-file mode="replace" parent="/*" target="AndroidManifest.xml">
             <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
             <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
@@ -28,11 +31,7 @@
             <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
             <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
         </custom-config-file>
-        <custom-config-file mode="replace" parent="./application" target="AndroidManifest.xml">
-            <service android:name="de.appplant.cordova.plugin.background.ForegroundService" />
-        </custom-config-file>
         <allow-intent href="market:*" />
-        <preference name="android-minSdkVersion" value="24" />
         <preference name="android-targetSdkVersion" value="31" />
         <preference name="android-compileSdkVersion" value="31" />
         <custom-preference delete="true" name="android-manifest/uses-sdk" />

@@ -1,6 +1,6 @@
 
 const http = require('http'), path = require('path'), parseRange = require('range-parser'), closed = require(global.APPDIR +'/modules/on-closed')
-const StreamerProxyBase = require('./proxy-base'), decodeEntities = require('decode-entities'), m3u8Parser = require('m3u8-parser')
+const StreamerProxyBase = require('./proxy-base'), decodeEntities = require('decode-entities'), m3u8Parser = require('m3u8-parser'), stoppable = require('stoppable')
 
 class StreamerProxy extends StreamerProxyBase {
 	constructor(opts){
@@ -185,7 +185,9 @@ class StreamerProxy extends StreamerProxyBase {
     }
 	start(){
 		return new Promise((resolve, reject) => {
-			this.server = http.createServer(this.handleRequest.bind(this)).listen(0, this.opts.addr, (err) => {
+			this.server = http.createServer(this.handleRequest.bind(this))
+            this.serverStopper = stoppable(this.server)
+			this.server.listen(0, this.opts.addr, (err) => {
 				if (err) {
 					if(this.opts.debug){
 						console.log('unable to listen on port', err)
@@ -207,7 +209,8 @@ class StreamerProxy extends StreamerProxyBase {
 	handleRequest(req, response){
 		if(this.destroyed || req.url.indexOf('favicon.ico') != -1){
 			response.writeHead(404, {
-				'Access-Control-Allow-Origin': '*'
+				'Access-Control-Allow-Origin': '*',
+				'connection': 'close'
 			})
 			return response.end()
 		}
@@ -216,7 +219,8 @@ class StreamerProxy extends StreamerProxyBase {
 				if(!req.headers['x-from-network-proxy'] && !req.rawHeaders.includes('x-from-network-proxy')){
 					console.warn('networkOnly block', this.type, req.rawHeaders)
 					response.writeHead(504, {
-						'Access-Control-Allow-Origin': '*'
+						'Access-Control-Allow-Origin': '*',
+						'connection': 'close'
 					})
 					return response.end()
 				}
@@ -308,11 +312,7 @@ class StreamerProxy extends StreamerProxyBase {
 			if(this.opts.debug){
 				console.log('download response', statusCode, headers, uid)
 			}
-			if(keepalive){
-				headers['connection'] = 'keep-alive' // force keep-alive to reduce cpu usage, even on local connections, is it meaningful? I don't remember why I commented below that it would be broken :/
-			} else {
-				headers['connection'] = 'close' // always force connection close on local servers, keepalive will be broken
-			}
+			headers['connection'] = 'close'
 			if(!statusCode || [-1, 0].includes(statusCode)){
 				/* avoid to passthrough 403 errors to the client as some streams may return it esporadically */
 				return end()					

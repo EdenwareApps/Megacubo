@@ -1,80 +1,80 @@
 {
-    "bugs": "https://www.facebook.com/messages/t/MegacuboTV",
-    "dependencies": {
-        "@fortawesome/fontawesome-free": "^5.15.3",
-        "adm-zip": "^0.5.9",
-        "agentkeepalive": "^4.1.4",
-        "async": "^3.2.0",
-        "buffer-split": "^1.0.0",
-        "buzz": "^1.2.1",
-        "bytenode": "github:efoxbr/bytenode",
-        "cacheable-lookup": "^6.0.4",
-        "check-disk-space": "^2.1.0",
-        "color-thief-jimp": "^2.0.2",
-        "country-language": "^0.1.7",
-        "decode-entities": "^1.0.7",
-        "env-paths": "^2.2.1",
-        "formidable": "^1.2.2",
-        "fs-chmod": "^1.0.6",
-        "get-folder-size": "^2.0.1",
-        "got": "github:efoxbr/got",
-        "hls.js": "^1.1.4",
-        "jimp": "^0.9.8",
-        "jquery": "^3.6.0",
-        "m3u8-parser": "^4.6.0",
-        "moment": "^2.29.1",
-        "moment-timezone": "^0.5.33",
-        "node-cleanup": "^2.1.2",
-        "nw-custom-frame": "github:efoxbr/nw-custom-frame",
-        "range-parser": "^1.2.1",
-        "read-last-lines": "^1.8.0",
-        "resize-observer": "^1.0.2",
-        "rimraf": "^3.0.2",
-        "safe-buffer": "^5.2.1",
-        "sanitize-filename": "^1.6.3",
-        "socket.io": "^4.0.0",
-        "string-similarity": "^4.0.4",
-        "swipey.js": "^1.0.3",
-        "tough-cookie": "^4.0.0",
-        "url-search-params-polyfill": "^8.1.1",
-        "xmltv": "github:efoxbr/node-xmltv",
-        "ytdl-core": "^4.11.0",
-        "ytsr": "^3.6.0"
-    },
-    "description": "A simple and intuitive IPTV player.",
-    "name": "megacubo",
-    "icon": "./default_icon.png",
-    "version": "16.5.2",
-    "theme": {
-        "fullScreen": true
-    },
-    "permission": [
-        "<all_urls>",
-        "alwaysOnTopWindows",
-        "http://*/",
-        "https://*/"
-    ],
-    "main": "nw.html",
-    "node-main": "main.js",
-    "chromium-args": "--enable-node-worker --experimental-worker --ignore-urlfetcher-cert-requests --tls13-variant=disabled --disable-web-security --allow-hidden-media-playback --disable-features=NetworkPrediction --disable-background-timer-throttling --proxy-auto-detect --no-zygote --no-sandbox --enable-gpu-async-worker-context --password-store=basic --force-device-scale-factor=1 --process-per-tab --enable-smooth-scrolling --disable-crash-handler=true --disable-breakpad --no-experiments --no-pings --disable-transparency --remote-debugging-port=9000",
-    "js-flags": "--max_old_space_size=2048",
-    "webkit": {
-        "page-cache": true
-    },
-    "window": {
-        "icon": "default_icon.png",
-        "position": "center",
-        "title": "Megacubo",
-        "frame": false,
-        "height": 562,
-        "width": 1000,
-        "show": true
-    },
-    "build": {
-        "nwVersion": "0.37.4"
-    },
-    "scripts": {
-        "dist": "build --tasks win-x86,win-x64,linux-x86,linux-x64,mac-x64 --mirror https://dl.nwjs.io/ .",
-        "start": "run --x86 --mirror https://dl.nwjs.io/ ."
-    }
+   "bugs": "https://www.facebook.com/messages/t/MegacuboTV",
+   "dependencies": {
+      "@fortawesome/fontawesome-free": "^5.15.3",
+      "adm-zip": "^0.5.9",
+      "agentkeepalive": "^4.1.4",
+      "async": "^3.2.0",
+      "buffer-split": "^1.0.0",
+      "buzz": "^1.2.1",
+      "bytenode": "github:efoxbr/bytenode",
+      "check-disk-space": "^2.1.0",
+      "color-thief-jimp": "^2.0.2",
+      "country-language": "^0.1.7",
+      "decode-entities": "^1.0.7",
+      "env-paths": "^2.2.1",
+      "formidable": "^1.2.2",
+      "fs-chmod": "^1.0.6",
+      "get-folder-size": "^2.0.1",
+      "hls.js": "^1.1.4",
+      "http-cookie-agent": "^1.0.6",
+      "jimp": "^0.9.8",
+      "jquery": "^3.6.0",
+      "m3u8-parser": "^4.6.0",
+      "moment": "^2.29.1",
+      "moment-timezone": "^0.5.33",
+      "node-cleanup": "^2.1.2",
+      "nw-custom-frame": "github:efoxbr/nw-custom-frame",
+      "range-parser": "^1.2.1",
+      "read-last-lines": "^1.8.0",
+      "resize-observer": "^1.0.2",
+      "rimraf": "^3.0.2",
+      "safe-buffer": "^5.2.1",
+      "sanitize-filename": "^1.6.3",
+      "socket.io": "^4.0.0",
+      "stoppable": "^1.1.0",
+      "string-similarity": "^4.0.4",
+      "swipey.js": "^1.0.3",
+      "tough-cookie": "^4.0.0",
+      "url-search-params-polyfill": "^8.1.1",
+      "xmltv": "github:efoxbr/node-xmltv",
+      "ytdl-core": "^4.11.0",
+      "ytsr": "^3.6.0"
+   },
+   "description": "A simple and intuitive IPTV player.",
+   "name": "megacubo",
+   "icon": "./default_icon.png",
+   "version": "16.5.3",
+   "theme": {
+      "fullScreen": true
+   },
+   "permission": [
+      "<all_urls>",
+      "alwaysOnTopWindows",
+      "http://*/",
+      "https://*/"
+   ],
+   "main": "nw.html",
+   "node-main": "main.js",
+   "chromium-args": "--enable-node-worker --experimental-worker --ignore-urlfetcher-cert-requests --tls13-variant=disabled --disable-web-security --allow-hidden-media-playback --disable-features=NetworkPrediction --disable-background-timer-throttling --proxy-auto-detect --no-zygote --no-sandbox --enable-gpu-async-worker-context --password-store=basic --force-device-scale-factor=1 --process-per-tab --enable-smooth-scrolling --disable-crash-handler=true --disable-breakpad --no-experiments --no-pings --disable-transparency --remote-debugging-port=9000",
+   "js-flags": "--max_old_space_size=2048",
+   "webkit": {
+      "page-cache": true
+   },
+   "window": {
+      "icon": "default_icon.png",
+      "position": "center",
+      "title": "Megacubo",
+      "frame": false,
+      "height": 562,
+      "width": 1000,
+      "show": true
+   },
+   "build": {
+      "nwVersion": "0.37.4"
+   },
+   "scripts": {
+      "dist": "build --tasks win-x86,win-x64,linux-x86,linux-x64,mac-x64 --mirror https://dl.nwjs.io/ .",
+      "start": "run --x86 --mirror https://dl.nwjs.io/ ."
+   }
 }

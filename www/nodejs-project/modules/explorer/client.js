@@ -1534,6 +1534,7 @@ class ExplorerStatusFlags extends ExplorerSlider {
 								content = '<span class="entry-status-flag entry-status-flag-success"><i class="fas fa-check"></i></span>'
 							}
 						}
+						this[status == 'offline' ? 'addClass' : 'removeClass'](element, 'entry-disabled')
 						if(content != element.getAttribute('data-status-flags-html')){
 							element.setAttribute('data-status-flags-html', content)
 							element.querySelector('.entry-status-flags').innerHTML = content

@@ -1064,38 +1064,41 @@ class Channels extends ChannelsAutoWatchNow {
                 terms = global.lists.terms(terms)
             }
             let epgEntries = [], already = []
-            this.epgSearch(terms, true, true).then(es => {
-                epgEntries = es.map(e => {
-                    let ch = this.isChannel(e.program.ch)
-                    if(ch){
-                        if(!already.includes(ch.name)){
-                            already.push(ch.name)
-                            if(e.details){
-                                e.details = e.details.replace(e.program.ch, ch.name)
-                            }
-                            e.program.ch = ch.name
-                            return e
-                        }
+            let entries = []
+            Object.keys(this.channelsIndex).sort().forEach(name => {
+                if(!already.includes(name)){
+                    let score = this.cmatch(this.channelsIndex[name], terms, partial)
+                    if(score){
+                        already.push(name)
+                        entries.push({
+                            name,
+                            terms: {name: this.channelsIndex[name]}
+                        })
                     }
-                }).filter(e => !!e)
-            }).catch(console.error).finally(() => {
-                let entries = []
-                Object.keys(this.channelsIndex).sort().forEach(name => {
-                    if(!already.includes(name)){
-                        let score = this.cmatch(this.channelsIndex[name], terms, partial)
-                        if(score){
-                            entries.push({
-                                name,
-                                terms: {name: this.channelsIndex[name]}
-                            })
-                        }
-                    }
-                })
-                console.log(global.deepClone(entries))
-                this.epgChannelsAddLiveNow(entries, true).then(es => {
-                    resolve(epgEntries.concat(es))
-                }).catch(reject)
+                }
             })
+            console.log(global.deepClone(entries))
+            this.epgChannelsAddLiveNow(entries, true).then(es => {
+                this.epgSearch(terms, true, true).then(ees => {
+                    epgEntries = ees.map(e => {
+                        let ch = this.isChannel(e.program.ch)
+                        if(ch){
+                            if(!already.includes(ch.name)){
+                                already.push(ch.name)
+                                if(e.details){
+                                    e.details = e.details.replace(e.program.ch, ch.name)
+                                }
+                                e.program.ch = ch.name
+                                return e
+                            }
+                        }
+                    }).filter(e => !!e)
+                }).catch(console.error).finally(() => {
+                    console.log(global.deepClone(entries))
+                    resolve(es.concat(epgEntries))
+                })
+            }).catch(reject)
+            
         })
     }
     entryTerms(e){

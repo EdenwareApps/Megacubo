@@ -624,7 +624,8 @@ function initApp(){
             })
 
             if(parent.cordova){
-				parent.cordova.plugins.backgroundMode.disable()
+                parent.cordova.plugins.backgroundMode.disableBatteryOptimizations()
+				cordova.plugins.backgroundMode.enable() // enable once at startup to prevent service not registered crash
                 parent.cordova.plugins.backgroundMode.setDefaults({
                     title: 'Megacubo',
                     text: lang.RUNNING_IN_BACKGROUND || '...',                

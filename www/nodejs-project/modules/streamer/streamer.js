@@ -994,9 +994,8 @@ class Streamer extends StreamerAbout {
 			if(!silent){
 				global.osd.show(global.lang.CONNECTING + ' ' + e.name + '...', 'fa-mega spin-x-alt', 'streamer', 'persistent')
 			}
-			let hasErr
-			await this.intent(e).catch(r => hasErr = r)
-			if(hasErr){
+			let hasErr, intent = await this.intent(e).catch(r => hasErr = r)
+			if(typeof(hasErr) != 'undefined'){
 				if(this.connectId != connectId){
 					if(!silent){
 						global.explorer.setLoadingEntries(loadingEntriesData, false)
@@ -1004,12 +1003,12 @@ class Streamer extends StreamerAbout {
 					throw 'another play intent in progress'
 				}		
 				console.warn('STREAMER INTENT ERROR', hasErr, traceback())
-				global.ui.emit('sound', 'static', 25);
+				global.ui.emit('sound', 'static', 25)
 				this.connectId = false
 				this.emit('connecting-failure', e)
 				this.handleFailure(e, hasErr)
 			} else {
-				console.warn('STREAMER INTENT SUCCESS', e)
+				console.warn('STREAMER INTENT SUCCESS', intent, e)
 				succeeded = true
 			}
 		}

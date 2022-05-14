@@ -1,4 +1,5 @@
-const fs = require('fs'), http = require('http'), path = require('path'), closed = require(global.APPDIR +'/modules/on-closed'), decodeEntities = require('decode-entities'), Events = require('events')
+const fs = require('fs'), http = require('http'), path = require('path'), stoppable = require('stoppable')
+const closed = require(global.APPDIR +'/modules/on-closed'), decodeEntities = require('decode-entities'), Events = require('events')
 
 class Any2HLS extends Events {
     constructor(source, opts){
@@ -258,7 +259,9 @@ class Any2HLS extends Events {
             if(this.server){
                 return resolve()
             }
-            this.server = http.createServer(this.handleRequest.bind(this)).listen(0, this.opts.addr, (err) => {
+            this.server = http.createServer(this.handleRequest.bind(this))
+            this.serverStopper = stoppable(this.server)
+            this.server.listen(0, this.opts.addr, (err) => {
                 if (err) {
                     return reject('unable to listen on any port')
                 }

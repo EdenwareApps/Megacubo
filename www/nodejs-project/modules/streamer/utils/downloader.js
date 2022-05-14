@@ -1,5 +1,5 @@
 
-const path = require('path'), http = require('http'), StreamerAdapterBase = require('../adapters/base.js'), closed = require(global.APPDIR +'/modules/on-closed')
+const path = require('path'), http = require('http'), stoppable = require('stoppable'), StreamerAdapterBase = require('../adapters/base.js'), closed = require(global.APPDIR +'/modules/on-closed')
 
 const SYNC_BYTE = 0x47
 
@@ -118,7 +118,9 @@ class Downloader extends StreamerAdapterBase {
 					response.statusCode = 404
 					response.end('File not found!')
 				}
-			}).listen(this.opts.port, '127.0.0.1', err => {
+			})
+            this.serverStopper = stoppable(this.server)
+			this.server.listen(this.opts.port, '127.0.0.1', err => {
 				if(err){
 					console.error('unable to listen on port', err)
 					return reject(err)

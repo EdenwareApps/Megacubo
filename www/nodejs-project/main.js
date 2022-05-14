@@ -78,13 +78,31 @@ const sendCrashLogs = () => {
     fs.stat(crashLogFile, (err, stat) => {
         if(stat && stat.size){
             fs.readFile(crashLogFile, (err, content) => {
-                const FormData = require('form-data'), got = require('got'), form = new FormData()
+                const FormData = require('form-data'), form = new FormData(), http = require('http')
                 form.append('log', String(content))
-                got.post('http://app.megacubo.net/report/index.php', {body: form}).then(r => {
-                    if(r.body.indexOf('OK') != -1){
-                        fs.unlink(crashLogFile, () => {})
-                    }
-                }).catch(console.error)
+                const options = {
+                    method: 'post',
+                    host: 'app.megacubo.net',
+                    path: '/report/index.php',
+                    headers: form.getHeaders()
+                }
+                let req = http.request(options, res => {
+                    res.setEncoding('utf8')
+                    let data = ''
+                    res.on('data', (d) => {
+                        data += d
+                    })
+                    res.once('end', () => {
+                        if(data.indexOf('OK') != -1){
+                            fs.unlink(crashLogFile, () => {})
+                        }
+                    })
+                })
+                req.on('error', (e) => {
+                    console.error('Houve um erro', e)
+                })
+                form.pipe(req)
+                req.end()
             })
         }
     })
@@ -383,6 +401,10 @@ function init(language){
             }
             switch(e.type){
                 case 'stream':
+                    if(tuning){
+                        tuning.destroy()
+                        tuning = null
+                    }
                     zap.setZapping(false, null, true)
                     if(typeof(e.action) == 'function') { // execute action for stream, if any
                         e.action(e)
@@ -394,6 +416,10 @@ function init(language){
                     if(typeof(e.action) == 'function') {
                         e.action(e)
                     } else if(e.url && mega.isMega(e.url)) {
+                        if(tuning){
+                            tuning.destroy()
+                            tuning = null
+                        }
                         zap.setZapping(false, null, true)
                         streamer.play(e)
                     }

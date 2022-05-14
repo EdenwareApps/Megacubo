@@ -861,7 +861,7 @@ function setupFontDetector(){
             'left:-99999px'
         ].join(' !important;')
         var getWidth = fontFamily => {
-            container.style.fontFamily = fontFamily
+            container.style.fontFamily = fontFamily.split(',').map(f => "'"+ f.trim() +"'").join(',')
             body.appendChild(container)
             width = container.clientWidth
             body.removeChild(container)        
@@ -894,13 +894,17 @@ function getFontList(){
         'Courier',
         'Dejavu Sans',
         'Dejavu Serif',
+        'Futura',
         'Georgia',
         'Gill Sans',
+        'Gotham',
         'Helvetica',
         'Helvetica Neue', 
         'Impact',
+        'Lato',
         'Lucida Sans',
         'Myriad Pro',
+        'Netflix Sans',
         'Open Sans',
         'Oxygen-Sans', 
         'Palatino',

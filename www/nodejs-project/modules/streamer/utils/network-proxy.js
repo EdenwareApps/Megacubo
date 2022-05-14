@@ -1,5 +1,5 @@
 
-const http = require('http'), StreamerProxy = require('./proxy')
+const http = require('http'), StreamerProxy = require('./proxy'), stoppable = require('stoppable')
 
 class StreamerNetworkProxy extends StreamerProxy {
 	constructor(port){
@@ -35,7 +35,9 @@ class StreamerNetworkProxy extends StreamerProxy {
             if(!this.addr || this.addr == '127.0.0.1'){
                 return reject('no network: '+ this.addr)
             }
-            this.server = http.createServer(this.handleRequest.bind(this)).listen(0, this.addr, (err) => {
+            this.server = http.createServer(this.handleRequest.bind(this))
+            this.serverStopper = stoppable(this.server)
+            this.server.listen(0, this.addr, (err) => {
                 if (err) {
                     if(this.opts.debug){
                         console.log('unable to listen on port', err)

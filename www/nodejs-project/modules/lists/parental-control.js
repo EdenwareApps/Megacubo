@@ -7,6 +7,11 @@ class ParentalControl extends Events {
 		this.termsRegex = false
 		this.setupTerms()
 		this.update()
+		this.on('uodated', () => {
+			if(global.explorer && global.explorer.path == global.lang.TRENDING){
+				global.explorer.refresh()
+			}
+		})
 	}
 	setupTerms(){
 		this.terms = this.keywords(global.config.get('parental-control-terms'))		
@@ -45,7 +50,10 @@ class ParentalControl extends Events {
 					}
 				}
 				this.emit('updated')
-			}).catch(console.error)
+			}).catch(err => {
+				console.error(err)
+				setTimeout(() => this.update(), 10000)
+			})
 		}
 	}
 	keywords(str){

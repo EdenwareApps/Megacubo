@@ -593,7 +593,7 @@ class Theme extends Events {
                     name: global.lang.MORE_THEMES,
                     type: 'group',
                     fa: 'fas fa-download', 
-                    renderer: () => this.remoteThemes()
+                    renderer: () => this.remoteThemes().catch(console.error)
                 })
                 resolve(entries)
             })

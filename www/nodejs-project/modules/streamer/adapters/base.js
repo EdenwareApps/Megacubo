@@ -242,19 +242,20 @@ class StreamerAdapterBase extends Events {
 		this.bitrateChecking = true
 		const isHTTP = file.match(new RegExp('^((rtmp|rtsp|https?://)|//)'))
 		const next = (err, stat) => {
-			if(this.destroyed || this.bitrates.length >= this.opts.bitrateCheckingAmount || this.bitrateCheckFails >= this.opts.maxBitrateCheckingFails){
+			if(this.destroyed || (this.bitrates.length >= this.opts.bitrateCheckingAmount && this.codecData) || this.bitrateCheckFails >= this.opts.maxBitrateCheckingFails){
 				this.bitrateChecking = false
 				this.getBitrateQueue = []
 				this.clearBitrateSampleFiles()
 			} else if(err || (!isHTTP && stat.size < this.opts.minBitrateCheckSize)) {
 				this.pumpGetBitrateQueue()
 			} else {
-				//console.log('getBitrate', file, this.url, isHTTP ? null : stat.size, this.opts.minBitrateCheckSize, traceback())
+				console.log('getBitrate', file, this.url, isHTTP ? null : stat.size, this.opts.minBitrateCheckSize, traceback())
 				global.ffmpeg.bitrate(file, (err, bitrate, codecData, dimensions, nfo) => {
 					if(!isHTTP){
 						fs.unlink(file, () => {})
 					}
 					if(!this.destroyed){
+						console.log('getBitrate', file, bitrate, codecData, dimensions, nfo)
 						if(codecData){
 							this.addCodecData(codecData)
 						}
@@ -457,6 +458,14 @@ class StreamerAdapterBase extends Events {
 			this.destroyed = true
 			this.emit('destroy')
 			this.clearBitrateSampleFiles()
+            if(this.serverStopper){
+                this.serverStopper.stop()
+                this.serverStopper = null
+            }
+            if(this.server){
+                this.server.close()
+                this.server = null
+            }
             this.adapters.forEach(a => a.destroy())
 			this.downloadLogging = {}
 			if(this.server){

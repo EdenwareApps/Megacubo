@@ -206,6 +206,12 @@ class AutoTuner extends Events {
             if(this.opts.terms){
                 e.data.terms = this.opts.terms
             }
+            if(e.data.originalIcon){
+                delete e.data.originalIcon
+            }
+            if(e.data.icon){
+                delete e.data.icon
+            }            
         }
         return e
     }
@@ -235,7 +241,6 @@ class AutoTuner extends Events {
             }
             busyDomains.push(this.tuner.domainAt(i))
         })
-        console.log('slots', index, processingIndex)
         index = index.filter(nid => {
             if(slotCount <= 0){
                 return
@@ -389,11 +394,11 @@ class AutoTuner extends Events {
         }
         return ret
     }
-    logText(){
+    logText(showStreams){
         let ret = [], info = Object.values(this.log())
         ret.push(this.tuner.entries.length +' streams')
         ret = ret.concat(info.map(e => {
-            let row = e.name +' => '
+            let row = (showStreams === true ? e.url : e.name) +' => '
             if(e.info == 'untested'){
                 row += 'untested'
             } else {

@@ -342,7 +342,49 @@ class OptionsExportImport extends PerformanceProfiles {
     }
 }
 
-class Options extends OptionsExportImport {
+class OptionsHardwareAcceleration extends OptionsExportImport {
+    constructor(){
+        super()
+        this.hwaDisableFlags = ['--disable-gpu', '--force-cpu-draw']
+    }
+    async setHardwareAcceleration(enable){
+        let hasErr
+        const fs = require('fs'), file = APPDIR +'/package.json'
+        const ret = await fs.promises.access(file, fs.constants.W_OK).catch(err => {
+            hasErr = err
+        })
+        if(hasErr){
+            global.explorer.dialog([
+                {template: 'question', text: 'Megacubo', fa: 'fas fa-info-circle'},
+                {template: 'message', text: 'You must run Megacubo as admin to change this option.'},
+                {template: 'option', text: 'OK', id: 'ok'}
+            ], 'ok').catch(console.error) // dont wait
+            global.explorer.refresh()
+        } else {
+            let manifest = await fs.promises.readFile(file)
+            manifest = JSON.parse(manifest) 
+            this.hwaDisableFlags.forEach(flag => {
+                manifest['chromium-args'] = manifest['chromium-args'].replace(flag, '').trim()
+            });
+            if(!enable){
+                this.hwaDisableFlags.forEach((flag) => {
+                    manifest['chromium-args'] += ' '+ flag
+                })
+            }
+            await fs.promises.writeFile(file, JSON.stringify(manifest, null, 3))
+            global.energy.restart()
+        }
+    }
+    getHardwareAcceleration(){
+        const fs = require('fs')
+        let manifest = String(fs.readFileSync(APPDIR +'/package.json'))
+        return !this.hwaDisableFlags.every((flag) => {
+            return manifest.indexOf(flag) != -1
+        })
+    }    
+}
+
+class Options extends OptionsHardwareAcceleration {
     constructor(){
         super()
         global.ui.on('config-import-file', data => {
@@ -708,7 +750,7 @@ class Options extends OptionsExportImport {
                     global.config.set('prefer-ipv6', checked)
                 }, checked: () => {
                     return global.config.get('prefer-ipv6')
-                }}  
+                }}
             ]
             if(global.config.get('communitary-mode-lists-amount')){
                 opts.push({
@@ -933,7 +975,7 @@ class Options extends OptionsExportImport {
                 {name: global.lang.MANAGE_CHANNEL_LIST, fa: 'fas fa-list', type: 'group', details: global.lang.LIVE, renderer: global.channels.options.bind(global.channels)},
                 {name: global.lang.ADVANCED, fa: 'fas fa-cogs', type: 'group', renderer: () => {
                     return new Promise((resolve, reject) => {
-                        resolve([
+                        const opts = [
                             {name: global.lang.TUNE, fa: 'fas fa-satellite-dish', type: 'group', renderer: this.tuneEntries.bind(this)},
                             {name: global.lang.PLAYBACK, fa: 'fas fa-play', type: 'group', renderer: this.playbackEntries.bind(this)},
                             {  
@@ -991,6 +1033,12 @@ class Options extends OptionsExportImport {
                                 return global.config.get('enable-console')
                             }},
                             {
+                                name: 'Debug connections', type: 'check', action: (data, checked) => {
+                                global.config.set('debug-conns', checked)
+                            }, checked: () => {
+                                return global.config.get('debug-conns')
+                            }},
+                            {
                                 name: 'Save last tuning log', 
                                 fa: 'fas fa-info-circle', 
                                 type: 'action', 
@@ -1005,7 +1053,16 @@ class Options extends OptionsExportImport {
                                     })
                                 }
                             }                            
-                        ])
+                        ]
+                        if(!global.cordova){
+                            opts.push({
+                                name: 'GPU rendering', type: 'check', action: (data, checked) => {
+                                this.setHardwareAcceleration(checked).catch(global.displayErr)
+                            }, checked: () => {
+                                return this.getHardwareAcceleration()
+                            }})
+                        }
+                        resolve(opts)
                     })
                 }},
                 {

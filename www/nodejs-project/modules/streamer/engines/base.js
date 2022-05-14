@@ -276,6 +276,14 @@ class StreamerBaseIntent extends Events {
         if(!this.destroyed){
             this.destroyAdapters()
             this.destroyed = true
+            if(this.serverStopper){
+                this.serverStopper.stop()
+                this.serverStopper = null
+            }
+            if(this.server){
+                this.server.close()
+                this.server = null
+            }
             if(this.committed){
                 this.emit('uncommit')
             }

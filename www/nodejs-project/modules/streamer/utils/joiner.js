@@ -68,7 +68,7 @@ class Joiner extends Downloader {
 			if(nextConnectionFrom > (now + (ms / 1000))){
 				ms = (nextConnectionFrom - now) * 1000
 			}
-			console.log('next connection after '+ ms)
+			console.log('next connection after '+ parseInt(ms) +'ms')
             this.timer = setTimeout(this.pump.bind(this), ms) /* avoiding nested call to next pump to prevent mem leaking */
             if(this.opts.debug){
                 console.log('[' + this.type + '] delaying ' + ms + 'ms', 'now: ' + now, 'delayUntil: ' + this.delayUntil)

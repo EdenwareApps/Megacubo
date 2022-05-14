@@ -281,7 +281,7 @@ class FFMPEGMediaInfo extends FFMPEGHelper {
 				cb(String(error || output))
 				fs.unlink(tempFile, err => {
 					if(err){
-						console.error('CANNOT DELETE', err)
+						console.error('CANNOT DELETE', err, error, output)
 					}
 				})
 			}, ['-ss', '00:00:00', '-to', '00:00:02'])

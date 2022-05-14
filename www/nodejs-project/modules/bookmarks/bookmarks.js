@@ -56,7 +56,7 @@ class Bookmarks extends EntriesGroup {
                             global.osd.show(global.lang.BOOKMARK_REMOVED.format(bookmarkable.name), 'fas fa-star-half', 'bookmarks', 'normal')
                         }
                     }
-                } else {
+                } else if(entry.path.indexOf(global.lang.BOOKMARKS) == -1) {
                     bookmarker = {
                         type: 'action',
                         fa: 'fas fa-star',
@@ -68,7 +68,7 @@ class Bookmarks extends EntriesGroup {
                         }
                     }
                 } 
-                entries.unshift(bookmarker)
+                if(bookmarker) entries.unshift(bookmarker)
             }
             resolve(entries)
         })

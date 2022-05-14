@@ -104,8 +104,7 @@ class IPTVStreamInfo {
 						if((!ct || ct.substr(0, 5) == 'text/') && ret.sample){							
 							if(String(ret.sample).match(new RegExp('#EXT(M3U|INF)', 'i'))){
 								ct = 'application/x-mpegURL'
-							}
-							if(this.isBin(ret.sample) && ret.sample.length >= this.opts.probeSampleSize){ // check length too to skip plain text error messages
+							} else if(this.isBin(ret.sample) && ret.sample.length >= this.opts.probeSampleSize){ // check length too to skip plain text error messages
 								if(global.lists.msi.isVideo(url)){
 									ct = 'video/mp4'
 								} else {

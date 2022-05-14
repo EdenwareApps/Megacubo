@@ -343,6 +343,10 @@ div#home-arrows > div > * {
     mask-image: radial-gradient(circle at 50% -30%, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.8) 35%, rgba(0, 0, 0, 0) 100%);
     -webkit-mask-image: radial-gradient(circle at 50% -30%, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.8) 35%, rgba(0, 0, 0, 0) 100%);
 }
+#explorer content a.entry-disabled .entry-icon-image {
+    filter: saturate(0.15);
+    opacity: var(--opacity-level-3);
+}
 #explorer content a * {
     color: inherit;
 }

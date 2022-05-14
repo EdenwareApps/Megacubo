@@ -58,7 +58,7 @@ class BridgeServer extends Events {
         }
         this.server = http.createServer((req, response) => {
             console.log(`${req.method} ${req.url}`)
-            const parsedUrl = url.parse(req.url)
+            const parsedUrl = url.parse(req.url, false)
             if(parsedUrl.pathname == '/upload') {
                 const form = formidable({ multiples: true })
                 form.parse(req, (err, fields, files) => {

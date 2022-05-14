@@ -406,7 +406,7 @@ class IconServer extends IconFetchSem {
 		})
         this.closed = false
         this.server = false
-        this.schedulingLimits = {download: 20, adjust: 1}
+        this.schedulingLimits = {download: 8, adjust: 1}
         this.activeSchedules = {}
         this.schedules = {}
         this.rendering = {}

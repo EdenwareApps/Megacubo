@@ -94,7 +94,7 @@ class List extends Events {
 	}
 	verifyListQuality(){
 		return new Promise((resolve, reject) => {
-			if(this.skipValidating){
+            if(this.skipValidating){
 				return resolve(true)
 			}
 			let resolved, hits = 0, results = [], len = this.index.length

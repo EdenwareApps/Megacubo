@@ -1,14 +1,18 @@
-const Events = require('events'), parseRange = require('range-parser'), got = require('./got-wrapper')
+const Events = require('events'), parseRange = require('range-parser')
 const zlib = require('zlib'), WriteQueueFile = require(global.APPDIR +'/modules/write-queue/write-queue-file')
 const StringDecoder = require('string_decoder').StringDecoder
+const DownloadStream = require('./stream')
+
 class Download extends Events {
    constructor(opts){
 	   	super()
 		this.uid = parseInt(Math.random() * 100000)
+		this.startTime = global.time()
 		this.opts = {
 			debug: false,
 			keepalive: false,
 			maxAuthErrors: 2,
+			redirectionLimit: 20,
 			retries: 3,
 			compression: true,
 			headers: {
@@ -21,7 +25,7 @@ class Download extends Events {
 			permanentErrorRegex: new RegExp('(ENOTFOUND|ENODATA|ENETUNREACH|ECONNREFUSED|cannot resolve)', 'i'),
 			timeout: null,
 			followRedirect: true,
-			acceptRanges: true,
+			acceptRanges: false, // Cloudflare may send invalid content-range when requesting inadvertedly with bytes=0-
 			encoding: null
 		}		
 		if(opts){
@@ -39,9 +43,14 @@ class Download extends Events {
 		if(this.opts.compression){
 			this.opts.headers['accept-encoding'] = 'gzip, deflate'
 		}
+		if(!this.opts.headers['vary']){
+			this.opts.headers['vary'] = 'accept-ranges'
+		}
+		this.timings = {}
 		this.buffer = []
+		this.redirectCount = 0
 		this.retryCount = 0
-		this.retryDelay = 200
+		this.retryDelay = 150
 		this.received = 0
 		this.receivedUncompressed = 0
 		this.isResponseCompressed = false
@@ -68,11 +77,11 @@ class Download extends Events {
 		if(Download.keepAliveDomainBlacklist.includes(d)){
 			return true
 		}
-		return ['http', 'https'].some(method => {
-			return Object.keys(got.ka.defaults.options.agent[method].sockets).some(domain => {
+		return ['KHttpAgent', 'KHttpsAgent'].some(method => {
+			return Object.keys(DownloadStream.keepAliveAgents[method].sockets).some(domain => {
 				if(domain.indexOf(d) == -1) return
-				if(got.ka.defaults.options.agent[method].sockets[domain] && got.ka.defaults.options.agent[method].sockets[domain].length == got.ka.defaults.options.agent[method].maxSockets){
-					if(!got.ka.defaults.options.agent[method].freeSockets[domain] || !got.ka.defaults.options.agent[method].freeSockets[domain].length){
+				if(DownloadStream.keepAliveAgents[method].sockets[domain] && DownloadStream.keepAliveAgents[method].sockets[domain].length == DownloadStream.keepAliveAgents[method].maxSockets){
+					if(!DownloadStream.keepAliveAgents[method].freeSockets[domain] || !DownloadStream.keepAliveAgents[method].freeSockets[domain].length){
 						Download.keepAliveDomainBlacklist.push(d)
 						console.warn('Keep alive exhausted for '+ domain)
 						return true
@@ -97,9 +106,15 @@ class Download extends Events {
 		}
 	}
 	start(){
-		if(!this.started && !this.destroyed){
+		if(!this.started && !this.ended && !this.destroyed){
 			this.started = true
-			this.stream = this.connect()
+			if(global.osd && global.config.get('debug-conns')){
+				let txt = this.opts.url.split('?')[0].split('/').pop()
+				global.osd.show(txt, 'fas fa-download', 'down-'+ this.uid, 'persistent')
+				if(typeof(global.requests) == 'undefined') global.requests = {}
+				global.requests[txt] = this
+			}
+			this.connect()
 		}
 	}
 	ext(url){
@@ -155,32 +170,48 @@ class Download extends Events {
 			return '*'
 		}
 	}
+	parsePhases(timings){
+		let keys = Object.keys(timings).filter(k => typeof(timings[k]) == 'number').sort((a, b) => timings[a] - timings[b])
+		let phases = {}, base = timings.start || this.stream.startTime
+		keys.slice(1).forEach((k, i) => {
+			let pk = keys[i]
+			phases[pk] = timings[k] - base
+			base = timings[k]
+		})
+		return phases		
+	}
 	connect(){
 		if(this.destroyed) return
+		if(this.stream){
+			console.error('Connect before destroyStream', traceback())
+			this.destroyStream()
+		}
+		console.warn('CONNECT', this.isResponseCompressed, this.decompressEnded, this.decompressor)
 		if(this.decompressor && this.opts.acceptRanges){
 			// resume with byte ranging should not use gzip
 			// if will not use ranging but redownload, why not keep using compression?
-			const continueWithoutCompression = () => {				
+			const continueWithoutCompression = () => {
 				this.isResponseCompressed = false
 				this.decompressor = undefined
+				this.decompressEnded = undefined
 				this.received = this.receivedUncompressed
 				this.contentLength = undefined
 				this.totalContentLength = undefined
 				this.opts.compression = false
 				this.connect()
 			}
-			this.decompressor.on('error', err => {
-				console.error('zlib err', err, this.currentURL)
+			if(this.decompressEnded){
 				continueWithoutCompression()
-			})
-			this.decompressor.on('finish', () => {
-				if(this.opts.debug){
-					console.log('decompressor end')
-				}
-				continueWithoutCompression()
-			})
-			this.decompressor.flush()
-			this.decompressor.end()
+			} else {
+				this.once('decompressed', () => {
+					if(this.opts.debug){
+						console.log('decompressor end')
+					}
+					continueWithoutCompression()
+				})
+				this.decompressor.flush()
+				this.decompressor.end()
+			}
 			return
 		}
 		if(!Download.isNetworkConnected){
@@ -190,9 +221,6 @@ class Download extends Events {
 		if(this.stream){
 			console.error('Download error, stream already connected')
 			return
-		}
-		if(this.delayNextTimer){
-			clearTimeout(this.delayNextTimer)
 		}
 		if(this.currentRequestError){
 			this.currentRequestError = ''
@@ -204,15 +232,10 @@ class Download extends Events {
 			this.endWithError('Invalid URL: '+ this.currentURL)
 			return
 		}
-		const opts = {
-			responseType: 'buffer',
-			url: this.currentURL,		
-			decompress: false, // we'll decompress manually to have better control on ranging
-			followRedirect: this.opts.followRedirect,
-			retry: 0,
-			throwHttpErrors: false,
-			dnsLookupIpVersion: 'auto'
+		if(this.continueTimer){
+			clearTimeout(this.continueTimer)
 		}
+		const opts = {url: this.currentURL}
     	const requestHeaders = Object.assign({}, this.opts.headers)
 		if(this.opts.keepalive && this.avoidKeepAlive(this.currentURL)){
 			this.opts.keepalive = false
@@ -244,41 +267,34 @@ class Download extends Events {
 			console.log('>> Download request', this.currentURL, opts, this.received, JSON.stringify(opts.headers), this.requestingRange, this.opts.headers['range'], global.traceback())
 		}
 		this.connectCount++
-		const stream = (this.opts.keepalive ? got.ka : got).stream(opts)
-		stream.on('redirect', response => {
+		let redirected
+		const stream = new DownloadStream(opts)
+		stream.startTime = global.time() * 1000
+		stream.once('response', response => {
+			this.lastStatusCode = response.statusCode	
+			redirected = this.checkRedirect(response)
 			if(this.opts.debug){
-				console.log('>> Download redirect', response.headers['location'])
+				console.log('>> check redirect', redirected)
 			}
-			if(response.headers && response.headers['location']){
-				this.currentURL = this.absolutize(response.headers['location'], opts.url)
-			}
-			if(!this.opts.followRedirect){
-				this.checkRedirect(response)
-				this.end()
+			if(!redirected) {
+				this.parseResponse(response)
 			}
 		})
-		stream.once('response', this.parseResponse.bind(this))
-		stream.on('data', () => {}) // if no data handler on stream, response.on('data') will not receive too, WTF?!
 		stream.on('error', this.errorCallback.bind(this))
-		stream.on('download-error', this.errorCallback.bind(this)) // from got-wrapper hook
 		stream.once('end', () => {
 			if(this.opts.debug){
-				console.log('>> Download finished')
+				console.log('>> Stream finished', redirected)
 			}
-			if(this.contentLength == -1 && !this.currentRequestError){ // ended fine
-				this.contentLength = this.received // avoid loop retrying
-				if(this.opts.debug){
-					console.log('>> Download content length adjusted to', this.contentLength)
-				}
+			if(!redirected){
+				this.continue()
 			}
-			this.delayNext()
 		})
-		return stream
+		this.stream = stream
 	}
 	reconnect(force){
 		if(force || !this.received){
 			this.destroyStream()
-			this.delayNext()
+			this.continue()
 		}
 	}
 	errorCallback(err){
@@ -300,10 +316,7 @@ class Download extends Events {
 				this.currentRequestError = 'error'
 			}
 			setTimeout(() => { // setTimeout required to prevent crashing by destroying stream before finish error handling
-				if(this.listenerCount('error')){
-					this.emit('error', err)
-				}
-				this.delayNext()
+				this.continue()
 			}, 100)
 		}
 		return err
@@ -325,8 +338,8 @@ class Download extends Events {
 			} else {
 				ms = (global.config.get('connect-timeout') || 5) * 1000
 			}
-			'lookup,connect,secureConnect,response'.split(',').forEach(s => timeout[s] = ms)
-			'socket,send,request'.split(',').forEach(s => timeout[s] = ms * 2)
+			'lookup,connect,secureConnect'.split(',').forEach(s => timeout[s] = ms)
+			'socket,response,send,request'.split(',').forEach(s => timeout[s] = ms * 2)
 			return timeout
 		}
 	}
@@ -351,9 +364,15 @@ class Download extends Events {
 			if(!this.isResponseCompressed){
 				if(typeof(response.headers['content-encoding']) != 'undefined' && response.headers['content-encoding'] != 'identity'){
 					this.isResponseCompressed = response.headers['content-encoding']
+					if(this.opts.debug){
+						console.log('Compression detected', this.isResponseCompressed)
+					}
 				}
 				if(this.ext(this.currentURL) == 'gz'){
 					this.isResponseCompressed = 'gzip'
+					if(this.opts.debug){
+						console.log('Compression detected', this.isResponseCompressed)
+					}
 				}
 			}
 			if(this.opts.acceptRanges){
@@ -428,7 +447,7 @@ class Download extends Events {
 			} else {
 				if(!this.headersSent){
 					let headers = response.headers
-					headers = this.removeHeaders(headers, ['content-range', 'content-length', 'content-encoding', 'transfer-encoding', 'cookie']) // cookies will be handled internally by got module
+					headers = this.removeHeaders(headers, ['content-range', 'content-length', 'content-encoding', 'transfer-encoding', 'cookie']) // cookies will be handled internally by DownloadStream
 					if(!this.statusCode || this.isPreferredStatusCode(response.statusCode)){
 						this.statusCode = response.statusCode
 					}
@@ -505,26 +524,30 @@ class Download extends Events {
 					}
 				})
 				response.on('error', this.errorCallback.bind(this))
-				response.on('aborted', () => {
+				response.on('end', () => {
 					if(!this.destroyed && !this.ended){
-						if(this.contentLength != -1 && this.received < this.contentLength){ // already received whole content requested
+						if(this.isResponseComplete(response.statusCode)){
+							if(this.opts.debug){
+								console.log('server aborted, ended '+ this.contentLength)
+							}
+							this.end()
+						} else {
 							if(this.opts.debug){
 								console.warn('aborted', global.traceback())
 							}
 							this.currentRequestError = 'aborted'
 							let err = 'request aborted '+ this.received +'<'+ this.contentLength
 							this.errors.push(err)
-							if(this.listenerCount('error')){
-								this.emit('error', err)
+							if(global.osd && global.config.get('debug-conns')){
+								let txt = this.opts.url.split('?')[0].split('/').pop() +' ('+ this.statusCode +'): '
+								if(this.contentLength){
+									txt += err // 'aborted, missing '+ global.kbfmt(this.contentLength - this.received)
+								} else {
+									txt += 'aborted, no response'
+								}
+								global.osd.show(txt, 'fas fa-download', 'down-'+ this.uid, 'persistent')
 							}
-							this.delayNext()
-						} else {
-							let err = 'server aborted, ended '+ this.contentLength
-							this.errors.push(err)
-							if(this.opts.debug){
-								console.log(err)
-							}
-							this.end()
+							this.continue()
 						}
 					}
 				})
@@ -533,7 +556,7 @@ class Download extends Events {
 				}
 			}
 		} else if(validate === false) {
-			this.delayNext()
+			this.continue()
 		}
 	}
 	_emitData(chunk){
@@ -553,7 +576,10 @@ class Download extends Events {
 	}
 	emitData(chunk){
 		if(this.isResponseCompressed){
-			if(!this.decompressor){
+			if(!this.decompressor){				
+				if(this.opts.debug){
+					console.warn('Compression detected', this.isResponseCompressed)
+				}
 				switch(this.isResponseCompressed){
 					case 'gzip':
 						this.decompressor = zlib.createGunzip()
@@ -569,11 +595,16 @@ class Download extends Events {
 				this.decompressor.on('error', err => {
 					console.error('Zlib err', err, this.currentURL)
 					this.decompressEnded = 'error'
-					this.end()
+					this.emit('decompressed')
+					this.destroyStream()
+					if(!this.ended){
+						this.connect()
+					}
 				})
 				//this.decompressor.once('end', chunk => console.log('ZLIB END'))
 				this.decompressor.on('finish', chunk => {
 					this.decompressEnded = 'finish'
+					this.emit('decompressed')
 				})
 				//this.decompressor.once('close', chunk => console.log('ZLIB CLS'))
 			}
@@ -583,60 +614,83 @@ class Download extends Events {
 			this._emitData(chunk)
 		}
 	}
+	isResponseComplete(statusCode){
+		const isValidStatusCode = statusCode == 416 || (statusCode >= 200 && statusCode < 300)
+		const isComplete = this.contentLength == -1 || this.received >= this.contentLength
+		if(isValidStatusCode && isComplete && this.contentLength == -1 && !this.currentRequestError){ // ended fine
+			this.contentLength = this.received // avoid loop retrying
+			if(this.opts.debug){
+				console.log('>> Download content length adjusted to', this.contentLength)
+			}
+		}
+		return isComplete // already received whole content requested
+	}
 	validateResponse(response){
-		if(this.checkRedirect(response)){ // true = location handled
-			return false // return false to skip parseResponse
-		} else {
-			if(response.statusCode < 200 || response.statusCode >= 400){ // bad response, not a redirect
-				this.errors.push(response.statusCode)
-				let finalize
-				if(response.statusCode == 406){
-					console.error('406 error', response.headers, this.stream, this.opts.url)
+		if(response.statusCode < 200 || response.statusCode >= 400){ // bad response, not a redirect
+			this.errors.push(response.statusCode)
+			let finalize
+			if(response.statusCode == 406){
+				console.error('406 error', response.headers, this.stream, this.opts.url)
+			}
+			if(this.opts.authErrorCodes.includes(response.statusCode)){
+				if(this.retryDelay < 1000){
+					this.retryDelay = 1000
 				}
-				if(this.opts.authErrorCodes.includes(response.statusCode)){
-					if(this.retryDelay < 1000){
-						this.retryDelay = 1000
-					}
-					this.authErrors++
-					if(this.authErrors >= this.opts.maxAuthErrors){
-						finalize = true
-					} else {
-						this.pingAuthURL()
-					}
-				}
-				if(this.opts.permanentErrorCodes.includes(response.statusCode)){
+				this.authErrors++
+				if(this.authErrors >= this.opts.maxAuthErrors){
 					finalize = true
-				}
-				if(this.opts.acceptRanges && response.statusCode == 416){
-					if(this.received){
-						finalize = true // reached end, abort it
-					} else {
-						this.opts.acceptRanges = false // url doesn't supports ranges
-					}
-				}
-				if(finalize){
-					this.statusCode = response.statusCode
-					this.end()
-					return undefined // accept bad response and finalize
-				}
-				if(this.retryCount < this.opts.retries){
-					return false // return false to skip parseResponse and keep trying
+				} else {
+					this.pingAuthURL()
 				}
 			}
-			return true
+			if(this.opts.permanentErrorCodes.includes(response.statusCode)){
+				finalize = true
+			}
+			if(this.opts.acceptRanges && response.statusCode == 416){
+				if(this.received){
+					finalize = true // reached end, abort it
+				} else {
+					this.opts.acceptRanges = false // url doesn't supports ranges
+				}
+			}
+			if(finalize){
+				this.statusCode = response.statusCode
+				this.end()
+				return undefined // accept bad response and finalize
+			}
+			if(this.retryCount < this.opts.retries){
+				return false // return false to skip parseResponse and keep trying
+			}
 		}
+		return true
 	}
 	checkRedirect(response){
 		if(typeof(response.headers['location']) != 'undefined'){
-			if(!this.opts.followRedirect){
-				if(!this.headersSent){
-					this.headersSent = true
-					this.statusCode = (response.statusCode >= 300 && response.statusCode < 400) ? response.statusCode : 307
-					this.headers = response.headers
-					this.emit('response', this.statusCode, this.headers)
-				}
-				this.end()
+			this.currentURL = this.absolutize(response.headers['location'], this.opts.url)			
+			if(this.opts.debug){
+				console.log('>> Download redirect', this.opts.followRedirect, response.headers['location'], this.currentURL)
 			}
+			process.nextTick(() => {
+				if(this.opts.followRedirect){
+					this.destroyStream()
+					if(this.redirectCount < this.opts.redirectionLimit){
+						this.redirectCount++
+						this.connect()
+					} else {
+						this.statusCode = 500
+						this.headers = {}
+						this.endWithError('Redirection limit reached')
+					}
+				} else {
+					if(!this.headersSent){
+						this.headersSent = true
+						this.statusCode = (response.statusCode >= 300 && response.statusCode < 400) ? response.statusCode : 307
+						this.headers = response.headers
+						this.emit('response', this.statusCode, this.headers)
+					}
+					this.end()
+				}
+			})
 			return true // location handled, return true to skip parseResponse
 		}
 	}
@@ -653,8 +707,8 @@ class Download extends Events {
 			console.log('next', global.traceback())
 		}
 		this.destroyStream()
-		if(this.delayNextTimer){
-			clearTimeout(this.delayNextTimer)
+		if(this.continueTimer){
+			clearTimeout(this.continueTimer)
 		}
 		let retry
 		if(!Download.isNetworkConnected){
@@ -673,7 +727,7 @@ class Download extends Events {
 			if(!this.statusCode || (this.statusCode < 200 || this.statusCode >= 400)){
 				this.retryCount++
 			}
-     		this.stream = this.connect()
+     		this.connect()
 		}
 		if(retry){
 			if(this.opts.debug){
@@ -686,15 +740,19 @@ class Download extends Events {
 			this.end()
 		}
 	}
-	delayNext(){
+	continue(){
 		if(this.opts.debug){
-			console.log('delayNext', global.traceback())
+			console.log('continue', global.traceback(), this.lastStatusCode)
 		}
 		this.destroyStream()
-		if(this.delayNextTimer){
-			clearTimeout(this.delayNextTimer)
+		if(this.continueTimer){
+			clearTimeout(this.continueTimer)
 		}
-		this.delayNextTimer = setTimeout(this.next.bind(this), this.retryDelay)
+		if(this.isResponseComplete(this.lastStatusCode)){
+			this.end()
+		} else {
+			this.continueTimer = setTimeout(this.next.bind(this), this.retryDelay)
+		}
 	}
 	updateProgress(){
 		let current = this.progress
@@ -716,19 +774,26 @@ class Download extends Events {
 	}
 	destroyStream(){
 		if(this.currentResponse){
-			this.currentResponse.removeAllListeners()
+			//this.currentResponse.removeAllListeners()
 			this.currentResponse = null
 		}
-		if(this.stream){	
+		if(this.stream){
+			let timings = this.parsePhases(this.stream.timings || {})
+			Object.keys(timings).forEach(k => {
+				if(typeof(this.timings[k]) == 'undefined'){
+					this.timings[k] = 0
+				}
+				this.timings[k] += timings[k]
+			})
 			this.ignoreBytes = 0 // reset it
 			if(this.opts.debug){
 				console.log('destroyStream', global.traceback())		
 			}
-			this.stream.removeAllListeners('response')
-			this.stream.removeAllListeners('data')
-			this.stream.removeAllListeners('end')
+			//this.stream.removeAllListeners('response')
+			//this.stream.removeAllListeners('data')
+			//this.stream.removeAllListeners('end')
 			this.stream.destroy()
-			this.stream.removeAllListeners()
+			///this.stream.removeAllListeners()
 			this.stream = null
 		}
 	}
@@ -748,8 +813,8 @@ class Download extends Events {
 				try {
 					data = JSON.parse(String(data))
 				} catch(e) {
-					if(this.opts.debug){
-						console.error(e, String(data), this.opts.url)
+					if(this.listenerCount('error')){
+						this.emit('error', e)
 					}
 					data = undefined
 				}
@@ -761,7 +826,7 @@ class Download extends Events {
 		this.statusCode = 500
 		this.headers = {}
 		if(this.opts.debug){
-			console.warn('>> Download error', err, global.traceback())
+			console.warn('>> Download error: '+ err, global.traceback())
 		}
 		this.errors.push(String(err) || 'unknown request error')
 		if(!this.currentRequestError){
@@ -774,26 +839,21 @@ class Download extends Events {
 	}
 	end(){
 		if(!this.ended){
-			this.ended = true
 			this.destroyStream()
 			if(this.destroyed){
-				return this.emit('end')
+				return
 			}
 			if(!this.headersSent){
 				this.headersSent = true
 				this.checkStatusCode()
 				this.emit('response', this.statusCode, {})
 			}
+			console.warn('END', this.isResponseCompressed, this.decompressEnded, this.decompressor)
 			if(!this.isResponseCompressed || this.decompressEnded || !this.decompressor){
 				this.emit('end', this.prepareOutputData(this.buffer))
 				this.destroy()
 			} else {
-				this.decompressor.on('error', err => {
-					console.error('zlib err', err, this.currentURL)
-					this.emit('end', this.prepareOutputData(this.buffer))
-					this.destroy()
-				})
-				this.decompressor.on('finish', () => {
+				this.on('decompressed', () => {
 					// console.log('decompressor end', this.buffer)
 					this.emit('end', this.prepareOutputData(this.buffer))
 					this.destroy()
@@ -805,13 +865,19 @@ class Download extends Events {
 	}
 	checkStatusCode(){
 		if(this.statusCode == 0){
-			let errs = this.errors.join(' ')
-			if(errs.match(this.opts.permanentErrorRegex) != -1){
+			const errs = this.errors.join(' ')
+			if(errs.match(this.opts.permanentErrorRegex)){
 				this.statusCode = -1
 			} else {
-				this.statusCode = 504
+				let codes = this.errors.filter(c => {
+					c = Number(c)
+					return c && !isNaN(c)
+				})
+				this.statusCode = codes.length ? codes[0] : 504
 			}
-			console.log('CANNOT RESOLVE?', errs, this.statusCode)
+			if(this.opts.debug){
+				console.log('CANNOT RESOLVE?', errs, this.statusCode)
+			}
 		}
 	}
 	destroy(){
@@ -820,28 +886,54 @@ class Download extends Events {
 				console.log('destroy')
 			}
 			if(this.decompressor){
-				this.decompressor.end()
+				this.decompressor.destroy()
 			}
-			this.ended = true
+			if(!this.ended){
+				this.ended = true
+				this.emit('end')
+			}
 			this.destroyed = true
 			this.destroyStream()
+			this.emit('destroy')
 			this.removeAllListeners()
 			this.buffer = []
+			process.nextTick(() => {
+				if(global.osd && global.config.get('debug-conns')){
+					let txt = this.opts.url.split('?')[0].split('/').pop() +' ('+ this.statusCode +') - '
+					this.timings.delay = this.retryCount * this.retryDelay
+					this.timings.ttotal = (global.time() - this.startTime) * 1000
+					let ts = Object.keys(this.timings).filter(k => {
+						return this.timings[k] >= 1000
+					})
+					txt += ts.map(k => {
+						return k +': '+ parseInt(this.timings[k]/1000) +'s'
+					}).join(', ') + ', '+ global.kbfmt(this.received)
+					global.osd.show(txt, 'fas fa-download', 'down-'+ this.uid, 'long')
+				}
+			})
 		}
 	}
 }
-Download.got = got
+
+Download.stream = DownloadStream
 Download.keepAliveDomainBlacklist = []
 Download.isNetworkConnected = true
 Download.setNetworkConnectionState = state => {
 	Download.isNetworkConnected = state
 }
 Download.promise = (...args) => {
-	let _reject, g, opts = args[0]
+	let _reject, g, resolved, opts = args[0]
 	let promise = new Promise((resolve, reject) => {
 		_reject = reject
 		g = new Download(opts)
+		g.once('error', err => {
+			if(resolved) return
+			resolved = true
+			reject(err)
+		})
 		g.once('end', buf => {
+			if(resolved) return
+			resolved = true
 			// console.log('Download', g, global.traceback(), buf)
 			if(g.statusCode >= 200 && g.statusCode < 400){
 				resolve(buf)

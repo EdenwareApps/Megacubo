@@ -1,7 +1,7 @@
 const http = require('http'), closed = require(global.APPDIR +'/modules/on-closed')
 const StreamerProxyBase = require('./proxy-base'), decodeEntities = require('decode-entities')
 const fs = require('fs'), async = require('async'), Events = require('events'), m3u8Parser = require('m3u8-parser')
-const MPEGTSPacketProcessor = require('./ts-packet-processor.js')
+const MPEGTSPacketProcessor = require('./ts-packet-processor.js'), stoppable = require('stoppable')
 
 class HLSJournal {
 	constructor(url){
@@ -114,12 +114,12 @@ class HLSRequestClient extends Events {
 	}
 	end(){
 		if(!this.ended){
+			this.ended = true
 			if(!this.responded){
 				console.error('end without responded')
 			}
 			this.respond(500) // just to be sure
 			this.emit('end')
-			this.ended = true
 			this.destroy()
 		}
 	}
@@ -261,8 +261,8 @@ class HLSRequest extends StreamerProxyBase {
 	}
 	removeClient(client){
 		client.end()
-		client.removeAllListeners()
 		this.clients = this.clients.filter(c => c.uid != client.uid)
+		setTimeout(() => client.removeAllListeners(), 2000)
 	}
 	pump(){
 		//console.warn('HLSRequest P', this.status, this.pumping, this.clients.length)
@@ -406,6 +406,9 @@ class HLSRequests extends StreamerProxyBase {
 			})
 			this.clear()
 			global.rmdir(this.requestCacheDir, true)
+			if(global.config.get('debug-conns')){
+				global.osd.hide('hlsprefetch')
+			}
 		})
 		this.maxDiskUsage = 200 * (1024 * 1024)		
 		global.diagnostics.checkDisk().then(data => {
@@ -489,6 +492,32 @@ class HLSRequests extends StreamerProxyBase {
 		}
 		return next
 	}
+	finishObsoleteSegmentRequests(url){
+		let pos = this.getSegmentJournal(url)
+		if(pos){
+			let ks = Object.keys(this.journals[pos.journal].journal)
+			let i = ks.indexOf(pos.segment)
+			if(this.debugConns) console.log('report404', pos, i)
+			if(i != -1){				
+				ks.slice(0, i).forEach(k => {
+					this.journals[pos.journal].journal[k].split("\n").forEach(line => {
+						if(line.length > 3 && !line.startsWith('#')){
+							let segmentUrl = this.unproxify(this.absolutize(line, pos.journal))
+							if(typeof(this.requestCacheMap[segmentUrl]) != 'undefined' && typeof(this.activeRequests[segmentUrl]) != 'undefined'){
+								const hasOrganicClients = this.requestCacheMap[segmentUrl].clients.filter(c => !c.shadowClient).length
+								const requestEnded = !this.requestCacheMap[segmentUrl].request || this.requestCacheMap[segmentUrl].request.ended
+								if(!hasOrganicClients && !requestEnded){
+									console.log('finishing request due to no clients', segmentUrl, url)
+									this.requestCacheMap[segmentUrl].destroy()
+									delete this.requestCacheMap[segmentUrl]
+								}
+							}
+						}
+					})
+				})
+			}
+		}
+	}
 	isLiveSegment(url){
 		let pos = this.getSegmentJournal(url)
 		if(pos){
@@ -513,6 +542,11 @@ class HLSRequests extends StreamerProxyBase {
 	download(opts){
 		const now = global.time(), client = new HLSRequestClient(), url = opts.url, ext = this.ext(url), seg = this.isSegmentURL(url)
 		client.destroy = () => this.removeClient(url, client)
+		if(opts.shadowClient){
+			client.shadowClient = true
+		} else {
+			this.finishObsoleteSegmentRequests(url)
+		}
 		if(this.activeRequests[url] || (this.requestCacheMap[url] && !this.requestCacheMap[url].expired())){
 			this.requestCacheMap[url].addClient(client)
 		} else {
@@ -520,6 +554,7 @@ class HLSRequests extends StreamerProxyBase {
 			if(this.debugConns) console.warn('REQUEST CONNECT START', now, url, this.isLiveSegment(url) ? 'IS LIVE' : 'NOT LIVE')
 			const request = new global.Download(opts)
 			this.activeRequests[url] = request
+			this.debugActiveRequests()
 			if(this.requestCacheMap[url]){
 				this.requestCacheMap[url].reset()
 				this.requestCacheMap[url].request = request
@@ -537,6 +572,7 @@ class HLSRequests extends StreamerProxyBase {
 				}
 				if(this.activeRequests[url]){
 					delete this.activeRequests[url]
+					this.debugActiveRequests()
 				}
 				if(this.requestCacheMap[url].mediaType == 'meta'){
 					this.activeManifest = url
@@ -557,6 +593,7 @@ class HLSRequests extends StreamerProxyBase {
 									if(this.debugConns) console.warn('PREFETCHING', next, url)
 									const nopts = opts
 									nopts.url = next
+									nopts.shadowClient = true
 									this.download(nopts).start()
 								} else {
 									let info
@@ -569,7 +606,8 @@ class HLSRequests extends StreamerProxyBase {
 						}
 						this.autoClean()
 					}, 50)
-					if(this.committed && seg && this.bitrates.length < this.opts.bitrateCheckingAmount && !this.bitrateChecking){
+					if(this.committed && seg &&  !this.bitrateChecking && (this.bitrates.length < this.opts.bitrateCheckingAmount || !this.codecData)){
+						console.log('getBitrate', this.proxify(url))
 						this.getBitrate(this.proxify(url))
 					}
 				}
@@ -614,7 +652,9 @@ class HLSRequests extends StreamerProxyBase {
 			})
 			request.on('error', err => {
 				console.error(err)
-				client.emit('request-error', err)
+				if(global.config.get('debug-conns')){
+					global.displayErr('Request err: '+ err)
+				}
 			})
 			request.once('end', end)
 			request.once('destroy', end)
@@ -625,18 +665,25 @@ class HLSRequests extends StreamerProxyBase {
 		}
 		return client
 	}
+	debugActiveRequests(){
+		if(global.config.get('debug-conns')){
+			global.osd.show(Object.keys(this.activeRequests).length +' active requests', 'fas fa-download', 'hlsprefetch', 'persistent')
+		}
+	}
 	removeClient(url, client){
 		client.end()
 		client.removeAllListeners()
 		if(!this.requestCacheMap[url]){
 			if(this.activeRequests[url]){
 				delete this.activeRequests[url]
+				this.debugActiveRequests()
 			}
 		} else {
 			this.requestCacheMap[url].clients = this.requestCacheMap[url].clients.filter(c => c.uid != client.uid)
 			if(!this.requestCacheMap[url].clients.length && this.requestCacheMap[url].ended && !this.requestCacheMap[url].isPrefetching){
 				if(this.activeRequests[url]){
 					delete this.activeRequests[url]
+					this.debugActiveRequests()
 				}
 			}
 		}
@@ -674,6 +721,7 @@ class HLSRequests extends StreamerProxyBase {
 					freed += e.size
 				}
 				this.requestCacheMap[url].destroy()
+				delete this.requestCacheMap[url]
 				return freed >= freeup || i >= limit
 			})
 			console.warn('Request cache trimmed from '+ global.kbfmt(used) +' to '+ global.kbfmt(used - freed), freed, count)
@@ -728,17 +776,8 @@ class StreamerProxyHLS extends HLSRequests {
             } else if(url.charAt(0) == '/' && url.charAt(1) != '/'){
                 url = 'http://' + url.substr(1)
             } else if(this.opts.addr && url.indexOf('//') != -1){
-				/*
-				if(!this.addrp){
-					this.addrp = this.opts.addr.split('.').slice(0, 3).join('.')
-				}
-                if(url.indexOf(this.addrp) != -1){
-					url = url.replace(new RegExp('^(http://|//)'+ this.addrp.replaceAll('.', '\\.') +'\\.[0-9]{0,3}:([0-9]+)/', 'g'), '$1')
-					url = url.replace('://s/', 's://')
-                }
-				*/
-                if(url.indexOf(this.addr +':'+ this.opts.port +'/') != -1){
-					url = url.replace(new RegExp('^(http://|//)'+ this.addr.replaceAll('.', '\\.') +':'+ this.opts.port +'/', 'g'), '$1')
+                if(url.indexOf(this.opts.addr +':'+ this.opts.port +'/') != -1){
+					url = url.replace(new RegExp('^(http://|//)'+ this.opts.addr.replaceAll('.', '\\.') +':'+ this.opts.port +'/', 'g'), '$1')
 					url = url.replace('://s/', 's://')
                 } 
             }                      
@@ -891,7 +930,9 @@ class StreamerProxyHLS extends HLSRequests {
 	}
 	start(){
 		return new Promise((resolve, reject) => {
-			this.server = http.createServer(this.handleRequest.bind(this)).listen(0, this.opts.addr, (err) => {
+			this.server = http.createServer(this.handleRequest.bind(this))
+            this.serverStopper = stoppable(this.server)
+			this.server.listen(0, this.opts.addr, (err) => {
 				if (err) {
 					if(this.opts.debug){
 						console.log('unable to listen on port', err)
@@ -979,6 +1020,7 @@ class StreamerProxyHLS extends HLSRequests {
 				response.write(data)
 			}
 			response.end()
+			download.destroy() // safe to use, will convert to removeClient on download object
 			if(this.opts.debug){
 				console.log('ended', traceback())
 			}
@@ -988,12 +1030,10 @@ class StreamerProxyHLS extends HLSRequests {
 				if(this.opts.debug){
 					console.log('response closed or request aborted', ended, response.ended)
 				}
-				//download.destroy()
-				response.end()
 				end()
 			}
 		})
-		download.on('request-error', err => {
+		download.on('error', err => {
 			if(this.type == 'network-proxy'){
 				console.log('network request error', url, err)
 			}
@@ -1023,11 +1063,7 @@ class StreamerProxyHLS extends HLSRequests {
 			//console.log('download response', url, statusCode, headers)
 			/* disable content ranging, as we are rewriting meta and video */
 			headers = this.removeHeaders(headers, ['content-range', 'accept-ranges'])
-			if(keepalive){
-				headers['connection'] = 'keep-alive' // force keep-alive to reduce cpu usage, even on local connections, is it meaningful? I don't remember why I commented below that it would be broken :/
-			} else {
-				headers['connection'] = 'close' // always force connection close on local servers, keepalive will be broken
-			}
+			headers['connection'] = 'close'
 			if(!statusCode || [-1, 0, 401, 403].includes(statusCode)){
 				/* avoid to passthrough 403 errors to the client as some streams may return it esporadically */
 				return abort()					

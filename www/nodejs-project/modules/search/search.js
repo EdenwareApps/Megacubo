@@ -232,14 +232,16 @@ class Search extends Events {
         if(!this.ytsr){
             this.ytsr = require('ytsr')
         }
-        let terms = tms
-        if(Array.isArray(terms)){
-            terms = terms.join(' ')
+        if(!Array.isArray(tms)){
+            tms = global.lists.terms(tms)
         }
+        let terms = tms.join(' ')
+        terms += ' ('+ global.lang.LIVE +' OR 24h)'
+        console.warn('YTSEARCH', terms)
         const filters = await this.ytsr.getFilters(terms)
         const filter = filters.get('Type').get('Video')
-        //const filters2 = await this.ytsr.getFilters(filter.url)
-        //const filter2 = filters2.get('Features').get('Live')
+        const filters2 = await this.ytsr.getFilters(filter.url)
+        const filter2 = filters2.get('Features').get('Live')
         const options = {
             pages: 1,
             gl: global.lang.countryCode.toUpperCase(),
@@ -253,7 +255,12 @@ class Search extends Events {
                 }
             }
         }
-        const results = await this.ytsr(filter.url, options)
+        const results = await this.ytsr(filter2.url, options)
+        results.items = results.items.filter(t => {
+            let ytms = global.lists.terms(t.title)
+            console.warn('YTSEARCH', tms, ytms)
+            return lists.match(tms, ytms, true)
+        })
         return results.items.map(t => {
             let icon = t.thumbnails.sortByProp('width').shift().url
             return {
