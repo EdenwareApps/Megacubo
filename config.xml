@@ -35,7 +35,6 @@
         <preference name="android-targetSdkVersion" value="31" />
         <preference name="android-compileSdkVersion" value="31" />
         <custom-preference delete="true" name="android-manifest/uses-sdk" />
-        <custom-preference name="android-manifest/application/@android:extractNativeLibs" value="true" />
         <custom-preference name="android-manifest/application/@android:usesCleartextTraffic" value="true" />
         <custom-preference name="android-manifest/application/@android:theme" value="@android:style/Theme.DeviceDefault.NoActionBar" />
         <custom-preference name="android-manifest/application/@android:hardwareAccelerated" value="true" />

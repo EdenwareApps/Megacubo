@@ -277,7 +277,7 @@ if(typeof(Keyboard) != 'undefined'){
 			if(keyboardHeight){		
 				const h = window.innerHeight - keyboardHeight
 				m.style.height = h + 'px'
-				if(mi.offsetHeight > h){
+				if(mi && mi.offsetHeight > h){
 					const mq = mi.querySelector('span.modal-template-question')
 					if(mq){
 						mq.style.display = 'none'

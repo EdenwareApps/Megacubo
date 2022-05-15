@@ -178,17 +178,26 @@ function animateBackground(val){
 	}
 }
 
-function loadJS(url, cb){
+function loadJS(url, cb, retries=3){
     var script = document.createElement("script")
 	script.type = "text/javascript";
 	if(typeof(cb) == 'function'){
 		script.onload = function (){
-			//console.warn('LOADED', url);
+			console.warn('LOADED', url);
 			setTimeout(cb, 1)
 		}
 		script.onerror = function (){
-			//console.warn('ERROR', url);
-			setTimeout(cb, 1)
+			if(retries){
+				retries--
+				console.warn('RETRY', url);
+				setTimeout(function (){
+					loadJS(url, cb, retries)
+				}, 1)
+
+			} else {
+				console.warn('ERROR', url);
+				setTimeout(cb, 1)
+			}
 		}
 	}
 	script.src = url;
@@ -196,6 +205,7 @@ function loadJS(url, cb){
 }
 
 function loadResizeObserverPolyfill(cb){
+	console.log('loadResizeObserverPolyfill', typeof(ResizeObserver))
 	if(typeof(ResizeObserver) == 'undefined'){
 		loadJS('./node_modules/resize-observer/dist/resize-observer.js', cb)
 	} else {

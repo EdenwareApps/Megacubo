@@ -729,6 +729,9 @@ class MiniPlayerBase extends WinMan {
         this.pipSupported = null
         this.inPIP = false
 	}
+	supports(){
+		return true
+	}
 	set(inPIP){
 		if(inPIP != this.inPIP){
 			if(!inPIP || this.enabled){
@@ -762,7 +765,7 @@ class MiniPlayerBase extends WinMan {
 	}
 	enterIfPlaying(){
 		let streamer = this.getStreamer()
-		if(this.enabled && streamer && (streamer.active || streamer.isTuning()) && !this.inPIP) {
+		if(this.enabled && this.supports() && streamer && (streamer.active || streamer.isTuning())) {
 			this.enter().catch(err => console.error('PIP FAILURE', err))
 			return true
 		}
@@ -782,6 +785,7 @@ class CordovaMiniplayer extends MiniPlayerBase {
 			}
 		})
 		this.on('leave', () => {
+			this.enteredPipTimeMs = false
 			console.warn('leaved miniplayer')
 			let app = this.getAppWindow()
 			if(app){
@@ -799,6 +803,31 @@ class CordovaMiniplayer extends MiniPlayerBase {
 				}, 2000)
 			}
 		})
+	}
+	getAndroidVersion() {
+		let ua = navigator.userAgent.toLowerCase()
+		let match = ua.match(/android\s([0-9\.]*)/i)
+		return match ? parseInt(match[1], 10) : undefined
+	}
+	supports(){
+		return this.getAndroidVersion() >= 8
+	}
+	observePIPLeave(){
+		if(this.observePIPLeaveTimer){
+			clearTimeout(this.observePIPLeaveTimer)
+		}
+		let ms = 1000, initialDelayMs = 5000
+		if(this.enteredPipTimeMs){
+			const now = (new Date()).getTime()
+			ms = Math.max(ms, (this.enteredPipTimeMs + initialDelayMs) - now)
+		}
+		this.observePIPLeaveTimer = setTimeout(() => {
+			if(!this.seemsPIP()){
+				console.log('exiting PIP Mode after observing')
+				this.leave()
+			}
+		}, ms)
+		console.log('observing PIP leave', ms, this.inPIP)
 	}
 	setup(){
 		if(this.pip){
@@ -821,7 +850,7 @@ class CordovaMiniplayer extends MiniPlayerBase {
 						} else {
 							if(this.enterIfPlaying()) {
 								console.warn('app-pause', 'entered miniplayer')
-								keepInBackground = true
+								keepInBackground = false // enter() already calls cordova.plugins.backgroundMode.enable()
 							} else if(!keepPlaying) { // no reason to keep playing
 								streamer.stop()
 							}
@@ -838,14 +867,18 @@ class CordovaMiniplayer extends MiniPlayerBase {
 				this.appPaused = false
 				cordova.plugins.backgroundMode.disable()
 				if(this.inPIP){
-					this.set(false)
+					this.observePIPLeave()
 				}
 			});
 			(new ResizeObserver(() => {
 				let seemsPIP = this.seemsPIP()
 				if(seemsPIP != this.inPIP){
 					console.warn('miniplayer change on resize')
-					this.set(seemsPIP)
+					if(seemsPIP){
+						this.set(seemsPIP)
+					} else {
+						this.observePIPLeave()
+					}
 				}
 			})).observe(document.body)
 		}
@@ -860,6 +893,7 @@ class CordovaMiniplayer extends MiniPlayerBase {
                         this.pip.isPipModeSupported(success => {
 							this.pipSupported = success
                             if(success){
+								cordova.plugins.backgroundMode.enable()
                                 resolve(true)
                             } else {
                                 reject('pip mode not supported')
@@ -892,12 +926,17 @@ class CordovaMiniplayer extends MiniPlayerBase {
 			if(!this.enabled){
 				return reject('miniplayer disabled')
 			}
+			if(!this.supports()){
+				return reject('not supported')
+			}
             this.prepare().then(() => {
 				console.warn('ABOUT TO PIP', this.inPIP)
 				let m = this.getDimensions()
                 this.pip.enter(m.width, m.height, success => {
                     if(success){
+						this.enteredPipTimeMs = (new Date()).getTime()
                         console.log('enter: '+ String(success))
+                        this.set(true)
                         resolve(success)
                     } else {
 						console.error('pip.enter() failed to enter pip mode')	
