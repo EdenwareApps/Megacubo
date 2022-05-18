@@ -49,6 +49,7 @@
    "BUY_ACTIVATION_KEY": "Kaufen Sie dauerhafte Aktivierungsschlüssel",
    "CANCEL": "Absagen",
    "CASTING_TO": "Casting to {0}",
+   "CAST_ERR_BAD_FMT": "Das Gerät {0} unterstützt das Format dieses Videos nicht, versuchen Sie es mit einem anderen",
    "CAST_ERR_NO_DEST": "Kein Gerät gefunden.",
    "CAST_ERR_NO_LIVE": "Das Gerät {0} unterstützt keine Live-Sendungen, nur Videos",
    "CAST_ERR_UNEXPECTED": "Unerwarteter Fehler beim Gießen.",

@@ -49,6 +49,7 @@
    "BUY_ACTIVATION_KEY": "Acheter une clé d'activation permanente",
    "CANCEL": "Annuler",
    "CASTING_TO": "Casting à {0}",
+   "CAST_ERR_BAD_FMT": "L'appareil {0} ne prend pas en charge le format de cette vidéo, essayez un autre",
    "CAST_ERR_NO_DEST": "Aucun appareil trouvé.",
    "CAST_ERR_NO_LIVE": "L'appareil {0} ne prend pas en charge les émissions en direct, seules des vidéos",
    "CAST_ERR_UNEXPECTED": "Erreur inattendue lors de la coulée.",

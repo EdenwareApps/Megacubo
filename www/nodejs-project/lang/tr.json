@@ -49,6 +49,7 @@
    "BUY_ACTIVATION_KEY": "Kalıcı Aktivasyon Anahtarı Satın Alın",
    "CANCEL": "İptal etmek",
    "CASTING_TO": "{0} için döküm",
+   "CAST_ERR_BAD_FMT": "{0} cihazı bu videonun biçimini desteklemiyor, başka bir tane deneyin",
    "CAST_ERR_NO_DEST": "Aygıt bulunamadı.",
    "CAST_ERR_NO_LIVE": "{0} cihaz canlı yayınları desteklemiyor, yalnızca videolar",
    "CAST_ERR_UNEXPECTED": "Döküm sırasında beklenmeyen hata.",

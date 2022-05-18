@@ -49,6 +49,7 @@
    "BUY_ACTIVATION_KEY": "Acquista la chiave di attivazione permanente",
    "CANCEL": "Annulla",
    "CASTING_TO": "Trasmetti su {0}",
+   "CAST_ERR_BAD_FMT": "Il dispositivo {0} non supporta il formato di questo video, prova un altro",
    "CAST_ERR_NO_DEST": "Nessun dispositivo trovato.",
    "CAST_ERR_NO_LIVE": "Il dispositivo {0} non supporta le trasmissioni live, solo video",
    "CAST_ERR_UNEXPECTED": "Errore imprevisto durante la trasmissione.",

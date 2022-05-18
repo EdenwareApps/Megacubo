@@ -49,6 +49,7 @@
    "BUY_ACTIVATION_KEY": "Blini çelësin e përhershëm të aktivizimit",
    "CANCEL": "Anuloj",
    "CASTING_TO": "Duke hedhur në {0}",
+   "CAST_ERR_BAD_FMT": "Pajisja {0} nuk e mbështet formatin e kësaj video, provoni një tjetër",
    "CAST_ERR_NO_DEST": "Nuk u gjet asnjë pajisje.",
    "CAST_ERR_NO_LIVE": "Pajisja {0} nuk mbështet transmetimet e drejtpërdrejta, vetëm videot",
    "CAST_ERR_UNEXPECTED": "Gabim i papritur gjatë hedhjes.",

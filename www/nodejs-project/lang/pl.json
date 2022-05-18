@@ -49,6 +49,7 @@
    "BUY_ACTIVATION_KEY": "Kup stały klucz aktywacyjny",
    "CANCEL": "Anulować",
    "CASTING_TO": "Rzucanie do {0}",
+   "CAST_ERR_BAD_FMT": "Urządzenie {0} nie obsługuje formatu tego filmu, wypróbuj inny",
    "CAST_ERR_NO_DEST": "Nie znaleziono urządzenia.",
    "CAST_ERR_NO_LIVE": "Urządzenie {0} nie obsługuje transmisji na żywo, tylko filmów wideo",
    "CAST_ERR_UNEXPECTED": "Niespodziewany błąd podczas rzucania.",
