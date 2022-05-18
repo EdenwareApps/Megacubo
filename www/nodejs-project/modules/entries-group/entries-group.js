@@ -9,6 +9,11 @@ class EntriesGroup extends Events {
         this.allowDupes = false
         this.data = []
         this.isReady = false
+        this.isUIReady = false
+        global.ui.once('init', () => {
+            this.isUIReady = true
+            this.emit('ui-ready')
+        })
 		this.load()
 	}
 	ready(fn){
@@ -16,6 +21,13 @@ class EntriesGroup extends Events {
 			fn()
 		} else {
 			this.once('ready', fn)
+		}
+	}
+	uiReady(fn){
+		if(this.isUIReady){
+			fn()
+		} else {
+			this.once('ui-ready', fn)
 		}
 	}
 	load(){

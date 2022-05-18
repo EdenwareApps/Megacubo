@@ -223,8 +223,11 @@ class ChannelsEPG extends ChannelsData {
         this.clockIcon = '<i class="fas fa-clock"></i> '
         const aboutInsertEPGTitle = data => {
             return new Promise((resolve, reject) => {
-                if(streamer.active.mediaType != 'live'){
+                if(global.streamer.active.mediaType != 'live'){
                     return reject('local file')
+                }
+                if(!this.isChannel(global.streamer.active.data.originalName || global.streamer.active.data.name)){
+                    return reject('not a channel')
                 }
                 this.epgChannelLiveNowAndNext(global.streamer.active.data).then(ret => {
                     let ks = Object.keys(ret)
@@ -239,30 +242,32 @@ class ChannelsEPG extends ChannelsData {
                 }).catch(reject)
             })
         }
-        global.streamer.aboutRegisterEntry('epg', aboutInsertEPGTitle, null, 1)
-        global.streamer.aboutRegisterEntry('epg', aboutInsertEPGTitle, null, 1, true)
-        global.streamer.aboutRegisterEntry('epg-more', data => {
-            if(streamer.active.mediaType == 'live'){
-                return {template: 'option', text: global.lang.EPG, id: 'epg-more', fa: this.epgIcon}
-            }
-        }, data => {
-            const name = data.originalName || data.name
-            const category = global.channels.getChannelCategory(name)
-            if(category){
-                this.epgChannelLiveNow(data).then(() => {
-                    const _path = [global.lang.LIVE, category, name, global.lang.EPG].join('/')
-                    global.channels.watchNowAuto = ''
-                    global.explorer.open(_path).catch(err => {
-                        console.error(err)
+        global.ui.once('streamer-ready', () => { 
+            global.streamer.aboutRegisterEntry('epg', aboutInsertEPGTitle, null, 1)
+            global.streamer.aboutRegisterEntry('epg', aboutInsertEPGTitle, null, 1, true)
+            global.streamer.aboutRegisterEntry('epg-more', data => {
+                if(streamer.active.mediaType == 'live'){
+                    return {template: 'option', text: global.lang.EPG, id: 'epg-more', fa: this.epgIcon}
+                }
+            }, data => {
+                const name = data.originalName || data.name
+                const category = global.channels.getChannelCategory(name)
+                if(category){
+                    this.epgChannelLiveNow(data).then(() => {
+                        const _path = [global.lang.LIVE, category, name, global.lang.EPG].join('/')
+                        global.channels.watchNowAuto = ''
+                        global.explorer.open(_path).catch(err => {
+                            console.error(err)
+                        })
+                        global.ui.emit('menu-playing')
+                    }).catch(() => {
+                        global.displayErr(global.lang.CHANNEL_EPG_NOT_FOUND)
                     })
-                    global.ui.emit('menu-playing')
-                }).catch(() => {
+                } else {
                     global.displayErr(global.lang.CHANNEL_EPG_NOT_FOUND)
-                })
-            } else {
-                global.displayErr(global.lang.CHANNEL_EPG_NOT_FOUND)
-            }
-        }, null, true)
+                }
+            }, null, true)
+        })
     }
     clock(start, data, includeEnd){
         let t = this.clockIcon

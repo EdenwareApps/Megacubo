@@ -6,31 +6,35 @@ class History extends EntriesGroup {
         super('history')
         this.limit = 36
         this.resumed = false
-        global.streamer.on('commit', () => {
-            if(!streamer.active.info.isLocalFile){
-                let time = global.time()
+        this.uiReady(() => {
+            global.streamer.on('commit', () => {
+                if(!streamer.active.info.isLocalFile){
+                    let time = global.time()
+                    if(this.timer){
+                        clearTimeout(this.timer)
+                    }
+                    this.timer = setTimeout(() => {
+                        if(global.streamer.active){
+                            let entry = global.streamer.active.data
+                            entry.historyTime = time
+                            this.remove(entry)
+                            this.add(entry)
+                        }
+                    }, 90000)
+                }
+            })
+            global.streamer.on('uncommit', () => {
                 if(this.timer){
                     clearTimeout(this.timer)
                 }
-                this.timer = setTimeout(() => {
-                    if(global.streamer.active){
-                        let entry = global.streamer.active.data
-                        entry.historyTime = time
-                        this.remove(entry)
-                        this.add(entry)
-                    }
-                }, 90000)
-            }
-        })
-        global.streamer.on('uncommit', () => {
-            if(this.timer){
-                clearTimeout(this.timer)
-            }
+            })
         })
         this.on('load', () => {
-            if(explorer.path == ''){
-                explorer.updateHomeFilters()
-            }
+            this.uiReady(() => {
+                if(explorer.path == ''){
+                    explorer.updateHomeFilters()
+                }
+            })
         })
     }
     resume(){

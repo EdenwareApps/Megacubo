@@ -1,7 +1,7 @@
 {
   "name": "tv.megacubo.app",
   "displayName": "Megacubo",
-  "version": "16.5.3",
+  "version": "16.5.4",
   "description": "A intuitive and multi-language IPTV player.",
   "main": "index.js",
   "scripts": {
@@ -56,8 +56,8 @@
       "cordova-custom-config": {},
       "cordova-plugin-background-mode": {},
       "tv.megacubo.pip": {},
-      "tv.megacubo.player": {},
-      "tv.megacubo.ffmpeg": {}
+      "tv.megacubo.ffmpeg": {},
+      "tv.megacubo.player": {}
     },
     "platforms": [
       "android"

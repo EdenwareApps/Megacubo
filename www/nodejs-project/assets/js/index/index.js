@@ -9,7 +9,7 @@ function log(msg, id){
 		msg = String(msg)
 	}
 	document.getElementById('info').innerHTML += '<div '+ (id?('id="'+ id +'"'):'') +'>'+ msg +'</div>'
-	console.log('[' + id + '] ' + msg)
+	console.log('[' + id + '] ' + msg +' '+ traceback())
 }
 
 function isES6(){
@@ -274,7 +274,6 @@ if(window.cordova){
 			loadScripts()			
 			plugins.insomnia.keepAwake()
 			document.addEventListener('pause', function (){				
-				cordova.plugins.backgroundMode.enable() // enable once at startup to prevent service not registered crash
 				cordova.plugins.backgroundMode.isScreenOff(function (ret){
 					player.emit('app-pause', ret)
 				})

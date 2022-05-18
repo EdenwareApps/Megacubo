@@ -649,7 +649,7 @@ class WinMan extends EventEmitter {
 		let w = this.getAppWindow()
 		console.log('exitUI()')
 		if(typeof(cordova) != 'undefined'){
-			cordova.plugins.backgroundMode.disable()
+			this.setBackgroundMode(false, true)
 		}
 		try {
 			w.streamer.stop()
@@ -693,19 +693,19 @@ class WinMan extends EventEmitter {
 	exit(force){
 		console.log('exit()', traceback())
 		let w = this.getAppWindow()
-		if(w.streamer.active){
+		if(w.streamer && w.streamer.active){
 			w.streamer.stop()
 		}
 		if(!force && this.backgroundModeLocks.length){
 			if(typeof(cordova) != 'undefined'){
-				cordova.plugins.backgroundMode.enable()
+				this.setBackgroundMode(true, true)
 				cordova.plugins.backgroundMode.moveToBackground()
 			} else {
 				top.Manager.goToTray()
 			}
 		} else {
 			if(typeof(cordova) != 'undefined'){
-				cordova.plugins.backgroundMode.disable()
+				this.setBackgroundMode(false, true)
 			}
 			this.exitUI()
 			if(w){
@@ -816,7 +816,7 @@ class CordovaMiniplayer extends MiniPlayerBase {
 		if(this.observePIPLeaveTimer){
 			clearTimeout(this.observePIPLeaveTimer)
 		}
-		let ms = 1000, initialDelayMs = 5000
+		let ms = 2000, initialDelayMs = 7000
 		if(this.enteredPipTimeMs){
 			const now = (new Date()).getTime()
 			ms = Math.max(ms, (this.enteredPipTimeMs + initialDelayMs) - now)
@@ -832,6 +832,7 @@ class CordovaMiniplayer extends MiniPlayerBase {
 	setup(){
 		if(this.pip){
 			player.on('app-pause', screenOff => {
+				if(this.inPIP && !screenOff) return
 				this.appPaused = true
 				let streamer = this.getStreamer(), keepInBackground = this.backgroundModeLocks.length
 				let keepPlaying = this.backgroundModeLocks.filter(l => l != 'schedules').length
@@ -850,7 +851,7 @@ class CordovaMiniplayer extends MiniPlayerBase {
 						} else {
 							if(this.enterIfPlaying()) {
 								console.warn('app-pause', 'entered miniplayer')
-								keepInBackground = false // enter() already calls cordova.plugins.backgroundMode.enable()
+								keepInBackground = false // enter() already calls cordova.plugins.backgroundMode.enable() on prepare()
 							} else if(!keepPlaying) { // no reason to keep playing
 								streamer.stop()
 							}
@@ -858,14 +859,14 @@ class CordovaMiniplayer extends MiniPlayerBase {
 					}
 				}
 				if(keepInBackground){
-					cordova.plugins.backgroundMode.enable()
+					this.setBackgroundMode(true)
 					//cordova.plugins.backgroundMode.moveToBackground()
 				}
 			})
 			player.on('app-resume', () => {
 				console.warn('app-resume', this.inPIP)
 				this.appPaused = false
-				cordova.plugins.backgroundMode.disable()
+				this.setBackgroundMode(false)
 				if(this.inPIP){
 					this.observePIPLeave()
 				}
@@ -883,17 +884,40 @@ class CordovaMiniplayer extends MiniPlayerBase {
 			})).observe(document.body)
 		}
 	}
+	setBackgroundMode(state, force){
+		const minInterval = 5, now = (new Date()).getTime() / 1000
+		if(this.setBackgroundModeTimer){
+			clearTimeout(this.setBackgroundModeTimer)
+		}
+		if(force || !this.lastSetBackgroundMode || (now - this.lastSetBackgroundMode) >= minInterval) {
+			if(state !== this.currentBackgroundModeState) {
+				this.lastSetBackgroundMode = now
+				this.currentBackgroundModeState = state
+				if(state) {
+					cordova.plugins.backgroundMode.enable()
+				} else {
+					cordova.plugins.backgroundMode.disable()
+				}
+			}
+		} else {
+			const delay = ((this.lastSetBackgroundMode + minInterval) - now) * 1000
+			this.setBackgroundModeTimer = setTimeout(() => {
+				this.setBackgroundMode(state, force)
+			}, delay)
+		}
+	}
     prepare(){
         return new Promise((resolve, reject) => {
             if(this.pip){
-                if(typeof(this.pipSupported) == 'boolean'){
+                if(typeof(this.pipSupported) == 'boolean'){					
+					this.setBackgroundMode(true)
                     resolve(true)
                 } else {
                     try {
                         this.pip.isPipModeSupported(success => {
 							this.pipSupported = success
                             if(success){
-								cordova.plugins.backgroundMode.enable()
+								this.setBackgroundMode(true)
                                 resolve(true)
                             } else {
                                 reject('pip mode not supported')

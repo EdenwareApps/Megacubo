@@ -9,23 +9,26 @@ class Bookmarks extends EntriesGroup {
             live: true,
             icon: ''
         }
-        global.ui.on('toggle-fav', () => {
-            if(this.current()){
-                this.toggle()
-            } else {
-                global.explorer.open(global.lang.BOOKMARKS)
-            }
+        this.uiReady(() => {
+            global.ui.on('toggle-fav', () => {
+                if(this.current()){
+                    this.toggle()
+                } else {
+                    global.explorer.open(global.lang.BOOKMARKS)
+                }
+            })
+            console.error('BOOSTREAMER '+ typeof(global.streamer) +' '+ typeof(global.streamer.aboutRegisterEntry) +' '+ typeof(global.streamer.play))
+            global.streamer.aboutRegisterEntry('addfav', data => {
+                if(!data.isLocal && !this.has(this.simplify(data))){
+                    return {template: 'option', fa: 'fas fa-star', text: global.lang.ADD_TO.format(global.lang.BOOKMARKS), id: 'addfav'}
+                }
+            }, this.toggle.bind(this), null, true)
+            global.streamer.aboutRegisterEntry('remfav', data => {
+                if(!data.isLocal && this.has(this.simplify(data))){
+                    return {template: 'option', fa: 'fas fa-star-half', text: global.lang.REMOVE_FROM.format(global.lang.BOOKMARKS), id: 'remfav'}
+                }
+            }, this.toggle.bind(this), null, true)
         })
-        global.streamer.aboutRegisterEntry('addfav', data => {
-            if(!data.isLocal && !this.has(this.simplify(data))){
-                return {template: 'option', fa: 'fas fa-star', text: global.lang.ADD_TO.format(global.lang.BOOKMARKS), id: 'addfav'}
-            }
-        }, this.toggle.bind(this), null, true)
-        global.streamer.aboutRegisterEntry('remfav', data => {
-            if(!data.isLocal && this.has(this.simplify(data))){
-                return {template: 'option', fa: 'fas fa-star-half', text: global.lang.REMOVE_FROM.format(global.lang.BOOKMARKS), id: 'remfav'}
-            }
-        }, this.toggle.bind(this), null, true)
     }
     streamFilter(e){
         return e.url && (!e.type || e.type == 'stream')

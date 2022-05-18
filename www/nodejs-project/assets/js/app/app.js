@@ -624,9 +624,9 @@ function initApp(){
             })
 
             if(parent.cordova){
+                parent.winman.setBackgroundMode(true) // enable once at startup to prevent service not registered crash
                 parent.cordova.plugins.backgroundMode.disableBatteryOptimizations()
-				parent.cordova.plugins.backgroundMode.enable() // enable once at startup to prevent service not registered crash
-                setTimeout(() => parent.cordova.plugins.backgroundMode.disable(), 3000)
+				setTimeout(() => parent.winman.setBackgroundMode(false), 5000)
                 parent.cordova.plugins.backgroundMode.setDefaults({
                     title: 'Megacubo',
                     text: lang.RUNNING_IN_BACKGROUND || '...',                

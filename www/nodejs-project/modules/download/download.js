@@ -186,7 +186,6 @@ class Download extends Events {
 			console.error('Connect before destroyStream', traceback())
 			this.destroyStream()
 		}
-		console.warn('CONNECT', this.isResponseCompressed, this.decompressEnded, this.decompressor)
 		if(this.decompressor && this.opts.acceptRanges){
 			// resume with byte ranging should not use gzip
 			// if will not use ranging but redownload, why not keep using compression?
@@ -848,7 +847,6 @@ class Download extends Events {
 				this.checkStatusCode()
 				this.emit('response', this.statusCode, {})
 			}
-			console.warn('END', this.isResponseCompressed, this.decompressEnded, this.decompressor)
 			if(!this.isResponseCompressed || this.decompressEnded || !this.decompressor){
 				this.emit('end', this.prepareOutputData(this.buffer))
 				this.destroy()
