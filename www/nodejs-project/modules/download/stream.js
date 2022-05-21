@@ -1,12 +1,10 @@
 const Events = require('events'), http = require('http'), https = require('https'), url = require('url')
-const {CookieJar} = require('tough-cookie'), {createCookieAgent} = require('http-cookie-agent'), jar = new CookieJar()
+const {CookieJar} = require('tough-cookie')
 const KeepAliveAgent = require('agentkeepalive'), net = require('net')
 const lookup = require('./lookup')
 
-const CkHttpAgent = createCookieAgent(http.Agent)
-const CkHttpsAgent = createCookieAgent(https.Agent)
-const CkHttpKAAgent = createCookieAgent(KeepAliveAgent)
-const CkHttpsKAAgent = createCookieAgent(KeepAliveAgent.HttpsAgent)
+const httpJar = new CookieJar()
+const httpsJar = new CookieJar()
 
 const kaAgentOpts = {
     rejectUnauthorized: false,
@@ -14,15 +12,13 @@ const kaAgentOpts = {
 	freeSocketTimeout: 4000, // The default server-side timeout is 5000 milliseconds, to avoid ECONNRESET exceptions, we set the default value to 4000 milliseconds.
 	maxSockets: 4,
 	maxFreeSockets: 2,
-	socketActiveTTL: 30,
-    cookies: {jar},
-    jar
+	socketActiveTTL: 30
 }
 
-const HttpAgent = new CkHttpAgent({cookies: {jar}, jar})
-const HttpsAgent = new CkHttpsAgent({cookies: {jar}, jar, rejectUnauthorized: false})
-const KHttpAgent = new CkHttpKAAgent(kaAgentOpts)
-const KHttpsAgent = new CkHttpsKAAgent.HttpsAgent(kaAgentOpts)
+const HttpAgent = new http.Agent()
+const HttpsAgent = new https.Agent({rejectUnauthorized: false})
+const KHttpAgent = new KeepAliveAgent(kaAgentOpts)
+const KHttpsAgent = new KeepAliveAgent.HttpsAgent(kaAgentOpts)
 
 class DownloadStream extends Events {
 	constructor(opts){
@@ -36,23 +32,30 @@ class DownloadStream extends Events {
             this.start().catch(err => this.emitError(err))
         })
 	}
-    options(ip, family){
+    async options(ip, family){
         const opts = {
-            path: encodeURI(this.parsed.path),
+            path: this.parsed.path,
             port: this.parsed.port || (this.parsed.protocol == 'http:' ? 80 : 443)
+        }
+        if(opts.path.indexOf(' ') != -1){ // using encodeURI() directly was causing double encoding
+            opts.path = encodeURI(opts.path)
         }
         opts.realHost = this.parsed.hostname
         opts.host = ip
         opts.ip = ip
         opts.family = family
 		opts.headers = this.opts.headers || {host: this.parsed.hostname, connection: 'close'}
+        const cookie = await this.getCookies()
+        if(cookie){
+            opts.headers.cookie = cookie
+        }
 		opts.timeout = this.timeout
         opts.protocol = this.parsed.protocol
         opts.decompress = false
         if(this.parsed.protocol == 'https:'){
             opts.rejectUnauthorized = false
         }
-        if(opts.headers && opts.headers.connection == 'keep-alive'){
+        if(opts.headers.connection == 'keep-alive'){
             opts.agent = this.parsed.protocol == 'http:' ? KHttpAgent : KHttpsAgent
         } else {
             opts.agent = this.parsed.protocol == 'http:' ? HttpAgent : HttpsAgent
@@ -84,9 +87,10 @@ class DownloadStream extends Events {
     async start(){
         let fine
         this.parsed = url.parse(this.opts.url, false)
+        this.jar = this.parsed.protocol == 'http:' ? httpJar : httpsJar
         await this.resolve(this.parsed.hostname)
         for(let ip of this.ips){
-            const options = this.options(ip.address, ip.family)
+            const options = await this.options(ip.address, ip.family)
             fine = await this.get(options)
             if(fine) break
         }
@@ -145,6 +149,14 @@ class DownloadStream extends Events {
                 }
                 fine = true
                 response = res
+                if(response.headers['set-cookie']){
+                    if (response.headers['set-cookie'] instanceof Array) {
+                        response.headers['set-cookie'].map(c => this.setCookies(c).catch(console.error))
+                    } else {
+                        this.setCookies(response.headers['set-cookie']).catch(console.error)
+                    }
+                    delete response.headers['set-cookie']
+                }
                 this.emit('response', response)
                 res.on('data', chunk => {
                     this.emit('data', chunk)
@@ -163,6 +175,26 @@ class DownloadStream extends Events {
             startTimer()
         })
 	}
+    async getCookies(){
+        return new Promise((resolve, reject) => {
+            (this.parsed.protocol == 'http:' ? httpJar : httpsJar).getCookies(this.opts.url, (err, cookies) => {
+                if(err){
+                    resolve('')
+                }
+                resolve(cookies.join('; '))
+            })
+        })
+    }
+    async setCookies(header){
+        return new Promise((resolve, reject) => {
+            (this.parsed.protocol == 'http:' ? httpJar : httpsJar).setCookie(header, this.opts.url, err => {
+                if(err){
+                    return reject(err)
+                }
+                resolve(true)
+            })
+        })
+    }
 	emitError(error){
 		if(this.listenerCount('error')){
 			this.emit('error', error)

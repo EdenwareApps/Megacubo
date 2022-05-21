@@ -329,8 +329,13 @@ class StreamerBase extends StreamerTools {
 									if(err) intent.fail('unsupported format')
 								})
 							} else {
-								intent.fail('unsupported format')
+								return intent.fail('unsupported format')
 							}
+						}
+					}
+					if(codecData.audio && !codecData.video) { // is an audio stream
+						if(global.tuning && global.tuning.opts.name == intent.data.originalName && !global.lists.msi.isRadio(intent.data.originalName)){ // not expecing an audio stream
+							return intent.fail('unsupported format') // fail this audio only stream for tuning resuming
 						}
 					}
 				})

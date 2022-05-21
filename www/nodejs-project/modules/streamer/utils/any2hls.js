@@ -429,9 +429,7 @@ class Any2HLS extends Events {
                     if(this.opts.videoCodec == 'h264'){
                         this.opts.videoCodec = 'libx264'
                     }
-                    if(this.opts.videoCodec){
-                        this.decoder.videoCodec(this.opts.videoCodec)
-                    }
+                    this.decoder.videoCodec(this.opts.videoCodec)
                 }
                 if(this.opts.videoCodec == 'libx264') {
                     /* HTML5 compat start */

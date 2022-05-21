@@ -117,7 +117,7 @@ class MediaStreamInfo {
 		return ['wma', 'mp3', 'mka', 'm4a', 'flac', 'aac', 'ogg', 'pls', 'nsv'].indexOf(ext) != -1          
 	}
 	isRadio(name){
-		if(name.match(this.radioRegexA) || name.match(this.radioRegexB)){
+		if(name.match(this.radioRegexA) || name.match(this.radioRegexB)) {
 			return true
 		} else {
 			return false
