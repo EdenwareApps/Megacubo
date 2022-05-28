@@ -241,7 +241,7 @@ class ExplorerSelectionMemory extends ExplorerBase {
 			}
 		})
         this.on('pos-modal-end', this.updateSelection.bind(this))
-        this.app.on('explorer-reset-selection', () => {
+		this.app.on('explorer-reset-selection', () => {
             this.selectionMemory = {}
         })
 	}
@@ -948,6 +948,8 @@ class ExplorerFx extends ExplorerPlayer {
 	constructor(jQuery, container, app){
 		super(jQuery, container, app)
 		this.fxContainer = this.container.find('wrap')
+		//this.fxContainer.parent().css('perspective', '10vmin')
+		//this.fxContainer.css('transform-origin', 'center bottom')
 		this.on('pre-render', (newPath, oldPath) => {
 			if(typeof(oldPath) != 'string'){
 				oldPath = -1
@@ -962,7 +964,9 @@ class ExplorerFx extends ExplorerPlayer {
 		})
 	}
 	fxNavIn(){
+		let deg = '-'+ (config['fx-nav-intensity'] * 0.45) + 'deg'
 		this.fxContainer.css('transition', 'none')
+		//this.fxContainer.css('transform', 'rotateX('+ deg +') scale(var(--explorer-fx-nav-deflate))')
 		this.fxContainer.css('transform', 'scale(var(--explorer-fx-nav-deflate))')
 		setTimeout(() => {
 			this.fxContainer.css('transition', 'transform var(--explorer-fx-nav-duration) ease-in-out 0s')
@@ -970,7 +974,9 @@ class ExplorerFx extends ExplorerPlayer {
 		}, 0)
 	}
 	fxNavOut(){
+		let deg = (config['fx-nav-intensity'] * 0.3) + 'deg'
 		this.fxContainer.css('transition', 'none')
+		//this.fxContainer.css('transform', 'rotateX('+ deg +') scale(var(--explorer-fx-nav-inflate))')
 		this.fxContainer.css('transform', 'scale(var(--explorer-fx-nav-inflate))')
 		setTimeout(() => {
 			this.fxContainer.css('transition', 'transform var(--explorer-fx-nav-duration) ease-in-out 0s')

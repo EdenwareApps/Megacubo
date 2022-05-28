@@ -180,14 +180,19 @@ class StreamerAdapterBase extends Events {
 		}
 		return this.crypto.createHash('md5').update(txt).digest('hex')
 	}
-	saveBitrate(bitrate){
+	saveBitrate(bitrate, force){
 		let prevBitrate = this.bitrate
-		this.bitrates.push(bitrate)
-		if(this.bitrates.length >= 3){
-			this.bitrate = this.findTwoClosestValues(this.bitrates).reduce((a, b) => a + b, 0) / 2
-			this.bitrates = this.bitrates.slice(-3)
+		if(force){
+			this.bitrates = [bitrate]
+			this.bitrate = bitrate
 		} else {
-			this.bitrate = this.bitrates.reduce((a, b) => a + b, 0) / this.bitrates.length
+			this.bitrates.push(bitrate)
+			if(this.bitrates.length >= 3){
+				this.bitrate = this.findTwoClosestValues(this.bitrates).reduce((a, b) => a + b, 0) / 2
+				this.bitrates = this.bitrates.slice(-3)
+			} else {
+				this.bitrate = this.bitrates.reduce((a, b) => a + b, 0) / this.bitrates.length
+			}
 		}
 		if(this.bitrate != prevBitrate){
 			this.emit('bitrate', this.bitrate, this.currentSpeed)

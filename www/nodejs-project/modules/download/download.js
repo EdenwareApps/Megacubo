@@ -1,5 +1,5 @@
 const Events = require('events'), parseRange = require('range-parser')
-const zlib = require('zlib'), WriteQueueFile = require(global.APPDIR +'/modules/write-queue/write-queue-file')
+const zlib = require('zlib'), WriteQueueFile = require('../write-queue/write-queue-file')
 const StringDecoder = require('string_decoder').StringDecoder
 const DownloadStream = require('./stream')
 
@@ -68,6 +68,7 @@ class Download extends Events {
 		this.currentRequestError = ''
 		this.currentResponse = null
 		this.authURLPingAfter = 0
+		this.on('error', () => {}) // avoid uncaught exception, make error listening not mandatory
 		if(typeof(this.opts.headers['range']) != 'undefined'){
 			this.checkRequestingRange(this.opts.headers['range'])
 		}
@@ -298,13 +299,7 @@ class Download extends Events {
 	}
 	errorCallback(err){
 		if(!this.destroyed && !this.ended){
-			if(err.response){
-				if(this.checkRedirect(err.response)){
-					return
-				}
-				this.parseResponse(err.response)
-			}
-			if(this.opts.debug){
+			if(1||this.opts.debug){
 				console.error('>> Download error', err, this.opts.url, global.traceback())
 			}
 			this.errors.push(String(err) || 'unknown request error')
@@ -477,9 +472,6 @@ class Download extends Events {
 					if(this.ended || this.destroyed){
 						return this.destroyStream()
 					}
-					if(this.retryCount){
-						this.retryCount = 0
-					}
 					if(!Buffer.isBuffer(chunk)){
 						chunk = Buffer.from(chunk)
 					}
@@ -622,7 +614,7 @@ class Download extends Events {
 				console.log('>> Download content length adjusted to', this.contentLength)
 			}
 		}
-		return isComplete // already received whole content requested
+		return isValidStatusCode && isComplete // already received whole content requested
 	}
 	validateResponse(response){
 		if(response.statusCode < 200 || response.statusCode >= 400){ // bad response, not a redirect

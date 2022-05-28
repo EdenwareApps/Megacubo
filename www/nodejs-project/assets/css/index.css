@@ -734,14 +734,15 @@ div#arrow-down-hint {
     width: 100vw;
     height: 0;
     opacity: var(--opacity-level-2);
-    pointer-events: none;
 }
 div#arrow-down-hint i {
     display: inline;
     color: var(--font-color);
     font-size: var(--padding);
-    top: calc(-1 * var(--padding));
-    position: relative;
+    top: calc(-1.5 * var(--padding));
+    position: relative;    
+    padding: var(--padding);
+    cursor: pointer;
 }
 controls button.info i.about-icon-dot {
     background: white;
@@ -1142,21 +1143,20 @@ span.modal-template-text input:focus, span.modal-template-textarea textarea:focu
     overflow: hidden;
     max-height: var(--modal-height);
     padding: var(--padding);
-    background: rgba(255, 255, 255, 0.9);
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.72) 0%, rgba(255, 255, 255, 0.95) 5%, rgba(255, 255, 255, 0.9) 20%, rgba(255, 255, 255, 0.8) 100%);
     border-radius: var(--radius);
     box-sizing: border-box;    
     flex-direction: column;
     display: flex;
 }
-.modal-template-options {    
-    box-shadow: inset 0 0 0.1vmin 0.1vmin rgba(0, 0, 0, 0.1);
-    background: rgba(0, 0, 0, 0.075);
+.modal-template-options {
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.7) 100%);
     box-sizing: border-box;
     overflow: auto;
     max-height: inherit;
     display: flex;
     flex-direction: column;
-    flex-shrink: 0;
+    flex-shrink: 1;
     border-radius: var(--radius);
 }
 .fa-blink-alpha {

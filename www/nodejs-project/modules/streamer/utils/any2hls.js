@@ -536,12 +536,16 @@ class Any2HLS extends Events {
                             transcode = true
                             this.opts.videoCodec = 'libx264'
                         }
-                        if(this.codecData.audio && this.codecData.audio.match(new RegExp('(ac3)')) && this.opts.audioCodec != 'aac'){
+                        if(this.codecData.audio && this.codecData.audio.match(new RegExp('(ac3|mp2)')) && this.opts.audioCodec != 'aac'){
                             transcode = true
-                            this.opts.videoCodec = 'aac'
+                            if(this.codecData.video.indexOf('h264 (High)') != -1) { // may be problematic
+                                this.opts.videoCodec = 'libx264'
+                            }
+                            this.opts.audioCodec = 'aac'
                         }
                     }
                     if(this.decoder){
+                        console.log('RECEIVED TRANSCODE DATA', codecData, transcode)
                         if(transcode){
                             this.decoder.removeListener('end', endListener)
                             this.decoder.kill()

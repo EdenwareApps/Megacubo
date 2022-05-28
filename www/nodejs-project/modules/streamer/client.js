@@ -588,7 +588,7 @@ class StreamerSeek extends StreamerSpeedo {
         this.seekTimer = 0
         this.seekPlaybackStartTime = 0
         this.seekLastDuration = 0
-        this.useClockCounterInLiveStream = false
+        this.useClockCounterInLiveStream = false // experimental, bad result yet
         this.on('draw', () => {
             this.seekbar = this.controls.querySelector('seekbar')
             this.seekbarLabel = this.controls.querySelector('label.status')
@@ -713,7 +713,7 @@ class StreamerSeek extends StreamerSpeedo {
         let txt
         if(this.inLiveStream && this.useClockCounterInLiveStream){
             let s = this.seekPlaybackStartTime ? (this.seekPlaybackStartTime + t) : time()
-            txt = moment.unix(s + t).format('LTS') //.replace(new RegExp('(\\d\\d:\\d\\d)(:\\d\\d)'), '$1<font style="opacity: var(--opacity-level-2);">$2</font>')
+            txt = moment.unix(s + t).format('LTS') + ' &middot; '+  this.currentPlaybackRate +'x' //.replace(new RegExp('(\\d\\d:\\d\\d)(:\\d\\d)'), '$1<font style="opacity: var(--opacity-level-2);">$2</font>')
         } else {
             txt = this.hms(t) +' <font style="opacity: var(--opacity-level-2);">/</font> '+ this.hms(d)
         }

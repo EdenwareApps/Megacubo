@@ -256,10 +256,13 @@ class ChannelsEPG extends ChannelsData {
                     this.epgChannelLiveNow(data).then(() => {
                         const _path = [global.lang.LIVE, category, name, global.lang.EPG].join('/')
                         global.channels.watchNowAuto = ''
-                        global.explorer.open(_path).catch(err => {
+                        global.osd.show(global.lang.OPENING, 'fas fa-circle-notch fa-spin', 'open-epg', 'persistent')
+                        global.explorer.open(_path).then(() => {
+                            global.ui.emit('menu-playing')
+                            global.osd.hide('open-epg')
+                        }).catch(err => {
                             console.error(err)
                         })
-                        global.ui.emit('menu-playing')
                     }).catch(() => {
                         global.displayErr(global.lang.CHANNEL_EPG_NOT_FOUND)
                     })
@@ -878,7 +881,7 @@ class Channels extends ChannelsAutoWatchNow {
             }
         }
         let url = 'https://www.google.com/search?btnI=1&lr=lang_{0}&q={1}'.format(global.lang.locale, encodeURIComponent('"'+ name +'" site'))
-        const body = String(await Download.promise({url}))
+        const body = String(await Download.promise({url}).catch(console.error))
         const matches = body.match(new RegExp('href *= *["\']([^"\']*://[^"\']*)'))
         if(matches && matches[1] && matches[1].indexOf('google.com') == -1){
             url = matches[1]
@@ -1148,6 +1151,12 @@ class Channels extends ChannelsAutoWatchNow {
             }
             let autoplay = this.autoplay()
             this.get(terms).then(sentries => {
+                sentries = sentries.map(e => {
+                    if(!e.group){
+                        e.group = category
+                    }
+                    return e
+                })
                 if(autoplay){
                     if(sentries.length){
                         global.streamer.play(e, sentries)                        
@@ -1156,11 +1165,13 @@ class Channels extends ChannelsAutoWatchNow {
                     }         
                 } else {
                     if(sentries.length){
+                        let call = global.lists.msi.isRadio(e.name +' '+ category) ? global.lang.LISTEN_NOW : global.lang.WATCH_NOW
                         entries.push({
-                            name: global.lang.WATCH_NOW, 
+                            name: call, 
                             type: 'action',
                             fa: 'fas fa-play-circle',
                             url,
+                            group: category,
                             action: data => {
                                 data.name = e.name
                                 global.streamer.play(data, sentries)

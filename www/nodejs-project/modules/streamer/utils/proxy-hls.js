@@ -46,7 +46,7 @@ class HLSJournal {
 					header.push(line)
 				}
 			})
-			this.liveJournal = segments
+			this.liveJournal = Object.keys(segments).map(u => this.absolutize(u, this.url))
 			Object.keys(segments).forEach(name => {
 				if(typeof(this.journal[name]) == 'undefined' || this.journal[name] != segments[name]){
 					this.journal[name] = segments[name]
@@ -86,12 +86,13 @@ class HLSJournal {
 		}
 		return nurl
 	}
-	isLiveSegment(name){
+	inLiveWindow(name){
 		let n = name
 		if(n.indexOf('://') != -1){
 			n = this.segmentName(n)
 		}
-		return typeof(this.liveJournal[n]) != 'undefined'
+		console.log('INLIVESEGMENT', n, this.liveJournal)
+		return this.liveJournal.some(u => u.indexOf(n) != -1)
 	}
 }
 
@@ -108,8 +109,9 @@ class HLSRequestClient extends Events {
 			if(!headers){
 				headers = {}
 			}
+			this.responded = true
 			this.emit('response', status, headers)
-			return this.responded = true
+			return true
 		}
 	}
 	end(){
@@ -192,7 +194,7 @@ class HLSRequest extends StreamerProxyBase {
 				delete this.headers['accept-ranges']
 			}
 			if(typeof(this.headers['content-length']) != 'undefined'){
-				delete this.headers['content-length']
+				delete this.headers['content-length'] // if segment is deleted in server while downloading, we will send what we got until now
 			}
 			this.headers['connection'] = 'close'
 			//console.warn('HLSRequest HEAD', this.status, this.headers, this.mediaType)
@@ -246,6 +248,9 @@ class HLSRequest extends StreamerProxyBase {
 	}
 	end(){
 		//console.warn('HLSRequest END', this.pumping)
+		if(!this.headers){
+			console.error('end without responded*', this.request, this.fragments)
+		}
 		this.request.destroy()
 		this.ended = true
 		this.contentLength = this.fragments.map(f => f.size).reduce((partialSum, a) => partialSum + a, 0)
@@ -389,7 +394,8 @@ class HLSRequests extends StreamerProxyBase {
 		super(opts)
 		this.debugConns = false
 		this.debugUnfinishedRequests = false
-		this.prefetchMaxConcurrency = 1
+		this.finishRequestsOutsideFromLiveWindow = false
+		this.prefetchMaxConcurrency = 2
 		this.packetFilterPolicy = 1
 		this.requestCacheUID = parseInt(Math.random() * 1000000)
 		this.requestCacheDir = global.paths.temp +'/streamer/'+ this.requestCacheUID +'/'
@@ -414,9 +420,6 @@ class HLSRequests extends StreamerProxyBase {
 		global.diagnostics.checkDisk().then(data => {
 			this.maxDiskUsage = data.free * 0.2
 		}).catch(console.error)
-	}
-	checkDiskSpace(){
-		const now = global.time()
 	}
     url2file(url){
         let f = global.sanitize(url)
@@ -485,6 +488,17 @@ class HLSRequests extends StreamerProxyBase {
 								next = this.absolutize(this.unproxify(line), journalUrl)
 							}
 						})
+						ks.slice(i + 1).some(k => {
+							this.journals[journalUrl].journal[k].split("\n").some(line => {
+								if(line.length > 3 && !line.startsWith('#')){
+									let segmentUrl = this.absolutize(this.unproxify(line), journalUrl)
+									if(!this.finishRequestsOutsideFromLiveWindow || this.journals[journalUrl].inLiveWindow(segmentUrl)){
+										next = segmentUrl
+										return true
+									}
+								}
+							})
+						})
 					}
 					return true
 				}
@@ -506,8 +520,9 @@ class HLSRequests extends StreamerProxyBase {
 							if(typeof(this.requestCacheMap[segmentUrl]) != 'undefined' && typeof(this.activeRequests[segmentUrl]) != 'undefined'){
 								const hasOrganicClients = this.requestCacheMap[segmentUrl].clients.filter(c => !c.shadowClient).length
 								const requestEnded = !this.requestCacheMap[segmentUrl].request || this.requestCacheMap[segmentUrl].request.ended
-								if(!hasOrganicClients && !requestEnded){
-									console.log('finishing request due to no clients', segmentUrl, url)
+								const finishNotLive = this.finishRequestsOutsideFromLiveWindow && !this.journals[pos.journal].inLiveWindow(segmentUrl)
+								if(finishNotLive || (!hasOrganicClients && !requestEnded)){
+									console.log('finishing request due to no clients or i\'ts outside of live window', segmentUrl, url)
 									this.requestCacheMap[segmentUrl].destroy()
 									delete this.requestCacheMap[segmentUrl]
 								}
@@ -518,10 +533,10 @@ class HLSRequests extends StreamerProxyBase {
 			}
 		}
 	}
-	isLiveSegment(url){
+	inLiveWindow(url){
 		let pos = this.getSegmentJournal(url)
 		if(pos){
-			return this.journals[pos.journal].isLiveSegment(url)
+			return this.journals[pos.journal].inLiveWindow(url)
 		}
 	}
 	report404ToJournal(url){
@@ -544,14 +559,22 @@ class HLSRequests extends StreamerProxyBase {
 		client.destroy = () => this.removeClient(url, client)
 		if(opts.shadowClient){
 			client.shadowClient = true
-		} else {
-			this.finishObsoleteSegmentRequests(url)
 		}
 		if(this.activeRequests[url] || (this.requestCacheMap[url] && !this.requestCacheMap[url].expired())){
 			this.requestCacheMap[url].addClient(client)
 		} else {
+			const inLiveWindow = this.inLiveWindow(url)
 			const file = this.url2file(url)
-			if(this.debugConns) console.warn('REQUEST CONNECT START', now, url, this.isLiveSegment(url) ? 'IS LIVE' : 'NOT LIVE')
+			if(ext == 'ts' && !inLiveWindow && this.finishRequestsOutsideFromLiveWindow){
+				if(this.debugConns) console.warn('REQUEST CONNECT PREVENT', now, url, inLiveWindow ? 'IN LIVE WINDOW LIVE' : 'NOT IN LIVE WINDOW')
+				client.on('start', () => {
+					client.respond(204, {'content-length': 0})
+					client.end()
+					process.nextTick(() => this.prefetch(url, opts))
+				})
+				return client
+			}
+			if(this.debugConns) console.warn('REQUEST CONNECT START', now, url, inLiveWindow ? 'IN LIVE WINDOW LIVE' : 'NOT IN LIVE WINDOW')
 			const request = new global.Download(opts)
 			this.activeRequests[url] = request
 			this.debugActiveRequests()
@@ -578,37 +601,20 @@ class HLSRequests extends StreamerProxyBase {
 					this.activeManifest = url
 					// console.warn('BITRATE', url, this.playlistBitrates, this.playlistBitrates[url])
 					if(this.playlistBitrates[url]){
-						this.saveBitrate(this.playlistBitrates[url])
+						this.saveBitrate(this.playlistBitrates[url], true)
 					}
+					this.finishObsoleteSegmentRequests(url)
 				}
 				if(!ended){
 					ended = true
 				}
-				if(this.activeManifest && Object.keys(this.requestCacheMap).length >= 4){ // avoid to slow down on initial segment load order
-					setTimeout(() => {
-						if(!this.destroyed && Object.keys(this.activeRequests).length < this.prefetchMaxConcurrency) {
-							if(Object.keys(this.activeRequests).length < this.prefetchMaxConcurrency) {
-								let next = this.getNextInactiveSegment(this.activeManifest)
-								if(next){
-									if(this.debugConns) console.warn('PREFETCHING', next, url)
-									const nopts = opts
-									nopts.url = next
-									nopts.shadowClient = true
-									this.download(nopts).start()
-								} else {
-									let info
-									if(this.journals[this.activeManifest]){
-										info = Object.keys(this.journals[this.activeManifest].journal).slice(-5)
-									}
-									if(this.debugConns) console.warn('NOT PREFETCHING', Object.values(this.activeRequests).length, url, info)
-								}
-							}
-						}
-						this.autoClean()
-					}, 50)
+				if(this.activeManifest && Object.keys(this.requestCacheMap).filter(u => this.ext(u) == 'ts')){ // has downloaded at least one segment to know from where the player is starting
+					setTimeout(() => this.prefetch(url, opts), 50)
 					if(this.committed && seg &&  !this.bitrateChecking && (this.bitrates.length < this.opts.bitrateCheckingAmount || !this.codecData)){
-						console.log('getBitrate', this.proxify(url))
-						this.getBitrate(this.proxify(url))
+						if(!this.playlistBitrates[this.activeManifest]) {
+							console.log('getBitrate', this.proxify(url))
+							this.getBitrate(this.proxify(url))
+						}
 					}
 				}
 			}
@@ -620,8 +626,8 @@ class HLSRequests extends StreamerProxyBase {
 						// detect too if url just redirects to the real m3u8
 						this.activeManifest = url
 						// console.warn('BITRATE', url, this.playlistBitrates, this.playlistBitrates[url])
-						if(this.playlistBitrates[url]){
-							this.saveBitrate(this.playlistBitrates[url])
+						if(this.playlistBitrates[url]) {
+							this.saveBitrate(this.playlistBitrates[url], true)
 						}
 					}
 				} else {
@@ -664,6 +670,25 @@ class HLSRequests extends StreamerProxyBase {
 			}
 		}
 		return client
+	}
+	prefetch(url, opts){
+		if(!this.destroyed && Object.keys(this.activeRequests).length < this.prefetchMaxConcurrency) {
+			let next = this.getNextInactiveSegment(this.activeManifest)
+			if(next){
+				if(this.debugConns) console.warn('PREFETCHING', next, url)
+				const nopts = opts
+				nopts.url = next
+				nopts.shadowClient = true
+				this.download(nopts).start()
+			} else {
+				let info
+				if(this.journals[this.activeManifest]){
+					info = Object.keys(this.journals[this.activeManifest].journal).slice(-5)
+				}
+				if(this.debugConns) console.warn('NOT PREFETCHING', Object.values(this.activeRequests).length, url, info)
+			}
+		}
+		this.autoClean()
 	}
 	debugActiveRequests(){
 		if(global.config.get('debug-conns')){

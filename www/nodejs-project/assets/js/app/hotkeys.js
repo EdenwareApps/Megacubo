@@ -4,6 +4,21 @@ function arePlayerControlsVisible(){
     return [0, '0', '0px'].indexOf(jQuery(streamer.controls).css('bottom')) != -1
 }
 
+function menuPlaying(enable, ignoreFocus){
+    if(enable){
+        explorer.body.addClass('menu-playing')
+        if(!ignoreFocus) {
+            setTimeout(() => {
+                explorer.updateSelection() || explorer.reset()
+            }, 100)
+        }
+    } else {
+        explorer.body.removeClass('menu-playing')
+        idle.reset()
+        idle.lock(0.1)
+    }
+}
+
 function escapePressed(){
     console.log('Escape pressed')
     if(explorer.inModal()) {

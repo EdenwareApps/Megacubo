@@ -9,6 +9,7 @@ class CloudData {
             'searching': 6 * 3600,
             'channels': 6 * 3600,
             'configure': 1 * 3600,
+            'country-sources': 6 * 3600,
             'sources': 6 * 3600,
             'watching': 300
         }

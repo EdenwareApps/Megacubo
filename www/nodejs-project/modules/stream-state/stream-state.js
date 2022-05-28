@@ -154,7 +154,7 @@ class StreamState extends Events {
             }
             let retest = [], syncData = {}
             entries = entries.filter(e => {
-                if(e.url && e.name != global.lang.REMOVE_LIST){
+                if(e.url && e.name != global.lang.REMOVE_LIST && this.supports(e)){
                     if(global.mega.isMega(e.url)){
                         let s = 'tune', atts = global.mega.parse(e.url)
                         if(atts && atts.mediaType && atts.mediaType != 'live'){

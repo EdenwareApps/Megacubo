@@ -3,7 +3,7 @@ class Setup extends EventEmitter {
     constructor(){
         super()
         this.currentStep = -1
-        this.offerCommunitaryMode = true
+        this.offerCommunityMode = true
         this.skipList = window.setupSkipList
         if(!this.skipList){                    
             app.on('setup-skip-list', () => {
@@ -49,7 +49,7 @@ class Setup extends EventEmitter {
                 console.log('ASKED', ret, traceback())
                 if(ret == 'sh'){
                     setTimeout(() => {
-                        this.communitaryMode()
+                        this.communityMode()
                     }, 0)
                 } else {
                     if(ret && ret != -1){
@@ -68,12 +68,12 @@ class Setup extends EventEmitter {
         }, 0)
         return true
     }
-    communitaryMode(){   
+    communityMode(){   
         if(this.skipList || config['communitary-mode-lists-amount']) return this.done()
         this.active = true     
         explorer.dialog([
-            {template: 'question', text: lang.COMMUNITARY_MODE, fa: 'fas fa-users'},
-            {template: 'message', text: lang.SUGGEST_COMMUNITARY_LIST +"\r\n"+ lang.ASK_COMMUNITARY_LIST},
+            {template: 'question', text: lang.COMMUNITY_MODE, fa: 'fas fa-users'},
+            {template: 'message', text: lang.SUGGEST_COMMUNITY_LIST +"\r\n"+ lang.ASK_COMMUNITY_LIST},
             {template: 'option', id: 'agree', fa: 'fas fa-check-circle', text: lang.I_AGREE},
             {template: 'option', id: 'back', fa: 'fas fa-chevron-circle-left', text: lang.BACK}
         ], choose => {
@@ -104,8 +104,8 @@ class Setup extends EventEmitter {
             {template: 'message', text},
             {template: 'option', text: lang.ADD_LIST, fa: 'fas fa-plus-square', id: 'ok'}
         ]
-        if(this.offerCommunitaryMode){
-            opts.push({template: 'option', text: lang.DONT_HAVE_LIST, details: lang.LOAD_COMMUNITARY_LISTS, fa: 'fas fa-times-circle', id: 'sh'})
+        if(this.offerCommunityMode){
+            opts.push({template: 'option', text: lang.DONT_HAVE_LIST, details: lang.LOAD_COMMUNITY_LISTS, fa: 'fas fa-times-circle', id: 'sh'})
         } else {
             opts.push({template: 'option', text: lang.ADD_LATER, fa: 'fas fa-clock', id: 'no'})
         }
@@ -114,7 +114,7 @@ class Setup extends EventEmitter {
                 if(choose == 'no'){
                     this.done()
                 } else if(choose == 'sh') {
-                    this.communitaryMode()
+                    this.communityMode()
                 } else {
                     this.ask()
                 }
@@ -130,13 +130,13 @@ class Setup extends EventEmitter {
             {template: 'option', text: lang.DONT_HAVE_LIST, fa: 'fas fa-times-circle', id: 'sh'}
         ])
     }
-    done(enableCommunitaryMode){
+    done(enableCommunityMode){
         if(!this.isDone){
             this.isDone = true
             this.active = false
             console.log('PERFORMANCE-SETUP')
             app.emit('config-set', 'setup-completed', true)
-            if(enableCommunitaryMode){
+            if(enableCommunityMode){
                 app.emit('lists-manager', 'agree')
             }
             setTimeout(() => {

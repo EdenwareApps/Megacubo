@@ -432,74 +432,100 @@ class Options extends OptionsHardwareAcceleration {
             global.energy.askRestart()
         }
     }
-    countriesEntries(){
-        return new Promise((resolve, reject) => {
-            let entries = []
-            global.lang.getCountriesMap(global.config.get('locale') || global.lang.locale).then(map => {
-                let actives = global.config.get('countries') || []
-                if(typeof(this.countriesEntriesOriginalActives) == 'undefined'){
-                    this.countriesEntriesOriginalActives = actives.slice(0)
+    async countriesEntries(allCountries, path){
+        if(!path){
+            path = global.explorer.path
+        }
+        const entries = []
+        const map = await global.lang.getCountriesMap(
+            allCountries === true ? null : (global.config.get('locale') || global.lang.locale)
+        )
+        let actives = global.config.get('countries')
+        if(!actives || !actives.length) {
+            actives = await global.lang.getActiveCountries()
+        }
+        if(typeof(this.countriesEntriesOriginalActives) == 'undefined'){
+            this.countriesEntriesOriginalActives = actives.slice(0)
+        }
+        entries.push({
+            name: global.lang.BACK,
+            type: 'back',
+            fa: global.explorer.backIcon,
+            path: global.lang.OPTIONS,
+            tabindex: 0,
+            action: async () => {
+                let actives = global.config.get('countries')
+                if(!actives.length){
+                    actives = await global.lang.getActiveCountries()
                 }
-                entries.push({
-                    name: global.lang.BACK,
-                    type: 'back',
-                    fa: global.explorer.backIcon,
-                    path: global.lang.OPTIONS,
-                    tabindex: 0,
-                    action: () => {
-                        let actives = global.config.get('countries') || []
-                        console.warn('COUNTRYBACK', this.countriesEntriesOriginalActives.sort().join(','), actives.sort().join(','))
-                        if(this.countriesEntriesOriginalActives.sort().join(',') != actives.sort().join(',')){
-                            global.energy.askRestart()
+                console.warn('COUNTRYBACK', this.countriesEntriesOriginalActives.sort().join(','), actives.sort().join(','))
+                if(this.countriesEntriesOriginalActives.sort().join(',') != actives.sort().join(',')){
+                    global.energy.askRestart()
+                }
+            }
+        })
+        if(map.some(row => !actives.includes(row.code))){
+            entries.push({
+                name: global.lang.SELECT_ALL,
+                type: 'action',
+                fa: 'fas fa-check-circle',
+                action: () => {
+                    global.config.set('countries', map.map(row => row.code))
+                    global.explorer.refresh()
+                }
+            })
+        } else {
+            entries.push({
+                name: global.lang.DESELECT_ALL,
+                type: 'action',
+                fa: 'fas fa-times-circle',
+                action: () => {
+                    let countries = map.map(row => row.code)
+                    if(countries.includes(global.lang.countryCode)){
+                        countries = [global.lang.countryCode]
+                    } else {
+                        countries = countries.slice(0, 1) // at least one country should be enabled
+                    }
+                    global.config.set('countries', countries)
+                    global.explorer.refresh()
+                }
+            })
+        }
+        map.forEach(row => {
+            entries.push({
+                name : row.name,
+                type: 'check',
+                action: (e, checked) => {
+                    if(checked){
+                        if(!actives.includes(row.code)){
+                            actives.push(row.code)
+                        }
+                    } else {
+                        let pos = actives.indexOf(row.code)
+                        if(pos != -1){
+                            actives.splice(pos, 1)
                         }
                     }
-                })
-                if(map.some(row => !actives.includes(row.code))){
-                    entries.push({
-                        name: global.lang.SELECT_ALL,
-                        type: 'action',
-                        fa: 'fas fa-check-circle',
-                        action: () => {
-                            global.config.set('countries', map.map(row => row.code))
-                            global.explorer.refresh()
-                        }
-                    })
-                } else {
-                    entries.push({
-                        name: global.lang.DESELECT_ALL,
-                        type: 'action',
-                        fa: 'fas fa-times-circle',
-                        action: () => {
-                            global.config.set('countries', [])
-                            global.explorer.refresh()
-                        }
-                    })
+                    global.config.set('countries', actives)
+                }, 
+                checked: () => {
+                    return actives.includes(row.code)
                 }
-                map.forEach(row => {
-                    entries.push({
-                        name : row.name,
-                        type: 'check',
-                        action: (e, checked) => {
-                            if(checked){
-                                if(!actives.includes(row.code)){
-                                    actives.push(row.code)
-                                }
-                            } else {
-                                let pos = actives.indexOf(row.code)
-                                if(pos != -1){
-                                    actives.splice(pos, 1)
-                                }
-                            }
-                            global.config.set('countries', actives)
-                        }, 
-                        checked: () => {
-                            return actives.includes(row.code)
-                        }
-                    })
-                })
-                resolve(entries)
-            }).catch(reject)
+            })
         })
+        if(allCountries !== true){
+            entries.push({
+                name: global.lang.OTHER_COUNTRIES,
+                fa: 'fas fa-chevron-right',
+                type: 'action',
+                action: () => {
+                    this.countriesEntries(true, path).then(es => {
+                        global.explorer.render(es, path, null, global.explorer.dirname(path))
+                    }).catch(global.displayErr)
+                }
+            })
+        }
+        return entries
     }
     tos(){
         global.ui.emit('open-external-url', 'https://megacubo.net/tos')
@@ -754,10 +780,10 @@ class Options extends OptionsHardwareAcceleration {
             ]
             if(global.config.get('communitary-mode-lists-amount')){
                 opts.push({
-                    name: global.lang.COMMUNITARY_LISTS, 
+                    name: global.lang.COMMUNITY_LISTS, 
                     type: 'slider', 
                     fa: 'fas fa-users', 
-                    mask: '{0} ' + global.lang.COMMUNITARY_LISTS.toLowerCase(), 
+                    mask: '{0} ' + global.lang.COMMUNITY_LISTS.toLowerCase(), 
                     value: () => {
                         return global.config.get('communitary-mode-lists-amount')
                     }, 

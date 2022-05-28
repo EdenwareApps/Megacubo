@@ -260,9 +260,10 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 	}
     loadHLS(cb){
 		if(!this.hls){
-			this.hls = new Hls({
+			const atts = {
 				enableWorker: true,
-				liveSyncDuration: 999999999, // https://github.com/video-dev/hls.js/issues/3764
+				liveSyncDurationCount: 3, // https://github.com/video-dev/hls.js/issues/3764
+				liveMaxLatencyDurationCount: Infinity,
 				maxBufferSize: 128 * (1000 * 1000), // When doing internal transcoding with low crf, fragments will become bigger
 				backBufferLength: this.config['live-window-time'],
 				maxBufferLength: 60,
@@ -291,7 +292,13 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 				maxFragLookUpTolerance: 0.04,
 				startPosition: 0,
 				*/
-			})
+			}
+			if(this.engineType == 'video'){ // not "live"
+				atts.startPosition = 0
+				atts.liveSyncDuration = 99999999
+			}
+			this.hls = new Hls(atts)
+			this.engineType
 			this.hls.on(Hls.Events.ERROR, (event, data) => {
 				if(!this.active) return
 				console.error('hlserr', data, data.fatal)
@@ -472,13 +479,14 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 			this.connect()
 		})
 	}
-	load(src, mimetype, cookie){
+	load(src, mimetype, cookie, type){
 		if(!src){
 			console.error('Bad source', src, mimetype, traceback())
 			return
 		}
 		console.warn('Load source', src)
 		this.active = true
+		this.engineType = type
 		if(this.currentSrc != src){
 			this.currentSrc = src
 			this.currentMimetype = mimetype

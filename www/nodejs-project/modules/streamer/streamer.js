@@ -335,7 +335,7 @@ class StreamerBase extends StreamerTools {
 					}
 					if(codecData.audio && !codecData.video) { // is an audio stream
 						if(global.tuning && global.tuning.opts.name == intent.data.originalName && !global.lists.msi.isRadio(intent.data.originalName)){ // not expecing an audio stream
-							return intent.fail('unsupported format') // fail this audio only stream for tuning resuming
+ 							return intent.fail('unsupported format') // fail this audio only stream for tuning resuming
 						}
 					}
 				})
@@ -561,9 +561,12 @@ class StreamerTracks extends StreamerThrottling {
 	}
 	async showTrackSelector(){
 		if(!this.active) return
-		let tracks = this.active.getTracks(), activeTrack = this.active.getActiveTrack(), opts = this.getTrackOptions(tracks, activeTrack)
+		let activeTrackId, activeTrack = this.active.getActiveTrack(), tracks = this.active.getTracks(), opts = this.getTrackOptions(tracks, activeTrack)
+		opts.forEach(o => {
+			if(o.fa) activeTrackId = o.id
+		})
 		opts.unshift({template: 'question', text: global.lang.SELECT_TRACK})
-		let ret = await global.explorer.dialog(opts)
+		let ret = await global.explorer.dialog(opts, activeTrackId)
 		if(ret){
 			let uri
 			opts.filter(o => o.id == ret).forEach(o => {

@@ -37,9 +37,7 @@ class DownloadStream extends Events {
             path: this.parsed.path,
             port: this.parsed.port || (this.parsed.protocol == 'http:' ? 80 : 443)
         }
-        if(opts.path.indexOf(' ') != -1){ // using encodeURI() directly was causing double encoding
-            opts.path = encodeURI(opts.path)
-        }
+        opts.path = this.encodeURI(opts.path)
         opts.realHost = this.parsed.hostname
         opts.host = ip
         opts.ip = ip
@@ -136,6 +134,7 @@ class DownloadStream extends Events {
             const finish = () => {
                 clearTimer()
                 if(!resolved){
+                    this.finishTraceback = global.traceback()
                     resolved = true
                     resolve(fine)
                     close()
@@ -194,6 +193,12 @@ class DownloadStream extends Events {
                 resolve(true)
             })
         })
+    }
+    encodeURI(url){
+        if(!url.match(new RegExp('^[A-Za-z0-9-._~:/?%#\\[\\]@!$&\'()*+,;=]+$'))) {
+            return url.replace(new RegExp('[^A-Za-z0-9-._~:/?%#\\[\\]@!$&\'()*+,;=]+', 'g'), txt => encodeURIComponent(txt))
+        }
+        return url
     }
 	emitError(error){
 		if(this.listenerCount('error')){

@@ -45,6 +45,15 @@ class Manager extends Events {
             })
         })
         this.parent.on('list-added', p => {
+            this.emit('sync-status', p)
+        })
+        this.parent.on('updated', p => {
+            this.parent.querySyncStatus().then(p => {
+                this.emit('sync-status', p)
+            }).catch(console.error)
+        })
+        this.on('sync-status', p => {
+            console.error('SYNC-STATUS', p, this.updatingLists, p.progress)
             if(this.updatingLists){
                 if(p.progress > 99){                
                     global.activeLists = p.activeLists
@@ -68,7 +77,7 @@ class Manager extends Events {
                         }
                     }
                     this.lastProgress = 0
-                } else if(typeof(global.osd) != 'undefined' && p.progress > this.lastProgress){
+                } else if(typeof(global.osd) != 'undefined' && p.progress > this.lastProgress) {
                     this.lastProgress = p.progress
                     this.firstRun = p.firstRun
                     global.osd.show(global.lang[this.firstRun ? 'STARTING_LISTS_FIRST_TIME_WAIT' : 'UPDATING_LISTS'] + (p.progress ? ' '+ p.progress +'%' : ''), 'fa-mega spin-x-alt', 'update', 'persistent')
@@ -77,7 +86,7 @@ class Manager extends Events {
             if(global.explorer && global.explorer.currentEntries){
                 if(
                     global.explorer.currentEntries.some(e => [global.lang.PROCESSING].includes(e.name)) ||
-                    global.explorer.basename(global.explorer.path) == global.lang.COMMUNITARY_LISTS
+                    global.explorer.basename(global.explorer.path) == global.lang.COMMUNITY_LISTS
                 ){
                     global.explorer.refresh()
                 } else if(this.inChannelPage()){
@@ -131,7 +140,9 @@ class Manager extends Events {
         }
     }
     callUpdater(keywords, urls, cb){
+        console.warn('CALL_UPDATER', keywords, urls)
         this.updater.setRelevantKeywords(keywords).then(() => {
+            console.warn('CALL_UPDATER', urls)
             this.updater.update(urls).catch(console.error).finally(cb)
         }).catch(err => {
             console.error(err)
@@ -372,10 +383,10 @@ class Manager extends Events {
     }
     addList(value, name){
         return new Promise((resolve, reject) => {
-            if(value.match(new RegExp('://(shared|communitary)$', 'i'))){
+            if(value.match(new RegExp('://(shared|community)$', 'i'))){
                 global.ui.emit('dialog', [
-                    {template: 'question', text: global.lang.COMMUNITARY_MODE, fa: 'fas fa-users'},
-                    {template: 'message', text: global.lang.ASK_COMMUNITARY_LIST},
+                    {template: 'question', text: global.lang.COMMUNITY_MODE, fa: 'fas fa-users'},
+                    {template: 'message', text: global.lang.ASK_COMMUNITY_LIST},
                     {template: 'option', id: 'back', fa: 'fas fa-times-circle', text: global.lang.BACK},
                     {template: 'option', id: 'agree', fa: 'fas fa-check-circle', text: global.lang.I_AGREE}
                 ], 'lists-manager', 'back', true)
@@ -392,7 +403,7 @@ class Manager extends Events {
     }
     updatedLists(name, fa){
         this.updatingLists = false
-        if(global.explorer && global.explorer.currentEntries && global.explorer.currentEntries.some(e => [global.lang.LOAD_COMMUNITARY_LISTS, global.lang.UPDATING_LISTS, global.lang.STARTING_LISTS, global.lang.STARTING_LISTS_FIRST_TIME_WAIT, global.lang.PROCESSING].includes(e.name))){
+        if(global.explorer && global.explorer.currentEntries && global.explorer.currentEntries.some(e => [global.lang.LOAD_COMMUNITY_LISTS, global.lang.UPDATING_LISTS, global.lang.STARTING_LISTS, global.lang.STARTING_LISTS_FIRST_TIME_WAIT, global.lang.PROCESSING].includes(e.name))){
             global.explorer.refresh()
         }
         if(typeof(global.osd) != 'undefined'){
@@ -405,22 +416,24 @@ class Manager extends Events {
             this.updatingLists = {onErr}
             global.osd.show(global.lang.STARTING_LISTS, 'fa-mega spin-x-alt', 'update', 'persistent')
             this.getURLs().then(myLists => {
-                this.allCommunitaryLists(30000).then(communitaryLists => {
-                    console.log('allCommunitaryLists', communitaryLists.length)
+                this.allCommunityLists(30000, true).then(communityLists => {
+                    console.log('allCommunityLists', communityLists.length)
                     const next = () => {
-                        if(communitaryLists.length || myLists.length){
+                        if(communityLists.length || myLists.length){
                             let maxListsToTry = 2 * global.config.get('communitary-mode-lists-amount')
-                            if(communitaryLists.length > maxListsToTry){
-                                communitaryLists = communitaryLists.slice(0, maxListsToTry)
+                            if(communityLists.length > maxListsToTry){
+                                communityLists = communityLists.slice(0, maxListsToTry)
                             }
-                            console.log('Updating lists', myLists, communitaryLists, global.traceback())
+                            console.log('Updating lists', myLists, communityLists, global.traceback())
                             this.parent.updaterFinished(false).catch(console.error)
                             global.channels.keywords().then(keywords => {
-                                this.parent.sync(myLists, communitaryLists, global.config.get('communitary-mode-lists-amount'), keywords).catch(err => {
+                                this.parent.sync(myLists, communityLists, global.config.get('communitary-mode-lists-amount'), keywords).catch(err => {
                                     global.displayErr(err)
                                 })
-                                this.callUpdater(keywords, myLists.concat(communitaryLists), () => {
+                                this.callUpdater(keywords, myLists.concat(communityLists), async () => {
                                     this.parent.updaterFinished(true).catch(console.error)
+                                    let p = await this.parent.querySyncStatus()
+                                    this.emit('sync-status', p)
                                 })
                             }).catch(global.displayErr)
                         } else {
@@ -431,10 +444,10 @@ class Manager extends Events {
                         async.eachOf([this.IPTV], (driver, i, done) => {
                             driver.ready(() => {
                                 driver.countries.ready(() => {
-                                    communitaryLists = communitaryLists.filter(u => myLists.indexOf(u) == -1)
-                                    communitaryLists = communitaryLists.filter(u => !driver.isKnownURL(u)) // remove communitaryLists from other countries/languages
+                                    communityLists = communityLists.filter(u => myLists.indexOf(u) == -1)
+                                    communityLists = communityLists.filter(u => !driver.isKnownURL(u)) // remove communityLists from other countries/languages
                                     driver.getLocalLists().then(localLists => {
-                                        communitaryLists = localLists.concat(communitaryLists)
+                                        communityLists = localLists.concat(communityLists)
                                     }).catch(console.error).finally(done)
                                 })
                             })
@@ -444,7 +457,7 @@ class Manager extends Events {
                     }
                 }).catch(e => {
                     this.updatingLists = false
-                    console.error('allCommunitaryLists err', e)
+                    console.error('allCommunityLists err', e)
                     global.osd.hide('update')
                     this.noListsRetryDialog()
                 })
@@ -475,7 +488,7 @@ class Manager extends Events {
     noListsRetryDialog(){
         if(global.Download.isNetworkConnected) {
             global.ui.emit('dialog', [
-                {template: 'question', text: global.lang.NO_COMMUNITARY_LISTS_FOUND, fa: 'fas fa-users'},
+                {template: 'question', text: global.lang.NO_COMMUNITY_LISTS_FOUND, fa: 'fas fa-users'},
                 {template: 'option', id: 'retry', fa: 'fas fa-redo', text: global.lang.RETRY},
                 {template: 'option', id: 'list-open', fa: 'fas fa-plus-square', text: global.lang.ADD_LIST}
             ], 'lists-manager', 'retry', true) 
@@ -499,7 +512,7 @@ class Manager extends Events {
     }
     noListsRetryEntry(){
         return {
-            name: global.lang.LOAD_COMMUNITARY_LISTS,
+            name: global.lang.LOAD_COMMUNITY_LISTS,
             fa: 'fas fa-plus-square',
             type: 'action',
             action: () => this.UIUpdateLists(true)
@@ -577,31 +590,30 @@ class Manager extends Events {
             })
         }}
     }
-    searchEPGs(){
-        return new Promise((resolve, reject) => {
-            let epgs = []
-            this.parent.foundEPGs().then(urls => {
-                epgs = epgs.concat(urls)
-            }).catch(console.error).finally(() => {
-                const next = () => {
-                    epgs = [...new Set(epgs)].sort()
-                    resolve(epgs)
+    async searchEPGs(){
+        let epgs = []
+        let urls = await this.parent.foundEPGs().catch(console.error)
+        if(Array.isArray(urls)){
+            epgs = epgs.concat(urls)
+        }
+        if(global.config.get('communitary-mode-lists-amount')){
+            let c = await cloud.get('configure').catch(console.error)
+            if(c) {
+                let cs = await global.lang.getActiveCountries()
+                if(!cs.includes(global.lang.countryCode)){
+                    cs.push(global.lang.countryCode)
                 }
-                if(global.config.get('communitary-mode-lists-amount')){
-		    		cloud.get('configure').then(c => {
-                        if(c){
-                            let key = 'epg-' + global.lang.countryCode
-                            if(c[key] && !epgs.includes(c[key])){
-                                epgs.push(c[key])
-                            }
-                        }
-                        epgs = epgs.concat(global.watching.currentRawEntries.map(e => e.epg).filter(e => !!e))
-                    }).catch(console.error).finally(next)
-                } else {
-                    next()
-                }
-            })
-        })
+                cs.forEach(code => {
+                    let key = 'epg-' + code
+                    if(c[key] && !epgs.includes(c[key])){
+                        epgs.push(c[key])
+                    }
+                })
+                epgs = epgs.concat(global.watching.currentRawEntries.map(e => e.epg).filter(e => !!e))
+            }
+        }
+        epgs = [...new Set(epgs)].sort()
+        return epgs
     }
     epgLoadingStatus(epgStatus){
         let details = ''
@@ -857,15 +869,15 @@ class Manager extends Events {
     }
     listSharingEntry(){
         return {
-            name: global.lang.COMMUNITARY_MODE, type: 'group', fa: 'fas fa-users', details: global.lang.LIST_SHARING,
+            name: global.lang.COMMUNITY_MODE, type: 'group', fa: 'fas fa-users', details: global.lang.LIST_SHARING,
             renderer: () => {
                 return new Promise((resolve, reject) => {
                     let options = [
                         {name: global.lang.ENABLE, type: 'check', details: global.lang.LIST_SHARING, action: (data, checked) => {
                             if(checked){
                                 global.ui.emit('dialog', [
-                                    {template: 'question', text: global.lang.COMMUNITARY_MODE, fa: 'fas fa-users'},
-                                    {template: 'message', text: global.lang.ASK_COMMUNITARY_LIST},
+                                    {template: 'question', text: global.lang.COMMUNITY_MODE, fa: 'fas fa-users'},
+                                    {template: 'message', text: global.lang.ASK_COMMUNITY_LIST},
                                     {template: 'option', id: 'back', fa: 'fas fa-times-circle', text: global.lang.BACK},
                                     {template: 'option', id: 'agree', fa: 'fas fa-check-circle', text: global.lang.I_AGREE}
                                 ], 'lists-manager', 'back', true)                
@@ -878,8 +890,8 @@ class Manager extends Events {
                         }}
                     ]
                     if(global.config.get('communitary-mode-lists-amount') > 0){
-                        options.push({name: global.lang.COMMUNITARY_LISTS, details: global.lang.SHARED_AND_LOADED, fa: 'fas fa-users', type: 'group', renderer: this.communitaryListsEntries.bind(this)})
-                        options.push({name: global.lang.ALL_LISTS, details: global.lang.SHARED_FROM_ALL, fa: 'fas fa-users', type: 'group', renderer: this.allCommunitaryListsEntries.bind(this)})
+                        options.push({name: global.lang.COMMUNITY_LISTS, details: global.lang.SHARED_AND_LOADED, fa: 'fas fa-users', type: 'group', renderer: this.communityListsEntries.bind(this)})
+                        options.push({name: global.lang.ALL_LISTS, details: global.lang.SHARED_FROM_ALL, fa: 'fas fa-users', type: 'group', renderer: this.allCommunityListsEntries.bind(this)})
                     }
                     resolve(options)
                 })
@@ -913,7 +925,7 @@ class Manager extends Events {
     directListRenderer(data){
         console.warn('DIRECT', data, traceback())
         return new Promise((resolve, reject) => {
-            let v = Object.assign({}, data), isMine = global.activeLists.my.includes(v.url), isCommunitary = global.activeLists.communitary.includes(v.url)
+            let v = Object.assign({}, data), isMine = global.activeLists.my.includes(v.url), isCommunity = global.activeLists.community.includes(v.url)
             delete v.renderer
             let onerr = err => {
                 console.error(err)
@@ -949,8 +961,8 @@ class Manager extends Events {
                 console.warn('DIRECT', list, JSON.stringify(list[0]))
                 resolve(list)
             }
-            console.warn('DIRECT', isMine, isCommunitary)
-            if(isMine || isCommunitary){
+            console.warn('DIRECT', isMine, isCommunity)
+            if(isMine || isCommunity){
                 this.parent.directListRenderer(v).then(cb).catch(onerr)
             } else {
                 const fetcher = new this.parent.Fetcher()
@@ -966,11 +978,11 @@ class Manager extends Events {
             }
         })
     }
-    communitaryLists(){
+    communityLists(){
         return new Promise((resolve, reject) => {
             let limit = global.config.get('communitary-mode-lists-amount')
             if(limit){
-                this.allCommunitaryLists().then(lists => {
+                this.allCommunityLists(30000, true).then(lists => {
                     lists = lists.slice(0, limit)
                     resolve(lists)
                 }).catch(e => {
@@ -982,13 +994,13 @@ class Manager extends Events {
             }
         })
     }
-    communitaryListsEntries(){
+    communityListsEntries(){
         return new Promise((resolve, reject) => {
             this.parent.getLists().then(active => {
                 global.activeLists = active
-                if(active.communitary.length){
+                if(active.community.length){
                     let opts = []
-                    async.eachOfLimit(active.communitary, 8, (url, i, done) => {
+                    async.eachOfLimit(active.community, 8, (url, i, done) => {
                         this.parent.getListMetaValue(url, 'name', name => {
                             if(!name) {
                                 name = this.nameFromSourceURL(url)
@@ -1011,79 +1023,92 @@ class Manager extends Events {
             }).catch(reject)
         })
     }
-    allCommunitaryLists(timeout){
-        return new Promise((resolve, reject) => {
-            let limit = global.config.get('communitary-mode-lists-amount')
-            if(limit){
-                global.cloud.get('sources', false, timeout).then(s => {
-                    resolve(s.map(e => e.url))
-                }).catch(e => {
-                    console.error(e)
-                    resolve([])
-                })
-            } else {
-                resolve([])
+    async getAllCommunitySources(fromLanguage, timeout=3000){
+        if(fromLanguage === true){
+            let ret = {}, sources = await global.cloud.get('sources', false, timeout)
+            if(!Array.isArray(sources)){
+                sources = []
             }
-        })
+            sources.forEach(row => {
+                ret[row.url] = parseInt(row.label.split(' ').shift())
+            })
+            return ret
+        } else {
+            let ret = {}, locs = await global.lang.getActiveCountries()
+            let results = await Promise.allSettled(locs.map(loc => global.cloud.get('country-sources.'+ loc, false, timeout)))
+            console.warn('aaaaaaaaa')
+            results.forEach(r => {
+                if(r.status == 'fulfilled' && r.value && typeof(r.value) == 'object'){
+                    r.value.forEach(row => {
+                        let count = parseInt(row.label.split(' ').shift())
+                        if(isNaN(count)) count = 0
+                        if(typeof(ret[row.url]) != 'undefined') count += ret[row.url]
+                        ret[row.url] = count
+                    })
+                }
+            })
+            console.warn('aaaaaaaaa')
+            if(Object.keys(ret).length <= 8){
+                return await this.getAllCommunitySources(true, timeout)
+            }
+            console.warn('aaaaaaaaa')
+            return Object.entries(ret).sort(([,a],[,b]) => b-a).reduce((r, [k, v]) => ({ ...r, [k]: v }), {})
+        }
     }
-    allCommunitaryListsEntries(){
-        return new Promise((resolve, reject) => {
-            let limit = global.config.get('communitary-mode-lists-amount')
-            if(limit){
-                global.cloud.get('sources', false, 30000).then(lists => {
-                    if(Array.isArray(lists) && lists.length){
-                        async.eachOfLimit(lists, 8, (v, i, cb) => {
-                            this.name(v.url, false).then(name => {
-                                if(typeof(v.label) == 'string'){
-                                    v.details = v.label
-                                    delete v.label
-                                }
-                                v.name = name
-                                v.fa = 'fas fa-satellite-dish'
-                                if(v.details && v.details.indexOf('{') != -1){
-                                    v.details = v.details.format(global.lang.USER, global.lang.USERS)
-                                }
-                                v.renderer = data => {
-                                    return new Promise((resolve, reject) => {
-                                        this.openingList = true
-                                        global.osd.show(global.lang.OPENING_LIST, 'fa-mega spin-x-alt', 'list-open', 'persistent')
-                                        this.directListRenderer(data).then(ret => {
-                                            resolve(ret)
-                                        }).catch(err => {
-                                            reject(err)
-                                        }).finally(() => {
-                                            this.openingList = false
-                                            global.osd.hide('list-open')
-                                        })
-                                    })
-                                }
-                                lists[i] = v
-                            }).catch(err => {
-                                global.displayErr(err)
-                            }).finally(cb)
-                        }, () => {
-                            //console.log('sources', lists)
-                            if(lists.length){
-                                if(global.config.get('parental-control-policy') == 'block'){
-                                    lists = this.parent.parentalControl.filter(lists)
-                                }
-                            } else {
-                                lists = [this.noListsRetryEntry()]
-                            }
-                            resolve(lists)
-                        })
-                    } else {
-                        console.error('no communitary lists found', lists)
-                        reject('no communitary lists found')
-                    }
-                }).catch(e => {
-                    console.error('no sources found', e)
-                    reject(e)
+    async allCommunityLists(timeout=30000, urlsOnly=true){
+        let limit = global.config.get('communitary-mode-lists-amount')
+        if(limit){
+            let s = await this.getAllCommunitySources(false, timeout)
+            if(typeof(s) == 'object'){
+                let r = Object.keys(s).map(url => {
+                    return {url, count: s[url]}
                 })
-            } else {
-                resolve([])
+                if(urlsOnly){
+                    r = r.map(e => e.url)
+                }
+                return r
             }
+        }
+        return []
+    }
+    async allCommunityListsEntries(){
+        let sources = await this.getAllCommunitySources(), names = {};
+        await Promise.allSettled(Object.keys(sources).map(url => {
+            return this.name(url, false).then(name => {
+                names[url] = name
+            })
+        }))
+        let lists = Object.keys(sources).map(url => {
+            let v = {url}
+            v.details = sources[url] +' '+ (sources[url] > 1 ? global.lang.USERS : global.lang.USER)
+            v.type = 'group'
+            v.name = names[url]
+            v.fa = 'fas fa-satellite-dish'
+            v.renderer = data => {
+                return new Promise((resolve, reject) => {
+                    this.openingList = true
+                    global.osd.show(global.lang.OPENING_LIST, 'fa-mega spin-x-alt', 'list-open', 'persistent')
+                    this.directListRenderer(data).then(ret => {
+                        resolve(ret)
+                    }).catch(err => {
+                        reject(err)
+                    }).finally(() => {
+                        this.openingList = false
+                        global.osd.hide('list-open')
+                    })
+                })
+            }
+            return v   
         })
+        console.log('sources', lists)
+        if(lists.length){
+            if(global.config.get('parental-control-policy') == 'block'){
+                lists = this.parent.parentalControl.filter(lists)
+            }
+        } else {
+            lists = [this.noListsRetryEntry()]
+        }
+        return lists
     }
     hook(entries, path){
         return new Promise((resolve, reject) => {

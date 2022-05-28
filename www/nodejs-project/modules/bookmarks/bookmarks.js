@@ -17,7 +17,6 @@ class Bookmarks extends EntriesGroup {
                     global.explorer.open(global.lang.BOOKMARKS)
                 }
             })
-            console.error('BOOSTREAMER '+ typeof(global.streamer) +' '+ typeof(global.streamer.aboutRegisterEntry) +' '+ typeof(global.streamer.play))
             global.streamer.aboutRegisterEntry('addfav', data => {
                 if(!data.isLocal && !this.has(this.simplify(data))){
                     return {template: 'option', fa: 'fas fa-star', text: global.lang.ADD_TO.format(global.lang.BOOKMARKS), id: 'addfav'}
@@ -59,7 +58,7 @@ class Bookmarks extends EntriesGroup {
                             global.osd.show(global.lang.BOOKMARK_REMOVED.format(bookmarkable.name), 'fas fa-star-half', 'bookmarks', 'normal')
                         }
                     }
-                } else if(entry.path.indexOf(global.lang.BOOKMARKS) == -1) {
+                } else if(path.indexOf(global.lang.BOOKMARKS) == -1) {
                     bookmarker = {
                         type: 'action',
                         fa: 'fas fa-star',

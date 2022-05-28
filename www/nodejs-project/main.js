@@ -338,7 +338,7 @@ function init(language){
             if(config.get('setup-completed')) areListsReady = true
         })
 
-        activeLists = {my: [], communitary: [], length: 0}
+        activeLists = {my: [], community: [], length: 0}
 
         autoconfig = new AutoConfig()
         autoconfig.start()
@@ -440,7 +440,7 @@ function init(language){
                 case 'agree':
                     ui.emit('explorer-reset-selection')
                     explorer.open('', 0).catch(displayErr)
-                    config.set('communitary-mode-lists-amount', lists.opts.defaultCommunitaryModeReach)
+                    config.set('communitary-mode-lists-amount', lists.opts.defaultCommunityModeReach)
                     ui.emit('info', lang.LEGAL_NOTICE, lang.TOS_CONTENT)
                     lists.manager.UIUpdateLists(true)
                     break
@@ -675,6 +675,26 @@ function init(language){
             streamState.sync()
             if(!isUILoaded){
                 isUILoaded = true
+                const prompt = async c => {
+                    let chosen = await global.explorer.dialog([
+                        {template: 'question', text: ucWords(MANIFEST.name) +' v'+ MANIFEST.version +' > v'+ c.version, fa: 'fas fa-star'},
+                        {template: 'message', text: lang.NEW_VERSION_AVAILABLE},
+                        {template: 'option', text: lang.YES, id: 'yes', fa: 'fas fa-check-circle'},
+                        {template: 'option', text: lang.NO, id: 'no', fa: 'fas fa-times-circle'},
+                        {template: 'option', text: lang.HOW_TO_UPDATE, id: 'how', fa: 'fas fa-question-circle'}
+                    ], 'yes')
+                    console.log('update callback', chosen)
+                    if(chosen == 'yes'){
+                        ui.emit('open-external-url', 'https://megacubo.net/update?ver=' + MANIFEST.version)
+                    } else if(chosen == 'how') {
+                        await global.explorer.dialog([
+                            {template: 'question', text: lang.HOW_TO_UPDATE, fa: 'fas fa-question-circle'},
+                            {template: 'message', text: lang.UPDATE_APP_INFO},
+                            {template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle'}
+                        ], 'yes')
+                        prompt(c)
+                    }
+                }
                 const afterListUpdate = async () => {
                     if(!lists.manager.updatingLists && !activeLists.length && config.get('communitary-mode-lists-amount')){
                         lists.manager.UIUpdateLists()
@@ -683,20 +703,9 @@ function init(language){
                     updateEPGConfig(c)
                     console.log('checking update...')
                     sendCrashLogs()
-                    let vkey = 'version'
-                    if(c[vkey] > MANIFEST.version){
-                        console.log('new version found', c[vkey])
-                        newVersion = c[vkey]
-                        let chosen = await global.explorer.dialog([
-                            {template: 'question', text: ucWords(MANIFEST.name) +' v'+ MANIFEST.version +' > v'+ c[vkey], fa: 'fas fa-star'},
-                            {template: 'message', text: lang.NEW_VERSION_AVAILABLE},
-                            {template: 'option', text: lang.YES, id: 'yes', fa: 'fas fa-check-circle'},
-                            {template: 'option', text: lang.NO, id: 'no', fa: 'fas fa-times-circle'}
-                        ], 'yes')
-                        console.log('update callback', chosen)
-                        if(chosen == 'yes'){
-                            ui.emit('open-external-url', 'https://megacubo.net/update?ver=' + MANIFEST.version)
-                        }
+                    if(c.version > MANIFEST.version){
+                        console.log('new version found', c.version)
+                        prompt(c)
                     } else {
                         console.log('updated')
                     }

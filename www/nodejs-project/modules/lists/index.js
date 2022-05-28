@@ -195,7 +195,6 @@ class Index extends Common {
 								console.warn('M3U SEARCH ITERATE', e)
 							}
 							if(!this.matchSearchResult(e, query, opts)){ // filter again to prevent false positive due lists-index sync misbehaviour
-								console.error('Result spitted out', e, query, opts)
 								return
 							}
 							if(opts.type){

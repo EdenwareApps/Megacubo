@@ -280,13 +280,13 @@ class Lists extends Index {
 			resolve(this.isUpdaterFinished)
 		})
 	}
-	getUniqueCommunitaryLists(communitaryLists){ // remove duplicated communitaryLists, even from different protocols
+	getUniqueCommunityLists(communityLists){ // remove duplicated communityLists, even from different protocols
 		let already = []
 		this.myLists.forEach(u => {
 			let i = u.indexOf('//')
 			already.push(i == -1 ? u : u.substr(i + 2))
 		})
-		return communitaryLists.filter(u => {
+		return communityLists.filter(u => {
 			let i = u.indexOf('//')
 			u = i == -1 ? u : u.substr(i + 2)
 			if(!already.includes(u)){
@@ -295,15 +295,15 @@ class Lists extends Index {
 			}
 		})
 	}
-	sync(myLists, communitaryLists, sharedModeReach, relevantKeywords){ // prevent config.sync errors receiving sharedModeReach as parameter, instead of access a not yet updated the config.
+	sync(myLists, communityLists, sharedModeReach, relevantKeywords){ // prevent config.sync errors receiving sharedModeReach as parameter, instead of access a not yet updated the config.
 		return new Promise((resolve, reject) => {
 			if(relevantKeywords && relevantKeywords.length){
 				this.relevantKeywords = relevantKeywords
 			}
 			if(this.debug){
-				console.log('Adding lists...', myLists, communitaryLists, sharedModeReach)
+				console.log('Adding lists...', myLists, communityLists, sharedModeReach)
 			}
-			communitaryLists = this.getUniqueCommunitaryLists(communitaryLists)
+			communityLists = this.getUniqueCommunityLists(communityLists)
 			if(this.myLists.length){
 				this.myLists.forEach(u => {
 					if(!myLists.includes(u)){
@@ -313,26 +313,26 @@ class Lists extends Index {
 			}
 			this.myLists = myLists
 			this.sharedModeReach = sharedModeReach
-			this.syncListProgressData = {myLists, communitaryLists} // pick communitaryLists before filtering
-			communitaryLists.forEach(url => {
+			this.syncListProgressData = {myLists, communityLists} // pick communityLists before filtering
+			communityLists.forEach(url => {
 				if(!listsLoadTimes[url]){
 					listsLoadTimes[url] = {}
 				}
 				listsLoadTimes[url].sync = global.time()
 			})
-			this.filterByAvailability(communitaryLists, communitaryLists => {
-				communitaryLists.forEach(url => {
+			this.filterByAvailability(communityLists, communityLists => {
+				communityLists.forEach(url => {
 					if(!listsLoadTimes[url]){
 						listsLoadTimes[url] = {}
 					}
 					listsLoadTimes[url].filtered = global.time()
 				})
-				this.syncListProgressData.firstRun = !communitaryLists.length
+				this.syncListProgressData.firstRun = !communityLists.length
 				this.delimitActiveLists() // helps to avoid too many lists in memory
-				if(!this.sharedModeReach && communitaryLists.length){
-					communitaryLists = []
+				if(!this.sharedModeReach && communityLists.length){
+					communityLists = []
 				}
-				async.eachOf(myLists.concat(communitaryLists), (url, i, acb) => {
+				async.eachOf(myLists.concat(communityLists), (url, i, acb) => {
 					this.syncList(url).catch(console.error).finally(acb)
 				}, () => {
 					if(this.debug){
@@ -357,7 +357,7 @@ class Lists extends Index {
 				progresses = progresses.concat(this.myLists.map(url => this.lists[url] ? this.lists[url].progress() : 0))
 			}
 			if(this.sharedModeReach){
-				satisfyAmount = this.communitaryListsRequiredAmount(this.sharedModeReach, this.syncListProgressData.communitaryLists.length)
+				satisfyAmount = this.communityListsRequiredAmount(this.sharedModeReach, this.syncListProgressData.communityLists.length)
 				progresses = progresses.concat(Object.keys(this.lists).filter(url => !this.syncListProgressData.myLists.includes(url)).map(url => this.lists[url].progress()).sort((a, b) => b - a).slice(0, satisfyAmount))
 			}
 			if(this.debug){
@@ -411,6 +411,9 @@ class Lists extends Index {
 			resolves: [resolve],
 			rejects: [reject]
 		}
+	}
+	async querySyncStatus(){
+		return this.syncListProgressMessage('')
 	}
 	syncPump(syncedUrl, err){
 		if(typeof(this.syncListsQueue[syncedUrl]) != 'undefined'){
@@ -552,7 +555,7 @@ class Lists extends Index {
 							}														
 							global.listsRequesting[url] = 'added'
 							if(this.debug){
-								console.log('Added communitary list...', url, this.lists[url].index.length)
+								console.log('Added community list...', url, this.lists[url].index.length)
 							}
 							if(!resolved){
 								if(!replace){
@@ -652,11 +655,11 @@ class Lists extends Index {
 		})
 	}
     getListsRaw(){
-		let communitaryUrls = Object.keys(this.lists).filter(u => !this.myLists.includes(u))
+		let communityUrls = Object.keys(this.lists).filter(u => !this.myLists.includes(u))
 		return {
 			my: this.myLists,
-			communitary: communitaryUrls,
-			length: this.myLists.length + communitaryUrls.length
+			community: communityUrls,
+			length: this.myLists.length + communityUrls.length
 		}
     }	
     getLists(){

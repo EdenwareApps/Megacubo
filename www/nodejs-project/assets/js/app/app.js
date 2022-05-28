@@ -310,9 +310,7 @@ function initApp(){
                             return true
                         } else {
                             console.log('OVERSCROLLACTION!!!!!!!')
-                            explorer.body.removeClass('menu-playing')
-                            idle.reset()
-                            idle.lock(0.1)
+                            menuPlaying(false)
                         }
                     }
                 }
@@ -332,8 +330,7 @@ function initApp(){
                 },
                 overScrollAction: direction => {
                     if(direction == 'down'){
-                        explorer.body.addClass('menu-playing')
-                        setTimeout(() => explorer.reset(), 100)
+                        menuPlaying(true)
                         return true
                     } else if(direction == 'up') {
                         idle.start()
@@ -402,7 +399,7 @@ function initApp(){
                 if(explorer.modalContainer && explorer.modalContainer.querySelector('#modal-template-option-wait')){
                     explorer.endModal()
                 }
-                explorer.body.removeClass('menu-playing')
+                menuPlaying(false)
                 explorer.updateSelection() || explorer.reset()
             })
             window.dispatchEvent(new CustomEvent('streamer-ready'))
@@ -619,8 +616,12 @@ function initApp(){
             
             ffmpeg.bind()
 
+            jQuery('div#arrow-down-hint i').on('click', () => {
+                menuPlaying(true)
+            })
+
             jQuery('#menu-playing-close').on('click', () => {
-                explorer.body.removeClass('menu-playing')
+                menuPlaying(false)
             })
 
             if(parent.cordova){

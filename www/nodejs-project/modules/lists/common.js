@@ -162,7 +162,7 @@ class Common extends Events {
 			folderSizeLimitTolerance: 12,
 			paginateThreshold: 128,
 			offloadThreshold: 512,
-			defaultCommunitaryModeReach: global.cordova ? 18 : 24
+			defaultCommunityModeReach: global.cordova ? 18 : 24
 		}
         if(opts){
             Object.keys(opts).forEach(k => {
@@ -175,12 +175,12 @@ class Common extends Events {
 		this.parentalControl = new ParentalControl()
 		this.loadSearchRedirects()
 	}
-	communitaryListsRequiredAmount(n, foundCommunitaryListsCount){
+	communityListsRequiredAmount(n, foundCommunityListsCount){
 		let satisfyLevel = 0.5
 		if(typeof(n) != 'number'){
 			n = global.config.get('communitary-mode-lists-amount')
 		}
-		return Math.min(n * satisfyLevel, foundCommunitaryListsCount)
+		return Math.min(n * satisfyLevel, foundCommunityListsCount)
 	}
     joinPath(folder, file){
         let ret = folder
