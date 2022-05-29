@@ -738,11 +738,11 @@ div#arrow-down-hint {
 div#arrow-down-hint i {
     display: inline;
     color: var(--font-color);
-    font-size: var(--padding);
-    top: calc(-1.5 * var(--padding));
-    position: relative;    
-    padding: var(--padding);
+    font-size: var(--padding-15x);
+    top: calc(-2 * var(--padding));
+    position: relative;
     cursor: pointer;
+    padding: var(--padding);
 }
 controls button.info i.about-icon-dot {
     background: white;

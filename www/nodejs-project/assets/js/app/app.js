@@ -404,6 +404,12 @@ function initApp(){
             })
             window.dispatchEvent(new CustomEvent('streamer-ready'))
             app.emit('streamer-ready')
+            jQuery('#menu-playing-close').on('click', () => {
+                menuPlaying(false)
+            })
+            jQuery('div#arrow-down-hint i').on('click', () => {
+                menuPlaying(true)
+            })
         })
 
         configUpdated([], config)
@@ -615,14 +621,6 @@ function initApp(){
             })
             
             ffmpeg.bind()
-
-            jQuery('div#arrow-down-hint i').on('click', () => {
-                menuPlaying(true)
-            })
-
-            jQuery('#menu-playing-close').on('click', () => {
-                menuPlaying(false)
-            })
 
             if(parent.cordova){
                 parent.winman.setBackgroundMode(true) // enable once at startup to prevent service not registered crash
