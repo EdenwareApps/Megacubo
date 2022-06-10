@@ -78,7 +78,7 @@ class StreamerProxyBase extends StreamerAdapterBase {
 			let uri = new URL(path, url)
         	return uri.href
 		} catch(e) {
-			console.error(e)
+			console.error(e, path, url)
 			return path
 		}
 	}

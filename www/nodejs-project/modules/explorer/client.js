@@ -874,6 +874,7 @@ class ExplorerModal extends ExplorerPointer {
 		this.modalTemplates = {}
 		this.modalContainer = document.getElementById('modal')
 		this.modalContent = this.modalContainer.querySelector('#modal-content')
+		this.jmodalContent = jQuery(this.modalContent)
 		this.modalContent.parentNode.addEventListener('click', e => {	
             if(e.target.id == 'modal-content'){
 				if(!this.inModalMandatory()){
@@ -947,9 +948,9 @@ class ExplorerPlayer extends ExplorerModal {
 class ExplorerFx extends ExplorerPlayer {
 	constructor(jQuery, container, app){
 		super(jQuery, container, app)
+		this.fxNavTimer = 0
+		this.fxModalTimer = 0
 		this.fxContainer = this.container.find('wrap')
-		//this.fxContainer.parent().css('perspective', '10vmin')
-		//this.fxContainer.css('transform-origin', 'center bottom')
 		this.on('pre-render', (newPath, oldPath) => {
 			if(typeof(oldPath) != 'string'){
 				oldPath = -1
@@ -962,26 +963,53 @@ class ExplorerFx extends ExplorerPlayer {
 				}
 			}
 		})
+		this.on('pre-modal-start', () => {
+			this.fxPromptIn()
+		})
+		setTimeout(() => {
+			this.fxContainer.parent().add(this.jmodalContent.parent()).addClass('effect-inflate-deflate-parent')
+		})
 	}
 	fxNavIn(){
-		let deg = '-'+ (config['fx-nav-intensity'] * 0.45) + 'deg'
-		this.fxContainer.css('transition', 'none')
-		//this.fxContainer.css('transform', 'rotateX('+ deg +') scale(var(--explorer-fx-nav-deflate))')
-		this.fxContainer.css('transform', 'scale(var(--explorer-fx-nav-deflate))')
-		setTimeout(() => {
-			this.fxContainer.css('transition', 'transform var(--explorer-fx-nav-duration) ease-in-out 0s')
-			this.fxContainer.css('transform', 'none')
-		}, 0)
+		if(!config['fx-nav-intensity']) return
+		clearTimeout(this.fxNavTimer)
+		if(this.fxContainer.hasClass('effect-inflate')){
+			this.fxContainer.removeClass('effect-inflate')
+			setTimeout(() => this.fxNavIn(), 0)
+		} else {
+			this.fxContainer.css('transition', 'none').removeClass('effect-deflate').addClass('effect-inflate')
+			this.fxNavTimer = setTimeout(() => {
+				this.fxContainer.removeClass('effect-inflate')
+			}, 1500)
+		}
 	}
 	fxNavOut(){
-		let deg = (config['fx-nav-intensity'] * 0.3) + 'deg'
-		this.fxContainer.css('transition', 'none')
-		//this.fxContainer.css('transform', 'rotateX('+ deg +') scale(var(--explorer-fx-nav-inflate))')
-		this.fxContainer.css('transform', 'scale(var(--explorer-fx-nav-inflate))')
-		setTimeout(() => {
-			this.fxContainer.css('transition', 'transform var(--explorer-fx-nav-duration) ease-in-out 0s')
-			this.fxContainer.css('transform', 'none')
-		}, 0)
+		if(!config['fx-nav-intensity']) return
+		clearTimeout(this.fxNavTimer)
+		if(this.fxContainer.hasClass('effect-deflate')){
+			this.fxContainer.removeClass('effect-deflate')
+			setTimeout(() => {
+				this.fxNavOut()
+			}, 0)
+		} else {
+			this.fxContainer.css('transition', 'none').removeClass('effect-inflate').addClass('effect-deflate')
+			this.fxNavTimer = setTimeout(() => {
+				this.fxContainer.removeClass('effect-deflate')
+			}, 1500)
+		}
+	}
+	fxPromptIn(){
+		if(!config['fx-nav-intensity']) return
+		clearTimeout(this.fxModalTimer)
+		if(this.jmodalContent.hasClass('effect-inflate')){
+			this.jmodalContent.removeClass('effect-inflate')
+			setTimeout(() => this.fxPromptIn(), 0)
+		} else {
+			this.jmodalContent.css('transition', 'none').removeClass('effect-deflate').addClass('effect-inflate')
+			this.fxModalTimer = setTimeout(() => {
+				this.jmodalContent.removeClass('effect-inflate')
+			}, 1500)
+		}
 	}
 }
 

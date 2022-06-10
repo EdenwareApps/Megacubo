@@ -114,9 +114,14 @@ class EntriesGroup extends Events {
 			this.data = this.data.slice(0, this.limit)
 		}
         console.log('[entries-group-'+ this.key +'] ADDED', this.data)
+        this.save(true)
+    }
+    save(changed){
         global.storage.set(this.key, this.data, true)
         this.data = this.prepare(this.data)
-        this.emit('change', this.data)
+        if(changed){
+            this.emit('change', this.data)
+        }
     }
     remove(entry){
         for(var i in this.data){

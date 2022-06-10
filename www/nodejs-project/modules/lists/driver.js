@@ -129,62 +129,56 @@ class Lists extends Index {
 			resolve(data)
 		})		
 	}
-	epgSearch(terms, nowLive, includeCategories){
-		return new Promise((resolve, reject) => {
-			if(!this._epg){
-				return reject('no epg')
-			}
-			return this._epg.search(this.applySearchRedirects(terms), nowLive, includeCategories).then(resolve).catch(reject)
-		})
+	async epgExpandSuggestions(categories){
+		if(!this._epg){
+			throw 'no epg'
+		}
+		return this._epg.expandSuggestions(categories)
 	}
-	epgSearchChannel(terms){
-		return new Promise((resolve, reject) => {
-			if(!this._epg){
-				return reject('no epg')
-			}
-			resolve(this._epg.searchChannel(this.applySearchRedirects(terms)))
-		})		
+	async epgSuggestions(categories, until){
+		if(!this._epg){
+			throw 'no epg'
+		}
+		return this._epg.getSuggestions(categories, until)
 	}
-	epgSearchChannelIcon(terms){
-		return new Promise((resolve, reject) => {
-			if(!this._epg){
-				return reject('no epg')
-			}
-			resolve(this._epg.searchChannelIcon(this.applySearchRedirects(terms)))
-		})		
+	async epgSearch(terms, nowLive, includeCategories){
+		if(!this._epg){
+			throw 'no epg'
+		}
+		return await this._epg.search(this.applySearchRedirects(terms), nowLive, includeCategories)
 	}
-	epgFindChannelLog(terms){
-		return new Promise((resolve, reject) => {
-			if(!this._epg){
-				return reject('no epg')
-			}
-			return this._epg.findChannelLog(this.applySearchRedirects(terms)).then(resolve).catch(reject)
-		})		
+	async epgSearchChannel(terms){
+		if(!this._epg){
+			throw 'no epg'
+		}
+		return this._epg.searchChannel(this.applySearchRedirects(terms))
 	}
-	epgData(){
-		return new Promise((resolve, reject) => {
-			if(!this._epg){
-				return reject('no epg')
-			}
-			resolve(this._epg.data)
-		})		
+	async epgSearchChannelIcon(terms){
+		if(!this._epg){
+			throw 'no epg'
+		}
+		return this._epg.searchChannelIcon(this.applySearchRedirects(terms))
 	}
-	foundEPGs(){
-		return new Promise(resolve => resolve(this.epgs))
+	async epgData(){
+		if(!this._epg){
+			throw 'no epg'
+		}
+		return this._epg.data
 	}
-	epgChannelsList(){
-		return new Promise((resolve, reject) => {
-			if(!this._epg){
-				return reject('no epg')
-			}
-			let data = this._epg.channelsList()
-			if(data && Object.keys(data).length){
-				resolve(data)
-			} else {
-				console.error('epgChannelsList FAILED', JSON.stringify(data), JSON.stringify(this._epg.data))
-				reject('failed')
-			}
-		})		
+	async foundEPGs(){
+		return this.epgs
+	}
+	async epgChannelsList(){
+		if(!this._epg){
+			throw 'no epg'
+		}
+		let data = this._epg.channelsList()
+		if(data && Object.keys(data).length){
+			return data
+		} else {
+			console.error('epgChannelsList FAILED', JSON.stringify(data), JSON.stringify(this._epg.data))
+			throw 'failed'
+		}
 	}
 	epgChannelsListSanityScore(data){
 		let count = Object.keys(data).length, idealCatCount = 8
@@ -193,6 +187,9 @@ class Lists extends Index {
 		}
 		let c = Math.abs(count - idealCatCount)
 		return 100 - c
+	}
+	async epgFindChannel(data){
+		return this._epg.findChannel(data)
 	}
 	epgLiveNowChannelsList(){
 		return new Promise((resolve, reject) => {

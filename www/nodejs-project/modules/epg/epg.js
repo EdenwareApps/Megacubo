@@ -9,7 +9,7 @@ class EPG extends Events {
         this.termsKey = 'epg-terms-' + this.url
         this.channelsKey = 'epg-channels-' + this.url
         this.fetchCtrlKey = 'epg-fetch-' + this.url
-        this.iconsInfo = {}
+        this.metaCache = {icons:{}, categories: {}}
         this.data = {}
         this.terms = {}
         this.errorCount = 0
@@ -88,7 +88,7 @@ class EPG extends Events {
                 })
                 this.parser.once('end', () => {
                     console.log('EPG PARSER END')
-                    this.applyIcons()
+                    this.applyMetaCache()
                     this.clean()
                     this.save()
                     this.parser.destroy() 
@@ -174,10 +174,13 @@ class EPG extends Events {
         return {e: end, t: programme.title.shift() || 'No title', c: programme.category || '', i: programme.icon || ''}
     }
     channel(channel){
+        console.warn('EPGCH', channel)
         let name = channel.displayName || channel.name;
         [channel.id, channel.name || channel.displayName].forEach(cid => {
             if(typeof(this.channels[cid]) == 'undefined'){
                 this.channels[cid] = {name}
+            } else if(cid != name) {
+                this.channels[cid].name = name
             }
             if(channel.icon){
                 this.channels[cid].icon = channel.icon
@@ -198,19 +201,33 @@ class EPG extends Events {
             }
         }
     }
-    applyIcons(){
+    applyMetaCache(){
+        Object.keys(this.metaCache.categories).forEach(t => {
+            if(this.metaCache.categories[t].some(c => c.indexOf('/') != -1)){
+                this.metaCache.categories[t].forEach((c, i) => {
+                    if(c.indexOf('/') != -1){
+                        this.metaCache.categories[t] = c.split('/').map(s => s.trim()).filter(s => s)
+                    }
+                })
+                this.metaCache.categories[t] = this.metaCache.categories[t].flat()
+            }
+        })
         Object.keys(this.data).forEach(channel => {
             Object.keys(this.data[channel]).forEach(start => {
+                let t = this.data[channel][start].t.toLowerCase()
+                if(this.metaCache.categories[t] && this.metaCache.categories[t].length){
+                    this.data[channel][start].c = this.metaCache.categories[t]
+                }
                 if(!this.data[channel][start].i){
                     let t = this.data[channel][start].t.toLowerCase()
-                    if(this.iconsInfo[t]){
+                    if(this.metaCache.icons[t]){
                         let bestIcon
-                        Object.keys(this.iconsInfo[t]).forEach(src => {
+                        Object.keys(this.metaCache.icons[t]).forEach(src => {
                             if(!src) return
                             if(!bestIcon){
                                 bestIcon = src
                             } else {
-                                if(this.iconsInfo[t][src] > this.iconsInfo[t][bestIcon]){
+                                if(this.metaCache.icons[t][src] > this.metaCache.icons[t][bestIcon]){
                                     bestIcon = src
                                 }
                             }
@@ -293,6 +310,61 @@ class EPG extends Events {
         })
         return {categories, updateAfter}
     }
+    expandSuggestions(categories){
+        const results = {}
+        Object.values(lists._epg.data).forEach(c => {
+            Object.values(c).forEach(p => {
+                if(!p.c.length) return
+                let tms = p.c.filter(t => categories.includes(t))
+                if(tms.length) {
+                    tms.forEach(term => {
+                        if(typeof(results[term]) == 'undefined') {
+                            results[term] = []
+                        }
+                        p.c.forEach(a => {
+                            if(!categories.includes(a) && !results[term].includes(a)) {
+                                results[term].push(a)
+                            }
+                        })
+                    })
+                }
+            })
+        })
+        return results
+    }
+    getSuggestions(categories, until){
+        if(!categories.length){
+            return {}
+        }
+        let lcCategories = categories.map(c => {
+            c = c.toLowerCase()
+            if(c.indexOf('/') != -1){
+                c = c.split('/').map(s => s.trim())
+            }
+            return c
+        }).flat()
+        const results = {}, now = this.time()
+        if(!until){
+            until = now + (24 * 3600)
+        }
+        Object.keys(this.data).forEach(channel => {
+            Object.keys(this.data[channel]).some(start => {
+                if(this.data[channel][start].e > now && parseInt(start) <= until){
+                    if(Array.isArray(this.data[channel][start].c)){
+                        this.data[channel][start].c.forEach(c => {
+                            if(lcCategories.includes(c)){
+                                if(typeof(results[channel]) == 'undefined'){
+                                    results[channel] = {}
+                                }
+                                results[channel][start] = this.data[channel][start]
+                            }
+                        })
+                    }
+                }
+            })
+        })
+        return results
+    }
     prepareChannelName(name){
         return name
 
@@ -314,14 +386,25 @@ class EPG extends Events {
         }
         if(data.i){
             let t = data.t.toLowerCase()
-            if(typeof(this.iconsInfo[t]) == 'undefined'){
-                this.iconsInfo[t] = {}
+            if(typeof(this.metaCache.icons[t]) == 'undefined'){
+                this.metaCache.icons[t] = {}
             }
-            if(typeof(this.iconsInfo[t][data.i]) == 'undefined'){
-                this.iconsInfo[t][data.i] = 1
+            if(typeof(this.metaCache.icons[t][data.i]) == 'undefined'){
+                this.metaCache.icons[t][data.i] = 1
             } else {
-                this.iconsInfo[t][data.i]++
+                this.metaCache.icons[t][data.i]++
             }
+        }
+        if(data.c && data.c.length){
+            let t = data.t.toLowerCase()
+            if(typeof(this.metaCache.categories[t]) == 'undefined'){
+                this.metaCache.categories[t] = []
+            }
+            data.c.map(s => s.toLowerCase()).forEach(c => {
+                if(!this.metaCache.categories[t].includes(c)){
+                    this.metaCache.categories[t].push(c)
+                }
+            })            
         }
     }
     time(dt){
@@ -407,45 +490,77 @@ class EPG extends Events {
         })
         return [...new Set(results)]
     }
-    findChannel(terms){
-        let score, current
+    findChannel(data){
+        if(data.searchName && data.searchName != '-' && typeof(this.data[data.searchName]) != 'undefined'){
+            return data.searchName
+        } else if(data.name && typeof(this.data[data.name]) != 'undefined'){
+            return data.name
+        }
+        let score, candidates = [], maxScore = 0, terms = data.terms || data
         Object.keys(this.terms).forEach(name => {
             score = global.lists.match(terms, this.terms[name], false)
-            if(score){
-                if(!current || score > current.score){
-                    current = {name, score}
-                }
+            if(score && score >= maxScore){
+                maxScore = score
+                candidates.push({name, score})
             }
         })
-        if(!current){
+        if(!candidates.length){
             Object.keys(this.terms).forEach(name => {
                 score = global.lists.match(this.terms[name], terms, false)
-                if(score){
-                    if(!current || score > current.score){
-                        current = {name, score}
-                    }
+                if(score && score >= maxScore){
+                    maxScore = score
+                    candidates.push({name, score})
                 }
             })
         }
-        return current ? current.name : false
-    }
-    findChannelLog(terms){
-        return new Promise((resolve, reject) => {
-            let score, current, log = [terms]
-            Object.keys(this.terms).forEach(name => {
-                score = global.lists.match(terms, this.terms[name], true)
-                if(score){
-                    log.push({name, terms: this.terms[name], score})
-                    if(!current || score > current.score){
-                        current = {name, score}
-                    }
+        if(!candidates.length){
+            return false
+        }
+        candidates = candidates.filter(c => c.score == maxScore)
+        // console.log('findChannel', candidates)
+        if(candidates.length > 1){
+            // first spit out the divergent ones
+            let maxSimilarityScore = 0, candidatesData = {}, candidatesSimilarityScores = {}
+            candidates.forEach(c => {
+                candidatesData[c.name] = [...new Set(Object.values(this.data[c.name]).map(p => p.t))]
+            })
+            Object.keys(candidatesData).forEach(name => {
+                let similarityScore = 0
+                candidatesData[name].forEach((title, i) => {
+                    Object.keys(candidatesData).forEach(n => {
+                        if(!candidatesData[n][i]) return
+                        if(candidatesData[name][i] == candidatesData[n][i]){
+                            similarityScore++
+                        }
+                    })
+                })
+                candidatesSimilarityScores[name] = similarityScore
+                if(similarityScore > maxSimilarityScore){
+                    maxSimilarityScore = similarityScore
                 }
             })
-            if(current){
-                log.push(current)
-            }
-            resolve(log)
-        })
+            // console.log('findChannel', Object.assign({}, candidatesData))
+            Object.keys(candidatesData).forEach(name => {
+                if(candidatesSimilarityScores[name] < maxSimilarityScore){
+                    delete candidatesData[name]
+                }
+            })
+            // console.log('findChannel', Object.assign({}, candidatesData))
+            // now pick the longest one
+            let maxEndingTime = 0, ckeys = Object.keys(candidatesData).sort((a, b) => {
+                let ak = Object.keys(this.data[a]).pop()
+                let bk = Object.keys(this.data[b]).pop()
+                let ae = this.data[a][ak].e
+                let be = this.data[b][bk].e
+                if(ae > maxEndingTime) maxEndingTime = ae
+                if(be > maxEndingTime) maxEndingTime = be
+                return be - ae
+            })
+            candidates = candidates.filter(c => {
+                return c.name == ckeys[0]
+            })
+        }
+        return candidates.length ? candidates[0].name : false
     }
     search(terms, nowLive, includeCategories){
         return new Promise((resolve, reject) => {

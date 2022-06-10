@@ -299,7 +299,7 @@ class Download extends Events {
 	}
 	errorCallback(err){
 		if(!this.destroyed && !this.ended){
-			if(1||this.opts.debug){
+			if(this.opts.debug){
 				console.error('>> Download error', err, this.opts.url, global.traceback())
 			}
 			this.errors.push(String(err) || 'unknown request error')
@@ -606,6 +606,10 @@ class Download extends Events {
 		}
 	}
 	isResponseComplete(statusCode){
+		if(statusCode == 416) {
+			this.opts.acceptRanges = false
+			return false
+		}
 		const isValidStatusCode = statusCode == 416 || (statusCode >= 200 && statusCode < 300)
 		const isComplete = this.contentLength == -1 || this.received >= this.contentLength
 		if(isValidStatusCode && isComplete && this.contentLength == -1 && !this.currentRequestError){ // ended fine
@@ -759,8 +763,14 @@ class Download extends Events {
 				this.progress = 99
 			}
 		}
-		if(this.progress != current && this.listenerCount('progress') && this.progress < 100){
-			this.emit('progress', this.progress)
+		if(this.progress != current &&this.progress < 100){			
+			if(global.osd && global.config.get('debug-conns')){
+				let txt = this.opts.url.split('?')[0].split('/').pop() +': '+ this.progress	+'%'			
+				global.osd.show(txt, 'fas fa-download', 'down-'+ this.uid, 'persistent')
+			}
+			if(this.listenerCount('progress')){
+				this.emit('progress', this.progress)
+			}
 		}
 	}
 	destroyStream(){
@@ -895,9 +905,14 @@ class Download extends Events {
 					let ts = Object.keys(this.timings).filter(k => {
 						return this.timings[k] >= 1000
 					})
-					txt += ts.map(k => {
-						return k +': '+ parseInt(this.timings[k]/1000) +'s'
-					}).join(', ') + ', '+ global.kbfmt(this.received)
+					let add = ts.map(k => {
+						return (k == 'ttotal' ? 'total' : k) +': '+ parseInt(this.timings[k]/1000) +'s'
+					}).join(', ')
+					if(add){
+						add += ', '
+						txt += add
+					}
+					txt += global.kbfmt(this.received)
 					global.osd.show(txt, 'fas fa-download', 'down-'+ this.uid, 'long')
 				}
 			})

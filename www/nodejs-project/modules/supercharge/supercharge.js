@@ -228,28 +228,51 @@ function patch(scope){
 	} 	
 	scope.forwardSlashes = (file) => {
 		return file.replaceAll('\\', '/').replaceAll('//', '/')
-	}
+	}	
+    scope.joinPath = (folder, file) => {
+		let ffolder = folder
+		let ffile = file
+		if(ffolder.indexOf('\\') != -1) {
+			ffolder = scope.forwardSlashes(ffolder)
+		}
+		if(ffile.indexOf('\\') != -1) {
+			ffile = scope.forwardSlashes(ffile)
+		}
+		let folderEndsWithSlash = ffolder.charAt(ffolder.length - 1) == '/'
+		let fileStartsWithSlash = ffile.charAt(0) == '/'
+		if(fileStartsWithSlash && folderEndsWithSlash) {
+			ret = ffolder + ffile.substr(1)
+		} else if(fileStartsWithSlash || folderEndsWithSlash) {
+			ret = ffolder + ffile
+		} else {
+			ret = ffolder +'/'+ ffile
+		}
+        return ret
+    }
 	scope.time = () => {
 		return Date.now() / 1000
 	}
 	scope.isVODM3U8 = (content, contentLength) => {
         let sample = String(content).toLowerCase()
 		if(sample.indexOf('#ext-x-playlist-type:vod') != -1) return true
+		if(sample.match(new RegExp('#ext-x-media-sequence:0[^0-9]'))) return true
 		let pe = sample.indexOf('#ext-x-endlist')
 		let px = sample.lastIndexOf('#extinf')
 		if(pe != -1){
 			return pe > px
 		}
-		let pieces = sample.split('#extinf')
-		if(pieces.length > 30){
-			return true
-		}
-		if(typeof(contentLength) == 'number' && pieces.length > 2){ //  at least 3 pieces, to ensure that the first extinf is complete
-			let header = pieces.shift()
-			let pieceLen = pieces[0].length + 7
-			let totalEstimatedPieces = (contentLength - header.length) / pieceLen
-			if(totalEstimatedPieces > 30){
+		if(sample.indexOf('#ext-x-program-date-time') == -1){
+			let pieces = sample.split('#extinf')
+			if(pieces.length > 30){
 				return true
+			}
+			if(typeof(contentLength) == 'number' && pieces.length > 2){ //  at least 3 pieces, to ensure that the first extinf is complete
+				let header = pieces.shift()
+				let pieceLen = pieces[0].length + 7
+				let totalEstimatedPieces = (contentLength - header.length) / pieceLen
+				if(totalEstimatedPieces > 30){
+					return true
+				}
 			}
 		}
 	}

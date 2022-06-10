@@ -1,5 +1,5 @@
 
-const path = require('path'), EntriesGroup = require(path.resolve(__dirname, '../entries-group'))
+const EntriesGroup = require('../entries-group')
 
 class Bookmarks extends EntriesGroup {
     constructor(){

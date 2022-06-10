@@ -1,4 +1,4 @@
-const path = require('path'), async = require('async'), EntriesGroup = require(path.resolve(__dirname, '../entries-group'))
+const path = require('path'), async = require('async'), EntriesGroup = require('../entries-group')
 
 class Watching extends EntriesGroup {
     constructor(){

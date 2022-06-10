@@ -92,7 +92,7 @@ class IPTVPlaylistStreamParser extends Events {
 			s = s.replace(this.regexes['notags'], '')
 		}
 		if(s.indexOf('\\') != -1){
-			s = s.replaceAll('\\', ' ')
+			s = global.forwardSlashes(s)
 		}
 		if(s.indexOf('/') != -1){
 			s = s.replaceAll('/', ' ')
@@ -109,7 +109,7 @@ class IPTVPlaylistStreamParser extends Events {
 		if(s.toLowerCase().trim() == 'n/a'){
 			return ''
 		}
-		s = s.replaceAll('\\', '/')
+		s = global.forwardSlashes(s)
 		s = s.replaceAll('|', '/')
 		s = s.split('/').map(t => t.trim()).filter(t => t.length).join('/')
 		return s

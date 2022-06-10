@@ -130,7 +130,7 @@ function basename(str, rqs){
 
 function dirname(str){
     _str = new String(str)
-    pos = _str.replaceAll('\\', '/').lastIndexOf('/')
+    pos = global.forwardSlashes(_str).lastIndexOf('/')
     if(!pos) return ''
     _str = _str.substring(0, pos)
     return _str

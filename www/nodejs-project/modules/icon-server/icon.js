@@ -147,7 +147,7 @@ class IconFetcher {
                 }).catch(console.error)
             }
             this.master.fetchURL(this.entry.icon).then(ret => this.ready(ret.key)).catch(err => {
-                if(!this.entry.class || this.entry.class.indexOf('entry-icon-no-fallback') == -1){
+                if(!this.entry.class || this.entry.class.indexOf('entry-icon-no-fallback') == -1) {
                     let atts
                     this.terms = global.channels.entryTerms(this.entry)
                     this.isChannel = global.channels.isChannel(this.terms)

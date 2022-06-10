@@ -53,11 +53,18 @@ class Language extends Events {
         }
         this.countryCode = loc
     }
-    getCountries(locale){ // return countries of same ui language
+    getCountryLanguages(code){
         return new Promise((resolve, reject) => {
-            if(!locale){
-                return resolve(this.cl.getCountries().map(l => l.code_2.toLowerCase()))
-            }
+            this.cl.getCountryLanguages(code, (err, countries) => {
+                if(err){
+                    return reject(err)
+                }
+                resolve(countries.map(r => r.iso639_1).filter(r => r))
+            })
+        })
+    }
+    getCountriesFromLanguage(locale){ // return countries of same ui language
+        return new Promise((resolve, reject) => {
             global.lang.cl.getLanguage(locale, (err, language) => {
                 if (err) {
                     reject(err)
@@ -67,21 +74,42 @@ class Language extends Events {
             })
         })
     }
+    async getCountries(locale){ // return countries of same ui language
+        if(!locale){
+            return this.cl.getCountries().map(l => l.code_2.toLowerCase())
+        }
+        const countries = [], locales = Array.isArray(locale) ? locale : [locale]
+        await Promise.all(locales.map(async loc => {
+            const cs = await this.getCountriesFromLanguage(loc).catch(console.error)
+            if(Array.isArray(cs)){
+                cs.forEach(c => {
+                    if(!countries.includes(c)) countries.push(c)
+                })
+            }
+        }))
+        return countries
+    }
    async getActiveCountries(){
         let actives = global.config.get('countries')
         if(!Array.isArray(actives) || !actives.length){
-            actives = await this.getCountries(this.locale)
+            let languages = await this.getCountryLanguages(this.countryCode)
+            actives = await this.getCountries(languages)
             if(!actives.includes(this.countryCode)){
                 actives.push(this.countryCode)
             }
         }
         return actives
     }
-    getCountriesMap(locale){ // return countries of same ui language
+    getCountriesMap(locale, additionalCountries){ // return countries of same ui language
         return new Promise((resolve, reject) => {
             this.getCountries(locale).then(codes => {
                 this.countries.ready(() => {
                     let entries = []
+                    if(Array.isArray(additionalCountries)) {
+                        additionalCountries.forEach(c => {
+                            if(!codes.includes(c)) codes.push(c)
+                        })
+                    }
                     async.eachOf(codes, (code, i, done) => {
                         let name = this.countries.nameFromCountryCode(code, this.locale)
                         if(name && name != code){

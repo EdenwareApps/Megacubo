@@ -51,6 +51,8 @@ class HLSTrackSelector {
                 } else {
                     results = [{url: masterUrl, bandwidth: 0}]
                 }
+                parser.dispose()
+                parser = null
                 resolve(results)
             }).catch(reject)
         })

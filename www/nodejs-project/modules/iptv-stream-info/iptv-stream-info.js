@@ -46,7 +46,7 @@ class IPTVStreamInfo {
 							let trackUrl = strSample.split("\n").map(s => s.trim()).filter(line => line.length > 3 && line.charAt(0) != '#').shift()
 							trackUrl = this.absolutize(trackUrl, url)
 							return this._probe(trackUrl, timeoutSecs, retries).then(resolve).catch(err => {
-								console.error(err)
+								console.error('HLSTRACKERR', err, url, trackUrl)
 								done()
 							})
 						}
@@ -101,7 +101,7 @@ class IPTVStreamInfo {
 						} else {
 							ct = ''
 						}
-						if((!ct || ct.substr(0, 5) == 'text/') && ret.sample){							
+						if((!ct || ct.substr(0, 5) == 'text/') && ret.sample){	// sniffing						
 							if(String(ret.sample).match(new RegExp('#EXT(M3U|INF)', 'i'))){
 								ct = 'application/x-mpegURL'
 							} else if(this.isBin(ret.sample) && ret.sample.length >= this.opts.probeSampleSize){ // check length too to skip plain text error messages
@@ -214,8 +214,11 @@ class IPTVStreamInfo {
 		return ''
 	}
 	validate(value) {
+		if(value.substr(0, 2) == '//') {
+			value = 'http:'+ value
+		}
 		let v = value.toLowerCase(), prt = v.substr(0, 4), pos = v.indexOf('://')
-		if(['http'].includes(prt) && pos >= 4 && pos <= 6){
+		if(['http'].includes(prt) && pos >= 4 && pos <= 6) {
 			return true // /^(?:(?:(?:https?|rt[ms]p[a-z]?):)?\/\/)(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,})))(?::\d{2,5})?(?:[/?#]\S*)?$/i.test(value);
 		}
 	}

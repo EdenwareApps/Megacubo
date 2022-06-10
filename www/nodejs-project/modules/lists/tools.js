@@ -19,7 +19,7 @@ class Tools {
 			qs = str.slice(pos + 1)
 			str = str.slice(0, pos)
 		}
-		str = str.replaceAll('\\', '/')
+		str = global.forwardSlashes(str)
 		pos = str.lastIndexOf('/')
 		if(pos != -1){
 			str = str.substring(pos + 1)
@@ -30,7 +30,7 @@ class Tools {
 		return str
 	}
 	dirname(str){
-		let _str = new String(str), pos = _str.replaceAll('\\', '/').lastIndexOf('/')
+		let _str = new String(str), pos = global.forwardSlashes(_str).lastIndexOf('/')
 		if(!pos) return ''
 		_str = _str.substring(0, pos)
 		return _str

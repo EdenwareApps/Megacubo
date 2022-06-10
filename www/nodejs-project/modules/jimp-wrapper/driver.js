@@ -33,7 +33,7 @@ class JimpDriver {
         return valid
     }
     transform(file, opts){
-        const maxWidth = 500, maxHeight = 500
+        const maxWidth = 400, maxHeight = 400
         let changed
         opts = Object.assign({autocrop: true, shouldBeAlpha: 0, resize: false}, opts)
         return new Promise((resolve, reject) => {
@@ -53,11 +53,6 @@ class JimpDriver {
                     if(opts.shouldBeAlpha == 2 && !alpha){
                         return reject('not an alpha image')
                     }
-                    if(opts.autocrop){
-                        image.autocrop = this.jimpCustomAutocrop
-                        image = image.autocrop({tolerance: 0.002})
-                        if(image.autoCropped) changed = true
-                    }
                     if(opts.resize){
                         if(image.bitmap.width > maxWidth){
                             const start = (new Date()).getTime()
@@ -71,6 +66,11 @@ class JimpDriver {
                             console.log('JIMP resizeX', (new Date()).getTime() - start)
                             changed = true
                         }
+                    }
+                    if(opts.autocrop){
+                        image.autocrop = this.jimpCustomAutocrop
+                        image = image.autocrop({tolerance: 0.002})
+                        if(image.autoCropped) changed = true
                     }
                     if(changed){
                         image.write(file, () => resolve({file, alpha, changed}))

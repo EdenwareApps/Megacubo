@@ -1,5 +1,5 @@
 const fs = require('fs'), path = require('path'), http = require('http')
-const crypto = require('crypto'), Icon = require('./icon'), closed = require(global.APPDIR +'/modules/on-closed')
+const crypto = require('crypto'), Icon = require('./icon'), closed = require('../on-closed')
 
 class IconDefault {
     constructor(){}
@@ -389,7 +389,7 @@ class IconServer extends IconFetchSem {
         this.opts = {
             addr: '127.0.0.1',
             port: 0, // let the http.server sort
-            downloadLimit: 1 * (1024 * 1024), // 1mb
+            downloadLimit: 0.5 * (1024 * 1024), // 1mb
             folder: './cache',
             debug: false
         }
@@ -406,7 +406,7 @@ class IconServer extends IconFetchSem {
 		})
         this.closed = false
         this.server = false
-        this.schedulingLimits = {download: 8, adjust: 1}
+        this.schedulingLimits = {download: 6, adjust: 1}
         this.activeSchedules = {}
         this.schedules = {}
         this.rendering = {}

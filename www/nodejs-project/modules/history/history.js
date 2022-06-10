@@ -1,5 +1,5 @@
 
-const path = require('path'), EntriesGroup = require(path.resolve(__dirname, '../entries-group'))
+const EntriesGroup = require('../entries-group'), EPGHistory = require('./epg-history')
 
 class History extends EntriesGroup {
     constructor(){
@@ -36,6 +36,7 @@ class History extends EntriesGroup {
                 }
             })
         })
+        this.epg = new EPGHistory()
     }
     resume(){
         this.ready(() => {
@@ -53,32 +54,31 @@ class History extends EntriesGroup {
     entry(){
         return {name: global.lang.KEEP_WATCHING, details: global.lang.WATCHED, fa: 'fas fa-history', type: 'group', hookId: this.key, renderer: this.entries.bind(this)}
     }
-    hook(entries, path){
-        return new Promise((resolve, reject) => {
-            if(path == global.lang.TOOLS){
-                entries.push(this.entry())
-            } else if(path == '') {
-                let pos = -1, es = this.get()
-                console.log('HISTHOOK', es, es.length)
-                entries = entries.filter(e => {
-                    return e.hookId != this.key
-                })
-                entries.some((e, i) => {
-                    if(e.name == global.lang.IPTV_LISTS){
-                        pos = i
-                        return true
-                    }
-                })
-                if(es.length){
-                    pos = 0
-                    let defs = {hookId: this.key, fa: 'fas fa-undo', class: 'entry-icon', details: '<i class="fas fa-play-circle"></i> '+ global.lang.KEEP_WATCHING}
-                    entries.splice(pos, 0, Object.assign(Object.assign({}, es[0]), defs))
-                } else {
-                    entries.splice(pos, 0, this.entry())
+    async hook(entries, path){
+        if(path == global.lang.TOOLS){
+            entries.push(this.entry())
+        } else if(path == '') {
+            let pos = -1, es = this.get()
+            console.log('HISTHOOK', es, es.length)
+            entries = entries.filter(e => {
+                return e.hookId != this.key
+            })
+            entries.some((e, i) => {
+                if(e.name == global.lang.IPTV_LISTS){
+                    pos = i
+                    return true
                 }
+            })
+            if(es.length){
+                pos = 0
+                let defs = {hookId: this.key, fa: 'fas fa-undo', class: 'entry-icon', details: '<i class="fas fa-play-circle"></i> '+ global.lang.KEEP_WATCHING}
+                entries.splice(pos, 0, Object.assign(Object.assign({}, es[0]), defs))
+            } else {
+                entries.splice(pos, 0, this.entry())
             }
-            resolve(entries)
-        })
+        }
+        entries = await this.epg.hook(entries, path)
+        return entries
     }
     entries(e){
         return new Promise((resolve, reject) => {

@@ -1,5 +1,5 @@
 
-const path = require('path'), http = require('http'), stoppable = require('stoppable'), StreamerAdapterBase = require('../adapters/base.js'), closed = require(global.APPDIR +'/modules/on-closed')
+const path = require('path'), http = require('http'), stoppable = require('stoppable'), StreamerAdapterBase = require('../adapters/base.js'), closed = require('../../on-closed')
 
 const SYNC_BYTE = 0x47
 

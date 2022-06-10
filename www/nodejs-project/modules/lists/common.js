@@ -182,17 +182,9 @@ class Common extends Events {
 		}
 		return Math.min(n * satisfyLevel, foundCommunityListsCount)
 	}
-    joinPath(folder, file){
-        let ret = folder
-        if(ret.charAt(ret.length - 1) != '/'){
-            ret += '/'
-        }
-        ret += file
-        return ret
-    }
 	loadSearchRedirects(){
 		if(!this.searchRedirects.length){
-			fs.readFile(this.joinPath(__dirname, 'search-redirects.json'), (err, content) => { // redirects to find right channel names, as sometimes they're commonly refered by shorter names on IPTV lists
+			fs.readFile(global.joinPath(__dirname, 'search-redirects.json'), (err, content) => { // redirects to find right channel names, as sometimes they're commonly refered by shorter names on IPTV lists
 				console.warn('loadSearchRedirects', err, content)
 				if(err){
 					console.error(err)

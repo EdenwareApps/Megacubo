@@ -58,7 +58,7 @@ class TunerTask extends TunerUtils {
 			}
 			this.states[i] = 1 
 			if(!this.streamer){
-				this.streamer = new (require(path.resolve(__dirname, '../streamer')))({shadow: true})
+				this.streamer = new (require('../streamer'))({shadow: true})
 			}
 			/*
 			STATES, used by test()
@@ -388,8 +388,12 @@ class Tuner extends TunerTask {
 		return stats
 	}
 	stats(){
-		if(this.listenerCount('progress') > 0 && this.active()){
-			this.emit('progress', this.getStats())
+		if(this.listenerCount('progress') > 0 && this.active()) {
+			const stats = this.getStats()
+			if(stats.progress !== this.lastProgress) {
+				this.lastProgress = stats.progress
+				this.emit('progress', stats)
+			}
 		}
 	}
 	pump(){

@@ -1,5 +1,5 @@
 
-const path = require('path'), Tuner = require(path.resolve(__dirname, '../tuner')), Events = require('events')
+const path = require('path'), Tuner = require('../tuner'), Events = require('events')
 
 class StreamState extends Events {
     constructor(){

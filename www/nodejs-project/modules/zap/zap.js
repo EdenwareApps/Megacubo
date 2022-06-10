@@ -124,11 +124,13 @@ class Zap extends Events {
             wdata[e.name] = e.users
         });
         Object.keys(global.channels.channelsIndex).forEach(name => {
-            channels.push({
-                name,
-                weight: wdata[name] || 1,
-                terms: global.channels.channelsIndex[name]
-            })
+            if(!global.lists.msi.isRadio(name)){
+                channels.push({
+                    name,
+                    weight: wdata[name] || 1,
+                    terms: global.channels.channelsIndex[name]
+                })
+            }
         })
         return channels
     }

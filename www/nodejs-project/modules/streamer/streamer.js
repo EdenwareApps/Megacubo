@@ -664,7 +664,7 @@ class StreamerAbout extends StreamerTracks {
 						if(textPos == -1){
 							textPos = i
 						} else {
-							ret[textPos].text += r.text
+							ret[textPos].text += ' '+ r.text
 							return false
 						}
 					}
@@ -726,8 +726,9 @@ class StreamerAbout extends StreamerTracks {
 	}
 	aboutText(){
 		let text = ''
+		const currentSpeed = (this.speedoAdapter || this.active).currentSpeed, icon = '<i class="fas fa-circle {0}"></i> '
 		if(this.active.bitrate && !this.active.data.isLocal){
-			const currentSpeed = (this.speedoAdapter || this.active).currentSpeed, tuneable = this.isTuneable, icon = '<i class="fas fa-circle {0}"></i> '
+			const tuneable = this.isTuneable
 			if(this.downlink < currentSpeed){
 				this.downlink = currentSpeed
 			}
@@ -756,6 +757,8 @@ class StreamerAbout extends StreamerTracks {
 					text += global.lang.SLOW_SERVER + ' (' + global.kbsfmt(currentSpeed) + ' < ' + global.kbsfmt(this.active.bitrate)+')'
 				}
 			}
+		} else {
+			text += icon.format('faclr-orange') +' '+ global.kbsfmt(currentSpeed)
 		}
 		let meta = [this.active.type.toUpperCase()], dimensions = this.active.dimensions()
 		if(dimensions){
@@ -970,12 +973,12 @@ class Streamer extends StreamerAbout {
 				}
 				throw 'another play intent in progress'
 			}		
-			console.warn('ABOUT TO TUNE', name, JSON.stringify(entries), opts)
+			//console.warn('ABOUT TO TUNE', name, JSON.stringify(entries), opts)
 			entries = entries.results		
 			if(opts.hlsOnly === true){
 				entries = this.hlsOnly(entries)
 			}
-			console.warn('ABOUT TO TUNE', name, opts, entries.length)
+			//console.warn('ABOUT TO TUNE', name, opts, entries.length)
 			if(entries.length){
 				entries = entries.map(s => {
 					s.originalName = name
@@ -1128,7 +1131,9 @@ class Streamer extends StreamerAbout {
 		if(this.opts.shadow){
 			return
 		}
-		if(c != 'tune' && e && (global.tuning && global.tuning.has(e.url))){
+		if(global.zap.isZapping){
+			c = 'stop'
+		} else if(c != 'tune' && e && (global.tuning && global.tuning.has(e.url))){
 			c = 'tune'
 		}
 		if((r != null && typeof(r) != 'undefined') && (c != 'tune' || !e) && (silent !== true || c == 'stop' || !e)){

@@ -11,9 +11,17 @@ if(typeof(themeRefresh) == 'undefined'){
         let sfg = hexToRGBA(config['font-color'], 0.75)
         let fxNavIntensityStep = parseFloat(window.getComputedStyle(document.documentElement).getPropertyValue('--explorer-fx-nav-intensity-step').trim())
         let fxNavIntensity = config['fx-nav-intensity'] * fxNavIntensityStep
+        let fxNavDuration
+        if(!config['fx-nav-intensity']){
+            fxNavDuration = 0
+        } else {
+            let min = 0.175, max = 1
+            fxNavDuration = min + (config['fx-nav-intensity'] * ((max - min) / 10))
+        }
         let radius = top.cordova ? '1vmax' : '9px'
         let cssCode = `
 :root {
+    --explorer-fx-nav-duration: ${fxNavDuration}s;
     --explorer-entry-name-font-size: calc(((100vmin + 100vmax) * 0.333) * ${nfs});
     --font-color: ${config['font-color']};
     --secondary-font-color: ${sfg};
@@ -47,6 +55,7 @@ body {
         css(cssCode, 'theme')
         parent.animateBackground(config['animate-background'])
         parent.loaded()
+        explorer.resize()
     }
 }
 themeRefresh()

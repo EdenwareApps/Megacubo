@@ -140,7 +140,7 @@ class Setup extends EventEmitter {
                 app.emit('lists-manager', 'agree')
             }
             setTimeout(() => {
-                if(!this.performanceAsked){
+                if(this.isMobile() && !this.performanceAsked){
                     this.performanceAsked = true
                     app.emit('performance-setup')
                 }

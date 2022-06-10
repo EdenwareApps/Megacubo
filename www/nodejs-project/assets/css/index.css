@@ -18,6 +18,8 @@
     --explorer-fx-nav-default-deflate: calc(1 - var(--explorer-fx-nav-intensity-step));
     --explorer-fx-nav-inflate: calc(1 + var(--explorer-fx-nav-intensity));
     --explorer-fx-nav-deflate: calc(1 - var(--explorer-fx-nav-intensity));
+    --explorer-fx-nav-semi-inflate: calc(1 + (var(--explorer-fx-nav-intensity)) / 10);
+    --explorer-fx-nav-semi-deflate: calc(1 - (var(--explorer-fx-nav-intensity)) / 10);
     --explorer-fx-nav-duration: 0.1s;
     --explorer-width: calc(100vw - 4vmin - var(--explorer-padding-right) - var(--explorer-padding-left));
     --explorer-height: calc(100vh - 2vmin - var(--explorer-padding-top) - var(--explorer-padding-bottom));
@@ -981,7 +983,6 @@ div#modal {
     height: 100vh;
     z-index: 9;
     background: var(--modal-background-color);
-    transition: visibility var(--explorer-fx-nav-duration) linear 0s;    
 }
 div#modal > div {
     position: fixed;
@@ -1022,7 +1023,6 @@ body.modal wrap {
 }
 body.modal #modal {
     visibility: visible;
-    transform: visibility var(--explorer-fx-nav-duration) linear var(--explorer-fx-nav-duration);
 }
 span.modal-template-message {
     font-size: var(--explorer-entry-name-font-size);
@@ -1307,4 +1307,36 @@ body.menu-playing #main {
 .spin-x-alt {    
     animation: spin-x-alt 3s infinite;
     display: inline-block;
+}
+@keyframes inflate {
+    0% {
+		transform: rotateX(0deg) scale(var(--explorer-fx-nav-deflate));
+    }
+    70% {
+        transform: rotateX(-0.075deg) scale(var(--explorer-fx-nav-semi-inflate));
+    }
+    100% {
+        transform: none;
+    }
+}
+@keyframes deflate {
+    0% {
+		transform: rotateX(0deg) scale(var(--explorer-fx-nav-inflate));
+    }
+    70% {
+        transform: rotateX(0.075deg) scale(var(--explorer-fx-nav-semi-deflate));
+    }
+    100% {
+        transform: rotateX(0deg) scale(1);
+    }
+}
+.effect-inflate {
+    animation: inflate var(--explorer-fx-nav-duration) 1;
+}
+.effect-deflate {
+    animation: deflate var(--explorer-fx-nav-duration) 1;
+}
+.effect-inflate-deflate-parent {
+    perspective: 10vmin;
+    transform-origin: center center;
 }

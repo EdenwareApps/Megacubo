@@ -1,5 +1,5 @@
 
-const http = require('http'), path = require('path'), parseRange = require('range-parser'), closed = require(global.APPDIR +'/modules/on-closed')
+const http = require('http'), path = require('path'), parseRange = require('range-parser'), closed = require('../../on-closed')
 const StreamerProxyBase = require('./proxy-base'), decodeEntities = require('decode-entities'), m3u8Parser = require('m3u8-parser'), stoppable = require('stoppable')
 
 class StreamerProxy extends StreamerProxyBase {
@@ -156,6 +156,8 @@ class StreamerProxy extends StreamerProxyBase {
 				return match[1] + match[2]
 			})
 		}
+		parser.dispose()
+		parser = null
 		return body
 	}
 	applyM3U8Replace(body, from, to){

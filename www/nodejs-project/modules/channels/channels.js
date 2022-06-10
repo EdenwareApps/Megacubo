@@ -394,12 +394,9 @@ class ChannelsEPG extends ChannelsData {
     }
     epgPrepareSearch(e){
         let ret = {name: e.originalName || e.name}, map = global.config.get('epg-map')
-        Object.keys(map).some(n => {
-            if(n == ret.name){
-                ret.searchName = map[n]
-                return true
-            }
-        })
+        if(map[ret.name]){
+            ret.searchName = map[ret.name]
+        }
         ret.terms = e.terms && Array.isArray(e.terms) ? e.terms : this.entryTerms(e)
         ret.terms = this.expandTerms(ret.terms)
         return ret
@@ -434,55 +431,50 @@ class ChannelsEPG extends ChannelsData {
             }).catch(reject)
         })
     }
-    epgChannelLiveNow(entry){
-        return new Promise((resolve, reject) => {
-            let channel = this.epgPrepareSearch(entry)
-            global.lists.epg(channel, 1).then(epgData => {
-                let ret = Object.values(epgData).shift()
-                if(ret){
-                    resolve(ret.t)
-                } else {
-                    reject('not found')
-                }
-            }).catch(reject)
-        })
+    async epgChannelLiveNow(entry){
+        let channel = this.epgPrepareSearch(entry)
+        let epgData = await global.lists.epg(channel, 1)
+        let ret = Object.values(epgData).shift()
+        if(ret){
+            return ret.t
+        } else {
+            throw 'not found'
+        }
     }
-    epgChannelLiveNowAndNext(entry){
-        return new Promise((resolve, reject) => {
-            let channel = this.epgPrepareSearch(entry)
-            global.lists.epg(channel, 2).then(epgData => {
-                let now = Object.values(epgData).shift()
-                if(now && now.t){
-                    let ret = {
-                        now: now.t
-                    }
-                    let ks = Object.keys(epgData)
-                    if(ks.length > 1){
-                        let start = ks.pop()
-                        let next = epgData[start]
-                        start = moment(start * 1000).fromNow()
-                        start = start.charAt(0).toUpperCase() + start.slice(1)
-                        ret[start] = next.t
-                    }
-                    resolve(ret)
-                } else {
-                    reject('not found')
-                }
-            }).catch(reject)
-        })
+    async epgChannelLiveNowAndNext(entry){
+        let ret = await this.epgChannelLiveNowAndNextInfo(entry)
+        Object.keys(ret).forEach(k => ret[k] = ret[k].t)
+        return ret
     }
-    epgChannelsLiveNow(entries){
-        return new Promise((resolve, reject) => {
-            let channels = entries.map(e => this.epgPrepareSearch(e))
-            global.lists.epg(channels, 1).then(epgData => {
-                let ret = {}
-                Object.keys(epgData).forEach(ch => {
-                    ret[ch] = epgData[ch] ? Object.values(epgData[ch]).shift() : false
-                    if(!ret[ch] && ret[ch] !== false) ret[ch] = false
-                })
-                resolve(ret)
-            }).catch(reject)
+    async epgChannelLiveNowAndNextInfo(entry){
+        let channel = this.epgPrepareSearch(entry)
+        let epgData = await global.lists.epg(channel, 2)
+        Object.keys(epgData).forEach(k => epgData[k].s = parseInt(k))
+        let now = Object.values(epgData).shift()
+        if(now && now.t){
+            let ret = {now}
+            let ks = Object.keys(epgData)
+            if(ks.length > 1){
+                let start = ks.pop()
+                let next = epgData[start]
+                start = moment(start * 1000).fromNow()
+                start = start.charAt(0).toUpperCase() + start.slice(1)
+                ret[start] = next
+            }
+            return ret
+        } else {
+            throw 'not found'
+        }
+    }
+    async epgChannelsLiveNow(entries){
+        let channels = entries.map(e => this.epgPrepareSearch(e))
+        let epgData = await global.lists.epg(channels, 1)
+        let ret = {}
+        Object.keys(epgData).forEach(ch => {
+            ret[ch] = epgData[ch] ? Object.values(epgData[ch]).shift() : false
+            if(!ret[ch] && ret[ch] !== false) ret[ch] = false
         })
+        return ret
     }
     epgChannelsAddLiveNow(entries, keepIcon){
         return new Promise((resolve, reject) => {
@@ -560,7 +552,18 @@ class ChannelsEPG extends ChannelsData {
         })
     }
     epgProgramAction(start, ch, program, terms, icon){
-        if(start <= (global.time() + 300)){ // if it will start in less than 5 min, open it anyway
+        const now = global.time()
+        if(program.e < now){ // missed
+            let text = global.lang.START_DATE +': '+ global.moment(start * 1000).format('L LT') +'<br />'+ global.lang.ENDED +': '+ global.moment(program.e * 1000).format('L LT')
+            if(program.c && program.c.length){
+                text += '<br />'+ global.lang.CATEGORIES +': '+ program.c.join(', ')
+            }
+            global.explorer.dialog([
+                {template: 'question', text: program.t +' &middot; '+ ch, fa: 'fas fa-calendar-alt'},
+                {template: 'message', text},
+                {template: 'option', id: 'ok', fa: 'fas fa-check-circle', text: 'OK'}
+            ], 'ok').catch(console.error)
+        } else if(start <= (now + 300)){ // if it will start in less than 5 min, open it anyway
             let url = global.mega.build(ch, {terms})
             global.streamer.play({
                 name: ch,
@@ -572,8 +575,11 @@ class ChannelsEPG extends ChannelsData {
             })
         } else {
             let text = global.lang.START_DATE +': '+ global.moment(start * 1000).format('L LT')
+            if(program.c && program.c.length){
+                text += '<br />'+ global.lang.CATEGORIES +': '+ program.c.join(', ')
+            }
             global.explorer.dialog([
-                {template: 'question', text: program.t +' &middot; '+ ch, fa: 'fas fa-users'},
+                {template: 'question', text: program.t +' &middot; '+ ch, fa: 'fas fa-calendar-alt'},
                 {template: 'message', text},
                 {template: 'option', id: 'ok', fa: 'fas fa-check-circle', text: 'OK'}
             ], 'ok').catch(console.error)
@@ -694,7 +700,7 @@ class ChannelsEditing extends ChannelsEPG {
                                 } 
                             }
                         }},
-                        {name: global.lang.SEARCH_TERMS, type: 'input', details: global.lang.SEPARATE_WITH_COMMAS, value: () => {
+                        {name: global.lang.SEARCH_TERMS, type: 'input', value: () => {
                             let t = (o.terms || e.terms)
                             t = t ? t.name.join(' ') : (o.name || e.name)
                             return t

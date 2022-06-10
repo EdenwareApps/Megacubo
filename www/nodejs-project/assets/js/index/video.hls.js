@@ -262,8 +262,6 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 		if(!this.hls){
 			const atts = {
 				enableWorker: true,
-				liveSyncDurationCount: 3, // https://github.com/video-dev/hls.js/issues/3764
-				liveMaxLatencyDurationCount: Infinity,
 				maxBufferSize: 128 * (1000 * 1000), // When doing internal transcoding with low crf, fragments will become bigger
 				backBufferLength: this.config['live-window-time'],
 				maxBufferLength: 60,
@@ -296,6 +294,9 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 			if(this.engineType == 'video'){ // not "live"
 				atts.startPosition = 0
 				atts.liveSyncDuration = 99999999
+			} else { // Illegal hls.js config: don't mix up liveSyncDurationCount/liveMaxLatencyDurationCount and liveSyncDuration/liveMaxLatencyDuration
+				atts.liveSyncDurationCount = 3 // https://github.com/video-dev/hls.js/issues/3764
+				atts.liveMaxLatencyDurationCount = Infinity
 			}
 			this.hls = new Hls(atts)
 			this.engineType

@@ -6,7 +6,7 @@ class Config extends Events {
 		this.debug = false
 		this.loaded = false
 		this.file = file
-		this.defaults = require(path.resolve(__dirname, './defaults'))
+		this.defaults = require('./defaults')
 		this.data = Object.assign({}, this.defaults) // keep defaults object for reference
 		for(var key in this.data){
 			let def = typeof(this.defaults[key])

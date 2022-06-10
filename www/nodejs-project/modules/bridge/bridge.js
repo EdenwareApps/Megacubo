@@ -1,7 +1,7 @@
 
 
 const path = require('path'), http = require('http'), Events = require('events'), fs = require('fs'), url = require('url')
-const formidable = require('formidable'), closed = require(global.APPDIR +'/modules/on-closed')
+const formidable = require('formidable'), closed = require('../on-closed')
 
 if(typeof(localStorage) != 'undefined' && localStorage.debug){
     localStorage.debug = ''

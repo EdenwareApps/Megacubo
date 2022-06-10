@@ -35,7 +35,7 @@ if(cordova){
 }
 
 Object.keys(paths).forEach(k => {
-    paths[k] = paths[k].replaceAll('\\', '/')
+    paths[k] = forwardSlashes(paths[k])
     console.log('DEFAULT PATH ' + k + '=' + paths[k])
 })
 

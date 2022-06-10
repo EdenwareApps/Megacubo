@@ -1,4 +1,4 @@
-const http = require('http'), closed = require(global.APPDIR +'/modules/on-closed')
+const http = require('http'), closed = require('../../on-closed')
 const StreamerProxyBase = require('./proxy-base'), decodeEntities = require('decode-entities')
 const fs = require('fs'), async = require('async'), Events = require('events'), m3u8Parser = require('m3u8-parser')
 const MPEGTSPacketProcessor = require('./ts-packet-processor.js'), stoppable = require('stoppable')
@@ -64,7 +64,7 @@ class HLSJournal {
 					this.header = this.header.replace(new RegExp('EXT-X-MEDIA-SEQUENCE: *([0-9]+)', 'i'), 'EXT-X-MEDIA-SEQUENCE:'+ m)
 				}
 			} else {
-				console.error('Media sequence missing')
+				console.error('Media sequence missing', content)
 			}
 		}
 	}
@@ -91,7 +91,6 @@ class HLSJournal {
 		if(n.indexOf('://') != -1){
 			n = this.segmentName(n)
 		}
-		console.log('INLIVESEGMENT', n, this.liveJournal)
 		return this.liveJournal.some(u => u.indexOf(n) != -1)
 	}
 }
@@ -611,7 +610,7 @@ class HLSRequests extends StreamerProxyBase {
 				if(this.activeManifest && Object.keys(this.requestCacheMap).filter(u => this.ext(u) == 'ts')){ // has downloaded at least one segment to know from where the player is starting
 					setTimeout(() => this.prefetch(url, opts), 50)
 					if(this.committed && seg &&  !this.bitrateChecking && (this.bitrates.length < this.opts.bitrateCheckingAmount || !this.codecData)){
-						if(!this.playlistBitrates[this.activeManifest]) {
+						if(!this.playlistBitrates[this.activeManifest] || !this.codecData || !(this.codecData.audio || this.codecData.video)) {
 							console.log('getBitrate', this.proxify(url))
 							this.getBitrate(this.proxify(url))
 						}
@@ -840,7 +839,7 @@ class StreamerProxyHLS extends HLSRequests {
 	}
 	proxifyM3U8(body, baseUrl, url){
 		body = body.trim()
-		let parser = new m3u8Parser.Parser(), replaces = {}, u
+		let u, parser = new m3u8Parser.Parser(), replaces = {}
 		try{ 
 			parser.push(body)
 			parser.end()
@@ -868,11 +867,11 @@ class StreamerProxyHLS extends HLSRequests {
 						let n = this.proxify(u)
 						replaces[dn] = n.substr(0, n.length - df)
 						if(this.opts.debug){
-							console.log('replace', dn, replaces[dn], df, n)
+							console.log('replace', dn, replaces[dn], '|', df, n, '|', segment.uri)
 						}
 						body = this.applyM3U8Replace(body, dn, replaces[dn])
 						if(this.opts.debug){
-							console.log('ok')
+							console.log('ok', replaces, body)
 						}
 					}
 				})
@@ -928,23 +927,22 @@ class StreamerProxyHLS extends HLSRequests {
 				}
 				return match[1] + match[2]
 			})
-			// console.log('PROXIFIED', body)
+			console.log('PROXIFIED', body)
 		}
+		parser.dispose()
+		parser = null
 		return body
 	}
 	applyM3U8Replace(body, from, to){
 		let lines = body.split("\n")
 		lines.forEach((line, i) => {
-			if(line.length < 3 || line.charAt(0) == '#'){
+			if(line.length < 3 || line.charAt(0) == '#') {
 				return
 			}
-			if(line.indexOf('/') == -1 || line.substr(0, 2) == './' || line.substr(0, 3) == '../'){
-				// keep it relative, no problem in these cases
-				/*
+			if(line.indexOf('/') == -1 || line.substr(0, 2) == './' || line.substr(0, 3) == '../') {
 				if(from == ''){
-					lines[i] = to + line
+					lines[i] = global.joinPath(to, line)
 				}
-				*/
 			} else {
 				if(line.substr(0, from.length) == from){
 					lines[i] = to + line.substr(from.length)
@@ -996,8 +994,7 @@ class StreamerProxyHLS extends HLSRequests {
 		if(this.opts.debug){
 			console.log('req starting...', req, req.url)
 		}
-		let ended, url = this.unproxify(req.url)
-		
+		let ended, url = this.unproxify(req.url)		
 		let reqHeaders = req.headers
 		reqHeaders = this.removeHeaders(reqHeaders, ['cookie', 'referer', 'origin', 'range'])
 		if(this.type == 'network-proxy'){
@@ -1007,7 +1004,6 @@ class StreamerProxyHLS extends HLSRequests {
 				delete reqHeaders['x-from-network-proxy']
 			}
 		}
-
 		if(this.opts.debug){
 			if(this.type == 'network-proxy'){
 				console.log('network serving', url, reqHeaders)

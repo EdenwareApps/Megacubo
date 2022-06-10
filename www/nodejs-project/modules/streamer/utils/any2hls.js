@@ -1,5 +1,5 @@
 const fs = require('fs'), http = require('http'), path = require('path'), stoppable = require('stoppable')
-const closed = require(global.APPDIR +'/modules/on-closed'), decodeEntities = require('decode-entities'), Events = require('events')
+const closed = require('../../on-closed'), decodeEntities = require('decode-entities'), Events = require('events')
 
 class Any2HLS extends Events {
     constructor(source, opts){
@@ -185,7 +185,7 @@ class Any2HLS extends Events {
             if(pos != -1){
                 file = '/'+ file.substr(pos + uid.length)
             }
-            file = 'http://127.0.0.1:' + this.opts.port + file.replaceAll('\\', '/')
+            file = 'http://127.0.0.1:' + this.opts.port + global.forwardSlashes(file)
 			console.log('proxify before', file)
         }
         return file

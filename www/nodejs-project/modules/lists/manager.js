@@ -397,6 +397,7 @@ class Manager extends Events {
                 global.osd.show(global.lang.LIST_ADDED, 'fas fa-check-circle', 'list-open', 'normal')
                 resolve(true)
             }).catch(err => {
+                osd.hide('list-open')
                 reject(err)
             })
         })
@@ -837,6 +838,7 @@ class Manager extends Events {
             console.log('loadEPG', url)
             this.parent.loadEPG(url).then(() => {
                 global.channels.activeEPG = url
+                global.channels.emit('epg-loaded', url)
                 if(ui){
                     global.osd.show(global.lang.EPG_LOAD_SUCCESS, 'fas fa-check-circle', 'epg', 'normal')
                 }
@@ -1036,7 +1038,6 @@ class Manager extends Events {
         } else {
             let ret = {}, locs = await global.lang.getActiveCountries()
             let results = await Promise.allSettled(locs.map(loc => global.cloud.get('country-sources.'+ loc, false, timeout)))
-            console.warn('aaaaaaaaa')
             results.forEach(r => {
                 if(r.status == 'fulfilled' && r.value && typeof(r.value) == 'object'){
                     r.value.forEach(row => {
@@ -1047,11 +1048,9 @@ class Manager extends Events {
                     })
                 }
             })
-            console.warn('aaaaaaaaa')
             if(Object.keys(ret).length <= 8){
                 return await this.getAllCommunitySources(true, timeout)
             }
-            console.warn('aaaaaaaaa')
             return Object.entries(ret).sort(([,a],[,b]) => b-a).reduce((r, [k, v]) => ({ ...r, [k]: v }), {})
         }
     }

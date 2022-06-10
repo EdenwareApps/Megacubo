@@ -129,7 +129,7 @@ class PerformanceProfiles extends Timer {
                 'search-missing-logos': false,
                 'show-logos': false,
                 'transcoding': '',
-                'ts-packet-filter-policy': 0,
+                'ts-packet-filter-policy': 1,
                 'tune-concurrency': 4,
                 'tune-ffmpeg-concurrency': 2,
                 'tuning-prefer-hls': true,
@@ -437,9 +437,13 @@ class Options extends OptionsHardwareAcceleration {
             path = global.explorer.path
         }
         const entries = []
-        const map = await global.lang.getCountriesMap(
-            allCountries === true ? null : (global.config.get('locale') || global.lang.locale)
+        let map = await global.lang.getCountriesMap(
+            allCountries === true ? null : await global.lang.getCountryLanguages(global.lang.countryCode),
+            global.config.get('countries')
         )
+        if(!allCountries && !map.length){
+            map = await global.lang.getCountriesMap([global.lang.locale])
+        }
         let actives = global.config.get('countries')
         if(!actives || !actives.length) {
             actives = await global.lang.getActiveCountries()
@@ -458,10 +462,11 @@ class Options extends OptionsHardwareAcceleration {
                 if(!actives.length){
                     actives = await global.lang.getActiveCountries()
                 }
-                console.warn('COUNTRYBACK', this.countriesEntriesOriginalActives.sort().join(','), actives.sort().join(','))
+                console.warn('COUNTRYBACK', global.explorer.path, this.countriesEntriesOriginalActives.sort().join(','), actives.sort().join(','))
                 if(this.countriesEntriesOriginalActives.sort().join(',') != actives.sort().join(',')){
                     global.energy.askRestart()
                 }
+                global.explorer.open(global.lang.OPTIONS)
             }
         })
         if(map.some(row => !actives.includes(row.code))){
@@ -507,7 +512,7 @@ class Options extends OptionsHardwareAcceleration {
                         }
                     }
                     global.config.set('countries', actives)
-                }, 
+                },
                 checked: () => {
                     return actives.includes(row.code)
                 }
@@ -517,12 +522,8 @@ class Options extends OptionsHardwareAcceleration {
             entries.push({
                 name: global.lang.OTHER_COUNTRIES,
                 fa: 'fas fa-chevron-right',
-                type: 'action',
-                action: () => {
-                    this.countriesEntries(true, path).then(es => {
-                        global.explorer.render(es, path, null, global.explorer.dirname(path))
-                    }).catch(global.displayErr)
-                }
+                type: 'group',
+                renderer: () => this.countriesEntries(true, path)
             })
         }
         return entries
@@ -884,6 +885,7 @@ class Options extends OptionsHardwareAcceleration {
             if(global.config.get('parental-control-policy') != 'allow'){
                 secOpt.entries.push({
                     name: global.lang.FILTER_WORDS,
+                    details: global.lang.SEPARATE_WITH_COMMAS, 
                     type: 'input',
                     fa: 'fas fa-shield-alt',
                     action: (e, v) => {
