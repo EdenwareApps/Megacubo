@@ -284,7 +284,7 @@ updateEPGConfig = c => {
             activeEPG = false
             lists.manager.setEPG('', false)
         } else {
-            if(activeEPG == '' || activeEPG == 'auto'){
+            if(!activeEPG || activeEPG == 'auto'){
                 activeEPG = c['epg-'+ lang.countryCode] || c['epg-'+ lang.locale] || false
             }
             lists.manager.setEPG(activeEPG || '', false)
@@ -313,7 +313,7 @@ videoErrorTimeoutCallback = ret => {
     }
 }
 
-var playOnLoaded
+var playOnLoaded, tuningHintShown
 
 function init(language){
     if(lang) return
@@ -637,7 +637,7 @@ function init(language){
             })
         })
         */
-        streamer.on('streamer-connect', (src, codecs, info) => {
+        streamer.on('streamer-connect', async (src, codecs, info) => {
             console.error('CONNECT', src, codecs, info)       
             let cantune
             if(streamer.active.mediaType == 'live'){
@@ -650,6 +650,15 @@ function init(language){
                 }
             }
             ui.emit('streamer-connect', src, codecs, '', streamer.active.mediaType, info, cantune)
+            if(cantune){
+                if(!tuningHintShown && histo.get().length){
+                    tuningHintShown = true
+                }
+                if(!tuningHintShown){                        
+                    tuningHintShown = true
+                    ui.emit('streamer-show-tune-hint')
+                }
+            }
         })
         streamer.on('streamer-disconnect', err => {
             console.warn('DISCONNECT', err, tuning !== false)
@@ -680,7 +689,7 @@ function init(language){
                         {template: 'question', text: ucWords(MANIFEST.name) +' v'+ MANIFEST.version +' > v'+ c.version, fa: 'fas fa-star'},
                         {template: 'message', text: lang.NEW_VERSION_AVAILABLE},
                         {template: 'option', text: lang.YES, id: 'yes', fa: 'fas fa-check-circle'},
-                        {template: 'option', text: lang.NO, id: 'no', fa: 'fas fa-times-circle'},
+                        {template: 'option', text: lang.PREMIUM_NO_THANKS, id: 'no', fa: 'fas fa-times-circle'}, // TODO: Rename PREMIUM_NO_THANKS to NO_THANKS
                         {template: 'option', text: lang.HOW_TO_UPDATE, id: 'how', fa: 'fas fa-question-circle'}
                     ], 'yes')
                     console.log('update callback', chosen)

@@ -152,6 +152,10 @@ class EPG extends Events {
             }
         })
     }
+    fixSlashes(txt){
+        txt = txt.replaceAll('/', '|') // this character will break internal Megacubo navigation
+        return txt
+    }
     scheduleNextUpdate(time){        
         if(this.autoUpdateTimer){
             clearTimeout(this.autoUpdateTimer)
@@ -171,10 +175,13 @@ class EPG extends Events {
         if(!end){
             end = this.time(programme.end)
         }
-        return {e: end, t: programme.title.shift() || 'No title', c: programme.category || '', i: programme.icon || ''}
+        let t = programme.title.shift() || 'No title'
+        if(t.indexOf('/') != -1) {
+            t = this.fixSlashes(t)
+        }
+        return {e: end, t, c: programme.category || [], i: programme.icon || ''}
     }
     channel(channel){
-        console.warn('EPGCH', channel)
         let name = channel.displayName || channel.name;
         [channel.id, channel.name || channel.displayName].forEach(cid => {
             if(typeof(this.channels[cid]) == 'undefined'){
@@ -312,7 +319,7 @@ class EPG extends Events {
     }
     expandSuggestions(categories){
         const results = {}
-        Object.values(lists._epg.data).forEach(c => {
+        Object.values(this.data).forEach(c => {
             Object.values(c).forEach(p => {
                 if(!p.c.length) return
                 let tms = p.c.filter(t => categories.includes(t))
@@ -332,7 +339,7 @@ class EPG extends Events {
         })
         return results
     }
-    getSuggestions(categories, until){
+    getSuggestions(categories, until, searchTitles){
         if(!categories.length){
             return {}
         }
@@ -350,13 +357,27 @@ class EPG extends Events {
         Object.keys(this.data).forEach(channel => {
             Object.keys(this.data[channel]).some(start => {
                 if(this.data[channel][start].e > now && parseInt(start) <= until){
+                    let added
                     if(Array.isArray(this.data[channel][start].c)){
-                        this.data[channel][start].c.forEach(c => {
+                        added = this.data[channel][start].c.some(c => {
                             if(lcCategories.includes(c)){
                                 if(typeof(results[channel]) == 'undefined'){
                                     results[channel] = {}
                                 }
                                 results[channel][start] = this.data[channel][start]
+                                return true
+                            }
+                        })
+                    }
+                    if(!added && searchTitles){
+                        let lct = (this.data[channel][start].t +' '+  this.data[channel][start].c.join(' ')).toLowerCase()
+                        lcCategories.some(l => {
+                            if(lct.indexOf(l) != -1){
+                                if(typeof(results[channel]) == 'undefined'){
+                                    results[channel] = {}
+                                }
+                                results[channel][start] = this.data[channel][start]
+                                return true
                             }
                         })
                     }
@@ -562,7 +583,7 @@ class EPG extends Events {
         }
         return candidates.length ? candidates[0].name : false
     }
-    search(terms, nowLive, includeCategories){
+    search(terms, nowLive){
         return new Promise((resolve, reject) => {
             let epgData = {}, now = this.time()
             Object.keys(this.data).forEach(channel => {

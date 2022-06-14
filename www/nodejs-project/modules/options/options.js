@@ -393,6 +393,18 @@ class Options extends OptionsHardwareAcceleration {
                 global.displayErr(err)
             })
         })
+        global.ui.on('countries-setup-info', async () => {
+            let ret = await global.explorer.dialog([
+                {template: 'question', fa: 'fas fa-info-circle', text: global.lang.COUNTRIES},
+                {template: 'message', text: global.lang.COUNTRIES_THAT_SPEAK_YOUR_LANGUAGE},
+                {template: 'option', text: 'OK', fa: 'fas fa-check-circle', id: 'ok'},
+                {template: 'option', text: global.lang.COUNTRIES_HINT, fa: 'fas fa-globe', id: 'countries'}
+            ], 'ok')
+            if(ret == 'countries'){
+                await global.explorer.open(global.lang.OPTIONS +'/'+ global.lang.COUNTRIES)
+            }
+        })
+        
     }
     tools(){
         return new Promise((resolve, reject) => {
@@ -458,11 +470,11 @@ class Options extends OptionsHardwareAcceleration {
             path: global.lang.OPTIONS,
             tabindex: 0,
             action: async () => {
+                global.osd.hide('click-back-to-save')
                 let actives = global.config.get('countries')
-                if(!actives.length){
+                if(!actives.length) {
                     actives = await global.lang.getActiveCountries()
                 }
-                console.warn('COUNTRYBACK', global.explorer.path, this.countriesEntriesOriginalActives.sort().join(','), actives.sort().join(','))
                 if(this.countriesEntriesOriginalActives.sort().join(',') != actives.sort().join(',')){
                     global.energy.askRestart()
                 }
@@ -526,6 +538,7 @@ class Options extends OptionsHardwareAcceleration {
                 renderer: () => this.countriesEntries(true, path)
             })
         }
+        global.osd.show(global.lang.WHEN_READY_CLICK_BACK.format(global.lang.BACK), 'fas fa-info-circle', 'click-back-to-save', 'long')
         return entries
     }
     tos(){

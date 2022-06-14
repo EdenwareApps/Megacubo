@@ -53,7 +53,7 @@ class Manager extends Events {
             }).catch(console.error)
         })
         this.on('sync-status', p => {
-            console.error('SYNC-STATUS', p, this.updatingLists, p.progress)
+            // console.log('sync status', p, this.updatingLists, p.progress)
             if(this.updatingLists){
                 if(p.progress > 99){                
                     global.activeLists = p.activeLists

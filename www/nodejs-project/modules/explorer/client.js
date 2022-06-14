@@ -1176,28 +1176,24 @@ class ExplorerDialog extends ExplorerDialogQueue {
 			this.startModal('<div class="modal-wrap"><div>' + html + '</div></div>', mandatory)
 			let m = this.modalContent
 			entries.forEach(e => {
-				let p = m.querySelector('#modal-template-option-' + e.id+', #modal-template-option-detailed-' + e.id)
-				if(p){
-					if(['option', 'option-detailed'].includes(e.template)){
+				if(['option', 'option-detailed'].includes(e.template)){
+					let p = m.querySelector('#modal-template-option-' + e.id+', #modal-template-option-detailed-' + e.id)
+					if(p){
 						p.addEventListener('click', () => {
 							let id = e.oid || e.id
 							console.log('OPTCLK', id)
 							callback(id)
 						})
+						if(String(e.id) == String(validatedDefaultIndex)) {						
+							const ensureFocus = () => this.focus(p, false);
+							[150, 400, 800].forEach(ms => setTimeout(ensureFocus, ms))
+						}
 					}
-					if(String(e.id) == String(validatedDefaultIndex)){						
-						setTimeout(() => {
-							console.log('MODALFOCUS', document.activeElement, p, defaultIndex)
-							this.focus(p, false)
-						}, 150)
-						setTimeout(() => {
-							console.log('MODALFOCUS', document.activeElement, p, defaultIndex)
-							this.focus(p, false)
-						}, 400)
-						setTimeout(() => {
-							console.log('MODALFOCUS', document.activeElement, p, defaultIndex)
-							this.focus(p, false)
-						}, 800)
+				} else if(e.template == 'message') {						
+					if(e.text.indexOf('<i ') != -1) {
+						Array.from(m.querySelectorAll('.modal-template-message i')).forEach(s => {
+							s.parentNode.style.display = 'block'
+						})						
 					}
 				}
 			})

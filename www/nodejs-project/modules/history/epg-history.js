@@ -5,8 +5,8 @@ class EPGHistory extends EntriesGroup {
         super('epg-history')
         this.suggestions = new Suggestions(this)
         this.limit = 48
-        this.minWatchingTime = 300
-        this.checkingInterval = 30 // to prevent losing data on program closing, we'll save it periodically
+        this.minWatchingTime = 240
+        this.checkingInterval = 60 // to prevent losing data on program closing, we'll save it periodically
         this.resumed = false
         this.session = null
         this.allowDupes = true
@@ -209,7 +209,7 @@ class EPGHistory extends EntriesGroup {
             e.details += ' <i class="fas fa-clock"></i> '+ global.ts2clock(e.watched.start) +'-'+ global.ts2clock(e.watched.end) // [e.category].concat(e.programme.c).join(', ') + ''            
             e.type = 'action'
             e.action = () => {
-                global.channels.epgProgramAction(e.watched.start, e.originalName, {t: e.watched.name, e: e.watched.end, c: e.watched.categories}, e.terms)
+                global.channels.epgProgramAction(e.watched.start, e.originalName, {t: e.watched.name, e: e.watched.end, c: [...new Set(e.watched.categories)]}, e.terms)
             }
             e.fa = 'fas fa-history'
             delete e.url

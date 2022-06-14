@@ -249,6 +249,13 @@ class StreamerState extends StreamerCasting {
             }
         })
         this.on('stop', () => this.stateListener(''))
+        this.app.on('streamer-show-tune-hint', () => {
+            explorer.dialog([
+                {template: 'question', text: 'Megacubo', fa: 'fas fa-info-circle'},
+                {template: 'message', text: lang.TUNING_HINT.format('<i class=\'fas '+ config['tuning-icon'] +'\'></i>')},
+                {template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle'}
+            ])
+        })
     }
     bindStateListener(){
         if(!parent.player.listeners('state').includes(this.stateListener)){

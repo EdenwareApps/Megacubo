@@ -144,6 +144,7 @@ class Setup extends EventEmitter {
                     this.performanceAsked = true
                     app.emit('performance-setup')
                 }
+                app.emit('countries-setup-info')
             }, 200)
             console.log('PERFORMANCE-SETUP')
         }

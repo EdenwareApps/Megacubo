@@ -135,17 +135,17 @@ class Lists extends Index {
 		}
 		return this._epg.expandSuggestions(categories)
 	}
-	async epgSuggestions(categories, until){
+	async epgSuggestions(categories, until, searchTitles){
 		if(!this._epg){
 			throw 'no epg'
 		}
-		return this._epg.getSuggestions(categories, until)
+		return this._epg.getSuggestions(categories, until, searchTitles)
 	}
-	async epgSearch(terms, nowLive, includeCategories){
+	async epgSearch(terms, nowLive){
 		if(!this._epg){
 			throw 'no epg'
 		}
-		return await this._epg.search(this.applySearchRedirects(terms), nowLive, includeCategories)
+		return await this._epg.search(this.applySearchRedirects(terms), nowLive)
 	}
 	async epgSearchChannel(terms){
 		if(!this._epg){

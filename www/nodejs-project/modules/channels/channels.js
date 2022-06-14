@@ -301,12 +301,12 @@ class ChannelsEPG extends ChannelsData {
             placeholder: global.lang.SEARCH_PLACEHOLDER
         }
     }
-    epgSearch(terms, liveNow, includeCategories){
+    epgSearch(terms, liveNow){
         return new Promise((resolve, reject) => {
             if(typeof(terms) == 'string'){
                 terms = global.lists.terms(terms, true)
             }
-            global.lists.epgSearch(terms, liveNow, includeCategories).then(epgData => {                                
+            global.lists.epgSearch(terms, liveNow).then(epgData => {                                
                 let entries = []
                 console.warn('epgSearch', epgData)
                 Object.keys(epgData).forEach(ch => {
@@ -1093,7 +1093,7 @@ class Channels extends ChannelsAutoWatchNow {
             })
             console.log(global.deepClone(entries))
             this.epgChannelsAddLiveNow(entries, true).then(es => {
-                this.epgSearch(terms, true, true).then(ees => {
+                this.epgSearch(terms, true).then(ees => {
                     epgEntries = ees.map(e => {
                         let ch = this.isChannel(e.program.ch)
                         if(ch){

@@ -1,12 +1,42 @@
+const { lists } = require("../config/defaults")
+
 class Suggestions {
     constructor(master){
         this.limit = 36
         this.master = master
     }
-    async rawSuggestions(categories, until){
-        let data = await global.lists.epgSuggestions(categories, until)
+    mergeMaps(a, b, until){
+        Object.keys(b).forEach(ch => {
+            if(typeof(a[ch]) == 'undefined'){
+                a[ch] = {}
+            }
+            Object.keys(b[ch]).forEach(start => {
+                if(parseInt(start) <= until && typeof(a[ch][start]) == 'undefined'){
+                    a[ch][start] = b[ch][start]
+                }
+            })
+        })
+        return a
+    }
+    mapSize(a){
+        let l = 0
+        Object.values(a).forEach(v => {
+            l += Object.keys(v).length
+        })
+        return l
+    }
+    async suggestions(categories, until){
+        let data
+        if(categories.length < 10) { // few tags, do an extended search to maximize results
+            data = {}
+            await Promise.all(categories.map(async c => {
+                let map = await global.lists.epgSearch(global.lists.terms(c))
+                data = this.mergeMaps(data, map, until)
+            }))
+        } else {
+            data = await global.lists.epgSuggestions(categories, until)
+        }
         let channels = {}
-        //console.log('rawSuggestions', Object.assign({}, data))
         Object.keys(data).forEach(ch => {
             let channel = global.channels.isChannel(ch)
             if(channel) {
@@ -15,33 +45,20 @@ class Suggestions {
                 }
             }
         })
-        //console.log('rawSuggestions', Object.assign({}, channels))
         let alloweds = []
         await Promise.all(Object.keys(channels).map(async name => {
             const channelMappedTo = await global.lists.epgFindChannel(channels[name])
             if(channelMappedTo) alloweds.push(channelMappedTo)
         }))
-        //console.log('rawSuggestions', alloweds)
         Object.keys(data).forEach(ch => {
             if(!alloweds.includes(ch)){
                 delete data[ch]
             }
         })
-        //console.log('rawSuggestions', data)
         return data
     }
-    async get(){
-        const now = global.time()
-        const timeRange = 24 * 3600
-        const timeRangeP = timeRange / 100
-        const until = now + timeRange  
-        const amount = ((global.config.get('view-size-x') * global.config.get('view-size-y')) * 2) - 2
-        const channels = this.channels()
-        const programmeCategories = this.programmeCategories()
-        const expandedCategories = await global.lists.epgExpandSuggestions(Object.keys(programmeCategories))
-        const allFoundCategories = Object.values(expandedCategories).flat()
-        //console.warn('FOUNDCCATS', expandedCategories, allFoundCategories)
-        let results = [], data = await this.rawSuggestions(allFoundCategories, until)
+    mapDataToChannels(data){
+        let results = []
         Object.keys(data).forEach(ch => {
             let channel = global.channels.isChannel(ch)
             if(channel) {
@@ -57,6 +74,23 @@ class Suggestions {
                 })
             }
         })
+        return results
+    }
+    async get(){
+        const now = global.time()
+        const timeRange = 24 * 3600
+        const timeRangeP = timeRange / 100
+        const until = now + timeRange  
+        const amount = ((global.config.get('view-size-x') * global.config.get('view-size-y')) * 2) - 2
+        const channels = this.channels()
+        const programmeCategories = this.programmeCategories()
+        const expandedCategories = await global.lists.epgExpandSuggestions(Object.keys(programmeCategories))
+        const allFoundCategories = [...new Set(Object.values(expandedCategories).flat().concat(Object.keys(programmeCategories)).filter(t => {
+            return t.split(' ').length <= 3 // filter too specific tags, like season+episode formatted ones
+        }))]
+        let data = await this.suggestions(allFoundCategories, until)
+        console.log('suggestions.get', allFoundCategories, Object.keys(programmeCategories), expandedCategories)
+        let results = this.mapDataToChannels(data)
         const watching = {}
         if(global.watching.currentEntries){
             let wpp, wmax = 0
@@ -151,7 +185,7 @@ class Suggestions {
             const entry = global.channels.toMetaEntry(r.channel)
             entry.name = r.programme.t
             entry.originalName = r.channel.name
-            entry.details = ''; // parseInt(r.score) +'% '
+            entry.details = parseInt(r.score) +'% '
             if(r.programme.i){
                 entry.icon = r.programme.i
             }

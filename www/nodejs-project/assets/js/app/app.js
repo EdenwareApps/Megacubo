@@ -247,7 +247,7 @@ function initApp(){
                 }
                 if(tabIndex == -1) {
                     jQuery(element).replaceWith(m())
-                } else {
+                } else if (element.title == name) { // is the same element yet?
                     let c = element.querySelector('.entry-icon-image')
                     if(c){
                         let g = c.querySelector('img')

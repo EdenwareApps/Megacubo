@@ -1,6 +1,5 @@
 
 streamer.zappingIcon = 'fas fa-random'
-streamer.enablePlayerButton('zap', false)
 app.on('is-zapping', (state, skipOSD) => {
     streamer.isZapping = state
     if(state){
@@ -15,6 +14,6 @@ app.on('is-zapping', (state, skipOSD) => {
     }
 })
 app.on('streamer-connect', () => {
-    streamer.enablePlayerButton('zap', streamer.isZapping)
+    streamer.enablePlayerButton('zap', !!streamer.isZapping)
     streamer.enablePlayerButton('tune', !streamer.isZapping)
 })

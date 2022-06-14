@@ -162,6 +162,7 @@ class Explorer extends Events {
             }
             if(e && e.action){
                 e.action()
+                return
             }
             if(typeof(level) != 'number'){
                 level = 1

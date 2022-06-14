@@ -27,9 +27,10 @@ class Zap extends Events {
         global.ui.on('stop', () => {
             this.setZapping(false)
         })
-        ui.on('streamer-ready', () => {
+        global.ui.on('streamer-ready', () => {
             let dir = '.'+ __dirname.replace(path.dirname(require.main.filename), '').replace(new RegExp('\\\\', 'g'), '/')
             global.ui.emit('load-js', dir + '/client.js')
+            global.ui.emit('add-player-button', 'zap', this.title, this.icon, 5, 'zap')
         })
     }
     ready(cb){
@@ -53,7 +54,6 @@ class Zap extends Events {
                         pos = 0
                     }
                     entries.splice(pos, 0, this.entry())
-                    global.ui.emit('add-player-button', 'zap', this.title, this.icon, 5, 'zap')
                 }
             }
             resolve(entries)

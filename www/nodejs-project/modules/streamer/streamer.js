@@ -726,7 +726,7 @@ class StreamerAbout extends StreamerTracks {
 	}
 	aboutText(){
 		let text = ''
-		const currentSpeed = (this.speedoAdapter || this.active).currentSpeed, icon = '<i class="fas fa-circle {0}"></i> '
+		const currentSpeed = (this.speedoAdapter || this.active).currentSpeed, icon = '<i class=\'fas fa-circle {0}\'></i> '
 		if(this.active.bitrate && !this.active.data.isLocal){
 			const tuneable = this.isTuneable
 			if(this.downlink < currentSpeed){
