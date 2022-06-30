@@ -39,85 +39,110 @@ Object.keys(paths).forEach(k => {
     console.log('DEFAULT PATH ' + k + '=' + paths[k])
 })
 
-const crashLogFile = paths.data + '/crashlog.txt'
-const replaceCircular = function(val, cache) {
-    cache = cache || new WeakSet();
-    if (val && typeof(val) == 'object') {
-        if (cache.has(val)) return '[Circular]';
-        cache.add(val);
-        var obj = (Array.isArray(val) ? [] : {});
-        for(var idx in val) {
-            obj[idx] = replaceCircular(val[idx], cache);
-        }
-        cache.delete(val);
-        return obj;
+class Crashlog {
+    constructor(){
+        this.crashFile = paths.data + '/crash.txt'
+        this.crashLogFile = paths.data + '/crashlog.txt'
     }
-    return val;
-}
-const saveCrashLog = (...args) => {
-    const os = require('os')
-    fs.appendFileSync(crashLogFile, JSON.stringify(replaceCircular(args), (key, value) => {
-        if(value instanceof Error) {
-            var error = {}
-            Object.getOwnPropertyNames(value).forEach(function (propName) {
-                error[propName] = value[propName]
-            })
-            return error
+    replaceCircular(val, cache) {
+        cache = cache || new WeakSet();
+        if (val && typeof(val) == 'object') {
+            if (cache.has(val)) return '[Circular]';
+            cache.add(val);
+            var obj = (Array.isArray(val) ? [] : {});
+            for(var idx in val) {
+                obj[idx] = replaceCircular(val[idx], cache);
+            }
+            cache.delete(val);
+            return obj;
         }
-        return value
-    }, 3).replaceAll("\\n", "\n") +"\r\n"+ JSON.stringify({
-        version: global.MANIFEST ? global.MANIFEST.version : '',
-        platform: process.platform,
-        release: os.release(),
-        arch: os.arch(),
-        date: (new Date()).toString(), 
-        lang: typeof(lang) != 'undefined' && lang ? lang.locale : ''
-    }) +"\r\n\r\n")
-}
-const sendCrashLogs = () => {
-    fs.stat(crashLogFile, (err, stat) => {
-        if(stat && stat.size){
-            fs.readFile(crashLogFile, (err, content) => {
-                const FormData = require('form-data'), form = new FormData(), http = require('http')
-                form.append('log', String(content))
-                const options = {
-                    method: 'post',
-                    host: 'app.megacubo.net',
-                    path: '/report/index.php',
-                    headers: form.getHeaders()
-                }
-                let req = http.request(options, res => {
-                    res.setEncoding('utf8')
-                    let data = ''
-                    res.on('data', (d) => {
-                        data += d
-                    })
-                    res.once('end', () => {
-                        if(data.indexOf('OK') != -1){
-                            fs.unlink(crashLogFile, () => {})
-                        }
-                    })
+        return val;
+    }
+    save(...args){
+        const os = require('os')
+        fs.appendFileSync(this.crashFile, JSON.stringify(this.replaceCircular(args), (key, value) => {
+            if(value instanceof Error) {
+                var error = {}
+                Object.getOwnPropertyNames(value).forEach(function (propName) {
+                    error[propName] = value[propName]
                 })
-                req.on('error', (e) => {
-                    console.error('Houve um erro', e)
-                })
-                form.pipe(req)
-                req.end()
-            })
+                return error
+            }
+            return value
+        }, 3).replaceAll("\\n", "\n") +"\r\n"+ JSON.stringify({
+            version: global.MANIFEST ? global.MANIFEST.version : '',
+            platform: process.platform,
+            release: os.release(),
+            arch: os.arch(),
+            date: (new Date()).toString(), 
+            lang: typeof(lang) != 'undefined' && lang ? lang.locale : ''
+        }) +"\r\n\r\n")
+    }
+    async read(){
+        let content = ''
+        for(let file of [this.crashFile, this.crashLogFile]){
+            let text = await fs.promises.readFile(file).catch(console.error)
+            if(text){ // filter "undefined"
+                content += text
+            }
         }
-    })
+        return content
+    }
+    send(){
+        fs.stat(this.crashFile, (err, stat) => {
+            if(stat && stat.size){
+                fs.readFile(this.crashFile, (err, content) => {
+                    const FormData = require('form-data'), form = new FormData(), http = require('http')
+                    form.append('log', String(content))
+                    const options = {
+                        method: 'post',
+                        host: 'app.megacubo.net',
+                        path: '/report/index.php',
+                        headers: form.getHeaders()
+                    }
+                    let req = http.request(options, res => {
+                        res.setEncoding('utf8')
+                        let data = ''
+                        res.on('data', (d) => {
+                            data += d
+                        })
+                        res.once('end', () => {
+                            if(data.indexOf('OK') != -1){
+                                fs.stat(this.crashLogFile, (err, stat) => {
+                                    if(stat && stat.file){
+                                        fs.appendFile(this.crashLogFile, content, () => {
+                                            fs.unlink(this.crashFile, () => {})
+                                        })
+                                    } else {
+                                        global.moveFile(this.crashFile, this.crashLogFile, () => {})
+                                    }
+                                })
+                            }
+                        })
+                    })
+                    req.on('error', (e) => {
+                        console.error('Houve um erro', e)
+                    })
+                    form.pipe(req)
+                    req.end()
+                })
+            }
+        })
+    }
 }
+
+crashlog = new Crashlog()
 
 process.on('warning', e => {
     console.warn(e, e.stack)
 })
 process.on('unhandledRejection', (reason, promise) => {
     console.error('Unhandled Rejection at:', promise, 'reason:', reason)
-    saveCrashLog('Unhandled Rejection at:', promise, 'reason:', reason)
+    crashlog.save('Unhandled Rejection at:', promise, 'reason:', reason)
 })
 process.on('uncaughtException', (exception) => {
     console.error('uncaughtException', exception)
-    saveCrashLog('uncaughtException', exception)
+    crashlog.save('uncaughtException', exception)
     return false
 })
 
@@ -341,7 +366,7 @@ function init(language){
         activeLists = {my: [], community: [], length: 0}
 
         autoconfig = new AutoConfig()
-        autoconfig.start()
+        autoconfig.start().catch(console.error)
 
         if(config.get('setup-completed')){
             lists.manager.UIUpdateLists(true)
@@ -407,14 +432,16 @@ function init(language){
                     }
                     zap.setZapping(false, null, true)
                     if(typeof(e.action) == 'function') { // execute action for stream, if any
-                        e.action(e)
+                        let ret = e.action(e)
+                        if(ret && ret.catch) ret.catch(console.error)
                     } else {
                         streamer.play(e)
                     }
                     break
                 case 'action':
                     if(typeof(e.action) == 'function') {
-                        e.action(e)
+                        let ret = e.action(e)
+                        if(ret && ret.catch) ret.catch(console.error)
                     } else if(e.url && mega.isMega(e.url)) {
                         if(tuning){
                             tuning.destroy()
@@ -711,7 +738,7 @@ function init(language){
                     let c = await cloud.get('configure')
                     updateEPGConfig(c)
                     console.log('checking update...')
-                    sendCrashLogs()
+                    crashlog.send()
                     if(c.version > MANIFEST.version){
                         console.log('new version found', c.version)
                         prompt(c)

@@ -107,7 +107,7 @@ class Lists extends Index {
 	epg(channelsList, limit){
 		return new Promise((resolve, reject) => {
 			if(!this._epg){
-				return reject('no epg')
+				return reject('no epg 0')
 			}
 			let data
 			if(this._epg.state == 'loaded' || Object.values(this._epg.data) >= 200){ // loaded enough
@@ -131,37 +131,37 @@ class Lists extends Index {
 	}
 	async epgExpandSuggestions(categories){
 		if(!this._epg){
-			throw 'no epg'
+			throw 'no epg 1'
 		}
 		return this._epg.expandSuggestions(categories)
 	}
 	async epgSuggestions(categories, until, searchTitles){
 		if(!this._epg){
-			throw 'no epg'
+			throw 'no epg 2'
 		}
 		return this._epg.getSuggestions(categories, until, searchTitles)
 	}
 	async epgSearch(terms, nowLive){
 		if(!this._epg){
-			throw 'no epg'
+			throw 'no epg 3'
 		}
 		return await this._epg.search(this.applySearchRedirects(terms), nowLive)
 	}
 	async epgSearchChannel(terms){
 		if(!this._epg){
-			throw 'no epg'
+			throw 'no epg 4'
 		}
 		return this._epg.searchChannel(this.applySearchRedirects(terms))
 	}
 	async epgSearchChannelIcon(terms){
 		if(!this._epg){
-			throw 'no epg'
+			throw 'no epg 5'
 		}
 		return this._epg.searchChannelIcon(this.applySearchRedirects(terms))
 	}
 	async epgData(){
 		if(!this._epg){
-			throw 'no epg'
+			throw 'no epg 6'
 		}
 		return this._epg.data
 	}
@@ -170,7 +170,7 @@ class Lists extends Index {
 	}
 	async epgChannelsList(){
 		if(!this._epg){
-			throw 'no epg'
+			throw 'no epg 7'
 		}
 		let data = this._epg.channelsList()
 		if(data && Object.keys(data).length){
@@ -194,7 +194,7 @@ class Lists extends Index {
 	epgLiveNowChannelsList(){
 		return new Promise((resolve, reject) => {
 			if(!this._epg){
-				return reject('no epg')
+				return reject('no epg 8')
 			}
 			let data = this._epg.liveNowChannelsList()
 			if(data && data['categories'] && Object.keys(data['categories']).length){
@@ -234,7 +234,7 @@ class Lists extends Index {
 	epgChannelsTermsList(){
 		return new Promise((resolve, reject) => {
 			if(!this._epg){
-				return reject('no epg')
+				return reject('no epg 9')
 			}
 			let data = this._epg.terms
 			if(data && Object.keys(data).length){

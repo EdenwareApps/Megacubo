@@ -52,14 +52,8 @@ function arrowUpPressed(noNav){
         if(!noNav && streamer.isVolumeButtonActive()){
             streamer.volumeUp(1)
         } else {
-            if((noNav || !idle.isIdle) && playing && !exploring){
-                idle.start()
-                idle.lock(1)
-            } else if(noNav && exploring){
-                explorer.body.removeClass('menu-playing')
-            } else {
-                if(!noNav) explorer.arrow('up')
-            }
+            idle.start()
+            idle.lock(1)
         }
     } else {
         if(!noNav) explorer.arrow('up')

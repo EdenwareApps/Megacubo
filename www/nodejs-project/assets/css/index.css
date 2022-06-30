@@ -858,6 +858,9 @@ body.casting seekbar, body.casting button.volume, body.casting button.ratio, bod
 body.casting.video-playing #cast-layer {
     visibility: visible;
 }
+button.button-alpha i {
+    opacity: var(--opacity-level-3);
+}
 #osd-root {
     position: absolute;
     top: var(--explorer-padding-top);
@@ -1101,11 +1104,15 @@ span.modal-template-question img {
     align-items: center;
 }
 a.modal-template-option, a.modal-template-option-detailed {
-    color: black;
     border-bottom: 2px solid rgba(0,0,0,0.02);
     box-shadow: 0 -0.5vmin 1vmin 0.5vmin rgba(0, 0, 0, 0.01);
     justify-content: center;
     padding: 2.5vmax 0 ;
+    background: linear-gradient(to bottom, rgba(0,0,0, 0.05) 0%, transparent 150%);
+    color: black;
+}
+a.modal-template-option.selected, a.modal-template-option-detailed.selected .modal-template-option-detailed-name {
+    font-weight: bold;
 }
 a.modal-template-option i, a.modal-template-option-detailed i {
     margin-right: var(--padding);
@@ -1157,7 +1164,16 @@ span.modal-template-text input:focus, span.modal-template-textarea textarea:focu
     display: flex;
     flex-direction: column;
     flex-shrink: 1;
-    border-radius: var(--radius);
+    border-radius: var(--radius);    
+}
+@media only screen and (min-width: 321px) and (orientation:landscape) {
+    .modal-template-options.two-columns {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+    .modal-template-options.two-columns a.modal-template-option, .modal-template-options.two-columns a.modal-template-option-detailed {
+        width: 50%;
+    }
 }
 .fa-blink-alpha {
     animation: blink-alpha 1.1s infinite linear;

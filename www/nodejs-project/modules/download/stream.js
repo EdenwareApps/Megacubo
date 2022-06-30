@@ -27,7 +27,7 @@ class DownloadStream extends Events {
         this.ips = null
         this.failedIPs = []
         this.errors = []
-        this.timeout = opts.timeout && opts.timeout.response ? opts.timeout.response : 30000
+        this.timeout = opts.timeout
 		process.nextTick(() => {
             this.start().catch(err => this.emitError(err))
         })
@@ -47,7 +47,7 @@ class DownloadStream extends Events {
         if(cookie){
             opts.headers.cookie = cookie
         }
-		opts.timeout = this.timeout
+		opts.timeout = this.timeout.connect
         opts.protocol = this.parsed.protocol
         opts.decompress = false
         if(this.parsed.protocol == 'https:'){
@@ -124,12 +124,19 @@ class DownloadStream extends Events {
                     clearTimeout(timer)
                 }
             }
-            const startTimer = () => {
+            let currentState = 'connect'
+            const startTimer = state => {
                 clearTimer()
+                if(!state){
+                    state = currentState
+                }
+                if(state != currentState){
+                    currentState = state
+                }
                 timer = setTimeout(() => {
                     fail('Timeouted')
                     close()
-                }, this.timeout)
+                }, this.timeout[state])
             }
             const finish = () => {
                 clearTimer()
@@ -159,19 +166,20 @@ class DownloadStream extends Events {
                 this.emit('response', response)
                 res.on('data', chunk => {
                     this.emit('data', chunk)
-                    startTimer()                  
+                    startTimer('response')                  
                 })
                 res.on('error', fail)
+                res.on('timeout', fail)
                 res.on('end', () => finish())
                 res.on('close', () => finish())
                 res.on('finish', () => finish())
                 res.socket.on('end', () => finish())
                 res.socket.on('close', () => finish())
                 res.socket.on('finish', () => finish())
-                startTimer()
+                startTimer('response')
             }).on('error', fail)
             req.end()
-            startTimer()
+            startTimer('connect')
         })
 	}
     async getCookies(){

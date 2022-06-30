@@ -438,7 +438,7 @@ class ChannelsEPG extends ChannelsData {
         if(ret){
             return ret.t
         } else {
-            throw 'not found'
+            throw 'not found 2'
         }
     }
     async epgChannelLiveNowAndNext(entry){
@@ -449,6 +449,7 @@ class ChannelsEPG extends ChannelsData {
     async epgChannelLiveNowAndNextInfo(entry){
         let channel = this.epgPrepareSearch(entry)
         let epgData = await global.lists.epg(channel, 2)
+        if(typeof(epgData) == 'string') throw 'epg is loading'
         Object.keys(epgData).forEach(k => epgData[k].s = parseInt(k))
         let now = Object.values(epgData).shift()
         if(now && now.t){
@@ -463,7 +464,7 @@ class ChannelsEPG extends ChannelsData {
             }
             return ret
         } else {
-            throw 'not found'
+            throw 'not found 1'
         }
     }
     async epgChannelsLiveNow(entries){

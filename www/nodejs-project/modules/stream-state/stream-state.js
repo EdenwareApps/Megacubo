@@ -207,7 +207,7 @@ class StreamState extends Events {
                         global.osd.hide('stream-state-tester')
                     }
                     this.testing.destroy()
-                    this.testing = null
+                    this.testing = null 
                     resolve(true)
                     this.save()
                 }

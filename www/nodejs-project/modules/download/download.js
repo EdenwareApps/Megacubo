@@ -323,7 +323,7 @@ class Download extends Events {
         return uri.href
     }
 	getTimeoutOptions(){
-		if(this.opts.timeout && typeof(this.opts.timeout) == 'object' && this.opts.timeout.lookup){
+		if(this.opts.timeout && typeof(this.opts.timeout) == 'object' && this.opts.timeout.connect && this.opts.timeout.response) {
 			return this.opts.timeout
 		} else {
 			let ms, timeout = {}
@@ -332,8 +332,7 @@ class Download extends Events {
 			} else {
 				ms = (global.config.get('connect-timeout') || 5) * 1000
 			}
-			'lookup,connect,secureConnect'.split(',').forEach(s => timeout[s] = ms)
-			'socket,response,send,request'.split(',').forEach(s => timeout[s] = ms * 2)
+			'lookup,connect,response'.split(',').forEach(s => timeout[s] = ms)
 			return timeout
 		}
 	}

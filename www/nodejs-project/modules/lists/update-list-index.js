@@ -61,7 +61,7 @@ class UpdateListIndex extends ListIndexUtils {
             if(this.debug){
                 console.log('load', should)
             }
-            let now = global.time(), path = this.directURL
+            let now = global.time(), path = this.directURL, lastmtime = 0
             if(path.match(new RegExp('^//[^/]+\\.'))){
                 path = 'http:' + path
             }
@@ -84,6 +84,9 @@ class UpdateListIndex extends ListIndexUtils {
                     now = global.time()
                     if(statusCode >= 200 && statusCode < 300){
                         this.contentLength = this.stream.totalContentLength
+                        if(headers['last-modified']){
+                            lastmtime = Date.parse(headers['last-modified']) / 1000
+                        }
                         if(this.stream.totalContentLength > 0 && (this.stream.totalContentLength == this.updateMeta.contentLength)){
                             this.stream.destroy()
                             resolve(false) // no need to update
@@ -104,6 +107,7 @@ class UpdateListIndex extends ListIndexUtils {
             } else {
                 fs.stat(path, (err, stat) => {
                     if(stat && stat.size){
+                        lastmtime = stat.mtime
                         this.contentLength = stat.size
                         if(stat.size > 0 && stat.size == this.updateMeta.contentLength){
                             resolve(false) // no need to update
@@ -122,7 +126,7 @@ class UpdateListIndex extends ListIndexUtils {
             }
         })
 	}
-	parseStream(stream){	
+	parseStream(stream, lastmtime=0){	
 		return new Promise((resolve, reject) => {
 			if(stream && this.stream != stream){
 				this.stream = stream
@@ -130,6 +134,7 @@ class UpdateListIndex extends ListIndexUtils {
 			let resolved, writer = fs.createWriteStream(this.tmpfile, {highWaterMark: Number.MAX_SAFE_INTEGER})
 			this.indexateIterator = 0
 			this.hlsCount = 0
+            this.lastmtime = lastmtime
 			this.parser = new Parser(this.stream)
 			this.parser.on('meta', meta => {
 				this.index.meta = Object.assign(this.index.meta, meta)

@@ -60,6 +60,7 @@ class Search extends Events {
             global.osd.show(global.lang.SEARCHING, 'fas fa-search spin-x-alt', 'search', 'persistent')
             this.searchMediaType = mediaType
             this[mediaType == 'live' ? 'channelsResults' : 'results'](value).then(rs => {
+                console.log('results', rs)
                 if(!rs.length && mediaType == 'live'){
                     return this.go(value, 'all')
                 }
@@ -144,6 +145,7 @@ class Search extends Events {
             parentalControl: isAdultQueryBlocked ? false : undefined // allow us to count blocked results
         })
         es = (es.results && es.results.length) ? es.results : ((es.maybe && es.maybe.length) ? es.maybe : [])
+        console.log('has searched', terms, es.length)
         if(isAdultQueryBlocked) {
             es = [
                 {
@@ -219,7 +221,7 @@ class Search extends Events {
         }
         const results = await this.ytsr(filter.url, options)
         return results.items.filter(t => t && !t.isLive).map(t => {
-            let icon = t.thumbnails.sortByProp('width').shift().url
+            let icon = t.thumbnails ? t.thumbnails.sortByProp('width').shift().url : undefined
             return {
                 name: this.fixYTTitles(t.title),
                 icon,
@@ -262,7 +264,7 @@ class Search extends Events {
             return lists.match(tms, ytms, true)
         })
         return results.items.map(t => {
-            let icon = t.thumbnails.sortByProp('width').shift().url
+            let icon = t.thumbnails ? t.thumbnails.sortByProp('width').shift().url : undefined
             return {
                 name: this.fixYTTitles(t.title),
                 icon,
@@ -286,12 +288,14 @@ class Search extends Events {
         let es = await global.channels.search(terms, this.searchInaccurate)
         es = es.map(e => global.channels.toMetaEntry(e))
         let minResultsWanted = (global.config.get('view-size-x') * global.config.get('view-size-y')) - 3
+        console.log('channelsResults')
         if(es.length < minResultsWanted){
-            let ys = await this.ytLiveResults(terms).catch(console.error)
+                let ys = await this.ytLiveResults(terms).catch(console.error)
             if(Array.isArray(ys)) {
                 es = es.concat(ys.slice(0, minResultsWanted - es.length))
             }
         }
+        console.log('channelsResults')
         return es
     }
     isSearching(){

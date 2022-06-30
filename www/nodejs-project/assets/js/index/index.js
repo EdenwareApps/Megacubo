@@ -12,6 +12,17 @@ function log(msg, id){
 	console.log('[' + id + '] ' + msg +' '+ traceback())
 }
 
+let maxAlerts = 8
+window.onerror = function (message, file, line, column, errorObj) {
+	if(maxAlerts){
+		maxAlerts--
+		let stack = errorObj !== undefined ? errorObj.stack : traceback()
+		alert(message +' '+ file +':'+ line +' '+ stack)
+		log(message)
+	}
+	return true
+}
+
 function isES6(){
     try{
 		Function('() => { let a; };');
@@ -253,7 +264,6 @@ function fakeUpdateProgress(){
 	}, 1000)
 }
 
-window.onerror = log
 theming()
 
 if(window.cordova){

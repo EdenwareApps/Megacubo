@@ -55,6 +55,7 @@ module.exports = {
 	'osd-speak': false,
 	'parental-control-policy': 'block',
 	'parental-control-terms': '.',
+	'play-while-loading': true,
 	'playback-rate-control': true,
 	'connect-timeout': 5,
 	'resume': false,

@@ -297,6 +297,7 @@ class StreamerBase extends StreamerTools {
 				intent.committed = true
 				intent.commitTime = global.time()
 				intent.on('destroy', () => {
+					console.error('streamer intent destroy()')
 					if(intent == this.active){
 						this.emit('uncommit', intent)
 						if(this.opts.debug){
@@ -432,6 +433,7 @@ class StreamerBase extends StreamerTools {
 		}
 	}
 	stop(err){
+		console.error('streamer stop()')
 		if(!this.opts.shadow){
 			global.osd.hide('streamer')
 			global.osd.hide('transcode')
@@ -808,8 +810,9 @@ class StreamerAbout extends StreamerTracks {
 		if(this.active && this.active.data){
 			this.aboutEntries.concat(this.moreAboutEntries).some(o => {
 				if(o.id && o.id == chosen){
-					if(typeof(o.action) == 'function'){
-						o.action(this.active.data)
+					if(typeof(o.action) == 'function'){						
+                        let ret = o.action(this.active.data)
+                        if(ret && ret.catch) ret.catch(console.error)
 					}
 					return true
 				}
@@ -862,12 +865,10 @@ class Streamer extends StreamerAbout {
 			throw 'in shadow mode'
 		}
 		const loadingEntriesData = [global.lang.AUTO_TUNING, name]
-		console.warn('playFromEntries', entries, name, connectId)
-		if(!this.active){
-			global.explorer.setLoadingEntries(loadingEntriesData, true, txt)
-			if(!silent){
-				global.osd.show(global.lang.TUNING_WAIT_X.format(name) + ' 0%', 'fa-mega spin-x-alt', 'streamer', 'persistent')
-			}
+		console.warn('playFromEntries', entries, name, connectId, silent)
+		global.explorer.setLoadingEntries(loadingEntriesData, true, txt)
+		if(!silent){
+			global.osd.show(global.lang.TUNING_WAIT_X.format(name) + ' 0%', 'fa-mega spin-x-alt', 'streamer', 'persistent')
 		}
 		if(global.tuning){
 			global.tuning.destroy()
@@ -881,7 +882,7 @@ class Streamer extends StreamerAbout {
 		global.tuning = tuning
 		tuning.txt = txt
 		tuning.on('progress', i => {
-			if(!silent && !this.active && i.progress && !isNaN(i.progress)){
+			if(!silent && i.progress && !isNaN(i.progress)){
 				global.osd.show(global.lang.TUNING_WAIT_X.format(name) +' '+ i.progress + '%', 'fa-mega spin-x-alt', 'streamer', 'persistent')
 			}
 		})
@@ -915,7 +916,7 @@ class Streamer extends StreamerAbout {
 			throw 'in shadow mode'
 		}
 		e = global.deepClone(e)
-		if(this.active){
+		if(this.active && !global.config.get('play-while-loading')){
 			this.stop()
 		}
 		if(global.tuning){
@@ -1003,7 +1004,7 @@ class Streamer extends StreamerAbout {
 			let terms = global.channels.entryTerms(e)
 			this.setTuneable(!global.lists.msi.isVideo(e.url) && global.channels.isChannel(terms))
 			if(!silent){
-				global.osd.show(global.lang.CONNECTING + ' ' + e.name + '...', 'fa-mega spin-x-alt', 'streamer', 'persistent')
+				global.osd.show(global.lang.CONNECTING +' '+ e.name + '...', 'fa-mega spin-x-alt', 'streamer', 'persistent')
 			}
 			let hasErr, intent = await this.intent(e).catch(r => hasErr = r)
 			if(typeof(hasErr) != 'undefined'){
@@ -1081,7 +1082,9 @@ class Streamer extends StreamerAbout {
 			}		
 		}
 		if(this.isEntry(e)){
-			this.stop()
+			if(this.active && !global.config.get('play-while-loading')){
+				this.stop()
+			}
 			let ch = global.channels.isChannel(global.channels.entryTerms(e))
 			if(ch){
 				e.name = ch.name
@@ -1126,7 +1129,9 @@ class Streamer extends StreamerAbout {
 				e = this.lastActiveData
 			}
 		}
-		this.stop({err: r, trace})
+		if(!doTune || !global.config.get('play-while-loading')){
+			this.stop({err: r, trace})
+		}
 		this.emit('failure', e)		
 		if(this.opts.shadow){
 			return
@@ -1148,7 +1153,9 @@ class Streamer extends StreamerAbout {
 			}
 			if(!global.mega.isMega(e.url)){
 				if(!this.tune(e)){
-					this.stop({err: 'tune failure', trace})
+					if(!global.config.get('play-while-loading')){
+						this.stop({err: 'tune failure', trace})
+					}
 				}
 			}
 		}

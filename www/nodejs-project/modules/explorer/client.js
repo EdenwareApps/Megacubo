@@ -657,6 +657,10 @@ class ExplorerPointer extends ExplorerSelectionMemory {
         if(view.default === true || !this.defaultNavGroup){
             this.defaultNavGroup = view.level
         }
+		jQuery(document.body).on('mousedown', view.selector, event => {
+			let e = event.currentTarget
+			this.focus(e, true)
+		})
         return this.views.push(view) // add.selector can be a selector string, set of elements or function returning elements
     }
     distance(c, e, m){
@@ -1136,7 +1140,7 @@ class ExplorerDialog extends ExplorerDialogQueue {
 					this.app.emit.apply(this.app, cb)
 				}
 			}
-			let validatedDefaultIndex
+			let validatedDefaultIndex, optsCount = 0, optsHasInput, allowTwoColumnsOptionsGroup = true
 			entries.forEach(e => {
 				let template = e.template, isOption = ['option', 'option-detailed', 'text', 'slider'].includes(template)
 				if(template == 'option' && e.details){
@@ -1161,8 +1165,17 @@ class ExplorerDialog extends ExplorerDialogQueue {
 					console.log(tpl, e)
 				}
 				if(isOption){
+					optsCount++
 					if(!validatedDefaultIndex || e.id == defaultIndex){
 						validatedDefaultIndex = e.id
+					}
+					if(e.template == 'text'){
+						optsHasInput = true
+					}
+					if(allowTwoColumnsOptionsGroup){
+						if(e.plainText.length > 50){
+							allowTwoColumnsOptionsGroup = false
+						}
 					}
 					opts += tpl
 				} else {
@@ -1172,9 +1185,21 @@ class ExplorerDialog extends ExplorerDialogQueue {
 			if(opts){
 				html += this.replaceTags(this.modalTemplates['options-group'], {opts}, true)
 			}
-			console.log('MODALFOCUS', defaultIndex, validatedDefaultIndex)
+			console.log('MODALFOCUS', defaultIndex, validatedDefaultIndex, allowTwoColumnsOptionsGroup)
 			this.startModal('<div class="modal-wrap"><div>' + html + '</div></div>', mandatory)
 			let m = this.modalContent
+			if(allowTwoColumnsOptionsGroup){
+				let fitVal = 2, overVal	= 4
+				if(optsHasInput){
+					fitVal = 3, overVal	= 4
+				}
+				if(optsCount == fitVal || optsCount >= overVal){
+					let grp = m.querySelector('.modal-template-options')
+					if(grp){
+						grp.className = grp.className +' two-columns'
+					}
+				}
+			}
 			entries.forEach(e => {
 				if(['option', 'option-detailed'].includes(e.template)){
 					let p = m.querySelector('#modal-template-option-' + e.id+', #modal-template-option-detailed-' + e.id)
@@ -1816,6 +1841,7 @@ class Explorer extends ExplorerLoading {
 					let diff = this.diffEntries(e, n)
 					if(!diff){
 						ne = this.currentElements[i]
+						if(!ne) return
 						if(i != j) {
 							move = true
 						}

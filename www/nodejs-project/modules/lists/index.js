@@ -79,8 +79,10 @@ class Index extends Common {
 					})
 				})
 				terms.forEach(term => {
-					let tlen = term.length, nterms = allTerms.filter(t => {
-						return t != term && t.length > tlen && !excludes.includes(t) && (t.substr(0, tlen) == term || t.substr(t.length - tlen) == term)
+					let tlen = term.length
+					if(tlen < 3) return // dont autoplete small words, too many vars
+					let nterms = allTerms.filter(t => {
+							return t != term && t.length > tlen && !excludes.includes(t) && (t.substr(0, tlen) == term || t.substr(t.length - tlen) == term)
 					})
 					if(nterms.length){
 						aliases[term] = nterms
@@ -231,9 +233,9 @@ class Index extends Common {
 						results = this.parentalControl.filter(results)
 						maybe = this.parentalControl.filter(maybe)
 					}
-					results = this.adjustSearchResults(results, limit)
+					results = this.adjustSearchResults(results, opts, limit)
 					if(results.length < limit){
-						maybe = this.adjustSearchResults(maybe, limit - results.length)
+						maybe = this.adjustSearchResults(maybe, opts, limit - results.length)
 					} else {
 						maybe = []
 					}
@@ -274,9 +276,13 @@ class Index extends Common {
     	}
     	return ''
 	}
-	adjustSearchResults(entries, limit){
+	adjustSearchResults(entries, opts, limit){
 		let map = {}, nentries = [];
-		(global.config.get('tuning-prefer-hls') ? this.preferHLS(entries) : entries).forEach(e => {
+		(
+			(opts && opts.type == 'live' && global.config.get('tuning-prefer-hls')) ? 
+			this.preferHLS(entries) : 
+			entries
+		).forEach(e => {
 			let domain = this.getDomain(e.url)
 			if(typeof(map[domain]) == 'undefined'){
 				map[domain] = []

@@ -1,6 +1,14 @@
-
 var body = $('body'), content = $('#explorer content'), wrap = document.querySelector('#explorer wrap'), wrapper = $(wrap)
 
+let maxAlerts = 8
+window.onerror = function (message, file, line, column, errorObj) {
+	if(maxAlerts){
+		maxAlerts--
+		let stack = errorObj !== undefined ? errorObj.stack : traceback()
+		alert(message +' '+ file +':'+ line +' '+ stack)
+	}
+	return true
+}
 
 function parseMomentLocale(content){
     let startPos = content.indexOf('moment.defineLocale('), endPos = content.lastIndexOf('return ')
@@ -57,7 +65,7 @@ function configUpdated(keys, c){
     hideBackButton(config['hide-back-button'])
     parent.animateBackground(config['animate-background'])
 }
-
+        
 function initApp(){ 
     console.log('INITAPP')
     app.on('open-external-url', url => parent.openExternalURL(url)) 
@@ -193,7 +201,6 @@ function initApp(){
     app.on('setup-skip-list', () => {
         window.setupSkipList = true
     })
-
     $(() => {
         console.log('load app')
 

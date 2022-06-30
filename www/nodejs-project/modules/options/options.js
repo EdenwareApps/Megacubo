@@ -109,6 +109,7 @@ class PerformanceProfiles extends Timer {
                 'autocrop-logos': true,
                 'connect-timeout': 5,
                 'fx-nav-intensity': 2,
+                'play-while-loading': true,
                 'search-missing-logos': true,
                 'show-logos': true,
                 'transcoding': '1080p',
@@ -125,6 +126,7 @@ class PerformanceProfiles extends Timer {
                 'custom-background-video': '',
                 'epg': 'disabled',
                 'fx-nav-intensity': 0,
+                'play-while-loading': false,
                 'resume': false,
                 'search-missing-logos': false,
                 'show-logos': false,
@@ -414,7 +416,7 @@ class Options extends OptionsHardwareAcceleration {
                     defaultURL = url
                 }
                 let entries = [
-                    {name: global.lang.OPEN_URL, fa: 'fas fa-link', type: 'action', action: () => {
+                    {name: global.lang.OPEN_URL, fa: 'fas fa-link', details: global.lang.STREAMS, type: 'action', action: () => {
                         global.ui.emit('prompt', global.lang.OPEN_URL, 'http://.../example.m3u8', defaultURL, 'open-url', false, 'fas fa-link')
                     }},
                     this.timerEntry()
@@ -538,11 +540,17 @@ class Options extends OptionsHardwareAcceleration {
                 renderer: () => this.countriesEntries(true, path)
             })
         }
-        global.osd.show(global.lang.WHEN_READY_CLICK_BACK.format(global.lang.BACK), 'fas fa-info-circle', 'click-back-to-save', 'long')
+        global.osd.show(global.lang.WHEN_READY_CLICK_BACK.format(global.lang.BACK), 'fas fa-info-circle', 'click-back-to-save', 'persistent')
         return entries
     }
     tos(){
         global.ui.emit('open-external-url', 'https://megacubo.net/tos')
+    }
+    privacy(){
+        global.ui.emit('open-external-url', 'https://megacubo.net/privacy')
+    }
+    uninstall(){
+        global.ui.emit('open-external-url', 'https://megacubo.net/uninstall-info')
     }
     help(){
         global.cloud.get('configure').then(c => {
@@ -551,7 +559,7 @@ class Options extends OptionsHardwareAcceleration {
         }).catch(global.displayErr)
     }
 	share(){
-		global.ui.emit('share', global.ucWords(global.MANIFEST.name), global.ucWords(global.MANIFEST.name), 'https://megacubo.net/online/')
+		global.ui.emit('share', global.ucWords(global.MANIFEST.name), global.ucWords(global.MANIFEST.name), 'https://megacubo.net/')
 	}
     async about(){
         let outdated
@@ -572,11 +580,16 @@ class Options extends OptionsHardwareAcceleration {
             {template: 'message', text},
             {template: 'option', text: 'OK', fa: 'fas fa-check-circle', id: 'ok'},
             {template: 'option', text: global.lang.HELP, fa: 'fas fa-question-circle', id: 'help'},
+            {template: 'option', text: global.lang.LICENSE_AGREEMENT, fa: 'fas fa-info-circle', id: 'tos'},
+            {template: 'option', text: global.lang.PRIVACY_POLICY, fa: 'fas fa-info-circle', id: 'privacy'},            
             {template: 'option', text: global.lang.SHARE, fa: 'fas fa-share-alt', id: 'share'},
-            {template: 'option', text: global.lang.TOS, fa: 'fas fa-info-circle', id: 'tos'}
+            {template: 'option', text: global.lang.UNINSTALL, fa: 'fas fa-info-circle', id: 'uninstall'}
         ], 'ok')
         console.log('about-callback', ret)
         switch(ret){
+            case 'privacy':
+                this.privacy()
+                break
             case 'tos':
                 this.tos()
                 break
@@ -585,6 +598,9 @@ class Options extends OptionsHardwareAcceleration {
                 break
             case 'help':
                 this.help()
+                break
+            case 'uninstall':
+                this.uninstall()
                 break
         }
     }
@@ -1079,6 +1095,19 @@ class Options extends OptionsHardwareAcceleration {
                             }, checked: () => {
                                 return global.config.get('debug-conns')
                             }},
+                            {
+                                name: 'Save crash log', 
+                                fa: 'fas fa-info-circle', 
+                                type: 'action', 
+                                action: async () => {
+                                    const filename = 'megacubo-crash-log.txt', file = global.downloads.folder + path.sep + filename
+                                    let content = await global.crashlog.read()
+                                    fs.writeFile(file, content, {encoding: 'utf-8'}, err => {
+                                        if(err) return global.displayErr(err)
+                                        global.downloads.serve(file, true, false).catch(global.displayErr)
+                                    })
+                                }
+                            }   ,
                             {
                                 name: 'Save last tuning log', 
                                 fa: 'fas fa-info-circle', 

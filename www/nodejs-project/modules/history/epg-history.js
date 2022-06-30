@@ -54,7 +54,7 @@ class EPGHistory extends EntriesGroup {
         if(this.session){
             this.setBusy(true)
             clearInterval(this.session.timer)
-            await this.check()
+            await this.check().catch(console.error)
             this.session = null
             this.setBusy(false)
         }
@@ -250,8 +250,7 @@ class EPGHistory extends EntriesGroup {
         return new Promise((resolve, reject) => {
             if(this.isBusy){
                 this.once('release', async () => {
-                    await this.check()
-                    resolve()
+                    this.check().catch(console.error).finally(resolve)
                 })
             } else {
                 this.check().catch(console.error).finally(resolve)

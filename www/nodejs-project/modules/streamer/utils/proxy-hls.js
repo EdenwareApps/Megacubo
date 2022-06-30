@@ -394,7 +394,7 @@ class HLSRequests extends StreamerProxyBase {
 		this.debugConns = false
 		this.debugUnfinishedRequests = false
 		this.finishRequestsOutsideFromLiveWindow = false
-		this.prefetchMaxConcurrency = 2
+		this.prefetchMaxConcurrency = 1
 		this.packetFilterPolicy = 1
 		this.requestCacheUID = parseInt(Math.random() * 1000000)
 		this.requestCacheDir = global.paths.temp +'/streamer/'+ this.requestCacheUID +'/'
@@ -596,23 +596,23 @@ class HLSRequests extends StreamerProxyBase {
 					delete this.activeRequests[url]
 					this.debugActiveRequests()
 				}
-				if(this.requestCacheMap[url].mediaType == 'meta'){
-					this.activeManifest = url
-					// console.warn('BITRATE', url, this.playlistBitrates, this.playlistBitrates[url])
-					if(this.playlistBitrates[url]){
-						this.saveBitrate(this.playlistBitrates[url], true)
-					}
-					this.finishObsoleteSegmentRequests(url)
-				}
 				if(!ended){
 					ended = true
-				}
-				if(this.activeManifest && Object.keys(this.requestCacheMap).filter(u => this.ext(u) == 'ts')){ // has downloaded at least one segment to know from where the player is starting
-					setTimeout(() => this.prefetch(url, opts), 50)
-					if(this.committed && seg &&  !this.bitrateChecking && (this.bitrates.length < this.opts.bitrateCheckingAmount || !this.codecData)){
-						if(!this.playlistBitrates[this.activeManifest] || !this.codecData || !(this.codecData.audio || this.codecData.video)) {
-							console.log('getBitrate', this.proxify(url))
-							this.getBitrate(this.proxify(url))
+					if(this.requestCacheMap[url].mediaType == 'meta'){
+						this.activeManifest = url
+						// console.warn('BITRATE', url, this.playlistBitrates, this.playlistBitrates[url])
+						if(this.playlistBitrates[url]){
+							this.saveBitrate(this.playlistBitrates[url], true)
+						}
+						this.finishObsoleteSegmentRequests(url)
+					}
+					if(this.activeManifest && Object.keys(this.requestCacheMap).filter(u => this.ext(u) == 'ts').length){ // has downloaded at least one segment to know from where the player is starting
+						setTimeout(() => this.prefetch(url, opts), 50)
+						if(this.committed && seg &&  !this.bitrateChecking && (this.bitrates.length < this.opts.bitrateCheckingAmount || !this.codecData)){
+							if(!this.playlistBitrates[this.activeManifest] || !this.codecData || !(this.codecData.audio || this.codecData.video)) {
+								console.log('getBitrate', this.proxify(url))
+								this.getBitrate(this.proxify(url))
+							}
 						}
 					}
 				}
@@ -927,7 +927,6 @@ class StreamerProxyHLS extends HLSRequests {
 				}
 				return match[1] + match[2]
 			})
-			console.log('PROXIFIED', body)
 		}
 		parser.dispose()
 		parser = null

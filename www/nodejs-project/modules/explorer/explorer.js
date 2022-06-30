@@ -161,7 +161,8 @@ class Explorer extends Events {
                 console.log('back', this.path, p, e)
             }
             if(e && e.action){
-                e.action()
+                let ret = e.action()
+                if(ret && ret.catch) ret.catch(console.error)
                 return
             }
             if(typeof(level) != 'number'){
@@ -240,7 +241,8 @@ class Explorer extends Events {
                         this.pages[dir][k].value = value
                     }
                     if(typeof(e.action) == 'function'){
-                        e.action(e, value)
+                        let ret = e.action(e, value)
+                        if(ret && ret.catch) ret.catch(console.error)
                     }
                     return true
                 }
@@ -261,7 +263,8 @@ class Explorer extends Events {
                 if(e.name == name && ['input', 'slider'].includes(e.type)){
                     this.pages[dir][k].value = value
                     if(typeof(e.action) == 'function'){
-                        e.action(e, value)
+                        let ret = e.action(e, value)
+                        if(ret && ret.catch) ret.catch(console.error)
                     }
                     console.error('input ok', e, this.path, destPath)
                     return true
@@ -274,7 +277,8 @@ class Explorer extends Events {
                         if(e.name == name && ['input', 'slider'].includes(e.type)){
                             this.pages[dir][k].value = value
                             if(typeof(e.action) == 'function'){
-                                e.action(e, value)
+                                let ret = e.action(e, value)
+                                if(ret && ret.catch) ret.catch(console.error)
                             }
                             console.error('input ok', e, this.pages[dir][k])
                             return true

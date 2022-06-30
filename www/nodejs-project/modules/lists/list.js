@@ -163,6 +163,7 @@ class List extends Events {
         const values = {}
         const factors = {
             relevantKeywords: 1,
+            mtime: 1,
             hls: 0.5
         }
 
@@ -184,9 +185,17 @@ class List extends Events {
         // hls
         values.hls = index.hlsCount / (index.length / 100)
 
+        // mtime
+        const rangeSize = 30 * (24 * 3600), now = global.time(), deadline = now - rangeSize
+        if(!index.lastmtime || index.lastmtime < deadline){
+            values.mtime = 0
+        } else {
+            values.mtime = (index.lastmtime - deadline) / (rangeSize / 100)
+        }
+
         let relevance = 0
         const ks = Object.keys(values)
-        ks.forEach(k => relevance += values[k])
+        ks.forEach(k => relevance += (values[k] * factors[k]))
         relevance /= ks.length
 
 		return relevance

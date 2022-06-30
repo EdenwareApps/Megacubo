@@ -1,4 +1,3 @@
-
 class StreamerPlaybackTimeout extends EventEmitter {
     constructor(controls, app){
         super()
@@ -1063,16 +1062,7 @@ class StreamerClientVideoFullScreen extends StreamerAndroidNetworkIP {
                 parent.winman.on('leave', this.pipLeaveListener)
             }
         } else {
-            let e = parent.document.body // document.documentElement
-            if (e.requestFullscreen) {
-                e.requestFullscreen()
-            } else if (e.msRequestFullscreen) {
-                e.msRequestFullscreen()
-            } else if (e.mozRequestFullScreen) {
-                e.mozRequestFullScreen()
-            } else if (e.webkitRequestFullscreen) {
-                e.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT)
-            }
+            top.Manager.setFullScreen(true)
         }
         this.inFullScreen = true
         this.emit('fullscreenchange', this.inFullScreen)
@@ -1084,28 +1074,17 @@ class StreamerClientVideoFullScreen extends StreamerAndroidNetworkIP {
                 if(this.pipLeaveListener){
                     parent.winman.removeListener('leave', this.pipLeaveListener)
                 }
-                //setTimeout(() => { // delay a bit trying to prevent GL_OUT_OF_MEMORY on stop()
-                    parent.AndroidFullScreen.immersiveMode(() => {
-                        setTimeout(() => { // bugfix for some devices
-                            parent.AndroidFullScreen.immersiveMode(() => {
-                                parent.AndroidFullScreen.showSystemUI(() => {
-                                    parent.AndroidFullScreen.showUnderSystemUI(() => {}, console.error)
-                                }, console.error)
-                            }, console.error);
-                        }, 10)
-                    }, console.error);
-                //}, 10)
+                parent.AndroidFullScreen.immersiveMode(() => {
+                    setTimeout(() => { // bugfix for some devices
+                        parent.AndroidFullScreen.immersiveMode(() => {
+                            parent.AndroidFullScreen.showSystemUI(() => {
+                                parent.AndroidFullScreen.showUnderSystemUI(() => {}, console.error)
+                            }, console.error)
+                        }, console.error);
+                    }, 10)
+                }, console.error)
             } else {
-                let e = parent.document // document.documentElement
-                if (e.exitFullscreen) {
-                    e.exitFullscreen()
-                } else if (e.msExitFullscreen) {
-                    e.msExitFullscreen()
-                } else if (e.mozCancelFullScreen) {
-                    e.mozCancelFullScreen()
-                } else if (e.webkitExitFullscreen) {
-                    e.webkitExitFullscreen()
-                }
+                top.Manager.setFullScreen(false)
             }
             this.emit('fullscreenchange', this.inFullScreen)
         }
@@ -1188,18 +1167,29 @@ class StreamerAudioUI extends StreamerClientVideoFullScreen {
     setupVolume(){        
         this.addPlayerButton('volume', lang.VOLUME, 'fas fa-volume-up', 2, this.volumeBarShow.bind(this))
         this.volumeButton = this.getPlayerButton('volume')
-        jQuery('<volume><volume-wrap><div><input type="range" min="0" max="100" step="1" value="'+ config['volume'] +'" /><div id="volume-arrow"></div></div></volume-wrap></volume>').appendTo(this.volumeButton)
+        jQuery('<volume><volume-wrap><div><input type="range" min="0" max="100" step="1" value="'+ config['volume'] +'" /><div id="volume-arrow"></div></div></volume-wrap></volume>').prependTo(this.volumeButton)
         this.volumeBar = this.volumeButton.querySelector('volume')
         this.volumeInput = this.volumeBar.querySelector('input')
         if(parent.cordova){
             // input and change events are not triggering satisfatorely on mobile, so we'll use touchmove instead ;)
             this.volumeInput.addEventListener('touchmove', this.volumeBarCalcValueFromMove.bind(this))
         } else {
-            this.volumeInput.addEventListener('input', this.volumeChanged.bind(this))
-            jQuery(this.volumeButton).hover(() => {
+            jQuery(this.volumeButton).
+            on('click', event => {
+                if(!event.target || !['volume-wrap', 'i'].includes(event.target.tagName.toLowerCase())) return
+                const volume = parseFloat(this.volumeInput.value)
+                if(volume){
+                    this.volumeMute()
+                } else {
+                    this.volumeUnmute()
+                }
+            }).
+            on('input', this.volumeChanged.bind(this)).
+            on('mouseenter', () => {
                 clearTimeout(this.volumeShowTimer)
                 this.volumeShowTimer = setTimeout(() => this.volumeBarShow(), 400)
-            }, () => {
+            }).
+            on('mouseleave', () => {
                 clearTimeout(this.volumeShowTimer)
             })
         }
@@ -1234,7 +1224,15 @@ class StreamerAudioUI extends StreamerClientVideoFullScreen {
         this.volumeChanged()
     }
     volumeMute(){
+        const volume = parseFloat(this.volumeInput.value)
+        if(volume){
+            this.unmuteVolume = volume
+        }
         this.volumeInput.value = 0
+        this.volumeChanged()
+    }
+    volumeUnmute(){
+        this.volumeInput.value = this.unmuteVolume || 100
         this.volumeChanged()
     }
     volumeChanged(){
@@ -1396,6 +1394,7 @@ class StreamerClientControls extends StreamerAudioUI {
     }
     updatePlayerButton(id, name, fa, scale = -1){
         let button = this.getPlayerButton(id)
+        if(!button) return console.error('Button #'+ id +' not found')
         if(name){
             button.querySelector('label span').innerText = name
             button.setAttribute('title', name)

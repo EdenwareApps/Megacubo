@@ -382,13 +382,39 @@ class WindowManager extends ClassesHandler {
 			if(this.app && this.app.osd){
 				this.app.osd.hide('esc-to-exit')
 			}
+			if(window.document){
+				let e = window.document
+				if (e.exitFullscreen) {
+					e.exitFullscreen()
+				} else if (e.msExitFullscreen) {
+					e.msExitFullscreen()
+				} else if (e.mozCancelFullScreen) {
+					e.mozCancelFullScreen()
+				} else if (e.webkitExitFullscreen) {
+					e.webkitExitFullscreen()
+				}
+			}
 		} else {
 			this.inFullScreen = true;
 			this.win.enterFullscreen()
-			if(this.app && this.app.osd && this.app.hotkeys && this.app.hotkeys){
-				let key = this.app.hotkeys.getHotkeyAction('FULLSCREEN', true)
-				if(key){
-					this.app.osd.show(this.app.lang.EXIT_FS_HINT.replace('{0}', key), 'fas fa-info-circle', 'esc-to-exit', 'normal')
+			if(this.app){
+				if(this.app.osd && this.app.hotkeys && this.app.hotkeys){
+					let key = this.app.hotkeys.getHotkeyAction('FULLSCREEN', true)
+					if(key){
+						this.app.osd.show(this.app.lang.EXIT_FS_HINT.replace('{0}', key), 'fas fa-info-circle', 'esc-to-exit', 'normal')
+					}
+				}
+			}
+			if(window.document && window.document.body){
+				let e = window.document.body
+				if (e.requestFullscreen) {
+					e.requestFullscreen()
+				} else if (e.msRequestFullscreen) {
+					e.msRequestFullscreen()
+				} else if (e.mozRequestFullScreen) {
+					e.mozRequestFullScreen()
+				} else if (e.webkitRequestFullscreen) {
+					e.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT)
 				}
 			}
 		}
