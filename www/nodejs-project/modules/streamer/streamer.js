@@ -465,10 +465,10 @@ class StreamerBase extends StreamerTools {
 			let name = this.active.data.originalName || this.active.data.name
 			let icon = this.active.data.originalIcon || this.active.data.icon
 			if(global.mega.isMega(url)){
-				global.ui.emit('share', global.ucWords(global.MANIFEST.name), name, 'https://megacubo.tv/assistir/' + encodeURIComponent(url.replace('mega://', '')))
+				global.ui.emit('share', global.ucWords(global.MANIFEST.name), name, 'https://megacubo.tv/w/' + encodeURIComponent(url.replace('mega://', '')))
 			} else {
 				url = global.mega.build(name, {url, icon, mediaType: this.active.mediaType})
-				global.ui.emit('share', global.ucWords(global.MANIFEST.name), name, url.replace('mega://', 'https://megacubo.tv/assistir/'))
+				global.ui.emit('share', global.ucWords(global.MANIFEST.name), name, url.replace('mega://', 'https://megacubo.tv/w/'))
 			}
 		}
 	}

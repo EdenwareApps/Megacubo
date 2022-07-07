@@ -63,6 +63,16 @@ class Language extends Events {
             })
         })
     }
+    async getCountriesLanguages(codes){
+        let languages = []
+        for(let code of codes){
+            let ls = await this.getCountryLanguages(code).catch(console.error)
+            if(Array.isArray(ls)){
+                ls.filter(l => !languages.includes(l)).forEach(l => languages.push(l))
+            }
+        }
+        return languages
+    }
     getCountriesFromLanguage(locale){ // return countries of same ui language
         return new Promise((resolve, reject) => {
             global.lang.cl.getLanguage(locale, (err, language) => {
@@ -89,16 +99,19 @@ class Language extends Events {
         }))
         return countries
     }
-   async getActiveCountries(){
-        let actives = global.config.get('countries')
-        if(!Array.isArray(actives) || !actives.length){
-            let languages = await this.getCountryLanguages(this.countryCode)
-            actives = await this.getCountries(languages)
-            if(!actives.includes(this.countryCode)){
-                actives.push(this.countryCode)
-            }
-        }
-        return actives
+    async getActiveCountries(){
+         let actives = global.config.get('countries')
+         if(!Array.isArray(actives) || !actives.length){
+             let languages = await this.getCountryLanguages(this.countryCode)
+             actives = await this.getCountries(languages)
+             if(!actives.includes(this.countryCode)){
+                 actives.push(this.countryCode)
+             }
+         }
+         return actives
+    }
+    async getActiveLanguages(){
+        return await this.getCountriesLanguages(await this.getActiveCountries())
     }
     getCountriesMap(locale, additionalCountries){ // return countries of same ui language
         return new Promise((resolve, reject) => {

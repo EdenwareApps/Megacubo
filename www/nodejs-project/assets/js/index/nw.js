@@ -16,7 +16,7 @@ class ClassesHandler {
 
 class FFMpeg {
 	constructor(){
-		this.childs = {}
+		this.childs = {}  
 		this.executable = require('path').resolve('ffmpeg/ffmpeg')
 		if(process.platform == 'win32'){
 			this.executable += '.exe'
@@ -39,7 +39,8 @@ class FFMpeg {
 		}
 		let gotMetadata, output = '', child = this.cp.spawn(this.executable, cmd, {
 			cwd: this.tmpdir, 
-			killSignal: 'SIGINT'
+			killSignal: 'SIGINT',
+			shell: true // https://github.com/nodejs/node/issues/7367#issuecomment-229721296
 		})
 		const maxLogLength = 1 * (1024 * 1024), log = s => {
 			s = String(s)
@@ -196,7 +197,7 @@ class WindowManager extends ClassesHandler {
 			cmd = cmd.pop()
 			if(cmd.length && cmd.charAt(0) != '-'){
 				console.log('cmdline*: ' + cmd)
-				let sharing = '/assistir/', pos = cmd.indexOf(sharing)
+				let sharing = '/w/', pos = cmd.indexOf(sharing)
 				if(pos != -1){
 					cmd = cmd.substr(pos + sharing.length)
 				}

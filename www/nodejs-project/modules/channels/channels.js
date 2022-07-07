@@ -516,6 +516,7 @@ class ChannelsEPG extends ChannelsData {
                 //console.log('adjustEPGChannelEntryRenderer', results)
                 Object.keys(results).forEach(name => {
                     let keys = Object.keys(results[name])
+                    if(!keys.length) return
                     options.push({
                         name,
                         details: results[name][keys[0]].t,
@@ -604,7 +605,7 @@ class ChannelsEditing extends ChannelsEPG {
             type: 'action',
             fa: 'fas fa-share-alt',
             action: () => {
-                global.ui.emit('share', 'Megacubo', e.name, 'https://megacubo.tv/assistir/' + encodeURIComponent(e.name))
+                global.ui.emit('share', 'Megacubo', e.name, 'https://megacubo.tv/w/' + encodeURIComponent(e.name))
             }
         }
     }

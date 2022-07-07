@@ -28,7 +28,7 @@ require(APPDIR + '/modules/supercharge')(global)
 if(cordova){
     let datadir = cordova.app.datadir(), temp = path.join(path.dirname(datadir), 'cache')
     paths = {data: datadir +'/Data', temp}
-} else if(fs.existsSync(APPDIR +'/.portable')){
+} else if(fs.existsSync(APPDIR +'/.portable') && checkDirWritePermissionSync(APPDIR +'/.portable')){
     paths = {data: APPDIR +'/.portable/Data', temp: APPDIR +'/.portable/temp'}
 } else {
 	paths = require('env-paths')('Megacubo', {suffix: ''})
@@ -45,22 +45,26 @@ class Crashlog {
         this.crashLogFile = paths.data + '/crashlog.txt'
     }
     replaceCircular(val, cache) {
-        cache = cache || new WeakSet();
+        cache = cache || new WeakSet()
         if (val && typeof(val) == 'object') {
-            if (cache.has(val)) return '[Circular]';
-            cache.add(val);
-            var obj = (Array.isArray(val) ? [] : {});
+            if (cache.has(val)) return '[Circular]'
+            cache.add(val)
+            var obj = (Array.isArray(val) ? [] : {})
             for(var idx in val) {
-                obj[idx] = replaceCircular(val[idx], cache);
+                console.error('IDX '+ idx)
+                obj[idx] = this.replaceCircular(val[idx], cache)
             }
-            cache.delete(val);
-            return obj;
+            if(val['stack']){
+                obj['stack'] = this.replaceCircular(val['stack'])
+            }
+            cache.delete(val)
+            return obj
         }
-        return val;
+        return val
     }
     save(...args){
         const os = require('os')
-        fs.appendFileSync(this.crashFile, JSON.stringify(this.replaceCircular(args), (key, value) => {
+        fs.appendFileSync(this.crashFile, JSON.stringify(Array.from(args).map(a => this.replaceCircular(a)), (key, value) => {
             if(value instanceof Error) {
                 var error = {}
                 Object.getOwnPropertyNames(value).forEach(function (propName) {

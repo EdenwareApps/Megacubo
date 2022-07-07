@@ -581,9 +581,9 @@ class Options extends OptionsHardwareAcceleration {
             {template: 'option', text: 'OK', fa: 'fas fa-check-circle', id: 'ok'},
             {template: 'option', text: global.lang.HELP, fa: 'fas fa-question-circle', id: 'help'},
             {template: 'option', text: global.lang.LICENSE_AGREEMENT, fa: 'fas fa-info-circle', id: 'tos'},
-            {template: 'option', text: global.lang.PRIVACY_POLICY, fa: 'fas fa-info-circle', id: 'privacy'},            
-            {template: 'option', text: global.lang.SHARE, fa: 'fas fa-share-alt', id: 'share'},
-            {template: 'option', text: global.lang.UNINSTALL, fa: 'fas fa-info-circle', id: 'uninstall'}
+            {template: 'option', text: global.lang.PRIVACY_POLICY, fa: 'fas fa-info-circle', id: 'privacy'},
+            {template: 'option', text: global.lang.UNINSTALL, fa: 'fas fa-info-circle', id: 'uninstall'},
+            {template: 'option', text: global.lang.SHARE, fa: 'fas fa-share-alt', id: 'share'}
         ], 'ok')
         console.log('about-callback', ret)
         switch(ret){

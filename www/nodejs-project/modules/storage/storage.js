@@ -104,16 +104,20 @@ class StorageAsync extends StorageBase {
 										if(Buffer.isBuffer(_json)){ // is buffer
 											_json = String(_json)
 										}
-										try {
-											let j = JSON.parse(_json)
-											if(j && j != null){
-												data = j
-												j = null
-											}
-										} catch(e) {
-											console.error(e, f, _json)
+										if(_json == 'undefined'){
 											data = null
-											// this.delete(key)
+										} else {
+											try {
+												let j = JSON.parse(_json)
+												if(j && j != null){
+													data = j
+													j = null
+												}
+											} catch(e) {
+												console.error(e, f, _json)
+												data = null
+												// this.delete(key)
+											}
 										}
 										cb(data)
 									} else {

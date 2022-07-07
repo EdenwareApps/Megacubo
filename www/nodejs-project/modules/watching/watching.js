@@ -125,10 +125,14 @@ class Watching extends EntriesGroup {
         return entries
     }
     async process(){
-        let data = await global.cloud.get('watching', false)
-        if(!Array.isArray(data)){
-            data = []
-        }
+        let data = []
+        const locales = await global.lang.getActiveLanguages()
+        await Promise.all(locales.map(async locale => {
+            let es = await global.cloud.get('watching.'+ locale, false).catch(console.error)
+            if(Array.isArray(es)) {
+                data = data.concat(es)
+            }
+        }))
         data.forEach((e, i) => {
             if(e.logo && !e.icon){
                 data[i].icon = e.logo

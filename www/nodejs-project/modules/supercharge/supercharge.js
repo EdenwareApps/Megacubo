@@ -288,7 +288,28 @@ function patch(scope){
 	}
 	scope.isWritable = stream => {
 		return (stream.writable || stream.writeable) && !stream.finished
-	}
+	}	
+    scope.checkDirWritePermission = (dir, cb) => {
+        const file = dir +'/temp.txt', fs = scope.getFS()
+        fs.writeFile(file, '0', err => {
+            if(!err){
+                fs.unlink(file, () => {})
+            }
+            cb(err)
+        })
+    }
+    scope.checkDirWritePermissionSync = dir => {
+        let fine
+		const file = dir +'/temp.txt', fs = scope.getFS()
+        try {
+			fs.writeFileSync(file, '0')
+			fine = true
+			fs.unlinkSync(file)
+		} catch(e) {
+			console.error(e)
+		}
+		return fine
+    }
 	scope.rmdir = (folder, itself, cb) => {
 		const rimraf = require('rimraf')
 		let dir = folder
