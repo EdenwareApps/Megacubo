@@ -232,8 +232,15 @@ class HLSRequest extends StreamerProxyBase {
 					start: offset
 				}
 			} else {
+				let bufs = []
+				if(this.fragments[this.currentFragment].buffer && this.fragments[this.currentFragment].buffer.length){
+					bufs.push(this.fragments[this.currentFragment].buffer)
+				}
+				if(chunk && chunk.length){
+					bufs.push(chunk)
+				}
 				Object.assign(this.fragments[this.currentFragment], {
-					buffer: Buffer.concat([this.fragments[this.currentFragment].buffer, chunk.slice(i, i + len)]),
+					buffer: Buffer.concat(bufs),
 					size: this.fragments[this.currentFragment].size + len
 				})
 			}

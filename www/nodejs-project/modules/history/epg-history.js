@@ -17,6 +17,7 @@ class EPGHistory extends EntriesGroup {
             if(this.session && this.session.name != name){
                 await this.finishSession().catch(console.error)
             }
+            if(!global.streamer.active) return
             if(!this.session){
                 let validate = !global.streamer.active.info.isLocalFile && global.streamer.active.mediaType == 'live' && global.channels.isChannel(name)
                 if(validate){

@@ -1,5 +1,5 @@
 
-class CordovaCustomEmitter extends EventEmitter {
+class BridgeCustomEmitter extends EventEmitter {
     constructor (){
         super()
         this.originalEmit = this.emit
@@ -37,7 +37,7 @@ window.addEventListener('message', e => {
     if(e.data.action == 'ready' && !appReady){
         appReady = true
         console.log('ready', e.data)
-        app = setupIOCalls(new CordovaCustomEmitter())
+        app = setupIOCalls(new BridgeCustomEmitter())
         app.emit('bind')
         parent.channelGetLangCallback()
         //window.addEventListener('beforeunload', () => app.emit('unbind'))

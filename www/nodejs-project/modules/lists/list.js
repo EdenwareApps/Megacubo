@@ -156,15 +156,12 @@ class List extends Events {
 		})
 	}
 	verifyListRelevance(index){
-		if(this.skipValidating){
-			return
-		}
-
         const values = {}
         const factors = {
-            relevantKeywords: 1,
+            relevantKeywords: 2,
             mtime: 1,
-            hls: 0.5
+            size: 1,
+            hls: 1
         }
 
         // relevantKeywords
@@ -185,6 +182,9 @@ class List extends Events {
         // hls
         values.hls = index.hlsCount / (index.length / 100)
 
+        // size
+        values.size = Math.min(index.length / (1000 / 100), 100)
+
         // mtime
         const rangeSize = 30 * (24 * 3600), now = global.time(), deadline = now - rangeSize
         if(!index.lastmtime || index.lastmtime < deadline){
@@ -197,6 +197,8 @@ class List extends Events {
         const ks = Object.keys(values)
         ks.forEach(k => relevance += (values[k] * factors[k]))
         relevance /= ks.length
+
+        console.error('LIST RELEVANCE', values)
 
 		return relevance
 	}

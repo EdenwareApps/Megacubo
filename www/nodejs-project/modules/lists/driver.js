@@ -482,7 +482,7 @@ class Lists extends Index {
 			}
 			listsLoadTimes[url].syncing = global.time()
 			global.listsRequesting[url] = 'loading'		
-			this.lists[url] = new List(url, this)
+			this.lists[url] = new List(url, this, this.relevantKeywords)
 			this.lists[url].skipValidating = true // list is already validated at driver-updater, always
 			this.lists[url].contentLength = contentLength
 			this.lists[url].on('destroy', () => {
@@ -543,11 +543,12 @@ class Lists extends Index {
 							if(Object.keys(this.lists).length >= this.sharedModeReach){
 								replace = this.shouldReplace(this.lists[url])
 								if(replace){
+									const pr = this.lists[replace].relevance
 									if(this.debug){
-										console.log('List', url, this.lists[url].relevance, 'will replace', replace, this.lists[replace].relevance)
+										console.log('List', url, this.lists[url].relevance, 'will replace', replace, pr)
 									}
 									this.remove(replace)
-									global.listsRequesting[replace] = 'replaced by '+ url
+									global.listsRequesting[replace] = 'replaced by '+ url +', '+ pr +' > '+ this.lists[url].relevance
 								}
 							}														
 							global.listsRequesting[url] = 'added'

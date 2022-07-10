@@ -384,7 +384,7 @@ class StreamerProxy extends StreamerProxyBase {
 		headers = this.removeHeaders(headers, ['content-length']) // we'll change the content
 		headers = this.addCachingHeaders(headers, 6) // set a min cache to this m3u8 to prevent his overfetching
 		download.once('end', data => {
-			if(data.length > 12){
+			if(data && data.length > 12){
 				data = this.proxifyM3U8(String(data), download.currentURL)
 				headers['content-length'] = data.length
 				if(!response.headersSent){

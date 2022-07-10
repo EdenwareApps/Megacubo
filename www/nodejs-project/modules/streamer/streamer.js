@@ -277,7 +277,9 @@ class StreamerBase extends StreamerTools {
 	}
 	commit(intent){
 		if(intent){
-			if(this.active != intent){
+			if(this.active == intent){
+				return true // 'ALREADY COMMITTED'
+			} else {
 				if(this.opts.debug){
 					console.log('COMMITTING', global.traceback())
 				}
@@ -349,8 +351,6 @@ class StreamerBase extends StreamerTools {
 				let data = this.connect(intent)
 				console.warn('STREAMER COMMIT '+ data.url)
 				return true
-			} else {
-				return 'ALREADY COMMITTED'
 			}
 		} else {
 			return 'NO INTENT'
