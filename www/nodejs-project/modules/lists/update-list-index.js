@@ -91,7 +91,7 @@ class UpdateListIndex extends ListIndexUtils {
                             this.stream.destroy()
                             resolve(false) // no need to update
                         } else {
-                            this.parseStream().then(() => {
+                            this.parseStream(lastmtime).then(() => {
                                 this.contentLength = this.stream.received
                                 resolve(true)
                             }).catch(err => {
@@ -113,7 +113,7 @@ class UpdateListIndex extends ListIndexUtils {
                             resolve(false) // no need to update
                         } else {
                             this.stream = fs.createReadStream(path)
-                            this.parseStream().then(() => {
+                            this.parseStream(lastmtime).then(() => {
                                 resolve(true)
                             }).catch(err => {
                                 reject(err)
@@ -126,15 +126,12 @@ class UpdateListIndex extends ListIndexUtils {
             }
         })
 	}
-	parseStream(stream, lastmtime=0){	
+	parseStream(lastmtime=0){	
 		return new Promise((resolve, reject) => {
-			if(stream && this.stream != stream){
-				this.stream = stream
-			}
 			let resolved, writer = fs.createWriteStream(this.tmpfile, {highWaterMark: Number.MAX_SAFE_INTEGER})
 			this.indexateIterator = 0
 			this.hlsCount = 0
-            this.lastmtime = lastmtime
+            this.index.lastmtime = lastmtime
 			this.parser = new Parser(this.stream)
 			this.parser.on('meta', meta => {
 				this.index.meta = Object.assign(this.index.meta, meta)
