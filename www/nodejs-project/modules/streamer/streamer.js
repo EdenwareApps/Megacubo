@@ -865,7 +865,7 @@ class Streamer extends StreamerAbout {
 			throw 'in shadow mode'
 		}
 		const loadingEntriesData = [global.lang.AUTO_TUNING, name]
-		console.warn('playFromEntries', entries, name, connectId, silent)
+		console.warn('playFromEntries', name, connectId, silent)
 		global.explorer.setLoadingEntries(loadingEntriesData, true, txt)
 		if(!silent){
 			global.osd.show(global.lang.TUNING_WAIT_X.format(name) + ' 0%', 'fa-mega spin-x-alt', 'streamer', 'persistent')
@@ -877,7 +877,7 @@ class Streamer extends StreamerAbout {
 		if(this.connectId != connectId){
 			throw 'another play intent in progress'
 		}
-		console.log('tuning', entries, name)
+		console.log('tuning', name)
 		let tuning = new AutoTuner(entries, {preferredStreamURL, name, megaURL, mediaType})
 		global.tuning = tuning
 		tuning.txt = txt

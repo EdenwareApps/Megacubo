@@ -552,7 +552,8 @@ class Manager extends Events {
                             url,
                             fa: 'fas fa-satellite-dish', 
                             type: 'group', 
-                            renderer: data => {
+                            class: 'skip-testing',
+                            renderer: () => {
                                 return new Promise((resolve, reject) => {
                                     let es = []
                                     this.parent.directListRenderer({url}).then(ret => {
@@ -562,7 +563,7 @@ class Manager extends Events {
                                         global.displayErr(err)
                                     }).finally(() => {
                                         let next = () => {
-                                            es.unshift({name: global.lang.REMOVE_LIST, fa: 'fas fa-minus-square', type: 'action', url, action: this.removeList.bind(this)})
+                                            es.unshift({name: global.lang.REMOVE_LIST, fa: 'fas fa-minus-square', type: 'action', url, class: 'skip-testing', action: this.removeList.bind(this)})
                                             resolve(es)
                                         }
                                         if(es && es.length){
@@ -1012,6 +1013,7 @@ class Manager extends Events {
                                 fa: 'fas fa-satellite-dish',
                                 type: 'group',
                                 url,
+                                class: 'skip-testing',
                                 renderer: this.directListRenderer.bind(this)
                             })
                             done()
@@ -1079,6 +1081,7 @@ class Manager extends Events {
         }))
         let lists = Object.keys(sources).map(url => {
             let v = {url}
+            v.class = 'skip-testing'
             v.details = sources[url] +' '+ (sources[url] > 1 ? global.lang.USERS : global.lang.USER)
             v.type = 'group'
             v.name = names[url]

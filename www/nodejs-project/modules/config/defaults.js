@@ -76,6 +76,7 @@ module.exports = {
 	'uppercase-menu': false,
 	'use-epg-channels-list': false,
 	'use-keepalive': true,
+	'user-agent': 'VLC/3.0.8 LibVLC/3.0.8',
 	'view-size-x': 5,
 	'view-size-y': 2,
 	'volume': 100,

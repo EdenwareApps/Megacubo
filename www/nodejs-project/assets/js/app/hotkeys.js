@@ -28,7 +28,7 @@ function escapePressed(){
     } else {
         let playing = explorer.inPlayer(), exploring = playing && explorer.isExploring()
         if(playing && !exploring){
-            if(streamer.state == 'playing' && arePlayerControlsVisible()){
+            if(streamer.state == 'playing' && !streamer.casting && arePlayerControlsVisible()){
                 idle.start()
                 idle.lock(1)
             } else {

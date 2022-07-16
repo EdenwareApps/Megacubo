@@ -17,7 +17,7 @@ class Download extends Events {
 			compression: true,
 			headers: {
 				'accept': '*/*',
-				'user-agent': global.config.get('ua'),
+				'user-agent': global.config.get('user-agent') || global.config.get('default-user-agent'),
 				'accept-language': this.defaultAcceptLanguage()
 			},
 			authErrorCodes: [401, 403],

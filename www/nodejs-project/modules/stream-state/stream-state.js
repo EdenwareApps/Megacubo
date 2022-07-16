@@ -61,7 +61,8 @@ class StreamState extends Events {
         })
     }
     supports(e){
-        return (e && (!e.type || e.type == 'stream' || (e.class && e.class.indexOf('entry-meta-stream') != -1)) && e.url)
+        const cls = e.class || ''
+        return (e && cls.indexOf('skip-testing') == -1 && (!e.type || e.type == 'stream' || cls.indexOf('entry-meta-stream') != -1) && e.url)
     }
     get(url){
         if(typeof(this.clientFailures[url]) != 'undefined' && this.clientFailures[url] === true){
@@ -154,7 +155,7 @@ class StreamState extends Events {
             }
             let retest = [], syncData = {}
             entries = entries.filter(e => {
-                if(e.url && e.name != global.lang.REMOVE_LIST && this.supports(e)){
+                if(e.url && this.supports(e)){
                     if(global.mega.isMega(e.url)){
                         let s = 'tune', atts = global.mega.parse(e.url)
                         if(atts && atts.mediaType && atts.mediaType != 'live'){

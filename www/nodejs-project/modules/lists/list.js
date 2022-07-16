@@ -8,7 +8,7 @@ class List extends Events {
 			url = 'http:'+ url
 		}
 		this.url = url
-        this.relevance = -1
+        this.relevance = {}
         this.reset()
 		this.dataKey = global.LIST_DATA_KEY_MASK.format(url)
         this.file = global.storage.raw.resolve(this.dataKey)
@@ -158,14 +158,13 @@ class List extends Events {
 	verifyListRelevance(index){
         const values = {}
         const factors = {
-            relevantKeywords: 2,
-            mtime: 1,
-            size: 1,
-            hls: 1
+            relevantKeywords: 1,
+            mtime: 0.25,
+            hls: 0.25
         }
 
-        // relevantKeywords
-		let rks = this.parent() ? this.parent().relevantKeywords : this.relevantKeywords
+        // relevantKeywords (check user channels presence in these lists and list size by consequence)
+        let rks = this.parent() ? this.parent().relevantKeywords : this.relevantKeywords
 		if(!rks || !rks.length){
 			console.error('no parent keywords', this.parent(), this.relevantKeywords, rks)
 			values.relevantKeywords = 100
@@ -178,12 +177,9 @@ class List extends Events {
             })
             values.relevantKeywords = hits / (rks.length / 100)
         }
-
+    
         // hls
         values.hls = index.hlsCount / (index.length / 100)
-
-        // size
-        values.size = Math.min(index.length / (1000 / 100), 100)
 
         // mtime
         const rangeSize = 30 * (24 * 3600), now = global.time(), deadline = now - rangeSize
@@ -193,14 +189,15 @@ class List extends Events {
             values.mtime = (index.lastmtime - deadline) / (rangeSize / 100)
         }
 
-        let relevance = 0
+        let total = 0, maxtotal = 0
+        Object.values(factors).map(n => maxtotal += n)
         const ks = Object.keys(values)
-        ks.forEach(k => relevance += (values[k] * factors[k]))
-        relevance /= ks.length
+        ks.forEach(k => total += ((values[k] / 100) * factors[k]))
+        values.total = total / maxtotal
 
-        console.error('LIST RELEVANCE', values)
+        //console.warn('LIST RELEVANCE', this.url, index.lastmtime, Object.keys(values).map(k => k +': '+ values[k]).join(', '))
 
-		return relevance
+		return values
 	}
 	iterate(fn, map, cb){
 		if(!Array.isArray(map)){

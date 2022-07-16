@@ -540,20 +540,24 @@ class Lists extends Index {
 							}
 						} else {
 							let replace
-							if(Object.keys(this.lists).length >= this.sharedModeReach){
-								replace = this.shouldReplace(this.lists[url])
-								if(replace){
-									const pr = this.lists[replace].relevance
-									if(this.debug){
-										console.log('List', url, this.lists[url].relevance, 'will replace', replace, pr)
+							if(this.lists[url]){
+								if(Object.keys(this.lists).length >= this.sharedModeReach){
+									replace = this.shouldReplace(this.lists[url])
+									if(replace){
+										const pr = this.lists[replace].relevance.total
+										if(this.debug){
+											console.log('List', url, this.lists[url].relevance.total, 'will replace', replace, pr)
+										}
+										this.remove(replace)
+										global.listsRequesting[replace] = 'replaced by '+ url +', '+ pr +' < '+ this.lists[url].relevance.total
 									}
-									this.remove(replace)
-									global.listsRequesting[replace] = 'replaced by '+ url +', '+ pr +' > '+ this.lists[url].relevance
 								}
-							}														
-							global.listsRequesting[url] = 'added'
-							if(this.debug){
-								console.log('Added community list...', url, this.lists[url].index.length)
+								if(this.debug){
+									console.log('Added community list...', url, this.lists[url].index.length)
+								}
+								global.listsRequesting[url] = 'added'
+							} else if(!global.listsRequesting[url] || global.listsRequesting[url] == 'loading') {
+								global.listsRequesting[url] = 'adding error, instance not found'
 							}
 							if(!resolved){
 								if(!replace){
@@ -610,11 +614,11 @@ class Lists extends Index {
 			if(this.myLists.includes(k)){
 				return
 			}
-			if(!weaker || (this.lists[k].relevance > -1 && this.lists[k].relevance < this.lists[weaker].relevance)){
+			if(!weaker || (this.lists[k].relevance.total > -1 && this.lists[k].relevance.total < this.lists[weaker].relevance.total)){
 				weaker = k
 			}
 		})
-		if(weaker && this.lists[weaker] && this.lists[weaker].relevance < list.relevance){
+		if(weaker && this.lists[weaker] && this.lists[weaker].relevance.total < list.relevance.total){
 			return weaker
 		}
 	}
@@ -673,14 +677,14 @@ class Lists extends Index {
 			}
 			Object.keys(this.lists).forEach(url => {
 				if(!this.myLists.includes(url)){
-					results[url] = this.lists[url].relevance
+					results[url] = this.lists[url].relevance.total
 				}
 			})
 			let sorted = Object.keys(results).sort((a,b) => results[b] - results[a])
 			sorted.slice(this.sharedModeReach).forEach(u => {
 				if(this.lists[u]){
+					global.listsRequesting[u] = 'destroyed on delimiting (relevance: '+ this.lists[u].relevance.total +'), '+ JSON.stringify(global.traceback()).replace(new RegExp('[^A-Za-z0-9 /:]+', 'g'), ' ')
 					this.remove(u)
-					global.listsRequesting[u] = 'destroyed on delimiting (' + this.sharedModeReach + ') '+ JSON.stringify(global.traceback()).replace(new RegExp('[^A-Za-z0-9 /:]+', 'g'), ' ')
 				}
 			})
 			if(this.debug){
@@ -700,10 +704,14 @@ class Lists extends Index {
 	}
     directListRenderer(v){
         return new Promise((resolve, reject) => {
-			console.log('DIRECTLISTRENDERER', v, this.isLocal(v.url))
+			console.log('DIRECTLISTRENDERER', v, this.isLocal(v.url), this.lists[v.url] && this.lists[v.url].isReady)
 			if(typeof(this.lists[v.url]) != 'undefined' && this.lists[v.url].isReady){ // if not loaded yet, fetch directly
 				this.lists[v.url].fetchAll(entries => {
-					this.directListRendererPrepare(entries, v.url).then(resolve).catch(reject)
+					console.log('DIRECTLISTRENDERER', entries)
+					this.directListRendererPrepare(entries, v.url).then(ret => {
+						console.log('DIRECTLISTRENDERER', entries)
+						resolve(ret)
+					}).catch(reject)
 				})
 			} else {
 				let fetcher = new this.Fetcher()
@@ -726,12 +734,21 @@ class Lists extends Index {
     }
     directListRendererPrepare(list, url){
         return new Promise((resolve, reject) => {
-			let next = es => {
-				if(es && es.length){
-					resolve(es)
-				} else {
-					resolve([])
+			if(typeof(this.directListRendererPrepareCache) == 'undefined'){
+				this.directListRendererPrepareCache = {}
+			}
+			const cachettl = 3600, now = global.time(), olen = list.length
+			const next = es => {
+				if(!es){
+					es = []
 				}
+				if(olen >= this.opts.offloadThreshold){
+					this.directListRendererPrepareCache[url] = {list: es, time: now, size: olen}
+				}
+				resolve(es)
+			}
+			if(typeof(this.directListRendererPrepareCache[url]) != 'undefined' && this.directListRendererPrepareCache[url].size == olen && this.directListRendererPrepareCache[url].time > (now - cachettl)){
+				return resolve(this.directListRendererPrepareCache[url].list)
 			}
             if(list.length){
                 list = this.parentalControl.filter(list)

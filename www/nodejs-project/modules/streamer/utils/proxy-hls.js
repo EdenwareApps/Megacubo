@@ -1002,7 +1002,7 @@ class StreamerProxyHLS extends HLSRequests {
 		}
 		let ended, url = this.unproxify(req.url)		
 		let reqHeaders = req.headers
-		reqHeaders = this.removeHeaders(reqHeaders, ['cookie', 'referer', 'origin', 'range'])
+		reqHeaders = this.removeHeaders(reqHeaders, ['cookie', 'referer', 'origin', 'range', 'user-agent'])
 		if(this.type == 'network-proxy'){
 			reqHeaders['x-from-network-proxy'] = '1'
 		} else {

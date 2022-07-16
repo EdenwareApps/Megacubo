@@ -61,8 +61,14 @@ class StorageAsync extends StorageBase {
 		key = this.prepareKey(key)
 		this.queue.add(key, this._get.bind(this, key, cb, encoding))
 	}
-	set(key, val, expiration, cb){
+	set(key, val, expiration, _cb){
 		key = this.prepareKey(key)
+		const cb = () => {
+			if(_cb){
+				_cb()
+				_cb = null
+			}
+		}
 		if(global.isExiting){
 			this.setSync(key, val, expiration)
 			if(typeof(cb) == 'function'){
@@ -162,6 +168,7 @@ class StorageAsync extends StorageBase {
 				resolve(true)
 				if(typeof(cb) == 'function'){
 					cb()
+					cb = null
 				}
 			})
 		})
@@ -230,12 +237,15 @@ class StorageAsync extends StorageBase {
 			}
 		})
 	}
-	write(file, val, enc, cb){
+	write(file, val, enc, _cb){
 		if(typeof(val) == 'number'){
 			val = String(val)
 		}
-		if(typeof(cb) != 'function'){
-			cb = () => {}
+		const cb = () => {
+			if(_cb){
+				_cb()
+				_cb = null
+			}
 		}
 		let tmpFile = path.join(path.dirname(file), String(parseInt(Math.random() * 1000000))) +'.commit'	
 		fs.writeFile(tmpFile, val, enc, err => { // to avoid corrupting, we'll write to a temp file first

@@ -238,7 +238,7 @@ class StreamerProxy extends StreamerProxyBase {
 		const keepalive = this.committed && global.config.get('use-keepalive')
 		let ended, url = this.unproxify(req.url)
 		let reqHeaders = req.headers
-		reqHeaders = this.removeHeaders(reqHeaders, ['cookie', 'referer', 'origin'])
+		reqHeaders = this.removeHeaders(reqHeaders, ['cookie', 'referer', 'origin', 'user-agent'])
 		if(this.type == 'network-proxy'){
 			reqHeaders['x-from-network-proxy'] = '1'
 		} else {
@@ -264,6 +264,7 @@ class StreamerProxy extends StreamerProxyBase {
 		})
 		this.connections[uid] = {response, download}
 		const end = data => {
+			response.end()
 			if(!ended){
 				ended = true
 				this.destroyConn(uid, data, false)
@@ -278,7 +279,6 @@ class StreamerProxy extends StreamerProxyBase {
 					console.log('response closed', ended, response.ended)
 				}
 				response.emit(this.internalRequestAbortedEvent)
-				response.end()
 				if(this.connections[uid] && this.connections[uid].response){
 					this.connections[uid].response.emit(this.internalRequestAbortedEvent)
 				}

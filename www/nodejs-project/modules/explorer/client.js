@@ -1571,8 +1571,8 @@ class ExplorerStatusFlags extends ExplorerSlider {
 		this.currentEntries.forEach((e, i) => {
 			if(!this.ranging || (i >= this.range.start && i <= this.range.end)){
 				if(e.url && typeof(this.statusFlags[e.url]) != 'undefined'){
-					let element = this.currentElements[i], status = this.statusFlags[e.url]
-					if(element && element.getAttribute('data-type') != 'spacer'){
+					let element = this.currentElements[i], status = this.statusFlags[e.url], type = element.getAttribute('data-type'), cls = e.class || ''
+					if(element && cls.indexOf('skip-testing') == -1 && !['spacer', 'action'].includes(type)){
 						let content = ''
 						if(status == 'tune'){
 							content = '<i class="fas fa-layer-group"></i>'

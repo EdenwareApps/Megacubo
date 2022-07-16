@@ -364,9 +364,13 @@ function patch(scope){
 		fs.unlink(from).catch(() => {})
 		return true
 	}
-	scope.moveFile = (from, to, cb, timeout=5, until=null, startedAt = null, fromSize=null) => {
-		const fs = scope.getFS()
-		let now = scope.time()
+	scope.moveFile = (from, to, _cb, timeout=5, until=null, startedAt = null, fromSize=null) => {
+		const fs = scope.getFS(), now = scope.time(), cb = () => {
+			if(_cb){
+				_cb()
+				_cb = null
+			}
+		}
 		if(until === null){
 			until = now + timeout
 		}

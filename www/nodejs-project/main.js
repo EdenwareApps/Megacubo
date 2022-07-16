@@ -814,8 +814,8 @@ ui.on('get-lang-callback', (locale, timezone, ua, online) => {
         config.set('timezone', timezone)
     }
     moment.tz.setDefault(timezone)
-    if(ua && ua != config.get('ua')){
-        config.set('ua', ua)
+    if(ua && ua != config.get('default-user-agent')){
+        config.set('default-user-agent', ua)
     }
     if(typeof(online) == 'boolean'){
         setNetworkConnectionState(online)

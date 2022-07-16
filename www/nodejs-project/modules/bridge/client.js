@@ -4,12 +4,13 @@ class BridgeCustomEmitter extends EventEmitter {
         super()
         this.originalEmit = this.emit
         this.emit = this.customEmit
-        parent.channel.on('message', args => {
+        this.channel = parent.channel
+        this.channel.on('message', args => {
             this.originalEmit.apply(this, args)
         })
     }
     customEmit(...args){
-        parent.channel.post('message', args)
+        this.channel.post('message', args)
     }
 }
 

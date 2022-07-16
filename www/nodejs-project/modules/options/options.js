@@ -617,7 +617,7 @@ class Options extends OptionsHardwareAcceleration {
             }).catch(console.error).finally(() => done())
         }], () => {
             txt[2] = 'Connection speed: '+ global.kbsfmt(global.streamer.downlink || 0) +'<br />'
-            txt[3] = global.config.get('ua') +'<br />'
+            txt[3] = (global.config.get('user-agent') || global.config.get('default-user-agent')) +'<br />'
             global.ui.emit('info', 'System info', txt.join(''))
         })
     }
@@ -799,6 +799,38 @@ class Options extends OptionsHardwareAcceleration {
                     }, 
                     value: () => {
                         return global.config.get('connect-timeout')
+                    }
+                },
+                {
+                    name: 'User agent', type: 'select', fa: 'fas fa-user-secret',
+                    renderer: () => {
+                        return new Promise(resolve => {
+                            // Some lists wont open using a browser user agent
+                            let def = global.config.get('user-agent'), options = [
+                                {
+                                    name: global.lang.DEFAULT,
+                                    value: ''
+                                }, 
+                                {
+                                    name: 'VLC',
+                                    value: 'VLC/3.0.8 LibVLC/3.0.8'
+                                }, 
+                                {
+                                    name: 'Kodi',
+                                    value: 'Kodi/16.1 (Windows NT 10.0; WOW64) App_Bitness/32 Version/16.1-Git:20160424-c327c53'
+                                }
+                            ].map(n => {
+                                return {
+                                    name: n.name,
+                                    type: 'action',
+                                    selected: def == n.value,
+                                    action: () => {
+                                        global.config.set('user-agent', n.value)
+                                    }
+                                }
+                            })
+                            resolve(options)
+                        })
                     }
                 },
                 {
