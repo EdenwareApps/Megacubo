@@ -16,7 +16,7 @@ class StreamerBaseIntent extends Events {
         this.mediaType = 'video'
         this.codecData = null
         this.type = 'base'
-        this.timeout = Math.max(40, global.config.get('connect-timeout'))
+        this.timeout = Math.max(20, global.config.get('broadcast-start-timeout'))
         this.committed = false
         this.manual = false
         this.loaded = false
@@ -88,6 +88,7 @@ class StreamerBaseIntent extends Events {
 				this.currentSpeed = speed
 			}
         })
+        adapter.on('wait', () => this.resetTimeout())
         adapter.on('fail', this.failListener)
 		adapter.on('streamer-connect', () => this.emit('streamer-connect'))
         this.on('commit', () => {
@@ -211,6 +212,7 @@ class StreamerBaseIntent extends Events {
         return dimensions
     }
     setTimeout(secs){
+        if(this.committed) return
         if(this.timeout != secs){
             this.timeout = secs
         }

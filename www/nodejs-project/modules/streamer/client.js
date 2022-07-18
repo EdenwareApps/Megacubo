@@ -1170,20 +1170,12 @@ class StreamerAudioUI extends StreamerClientVideoFullScreen {
         jQuery('<volume><volume-wrap><div><input type="range" min="0" max="100" step="1" value="'+ config['volume'] +'" /><div id="volume-arrow"></div></div></volume-wrap></volume>').prependTo(this.volumeButton)
         this.volumeBar = this.volumeButton.querySelector('volume')
         this.volumeInput = this.volumeBar.querySelector('input')
+        this.jVolumeInput = jQuery(this.volumeButton)
         if(parent.cordova){
             // input and change events are not triggering satisfatorely on mobile, so we'll use touchmove instead ;)
             this.volumeInput.addEventListener('touchmove', this.volumeBarCalcValueFromMove.bind(this))
         } else {
-            jQuery(this.volumeButton).
-            on('click', event => {
-                if(!event.target || !['volume-wrap', 'i'].includes(event.target.tagName.toLowerCase())) return
-                const volume = parseFloat(this.volumeInput.value)
-                if(volume){
-                    this.volumeMute()
-                } else {
-                    this.volumeUnmute()
-                }
-            }).
+            this.jVolumeInput.
             on('input', this.volumeChanged.bind(this)).
             on('mouseenter', () => {
                 clearTimeout(this.volumeShowTimer)
@@ -1193,6 +1185,21 @@ class StreamerAudioUI extends StreamerClientVideoFullScreen {
                 clearTimeout(this.volumeShowTimer)
             })
         }
+        let isTouchDevice, touchListener = event => {
+            isTouchDevice = true
+            this.jVolumeInput.off('touchstart', touchListener)
+        }
+        this.jVolumeInput.
+        on('touchstart', touchListener).
+        on('click', event => {
+            if(!event.target || isTouchDevice || !['volume-wrap', 'i'].includes(event.target.tagName.toLowerCase())) return
+            const volume = parseFloat(this.volumeInput.value)
+            if(volume){
+                this.volumeMute()
+            } else {
+                this.volumeUnmute()
+            }
+        })
         this.once('start', () => this.volumeChanged())
         idle.on('start', () => this.volumeBarHide())
         explorer.on('focus', e => {
@@ -1238,13 +1245,16 @@ class StreamerAudioUI extends StreamerClientVideoFullScreen {
     volumeChanged(){
         let nvolume = parseInt(this.volumeInput.value)
         if(!this.volumeInitialized || nvolume != this.volume){
-            let volIcon = 'fas fa-volume-up'
+            let volIcon = 'fas fa-volume-up', pc = this.volume ? (50 + (this.volume / 2)) : 100
             this.volume = nvolume
             if(!this.volume){
                 volIcon = 'fas fa-volume-mute'
-            } else if(this.volume <= 50){
-                volIcon = 'fas fa-volume-down'
             }
+            css(`
+            i.fas.fa-volume-up { 
+                -webkit-mask-image: linear-gradient(to right, white 0%, white ${pc}%, rgba(255, 255, 255, 0.15) ${pc}%);
+                mask-image: linear-gradient(to right, white 0%, white ${pc}%, rgba(255, 255, 255, 0.15) ${pc}%);
+            }`, 'volume-icon')
             this.volumeInput.style.background = 'linear-gradient(to right, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 1) '+ nvolume +'%, rgba(0, 0, 0, 0.68) '+ nvolume +'.01%)'
             parent.player.volume(nvolume)
             if(this.volumeInitialized){

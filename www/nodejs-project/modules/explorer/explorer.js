@@ -87,6 +87,13 @@ class Explorer extends Events {
             global.ui.emit('dialog', opts, uid, def, mandatory)
         })
     }
+    prompt(question, placeholder, defaultValue, multiline, fa, message, extraOpts){
+        return new Promise((resolve, reject) => {
+            let uid = 'ac-'+ Date.now()
+            global.ui.once(uid, ret => resolve(ret))
+            global.ui.emit('prompt', question, placeholder, defaultValue, uid, multiline, fa, message, extraOpts)
+        })
+    }
     checkFlags(entries){
         return entries.map(n => {
             let e = Object.assign({}, n)

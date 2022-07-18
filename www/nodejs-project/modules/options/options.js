@@ -107,6 +107,7 @@ class PerformanceProfiles extends Timer {
                 'animate-background': 'slow-desktop',
                 'auto-testing': true,
                 'autocrop-logos': true,
+                'broadcast-start-timeout': 40,
                 'connect-timeout': 5,
                 'fx-nav-intensity': 2,
                 'play-while-loading': true,
@@ -122,6 +123,7 @@ class PerformanceProfiles extends Timer {
                 'animate-background': 'none',
                 'auto-testing': false,
                 'autocrop-logos': false,
+                'broadcast-start-timeout': 60,
                 'connect-timeout': 10,
                 'custom-background-video': '',
                 'epg': 'disabled',
@@ -792,15 +794,26 @@ class Options extends OptionsHardwareAcceleration {
                     name: global.lang.CONNECT_TIMEOUT, 
                     fa: 'fas fa-plug', 
                     type: 'slider', 
-                    range: {start: 3, end: 60},
+                    range: {start: 3, end: 30},
                     action: (data, value) => {
-                        console.warn('CONNECT_TIMEOUT', data, value)
                         global.config.set('connect-timeout', value)
                     }, 
                     value: () => {
                         return global.config.get('connect-timeout')
                     }
                 },
+                {
+                    name: global.lang.BROADCAST_START_TIMEOUT, 
+                    fa: 'fas fa-plug', 
+                    type: 'slider', 
+                    range: {start: 20, end: 90},
+                    action: (data, value) => {
+                        global.config.set('broadcast-start-timeout', value)
+                    }, 
+                    value: () => {
+                        return global.config.get('broadcast-start-timeout')
+                    }
+                },                
                 {
                     name: 'User agent', type: 'select', fa: 'fas fa-user-secret',
                     renderer: () => {

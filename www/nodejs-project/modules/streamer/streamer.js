@@ -183,6 +183,7 @@ class StreamerBase extends StreamerTools {
         }
 		if(global.validateURL(url)){
 			let now = global.time()
+			console.log('pingSource: ..', global.streamerPingSourceTTLs[url], now)	
 			if(!global.streamerPingSourceTTLs[url] || global.streamerPingSourceTTLs[url] < now){
 				if(this.pingSourceQueue(url, cb, cb)){
 					let ret = ''
@@ -193,12 +194,12 @@ class StreamerBase extends StreamerTools {
 						receiveLimit: 1,
 						followRedirect: true
 					}).then(body => {
-						//console.log('pingSource: ok', body)	
+						console.log('pingSource: ok', body)	
 						ret = String(body)
 					}).catch(err => {
-						//console.warn('pingSource error?: '+ String(err))
+						console.warn('pingSource error?: '+ String(err))
 					}).finally(() => {
-						//console.log('pingSource: unqueue resolving', ret)	
+						console.log('pingSource: unqueue resolving', ret)	
 						global.streamerPingSourceTTLs[url] = now + 600
 						this.pingSourceUnqueue(url, 'resolve', ret)
 					})

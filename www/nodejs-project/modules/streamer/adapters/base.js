@@ -10,16 +10,11 @@ class StreamerAdapterBase extends Events {
 			addr: '127.0.0.1',
 			minBitrateCheckSize: 48 * 1024,
 			maxBitrateCheckSize: 3 * (1024 * 1024),
-			connectTimeout: global.config.get('connect-timeout') || 5,
 			bitrateCheckingAmount: 3,
 			maxBitrateCheckingFails: 8,
 			debug: false,
 			port: 0
 		};
-		this.downloadTimeout = {}
-		let ms = this.opts.connectTimeout * 1000
-		'lookup,connect,secureConnect,socket,response'.split(',').forEach(s => this.downloadTimeout[s] = ms)
-		'send,request'.split(',').forEach(s => this.downloadTimeout[s] = ms * 2)
 		this.defaults = this.opts
 		if(opts){
 			this.setOpts(opts)
@@ -87,6 +82,9 @@ class StreamerAdapterBase extends Events {
 				this.currentSpeed = speed
 			}
         })
+		adapter.on('wait', () => {
+			this.emit('wait')
+		})
         adapter.on('fail', this.onFail)
 		adapter.on('streamer-connect', () => this.emit('streamer-connect'))
 		adapter.committed = this.committed
@@ -118,7 +116,7 @@ class StreamerAdapterBase extends Events {
     }
     disconnectAdapter(adapter){
         adapter.removeListener('fail', this.onFail);
-        ['dimensions', 'codecData', 'bitrate', 'speed', 'commit', 'uncommit'].forEach(n => adapter.removeAllListeners(n))
+        ['dimensions', 'codecData', 'bitrate', 'speed', 'commit', 'uncommit', 'wait'].forEach(n => adapter.removeAllListeners(n))
 		let pos = this.adapters.indexOf(adapter)
 		if(pos != -1){
 			this.adapters.splice(pos, 1)

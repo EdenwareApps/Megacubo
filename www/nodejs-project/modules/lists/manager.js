@@ -537,6 +537,21 @@ class Manager extends Events {
             global.ui.emit('prompt', global.lang.ASK_IPTV_LIST, 'http://', '', 'manager-add-list', false, 'fas fa-plus-square', '', extraOpts)
         }}
     }
+    addXtreamCodeEntry(){
+        return {name: global.lang.ADD_XTREAM_CODE, fa: 'fas fa-plus-square', type: 'action', action: async() => {
+            let server = await global.explorer.prompt(global.lang.PASTE_SERVER_ADDRESS, 'http://host:port', '', false, 'fas fa-globe', '', [])
+            if(!server) return
+            const user = await global.explorer.prompt(global.lang.USERNAME, global.lang.USERNAME, '', false, 'fas fa-user', '', [])
+            if(!user) return
+            const pass = await global.explorer.prompt(global.lang.PASSWORD, global.lang.PASSWORD, '', false, 'fas fa-key', '', [])
+            if(!pass) return
+            if(server.charAt(server.length - 1) == '/') {
+                server = server.substr(0, server.length - 1)
+            }
+            const url = server +'/get.php?username='+ encodeURIComponent(user) +'&password='+ encodeURIComponent(pass) +'&type=m3u_plus&output=ts'            
+            this.addList(url).catch(global.displayErr)
+        }}
+    }
     myListsEntry(){
         return {name: global.lang.MY_LISTS, details: global.lang.IPTV_LISTS, type: 'group', renderer: () => {
             return new Promise((resolve, reject) => {
@@ -579,6 +594,7 @@ class Manager extends Events {
                     })
                 }, () => {
                     opts.push(this.addListEntry())
+                    opts.push(this.addXtreamCodeEntry())
                     if(!lists.length){
                         opts.push({
                             name: global.lang.NO_LIST,
@@ -864,7 +880,12 @@ class Manager extends Events {
     listsEntries(){
         return new Promise((resolve, reject) => {
             let options = [], lists = this.get()
-            options.push(this[lists.length ? 'myListsEntry' : 'addListEntry']())
+            if(lists.length){
+                options.push(this.myListsEntry())
+            } else {
+                options.push(this.addListEntry())
+                options.push(this.addXtreamCodeEntry())
+            }
             options.push(this.listSharingEntry())
             options.push({name: global.lang.EPG, details: 'EPG', fa: global.channels.epgIcon, type: 'group', renderer: this.epgOptionsEntries.bind(this)})
             resolve(options)

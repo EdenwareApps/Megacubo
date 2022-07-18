@@ -22,12 +22,9 @@ class FFMpeg {
 			this.executable += '.exe'
 			this.executable = this.executable.replace(new RegExp('\\\\', 'g'), '/')
 		}
-		if(this.executable.indexOf(' ') != -1){
-			this.executable = '"'+ this.executable +'"'
-			if(['darwin'].includes(process.platform)){
-				this.executable = this.executable.replace(new RegExp(' ', 'g'), '\\ ')
-			}
-		}
+		const path = require('path')
+		this.executableDir = path.dirname(this.executable)
+		this.executable = path.basename(this.executable)
 		this.tmpdir = require('os').tmpdir()
 	}
 	isMetadata(s){
@@ -37,10 +34,10 @@ class FFMpeg {
 		if(!this.cp){
 			this.cp = top.require('child_process')
 		}
-		let gotMetadata, output = '', child = this.cp.spawn(this.executable, cmd, {
-			cwd: this.tmpdir, 
-			killSignal: 'SIGINT',
-			shell: true // https://github.com/nodejs/node/issues/7367#issuecomment-229721296
+		let gotMetadata, output = ''
+		const child = this.cp.spawn(this.executable, cmd, {
+			cwd: this.executableDir, 
+			killSignal: 'SIGINT'
 		})
 		const maxLogLength = 1 * (1024 * 1024), log = s => {
 			s = String(s)
@@ -73,8 +70,9 @@ class FFMpeg {
 	}
 	kill(pid){
 		if(typeof(this.childs[pid]) != 'undefined'){
-			this.childs[pid].kill('SIGINT')
+			const child = this.childs[pid]
 			delete this.childs[pid]
+			child.kill('SIGINT')
 		} else {
 			console.log('CANTKILL', pid)
 		}

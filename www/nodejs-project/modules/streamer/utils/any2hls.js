@@ -376,6 +376,7 @@ class Any2HLS extends Events {
                 if(restarting){
                     hlsFlags += '+append_list'
                 }
+                this.emit('wait') // If the intent took a while to start another component, make sure to allow time for FFmpeg to start.
                 this.decoder = global.ffmpeg.create(this.source).
                     
                     
@@ -529,6 +530,7 @@ class Any2HLS extends Events {
                     this.emit('bitrate', bitrate)
                 }).
                 on('codecData', codecData => {
+                    this.emit('wait')
                     this.addCodecData(codecData)
                     let transcode
                     if(!global.cordova){

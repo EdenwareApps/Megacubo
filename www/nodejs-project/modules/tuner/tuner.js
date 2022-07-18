@@ -224,11 +224,14 @@ class TunerTask extends TunerUtils {
                     this.task(cb)
                 }, data.retryAfter * 1000)
             } else {
-				if(this.opts.debug){
-					console.log('Tuner end')
+				cb()
+				let processing = this.entries.some((e, i) => typeof(this.results[i]) == 'undefined' || this.results[i] == 0)
+				if(!processing){
+					if(this.opts.debug){
+						console.log('Tuner end')
+					}
+					this.finish()
 				}
-                cb()
-                this.finish()
             }
         }
 	}
@@ -293,6 +296,7 @@ class TunerTask extends TunerUtils {
 		}
 	}
 	finish(){
+        console.warn('TUNER FINISH', traceback())
 		if(!this.finished){
 			if(!this.aborted && !this.destroyed){
 				this.pump()

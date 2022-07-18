@@ -29,6 +29,7 @@ class AutoTuner extends Events {
             this.entries = await this.ceilPreferredStreams(this.entries, this.preferredStreamServers(), this.opts.preferredStreamURL)
             console.log('CEILED', this.entries.map(e => e.url))
             this.tuner = new Tuner(this.entries, this.opts, this.optsmegaURL)
+            this.tuner.opts.debug = true
             this.tuner.on('success', (e, nfo, n) => {
                 if(typeof(this.succeededs[n]) == 'undefined'){
                     this.succeededs[n] = 0
@@ -412,6 +413,7 @@ class AutoTuner extends Events {
         return this.tuner.entries.some(e => e.url == url)
     }
     finish(){
+        console.warn('AUTOTUNER FINISH', traceback())
         this.finished = true
         this.emit('finish')
         this.timer && clearInterval(this.timer)

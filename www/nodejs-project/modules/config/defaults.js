@@ -6,6 +6,7 @@ module.exports = {
 	'autocrop-logos': true,
 	'background-color': '#15002C',
 	'background-color-transparency': 75,
+	'broadcast-start-timeout': 40,
 	'communitary-mode-lists-amount': 0,
 	'countries': [],
 	'custom-background-image': '',
