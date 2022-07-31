@@ -56,7 +56,7 @@ StreamerVideoIntent.supports = (info) => {
             return true
         }
     }
-    if(info.ext && ['mp4', 'mkv', 'm4v', 'webm', 'ogv', 'hevc', 'wmv', 'divx', 'avi', 'asf'].includes(info.ext)){
+    if(info.ext && ['mp4', 'mkv', 'm4v', 'mov', 'mpeg', 'webm', 'ogv', 'hevc', 'wmv', 'divx', 'avi', 'asf'].includes(info.ext)){
         return true
     }
     return false

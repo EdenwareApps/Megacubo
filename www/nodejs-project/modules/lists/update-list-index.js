@@ -11,6 +11,9 @@ class UpdateListIndex extends ListIndexUtils {
         this.updateMeta = updateMeta
 		this.contentLength = -1
         this.parent = (() => parent)
+        this.seriesRegex = new RegExp('(\\b|^)[st]?[0-9]+ ?[epx]{1,2}[0-9]+($|\\b)', 'i')
+        this.vodRegex = new RegExp('[\\.=](mp4|mkv|mpeg|mov|m4v|webm|ogv|hevc|divx)($|\\?|&)', 'i')
+        this.liveRegex = new RegExp('[\\.=](m3u8|ts)($|\\?|&)', 'i')
         this.reset()
     }
     ext(file){
@@ -128,7 +131,7 @@ class UpdateListIndex extends ListIndexUtils {
 	}
 	parseStream(lastmtime=0){	
 		return new Promise((resolve, reject) => {
-			let resolved, writer = fs.createWriteStream(this.tmpfile, {highWaterMark: Number.MAX_SAFE_INTEGER})
+			let resolved, groups = {}, groupIcons = {}, writer = fs.createWriteStream(this.tmpfile, {highWaterMark: Number.MAX_SAFE_INTEGER})
 			this.indexateIterator = 0
 			this.hlsCount = 0
             this.index.lastmtime = lastmtime
@@ -147,6 +150,16 @@ class UpdateListIndex extends ListIndexUtils {
                 if(this.ext(entry.url) == 'm3u8'){
                     this.hlsCount++
                 }
+                if(entry.group){ // collect some data to sniff after if each group seems live, serie or movie
+                    if(typeof(groups[entry.group]) == 'undefined'){
+                        groups[entry.group] = []
+                    }
+                    groups[entry.group].push({
+                        name: entry.name,
+                        url: entry.url,
+                        icon: entry.icon
+                    })
+                }
                 entry = this.indexate(entry, this.indexateIterator)
                 writer.write(JSON.stringify(entry) + "\r\n")
                 this.indexateIterator++
@@ -162,6 +175,7 @@ class UpdateListIndex extends ListIndexUtils {
 			this.parser.once('end', () => {
                 this.index.length = this.indexateIterator
                 this.index.hlsCount = this.hlsCount
+                this.index.groupsTypes = this.sniffGroupsTypes(groups)
                 if(this.index.length){
                     writer.write(JSON.stringify(this.index))
                     const finished = err => {
@@ -194,6 +208,47 @@ class UpdateListIndex extends ListIndexUtils {
 			})
 		})
 	}
+    sniffGroupsTypes(groups){
+        let ret = {live: [], vod: [], series: []}
+        Object.keys(groups).forEach(g => {
+            let icon, types = groups[g].map(e => {
+                if(e.icon && !icon){
+                    icon = e.icon
+                }
+                return this.sniffStreamType(e)
+            }).filter(s => s)
+            let type = this.mode(types)
+            if(type){
+                ret[type].push({
+                    name: g,
+                    icon
+                })
+            }
+        })
+        return ret
+    }
+    sniffStreamType(e){
+        if(e.name.match(this.seriesRegex)){
+            return 'series'
+        } else if(e.url.match(this.vodRegex)){
+            return 'vod'
+        } else if(e.url.match(this.liveRegex)){
+            return 'live'
+        }
+    }
+    mode(a){ // https://stackoverflow.com/a/65821663
+        let obj = {}
+        let maxNum
+        let maxVal
+        for(let v of a){
+            obj[v] = ++obj[v] || 1
+            if(maxVal === undefined || obj[v]> maxVal){
+                maxNum = v
+                maxVal = obj[v]
+            }
+        }
+        return maxNum
+    }
     rdomain(u){
         if(u && u.indexOf('//') != -1){
             return u.split('//')[1].split('/')[0].split(':')[0].split('.').slice(-2)

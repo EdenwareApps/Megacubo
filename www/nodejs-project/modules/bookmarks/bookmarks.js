@@ -40,7 +40,7 @@ class Bookmarks extends EntriesGroup {
             if(path == '' && !entries.some(e => e.name == global.lang.BOOKMARKS)){ // add home option
                 entries.push({name: global.lang.BOOKMARKS, fa: 'fas fa-star', type: 'group', renderer: this.entries.bind(this)})
             }
-            let isBookmarkable = path.startsWith(global.lang.VIDEOS) || path.startsWith(global.lang.BOOKMARKS)
+            let isBookmarkable = path.startsWith(global.lang.SERIES) || path.startsWith(global.lang.MOVIES) || path.startsWith(global.lang.LIVE +'/'+ global.lang.MORE) || path.startsWith(global.lang.BOOKMARKS)
             if(!isBookmarkable && (path.startsWith(global.lang.IPTV_LISTS) || path.startsWith(global.lang.TRENDING)) && !entries.some(this.groupFilter)){
                 isBookmarkable = true
             }

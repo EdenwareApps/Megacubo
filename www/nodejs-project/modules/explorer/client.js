@@ -294,6 +294,12 @@ class ExplorerPointer extends ExplorerSelectionMemory {
             container = document.querySelector(container)
         }
 		this._scrollContainer = container.querySelector('wrap')
+		if(typeof(this._scrollContainer.scrollTo) != 'function'){
+			this._scrollContainer.scrollTo = (x, y) => { // "scrollTo is not a function" in a tx2 tvbox device
+				this._scrollContainer.scrollTop = y
+				this._scrollContainer.scrollLeft = x
+			}
+		}
 		this.scrollContainer = this.j(this._scrollContainer)
 		this.views = []
 		this.defaultNavGroup = ''
@@ -1704,7 +1710,7 @@ class Explorer extends ExplorerLoading {
 		this._wrapper = this.wrapper.get(0)
 		this.templates = {
 			default: `
-<a tabindex="{tabindex}" href="{url}" title="{name}" aria-label="{name}" data-original-icon="{fa}" data-path="{path}" data-type="{type}" onclick="explorer.action(event, this)">
+<a tabindex="{tabindex}" href="{url}" title="{name}" aria-label="{name}" data-original-icon="{fa}" data-path="{path}" data-type="{type}" onclick="explorer.action(event, this)" class="{class}">
 	<span class="entry-wrapper">
 		<span class="entry-data-in">
 			<span class="entry-name" aria-hidden="true">

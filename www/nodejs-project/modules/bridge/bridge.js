@@ -3,21 +3,24 @@
 const path = require('path'), http = require('http'), Events = require('events'), fs = require('fs'), url = require('url')
 const formidable = require('formidable'), closed = require('../on-closed')
 
-if(typeof(localStorage) != 'undefined' && localStorage.debug){
-    localStorage.debug = ''
-}
-
 class CordovaCustomEmitter extends Events {
     constructor (){
         super()
         this.originalEmit = this.emit
         this.emit = this.customEmit
-        global.cordova.channel.on('message', args => {
-            this.originalEmit.apply(this, args)
-        })
+        this.attach()
     }
     customEmit(...args){
+        this.attach()
         global.cordova.channel.post('message', args)
+    }
+    attach(){
+        if(!this.channel && global.cordova.channel){
+            this.channel = global.cordova.channel
+            this.channel.on('message', args => {
+                this.originalEmit.apply(this, args)
+            })
+        }
     }
 }
 

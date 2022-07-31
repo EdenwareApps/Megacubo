@@ -1,7 +1,7 @@
 if(typeof(themeRefresh) == 'undefined'){
     function themeRefresh(){
         const systemFont = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif'
-        let family = config['font-family'], nfs = 0.02 + (config['font-size'] * 0.0025)
+        let family = config['font-family'], nfs = 0.0275 + (config['font-size'] * 0.0015)
         if(!family){
             family = systemFont
         } else if(family.indexOf(systemFont) == -1) {

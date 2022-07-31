@@ -18,6 +18,7 @@ window.onerror = function (message, file, line, column, errorObj) {
 		maxAlerts--
 		let stack = errorObj !== undefined ? errorObj.stack : traceback()
 		alert(message +' '+ file +':'+ line +' '+ stack)
+		console.error(errorObj || message)
 		log(message)
 	}
 	return true

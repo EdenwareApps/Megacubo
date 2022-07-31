@@ -11,7 +11,7 @@ class Index extends Common {
 			partial: undefined
 		}
     }
-	applySearchOpts(opts){ // ensure opts will have the same order for a more effective searchMapCache key
+	optimizeSearchOpts(opts){ // ensure opts will have the same order for a more effective searchMapCache key
 		let nopts = {}
 		Object.keys(this.defaultsSearchOpts).forEach(k => {
 			nopts[k] = opts[k] ? opts[k] : undefined
@@ -94,41 +94,53 @@ class Index extends Common {
 		}
 	}
 	searchMap(query, opts){
-		opts = this.applySearchOpts(opts)
-		let fullMap = {}
+		let fullMap
+		opts = this.optimizeSearchOpts(opts)
 		query.forEach(q => {
 			let map = this.querySearchMap(q, opts)
-			fullMap = this.joinMap(fullMap, map)
+			fullMap = fullMap ? this.joinMap(fullMap, map) : map
 		})
-		return global.deepClone(fullMap)
+		return this.cloneMap(fullMap)
+	}
+	queryTermMap(terms, group){
+		let key = 'qtm-'+ group +'-'+ terms.join(',')
+		if(typeof(this.searchMapCache[key]) != 'undefined'){
+			return this.cloneMap(this.searchMapCache[key])
+		}
+		let tmap
+		terms.forEach(term => {
+			let map = {}
+			Object.keys(this.lists).forEach(listUrl => {
+				if(typeof(this.lists[listUrl].index.terms[term]) != 'undefined'){
+					map[listUrl] = this.lists[listUrl].index.terms[term]
+				}
+			})
+			if(tmap){
+				tmap = this.joinMap(tmap, map)
+			} else {
+				tmap = this.cloneMap(map)
+			}
+		})
+		this.searchMapCache[key] = this.cloneMap(tmap)
+		return tmap
 	}
 	querySearchMap(q, opts){
 		let smap
-		let key = q.terms.join(',') + q.excludes.join(',') + JSON.stringify(opts)
+		let key = 'qsm-'+ opts.group +'-'+ q.terms.join(',') + q.excludes.join(',') + JSON.stringify(opts)
 		if(typeof(this.searchMapCache[key]) != 'undefined'){
-			return global.deepClone(this.searchMapCache[key])
+			return this.cloneMap(this.searchMapCache[key])
 		}
 		if(typeof(opts.type) != 'string'){
 			opts.type = false
 		}
 		q.terms.some(term => {
-			let tmap, tms = [term]
+			let tms = [term]
 			if(typeof(q.aliases[term]) != 'undefined'){
 				tms = tms.concat(q.aliases[term])
 			}
-			tms.forEach(term => {
-				Object.keys(this.lists).forEach(listUrl => {
-					if(typeof(this.lists[listUrl].index.terms[term]) != 'undefined'){
-						let map = {}
-						map[listUrl] = this.lists[listUrl].index.terms[term]
-						if(tmap){
-							tmap = this.joinMap(tmap, map)
-						} else {
-							tmap = global.deepClone(map)
-						}
-					}
-				})
-			})
+			let tmap = this.queryTermMap(tms)
+			console.warn('TMAPSIZE', term, tmap ? this.mapSize(tmap) : 0)
+			console.warn('SMAPSIZE', term, smap ? this.mapSize(smap) : 0)
 			if(tmap){
 				if(smap){
 					smap = this.intersectMap(smap, tmap)
@@ -144,21 +156,13 @@ class Index extends Common {
 			if(q.excludes.length){
 				let ms = this.mapSize(smap, opts.group)
 				if(ms){
-					q.excludes.some(xterm => {
-						return Object.keys(this.lists).some(listUrl => {
-							if(typeof(this.lists[listUrl].index.terms[xterm]) != 'undefined'){
-								let pms = this.mapSize(smap, opts.group)
-								let xmap = {}
-								xmap[listUrl] = this.lists[listUrl].index.terms[xterm]
-								smap = this.diffMap(smap, xmap)
-								ms = this.mapSize(smap, opts.group)
-								if(!ms) return true // break
-							}
-						})
-					})
+					let xmap = this.queryTermMap(q.excludes)
+					smap = this.diffMap(smap, xmap)
+					ms = this.mapSize(smap, opts.group)
+					console.warn('XMAPSIZE', this.mapSize(xmap), ms)
 				}
 			}
-			this.searchMapCache[key] = global.deepClone(smap)
+			this.searchMapCache[key] = this.cloneMap(smap)
 			return smap
 		}
 		this.searchMapCache[key] = {}
@@ -371,18 +375,6 @@ class Index extends Common {
 			})
         })
 	}
-	intersectMap(a, b){
-		let c = {}
-		Object.keys(b).forEach(listUrl => {
-			if(typeof(a[listUrl]) != 'undefined'){
-				c[listUrl] = {
-					g: a[listUrl].g ? a[listUrl].g.filter(n => b[listUrl].g.includes(n)).sort((a, b) => a - b) : [], 
-					n: a[listUrl].n ? a[listUrl].n.filter(n => b[listUrl].n.includes(n)).sort((a, b) => a - b) : []
-				}
-			}
-		})
-		return c
-	}
 	mapSize(a, group){
 		let c = 0
 		Object.keys(a).forEach(listUrl => {
@@ -395,8 +387,20 @@ class Index extends Common {
 		})
 		return c
 	}
+	intersectMap(a, b){
+		let c = {}
+		Object.keys(b).forEach(listUrl => {
+			if(typeof(a[listUrl]) != 'undefined'){
+				c[listUrl] = {
+					g: a[listUrl].g ? a[listUrl].g.filter(n => b[listUrl].g.includes(n)).sort((a, b) => a - b) : [], 
+					n: a[listUrl].n ? a[listUrl].n.filter(n => b[listUrl].n.includes(n)).sort((a, b) => a - b) : []
+				}
+			}
+		})
+		return c
+	}
 	joinMap(a, b){
-		let c = global.deepClone(a) // clone it
+		let c = this.cloneMap(a) // clone it
 		Object.keys(b).forEach(listUrl => {
 			if(typeof(c[listUrl]) == 'undefined'){
 				c[listUrl] = {g: [], n: []}
@@ -427,7 +431,7 @@ class Index extends Common {
 						b[listUrl][type].forEach(n => {
 							let i = c ? c[listUrl][type].indexOf(n) : a[listUrl][type].indexOf(n)
 							if(i != -1){
-								if(!c) c = global.deepClone(a) // clone it lazily
+								if(!c) c = this.cloneMap(a) // clone it lazily
 								c[listUrl][type].splice(i, 1)
 							}
 						})
@@ -437,51 +441,114 @@ class Index extends Common {
 		})
 		return c || a
 	}
-	group(group, atts){
-		return new Promise((resolve, reject) => {
-			let entries = [], ks = atts ? Object.keys(atts) : []
-			async.eachOf(Object.keys(this.lists), (listUrl, i, done) => {
-				if(Object.keys(this.lists[listUrl].index.groups).indexOf(group) != -1){
-					this.lists[listUrl].iterate(e => {
-						if(e.group == group){
-							if(ks.length){
-								ks.forEach(k => {
-									if(atts[k] != e[k]){
-										return
-									}
-								})
-							}
-							if(!e.source){
-								e.source = listUrl
-							}
-							entries.push(e)
+	cloneMap(a){
+		return Object.assign({}, a)
+	}
+	async groups(type){
+		let groups = [], map = {}
+		Object.keys(this.lists).forEach(url => {
+			let entries = this.lists[url].index.groupsTypes
+			if(!entries || !entries[type]) return
+			entries[type].forEach(group => {
+				const parts = group.name.split('/')
+				if(parts.length > 1){
+					parts.forEach((part, i) => {
+						const path = parts.slice(0, i + 1).join('/')
+						if(typeof(map[path]) == 'undefined') map[path] = []
+						if(i < (parts.length - 1)) map[path].push(parts[i + 1])
+					})
+				}
+				groups.push({
+					group: group.name,
+					name: group.name.split('/').pop(),
+					url,
+					icon: group.icon
+				})
+			})
+		})
+		if(['series', 'vod'].includes(type)){
+			const rgx = new RegExp('(^[0-9]{1,2})(?:[^0-9]|$)|(?:[^0-9]|^)([0-9]{1,2}$)') // episode 1 OR 1st episode
+			Object.keys(map).forEach(path => { // better filter series by episodes disposition
+				if(map[path].length){
+					let seemsSeries, ns = map[path].map(n => {
+						let m = n.match(rgx)
+						return m ? m.slice(0, 2).map(n => parseInt(n)).filter(n => n).shift() : false
+					}).filter(n => n)
+					if(ns.length >= (map[path].length * 0.75)){
+						let dfs = [...new Set(ns)]
+						if(dfs.length >= (ns.length * 0.75)){
+							//let max = Math.max(...dfs)
+							//if(max <= (map[path].length * 1.5)) {
+							seemsSeries = true
+							//}
 						}
-					}, this.lists[listUrl].index.groups[group], done)
-				} else {
-				    done()
-                }
-			}, () => {
-				//console.log(entries)
+					}
+					if(type == 'series'){
+						if(seemsSeries){
+							return
+						}
+					} else { // vod
+						if(!seemsSeries){
+							return
+						}
+					}
+				}
+				delete map[path]
+			})
+		}
+		const collator = new Intl.Collator(global.lang.locale, { numeric: true, sensitivity: 'base' })
+		groups.sort((a, b) => collator.compare(a.name, b.name))
+		const routerVar = {}
+		let ret = groups.filter((group, i) => { // group repeated series
+			return Object.keys(map).every(parentPath => {
+				let gname = parentPath.split('/').pop()
+				return map[parentPath].every(name => {
+					const path = parentPath +'/'+ name
+					if(group.group == path) {
+						let ret = false
+						if(typeof(routerVar[parentPath]) == 'undefined'){
+							routerVar[parentPath] = i
+							const ngroup = Object.assign({}, groups[i])
+							groups[i].name = gname
+							groups[i].group = parentPath
+							groups[i].entries = [ngroup]
+							ret = true
+						} else {
+							groups[routerVar[parentPath]].entries.push(group)
+						}
+						return ret
+					}
+					return true
+				})
+			})
+		})
+		return ret
+	}
+	group(group){
+		return new Promise((resolve, reject) => {
+			let entries = []
+			if(!this.lists[group.url]){
+				return reject('List unloaded')
+			}
+			this.lists[group.url].iterate(e => {
+				if(e.group == group.group){
+					if(!e.source){
+						e.source = group.url
+					}
+					entries.push(e)
+				}
+			}, this.lists[group.url].index.groups[group.group], () => {
+				console.log(entries)
 				entries = this.tools.dedup(entries)
 				entries = this.parentalControl.filter(entries)
+				
+				const collator = new Intl.Collator(global.lang.locale, { numeric: true, sensitivity: 'base' })
+				entries.sort((a, b) => collator.compare(a.name, b.name))
+
 				resolve(entries)
 			})
 		})
 	}
-    groups(){
-        return new Promise((resolve, reject) => {
-			let gs = []
-			Object.keys(this.lists).forEach(listUrl => {
-				Object.keys(this.lists[listUrl].index.groups).forEach(group => {
-					if(group && !gs.includes(group)){
-						gs.push(group)
-					}
-				})
-			})
-            gs.sort((a, b) => a.localeCompare(b, undefined, {sensitivity: 'base'}))
-            resolve(gs)
-        })
-    }
 }
 
 module.exports = Index

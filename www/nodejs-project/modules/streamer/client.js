@@ -995,6 +995,7 @@ class StreamerClientVideoFullScreen extends StreamerAndroidNetworkIP {
                 this.inFullScreen = true // bugfix for some devices
                 this.leaveFullScreen()
                 parent.plugins.megacubo.on('appmetrics', this.updateAndroidAppMetrics.bind(this))
+                parent.plugins.megacubo.on('nightmode', this.handleDarkModeInfoDialog.bind(this))
                 this.updateAndroidAppMetrics(parent.plugins.megacubo.appMetrics)
                 this.on('fullscreenchange', () => {
                     this.updateAndroidAppMetrics()
@@ -1028,6 +1029,15 @@ class StreamerClientVideoFullScreen extends StreamerAndroidNetworkIP {
             this.jbody.addClass('fullscreen')
             if(b) b.style.display = 'none'
             this.enterFullScreen()
+        }
+    }
+    handleDarkModeInfoDialog(info){
+        if(info.miui && info.mode && info.mode != 16){
+            explorer.dialog([
+                {template: 'question', text: 'Megacubo', fa: 'fas fa-info-circle'},
+                {template: 'message', text: lang.MIUI_DARK_MODE_HINT},
+                {template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle'}
+            ])
         }
     }
     updateAndroidAppMetrics(metrics){

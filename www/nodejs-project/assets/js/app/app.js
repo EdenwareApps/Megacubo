@@ -6,6 +6,7 @@ window.onerror = function (message, file, line, column, errorObj) {
 		maxAlerts--
 		let stack = errorObj !== undefined ? errorObj.stack : traceback()
 		alert(message +' '+ file +':'+ line +' '+ stack)
+		console.error(errorObj || message)
 	}
 	return true
 }
@@ -245,22 +246,46 @@ function initApp(){
             }
             if(explorer.path == path){
                 const element = tabIndex == -1 ? document.querySelector('.explorer-location-icon i') : explorer.currentElements[tabIndex]
+                const isCover = (element && element.className ? element.className : '').indexOf('entry-cover') != -1
                 const bg = 'url("' + src + '")' // keep quotes
                 const m = () => {
-                    let g = document.createElement('img')
-                    g.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQYV2NgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII=' // transparent pixel
-                    g.style.backgroundImage = bg
-                    return g
+                    let d, g = document.createElement('img')
+                    if(isCover){
+                        d = document.createElement('div')
+                        g.src = src
+                        d.className = 'entry-cover-container'
+                        d.appendChild(g)
+                        return d
+                    } else {
+                        g.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQYV2NgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII=' // transparent pixel
+                        g.style.backgroundImage = bg
+                        return g
+                    }
                 }
                 if(tabIndex == -1) {
                     jQuery(element).replaceWith(m())
                 } else if (element.title == name) { // is the same element yet?
-                    let c = element.querySelector('.entry-icon-image')
-                    if(c){
-                        let g = c.querySelector('img')
-                        if(!g || force || bg != g.style.backgroundImage){
-                            c.innerHTML = ''
-                            c.appendChild(m())
+                    if(isCover){ 
+                        let c = element.querySelector('.entry-wrapper')
+                        if(c){
+                            let g = c.querySelector('img')
+                            if(!g || force || bg != g.src){
+                                let a = element.querySelector('.entry-icon-image')
+                                //c.innerHTML = ''
+                                //c.appendChild(m())
+                                c.className = c.className +' entry-cover-active'
+                                a.innerHTML = ''
+                                c.insertBefore(m(), c.childNodes[0])
+                            }
+                        } 
+                    } else {                          
+                        let c = element.querySelector('.entry-icon-image')
+                        if(c){
+                            let g = c.querySelector('img')
+                            if(!g || force || bg != g.style.backgroundImage){
+                                c.innerHTML = ''
+                                c.appendChild(m())
+                            }
                         }
                     }
                 }
@@ -300,7 +325,7 @@ function initApp(){
         ([
             {
                 level: 'default', 
-                selector: '#explorer wrap a, .explorer-omni span', 
+                selector: '#explorer wrap a, .explorer-omni span, #header-shutdown', 
                 condition: () => {
                     return explorer.isExploring()
                 },
@@ -628,6 +653,10 @@ function initApp(){
             })
             
             ffmpeg.bind()
+
+            document.getElementById('header-shutdown').addEventListener('click',  () => {
+                parent.winman.askExit()
+            })
 
             if(parent.cordova){
                 parent.winman.setBackgroundMode(true) // enable once at startup to prevent service not registered crash

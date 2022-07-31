@@ -3,7 +3,7 @@ const Events = require('events'), fs = require('fs'), ParentalControl = require(
 const M3UParser = require(global.APPDIR + '/modules/lists/parser'), M3UTools = require(global.APPDIR + '/modules/lists/tools'), MediaStreamInfo = require(global.APPDIR + '/modules/lists/media-info')
 const Parser = require(global.APPDIR + '/modules/lists/parser')
 
-LIST_DATA_KEY_MASK = 'list-data-{0}'
+LIST_DATA_KEY_MASK = 'list-data-1-{0}'
 
 class Fetcher extends Events {
 	constructor(){		

@@ -34,8 +34,13 @@ class FFMpeg {
 		if(!this.cp){
 			this.cp = top.require('child_process')
 		}
-		let gotMetadata, output = ''
-		const child = this.cp.spawn(this.executable, cmd, {
+		let exe, gotMetadata, output = ''
+		if(process.platform == 'linux'){ // cwd was not being honored on Linux
+			exe = this.executableDir +'/'+ this.executable
+		} else {
+			exe = this.executable
+		}
+		const child = this.cp.spawn(exe, cmd, {
 			cwd: this.executableDir, 
 			killSignal: 'SIGINT'
 		})

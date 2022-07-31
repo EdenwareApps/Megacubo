@@ -25,8 +25,13 @@ class HLSJournal {
         if(['http://', 'https:/'].includes(path.substr(0, 7))){
             return path
 		}
-		let uri = new URL(path, url)
-        return uri.href
+		let uri
+		try{
+			uri = new URL(path, url)
+			return uri.href
+		} catch(e) {
+			return global.joinPath(url, path)
+		}
 	}
 	process(content){
 		if(content){
@@ -962,6 +967,9 @@ class StreamerProxyHLS extends HLSRequests {
 			this.server = http.createServer(this.handleRequest.bind(this))
             this.serverStopper = stoppable(this.server)
 			this.server.listen(0, this.opts.addr, (err) => {
+				if(this.destroyed && !err){
+					err = 'destroyed'
+				}
 				if (err) {
 					if(this.opts.debug){
 						console.log('unable to listen on port', err)

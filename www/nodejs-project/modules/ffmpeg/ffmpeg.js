@@ -256,7 +256,7 @@ class FFMPEGMediaInfo extends FFMPEGHelper {
 			return
 		}
 		let m = file.match(new RegExp('^([a-z]{1,6}):', 'i'))
-		if(m.length && (m[1].length == 1 || m[1].toLowerCase() == 'file')){ // drive letter or file protocol
+		if(m && m.length && (m[1].length == 1 || m[1].toLowerCase() == 'file')){ // drive letter or file protocol
 			return true
 		} else {
 			if(file.length >= 2 && file.charAt(0) == '/' && file.charAt(1) != '/'){ // unix path

@@ -395,7 +395,8 @@ function init(language){
         explorer = new Explorer({},
             [
                 {name: lang.LIVE, fa: 'fas fa-tv', details: '<i class="fas fa-play-circle"></i> '+ lang.WATCH, type: 'group', renderer: channels.entries.bind(channels)},
-                {name: lang.VIDEOS, fa: 'fas fa-folder-open', details: lang.CATEGORIES, type: 'group', renderer: channels.more.bind(channels)}
+                {name: lang.MOVIES, fa: 'fas fa-film', details: lang.CATEGORIES, type: 'group', renderer: () => channels.groupsRenderer('vod')},
+                {name: lang.SERIES, fa: 'fas fa-th', details: lang.CATEGORIES, type: 'group', renderer: () => channels.groupsRenderer('series')}
             ]
         )
         

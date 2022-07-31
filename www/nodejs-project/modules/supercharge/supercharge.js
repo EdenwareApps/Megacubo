@@ -62,6 +62,9 @@ function patch(scope){
 		}
 	}
 	if(typeof(require) == 'function'){
+		if(typeof(scope.URL) != 'undefined'){ // node
+			scope.URL = require('url').URL
+		}
 		if(typeof(scope.URLSearchParams) == 'undefined'){ // node
 			scope.URLSearchParams = require('url-search-params-polyfill')
 		}

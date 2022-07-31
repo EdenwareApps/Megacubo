@@ -47,7 +47,7 @@
     --opacity-level-2: 0.25;
     --opacity-level-3: 0.5;
     --opacity-level-4: 0.75;
-    --controls-height: calc(var(--explorer-entry-name-font-size) * 4.25);
+    --controls-height: calc(var(--explorer-entry-name-font-size) * 3.575);
     --controls-button-height: calc(var(--controls-height) - 2vmin);
     --controls-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.8) 20%, rgba(0, 0, 0, 1) 50%, rgba(0, 0, 0, 0.9) 50.5%, rgba(0, 0, 0, 0.3) 100%);
     --seekbar-height: calc(var(--padding) * 3);
@@ -101,7 +101,6 @@ body.video {
 #explorer, #explorer header, #osd-root, controls, wrap {
     transform: translateZ(0);
     backface-visibility: hidden;
-    perspective: 1000;
     will-change: transform;
 }
 body.video:not(.modal) #explorer header {
@@ -258,6 +257,22 @@ body.video #explorer header .explorer-omni {
     width: auto;
     font-size: var(--explorer-entry-name-font-size);
     height: var(--explorer-entry-name-font-size);
+}
+#header-shutdown {
+    margin-left: var(--padding);
+    border-radius: 1vmax;
+    padding: var(--padding-quarter) var(--padding-half);
+    color: white;
+}
+#header-shutdown.selected {
+    border: 1px solid var(--secondary-font-color);
+    background: rgba(255,255,255,0.3);
+}
+body.video #explorer #header-shutdown {
+    display: none;
+}
+body:not(.video) #explorer header .logo {
+    display: none;
 }
 #explorer .explorer-time {
     display: flex;
@@ -1355,4 +1370,46 @@ body.menu-playing #main {
 .effect-inflate-deflate-parent {
     perspective: 10vmin;
     transform-origin: center center;
+}
+.entry-cover-active > div {
+    position: absolute;
+    width: inherit;
+    height: inherit;
+    z-index: -999;
+    justify-content: center;
+    align-items: center;
+    display: flex;
+}
+.entry-disabled.entry-cover-active .entry-wrapper {
+    opacity: var(--opacity-level-3);
+}
+.entry-cover label {
+    text-transform: uppercase;
+}
+.entry-cover-active > div > img {
+    object-fit: cover;
+    min-height: 100%;
+    max-width: 100%;
+    border-radius: var(--radius);
+}
+.entry-cover .entry-wrapper {
+    background: linear-gradient(to bottom, var(--background-color), transparent);
+}
+.entry-cover-active .entry-data-in {
+    top: 0 !important;
+}
+.entry-cover-active .entry-name {
+    padding: var(--padding-quarter) var(--padding-half);
+    padding-top: var(--padding-half);
+    border-radius: var(--radius);    
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    display: inline-block;    
+    margin-top: 0;
+}
+.entry-cover .entry-wrapper {
+    background: linear-gradient(to bottom, rgba(0,0,0, 0.3), transparent) !important;
+}
+#explorer content a.selected span.entry-wrapper.entry-cover-active {
+    box-shadow: 0 1px 2px white;
 }

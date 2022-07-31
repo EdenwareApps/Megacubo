@@ -329,6 +329,9 @@ class StreamerProxy extends StreamerProxyBase {
 				if(len && typeof(headers['content-range']) == 'undefined'){
 					headers['content-range'] = 'bytes 0-'+ (len - 1) +'/'+ len // improve upnp compat
 				}
+				if(this.type == 'network-proxy'){
+					console.log('network serving', url, reqHeaders, statusCode, headers)
+				}
 				if(req.method == 'HEAD'){
 					if(this.opts.debug){
 						console.log('download sent response headers', statusCode, headers)
@@ -427,6 +430,9 @@ class StreamerProxy extends StreamerProxyBase {
 				console.log('download sent response headers', statusCode, headers)
 			}
 			response.writeHead(statusCode, headers)
+			if(this.type == 'network-proxy'){
+				console.log('network serving response', url, headers)
+			}
 		}
 		let initialOffset = download.requestingRange ? download.requestingRange.start : 0, offset = initialOffset
 		let sampleCollected, doBitrateCheck = this.committed && this.type != 'network-proxy' && this.bitrates.length < this.opts.bitrateCheckingAmount

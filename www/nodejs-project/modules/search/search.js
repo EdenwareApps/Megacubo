@@ -183,7 +183,7 @@ class Search extends Events {
                     }
                 })
             }
-            let minResultsWanted = 48
+            let minResultsWanted = (global.config.get('view-size-x') * global.config.get('view-size-y')) - 3
             if(es.length < minResultsWanted){                
                 let ys = await this.ytResults(terms).catch(console.error)
                 if(Array.isArray(ys)) {
@@ -456,7 +456,7 @@ class Search extends Events {
             if(!global.lists.manager.updatingLists && global.activeLists.length){
                 if(path == global.lang.LIVE){
                     entries.unshift(this.entry('live'))
-                } else if(path == global.lang.VIDEOS){
+                } else if([global.lang.SERIES, global.lang.MOVIES].includes(path)){
                     entries.unshift(this.entry('all'))
                 }
             }

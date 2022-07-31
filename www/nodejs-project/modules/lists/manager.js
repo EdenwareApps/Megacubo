@@ -537,8 +537,8 @@ class Manager extends Events {
             global.ui.emit('prompt', global.lang.ASK_IPTV_LIST, 'http://', '', 'manager-add-list', false, 'fas fa-plus-square', '', extraOpts)
         }}
     }
-    addXtreamCodeEntry(){
-        return {name: global.lang.ADD_XTREAM_CODE, fa: 'fas fa-plus-square', type: 'action', action: async() => {
+    addCodeEntry(){
+        return {name: global.lang.ADD_CODE, fa: 'fas fa-plus-square', type: 'action', action: async() => {
             let server = await global.explorer.prompt(global.lang.PASTE_SERVER_ADDRESS, 'http://host:port', '', false, 'fas fa-globe', '', [])
             if(!server) return
             const user = await global.explorer.prompt(global.lang.USERNAME, global.lang.USERNAME, '', false, 'fas fa-user', '', [])
@@ -594,7 +594,7 @@ class Manager extends Events {
                     })
                 }, () => {
                     opts.push(this.addListEntry())
-                    opts.push(this.addXtreamCodeEntry())
+                    opts.push(this.addCodeEntry())
                     if(!lists.length){
                         opts.push({
                             name: global.lang.NO_LIST,
@@ -884,7 +884,7 @@ class Manager extends Events {
                 options.push(this.myListsEntry())
             } else {
                 options.push(this.addListEntry())
-                options.push(this.addXtreamCodeEntry())
+                options.push(this.addCodeEntry())
             }
             options.push(this.listSharingEntry())
             options.push({name: global.lang.EPG, details: 'EPG', fa: global.channels.epgIcon, type: 'group', renderer: this.epgOptionsEntries.bind(this)})

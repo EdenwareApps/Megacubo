@@ -750,7 +750,7 @@ class ChannelsEditing extends ChannelsEPG {
         ['cnt', 'count', 'label', 'users'].forEach(k => { if(e[k]) delete e[k] })
         return e
     }
-    addCategoryEntry(){
+    getCategoryEntry(){
         return {name: global.lang.ADD_CATEGORY, fa: 'fas fa-plus-square', type: 'input', action: (data, val) => {
             let categories = this.getCategories()
             if(val && !categories.map(c => c.name).includes(val)){
@@ -1386,6 +1386,7 @@ class Channels extends ChannelsAutoWatchNow {
                                     entries.push(this.addChannelEntry(c, true))
                                 }
                                 times['epg'] = global.time() - startTime - times['has'] - times['meta']
+                                // console.log('CTIMES', times)
                                 if(typeof(this.ctimes) == 'undefined'){
                                     this.ctimes = []
                                 }
@@ -1398,7 +1399,8 @@ class Channels extends ChannelsAutoWatchNow {
                 return category
             })
             if(editable){
-                list.push(this.addCategoryEntry())
+                list.push(this.getMoreEntry())
+                list.push(this.getCategoryEntry())
                 list.push(this.exportImportOption())
             }            
             if(this.activeEPG){
@@ -1540,96 +1542,82 @@ class Channels extends ChannelsAutoWatchNow {
             resolve(entries)
         })
     }
-    more(){
-        return new Promise((resolve, reject) => {
-            if(lists.manager.updatingLists){
-                return resolve([global.lists.manager.updatingListsEntry()])
-            }
-            if(!global.activeLists.length){ // one list available on index beyound meta watching list
-                return resolve([global.lists.manager.noListsEntry()])
-            }		
-            global.lists.groups().then(es => this.moreGroupsToEntries(es).then(resolve).catch(reject)).catch(reject)
-        })
+    getMoreEntry(){
+        return {
+            name: global.lang.MORE,
+            fa: 'fas fa-folder-plus',
+            type: 'group',
+            renderer: () => this.groupsRenderer('live')
+        }
     }
-    moreGroupsToEntries(groups){
+    async groupsRenderer(type){
+        if(lists.manager.updatingLists){
+            return [global.lists.manager.updatingListsEntry()]
+        }
+        if(!global.activeLists.length){ // one list available on index beyound meta watching list
+            return [global.lists.manager.noListsEntry()]
+        }
+        const namedGroups = {}, isSerie = type == 'series'
+        let entries = [], groups = await global.lists.groups(type)
         const acpolicy = global.config.get('parental-control-policy')
         if(acpolicy == 'block'){
             groups = global.lists.parentalControl.filter(groups)		
         } else if(acpolicy == 'only') {
             groups = global.lists.parentalControl.only(groups)
         }
-        this.moreGroups = groups
-        return new Promise((resolve, reject) => {
-            let entries = [], already = []
-            const next = () => {
-                this.moreGroups.forEach(group => {
-                    let p = group.split('/')[0]
-                    if(already.includes(p)) return
-                    already.push(p)
-                    entries.push({
-                        name: p,
-                        type: 'group',
-                        renderer: this.moreRenderGroup.bind(this, p)
-                    })
-                })		
-                already = null
-                entries = global.lists.tools.deepify(entries)		
-                resolve(entries)
-                entries = null		
+        groups.forEach(group => {
+            const name = group.name
+            const slug = name.toLowerCase().normalize('NFD').replace(new RegExp('[^a-z0-9]', 'g'), '')
+            if(typeof(namedGroups[slug]) == 'undefined'){
+                namedGroups[slug] = []
             }
-            if(this.moreGroups < 96){
-                global.lists.group('').then(es => {
-                    entries = es.map(e => {
-                        e.group = ''
-                        return e
-                    })	
-                }).catch(console.error).finally(next)
-            } else {
-                next()
-            }
-        })
-    }
-    moreRenderGroup(p){
-        return new Promise((resolve, reject) => {
-            let entries = []
-            let next = () => {
-                let gentries = []
-                this.moreGroups.forEach(g => {
-                    if(g.substr(0, p.length) == p && g != p){
-                        let gp, pos = g.indexOf('/', p.length + 1)
-                        if(pos == -1){
-                            gp = g
-                        } else {
-                            gp = g.substr(0, pos)
-                        }
-                        gentries.push({
-                            name: gp.split('/').pop(),
-                            type: 'group',
-                            renderer: this.moreRenderGroup.bind(this, gp)
+            namedGroups[slug].push({
+                name,
+                type: 'group',
+                icon: isSerie ? group.icon : undefined,
+                safe: true,
+                class: isSerie ? 'entry-cover' : undefined,
+                fa: isSerie ? 'fas fa-play-circle' : undefined,
+                renderer: async () => {
+                    console.warn('GROUP', group)
+                    let entries = await global.lists.group(group).catch(console.error)
+                    if(Array.isArray(entries)) {
+                        return entries.map(e => {
+                            e.class = type != 'live' ? 'entry-cover' : undefined
+                            return e
                         })
-                    }
-                })
-                entries = global.lists.tools.deepify(entries.concat(gentries))
-                gentries = null
-                if(entries.length == 1){
-                    if(typeof(entries[0].renderer) == 'function'){
-                        return entries[0].renderer().then(resolve).catch(reject)
-                    } else if(Array.isArray(entries[0].entries)) {
-                        entries = entries[0].entries
+                    } else {
+                        process.nextTick(() => global.explorer.back(1, true))
+                        return []
                     }
                 }
-                resolve(entries)
-                entries = null
-            }
-            if(this.moreGroups.includes(p)){
-                global.lists.group(p).then(es => entries = es.map(e => {
-                    e.group = ''
-                    return e
-                })).catch(console.error).finally(next)
+            })
+        })
+        Object.keys(namedGroups).forEach(name => {
+            if(namedGroups[name].length == 1){
+                entries.push(namedGroups[name][0])
             } else {
-                next()
+                let rname = namedGroups[name][0].name || name
+                let icon, fa = 'fas fa-folder-open'
+                if(type == 'series'){
+                    icon = namedGroups[name].map(g => g.icon).filter(g => g).shift()
+                    fa = 'fas fa-play-circle'
+                }
+                entries.push({
+                    name: rname,
+                    type: 'group',
+                    fa,
+                    icon,
+                    class: type == 'series' ? 'entry-cover' : undefined,
+                    entries: namedGroups[name].map((g, i) => {
+                        g.name = '#'+ (i + 1)
+                        return g
+                    })
+                })
             }
         })
+        entries = global.lists.tools.deepify(entries)
+        return entries
     }
 }
 
