@@ -41,130 +41,130 @@ class EPG extends Events {
                 }
             }).catch(err => {
                 console.error(err)
-            }).finally(this.update.bind(this))
+            }).finally(() => {
+                this.update().catch(console.error)
+            })
         }
     }
-    update(){
-        global.storage.get(this.fetchCtrlKey, lastFetchedAt => {
-            global.storage.get(this.lastmCtrlKey, lastModifiedAt => {
-                const now = this.time()
-                if(Object.keys(this.data).length < this.minExpectedEntries || !lastFetchedAt || lastFetchedAt < (this.time() - (this.ttl / 2))){
-                    if(this.request || this.parser){
-                        console.error('already updating')
-                        return
-                    }
-                    if(!this.loaded){
-                        this.state = 'connecting'
-                    }
-                    let errorCount = 0, failed, hasErr, newLastModified, initialBuffer = []
-                    this.error = null
-                    console.log('epg updating...')
-                    this.parser = new xmltv.Parser()
-                    this.parser.on('programme', this.programme.bind(this))
-                    this.parser.on('channel', this.channel.bind(this))
-                    this.parser.on('error', err => {
-                        if(failed){
-                            return
-                        }
-                        hasErr = true
-                        console.error('EPG FAILED DEBUG', initialBuffer)
-                        errorCount++
-                        console.error(err)
-                        if(errorCount >= 128){
-                            // sometimes we're receiving scrambled response, not sure about the reason, do a dirty workaround for now
-                            failed = true
-                            if(this.request){
-                                this.request.destroy() 
-                                this.request = null
-                            }
-                            if(this.parser){
-                                this.parser.destroy() 
-                                this.parser = null    
-                            }
-                            this.state = 'error'
-                            this.error = global.lang.EPG_BAD_FORMAT
-                            this.emit('error', global.lang.EPG_BAD_FORMAT)
-                            this.scheduleNextUpdate(30)
-                        }
-                        return true
-                    })
-                    this.parser.once('end', () => {
-                        console.log('EPG PARSER END')
-                        this.applyMetaCache()
-                        this.clean()
-                        this.save()
-                        this.parser.destroy() 
-                        this.parser = null                                
-                        this.scheduleNextUpdate()
-                    })
-                    let validEPG, received = 0
-                    const req = {
-                        debug: false,
-                        url: this.url,
-                        followRedirect: true,
-                        keepalive: false,
-                        retries: 5,
-                        headers: {
-                            'accept-charset': 'utf-8, *;q=0.1'
-                            // 'range': 'bytes=0-' // was getting wrong content-length from Cloudflare
-                        },
-                        encoding: 'utf8'
-                    }
-                    this.request = new global.Download(req)
-                    this.request.on('error', err => {
-                        console.warn(err)
-                        return true
-                    })
-                    this.request.once('response', (code, headers) => {
-                        if(this.loaded){
-                            if(headers['last-modified']) {
-                                if(headers['last-modified'] == lastModifiedAt) {
-                                    console.log('epg update skipped by last-modified '+ lastModifiedAt)
-                                    this.request.destroy()
-                                    return
-                                } else {
-                                    newLastModified = headers['last-modified']
-                                }
-                            }
-                        } else {
-                            this.state = 'connected' // only update state on initial connect
-                        }
-                    })
-                    this.request.on('data', chunk => {
-                        received += chunk.length
-                        if(!hasErr) initialBuffer.push(chunk)
-                        this.parser.write(chunk)
-                        if(!validEPG && chunk.toLowerCase().indexOf('<programme') != -1){
-                            validEPG = true
-                        }
-                    })
-                    this.request.once('end', () => {
+    async update(){
+        let lastFetchedAt = await global.storage.promises.get(this.fetchCtrlKey)
+        let lastModifiedAt = await global.storage.promises.get(this.lastmCtrlKey)
+        const now = this.time()
+        if(Object.keys(this.data).length < this.minExpectedEntries || !lastFetchedAt || lastFetchedAt < (this.time() - (this.ttl / 2))){
+            if(this.request || this.parser){
+                console.error('already updating')
+                return
+            }
+            if(!this.loaded){
+                this.state = 'connecting'
+            }
+            let errorCount = 0, failed, hasErr, newLastModified, initialBuffer = []
+            this.error = null
+            console.log('epg updating...')
+            this.parser = new xmltv.Parser()
+            this.parser.on('programme', this.programme.bind(this))
+            this.parser.on('channel', this.channel.bind(this))
+            this.parser.on('error', err => {
+                if(failed){
+                    return
+                }
+                hasErr = true
+                console.error('EPG FAILED DEBUG', initialBuffer)
+                errorCount++
+                console.error(err)
+                if(errorCount >= 128){
+                    // sometimes we're receiving scrambled response, not sure about the reason, do a dirty workaround for now
+                    failed = true
+                    if(this.request){
                         this.request.destroy() 
                         this.request = null
-                        console.log('EPG REQUEST ENDED', validEPG, received, Object.keys(this.data).length)
-                        if(Object.keys(this.data).length){
-                            global.storage.set(this.lastmCtrlKey, newLastModified, this.ttl)
-                            global.storage.set(this.fetchCtrlKey, now, this.ttl)
-                            this.state = 'loaded'
-                            this.loaded = true
-                            this.emit('load')
+                    }
+                    if(this.parser){
+                        this.parser.destroy() 
+                        this.parser = null    
+                    }
+                    this.state = 'error'
+                    this.error = global.lang.EPG_BAD_FORMAT
+                    this.emit('error', global.lang.EPG_BAD_FORMAT)
+                    this.scheduleNextUpdate(30)
+                }
+                return true
+            })
+            this.parser.once('end', () => {
+                console.log('EPG PARSER END')
+                this.applyMetaCache()
+                this.clean()
+                this.save()
+                this.parser.destroy() 
+                this.parser = null                                
+                this.scheduleNextUpdate()
+            })
+            let validEPG, received = 0
+            const req = {
+                debug: false,
+                url: this.url,
+                followRedirect: true,
+                keepalive: false,
+                retries: 5,
+                headers: {
+                    'accept-charset': 'utf-8, *;q=0.1'
+                    // 'range': 'bytes=0-' // was getting wrong content-length from Cloudflare
+                },
+                encoding: 'utf8'
+            }
+            this.request = new global.Download(req)
+            this.request.on('error', err => {
+                console.warn(err)
+                return true
+            })
+            this.request.once('response', (code, headers) => {
+                if(this.loaded){
+                    if(headers['last-modified']) {
+                        if(headers['last-modified'] == lastModifiedAt) {
+                            console.log('epg update skipped by last-modified '+ lastModifiedAt)
+                            this.request.destroy()
+                            return
                         } else {
-                            this.state = 'error'
-                            this.error = validEPG ? global.lang.EPG_OUTDATED : global.lang.EPG_BAD_FORMAT
-                            this.emit('error', this.error)
+                            newLastModified = headers['last-modified']
                         }
-                        if(this.parser){
-                            this.parser.end()
-                        }
-                    })
-                    this.request.start()
+                    }
                 } else {
-                    console.log('epg update skipped')
-                    this.scheduleNextUpdate()
-                    this.clean()
+                    this.state = 'connected' // only update state on initial connect
                 }
             })
-        })
+            this.request.on('data', chunk => {
+                received += chunk.length
+                if(!hasErr) initialBuffer.push(chunk)
+                this.parser.write(chunk)
+                if(!validEPG && chunk.toLowerCase().indexOf('<programme') != -1){
+                    validEPG = true
+                }
+            })
+            this.request.once('end', () => {
+                this.request.destroy() 
+                this.request = null
+                console.log('EPG REQUEST ENDED', validEPG, received, Object.keys(this.data).length)
+                if(Object.keys(this.data).length){
+                    global.storage.set(this.lastmCtrlKey, newLastModified, this.ttl)
+                    global.storage.set(this.fetchCtrlKey, now, this.ttl)
+                    this.state = 'loaded'
+                    this.loaded = true
+                    this.emit('load')
+                } else {
+                    this.state = 'error'
+                    this.error = validEPG ? global.lang.EPG_OUTDATED : global.lang.EPG_BAD_FORMAT
+                    this.emit('error', this.error)
+                }
+                if(this.parser){
+                    this.parser.end()
+                }
+            })
+            this.request.start()
+        } else {
+            console.log('epg update skipped')
+            this.scheduleNextUpdate()
+            this.clean()
+        }
     }
     fixSlashes(txt){
         txt = txt.replaceAll('/', '|') // this character will break internal Megacubo navigation
@@ -177,13 +177,13 @@ class EPG extends Events {
         if(typeof(time) != 'number'){
             time = this.autoUpdateInterval
         }
-        this.autoUpdateTimer = setTimeout(() => this.update(), time * 1000)
+        this.autoUpdateTimer = setTimeout(() => this.update().catch(console.error), time * 1000)
     }
     forceUpdate(){        
         this.data = {}
         this.terms = {}
         this.loaded = false
-        this.update()
+        this.update().catch(console.error)
     }
     prepareProgrammeData(programme, end){
         if(!end){
@@ -623,52 +623,47 @@ class EPG extends Events {
             resolve(epgData)
         })
     }
-    load(){
-        return new Promise((resolve, reject) => {
-            global.storage.get(this.key, data => {
-                let loaded
-                if(data){
-                    const now = this.time()
-                    Object.keys(data).forEach(channel => {
-                        Object.keys(data[channel]).forEach(start => {
-                            if(data[channel][start].e < now || data[channel][start].e > (now + this.ttl)){
-                                delete data[channel][start]
-                            } else if(!this.hasProgramme(channel, start)) {
-                                this.indexate(channel, start, data[channel][start])
-                                if(!loaded){
-                                    loaded = true
-                                }
-                            }
-                        })
-                    })
-                }
-                if(loaded){
-                    global.storage.get(this.channelsKey, data => {
-                        if(data){
-                            Object.keys(data).forEach(name => {
-                                if(typeof(this.channels[name]) == 'undefined'){
-                                    this.channels[name] = {name}
-                                }
-                            })
+    async load(){
+        let data = await global.storage.promises.get(this.key)
+        let loaded
+        if(data){
+            const now = this.time()
+            Object.keys(data).forEach(channel => {
+                Object.keys(data[channel]).forEach(start => {
+                    if(data[channel][start].e < now || data[channel][start].e > (now + this.ttl)){
+                        delete data[channel][start]
+                    } else if(!this.hasProgramme(channel, start)) {
+                        this.indexate(channel, start, data[channel][start])
+                        if(!loaded){
+                            loaded = true
                         }
-                    })
-                    global.storage.get(this.termsKey, data => {
-                        if(data){
-                            Object.keys(data).forEach(name => {
-                                if(typeof(this.terms[name]) == 'undefined'){
-                                    this.terms[name] = data[name]
-                                }
-                            })
-                            resolve(true)
-                        } else {
-                            reject('no epg terms loaded')
-                        }
-                    })
-                } else {
-                    reject('no epg current data loaded')
-                }
+                    }
+                })
             })
-        })
+        }
+        if(loaded){
+            let cdata = await global.storage.promises.get(this.channelsKey)
+            if(cdata){
+                Object.keys(cdata).forEach(name => {
+                    if(typeof(this.channels[name]) == 'undefined'){
+                        this.channels[name] = {name}
+                    }
+                })
+            }
+            let tdata = await global.storage.promises.get(this.termsKey)
+            if(tdata){
+                Object.keys(data).forEach(name => {
+                    if(typeof(this.terms[name]) == 'undefined'){
+                        this.terms[name] = data[name]
+                    }
+                })
+                return true
+            } else {
+                throw 'no epg terms loaded'
+            }
+        } else {
+            throw 'no epg current data loaded'
+        }
     }
     normalizeChannelClock(programmes){
         let ks = Object.keys(programmes).sort((a, b) => parseInt(a)-parseInt(b)), lt = ''

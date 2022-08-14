@@ -323,7 +323,7 @@ class Downloads extends Events {
 			}
 			const uid = 'download-'+ name.replace(new RegExp('[^A-Za-z0-9]+', 'g'), '')
 			global.ui.emit('background-mode-lock', 'saving-file-'+ uid)
-			global.osd.show(global.lang.SAVING_FILE_X.format(name), 'fa-mega spin-x-alt', uid, 'normal')
+			global.osd.show(global.lang.SAVING_FILE_X.format(name) +' 0%', 'fa-mega spin-x-alt', uid, 'persistent')
 			const file = target +'/'+ name
 			const writer = fs.createWriteStream(file, {highWaterMark: Number.MAX_SAFE_INTEGER}), download = new global.Download({
 				url,
@@ -340,6 +340,7 @@ class Downloads extends Events {
 				global.explorer.refresh()
 			}
 			download.on('progress', progress => {
+				global.osd.show(global.lang.SAVING_FILE_X.format(name) +'  '+ parseInt(progress) +'%', 'fa-mega spin-x-alt', uid, 'persistent')
 				if(global.explorer.path.indexOf(global.lang.ACTIVE_DOWNLOADS) != -1){
 					global.explorer.refresh()
 				}

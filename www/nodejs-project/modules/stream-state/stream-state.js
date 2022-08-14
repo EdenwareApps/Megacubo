@@ -10,12 +10,12 @@ class StreamState extends Events {
         this.waiting = {}
         this.clientFailures = {}
         this.key = 'streamstate'
-        global.storage.get(this.key, data => {
+        global.storage.promises.get(this.key).then(data => {
             if(data){
                 Object.assign(this.data, data)
                 this.sync()
             }
-        })
+        }).catch(global.displayErr)
         global.streamer.on('connecting', () => {
             this.cancelTests()
         })

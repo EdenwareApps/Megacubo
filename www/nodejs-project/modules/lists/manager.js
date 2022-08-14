@@ -411,6 +411,41 @@ class Manager extends Events {
             global.osd.show(name, fa, 'update', 'normal')
         }
     }
+    async communityModeKeywords(){
+        let terms = [], cterms = global.config.get('community-mode-interests')
+        if(cterms){ // user specified interests
+            cterms = global.lists.terms(cterms, false).filter(c => c[0] != '-')
+            if(cterms.length){
+                terms = terms.concat(cterms)
+            }
+        }
+        if(!terms.length){ // if user has specified his interests, skip and use them only for maximum effectiveness
+            let bterms = global.bookmarks.get()
+            if(bterms.length){ // bookmarks terms
+                bterms = bterms.slice(-24)
+                bterms = [...new Set(bterms.map(e => global.channels.entryTerms(e)).flat())].filter(c => c[0] != '-')
+                bterms.filter(t => !terms.includes(t)).forEach(t => terms.push(t))
+            }
+            let sterms = await global.search.history.terms()
+            if(sterms.length){ // searching terms history
+                sterms = sterms.slice(-24)
+                sterms = [...new Set(sterms.map(e => global.channels.entryTerms(e)).flat())].filter(c => c[0] != '-')
+                sterms.filter(t => !terms.includes(t)).forEach(t => terms.push(t))
+            }
+            let hterms = global.histo.get()
+            if(hterms.length){ // user history terms
+                hterms = hterms.slice(-24)
+                hterms = [...new Set(hterms.map(e => channels.entryTerms(e)).flat())].filter(c => c[0] != '-')
+                hterms.filter(t => !terms.includes(t)).forEach(t => terms.push(t))
+            }
+        }
+        if(!terms.length){ // as last resource, consider all channels
+            terms = await global.channels.keywords()
+        } else if(terms.length > 24) {
+            terms = terms.slice(0, 24)
+        }
+        return terms
+    }
     updateLists(force, onErr){
         console.log('Update lists', global.traceback())
         if(force === true || !global.activeLists.length || global.activeLists.length < global.config.get('communitary-mode-lists-amount')){
@@ -427,7 +462,7 @@ class Manager extends Events {
                             }
                             console.log('Updating lists', myLists, communityLists, global.traceback())
                             this.parent.updaterFinished(false).catch(console.error)
-                            global.channels.keywords().then(keywords => {
+                            this.communityModeKeywords().then(keywords => {
                                 this.parent.sync(myLists, communityLists, global.config.get('communitary-mode-lists-amount'), keywords).catch(err => {
                                     global.displayErr(err)
                                 })
@@ -533,7 +568,7 @@ class Manager extends Events {
         return {name: global.lang.ADD_LIST, fa: 'fas fa-plus-square', type: 'action', action: () => {
             let extraOpts = []
             extraOpts.push({template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle'})
-            extraOpts.push({template: 'option', text: global.lang.OPEN_M3U_FILE, id: 'manager-add-list-file', fa: 'fas fa-folder-open'})
+            extraOpts.push({template: 'option', text: global.lang.OPEN_M3U_FILE, id: 'manager-add-list-file', fa: 'fas fa-box-open'})
             global.ui.emit('prompt', global.lang.ASK_IPTV_LIST, 'http://', '', 'manager-add-list', false, 'fas fa-plus-square', '', extraOpts)
         }}
     }
@@ -916,6 +951,37 @@ class Manager extends Events {
                     if(global.config.get('communitary-mode-lists-amount') > 0){
                         options.push({name: global.lang.COMMUNITY_LISTS, details: global.lang.SHARED_AND_LOADED, fa: 'fas fa-users', type: 'group', renderer: this.communityListsEntries.bind(this)})
                         options.push({name: global.lang.ALL_LISTS, details: global.lang.SHARED_FROM_ALL, fa: 'fas fa-users', type: 'group', renderer: this.allCommunityListsEntries.bind(this)})
+                        options.push({
+                            name: global.lang.REACH, 
+                            type: 'slider', 
+                            fa: 'fas fa-cog', 
+                            mask: '{0} ' + global.lang.COMMUNITY_LISTS.toLowerCase(), 
+                            value: () => {
+                                return global.config.get('communitary-mode-lists-amount')
+                            }, 
+                            range: {start: 5, end: 48},
+                            action: (data, value) => {
+                                global.config.set('communitary-mode-lists-amount', value)
+                            }
+                        })                                
+                        options.push({
+                            name: global.lang.INTERESTS,
+                            details: global.lang.SEPARATE_WITH_COMMAS, 
+                            type: 'input',
+                            fa: 'fas fa-edit',
+                            action: (e, v) => {
+                                if(v !== false && v != global.config.get('community-mode-interests')){
+                                    global.config.set('community-mode-interests', v)
+                                    global.ui.emit('ask-restart')
+                                }
+                            },
+                            value: () => {
+                                return global.config.get('community-mode-interests')
+                            },
+                            placeholder: global.lang.COMMUNITY_MODE_INTERESTS_HINT,
+                            multiline: true,
+                            safe: true
+                        })
                     }
                     resolve(options)
                 })

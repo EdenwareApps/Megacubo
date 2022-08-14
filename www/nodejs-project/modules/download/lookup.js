@@ -250,7 +250,7 @@ class UltimateLookup extends Events {
 		})
 	}
 	load(){
-		global.storage.get(this.cacheKey, data => {
+		global.storage.promises.get(this.cacheKey).then(data => {
 			if(data && data.data){
 				this.data = Object.assign(data.data, this.data)
 				this.ttlData = Object.assign(data.ttlData, this.ttlData)
@@ -261,7 +261,7 @@ class UltimateLookup extends Events {
 			this.isReady = true
 			this.readyQueue.forEach(f => f())
 			this.readyQueue.length = 0
-		})
+		}).catch(global.displayErr)
 	}
 	save(){
 		if(this.saveTimer){

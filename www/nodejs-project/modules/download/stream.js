@@ -23,6 +23,7 @@ const KHttpsAgent = new KeepAliveAgent.HttpsAgent(kaAgentOpts)
 class DownloadStream extends Events {
 	constructor(opts){
 		super()
+        this.setMaxListeners(20)
 		this.opts = opts
         this.ips = null
         this.failedIPs = []

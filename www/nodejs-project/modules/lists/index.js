@@ -70,24 +70,27 @@ class Index extends Common {
 			})
 			terms = this.applySearchRedirects(terms)
 			if(opts.partial){
-				let allTerms = []
+				const hints = [...new Set(terms.map(t => t.substr(0, 2)))], mterms = []
+				console.log('parsing query')
 				Object.keys(this.lists).forEach(listUrl => {
 					Object.keys(this.lists[listUrl].index.terms).forEach(term => {
-						if(!allTerms.includes(term)){
-							allTerms.push(term)
+						if(hints.includes(term.substr(0, 2)) && !mterms.includes(term)){
+							mterms.push(term)
 						}
 					})
 				})
+				console.log('parsing query2', mterms.length)
 				terms.forEach(term => {
 					let tlen = term.length
-					if(tlen < 3) return // dont autoplete small words, too many vars
-					let nterms = allTerms.filter(t => {
-							return t != term && t.length > tlen && !excludes.includes(t) && (t.substr(0, tlen) == term || t.substr(t.length - tlen) == term)
+					if(tlen < 3) return // dont autocomplete small words, too many vars
+					let nterms = mterms.filter(t => {
+						return t != term && t.length > tlen && !excludes.includes(t) && (t.substr(0, tlen) == term || t.substr(t.length - tlen) == term)
 					})
 					if(nterms.length){
 						aliases[term] = nterms
 					}
 				})
+				console.log('parsing query', mterms.length, aliases)
 			}
 			terms = terms.filter(t => !excludes.includes(t))
 			return [{terms, excludes, aliases}]
@@ -95,11 +98,13 @@ class Index extends Common {
 	}
 	searchMap(query, opts){
 		let fullMap
+		console.log('searchMap')
 		opts = this.optimizeSearchOpts(opts)
 		query.forEach(q => {
 			let map = this.querySearchMap(q, opts)
 			fullMap = fullMap ? this.joinMap(fullMap, map) : map
 		})
+		console.log('searchMap')
 		return this.cloneMap(fullMap)
 	}
 	queryTermMap(terms, group){
@@ -170,6 +175,7 @@ class Index extends Common {
 	}
 	search(terms, opts){	
 		return new Promise((resolve, reject) => {
+			this.debug = true
 			if(typeof(terms) == 'string'){
 				terms = this.terms(terms, true, true)
 			}
@@ -177,8 +183,11 @@ class Index extends Common {
 			if(!terms){
 				return []
 			}
+			console.log('searchMap')
 			const query = this.parseQuery(terms, opts)
+			console.log('searchMap')
             let smap = this.searchMap(query, opts), ks = Object.keys(smap)
+			console.log('searchMap')
 			if(ks.length){
 				if(this.debug){
 					console.warn('M3U SEARCH RESULTS', (global.time() - start) +'s (pre time)', Object.assign({}, smap), (global.time() - start) +'s', terms)
@@ -496,9 +505,13 @@ class Index extends Common {
 				delete map[path]
 			})
 		}
-		const collator = new Intl.Collator(global.lang.locale, { numeric: true, sensitivity: 'base' })
-		groups.sort((a, b) => collator.compare(a.name, b.name))
-		const routerVar = {}
+		if(typeof(Intl) != 'undefined'){
+			const collator = new Intl.Collator(global.lang.locale, { numeric: true, sensitivity: 'base' })
+			groups.sort((a, b) => collator.compare(a.name, b.name))
+		} else {
+			groups.sort()
+		}
+		const routerVar = {} 
 		let ret = groups.filter((group, i) => { // group repeated series
 			return Object.keys(map).every(parentPath => {
 				let gname = parentPath.split('/').pop()
@@ -542,8 +555,12 @@ class Index extends Common {
 				entries = this.tools.dedup(entries)
 				entries = this.parentalControl.filter(entries)
 				
-				const collator = new Intl.Collator(global.lang.locale, { numeric: true, sensitivity: 'base' })
-				entries.sort((a, b) => collator.compare(a.name, b.name))
+				if(typeof(Intl) != 'undefined'){
+					const collator = new Intl.Collator(global.lang.locale, { numeric: true, sensitivity: 'base' })
+					entries.sort((a, b) => collator.compare(a.name, b.name))
+				} else {
+					entries.sort()
+				}
 
 				resolve(entries)
 			})

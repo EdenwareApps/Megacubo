@@ -420,7 +420,7 @@ function init(language){
         ui.on('explorer-update-range', icons.renderRange.bind(icons))
         explorer.on('render', icons.render.bind(icons))
 
-        explorer.on('action', e => {
+        explorer.on('action', async e => {
             console.warn('ACTION', e, typeof(e.action))
             if(typeof(e.type) == 'undefined'){
                 if(typeof(e.url) == 'string'){
@@ -441,6 +441,14 @@ function init(language){
                         if(ret && ret.catch) ret.catch(console.error)
                     } else {
                         streamer.play(e)
+                    }
+                    break
+                case 'input':
+                    if(typeof(e.action) == 'function') {
+                        let defVal = typeof(e.value) == 'function' ? e.value() : (e.value || undefined)
+                        let val = await global.explorer.prompt(e.name, '', defVal, false, e.fa, null)
+                        let ret = e.action(e, val)
+                        if(ret && ret.catch) ret.catch(console.error)
                     }
                     break
                 case 'action':

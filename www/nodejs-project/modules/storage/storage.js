@@ -53,7 +53,20 @@ class StorageBase {
 	}
 }
 
-class StorageAsync extends StorageBase {
+class StoragePromises extends StorageBase {
+	constructor(label, opts){
+		super(label, opts)
+		this.promises = {
+			get: (key, encoding) => {
+				return new Promise((resolve, reject) => {
+					this.get(key, resolve, encoding)
+				})
+			}
+		}
+	}
+}
+
+class StorageAsync extends StoragePromises {
 	constructor(label, opts){
 		super(label, opts)
 	}

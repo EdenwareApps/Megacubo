@@ -1583,7 +1583,7 @@ class ExplorerStatusFlags extends ExplorerSlider {
 						if(status == 'tune'){
 							content = '<i class="fas fa-layer-group"></i>'
 						} else if(status == 'folder') {
-							content = '<i class="fas fa-folder-open"></i>'
+							content = '<i class="fas fa-box-open"></i>'
 						} else if(status == 'waiting') {
 							content = '<i class="fas fa-clock"></i>'
 						} else {
@@ -1702,7 +1702,7 @@ class Explorer extends ExplorerLoading {
 			'input': 'fas fa-keyboard',
 			'stream': 'fas fa-play-circle',
 			'check': 'fas fa-toggle-off',
-			'group': 'fas fa-folder-open'
+			'group': 'fas fa-box-open'
 		}
 		this.ranging = false
 		this.content = this.container.find('content')
@@ -1988,6 +1988,7 @@ class Explorer extends ExplorerLoading {
 					console.warn("UPDATING RANGE", entries, traceback())
 				}
 				entries.forEach(e => {
+					if(!elements[e.tabindex]) return
 					let type = elements[e.tabindex].getAttribute('data-type')
 					let update = e.lazy != (type == 'spacer')
 					if(update && e.lazy){

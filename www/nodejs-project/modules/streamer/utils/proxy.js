@@ -264,7 +264,6 @@ class StreamerProxy extends StreamerProxyBase {
 		})
 		this.connections[uid] = {response, download}
 		const end = data => {
-			response.end()
 			if(!ended){
 				ended = true
 				this.destroyConn(uid, data, false)

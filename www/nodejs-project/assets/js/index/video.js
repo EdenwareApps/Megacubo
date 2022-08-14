@@ -133,7 +133,7 @@ class VideoControl extends EventEmitter {
 	setup(adapter, cls){
 		this.adapter = adapter
 		if(typeof(this.adapters[this.adapter]) == 'undefined'){
-			let a = new (cls)(this.innerContainer)
+			const a = new (cls)(this.innerContainer)
 			a.on('state', s => {
 				if(!this.current) return
 				this.state = this.current ? this.current.state : ''
@@ -160,8 +160,11 @@ class VideoControl extends EventEmitter {
 			})
 			a.on('error', (err, fatal) => {
 				if(!this.current){
-					a.disconnect()
-					return a.unload()
+					try { // a.disconnect() is not a function
+						a.disconnect()
+						a.unload()
+					} catch(e) { }
+					return
 				}
 				if(this.clearErrTimer){
 					clearTimeout(this.clearErrTimer)

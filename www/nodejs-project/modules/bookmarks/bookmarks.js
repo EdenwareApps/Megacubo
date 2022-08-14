@@ -174,12 +174,14 @@ class Bookmarks extends EntriesGroup {
                 {name: global.lang.CHANNEL_OR_CONTENT_NAME, type: 'input', value: this.currentBookmarkAddingByName.name, action: (data, value) => {
                     this.currentBookmarkAddingByName.name = value
                 }},
-                {name: global.lang.STREAM_URL, type: 'input', value: this.currentBookmarkAddingByName.url, details: global.lang.LEAVE_EMPTY, placeholder: global.lang.LEAVE_EMPTY, action: (data, value) => {
-                    this.currentBookmarkAddingByName.url = value
-                }},
-                {name: global.lang.ICON_URL, type: 'input', value: this.currentBookmarkAddingByName.icon, details: global.lang.LEAVE_EMPTY, placeholder: global.lang.LEAVE_EMPTY, action: (data, value) => {
-                    this.currentBookmarkAddingByName.icon = value
-                }},
+                {name: global.lang.ADVANCED, type: 'select', fa: 'fas fa-cog', entries: [
+                    {name: global.lang.STREAM_URL, type: 'input', value: this.currentBookmarkAddingByName.url, details: global.lang.LEAVE_EMPTY, placeholder: global.lang.LEAVE_EMPTY, action: (data, value) => {
+                        this.currentBookmarkAddingByName.url = value
+                    }},
+                    {name: global.lang.ICON_URL, type: 'input', value: this.currentBookmarkAddingByName.icon, details: global.lang.LEAVE_EMPTY, placeholder: global.lang.LEAVE_EMPTY, action: (data, value) => {
+                        this.currentBookmarkAddingByName.icon = value
+                    }}
+                ]},
                 {name: global.lang.LIVE, type: 'check', checked: () => {
                     return this.currentBookmarkAddingByName.live
                 }, action: (e, value) => {

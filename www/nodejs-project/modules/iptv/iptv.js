@@ -227,7 +227,7 @@ class IPTV extends Events {
     hook(entries, path){
         return new Promise((resolve, reject) => {
             if(path.split('/').pop() == global.lang.COMMUNITY_MODE && global.config.get('communitary-mode-lists-amount')){
-                entries.push({name: this.title, fa: this.icon, details: this.details, type: 'group', renderer: this.entries.bind(this)})
+                entries.splice(entries.length - 1, 0, {name: this.title, fa: this.icon, details: this.details, type: 'group', renderer: this.entries.bind(this)})
             }
             resolve(entries)
         })

@@ -114,7 +114,7 @@ class Tools {
 		sentries = this.sortList(sentries)
 		if(sentries.length > (this.opts.folderSizeLimit + this.opts.folderSizeLimitTolerance)){
 			let folderSizeLimit = Math.min(this.opts.folderSizeLimit, sentries.length / 8) // generate at least 8 pages to ease navigation
-			let group, nextName, lastName, entries = [], template = {type: 'group', fa: 'fas fa-folder-open'}, n = 1
+			let group, nextName, lastName, entries = [], template = {type: 'group', fa: 'fas fa-box-open'}, n = 1
 			for(let i=0; i<sentries.length; i += folderSizeLimit){
 				group = Object.assign({}, template);
 				// console.log('CD', i, folderSizeLimit);

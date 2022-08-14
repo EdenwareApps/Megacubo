@@ -1,9 +1,39 @@
 
 const Events = require('events')
 
+class SearchTermsHistory {
+    constructor(){
+        this.key = 'search-terms-history'
+        this.maxlength = 12
+    }
+    async get(){
+        let ret = await global.storage.promises.get(this.key)
+        if(!Array.isArray(ret)){
+            ret = []
+        }
+        return ret
+    }
+    add(terms){
+        if(!Array.isArray(terms)){
+            terms = global.lists.terms(terms)
+        }
+        this.get().then(vs => {
+            let tms = terms.join('')
+            vs = vs.filter(v => v.join('') != tms).slice((this.maxlength - 1) * -1)
+            vs.push(terms)
+            global.storage.set(this.key, vs, true)
+        })
+    }
+    async terms(){
+        let ret = await this.get()
+        return [...new Set(ret.flat())]
+    }
+}
+
 class Search extends Events {
     constructor(){
         super()
+        this.history = new SearchTermsHistory()
         this.searchMediaType = 'all'
         this.searchInaccurate = true
         this.searchStrict = false
@@ -70,8 +100,10 @@ class Search extends Events {
                 }
                 global.explorer.render(this.addFixedEntries(mediaType, rs), global.explorer.path, 'fas fa-search', '/')
             }).catch(global.displayErr).finally(() => {
+                console.warn('HIDE SEARCH')
                 global.osd.hide('search')
                 global.ui.emit('set-loading', {name: global.lang.SEARCH}, false)
+                global.search.history.add(value)
             })
         }
     }
@@ -289,8 +321,8 @@ class Search extends Events {
         es = es.map(e => global.channels.toMetaEntry(e))
         let minResultsWanted = (global.config.get('view-size-x') * global.config.get('view-size-y')) - 3
         console.log('channelsResults')
-        if(es.length < minResultsWanted){
-                let ys = await this.ytLiveResults(terms).catch(console.error)
+        if(0 && es.length < minResultsWanted){
+            let ys = await this.ytLiveResults(terms).catch(console.error)
             if(Array.isArray(ys)) {
                 es = es.concat(ys.slice(0, minResultsWanted - es.length))
             }

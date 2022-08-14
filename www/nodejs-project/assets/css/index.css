@@ -1068,9 +1068,10 @@ span.modal-template-text, span.modal-template-textarea {
     max-width: var(--explorer-modal-option-min-width);
     width: 100%;
     box-sizing: border-box;
-    background: white;
     align-items: center;    
     font-size: var(--explorer-entry-name-font-size);
+    background: linear-gradient(to top, rgba(255, 255, 255, 0.5), white);
+    border-radius: var(--radius);
 }
 span.modal-template-text i, span.modal-template-textarea i {
     color: #000;
@@ -1082,6 +1083,12 @@ span.modal-template-text i {
 span.modal-template-textarea i {
     padding-right: var(--padding);
 }
+span.modal-template-textarea {
+    margin-bottom: var(--padding);
+}
+span.modal-template-textarea, span.modal-template-textarea textarea {
+    min-height: 20vmax;
+}
 span.modal-template-text input, span.modal-template-textarea textarea {
     opacity: var(--opacity-level-4);
     background: transparent;
@@ -1092,7 +1099,13 @@ span.modal-template-text input, span.modal-template-textarea textarea {
     outline: 0;
     max-width: 97%;
     display: inline-block;
-    font-size: var(--explorer-entry-name-font-size);
+    font-size: var(--explorer-entry-name-font-size);    
+    border-radius: var(--radius);
+}
+span.modal-template-textarea textarea {
+    min-height: 25vh;
+    padding: var(--padding);
+    line-height: 150%;
 }
 span.modal-template-question {
     color: #000;

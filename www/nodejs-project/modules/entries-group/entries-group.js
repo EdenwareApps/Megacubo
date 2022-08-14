@@ -31,7 +31,8 @@ class EntriesGroup extends Events {
 		}
 	}
 	load(){
-		global.storage.get(this.key, data => {
+        let data
+		global.storage.promises.get(this.key).then(ret => data = ret).catch(global.displayErr).finally(() => {
             if(!Array.isArray(data)){
                 data = []
             }

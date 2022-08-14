@@ -292,6 +292,7 @@ class ChannelsEPG extends ChannelsData {
                         entries.unshift(this.epgSearchEntry())
                         let path = global.explorer.path.split('/').filter(s => s != global.lang.SEARCH).join('/')
                         global.explorer.render(entries, path + '/' + global.lang.SEARCH, 'fas fa-search', path)
+                        global.search.history.add(value)
                     }).catch(global.displayErr)
                 }
             },
@@ -757,8 +758,9 @@ class ChannelsEditing extends ChannelsEPG {
                 console.warn('ADD', val)
                 this.categories[val] = []
                 this.save(() => {
-                    console.warn('saved', data, global.explorer.path, global.explorer.dirname(global.explorer.path))
-                    global.explorer.deepRefresh(global.explorer.dirname(global.explorer.path))
+                    console.warn('saved', global.lang.LIVE +'/'+ val +'/'+ global.lang.EDIT_CATEGORY)
+                    delete global.explorer.pages[global.lang.LIVE]
+                    global.explorer.open(global.lang.LIVE +'/'+ val +'/'+ global.lang.EDIT_CATEGORY +'/'+ global.lang.EDIT_CHANNELS)
                 })
             }
         }}
@@ -780,12 +782,13 @@ class ChannelsEditing extends ChannelsEPG {
         let category = Object.assign({}, cat)
         Object.assign(category, {fa: 'fas fa-tasks', path: undefined})
         if(useCategoryName !== true){
-            Object.assign(category, {name: global.lang.EDIT_CATEGORY, details: category.name})
+            Object.assign(category, {name: global.lang.EDIT_CATEGORY, type: 'select', details: category.name})
         }
         category.renderer = (c, e) => {
             return new Promise((resolve, reject) => {
                 this.disableWatchNowAuto = true
                 let entries = [
+                    this.addChannelEntry(category, false),
                     {name: global.lang.EDIT_CHANNELS, details: cat.name, type: 'group', renderer: () => {
                         return new Promise((resolve, reject) => {
                             let entries = c.entries.map(e => {
@@ -827,11 +830,13 @@ class ChannelsEditing extends ChannelsEPG {
             name: global.lang.ADD_CHANNEL, 
             details: cat.name, fa: 'fas fa-plus-square', type: 'input', placeholder: global.lang.CHANNEL_NAME, 
             action: (data, val) => {
+                const catName = cat.name
+                console.warn('ADD', data, '|||', val)
                 this.disableWatchNowAuto = true
                 if(val && !Object.keys(this.categories).map(c => c.name).includes(val)){
-                    console.warn('ADD', val)
-                    if(this.categories[cat.name] && !this.categories[cat.name].includes(val)){
-                        this.categories[cat.name].push(val)
+                    console.warn('ADD', val, this.categories[catName], cat)
+                    if(this.categories[catName] && !this.categories[catName].includes(val)){
+                        this.categories[catName].push(val)
                         this.save(() => {
                             console.log('ADDING')
                             let targetPath = global.explorer.path
@@ -1383,7 +1388,6 @@ class Channels extends ChannelsAutoWatchNow {
                             this.epgChannelsAddLiveNow(entries, true).then(entries => {
                                 if(editable){
                                     entries.push(this.editCategoryEntry(c))
-                                    entries.push(this.addChannelEntry(c, true))
                                 }
                                 times['epg'] = global.time() - startTime - times['has'] - times['meta']
                                 // console.log('CTIMES', times)
@@ -1598,7 +1602,7 @@ class Channels extends ChannelsAutoWatchNow {
                 entries.push(namedGroups[name][0])
             } else {
                 let rname = namedGroups[name][0].name || name
-                let icon, fa = 'fas fa-folder-open'
+                let icon, fa = 'fas fa-box-open'
                 if(type == 'series'){
                     icon = namedGroups[name].map(g => g.icon).filter(g => g).shift()
                     fa = 'fas fa-play-circle'
@@ -1610,7 +1614,7 @@ class Channels extends ChannelsAutoWatchNow {
                     icon,
                     class: type == 'series' ? 'entry-cover' : undefined,
                     entries: namedGroups[name].map((g, i) => {
-                        g.name = '#'+ (i + 1)
+                        g.name = global.lang.OPTION +' '+ (i + 1)
                         return g
                     })
                 })

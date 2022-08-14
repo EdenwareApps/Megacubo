@@ -144,7 +144,7 @@ class Explorer extends Events {
                 p = this.path
             }
             this.deepRead(p).then(ret => {
-                this.render(ret.entries, p, (ret.parent ? ret.parent.fa : '') || 'fas fa-folder-open')
+                this.render(ret.entries, p, (ret.parent ? ret.parent.fa : '') || 'fas fa-box-open')
             }).catch(global.displayErr)
         }
     }

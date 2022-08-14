@@ -619,7 +619,7 @@ class Options extends OptionsHardwareAcceleration {
             }).catch(console.error).finally(() => done())
         }], () => {
             txt[2] = 'Connection speed: '+ global.kbsfmt(global.streamer.downlink || 0) +'<br />'
-            txt[3] = (global.config.get('user-agent') || global.config.get('default-user-agent')) +'<br />'
+            txt[3] = 'User agent: '+ (global.config.get('user-agent') || global.config.get('default-user-agent')) +'<br />'
             global.ui.emit('info', 'System info', txt.join(''))
         })
     }
@@ -853,21 +853,6 @@ class Options extends OptionsHardwareAcceleration {
                     return global.config.get('prefer-ipv6')
                 }}
             ]
-            if(global.config.get('communitary-mode-lists-amount')){
-                opts.push({
-                    name: global.lang.COMMUNITY_LISTS, 
-                    type: 'slider', 
-                    fa: 'fas fa-users', 
-                    mask: '{0} ' + global.lang.COMMUNITY_LISTS.toLowerCase(), 
-                    value: () => {
-                        return global.config.get('communitary-mode-lists-amount')
-                    }, 
-                    range: {start: 5, end: 48},
-                    action: (data, value) => {
-                        global.config.set('communitary-mode-lists-amount', value)
-                    }
-                })
-            }
             resolve(opts)
         })
     }

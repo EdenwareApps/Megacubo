@@ -210,7 +210,7 @@ function initApp(){
             var iconTag = ''
             if(path){
                 if(!icon){
-                    iconTag = '<i class="fas fa-folder-open"></i>'          
+                    iconTag = '<i class="fas fa-box-open"></i>'          
                 } else {     
                     iconTag = '<i class="'+ icon +'"></i>'                         
                 }
@@ -262,14 +262,16 @@ function initApp(){
                         return g
                     }
                 }
-                if(tabIndex == -1) {
+                if(!element) {
+                    return
+                } else if(tabIndex == -1) {
                     jQuery(element).replaceWith(m())
                 } else if (element.title == name) { // is the same element yet?
                     if(isCover){ 
                         let c = element.querySelector('.entry-wrapper')
                         if(c){
                             let g = c.querySelector('img')
-                            if(!g || force || bg != g.src){
+                            if(!g || force || bg != g.src) {
                                 let a = element.querySelector('.entry-icon-image')
                                 //c.innerHTML = ''
                                 //c.appendChild(m())
@@ -533,7 +535,7 @@ function initApp(){
                 }
             }
     
-            moment.tz.setDefault(Intl.DateTimeFormat().resolvedOptions().timeZone)
+            moment.tz.setDefault((Intl || top.Intl).DateTimeFormat().resolvedOptions().timeZone) // prevent "Intl is not defined"
             if(lang.locale && !moment.locales().includes(lang.locale)){
                 importMomentLocale(lang.locale, () => {
                     moment.locale(lang.locale)
