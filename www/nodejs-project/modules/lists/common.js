@@ -255,6 +255,9 @@ class Common extends Events {
 		return tms
 	}
 	match(needleTerms, stackTerms, partial){ // partial=true will match "starts with" terms too
+		if(!Array.isArray(needleTerms)){
+			console.error('needleTerms is not an array', needleTerms)
+		}
 		if(needleTerms.includes('|')){
 			let needles = needleTerms.join(' ').split('|').map(s => s.trim()).filter(s => s).map(s => s.split(' '))
 			let score = 0

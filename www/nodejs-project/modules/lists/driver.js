@@ -104,30 +104,28 @@ class Lists extends Index {
 			}
 		})
 	}
-	epg(channelsList, limit){
-		return new Promise((resolve, reject) => {
-			if(!this._epg){
-				return reject('no epg 0')
-			}
-			let data
-			if(this._epg.state == 'loaded' || Object.values(this._epg.data) >= 200){ // loaded enough
-				if(Array.isArray(channelsList)){
-					channelsList = channelsList.map(c => this.applySearchRedirectsOnObject(c))
-					data = this._epg.getMulti(channelsList, limit)
-				} else {
-					channelsList = this.applySearchRedirectsOnObject(channelsList)
-					data = this._epg.get(channelsList, limit)
-				}
+	async epg(channelsList, limit){
+		if(!this._epg){
+			throw 'no epg 0'
+		}
+		let data
+		if(this._epg.state == 'loaded' || Object.values(this._epg.data) >= 200){ // loaded enough
+			if(Array.isArray(channelsList)){
+				channelsList = channelsList.map(c => this.applySearchRedirectsOnObject(c))
+				data = this._epg.getMulti(channelsList, limit)
 			} else {
-				data = [this._epg.state]
-				if(this._epg.state == 'error'){
-					data.push(this._epg.error)
-				} else if(this._epg.request){
-					data.push(this._epg.request.progress)
-				}
+				channelsList = this.applySearchRedirectsOnObject(channelsList)
+				data = this._epg.get(channelsList, limit)
 			}
-			resolve(data)
-		})		
+		} else {
+			data = [this._epg.state]
+			if(this._epg.state == 'error'){
+				data.push(this._epg.error)
+			} else if(this._epg.request){
+				data.push(this._epg.request.progress)
+			}
+		}
+		return data	
 	}
 	async epgExpandSuggestions(categories){
 		if(!this._epg){

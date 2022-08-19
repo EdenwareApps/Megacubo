@@ -74,7 +74,9 @@ class Joiner extends Downloader {
                 console.log('[' + this.type + '] delaying ' + ms + 'ms', 'now: ' + now, 'delayUntil: ' + this.delayUntil)
             }
 		}
-		this.download(next)
+		if(this.processor){
+			this.download(next)
+		}
 	}
 }
 	

@@ -1,7 +1,7 @@
 {
   "name": "tv.megacubo.app",
   "displayName": "Megacubo",
-  "version": "16.6.5",
+  "version": "16.6.7",
   "description": "A intuitive and multi-language IPTV player.",
   "main": "index.js",
   "scripts": {
@@ -11,7 +11,8 @@
   "license": "Apache-2.0",
   "dependencies": {
     "cordova": "10.0.0",
-    "cordova-plugin-customurlscheme": "github:EddyVerbruggen/Custom-URL-scheme"
+    "cordova-plugin-customurlscheme": "github:EddyVerbruggen/Custom-URL-scheme",
+    "cordova-plugin-filepath": "github:efoxbr/cordova-plugin-filepath"
   },
   "cordova": {
     "plugins": {
@@ -57,7 +58,8 @@
       "cordova-plugin-background-mode": {},
       "tv.megacubo.pip": {},
       "tv.megacubo.player": {},
-      "tv.megacubo.ffmpeg": {}
+      "tv.megacubo.ffmpeg": {},
+      "cordova-plugin-filepath": {}
     },
     "platforms": [
       "android"

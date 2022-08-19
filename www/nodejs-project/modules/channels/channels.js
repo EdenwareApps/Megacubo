@@ -789,7 +789,7 @@ class ChannelsEditing extends ChannelsEPG {
                 this.disableWatchNowAuto = true
                 let entries = [
                     this.addChannelEntry(category, false),
-                    {name: global.lang.EDIT_CHANNELS, details: cat.name, type: 'group', renderer: () => {
+                    {name: global.lang.EDIT_CHANNELS, fa: 'fas fa-th', details: cat.name, type: 'group', renderer: () => {
                         return new Promise((resolve, reject) => {
                             let entries = c.entries.map(e => {
                                 return this.editChannelEntry(e, cat.name, {})
@@ -798,7 +798,7 @@ class ChannelsEditing extends ChannelsEPG {
                             resolve(entries)
                         })
                     }},
-                    {name: global.lang.RENAME_CATEGORY, type: 'input', details: cat.name, value: cat.name, action: (e, val) => {
+                    {name: global.lang.RENAME_CATEGORY, fa: 'fas fa-edit', type: 'input', details: cat.name, value: cat.name, action: (e, val) => {
                         console.warn('RENAME', cat.name, 'TO', val)
                         if(val && val != cat.name && typeof(this.categories[val]) == 'undefined'){
                             let o = this.categories[cat.name]
@@ -828,7 +828,10 @@ class ChannelsEditing extends ChannelsEPG {
     addChannelEntry(cat, inline){
         return {
             name: global.lang.ADD_CHANNEL, 
-            details: cat.name, fa: 'fas fa-plus-square', type: 'input', placeholder: global.lang.CHANNEL_NAME, 
+            details: cat.name, 
+            fa: 'fas fa-plus-square', 
+            type: 'input', 
+            placeholder: global.lang.CHANNEL_NAME, 
             action: (data, val) => {
                 const catName = cat.name
                 console.warn('ADD', data, '|||', val)

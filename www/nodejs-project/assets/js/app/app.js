@@ -127,35 +127,49 @@ function initApp(){
                 }
                 console.log('MIMETYPES: ' + mimetypes.replace(new RegExp(' *, *', 'g'), '|'))
                 parent.fileChooser.open(file => { // {"mime": mimetypes.replace(new RegExp(' *, *', 'g'), '|')}, 
+                    console.log('FILE: ', file)
                     osd.show(lang.PROCESSING, 'fa-mega spin-x-alt', 'theme-upload', 'normal')
                     explorer.get({name: optionTitle}).forEach(e => {
                         explorer.setLoading(e, true, lang.PROCESSING)
                     })
-                    parent.resolveLocalFileSystemURL(file, fileEntry => {
-                        let name = fileEntry.fullPath.split('/').pop().replace(new RegExp('[^0-9A-Za-z\\._\\- ]+', 'g'), '') || 'file.tmp', target = parent.cordova.file.cacheDirectory
-                        if(target.charAt(target.length - 1) != '/'){
-                            target += '/'
+                    const process = file => {
+                        parent.resolveLocalFileSystemURL(file, fileEntry => {
+                            let name = fileEntry.fullPath.split('/').pop().replace(new RegExp('[^0-9A-Za-z\\._\\- ]+', 'g'), '') || 'file.tmp', target = parent.cordova.file.cacheDirectory
+                            if(target.charAt(target.length - 1) != '/'){
+                                target += '/'
+                            }
+                            parent.resolveLocalFileSystemURL(target, dirEntry => {
+                                fileEntry.copyTo(dirEntry, name, () => {
+                                    console.log('Copy success', target, name)
+                                    app.emit(cbID, [
+                                        target.replace(new RegExp('^file:\/+'), '/') + name
+                                    ])
+                                    finish()
+                                }, e => {
+                                    console.log('Copy failed', fileEntry, dirEntry, target, name, e)
+                                })
+                            }, null)
+                        }, err => {
+                            console.error(err)
+                            finish()
+                            osd.show(String(err), 'fas fa-exclamation-circle faclr-red', 'theme-upload', 'normal')
+                        })
+                    }
+                    if(file.startsWith('content://')){
+                        if(file.indexOf('/raw%3A') != -1){
+                            file = file.replace('/raw%3A', '/raw:')
                         }
-                        parent.resolveLocalFileSystemURL(target, dirEntry => {
-                            fileEntry.copyTo(dirEntry, name, () => {
-                                console.log('Copy success', target, name)
-                                app.emit(cbID, [
-                                    target.replace(new RegExp('^file:\/+'), '/') + name
-                                ])
-                                finish()
-                            }, e => {
-                                console.log('Copy failed', fileEntry, dirEntry, target, name, e)
-                            })
-                        }, null)
-                    }, err => {
-                        console.error(err)
-                        finish()
-                        osd.show(String(err), 'fas fa-exclamation-circle', 'theme-upload', 'normal')
-                    })
+                        parent.FilePath.resolveNativePath(file, process, err => {
+                            console.error(err)
+                            process(file)
+                        })
+                    } else {
+                        process(file)
+                    }                    
                 }, err => {
                     console.error(err)
                     finish()
-                    osd.show(String(err), 'fas fa-exclamation-circle', 'theme-upload', 'normal')
+                    osd.show(String(err), 'fas fa-exclamation-circle faclr-red', 'theme-upload', 'normal')
                 })
             })
         } else if(top.Manager) {

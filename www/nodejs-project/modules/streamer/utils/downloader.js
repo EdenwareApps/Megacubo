@@ -125,6 +125,9 @@ class Downloader extends StreamerAdapterBase {
 					console.error('unable to listen on port', err)
 					return reject(err)
 				}
+				if(!this.server){
+					return reject('destroyed')
+				}
 				this.opts.port = this.server.address().port
 				this.endpoint = 'http://127.0.0.1:'+ this.opts.port +'/stream.'+ this.ext
 				resolve(this.opts.port)

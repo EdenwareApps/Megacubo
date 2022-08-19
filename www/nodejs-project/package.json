@@ -38,13 +38,13 @@
       "tough-cookie": "^4.0.0",
       "url-search-params-polyfill": "^8.1.1",
       "xmltv": "github:efoxbr/node-xmltv",
-      "ytdl-core": "^4.11.0",
+      "ytdl-core": "^4.10.0",
       "ytsr": "^3.6.0"
    },
    "description": "A simple and intuitive IPTV player.",
    "name": "megacubo",
    "icon": "./default_icon.png",
-   "version": "16.6.5",
+   "version": "16.6.7",
    "theme": {
       "fullScreen": true
    },

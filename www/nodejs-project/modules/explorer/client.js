@@ -1161,6 +1161,7 @@ class ExplorerDialog extends ExplorerDialogQueue {
 						e['tag-icon'] = '<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQYV2NgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII=" style="background-image: url(&quot;'+ e.fa +'&quot;);"> '
 					}
 				}
+				console.warn('ENTRY', e)
 				if(!e.plainText){
 					e.plainText = this.plainText(e.text)
 				}
@@ -1357,7 +1358,7 @@ class ExplorerPrompt extends ExplorerOpenFile {
 		if(message){
 			opts.splice(1, 0, {template: 'message', text: message})
 		}
-		opts.push({template: multiline === 'true' ? 'textarea' : 'text', text: defaultValue, id: 'text', placeholder})
+		opts.push({template: multiline === 'true' ? 'textarea' : 'text', text: defaultValue || '', id: 'text', placeholder})
 		if(Array.isArray(extraOpts) && extraOpts.length){
 			opts = opts.concat(extraOpts)
 		} else {
@@ -1684,6 +1685,7 @@ class Explorer extends ExplorerLoading {
 			this.endModal()
 		})
 		this.app.on('prompt', (...args) => {
+			console.warn('prompt', args)
 			this.prompt.apply(this, args)
 		})
 		this.initialized = false
