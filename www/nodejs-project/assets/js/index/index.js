@@ -284,14 +284,14 @@ if(window.cordova){
 			}
 			loadScripts()			
 			plugins.insomnia.keepAwake()
-			document.addEventListener('pause', function (){				
+			document.addEventListener('pause', function (){
 				cordova.plugins.backgroundMode.isScreenOff(function (ret){
-					player.emit('app-pause', ret)
+					player && player.emit('app-pause', ret)
 				})
 				plugins.insomnia.allowSleepAgain()   
 			})
 			document.addEventListener('resume', function (){
-				player.emit('app-resume')
+				player && player.emit('app-resume')
 				plugins.insomnia.keepAwake()
 			})
 		}

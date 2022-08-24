@@ -115,9 +115,6 @@ class Config extends Events {
 		return this.data[key]
 	}
 	set(key, val){
-		if(this.debug){
-			console.log('SSSET', key, val, typeof(this.defaults[key]))
-		}
 		this.load()
 		// avoid referencing on val
 		let nval
@@ -126,9 +123,6 @@ class Config extends Events {
 		} else {
 			nval = val
 		}
-		if(this.debug){
-			console.log('SSSET', key, nval, this.data)
-		}
 		if(!this.equal(this.data[key], nval)){
 			this.data[key] = nval
 			this.save()
@@ -136,9 +130,6 @@ class Config extends Events {
 		}
 	}
 	setMulti(atts){
-		if(this.debug){
-			console.log('MULTISET', atts)
-		}
 		this.load()
 		let changed = []
 		Object.keys(atts).forEach(k => {
@@ -165,6 +156,9 @@ class Config extends Events {
 				recursive: true
 			})
 		} 
+		if(this.debug){
+			console.log('SAVE', userConfig)
+		}
 		try { // Error: EPERM: operation not permitted, open '[...]/config.json'
 			if(fs.existsSync(this.file)){
 				fs.truncateSync(this.file, 0)

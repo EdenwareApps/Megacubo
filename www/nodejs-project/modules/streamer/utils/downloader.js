@@ -43,7 +43,7 @@ class Downloader extends StreamerAdapterBase {
 				this.currentRequest = null
 			}
 		})
-		this.pump()
+		process.nextTick(() => this.pump())
 	}
 	getContentType(){
 		if(this.opts.contentType){

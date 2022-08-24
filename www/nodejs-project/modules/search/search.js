@@ -42,7 +42,7 @@ class Search extends Events {
         this.currentSearch = null
         this.currentEntries = null
         this.currentResults = []
-        this.useYTFallback = false
+        this.useYTFallback = true
     }
     entriesLive(){
         if(this.currentSearchType != 'live'){

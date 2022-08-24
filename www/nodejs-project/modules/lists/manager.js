@@ -358,7 +358,7 @@ class Manager extends Events {
         return es
     }
     setMeta(url, key, val){
-        let lists = this.get()
+        let lists = global.deepClone(this.get()) // clone it
         for(let i in lists){
             if(lists[i][1] == url){
                 if(key == 'name'){
@@ -613,7 +613,48 @@ class Manager extends Events {
                                         global.displayErr(err)
                                     }).finally(() => {
                                         let next = () => {
-                                            es.unshift({name: global.lang.REMOVE_LIST, fa: 'fas fa-minus-square', type: 'action', url, class: 'skip-testing', action: this.removeList.bind(this)})
+                                            es.unshift({
+                                                name: global.lang.EDIT,
+                                                fa: 'fas fa-edit', 
+                                                type: 'select',
+                                                entries: [
+                                                    {
+                                                        name: global.lang.RENAME, 
+                                                        fa: 'fas fa-edit', 
+                                                        type: 'input', 
+                                                        class: 'skip-testing', 
+                                                        action: (e, v) => {
+                                                            if(v !== false){
+                                                                let path = global.explorer.path, parentPath = global.explorer.dirname(global.explorer.dirname(path))
+                                                                if(path.indexOf(name) != -1){
+                                                                    path = path.replace('/'+ name, '/'+ v)
+                                                                } else {
+                                                                    path = false
+                                                                }
+                                                                name = v
+                                                                this.rename(url, v)
+                                                                if(path){
+                                                                    delete global.explorer.pages[parentPath]
+                                                                    global.explorer.open(path).catch(global.displayErr)
+                                                                } else {
+                                                                    global.explorer.back(1, true)
+                                                                }
+                                                            }
+                                                        },
+                                                        value: () => {
+                                                            return name
+                                                        },
+                                                        safe: true
+                                                    },
+                                                    {
+                                                        name: global.lang.REMOVE_LIST, 
+                                                        fa: 'fas fa-trash', 
+                                                        type: 'action', url, 
+                                                        class: 'skip-testing', 
+                                                        action: this.removeList.bind(this)
+                                                    }
+                                                ]
+                                            })
                                             resolve(es)
                                         }
                                         if(es && es.length){

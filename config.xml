@@ -1,6 +1,6 @@
 
 <?xml version='1.0' encoding='utf-8'?>
-<widget android-versionCode="256" id="tv.megacubo.app" version="16.6.7" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget android-versionCode="259" id="tv.megacubo.app" version="16.6.8" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>Megacubo</name>
     <description>
         An intuitive, free and open source IPTV player.
@@ -9,9 +9,7 @@
         Megacubo Team
     </author>
     <content src="index.html" />
-    <access origin="content://*" />
     <access origin="*" />
-    <allow-intent href="content://*" />
     <allow-intent href="http://*/*" />
     <allow-intent href="https://*/*" />
     <allow-intent href="tel:*" />
@@ -39,6 +37,7 @@
         <preference name="android-compileSdkVersion" value="31" />
         <custom-preference delete="true" name="android-manifest/uses-sdk" />
         <custom-preference name="android-manifest/application/@android:usesCleartextTraffic" value="true" />
+        <custom-preference name="android-manifest/application/@android:extractNativeLibs" value="true" />
         <custom-preference name="android-manifest/application/@android:theme" value="@android:style/Theme.DeviceDefault.NoActionBar" />
         <custom-preference name="android-manifest/application/@android:hardwareAccelerated" value="true" />
         <custom-preference name="android-manifest/application/@android:requestLegacyExternalStorage" value="true" />
@@ -51,7 +50,7 @@
         <preference name="AllowInlineMediaPlayback" value="true" />
         <preference name="AndroidLaunchMode" value="singleInstance" />
         <preference name="AndroidPersistentFileLocation" value="Compatibility" />
-        <preference name="AndroidExtraFilesystems" value="files,files-external,documents,sdcard,cache,cache-external,assets,root,content" />
+        <preference name="AndroidExtraFilesystems" value="files,files-external,documents,sdcard,root" />
         <preference name="KeyboardResize" value="false" />
         <preference name="loadUrlTimeoutValue" value="300000" />
         <preference name="MediaPlaybackRequiresUserAction" value="false" />

@@ -408,6 +408,7 @@ class Any2HLS extends Events {
                     outputOptions('-sn').
                     outputOptions('-preset', 'ultrafast').
                     outputOptions('-master_pl_name', 'master.m3u8').
+                    outputOptions('-movflags', '+faststart').
 
                     /* lhls, seems not enabled in our ffmpeg yet
                     outputOptions('-hls_playlist', 1).
@@ -460,12 +461,12 @@ class Any2HLS extends Events {
                     }
                 }
                 if(this.opts.audioCodec == 'aac'){
-                    this.decoder.outputOptions('-profile:a', 'aac_low').
+                    this.decoder.outputOptions('-profile:a', 'aac_low')
                     outputOptions('-preset:a', 'ultrafast').
                     outputOptions('-b:a', '128k').
                     outputOptions('-ac', 2). // stereo
                     outputOptions('-ar', 48000).
-                    outputOptions('-af', 'aresample=async=1:min_hard_comp=0.100000:first_pts=0')   
+                    outputOptions('-af', 'aresample=async=1:min_hard_comp=0.100000:first_pts=0')
                     // -bsf:a aac_adtstoasc // The aac_ adtstoasc switch may not be necessary with more recent versions of FFmpeg, which may insert the switch automatically. https://streaminglearningcenter.com/blogs/discover-six-ffmpeg-commands-you-cant-live-without.html
                 }
                 if (typeof(this.source) == 'string' && this.source.indexOf('http') == 0) { // skip other protocols
@@ -533,6 +534,7 @@ class Any2HLS extends Events {
                     this.emit('wait')
                     this.addCodecData(codecData)
                     let transcode
+                    console.log('RECEIVED TRANSCODE DATA', codecData)
                     if(!global.cordova){
                         if(this.codecData.video && this.codecData.video.match(new RegExp('(hevc|mpeg2video|mpeg4)')) && this.opts.videoCodec != 'libx264'){
                             transcode = true
@@ -547,7 +549,6 @@ class Any2HLS extends Events {
                         }
                     }
                     if(this.decoder){
-                        console.log('RECEIVED TRANSCODE DATA', codecData, transcode)
                         if(transcode){
                             this.decoder.removeListener('end', endListener)
                             this.decoder.kill()
