@@ -461,7 +461,7 @@ class Any2HLS extends Events {
                     }
                 }
                 if(this.opts.audioCodec == 'aac'){
-                    this.decoder.outputOptions('-profile:a', 'aac_low')
+                    this.decoder.outputOptions('-profile:a', 'aac_low').
                     outputOptions('-preset:a', 'ultrafast').
                     outputOptions('-b:a', '128k').
                     outputOptions('-ac', 2). // stereo
