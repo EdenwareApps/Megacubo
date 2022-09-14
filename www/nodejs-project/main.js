@@ -342,12 +342,12 @@ videoErrorTimeoutCallback = ret => {
     }
 }
 
-var playOnLoaded, tuningHintShown
+var playOnLoaded, tuningHintShown, showingSlowBroadcastDialog
 
 function init(language){
     if(lang) return
     lang = new Language(language, config.get('locale'), APPDIR + '/lang')
-    lang.load().catch(displayErr).finally(() => {  
+    lang.load().catch(displayErr).finally(() => {
         console.log('Language loaded.')
        
         base64 = new (require(APPDIR + '/modules/base64'))()
@@ -405,7 +405,7 @@ function init(language){
         if(typeof(Premium) != 'undefined'){
 			premium = new Premium()
 		}
-        
+
         streamState = new StreamState()
         zap = new Zap()
 
@@ -516,7 +516,12 @@ function init(language){
             console.log('reload-dialog')
             if(!streamer.active) return
             let opts = [{template: 'question', text: lang.RELOAD}], def = 'retry'
-            let isCH = streamer.active.type != 'video' && channels.isChannel(streamer.active.data.terms ? streamer.active.data.terms.name : streamer.active.data.name)
+            let isCH = streamer.active.type != 'video' && 
+                (
+                    channels.isChannel(streamer.active.data.terms ? streamer.active.data.terms.name : streamer.active.data.name) 
+                    || 
+                    global.mega.isMega(streamer.active.data.originalUrl || streamer.active.data.url)
+                )
             if(isCH){
                 opts.push({template: 'option', text: lang.PLAYALTERNATE, fa: config.get('tuning-icon'), id: 'try-other'})
                 def = 'try-other'
@@ -561,19 +566,23 @@ function init(language){
             } else if(streamer.active && !streamer.active.isTranscoding()) {
                 console.error('VIDEO ERROR', type, errData)
                 if(type == 'timeout'){
-                    let opts = [{template: 'question', text: lang.SLOW_BROADCAST}], def = 'wait'
-                    let isCH = streamer.active.type != 'video' && channels.isChannel(streamer.active.data.terms ? streamer.active.data.terms.name : streamer.active.data.name)
-                    if(isCH){
-                        opts.push({template: 'option', text: lang.PLAYALTERNATE, fa: config.get('tuning-icon'), id: 'try-other'})
-                        def = 'try-other'
+                    if(!showingSlowBroadcastDialog){
+                        let opts = [{template: 'question', text: lang.SLOW_BROADCAST}], def = 'wait'
+                        let isCH = streamer.active.type != 'video' && channels.isChannel(streamer.active.data.terms ? streamer.active.data.terms.name : streamer.active.data.name)
+                        if(isCH){
+                            opts.push({template: 'option', text: lang.PLAYALTERNATE, fa: config.get('tuning-icon'), id: 'try-other'})
+                            def = 'try-other'
+                        }
+                        opts.push({template: 'option', text: lang.RELOAD_THIS_BROADCAST, fa: 'fas fa-redo', id: 'retry'})
+                        opts.push({template: 'option', text: lang.WAIT, fa: 'fas fa-clock', id: 'wait'})
+                        if(!isCH){
+                            opts.push({template: 'option', text: lang.STOP, fa: 'fas fa-stop', id: 'stop'})                        
+                        }
+                        showingSlowBroadcastDialog = true
+                        let ret = await explorer.dialog(opts, def)
+                        showingSlowBroadcastDialog = false
+                        videoErrorTimeoutCallback(ret)
                     }
-                    opts.push({template: 'option', text: lang.RELOAD_THIS_BROADCAST, fa: 'fas fa-redo', id: 'retry'})
-                    opts.push({template: 'option', text: lang.WAIT, fa: 'fas fa-clock', id: 'wait'})
-                    if(!isCH){
-                        opts.push({template: 'option', text: lang.STOP, fa: 'fas fa-stop', id: 'stop'})                        
-                    }
-                    let ret = await explorer.dialog(opts, def)
-                    videoErrorTimeoutCallback(ret)
                 } else {
                     console.error('VIDEO ERR', type, errData)
                     if(streamer.active && streamer.active.type == 'hls' && streamer.active.adapters.length){
@@ -678,6 +687,7 @@ function init(language){
         })
         */
         streamer.on('streamer-connect', async (src, codecs, info) => {
+            if(!streamer.active) return
             console.error('CONNECT', src, codecs, info)       
             let cantune
             if(streamer.active.mediaType == 'live'){
@@ -712,7 +722,9 @@ function init(language){
         })
         config.on('change', (keys, data) => {
             ui.emit('config', keys, data)
-            if(['lists', 'communitary-mode-lists-amount'].some(k => keys.includes(k))){
+            console.warn('config change', keys, data)
+            if(['lists', 'communitary-mode-lists-amount', 'communitary-mode-interests'].some(k => keys.includes(k))){
+                console.warn('config change', keys, data)
                 explorer.refresh()
                 lists.manager.UIUpdateLists(true)
             }
@@ -729,7 +741,7 @@ function init(language){
                         {template: 'question', text: ucWords(MANIFEST.name) +' v'+ MANIFEST.version +' > v'+ c.version, fa: 'fas fa-star'},
                         {template: 'message', text: lang.NEW_VERSION_AVAILABLE},
                         {template: 'option', text: lang.YES, id: 'yes', fa: 'fas fa-check-circle'},
-                        {template: 'option', text: lang.PREMIUM_NO_THANKS, id: 'no', fa: 'fas fa-times-circle'}, // TODO: Rename PREMIUM_NO_THANKS to NO_THANKS
+                        {template: 'option', text: lang.NO_THANKS, id: 'no', fa: 'fas fa-times-circle'},
                         {template: 'option', text: lang.HOW_TO_UPDATE, id: 'how', fa: 'fas fa-question-circle'}
                     ], 'yes')
                     console.log('update callback', chosen)
@@ -764,8 +776,8 @@ function init(language){
                 } else {
                     lists.manager.once('lists-updated', () => afterListUpdate().catch(console.error))
                 }
-                analytics = new Analytics() 
-                diagnostics = new Diagnostics() 
+                analytics = new Analytics()
+                diagnostics = new Diagnostics()
                 explorer.addFilter(downloads.hook.bind(downloads))
             }
         })

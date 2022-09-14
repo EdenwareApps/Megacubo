@@ -127,7 +127,7 @@ class IconSearch extends IconDefault {
             const next = () => {
                 global.lists.search(ntms, {
                     type: 'live',
-                    safe: (global.config.get('parental-control-policy') == 'block')
+                    safe: !global.lists.parentalControl.lazyAuth()
                 }).then(ret => {
                     if(this.opts.debug){
                         console.log('fetch from terms', ntms, liveOnly, JSON.stringify(ret))
@@ -316,6 +316,18 @@ class IconFetchSem extends IconServerStore {
     }
     fetchURL(url){  
         return new Promise((resolve, reject) => { 
+            if(String(url).startsWith('data:image/png;base64,')) {
+                const key = this.key(url)
+                const file = this.resolveHTTPCache(key)
+                return fs.writeFile(file, global.base64.decode(url), err => {
+                    if(err){
+                        return reject(err)
+                    }
+                    this.validateFile(file).then(() => {
+                        resolve({key, file})
+                    }).catch(reject)
+                })
+            }
             if(typeof(url) != 'string' || url.indexOf('//') == -1){
                 return reject('bad url')
             }

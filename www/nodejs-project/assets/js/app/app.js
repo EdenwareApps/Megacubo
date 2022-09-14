@@ -311,13 +311,16 @@ function initApp(){
             if(typeof(iconCaching[explorer.path]) != 'undefined' && config['show-logos']){
                 let range = explorer.viewportRange()
                 //console.log('selectionMemory iconRange', iconCaching[explorer.path], range.start, range.end)
-                Array.from(new Array(range.end - range.start), (x, i) => i + range.start).forEach(i => {
-                    if(explorer.currentEntries[i]){
-                        if(typeof(iconCaching[explorer.path][i]) != 'undefined' && iconCaching[explorer.path][i].name == explorer.currentEntries[i].name){
-                            icon(iconCaching[explorer.path][i].src, explorer.path, i, explorer.currentEntries[i].name)
+                const len = range.end - range.start
+                if(len > 0){
+                    Array.from(new Array(len), (x, i) => i + range.start).forEach(i => {
+                        if(explorer.currentEntries[i]){
+                            if(typeof(iconCaching[explorer.path][i]) != 'undefined' && iconCaching[explorer.path][i].name == explorer.currentEntries[i].name){
+                                icon(iconCaching[explorer.path][i].src, explorer.path, i, explorer.currentEntries[i].name)
+                            }
                         }
-                    }
-                })
+                    })
+                }
             }
         }
         app.on('icon', icon)
@@ -341,7 +344,7 @@ function initApp(){
         ([
             {
                 level: 'default', 
-                selector: '#explorer wrap a, .explorer-omni span, #header-shutdown', 
+                selector: '#explorer wrap a, .explorer-omni span, .header-entry', 
                 condition: () => {
                     return explorer.isExploring()
                 },
@@ -649,11 +652,13 @@ function initApp(){
             
             app.on('share', (title, text, url) => {
                 console.log('share', title, text, url)
-                if(typeof(parent.navigator.share) == 'function'){
-                    parent.navigator.share(text + "\r\n" + url, title, 'text/plain', (...args) => {
-                        console.log('share', args)
-                    }, err => {
-                        console.error('share error', err)
+                if(parent.cordova && typeof(parent.navigator.share) == 'function'){
+                    parent.navigator.share({
+                        text,
+                        url,
+                        title
+                    }).catch(err => {
+                        console.error('Share error', err)
                     })
                 } else {
                     parent.openExternalURL('https://megacubo.tv/share/?url=' + encodeURIComponent(url) + '&title=' + encodeURIComponent(title) + '&text=' + encodeURIComponent(text))
@@ -670,9 +675,19 @@ function initApp(){
             
             ffmpeg.bind()
 
-            document.getElementById('header-shutdown').addEventListener('click',  () => {
+            let hs = document.getElementById('header-shutdown')
+            hs.title = hs.alt = lang.EXIT
+            hs.addEventListener('click',  () => {
                 parent.winman.askExit()
             })
+
+            let ha = document.getElementById('header-about')
+            ha.title = ha.alt = lang.ABOUT
+            ha.addEventListener('click',  () => {
+                app.emit('about-dialog')
+            })
+
+            ha = hs = undefined
 
             if(parent.cordova){
                 parent.winman.setBackgroundMode(true) // enable once at startup to prevent service not registered crash

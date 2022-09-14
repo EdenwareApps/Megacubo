@@ -16,8 +16,8 @@
 				margin: 0;
 				padding: 0;
 				border-width: 0;
-				width: 100%;
-				height: 100%;
+				width: 100vw;
+				height: 100vh;
 				font-size: 5vh;
 				overflow: hidden;
 				box-sizing: border-box;
@@ -32,8 +32,8 @@
 				background-size: 20vh 20vh;
 			}
 			player {
-				width: 100%;
-				height: 100%;
+				width: 100vw;
+				height: 100vh;
 				display: none;
 				pointer-events: none;
 				align-items: center;				
@@ -42,8 +42,8 @@
 				background: #000;
 			}	
 			player div {
-				width: 100%;
-    			height: 100%;
+				width: 100vw;
+				height: 100vh;
 			}
 			img {
 				height: auto;
@@ -80,14 +80,23 @@
 				margin-bottom: 1vh;
 				box-sizing: border-box;
 			}
-			div#background {
-				background-size: cover;
-				background-position: center center;
+			div#background-wrapper {
 				position: fixed;
 				top: 0;
 				width: 100vw;
 				height: 100.2vh; /* prevent blank line on bottom for some devices */
 				z-index: -1;
+				transition: transform 0.5s ease-out 0s;
+			}
+			html.playing div#background-wrapper {
+				transform: scale(1.1);
+				transform-origin: center center;				
+			}
+			div#background {
+				background-size: cover;
+				background-position: center center;
+				width: 100%;
+				height: 100%;
 				visibility: hidden;
 				transform-origin: center center;
 			}
@@ -190,10 +199,43 @@
 				visibility: hidden !important;
 				animation-name: none !important;
 			}
+			html.curtains .curtain, html.curtains-close .curtain {
+				transition: left 0.15s ease-in 0s, right 0.15s ease-in 0s;
+			}
+			html.curtains-close .curtain-b {
+				left: 101vw;
+			}
+			html.curtains-close .curtain-a {
+				left: -51vw;
+			}
+			.curtain {
+				background: black;
+				display: block;
+				height: 100vh;
+				width: 50vw;
+				position: fixed;
+				top: 0;
+				z-index: 1;
+				box-sizing: border-box;
+			}
+			html.curtains .curtain-a, html.curtains-static .curtain-a {
+				left: 0;
+			}
+			html.curtains .curtain-b, html.curtains-static .curtain-b {
+				left: 50vw;
+			}
+			.curtain-a, html.curtains-close .curtain-a {
+				left: -51vw;
+			}
+			.curtain-b, html.curtains-close .curtain-b {
+				left: 101vw;
+			}
 		</style>
 	</head>
-	<body>	
-        <div id="background"></div>
+	<body>
+        <div id="background-wrapper">
+			<div id="background"></div>
+		</div>
 		<div id="info"></div> 
 		<div id="splash">
 			<i class="fa-mega"></i>
@@ -215,6 +257,8 @@
 				<audio plays-inline webkit-playsinline muted poster="assets/images/blank.png"></audio>
 			</div>
 		</player>
+		<div class="curtain curtain-a"></div>
+		<div class="curtain curtain-b"></div>
 		<iframe src="app.html" allowFullScreen scrolling="no" frameborder="0"></iframe> 
         <script type="text/javascript" src="assets/js/libs/events.js"></script>
         <script type="text/javascript" src="assets/js/index/index.js"></script>

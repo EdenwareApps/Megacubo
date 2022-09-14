@@ -13,7 +13,7 @@ class Watching extends EntriesGroup {
             global.channels.on('loaded', () => this.update()) // on each "loaded"
         })
         global.config.on('change', (keys, data) => {
-            if(keys.includes('only-known-channels-in-been-watched') || keys.includes('parental-control-policy') || keys.includes('parental-control-terms')){
+            if(keys.includes('only-known-channels-in-been-watched') || keys.includes('parental-control') || keys.includes('parental-control-terms')){
                 this.update()
             }
         })
@@ -58,23 +58,16 @@ class Watching extends EntriesGroup {
         return new Promise((resolve, reject) => {
             if(path == ''){
                 let has, pos = 0, entry = this.entry()
-                if(this.currentEntries && this.currentEntries.length && entry.details != global.lang.BEEN_WATCHED){
+                if(!entry.originalName){
                     entries.some((e, i) => {
-                        if(i == 0 && e.hookId == 'history'){ // let continue option as first
-                            pos = 1
-                        }
-                        if(e.hookId == this.key){
-                            has = e.name
+                        if(e.name == global.lang.TOOLS){
+                            pos = i + 1
                             return true
                         }
                     })
                 }
-                if(has){
-                    entries = entries.filter(e => e.hookId != this.key)
-                    entries.splice(pos, 0, entry)
-                } else if(!entries.some(e => e.hookId == this.key)) {
-                    entries.push(entry)
-                }
+                entries = entries.filter(e => e.hookId != this.key)
+                entries.splice(pos, 0, entry)
             }
             resolve(entries)
         })
@@ -103,8 +96,8 @@ class Watching extends EntriesGroup {
                 if(!list.length){
                     list = [{name: global.lang.EMPTY, fa: 'fas fa-info-circle', type: 'action', class: 'entry-empty'}]
                 } else {
-                    const acpolicy = global.config.get('parental-control-policy')
-                    if(acpolicy == 'block'){
+                    const acpolicy = global.config.get('parental-control')
+                    if(['remove', 'block'].includes(acpolicy)){
                         list = global.lists.parentalControl.filter(list)		
                     } else if(acpolicy == 'only') {
                         list = global.lists.parentalControl.only(list)
@@ -159,7 +152,7 @@ class Watching extends EntriesGroup {
         })
         data = global.lists.parentalControl.filter(data)
         this.currentRawEntries = data.slice(0)
-        const adultContentOnly = global.config.get('parental-control-policy') == 'only', onlyKnownChannels = !adultContentOnly && global.config.get('only-known-channels-in-been-watched')
+        const adultContentOnly = global.config.get('parental-control') == 'only', onlyKnownChannels = !adultContentOnly && global.config.get('only-known-channels-in-been-watched')
         let groups = {}, gcount = {}, gentries = []
         let sentries = await global.search.searchSuggestionEntries()
         let gsearches = [], searchTerms = sentries.map(s => s.search_term).filter(s => !global.channels.isChannel(s)).filter(s => global.lists.parentalControl.allow(s)).map(s => global.lists.terms(s))

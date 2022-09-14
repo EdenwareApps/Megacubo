@@ -7,6 +7,7 @@ module.exports = {
 	'background-color': '#15002C',
 	'background-color-transparency': 75,
 	'broadcast-start-timeout': 40,
+	'channels-list-smart-sorting': 0,
 	'communitary-mode-lists-amount': 0,
 	'countries': [],
 	'custom-background-image': '',
@@ -54,7 +55,7 @@ module.exports = {
 	'miniplayer-auto': true,
 	'only-known-channels-in-been-watched': true,
 	'osd-speak': false,
-	'parental-control-policy': 'block',
+	'parental-control': 'remove',
 	'parental-control-terms': '.',
 	'play-while-loading': true,
 	'playback-rate-control': true,
@@ -82,5 +83,6 @@ module.exports = {
 	'view-size-y': 2,
 	'volume': 100,
 	'watch-now-auto': 'auto',
-	'ui-sounds': true
+	'ui-sounds': true,
+	'unpause-jumpback': 5
 }

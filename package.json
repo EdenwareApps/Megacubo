@@ -1,7 +1,7 @@
 {
   "name": "tv.megacubo.app",
   "displayName": "Megacubo",
-  "version": "16.6.8",
+  "version": "16.7.0",
   "description": "A intuitive and multi-language IPTV player.",
   "main": "index.js",
   "scripts": {
@@ -15,6 +15,7 @@
   },
   "cordova": {
     "plugins": {
+      "org.apache.cordova.splashscreen": {},
       "nodejs-mobile-cordova": {},
       "tv.megacubo.pip": {},
       "tv.megacubo.player": {},
@@ -22,57 +23,38 @@
       "cordova-plugin-ionic-webview": {},
       "cordova-plugin-ionic-keyboard": {},
       "cordova-plugin-insomnia": {},
+      "cordova-plugin-filepath": {},
       "cordova-plugin-globalization": {},
-      "cordova-plugin-file": {
-        "ANDROIDX_WEBKIT_VERSION": "1.4.0"
-      },
-      "nl.madebymark.share": {},
+      "cordova-plugin-file": {},
+      "cordova-plugin-web-share": {},
       "cordova-plugin-fullscreen": {},
-      "cordova-plugin-splashscreen": {},
       "cordova-plugin-android-permissions": {},
       "cordova-plugin-filechooser": {},
       "cordova-plugin-android-tv": {},
       "cordova-plugin-customurlscheme": {
-        "URL_SCHEME": "mega",
-        "ANDROID_SCHEME": " ",
-        "ANDROID_HOST": " ",
-        "ANDROID_PATHPREFIX": "/"
+        "URL_SCHEME": "mega"
       },
       "ionic-plugin-deeplinks": {
         "URL_SCHEME": "mega",
         "DEEPLINK_SCHEME": "https",
         "DEEPLINK_HOST": "megacubo.tv",
-        "ANDROID_PATH_PREFIX": "/assistir/",
-        "ANDROID_2_PATH_PREFIX": "/",
-        "ANDROID_3_PATH_PREFIX": "/",
-        "ANDROID_4_PATH_PREFIX": "/",
-        "ANDROID_5_PATH_PREFIX": "/",
-        "DEEPLINK_2_SCHEME": " ",
-        "DEEPLINK_2_HOST": " ",
-        "DEEPLINK_3_SCHEME": " ",
-        "DEEPLINK_3_HOST": " ",
-        "DEEPLINK_4_SCHEME": " ",
-        "DEEPLINK_4_HOST": " ",
-        "DEEPLINK_5_SCHEME": " ",
-        "DEEPLINK_5_HOST": " "
+        "ANDROID_PATH_PREFIX": "/assistir/"
       },
       "cordova-plugin-background-mode": {},
-      "cordova-custom-config": {},
-      "cordova-plugin-filepath": {}
+      "cordova-custom-config": {}
     },
-    "platforms": [
-      "android"
-    ]
+    "platforms": []
   },
   "devDependencies": {
     "cordova-android": "^10.1.2",
     "cordova-androidx-build": "^1.0.4",
     "cordova-custom-config": "^5.1.1",
-    "cordova-plugin-android-permissions": "^1.1.3",
+    "cordova-plugin-android-permissions": "^1.1.4",
     "cordova-plugin-android-tv": "github:frontyard/cordova-plugin-android-tv",
     "cordova-plugin-background-mode": "bitbucket:TheBosZ/cordova-plugin-run-in-background",
+    "cordova-plugin-compat": "^1.2.0",
     "cordova-plugin-device": "^2.1.0",
-    "cordova-plugin-file": "^7.0.0",
+    "cordova-plugin-file": "^4.3.3",
     "cordova-plugin-filechooser": "github:luckypal/cordova-filechooser",
     "cordova-plugin-filepath": "github:efoxbr/cordova-plugin-filepath",
     "cordova-plugin-fullscreen": "^1.3.0",
@@ -81,7 +63,9 @@
     "cordova-plugin-ionic-keyboard": "^2.2.0",
     "cordova-plugin-ionic-webview": "^5.0.0",
     "cordova-plugin-share": "^0.1.3",
-    "cordova-plugin-splashscreen": "^6.0.2",
+    "cordova-plugin-splashscreen": "^1.0.0",
+    "cordova-plugin-web-share": "^1.3.0",
+    "cordova-support-android-plugin": "~2.0.4",
     "ionic-plugin-deeplinks": "^1.0.24",
     "nodejs-mobile-cordova": "github:nodejs-mobile/nodejs-mobile-cordova",
     "tv.megacubo.ffmpeg": "github:efoxbr/tv.megacubo.ffmpeg",

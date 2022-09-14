@@ -27,6 +27,8 @@ class StreamerBaseIntent extends Events {
         this.started = false
         this.ignoreErrors = false
         this.mimetype = ''
+        this.audioTrack = 0
+        this.subtitleTrack = null
         this.failListener = this.onFail.bind(this)
         if(opts){
             this.setOpts(opts)
@@ -265,6 +267,30 @@ class StreamerBaseIntent extends Events {
             })
         })
     }
+	getAudioTracks(){
+		if(Array.isArray(this.audioTracks) && this.audioTracks.length){
+            return this.audioTracks
+        }
+		return [
+            {id: 0, name: global.lang.DEFAULT, enabled: true}
+        ]
+	}
+	getSubtitleTracks(){
+		if(Array.isArray(this.subtitleTracks) && this.subtitleTracks.length){
+            return this.subtitleTracks
+        }
+		return [
+            {id: 0, name: global.lang.DEFAULT, enabled: true}
+        ]
+	}
+	selectAudioTrack(trackId){
+        this.audioTrack = trackId
+        global.ui.emit('audio-track', trackId)
+	}
+	selectSubtitleTrack(trackId){
+        this.subtitleTrack = trackId
+        global.ui.emit('subtitle-track', trackId)
+	}
     fail(err){
         if(this && !this.failed && !this.destroyed){
             console.log('fail', err)

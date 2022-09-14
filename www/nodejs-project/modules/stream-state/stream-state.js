@@ -6,6 +6,8 @@ class StreamState extends Events {
         super()
         this.debug = false
         this.ttl = (6 * 3600)
+        this.minSaveIntervalSecs = 30
+        this.limit = 4096 // max number of entries to keep
         this.data = {}
         this.waiting = {}
         this.clientFailures = {}
@@ -28,8 +30,18 @@ class StreamState extends Events {
             }
         })
         global.streamer.on('commit', intent => {
+            const url = intent.data.url
             this.cancelTests()
-            this.set(intent.data.url, intent.type, true)
+            this.set(url, intent.type, true)
+            if(this.data[url]){
+                const data = this.data[url]
+                if(data.position && data.position > 10 && (data.position < (data.duration - 30))){
+                    const cb = () => {
+                        global.ui.emit('resume-dialog', data.position)
+                    }
+                    process.nextTick(cb)
+                }
+            }
         })
         global.streamer.on('failure', data => {
             if(data){
@@ -52,17 +64,35 @@ class StreamState extends Events {
                 this.test(entries)
             }
         })
+        global.ui.on('state-atts', (url, atts) => {
+            let state
+            if(global.streamer.active && url == global.streamer.active.data.url) {
+                state = global.streamer.active.type
+            } else if(typeof(this.data[url]) != 'undefined') {
+                state = this.data[url].state
+            }
+            if(typeof(state) != 'undefined') {
+                this.set(url, state, true, atts)
+            }
+        })
         this.on('state', (url, state) => {
             global.ui.emit('set-status-flag', url, state)
         })
         global.onexit(() => {
             this.cancelTests()
-            this.save()
+            this.save() // sync
         })
     }
     supports(e){
         const cls = e.class || ''
-        return (e && cls.indexOf('skip-testing') == -1 && (!e.type || e.type == 'stream' || cls.indexOf('entry-meta-stream') != -1) && e.url)
+        if(e && e.url && cls.indexOf('skip-testing') == -1){
+            if(cls.indexOf('allow-stream-state') != -1){
+                return true
+            }
+            if(!e.type || e.type == 'stream' || cls.indexOf('entry-meta-stream') != -1){
+                return true
+            }
+        }
     }
     get(url){
         if(typeof(this.clientFailures[url]) != 'undefined' && this.clientFailures[url] === true){
@@ -73,7 +103,7 @@ class StreamState extends Events {
         }
         return null
     }    
-    set(url, state, isTrusted){
+    set(url, state, isTrusted, atts){
         if(typeof(this.data) == 'object'){
             if(!isTrusted && typeof(this.clientFailures[url]) != 'undefined'){
                 return
@@ -85,12 +115,26 @@ class StreamState extends Events {
                     changed = true
                     delete this.waiting[url]
                 }
-                if(typeof(this.data[url]) == 'undefined' || this.data[url].state != state){
-                    this.data[url] = {'state': state, time}
-                    changed = true
-                } else {
-                    this.data[url].time = time
+                if(!atts){
+                    atts = {}
                 }
+                atts.time = time
+                atts.state = state
+                if(typeof(this.data[url]) == 'undefined'){
+                    this.data[url] = {}
+                }
+                Object.keys(atts).forEach(k => {
+                    if(['position', 'duration'].includes(k)){
+                        const reset = k == 'position' && this.data[url] && this.data[url][k] && this.data[url][k] > (this.data[url].duration - 30) // user will watch again
+                        if(!this.data[url][k] || reset || this.data[url][k] < atts[k]) {
+                            this.data[url][k] = atts[k]
+                            changed = true
+                        }
+                    } else if(atts[k] != this.data[url]){
+                        this.data[url][k] = atts[k]
+                        changed = true
+                    }
+                })
                 if(isTrusted){
                     if(state){
                         if(typeof(this.clientFailures[url]) != 'undefined'){
@@ -106,6 +150,7 @@ class StreamState extends Events {
                 }
                 if(changed){
                     this.emit('state', url, state)
+                    this.saveAsync()
                 }
             }
         }
@@ -119,9 +164,50 @@ class StreamState extends Events {
             global.ui.emit('sync-status-flags', syncMap)
         }
     }
+    trim(){
+        if(typeof(this.data) != 'undefined'){
+            const ks = Object.keys(this.data)
+            if(ks.length > this.limit){
+                ks.map(url => ({url, time: this.data[url].time})).sortByProp('time', true).slice(this.limit).forEach(row => {
+                    delete this.data[row.url]
+                })
+            }
+        }
+    }
     save(){ // must be sync
         if(typeof(this.data) != 'undefined'){
+            const now = global.time()
+            this.lastSaveTime = now
+            this.trim()
             global.storage.setSync(this.key, this.data, true)
+            console.warn('STREAMSTATE SAVE', now)
+        }
+    }
+    saveAsync(){ // async
+        const delay = this.saveDelay() * 1000
+        if(delay){ // delay saving
+            if(this.saveTimer){
+                clearTimeout(this.saveTimer)
+            }
+            this.saveTimer = setTimeout(() => this.saveAsync(), delay)
+        } else { // save now
+            const now = global.time()
+            this.lastSaveTime = now
+            this.trim()
+            global.storage.set(this.key, this.data, true)
+            console.warn('STREAMSTATE SAVE', now)
+        }
+    }
+    saveDelay(){
+        if(typeof(this.data) != 'undefined'){
+            const now = global.time()
+            if(!this.lastSaveTime || (this.lastSaveTime + this.minSaveIntervalSecs) <= now){
+                return 0
+            } else {
+                return (this.lastSaveTime + this.minSaveIntervalSecs) - now
+            }
+        } else {
+            return this.minSaveIntervalSecs
         }
     }
 	isLocalFile(file){
@@ -210,7 +296,7 @@ class StreamState extends Events {
                     this.testing.destroy()
                     this.testing = null 
                     resolve(true)
-                    this.save()
+                    this.saveAsync()
                 }
             })
             this.testing.start()

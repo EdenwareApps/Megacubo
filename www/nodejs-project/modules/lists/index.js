@@ -70,16 +70,16 @@ class Index extends Common {
 			})
 			terms = this.applySearchRedirects(terms)
 			if(opts.partial){
-				const hints = [...new Set(terms.map(t => t.substr(0, 2)))], mterms = []
-				console.log('parsing query')
+				const hints = [...new Set(terms.filter(t => t.length > 2).map(t => t.substr(0, 2)))], mterms = []
+				//console.log('parsing query')
 				Object.keys(this.lists).forEach(listUrl => {
 					Object.keys(this.lists[listUrl].index.terms).forEach(term => {
-						if(hints.includes(term.substr(0, 2)) && !mterms.includes(term)){
+						if(hints.includes(term.substr(0, 2)) && !mterms.includes(term)){ // reduce workset by using hints
 							mterms.push(term)
 						}
 					})
 				})
-				console.log('parsing query2', mterms.length)
+				//console.log('parsing query2', mterms.length)
 				terms.forEach(term => {
 					let tlen = term.length
 					if(tlen < 3) return // dont autocomplete small words, too many vars
@@ -90,7 +90,7 @@ class Index extends Common {
 						aliases[term] = nterms
 					}
 				})
-				console.log('parsing query', mterms.length, aliases)
+				//console.log('parsing query', mterms.length, aliases)
 			}
 			terms = terms.filter(t => !excludes.includes(t))
 			return [{terms, excludes, aliases}]
@@ -144,8 +144,8 @@ class Index extends Common {
 				tms = tms.concat(q.aliases[term])
 			}
 			let tmap = this.queryTermMap(tms)
-			console.warn('TMAPSIZE', term, tmap ? this.mapSize(tmap) : 0)
-			console.warn('SMAPSIZE', term, smap ? this.mapSize(smap) : 0)
+			//console.warn('TMAPSIZE', term, tmap ? this.mapSize(tmap) : 0)
+			//console.warn('SMAPSIZE', term, smap ? this.mapSize(smap) : 0)
 			if(tmap){
 				if(smap){
 					smap = this.intersectMap(smap, tmap)
@@ -164,7 +164,7 @@ class Index extends Common {
 					let xmap = this.queryTermMap(q.excludes)
 					smap = this.diffMap(smap, xmap)
 					ms = this.mapSize(smap, opts.group)
-					console.warn('XMAPSIZE', this.mapSize(xmap), ms)
+					//console.warn('XMAPSIZE', this.mapSize(xmap), ms)
 				}
 			}
 			this.searchMapCache[key] = this.cloneMap(smap)
@@ -173,21 +173,17 @@ class Index extends Common {
 		this.searchMapCache[key] = {}
 		return {}
 	}
-	search(terms, opts){	
+	search(terms, opts={}){	
 		return new Promise((resolve, reject) => {
-			this.debug = true
 			if(typeof(terms) == 'string'){
 				terms = this.terms(terms, true, true)
 			}
-            let start = global.time(), bestResults = [], maybe = [], limit = 512
+            let start = global.time(), bestResults = [], maybe = [], limit = opts.limit || 256
 			if(!terms){
 				return []
 			}
-			console.log('searchMap')
 			const query = this.parseQuery(terms, opts)
-			console.log('searchMap')
-            let smap = this.searchMap(query, opts), ks = Object.keys(smap)
-			console.log('searchMap')
+			let smap = this.searchMap(query, opts), ks = Object.keys(smap)
 			if(ks.length){
 				if(this.debug){
 					console.warn('M3U SEARCH RESULTS', (global.time() - start) +'s (pre time)', Object.assign({}, smap), (global.time() - start) +'s', terms)
@@ -243,8 +239,8 @@ class Index extends Common {
                     results = this.tools.dedup(results)
 					results = this.prepareEntries(results)
 					if(opts.parentalControl !== false){
-						results = this.parentalControl.filter(results)
-						maybe = this.parentalControl.filter(maybe)
+						results = this.parentalControl.filter(results, true)
+						maybe = this.parentalControl.filter(maybe, true)
 					}
 					results = this.adjustSearchResults(results, opts, limit)
 					if(results.length < limit){
@@ -377,8 +373,8 @@ class Index extends Common {
 				results = this.tools.dedup(results)
 				results = this.prepareEntries(results)	
 				if(typeof(opts.parentalControl) != 'undefined' && opts.parentalControl !== false){
-					results = this.parentalControl.filter(results)
-					maybe = this.parentalControl.filter(maybe)
+					results = this.parentalControl.filter(results, true)
+					maybe = this.parentalControl.filter(maybe, true)
 				}				
 				resolve({results, maybe})
 			})
@@ -551,9 +547,9 @@ class Index extends Common {
 					entries.push(e)
 				}
 			}, this.lists[group.url].index.groups[group.group], () => {
-				console.log(entries)
+				//console.log(entries)
 				entries = this.tools.dedup(entries)
-				entries = this.parentalControl.filter(entries)
+				entries = this.parentalControl.filter(entries, true)
 				
 				if(typeof(Intl) != 'undefined'){
 					const collator = new Intl.Collator(global.lang.locale, { numeric: true, sensitivity: 'base' })

@@ -140,13 +140,20 @@ class EPGHistory extends EntriesGroup {
         }
         return null
     }
-    entry(){
-        return {
+    async entry(){
+        const featured = await this.suggestions.featuredEntry().catch(console.error)
+        const e = {
             name: global.lang.RECOMMENDED_FOR_YOU, 
             fa: 'fas fa-solid fa-thumbs-up', 
             type: 'group',
+            hookId: this.key, 
             renderer: this.entries.bind(this)
         }
+        if(featured && featured.program){
+            e.details = featured.program.t
+            e.program = featured.program
+        }
+        return e
     }
     inSection(entries, path){
         if(!Array.isArray(entries)){
@@ -156,7 +163,7 @@ class EPGHistory extends EntriesGroup {
             path = global.explorer.path
         }
         if(this.data.length && global.channels.activeEPG){
-            if(path == (global.lang.LIVE +'/'+ global.lang.EPG)){
+            if(path == global.lang.LIVE){
                 return 3
             } else if(path == global.lang.BOOKMARKS){
                 return 2
@@ -165,16 +172,36 @@ class EPGHistory extends EntriesGroup {
             }
         }
     }
-    hook(entries, path){
-        return new Promise((resolve, reject) => {
-            let i = this.inSection(entries, path)
-            if(i == 3){
-                entries.splice(1, 0, this.entry())
-            } else if(i == 2){
-                entries.push(this.entry())
+    async hook(entries, path){
+        const hookup = async () => {
+            let index = 1
+            const entry = await this.entry()
+            if(entries.some(e => e.hookId == entry.hookId)){
+                entries = entries.filter(e => e.hookId != entry.hookId)
             }
-            resolve(entries)
-        })
+            if(!entry.program){
+                entries.some((e, i) => {
+                    if(e.name == global.lang.TOOLS){
+                        index = i + 1
+                        return true
+                    }
+                })
+            }
+            if(index){
+                entries.splice(index, 0, entry)
+            } else {
+                entries.push(entry)
+            }
+        }
+        let i = this.inSection(entries, path)
+        if(!path){
+            if(entries.length > 2){
+                await hookup()
+            }
+        } else if(i == 2){
+            await hookup()
+        }
+        return entries
     }
     async historyRemovalEntries(e){
         let es = this.get()
@@ -222,13 +249,50 @@ class EPGHistory extends EntriesGroup {
         return es
     }
     async entries(){
-        let es = await this.suggestions.get()
+        let es = await this.suggestions.get().catch(console.error)
+        if(!Array.isArray(es)){
+            es = []
+        }
         if(!es.length){
+            if(global.activeEPG || config.get('epg-'+ lang.locale)) {
+                es.push({
+                    name: global.lang.NO_RECOMMENDATIONS_YET, 
+                    type: 'action', 
+                    fa: 'fas fa-info-circle', 
+                    class: 'entry-empty',
+                    action: async () => {                    
+                        await global.explorer.dialog([
+                            {template: 'question', text: global.lang.NO_RECOMMENDATIONS_YET, fa: 'fas fa-info-circle'},
+                            {template: 'message', text: global.lang.RECOMMENDATIONS_INITIAL_HINT},
+                            {template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle'}
+                        ])
+                    }
+                })
+            } else {
+                es.push({
+                    name: global.lang.EPG_DISABLED, 
+                    type: 'action', 
+                    fa: 'fas fa-times-circle', 
+                    class: 'entry-empty',
+                    action: async () => {                    
+                        const path = global.lang.IPTV_LISTS +'/'+ global.lang.EPG
+                        await global.explorer.open(path)
+                    }
+                })
+            }
+        } else if(this.get().length <= 5) {
             es.push({
-                name: global.lang.NO_SUGGESTIONS_FOUND, 
+                name: global.lang.IMPROVE_YOUR_RECOMMENDATIONS, 
                 type: 'action', 
                 fa: 'fas fa-info-circle', 
-                class: 'entry-empty'
+                class: 'entry-empty',
+                action: async () => {                    
+                    await global.explorer.dialog([
+                        {template: 'question', text: global.lang.IMPROVE_YOUR_RECOMMENDATIONS, fa: 'fas fa-thumbs-up'},
+                        {template: 'message', text: global.lang.RECOMMENDATIONS_IMPROVE_HINT},
+                        {template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle'}
+                    ])
+                }
             })
         }
         if(this.data.length){

@@ -105,7 +105,7 @@ class StreamerHLSIntent extends StreamerBaseIntent {
         this.trackUrl = this.data.url
         this.trackSelector = new HLSTrackSelector()
     }
-	getTracks(){
+	getQualityTracks(){
 		let tracks = {}
         if(this.prx.playlists){
             Object.keys(this.prx.playlists).forEach(masterUrl => {
@@ -116,7 +116,7 @@ class StreamerHLSIntent extends StreamerBaseIntent {
         }
 		return tracks
 	}
-	getActiveTrack(){
+	getActiveQualityTrack(){
 		return this.prx.proxify(this.prx.activeManifest)
 	}
 	selectTrack(url){

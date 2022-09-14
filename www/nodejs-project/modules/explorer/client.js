@@ -266,7 +266,12 @@ class ExplorerSelectionMemory extends ExplorerBase {
     }
     restoreSelection(){
         let data = {scroll: 0, index: this.path ? 1 : 0}
-        if(typeof(this.selectionMemory[this.path]) != 'undefined' && this.path.indexOf(lang.SEARCH) == -1 && this.path.indexOf(lang.MORE_RESULTS) == -1){
+        if(
+			typeof(this.selectionMemory[this.path]) != 'undefined' && 
+			this.path.indexOf(lang.SEARCH) == -1 && 
+			this.path.indexOf(lang.MORE_RESULTS) == -1 && 
+			this.path.indexOf(lang.SEARCH_MORE) == -1
+		){
             data = this.selectionMemory[this.path]
             if(data.index == 0 && this.path){
                 data.index = 1
@@ -1109,6 +1114,9 @@ class ExplorerDialog extends ExplorerDialogQueue {
 		`
 	}
 	text2id(txt){
+		if(txt.match(new RegExp('^[A-Za-z0-9\\-_]+$', 'g'))){
+			return txt
+		}
 		return Base64.encode(txt).toLowerCase().replace(new RegExp('[^a-z0-9]+', 'gi'), '')
 	}
 	dialog(entries, cb, defaultIndex, mandatory){
@@ -1147,6 +1155,15 @@ class ExplorerDialog extends ExplorerDialogQueue {
 				}
 			}
 			let validatedDefaultIndex, optsCount = 0, optsHasInput, allowTwoColumnsOptionsGroup = true
+			entries = entries.map(e => {
+				if(typeof(e.oid) == 'undefined'){
+					if(typeof(e.id) != 'undefined'){
+						e.oid = e.id
+						e.id = this.text2id(e.id)
+					}
+				}
+				return e
+			})
 			entries.forEach(e => {
 				let template = e.template, isOption = ['option', 'option-detailed', 'text', 'slider'].includes(template)
 				if(template == 'option' && e.details){
@@ -1161,7 +1178,13 @@ class ExplorerDialog extends ExplorerDialogQueue {
 						e['tag-icon'] = '<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQYV2NgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII=" style="background-image: url(&quot;'+ e.fa +'&quot;);"> '
 					}
 				}
+				if(e.isPassword){
+					tpl = tpl.replace('type="text"', 'type="password"')
+				}
 				console.warn('ENTRY', e)
+				if(!e.text){
+					e.text = e.plainText || ''
+				}
 				if(!e.plainText){
 					e.plainText = this.plainText(e.text)
 				}
@@ -1348,7 +1371,7 @@ class ExplorerPrompt extends ExplorerOpenFile {
 	constructor(jQuery, container, app){
 		super(jQuery, container, app)
 	}
-	prompt(question, placeholder, defaultValue, callback, multiline, fa, message, extraOpts){
+	prompt(question, placeholder, defaultValue, callback, multiline, fa, message, extraOpts, isPassword){
 		if(this.debug){
 			console.log('PROMPT', {question, placeholder, defaultValue, callback, multiline, fa, extraOpts})
 		}
@@ -1358,7 +1381,7 @@ class ExplorerPrompt extends ExplorerOpenFile {
 		if(message){
 			opts.splice(1, 0, {template: 'message', text: message})
 		}
-		opts.push({template: multiline === 'true' ? 'textarea' : 'text', text: defaultValue || '', id: 'text', placeholder})
+		opts.push({template: multiline === 'true' ? 'textarea' : 'text', text: defaultValue || '', id: 'text', isPassword, placeholder})
 		if(Array.isArray(extraOpts) && extraOpts.length){
 			opts = opts.concat(extraOpts)
 		} else {
@@ -1394,14 +1417,16 @@ class ExplorerPrompt extends ExplorerOpenFile {
 		this.emit('prompt-start')
 
 		p = this.modalContent.querySelector('#modal-template-option-submit')
-		p.addEventListener('keypress', (event) => {
-			if(this.debug){
-				console.log(event.keyCode)
-			}
-			if (event.keyCode != 13) {
-				arrowUpPressed()
-			}
-		})
+		if(p){
+			p.addEventListener('keypress', (event) => {
+				if(this.debug){
+					console.log(event.keyCode)
+				}
+				if (event.keyCode != 13) {
+					arrowUpPressed()
+				}
+			})
+		}
 		arrowUpPressed()
 		setTimeout(() => {
 			this.inputHelper.start()
@@ -1579,7 +1604,7 @@ class ExplorerStatusFlags extends ExplorerSlider {
 			if(!this.ranging || (i >= this.range.start && i <= this.range.end)){
 				if(e.url && typeof(this.statusFlags[e.url]) != 'undefined'){
 					let element = this.currentElements[i], status = this.statusFlags[e.url], type = element.getAttribute('data-type'), cls = e.class || ''
-					if(element && cls.indexOf('skip-testing') == -1 && !['spacer', 'action'].includes(type)){
+					if(element && cls.indexOf('skip-testing') == -1 && (cls.indexOf('allow-stream-state') != -1 || !['spacer', 'action'].includes(type))){
 						let content = ''
 						if(status == 'tune'){
 							content = '<i class="fas fa-layer-group"></i>'

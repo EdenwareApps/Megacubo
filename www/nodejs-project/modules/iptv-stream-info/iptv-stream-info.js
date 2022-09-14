@@ -40,15 +40,28 @@ class IPTVStreamInfo {
 						}
 						sample = Buffer.concat(sample)
 						let strSample = String(sample)
-						if(strSample.toLowerCase().indexOf('#ext-x-stream-inf') == -1){
-							done()
-						} else {
+						if(strSample.toLowerCase().indexOf('#ext-x-stream-inf') != -1){
 							let trackUrl = strSample.split("\n").map(s => s.trim()).filter(line => line.length > 3 && line.charAt(0) != '#').shift()
 							trackUrl = this.absolutize(trackUrl, url)
-							return this._probe(trackUrl, timeoutSecs, retries).then(resolve).catch(err => {
+							return this._probe(trackUrl, timeoutSecs, retries).then( resolve ).catch(err => {
 								console.error('HLSTRACKERR', err, url, trackUrl)
-								done()
+								reject(err)
 							})
+						} else if(strSample.toLowerCase().indexOf('#extinf') != -1){
+							let trackUrl = strSample.split("\n").map(s => s.trim()).filter(line => line.length > 3 && line.charAt(0) != '#').shift()
+							trackUrl = this.absolutize(trackUrl, url)
+							return this._probe(trackUrl, timeoutSecs, retries).then(ret =>{
+								if(ret && ret.status && ret.status >= 200 && ret.status < 300){
+									done() // send data from m3u8
+								} else {
+									resolve(ret) // send bad data from ts
+								}
+							}).catch(err => {
+								console.error('HLSTRACKERR', err, url, trackUrl)
+								reject(err)
+							})
+						} else {
+							done()
 						}
 					}
 				}
@@ -168,12 +181,24 @@ class IPTVStreamInfo {
 		})
 	}
     absolutize(path, url){
-		if(!path) return url
+		if(!path){
+			return url
+		}
+		if(path.startsWith('//')){
+			path = 'http:'+ path
+		}
         if(path.match(new RegExp('^[htps:]?//'))){
             return path
         }
-        let uri = new URL(path, url)
-        return uri.href
+		if(url.startsWith('//')){
+			url = 'http:'+ url
+		}
+        let uri
+		try {
+			uri = new URL(path, url)
+			return uri.href
+		} catch(e) { }
+        return uri
     }
     ext(file){
 		let basename = String(file).split('?')[0].split('#')[0].split('/').pop()

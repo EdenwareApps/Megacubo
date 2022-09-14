@@ -33,6 +33,11 @@ class Writer extends Events {
 			}
 		})
 	}
+	check(cb){
+		fs.stat(this.file, (err) => {
+			cb(!err)
+		})
+	}
 	pump(){
 		if(this.writing) {
 			return
@@ -75,13 +80,19 @@ class Writer extends Events {
 			fs.write(fd, data, 0, data.length, position, (err, writtenBytes) => {
 				if(err){
 					if(this.debug){
-						console.error('writeat error', err)
+						console.error('writeat error: '+ String(err), err)
 					}
 					if(this.destroyed){
 						cb()
 					} else {
-						this.writeQueue.unshift({data, position})
+						this.check(fine => {
+							if(fine){
+								this.writeQueue.unshift({data, position})
+							}
+							cb()
+						})
 					}
+					return
 				} else {
 					if(writtenBytes < len){
 						if(this.debug){

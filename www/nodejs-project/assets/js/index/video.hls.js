@@ -461,11 +461,25 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 			})
 			this.hls.on(Hls.Events.MANIFEST_PARSED, () => {
 				this.resume()
+				this.emit('audioTracks', this.audioTracks())
+				this.emit('subtitleTracks', this.subtitleTracks())
 			})
 			this.hls.attachMedia(this.object)
 		}
 		cb()
 	}	
+	audioTracks(){
+		return this.formatTracks(this.hls.audioTracks, this.hls.audioTrack)
+	}
+	audioTrack(trackId){
+		this.hls.audioTrack = trackId
+	}
+	subtitleTracks(){
+		return this.formatTracks(this.hls.subtitleTracks, this.hls.subtitleTrack)
+	}
+	subtitleTrack(trackId){
+		this.hls.subtitleTrack = trackId
+	}
 	restart(){
 		this.disconnect()
 		try{ // due to some nightmare errors crashing nwjs

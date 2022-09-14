@@ -24,13 +24,14 @@ class OMNI extends OMNIUtils {
         this.opts = {
             omniInterval: 1500
         }
-        this.autoSubmit = !parent.cordova
+        this.autoSubmit = false // accessibility :)
         this.omniTimer = 0, 
         this.type = '' 
         this.typing = ''
         this.defaultValue = ''
         this.input = jQuery('.explorer-omni input')
         this.element = jQuery('.explorer-omni > span')
+        this.button = jQuery('.explorer-omni .explorer-omni-submit')
         this.setup()
         this.bind()
     }
@@ -57,6 +58,11 @@ class OMNI extends OMNIUtils {
         }
     }
 	setup(){
+		this.button.on('click', event => {
+			if(!this.element.hasClass('selected') || !this.submit()){
+				this.focus(true)
+			}
+		})
 		this.element.on('click', event => {
 			if(!event.target.tagName || event.target.tagName.toLowerCase() != 'i' || !this.element.hasClass('selected') || !this.submit()){
 				this.focus(true)

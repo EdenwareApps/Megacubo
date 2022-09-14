@@ -49,7 +49,7 @@ class StorageBase {
 		return path.basename(file).replace('.expires', '').replace('.json', '')
 	}
 	prepareKey(key){ // should give same result if called multiple times
-		return key.replace(new RegExp('[^A-Za-z0-9\\._\\- ]', 'g'), '').substr(0, 128)
+		return String(key).replace(new RegExp('[^A-Za-z0-9\\._\\- ]', 'g'), '').substr(0, 128)
 	}
 }
 
@@ -60,6 +60,16 @@ class StoragePromises extends StorageBase {
 			get: (key, encoding) => {
 				return new Promise((resolve, reject) => {
 					this.get(key, resolve, encoding)
+				})
+			},
+			set: (key, val, expiration) => {
+				return new Promise((resolve, reject) => {
+					this.set(key, val, expiration, resolve)
+				})
+			},
+			delete: key => {
+				return new Promise((resolve, reject) => {
+					this.delete(key, resolve)
 				})
 			}
 		}

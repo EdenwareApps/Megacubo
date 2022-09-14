@@ -1,4 +1,3 @@
-const { lists } = require("../config/defaults")
 
 class Suggestions {
     constructor(master){
@@ -76,18 +75,53 @@ class Suggestions {
         })
         return results
     }
+    async featuredEntry(){
+        const key = 'epg-suggestions-featured-0'
+        let e = await global.storage.promises.get(key).catch(console.error)
+        if(!e || !e.name){
+            e = await this.get()
+            if(e.length){
+                const minWindow = 600, now = global.time(), validate = n => {
+                    return (n.program.e - minWindow) > now
+                }
+                if(e.some(n => n.program.i)){ // prefer entries with icons
+                    e = e.filter(n => n.program.i)
+                }
+                e = e.shift()
+                const ttl = Math.min(600, (e.program.e - minWindow) - now)
+                if (ttl > 0) {
+                    global.storage.promises.set(key, e, ttl)                    
+                }
+            } else {
+                e = null
+            }
+        }
+        return e
+    }
+    prepareCategories(data, limit){
+        const maxWords = 3, ndata = {}
+        Object.keys(data).filter(k => {
+			return k.split(' ').length <= maxWords
+		}).sort((a, b) => {
+            return data[b] - data[a]
+        }).slice(0, limit).forEach(k => {
+			ndata[k] = data[k]
+		})
+        return ndata
+    }
     async get(){
+        const categoriesLimit = 64
         const now = global.time()
         const timeRange = 24 * 3600
         const timeRangeP = timeRange / 100
         const until = now + timeRange  
         const amount = ((global.config.get('view-size-x') * global.config.get('view-size-y')) * 2) - 2
         const channels = this.channels()
-        const programmeCategories = this.programmeCategories()
-        const expandedCategories = await global.lists.epgExpandSuggestions(Object.keys(programmeCategories))
-        const allFoundCategories = [...new Set(Object.values(expandedCategories).flat().concat(Object.keys(programmeCategories)).filter(t => {
+        const programmeCategories = this.prepareCategories(this.programmeCategories(), categoriesLimit)
+        const expandedCategories = Object.keys(programmeCategories).length >= categoriesLimit ? {} : (await global.lists.epgExpandSuggestions(Object.keys(programmeCategories)))
+        const allFoundCategories = [...new Set(Object.keys(programmeCategories).concat(Object.values(expandedCategories).flat()).filter(t => {
             return t.split(' ').length <= 3 // filter too specific tags, like season+episode formatted ones
-        }))]
+        }))].slice(0, categoriesLimit)
         let data = await this.suggestions(allFoundCategories, until)
         console.log('suggestions.get', allFoundCategories, Object.keys(programmeCategories), expandedCategories)
         let results = this.mapDataToChannels(data)
@@ -112,7 +146,7 @@ class Suggestions {
                 } else if(allFoundCategories.includes(l)) {
                     Object.keys(expandedCategories).forEach(k => {
                         if(expandedCategories[k].includes(l)){
-                            console.warn('half score', k, l, programmeCategories[k])
+                            // console.warn('half score', k, l, programmeCategories[k])
                             score += (programmeCategories[k] / 2) // half score for indirect tags
                         }
                     })
@@ -178,11 +212,17 @@ class Suggestions {
         }
         // transform scores to percentages
         let maxScore = 0
-        results.forEach(r => { if(r.score > maxScore) maxScore = r.score })
+        results.forEach(r => { 
+            if(r.score > maxScore) maxScore = r.score 
+        })
         let ppScore = maxScore / 100
-        results.forEach((r, i) => results[i].score /= ppScore)
-        return results.slice(0, amount).sortByProp('start').map(r => {
+        results.forEach((r, i) => {
+            results[i].st = Math.min(r.start < now ? now : r.start)
+            results[i].score /= ppScore
+        })
+        return results.slice(0, amount).sortByProp('score', true).sortByProp('st').map(r => {
             const entry = global.channels.toMetaEntry(r.channel)
+            entry.program = r.programme
             entry.name = r.programme.t
             entry.originalName = r.channel.name
             entry.details = parseInt(r.score) +'% '

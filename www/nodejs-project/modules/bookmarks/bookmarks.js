@@ -21,12 +21,12 @@ class Bookmarks extends EntriesGroup {
                 if(!data.isLocal && !this.has(this.simplify(data))){
                     return {template: 'option', fa: 'fas fa-star', text: global.lang.ADD_TO.format(global.lang.BOOKMARKS), id: 'addfav'}
                 }
-            }, this.toggle.bind(this), null, true)
+            }, this.toggle.bind(this), 3)
             global.streamer.aboutRegisterEntry('remfav', data => {
                 if(!data.isLocal && this.has(this.simplify(data))){
                     return {template: 'option', fa: 'fas fa-star-half', text: global.lang.REMOVE_FROM.format(global.lang.BOOKMARKS), id: 'remfav'}
                 }
-            }, this.toggle.bind(this), null, true)
+            }, this.toggle.bind(this), 3)
         })
     }
     streamFilter(e){
@@ -45,7 +45,15 @@ class Bookmarks extends EntriesGroup {
                 isBookmarkable = true
             }
             if(isBookmarkable && entries.some(this.streamFilter)){
-                let bookmarker, bookmarkable = {name: path.split('/').pop(), type: 'group', entries: entries.filter(this.streamFilter)}
+                let name = path.split('/').pop(), ges = entries.filter(e => e.url)
+                if(ges.length){
+                    let gs = [...new Set(ges.map(e => e.groupName))]
+                    if(gs.length == 1 && gs[0]){
+                        name = gs[0]
+                    }
+                }
+                ges = null
+                let bookmarker, bookmarkable = {name, type: 'group', entries: entries.filter(this.streamFilter)}
                 console.log('bookmarkable', bookmarkable)
                 if(this.has(bookmarkable)){
                     bookmarker = {
@@ -202,7 +210,8 @@ class Bookmarks extends EntriesGroup {
             global.lists.search(this.currentBookmarkAddingByName.name, {
                 partial: true,
                 group: !this.currentBookmarkAddingByName.live,
-                safe: (global.config.get('parental-control-policy') == 'block')
+                safe: !global.lists.parentalControl.lazyAuth(),
+                limit: 1024
             }).then(results => {                
                 if(!this.currentBookmarkAddingByName.url || this.currentBookmarkAddingByName.url.indexOf('/') == -1){
                     let mediaType = 'all', entries = []
@@ -276,7 +285,7 @@ class Bookmarks extends EntriesGroup {
                         name: global.lang.REMOVE + ': ' + e.name, 
                         fa: 'fas fa-trash',
                         type: 'action',
-                        action: (data) => {
+                        action: data => {
                             this.remove(e)
                             if(this.get().length){
                                 global.explorer.refresh()

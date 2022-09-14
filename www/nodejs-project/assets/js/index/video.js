@@ -73,16 +73,39 @@ class VideoControl extends EventEmitter {
 		return 0
 	}
 	show(){
-		$('html').addClass('playing')
-		if(!(this.current instanceof VideoControlAdapterAndroidNative)){
-			this.container.style.display = 'flex'
-			this.container.querySelectorAll('video, audio').forEach(e => {
-				e.style.display = (e == this.current.object) ? 'block' : 'none'
-			})
+		const h = $('html'), useCurtains = this.config['fx-nav-intensity']
+		if(useCurtains){
+			h.removeClass('curtains-static').removeClass('curtains-close').addClass('curtains')
 		}
+		if(this.revealTimer){
+			clearTimeout(this.revealTimer)
+		}
+		this.revealTimer = setTimeout(() => {
+			h.addClass('playing')
+			if(useCurtains){
+				h.removeClass('curtains')
+			}
+			$(document.querySelector('iframe').contentWindow.document.body).addClass('video')
+			if(!(this.current instanceof VideoControlAdapterAndroidNative)){
+				this.container.style.display = 'flex'
+				this.container.querySelectorAll('video, audio').forEach(e => {
+					e.style.display = (e == this.current.object) ? 'block' : 'none'
+				})
+			}
+		}, 400)
 	}
 	hide(){
-		$('html').removeClass('playing')
+		if(this.revealTimer){
+			clearTimeout(this.revealTimer)
+		}
+		const h = $('html'), useCurtains = this.config['fx-nav-intensity']
+		h.removeClass('playing')
+		if(useCurtains){
+			h.addClass('curtains-static').removeClass('curtains').removeClass('curtains-close')
+			setTimeout(() => {
+				h.addClass('curtains-close')
+			}, 0)
+		}
 		this.container.style.display = 'none'
 	}
 	resume(){
@@ -158,6 +181,14 @@ class VideoControl extends EventEmitter {
 				if(!this.current) return
 				this.emit('request-transcode')
 			})
+			a.on('audioTracks', tracks => {
+				if(!this.current) return
+				this.emit('audioTracks', tracks)
+			})
+			a.on('subtitleTracks', tracks => {
+				if(!this.current) return
+				this.emit('subtitleTracks', tracks)
+			})
 			a.on('error', (err, fatal) => {
 				if(!this.current){
 					try { // a.disconnect() is not a function
@@ -189,6 +220,28 @@ class VideoControl extends EventEmitter {
 			this.adapters[this.adapter] = a
 		}
 		this.current = this.adapters[this.adapter]
+	}
+	audioTracks(){
+		if(this.current){
+			return this.current.audioTracks()
+		}
+		return []
+	}
+	audioTrack(trackId){
+		if(this.current){
+			this.current.audioTrack(trackId)
+		}
+	}
+	subtitleTracks(){
+		if(this.current){
+			return this.current.subtitleTracks()
+		}
+		return []
+	}
+	subtitleTrack(trackId){
+		if(this.current){
+			this.current.subtitleTrack(trackId)
+		}
 	}
 	unload(){
 		console.log('unload', traceback())
@@ -298,6 +351,8 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 				}
 				this.ratio(r)
 			}
+			this.emit('audioTracks', this.audioTracks())
+			this.emit('subtitleTracks', this.subtitleTracks())
 		});
 		['abort', 'canplay', 'canplaythrough', 'durationchange', 'emptied', 'ended', 'error', 'loadeddata', 'loadedmetadata', 'loadstart', 'pause', 'play', 'playing', 'seeked', 'stalled', 'suspend', 'waiting'].forEach(n => {
 			v.on(n, this.processState.bind(this))
@@ -387,14 +442,9 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 			if(typeof(this.ratioDirection) == 'undefined' || this.ratioDirection != rd || s != this._ratio || portrait != this.inPortrait){
 				this.inPortrait = portrait
 				this._ratio = s
-				let invRatio = 1 - (s - 1)
 				this.ratioDirection = rd
 				if(this.inPortrait){
-					//if(this.ratioDirection){
-					//	css = 'player > div { height: 100vh; width: calc(100vh * ' + this._ratio + '); }'
-					//} else {
-						css = 'player > div { width: 100vw; height: calc(100vw / ' + this._ratio + '); }'
-					//}
+					css = 'player > div { width: 100vw; height: calc(100vw / ' + this._ratio + '); }'
 				} else {
 					if(this.ratioDirection){
 						css = 'player > div { height: 100vh; width: calc(100vh * ' + this._ratio + '); }'
@@ -462,6 +512,39 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 			this.object.volume = l / 100
 		}
 	}
+	audioTracks(){
+		return this.formatTracks(this.object.audioTracks)
+	}
+	audioTrack(trackId){
+		for (let i = 0; i < this.object.audioTracks.length; i++) {
+			this.object.audioTracks[i].enabled = i == trackId
+		}
+	}
+	subtitleTracks(){
+		return this.formatTracks(this.object.subtitleTracks)
+	}
+	subtitleTrack(trackId){
+		for (let i = 0; i < this.object.subtitleTracks.length; i++) {
+			this.object.subtitleTracks[i].enabled = i == trackId
+		}
+	}
+	formatTracks(tracks, activeId){
+		if(!tracks || typeof(tracks) != 'object'){
+			return []
+		}
+		if(!Array.isArray(tracks)){
+			tracks = Array.from(tracks)
+		}
+		const allow = ['id', 'lang', 'enabled', 'label', 'name']
+		return tracks.map(t => {
+			const ts = {}
+			Object.keys(t).filter(k => allow.includes(k)).forEach(k => ts[k] = t[k])
+			if(typeof(activeId) != 'undefined' && activeId == ts.id){
+				ts.enabled = true
+			}
+			return ts
+		})
+	}
 	destroy(){
 		console.log('adapter destroy')
 		this.pause()
@@ -516,6 +599,12 @@ class VideoControlAdapterAndroidNative extends VideoControlAdapter {
 			this.duration = this.object.duration
 			this.emit('durationchange')
 		})
+		this.object.on('audioTracks', tracks => {
+			this.emit('audioTracks', tracks)
+		})		
+		this.object.on('subtitleTracks', tracks => {
+			this.emit('subtitleTracks', tracks)
+		})		
 		this.object.on('error', (err, data) => {
 			console.log('Error: ', err, 'data:', data)
 			this.emit('error', String(err), true)
@@ -581,6 +670,18 @@ class VideoControlAdapterAndroidNative extends VideoControlAdapter {
 	}	
 	volume(l){
 		this.object.volume(l)
+	}
+	audioTrack(trackId){
+		return this.object.audioTrack(trackId)
+	}
+	audioTracks(){
+		return this.object.audioTracks()
+	}
+	subtitleTrack(trackId){
+		return this.object.subtitleTrack(trackId)
+	}
+	subtitleTracks(){
+		return this.object.subtitleTracks()
 	}
 	destroy(){
 		this.unload()
@@ -656,8 +757,12 @@ class WinMan extends EventEmitter {
 		}
 		try {
 			w.streamer.stop()
-			w.$('wrap').html('<div style="vertical-align: middle; height: 100%; display: flex; justify-content: center; align-items: center;"><i class="fa-mega" style="font-size: 25vh;color: var(--font-color);"></i></div>')
-			w.$('#home-arrows').hide()
+			//w.$('wrap').html('<div style="vertical-align: middle; height: 100%; display: flex; justify-content: center; align-items: center;"><i class="fa-mega" style="font-size: 25vh;color: var(--font-color);"></i></div>')
+			//w.$('#home-arrows').hide()
+			const useCurtains = this.config['fx-nav-intensity']
+			if(useCurtains){
+				$('html').removeClass('curtains-close').addClass('curtains')
+			}
 		} catch(e) {
 			console.error(e)
 		}
@@ -711,16 +816,18 @@ class WinMan extends EventEmitter {
 				this.setBackgroundMode(false, true)
 			}
 			this.exitUI()
-			if(w){
-				w.app.emit('exit')
-			}
-			if(typeof(cordova) != 'undefined'){
-				setTimeout(() => { // give some time to backgroundMode.disable() to remove the notification
-					navigator.app.exitApp()
-				}, 400)
-			} else {
-				top.Manager.close()
-			}
+			setTimeout(() => {
+				if(w){
+					w.app.emit('exit')
+				}
+				if(typeof(cordova) != 'undefined'){
+					setTimeout(() => { // give some time to backgroundMode.disable() to remove the notification
+						navigator.app.exitApp()
+					}, 400)
+				} else {
+					top.Manager.close()
+				}
+			}, 500)
 		}
 	}
 }

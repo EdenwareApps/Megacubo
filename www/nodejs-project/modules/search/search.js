@@ -62,7 +62,7 @@ class Search extends Events {
                     }
                 })
                 es = es.map(e => global.channels.toMetaEntry(e, false))
-                es = global.lists.parentalControl.filter(es)
+                es = global.lists.parentalControl.filter(es, true)
                 es = this.addFixedEntries(this.currentSearchType, es)
                 resolve(es)
             }).catch(global.displayErr)
@@ -139,11 +139,26 @@ class Search extends Events {
             if(mediaType == 'live'){
                 es.push({
                     name: global.lang.MORE_RESULTS,
-                    details: this.currentSearch.name,
+                    details: global.lang.SEARCH_MORE,
                     type: 'action',
                     fa: 'fas fa-search-plus',
-                    action: () => {
-                        this.go(this.currentSearch.name, 'all')
+                    action: async () => {
+                        let opts = [
+                            {template: 'question', text: global.lang.SEARCH_MORE, fa: 'fas fa-search-plus'},
+                            {template: 'option', text: global.lang.EPG, details: global.lang.LIVE, fa: 'fas fa-th', id: 'epg'},
+                            {template: 'option', text: global.lang.IPTV_LISTS, details: global.lang.MOVIES +', '+ global.lang.SERIES, fa: 'fas fa-list', id: 'lists'}
+                        ], def = 'epg'
+                        let ret = await global.explorer.dialog(opts, def)
+                        if(ret == 'epg'){
+                            global.channels.epgSearch(this.currentSearch.name).then(entries => {
+                                entries.unshift(global.channels.epgSearchEntry())
+                                let path = global.explorer.path.split('/').filter(s => s != global.lang.SEARCH).join('/')
+                                global.explorer.render(entries, path + '/' + global.lang.SEARCH, 'fas fa-search', path)
+                                global.search.history.add(this.currentSearch.name)
+                            }).catch(global.displayErr)
+                        } else {
+                            this.go(this.currentSearch.name, 'all')
+                        }
                     }
                 })
             }
@@ -168,17 +183,18 @@ class Search extends Events {
             typeStrict: this.searchStrict,
             group: this.searchMediaType != 'live'
         })
-        const parentalControlActive = global.config.get('parental-control-policy') == 'block'
-        const isAdultQueryBlocked = parentalControlActive && !global.lists.parentalControl.allow(u)
+        const policy = global.config.get('parental-control')
+        const parentalControlActive = ['remove', 'block'].includes(policy)
+        const isAdultQueryBlocked = policy == 'remove' && !global.lists.parentalControl.allow(u)
         let es = await global.lists[global.config.get('unoptimized-search') ? 'unoptimizedSearch' : 'search'](terms, {
             partial: this.searchInaccurate, 
             type: this.searchMediaType, 
             typeStrict: this.searchStrict,
             group: this.searchMediaType != 'live',
-            parentalControl: isAdultQueryBlocked ? false : undefined // allow us to count blocked results
+            parentalControl: policy == 'remove' ? false : undefined // allow us to count blocked results
         })
         es = (es.results && es.results.length) ? es.results : ((es.maybe && es.maybe.length) ? es.maybe : [])
-        console.log('has searched', terms, es.length)
+        console.log('has searched', terms, es.length, parentalControlActive, isAdultQueryBlocked)
         if(isAdultQueryBlocked) {
             es = [
                 {
@@ -188,34 +204,15 @@ class Search extends Events {
                     fa: 'fas fa-lock',
                     type: 'action',
                     action: () => {
-                        global.ui.emit('info', global.lang.ADULT_CONTENT_BLOCKED, global.lang.ADULT_CONTENT_BLOCKED_INFO.format(global.lang.OPTIONS, global.lang.SECURITY))
+                        global.ui.emit('info', global.lang.ADULT_CONTENT_BLOCKED, global.lang.ADULT_CONTENT_BLOCKED_INFO.format(global.lang.OPTIONS, global.lang.ADULT_CONTENT))
                     }
                 }
             ]
-        } else if(es) {
-            let parentalControlBlockedCount = 0
-            es = es.map(e => {
-                e.details = e.groupName || ''
-                return e
-            }).filter(e => {
-                if(!parentalControlActive || global.lists.parentalControl.allow(e)){
-                    return true
-                }
-                parentalControlBlockedCount++
-            })
-            this.currentResults = es.slice(0)
-            if(parentalControlBlockedCount){
-                es.push({
-                    prepend: '<i class="fas fa-info-circle"></i> ',
-                    name: global.lang.X_BLOCKED_RESULTS.format(parentalControlBlockedCount),
-                    details: global.lang.ADULT_CONTENT_BLOCKED,
-                    fa: 'fas fa-lock',
-                    type: 'action',
-                    action: () => {
-                        global.ui.emit('info', global.lang.ADULT_CONTENT_BLOCKED, global.lang.ADULT_CONTENT_BLOCKED_INFO.format(global.lang.OPTIONS, global.lang.SECURITY))
-                    }
-                })
+        } else {
+            if(es.length) {
+                es = global.lists.parentalControl.filter(es)
             }
+            this.currentResults = es.slice(0)
             let minResultsWanted = (global.config.get('view-size-x') * global.config.get('view-size-y')) - 3
             if(this.useYTFallback && es.length < minResultsWanted){                
                 let ys = await this.ytResults(terms).catch(console.error)

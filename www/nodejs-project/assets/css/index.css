@@ -181,6 +181,9 @@ input {
     align-items: center;
     white-space: nowrap;
 }
+#explorer header i {
+    font-size: calc(1.125 * var(--explorer-entry-name-font-size));
+}
 #explorer header .explorer-location {
     width: 100%; /* Android <9 compat */
 }
@@ -233,6 +236,12 @@ body.video #explorer header .explorer-omni {
     cursor: pointer;
     font-size: var(--explorer-entry-name-font-size);
 }
+.explorer-omni-submit {
+    justify-content: center;
+    align-items: center;
+    height: calc(var(--explorer-entry-name-font-size) + (2 * var(--explorer-padding)));
+    padding: 0 var(--padding);
+}
 #explorer header .explorer-location-text {
     margin-top: calc(var(--padding) * -0.075);
 }
@@ -258,17 +267,17 @@ body.video #explorer header .explorer-omni {
     font-size: var(--explorer-entry-name-font-size);
     height: var(--explorer-entry-name-font-size);
 }
-#header-shutdown {
+.header-entry {
     margin-left: var(--padding);
-    border-radius: 1vmax;
+    border-radius: 5vmax;
     padding: var(--padding-quarter) var(--padding-half);
     color: white;
+    font-size: calc(1.125 * var(--explorer-entry-name-font-size));
 }
-#header-shutdown.selected {
-    border: 1px solid var(--secondary-font-color);
-    background: rgba(255,255,255,0.3);
+.header-entry.selected {
+    background: linear-gradient(to bottom, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.4) 10%, rgba(255,255,255,0.2) 100%);
 }
-body.video #explorer #header-shutdown {
+body.video #explorer .header-entry {
     display: none;
 }
 body:not(.video) #explorer header .logo {
@@ -372,6 +381,9 @@ div#home-arrows > div > * {
 }
 #explorer content a .entry-icon-image i.fa-play-circle {
     opacity: var(--opacity-level-4);
+}
+#explorer content a .entry-icon-image i.fa-toggle-off {
+    opacity: 0.65;
 }
 #explorer content a .entry-icon-image {
     width: 92%;
@@ -497,7 +509,10 @@ body.video.seek-fwd div#seek-fwd {
     visibility: visible;
 }
 div#loading-layer {
+    opacity: 0;
+    transition: opacity 0.5s ease-in 0s;
     flex-direction: column;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.125) 0%, rgba(0, 0, 0, 0.068) 80%, rgba(0, 0, 0, 0.042) 90%, transparent 100%);
 }
 div#loading-layer i.fa-mega {
     font-size: 150%;
@@ -512,6 +527,16 @@ div#loading-layer > span.loading-layer-status > span {
     border-radius: 25vmin;
     position: relative;
     top: -2vmin;
+}
+body.idle div#loading-layer > span.loading-layer-status {
+    position: absolute;
+    bottom: 15vmin;
+}
+body.idle div#loading-layer > .control-layer-icon {
+    display: none;
+}
+body.video-loading #loading-layer {
+    opacity: 1;
 }
 .control-layer i {
     filter: drop-shadow(0 0 0.75vmin black);
@@ -777,8 +802,8 @@ controls button.info.faclr-green i.about-icon-dot-first, seekbar.faclr-green > d
     box-shadow: 0 0 2vmin 0.2vmin #0f0;
 }
 controls button.info.faclr-orange i.about-icon-dot-second, seekbar.faclr-orange > div > div {
-    background: #d6e600;
-    box-shadow: 0 0 2vmin 0.2vmin #d6e600;
+    background: #b6e013;
+    box-shadow: 0 0 2vmin 0.2vmin #b6e013;
 }
 controls button.info.faclr-red i.about-icon-dot-third, seekbar.faclr-red > div > div {
     background: #f05;
@@ -788,7 +813,7 @@ controls button.recording.faclr-green i {
     color: #0f0;
 }
 controls button.recording.faclr-orange i {
-    color: #d6e600;
+    color: #b6e013;
 }
 controls button.recording.faclr-red i {
     color: #f05;
@@ -799,8 +824,8 @@ controls button.recording.faclr-red i {
     margin-right: 0.8vmin;
 }
 .modal-template-message i.fa-circle.faclr-orange {
-    color: #d6e600 !important;
-    filter: drop-shadow(0 0 0.4vmin #d6e600);
+    color: #b6e013 !important;
+    filter: drop-shadow(0 0 0.4vmin #b6e013);
     margin-right: 0.8vmin;
 }
 .modal-template-message i.fa-circle.faclr-red {
@@ -912,7 +937,7 @@ body.video #osd-root {
     margin-bottom: var(--padding-quarter);
     opacity: 1;
     background: var(--modal-background-color);
-    max-width: calc(100% - (9 * var(--explorer-entry-name-font-size))); /* dont override clock */
+    max-width: 98%;
 }
 #osd-root > div:not(.osd-highlight) {    
     padding: calc(var(--padding) / 8) var(--padding) calc(var(--padding) / 8) var(--padding);
@@ -1398,6 +1423,10 @@ body.menu-playing #main {
 }
 .entry-cover label {
     text-transform: uppercase;
+}
+.entry-cover .entry-data-in {
+    filter: var(--drop-shadow);
+    background: radial-gradient(ellipse farthest-corner, rgba(0, 0, 0, 0.15) 33%, transparent 72%);
 }
 .entry-cover-active > div > img {
     object-fit: cover;

@@ -38,6 +38,9 @@ parentPort.on('message', msg => {
     if(msg.method == 'configChange'){
         //console.log('CONFIG CHANGED!', file)
         global.config.reload()
+        setTimeout(() => {
+            global.config.reload() // read again after some seconds, the config file may delay on writing
+        }, 3000)
     } else if(typeof(driver[msg.method]) == 'undefined'){
         data = {id: msg.id, type: 'reject', data: 'method not exists'}
         parentPort.postMessage(data)

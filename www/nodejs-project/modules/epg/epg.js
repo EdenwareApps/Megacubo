@@ -214,7 +214,7 @@ class EPG extends Events {
     programme(programme){
         if(programme && programme.channel && programme.title.length){
             const now = this.time(), start = this.time(programme.start), end = this.time(programme.end)
-            programme.channel = this.prepareChannelName(this.cidToDisplayName(programme.channel))
+            programme.channel = this.cidToDisplayName(programme.channel)
             if(end >= now && end <= (now + this.ttl)){
                 if(!this.hasProgramme(programme.channel, start)){
                     this.indexate(programme.channel, start, this.prepareProgrammeData(programme, end))
@@ -261,73 +261,55 @@ class EPG extends Events {
             })
         })
     }
-    channelsList(){
-        let already = [], data = {}, maxCategoriesCount = 3
+    liveNowChannelsListFilterCategories(cs){
+        cs = cs.filter(c => {
+            return c.split(' ').length <= 3
+        })
+        if(cs.length > 1){
+            let ncs = cs.filter(c => {
+                return c.match(new RegExp('[A-Za-z]'))
+            })
+            if(ncs.length){
+                cs = ncs
+            }
+            if(cs.length > 1){
+                ncs = cs.filter(c => {
+                    return c.split(' ').length <= 2
+                })
+                if(ncs.length){
+                    cs = ncs
+                }
+            }
+        }
+        return cs
+    }
+    liveNowChannelsList(){
+        let categories = {}, now = this.time(), updateAfter = 600
         Object.keys(this.data).forEach(channel => {
-            let lcname = channel.toLowerCase()
-            if(!already.includes(lcname)){
-                already.push(lcname)
-                let max, categories = {}
-                Object.keys(this.data[channel]).forEach(start => {
+            const name = this.prepareChannelName(channel)
+            Object.keys(this.data[channel]).some(start => {
+                if(this.data[channel][start].e > now && parseInt(start) <= now){
                     if(Array.isArray(this.data[channel][start].c)){
-                        this.data[channel][start].c.forEach(category => {
+                        this.liveNowChannelsListFilterCategories(this.data[channel][start].c).forEach(category => {
+                            category = global.ucWords(category)
                             if(category.indexOf('/') != -1){
                                 category = category.replaceAll('/', ' ')
                             }
                             if(typeof(categories[category]) == 'undefined'){
-                                categories[category] = 0
+                                categories[category] = []
                             }
-                            categories[category]++
+                            if(!categories[category].includes(name)){
+                                categories[category].push(name)
+                            }
                         })
                     }
-                })
-                categories = Object.fromEntries(Object.entries(categories).sort(([,a],[,b]) => b-a))
-                categories = Object.keys(categories).slice(0, maxCategoriesCount).filter(c => {
-                    if(!max){
-                        max = categories[c]
-                        return true
+                    let requiresUpdateAfter = Math.max(this.data[channel][start].e - now, 10)
+                    if(requiresUpdateAfter < updateAfter){
+                        updateAfter = requiresUpdateAfter
                     }
-                    return categories[c] >= (max / 2)
-                })
-                categories.forEach(c => {
-                    if(typeof(data[c]) == 'undefined'){
-                        data[c] = []
-                    }
-                    data[c].push(channel)
-                })
-            }
-        })
-        return data
-    }
-    liveNowChannelsList(){
-        let already = [], categories = {}, now = this.time(), updateAfter = 600
-        Object.keys(this.data).forEach(channel => {
-            let lcname = channel.toLowerCase()
-            if(!already.includes(lcname)){
-                already.push(lcname)
-                Object.keys(this.data[channel]).some(start => {
-                    if(this.data[channel][start].e > now && parseInt(start) <= now){
-                        if(Array.isArray(this.data[channel][start].c)){
-                            this.data[channel][start].c.forEach(category => {
-                                if(category.indexOf('/') != -1){
-                                    category = category.replaceAll('/', ' ')
-                                }
-                                if(typeof(categories[category]) == 'undefined'){
-                                    categories[category] = []
-                                }
-                                if(!categories[category].includes(channel)){
-                                    categories[category].push(channel)
-                                }
-                            })
-                        }
-                        let requiresUpdateAfter = Math.max(this.data[channel][start].e - now, 10)
-                        if(requiresUpdateAfter < updateAfter){
-                            updateAfter = requiresUpdateAfter
-                        }
-                        return true
-                    }
-                })
-            }
+                    return true
+                }
+            })
         })
         return {categories, updateAfter}
     }
@@ -401,10 +383,8 @@ class EPG extends Events {
         return results
     }
     prepareChannelName(name){
-        return name
-
-        //const badTerms = ['H.265', 'H.264', 'SD', 'HD', 'FHD', '2K', '4K', '8K']
-        //return name.split('[')[0].split(' ').filter(s => s && !badTerms.includes(s)).join(' ')
+        const badTerms = ['H.265', 'H.264', 'H265', 'H264', 'SD', 'HD', 'FHD', '2K', '4K', '8K']
+        return global.ucWords(name.split('[')[0].split(' ').filter(s => s && !badTerms.includes(s.toUpperCase())).join(' '))
     }
     hasProgramme(channel, start){
         return typeof(this.data[channel]) != 'undefined' && typeof(this.data[channel][start]) != 'undefined'
@@ -541,10 +521,14 @@ class EPG extends Events {
         })
         if(!candidates.length){
             Object.keys(this.terms).forEach(name => {
-                score = global.lists.match(this.terms[name], terms, false)
-                if(score && score >= maxScore){
-                    maxScore = score
-                    candidates.push({name, score})
+                if(Array.isArray(this.terms[name])){
+                    score = global.lists.match(this.terms[name], terms, false)
+                    if(score && score >= maxScore){
+                        maxScore = score
+                        candidates.push({name, score})
+                    }
+                } else {
+                    console.error('Not an array', this.terms[name], name)
                 }
             })
         }

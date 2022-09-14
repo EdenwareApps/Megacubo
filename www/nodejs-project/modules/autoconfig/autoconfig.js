@@ -63,7 +63,7 @@ class AutoConfig {
         return lists.length != 1 || lists[0][1] != data.m3u
     }
     shouldConfirmDisableParentalControl(v){ // prevent second dialog to show, if possible
-        return global.config.get('parental-control-policy') != v
+        return global.config.get('parental-control') != v
     }
     shouldConfirmDisableLists(data){ // prevent second dialog to show, if possible
         if(global.config.get('communitary-mode-lists-amount')){
@@ -88,11 +88,11 @@ class AutoConfig {
                 global.lists.manager.addList(data['m3u'], data['m3u_name']).catch(console.error)
             }
         }
-        if(data['parental-control-policy'] && global.config.get('parental-control-policy') != data['parental-control-policy']){
-            console.log('autoConfigure', data['parental-control-policy'])
-            let proceed = data['parental-control-policy'] == 'block' || (await this.confirmDisableParentalControl(data['parental-control-policy']))
+        if(data['parental-control'] && global.config.get('parental-control') != data['parental-control']){
+            console.log('autoConfigure', data['parental-control'])
+            let proceed = data['parental-control'] == 'block' || (await this.confirmDisableParentalControl(data['parental-control']))
             if(proceed){
-                global.config.set('parental-control-policy', data['parental-control-policy'])
+                global.config.set('parental-control', data['parental-control'])
                 global.explorer.refresh()
             }
         }

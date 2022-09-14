@@ -194,12 +194,12 @@ class StreamerBase extends StreamerTools {
 						receiveLimit: 1,
 						followRedirect: true
 					}).then(body => {
-						console.log('pingSource: ok', body)	
+						console.log('pingSource: ok')	
 						ret = String(body)
 					}).catch(err => {
 						console.warn('pingSource error?: '+ String(err))
 					}).finally(() => {
-						console.log('pingSource: unqueue resolving', ret)	
+						console.log('pingSource: unqueue resolving')
 						global.streamerPingSourceTTLs[url] = now + 600
 						this.pingSourceUnqueue(url, 'resolve', ret)
 					})
@@ -549,9 +549,109 @@ class StreamerThrottling extends StreamerSpeedo {
 	}
 }
 
-class StreamerTracks extends StreamerThrottling {
+class StreamerGoNext extends StreamerThrottling {
 	constructor(opts){
 		super(opts)
+		global.ui.on('video-ended', () => this.goNext().catch(global.displayErr))
+		this.on('pre-play-entry', e => this.goNextPrepare(e).catch(global.displayErr))
+		process.nextTick(() => {
+			this.aboutRegisterEntry('gonext', () => {
+				if(this.active.mediaType == 'video'){
+					return {template: 'option', fa: 'fas fa-step-forward', text: global.lang.GO_NEXT, id: 'gonext'}
+				}
+			}, this.goNext.bind(this), null, true)
+		})
+	}
+	sleep(ms){
+		return new Promise(resolve => setTimeout(resolve, ms))
+	}
+	async getNext(){
+		const entry = this.active ? this.active.data : this.lastActiveData
+		const entries = await global.storage.promises.get('streamer-go-next-queue').catch(console.error)
+		if(Array.isArray(entries)){
+			let next, found
+			entries.some(e => {
+				if(found){
+					next = e
+					return true
+				} else if(e.url == entry.url) {
+					found = true
+				}
+			})
+			return next
+		}
+	}
+	async goNextPrepare(e){
+		if(e.url){
+			const oentries = await global.storage.promises.get('streamer-go-next-queue').catch(console.error)
+			if(!Array.isArray(oentries) || !oentries.some(n => n.url == e.url)){
+				const entries = global.explorer.pages[global.explorer.path].filter(n => n.url)
+				if(entries.some(n => n.url == e.url)){
+					entries.forEach((n, i) => {
+						if(n.renderer) delete entries[i].renderer
+					})
+					global.storage.set('streamer-go-next-queue', entries, true)
+				}
+			}
+		}
+	}
+	async goNextUI(){
+
+	}
+	async goNext(){
+		const next = await this.getNext()
+		if(next){
+			const start = global.time(), delay = 5, ret = {}
+            global.osd.show(global.lang.GOING_NEXT_SECS_X.format(delay), 'fa-mega spin-x-alt', 'go-next', 'persistent')
+            ret.info = await this.info(next.url, 2, next.source).catch(err => ret.err = err)
+			const now = global.time()
+			if(!ret.err && (now - start) < 5){
+				await this.sleep((5 - (now - start)) * 1000)
+			}
+			global.osd.hide('go-next')
+			if(ret.ui == 'cancel'){
+				return
+			} else if(ret.err){
+				throw ret.err
+			} else {
+				return this.intentFromInfo(next, {}, undefined, ret.info)
+			}
+		}
+	}
+    intent(data, opts, aside){ // create intent
+        return new Promise((resolve, reject) => {
+			if(!this.throttle(data.url)){
+				return reject('401')
+			}
+			this.info(data.url, 2, data.source).then(nfo => {
+				this.intentFromInfo(data, opts, aside, nfo).then(resolve).catch(reject)
+			}).catch(err => {
+				if(this.opts.debug){
+					console.log('ERR', err)
+				}
+				if(String(err).match(new RegExp("(: 401|^401$)"))){
+					this.forbid(data.url)
+				}
+				reject(err)
+			})
+        })
+	}
+}
+
+class StreamerTracks extends StreamerGoNext {
+	constructor(opts){
+		super(opts)
+		global.ui.on('audioTracks', tracks => {
+			if(this.active){
+				this.active.audioTracks = tracks
+			}
+		})
+		global.ui.on('subtitleTracks', tracks => {
+			console.warn('subtitleTracks', tracks)
+			if(this.active){
+				this.active.subtitleTracks = tracks
+			}
+		})
 	}
 	getTrackOptions(tracks, activeTrack){
 		return Object.keys(tracks).map((name, i) => {
@@ -562,13 +662,30 @@ class StreamerTracks extends StreamerThrottling {
 			return opt
 		})
 	}
-	async showTrackSelector(){
+	getExtTrackOptions(tracks, activeTrack){
+		return tracks.map(track => {
+			let text = track.label || track.name
+			if(!text){				
+				if(track.lang){
+					text = track.lang +' '+ String(track.id)
+				} else {
+					text = String(track.id)
+				}
+			}
+			let opt = {template: 'option', text, id: 'track-'+ track.id}
+			if(track.id == activeTrack){
+				opt.fa = 'fas fa-play'
+			}
+			return opt
+		})
+	}
+	async showQualityTrackSelector(){
 		if(!this.active) return
-		let activeTrackId, activeTrack = this.active.getActiveTrack(), tracks = this.active.getTracks(), opts = this.getTrackOptions(tracks, activeTrack)
+		let activeTrackId, activeTrack = this.active.getActiveQualityTrack(), tracks = this.active.getQualityTracks(), opts = this.getTrackOptions(tracks, activeTrack)
 		opts.forEach(o => {
 			if(o.fa) activeTrackId = o.id
 		})
-		opts.unshift({template: 'question', text: global.lang.SELECT_TRACK})
+		opts.unshift({template: 'question', text: global.lang.SELECT_QUALITY})
 		let ret = await global.explorer.dialog(opts, activeTrackId)
 		if(ret){
 			let uri
@@ -579,6 +696,38 @@ class StreamerTracks extends StreamerThrottling {
 				this.active.endpoint = uri
 				this.connect()
 			}
+		}
+		return {ret, opts}
+	}
+	async showAudioTrackSelector(){
+		if(!this.active) return
+		let activeTrackId, activeTrack = this.active.audioTrack, tracks = this.active.getAudioTracks(), opts = this.getExtTrackOptions(tracks, activeTrack)
+		opts.forEach(o => {
+			if(o.fa) activeTrackId = o.id
+		})
+		opts.unshift({template: 'question', fa: 'fas fa-volume-up', text: global.lang.SELECT_AUDIO})
+		let ret = await global.explorer.dialog(opts, activeTrackId)
+		console.warn('TRACK OPTS RET', ret, opts)
+		if(ret){
+			const n = ret.replace(new RegExp('^track\\-'), '')
+			this.active.audioTrack = n
+			global.ui.emit('streamer-audio-track', n)
+		}
+		return {ret, opts}
+	}
+	async showSubtitleTrackSelector(){
+		if(!this.active) return
+		let activeTrackId, activeTrack = this.active.subtitleTrack, tracks = this.active.getSubtitleTracks(), opts = this.getExtTrackOptions(tracks, activeTrack)
+		opts.forEach(o => {
+			if(o.fa) activeTrackId = o.id
+		})
+		opts.unshift({template: 'question', fa: 'fas fa-comments', text: global.lang.SELECT_SUBTITLE})
+		let ret = await global.explorer.dialog(opts, activeTrackId)
+		console.warn('TRACK OPTS RET', ret, opts)
+		if(ret){
+			const n = ret.replace(new RegExp('^track\\-'), '')
+			this.active.subtitleTrack = n
+			global.ui.emit('streamer-subtitle-track', n)
 		}
 		return {ret, opts}
 	}
@@ -616,10 +765,16 @@ class StreamerAbout extends StreamerTracks {
 				return {template: 'option', text: global.lang.MORE_OPTIONS, id: 'more', fa: 'fas fa-ellipsis-v'}
 			}, this.moreAbout.bind(this))
 			this.aboutRegisterEntry('tracks', () => {
-				if(this.active.getTracks && Object.keys(this.active.getTracks()).length){
+				if(this.active.getQualityTracks && Object.keys(this.active.getQualityTracks()).length){
 					return {template: 'option', fa: 'fas fa-bars', text: global.lang.SELECT_TRACK, id: 'tracks'}
 				}
-			}, this.showTrackSelector.bind(this), null, true)
+			}, this.showQualityTrackSelector.bind(this), null, true)
+			this.aboutRegisterEntry('audiotracks', () => {
+				return {template: 'option', fa: 'fas fa-volume-up', text: global.lang.SELECT_AUDIO, id: 'audiotracks'}
+			}, this.showAudioTrackSelector.bind(this), null, true)
+			this.aboutRegisterEntry('subtitletracks', () => {
+				return {template: 'option', fa: 'fas fa-comments', text: global.lang.SELECT_SUBTITLE, id: 'subtitletracks'}
+			}, this.showSubtitleTrackSelector.bind(this), null, true)
 			global.ui.on('streamer-update-streamer-info', async () => {
 				if(this.active){
 					let opts = await this.aboutStructure(true)
@@ -633,10 +788,14 @@ class StreamerAbout extends StreamerTracks {
 	aboutRegisterEntry(id, renderer, action, position, more){
 		let e = {id, renderer, action}
 		let k = more ? 'moreAboutEntries' : 'aboutEntries'
-		if(typeof(position) == 'number'){
-			this[k].splice(position, 0, e)
+		if(this[k]){
+			if(typeof(position) == 'number' && position < this[k].length){
+				this[k].splice(position, 0, e)
+			} else {
+				this[k].push(e)
+			}
 		} else {
-			this[k].push(e)
+			console.error('aboutRegisterEntry ERR '+ k, this[k])
 		}
 	}
 	aboutStructure(short){
@@ -967,7 +1126,8 @@ class Streamer extends StreamerAbout {
 			await global.lists.manager.waitListsReady()
 			let entries = await global.lists.search(terms, {
 				type: 'live',
-				safe: (global.config.get('parental-control-policy') == 'block')
+				safe: !global.lists.parentalControl.lazyAuth(),
+                limit: 1024
 			})
 			if(this.connectId != connectId){
 				if(!silent){
@@ -1002,6 +1162,7 @@ class Streamer extends StreamerAbout {
 				e = Object.assign(Object.assign({}, e), opts)
 			}
 			console.warn('STREAMER INTENT', e);
+			this.emit('pre-play-entry', e)
 			let terms = global.channels.entryTerms(e)
 			this.setTuneable(!global.lists.msi.isVideo(e.url) && global.channels.isChannel(terms))
 			if(!silent){
@@ -1021,6 +1182,9 @@ class Streamer extends StreamerAbout {
 				this.emit('connecting-failure', e)
 				this.handleFailure(e, hasErr)
 			} else {
+				if(intent.mediaType != 'live'){
+					this.setTuneable(false)
+				}
 				console.warn('STREAMER INTENT SUCCESS', intent, e)
 				succeeded = true
 			}
@@ -1199,6 +1363,7 @@ class Streamer extends StreamerAbout {
 					case '410':
 						msg = global.lang.PLAYBACK_OFFLINE_STREAM
 						break
+					case '421':
 					case '453':
 					case '500':
 					case '502':

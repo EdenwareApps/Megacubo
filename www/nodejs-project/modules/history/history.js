@@ -98,7 +98,7 @@ class History extends EntriesGroup {
                                 global.lists.search(terms, {
                                     type: 'video',
                                     group: true,
-                                    safe: (global.config.get('parental-control-policy') == 'block')
+                                    safe: !global.lists.parentalControl.lazyAuth()
                                 }).then(es => {
                                     resolve(es.results)
                                 }).catch(reject)

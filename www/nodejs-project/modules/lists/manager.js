@@ -35,6 +35,12 @@ class Manager extends Events {
                 global.displayErr(err)
             })
         })
+        global.config.on('change', (keys, data) => {
+            if(keys.includes('use-epg-channels-list')){
+                console.warn('config change', keys, data)
+                this.setImportEPGChannelsListTimer(data['use-epg-channels-list'])
+            }
+        })
         this.updater = new (require(global.APPDIR + '/modules/driver')(global.APPDIR + '/modules/lists/driver-updater'))
         this.updater.on('list-updated', url => {
             console.log('List updated', url)
@@ -57,19 +63,19 @@ class Manager extends Events {
             if(this.updatingLists){
                 if(p.progress > 99){                
                     global.activeLists = p.activeLists
-                    if(global.activeLists.length){ // at least one list available
+                    if(global.activeLists.length) { // at least one list available
                         this.updatedLists(global.lang.LISTS_UPDATED, 'fas fa-check-circle')
                         console.log('LISTSUPDATED', JSON.stringify(p))
                         this.emit('lists-updated')
-                        if(typeof(this.updatingLists.onSuccess) == 'function'){
+                        if(typeof(this.updatingLists.onSuccess) == 'function') {
                             this.updatingLists.onSuccess()
                         }
                     } else {
                         const n = global.config.get('communitary-mode-lists-amount')
-                        if(n){
+                        if(n) {
                             console.warn('data-fetch-fail', n, global.activeLists)
                             this.updatedLists(global.lang.DATA_FETCHING_FAILURE, 'fas fa-exclamation-circle')
-                            if(typeof(this.updatingLists.onErr) == 'function'){
+                            if(typeof(this.updatingLists.onErr) == 'function') {
                                 this.updatingLists.onErr()
                             }
                         } else {
@@ -77,19 +83,20 @@ class Manager extends Events {
                         }
                     }
                     this.lastProgress = 0
+                    this.setImportEPGChannelsListTimer(global.config.get('use-epg-channels-list'))
                 } else if(typeof(global.osd) != 'undefined' && p.progress > this.lastProgress) {
                     this.lastProgress = p.progress
                     this.firstRun = p.firstRun
                     global.osd.show(global.lang[this.firstRun ? 'STARTING_LISTS_FIRST_TIME_WAIT' : 'UPDATING_LISTS'] + (p.progress ? ' '+ p.progress +'%' : ''), 'fa-mega spin-x-alt', 'update', 'persistent')
                 } 
             }
-            if(global.explorer && global.explorer.currentEntries){
+            if(global.explorer && global.explorer.currentEntries) {
                 if(
                     global.explorer.currentEntries.some(e => [global.lang.PROCESSING].includes(e.name)) ||
                     global.explorer.basename(global.explorer.path) == global.lang.COMMUNITY_LISTS
-                ){
+                ) {
                     global.explorer.refresh()
-                } else if(this.inChannelPage()){
+                } else if(this.inChannelPage()) {
                     this.maybeRefreshChannelPage()
                 }
             }
@@ -127,7 +134,7 @@ class Manager extends Events {
         console.log('maybeRefreshChannelPage', streamsCount, mega)
         if(mega && mega.terms){
             global.lists.search(mega.terms.split(','), {
-                safe: (global.config.get('parental-control-policy') == 'block'),
+                safe: !global.lists.parentalControl.lazyAuth(),
                 type: mega.mediaType, 
                 group: mega.mediaType != 'live'
             }).then(es => {
@@ -412,7 +419,8 @@ class Manager extends Events {
         }
     }
     async communityModeKeywords(){
-        let terms = [], cterms = global.config.get('community-mode-interests')
+        const badTerms = ['m3u8', 'ts', 'mp4', 'tv', 'channel']
+        let terms = [], cterms = global.config.get('communitary-mode-interests')
         if(cterms){ // user specified interests
             cterms = global.lists.terms(cterms, false).filter(c => c[0] != '-')
             if(cterms.length){
@@ -439,6 +447,7 @@ class Manager extends Events {
                 hterms.filter(t => !terms.includes(t)).forEach(t => terms.push(t))
             }
         }
+        terms = terms.filter(t => !badTerms.includes(t))
         if(!terms.length){ // as last resource, consider all channels
             terms = await global.channels.keywords()
         } else if(terms.length > 24) {
@@ -473,6 +482,8 @@ class Manager extends Events {
                                 })
                             }).catch(global.displayErr)
                         } else {
+                            this.parent.delimitActiveLists().catch(console.error)
+                            global.activeLists = {my: 0, community: 0, length: 0}
                             this.updatedLists(global.lang.NO_LIST_PROVIDED, 'fas fa-exclamation-circle') // warn user if there's no lists
                         }
                     }
@@ -588,101 +599,79 @@ class Manager extends Events {
         }}
     }
     myListsEntry(){
-        return {name: global.lang.MY_LISTS, details: global.lang.IPTV_LISTS, type: 'group', renderer: () => {
-            return new Promise((resolve, reject) => {
+        return {
+            name: global.lang.MY_LISTS, 
+            details: global.lang.IPTV_LISTS, 
+            type: 'group', 
+            renderer: async () => {
                 let lists = this.get(), opts = []
-                async.eachOfLimit(lists, 8, (data, i, done) => {
-                    let name = data[0], url = data[1]
-                    this.parent.getListMetaValue(url, 'name', _name => {
-                        if(_name){
-                            name = _name
-                        }
-                        opts.push({
-                            name, 
-                            url,
-                            fa: 'fas fa-satellite-dish', 
-                            type: 'group', 
-                            class: 'skip-testing',
-                            renderer: () => {
-                                return new Promise((resolve, reject) => {
-                                    let es = []
-                                    this.parent.directListRenderer({url}).then(ret => {
-                                        es = ret
-                                        console.log('DIRECTLISTRENDERER RET', ret)
-                                    }).catch(err => {
-                                        global.displayErr(err)
-                                    }).finally(() => {
-                                        let next = () => {
-                                            es.unshift({
-                                                name: global.lang.EDIT,
-                                                fa: 'fas fa-edit', 
-                                                type: 'select',
-                                                entries: [
-                                                    {
-                                                        name: global.lang.RENAME, 
-                                                        fa: 'fas fa-edit', 
-                                                        type: 'input', 
-                                                        class: 'skip-testing', 
-                                                        action: (e, v) => {
-                                                            if(v !== false){
-                                                                let path = global.explorer.path, parentPath = global.explorer.dirname(global.explorer.dirname(path))
-                                                                if(path.indexOf(name) != -1){
-                                                                    path = path.replace('/'+ name, '/'+ v)
-                                                                } else {
-                                                                    path = false
-                                                                }
-                                                                name = v
-                                                                this.rename(url, v)
-                                                                if(path){
-                                                                    delete global.explorer.pages[parentPath]
-                                                                    global.explorer.open(path).catch(global.displayErr)
-                                                                } else {
-                                                                    global.explorer.back(1, true)
-                                                                }
-                                                            }
-                                                        },
-                                                        value: () => {
-                                                            return name
-                                                        },
-                                                        safe: true
-                                                    },
-                                                    {
-                                                        name: global.lang.REMOVE_LIST, 
-                                                        fa: 'fas fa-trash', 
-                                                        type: 'action', url, 
-                                                        class: 'skip-testing', 
-                                                        action: this.removeList.bind(this)
-                                                    }
-                                                ]
-                                            })
-                                            resolve(es)
-                                        }
-                                        if(es && es.length){
-                                            es = this.parent.parentalControl.filter(es)
-                                            es = this.parent.tools.deepify(es, url)  
-                                        }
-                                        next()
-                                    })
-                                })
+                const extInfo = await global.lists.getListsInfo()
+                return lists.map(row => {
+                    let url = row[1], name = extInfo[url].name || row[0] || this.nameFromSourceURL(url)
+                    let icon = extInfo[url].icon || undefined
+                    let details = extInfo[url].author || ''
+                    return {
+                        name, url, icon, details,
+                        fa: 'fas fa-satellite-dish',
+                        type: 'group',
+                        class: 'skip-testing',
+                        renderer: async () => {
+                            let es = await this.parent.directListRenderer({url}).catch(err => global.displayErr(err))
+                            if(!Array.isArray(es)){
+                                es = []
                             }
-                        })
-                        done()
-                    })
-                }, () => {
-                    opts.push(this.addListEntry())
-                    opts.push(this.addCodeEntry())
-                    if(!lists.length){
-                        opts.push({
-                            name: global.lang.NO_LIST,
-                            fa: 'fas fa-info-circle',
-                            type: 'action',
-                            action: () => {}
-                        })
+                            if(es && es.length){
+                                es = this.parent.parentalControl.filter(es)
+                                es = this.parent.tools.deepify(es, url)  
+                            }
+                            es.unshift({
+                                name: global.lang.EDIT,
+                                fa: 'fas fa-edit', 
+                                type: 'select',
+                                entries: [
+                                    {
+                                        name: global.lang.RENAME, 
+                                        fa: 'fas fa-edit', 
+                                        type: 'input', 
+                                        class: 'skip-testing', 
+                                        action: (e, v) => {
+                                            if(v !== false){
+                                                let path = global.explorer.path, parentPath = global.explorer.dirname(global.explorer.dirname(path))
+                                                if(path.indexOf(name) != -1){
+                                                    path = path.replace('/'+ name, '/'+ v)
+                                                } else {
+                                                    path = false
+                                                }
+                                                name = v
+                                                this.rename(url, v)
+                                                if(path){
+                                                    delete global.explorer.pages[parentPath]
+                                                    global.explorer.open(path).catch(global.displayErr)
+                                                } else {
+                                                    global.explorer.back(1, true)
+                                                }
+                                            }
+                                        },
+                                        value: () => {
+                                            return name
+                                        },
+                                        safe: true
+                                    },
+                                    {
+                                        name: global.lang.REMOVE_LIST, 
+                                        fa: 'fas fa-trash', 
+                                        type: 'action', url, 
+                                        class: 'skip-testing', 
+                                        action: this.removeList.bind(this)
+                                    }
+                                ]
+                            })
+                            return es
+                        }
                     }
-                    resolve(opts)
                 })
-            })
-        }}
+            }
+        }
     }
     async searchEPGs(){
         let epgs = []
@@ -808,10 +797,7 @@ class Manager extends Events {
                             }
                         }
                     })
-                    options.push({name: global.lang.ADD, fa: 'fas fa-plus-square', type: 'action', action: () => {
-                        global.ui.emit('prompt', global.lang.EPG, 'http://.../epg.xml', global.activeEPG || '', 'set-epg', false, global.channels.epgIcon)
-                    }})
-                    options.push({
+                    options.unshift({
                         name: global.lang.SYNC_EPG_CHANNELS,
                         type: 'check',
                         action: (e, checked) => {
@@ -826,6 +812,9 @@ class Manager extends Events {
                         }, 
                         checked: () => global.config.get('use-epg-channels-list')
                     })
+                    options.unshift({name: global.lang.ADD, fa: 'fas fa-plus-square', type: 'action', action: () => {
+                        global.ui.emit('prompt', global.lang.EPG, 'http://.../epg.xml', global.activeEPG || '', 'set-epg', false, global.channels.epgIcon)
+                    }})
                     resolve(options)
                 }
                 if(activeEPG){
@@ -864,7 +853,7 @@ class Manager extends Events {
         return url == global.activeEPG && global.config.get('use-epg-channels-list')
     }
     importEPGChannelsList(url){
-        return new Promise((resolve, reject) => {            
+        return new Promise((resolve, reject) => {
             global.lists.epgLiveNowChannelsList().then(data => {
                 let imported = false
                 global.channels.updateCategoriesCacheKey()
@@ -953,6 +942,31 @@ class Manager extends Events {
             })
         })
     }
+    setImportEPGChannelsListTimer(){
+        const allow = () => {
+            return global.config.get('use-epg-channels-list') && global.config.get('epg-'+ global.lang.locale)
+        }
+        const disable = () => {            
+            if(this.importEPGChannelsListTimer){
+                clearInterval(this.importEPGChannelsListTimer)
+                delete this.importEPGChannelsListTimer
+            }
+        }
+        if(allow()){
+            if(typeof(this.importEPGChannelsListTimer) == 'undefined') {
+                this.importEPGChannelsListTimer = setInterval(() => {
+                    if(allow()){
+                        const url = global.config.get('epg-'+ global.lang.locale)
+                        this.importEPGChannelsList(url).catch(console.error)
+                    } else {
+                        disable()
+                    }
+                }, 300000) // 5min
+            }
+        } else {
+            disable()
+        }
+    }
     listsEntries(){
         return new Promise((resolve, reject) => {
             let options = [], lists = this.get()
@@ -1000,7 +1014,7 @@ class Manager extends Events {
                             value: () => {
                                 return global.config.get('communitary-mode-lists-amount')
                             }, 
-                            range: {start: 5, end: 48},
+                            range: {start: 5, end: 72},
                             action: (data, value) => {
                                 global.config.set('communitary-mode-lists-amount', value)
                             }
@@ -1011,13 +1025,13 @@ class Manager extends Events {
                             type: 'input',
                             fa: 'fas fa-edit',
                             action: (e, v) => {
-                                if(v !== false && v != global.config.get('community-mode-interests')){
-                                    global.config.set('community-mode-interests', v)
+                                if(v !== false && v != global.config.get('communitary-mode-interests')){
+                                    global.config.set('communitary-mode-interests', v)
                                     global.ui.emit('ask-restart')
                                 }
                             },
                             value: () => {
-                                return global.config.get('community-mode-interests')
+                                return global.config.get('communitary-mode-interests')
                             },
                             placeholder: global.lang.COMMUNITY_MODE_INTERESTS_HINT,
                             multiline: true,
@@ -1125,35 +1139,26 @@ class Manager extends Events {
             }
         })
     }
-    communityListsEntries(){
-        return new Promise((resolve, reject) => {
-            this.parent.getLists().then(active => {
-                global.activeLists = active
-                if(active.community.length){
-                    let opts = []
-                    async.eachOfLimit(active.community, 8, (url, i, done) => {
-                        this.parent.getListMetaValue(url, 'name', name => {
-                            if(!name) {
-                                name = this.nameFromSourceURL(url)
-                            }
-                            opts.push({
-                                name,
-                                fa: 'fas fa-satellite-dish',
-                                type: 'group',
-                                url,
-                                class: 'skip-testing',
-                                renderer: this.directListRenderer.bind(this)
-                            })
-                            done()
-                        })
-                    }, () => {
-                        resolve(opts)
-                    })
-                } else {
-                    resolve([this.noListsRetryEntry()])
+    async communityListsEntries(){
+        const active = await this.parent.getLists()
+        global.activeLists = active
+        if(active.community.length) {
+            const extInfo = await global.lists.getListsInfo()
+            return active.community.map(url => {
+                let name = extInfo[url].name || this.nameFromSourceURL(url)
+                let icon = extInfo[url].icon || undefined
+                let details = extInfo[url].author || ''
+                return {
+                    name, url, icon, details,
+                    fa: 'fas fa-satellite-dish',
+                    type: 'group',
+                    class: 'skip-testing',
+                    renderer: this.directListRenderer.bind(this)
                 }
-            }).catch(reject)
-        })
+            })
+        } else {
+            return [this.noListsRetryEntry()]
+        }
     }
     async getAllCommunitySources(fromLanguage, timeout=3000){
         if(fromLanguage === true){
@@ -1232,7 +1237,7 @@ class Manager extends Events {
         })
         console.log('sources', lists)
         if(lists.length){
-            if(global.config.get('parental-control-policy') == 'block'){
+            if(global.config.get('parental-control') == 'block'){
                 lists = this.parent.parentalControl.filter(lists)
             }
         } else {

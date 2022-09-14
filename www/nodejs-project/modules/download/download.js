@@ -849,6 +849,7 @@ class Download extends Events {
 				this.emit('response', this.statusCode, {})
 			}
 			if(!this.isResponseCompressed || this.decompressEnded || !this.decompressor){
+				this.ended = true
 				this.emit('end', this.prepareOutputData(this.buffer))
 				this.destroy()
 			} else {

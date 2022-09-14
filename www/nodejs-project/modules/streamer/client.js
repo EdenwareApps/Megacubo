@@ -226,6 +226,7 @@ class StreamerState extends StreamerCasting {
                     case 'ended':                    
                         this.controls.querySelector('.play-button').style.display = 'block'
                         this.controls.querySelector('.pause-button').style.display = 'none'
+                        this.app.emit('video-ended')
                         break
                     case 'error':                    
                         this.app.emit('video-error', 'playback', this.prepareErrorData({type: 'playback', details: String(data) || 'playback error'}))
@@ -249,11 +250,72 @@ class StreamerState extends StreamerCasting {
         })
         this.on('stop', () => this.stateListener(''))
         this.app.on('streamer-show-tune-hint', () => {
-            explorer.dialog([
-                {template: 'question', text: 'Megacubo', fa: 'fas fa-info-circle'},
-                {template: 'message', text: lang.TUNING_HINT.format('<i class=\'fas '+ config['tuning-icon'] +'\'></i>')},
-                {template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle'}
-            ])
+            const next = () => {
+                explorer.dialog([
+                    {template: 'question', text: 'Megacubo', fa: 'fas fa-info-circle'},
+                    {template: 'message', text: lang.TUNING_HINT.format('<i class=\'fas '+ config['tuning-icon'] +'\'></i>')},
+                    {template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle'}
+                ])
+            }
+            if(this.animating){
+                this.once('animated', next)
+            } else {
+                next()
+            }
+        })
+        this.positionReportingInterval = 10
+        this.lastPositionReportingTime = time()
+        this.lastPositionReported = 0
+        this.on('start', () => {
+            this.positionReportingInterval = 10
+            this.lastPositionReportingTime = time()
+            this.lastPositionReported = 0
+        })
+        parent.player.on('timeupdate', () => {
+            if(!this.inLiveStream){
+                const now = time()
+                if(now > (this.lastPositionReportingTime + this.positionReportingInterval)){
+                    let position = parent.player.time()
+                    if(position >= 30){
+                        let reportingDiff = Math.abs(position - this.lastPositionReported)
+                        if(reportingDiff >= this.positionReportingInterval){
+                            this.lastPositionReportingTime = now
+                            let duration = parent.player.duration()
+                            if(duration && duration > 0){
+                                this.lastPositionReported = position
+                                this.app.emit('state-atts', this.data.url, {duration, position})
+                            }
+                        } else {
+                            this.lastPositionReportingTime += (this.positionReportingInterval - reportingDiff + 0.1)
+                        }
+                    }
+                }
+            }
+        })
+        this.app.on('resume-dialog', position => {
+            const next = () => {
+                console.warn('RESUME', position)
+                parent.player.pause()
+                explorer.dialog([
+                    {template: 'question', text: lang.CONTINUE, fa: 'fas fa-undo'},
+                    {template: 'option', text: lang.RESUME_FROM_X.format(hmsSecondsToClock(position)), id: 'resume', fa: 'fas fa-undo'},
+                    {template: 'option', text: lang.PLAY_FROM_START, id: 'play', fa: 'fas fa-play'}
+                ], choose => {
+                    switch(choose){
+                        case 'resume':
+                            parent.player.time(position) // no "break;" here
+                        default:
+                            parent.player.resume()
+                            break
+                    }
+                    return true
+                }, 'resume-from')
+            }
+            if(this.animating){
+                this.once('animated', next)
+            } else {
+                next()
+            }
         })
     }
     bindStateListener(){
@@ -281,6 +343,15 @@ class StreamerState extends StreamerCasting {
                         this.app.emit('streamer-pause')
                     }
                 } else {
+                    if(config['unpause-jumpback']){
+                        const time = parent.player.time()
+                        if(time){
+                            const ntime = Math.max(parent.player.time() - config['unpause-jumpback'], 0)
+                            if(ntime < time){
+                                parent.player.time(ntime)
+                            }
+                        }
+                    }
                     parent.player.resume()
                     this.app.emit('streamer-resume')
                 }
@@ -406,20 +477,27 @@ class StreamerClientVideoAspectRatio extends StreamerUnmuteHack {
 class StreamerIdle extends StreamerClientVideoAspectRatio {
     constructor(controls, app){
         super(controls, app)
-        const rx = new RegExp('(^| )video[\\-a-z]*', 'g'), rx2 = new RegExp('(^| )idle', 'g')
+        const rx = new RegExp('(^| )video[\\-a-z]*', 'g'), rx2 = new RegExp('(^| )idle', 'g'), rx3 = new RegExp('(^| )video[\\-a-z]+', 'g')
         this.on('stop', s => {
             let c = document.body.className
             c = c.replace(rx, ' ')
             document.body.className = c.trim()
         })
         this.on('state', s => {
-            let c = document.body.className
-            if(s && s != 'error'){
-                c = c.replace(rx, ' ') + ' video video-' + s
-            } else {
-                c = c.replace(rx, ' ')
+            const done = () => {
+                let c = document.body.className
+                if(s && s != 'error'){
+                    c = c.replace(rx3, ' ') +' video-'+ s
+                } else {
+                    c = c.replace(rx, ' ')
+                }
+                document.body.className = c.trim()
             }
-            document.body.className = c.trim()
+            if(this.animating){
+                this.once('animated', done)
+            } else {
+                done()
+            }
         });
         idle.on('start', () => {
             let c = document.body.className || ''
@@ -541,7 +619,7 @@ class StreamerSpeedo extends StreamerIdle {
                 } else { // slow server?
                     t += lang.SLOW_SERVER + ': '
                 }
-                t += p + '%'
+                t += ' '+ p + '%'
                 if(p < 80){
                     semSet = 2
                 } else if(p < 100){
@@ -1123,10 +1201,23 @@ class StreamerAudioUI extends StreamerClientVideoFullScreen {
                 this.jbody.removeClass('audio')
             }
         })
+        this.app.on('streamer-audio-track', trackId => {
+            console.warn('SET TRACK', trackId)
+            parent.player.audioTrack(trackId)
+        })
+        this.app.on('streamer-subtitle-track', trackId => {
+            console.warn('SET TRACK', trackId)
+            parent.player.subtitleTrack(trackId)
+        })
         this.on('stop', () => {
             this.isAudio = false
             parent.winman.backgroundModeUnlock('audio')
             this.jbody.removeClass('audio')
+        })
+		parent.player.on('audioTracks', tracks => this.app.emit('audioTracks', tracks))
+		parent.player.on('subtitleTracks', tracks => {
+			console.warn('subtitleTracks', tracks)
+            this.app.emit('subtitleTracks', tracks)
         })
         this.volumeInitialized = false
         this.volumeLastClickTime = 0
@@ -1512,6 +1603,7 @@ class StreamerClient extends StreamerClientController {
             if(this.debugTuning){
                 osd.show('CONNECT '+ data.name, 'fas fa-info-circle faclr-red', 'debug2', 'normal')
             }
+            this.animating = true
             this.bindStateListener()
             if(explorer.inModal()){
                 explorer.endModal()
@@ -1521,8 +1613,12 @@ class StreamerClient extends StreamerClientController {
             console.warn('CONNECT', src, mimetype, cookie, mediatype, data, autoTuning)
             parent.player.playbackRate(1)
             this.start(src, mimetype, cookie, mediatype)
-            this.jbody.addClass('video video-loading')
             osd.hide('streamer')
+            setTimeout(() => {
+                this.animating = false
+                this.emit('animated')
+                this.emit('animated') // should call it twice
+            }, 150)  
         })
         this.app.on('transcode-starting', state => { // used to wait for transcoding setup when supported codec is found on stream
             console.warn('TRANSCODING', state)

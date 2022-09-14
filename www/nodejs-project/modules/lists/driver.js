@@ -166,18 +166,6 @@ class Lists extends Index {
 	async foundEPGs(){
 		return this.epgs
 	}
-	async epgChannelsList(){
-		if(!this._epg){
-			throw 'no epg 7'
-		}
-		let data = this._epg.channelsList()
-		if(data && Object.keys(data).length){
-			return data
-		} else {
-			console.error('epgChannelsList FAILED', JSON.stringify(data), JSON.stringify(this._epg.data))
-			throw 'failed'
-		}
-	}
 	epgChannelsListSanityScore(data){
 		let count = Object.keys(data).length, idealCatCount = 8
 		if(count < 3){ // too few categories
@@ -661,11 +649,26 @@ class Lists extends Index {
 			community: communityUrls,
 			length: this.myLists.length + communityUrls.length
 		}
-    }	
-    getLists(){
-        return new Promise((resolve, reject) => {
-			resolve(this.getListsRaw())
-        })
+    }
+    async getLists(){
+        return this.getListsRaw()
+    }
+    async getListsInfo(lists){
+        const info = {}, current = (lists && typeof(lists) == 'object') ? lists : global.config.get('lists')
+		Object.keys(this.lists).forEach(url => {
+			info[url] = this.lists[url].index.meta
+			current.forEach(c => {
+				if(c[1] == url){
+					info[url].name = c[0]
+					if(c.length > 2) {
+						Object.keys(c).forEach(k => {
+							info[k] = c[k]
+						})
+					}
+				}
+			})
+		})
+		return info
     }
 	delimitActiveLists(){
 		if(Object.keys(this.lists).length > (this.myLists.length + this.sharedModeReach)){
@@ -749,7 +752,7 @@ class Lists extends Index {
 				return resolve(this.directListRendererPrepareCache[url].list)
 			}
             if(list.length){
-                list = this.parentalControl.filter(list)
+                list = this.parentalControl.filter(list, true)
                 list = this.tools.dedup(list)
                 list = this.prepareEntries(list)
 				list = this.tools.deepify(list)
@@ -774,7 +777,7 @@ class Lists extends Index {
 	}
 	setNetworkConnectionState(state){
         return new Promise((resolve, reject) => {
-			Download.setNetworkConnectionState(state)
+			global.Download.setNetworkConnectionState(state)
 			resolve(true)
 		})
 	}

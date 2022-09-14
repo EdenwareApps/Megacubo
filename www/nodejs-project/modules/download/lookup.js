@@ -18,7 +18,7 @@ class UltimateLookup extends Events {
 		this.ttlData = {}
 		this.queue = {}
 		this.ttl = 3600
-		this.failureTTL = 300
+		this.failureTTL = 30
 		this.cacheKey = 'lookup'
 		this.servers = servers
 		this.isReady = false
@@ -49,14 +49,18 @@ class UltimateLookup extends Events {
 		return 6
 	}
 	preferableIpVersion(){
-		return global.config.get('prefer-ipv6') ? 6 : 4
+		return global.config.get('prefer-ipv6') == 6 ? 6 : 4
 	}
-	promotePreferableIpVersion(hostname, ips){
+	promotePreferableIpVersion(hostname, ips, keepAll){
 		let family, pref = this.preferableIpVersion()
 		let nips = ips.filter(ip => this.family(ip) == pref)
 		if(nips.length){
 			family = pref
-			ips = nips
+			if(keepAll){
+				family = -1
+				nips = nips.concat(ips.filter(ip => this.family(ip) != pref))
+			}
+			ips = nips			
 		} else {
 			family = pref == 4 ? 6 : 4
 		}
@@ -90,6 +94,20 @@ class UltimateLookup extends Events {
 	get(domain, family, cb){
 		if(this.debug){
 			console.log('lookup->get', domain, family)
+		}
+		if(family == -1){
+			return this.get(domain, 4, aresults => {
+				if(!Array.isArray(aresults)){
+					aresults = []
+				}
+				this.get(domain, 6, bresults => {
+					if(Array.isArray(bresults)){
+						aresults = aresults.concat(bresults)
+					}
+					aresults = this.promotePreferableIpVersion(domain, aresults, true)
+					cb(aresults.ips)
+				})
+			})
 		}
 		if(![4, 6].includes(family)){
 			family = this.preferableIpVersion()
@@ -190,15 +208,19 @@ class UltimateLookup extends Events {
             callback = options
             options = {}
 		}
-		this.ready(() => {
+		this.ready(() => {			
+			let family = typeof(options.family) == 'undefined' ? 0 : options.family
+			let policy = global.config.get('prefer-ipv6')
+			if([4, 6].includes(policy)){
+				family = policy
+			}
 			this.get(hostname, options.family, ips => {
 				if(ips && Array.isArray(ips) && ips.length){
-					let family = options.family
 					if(options && options.all){
 						if(this.debug){
 							console.log('lookup callback', ips, family)
 						}
-						if(!family){
+						if(family === 0){ // skip for -1 too
 							let ret = this.promotePreferableIpVersion(hostname, ips)
 							ips = ret.ips
 							family = ret.family
@@ -225,7 +247,8 @@ class UltimateLookup extends Events {
 						callback(null, ip, family, now + (300 * 1000), 300)
 					}
 				} else {
-					const error = new Error('cannot resolve')
+					console.error('cannot resolve "'+ hostname +'" ', options.family, ips)
+					const error = new Error('cannot resolve "'+ hostname +'"')
 					error.code = NOTFOUND
 					callback(error)
 				}

@@ -72,7 +72,7 @@ class DownloadStream extends Events {
                 ]
                 return resolve(this.ips)
             } else {
-                lookup.lookup(host, {all: true, family: 0}, (err, ips) => {
+                lookup.lookup(host, {all: true, family: -1}, (err, ips) => {
                     if(err){
                         reject(err)
                     } else {
@@ -91,7 +91,9 @@ class DownloadStream extends Events {
         for(let ip of this.ips){
             const options = await this.options(ip.address, ip.family)
             fine = await this.get(options)
-            if(fine) break
+            if(fine) {
+                break
+            }
         }
         if(fine){
             this.end()
