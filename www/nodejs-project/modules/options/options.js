@@ -961,7 +961,19 @@ class Options extends OptionsHardwareAcceleration {
                             checked: () => {
                                 return global.config.get('show-logos')
                             }
-                        },                       
+                        },   ,
+                        {
+                            name: global.lang.STRETCH_THUMBNAILS,
+                            fa: 'fas fa-expand-alt',
+                            type: 'check', 
+                            action: (data, value) => {
+                                global.config.set('stretch-logos', value)
+                                this.update()
+                            }, 
+                            checked: () => {
+                                return global.config.get('stretch-logos')
+                            }
+                        },                    
                         {
                             name: global.lang.PLAY_UI_SOUNDS,
                             type: 'check',

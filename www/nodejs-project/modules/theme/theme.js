@@ -571,18 +571,6 @@ class Theme extends Events {
                                     value: () => {
                                         return global.config.get('fx-nav-intensity')
                                     }
-                                },
-                                {
-                                    name: 'Scale non-transparent thumbnails',
-                                    fa: 'fas fa-expand-alt',
-                                    type: 'check', 
-                                    action: (data, value) => {
-                                        global.config.set('scale-logos', value)
-                                        this.update()
-                                    }, 
-                                    checked: () => {
-                                        return global.config.get('scale-logos')
-                                    }
                                 }
                             ]
                             resolve(opts)

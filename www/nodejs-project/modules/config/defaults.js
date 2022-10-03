@@ -61,7 +61,7 @@ module.exports = {
 	'playback-rate-control': true,
 	'connect-timeout': 5,
 	'resume': false,
-	'scale-logos': false,
+	'stretch-logos': false,
 	'search-missing-logos': true,
 	'show-logos': true,
 	'startup-window': '',

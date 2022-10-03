@@ -278,7 +278,7 @@ function initApp(){
             }
             if(explorer.path == data.path){
                 const element = data.tabindex == -1 ? document.querySelector('.explorer-location-icon i') : explorer.currentElements[data.tabindex]
-                const isCover = element && !data.alpha && config['scale-logos']
+                const isCover = element && !data.alpha && config['stretch-logos']
                 const bg = 'url("' + data.url + '")' // keep quotes
                 const m = () => {
                     let d, g = document.createElement('img')
