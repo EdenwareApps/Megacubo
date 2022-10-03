@@ -141,12 +141,6 @@ class PerformanceProfiles extends Timer {
             }
         }
         this.profiles.high['epg-'+ global.lang.locale] = ''
-        global.ui.on('performance-setup', ret => {
-            if(!this.uiSetup){
-                this.uiSetup = true
-                this.performance(true)
-            }
-        })
         global.ui.on('about-dialog', ret => {
             this.about().catch(global.displayErr)
         })
@@ -399,19 +393,7 @@ class Options extends OptionsHardwareAcceleration {
             global.importFileFromClient(data).then(ret => this.import(ret)).catch(err => {
                 global.displayErr(err)
             })
-        })
-        global.ui.on('countries-setup-info', async () => {
-            let ret = await global.explorer.dialog([
-                {template: 'question', fa: 'fas fa-info-circle', text: global.lang.COUNTRIES},
-                {template: 'message', text: global.lang.COUNTRIES_THAT_SPEAK_YOUR_LANGUAGE},
-                {template: 'option', text: 'OK', fa: 'fas fa-check-circle', id: 'ok'},
-                {template: 'option', text: global.lang.COUNTRIES_HINT, fa: 'fas fa-globe', id: 'countries'}
-            ], 'ok')
-            if(ret == 'countries'){
-                await global.explorer.open(global.lang.OPTIONS +'/'+ global.lang.COUNTRIES)
-            }
-        })
-        
+        })        
     }
     tools(){
         return new Promise((resolve, reject) => {
@@ -448,7 +430,13 @@ class Options extends OptionsHardwareAcceleration {
         if(locale && (locale != _def)){
             global.config.set('countries', [])
             global.config.set('locale', locale)
-            global.energy.askRestart()
+            let texts = await global.lang.loadLanguage(locale)
+            if(texts){
+                global.lang.applyTexts(texts)
+                global.ui.emit('lang', texts)
+                global.explorer.pages = {'': []}
+                global.explorer.refresh()
+            }
         }
     }
     async countriesEntries(allCountries, path){
@@ -1003,6 +991,17 @@ class Options extends OptionsHardwareAcceleration {
                             }, 
                             checked: () => {
                                 return global.config.get('hide-back-button')
+                            }
+                        },                                
+                        {
+                            name: global.lang.ALSO_SEARCH_YOUTUBE,
+                            type: 'check',
+                            action: (e, checked) => {
+                                global.config.set('search-youtube', checked)
+                                global.explorer.refresh()
+                            }, 
+                            checked: () => {
+                                return global.config.get('search-youtube')
                             }
                         }
                     ]

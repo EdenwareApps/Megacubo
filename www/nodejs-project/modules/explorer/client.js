@@ -650,7 +650,7 @@ class ExplorerPointer extends ExplorerSelectionMemory {
             }
         }
     }
-    entries(){
+    entries(noAsides){
 		let e = [], view = this.activeView(), sel = view.selector
         if(typeof(sel)=='function'){
             sel = sel()
@@ -660,9 +660,13 @@ class ExplorerPointer extends ExplorerSelectionMemory {
         } else {
             e = e.concat(sel)
         }
-		return e.filter(n => {
+		e = e.filter(n => {
             return !n.className || n.className.indexOf('explorer-not-navigable') == -1
         })
+		if(noAsides === true){
+			e = e.filter(n => n.parentNode && n.parentNode == this._wrapper)
+		}
+		return e
     }
     addView(view){
         if(view.default === true || !this.defaultNavGroup){
@@ -754,10 +758,12 @@ class ExplorerPointer extends ExplorerSelectionMemory {
         return items[i]
     }
     arrow(direction, noCycle){
-        let closer, closerDist, items = this.entries(), view = this.activeView(), e = this.selected()
-        if(view.default === true){ // on default view, calc it based on view size
-            let i = items.indexOf(e)
-            switch(direction){
+        let closer, closerDist, ft = n => n.parentNode == this._wrapper
+		let items = this.entries(), view = this.activeView(), e = this.selected()
+        if(view.default === true && items.filter(ft).indexOf(e) != -1) { // on default view, calc it based on view size		
+            items = items.filter(ft)
+			let i = items.indexOf(e)
+			switch(direction){
                 case 'up':
                     i -= this.viewSizeX
                     if(i < 0){
@@ -815,7 +821,7 @@ class ExplorerPointer extends ExplorerSelectionMemory {
                     if(n != e){
                         let nxy = this.coords(n)
                         if(nxy){
-                            if(['up', 'down'].indexOf(direction) != -1){ // avoid bad horizontal moving
+							if(['up', 'down'].indexOf(direction) != -1){ // avoid bad horizontal moving
                                 if(nxy.top == exy.top && n.offsetHeight == e.offsetHeight){
                                     return
                                 }
@@ -855,7 +861,7 @@ class ExplorerPointer extends ExplorerSelectionMemory {
             }
         }
         if(!closer){
-            if(typeof(view.overScrollAction) != 'function' || view.overScrollAction(direction) !== true && noCycle !== true){
+            if(typeof(view.overScrollAction) != 'function' || view.overScrollAction(direction, e) !== true && noCycle !== true){
                 closer = this.opposite(e, items, direction)                
                 if(this.debug){
                     console.log('opposite', e, items, direction, closer)

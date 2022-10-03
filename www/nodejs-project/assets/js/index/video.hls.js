@@ -263,7 +263,7 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 			const atts = {
 				enableWorker: true,
 				maxBufferSize: 128 * (1000 * 1000), // When doing internal transcoding with low crf, fragments will become bigger
-				backBufferLength: this.config['live-window-time'],
+				backBufferLength: config['live-window-time'],
 				maxBufferLength: 60,
 				maxMaxBufferLength: 180,
 				highBufferWatchdogPeriod: 1,
@@ -430,21 +430,21 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 							}
 							// not fatal, would not be needed to handle, BUT, the playback hangs even it not saying that it's a fatal error, so call handleNetworkError() to ensure
 							let time = this.object.currentTime, duration = this.object.duration			
-							if((duration - time) > this.config['live-window-time']){
+							if((duration - time) > config['live-window-time']){
 								this.hls.stopLoad()
 								let averageLoadTime = 5
-								console.log('out of live window', time, duration, this.config)
-								time = (duration - this.config['live-window-time']) + averageLoadTime
+								console.log('out of live window', time, duration, config)
+								time = (duration - config['live-window-time']) + averageLoadTime
 								if(time < 0){
 									time = 0
 								}
 								this.object.currentTime = time
 								this.hls.startLoad()
 							} else if((duration - time) < 1){
-								console.log('out of buffer, trust on hls.js', time, duration, this.config)
+								console.log('out of buffer, trust on hls.js', time, duration, config)
 								this.hls.startLoad()
 							} else {
-								console.log('in live window, trust on hls.js', time, duration, this.config)
+								console.log('in live window, trust on hls.js', time, duration, config)
 								this.hls.startLoad()
 							}
 							*/

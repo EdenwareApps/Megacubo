@@ -5,7 +5,6 @@ class IPTV extends Events {
         super()
         this.repo = false
         this.opts = opts
-        this.title = global.lang.COUNTRIES
         this.details = ''
         this.cachingDomain = 'iptv-'
         this.cachingTTL = 12 * 3600
@@ -20,6 +19,9 @@ class IPTV extends Events {
             })
         }
         this.load()
+    }
+    title(){
+        return global.lang.COUNTRIES
     }
 	load(){
         if(!this.repo){
@@ -217,7 +219,7 @@ class IPTV extends Events {
     showInfo(){
         if(!this.opts.shadow){
             global.explorer.dialog([
-                {template: 'question', text: this.title, fa: this.icon},
+                {template: 'question', text: this.title(), fa: this.icon},
                 {template: 'message', text: global.lang.IPTV_INFO},
                 {template: 'option', text: 'OK', id: 'ok', fa: 'fas fa-check-circle'},
                 {template: 'option', text: global.lang.KNOW_MORE, id: 'know', fa: 'fas fa-info-circle'}
@@ -227,7 +229,7 @@ class IPTV extends Events {
     hook(entries, path){
         return new Promise((resolve, reject) => {
             if(path.split('/').pop() == global.lang.COMMUNITY_MODE && global.config.get('communitary-mode-lists-amount')){
-                entries.splice(entries.length - 1, 0, {name: this.title, fa: this.icon, details: this.details, type: 'group', renderer: this.entries.bind(this)})
+                entries.splice(entries.length - 1, 0, {name: this.title(), fa: this.icon, details: this.details, type: 'group', renderer: this.entries.bind(this)})
             }
             resolve(entries)
         })

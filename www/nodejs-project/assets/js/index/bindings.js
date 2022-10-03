@@ -86,8 +86,8 @@ function openExternalFile(file, mimetype){
 	console.log('openExternalFile', file)
 	if(parent.cordova){
 		alert('cannot open file ' + file.split('/').pop())
-	} else if(top.nw) {
-		top.nw.Shell.openItem(file)
+	} else if(parent.parent.nw) {
+		parent.parent.nw.Shell.openItem(file)
 	} else {
 		window.open(file, '_system')
 	}
@@ -99,8 +99,8 @@ function openExternalURL(url){
 			url = url.replace('https:', 'http:') // bypass Ionic Deeplink
 		}
 		parent.navigator.app.loadUrl(url, {openExternal: true})
-	} else if(top.nw) {
-		top.nw.Shell.openExternal(url)
+	} else if(parent.parent.nw) {
+		parent.parent.nw.Shell.openExternal(url)
 	} else {
 		window.open(url)
 	}
@@ -181,7 +181,7 @@ function channelGetLangCallback(){
 			lang = window.navigator.userLanguage || window.navigator.language
 		}
 		// prevent "Intl is not defined"
-        channel.post('message', ['get-lang-callback', lang, (Intl || top.Intl).DateTimeFormat().resolvedOptions().timeZone, window.navigator.userAgent, window.navigator.onLine])
+        channel.post('message', ['get-lang-callback', lang, (Intl || parent.parent.Intl).DateTimeFormat().resolvedOptions().timeZone, window.navigator.userAgent, window.navigator.onLine])
 	}
 	if(window.cordova){
 		navigator.globalization.getPreferredLanguage(language => next(language.value), () => next())

@@ -19,22 +19,6 @@ class Manager extends Events {
                 global.osd.hide('list-open')
             }
         })
-        global.ui.on('manager-add-list', id => {
-            if(id){
-                console.log('manager-add-list', id)
-                if(id == 'manager-add-list-file'){
-                    global.ui.emit('open-file', global.ui.uploadURL, 'manager-add-list-file', 'audio/x-mpegurl', global.lang.OPEN_M3U_LIST)
-                } else {
-                    this.addList(id).catch(global.displayErr)
-                }
-            }
-        })
-        global.ui.on('manager-add-list-file', data => {
-            console.warn('!!! IMPORT M3U FILE !!!', data)
-            global.resolveFileFromClient(data).then(file => this.addList(file).catch(console.error)).catch(err => {
-                global.displayErr(err)
-            })
-        })
         global.config.on('change', (keys, data) => {
             if(keys.includes('use-epg-channels-list')){
                 console.warn('config change', keys, data)
@@ -44,7 +28,7 @@ class Manager extends Events {
         this.updater = new (require(global.APPDIR + '/modules/driver')(global.APPDIR + '/modules/lists/driver-updater'))
         this.updater.on('list-updated', url => {
             console.log('List updated', url)
-            global.lists.syncList(url, global.config.get('communitary-mode-lists-amount')).then(() => {
+            this.parent.syncList(url, global.config.get('communitary-mode-lists-amount')).then(() => {
                 console.log('List updated and synced', url)
             }).catch(err => {
                 console.error('List not synced', url, err)
@@ -133,8 +117,8 @@ class Manager extends Events {
         })
         console.log('maybeRefreshChannelPage', streamsCount, mega)
         if(mega && mega.terms){
-            global.lists.search(mega.terms.split(','), {
-                safe: !global.lists.parentalControl.lazyAuth(),
+            this.parent.search(mega.terms.split(','), {
+                safe: !this.parent.parentalControl.lazyAuth(),
                 type: mega.mediaType, 
                 group: mega.mediaType != 'live'
             }).then(es => {
@@ -160,10 +144,9 @@ class Manager extends Events {
         if(
             !global.config.get('lists').length && 
             !global.config.get('communitary-mode-lists-amount') && 
-            !global.lists.manager.updatingLists && 
+            !this.parent.manager.updatingLists && 
             !global.activeLists.length
         ){
-            global.config.set('setup-completed', false)
             global.ui.emit('setup-restart')
         }
     }
@@ -388,26 +371,50 @@ class Manager extends Events {
             }
         }
     }
-    addList(value, name){
-        return new Promise((resolve, reject) => {
-            if(value.match(new RegExp('://(shared|community)$', 'i'))){
-                global.ui.emit('dialog', [
-                    {template: 'question', text: global.lang.COMMUNITY_MODE, fa: 'fas fa-users'},
-                    {template: 'message', text: global.lang.ASK_COMMUNITY_LIST},
-                    {template: 'option', id: 'back', fa: 'fas fa-times-circle', text: global.lang.BACK},
-                    {template: 'option', id: 'agree', fa: 'fas fa-check-circle', text: global.lang.I_AGREE}
-                ], 'lists-manager', 'back', true)
-                return resolve(true)
+    wait(ms){
+        return new Promise(resolve => setTimeout(resolve, ms))
+    }
+    async addList(value, name){
+        global.osd.show(global.lang.PROCESSING, 'fa-mega spin-x-alt', 'list-open', 'persistent')
+        let err, ret = await this.add(value, name).catch(e => err = String(e))
+        if(err){
+            global.osd.hide('list-open')
+            if(err.match('http error') != -1){
+                err = global.lang.INVALID_URL_MSG
             }
-            global.osd.show(global.lang.PROCESSING, 'fa-mega spin-x-alt', 'list-open', 'persistent')
-            this.add(value, name).then(() => {
-                global.osd.show(global.lang.LIST_ADDED, 'fas fa-check-circle', 'list-open', 'normal')
-                resolve(true)
-            }).catch(err => {
-                osd.hide('list-open')
-                reject(err)
-            })
-        })
+            throw err
+        } else {
+            global.osd.show(global.lang.LIST_ADDED, 'fas fa-check-circle', 'list-open', 'normal')
+            const currentEPG = global.config.get('epg-'+ global.lang.locale)
+            let info, i = 20
+            if(currentEPG != 'disabled'){
+                while(i && (!info || !info[value])){
+                    i--
+                    await this.wait(500)
+                    info = await this.parent.getListsInfo()
+                }
+            }
+            console.error('XEPG', info)
+            if(info[value] && info[value].epg){
+                console.error('XEPG', info)
+                info[value].epg = this.parseEPGURL(info[value].epg, false)
+                if(global.validateURL(info[value].epg) && info[value].epg != currentEPG){
+                    let chosen = await global.explorer.dialog([
+                        {template: 'question', text: ucWords(MANIFEST.name), fa: 'fas fa-star'},
+                        {template: 'message', text: global.lang.ADDED_LIST_EPG},
+                        {template: 'option', text: lang.YES, id: 'yes', fa: 'fas fa-check-circle'},
+                        {template: 'option', text: lang.NO_THANKS, id: 'no', fa: 'fas fa-times-circle'}
+                    ], 'yes')
+                    console.error('XEPG', chosen)
+                    if(chosen == 'yes'){
+                        global.config.set('epg-'+ global.lang.locale, info[value].epg)
+                        await this.setEPG(info[value].epg, true)
+                        console.error('XEPG', chosen)
+                    }
+                }
+            }
+            return true
+        }
     }
     updatedLists(name, fa){
         this.updatingLists = false
@@ -422,7 +429,7 @@ class Manager extends Events {
         const badTerms = ['m3u8', 'ts', 'mp4', 'tv', 'channel']
         let terms = [], cterms = global.config.get('communitary-mode-interests')
         if(cterms){ // user specified interests
-            cterms = global.lists.terms(cterms, false).filter(c => c[0] != '-')
+            cterms = this.parent.terms(cterms, false).filter(c => c[0] != '-')
             if(cterms.length){
                 terms = terms.concat(cterms)
             }
@@ -577,26 +584,69 @@ class Manager extends Events {
     }
     addListEntry(){
         return {name: global.lang.ADD_LIST, fa: 'fas fa-plus-square', type: 'action', action: () => {
-            let extraOpts = []
-            extraOpts.push({template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle'})
-            extraOpts.push({template: 'option', text: global.lang.OPEN_M3U_FILE, id: 'manager-add-list-file', fa: 'fas fa-box-open'})
-            global.ui.emit('prompt', global.lang.ASK_IPTV_LIST, 'http://', '', 'manager-add-list', false, 'fas fa-plus-square', '', extraOpts)
+            this.addListDialog(false).catch(global.displayErr)
         }}
     }
-    addCodeEntry(){
-        return {name: global.lang.ADD_CODE, fa: 'fas fa-plus-square', type: 'action', action: async() => {
-            let server = await global.explorer.prompt(global.lang.PASTE_SERVER_ADDRESS, 'http://host:port', '', false, 'fas fa-globe', '', [])
-            if(!server) return
-            const user = await global.explorer.prompt(global.lang.USERNAME, global.lang.USERNAME, '', false, 'fas fa-user', '', [])
-            if(!user) return
-            const pass = await global.explorer.prompt(global.lang.PASSWORD, global.lang.PASSWORD, '', false, 'fas fa-key', '', [])
-            if(!pass) return
-            if(server.charAt(server.length - 1) == '/') {
-                server = server.substr(0, server.length - 1)
+    async addListDialog(offerCommunityMode){        
+        let extraOpts = []
+        extraOpts.push({template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle'})
+        extraOpts.push({template: 'option', text: global.lang.ADD_USER_PASS, id: 'code', fa: 'fas fa-key'})
+        extraOpts.push({template: 'option', text: global.lang.OPEN_M3U_FILE, id: 'file', fa: 'fas fa-box-open'})
+        if(offerCommunityMode){
+            extraOpts.push({template: 'option', text: global.lang.DONT_HAVE_LIST, fa: 'fas fa-times-circle', id: 'sh'})
+        }
+        let id = await global.explorer.prompt(global.lang.ASK_IPTV_LIST, 'http://', '', true, 'fas fa-info-circle', null, extraOpts)
+        if(id == 'file'){
+            return await this.addListDialogFile()
+        } else if(id == 'code') {
+            return await this.addListUserPassDialogFile()
+        } else if(id == 'sh') {
+            let active = await this.communityModeDialog()
+            if(active){
+                return true
+            } else {
+                throw 'community list not activated'
             }
-            const url = server +'/get.php?username='+ encodeURIComponent(user) +'&password='+ encodeURIComponent(pass) +'&type=m3u_plus&output=ts'            
-            this.addList(url).catch(global.displayErr)
-        }}
+        } else {
+            return await this.addList(id)
+        }
+    }
+    addListDialogFile(){
+        return new Promise((resolve, reject) => {
+            const id = 'add-list-dialog-file-'+ parseInt(10000000 * Math.random())
+            global.ui.once(id, data => {
+                console.warn('!!! IMPORT M3U FILE !!!', data)
+                global.resolveFileFromClient(data).then(file => {
+                    this.addList(file).then(resolve).catch(reject)
+                }).catch(reject)
+            })
+            global.ui.emit('open-file', global.ui.uploadURL, id, 'audio/x-mpegurl', global.lang.OPEN_M3U_LIST)
+        })
+    }
+    async communityModeDialog(){     
+        let choose = await global.explorer.dialog([
+            {template: 'question', text: global.lang.COMMUNITY_MODE, fa: 'fas fa-users'},
+            {template: 'message', text: global.lang.SUGGEST_COMMUNITY_LIST +"\r\n"+ global.lang.ASK_COMMUNITY_LIST},
+            {template: 'option', id: 'agree', fa: 'fas fa-check-circle', text: global.lang.I_AGREE},
+            {template: 'option', id: 'back', fa: 'fas fa-chevron-circle-left', text: global.lang.BACK}
+        ], 'agree')
+        if(choose == 'agree'){
+            global.ui.localEmit('lists-manager', 'agree')
+            return true
+        }
+    }
+    async addListUserPassDialogFile(){     
+        let server = await global.explorer.prompt(global.lang.PASTE_SERVER_ADDRESS, 'http://host:port', '', false, 'fas fa-globe', '', [])
+        if(!server) throw 'no server provided'
+        const user = await global.explorer.prompt(global.lang.USERNAME, global.lang.USERNAME, '', false, 'fas fa-user', '', [])
+        if(!user) throw 'no user provided'
+        const pass = await global.explorer.prompt(global.lang.PASSWORD, global.lang.PASSWORD, '', false, 'fas fa-key', '', [])
+        if(!pass) throw 'no pass provided'
+        if(server.charAt(server.length - 1) == '/') {
+            server = server.substr(0, server.length - 1)
+        }
+        const url = server +'/get.php?username='+ encodeURIComponent(user) +'&password='+ encodeURIComponent(pass) +'&type=m3u_plus&output=ts'            
+        return await this.addList(url)
     }
     myListsEntry(){
         return {
@@ -605,8 +655,8 @@ class Manager extends Events {
             type: 'group', 
             renderer: async () => {
                 let lists = this.get(), opts = []
-                const extInfo = await global.lists.getListsInfo()
-                return lists.map(row => {
+                const extInfo = await this.parent.getListsInfo()
+                let ls = lists.map(row => {
                     let url = row[1], name = extInfo[url].name || row[0] || this.nameFromSourceURL(url)
                     let icon = extInfo[url].icon || undefined
                     let details = extInfo[url].author || ''
@@ -669,14 +719,29 @@ class Manager extends Events {
                             return es
                         }
                     }
-                })
+                })                
+                ls.push(this.addListEntry())
+                return ls
             }
         }
+    }
+    parseEPGURL(url, asArray){
+        let urls = [url]
+        if(url.match(new RegExp(',(https?://|//)'))){
+            urls = url.replace(',//', ',http://').split(',http').map((u, i) => {
+                if(i){
+                    u = 'http'+ u
+                }
+                return u
+            })
+        }
+        return asArray ? urls : urls.shift()
     }
     async searchEPGs(){
         let epgs = []
         let urls = await this.parent.foundEPGs().catch(console.error)
         if(Array.isArray(urls)){
+            urls = urls.map(u => this.parseEPGURL(u, true)).flat()
             epgs = epgs.concat(urls)
         }
         if(global.config.get('communitary-mode-lists-amount')){
@@ -700,25 +765,27 @@ class Manager extends Events {
     }
     epgLoadingStatus(epgStatus){
         let details = ''
-        switch(epgStatus[0]){
-            case 'uninitialized':
-                details = '<i class="fas fa-clock"></i>'
-                break
-            case 'loading':
-                details = global.lang.LOADING
-                break
-            case 'connecting':
-                details = global.lang.CONNECTING
-                break
-            case 'connected':
-                details = global.lang.PROCESSING + ' ' + epgStatus[1] + '%'
-                break
-            case 'loaded':
-                details = global.lang.ENABLED
-                break
-            case 'error':
-                details = 'Error: ' + epgStatus[1]
-                break
+        if(Array.isArray(epgStatus)){
+            switch(epgStatus[0]){
+                case 'uninitialized':
+                    details = '<i class="fas fa-clock"></i>'
+                    break
+                case 'loading':
+                    details = global.lang.LOADING
+                    break
+                case 'connecting':
+                    details = global.lang.CONNECTING
+                    break
+                case 'connected':
+                    details = global.lang.PROCESSING + ' ' + epgStatus[1] + '%'
+                    break
+                case 'loaded':
+                    details = global.lang.ENABLED
+                    break
+                case 'error':
+                    details = 'Error: ' + epgStatus[1]
+                    break
+            }
         }
         return details
     }
@@ -728,7 +795,7 @@ class Manager extends Events {
             clearInterval(this.epgStatusTimer)
             this.epgStatusTimer = false
         } else {
-            global.lists.epg([], 2).then(epgData => {
+            this.parent.epg([], 2).then(epgData => {
                 let activeEPGDetails = this.epgLoadingStatus(epgData)
                 if(activeEPGDetails != this.lastActiveEPGDetails){
                     this.lastActiveEPGDetails = activeEPGDetails
@@ -761,8 +828,11 @@ class Manager extends Events {
                     activeEPG = ''
                 }
                 console.log('SETT-EPG', activeEPG, epgs)
-                if(activeEPG && !epgs.includes(activeEPG)){
-                    epgs.push(activeEPG)
+                if(activeEPG){
+                    activeEPG = this.formatEPGURL(activeEPG) 
+                    if(!epgs.includes(activeEPG)){
+                        epgs.push(activeEPG)
+                    }
                 }
                 const next = () => {
                     options = epgs.sort().map(url => {
@@ -834,7 +904,7 @@ class Manager extends Events {
                     if(typeof(activeEPGDetails) == 'string'){
                         epgNext()
                     } else {
-                        global.lists.epg([], 2).then(epgData => {
+                        this.parent.epg([], 2).then(epgData => {
                             this.lastActiveEPGDetails = activeEPGDetails = this.epgLoadingStatus(epgData)
                             epgNext()
                         }).catch(err => {
@@ -854,7 +924,7 @@ class Manager extends Events {
     }
     importEPGChannelsList(url){
         return new Promise((resolve, reject) => {
-            global.lists.epgLiveNowChannelsList().then(data => {
+            this.parent.epgLiveNowChannelsList().then(data => {
                 let imported = false
                 global.channels.updateCategoriesCacheKey()
                 if(this.shouldImportEPGChannelsList(url)){ // check again if user didn't changed his mind
@@ -876,34 +946,44 @@ class Manager extends Events {
             })
         })
     }
-    setEPG(url, ui){
+    formatEPGURL(url){        
+        const fragment = ',http'
+        if(url && url.indexOf(fragment) != -1){
+            url = url.split(',http').shift()
+        }
+        return url
+    }
+    async setEPG(url, ui){
         console.log('SETEPG', url)
         if(typeof(url) == 'string'){
+            if(url){
+                url = this.formatEPGURL(url)
+            }
             if(!url || global.validateURL(url)){
                 global.activeEPG = url
                 global.channels.activeEPG = ''
-                this.loadEPG(url, ui).then(() => {
-                    let refresh = () => {
-                        if(global.explorer.path.indexOf(global.lang.EPG) != -1 || global.explorer.path.indexOf(global.lang.LIVE) != -1){
-                            global.explorer.refresh()
-                        }
+                await this.loadEPG(url, ui)
+                let refresh = () => {
+                    if(global.explorer.path.indexOf(global.lang.EPG) != -1 || global.explorer.path.indexOf(global.lang.LIVE) != -1){
+                        global.explorer.refresh()
                     }
-                    console.log('SETEPGc', url, ui, global.activeEPG)
-                    if(!url){
-                        global.channels.updateCategoriesCacheKey()
-                        global.channels.load()
-                        if(ui){
-                            global.osd.show(global.lang.EPG_DISABLED, 'fas fa-times-circle', 'epg', 'normal')                            
-                        }
-                    } else if(this.shouldImportEPGChannelsList(url)) {
-                        this.importEPGChannelsList(url).catch(console.error)
+                }
+                console.log('SETEPGc', url, ui, global.activeEPG)
+                if(!url){
+                    global.channels.updateCategoriesCacheKey()
+                    global.channels.load()
+                    if(ui){
+                        global.osd.show(global.lang.EPG_DISABLED, 'fas fa-times-circle', 'epg', 'normal')                            
                     }
-                    refresh()
-                }).catch(err => console.error(err))
+                } else if(this.shouldImportEPGChannelsList(url)) {
+                    this.importEPGChannelsList(url).catch(console.error)
+                }
+                refresh()
             } else {
                 if(ui){
                     global.osd.show(global.lang.INVALID_URL, 'fas fa-exclamation-circle faclr-red', 'epg', 'normal')
                 }
+                throw global.lang.INVALID_URL
             }
         }
     }
@@ -974,7 +1054,6 @@ class Manager extends Events {
                 options.push(this.myListsEntry())
             } else {
                 options.push(this.addListEntry())
-                options.push(this.addCodeEntry())
             }
             options.push(this.listSharingEntry())
             options.push({name: global.lang.EPG, details: 'EPG', fa: global.channels.epgIcon, type: 'group', renderer: this.epgOptionsEntries.bind(this)})
@@ -1043,29 +1122,18 @@ class Manager extends Events {
             }
         }
     }
-    listsEntriesForRemoval(){
-        return new Promise((resolve, reject) => {
-            let lists = this.get(), entries = []
-            if(lists.length){
-                lists.forEach((source, i) => {
-                    entries.push({
-                        name: global.lang.REMOVE.toUpperCase() +': '+ path.basename(lists[i][0]), 
-                        fa: 'fas fa-minus-square', 
-                        type: 'action', 
-                        url: lists[i][1], 
-                        action: this.removeList.bind(this)
-                    })
-                })
-            }
-            resolve(entries)
-        })
-    }
-    removeList(data){
+    async removeList(data){
+        const info = await this.parent.getListsInfo(), key = 'epg-'+ global.lang.locale
+        if(info[data.url] && info[data.url].epg && this.parseEPGURL(info[data.url].epg) == global.config.get(key)) {
+            global.config.set(key, '')
+        }
         global.explorer.suspendRendering()
-        this.remove(data.url)
-        global.osd.show(global.lang.LIST_REMOVED, 'fas fa-info-circle', 'list-open', 'normal')    
+        try { // Ensure that we'll resume rendering
+            this.remove(data.url)   
+        } catch(e) { }
+        global.osd.show(global.lang.LIST_REMOVED, 'fas fa-info-circle', 'list-open', 'normal')
         global.explorer.resumeRendering()
-        global.explorer.back(2, true)    
+        global.explorer.back(2, true)
     }
     directListRenderer(data){
         console.warn('DIRECT', data, traceback())
@@ -1143,7 +1211,7 @@ class Manager extends Events {
         const active = await this.parent.getLists()
         global.activeLists = active
         if(active.community.length) {
-            const extInfo = await global.lists.getListsInfo()
+            const extInfo = await this.parent.getListsInfo()
             return active.community.map(url => {
                 let name = extInfo[url].name || this.nameFromSourceURL(url)
                 let icon = extInfo[url].icon || undefined

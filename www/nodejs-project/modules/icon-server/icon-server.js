@@ -74,7 +74,7 @@ class IconDefault {
             if(this.opts.debug){
                 console.log('saveDefaultFile', terms, name, sourceFile, file)
             }
-            fs.copyFile(sourceFile, file, 'binary', () => {
+            fs.copyFile(sourceFile, file, () => {
                 if(cb){
                     cb()
                 }
@@ -323,8 +323,8 @@ class IconFetchSem extends IconServerStore {
                     if(err){
                         return reject(err)
                     }
-                    this.validateFile(file).then(() => {
-                        resolve({key, file})
+                    this.validateFile(file).then(ret => {
+                        resolve({key, file, isAlpha: ret == 2})
                     }).catch(reject)
                 })
             }
@@ -343,9 +343,10 @@ class IconFetchSem extends IconServerStore {
                 if(this.opts.debug){
 					console.log('fetchURL', url, 'cached')
                 }
-                this.validateFile(file).then(() => {
-                    this.releaseFetching(url, {key, file})
-                    resolve({key, file})
+                this.validateFile(file).then(ret => {
+                    let atts = {key, file, isAlpha: ret == 2}
+                    this.releaseFetching(url, atts)
+                    resolve(Object.assign({}, atts))
                 }).catch(err => {
                     this.releaseFetchingErr(url, err)
                     reject(err)
@@ -366,12 +367,13 @@ class IconFetchSem extends IconServerStore {
                         file
                     }).then(ret => {
                         this.saveHTTPCacheExpiration(key, () => {
-                            this.validateFile(file).then(() => {
+                            this.validateFile(file).then(ret => {
+                                const atts = {key, file, isAlpha: ret == 2}
                                 if(this.opts.debug){
                                     console.log('fetchURL', url, 'validated')
                                 }
-                                resolve({key, file})
-                                this.releaseFetching(url, {key, file})
+                                resolve(Object.assign({}, atts))
+                                this.releaseFetching(url, atts)
                             }).catch(err => {
                                 if(this.opts.debug){
                                     console.log('fetchURL', url, 'NOT validated')
@@ -568,7 +570,7 @@ class IconServer extends IconFetchSem {
                     response.end()
                     return
                 }
-                let p, key = req.url.split('/').pop(), send = file => {
+                let key = req.url.split('/').pop(), send = file => {
                     if(file){
                         if(this.opts.debug){
                             console.log('get() resolved', file)
@@ -608,12 +610,7 @@ class IconServer extends IconFetchSem {
                 if(this.opts.debug){
 					console.log('serving', req.url, key)
                 }
-                if(this.isHashKey(key)){
-                    p = this.checkHTTPCache(key).then(send)
-                } else {
-                    p = this.getDefaultFile(global.decodeURIComponentSafe(key).split(',')).then(send)
-                }
-                p.catch(err => {
+                const onerr = err => {
                     console.error('icons.get() catch', err, req.url, global.traceback())
                     if(this.opts.debug){
                         console.log('get() catch', err, req.url, global.traceback())
@@ -626,7 +623,12 @@ class IconServer extends IconFetchSem {
                         'Cache-Control': 'max-age=0, no-cache, no-store'
                     })
                     response.end(err +' - '+ req.url.split('#')[0])
-                })
+                }
+                if(this.isHashKey(key)){
+                    this.checkHTTPCache(key).then(send).catch(onerr)
+                } else {
+                    this.getDefaultFile(global.decodeURIComponentSafe(key).split(',')).then(send).catch(onerr)
+                }                
             }).listen(this.opts.port, this.opts.addr, err => {
 				if (err) {
 					console.error('unable to listen on port', err)

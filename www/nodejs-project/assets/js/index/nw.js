@@ -32,7 +32,7 @@ class FFMpeg {
 	}
 	exec(cmd, cb){
 		if(!this.cp){
-			this.cp = top.require('child_process')
+			this.cp = window.require('child_process')
 		}
 		let exe, gotMetadata, output = ''
 		if(process.platform == 'linux'){ // cwd was not being honored on Linux
@@ -147,7 +147,9 @@ class WindowManager extends ClassesHandler {
 		this.leftWindowDiff = 0
 		this.miniPlayerActive = false
 		this.miniPlayerRightMargin = 18
-		this.initialSize = [this.win.width, this.win.height]
+		this.initialSize = this.getDefaultWindowSize()
+		window.resizeTo.apply(window, this.initialSize)
+		this.centralizeWindow.apply(this, this.initialSize)
 		this.inFullScreen = false
 		this.nwcf = require('nw-custom-frame')
 		this.nwcf.attach(window, {
@@ -190,6 +192,16 @@ class WindowManager extends ClassesHandler {
 				this.handleArgs(nw.App.argv)
 			}, 100)
 		})
+	}
+	getDefaultWindowSize(){
+		let scr = this.getScreenSize(), realWidth = this.getScreenSize(true).availWidth
+		let margin = realWidth > 1500 ? 0.8 : 0.975
+		let ratio = 16 / 9, defWidth = scr.width * margin, defHeight = defWidth / ratio
+		if(defHeight > (scr.availHeight * margin)){
+			defHeight = scr.availHeight * margin
+			defWidth = defHeight * ratio
+		}
+		return [defWidth, defHeight]
 	}
 	handleArgs(cmd){
 		console.log('cmdline: ' + cmd)
@@ -373,7 +385,39 @@ class WindowManager extends ClassesHandler {
 		return this.app.streamer.state != ''
 	}
 	isFullScreen(){
-		return (this.win && this.win.width >= screen.width && this.win.height >= screen.height) || !!(this.win.isKioskMode || this.win.isFulscreen)
+		let scr = this.getScreenSize()
+		return (this.win && this.win.width >= scr.width && this.win.height >= scr.height) || !!(this.win.isKioskMode || this.win.isFulscreen)
+	}
+	getScreen(){
+		if(!this.screen){
+			this.screen = nw.Screen.Init()
+		}
+		if(this.screen){
+			return this.screen.screens[0]
+		}
+	}
+	getScreenSize(real){
+		const s = this.getScreen()
+		let width, height, availWidth, availHeight
+		if(s){
+			width = s.bounds.width
+			height = s.bounds.height
+			availWidth = s.work_area.width
+			availHeight = s.work_area.height
+			this.screenScaleFactor = s.scaleFactor
+		} else {
+			width = screen.width
+			height = screen.height
+			availWidth = screen.availWidth
+			availHeight = screen.availHeight
+		}
+		if(real && this.screenScaleFactor){
+			width *= this.screenScaleFactor
+			height *= this.screenScaleFactor
+			availWidth *= this.screenScaleFactor
+			availHeight *= this.screenScaleFactor
+		}
+		return {width, height, availWidth, availHeight}
 	}
 	setFullScreen(enter){
 		console.warn('setFullscreen()', enter);
@@ -436,6 +480,8 @@ class WindowManager extends ClassesHandler {
 		setTimeout(f, 1000)
 		setTimeout(f, 2000)
 		this.win.show()
+		if(!this.nwcfHeader) this.nwcfHeader = document.querySelector('.nw-cf')
+		this.nwcfHeader.style.display = enter ? 'none' : 'block'
 	}
 	restore(){
 		console.error('leaveMiniPlayer')
@@ -454,8 +500,8 @@ class WindowManager extends ClassesHandler {
 	centralizeWindow(w, h){
 		console.error('leaveMiniPlayer')
 		console.warn('centralizeWindow()', w, h);
-		var x = Math.round((screen.availWidth - (w || window.outerWidth)) / 2);
-		var y = Math.round((screen.availHeight - (h || window.outerHeight)) / 2);
+		var s = this.getScreenSize(), x = Math.round((s.availWidth - (w || window.outerWidth)) / 2);
+		var y = Math.round((s.availHeight - (h || window.outerHeight)) / 2);
 		this.win.x = x;
 		this.win.y = y;
 		console.log('POS', x, y);
@@ -465,13 +511,14 @@ class WindowManager extends ClassesHandler {
 		return v && v.offsetWidth ? (v.offsetWidth / v.offsetHeight) : (16 / 9)
 	}
 	enterMiniPlayer(w, h){
-		console.warn('enterMiniPlayer')
+		console.warn('enterMiniPlayer', w, h)
 		this.win.hide()
 		setTimeout(() => { 
-			this.miniPlayerActive = true;  
-			this.emit('miniplayer-on');
-			window.resizeTo(w, h);
-			window.moveTo(screen.availWidth - w - this.miniPlayerRightMargin, screen.availWidth - h)
+			this.miniPlayerActive = true
+			this.emit('miniplayer-on')
+			window.resizeTo(w, h)
+			let scr = this.getScreenSize()
+			this.win.moveTo(scr.availWidth - w - this.miniPlayerRightMargin, scr.availHeight - h)
 		}, 100)
 		setTimeout(() => { 
 			this.win.show() 
@@ -502,8 +549,8 @@ class WindowManager extends ClassesHandler {
 	}
 	isMaximized(){
 		if(this.win.x > 0 || this.win.y > 0) return false;
-		var w = window, widthMargin = 6, heightMargin = 6;
-		return (w.outerWidth >= (screen.availWidth - widthMargin) && w.outerHeight >= (screen.availHeight - heightMargin));
+		var w = window, widthMargin = 6, heightMargin = 6, scr = this.getScreenSize()
+		return (w.outerWidth >= (scr.availWidth - widthMargin) && w.outerHeight >= (scr.availHeight - heightMargin));
 	}
 	maximize(){
 		if(!this.isMaximized()){
@@ -513,8 +560,9 @@ class WindowManager extends ClassesHandler {
 			this.win.setMaximumSize(0, 0);
 			this.win.x = this.win.y = this.leftWindowDiff;
 			process.nextTick(() => {
-				this.win.width = screen.availWidth + (this.leftWindowDiff * -2);
-				this.win.height = screen.availHeight + (this.leftWindowDiff * -2);
+				let scr = this.getScreenSize()
+				this.win.width = scr.availWidth + (this.leftWindowDiff * -2);
+				this.win.height = scr.availHeight + (this.leftWindowDiff * -2);
 				this.win.x = this.win.y = this.leftWindowDiff;
 			})
 		}

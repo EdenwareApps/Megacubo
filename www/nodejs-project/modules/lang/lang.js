@@ -171,11 +171,14 @@ class Language extends Events {
         })
         await this.findCountryCode()
         if(utexts) Object.assign(texts, utexts)
-        this.textKeys = Object.keys(texts).map(k => k.toUpperCase()) // avoid a bad language file to mess with our class reserved properties
-        this.textKeys.forEach(k => this[k] = texts[k])
+        this.applyTexts(texts)
         this.isReady = true
         this.emit('ready')
         return texts
+    }
+    applyTexts(texts){
+        this.textKeys = Object.keys(texts).map(k => k.toUpperCase()) // avoid a bad language file to mess with our class reserved properties
+        this.textKeys.forEach(k => this[k] = texts[k])
     }
     getTexts(){
         let ret = {};

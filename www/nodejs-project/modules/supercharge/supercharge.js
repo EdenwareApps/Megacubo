@@ -42,7 +42,7 @@ function patch(scope){
 			let u = url.toLowerCase()
 			if(u.match(new RegExp('^(https?://|//)', 'i'))){
 				let domain = u.split('//')[1].split('/')[0]
-				if(domain.match(new RegExp('^[A-Za-z0-9\\-\\.\\:@]{4,}$'))){
+				if(domain.match(new RegExp('^[A-Za-z0-9_\\-\\.\\:@]{4,}$'))){
 					return true
 				}
 			}

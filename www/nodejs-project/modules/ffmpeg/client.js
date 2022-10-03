@@ -18,7 +18,7 @@ class FFmpegController {
         if(this.debug){
             console.log('ffmpeg.exec', id, cmd)
         }
-        top.ffmpeg.exec(cmd, data => {
+        parent.parent.ffmpeg.exec(cmd, data => {
             if(this.debug){
                 console.log('ffmpeg.exec returned', cmd, data)
             }
@@ -65,8 +65,8 @@ class FFmpegController {
         }
     }
     cleanup(){
-        if(top.ffmpeg.cleanup){
-            top.ffmpeg.cleanup('99999')
+        if(parent.parent.ffmpeg.cleanup){
+            parent.parent.ffmpeg.cleanup('99999')
         }
     }
     exit(){
@@ -83,7 +83,7 @@ class FFmpegController {
         if(this.debug){
             console.log('ffmpeg.exec _kill '+  executionId)
         }
-        top.ffmpeg.kill(executionId)
+        parent.parent.ffmpeg.kill(executionId)
         let keepIds = []
         Object.keys(this.executionIds).forEach(k => {
             if(this.executionIds[k] == executionId){

@@ -1150,7 +1150,7 @@ class StreamerClientVideoFullScreen extends StreamerAndroidNetworkIP {
                 parent.winman.on('leave', this.pipLeaveListener)
             }
         } else {
-            top.Manager.setFullScreen(true)
+            parent.parent.Manager.setFullScreen(true)
         }
         this.inFullScreen = true
         this.emit('fullscreenchange', this.inFullScreen)
@@ -1172,7 +1172,7 @@ class StreamerClientVideoFullScreen extends StreamerAndroidNetworkIP {
                     }, 10)
                 }, console.error)
             } else {
-                top.Manager.setFullScreen(false)
+                parent.parent.Manager.setFullScreen(false)
             }
             this.emit('fullscreenchange', this.inFullScreen)
         }
@@ -1266,7 +1266,7 @@ class StreamerAudioUI extends StreamerClientVideoFullScreen {
         }
     }
     setupVolume(){        
-        this.addPlayerButton('volume', lang.VOLUME, 'fas fa-volume-up', 2, this.volumeBarShow.bind(this))
+        this.addPlayerButton('volume', 'VOLUME', 'fas fa-volume-up', 2, this.volumeBarShow.bind(this))
         this.volumeButton = this.getPlayerButton('volume')
         jQuery('<volume><volume-wrap><div><input type="range" min="0" max="100" step="1" value="'+ config['volume'] +'" /><div id="volume-arrow"></div></div></volume-wrap></volume>').prependTo(this.volumeButton)
         this.volumeBar = this.volumeButton.querySelector('volume')
@@ -1416,29 +1416,29 @@ class StreamerClientControls extends StreamerAudioUI {
         <i class="fas fa-chevron-down"></i>
     </div>
 `
-        this.addPlayerButton('play-pause', lang.PAUSE, `
+        this.addPlayerButton('play-pause', 'PAUSE', `
             <i class="fas fa-play play-button"></i>
             <i class="fas fa-pause pause-button"></i>`, 0, () => {
             this.playOrPauseNotIdle()
         })
-        this.addPlayerButton('stop', lang.STOP, 'fas fa-stop', 1, () => {
+        this.addPlayerButton('stop', 'STOP', 'fas fa-stop', 1, () => {
             this.stop()
         })
         this.setupVolume()
-        this.addPlayerButton('tune', lang.RETRY, config['tuning-icon'], -1, () => {
+        this.addPlayerButton('tune', 'RETRY', config['tuning-icon'], -1, () => {
             this.app.emit('reload-dialog')
         })
-        this.addPlayerButton('ratio', lang.ASPECT_RATIO, 'fas fa-expand-alt', -1, () => {
+        this.addPlayerButton('ratio', 'ASPECT_RATIO', 'fas fa-expand-alt', -1, () => {
             this.switchAspectRatio()
             let label = this.activeAspectRatio.custom ? lang.ORIGINAL : (this.activeAspectRatio.h + ':' + this.activeAspectRatio.v)
             osd.show(lang.ASPECT_RATIO +': '+ label, '', 'ratio', 'normal')
         }, 0.9)
         if(!parent.cordova && config['startup-window'] != 'fullscreen'){
-            this.addPlayerButton('fullscreen', lang.FULLSCREEN, 'fas fa-expand', -1, () => {
+            this.addPlayerButton('fullscreen', 'FULLSCREEN', 'fas fa-expand', -1, () => {
                 this.toggleFullScreen()
             }, 0.85)
         }
-        this.addPlayerButton('info', lang.ABOUT, `
+        this.addPlayerButton('info', 'ABOUT', `
             <i class="about-icon-dot about-icon-dot-first"></i>
             <i class="about-icon-dot about-icon-dot-second"></i>
             <i class="about-icon-dot about-icon-dot-third"></i>`, -1, 'about')
@@ -1456,17 +1456,17 @@ class StreamerClientControls extends StreamerAudioUI {
             }
         })
     }
-    addPlayerButton(cls, name, fa, position = -1, action, scale = -1){
-        let id = cls.split(' ')[0]
+    addPlayerButton(cls, langKey, fa, position = -1, action, scale = -1){
+        let id = cls.split(' ')[0], name = lang[langKey]
         if(this.getPlayerButton(id)){
             return
         }
         let container = this.controls.querySelector('#buttons')
         let iconTpl = fa.indexOf('<') == -1 ? '<i class="'+ fa +'"></i>' : fa
         let template = `
-        <button id="${id}" class="${cls}" title="${name}" aria-label="${name}">
+        <button id="${id}" class="${cls}" title="${name}" aria-label="${name}" data-language="${langKey}">
             <span class="button-icon">${iconTpl}</span>
-            <label><span>${name}</span></label>
+            <label><span data-language="${langKey}">${name}</span></label>
         </button>
 `
         if(scale != -1){
@@ -1496,8 +1496,8 @@ class StreamerClientControls extends StreamerAudioUI {
                 this.app.emit(action)
             })
         }
-        if(name == 'cast' && top.Manager){
-            top.Manager.exitPage.touch()
+        if(name == 'cast' && parent.parent.Manager){
+            parent.parent.Manager.exitPage.touch()
         }
     }
     getPlayerButton(id){

@@ -1,6 +1,80 @@
 const xmltv = require('xmltv'), fs = require('fs'), Events = require('events')
 
-class EPG extends Events {
+class EPGPaginateChannelsList extends Events {
+    constructor(url){
+        super()
+    }
+    prepareChannelName(name){
+        const badTerms = ['H.265', 'H.264', 'H265', 'H264', 'SD', 'HD', 'FHD', '2K', '4K', '8K']
+        return global.ucWords(name.split('[')[0].split(' ').filter(s => s && !badTerms.includes(s.toUpperCase())).join(' '))
+    }
+    isASCIIChar(chr){
+        let c = chr.charCodeAt(0)
+        return ((c >= 48 && c <= 57) || (c >= 65 && c <= 90) || (c >= 97 && c <= 122))
+    }
+    getNameDiff(a, b){
+        let c = ''
+        for(let i=0;i<a.length;i++){
+            if(a[i] && b && b[i] && a[i] == b[i]){
+                c += a[i]
+            } else {
+                c += a[i]
+                if(this.isASCIIChar(a[i])){
+                    break
+                }
+            }
+        }
+        //console.log('namdiff res', c)
+        return c
+    }
+    getRangeName(names, lastName, nextName){
+        var l, start = '0', end = 'Z', r = new RegExp('[a-z\\d]', 'i'), r2 = new RegExp('[^a-z\\d]+$', 'i')
+        //console.log('last', JSON.stringify(lastName))
+        for(var i=0; i<names.length; i++){
+            if(lastName){
+                l = this.getNameDiff(names[i], lastName)
+            } else {
+                l = names[i].charAt(0)
+            }
+            if(l.match(r)){
+                start = l.toLowerCase().replace(r2, '')
+                break
+            }
+        }
+        //console.log('next')
+        for(var i=(names.length - 1); i>=0; i--){
+            if(nextName){
+                l = this.getNameDiff(names[i], nextName)
+            } else {
+                l = names[i].charAt(0)
+            }
+            if(l.match(r)){
+                end = l.toLowerCase().replace(r2, '')
+                break
+            }
+        }
+        return start == end ? global.ucWords(start) : lang.X_TO_Y.format(start.toUpperCase(), end.toUpperCase())
+    }	
+    paginateChannelList(snames){
+        let ret = {}, folderSizeLimit = 10
+        snames = [...new Set(snames.map(s => this.prepareChannelName(s)).sort())]
+        folderSizeLimit = Math.min(folderSizeLimit, snames.length / 8) // generate at least 8 pages to ease navigation
+        let nextName, lastName
+        for(let i=0; i<snames.length; i += folderSizeLimit){
+            let gentries = snames.slice(i, i + folderSizeLimit)
+            nextName = snames.slice(i + folderSizeLimit, i + folderSizeLimit + 1)
+            nextName = nextName.length ? nextName[0] : null
+            let gname = this.getRangeName(gentries, lastName, nextName)
+            if(gentries.length){
+                lastName = gentries[gentries.length - 1]
+            }
+            ret[gname] = gentries
+        }
+        return ret
+    }
+}
+
+class EPG extends EPGPaginateChannelsList {
     constructor(url){
         super()
         this.debug = false
@@ -145,10 +219,13 @@ class EPG extends Events {
                 this.request = null
                 console.log('EPG REQUEST ENDED', validEPG, received, Object.keys(this.data).length)
                 if(Object.keys(this.data).length){
-                    global.storage.set(this.lastmCtrlKey, newLastModified, this.ttl)
+                    if(newLastModified){
+                        global.storage.set(this.lastmCtrlKey, newLastModified, this.ttl)
+                    }
                     global.storage.set(this.fetchCtrlKey, now, this.ttl)
                     this.state = 'loaded'
                     this.loaded = true
+                    this.error = null
                     this.emit('load')
                 } else {
                     this.state = 'error'
@@ -311,6 +388,9 @@ class EPG extends Events {
                 }
             })
         })
+        if(!Object.keys(categories).length){
+            categories = this.paginateChannelList(Object.keys(this.data))
+        }
         return {categories, updateAfter}
     }
     expandSuggestions(categories){
@@ -381,10 +461,6 @@ class EPG extends Events {
             })
         })
         return results
-    }
-    prepareChannelName(name){
-        const badTerms = ['H.265', 'H.264', 'H265', 'H264', 'SD', 'HD', 'FHD', '2K', '4K', '8K']
-        return global.ucWords(name.split('[')[0].split(' ').filter(s => s && !badTerms.includes(s.toUpperCase())).join(' '))
     }
     hasProgramme(channel, start){
         return typeof(this.data[channel]) != 'undefined' && typeof(this.data[channel][start]) != 'undefined'

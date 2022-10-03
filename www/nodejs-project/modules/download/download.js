@@ -12,6 +12,7 @@ class Download extends Events {
 			debug: false,
 			keepalive: false,
 			maxAuthErrors: 2,
+			maxAbortErrors: 2,
 			redirectionLimit: 20,
 			retries: 3,
 			compression: true,
@@ -62,6 +63,7 @@ class Download extends Events {
 		this.errorCount = []
 		this.errors = []
 		this.authErrors = 0
+		this.abortErrors = 0
 		this.statusCode = 0
 		this.ignoreBytes = 0
 		this.connectCount = 0
@@ -536,6 +538,12 @@ class Download extends Events {
 									txt += 'aborted, no response'
 								}
 								global.osd.show(txt, 'fas fa-download', 'down-'+ this.uid, 'persistent')
+							}
+							if(!this.received){
+								this.abortErrors++
+								if(this.abortErrors >= this.opts.maxAbortErrors){
+									return this.end()
+								}
 							}
 							this.continue()
 						}

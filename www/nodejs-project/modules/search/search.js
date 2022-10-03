@@ -42,7 +42,6 @@ class Search extends Events {
         this.currentSearch = null
         this.currentEntries = null
         this.currentResults = []
-        this.useYTFallback = true
     }
     entriesLive(){
         if(this.currentSearchType != 'live'){
@@ -209,16 +208,16 @@ class Search extends Events {
                 }
             ]
         } else {
-            if(es.length) {
-                es = global.lists.parentalControl.filter(es)
-            }
             this.currentResults = es.slice(0)
             let minResultsWanted = (global.config.get('view-size-x') * global.config.get('view-size-y')) - 3
-            if(this.useYTFallback && es.length < minResultsWanted){                
+            if(global.config.get('search-youtube') && es.length < minResultsWanted){                
                 let ys = await this.ytResults(terms).catch(console.error)
                 if(Array.isArray(ys)) {
                     es = es.concat(ys)
                 }
+            }
+            if(es.length) {
+                es = global.lists.parentalControl.filter(es)
             }
         }
         return es
@@ -318,7 +317,7 @@ class Search extends Events {
         let es = await global.channels.search(terms, this.searchInaccurate)
         es = es.map(e => global.channels.toMetaEntry(e))
         let minResultsWanted = (global.config.get('view-size-x') * global.config.get('view-size-y')) - 3
-        if(this.useYTFallback && 0 && es.length < minResultsWanted){
+        if(global.config.get('search-youtube') && es.length < minResultsWanted){
             let ys = await this.ytLiveResults(terms).catch(console.error)
             if(Array.isArray(ys)) {
                 es = es.concat(ys.slice(0, minResultsWanted - es.length))

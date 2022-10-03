@@ -329,6 +329,8 @@ div#home-arrows > div > * {
     display: flex;
     align-items: flex-end;
     width: 100%;
+    background: rgba(0,0,0, 0.1);
+    border-radius: var(--radius);
 }
 #explorer content {
     height: inherit;
@@ -1409,6 +1411,11 @@ body.menu-playing #main {
     perspective: 10vmin;
     transform-origin: center center;
 }
+.entry-cover-container {    
+    min-height: 100%;
+    display: flex;
+    justify-content: center;
+}
 .entry-cover-active > div {
     position: absolute;
     width: inherit;
@@ -1430,15 +1437,19 @@ body.menu-playing #main {
 }
 .entry-cover-active > div > img {
     object-fit: cover;
-    min-height: 100%;
-    max-width: 100%;
     border-radius: var(--radius);
+    min-width: 100%;
+    min-height: 100%;
+    height: -webkit-fill-available;
+    width: -webkit-fill-available;
 }
 .entry-cover .entry-wrapper {
     background: linear-gradient(to bottom, var(--background-color), transparent);
 }
 .entry-cover-active .entry-data-in {
     top: 0 !important;
+    background: linear-gradient(to bottom, var(--shadow-background-color) -10%, transparent 100%);
+    padding-bottom: calc(var(--explorer-entry-name-font-size) * 6);
 }
 .entry-cover-active .entry-name {
     padding: var(--padding-quarter) var(--padding-half);

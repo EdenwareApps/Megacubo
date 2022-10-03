@@ -61,14 +61,7 @@ class Fetcher extends Events {
 			} else if(path.match('^https?:')) {
 				const dataKey = LIST_DATA_KEY_MASK.format(path)
 				global.storage.raw.get(dataKey, data => {
-					if(this.validateCache(data)){
-						let entries = data.split("\n").filter(s => s.length > 8).map(JSON.parse)
-						let last = entries.length - 1
-						if(entries[last].length){ // remove index entry
-							entries.splice(last, 1)
-						}
-						resolve(entries)
-					} else {
+					const process = () => {						
 						const opts = {
 							url: path,
 							keepalive: false,
@@ -112,6 +105,20 @@ class Fetcher extends Events {
 							}
 						})
 						stream.start()
+					}
+					if(this.validateCache(data)){
+						try{ // SyntaxError: Unexpected token \u0003 in JSON at position 73
+							let entries = data.split("\n").filter(s => s.length > 8).map(JSON.parse)
+							let last = entries.length - 1
+							if(entries[last].length){ // remove index entry
+								entries.splice(last, 1)
+							}
+							resolve(entries)
+						} catch(e) {
+							process()
+						}
+					} else {
+						process()
 					}
 				})
 			} else {

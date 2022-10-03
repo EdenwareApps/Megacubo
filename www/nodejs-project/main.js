@@ -311,12 +311,12 @@ updateEPGConfig = c => {
         console.log('SET-EPG', activeEPG, activeEPG)
         if(activeEPG == 'disabled'){
             activeEPG = false
-            lists.manager.setEPG('', false)
+            lists.manager.setEPG('', false).catch(console.error)
         } else {
             if(!activeEPG || activeEPG == 'auto'){
                 activeEPG = c['epg-'+ lang.countryCode] || c['epg-'+ lang.locale] || false
             }
-            lists.manager.setEPG(activeEPG || '', false)
+            lists.manager.setEPG(activeEPG || '', false).catch(console.error)
         }
     }
     if(c){
@@ -325,6 +325,15 @@ updateEPGConfig = c => {
         cloud.get('configure').then(next).catch(console.error)
     }
     console.log('SET-EPG', activeEPG)
+}
+
+setupCompleted = () => {
+    const l = config.get('lists')
+    const fine = (l && l.length) || config.get('communitary-mode-lists-amount')
+    if(fine != config.get('setup-completed')) {
+        config.set('setup-completed', fine)        
+    }
+    return fine
 }
 
 videoErrorTimeoutCallback = ret => {
@@ -364,17 +373,13 @@ function init(language){
         lists = new Lists()
         lists.setNetworkConnectionState(Download.isNetworkConnected).catch(console.error)       
         lists.manager.on('lists-updated', () => {
-            if(config.get('setup-completed')) areListsReady = true
+            if(setupCompleted()) areListsReady = true
         })
 
         activeLists = {my: [], community: [], length: 0}
 
         autoconfig = new AutoConfig()
         autoconfig.start().catch(console.error)
-
-        if(config.get('setup-completed')){
-            lists.manager.UIUpdateLists(true)
-        }
 
         omni = new OMNI()
         mega = new Mega()
@@ -392,13 +397,7 @@ function init(language){
 
         rmdir(streamer.opts.workDir, false, true)
 
-        explorer = new Explorer({},
-            [
-                {name: lang.LIVE, fa: 'fas fa-tv', details: '<i class="fas fa-play-circle"></i> '+ lang.WATCH, type: 'group', renderer: channels.entries.bind(channels)},
-                {name: lang.MOVIES, fa: 'fas fa-film', details: lang.CATEGORIES, type: 'group', renderer: () => channels.groupsRenderer('vod')},
-                {name: lang.SERIES, fa: 'fas fa-th', details: lang.CATEGORIES, type: 'group', renderer: () => channels.groupsRenderer('series')}
-            ]
-        )
+        explorer = new Explorer({})
         
         console.log('Initializing premium...')
         Premium = require(APPDIR + '/modules/premium-helper')
@@ -409,6 +408,7 @@ function init(language){
         streamState = new StreamState()
         zap = new Zap()
 
+        explorer.addFilter(channels.hook.bind(channels))
         explorer.addFilter(bookmarks.hook.bind(bookmarks))
         explorer.addFilter(histo.hook.bind(histo))
         explorer.addFilter(watching.hook.bind(watching))
@@ -468,11 +468,6 @@ function init(language){
         })
         ui.on('config-set', (k, v) => {
             config.set(k, v)
-        })
-        ui.on('add-list', url => {
-            lists.manager.addList(url).catch(err => {
-                lists.manager.check()
-            })
         })
         ui.on('lists-manager', ret => {
             console.log('lists-manager', ret)
@@ -778,15 +773,21 @@ function init(language){
                 }
                 analytics = new Analytics()
                 diagnostics = new Diagnostics()
+
+                if(setupCompleted()){
+                    lists.manager.UIUpdateLists(true)
+                } else {
+                    const Wizard = require(APPDIR + '/modules/wizard');
+                    wizard = new Wizard()
+                }
+
                 explorer.addFilter(downloads.hook.bind(downloads))
             }
         })
         ui.on('streamer-ready', () => {        
             isStreamerReady = true  
             if(!streamer.active){
-                console.error('STREAMER-READY', lists.manager.updatingLists, config.get('setup-completed'))
                 let next = () => {
-                    console.error('STREAMER-READY', lists.manager.updatingLists, config.get('setup-completed'))
                     if(playOnLoaded){
                         streamer.play(playOnLoaded)
                     } else if(config.get('resume')) {

@@ -2,11 +2,9 @@
 const Events = require('events'), path = require('path')
 
 class Explorer extends Events {
-	constructor(opts, entries){
+	constructor(opts){
         super()
-        this.pages = {
-            '': entries
-        }
+        this.pages = {'': []}
         this.opts = {
             debug: false
         }
@@ -101,12 +99,23 @@ class Explorer extends Events {
             if(e.details){
                 details.push(e.details)
             }
-            if(e.usersPercentage){
-                let c = e.users > 1 ? 'users' : 'user', p = e.usersPercentage >= 1 ? Math.round(e.usersPercentage) : e.usersPercentage.toFixed(e.usersPercentage >= 0.1 ? 1 : 2)
-                details.push('<i class="fas fa-' + c + '"></i> ' + p +'%')
-            } else if(e.users){
-                let c = e.users > 1 ? 'users' : 'user'
-                details.push('<i class="fas fa-' + c + '"></i> ' + e.users)
+            if(e.usersPercentage || e.users){
+                let s = '', c = e.users > 1 ? 'users' : 'user'
+                if(typeof(e.trend) == 'number') {
+                    if(e.trend == -1) {
+                        c = 'caret-down'
+                        s = ' style="color: #f30;font-weight: bold;"'
+                    } else {
+                        c = 'caret-up'
+                        s = ' style="color: green;font-weight: bold;"'
+                    }
+                }
+                if(e.usersPercentage){
+                    let p = e.usersPercentage >= 1 ? Math.round(e.usersPercentage) : e.usersPercentage.toFixed(e.usersPercentage >= 0.1 ? 1 : 2)
+                    details.push('<i class="fas fa-' + c + '" '+ s +'></i> ' + p +'%')
+                } else if(e.users){
+                    details.push('<i class="fas fa-' + c + '" '+ s +'></i> ' + e.users)
+                }
             }
             if(e.position && this.path == global.lang.TRENDING){
                 details.push('<i class="fas fa-trophy" style="transform: scale(0.8)"></i> '+ e.position)

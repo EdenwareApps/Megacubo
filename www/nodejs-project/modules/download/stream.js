@@ -105,6 +105,7 @@ class DownloadStream extends Events {
         return new Promise(resolve => {
             let timer, fine, req, response, resolved
             const close = () => {
+                this.removeListener('destroy', close)
                 response && response.req && response.req.destroy()
                 response && response.destroy()
                 req && req.destroy()

@@ -50,7 +50,7 @@ function updateWebView(){
 			break
 	}
 	alert(msg)
-	top.close()
+	parent.parent.close()
 }
 
 var themeBackgroundReady

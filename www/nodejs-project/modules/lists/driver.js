@@ -212,7 +212,7 @@ class Lists extends Index {
 					resolve(data)
 				})
 			} else {
-				console.error('epgLiveNowChannelsList FAILED', JSON.stringify(data), JSON.stringify(this._epg.data))
+				console.error('epgLiveNowChannelsList FAILED', JSON.stringify(data), ' || ', JSON.stringify(this._epg.data))
 				reject('failed')
 			}
 		})		

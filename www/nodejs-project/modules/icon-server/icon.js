@@ -61,7 +61,7 @@ class IconFetcher {
                                                     done = ret
                                                     done.key = key
                                                     done.image = image
-                                                    this.ready(key, true)
+                                                    this.ready(key, true, true)
                                                 }
                                             }
                                             acb()
@@ -138,7 +138,7 @@ class IconFetcher {
                             } else if(stat.size == noIcon.length) {
                                 return
                             } else {
-                                this.ready(this.terms.join(','))
+                                this.ready(this.terms.join(','), false, true)
                             }
                         })
                     } else {
@@ -146,7 +146,7 @@ class IconFetcher {
                     }
                 }).catch(console.error)
             }
-            this.master.fetchURL(this.entry.icon).then(ret => this.ready(ret.key)).catch(err => {
+            this.master.fetchURL(this.entry.icon).then(ret => this.ready(ret.key, false, ret.isAlpha)).catch(err => {
                 if(!this.entry.class || this.entry.class.indexOf('entry-icon-no-fallback') == -1) {
                     let atts
                     this.terms = global.channels.entryTerms(this.entry)
@@ -170,7 +170,7 @@ class IconFetcher {
             })
         }
         if(this.entry.program && this.entry.program.i){
-            this.master.fetchURL(this.entry.program.i).then(ret => this.ready(ret.key)).catch(noEPGIcon)
+            this.master.fetchURL(this.entry.program.i).then(ret => this.ready(ret.key, false, ret.isAlpha)).catch(noEPGIcon)
         } else {
             noEPGIcon()
         }
@@ -191,14 +191,21 @@ class Icon extends IconFetcher {
     destroy(){
         this.destroyed = true
     }
-    ready(key, force){
+    ready(key, force, alpha){
         if(!this.destroyed){
             this.lastEmittedKey = key
             if(!force && !this.master.isHashKey(key)) force = true
             if(this.master.opts.debug){
                 console.log('icon', this.master.url + key, this.path, this.tabIndex, this.entry.name, this.entry, force)
             }
-            global.ui.emit('icon', this.master.url + key, this.path, this.tabIndex, this.entry.name, force)
+            global.ui.emit('icon', {
+                url: this.master.url + key, 
+                path: this.path, 
+                tabindex: this.tabIndex, 
+                name: this.entry.name, 
+                force, 
+                alpha
+            })
         }
     }
 }

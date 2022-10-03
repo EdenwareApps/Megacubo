@@ -98,13 +98,13 @@ class Index extends Common {
 	}
 	searchMap(query, opts){
 		let fullMap
-		console.log('searchMap', query)
+		//console.log('searchMap', query)
 		opts = this.optimizeSearchOpts(opts)
 		query.forEach(q => {
 			let map = this.querySearchMap(q, opts)
 			fullMap = fullMap ? this.joinMap(fullMap, map) : map
 		})
-		console.log('searchMap', opts)
+		//console.log('searchMap', opts)
 		return this.cloneMap(fullMap)
 	}
 	queryTermMap(terms, group){

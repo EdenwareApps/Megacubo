@@ -194,7 +194,6 @@ class Bridge extends BridgeServer {
     }
     localEmit(...args){
         let a = Array.from(args), id = a.shift()
-        console.log('localEmit', id, a)
         this.bindings.on.forEach(c => {
             if(c[0] == id){
                 c[1].apply(null, a)

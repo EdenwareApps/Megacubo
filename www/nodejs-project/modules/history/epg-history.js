@@ -254,7 +254,7 @@ class EPGHistory extends EntriesGroup {
             es = []
         }
         if(!es.length){
-            if(global.activeEPG || config.get('epg-'+ lang.locale)) {
+            if(global.activeEPG || global.config.get('epg-'+ global.lang.locale)) {
                 es.push({
                     name: global.lang.NO_RECOMMENDATIONS_YET, 
                     type: 'action', 

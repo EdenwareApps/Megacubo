@@ -54,6 +54,7 @@ class Theme extends Events {
             fs.stat(file, (err, stat) => {
                 if(stat && stat.size){
                     const key = 'colors-' + global.explorer.basename(file) + '-' + stat.size, next = colors => {
+                        global.osd.hide('theme-processing-colors')
                         if(typeof(filter) == 'function'){
                             colors = colors.filter(filter)
                         }
@@ -61,7 +62,6 @@ class Theme extends Events {
                             colors = colors.slice(0, limit)
                         }
                         resolve(colors)
-                        global.osd.hide('theme-processing-colors')
                     }
                     global.storage.temp.get(key, content => {
                         if(Array.isArray(content)){
@@ -70,7 +70,10 @@ class Theme extends Events {
                             global.jimp.colors(file).then(colors => {
                                 global.storage.temp.set(key, colors, true)
                                 next(colors)
-                            }).catch(reject)
+                            }).catch(err => {
+                                console.error(err)
+                                next([])
+                            })
                         }
                     })
                 } else {
@@ -377,57 +380,50 @@ class Theme extends Events {
                                             name: global.lang.BACKGROUND_COLOR,
                                             type: 'group',
                                             fa: 'fas fa-palette',
-                                            renderer: () => {
-                                                return new Promise((resolve, reject) => {
-                                                    this.colors(this.customBackgroundImagePath, c => this.colorLightLevel(c) < 40, 52).then(colors => {
-                                                        colors = this.colorsAddDefaults(colors, false).map(c => {
-                                                            return global.rgbToHex.apply(null, Object.values(c))
-                                                        })
-                                                        colors = [... new Set(colors)].slice(0, 32).map((hex, i) => {
-                                                            return {
-                                                                name: global.lang.BACKGROUND_COLOR + ' ' +  (i + 1),
-                                                                details: hex.substr(1),
-                                                                type: 'action',
-                                                                fa: 'fas fa-stop',
-                                                                color: hex,
-                                                                action: () => {
-                                                                    if(hex != global.config.get('background-color')){
-                                                                        global.config.set('background-color', hex)
-                                                                        this.update()
-                                                                    } else {    
-                                                                        global.explorer.back()
-                                                                    }
-                                                                }
-                                                            }
-                                                        })
-                                                        colors.push({
-                                                            name: lang.CUSTOMIZE,
-                                                            type: 'input',
-                                                            fa: 'fas fa-palette', 
-                                                            value: () => global.config.get('background-color'),
-                                                            action: (data, value) => {
-                                                                if(value.match(new RegExp('^#?[0-9a-fA-F]{6}$'))){
-                                                                    if(value.length == 6){
-                                                                        value = '#' + value
-                                                                    }
-                                                                    global.config.set('background-color', value)     
-                                                                    this.update() 
-                                                                    global.explorer.back()                                  
-                                                                } else {
-                                                                    global.displayErr(global.lang.INCORRECT_FORMAT)
-                                                                }
-                                                            }
-                                                        }),
-                                                        resolve(colors)
-                                                    }).catch(err => {
-                                                        console.error(err)
-                                                        reject(err)
-                                                        global.explorer.back()
-                                                    }).finally(() => {
-                                                        global.osd.hide('theme-upload')
-                                                        global.ui.emit('set-loading', {name: global.lang.CHOOSE_BACKGROUND_IMAGE}, false)
-                                                    })
+                                            renderer: async () => {
+                                                let hasErr, colors = await this.colors(this.customBackgroundImagePath, c => this.colorLightLevel(c) < 40, 52).catch(err => hasErr = err)
+                                                global.osd.hide('theme-upload')
+                                                global.ui.emit('set-loading', {name: global.lang.CHOOSE_BACKGROUND_IMAGE}, false)
+                                                if(!Array.isArray(colors)) colors = []
+                                                colors = this.colorsAddDefaults(colors, false).map(c => {
+                                                    return global.rgbToHex.apply(null, Object.values(c))
                                                 })
+                                                colors = [... new Set(colors)].slice(0, 32).map((hex, i) => {
+                                                    return {
+                                                        name: global.lang.BACKGROUND_COLOR + ' ' +  (i + 1),
+                                                        details: hex.substr(1),
+                                                        type: 'action',
+                                                        fa: 'fas fa-stop',
+                                                        color: hex,
+                                                        action: () => {
+                                                            if(hex != global.config.get('background-color')){
+                                                                global.config.set('background-color', hex)
+                                                                this.update()
+                                                            } else {    
+                                                                global.explorer.back()
+                                                            }
+                                                        }
+                                                    }
+                                                })
+                                                colors.push({
+                                                    name: lang.CUSTOMIZE,
+                                                    type: 'input',
+                                                    fa: 'fas fa-palette', 
+                                                    value: () => global.config.get('background-color'),
+                                                    action: (data, value) => {
+                                                        if(value.match(new RegExp('^#?[0-9a-fA-F]{6}$'))){
+                                                            if(value.length == 6){
+                                                                value = '#' + value
+                                                            }
+                                                            global.config.set('background-color', value)     
+                                                            this.update() 
+                                                            global.explorer.back()                                  
+                                                        } else {
+                                                            global.displayErr(global.lang.INCORRECT_FORMAT)
+                                                        }
+                                                    }
+                                                })
+                                                return colors
                                             },
                                             value: () => {
                                                 return global.config.get('background-color')
@@ -574,6 +570,18 @@ class Theme extends Events {
                                     }, 
                                     value: () => {
                                         return global.config.get('fx-nav-intensity')
+                                    }
+                                },
+                                {
+                                    name: 'Scale non-transparent thumbnails',
+                                    fa: 'fas fa-expand-alt',
+                                    type: 'check', 
+                                    action: (data, value) => {
+                                        global.config.set('scale-logos', value)
+                                        this.update()
+                                    }, 
+                                    checked: () => {
+                                        return global.config.get('scale-logos')
                                     }
                                 }
                             ]

@@ -4,7 +4,6 @@ class Watching extends EntriesGroup {
     constructor(){
         super('watching')
         this.timer = 0
-        this.title = global.lang.TRENDING
         this.currentEntries = null
         this.currentRawEntries = null
         this.updateIntervalSecs = global.cloud.expires.watching
@@ -16,7 +15,25 @@ class Watching extends EntriesGroup {
             if(keys.includes('only-known-channels-in-been-watched') || keys.includes('parental-control') || keys.includes('parental-control-terms')){
                 this.update()
             }
-        })
+        })        
+        global.storage.promises.get('watching-current').then(data => {
+            if(!this.currentEntries || !this.currentEntries.length){
+                this.currentEntries = data
+            } else {                  
+                this.currentEntries.forEach((c, i) => {  
+                    data.forEach(e => {
+                        if(typeof(c.trend) == 'undefined' && typeof(e.trend) != 'undefined'){
+                            this.currentEntries[i].trend = e.trend
+                            return true
+                        }
+                    })
+                    return e
+                })
+            }
+        }).catch(console.error)
+    }
+    title(){
+        return global.lang.TRENDING
     }
     ready(cb){
         if(this.currentRawEntries){
@@ -50,7 +67,7 @@ class Watching extends EntriesGroup {
         })
     }
     updateView(){
-        if(global.explorer.path == this.title){
+        if(global.explorer.path == this.title()){
             global.explorer.refresh()
         }
     }
@@ -155,7 +172,7 @@ class Watching extends EntriesGroup {
         const adultContentOnly = global.config.get('parental-control') == 'only', onlyKnownChannels = !adultContentOnly && global.config.get('only-known-channels-in-been-watched')
         let groups = {}, gcount = {}, gentries = []
         let sentries = await global.search.searchSuggestionEntries()
-        let gsearches = [], searchTerms = sentries.map(s => s.search_term).filter(s => !global.channels.isChannel(s)).filter(s => global.lists.parentalControl.allow(s)).map(s => global.lists.terms(s))
+        let gsearches = [], searchTerms = sentries.map(s => s.search_term).filter(s => s.length >= 3).filter(s => !global.channels.isChannel(s)).filter(s => global.lists.parentalControl.allow(s)).map(s => global.lists.terms(s))
         data.forEach((entry, i) => {
             let ch = global.channels.isChannel(entry.terms.name)
             if(!ch){
@@ -202,9 +219,32 @@ class Watching extends EntriesGroup {
         data = data.filter(e => {
             return !!e
         }).concat(gentries).sortByProp('users', true)
+        data = this.addTrendAttr(data)
         data = this.applyUsersPercentages(data)
         this.currentEntries = data
+        global.storage.promises.set('watching-current', data, true).catch(console.error)
         return data
+    }
+    addTrendAttr(entries){
+        if(this.currentEntries){
+            const k = entries.some(e => e.usersPercentage) ? 'usersPercentage' : 'users'
+            entries.map(e => {
+                this.currentEntries.some(c => {
+                    if(c.url == e.url){
+                        if(e[k] > c[k]) {
+                            e.trend = 1
+                        } else if(e[k] < c[k]) {
+                            e.trend = -1
+                        } else if(typeof(c.trend) == 'number') {
+                            e.trend = c.trend
+                        }
+                        return true
+                    }
+                })
+                return e
+            })
+        }
+        return entries
     }
     order(entries){
         return new Promise((resolve, reject) => {
@@ -227,7 +267,7 @@ class Watching extends EntriesGroup {
         })
     }
     entry(){
-        const entry = {name: this.title, details: global.lang.BEEN_WATCHED, fa: 'fas fa-chart-bar', hookId: this.key, type: 'group', renderer: this.entries.bind(this)}
+        const entry = {name: this.title(), details: global.lang.BEEN_WATCHED, fa: 'fas fa-chart-bar', hookId: this.key, type: 'group', renderer: this.entries.bind(this)}
         if(this.currentEntries && this.showChannelOnHome()){
             let top, rootPage = global.explorer.pages['']
             this.currentEntries.some(e => {
@@ -238,7 +278,7 @@ class Watching extends EntriesGroup {
             })
             if(top){
                 let s = top.users == 1 ? 'user' : 'users'
-                entry.name = this.title
+                entry.name = this.title()
                 entry.class = 'entry-icon' 
                 entry.originalName = top.name
                 entry.prepend = '<i class="fas fa-chart-bar"></i> '

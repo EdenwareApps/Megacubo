@@ -115,9 +115,13 @@ var hotkeysActions = {
             app.emit('toggle-fav')
         }, 'up', true
     ],
-    'ZAP': [
+    'RELOAD': [
         () => {
-            app.emit('zap')
+            if(streamer.isZapping){
+                app.emit('zap')
+            } else {
+                app.emit('tune')
+            }
         }, 'up', true
     ],
     'MINIPLAYER': [
@@ -137,8 +141,8 @@ var hotkeysActions = {
     ],
     'FULLSCREEN': [
         () => {
-            if(top.Manager){
-                top.Manager.toggleFullScreen()
+            if(parent.parent.Manager){
+                parent.parent.Manager.toggleFullScreen()
                 if(window.idle.reset){
                     window.idle.reset()
                 }

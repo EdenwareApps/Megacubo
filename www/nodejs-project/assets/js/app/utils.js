@@ -192,8 +192,8 @@ function centralizedResizeWindow(w, h, animate){
     if(tw){
         var t = (screen.availHeight - h) / 2, l = (screen.availWidth - w) / 2;
         if(animate){
-            var initialTop = top.win.y;
-            var initialLeft = top.win.x;
+            var initialTop = parent.parent.win.y;
+            var initialLeft = parent.parent.win.x;
             var initialWidth = tw.outerWidth;
             var initialHeight = tw.outerHeight;
             $({percent: 0}).animate({percent: 100}, {
@@ -627,7 +627,7 @@ function getManifest(callback){
     
 function applyIcon(icon){
     if(top){
-        var doc = top.document;
+        var doc = parent.parent.document;
         var link = doc.querySelector("link[rel*='icon']") || doc.createElement('link');
         link.type = 'image/x-png';
         link.rel = 'shortcut icon';

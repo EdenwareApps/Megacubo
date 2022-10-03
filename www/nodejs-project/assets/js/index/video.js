@@ -14,11 +14,7 @@ class VideoControl extends EventEmitter {
 		this.state = ''
 		this.hasErr = null
 		this.clearErrTimer = null
-		this.config = {}
 		this.uiVisibility = true
-		if(typeof(config) != 'undefined'){
-			this.config = config
-		}
 	}
 	uiVisible(visible){
 		if(this.current){
@@ -73,7 +69,7 @@ class VideoControl extends EventEmitter {
 		return 0
 	}
 	show(){
-		const h = $('html'), useCurtains = this.config['fx-nav-intensity']
+		const h = $('html'), useCurtains = config['fx-nav-intensity']
 		if(useCurtains){
 			h.removeClass('curtains-static').removeClass('curtains-close').addClass('curtains')
 		}
@@ -98,7 +94,7 @@ class VideoControl extends EventEmitter {
 		if(this.revealTimer){
 			clearTimeout(this.revealTimer)
 		}
-		const h = $('html'), useCurtains = this.config['fx-nav-intensity']
+		const h = $('html'), useCurtains = config['fx-nav-intensity']
 		h.removeClass('playing')
 		if(useCurtains){
 			h.addClass('curtains-static').removeClass('curtains').removeClass('curtains-close')
@@ -149,7 +145,7 @@ class VideoControl extends EventEmitter {
 		this.current.errorsCount = 0
 		this.current.load(src, mimetype, cookie, mediatype)
 		this.show()
-		this.current.volume(this.config['volume'])
+		this.current.volume(config['volume'])
 		document.body.style.backgroundColor = 'transparent'
 		return this.current
 	}
@@ -216,7 +212,7 @@ class VideoControl extends EventEmitter {
 				this.state = 'ended'
 				this.emit('state', this.state)
 			})
-			a.config = this.config
+			a.config = config
 			this.adapters[this.adapter] = a
 		}
 		this.current = this.adapters[this.adapter]
@@ -759,7 +755,7 @@ class WinMan extends EventEmitter {
 			w.streamer.stop()
 			//w.$('wrap').html('<div style="vertical-align: middle; height: 100%; display: flex; justify-content: center; align-items: center;"><i class="fa-mega" style="font-size: 25vh;color: var(--font-color);"></i></div>')
 			//w.$('#home-arrows').hide()
-			const useCurtains = this.config['fx-nav-intensity']
+			const useCurtains = config && config['fx-nav-intensity']
 			if(useCurtains){
 				$('html').removeClass('curtains-close').addClass('curtains')
 			}
@@ -769,9 +765,9 @@ class WinMan extends EventEmitter {
 	}
 	canAutoRestart(){ 
 		let autoRestartSupport
-		if(top.process && top.process.platform == 'win32'){
+		if(parent.parent.process && parent.parent.process.platform == 'win32'){
 			autoRestartSupport = true
-		} else if(typeof(cordova) != 'undefined' && cordova && parseInt(top.device.version) < 10 && typeof(plugins) != 'undefined' && plugins.megacubo) {
+		} else if(typeof(cordova) != 'undefined' && cordova && parseInt(parent.parent.device.version) < 10 && typeof(plugins) != 'undefined' && plugins.megacubo) {
 			autoRestartSupport = true
 		}
 		return autoRestartSupport
@@ -781,8 +777,8 @@ class WinMan extends EventEmitter {
 			if(auto){
 				if(typeof(plugins) != 'undefined' && plugins.megacubo){ // cordova
 					return plugins.megacubo.restartApp()
-				} else if(top.Manager) {
-					return top.Manager.restart()
+				} else if(parent.parent.Manager) {
+					return parent.parent.Manager.restart()
 				}
 			}
 			this.exit()
@@ -809,7 +805,7 @@ class WinMan extends EventEmitter {
 				this.setBackgroundMode(true, true)
 				cordova.plugins.backgroundMode.moveToBackground()
 			} else {
-				top.Manager.goToTray()
+				parent.parent.Manager.goToTray()
 			}
 		} else {
 			if(typeof(cordova) != 'undefined'){
@@ -825,7 +821,7 @@ class WinMan extends EventEmitter {
 						navigator.app.exitApp()
 					}, 400)
 				} else {
-					top.Manager.close()
+					parent.parent.Manager.close()
 				}
 			}, 500)
 		}
@@ -861,7 +857,8 @@ class MiniPlayerBase extends WinMan {
 		})
 	}
 	getDimensions(){
-		let width = Math.min(screen.width, screen.height) / 2, aw = Math.max(screen.width, screen.height) / 3, streamer = this.getStreamer()
+		const scr = parent.cordova ? screen : parent.Manager.getScreenSize(), streamer = this.getStreamer()
+		let width = Math.min(scr.width, scr.height) / 2, aw = Math.max(scr.width, scr.height) / 3
 		if(aw < width){
 			width = aw
 		}
@@ -885,7 +882,7 @@ class MiniPlayerBase extends WinMan {
 class CordovaMiniplayer extends MiniPlayerBase {
     constructor(){
 		super()
-		this.pip = top.PictureInPicture
+		this.pip = parent.parent.PictureInPicture
 		this.appPaused = false
 		this.setup()
 		this.on('enter', () => {
@@ -1090,7 +1087,7 @@ class CordovaMiniplayer extends MiniPlayerBase {
 class NWJSMiniplayer extends MiniPlayerBase {
     constructor(){
 		super()
-        this.pip = top.Manager
+        this.pip = parent.parent.Manager
 		this.setup()
     }
 	setup(){
@@ -1159,11 +1156,11 @@ class NWJSMiniplayer extends MiniPlayerBase {
 }
 
 player = new VideoControl(document.querySelector('player'))
-winman = new (top.cordova ? CordovaMiniplayer : NWJSMiniplayer)
+winman = new (parent.parent.cordova ? CordovaMiniplayer : NWJSMiniplayer)
 
 var cfgReceived
 function updateConfig(cfg){
-	console.log('updateConfig', config)
+	console.log('updateConfig', cfg)
 	if(!cfg){
 		cfg = config
 	}
@@ -1172,8 +1169,8 @@ function updateConfig(cfg){
 			cfgReceived = true
 			switch(cfg['startup-window']){
 				case 'fullscreen':
-					if(top.Manager && top.Manager.setFullScreen){
-						top.Manager.setFullScreen(true)
+					if(parent.parent.Manager && parent.parent.Manager.setFullScreen){
+						parent.parent.Manager.setFullScreen(true)
 					}
 					break
 				case 'miniplayer':
@@ -1181,7 +1178,7 @@ function updateConfig(cfg){
 					break
 			}
 		}
-		player.config = cfg
+		window.config = player.config = cfg
 		Object.keys(player.adapters).forEach(k => {
 			player.adapters[k].config = cfg
 		})

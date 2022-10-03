@@ -66,6 +66,22 @@ function configUpdated(keys, c){
     hideBackButton(config['hide-back-button'])
     parent.animateBackground(config['animate-background'])
 }
+
+function langUpdated(){    
+    jQuery('[data-language]').each((i, e) => {
+        const key = e.getAttribute('data-language'), tag = e.tagName.toLowerCase()
+        const text = lang[key].replace(new RegExp('\r?\n', 'g'), '<br />')
+        const plainText = lang[key].replace(new RegExp('[\r\n]+', 'g'), ' ')
+        if(tag == 'input' && e.type == 'text') {
+            e.placeholder = plainText
+        } else {
+            if([e.innerText, e.innerHTML].includes(text) && !e.getElementsByTagName('*')){
+                e.innerHTML = text
+            }
+        }
+        e.title = plainText
+    })
+}
         
 function initApp(){ 
     console.log('INITAPP')
@@ -78,6 +94,10 @@ function initApp(){
         s.async = true
         document.querySelector('head, body').appendChild(s)
     }) 
+    app.on('lang', texts => {
+        window.lang = window.parent.lang = texts
+        langUpdated()
+    })
     app.on('theme-background', (image, video, color, fontColor, animate) => {
         parent.theming(image, video, color, fontColor, animate)
     })
@@ -172,8 +192,9 @@ function initApp(){
                     osd.show(String(err), 'fas fa-exclamation-circle faclr-red', 'theme-upload', 'normal')
                 })
             })
-        } else if(top.Manager) {
-            top.Manager.openFile(mimetypes, (err, file) => {
+        } else if(parent.parent.Manager) {
+            parent.parent.Manager.openFile(mimetypes, (err, file) => {
+                console.error('OF', uploadURL, cbID, err, file)
                 app.emit(cbID, [file])
             })
         } else {
@@ -181,11 +202,11 @@ function initApp(){
         }
     })
     app.on('display-error', txt => {
-        osd.show(txt, 'fas fa-exclamation-circle faclr-red', 'error', 'normal')
+        osd.show(txt, 'fas fa-exclamation-triangle faclr-red', 'error', 'normal')
     })
     app.on('clear-cache', () => {
-        if(top.nw){
-            top.nw.App.clearCache()
+        if(window.nw){
+            window.nw.App.clearCache()
         }
     })
     app.on('restart', () => {
@@ -212,9 +233,6 @@ function initApp(){
     })
     app.on('background-mode-unlock', name => {
         if(parent.player && parent.winman) parent.winman.backgroundModeUnlock(name)
-    })
-    app.on('setup-skip-list', () => {
-        window.setupSkipList = true
     })
     $(() => {
         console.log('load app')
@@ -251,22 +269,22 @@ function initApp(){
     
         /* icons start */
         iconCaching = {}
-        const icon = (src, path, tabIndex, name, force) => {
-            if(typeof(iconCaching[path]) == 'undefined'){
-                iconCaching[path] = {}
+        const icon = data => {
+            if(typeof(iconCaching[data.path]) == 'undefined'){
+                iconCaching[data.path] = {}
             }
-            if(force || !iconCaching[path][tabIndex] || iconCaching[path][tabIndex].src != src || iconCaching[path][tabIndex].name != name){
-                iconCaching[path][tabIndex] = {src, name}
+            if(data.force || !iconCaching[data.path][data.tabindex] || iconCaching[data.path][data.tabindex].url != data.url || iconCaching[data.path][data.tabindex].name != data.name){
+                iconCaching[data.path][data.tabindex] = data
             }
-            if(explorer.path == path){
-                const element = tabIndex == -1 ? document.querySelector('.explorer-location-icon i') : explorer.currentElements[tabIndex]
-                const isCover = (element && element.className ? element.className : '').indexOf('entry-cover') != -1
-                const bg = 'url("' + src + '")' // keep quotes
+            if(explorer.path == data.path){
+                const element = data.tabindex == -1 ? document.querySelector('.explorer-location-icon i') : explorer.currentElements[data.tabindex]
+                const isCover = element && !data.alpha && config['scale-logos']
+                const bg = 'url("' + data.url + '")' // keep quotes
                 const m = () => {
                     let d, g = document.createElement('img')
                     if(isCover){
                         d = document.createElement('div')
-                        g.src = src
+                        g.src = data.url
                         d.className = 'entry-cover-container'
                         d.appendChild(g)
                         return d
@@ -278,29 +296,33 @@ function initApp(){
                 }
                 if(!element) {
                     return
-                } else if(tabIndex == -1) {
+                } else if(data.tabindex == -1) {
                     jQuery(element).replaceWith(m())
-                } else if (element.title == name) { // is the same element yet?
-                    if(isCover){ 
-                        let c = element.querySelector('.entry-wrapper')
+                } else if (element.title == data.name) { // is the same element yet?
+                    let cc = element.querySelector('.entry-cover-container'), c = element.querySelector('.entry-wrapper')
+                    if(!c) return
+                    if(isCover){
                         if(c){
                             let g = c.querySelector('img')
-                            if(!g || force || bg != g.src) {
+                            if(!g || data.force || bg != g.src) {
+                                cc && cc.parentNode.removeChild(cc)
                                 let a = element.querySelector('.entry-icon-image')
-                                //c.innerHTML = ''
-                                //c.appendChild(m())
                                 c.className = c.className +' entry-cover-active'
-                                a.innerHTML = ''
+                                if(a) a.innerHTML = ''
                                 c.insertBefore(m(), c.childNodes[0])
                             }
                         } 
-                    } else {                          
-                        let c = element.querySelector('.entry-icon-image')
-                        if(c){
+                    } else {
+                        cc && cc.parentNode.removeChild(cc)
+                        if(c.className && c.className.indexOf('entry-cover-active') != -1){
+                            c.className = c.className.replace(new RegExp(' *entry\-cover\-active *', 'g'), ' ')
+                        }
+                        let a = element.querySelector('.entry-icon-image')
+                        if(a){
                             let g = c.querySelector('img')
-                            if(!g || force || bg != g.style.backgroundImage){
-                                c.innerHTML = ''
-                                c.appendChild(m())
+                            if(!g || data.force || bg != g.style.backgroundImage){
+                                a.innerHTML = ''
+                                a.appendChild(m())
                             }
                         }
                     }
@@ -316,7 +338,8 @@ function initApp(){
                     Array.from(new Array(len), (x, i) => i + range.start).forEach(i => {
                         if(explorer.currentEntries[i]){
                             if(typeof(iconCaching[explorer.path][i]) != 'undefined' && iconCaching[explorer.path][i].name == explorer.currentEntries[i].name){
-                                icon(iconCaching[explorer.path][i].src, explorer.path, i, explorer.currentEntries[i].name)
+                                const atts = Object.assign({}, iconCaching[explorer.path][i])
+                                icon(atts)
                             }
                         }
                     })
@@ -352,12 +375,23 @@ function initApp(){
                     return explorer.viewportEntries(false)
                 },
                 default: true,
-                overScrollAction: direction => {
+                overScrollAction: (direction, e) => {
                     if(direction == 'up'){
                         let playing = explorer.inPlayer()
                         if(!playing){
                             console.log('OVERSCROLLACTION!!!!!!!')
-                            explorer.focus(explorer.container.find('.explorer-omni > span'), true)
+                            let n
+                            if(e){
+                                let entries = explorer.entries(true), i = entries.indexOf(e)
+                                i++
+                                if(explorer.viewSizeX == i){
+                                    n = explorer.container.find('.header-entry:eq(0)')
+                                }                                
+                            }
+                            if(!n){
+                                n = explorer.container.find('.explorer-omni span')
+                            }
+                            explorer.focus(n, true)
                             return true
                         } else {
                             console.log('OVERSCROLLACTION!!!!!!!')
@@ -435,10 +469,10 @@ function initApp(){
             }
         })
 
+        langUpdated()
         app.emit('init')
 
         waitMessage('player-ready', () => {
-            setup = new Setup()        
             window.streamer = new StreamerClient(document.querySelector('controls'), app)        
             streamer.on('show', explorer.reset.bind(explorer))
             streamer.on('state', s => {
@@ -552,7 +586,7 @@ function initApp(){
                 }
             }
     
-            moment.tz.setDefault((Intl || top.Intl).DateTimeFormat().resolvedOptions().timeZone) // prevent "Intl is not defined"
+            moment.tz.setDefault((Intl || parent.parent.Intl).DateTimeFormat().resolvedOptions().timeZone) // prevent "Intl is not defined"
             if(lang.locale && !moment.locales().includes(lang.locale)){
                 importMomentLocale(lang.locale, () => {
                     moment.locale(lang.locale)

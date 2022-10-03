@@ -273,6 +273,12 @@ class ChannelsEPG extends ChannelsData {
             }, null, true)
         })
     }
+    isEPGActive(){
+        return global.activeEPG || global.config.get('lang-'+ global.lang.locale)
+    }
+    isEPGSyncActive(){
+        return global.config.get('use-epg-channels-list') && this.isEPGActive()
+    }            
     clock(start, data, includeEnd){
         let t = this.clockIcon
         t += global.ts2clock(start)
@@ -1336,7 +1342,7 @@ class Channels extends ChannelsAutoWatchNow {
             if(!global.activeLists.length){ // one list available on index beyound meta watching list
                 return resolve([global.lists.manager.noListsEntry()])
             }
-            const editable = global.config.get('allow-edit-channel-list') && !global.config.get('use-epg-channels-list')
+            const editable = global.config.get('allow-edit-channel-list') && !this.isEPGSyncActive()
             let categories = this.getCategories(), list = categories.map(category => {
                 category.renderer = (c, e) => {
                     return new Promise((resolve, reject) => {
@@ -1474,7 +1480,7 @@ class Channels extends ChannelsAutoWatchNow {
     options(){
         return new Promise((resolve, reject) => {
             let entries = []
-            if(global.config.get('allow-edit-channel-list') && !global.config.get('use-epg-channels-list')){
+            if(global.config.get('allow-edit-channel-list') && !this.isEPGSyncActive()){
                 entries.push(this.editCategoriesEntry())
             }
             entries = entries.concat([
@@ -1583,16 +1589,12 @@ class Channels extends ChannelsAutoWatchNow {
                 type: 'group',
                 icon: isSerie ? group.icon : undefined,
                 safe: true,
-                class: isSerie ? 'entry-cover' : undefined,
+                class: undefined,
                 fa: isSerie ? 'fas fa-play-circle' : undefined,
                 renderer: async () => {
                     console.warn('GROUP', group)
                     let entries = await global.lists.group(group).catch(console.error)
                     if(Array.isArray(entries)) {
-                        entries = entries.map(e => {
-                            e.class = type != 'live' ? 'entry-cover' : undefined
-                            return e
-                        })
                         if(acpolicy == 'block'){
                             entries = global.lists.parentalControl.filter(entries)
                         }
@@ -1642,6 +1644,18 @@ class Channels extends ChannelsAutoWatchNow {
         })
         entries = global.lists.tools.deepify(entries)
         return entries
+    }
+    hook(entries, path){
+        return new Promise((resolve, reject) => {
+            if(path == '' && !entries.some(e => e.name == global.lang.LIVE)){
+                entries = entries.concat([
+                    {name: lang.LIVE, fa: 'fas fa-tv', details: '<i class="fas fa-play-circle"></i> '+ lang.WATCH, type: 'group', renderer: channels.entries.bind(channels)},
+                    {name: lang.MOVIES, fa: 'fas fa-film', details: lang.CATEGORIES, type: 'group', renderer: () => channels.groupsRenderer('vod')},
+                    {name: lang.SERIES, fa: 'fas fa-th', details: lang.CATEGORIES, type: 'group', renderer: () => channels.groupsRenderer('series')}
+                ])
+            }
+            resolve(entries)
+        })
     }
 }
 
