@@ -227,7 +227,7 @@ class ParentalControl extends Events {
 		}
 	}
 	async setupAuth(){
-		const pass = await global.explorer.prompt(global.lang.SET_PASSWORD, global.lang.TYPE_PASSWORD, '', false, 'fas fa-key', '', [], true)
+		const pass = await global.explorer.prompt(global.lang.CREATE_YOUR_PASS, global.lang.SET_PASSWORD, '', false, 'fas fa-key', '', [], true)
 		if(pass){
 			const pass2 = await global.explorer.prompt(global.lang.TYPE_PASSWORD_AGAIN, global.lang.TYPE_PASSWORD_AGAIN, '', false, 'fas fa-key', '', [], true)
 			if(pass === pass2){

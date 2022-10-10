@@ -31,6 +31,7 @@ module.exports = (file, opts) => {
 				if(typeof(err.preventDefault) == 'function'){
 					err.preventDefault()
 				}
+				global.crashlog.save('Worker error:', err)
 			}, true, true)
 			this.worker.on('exit', () => {
 				this.finished = true

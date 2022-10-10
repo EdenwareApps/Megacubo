@@ -427,37 +427,55 @@ class Manager extends Events {
     }
     async communityModeKeywords(){
         const badTerms = ['m3u8', 'ts', 'mp4', 'tv', 'channel']
-        let terms = [], cterms = global.config.get('communitary-mode-interests')
+        let terms = [], addTerms = (tms, score) => {
+            if(typeof(score) != 'number'){
+                score = 1
+            }
+            tms.forEach(term => {
+                if(badTerms.includes(term)){
+                    return
+                }
+                const has = terms.some((r, i) => {
+                    if(r.term == term){
+                        terms[i].score += score
+                        return true
+                    }
+                })
+                if(!has){
+                    terms.push({term, score})
+                }
+            })
+        }
+        let bterms = global.bookmarks.get()
+        if(bterms.length){ // bookmarks terms
+            bterms = bterms.slice(-24)
+            bterms = [...new Set(bterms.map(e => global.channels.entryTerms(e)).flat())].filter(c => c[0] != '-')
+            addTerms(bterms)
+        }
+        let sterms = await global.search.history.terms()
+        if(sterms.length){ // searching terms history
+            sterms = sterms.slice(-24)
+            sterms = [...new Set(sterms.map(e => global.channels.entryTerms(e)).flat())].filter(c => c[0] != '-')
+            addTerms(sterms)
+        }
+        let hterms = global.histo.get()
+        if(hterms.length){ // user history terms
+            hterms = hterms.slice(-24)
+            hterms = [...new Set(hterms.map(e => channels.entryTerms(e)).flat())].filter(c => c[0] != '-')
+            addTerms(hterms)
+        }
+        addTerms(await global.channels.keywords())
+        const max = Math.max(...terms.map(t => t.score))
+        let cterms = global.config.get('communitary-mode-interests')
         if(cterms){ // user specified interests
             cterms = this.parent.terms(cterms, false).filter(c => c[0] != '-')
             if(cterms.length){
-                terms = terms.concat(cterms)
+                addTerms(cterms, max)
             }
         }
-        if(!terms.length){ // if user has specified his interests, skip and use them only for maximum effectiveness
-            let bterms = global.bookmarks.get()
-            if(bterms.length){ // bookmarks terms
-                bterms = bterms.slice(-24)
-                bterms = [...new Set(bterms.map(e => global.channels.entryTerms(e)).flat())].filter(c => c[0] != '-')
-                bterms.filter(t => !terms.includes(t)).forEach(t => terms.push(t))
-            }
-            let sterms = await global.search.history.terms()
-            if(sterms.length){ // searching terms history
-                sterms = sterms.slice(-24)
-                sterms = [...new Set(sterms.map(e => global.channels.entryTerms(e)).flat())].filter(c => c[0] != '-')
-                sterms.filter(t => !terms.includes(t)).forEach(t => terms.push(t))
-            }
-            let hterms = global.histo.get()
-            if(hterms.length){ // user history terms
-                hterms = hterms.slice(-24)
-                hterms = [...new Set(hterms.map(e => channels.entryTerms(e)).flat())].filter(c => c[0] != '-')
-                hterms.filter(t => !terms.includes(t)).forEach(t => terms.push(t))
-            }
-        }
-        terms = terms.filter(t => !badTerms.includes(t))
-        if(!terms.length){ // as last resource, consider all channels
-            terms = await global.channels.keywords()
-        } else if(terms.length > 24) {
+        console.warn('MAX', max, terms.slice(0))
+        terms = terms.sortByProp('score', true).map(t => t.term)
+        if(terms.length > 24) {
             terms = terms.slice(0, 24)
         }
         return terms
@@ -490,7 +508,7 @@ class Manager extends Events {
                             }).catch(global.displayErr)
                         } else {
                             this.parent.delimitActiveLists().catch(console.error)
-                            global.activeLists = {my: 0, community: 0, length: 0}
+                            global.activeLists = {my: [], community: [], length: 0}
                             this.updatedLists(global.lang.NO_LIST_PROVIDED, 'fas fa-exclamation-circle') // warn user if there's no lists
                         }
                     }

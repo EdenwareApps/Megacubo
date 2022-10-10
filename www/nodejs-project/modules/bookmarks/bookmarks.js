@@ -14,7 +14,7 @@ class Bookmarks extends EntriesGroup {
                 if(this.current()){
                     this.toggle()
                 } else {
-                    global.explorer.open(global.lang.BOOKMARKS)
+                    global.explorer.open(global.lang.BOOKMARKS).catch(displayErr)
                 }
             })
             global.streamer.aboutRegisterEntry('addfav', data => {

@@ -595,9 +595,6 @@ class StreamerGoNext extends StreamerThrottling {
 			}
 		}
 	}
-	async goNextUI(){
-
-	}
 	async goNext(){
 		const next = await this.getNext()
 		if(next){
@@ -617,24 +614,6 @@ class StreamerGoNext extends StreamerThrottling {
 				return this.intentFromInfo(next, {}, undefined, ret.info)
 			}
 		}
-	}
-    intent(data, opts, aside){ // create intent
-        return new Promise((resolve, reject) => {
-			if(!this.throttle(data.url)){
-				return reject('401')
-			}
-			this.info(data.url, 2, data.source).then(nfo => {
-				this.intentFromInfo(data, opts, aside, nfo).then(resolve).catch(reject)
-			}).catch(err => {
-				if(this.opts.debug){
-					console.log('ERR', err)
-				}
-				if(String(err).match(new RegExp("(: 401|^401$)"))){
-					this.forbid(data.url)
-				}
-				reject(err)
-			})
-        })
 	}
 }
 

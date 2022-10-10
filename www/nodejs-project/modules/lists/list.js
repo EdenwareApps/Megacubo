@@ -178,6 +178,7 @@ class List extends Events {
             values.relevantKeywords = hits / (rks.length / 100)
         }
     
+        /*
         // hls
         values.hls = index.hlsCount / (index.length / 100)
 
@@ -188,11 +189,11 @@ class List extends Events {
         } else {
             values.mtime = (index.lastmtime - deadline) / (rangeSize / 100)
         }
+        */
 
         let total = 0, maxtotal = 0
         Object.values(factors).map(n => maxtotal += n)
-        const ks = Object.keys(values)
-        ks.forEach(k => total += ((values[k] / 100) * factors[k]))
+        Object.keys(values).forEach(k => total += ((values[k] / 100) * factors[k]))
         values.total = total / maxtotal
 
         //console.warn('LIST RELEVANCE', this.url, index.lastmtime, Object.keys(values).map(k => k +': '+ values[k]).join(', '))

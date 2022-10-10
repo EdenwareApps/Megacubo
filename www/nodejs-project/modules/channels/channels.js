@@ -696,7 +696,7 @@ class ChannelsEditing extends ChannelsEPG {
                             const category = _category
                             console.warn('REMOVE', o.name)
                             if(!this.categories[category]) {
-                                global.explorer.open(global.lang.LIVE)
+                                global.explorer.open(global.lang.LIVE).catch(displayErr)
                                 return
                             }
                             this.categories[category] = this.categories[category].filter(c => {
@@ -725,7 +725,7 @@ class ChannelsEditing extends ChannelsEPG {
                 this.save(() => {
                     console.warn('saved', global.lang.LIVE +'/'+ val +'/'+ global.lang.EDIT_CATEGORY)
                     delete global.explorer.pages[global.lang.LIVE]
-                    global.explorer.open(global.lang.LIVE +'/'+ val +'/'+ global.lang.EDIT_CATEGORY +'/'+ global.lang.EDIT_CHANNELS)
+                    global.explorer.open(global.lang.LIVE +'/'+ val +'/'+ global.lang.EDIT_CATEGORY +'/'+ global.lang.EDIT_CHANNELS).catch(displayErr)
                 })
             }
         }}
@@ -779,7 +779,7 @@ class ChannelsEditing extends ChannelsEPG {
                     {name: global.lang.REMOVE_CATEGORY, fa: 'fas fa-trash', type: 'action', details: cat.name, action: () => {
                         delete this.categories[cat.name]
                         this.save(() => {
-                            global.explorer.open(global.lang.LIVE)
+                            global.explorer.open(global.lang.LIVE).catch(displayErr)
                             global.osd.show(global.lang.CATEGORY_REMOVED, 'fas fa-check-circle', 'channels', 'normal')
                         })
                     }}

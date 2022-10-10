@@ -473,7 +473,7 @@ class Options extends OptionsHardwareAcceleration {
                 if(this.countriesEntriesOriginalActives.sort().join(',') != actives.sort().join(',')){
                     global.energy.askRestart()
                 }
-                global.explorer.open(global.lang.OPTIONS)
+                global.explorer.open(global.lang.OPTIONS).catch(displayErr)
             }
         })
         if(map.some(row => !actives.includes(row.code))){
@@ -968,7 +968,7 @@ class Options extends OptionsHardwareAcceleration {
                             type: 'check', 
                             action: (data, value) => {
                                 global.config.set('stretch-logos', value)
-                                this.update()
+                                global.theme.update()
                             }, 
                             checked: () => {
                                 return global.config.get('stretch-logos')

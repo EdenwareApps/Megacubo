@@ -920,8 +920,8 @@ button.button-alpha i {
 body.osd #osd-root {
     display: flex; 
 }
-body.osd #explorer header {
-    opacity: 0.15 !important;   
+body.osd:not(.video) #explorer header {
+    opacity: 0.15 !important;
 }
 body.video #osd-root {
     bottom: calc(var(--controls-height) + var(--padding) + var(--seekbar-height));

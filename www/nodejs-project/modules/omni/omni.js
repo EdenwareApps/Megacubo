@@ -19,7 +19,7 @@ class OMNI extends Events {
                     console.warn('omni-callback', text, !!es.length, es)
                     let entry = es.shift()
                     if(entry.type == 'group'){
-                        return global.explorer.open([global.lang.BOOKMARKS, entry.name].join('/'))
+                        return global.explorer.open([global.lang.BOOKMARKS, entry.name].join('/')).catch(displayErr)
                     } else {
                         return global.streamer.play(entry)
                     }

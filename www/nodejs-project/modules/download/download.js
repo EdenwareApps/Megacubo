@@ -47,6 +47,11 @@ class Download extends Events {
 		if(!this.opts.headers['vary']){
 			this.opts.headers['vary'] = 'accept-ranges'
 		}
+		if(this.opts.events){
+			Object.keys(this.opts.events).forEach(n => {
+				this.on(n, this.opts.events[n])
+			})
+		}
 		this.timings = {}
 		this.buffer = []
 		this.redirectCount = 0

@@ -33,7 +33,7 @@ class Theme extends Events {
                     fs.unlink(ffile, () => {})
                 })
                 if(prevName && global.explorer.path.indexOf(prevName) != -1 && global.explorer.path.indexOf(global.lang.CREATE_THEME) == -1){
-                    global.explorer.open(global.explorer.path.replace(prevName, this.creatingThemeName))
+                    global.explorer.open(global.explorer.path.replace(prevName, this.creatingThemeName)).catch(displayErr)
                 }
             }
         })
@@ -145,7 +145,7 @@ class Theme extends Events {
         global.config.set('custom-background-image', this.customBackgroundImagePath)
         global.config.set('custom-background-video', '')
         this.update()
-        global.explorer.open([global.lang.TOOLS, global.lang.THEMES, global.lang.CREATE_THEME, global.lang.BACKGROUND, global.lang.BACKGROUND_COLOR].join('/'))
+        global.explorer.open([global.lang.TOOLS, global.lang.THEMES, global.lang.CREATE_THEME, global.lang.BACKGROUND, global.lang.BACKGROUND_COLOR].join('/')).catch(displayErr)
     }
     importBackgroundVideoCallback(file){
         return new Promise((resolve, reject) => {
@@ -168,7 +168,7 @@ class Theme extends Events {
                         global.config.set('background-color', '#000000')
                     }
                     this.update()
-                    global.explorer.open([global.lang.TOOLS, global.lang.THEMES, global.lang.CREATE_THEME, global.lang.BACKGROUND, global.lang.BACKGROUND_COLOR].join('/'))
+                    global.explorer.open([global.lang.TOOLS, global.lang.THEMES, global.lang.CREATE_THEME, global.lang.BACKGROUND, global.lang.BACKGROUND_COLOR].join('/')).catch(displayErr)
                     resolve()
                 }
             })
@@ -215,7 +215,7 @@ class Theme extends Events {
                             action: () => {
                                 this.load(ffile, () => {
                                     this.creatingThemeName = themes[ffile]['theme-name']
-                                    global.explorer.open([global.lang.TOOLS, global.lang.THEMES, global.lang.CREATE_THEME].join('/'))                                
+                                    global.explorer.open([global.lang.TOOLS, global.lang.THEMES, global.lang.CREATE_THEME].join('/')).catch(displayErr)                                
                                 })
                             }
                         },

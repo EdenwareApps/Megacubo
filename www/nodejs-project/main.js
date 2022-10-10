@@ -226,6 +226,7 @@ isUILoaded = false
 isStreamerReady = false
 areListsReady = false
 downloadsInBackground = {}
+activeLists = {my: [], community: [], length: 0}
 
 displayErr = (...args) => {
     console.error.apply(null, args)
@@ -375,8 +376,6 @@ function init(language){
         lists.manager.on('lists-updated', () => {
             if(setupCompleted()) areListsReady = true
         })
-
-        activeLists = {my: [], community: [], length: 0}
 
         autoconfig = new AutoConfig()
         autoconfig.start().catch(console.error)
@@ -609,7 +608,7 @@ function init(language){
             epgSetup = true
             console.log('SET-EPG', url, activeEPG)
             config.set('epg-'+ lang.locale, url || 'disabled')
-            lists.manager.setEPG(url, true)
+            lists.manager.setEPG(url, true).catch(console.error)
         })
         ui.on('open-url', url => {
             console.log('OPENURL', url)

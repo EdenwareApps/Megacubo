@@ -78,7 +78,7 @@ class AutoConfig {
             global.epgSetup = true
             console.log('autoConfigure', data['epg'])
             global.config.set('epg-'+ global.lang.locale, data['epg'])
-            global.lists.manager.setEPG(data['epg'], true)
+            global.lists.manager.setEPG(data['epg'], true).catch(console.error)
             if(data['use-epg-channels-list']){
                 if(global.activeEPG == data['epg']){
                     global.lists.manager.importEPGChannelsList(global.activeEPG).catch(console.error)

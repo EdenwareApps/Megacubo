@@ -75,7 +75,7 @@ class EPGHistory extends EntriesGroup {
         let nextRunTime = 0, info = await global.channels.epgChannelLiveNowAndNextInfo(data)
         if(info) {
             info = Object.values(info)
-            if(this.session.lastInfo) {
+            if(this.session && this.session.lastInfo) {
                 this.session.lastInfo.forEach(inf => {
                     if(!info.some(f => f.t == inf.t)) {
                         info.unshift(inf)

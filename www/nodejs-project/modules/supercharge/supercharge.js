@@ -292,14 +292,11 @@ function patch(scope){
 	scope.isWritable = stream => {
 		return (stream.writable || stream.writeable) && !stream.finished
 	}	
-    scope.checkDirWritePermission = (dir, cb) => {
-        const file = dir +'/temp.txt', fs = scope.getFS()
-        fs.writeFile(file, '0', err => {
-            if(!err){
-                fs.unlink(file, () => {})
-            }
-            cb(err)
-        })
+    scope.checkDirWritePermission = async dir => {
+        const file = dir +'/temp.txt', fsp = scope.getFS().promises
+        await fsp.writeFile(file, '0')
+		await fsp.unlink(file)
+		return true
     }
     scope.checkDirWritePermissionSync = dir => {
         let fine
