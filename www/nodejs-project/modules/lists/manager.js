@@ -473,7 +473,6 @@ class Manager extends Events {
                 addTerms(cterms, max)
             }
         }
-        console.warn('MAX', max, terms.slice(0))
         terms = terms.sortByProp('score', true).map(t => t.term)
         if(terms.length > 24) {
             terms = terms.slice(0, 24)

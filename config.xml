@@ -1,6 +1,6 @@
 
 <?xml version='1.0' encoding='utf-8'?>
-<widget android-versionCode="271" id="tv.megacubo.app" version="16.7.2" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget android-versionCode="274" id="tv.megacubo.app" version="16.7.3" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>Megacubo</name>
     <description>
         An intuitive, free and open source IPTV player.
@@ -33,8 +33,9 @@
             <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
         </custom-config-file>
         <allow-intent href="market:*" />
-        <preference name="android-targetSdkVersion" value="31" />
-        <preference name="android-compileSdkVersion" value="31" />
+        <preference name="android-minSdkVersion" value="24" />
+        <preference name="android-targetSdkVersion" value="32" />
+        <preference name="android-compileSdkVersion" value="32" />
         <custom-preference delete="true" name="android-manifest/uses-sdk" />
         <custom-preference name="android-manifest/application/@android:usesCleartextTraffic" value="true" />
         <custom-preference name="android-manifest/application/@android:extractNativeLibs" value="true" />
@@ -69,6 +70,7 @@
         <resource-file src="resources/android/notification.png" target="app/src/main/res/mipmap-xxhdpi/icon.png" />
         <resource-file src="resources/android/banner.png" target="app/src/main/res/drawable/banner.png" />
         <resource-file src="resources/values/colors.xml" target="app/src/main/res/values/colors.xml" />
+        <resource-file src="resources/values/styles.xml" target="app/src/main/res/values/themes.xml" />
         <icon src="resources/android/icon/drawable-ldpi-icon.png" />
         <icon background="@color/background" density="ldpi" foreground="resources/android/icon/ldpi-foreground.png" qualifier="ldpi" src="resources/android/icon/drawable-ldpi-icon.png" />
         <icon background="@color/background" density="mdpi" foreground="resources/android/icon/mdpi-foreground.png" qualifier="mdpi" src="resources/android/icon/drawable-mdpi-icon.png" />
@@ -76,6 +78,7 @@
         <icon background="@color/background" density="xhdpi" foreground="resources/android/icon/xhdpi-foreground.png" qualifier="xhdpi" src="resources/android/icon/drawable-xhdpi-icon.png" />
         <icon background="@color/background" density="xxhdpi" foreground="resources/android/icon/xxhdpi-foreground.png" qualifier="xxhdpi" src="resources/android/icon/drawable-xxhdpi-icon.png" />
         <icon background="@color/background" density="xxxhdpi" foreground="resources/android/icon/xxxhdpi-foreground.png" qualifier="xxxhdpi" src="resources/android/icon/drawable-xxxhdpi-icon.png" />
+        <!--
         <splash density="land-ldpi" src="resources/android/splash/drawable-land-ldpi-screen.png" />
         <splash density="land-mdpi" src="resources/android/splash/drawable-land-mdpi-screen.png" />
         <splash density="land-hdpi" src="resources/android/splash/drawable-land-hdpi-screen.png" />
@@ -88,7 +91,8 @@
         <splash density="port-xhdpi" src="resources/android/splash/drawable-port-xhdpi-screen.png" />
         <splash density="port-xxhdpi" src="resources/android/splash/drawable-port-xxhdpi-screen.png" />
         <splash density="port-xxxhdpi" src="resources/android/splash/drawable-port-xxxhdpi-screen.png" />
-        <resource-file src="resources\values\colors.xml" target="/app/src/main/res/values/colors.xml" />
-        <resource-file src="resources\values\styles.xml" target="/app/src/main/res/values/styles.xml" />
+        //-->
+        <preference name="AndroidWindowSplashScreenAnimatedIcon" value="resources/android/icon/drawable-xxxhdpi-icon.png" />
+        <preference name="AndroidWindowSplashScreenBackground" value="#513889" />
     </platform>
 </widget>

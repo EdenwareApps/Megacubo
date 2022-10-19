@@ -1,41 +1,81 @@
 function patch(scope){
 	if (!scope.String.prototype.format) {
-		scope.String.prototype.format = function (){
-			var args = arguments;
-			return this.replace(/{(\d+)}/g, function(match, number) {
-			return typeof args[number] != 'undefined'
-				? args[number]
-				: match
-			})
-		}
-	}
-	if (!scope.String.prototype.matchAll) {
-		scope.String.prototype.matchAll = function(regexp) {
-			var matches = []
-			this.replace(regexp, function() {
-				var arr = ([]).slice.call(arguments, 0)
-				var extras = arr.splice(-2)
-				arr.index = extras[0]
-				arr.input = extras[1]
-				matches.push(arr)
-			})
-			return matches.length ? matches : []
-		}
-	}	
-	if (!scope.Array.prototype.sortByProp) {
-		scope.Array.prototype.sortByProp = function (p, reverse) {
-			if(Array.isArray(this)){ // this.slice is not a function
-				return this.slice(0).sort((a,b) => {
-					let ua = typeof(a[p]) == 'undefined', ub = typeof(b[p]) == 'undefined'
-					if(ua && ub) return 0
-					if(ua && !ub) return reverse ? 1 : -1
-					if(!ua && ub) return reverse ? -1 : 1
-					if(reverse) return (a[p] > b[p]) ? -1 : (a[p] < b[p]) ? 1 : 0;
-					return (a[p] > b[p]) ? 1 : (a[p] < b[p]) ? -1 : 0;
+		Object.defineProperty(String.prototype, 'format', {
+			enumerable: false,
+			configurable: false,
+			writable: false,
+			value: function (){
+				var args = arguments;
+				return this.replace(/{(\d+)}/g, function(match, number) {
+				return typeof args[number] != 'undefined'
+					? args[number]
+					: match
 				})
 			}
-			return this
-		}
+		})
+	}
+	if (!scope.String.prototype.matchAll) {
+		Object.defineProperty(String.prototype, 'matchAll', {
+			enumerable: false,
+			configurable: false,
+			writable: false,
+			value: function(regexp) {
+				var matches = []
+				this.replace(regexp, function() {
+					var arr = ([]).slice.call(arguments, 0)
+					var extras = arr.splice(-2)
+					arr.index = extras[0]
+					arr.input = extras[1]
+					matches.push(arr)
+				})
+				return matches.length ? matches : []
+			}
+		})
+	}	
+	if (!scope.Array.prototype.sortByProp) {
+		Object.defineProperty(Array.prototype, 'sortByProp', {
+			enumerable: false,
+			configurable: false,
+			writable: false,
+			value: function (p, reverse) {
+				if(Array.isArray(this)){ // this.slice is not a function (?!)
+					return this.slice(0).sort((a,b) => {
+						let ua = typeof(a[p]) == 'undefined', ub = typeof(b[p]) == 'undefined'
+						if(ua && ub) return 0
+						if(ua && !ub) return reverse ? 1 : -1
+						if(!ua && ub) return reverse ? -1 : 1
+						if(reverse) return (a[p] > b[p]) ? -1 : (a[p] < b[p]) ? 1 : 0;
+						return (a[p] > b[p]) ? 1 : (a[p] < b[p]) ? -1 : 0;
+					})
+				}
+				return this
+			}
+		})
+	}
+	if (!scope.Number.prototype.between) {
+		Object.defineProperty(Number.prototype, 'between', {
+			enumerable: false,
+			configurable: false,
+			writable: false,
+			value: function(a, b) {
+				var min = Math.min(a, b), max = Math.max(a, b)
+				return this >= min && this <= max
+			}
+		})
+	}
+	if (!scope.String.prototype.replaceAll) {
+		Object.defineProperty(String.prototype, 'replaceAll', {
+			enumerable: false,
+			configurable: false,
+			writable: false,
+			value: function(search, replacement) {
+				let target = this
+				if(target.indexOf(search)!=-1){
+					target = target.split(search).join(replacement)
+				}
+				return String(target)
+			}
+		})
 	}
     scope.validateURL = url => {
 		if(url && url.length > 11){
@@ -165,10 +205,6 @@ function patch(scope){
 		}
 		return max
 	}
-	scope.Number.prototype.between = function(a, b) {
-		var min = Math.min(a, b), max = Math.max(a, b)
-		return this >= min && this <= max
-	}	
 	scope.hmsClockToSeconds = str => {
 		var cs = str.split('.'), p = cs[0].split(':'), s = 0, m = 1;    
 		while (p.length > 0) {
@@ -222,13 +258,6 @@ function patch(scope){
 			return ex.stack.replace('TypeError: a.debug is not a function', '').trim()
 		}
 	}
-	scope.String.prototype.replaceAll = function(search, replacement) {
-		let target = this
-		if(target.indexOf(search)!=-1){
-			target = target.split(search).join(replacement)
-		}
-		return String(target)
-	} 	
 	scope.forwardSlashes = (file) => {
 		return file.replaceAll('\\', '/').replaceAll('//', '/')
 	}	

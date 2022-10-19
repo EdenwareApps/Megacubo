@@ -1,26 +1,67 @@
 
-
-Array.prototype.getUnique = function() {
-    var arr = []
-    for (var i = 0; i < this.length; i++) {
-        if (arr.indexOf(this[i]) == -1){
-            arr.push(this[i])
+Object.defineProperty(Array.prototype, 'getUnique', {
+    enumerable: false,
+    configurable: false,
+    writable: false,
+    value: function() {
+        var arr = []
+        for (var i = 0; i < this.length; i++) {
+            if (arr.indexOf(this[i]) == -1){
+                arr.push(this[i])
+            }
         }
+        return arr
     }
-    return arr
-}
-
-String.prototype.replaceAll = function(search, replacement) {
-    var target = this;
-    if(target.indexOf(search)!=-1){
-        target = target.split(search).join(replacement);
+})
+Object.defineProperty(String.prototype, 'format', {
+    enumerable: false,
+    configurable: false,
+    writable: false,
+    value: function (){
+        var args = arguments;
+        return this.replace(/{(\d+)}/g, function(match, number) {
+        return typeof args[number] != 'undefined'
+            ? args[number]
+            : match
+        })
     }
-    return String(target);
-}   
-
-Number.prototype.between = function(a, b) {
-    var min = Math.min(a, b), max = Math.max(a, b)
-    return this >= min && this <= max
+})
+Object.defineProperty(String.prototype, 'replaceAll', {
+    enumerable: false,
+    configurable: false,
+    writable: false,
+    value: function(search, replacement) {
+        var target = this
+        if(target.indexOf(search)!=-1){
+            target = target.split(search).join(replacement)
+        }
+        return String(target)
+    }
+})
+Object.defineProperty(Number.prototype, 'between', {
+    enumerable: false,
+    configurable: false,
+    writable: false,
+    value: function(a, b) {
+        var min = Math.min(a, b), max = Math.max(a, b)
+        return this >= min && this <= max
+    }
+})
+if(typeof(Object.values) != 'function') {
+    Object.defineProperty(Object.prototype, 'values', {
+        enumerable: false,
+        configurable: false,
+        writable: false,
+        value: obj => {
+            let res = []
+            for (var i in obj) {
+                if (obj.hasOwnProperty(i)) {
+                    res.push(obj[i])
+                }
+            }
+            return res
+        }
+    })
 }
 
 if(typeof($) != 'undefined'){

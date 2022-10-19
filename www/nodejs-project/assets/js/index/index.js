@@ -9,7 +9,7 @@ function log(msg, id){
 		msg = String(msg)
 	}
 	document.getElementById('info').innerHTML += '<div '+ (id?('id="'+ id +'"'):'') +'>'+ msg +'</div>'
-	console.log('[' + id + '] ' + msg +' '+ traceback())
+	console.log('[' + id + '] ' + msg)
 }
 
 let maxAlerts = 8
@@ -49,8 +49,9 @@ function updateWebView(){
 			msg = "Oops, you need to update your system's WebView in order to run this application."
 			break
 	}
+	log(msg)
 	alert(msg)
-	parent.parent.close()
+	parent.close()
 }
 
 var themeBackgroundReady
@@ -66,7 +67,7 @@ function theming(image, video, color, fontColor, animate){
 	}
 	if(data){
 		data = JSON.parse(data)
-		Object.keys(defaultData).forEach(k => {
+		Object.keys(defaultData).forEach(function (k){
 			if(typeof(data[k]) == 'undefined'){
 				data[k] = defaultData[k]
 			}
@@ -125,13 +126,13 @@ function theming(image, video, color, fontColor, animate){
 	if(!data.video){
 		data.video = defaultData.video
 	}
-	const renderBackground = () => {
+	const renderBackground = function () {
 		if(data.video){
 			bg.style.backgroundImage = 'none'		
 			const v = bg.querySelector('video')
 			if(!v || v.src != data.video){
 				bg.innerHTML = '&nbsp;'
-				setTimeout(() => {
+				setTimeout(function () {
 					bg.innerHTML = '<video src="'+ data.video +'" onerror="setTimeout(() => {if(this.parentNode)this.load()}, 500)" loop muted autoplay style="background-color: black;object-fit: cover;" poster="assets/images/blank.png"></video>'
 				}, 1000)
 			}
@@ -148,7 +149,7 @@ function theming(image, video, color, fontColor, animate){
 	} else {
 		if(typeof(themeBackgroundReady) == 'undefined'){
 			themeBackgroundReady = false
-			window.addEventListener('themebackgroundready', () => {
+			window.addEventListener('themebackgroundready', function () {
 				themeBackgroundReady = true
 				renderBackground()
 			})
@@ -275,10 +276,7 @@ if(window.cordova){
 		if(navigator.splashscreen){
 			navigator.splashscreen.hide()
 		}
-		if(!isES6()){
-			log('No ES6 support')
-			updateWebView()
-		} else {
+		if(isES6()){
 			if(typeof(nodejs) == 'undefined'){
 				console.warn('Node.JS failure?')
 			}
@@ -294,6 +292,9 @@ if(window.cordova){
 				player && player.emit('app-resume')
 				plugins.insomnia.keepAwake()
 			})
+		} else {
+			log('No ES6 support')
+			updateWebView()
 		}
 	}, false)
 } else {

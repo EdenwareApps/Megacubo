@@ -1,19 +1,18 @@
-const fs = require('fs')
 
 class JimpDriver {
 	constructor(){}	
     load(){
         if(typeof(this.jimp) == 'undefined'){
             this.jimp = require('jimp')
+            const jdecoder = this.jimp.decoders['image/jpeg']
+            this.jimp.decoders['image/jpeg'] = data => {
+                const userOpts = {
+                    maxMemoryUsageInMB: 256
+                }
+                return jdecoder(data, userOpts)
+            }
             this.jimpCustomAutocrop = require(APPDIR +'/modules/jimp-autocrop-custom')
             this.jimpVersion = require(global.APPDIR+'/node_modules/jimp/package.json').version
-            if(this.jimpVersion != '0.9.8'){
-                console.error(`
-                !! Buggy JIMP version detected, please use version 0.9.8 !!
-                https://github.com/oliver-moran/jimp/issues/915
-                https://github.com/oliver-moran/jimp/issues/153
-                `)
-            }
         }
     }
     isAlpha(image){

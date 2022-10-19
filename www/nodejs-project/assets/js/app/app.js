@@ -1,14 +1,16 @@
 var body = $('body'), content = $('#explorer content'), wrap = document.querySelector('#explorer wrap'), wrapper = $(wrap)
 
-let maxAlerts = 8
-window.onerror = function (message, file, line, column, errorObj) {
-	if(maxAlerts){
-		maxAlerts--
-		let stack = errorObj !== undefined ? errorObj.stack : traceback()
-		alert(message +' '+ file +':'+ line +' '+ stack)
-		console.error(errorObj || message)
-	}
-	return true
+if(typeof(window.onerror) != 'function'){
+    let maxAlerts = 8
+    window.onerror = function (message, file, line, column, errorObj) {
+        if(maxAlerts){
+            maxAlerts--
+            let stack = errorObj !== undefined ? errorObj.stack : traceback()
+            alert(message +' '+ file +':'+ line +' '+ stack)
+            console.error(errorObj || message)
+        }
+        return true
+    }
 }
 
 function parseMomentLocale(content){
@@ -69,9 +71,10 @@ function configUpdated(keys, c){
 
 function langUpdated(){    
     jQuery('[data-language]').each((i, e) => {
-        const key = e.getAttribute('data-language'), tag = e.tagName.toLowerCase()
-        const text = lang[key].replace(new RegExp('\r?\n', 'g'), '<br />')
-        const plainText = lang[key].replace(new RegExp('[\r\n]+', 'g'), ' ')
+        const key = e.getAttribute('data-language'), tag = e.tagName.toLowerCase(), val = lang[key] || key
+        if(!key) return
+        const text = val.replace(new RegExp('\r?\n', 'g'), '<br />')
+        const plainText = val.replace(new RegExp('[\r\n]+', 'g'), ' ')
         if(tag == 'input' && e.type == 'text') {
             e.placeholder = plainText
         } else {

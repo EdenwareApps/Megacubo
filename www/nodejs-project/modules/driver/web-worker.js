@@ -23,8 +23,7 @@ if(workerData){
     Object.keys(workerData).forEach(k => global[k] = workerData[k])
 }
 
-const Config = require(APPDIR + '/modules/config')
-global.config = new Config(global.paths['data'] + '/config.json')
+global.config = require(APPDIR + '/modules/config')(global.paths['data'] + '/config.json')
 global.config.on('change', () => {
     postMessage({id: 0, type: 'event', data: 'config-change'})
 })

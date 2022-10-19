@@ -19,19 +19,27 @@ module.exports = (file, opts) => {
 			this.finished = false
 			this.promises = {}
 			this.Worker = require('worker_threads').Worker
-			this.worker = new this.Worker(global.APPDIR + '/modules/driver/worker.js', {workerData, stdout: true, stderr: true})
+			this.worker = new this.Worker(global.APPDIR + '/modules/driver/worker.js', {
+				workerData, 
+				stdout: true, 
+				stderr: true,
+				resourceLimits: {
+					maxOldGenerationSizeMb: 2048,
+					maxYoungGenerationSizeMb: 2048
+				}
+			})
 			this.worker.on('error', err => {
 				let serr = String(err)
 				this.err = err
 				console.error('error ' + file, err, serr)
 				if(serr.match(new RegExp('(out of memory|out_of_memory)', 'i'))){
-					let msg = 'Worker #' + file.split('/').pop() + ' exitted out of memory, fix the settings and restart the app.'
+					let msg = 'Worker '+ file.split('/').pop() +' exitted out of memory, fix the settings and restart the app.'
 					global.osd.show(msg, 'fas fa-exclamation-triagle faclr-red', 'out-of-memory', 'persistent')
 				}
 				if(typeof(err.preventDefault) == 'function'){
 					err.preventDefault()
 				}
-				global.crashlog.save('Worker error:', err)
+				global.crashlog.save('Worker error at '+ file.split('/').pop() +': ', err)
 			}, true, true)
 			this.worker.on('exit', () => {
 				this.finished = true
@@ -89,13 +97,15 @@ module.exports = (file, opts) => {
 			this.err = null
 			this.finished = false
 			this.promises = {}
-			this.worker = new Worker(prepare(global.APPDIR + '/modules/driver/web-worker.js'), {name: JSON.stringify(workerData)})
+			this.worker = new Worker(prepare(global.APPDIR + '/modules/driver/web-worker.js'), {
+				name: JSON.stringify(workerData)
+			})
 			this.worker.onerror = err => {  
 				let serr = String(err)
 				this.err = err
 				console.error('error ' + file, err, serr)
 				if(serr.match(new RegExp('(out of memory|out_of_memory)', 'i'))){
-					let msg = 'Worker #' + file.split('/').pop() + ' exitted out of memory, fix the settings and restart the app.'
+					let msg = 'Webworker ' + file.split('/').pop() + ' exitted out of memory, fix the settings and restart the app.'
 					global.osd.show(msg, 'fas fa-exclamation-triagle faclr-red', 'out-of-memory', 'persistent')
 				}
 				if(typeof(err.preventDefault) == 'function'){

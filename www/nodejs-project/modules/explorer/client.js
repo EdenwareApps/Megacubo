@@ -279,7 +279,7 @@ class ExplorerSelectionMemory extends ExplorerBase {
         }
         //console.log('selectionMemory restore', data.scroll, data.index, this.path)
 		// this._scrollContainer.scrollTop = data.scroll
-        this._scrollContainer.scrollTo(0, data.scroll)
+        this.scrollTop(data.scroll)
         if(this.activeView().level == 'default'){
 			let range = this.viewportRange(data.scroll)
 			if(data.index < range.start || data.index >= range.end){
@@ -290,6 +290,13 @@ class ExplorerSelectionMemory extends ExplorerBase {
 			return true
         }
     }
+	scrollTop(y){
+        if(typeof(this._scrollContainer.scrollTo) == 'function'){
+			this._scrollContainer.scrollTo(0, y)
+		} else {
+			this._scrollContainer.scrollTop = y
+		}
+	}
 }
 
 class ExplorerPointer extends ExplorerSelectionMemory {
@@ -500,7 +507,7 @@ class ExplorerPointer extends ExplorerSelectionMemory {
     findSelected(){
         let elements, element = document.activeElement
         if(element && element != document.body && (!element.className || element.className.indexOf(this.className) == -1)){ // not explicitly selected
-            let elements = this.selectables() // check if is any explicitly selected??
+            elements = this.selectables() // check if is any explicitly selected??
             let selected = elements.filter('.' + this.className)
             if(selected.length){
                 element = selected.get(0) // yes, that's one explicitly selected
@@ -515,8 +522,13 @@ class ExplorerPointer extends ExplorerSelectionMemory {
             if(typeof(elements) == 'undefined'){
                 elements = this.selectables()
             }
-            let selected = elements.filter('.' + this.className)
-            if(selected.length){
+            let selected
+			if(elements.length){
+				try { // $.filter was triggering errors on some TV boxes, somehow
+					selected = elements.filter('.' + this.className)
+				} catch(e) {}
+			}
+            if(selected && selected.length){
                 element = selected.get(0) // yes, that's one explicitly selected
             } else {
                 element = elements.get(0)
@@ -1528,7 +1540,8 @@ class ExplorerSlider extends ExplorerPrompt {
 		s.on('keydown', event => {
 			switch(event.keyCode) {
 				case 13:  // enter
-					s.get().submit()
+					const g = s.get()
+					g && g.submit && g.submit()
 					break
 				case 37: // left
 					event.preventDefault()
@@ -1931,9 +1944,9 @@ class Explorer extends ExplorerLoading {
 				html += this.renderEntry(e, tpl, path)
 			})
 			css('span.entry-wrapper {visibility: hidden; }', 'explorer-render-hack')
-			this._scrollContainer.scrollTo(0, targetScrollTop)
+			this.scrollTop(targetScrollTop)
 			this._wrapper.innerHTML = html
-			this._scrollContainer.scrollTo(0, targetScrollTop)
+			this.scrollTop(targetScrollTop)
 		}
 		this.currentElements = Array.from(this._wrapper.getElementsByTagName('a'))
 		setTimeout(() => {

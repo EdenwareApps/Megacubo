@@ -176,4 +176,4 @@ class Config extends Events {
 	}
 }
 
-module.exports = Config
+module.exports = file => new Config(file)

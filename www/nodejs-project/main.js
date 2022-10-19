@@ -39,103 +39,7 @@ Object.keys(paths).forEach(k => {
     console.log('DEFAULT PATH ' + k + '=' + paths[k])
 })
 
-class Crashlog {
-    constructor(){
-        this.crashFile = paths.data + '/crash.txt'
-        this.crashLogFile = paths.data + '/crashlog.txt'
-    }
-    replaceCircular(val, cache) {
-        cache = cache || new WeakSet()
-        if (val && typeof(val) == 'object') {
-            if (cache.has(val)) return '[Circular]'
-            cache.add(val)
-            var obj = (Array.isArray(val) ? [] : {})
-            for(var idx in val) {
-                console.error('IDX '+ idx)
-                obj[idx] = this.replaceCircular(val[idx], cache)
-            }
-            if(val['stack']){
-                obj['stack'] = this.replaceCircular(val['stack'])
-            }
-            cache.delete(val)
-            return obj
-        }
-        return val
-    }
-    save(...args){
-        const os = require('os')
-        fs.appendFileSync(this.crashFile, JSON.stringify(Array.from(args).map(a => this.replaceCircular(a)), (key, value) => {
-            if(value instanceof Error) {
-                var error = {}
-                Object.getOwnPropertyNames(value).forEach(function (propName) {
-                    error[propName] = value[propName]
-                })
-                return error
-            }
-            return value
-        }, 3).replaceAll("\\n", "\n") +"\r\n"+ JSON.stringify({
-            version: global.MANIFEST ? global.MANIFEST.version : '',
-            platform: process.platform,
-            release: os.release(),
-            arch: os.arch(),
-            date: (new Date()).toString(), 
-            lang: typeof(lang) != 'undefined' && lang ? lang.locale : ''
-        }) +"\r\n\r\n")
-    }
-    async read(){
-        let content = ''
-        for(let file of [this.crashFile, this.crashLogFile]){
-            let text = await fs.promises.readFile(file).catch(console.error)
-            if(text){ // filter "undefined"
-                content += text
-            }
-        }
-        return content
-    }
-    send(){
-        fs.stat(this.crashFile, (err, stat) => {
-            if(stat && stat.size){
-                fs.readFile(this.crashFile, (err, content) => {
-                    const FormData = require('form-data'), form = new FormData(), http = require('http')
-                    form.append('log', String(content))
-                    const options = {
-                        method: 'post',
-                        host: 'app.megacubo.net',
-                        path: '/report/index.php',
-                        headers: form.getHeaders()
-                    }
-                    let req = http.request(options, res => {
-                        res.setEncoding('utf8')
-                        let data = ''
-                        res.on('data', (d) => {
-                            data += d
-                        })
-                        res.once('end', () => {
-                            if(data.indexOf('OK') != -1){
-                                fs.stat(this.crashLogFile, (err, stat) => {
-                                    if(stat && stat.file){
-                                        fs.appendFile(this.crashLogFile, content, () => {
-                                            fs.unlink(this.crashFile, () => {})
-                                        })
-                                    } else {
-                                        global.moveFile(this.crashFile, this.crashLogFile, () => {})
-                                    }
-                                })
-                            }
-                        })
-                    })
-                    req.on('error', (e) => {
-                        console.error('Houve um erro', e)
-                    })
-                    form.pipe(req)
-                    req.end()
-                })
-            }
-        })
-    }
-}
-
-crashlog = new Crashlog()
+crashlog = require(APPDIR + '/modules/crashlog')
 
 process.on('warning', e => {
     console.warn(e, e.stack)
@@ -167,7 +71,7 @@ onexit(() => {
     }
 })
 
-config = new (require(APPDIR + '/modules/config'))(paths['data'] + '/config.json')
+config = require(APPDIR + '/modules/config')(paths['data'] + '/config.json')
 Download = require(APPDIR + '/modules/download')
 base64 = null
 jimp = null
@@ -465,9 +369,8 @@ function init(language){
                     break
             }
         })
-        ui.on('config-set', (k, v) => {
-            config.set(k, v)
-        })
+        ui.on('config-set', (k, v) => config.set(k, v))
+        ui.on('crash', (...args) => crashlog.save(...args))
         ui.on('lists-manager', ret => {
             console.log('lists-manager', ret)
             switch(ret){
@@ -757,7 +660,7 @@ function init(language){
                     let c = await cloud.get('configure')
                     updateEPGConfig(c)
                     console.log('checking update...')
-                    crashlog.send()
+                    crashlog.send().catch(console.error)
                     if(c.version > MANIFEST.version){
                         console.log('new version found', c.version)
                         prompt(c)

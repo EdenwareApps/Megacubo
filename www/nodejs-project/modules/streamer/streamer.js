@@ -568,14 +568,18 @@ class StreamerGoNext extends StreamerThrottling {
 	async getNext(){
 		const entry = this.active ? this.active.data : this.lastActiveData
 		const entries = await global.storage.promises.get('streamer-go-next-queue').catch(console.error)
-		if(Array.isArray(entries)){
+		if(entry && Array.isArray(entries)){
 			let next, found
 			entries.some(e => {
-				if(found){
-					next = e
-					return true
-				} else if(e.url == entry.url) {
-					found = true
+				if(e){
+					if(found){
+						next = e
+						return true
+					} else {
+						if(e.url == entry.url) {
+							found = true
+						}
+					}
 				}
 			})
 			return next
