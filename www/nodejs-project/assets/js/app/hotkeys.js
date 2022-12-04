@@ -1,7 +1,7 @@
 
 
 function arePlayerControlsVisible(){
-    return [0, '0', '0px'].indexOf(jQuery(streamer.controls).css('bottom')) != -1
+    return window.streamer && [0, '0', '0px'].indexOf(jQuery(streamer.controls).css('bottom')) != -1
 }
 
 function menuPlaying(enable, ignoreFocus){

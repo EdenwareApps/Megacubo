@@ -63,7 +63,7 @@ class ListIndexUtils extends Events {
     }
     async readLastLine(file) {         
         let fs = require('fs').promises
-        let bufferSize = 512
+        let bufferSize = 1024
         let self = {
             stat: null,
             file: null,

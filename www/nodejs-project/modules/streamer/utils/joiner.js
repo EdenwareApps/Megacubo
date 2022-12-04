@@ -19,7 +19,7 @@ class Joiner extends Downloader {
 				this.processor.bufferSize = idealBufferSize
 			}
         })
-		this.on('destroy', () => {
+		this.once('destroy', () => {
 			if(!this.joinerDestroyed){
 				this.joinerDestroyed = true
 				this.processor.destroy()

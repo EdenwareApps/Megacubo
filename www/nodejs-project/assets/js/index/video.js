@@ -15,6 +15,8 @@ class VideoControl extends EventEmitter {
 		this.hasErr = null
 		this.clearErrTimer = null
 		this.uiVisibility = true
+		this.currentAudioTracks = null
+		this.currentSubtitleTracks = null
 	}
 	uiVisible(visible){
 		if(this.current){
@@ -179,11 +181,17 @@ class VideoControl extends EventEmitter {
 			})
 			a.on('audioTracks', tracks => {
 				if(!this.current) return
-				this.emit('audioTracks', tracks)
+				if(!this.equals(tracks, this.currentAudioTracks)){
+					this.currentAudioTracks = tracks
+					this.emit('audioTracks', tracks)
+				}
 			})
 			a.on('subtitleTracks', tracks => {
 				if(!this.current) return
-				this.emit('subtitleTracks', tracks)
+				if(!this.equals(tracks, this.currentSubtitleTracks)){
+					this.currentSubtitleTracks = tracks
+					this.emit('subtitleTracks', tracks)
+				}
 			})
 			a.on('error', (err, fatal) => {
 				if(!this.current){
@@ -217,6 +225,11 @@ class VideoControl extends EventEmitter {
 		}
 		this.current = this.adapters[this.adapter]
 	}
+    equals(a, b){
+		return a && b && a.length == b.length ? a.every((r, i) => {
+			return a[i] === b[i]
+		}) : false
+    }
 	audioTracks(){
 		if(this.current){
 			return this.current.audioTracks()
@@ -1197,4 +1210,4 @@ if(!parent.cordova){
 	})
 }
 
-
+document.querySelector('iframe#app').src = './app.html'

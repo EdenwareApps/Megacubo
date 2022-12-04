@@ -20,7 +20,7 @@ function setupIOCalls(ioInstance){
             if(field in ioInstance){
                 return ioInstance[field]
             }
-            const id = parseInt(Math.random() * 1000000)
+            const id = parseInt(Math.random() * 10000000000000)
             return (...args) => {
                 return new Promise((resolve, reject) => {
                     ioInstance.once('callback-' + id, ret => {
@@ -32,17 +32,3 @@ function setupIOCalls(ioInstance){
         }
     })
 }
-
-var appReady, app
-window.addEventListener('message', e => {
-    if(e.data.action == 'ready' && !appReady){
-        appReady = true
-        console.log('ready', e.data)
-        app = setupIOCalls(new BridgeCustomEmitter())
-        app.emit('bind')
-        parent.channelGetLangCallback()
-        //window.addEventListener('beforeunload', () => app.emit('unbind'))
-        initApp()
-        console.log('ready OK')  
-    }
-})

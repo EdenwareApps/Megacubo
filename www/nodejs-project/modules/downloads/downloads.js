@@ -12,7 +12,7 @@ class Downloads extends Events {
 		this.served = []
 		this.folder = folder
 		if(this.folder.charAt(this.folder.length - 1) != '/'){
-			this.folder + '/'
+			this.folder += '/'
 		}
 		this.clients = []
 		this.icon = 'fas fa-download'

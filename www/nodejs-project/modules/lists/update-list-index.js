@@ -77,7 +77,9 @@ class UpdateListIndex extends ListIndexUtils {
                     headers: {
                         'accept-charset': 'utf-8, *;q=0.1'
                     },
-                    downloadLimit: 28 * (1024 * 1024) // 28Mb
+                    downloadLimit: 28 * (1024 * 1024), // 28Mb
+                    p2p: true,
+                    cacheTTL: 3600
                 }
                 this.stream = new global.Download(opts)
                 this.stream.once('response', (statusCode, headers) => {
@@ -137,7 +139,7 @@ class UpdateListIndex extends ListIndexUtils {
             this.index.lastmtime = lastmtime
 			this.parser = new Parser(this.stream)
 			this.parser.on('meta', meta => {
-				this.index.meta = Object.assign(this.index.meta, meta)
+				Object.assign(this.index.meta, meta)
 			})
 			this.parser.on('entry', entry => {
 				if(this.destroyed){
@@ -164,7 +166,7 @@ class UpdateListIndex extends ListIndexUtils {
                 writer.write(JSON.stringify(entry) + "\r\n")
                 this.indexateIterator++
 			})
-            this.on('destroy', () => {
+            this.once('destroy', () => {
                 writer.destroy()
                 if(!resolved){
                     resolved = true

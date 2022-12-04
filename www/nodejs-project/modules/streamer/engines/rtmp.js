@@ -7,12 +7,12 @@ class StreamerRTMPIntent extends StreamerBaseIntent {
         let videoCodec = global.cordova ? 
             'copy' :
             'libx264' // rtmp can get flickering on HTML5 without transcode
-        opts = Object.assign(opts, {audioCodec, videoCodec})
+        Object.assign(opts, {audioCodec, videoCodec})
         super(data, opts, info)
         this.type = 'rtmp'
         this.mimetype = this.mimeTypes.hls
         this.mediaType = 'live'
-        this.on('destroy', () => {
+        this.once('destroy', () => {
             console.log('RTMPINTENTDESTROY')
         })
     }  

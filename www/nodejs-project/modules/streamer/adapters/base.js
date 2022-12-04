@@ -104,7 +104,7 @@ class StreamerAdapterBase extends Events {
 			if(speed && speed > 0){
 				this.currentSpeed = speed
 			}
-			if(bitrate && this.bitrate != bitrate){
+			if(bitrate >= 0 && this.bitrate != bitrate){
 				this.bitrate = bitrate
 				this.emit('bitrate', this.bitrate, this.currentSpeed)
 			}
@@ -179,7 +179,7 @@ class StreamerAdapterBase extends Events {
 		return this.crypto.createHash('md5').update(txt).digest('hex')
 	}
 	saveBitrate(bitrate, force){
-		let prevBitrate = this.bitrate
+		const prevBitrate = this.bitrate
 		if(force){
 			this.bitrates = [bitrate]
 			this.bitrate = bitrate
@@ -207,7 +207,7 @@ class StreamerAdapterBase extends Events {
 			url,
 			responseType: 'text'
 		})
-		download.on('end', body => {
+		download.once('end', body => {
 			let matches = String(body).match(new RegExp('^[^#].+\\..+$','m'))
 			if(matches){
 				const basename = matches[0].trim()
@@ -274,7 +274,7 @@ class StreamerAdapterBase extends Events {
 							if(this.opts.debug){
 								console.log('getBitrate', err, bitrate, codecData, dimensions, this.url)
 							}
-							if(bitrate){
+							if(bitrate && bitrate > 0){
 								this.saveBitrate(bitrate)	
 							}
 							if(this.opts.debug){
@@ -418,7 +418,7 @@ class StreamerAdapterBase extends Events {
 				len += this.len(d)
 			})
 			return len
-		} else if(typeof(data.byteLength) != 'undefined') {
+		} else if(typeof(data.byteLength) == 'number') {
 			return data.byteLength
 		} else {
 			return data.length

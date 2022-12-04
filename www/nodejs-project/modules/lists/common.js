@@ -6,7 +6,7 @@ const Parser = require(global.APPDIR + '/modules/lists/parser')
 LIST_DATA_KEY_MASK = 'list-data-1-{0}'
 
 class Fetcher extends Events {
-	constructor(){		
+	constructor(){
 		super()
 		this.cancelables = []
 		this.minDataLength = 512
@@ -70,7 +70,9 @@ class Fetcher extends Events {
 							headers: {
 								'accept-charset': 'utf-8, *;q=0.1'
 							},
-							downloadLimit: 28 * (1024 * 1024) // 28Mb
+							downloadLimit: 28 * (1024 * 1024), // 28Mb
+							p2p: true,
+							cacheTTL: 3600
 						}
 						let entries = [], stream = new global.Download(opts)
 						stream.once('response', (statusCode, headers) => {
@@ -126,35 +128,6 @@ class Fetcher extends Events {
 			}
 		})
 	}
-	/*
-	extract(content){ // extract inline lists from HTMLs
-		if(typeof(content) != 'string'){
-			content = String(content)
-		}
-		let pos = content.indexOf('#')
-		if(pos == -1){
-			return ''
-		} else {
-			content = content.substr(pos)
-			pos = content.substr(0, 80000).toLowerCase().indexOf('<body') // maybe a html page containing list embedded
-			if(pos != -1){
-				content = content.substr(pos)
-				var e = (new RegExp('#(EXTM3U|EXTINF).*', 'mis')).exec(content)
-				if(e && e.index){
-					content = content.substr(e.index)
-					content = content.replace(new RegExp('<[ /]*br[ /]*>', 'gi'), "\r\n")
-					e = (new RegExp('</[A-Za-z]+>')).exec(content)
-					if(e && e.index){
-						content = content.substr(0, e.index)
-					}
-				} else {
-					content = ''
-				}
-			}
-		}
-        return content
-	}
-	*/
 }
 
 class Common extends Events {
@@ -165,7 +138,6 @@ class Common extends Events {
 		this.stopWords = ['sd', 'hd', 'h264', 'h.264', 'fhd'] // common words to ignore on searching
 		this.listMetaKeyPrefix = 'meta-cache-'
 		this.opts = {
-			folderSizeLimit: 96,
 			folderSizeLimitTolerance: 12,
 			paginateThreshold: 128,
 			offloadThreshold: 512,

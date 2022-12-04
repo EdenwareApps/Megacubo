@@ -203,7 +203,7 @@ class Search extends Events {
                     fa: 'fas fa-lock',
                     type: 'action',
                     action: () => {
-                        global.ui.emit('info', global.lang.ADULT_CONTENT_BLOCKED, global.lang.ADULT_CONTENT_BLOCKED_INFO.format(global.lang.OPTIONS, global.lang.ADULT_CONTENT))
+                        global.explorer.info(global.lang.ADULT_CONTENT_BLOCKED, global.lang.ADULT_CONTENT_BLOCKED_INFO.format(global.lang.OPTIONS, global.lang.ADULT_CONTENT))
                     }
                 }
             ]
@@ -360,9 +360,8 @@ class Search extends Events {
     }
     async searchSuggestionEntries(removeAliases, countryOnly){
         let ignoreKeywords = ['tv', 'hd', 'sd']
-        let fallback, ret = {}, locs = await global.lang.getActiveCountries()
+        let ret = {}, locs = await global.lang.getActiveCountries()
         if(countryOnly && locs.includes(global.lang.countryCode)){
-            fallback = locs.length > 1
             locs = [global.lang.countryCode]
         }
         let results = await Promise.allSettled(locs.map(loc => global.cloud.get('searching.'+ loc)))

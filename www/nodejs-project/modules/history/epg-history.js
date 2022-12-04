@@ -85,7 +85,7 @@ class EPGHistory extends EntriesGroup {
             let save
             info.forEach(f => {
                 data.watched = this.getWatchingTime(f)
-                if(data.watched.time > this.minWatchingTime) {
+                if(data.watched && data.watched.time > this.minWatchingTime) {
                     const updated = this.data.some((entry, i) => {
                         if(entry.watched.name == data.watched.name){
                             if(entry.watched.start == data.watched.start) {

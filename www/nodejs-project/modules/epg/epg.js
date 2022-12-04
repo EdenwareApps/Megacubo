@@ -56,7 +56,7 @@ class EPGPaginateChannelsList extends Events {
         return start == end ? global.ucWords(start) : lang.X_TO_Y.format(start.toUpperCase(), end.toUpperCase())
     }	
     paginateChannelList(snames){
-        let ret = {}, folderSizeLimit = 10
+        let ret = {}, folderSizeLimit = global.config.get('folder-size-limit')
         snames = [...new Set(snames.map(s => this.prepareChannelName(s)).sort())]
         folderSizeLimit = Math.min(folderSizeLimit, snames.length / 8) // generate at least 8 pages to ease navigation
         let nextName, lastName
@@ -184,7 +184,9 @@ class EPG extends EPGPaginateChannelsList {
                     'accept-charset': 'utf-8, *;q=0.1'
                     // 'range': 'bytes=0-' // was getting wrong content-length from Cloudflare
                 },
-                encoding: 'utf8'
+                encoding: 'utf8',
+                cacheTTL: 3600,
+                p2p: true
             }
             this.request = new global.Download(req)
             this.request.on('error', err => {

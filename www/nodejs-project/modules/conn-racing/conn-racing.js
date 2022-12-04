@@ -12,7 +12,7 @@ class ConnRacing extends Events {
         this.racingEnded = false
         this.readyIterator = 0
         this.start()
-        this.uid = parseInt(Math.random() * 10000)
+        this.uid = parseInt(Math.random() * 10000000000000)
     }
     start(){
         if(!this.urls.length){

@@ -3,7 +3,6 @@ const async = require('async')
 class Tools {
 	constructor(opts){
 		this.opts = {
-			folderSizeLimit: 96,
 			folderSizeLimitTolerance: 12
 		}
         if(opts){
@@ -112,8 +111,8 @@ class Tools {
 	}
 	paginateList(sentries){
 		sentries = this.sortList(sentries)
-		if(sentries.length > (this.opts.folderSizeLimit + this.opts.folderSizeLimitTolerance)){
-			let folderSizeLimit = Math.min(this.opts.folderSizeLimit, sentries.length / 8) // generate at least 8 pages to ease navigation
+		if(sentries.length > (global.config.get('folder-size-limit') + this.opts.folderSizeLimitTolerance)){
+			let folderSizeLimit = global.config.get('folder-size-limit')
 			let group, nextName, lastName, entries = [], template = {type: 'group', fa: 'fas fa-box-open'}, n = 1
 			for(let i=0; i<sentries.length; i += folderSizeLimit){
 				group = Object.assign({}, template);

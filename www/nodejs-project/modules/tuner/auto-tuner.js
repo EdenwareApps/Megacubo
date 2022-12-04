@@ -29,7 +29,7 @@ class AutoTuner extends Events {
             this.entries = await this.ceilPreferredStreams(this.entries, this.preferredStreamServers(), this.opts.preferredStreamURL)
             console.log('CEILED', this.entries.map(e => e.url))
             this.tuner = new Tuner(this.entries, this.opts, this.optsmegaURL)
-            this.tuner.opts.debug = true
+            this.tuner.opts.debug = false
             this.tuner.on('success', (e, nfo, n) => {
                 if(typeof(this.succeededs[n]) == 'undefined'){
                     this.succeededs[n] = 0
@@ -304,7 +304,7 @@ class AutoTuner extends Events {
             }
             busyDomains.push(domain)
             this.succeededs[nid] = 1
-            intent.on('destroy', () => {
+            intent.once('destroy', () => {
                 setTimeout(() => { // allow catch to process before
                     if(intent){
                         this.succeededs[nid] = 3

@@ -15,7 +15,7 @@ class StreamerProxy extends StreamerProxyBase {
 		if(this.opts.debug){
 			console.log('OPTS', this.opts)
 		}
-		this.on('destroy', () => {
+		this.once('destroy', () => {
 			console.warn('proxy.destroy()', Object.keys(this.connections), global.traceback())
 			Object.keys(this.connections).forEach(this.destroyConn.bind(this))
 			this.connections = {}
@@ -308,7 +308,7 @@ class StreamerProxy extends StreamerProxyBase {
 			])
 			headers['access-control-allow-origin'] = '*'
 			if(this.opts.forceExtraHeaders){
-				headers = Object.assign(headers, this.opts.forceExtraHeaders)
+				Object.assign(headers, this.opts.forceExtraHeaders)
 			}
 			if(this.opts.debug){
 				console.log('download response', statusCode, headers, uid)

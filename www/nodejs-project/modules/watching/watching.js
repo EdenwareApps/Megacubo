@@ -7,30 +7,32 @@ class Watching extends EntriesGroup {
         this.currentEntries = null
         this.currentRawEntries = null
         this.updateIntervalSecs = global.cloud.expires.watching
-        global.channels.ready(() => {
-            this.update()
-            global.channels.on('loaded', () => this.update()) // on each "loaded"
-        })
         global.config.on('change', (keys, data) => {
             if(keys.includes('only-known-channels-in-been-watched') || keys.includes('parental-control') || keys.includes('parental-control-terms')){
-                this.update()
+                this.update().catch(console.error)
             }
-        })        
+        })     
         global.storage.promises.get('watching-current').then(data => {
-            if(!this.currentEntries || !this.currentEntries.length){
-                this.currentEntries = data
-            } else {                  
-                this.currentEntries.forEach((c, i) => {  
-                    data.forEach(e => {
-                        if(typeof(c.trend) == 'undefined' && typeof(e.trend) != 'undefined'){
-                            this.currentEntries[i].trend = e.trend
-                            return true
-                        }
+            global.channels.ready(() => {
+                if(!this.currentRawEntries || !this.currentRawEntries.length){
+                    this.currentRawEntries = data
+                    this.update(data).catch(console.error)
+                } else {                  
+                    this.currentEntries.forEach((c, i) => {  
+                        data.forEach(e => {
+                            if(typeof(c.trend) == 'undefined' && typeof(e.trend) != 'undefined'){
+                                this.currentEntries[i].trend = e.trend
+                                return true
+                            }
+                        })
+                        return e
                     })
-                    return e
-                })
-            }
-        }).catch(console.error)
+                }
+                global.channels.on('loaded', () => this.update().catch(console.error)) // on each "loaded"
+            })
+        }).catch(err => {
+            console.error(err)
+        })
     }
     title(){
         return global.lang.TRENDING
@@ -45,26 +47,25 @@ class Watching extends EntriesGroup {
     showChannelOnHome(){
         return global.lists.manager.get().length || global.config.get('communitary-mode-lists-amount')
     }
-    update(){
+    async update(rawEntries){
         clearTimeout(this.timer)
         let prv = this.entry()
-        this.process().then(() => {}).catch(err => {
+        await this.process(rawEntries).catch(err => {
             console.error('watching '+ err)
             if(!this.currentRawEntries){
                 this.currentEntries = []
                 this.currentRawEntries = []
             }
-        }).finally(() => {
-            clearTimeout(this.timer) // clear again to be sure
-            this.timer = setTimeout(() => this.update(), this.updateIntervalSecs * 1000)
-            this.emit('update')
-            let nxt = this.entry()
-            if(this.showChannelOnHome() && global.explorer.path == '' && (prv.details != nxt.details || prv.name != nxt.name)){
-                global.explorer.updateHomeFilters()
-            } else {
-                this.updateView()
-            }
         })
+        clearTimeout(this.timer) // clear again to be sure
+        this.timer = setTimeout(() => this.update().catch(console.error), this.updateIntervalSecs * 1000)
+        this.emit('update')
+        let nxt = this.entry()
+        if(this.showChannelOnHome() && global.explorer.path == '' && (prv.details != nxt.details || prv.name != nxt.name)){
+            global.explorer.updateHomeFilters()
+        } else {
+            this.updateView()
+        }
     }
     updateView(){
         if(global.explorer.path == this.title()){
@@ -74,7 +75,7 @@ class Watching extends EntriesGroup {
     hook(entries, path){
         return new Promise((resolve, reject) => {
             if(path == ''){
-                let has, pos = 0, entry = this.entry()
+                let pos = 0, entry = this.entry()
                 if(!entry.originalName){
                     entries.some((e, i) => {
                         if(e.name == global.lang.TOOLS){
@@ -134,7 +135,7 @@ class Watching extends EntriesGroup {
         })
         return entries
     }
-    async process(){
+    async getRawEntries(){
         let data = []
         const locales = await global.lang.getActiveLanguages()
         await Promise.all(locales.map(async locale => {
@@ -149,6 +150,10 @@ class Watching extends EntriesGroup {
                 delete data[i].logo
             }
         })
+        return data
+    }
+    async process(rawEntries){
+        let data = Array.isArray(rawEntries) ? rawEntries : (await this.getRawEntries())
         let recoverNameFromMegaURL = true, ex = !global.config.get('communitary-mode-lists-amount') // we'll make entries URLless for exclusive mode, to use the provided lists only
         data = global.lists.prepareEntries(data)
         data = data.filter(e => (e && typeof(e) == 'object' && typeof(e.name) == 'string')).map(e => {
@@ -222,7 +227,7 @@ class Watching extends EntriesGroup {
         data = this.addTrendAttr(data)
         data = this.applyUsersPercentages(data)
         this.currentEntries = data
-        global.storage.promises.set('watching-current', data, true).catch(console.error)
+        global.storage.promises.set('watching-current', this.currentRawEntries, true).catch(console.error)
         return data
     }
     addTrendAttr(entries){

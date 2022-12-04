@@ -146,7 +146,7 @@ class StreamerHLSIntent extends StreamerBaseIntent {
                 this.prx.start().then(() => {
                     this.transcoder = new Any2HLS(this.prx.proxify(this.trackUrl), opts)
                     this.connectAdapter(this.transcoder)
-                    this.transcoder.on('destroy', () => {
+                    this.transcoder.once('destroy', () => {
                         if(!resolved){
                             this.transcoderStarting = false
                             this.emit('transcode-failed', 'destroyed')

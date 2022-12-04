@@ -1278,10 +1278,10 @@ class ExplorerDialog extends ExplorerDialogQueue {
 			this.emit('dialog-start')
 		})
 	}
-	info(title, text, cb){
+	info(title, text, cb, fa){
 		this.queueDialog(() => {
 			let complete, mpt = [
-				{template: 'question', text: title, fa: 'fas fa-info-circle'},
+				{template: 'question', text: title, fa: fa || 'fas fa-info-circle'},
 				{template: 'message', text},
 				{template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle'}
 			];
@@ -1520,12 +1520,16 @@ class ExplorerSlider extends ExplorerPrompt {
 		this.sliderSetValue(e, value, range, mask)
 		return value
 	}
-	slider(question, range, value, mask, callback, fa){
+	slider(question, message, range, value, mask, callback, fa){
 		let m, s, n, e, step = 1
-		this.dialog([
-			{template: 'question', text: question, fa},
-			{template: 'option', text: 'OK', fa: 'fas fa-check-circle', id: 'submit'}
-		], ret => {
+		let opts = [
+			{template: 'question', text: question, fa}
+		]
+		if(message && message != question) {
+			opts.push({template: 'message', text: message})
+		}
+		opts.push({template: 'option', text: 'OK', fa: 'fas fa-check-circle', id: 'submit'})
+		this.dialog(opts, ret => {
 			if(ret !== false){
 				ret = this.sliderVal(e, range)
 				if(callback(ret) !== false){
@@ -1622,7 +1626,7 @@ class ExplorerStatusFlags extends ExplorerSlider {
 		this.currentEntries.forEach((e, i) => {
 			if(!this.ranging || (i >= this.range.start && i <= this.range.end)){
 				if(e.url && typeof(this.statusFlags[e.url]) != 'undefined'){
-					let element = this.currentElements[i], status = this.statusFlags[e.url], type = element.getAttribute('data-type'), cls = e.class || ''
+					let element = this.currentElements[i], status = this.statusFlags[e.url], type = element ? element.getAttribute('data-type') : '', cls = e.class || ''
 					if(element && cls.indexOf('skip-testing') == -1 && (cls.indexOf('allow-stream-state') != -1 || !['spacer', 'action'].includes(type))){
 						let content = ''
 						if(status == 'tune'){
@@ -1719,8 +1723,8 @@ class Explorer extends ExplorerLoading {
 			//console.log('ENTRIES', path, entries, icon)
 			this.setupSelect(entries, path, icon)
 		})
-		this.app.on('info', (a, b, c, d) => {
-			this.info(a, b, c, d)
+		this.app.on('info', (a, b, c) => {
+			this.info(a, b, null, c)
 		})
 		this.app.on('dialog', (a, b, c, d) => {
 			this.dialog(a, b, c, d)
@@ -1814,7 +1818,7 @@ class Explorer extends ExplorerLoading {
 	</span>
 </a>`,
 			slider: `
-<a tabindex="{tabindex}" href="{url}" title="{name}" aria-label="{name}" data-default-value="{value}" data-range-start="{range.start}" data-range-end="{range.end}" data-mask="{mask}" data-original-icon="{fa}" data-question="{question}" data-path="{path}" data-type="{type}" onclick="explorer.action(event, this)">
+<a tabindex="{tabindex}" href="{url}" title="{name}" aria-label="{name}" data-default-value="{value}" data-range-start="{range.start}" data-range-end="{range.end}" data-mask="{mask}" data-original-icon="{fa}" data-question="{question}" data-details="{details}" data-path="{path}" data-type="{type}" onclick="explorer.action(event, this)">
 	<span class="entry-wrapper">
 		<span class="entry-data-in">		
 			<span class="entry-name" aria-hidden="true">
@@ -2126,6 +2130,9 @@ class Explorer extends ExplorerLoading {
 				}
 			}
 		}
+		if(!Array.isArray(entries)){
+			return
+		}
 		this.select(path.split('/').pop(), entries, fa, retPath => {
 			console.warn('NAVSELECT', path, entries, retPath)
 			if(retPath){
@@ -2157,7 +2164,8 @@ class Explorer extends ExplorerLoading {
 		var def = element.getAttribute('data-default-value') || ''
 		var fa = element.getAttribute('data-original-icon') || ''
 		var question = element.getAttribute('data-question') || element.getAttribute('title')
-		this.slider(question, {start, end}, parseInt(def || 0), mask, value => {
+		var message = element.getAttribute('data-details')
+		this.slider(question, message, {start, end}, parseInt(def || 0), mask, value => {
 			if(value !== false){
 				if(this.debug){
 					console.warn('NAVINPUT', path, value)

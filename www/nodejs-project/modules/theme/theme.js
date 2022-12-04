@@ -606,7 +606,9 @@ class Theme extends Events {
                     compression: false,
                     progress: p => {
                         global.osd.show(global.lang.LOADING +' '+ p +'%', 'fas fa-download', 'theme', 'persistent')
-                    }
+                    },
+                    p2p: global.config.get('p2p'),
+                    cacheTTL: 24 * 3600
                 }).then(file => {
                     global.osd.hide('theme')
                     this.load(file, err => {

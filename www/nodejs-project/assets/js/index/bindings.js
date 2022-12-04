@@ -33,11 +33,8 @@ function frontendBackendReadyCallback(origin){
 	if(window['frontendBackendReady']['frontend'] && window['frontendBackendReady']['backend']){
 		app.lang = lang
 		app.config = config
-		app.addEventListener('appready', (() => {
-			window['frontendBackendReady'].callbacks.forEach(f => f())
-			window['frontendBackendReady'].callbacks = []
-		}).bind(window))
-		app.postMessage({action: 'ready'}, location.origin)
+		window['frontendBackendReady'].callbacks.forEach(f => f())
+		window['frontendBackendReady'].callbacks = []
 	}
 }
 
@@ -117,7 +114,6 @@ function loaded(){
 		document.getElementById('info').style.display = 'none'
 		document.getElementById('background').style.visibility = 'visible'
 		splash.parentNode.removeChild(splash)
-		app.postMessage({action: 'player-ready'}, location.origin)		
         window.dispatchEvent(new CustomEvent('themebackgroundready'))
 	}
 }
@@ -169,11 +165,6 @@ document.addEventListener('backbutton', function(e){
 		app.postMessage({action: 'backbutton'}, location.origin)
 	}
 }, false)
-
-window.addEventListener('beforeunload', () => {
-	console.log('beforeunload at index')
-	//channel.post('message', ['unbind'])
-})
 
 function channelGetLangCallback(){
 	var next = lang => {
@@ -235,7 +226,7 @@ if(window.cordova){
 					if(field in io){
 						return io[field]
 					}
-					const id = parseInt(Math.random() * 1000000)
+					const id = parseInt(Math.random() * 10000000000000)
 					return (...args) => {
 						return new Promise((resolve, reject) => {
 							io.once('callback-' + id, ret => {
@@ -258,7 +249,6 @@ if(window.cordova){
 }
 
 channelGetLangCallback()
-app.postMessage({action: 'app_js_ready'}, location.origin)
 
 function handleOpenURL(url) { // cordova-plugin-customurlscheme helper method, will handle deeplinks too
 	setTimeout(() => {

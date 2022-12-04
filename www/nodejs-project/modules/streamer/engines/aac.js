@@ -3,7 +3,7 @@ const StreamerBaseIntent = require('./base.js'), StreamerAdapterAAC = require('.
 class StreamerAACIntent extends StreamerBaseIntent {    
     constructor(data, opts, info){
         console.log('AACOPTS', opts)
-        opts = Object.assign(opts, {
+        Object.assign(opts, {
             audioCodec: null,
             videoCodec: null
         })

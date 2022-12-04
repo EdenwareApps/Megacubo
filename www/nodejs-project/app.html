@@ -25,6 +25,8 @@
         <script type="text/javascript" defer src="modules/ffmpeg/client.js"></script>
         <script type="text/javascript" defer src="modules/omni/client.js"></script>
         <script type="text/javascript" defer src="modules/crashlog/client.js"></script>
+		<!-- browserify -r @geut/discovery-swarm-webrtc -r crypto -r safe-buffer -o assets/js/libs/webrtc-bundle.js -->
+		<script type="text/javascript" defer src="assets/js/libs/webrtc-bundle.js"></script>
         <script type="text/javascript" defer src="assets/js/app/sound.js"></script>
         <link rel="stylesheet" href="node_modules/@fortawesome/fontawesome-free/css/all.min.css" />
         <link rel="stylesheet" href="assets/css/index.css" />
@@ -137,7 +139,8 @@
                 <span></span>
             </span>
         </div>
-        <div id="osd-root"></div>
-        <script type="text/javascript" defer src="assets/js/app/app.js"></script>
+        <div id="osd-root"></div>		
+		<script type="text/javascript" defer src="assets/js/app/app.js"></script>
+        <script type="text/javascript" defer src="modules/download/download-p2p-client.js"></script>
     </body>
 </html>

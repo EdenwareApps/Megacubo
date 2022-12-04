@@ -275,6 +275,7 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 				levelLoadingMaxRetryTimeout: 3000,
 				fragLoadingRetryDelay: 100,
 				defaultAudioCodec: 'mp4a.40.2', // AAC-LC from ffmpeg
+				maxLiveSyncPlaybackRate: 1, // dont touch playback rate from here
 				/*
 				// https://github.com/video-dev/hls.js/blob/master/docs/API.md
 				defaultAudioCodec: 'mp4a.40.2',

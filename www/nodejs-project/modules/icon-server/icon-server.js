@@ -87,7 +87,7 @@ class IconDefault {
                 autocrop: global.config.get('autocrop-logos')
             }
             if(options){
-                opts = Object.assign(opts, options)
+                Object.assign(opts, options)
             }
             global.jimp.transform(file, opts).then(resolve).catch(reject)
         })

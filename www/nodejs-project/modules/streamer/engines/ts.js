@@ -3,7 +3,7 @@ const StreamerBaseIntent = require('./base.js'), StreamerAdapterTS = require('..
 class StreamerTSIntent extends StreamerBaseIntent {    
     constructor(data, opts, info){
         console.log('TSOPTS', opts)
-        opts = Object.assign(opts, {
+        Object.assign(opts, {
             audioCodec: 'copy'
         })
         super(data, opts, info)

@@ -126,7 +126,6 @@ ui = new Bridge()
 ffmpeg = new FFMPEG()
 lang = false
 activeEPG = ''
-isUILoaded = false
 isStreamerReady = false
 areListsReady = false
 downloadsInBackground = {}
@@ -135,6 +134,15 @@ activeLists = {my: [], community: [], length: 0}
 displayErr = (...args) => {
     console.error.apply(null, args)
     ui.emit('display-error', args.map(v => String(v)).join(", "))
+}
+
+uiReadyCallbacks = []
+uiReady = (fn) => {
+    if(Array.isArray(uiReadyCallbacks)){
+        uiReadyCallbacks.push(fn)
+    } else {
+        fn()
+    }
 }
 
 setNetworkConnectionState = state => {
@@ -378,7 +386,7 @@ function init(language){
                     ui.emit('explorer-reset-selection')
                     explorer.open('', 0).catch(displayErr)
                     config.set('communitary-mode-lists-amount', lists.opts.defaultCommunityModeReach)
-                    ui.emit('info', lang.LEGAL_NOTICE, lang.TOS_CONTENT)
+                    explorer.info(lang.LEGAL_NOTICE, lang.TOS_CONTENT)
                     lists.manager.UIUpdateLists(true)
                     break
                 case 'retry':
@@ -424,7 +432,7 @@ function init(language){
                 def = 'try-other'
             }
             opts.push({template: 'option', text: lang.RELOAD_THIS_BROADCAST, fa: 'fas fa-redo', id: 'retry'})
-            if(typeof(streamer.active.transcode) == 'function' && !streamer.active.isTranscoding() && config.get('transcoding')){
+            if(typeof(streamer.active.transcode) == 'function' && !streamer.active.isTranscoding()){
                 opts.push({template: 'option', text: lang.FIX_AUDIO_OR_VIDEO +' &middot; '+ lang.TRANSCODE, fa: 'fas fa-film', id: 'transcode'})
             }
             if(opts.length > 2){
@@ -631,8 +639,9 @@ function init(language){
             explorer.start()  
             icons.refresh()
             streamState.sync()
-            if(!isUILoaded){
-                isUILoaded = true
+            if(Array.isArray(uiReadyCallbacks)){
+                uiReadyCallbacks.forEach(f => f())
+                uiReadyCallbacks = null
                 const prompt = async c => {
                     let chosen = await global.explorer.dialog([
                         {template: 'question', text: ucWords(MANIFEST.name) +' v'+ MANIFEST.version +' > v'+ c.version, fa: 'fas fa-star'},

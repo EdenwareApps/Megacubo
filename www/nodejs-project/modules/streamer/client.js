@@ -1,3 +1,4 @@
+
 class StreamerPlaybackTimeout extends EventEmitter {
     constructor(controls, app){
         super()
@@ -672,7 +673,6 @@ class StreamerSeek extends StreamerSpeedo {
         this.seekTimer = 0
         this.seekPlaybackStartTime = 0
         this.seekLastDuration = 0
-        this.useClockCounterInLiveStream = false // experimental, bad result yet
         this.on('draw', () => {
             this.seekbar = this.controls.querySelector('seekbar')
             this.seekbarLabel = this.controls.querySelector('label.status')
@@ -795,9 +795,8 @@ class StreamerSeek extends StreamerSpeedo {
     }
     seekbarLabelFormat(t, d){        
         let txt
-        if(this.inLiveStream && this.useClockCounterInLiveStream){
-            let s = this.seekPlaybackStartTime ? (this.seekPlaybackStartTime + t) : time()
-            txt = moment.unix(s + t).format('LTS') + ' &middot; '+  this.currentPlaybackRate +'x' //.replace(new RegExp('(\\d\\d:\\d\\d)(:\\d\\d)'), '$1<font style="opacity: var(--opacity-level-2);">$2</font>')
+        if(this.inLiveStream && config['use-local-time-counter']){
+            txt = moment.unix(this.clockTimerCurrentTime()).format('LTS') //.replace(new RegExp('(\\d\\d:\\d\\d)(:\\d\\d)'), '$1<font style="opacity: var(--opacity-level-2);">$2</font>')
         } else {
             txt = this.hms(t) +' <font style="opacity: var(--opacity-level-2);">/</font> '+ this.hms(d)
         }
@@ -952,93 +951,76 @@ class StreamerSeek extends StreamerSpeedo {
         }
     }
 }
-class StreamerClientTimeWarp extends StreamerSeek {
+
+class StreamerLiveStreamClockTimer extends StreamerSeek {
     constructor(controls, app){
         super(controls, app)
-        this.currentPlaybackRate = 1
-        parent.player.on('timeupdate', this.doTimeWarp.bind(this))
-        parent.player.on('durationchange', () => {
-            this.timewarpDetectPlayerReset()
-            this.doTimeWarp()
-        })
+        this.useLiveStreamClockTimer = true
+        this.calcOverDuration = true
         this.on('start', () => {
-            this.timewarpInitialTime = null // will be filled at the first playing state
-            this.timewarpInitialPlaybackTime = null // will be filled at the first playing state
-            this.timewarpLastDuration = 0
+            this.resetClockTimer()
         })
-        this.on('stop', () => {
-            this.timewarpInitialTime = null
-            this.timewarpInitialPlaybackTime = null
-            this.timewarpLastDuration = 0
+        parent.player.on('durationchange', () => {
+            this.detectPlayerReset()
         })
         this.on('state', state => {
             switch(state){
                 case 'playing':
-                    this.timewarpDetectPlayerReset()
-                    if(this.timewarpInitialPlaybackTime == null){
-                        this.timewarpInitialTime = time()
-                        this.timewarpInitialPlaybackTime = parent.player.time()
-                    }
+                    this.detectPlayerReset()
                     break
             }
         })
     }
-    timewarpDetectPlayerReset(){
+    detectPlayerReset(){
         const duration = parent.player.duration()
-        if(duration < this.timewarpLastDuration){ // player resetted
-            this.timewarpReset()
+        this.altPlaybackStartTime = time() - duration // ease up the cummulating differences in clock time x player time
+        if(duration < this.clockTimerLastDuration){ // player resetted
+            this.resetClockTimer()
         }
-        this.timewarpLastDuration = duration
     }
-    timewarpReset(){
-        this.timewarpInitialTime = time()
-        this.timewarpInitialPlaybackTime = parent.player.time()
+    resetClockTimer(){
+        const now = time(), duration = parent.player.duration()
+        this.calcOverDuration = true
+        this.playbackStartTime = now
+        this.initialPlaybackTime = parent.player.time()
+        this.clockTimerLastDuration = this.initialDurationTime = duration
+        this.altPlaybackStartTime = now - duration  
+        if((this.initialDurationTime - this.initialPlaybackTime) > 60){
+            this.calcOverDuration = false
+        }
     }
-    expectedDuration(){
-        return (time() - this.timewarpInitialTime) + this.timewarpInitialPlaybackTime
+    clockTimerDuration(){
+        const now = time(), stime = this.calcOverDuration ? this.altPlaybackStartTime : this.playbackStartTime
+        return (now -  stime) + this.initialPlaybackTime
     }
-    getTimewarpThresholds(){
-        let lwt = Math.min(config['live-window-time'], 150)
-        let low = parseInt(lwt * 0.05)
-        let midLow = parseInt(lwt * 0.1)
-        let midHigh = lwt * 0.5
-        let high = lwt * 0.7
-        return {low, midLow, midHigh, high}
+    clockTimerCurrentTime(){
+        const playbackTime = parent.player.time(), stime = this.calcOverDuration ? this.altPlaybackStartTime : this.playbackStartTime
+        return stime + (playbackTime - this.initialPlaybackTime)
+    }
+}
+
+class StreamerClientTimeWarp extends StreamerLiveStreamClockTimer {
+    constructor(controls, app){
+        super(controls, app)
+        this.bufferTimeSecs = 10
+        this.currentPlaybackRate = 1
+        parent.player.on('timeupdate', () => this.doTimeWarp())
+        parent.player.on('durationchange', () => this.doTimeWarp())
     }
     doTimeWarp(){
         if(this.inLiveStream && config['playback-rate-control'] && this.timewarpInitialPlaybackTime !== null){
-            const duration = this.timewarpLastDuration, ptime = parent.player.time()
-            let rate = this.currentPlaybackRate
-            let rates = {slow: 0.9, normal: 1, fast: 1.1}
-            let thresholds = this.getTimewarpThresholds()
-            let expectedDuration = (time() - this.timewarpInitialTime) + this.timewarpInitialPlaybackTime
-            if(expectedDuration < 0){
-                this.timewarpReset()
-                expectedDuration = (time() - this.timewarpInitialTime) + this.timewarpInitialPlaybackTime
-            }
-            //if(expectedDuration < duration){
-            //    expectedDuration = duration
-            //}
-            let remaining = expectedDuration - ptime
-            if(remaining <= thresholds.low) {
-                rate = rates.slow
-            } else if(remaining.between(thresholds.low, thresholds.midLow)) {
-                if(rate != rates.slow && rate != rates.normal){
-                    rate = rates.normal
-                }
-            } else if(remaining.between(thresholds.midLow, thresholds.midHigh)) {
-                rate = rates.normal
-            } else if(remaining.between(thresholds.midHigh, thresholds.high)) {
-                if(rate != rates.normal && rate != rates.fast){
-                    rate = rates.normal
-                }
-            } else if(remaining > thresholds.high){
-                rate = rates.fast
-            }
-            //osd.show(rate +'x, '+parseInt(parent.player.duration()) +', '+ parseInt(expectedDuration), 'fas fa-clock', 'tw', 'persistent')
+            const expectedDuration = this.clockTimerDuration()
+            const ptime = parent.player.time()
+            const remaining = expectedDuration - ptime
+            const diff = this.bufferTimeSecs - Math.max(Math.min(this.bufferTimeSecs * 2, remaining), 0)
+            const level = diff * (1 / this.bufferTimeSecs)
+            const maxRateChange = 0.1
+            let rate = 1 - (level * maxRateChange)
+            rate = Number(rate.toFixed(2))
+            //osd.show(rate +'x '+ parseInt(remaining)+'s', 'fas fa-clock', 'tw', 'persistent')
             if(rate != this.currentPlaybackRate){
                 this.currentPlaybackRate = rate
-                console.warn('PLAYBACKRATE=*', rate, thresholds, remaining + 's')
+                console.warn('PLAYBACKRATE=*', rate, level, ptime, remaining + 's')
                 parent.player.playbackRate(rate)
             }
         }

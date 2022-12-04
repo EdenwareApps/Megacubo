@@ -3,13 +3,13 @@ var body = $('body'), content = $('#explorer content'), wrap = document.querySel
 if(typeof(window.onerror) != 'function'){
     let maxAlerts = 8
     window.onerror = function (message, file, line, column, errorObj) {
+        let stack = typeof(errorObj) == 'object' && errorObj !== null && errorObj.stack ? errorObj.stack : traceback()
         if(maxAlerts){
             maxAlerts--
-            let stack = errorObj !== undefined ? errorObj.stack : traceback()
             alert(message +' '+ file +':'+ line +' '+ stack)
-            console.error(errorObj || message)
+            log(message)
         }
-        return true
+        console.error(errorObj || message)
     }
 }
 
@@ -85,8 +85,15 @@ function langUpdated(){
         e.title = plainText
     })
 }
-        
-function initApp(){ 
+
+var fs
+function initApp(){
+    if(!config) {
+        config = parent.config
+    }
+    if(!lang) {
+        lang = parent.lang
+    }
     console.log('INITAPP')
     app.on('open-external-url', url => parent.openExternalURL(url)) 
     app.on('open-external-file', (url, mimetype) => parent.openExternalFile(url, mimetype)) 
@@ -103,6 +110,12 @@ function initApp(){
     })
     app.on('theme-background', (image, video, color, fontColor, animate) => {
         parent.theming(image, video, color, fontColor, animate)
+    })
+    app.on('init-p2p', (addr, limit) => {
+        console.warn('INIT P2P', addr, limit)
+        if(!window.p2p){
+            window.p2p = new P2PManager(app, addr, limit)  
+        }
     })
     app.on('download', (url, name) => {
         console.log('download', url, name)
@@ -475,29 +488,27 @@ function initApp(){
         langUpdated()
         app.emit('init')
 
-        waitMessage('player-ready', () => {
-            window.streamer = new StreamerClient(document.querySelector('controls'), app)        
-            streamer.on('show', explorer.reset.bind(explorer))
-            streamer.on('state', s => {
-                if(s == 'playing' && explorer.modalContainer && explorer.modalContainer.querySelector('#modal-template-option-wait')){
-                    explorer.endModal()
-                }
-            })
-            streamer.on('stop', () => {
-                if(explorer.modalContainer && explorer.modalContainer.querySelector('#modal-template-option-wait')){
-                    explorer.endModal()
-                }
-                menuPlaying(false)
-                explorer.updateSelection() || explorer.reset()
-            })
-            window.dispatchEvent(new CustomEvent('streamer-ready'))
-            app.emit('streamer-ready')
-            jQuery('#menu-playing-close').on('click', () => {
-                menuPlaying(false)
-            })
-            jQuery('div#arrow-down-hint i').on('click', () => {
-                menuPlaying(true)
-            })
+        window.streamer = new StreamerClient(document.querySelector('controls'), app)        
+        streamer.on('show', explorer.reset.bind(explorer))
+        streamer.on('state', s => {
+            if(s == 'playing' && explorer.modalContainer && explorer.modalContainer.querySelector('#modal-template-option-wait')){
+                explorer.endModal()
+            }
+        })
+        streamer.on('stop', () => {
+            if(explorer.modalContainer && explorer.modalContainer.querySelector('#modal-template-option-wait')){
+                explorer.endModal()
+            }
+            menuPlaying(false)
+            explorer.updateSelection() || explorer.reset()
+        })
+        app.emit('streamer-ready')
+        parent.parent.Manager && parent.parent.Manager.appLoaded()
+        jQuery('#menu-playing-close').on('click', () => {
+            menuPlaying(false)
+        })
+        jQuery('div#arrow-down-hint i').on('click', () => {
+            menuPlaying(true)
         })
 
         configUpdated([], config)
@@ -750,19 +761,24 @@ function initApp(){
                         event.stopPropagation()
                     }
                 })
+            }           
+
+            if(parent.frontendBackendReadyCallback){
+                parent.frontendBackendReadyCallback('frontend') 
+            } else {
+                parent.addEventListener('load', () => {
+                    parent.frontendBackendReadyCallback('frontend') 
+                })
             }
         })
     })
 }
 
-window.addEventListener('beforeunload', () => {
-	console.log('beforeunload at app')
+var app
+parent.onBackendReady(() => {
+    app = setupIOCalls(new BridgeCustomEmitter())
+    app.emit('bind')
+    parent.channelGetLangCallback()
+    initApp()
+    console.log('ready OK')
 })
-
-if(parent.frontendBackendReadyCallback){
-    parent.frontendBackendReadyCallback('frontend') 
-} else {
-    waitMessage('app_js_ready', () => {
-        parent.frontendBackendReadyCallback('frontend') 
-    })
-}

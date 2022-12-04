@@ -299,7 +299,7 @@ class StreamerBase extends StreamerTools {
 				this.lastActiveData = this.active.data
 				intent.committed = true
 				intent.commitTime = global.time()
-				intent.on('destroy', () => {
+				intent.once('destroy', () => {
 					console.error('streamer intent destroy()')
 					if(intent == this.active){
 						this.emit('uncommit', intent)
@@ -637,13 +637,26 @@ class StreamerTracks extends StreamerGoNext {
 		})
 	}
 	getTrackOptions(tracks, activeTrack){
-		return Object.keys(tracks).map((name, i) => {
+		const sep = ' &middot; ', opts = Object.keys(tracks).map((name, i) => {
 			let opt = {template: 'option', text: name, id: 'track-'+ i}
 			if(tracks[name] == activeTrack){
 				opt.fa = 'fas fa-play'
 			}
 			return opt
 		})
+		let names = opts.map(o => o.text.split(sep))
+		for(let i = 0; i < names[0].length; i++){
+			if(names.slice(1).map(n => n[i] || '').every(n => n == names[0][i])){
+				names.forEach((n, j) => {
+					names[j][i] = ''
+				})
+			}
+		}
+		names.forEach((n, i) => {
+			opts[i].otext = opts[i].text
+			opts[i].text = n.filter(l => l).join(sep)
+		})
+		return opts
 	}
 	getExtTrackOptions(tracks, activeTrack){
 		return tracks.map(track => {
@@ -673,7 +686,7 @@ class StreamerTracks extends StreamerGoNext {
 		if(ret){
 			let uri
 			opts.filter(o => o.id == ret).forEach(o => {
-				uri = tracks[o.text]
+				uri = tracks[o.otext || o.text]
 			})
 			if(uri && uri != this.active.endpoint){
 				this.active.endpoint = uri
@@ -749,7 +762,7 @@ class StreamerAbout extends StreamerTracks {
 			}, this.moreAbout.bind(this))
 			this.aboutRegisterEntry('tracks', () => {
 				if(this.active.getQualityTracks && Object.keys(this.active.getQualityTracks()).length){
-					return {template: 'option', fa: 'fas fa-bars', text: global.lang.SELECT_TRACK, id: 'tracks'}
+					return {template: 'option', fa: 'fas fa-bars', text: global.lang.SELECT_QUALITY, id: 'tracks'}
 				}
 			}, this.showQualityTrackSelector.bind(this), null, true)
 			this.aboutRegisterEntry('audiotracks', () => {
@@ -769,6 +782,7 @@ class StreamerAbout extends StreamerTracks {
 		}	
 	}
 	aboutRegisterEntry(id, renderer, action, position, more){
+		if(this.opts.shadow) return
 		let e = {id, renderer, action}
 		let k = more ? 'moreAboutEntries' : 'aboutEntries'
 		if(this[k]){
@@ -932,7 +946,7 @@ class StreamerAbout extends StreamerTracks {
 		} else {
 			title = global.ucWords(global.MANIFEST.name) +' v'+ global.MANIFEST.version +' - '+ process.arch
 			text = global.lang.NONE_STREAM_FOUND
-        	global.ui.emit('info', title, text.trim())
+        	global.explorer.info(title, text.trim())
 		}
     }
     async moreAbout(){
@@ -945,7 +959,7 @@ class StreamerAbout extends StreamerTracks {
 		} else {
 			title = global.ucWords(global.MANIFEST.name) +' v'+ global.MANIFEST.version +' - '+ process.arch
 			text = global.lang.NONE_STREAM_FOUND
-        	global.ui.emit('info', title, text.trim())
+        	global.explorer.info(title, text.trim())
 		}
     }
 	aboutCallback(chosen){
@@ -1032,7 +1046,7 @@ class Streamer extends StreamerAbout {
 		tuning.on('finish', () => {
 			tuning.destroy()
 		})
-		tuning.on('destroy', () => {
+		tuning.once('destroy', () => {
 			global.osd.hide('streamer')
 			tuning = null
 		})

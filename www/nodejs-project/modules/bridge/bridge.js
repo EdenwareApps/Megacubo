@@ -31,7 +31,7 @@ class BridgeServer extends Events {
         this.opts = {
             addr: '127.0.0.1',
             workDir: global.paths['data'] +'/bridge',
-            port: 13733
+            port: 6342
         }
         this.map = {}
         if(opts){
@@ -190,6 +190,26 @@ class Bridge extends BridgeServer {
             return this.client.emit.apply(this.client, args)
         } else {
             console.error('Failed to emit.', args)
+        }
+    }
+    removeListener(...args){
+        Object.keys(this.bindings).forEach(type => {
+            this.bindings[type] = this.bindings[type].filter(row => {
+                return !(row[0] == args[0] && row[1] == args[1])
+            })
+        })
+        if(this.client){
+            return this.client.removeListener.apply(this.client, args)
+        }
+    }
+    removeAllListeners(...args){
+        Object.keys(this.bindings).forEach(type => {
+            this.bindings[type] = this.bindings[type].filter(row => {
+                return !(row[0] == args[0])
+            })
+        })
+        if(this.client){
+            return this.client.removeAllListeners.apply(this.client, args)
         }
     }
     localEmit(...args){

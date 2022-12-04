@@ -42,6 +42,9 @@ class ChannelsData extends Events {
             this.once('loaded', cb)
         }
     }
+    readyp(){
+        return new Promise(resolve => this.ready(resolve))
+    }
     load(cb){
         this.updateCategoriesCacheKey().catch(global.displayErr).finally(() => {
             console.log('channels.load')
@@ -1282,7 +1285,7 @@ class Channels extends ChannelsAutoWatchNow {
             let atts = Object.assign({}, global.mega.parse(meta.url))
             Object.assign(atts, meta)  
             if(['all', 'video'].includes(atts.mediaType)){
-                meta = Object.assign(meta, {
+                Object.assign(meta, {
                     type: 'group',
                     class: 'entry-meta-stream',
                     fa: 'fas fa-play-circle' ,
@@ -1298,7 +1301,7 @@ class Channels extends ChannelsAutoWatchNow {
                     }
                 })
             } else {
-                meta = Object.assign(meta, {
+                Object.assign(meta, {
                     type: 'select',
                     class: 'entry-meta-stream',
                     fa: 'fas fa-play-circle',

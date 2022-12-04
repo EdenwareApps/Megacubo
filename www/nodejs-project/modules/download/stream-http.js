@@ -1,7 +1,7 @@
 const Events = require('events'), http = require('http'), https = require('https'), url = require('url')
 const {CookieJar} = require('tough-cookie')
 const KeepAliveAgent = require('agentkeepalive'), net = require('net')
-const lookup = require('./lookup')
+const lookup = require('./lookup'), DownloadStreamBase = require('./stream-base')
 
 const httpJar = new CookieJar()
 const httpsJar = new CookieJar()
@@ -20,17 +20,15 @@ const HttpsAgent = new https.Agent({rejectUnauthorized: false})
 const KHttpAgent = new KeepAliveAgent(kaAgentOpts)
 const KHttpsAgent = new KeepAliveAgent.HttpsAgent(kaAgentOpts)
 
-class DownloadStream extends Events {
+class DownloadStreamHttp extends DownloadStreamBase {
 	constructor(opts){
-		super()
-        this.setMaxListeners(20)
-		this.opts = opts
+		super(opts)
+        this.type = 'http'
         this.ips = null
         this.failedIPs = []
         this.errors = []
-        this.timeout = opts.timeout
-		process.nextTick(() => {
-            this.start().catch(err => this.emitError(err))
+        this.once('destroy', () => {
+            this.response && this.response.destroy()
         })
 	}
     async options(ip, family){
@@ -63,6 +61,9 @@ class DownloadStream extends Events {
 	}
     resolve(host){
         return new Promise((resolve, reject) => {
+            if(this.ended || this.destroyed) {
+                return reject('Connection already ended')
+            }
             if(Array.isArray(this.ips)) {
                 return resolve(this.ips)
             }
@@ -83,11 +84,36 @@ class DownloadStream extends Events {
             }
         })
     }
+    skipWait(){
+        if(this.delay){
+            clearTimeout(this.delay.timer)
+            this.delay.resolve()
+            this.delay = null
+        }
+    }
+    async wait(ms){
+        return new Promise(resolve => {
+            this.delay = {
+                timer: setTimeout(() => {
+                    this.delay = null
+                    resolve()
+                }, ms),
+                resolve
+            }
+        })
+    }
     async start(){
+        const start = global.time()
         let fine
         this.parsed = url.parse(this.opts.url, false)
         this.jar = this.parsed.protocol == 'http:' ? httpJar : httpsJar
         await this.resolve(this.parsed.hostname)
+        if(this.opts.connectDelay){
+            const diffMs = (global.time() - start) * 1000
+            if(diffMs < this.opts.connectDelay){
+                await this.wait(this.opts.connectDelay - diffMs)
+            }
+        }
         for(let ip of this.ips){
             const options = await this.options(ip.address, ip.family)
             fine = await this.get(options)
@@ -98,18 +124,17 @@ class DownloadStream extends Events {
         if(fine){
             this.end()
         } else {
-            this.emitError(this.errors.map(s => String(s)).join("\n"))
+            this.emitError(this.errors.map(s => String(s)).join("\n"), true)
         }
     }
 	get(options){
         return new Promise(resolve => {
-            let timer, fine, req, response, resolved
+            let timer, fine, req, resolved
             const close = () => {
                 this.removeListener('destroy', close)
-                response && response.req && response.req.destroy()
-                response && response.destroy()
+                this.response && this.response.end()
                 req && req.destroy()
-                response = req = null
+                this.response = req = null
             }
             const fail = error => {
                 clearTimer()
@@ -120,6 +145,9 @@ class DownloadStream extends Events {
                         lookup.defer(options.realHost, options.ip) // if it failed with a IP, try some other at next time
                     }
                     resolve(fine)
+                }
+                if(this.response){
+                    this.response.emitError(error)
                 }
                 close()
             }
@@ -151,35 +179,38 @@ class DownloadStream extends Events {
                     close()
                 }
             }
-            this.on('destroy', close)
+            this.once('destroy', close)
             req = (options.protocol == 'http:' ? http : https).request(options, res => {
                 if(this.destroyed){
                     fail('destroyed')
                     return close()
                 }
                 fine = true
-                response = res
-                if(response.headers['set-cookie']){
-                    if (response.headers['set-cookie'] instanceof Array) {
-                        response.headers['set-cookie'].map(c => this.setCookies(c).catch(console.error))
+                this.response = new DownloadStreamBase.Response(res.statusCode, res.headers)
+                if(this.response.headers['set-cookie']){
+                    if (this.response.headers['set-cookie'] instanceof Array) {
+                        this.response.headers['set-cookie'].map(c => this.setCookies(c).catch(console.error))
                     } else {
-                        this.setCookies(response.headers['set-cookie']).catch(console.error)
+                        this.setCookies(this.response.headers['set-cookie']).catch(console.error)
                     }
-                    delete response.headers['set-cookie']
+                    delete this.response.headers['set-cookie']
                 }
-                this.emit('response', response)
-                res.on('data', chunk => {
-                    this.emit('data', chunk)
-                    startTimer('response')                  
-                })
                 res.on('error', fail)
                 res.on('timeout', fail)
-                res.on('end', () => finish())
+                res.once('end', () => finish())
                 res.on('close', () => finish())
                 res.on('finish', () => finish())
-                res.socket.on('end', () => finish())
+                res.socket.once('end', () => finish())
                 res.socket.on('close', () => finish())
                 res.socket.on('finish', () => finish())
+                this.emit('response', this.response)
+                res.on('data', chunk => {
+                    if(this.ended || this.destroyed){
+                        console.error('RECEIVING DATA AFTER END')
+                    }
+                    this.response.emit('data', chunk)
+                    startTimer('response')                  
+                })
                 startTimer('response')
             }).on('error', fail)
             req.end()
@@ -212,29 +243,7 @@ class DownloadStream extends Events {
         }
         return url
     }
-	emitError(error){
-		if(this.listenerCount('error')){
-			this.emit('error', error)
-		}
-		this.end()
-	}
-    end(){
-        if(!this.ended){
-            this.ended = true
-            this.emit('end')
-        }
-        this.destroy()
-    }
-	destroy(){
-        if(!this.ended){
-            this.end()
-        }
-        if(this.destroyed){
-		    this.destroyed = true
-        }
-        this.emit('destroy')
-	}
 }
 
-DownloadStream.keepAliveAgents = {KHttpAgent, KHttpsAgent}
-module.exports = DownloadStream
+DownloadStreamHttp.keepAliveAgents = {KHttpAgent, KHttpsAgent}
+module.exports = DownloadStreamHttp

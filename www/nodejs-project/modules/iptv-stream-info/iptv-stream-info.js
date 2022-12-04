@@ -6,7 +6,7 @@ class IPTVStreamInfo {
             probeSampleSize: 1024
         }
     }
-	_probe(url, timeoutSecs, retries = 0){
+	_probe(url, timeoutSecs, retries = 0, recursion = 10){
 		return new Promise((resolve, reject) => {
 			let status = 0, timer = 0, headers = {}, sample = [], start = global.time()
 			if(this.validate(url)){
@@ -43,14 +43,22 @@ class IPTVStreamInfo {
 						if(strSample.toLowerCase().indexOf('#ext-x-stream-inf') != -1){
 							let trackUrl = strSample.split("\n").map(s => s.trim()).filter(line => line.length > 3 && line.charAt(0) != '#').shift()
 							trackUrl = this.absolutize(trackUrl, url)
-							return this._probe(trackUrl, timeoutSecs, retries).then( resolve ).catch(err => {
+							recursion--
+							if(!recursion){
+								return reject('Max recursion reached.')
+							}
+							return this._probe(trackUrl, timeoutSecs, retries, recursion).then( resolve ).catch(err => {
 								console.error('HLSTRACKERR', err, url, trackUrl)
 								reject(err)
 							})
 						} else if(strSample.toLowerCase().indexOf('#extinf') != -1){
 							let trackUrl = strSample.split("\n").map(s => s.trim()).filter(line => line.length > 3 && line.charAt(0) != '#').shift()
 							trackUrl = this.absolutize(trackUrl, url)
-							return this._probe(trackUrl, timeoutSecs, retries).then(ret =>{
+							recursion--
+							if(!recursion){
+								return reject('Max recursion reached.')
+							}
+							return this._probe(trackUrl, timeoutSecs, retries, recursion).then(ret =>{
 								if(ret && ret.status && ret.status >= 200 && ret.status < 300){
 									done() // send data from m3u8
 								} else {

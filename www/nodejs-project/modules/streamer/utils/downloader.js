@@ -32,7 +32,7 @@ class Downloader extends StreamerAdapterBase {
 		if(m && m.length > 1){
 			this.ext = m[1]
 		}
-		this.on('destroy', () => {
+		this.once('destroy', () => {
 			if(!this._destroyed){
 				console.log('DOWNLOADER DESTROY', this._destroyed)
 				this._destroyed = true
@@ -113,7 +113,7 @@ class Downloader extends StreamerAdapterBase {
 						this.buffer = []
 					}
 					this.on('data', listener)
-					this.on('destroy', finish)
+					this.once('destroy', finish)
 				} else {
 					response.statusCode = 404
 					response.end('File not found!')

@@ -299,7 +299,7 @@ class StreamerLiveToVideo extends Any2HLS {
                 'connection': keepalive ? 'keep-alive' : 'close'
             }
 			if(this.opts.forceExtraHeaders){
-				headers = Object.assign(headers, this.opts.forceExtraHeaders)
+				Object.assign(headers, this.opts.forceExtraHeaders)
 			}
             if(typeof(req.headers.range) != 'undefined'){
                 status = 216

@@ -141,6 +141,7 @@ ffmpeg = new FFMpeg()
 class WindowManager extends ClassesHandler {
 	constructor(){
 		super()
+		this.waitAppCallbacks = []
 		this.exitPage = new ExitPage()
 		this.trayMode = false
 		this.win = nw.Window.get()
@@ -159,7 +160,6 @@ class WindowManager extends ClassesHandler {
 		})
 		this.resizeListenerDisabled = false
 		this.on('miniplayer-on', () => {
-			console.warn('MINIPLAYER ON')
 			this.win.setAlwaysOnTop(true)
 			this.win.setShowInTaskbar(false)
 			this.fixMaximizeButton()
@@ -168,7 +168,6 @@ class WindowManager extends ClassesHandler {
 			this.exitPage.open()
 		})
 		this.on('miniplayer-off', () => {
-			console.warn('MINIPLAYER OFF')
 			this.win.setAlwaysOnTop(false)
 			this.win.setShowInTaskbar(true)
 			this.fixMaximizeButton()
@@ -177,7 +176,6 @@ class WindowManager extends ClassesHandler {
 		this.waitApp(() => {
 			this.app.css(' :root { --explorer-padding-top: 30px; } ', 'frameless-window')
 			this.app.streamer.on('fullscreenchange', fs => {
-				console.warn('FULLSCREEN CHANGE', fs)
 				this.inFullScreen = fs
 				this.updateTitlebarHeight()
 			})
@@ -352,27 +350,30 @@ class WindowManager extends ClassesHandler {
 			f.addEventListener('blur', () => f.focus())
 		})
 	}
-	waitApp(fn){
-		if(this.waitAppTimer){
-			clearTimeout(this.waitAppTimer)
-		}
+	getApp(){
 		if(!this.container){
 			this.container = document.querySelector('iframe').contentWindow
 		}
-		if(this.container.document.querySelector('iframe') && this.container.document.querySelector('iframe').contentWindow){
-			this.app = this.container.document.querySelector('iframe').contentWindow
-			if(this.app.streamer){
-				fn()
-			} else {
-				this.app.addEventListener('streamer-ready', fn)
+		if(!this.app && this.container){
+			const app = this.container.document.querySelector('iframe')
+			if(app && app.contentWindow){
+				this.app = app.contentWindow
 			}
-		} else if(!this.container){
-			document.querySelector('iframe').addEventListener('load', () => {
-				this.waitApp(fn)
-			})
-		} else {
-			this.waitAppTimer = setTimeout(this.waitApp.bind(this, fn), 250)
 		}
+		return this.app && this.app.streamer ? this.app : false
+	}
+	waitApp(fn){
+		this.getApp()
+		if(this.app && this.app.streamer){
+			fn()
+		} else {
+			this.waitAppCallbacks.push(fn)
+		}
+	}
+	appLoaded(){
+		this.getApp()
+		this.waitAppCallbacks.forEach(f => f())
+		this.waitAppCallbacks = []
 	}
 	on(name, fn, useCapture){
 		document.addEventListener(name, fn, useCapture)

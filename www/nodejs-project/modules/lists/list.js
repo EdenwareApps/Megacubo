@@ -34,7 +34,7 @@ class List extends Events {
 	start(){
 		return new Promise((resolve, reject) => {
             let resolved, hasErr
-            this.on('destroy', () => {
+            this.once('destroy', () => {
                 if(!resolved){
                     reject('destroyed')
                 }
@@ -86,7 +86,8 @@ class List extends Events {
 	verify(index){
 		return new Promise((resolve, reject) => {
 		    this.verifyListQuality().then(quality => {
-                resolve({quality, relevance: this.verifyListRelevance(index)})
+                const relevance = quality ? this.verifyListRelevance(index) : {total: 0, err: 'list streams seems offline'}
+                resolve({quality, relevance})
             }).catch(err => {
                 reject(err)
             })
@@ -145,7 +146,7 @@ class List extends Events {
                     }
                 }
                 this.validator = racing
-                this.on('destroy', () => {
+                this.once('destroy', () => {
                     if(!resolved){
                         resolved = true
                         reject('destroyed')
@@ -156,7 +157,9 @@ class List extends Events {
 		})
 	}
 	verifyListRelevance(index){
-        const values = {}
+        const values = {
+            hits: 0
+        }
         const factors = {
             relevantKeywords: 1,
             mtime: 0.25,
@@ -167,7 +170,7 @@ class List extends Events {
         let rks = this.parent() ? this.parent().relevantKeywords : this.relevantKeywords
 		if(!rks || !rks.length){
 			console.error('no parent keywords', this.parent(), this.relevantKeywords, rks)
-			values.relevantKeywords = 100
+			values.relevantKeywords = 50
 		} else {
             let hits = 0
             rks.forEach(term => {
@@ -191,10 +194,16 @@ class List extends Events {
         }
         */
 
-        let total = 0, maxtotal = 0
+        let log = '', total = 0, maxtotal = 0
         Object.values(factors).map(n => maxtotal += n)
-        Object.keys(values).forEach(k => total += ((values[k] / 100) * factors[k]))
+        Object.keys(factors).forEach(k => {
+            if(typeof(values[k]) == 'number' && typeof(factors[k]) == 'number'){
+                log += k +'-'+ typeof(values[k]) +'-'+ typeof(factors[k]) +'-(('+ values[k] +' / 100) * '+ factors[k] +')'
+                total += ((values[k] / 100) * factors[k])
+            }
+        })
         values.total = total / maxtotal
+        values.debug = {values, factors, total, maxtotal, log}
 
         //console.warn('LIST RELEVANCE', this.url, index.lastmtime, Object.keys(values).map(k => k +': '+ values[k]).join(', '))
 

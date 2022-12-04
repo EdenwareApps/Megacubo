@@ -42,6 +42,9 @@ class StreamerBaseIntent extends Events {
         this.on('error', err => {
             this.unload()
         })
+        this.on('bitrate', bs => {
+            console.error('BITRRATES', bs, global.traceback())
+        })
 	}
     isTranscoding(){
         if(this.transcoderStarting || this.transcoder){
@@ -109,7 +112,7 @@ class StreamerBaseIntent extends Events {
 			if(speed && speed > 0){
 				this.currentSpeed = speed
 			}
-			if(bitrate && this.bitrate != bitrate){
+			if(bitrate >= 0 && this.bitrate != bitrate){
 				this.bitrate = bitrate
 				this.emit('bitrate', this.bitrate, this.currentSpeed)
 			}
@@ -248,7 +251,7 @@ class StreamerBaseIntent extends Events {
                     reject(err)
                 }
             })
-            this.on('destroy', () => {
+            this.once('destroy', () => {
                 setTimeout(() => { // allow other hooks to process before
                     if(!resolved){
                         resolved = true

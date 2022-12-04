@@ -1,4 +1,4 @@
-const Events = require('events')
+const Events = require('events'), fs = require('fs')
 
 class Diagnostics extends Events {
     constructor(){
@@ -8,6 +8,33 @@ class Diagnostics extends Events {
 		this.minFreeMemoryRequired = 350 * (1024 * 1024) // 350MB
 		this.lowDiskSpaceWarnInterval = 5 * 50 // 5min
 		this.checkDiskUI().catch(console.error)
+	}
+	async report(){
+		const diskSpace = await this.checkDisk()
+		const freeMem = global.kbfmt(await this.checkMemory())
+		const config = global.deepClone(global.config.data)
+		const listsInfo = await global.lists.info()
+		const myLists = config.lists.map(a => a[1])
+		delete config.lists
+		Object.keys(listsInfo).forEach(url => {
+			listsInfo[url].owned = myLists.includes(url)
+			if(listsInfo[url].private){
+				const u = url.replace(new RegExp('(://[^/]+/).*'), '$1***'), n = listsInfo[url]
+				n.url = u
+				delete listsInfo[url]
+				listsInfo[u] = n
+			}
+		})
+		if(diskSpace && diskSpace.size){
+			diskSpace.free = global.kbfmt(diskSpace.free)
+			diskSpace.size = global.kbfmt(diskSpace.size)
+		}
+		return {diskSpace, freeMem, config, listsInfo}
+	}
+	async saveReport(){
+		const file = global.downloads.folder +'/report.txt'
+		await fs.promises.writeFile(file, JSON.stringify(await this.report(), null, 3), {encoding: 'utf8'})
+		global.downloads.serve(file, true, false).catch(global.displayErr)
 	}
     checkDisk(){
 		return new Promise((resolve, reject) => {

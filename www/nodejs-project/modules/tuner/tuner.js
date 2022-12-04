@@ -166,7 +166,7 @@ class TunerTask extends TunerUtils {
 			}
             this.once('resume', resumeListener)
 			this.on('finish', finishListener)
-			this.on('destroy', finishListener)
+			this.once('destroy', finishListener)
         } else {
             let data = this.nextEntry()
 			if(this.opts.debug){

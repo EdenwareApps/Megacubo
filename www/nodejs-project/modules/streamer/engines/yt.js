@@ -81,7 +81,7 @@ class StreamerYTHLSIntent extends StreamerHLSIntent {
                 }
                 stream.destroy()
             })
-            stream.on('end', () => {
+            stream.once('end', () => {
                 if(!resolved){
                     console.log('validateTrackConnectivity', url, stream)
                     reject('unreachable')

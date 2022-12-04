@@ -14,13 +14,15 @@ function log(msg, id){
 
 let maxAlerts = 8
 window.onerror = function (message, file, line, column, errorObj) {
+	let stack = typeof(errorObj) == 'object' && errorObj !== null && errorObj.stack ? errorObj.stack : traceback()
 	if(maxAlerts){
 		maxAlerts--
-		let stack = errorObj !== undefined ? errorObj.stack : traceback()
-		alert(message +' '+ file +':'+ line +' '+ stack)
-		console.error(errorObj || message)
-		log(message)
+		if(file && file.startsWith('blob:http://') == -1){ // ignore hls.js errors
+            alert(message +' '+ file +':'+ line +' '+ stack)
+			log(message)
+		}
 	}
+	console.error(errorObj || message, {errorObj, message, file, stack})
 	return true
 }
 

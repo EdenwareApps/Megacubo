@@ -7,6 +7,8 @@ const List = require(global.APPDIR + '/modules/lists/list')
 const EPG = require(global.APPDIR + '/modules/epg')
 const Cloud = require(APPDIR + '/modules/cloud')
 const Mega = require(APPDIR + '/modules/mega')
+const UpdateListIndex = require(global.APPDIR + '/modules/lists/update-list-index.js')
+const ConnRacing = require(global.APPDIR + '/modules/conn-racing')
 
 require(APPDIR + '/modules/supercharge')(global)
 
@@ -23,32 +25,188 @@ const emit = (type, content) => {
 	postMessage({id: 0, type: 'event', data: type +':'+ JSON.stringify(content)})
 }
 
-class Lists extends Index {
-    constructor(opts){
-		super(opts)
-		if(typeof(global.lists) == 'undefined'){
-			global.lists = this
-		}
-		this._epg = false
-        this.debug = false
-        this.lists = {}
-		this.epgs = []
-        this.myLists = []
-        this.sharingUrls = []
+class ListsUpdater extends Index {
+	constructor(){
+		super()
+		this.debug = false
+		this.isUpdatingLists = false
 		this.relevantKeywords = []
-		this.syncListsQueue = {}
-		this.sharedModeReach = global.config.get('communitary-mode-lists-amount')
-		global.config.on('change', (keys, data) => {
-			if(keys.includes('communitary-mode-lists-amount')){
-				this.sharedModeReach = data['communitary-mode-lists-amount']
+		this.updateListsConcurrencyLimit = 2
+	}
+	setRelevantKeywords(relevantKeywords){
+		return new Promise((resolve, reject) => {
+			this.relevantKeywords = relevantKeywords
+			resolve(true)
+		})
+	}
+    update(urls){
+		return new Promise((resolve, reject) => {
+			if(this.isUpdatingLists){
+				return this.once('updated', () => this.update(urls).then(resolve).catch(reject))
+			}
+			if(this.debug){
+				console.log('updater - start', urls)
+			}
+			this.isUpdatingLists = true		
+			this.racing = new ConnRacing(urls, {retries: 1, timeout: 5})
+			const retries = []
+			async.eachOfLimit(urls, this.updateListsConcurrencyLimit, (url, i, acb) => {
+				if(this.racing.ended){
+					if(this.debug){
+						console.log('updater - racing ended')
+					}
+					acb()
+				} else {
+					this.racing.next(res => {
+						if(res && res.valid){
+							if(this.debug){
+								console.log('updater - updating', res.url)
+							}
+							this.updateList(res.url).then(updated => {
+								if(this.debug){
+									console.log('updater - updated', res.url, updated)
+								}
+								if(updated){
+									this.emit('list-updated', res.url)
+								}
+							}).catch(err => {
+								console.error('updater - err: '+ err, global.traceback())
+							}).finally(acb)
+						} else {
+							if(this.debug){
+								console.log('updater - failed', res.url, res)
+							}
+							if(res){
+								retries.push(res.url)
+							}
+							acb()
+						}
+					})
+				}
+			}, () => {
+				this.racing.end()
+
+				// now retry the failed ones
+				if(this.debug){
+					console.log('updater - retry', retries)
+				}
+				this.retryRacing = new ConnRacing(retries, {retries: 3, timeout: 20})
+				async.eachOfLimit(retries, this.updateListsConcurrencyLimit, (url, i, acb) => {
+					if(this.retryRacing.ended){
+						acb()
+					} else {
+						this.retryRacing.next(res => {
+							if(res && res.valid){
+								if(this.debug){
+									console.log('updater - updating', res.url)
+								}
+								this.updateList(res.url).then(updated => {
+									if(this.debug){
+										console.log('updater - updated', res.url, updated)
+									}
+									acb()
+									if(updated){
+										this.emit('list-updated', res.url)
+									}
+								}).catch(err => {
+									console.error('updater - err: '+ err)
+									acb()
+								})
+							} else {
+								if(this.debug){
+									console.log('updater - failed', res.url, res)
+								}
+								acb()
+							}
+						})
+					}
+				}, () => {
+					this.retryRacing.end()
+					this.isUpdatingLists = false
+					this.emit('updated')
+					resolve(true)
+				})
+			})
+		})
+    }
+	updateList(url){
+		return new Promise((resolve, reject) => {
+			if(this.debug){
+				console.log('updater updateList', url)
+			}
+			this.updaterShouldUpdate(url, should => {
+				const now = global.time()
+				if(this.debug){
+					console.log('updater - should', url, should)
+				}
+				if(should){
+					const updateMeta = {}
+					const file = global.storage.raw.resolve(global.LIST_DATA_KEY_MASK.format(url))
+					const updater = new UpdateListIndex(url, url, file, this, Object.assign({}, updateMeta))
+					updateMeta.updateAfter = now + 180
+					this.setListMeta(url, updateMeta)
+					updater.start().then(() => {
+						if(this.debug){
+							console.log('updater - result', url, updateMeta, updater)
+						}
+						if(updater.index){
+							updateMeta.contentLength = updater.contentLength
+							updateMeta.updateAfter = now + (24 * 3600)
+							this.setListMeta(url, updater.index.meta)
+							this.setListMeta(url, updateMeta)
+							resolve({
+								updated: true,
+								relevance: this.lists[url].relevance.total
+							})
+						} else {
+							if(this.debug){
+								console.log('updater - result', err)
+							}
+							resolve(false) // no need to update, by contentLength
+						}
+					}).catch(err => {
+						if(this.debug){
+							console.log('updater - result', url, err)
+						}
+						reject(err)
+					}).finally(() => updater.destroy())
+				} else {
+					resolve(false) // no need to update, by updateAfter
+				}
+			})
+		})
+	}
+	validateIndex(url, cb){
+		const list = new List(url, null, this.relevantKeywords)
+		list.start().then(() => cb()).catch(err => cb(err)).finally(() => list.destroy())
+	}
+	updaterShouldUpdate(url, cb){
+		this.getListMeta(url, updateMeta => {
+			if(this.debug){
+				console.log('updater shouldUpdate', updateMeta, url)
+			}
+			let now = global.time()
+			let should = !updateMeta || now >= updateMeta.updateAfter
+			if(should){
+				cb(should)
+			} else {
+				this.validateIndex(url, err => {
+					if(err){
+						console.error('Invalid index, should update', url, err)
+						cb(true)
+					} else {
+						cb(false)
+					}
+				})
 			}
 		})
 	}
-	isListCached(url, cb){
-		let file = global.storage.raw.resolve(LIST_DATA_KEY_MASK.format(url))
-		fs.stat(file, (err, stat) => {
-			cb((stat && stat.size >= 1024))
-		})
+}
+
+class ListsEPGTools extends ListsUpdater {
+    constructor(opts){
+		super(opts)
+		this._epg = false
 	}
 	loadEPG(url){
 		return new Promise((resolve, reject) => {
@@ -230,6 +388,45 @@ class Lists extends Index {
 			}
 		})		
 	}
+}
+
+class Lists extends ListsEPGTools {
+    constructor(opts){
+		super(opts)
+		if(typeof(global.lists) == 'undefined'){
+			global.lists = this
+		}
+        this.lists = {}
+		this.epgs = []
+        this.myLists = []
+        this.sharingUrls = []
+		this.relevantKeywords = []
+		this.syncListsQueue = {}
+		this.syncListsConcurrencyLimit = 2
+		this.sharedModeReach = global.config.get('communitary-mode-lists-amount')
+		global.config.on('change', (keys, data) => {
+			if(keys.includes('communitary-mode-lists-amount')){
+				this.sharedModeReach = data['communitary-mode-lists-amount']
+			}
+		})		
+        this.on('list-updated', url => {
+            console.log('List updated', url)
+            this.syncList(url, global.config.get('communitary-mode-lists-amount')).then(() => {
+                console.log('List updated and synced', url)
+            }).catch(err => {
+                console.error('List not synced', url, err)
+            })
+        })
+        this.on('updated', async () => {
+    		emit('sync-status', await this.querySyncStatus())
+        })
+	}
+	isListCached(url, cb){
+		let file = global.storage.raw.resolve(LIST_DATA_KEY_MASK.format(url))
+		fs.stat(file, (err, stat) => {
+			cb((stat && stat.size >= 1024))
+		})
+	}
 	filterByAvailability(urls, cb){
 		if(this.debug) console.log('filterByAvailability', urls.join("\r\n"))
 		let loadedUrls = [], cachedUrls = []
@@ -359,7 +556,7 @@ class Lists extends Index {
 		}
 		let ret = {url, progress, firstRun, satisfyAmount}
 		if(progress > 99){
-			ret.activeLists = this.getListsRaw()
+			ret.activeLists = this.getLists()
 		}
 		return ret
 	}
@@ -406,9 +603,9 @@ class Lists extends Index {
 				this.syncListsQueue[syncedUrl].resolves.forEach(r => r())
 			}
 			delete this.syncListsQueue[syncedUrl]
-			emit('list-added', this.syncListProgressMessage(syncedUrl))
+			emit('sync-status', this.syncListProgressMessage(syncedUrl))
 		}
-		if(this.syncingActiveListsCount() < 3){
+		if(this.syncingActiveListsCount() < this.syncListsConcurrencyLimit){
 			return Object.keys(this.syncListsQueue).some(url => {
 				if(!this.syncListsQueue[url].active){
 					this.syncList(url, true).catch(() => {})
@@ -417,13 +614,13 @@ class Lists extends Index {
 			})
 		}
 	}
-	syncList(url, skipQueue){ // dont trust on config-change sync, it can be delayed
+	syncList(url, skipQueueing){ // dont trust on config-change sync, it can be delayed
         return new Promise((resolve, reject) => {	
-			if(skipQueue !== true) {
+			if(skipQueueing !== true) {
 				if(this.isSyncing(url, resolve, reject)){
 					return
 				}
-				if(this.syncingActiveListsCount() >= 6){
+				if(this.syncingActiveListsCount() >= this.syncListsConcurrencyLimit){
 					return this.syncEnqueue(url, resolve, reject)				
 				}
 			}
@@ -471,7 +668,7 @@ class Lists extends Index {
 			this.lists[url] = new List(url, this, this.relevantKeywords)
 			this.lists[url].skipValidating = true // list is already validated at driver-updater, always
 			this.lists[url].contentLength = contentLength
-			this.lists[url].on('destroy', () => {
+			this.lists[url].once('destroy', () => {
 				if(!global.listsRequesting[url] || (global.listsRequesting[url] == 'loading')){
 					global.listsRequesting[url] = 'destroyed'
 				}
@@ -527,7 +724,8 @@ class Lists extends Index {
 						} else {
 							let replace
 							if(this.lists[url]){
-								if(Object.keys(this.lists).length >= this.sharedModeReach){
+								global.listsRequesting[url] = 'added'
+								if(!isMine && this.loadedListsCount() >= (this.myLists.length + this.sharedModeReach)){
 									replace = this.shouldReplace(this.lists[url])
 									if(replace){
 										const pr = this.lists[replace].relevance.total
@@ -536,12 +734,12 @@ class Lists extends Index {
 										}
 										this.remove(replace)
 										global.listsRequesting[replace] = 'replaced by '+ url +', '+ pr +' < '+ this.lists[url].relevance.total
+										global.listsRequesting[url] = 'added in place of '+ replace +', '+ pr +' < '+ this.lists[url].relevance.total
 									}
 								}
 								if(this.debug){
 									console.log('Added community list...', url, this.lists[url].index.length)
 								}
-								global.listsRequesting[url] = 'added'
 							} else if(!global.listsRequesting[url] || global.listsRequesting[url] == 'loading') {
 								global.listsRequesting[url] = 'adding error, instance not found'
 							}
@@ -597,7 +795,7 @@ class Lists extends Index {
 		}
 		let weaker
 		Object.keys(this.lists).forEach(k => {
-			if(this.myLists.includes(k)){
+			if(this.myLists.includes(k) || !this.lists[k].isReady){
 				return
 			}
 			if(!weaker || (this.lists[k].relevance.total > -1 && this.lists[k].relevance.total < this.lists[weaker].relevance.total)){
@@ -642,7 +840,10 @@ class Lists extends Index {
 			}
 		})
 	}
-    getListsRaw(){
+	loadedListsCount(){
+		return Object.values(this.lists).filter(l => l.isReady).length
+	}
+    getLists(){
 		let communityUrls = Object.keys(this.lists).filter(u => !this.myLists.includes(u))
 		return {
 			my: this.myLists,
@@ -650,28 +851,36 @@ class Lists extends Index {
 			length: this.myLists.length + communityUrls.length
 		}
     }
-    async getLists(){
-        return this.getListsRaw()
-    }
-    async getListsInfo(lists){
-        const info = {}, current = (lists && typeof(lists) == 'object') ? lists : global.config.get('lists')
+    async info(){
+        const info = {}, current = global.config.get('lists')
+		const hint = global.config.get('communitary-mode-lists-amount')
 		Object.keys(this.lists).forEach(url => {
-			info[url] = this.lists[url].index.meta
+			info[url] = {url}
+			info[url].owned = this.myLists.includes(url)
+			info[url].score = this.lists[url].relevance.total
+			if(this.lists[url].meta){
+				info[url].name = this.lists[url].meta.name
+				info[url].epg = this.lists[url].meta.epg
+			}
+			info[url].length = this.lists[url].index.length
 			current.forEach(c => {
 				if(c[1] == url){
 					info[url].name = c[0]
 					if(c.length > 2) {
-						Object.keys(c).forEach(k => {
-							info[k] = c[k]
+						Object.keys(c[2]).forEach(k => {
+							info[url][k] = c[2][k]
 						})
 					}
 				}
 			})
+			if(typeof(info[url]['private']) == 'undefined'){
+				info[url]['private'] = !hint
+			}
 		})
 		return info
     }
 	delimitActiveLists(){
-		if(Object.keys(this.lists).length > (this.myLists.length + this.sharedModeReach)){
+		if(this.loadedListsCount() > (this.myLists.length + this.sharedModeReach)){
 			let results = {}
 			if(this.debug){
 				console.log('delimitActiveLists', Object.keys(this.lists), this.sharedModeReach)
@@ -681,8 +890,8 @@ class Lists extends Index {
 					results[url] = this.lists[url].relevance.total
 				}
 			})
-			let sorted = Object.keys(results).sort((a,b) => results[b] - results[a])
-			sorted.slice(this.sharedModeReach).forEach(u => {
+			let sorted = Object.keys(results).sort((a, b) => results[b] - results[a])
+			sorted.slice(this.sharedModeReach + 1).forEach(u => {
 				if(this.lists[u]){
 					global.listsRequesting[u] = 'destroyed on delimiting (relevance: '+ this.lists[u].relevance.total +'), '+ JSON.stringify(global.traceback()).replace(new RegExp('[^A-Za-z0-9 /:]+', 'g'), ' ')
 					this.remove(u)

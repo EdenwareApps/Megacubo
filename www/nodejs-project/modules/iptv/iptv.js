@@ -1,4 +1,4 @@
-const Countries = require('../countries'), Events = require('events'), async = require('async')
+const Countries = require('../countries'), Events = require('events')
 
 class IPTV extends Events {
     constructor(opts={}){
@@ -9,15 +9,8 @@ class IPTV extends Events {
         this.cachingDomain = 'iptv-'
         this.cachingTTL = 12 * 3600
         this.data = {}
-        this.icon = 'fas fa-thumbs-up'
+        this.icon = 'fas fa-globe'
         this.countries = new Countries()
-        if(!this.opts.shadow){
-            global.ui.on('iptv', ret => {
-                if(ret == 'know'){
-                    global.ui.emit('open-external-url', 'https://github.com/{0}'.format(this.repo))
-                }
-            })
-        }
         this.load()
     }
     title(){
@@ -69,7 +62,9 @@ class IPTV extends Events {
                         url,
                         responseType: file ? 'text' : 'json',
                         timeout: 60,
-                        retry: 2
+                        retry: 2,
+                        p2p: global.config.get('p2p'),
+                        cacheTTL: 3600
                     }).then(body => {
                         if(!body){
                             reject('Server returned empty')
@@ -223,12 +218,16 @@ class IPTV extends Events {
                 {template: 'message', text: global.lang.IPTV_INFO},
                 {template: 'option', text: 'OK', id: 'ok', fa: 'fas fa-check-circle'},
                 {template: 'option', text: global.lang.KNOW_MORE, id: 'know', fa: 'fas fa-info-circle'}
-            ], 'ok').catch(console.error)
+            ], 'ok').then(ret => {
+                if(ret == 'know'){
+                    global.ui.emit('open-external-url', 'https://github.com/{0}'.format(this.repo))
+                }
+            }).catch(console.error)
         }
     }
     hook(entries, path){
         return new Promise((resolve, reject) => {
-            if(path.split('/').pop() == global.lang.COMMUNITY_MODE && global.config.get('communitary-mode-lists-amount')){
+            if(path.split('/').pop() == global.lang.COMMUNITY_LISTS && global.config.get('communitary-mode-lists-amount')){
                 entries.splice(entries.length - 1, 0, {name: this.title(), fa: this.icon, details: this.details, type: 'group', renderer: this.entries.bind(this)})
             }
             resolve(entries)

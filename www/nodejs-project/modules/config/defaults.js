@@ -16,6 +16,7 @@ module.exports = {
 	'epg': '',
 	'epg-map': {},
 	'ffmpeg-crf': 18,
+	'folder-size-limit': 512,
 	'font-color': '#FFFFFF',
 	'font-family': '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;',
 	'font-size': 3,
@@ -55,6 +56,7 @@ module.exports = {
 	'miniplayer-auto': true,
 	'only-known-channels-in-been-watched': true,
 	'osd-speak': false,
+	'p2p': true,
 	'parental-control': 'remove',
 	'parental-control-terms': '.',
 	'play-while-loading': true,
@@ -84,5 +86,6 @@ module.exports = {
 	'volume': 100,
 	'watch-now-auto': 'auto',
 	'ui-sounds': true,
-	'unpause-jumpback': 5
+	'unpause-jumpback': 5,
+	'use-local-time-counter': false
 }

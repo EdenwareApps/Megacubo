@@ -71,6 +71,7 @@ class CloudData {
                                 }
                             }
                         }
+                        let p2p = key != 'configure' && !key.startsWith('channels') && global.config.get('p2p') 
                         let url = this.url(key)
                         if(this.debug){
                             console.log('cloud: get', key, url)
@@ -79,7 +80,9 @@ class CloudData {
                             url,
                             responseType: raw === true ? 'text' : 'json',
                             timeout: 60,
-                            retry: 10
+                            retry: 10,
+                            p2p,
+                            cacheTTL: this.expires[expiralKey] || 300
                         }).then(body => {
                             if(!body){
                                 error('Server returned empty')

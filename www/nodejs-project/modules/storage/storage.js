@@ -9,7 +9,7 @@ class StorageBase {
 			cleanup: true
 		}
 		if(opts){
-			this.opts = Object.assign(this.opts, opts)
+			Object.assign(this.opts, opts)
 		}
 		this.debug = false
 		this.queue = new Queue()

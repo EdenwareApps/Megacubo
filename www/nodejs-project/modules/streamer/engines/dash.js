@@ -5,12 +5,12 @@ class StreamerDashIntent extends StreamerBaseIntent {
         console.log('DASHOPTS', opts)
         let audioCodec = 'copy'
         let videoCodec = 'copy'
-        opts = Object.assign(opts, {audioCodec, videoCodec})
+        Object.assign(opts, {audioCodec, videoCodec})
         super(data, opts, info)
         this.type = 'dash'
         this.mimetype = this.mimeTypes.hls
         this.mediaType = 'live'
-        this.on('destroy', () => {
+        this.once('destroy', () => {
             console.log('DASHINTENTDESTROY')
         })
     }  

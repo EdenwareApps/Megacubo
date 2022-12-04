@@ -92,6 +92,9 @@ class Explorer extends Events {
             global.ui.emit('prompt', question, placeholder, defaultValue, uid, multiline, fa, message, extraOpts, isPassword)
         })
     }
+    info(question, message, fa){
+        global.ui.emit('info', question, message, fa)
+    }
     checkFlags(entries){
         return entries.map(n => {
             let e = Object.assign({}, n)

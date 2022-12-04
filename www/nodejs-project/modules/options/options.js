@@ -78,7 +78,7 @@ class Timer extends Events {
                     }
                 }
                 if(recording){
-                    recording.on('destroy', next)
+                    recording.once('destroy', next)
                 } else {
                     next()
                 }
@@ -110,6 +110,7 @@ class PerformanceProfiles extends Timer {
                 'broadcast-start-timeout': 40,
                 'connect-timeout': 5,
                 'fx-nav-intensity': 2,
+                'p2p': true,
                 'play-while-loading': true,
                 'search-missing-logos': true,
                 'show-logos': true,
@@ -128,6 +129,7 @@ class PerformanceProfiles extends Timer {
                 'custom-background-video': '',
                 'epg': 'disabled',
                 'fx-nav-intensity': 0,
+                'p2p': false,
                 'play-while-loading': false,
                 'resume': false,
                 'search-missing-logos': false,
@@ -611,7 +613,7 @@ class Options extends OptionsHardwareAcceleration {
         }], () => {
             txt[2] = 'Connection speed: '+ global.kbsfmt(global.streamer.downlink || 0) +'<br />'
             txt[3] = 'User agent: '+ (global.config.get('user-agent') || global.config.get('default-user-agent')) +'<br />'
-            global.ui.emit('info', 'System info', txt.join(''))
+            global.explorer.info('System info', txt.join(''), 'fas fa-memory')
         })
     }
     aboutNetwork(){
@@ -619,7 +621,7 @@ class Options extends OptionsHardwareAcceleration {
         if(process.platform == 'android'){
             data += '<br />'+ global.androidIPCommand()
         } 
-        global.ui.emit('info', 'Network IP', data)
+        global.explorer.info('Network IP', data, 'fas fa-globe')
     }
     async resetConfig(){
         let text = global.lang.RESET_CONFIRM
@@ -629,7 +631,6 @@ class Options extends OptionsHardwareAcceleration {
             {template: 'option', text: global.lang.YES, fa: 'fas fa-info-circle', id: 'yes'},
             {template: 'option', text: global.lang.NO, fa: 'fas fa-times-circle', id: 'no'}
         ], 'no')
-        console.log('reset-callback', ret)
         if(ret == 'yes'){
             global.rmdir(global.paths.data, false, true)
             global.rmdir(global.paths.temp, false, true)
@@ -858,7 +859,7 @@ class Options extends OptionsHardwareAcceleration {
                         })
                         return options
                     }
-                },        
+                },       
                 {
                     name: 'IPv6 usage policy', type: 'select', fa: 'fas fa-globe',
                     renderer: async () => {
@@ -925,7 +926,12 @@ class Options extends OptionsHardwareAcceleration {
         if(global.tuning){
             global.tuning.destroy()
         }
-        let folders = [global.storage.folder, global.paths.temp, global.icons.opts.folder]
+        let folders = [
+            global.storage.folder, 
+            global.paths.temp, 
+            global.icons.opts.folder,
+            global.Download.p2p.folder
+        ]
         async.eachOf(folders, (folder, i, done) => {
             global.rmdir(folder, false, done)
         }, () => {
@@ -1014,6 +1020,28 @@ class Options extends OptionsHardwareAcceleration {
                             }, 
                             checked: () => {
                                 return global.config.get('search-youtube')
+                            }
+                        },
+                        {
+                            name: global.lang.FOLDER_SIZE_LIMIT, 
+                            fa: 'fas fa-folder', 
+                            type: 'slider', 
+                            range: {start: 8, end: 2048},
+                            action: (data, value) => {
+                                global.config.set('folder-size-limit', value)
+                            }, 
+                            value: () => {
+                                return global.config.get('folder-size-limit')
+                            }
+                        },
+                        {
+                            name: global.lang.USE_LOCAL_TIME_COUNTER, 
+                            type: 'check', 
+                            action: (e, checked) => {
+                                global.config.set('use-local-time-counter', checked)
+                            }, 
+                            checked: () => {
+                                return global.config.get('use-local-time-counter')
                             }
                         }
                     ]
@@ -1129,6 +1157,14 @@ class Options extends OptionsHardwareAcceleration {
                                         return global.config.get('debug-conns')
                                     }},
                                     {
+                                        name: 'Save report log', 
+                                        fa: 'fas fa-info-circle', 
+                                        type: 'action', 
+                                        action: async () => {
+                                            global.diagnostics.saveReport().catch(console.error)
+                                        }
+                                    },
+                                    {
                                         name: 'Save crash log', 
                                         fa: 'fas fa-info-circle', 
                                         type: 'action', 
@@ -1140,7 +1176,7 @@ class Options extends OptionsHardwareAcceleration {
                                                 global.downloads.serve(file, true, false).catch(global.displayErr)
                                             })
                                         }
-                                    }   ,
+                                    },
                                     {
                                         name: 'Save last tuning log', 
                                         fa: 'fas fa-info-circle', 
