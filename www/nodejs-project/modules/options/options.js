@@ -929,8 +929,7 @@ class Options extends OptionsHardwareAcceleration {
         let folders = [
             global.storage.folder, 
             global.paths.temp, 
-            global.icons.opts.folder,
-            global.Download.p2p.folder
+            global.icons.opts.folder
         ]
         async.eachOf(folders, (folder, i, done) => {
             global.rmdir(folder, false, done)

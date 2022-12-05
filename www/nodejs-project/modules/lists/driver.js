@@ -154,10 +154,7 @@ class ListsUpdater extends Index {
 							updateMeta.updateAfter = now + (24 * 3600)
 							this.setListMeta(url, updater.index.meta)
 							this.setListMeta(url, updateMeta)
-							resolve({
-								updated: true,
-								relevance: this.lists[url].relevance.total
-							})
+							resolve(true)
 						} else {
 							if(this.debug){
 								console.log('updater - result', err)

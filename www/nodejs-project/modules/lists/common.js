@@ -61,7 +61,7 @@ class Fetcher extends Events {
 			} else if(path.match('^https?:')) {
 				const dataKey = LIST_DATA_KEY_MASK.format(path)
 				global.storage.raw.get(dataKey, data => {
-					const process = () => {						
+					const process = () => {					
 						const opts = {
 							url: path,
 							keepalive: false,

@@ -10,6 +10,7 @@ class DownloadCacheChunksReader extends Events {
         this.sent = 0 // bytes outputted for client
         this.processed = 0 // bytes processed from whole file, ignoring requested ranges
         this.freaden = 0 // bytes readen from cache file
+        this.fcheck = false
         this.current = -1
         this.pending = []
         this.master = master
@@ -30,26 +31,32 @@ class DownloadCacheChunksReader extends Events {
         }
         this.master.on('data', this.masterDataListener)
         this.master.on('end', this.masterEndListener)
-        this.stream = fs.createReadStream(this.master.file, this.opts)
-        this.stream.on('data', chunk => {
-            this.emitData(chunk, (this.opts.start || 0) + this.freaden)
-            this.freaden += chunk.length
-        })
-        const end = err => {
-            err && console.error(err)
-            if(!this.masterEnded){
-                this.masterEnded = this.master.ended
-            }
-            if(this.stream !== null){
-                this.stream = null
-                if(this.freaden){
-                    this.processed = (this.opts.start || 0) + this.freaden
+        fs.stat(this.master.file, err => {
+            this.fcheck = true
+            if(err) return this.pump()
+            this.stream = fs.createReadStream(this.master.file, this.opts)
+            this.stream.on('data', chunk => {
+                this.emitData(chunk, (this.opts.start || 0) + this.freaden)
+                this.freaden += chunk.length
+            })
+            const end = err => {
+                if(err){
+                    console.error('DownloadCacheChunks()', err)
                 }
-                this.pump()
+                if(!this.masterEnded){
+                    this.masterEnded = this.master.ended
+                }
+                if(this.stream !== null){
+                    this.stream = null
+                    if(this.freaden){
+                        this.processed = (this.opts.start || 0) + this.freaden
+                    }
+                    this.pump()
+                }
             }
-        }
-        this.stream.on('error', end)
-        this.stream.once('end', end)
+            this.stream.on('error', end)
+            this.stream.once('end', end)
+        })
     }
     pause(){
         this.paused = true
@@ -86,7 +93,7 @@ class DownloadCacheChunksReader extends Events {
         this.emit('data', data)
     }
     pump(){
-        if(this.stream || this.paused){
+        if(!this.fcheck || this.stream || this.paused){
             return
         }
         this.pending.forEach((c, i) => {
@@ -121,9 +128,10 @@ class DownloadCacheChunks extends Events {
         this.file = global.storage.folder +'/dlcache/'+ this.uid
         this.chunks = []
         this.size = 0
+        this.created = false
     }
     push(chunk){
-        this.emit('data', chunk, this.size)
+        this.emit('data', chunk, this.size) 
         this.chunks.push({
             type: 'buffer',
             data: chunk,
@@ -134,7 +142,7 @@ class DownloadCacheChunks extends Events {
         this.pump()
     }
     pump(){
-        if(this.pumping) {
+        if(this.ended || this.pumping) {
             return
         }
         let chunks = this.chunks.filter((c, i) => {
@@ -145,24 +153,37 @@ class DownloadCacheChunks extends Events {
         }).map(c => c.data)
         if(chunks.length && !CACHE_MEM_ONLY){
             this.pumping = true
-            fs.appendFile(this.file, Buffer.concat(chunks), {encoding: null}, err => {
-                if(err){
-                    console.error('DownloadCacheChunks.pump()', err)
-                }
-                this.chunks.filter((c, i) => {
-                    if(c.type == 'buffer' && c.writing == true){
-                        this.chunks[i].type = 'file'
-                        this.chunks[i].data = null
-                        delete this.chunks[i].writing
+            const next = () => {
+                fs.appendFile(this.file, Buffer.concat(chunks), {encoding: null}, err => {
+                    if(err){
+                        return this.fail(err)
                     }
+                    this.chunks.filter((c, i) => {
+                        if(c.type == 'buffer' && c.writing == true){
+                            this.chunks[i].type = 'file'
+                            this.chunks[i].data = null
+                            delete this.chunks[i].writing
+                        }
+                    })
+                    this.pumping = false
+                    this.pump()
                 })
-                this.pumping = false
-                this.pump()
-            })
+            }
+            if(this.created) {
+                next()
+            } else {
+                this.created = true
+                fs.writeFile(this.file, '', { flag: "wx" }, next)
+            }
         } else if(this.ended && !this.finished) {
             this.finished = true
             this.emit('finish')
         }
+    }
+    fail(err){
+        this.emit('error', err)
+        this.end()
+        this.destroy()
     }
     end(){
         this.ended = true
@@ -213,6 +234,7 @@ class DownloadCacheMap extends Events {
     async start(){
         if(this.started) return
         this.started = true
+        await fs.promises.mkdir(this.folder).catch(console.error)
         let caches = await fs.promises.readdir(this.folder).catch(console.error)
         if(Array.isArray(caches)){
             caches = caches.map(f => this.folder +'/'+ f)
@@ -358,8 +380,13 @@ class DownloadCacheMap extends Events {
                     if(!this.index[url] || this.index[url].type != 'saving'){
                         return
                     }
-                    if(this.index[url].chunks.size < this.index[url].size) {
-                        hasErr = 'Bad file size. Expected: '+ this.index[url].size +', received: '+ this.index[url].chunks.size +', discarding http cache.'
+                    if(this.index[url].chunks.error) {
+                        console.error(this.index[url].chunks.error)
+                        this.index[url].chunks.destroy()
+                        delete this.index[url].chunks
+                        delete this.index[url]
+                    } else if(this.index[url].chunks.size < this.index[url].size) {
+                        console.error('Bad file size. Expected: '+ this.index[url].size +', received: '+ this.index[url].chunks.size +', discarding http cache.')
                         this.index[url].chunks.destroy()
                         delete this.index[url].chunks
                         delete this.index[url]

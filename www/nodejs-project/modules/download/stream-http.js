@@ -56,7 +56,7 @@ class DownloadStreamHttp extends DownloadStreamBase {
             opts.agent = this.parsed.protocol == 'http:' ? KHttpAgent : KHttpsAgent
         } else {
             opts.agent = this.parsed.protocol == 'http:' ? HttpAgent : HttpsAgent
-        }
+        }        
 		return opts
 	}
     resolve(host){

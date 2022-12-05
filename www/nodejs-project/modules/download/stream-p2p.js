@@ -3,6 +3,7 @@ const DownloadStream = require('./stream-base')
 class DownloadStreamP2P extends DownloadStream {
 	constructor(opts){
 		super(opts)
+        this.setMaxListeners(99)
         this.type = 'p2p'
         this.lmap = {}
         this.on('destroy', () => {

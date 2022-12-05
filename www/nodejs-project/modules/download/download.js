@@ -305,7 +305,7 @@ class Download extends Events {
 		opts.headers = requestHeaders
 		opts.timeout = this.getTimeoutOptions()
 		if(this.opts.debug) {
-			console.log('>> Download request', this.currentURL, this.connectCount, opts, this.received, JSON.stringify(opts.headers), this.requestingRange, this.opts.headers['range'], global.traceback())
+			console.log('>> Download request: '+ this.currentURL, this.connectCount, opts, this.received, JSON.stringify(opts.headers), this.requestingRange, this.opts.headers['range'], global.traceback())
 		}
 		this.connectCount++
 		let redirected

@@ -31,14 +31,14 @@ class DownloadStreamCache extends DownloadStreamBase {
                     stream = fs.createReadStream(String(row.data), range)
                     break
             }
-            stream.on('data', chunk => {
-                this.response.emit('data', chunk)
-            })
-            stream.once('end', () => this.end())
             stream.on('error', err => {
                 this.response.emit('error', err)
                 this.end()
             })
+            stream.on('data', chunk => {
+                this.response.emit('data', chunk)
+            })
+            stream.once('end', () => this.end())
             return true
         } else {
             this.emitError('Cache download failed')

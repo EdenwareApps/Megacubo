@@ -201,7 +201,8 @@ class Manager extends Events {
                     } else {
                         this.name(url).then(finish).catch(reject)
                     }
-                } else {
+                } else {                    
+                    console.error(global.lang.INVALID_URL_MSG, url)
                     fail(global.lang.INVALID_URL_MSG)
                 }
             }).catch(fail)
