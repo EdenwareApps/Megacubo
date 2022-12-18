@@ -35,7 +35,7 @@ class Config extends Events {
 				if(typeof(_data)=='string' && _data.length > 2){
 					_data = _data.replace(new RegExp("\n", "g"), '')
 					//data = stripBOM(data.replace(new RegExp("([\r\n\t]| +)", "g"), "")); // with \n the array returns empty (?!)
-					_data = JSON.parse(_data);
+					_data = JSON.parse(_data)
 					if(typeof(_data) == 'object'){
 						this.data = Object.assign({}, this.defaults)
 						this.data = Object.assign(this.data, _data)

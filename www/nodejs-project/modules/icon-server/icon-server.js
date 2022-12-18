@@ -47,7 +47,7 @@ class IconDefault {
         })
     }
     saveDefault(terms, data, cb){
-        const updating = global.lists.manager.updatingLists || !global.activeLists.length // we may find a better logo after
+        const updating = global.lists.manager.isUpdating(true) || !global.activeLists.length // we may find a better logo after
         if(!updating && terms && terms.length){
             let name = this.prepareDefaultName(terms) + '.png', file = this.opts.folder + path.sep + name
             if(this.opts.debug){
@@ -65,7 +65,7 @@ class IconDefault {
         }
     }
     saveDefaultFile(terms, sourceFile, cb){
-        if(global.lists.manager.updatingLists || !global.activeLists.length){ // we may find a better logo later
+        if(global.lists.manager.isUpdating(true) || !global.activeLists.length){ // we may find a better logo later
             if(cb) cb()
             return
         }
@@ -315,11 +315,12 @@ class IconFetchSem extends IconServerStore {
         cbs.forEach(cb => cb(ret))
     }
     fetchURL(url){  
-        return new Promise((resolve, reject) => { 
-            if(String(url).startsWith('data:image/png;base64,')) {
+        return new Promise((resolve, reject) => {
+            const suffix = 'data:image/png;base64,'
+            if(String(url).startsWith(suffix)) {
                 const key = this.key(url)
                 const file = this.resolveHTTPCache(key)
-                return fs.writeFile(file, global.base64.decode(url), err => {
+                return fs.writeFile(file, Buffer.from(url.replace(suffix, ''), 'base64'), err => {
                     if(err){
                         return reject(err)
                     }
@@ -428,7 +429,7 @@ class IconServer extends IconFetchSem {
         this.listen()
     }
     listsLoaded(){
-        return !global.lists.manager.updatingLists && global.activeLists.length
+        return !global.lists.manager.isUpdating(true) && global.activeLists.length
     }
     debug(...args){
         global.osd.show(Array.from(args).map(s => String(s)).join(', '), 'fas fa-info-circle', 'active-downloads', 'persistent')

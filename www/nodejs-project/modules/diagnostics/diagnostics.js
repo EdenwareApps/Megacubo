@@ -13,23 +13,26 @@ class Diagnostics extends Events {
 		const diskSpace = await this.checkDisk()
 		const freeMem = global.kbfmt(await this.checkMemory())
 		const config = global.deepClone(global.config.data)
-		const listsInfo = await global.lists.info()
-		const myLists = config.lists.map(a => a[1])
-		delete config.lists
-		Object.keys(listsInfo).forEach(url => {
-			listsInfo[url].owned = myLists.includes(url)
-			if(listsInfo[url].private){
-				const u = url.replace(new RegExp('(://[^/]+/).*'), '$1***'), n = listsInfo[url]
+		const lists = await global.lists.info()
+		const myLists = config.lists.map(a => a[1]);
+		const listsRequesting = global.listsRequesting
+		const listsUpdating = await global.lists.manager.updater.info()
+		const tuning = global.tuning ? global.tuning.logText(false) : ''
+		['lists', 'parental-control-terms', 'parental-control-pw', 'premium-license'].forEach(k => delete config[k])
+		Object.keys(lists).forEach(url => {
+			lists[url].owned = myLists.includes(url)
+			if(lists[url].private){
+				const u = url.replace(new RegExp('(://[^/]+/).*'), '$1***'), n = lists[url]
 				n.url = u
-				delete listsInfo[url]
-				listsInfo[u] = n
+				delete lists[url]
+				lists[u] = n
 			}
 		})
 		if(diskSpace && diskSpace.size){
 			diskSpace.free = global.kbfmt(diskSpace.free)
 			diskSpace.size = global.kbfmt(diskSpace.size)
 		}
-		return {diskSpace, freeMem, config, listsInfo}
+		return {diskSpace, freeMem, config, lists, listsRequesting, listsUpdating, tuning}
 	}
 	async saveReport(){
 		const file = global.downloads.folder +'/report.txt'

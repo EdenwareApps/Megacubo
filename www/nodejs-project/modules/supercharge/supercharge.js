@@ -540,6 +540,14 @@ function patch(scope){
 		}
 		return addr
 	}
+    scope.parseJSON = json => { // prevent JSON related crashes
+		let ret
+		try {
+			let parsed = JSON.parse(json)
+			ret = parsed
+		} catch(e) { }
+		return ret
+	}
 }
 
 if(typeof(module) != 'undefined' && typeof(module.exports) != 'undefined'){

@@ -433,6 +433,8 @@
    "WATCH": "Watch",
    "WATCHED": "Watched",
    "WATCH_NOW": "Watch now",
+   "WATCH_IN_BROWSER": "Watch in a web browser",
+   "WATCH_IN_BROWSER_INFO": "To watch, open your device's web browser and go to the following address:",
    "WELCOME_PREMIUM": "Welcome to Megacubo Premium",
    "WHAT_TO_WATCH": "What do you wanna watch?",
    "WHEN_READY_CLICK_BACK": "When ready, click \"{0}\" to save",

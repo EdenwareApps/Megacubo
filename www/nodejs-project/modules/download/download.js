@@ -58,6 +58,7 @@ class Download extends Events {
 		}
 		this.timings = {}
 		this.buffer = []
+		this.redirectLog = []
 		this.redirectCount = 0
 		this.retryCount = 0
 		this.retryDelay = 150
@@ -137,7 +138,7 @@ class Download extends Events {
 					}
 				})
 			}
-			if(global.osd && global.config.get('debug-conns')){
+			if(global.osd && global.debugConns){
 				let txt = this.opts.url.split('?')[0].split('/').pop()
 				global.osd.show(txt, 'fas fa-download', 'down-'+ this.opts.uid, 'persistent')
 				if(typeof(global.requests) == 'undefined') global.requests = {}
@@ -568,7 +569,7 @@ class Download extends Events {
 							this.currentRequestError = 'aborted'
 							let err = 'request aborted '+ this.received +'<'+ this.contentLength
 							this.errors.push(err)
-							if(global.osd && global.config.get('debug-conns')){
+							if(global.osd && global.debugConns){
 								let txt = this.opts.url.split('?')[0].split('/').pop() +' ('+ this.statusCode +'): '
 								if(this.contentLength){
 									txt += err // 'aborted, missing '+ global.kbfmt(this.contentLength - this.received)
@@ -713,13 +714,14 @@ class Download extends Events {
 	}
 	checkRedirect(response){
 		if(typeof(response.headers['location']) != 'undefined'){
+			if(this.opts.cacheTTL){
+				Download.cache.save(this, null, true) // save redirect, before changing currentURL, end it always despite of responseSource
+			}
 			this.currentURL = this.absolutize(response.headers['location'], this.opts.url)			
 			if(this.opts.debug){
 				console.log('>> Download redirect', this.opts.followRedirect, response.headers['location'], this.currentURL)
 			}	
-			if(this.opts.cacheTTL){
-				Download.cache.save(this, null, true) // save redirect, end it always despite of responseSource
-			}
+			this.redirectLog.push(this.currentURL)
 			process.nextTick(() => {
 				if(this.opts.followRedirect){
 					this.destroyStream()
@@ -820,7 +822,7 @@ class Download extends Events {
 			}
 		}
 		if(this.progress != current && this.progress < 100){			
-			if(global.osd && global.config.get('debug-conns')){
+			if(global.osd && global.debugConns){
 				let txt = this.opts.url.split('?')[0].split('/').pop() +': '+ this.progress	+'%'			
 				global.osd.show(txt, 'fas fa-download', 'down-'+ this.opts.uid, 'persistent')
 			}
@@ -868,7 +870,7 @@ class Download extends Events {
 				break
 			case 'json':
 				try {
-					data = JSON.parse(String(data))
+					data = global.parseJSON(String(data))
 				} catch(e) {
 					if(this.listenerCount('error')){
 						this.emit('error', e)
@@ -882,9 +884,7 @@ class Download extends Events {
 	endWithError(err){
 		this.statusCode = 500
 		this.headers = {}
-		if(this.opts.debug){
-			console.warn('>> Download error: '+ err, global.traceback())
-		}
+		console.warn('Download error: '+ err, this.redirectLog, this.opts.url, this.currentURL, this.redirectCount, this, global.traceback())
 		this.errors.push(String(err) || 'unknown request error')
 		if(!this.currentRequestError){
 			this.currentRequestError = 'error'
@@ -959,7 +959,7 @@ class Download extends Events {
 			this.removeAllListeners()
 			this.buffer = []
 			process.nextTick(() => {
-				if(global.osd && global.config.get('debug-conns')){
+				if(global.osd && global.debugConns){
 					let txt = this.opts.url.split('?')[0].split('/').pop() +' ('+ this.statusCode +') - '
 					this.timings.delay = this.retryCount * this.retryDelay
 					this.timings.ttotal = (global.time() - this.startTime) * 1000

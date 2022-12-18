@@ -1,6 +1,3 @@
-
-const fs = require('fs')
-
 function logErr(data){
     postMessage({id: -1, type: 'error', data, file})
 }

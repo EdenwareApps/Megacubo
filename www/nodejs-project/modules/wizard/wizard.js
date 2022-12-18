@@ -63,7 +63,7 @@ class Wizard extends WizardUtils {
         } else {
             opts.push({template: 'option', text: global.lang.ADD_LATER, fa: 'fas fa-clock', id: 'no'})
         }
-        let choose = await global.explorer.dialog(opts, def)
+        let choose = await global.explorer.dialog(opts, def, true)
         if(choose == 'no'){
             return true
         } else if(choose == 'sh') {

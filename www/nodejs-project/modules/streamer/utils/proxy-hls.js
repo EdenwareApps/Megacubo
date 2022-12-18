@@ -118,7 +118,7 @@ class HLSRequests extends StreamerProxyBase {
 				}
 				delete this.activeRequests[url]
 			})
-			if(global.config.get('debug-conns')){
+			if(global.debugConns){
 				global.osd.hide('hlsprefetch')
 			}
 		})
@@ -287,7 +287,6 @@ class HLSRequests extends StreamerProxyBase {
 			}
 			if(!ended){
 				ended = true
-				console.warn('activeManifest', mediaType, url, this.playlistBitrates)
 				let manifest
 				if(mediaType == 'meta'){
 					manifest = url
@@ -299,7 +298,6 @@ class HLSRequests extends StreamerProxyBase {
 						}
 					}
 				}
-				console.warn('BITRRATES', manifest, this.activeManifest, this.playlistBitrates)
 				if(manifest && manifest != this.activeManifest && (!this.playlistBitrates[this.activeManifest] || this.playlistBitrates[manifest])){
 					this.activeManifest = manifest
 					if(this.playlistBitrates[manifest]){
@@ -367,7 +365,7 @@ class HLSRequests extends StreamerProxyBase {
 		}
 	}
 	debugActiveRequests(){
-		if(global.config.get('debug-conns')){
+		if(global.debugConns){
 			global.osd.show(Object.keys(this.activeRequests).length +' active requests', 'fas fa-download', 'hlsprefetch', 'persistent')
 		}
 	}

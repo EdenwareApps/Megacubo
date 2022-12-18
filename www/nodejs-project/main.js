@@ -73,7 +73,6 @@ onexit(() => {
 
 config = require(APPDIR + '/modules/config')(paths['data'] + '/config.json')
 Download = require(APPDIR + '/modules/download')
-base64 = null
 jimp = null
 
 enableConsole = (enable) => {
@@ -149,7 +148,7 @@ setNetworkConnectionState = state => {
     Download.setNetworkConnectionState(state)
     if(typeof(lists) != 'undefined'){
         lists.setNetworkConnectionState(state).catch(console.error)
-        if(state){
+        if(state && isStreamerReady){
             lists.manager.UIUpdateLists()
         }
     }
@@ -270,11 +269,8 @@ function init(language){
     if(lang) return
     lang = new Language(language, config.get('locale'), APPDIR + '/lang')
     lang.load().catch(displayErr).finally(() => {
-        console.log('Language loaded.')
-       
-        base64 = new (require(APPDIR + '/modules/base64'))()
-        jimp = require(APPDIR + '/modules/jimp-wrapper')
-        
+        console.log('Language loaded.')       
+        jimp = require(APPDIR + '/modules/jimp-wrapper')        
 
         epgSetup = false
         moment.locale(lang.locale)
@@ -663,7 +659,7 @@ function init(language){
                     }
                 }
                 const afterListUpdate = async () => {
-                    if(!lists.manager.updatingLists && !activeLists.length && config.get('communitary-mode-lists-amount')){
+                    if(!lists.manager.isUpdating() && !activeLists.length && config.get('communitary-mode-lists-amount')){
                         lists.manager.UIUpdateLists()
                     }
                     let c = await cloud.get('configure')

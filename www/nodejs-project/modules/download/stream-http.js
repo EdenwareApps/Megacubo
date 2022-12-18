@@ -208,7 +208,7 @@ class DownloadStreamHttp extends DownloadStreamBase {
                     if(this.ended || this.destroyed){
                         console.error('RECEIVING DATA AFTER END')
                     }
-                    this.response.emit('data', chunk)
+                    this.response && this.response.emit('data', chunk)
                     startTimer('response')                  
                 })
                 startTimer('response')

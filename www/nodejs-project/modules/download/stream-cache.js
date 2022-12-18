@@ -8,7 +8,7 @@ class DownloadStreamCache extends DownloadStreamBase {
     async start(){
         const url = this.opts.url
         const row = Download.cache.index[url]
-        if(row && row.uid != this.opts.uid){
+        if(row && row.status && row.uid != this.opts.uid){
             let stream, range
             const headers = Object.assign({}, Download.cache.index[url].headers) || {}
             headers['x-source'] = headers['x-source'] ? 'cache-'+ headers['x-source'] : 'cache'
@@ -23,6 +23,9 @@ class DownloadStreamCache extends DownloadStreamBase {
             }
             this.response = new DownloadStreamBase.Response(range ? 206 : 200, headers)
             this.emit('response', this.response)
+            if(row.type == 'file' && row.size === 0){
+                return this.end()
+            }
             switch(row.type){
                 case 'saving':
                     stream = Download.cache.index[url].chunks.createReadStream(range)

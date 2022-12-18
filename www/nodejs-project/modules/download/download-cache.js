@@ -2,6 +2,34 @@ const fs = require('fs'), Events = require('events')
 
 const CACHE_MEM_ONLY = false
 
+class DownloadCacheFileReader extends Events {
+    constructor(file, opts){
+        super()
+        this.on('error', console.error)
+        process.nextTick(() => {
+            this.init(file, opts)
+        })
+    }
+    init(){
+        try {
+            this.stream = fs.createReadStream(this.file, this.opts)
+        } catch(e) {
+            this.stream = null
+        }
+        if(this.stream){
+            ['data', 'end', 'error', 'finish'].forEach(n => this.forward(n))
+        } else {
+            this.emit('end')
+            this.emit('finish')
+        }
+    }
+    forward(name){
+        this.stream.on(name, (...args) => {
+            this.emit(name, ...args)
+        })
+    }
+}
+
 class DownloadCacheChunksReader extends Events {
     constructor(master, opts){
         super()
@@ -19,22 +47,27 @@ class DownloadCacheChunksReader extends Events {
                 this.pending.push({data: c.data, offset: c.start})
             }
         })
-        this.masterDataListener = (data, offset) => {
-            this.pending.push({data, offset})
-            this.pump()
+        if(!this.master.finished){
+            this.masterDataListener = (data, offset) => {
+                this.pending.push({data, offset})
+                this.pump()
+            }
+            this.masterEndListener = () => {
+                this.masterEnded = true
+                this.master.removeListener('data', this.masterDataListener)
+                this.master.removeListener('end', this.masterEndListener)
+                this.pump()
+            }
+            this.master.on('data', this.masterDataListener)
+            this.master.on('end', this.masterEndListener)
         }
-        this.masterEndListener = () => {
-            this.masterEnded = true
-            this.master.removeListener('data', this.masterDataListener)
-            this.master.removeListener('end', this.masterEndListener)
-            this.pump()
-        }
-        this.master.on('data', this.masterDataListener)
-        this.master.on('end', this.masterEndListener)
-        fs.stat(this.master.file, err => {
+        console.error('DownloadCacheChunks()')
+        fs.stat(this.master.file, (err, stat) => {
             this.fcheck = true
-            if(err) return this.pump()
-            this.stream = fs.createReadStream(this.master.file, this.opts)
+            console.error('DownloadCacheChunks()', err, stat)
+            if(err || stat.size == 0) return this.pump()
+            if(this.opts.start && this.opts.start >= stat.size) return this.pump()
+            this.stream = new DownloadCacheFileReader(this.master.file, this.opts)
             this.stream.on('data', chunk => {
                 this.emitData(chunk, (this.opts.start || 0) + this.freaden)
                 this.freaden += chunk.length
@@ -115,6 +148,8 @@ class DownloadCacheChunksReader extends Events {
         if(ended){
             this.emit('end')
             this.pending = []
+            this.master.removeListener('data', this.masterDataListener)
+            this.master.removeListener('end', this.masterEndListener)
             this.removeAllListeners()
         }
     }
@@ -142,7 +177,7 @@ class DownloadCacheChunks extends Events {
         this.pump()
     }
     pump(){
-        if(this.ended || this.pumping) {
+        if(this.finished || this.pumping) {
             return
         }
         let chunks = this.chunks.filter((c, i) => {
@@ -186,7 +221,7 @@ class DownloadCacheChunks extends Events {
         this.destroy()
     }
     end(){
-        this.ended = true
+        this.ended = true // before pump()
         this.pump()
     }
     createReadStream(opts){
@@ -204,11 +239,11 @@ class DownloadCacheMap extends Events {
         this.index = {}
         this.minDiskAllocation = 100 * (1024 * 1024) // 100MB
         this.maxDiskAllocation = 1024 * (1024 * 1024) // 1GB
-        this.maxMaintenanceInterval = 120
+        this.maxMaintenanceInterval = 60
         this.folder = global.storage.folder +'/dlcache'
         this.indexFile = this.folder +'/index.json'
         this.tempnamIterator = 0
-        this.start().catch(console.error).finally(() => {            
+        this.start().catch(console.error).finally(() => {
             this.emit('update', this.export())
             this.maintenance().catch(console.error)
         })
@@ -224,7 +259,8 @@ class DownloadCacheMap extends Events {
     async readIndexFile(){
         let ret = {}
         try {
-            let data = JSON.parse(await fs.promises.readFile(this.indexFile, {encoding: null}))
+            let data = await fs.promises.readFile(this.indexFile, {encoding: null})
+            data = global.parseJSON(data)
             ret = data            
         } catch(e) {
             console.error(e)
@@ -234,7 +270,7 @@ class DownloadCacheMap extends Events {
     async start(){
         if(this.started) return
         this.started = true
-        await fs.promises.mkdir(this.folder).catch(console.error)
+        await fs.promises.mkdir(this.folder, {recursive: true}).catch(console.error)
         let caches = await fs.promises.readdir(this.folder).catch(console.error)
         if(Array.isArray(caches)){
             caches = caches.map(f => this.folder +'/'+ f)
@@ -242,25 +278,29 @@ class DownloadCacheMap extends Events {
             caches = []
         }
         if(caches.includes(this.indexFile)){
+            let changed
             await this.reload()
             Object.keys(this.index).forEach(url => {
                 const file = String(this.index[url].data)
-                if(!caches.includes(file)){ // cache file missing
-                    delete this.index[url]
+                if(!caches.includes(file) && this.index[url].type == 'file' && this.index[url].size > 0){
+                    if(!changed) changed = true
+                    console.warn('DLCACHE RM file missing')
+                    delete this.index[url] // cache file missing
                 }
             })
             if(global.ui){
                 const indexFiles = Object.values(this.index).map(r => String(r.data))
                 caches.forEach(file => {
                     if(!indexFiles.includes(file) && file != this.indexFile){
+                        console.warn('DLCACHE RM orphaned file', file, Object.values(this.index).filter(r => r.type == 'file').map(r => String(r.data)))
                         fs.promises.unlink(file).catch(console.error)
                     }
                 })
             }
+            console.warn('DLCACHE RM result', Object.keys(this.index))
+            this.emit('update', this.export())
         } else if(caches.length) { // index file missing
             this.truncate()
-        } else {
-            await fs.promises.mkdir(this.folder, {recursive: true})
         }
     }
     export(){
@@ -278,41 +318,56 @@ class DownloadCacheMap extends Events {
     }
     truncate(){
         if(Object.keys(this.index).length){
-            console.warn('DLCACHE truncate', global.traceback())
+            console.warn('DLCACHE RM truncate', global.traceback())
             this.index = {}
-            global.rmdir && global.rmdir(this.folder, false, () => {})        
+            global.rmdir && global.rmdir(this.folder, false, () => {})
             this.emit('update', this.export())
         }
     }
     async maintenance(now){
-        if(!global.diagnostics) return
-        let nextRun = 0, diskUsage = 0
+        let expired = [], nextRun = 0, diskUsage = 0
+        await this.reload()
         if(!now){
             now = global.time()
         }
-        const nfo = await global.diagnostics.checkDisk()
-        // use 10% of free space, limited to 1GB, at least 100MB
-        this.maxDiskUsage = Math.min(Math.max(nfo.free / 10, this.minDiskAllocation), this.maxDiskAllocation)
-        const expired = Object.keys(this.index).map(url => {
-            return {
-                ttl: this.index[url].ttl,
-                url
-            }
-        }).sortByProp('ttl', true).filter(row => {
-            if(now > row.ttl){
-                console.warn('DLCACHE expired', row, row.ttl +' < '+ now)
-                return true // expired
-            }
-            diskUsage += this.index[row.url].size
-            if(diskUsage >= this.maxDiskUsage){
-                console.warn('DLCACHE freed', row, diskUsage)
-                return true // freeup
-            }
-            if(nextRun <= 0 || nextRun > this.index[row.url].ttl) {
-                nextRun = this.index[row.url].ttl + 1
-            }
-        })
+        if(global.diagnostics) {
+            const nfo = await global.diagnostics.checkDisk()
+            // use 10% of free space, limited to 1GB, at least 100MB
+            this.maxDiskUsage = Math.min(Math.max(nfo.free / 10, this.minDiskAllocation), this.maxDiskAllocation)
+            expired = Object.keys(this.index).map(url => {
+                return {
+                    ttl: this.index[url].ttl,
+                    url
+                }
+            }).sortByProp('ttl', true).filter(row => {
+                if(now > row.ttl){
+                    return true // expired
+                }
+                diskUsage += this.index[row.url].size
+                if(diskUsage >= this.maxDiskUsage){
+                    return true // freeup
+                }
+                if(nextRun <= 0 || nextRun > this.index[row.url].ttl) {
+                    nextRun = this.index[row.url].ttl + 1
+                }
+            })
+        } else {
+            expired = Object.keys(this.index).map(url => {
+                return {
+                    ttl: this.index[url].ttl,
+                    url
+                }
+            }).sortByProp('ttl', true).filter(row => {
+                if(now > row.ttl){
+                    return true // expired
+                }
+                if(nextRun <= 0 || nextRun > this.index[row.url].ttl) {
+                    nextRun = this.index[row.url].ttl + 1
+                }
+            })
+        }
         if(expired.length){
+            console.warn('DLCACHE RM expired', expired)
             expired.forEach(row => {
                 if(this.index[row.url].type == 'file'){
                     fs.promises.unlink(this.index[row.url].data).catch(console.error)
@@ -321,19 +376,27 @@ class DownloadCacheMap extends Events {
             })   
             this.emit('update', this.export())
         }
+        this.saveIndex().catch(console.error)
+        let ms = -1
+        if(nextRun && nextRun >= now){
+            ms = nextRun - now
+        }
+        if(ms < 0 || ms > this.maxMaintenanceInterval){
+            ms = this.maxMaintenanceInterval
+        }
+        ms *= 1000
+        this.maintenanceTimer && clearTimeout(this.maintenanceTimer)
+        console.warn('DLCACHE maintenance', ms)
+        this.maintenanceTimer = setTimeout(() => this.maintenance().catch(console.error), ms)
+    }
+    async saveIndex(){
         const findex = {}
         Object.keys(this.index).forEach(url => {
             if(this.index[url].type == 'file'){
                 findex[url] = this.index[url]
             }
         })
-        fs.promises.writeFile(this.indexFile, JSON.stringify(findex)).catch(console.error)
-        if(nextRun){
-            if(this.maintenanceTimer){
-                clearTimeout(this.maintenanceTimer)
-            }
-            this.maintenanceTimer = setTimeout(() => this.maintenance().catch(console.error), Math.min(this.maxMaintenanceInterval, nextRun - now) * 1000)
-        }
+        await fs.promises.writeFile(this.indexFile, JSON.stringify(findex)).catch(console.error)
     }
     save(downloader, chunk, ended){
         const opts = downloader.opts
@@ -346,7 +409,7 @@ class DownloadCacheMap extends Events {
             ){ // partial content request, skip saving
                 return
             }
-            const time = global.time()
+            const time = parseInt(global.time())
             let ttl = time + opts.cacheTTL
             if(downloader.lastHeadersReceived && typeof(downloader.lastHeadersReceived['x-cache-ttl']) != 'undefined') {
                 const rttl = parseInt(downloader.lastHeadersReceived['x-cache-ttl'])
@@ -356,6 +419,12 @@ class DownloadCacheMap extends Events {
             }
             const headers = downloader.lastHeadersReceived ? Object.assign({}, downloader.lastHeadersReceived) : {}
             const chunks = new DownloadCacheChunks()
+            if(headers['content-encoding']){
+                delete headers['content-encoding'] // already uncompressed
+                if(headers['content-length']){
+                    delete headers['content-length'] // length uncompressed is unknown
+                }
+            }
             this.index[url] = {
                 type: 'saving',
                 chunks,
@@ -390,12 +459,20 @@ class DownloadCacheMap extends Events {
                         this.index[url].chunks.destroy()
                         delete this.index[url].chunks
                         delete this.index[url]
+                    } else if(downloader.statusCode < 200 || downloader.statusCode > 400 || (downloader.errors.length && !downloader.received)) {
+                        console.error('Bad download. Status: '+ downloader.statusCode +', received: '+ this.index[url].chunks.size, downloader.errors, downloader.received)
+                        this.index[url].chunks.destroy()
+                        delete this.index[url].chunks
+                        delete this.index[url]
                     } else {
+                        if(!this.index[url].status){
+                            this.index[url].status = downloader.statusCode
+                        }
                         if(CACHE_MEM_ONLY){
-                            this.index[url].size = this.index[url].chunks.size
+                            this.index[url].headers['content-length'] = this.index[url].size = this.index[url].chunks.size
                             this.index[url].chunks.end()
                         } else {
-                            this.index[url].size = this.index[url].chunks.size
+                            this.index[url].headers['content-length'] = this.index[url].size = this.index[url].chunks.size
                             this.index[url].data = this.index[url].chunks.file
                             this.index[url].type = 'file'
                             this.index[url].chunks.destroy()

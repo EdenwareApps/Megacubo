@@ -19,14 +19,13 @@ class DownloadStream extends DownloadStreamBase {
     async start(){
         const start = global.time()
         const types = [DownloadStreamHttp]
-        let usep2p = this.opts.p2p === true && global.Download.p2p
+        let usep2p = this.opts.p2p === true && global.ui
         if(this.opts.cacheTTL) {
             types.push(DownloadStreamCache)
         }
         if(usep2p) {
             const peersCount = Object.keys(global.Download.p2p.peers).length
-            const httpChance = 1 / (peersCount + 1) // someone should download directly from http sometimes to prevent p2p congestion
-            if(peersCount && Math.random() < httpChance){
+            if(peersCount){
                 types.push(DownloadStreamP2P)
             } else {
                 usep2p = false

@@ -81,7 +81,8 @@ class StreamerTools extends Events {
 						nfo.type = type
 						resolve(nfo)
 					} else {
-						reject('unsupported stream type')
+						console.error('unknown stream type', nfo, Object.keys(this.engines).slice(0), this.destroyed)
+						reject('unknown stream type')
 					}
 				}).catch(reject)
 			})
@@ -110,6 +111,11 @@ class StreamerTools extends Events {
 		} else {
 			return data.length
 		}
+	}
+	destroy(){
+		this.removeAllListeners()
+		this.destroyed = true
+		this.engines = {}
 	}
 }
 
@@ -552,15 +558,17 @@ class StreamerThrottling extends StreamerSpeedo {
 class StreamerGoNext extends StreamerThrottling {
 	constructor(opts){
 		super(opts)
-		global.ui.on('video-ended', () => this.goNext().catch(global.displayErr))
-		this.on('pre-play-entry', e => this.goNextPrepare(e).catch(global.displayErr))
-		process.nextTick(() => {
-			this.aboutRegisterEntry('gonext', () => {
-				if(this.active.mediaType == 'video'){
-					return {template: 'option', fa: 'fas fa-step-forward', text: global.lang.GO_NEXT, id: 'gonext'}
-				}
-			}, this.goNext.bind(this), null, true)
-		})
+		if(!this.opts.shadow){
+			global.ui.on('video-ended', () => this.goNext().catch(global.displayErr))
+			this.on('pre-play-entry', e => this.goNextPrepare(e).catch(global.displayErr))
+			process.nextTick(() => {
+				this.aboutRegisterEntry('gonext', () => {
+					if(this.active.mediaType == 'video'){
+						return {template: 'option', fa: 'fas fa-step-forward', text: global.lang.GO_NEXT, id: 'gonext'}
+					}
+				}, this.goNext.bind(this), null, true)
+			})
+		}
 	}
 	sleep(ms){
 		return new Promise(resolve => setTimeout(resolve, ms))
@@ -624,17 +632,19 @@ class StreamerGoNext extends StreamerThrottling {
 class StreamerTracks extends StreamerGoNext {
 	constructor(opts){
 		super(opts)
-		global.ui.on('audioTracks', tracks => {
-			if(this.active){
-				this.active.audioTracks = tracks
-			}
-		})
-		global.ui.on('subtitleTracks', tracks => {
-			console.warn('subtitleTracks', tracks)
-			if(this.active){
-				this.active.subtitleTracks = tracks
-			}
-		})
+		if(!this.opts.shadow){
+			global.ui.on('audioTracks', tracks => {
+				if(this.active){
+					this.active.audioTracks = tracks
+				}
+			})
+			global.ui.on('subtitleTracks', tracks => {
+				console.warn('subtitleTracks', tracks)
+				if(this.active){
+					this.active.subtitleTracks = tracks
+				}
+			})
+		}
 	}
 	getTrackOptions(tracks, activeTrack){
 		const sep = ' &middot; ', opts = Object.keys(tracks).map((name, i) => {

@@ -1,16 +1,7 @@
 var body = $('body'), content = $('#explorer content'), wrap = document.querySelector('#explorer wrap'), wrapper = $(wrap)
 
 if(typeof(window.onerror) != 'function'){
-    let maxAlerts = 8
-    window.onerror = function (message, file, line, column, errorObj) {
-        let stack = typeof(errorObj) == 'object' && errorObj !== null && errorObj.stack ? errorObj.stack : traceback()
-        if(maxAlerts){
-            maxAlerts--
-            alert(message +' '+ file +':'+ line +' '+ stack)
-            log(message)
-        }
-        console.error(errorObj || message)
-    }
+    window.onerror = parent.onerror
 }
 
 function parseMomentLocale(content){

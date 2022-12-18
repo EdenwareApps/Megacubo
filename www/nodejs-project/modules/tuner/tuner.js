@@ -313,6 +313,7 @@ class TunerTask extends TunerUtils {
 			this.destroyed = true
 			this.emit('destroy')
 			this.abort()
+			this.streamer && this.streamer.destroy()
 			this.removeAllListeners()
 		}
 	}

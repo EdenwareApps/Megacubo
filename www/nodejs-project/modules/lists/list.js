@@ -24,12 +24,14 @@ class List extends Events {
 		args.unshift(Date.now() / 1000)
 		this._log.push(args)
 	}
-	ready(fn){
-		if(this.isReady){
-			fn()
-		} else {
-			this.once('ready', fn)
-		}
+	async ready(){
+		return new Promise((resolve, reject) => {
+            if(this.isReady){
+                resolve()
+            } else {
+                this.once('ready', resolve)
+            }
+        })
 	}
 	start(){
 		return new Promise((resolve, reject) => {
@@ -220,15 +222,9 @@ class List extends Events {
             })
         }).catch(console.error).finally(cb)
 	}
-	fetchAll(cb){
-        this.ready(() => {
-            this.indexer.entries().then(entries => {
-                cb(entries)
-            }).catch(err => {
-                console.error(err)
-                cb([])
-            })
-        })
+	async fetchAll(){
+        await this.ready()
+        return await this.indexer.entries()
 	}
 	reset(){		
 		this.index = {

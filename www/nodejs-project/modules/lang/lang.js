@@ -123,7 +123,7 @@ class Language extends Events {
     getCountriesMap(locale, additionalCountries){ // return countries of same ui language
         return new Promise((resolve, reject) => {
             this.getCountries(locale).then(codes => {
-                this.countries.ready(() => {
+                this.countries.ready().then(() => {
                     let entries = []
                     if(Array.isArray(additionalCountries)) {
                         additionalCountries.forEach(c => {
@@ -147,7 +147,7 @@ class Language extends Events {
                     }, () => {
                         resolve(entries.sortByProp('name'))
                     })
-                })            
+                }).catch(reject)  
             }).catch(reject)
         })
     }
@@ -217,7 +217,7 @@ class Language extends Events {
         if(stat && stat.size){
             let obj, content = await fs.promises.readFile(file, 'utf8')
             try {
-                obj = JSON.parse(content)
+                obj = global.parseJSON(content)
                 return obj
             } catch(err) {
                 throw err

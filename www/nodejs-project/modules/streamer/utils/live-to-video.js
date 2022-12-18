@@ -96,7 +96,6 @@ class StreamerLiveToVideo extends Any2HLS {
     handleRequest(req, response){
         const keepalive = this.committed && global.config.get('use-keepalive')
         const file = this.unproxify(req.url.split('#')[0]), fail = err => {
-            console.log('FFMPEG SERVE', err, file, this.destroyed)
             const headers = { 
                 'access-control-allow-origin': '*',
                 'content-length': 0,

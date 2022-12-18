@@ -102,7 +102,7 @@ class ListIndexUtils extends Events {
         let index = false
         if(line){
             try {
-                index = JSON.parse(line)
+                index = global.parseJSON(line)
             } catch(e) {
                 console.error('Index parsing failure', line, e, this.file)
             }

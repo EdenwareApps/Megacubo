@@ -130,8 +130,8 @@ class DownloadP2PHandler extends DownloadP2POptions {
         this.responders = {}
         this.cache = cache
         this.ui = ui
-        this.cache.on('update', ndx => {
-            this.ui.emit('download-p2p-index-update', ndx)
+        this.cache.on('update', index => {
+            this.ui.emit('download-p2p-index-update', index)
         })
         this.cache.on('incoming-data', (uids, message) => {
             uids.forEach(uid => {
@@ -148,59 +148,55 @@ class DownloadP2PHandler extends DownloadP2POptions {
         } else if('resume' == data.type){
             console.warn('P2P TRANSFER RESUMED', data, this.responders[data.uid])
             this.responders[data.uid] && this.responders[data.uid].resume()
-        } else if(['accept', 'request'].includes(data.type)){
+        } else if('accept' == data.type) {
             const type = data.type, exists = typeof(this.cache.index[data.url]) != 'undefined'
             data.type = 'response'
             data.status = exists ? 200 : 404
             if(typeof(this.cache.index[data.url]) != 'undefined'){
                 ['time', 'ttl', 'size'].forEach(p => data[p] = this.cache.index[data.url][p])
             }
-            if(type == 'request') {
-                this.ui.emit('download-p2p-response', data)
-            } else if(type == 'accept') {
-                if(exists){
-                    let stream, sent = 0
-                    const reqRange = data.range || {}
-                    switch(this.cache.index[data.url].type) {
-                        case 'saving':
-                            stream = global.Download.cache.index[data.url].chunks.createReadStream(reqRange)
-                            break
-                        case 'file':
-                            const dopts = {
-                                highWaterMark: 32 * 1024,
-                                encoding: null
-                            }
-                            if(reqRange){
-                                if(reqRange.start) dopts.start = reqRange.start
-                                if(reqRange.end) dopts.end = reqRange.end
-                            }
-                            stream = fs.createReadStream(this.cache.index[data.url].data, dopts)
-                            break
-                    }
-                    this.responders[data.uid] = stream
-                    stream.on('data', chunk => {
-                        const ndata = Object.assign({}, data)
-                        ndata.data = chunk
-                        ndata.range = {start: sent, end: sent + ndata.data.length}
-                        sent += ndata.data.length
-                        this.ui.emit('download-p2p-response', ndata)
-                    })
-                    stream.once('end', () => {
-                        const ndata = Object.assign({}, data)
-                        ndata.ended = true
-                        this.ui.emit('download-p2p-response', ndata)
-                    })
-                    stream.on('error', err => {
-                        const ndata = Object.assign({}, data)
-                        ndata.error = String(err)
-                        ndata.ended = true
-                        this.ui.emit('download-p2p-response', ndata)
-                    })
-                } else {
-                    data.error = 'Not found'
-                    data.ended = true
-                    this.ui.emit('download-p2p-response', data)
+            if(exists){
+                let stream, sent = 0
+                const reqRange = data.range || {}
+                switch(this.cache.index[data.url].type) {
+                    case 'saving':
+                        stream = global.Download.cache.index[data.url].chunks.createReadStream(reqRange)
+                        break
+                    case 'file':
+                        const dopts = {
+                            highWaterMark: 32 * 1024,
+                            encoding: null
+                        }
+                        if(reqRange){
+                            if(reqRange.start) dopts.start = reqRange.start
+                            if(reqRange.end) dopts.end = reqRange.end
+                        }
+                        stream = fs.createReadStream(this.cache.index[data.url].data, dopts)
+                        break
                 }
+                this.responders[data.uid] = stream
+                stream.on('data', chunk => {
+                    const ndata = Object.assign({}, data)
+                    ndata.data = chunk
+                    ndata.range = {start: sent, end: sent + ndata.data.length}
+                    sent += ndata.data.length
+                    this.ui.emit('download-p2p-response', ndata)
+                })
+                stream.once('end', () => {
+                    const ndata = Object.assign({}, data)
+                    ndata.ended = true
+                    this.ui.emit('download-p2p-response', ndata)
+                })
+                stream.on('error', err => {
+                    const ndata = Object.assign({}, data)
+                    ndata.error = String(err)
+                    ndata.ended = true
+                    this.ui.emit('download-p2p-response', ndata)
+                })
+            } else {
+                data.error = 'Not found'
+                data.ended = true
+                this.ui.emit('download-p2p-response', data)
             }
         }
     }

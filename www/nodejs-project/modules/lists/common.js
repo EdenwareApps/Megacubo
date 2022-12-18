@@ -110,7 +110,7 @@ class Fetcher extends Events {
 					}
 					if(this.validateCache(data)){
 						try{ // SyntaxError: Unexpected token \u0003 in JSON at position 73
-							let entries = data.split("\n").filter(s => s.length > 8).map(JSON.parse)
+							let entries = data.split("\n").filter(s => s.length > 8).map(global.parseJSON)
 							let last = entries.length - 1
 							if(entries[last].length){ // remove index entry
 								entries.splice(last, 1)
@@ -168,7 +168,7 @@ class Common extends Events {
 				if(err){
 					console.error(err)
 				} else {
-					let data = JSON.parse(String(content))
+					let data = global.parseJSON(String(content))
 					if(data && typeof(data) == 'object'){
 						let results = []
 						Object.keys(data).forEach(k => {
@@ -350,34 +350,35 @@ class Common extends Events {
 	listMetaKey(url){
 		return this.listMetaKeyPrefix + url
 	}
-	getListMeta(url, cb){
-		global.storage.get(this.listMetaKey(url), meta => {
-			if(!meta){
-				meta = {}
-			}
-			cb(meta)
+	async getListMeta(url){
+		let haserr, meta = await global.storage.promises.get(this.listMetaKey(url)).catch(err => {
+			haserr = true
+			console.error(err)
 		})
+		if(haserr || !meta){
+			meta = {}
+		}
+		return meta
 	}
-	setListMeta(url, newMeta){
-		this.getListMeta(url, meta => {
-			Object.keys(newMeta).forEach(k => {
-				if(newMeta[k]){
-					meta[k] = newMeta[k]
-				}
-			})
-			if(Object.keys(meta).length){
-				global.storage.set(this.listMetaKey(url), meta, true)
+	async setListMeta(url, newMeta){
+		let meta = await this.getListMeta(url)
+		Object.keys(newMeta).forEach(k => {
+			if(newMeta[k]){
+				meta[k] = newMeta[k]
 			}
 		})
+		if(Object.keys(meta).length){
+			global.storage.set(this.listMetaKey(url), meta, true)
+		}
 	}
-	getListMetaValue(url, key, cb){
-		this.getListMeta(url, meta => cb(meta[key] || undefined))
+	async getListMetaValue(url, key){
+		const meta = await this.getListMeta(url)
+		if(meta) return meta[key] || undefined
 	}
-	setListMetaValue(url, key, value){
-		this.getListMeta(url, meta => {
-			meta[key] = value
-			this.setListMeta(url, meta)
-		})
+	async setListMetaValue(url, key, value){
+		const meta = await this.getListMeta(url)
+		meta[key] = value
+		await this.setListMeta(url, meta)
 	}
 	trimListMeta(cb){
 		global.storage.deleteAnyStartsWithOlder(this.listMetaKeyPrefix, 30 * (24 * 3600), cb)

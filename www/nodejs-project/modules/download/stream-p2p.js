@@ -6,15 +6,24 @@ class DownloadStreamP2P extends DownloadStream {
         this.setMaxListeners(99)
         this.type = 'p2p'
         this.lmap = {}
-        this.on('destroy', () => {
-            global.ui.emit('download-p2p-cancel-request', this.opts.uid)
-            Object.keys(this.lmap).forEach(n => global.ui.removeListener(n, this.lmap[n]))
-        })
+        this.on('destroy', () => this.unbind())
 	}
+    unbind(){
+        global.ui.emit('download-p2p-cancel-request', this.opts.uid)
+        Object.keys(this.lmap).forEach(n => {
+            global.ui.removeListener(n, this.lmap[n])
+        })
+    }
     async start(){
+        if(this.started || this.ended || this.destroyed){
+            throw 'Already initialized'
+        }
         if(!Object.keys(global.Download.p2p.peers).length){
+            process.nextTick(() => this.destroy())
             throw 'No peers'
         }
+        this.started = true
+        this.setTimeout(10000)
         let range
         if(this.opts.headers.range){
             range = this.parseRange(this.opts.headers.range)
@@ -22,6 +31,7 @@ class DownloadStreamP2P extends DownloadStream {
         let sent = 0
         this.lmap['download-p2p-response-fail-'+ this.opts.uid] = reason => {
             this.emitError('P2P download failed: '+ reason, true)
+            this.unbind()
         }
         this.lmap['download-p2p-response-start-'+ this.opts.uid] = data => {
             this.setTimeout(10000) // reset it
@@ -68,6 +78,7 @@ class DownloadStreamP2P extends DownloadStream {
         }
         this.lmap['download-p2p-response-end-'+ this.opts.uid] = () => {
             this.end()
+            this.unbind()
         }
         Object.keys(this.lmap).forEach(n => global.ui.on(n, this.lmap[n]))
         global.ui.emit('download-p2p-fetch-request', {
@@ -76,7 +87,6 @@ class DownloadStreamP2P extends DownloadStream {
             uid: this.opts.uid,
             range
         })
-        this.setTimeout(10000)
     }
 }
 

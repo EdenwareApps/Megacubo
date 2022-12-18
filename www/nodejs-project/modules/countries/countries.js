@@ -10,7 +10,7 @@ class Countries extends Events {
 		fs.readFile(path.join(__dirname, 'countries.json'), (err, content) => {
 			if(content){
 				try {
-					let data = JSON.parse(String(content))
+					let data = global.parseJSON(String(content))
 					this.data = data
 				} catch(e) {
 					console.error(e)
@@ -20,12 +20,14 @@ class Countries extends Events {
 			this.emit('ready')
 		})
 	}
-	ready(fn){
-		if(this.isReady){
-			fn()
-		} else {
-			this.once('ready', fn)
-		}
+	async ready(){
+		return new Promise((resolve, reject) => {
+            if(this.isReady){
+                resolve()
+            } else {
+                this.once('ready', resolve)
+            }
+        })
 	}
 	select(code, retrieveKeys, by, unique){
 		if(!by) by = 'code'

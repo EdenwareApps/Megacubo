@@ -12,12 +12,64 @@ module.exports = (file, opts) => {
 	if(opts && opts.bytenode){
 		workerData.bytenode = true
 	}
-	class WorkerThreadDriver extends Events {
+	class WorkerDriver extends Events {
 		constructor(){
 			super()
 			this.err = null
 			this.finished = false
 			this.promises = {}
+		}
+		proxy(){
+			return new Proxy(this, {
+				get: (self, method) => {
+					if(method in self){
+						return self[method]
+					}
+					return (...args) => {
+						return new Promise((resolve, reject) => {
+							if(this.finished){
+								return reject('worker exited')
+							}
+							let id
+							for(id = 1; typeof(self.promises[id]) != 'undefined'; id++);
+							self.promises[id] = {resolve, reject}
+							try {
+								self.worker.postMessage({method, id, args})
+							} catch(e) {
+								console.error(e, {method, id, args})
+							}
+						})
+					}
+				}
+			})
+		}
+		bindConfigChangeListener(){
+			this.on('config-change', data => {
+				//console.log('Config changed from worker driver', data)
+				global.config.reload()
+				setTimeout(() => {
+					global.config.reload() // read again after some seconds, the config file may delay on writing
+				}, 3000)
+			})
+			this.configChangeListener = () => {
+				//console.log('CONFIG CHANGED!')
+				this.worker.postMessage({method: 'configChange', id: 0})
+			}
+			global.config.on('change', this.configChangeListener)
+		}
+		terminate(){
+			this.finished = true
+			global.config.removeListener('change', this.configChangeListener)
+			if(this.worker && this.worker.terminate){
+				this.worker.terminate()
+				this.worker = null
+			}
+			this.removeAllListeners()
+		}
+	}
+	class ThreadWorkerDriver extends WorkerDriver {
+		constructor(){
+			super()
 			this.Worker = require('worker_threads').Worker
 			this.worker = new this.Worker(global.APPDIR + '/modules/driver/worker.js', {
 				workerData, 
@@ -59,7 +111,7 @@ module.exports = (file, opts) => {
 						let evtType = ret.data.substr(0, pos)
 						let evtContent = ret.data.substr(pos + 1)
 						if(evtContent.length){
-							evtContent = JSON.parse(evtContent)
+							evtContent = global.parseJSON(evtContent)
 						}
 						this.emit(evtType, evtContent)
 					} else {
@@ -67,36 +119,13 @@ module.exports = (file, opts) => {
 					}
 				}
 			})
-			return new Proxy(this, {
-				get: (self, method) => {
-					if(method in self){
-						return self[method]
-					}
-					return (...args) => {
-						return new Promise((resolve, reject) => {
-							if(this.finished){
-								return reject('worker exited')
-							}
-							let id
-							for(id = 1; typeof(self.promises[id]) != 'undefined'; id++);
-							self.promises[id] = {resolve, reject}
-							try {
-								self.worker.postMessage({method, id, args})
-							} catch(e) {
-								console.error(e, {method, id, args})
-							}
-						})
-					}
-				}
-			})
+			this.bindConfigChangeListener()
+			return this.proxy()
 		}
 	}
-	class WebWorkerDriver extends Events {
+	class WebWorkerDriver extends WorkerDriver {
 		constructor(){
 			super()
-			this.err = null
-			this.finished = false
-			this.promises = {}
 			this.worker = new Worker(prepare(global.APPDIR + '/modules/driver/web-worker.js'), {
 				name: JSON.stringify(workerData)
 			})
@@ -128,7 +157,7 @@ module.exports = (file, opts) => {
 						let evtType = ret.data.substr(0, pos)
 						let evtContent = ret.data.substr(pos + 1)
 						if(evtContent.length){
-							evtContent = JSON.parse(evtContent)
+							evtContent = global.parseJSON(evtContent)
 						}
 						this.emit(evtType, evtContent)
 					} else {
@@ -136,36 +165,8 @@ module.exports = (file, opts) => {
 					}
 				}
 			}
-			this.on('config-change', data => {
-				//console.log('Config changed from worker driver', data)
-				global.config.reload()
-				setTimeout(() => {
-					global.config.reload() // read again after some seconds, the config file may delay on writing
-				}, 3000)
-			})
-			global.config.on('change', () => {
-				//console.log('CONFIG CHANGED!')
-				this.worker.postMessage({method: 'configChange', id: 0})
-			})
-			return new Proxy(this, {
-				get: (self, method) => {
-					if(method in self){
-						return self[method]
-					}
-					return (...args) => {
-						return new Promise((resolve, reject) => {
-							let id
-							for(id = 1; typeof(self.promises[id]) != 'undefined'; id++);
-							self.promises[id] = {resolve, reject}
-							try {
-								self.worker.postMessage({method, id, args})
-							} catch(e) {
-								console.error(e, {method, id, args})
-							}
-						})
-					}
-				}
-			})
+			this.bindConfigChangeListener()
+			return this.proxy()
 		}
 	}
 	function hasWorkerThreads(){				
@@ -184,6 +185,6 @@ module.exports = (file, opts) => {
 			process.exit(1)
 		}
 	} else {
-		return WorkerThreadDriver
+		return ThreadWorkerDriver
 	}
 }

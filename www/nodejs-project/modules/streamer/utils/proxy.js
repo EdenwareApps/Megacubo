@@ -228,6 +228,11 @@ class StreamerProxy extends StreamerProxyBase {
 				}
 			}
 		}
+
+		if(this.mapper && this.mapper(req, response)){
+			return
+		}
+
 		if(this.opts.debug){
 			console.log('req starting...', req, req.url)
 		}

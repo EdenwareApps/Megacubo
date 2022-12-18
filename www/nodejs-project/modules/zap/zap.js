@@ -44,7 +44,7 @@ class Zap extends Events {
     }
     hook(entries, path){
         return new Promise((resolve, reject) => {
-            if(path == global.lang.LIVE && !global.lists.manager.updatingLists && global.activeLists.length){
+            if(path == global.lang.LIVE && !global.lists.manager.isUpdating(true) && global.activeLists.length){
                 let pos, has = entries.some((e, i) => {
                     e.name == this.title()
                     if(e.entries && typeof(pos) == 'undefined'){

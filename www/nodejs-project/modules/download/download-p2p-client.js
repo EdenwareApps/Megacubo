@@ -300,7 +300,7 @@ class P2PRequest extends P2PEncDec {
     fail(reason){
         if(P2P_DEBUG) console.log('P2P request failed.', reason)
         this.timers && this.timers.forEach(t => clearTimeout(t))
-        this.app.emit('download-p2p-response-fail-'+ this.opts.uid, reason)
+        this.app && this.app.emit('download-p2p-response-fail-'+ this.opts.uid, reason)
         this.destroy()
     }
     choose(n){ // choose active client and unbind others
@@ -336,7 +336,7 @@ class P2PManager extends P2PSegmentTools {
     constructor(sock, addr, maxPeers){
         super()
         this.addr = addr
-        this.activeRequests = []
+        this.activeRequests = {}
         this.peerListeners = {}
         this.index = {}
         this.peers = {}
@@ -364,20 +364,24 @@ class P2PManager extends P2PSegmentTools {
                 r.mask = this.mask(r.url)
             }
             if(P2P_DEBUG) console.log('Doing P2P request', r)
-            const req = new P2PRequest(Object.values(this.peers).filter(p => p.isConnected()), this.app, r)
-            this.activeRequests.push(req)
-            req.once('destroy', () => {
-                this.activeRequests = this.activeRequests.filter(r => {
-                    return r != req && !r.destroyed
+            if(typeof(this.activeRequests[r.uid]) == 'undefined'){
+                const req = new P2PRequest(Object.values(this.peers).filter(p => p.isConnected()), this.app, r)
+                this.activeRequests[r.uid] = req
+                req.once('destroy', () => {
+                    Object.keys(this.activeRequests).forEach(uid => {
+                        if(uid == r.uid || this.activeRequests[uid].destroyed){
+                            delete this.activeRequests[uid]
+                        }
+                    })
                 })
-            })
+            }
         })
-        this.app.on('download-p2p-cancel-request', uid => {
-            this.activeRequests = this.activeRequests.filter(r => {
-                if(r.opts.uid != uid){
-                    return true
+        this.app.on('download-p2p-cancel-request', ruid => {
+            Object.keys(this.activeRequests).forEach(uid => {
+                if(uid == ruid){
+                    this.activeRequests[uid].destroy()
+                    delete this.activeRequests[uid]
                 }
-                return r.destroy()
             })
         })
         this.app.on('streamer-connect', (src, mime, ck, type, data) => {
@@ -387,14 +391,13 @@ class P2PManager extends P2PSegmentTools {
         this.app.on('streamer-disconnect', () => {
             this.join('default')
         })
-        this.app.on('download-p2p-index-update', ndx => {
-            this.index = ndx
+        this.app.on('download-p2p-index-update', index => {
+            this.index = index
         })
         this.join('default')
     }
     activeRequestsCount(){
-        this.activeRequests = this.activeRequests.filter(r => !r.destroyed)
-        return this.activeRequests.length
+        return Object.values(this.activeRequests).filter(r => !r.destroyed).length
     }
     activeRequestsUplinkLimit(){
         if(!navigator.connection || !navigator.connection.downlink){
@@ -543,7 +546,8 @@ class P2PManager extends P2PSegmentTools {
                 delete this.peers[id]
                 this.reportPeersCount()
             }
-            this.activeRequests = this.activeRequests.filter(r => {
+            Object.keys(this.activeRequests).forEach(uid => {
+                const r = this.activeRequests[uid]
                 if(r.chosen == -1 || r.clients[r.chosen].id != id){
                     return true
                 }

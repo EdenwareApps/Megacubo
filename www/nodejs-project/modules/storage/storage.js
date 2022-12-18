@@ -137,7 +137,7 @@ class StorageAsync extends StoragePromises {
 											data = null
 										} else {
 											try {
-												let j = JSON.parse(_json)
+												let j = global.parseJSON(_json)
 												if(j && j != null){
 													data = j
 													j = null
@@ -308,7 +308,7 @@ class StorageSync extends StorageAsync {
 						_json = String(_json)
 					}
 					try {
-						let j = JSON.parse(_json)
+						let j = global.parseJSON(_json)
 						if(j && j != null){
 							data = j
 							j = null

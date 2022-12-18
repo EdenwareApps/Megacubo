@@ -191,7 +191,7 @@ class OptionsExportImport extends PerformanceProfiles {
     importConfigFile(data, keysToImport, cb){
         console.log('Config file', data)
         try {
-            data = JSON.parse(String(data))
+            data = global.parseJSON(String(data))
             if(typeof(data) == 'object'){
                 data = this.prepareImportConfigFile(data, keysToImport)
                 global.config.setMulti(data)
@@ -365,7 +365,7 @@ class OptionsHardwareAcceleration extends OptionsExportImport {
             global.explorer.refresh()
         } else {
             let manifest = await fs.promises.readFile(file)
-            manifest = JSON.parse(manifest) 
+            manifest = global.parseJSON(manifest) 
             this.hwaDisableFlags.forEach(flag => {
                 manifest['chromium-args'] = manifest['chromium-args'].replace(flag, '').trim()
             });
@@ -1151,12 +1151,12 @@ class Options extends OptionsHardwareAcceleration {
                                     }},
                                     {
                                         name: 'Debug connections', type: 'check', action: (data, checked) => {
-                                        global.config.set('debug-conns', checked)
+                                        global.debugConns = checked
                                     }, checked: () => {
-                                        return global.config.get('debug-conns')
+                                        return global.debugConns
                                     }},
                                     {
-                                        name: 'Save report log', 
+                                        name: 'Save report', 
                                         fa: 'fas fa-info-circle', 
                                         type: 'action', 
                                         action: async () => {

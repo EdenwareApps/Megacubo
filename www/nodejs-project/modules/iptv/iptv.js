@@ -26,12 +26,14 @@ class IPTV extends Events {
             }).catch(console.error)
         }
 	}
-	ready(fn){
-		if(this.isReady){
-			fn()
-		} else {
-			this.once('ready', fn)
-		}
+	async ready(){
+		return new Promise((resolve, reject) => {
+            if(this.isReady){
+                resolve()
+            } else {
+                this.once('ready', resolve)
+            }
+        })
 	}
     url(file){
         if(file){
@@ -44,53 +46,39 @@ class IPTV extends Events {
             return 'https://api.github.com/repos/{0}/contents/streams/'.format(this.repo)
         }
     }
-    get(file = ''){
-        return new Promise((resolve, reject) => {
-            const store = file ? global.storage.raw : global.storage
-            store.get(this.cachingDomain + file, data => {
-                if(data){
-                    if(!file){
-                        this.data = data
-                    }
-                    return resolve(data)
-                } else {
-                    let url = this.url(file)
-                    if(!url){
-                        return reject('unknown file')
-                    }
-                    global.Download.promise({
-                        url,
-                        responseType: file ? 'text' : 'json',
-                        timeout: 60,
-                        retry: 2,
-                        p2p: global.config.get('p2p'),
-                        cacheTTL: 3600
-                    }).then(body => {
-                        if(!body){
-                            reject('Server returned empty')
-                        } else {
-                            if(!file){
-                                if(!Array.isArray(body)){
-                                    try {
-                                        body = JSON.parse(body)
-                                    } catch(e) {
-                                        return reject('failed to parse')
-                                    }
-                                }
-                                body.filter(e => {
-                                    return e.name.toLowerCase().indexOf('.m3u') != -1
-                                }).forEach(e => {
-                                    this.data[e['name']] = e['download_url']
-                                })
-                                body = this.data
-                            }
-                            store.set(this.cachingDomain + file, body, this.cachingTTL)
-                            resolve(body)
-                        }
-                    }).catch(reject)
-                }
-            })
+    async get(file = ''){
+        let url = this.url(file)
+        if(!url){
+            throw 'unknown file'
+        }
+        let body = await global.Download.promise({
+            url,
+            responseType: file ? 'text' : 'json',
+            timeout: 60,
+            retry: 2,
+            p2p: global.config.get('p2p'),
+            cacheTTL: 3600
         })
+        if(!body){
+            throw 'Server returned empty'
+        } else {
+            if(!file){
+                if(!Array.isArray(body)){
+                    try {
+                        body = global.parseJSON(body)
+                    } catch(e) {
+                        throw 'failed to parse'
+                    }
+                }
+                body.filter(e => {
+                    return e.name.toLowerCase().indexOf('.m3u') != -1
+                }).forEach(e => {
+                    this.data[e['name']] = e['download_url']
+                })
+                body = this.data
+            }
+            return body
+        }
     }
     prepareName(name, countryCode){
         let n = this.countries.nameFromCountryCode(countryCode, global.lang.locale)
@@ -102,85 +90,75 @@ class IPTV extends Events {
     isKnownURL(url){
         return url.indexOf(this.repo) != -1
     }
-    entries(){
-        return new Promise((resolve, reject) => {
-            this.ready(() => {
-                this.get().then(() => {
-                    this.countries.ready(() => {
-                        let already = {}, entries = []
-                        entries = entries.concat(Object.keys(this.data).map(name => {
-                            let countryCode = this.countries.extractCountryCodes(name)
-                            countryCode = countryCode.length ? countryCode[0] : ''
-                            let displayName = this.prepareName(name, countryCode)
-                            if(typeof(already[displayName]) == 'undefined'){
-                                already[displayName] = 1
-                            } else {
-                                already[displayName]++
-                                displayName += ' '+ already[displayName]
-                            }
-                            return {
-                                name: displayName,
-                                fa: 'fas fa-satellite-dish',
-                                type: 'group',
-                                countryCode,
-                                file: name,
-                                renderer: data => {
-                                    return new Promise((resolve, reject) => {
-                                        this.get(name).then(content => {
-                                            global.lists.directListRendererParse(content).then(list => {
-                                                let url = this.url(name)
-                                                if(global.activeLists.my.includes(url)){
-                                                    list.unshift({
-                                                        type: 'action',
-                                                        name: global.lang.LIST_ALREADY_ADDED,
-                                                        details: global.lang.REMOVE_LIST, 
-                                                        fa: 'fas fa-minus-square',
-                                                        action: () => {             
-                                                            global.lists.manager.remove(url)
-                                                            global.osd.show(global.lang.LIST_REMOVED, 'fas fa-info-circle', 'list-open', 'normal')
-                                                            setTimeout(() => {
-                                                                global.explorer.refresh()
-                                                            }, 100)
-                                                        }
-                                                    })
-                                                } else {
-                                                    list.unshift({
-                                                        type: 'action',
-                                                        fa: 'fas fa-plus-square',
-                                                        name: global.lang.ADD_TO.format(global.lang.MY_LISTS),
-                                                        action: () => {
-                                                            global.lists.manager.addList(url).then(() => {
-                                                                setTimeout(() => {
-                                                                    global.explorer.refresh()
-                                                                }, 100)
-                                                            }).catch(console.error)
-                                                        }
-                                                    })
-                                                }
-                                                resolve(list)
-                                            }).catch(reject)
-                                        }).catch(reject)
-                                    })
-                                }
-                            }
-                        }))
-                        let loc = global.lang.locale.substr(0, 2), cc = global.lang.countryCode
-                        entries.sort((a, b) => {
-                            let sa = a.countryCode == cc ? 2 : ((a.countryCode == loc) ? 1 : 0)
-                            let sb = b.countryCode == cc ? 2 : ((b.countryCode == loc) ? 1 : 0)
-                            return sa < sb ? 1 : (sa > sb ? -1 : 0)
-                        })
-                        entries.unshift({
-                            name: global.lang.LEGAL_NOTICE,
-                            fa: 'fas fa-info-circle',
+    async entries(){
+        await this.ready()
+        await this.get()
+        await this.countries.ready()
+        let already = {}, entries = []
+        entries = entries.concat(Object.keys(this.data).map(name => {
+            let countryCode = this.countries.extractCountryCodes(name)
+            countryCode = countryCode.length ? countryCode[0] : ''
+            let displayName = this.prepareName(name, countryCode)
+            if(typeof(already[displayName]) == 'undefined'){
+                already[displayName] = 1
+            } else {
+                already[displayName]++
+                displayName += ' '+ already[displayName]
+            }
+            return {
+                name: displayName,
+                fa: 'fas fa-satellite-dish',
+                type: 'group',
+                countryCode,
+                file: name,
+                renderer: async () => {
+                    let list = await global.lists.directListRendererParse(await this.get(name))
+                    let url = this.url(name)
+                    if(global.activeLists.my.includes(url)){
+                        list.unshift({
                             type: 'action',
-                            action: this.showInfo.bind(this)
+                            name: global.lang.LIST_ALREADY_ADDED,
+                            details: global.lang.REMOVE_LIST, 
+                            fa: 'fas fa-minus-square',
+                            action: () => {             
+                                global.lists.manager.remove(url)
+                                global.osd.show(global.lang.LIST_REMOVED, 'fas fa-info-circle', 'list-open', 'normal')
+                                setTimeout(() => {
+                                    global.explorer.refresh()
+                                }, 100)
+                            }
                         })
-                        resolve(entries)
-                    })
-                }).catch(reject)
-            })
+                    } else {
+                        list.unshift({
+                            type: 'action',
+                            fa: 'fas fa-plus-square',
+                            name: global.lang.ADD_TO.format(global.lang.MY_LISTS),
+                            action: () => {
+                                global.lists.manager.addList(url).then(() => {
+                                    setTimeout(() => {
+                                        global.explorer.refresh()
+                                    }, 100)
+                                }).catch(console.error)
+                            }
+                        })
+                    }
+                    return list
+                }
+            }
+        }))
+        let loc = global.lang.locale.substr(0, 2), cc = global.lang.countryCode
+        entries.sort((a, b) => {
+            let sa = a.countryCode == cc ? 2 : ((a.countryCode == loc) ? 1 : 0)
+            let sb = b.countryCode == cc ? 2 : ((b.countryCode == loc) ? 1 : 0)
+            return sa < sb ? 1 : (sa > sb ? -1 : 0)
         })
+        entries.unshift({
+            name: global.lang.LEGAL_NOTICE,
+            fa: 'fas fa-info-circle',
+            type: 'action',
+            action: this.showInfo.bind(this)
+        })
+        return entries
     }
     getLocalLists(){
         return new Promise((resolve, reject) => {

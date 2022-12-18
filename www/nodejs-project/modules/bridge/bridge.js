@@ -192,6 +192,20 @@ class Bridge extends BridgeServer {
             console.error('Failed to emit.', args)
         }
     }
+    listenerCount(type){
+        return this.listeners(type).length
+    }
+    listeners(type){
+        let ret = []
+        Object.keys(this.bindings).forEach(n => {
+            this.bindings[n].forEach(row => {
+                if(row[0] == type){
+                    ret.push(row[1])
+                }
+            })
+        })
+        return ret
+    }
     removeListener(...args){
         Object.keys(this.bindings).forEach(type => {
             this.bindings[type] = this.bindings[type].filter(row => {

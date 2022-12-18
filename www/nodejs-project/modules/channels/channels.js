@@ -83,7 +83,7 @@ class ChannelsData extends Events {
             }
             if(data){
                 try {
-                    let cs = JSON.parse(data)
+                    let cs = global.parseJSON(data)
                     if(!Object.keys(cs).length){
                         throw 'Empty list'
                     }
@@ -1339,7 +1339,7 @@ class Channels extends ChannelsAutoWatchNow {
     }
     entries(){
         return new Promise((resolve, reject) => {
-            if(lists.manager.updatingLists){
+            if(global.lists.manager.isUpdating(true)){
                 return resolve([global.lists.manager.updatingListsEntry()])
             }
             if(!global.activeLists.length){ // one list available on index beyound meta watching list
@@ -1425,7 +1425,7 @@ class Channels extends ChannelsAutoWatchNow {
     importFile(data){
         console.log('Categories file', data)
         try {
-            data = JSON.parse(data)
+            data = global.parseJSON(data)
             if(typeof(data) == 'object'){
                 this.setCategories(data)
                 global.osd.show('OK', 'fas fa-check-circle', 'options', 'normal')
@@ -1567,7 +1567,7 @@ class Channels extends ChannelsAutoWatchNow {
         }
     }
     async groupsRenderer(type){
-        if(lists.manager.updatingLists){
+        if(global.lists.manager.isUpdating(true)){
             return [global.lists.manager.updatingListsEntry()]
         }
         if(!global.activeLists.length){ // one list available on index beyound meta watching list

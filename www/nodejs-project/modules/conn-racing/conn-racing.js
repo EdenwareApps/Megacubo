@@ -18,7 +18,7 @@ class ConnRacing extends Events {
         if(!this.urls.length){
             return this.end()
         }
-        async.eachOfLimit(this.urls, 10, (url, i, acb) => {
+        async.eachOfLimit(this.urls, 12, (url, i, acb) => {
             let download, finished, headers = {}, status = 0, start = global.time()
             const finish = () => {
                 if(!finished){

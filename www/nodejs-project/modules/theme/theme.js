@@ -273,7 +273,7 @@ class Theme extends Events {
                         } else {
                             let e
                             try {
-                                e = JSON.parse(String(content))
+                                e = global.parseJSON(String(content))
                                 if(e){
                                     themes[ffile] = Object.assign({'theme-name': n}, e)
                                 }

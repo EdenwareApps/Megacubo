@@ -15,7 +15,7 @@ class ListIndex extends ListIndexUtils {
         let lines = await this.readLines(this.file, map)
         let entries
         try {
-            entries = JSON.parse('['+ lines.filter(l => l.length > 9).join(',') +']') // remove undefineds too
+            entries = global.parseJSON('['+ lines.filter(l => l.length > 9).join(',') +']') // remove undefineds too
         } catch(e) {}
         if(Array.isArray(entries) && entries.length) {
             let last = entries.length - 1
