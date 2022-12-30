@@ -1,5 +1,5 @@
-
-const Events = require('events'), fs = require('fs'), path = require('path'), async = require('async')
+const Events = require('events'), fs = require('fs'), path = require('path')
+const decodeEntities = require('decode-entities'), async = require('async')
 
 class Timer extends Events {
     constructor(){
@@ -138,7 +138,7 @@ class PerformanceProfiles extends Timer {
                 'ts-packet-filter-policy': 1,
                 'tune-concurrency': 4,
                 'tune-ffmpeg-concurrency': 2,
-                'tuning-prefer-hls': true,
+                'prefer-hls': true,
                 'ui-sounds': false
             }
         }
@@ -776,9 +776,9 @@ class Options extends OptionsHardwareAcceleration {
                 }},
                 {
                     name: global.lang.PREFER_HLS, type: 'check', action: (data, checked) => {
-                    global.config.set('tuning-prefer-hls', checked)
+                    global.config.set('prefer-hls', checked)
                 }, checked: () => {
-                    return global.config.get('tuning-prefer-hls')
+                    return global.config.get('prefer-hls')
                 }},
                 {
                     name: global.lang.TUNING_CONCURRENCY_LIMIT, 
@@ -1031,6 +1031,18 @@ class Options extends OptionsHardwareAcceleration {
                             }, 
                             value: () => {
                                 return global.config.get('folder-size-limit')
+                            }
+                        },
+                        {
+                            name: global.lang.SHOW_FUN_LETTERS.format(global.lang.CATEGORY_KIDS), 
+                            rawName: '[fun]'+ decodeEntities(global.lang.SHOW_FUN_LETTERS.format(global.lang.CATEGORY_KIDS)) +'[|fun]', 
+                            type: 'check',
+                            action: (e, checked) => {
+                                global.config.set('kids-fun-titles', checked)
+                                global.explorer.refresh()
+                            }, 
+                            checked: () => {
+                                return global.config.get('kids-fun-titles')
                             }
                         },
                         {

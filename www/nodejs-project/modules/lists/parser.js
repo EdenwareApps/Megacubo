@@ -41,12 +41,13 @@ class IPTVPlaylistStreamParser extends Events {
 		this.regexes = {
 			'notags': new RegExp('\\[[^\\]]*\\]', 'g'),
 			'non-alpha': new RegExp('^[^0-9A-Za-zÀ-ÖØ-öø-ÿ!\n]+|[^0-9A-Za-zÀ-ÖØ-öø-ÿ!\n]+$', 'g'), // match non alphanumeric on start or end,
-			'between-brackets': new RegExp('[\(\\[](.*)[\)\\]]'), // match data between brackets
+			'between-brackets': new RegExp('\\[[^\\]]*\\]', 'g'), // match data between brackets
 			'accents': new RegExp('[\\u0300-\\u036f]', 'g'), // match accents
 			'plus-signal': new RegExp('\\+', 'g'), // match plus signal
 			'hyphen': new RegExp('\\-', 'g'), // match any hyphen
 			'hyphen-not-modifier': new RegExp('(.)\\-', 'g'), // match any hyphen except if it's the first char (exclude modifier)
-			'spaces': new RegExp(' +', 'g')
+			'spaces': new RegExp(' +', 'g'),
+			'type-playlist': new RegExp('type[\s\'"]*=[\s\'"]*playlist[\s\'"]*')
 		}
 		if(stream){
 			stream.on('data', this.write.bind(this))
@@ -88,8 +89,8 @@ class IPTVPlaylistStreamParser extends Events {
 		}
 	}
 	sanitizeName(s){
-		if(s.indexOf('[') != -1){
-			s = s.replace(this.regexes['notags'], '')
+		if(s.indexOf('[/') != -1){
+			s = s.split('[/').join('[|')
 		}
 		if(s.indexOf('\\') != -1){
 			s = global.forwardSlashes(s)
@@ -117,7 +118,7 @@ class IPTVPlaylistStreamParser extends Events {
 	sanitizeGroup(s){
 		return s.
 		replace(this.regexes['plus-signal'], 'plus').
-		replace(this.regexes['between-brackets'], ' ').
+		replace(this.regexes['between-brackets'], '').
 		normalize('NFD').
 		replace(this.regexes['hyphen'], ' '). // replace(this.regexes['accents'], ''). // replace/normalize accents
 		replace(this.regexes['non-alpha'], '').
@@ -174,9 +175,23 @@ class IPTVPlaylistStreamParser extends Events {
 	isExtInf(line){
 		return String(line).toLowerCase().indexOf('#extinf') != -1
 	}
+	isExtInfPlaylist(line){
+		const l = String(line).toLowerCase()
+		return l.indexOf('#extinf') != -1 && l.match(this.regexes['type-playlist'])
+	}
 	isExtM3U(line){
 		let lcline = String(line).toLowerCase()
 		return lcline.indexOf('#extm3u') != -1 || lcline.indexOf('#playlistv') != -1
+	}
+	trimQuotes(text){
+		const quotes = ["'", '"']
+		if(quotes.includes(text.charAt(0))){
+			text = text.substr(1)
+		}
+		if(quotes.includes(text.charAt(text.length - 1))){
+			text = text.substr(0, text.length - 1)
+		}
+		return text
 	}
 	nameFromURL(url){
 		let name, ourl = url
@@ -209,7 +224,13 @@ class IPTVPlaylistStreamParser extends Events {
 		}
 	}
 	extractEntries(txt){
-		let g = '', e = {url: '', icon: ''}
+		let attsMap = {
+			'http-user-agent': 'user-agent',
+			'referrer': 'referer',
+			'http-referer': 'referer',
+			'http-referrer': 'referer'
+		}
+		let g = '', a = {}, e = {url: '', icon: ''}
 		txt.split("\n").filter(s => s.length > 6).map(s => s.trim()).forEach(line => {
 			if(this.isExtM3U(line)) {
 				if(this.expectingHeader){
@@ -220,8 +241,9 @@ class IPTVPlaylistStreamParser extends Events {
 								if(this.destroyed) break
 								if(t && t[2]){
 									if(this.headerAttrMap[t[1]]){
-										this.meta[this.headerAttrMap[t[1]]] = t[2]
-									} else {
+										t[1] = this.headerAttrMap[t[1]]
+									}
+									if(!this.meta[t[1]]){
 										this.meta[t[1]] = t[2]
 									}
 								}
@@ -234,6 +256,7 @@ class IPTVPlaylistStreamParser extends Events {
 					this.expectingHeader = false
 					this.emit('meta', this.meta)
 				}
+				this.expectingPlaylist = this.isExtInfPlaylist(line)
 				let n = '', sg = '', pos = line.lastIndexOf(',')
 				if(pos != -1){
 					n = line.substr(pos + 1).trim()
@@ -266,13 +289,22 @@ class IPTVPlaylistStreamParser extends Events {
 				}
 			} else if(line.charAt(0) == '#') {
 				// parse here extra info like #EXTGRP and #EXTVLCOPT
-				let ucline = line.toLowerCase()
-				if(ucline.indexOf('#EXTGRP') != -1){
-					let i = ucline.indexOf(':')
+				let lcline = line.toLowerCase()
+				if(lcline.indexOf('#EXTGRP') != -1){
+					let i = lcline.indexOf(':')
 					if(i != -1){
 						let nwg = line.substr(i + 1).trim()
 						if(nwg.length && (!g || g.length < nwg.length)){
 							g = nwg
+						}
+					}
+				} else if(lcline.indexOf('#EXTVLCOPT') != -1){
+					let i = lcline.indexOf(':')
+					if(i != -1){
+						let nwa = line.substr(i + 1).trim().split('=')
+						if(nwa){
+							nwa[0] = nwa[0].toLowerCase()
+							a[attsMap[nwa[0]] || nwa[0]] = this.trimQuotes(nwa[1] || '')
 						}
 					}
 				}
@@ -281,16 +313,32 @@ class IPTVPlaylistStreamParser extends Events {
 				if(e.url.substr(0, 2) == '//'){
 					e.url = 'http:' + e.url
 				}
+				if(e.url.indexOf('|') != -1 && e.url.match(new RegExp('.*\\|[A-Za-z0-9\\-]*='))){
+					let parts = e.url.split('|')
+					e.url = parts[0]
+					parts = parts[1].split('=')
+					parts[0] = parts[0].toLowerCase()
+					a[attsMap[parts[0]] || parts[0]] = this.trimQuotes(parts[1] || '')
+				}
 				if(global.validateURL(e.url)){
 					if(!e.name){
 						e.name = e.gid || this.nameFromURL(e.url)
 					}
+					e.rawName = e.name
+					e.name = e.name.replace(this.regexes['between-brackets'], '')
 					g = this.preSanitizeGroup(g)
 					e.groupName = g.split('/').pop()
 					g = this.sanitizeGroup(g)
+					if(Object.keys(a).length){
+						e.atts = a
+					}
 					e.group = g
 					e.groups = g.split('/')
-					this.emit('entry', e)
+					if(this.expectingPlaylist){
+						this.emit('playlist', e)
+					} else {
+						this.emit('entry', e)
+					}
 				}
 				e = {url: '', icon: ''}
 				g = ''

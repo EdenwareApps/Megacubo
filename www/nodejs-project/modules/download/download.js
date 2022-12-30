@@ -13,7 +13,7 @@ class Download extends Events {
 			p2p: false,
 			cacheTTL: 0,
 			uid: parseInt(Math.random() * 10000000000000),
-			debug: false,
+			debug: Download.debug || false,
 			keepalive: false,
 			maxAuthErrors: 2,
 			maxAbortErrors: 2,
@@ -108,7 +108,7 @@ class Download extends Events {
 		const now = global.time()
 		if(this.opts.authURL && now > this.authURLPingAfter){
 			this.authURLPingAfter = now + 10
-			Download.promise({
+			Download.get({
 				url: this.opts.authURL,
 				timeout: 10,
 				retry: 0,
@@ -151,20 +151,17 @@ class Download extends Events {
 		return String(url).split('?')[0].split('#')[0].split('.').pop().toLowerCase();        
 	}
 	getDomain(u, includePort){
+		let d = u
 		if(u && u.indexOf('//') != -1){
-			let d = u.split('//')[1].split('/')[0]
-			if(d == 'localhost' || d.indexOf('.') != -1) {
-				if(d.indexOf(':') != -1) {
-					if(!includePort) {
-						d = d.split(':')[0]
-					} else if(d.substr(-3) == ':80') {
-						d = d.substr(0, d.length - 3)
-					}
-				}
-				return d
-			}
+			d = u.split('//')[1].split('/')[0]
 		}
-		return ''
+		if(d.indexOf('@') != -1){
+			d = d.split('@')[1]
+		}
+		if(d.indexOf(':') != -1 && !includePort) {
+			d = d.split(':')[0]
+		}
+		return d
 	}
 	titleCaseHeaders(headers){
 		const nheaders = {}
@@ -195,8 +192,8 @@ class Download extends Events {
 	}
 	checkRequestingRange(range){
 		const ranges = this.parseRange(range)
-		if (Array.isArray(ranges)) { // TODO: enable multi-ranging support
-			this.requestingRange = ranges[0]
+		if (ranges && typeof(ranges.start) == 'number') { // TODO: enable multi-ranging support
+			this.requestingRange = ranges
 			if(this.requestingRange.end && this.requestingRange.end > 0){
 				this.contentLength = (this.requestingRange.end - this.requestingRange.start) + 1
 			}
@@ -303,6 +300,10 @@ class Download extends Events {
 			}
 		}
 		requestHeaders.host = this.getDomain(opts.url, true)
+		const match = opts.url.match(new RegExp('//([^/]+:[^/]+)@'))
+		if(match){
+			requestHeaders.authorization = 'Basic '+ Buffer.from(match[1]).toString('base64')
+		}
 		opts.headers = requestHeaders
 		opts.timeout = this.getTimeoutOptions()
 		if(this.opts.debug) {
@@ -503,9 +504,12 @@ class Download extends Events {
 						this.statusCode = 200
 					}
 					if(this.opts.debug){
-						console.log('>> Download response emit', this.statusCode, headers, this.isResponseCompressed)
+						console.log('>> Download response emit', this, this.requestingRange, this.statusCode, headers, this.isResponseCompressed)
 					}
 					this.headersSent = true
+					if(this.totalContentLength > 0 && !this.requestingRange){
+						headers['content-length'] = this.totalContentLength
+					}
 					this.emit('response', this.statusCode, headers)
 				}
 				response.on('data', chunk => {
@@ -988,7 +992,41 @@ Download.isNetworkConnected = true
 Download.setNetworkConnectionState = state => {
 	Download.isNetworkConnected = state
 }
-Download.promise = (...args) => {
+Download.head = (...args) => {
+	let _reject, g, resolved, opts = args[0]
+	let promise = new Promise((resolve, reject) => {
+		_reject = reject
+		g = new Download(opts)
+		g.once('error', err => {
+			if(resolved) return
+			resolved = true
+			reject(err)
+		})
+		g.once('response', (statusCode, headers) => {
+			if(resolved) return
+			resolved = true
+			// console.log('Download', g, global.traceback(), buf)
+			resolve({statusCode, headers})
+			g.destroy()
+		})
+		g.once('end', buf => {
+			if(resolved) return
+			resolved = true
+			// console.log('Download', g, global.traceback(), buf)
+			reject('no response')
+			g.destroy()
+		})
+		g.start()
+	})
+	promise.cancel = () => {
+		if(!g.ended){
+			_reject('Promise was cancelled')
+			g.destroy()
+		}
+	}
+	return promise
+}
+Download.get = (...args) => {
 	let _reject, g, resolved, opts = args[0]
 	let promise = new Promise((resolve, reject) => {
 		_reject = reject

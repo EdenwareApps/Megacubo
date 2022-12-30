@@ -10,10 +10,11 @@ class Manager extends Events {
         // this.listFaIcon = 'fas fa-broadcast-tower'
         this.key = 'lists'
         this.openingList = false
-        this.updatingLists = {}
+        this.updatingProcesses = {}
         this.lastProgress = 0
         this.firstRun = true
         this.IPTV = new IPTV()
+        this.updaterResults = {}
         global.ui.on('explorer-back', () => {
             if(this.openingList){
                 global.osd.hide('list-open')
@@ -25,38 +26,25 @@ class Manager extends Events {
                 this.setImportEPGChannelsListTimer(data['use-epg-channels-list'])
             }
         })
-        this.master.on('sync-status', p => this.syncStatus(p))
+        this.master.on('sync-status', p => this.updateOSD(p))
     }
-    syncStatus(p) {
-        const ready = p.progress > 99
-        if(ready){
-            global.activeLists = p.activeLists
-        }
-        this.lastStatus = p
-        if(Object.keys(this.updatingLists).length){
-            if(ready){
-                if(global.activeLists.length) { // at least one list available
-                    this.updatedLists(global.lang.LISTS_UPDATED, 'fas fa-check-circle')
-                    this.emit('lists-updated')
+    updateOSD(){
+        const p = global.lists.status()
+        console.warn('UPDATEISD', p.progress)
+        if(p.progress < 100){
+            this.uiShowing = true
+            global.osd.show(global.lang[p.firstRun ? 'STARTING_LISTS_FIRST_TIME_WAIT' : 'UPDATING_LISTS'] +' '+ p.progress +'%', 'fa-mega spin-x-alt', 'update', 'persistent')
+        } else {
+            if(this.uiShowing){
+                this.uiShowing = false
+                let ret = Object.values(this.updatingProcesses).filter(p => !!p.ret).map(p => p.ret).shift()
+                if(ret){
+                    global.osd.show(ret.message, ret.fa, 'update', 'normal')
                 } else {
-                    const n = global.config.get('communitary-mode-lists-amount')
-                    if(n) {
-                        console.warn('data-fetch-fail', n, global.activeLists)
-                        this.updatedLists(global.lang.DATA_FETCHING_FAILURE, 'fas fa-exclamation-circle')
-                        if(Array.isArray(this.updatingLists.onErr)) {
-                            this.updatingLists.onErr.forEach(f => f())
-                        }
-                    } else {
-                        this.updatedLists(global.lang.NO_LIST_PROVIDED, 'fas fa-exclamation-circle') // warn user if there's no lists
-                    }
+                    global.osd.hide('update')
                 }
-                this.lastProgress = 0
                 this.setImportEPGChannelsListTimer(global.config.get('use-epg-channels-list'))
-            } else if(typeof(global.osd) != 'undefined' && p.progress > this.lastProgress) {
-                this.lastProgress = p.progress
-                this.firstRun = p.firstRun
-                global.osd.show(global.lang[this.firstRun ? 'STARTING_LISTS_FIRST_TIME_WAIT' : 'UPDATING_LISTS'] + (p.progress ? ' '+ p.progress +'%' : ''), 'fa-mega spin-x-alt', 'update', 'persistent')
-            } 
+            }
         }
         if(global.explorer && global.explorer.currentEntries) {
             if(
@@ -69,20 +57,9 @@ class Manager extends Events {
             }
         }
     }
-    isUpdating(ui){
-        if(Object.keys(this.updatingLists).length){
-            if(ui){
-                if(this.lastProgress > 0){
-                    return true
-                }
-            } else {
-                return true
-            }
-        }
-    }
     waitListsReady(){
         return new Promise((resolve, reject) => {
-            if(!Object.keys(this.updatingLists).length){
+            if(!Object.keys(this.updatingProcesses).length){
                 return resolve(true)
             }
             this.once('lists-updated', () => resolve(true))
@@ -126,8 +103,8 @@ class Manager extends Events {
         if(
             !global.config.get('lists').length && 
             !global.config.get('communitary-mode-lists-amount') && 
-            !Object.keys(this.updatingLists).length && 
-            !global.activeLists.length
+            !Object.keys(this.updatingProcesses).length && 
+            !global.lists.activeLists.length
         ){
             global.ui.emit('setup-restart')
         }
@@ -152,6 +129,7 @@ class Manager extends Events {
     }
     add(url, name, unique){
         return new Promise((resolve, reject) => {
+            url = String(url).trim()
             if(url.substr(0, 2) == '//'){
                 url = 'http:'+ url
             }
@@ -172,8 +150,7 @@ class Manager extends Events {
                 }
             }
             console.log('name::add', name, url)
-            const fetcher = new this.master.Fetcher()
-            fetcher.fetch(url, {
+            const fetcher = new this.master.Fetcher(url, {
                 meta: meta => {
                     if(!name && meta.name){
                         name = meta.name
@@ -182,7 +159,8 @@ class Manager extends Events {
                 progress: p => {
                     global.osd.show(global.lang.PROCESSING +' '+ p +'%', 'fa-mega spin-x-alt', 'list-open', 'persistent')
                 }
-            }).then(entries => {
+            }, this.master)
+            fetcher.fetch().then(entries => {
                 if(entries.length){
                     console.log('name::add')
                     let finish = name => {
@@ -359,7 +337,8 @@ class Manager extends Events {
     }
     async addList(value, name){
         global.osd.show(global.lang.PROCESSING, 'fa-mega spin-x-alt', 'list-open', 'persistent')
-        let err, ret = await this.add(value, name).catch(e => err = String(e))
+        let err
+        await this.add(value, name).catch(e => err = String(e))
         if(err){
             global.osd.hide('list-open')
             if(err.match('http error') != -1){
@@ -417,13 +396,12 @@ class Manager extends Events {
             }
         }).map(l => l[1])
     }
-    updatedLists(name, fa){
+    updatingProcessOutput(uid, message, fa){
+        this.updatingProcesses[uid].ret = {message, fa}
         if(global.explorer && global.explorer.currentEntries && global.explorer.currentEntries.some(e => [global.lang.LOAD_COMMUNITY_LISTS, global.lang.UPDATING_LISTS, global.lang.STARTING_LISTS, global.lang.STARTING_LISTS_FIRST_TIME_WAIT, global.lang.PROCESSING].includes(e.name))){
             global.explorer.refresh()
         }
-        if(typeof(global.osd) != 'undefined'){
-            global.osd.show(name, fa, 'update', 'normal')
-        }
+        this.updateOSD()
     }    
     async communityModeKeywords(){
         const badTerms = ['m3u8', 'ts', 'mp4', 'tv', 'channel']
@@ -479,37 +457,41 @@ class Manager extends Events {
         }
         return terms
     }
+    createUpdater(){
+        return new (require(global.APPDIR + '/modules/driver')(global.APPDIR + '/modules/lists/driver-updater'))
+    }
     async updateLists(force, uid){
-        console.log('Update lists', this.updatingLists, global.traceback())
+        console.log('Update lists', this.updatingProcesses, global.traceback())
         const camount = global.config.get('communitary-mode-lists-amount')
-        if(force === true || !global.activeLists.length || global.activeLists.length < camount){
+        if(force === true || !global.lists.activeLists.length || global.lists.activeLists.length < camount){
             let haserr, myLists = await this.getURLs(), communityLists = []
             if(camount){
                 communityLists = await this.allCommunityLists(30000, true).catch(err => haserr = err)
                 if(haserr){
                     global.displayErr(haserr)
-                    this.updatedLists(global.lang.NO_LIST_PROVIDED, 'fas fa-exclamation-circle') // warn user if there's no lists
+                    this.updatingProcessOutput(uid, global.lang.NO_LIST_PROVIDED, 'fas fa-exclamation-circle') // warn user if there's no lists
                     throw haserr
                 }
                 communityLists = await this.extraCommunityLists(myLists, communityLists)
             }
             console.log('allCommunityLists', communityLists.length)
-            const alreadyUpdating = Object.keys(this.updatingLists).map(id => {
-                return this.updatingLists[id].urls
+            const alreadyUpdating = Object.keys(this.updatingProcesses).map(id => {
+                return this.updatingProcesses[id].urls
             }).flat()
             myLists = myLists.filter(url => !alreadyUpdating.includes(url))
             communityLists = communityLists.filter(url => !alreadyUpdating.includes(url))
             if(communityLists.length || myLists.length){
+                this.uiUpdating = true
                 let maxListsToTry = 2 * global.config.get('communitary-mode-lists-amount')
                 if(communityLists.length > maxListsToTry){
                     communityLists = communityLists.slice(0, maxListsToTry)
                 }
                 const allLists = myLists.concat(communityLists)
-                this.updatingLists[uid] = {urls: allLists, rejects: []}
+                this.updatingProcesses[uid].urls = allLists
                 console.log('Updating lists', {alreadyUpdating}, myLists, communityLists, global.traceback())
                 let keywords = await this.communityModeKeywords()
                 this.master.loadCachedLists(myLists, communityLists, keywords)                        
-                const updater = new (require(global.APPDIR + '/modules/driver')(global.APPDIR + '/modules/lists/driver-updater'))
+                const updater = this.createUpdater()
                 updater.on('list-updated', url => {
                     console.log('List updated', url)
                     this.master.syncList(url).then(() => {
@@ -517,31 +499,44 @@ class Manager extends Events {
                     }).catch(err => {
                         console.error('List not synced', url, err)
                     }).finally(async () => {
-                        this.emit('sync-status', await this.master.querySyncStatus())
+                        this.emit('sync-status', this.master.status())
                     })
-                })
-                updater.on('finished', url => {
-                    console.log('Lists updated', url)
-                    this.master.updaterFinished(true).catch(console.error)
                 })
                 this.master.updaterFinished(false).catch(console.error)
                 await updater.setRelevantKeywords(keywords)
-                await updater.update(allLists)
-                updater.terminate()
+                const expired = [], results = await updater.update(allLists).catch(console.error)
+                if(results && typeof(results) == 'object'){
+                    Object.keys(results).forEach(url => {
+                        this.updaterResults[url] = results[url]
+                        if(myLists.includes(url) && this.updaterResultExpired(url)){
+                            expired.push(url)
+                        }
+                    })
+                }
+                console.log('Lists updated', results)
                 this.master.updaterFinished(true).catch(console.error)
-                this.syncStatus(await this.master.querySyncStatus())
+                updater.terminate()
+                this.updatingProcessOutput(uid, global.lang.LISTS_UPDATED, 'fas fa-check-circle') // warn user if there's no lists
+                if(this.master.activeLists.length){
+                    this.emit('lists-updated')
+                }
+                if(expired.length)  {
+                    const ret = await global.explorer.dialog([
+                        {template: 'question', text: 'Megacubo', fa: 'fas fa-info-circle'},
+                        {template: 'message', text: global.lang.IPTV_LIST_EXPIRED +'<br /><br />'+ expired.join('<br />')},
+                        {template: 'option', text: 'OK', id: 'ok', fa: 'fas fa-check-circle'},
+                        {template: 'option', text: global.lang.REMOVE_LIST, id: 'rm', fa: 'fas fa-trash'}
+                    ], 'ok').catch(console.error) // dont wait
+                    if(ret == 'rm'){
+                        expired.map(url => global.lists.manager.remove(url))
+                    }
+                }
             } else {
                 this.master.delimitActiveLists()
-                global.activeLists = {my: [], community: [], length: 0}
-                this.updatedLists(global.lang.NO_LIST_PROVIDED, 'fas fa-exclamation-circle') // warn user if there's no lists
-            }
-            delete this.updatingLists[uid]
-        } else {
-            if(global.activeLists.length){
-                this.emit('lists-updated')
+                this.updatingProcessOutput(uid, global.lang.NO_LIST_PROVIDED, 'fas fa-exclamation-circle') // warn user if there's no lists
             }
         }
-        console.error('LISTSUPDATED', Object.assign({}, global.activeLists))
+        console.error('LISTSUPDATED', Object.assign({}, global.lists.activeLists))
     }
     extraCommunityLists(myLists, communityLists){
         return new Promise(resolve => {
@@ -563,10 +558,12 @@ class Manager extends Events {
     UIUpdateLists(force){
         if(global.Download.isNetworkConnected) {
             const uid = parseInt(Math.random() * 1000000000)
-            const starter = !Object.keys(this.updatingLists).length
+            const starter = !Object.keys(this.updatingProcesses).length
             if(starter){
+                this.uiShowing = true
                 global.osd.show(global.lang.STARTING_LISTS, 'fa-mega spin-x-alt', 'update', 'persistent')
             }
+            this.updatingProcesses[uid] = {visibility: true, progress: 0}
             this.updateLists(force === true, uid).catch(err => {
                 const isUIReady = !Array.isArray(global.uiReadyCallbacks)
                 console.error('lists-manager', err, isUIReady)
@@ -574,12 +571,8 @@ class Manager extends Events {
                     this.noListsRetryDialog(err)
                 }
             }).finally(() => {
-                if(typeof(this.updatingLists[uid]) != 'undefined'){
-                    delete this.updatingLists[uid]
-                }
-                if(!Object.keys(this.updatingLists).length){
-                    global.osd.hide('update')
-                }
+                this.updatingProcesses[uid].progress = 100
+                setTimeout(() => delete this.updatingProcesses[uid], 10000)
             })
         } else {
             global.explorer.info(global.lang.NO_INTERNET_CONNECTION, global.lang.NO_INTERNET_CONNECTION)
@@ -635,7 +628,8 @@ class Manager extends Events {
     }
     addListEntry(){
         return {name: global.lang.ADD_LIST, fa: 'fas fa-plus-square', type: 'action', action: () => {
-            this.addListDialog(false).catch(global.displayErr)
+            const offerCommunityMode = !global.config.get('communitary-mode-lists-amount')
+            this.addListDialog(offerCommunityMode).catch(global.displayErr)
         }}
     }
     async addListDialog(offerCommunityMode){        
@@ -644,7 +638,7 @@ class Manager extends Events {
         extraOpts.push({template: 'option', text: global.lang.OPEN_M3U_FILE, id: 'file', fa: 'fas fa-folder-open'})
         extraOpts.push({template: 'option', text: global.lang.ADD_USER_PASS, id: 'code', fa: 'fas fa-key'})
         if(offerCommunityMode){
-            extraOpts.push({template: 'option', text: global.lang.DONT_HAVE_LIST, fa: 'fas fa-times-circle', id: 'sh'})
+            extraOpts.push({template: 'option', text: global.lang.COMMUNITY_LISTS, fa: 'fas fa-users', id: 'sh'})
         }
         let id = await global.explorer.prompt(global.lang.ASK_IPTV_LIST, 'http://', '', true, 'fas fa-info-circle', null, extraOpts)
         if(id == 'file'){
@@ -656,7 +650,7 @@ class Manager extends Events {
             if(active){
                 return true
             } else {
-                throw 'community list not activated'
+                return await this.addListDialog(offerCommunityMode)
             }
         } else {
             return await this.addList(id)
@@ -671,7 +665,7 @@ class Manager extends Events {
                     this.addList(file).then(resolve).catch(reject)
                 }).catch(reject)
             })
-            global.ui.emit('open-file', global.ui.uploadURL, id, 'audio/x-mpegurl', global.lang.OPEN_M3U_LIST)
+            global.ui.emit('open-file', global.ui.uploadURL, id, 'audio/x-mpegurl', global.lang.OPEN_M3U_FILE)
         })
     }
     async communityModeDialog(){     
@@ -699,13 +693,16 @@ class Manager extends Events {
         const url = server +'/get.php?username='+ encodeURIComponent(user) +'&password='+ encodeURIComponent(pass) +'&type=m3u_plus&output=ts'            
         return await this.addList(url)
     }
+    updaterResultExpired(url){
+        return this.updaterResults[url] && this.updaterResults[url].substr(0, 6) == 'failed' && ['401', '403', '404', '410'].includes(this.updaterResults[url].substr(-3))
+    }
     myListsEntry(){
         return {
             name: global.lang.MY_LISTS, 
             details: global.lang.IPTV_LISTS, 
             type: 'group', 
             renderer: async () => {
-                let lists = this.get(), opts = []
+                let lists = this.get()
                 const extInfo = await this.master.info()
                 const doNotShareHint = !global.config.get('communitary-mode-lists-amount')
                 let ls = lists.map(row => {
@@ -715,7 +712,8 @@ class Manager extends Events {
                     let details = extInfo[url].author || ''
                     let icon = extInfo[url].icon || undefined
                     let priv = (row.length > 2 && typeof(row[2]['private']) != 'undefined') ? row[2]['private'] : doNotShareHint 
-                    let flag = priv ? 'fas fa-lock' : 'fas fa-users'
+                    let expired = this.updaterResultExpired(url)
+                    let flag = expired ? 'fas fa-exclamation-triangle faclr-red' : (priv ? 'fas fa-lock' : 'fas fa-users')
                     return {
                         prepend: '<i class="'+ flag +'"></i>&nbsp;',
                         name, url, icon, details,
@@ -723,7 +721,10 @@ class Manager extends Events {
                         type: 'group',
                         class: 'skip-testing',
                         renderer: async () => {
-                            let es = await this.master.directListRenderer({url}).catch(err => global.displayErr(err))
+                            let es = await this.directListRenderer({url}, {
+                                raw: true,
+                                fetch: false
+                            }).catch(err => global.displayErr(err))
                             if(!Array.isArray(es)){
                                 es = []
                             }
@@ -732,7 +733,7 @@ class Manager extends Events {
                                 es = this.master.tools.deepify(es, url)  
                             }
                             es.unshift({
-                                name: global.lang.EDIT,
+                                name: global.lang.OPTIONS,
                                 fa: 'fas fa-edit', 
                                 type: 'select',
                                 entries: [
@@ -763,6 +764,13 @@ class Manager extends Events {
                                             return name
                                         },
                                         safe: true
+                                    },
+                                    {
+                                        name: global.lang.RELOAD, 
+                                        fa: 'fas fa-sync', 
+                                        type: 'action', url, 
+                                        class: 'skip-testing', 
+                                        action: this.refreshList.bind(this)
                                     },
                                     {
                                         name: global.lang.REMOVE_LIST, 
@@ -1166,7 +1174,7 @@ class Manager extends Events {
                             value: () => {
                                 return global.config.get('communitary-mode-interests')
                             },
-                            placeholder: global.lang.COMMUNITY_MODE_INTERESTS_HINT,
+                            placeholder: global.lang.COMMUNITY_LISTS_INTERESTS_HINT,
                             multiline: true,
                             safe: true
                         })
@@ -1175,6 +1183,56 @@ class Manager extends Events {
                 })
             }
         }
+    }
+    async refreshList(data){
+        let updateErr
+        global.osd.show(global.lang.UPDATING_LISTS, 'fa-mega spin-x-alt', 'refresh-list', 'persistent')
+        const updater = this.createUpdater()
+        await updater.updateList(data.url, true).catch(err => updateErr = err)
+        if(updateErr){
+            if(updateErr == 'empty list'){
+                let haserr, msg = updateErr
+                const ret = await global.Download.head({url: data.url}).catch(err => haserr = err)
+                if(ret && typeof(ret.statusCode) == 'number'){
+                    switch(String(ret.statusCode)){
+                        case '400':
+                        case '401':
+                        case '403':
+                            msg = 'List expired.'
+                            break
+                        case '-1':
+                        case '404':
+                        case '410':
+                            msg = 'List expired or deleted from the server.'
+                            break
+                        case '0':
+                        case '421':
+                        case '453':
+                        case '500':
+                        case '502':
+                        case '503':
+                        case '504':
+                            msg = 'Server temporary error: '+ ret.statusCode
+                            break
+                    }
+                } else {
+                    msg = haserr || 'Server offline error'
+                }
+                global.displayErr(msg)
+            } else {
+                global.displayErr(updateErr)
+            }
+        } else {
+            await global.lists.syncLoadList(data.url).catch(err => updateErr = err)
+            if(updateErr){
+                global.displayErr(updateErr)
+            } else {
+                global.osd.show('OK', 'fas fa-check-circle', 'refresh-list', 'normal')
+                global.explorer.deepRefresh()
+                return true // return here, so osd will not hide
+            }
+        }
+        global.osd.hide('refresh-list')
     }
     async removeList(data){
         const info = await this.master.info(), key = 'epg-'+ global.lang.locale
@@ -1189,64 +1247,53 @@ class Manager extends Events {
         global.explorer.resumeRendering()
         global.explorer.back(2, true)
     }
-    directListRenderer(data){
-        console.warn('DIRECT', data, traceback())
-        return new Promise((resolve, reject) => {
-            let v = Object.assign({}, data), isMine = global.activeLists.my.includes(v.url), isCommunity = global.activeLists.community.includes(v.url)
-            delete v.renderer
-            let onerr = err => {
-                console.error(err)
-                reject(global.lang.LIST_OPENING_FAILURE)
+    async directListRenderer(data, opts={}){
+        let v = Object.assign({}, data), isMine = global.lists.activeLists.my.includes(v.url), isCommunity = global.lists.activeLists.community.includes(v.url)
+        const hasFailed = !this.master.lists[v.url] || this.master.lists[v.url].indexer.hasFailed
+        console.warn('DIRECT', isMine, isCommunity, hasFailed)
+        global.osd.show(global.lang.OPENING_LIST, 'fa-mega spin-x-alt', 'list-open', 'persistent')
+        let list = await this.master.directListRenderer(v, {
+            fetch: opts.fetch,
+            progress: p => {
+                global.osd.show(global.lang.OPENING_LIST +' '+ parseInt(p) +'%', 'fa-mega spin-x-alt', 'list-open', 'persistent')
             }
-            let cb = list => {
-                if(list.length){
-                    if(this.has(v.url)){
-                        list.unshift({
-                            type: 'action',
-                            name: global.lang.LIST_ALREADY_ADDED,
-                            details: global.lang.REMOVE_LIST, 
-                            fa: 'fas fa-minus-square',
-                            action: () => {             
-                                this.remove(v.url)
-                                global.osd.show(global.lang.LIST_REMOVED, 'fas fa-info-circle', 'list-open', 'normal')
-                                global.explorer.refresh()
-                            }
-                        })
-                    } else {
-                        list.unshift({
-                            type: 'action',
-                            fa: 'fas fa-plus-square',
-                            name: global.lang.ADD_TO.format(global.lang.MY_LISTS),
-                            action: () => {
-                                this.addList(v.url).catch(console.error).finally(() => global.explorer.refresh())
-                            }
-                        })
-                    }
+        }).catch(global.displayErr)
+        if(!Array.isArray(list)){
+            list = []
+        }
+        if(!list.length){
+            list.push({name: global.lang.EMPTY, fa: 'fas fa-info-circle', type: 'action', class: 'entry-empty'})
+        }
+        if(!opts.raw){
+            const actionIcons = ['fas fa-minus-square', 'fas fa-plus-square']
+            if(!list.some(e => actionIcons.includes(e.fa))){
+                if(this.has(v.url)){
+                    list.unshift({
+                        type: 'action',
+                        name: global.lang.LIST_ALREADY_ADDED,
+                        details: global.lang.REMOVE_LIST, 
+                        fa: 'fas fa-minus-square',
+                        action: () => {             
+                            this.remove(v.url)
+                            global.osd.show(global.lang.LIST_REMOVED, 'fas fa-info-circle', 'list-open', 'normal')
+                            global.explorer.refresh()
+                        }
+                    })
                 } else {
-                    list = []
+                    list.unshift({
+                        type: 'action',
+                        fa: 'fas fa-plus-square',
+                        name: global.lang.ADD_TO.format(global.lang.MY_LISTS),
+                        action: () => {
+                            this.addList(v.url).catch(console.error).finally(() => global.explorer.refresh())
+                        }
+                    })
                 }
-                console.warn('DIRECT', list, JSON.stringify(list[0]))
-                resolve(list)
             }
-            console.warn('DIRECT', isMine, isCommunity)
-            if(isMine || isCommunity){
-                this.master.directListRenderer(v).then(cb).catch(onerr)
-            } else {
-                const fetcher = new this.master.Fetcher()
-                fetcher.fetch(v.url, {
-                    progress: p => {
-                        global.osd.show(global.lang.OPENING_LIST +' '+ p +'%', 'fa-mega spin-x-alt', 'list-open', 'persistent')
-                    }
-                }).then(es => {                    
-                    es = this.master.parentalControl.filter(es)
-                    es = this.master.tools.deepify(es, v.url)  
-                    cb(es)
-                }).catch(onerr).finally(() => {
-                    this.openingList = false
-                    global.osd.hide('list-open')
-                })
-            }
-        })
+        }
+        this.openingList = false
+        global.osd.hide('list-open')
+        return list
     }
     communityLists(){
         return new Promise((resolve, reject) => {
@@ -1353,8 +1400,9 @@ class Manager extends Events {
             v.renderer = data => {
                 return new Promise((resolve, reject) => {
                     this.openingList = true
-                    global.osd.show(global.lang.OPENING_LIST, 'fa-mega spin-x-alt', 'list-open', 'persistent')
-                    this.directListRenderer(data).then(ret => {
+                    this.directListRenderer(data, {
+                        fetch: true
+                    }).then(ret => {
                         resolve(ret)
                     }).catch(err => {
                         reject(err)

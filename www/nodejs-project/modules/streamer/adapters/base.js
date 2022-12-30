@@ -3,8 +3,9 @@ const path = require('path'), fs = require('fs'), http = require('http'), Events
 const WriteQueueFile = require(global.APPDIR + '/modules/write-queue/write-queue-file')
 
 class StreamerAdapterBase extends Events {
-	constructor(url, opts){
+	constructor(url, opts, data){
 		super()
+		this.data = data || {}
 		this.url = url
 		this.opts = {
 			addr: '127.0.0.1',
@@ -33,6 +34,17 @@ class StreamerAdapterBase extends Events {
 		this.bitrateCheckBuffer = {}
 		this.downloadLogging = {}
     }
+	getDefaultRequestHeaders(headers={}){		
+		if(this.data.atts){
+			if(this.data.atts['user-agent']){
+				headers['user-agent'] = this.data.atts['user-agent']
+			}
+			if(this.data.atts['referer']){
+				headers['referer'] = this.data.atts['referer']
+			}
+		}
+		return headers
+	}
     isTranscoding(){
         if(this.transcoderStarting || this.transcoder){
 			return true

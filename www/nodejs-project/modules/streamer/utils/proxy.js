@@ -228,11 +228,9 @@ class StreamerProxy extends StreamerProxyBase {
 				}
 			}
 		}
-
 		if(this.mapper && this.mapper(req, response)){
 			return
 		}
-
 		if(this.opts.debug){
 			console.log('req starting...', req, req.url)
 		}
@@ -251,6 +249,7 @@ class StreamerProxy extends StreamerProxyBase {
 				delete reqHeaders['x-from-network-proxy']
 			}
 		}
+		reqHeaders = this.getDefaultRequestHeaders(reqHeaders)
 		if(this.opts.debug){
 			console.log('serving', url, req, path.basename(url), url, reqHeaders, uid)
 		}

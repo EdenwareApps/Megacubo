@@ -287,7 +287,6 @@ class Downloads extends Events {
 		}
 	}
     clear(){
-		return
 		console.log('serve clear', traceback())
         fs.access(this.folder, error => {
             if (error) {

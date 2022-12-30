@@ -285,7 +285,6 @@ class P2PRequest extends P2PEncDec {
         const finished = timeouted || vs.length >= this.clients.length
         const failed = finished && vs.every(s => s == -1)
         const candidates = ks.filter(i => validate(i))
-        console.log('PUMP', finished, failed, timeouted)
         if(finished && failed) { // no peer has the file
             this.fail('No peer has the file.')
         } else {

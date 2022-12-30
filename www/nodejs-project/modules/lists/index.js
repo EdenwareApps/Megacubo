@@ -288,7 +288,7 @@ class Index extends Common {
 	adjustSearchResults(entries, opts, limit){
 		let map = {}, nentries = [];
 		(
-			(opts && opts.type == 'live' && global.config.get('tuning-prefer-hls')) ? 
+			(opts && opts.type == 'live' && global.config.get('prefer-hls')) ? 
 			this.preferHLS(entries) : 
 			entries
 		).forEach(e => {

@@ -262,6 +262,8 @@ function patch(scope){
 		return file.replaceAll('\\', '/').replaceAll('//', '/')
 	}	
     scope.joinPath = (folder, file) => {
+		if(!file) return folder
+		if(!folder) return file
 		let ffolder = folder
 		let ffile = file
 		if(ffolder.indexOf('\\') != -1) {

@@ -57,6 +57,9 @@ class DownloadStreamP2P extends DownloadStream {
             }
         }
         this.lmap['download-p2p-response-data-'+ this.opts.uid] = data => {
+            if(!this.response){                
+                return this.emitError('Bad P2P response order', true)
+            }
             this.setTimeout(10000) // reset it
             if(!data || !data.data || !data.data.length) return
             if(data.range){

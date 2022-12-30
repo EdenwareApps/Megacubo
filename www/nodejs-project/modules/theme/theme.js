@@ -627,7 +627,7 @@ class Theme extends Events {
         })
     }
     async remoteThemes(){
-        let themes = await global.Download.promise({url: global.cloud.server +'/themes/feed.json', responseType: 'json'})
+        let themes = await global.Download.get({url: global.cloud.server +'/themes/feed.json', responseType: 'json'})
         if(Array.isArray(themes)){
             return themes.map(t => {
                 return {

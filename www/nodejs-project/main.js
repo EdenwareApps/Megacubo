@@ -126,9 +126,7 @@ ffmpeg = new FFMPEG()
 lang = false
 activeEPG = ''
 isStreamerReady = false
-areListsReady = false
 downloadsInBackground = {}
-activeLists = {my: [], community: [], length: 0}
 
 displayErr = (...args) => {
     console.error.apply(null, args)
@@ -281,9 +279,6 @@ function init(language){
         osd = new OSD()
         lists = new Lists()
         lists.setNetworkConnectionState(Download.isNetworkConnected).catch(console.error)       
-        lists.manager.on('lists-updated', () => {
-            if(setupCompleted()) areListsReady = true
-        })
 
         autoconfig = new AutoConfig()
         autoconfig.start().catch(console.error)
@@ -534,18 +529,13 @@ function init(language){
                             group: []
                         }
                     }
-                    const next = () => {                        
+                    lists.manager.waitListsReady().then(() => {                       
                         if(isStreamerReady){
                             streamer.play(e)
                         } else {
                             playOnLoaded = e
                         }
-                    }
-                    if(parts && !areListsReady){                        
-                        lists.manager.once('lists-updated', next)
-                    } else {
-                        next()
-                    }
+                    }).catch(console.error)
                 }
             }
         })
@@ -659,7 +649,7 @@ function init(language){
                     }
                 }
                 const afterListUpdate = async () => {
-                    if(!lists.manager.isUpdating() && !activeLists.length && config.get('communitary-mode-lists-amount')){
+                    if(!lists.activeLists.length && config.get('communitary-mode-lists-amount')){
                         lists.manager.UIUpdateLists()
                     }
                     let c = await cloud.get('configure')
@@ -673,11 +663,7 @@ function init(language){
                         console.log('updated')
                     }
                 }
-                if(areListsReady){
-                    afterListUpdate().catch(console.error)
-                } else {
-                    lists.manager.once('lists-updated', () => afterListUpdate().catch(console.error))
-                }
+                lists.manager.waitListsReady().then(afterListUpdate).catch(console.error)
                 analytics = new Analytics()
                 diagnostics = new Diagnostics()
 
@@ -694,7 +680,7 @@ function init(language){
         ui.on('streamer-ready', () => {        
             isStreamerReady = true  
             if(!streamer.active){
-                let next = () => {
+                lists.manager.waitListsReady().then(() => {
                     if(playOnLoaded){
                         streamer.play(playOnLoaded)
                     } else if(config.get('resume')) {
@@ -705,12 +691,7 @@ function init(language){
                             histo.resume()
                         }
                     }
-                }
-                if(areListsReady){
-                    next()
-                } else {
-                    lists.manager.once('lists-updated', next)
-                }
+                }).catch(console.error)
             }
         })
         ui.once('close', () => {

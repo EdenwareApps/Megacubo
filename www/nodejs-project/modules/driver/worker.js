@@ -40,6 +40,8 @@ parentPort.on('message', msg => {
         setTimeout(() => {
             global.config.reload() // read again after some seconds, the config file may delay on writing
         }, 3000)
+    } else if(msg.method == 'unload'){
+        // close()
     } else if(typeof(driver[msg.method]) == 'undefined'){
         data = {id: msg.id, type: 'reject', data: 'method not exists'}
         parentPort.postMessage(data)

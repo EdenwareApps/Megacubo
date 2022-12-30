@@ -588,11 +588,9 @@ class ChannelsEditing extends ChannelsEPG {
                 let entries = []
                 if(global.config.get('show-logos')){
                     entries.push({name: global.lang.SELECT_ICON, details: o.name, type: 'group', renderer: () => {
-                        console.warn('render icons', terms)
                         return new Promise((resolve, reject) => {
                             let images = []
                             global.icons.search(terms).then(ms => {
-                                console.warn('render icons', ms, terms)
                                 images = images.concat(ms.map(m => m.icon))
                             }).catch(console.error).finally(() => {
                                 let ret = images.map((image, i) => {
@@ -750,7 +748,7 @@ class ChannelsEditing extends ChannelsEPG {
         let category = Object.assign({}, cat)
         Object.assign(category, {fa: 'fas fa-tasks', path: undefined})
         if(useCategoryName !== true){
-            Object.assign(category, {name: global.lang.EDIT_CATEGORY, type: 'select', details: category.name})
+            Object.assign(category, {name: global.lang.EDIT_CATEGORY, rawName: global.lang.EDIT_CATEGORY, type: 'select', details: category.name})
         }
         category.renderer = (c, e) => {
             return new Promise((resolve, reject) => {
@@ -847,7 +845,37 @@ class ChannelsAutoWatchNow extends ChannelsEditing {
     }
 }
 
-class Channels extends ChannelsAutoWatchNow {
+class ChannelsKids extends ChannelsAutoWatchNow {
+    constructor(){
+        super()
+        global.ui.once('init', () => {
+            global.explorer.addFilter(async (entries, path) => { 
+                const term = global.lang.CATEGORY_KIDS // lang can change in runtime, check the term here so
+                if(path.substr(term.length * -1) == term){
+                    entries = entries.map(e => {
+                        if((e.rawName || e.name).indexOf('[') == -1 && (
+                            (!e.type || e.type == 'stream') || 
+                            (e.class && e.class.indexOf('entry-meta-stream') != -1)
+                        )){
+                            e.rawName = '[fun]'+ e.name +'[|fun]'
+                        }
+                        return e
+                    })
+                } else if([global.lang.LIVE, global.lang.MOVIES, global.lang.SERIES].includes(path)) {
+                    entries = entries.map(e => {
+                        if((e.rawName || e.name).indexOf('[') == -1 && e.name == term){
+                            e.rawName = '[fun]'+ e.name +'[|fun]'
+                        }
+                        return e
+                    })
+                }
+                return entries
+            })
+        })
+    }
+}
+
+class Channels extends ChannelsKids {
     constructor(opts){
         super()
 		if(opts){
@@ -865,7 +893,7 @@ class Channels extends ChannelsAutoWatchNow {
             }
         }
         let url = 'https://www.google.com/search?btnI=1&lr=lang_{0}&q={1}'.format(global.lang.locale, encodeURIComponent('"'+ name +'" site'))
-        const body = String(await Download.promise({url}).catch(console.error))
+        const body = String(await Download.get({url}).catch(console.error))
         const matches = body.match(new RegExp('href *= *["\']([^"\']*://[^"\']*)'))
         if(matches && matches[1] && matches[1].indexOf('google.com') == -1){
             url = matches[1]
@@ -1043,7 +1071,6 @@ class Channels extends ChannelsAutoWatchNow {
                 type: 'live',
                 limit: 1024
             }).then(sentries => {
-                console.warn('sentries', sentries)
                 let entries = sentries.results
                 global.watching.order(entries).then(resolve).catch(err => {
                     resolve(entries)
@@ -1320,7 +1347,7 @@ class Channels extends ChannelsAutoWatchNow {
     keywords(){
         return new Promise((resolve, reject) => {
             this.ready(() => {
-                let keywords = [];
+                let keywords = [], badChrs = ['|', '-'];
                 ['histo', 'bookmarks'].forEach(k => {
                     if(global[k]){
                         global[k].get().forEach(e => {
@@ -1331,7 +1358,7 @@ class Channels extends ChannelsAutoWatchNow {
                 this.getDefaultCategories(true).then(data => {
                     keywords = keywords.concat(Object.values(data).flat().map(n => this.expandName(n).terms.name).flat())
                 }).catch(reject).finally(() => {
-                    keywords = [...new Set(keywords)].filter(w => w.charAt(0) != '-')
+                    keywords = [...new Set(keywords)].filter(w => !badChrs.includes(w.charAt(0)))
                     resolve(keywords)
                 })
             })
@@ -1339,10 +1366,10 @@ class Channels extends ChannelsAutoWatchNow {
     }
     entries(){
         return new Promise((resolve, reject) => {
-            if(global.lists.manager.isUpdating(true)){
+            if(!global.lists.loaded()){
                 return resolve([global.lists.manager.updatingListsEntry()])
             }
-            if(!global.activeLists.length){ // one list available on index beyound meta watching list
+            if(!global.lists.activeLists.length){ // one list available on index beyound meta watching list
                 return resolve([global.lists.manager.noListsEntry()])
             }
             const editable = global.config.get('allow-edit-channel-list') && !this.isEPGSyncActive()
@@ -1567,10 +1594,10 @@ class Channels extends ChannelsAutoWatchNow {
         }
     }
     async groupsRenderer(type){
-        if(global.lists.manager.isUpdating(true)){
+        if(!global.lists.loaded()){
             return [global.lists.manager.updatingListsEntry()]
         }
-        if(!global.activeLists.length){ // one list available on index beyound meta watching list
+        if(!global.lists.activeLists.length){ // one list available on index beyound meta watching list
             return [global.lists.manager.noListsEntry()]
         }
         const namedGroups = {}, isSerie = type == 'series'

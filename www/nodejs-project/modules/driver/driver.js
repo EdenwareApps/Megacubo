@@ -59,10 +59,13 @@ module.exports = (file, opts) => {
 		}
 		terminate(){
 			this.finished = true
-			global.config.removeListener('change', this.configChangeListener)
-			if(this.worker && this.worker.terminate){
-				this.worker.terminate()
-				this.worker = null
+			this.configChangeListener && global.config.removeListener('change', this.configChangeListener)
+			if(this.worker){
+				//this.worker.postMessage({method: 'unload', id: 0})
+				setTimeout(() => { // prevent closing by bug in nwjs
+					this.worker.terminate()
+					this.worker = null
+				}, 5000)
 			}
 			this.removeAllListeners()
 		}
@@ -95,6 +98,7 @@ module.exports = (file, opts) => {
 			}, true, true)
 			this.worker.on('exit', () => {
 				this.finished = true
+				this.worker = null
 				console.warn('Worker exit. ' + file, this.err)
 			})
 			this.worker.on('message', ret => {
@@ -140,6 +144,7 @@ module.exports = (file, opts) => {
 				if(typeof(err.preventDefault) == 'function'){
 					err.preventDefault()
 				}
+				global.crashlog.save('Worker error at '+ file.split('/').pop() +': ', err)
 				return true
 			}
 			this.worker.onmessage = e => {

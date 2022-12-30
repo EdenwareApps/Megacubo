@@ -133,7 +133,6 @@ class StreamerYTHLSIntent extends StreamerHLSIntent {
         this.connectAdapter(this.prx)
         await this.prx.start()
         this.endpoint = this.prx.proxify(ret.url)
-        console.warn('START', ret, this.endpoint, info)
         return {endpoint: this.endpoint, mimetype: this.mimetype}
     }
     async _start(){ 
@@ -157,7 +156,6 @@ class StreamerYTHLSIntent extends StreamerHLSIntent {
         await fs.promises.writeFile(file, this.generateMasterPlaylist(tracks))
         let url = await global.downloads.serve(file)
         this.endpoint = this.prx.proxify(url) // proxify again to get tracks on super()
-        console.warn('START', url, this.endpoint)
         return {endpoint: this.endpoint, mimetype: this.mimetype}
     }
 }

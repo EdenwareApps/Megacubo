@@ -1,6 +1,5 @@
 const http = require('http'), closed = require('../../on-closed')
 const StreamerProxyBase = require('./proxy-base'), decodeEntities = require('decode-entities')
-const fs = require('fs'), async = require('async'), Events = require('events')
 const stoppable = require('stoppable'), m3u8Parser = require('m3u8-parser')
 
 class HLSJournal {
@@ -632,7 +631,8 @@ class StreamerProxyHLS extends HLSRequests {
 			if(reqHeaders['x-from-network-proxy']){
 				delete reqHeaders['x-from-network-proxy']
 			}
-		}
+		}		
+		reqHeaders = this.getDefaultRequestHeaders(reqHeaders)
 		if(this.opts.debug){
 			if(this.type == 'network-proxy'){
 				console.log('network serving', url, reqHeaders)

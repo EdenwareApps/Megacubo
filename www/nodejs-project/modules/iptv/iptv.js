@@ -51,7 +51,7 @@ class IPTV extends Events {
         if(!url){
             throw 'unknown file'
         }
-        let body = await global.Download.promise({
+        let body = await global.Download.get({
             url,
             responseType: file ? 'text' : 'json',
             timeout: 60,
@@ -114,7 +114,7 @@ class IPTV extends Events {
                 renderer: async () => {
                     let list = await global.lists.directListRendererParse(await this.get(name))
                     let url = this.url(name)
-                    if(global.activeLists.my.includes(url)){
+                    if(global.lists.activeLists.my.includes(url)){
                         list.unshift({
                             type: 'action',
                             name: global.lang.LIST_ALREADY_ADDED,

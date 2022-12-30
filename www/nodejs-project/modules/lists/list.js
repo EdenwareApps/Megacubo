@@ -7,7 +7,7 @@ class List extends Events {
 		if(url.substr(0, 2) == '//'){
 			url = 'http:'+ url
 		}
-		this.url = url
+        this.url = url
         this.relevance = {}
         this.reset()
 		this.dataKey = global.LIST_DATA_KEY_MASK.format(url)
@@ -35,14 +35,24 @@ class List extends Events {
 	}
 	start(){
 		return new Promise((resolve, reject) => {
-            let resolved, hasErr
-            this.once('destroy', () => {
+            if(this.started){
+                return resolve(true)
+            }
+            let resolved, destroyListener = () => {
                 if(!resolved){
                     reject('destroyed')
                 }
-            })
+            }, cleanup = () => {
+                this.removeListener('destroy', destroyListener)  
+                if(!this.isReady) this.isReady = true  
+            }
+            this.once('destroy', destroyListener)
             this.indexer = new ListIndex(this.file)
-            this.indexer.on('error', reject)
+            this.indexer.on('error', err => {
+                reject(err)
+                cleanup()
+                this.emit('ready')
+            })
             this.indexer.on('data', index => {
                 if(index.length){
                     this.setIndex(index, err => {
@@ -50,20 +60,26 @@ class List extends Events {
                         if(err){
                             reject(err)
                         } else {
+                            this.started = true
                             resolve(true)
                         }
-                        this.isReady = true
+                        cleanup()
                         this.emit('ready')
                     })
                 } else {
                     reject('empty index')
-                    this.isReady = true
+                    cleanup()
                     this.emit('ready')
                 }                
             })
             this.indexer.start()
         })
 	}
+    reload(){
+        this.indexer && this.indexer.destroy()
+        this.started = false
+        return this.start()
+    }
     setIndex(index, cb){
         this.index = index
         this.verify(this.index).then(ret => {
@@ -224,6 +240,7 @@ class List extends Events {
 	}
 	async fetchAll(){
         await this.ready()
+        if(!this.indexer) return []
         return await this.indexer.entries()
 	}
 	reset(){		

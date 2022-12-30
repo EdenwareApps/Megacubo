@@ -203,6 +203,11 @@ class Lists extends ListsEPGTools {
 		super(opts)
         this.debug = false
         this.lists = {}
+		this.activeLists = {
+			my: [],
+			community: [],
+			length: 0
+		}
 		this.epgs = []
         this.myLists = []
         this.sharingUrls = []
@@ -265,7 +270,8 @@ class Lists extends ListsEPGTools {
 		})
 	}
 	async loadCachedLists(myLists, communityLists, relevantKeywords){
-        if(relevantKeywords && relevantKeywords.length){
+        let hits = 0
+		if(relevantKeywords && relevantKeywords.length){
             this.relevantKeywords = relevantKeywords
         }
         if(this.debug){
@@ -301,18 +307,18 @@ class Lists extends ListsEPGTools {
         }
         for(let url of myLists.concat(communityLists)) {
             if(typeof(this.lists[url]) == 'undefined') {
-                await this.syncList(url).catch(console.error)
+				hits++
+                await this.syncList(url).catch(err => {
+					console.error(err)
+				})
             }
         }
         if(this.debug){
             console.log('sync ended')
         }
-        return true
+        return hits
     }
-	async isUpdating(){
-		return !this.isUpdaterFinished || this.syncingListsCount()
-	}
-	syncListProgressMessage(url){
+	status(url=''){
 		let progress = 0, progresses = [], firstRun = true, satisfyAmount = this.myLists.length				
 		let isUpdatingFinished = this.isUpdaterFinished && !this.syncingListsCount()
 		if(this.syncListProgressData){
@@ -321,12 +327,12 @@ class Lists extends ListsEPGTools {
 			if(this.myLists.length){
 				progresses = progresses.concat(this.myLists.map(url => this.lists[url] ? this.lists[url].progress() : 0))
 			}
-			if(camount){
-				satisfyAmount = this.communityListsRequiredAmount(camount, this.syncListProgressData.communityLists.length)
+			if(camount > satisfyAmount){
+				satisfyAmount += this.communityListsRequiredAmount(camount, this.syncListProgressData.communityLists.length)
 				progresses = progresses.concat(Object.keys(this.lists).filter(url => !this.syncListProgressData.myLists.includes(url)).map(url => this.lists[url].progress()).sort((a, b) => b - a).slice(0, satisfyAmount))
 			}
 			if(this.debug){
-				console.log('syncListProgressMessage() progresses', progresses)
+				console.log('status() progresses', progresses)
 			}
 			progress = parseInt(progresses.length ? (progresses.reduce((a, b) => a + b, 0) / satisfyAmount) : 0)
 			if(progress == 100){
@@ -339,11 +345,14 @@ class Lists extends ListsEPGTools {
 				}
 			}
 		}
-		let ret = {url, progress, firstRun, satisfyAmount}
-		if(progress > 99){
-			ret.activeLists = this.getLists()
+		if(this.debug){
+			console.log('status() progresses', progress)
 		}
+		let ret = {url, progress, firstRun, satisfyAmount}
 		return ret
+	}
+	loaded(){
+		return this.status().progress > 99
 	}
 	isSyncing(url){
 		return Object.keys(this.syncListsQueue).some(u => {
@@ -375,9 +384,6 @@ class Lists extends ListsEPGTools {
             this.syncListsQueue[url].rejects.push(reject)
         })
 	}
-	async querySyncStatus(){
-		return this.syncListProgressMessage('')
-	}
 	syncPump(syncedUrl, err){
 		if(syncedUrl && typeof(this.syncListsQueue[syncedUrl]) != 'undefined'){
 			if(err){
@@ -386,7 +392,7 @@ class Lists extends ListsEPGTools {
 				this.syncListsQueue[syncedUrl].resolves.forEach(r => r())
 			}
 			delete this.syncListsQueue[syncedUrl]
-			this.emit('sync-status', this.syncListProgressMessage(syncedUrl))
+			this.emit('sync-status', this.status(syncedUrl))
 		}
 		if(this.syncingActiveListsCount() < this.syncListsConcurrencyLimit){
 			return Object.keys(this.syncListsQueue).some(url => {
@@ -538,9 +544,7 @@ class Lists extends ListsEPGTools {
 				if(!global.listsRequesting[url] || (global.listsRequesting[url] == 'loading')){
 					global.listsRequesting[url] = String(err)
 				}
-				if(this.debug){
-					console.log('syncLoadList end: ', err)
-				}
+				console.error('syncLoadList error: ', err)
 				if(!resolved){
 					resolved = true
 					reject(err)
@@ -548,6 +552,8 @@ class Lists extends ListsEPGTools {
 				if(this.lists[url] && !this.myLists.includes(url)){
 					this.remove(url)												
 				}
+			}).finally(() => {
+				this.updateActiveLists()
 			})
 		})
 	}
@@ -619,9 +625,9 @@ class Lists extends ListsEPGTools {
 	loadedListsCount(){
 		return Object.values(this.lists).filter(l => l.isReady).length
 	}
-    getLists(){
+    updateActiveLists(){
 		let communityUrls = Object.keys(this.lists).filter(u => !this.myLists.includes(u))
-		return {
+		this.activeLists = {
 			my: this.myLists,
 			community: communityUrls,
 			length: this.myLists.length + communityUrls.length
@@ -634,9 +640,10 @@ class Lists extends ListsEPGTools {
 			info[url] = {url}
 			info[url].owned = this.myLists.includes(url)
 			info[url].score = this.lists[url].relevance.total
-			if(this.lists[url].meta){
-				info[url].name = this.lists[url].meta.name
-				info[url].epg = this.lists[url].meta.epg
+			if(this.lists[url].index.meta){
+				info[url].name = this.lists[url].index.meta.name
+				info[url].icon = this.lists[url].index.meta.icon
+				info[url].epg = this.lists[url].index.meta.epg
 			}
 			info[url].length = this.lists[url].index.length
 			current.forEach(c => {
@@ -688,17 +695,21 @@ class Lists extends ListsEPGTools {
 		if(this.debug){
 			console.log('Removed list', u)
 		}
+		this.updateActiveLists()
 	}
-    async directListRenderer(v){
-        if(typeof(this.lists[v.url]) != 'undefined' && this.lists[v.url].isReady){ // if not loaded yet, fetch directly
+    async directListRenderer(v, opts){
+		console.warn('directListRenderer()', v, opts)
+        if(typeof(this.lists[v.url]) != 'undefined' && (!opts.fetch || (this.lists[v.url].isReady && !this.lists[v.url].indexer.hasFailed))){ // if not loaded yet, fetch directly
             let entries = await this.lists[v.url].fetchAll()
-            ret = this.directListRendererPrepare(entries, v.url)
-            return ret
-        } else {
-            let fetcher = new this.Fetcher() 
-            let entries = await fetcher.fetch(v.url)
+            return this.directListRendererPrepare(entries, v.url)
+        } else if(opts.fetch) {
+            let fetcher = new this.Fetcher(v.url, {
+				progress: opts.progress
+			}, this), entries = await fetcher.fetch()
             return await this.directListRendererPrepare(entries, v.url)
-        }
+        } else {
+			throw 'List not loaded'
+		}
     }
     directListRendererParse(content){
         return new Promise((resolve, reject) => {

@@ -170,10 +170,10 @@ class Search extends Events {
             name: u, 
             url: global.mega.build(u, {terms, mediaType: this.searchMediaType})
         }
-        if(global.lists.manager.isUpdating(true)){
+        if(!global.lists.loaded()){
             return [global.lists.manager.updatingListsEntry()]
         }
-        if(!global.activeLists.length){ // one list available on index beyound meta watching list
+        if(!global.lists.activeLists.length){ // one list available on index beyound meta watching list
             return [global.lists.manager.noListsEntry()]
         }
         console.log('will search', terms, {
@@ -308,10 +308,10 @@ class Search extends Events {
             name: u, 
             url: global.mega.build(u, {terms, mediaType: this.searchMediaType})
         }
-        if(global.lists.manager.isUpdating(true)){
+        if(!global.lists.loaded()){
             return resolve([global.lists.manager.updatingListsEntry()])
         }
-        if(!global.activeLists.length){ // one list available on index beyound meta watching list
+        if(!global.lists.activeLists.length){ // one list available on index beyound meta watching list
             return resolve([global.lists.manager.noListsEntry()])
         }
         let es = await global.channels.search(terms, this.searchInaccurate)
@@ -479,7 +479,7 @@ class Search extends Events {
     }
     hook(entries, path){
         return new Promise((resolve, reject) => {
-            if(!global.lists.manager.isUpdating(true) && global.activeLists.length){
+            if(global.lists.loaded() && global.lists.activeLists.length){
                 if(path == global.lang.LIVE){
                     entries.unshift(this.entry('live'))
                 } else if([global.lang.SERIES, global.lang.MOVIES].includes(path)){

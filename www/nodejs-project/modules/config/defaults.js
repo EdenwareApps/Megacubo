@@ -50,6 +50,7 @@ module.exports = {
 		'F1 Ctrl+I': 'ABOUT',
 		'F11 Alt+Enter': 'FULLSCREEN'
 	},
+	'kids-fun-titles': true,
 	'lists': [],
 	'live-window-time': 300,
 	'locale': '',
@@ -76,7 +77,7 @@ module.exports = {
 	'tune-concurrency': 12,
 	'tune-ffmpeg-concurrency': 3,
 	'tuning-icon': 'fas fa-sync-alt',
-	'tuning-prefer-hls': true,
+	'prefer-hls': true,
 	'uppercase-menu': false,
 	'use-epg-channels-list': false,
 	'use-keepalive': true,

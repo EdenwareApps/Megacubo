@@ -7,6 +7,7 @@ class ListIndex extends ListIndexUtils {
 		this.indexateIterator = 0
     }
     fail(err){
+        console.warn('Bad index file', this.file, err)
         this.hasFailed = err
         this.emit('error', err)
         this.emit('end')
@@ -36,7 +37,7 @@ class ListIndex extends ListIndexUtils {
                 this.readIndex().then(index => {
                     this.emit('data', index)
                     this.emit('end')                    
-                }).catch(console.error)
+                }).catch(err => this.fail(err))
 			} else {
                 this.fail('file not found or empty')
 			}

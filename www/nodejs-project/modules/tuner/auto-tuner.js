@@ -27,6 +27,7 @@ class AutoTuner extends Events {
     async start(){
         if(!this.tuner){
             this.entries = await this.ceilPreferredStreams(this.entries, this.preferredStreamServers(), this.opts.preferredStreamURL)
+            this.entries = await this.ceilMyListsStreams(this.entries, this.preferredStreamServers(), this.opts.preferredStreamURL)
             console.log('CEILED', this.entries.map(e => e.url))
             this.tuner = new Tuner(this.entries, this.opts, this.optsmegaURL)
             this.tuner.opts.debug = false
@@ -70,7 +71,7 @@ class AutoTuner extends Events {
 	}
     async ceilPreferredStreams(entries, preferredStreamServers, preferredStreamURL){
         let preferredStreamEntry
-        const preferHLS = global.config.get('tuning-prefer-hls')
+        const preferHLS = global.config.get('prefer-hls')
         const deferredStreams = [], deferredHLSStreams = []
         const preferredStreamServersLeveledEntries = {}
         entries = entries.forEach(entry => {
@@ -103,6 +104,19 @@ class AutoTuner extends Events {
             entries.unshift(preferredStreamEntry)
         }
         return await global.watching.order(entries)
+    }
+    async ceilMyListsStreams(entries){
+        const deferredEntries = []
+        const listsInfo = await global.lists.info()
+        entries = entries.filter(entry => {
+            const isMine = listsInfo[entry.source] && listsInfo[entry.source].owned
+            if(isMine){
+                return true
+            } else {
+                deferredEntries.push(entry)
+            }
+        })
+        return entries.concat(deferredEntries)
     }
     pause(){
         if(this.opts.debug){

@@ -47,7 +47,7 @@ class IconDefault {
         })
     }
     saveDefault(terms, data, cb){
-        const updating = global.lists.manager.isUpdating(true) || !global.activeLists.length // we may find a better logo after
+        const updating = !global.lists.loaded() || !global.lists.activeLists.length // we may find a better logo after
         if(!updating && terms && terms.length){
             let name = this.prepareDefaultName(terms) + '.png', file = this.opts.folder + path.sep + name
             if(this.opts.debug){
@@ -65,7 +65,7 @@ class IconDefault {
         }
     }
     saveDefaultFile(terms, sourceFile, cb){
-        if(global.lists.manager.isUpdating(true) || !global.activeLists.length){ // we may find a better logo later
+        if(!global.lists.loaded() || !global.lists.activeLists.length){ // we may find a better logo later
             if(cb) cb()
             return
         }
@@ -429,7 +429,7 @@ class IconServer extends IconFetchSem {
         this.listen()
     }
     listsLoaded(){
-        return !global.lists.manager.isUpdating(true) && global.activeLists.length
+        return global.lists.loaded() && global.lists.activeLists.length
     }
     debug(...args){
         global.osd.show(Array.from(args).map(s => String(s)).join(', '), 'fas fa-info-circle', 'active-downloads', 'persistent')

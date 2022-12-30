@@ -1,6 +1,6 @@
 
 const path = require('path'), Events = require('events'), fs = require('fs'), async = require('async')
-const AutoTuner = require('../tuner/auto-tuner'), StreamInfo = require('../iptv-stream-info')
+const AutoTuner = require('../tuner/auto-tuner'), StreamInfo = require('./utils/stream-info')
 
 if(!Promise.allSettled){
 	Promise.allSettled = ((promises) => Promise.all(promises.map(p => p
@@ -66,10 +66,10 @@ class StreamerTools extends Events {
 			}
 		}
 	}
-	info(url, retries = 2, source=''){
+	info(url, retries=2, entry={}){
 		return new Promise((resolve, reject) => {
-			this.pingSource(source, () => {
-				this.streamInfo.probe(url, retries).then(nfo => {
+			this.pingSource(entry.source, () => {
+				this.streamInfo.probe(url, retries, entry).then(nfo => {
 					let type = false
 					Object.keys(this.engines).some(name => {
 						if(this.engines[name].supports(nfo)){
@@ -167,7 +167,7 @@ class StreamerBase extends StreamerTools {
 			if(!this.throttle(data.url)){
 				return reject('401')
 			}
-			this.info(data.url, 2, data.source).then(nfo => {
+			this.info(data.url, 2, data).then(nfo => {
 				this.intentFromInfo(data, opts, aside, nfo).then(resolve).catch(reject)
 			}).catch(err => {
 				if(this.opts.debug){
@@ -193,7 +193,7 @@ class StreamerBase extends StreamerTools {
 			if(!global.streamerPingSourceTTLs[url] || global.streamerPingSourceTTLs[url] < now){
 				if(this.pingSourceQueue(url, cb, cb)){
 					let ret = ''
-					global.Download.promise({
+					global.Download.get({
 						url,
 						timeout: 10,
 						retry: 0,
@@ -612,7 +612,7 @@ class StreamerGoNext extends StreamerThrottling {
 		if(next){
 			const start = global.time(), delay = 5, ret = {}
             global.osd.show(global.lang.GOING_NEXT_SECS_X.format(delay), 'fa-mega spin-x-alt', 'go-next', 'persistent')
-            ret.info = await this.info(next.url, 2, next.source).catch(err => ret.err = err)
+            ret.info = await this.info(next.url, 2, next).catch(err => ret.err = err)
 			const now = global.time()
 			if(!ret.err && (now - start) < 5){
 				await this.sleep((5 - (now - start)) * 1000)
@@ -1202,7 +1202,7 @@ class Streamer extends StreamerAbout {
 		return succeeded
 	}
 	async triggerCheckForListExpiral(){
-		if(global.activeLists.my.length == 0 || !global.tuning){
+		if(global.lists.activeLists.my.length == 0 || !global.tuning){
 			return
 		}
 		const expiralCheckLockTime = 300
@@ -1210,8 +1210,11 @@ class Streamer extends StreamerAbout {
 			this.expiralCheckLock = {}
 		}
 		const now = global.time(), from = now - expiralCheckLockTime, validLiveTypes = ['hls', 'ts']
-		const csources = global.activeLists.my.filter(u => {
+		const info = await global.lists.info()
+		const csources = Object.keys(info).filter(u => {
 			return !this.expiralCheckLock[u] || this.expiralCheckLock[u] < from
+		}).filter(u => {
+			return info[u].owned && info[u].private
 		})
 		if(!csources.length){
 			return
@@ -1220,7 +1223,7 @@ class Streamer extends StreamerAbout {
 		csources.forEach(s => {
 			sources[s] = entries.filter(e => e.source == s)
 		})
-		Object.keys(sources).forEach(source => {
+		const expired = Object.keys(sources).forEach(source => {
 			if(this.expiralCheckLock[source] && this.expiralCheckLock[source] > from){
 				return
 			}
@@ -1233,13 +1236,22 @@ class Streamer extends StreamerAbout {
 			if(expiralScore > (sources[source].length / 2)){	
 				console.warn('triggerCheckForListExpiral', source +' EXPIRED', expiralScore +'/'+ sources[source].length)
 				this.expiralCheckLock[source] = now
-				global.explorer.dialog([
-					{template: 'question', text: 'Megacubo', fa: 'fas fa-info-circle'},
-					{template: 'message', text: global.lang.IPTV_LIST_EXPIRED +'<br /><br />'+ source},
-					{template: 'option', text: 'OK', id: 'ok'}
-				], 'ok').catch(console.error) // dont wait
+				return true
 			}
 		})
+		if(expired.length){
+			const ret = await global.explorer.dialog([
+				{template: 'question', text: 'Megacubo', fa: 'fas fa-info-circle'},
+				{template: 'message', text: global.lang.IPTV_LIST_EXPIRED +'<br /><br />'+ expired.join('<br />')},
+				{template: 'option', text: 'OK', id: 'ok', fa: 'fas fa-check-circle'},
+				{template: 'option', text: global.lang.REMOVE_LIST, id: 'rm', fa: 'fas fa-trash'}
+			], 'ok').catch(console.error) // dont wait
+			if(ret == 'rm'){
+				expired.map(url => {
+					global.lists.manager.remove(url)
+				})
+			}
+		}
 	}
 	play(e, results, silent){
 		this.playPromise(e, results, silent).catch(console.error)

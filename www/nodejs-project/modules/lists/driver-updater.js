@@ -46,95 +46,63 @@ class ListsUpdater extends Common {
 			this.racing = new ConnRacing(urls, {retries: 1, timeout: 5})
 			const retries = []
 			urls.forEach(url => this.info[url] = 'started')
-			async.eachOfLimit(urls, this.updateListsConcurrencyLimit, (url, i, done) => {
-				if(this.racing.ended){
-					if(this.debug){
-						console.log('updater - racing ended')
-					}
-					done()
-				} else {
-					this.racing.next(res => {
-						if(res && res.valid){
-							this.info[res.url] = 'updating'
-							if(this.debug){
-								console.log('updater - updating', res.url)
-							}
-							this.updateList(res.url).then(updated => {
-								this.info[res.url] = 'updated'
-								if(this.debug){
-									console.log('updater - updated', res.url, updated)
-								}
-								if(updated){
-									emit('list-updated', res.url)
-								}
-							}).catch(err => {
-								this.info[res.url] = 'update failed, '+ String(err)
-								console.error('updater - err: '+ err, global.traceback())
-							}).finally(done)
-						} else {
-							this.info[res.url] = 'failed, '+ JSON.stringify(res)
-							if(this.debug){
-								console.log('updater - failed', res.url, res)
-							}
-							if(res){
-								retries.push(res.url)
-							}
-							done()
+			const run = (urls, cb) => {
+				async.eachOfLimit(urls, this.updateListsConcurrencyLimit, (url, i, done) => {
+					if(this.racing.ended){
+						if(this.debug){
+							console.log('updater - racing ended')
 						}
-					})
-				}
-			}, () => {
-				this.racing.end()
-
-				// now retry the failed ones
-				if(this.debug){
-					console.log('updater - retry', retries)
-				}
-				this.retryRacing = new ConnRacing(retries, {retries: 3, timeout: 20})
-				async.eachOfLimit(retries, this.updateListsConcurrencyLimit, (url, i, done) => {
-					if(this.retryRacing.ended){
 						done()
 					} else {
-						this.retryRacing.next(res => {
+						this.racing.next(res => {
 							if(res && res.valid){
+								this.info[res.url] = 'updating'
 								if(this.debug){
 									console.log('updater - updating', res.url)
 								}
 								this.updateList(res.url).then(updated => {
+									this.info[res.url] = 'already updated'
 									if(this.debug){
 										console.log('updater - updated', res.url, updated)
 									}
-									done()
 									if(updated){
+										this.info[res.url] = 'updated'
 										emit('list-updated', res.url)
 									}
 								}).catch(err => {
-									console.error('updater - err: '+ err)
-									done()
-								})
+									this.info[res.url] = 'update failed, '+ String(err)
+									console.error('updater - err: '+ err, global.traceback())
+								}).finally(done)
 							} else {
+								this.info[res.url] = 'failed, '+ res.status
 								if(this.debug){
 									console.log('updater - failed', res.url, res)
+								}
+								if(res){
+									retries.push(res.url)
 								}
 								done()
 							}
 						})
 					}
 				}, () => {
-					this.retryRacing.end()
+					this.racing.end()
+					cb()
+				})
+			}
+			run(urls, () => {
+				run(retries, () => {
 					this.isUpdating = false
-					this.emit('finish')
-					emit('finish')
-					resolve(true)
+					resolve(this.info)
 				})
 			})
 		})
     }
-	async updateList(url){
+	async updateList(url, force){
 		if(this.debug){
 			console.log('updater updateList', url)
 		}
-		const should = await this.updaterShouldUpdate(url)
+		const should = force || (await this.updaterShouldUpdate(url))
 		const now = global.time()
 		if(this.debug){
 			console.log('updater - should', url, should)
@@ -145,20 +113,15 @@ class ListsUpdater extends Common {
 			const updater = new UpdateListIndex(url, url, file, this, Object.assign({}, updateMeta))
 			updateMeta.updateAfter = now + 180
 			this.setListMeta(url, updateMeta)
-			let ret, haserr
-			await updater.start().catch(err => {
-				haserr = err
-				if(this.debug){
-					console.log('updater - result', url, err)
-				}
-			})
+			let ret
+			await updater.start()
 			if(updater.index){
 				updateMeta.contentLength = updater.contentLength
 				updateMeta.updateAfter = now + (24 * 3600)
 				this.setListMeta(url, updater.index.meta)
 				this.setListMeta(url, updateMeta)
 				ret = true
-			}
+			} 
 			updater.destroy()
 			return ret || false
 		} else {
@@ -168,22 +131,24 @@ class ListsUpdater extends Common {
 	async validateIndex(url){
 		const list = new List(url, null, this.relevantKeywords)
 		await list.start()
+		const validated = list.index.length > 0
 		list.destroy()
-		return true
+		return validated
 	}
-	async updaterShouldUpdate(url, cb){
+	async updaterShouldUpdate(url){
 		const updateMeta = await this.getListMeta(url)
 		if(this.debug){
 			console.log('updater shouldUpdate', updateMeta, url)
 		}
 		let now = global.time()
 		let should = !updateMeta || now >= updateMeta.updateAfter
-		if(should){
-			return should
-		} else {
+		if(!should){
 			const valid = await this.validateIndex(url).catch(console.error)
-			return valid !== true
+			if(valid === true) {
+				return false
+			}
 		}
+		return true
 	}
 }
 

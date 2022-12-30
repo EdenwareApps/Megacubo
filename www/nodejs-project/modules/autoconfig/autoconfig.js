@@ -19,7 +19,7 @@ class AutoConfig {
         }
     }
     async detect(){
-        return await global.Download.promise({
+        return await global.Download.get({
             url: global.cloud.server +'/configure/auto',
             responseType: 'json'
         })

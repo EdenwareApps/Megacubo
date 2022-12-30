@@ -2,16 +2,53 @@
 const Events = require('events'), fs = require('fs'), ParentalControl = require(global.APPDIR + '/modules/lists/parental-control')
 const M3UParser = require(global.APPDIR + '/modules/lists/parser'), M3UTools = require(global.APPDIR + '/modules/lists/tools'), MediaStreamInfo = require(global.APPDIR + '/modules/lists/media-info')
 const Parser = require(global.APPDIR + '/modules/lists/parser')
+const List = require(global.APPDIR + '/modules/lists/list')
+const UpdateListIndex = require(global.APPDIR + '/modules/lists/update-list-index')
 
 LIST_DATA_KEY_MASK = 'list-data-1-{0}'
 
 class Fetcher extends Events {
-	constructor(){
+	constructor(url, atts, master){
 		super()
-		this.cancelables = []
-		this.minDataLength = 512
-		this.maxDataLength = 32 * (1024 * 1024) // 32Mb
-		this.ttl = 24 * 3600
+		this.atts = atts
+        this.url = url
+		this.playlists = []
+		this.master = master
+		this.file = global.storage.raw.resolve(global.LIST_DATA_KEY_MASK.format(url))
+		process.nextTick(() => {
+			this.start().catch(console.error).finally(() => {
+				this.isReady = true
+				this.emit('ready')
+			})
+		})
+	}
+	ready(){
+		return new Promise((resolve, reject) => {
+			if(this.isReady){
+				resolve()
+			} else {
+				this.once('ready', resolve)
+			}
+		})
+	}
+	start(){
+		return new Promise((resolve, reject) => {
+			this.list = new List(this.url, this.master, [])
+			this.list.start().then(resolve).catch(err => {
+				this.updater = new UpdateListIndex(this.url, this.url, this.file, this.master, {})
+				this.updater.start().then(() => {
+					this.list.start().then(resolve).catch(err => {
+						this.list.destroy()
+						this.updater.destroy()
+						reject(err)
+					})
+				}).catch(err => {
+					this.list.destroy()
+					this.updater.destroy()
+					reject(err)
+				})
+			})
+		})
 	}
 	validateCache(content){
 		return typeof(content) == 'string' && content.length >= this.minDataLength
@@ -29,104 +66,9 @@ class Fetcher extends Events {
 			}
 		}
 	}
-	fetch(path, atts){
-		return new Promise((resolve, reject) => {
-			if(path.substr(0, 2)=='//'){
-				path = 'http:' + path
-			}
-			if(this.isLocal(path)){
-				let stream = fs.createReadStream(path), entries = [], parser = new Parser()
-				if(atts){
-					if(atts.meta){
-						parser.on('meta', meta => atts.meta(meta))
-					}
-				}
-				parser.on('entry', e => entries.push(e))
-				parser.once('end',  () => {
-					stream.destroy()
-					stream = null
-					if(entries.length){
-						resolve(entries)
-					} else {
-						reject(global.lang.INVALID_URL_MSG)
-					}
-					parser.destroy()
-				})
-				stream.on('data', chunk => {
-					parser.write(chunk)
-				})
-				stream.once('close', () => {
-					parser.end()
-				})
-			} else if(path.match('^https?:')) {
-				const dataKey = LIST_DATA_KEY_MASK.format(path)
-				global.storage.raw.get(dataKey, data => {
-					const process = () => {					
-						const opts = {
-							url: path,
-							keepalive: false,
-							retries: 10,
-							followRedirect: true,
-							headers: {
-								'accept-charset': 'utf-8, *;q=0.1'
-							},
-							downloadLimit: 28 * (1024 * 1024), // 28Mb
-							p2p: true,
-							cacheTTL: 3600
-						}
-						let entries = [], stream = new global.Download(opts)
-						stream.once('response', (statusCode, headers) => {
-							if(statusCode >= 200 && statusCode < 300) {
-								let parser = new Parser(stream)
-								if(atts){
-									if(atts.meta){
-										parser.on('meta', meta => atts.meta(meta))
-									}
-									if(atts.progress){
-										stream.on('progress', p => atts.progress(p))
-									}
-								}
-								parser.on('entry', entry => {
-									entries.push(entry)
-								})
-								parser.once('end', () => {
-									stream.destroy()
-									stream = null
-									if(entries.length){
-										global.storage.raw.set(dataKey, entries.map(JSON.stringify).join("\r\n"), true)
-										resolve(entries)
-									} else {
-										reject(global.lang.INVALID_URL_MSG)
-									}
-									parser.destroy()
-								})
-							} else {
-								stream.destroy()
-								stream = null
-								reject('http error '+ statusCode)
-							}
-						})
-						stream.start()
-					}
-					if(this.validateCache(data)){
-						try{ // SyntaxError: Unexpected token \u0003 in JSON at position 73
-							let entries = data.split("\n").filter(s => s.length > 8).map(global.parseJSON)
-							let last = entries.length - 1
-							if(entries[last].length){ // remove index entry
-								entries.splice(last, 1)
-							}
-							resolve(entries)
-						} catch(e) {
-							process()
-						}
-					} else {
-						process()
-					}
-				})
-			} else {
-				reject('bad URL')
-			}
-		})
+	async fetch(){
+		await this.ready()
+		return await this.list.fetchAll()
 	}
 }
 
@@ -159,7 +101,7 @@ class Common extends Events {
 		if(typeof(n) != 'number'){
 			n = global.config.get('communitary-mode-lists-amount')
 		}
-		return Math.min(n * satisfyLevel, foundCommunityListsCount)
+		return Math.min(Math.floor(n * satisfyLevel), foundCommunityListsCount)
 	}
 	loadSearchRedirects(){
 		if(!this.searchRedirects.length){
@@ -168,7 +110,7 @@ class Common extends Events {
 				if(err){
 					console.error(err)
 				} else {
-					let data = global.parseJSON(String(content))
+					let data = global.parseJSON(content)
 					if(data && typeof(data) == 'object'){
 						let results = []
 						Object.keys(data).forEach(k => {
@@ -211,7 +153,7 @@ class Common extends Events {
 		})
 		txt = txt.toLowerCase()
 		let tms = this.applySearchRedirects(txt.replace(this.parser.regexes['plus-signal'], 'plus').
-			replace(this.parser.regexes['between-brackets'], ' $1 ').
+			replace(this.parser.regexes['between-brackets'], '').
 			normalize('NFD').toLowerCase().replace(this.parser.regexes['accents'], ''). // replace/normalize accents
 			split(' ').
 			map(s => {

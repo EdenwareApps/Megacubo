@@ -237,6 +237,7 @@ class DownloadCacheMap extends Events {
     constructor(){
         super()
         this.index = {}
+        this.debug = false
         this.minDiskAllocation = 100 * (1024 * 1024) // 100MB
         this.maxDiskAllocation = 1024 * (1024 * 1024) // 1GB
         this.maxMaintenanceInterval = 60
@@ -250,11 +251,13 @@ class DownloadCacheMap extends Events {
     }
     async reload(){
         const data = await this.readIndexFile()
-        Object.keys(data).forEach(url => {
-            if(typeof(this.index[url]) == 'undefined' || (this.index[url].ttl < data[url].ttl)){
-                this.index[url] = data[url]
-            }
-        })
+        if(typeof(data) == 'object'){
+            Object.keys(data).forEach(url => {
+                if(typeof(this.index[url]) == 'undefined' || (this.index[url].ttl < data[url].ttl)){
+                    this.index[url] = data[url]
+                }
+            })
+        }
     }
     async readIndexFile(){
         let ret = {}
@@ -284,7 +287,9 @@ class DownloadCacheMap extends Events {
                 const file = String(this.index[url].data)
                 if(!caches.includes(file) && this.index[url].type == 'file' && this.index[url].size > 0){
                     if(!changed) changed = true
-                    console.warn('DLCACHE RM file missing')
+                    if(this.debug){
+                        console.warn('DLCACHE RM file missing')
+                    }
                     delete this.index[url] // cache file missing
                 }
             })
@@ -292,12 +297,16 @@ class DownloadCacheMap extends Events {
                 const indexFiles = Object.values(this.index).map(r => String(r.data))
                 caches.forEach(file => {
                     if(!indexFiles.includes(file) && file != this.indexFile){
-                        console.warn('DLCACHE RM orphaned file', file, Object.values(this.index).filter(r => r.type == 'file').map(r => String(r.data)))
+                        if(this.debug){
+                            console.warn('DLCACHE RM orphaned file', file, Object.values(this.index).filter(r => r.type == 'file').map(r => String(r.data)))
+                        }
                         fs.promises.unlink(file).catch(console.error)
                     }
                 })
             }
-            console.warn('DLCACHE RM result', Object.keys(this.index))
+            if(this.debug){
+                console.warn('DLCACHE RM result', Object.keys(this.index))
+            }
             this.emit('update', this.export())
         } else if(caches.length) { // index file missing
             this.truncate()
@@ -318,7 +327,9 @@ class DownloadCacheMap extends Events {
     }
     truncate(){
         if(Object.keys(this.index).length){
-            console.warn('DLCACHE RM truncate', global.traceback())
+            if(this.debug){
+                console.warn('DLCACHE RM truncate', global.traceback())
+            }
             this.index = {}
             global.rmdir && global.rmdir(this.folder, false, () => {})
             this.emit('update', this.export())
@@ -367,13 +378,15 @@ class DownloadCacheMap extends Events {
             })
         }
         if(expired.length){
-            console.warn('DLCACHE RM expired', expired)
-            expired.forEach(row => {
+            if(this.debug){
+                console.warn('DLCACHE RM expired', expired)
+            }
+            for(let row of expired){
                 if(this.index[row.url].type == 'file'){
                     fs.promises.unlink(this.index[row.url].data).catch(console.error)
                 }
                 delete this.index[row.url]
-            })   
+            }
             this.emit('update', this.export())
         }
         this.saveIndex().catch(console.error)
@@ -386,7 +399,9 @@ class DownloadCacheMap extends Events {
         }
         ms *= 1000
         this.maintenanceTimer && clearTimeout(this.maintenanceTimer)
-        console.warn('DLCACHE maintenance', ms)
+        if(this.debug){
+            console.warn('DLCACHE maintenance', ms)
+        }
         this.maintenanceTimer = setTimeout(() => this.maintenance().catch(console.error), ms)
     }
     async saveIndex(){
@@ -438,7 +453,6 @@ class DownloadCacheMap extends Events {
             this.emit('update', this.export())
         }
         if(this.index[url] && this.index[url].type == 'saving' && this.index[url].uid == opts.uid) {
-            let hasErr
             if(chunk){
                 this.index[url].size = this.index[url].chunks.size
                 this.index[url].chunks.push(chunk)

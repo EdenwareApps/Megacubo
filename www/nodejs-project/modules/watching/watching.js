@@ -99,10 +99,10 @@ class Watching extends EntriesGroup {
     }
     entries(){
         return new Promise((resolve, reject) => {
-            if(global.lists.manager.isUpdating(true)){
+            if(!global.lists.loaded()){
                 return resolve([global.lists.manager.updatingListsEntry()])
             }
-            if(!global.activeLists.length){
+            if(!global.lists.activeLists.length){
                 return resolve([global.lists.manager.noListsEntry()])
             }
             this.ready(() => {

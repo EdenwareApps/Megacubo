@@ -1,12 +1,12 @@
 
-class IPTVStreamInfo {
+class StreamInfo {
     constructor(){
         this.opts = {
             debug: false,
             probeSampleSize: 1024
         }
     }
-	_probe(url, timeoutSecs, retries = 0, recursion = 10){
+	_probe(url, timeoutSecs, retries=0, opts={}, recursion=10){
 		return new Promise((resolve, reject) => {
 			let status = 0, timer = 0, headers = {}, sample = [], start = global.time()
 			if(this.validate(url)){
@@ -18,8 +18,17 @@ class IPTVStreamInfo {
                     followRedirect: true,
 					acceptRanges: false,
                     keepalive: false,
-                    retries
+                    retries,
+					headers: []
                 }
+				if(opts && typeof(opts) == 'object' && opts.atts){
+					if(opts.atts['user-agent']){
+						req.headers['user-agent'] = opts.atts['user-agent']
+					}
+					if(opts.atts['referer']){
+						req.headers['referer'] = opts.atts['referer']
+					}
+				}
                 let download = new global.Download(req), ended = false, finish = () => {
 					if(this.opts.debug){
 						console.log('finish', ended, sample, headers, traceback())
@@ -47,7 +56,7 @@ class IPTVStreamInfo {
 							if(!recursion){
 								return reject('Max recursion reached.')
 							}
-							return this._probe(trackUrl, timeoutSecs, retries, recursion).then( resolve ).catch(err => {
+							return this._probe(trackUrl, timeoutSecs, retries, opts, recursion).then( resolve ).catch(err => {
 								console.error('HLSTRACKERR', err, url, trackUrl)
 								reject(err)
 							})
@@ -58,7 +67,7 @@ class IPTVStreamInfo {
 							if(!recursion){
 								return reject('Max recursion reached.')
 							}
-							return this._probe(trackUrl, timeoutSecs, retries, recursion).then(ret =>{
+							return this._probe(trackUrl, timeoutSecs, retries, opts, recursion).then(ret =>{
 								if(ret && ret.status && ret.status >= 200 && ret.status < 300){
 									done() // send data from m3u8
 								} else {
@@ -107,12 +116,11 @@ class IPTVStreamInfo {
 			}
 		})
 	}
-	probe(url, retries = 2){
+	probe(url, retries = 2, opts={}){
 		return new Promise((resolve, reject) => {
 			const timeout = global.config.get('connect-timeout') * 2
 			if(this.proto(url, 4) == 'http'){
-				this._probe(url, timeout, retries).then(ret => { 
-					//console.warn('PROBED', ret)
+				this._probe(url, timeout, retries, opts).then(ret => { 
 					let cl = ret.headers['content-length'] || -1, ct = ret.headers['content-type'] || '', st = ret.status || 0
 					if(st < 200 || st >= 400 || st == 204){ // 204=No content
 						reject(st)
@@ -300,4 +308,4 @@ class IPTVStreamInfo {
 	}
 }
 
-module.exports = IPTVStreamInfo
+module.exports = StreamInfo

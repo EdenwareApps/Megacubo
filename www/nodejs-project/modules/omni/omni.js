@@ -37,11 +37,10 @@ class OMNI extends Events {
                 global.ui.emit('omni-callback', text, true)
             })
         })
-        global.lists.manager.once('lists-updated', () => {
+        global.lists.manager.waitListsReady().then(() => {
             this.omniEnabled = true
             global.ui.emit('omni-enable')
-        })
-
+        }).catch(console.error)
     }
 }
 

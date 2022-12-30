@@ -33,8 +33,9 @@ const Driver = require(file), driver = new Driver()
 onmessage = e => {
     const msg = e.data
     if(msg.method == 'configChange'){
-        //console.log('CONFIG CHANGED!', file)
         global.config.reload()
+    } else if(msg.method == 'unload'){
+        //setTimeout(() => close(), 10) // caused NW.js to close
     } else if(typeof(driver[msg.method]) == 'undefined'){
         postMessage({id: msg.id, type: 'reject', data: 'method not exists ' + JSON.stringify(msg.data)})
     } else {

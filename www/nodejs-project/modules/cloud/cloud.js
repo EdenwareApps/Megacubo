@@ -22,7 +22,7 @@ class CloudData {
         this.cachingDomain = 'cloud-' + this.locale + '-'
     }
     async testConfigServer(baseUrl){
-        let data = await Download.promise({url: baseUrl + '/configure.json', responseType: 'json'})
+        let data = await Download.get({url: baseUrl + '/configure.json', responseType: 'json'})
         if(data && data.version) return true
         throw 'Bad config server URL'
     }
@@ -76,7 +76,7 @@ class CloudData {
                         if(this.debug){
                             console.log('cloud: get', key, url)
                         }
-                        global.Download.promise({
+                        global.Download.get({
                             url,
                             responseType: raw === true ? 'text' : 'json',
                             timeout: 60,

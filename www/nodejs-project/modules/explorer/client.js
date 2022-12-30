@@ -900,7 +900,80 @@ class ExplorerPointer extends ExplorerSelectionMemory {
     }
 }
 
-class ExplorerModal extends ExplorerPointer {
+class ExplorerBBCode extends ExplorerPointer {
+	constructor(jQuery, container, app){
+		super(jQuery, container, app)
+		this.funnyTextColors = ['#3F0', '#39F', '#8d45ff', '#ff02c9', '#e48610']
+		this.bbCodeMap = {
+			'b': (fragment) => {
+				if(fragment.substr(0, 2) == '[|'){
+					return '</strong>'
+				}
+				return '<strong>'
+			},
+			'i': (fragment) => {
+				if(fragment.substr(0, 2) == '[|'){
+					return '</i>'
+				}
+				return '<i>'
+			},
+			'color': (fragment, name) => {
+				if(fragment.substr(0, 2) == '[|'){
+					return '</font>'
+				}
+				let color = name.split(' ').slice(1).join(' ')
+				return '<font style="color: '+ color +';">'
+			}
+		}
+
+	}
+	removeBBCode(text){
+		return text.replace(new RegExp('\\[\\|?([^\\]]*)\\]', 'g'), '')
+	}
+	parseBBCode(text){
+		if(typeof(this.replaceBBCodeFnPtr) == 'undefined'){
+			this.replaceBBCodeFnPtr = this.replaceBBCode.bind(this)
+			this.replaceBBCodeFunnyTextFnPtr = this.replaceBBCodeFunnyText.bind(this)
+		}
+		text = text.replace(new RegExp('\\[fun\\]([^\\[]*)\\[\\|?fun\\]', 'gi'), this.replaceBBCodeFunnyTextFnPtr)
+		return text.replace(new RegExp('\\[\\|?([^\\]]*)\\]', 'g'), this.replaceBBCodeFnPtr)
+	}
+	replaceBBCode(fragment, name, i, text){
+		const tag = name.split(' ').shift().toLowerCase()
+		if(!this.bbCodeMap[tag]) {
+			return text
+		}
+		return this.bbCodeMap[tag](fragment, name, text)
+	}
+	replaceBBCodeFunnyText(fragment, name, i, text){
+		return this.makeFunnyText(name)
+	}
+	makeFunnyText(text){
+		if(text.indexOf('&') != -1 && text.indexOf('&') != -1){
+			text = jQuery('<span />').html(text).text()
+		}
+		if(!config['kids-fun-titles']){
+			return text
+		}
+		const lettersPerColor = (text.length > 15 ? 3 : (text.length > 5 ? 2 : 1))
+		const scales = [1, 0.9, 0.8]
+		const a = (this.funnyTextColors.length * lettersPerColor)
+		return text.split('').map((chr, i) => {
+			i--
+			const scale = i < 2 ? 1 : scales[Math.floor(Math.random()*scales.length)]
+			const oi = i
+			const r = Math.floor(i / a)
+			if(r){
+				i -= r * a
+			}
+			const j = Math.floor(i / (lettersPerColor))
+			if(chr == ' ') chr = '&nbsp;'
+			return '<font class="funny-text" style="color: '+ (oi == -1 ? 'white' : this.funnyTextColors[j]) +';transform: scale('+ scale +');">'+chr+'</font>'
+		}).join('')		
+	}
+}
+
+class ExplorerModal extends ExplorerBBCode {
 	constructor(jQuery, container, app){
 		super(jQuery, container, app)
 		this.inputHelper = new ExplorerURLInputHelper()
@@ -913,7 +986,7 @@ class ExplorerModal extends ExplorerPointer {
 				if(!this.inModalMandatory()){
 					this.endModal()
 				}
-            }	
+            }
 		})
 	}
 	plainText(html) {
@@ -948,11 +1021,22 @@ class ExplorerModal extends ExplorerPointer {
 		}
 	}
 	replaceTags(text, replaces, noSlashes) {
+		if(replaces['name'] && !replaces['rawName']){
+			replaces['rawName'] = replaces['name']
+		}
 		Object.keys(replaces).forEach(before => {
 			let t = typeof(replaces[before])
 			if(['string', 'number', 'boolean'].indexOf(t) != -1){
 				let addSlashes = typeof(noSlashes) == 'boolean' ? !noSlashes : (t == 'string' && replaces[before].indexOf('<') == -1)
-				text = text.split('{' + before + '}').join(addSlashes ? this.addSlashes(replaces[before]) : String(replaces[before]))
+				let to = addSlashes ? this.addSlashes(replaces[before]) : String(replaces[before])
+				if(to.indexOf('[') != -1){
+					if(before == 'name'){
+						to = this.removeBBCode(to)
+					} else if(before == 'rawName') {
+						to = this.parseBBCode(to)
+					}
+				}
+				text = text.split('{' + before + '}').join(to)
 				if(text.indexOf("\r\n") != -1){
 					text = text.replace(new RegExp('\r\n', 'g'), '<br />')
 				}
@@ -1286,10 +1370,10 @@ class ExplorerDialog extends ExplorerDialogQueue {
 				{template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle'}
 			];
 			this.dialog(mpt, id => {
-				if(this.debug){
-					console.log('infocb', complete)
-				}
 				if(!complete){
+					if(this.debug){
+						console.log('infocb', id, complete)
+					}
 					complete = true
 					this.endModal()
 					if(typeof(cb) == 'function'){
@@ -1716,11 +1800,9 @@ class Explorer extends ExplorerLoading {
 			}
 		})	
 		this.app.on('render', (entries, path, icon) => {
-			//console.log('ENTRIES', path, entries, icon)
 			this.render(entries, path, icon)
 		})
 		this.app.on('explorer-select', (entries, path, icon) => {
-			//console.log('ENTRIES', path, entries, icon)
 			this.setupSelect(entries, path, icon)
 		})
 		this.app.on('info', (a, b, c) => {
@@ -1765,7 +1847,7 @@ class Explorer extends ExplorerLoading {
 		<span class="entry-data-in">
 			<span class="entry-name" aria-hidden="true">
 				<span class="entry-status-flags"></span>
-				<label>{prepend}{name}</label>
+				<label>{prepend}{rawName}</label>
 			</span>
 			<span class="entry-details">{details}</span>
 		</span>
@@ -1779,7 +1861,7 @@ class Explorer extends ExplorerLoading {
 	<span class="entry-wrapper">
 		<span class="entry-data-in">
 			<span class="entry-name" aria-hidden="true">
-				<label>{name}</label>
+				<label>{rawName}</label>
 			</span>
 		</span>
 		<span class="entry-icon-image">
@@ -1793,7 +1875,7 @@ class Explorer extends ExplorerLoading {
 		<span class="entry-data-in">
 			<span class="entry-name" aria-hidden="true">
 				<span class="entry-status-flags"></span>
-				<label>{prepend}{name}</label>
+				<label>{prepend}{rawName}</label>
 			</span>
 			<span class="entry-details">{details}</span>
 		</span>
@@ -1808,7 +1890,7 @@ class Explorer extends ExplorerLoading {
 		<span class="entry-data-in">			
 			<span class="entry-name" aria-hidden="true">
 				<span class="entry-status-flags"></span>
-				<label>{prepend}{name}</label>
+				<label>{prepend}{rawName}</label>
 			</span>
 			<span class="entry-details">{details} {value}</span>
 		</span>
@@ -1823,7 +1905,7 @@ class Explorer extends ExplorerLoading {
 		<span class="entry-data-in">		
 			<span class="entry-name" aria-hidden="true">
 				<span class="entry-status-flags"></span>
-				<label>{prepend}{name}</label>
+				<label>{prepend}{rawName}</label>
 			</span>
 			<span class="entry-details">{value}</span>
 		</span>
@@ -1838,7 +1920,7 @@ class Explorer extends ExplorerLoading {
 		<span class="entry-data-in">		
 			<span class="entry-name" aria-hidden="true">
 				<span class="entry-status-flags"></span>
-				<label>{prepend}{name}</label>
+				<label>{prepend}{rawName}</label>
 			</span>
 			<span class="entry-details">{details}</span>
 		</span>

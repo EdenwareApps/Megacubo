@@ -143,7 +143,7 @@ class EPG extends EPGPaginateChannelsList {
                     return
                 }
                 hasErr = true
-                console.error('EPG FAILED DEBUG', initialBuffer)
+                //console.error('EPG FAILED DEBUG', initialBuffer)
                 errorCount++
                 console.error(err)
                 if(errorCount >= 128){
@@ -169,7 +169,7 @@ class EPG extends EPGPaginateChannelsList {
                 this.applyMetaCache()
                 this.clean()
                 this.save()
-                this.parser.destroy() 
+                this.parser && this.parser.destroy() // TypeError: Cannot read property 'destroy' of null
                 this.parser = null                                
                 this.scheduleNextUpdate()
             })
@@ -605,8 +605,6 @@ class EPG extends EPGPaginateChannelsList {
                         maxScore = score
                         candidates.push({name, score})
                     }
-                } else {
-                    console.error('Not an array', this.terms[name], name)
                 }
             })
         }

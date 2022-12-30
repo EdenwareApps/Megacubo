@@ -76,7 +76,7 @@ class TunerTask extends TunerUtils {
 			1 = success, queued
 			2 = success, emitted
 			*/
-			this.streamer.info(e.url, 2, e.source).then(info => {
+			this.streamer.info(e.url, 2, e).then(info => {
 				if(!this.aborted){
 					//console.warn('TEST SUCCESS', e, info, this.opts.allowedTypes)
 					this.info[i] = info

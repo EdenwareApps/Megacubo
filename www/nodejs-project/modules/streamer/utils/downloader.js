@@ -249,15 +249,17 @@ class Downloader extends StreamerAdapterBase {
 		this.finishBitrateSample(this.currentDownloadUID)
 		this.currentDownloadUID = String(connStart)
 		this.lastConnectionStartTime = connStart
-		const download = this.currentRequest = new global.Download({
+		let reqHeaders = {
 			url: this.url,
 			authURL: this.opts.authURL || false,
 			keepalive: this.committed && global.config.get('use-keepalive'),
 			followRedirect: true,
 			acceptRanges: false,
 			retries: 3, // strangely, some servers always abort the first try, throwing "The server aborted pending request"
-			debug: this.debugConns
-		})
+			debug: this.debugConns,
+			headers: this.getDefaultRequestHeaders()
+		}		
+		const download = this.currentRequest = new global.Download(reqHeaders)
 		download.on('error', error => {
 			let elapsed = global.time() - connStart
             console.warn('['+ this.type +'] ERR after '+ elapsed +'s', error, this.url)
