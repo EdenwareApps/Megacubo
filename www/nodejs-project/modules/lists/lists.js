@@ -214,6 +214,7 @@ class Lists extends ListsEPGTools {
 		this.relevantKeywords = []
 		this.syncListsQueue = {}
 		this.syncListsConcurrencyLimit = 2
+		this.isUpdaterFinished = true // true by default
 	}
 	isListCached(url, cb){
 		let file = global.storage.raw.resolve(LIST_DATA_KEY_MASK.format(url))
@@ -300,7 +301,7 @@ class Lists extends ListsEPGTools {
             }
             listsLoadTimes[url].filtered = global.time()
         })
-        this.syncListProgressData.firstRun = !communityLists.length
+        this.isFirstRun = !communityLists.length
         this.delimitActiveLists() // helps to avoid too many lists in memory
         if(!global.config.get('communitary-mode-lists-amount') && communityLists.length){
             communityLists = []
@@ -321,9 +322,10 @@ class Lists extends ListsEPGTools {
 	status(url=''){
 		let progress = 0, progresses = [], firstRun = true, satisfyAmount = this.myLists.length				
 		let isUpdatingFinished = this.isUpdaterFinished && !this.syncingListsCount()
-		if(this.syncListProgressData){
+		if(isUpdatingFinished){
+			progress = 100			
+		} else if(this.syncListProgressData){
             const camount = global.config.get('communitary-mode-lists-amount')
-			firstRun = this.syncListProgressData.firstRun
 			if(this.myLists.length){
 				progresses = progresses.concat(this.myLists.map(url => this.lists[url] ? this.lists[url].progress() : 0))
 			}
@@ -348,7 +350,7 @@ class Lists extends ListsEPGTools {
 		if(this.debug){
 			console.log('status() progresses', progress)
 		}
-		let ret = {url, progress, firstRun, satisfyAmount}
+		let ret = {url, progress, firstRun}
 		return ret
 	}
 	loaded(){

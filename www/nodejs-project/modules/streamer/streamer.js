@@ -228,7 +228,6 @@ class StreamerBase extends StreamerTools {
         return ret
     }
     pingSourceUnqueue(k, type, body){
-        let ret
         if(typeof(global.streamerPingSourceCallbacks[k]) != 'undefined'){
             global.streamerPingSourceCallbacks[k].forEach(r => {
                 r[type](body)
@@ -1223,7 +1222,7 @@ class Streamer extends StreamerAbout {
 		csources.forEach(s => {
 			sources[s] = entries.filter(e => e.source == s)
 		})
-		const expired = Object.keys(sources).forEach(source => {
+		const expired = Object.keys(sources).filter(source => {
 			if(this.expiralCheckLock[source] && this.expiralCheckLock[source] > from){
 				return
 			}

@@ -12,7 +12,6 @@ class Manager extends Events {
         this.openingList = false
         this.updatingProcesses = {}
         this.lastProgress = 0
-        this.firstRun = true
         this.IPTV = new IPTV()
         this.updaterResults = {}
         global.ui.on('explorer-back', () => {
@@ -33,7 +32,7 @@ class Manager extends Events {
         console.warn('UPDATEISD', p.progress)
         if(p.progress < 100){
             this.uiShowing = true
-            global.osd.show(global.lang[p.firstRun ? 'STARTING_LISTS_FIRST_TIME_WAIT' : 'UPDATING_LISTS'] +' '+ p.progress +'%', 'fa-mega spin-x-alt', 'update', 'persistent')
+            global.osd.show(global.lang[global.lists.isFirstRun ? 'STARTING_LISTS_FIRST_TIME_WAIT' : 'UPDATING_LISTS'] +' '+ p.progress +'%', 'fa-mega spin-x-alt', 'update', 'persistent')
         } else {
             if(this.uiShowing){
                 this.uiShowing = false
@@ -618,7 +617,7 @@ class Manager extends Events {
     }
     updatingListsEntry(name){
         return {
-            name: name || global.lang[this.firstRun ? 'STARTING_LISTS' : 'UPDATING_LISTS'],
+            name: name || global.lang[global.lists.isFirstRun ? 'STARTING_LISTS' : 'UPDATING_LISTS'],
             fa: 'fa-mega spin-x-alt',
             type: 'action',
             action: () => {
