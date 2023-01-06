@@ -28,7 +28,7 @@ class AnalyticsBase extends Events {
         if(global.premium && global.premium.active){
             data.verinf = global.premium.active
         }
-        if(data.source && !global.config.get('communitary-mode-lists-amount')){
+        if(data.source && global.lists.isPrivateList(data.source)){
             // console.log('Source URL not shareable.')
             data.source = ''
         }

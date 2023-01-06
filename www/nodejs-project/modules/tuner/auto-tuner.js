@@ -107,7 +107,7 @@ class AutoTuner extends Events {
     }
     async ceilMyListsStreams(entries){
         const deferredEntries = []
-        const listsInfo = await global.lists.info()
+        const listsInfo = global.lists.info()
         entries = entries.filter(entry => {
             const isMine = listsInfo[entry.source] && listsInfo[entry.source].owned
             if(isMine){

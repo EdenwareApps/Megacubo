@@ -34,6 +34,7 @@ class Fetcher extends Events {
 	start(){
 		return new Promise((resolve, reject) => {
 			this.list = new List(this.url, this.master, [])
+			this.list.skipValidating = true
 			this.list.start().then(resolve).catch(err => {
 				this.updater = new UpdateListIndex(this.url, this.url, this.file, this.master, {})
 				this.updater.start().then(() => {
@@ -70,6 +71,10 @@ class Fetcher extends Events {
 		await this.ready()
 		return await this.list.fetchAll()
 	}
+	destroy(){
+		this.list && this.list.destroy()
+		this.updater && this.list.destroy()
+	}
 }
 
 class Common extends Events {
@@ -95,13 +100,6 @@ class Common extends Events {
         this.msi = new MediaStreamInfo()
 		this.parentalControl = new ParentalControl()
 		this.loadSearchRedirects()
-	}
-	communityListsRequiredAmount(n, foundCommunityListsCount){
-		let satisfyLevel = 0.5
-		if(typeof(n) != 'number'){
-			n = global.config.get('communitary-mode-lists-amount')
-		}
-		return Math.min(Math.floor(n * satisfyLevel), foundCommunityListsCount)
 	}
 	loadSearchRedirects(){
 		if(!this.searchRedirects.length){

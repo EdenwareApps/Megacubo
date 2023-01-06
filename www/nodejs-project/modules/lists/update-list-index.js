@@ -150,9 +150,7 @@ class UpdateListIndex extends ListIndexUtils {
                 await this.parseStream(writer, playlist).catch(console.error)
             }
         }
-        await this.writeIndex(writer).catch(err => {
-            console.error('!!! INDEX WRITING ERROR', err)
-        })
+        await this.writeIndex(writer).catch(err => console.warn('writeIndex error', err))
         writer.destroy()
         return true
 	}

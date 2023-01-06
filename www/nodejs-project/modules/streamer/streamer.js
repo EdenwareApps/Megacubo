@@ -1069,7 +1069,6 @@ class Streamer extends StreamerAbout {
 		if(hasErr){
 			if(!silent){
 				global.osd.show(global.lang.NONE_STREAM_WORKED_X.format(name), 'fas fa-exclamation-circle faclr-red', 'streamer', 'normal')
-				this.triggerCheckForListExpiral(entries)
 			}
 		} else {
 			this.setTuneable(true)
@@ -1199,58 +1198,6 @@ class Streamer extends StreamerAbout {
 			global.explorer.setLoadingEntries(loadingEntriesData, false)
 		}
 		return succeeded
-	}
-	async triggerCheckForListExpiral(){
-		if(global.lists.activeLists.my.length == 0 || !global.tuning){
-			return
-		}
-		const expiralCheckLockTime = 300
-		if(typeof(this.expiralCheckLock) == 'undefined'){
-			this.expiralCheckLock = {}
-		}
-		const now = global.time(), from = now - expiralCheckLockTime, validLiveTypes = ['hls', 'ts']
-		const info = await global.lists.info()
-		const csources = Object.keys(info).filter(u => {
-			return !this.expiralCheckLock[u] || this.expiralCheckLock[u] < from
-		}).filter(u => {
-			return info[u].owned && info[u].private
-		})
-		if(!csources.length){
-			return
-		}
-		const sources = {}, entries = Object.values(global.tuning.log())
-		csources.forEach(s => {
-			sources[s] = entries.filter(e => e.source == s)
-		})
-		const expired = Object.keys(sources).filter(source => {
-			if(this.expiralCheckLock[source] && this.expiralCheckLock[source] > from){
-				return
-			}
-			if(sources[source].some(e => validLiveTypes.includes(e.type))){
-				return
-			}
-			let expiralStatusCodes = [401, 403], expiralMessageTypes = ['video', 'vodhls'], expiralScore = sources[source].filter(e => {
-				return expiralStatusCodes.includes(e.error) || expiralMessageTypes.includes(e.type)
-			}).length
-			if(expiralScore > (sources[source].length / 2)){	
-				console.warn('triggerCheckForListExpiral', source +' EXPIRED', expiralScore +'/'+ sources[source].length)
-				this.expiralCheckLock[source] = now
-				return true
-			}
-		})
-		if(expired.length){
-			const ret = await global.explorer.dialog([
-				{template: 'question', text: 'Megacubo', fa: 'fas fa-info-circle'},
-				{template: 'message', text: global.lang.IPTV_LIST_EXPIRED +'<br /><br />'+ expired.join('<br />')},
-				{template: 'option', text: 'OK', id: 'ok', fa: 'fas fa-check-circle'},
-				{template: 'option', text: global.lang.REMOVE_LIST, id: 'rm', fa: 'fas fa-trash'}
-			], 'ok').catch(console.error) // dont wait
-			if(ret == 'rm'){
-				expired.map(url => {
-					global.lists.manager.remove(url)
-				})
-			}
-		}
 	}
 	play(e, results, silent){
 		this.playPromise(e, results, silent).catch(console.error)

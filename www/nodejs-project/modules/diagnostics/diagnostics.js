@@ -13,9 +13,9 @@ class Diagnostics extends Events {
 		const diskSpace = await this.checkDisk()
 		const freeMem = global.kbfmt(await this.checkMemory())
 		const config = global.deepClone(global.config.data)
-		const lists = await global.lists.info()
+		const lists = global.lists.info()
 		const myLists = config.lists.map(a => a[1]);
-		const listsRequesting = global.listsRequesting
+		const listsRequesting = global.lists.requesting
 		const tuning = global.tuning ? global.tuning.logText(false) : ''
 		const updaterResults = global.lists.manager.updaterResults;
 		['lists', 'parental-control-terms', 'parental-control-pw', 'premium-license'].forEach(k => delete config[k])

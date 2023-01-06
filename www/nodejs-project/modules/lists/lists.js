@@ -7,9 +7,6 @@ const Index = require(global.APPDIR + '/modules/lists/index')
 const List = require(global.APPDIR + '/modules/lists/list')
 const EPG = require(global.APPDIR + '/modules/epg')
 
-listsRequesting = {}
-listsLoadTimes = {}
-
 class ListsEPGTools extends Index {
     constructor(opts){
 		super(opts)
@@ -210,19 +207,36 @@ class Lists extends ListsEPGTools {
 		}
 		this.epgs = []
         this.myLists = []
-        this.sharingUrls = []
+        this.communityLists = []
 		this.relevantKeywords = []
+		this.requesting = {}
+		this.loadTimes = {}
 		this.syncListsQueue = {}
 		this.syncListsConcurrencyLimit = 2
 		this.isUpdaterFinished = true // true by default
+		global.config.on('change', keys => {
+			keys.includes('lists') && this.configChanged()
+		})
+		this.configChanged()
+	}
+	configChanged(){
+		const myLists = global.config.get('lists').map(l => l[1])
+		if(this.myLists.length){
+			this.myLists.forEach(u => {
+				if(!myLists.includes(u)){
+					this.remove(u)
+				}
+			})
+		}
+		this.myLists = myLists
 	}
 	isListCached(url, cb){
 		let file = global.storage.raw.resolve(LIST_DATA_KEY_MASK.format(url))
 		fs.stat(file, (err, stat) => cb((stat && stat.size >= 1024)))
 	}
-	checkCachedUrls(urls){
+	filterCachedUrls(urls){
         return new Promise((resolve, reject) => {
-            if(this.debug) console.log('checkCachedUrls', urls.join("\r\n"))
+            if(this.debug) console.log('filterCachedUrls', urls.join("\r\n"))
             let loadedUrls = [], cachedUrls = []
             urls = urls.filter(u => {
                 if(typeof(this.lists[u]) == 'undefined'){
@@ -232,21 +246,21 @@ class Lists extends ListsEPGTools {
             })
             async.eachOfLimit(urls, 8, (url, i, done) => {
                 this.isListCached(url, has => {
-                    if(this.debug) console.log('checkCachedUrls', url, has)
+                    if(this.debug) console.log('filterCachedUrls', url, has)
                     if(has){
                         cachedUrls.push(url)
-                        if(!listsRequesting[url]){
-                            listsRequesting[url] = 'cached, not added'
+                        if(!this.requesting[url]){
+                            this.requesting[url] = 'cached, not added'
                         }
                     } else {					
-                        if(!listsRequesting[url]){
-                            listsRequesting[url] = 'not cached'
+                        if(!this.requesting[url]){
+                            this.requesting[url] = 'not cached'
                         }
                     }
                     done()
                 })
             }, () => {
-                if(this.debug) console.log('checkCachedUrls', loadedUrls.concat(cachedUrls).join("\r\n"))
+                if(this.debug) console.log('filterCachedUrls', loadedUrls.concat(cachedUrls).join("\r\n"))
                 resolve(loadedUrls.concat(cachedUrls))
             })
         })
@@ -255,58 +269,42 @@ class Lists extends ListsEPGTools {
 		this.isUpdaterFinished = isFinished
 		return this.isUpdaterFinished
 	}
-	getUniqueCommunityLists(communityLists){ // remove duplicated communityLists, even from different protocols
-		let already = []
-		this.myLists.forEach(u => {
-			let i = u.indexOf('//')
-			already.push(i == -1 ? u : u.substr(i + 2))
-		})
-		return communityLists.filter(u => {
-			let i = u.indexOf('//')
-			u = i == -1 ? u : u.substr(i + 2)
-			if(!already.includes(u)){
-				already.push(u)
-				return true
-			}
-		})
-	}
-	async loadCachedLists(myLists, communityLists, relevantKeywords){
-        let hits = 0
+	async keywords(relevantKeywords){
 		if(relevantKeywords && relevantKeywords.length){
             this.relevantKeywords = relevantKeywords
         }
+		return this.relevantKeywords || []
+	}
+	setCommunityLists(communityLists){
+		 // communityLists for reference (we'll use it to calc lists loading progress)
+		communityLists.forEach(url => {
+			if(!this.communityLists.includes(url)){
+				this.communityLists.push(url)
+			}
+		})
+		return true
+	}
+	async loadCachedLists(lists){
+        let hits = 0
         if(this.debug){
-            console.log('Checking for cached lists...', myLists, communityLists)
+            console.log('Checking for cached lists...', myLists, lists)
         }
-        communityLists = this.getUniqueCommunityLists(communityLists)
-        if(this.myLists.length){
-            this.myLists.forEach(u => {
-                if(!myLists.includes(u)){
-                    this.remove(u)
-                }
-            })
-        }
-        this.myLists = myLists
-        this.syncListProgressData = {myLists, communityLists} // pick communityLists before filtering
-        communityLists.forEach(url => {
-            if(!listsLoadTimes[url]){
-                listsLoadTimes[url] = {}
+		lists.forEach(url => {
+            if(!this.loadTimes[url]){
+                this.loadTimes[url] = {}
             }
-            listsLoadTimes[url].sync = global.time()
+            this.loadTimes[url].sync = global.time()
         })
-        communityLists = await this.checkCachedUrls(communityLists)
-        communityLists.forEach(url => {
-            if(!listsLoadTimes[url]){
-                listsLoadTimes[url] = {}
+        lists = await this.filterCachedUrls(lists)
+        lists.forEach(url => {
+            if(!this.loadTimes[url]){
+                this.loadTimes[url] = {}
             }
-            listsLoadTimes[url].filtered = global.time()
+            this.loadTimes[url].filtered = global.time()
         })
-        this.isFirstRun = !communityLists.length
+        this.isFirstRun = !lists.length // is first load if has no cached lists
         this.delimitActiveLists() // helps to avoid too many lists in memory
-        if(!global.config.get('communitary-mode-lists-amount') && communityLists.length){
-            communityLists = []
-        }
-        for(let url of myLists.concat(communityLists)) {
+        for(let url of this.myLists.concat(lists)) {
             if(typeof(this.lists[url]) == 'undefined') {
 				hits++
                 await this.syncList(url).catch(err => {
@@ -323,15 +321,16 @@ class Lists extends ListsEPGTools {
 		let progress = 0, progresses = [], firstRun = true, satisfyAmount = this.myLists.length				
 		let isUpdatingFinished = this.isUpdaterFinished && !this.syncingListsCount()
 		if(isUpdatingFinished){
-			progress = 100			
-		} else if(this.syncListProgressData){
+			progress = 100
+		} else {
             const camount = global.config.get('communitary-mode-lists-amount')
 			if(this.myLists.length){
 				progresses = progresses.concat(this.myLists.map(url => this.lists[url] ? this.lists[url].progress() : 0))
 			}
 			if(camount > satisfyAmount){
-				satisfyAmount += this.communityListsRequiredAmount(camount, this.syncListProgressData.communityLists.length)
-				progresses = progresses.concat(Object.keys(this.lists).filter(url => !this.syncListProgressData.myLists.includes(url)).map(url => this.lists[url].progress()).sort((a, b) => b - a).slice(0, satisfyAmount))
+				// let satisfyAmount -1 below from communitary-mode-lists-amount
+				satisfyAmount += Math.max(1, Math.min(camount, this.communityLists.length) - 1)
+				progresses = progresses.concat(Object.keys(this.lists).filter(url => !this.myLists.includes(url)).map(url => this.lists[url].progress()).sort((a, b) => b - a).slice(0, satisfyAmount))
 			}
 			if(this.debug){
 				console.log('status() progresses', progresses)
@@ -444,19 +443,19 @@ class Lists extends ListsEPGTools {
 			if(this.debug){
 				console.log('syncLoadList start', url)
 			}
-			if(!listsLoadTimes[url]){
-				listsLoadTimes[url] = {}
+			if(!this.loadTimes[url]){
+				this.loadTimes[url] = {}
 			} else {
 				this.remove(url)
 			}
-			listsLoadTimes[url].syncing = global.time()
-			global.listsRequesting[url] = 'loading'		
+			this.loadTimes[url].syncing = global.time()
+			this.requesting[url] = 'loading'		
 			this.lists[url] = new List(url, this, this.relevantKeywords)
 			this.lists[url].skipValidating = true // list is already validated at driver-updater, always
 			this.lists[url].contentLength = contentLength
 			this.lists[url].once('destroy', () => {
-				if(!global.listsRequesting[url] || (global.listsRequesting[url] == 'loading')){
-					global.listsRequesting[url] = 'destroyed'
+				if(!this.requesting[url] || (this.requesting[url] == 'loading')){
+					this.requesting[url] = 'destroyed'
 				}
 				if(isMine && this.myLists.includes(url)){ // isMine yet?
 					console.error('Damn! My list got destroyed!', url)
@@ -471,19 +470,21 @@ class Lists extends ListsEPGTools {
 				}
 			})
 			this.lists[url].start().then(() => {
-				listsLoadTimes[url].synced = global.time()
+				this.loadTimes[url].synced = global.time()
 				if(this.debug){
 					console.log('syncLoadList started', url)
 				}
-				if(!this.lists[url]) {
-					if(!global.listsRequesting[url] || (global.listsRequesting[url] == 'loading')){
-						global.listsRequesting[url] = 'loaded, but destroyed'
+				let repeated
+				if(!this.lists[url] || (repeated=this.isRepeatedList(url))) {
+					if(!this.requesting[url] || (this.requesting[url] == 'loading')){
+						this.requesting[url] = repeated ? 'repeated at '+ repeated : 'loaded, but destroyed'
 					}
 					if(this.debug){
-						console.log('List '+ url +' already discarded.')
-					}
-					if(this.debug){
-						console.log('syncLoadList end: discarded')
+						if(repeated){
+							console.log('List '+ url +' repeated, discarding.')
+						} else {
+							console.log('List '+ url +' already discarded.')
+						}
 					}
 					if(!resolved){
 						resolved = true
@@ -496,7 +497,7 @@ class Lists extends ListsEPGTools {
 					}
 					this.isContentAlreadyLoaded(this.lists[url], contentAlreadyLoaded => {
 						if(contentAlreadyLoaded){
-							global.listsRequesting[url] = 'content already loaded'
+							this.requesting[url] = 'content already loaded'
 							if(this.debug){
 								console.log('Content already loaded', url)
 							}
@@ -510,7 +511,7 @@ class Lists extends ListsEPGTools {
 						} else {
 							let replace
 							if(this.lists[url]){
-								global.listsRequesting[url] = 'added'
+								this.requesting[url] = 'added'
 								if(!isMine && this.loadedListsCount() >= (this.myLists.length + global.config.get('communitary-mode-lists-amount'))){
 									replace = this.shouldReplace(this.lists[url])
 									if(replace){
@@ -519,15 +520,15 @@ class Lists extends ListsEPGTools {
 											console.log('List', url, this.lists[url].relevance.total, 'will replace', replace, pr)
 										}
 										this.remove(replace)
-										global.listsRequesting[replace] = 'replaced by '+ url +', '+ pr +' < '+ this.lists[url].relevance.total
-										global.listsRequesting[url] = 'added in place of '+ replace +', '+ pr +' < '+ this.lists[url].relevance.total
+										this.requesting[replace] = 'replaced by '+ url +', '+ pr +' < '+ this.lists[url].relevance.total
+										this.requesting[url] = 'added in place of '+ replace +', '+ pr +' < '+ this.lists[url].relevance.total
 									}
 								}
 								if(this.debug){
 									console.log('Added community list...', url, this.lists[url].index.length)
 								}
-							} else if(!global.listsRequesting[url] || global.listsRequesting[url] == 'loading') {
-								global.listsRequesting[url] = 'adding error, instance not found'
+							} else if(!this.requesting[url] || this.requesting[url] == 'loading') {
+								this.requesting[url] = 'adding error, instance not found'
 							}
 							if(!resolved){
 								if(!replace){
@@ -542,9 +543,9 @@ class Lists extends ListsEPGTools {
 				}
 			}).catch(err => {
 				//console.warn('LOAD LIST FAIL', url, this.lists[url])
-				listsLoadTimes[url].synced = global.time()
-				if(!global.listsRequesting[url] || (global.listsRequesting[url] == 'loading')){
-					global.listsRequesting[url] = String(err)
+				this.loadTimes[url].synced = global.time()
+				if(!this.requesting[url] || (this.requesting[url] == 'loading')){
+					this.requesting[url] = String(err)
 				}
 				console.error('syncLoadList error: ', err)
 				if(!resolved){
@@ -589,6 +590,24 @@ class Lists extends ListsEPGTools {
 		if(weaker && this.lists[weaker] && this.lists[weaker].relevance.total < list.relevance.total){
 			return weaker
 		}
+	}
+	isRepeatedList(url){
+		if(!url || !this.lists[url] || !this.lists[url].index || this.myLists.includes(url)){
+			return
+		}
+		let dup
+		Object.keys(this.lists).some(k => {
+			if(k == url || !this.lists[k].index){
+				return
+			}
+			if(this.lists[k].index.length == this.lists[url].index.length){
+				if(JSON.stringify(this.lists[k].index.length) == JSON.stringify(this.lists[url].index.length)) {
+					dup = k
+					return true
+				}
+			}
+		})
+		return dup
 	}
 	isContentAlreadyLoaded(list, cb){
 		if(this.myLists.includes(list.url)){
@@ -635,7 +654,7 @@ class Lists extends ListsEPGTools {
 			length: this.myLists.length + communityUrls.length
 		}
     }
-    async info(){
+    info(){
         const info = {}, current = global.config.get('lists')
 		const hint = global.config.get('communitary-mode-lists-amount')
 		Object.keys(this.lists).forEach(url => {
@@ -664,6 +683,10 @@ class Lists extends ListsEPGTools {
 		})
 		return info
     }
+	isPrivateList(url){
+		const ls = this.info()
+		return ls[url] ? ls[url]['private'] : true
+	}
 	delimitActiveLists(){
         const camount = global.config.get('communitary-mode-lists-amount')
 		if(this.loadedListsCount() > (this.myLists.length + camount)){
@@ -679,7 +702,7 @@ class Lists extends ListsEPGTools {
 			let sorted = Object.keys(results).sort((a, b) => results[b] - results[a])
 			sorted.slice(camount).forEach(u => {
 				if(this.lists[u]){
-					global.listsRequesting[u] = 'destroyed on delimiting (relevance: '+ this.lists[u].relevance.total +'), '+ JSON.stringify(global.traceback()).replace(new RegExp('[^A-Za-z0-9 /:]+', 'g'), ' ')
+					this.requesting[u] = 'destroyed on delimiting (relevance: '+ this.lists[u].relevance.total +'), '+ JSON.stringify(global.traceback()).replace(new RegExp('[^A-Za-z0-9 /:]+', 'g'), ' ')
 					this.remove(u)
 				}
 			})

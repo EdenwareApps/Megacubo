@@ -94,7 +94,7 @@ class List extends Events {
     }
 	progress(){
 		let p = 0
-		if(this.validator){
+		if(this.validator) {
 			p = this.validator.progress()
 		} else if(this.isReady || this.indexer.hasFailed) {
 			p = 100

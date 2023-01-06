@@ -37,19 +37,28 @@ class StreamerNetworkProxy extends StreamerProxy {
             }
             this.server = http.createServer(this.handleRequest.bind(this))
             this.serverStopper = stoppable(this.server)
-            this.server.listen(0, this.addr, (err) => {
-                if (err) {
-                    if(this.opts.debug){
-                        console.log('unable to listen on port', err)
-                    }
-                    reject(err)
-                } else {
-                    this.connectable = true
-                    this.opts.port = this.server.address().port
-                    resolve(true)
+            this.listen().then(() => {
+                this.connectable = true
+                this.opts.port = this.server.address().port
+                resolve(true)
+            }).catch(err => {
+                if(this.opts.debug){
+                    console.log('unable to listen on port', err)
                 }
+                reject(err)
             })
             this.server.on('error', console.error)
+        })
+    }
+    listen(){
+        return new Promise((resolve, reject) => {
+            this.server.listen(6342, this.addr, (err) => {
+                if (!err) return resolve(true)
+                this.server.listen(0, this.addr, (err) => {
+                    if (err) return reject(err)
+                    resolve(true)
+                })
+            })
         })
     }
 }

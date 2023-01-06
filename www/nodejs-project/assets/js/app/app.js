@@ -200,10 +200,7 @@ function initApp(){
                 })
             })
         } else if(parent.parent.Manager) {
-            parent.parent.Manager.openFile(mimetypes, (err, file) => {
-                console.error('OF', uploadURL, cbID, err, file)
-                app.emit(cbID, [file])
-            })
+            parent.parent.Manager.openFile(mimetypes, (err, file) => app.emit(cbID, [file]))
         } else {
             explorer.openFile(uploadURL, cbID, mimetypes)
         }

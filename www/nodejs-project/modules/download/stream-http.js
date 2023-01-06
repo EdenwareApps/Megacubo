@@ -116,8 +116,8 @@ class DownloadStreamHttp extends DownloadStreamBase {
         }
         for(let ip of this.ips){
             const options = await this.options(ip.address, ip.family)
-            fine = await this.get(options)
-            if(fine) {
+            fine = await this.get(options).catch(console.error)
+            if(fine === true) {
                 break
             }
         }

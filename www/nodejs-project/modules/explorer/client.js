@@ -1973,8 +1973,8 @@ class Explorer extends ExplorerLoading {
 	adaptiveRender(entries, path, prevEntries){
 		let move
 		entries.forEach((e, j) => {
-			let ne
-			if(!['select', 'check', 'slider'].includes(e.type)){
+			let ne, flag = -1
+			if(!['check', 'slider'].includes(e.type)){
 				prevEntries.some((n, i) => {
 					let diff = this.diffEntries(e, n)
 					if(!diff){
@@ -1982,6 +1982,9 @@ class Explorer extends ExplorerLoading {
 						if(!ne) return
 						if(i != j) {
 							move = true
+							flag = 2 // DOM element was moved
+						} else {
+							flag = 1 // DOM element was kept
 						}
 						ne.setAttribute('tabindex', j)
 						return true
@@ -1994,8 +1997,10 @@ class Explorer extends ExplorerLoading {
 					tpl = this.templates[e.type]
 				}
 				ne = jQuery(this.renderEntry(e, tpl, path)).get(0)
+				flag = 3 // DOM element was generated
 				move = true
 			}
+			// console.log('adaptiveRender entry', e.name, flag)
 			if(!move) return
 			this.insertElementAt(ne, j)
 		})

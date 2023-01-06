@@ -1,18 +1,615 @@
 
-const Events = require('events'), fs = require('fs'), path = require('path'), async = require('async')
-const IPTV = require('../iptv')
+const Events = require('events'), async = require('async'), IPTV = require('../iptv')
 
-class Manager extends Events {
-    constructor(parent){
+class ManagerCommunityLists extends Events {
+    constructor(){
         super()
-        this.master = parent
+        this.IPTV = new IPTV()
+    }
+    extraCommunityLists(myLists, communityLists){
+        return new Promise(resolve => {
+            async.eachOf([this.IPTV], (driver, i, done) => {
+                driver.ready().then(() => {
+                    driver.countries.ready().then(() => {
+                        communityLists = communityLists.filter(u => myLists.indexOf(u) == -1)
+                        communityLists = communityLists.filter(u => !driver.isKnownURL(u)) // remove communityLists from other countries/languages
+                        driver.getLocalLists().then(localLists => {
+                            communityLists = localLists.concat(communityLists)
+                        }).catch(console.error).finally(done)
+                    }).catch(done)
+                }).catch(done)
+            }, () => {
+                resolve(communityLists)
+            })
+        })
+    }   
+    async communityModeKeywords(){
+        const badTerms = ['m3u8', 'ts', 'mp4', 'tv', 'channel']
+        let terms = [], addTerms = (tms, score) => {
+            if(typeof(score) != 'number'){
+                score = 1
+            }
+            tms.forEach(term => {
+                if(badTerms.includes(term)){
+                    return
+                }
+                const has = terms.some((r, i) => {
+                    if(r.term == term){
+                        terms[i].score += score
+                        return true
+                    }
+                })
+                if(!has){
+                    terms.push({term, score})
+                }
+            })
+        }
+        let bterms = global.bookmarks.get()
+        if(bterms.length){ // bookmarks terms
+            bterms = bterms.slice(-24)
+            bterms = [...new Set(bterms.map(e => global.channels.entryTerms(e)).flat())].filter(c => c[0] != '-')
+            addTerms(bterms)
+        }
+        let sterms = await global.search.history.terms()
+        if(sterms.length){ // searching terms history
+            sterms = sterms.slice(-24)
+            sterms = [...new Set(sterms.map(e => global.channels.entryTerms(e)).flat())].filter(c => c[0] != '-')
+            addTerms(sterms)
+        }
+        let hterms = global.histo.get()
+        if(hterms.length){ // user history terms
+            hterms = hterms.slice(-24)
+            hterms = [...new Set(hterms.map(e => channels.entryTerms(e)).flat())].filter(c => c[0] != '-')
+            addTerms(hterms)
+        }
+        addTerms(await global.channels.keywords())
+        const max = Math.max(...terms.map(t => t.score))
+        let cterms = global.config.get('communitary-mode-interests')
+        if(cterms){ // user specified interests
+            cterms = this.master.terms(cterms, false).filter(c => c[0] != '-')
+            if(cterms.length){
+                addTerms(cterms, max)
+            }
+        }
+        terms = terms.sortByProp('score', true).map(t => t.term)
+        if(terms.length > 24) {
+            terms = terms.slice(0, 24)
+        }
+        return terms
+    }
+    
+    communityLists(){
+        return new Promise((resolve, reject) => {
+            let limit = global.config.get('communitary-mode-lists-amount')
+            if(limit){
+                this.allCommunityLists(30000, true).then(lists => {
+                    lists = lists.slice(0, limit)
+                    resolve(lists)
+                }).catch(e => {
+                    console.error(e)
+                    resolve([])
+                })
+            } else {
+                resolve([])
+            }
+        })
+    }
+    async communityListsEntries(){
+        const info = await this.master.info()
+        let entries = Object.keys(info).filter(u => !info[u].owned).sort((a, b) => {
+            if([a, b].some(a => typeof(info[a].score) == 'undefined')) return 0
+            if(info[a].score == info[b].score) return 0
+            return info[a].score > info[b].score ? -1 : 1
+        }).map(url => {
+            let name = info[url].name || this.nameFromSourceURL(url)
+            let icon = info[url].icon || undefined
+            let details = info[url].author || ''
+            if(details){
+                details += ' &middot; '
+            }
+            details += parseInt((info[url].score || 0) * 100) +'% &middot; '+ global.lang.X_BROADCASTS.format(global.kfmt(info[url].length, 1))
+            return {
+                name, url, icon, details,
+                fa: 'fas fa-satellite-dish',
+                type: 'group',
+                class: 'skip-testing',
+                renderer: this.directListRenderer.bind(this)
+            }
+        })
+        if(!entries.length){
+            entries = [this.noListsRetryEntry()]
+        }
+        return entries
+    }
+    async getAllCommunitySources(fromLanguage, timeout=3000){
+        if(fromLanguage === true){
+            let ret = {}, sources = await global.cloud.get('sources', false, timeout)
+            if(!Array.isArray(sources)){
+                sources = []
+            }
+            sources.forEach(row => {
+                ret[row.url] = parseInt(row.label.split(' ').shift())
+            })
+            return ret
+        } else {
+            let ret = {}, locs = await global.lang.getActiveCountries()
+            let results = await Promise.allSettled(locs.map(loc => global.cloud.get('country-sources.'+ loc, false, timeout).catch(console.error)))
+            results.forEach(r => {
+                if(r.status == 'fulfilled' && r.value && typeof(r.value) == 'object'){
+                    r.value.forEach(row => {
+                        let count = parseInt(row.label.split(' ').shift())
+                        if(isNaN(count)) count = 0
+                        if(typeof(ret[row.url]) != 'undefined') count += ret[row.url]
+                        ret[row.url] = count
+                    })
+                }
+            })
+            if(Object.keys(ret).length <= 8){
+                return await this.getAllCommunitySources(true, timeout)
+            }
+            return Object.entries(ret).sort(([,a],[,b]) => b-a).reduce((r, [k, v]) => ({ ...r, [k]: v }), {})
+        }
+    }
+    async allCommunityLists(timeout=30000, urlsOnly=true){
+        let limit = global.config.get('communitary-mode-lists-amount')
+        if(limit){
+            let s = await this.getAllCommunitySources(false, timeout)
+            if(typeof(s) == 'object'){
+                let r = Object.keys(s).map(url => {
+                    return {url, count: s[url]}
+                })
+                if(urlsOnly){
+                    r = r.map(e => e.url)
+                }
+                return r
+            }
+        }
+        return []
+    }
+    async allCommunityListsEntries(){
+        let sources = await this.getAllCommunitySources(), names = {};
+        await Promise.allSettled(Object.keys(sources).map(url => {
+            return this.name(url, false).then(name => {
+                names[url] = name
+            })
+        }))
+        let lists = Object.keys(sources).map(url => {
+            let v = {url}
+            v.class = 'skip-testing'
+            v.details = sources[url] +' '+ (sources[url] > 1 ? global.lang.USERS : global.lang.USER)
+            v.type = 'group'
+            v.name = names[url]
+            v.fa = 'fas fa-satellite-dish'
+            v.renderer = data => {
+                return new Promise((resolve, reject) => {
+                    this.openingList = true
+                    this.directListRenderer(data, {
+                        fetch: true
+                    }).then(ret => {
+                        resolve(ret)
+                    }).catch(err => {
+                        reject(err)
+                    }).finally(() => {
+                        this.openingList = false
+                        global.osd.hide('list-open')
+                    })
+                })
+            }
+            return v   
+        })
+        console.log('sources', lists)
+        if(lists.length){
+            if(global.config.get('parental-control') == 'block'){
+                lists = this.master.parentalControl.filter(lists)
+            }
+        } else {
+            lists = [this.noListsRetryEntry()]
+        }
+        return lists
+    }
+    listSharingEntry(){
+        return {
+            name: global.lang.COMMUNITY_LISTS, type: 'group', fa: 'fas fa-users', details: global.lang.LIST_SHARING,
+            renderer: () => {
+                return new Promise((resolve, reject) => {
+                    let options = [
+                        {name: global.lang.ACCEPT_LISTS, type: 'check', details: global.lang.LIST_SHARING, action: (data, checked) => {
+                            if(checked){
+                                global.ui.emit('dialog', [
+                                    {template: 'question', text: global.lang.COMMUNITY_LISTS, fa: 'fas fa-users'},
+                                    {template: 'message', text: global.lang.ASK_COMMUNITY_LIST},
+                                    {template: 'option', id: 'back', fa: 'fas fa-times-circle', text: global.lang.BACK},
+                                    {template: 'option', id: 'agree', fa: 'fas fa-check-circle', text: global.lang.I_AGREE}
+                                ], 'lists-manager', 'back', true)                
+                            } else {
+                                global.config.set('communitary-mode-lists-amount', 0)
+                                global.explorer.refresh()
+                            }
+                        }, checked: () => {
+                            return global.config.get('communitary-mode-lists-amount') > 0
+                        }}
+                    ]
+                    if(global.config.get('communitary-mode-lists-amount') > 0){
+                        options.push({name: global.lang.RECEIVED_LISTS, details: global.lang.SHARED_AND_LOADED, fa: 'fas fa-users', type: 'group', renderer: this.communityListsEntries.bind(this)})
+                        options.push({name: global.lang.ALL_LISTS, details: global.lang.SHARED_FROM_ALL, fa: 'fas fa-users', type: 'group', renderer: this.allCommunityListsEntries.bind(this)})
+                        options.push({
+                            name: global.lang.AMOUNT_OF_LISTS,
+                            details: global.lang.AMOUNT_OF_LISTS_HINT,
+                            type: 'slider', 
+                            fa: 'fas fa-cog', 
+                            mask: '{0} ' + global.lang.COMMUNITY_LISTS.toLowerCase(), 
+                            value: () => {
+                                return global.config.get('communitary-mode-lists-amount')
+                            }, 
+                            range: {start: 5, end: 72},
+                            action: (data, value) => {
+                                global.config.set('communitary-mode-lists-amount', value)
+                            }
+                        })                                
+                        options.push({
+                            name: global.lang.INTERESTS,
+                            details: global.lang.SEPARATE_WITH_COMMAS, 
+                            type: 'input',
+                            fa: 'fas fa-edit',
+                            action: (e, v) => {
+                                if(v !== false && v != global.config.get('communitary-mode-interests')){
+                                    global.config.set('communitary-mode-interests', v)
+                                    global.ui.emit('ask-restart')
+                                }
+                            },
+                            value: () => {
+                                return global.config.get('communitary-mode-interests')
+                            },
+                            placeholder: global.lang.COMMUNITY_LISTS_INTERESTS_HINT,
+                            multiline: true,
+                            safe: true
+                        })
+                    }
+                    resolve(options)
+                })
+            }
+        }
+    }
+}
+
+class ManagerEPG extends ManagerCommunityLists {
+    constructor(){
+        super()
+    }
+    parseEPGURL(url, asArray){
+        let urls = [url]
+        if(url.match(new RegExp(',(https?://|//)'))){
+            urls = url.replace(',//', ',http://').split(',http').map((u, i) => {
+                if(i){
+                    u = 'http'+ u
+                }
+                return u
+            })
+        }
+        return asArray ? urls : urls.shift()
+    }
+    async searchEPGs(){
+        let epgs = []
+        let urls = await this.master.foundEPGs().catch(console.error)
+        if(Array.isArray(urls)){
+            urls = urls.map(u => this.parseEPGURL(u, true)).flat()
+            epgs = epgs.concat(urls)
+        }
+        if(global.config.get('communitary-mode-lists-amount')){
+            let c = await cloud.get('configure').catch(console.error)
+            if(c) {
+                let cs = await global.lang.getActiveCountries()
+                if(!cs.includes(global.lang.countryCode)){
+                    cs.push(global.lang.countryCode)
+                }
+                cs.forEach(code => {
+                    let key = 'epg-' + code
+                    if(c[key] && !epgs.includes(c[key])){
+                        epgs.push(c[key])
+                    }
+                })
+                epgs = epgs.concat(global.watching.currentRawEntries.map(e => e.epg).filter(e => !!e))
+            }
+        }
+        epgs = [...new Set(epgs)].sort()
+        return epgs
+    }
+    epgLoadingStatus(epgStatus){
+        let details = ''
+        if(Array.isArray(epgStatus)){
+            switch(epgStatus[0]){
+                case 'uninitialized':
+                    details = '<i class="fas fa-clock"></i>'
+                    break
+                case 'loading':
+                    details = global.lang.LOADING
+                    break
+                case 'connecting':
+                    details = global.lang.CONNECTING
+                    break
+                case 'connected':
+                    details = global.lang.PROCESSING + ' ' + epgStatus[1] + '%'
+                    break
+                case 'loaded':
+                    details = global.lang.ENABLED
+                    break
+                case 'error':
+                    details = 'Error: ' + epgStatus[1]
+                    break
+            }
+        }
+        return details
+    }
+    updateEPGStatus(){
+        let p = global.explorer.path
+        if(p.indexOf(global.lang.EPG) == -1){
+            clearInterval(this.epgStatusTimer)
+            this.epgStatusTimer = false
+        } else {
+            this.master.epg([], 2).then(epgData => {
+                let activeEPGDetails = this.epgLoadingStatus(epgData)
+                if(activeEPGDetails != this.lastActiveEPGDetails){
+                    this.lastActiveEPGDetails = activeEPGDetails
+                    this.epgOptionsEntries(activeEPGDetails).then(es => {
+                        if(p == global.explorer.path){
+                            es = es.map(e => {
+                                if(e.name == global.lang.SYNC_EPG_CHANNELS){
+                                    e.value = e.checked()
+                                }
+                                return e
+                            })
+                            global.explorer.render(es, p, global.channels.epgIcon)
+                        }
+                    }).catch(console.error)
+                }                
+            }).catch(err => {
+                clearInterval(this.epgStatusTimer)
+                this.epgStatusTimer = false
+            })
+        }
+    }
+    epgOptionsEntries(activeEPGDetails){
+        return new Promise((resolve, reject) => {
+            let options = [], epgs = []
+            this.searchEPGs().then(urls => {
+                epgs = epgs.concat(urls)
+            }).catch(console.error).finally(() => {
+                let activeEPG = global.config.get('epg-'+ global.lang.locale) || global.activeEPG
+                if(!activeEPG || activeEPG == 'disabled'){
+                    activeEPG = ''
+                }
+                console.log('SETT-EPG', activeEPG, epgs)
+                if(activeEPG){
+                    activeEPG = this.formatEPGURL(activeEPG) 
+                    if(!epgs.includes(activeEPG)){
+                        epgs.push(activeEPG)
+                    }
+                }
+                const next = () => {
+                    options = epgs.sort().map(url => {
+                        let details = '', name = this.nameFromSourceURL(url)
+                        if(url == activeEPG){
+                            if(activeEPGDetails){
+                                details = activeEPGDetails
+                            } else {
+                                if(global.channels.activeEPG == url){
+                                    details = global.lang.EPG_LOAD_SUCCESS
+                                } else {
+                                    details = global.lang.PROCESSING
+                                }
+                            }
+                        }
+                        return {
+                            name,
+                            type: 'action',
+                            fa: 'fas fa-th-large',
+                            prepend: (url == activeEPG) ? '<i class="fas fa-check-circle faclr-green"></i> ' : '',
+                            details,
+                            action: () => {
+                                if(url == global.config.get('epg-'+ global.lang.locale)){
+                                    global.config.set('epg-'+ global.lang.locale, 'disabled')
+                                    global.channels.load()
+                                    this.setEPG('', true)
+                                } else {
+                                    global.config.set('epg-'+ global.lang.locale, url)
+                                    this.setEPG(url, true)
+                                }
+                                global.explorer.refresh()
+                            }
+                        }
+                    })
+                    options.unshift({
+                        name: global.lang.SYNC_EPG_CHANNELS,
+                        type: 'check',
+                        action: (e, checked) => {
+                            global.config.set('use-epg-channels-list', checked)
+                            if(checked){
+                                if(global.activeEPG){
+                                    this.importEPGChannelsList(global.activeEPG).catch(console.error)
+                                }
+                            } else {
+                                global.channels.load()
+                            }
+                        }, 
+                        checked: () => global.config.get('use-epg-channels-list')
+                    })
+                    options.unshift({name: global.lang.ADD, fa: 'fas fa-plus-square', type: 'action', action: () => {
+                        global.ui.emit('prompt', global.lang.EPG, 'http://.../epg.xml', global.activeEPG || '', 'set-epg', false, global.channels.epgIcon)
+                    }})
+                    resolve(options)
+                }
+                if(activeEPG){
+                    const epgNext = () => {
+                        if(activeEPGDetails == global.lang.ENABLED){
+                            if(this.epgStatusTimer){
+                                clearInterval(this.epgStatusTimer)
+                                this.epgStatusTimer = false
+                            }
+                        } else {
+                            if(!this.epgStatusTimer){
+                                this.epgStatusTimer = setInterval(this.updateEPGStatus.bind(this), 1000)
+                            }
+                        }
+                        next()
+                    }
+                    if(typeof(activeEPGDetails) == 'string'){
+                        epgNext()
+                    } else {
+                        this.master.epg([], 2).then(epgData => {
+                            this.lastActiveEPGDetails = activeEPGDetails = this.epgLoadingStatus(epgData)
+                            epgNext()
+                        }).catch(err => {
+                            console.error(err)
+                            activeEPGDetails = ''
+                            epgNext()
+                        })
+                    }
+                } else {
+                    next()
+                }
+            })
+        })
+    }
+    shouldImportEPGChannelsList(url){
+        return url == global.activeEPG && global.config.get('use-epg-channels-list')
+    }
+    importEPGChannelsList(url){
+        return new Promise((resolve, reject) => {
+            this.master.epgLiveNowChannelsList().then(data => {
+                let imported = false
+                global.channels.updateCategoriesCacheKey()
+                if(this.shouldImportEPGChannelsList(url)){ // check again if user didn't changed his mind
+                    console.log('CHANNELS LIST IMPORT', data.categories, data.updateAfter, url, global.activeEPG)
+                    global.channels.setCategories(data.categories, true)
+                    if(this.importEPGChannelsListTimer){
+                        clearTimeout(this.importEPGChannelsListTimer)                        
+                    }
+                    this.importEPGChannelsListTimer = setTimeout(() => {
+                        this.importEPGChannelsList(url).catch(console.error)
+                    }, data.updateAfter * 1000)
+                    imported = true
+                }
+                global.channels.load()
+                resolve(imported)
+            }).catch(err => {
+                global.osd.show(global.lang.SYNC_EPG_CHANNELS_FAILED, 'fas fa-exclamation-circle faclr-red', 'epg', 'normal')
+                reject(err)
+            })
+        })
+    }
+    formatEPGURL(url){        
+        const fragment = ',http'
+        if(url && url.indexOf(fragment) != -1){
+            url = url.split(',http').shift()
+        }
+        return url
+    }
+    async setEPG(url, ui){
+        console.log('SETEPG', url)
+        if(typeof(url) == 'string'){
+            if(url){
+                url = this.formatEPGURL(url)
+            }
+            if(!url || global.validateURL(url)){
+                global.activeEPG = url
+                global.channels.activeEPG = ''
+                await this.loadEPG(url, ui)
+                let refresh = () => {
+                    if(global.explorer.path.indexOf(global.lang.EPG) != -1 || global.explorer.path.indexOf(global.lang.LIVE) != -1){
+                        global.explorer.refresh()
+                    }
+                }
+                console.log('SETEPGc', url, ui, global.activeEPG)
+                if(!url){
+                    global.channels.updateCategoriesCacheKey()
+                    global.channels.load()
+                    if(ui){
+                        global.osd.show(global.lang.EPG_DISABLED, 'fas fa-times-circle', 'epg', 'normal')                            
+                    }
+                } else if(this.shouldImportEPGChannelsList(url)) {
+                    this.importEPGChannelsList(url).catch(console.error)
+                }
+                refresh()
+            } else {
+                if(ui){
+                    global.osd.show(global.lang.INVALID_URL, 'fas fa-exclamation-circle faclr-red', 'epg', 'normal')
+                }
+                throw global.lang.INVALID_URL
+            }
+        }
+    }
+    loadEPG(url, ui){
+        return new Promise((resolve, reject) => {
+            global.channels.activeEPG = ''
+            if(!url && global.config.get('epg-'+ global.lang.locale) != 'disabled'){
+                url = global.config.get('epg-'+ global.lang.locale)
+            }
+            if(!url && ui) ui = false
+            if(ui){
+                global.osd.show(global.lang.EPG_AVAILABLE_SOON, 'fas fa-check-circle', 'epg', 'normal')
+            }
+            console.log('loadEPG', url)
+            this.master.loadEPG(url).then(() => {
+                global.channels.activeEPG = url
+                global.channels.emit('epg-loaded', url)
+                if(ui){
+                    global.osd.show(global.lang.EPG_LOAD_SUCCESS, 'fas fa-check-circle', 'epg', 'normal')
+                }
+                if(global.explorer.path == global.lang.TRENDING || (global.explorer.path.startsWith(global.lang.LIVE) && global.explorer.path.split('/').length == 2)){
+                    global.explorer.refresh()
+                }
+                if(this.shouldImportEPGChannelsList()) {
+                    this.importEPGChannelsList(url).then(() => {
+                        if(global.explorer.path == global.lang.TRENDING || (global.explorer.path.startsWith(global.lang.LIVE) && global.explorer.path.split('/').length == 2)){
+                            global.explorer.refresh()
+                        }
+                    }).catch(console.error)
+                }
+                resolve(true)
+            }).catch(err => {
+                console.error(err)
+                global.osd.show(global.lang.EPG_LOAD_FAILURE + ': ' + String(err), 'fas fa-check-circle', 'epg', 'normal')
+                reject(err)
+            })
+        })
+    }
+    setImportEPGChannelsListTimer(){
+        const allow = () => {
+            return global.config.get('use-epg-channels-list') && global.config.get('epg-'+ global.lang.locale)
+        }
+        const disable = () => {            
+            if(this.importEPGChannelsListTimer){
+                clearInterval(this.importEPGChannelsListTimer)
+                delete this.importEPGChannelsListTimer
+            }
+        }
+        if(allow()){
+            if(typeof(this.importEPGChannelsListTimer) == 'undefined') {
+                this.importEPGChannelsListTimer = setInterval(() => {
+                    if(allow()){
+                        const url = global.config.get('epg-'+ global.lang.locale)
+                        this.importEPGChannelsList(url).catch(console.error)
+                    } else {
+                        disable()
+                    }
+                }, 300000) // 5min
+            }
+        } else {
+            disable()
+        }
+    }
+}
+
+class Manager extends ManagerEPG {
+    constructor(master){
+        super()
+        this.master = master
         this.listFaIcon = 'fas fa-satellite-dish'
         // this.listFaIcon = 'fas fa-broadcast-tower'
         this.key = 'lists'
         this.openingList = false
         this.updatingProcesses = {}
         this.lastProgress = 0
-        this.IPTV = new IPTV()
         this.updaterResults = {}
         global.ui.on('explorer-back', () => {
             if(this.openingList){
@@ -27,9 +624,8 @@ class Manager extends Events {
         })
         this.master.on('sync-status', p => this.updateOSD(p))
     }
-    updateOSD(){
-        const p = global.lists.status()
-        console.warn('UPDATEISD', p.progress)
+    updateOSD(status){
+        const p = status || global.lists.status()
         if(p.progress < 100){
             this.uiShowing = true
             global.osd.show(global.lang[global.lists.isFirstRun ? 'STARTING_LISTS_FIRST_TIME_WAIT' : 'UPDATING_LISTS'] +' '+ p.progress +'%', 'fa-mega spin-x-alt', 'update', 'persistent')
@@ -46,9 +642,11 @@ class Manager extends Events {
             }
         }
         if(global.explorer && global.explorer.currentEntries) {
+            const updateEntryNames = [global.lang.PROCESSING, global.lang.UPDATING_LISTS, global.lang.STARTING_LISTS]
+            const updateBaseNames = [global.lang.TRENDING, global.lang.COMMUNITY_LISTS, global.lang.RECEIVED_LISTS]
             if(
-                global.explorer.currentEntries.some(e => [global.lang.PROCESSING].includes(e.name)) ||
-                [global.lang.COMMUNITY_LISTS, global.lang.RECEIVED_LISTS].includes(global.explorer.basename(global.explorer.path))
+                updateBaseNames.includes(global.explorer.basename(global.explorer.path)) || 
+                global.explorer.currentEntries.some(e => updateEntryNames.includes(e.name))
             ) {
                 global.explorer.refresh()
             } else if(this.inChannelPage()) {
@@ -385,111 +983,63 @@ class Manager extends Events {
             return true
         }
     }
-    shareableLists(){
-        const hint = global.config.get('communitary-mode-lists-amount') > 0
-        return this.get().filter(l => {
-            if(l.length > 2 && typeof(l[2]['private']) != 'undefined'){
-                return !l[2]['private']
-            } else {
-                return hint
-            }
-        }).map(l => l[1])
-    }
     updatingProcessOutput(uid, message, fa){
+        this.updatingProcesses[uid].progress = 100
         this.updatingProcesses[uid].ret = {message, fa}
         if(global.explorer && global.explorer.currentEntries && global.explorer.currentEntries.some(e => [global.lang.LOAD_COMMUNITY_LISTS, global.lang.UPDATING_LISTS, global.lang.STARTING_LISTS, global.lang.STARTING_LISTS_FIRST_TIME_WAIT, global.lang.PROCESSING].includes(e.name))){
             global.explorer.refresh()
         }
         this.updateOSD()
-    }    
-    async communityModeKeywords(){
-        const badTerms = ['m3u8', 'ts', 'mp4', 'tv', 'channel']
-        let terms = [], addTerms = (tms, score) => {
-            if(typeof(score) != 'number'){
-                score = 1
-            }
-            tms.forEach(term => {
-                if(badTerms.includes(term)){
-                    return
-                }
-                const has = terms.some((r, i) => {
-                    if(r.term == term){
-                        terms[i].score += score
-                        return true
-                    }
-                })
-                if(!has){
-                    terms.push({term, score})
-                }
-            })
-        }
-        let bterms = global.bookmarks.get()
-        if(bterms.length){ // bookmarks terms
-            bterms = bterms.slice(-24)
-            bterms = [...new Set(bterms.map(e => global.channels.entryTerms(e)).flat())].filter(c => c[0] != '-')
-            addTerms(bterms)
-        }
-        let sterms = await global.search.history.terms()
-        if(sterms.length){ // searching terms history
-            sterms = sterms.slice(-24)
-            sterms = [...new Set(sterms.map(e => global.channels.entryTerms(e)).flat())].filter(c => c[0] != '-')
-            addTerms(sterms)
-        }
-        let hterms = global.histo.get()
-        if(hterms.length){ // user history terms
-            hterms = hterms.slice(-24)
-            hterms = [...new Set(hterms.map(e => channels.entryTerms(e)).flat())].filter(c => c[0] != '-')
-            addTerms(hterms)
-        }
-        addTerms(await global.channels.keywords())
-        const max = Math.max(...terms.map(t => t.score))
-        let cterms = global.config.get('communitary-mode-interests')
-        if(cterms){ // user specified interests
-            cterms = this.master.terms(cterms, false).filter(c => c[0] != '-')
-            if(cterms.length){
-                addTerms(cterms, max)
-            }
-        }
-        terms = terms.sortByProp('score', true).map(t => t.term)
-        if(terms.length > 24) {
-            terms = terms.slice(0, 24)
-        }
-        return terms
-    }
+    } 
     createUpdater(){
         return new (require(global.APPDIR + '/modules/driver')(global.APPDIR + '/modules/lists/driver-updater'))
     }
-    async updateLists(force, uid){
+	getUniqueLists(urls){ // remove duplicated lists even from different protocols
+		let already = []
+		return urls.filter(u => {
+			let i = u.indexOf('//')
+			u = i == -1 ? u : u.substr(i + 2)
+			if(!already.includes(u)){
+				already.push(u)
+				return true
+			}
+		})
+	}
+    async update(force, uid){
         console.log('Update lists', this.updatingProcesses, global.traceback())
         const camount = global.config.get('communitary-mode-lists-amount')
         if(force === true || !global.lists.activeLists.length || global.lists.activeLists.length < camount){
-            let haserr, myLists = await this.getURLs(), communityLists = []
-            if(camount){
-                communityLists = await this.allCommunityLists(30000, true).catch(err => haserr = err)
-                if(haserr){
-                    global.displayErr(haserr)
-                    this.updatingProcessOutput(uid, global.lang.NO_LIST_PROVIDED, 'fas fa-exclamation-circle') // warn user if there's no lists
-                    throw haserr
-                }
-                communityLists = await this.extraCommunityLists(myLists, communityLists)
-            }
-            console.log('allCommunityLists', communityLists.length)
             const alreadyUpdating = Object.keys(this.updatingProcesses).map(id => {
                 return this.updatingProcesses[id].urls
             }).flat()
-            myLists = myLists.filter(url => !alreadyUpdating.includes(url))
-            communityLists = communityLists.filter(url => !alreadyUpdating.includes(url))
+            let haserr, communityLists = [], keywords = []
+            const myLists = (await this.getURLs()).filter(url => !alreadyUpdating.includes(url))
+            const loadMyListsCaches = this.master.loadCachedLists(myLists) // load my lists asap, before to possibly keep waiting for community lists
+            if(camount){
+                let maxListsToTry = 3 * camount
+                communityLists = await this.allCommunityLists(30000, true).catch(err => haserr = err)
+                if(haserr){
+                    communityLists = []
+                }
+                communityLists = await this.extraCommunityLists(myLists, communityLists)
+                communityLists = communityLists.filter(url => !alreadyUpdating.includes(url) && !myLists.includes(url))
+                communityLists = this.getUniqueLists(communityLists)
+                if(communityLists.length){
+                    communityLists = communityLists.filter(url => !alreadyUpdating.includes(url))
+                    if(communityLists.length > maxListsToTry){
+                        communityLists = communityLists.slice(0, maxListsToTry)
+                    }
+                    keywords = await this.communityModeKeywords()
+                }
+                console.log('allCommunityLists', communityLists.length)
+            }
             if(communityLists.length || myLists.length){
                 this.uiUpdating = true
-                let maxListsToTry = 2 * global.config.get('communitary-mode-lists-amount')
-                if(communityLists.length > maxListsToTry){
-                    communityLists = communityLists.slice(0, maxListsToTry)
-                }
                 const allLists = myLists.concat(communityLists)
                 this.updatingProcesses[uid].urls = allLists
                 console.log('Updating lists', {alreadyUpdating}, myLists, communityLists, global.traceback())
-                let keywords = await this.communityModeKeywords()
-                this.master.loadCachedLists(myLists, communityLists, keywords)                        
+                await this.master.keywords(keywords)
+                let loadCommmunityListsCaches = this.master.loadCachedLists(communityLists)
                 const updater = this.createUpdater()
                 updater.on('list-updated', url => {
                     console.log('List updated', url)
@@ -507,15 +1057,17 @@ class Manager extends Events {
                 if(results && typeof(results) == 'object'){
                     Object.keys(results).forEach(url => {
                         this.updaterResults[url] = results[url]
-                        if(myLists.includes(url) && this.updaterResultExpired(url)){
+                        if(myLists.includes(url) && this.updaterResultExpired(url) && global.lists.isPrivateList(url)){
                             expired.push(url)
                         }
                     })
                 }
-                console.log('Lists updated', results)
+                console.log('Lists updated', results, myLists, expired)
                 this.master.updaterFinished(true).catch(console.error)
-                updater.terminate()
                 this.updatingProcessOutput(uid, global.lang.LISTS_UPDATED, 'fas fa-check-circle') // warn user if there's no lists
+                await loadMyListsCaches
+                await loadCommmunityListsCaches
+                updater.terminate()
                 if(this.master.activeLists.length){
                     this.emit('lists-updated')
                 }
@@ -537,25 +1089,9 @@ class Manager extends Events {
         }
         console.error('LISTSUPDATED', Object.assign({}, global.lists.activeLists))
     }
-    extraCommunityLists(myLists, communityLists){
-        return new Promise(resolve => {
-            async.eachOf([this.IPTV], (driver, i, done) => {
-                driver.ready().then(() => {
-                    driver.countries.ready().then(() => {
-                        communityLists = communityLists.filter(u => myLists.indexOf(u) == -1)
-                        communityLists = communityLists.filter(u => !driver.isKnownURL(u)) // remove communityLists from other countries/languages
-                        driver.getLocalLists().then(localLists => {
-                            communityLists = localLists.concat(communityLists)
-                        }).catch(console.error).finally(done)
-                    }).catch(done)
-                }).catch(done)
-            }, () => {
-                resolve(communityLists)
-            })
-        })
-    }
-    UIUpdateLists(force){
+    updateLists(force){
         if(global.Download.isNetworkConnected) {
+            console.error('lists-manager updateLists', traceback())
             const uid = parseInt(Math.random() * 1000000000)
             const starter = !Object.keys(this.updatingProcesses).length
             if(starter){
@@ -563,7 +1099,7 @@ class Manager extends Events {
                 global.osd.show(global.lang.STARTING_LISTS, 'fa-mega spin-x-alt', 'update', 'persistent')
             }
             this.updatingProcesses[uid] = {visibility: true, progress: 0}
-            this.updateLists(force === true, uid).catch(err => {
+            this.update(force === true, uid).catch(err => {
                 const isUIReady = !Array.isArray(global.uiReadyCallbacks)
                 console.error('lists-manager', err, isUIReady)
                 if(isUIReady){ // if error and lists hasn't loaded
@@ -612,7 +1148,7 @@ class Manager extends Events {
             name: global.lang.LOAD_COMMUNITY_LISTS,
             fa: 'fas fa-plus-square',
             type: 'action',
-            action: () => this.UIUpdateLists(true)
+            action: () => this.updateLists(true)
         }
     }
     updatingListsEntry(name){
@@ -789,328 +1325,6 @@ class Manager extends Events {
             }
         }
     }
-    parseEPGURL(url, asArray){
-        let urls = [url]
-        if(url.match(new RegExp(',(https?://|//)'))){
-            urls = url.replace(',//', ',http://').split(',http').map((u, i) => {
-                if(i){
-                    u = 'http'+ u
-                }
-                return u
-            })
-        }
-        return asArray ? urls : urls.shift()
-    }
-    async searchEPGs(){
-        let epgs = []
-        let urls = await this.master.foundEPGs().catch(console.error)
-        if(Array.isArray(urls)){
-            urls = urls.map(u => this.parseEPGURL(u, true)).flat()
-            epgs = epgs.concat(urls)
-        }
-        if(global.config.get('communitary-mode-lists-amount')){
-            let c = await cloud.get('configure').catch(console.error)
-            if(c) {
-                let cs = await global.lang.getActiveCountries()
-                if(!cs.includes(global.lang.countryCode)){
-                    cs.push(global.lang.countryCode)
-                }
-                cs.forEach(code => {
-                    let key = 'epg-' + code
-                    if(c[key] && !epgs.includes(c[key])){
-                        epgs.push(c[key])
-                    }
-                })
-                epgs = epgs.concat(global.watching.currentRawEntries.map(e => e.epg).filter(e => !!e))
-            }
-        }
-        epgs = [...new Set(epgs)].sort()
-        return epgs
-    }
-    epgLoadingStatus(epgStatus){
-        let details = ''
-        if(Array.isArray(epgStatus)){
-            switch(epgStatus[0]){
-                case 'uninitialized':
-                    details = '<i class="fas fa-clock"></i>'
-                    break
-                case 'loading':
-                    details = global.lang.LOADING
-                    break
-                case 'connecting':
-                    details = global.lang.CONNECTING
-                    break
-                case 'connected':
-                    details = global.lang.PROCESSING + ' ' + epgStatus[1] + '%'
-                    break
-                case 'loaded':
-                    details = global.lang.ENABLED
-                    break
-                case 'error':
-                    details = 'Error: ' + epgStatus[1]
-                    break
-            }
-        }
-        return details
-    }
-    updateEPGStatus(){
-        let p = global.explorer.path
-        if(p.indexOf(global.lang.EPG) == -1){
-            clearInterval(this.epgStatusTimer)
-            this.epgStatusTimer = false
-        } else {
-            this.master.epg([], 2).then(epgData => {
-                let activeEPGDetails = this.epgLoadingStatus(epgData)
-                if(activeEPGDetails != this.lastActiveEPGDetails){
-                    this.lastActiveEPGDetails = activeEPGDetails
-                    this.epgOptionsEntries(activeEPGDetails).then(es => {
-                        if(p == global.explorer.path){
-                            es = es.map(e => {
-                                if(e.name == global.lang.SYNC_EPG_CHANNELS){
-                                    e.value = e.checked()
-                                }
-                                return e
-                            })
-                            global.explorer.render(es, p, global.channels.epgIcon)
-                        }
-                    }).catch(console.error)
-                }                
-            }).catch(err => {
-                clearInterval(this.epgStatusTimer)
-                this.epgStatusTimer = false
-            })
-        }
-    }
-    epgOptionsEntries(activeEPGDetails){
-        return new Promise((resolve, reject) => {
-            let options = [], epgs = []
-            this.searchEPGs().then(urls => {
-                epgs = epgs.concat(urls)
-            }).catch(console.error).finally(() => {
-                let activeEPG = global.config.get('epg-'+ global.lang.locale) || global.activeEPG
-                if(!activeEPG || activeEPG == 'disabled'){
-                    activeEPG = ''
-                }
-                console.log('SETT-EPG', activeEPG, epgs)
-                if(activeEPG){
-                    activeEPG = this.formatEPGURL(activeEPG) 
-                    if(!epgs.includes(activeEPG)){
-                        epgs.push(activeEPG)
-                    }
-                }
-                const next = () => {
-                    options = epgs.sort().map(url => {
-                        let details = '', name = this.nameFromSourceURL(url)
-                        if(url == activeEPG){
-                            if(activeEPGDetails){
-                                details = activeEPGDetails
-                            } else {
-                                if(global.channels.activeEPG == url){
-                                    details = global.lang.EPG_LOAD_SUCCESS
-                                } else {
-                                    details = global.lang.PROCESSING
-                                }
-                            }
-                        }
-                        return {
-                            name,
-                            type: 'action',
-                            fa: 'fas fa-th-large',
-                            prepend: (url == activeEPG) ? '<i class="fas fa-check-circle faclr-green"></i> ' : '',
-                            details,
-                            action: () => {
-                                if(url == global.config.get('epg-'+ global.lang.locale)){
-                                    global.config.set('epg-'+ global.lang.locale, 'disabled')
-                                    global.channels.load()
-                                    this.setEPG('', true)
-                                } else {
-                                    global.config.set('epg-'+ global.lang.locale, url)
-                                    this.setEPG(url, true)
-                                }
-                                global.explorer.refresh()
-                            }
-                        }
-                    })
-                    options.unshift({
-                        name: global.lang.SYNC_EPG_CHANNELS,
-                        type: 'check',
-                        action: (e, checked) => {
-                            global.config.set('use-epg-channels-list', checked)
-                            if(checked){
-                                if(global.activeEPG){
-                                    this.importEPGChannelsList(global.activeEPG).catch(console.error)
-                                }
-                            } else {
-                                global.channels.load()
-                            }
-                        }, 
-                        checked: () => global.config.get('use-epg-channels-list')
-                    })
-                    options.unshift({name: global.lang.ADD, fa: 'fas fa-plus-square', type: 'action', action: () => {
-                        global.ui.emit('prompt', global.lang.EPG, 'http://.../epg.xml', global.activeEPG || '', 'set-epg', false, global.channels.epgIcon)
-                    }})
-                    resolve(options)
-                }
-                if(activeEPG){
-                    const epgNext = () => {
-                        if(activeEPGDetails == global.lang.ENABLED){
-                            if(this.epgStatusTimer){
-                                clearInterval(this.epgStatusTimer)
-                                this.epgStatusTimer = false
-                            }
-                        } else {
-                            if(!this.epgStatusTimer){
-                                this.epgStatusTimer = setInterval(this.updateEPGStatus.bind(this), 1000)
-                            }
-                        }
-                        next()
-                    }
-                    if(typeof(activeEPGDetails) == 'string'){
-                        epgNext()
-                    } else {
-                        this.master.epg([], 2).then(epgData => {
-                            this.lastActiveEPGDetails = activeEPGDetails = this.epgLoadingStatus(epgData)
-                            epgNext()
-                        }).catch(err => {
-                            console.error(err)
-                            activeEPGDetails = ''
-                            epgNext()
-                        })
-                    }
-                } else {
-                    next()
-                }
-            })
-        })
-    }
-    shouldImportEPGChannelsList(url){
-        return url == global.activeEPG && global.config.get('use-epg-channels-list')
-    }
-    importEPGChannelsList(url){
-        return new Promise((resolve, reject) => {
-            this.master.epgLiveNowChannelsList().then(data => {
-                let imported = false
-                global.channels.updateCategoriesCacheKey()
-                if(this.shouldImportEPGChannelsList(url)){ // check again if user didn't changed his mind
-                    console.log('CHANNELS LIST IMPORT', data.categories, data.updateAfter, url, global.activeEPG)
-                    global.channels.setCategories(data.categories, true)
-                    if(this.importEPGChannelsListTimer){
-                        clearTimeout(this.importEPGChannelsListTimer)                        
-                    }
-                    this.importEPGChannelsListTimer = setTimeout(() => {
-                        this.importEPGChannelsList(url).catch(console.error)
-                    }, data.updateAfter * 1000)
-                    imported = true
-                }
-                global.channels.load()
-                resolve(imported)
-            }).catch(err => {
-                global.osd.show(global.lang.SYNC_EPG_CHANNELS_FAILED, 'fas fa-exclamation-circle faclr-red', 'epg', 'normal')
-                reject(err)
-            })
-        })
-    }
-    formatEPGURL(url){        
-        const fragment = ',http'
-        if(url && url.indexOf(fragment) != -1){
-            url = url.split(',http').shift()
-        }
-        return url
-    }
-    async setEPG(url, ui){
-        console.log('SETEPG', url)
-        if(typeof(url) == 'string'){
-            if(url){
-                url = this.formatEPGURL(url)
-            }
-            if(!url || global.validateURL(url)){
-                global.activeEPG = url
-                global.channels.activeEPG = ''
-                await this.loadEPG(url, ui)
-                let refresh = () => {
-                    if(global.explorer.path.indexOf(global.lang.EPG) != -1 || global.explorer.path.indexOf(global.lang.LIVE) != -1){
-                        global.explorer.refresh()
-                    }
-                }
-                console.log('SETEPGc', url, ui, global.activeEPG)
-                if(!url){
-                    global.channels.updateCategoriesCacheKey()
-                    global.channels.load()
-                    if(ui){
-                        global.osd.show(global.lang.EPG_DISABLED, 'fas fa-times-circle', 'epg', 'normal')                            
-                    }
-                } else if(this.shouldImportEPGChannelsList(url)) {
-                    this.importEPGChannelsList(url).catch(console.error)
-                }
-                refresh()
-            } else {
-                if(ui){
-                    global.osd.show(global.lang.INVALID_URL, 'fas fa-exclamation-circle faclr-red', 'epg', 'normal')
-                }
-                throw global.lang.INVALID_URL
-            }
-        }
-    }
-    loadEPG(url, ui){
-        return new Promise((resolve, reject) => {
-            global.channels.activeEPG = ''
-            if(!url && global.config.get('epg-'+ global.lang.locale) != 'disabled'){
-                url = global.config.get('epg-'+ global.lang.locale)
-            }
-            if(!url && ui) ui = false
-            if(ui){
-                global.osd.show(global.lang.EPG_AVAILABLE_SOON, 'fas fa-check-circle', 'epg', 'normal')
-            }
-            console.log('loadEPG', url)
-            this.master.loadEPG(url).then(() => {
-                global.channels.activeEPG = url
-                global.channels.emit('epg-loaded', url)
-                if(ui){
-                    global.osd.show(global.lang.EPG_LOAD_SUCCESS, 'fas fa-check-circle', 'epg', 'normal')
-                }
-                if(global.explorer.path == global.lang.TRENDING || (global.explorer.path.startsWith(global.lang.LIVE) && global.explorer.path.split('/').length == 2)){
-                    global.explorer.refresh()
-                }
-                if(this.shouldImportEPGChannelsList()) {
-                    this.importEPGChannelsList(url).then(() => {
-                        if(global.explorer.path == global.lang.TRENDING || (global.explorer.path.startsWith(global.lang.LIVE) && global.explorer.path.split('/').length == 2)){
-                            global.explorer.refresh()
-                        }
-                    }).catch(console.error)
-                }
-                resolve(true)
-            }).catch(err => {
-                console.error(err)
-                global.osd.show(global.lang.EPG_LOAD_FAILURE + ': ' + String(err), 'fas fa-check-circle', 'epg', 'normal')
-                reject(err)
-            })
-        })
-    }
-    setImportEPGChannelsListTimer(){
-        const allow = () => {
-            return global.config.get('use-epg-channels-list') && global.config.get('epg-'+ global.lang.locale)
-        }
-        const disable = () => {            
-            if(this.importEPGChannelsListTimer){
-                clearInterval(this.importEPGChannelsListTimer)
-                delete this.importEPGChannelsListTimer
-            }
-        }
-        if(allow()){
-            if(typeof(this.importEPGChannelsListTimer) == 'undefined') {
-                this.importEPGChannelsListTimer = setInterval(() => {
-                    if(allow()){
-                        const url = global.config.get('epg-'+ global.lang.locale)
-                        this.importEPGChannelsList(url).catch(console.error)
-                    } else {
-                        disable()
-                    }
-                }, 300000) // 5min
-            }
-        } else {
-            disable()
-        }
-    }
     listsEntries(){
         return new Promise((resolve, reject) => {
             let options = []
@@ -1119,69 +1333,6 @@ class Manager extends Events {
             options.push({name: global.lang.EPG, details: 'EPG', fa: global.channels.epgIcon, type: 'group', renderer: this.epgOptionsEntries.bind(this)})
             resolve(options)
         })
-    }
-    listSharingEntry(){
-        return {
-            name: global.lang.COMMUNITY_LISTS, type: 'group', fa: 'fas fa-users', details: global.lang.LIST_SHARING,
-            renderer: () => {
-                return new Promise((resolve, reject) => {
-                    let options = [
-                        {name: global.lang.ACCEPT_LISTS, type: 'check', details: global.lang.LIST_SHARING, action: (data, checked) => {
-                            if(checked){
-                                global.ui.emit('dialog', [
-                                    {template: 'question', text: global.lang.COMMUNITY_LISTS, fa: 'fas fa-users'},
-                                    {template: 'message', text: global.lang.ASK_COMMUNITY_LIST},
-                                    {template: 'option', id: 'back', fa: 'fas fa-times-circle', text: global.lang.BACK},
-                                    {template: 'option', id: 'agree', fa: 'fas fa-check-circle', text: global.lang.I_AGREE}
-                                ], 'lists-manager', 'back', true)                
-                            } else {
-                                global.config.set('communitary-mode-lists-amount', 0)
-                                global.explorer.refresh()
-                            }
-                        }, checked: () => {
-                            return global.config.get('communitary-mode-lists-amount') > 0
-                        }}
-                    ]
-                    if(global.config.get('communitary-mode-lists-amount') > 0){
-                        options.push({name: global.lang.RECEIVED_LISTS, details: global.lang.SHARED_AND_LOADED, fa: 'fas fa-users', type: 'group', renderer: this.communityListsEntries.bind(this)})
-                        options.push({name: global.lang.ALL_LISTS, details: global.lang.SHARED_FROM_ALL, fa: 'fas fa-users', type: 'group', renderer: this.allCommunityListsEntries.bind(this)})
-                        options.push({
-                            name: global.lang.AMOUNT_OF_LISTS,
-                            details: global.lang.AMOUNT_OF_LISTS_HINT,
-                            type: 'slider', 
-                            fa: 'fas fa-cog', 
-                            mask: '{0} ' + global.lang.COMMUNITY_LISTS.toLowerCase(), 
-                            value: () => {
-                                return global.config.get('communitary-mode-lists-amount')
-                            }, 
-                            range: {start: 5, end: 72},
-                            action: (data, value) => {
-                                global.config.set('communitary-mode-lists-amount', value)
-                            }
-                        })                                
-                        options.push({
-                            name: global.lang.INTERESTS,
-                            details: global.lang.SEPARATE_WITH_COMMAS, 
-                            type: 'input',
-                            fa: 'fas fa-edit',
-                            action: (e, v) => {
-                                if(v !== false && v != global.config.get('communitary-mode-interests')){
-                                    global.config.set('communitary-mode-interests', v)
-                                    global.ui.emit('ask-restart')
-                                }
-                            },
-                            value: () => {
-                                return global.config.get('communitary-mode-interests')
-                            },
-                            placeholder: global.lang.COMMUNITY_LISTS_INTERESTS_HINT,
-                            multiline: true,
-                            safe: true
-                        })
-                    }
-                    resolve(options)
-                })
-            }
-        }
     }
     async refreshList(data){
         let updateErr
@@ -1293,135 +1444,6 @@ class Manager extends Events {
         this.openingList = false
         global.osd.hide('list-open')
         return list
-    }
-    communityLists(){
-        return new Promise((resolve, reject) => {
-            let limit = global.config.get('communitary-mode-lists-amount')
-            if(limit){
-                this.allCommunityLists(30000, true).then(lists => {
-                    lists = lists.slice(0, limit)
-                    resolve(lists)
-                }).catch(e => {
-                    console.error(e)
-                    resolve([])
-                })
-            } else {
-                resolve([])
-            }
-        })
-    }
-    async communityListsEntries(){
-        const info = await this.master.info()
-        let entries = Object.keys(info).filter(u => !info[u].owned).sort((a, b) => {
-            if([a, b].some(a => typeof(info[a].score) == 'undefined')) return 0
-            if(info[a].score == info[b].score) return 0
-            return info[a].score > info[b].score ? -1 : 1
-        }).map(url => {
-            let name = info[url].name || this.nameFromSourceURL(url)
-            let icon = info[url].icon || undefined
-            let details = info[url].author || ''
-            if(details){
-                details += ' &middot; '
-            }
-            details += parseInt((info[url].score || 0) * 100) +'% &middot; '+ global.lang.X_BROADCASTS.format(global.kfmt(info[url].length, 1))
-            return {
-                name, url, icon, details,
-                fa: 'fas fa-satellite-dish',
-                type: 'group',
-                class: 'skip-testing',
-                renderer: this.directListRenderer.bind(this)
-            }
-        })
-        if(!entries.length){
-            entries = [this.noListsRetryEntry()]
-        }
-        return entries
-    }
-    async getAllCommunitySources(fromLanguage, timeout=3000){
-        if(fromLanguage === true){
-            let ret = {}, sources = await global.cloud.get('sources', false, timeout)
-            if(!Array.isArray(sources)){
-                sources = []
-            }
-            sources.forEach(row => {
-                ret[row.url] = parseInt(row.label.split(' ').shift())
-            })
-            return ret
-        } else {
-            let ret = {}, locs = await global.lang.getActiveCountries()
-            let results = await Promise.allSettled(locs.map(loc => global.cloud.get('country-sources.'+ loc, false, timeout).catch(console.error)))
-            results.forEach(r => {
-                if(r.status == 'fulfilled' && r.value && typeof(r.value) == 'object'){
-                    r.value.forEach(row => {
-                        let count = parseInt(row.label.split(' ').shift())
-                        if(isNaN(count)) count = 0
-                        if(typeof(ret[row.url]) != 'undefined') count += ret[row.url]
-                        ret[row.url] = count
-                    })
-                }
-            })
-            if(Object.keys(ret).length <= 8){
-                return await this.getAllCommunitySources(true, timeout)
-            }
-            return Object.entries(ret).sort(([,a],[,b]) => b-a).reduce((r, [k, v]) => ({ ...r, [k]: v }), {})
-        }
-    }
-    async allCommunityLists(timeout=30000, urlsOnly=true){
-        let limit = global.config.get('communitary-mode-lists-amount')
-        if(limit){
-            let s = await this.getAllCommunitySources(false, timeout)
-            if(typeof(s) == 'object'){
-                let r = Object.keys(s).map(url => {
-                    return {url, count: s[url]}
-                })
-                if(urlsOnly){
-                    r = r.map(e => e.url)
-                }
-                return r
-            }
-        }
-        return []
-    }
-    async allCommunityListsEntries(){
-        let sources = await this.getAllCommunitySources(), names = {};
-        await Promise.allSettled(Object.keys(sources).map(url => {
-            return this.name(url, false).then(name => {
-                names[url] = name
-            })
-        }))
-        let lists = Object.keys(sources).map(url => {
-            let v = {url}
-            v.class = 'skip-testing'
-            v.details = sources[url] +' '+ (sources[url] > 1 ? global.lang.USERS : global.lang.USER)
-            v.type = 'group'
-            v.name = names[url]
-            v.fa = 'fas fa-satellite-dish'
-            v.renderer = data => {
-                return new Promise((resolve, reject) => {
-                    this.openingList = true
-                    this.directListRenderer(data, {
-                        fetch: true
-                    }).then(ret => {
-                        resolve(ret)
-                    }).catch(err => {
-                        reject(err)
-                    }).finally(() => {
-                        this.openingList = false
-                        global.osd.hide('list-open')
-                    })
-                })
-            }
-            return v   
-        })
-        console.log('sources', lists)
-        if(lists.length){
-            if(global.config.get('parental-control') == 'block'){
-                lists = this.master.parentalControl.filter(lists)
-            }
-        } else {
-            lists = [this.noListsRetryEntry()]
-        }
-        return lists
     }
     hook(entries, path){
         return new Promise((resolve, reject) => {
