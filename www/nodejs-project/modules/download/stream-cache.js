@@ -39,7 +39,7 @@ class DownloadStreamCache extends DownloadStreamBase {
                 this.end()
             })
             stream.on('data', chunk => {
-                this.response.emit('data', chunk)
+                this.response.write(chunk)
             })
             stream.once('end', () => this.end())
             return true

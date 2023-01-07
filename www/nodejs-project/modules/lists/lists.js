@@ -287,8 +287,9 @@ class Lists extends ListsEPGTools {
 	async loadCachedLists(lists){
         let hits = 0
         if(this.debug){
-            console.log('Checking for cached lists...', myLists, lists)
+            console.log('Checking for cached lists...', lists)
         }
+		if(!lists.length) return hits
 		lists.forEach(url => {
             if(!this.loadTimes[url]){
                 this.loadTimes[url] = {}
@@ -304,7 +305,7 @@ class Lists extends ListsEPGTools {
         })
         this.isFirstRun = !lists.length // is first load if has no cached lists
         this.delimitActiveLists() // helps to avoid too many lists in memory
-        for(let url of this.myLists.concat(lists)) {
+        for(let url of lists) {
             if(typeof(this.lists[url]) == 'undefined') {
 				hits++
                 await this.syncList(url).catch(err => {
@@ -329,7 +330,8 @@ class Lists extends ListsEPGTools {
 			}
 			if(camount > satisfyAmount){
 				// let satisfyAmount -1 below from communitary-mode-lists-amount
-				satisfyAmount += Math.max(1, Math.min(camount, this.communityLists.length) - 1)
+				// limit satisfyAmount to 8
+				satisfyAmount += Math.max(1, Math.min(8, camount, this.communityLists.length) - 1)
 				progresses = progresses.concat(Object.keys(this.lists).filter(url => !this.myLists.includes(url)).map(url => this.lists[url].progress()).sort((a, b) => b - a).slice(0, satisfyAmount))
 			}
 			if(this.debug){
@@ -393,8 +395,8 @@ class Lists extends ListsEPGTools {
 				this.syncListsQueue[syncedUrl].resolves.forEach(r => r())
 			}
 			delete this.syncListsQueue[syncedUrl]
-			this.emit('sync-status', this.status(syncedUrl))
 		}
+		this.emit('sync-status', this.status(syncedUrl))
 		if(this.syncingActiveListsCount() < this.syncListsConcurrencyLimit){
 			return Object.keys(this.syncListsQueue).some(url => {
 				if(!this.syncListsQueue[url].active){

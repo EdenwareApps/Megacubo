@@ -51,6 +51,7 @@ class IPTVPlaylistStreamParser extends Events {
 		}
 		if(stream){
 			stream.on('data', this.write.bind(this))
+			stream.once('error', this.end.bind(this))
 			stream.once('end', this.end.bind(this))
 		}
 	}

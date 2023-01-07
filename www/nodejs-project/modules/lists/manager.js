@@ -1,5 +1,6 @@
+const Events = require('events'), async = require('async')
+const pLimit = require('p-limit'), IPTV = require('../iptv')
 
-const Events = require('events'), async = require('async'), IPTV = require('../iptv')
 
 class ManagerCommunityLists extends Events {
     constructor(){
@@ -76,13 +77,12 @@ class ManagerCommunityLists extends Events {
             terms = terms.slice(0, 24)
         }
         return terms
-    }
-    
+    }    
     communityLists(){
         return new Promise((resolve, reject) => {
             let limit = global.config.get('communitary-mode-lists-amount')
             if(limit){
-                this.allCommunityLists(30000, true).then(lists => {
+                this.allCommunityLists(10000, true).then(lists => {
                     lists = lists.slice(0, limit)
                     resolve(lists)
                 }).catch(e => {
@@ -132,8 +132,13 @@ class ManagerCommunityLists extends Events {
             })
             return ret
         } else {
+            const limit = pLimit(3)
             let ret = {}, locs = await global.lang.getActiveCountries()
-            let results = await Promise.allSettled(locs.map(loc => global.cloud.get('country-sources.'+ loc, false, timeout).catch(console.error)))
+            let results = await Promise.allSettled(locs.map(loc => {
+                return () => {
+                    return global.cloud.get('country-sources.'+ loc, false, timeout).catch(console.error)
+                }
+            }).map(limit))
             results.forEach(r => {
                 if(r.status == 'fulfilled' && r.value && typeof(r.value) == 'object'){
                     r.value.forEach(row => {
@@ -150,7 +155,7 @@ class ManagerCommunityLists extends Events {
             return Object.entries(ret).sort(([,a],[,b]) => b-a).reduce((r, [k, v]) => ({ ...r, [k]: v }), {})
         }
     }
-    async allCommunityLists(timeout=30000, urlsOnly=true){
+    async allCommunityLists(timeout=10000, urlsOnly=true){
         let limit = global.config.get('communitary-mode-lists-amount')
         if(limit){
             let s = await this.getAllCommunitySources(false, timeout)
@@ -626,31 +631,35 @@ class Manager extends ManagerEPG {
     }
     updateOSD(status){
         const p = status || global.lists.status()
-        if(p.progress < 100){
-            this.uiShowing = true
-            global.osd.show(global.lang[global.lists.isFirstRun ? 'STARTING_LISTS_FIRST_TIME_WAIT' : 'UPDATING_LISTS'] +' '+ p.progress +'%', 'fa-mega spin-x-alt', 'update', 'persistent')
-        } else {
-            if(this.uiShowing){
-                this.uiShowing = false
-                let ret = Object.values(this.updatingProcesses).filter(p => !!p.ret).map(p => p.ret).shift()
-                if(ret){
-                    global.osd.show(ret.message, ret.fa, 'update', 'normal')
-                } else {
-                    global.osd.hide('update')
+        if(this.updateOSDLastProgress != p.progress){
+            this.updateOSDLastProgress = p.progress
+            if(p.progress < 100){
+                this.uiShowing = true
+                global.osd.show(global.lang[global.lists.isFirstRun ? 'STARTING_LISTS_FIRST_TIME_WAIT' : 'UPDATING_LISTS'] +' '+ p.progress +'%', 'fa-mega spin-x-alt', 'update', 'persistent')
+            } else {
+                if(this.uiShowing){
+                    console.error('UPDATEOSD', p, global.lists.info())
+                    this.uiShowing = false
+                    let ret = Object.values(this.updatingProcesses).filter(p => !!p.ret).map(p => p.ret).shift()
+                    if(ret){
+                        global.osd.show(ret.message, ret.fa, 'update', 'normal')
+                    } else {
+                        global.osd.hide('update')
+                    }
+                    this.setImportEPGChannelsListTimer(global.config.get('use-epg-channels-list'))
                 }
-                this.setImportEPGChannelsListTimer(global.config.get('use-epg-channels-list'))
             }
-        }
-        if(global.explorer && global.explorer.currentEntries) {
-            const updateEntryNames = [global.lang.PROCESSING, global.lang.UPDATING_LISTS, global.lang.STARTING_LISTS]
-            const updateBaseNames = [global.lang.TRENDING, global.lang.COMMUNITY_LISTS, global.lang.RECEIVED_LISTS]
-            if(
-                updateBaseNames.includes(global.explorer.basename(global.explorer.path)) || 
-                global.explorer.currentEntries.some(e => updateEntryNames.includes(e.name))
-            ) {
-                global.explorer.refresh()
-            } else if(this.inChannelPage()) {
-                this.maybeRefreshChannelPage()
+            if(global.explorer && global.explorer.currentEntries) {
+                const updateEntryNames = [global.lang.PROCESSING, global.lang.UPDATING_LISTS, global.lang.STARTING_LISTS]
+                const updateBaseNames = [global.lang.TRENDING, global.lang.COMMUNITY_LISTS, global.lang.RECEIVED_LISTS]
+                if(
+                    updateBaseNames.includes(global.explorer.basename(global.explorer.path)) || 
+                    global.explorer.currentEntries.some(e => updateEntryNames.includes(e.name))
+                ) {
+                    global.explorer.refresh()
+                } else if(this.inChannelPage()) {
+                    this.maybeRefreshChannelPage()
+                }
             }
         }
     }
@@ -990,9 +999,20 @@ class Manager extends ManagerEPG {
             global.explorer.refresh()
         }
         this.updateOSD()
-    } 
-    createUpdater(){
-        return new (require(global.APPDIR + '/modules/driver')(global.APPDIR + '/modules/lists/driver-updater'))
+    }
+    startUpdater(){
+        if(!this.updater){
+            this.updater = new (require(global.APPDIR + '/modules/driver')(global.APPDIR + '/modules/lists/driver-updater'))
+            this.updaterClients = 0
+        }
+        this.updaterClients++
+        this.updater.close = () => {
+            this.updaterClients--
+            if(!this.updaterClients){
+                this.updater.terminate()
+            }
+        }
+        return this.updater
     }
 	getUniqueLists(urls){ // remove duplicated lists even from different protocols
 		let already = []
@@ -1016,8 +1036,9 @@ class Manager extends ManagerEPG {
             const myLists = (await this.getURLs()).filter(url => !alreadyUpdating.includes(url))
             const loadMyListsCaches = this.master.loadCachedLists(myLists) // load my lists asap, before to possibly keep waiting for community lists
             if(camount){
-                let maxListsToTry = 3 * camount
-                communityLists = await this.allCommunityLists(30000, true).catch(err => haserr = err)
+                const maxListsToTry = 3 * camount
+                const loadKeywords = this.communityModeKeywords()
+                communityLists = await this.allCommunityLists(10000, true).catch(err => haserr = err)
                 if(haserr){
                     communityLists = []
                 }
@@ -1025,22 +1046,20 @@ class Manager extends ManagerEPG {
                 communityLists = communityLists.filter(url => !alreadyUpdating.includes(url) && !myLists.includes(url))
                 communityLists = this.getUniqueLists(communityLists)
                 if(communityLists.length){
-                    communityLists = communityLists.filter(url => !alreadyUpdating.includes(url))
                     if(communityLists.length > maxListsToTry){
                         communityLists = communityLists.slice(0, maxListsToTry)
                     }
-                    keywords = await this.communityModeKeywords()
+                    keywords = await loadKeywords
+                    await this.master.setCommunityLists(communityLists)
                 }
                 console.log('allCommunityLists', communityLists.length)
             }
             if(communityLists.length || myLists.length){
                 this.uiUpdating = true
-                const allLists = myLists.concat(communityLists)
+                this.master.updaterFinished(false).catch(console.error)
+                this.master.keywords(keywords)
+                const allLists = myLists.concat(communityLists), updater = this.startUpdater()
                 this.updatingProcesses[uid].urls = allLists
-                console.log('Updating lists', {alreadyUpdating}, myLists, communityLists, global.traceback())
-                await this.master.keywords(keywords)
-                let loadCommmunityListsCaches = this.master.loadCachedLists(communityLists)
-                const updater = this.createUpdater()
                 updater.on('list-updated', url => {
                     console.log('List updated', url)
                     this.master.syncList(url).then(() => {
@@ -1051,9 +1070,18 @@ class Manager extends ManagerEPG {
                         this.emit('sync-status', this.master.status())
                     })
                 })
-                this.master.updaterFinished(false).catch(console.error)
                 await updater.setRelevantKeywords(keywords)
-                const expired = [], results = await updater.update(allLists).catch(console.error)
+                console.log('Updating lists', {alreadyUpdating}, myLists, communityLists, global.traceback())
+                let results, expired = [], loadCommmunityListsCaches = this.master.loadCachedLists(communityLists)
+                let updating = updater.update(allLists).then(r => results = r).catch(console.error)
+                await Promise.all([updating, loadMyListsCaches, loadCommmunityListsCaches])
+                console.log('Lists updated', results, myLists, expired)
+                this.master.updaterFinished(true).catch(console.error)
+                this.updatingProcessOutput(uid, global.lang.LISTS_UPDATED, 'fas fa-check-circle') // warn user if there's no lists
+                updater.close()
+                if(this.master.activeLists.length){
+                    this.emit('lists-updated')
+                }
                 if(results && typeof(results) == 'object'){
                     Object.keys(results).forEach(url => {
                         this.updaterResults[url] = results[url]
@@ -1061,15 +1089,6 @@ class Manager extends ManagerEPG {
                             expired.push(url)
                         }
                     })
-                }
-                console.log('Lists updated', results, myLists, expired)
-                this.master.updaterFinished(true).catch(console.error)
-                this.updatingProcessOutput(uid, global.lang.LISTS_UPDATED, 'fas fa-check-circle') // warn user if there's no lists
-                await loadMyListsCaches
-                await loadCommmunityListsCaches
-                updater.terminate()
-                if(this.master.activeLists.length){
-                    this.emit('lists-updated')
                 }
                 if(expired.length)  {
                     const ret = await global.explorer.dialog([
@@ -1092,6 +1111,9 @@ class Manager extends ManagerEPG {
     updateLists(force){
         if(global.Download.isNetworkConnected) {
             console.error('lists-manager updateLists', traceback())
+            const timer = setInterval(() => {
+                this.updateOSD(global.lists.status())
+            }, 3000)
             const uid = parseInt(Math.random() * 1000000000)
             const starter = !Object.keys(this.updatingProcesses).length
             if(starter){
@@ -1106,6 +1128,7 @@ class Manager extends ManagerEPG {
                     this.noListsRetryDialog(err)
                 }
             }).finally(() => {
+                clearInterval(timer)
                 this.updatingProcesses[uid].progress = 100
                 setTimeout(() => delete this.updatingProcesses[uid], 10000)
             })
@@ -1337,7 +1360,7 @@ class Manager extends ManagerEPG {
     async refreshList(data){
         let updateErr
         global.osd.show(global.lang.UPDATING_LISTS, 'fa-mega spin-x-alt', 'refresh-list', 'persistent')
-        const updater = this.createUpdater()
+        const updater = this.startUpdater()
         await updater.updateList(data.url, true).catch(err => updateErr = err)
         if(updateErr){
             if(updateErr == 'empty list'){

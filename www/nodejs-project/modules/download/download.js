@@ -907,7 +907,11 @@ class Download extends Events {
 			if(!this.headersSent){
 				this.headersSent = true
 				this.checkStatusCode()
-				this.emit('response', this.statusCode, {})
+				if(this.statusCode){
+					this.emit('response', this.statusCode, {})
+				} else if(this.listenerCount('error')) {
+					this.emit('error', 'unknown error')
+				}
 			}
 			if(!this.isResponseCompressed || this.decompressEnded || !this.decompressor){
 				this.ended = true
@@ -935,7 +939,7 @@ class Download extends Events {
 					c = Number(c)
 					return c && !isNaN(c)
 				})
-				this.statusCode = codes.length ? codes[0] : 504
+				this.statusCode = codes.length ? codes[0] : -1
 			}
 			if(this.opts.debug){
 				console.log('CANNOT RESOLVE?', errs, this.statusCode)

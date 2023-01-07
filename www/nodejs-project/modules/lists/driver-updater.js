@@ -35,8 +35,13 @@ class ListsUpdater extends Common {
 	}
     update(urls){
 		return new Promise((resolve, reject) => {
+			if(!urls.length){
+				return resolve(this.info)
+			}
 			if(this.isUpdating){
-				return this.once('finish', () => this.update(urls).then(resolve).catch(reject))
+				return this.once('finish', () => {
+					this.update(urls).then(resolve).catch(reject)
+				})
 			}
 			if(this.debug){
 				console.log('updater - start', urls)
@@ -47,6 +52,7 @@ class ListsUpdater extends Common {
 			const retries = []
 			urls.forEach(url => this.info[url] = 'started')
 			const run = (urls, cb) => {
+				if(!urls.length) return cb()
 				async.eachOfLimit(urls, this.updateListsConcurrencyLimit, (url, i, done) => {
 					if(this.racing.ended){
 						if(this.debug){
@@ -93,6 +99,7 @@ class ListsUpdater extends Common {
 			run(urls, () => {
 				run(retries, () => {
 					this.isUpdating = false
+					this.emit('finish')
 					resolve(this.info)
 				})
 			})
@@ -108,13 +115,25 @@ class ListsUpdater extends Common {
 			console.log('updater - should', url, should)
 		}
 		if(should){
+			if(this.debug){
+				console.log('updater - should', url, should)
+			}
 			const updateMeta = {}
 			const file = global.storage.raw.resolve(global.LIST_DATA_KEY_MASK.format(url))
 			const updater = new UpdateListIndex(url, url, file, this, Object.assign({}, updateMeta))
 			updateMeta.updateAfter = now + 180
+			if(this.debug){
+				console.log('updater - should', url, should)
+			}
 			this.setListMeta(url, updateMeta)
 			let ret
+			if(this.debug){
+				console.log('updater - should', url, should)
+			}
 			await updater.start()
+			if(this.debug){
+				console.log('updater - should', url, should)
+			}
 			if(updater.index){
 				updateMeta.contentLength = updater.contentLength
 				updateMeta.updateAfter = now + (24 * 3600)
@@ -122,7 +141,13 @@ class ListsUpdater extends Common {
 				this.setListMeta(url, updateMeta)
 				ret = true
 			} 
+			if(this.debug){
+				console.log('updater - should', url, should)
+			}
 			updater.destroy()
+			if(this.debug){
+				console.log('updater - should', url, should)
+			}
 			return ret || false
 		} else {
 			return false // no need to update, by updateAfter

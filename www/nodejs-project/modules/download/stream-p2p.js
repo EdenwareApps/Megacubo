@@ -77,7 +77,7 @@ class DownloadStreamP2P extends DownloadStream {
                 return this.emitError('Missing range info.', true)
             }
             sent += data.data.length
-            this.response.emit('data', data.data)
+            this.response.write(data.data)
         }
         this.lmap['download-p2p-response-end-'+ this.opts.uid] = () => {
             this.end()

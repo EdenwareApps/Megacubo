@@ -5,6 +5,25 @@ class DownloadStreamResponse extends Events {
 		super()
         this.statusCode = statusCode
         this.headers = headers
+        this.buffering = []
+    }
+    write(chunk){
+        if(this.paused){
+            this.buffering.push(chunk)
+        } else {
+            this.emit('data', chunk)
+        }
+    }
+    resume(){
+        this.buffering.map(c => this.emit('data', c))
+        this.buffering = []
+        this.paused = false
+        if(this.pausedEnded){
+            this.end()
+        }
+    }
+    pause(){
+        this.paused = true
     }
 	emitError(error){
 		if(this.listenerCount('error')){
@@ -13,8 +32,12 @@ class DownloadStreamResponse extends Events {
 		this.end()
 	}
     end(){
-        this.emit('end')
-        this.removeAllListeners()
+        if(this.paused){
+            this.pausedEnded = true
+        } else {
+            this.emit('end')
+            this.removeAllListeners()
+        }
     }
 }
 

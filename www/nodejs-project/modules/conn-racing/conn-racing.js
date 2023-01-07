@@ -18,7 +18,7 @@ class ConnRacing extends Events {
         if(!this.urls.length){
             return this.end()
         }
-        async.eachOfLimit(this.urls, 12, (url, i, acb) => {
+        async.eachOfLimit(this.urls, 12, (url, i, done) => {
             let download, finished, headers = {}, status = 0, start = global.time()
             const finish = () => {
                 if(!finished){
@@ -37,8 +37,8 @@ class ConnRacing extends Events {
                         download.destroy()		
                         download = null			
                     }
-                    acb()   
-                    this.pump()       
+                    done()   
+                    this.pump()
                 }
             }
             if(!url.match(new RegExp('^(//|https?://)'))){ // url not testable
@@ -73,6 +73,7 @@ class ConnRacing extends Events {
         if(this.results.length && this.callbacks.length){
             let cb = this.callbacks.shift(), res = this.results.shift()
             cb(res)
+            this.pump()
         } else if(this.ended || (this.racingEnded && !this.results.length)) {
             this.ended = true
             let cbs = this.callbacks.slice(0)

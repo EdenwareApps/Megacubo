@@ -10,7 +10,7 @@ class UpdateListIndex extends ListIndexUtils {
         this.directURL = directURL
         this.updateMeta = updateMeta
         this.parent = (() => parent)
-        this.tmpfile = file +'.'+ parseInt(Math.random() * 100000) + '.tmp'
+        this.tmpfile = global.paths.temp +'/'+ parseInt(Math.random() * 100000000000) + '.tmp'
         this.seriesRegex = new RegExp('(\\b|^)[st]?[0-9]+ ?[epx]{1,2}[0-9]+($|\\b)', 'i')
         this.vodRegex = new RegExp('[\\.=](mp4|mkv|mpeg|mov|m4v|webm|ogv|hevc|divx)($|\\?|&)', 'i')
         this.liveRegex = new RegExp('[\\.=](m3u8|ts)($|\\?|&)', 'i')
@@ -61,13 +61,11 @@ class UpdateListIndex extends ListIndexUtils {
 	}
 	connect(path){
 		return new Promise((resolve, reject) => {
-            if(this.debug){
-                console.log('load', should)
-            }
             if(path.match(new RegExp('^//[^/]+\\.'))){
                 path = 'http:' + path
             }
             if(path.match(new RegExp('^https?:'))){
+                let resolved
                 const opts = {
                     url: path,
                     retries: 3,
@@ -81,21 +79,38 @@ class UpdateListIndex extends ListIndexUtils {
                     cacheTTL: 3600
                 }
                 this.stream = new global.Download(opts)
-                this.stream.once('response', (statusCode, headers) => {
+                this.stream.on('response', (statusCode, headers) => {
                     if(this.debug){
                         console.log('response', statusCode, headers, this.updateMeta)
                     }
+                    resolved = true
                     if(statusCode >= 200 && statusCode < 300){
                         this.contentLength = this.stream.totalContentLength
                         if(this.stream.totalContentLength > 0 && (this.stream.totalContentLength == this.updateMeta.contentLength)){
                             this.stream.destroy()
                             resolve(false) // no need to update
                         } else {
+                            this.stream.currentResponse.pause()
                             resolve(true)
                         }
                     } else {
                         this.stream.destroy()
                         reject('http error '+ statusCode)
+                    }
+                })
+                this.stream.on('end', () => {
+                    if(this.debug){
+                        console.log('end')
+                    }
+                    this.stream.destroy()
+                    if(!resolved) {
+                        resolved = true
+                        reject('unknown http error')
+                    }
+                })
+                this.stream.on('error', e => {
+                    if(this.debug){
+                        console.log('err', e)
                     }
                 })
                 this.stream.start()
@@ -162,7 +177,6 @@ class UpdateListIndex extends ListIndexUtils {
 				Object.assign(this.index.meta, meta)
 			})
 			this.parser.on('playlist', e => {
-				console.warn('PARSER PLAYLIST', e)
                 this.playlists.push(e)
 			})
 			this.parser.on('entry', entry => {
@@ -217,6 +231,9 @@ class UpdateListIndex extends ListIndexUtils {
                     this.stream = this.parser = null
                 }
 			})
+            if(this.stream instanceof global.Download){                
+                this.stream.currentResponse.resume()
+            }
 		})
 	}
     writeIndex(writer){

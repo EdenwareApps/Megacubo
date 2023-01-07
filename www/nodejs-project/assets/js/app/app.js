@@ -141,7 +141,7 @@ function initApp(){
         }
     })
     app.on('open-file', (uploadURL, cbID, mimetypes, optionTitle) => {
-        if(parent.cordova){
+        if(parent.cordova) {
             parent.checkPermissions([
                 'READ_EXTERNAL_STORAGE', 
                 'WRITE_EXTERNAL_STORAGE'
@@ -173,10 +173,12 @@ function initApp(){
                                     ])
                                     finish()
                                 }, e => {
+                                    app.emit(cbID, [null])
                                     console.log('Copy failed', fileEntry, dirEntry, target, name, e)
                                 })
                             }, null)
                         }, err => {
+                            app.emit(cbID, [null])
                             console.error(err)
                             finish()
                             osd.show(String(err), 'fas fa-exclamation-circle faclr-red', 'theme-upload', 'normal')
