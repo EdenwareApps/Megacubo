@@ -629,40 +629,6 @@ class Manager extends ManagerEPG {
         })
         this.master.on('sync-status', p => this.updateOSD(p))
     }
-    updateOSD(status){
-        const p = status || global.lists.status()
-        if(this.updateOSDLastProgress != p.progress){
-            this.updateOSDLastProgress = p.progress
-            if(p.progress < 100){
-                this.uiShowing = true
-                global.osd.show(global.lang[global.lists.isFirstRun ? 'STARTING_LISTS_FIRST_TIME_WAIT' : 'UPDATING_LISTS'] +' '+ p.progress +'%', 'fa-mega spin-x-alt', 'update', 'persistent')
-            } else {
-                if(this.uiShowing){
-                    console.error('UPDATEOSD', p, global.lists.info())
-                    this.uiShowing = false
-                    let ret = Object.values(this.updatingProcesses).filter(p => !!p.ret).map(p => p.ret).shift()
-                    if(ret){
-                        global.osd.show(ret.message, ret.fa, 'update', 'normal')
-                    } else {
-                        global.osd.hide('update')
-                    }
-                    this.setImportEPGChannelsListTimer(global.config.get('use-epg-channels-list'))
-                }
-            }
-            if(global.explorer && global.explorer.currentEntries) {
-                const updateEntryNames = [global.lang.PROCESSING, global.lang.UPDATING_LISTS, global.lang.STARTING_LISTS]
-                const updateBaseNames = [global.lang.TRENDING, global.lang.COMMUNITY_LISTS, global.lang.RECEIVED_LISTS]
-                if(
-                    updateBaseNames.includes(global.explorer.basename(global.explorer.path)) || 
-                    global.explorer.currentEntries.some(e => updateEntryNames.includes(e.name))
-                ) {
-                    global.explorer.refresh()
-                } else if(this.inChannelPage()) {
-                    this.maybeRefreshChannelPage()
-                }
-            }
-        }
-    }
     waitListsReady(){
         return new Promise((resolve, reject) => {
             if(!Object.keys(this.updatingProcesses).length){
@@ -733,60 +699,97 @@ class Manager extends ManagerEPG {
             resolve(this.get().map(o => { return o[1] }))
         })
     }
-    add(url, name, unique){
-        return new Promise((resolve, reject) => {
-            url = String(url).trim()
-            if(url.substr(0, 2) == '//'){
-                url = 'http:'+ url
+    async add(url, name, unique){
+        url = String(url).trim()
+        if(url.substr(0, 2) == '//'){
+            url = 'http:'+ url
+        }
+        let isURL = global.validateURL(url), isFile = this.isLocal(url)
+        console.log('name::add', name, url, isURL, isFile)
+        if(!isFile && !isURL){
+            throw global.lang.INVALID_URL_MSG
+        }
+        let lists = this.get()
+        for(let i in lists){
+            if(lists[i][1] == url){
+                return reject(global.lang.LIST_ALREADY_ADDED)
             }
-            let isURL = global.validateURL(url), isFile = this.isLocal(url)
-            console.log('name::add', name, url, isURL, isFile)
-            if(!isFile && !isURL){
-                return reject(global.lang.INVALID_URL_MSG)
+        }
+        console.log('name::add', name, url)
+        const fetcher = new this.master.Fetcher(url, {
+            meta: meta => {
+                if(!name && meta.name){
+                    name = meta.name
+                }
+            },
+            progress: p => {
+                global.osd.show(global.lang.PROCESSING +' '+ p +'%', 'fa-mega spin-x-alt', 'add-list-progress', 'persistent')
             }
-            let fail = msg => {
-                global.osd.hide('list-open')
-                global.displayErr(msg)
-                reject(msg)
+        }, this.master)
+        let entries = await fetcher.fetch()
+        if(entries.length){
+            console.log('name::add')
+            if(!name){
+                await this.name(url).then(n => name = n).catch(() => {})
             }
-            let lists = this.get()
-            for(let i in lists){
-                if(lists[i][1] == url){
-                    return reject(global.lang.LIST_ALREADY_ADDED)
+            let lists = unique ? [] : this.get()
+            lists.push([name, url])
+            global.config.set(this.key, lists)
+            return true
+        } else {                    
+            throw global.lang.INVALID_URL_MSG
+        }
+    }
+    async addList(value, name){
+        global.osd.show(global.lang.PROCESSING, 'fa-mega spin-x-alt', 'add-list-progress', 'persistent')
+        let err
+        await this.add(value, name).catch(e => err = String(e))
+        global.osd.hide('add-list-progress')
+        if(err){
+            if(err.match('http error') != -1){
+                err = global.lang.INVALID_URL_MSG
+            }
+            throw err
+        } else {
+            global.osd.show(global.lang.LIST_ADDED, 'fas fa-check-circle', 'add-list', 'normal')
+            const currentEPG = global.config.get('epg-'+ global.lang.locale)            
+            let chosen = await global.explorer.dialog([
+                {template: 'question', text: global.lang.COMMUNITY_LISTS, fa: 'fas fa-users'},
+                {template: 'message', text: global.lang.WANT_SHARE_COMMUNITY},
+                {template: 'option', text: lang.YES, id: 'yes', fa: 'fas fa-thumbs-up'},
+                {template: 'option', text: lang.NO_THANKS, id: 'no', fa: 'fas fa-lock'}
+            ], 'yes')
+            if(chosen == 'yes'){
+                global.osd.show(global.lang.COMMUNITY_THANKS_YOU, 'fas fa-heart faclr-red', 'community-lists-thanks', 'normal')
+            }
+            this.setMeta(value, 'private', chosen != 'yes')
+            let info, i = 10
+            if(currentEPG != 'disabled'){
+                while(i && (!info || !info[value])){
+                    i--
+                    await this.wait(500)
+                    info = await this.master.info()
                 }
             }
-            console.log('name::add', name, url)
-            const fetcher = new this.master.Fetcher(url, {
-                meta: meta => {
-                    if(!name && meta.name){
-                        name = meta.name
+            if(info[value] && info[value].epg){
+                info[value].epg = this.parseEPGURL(info[value].epg, false)
+                if(global.validateURL(info[value].epg) && info[value].epg != currentEPG){
+                    let chosen = await global.explorer.dialog([
+                        {template: 'question', text: ucWords(MANIFEST.name), fa: 'fas fa-star'},
+                        {template: 'message', text: global.lang.ADDED_LIST_EPG},
+                        {template: 'option', text: lang.YES, id: 'yes', fa: 'fas fa-check-circle'},
+                        {template: 'option', text: lang.NO_THANKS, id: 'no', fa: 'fas fa-times-circle'}
+                    ], 'yes')
+                    if(chosen == 'yes'){
+                        global.config.set('epg-'+ global.lang.locale, info[value].epg)
+                        await this.setEPG(info[value].epg, true)
+                        console.error('XEPG', chosen)
                     }
-                },
-                progress: p => {
-                    global.osd.show(global.lang.PROCESSING +' '+ p +'%', 'fa-mega spin-x-alt', 'list-open', 'persistent')
                 }
-            }, this.master)
-            fetcher.fetch().then(entries => {
-                if(entries.length){
-                    console.log('name::add')
-                    let finish = name => {
-                        console.log('name::final', name, url)
-                        let lists = unique ? [] : this.get()
-                        lists.push([name, url])
-                        global.config.set(this.key, lists)
-                        resolve(true)
-                    }
-                    if(name){
-                        finish(name)
-                    } else {
-                        this.name(url).then(finish).catch(reject)
-                    }
-                } else {                    
-                    console.error(global.lang.INVALID_URL_MSG, url)
-                    fail(global.lang.INVALID_URL_MSG)
-                }
-            }).catch(fail)
-        })
+            }
+            global.explorer.refresh()
+            return true
+        }
     }
     remove(url){
         let lists = global.config.get(this.key)
@@ -941,57 +944,6 @@ class Manager extends ManagerEPG {
     wait(ms){
         return new Promise(resolve => setTimeout(resolve, ms))
     }
-    async addList(value, name){
-        global.osd.show(global.lang.PROCESSING, 'fa-mega spin-x-alt', 'list-open', 'persistent')
-        let err
-        await this.add(value, name).catch(e => err = String(e))
-        if(err){
-            global.osd.hide('list-open')
-            if(err.match('http error') != -1){
-                err = global.lang.INVALID_URL_MSG
-            }
-            throw err
-        } else {
-            global.osd.show(global.lang.LIST_ADDED, 'fas fa-check-circle', 'list-open', 'normal')
-            const currentEPG = global.config.get('epg-'+ global.lang.locale)
-            let info, i = 20
-            if(currentEPG != 'disabled'){
-                while(i && (!info || !info[value])){
-                    i--
-                    await this.wait(500)
-                    info = await this.master.info()
-                }
-            }
-            if(info[value] && info[value].epg){
-                info[value].epg = this.parseEPGURL(info[value].epg, false)
-                if(global.validateURL(info[value].epg) && info[value].epg != currentEPG){
-                    let chosen = await global.explorer.dialog([
-                        {template: 'question', text: ucWords(MANIFEST.name), fa: 'fas fa-star'},
-                        {template: 'message', text: global.lang.ADDED_LIST_EPG},
-                        {template: 'option', text: lang.YES, id: 'yes', fa: 'fas fa-check-circle'},
-                        {template: 'option', text: lang.NO_THANKS, id: 'no', fa: 'fas fa-times-circle'}
-                    ], 'yes')
-                    if(chosen == 'yes'){
-                        global.config.set('epg-'+ global.lang.locale, info[value].epg)
-                        await this.setEPG(info[value].epg, true)
-                        console.error('XEPG', chosen)
-                    }
-                }
-            }
-            let chosen = await global.explorer.dialog([
-                {template: 'question', text: global.lang.COMMUNITY_LISTS, fa: 'fas fa-users'},
-                {template: 'message', text: global.lang.WANT_SHARE_COMMUNITY},
-                {template: 'option', text: lang.YES, id: 'yes', fa: 'fas fa-thumbs-up'},
-                {template: 'option', text: lang.NO_THANKS, id: 'no', fa: 'fas fa-lock'}
-            ], 'yes')
-            if(chosen == 'yes'){
-                global.osd.show(global.lang.COMMUNITY_THANKS_YOU, 'fas fa-heart faclr-red', 'community-lists-thanks', 'normal')
-            }
-            this.setMeta(value, 'private', chosen != 'yes')
-            global.explorer.refresh()
-            return true
-        }
-    }
     updatingProcessOutput(uid, message, fa){
         this.updatingProcesses[uid].progress = 100
         this.updatingProcesses[uid].ret = {message, fa}
@@ -1010,6 +962,7 @@ class Manager extends ManagerEPG {
             this.updaterClients--
             if(!this.updaterClients){
                 this.updater.terminate()
+                this.updater = null
             }
         }
         return this.updater
@@ -1108,32 +1061,65 @@ class Manager extends ManagerEPG {
         }
         console.error('LISTSUPDATED', Object.assign({}, global.lists.activeLists))
     }
-    updateLists(force){
+    async updateLists(force){
         if(global.Download.isNetworkConnected) {
             console.error('lists-manager updateLists', traceback())
             const timer = setInterval(() => {
                 this.updateOSD(global.lists.status())
             }, 3000)
             const uid = parseInt(Math.random() * 1000000000)
-            const starter = !Object.keys(this.updatingProcesses).length
-            if(starter){
+            if(!this.uiShowing){
                 this.uiShowing = true
-                global.osd.show(global.lang.STARTING_LISTS, 'fa-mega spin-x-alt', 'update', 'persistent')
+                global.osd.show(global.lang.STARTING_LISTS, 'fa-mega spin-x-alt', 'update-progress', 'persistent')
             }
             this.updatingProcesses[uid] = {visibility: true, progress: 0}
-            this.update(force === true, uid).catch(err => {
+            await this.update(force === true, uid).catch(err => {
                 const isUIReady = !Array.isArray(global.uiReadyCallbacks)
                 console.error('lists-manager', err, isUIReady)
                 if(isUIReady){ // if error and lists hasn't loaded
                     this.noListsRetryDialog(err)
                 }
-            }).finally(() => {
-                clearInterval(timer)
-                this.updatingProcesses[uid].progress = 100
-                setTimeout(() => delete this.updatingProcesses[uid], 10000)
             })
+            clearInterval(timer)
+            global.osd.hide('update-progress')
+            this.updatingProcesses[uid].progress = 100
+            setTimeout(() => delete this.updatingProcesses[uid], 10000)
         } else {
             global.explorer.info(global.lang.NO_INTERNET_CONNECTION, global.lang.NO_INTERNET_CONNECTION)
+        }
+    }    
+    updateOSD(status){
+        const p = status || global.lists.status()
+        if(this.updateOSDLastProgress != p.progress || (p.progress == 100 && this.uiShowing)){
+            this.updateOSDLastProgress = p.progress
+            if(p.progress < 100){
+                if(!this.uiShowing){
+                    this.uiShowing = true
+                }
+                global.osd.show(global.lang[global.lists.isFirstRun ? 'STARTING_LISTS_FIRST_TIME_WAIT' : 'UPDATING_LISTS'] +' '+ p.progress +'%', 'fa-mega spin-x-alt', 'update-progress', 'persistent')
+            } else {
+                if(this.uiShowing){
+                    this.uiShowing = false
+                    global.osd.hide('update-progress')
+                    let ret = Object.values(this.updatingProcesses).filter(p => !!p.ret).map(p => p.ret).shift()
+                    if(ret){
+                        global.osd.show(ret.message, ret.fa, 'update', 'normal')
+                    }
+                    this.setImportEPGChannelsListTimer(global.config.get('use-epg-channels-list'))
+                }
+            }
+            if(global.explorer && global.explorer.currentEntries) {
+                const updateEntryNames = [global.lang.PROCESSING, global.lang.UPDATING_LISTS, global.lang.STARTING_LISTS]
+                const updateBaseNames = [global.lang.TRENDING, global.lang.COMMUNITY_LISTS, global.lang.RECEIVED_LISTS]
+                if(
+                    updateBaseNames.includes(global.explorer.basename(global.explorer.path)) || 
+                    global.explorer.currentEntries.some(e => updateEntryNames.includes(e.name))
+                ) {
+                    global.explorer.refresh()
+                } else if(this.inChannelPage()) {
+                    this.maybeRefreshChannelPage()
+                }
+            }
         }
     }
     noListsRetryDialog(err){

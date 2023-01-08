@@ -50,7 +50,7 @@ class ListsEPGTools extends Index {
 					this._epg.once('error', err => {
 						if(!resolved){
 							if(retries){
-								this._epg.destroy()
+								this._epg && this._epg.destroy()
 								retries--
 								load()
 							} else {
@@ -221,14 +221,11 @@ class Lists extends ListsEPGTools {
 	}
 	configChanged(){
 		const myLists = global.config.get('lists').map(l => l[1])
-		if(this.myLists.length){
-			this.myLists.forEach(u => {
-				if(!myLists.includes(u)){
-					this.remove(u)
-				}
-			})
-		}
+		const newLists = myLists.filter(u => !this.myLists.includes(u))
+		const rmLists = this.myLists.filter(u => !myLists.includes(u))
 		this.myLists = myLists
+		rmLists.forEach(u => this.remove(u))
+		newLists.forEach(u => this.syncLoadList(u))
 	}
 	isListCached(url, cb){
 		let file = global.storage.raw.resolve(LIST_DATA_KEY_MASK.format(url))

@@ -10,6 +10,7 @@ LIST_DATA_KEY_MASK = 'list-data-1-{0}'
 class Fetcher extends Events {
 	constructor(url, atts, master){
 		super()
+		this.progress = 0
 		this.atts = atts
         this.url = url
 		this.playlists = []
@@ -37,6 +38,9 @@ class Fetcher extends Events {
 			this.list.skipValidating = true
 			this.list.start().then(resolve).catch(err => {
 				this.updater = new UpdateListIndex(this.url, this.url, this.file, this.master, {})
+				if(typeof(this.atts.progress) == 'function'){
+					this.updater.on('progress', p => this.atts.progress(p))
+				}
 				this.updater.start().then(() => {
 					this.list.start().then(resolve).catch(err => {
 						this.list.destroy()

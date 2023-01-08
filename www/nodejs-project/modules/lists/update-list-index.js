@@ -234,6 +234,15 @@ class UpdateListIndex extends ListIndexUtils {
             if(this.stream instanceof global.Download){                
                 this.stream.currentResponse.resume()
             }
+            let received = 0, pp = this.contentLength / 100
+            this.stream.on('data', chunk => {
+                received += chunk.length
+                let progress = parseInt(received / pp)
+                if(progress !== this.progress) {
+                    this.progress = progress
+                    this.emit('progress', progress)
+                }
+            })
 		})
 	}
     writeIndex(writer){

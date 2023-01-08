@@ -147,7 +147,7 @@ setNetworkConnectionState = state => {
     if(typeof(lists) != 'undefined'){
         lists.setNetworkConnectionState(state).catch(console.error)
         if(state && isStreamerReady){
-            lists.manager.updateLists()
+            lists.manager.updateLists().catch(global.displayErr)
         }
     }
 }
@@ -378,10 +378,10 @@ function init(language){
                     explorer.open('', 0).catch(displayErr)
                     config.set('communitary-mode-lists-amount', lists.opts.defaultCommunityModeReach)
                     explorer.info(lang.LEGAL_NOTICE, lang.TOS_CONTENT)
-                    lists.manager.updateLists(true)
+                    lists.manager.updateLists(true).catch(global.displayErr)
                     break
                 case 'retry':
-                    lists.manager.updateLists(true)
+                    lists.manager.updateLists(true).catch(global.displayErr)
                     break
                 case 'add-list':
                     ui.emit('prompt', lang.ASK_IPTV_LIST, 'http://.../example.m3u', '', 'lists-manager', false, 'fas fa-plus-square')
@@ -617,7 +617,7 @@ function init(language){
             if(['lists', 'communitary-mode-lists-amount', 'communitary-mode-interests'].some(k => keys.includes(k))){
                 console.warn('config change', keys, data)
                 explorer.refresh()
-                lists.manager.updateLists()
+                lists.manager.updateLists().catch(global.displayErr)
             }
         })     
         ui.once('init', () => {
@@ -650,7 +650,7 @@ function init(language){
                 }
                 const afterListUpdate = async () => {
                     if(!lists.activeLists.length && config.get('communitary-mode-lists-amount')){
-                        lists.manager.updateLists()
+                        lists.manager.updateLists().catch(global.displayErr)
                     }
                     let c = await cloud.get('configure')
                     updateEPGConfig(c)
@@ -667,12 +667,11 @@ function init(language){
                 analytics = new Analytics()
                 diagnostics = new Diagnostics()
                 if(setupCompleted()){
-                    lists.manager.updateLists(true)
+                    lists.manager.updateLists(true).catch(global.displayErr)
                 } else {
                     const Wizard = require(APPDIR + '/modules/wizard');
                     wizard = new Wizard()
                 }
-
                 explorer.addFilter(downloads.hook.bind(downloads))
             }
         })
