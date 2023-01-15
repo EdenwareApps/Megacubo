@@ -19,7 +19,7 @@ class DownloadStream extends DownloadStreamBase {
     async start(){
         const start = global.time()
         const types = [DownloadStreamHttp]
-        let usep2p = this.opts.p2p === true && global.ui
+        let usep2p = this.opts.p2p === true && global.ui && global.Download.p2p
         if(this.opts.cacheTTL) {
             types.push(DownloadStreamCache)
         }

@@ -105,7 +105,11 @@ function initApp(){
     app.on('init-p2p', (addr, limit) => {
         console.warn('INIT P2P', addr, limit)
         if(!window.p2p){
-            window.p2p = new P2PManager(app, addr, limit)  
+            if(typeof(P2PManager) == 'undefined'){
+                app.emit('init-p2p-failure')
+            } else {
+                window.p2p = new P2PManager(app, addr, limit)  
+            }
         }
     })
     app.on('download', (url, name) => {

@@ -133,6 +133,9 @@ class Download extends Events {
 							const addr = srvConfig['p2p-signal-server'] || global.config.get('p2p-signal-server') || 'ws://signal.megacubo.net'
 							const limit = srvConfig['p2p-peers-limit'] || global.config.get('p2p-peers-limit') || 8
 							console.warn('INIT P2P', addr, limit)
+							global.ui.once('init-p2p-failure', () => {
+								Download.p2p = 0 // lock, set zero to skip P2P usage
+							})
 							global.ui.emit('init-p2p', addr, limit)
 						})
 					}

@@ -159,7 +159,9 @@ class EPG extends EPGPaginateChannelsList {
                     }
                     this.state = 'error'
                     this.error = global.lang.EPG_BAD_FORMAT
-                    this.emit('error', global.lang.EPG_BAD_FORMAT)
+                    if(this.listenerCount('error')){
+                        this.emit('error', global.lang.EPG_BAD_FORMAT)
+                    }
                     this.scheduleNextUpdate(30)
                 }
                 return true
@@ -232,7 +234,9 @@ class EPG extends EPGPaginateChannelsList {
                 } else {
                     this.state = 'error'
                     this.error = validEPG ? global.lang.EPG_OUTDATED : global.lang.EPG_BAD_FORMAT
-                    this.emit('error', this.error)
+                    if(this.listenerCount('error')){
+                        this.emit('error', this.error)
+                    }
                 }
                 if(this.parser){
                     this.parser.end()

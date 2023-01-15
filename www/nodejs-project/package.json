@@ -45,7 +45,7 @@
    "description": "A intuitive, multi-language and cross-platform IPTV player.",
    "name": "megacubo",
    "icon": "./default_icon.png",
-   "version": "16.7.8",
+   "version": "16.7.9",
    "theme": {
       "fullScreen": true
    },

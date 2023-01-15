@@ -1,9 +1,6 @@
 @font-face {
   font-family: 'megacubo';
-  src:
-    url('fonts/megacubo.ttf?l2fgjh') format('truetype'),
-    url('fonts/megacubo.woff?l2fgjh') format('woff'),
-    url('fonts/megacubo.svg?l2fgjh#megacubo') format('svg');
+  src: url('fonts/megacubo.woff') format('woff');
   font-weight: lighter;
   font-style: normal;
 }

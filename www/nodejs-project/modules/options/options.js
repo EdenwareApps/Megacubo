@@ -557,8 +557,7 @@ class Options extends OptionsHardwareAcceleration {
 		global.ui.emit('share', global.ucWords(global.MANIFEST.name), global.ucWords(global.MANIFEST.name), 'https://megacubo.net/')
 	}
     async about(){
-        let outdated
-        let c = await cloud.get('configure').catch(console.error)
+        let outdated, c = await cloud.get('configure').catch(console.error)
         if(c){
             updateEPGConfig(c)
             console.log('checking update...')
@@ -571,7 +570,7 @@ class Options extends OptionsHardwareAcceleration {
         let versionStatus = outdated ? global.lang.OUTDATED : global.lang.CURRENT_VERSION
         title += ' ('+ versionStatus +', ' + process.platform +' '+ os.arch() +')'
         let ret = await global.explorer.dialog([
-            {template: 'question', fa: 'fas fa-info-circle', text: title},
+            {template: 'question', fa: 'fas fa-mega', text: title},
             {template: 'message', text},
             {template: 'option', text: 'OK', fa: 'fas fa-check-circle', id: 'ok'},
             {template: 'option', text: global.lang.HELP, fa: 'fas fa-question-circle', id: 'help'},

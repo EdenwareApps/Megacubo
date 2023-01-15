@@ -125,7 +125,7 @@ class UpdateListIndex extends ListIndexUtils {
                             resolve(true)
                         }
                     } else {
-                        reject('file not found or empty')
+                        reject('file not found or empty*')
                     }
                 })
             }

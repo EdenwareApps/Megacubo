@@ -452,6 +452,7 @@ div#home-arrows > div > * {
     display: inline-block;
     line-height: 150%;
     text-shadow: 1px 1px black, 0 0 4px black;
+    -webkit-font-smoothing: antialiased;
 }
 #explorer content a span.entry-details {
     line-height: 150%;

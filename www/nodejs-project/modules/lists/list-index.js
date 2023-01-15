@@ -9,7 +9,9 @@ class ListIndex extends ListIndexUtils {
     fail(err){
         console.warn('Bad index file', this.file, err)
         this.hasFailed = err
-        this.emit('error', err)
+        if(this.listenerCount('error')){
+            this.emit('error', err)
+        }
         this.emit('end')
     }
     async entries(map){
