@@ -746,7 +746,7 @@ class WinMan extends EventEmitter {
 	askRestart(){
 		let w = this.getAppWindow()
 		w.explorer.dialog([
-			{template: 'question', text: 'Megacubo', fa: 'fas fa-info-circle'},
+			{template: 'question', text: document.title, fa: 'fas fa-info-circle'},
 			{template: 'message', text: lang.SHOULD_RESTART},
 			{template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle'},
 			{template: 'option', text: lang.RESTART_LATER, id: 'back', fa: 'fas fa-times-circle'}
@@ -801,7 +801,7 @@ class WinMan extends EventEmitter {
 		} else {
 			let w = this.getAppWindow()
 			w.explorer.dialog([
-				{template: 'question', text: 'Megacubo', fa: 'fas fa-info-circle'},
+				{template: 'question', text: document.title, fa: 'fas fa-info-circle'},
 				{template: 'message', text: lang.SHOULD_RESTART},
 				{template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle'}
 			], next)

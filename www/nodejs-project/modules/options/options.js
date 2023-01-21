@@ -358,8 +358,8 @@ class OptionsHardwareAcceleration extends OptionsExportImport {
         })
         if(hasErr){
             global.explorer.dialog([
-                {template: 'question', text: 'Megacubo', fa: 'fas fa-info-circle'},
-                {template: 'message', text: 'You must run Megacubo as admin to change this option.'},
+                {template: 'question', text: global.MANIFEST.window.title, fa: 'fas fa-info-circle'},
+                {template: 'message', text: 'You must run '+ global.MANIFEST.window.title +' as admin to change this option.'},
                 {template: 'option', text: 'OK', id: 'ok'}
             ], 'ok').catch(console.error) // dont wait
             global.explorer.refresh()

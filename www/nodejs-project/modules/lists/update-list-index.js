@@ -33,12 +33,13 @@ class UpdateListIndex extends ListIndexUtils {
 			}
 		})
 		entry.terms.name.forEach(term => {
-			if(!this.index.terms[term].n.includes(i)){
+            // ensure it's an array an not a method
+			if(Array.isArray(this.index.terms[term].n) && !this.index.terms[term].n.includes(i)){
 				this.index.terms[term].n.push(i)
 			}
 		})
 		entry.terms.group.forEach(term => {
-			if(!this.index.terms[term].g.includes(i)){
+			if(Array.isArray(this.index.terms[term].n) && !this.index.terms[term].g.includes(i)){
 				this.index.terms[term].g.push(i)
 			}
 		})
@@ -74,6 +75,7 @@ class UpdateListIndex extends ListIndexUtils {
                     headers: {
                         'accept-charset': 'utf-8, *;q=0.1'
                     },
+                    timeout: Math.max(30, global.config.get('connect-timeout')), // some servers will take too long to send the initial response
                     downloadLimit: 200 * (1024 * 1024), // 200Mb
                     p2p: true,
                     cacheTTL: 3600
@@ -150,7 +152,10 @@ class UpdateListIndex extends ListIndexUtils {
             urls.unshift(this.directURL.replace(match[0], 'output='+ fmt + match[2]))
             console.warn('URLS', urls)
         }
-        const writer = fs.createWriteStream(this.tmpfile, {highWaterMark: Number.MAX_SAFE_INTEGER})
+        await fs.mkdir(global.dirname(this.tmpfile), {recursive: true}).catch(console.error)
+        const writer = fs.createWriteStream(this.tmpfile, {
+            highWaterMark: Number.MAX_SAFE_INTEGER
+        })
         let connected
         for(let url of urls){
             connected = await this.connect(url).catch(console.error)

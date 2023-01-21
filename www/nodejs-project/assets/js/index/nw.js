@@ -255,7 +255,7 @@ class WindowManager extends ClassesHandler {
 	}
 	prepareTray(){
 		if(!this.tray){
-			const title = 'Megacubo'
+			const title = document.title
 			this.tray = new nw.Tray({
 				title, 
 				icon: 'default_icon.png', 

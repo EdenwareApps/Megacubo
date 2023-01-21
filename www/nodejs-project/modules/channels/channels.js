@@ -574,7 +574,7 @@ class ChannelsEditing extends ChannelsEPG {
             type: 'action',
             fa: 'fas fa-share-alt',
             action: () => {
-                global.ui.emit('share', 'Megacubo', e.name, 'https://megacubo.tv/w/' + encodeURIComponent(e.name))
+                global.ui.emit('share', global.MANIFEST.window.title, e.name, 'https://megacubo.tv/w/' + encodeURIComponent(e.name))
             }
         }
     }

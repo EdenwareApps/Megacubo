@@ -253,7 +253,7 @@ class StreamerState extends StreamerCasting {
         this.app.on('streamer-show-tune-hint', () => {
             const next = () => {
                 explorer.dialog([
-                    {template: 'question', text: 'Megacubo', fa: 'fas fa-info-circle'},
+                    {template: 'question', text: document.title, fa: 'fas fa-info-circle'},
                     {template: 'message', text: lang.TUNING_HINT.format('<i class=\'fas '+ config['tuning-icon'] +'\'></i>')},
                     {template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle'}
                 ])
@@ -1094,7 +1094,7 @@ class StreamerClientVideoFullScreen extends StreamerAndroidNetworkIP {
     handleDarkModeInfoDialog(info){
         if(info.miui && info.mode && info.mode != 16){
             explorer.dialog([
-                {template: 'question', text: 'Megacubo', fa: 'fas fa-info-circle'},
+                {template: 'question', text: document.title, fa: 'fas fa-info-circle'},
                 {template: 'message', text: lang.MIUI_DARK_MODE_HINT},
                 {template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle'}
             ])

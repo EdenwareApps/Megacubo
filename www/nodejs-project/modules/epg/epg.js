@@ -250,8 +250,7 @@ class EPG extends EPGPaginateChannelsList {
         }
     }
     fixSlashes(txt){
-        txt = txt.replaceAll('/', '|') // this character will break internal Megacubo navigation
-        return txt
+        return txt.replaceAll('/', '|') // this character will break internal app navigation
     }
     scheduleNextUpdate(time){        
         if(this.autoUpdateTimer){

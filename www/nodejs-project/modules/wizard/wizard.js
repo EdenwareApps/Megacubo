@@ -54,7 +54,7 @@ class Wizard extends WizardUtils {
         if(this.skipList) return true
         this.active = true
         let text = global.lang.ASK_IPTV_LIST_FIRST.split('. ').join(".\r\n"), def = 'ok', opts = [
-            {template: 'question', text: 'Megacubo', fa: 'fas fa-star'},
+            {template: 'question', text: global.MANIFEST.window.title, fa: 'fas fa-star'},
             {template: 'message', text},
             {template: 'option', text: global.lang.ADD_LIST, fa: 'fas fa-plus-square', id: 'ok'}
         ]

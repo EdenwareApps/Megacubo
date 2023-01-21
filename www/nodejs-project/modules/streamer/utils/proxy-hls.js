@@ -323,7 +323,7 @@ class HLSRequests extends StreamerProxyBase {
 					mediaType = 'meta'
 				}
 			} else {
-				console.error('Request error', status, headers, url, request, request.authErrors, request.opts.maxAuthErrors)
+				console.error('Request error', status, headers, url, request.authErrors, request.opts.maxAuthErrors)
 				if(this.debugUnfinishedRequests){
 					global.osd.show('unfinished: '+ Object.values(this.activeRequests).length, 'fas fa-info-circle', 'hlsu', 'persistent')
 					global.osd.show('error '+ url.split('/').pop().split('?')[0] +' - '+ status, 'fas fa-info-circle', 'hlsr', 'long')

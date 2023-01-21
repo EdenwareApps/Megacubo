@@ -75,7 +75,8 @@ class DownloadStream extends DownloadStreamBase {
                             response.end()
                             this.end()
                         } else {
-                            this.emitError('Failed to fetch.')
+                            const err = vias.filter(v => v.type == 'http').map(v => v.errors.pop()).pop() || 'Failed to fetch.'
+                            this.emitError(err)
                         }
                     } else if(via.type == 'p2p') {
                         console.warn('P2P DESTROYED AFTER '+ (global.time() - start)+'s', via.error || via)

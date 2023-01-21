@@ -300,7 +300,7 @@ class Downloads extends Events {
 	async askDownload(url, name, target){		
 		this.askingDownloadStart = {url, name, target}
 		let ret = await global.explorer.dialog([
-			{template: 'question', text: 'Megacubo', fa: this.icon},
+			{template: 'question', text: global.MANIFEST.window.title, fa: this.icon},
 			{template: 'message', text: global.lang.DOWNLOAD_START_CONFIRM.format(name) +"\r\n\r\n"+ global.lang.DOWNLOAD_START_HINT.format([global.lang.TOOLS, global.lang.ACTIVE_DOWNLOADS].join('/'))},
 			{template: 'option', text: lang.YES, id: 'downloads-start', fa: 'fas fa-check-circle'},
 			{template: 'option', text: lang.NO, id: 'no', fa: 'fas fa-times-circle'}
@@ -385,7 +385,7 @@ class Downloads extends Events {
 					fa: this.icon,
 					action: async () => {
 						let ret = await global.explorer.dialog([
-							{template: 'question', text: 'Megacubo', fa: this.icon},
+							{template: 'question', text: global.MANIFEST.window.title, fa: this.icon},
 							{template: 'message', text: global.lang.DOWNLOAD_CANCEL_CONFIRM.format(name)},
 							{template: 'option', text: lang.YES, id: 'downloads-cancel-'+ download.uid, fa: 'fas fa-check-circle'},
 							{template: 'option', text: lang.NO, id: 'no', fa: 'fas fa-times-circle'}

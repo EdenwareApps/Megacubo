@@ -736,7 +736,7 @@ function initApp(){
                 parent.cordova.plugins.backgroundMode.disableBatteryOptimizations()
 				setTimeout(() => parent.winman.setBackgroundMode(false), 5000)
                 parent.cordova.plugins.backgroundMode.setDefaults({
-                    title: 'Megacubo',
+                    title: document.title,
                     text: lang.RUNNING_IN_BACKGROUND || '...',                
                     icon: 'icon', // this will look for icon.png in platforms/android/res/drawable|mipmap
                     color: config['background-color'].slice(-6), // hex format like 'F14F4D'
@@ -749,7 +749,9 @@ function initApp(){
                 })
             } else {
                 jQuery('body').on('dblclick', event => {
-                    if(streamer.active || !jQuery(event.target).parents('wrap').length){
+                    const rect = document.querySelector('header').getBoundingClientRect()
+                    const valid = event.clientY < (rect.top + rect.height)
+                    if(valid) {
                         streamer.toggleFullScreen()
                         event.preventDefault()
                         event.stopPropagation()

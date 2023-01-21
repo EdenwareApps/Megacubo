@@ -59,7 +59,7 @@ class Diagnostics extends Events {
 		let fine = data.free >= this.minDiskSpaceRequired
 		if(!fine || force){
 			global.explorer.dialog([
-				{template: 'question', text: 'Megacubo', fa: 'fas fa-exclamation-triangle faclr-red'},
+				{template: 'question', text: global.MANIFEST.window.title, fa: 'fas fa-exclamation-triangle faclr-red'},
 				{template: 'message', text: global.lang.LOW_DISK_SPACE_AVAILABLE.format(global.kbfmt(data.free))},
 				{template: 'option', text: global.lang.CLEAR_CACHE, id: 'clear'},
 				{template: 'option', text: 'OK', id: 'ok'}
@@ -107,7 +107,7 @@ class Diagnostics extends Events {
 		let fine = freeBytes >= this.minFreeMemoryRequired
 		if(!fine || force){
 			global.explorer.dialog([
-				{template: 'question', text: 'Megacubo', fa: 'fas fa-exclamation-triangle faclr-red'},
+				{template: 'question', text: global.MANIFEST.window.title, fa: 'fas fa-exclamation-triangle faclr-red'},
 				{template: 'message', text: global.lang.LOW_MEMORY_AVAILABLE.format(global.kbfmt(freeBytes))},
 				{template: 'option', text: 'OK', id: 'ok'}
 			], 'ok').catch(console.error) // dont wait

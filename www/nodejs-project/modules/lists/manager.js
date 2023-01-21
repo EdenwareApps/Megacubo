@@ -1045,7 +1045,7 @@ class Manager extends ManagerEPG {
                 }
                 if(expired.length)  {
                     const ret = await global.explorer.dialog([
-                        {template: 'question', text: 'Megacubo', fa: 'fas fa-info-circle'},
+                        {template: 'question', text: global.MANIFEST.window.title, fa: 'fas fa-info-circle'},
                         {template: 'message', text: global.lang.IPTV_LIST_EXPIRED +'<br /><br />'+ expired.join('<br />')},
                         {template: 'option', text: 'OK', id: 'ok', fa: 'fas fa-check-circle'},
                         {template: 'option', text: global.lang.REMOVE_LIST, id: 'rm', fa: 'fas fa-trash'}

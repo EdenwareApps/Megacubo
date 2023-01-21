@@ -50,7 +50,7 @@ class Mega {
 				name = nparts[0]
 			}
 			if(url && !name){
-				name = 'Megacubo '+ this.getDomain(url)
+				name = global.MANIFEST.window.title +' '+ this.getDomain(url)
 			} else if(name.charAt(name.length - 1) == '/'){
 				name = name.substr(0, name.length - 1)
 			}

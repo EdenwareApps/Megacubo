@@ -31,7 +31,7 @@ if(cordova){
 } else if(fs.existsSync(APPDIR +'/.portable') && checkDirWritePermissionSync(APPDIR +'/.portable')){
     paths = {data: APPDIR +'/.portable/Data', temp: APPDIR +'/.portable/temp'}
 } else {
-	paths = require('env-paths')('Megacubo', {suffix: ''})
+	paths = require('env-paths')(global.MANIFEST.window.title, {suffix: ''})
 }
 
 Object.keys(paths).forEach(k => {
