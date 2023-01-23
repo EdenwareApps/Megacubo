@@ -133,26 +133,33 @@ class UpdateListIndex extends ListIndexUtils {
             }
         })
 	}
-	async start(){
-        let urls = [this.directURL]
-        let match, badfmt = new RegExp('output=(m3u|ts|mpegts)(&|$)', 'i')
-        if(global.config.get('prefer-hls') && (match = this.directURL.match(badfmt))){
+    makeHLS(url){
+        let match, badfmt = new RegExp('(type|output)=(m3u|ts|mpegts)(&|$)', 'gi')
+        let hlsurl = url.replace(badfmt, (...args) => {
             let fmt
-            switch(match[1]){
-                case 'ts':
+            switch(args[1]){
+                case 'output':
                     fmt = 'hls'
                     break
-                case 'mpegts':
-                    fmt = 'm3u8'
-                    break
-                case 'm3u':
+                case 'type':
                     fmt = 'm3u_plus'
                     break
             }
-            urls.unshift(this.directURL.replace(match[0], 'output='+ fmt + match[2]))
-            console.warn('URLS', urls)
+            return args[1] +'='+ fmt + args[3]
+        })
+        if(hlsurl != url){
+            return hlsurl
         }
-        await fs.mkdir(global.dirname(this.tmpfile), {recursive: true}).catch(console.error)
+    }
+	async start(){
+        let urls = [this.directURL]
+        if(global.config.get('prefer-hls')){
+            const hlsurl = this.makeHLS(this.directURL)
+            if(hlsurl){
+                urls.unshift(hlsurl)
+            }
+        }
+        await fs.promises.mkdir(global.dirname(this.tmpfile), {recursive: true}).catch(console.error)
         const writer = fs.createWriteStream(this.tmpfile, {
             highWaterMark: Number.MAX_SAFE_INTEGER
         })

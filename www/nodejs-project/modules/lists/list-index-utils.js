@@ -62,14 +62,13 @@ class ListIndexUtils extends Events {
         })
     }
     async readLastLine(file) {         
-        let fs = require('fs').promises
         let bufferSize = 1024
         let self = {
             stat: null,
             file: null,
         }
-        self.stat = await fs.stat(file)
-        self.file = await fs.open(file, 'r')
+        self.stat = await fs.promises.stat(file)
+        self.file = await fs.promises.open(file, 'r')
         let chars = 0
         let lineCount = 0
         let lines = ''

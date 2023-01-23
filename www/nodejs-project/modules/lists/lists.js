@@ -322,34 +322,37 @@ class Lists extends ListsEPGTools {
 			progress = 100
 		} else {
             const camount = global.config.get('communitary-mode-lists-amount')
-			if(this.myLists.length){
-				progresses = progresses.concat(this.myLists.map(url => this.lists[url] ? this.lists[url].progress() : 0))
-			}
-			if(camount > satisfyAmount){
-				// let satisfyAmount -1 below from communitary-mode-lists-amount
-				// limit satisfyAmount to 8
-				satisfyAmount += Math.max(1, Math.min(8, camount, this.communityLists.length) - 1)
-				progresses = progresses.concat(Object.keys(this.lists).filter(url => !this.myLists.includes(url)).map(url => this.lists[url].progress()).sort((a, b) => b - a).slice(0, satisfyAmount))
-			}
-			if(this.debug){
-				console.log('status() progresses', progresses)
-			}
-			progress = parseInt(progresses.length ? (progresses.reduce((a, b) => a + b, 0) / satisfyAmount) : 0)
-			if(progress == 100){
-				if(!isUpdatingFinished && Object.keys(this.lists).length < satisfyAmount){
-					progress = 99
-				}
+			if(!camount && !this.myLists.length){
+				progress = 100
 			} else {
-				if(isUpdatingFinished){
-					progress = 100
+				if(this.myLists.length){
+					progresses = progresses.concat(this.myLists.map(url => this.lists[url] ? this.lists[url].progress() : 0))
+				}
+				if(camount > satisfyAmount){
+					// let satisfyAmount -1 below from communitary-mode-lists-amount
+					// limit satisfyAmount to 8
+					satisfyAmount += Math.max(1, Math.min(8, camount, this.communityLists.length) - 1)
+					progresses = progresses.concat(Object.keys(this.lists).filter(url => !this.myLists.includes(url)).map(url => this.lists[url].progress()).sort((a, b) => b - a).slice(0, satisfyAmount))
+				}
+				if(this.debug){
+					console.log('status() progresses', progresses)
+				}
+				progress = parseInt(progresses.length ? (progresses.reduce((a, b) => a + b, 0) / satisfyAmount) : 0)
+				if(progress == 100){
+					if(!isUpdatingFinished && Object.keys(this.lists).length < satisfyAmount){
+						progress = 99
+					}
+				} else {
+					if(isUpdatingFinished){
+						progress = 100
+					}
 				}
 			}
 		}
 		if(this.debug){
 			console.log('status() progresses', progress)
 		}
-		let ret = {url, progress, firstRun}
-		return ret
+		return {url, progress, firstRun, length: Object.values(this.lists).filter(l => l.isReady).length}
 	}
 	loaded(){
 		return this.status().progress > 99

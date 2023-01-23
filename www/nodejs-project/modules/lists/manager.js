@@ -1108,7 +1108,10 @@ class Manager extends ManagerEPG {
                     this.setImportEPGChannelsListTimer(global.config.get('use-epg-channels-list'))
                 }
             }
+        }
+        if(this.updateOSDLastListsCount != p.length){
             if(global.explorer && global.explorer.currentEntries) {
+                this.updateOSDLastListsCount = p.length
                 const updateEntryNames = [global.lang.PROCESSING, global.lang.UPDATING_LISTS, global.lang.STARTING_LISTS]
                 const updateBaseNames = [global.lang.TRENDING, global.lang.COMMUNITY_LISTS, global.lang.RECEIVED_LISTS]
                 if(
@@ -1234,7 +1237,7 @@ class Manager extends ManagerEPG {
         if(server.charAt(server.length - 1) == '/') {
             server = server.substr(0, server.length - 1)
         }
-        const url = server +'/get.php?username='+ encodeURIComponent(user) +'&password='+ encodeURIComponent(pass) +'&type=m3u_plus&output=ts'            
+        const url = server +'/get.php?username='+ encodeURIComponent(user) +'&password='+ encodeURIComponent(pass) +'&output=ts&type=m3u_plus'            
         return await this.addList(url)
     }
     updaterResultExpired(url){
@@ -1412,6 +1415,8 @@ class Manager extends ManagerEPG {
         console.warn('DIRECT', isMine, isCommunity, hasFailed)
         global.osd.show(global.lang.OPENING_LIST, 'fa-mega spin-x-alt', 'list-open', 'persistent')
         let list = await this.master.directListRenderer(v, {
+            parentalControl: opts.parentalControl,
+            deepify: opts.deepify,
             fetch: opts.fetch,
             progress: p => {
                 global.osd.show(global.lang.OPENING_LIST +' '+ parseInt(p) +'%', 'fa-mega spin-x-alt', 'list-open', 'persistent')

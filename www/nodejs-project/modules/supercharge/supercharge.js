@@ -376,15 +376,15 @@ function patch(scope){
 		return scope.__fs
 	}
 	scope._moveFile = async (from, to) => {
-		const fs = scope.getFS().promises
-		const fstat = await fs.stat(from).catch(console.error)
+		const fs = scope.getFS()
+		const fstat = await fs.promises.stat(from).catch(console.error)
 		if(!fstat) throw '"from" file not found'
 		let err
-		// await fs.rename(from, to).catch(e => err = e) // rename now and then gives perm errors to rename
-		await fs.copyFile(from, to).catch(e => err = e)
+		// await fs.promises.rename(from, to).catch(e => err = e) // rename now and then gives perm errors to rename
+		await fs.promises.copyFile(from, to).catch(e => err = e)
 		let tstat
 		if(err){
-			tstat = await fs.stat(to).catch(console.error)
+			tstat = await fs.promises.stat(to).catch(console.error)
 			if(tstat && tstat.size == fstat.size){
 				err = null
 			}
@@ -392,7 +392,7 @@ function patch(scope){
 		if(err){
 			throw err
 		}
-		fs.unlink(from).catch(() => {})
+		fs.promises.unlink(from).catch(() => {})
 		return true
 	}
 	scope.moveFile = (from, to, _cb, timeout=5, until=null, startedAt = null, fromSize=null) => {
