@@ -615,13 +615,11 @@ function init(language){
             ui.emit('config', keys, data)
             console.warn('config change', keys, data)
             if(['lists', 'communitary-mode-lists-amount', 'communitary-mode-interests'].some(k => keys.includes(k))){
-                console.warn('config change', keys, data)
                 explorer.refresh()
                 lists.manager.updateLists().catch(global.displayErr)
             }
         })     
         ui.once('init', () => {
-            console.warn('Client init')
             explorer.start()  
             icons.refresh()
             streamState.sync()

@@ -133,7 +133,7 @@ class UpdateListIndex extends ListIndexUtils {
             }
         })
 	}
-    makeHLS(url){
+    hlsify(url){
         let match, badfmt = new RegExp('(type|output)=(m3u|ts|mpegts)(&|$)', 'gi')
         let hlsurl = url.replace(badfmt, (...args) => {
             let fmt
@@ -154,7 +154,7 @@ class UpdateListIndex extends ListIndexUtils {
 	async start(){
         let urls = [this.directURL]
         if(global.config.get('prefer-hls')){
-            const hlsurl = this.makeHLS(this.directURL)
+            const hlsurl = this.hlsify(this.directURL)
             if(hlsurl){
                 urls.unshift(hlsurl)
             }
@@ -246,10 +246,15 @@ class UpdateListIndex extends ListIndexUtils {
             if(this.stream instanceof global.Download){                
                 this.stream.currentResponse.resume()
             }
-            let received = 0, pp = this.contentLength / 100
+            // if we dont know contentLength, we'll estimate a big list size to show some progress for the user, even it being less consistent
+            let contentLength = this.contentLength && this.contentLength > 0 ? this.contentLength : (100 * (1024 * 1024))
+            let received = 0, pp = contentLength / 100
             this.stream.on('data', chunk => {
                 received += chunk.length
                 let progress = parseInt(received / pp)
+                if(progress > 99){
+                    progress = 99
+                }
                 if(progress !== this.progress) {
                     this.progress = progress
                     this.emit('progress', progress)

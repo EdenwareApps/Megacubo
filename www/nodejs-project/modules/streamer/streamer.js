@@ -68,6 +68,9 @@ class StreamerTools extends Events {
 	}
 	info(url, retries=2, entry={}){
 		return new Promise((resolve, reject) => {
+			if(!url){
+				reject(global.lang.INVALID_URL)
+			}
 			this.pingSource(entry.source, () => {
 				this.streamInfo.probe(url, retries, entry).then(nfo => {
 					let type = false
@@ -164,6 +167,9 @@ class StreamerBase extends StreamerTools {
 	}
     intent(data, opts, aside){ // create intent
         return new Promise((resolve, reject) => {
+			if(data.url){
+				return reject(global.lang.INVALID_URL)
+			}
 			if(!this.throttle(data.url)){
 				return reject('401')
 			}

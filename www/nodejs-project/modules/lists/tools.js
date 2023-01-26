@@ -1,15 +1,31 @@
-const async = require('async')
+const pLimit = require('p-limit')
 
 class Tools {
-	constructor(opts){
-		this.opts = {
-			folderSizeLimitTolerance: 12
+	constructor(){
+		this.folderSizeLimitTolerance = 12
+	}
+	dedup(entries){
+		let already = {}, map = {};
+		for(var i=0; i<entries.length; i++){
+			if(!entries[i]){
+				delete entries[i]
+			} else if(
+				entries[i].url && 
+				!entries[i].prepend && 
+				(typeof(entries[i].type) == 'undefined' || entries[i].type == 'stream')
+				){
+				if(typeof(already[entries[i].url])!='undefined'){
+					var j = map[entries[i].url]
+					entries[j] = this.mergeEntries(entries[j], entries[i])
+					delete entries[i]
+				} else {
+					already[entries[i].url] = 1
+					map[entries[i].url] = i
+				}
+			}
 		}
-        if(opts){
-            Object.keys(opts).forEach((k) => {
-                this.opts[k] = opts[k]
-            })
-        }
+		already = map = null
+		return entries.filter(item => item !== undefined)
 	}
 	basename(str, rqs){
 		str = String(str)
@@ -37,7 +53,7 @@ class Tools {
 	labelify(list){
 		for (var i=0; i<list.length; i++){
 			if(typeof(list[i].type) == 'undefined' || list[i].type == 'stream') {
-				list[i].details = list[i].groupName || (this.basename(list[i].path || list[i].group))
+				list[i].details = list[i].groupName || this.basename(list[i].path || list[i].group)
 			}
 		}
 		return list
@@ -74,22 +90,39 @@ class Tools {
 		}
 		return list
 	}
-	offload(list, url, cb){
-		if(list.length <= this.opts.offloadThreshold){
-			return cb(list)
+	async asyncMapRecursively(list, cb, root){
+		for (var i = list.length - 1; i >= 0; i--){
+			if(list[i].type && list[i].type == 'group'){
+				if(typeof(list[i].entries) != 'undefined'){
+					let ret = await this.asyncMapRecursively(list[i].entries, cb, true)
+					if(Array.isArray(ret)){
+						list[i].entries = ret
+					} else {					
+						list[i].renderer = ret
+						delete list[i].entries
+					}
+				}
+			}
+		}
+		if(root){
+			list = await cb(list)
+		}
+		return list
+	}
+	async offload(list, url){
+		if(list.length <= this.offloadThreshold){
+			return list
 		} else {
-			let map = {}, i = 0
-			list = this.mapRecursively(list, slist => {
+			let i = 0
+            const limit = pLimit(4)
+			return await this.asyncMapRecursively(list, async slist => {
 				let key = 'offload-'+ i + '-' + url
-				map[key] = slist
+                limit(async () => {
+                    return await global.storage.temp.promises.set(key, slist, true)
+                })
 				i++
 				return key
 			}, false)
-			async.eachOfLimit(Object.keys(map), 8, (key, i, acb) => {
-				global.storage.temp.set(key, map[key], true, acb)
-			}, () => {
-				cb(list)
-			})
 		}
 	}
 	insertAtPath(_index, groupname, group){ // group is entry object of type "group" to be put as last location, create the intermediaries, groupname is like a path
@@ -111,28 +144,29 @@ class Tools {
 	}
 	paginateList(sentries){
 		sentries = this.sortList(sentries)
-		if(sentries.length > (global.config.get('folder-size-limit') + this.opts.folderSizeLimitTolerance)){
+		if(sentries.length > (global.config.get('folder-size-limit') + this.folderSizeLimitTolerance)){
 			let folderSizeLimit = global.config.get('folder-size-limit')
 			let group, nextName, lastName, entries = [], template = {type: 'group', fa: 'fas fa-box-open'}, n = 1
 			for(let i=0; i<sentries.length; i += folderSizeLimit){
 				group = Object.assign({}, template);
-				// console.log('CD', i, folderSizeLimit);
 				let gentries = sentries.slice(i, i + folderSizeLimit)
 				nextName = sentries.slice(i + folderSizeLimit, i + folderSizeLimit + 1)
 				nextName = nextName.length ? nextName[0].name : null
 				group.name = this.getRangeName(gentries, lastName, nextName)
+                if(group.name.indexOf('[') != -1){
+                    group.rawname = group.name
+                    group.name = group.name.replace(global.lists.parser.regexes['between-brackets'], '')
+                }
 				if(gentries.length){
 					lastName = gentries[gentries.length - 1].name
 					group.details = this.groupDetails(gentries)
 				}
-				// console.log('DC', gentries.length);
 				group.entries = gentries
 				entries.push(group)
 				n++
 			}
 			sentries = entries
 		}
-		// console.log('DD', entries.length);
 		return sentries
 	}
 	sortList(list){
@@ -150,7 +184,6 @@ class Tools {
 	}
 	getNameDiff(a, b){
 		let c = ''
-		//console.log('namdiff', JSON.stringify(a), b)
 		for(let i=0;i<a.length;i++){
 			if(a[i] && b && b[i] && a[i] == b[i]){
 				c += a[i]
@@ -161,12 +194,10 @@ class Tools {
 				}
 			}
 		}
-		//console.log('namdiff res', c)
 		return c
 	}
 	getRangeName(entries, lastName, nextName){
 		var l, start = '0', end = 'Z', r = new RegExp('[a-z\\d]', 'i'), r2 = new RegExp('[^a-z\\d]+$', 'i')
-		//console.log('last', JSON.stringify(lastName))
 		for(var i=0; i<entries.length; i++){
 			if(lastName){
 				l = this.getNameDiff(entries[i].name, lastName)
@@ -174,11 +205,10 @@ class Tools {
 				l = entries[i].name.charAt(0)
 			}
 			if(l.match(r)){
-				start = l.toLowerCase().replace(r2, '')
+				start = l.replace(r2, '')
 				break
 			}
 		}
-		//console.log('next')
 		for(var i=(entries.length - 1); i>=0; i--){
 			if(nextName){
 				l = this.getNameDiff(entries[i].name, nextName)
@@ -186,30 +216,31 @@ class Tools {
 				l = entries[i].name.charAt(0)
 			}
 			if(l.match(r)){
-				end = l.toLowerCase().replace(r2, '')
+				end = l.replace(r2, '')
 				break
 			}
 		}
-		return start == end ? start : lang.X_TO_Y.format(start.toUpperCase(), end.toUpperCase())
+        const t = {
+            s: '[alpha]',
+            e: '[|alpha]'
+        }
+		return start == end ? start : global.lang.X_TO_Y.format(start + t.s, t.e + end)
+
 	}
-	// mergeEntriesWithNoCollision([{name:'1',type:'group', entries:[1,2,3]}], [{name:'1',type:'group', entries:[4,5,6]}])
 	mergeEntriesWithNoCollision(leveledIndex, leveledEntries){
 		var ok
 		if(Array.isArray(leveledIndex) && Array.isArray(leveledEntries)){
-			for(var j=0;j<leveledEntries.length;j++){
-				ok = false;
-				for(var i=0;i<leveledIndex.length;i++){
-					if(leveledIndex[i].type==leveledEntries[j].type && leveledIndex[i].name==leveledEntries[j].name){
-						//console.log('LEVELING', leveledIndex[i], leveledEntries[j])
+			for(var j=0; j<leveledEntries.length; j++){
+				ok = false
+				for(var i=0; i<leveledIndex.length;i++){
+					if(leveledIndex[i].name == leveledEntries[j].name && leveledIndex[i].type == leveledEntries[j].type){
 						leveledIndex[i].entries = this.mergeEntriesWithNoCollision(leveledIndex[i].entries, leveledEntries[j].entries)
 						ok = true
 						break
 					}
 				}
 				if(!ok){
-					//console.log('NOMATCH FOR '+leveledEntries[j].name, leveledIndex, leveledEntries[j]);
 					leveledIndex.push(leveledEntries[j])
-					//console.log('noMATCH' , JSON.stringify(leveledIndex).substr(0, 128));
 				}
 			}
 		}
@@ -221,7 +252,6 @@ class Tools {
 		var paths = path.split('/')
 		var structure = group
 		for(var i=(paths.length - 2);i>=0;i--){
-			//console.log(structure)
 			var entry = groupEntryTemplate
 			entry.entries = [Object.assign({}, structure)]
 			entry.name = paths[i]
@@ -262,57 +292,48 @@ class Tools {
 		}
 		return a
 	}
-	dedup(flatList){
-		let already = {}, map = {};
-		for(var i=0; i<flatList.length; i++){
-			if(!flatList[i]){
-				delete flatList[i]
-			} else if((typeof(flatList[i].type)=='undefined' || flatList[i].type=='stream') && !flatList[i].prepend){
-				if(typeof(already[flatList[i].url])!='undefined'){
-					var j = map[flatList[i].url]
-					flatList[j] = this.mergeEntries(flatList[j], flatList[i])
-					delete flatList[i]
-				} else {
-					already[flatList[i].url] = 1
-					map[flatList[i].url] = i
+	async deepify(entries, source=''){
+        const shouldOffload = entries.length > 8192
+		let parsedGroups = {}, groupedEntries = []
+		for(let i=0;i<entries.length;i++){
+			if(entries[i].group){
+				if(typeof(parsedGroups[entries[i].group])=='undefined'){
+					parsedGroups[entries[i].group] = []
 				}
-			}
-		}
-		already = map = null
-		return flatList.filter((item) => {
-			return item !== undefined
-		})
-	}
-	deepify(flatList){
-		let parsedGroups = {}, groupedEntries = [], recursivelyGroupedList = []
-		for(let i=0;i<flatList.length;i++){
-			if(!flatList[i].group || !flatList[i].group.match(new RegExp('[A-Za-z0-9]'))){
-				recursivelyGroupedList.push(flatList[i])
-			} else {
-				if(typeof(parsedGroups[flatList[i].group])=='undefined'){
-					parsedGroups[flatList[i].group] = []
-				}
-				parsedGroups[flatList[i].group].push(flatList[i])
+				parsedGroups[entries[i].group].push(entries[i])
+                entries[i] = undefined
 			}
 		}
 		for(let k in parsedGroups){
-			groupedEntries.push({name: this.basename(k), path: k, type: 'group', details: '', entries: parsedGroups[k]});
+			groupedEntries.push({name: this.basename(k), path: k, type: 'group', entries: parsedGroups[k]});
 		}
+		entries = entries.filter(e => e)
 		for(let i=0; i<groupedEntries.length; i++){
 			if(groupedEntries[i].path.indexOf('/') != -1){ // has path
-				recursivelyGroupedList = this.insertAtPath(recursivelyGroupedList, groupedEntries[i].path, groupedEntries[i])
+				entries = this.insertAtPath(entries, groupedEntries[i].path, groupedEntries[i])
 			}
 		}
-		for(let i=0; i<groupedEntries.length; i++){
+        for(let i=0; i<groupedEntries.length; i++){
 			if(groupedEntries[i].path.indexOf('/') == -1){ // no path
-				recursivelyGroupedList = this.mergeEntriesWithNoCollision(recursivelyGroupedList, [groupedEntries[i]])
+				entries = this.mergeEntriesWithNoCollision(entries, [groupedEntries[i]])
 			}
 		}
 		groupedEntries = parsedGroups = null
-		recursivelyGroupedList = this.mapRecursively(recursivelyGroupedList, this.shortenSingleFolders.bind(this), true)
-		recursivelyGroupedList = this.mapRecursively(recursivelyGroupedList, this.labelify.bind(this), true)
-		recursivelyGroupedList = this.mapRecursively(recursivelyGroupedList, this.paginateList.bind(this), true)
-		return recursivelyGroupedList
+		entries = this.mapRecursively(entries, this.shortenSingleFolders.bind(this), true)
+		entries = this.mapRecursively(entries, this.labelify.bind(this), true)
+		entries = this.mapRecursively(entries, this.paginateList.bind(this), true)
+        if(source){
+			entries = this.mapRecursively(entries, list => {
+				if(list.length && !list[0].source){
+					list[0].source = source // leave a hint for expandEntries
+				}
+				return list
+			}, true)
+		}
+        if(shouldOffload){
+            entries = await this.offload(entries, source)
+        }
+        return entries
 	}
 }
 

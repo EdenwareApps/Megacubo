@@ -75,6 +75,10 @@ class Fetcher extends Events {
 		await this.ready()
 		return await this.list.fetchAll()
 	}
+    async getMap(map){
+		await this.ready()
+		return await this.list.getMap(map)
+    }
 	destroy(){
 		this.list && this.list.destroy()
 		this.updater && this.list.destroy()
@@ -280,7 +284,7 @@ class Common extends Events {
 		return true
 	}
 	prepareEntry(e){
-		if(typeof(e.terms) == 'undefined'){
+		if(typeof(e._) == 'undefined' && typeof(e.terms) == 'undefined'){
 			e.terms = {
 				name: this.terms(e.name),
 				group: this.terms(e.group || '')

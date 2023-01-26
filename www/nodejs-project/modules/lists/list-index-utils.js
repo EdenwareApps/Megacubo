@@ -1,11 +1,12 @@
-const fs = require('fs'), Events = require('events'), readline = require('readline')
+const fs = require('fs'), Events = require('events')
+const readline = require('readline'), pLimit = require('p-limit')
 
 class ListIndexUtils extends Events {
 	constructor(){
 		super()
 		this.indexTemplate = {
-            terms: {},
             groups: {},
+            terms: {},
             meta: {}
         }
     }

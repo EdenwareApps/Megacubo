@@ -98,6 +98,9 @@ class MediaStreamInfo {
 		return ['mms', 'mmsh', 'mmst', 'rtp', 'rtsp', 'rtmp'].indexOf(this.proto(url, 4)) != -1      
 	}
 	isVideo(url, ext, proto){
+		if(!url){
+			return false
+		}
 		if(!ext){
 			ext = this.ext(url)
 		}

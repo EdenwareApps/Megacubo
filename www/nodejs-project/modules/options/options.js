@@ -1034,7 +1034,7 @@ class Options extends OptionsHardwareAcceleration {
                         },
                         {
                             name: global.lang.SHOW_FUN_LETTERS.format(global.lang.CATEGORY_KIDS), 
-                            rawName: '[fun]'+ decodeEntities(global.lang.SHOW_FUN_LETTERS.format(global.lang.CATEGORY_KIDS)) +'[|fun]', 
+                            rawname: '[fun]'+ decodeEntities(global.lang.SHOW_FUN_LETTERS.format(global.lang.CATEGORY_KIDS)) +'[|fun]', 
                             type: 'check',
                             action: (e, checked) => {
                                 global.config.set('kids-fun-titles', checked)

@@ -748,7 +748,7 @@ class ChannelsEditing extends ChannelsEPG {
         let category = Object.assign({}, cat)
         Object.assign(category, {fa: 'fas fa-tasks', path: undefined})
         if(useCategoryName !== true){
-            Object.assign(category, {name: global.lang.EDIT_CATEGORY, rawName: global.lang.EDIT_CATEGORY, type: 'select', details: category.name})
+            Object.assign(category, {name: global.lang.EDIT_CATEGORY, rawname: global.lang.EDIT_CATEGORY, type: 'select', details: category.name})
         }
         category.renderer = (c, e) => {
             return new Promise((resolve, reject) => {
@@ -853,18 +853,18 @@ class ChannelsKids extends ChannelsAutoWatchNow {
                 const term = global.lang.CATEGORY_KIDS // lang can change in runtime, check the term here so
                 if(path.substr(term.length * -1) == term){
                     entries = entries.map(e => {
-                        if((e.rawName || e.name).indexOf('[') == -1 && (
+                        if((e.rawname || e.name).indexOf('[') == -1 && (
                             (!e.type || e.type == 'stream') || 
                             (e.class && e.class.indexOf('entry-meta-stream') != -1)
                         )){
-                            e.rawName = '[fun]'+ e.name +'[|fun]'
+                            e.rawname = '[fun]'+ e.name +'[|fun]'
                         }
                         return e
                     })
                 } else if([global.lang.LIVE, global.lang.MOVIES, global.lang.SERIES].includes(path)) {
                     entries = entries.map(e => {
-                        if((e.rawName || e.name).indexOf('[') == -1 && e.name == term){
-                            e.rawName = '[fun]'+ e.name +'[|fun]'
+                        if((e.rawname || e.name).indexOf('[') == -1 && e.name == term){
+                            e.rawname = '[fun]'+ e.name +'[|fun]'
                         }
                         return e
                     })
@@ -1600,7 +1600,7 @@ class Channels extends ChannelsKids {
         if(!global.lists.activeLists.length){ // one list available on index beyound meta watching list
             return [global.lists.manager.noListsEntry()]
         }
-        const namedGroups = {}, isSerie = type == 'series'
+        const namedGroups = {}, isSeries = type == 'series'
         let entries = [], groups = await global.lists.groups(type)
         const acpolicy = global.config.get('parental-control')
         if(acpolicy == 'remove'){
@@ -1617,19 +1617,18 @@ class Channels extends ChannelsKids {
             namedGroups[slug].push({
                 name,
                 type: 'group',
-                icon: isSerie ? group.icon : undefined,
+                icon: isSeries ? group.icon : undefined,
                 safe: true,
-                class: undefined,
-                fa: isSerie ? 'fas fa-play-circle' : undefined,
+                class: isSeries ? 'entry-cover' : undefined,
+                fa: isSeries ? 'fas fa-play-circle' : undefined,
                 renderer: async () => {
-                    console.warn('GROUP', group)
                     let entries = await global.lists.group(group).catch(console.error)
                     if(Array.isArray(entries)) {
                         if(acpolicy == 'block'){
                             entries = global.lists.parentalControl.filter(entries)
                         }
                         if(entries.length){
-                            entries = global.lists.tools.deepify(entries)
+                            entries = await global.lists.tools.deepify(entries, group.url)
                             if(entries.length == 1){
                                 if(entries[0].entries){
                                     return entries[0].entries
@@ -1663,7 +1662,7 @@ class Channels extends ChannelsKids {
                     type: 'group',
                     fa,
                     icon,
-                    class: type == 'series' ? 'entry-cover' : undefined,
+                    class: isSeries ? 'entry-cover' : undefined,
                     entries: namedGroups[name].map((g, i) => {
                         g.originalName = name
                         g.name = global.lang.OPTION +' '+ (i + 1)
@@ -1672,7 +1671,7 @@ class Channels extends ChannelsKids {
                 })
             }
         })
-        entries = global.lists.tools.deepify(entries)
+        entries = await global.lists.tools.deepify(entries)
         return entries
     }
     hook(entries, path){

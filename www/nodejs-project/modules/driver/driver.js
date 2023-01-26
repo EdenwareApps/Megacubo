@@ -12,6 +12,7 @@ module.exports = (file, opts) => {
 	if(opts && opts.bytenode){
 		workerData.bytenode = true
 	}
+	workerData.MANIFEST = global.MANIFEST
 	class WorkerDriver extends Events {
 		constructor(){
 			super()

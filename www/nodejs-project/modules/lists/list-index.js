@@ -20,15 +20,50 @@ class ListIndex extends ListIndexUtils {
         try {
             entries = global.parseJSON('['+ lines.filter(l => l.length > 9).join(',') +']') // remove undefineds too
         } catch(e) {}
-        if(Array.isArray(entries) && entries.length) {
+        if(!Array.isArray(entries)){
+            console.error('Failed to get lines', lines, map, entries, this.file)
+            throw 'failed to get lines'
+        }
+        if(entries.length) {
             let last = entries.length - 1
             if(entries[last].length){ // remove index entry
                 entries.splice(last, 1)
             }
-            return entries
         }
-        console.error('Failed to get lines', lines, map, this.file)
-        throw 'failed to get lines'
+        return entries
+    }
+    async getMap(map){
+        let lines = await this.readLines(this.file, map)
+        let entries = lines.filter(l => l.length > 9).map((s, i) => {
+            const e = JSON.parse(s)
+            return e && e.name ? {group: e.group, name: e.name, _: map ? map[i] : i} : false
+        }).filter(s => s)
+        if(entries.length) {
+            let last = entries.length - 1
+            if(entries[last].length){ // remove index entry
+                entries.splice(last, 1)
+            }
+            if(entries.length) {
+                entries[0].source = this.url
+            }
+        }
+        return entries
+    }
+    async expandMap(structure){
+        const map = []
+        structure.forEach(e => {
+            if(typeof(e._) == 'number'){
+                map.push(e._)
+            }
+        })
+        const xs = await this.entries(map)
+        for(let i in structure){
+            if(typeof(structure[i]._) == 'number'){
+                Object.assign(structure[i], xs[i])
+                delete structure[i]._
+            }
+        }
+        return structure        
     }
 	start(){
 		fs.stat(this.file, (err, stat) => {

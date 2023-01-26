@@ -727,12 +727,12 @@ class Lists extends ListsEPGTools {
     async directListRenderer(v, opts){
 		console.warn('directListRenderer()', v, opts)
         if(typeof(this.lists[v.url]) != 'undefined' && (!opts.fetch || (this.lists[v.url].isReady && !this.lists[v.url].indexer.hasFailed))){ // if not loaded yet, fetch directly
-            let entries = await this.lists[v.url].fetchAll()
+            let entries = await this.lists[v.url].getMap()
             return this.directListRendererPrepare(entries, v.url)
         } else if(opts.fetch) {
             let fetcher = new this.Fetcher(v.url, {
 				progress: opts.progress
-			}, this), entries = await fetcher.fetch()
+			}, this), entries = await fetcher.getMap()
             return await this.directListRendererPrepare(entries, v.url)
         } else {
 			throw 'List not loaded'
@@ -749,34 +749,24 @@ class Lists extends ListsEPGTools {
 			parser.end()
         })
     }
-    directListRendererPrepare(list, url){
-        return new Promise((resolve, reject) => {
-			if(typeof(this.directListRendererPrepareCache) == 'undefined'){
-				this.directListRendererPrepareCache = {}
-			}
-			const cachettl = 3600, now = global.time(), olen = list.length
-			const next = es => {
-				if(!es){
-					es = []
-				}
-				if(olen >= this.opts.offloadThreshold){
-					this.directListRendererPrepareCache[url] = {list: es, time: now, size: olen}
-				}
-				resolve(es)
-			}
-			if(typeof(this.directListRendererPrepareCache[url]) != 'undefined' && this.directListRendererPrepareCache[url].size == olen && this.directListRendererPrepareCache[url].time > (now - cachettl)){
-				return resolve(this.directListRendererPrepareCache[url].list)
-			}
-            if(list.length){
-                list = this.parentalControl.filter(list, true)
-                list = this.tools.dedup(list)
-                list = this.prepareEntries(list)
-				list = this.tools.deepify(list)
-				this.tools.offload(list, url, next)
-            } else {
-                next()
-            }
-        })
+    async directListRendererPrepare(list, url){
+		if(typeof(this.directListRendererPrepareCache) == 'undefined'){
+			this.directListRendererPrepareCache = {}
+		}
+		const cachettl = 3600, now = global.time(), olen = list.length
+		if(typeof(this.directListRendererPrepareCache[url]) != 'undefined' && this.directListRendererPrepareCache[url].size == olen && this.directListRendererPrepareCache[url].time > (now - cachettl)){
+			return this.directListRendererPrepareCache[url].list
+		}
+		if(list.length){
+			list = this.parentalControl.filter(list, true)
+			list = this.tools.dedup(list)
+			list = this.prepareEntries(list)
+			list = await this.tools.deepify(list, url)
+		}
+		if(olen >= this.opts.offloadThreshold){
+			this.directListRendererPrepareCache[url] = {list, time: now, size: olen}
+		}
+		return list
     }
 	isLocal(file){
 		if(typeof(file) != 'string'){

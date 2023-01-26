@@ -325,8 +325,11 @@ class IPTVPlaylistStreamParser extends Events {
 					if(!e.name){
 						e.name = e.gid || this.nameFromURL(e.url)
 					}
-					e.rawName = e.name
-					e.name = e.name.replace(this.regexes['between-brackets'], '')
+					const name = e.name.replace(this.regexes['between-brackets'], '')
+					if(name == e.name){
+						e.rawname = e.name
+						e.name  = name
+					}
 					g = this.preSanitizeGroup(g)
 					e.groupName = g.split('/').pop()
 					g = this.sanitizeGroup(g)

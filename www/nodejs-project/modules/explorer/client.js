@@ -905,17 +905,23 @@ class ExplorerBBCode extends ExplorerPointer {
 		super(jQuery, container, app)
 		this.funnyTextColors = ['#3F0', '#39F', '#8d45ff', '#ff02c9', '#e48610']
 		this.bbCodeMap = {
-			'b': (fragment) => {
+			'b': fragment => {
 				if(fragment.substr(0, 2) == '[|'){
 					return '</strong>'
 				}
 				return '<strong>'
 			},
-			'i': (fragment) => {
+			'i': fragment => {
 				if(fragment.substr(0, 2) == '[|'){
 					return '</i>'
 				}
 				return '<i>'
+			},
+			'alpha': fragment => {
+				if(fragment.substr(0, 2) == '[|'){
+					return '</font>'
+				}
+				return '<font style="color: var(--secondary-font-color); text-shadow: none;">'
 			},
 			'color': (fragment, name) => {
 				if(fragment.substr(0, 2) == '[|'){
@@ -956,7 +962,7 @@ class ExplorerBBCode extends ExplorerPointer {
 			return text
 		}
 		const lettersPerColor = (text.length > 15 ? 3 : (text.length > 5 ? 2 : 1))
-		const scales = [1, 0.9, 0.8]
+		const scales = [1, 0.9675, 0.925]
 		const a = (this.funnyTextColors.length * lettersPerColor)
 		return text.split('').map((chr, i) => {
 			i--
@@ -1021,8 +1027,8 @@ class ExplorerModal extends ExplorerBBCode {
 		}
 	}
 	replaceTags(text, replaces, noSlashes) {
-		if(replaces['name'] && !replaces['rawName']){
-			replaces['rawName'] = replaces['name']
+		if(replaces['name'] && !replaces['rawname']){
+			replaces['rawname'] = replaces['name']
 		}
 		Object.keys(replaces).forEach(before => {
 			let t = typeof(replaces[before])
@@ -1032,7 +1038,7 @@ class ExplorerModal extends ExplorerBBCode {
 				if(to.indexOf('[') != -1){
 					if(before == 'name'){
 						to = this.removeBBCode(to)
-					} else if(before == 'rawName') {
+					} else if(before == 'rawname') {
 						to = this.parseBBCode(to)
 					}
 				}
@@ -1847,7 +1853,7 @@ class Explorer extends ExplorerLoading {
 		<span class="entry-data-in">
 			<span class="entry-name" aria-hidden="true">
 				<span class="entry-status-flags"></span>
-				<label>{prepend}{rawName}</label>
+				<label>{prepend}{rawname}</label>
 			</span>
 			<span class="entry-details">{details}</span>
 		</span>
@@ -1861,7 +1867,7 @@ class Explorer extends ExplorerLoading {
 	<span class="entry-wrapper">
 		<span class="entry-data-in">
 			<span class="entry-name" aria-hidden="true">
-				<label>{rawName}</label>
+				<label>{rawname}</label>
 			</span>
 		</span>
 		<span class="entry-icon-image">
@@ -1875,7 +1881,7 @@ class Explorer extends ExplorerLoading {
 		<span class="entry-data-in">
 			<span class="entry-name" aria-hidden="true">
 				<span class="entry-status-flags"></span>
-				<label>{prepend}{rawName}</label>
+				<label>{prepend}{rawname}</label>
 			</span>
 			<span class="entry-details">{details}</span>
 		</span>
@@ -1890,7 +1896,7 @@ class Explorer extends ExplorerLoading {
 		<span class="entry-data-in">			
 			<span class="entry-name" aria-hidden="true">
 				<span class="entry-status-flags"></span>
-				<label>{prepend}{rawName}</label>
+				<label>{prepend}{rawname}</label>
 			</span>
 			<span class="entry-details">{details} {value}</span>
 		</span>
@@ -1905,7 +1911,7 @@ class Explorer extends ExplorerLoading {
 		<span class="entry-data-in">		
 			<span class="entry-name" aria-hidden="true">
 				<span class="entry-status-flags"></span>
-				<label>{prepend}{rawName}</label>
+				<label>{prepend}{rawname}</label>
 			</span>
 			<span class="entry-details">{value}</span>
 		</span>
@@ -1920,7 +1926,7 @@ class Explorer extends ExplorerLoading {
 		<span class="entry-data-in">		
 			<span class="entry-name" aria-hidden="true">
 				<span class="entry-status-flags"></span>
-				<label>{prepend}{rawName}</label>
+				<label>{prepend}{rawname}</label>
 			</span>
 			<span class="entry-details">{details}</span>
 		</span>

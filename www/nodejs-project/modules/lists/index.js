@@ -539,25 +539,30 @@ class Index extends Common {
 			if(!this.lists[group.url]){
 				return reject('List unloaded')
 			}
+			let map = this.lists[group.url].index.groups[group.group]
+			if(!map){
+				map = []
+				Object.keys(this.lists[group.url].index.groups).forEach(s => {
+    				if(s.indexOf('/') != -1 && s.indexOf(group.group) != -1 && s.split('/').includes(group.group)){
+        				this.lists[group.url].index.groups[s].forEach(n => map.includes(n) || map.push(n))
+    				}
+				})
+				map.sort()
+			}
 			this.lists[group.url].iterate(e => {
-				if(e.group == group.group){
-					if(!e.source){
-						e.source = group.url
-					}
-					entries.push(e)
+				if(!e.source){
+					e.source = group.url
 				}
-			}, this.lists[group.url].index.groups[group.group], () => {
-				//console.log(entries)
+				entries.push(e)
+			}, map, () => {
 				entries = this.tools.dedup(entries)
 				entries = this.parentalControl.filter(entries, true)
-				
 				if(typeof(Intl) != 'undefined'){
 					const collator = new Intl.Collator(global.lang.locale, { numeric: true, sensitivity: 'base' })
 					entries.sort((a, b) => collator.compare(a.name, b.name))
 				} else {
 					entries.sort()
 				}
-
 				resolve(entries)
 			})
 		})

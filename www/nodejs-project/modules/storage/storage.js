@@ -2,7 +2,7 @@
 const path = require('path'), fs = require('fs'), async = require('async'), Queue = require('./queue')
 
 class StorageBase {
-	constructor(label, opts){		
+	constructor(label, opts){
 		this.opts = {
 			temp: false,
 			clear: false,

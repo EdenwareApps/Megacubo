@@ -403,17 +403,14 @@ class Download extends Events {
 		let validate = this.validateResponse(response)
 		if(validate === true){
 			if(!this.isResponseCompressed){
-				if(typeof(response.headers['content-encoding']) != 'undefined' && response.headers['content-encoding'] != 'identity'){
-					this.isResponseCompressed = response.headers['content-encoding']
-					if(this.opts.debug){
-						console.log('Compression detected', this.isResponseCompressed)
-					}
-				}
-				if(this.ext(this.currentURL) == 'gz'){
+				if(response.headers['content-type'] && response.headers['content-type'] == 'application/x-gzip'){
 					this.isResponseCompressed = 'gzip'
-					if(this.opts.debug){
-						console.log('Compression detected', this.isResponseCompressed)
-					}
+				} else if(this.ext(this.currentURL) == 'gz'){
+					this.isResponseCompressed = 'gzip'
+				} else if(response.headers['content-encoding'] && response.headers['content-encoding'] != 'identity'){
+					this.isResponseCompressed = response.headers['content-encoding']
+				} else if(response.headers['content-disposition'] && response.headers['content-disposition'].match(new RegExp('filename.?=[^;]+\\.gz($|;|")'))){
+					this.isResponseCompressed = 'gzip'
 				}
 			}
 			if(this.opts.acceptRanges){
@@ -711,7 +708,7 @@ class Download extends Events {
 			if(finalize){
 				this.statusCode = response.statusCode
 				this.end()
-				return undefined // accept bad response and finalize
+				return undefined // accept bad response and finalize it
 			}
 			if(this.retryCount < this.opts.retries){
 				return false // return false to skip parseResponse and keep trying
@@ -811,7 +808,34 @@ class Download extends Events {
 		if(this.isResponseComplete(this.lastStatusCodeReceived, this.lastHeadersReceived)){
 			this.end()
 		} else {
-			this.continueTimer = setTimeout(this.next.bind(this), this.retryDelay)
+			let delay, overloaded = [429, 503, 521, 522, 524].includes(this.lastStatusCodeReceived)
+			if(overloaded){
+				if(this.lastHeadersReceived && this.lastHeadersReceived['retry-after']){
+					delay = parseInt(this.lastHeadersReceived['retry-after'])
+					if(isNaN(delay)){
+						delay = Date.parse(this.lastHeadersReceived['retry-after'])
+						if(typeof(delay) == 'number'){
+							delay /= 1000
+							delay -= global.time()
+						}						
+					}
+				}
+			}
+			if(typeof(delay) != 'number'){
+				if(overloaded){
+					delay = 3000
+				} else {
+					delay = this.retryDelay
+				}
+			} else {
+				delay *= 1000
+				if(delay < this.retryDelay){
+					delay = this.retryDelay
+				} else if(delay > 30000) {
+					delay = 30000
+				}
+			}
+			this.continueTimer = setTimeout(this.next.bind(this), delay)
 		}
 	}
 	updateProgress(){

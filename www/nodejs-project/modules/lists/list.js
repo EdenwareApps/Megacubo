@@ -96,7 +96,7 @@ class List extends Events {
 		let p = 0
 		if(this.validator) {
 			p = this.validator.progress()
-		} else if(this.isReady || this.indexer.hasFailed) {
+		} else if(this.isReady || (this.indexer && this.indexer.hasFailed)) {
 			p = 100
 		}
 		return p
@@ -243,6 +243,11 @@ class List extends Events {
         if(!this.indexer) return []
         return await this.indexer.entries()
 	}
+    async getMap(map){
+        await this.ready()
+        if(!this.indexer) return []
+        return await this.indexer.getMap(map)
+    }
 	reset(){		
 		this.index = {
             length: 0,

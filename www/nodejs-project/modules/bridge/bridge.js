@@ -8,6 +8,7 @@ class CordovaCustomEmitter extends Events {
         super()
         this.originalEmit = this.emit
         this.emit = this.customEmit
+        this.setMaxListeners(20)
         this.attach()
     }
     customEmit(...args){
@@ -59,6 +60,7 @@ class BridgeServer extends Events {
           '.pdf': 'application/pdf',
           '.doc': 'application/msword'
         }
+        this.setMaxListeners(20)
         this.server = http.createServer((req, response) => {
             console.log(`${req.method} ${req.url}`)
             const parsedUrl = url.parse(req.url, false)
@@ -157,6 +159,7 @@ class Bridge extends BridgeServer {
             }
             console.warn('BINDING')
             this.client = socket  
+            this.client.setMaxListeners(20)
             this.bindings.on.forEach(c => {
                 this.client.on.apply(this.client, c)
             })

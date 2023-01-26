@@ -135,8 +135,8 @@ class ManagerCommunityLists extends Events {
             const limit = pLimit(3)
             let ret = {}, locs = await global.lang.getActiveCountries()
             let results = await Promise.allSettled(locs.map(loc => {
-                return () => {
-                    return global.cloud.get('country-sources.'+ loc, false, timeout).catch(console.error)
+                return async () => {
+                    return await global.cloud.get('country-sources.'+ loc, false, timeout).catch(console.error)
                 }
             }).map(limit))
             results.forEach(r => {
@@ -185,24 +185,17 @@ class ManagerCommunityLists extends Events {
             v.type = 'group'
             v.name = names[url]
             v.fa = 'fas fa-satellite-dish'
-            v.renderer = data => {
-                return new Promise((resolve, reject) => {
-                    this.openingList = true
-                    this.directListRenderer(data, {
-                        fetch: true
-                    }).then(ret => {
-                        resolve(ret)
-                    }).catch(err => {
-                        reject(err)
-                    }).finally(() => {
-                        this.openingList = false
-                        global.osd.hide('list-open')
-                    })
-                })
+            v.renderer = async data => {
+                let haserr
+                this.openingList = true
+                let ret = await this.directListRenderer(data).catch(err => haserr = err)
+                this.openingList = false
+                global.osd.hide('list-open')
+                if(haserr) throw haserr
+                return ret
             }
             return v   
         })
-        console.log('sources', lists)
         if(lists.length){
             if(global.config.get('parental-control') == 'block'){
                 lists = this.master.parentalControl.filter(lists)
@@ -391,7 +384,7 @@ class ManagerEPG extends ManagerCommunityLists {
                     }
                 }
                 const next = () => {
-                    options = epgs.sort().map(url => {
+                    options = [...new Set(epgs)].sort().map(url => {
                         let details = '', name = this.nameFromSourceURL(url)
                         if(url == activeEPG){
                             if(activeEPGDetails){
@@ -612,10 +605,13 @@ class Manager extends ManagerEPG {
         this.listFaIcon = 'fas fa-satellite-dish'
         // this.listFaIcon = 'fas fa-broadcast-tower'
         this.key = 'lists'
-        this.openingList = false
-        this.updatingProcesses = {}
         this.lastProgress = 0
+        this.openingList = false
         this.updaterResults = {}
+        this.updatingProcesses = {}        
+        global.ui.once('init', () => {
+            global.explorer.addFilter(this.expandEntries.bind(this))
+        })
         global.ui.on('explorer-back', () => {
             if(this.openingList){
                 global.osd.hide('list-open')
@@ -628,6 +624,24 @@ class Manager extends ManagerEPG {
             }
         })
         this.master.on('sync-status', p => this.updateOSD(p))
+    }
+    async expandEntries(entries, path){ 
+        let shouldExpand = entries.some(e => typeof(e._) == 'number')
+        console.log('expandEntries', shouldExpand)
+        if(shouldExpand){
+            let source
+            entries.some(e => {
+                if(e.source){
+                    source = e.source
+                    return true
+                }
+            })
+            console.log('expandEntries', source, entries)
+            if(source && global.lists.lists[source]){
+                return await global.lists.lists[source].indexer.expandMap(entries)
+            }
+        }
+        return entries
     }
     waitListsReady(){
         return new Promise((resolve, reject) => {
@@ -716,7 +730,7 @@ class Manager extends ManagerEPG {
             }
         }
         console.log('name::add', name, url)
-        const fetcher = new this.master.Fetcher(url, {
+        const fetch = new this.master.Fetcher(url, {
             meta: meta => {
                 if(!name && meta.name){
                     name = meta.name
@@ -726,7 +740,7 @@ class Manager extends ManagerEPG {
                 global.osd.show(global.lang.PROCESSING +' '+ p +'%', 'fa-mega spin-x-alt', 'add-list-progress', 'persistent')
             }
         }, this.master)
-        let entries = await fetcher.fetch()
+        let entries = await fetch.getMap()
         if(entries.length){
             console.log('name::add')
             if(!name){
@@ -753,14 +767,14 @@ class Manager extends ManagerEPG {
         } else {
             global.osd.show(global.lang.LIST_ADDED, 'fas fa-check-circle', 'add-list', 'normal')
             const currentEPG = global.config.get('epg-'+ global.lang.locale)            
-            let chosen = await global.explorer.dialog([
+            let chosen = global.validateURL(value) ? await global.explorer.dialog([
                 {template: 'question', text: global.lang.COMMUNITY_LISTS, fa: 'fas fa-users'},
                 {template: 'message', text: global.lang.WANT_SHARE_COMMUNITY},
                 {template: 'option', text: lang.YES, id: 'yes', fa: 'fas fa-thumbs-up'},
                 {template: 'option', text: lang.NO_THANKS, id: 'no', fa: 'fas fa-lock'}
-            ], 'yes')
+            ], 'yes') : 'no' // set local files as private
             if(chosen == 'yes'){
-                global.osd.show(global.lang.COMMUNITY_THANKS_YOU, 'fas fa-heart faclr-red', 'community-lists-thanks', 'normal')
+                global.osd.show(global.lang.COMMUNITY_THANKS_YOU, 'fas fa-heart faclr-purple', 'community-lists-thanks', 'normal')
             }
             this.setMeta(value, 'private', chosen != 'yes')
             let info, i = 10
@@ -1174,10 +1188,18 @@ class Manager extends ManagerEPG {
         }
     }
     addListEntry(){
-        return {name: global.lang.ADD_LIST, fa: 'fas fa-plus-square', type: 'action', action: () => {
-            const offerCommunityMode = !global.config.get('communitary-mode-lists-amount')
-            this.addListDialog(offerCommunityMode).catch(global.displayErr)
-        }}
+        return {
+            name: global.lang.ADD_LIST, 
+            fa: 'fas fa-plus-square', 
+            type: 'action', 
+            action: () => {
+                const offerCommunityMode = !global.config.get('communitary-mode-lists-amount')
+                this.addListDialog(offerCommunityMode).catch(err => {
+                    global.osd.hide('add-list-progress')
+                    global.displayErr(err)
+                })
+            }
+        }
     }
     async addListDialog(offerCommunityMode){        
         let extraOpts = []
@@ -1277,7 +1299,7 @@ class Manager extends ManagerEPG {
                             }
                             if(es && es.length){
                                 es = this.master.parentalControl.filter(es)
-                                es = this.master.tools.deepify(es, url)  
+                                es = await this.master.tools.deepify(es, url)  
                             }
                             es.unshift({
                                 name: global.lang.OPTIONS,
