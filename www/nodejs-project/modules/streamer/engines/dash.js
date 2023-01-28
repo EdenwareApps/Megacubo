@@ -28,7 +28,7 @@ class StreamerDashIntent extends StreamerBaseIntent {
 }
 
 StreamerDashIntent.mediaType = 'live'
-StreamerDashIntent.supports = (info) => {
+StreamerDashIntent.supports = info => {
     if(info.contentType == 'application/dash+xml'){
         return true
     }

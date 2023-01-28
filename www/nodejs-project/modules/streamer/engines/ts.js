@@ -29,7 +29,7 @@ class StreamerTSIntent extends StreamerBaseIntent {
 }
 
 StreamerTSIntent.mediaType = 'live'
-StreamerTSIntent.supports = (info) => {
+StreamerTSIntent.supports = info => {
     if(info.contentType){
         let c = info.contentType.toLowerCase()
         if(c.indexOf('mpegurl') != -1){ // is hls

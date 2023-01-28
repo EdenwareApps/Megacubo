@@ -1632,8 +1632,10 @@ class Channels extends ChannelsKids {
                             if(entries.length == 1){
                                 if(entries[0].entries){
                                     return entries[0].entries
-                                } else if(entries[0].renderer) {
+                                } else if(typeof(entries[0].renderer) == 'function') {
                                     return await entries[0].renderer(entries[0])
+                                } else if(typeof(entries[0].renderer) == 'string') {
+                                    return await global.storage.temp.promises.get(entries[0].renderer)
                                 }
                             }
                             return entries

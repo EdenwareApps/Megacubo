@@ -713,13 +713,12 @@ class Manager extends ManagerEPG {
             resolve(this.get().map(o => { return o[1] }))
         })
     }
-    async add(url, name, unique){
+    async add(url, name, uid){
         url = String(url).trim()
         if(url.substr(0, 2) == '//'){
             url = 'http:'+ url
         }
         let isURL = global.validateURL(url), isFile = this.isLocal(url)
-        console.log('name::add', name, url, isURL, isFile)
         if(!isFile && !isURL){
             throw global.lang.INVALID_URL_MSG
         }
@@ -729,7 +728,6 @@ class Manager extends ManagerEPG {
                 return reject(global.lang.LIST_ALREADY_ADDED)
             }
         }
-        console.log('name::add', name, url)
         const fetch = new this.master.Fetcher(url, {
             meta: meta => {
                 if(!name && meta.name){
@@ -737,16 +735,15 @@ class Manager extends ManagerEPG {
                 }
             },
             progress: p => {
-                global.osd.show(global.lang.PROCESSING +' '+ p +'%', 'fa-mega spin-x-alt', 'add-list-progress', 'persistent')
+                global.osd.show(global.lang.RECEIVING_LIST +' '+ p +'%', 'fa-mega spin-x-alt', 'add-list-progress-'+ uid, 'persistent')
             }
         }, this.master)
         let entries = await fetch.getMap()
         if(entries.length){
-            console.log('name::add')
             if(!name){
                 await this.name(url).then(n => name = n).catch(() => {})
             }
-            let lists = unique ? [] : this.get()
+            let lists = this.get()
             lists.push([name, url])
             global.config.set(this.key, lists)
             return true
@@ -755,10 +752,11 @@ class Manager extends ManagerEPG {
         }
     }
     async addList(value, name){
-        global.osd.show(global.lang.PROCESSING, 'fa-mega spin-x-alt', 'add-list-progress', 'persistent')
+        const uid = parseInt(Math.random() * 100000)
+        global.osd.show(global.lang.RECEIVING_LIST, 'fa-mega spin-x-alt', 'add-list-progress-'+ uid, 'persistent')
         let err
-        await this.add(value, name).catch(e => err = String(e))
-        global.osd.hide('add-list-progress')
+        await this.add(value, name, uid).catch(e => err = String(e))
+        global.osd.hide('add-list-progress-'+ uid)
         if(err){
             if(err.match('http error') != -1){
                 err = global.lang.INVALID_URL_MSG
@@ -1195,7 +1193,7 @@ class Manager extends ManagerEPG {
             action: () => {
                 const offerCommunityMode = !global.config.get('communitary-mode-lists-amount')
                 this.addListDialog(offerCommunityMode).catch(err => {
-                    global.osd.hide('add-list-progress')
+                    global.osd.hide('add-list-progress-'+ uid)
                     global.displayErr(err)
                 })
             }

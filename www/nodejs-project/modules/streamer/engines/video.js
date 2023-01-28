@@ -43,7 +43,7 @@ class StreamerVideoIntent extends StreamerBaseIntent {
 }
 
 StreamerVideoIntent.mediaType = 'video'
-StreamerVideoIntent.supports = (info) => {
+StreamerVideoIntent.supports = info => {
     if(info.isLocalFile){
         return true
     }

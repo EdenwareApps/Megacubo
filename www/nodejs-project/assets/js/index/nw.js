@@ -199,7 +199,7 @@ class WindowManager extends ClassesHandler {
 			defHeight = scr.availHeight * margin
 			defWidth = defHeight * ratio
 		}
-		return [defWidth, defHeight]
+		return [parseInt(defWidth), parseInt(defHeight)]
 	}
 	handleArgs(cmd){
 		console.log('cmdline: ' + cmd)
@@ -491,7 +491,7 @@ class WindowManager extends ClassesHandler {
 		} else if(this.miniPlayerActive) {
 			this.leaveMiniPlayer()
 		} else {
-			console.warn('restore()', this.initialSize);
+			console.warn('restore()', this.initialSize)
 			this.win.width = this.initialSize[0]
 			this.win.height = this.initialSize[1]
 			this.centralizeWindow.apply(this, this.initialSize)
@@ -562,8 +562,8 @@ class WindowManager extends ClassesHandler {
 			this.win.x = this.win.y = this.leftWindowDiff;
 			process.nextTick(() => {
 				let scr = this.getScreenSize()
-				this.win.width = scr.availWidth + (this.leftWindowDiff * -2);
-				this.win.height = scr.availHeight + (this.leftWindowDiff * -2);
+				this.win.width = parseInt(scr.availWidth + (this.leftWindowDiff * -2))
+				this.win.height = parseInt(scr.availHeight + (this.leftWindowDiff * -2))
 				this.win.x = this.win.y = this.leftWindowDiff;
 			})
 		}

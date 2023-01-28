@@ -307,6 +307,7 @@
    "PROVIDER_DISABLE_PARENTAL_CONTROL": "El proveedor de IPTV agregado quiere desactivar el control de los padres.",
    "REACH": "Rango",
    "RECEIVED_LISTS": "Listas recibidas",
+   "RECEIVING_LIST": "Recibiendo la lista, espera...",
    "RECOMMENDATIONS_IMPROVE_HINT": "Cuanto más vea los programas que le guste de su guía de programa, mejores serán sus recomendaciones.",
    "RECOMMENDATIONS_INITIAL_HINT": "Mire programas desde su guía de programación para obtener recomendaciones.",
    "RECOMMENDED_FOR_YOU": "Recomendado para ti",

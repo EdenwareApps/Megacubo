@@ -560,42 +560,33 @@ class Explorer extends Events {
             })
         })
     }
-    readEntry(e){
-        return new Promise((resolve, reject) => {  
-            let next = entries => {
-                if(Array.isArray(entries)){
-                    entries = entries.map(n => {
-                        if(typeof(n.path) != 'string'){
-                            n.path = (e.path ? e.path +'/' : '') + n.name
-                        } else {
-                            if(n.path){
-                                if(this.basename(n.path) != n.name || (n.name == e.name && this.basename(this.dirname(n.path)) != n.name)){
-                                    if(this.opts.debug){
-                                        console.log('npath', n.path, n.name, n, e)
-                                    }
-                                    n.path += '/'+ n.name
-                                }
+    async readEntry(e){
+        let entries
+        if(typeof(e.renderer) == 'function'){
+            entries = await e.renderer(e)
+        } else if(typeof(e.renderer) == 'string'){
+            entries = await global.storage.temp.promises.get(e.renderer)
+        } else {
+            entries = e.entries || []
+        }
+        if(Array.isArray(entries)){
+            return entries.map(n => {
+                if(typeof(n.path) != 'string'){
+                    n.path = (e.path ? e.path +'/' : '') + n.name
+                } else {
+                    if(n.path){
+                        if(this.basename(n.path) != n.name || (n.name == e.name && this.basename(this.dirname(n.path)) != n.name)){
+                            if(this.opts.debug){
+                                console.log('npath', n.path, n.name, n, e)
                             }
+                            n.path += '/'+ n.name
                         }
-                        return n
-                    })
-                }
-                resolve(entries)
-            }
-            if(typeof(e.renderer) == 'function'){
-                e.renderer(e).then(next).catch(reject)
-            } else if(typeof(e.renderer) == 'string'){
-                global.storage.temp.get(e.renderer, entries => {
-                    if(Array.isArray(entries)){
-                        next(entries)
-                    } else {
-                        next([])
                     }
-                })
-            } else {
-                next(e.entries || [])
-            }
-        })
+                }
+                return n
+            })
+        }
+        return []
     }
     selectEntry(entries, name, tabindex, isFolder){
         let ret = false

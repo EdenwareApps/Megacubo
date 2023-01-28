@@ -167,7 +167,7 @@ class StreamerBase extends StreamerTools {
 	}
     intent(data, opts, aside){ // create intent
         return new Promise((resolve, reject) => {
-			if(data.url){
+			if(!data.url){
 				return reject(global.lang.INVALID_URL)
 			}
 			if(!this.throttle(data.url)){
@@ -1162,9 +1162,10 @@ class Streamer extends StreamerAbout {
 			}
 			if(!succeeded){
 				this.connectId = false
-				this.emit('connecting-failure', e)
+				this.emit('connecting-failure', e)				
 				if(!silent){
-					global.osd.show(global.lang.NONE_STREAM_WORKED_X.format(name), 'fas fa-exclamation-circle faclr-red', 'streamer', 'normal')
+					const err = global.lists.activeLists.length ? global.lang.NONE_STREAM_WORKED_X.format(name) : global.lang.NO_LISTS_ADDED
+					global.osd.show(err, 'fas fa-exclamation-circle faclr-red', 'streamer', 'normal')
 					global.ui.emit('sound', 'static', 25)
 				}
 			}

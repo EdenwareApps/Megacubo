@@ -307,6 +307,7 @@
    "PROVIDER_DISABLE_PARENTAL_CONTROL": "The added IPTV provider wants to deactivate parental control.",
    "REACH": "Range",
    "RECEIVED_LISTS": "Received lists",
+   "RECEIVING_LIST": "Receiving list, please wait...",
    "RECOMMENDATIONS_IMPROVE_HINT": "The more you watch TV shows that you like from your program guide, the better your recommendations will be.",
    "RECOMMENDATIONS_INITIAL_HINT": "Watch shows from your programming guide to get recommendations.",
    "RECOMMENDED_FOR_YOU": "Recommended for you",
