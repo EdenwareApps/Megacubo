@@ -1961,7 +1961,7 @@ class Explorer extends ExplorerLoading {
 	}
 	diffEntries(a, b){
 		let diff;
-		['name', 'details', 'fa', 'type'].some(p => { // url comparing give false positives like undefined != javascript:;
+		['name', 'details', 'fa', 'type', 'prepend'].some(p => { // url comparing give false positives like undefined != javascript:;
 			if(a[p] != b[p]){
 				diff = p
 				return true
@@ -2006,7 +2006,6 @@ class Explorer extends ExplorerLoading {
 				flag = 3 // DOM element was generated
 				move = true
 			}
-			// console.log('adaptiveRender entry', e.name, flag)
 			if(!move) return
 			this.insertElementAt(ne, j)
 		})

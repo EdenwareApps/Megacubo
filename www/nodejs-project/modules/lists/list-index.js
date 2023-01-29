@@ -1,8 +1,9 @@
 const fs = require('fs'), ListIndexUtils = require('./list-index-utils')
 
 class ListIndex extends ListIndexUtils {
-	constructor(file){
+	constructor(file, url){
 		super()
+        this.url = url
         this.file = file
 		this.indexateIterator = 0
     }
@@ -57,9 +58,10 @@ class ListIndex extends ListIndexUtils {
             }
         })
         const xs = await this.entries(map)
+        let j = 0
         for(let i in structure){
             if(typeof(structure[i]._) == 'number'){
-                Object.assign(structure[i], xs[i])
+                Object.assign(structure[i], xs[j])
                 delete structure[i]._
             }
         }

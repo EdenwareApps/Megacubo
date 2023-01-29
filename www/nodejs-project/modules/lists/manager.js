@@ -1,7 +1,6 @@
 const Events = require('events'), async = require('async')
 const pLimit = require('p-limit'), IPTV = require('../iptv')
 
-
 class ManagerCommunityLists extends Events {
     constructor(){
         super()
@@ -610,7 +609,10 @@ class Manager extends ManagerEPG {
         this.updaterResults = {}
         this.updatingProcesses = {}        
         global.ui.once('init', () => {
-            global.explorer.addFilter(this.expandEntries.bind(this))
+            global.explorer.addFilter(async (entries, path) => {
+                entries = await this.expandEntries(entries, path)
+                return this.labelify(entries)
+            })
         })
         global.ui.on('explorer-back', () => {
             if(this.openingList){
@@ -627,7 +629,6 @@ class Manager extends ManagerEPG {
     }
     async expandEntries(entries, path){ 
         let shouldExpand = entries.some(e => typeof(e._) == 'number')
-        console.log('expandEntries', shouldExpand)
         if(shouldExpand){
             let source
             entries.some(e => {
@@ -636,13 +637,20 @@ class Manager extends ManagerEPG {
                     return true
                 }
             })
-            console.log('expandEntries', source, entries)
             if(source && global.lists.lists[source]){
-                return await global.lists.lists[source].indexer.expandMap(entries)
+                entries = await global.lists.lists[source].indexer.expandMap(entries)
             }
         }
         return entries
     }
+	labelify(list){
+		for (var i=0; i<list.length; i++){
+			if(typeof(list[i].type) == 'undefined' || list[i].type == 'stream') {
+				list[i].details = list[i].groupName || this.basename(list[i].path || list[i].group)
+			}
+		}
+		return list
+	}
     waitListsReady(){
         return new Promise((resolve, reject) => {
             if(!Object.keys(this.updatingProcesses).length){
@@ -706,12 +714,13 @@ class Manager extends ManagerEPG {
         if(r){
             lists = lists.filter(s => Array.isArray(s)).slice(0)
         }
-        return lists
-    }
-    getURLs(){
-        return new Promise((resolve, reject) => {
-            resolve(this.get().map(o => { return o[1] }))
+        return lists.map(l => {
+            l[1] = global.forwardSlashes(l[1])
+            return l
         })
+    }
+    async getURLs(){
+        return this.get().map(l => l[1])
     }
     async add(url, name, uid){
         url = String(url).trim()
@@ -729,11 +738,6 @@ class Manager extends ManagerEPG {
             }
         }
         const fetch = new this.master.Fetcher(url, {
-            meta: meta => {
-                if(!name && meta.name){
-                    name = meta.name
-                }
-            },
             progress: p => {
                 global.osd.show(global.lang.RECEIVING_LIST +' '+ p +'%', 'fa-mega spin-x-alt', 'add-list-progress-'+ uid, 'persistent')
             }
@@ -741,7 +745,12 @@ class Manager extends ManagerEPG {
         let entries = await fetch.getMap()
         if(entries.length){
             if(!name){
-                await this.name(url).then(n => name = n).catch(() => {})
+                let meta = await fetch.meta()
+                if(meta.name){
+                    name = meta.name
+                } else {
+                    await this.name(url).then(n => name = n).catch(() => {})
+                }
             }
             let lists = this.get()
             lists.push([name, url])
@@ -752,9 +761,10 @@ class Manager extends ManagerEPG {
         }
     }
     async addList(value, name){
+        let err
         const uid = parseInt(Math.random() * 100000)
         global.osd.show(global.lang.RECEIVING_LIST, 'fa-mega spin-x-alt', 'add-list-progress-'+ uid, 'persistent')
-        let err
+        value = global.forwardSlashes(value)
         await this.add(value, name, uid).catch(e => err = String(e))
         global.osd.hide('add-list-progress-'+ uid)
         if(err){
@@ -862,8 +872,7 @@ class Manager extends ManagerEPG {
             return name
         }
         if(this.isLocal(url)){
-            url = global.forwardSlashes(url).split('/').pop()
-            return url.replace(new RegExp('\\.[A-Za-z0-9]{2,4}$', 'i'), '')
+            return url.split('/').pop().replace(new RegExp('\\.[A-Za-z0-9]{2,4}$', 'i'), '')
         } else {
             url = String(url).replace(new RegExp('^[a-z]*://', 'i'), '').split('/').filter(s => s.length)
             if(!url.length){
@@ -875,24 +884,17 @@ class Manager extends ManagerEPG {
             }
         }
     }
-    name(url, content=''){
-        return new Promise((resolve, reject) => {
-            let name = this.getMeta(url, 'name')
-            //console.log('name::get', name, url, content.length)
-            if(name){
-                resolve(name)
-            } else {
-                if(content){
-                    name = this.nameFromContent(content)
-                    //console.log('name::get', name)
-                }
-                if(typeof(name) != 'string' || !name){
-                    name = this.nameFromSourceURL(url)
-                    //console.log('name::get', name)
-                }
-                resolve(name)
+    async name(url, content=''){
+        let name = this.getMeta(url, 'name')
+        if(!name){
+            if(content){
+                name = this.nameFromContent(content)
             }
-        })
+            if(typeof(name) != 'string' || !name){
+                name = this.nameFromSourceURL(url)
+            }
+        }
+        return name
     }
 	isLocal(file){
 		if(typeof(file) != 'string'){
@@ -1192,10 +1194,7 @@ class Manager extends ManagerEPG {
             type: 'action', 
             action: () => {
                 const offerCommunityMode = !global.config.get('communitary-mode-lists-amount')
-                this.addListDialog(offerCommunityMode).catch(err => {
-                    global.osd.hide('add-list-progress-'+ uid)
-                    global.displayErr(err)
-                })
+                this.addListDialog(offerCommunityMode).catch(err => global.displayErr(err))
             }
         }
     }
@@ -1431,12 +1430,8 @@ class Manager extends ManagerEPG {
     }
     async directListRenderer(data, opts={}){
         let v = Object.assign({}, data), isMine = global.lists.activeLists.my.includes(v.url), isCommunity = global.lists.activeLists.community.includes(v.url)
-        const hasFailed = !this.master.lists[v.url] || this.master.lists[v.url].indexer.hasFailed
-        console.warn('DIRECT', isMine, isCommunity, hasFailed)
         global.osd.show(global.lang.OPENING_LIST, 'fa-mega spin-x-alt', 'list-open', 'persistent')
         let list = await this.master.directListRenderer(v, {
-            parentalControl: opts.parentalControl,
-            deepify: opts.deepify,
             fetch: opts.fetch,
             progress: p => {
                 global.osd.show(global.lang.OPENING_LIST +' '+ parseInt(p) +'%', 'fa-mega spin-x-alt', 'list-open', 'persistent')

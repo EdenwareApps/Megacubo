@@ -79,6 +79,10 @@ class Fetcher extends Events {
 		await this.ready()
 		return await this.list.getMap(map)
     }
+	async meta(){
+		await this.ready()
+		return this.list.index.meta || {}
+	}
 	destroy(){
 		this.list && this.list.destroy()
 		this.updater && this.list.destroy()
@@ -94,7 +98,6 @@ class Common extends Events {
 		this.listMetaKeyPrefix = 'meta-cache-'
 		this.opts = {
 			folderSizeLimitTolerance: 12,
-			paginateThreshold: 128,
 			offloadThreshold: 512,
 			defaultCommunityModeReach: global.cordova ? 18 : 24
 		}

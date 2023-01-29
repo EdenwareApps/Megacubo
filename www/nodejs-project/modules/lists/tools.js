@@ -50,27 +50,6 @@ class Tools {
 		_str = _str.substring(0, pos)
 		return _str
 	}
-	labelify(list){
-		for (var i=0; i<list.length; i++){
-			if(typeof(list[i].type) == 'undefined' || list[i].type == 'stream') {
-				list[i].details = list[i].groupName || this.basename(list[i].path || list[i].group)
-			}
-		}
-		return list
-	}
-	shortenSingleFolders(list){
-		for (var i=0; i<list.length; i++){
-			if(list[i].type == 'group'){
-				if(typeof(list[i].entries) != 'undefined' && list[i].entries.length == 1){
-					list[i].entries[0].name = this.mergeNames(list[i].name, list[i].entries[0].name)
-					list[i] = list[i].entries[0]
-					list[i].path = this.dirname(list[i].path)
-					list[i].group = this.dirname(list[i].group)
-				}
-			}
-		}
-		return list
-	}
 	mapRecursively(list, cb, root){
 		for (var i = list.length - 1; i >= 0; i--){
 			if(list[i].type && list[i].type == 'group'){
@@ -225,7 +204,6 @@ class Tools {
             e: '[|alpha]'
         }
 		return start == end ? start : global.lang.X_TO_Y.format(start + t.s, t.e + end)
-
 	}
 	mergeEntriesWithNoCollision(leveledIndex, leveledEntries){
 		var ok
@@ -270,10 +248,7 @@ class Tools {
 		if(lb && lb.indexOf(la) != -1){
 			return b
 		}
-		return this.compressName(a +' '+ b)
-	}
-	compressName(a){
-		return  [...new Set(a.split(' ').filter(s => s.length > 1))].join(' ')
+		return a +' - '+ b
 	}
 	mergeEntries(a, b){
 		if(a.name != b.name){
@@ -319,8 +294,6 @@ class Tools {
 			}
 		}
 		groupedEntries = parsedGroups = null
-		entries = this.mapRecursively(entries, this.shortenSingleFolders.bind(this), true)
-		entries = this.mapRecursively(entries, this.labelify.bind(this), true)
 		entries = this.mapRecursively(entries, this.paginateList.bind(this), true)
         if(source){
 			entries = this.mapRecursively(entries, list => {

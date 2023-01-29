@@ -47,7 +47,7 @@ class List extends Events {
                 if(!this.isReady) this.isReady = true  
             }
             this.once('destroy', destroyListener)
-            this.indexer = new ListIndex(this.file)
+            this.indexer = new ListIndex(this.file, this.url)
             this.indexer.on('error', err => {
                 reject(err)
                 cleanup()

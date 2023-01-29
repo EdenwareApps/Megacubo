@@ -441,6 +441,7 @@ class Lists extends ListsEPGTools {
 	}
 	syncLoadList(url, contentLength){	
         return new Promise((resolve, reject) => {
+			url = global.forwardSlashes(url)
 			let resolved, isMine = this.myLists.includes(url)
 			if(this.debug){
 				console.log('syncLoadList start', url)
@@ -725,7 +726,6 @@ class Lists extends ListsEPGTools {
 		this.updateActiveLists()
 	}
     async directListRenderer(v, opts){
-		console.warn('directListRenderer()', v, opts)
         if(typeof(this.lists[v.url]) != 'undefined' && (!opts.fetch || (this.lists[v.url].isReady && !this.lists[v.url].indexer.hasFailed))){ // if not loaded yet, fetch directly
             let entries = await this.lists[v.url].getMap()
             return this.directListRendererPrepare(entries, v.url)

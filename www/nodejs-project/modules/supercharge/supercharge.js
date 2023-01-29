@@ -258,8 +258,11 @@ function patch(scope){
 			return ex.stack.replace('TypeError: a.debug is not a function', '').trim()
 		}
 	}
-	scope.forwardSlashes = (file) => {
-		return file.replaceAll('\\', '/').replaceAll('//', '/')
+	scope.forwardSlashes = path => {
+		if(path && path.indexOf('\\') != -1){
+			return path.replaceAll('\\', '/').replaceAll('//', '/')
+		}
+		return path
 	}	
     scope.joinPath = (folder, file) => {
 		if(!file) return folder
