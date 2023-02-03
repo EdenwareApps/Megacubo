@@ -6,13 +6,16 @@ class ParentalControl extends Events {
 		super()
 		this.authTTL = 600
 		this.termsRegex = false
-		this.setupTerms()
-		this.update()
 		this.on('updated', () => {
 			if(global.explorer && global.explorer.path == global.lang.TRENDING){
 				global.explorer.refresh()
 			}
 		})
+		global.config.on('change', keys => {
+			keys.includes('parental-control-terms') && this.setTerms()
+		})
+		this.setupTerms()
+		this.update()
 	}
 	entry(){
 		return {
@@ -100,6 +103,7 @@ class ParentalControl extends Events {
 						action: async (e, v) => {
 							if(v !== false && await this.auth()){
 								global.config.set('parental-control-terms', v)
+								this.setTerms()
 							}
 						},
 						value: () => {
@@ -114,14 +118,13 @@ class ParentalControl extends Events {
 			}
 		}
 	}
-	setupTerms(){
-		this.terms = this.keywords(global.config.get('parental-control-terms'))		
+	setupTerms(tms){
+		this.terms = this.keywords(tms || global.config.get('parental-control-terms'))		
 		if(this.terms.length){
 			this.termsRegex = new RegExp(this.terms.join('|').replace(new RegExp('\\+', 'g'), '\\+'), 'i')
 		} else {
 			this.termsRegex = false
 		}
-		this.update()
 	}
 	setTerms(terms){
 		if(typeof(terms) == 'string'){
@@ -133,24 +136,15 @@ class ParentalControl extends Events {
 		this.terms = [...new Set(this.terms)] // make unique
 		let sterms = this.terms.join(',')
 		global.config.set('parental-control-terms', sterms)
+		this.setupTerms(sterms)
 		this.emit('updated')
-		if(this.terms.length){
-			this.termsRegex = new RegExp(this.terms.join('|').replace(new RegExp('\\+', 'g'), '\\+'), 'i')
-		} else {
-			this.termsRegex = false
-		}
 	}
 	update(){
 		if(global.config.get('parental-control-terms') == global.config.defaults['parental-control-terms']){ // update only if the user didn't customized
 			global.cloud.get('configure').then(c => {
 				if(c && c.adultTerms){
-					this.terms = this.terms.concat(this.keywords(c.adultTerms))
-					if(this.terms.length){
-						this.terms = [...new Set(this.terms)]
-						global.config.set('parental-control-terms', this.terms.join(','))
-					}
+					this.setTerms(c.adultTerms)
 				}
-				this.emit('updated')
 			}).catch(err => {
 				console.error(err)
 				setTimeout(() => this.update(), 10000)

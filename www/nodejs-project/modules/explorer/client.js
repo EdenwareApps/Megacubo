@@ -1289,7 +1289,6 @@ class ExplorerDialog extends ExplorerDialogQueue {
 				if(e.isPassword){
 					tpl = tpl.replace('type="text"', 'type="password"')
 				}
-				console.warn('ENTRY', e)
 				if(!e.text){
 					e.text = e.plainText || ''
 				}

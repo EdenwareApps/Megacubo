@@ -251,6 +251,7 @@
    "NONE_STREAM_FOUND": "Aucune émission trouvée",
    "NONE_STREAM_WORKED_X": "Aucun diffusion actif trouvé pour {0} à ce moment-là",
    "NORMAL": "Normale",
+   "NOTIFY_UPDATES": "Aviser lorsque les mises à jour sont disponibles",
    "NOT_FOUND": "Pas trouvé",
    "NO_COMMUNITY_LISTS_FOUND": "Aucune liste de communauté trouvée",
    "NO_ICON": "Pas d'icône",

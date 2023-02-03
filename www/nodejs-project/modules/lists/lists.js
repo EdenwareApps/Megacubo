@@ -494,7 +494,7 @@ class Lists extends ListsEPGTools {
 						reject('list discarded')
 					}
 				} else {				
-					this.setListMeta(url, this.lists[url].index.meta)			
+					this.setListMeta(url, this.lists[url].index.meta).catch(console.error)
 					if(this.lists[url].index.meta['epg'] && !this.epgs.includes(this.lists[url].index.meta['epg'])){
 						this.epgs.push(this.lists[url].index.meta['epg'])
 					}

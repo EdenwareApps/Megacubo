@@ -125,7 +125,7 @@ class ListsUpdater extends Common {
 			if(this.debug){
 				console.log('updater - should', url, should)
 			}
-			this.setListMeta(url, updateMeta)
+			await this.setListMeta(url, updateMeta).catch(console.error)
 			let ret
 			if(this.debug){
 				console.log('updater - should', url, should)
@@ -137,8 +137,8 @@ class ListsUpdater extends Common {
 			if(updater.index){
 				updateMeta.contentLength = updater.contentLength
 				updateMeta.updateAfter = now + (24 * 3600)
-				this.setListMeta(url, updater.index.meta)
-				this.setListMeta(url, updateMeta)
+				await this.setListMeta(url, updater.index.meta).catch(console.error)
+				await this.setListMeta(url, updateMeta).catch(console.error)
 				ret = true
 			} 
 			if(this.debug){

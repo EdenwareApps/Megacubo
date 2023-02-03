@@ -945,27 +945,22 @@ class Options extends OptionsHardwareAcceleration {
                 {name: global.lang.PERFORMANCE_MODE, details: global.lang.SELECT, fa: 'fas fa-tachometer-alt', type: 'action', action: () => this.performance()},
                 {name: global.lang.BEHAVIOUR, type: 'group', fa: 'fas fa-window-restore', renderer: async () => {
                     let opts = [
-                        {name: global.lang.RESUME_PLAYBACK, type: 'check', action: (data, checked) => {
-                            global.config.set('resume', checked)
-                        }, checked: () => {
-                            return global.config.get('resume')
-                        }},
                         {
-                            name: global.lang.AUTO_MINIPLAYER, type: 'check', action: (data, checked) => {
-                            global.config.set('miniplayer-auto', checked)
-                        }, checked: () => {
-                            return global.config.get('miniplayer-auto')
-                        }},                            
+                            name: global.lang.RESUME_PLAYBACK, type: 'check',
+                            action: (data, checked) => global.config.set('resume', checked),
+                            checked: () => global.config.get('resume')
+                        },
+                        {
+                            name: global.lang.AUTO_MINIPLAYER, type: 'check', 
+                            action: (data, checked) => global.config.set('miniplayer-auto', checked),
+                            checked: () => global.config.get('miniplayer-auto')
+                        },
                         {
                             name: global.lang.SHOW_LOGOS,
                             type: 'check',
-                            action: (e, checked) => {
-                                global.config.set('show-logos', checked)
-                            }, 
-                            checked: () => {
-                                return global.config.get('show-logos')
-                            }
-                        },   ,
+                            action: (e, checked) => global.config.set('show-logos', checked),
+                            checked: () => global.config.get('show-logos')
+                        },
                         {
                             name: global.lang.STRETCH_THUMBNAILS,
                             fa: 'fas fa-expand-alt',
@@ -1053,6 +1048,12 @@ class Options extends OptionsHardwareAcceleration {
                             checked: () => {
                                 return global.config.get('use-local-time-counter')
                             }
+                        },
+                        {
+                            name: global.lang.NOTIFY_UPDATES,
+                            type: 'check',
+                            action: (e, checked) => global.config.set('hide-updates', !checked),
+                            checked: () => !global.config.get('hide-updates')
                         }
                     ]
                     if(!global.cordova){

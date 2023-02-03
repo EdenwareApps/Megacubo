@@ -210,7 +210,7 @@ class DownloadCacheChunks extends Events {
                 next()
             } else {
                 this.created = true
-                fs.writeFile(this.file, '', { flag: "wx" }, next)
+                fs.writeFile(this.file, '', { flag: 'wx'}, next)
             }
         } else if(this.ended && !this.finished) {
             this.finished = true

@@ -251,6 +251,7 @@
    "NONE_STREAM_FOUND": "No broadcasts found",
    "NONE_STREAM_WORKED_X": "No active broadcast found for {0} at this time",
    "NORMAL": "Normal",
+   "NOTIFY_UPDATES": "Notify when updates are available",
    "NOT_FOUND": "Not found",
    "NO_COMMUNITY_LISTS_FOUND": "No community list found",
    "NO_ICON": "No icon",

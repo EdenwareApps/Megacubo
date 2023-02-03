@@ -251,6 +251,7 @@
    "NONE_STREAM_FOUND": "Keine Sendungen gefunden.",
    "NONE_STREAM_WORKED_X": "Keine aktive Sendung für {0} zu diesem Zeitpunkt gefunden",
    "NORMAL": "Normal",
+   "NOTIFY_UPDATES": "Benachrichtigen Sie, wann Updates verfügbar sind",
    "NOT_FOUND": "Nicht gefunden",
    "NO_COMMUNITY_LISTS_FOUND": "Keine Gemeinschaft liste gefunden",
    "NO_ICON": "Kein Symbol",

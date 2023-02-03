@@ -312,14 +312,19 @@ class Common extends Events {
 		return meta
 	}
 	async setListMeta(url, newMeta){
-		let meta = await this.getListMeta(url)
-		Object.keys(newMeta).forEach(k => {
-			if(newMeta[k]){
-				meta[k] = newMeta[k]
+		if(newMeta && typeof(newMeta) == 'object'){
+			let changed, meta = await this.getListMeta(url)
+			Object.keys(newMeta).forEach(k => {
+				if(newMeta[k] && meta[k] !== newMeta[k]){
+					meta[k] = newMeta[k]
+					if(!changed){
+						changed = true
+					}
+				}
+			})
+			if(changed){
+				await global.storage.promises.set(this.listMetaKey(url), meta)
 			}
-		})
-		if(Object.keys(meta).length){
-			global.storage.set(this.listMetaKey(url), meta, true)
 		}
 	}
 	async getListMetaValue(url, key){

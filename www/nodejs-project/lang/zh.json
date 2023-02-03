@@ -251,6 +251,7 @@
    "NONE_STREAM_FOUND": "找不到传输",
    "NONE_STREAM_WORKED_X": "目前未发现{0}的主动传输",
    "NORMAL": "普通的",
+   "NOTIFY_UPDATES": "通知更新何时可用",
    "NOT_FOUND": "未找到",
    "NO_COMMUNITY_LISTS_FOUND": "找不到社区清单",
    "NO_ICON": "无名",

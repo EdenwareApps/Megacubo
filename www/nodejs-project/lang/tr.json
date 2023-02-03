@@ -251,6 +251,7 @@
    "NONE_STREAM_FOUND": "Yayın bulunamadı",
    "NONE_STREAM_WORKED_X": "Şu anda {0} için aktif yayın bulunamadı.",
    "NORMAL": "Normal",
+   "NOTIFY_UPDATES": "Güncellemelerin kullanılabilir olduğunu bildirin",
    "NOT_FOUND": "Bulunamadı",
    "NO_COMMUNITY_LISTS_FOUND": "Kumaryum Listesi bulunamadı",
    "NO_ICON": "Simge yok",

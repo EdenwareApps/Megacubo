@@ -251,6 +251,7 @@
    "NONE_STREAM_FOUND": "Nuk u gjet asnjë transmetim",
    "NONE_STREAM_WORKED_X": "Asnjë transmetim aktiv i gjetur për {0} në këtë kohë",
    "NORMAL": "Normal",
+   "NOTIFY_UPDATES": "Njoftoni kur azhurnimet janë në dispozicion",
    "NOT_FOUND": "Nuk u gjet",
    "NO_COMMUNITY_LISTS_FOUND": "Nuk u gjet asnjë listë komuniteti",
    "NO_ICON": "Nuk ka ikonë",

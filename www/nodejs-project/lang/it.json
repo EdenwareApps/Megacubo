@@ -251,6 +251,7 @@
    "NONE_STREAM_FOUND": "Nessun flusso trovato",
    "NONE_STREAM_WORKED_X": "Nessun flusso attivo trovato per {0} in questo momento",
    "NORMAL": "Normale",
+   "NOTIFY_UPDATES": "Notifica quando sono disponibili gli aggiornamenti",
    "NOT_FOUND": "Non trovato",
    "NO_COMMUNITY_LISTS_FOUND": "Nessun elenco di comunità trovato",
    "NO_ICON": "Nessuna icona",

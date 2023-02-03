@@ -654,11 +654,13 @@ function init(language){
                     updateEPGConfig(c)
                     console.log('checking update...')
                     crashlog.send().catch(console.error)
-                    if(c.version > MANIFEST.version){
-                        console.log('new version found', c.version)
-                        prompt(c)
-                    } else {
-                        console.log('updated')
+                    if(!global.config.get('hide-updates')){
+                        if(c.version > MANIFEST.version){
+                            console.log('new version found', c.version)
+                            prompt(c)
+                        } else {
+                            console.log('updated')
+                        }
                     }
                 }
                 lists.manager.waitListsReady().then(afterListUpdate).catch(console.error)

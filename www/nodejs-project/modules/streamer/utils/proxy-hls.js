@@ -311,12 +311,12 @@ class HLSRequests extends StreamerProxyBase {
 							this.getBitrate(this.proxify(url))
 						}
 					}					
-					this.prefetch(url, opts)
+					// Using nextTick to prevent "RangeError: Maximum call stack size exceeded"
+					process.nextTick(() => this.prefetch(url, opts))
 				}
 			}
 		}
 		request.once('response', (status, headers) => {
-			// console.warn('RESPONSE', status, headers)
 			if(this.validateStatus(status)) {
 				mediaType = 'video'
 				if(this.ext(request.currentURL) == 'm3u8' || (headers['content-type'] && headers['content-type'].indexOf('mpegurl') != -1)){

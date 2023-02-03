@@ -251,6 +251,7 @@
    "NONE_STREAM_FOUND": "Nie znaleziono transmisji",
    "NONE_STREAM_WORKED_X": "W tej chwili nie ma aktywnego transmisji na {0}",
    "NORMAL": "Normalna",
+   "NOTIFY_UPDATES": "Powiadom, gdy aktualizacje są dostępne",
    "NOT_FOUND": "Nie znaleziono",
    "NO_COMMUNITY_LISTS_FOUND": "Nie znaleziono listy komunitalnej",
    "NO_ICON": "Brak ikony",
