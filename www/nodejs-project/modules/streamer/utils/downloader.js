@@ -13,6 +13,12 @@ class Downloader extends StreamerAdapterBase {
 			checkSyncByte: false
 		}, opts || {})
 		super(url, opts)
+		const ms = (global.config.get('connect-timeout') || 5) * 1000
+		this.timeoutOpts = {
+			lookup: ms,
+			connect: ms,
+			response: 30000
+		}
 		this.type = 'downloader'
 		this.internalErrorLevel = 0
 		this.internalErrors = []
@@ -249,7 +255,7 @@ class Downloader extends StreamerAdapterBase {
 		this.finishBitrateSample(this.currentDownloadUID)
 		this.currentDownloadUID = String(connStart)
 		this.lastConnectionStartTime = connStart
-		let reqHeaders = {
+		let opts = {
 			url: this.url,
 			authURL: this.opts.authURL || false,
 			keepalive: this.committed && global.config.get('use-keepalive'),
@@ -257,9 +263,10 @@ class Downloader extends StreamerAdapterBase {
 			acceptRanges: false,
 			retries: 3, // strangely, some servers always abort the first try, throwing "The server aborted pending request"
 			debug: this.debugConns,
-			headers: this.getDefaultRequestHeaders()
+			headers: this.getDefaultRequestHeaders(),
+			timeout: this.timeoutOpts
 		}		
-		const download = this.currentRequest = new global.Download(reqHeaders)
+		const download = this.currentRequest = new global.Download(opts)
 		download.on('error', error => {
 			let elapsed = global.time() - connStart
             console.warn('['+ this.type +'] ERR after '+ elapsed +'s', error, this.url)

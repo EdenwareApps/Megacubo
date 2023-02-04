@@ -9,11 +9,12 @@ class MPEGTSPacketProcessor extends Events {
         this.joining = true // false for proxy hls
         this.packetFilterPolicy = global.config.get('ts-packet-filter-policy') // what to do with packets with bad size? 0=bypass, 1=force size by trimming or removing if minor, 2=remove
         this.lastFlushTime = 0
-        this.minFlushInterval = 3 // secs
+        this.maxFlushInterval = 2 // secs
+        this.adaptationPosition = 6
         this.buffering = []
         this.bufferSize = 5 * (512 * 1024) // 5MB
         this.maxBufferSize = 10 * (1024 * 1024) // 10MB, if buffer grows more than this, something is going wrong and may fill up memory
-        this.maxPcrJournalSize = 2048 // 256 was not enough
+        this.maxPcrJournalSize = 512 // 256 was not enough
         this.pcrJournal = []
         this.debug = false
     }
@@ -22,9 +23,7 @@ class MPEGTSPacketProcessor extends Events {
 			return 0
 		} else if(Array.isArray(data)) {
 			let len = 0
-			data.forEach(d => {
-				len += this.len(d)
-			})
+			data.forEach(d => len += this.len(d))
 			return len
 		} else if(typeof(data.byteLength) != 'undefined') {
 			return data.byteLength
@@ -35,11 +34,11 @@ class MPEGTSPacketProcessor extends Events {
     pcr(x, offset=0){
         const header = x.readUInt32BE(offset), adaptationFieldControl = (header & 0x30) >>> 4
         if ((adaptationFieldControl & 0x2) !== 0) {
-            var adaptationLength = x.readUInt8(offset + 4)
+            const adaptationLength = x.readUInt8(offset + 4)
             if (adaptationLength !== 0) {
-                let flags = x.readUInt8(offset + 5), pcrFlag = (flags & 0x10) !== 0
+                const flags = x.readUInt8(offset + 5), pcrFlag = (flags & 0x10) !== 0
                 if (pcrFlag === true) {
-                    let adaptationPosition = 6, pcrBase = x.readUInt32BE(offset + adaptationPosition), pcrExtension = x.readUInt16BE(offset + adaptationPosition + 4)
+                    let pcrBase = x.readUInt32BE(offset + this.adaptationPosition), pcrExtension = x.readUInt16BE(offset + this.adaptationPosition + 4)
                     pcrBase = pcrBase * 2 + (((pcrExtension & 0x8000) !== 0) ? 1 : 0)
                     pcrExtension = pcrExtension & 0x1ff
                     return pcrBase * 300 + pcrExtension
@@ -178,9 +177,11 @@ class MPEGTSPacketProcessor extends Events {
                     let lastKnownPCRPos
                     pcrs.some((pcr, i) => {
                         delete positions[pcr]
+                        /* removed for performance
                         if(!this.pcrJournal.includes(pcr)) {
                             this.pcrJournal.push(pcr) // a past pcr not collected
                         }
+                        */
                         if(pcr == lastKnownPCR) {
                             lastKnownPCRPos = i
                             return true
@@ -189,7 +190,7 @@ class MPEGTSPacketProcessor extends Events {
                     pcrs = pcrs.slice(lastKnownPCRPos + 1) // update var
                 }
                 if(pcrs.length > 1){
-                    pcrs.slice(0, -1).forEach(pcr => this.pcrJournal.push(pcr)) // collect new pcrs, except the last one which may be partial yet
+                    this.pcrJournal.push(...pcrs.slice(0, -1)) // collect new pcrs, except the last one which may be partial yet
                 }
             }
             if(pcrs.length > 1) {
@@ -258,10 +259,7 @@ class MPEGTSPacketProcessor extends Events {
         return ret
     }
     checkSyncByte(c, pos){
-        if(pos < 0 || pos > (c.length - 4)){
-            //console.error('bad checkSyncByte', c.length, c.length - 4, pos)
-            return false
-        } else {
+        if(pos >= 0 && pos < (c.length - 4)){
             const header = c.readUInt32BE(pos || 0), packetSync = (header & 0xff000000) >> 24
             return packetSync == SYNC_BYTE
         }
@@ -283,8 +281,7 @@ class MPEGTSPacketProcessor extends Events {
             chunk = Buffer.from(chunk)
         }
         this.buffering.push(chunk)
-        const now = global.time()
-        if(this.len(this.buffering) > this.bufferSize || ((now - this.lastFlushTime) >= this.minFlushInterval)){
+        if(this.len(this.buffering) > this.bufferSize || ((global.time() - this.lastFlushTime) >= this.maxFlushInterval)){
             this.flush(false)
         }
     }

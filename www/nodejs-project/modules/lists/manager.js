@@ -651,6 +651,16 @@ class Manager extends ManagerEPG {
 		}
 		return list
 	}
+    basename(path){
+        let i = path.lastIndexOf('/')
+        if(i == 0){
+            return path.substr(1)
+        } else if(i == -1) {
+            return path
+        } else {
+            return path.substr(i + 1)
+        }
+    }
     waitListsReady(){
         return new Promise((resolve, reject) => {
             if(!Object.keys(this.updatingProcesses).length){

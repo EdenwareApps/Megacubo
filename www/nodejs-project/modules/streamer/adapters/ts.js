@@ -1,5 +1,5 @@
 
-const StreamerAdapterBase = require('./base.js'), Joiner = require('../utils/joiner.js')
+const StreamerAdapterBase = require('./base.js'), Downloader = require('../utils/downloader.js'), Joiner = require('../utils/joiner.js')
 		
 class StreamerAdapterTS extends StreamerAdapterBase {
 	constructor(url, opts, cb){
@@ -18,7 +18,11 @@ class StreamerAdapterTS extends StreamerAdapterBase {
 					reject()
 				}
 			})
-			this.source = new Joiner(this.url, this.opts)
+			if(global.config.get('ts-packet-filter-policy') == -1){
+				this.source = new Downloader(this.url, this.opts)
+			} else {
+				this.source = new Joiner(this.url, this.opts)
+			}
 			this.connectAdapter(this.source)
 			this.server = false
 			this.connectable = false

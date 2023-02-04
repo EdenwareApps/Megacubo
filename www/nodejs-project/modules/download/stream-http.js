@@ -33,22 +33,20 @@ class DownloadStreamHttp extends DownloadStreamBase {
 	}
     async options(ip, family){
         const opts = {
-            path: this.parsed.path,
-            port: this.parsed.port || (this.parsed.protocol == 'http:' ? 80 : 443)
+            ip, family, 
+            path: this.encodeURI(this.parsed.path),
+            port: this.parsed.port || (this.parsed.protocol == 'http:' ? 80 : 443),
+            realHost: this.parsed.hostname,
+            host: ip,
+            headers: this.opts.headers || {host: this.parsed.hostname, connection: 'close'},
+            timeout: this.timeout.connect,
+            protocol: this.parsed.protocol,
+            decompress: false
         }
-        opts.path = this.encodeURI(opts.path)
-        opts.realHost = this.parsed.hostname
-        opts.host = ip
-        opts.ip = ip
-        opts.family = family
-		opts.headers = this.opts.headers || {host: this.parsed.hostname, connection: 'close'}
         const cookie = await this.getCookies()
         if(cookie){
             opts.headers.cookie = cookie
         }
-		opts.timeout = this.timeout.connect
-        opts.protocol = this.parsed.protocol
-        opts.decompress = false
         if(this.parsed.protocol == 'https:'){
             opts.rejectUnauthorized = false
         }
@@ -152,9 +150,7 @@ class DownloadStreamHttp extends DownloadStreamBase {
                 close()
             }
             const clearTimer = () => {
-                if(timer){
-                    clearTimeout(timer)
-                }
+                timer && clearTimeout(timer)
             }
             let currentState = 'connect'
             const startTimer = state => {

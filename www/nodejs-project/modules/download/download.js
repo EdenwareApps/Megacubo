@@ -373,14 +373,17 @@ class Download extends Events {
 		if(this.opts.timeout && typeof(this.opts.timeout) == 'object' && this.opts.timeout.connect && this.opts.timeout.response) {
 			return this.opts.timeout
 		} else {
-			let ms, timeout = {}
+			let ms
 			if(typeof(this.opts.timeout) == 'number' && this.opts.timeout > 0){
 				ms = this.opts.timeout * 1000
 			} else {
 				ms = (global.config.get('connect-timeout') || 5) * 1000
 			}
-			'lookup,connect,response'.split(',').forEach(s => timeout[s] = ms)
-			return timeout
+			return {
+				lookup: ms,
+				connect: ms,
+				response: ms * 2
+			}
 		}
 	}
 	removeHeaders(headers, keys){

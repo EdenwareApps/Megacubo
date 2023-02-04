@@ -690,17 +690,23 @@ class Options extends OptionsHardwareAcceleration {
                     return global.config.get('playback-rate-control')
                 }, details: 'Recommended'}, 
                 {
+                    name: global.lang.USE_KEEPALIVE, type: 'check', action: (data, checked) => {
+                    global.config.set('use-keepalive', checked)
+                }, checked: () => {
+                    return global.config.get('use-keepalive')
+                }, details: 'Recommended'},
+                {
                     name: 'HLS prefetch', type: 'check', action: (data, checked) => {
                     global.config.set('hls-prefetching', checked)
                 }, checked: () => {
                     return global.config.get('hls-prefetching')
                 }},
                 {
-                    name: global.lang.USE_KEEPALIVE, type: 'check', action: (data, checked) => {
-                    global.config.set('use-keepalive', checked)
+                    name: 'MPEGTS Joining', type: 'check', action: (data, checked) => {
+                    global.config.set('ts-packet-filter-policy', checked ? 1 : -1)
                 }, checked: () => {
-                    return global.config.get('use-keepalive')
-                }, details: 'Recommended'},
+                    return global.config.get('ts-packet-filter-policy') !== -1                    
+                }},
                 {
                     name: 'Unpause jumpback',
                     fa: 'fas fa-undo', 
