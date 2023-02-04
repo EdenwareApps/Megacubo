@@ -1,5 +1,14 @@
 const path = require('path'), Events = require('events'), async = require('async')
-    
+
+let sharedStreamerObject
+const streamer = () => {
+	if(!sharedStreamerObject) {
+		const Streamer = require('../streamer')
+		sharedStreamerObject = new Streamer({shadow: true})
+	}
+	return sharedStreamerObject
+}
+
 class TunerUtils extends Events {
     constructor(entries, opts, name){
         super()
@@ -49,17 +58,11 @@ class TunerTask extends TunerUtils {
         this.domainDelay = {}		
 	}
 	test(e, i){
-		if(this.opts.debug){
-			console.log('Tuner')
-		}
 		return new Promise((resolve, reject) => {   
 			if(this.opts.debug){
 				console.log('Tuner')
 			}
-			this.states[i] = 1 
-			if(!this.streamer){
-				this.streamer = new (require('../streamer'))({shadow: true})
-			}
+			this.states[i] = 1
 			/*
 			STATES, used by test()
 			-2 = start failed
@@ -76,7 +79,7 @@ class TunerTask extends TunerUtils {
 			1 = success, queued
 			2 = success, emitted
 			*/
-			this.streamer.info(e.url, 2, e).then(info => {
+			streamer().info(e.url, 2, e).then(info => {
 				if(!this.aborted){
 					//console.warn('TEST SUCCESS', e, info, this.opts.allowedTypes)
 					this.info[i] = info
@@ -313,7 +316,6 @@ class TunerTask extends TunerUtils {
 			this.destroyed = true
 			this.emit('destroy')
 			this.abort()
-			this.streamer && this.streamer.destroy()
 			this.removeAllListeners()
 		}
 	}
