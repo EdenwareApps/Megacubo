@@ -113,7 +113,8 @@ class ChannelsData extends Events {
                         let lk = 'CATEGORY_' + k.replaceAll(' & ', ' ').replace(new RegExp(' +', 'g'), '_').toUpperCase()
                         let nk = global.lang[lk] || k
                         if(typeof(ret[nk]) == 'undefined') ret[nk] = []
-                        ret[nk] = [...new Set(ret[nk].concat(r.value[k]))].sort()
+                        ret[nk].push(...(r.value[k]))
+                        ret[nk] = [...new Set(ret[nk])].sort()
                     }
                 })
             }
@@ -322,7 +323,7 @@ class ChannelsEPG extends ChannelsData {
                 console.warn('epgSearch', epgData)
                 Object.keys(epgData).forEach(ch => {
                     let terms = global.lists.terms(ch)
-                    entries = entries.concat(this.epgDataToEntries(epgData[ch], ch, terms))
+                    entries.push(...this.epgDataToEntries(epgData[ch], ch, terms))
                 })
                 entries = entries.sort((a, b) => {
                     return a.program.start - b.program.start 
@@ -591,7 +592,7 @@ class ChannelsEditing extends ChannelsEPG {
                         return new Promise((resolve, reject) => {
                             let images = []
                             global.icons.search(terms).then(ms => {
-                                images = images.concat(ms.map(m => m.icon))
+                                images.push(...ms.map(m => m.icon))
                             }).catch(console.error).finally(() => {
                                 let ret = images.map((image, i) => {
                                     const e =  {
@@ -641,7 +642,7 @@ class ChannelsEditing extends ChannelsEPG {
                     }})                    
                 }
                 if(category){
-                    entries = entries.concat([
+                    entries.push(...[
                         {name: global.lang.RENAME, type: 'input', details: o.name, value: o.name, action: (data, val) => {
                             const category = _category
                             console.warn('RENAME', o.name, 'TO', val, category)
@@ -1027,14 +1028,14 @@ class Channels extends ChannelsKids {
                 })
                 const skipChrs = ['-', '|']
                 Object.keys(alts).forEach(n => {
-                    excludes = excludes.concat(alts[n].filter(t => {
+                    excludes.push(...alts[n].filter(t => {
                         return !skipChrs.includes(t.charAt(0)) && !chTerms.includes(t)
                     }))
                 })
                 excludes = [...new Set(excludes)]
                 const seemsRadio = chTerms.some(c => this.radioTerms.includes(c))
                 chTerms = chTerms.join(' ').split(' | ').map(s => s.split(' ')).filter(s => s).map(t => {
-                    t = t.concat(excludes.map(s => '-' + s))
+                    t.push(...excludes.map(s => '-' + s))
                     if(!seemsRadio){
                         this.radioTerms.forEach(rterm => {
                             if(!t.some(cterm => cterm.substr(0, rterm.length) == rterm)){ // this radio term can mess with our search (specially AM)
@@ -1114,8 +1115,8 @@ class Channels extends ChannelsKids {
                         }
                     }).filter(e => !!e)
                 }).catch(console.error).finally(() => {
-                    console.log(global.deepClone(entries))
-                    resolve(es.concat(epgEntries))
+                    es.push(...epgEntries)
+                    resolve(es)
                 })
             }).catch(reject)
             
@@ -1248,7 +1249,6 @@ class Channels extends ChannelsKids {
                     entries.push(epgEntry)
                 }
                 if(streamsEntry){
-                    console.warn('EPG DEBUG', epgEntry)
                     moreOptions.push(this.shareChannelEntry(e))
                     moreOptions.push(streamsEntry)
                 }
@@ -1351,12 +1351,12 @@ class Channels extends ChannelsKids {
                 ['histo', 'bookmarks'].forEach(k => {
                     if(global[k]){
                         global[k].get().forEach(e => {
-                            keywords = keywords.concat(this.entryTerms(e))
+                            keywords.push(...this.entryTerms(e))
                         })
                     }
                 })
                 this.getDefaultCategories(true).then(data => {
-                    keywords = keywords.concat(Object.values(data).flat().map(n => this.expandName(n).terms.name).flat())
+                    keywords.push(...Object.values(data).flat().map(n => this.expandName(n).terms.name).flat())
                 }).catch(reject).finally(() => {
                     keywords = [...new Set(keywords)].filter(w => !badChrs.includes(w.charAt(0)))
                     resolve(keywords)
@@ -1443,8 +1443,8 @@ class Channels extends ChannelsKids {
                     return true
                 })
                 entries = entries.map(adjust).sortByProp('name')
-                entries = entries.concat(noEPGI.map(adjust).sortByProp('name'))
-                entries = entries.concat(noEPG)
+                entries.push(...noEPGI.map(adjust).sortByProp('name'))
+                entries.push(...noEPG)
                 break
         }
         return entries
@@ -1513,7 +1513,7 @@ class Channels extends ChannelsKids {
             if(global.config.get('allow-edit-channel-list') && !this.isEPGSyncActive()){
                 entries.push(this.editCategoriesEntry())
             }
-            entries = entries.concat([
+            entries.push(...[
                 this.exportImportOption(),
                 {name: global.lang.EPG, fa: this.epgIcon, type: 'action', details: 'EPG', action: () => {
                     global.ui.emit('prompt', global.lang.EPG, 'http://.../epg.xml', this.activeEPG, 'set-epg', false, this.epgIcon)
@@ -1679,7 +1679,7 @@ class Channels extends ChannelsKids {
     hook(entries, path){
         return new Promise((resolve, reject) => {
             if(path == '' && !entries.some(e => e.name == global.lang.LIVE)){
-                entries = entries.concat([
+                entries.push(...[
                     {name: lang.LIVE, fa: 'fas fa-tv', details: '<i class="fas fa-play-circle"></i> '+ lang.WATCH, type: 'group', renderer: channels.entries.bind(channels)},
                     {name: lang.MOVIES, fa: 'fas fa-film', details: lang.CATEGORIES, type: 'group', renderer: () => channels.groupsRenderer('vod')},
                     {name: lang.SERIES, fa: 'fas fa-th', details: lang.CATEGORIES, type: 'group', renderer: () => channels.groupsRenderer('series')}

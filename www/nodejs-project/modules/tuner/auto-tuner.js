@@ -97,9 +97,10 @@ class AutoTuner extends Events {
         })
         entries = []
         Object.keys(preferredStreamServersLeveledEntries).sort().forEach(k => {
-            entries = entries.concat(preferredStreamServersLeveledEntries[k])
+            entries.push(...preferredStreamServersLeveledEntries[k])
         })
-        entries = entries.concat(deferredHLSStreams).concat(deferredStreams)
+        entries.push(...deferredHLSStreams)
+        entries.push(...deferredStreams)
         if(preferredStreamEntry){
             entries.unshift(preferredStreamEntry)
         }
@@ -116,7 +117,8 @@ class AutoTuner extends Events {
                 deferredEntries.push(entry)
             }
         })
-        return entries.concat(deferredEntries)
+        entries.push(...deferredEntries)
+        return entries
     }
     pause(){
         if(this.opts.debug){
@@ -412,7 +414,7 @@ class AutoTuner extends Events {
     logText(showStreams){
         let ret = [], info = Object.values(this.log())
         ret.push(this.tuner.entries.length +' streams')
-        ret = ret.concat(info.map(e => {
+        ret.push(...info.map(e => {
             let row = (showStreams === true ? e.url : e.name) +' => '
             if(e.info == 'untested'){
                 row += 'untested'

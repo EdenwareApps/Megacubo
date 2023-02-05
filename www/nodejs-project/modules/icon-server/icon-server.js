@@ -165,7 +165,7 @@ class IconSearch extends IconDefault {
                         if(this.opts.debug){
                             console.log('search() result', ret)
                         }
-                        images = images.concat(ret)
+                        images.push(...ret)
                     }
                 }).catch(console.error).finally(() => resolve(images))
             }

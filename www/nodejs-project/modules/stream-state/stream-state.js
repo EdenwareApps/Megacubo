@@ -272,7 +272,7 @@ class StreamState extends Events {
             console.warn('streamState', syncData, entries)
             global.ui.emit('sync-status-flags', syncData)
             if(retest.length){
-                entries = entries.concat(retest)
+                entries.push(...retest)
             }
             this.testing = new Tuner(entries, {
                 shadow: true

@@ -16,10 +16,10 @@ class FFmpegController extends Events {
 	}
     cmdArr(){
 		let cmd = []
-		this.options.input.forEach(a => cmd = cmd.concat(a))
+		this.options.input.forEach(a => cmd.push(...a))
 		if(this.input){ 
 			// add these input options only if we have an input, not in -version, per example
-			cmd = cmd.concat([
+			cmd.push(...[
 				'-loglevel', 'info', // if logerror=(warning|error) it will not return the codec and bitrate data
 				'-analyzeduration', 10000000, // 10s in microseconds
 				'-probesize', 10485760,	// 10MB
@@ -27,10 +27,10 @@ class FFmpegController extends Events {
 				'-i', this.input
 			])
 		}
-		this.options.output.forEach(a => cmd = cmd.concat(a))
+		this.options.output.forEach(a => cmd.push(...a))
 		if(this.dest){
-			cmd = cmd.concat(['-strict', 'experimental']) // cmd = cmd.concat(['-strict', '-2'])
-			cmd = cmd.concat(['-max_muxing_queue_size', 2048]) // https://stackoverflow.com/questions/49686244/ffmpeg-too-many-packets-buffered-for-output-stream-01	
+			cmd.push(...['-strict', 'experimental']) // cmd = cmd.concat(['-strict', '-2'])
+			cmd.push(...['-max_muxing_queue_size', 2048]) // https://stackoverflow.com/questions/49686244/ffmpeg-too-many-packets-buffered-for-output-stream-01	
 			cmd.push(this.dest.replace(new RegExp('\\\\', 'g'), '/'))
 		}
 		return cmd

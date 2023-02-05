@@ -141,7 +141,7 @@ class Watching extends EntriesGroup {
         await Promise.all(locales.map(async locale => {
             let es = await global.cloud.get('watching.'+ locale, false).catch(console.error)
             if(Array.isArray(es)) {
-                data = data.concat(es)
+                data.push(...es)
             }
         }))
         data.forEach((e, i) => {
@@ -223,7 +223,9 @@ class Watching extends EntriesGroup {
         })
         data = data.filter(e => {
             return !!e
-        }).concat(gentries).sortByProp('users', true)
+        })
+        data.push(...gentries)
+        data = data.sortByProp('users', true)
         data = this.addTrendAttr(data)
         data = this.applyUsersPercentages(data)
         this.currentEntries = data
@@ -265,7 +267,8 @@ class Watching extends EntriesGroup {
                         }
                     })
                 })
-                resolve(up.concat(es.filter(e => { return !!e })))
+                up.push(...es.filter(e => { return !!e }))
+                resolve(up)
             } else {
                 resolve(entries)
             }     

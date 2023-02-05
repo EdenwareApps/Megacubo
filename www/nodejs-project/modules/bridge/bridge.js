@@ -29,12 +29,12 @@ class BridgeServer extends Events {
     constructor(opts){
         super()
         this.io = null
+        this.map = {}
         this.opts = {
             addr: '127.0.0.1',
             workDir: global.paths['data'] +'/bridge',
             port: 6342
         }
-        this.map = {}
         if(opts){
             Object.keys(opts).forEach((k) => {
                 this.opts[k] = opts[k]

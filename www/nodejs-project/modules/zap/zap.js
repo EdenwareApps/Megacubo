@@ -66,7 +66,7 @@ class Zap extends Events {
         let tickets = []
         entries.forEach((e, i) => {
             if(!this.skips.includes(e.name)){
-                tickets = tickets.concat(Array.from({length: e.weight}, () => i))
+                tickets.push(...Array.from({length: e.weight}, () => i))
             }
         })
         let ticket = tickets[Math.floor(Math.random() * tickets.length)]

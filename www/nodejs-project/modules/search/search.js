@@ -213,7 +213,7 @@ class Search extends Events {
             if(global.config.get('search-youtube') && es.length < minResultsWanted){                
                 let ys = await this.ytResults(terms).catch(console.error)
                 if(Array.isArray(ys)) {
-                    es = es.concat(ys)
+                    es.push(...ys)
                 }
             }
             if(es.length) {
@@ -320,7 +320,7 @@ class Search extends Events {
         if(global.config.get('search-youtube') && es.length < minResultsWanted){
             let ys = await this.ytLiveResults(terms).catch(console.error)
             if(Array.isArray(ys)) {
-                es = es.concat(ys.slice(0, minResultsWanted - es.length))
+                es.push(...ys.slice(0, minResultsWanted - es.length))
             }
         }
         return es

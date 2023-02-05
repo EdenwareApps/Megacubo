@@ -95,7 +95,7 @@ class IPTV extends Events {
         await this.get()
         await this.countries.ready()
         let already = {}, entries = []
-        entries = entries.concat(Object.keys(this.data).map(name => {
+        entries.push(...Object.keys(this.data).map(name => {
             let countryCode = this.countries.extractCountryCodes(name)
             countryCode = countryCode.length ? countryCode[0] : ''
             let displayName = this.prepareName(name, countryCode)
@@ -165,7 +165,11 @@ class IPTV extends Events {
             this.entries().then(es => {
                 let locs = []
                 global.lang.getActiveCountries().then(nlocs => {
-                    locs = [...new Set(locs.concat(nlocs))]
+                    nlocs.forEach(loc => {
+                        if(!locs.includes(loc)){
+                            loc.push(loc)
+                        }
+                    })
                 }).catch(console.error).finally(() => {
                     let nes = [], maxLists = 48
                     if(locs.includes(global.lang.countryCode)){

@@ -668,9 +668,9 @@ class ExplorerPointer extends ExplorerSelectionMemory {
             sel = sel()
         }
         if(typeof(sel)=='string'){
-            e = e.concat(this.selector(sel))
+            e.push(...this.selector(sel))
         } else {
-            e = e.concat(sel)
+            e.push(...sel)
         }
 		e = e.filter(n => {
             return !n.className || n.className.indexOf('explorer-not-navigable') == -1
@@ -1396,13 +1396,10 @@ class ExplorerSelect extends ExplorerDialog {
 		super(jQuery, container, app)
 	}
 	select(question, entries, fa, callback){
-		let def, map = {}
-		if(this.debug){
-			console.warn('SELECT', entries)
-		}
-		this.dialog([
+		let def, map = {}, opts = [
 			{template: 'question', text: question, fa}
-		].concat(entries.map(e => {
+		]
+		opts.push(...entries.map(e => {
 			e.template = 'option'
 			if(!e.text){
 				e.text = String(e.name)
@@ -1414,7 +1411,11 @@ class ExplorerSelect extends ExplorerDialog {
 				def = e.id
 			}
 			return e
-		})), k => {
+		}))
+		if(this.debug){
+			console.warn('SELECT', entries)
+		}
+		this.dialog(opts, k => {
 			if(typeof(map[k]) != 'undefined'){
 				k = map[k]
 			}
@@ -1490,7 +1491,7 @@ class ExplorerPrompt extends ExplorerOpenFile {
 		}
 		opts.push({template: multiline === 'true' ? 'textarea' : 'text', text: defaultValue || '', id: 'text', isPassword, placeholder})
 		if(Array.isArray(extraOpts) && extraOpts.length){
-			opts = opts.concat(extraOpts)
+			opts.push(...extraOpts)
 		} else {
 			opts.push({template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle'})
 		}

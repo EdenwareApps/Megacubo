@@ -211,6 +211,7 @@ class Lists extends ListsEPGTools {
 		this.relevantKeywords = []
 		this.requesting = {}
 		this.loadTimes = {}
+		this.satisfied = false
 		this.syncListsQueue = {}
 		this.syncListsConcurrencyLimit = 2
 		this.isUpdaterFinished = true // true by default
@@ -257,8 +258,9 @@ class Lists extends ListsEPGTools {
                     done()
                 })
             }, () => {
-                if(this.debug) console.log('filterCachedUrls', loadedUrls.concat(cachedUrls).join("\r\n"))
-                resolve(loadedUrls.concat(cachedUrls))
+                loadedUrls.push(...cachedUrls)
+				if(this.debug) console.log('filterCachedUrls', loadedUrls.join("\r\n"))
+                resolve(loadedUrls)
             })
         })
 	}
@@ -326,13 +328,13 @@ class Lists extends ListsEPGTools {
 				progress = 100
 			} else {
 				if(this.myLists.length){
-					progresses = progresses.concat(this.myLists.map(url => this.lists[url] ? this.lists[url].progress() : 0))
+					progresses.push(...this.myLists.map(url => this.lists[url] ? this.lists[url].progress() : 0))
 				}
 				if(camount > satisfyAmount){
 					// let satisfyAmount -1 below from communitary-mode-lists-amount
 					// limit satisfyAmount to 8
 					satisfyAmount += Math.max(1, Math.min(8, camount, this.communityLists.length) - 1)
-					progresses = progresses.concat(Object.keys(this.lists).filter(url => !this.myLists.includes(url)).map(url => this.lists[url].progress()).sort((a, b) => b - a).slice(0, satisfyAmount))
+					progresses.push(...Object.keys(this.lists).filter(url => !this.myLists.includes(url)).map(url => this.lists[url].progress()).sort((a, b) => b - a).slice(0, satisfyAmount))
 				}
 				if(this.debug){
 					console.log('status() progresses', progresses)
@@ -347,6 +349,16 @@ class Lists extends ListsEPGTools {
 						progress = 100
 					}
 				}
+			}
+		}
+		if(progress > 99) {
+			if(!this.satisfied) {
+				this.satisfied = true
+				this.emit('satisfied')
+			}
+		} else {
+			if(this.satisfied) {
+				this.satisfied = false				
 			}
 		}
 		if(this.debug){

@@ -819,7 +819,7 @@ class StreamerAbout extends StreamerTracks {
 				results.forEach(r => {
 					if(r.status == 'fulfilled' && r.value){
 						if(Array.isArray(r.value)){
-							ret = ret.concat(r.value)
+							ret.push(...r.value)
 						} else if(r.value) {
 							ret.push(r.value)
 						}
@@ -863,7 +863,7 @@ class StreamerAbout extends StreamerTracks {
 				results.forEach(r => {
 					if(r.status == 'fulfilled' && r.value){
 						if(Array.isArray(r.value)){
-							ret = ret.concat(r.value)
+							ret.push(...r.value)
 						} else if(r.value) {
 							ret.push(r.value)
 						}
@@ -941,7 +941,7 @@ class StreamerAbout extends StreamerTracks {
 		if(this.active.codecData && (this.active.codecData.video || this.active.codecData.audio)){
 			let codecs = [this.active.codecData.video, this.active.codecData.audio].filter(s => s)
 			codecs = codecs.map(c => c = c.replace(new RegExp('\\([^\\)]*[^A-Za-z\\)][^\\)]*\\)', 'g'), '').replace(new RegExp(' +', 'g'), ' ').trim())
-			meta = meta.concat(codecs)
+			meta.push(...codecs)
 		}
 		if(this.active.transcoder){
 			meta.push(global.lang.TRANSCODING.replaceAll('.', ''))

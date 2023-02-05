@@ -141,7 +141,7 @@ class Index extends Common {
 		q.terms.some(term => {
 			let tms = [term]
 			if(typeof(q.aliases[term]) != 'undefined'){
-				tms = tms.concat(q.aliases[term])
+				tms.push(...q.aliases[term])
 			}
 			let tmap = this.queryTermMap(tms)
 			//console.warn('TMAPSIZE', term, tmap ? this.mapSize(tmap) : 0)
@@ -192,7 +192,7 @@ class Index extends Common {
 				ks.forEach(listUrl => {
 					let ls = smap[listUrl]['n']
 					if(opts.group){
-						ls = ls.concat(smap[listUrl]['g'])
+						ls.push(...smap[listUrl]['g'])
 					}
 					smap[listUrl] = ls
 				})
@@ -262,7 +262,7 @@ class Index extends Common {
 	matchSearchResult(e, queries, opts){
 		let eterms = e.terms.name
 		if(opts.group){
-			eterms = eterms.concat(e.terms.group)
+			eterms.push(...e.terms.group)
 		}
 		return queries.some(query => {
 			if(!eterms.some(t => query.excludes.includes(t))){
@@ -319,13 +319,14 @@ class Index extends Common {
     }
     preferHLS(entries){
         let notHLS = []
-		entries = entries.slice(0).filter(a => {
+		entries = entries.filter(a => {
 			if(this.ext(a.url) == 'm3u8'){
 				return true
 			}
 			notHLS.push(a)
         })
-		return entries.concat(notHLS)
+		entries.push(...notHLS)
+		return entries
     }
 	unoptimizedSearch(terms, opts){
 		return new Promise((resolve, reject) => {

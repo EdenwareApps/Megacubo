@@ -189,7 +189,7 @@ class Suggestions {
             while(nresults.length < amount){
                 let added = 0
                 const lquotas = Object.assign({}, quotas)
-                nresults = nresults.concat(results.filter((r, i) => {
+                nresults.push(...results.filter((r, i) => {
                     if(!r) return
                     if(r.programme.c.filter(cat => {
                         if(lquotas[cat]){
@@ -206,7 +206,7 @@ class Suggestions {
                 if(!added) break
             }
             if(nresults.length < amount){
-                nresults = nresults.concat(results.filter(r => r).slice(0, amount - nresults.length))
+                nresults.push(...results.filter(r => r).slice(0, amount - nresults.length))
             }
             results = nresults
         }

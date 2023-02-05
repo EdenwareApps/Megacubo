@@ -168,7 +168,7 @@ class Bookmarks extends EntriesGroup {
                     gentries[ks[i]] = e
                 })
             }).catch(console.error).finally(() => {
-                es = es.concat(gentries)
+                es.push(...gentries)
                 if(this.get().length){
                     es.push({name: global.lang.REMOVE, fa: 'fas fa-trash', type: 'group', renderer: this.removalEntries.bind(this)})
                 }

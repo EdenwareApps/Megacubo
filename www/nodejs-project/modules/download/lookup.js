@@ -58,7 +58,7 @@ class UltimateLookup extends Events {
 			family = pref
 			if(keepAll){
 				family = -1
-				nips = nips.concat(ips.filter(ip => this.family(ip) != pref))
+				nips.push(...ips.filter(ip => this.family(ip) != pref))
 			}
 			ips = nips			
 		} else {
@@ -102,7 +102,7 @@ class UltimateLookup extends Events {
 				}
 				this.get(domain, 6, bresults => {
 					if(Array.isArray(bresults)){
-						aresults = aresults.concat(bresults)
+						aresults.push(...bresults)
 					}
 					aresults = this.promotePreferableIpVersion(domain, aresults, true)
 					cb(aresults.ips)

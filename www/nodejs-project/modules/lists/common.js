@@ -134,7 +134,8 @@ class Common extends Events {
 	applySearchRedirects(terms){
 		this.searchRedirects.forEach(redirect => {
 			if(redirect.from && redirect.from.length && redirect.from.every(t => terms.includes(t))){
-				terms = terms.filter(t => !redirect.from.includes(t)).concat(redirect.to)
+				terms = terms.filter(t => !redirect.from.includes(t))
+				terms.push(...redirect.to)
 			}
 		})
 		return terms

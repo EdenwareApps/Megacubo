@@ -177,7 +177,7 @@ class StreamerBaseIntent extends Events {
                 if(base.adapters[i].type && types.includes(base.adapters[i].type) && (!filter || filter(base.adapters[i]))){
                     adapters.push(base.adapters[i])
                 } else {
-                    adapters = adapters.concat(this.findAllAdapters(base.adapters[i], types, filter))
+                    adapters.push(...this.findAllAdapters(base.adapters[i], types, filter))
                 }
             }
         }

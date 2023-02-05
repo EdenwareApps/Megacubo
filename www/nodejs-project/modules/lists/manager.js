@@ -14,7 +14,8 @@ class ManagerCommunityLists extends Events {
                         communityLists = communityLists.filter(u => myLists.indexOf(u) == -1)
                         communityLists = communityLists.filter(u => !driver.isKnownURL(u)) // remove communityLists from other countries/languages
                         driver.getLocalLists().then(localLists => {
-                            communityLists = localLists.concat(communityLists)
+                            localLists.push(...communityLists)
+                            communityLists = localLists
                         }).catch(console.error).finally(done)
                     }).catch(done)
                 }).catch(done)
@@ -290,7 +291,7 @@ class ManagerEPG extends ManagerCommunityLists {
         let urls = await this.master.foundEPGs().catch(console.error)
         if(Array.isArray(urls)){
             urls = urls.map(u => this.parseEPGURL(u, true)).flat()
-            epgs = epgs.concat(urls)
+            epgs.push(...urls)
         }
         if(global.config.get('communitary-mode-lists-amount')){
             let c = await cloud.get('configure').catch(console.error)
@@ -305,7 +306,7 @@ class ManagerEPG extends ManagerCommunityLists {
                         epgs.push(c[key])
                     }
                 })
-                epgs = epgs.concat(global.watching.currentRawEntries.map(e => e.epg).filter(e => !!e))
+                epgs.push(...global.watching.currentRawEntries.map(e => e.epg).filter(e => !!e))
             }
         }
         epgs = [...new Set(epgs)].sort()
@@ -369,7 +370,7 @@ class ManagerEPG extends ManagerCommunityLists {
         return new Promise((resolve, reject) => {
             let options = [], epgs = []
             this.searchEPGs().then(urls => {
-                epgs = epgs.concat(urls)
+                epgs.push(...urls)
             }).catch(console.error).finally(() => {
                 let activeEPG = global.config.get('epg-'+ global.lang.locale) || global.activeEPG
                 if(!activeEPG || activeEPG == 'disabled'){
@@ -663,10 +664,10 @@ class Manager extends ManagerEPG {
     }
     waitListsReady(){
         return new Promise((resolve, reject) => {
-            if(!Object.keys(this.updatingProcesses).length){
+            if(this.master.satisfied){
                 return resolve(true)
             }
-            this.once('lists-updated', () => resolve(true))
+            this.master.once('satisfied', () => resolve(true))
         })
     }
     inChannelPage(){
