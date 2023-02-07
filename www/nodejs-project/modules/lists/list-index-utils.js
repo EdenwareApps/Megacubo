@@ -10,18 +10,21 @@ class ListIndexUtils extends Events {
             meta: {}
         }
     }
-    readLines(file, map){
+    readLines(map){
         return new Promise((resolve, reject) => {
-            if(map && !map.length){
-                return reject('empty map requested')
+            if(map){
+                if(!map.length){
+                    return reject('empty map requested')
+                }
+                map.sort()
             }
-            fs.stat(file, (err, stat) => {
+            fs.stat(this.file, (err, stat) => {
                 if(err || !stat){
                     return reject(err || 'stat failed with no error')
                 }
                 if(stat.size){
-                    let max, i = 0, lines = [], rl = readline.createInterface({
-                        input: fs.createReadStream(file),
+                    let max, i = 0, lines = {}, rl = readline.createInterface({
+                        input: fs.createReadStream(this.file),
                         crlfDelay: Infinity
                     })
                     if(map){
@@ -38,10 +41,10 @@ class ListIndexUtils extends Events {
                             reject('list destroyed')
                         } else {
                             if(!line || line.charAt(0) != '{'){
-                                console.error('Bad line readen', line, file, i)
+                                console.error('Bad line readen', line, this.file, i)
                             }
                             if(!map || map.includes(i)){
-                                lines.push(line)
+                                lines[i] = line
                             }
                             if(max > 0 && i == max){
                                 rl.close()
@@ -51,7 +54,8 @@ class ListIndexUtils extends Events {
                     })
                     rl.once('close', () => {
                         if(!map){
-                            lines.pop() // remove index from entries
+                            let last = Object.keys(lines).pop() // remove index from entries
+                            delete lines[last]
                         }
                         resolve(lines)
                         rl = null

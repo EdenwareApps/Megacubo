@@ -475,13 +475,13 @@ class Explorer extends Events {
         })
     }
     open(destPath, tabindex, deep, isFolder, backInSelect){
-        if(['.', '/'].includes(destPath)){
-            destPath = ''
-        }
-        if(this.opts.debug){
-            console.log('open', destPath, tabindex, traceback())
-        }
         return new Promise((resolve, reject) => {
+            if(['.', '/'].includes(destPath)){
+                destPath = ''
+            }
+            if(this.opts.debug){
+                console.log('open', destPath, tabindex, traceback())
+            }
             this.emit('open', destPath)
             let parentEntry, name = this.basename(destPath), parentPath = this.dirname(destPath)
             let finish = es => {
@@ -631,19 +631,14 @@ class Explorer extends Events {
         }
         return ret
     }
-    select(destPath, tabindex){
-        if(this.opts.debug){
-            console.log('select', destPath, tabindex)
+    async select(destPath, tabindex){
+        let ret = await this.read(destPath, tabindex)
+        if(ret != -1 && ret.entries && ret.entries.length > 1){
+            let d = this.dirname(destPath)
+            let icon = ret.parent ? ret.parent.fa : ''
+            global.ui.emit('explorer-select', ret.entries, destPath, icon)
         }
-        return new Promise((resolve, reject) => {
-            this.read(destPath, tabindex).then(ret => {
-                if(ret != -1){
-                    let d = this.dirname(destPath)
-                    let icon = ret.parent ? ret.parent.fa : ''
-                    global.ui.emit('explorer-select', ret.entries, destPath, icon)
-                }
-            }).catch(global.displayErr)
-        })
+        return ret
     }
     canApplyStreamTesting(entries){
         return entries.length && entries.some(e => e.url && (!e.type || e.type == 'stream') && !global.mega.isMega(e.url))

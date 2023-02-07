@@ -628,7 +628,7 @@ class Manager extends ManagerEPG {
         })
         this.master.on('sync-status', p => this.updateOSD(p))
     }
-    async expandEntries(entries, path){ 
+    async expandEntries(entries, path){
         let shouldExpand = entries.some(e => typeof(e._) == 'number')
         if(shouldExpand){
             let source
@@ -645,8 +645,8 @@ class Manager extends ManagerEPG {
         return entries
     }
 	labelify(list){
-		for (var i=0; i<list.length; i++){
-			if(typeof(list[i].type) == 'undefined' || list[i].type == 'stream') {
+		for (let i=0; i<list.length; i++){
+			if(list[i] && (typeof(list[i].type) == 'undefined' || list[i].type == 'stream')) {
 				list[i].details = list[i].groupName || this.basename(list[i].path || list[i].group)
 			}
 		}

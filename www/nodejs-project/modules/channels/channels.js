@@ -1135,163 +1135,154 @@ class Channels extends ChannelsKids {
         }
         return this.expandTerms(terms)
     }
-    toMetaEntryRenderer(e, _category, epgNow){
-        return new Promise((resolve, reject) => {
-            let category
-            if(_category === false){
-                category = false
-            } else if(_category && typeof(_category) == 'string') {
-                category = _category
-            } else if(_category && typeof(_category) == 'object') {
-                category = _category.name
+    async toMetaEntryRenderer(e, _category, epgNow){
+        let category
+        if(_category === false){
+            category = false
+        } else if(_category && typeof(_category) == 'string') {
+            category = _category
+        } else if(_category && typeof(_category) == 'object') {
+            category = _category.name
+        } else {
+            let c = this.getChannelCategory(e.name)
+            if(c){
+                category = c
             } else {
-                let c = this.getChannelCategory(e.name)
-                if(c){
-                    category = c
-                } else {
-                    category = false
-                }
-            }
-            let terms = this.entryTerms(e), streamsEntry, epgEntry, entries = [], moreOptions = [], url = e.url
-            if(!url){
-                let name = e.program ? e.program.ch : e.name
-                let ch = this.isChannel(name)
-                if(ch){
-                    name = ch.name
-                    terms = ch.terms
-                }
-                e.url = url = global.mega.build(name, {terms})
-            }
-            let autoplay = this.autoplay()
-            this.get(terms).then(sentries => {
-                sentries = sentries.map(e => {
-                    if(!e.group){
-                        e.group = category
-                    }
-                    return e
-                })
-                if(autoplay){
-                    if(sentries.length){
-                        global.streamer.play(e, sentries)                        
-                    } else {
-                        global.displayErr(global.lang.NONE_STREAM_FOUND)
-                    }         
-                } else {
-                    if(sentries.length){
-                        let call = global.lists.msi.isRadio(e.name +' '+ category) ? global.lang.LISTEN_NOW : global.lang.WATCH_NOW
-                        entries.push({
-                            name: call, 
-                            type: 'action',
-                            fa: 'fas fa-play-circle',
-                            url,
-                            group: category,
-                            action: data => {
-                                data.name = e.name
-                                global.streamer.play(data, sentries)
-                                this.watchNowAuto = global.explorer.path
-                            }
-                        })
-                        streamsEntry = {
-                            name: global.lang.STREAMS + ' (' + sentries.length + ')', 
-                            type: 'group', 
-                            renderer: () => {
-                                return new Promise((resolve, reject) => resolve(sentries))
-                            }
-                        }
-                        console.warn('EPG DEBUG', this.activeEPG, epgNow, category)
-                        if(this.activeEPG){
-                            epgEntry =  {
-                                name: global.lang.EPG, 
-                                type: 'group', 
-                                fa: this.epgIcon,
-                                details: (epgNow && epgNow != category) ? epgNow : '',
-                                renderer: this.epgChannelEntries.bind(this, e)
-                            }
-                        }
-                    } else {    
-                        entries.push(Object.assign(this.emptyEntry, {name: global.lang.NONE_STREAM_FOUND}))
-                    }
-                }
-            }).catch(e => {
-                console.error(e)
                 category = false
-            }).finally(() => {
-                if(autoplay){
-                    return resolve(-1)
-                }
-                if(entries.length){
-                    let bookmarkable = {name: e.name, type: 'stream', label: e.group || '', url}
-                    if(global.bookmarks.has(bookmarkable)){
-                        entries.push({
-                            type: 'action',
-                            fa: 'fas fa-star-half',
-                            name: global.lang.REMOVE_FROM.format(global.lang.BOOKMARKS),
-                            action: () => {
-                                global.bookmarks.remove(bookmarkable)
-                                global.explorer.refresh()
-                                global.osd.show(global.lang.BOOKMARK_REMOVED.format(bookmarkable.name), 'fas fa-star-half', 'bookmarks', 'normal')
-                            }
-                        })
-                    } else {
-                        entries.push({
-                            type: 'action',
-                            fa: 'fas fa-star',
-                            name: global.lang.ADD_TO.format(global.lang.BOOKMARKS),
-                            action: () => {
-                                global.bookmarks.add(bookmarkable)
-                                global.explorer.refresh()
-                                global.osd.show(global.lang.BOOKMARK_ADDED.format(bookmarkable.name), 'fas fa-star', 'bookmarks', 'normal')
-                            }
-                        })
-                    } 
-                }
-                if(epgEntry){
-                    entries.push(epgEntry)
-                }
-                if(streamsEntry){
-                    moreOptions.push(this.shareChannelEntry(e))
-                    moreOptions.push(streamsEntry)
-                }
-                if(global.config.get('allow-edit-channel-list') && (e.path || global.explorer.path).indexOf(global.lang.SEARCH) == -1){ // avoid it on search results to prevent bugs
-                    const editEntry = this.editChannelEntry(e, category, {name: category ? global.lang.EDIT_CHANNEL : global.lang.EDIT, details: undefined, class: 'no-icon', fa: 'fas fa-edit', users: undefined, usersPercentage: undefined, path: undefined, url: undefined})
-                    moreOptions.push(editEntry)
-                }
-                moreOptions.push({
+            }
+        }
+        let terms = this.entryTerms(e), streamsEntry, epgEntry, entries = [], moreOptions = [], url = e.url
+        if(!url){
+            let name = e.program ? e.program.ch : e.name
+            let ch = this.isChannel(name)
+            if(ch){
+                name = ch.name
+                terms = ch.terms
+            }
+            e.url = url = global.mega.build(name, {terms})
+        }
+        let autoplay = this.autoplay()
+        let sentries = await this.get(terms)
+        sentries = sentries.map(e => {
+            if(!e.group){
+                e.group = category
+            }
+            return e
+        })
+        if(autoplay){
+            console.warn('AUTOPLAY', sentries, e)
+            if(sentries.length){
+                global.streamer.play(e, sentries)
+                return -1
+            } else {
+                throw global.lang.NONE_STREAM_FOUND
+            }
+        } else {
+            if(sentries.length){
+                let call = global.lists.msi.isRadio(e.name +' '+ category) ? global.lang.LISTEN_NOW : global.lang.WATCH_NOW
+                entries.push({
+                    name: call, 
                     type: 'action',
-                    fa: 'fas fa-globe',
-                    name: global.lang.CHANNEL_WEBSITE,
+                    fa: 'fas fa-play-circle',
+                    url,
+                    group: category,
+                    action: data => {
+                        data.name = e.name
+                        global.streamer.play(data, sentries)
+                        this.watchNowAuto = global.explorer.path
+                    }
+                })
+                streamsEntry = {
+                    name: global.lang.STREAMS + ' (' + sentries.length + ')', 
+                    type: 'group', 
+                    renderer: () => {
+                        return new Promise((resolve, reject) => resolve(sentries))
+                    }
+                }
+                console.warn('EPG DEBUG', this.activeEPG, epgNow, category)
+                if(this.activeEPG){
+                    epgEntry =  {
+                        name: global.lang.EPG, 
+                        type: 'group', 
+                        fa: this.epgIcon,
+                        details: (epgNow && epgNow != category) ? epgNow : '',
+                        renderer: this.epgChannelEntries.bind(this, e)
+                    }
+                }
+            } else {    
+                entries.push(Object.assign(this.emptyEntry, {name: global.lang.NONE_STREAM_FOUND}))
+            }
+        }
+        if(entries.length){
+            let bookmarkable = {name: e.name, type: 'stream', label: e.group || '', url}
+            if(global.bookmarks.has(bookmarkable)){
+                entries.push({
+                    type: 'action',
+                    fa: 'fas fa-star-half',
+                    name: global.lang.REMOVE_FROM.format(global.lang.BOOKMARKS),
                     action: () => {
-                        global.channels.goChannelWebsite(e.name).catch(global.displayErr)
+                        global.bookmarks.remove(bookmarkable)
+                        global.explorer.refresh()
+                        global.osd.show(global.lang.BOOKMARK_REMOVED.format(bookmarkable.name), 'fas fa-star-half', 'bookmarks', 'normal')
                     }
                 })
-                entries.push({name: global.lang.MORE_OPTIONS, type: 'select', fa: 'fas fa-ellipsis-v', entries: moreOptions})
-                entries = entries.map(e => {
-                    if(e.renderer || e.entries){
-                        let originalRenderer = e.renderer || e.entries
-                        e.renderer = data => {
-                            if(data.name != global.lang.WATCH_NOW){
-                                this.disableWatchNowAuto = true // learn that the user is interested in other functions instead of watchNow directly
-                            }
-                            if(Array.isArray(originalRenderer)){
-                                return new Promise(resolve => resolve(originalRenderer))                                
-                            } else {
-                                return originalRenderer(data)
-                            }
-                        }
+            } else {
+                entries.push({
+                    type: 'action',
+                    fa: 'fas fa-star',
+                    name: global.lang.ADD_TO.format(global.lang.BOOKMARKS),
+                    action: () => {
+                        global.bookmarks.add(bookmarkable)
+                        global.explorer.refresh()
+                        global.osd.show(global.lang.BOOKMARK_ADDED.format(bookmarkable.name), 'fas fa-star', 'bookmarks', 'normal')
                     }
-                    if(e.action) {
-                        let originalAction = e.action
-                        e.action = data => {
-                            if(data.name != global.lang.WATCH_NOW){
-                                this.disableWatchNowAuto = true // learn that the user is interested in other functions instead of watchNow directly
-                            }
-                            return originalAction(data)
-                        }
-                    }
-                    return e
                 })
-                resolve(entries)
-            })
+            } 
+        }
+        if(epgEntry){
+            entries.push(epgEntry)
+        }
+        if(streamsEntry){
+            moreOptions.push(this.shareChannelEntry(e))
+            moreOptions.push(streamsEntry)
+        }
+        if(global.config.get('allow-edit-channel-list') && (e.path || global.explorer.path).indexOf(global.lang.SEARCH) == -1){ // avoid it on search results to prevent bugs
+            const editEntry = this.editChannelEntry(e, category, {name: category ? global.lang.EDIT_CHANNEL : global.lang.EDIT, details: undefined, class: 'no-icon', fa: 'fas fa-edit', users: undefined, usersPercentage: undefined, path: undefined, url: undefined})
+            moreOptions.push(editEntry)
+        }
+        moreOptions.push({
+            type: 'action',
+            fa: 'fas fa-globe',
+            name: global.lang.CHANNEL_WEBSITE,
+            action: () => {
+                global.channels.goChannelWebsite(e.name).catch(global.displayErr)
+            }
+        })
+        entries.push({name: global.lang.MORE_OPTIONS, type: 'select', fa: 'fas fa-ellipsis-v', entries: moreOptions})
+        return entries.map(e => {
+            if(e.renderer || e.entries){
+                let originalRenderer = e.renderer || e.entries
+                e.renderer = data => {
+                    if(data.name != global.lang.WATCH_NOW){
+                        this.disableWatchNowAuto = true // learn that the user is interested in other functions instead of watchNow directly
+                    }
+                    if(Array.isArray(originalRenderer)){
+                        return new Promise(resolve => resolve(originalRenderer))                                
+                    } else {
+                        return originalRenderer(data)
+                    }
+                }
+            }
+            if(e.action) {
+                let originalAction = e.action
+                e.action = data => {
+                    if(data.name != global.lang.WATCH_NOW){
+                        this.disableWatchNowAuto = true // learn that the user is interested in other functions instead of watchNow directly
+                    }
+                    return originalAction(data)
+                }
+            }
+            return e
         })
     }
     toMetaEntry(e, category, details){
@@ -1332,10 +1323,7 @@ class Channels extends ChannelsKids {
                     type: 'select',
                     class: 'entry-meta-stream',
                     fa: 'fas fa-play-circle',
-                    renderer: () => {
-                        console.log(meta, category, details)
-                        return this.toMetaEntryRenderer(meta, category, details)
-                    }
+                    renderer: () => this.toMetaEntryRenderer(meta, category, details)
                 })
             }
         }

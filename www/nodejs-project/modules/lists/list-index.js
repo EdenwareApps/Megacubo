@@ -16,10 +16,10 @@ class ListIndex extends ListIndexUtils {
         this.emit('end')
     }
     async entries(map){
-        let lines = await this.readLines(this.file, map)
-        let entries
+        let lines = await this.readLines(map)
+        let entries, ids = Object.keys(lines)
         try {
-            entries = global.parseJSON('['+ lines.filter(l => l.length > 9).join(',') +']') // remove undefineds too
+            entries = global.parseJSON('['+ Object.values(lines).join(',') +']') // remove undefineds too
         } catch(e) {}
         if(!Array.isArray(entries)){
             console.error('Failed to get lines', lines, map, entries, this.file)
@@ -30,14 +30,17 @@ class ListIndex extends ListIndexUtils {
             if(entries[last].length){ // remove index entry
                 entries.splice(last, 1)
             }
+            entries.forEach((s, i) => {
+                entries[i]._ = parseInt(ids[i])
+            })
         }
         return entries
     }
     async getMap(map){
-        let lines = await this.readLines(this.file, map)
-        let entries = lines.filter(l => l.length > 9).map((s, i) => {
-            const e = JSON.parse(s)
-            return e && e.name ? {group: e.group, name: e.name, _: map ? map[i] : i} : false
+        let lines = await this.readLines(map)
+        let entries = Object.keys(lines).map((_, i) => {
+            const e = JSON.parse(lines[_])
+            return e && e.name ? {group: e.group, name: e.name, _: parseInt(_)} : false
         }).filter(s => s)
         if(entries.length) {
             let last = entries.length - 1
@@ -51,21 +54,24 @@ class ListIndex extends ListIndexUtils {
         return entries
     }
     async expandMap(structure){
-        const map = []
-        structure.forEach(e => {
-            if(typeof(e._) == 'number'){
-                map.push(e._)
-            }
-        })
-        const xs = await this.entries(map)
-        let j = 0
+        const map = [], tbl = {}
         for(let i in structure){
-            if(typeof(structure[i]._) == 'number'){
-                Object.assign(structure[i], xs[j])
-                delete structure[i]._
+            const t = typeof(structure[i]._)
+            if(t != 'undefined'){
+                if(t != 'number'){
+                    structure[i]._ = parseInt(structure[i]._)
+                }
+                tbl[structure[i]._] = i
+                map.push(structure[i]._)
             }
         }
-        return structure        
+        map.sort()
+        const xs = await this.entries(map)
+        for(let x=0; x<xs.length; x++){
+            let i = tbl[xs[x]._]
+            Object.assign(structure[i], xs[x])
+        }
+        return structure
     }
 	start(){
 		fs.stat(this.file, (err, stat) => {
