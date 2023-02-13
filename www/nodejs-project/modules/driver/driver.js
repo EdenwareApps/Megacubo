@@ -71,6 +71,36 @@ module.exports = (file, opts) => {
 			this.removeAllListeners()
 		}
 	}
+	class DirectDriver extends Events {
+		constructor(){
+			super()
+			this.err = null
+			this.finished = false
+			this.instance = new (require(file))()
+			return new Proxy(this, {
+				get: (self, method) => {
+					if(method in self){
+						return self[method]
+					}
+					return (...args) => {
+						return new Promise((resolve, reject) => {
+							if(this.finished){
+								return reject('worker exited')
+							}
+							this.instance[method](...args).then(resolve).catch(reject)
+						})
+					}
+				}
+			})
+		}
+		terminate(){
+			this.finished = true
+			if(this.instance){
+				// ...
+			}
+			this.removeAllListeners()
+		}
+	}
 	class ThreadWorkerDriver extends WorkerDriver {
 		constructor(){
 			super()
@@ -188,7 +218,7 @@ module.exports = (file, opts) => {
 			return WebWorkerDriver
 		} else {
 			console.error('Driver loading inline, bad for performance: '+ file)
-			process.exit(1)
+			return DirectDriver
 		}
 	} else {
 		return ThreadWorkerDriver

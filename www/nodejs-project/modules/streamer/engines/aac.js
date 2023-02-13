@@ -17,11 +17,11 @@ class StreamerAACIntent extends StreamerBaseIntent {
             this.downloader = new StreamerAdapterAAC(this.data.url, this.opts)
             this.connectAdapter(this.downloader)
             this.downloader.start().then(() => {
-                this.ts2hls = new Any2HLS(this.downloader.source.endpoint, this.opts)
-                this.ts2hls.opts.audioCodec = this.opts.audioCodec
-                this.connectAdapter(this.ts2hls)
-                this.ts2hls.start().then(() => {
-                    this.endpoint = this.ts2hls.endpoint
+                this.hlsify = new Any2HLS(this.downloader.source.endpoint, this.opts)
+                this.hlsify.opts.audioCodec = this.opts.audioCodec
+                this.connectAdapter(this.hlsify)
+                this.hlsify.start().then(() => {
+                    this.endpoint = this.hlsify.endpoint
                     resolve()
                 }).catch(reject)
             }).catch(reject)

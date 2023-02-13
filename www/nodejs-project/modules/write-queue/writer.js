@@ -1,42 +1,55 @@
-const fs = require('fs'), Events = require('events')
+const fs = require('fs'), path = require('path'), Events = require('events')
 
 class Writer extends Events {
 	constructor(file){
 		super()
+		this.setMaxListeners(20)
+		this.autoclose = true
 		this.debug = false
 		this.file = file
+		this.written = 0
 		this.writing = false
 		this.writeQueue = []
 		this.position = 0
-		this.uid = (new Date()).getTime()
-		if(!global.writers) global.writers = {}
-		global.writers[this.uid] = this
 	}
-	write(data){
-		if(!data.length || this.destroyed) return
-		if(typeof(data) == 'string'){
-			data = Buffer.from(data, 'utf8')
+	write(data, position){
+		if(typeof(position) == 'undefined'){
+			position = this.position
+			this.position += data.length
 		}
-		this.writeQueue.push({data, position: this.position})
-		this.position += data.length
+		this.writeQueue.push({data, position})
 		this.pump()
 	}
+	ready(cb){
+		let finish = () => {
+			if(this.fd){
+				fs.close(this.fd, () => {})
+				this.fd = null
+			}
+			cb()
+		}
+		if(this.writing || this.writeQueue.length){
+			this.once('end', finish)
+		} else {
+			finish()
+		}
+	}
 	prepare(cb){
-		fs.stat(this.file, (err) => {
+		fs.access(this.file, err => {
 			if(err){
 				if(this.debug){
 					console.log('writeat creating', this.file)
 				}
-				fs.writeFile(this.file, '', cb)
+				fs.mkdir(path.dirname(this.file), {recursive: true}, () => {
+					fs.writeFile(this.file, '', cb)
+				})
 			} else {
 				cb()
 			}
 		})
 	}
 	check(cb){
-		fs.stat(this.file, (err) => {
-			cb(!err)
-		})
+		fs.stat(this.file, (err) => cb(!err))
 	}
 	pump(){
 		if(this.writing) {
@@ -47,32 +60,38 @@ class Writer extends Events {
 		}
 		this.writing = true
 		this.prepare(() => {
-			fs.open(this.file, 'r+', (err, fd) => {
-				const close = () => {
-					if(fd){
-						fs.close(fd, () => {})
-						fd = null
-					}
-				}
-				if(fd){
-					this.once('destroy', close) // try to prevent E_PERM error, maybe at some cases the file is not correctly closed before destroy() call
-				}
+			this.open(this.file, 'r+', err => {
 				if(err){
 					console.error(err)
 					this.writing = false
-					setTimeout(this.pump.bind(this), 500) // save resources
+					this.writeQueue = []
+					this.hasErr = err
+					this.emit('end')
 				} else {
-					this._write(fd, () => {
-						close()
+					this._write(this.fd, () => {
+						if(this.autoclose && this.fd){
+							fs.close(this.fd, () => {})
+							this.fd = null
+						}
 						this.writing = false
-						return this.emit('end')
+						this.emit('end')
 					})
 				}
 			})
 		})
 	}
-	_write(fd, cb){ // we'll write once per time, not simultaneously, so no drain would be required anyway
-		if(!this.destroyed && this.writeQueue.length){
+	open(file, flags, cb){
+		if(this.fd){
+			cb(null)
+		} else {
+			fs.open(this.file, 'r+', (err, fd) => {
+				this.fd = fd
+				cb(err)
+			})
+		}
+	}
+	_write(fd, cb){
+		if(this.writeQueue.length){
 			let {data, position} = this.writeQueue.shift(), len = data.length
 			if(this.debug){
 				console.log('writeat writing', this.file, fs.statSync(this.file).size, len, fs.statSync(this.file).size + len, position)
@@ -94,6 +113,7 @@ class Writer extends Events {
 					}
 					return
 				} else {
+					this.written += writtenBytes
 					if(writtenBytes < len){
 						if(this.debug){
 							console.warn('writeat written PARTIALLY', this.file, fs.statSync(this.file).size)
@@ -101,7 +121,7 @@ class Writer extends Events {
 						this.writeQueue.push({data: data.slice(writtenBytes), position: position + writtenBytes})
 					} else {
 						if(this.debug){
-							console.log('writeat written', this.file, fs.statSync(this.file).size, this.writeQueue.length)
+							console.log('writeat written', this.file, fs.statSync(this.file).size)
 						}
 					}
 				}
@@ -111,13 +131,6 @@ class Writer extends Events {
 			cb()
 		}
 	}
-	ended(cb){
-		if(!this.writing && !this.writeQueue.length){
-			cb()
-		} else {
-			this.once('end', cb)
-		}
-	}	
 	destroy(){
 		this.destroyed = parseInt(((new Date()).getTime() - this.uid) / 1000)
 		this.writeQueue = []

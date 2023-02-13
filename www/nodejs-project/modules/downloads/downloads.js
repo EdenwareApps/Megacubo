@@ -1,4 +1,4 @@
-const Events = require('events'), fs = require('fs'), FileWriter = require(global.APPDIR + '/modules/write-queue/file-writer')
+const Events = require('events'), fs = require('fs')
 const path = require('path'), http = require('http'), url = require('url')
 const closed = require('../on-closed'), parseRange = require('range-parser')
 

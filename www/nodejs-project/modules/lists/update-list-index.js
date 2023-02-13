@@ -183,7 +183,13 @@ class UpdateListIndex extends ListIndexUtils {
 	}
 	parseStream(writer, playlist){
 		return new Promise((resolve, reject) => {
-			let resolved, count
+			let resolved, count, destroyListener = () => {
+                if(!resolved){
+                    resolved = true
+                    fs.unlink(this.tmpfile, () => {})
+                    reject('destroyed')
+                }
+            }
 			this.parser = new Parser(this.stream)
 			this.parser.on('meta', meta => {
 				Object.assign(this.index.meta, meta)
@@ -220,14 +226,9 @@ class UpdateListIndex extends ListIndexUtils {
                 writer.write(JSON.stringify(entry) + "\r\n")
                 this.indexateIterator++
 			})
-            this.once('destroy', () => {
-                if(!resolved){
-                    resolved = true
-                    fs.unlink(this.tmpfile, () => {})
-                    reject('destroyed')
-                }
-            })
+            this.once('destroy', destroyListener)
 			this.parser.once('end', () => {
+                this.removeListener('destroy', destroyListener)
                 if(!resolved){
                     resolved = true
                     if(count){

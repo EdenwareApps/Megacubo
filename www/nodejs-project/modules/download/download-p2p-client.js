@@ -572,4 +572,5 @@ if(typeof(require) != 'undefined') { // ReferenceError: require is not defined
             this.app.emit('download-p2p-peers', nfo)
         }
     }
+    window.P2PManager = P2PManager // ensure it to be accessible on the right scope
 }

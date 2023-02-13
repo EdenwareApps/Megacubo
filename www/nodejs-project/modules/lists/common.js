@@ -1,9 +1,7 @@
 
-const Events = require('events'), fs = require('fs'), ParentalControl = require(global.APPDIR + '/modules/lists/parental-control')
-const M3UParser = require(global.APPDIR + '/modules/lists/parser'), M3UTools = require(global.APPDIR + '/modules/lists/tools'), MediaStreamInfo = require(global.APPDIR + '/modules/lists/media-info')
-const Parser = require(global.APPDIR + '/modules/lists/parser')
-const List = require(global.APPDIR + '/modules/lists/list')
-const UpdateListIndex = require(global.APPDIR + '/modules/lists/update-list-index')
+const Events = require('events'), fs = require('fs'), ParentalControl = require('./parental-control')
+const Parser = require('./parser'), M3UTools = require('./tools'), MediaStreamInfo = require('./media-info')
+const List = require('./list'), UpdateListIndex = require('./update-list-index')
 
 LIST_DATA_KEY_MASK = 'list-data-1-{0}'
 
@@ -106,7 +104,7 @@ class Common extends Events {
                 this[k] = opts[k]
             })
         }
-        this.parser = new M3UParser()
+        this.parser = new Parser()
         this.tools = new M3UTools(opts)
         this.msi = new MediaStreamInfo()
 		this.parentalControl = new ParentalControl()

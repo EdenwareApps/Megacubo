@@ -1,5 +1,5 @@
 const Events = require('events'), parseRange = require('range-parser')
-const zlib = require('zlib'), WriteQueueFile = require('../write-queue/write-queue-file')
+const zlib = require('zlib'), Writer = require('../write-queue/writer')
 const StringDecoder = require('string_decoder').StringDecoder
 const DownloadP2PHandler = require('./download-p2p')
 const DownloadCacheMap = require('./download-cache')
@@ -1106,7 +1106,7 @@ Download.file = (...args) => {
 		})
 		g.on('data', buf => {
 			if(!writer){
-				writer = new WriteQueueFile(file)
+				writer = new Writer(file)
 				writer.autoclose = false
 			}
 			writer.write(buf)

@@ -54,6 +54,9 @@ class AutoTuner extends Events {
             }
         }
     }
+    active(){
+        return !this.paused && !this.destroyed
+    }
     ext(file){
         return String(file).split('?')[0].split('#')[0].split('.').pop().toLowerCase()
     }

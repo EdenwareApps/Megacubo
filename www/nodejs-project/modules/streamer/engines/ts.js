@@ -16,11 +16,12 @@ class StreamerTSIntent extends StreamerBaseIntent {
             this.downloader = new StreamerAdapterTS(this.data.url, Object.assign({authURL: this.data.source}, this.opts))
             this.connectAdapter(this.downloader)
             this.downloader.start().then(() => {
-                this.ts2hls = new Any2HLS(this.downloader.source.endpoint, this.opts)
-                this.connectAdapter(this.ts2hls)
-                this.ts2hls.opts.audioCodec = this.opts.audioCodec
-                this.ts2hls.start().then(() => {
-                    this.endpoint = this.ts2hls.endpoint
+                this.hlsify = new Any2HLS(this.downloader.source.endpoint, this.opts)
+                this.connectAdapter(this.hlsify)
+                this.hlsify.opts.audioCodec = this.opts.audioCodec
+                this.hlsify.start().then(() => {
+                    this.endpoint = this.hlsify.endpoint
+                    this.downloader.source.cancelWarmCache()
                     resolve()
                 }).catch(reject)
             }).catch(reject)

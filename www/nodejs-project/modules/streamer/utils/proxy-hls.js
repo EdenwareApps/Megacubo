@@ -299,7 +299,7 @@ class HLSRequests extends StreamerProxyBase {
 				}
 				if(manifest && manifest != this.activeManifest && (!this.playlistBitrates[this.activeManifest] || this.playlistBitrates[manifest])){
 					this.activeManifest = manifest
-					if(this.playlistBitrates[manifest]){
+					if(this.playlistBitrates[manifest] && !isNaN(this.playlistBitrates[manifest]) && this.playlistBitrates[manifest] > 0){
 						this.saveBitrate(this.playlistBitrates[manifest], true)
 					}
 					this.finishObsoleteSegmentRequests(manifest)

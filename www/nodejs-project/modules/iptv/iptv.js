@@ -167,7 +167,7 @@ class IPTV extends Events {
                 global.lang.getActiveCountries().then(nlocs => {
                     nlocs.forEach(loc => {
                         if(!locs.includes(loc)){
-                            loc.push(loc)
+                            locs.push(loc)
                         }
                     })
                 }).catch(console.error).finally(() => {

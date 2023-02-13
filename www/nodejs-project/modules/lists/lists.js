@@ -1,11 +1,8 @@
 
 const async = require('async'), fs = require('fs')
 
-const Parser = require(global.APPDIR + '/modules/lists/parser')
-const Manager = require(global.APPDIR + '/modules/lists/manager')
-const Index = require(global.APPDIR + '/modules/lists/index')
-const List = require(global.APPDIR + '/modules/lists/list')
-const EPG = require(global.APPDIR + '/modules/epg')
+const Parser = require('./parser'), Manager = require('./manager')
+const Index = require('./index'), List = require('./list'), EPG = require('../epg')
 
 class ListsEPGTools extends Index {
     constructor(opts){

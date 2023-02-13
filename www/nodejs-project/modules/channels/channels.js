@@ -1060,24 +1060,19 @@ class Channels extends ChannelsKids {
         }
         return terms
     }
-    get(terms){
-        return new Promise((resolve, reject) => {
-            console.warn('sentries', terms)
-            if(typeof(terms) == 'string'){
-                terms = global.lists.terms(terms)
-            }
-            console.warn('sentries', terms)
-            global.lists.search(terms, {
-                safe: !global.lists.parentalControl.lazyAuth(),
-                type: 'live',
-                limit: 1024
-            }).then(sentries => {
-                let entries = sentries.results
-                global.watching.order(entries).then(resolve).catch(err => {
-                    resolve(entries)
-                })
-            }).catch(reject)
+    async get(terms){
+        if(typeof(terms) == 'string'){
+            terms = global.lists.terms(terms)
+        }
+        console.warn('channels.get', terms)
+        let ret = await global.lists.search(terms, {
+            safe: !global.lists.parentalControl.lazyAuth(),
+            type: 'live',
+            limit: 1024
         })
+        let entries = ret.results
+        await global.watching.order(entries).then(es => entries = es).catch(console.error)
+        return entries
     }
     search(terms, partial){
         return new Promise((resolve, reject) => {
@@ -1161,24 +1156,21 @@ class Channels extends ChannelsKids {
             }
             e.url = url = global.mega.build(name, {terms})
         }
-        let autoplay = this.autoplay()
-        let sentries = await this.get(terms)
-        sentries = sentries.map(e => {
-            if(!e.group){
-                e.group = category
+        const autoplay = this.autoplay(), streams = await this.get(terms)
+        streams.forEach((e, i) => {
+            if(!streams[i].group){
+                streams[i].group = category
             }
-            return e
         })
         if(autoplay){
-            console.warn('AUTOPLAY', sentries, e)
-            if(sentries.length){
-                global.streamer.play(e, sentries)
+            if(streams.length){
+                global.streamer.play(e, streams)
                 return -1
             } else {
                 throw global.lang.NONE_STREAM_FOUND
             }
         } else {
-            if(sentries.length){
+            if(streams.length){
                 let call = global.lists.msi.isRadio(e.name +' '+ category) ? global.lang.LISTEN_NOW : global.lang.WATCH_NOW
                 entries.push({
                     name: call, 
@@ -1188,16 +1180,14 @@ class Channels extends ChannelsKids {
                     group: category,
                     action: data => {
                         data.name = e.name
-                        global.streamer.play(data, sentries)
+                        global.streamer.play(data, streams)
                         this.watchNowAuto = global.explorer.path
                     }
                 })
                 streamsEntry = {
-                    name: global.lang.STREAMS + ' (' + sentries.length + ')', 
+                    name: global.lang.STREAMS + ' (' + streams.length + ')', 
                     type: 'group', 
-                    renderer: () => {
-                        return new Promise((resolve, reject) => resolve(sentries))
-                    }
+                    renderer: async () => streams
                 }
                 console.warn('EPG DEBUG', this.activeEPG, epgNow, category)
                 if(this.activeEPG){

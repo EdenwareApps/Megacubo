@@ -101,6 +101,9 @@ class DownloadStreamHttp extends DownloadStreamBase {
         })
     }
     async start(){
+        if(this.ended || this.destroyed) {
+            throw 'Connection already ended'
+        }
         const start = global.time()
         let fine
         this.parsed = url.parse(this.opts.url, false)

@@ -612,6 +612,8 @@ class StreamerSpeedo extends StreamerIdle {
                 let p = parseInt(this.currentSpeed / (this.bitrate / 100))
                 if(p > 100){
                     p = 100
+                } else if(p < 0) {
+                    p = 0
                 }
                 if(starting){
                     t = lang.WAITING_CONNECTION

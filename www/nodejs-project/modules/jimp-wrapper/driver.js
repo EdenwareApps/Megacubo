@@ -5,13 +5,8 @@ class JimpDriver {
         if(typeof(this.jimp) == 'undefined'){
             this.jimp = require('jimp')
             const jdecoder = this.jimp.decoders['image/jpeg']
-            this.jimp.decoders['image/jpeg'] = data => {
-                const userOpts = {
-                    maxMemoryUsageInMB: 256
-                }
-                return jdecoder(data, userOpts)
-            }
-            this.jimpCustomAutocrop = require(APPDIR +'/modules/jimp-autocrop-custom')
+            this.jimp.decoders['image/jpeg'] = data => jdecoder(data, {maxMemoryUsageInMB: 256})
+            this.jimpCustomAutocrop = require('../jimp-autocrop-custom')
             this.jimpVersion = require(global.APPDIR+'/node_modules/jimp/package.json').version
         }
     }

@@ -54,10 +54,10 @@ class ListIndex extends ListIndexUtils {
         return entries
     }
     async expandMap(structure){
-        const map = [], tbl = {}
+        const map = [], tbl = {}, ntypes = ['string', 'number']
         for(let i in structure){
             const t = typeof(structure[i]._)
-            if(t != 'undefined'){
+            if(ntypes.includes(t) && !structure[i].url){
                 if(t != 'number'){
                     structure[i]._ = parseInt(structure[i]._)
                 }
@@ -65,11 +65,14 @@ class ListIndex extends ListIndexUtils {
                 map.push(structure[i]._)
             }
         }
-        map.sort()
-        const xs = await this.entries(map)
-        for(let x=0; x<xs.length; x++){
-            let i = tbl[xs[x]._]
-            Object.assign(structure[i], xs[x])
+        if(map.length){
+            map.sort()
+            const xs = await this.entries(map)
+            for(let x=0; x<xs.length; x++){
+                let i = tbl[xs[x]._]
+                Object.assign(structure[i], xs[x])
+                structure[i]._ = xs[x]._ = undefined
+            }
         }
         return structure
     }

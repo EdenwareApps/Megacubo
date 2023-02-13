@@ -610,10 +610,7 @@ class Manager extends ManagerEPG {
         this.updaterResults = {}
         this.updatingProcesses = {}        
         global.ui.once('init', () => {
-            global.explorer.addFilter(async (entries, path) => {
-                entries = await this.expandEntries(entries, path)
-                return this.labelify(entries)
-            })
+            global.explorer.addFilter(async (es, path) => this.labelify(await this.expandEntries(es, path)))
         })
         global.ui.on('explorer-back', () => {
             if(this.openingList){
@@ -629,7 +626,7 @@ class Manager extends ManagerEPG {
         this.master.on('sync-status', p => this.updateOSD(p))
     }
     async expandEntries(entries, path){
-        let shouldExpand = entries.some(e => typeof(e._) == 'number')
+        let shouldExpand = entries.some(e => typeof(e._) == 'number' && !e.url)
         if(shouldExpand){
             let source
             entries.some(e => {
@@ -647,7 +644,7 @@ class Manager extends ManagerEPG {
 	labelify(list){
 		for (let i=0; i<list.length; i++){
 			if(list[i] && (typeof(list[i].type) == 'undefined' || list[i].type == 'stream')) {
-				list[i].details = list[i].groupName || this.basename(list[i].path || list[i].group)
+				list[i].details = list[i].groupName || this.basename(list[i].path || list[i].group || '')
 			}
 		}
 		return list
@@ -979,7 +976,7 @@ class Manager extends ManagerEPG {
     }
     startUpdater(){
         if(!this.updater){
-            this.updater = new (require(global.APPDIR + '/modules/driver')(global.APPDIR + '/modules/lists/driver-updater'))
+            this.updater = new (require('../driver')(global.APPDIR + '/modules/lists/driver-updater'))
             this.updaterClients = 0
         }
         this.updaterClients++
@@ -1437,7 +1434,7 @@ class Manager extends ManagerEPG {
         } catch(e) { }
         global.osd.show(global.lang.LIST_REMOVED, 'fas fa-info-circle', 'list-open', 'normal')
         global.explorer.resumeRendering()
-        global.explorer.back(2, true)
+        global.explorer.back(1, true)
     }
     async directListRenderer(data, opts={}){
         let v = Object.assign({}, data), isMine = global.lists.activeLists.my.includes(v.url), isCommunity = global.lists.activeLists.community.includes(v.url)

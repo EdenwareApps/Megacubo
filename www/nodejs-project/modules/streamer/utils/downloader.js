@@ -1,16 +1,24 @@
 
-const path = require('path'), http = require('http'), stoppable = require('stoppable'), StreamerAdapterBase = require('../adapters/base.js'), closed = require('../../on-closed')
-
-const SYNC_BYTE = 0x47
+const path = require('path'), http = require('http'), fs = require('fs'), stoppable = require('stoppable')
+const StreamerAdapterBase = require('../adapters/base.js'), closed = require('../../on-closed')
+const Writer = require('../../write-queue/writer')
 
 class Downloader extends StreamerAdapterBase {
 	constructor(url, opts){
+		/*
+		Warmcache is only helpful on PC for streams not natively supported
+		that would have to restart connection to transcode. It aims to let this process
+		of starting trancode on a MPEGTS stream less slow.
+		*/
+		let warmCache = !global.cordova && !(global.tuning && global.tuning.active() && global.tuning.has(url))
 		opts = Object.assign({
             debug: false,
-			initialErrorLimit: 2, // at last 2
+			debugHTTP: false,
 			errorLimit: 5,
-			sniffingSizeLimit: 196 * 1024, // if minor, check if is binary or ascii (maybe some error page)
-			checkSyncByte: false
+			initialErrorLimit: 2, // at least 2
+			warmCache,
+			warmCacheMaxSize: 100 * (1024 * 1024),
+			sniffingSizeLimit: 196 * 1024 // if minor, check if is binary or ascii (maybe some error page)
 		}, opts || {})
 		super(url, opts)
 		const ms = (global.config.get('connect-timeout') || 5) * 1000
@@ -23,17 +31,21 @@ class Downloader extends StreamerAdapterBase {
 		this.internalErrorLevel = 0
 		this.internalErrors = []
 		this.connectable = false
+		this.connected = false
         this._destroyed = false
         this.timer = 0
 		this.connectTime = -1
 		this.lastConnectionStartTime = 0
 		this.lastConnectionEndTime = 0
 		this.lastConnectionReceived = 0
-		this.buffer = []
 		this.ext = 'ts'
-		this.debugConns = false
 		this.currentDownloadUID = undefined
 		this.collectBitrateSampleOffset = {}
+		if(this.opts.warmCache){
+			this.warmCacheSize = 0
+			this.warmCacheFile = global.paths.temp +'/'+ parseInt(Math.random() * 100000000) + '.ts'
+			this.warmCache = new Writer(this.warmCacheFile)
+		}
 		let m = url.match(new RegExp('\\.([a-z0-9]{2,4})($|[\\?#])', 'i'))
 		if(m && m.length > 1){
 			this.ext = m[1]
@@ -65,23 +77,6 @@ class Downloader extends StreamerAdapterBase {
 			return 'video/MP2T'
 		}
 	}
-    checkSyncByte(c, pos){
-        if(pos < 0 || pos > (c.length - 4)){
-            return false
-        } else {
-            const header = c.readUInt32BE(pos || 0), packetSync = (header & 0xff000000) >> 24
-            return packetSync == SYNC_BYTE
-        }
-    }
-    nextSyncByte(c, pos){
-        while(pos < (c.length - 4)){
-            if(this.checkSyncByte(c, pos)){
-                return pos
-            }
-            pos++
-        }
-        return -1
-    }
 	start(){
 		return new Promise((resolve, reject) => {
 			this.server = http.createServer((req, response) => {
@@ -90,19 +85,26 @@ class Downloader extends StreamerAdapterBase {
 						'content-type': this.getContentType(),
 						'connection': 'close'
 					})
-					let byteSyncFound, finished
+					let stream, finished, buffer = false
+					let uid = parseInt(Math.random() * 1000000)
+					if(this.warmCacheSize){
+						buffer = []
+						stream = fs.createReadStream(this.warmCacheFile, {start: 0, end: this.warmCacheSize})
+						stream.on('data', chunk => response.write(chunk))
+						stream.on('end', () => {
+							response.write(Buffer.concat(buffer))
+							buffer = false
+						})
+						console.warn('SENT WARMCACHE', this.warmCacheSize)
+					}
+					if(this.connected === false){
+						this.connected = {}
+					}
+					this.connected[uid] = true
 					const listener = (url, chunk) => {
-						if(!byteSyncFound && this.opts.checkSyncByte){
-							let pos = this.nextSyncByte(chunk, 0)
-							if(pos == -1){
-								return // ignore this chunk
-							}
-							byteSyncFound = true
-							if(pos > 0){
-								chunk = chunk.slice(pos)
-							}
-						}
-						if(chunk.length){
+						if(buffer !== false){
+							buffer.push(chunk)	
+						} else {	
 							response.write(chunk)
 						}
 					}, finish = () => {
@@ -112,14 +114,19 @@ class Downloader extends StreamerAdapterBase {
 							this.removeListener('destroy', finish)
 							response.end()
 						}
+						if(this.connected[uid]){
+							delete this.connected[uid]
+							if(Object.keys(this.connected).length){
+								this.pump()
+							} else {
+								this.connected = false
+							}
+						}
 					}
 					closed(req, response, finish)
-					if(this.buffer.length){
-						listener('', Buffer.concat(this.buffer))
-						this.buffer = []
-					}
 					this.on('data', listener)
 					this.once('destroy', finish)
+					this.pump()
 				} else {
 					response.statusCode = 404
 					response.end('File not found!')
@@ -139,6 +146,14 @@ class Downloader extends StreamerAdapterBase {
 				resolve(this.opts.port)
 			}) 
 		})
+	}
+	cancelWarmCache(){
+		console.warn('CANCEL WARMCACHE')
+		this.warmCache && this.warmCache.destroy()
+		this.warmCacheSize = 0
+		setTimeout(() => {
+			fs.unlink(this.warmCacheFile, () => {})
+		}, 2000)
 	}
 	internalError(e){
 		if(!this.committed){
@@ -170,47 +185,8 @@ class Downloader extends StreamerAdapterBase {
 		}
 		return status
 	}
-	isMetaData(data){
-		let sample, limit = 4096
-		if(data.length > limit){
-			sample = String(data.slice(0, limit / 2)) + String(data.slice(0, -1 * (limit / 2)))
-		} else {
-			sample = String(data)
-		}
-		if(sample){
-			if(sample.match(new RegExp('<\/?(xmp|rdf)'))){
-				return true
-			}
-		}
-	}
-	handleDataValidate(data){
-		if(!data || this.destroyed || this._destroyed){
-			return
-		}
-		/*
-		if(this.opts.debug){
-			console.log('[' + this.type + '] data received', String(data))
-		}
-		*/
-		let skip, len = this.len(data)
-		if(!len){
-			skip = true
-		} else if(len < this.opts.sniffingSizeLimit){
-			if(!global.streamer.isBin(data) && !this.isMetaData(data)){
-				skip = true
-				console.error('bad data', len, data, this.url)
-			}
-        }
-		if(!skip){
-			this.internalErrorLevel = 0
-			this.connectable = true
-            return true
-		}
-	}
 	handleData(data){
-		if(this.handleDataValidate(data)){
-			this.output(data)
-		}
+		this.output(data)
 	}
 	output(data, len){
 		if(this.destroyed || this._destroyed){
@@ -219,16 +195,20 @@ class Downloader extends StreamerAdapterBase {
         if(typeof(len) != 'number'){
             len = this.len(data)
         }
-		if(len > 1){
+		if(len){
 			if(typeof(this.collectBitrateSampleOffset[this.currentDownloadUID]) == 'undefined'){
 				this.collectBitrateSampleOffset[this.currentDownloadUID] = 0
 			}
 		    this.collectBitrateSample(data, this.collectBitrateSampleOffset[this.currentDownloadUID], len, this.currentDownloadUID)
 			this.collectBitrateSampleOffset[this.currentDownloadUID] += data.length
-			if(this.listenerCount('data')){
-				this.emit('data', this.url, data, len)
-			} else {
-				this.buffer.push(data)
+			this.emit('data', this.url, data, len)
+			if(this.warmCache && this.opts.warmCacheMaxSize){
+				if(this.warmCacheSize < this.opts.warmCacheMaxSize){
+					this.warmCacheSize += this.len(data)
+					this.warmCache.write(data)
+				} else {
+					this.cancelWarmCache()
+				}
 			}
 		}
     }
@@ -250,7 +230,7 @@ class Downloader extends StreamerAdapterBase {
     }
 	download(callback){
         clearTimeout(this.timer)
-		if(this.destroyed || this._destroyed) return
+		if((this.warmCacheSize && !this.connected) || this.destroyed || this._destroyed || this.currentRequest) return
 		let connTime, received = 0, connStart = global.time()
 		this.finishBitrateSample(this.currentDownloadUID)
 		this.currentDownloadUID = String(connStart)
@@ -262,7 +242,7 @@ class Downloader extends StreamerAdapterBase {
 			followRedirect: true,
 			acceptRanges: false,
 			retries: 3, // strangely, some servers always abort the first try, throwing "The server aborted pending request"
-			debug: this.debugConns,
+			debug: this.opts.debugHTTP,
 			headers: this.getDefaultRequestHeaders(),
 			timeout: this.timeoutOpts
 		}		
@@ -333,6 +313,9 @@ class Downloader extends StreamerAdapterBase {
 		download.start()
 	}
 	pump(){
+		if(this.currentRequest){
+			return
+		}
 		this.download(() => {
 			if(this.opts.debug){
 				console.log('[' + this.type + '] host closed', Array.isArray(this.nextBuffer))
@@ -349,6 +332,7 @@ class Downloader extends StreamerAdapterBase {
 		if(this.currentRequest){
 			this.currentRequest.destroy()
 			this.currentRequest = null
+			this.currentDataValidated = false
 		}
 	}
 }

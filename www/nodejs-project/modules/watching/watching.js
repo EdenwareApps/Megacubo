@@ -17,7 +17,7 @@ class Watching extends EntriesGroup {
                 if(!this.currentRawEntries || !this.currentRawEntries.length){
                     this.currentRawEntries = data
                     this.update(data).catch(console.error)
-                } else {                  
+                } else if(Array.isArray(data)) {                  
                     this.currentEntries.forEach((c, i) => {  
                         data.forEach(e => {
                             if(typeof(c.trend) == 'undefined' && typeof(e.trend) != 'undefined'){

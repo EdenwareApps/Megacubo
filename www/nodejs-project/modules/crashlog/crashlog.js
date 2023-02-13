@@ -24,7 +24,17 @@ class Crashlog {
     }
     save(...args){
         const os = require('os')
-        fs.appendFileSync(this.crashFile, JSON.stringify(Array.from(args).map(a => this.replaceCircular(a)), (key, value) => {
+        fs.appendFileSync(this.crashFile, this.stringify(Array.from(args)).replaceAll("\\n", "\n") +"\r\n"+ JSON.stringify({
+            version: global.MANIFEST ? global.MANIFEST.version : '',
+            platform: process.platform,
+            release: os.release(),
+            arch: os.arch(),
+            date: (new Date()).toString(), 
+            lang: typeof(lang) != 'undefined' && lang ? lang.locale : ''
+        }) +"\r\n\r\n")
+    }
+    stringify(data){
+        return JSON.stringify(this.replaceCircular(data), (key, value) => {
             if(value instanceof Error) {
                 var error = {}
                 Object.getOwnPropertyNames(value).forEach(function (propName) {
@@ -33,14 +43,7 @@ class Crashlog {
                 return error
             }
             return value
-        }, 3).replaceAll("\\n", "\n") +"\r\n"+ JSON.stringify({
-            version: global.MANIFEST ? global.MANIFEST.version : '',
-            platform: process.platform,
-            release: os.release(),
-            arch: os.arch(),
-            date: (new Date()).toString(), 
-            lang: typeof(lang) != 'undefined' && lang ? lang.locale : ''
-        }) +"\r\n\r\n")
+        }, 3)
     }
     async read(){
         let content = ''

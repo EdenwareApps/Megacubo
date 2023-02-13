@@ -324,7 +324,9 @@ class StreamerBase extends StreamerTools {
 					}
 				})
 				intent.on('bitrate', bitrate => {
-					global.ui.emit('streamer-bitrate', bitrate)
+					if(intent == this.active){
+						global.ui.emit('streamer-bitrate', bitrate)
+					}
 				})
 				intent.on('fail', err => {
 					this.emit('uncommit', intent)
@@ -1005,9 +1007,13 @@ class Streamer extends StreamerAbout {
 				})
 			})
 			global.ui.on('streamer-duration', duration => {
-				if(this.active && this.active.info.contentLength){
-					this.active.bitrate = (this.active.info.contentLength / duration) * 8
-					global.ui.emit('streamer-bitrate', this.active.bitrate)
+				if(this.active && this.active.mediaType == 'video' && this.active.type != 'vodhls' && this.active.info.contentLength){
+					const bitrate = (this.active.info.contentLength / duration) * 8
+					if(bitrate > 0){
+						this.active.emit('bitrate', bitrate)
+						this.active.bitrate = bitrate
+						global.ui.emit('streamer-bitrate', bitrate)
+					}
 				}
 			})
 		}

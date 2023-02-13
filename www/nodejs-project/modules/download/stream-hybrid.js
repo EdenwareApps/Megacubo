@@ -19,8 +19,9 @@ class DownloadStream extends DownloadStreamBase {
     async start(){
         const start = global.time()
         const types = [DownloadStreamHttp]
-        let usep2p = this.opts.p2p === true && global.ui && global.Download.p2p
+        let usecache, usep2p = this.opts.p2p === true && global.ui && global.Download.p2p
         if(this.opts.cacheTTL) {
+            usecache = true
             types.push(DownloadStreamCache)
         }
         if(usep2p) {
@@ -34,7 +35,7 @@ class DownloadStream extends DownloadStreamBase {
         let chosen, responseData
         const vias = types.map((t, i) => {
             const opts = Object.assign({}, this.ropts)
-            if(t == DownloadStreamHttp && usep2p) { // put a delay on http to give chance for p2p
+            if(t == DownloadStreamHttp && (usep2p || usecache)) { // put a delay on http to give chance for p2p/cache
                 opts.connectDelay = 2000
             }
             const via = new t(opts)
@@ -56,8 +57,8 @@ class DownloadStream extends DownloadStreamBase {
                             headers: response.headers
                         }
                     }
-                    if(via.type == 'p2p') {
-                        console.warn('P2P FAILED AFTER '+ (global.time() - start)+'s', via)
+                    if(via.type == 'p2p' || (!usep2p && via.type == 'cache')) {
+                        console.warn('P2P/CACHE FAILED AFTER '+ (global.time() - start)+'s', via)
                         vias.filter(v => v.type == 'http').shift().skipWait()
                     }
                 }
@@ -78,8 +79,8 @@ class DownloadStream extends DownloadStreamBase {
                             const err = vias.filter(v => v.type == 'http').map(v => v.errors.pop()).pop() || 'Failed to fetch.'
                             this.emitError(err)
                         }
-                    } else if(via.type == 'p2p') {
-                        console.warn('P2P DESTROYED AFTER '+ (global.time() - start)+'s', via.error || via)
+                    } else if(via.type == 'p2p' || (!usep2p && via.type == 'cache')) {
+                        console.warn('P2P/CACHE DESTROYED AFTER '+ (global.time() - start)+'s', via.error || via)
                         vias.filter(v => v.type == 'http').shift().skipWait()
                     }
                 })

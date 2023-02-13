@@ -1,10 +1,7 @@
 
-const async = require('async')
-const List = require(global.APPDIR + '/modules/lists/list.js')
-const UpdateListIndex = require(global.APPDIR + '/modules/lists/update-list-index.js')
-const ConnRacing = require(global.APPDIR + '/modules/conn-racing')
-const Common = require(global.APPDIR + '/modules/lists/common')
-const Cloud = require(APPDIR + '/modules/cloud')
+const async = require('async'), List = require('./list')
+const UpdateListIndex = require('./update-list-index'), ConnRacing = require('../conn-racing')
+const Common = require('./common'), Cloud = require(APPDIR + '/modules/cloud')
 
 require(APPDIR + '/modules/supercharge')(global)
 

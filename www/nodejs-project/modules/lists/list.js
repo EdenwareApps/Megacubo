@@ -1,4 +1,4 @@
-const Events = require('events'), ListIndex = require('./list-index'), ConnRacing = require(global.APPDIR + '/modules/conn-racing')
+const Events = require('events'), ListIndex = require('./list-index'), ConnRacing = require('../conn-racing')
 
 class List extends Events {
 	constructor(url, parent, relevantKeywords){

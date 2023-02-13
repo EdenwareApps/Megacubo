@@ -1,4 +1,4 @@
-const async = require('async'), Common = require(global.APPDIR + '/modules/lists/common.js')
+const async = require('async'), Common = require('../lists/common.js')
 
 class Index extends Common {
     constructor(opts){
@@ -186,7 +186,7 @@ class Index extends Common {
 			let smap = this.searchMap(query, opts), ks = Object.keys(smap)
 			if(ks.length){
 				if(this.debug){
-					console.warn('M3U SEARCH RESULTS', (global.time() - start) +'s (pre time)', Object.assign({}, smap), (global.time() - start) +'s', terms)
+					console.warn('M3U SEARCH RESULTS', terms, opts, (global.time() - start) +'s (pre time)', Object.assign({}, smap), (global.time() - start) +'s', terms)
 				}
                 let results = []
 				ks.forEach(listUrl => {
@@ -196,7 +196,7 @@ class Index extends Common {
 					}
 					smap[listUrl] = ls
 				})
-                async.eachOf(ks, (listUrl, i, icb) => {
+                async.eachOfLimit(ks, 4, (listUrl, i, icb) => {
                     if(listUrl && typeof(this.lists[listUrl]) != 'undefined' && smap[listUrl].length){
 						if(this.debug){
 							console.warn('M3U SEARCH ITERATE', smap[listUrl].slice(0))
@@ -204,9 +204,6 @@ class Index extends Common {
 						this.lists[listUrl].iterate(e => {
 							if(this.debug){
 								console.warn('M3U SEARCH ITERATE', e)
-							}
-							if(!this.matchSearchResult(e, query, opts)){ // filter again to prevent false positive due lists-index sync misbehaviour
-								return
 							}
 							if(opts.type){
 								if(this.validateType(e, opts.type, opts.typeStrict === true)){

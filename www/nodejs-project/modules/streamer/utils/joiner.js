@@ -5,20 +5,12 @@ class Joiner extends Downloader {
 	constructor(url, opts){
 		super(url, opts)
 		this.minConnectionInterval = 1
-		this.opts.checkSyncByte = true
 		this.type = 'joiner'
 		this.delayUntil = 0
 		this.processor = new MPEGTSPacketProcessor()
 		// this.opts.debug = this.processor.debug  = true
 		this.processor.on('data', data => this.output(data))
 		this.processor.on('fail', () => this.emit('fail'))
-		this.on('bitrate', bitrate => {
-			let idealBufferSize = 3 * bitrate
-			if(this.processor.bufferSize < idealBufferSize){
-				console.warn('MPEGTSPacketProcessor buffer size increase', idealBufferSize)
-				this.processor.bufferSize = idealBufferSize
-			}
-        })
 		this.once('destroy', () => {
 			if(!this.joinerDestroyed){
 				this.joinerDestroyed = true
@@ -28,11 +20,7 @@ class Joiner extends Downloader {
 		})
 	}
 	handleData(data){
-		if(this.handleDataValidate(data)){
-			this.processor.push(data)
-        } else {
-			console.error('invalid data (may cause match problems)', data)
-		}
+		this.processor.push(data)
 	}
 	output(data, len){
 		if(this.destroyed || this.joinerDestroyed){
@@ -54,7 +42,7 @@ class Joiner extends Downloader {
 		if(this.opts.debug){
 			console.log('[' + this.type + '] pump', this.destroyed || this.joinerDestroyed)
 		}
-		let next = () => { 
+		this.download(() => { 
 			this.processor.flush(true) // join prematurely to be ready for next connection anyway
 			let now = global.time(), ms = 0
 			if(this.delayUntil && now < this.delayUntil){
@@ -75,10 +63,7 @@ class Joiner extends Downloader {
             if(this.opts.debug){
                 console.log('[' + this.type + '] delaying ' + ms + 'ms', 'now: ' + now, 'delayUntil: ' + this.delayUntil)
             }
-		}
-		if(this.processor){
-			this.download(next)
-		}
+		})
 	}
 }
 	

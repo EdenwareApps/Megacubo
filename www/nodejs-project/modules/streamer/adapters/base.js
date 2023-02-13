@@ -1,6 +1,6 @@
 
-const path = require('path'), fs = require('fs'), http = require('http'), Events = require('events')
-const WriteQueueFile = require(global.APPDIR + '/modules/write-queue/write-queue-file')
+const path = require('path'), fs = require('fs'), http = require('http')
+const Events = require('events'), Writer = require('../../write-queue/writer')
 
 class StreamerAdapterBase extends Events {
 	constructor(url, opts, data){
@@ -122,8 +122,10 @@ class StreamerAdapterBase extends Events {
 			}
         })
 		if(adapter.bitrate){
-			this.bitrate = adapter.bitrate
-			this.emit('bitrate', adapter.bitrate, this.currentSpeed)
+			if(bitrate >= 0 && this.bitrate != bitrate){
+				this.bitrate = adapter.bitrate
+				this.emit('bitrate', adapter.bitrate, this.currentSpeed)
+			}
 		}
     }
     disconnectAdapter(adapter){
@@ -327,22 +329,29 @@ class StreamerAdapterBase extends Events {
 		if(this.committed && this.bitrates.length < this.opts.bitrateCheckingAmount && this.bitrateCheckFails < this.opts.maxBitrateCheckingFails){
 			if(typeof(this.bitrateCheckBuffer[id]) == 'undefined'){
 				let file = this.bitrateSampleFilename(id)
-				this.bitrateCheckBuffer[id] = new WriteQueueFile(file)
+				this.bitrateCheckBuffer[id] = new Writer(file)
 			}
-			this.bitrateCheckBuffer[id].write(chunk, offset)
-			if(this.bitrateCheckBuffer[id].written >= this.opts.maxBitrateCheckSize){
-				this.finishBitrateSample(id)
+			if(this.bitrateCheckBuffer[id]._finished){
 				return false
+			} else {
+				this.bitrateCheckBuffer[id].write(chunk, offset)
+				if(this.bitrateCheckBuffer[id].written >= this.opts.maxBitrateCheckSize){
+					this.finishBitrateSample(id)
+					return false
+				}
+				return true
 			}
-			return true
 		}
 	}
 	finishBitrateSample(id = 'default'){
-		if(typeof(this.bitrateCheckBuffer[id]) != 'undefined'){
+		if(typeof(this.bitrateCheckBuffer[id]) != 'undefined' && !this.bitrateCheckBuffer[id]._finished){
 			if(this.bitrates.length < this.opts.bitrateCheckingAmount){
+				this.bitrateCheckBuffer[id]._finished = true
 				this.bitrateCheckBuffer[id].ready(() => {
 					if(this.bitrateCheckBuffer[id].written >= this.opts.minBitrateCheckSize){
 						this.getBitrate(this.bitrateCheckBuffer[id].file)
+					} else {
+						this.bitrateCheckBuffer[id]._finished = false
 					}
 				})
 			}

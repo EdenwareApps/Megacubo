@@ -45,7 +45,7 @@
    "description": "A intuitive, multi-language and cross-platform IPTV player.",
    "name": "megacubo",
    "icon": "./default_icon.png",
-   "version": "16.8.4",
+   "version": "16.8.5",
    "theme": {
       "fullScreen": true
    },
@@ -57,7 +57,7 @@
    ],
    "main": "nw.html",
    "node-main": "main.js",
-   "chromium-args": "--enable-node-worker --disable-features=nw2 --disable-features=NetworkPrediction --experimental-worker --ignore-urlfetcher-cert-requests --tls13-variant=disabled --disable-web-security --allow-hidden-media-playback --disable-background-timer-throttling --proxy-auto-detect --no-zygote --no-sandbox --enable-gpu-async-worker-context --password-store=basic --force-device-scale-factor=1 --process-per-tab --enable-smooth-scrolling --disable-crash-handler=true --disable-breakpad --no-experiments --no-pings --disable-transparency --enable-experimental-web-platform-features --remote-debugging-port=9000",
+   "chromium-args": "--enable-node-worker --disable-features=nw2 --disable-features=NetworkPrediction --experimental-worker --ignore-urlfetcher-cert-requests --tls13-variant=disabled --disable-web-security --allow-hidden-media-playback --disable-background-timer-throttling --proxy-auto-detect --no-zygote --no-sandbox --enable-gpu-async-worker-context --password-store=basic --force-device-scale-factor=1 --process-per-tab --enable-smooth-scrolling --disable-crash-handler=true --disable-breakpad --no-experiments --no-pings --disable-transparency --enable-experimental-web-platform-features --remote-debugging-port=9000 --disable-gpu --force-cpu-draw",
    "js-flags": "--max_old_space_size=2048",
    "webkit": {
       "page-cache": true
