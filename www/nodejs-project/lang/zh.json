@@ -232,6 +232,7 @@
    "LOW_DISK_SPACE_AVAILABLE": "您的设备用尽了空间（{0}可用）。 这会影响应用程序性能。",
    "LOW_MEMORY_AVAILABLE": "您的设备几乎没有内存（{0}可用）。 这会影响应用程序性能。",
    "MANAGE_CHANNEL_LIST": "管理频道列表",
+   "MATCH_ENTIRE_WORDS": "搜索时匹配整个单词",
    "MAXIMIZE": "最大化",
    "MINIMIZE": "最小化",
    "MIUI_DARK_MODE_HINT": "如果音频播放但屏幕是黑色的，请在设备上禁用深色模式。",

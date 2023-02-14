@@ -232,6 +232,7 @@
    "LOW_DISK_SPACE_AVAILABLE": "Lo spazio sul dispositivo sta esaurendo ({0} disponibile). Ciò potrebbe influire sulle prestazioni dell'applicazione.",
    "LOW_MEMORY_AVAILABLE": "La memoria del dispositivo è insufficiente ({0} disponibile). Ciò potrebbe influire sulle prestazioni dell'applicazione.",
    "MANAGE_CHANNEL_LIST": "Gestisci elenco canali",
+   "MATCH_ENTIRE_WORDS": "Abbinare intere parole durante la ricerca",
    "MAXIMIZE": "Massimizzare",
    "MINIMIZE": "Minimizzare",
    "MIUI_DARK_MODE_HINT": "Se l'audio riproduce ma lo schermo è nero, disabilita la modalità oscura sul dispositivo.",

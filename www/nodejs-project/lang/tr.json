@@ -232,6 +232,7 @@
    "LOW_DISK_SPACE_AVAILABLE": "Cihazınız boşluk tükeniyor ({0} Mevcut). Bu, uygulama performansını etkileyebilir.",
    "LOW_MEMORY_AVAILABLE": "Cihazınız bellekte düşük ({0} Mevcut). Bu, uygulama performansını etkileyebilir.",
    "MANAGE_CHANNEL_LIST": "Kanal listesini yönet",
+   "MATCH_ENTIRE_WORDS": "Arama yaparken tüm kelimeleri eşleştirin",
    "MAXIMIZE": "Maksimize etmek",
    "MINIMIZE": "küçültmek",
    "MIUI_DARK_MODE_HINT": "Sesli ancak ekran siyahsa, lütfen cihazınızda karanlık modu devre dışı bırakın.",

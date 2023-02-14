@@ -232,6 +232,7 @@
    "LOW_DISK_SPACE_AVAILABLE": "Twoje urządzenie kończy się spacji ({0} dostępne). Może to wpłynąć na wydajność aplikacji.",
    "LOW_MEMORY_AVAILABLE": "Twoje urządzenie jest niskie na pamięci ({0} dostępne). Może to wpłynąć na wydajność aplikacji.",
    "MANAGE_CHANNEL_LIST": "Zarządzaj listą kanałów.",
+   "MATCH_ENTIRE_WORDS": "Dopasuj całe słowa podczas przeszukiwania",
    "MAXIMIZE": "Wyolbrzymiać",
    "MINIMIZE": "Zminimalizować",
    "MIUI_DARK_MODE_HINT": "Jeśli dźwięk gra, ale ekran jest czarny, wyłącz tryb ciemny na urządzeniu.",
