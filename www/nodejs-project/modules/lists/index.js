@@ -70,27 +70,40 @@ class Index extends Common {
 			})
 			terms = this.applySearchRedirects(terms)
 			if(opts.partial){
-				const hints = [...new Set(terms.filter(t => t.length > 2).map(t => t.substr(0, 2)))], mterms = []
-				//console.log('parsing query')
+				let filter
+				const start = global.time()
+				if(global.config.get('search-mode') == 1){
+					filter = (term, t) => {
+						if(term.indexOf(t) !== -1 && t != term) {
+							return true
+						}
+					}
+				} else {
+					filter = (term, t) => {
+						if(term.startsWith(t) && t != term) {
+							return true
+						}
+					}
+				}
 				Object.keys(this.lists).forEach(listUrl => {
 					Object.keys(this.lists[listUrl].index.terms).forEach(term => {
-						if(hints.includes(term.substr(0, 2)) && !mterms.includes(term)){ // reduce workset by using hints
-							mterms.push(term)
+						let from
+						terms.some(t => {
+							if(filter(term, t)){
+								from = t
+								return true
+							}
+						})
+						if(from){
+							if(typeof(aliases[from]) == 'undefined'){
+								aliases[from] = []
+							}
+							if(!aliases[from].includes(term)){
+								aliases[from].push(term)
+							}
 						}
 					})
 				})
-				//console.log('parsing query2', mterms.length)
-				terms.forEach(term => {
-					let tlen = term.length
-					if(tlen < 3) return // dont autocomplete small words, too many vars
-					let nterms = mterms.filter(t => {
-						return t != term && t.length > tlen && !excludes.includes(t) && (t.substr(0, tlen) == term || t.substr(t.length - tlen) == term)
-					})
-					if(nterms.length){
-						aliases[term] = nterms
-					}
-				})
-				//console.log('parsing query', mterms.length, aliases)
 			}
 			terms = terms.filter(t => !excludes.includes(t))
 			return [{terms, excludes, aliases}]
@@ -256,23 +269,6 @@ class Index extends Common {
             }
         })
 	}
-	matchSearchResult(e, queries, opts){
-		let eterms = e.terms.name
-		if(opts.group){
-			eterms.push(...e.terms.group)
-		}
-		return queries.some(query => {
-			if(!eterms.some(t => query.excludes.includes(t))){
-				const aliases = Object.values(query.aliases).flat()
-				const matched = query.terms.every(t => {
-					return eterms.includes(t) || aliases.includes(t)
-				})
-				if(matched){
-					return true
-				}
-			}
-		})
-	}
 	getDomain(u){
     	if(u && u.indexOf('//')!=-1){
 	        let domain = u.split('//')[1].split('/')[0]
@@ -325,59 +321,6 @@ class Index extends Common {
 		entries.push(...notHLS)
 		return entries
     }
-	unoptimizedSearch(terms, opts){
-		return new Promise((resolve, reject) => {
-            let xmap, smap, bestResults = [], results = [], maybe = []
-            if(!terms){
-                return resolve({results, maybe})
-            }
-            if(typeof(opts.type) != 'string'){
-                opts.type = false
-            }
-            const query = this.parseQuery(terms, opts)
-			async.eachOf(Object.keys(this.lists), (listUrl, i, acb) => {
-				if(listUrl && this.lists[listUrl]){
-					this.lists[listUrl].iterate(e => {
-						if(this.matchSearchResult(e, query, opts)){
-							if(opts.type){
-								if(this.validateType(e, opts.type, opts.typeStrict === true)){
-									if(opts.typeStrict === true) {
-										e.source = listUrl
-										bestResults.push(e)
-									} else {
-										e.source = listUrl
-										results.push(e)
-									}
-								}
-							} else {
-								bestResults.push(e)
-							}
-						}
-					}, false, acb)
-				} else {
-					acb()
-				}
-			}, () => {
-				if(this.debug){
-					console.warn('M3U SEARCH RESULTS', terms, bestResults.slice(0), results.slice(0), maybe.slice(0))
-				}
-				results = bestResults.concat(results)
-				if(maybe.length){
-					if(!results.length){
-						results = maybe
-						maybe = []
-					}
-				}
-				results = this.tools.dedup(results)
-				results = this.prepareEntries(results)	
-				if(typeof(opts.parentalControl) != 'undefined' && opts.parentalControl !== false){
-					results = this.parentalControl.filter(results, true)
-					maybe = this.parentalControl.filter(maybe, true)
-				}				
-				resolve({results, maybe})
-			})
-        })
-	}
 	mapSize(a, group){
 		let c = 0
 		Object.keys(a).forEach(listUrl => {

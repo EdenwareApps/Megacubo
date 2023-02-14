@@ -185,7 +185,7 @@ class Search extends Events {
         const policy = global.config.get('parental-control')
         const parentalControlActive = ['remove', 'block'].includes(policy)
         const isAdultQueryBlocked = policy == 'remove' && !global.lists.parentalControl.allow(u)
-        let es = await global.lists[global.config.get('unoptimized-search') ? 'unoptimizedSearch' : 'search'](terms, {
+        let es = await global.lists.search(terms, {
             partial: this.searchInaccurate, 
             type: this.searchMediaType, 
             typeStrict: this.searchStrict,

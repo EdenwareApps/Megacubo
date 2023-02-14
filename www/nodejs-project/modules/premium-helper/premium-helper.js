@@ -31,10 +31,10 @@ class PremiumHelper {
     }
 }
 
-if(require('fs').existsSync('../modules/premium')){
+if(require('fs').existsSync(global.APPDIR +'/modules/premium')){
 	require('bytenode')
     try {
-        let _PremiumHelper = require('../premium/premium')
+        let _PremiumHelper = require('../premium')
         if(_PremiumHelper) {
             PremiumHelper = _PremiumHelper
         }

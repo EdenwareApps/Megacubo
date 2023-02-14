@@ -1060,6 +1060,12 @@ class Options extends OptionsHardwareAcceleration {
                             type: 'check',
                             action: (e, checked) => global.config.set('hide-updates', !checked),
                             checked: () => !global.config.get('hide-updates')
+                        },
+                        {
+                            name: global.lang.MATCH_ENTIRE_WORDS,
+                            type: 'check',
+                            action: (e, checked) => global.config.set('search-mode', checked ? 0 : 1),
+                            checked: () => global.config.get('search-mode') !== 1
                         }
                     ]
                     if(!global.cordova){
@@ -1143,12 +1149,6 @@ class Options extends OptionsHardwareAcceleration {
                                         },
                                         placeholder: global.cloud.defaultServer
                                     }, 
-                                    {
-                                        name: 'Unoptimized search', type: 'check', action: (data, checked) => {
-                                        global.config.set('unoptimized-search', checked)
-                                    }, checked: () => {
-                                        return global.config.get('unoptimized-search')
-                                    }}, 
                                     {
                                         name: 'System info', fa: 'fas fa-memory', type: 'action', action: this.aboutResources.bind(this)
                                     },
