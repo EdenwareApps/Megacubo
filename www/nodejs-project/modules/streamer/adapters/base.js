@@ -65,16 +65,25 @@ class StreamerAdapterBase extends Events {
             })
         }
 	}
-	addCodecData(codecData){
+	addCodecData(codecData, ignoreAdapter){
+		let changed
 		if(!this.codecData){
 			this.codecData = {audio: '', video: ''}
 		};
 		['audio', 'video'].forEach(type => {
-			if(codecData[type]){
+			if(codecData[type] && !this.codecData[type]){
+				changed = true
 				this.codecData[type] = codecData[type]
 			}
 		})
-		this.emit('codecData', this.codecData)
+		if(changed){
+			this.emit('codecData', this.codecData)
+			this.adapters.forEach(adapter => {
+				if(adapter.addCodecData && adapter != ignoreAdapter){
+					adapter.addCodecData(codecData)
+				}
+			})
+		}
 		return this.codecData
 	}
     connectAdapter(adapter){  

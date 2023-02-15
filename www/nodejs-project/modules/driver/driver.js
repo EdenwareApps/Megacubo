@@ -117,7 +117,7 @@ module.exports = (file, opts) => {
 			this.worker.on('error', err => {
 				let serr = String(err)
 				this.err = err
-				console.error('error ' + file, err, serr)
+				console.error('error ' + file +' '+ err +' '+ serr, {err, serr})
 				if(serr.match(new RegExp('(out of memory|out_of_memory)', 'i'))){
 					let msg = 'Worker '+ file.split('/').pop() +' exitted out of memory, fix the settings and restart the app.'
 					global.osd.show(msg, 'fas fa-exclamation-triagle faclr-red', 'out-of-memory', 'persistent')

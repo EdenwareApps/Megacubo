@@ -149,11 +149,16 @@ class Downloader extends StreamerAdapterBase {
 	}
 	cancelWarmCache(){
 		console.warn('CANCEL WARMCACHE')
-		this.warmCache && this.warmCache.destroy()
-		this.warmCacheSize = 0
-		setTimeout(() => {
-			fs.unlink(this.warmCacheFile, () => {})
-		}, 2000)
+		if(this.warmCache){
+			this.warmCache.destroy()
+			this.warmCache = null
+			this.warmCacheSize = 0
+			setTimeout(() => {
+				if(this.warmCacheFile){
+					fs.unlink(this.warmCacheFile, () => {})
+				}
+			}, 2000)
+		}
 	}
 	internalError(e){
 		if(!this.committed){

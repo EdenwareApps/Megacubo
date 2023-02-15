@@ -167,7 +167,8 @@ class UpdateListIndex extends ListIndexUtils {
         for(let url of urls){
             connected = await this.connect(url).catch(console.error)
             if(connected === true){
-                await this.parseStream(writer).catch(console.error)
+                await this.parseStream(writer).catch(console.error)     
+                if(this.indexateIterator) break
             }
         }
         while(this.playlists.length){

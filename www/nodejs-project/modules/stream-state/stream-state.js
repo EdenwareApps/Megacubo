@@ -269,7 +269,6 @@ class StreamState extends Events {
                     }
                 }                
             })
-            console.warn('streamState', syncData, entries)
             global.ui.emit('sync-status-flags', syncData)
             if(retest.length){
                 entries.push(...retest)

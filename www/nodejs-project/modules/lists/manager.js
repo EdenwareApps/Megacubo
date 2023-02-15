@@ -610,7 +610,11 @@ class Manager extends ManagerEPG {
         this.updaterResults = {}
         this.updatingProcesses = {}        
         global.ui.once('init', () => {
-            global.explorer.addFilter(async (es, path) => this.labelify(await this.expandEntries(es, path)))
+            global.explorer.addFilter(async (es, path) => {
+                es = await this.expandEntries(es, path)
+                es = this.master.tools.dedup(es) // apply dedup here again for expanded entries 
+                return this.labelify(es)
+            })
         })
         global.ui.on('explorer-back', () => {
             if(this.openingList){

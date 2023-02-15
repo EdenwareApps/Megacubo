@@ -5,9 +5,10 @@ class Tools {
 		this.folderSizeLimitTolerance = 12
 	}
 	dedup(entries){
-		let already = {}, map = {};
+		let changed, already = {}, map = {};
 		for(var i=0; i<entries.length; i++){
 			if(!entries[i]){
+				changed = true
 				delete entries[i]
 			} else if(
 				entries[i].url && 
@@ -15,6 +16,7 @@ class Tools {
 				(typeof(entries[i].type) == 'undefined' || entries[i].type == 'stream')
 				){
 				if(typeof(already[entries[i].url])!='undefined'){
+					changed = true
 					var j = map[entries[i].url]
 					entries[j] = this.mergeEntries(entries[j], entries[i])
 					delete entries[i]
@@ -25,7 +27,7 @@ class Tools {
 			}
 		}
 		already = map = null
-		return entries.filter(item => item !== undefined)
+		return changed ? entries.filter(item => item !== undefined) : entries
 	}
 	basename(str, rqs){
 		str = String(str)
@@ -122,7 +124,7 @@ class Tools {
 		return details.join(', ')
 	}
 	paginateList(sentries){
-		sentries = this.sortList(sentries)
+		sentries = global.lists.sort(sentries)
 		if(sentries.length > (global.config.get('folder-size-limit') + this.folderSizeLimitTolerance)){
 			let folderSizeLimit = global.config.get('folder-size-limit')
 			let group, nextName, lastName, entries = [], template = {type: 'group', fa: 'fas fa-box-open'}, n = 1
@@ -147,19 +149,6 @@ class Tools {
 			sentries = entries
 		}
 		return sentries
-	}
-	sortList(list){
-		var result = list.slice(0)
-		result.sort((a, b) => {
-			try{
-				return (a.type && a.type == 'option') ? 1 : ((a.name.toLowerCase() > b.name.toLowerCase()) ? 1 : ((b.name.toLowerCase() > a.name.toLowerCase()) ? -1 : 0))
-			}catch(e){
-				console.error(e, a, b)
-				console.error(list)
-				return 1
-			}
-		})
-		return result
 	}
 	getNameDiff(a, b){
 		let c = ''

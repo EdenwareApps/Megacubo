@@ -259,214 +259,216 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 		this.watchRecovery(1000)
 	}
     loadHLS(cb){
-		if(!this.hls){
-			const atts = {
-				enableWorker: true,
-				maxBufferSize: 128 * (1000 * 1000), // When doing internal transcoding with low crf, fragments will become bigger
-				backBufferLength: config['live-window-time'],
-				maxBufferLength: 60,
-				maxMaxBufferLength: 180,
-				highBufferWatchdogPeriod: 1,
-				nudgeMaxRetry: Number.MAX_SAFE_INTEGER,
-				lowLatencyMode: false, // setting false here reduced dramatically the buffer stalled errors on a m3u8 from FFmpeg
-				fragLoadingMaxRetry: 3,
-				fragLoadingMaxRetryTimeout: 3000,
-				manifestLoadingMaxRetryTimeout: 3000,
-				levelLoadingMaxRetryTimeout: 3000,
-				fragLoadingRetryDelay: 100,
-				defaultAudioCodec: 'mp4a.40.2', // AAC-LC from ffmpeg
-				maxLiveSyncPlaybackRate: 1, // dont touch playback rate from here
-				/*
-				// https://github.com/video-dev/hls.js/blob/master/docs/API.md
-				defaultAudioCodec: 'mp4a.40.2',
-				debug: true,
-				progressive: true,
-				lowLatencyMode: false,
-				enableSoftwareAES: false,
-				maxSeekHole: 30,
-				maxBufferSize: 20 * (1000 * 1000),
-				maxBufferHole: 10,
-				maxBufferLength: 10,
-				maxMaxBufferLength: '120s',
-				maxFragLookUpTolerance: 0.04,
-				startPosition: 0,
-				*/
-			}
-			if(this.engineType == 'video'){ // not "live"
-				atts.startPosition = 0
-				atts.liveSyncDuration = 99999999
-			} else { // Illegal hls.js config: don't mix up liveSyncDurationCount/liveMaxLatencyDurationCount and liveSyncDuration/liveMaxLatencyDuration
-				atts.liveSyncDurationCount = 3 // https://github.com/video-dev/hls.js/issues/3764
-				atts.liveMaxLatencyDurationCount = Infinity
-			}
-			this.hls = new Hls(atts)
-			this.engineType
-			this.hls.on(Hls.Events.ERROR, (event, data) => {
-				if(!this.active) return
-				console.error('hlserr', data, data.fatal)
-				if (data.fatal) {
-					let forceNetworkRecover
-					if(data.type == Hls.ErrorTypes.OTHER_ERROR && event == 'demuxerWorker'){
-						// Uncaught RangeError: byte length of Int32Array should be a multiple of 4
-						data.type = Hls.ErrorTypes.NETWORK_ERROR
-						forceNetworkRecover = true
-					}
-					switch (data.type) {
-						case Hls.ErrorTypes.MEDIA_ERROR:
-							console.error('media error', data.details)
-							if(data.details == 'manifestIncompatibleCodecsError'){
-								this.emit('request-transcode')
-							} else {
-								this.handleMediaError(data)
-							}
-							break
-						case Hls.ErrorTypes.NETWORK_ERROR:
-							console.error('network error', data.networkDetails)
-							this.handleNetworkError(data, forceNetworkRecover)
-							break
-						default:
-							console.error('unrecoverable error', data.details)
-							this.emit('error', this.prepareErrorDataStr(data), true)
-							break
-					}
-				} else {
-					switch(data.details){
-						case Hls.ErrorDetails.MANIFEST_LOAD_ERROR:
-							try {
-								console.error('Cannot load', data.context.url, url, 'HTTP response code:', data.response.code, data.response.text)
-								if(data.response.code === 0){
-									console.error('This might be a CORS issue');
-								}
-							} catch(err) {
-								console.error('Cannot load <a href="' + data.context.url + '">' + url + '</a><br>Response body: ' + data.response.text);
-							}
-							break
-						case Hls.ErrorDetails.MANIFEST_LOAD_TIMEOUT:
-							console.error('Timeout while loading manifest')
-							break
-						case Hls.ErrorDetails.MANIFEST_PARSING_ERROR:
-							console.error('Error while parsing manifest:' + data.reason)
-							break
-						case Hls.ErrorDetails.LEVEL_LOAD_ERROR:
-							console.error('Error while loading level playlist')
-							break
-						case Hls.ErrorDetails.LEVEL_LOAD_TIMEOUT:
-							console.error('Timeout while loading level playlist')
-							break
-						case Hls.ErrorDetails.LEVEL_SWITCH_ERROR:
-							console.error('Error while trying to switch to level ' + data.level)
-							break
-						case Hls.ErrorDetails.FRAG_LOAD_ERROR:
-							console.error('Error while loading fragment ' + data.frag.url, data.frag.start, data.frag.duration)
-							this.skipFragment(data.frag.start, data.frag.duration)
-							break
-						case Hls.ErrorDetails.FRAG_LOAD_TIMEOUT:
-							console.error('Timeout while loading fragment ' + data.frag.url, data.frag.start, data.frag.duration)
-							this.skipFragment(data.frag.start, data.frag.duration)
-							break
-						case Hls.ErrorDetails.FRAG_LOOP_LOADING_ERROR:
-							console.error('Fragment-loop loading error')
-							break
-						case Hls.ErrorDetails.FRAG_DECRYPT_ERROR:
-							console.error('Decrypting error:' + data.reason)
-							break
-						case Hls.ErrorDetails.FRAG_PARSING_ERROR:
-							console.error('Parsing error:' + data.reason, data.frag)
-							//this.skipFragment(data.frag.start, data.frag.duration)
-							break
-						case Hls.ErrorDetails.KEY_LOAD_ERROR:
-							if(this.object.currentTime){
-								console.error('Error while loading key ' + data.frag.decryptdata.uri)
-							} else {
-								this.emit('error', 'key load error', true)
-							}
-							break
-						case Hls.ErrorDetails.KEY_LOAD_TIMEOUT:
-							if(this.object.currentTime){
-								console.error('Timeout while loading key ' + data.frag.decryptdata.uri)
-							} else {
-								this.emit('error', 'key load timeout', true)
-							}
-							break
-						case Hls.ErrorDetails.BUFFER_APPEND_ERROR:
-							let errStr = this.prepareErrorDataStr(data)
-							console.error('Buffer append error', errStr)
-							// it happens when handleNetworkError is in progress, ignore
-							if(errStr.indexOf('This SourceBuffer has been removed') != -1){
-								this.hls.recoverMediaError()
-							}
-							break
-						case Hls.ErrorDetails.BUFFER_FULL_ERROR:
-							console.error('Buffer full error')
-							// it happens when segments are bigger
-							this.hls.recoverMediaError()
-							break
-						case Hls.ErrorDetails.BUFFER_ADD_CODEC_ERROR:
-							console.error('Buffer add codec error for ' + data.mimeType + (data.err ? ':' + data.err.message : ''))
-							break
-						case Hls.ErrorDetails.BUFFER_APPENDING_ERROR:
-							console.error('Buffer appending error', parseInt(this.object.duration))
-							this.hls.attachMedia(this.object)
-							break
-						case Hls.ErrorDetails.BUFFER_SEEK_OVER_HOLE_ERROR:
-							console.error('Buffer seek over hole error', parseInt(this.object.duration))
-							this.watchRecovery()
-							break
-						case Hls.ErrorDetails.BUFFER_NUDGE_ON_STALL_ERROR:
-							console.error('Buffer nudge on stall error', parseInt(this.object.duration))
-							this.watchRecovery(200)
-							break
-						case Hls.ErrorDetails.BUFFER_STALLED_ERROR:
-							console.error('Buffer stalled error', parseInt(this.object.duration))
-							this.watchRecovery()
-							/*
-							if(this.object.buffered.length){
-								// https://github.com/video-dev/hls.js/issues/3905
-								const start = this.object.buffered.start(0)
-							 	if(this.object.currentTime < start){
-									console.log('fixed by seeking from', this.object.currentTime, 'to', start)
-									this.object.currentTime = start
-									return
-								}
-							}
-							// not fatal, would not be needed to handle, BUT, the playback hangs even it not saying that it's a fatal error, so call handleNetworkError() to ensure
-							let time = this.object.currentTime, duration = this.object.duration			
-							if((duration - time) > config['live-window-time']){
-								this.hls.stopLoad()
-								let averageLoadTime = 5
-								console.log('out of live window', time, duration, config)
-								time = (duration - config['live-window-time']) + averageLoadTime
-								if(time < 0){
-									time = 0
-								}
-								this.object.currentTime = time
-								this.hls.startLoad()
-							} else if((duration - time) < 1){
-								console.log('out of buffer, trust on hls.js', time, duration, config)
-								this.hls.startLoad()
-							} else {
-								console.log('in live window, trust on hls.js', time, duration, config)
-								this.hls.startLoad()
-							}
-							*/
-							break
-						case Hls.ErrorDetails.BUFFER_NUDGE_ON_STALL:
-							console.warn('Buffer nudge on stall', parseInt(this.object.duration))
-							this.watchRecovery(1000)
-							break
-						default:
-							console.error('Hls.js unknown error', data.type, data.details)
-							break
-					}
-				}
-			})
-			this.hls.on(Hls.Events.MANIFEST_PARSED, () => {
-				this.resume()
-				this.emit('audioTracks', this.audioTracks())
-				this.emit('subtitleTracks', this.subtitleTracks())
-			})
-			this.hls.attachMedia(this.object)
+		if(this.hls){
+			this.hls.destroy()
+			setTimeout(() => this.loadHLS(cb), 10)
+			return
 		}
+		const atts = {
+			enableWorker: true,
+			maxBufferSize: 128 * (1000 * 1000), // When doing internal transcoding with low crf, fragments will become bigger
+			backBufferLength: config['live-window-time'],
+			maxBufferLength: 60,
+			maxMaxBufferLength: 180,
+			highBufferWatchdogPeriod: 1,
+			nudgeMaxRetry: Number.MAX_SAFE_INTEGER,
+			lowLatencyMode: false, // setting false here reduced dramatically the buffer stalled errors on a m3u8 from FFmpeg
+			fragLoadingMaxRetry: 3,
+			fragLoadingMaxRetryTimeout: 3000,
+			manifestLoadingMaxRetryTimeout: 3000,
+			levelLoadingMaxRetryTimeout: 3000,
+			fragLoadingRetryDelay: 100,
+			defaultAudioCodec: 'mp4a.40.2', // AAC-LC from ffmpeg
+			maxLiveSyncPlaybackRate: 1, // dont touch playback rate from here
+			/*
+			// https://github.com/video-dev/hls.js/blob/master/docs/API.md
+			defaultAudioCodec: 'mp4a.40.2',
+			debug: true,
+			progressive: true,
+			lowLatencyMode: false,
+			enableSoftwareAES: false,
+			maxSeekHole: 30,
+			maxBufferSize: 20 * (1000 * 1000),
+			maxBufferHole: 10,
+			maxBufferLength: 10,
+			maxMaxBufferLength: '120s',
+			maxFragLookUpTolerance: 0.04,
+			startPosition: 0,
+			*/
+		}
+		if(this.engineType == 'video'){ // not "live"
+			atts.startPosition = 0
+			atts.liveSyncDuration = 99999999
+		} else { // Illegal hls.js config: don't mix up liveSyncDurationCount/liveMaxLatencyDurationCount and liveSyncDuration/liveMaxLatencyDuration
+			atts.liveSyncDurationCount = 3 // https://github.com/video-dev/hls.js/issues/3764
+			atts.liveMaxLatencyDurationCount = Infinity
+		}
+		this.hls = new Hls(atts)
+		this.hls.on(Hls.Events.ERROR, (event, data) => {
+			if(!this.active) return
+			console.error('hlserr', data, data.fatal)
+			if (data.fatal) {
+				let forceNetworkRecover
+				if(data.type == Hls.ErrorTypes.OTHER_ERROR && event == 'demuxerWorker'){
+					// Uncaught RangeError: byte length of Int32Array should be a multiple of 4
+					data.type = Hls.ErrorTypes.NETWORK_ERROR
+					forceNetworkRecover = true
+				}
+				switch (data.type) {
+					case Hls.ErrorTypes.MEDIA_ERROR:
+						console.error('media error', data.details)
+						if(data.details == 'manifestIncompatibleCodecsError'){
+							this.emit('request-transcode')
+						} else {
+							this.handleMediaError(data)
+						}
+						break
+					case Hls.ErrorTypes.NETWORK_ERROR:
+						console.error('network error', data.networkDetails)
+						this.handleNetworkError(data, forceNetworkRecover)
+						break
+					default:
+						console.error('unrecoverable error', data.details)
+						this.emit('error', this.prepareErrorDataStr(data), true)
+						break
+				}
+			} else {
+				switch(data.details){
+					case Hls.ErrorDetails.MANIFEST_LOAD_ERROR:
+						try {
+							console.error('Cannot load', data.context.url, url, 'HTTP response code:', data.response.code, data.response.text)
+							if(data.response.code === 0){
+								console.error('This might be a CORS issue');
+							}
+						} catch(err) {
+							console.error('Cannot load <a href="' + data.context.url + '">' + url + '</a><br>Response body: ' + data.response.text);
+						}
+						break
+					case Hls.ErrorDetails.MANIFEST_LOAD_TIMEOUT:
+						console.error('Timeout while loading manifest')
+						break
+					case Hls.ErrorDetails.MANIFEST_PARSING_ERROR:
+						console.error('Error while parsing manifest:' + data.reason)
+						break
+					case Hls.ErrorDetails.LEVEL_LOAD_ERROR:
+						console.error('Error while loading level playlist')
+						break
+					case Hls.ErrorDetails.LEVEL_LOAD_TIMEOUT:
+						console.error('Timeout while loading level playlist')
+						break
+					case Hls.ErrorDetails.LEVEL_SWITCH_ERROR:
+						console.error('Error while trying to switch to level ' + data.level)
+						break
+					case Hls.ErrorDetails.FRAG_LOAD_ERROR:
+						console.error('Error while loading fragment ' + data.frag.url, data.frag.start, data.frag.duration)
+						this.skipFragment(data.frag.start, data.frag.duration)
+						break
+					case Hls.ErrorDetails.FRAG_LOAD_TIMEOUT:
+						console.error('Timeout while loading fragment ' + data.frag.url, data.frag.start, data.frag.duration)
+						this.skipFragment(data.frag.start, data.frag.duration)
+						break
+					case Hls.ErrorDetails.FRAG_LOOP_LOADING_ERROR:
+						console.error('Fragment-loop loading error')
+						break
+					case Hls.ErrorDetails.FRAG_DECRYPT_ERROR:
+						console.error('Decrypting error:' + data.reason)
+						break
+					case Hls.ErrorDetails.FRAG_PARSING_ERROR:
+						console.error('Parsing error:' + data.reason, data.frag)
+						//this.skipFragment(data.frag.start, data.frag.duration)
+						break
+					case Hls.ErrorDetails.KEY_LOAD_ERROR:
+						if(this.object.currentTime){
+							console.error('Error while loading key ' + data.frag.decryptdata.uri)
+						} else {
+							this.emit('error', 'key load error', true)
+						}
+						break
+					case Hls.ErrorDetails.KEY_LOAD_TIMEOUT:
+						if(this.object.currentTime){
+							console.error('Timeout while loading key ' + data.frag.decryptdata.uri)
+						} else {
+							this.emit('error', 'key load timeout', true)
+						}
+						break
+					case Hls.ErrorDetails.BUFFER_APPEND_ERROR:
+						let errStr = this.prepareErrorDataStr(data)
+						console.error('Buffer append error', errStr)
+						// it happens when handleNetworkError is in progress, ignore
+						if(errStr.indexOf('This SourceBuffer has been removed') != -1){
+							this.hls.recoverMediaError()
+						}
+						break
+					case Hls.ErrorDetails.BUFFER_FULL_ERROR:
+						console.error('Buffer full error')
+						// it happens when segments are bigger
+						this.hls.recoverMediaError()
+						break
+					case Hls.ErrorDetails.BUFFER_ADD_CODEC_ERROR:
+						console.error('Buffer add codec error for ' + data.mimeType + (data.err ? ':' + data.err.message : ''))
+						break
+					case Hls.ErrorDetails.BUFFER_APPENDING_ERROR:
+						console.error('Buffer appending error', parseInt(this.object.duration))
+						this.hls.attachMedia(this.object)
+						break
+					case Hls.ErrorDetails.BUFFER_SEEK_OVER_HOLE_ERROR:
+						console.error('Buffer seek over hole error', parseInt(this.object.duration))
+						this.watchRecovery()
+						break
+					case Hls.ErrorDetails.BUFFER_NUDGE_ON_STALL_ERROR:
+						console.error('Buffer nudge on stall error', parseInt(this.object.duration))
+						this.watchRecovery(200)
+						break
+					case Hls.ErrorDetails.BUFFER_STALLED_ERROR:
+						console.error('Buffer stalled error', parseInt(this.object.duration))
+						this.watchRecovery()
+						/*
+						if(this.object.buffered.length){
+							// https://github.com/video-dev/hls.js/issues/3905
+							const start = this.object.buffered.start(0)
+							if(this.object.currentTime < start){
+								console.log('fixed by seeking from', this.object.currentTime, 'to', start)
+								this.object.currentTime = start
+								return
+							}
+						}
+						// not fatal, would not be needed to handle, BUT, the playback hangs even it not saying that it's a fatal error, so call handleNetworkError() to ensure
+						let time = this.object.currentTime, duration = this.object.duration			
+						if((duration - time) > config['live-window-time']){
+							this.hls.stopLoad()
+							let averageLoadTime = 5
+							console.log('out of live window', time, duration, config)
+							time = (duration - config['live-window-time']) + averageLoadTime
+							if(time < 0){
+								time = 0
+							}
+							this.object.currentTime = time
+							this.hls.startLoad()
+						} else if((duration - time) < 1){
+							console.log('out of buffer, trust on hls.js', time, duration, config)
+							this.hls.startLoad()
+						} else {
+							console.log('in live window, trust on hls.js', time, duration, config)
+							this.hls.startLoad()
+						}
+						*/
+						break
+					case Hls.ErrorDetails.BUFFER_NUDGE_ON_STALL:
+						console.warn('Buffer nudge on stall', parseInt(this.object.duration))
+						this.watchRecovery(1000)
+						break
+					default:
+						console.error('Hls.js unknown error', data.type, data.details)
+						break
+				}
+			}
+		})
+		this.hls.on(Hls.Events.MANIFEST_PARSED, () => {
+			this.resume()
+			this.emit('audioTracks', this.audioTracks())
+			this.emit('subtitleTracks', this.subtitleTracks())
+		})
+		this.hls.attachMedia(this.object)
 		cb()
 	}	
 	audioTracks(){

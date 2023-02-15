@@ -251,26 +251,30 @@ class ChannelsEPG extends ChannelsData {
                 if(streamer.active.mediaType == 'live'){
                     return {template: 'option', text: global.lang.EPG, id: 'epg-more', fa: this.epgIcon}
                 }
-            }, data => {
+            }, async data => {
                 const name = data.originalName || data.name
                 const category = global.channels.getChannelCategory(name)
                 if(category){
-                    this.epgChannelLiveNow(data).then(() => {
+                    let err
+                    await this.epgChannelLiveNow(data).catch(e => {
+                        err = e
+                        global.displayErr(global.lang.CHANNEL_EPG_NOT_FOUND)
+                    })
+                    if(!err) {
                         const _path = [global.lang.LIVE, category, name, global.lang.EPG].join('/')
                         global.channels.watchNowAuto = ''
                         global.channels.skipSmartSorting = true
                         global.osd.show(global.lang.OPENING, 'fas fa-circle-notch fa-spin', 'open-epg', 'persistent')
-                        global.explorer.open(_path).then(() => {
+                        let err
+                        await global.explorer.open(_path).catch(err => {
+                            console.error(err)
+                        })
+                        if(!err) {
                             global.ui.emit('menu-playing')
                             global.osd.hide('open-epg')
-                        }).catch(err => {
-                            console.error(err)
-                        }).finally(() => {
-                            global.channels.skipSmartSorting = false
-                        })
-                    }).catch(() => {
-                        global.displayErr(global.lang.CHANNEL_EPG_NOT_FOUND)
-                    })
+                        }
+                        global.channels.skipSmartSorting = false
+                    }
                 } else {
                     global.displayErr(global.lang.CHANNEL_EPG_NOT_FOUND)
                 }
@@ -333,7 +337,6 @@ class ChannelsEPG extends ChannelsData {
         })
     }
     epgDataToEntries(epgData, ch, terms){
-        console.warn('epgDataToEntries', epgData, ch, terms)
         let now = global.time()
         let at = start => {
             if(start <= now && epgData[start].e > now){
@@ -1376,6 +1379,7 @@ class Channels extends ChannelsKids {
                 }
                 return category
             })
+            list = global.lists.sort(list)
             list.push(this.getMoreEntry())
             if(editable){
                 list.push(this.getCategoryEntry())
@@ -1388,12 +1392,13 @@ class Channels extends ChannelsKids {
         if(global.channels.skipSmartSorting){
             return entries
         }
+        entries = global.lists.sort(entries)                                
         const policy = global.config.get('channels-list-smart-sorting')
         /*
         0 = Focus on EPG data.
         1 = Focus on channels, without EPG images.
         2 = Focus on channels, with EPG images.
-        */        
+        */
         switch(policy){
             case 1:
                 break
@@ -1404,24 +1409,22 @@ class Channels extends ChannelsKids {
             case 2:
                 break
             default: // 0
-                const adjust = e => {
-                    e.details = e.name
-                    e.name = e.program.t
-                    return e
+                const adjust = es => {
+                    return global.lists.sort(es.map(e => {
+                        e.details = e.name
+                        e.name = e.program.t
+                        return e
+                    }))
                 }
                 let noEPG = [], noEPGI = []
                 entries = entries.filter(e => {
                     if(!e.program){
                         noEPG.push(e)
                         return false
-                    } else if(!e.program.i) {
-                        noEPGI.push(e)
-                        return false
                     }
                     return true
                 })
-                entries = entries.map(adjust).sortByProp('name')
-                entries.push(...noEPGI.map(adjust).sortByProp('name'))
+                entries = adjust(entries)
                 entries.push(...noEPG)
                 break
         }

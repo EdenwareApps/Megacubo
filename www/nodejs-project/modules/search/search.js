@@ -80,32 +80,34 @@ class Search extends Events {
             resolve(this.addFixedEntries(this.currentSearchType, []))
         })
     }
-    go(value, mediaType){
-        if(value){
-            if(!mediaType){
-                mediaType = 'all'
-            }
-            console.log('search-start', value)
-            global.ui.emit('set-loading', {name: global.lang.SEARCH}, true, global.lang.SEARCHING)
-            global.osd.show(global.lang.SEARCHING, 'fas fa-search spin-x-alt', 'search', 'persistent')
-            this.searchMediaType = mediaType
-            this[mediaType == 'live' ? 'channelsResults' : 'results'](value).then(rs => {
-                console.log('results', rs)
-                if(!rs.length && mediaType == 'live'){
-                    return this.go(value, 'all')
-                }
-                this.emit('search', {query: value})
-                if(!global.explorer.path){
-                    global.explorer.path = global.lang.SEARCH
-                }
-                global.explorer.render(this.addFixedEntries(mediaType, rs), global.explorer.path, 'fas fa-search', '/')
-            }).catch(global.displayErr).finally(() => {
-                console.warn('HIDE SEARCH')
-                global.osd.hide('search')
-                global.ui.emit('set-loading', {name: global.lang.SEARCH}, false)
-                global.search.history.add(value)
-            })
+    async go(value, mediaType){
+        if(!value) return false
+        if(!mediaType){
+            mediaType = 'all'
         }
+        console.log('search-start', value)
+        global.ui.emit('set-loading', {name: global.lang.SEARCH}, true, global.lang.SEARCHING)
+        global.osd.show(global.lang.SEARCHING, 'fas fa-search spin-x-alt', 'search', 'persistent')
+        this.searchMediaType = mediaType
+        let err
+        const rs = await this[mediaType == 'live' ? 'channelsResults' : 'results'](value).catch(e => err = e)
+        global.osd.hide('search')
+        if(Array.isArray(rs)){
+            console.log('results', rs)
+            if(!rs.length && mediaType == 'live'){
+                return this.go(value, 'all')
+            }
+            this.emit('search', {query: value})
+            if(!global.explorer.path){
+                global.explorer.path = global.lang.SEARCH
+            }
+            global.explorer.render(this.addFixedEntries(mediaType, rs), global.explorer.path, 'fas fa-search', '/')
+            global.osd.show(global.lang.X_RESULTS.format(rs.length), 'fas fa-check-circle', 'search', 'normal')
+        } else {
+            global.displayErr(err)
+        }
+        global.ui.emit('set-loading', {name: global.lang.SEARCH}, false)
+        global.search.history.add(value)
     }
     refresh(){
         if(this.currentSearch){
@@ -309,10 +311,10 @@ class Search extends Events {
             url: global.mega.build(u, {terms, mediaType: this.searchMediaType})
         }
         if(!global.lists.loaded()){
-            return resolve([global.lists.manager.updatingListsEntry()])
+            return [global.lists.manager.updatingListsEntry()]
         }
         if(!global.lists.activeLists.length){ // one list available on index beyound meta watching list
-            return resolve([global.lists.manager.noListsEntry()])
+            return [global.lists.manager.noListsEntry()]
         }
         let es = await global.channels.search(terms, this.searchInaccurate)
         es = es.map(e => global.channels.toMetaEntry(e))
@@ -323,7 +325,7 @@ class Search extends Events {
                 es.push(...ys.slice(0, minResultsWanted - es.length))
             }
         }
-        return es
+        return global.lists.sort(es)
     }
     isSearching(){
         return global.explorer.currentEntries.some(e => {

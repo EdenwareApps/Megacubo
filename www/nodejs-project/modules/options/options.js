@@ -505,8 +505,8 @@ class Options extends OptionsHardwareAcceleration {
                 }
             })
         }
-        map.forEach(row => {
-            entries.push({
+        entries.push(...global.lists.sort(map).map(row => {
+            return {
                 name : row.name,
                 type: 'check',
                 action: (e, checked) => {
@@ -525,8 +525,8 @@ class Options extends OptionsHardwareAcceleration {
                 checked: () => {
                     return actives.includes(row.code)
                 }
-            })
-        })
+            }
+        }))
         if(allCountries !== true){
             entries.push({
                 name: global.lang.OTHER_COUNTRIES,

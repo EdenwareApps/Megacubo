@@ -84,10 +84,7 @@ class StreamerBaseIntent extends Events {
 				this.emit('dimensions', this._dimensions)
 			}
         })
-        adapter.on('codecData', codecData => {
-            this.codecData = adapter.codecData
-			this.emit('codecData', this.codecData)
-        })
+        adapter.on('codecData', codecData => this.addCodecData(codecData))
         adapter.on('speed', speed => {
 			if(speed > 0 && this.currentSpeed != speed){
 				this.currentSpeed = speed
@@ -131,6 +128,27 @@ class StreamerBaseIntent extends Events {
 			this.adapters.splice(pos, 1)
 		}
     }
+	addCodecData(codecData, ignoreAdapter){
+		let changed
+		if(!this.codecData){
+			this.codecData = {audio: '', video: ''}
+		};
+		['audio', 'video'].forEach(type => {
+			if(codecData[type] && codecData[type] != this.codecData[type]){
+				changed = true
+				this.codecData[type] = codecData[type]
+			}
+		})
+		if(changed){
+			this.emit('codecData', this.codecData)
+			this.adapters.forEach(adapter => {
+				if(adapter.addCodecData && adapter != ignoreAdapter){
+					adapter.addCodecData(codecData)
+				}
+			})
+		}
+		return this.codecData
+	}
     onFail(err){
         if(!this.destroyed){
             console.log('[' + this.type + '] adapter fail', err)

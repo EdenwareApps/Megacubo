@@ -246,7 +246,7 @@ class Index extends Common {
                             maybe = []
                         }
                     }
-                    results = this.tools.dedup(results)
+                    results = this.tools.dedup(results) // dedup before parentalControl to improve blocking
 					results = this.prepareEntries(results)
 					if(opts.parentalControl !== false){
 						results = this.parentalControl.filter(results, true)
@@ -305,7 +305,7 @@ class Index extends Common {
 			})
 			if(!keep) break
 		}
-		return nentries
+		return this.sort(nentries)
 	}
     ext(file){
         return String(file).split('?')[0].split('#')[0].split('.').pop().toLowerCase()
@@ -442,12 +442,7 @@ class Index extends Common {
 				delete map[path]
 			})
 		}
-		if(typeof(Intl) != 'undefined'){
-			const collator = new Intl.Collator(global.lang.locale, { numeric: true, sensitivity: 'base' })
-			groups.sort((a, b) => collator.compare(a.name, b.name))
-		} else {
-			groups.sort()
-		}
+		groups = this.sort(groups)
 		const routerVar = {} 
 		let ret = groups.filter((group, i) => { // group repeated series
 			return Object.keys(map).every(parentPath => {
@@ -474,6 +469,16 @@ class Index extends Common {
 		})
 		return ret
 	}
+    sort(entries, key='name'){
+        if(typeof(Intl) != 'undefined'){
+            if(typeof(this.collator) == 'undefined'){
+                this.collator = new Intl.Collator(global.lang.locale, {numeric: true, sensitivity: 'base'})
+            }
+            return entries.sort((a, b) => this.collator.compare(a[key], b[key]))
+        } else {
+            return entries.sort((a, b) => (a[key] > b[key] ? 1 : (a[key] < b[key] ? -1 : 1)))
+        }
+    }
 	group(group){
 		return new Promise((resolve, reject) => {
 			let entries = []
@@ -496,14 +501,9 @@ class Index extends Common {
 				}
 				entries.push(e)
 			}, map, () => {
-				entries = this.tools.dedup(entries)
+				entries = this.tools.dedup(entries) // dedup before parentalControl to improve blocking
 				entries = this.parentalControl.filter(entries, true)
-				if(typeof(Intl) != 'undefined'){
-					const collator = new Intl.Collator(global.lang.locale, { numeric: true, sensitivity: 'base' })
-					entries.sort((a, b) => collator.compare(a.name, b.name))
-				} else {
-					entries.sort()
-				}
+				entries = this.sort(entries)
 				resolve(entries)
 			})
 		})

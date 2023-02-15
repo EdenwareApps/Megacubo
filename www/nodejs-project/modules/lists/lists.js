@@ -767,8 +767,8 @@ class Lists extends ListsEPGTools {
 			return this.directListRendererPrepareCache[url].list
 		}
 		if(list.length){
+			list = this.tools.dedup(list) // dedup before parentalControl to improve blocking
 			list = this.parentalControl.filter(list, true)
-			list = this.tools.dedup(list)
 			list = this.prepareEntries(list)
 			list = await this.tools.deepify(list, url)
 		}
