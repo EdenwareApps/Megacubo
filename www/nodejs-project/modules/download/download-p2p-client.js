@@ -265,7 +265,8 @@ if(typeof(require) != 'undefined') { // ReferenceError: require is not defined
                         this.speed = parseInt(this.dataReceived / (time() - this.acceptTime))
                         this.app.emit('download-p2p-response-data-'+ this.opts.uid, message)
                     }
-                    if(message.ended){
+                    if(message.ended){                        
+                        console.warn('P2P download', message.url, message)
                         if(P2P_DEBUG) console.log('P2P 200 finish from remote '+ this.opts.uid, this.dataReceived)
                         this.app.emit('download-p2p-response-end-'+ this.opts.uid)
                         if(this.speed){
@@ -386,15 +387,15 @@ if(typeof(require) != 'undefined') { // ReferenceError: require is not defined
             })
             this.app.on('streamer-connect', (src, mime, ck, type, data) => {
                 const topic = this.compatibleStreamerEngines.includes(data.engine) ? data.url : 'default'
-                this.join(topic)
+                this.join(topic).catch(console.error)
             })
             this.app.on('streamer-disconnect', () => {
-                this.join('default')
+                this.join('default').catch(console.error)
             })
             this.app.on('download-p2p-index-update', index => {
                 this.index = index
             })
-            this.join('default')
+            this.join('default').catch(console.error)
         }
         activeRequestsCount(){
             return Object.values(this.activeRequests).filter(r => !r.destroyed).length
@@ -409,9 +410,9 @@ if(typeof(require) != 'undefined') { // ReferenceError: require is not defined
             const bitrate = streamer.bitrate / (1024 * 1024), uplink = navigator.connection.downlink / 3
             return Math.max(Math.floor(uplink / bitrate), 1)
         }
-        join(topic){
+        async join(topic){
             if(!config.p2p){
-                return
+                return false
             }
             if(!this.sw){
                 this.sw = swarm({
@@ -436,12 +437,14 @@ if(typeof(require) != 'undefined') { // ReferenceError: require is not defined
             }
             const hash = crypto.createHash('sha256').update(topic).digest()
             if(hash != this.topic){
+                console.log('P2P topic: '+ topic)
                 if(this.topic){
-                    this.sw.leave(this.topic).catch(console.error)
+                    await this.sw.leave(this.topic).catch(console.error)
                 }
                 this.topic = hash
-                this.sw.join(hash)
+                await this.sw.join(hash)
             }
+            return true
         }
         mask(url){
             let smurl = this.getSimilarSegmentURLs(url, Object.keys(this.index))
@@ -511,7 +514,7 @@ if(typeof(require) != 'undefined') { // ReferenceError: require is not defined
                     case 'accept':
                         message.pid = id
                         this.app.emit('download-p2p-serve-request', message)
-                        console.warn('Starting P2P upload', message)
+                        console.warn('P2P upload', message.url, message)
                         break
                     case 'request-index':
                         this.peers[id].write({

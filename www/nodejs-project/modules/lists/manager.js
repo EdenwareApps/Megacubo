@@ -6,23 +6,9 @@ class ManagerCommunityLists extends Events {
         super()
         this.IPTV = new IPTV()
     }
-    extraCommunityLists(myLists, communityLists){
-        return new Promise(resolve => {
-            async.eachOf([this.IPTV], (driver, i, done) => {
-                driver.ready().then(() => {
-                    driver.countries.ready().then(() => {
-                        communityLists = communityLists.filter(u => myLists.indexOf(u) == -1)
-                        communityLists = communityLists.filter(u => !driver.isKnownURL(u)) // remove communityLists from other countries/languages
-                        driver.getLocalLists().then(localLists => {
-                            localLists.push(...communityLists)
-                            communityLists = localLists
-                        }).catch(console.error).finally(done)
-                    }).catch(done)
-                }).catch(done)
-            }, () => {
-                resolve(communityLists)
-            })
-        })
+    async extraCommunityLists(){
+        await this.IPTV.ready()
+        return this.IPTV.getLocalLists()
     }   
     async communityModeKeywords(){
         const badTerms = ['m3u8', 'ts', 'mp4', 'tv', 'channel']
@@ -117,7 +103,11 @@ class ManagerCommunityLists extends Events {
             }
         })
         if(!entries.length){
-            entries = [this.noListsRetryEntry()]
+            if(!global.lists.loaded()){
+                entries = [this.updatingListsEntry()]
+            } else {
+                entries = [this.noListsRetryEntry()]
+            }
         }
         return entries
     }
@@ -135,8 +125,8 @@ class ManagerCommunityLists extends Events {
             const limit = pLimit(3)
             let ret = {}, locs = await global.lang.getActiveCountries()
             let results = await Promise.allSettled(locs.map(loc => {
-                return async () => {
-                    return await global.cloud.get('country-sources.'+ loc, false, timeout).catch(console.error)
+                return () => {
+                    return global.cloud.get('country-sources.'+ loc, false, timeout).catch(console.error)
                 }
             }).map(limit))
             results.forEach(r => {
@@ -201,7 +191,11 @@ class ManagerCommunityLists extends Events {
                 lists = this.master.parentalControl.filter(lists)
             }
         } else {
-            lists = [this.noListsRetryEntry()]
+            if(!global.lists.loaded()){
+                lists = [this.updatingListsEntry()]
+            } else {
+                lists = [this.noListsRetryEntry()]
+            }
         }
         return lists
     }
@@ -1005,23 +999,26 @@ class Manager extends ManagerEPG {
 		})
 	}
     async update(force, uid){
-        console.log('Update lists', this.updatingProcesses, global.traceback())
         const camount = global.config.get('communitary-mode-lists-amount')
         if(force === true || !global.lists.activeLists.length || global.lists.activeLists.length < camount){
             const alreadyUpdating = Object.keys(this.updatingProcesses).map(id => {
-                return this.updatingProcesses[id].urls
+                return this.updatingProcesses[id].urls || []
             }).flat()
-            let haserr, communityLists = [], keywords = []
+            let communityLists = [], keywords = []
             const myLists = (await this.getURLs()).filter(url => !alreadyUpdating.includes(url))
             const loadMyListsCaches = this.master.loadCachedLists(myLists) // load my lists asap, before to possibly keep waiting for community lists
             if(camount){
                 const maxListsToTry = 3 * camount
                 const loadKeywords = this.communityModeKeywords()
-                communityLists = await this.allCommunityLists(10000, true).catch(err => haserr = err)
-                if(haserr){
-                    communityLists = []
-                }
-                communityLists = await this.extraCommunityLists(myLists, communityLists)
+                const ret = await Promise.allSettled([
+                    this.allCommunityLists(10000, true),
+                    this.extraCommunityLists()
+                ]).catch(console.error)
+                ret.forEach(r => {
+                    if(r.status == 'fulfilled' && r.value && r.value.length){
+                        communityLists.push(...r.value)
+                    }
+                })
                 communityLists = communityLists.filter(url => !alreadyUpdating.includes(url) && !myLists.includes(url))
                 communityLists = this.getUniqueLists(communityLists)
                 if(communityLists.length){
@@ -1031,14 +1028,15 @@ class Manager extends ManagerEPG {
                     keywords = await loadKeywords
                     await this.master.setCommunityLists(communityLists)
                 }
-                console.log('allCommunityLists', communityLists.length)
             }
             if(communityLists.length || myLists.length){
                 this.uiUpdating = true
+                const timer = setInterval(() => this.updateOSD(), 3000)
                 this.master.updaterFinished(false).catch(console.error)
                 this.master.keywords(keywords)
                 const allLists = myLists.concat(communityLists), updater = this.startUpdater()
                 this.updatingProcesses[uid].urls = allLists
+                console.error('Update lists '+ uid)
                 updater.on('list-updated', url => {
                     console.log('List updated', url)
                     this.master.syncList(url).then(() => {
@@ -1050,11 +1048,10 @@ class Manager extends ManagerEPG {
                     })
                 })
                 await updater.setRelevantKeywords(keywords)
-                console.log('Updating lists', {alreadyUpdating}, myLists, communityLists, global.traceback())
                 let results, expired = [], loadCommmunityListsCaches = this.master.loadCachedLists(communityLists)
                 let updating = updater.update(allLists).then(r => results = r).catch(console.error)
                 await Promise.all([updating, loadMyListsCaches, loadCommmunityListsCaches])
-                console.log('Lists updated', results, myLists, expired)
+                clearInterval(timer)
                 this.master.updaterFinished(true).catch(console.error)
                 this.updatingProcessOutput(uid, global.lang.LISTS_UPDATED, 'fas fa-check-circle') // warn user if there's no lists
                 updater.close()
@@ -1085,14 +1082,10 @@ class Manager extends ManagerEPG {
                 this.updatingProcessOutput(uid, global.lang.NO_LIST_PROVIDED, 'fas fa-exclamation-circle') // warn user if there's no lists
             }
         }
-        console.error('LISTSUPDATED', Object.assign({}, global.lists.activeLists))
     }
     async updateLists(force){
         if(global.Download.isNetworkConnected) {
             console.error('lists-manager updateLists', traceback())
-            const timer = setInterval(() => {
-                this.updateOSD(global.lists.status())
-            }, 3000)
             const uid = parseInt(Math.random() * 1000000000)
             if(!this.uiShowing){
                 this.uiShowing = true
@@ -1106,7 +1099,6 @@ class Manager extends ManagerEPG {
                     this.noListsRetryDialog(err)
                 }
             })
-            clearInterval(timer)
             global.osd.hide('update-progress')
             this.updatingProcesses[uid].progress = 100
             setTimeout(() => delete this.updatingProcesses[uid], 10000)

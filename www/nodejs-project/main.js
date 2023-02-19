@@ -49,7 +49,7 @@ process.on('unhandledRejection', (reason, promise) => {
     crashlog.save('Unhandled Rejection at:', promise, 'reason:', reason)
 })
 process.on('uncaughtException', (exception) => {
-    console.error('uncaughtException', exception)
+    console.error('uncaughtException: '+ crashlog.stringify(exception))
     crashlog.save('uncaughtException', exception)
     return false
 })

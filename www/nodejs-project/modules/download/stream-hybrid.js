@@ -41,15 +41,19 @@ class DownloadStream extends DownloadStreamBase {
             const via = new t(opts)
             via.once('response', response => {
                 if(chosen){
-                    via.destroy()
+                    return via.destroy()
                 }
                 via.validation = [response, this.validate(response)]
                 if(this.validate(response)){
                     chosen = true
                     vias.filter(v => v != via).forEach(v => v.destroy())
                     response.headers['x-source'] = via.type
-                    response.once('end', () => this.end())
                     this.emit('response', response)
+                    if(response.ended){
+                        this.end()
+                    } else {
+                        response.once('end', () => this.end())
+                    }
                 } else {
                     if(response.statusCode && (!responseData || via.type == 'http')) {
                         responseData = {
@@ -76,7 +80,7 @@ class DownloadStream extends DownloadStreamBase {
                             response.end()
                             this.end()
                         } else {
-                            const err = vias.filter(v => v.type == 'http').map(v => v.errors.pop()).pop() || 'Failed to fetch.'
+                            const err = vias.filter(v => v.type == 'http').map(v => v.errors.length ? v.errors[0] : null).pop() || 'Failed to fetch.'
                             this.emitError(err)
                         }
                     } else if(via.type == 'p2p' || (!usep2p && via.type == 'cache')) {

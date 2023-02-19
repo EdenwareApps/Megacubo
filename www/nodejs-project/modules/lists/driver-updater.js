@@ -1,13 +1,13 @@
 
 const async = require('async'), List = require('./list')
 const UpdateListIndex = require('./update-list-index'), ConnRacing = require('../conn-racing')
-const Common = require('./common'), Cloud = require(APPDIR + '/modules/cloud')
+const Common = require('./common'), Cloud = require(global.APPDIR + '/modules/cloud')
 
-require(APPDIR + '/modules/supercharge')(global)
+require(global.APPDIR + '/modules/supercharge')(global)
 
-storage = require(APPDIR + '/modules/storage')({})
+storage = require(global.APPDIR + '/modules/storage')({})
 
-Download = require(APPDIR + '/modules/download')
+Download = require(global.APPDIR + '/modules/download')
 cloud = new Cloud()
 
 const emit = (type, content) => {

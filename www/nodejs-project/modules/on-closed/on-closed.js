@@ -26,7 +26,11 @@ module.exports = function closed(req, response, cb){
 	req.once('close', () => { // req disconnected
 		callback()
 	})
-	response.once('end', () => { // req disconnected
+	if(response.ended){
 		callback()
-	})
+	} else {
+		response.once('end', () => { // req disconnected
+			callback()
+		})
+	}
 }

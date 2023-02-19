@@ -35,6 +35,7 @@ class DownloadStreamResponse extends Events {
         if(this.paused){
             this.pausedEnded = true
         } else {
+            this.ended = true
             this.emit('end')
             this.removeAllListeners()
         }
@@ -48,7 +49,9 @@ class DownloadStream extends Events {
 		this.opts = opts
         this.timeout = opts.timeout
         this.headersSent = false
-        this.listenersMap = {}
+        this.on('end', () => {            
+            this.response && this.response.end()
+        })
         if(!this.opts.uid){
             this.opts.uid = parseInt(Math.random() * 10000000000000)
         }
@@ -97,7 +100,6 @@ class DownloadStream extends Events {
     end(){
         if(!this.ended){
             this.ended = true
-            this.response && this.response.end()
             this.emit('end')
         }
         this.destroy()

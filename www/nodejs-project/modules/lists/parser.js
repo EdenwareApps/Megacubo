@@ -220,7 +220,6 @@ class IPTVPlaylistStreamParser extends Events {
 		if(url.length > 1){
 			return (url[0].split('.')[0] + ' ' + url[url.length - 1]).replace(new RegExp('\\?.*$'), '')
 		} else {
-			console.error('Failed to generate list name from URL', ourl, url)
 			return 'Untitled ' + parseInt(Math.random() * 100000)
 		}
 	}

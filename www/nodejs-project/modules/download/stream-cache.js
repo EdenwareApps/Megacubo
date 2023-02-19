@@ -6,6 +6,15 @@ class DownloadStreamCache extends DownloadStreamBase {
         this.type = 'cache'
 	}
     async start(){
+        if(this.started){
+            throw 'Already started'
+        }
+        if(this.ended){
+            throw 'Already ended'
+        }
+        if(this.destroyed){
+            throw 'Already destroyed'
+        }
         const url = this.opts.url
         const row = Download.cache.index[url]
         if(row && row.status && row.uid != this.opts.uid){
@@ -41,7 +50,11 @@ class DownloadStreamCache extends DownloadStreamBase {
             stream.on('data', chunk => {
                 this.response.write(chunk)
             })
-            stream.once('end', () => this.end())
+            if(stream.readableEnded || stream.closed){
+                this.end()
+            } else {
+                stream.once('end', () => this.end())
+            }
             return true
         } else {
             this.emitError('Cache download failed')

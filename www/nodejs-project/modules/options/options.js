@@ -380,7 +380,7 @@ class OptionsHardwareAcceleration extends OptionsExportImport {
     }
     getHardwareAcceleration(){
         const fs = require('fs')
-        let manifest = String(fs.readFileSync(APPDIR +'/package.json'))
+        let manifest = String(fs.readFileSync(global.APPDIR +'/package.json'))
         return !this.hwaDisableFlags.every((flag) => {
             return manifest.indexOf(flag) != -1
         })

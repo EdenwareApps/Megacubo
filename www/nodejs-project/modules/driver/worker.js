@@ -6,23 +6,28 @@ function logErr(data){
     parentPort.postMessage({id: -1, type: 'error', data, file})
 }
 
+crashlog = require('../crashlog')
+
 process.on('warning', e => {
     console.warn(e, e.stack)
 })
 process.on('unhandledRejection', (reason, promise) => {
     const msg = 'Unhandled Rejection at: '+String(promise)+ ', reason: '+ String(reason) + ' | ' + JSON.stringify(reason.stack)
+    console.error(msg, promise, 'reason:', reason)
+    crashlog.save('Unhandled Rejection at:', promise, 'reason:', reason)
     logErr(msg)
 })
 process.on('uncaughtException', (exception) => {
-    console.error(exception)
-	const msg = 'uncaughtException: '+ exception.name + ' | ' + exception.message + ' | ' + JSON.stringify(exception.stack)
+    const msg = 'uncaughtException: '+ exception.name + ' | ' + exception.message + ' | ' + JSON.stringify(exception.stack)
+    console.error('uncaughtException', exception)
+    crashlog.save('uncaughtException', exception)
     logErr(msg)
     return false
 })
 
 Object.keys(workerData).forEach(k => global[k] = workerData[k])
 
-global.config = require(APPDIR + '/modules/config')(global.paths['data'] + '/config.json')
+global.config = require(global.APPDIR + '/modules/config')(global.paths['data'] + '/config.json')
 global.config.on('change', () => {
     parentPort.postMessage({id: 0, type: 'event', data: 'config-change'})
 })

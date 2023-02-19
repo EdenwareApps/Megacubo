@@ -24,7 +24,6 @@
       "m3u8-parser": "^4.6.0",
       "moment": "^2.29.1",
       "moment-timezone": "^0.5.33",
-      "mpegts.js": "^1.7.2",
       "node-cleanup": "^2.1.2",
       "nw-custom-frame": "github:efoxbr/nw-custom-frame",
       "range-parser": "^1.2.1",
@@ -35,7 +34,6 @@
       "sanitize-filename": "^1.6.3",
       "socket.io": "^4.0.0",
       "stoppable": "^1.1.0",
-      "string-similarity": "^4.0.4",
       "swipey.js": "^1.0.3",
       "tough-cookie": "^4.0.0",
       "url-search-params-polyfill": "^8.1.1",
@@ -46,7 +44,7 @@
    "description": "A intuitive, multi-language and cross-platform IPTV player.",
    "name": "megacubo",
    "icon": "./default_icon.png",
-   "version": "16.8.6",
+   "version": "16.8.7",
    "theme": {
       "fullScreen": true
    },

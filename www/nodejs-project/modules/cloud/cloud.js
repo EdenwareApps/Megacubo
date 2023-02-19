@@ -35,88 +35,61 @@ class CloudData {
             return this.server + '/stats/data/' + key + '.' + this.locale +'.json'
         }
     }
-    get(key, raw, softTimeout){
-        return new Promise((resolve, reject) => {
+    async get(key, raw, softTimeout){
+        if(this.debug){
+            console.log('cloud: get', key, traceback())
+        }
+        const expiralKey = key.split('/')[0].split('.')[0]
+        const store = raw === true ? global.storage.raw : global.storage
+        let data = await store.promises.get(this.cachingDomain + key)
+        if(data){
             if(this.debug){
-                console.log('cloud: get', key, traceback())
+                console.log('cloud: got cache', key)
             }
-            const expiralKey = key.split('/')[0].split('.')[0]
-            const store = raw === true ? global.storage.raw : global.storage
-            store.get(this.cachingDomain + key, data => {
+            return data
+        } else {
+            if(this.debug){
+                console.log('cloud: no cache', key)
+            }
+            data = await store.promises.get(this.cachingDomain + key + '-fallback')
+            if(this.debug){
+                console.log('cloud: fallback', key)
+            }
+            let p2p = key != 'configure' && !key.startsWith('channels') && global.config.get('p2p') 
+            let url = this.url(key)
+            let err, body = await global.Download.get({
+                url,
+                responseType: raw === true ? 'text' : 'json',
+                timeout: 60,
+                retry: 10,
+                p2p,
+                cacheTTL: this.expires[expiralKey] || 300
+            }).catch(e => err = e)
+            if(this.debug){
+                console.log('cloud: got', key, err, body)
+            }
+            if(err || !body){
                 if(data){
-                    if(this.debug){
-                        console.log('cloud: get cached', key)
-                    }
-                    return resolve(data)
+                    return data
                 } else {
-                    if(this.debug){
-                        console.log('cloud: no stored data', key)
-                    }
-                    store.get(this.cachingDomain + key + '-fallback', data => {
-                        if(this.debug){
-                            console.log('cloud: get', key)
-                        }
-                        let solved, error = err => {   
-                            if(this.debug){
-                                console.log('cloud: solve', err, solved) 
-                            }
-                            if(!solved){
-                                solved = true
-                                if(data){
-                                    //console.warn(err, key)
-                                    resolve(data) // fallback
-                                } else {
-                                    console.error('cloud: error', key, err)
-                                    reject('connection error')
-                                }
-                            }
-                        }
-                        let p2p = key != 'configure' && !key.startsWith('channels') && global.config.get('p2p') 
-                        let url = this.url(key)
-                        if(this.debug){
-                            console.log('cloud: get', key, url)
-                        }
-                        global.Download.get({
-                            url,
-                            responseType: raw === true ? 'text' : 'json',
-                            timeout: 60,
-                            retry: 10,
-                            p2p,
-                            cacheTTL: this.expires[expiralKey] || 300
-                        }).then(body => {
-                            if(!body){
-                                error('Server returned empty')
-                            } else {
-                                if(this.debug){
-                                    console.log('cloud: got', key, body, this.expires[expiralKey])
-                                }
-                                if(typeof(this.expires[expiralKey]) != 'undefined'){
-                                    store.set(this.cachingDomain + key, body, this.expires[expiralKey])
-                                    store.set(this.cachingDomain + key + '-fallback', body, true)
-                                } else {
-                                    console.error('"'+ key +'" is not cacheable (no expires set)')
-                                }
-                                if(!solved){
-                                    solved = true
-                                    resolve(body)
-                                }
-                            }
-                        }).catch(err => {
-                            console.log('cloud: error: '+ String(err))
-                            error(err)
-                        })
-                        if(typeof(softTimeout) != 'number'){
-                            softTimeout = 10000
-                        }
-                        setTimeout(() => {
-                            if(data || softTimeout == 0){
-                                error('cloud: soft timeout ('+ key +', '+ softTimeout+'), keeping request to update data in background', data)
-                            }
-                        }, softTimeout)
-                    })
+                    throw err || 'empty response no fallback'
                 }
-            })
-        })
+            } else {
+                if(this.debug){
+                    console.log('cloud: got', key, body, this.expires[expiralKey])
+                }
+                if(typeof(this.expires[expiralKey]) != 'undefined'){
+                    store.set(this.cachingDomain + key, body, this.expires[expiralKey])
+                    store.set(this.cachingDomain + key + '-fallback', body, true)
+                } else {
+                    console.error('"'+ key +'" is not cacheable (no expires set)')
+                }
+                if(this.debug){
+                    console.log('cloud: got', key, body, this.expires[expiralKey])
+                }
+                return body
+            }
+        }
     }
 }
 

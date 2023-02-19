@@ -11,19 +11,24 @@ class IPTV extends Events {
         this.data = {}
         this.icon = 'fas fa-globe'
         this.countries = new Countries()
-        this.load()
+        this.load().catch(console.error)
     }
     title(){
         return global.lang.COUNTRIES
     }
-	load(){
+	async load(){
         if(!this.repo){
-            global.cloud.get('configure').then(c => {
-                this.repo = c['iptv-repo'] || 'iptv-org/iptv'
+            let cf
+            await Promise.all([
+                global.cloud.get('configure').then(c => cf = c),
+                this.countries.ready()
+            ])
+            if(cf){
+                this.repo = cf['iptv-repo'] || 'iptv-org/iptv'
                 this.details = global.lang.FROM_X.format(this.repo.split('/')[0])
                 this.isReady = true
                 this.emit('ready')
-            }).catch(console.error)
+            }
         }
 	}
 	async ready(){

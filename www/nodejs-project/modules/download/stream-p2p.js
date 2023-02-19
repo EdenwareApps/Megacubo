@@ -15,8 +15,14 @@ class DownloadStreamP2P extends DownloadStream {
         })
     }
     async start(){
-        if(this.started || this.ended || this.destroyed){
-            throw 'Already initialized'
+        if(this.started){
+            throw 'Already started'
+        }
+        if(this.ended){
+            throw 'Already ended'
+        }
+        if(this.destroyed){
+            throw 'Already destroyed'
         }
         if(!Object.keys(global.Download.p2p.peers).length){
             process.nextTick(() => this.destroy())

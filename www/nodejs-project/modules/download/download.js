@@ -562,7 +562,7 @@ class Download extends Events {
 					}
 				})
 				response.on('error', this.errorCallback.bind(this))
-				response.once('end', () => {
+				const onend = () => {
 					if(!this.destroyed && !this.ended){
 						if(this.isResponseComplete(response.statusCode, response.headers)){
 							if(this.opts.debug){
@@ -594,7 +594,12 @@ class Download extends Events {
 							this.continue()
 						}
 					}
-				})
+				}
+				if(response.ended){
+					onend()
+				} else {
+					response.once('end', onend)
+				}
 				if(this.opts.debug && !this.destroyed){
 					console.log('>> Download receiving response', this.opts.url)
 				}
@@ -1060,11 +1065,15 @@ Download.head = (...args) => {
 	}
 	return promise
 }
-Download.get = (...args) => {
-	let _reject, g, resolved, opts = args[0]
-	let promise = new Promise((resolve, reject) => {
+Download.get = opts => {
+	let _reject, g, resolved
+	const promise = new Promise((resolve, reject) => {
 		_reject = reject
+		if(!global.dls){
+			global.dls = {}
+		}
 		g = new Download(opts)
+		global.dls[opts.url + parseInt(Math.random() * 1000)] = g
 		g.once('error', err => {
 			if(resolved) return
 			resolved = true
@@ -1084,7 +1093,7 @@ Download.get = (...args) => {
 		g.start()
 	})
 	promise.cancel = () => {
-		if(!g.ended){
+		if(g && !g.ended){
 			_reject('Promise was cancelled')
 			g.destroy()
 		}

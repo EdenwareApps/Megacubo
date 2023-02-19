@@ -59,13 +59,14 @@ class DownloadCacheChunksReader extends Events {
                 this.pump()
             }
             this.master.on('data', this.masterDataListener)
-            this.master.on('end', this.masterEndListener)
+            this.master.once('finish', this.masterEndListener)
         }
         console.error('DownloadCacheChunks()')
         fs.stat(this.master.file, (err, stat) => {
             this.fcheck = true
             console.error('DownloadCacheChunks()', err, stat)
-            if(err || stat.size == 0) return this.pump()
+            if(stat.size == 0) return this.emit('end')
+            if(err) return this.emitError(err)
             if(this.opts.start && this.opts.start >= stat.size) return this.pump()
             this.stream = new DownloadCacheFileReader(this.master.file, this.opts)
             this.stream.on('data', chunk => {
@@ -125,6 +126,13 @@ class DownloadCacheChunksReader extends Events {
         this.sent += data.length
         this.emit('data', data)
     }
+	emitError(error){
+        this.error = error
+        if(this.listenerCount('error')){
+			this.emit('error', error)
+		}
+        this.emit('end')
+	}
     pump(){
         if(!this.fcheck || this.stream || this.paused){
             return
@@ -217,9 +225,16 @@ class DownloadCacheChunks extends Events {
             this.emit('finish')
         }
     }
+    finish(){
+        if(!this.finished) {
+            this.finished = true
+            this.emit('finish')
+        }
+    }
     fail(err){
         this.emit('error', err)
         this.end()
+        this.finish()
         this.destroy()
     }
     end(){
@@ -231,6 +246,7 @@ class DownloadCacheChunks extends Events {
     }
     destroy(){
         this.chunks = []
+        this.finish()
         this.removeAllListeners()
     }
 }
