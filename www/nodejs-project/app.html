@@ -139,8 +139,13 @@
         </div>
         <div id="osd-root"></div>		
 		<script type="text/javascript" defer src="assets/js/app/app.js"></script>
-        <!-- browserify -r @geut/discovery-swarm-webrtc -r crypto -r safe-buffer -o assets/js/libs/webrtc-bundle.js -->
-		<script type="text/javascript" defer src="assets/js/libs/webrtc-bundle.js"></script>
-        <script type="text/javascript" defer src="modules/download/download-p2p-client.js"></script>
+        <script type="text/javascript">
+            window.addEventListener('load', () => {
+                // browserify -r @geut/discovery-swarm-webrtc -r crypto -r safe-buffer -o assets/js/libs/webrtc-bundle.js
+                loadJSOnIdle('./assets/js/libs/webrtc-bundle.js', () => {
+                    loadJSOnIdle('./modules/download/download-p2p-client.js', () => {})
+                })
+            })
+        </script>        
     </body>
 </html>

@@ -271,7 +271,6 @@ function fakeUpdateProgress(){
 theming()
 
 if(window.cordova){
-	console.log('ISCORDOVA')
 	updateSplashProgress()
 	document.addEventListener('deviceready', function (){	
 		updateSplashProgress()
@@ -279,9 +278,6 @@ if(window.cordova){
 			navigator.splashscreen.hide()
 		}
 		if(isES6()){
-			if(typeof(nodejs) == 'undefined'){
-				console.warn('Node.JS failure?')
-			}
 			loadScripts()			
 			plugins.insomnia.keepAwake()
 			document.addEventListener('pause', function (){
@@ -301,6 +297,5 @@ if(window.cordova){
 	}, false)
 } else {
 	updateSplashProgress(2)
-	console.log('NOTCORDOVA')
 	loadJS('/socket.io/socket.io.js', loadScripts)
 }

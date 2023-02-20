@@ -1199,7 +1199,7 @@ function updateConfig(cfg){
 	}
 }
 
-frontendBackendReadyCallback(updateConfig)
+onFrontendBackendReady(updateConfig)
 
 if(!parent.cordova){
 	['play', 'pause', 'seekRewindward', 'seekforward', 'seekto', 'previoustrack', 'nexttrack', 'skipad'].forEach(n => {

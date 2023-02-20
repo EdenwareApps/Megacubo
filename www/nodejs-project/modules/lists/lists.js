@@ -559,7 +559,7 @@ class Lists extends ListsEPGTools {
 				if(!this.requesting[url] || (this.requesting[url] == 'loading')){
 					this.requesting[url] = String(err)
 				}
-				console.error('syncLoadList error: ', err)
+				console.warn('syncLoadList error: ', err)
 				if(!resolved){
 					resolved = true
 					reject(err)

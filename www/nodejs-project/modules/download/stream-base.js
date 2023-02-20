@@ -91,7 +91,7 @@ class DownloadStream extends Events {
     }
 	emitError(error, report){
         this.error = error
-        report && console.error('DownloadStream:'+ this.type, this.opts.url, error)
+        report && console.warn('DownloadStream:'+ this.type, this.opts.url, error)
 		if(this.listenerCount('error')){
 			this.emit('error', error)
 		}

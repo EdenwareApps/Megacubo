@@ -204,7 +204,7 @@ class TunerTask extends TunerUtils {
 						console.log('Tuner suc', data.i)
 					}
                 }).catch(err => {		
-					console.error('Tuner failure', err, e.url)
+					console.warn('Tuner failure', err, e.url)
                     this.errors[data.i] = err
 					this.results[data.i] = -1
 					if(this.opts.debug){

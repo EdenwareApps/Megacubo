@@ -103,7 +103,7 @@ class HLSJournal {
 class HLSRequests extends StreamerProxyBase {
 	constructor(opts){
 		super(opts)
-		this.debugConns = true
+		this.debugConns = false
 		this.debugUnfinishedRequests = false
 		this.finishRequestsOutsideFromLiveWindow = false
 		this.prefetchMaxConcurrency = 2
@@ -270,13 +270,19 @@ class HLSRequests extends StreamerProxyBase {
 			opts.p2p = global.config.get('p2p')
 			opts.cacheTTL = 600
 		}
-		if(this.debugConns) console.warn('REQUEST CONNECT START', now, url, inLiveWindow ? 'IN LIVE WINDOW LIVE' : 'NOT IN LIVE WINDOW')
+		if(this.debugConns){
+			console.warn('REQUEST CONNECT START', now, url, inLiveWindow ? 'IN LIVE WINDOW LIVE' : 'NOT IN LIVE WINDOW')
+		}
 		const request = new global.Download(opts)
 		this.activeRequests[url] = request
 		this.debugActiveRequests()
-		if(this.debugUnfinishedRequests) global.osd.show('unfinished: '+ Object.values(this.activeRequests).length, 'fas fa-info-circle', 'hlsu', 'persistent')
+		if(this.debugUnfinishedRequests){
+			global.osd.show('unfinished: '+ Object.values(this.activeRequests).length, 'fas fa-info-circle', 'hlsu', 'persistent')
+		}
 		let ended, mediaType, end = () => {
-			if(this.debugConns) console.error('REQUEST CONNECT END', global.time() - now, url, request.statusCode, ext)
+			if(this.debugConns){
+				console.error('REQUEST CONNECT END', global.time() - now, url, request.statusCode, ext)
+			}
 			if(this.activeRequests[url]){
 				delete this.activeRequests[url]
 				this.debugActiveRequests()
@@ -307,7 +313,6 @@ class HLSRequests extends StreamerProxyBase {
 				if(this.activeManifest && this.committed){ // has downloaded at least one segment to know from where the player is starting
 					if(seg &&  !this.bitrateChecking && (this.bitrates.length < this.opts.bitrateCheckingAmount || !this.codecData)){
 						if(!this.playlistBitrates[this.activeManifest] || !this.codecData || !(this.codecData.audio || this.codecData.video)) {
-							console.log('getBitrate', this.proxify(url))
 							this.getBitrate(this.proxify(url))
 						}
 					}					
@@ -323,7 +328,9 @@ class HLSRequests extends StreamerProxyBase {
 					mediaType = 'meta'
 				}
 			} else {
-				console.error('Request error', status, headers, url, request.authErrors, request.opts.maxAuthErrors)
+				if(this.debugConns){
+					console.error('Request error', status, headers, url, request.authErrors, request.opts.maxAuthErrors)
+				}
 				if(this.debugUnfinishedRequests){
 					global.osd.show('unfinished: '+ Object.values(this.activeRequests).length, 'fas fa-info-circle', 'hlsu', 'persistent')
 					global.osd.show('error '+ url.split('/').pop().split('?')[0] +' - '+ status, 'fas fa-info-circle', 'hlsr', 'long')

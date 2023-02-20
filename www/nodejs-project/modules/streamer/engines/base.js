@@ -39,12 +39,7 @@ class StreamerBaseIntent extends Events {
 			}
 		})
         this.info = info
-        this.on('error', err => {
-            this.unload()
-        })
-        this.on('bitrate', bs => {
-            console.error('BITRRATES', bs, global.traceback())
-        })
+        this.on('error', () => this.unload())
 	}
     isTranscoding(){
         if(this.transcoderStarting || this.transcoder){

@@ -224,7 +224,11 @@ updateEPGConfig = c => {
             lists.manager.setEPG('', false).catch(console.error)
         } else {
             if(!activeEPG || activeEPG == 'auto'){
-                activeEPG = c['epg-'+ lang.countryCode] || c['epg-'+ lang.locale] || false
+                if(c.epg){
+                    activeEPG = c.epg[lang.countryCode] || c.epg[lang.locale] || false
+                } else {
+                    activeEPG = false
+                }
             }
             lists.manager.setEPG(activeEPG || '', false).catch(console.error)
         }

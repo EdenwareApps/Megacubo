@@ -41,7 +41,7 @@ class CloudData {
         }
         const expiralKey = key.split('/')[0].split('.')[0]
         const store = raw === true ? global.storage.raw : global.storage
-        let data = await store.promises.get(this.cachingDomain + key)
+        let data = await store.promises.get(this.cachingDomain + key).catch(console.error)
         if(data){
             if(this.debug){
                 console.log('cloud: got cache', key)
@@ -51,13 +51,12 @@ class CloudData {
             if(this.debug){
                 console.log('cloud: no cache', key)
             }
-            data = await store.promises.get(this.cachingDomain + key + '-fallback')
             if(this.debug){
                 console.log('cloud: fallback', key)
             }
             let p2p = key != 'configure' && !key.startsWith('channels') && global.config.get('p2p') 
             let url = this.url(key)
-            let err, body = await global.Download.get({
+            let err, err2, body = await global.Download.get({
                 url,
                 responseType: raw === true ? 'text' : 'json',
                 timeout: 60,
@@ -68,11 +67,12 @@ class CloudData {
             if(this.debug){
                 console.log('cloud: got', key, err, body)
             }
+            data = await store.promises.get(this.cachingDomain + key + '-fallback').catch(e => err2 = e)
             if(err || !body){
-                if(data){
+                if(data && !err2){
                     return data
                 } else {
-                    throw err || 'empty response no fallback'
+                    throw err || 'empty response, no fallback'
                 }
             } else {
                 if(this.debug){

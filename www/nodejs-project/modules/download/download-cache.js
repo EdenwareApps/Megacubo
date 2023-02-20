@@ -401,7 +401,7 @@ class DownloadCacheMap extends Events {
             }
             for(let row of expired){
                 if(this.index[row.url].type == 'file'){
-                    fs.promises.unlink(this.index[row.url].data).catch(console.error)
+                    fs.promises.unlink(this.index[row.url].data).catch(() => {})
                 }
                 delete this.index[row.url]
             }
@@ -482,17 +482,17 @@ class DownloadCacheMap extends Events {
                         return
                     }
                     if(this.index[url].chunks.error) {
-                        console.error(this.index[url].chunks.error)
+                        console.warn(this.index[url].chunks.error)
                         this.index[url].chunks.destroy()
                         delete this.index[url].chunks
                         delete this.index[url]
                     } else if(this.index[url].chunks.size < this.index[url].size) {
-                        console.error('Bad file size. Expected: '+ this.index[url].size +', received: '+ this.index[url].chunks.size +', discarding http cache.')
+                        console.warn('Bad file size. Expected: '+ this.index[url].size +', received: '+ this.index[url].chunks.size +', discarding http cache.')
                         this.index[url].chunks.destroy()
                         delete this.index[url].chunks
                         delete this.index[url]
                     } else if(downloader.statusCode < 200 || downloader.statusCode > 400 || (downloader.errors.length && !downloader.received)) {
-                        console.error('Bad download. Status: '+ downloader.statusCode +', received: '+ this.index[url].chunks.size, downloader.errors, downloader.received)
+                        console.warn('Bad download. Status: '+ downloader.statusCode +', received: '+ this.index[url].chunks.size, downloader.errors, downloader.received)
                         this.index[url].chunks.destroy()
                         delete this.index[url].chunks
                         delete this.index[url]

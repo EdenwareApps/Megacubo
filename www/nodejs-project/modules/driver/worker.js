@@ -6,6 +6,8 @@ function logErr(data){
     parentPort.postMessage({id: -1, type: 'error', data, file})
 }
 
+Object.keys(workerData).forEach(k => global[k] = workerData[k])
+
 crashlog = require('../crashlog')
 
 process.on('warning', e => {
@@ -24,8 +26,6 @@ process.on('uncaughtException', (exception) => {
     logErr(msg)
     return false
 })
-
-Object.keys(workerData).forEach(k => global[k] = workerData[k])
 
 global.config = require(global.APPDIR + '/modules/config')(global.paths['data'] + '/config.json')
 global.config.on('change', () => {

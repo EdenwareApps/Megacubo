@@ -167,12 +167,12 @@ document.addEventListener('backbutton', function(e){
 }, false)
 
 function channelGetLangCallback(){
-	var next = lang => {
-		if(!lang){
-			lang = window.navigator.userLanguage || window.navigator.language
+	var next = lng => {
+		if(!lng){
+			lng = window.navigator.userLanguage || window.navigator.language
 		}
 		// prevent "Intl is not defined"
-        channel.post('message', ['get-lang-callback', lang, (Intl || parent.parent.Intl).DateTimeFormat().resolvedOptions().timeZone, window.navigator.userAgent, window.navigator.onLine])
+        channel.post('message', ['get-lang-callback', lng, (Intl || parent.parent.Intl).DateTimeFormat().resolvedOptions().timeZone, window.navigator.userAgent, window.navigator.onLine])
 	}
 	if(window.cordova){
 		navigator.globalization.getPreferredLanguage(language => next(language.value), () => next())

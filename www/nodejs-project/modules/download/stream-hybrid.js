@@ -84,7 +84,6 @@ class DownloadStream extends DownloadStreamBase {
                             this.emitError(err)
                         }
                     } else if(via.type == 'p2p' || (!usep2p && via.type == 'cache')) {
-                        console.warn('P2P/CACHE DESTROYED AFTER '+ (global.time() - start)+'s', via.error || via)
                         vias.filter(v => v.type == 'http').shift().skipWait()
                     }
                 })

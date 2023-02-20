@@ -4,11 +4,11 @@ const pLimit = require('p-limit'), IPTV = require('../iptv')
 class ManagerCommunityLists extends Events {
     constructor(){
         super()
-        this.IPTV = new IPTV()
+        this.iptv = new IPTV()
     }
     async extraCommunityLists(){
-        await this.IPTV.ready()
-        return this.IPTV.getLocalLists()
+        await this.iptv.ready()
+        return this.iptv.getLocalLists()
     }   
     async communityModeKeywords(){
         const badTerms = ['m3u8', 'ts', 'mp4', 'tv', 'channel']
@@ -289,19 +289,18 @@ class ManagerEPG extends ManagerCommunityLists {
         }
         if(global.config.get('communitary-mode-lists-amount')){
             let c = await cloud.get('configure').catch(console.error)
-            if(c) {
+            if(c && c.epg) {
                 let cs = await global.lang.getActiveCountries()
                 if(!cs.includes(global.lang.countryCode)){
                     cs.push(global.lang.countryCode)
                 }
                 cs.forEach(code => {
-                    let key = 'epg-' + code
-                    if(c[key] && !epgs.includes(c[key])){
-                        epgs.push(c[key])
+                    if(c.epg[code] && !epgs.includes(c.epg[code])){
+                        epgs.push(c.epg[code])
                     }
                 })
-                epgs.push(...global.watching.currentRawEntries.map(e => e.epg).filter(e => !!e))
             }
+            epgs.push(...global.watching.currentRawEntries.map(e => e.epg).filter(e => !!e))
         }
         epgs = [...new Set(epgs)].sort()
         return epgs
@@ -1085,7 +1084,6 @@ class Manager extends ManagerEPG {
     }
     async updateLists(force){
         if(global.Download.isNetworkConnected) {
-            console.error('lists-manager updateLists', traceback())
             const uid = parseInt(Math.random() * 1000000000)
             if(!this.uiShowing){
                 this.uiShowing = true
@@ -1478,15 +1476,12 @@ class Manager extends ManagerEPG {
         global.osd.hide('list-open')
         return list
     }
-    hook(entries, path){
-        return new Promise((resolve, reject) => {
-            if(path == '' && !entries.some(e => e.name == global.lang.IPTV_LISTS)){
-                entries.push({name: global.lang.IPTV_LISTS, details: global.lang.CONFIGURE, fa: 'fas fa-list', type: 'group', renderer: this.listsEntries.bind(this)})
-            }
-            this.IPTV.hook(entries, path).then(resolve).catch(reject)
-        })
+    async hook(entries, path){
+        if(path == '' && !entries.some(e => e.name == global.lang.IPTV_LISTS)){
+            entries.push({name: global.lang.IPTV_LISTS, details: global.lang.CONFIGURE, fa: 'fas fa-list', type: 'group', renderer: this.listsEntries.bind(this)})
+        }
+        return entries
     }
 }
 
 module.exports = Manager
-

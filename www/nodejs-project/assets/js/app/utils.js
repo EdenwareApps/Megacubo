@@ -95,6 +95,40 @@ function css(code, id, scope){
     }
 }
 
+function loadJS(url, cb, retries=3){
+    var script = document.createElement("script")
+	script.type = "text/javascript";
+	if(typeof(cb) == 'function'){
+		script.onload = function (){
+			console.warn('LOADED', url);
+			setTimeout(cb, 1)
+		}
+		script.onerror = function (){
+			if(retries){
+				retries--
+				console.warn('RETRY', url);
+				setTimeout(function (){
+					loadJS(url, cb, retries)
+				}, 1)
+
+			} else {
+				console.warn('ERROR', url);
+				setTimeout(cb, 1)
+			}
+		}
+	}
+	script.src = url;
+	document.querySelector("head").appendChild(script)
+}
+
+function loadJSOnIdle(url, cb, retries=3){
+    requestIdleCallback(() => {
+        loadJS(url, (...args) => {
+            requestIdleCallback(cb)
+        }, retries)
+    })
+}
+
 function time(){
     return Date.now() / 1000
 }

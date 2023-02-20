@@ -1069,11 +1069,7 @@ Download.get = opts => {
 	let _reject, g, resolved
 	const promise = new Promise((resolve, reject) => {
 		_reject = reject
-		if(!global.dls){
-			global.dls = {}
-		}
 		g = new Download(opts)
-		global.dls[opts.url + parseInt(Math.random() * 1000)] = g
 		g.once('error', err => {
 			if(resolved) return
 			resolved = true
