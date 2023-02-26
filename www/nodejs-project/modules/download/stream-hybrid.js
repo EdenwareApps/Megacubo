@@ -19,14 +19,15 @@ class DownloadStream extends DownloadStreamBase {
     async start(){
         const start = global.time()
         const types = [DownloadStreamHttp]
-        let usecache, usep2p = this.opts.p2p === true && global.ui && global.Download.p2p
+        let usecache, usep2p
         if(this.opts.cacheTTL) {
             usecache = true
             types.push(DownloadStreamCache)
         }
-        if(usep2p) {
+        if(this.opts.p2p === true && global.ui && global.Download.p2p){
             const peersCount = Object.keys(global.Download.p2p.peers).length
-            if(peersCount){
+            if(peersCount >= 2){
+                usep2p = true
                 types.push(DownloadStreamP2P)
             } else {
                 usep2p = false
@@ -36,7 +37,7 @@ class DownloadStream extends DownloadStreamBase {
         const vias = types.map((t, i) => {
             const opts = Object.assign({}, this.ropts)
             if(t == DownloadStreamHttp && (usep2p || usecache)) { // put a delay on http to give chance for p2p/cache
-                opts.connectDelay = 2000
+                opts.connectDelay = this.opts.p2pWaitMs
             }
             const via = new t(opts)
             via.once('response', response => {
@@ -62,7 +63,6 @@ class DownloadStream extends DownloadStreamBase {
                         }
                     }
                     if(via.type == 'p2p' || (!usep2p && via.type == 'cache')) {
-                        console.warn('P2P/CACHE FAILED AFTER '+ (global.time() - start)+'s', via)
                         vias.filter(v => v.type == 'http').shift().skipWait()
                     }
                 }

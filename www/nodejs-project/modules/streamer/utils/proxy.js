@@ -12,6 +12,7 @@ class StreamerProxy extends StreamerProxyBase {
 		this.internalRequestAbortedEvent = 'request-aborted'
 		this.opts.followRedirect = true
 		this.opts.forceExtraHeaders = null
+		this.isCacheableRegex = new RegExp('^.*\\.(m4s|mts|m2ts|ts|key)', 'i')
 		if(this.opts.debug){
 			console.log('OPTS', this.opts)
 		}
@@ -256,8 +257,13 @@ class StreamerProxy extends StreamerProxyBase {
 		if(this.type == 'network-proxy'){
 			console.log('network serving', url, reqHeaders)
 		}
+		const cacheTTL = (this.committed && url.match(this.isCacheableRegex)) ? 60 : 0
 		const download = new global.Download({
 			url,
+			cacheTTL,
+			acceptRanges: !!cacheTTL,
+			p2p: !!cacheTTL,
+			p2pWaitMs: 500,
 			retries: this.committed ? 10 : 3,
 			maxAuthErrors: this.committed ? 10 : 3,
 			headers: reqHeaders,

@@ -297,7 +297,7 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 	}
 	connect(){
 		this.object.currentTime = 0
-		let v = $(this.object)
+		const v = $(this.object)
 		v.off()
 		if(!this.object.parentNode){
 			this.container.appendChild(this.object)
@@ -312,30 +312,37 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 			if(this.object.error){
 				e = this.object.error
 			}
-			const errStr = e ? String(e.message ? e.message : e) : 'unknown error'
-			const isFailed = this.object.networkState == 3 || this.object.readyState < 2 || errStr.match(new RegExp('(pipeline_error|demuxer)', 'i'))
 			const t = this.time()
-			console.error('video error', t, this.errorsCount, e, errStr, this.object.networkState +', '+ this.object.readyState, isFailed)
+			const errStr = e ? String(e.message ? e.message : e) : 'unknown error'
+			const isFailed = this.object.error || this.object.networkState == 3 || this.object.readyState < 2 || errStr.match(new RegExp('(pipeline_error|demuxer)', 'i'))
+			console.error('Video error', t, this.errorsCount, e, errStr, this.object.networkState +', '+ this.object.readyState, isFailed)
 			if(isFailed){
 				this.errorsCount++
 				if(this.errorsCount >= (t > 0 ? 200 : 2)){
 					this.emit('error', String(e), true)
 				} else {
-					const ec = this.errorsCount // load() will reset the counter
-					this.load(this.currentSrc, this.currentMimetype)
-					if(t){
-						this.object.currentTime = t + 0.5 // nudge a bit to skip any decoding error on part of the file
-					}
-					this.errorsCount = ec
+					const c = this.errorsCount // load() will reset the counter
+					this.unload()
+					setTimeout(() => {
+						this.load(this.currentSrc, this.currentMimetype)
+						if(t){
+							this.object.currentTime = t + 0.5 // nudge a bit to skip any decoding error on part of the file
+						}
+						this.errorsCount = c
+					}, 10)
 				}
 			}
 		}
-        v.on('error', onerr)
-        let source = this.object.querySelector('source')
-		if(source){ // for video only, will be skiped for hls.js
-			source.addEventListener('error', onerr)
+		if(this.currentMimetype.toLowerCase().indexOf('mpegurl') == -1){
+			v.on('error', onerr)
+			const source = this.object.querySelector('source')
+			if(source){ // for video only, hls.js uses src directly
+				source.addEventListener('error', onerr)
+			}
+		} else {
+			v.on('error', () => setTimeout(() => this.object.error && onerr(), 10))
 		}
-        v.on('ended', e => {
+		v.on('ended', e => {
 			console.log('video ended', e)
             this.emit('ended', String(e))
 		})
@@ -378,18 +385,7 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 		this.unload()
 		this.active = true
 		console.log('adapter load')
-        /*
-		let codec = mimetype.replace(new RegExp('"+', 'g'), "'").split(';'), type = codec[0]
-        codec = codec.length > 1 ? codec[1].split("'")[1] : ''
-		let h = '<source type="'+ type +'" src="'+ src +'" '
-		if(codec){
-			h += ' codecs="'+ codec +'" '
-		}
-		h += ' />'
-		*/
-		let h = ''
 		this.object.src = src
-		this.object.innerHTML = h
 		this.connect()
 		this.object.load()
 		this.resume()
@@ -403,14 +399,9 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 			this.disconnect()
 			if(this.object.currentSrc){
 				this.object._pause()
-				Array.from(this.object.getElementsByTagName('source')).forEach(s => {
-					s.src = ''
-					s.parentNode.removeChild(s)
-				})
 				this.object.innerHTML = '<source type="video/mp4" src="" />'
 				this.object.removeAttribute('src')
 				this.object.load()
-				this.object._pause()
 			}
 		}
 	}

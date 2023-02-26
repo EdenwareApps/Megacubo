@@ -138,7 +138,7 @@ class Watching extends EntriesGroup {
     async getRawEntries(){
         let data = []
         const locales = await global.lang.getActiveLanguages()
-        await Promise.all(locales.map(async locale => {
+        await Promise.allSettled(locales.map(async locale => {
             let es = await global.cloud.get('watching.'+ locale, false).catch(console.error)
             if(Array.isArray(es)) {
                 data.push(...es)

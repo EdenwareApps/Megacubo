@@ -8,7 +8,6 @@ class ListIndex extends ListIndexUtils {
 		this.indexateIterator = 0
     }
     fail(err){
-        console.warn('Bad index file', this.file, err)
         this.hasFailed = err
         if(this.listenerCount('error')){
             this.emit('error', err)

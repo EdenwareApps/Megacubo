@@ -1192,7 +1192,6 @@ class Channels extends ChannelsKids {
                     type: 'group', 
                     renderer: async () => streams
                 }
-                console.warn('EPG DEBUG', this.activeEPG, epgNow, category)
                 if(this.activeEPG){
                     epgEntry =  {
                         name: global.lang.EPG, 
@@ -1282,11 +1281,11 @@ class Channels extends ChannelsKids {
         let meta = Object.assign({}, e), terms = this.entryTerms(e)        
         if(typeof(meta.url) == 'undefined'){
             let name = e.name
-            if(e.program){
+            if(e.program && e.program.ch){
                 name = e.program.ch
             }
-            let ch = this.isChannel(name)
-            if(ch){
+            const ch = this.isChannel(name)
+            if(ch && ch.name){
                 name = ch.name
                 terms = ch.terms
             }
@@ -1294,7 +1293,7 @@ class Channels extends ChannelsKids {
         }
         if(global.mega.isMega(meta.url)){
             let atts = Object.assign({}, global.mega.parse(meta.url))
-            Object.assign(atts, meta)  
+            Object.assign(atts, meta)
             if(['all', 'video'].includes(atts.mediaType)){
                 Object.assign(meta, {
                     type: 'group',
@@ -1316,7 +1315,7 @@ class Channels extends ChannelsKids {
                     type: 'select',
                     class: 'entry-meta-stream',
                     fa: 'fas fa-play-circle',
-                    renderer: () => this.toMetaEntryRenderer(meta, category, details)
+                    renderer: () => this.toMetaEntryRenderer(atts, category, details)
                 })
             }
         }

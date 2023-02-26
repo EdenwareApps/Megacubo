@@ -137,7 +137,6 @@ class DownloadCacheChunksReader extends Events {
         if(!this.fcheck || this.stream || this.paused){
             return
         }
-        let skipChk
         this.pending.forEach((c, i) => {
             if(!c.data) return
             let len = c.data.length, start = c.offset, end = start + len
@@ -147,10 +146,12 @@ class DownloadCacheChunksReader extends Events {
                 }
                 this.emitData(c.data, this.processed)
                 this.processed += len
+                /*
+                TODO: workaround it, console.warn('Bad pumping', this.processed, end)
                 if(!skipChk && this.processed != end){
-                    console.error('Bad pumping', this.processed, end)
                     skipChk = true
                 }
+                */
                 delete this.pending[i].data
             }
         })

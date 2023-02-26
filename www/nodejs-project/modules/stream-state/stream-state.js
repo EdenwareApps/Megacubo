@@ -224,7 +224,7 @@ class StreamState extends Events {
 		}
 	}
     test(entries, name){
-        let ctl = new Promise((resolve, reject) => {
+        return new Promise((resolve, reject) => {
             if(this.testing){
                 this.testing.finish()
             }
@@ -300,7 +300,6 @@ class StreamState extends Events {
             })
             this.testing.start()
         })
-        return ctl
     }
     success(entry, info){
         this.set(entry.url, info.type)

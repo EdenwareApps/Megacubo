@@ -111,68 +111,30 @@ class List extends Events {
             })
         })
 	}
-	verifyListQuality(){
-		return new Promise((resolve, reject) => {
-            if(this.skipValidating){
-				return resolve(true)
-			}
-			let resolved, hits = 0, results = [], len = this.index.length
-			if(!len){
-				return reject('insufficient streams '+ len)
-			}
-            let tests = Math.min(len, 10), mtp = Math.floor((len - 1) / (tests - 1))
-            let ids = []
-			for(let i = 0; i < len; i += mtp) ids.push(i)
-            this.indexer.entries(ids).then(entries => {
-                const urls = entries.map(e => e.url)
-                if(this.debug){
-                    console.log('validating list quality', this.url, tests, mtp, urls)
-                }
-                const racing = new ConnRacing(urls, {retries: 1, timeout: 5}), end = () => {
-                    if(this.validator){
-                        racing.end()
-                        delete this.validator
-                    }
-                    if(hits){
-                        //let quality = hits / (urls.length / 100) // disabled for performance
-                        let quality = 100
-                        if(this.debug){
-                            console.log('verified list quality', this.url, quality)
-                        }
-                        if(!resolved){
-                            resolved = true
-                            resolve(quality)
-                        }
-                    } else {                        
-                        if(!resolved){
-                            resolved = true
-                            reject('no valid links')
-                        }
-                    }
-                }, next = () => {
-                    if(racing.ended){
-                        end()
-                    } else {
-                        racing.next(res => {
-                            results.push(res)
-                            if(res && res.valid){
-                                hits++
-                                end()
-                            }
-                            next()
-                        })
-                    }
-                }
-                this.validator = racing
-                this.once('destroy', () => {
-                    if(!resolved){
-                        resolved = true
-                        reject('destroyed')
-                    }
-                })
-                next()
-            }).catch(err => reject(err))
-		})
+	async verifyListQuality(){
+        if(this.skipValidating){
+            return true
+        }
+        let len = this.index.length
+        if(!len){
+            throw 'insufficient streams '+ len
+        }
+        let tests = Math.min(len, 10), mtp = Math.floor((len - 1) / (tests - 1))
+        let ids = []
+        for(let i = 0; i < len; i += mtp) ids.push(i)
+        let entries = await this.indexer.entries(ids)
+        const urls = entries.map(e => e.url)
+        if(this.debug){
+            console.log('validating list quality', this.url, tests, mtp, urls)
+        }
+        const racing = new ConnRacing(urls, {retries: 1, timeout: 5})
+		for(let i=0; i<urls.length; i++){
+            const res = await racing.next().catch(console.error)
+            if(res && res.valid){
+                return 100 / i
+            }            
+        }
+		throw 'no valid links'
 	}
 	verifyListRelevance(index){
         const values = {

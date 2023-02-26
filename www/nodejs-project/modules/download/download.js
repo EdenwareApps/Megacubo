@@ -11,6 +11,7 @@ class Download extends Events {
 		this.startTime = global.time()
 		this.opts = {
 			p2p: false,
+			p2pWaitMs: 2000,
 			cacheTTL: 0,
 			uid: parseInt(Math.random() * 10000000000000),
 			debug: Download.debug || false,

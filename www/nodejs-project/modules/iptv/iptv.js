@@ -11,7 +11,7 @@ class IPTV extends Events {
 	async load(){
         if(!this.repo){
             let cf
-            await Promise.all([
+            await Promise.allSettled([
                 global.cloud.get('configure').then(c => cf = c),
                 this.countries.ready()
             ])

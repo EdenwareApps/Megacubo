@@ -526,7 +526,7 @@ function initApp(){
                 //console.log('selectionMemory scroll', y)
                 explorer.updateRange(y)
                 elpShow()
-                haUpdate()  
+                haUpdate()
             })
 
             var elp = $('.explorer-location-pagination'), elpTxt = elp.find('span'), elpTimer = 0, elpDuration = 5000, elpShown = false, elpShow = txt => {
@@ -547,11 +547,15 @@ function initApp(){
                     }, elpDuration)
                 }
             }
-            explorer.on('focus', element => {
-                let offset = explorer.path ? 0 : 1
-                elpShow(' '+ (explorer.selectedIndex + offset) +'/'+ (explorer.currentEntries.length - 1 + offset))
-            })
-            explorer.on('arrow', () => requestIdleCallback(elpShow))
+            const elpListener = () => {
+                requestIdleCallback(() => {
+                    let offset = explorer.path ? 0 : 1
+                    elpShow(' '+ (explorer.selectedIndex + offset + 1) +'/'+ (explorer.currentEntries.length + offset))
+                })
+            }
+            explorer.on('arrow', elpListener)
+            explorer.on('focus', elpListener)
+            explorer.on('render', elpListener)
 
             var haTop = $('#home-arrows-top'), haBottom = $('#home-arrows-bottom')
             haTop.on('click', () => {

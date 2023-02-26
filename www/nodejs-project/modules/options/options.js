@@ -708,29 +708,51 @@ class Options extends OptionsHardwareAcceleration {
                     return global.config.get('ts-packet-filter-policy') !== -1                    
                 }},
                 {
+                    name: 'Use FFmpeg for HLS',
+                    fa: 'fas fa-cog', 
+                    type: 'select', 
+                    renderer: async () => {
+                        /*
+                        Using FFmpeg as middleware for HLS breaks multi-tracks
+                        but for single track streams can help by storing broadcast on disk
+                        allowing a bigger in-disk backbuffer (default: auto)
+                        */
+                        const def = global.config.get('ffmpeg-hls'), opts = [
+                            {name: global.lang.NO, type: 'action', selected: (def == 'no'), action: () => {
+                                global.config.set('ffmpeg-hls', 'no')
+                            }},
+                            {name: global.lang.AUTO, type: 'action', selected: (def == 'auto' || !['yes', 'no'].includes(def)), action: () => {
+                                global.config.set('ffmpeg-hls', 'auto')
+                            }},
+                            {name: global.lang.ALWAYS, type: 'action', selected: (def == 'yes'), action: () => {
+                                global.config.set('ffmpeg-hls', 'yes')
+                            }}
+                        ]
+                        return opts
+                    }
+                },
+                {
                     name: 'Unpause jumpback',
                     fa: 'fas fa-undo', 
                     type: 'select', 
-                    renderer: () => {
-                        return new Promise((resolve, reject) => {
-                            const def = global.config.get('unpause-jumpback'), opts = [
-                                {name: global.lang.DISABLED, type: 'action', selected: (def == 0), action: () => {
-                                    global.config.set('unpause-jumpback', 0)
-                                }},
-                                {name: '2s', type: 'action', selected: (def == 2), action: () => {
-                                    global.config.set('unpause-jumpback', 2)
-                                }},
-                                {name: '5s', type: 'action', selected: (def == 5), action: () => {
-                                    global.config.set('unpause-jumpback', 5)
-                                }},
-                                {name: '10s', type: 'action', selected: (def == 10), action: () => {
-                                    global.config.set('unpause-jumpback', 10)
-                                }}
-                            ]
-                            resolve(opts)
-                        })
+                    renderer: async () => {
+                        const def = global.config.get('unpause-jumpback'), opts = [
+                            {name: global.lang.DISABLED, type: 'action', selected: (def == 0), action: () => {
+                                global.config.set('unpause-jumpback', 0)
+                            }},
+                            {name: '2s', type: 'action', selected: (def == 2), action: () => {
+                                global.config.set('unpause-jumpback', 2)
+                            }},
+                            {name: '5s', type: 'action', selected: (def == 5), action: () => {
+                                global.config.set('unpause-jumpback', 5)
+                            }},
+                            {name: '10s', type: 'action', selected: (def == 10), action: () => {
+                                global.config.set('unpause-jumpback', 10)
+                            }}
+                        ]
+                        return opts
                     }
-                },            ,
+                },
                 {
                     name: global.lang.ELAPSED_TIME_TO_KEEP_CACHED, 
                     details: global.lang.LIVE,

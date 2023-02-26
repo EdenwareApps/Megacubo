@@ -1,4 +1,4 @@
-const Events = require('events'), async = require('async')
+const Events = require('events'), pLimit = require('p-limit')
 
 class ConnRacing extends Events {
     constructor(urls, opts={}){
@@ -11,60 +11,50 @@ class ConnRacing extends Events {
         this.ended = false
         this.racingEnded = false
         this.readyIterator = 0
-        this.start()
         this.uid = parseInt(Math.random() * 10000000000000)
+        this.start().catch(console.error)
     }
-    start(){
+    async start(){
         if(!this.urls.length){
             return this.end()
         }
-        async.eachOfLimit(this.urls, 12, (url, i, done) => {
-            let download, finished, headers = {}, status = 0, start = global.time()
-            const finish = () => {
-                if(!finished){
-                    finished = true
-                    this.readyIterator++
+        const limit = pLimit(20)
+        const tasks = this.urls.map(url => {
+            return async () => {
+                if(!url.match(new RegExp('^(//|https?://)'))){ // url not testable
+                    throw 'url not testable'
+                }
+                if(this.ended){
+                    return false
+                }
+                const start = global.time(), prom = global.Download.head({
+                    url,
+                    followRedirect: true,
+                    acceptRanges: false,
+                    keepalive: false,
+                    retries: 1
+                })
+                this.downloads.push(prom)
+                const ret = await prom.catch(console.error)
+                this.readyIterator++
+                if(ret && ret.statusCode){
+                    const status = ret.statusCode, valid = status >= 200 && status < 300
                     const result = {
                         time: global.time() - start,
-                        url,
-                        directURL: download ? download.currentURL : url,
-                        valid: status >= 200 && status < 300,
-                        status,
-                        headers
+                        url, valid, status,
+                        headers: ret.headers
                     }
                     this.results.push(result)
-                    if(download){
-                        download.destroy()		
-                        download = null			
-                    }
-                    done()   
                     this.pump()
+                    return ret.status
+                } else {
+                    return false
                 }
             }
-            if(!url.match(new RegExp('^(//|https?://)'))){ // url not testable
-                status = 200
-                return finish()
-            }
-            const req = Object.assign({
-                url,
-                followRedirect: true,
-                acceptRanges: false,
-                keepalive: false,
-                retries: 1
-            }, this.opts)
-            download = new global.Download(req)
-            this.downloads.push(download)
-            download.once('response', (statusCode, responseHeaders) => {
-                headers = responseHeaders
-                status = statusCode
-                finish()
-            })
-            download.once('end', finish)
-            download.start()
-        }, () => {
-            this.racingEnded = true
-            this.pump()
-        })
+        }).map(limit)
+        await Promise.allSettled(tasks)
+        this.racingEnded = true
+        this.end()
     }
     pump(){
         if(this.destroyed){
@@ -81,12 +71,17 @@ class ConnRacing extends Events {
             cbs.forEach(f => f(false))
         }
     }
-    next(cb){
-        if(this.ended){
-            return cb(false)
-        }
-        this.callbacks.push(cb)
-        this.pump()
+    next(){
+        return new Promise((resolve, reject) => {
+            if(this.results.length){
+                return resolve(this.results.shift())
+            }
+            this.callbacks.push(resolve)
+            this.pump()
+            if(this.ended){
+                return resolve(false)
+            }
+        })
     }
     end(){
         if(!this.ended){
@@ -105,7 +100,7 @@ class ConnRacing extends Events {
             this.destroyed = true
             this.results = []
             this.callbacks = [] // keep before
-            this.downloads.forEach(d => d.destroy())
+            this.downloads.forEach(d => d.cancel())
             this.downloads = []
             this.removeAllListeners()
         }

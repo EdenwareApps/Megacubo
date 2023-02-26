@@ -125,9 +125,7 @@ class ManagerCommunityLists extends Events {
             const limit = pLimit(3)
             let ret = {}, locs = await global.lang.getActiveCountries()
             let results = await Promise.allSettled(locs.map(loc => {
-                return () => {
-                    return global.cloud.get('country-sources.'+ loc, false, timeout).catch(console.error)
-                }
+                return () => global.cloud.get('country-sources.'+ loc, false, timeout).catch(console.error)
             }).map(limit))
             results.forEach(r => {
                 if(r.status == 'fulfilled' && r.value && typeof(r.value) == 'object'){
@@ -589,6 +587,83 @@ class ManagerEPG extends ManagerCommunityLists {
             disable()
         }
     }
+    epgEntry(){
+        return {
+            name: global.lang.EPG, 
+            fa: global.channels.epgIcon, 
+            type: 'group', details: 'EPG', 
+            renderer: async () => {
+                const entries = [
+                    {
+                        name: global.lang.OPTIONS,
+                        type: 'group',
+                        fa: 'fas fa-cog',
+                        renderer: async () => {
+                            const epgData = this.master.epg([], 2)
+                            return this.epgOptionsEntries(this.epgLoadingStatus(epgData))
+                        }
+                    },
+                    global.channels.epgSearchEntry()
+                ]
+                entries.push(...global.channels.getCategories().map(category => {
+                    const rawname = global.lang.CATEGORY_KIDS == category.name ? '[fun]'+ category.name +'[|fun]' : category.name
+                    return {
+                        name: category.name,
+                        rawname,
+                        type: 'group',
+                        renderer: () => {
+                            return this.epgCategoryEntries(category)
+                        }
+                    }
+                }))
+                return entries
+            }            
+        }
+    }    
+    async epgCategoryEntries(category){
+        let terms = {}, channels = category.entries.map(e => {
+            let data = global.channels.isChannel(e.name)
+            if(data){
+                e.terms.name = terms[e.name] = data.terms
+                return e
+            }
+        }).filter(e => e)
+        const epgData = await global.lists.epg(channels, 72)
+        let centries = []
+        const kids = global.lang.CATEGORY_KIDS == category.name
+        if(!Array.isArray(epgData)){
+            Object.keys(epgData).forEach((ch, i) => {
+                if(!epgData[ch]) return
+                let current, next
+                Object.keys(epgData[ch]).some(start => {
+                    if(!current){
+                        current = epgData[ch][start]
+                        current.start = start
+                    } else {
+                        if(!next) {
+                            next = epgData[ch][start]
+                            next.start = start
+                        }
+                        return true
+                    }
+                })
+                if(current){
+                    current.ch = ch
+                    const rawname = kids ? '[fun]'+ current.t +'[|fun]' : current.t
+                    centries.push({
+                        name: current.t,
+                        rawname,
+                        details: ch,
+                        type: 'group',
+                        fa: 'fas fa-play-circle',
+                        program: current,
+                        renderer: async () => global.channels.epgDataToEntries(epgData[ch], ch, terms[ch])
+                    })
+                }
+            })
+        }
+        return centries
+    }
 }
 
 class Manager extends ManagerEPG {
@@ -772,7 +847,7 @@ class Manager extends ManagerEPG {
         value = global.forwardSlashes(value)
         await this.add(value, name, uid).catch(e => err = String(e))
         global.osd.hide('add-list-progress-'+ uid)
-        if(err){
+        if(typeof(err) != 'undefined'){
             if(err.match('http error') != -1){
                 err = global.lang.INVALID_URL_MSG
             }
@@ -973,7 +1048,7 @@ class Manager extends ManagerEPG {
     }
     startUpdater(){
         if(!this.updater){
-            this.updater = new (require('../driver')(global.APPDIR + '/modules/lists/driver-updater'))
+            this.updater = new (require('../driver')(global.APPDIR + '/modules/lists/driver'))
             this.updaterClients = 0
         }
         this.updaterClients++
@@ -1000,11 +1075,7 @@ class Manager extends ManagerEPG {
     async update(force, uid){
         const camount = global.config.get('communitary-mode-lists-amount')
         if(force === true || !global.lists.activeLists.length || global.lists.activeLists.length < camount){
-            const alreadyUpdating = Object.keys(this.updatingProcesses).map(id => {
-                return this.updatingProcesses[id].urls || []
-            }).flat()
-            let communityLists = [], keywords = []
-            const myLists = (await this.getURLs()).filter(url => !alreadyUpdating.includes(url))
+            let communityLists = [], keywords = [], myLists = await this.getURLs()
             const loadMyListsCaches = this.master.loadCachedLists(myLists) // load my lists asap, before to possibly keep waiting for community lists
             if(camount){
                 const maxListsToTry = 3 * camount
@@ -1018,7 +1089,7 @@ class Manager extends ManagerEPG {
                         communityLists.push(...r.value)
                     }
                 })
-                communityLists = communityLists.filter(url => !alreadyUpdating.includes(url) && !myLists.includes(url))
+                communityLists = communityLists.filter(url => !myLists.includes(url))
                 communityLists = this.getUniqueLists(communityLists)
                 if(communityLists.length){
                     if(communityLists.length > maxListsToTry){
@@ -1028,6 +1099,11 @@ class Manager extends ManagerEPG {
                     await this.master.setCommunityLists(communityLists)
                 }
             }
+            const alreadyUpdating = Object.keys(this.updatingProcesses).map(id => {
+                return this.updatingProcesses[id].urls || []
+            }).flat()
+            myLists = myLists.filter(url => !alreadyUpdating.includes(url))
+            communityLists = communityLists.filter(url => !alreadyUpdating.includes(url))            
             if(communityLists.length || myLists.length){
                 this.uiUpdating = true
                 const timer = setInterval(() => this.updateOSD(), 3000)
@@ -1035,9 +1111,8 @@ class Manager extends ManagerEPG {
                 this.master.keywords(keywords)
                 const allLists = myLists.concat(communityLists), updater = this.startUpdater()
                 this.updatingProcesses[uid].urls = allLists
-                console.error('Update lists '+ uid)
                 updater.on('list-updated', url => {
-                    console.log('List updated', url)
+                    if(!allLists.includes(url)) return // from some other update scope
                     this.master.syncList(url).then(() => {
                         console.log('List updated and synced', url)
                     }).catch(err => {
@@ -1047,9 +1122,14 @@ class Manager extends ManagerEPG {
                     })
                 })
                 await updater.setRelevantKeywords(keywords)
-                let results, expired = [], loadCommmunityListsCaches = this.master.loadCachedLists(communityLists)
-                let updating = updater.update(allLists).then(r => results = r).catch(console.error)
-                await Promise.all([updating, loadMyListsCaches, loadCommmunityListsCaches])
+                let results, expired = []
+                const cachedLists = await this.master.filterCachedUrls(allLists)
+                const loadCommmunityListsCaches = this.master.loadCachedLists(cachedLists)
+                const concurrency = cachedLists.length >= Math.min(Math.max(camount, myLists.length), 8) ? 2 : 6
+                const updating = updater.update(allLists.filter(u => !cachedLists.includes(u)).concat(cachedLists), concurrency).then(r => results = r).catch(err => {
+                    console.error('Failed to update packages', err)
+                })
+                await Promise.allSettled([loadMyListsCaches, loadCommmunityListsCaches, updating])
                 clearInterval(timer)
                 this.master.updaterFinished(true).catch(console.error)
                 this.updatingProcessOutput(uid, global.lang.LISTS_UPDATED, 'fas fa-check-circle') // warn user if there's no lists
@@ -1078,7 +1158,18 @@ class Manager extends ManagerEPG {
                 }
             } else {
                 this.master.delimitActiveLists()
-                this.updatingProcessOutput(uid, global.lang.NO_LIST_PROVIDED, 'fas fa-exclamation-circle') // warn user if there's no lists
+                const suid = String(uid)
+                let failed
+                if(!this.master.activeLists.length){
+                    const isUpdating = Object.keys(this.updatingProcesses).filter(id => id != suid).length
+                    if(!isUpdating){
+                        failed = true
+                    }
+                }
+                if(failed){
+                    console.warn(global.lang.NO_LIST_PROVIDED, JSON.stringify(this.master.activeLists), Object.keys(this.master.lists))
+                    this.updatingProcessOutput(uid, global.lang.NO_LIST_PROVIDED, 'fas fa-exclamation-circle') // warn user if there's no lists
+                }
             }
         }
     }
@@ -1363,7 +1454,7 @@ class Manager extends ManagerEPG {
             let options = []
             options.push(this.myListsEntry())
             options.push(this.listSharingEntry())
-            options.push({name: global.lang.EPG, details: 'EPG', fa: global.channels.epgIcon, type: 'group', renderer: this.epgOptionsEntries.bind(this)})
+            options.push(this.epgEntry())
             resolve(options)
         })
     }

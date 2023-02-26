@@ -805,8 +805,8 @@ controls button.info.faclr-green i.about-icon-dot-first, seekbar.faclr-green > d
     box-shadow: 0 0 2vmin 0.2vmin #0f0;
 }
 controls button.info.faclr-orange i.about-icon-dot-second, seekbar.faclr-orange > div > div {
-    background: #b6e013;
-    box-shadow: 0 0 2vmin 0.2vmin #b6e013;
+    background: #e0d213;
+    box-shadow: 0 0 2vmin 0.2vmin #e0d213;
 }
 controls button.info.faclr-red i.about-icon-dot-third, seekbar.faclr-red > div > div {
     background: #f05;
@@ -816,7 +816,7 @@ controls button.recording.faclr-green i {
     color: #0f0;
 }
 controls button.recording.faclr-orange i {
-    color: #b6e013;
+    color: #e0d213;
 }
 controls button.recording.faclr-red i {
     color: #f05;
@@ -827,8 +827,8 @@ controls button.recording.faclr-red i {
     margin-right: 0.8vmin;
 }
 .modal-template-message i.fa-circle.faclr-orange {
-    color: #b6e013 !important;
-    filter: drop-shadow(0 0 0.4vmin #b6e013);
+    color: #e0d213 !important;
+    filter: drop-shadow(0 0 0.4vmin #e0d213);
     margin-right: 0.8vmin;
 }
 .modal-template-message i.fa-circle.faclr-red {

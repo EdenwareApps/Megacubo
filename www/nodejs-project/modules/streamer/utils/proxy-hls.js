@@ -107,7 +107,6 @@ class HLSRequests extends StreamerProxyBase {
 		this.debugUnfinishedRequests = false
 		this.finishRequestsOutsideFromLiveWindow = false
 		this.prefetchMaxConcurrency = 2
-		this.packetFilterPolicy = 1
 		this.activeManifest = null
 		this.activeRequests = {}
 		this.once('destroy', () => {
@@ -264,12 +263,8 @@ class HLSRequests extends StreamerProxyBase {
 		return code >= 200 && code <= 400 && code != 204
 	}
 	download(opts){
-		const now = global.time(), url = opts.url, ext = this.ext(url), seg = this.isSegmentURL(url)
+		const now = global.time(), url = opts.url, seg = this.isSegmentURL(url)
 		const inLiveWindow = this.inLiveWindow(url)
-		if(ext == 'ts'){
-			opts.p2p = global.config.get('p2p')
-			opts.cacheTTL = 600
-		}
 		if(this.debugConns){
 			console.warn('REQUEST CONNECT START', now, url, inLiveWindow ? 'IN LIVE WINDOW LIVE' : 'NOT IN LIVE WINDOW')
 		}
@@ -647,15 +642,19 @@ class StreamerProxyHLS extends HLSRequests {
 				console.log('serving', url, req, url, reqHeaders)
 			}
 		}
+		const cacheTTL = (this.committed && url.match(this.isCacheableRegex)) ? 60 : 0
 		const keepalive = this.committed && global.config.get('use-keepalive')
 		const download = this.download({
 			url,
+			cacheTTL,
+			acceptRanges: !!cacheTTL,
+			p2p: !!cacheTTL,
+			p2pWaitMs: 500,
 			debug: false,
 			headers: reqHeaders,
 			authURL: this.opts.authURL || false, 
 			keepalive,
 			followRedirect: this.opts.followRedirect,
-			acceptRanges: url.indexOf('m3u') == -1 ? true : false,
 			maxAuthErrors: this.committed ? 10 : 3,
 			retries: this.committed ? 10 : 3
 		})

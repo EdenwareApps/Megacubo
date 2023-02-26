@@ -66,30 +66,26 @@ class StreamerTools extends Events {
 			}
 		}
 	}
-	info(url, retries=2, entry={}){
-		return new Promise((resolve, reject) => {
-			if(!url){
-				reject(global.lang.INVALID_URL)
+	async info(url, retries=2, entry={}){
+		if(!url){
+			throw global.lang.INVALID_URL
+		}
+		await this.pingSource(entry.source).catch(console.error)
+		let type = false
+		const nfo = await this.streamInfo.probe(url, retries, entry)
+		Object.keys(this.engines).some(name => {
+			if(this.engines[name].supports(nfo)){
+				type = name
+				return true
 			}
-			this.pingSource(entry.source, () => {
-				this.streamInfo.probe(url, retries, entry).then(nfo => {
-					let type = false
-					Object.keys(this.engines).some(name => {
-						if(this.engines[name].supports(nfo)){
-							type = name
-							return true
-						}
-					})
-					if(type){
-						nfo.type = type
-						resolve(nfo)
-					} else {
-						console.error('unknown stream type', nfo, Object.keys(this.engines).slice(0), this.destroyed)
-						reject('unknown stream type')
-					}
-				}).catch(reject)
-			})
 		})
+		if(type){
+			nfo.type = type
+			return nfo
+		} else {
+			console.error('unknown stream type', nfo, Object.keys(this.engines).slice(0), this.destroyed)
+			throw 'unknown stream type'
+		}
 	}
     ext(file){
 		let basename = String(file).split('?')[0].split('#')[0].split('/').pop()
@@ -186,61 +182,36 @@ class StreamerBase extends StreamerTools {
 			})
         })
 	}
-	pingSource(url, cb){ // ensure to keep any auth
-        if(typeof(global.streamerPingSourceTTLs) == 'undefined'){ // using global here to make it unique between any tuning and streamer
-            global.streamerPingSourceTTLs = {}            
-        }
-        if(typeof(global.streamerPingSourceCallbacks) == 'undefined'){
-            global.streamerPingSourceCallbacks = {}
-        }
+	async pingSource(url){ // ensure to keep any auth
+		if(typeof(global.streamerPingSourceTTLs) == 'undefined'){ // using global here to make it unique between any tuning and streamer
+			global.streamerPingSourceTTLs = {}            
+		}
 		if(global.validateURL(url)){
 			let now = global.time()
 			console.log('pingSource: ..', global.streamerPingSourceTTLs[url], now)	
 			if(!global.streamerPingSourceTTLs[url] || global.streamerPingSourceTTLs[url] < now){
-				if(this.pingSourceQueue(url, cb, cb)){
-					let ret = ''
-					global.Download.get({
-						url,
-						timeout: 10,
-						retry: 0,
-						receiveLimit: 1,
-						followRedirect: true
-					}).then(body => {
-						console.log('pingSource: ok')	
-						ret = String(body)
-					}).catch(err => {
-						console.warn('pingSource error?: '+ String(err))
-					}).finally(() => {
-						console.log('pingSource: unqueue resolving')
+				global.streamerPingSourceTTLs[url] = now + 60 // lock while connecting
+				let err
+				const ret = await global.Download.head({
+					url,
+					timeout: 10,
+					retry: 0,
+					receiveLimit: 1,
+					followRedirect: true
+				}).catch(r => err = r)
+				if(typeof(err) != 'undefined') {
+					console.warn('pingSource error?: '+ String(err))
+				} else {
+					console.log('pingSource: ok')	
+					if(ret.statusCode < 200 || ret.statusCode >= 400){
+						global.streamerPingSourceTTLs[url] = now + 300
+					} else {
 						global.streamerPingSourceTTLs[url] = now + 600
-						this.pingSourceUnqueue(url, 'resolve', ret)
-					})
+					}
 				}
-			} else {
-				cb()
 			}
-		} else {
-			cb()
 		}
-	}	
-    pingSourceQueue(k, resolve, reject){
-        // console.log('name', JSON.stringify(k))
-        let ret
-        if(typeof(global.streamerPingSourceCallbacks[k]) == 'undefined'){
-            global.streamerPingSourceCallbacks[k] = []
-            ret = true
-        }
-        global.streamerPingSourceCallbacks[k].push({resolve, reject})
-        return ret
-    }
-    pingSourceUnqueue(k, type, body){
-        if(typeof(global.streamerPingSourceCallbacks[k]) != 'undefined'){
-            global.streamerPingSourceCallbacks[k].forEach(r => {
-                r[type](body)
-            })
-            delete global.streamerPingSourceCallbacks[k]
-        }        
-    }
+	}
 	intentFromInfo(data, opts, aside, nfo){
         return new Promise((resolve, reject) => {
 			opts = Object.assign(Object.assign({}, this.opts), opts || {})

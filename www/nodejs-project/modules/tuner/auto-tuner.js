@@ -28,9 +28,7 @@ class AutoTuner extends Events {
         if(!this.tuner){
             this.entries = await this.ceilPreferredStreams(this.entries, this.preferredStreamServers(), this.opts.preferredStreamURL)
             this.entries = await this.ceilMyListsStreams(this.entries, this.preferredStreamServers(), this.opts.preferredStreamURL)
-            console.log('CEILED', this.entries.map(e => e.url))
-            this.tuner = new Tuner(this.entries, this.opts, this.optsmegaURL)
-            this.tuner.opts.debug = false
+            this.tuner = new Tuner(this.entries, this.opts, this.opts.megaURL)
             this.tuner.on('success', (e, nfo, n) => {
                 if(typeof(this.succeededs[n]) == 'undefined'){
                     this.succeededs[n] = 0
@@ -39,19 +37,14 @@ class AutoTuner extends Events {
                     }
                 }
             })
-            this.tuner.on('progress', () => {
-                this.emit('progress', this.getStats())
-            })
+            if(this.listenerCount('progress')){
+                this.tuner.on('progress', () => this.progress())
+            }
             this.tuner.on('finish', () => {
                 if(!this.paused){
                     this.pump()
                 }
             })
-            if(this.listenerCount('progress')){
-                this.timer = setInterval(() => {
-                    this.emit('progress', this.getStats())
-                }, 1000)
-            }
         }
     }
     active(){
@@ -148,11 +141,24 @@ class AutoTuner extends Events {
             }
             if(this.listenerCount('progress')){
                 clearInterval(this.timer)
-                this.timer = setInterval(() => {
-                    this.emit('progress', this.getStats())
-                }, 1000)
+                this.timer = setInterval(() => this.progress(), 2000)
             }
             return true
+        }
+    }
+    progress(){
+        const stats = this.tuner.getStats()
+        let pending = Object.values(this.succeededs).filter(i => i == 0 || i == 1)
+        stats.successes -= pending.length
+		this.intents.filter(n => !n.destroyed).map(n => n.timeoutStatus() / 100).forEach(s => stats.successes += s)
+        stats.processed = stats.successes + stats.failures
+		stats.progress = parseInt(stats.processed / (stats.total / 100))
+		if(stats.progress > 99){
+			stats.progress = 99
+		}
+        if(this.lastProgress != stats.progress){
+            this.lastProgress = stats.progress
+            this.emit('progress', stats)
         }
     }
     tune(){
@@ -165,7 +171,7 @@ class AutoTuner extends Events {
             }
             this.start().then(() => {
                 let resolved
-                this.emit('progress', this.getStats())
+                this.progress()
                 const removeListeners = () => {
                     this.removeListener('success', successListener)
                     this.removeListener('finish', finishListener)
@@ -234,18 +240,6 @@ class AutoTuner extends Events {
             }            
         }
         return e
-    }
-    getStats(){
-        let stats = this.tuner.getStats()
-        let pending = Object.values(this.succeededs).filter(i => i == 0 || i == 1)
-        stats.successes -= pending.length
-		this.intents.filter(n => !n.destroyed).map(n => n.timeoutStatus() / 100).forEach(s => stats.successes += s)
-        stats.processed = stats.successes + stats.failures
-		stats.progress = parseInt(stats.processed / (stats.total / 100))
-		if(stats.progress > 99){
-			stats.progress = 99
-		}
-		return stats
     }
     getQueue(){
         const busyDomains = this.tuner.busyDomains()
@@ -373,9 +367,6 @@ class AutoTuner extends Events {
                 }
             })
         })
-        if(!this.paused && !this.finished && !this.destroyed) {
-            this.emit('progress', this.getStats())
-        }
     }
     log(){
         let ret = {}

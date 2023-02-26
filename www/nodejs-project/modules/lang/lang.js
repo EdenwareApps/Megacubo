@@ -85,7 +85,7 @@ class Language extends Events {
         if(!Array.isArray(locales)){
             locales = [locales]
         }
-        await Promise.all(locales.map(async loc => {
+        await Promise.allSettled(locales.map(async loc => {
             const cs = await this.getCountriesFromLanguage(loc).catch(console.error)
             if(Array.isArray(cs)){
                 cs.forEach(c => {

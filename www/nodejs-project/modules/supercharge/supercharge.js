@@ -383,10 +383,9 @@ function patch(scope){
 		const fstat = await fs.promises.stat(from).catch(console.error)
 		if(!fstat) throw '"from" file not found'
 		let err
-		// await fs.promises.rename(from, to).catch(e => err = e) // rename now and then gives perm errors to rename
 		await fs.promises.copyFile(from, to).catch(e => err = e)
 		let tstat
-		if(err){
+		if(typeof(err) != 'undefined'){
 			tstat = await fs.promises.stat(to).catch(console.error)
 			if(tstat && tstat.size == fstat.size){
 				err = null

@@ -77,7 +77,7 @@ class Wizard extends WizardUtils {
         this.active = true
         let err, ret = await global.lists.manager.addListDialog(false).catch(e => err = e)
         console.log('ASKED', ret, global.traceback())
-        if(err){
+        if(typeof(err) != 'undefined'){
             global.displayErr(global.lang.INVALID_URL_MSG)
             return await this.start()
         }

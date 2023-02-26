@@ -1,6 +1,5 @@
 
-const async = require('async'), fs = require('fs')
-
+const fs = require('fs'), async = require('async'), pLimit = require('p-limit')
 const Parser = require('./parser'), Manager = require('./manager')
 const Index = require('./index'), List = require('./list'), EPG = require('../epg')
 
@@ -177,18 +176,16 @@ class ListsEPGTools extends Index {
 			}
 		})		
 	}
-	epgChannelsTermsList(){
-		return new Promise((resolve, reject) => {
-			if(!this._epg){
-				return reject('no epg 9')
-			}
-			let data = this._epg.terms
-			if(data && Object.keys(data).length){
-				resolve(data)
-			} else {
-				reject('failed')
-			}
-		})		
+	async epgChannelsTermsList(){
+		if(!this._epg){
+			throw 'no epg'
+		}
+		let data = this._epg.terms
+		if(data && Object.keys(data).length){
+			return data
+		} else {
+			throw 'failed'
+		}
 	}
 }
 
@@ -225,41 +222,43 @@ class Lists extends ListsEPGTools {
 		rmLists.forEach(u => this.remove(u))
 		newLists.forEach(u => this.syncLoadList(u))
 	}
-	isListCached(url, cb){
-		let file = global.storage.raw.resolve(LIST_DATA_KEY_MASK.format(url))
-		fs.stat(file, (err, stat) => cb((stat && stat.size >= 1024)))
+	async isListCached(url){
+		let err, file = global.storage.raw.resolve(LIST_DATA_KEY_MASK.format(url))
+		const stat = await fs.promises.stat(file).catch(e => err = e)
+		return (stat && stat.size >= 1024)
 	}
-	filterCachedUrls(urls){
-        return new Promise((resolve, reject) => {
-            if(this.debug) console.log('filterCachedUrls', urls.join("\r\n"))
-            let loadedUrls = [], cachedUrls = []
-            urls = urls.filter(u => {
-                if(typeof(this.lists[u]) == 'undefined'){
-                    return true
-                }
-                loadedUrls.push(u)
-            })
-            async.eachOfLimit(urls, 8, (url, i, done) => {
-                this.isListCached(url, has => {
-                    if(this.debug) console.log('filterCachedUrls', url, has)
-                    if(has){
-                        cachedUrls.push(url)
-                        if(!this.requesting[url]){
-                            this.requesting[url] = 'cached, not added'
-                        }
-                    } else {					
-                        if(!this.requesting[url]){
-                            this.requesting[url] = 'not cached'
-                        }
-                    }
-                    done()
-                })
-            }, () => {
-                loadedUrls.push(...cachedUrls)
-				if(this.debug) console.log('filterCachedUrls', loadedUrls.join("\r\n"))
-                resolve(loadedUrls)
-            })
-        })
+	async filterCachedUrls(urls){
+		if(this.debug) console.log('filterCachedUrls', urls.join("\r\n"))
+		let loadedUrls = [], cachedUrls = []
+		urls = urls.filter(u => {
+			if(typeof(this.lists[u]) == 'undefined'){
+				return true
+			}
+			loadedUrls.push(u)
+		})
+		if(urls.length){
+			const limit = pLimit(8), tasks = urls.map(url => {
+				return async () => {
+					let err
+					const has = await this.isListCached(url).catch(e => err = e)
+					if(this.debug) console.log('filterCachedUrls', url, has)
+					if(has === true){
+						cachedUrls.push(url)
+						if(!this.requesting[url]){
+							this.requesting[url] = 'cached, not added'
+						}
+					} else {					
+						if(!this.requesting[url]){
+							this.requesting[url] = err || 'not cached'
+						}
+					}
+				}
+			}).map(limit)
+			await Promise.allSettled(tasks).catch(console.error)
+		}
+		if(this.debug) console.log('filterCachedUrls', loadedUrls.join("\r\n"), cachedUrls.join("\r\n"))
+		loadedUrls.push(...cachedUrls)
+		return loadedUrls
 	}
 	async updaterFinished(isFinished){
 		this.isUpdaterFinished = isFinished
@@ -463,7 +462,7 @@ class Lists extends ListsEPGTools {
 			this.loadTimes[url].syncing = global.time()
 			this.requesting[url] = 'loading'		
 			this.lists[url] = new List(url, this, this.relevantKeywords)
-			this.lists[url].skipValidating = true // list is already validated at driver-updater, always
+			this.lists[url].skipValidating = true // list is already validated at lists/driver, always
 			this.lists[url].contentLength = contentLength
 			this.lists[url].once('destroy', () => {
 				if(!this.requesting[url] || (this.requesting[url] == 'loading')){
@@ -553,6 +552,7 @@ class Lists extends ListsEPGTools {
 						}
 					})
 				}
+				this.updateActiveLists()
 			}).catch(err => {
 				//console.warn('LOAD LIST FAIL', url, this.lists[url])
 				this.loadTimes[url].synced = global.time()
@@ -567,9 +567,7 @@ class Lists extends ListsEPGTools {
 				if(this.lists[url] && !this.myLists.includes(url)){
 					this.remove(url)												
 				}
-			}).finally(() => {
-				this.updateActiveLists()
-			})
+			}).finally(() => this.updateActiveLists())
 		})
 	}
 	async getListContentLength(url){

@@ -34,8 +34,7 @@ class MPEGTSPacketProcessorUtils extends Events {
                 return pcrBase * 300 + pcrExtension
             }
         }
-      }
-
+    }
     checkSyncByte(c, pos){
         if(pos >= 0 && pos < (c.length - 4)){
             const header = c.readUInt32BE(pos || 0), packetSync = (header & 0xff000000) >> 24
@@ -59,10 +58,14 @@ class MPEGTSPacketProcessor extends MPEGTSPacketProcessorUtils {
         this.debug = false
         this.direction = -1 // -1 = uninitialized; 0 = new conn, buffering up; 1 = passing through
         this.buffering = []
-        this.maxPcrJournalSize = 512 // 256 was not enough
+        this.maxPcrJournalSize = 8192 // 256 was not enough
+        this.packetFilterPolicy = 1
         this.pcrJournal = []
         this.on('pcr', (pcr, data, start, end) => {
-            if(!this.pcrJournal.includes(pcr)){
+            if(this.pcrJournal.includes(pcr)){
+                console.warn('REPEATED PCR LEAKING', pcr, data.length, this.direction)
+                return
+            } else {
                 this.pcrJournal.push(pcr)
                 if(this.pcrJournal.length > this.maxPcrJournalSize){
                     this.pcrJournal.splice(0, this.pcrJournal.length - this.maxPcrJournalSize)
@@ -116,7 +119,28 @@ class MPEGTSPacketProcessor extends MPEGTSPacketProcessorUtils {
                     this.emit('data', buf)
                     return
                 }
+                switch(this.packetFilterPolicy){
+                    case 1:
+                        if(size < PACKET_SIZE){
+                            console.log('bad packet size: '+ size +', removing it') //, buf.slice(pointer, pointer + size))
+                            buf = Buffer.concat([buf.slice(0, pointer), buf.slice(pointer + size)])
+                            size = 0
+                        } else { 
+                            console.log('bad packet size: '+ size +', trimming it') //, buf.slice(pointer, pointer + size))
+                            buf = Buffer.concat([buf.slice(0, pointer + PACKET_SIZE), buf.slice(pointer + size)]) // trim
+                            size = PACKET_SIZE
+                        }
+                        break
+                    case 2:
+                        console.log('bad packet size: '+ size +', removing it')
+                        buf = Buffer.concat([buf.slice(0, pointer), buf.slice(pointer + size)])
+                        size = 0
+                        break
+                    default:
+                        console.log('bad packet size: '+ size +', passthrough')
+                }
             }
+            if(!size) continue
             const pcr = this.pcr(buf, pointer)
             if(pcr){
                 if(!currentPCR && this.direction == -1){

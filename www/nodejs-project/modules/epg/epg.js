@@ -177,6 +177,8 @@ class EPG extends EPGPaginateChannelsList {
             })
             let validEPG, received = 0
             const req = {
+                p2p: true,
+                p2pWaitMs: 5000,
                 debug: false,
                 url: this.url,
                 followRedirect: true,
@@ -187,8 +189,7 @@ class EPG extends EPGPaginateChannelsList {
                     // 'range': 'bytes=0-' // was getting wrong content-length from Cloudflare
                 },
                 encoding: 'utf8',
-                cacheTTL: 3600,
-                p2p: true
+                cacheTTL: 3600
             }
             this.request = new global.Download(req)
             this.request.on('error', err => {

@@ -247,7 +247,7 @@ class UltimateLookup extends Events {
 						callback(null, ip, family, now + (300 * 1000), 300)
 					}
 				} else {
-					console.warn('Cannot resolve "'+ hostname +'" ', options.family, ips)
+					console.warn('Cannot resolve "'+ hostname +'"')
 					const error = new Error('cannot resolve "'+ hostname +'"')
 					error.code = NOTFOUND
 					callback(error)

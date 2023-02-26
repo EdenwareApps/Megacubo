@@ -1,3 +1,4 @@
+/* Worker to update lists in background */
 const fs = require('fs'), Events = require('events')
 
 function prepare(file){ // workaround, macos throws not found for local files when calling Worker
@@ -95,9 +96,7 @@ module.exports = (file, opts) => {
 		}
 		terminate(){
 			this.finished = true
-			if(this.instance){
-				// ...
-			}
+			this.instance = null
 			this.removeAllListeners()
 		}
 	}

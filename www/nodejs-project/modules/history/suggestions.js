@@ -28,7 +28,7 @@ class Suggestions {
         let data
         if(categories.length < 10) { // few tags, do an extended search to maximize results
             data = {}
-            await Promise.all(categories.map(async c => {
+            await Promise.allSettled(categories.map(async c => {
                 let map = await global.lists.epgSearch(global.lists.terms(c))
                 data = this.mergeMaps(data, map, until)
             }))
@@ -45,7 +45,7 @@ class Suggestions {
             }
         })
         let alloweds = []
-        await Promise.all(Object.keys(channels).map(async name => {
+        await Promise.allSettled(Object.keys(channels).map(async name => {
             const channelMappedTo = await global.lists.epgFindChannel(channels[name])
             if(channelMappedTo) alloweds.push(channelMappedTo)
         }))

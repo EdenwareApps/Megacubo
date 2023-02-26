@@ -1,5 +1,5 @@
 
-const async = require('async'), List = require('./list')
+const pLimit = require('p-limit'), List = require('./list')
 const UpdateListIndex = require('./update-list-index'), ConnRacing = require('../conn-racing')
 const Common = require('./common'), Cloud = require(global.APPDIR + '/modules/cloud')
 
@@ -20,7 +20,6 @@ class ListsUpdater extends Common {
 		this.debug = false
 		this.isUpdating = false
 		this.relevantKeywords = []
-		this.updateListsConcurrencyLimit = 8
 		this.info = {}
 	}
 	async setRelevantKeywords(relevantKeywords){
@@ -30,77 +29,80 @@ class ListsUpdater extends Common {
 	async getInfo(){
 		return this.info
 	}
-    update(urls){
+    update(urls, concurrency){
 		return new Promise((resolve, reject) => {
 			if(!urls.length){
 				return resolve(this.info)
 			}
 			if(this.isUpdating){
 				return this.once('finish', () => {
-					this.update(urls).then(resolve).catch(reject)
+					this.update(urls, concurrency).then(resolve).catch(reject)
 				})
 			}
-			if(this.debug){
-				console.log('updater - start', urls)
-			}
-			this.info = {}
-			this.isUpdating = true		
-			this.racing = new ConnRacing(urls, {retries: 1, timeout: 5})
-			const retries = []
-			urls.forEach(url => this.info[url] = 'started')
-			const run = (urls, cb) => {
-				if(!urls.length) return cb()
-				async.eachOfLimit(urls, this.updateListsConcurrencyLimit, (url, i, done) => {
-					if(this.racing.ended){
-						if(this.debug){
-							console.log('updater - racing ended')
-						}
-						done()
-					} else {
-						this.racing.next(res => {
-							if(res && res.valid){
-								this.info[res.url] = 'updating'
-								if(this.debug){
-									console.log('updater - updating', res.url)
-								}
-								this.updateList(res.url).then(updated => {
-									this.info[res.url] = 'already updated'
-									if(this.debug){
-										console.log('updater - updated', res.url, updated)
-									}
-									if(updated){
-										this.info[res.url] = 'updated'
-										emit('list-updated', res.url)
-									}
-								}).catch(err => {
-									this.info[res.url] = 'update failed, '+ String(err)
-									console.error('updater - err: '+ err, global.traceback())
-								}).finally(done)
-							} else {
-								this.info[res.url] = 'failed, '+ res.status
-								if(this.debug){
-									console.log('updater - failed', res.url, res)
-								}
-								if(res){
-									retries.push(res.url)
-								}
-								done()
-							}
-						})
-					}
-				}, () => {
-					this.racing.end()
-					cb()
-				})
-			}
-			run(urls, () => {
-				run(retries, () => {
-					this.isUpdating = false
-					this.emit('finish')
-					resolve(this.info)
-				})
-			})
+			this.doUpdate(urls, concurrency).then(resolve).catch(reject)
 		})
+	}
+	async doUpdate(urls, concurrency){
+		if(this.debug){
+			console.log('updater - start', urls)
+		}
+		this.info = {}
+		this.isUpdating = true		
+		this.racing = new ConnRacing(urls, {retries: 1, timeout: 5})
+		const retries = []
+		urls.forEach(url => this.info[url] = 'started')
+		const limit = pLimit(concurrency)
+		const tasks = new Array(urls.length).fill(async () => {
+			if(this.debug){
+				console.log('updater - nxt')
+			}
+			const res = await this.racing.next().catch(err => {
+				console.error('updater - err', err)
+			})
+			if(this.debug){
+				console.log('updater - nxct', res)
+			}
+			if(res && res.valid){
+				this.info[res.url] = 'updating'
+				if(this.debug){
+					console.log('updater - updating', res.url)
+				}
+				let err
+				const updated = await this.updateList(res.url).catch(e => err = e)
+				if(typeof(err) != 'undefined'){
+					this.info[res.url] = 'update failed, '+ String(err)
+					console.error('updater - err: '+ err, global.traceback())
+				} else {
+					if(this.debug){
+						console.log('updater - updated', res.url, updated)
+					}
+					if(updated){
+						this.info[res.url] = 'updated'
+						emit('list-updated', res.url)
+					} else {
+						this.info[res.url] = 'already updated'
+					}
+				}
+			} else {
+				if(res){
+					this.info[res.url] = 'failed, '+ (res.status || 'timeout')
+					if(this.debug){
+						console.log('updater - failed', res.url, res)
+					}
+					retries.push(res.url)
+				}
+			}
+		}, 0, urls.length).map(limit)
+		if(this.debug){
+			console.log('updater - z')
+		}
+		const ret = await Promise.allSettled(tasks)
+		if(this.debug){
+			console.log('updater - zz', JSON.stringify(ret))
+		}
+		this.isUpdating = false
+		this.emit('finish')
+		return this.info
     }
 	async updateList(url, force){
 		if(this.debug){

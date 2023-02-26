@@ -68,7 +68,7 @@ class CloudData {
                 console.log('cloud: got', key, err, body)
             }
             data = await store.promises.get(this.cachingDomain + key + '-fallback').catch(e => err2 = e)
-            if(err || !body){
+            if(typeof(err) != 'undefined' || !body){
                 if(data && !err2){
                     return data
                 } else {

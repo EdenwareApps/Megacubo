@@ -69,6 +69,7 @@ class UpdateListIndex extends ListIndexUtils {
                 let resolved
                 const opts = {
                     url: path,
+                    p2p: true,
                     retries: 3,
                     followRedirect: true,
                     keepalive: false,
@@ -77,7 +78,6 @@ class UpdateListIndex extends ListIndexUtils {
                     },
                     timeout: Math.max(30, global.config.get('connect-timeout')), // some servers will take too long to send the initial response
                     downloadLimit: 200 * (1024 * 1024), // 200Mb
-                    p2p: true,
                     cacheTTL: 3600
                 }
                 this.stream = new global.Download(opts)

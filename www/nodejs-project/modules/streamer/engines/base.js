@@ -251,8 +251,7 @@ class StreamerBaseIntent extends Events {
         this.setTimeout(this.timeout)
     }
     timeoutStatus(){
-        const s = this.timeoutStart, e = s + this.timeout, now = global.time()
-        return (now - s) / ((e - s) / 100)
+        return Math.max(100, (global.time() - this.timeoutStart) / (this.timeout / 100))
     }
     start(){   
         let resolved 

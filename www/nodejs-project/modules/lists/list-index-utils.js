@@ -1,5 +1,4 @@
-const fs = require('fs'), Events = require('events')
-const readline = require('readline'), pLimit = require('p-limit')
+const fs = require('fs'), Events = require('events'), readline = require('readline')
 
 class ListIndexUtils extends Events {
 	constructor(){
