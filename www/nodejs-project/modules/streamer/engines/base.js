@@ -6,6 +6,7 @@ class StreamerBaseIntent extends Events {
         super()
         this.mimeTypes = {
             hls: 'application/x-mpegURL', //; codecs="avc1.42E01E, mp4a.40.2"
+            mpegts: 'video/MP2T',
             video: 'video/mp4'
         }        
         this.opts = {
@@ -58,6 +59,14 @@ class StreamerBaseIntent extends Events {
             }
         }
         return opts
+    }
+    getTranscodingOpts(){
+        return Object.assign({
+            workDir: this.opts.workDir, 
+            authURL: this.data.source,
+            debug: this.opts.debug,
+            isLive: this.mediaType == 'live'
+        }, this.getTranscodingCodecs())
     }
     setOpts(opts){
         if(opts && typeof(opts) == 'object'){     

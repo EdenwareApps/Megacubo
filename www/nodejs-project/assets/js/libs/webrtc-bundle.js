@@ -26819,7 +26819,11 @@ module.exports = class MMSTSignal extends SocketSignalWebsocketClient {
     const channelStr = toHex(channel)
 
     this._scheduler.delete(channelStr)
-    this._mmsts.get(channelStr).destroy()
+    try{
+      this._mmsts.get(channelStr).destroy()
+    } catch(e) {
+      //TypeError: Cannot read property 'destroy' of undefined
+    }
     this._mmsts.delete(channelStr)
     this._channels.delete(channelStr)
     this._candidates.delete(channelStr)

@@ -65,8 +65,8 @@ class DownloadCacheChunksReader extends Events {
         fs.stat(this.master.file, (err, stat) => {
             this.fcheck = true
             console.error('DownloadCacheChunks()', err, stat)
-            if(stat.size == 0) return this.emit('end')
             if(err) return this.emitError(err)
+            if(stat.size == 0) return this.emit('end')
             if(this.opts.start && this.opts.start >= stat.size) return this.pump()
             this.stream = new DownloadCacheFileReader(this.master.file, this.opts)
             this.stream.on('data', chunk => {

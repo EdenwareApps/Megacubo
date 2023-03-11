@@ -439,6 +439,7 @@ class Lists extends ListsEPGTools {
             let contentLength = await this.shouldReloadList(url)
             this.syncListsQueue[url].object = [this.lists[url], 2]
             if(typeof(contentLength) == 'number'){
+				console.log('List got updated, reload it. '+ this.lists[url].contentLength +' => '+ contentLength)
                 await this.syncLoadList(url, contentLength).catch(e => err = e)
             } else {
                 err = 'no need to update'
@@ -447,128 +448,131 @@ class Lists extends ListsEPGTools {
         this.syncListsQueue[url].object = [this.lists[url], 3]
         this.syncPump(url, err)
 	}
-	syncLoadList(url, contentLength){	
-        return new Promise((resolve, reject) => {
-			url = global.forwardSlashes(url)
-			let resolved, isMine = this.myLists.includes(url)
-			if(this.debug){
-				console.log('syncLoadList start', url)
-			}
-			if(!this.loadTimes[url]){
-				this.loadTimes[url] = {}
+	async syncLoadList(url, contentLength){
+		url = global.forwardSlashes(url)
+		console.log('syncLoadList', url, contentLength)
+		if(typeof(contentLength) != 'number'){ // contentLength controls when the list should refresh
+			let err
+			const meta = await this.getListMeta(url).catch(e => err = e)
+			if(err){
+				console.error(err)
+				contentLength = 0 // ok, give up and load list anyway
 			} else {
-				this.remove(url)
+				contentLength = meta.contentLength
+				if(typeof(contentLength) != 'number'){
+					contentLength = 0 // ok, give up and load list anyway
+				}
 			}
-			this.loadTimes[url].syncing = global.time()
-			this.requesting[url] = 'loading'		
-			this.lists[url] = new List(url, this, this.relevantKeywords)
-			this.lists[url].skipValidating = true // list is already validated at lists/driver, always
-			this.lists[url].contentLength = contentLength
-			this.lists[url].once('destroy', () => {
-				if(!this.requesting[url] || (this.requesting[url] == 'loading')){
-					this.requesting[url] = 'destroyed'
-				}
-				if(isMine && this.myLists.includes(url)){ // isMine yet?
-					console.error('Damn! My list got destroyed!', url)
-				}
-				this.remove(url)
-				if(!resolved){
-					if(this.debug){
-						console.log('syncLoadList end: destroyed')
-					}
-					resolved = true
-					reject('list destroyed')
-				}
-			})
-			this.lists[url].start().then(() => {
-				this.loadTimes[url].synced = global.time()
-				if(this.debug){
-					console.log('syncLoadList started', url)
-				}
-				let repeated
-				if(!this.lists[url] || (repeated=this.isRepeatedList(url))) {
-					if(!this.requesting[url] || (this.requesting[url] == 'loading')){
-						this.requesting[url] = repeated ? 'repeated at '+ repeated : 'loaded, but destroyed'
-					}
-					if(this.debug){
-						if(repeated){
-							console.log('List '+ url +' repeated, discarding.')
-						} else {
-							console.log('List '+ url +' already discarded.')
-						}
-					}
-					if(!resolved){
-						resolved = true
-						reject('list discarded')
-					}
-				} else {				
-					this.setListMeta(url, this.lists[url].index.meta).catch(console.error)
-					if(this.lists[url].index.meta['epg'] && !this.epgs.includes(this.lists[url].index.meta['epg'])){
-						this.epgs.push(this.lists[url].index.meta['epg'])
-					}
-					this.isContentAlreadyLoaded(this.lists[url], contentAlreadyLoaded => {
-						if(contentAlreadyLoaded){
-							this.requesting[url] = 'content already loaded'
-							if(this.debug){
-								console.log('Content already loaded', url)
-							}
-							if(this.debug){
-								console.log('syncLoadList end: already loaded')
-							}
-							if(!resolved){
-								resolved = true
-								reject('content already loaded')
-							}
-						} else {
-							let replace
-							if(this.lists[url]){
-								this.requesting[url] = 'added'
-								if(!isMine && this.loadedListsCount() >= (this.myLists.length + global.config.get('communitary-mode-lists-amount'))){
-									replace = this.shouldReplace(this.lists[url])
-									if(replace){
-										const pr = this.lists[replace].relevance.total
-										if(this.debug){
-											console.log('List', url, this.lists[url].relevance.total, 'will replace', replace, pr)
-										}
-										this.remove(replace)
-										this.requesting[replace] = 'replaced by '+ url +', '+ pr +' < '+ this.lists[url].relevance.total
-										this.requesting[url] = 'added in place of '+ replace +', '+ pr +' < '+ this.lists[url].relevance.total
-									}
-								}
-								if(this.debug){
-									console.log('Added community list...', url, this.lists[url].index.length)
-								}
-							} else if(!this.requesting[url] || this.requesting[url] == 'loading') {
-								this.requesting[url] = 'adding error, instance not found'
-							}
-							if(!resolved){
-								if(!replace){
-									this.delimitActiveLists()
-								}
-								resolved = true
-								resolve(true)
-								this.searchMapCacheInvalidate()
-							}
-						}
-					})
-				}
-				this.updateActiveLists()
-			}).catch(err => {
-				//console.warn('LOAD LIST FAIL', url, this.lists[url])
-				this.loadTimes[url].synced = global.time()
-				if(!this.requesting[url] || (this.requesting[url] == 'loading')){
-					this.requesting[url] = String(err)
-				}
-				console.warn('syncLoadList error: ', err)
-				if(!resolved){
-					resolved = true
-					reject(err)
-				}
-				if(this.lists[url] && !this.myLists.includes(url)){
-					this.remove(url)												
-				}
-			}).finally(() => this.updateActiveLists())
+		}
+		let err, isMine = this.myLists.includes(url)
+		if(this.debug){
+			console.log('syncLoadList start', url)
+		}
+		if(!this.loadTimes[url]){
+			this.loadTimes[url] = {}
+		} else {
+			this.remove(url)
+		}
+		this.loadTimes[url].syncing = global.time()
+		this.requesting[url] = 'loading'		
+		const list = new List(url, this, this.relevantKeywords)
+		list.skipValidating = true // list is already validated at lists/driver, always
+		list.contentLength = contentLength
+		list.once('destroy', () => {
+			if(!this.requesting[url] || (this.requesting[url] == 'loading')){
+				this.requesting[url] = 'destroyed'
+			}
+			if(isMine && this.myLists.includes(url)){ // isMine yet?
+				console.error('Damn! My list got destroyed!', url)
+			}
+			this.remove(url)
 		})
+		this.lists[url] = list
+		await list.start().catch(e => err = e)
+		if(err){ 
+			//console.warn('LOAD LIST FAIL', url, list)
+			this.loadTimes[url].synced = global.time()
+			if(!this.requesting[url] || (this.requesting[url] == 'loading')){
+				this.requesting[url] = String(err)
+			}
+			console.warn('syncLoadList error: ', err)
+			if(this.lists[url] && !this.myLists.includes(url)){
+				this.remove(url)												
+			}
+			throw err
+		} else {
+			this.loadTimes[url].synced = global.time()
+			if(this.debug){
+				console.log('syncLoadList started', url)
+			}
+			let repeated
+			if(!this.lists[url] || (repeated=this.isRepeatedList(url))) {
+				if(!this.requesting[url] || (this.requesting[url] == 'loading')){
+					this.requesting[url] = repeated ? 'repeated at '+ repeated : 'loaded, but destroyed'
+				}
+				if(this.debug){
+					if(repeated){
+						console.log('List '+ url +' repeated, discarding.')
+					} else {
+						console.log('List '+ url +' already discarded.')
+					}
+				}
+				throw 'list discarded'
+			} else {	
+				if(this.debug){
+					console.log('syncLoadList else', url)
+				}			
+				this.setListMeta(url, list.index.meta).catch(console.error)
+				if(list.index.meta['epg'] && !this.epgs.includes(list.index.meta['epg'])){
+					this.epgs.push(list.index.meta['epg'])
+				}
+				if(this.debug){
+					console.log('syncLoadList else', url)
+				}			
+				const contentAlreadyLoaded = await this.isSameContentLoaded(list)
+				if(this.debug){
+					console.log('syncLoadList contentAlreadyLoaded', contentAlreadyLoaded)
+				}			
+				if(contentAlreadyLoaded){
+					this.requesting[url] = 'content already loaded'
+					if(this.debug){
+						console.log('Content already loaded', url)
+					}
+					if(this.debug){
+						console.log('syncLoadList end: already loaded')
+					}
+					throw 'content already loaded'
+				} else {
+					let replace
+					if(list){
+						this.requesting[url] = 'added'
+						if(!isMine && this.loadedListsCount() >= (this.myLists.length + global.config.get('communitary-mode-lists-amount'))){
+							replace = this.shouldReplace(list)
+							if(replace){
+								const pr = this.lists[replace].relevance.total
+								if(this.debug){
+									console.log('List', url, list.relevance.total, 'will replace', replace, pr)
+								}
+								this.remove(replace)
+								this.requesting[replace] = 'replaced by '+ url +', '+ pr +' < '+ list.relevance.total
+								this.requesting[url] = 'added in place of '+ replace +', '+ pr +' < '+ list.relevance.total
+							}
+						}
+						if(this.debug){
+							console.log('Added community list...', url, list.index.length)
+						}
+					} else if(!this.requesting[url] || this.requesting[url] == 'loading') {
+						this.requesting[url] = 'adding error, instance not found'
+					}
+					if(!replace){
+						this.delimitActiveLists()
+					}
+					this.searchMapCacheInvalidate()
+				}
+			}
+		}
+		this.updateActiveLists()
+		return true
 	}
 	async getListContentLength(url){
 		const updateMeta = await this.getListMeta(url)
@@ -619,39 +623,34 @@ class Lists extends ListsEPGTools {
 		})
 		return dup
 	}
-	isContentAlreadyLoaded(list, cb){
-		if(this.myLists.includes(list.url)){
-			return cb(false)
-		}
-		let alreadyLoaded, listDataFile = list.file, listIndexLength = list.index.length
-		fs.stat(listDataFile, (err, stat) => {
-			if(err || stat.size == 0){
-				cb(true) // to trigger list discard
-			} else {
-				const size = stat.size
-				stat = null
-				async.eachOfLimit(Object.keys(this.lists), 3, (url, i, done) => {
+	async isSameContentLoaded(list){
+		let err, alreadyLoaded, listDataFile = list.file, listIndexLength = list.index.length
+		const stat = await fs.promises.stat(listDataFile).catch(e => err = e)
+		if(err || stat.size == 0){
+			return true // force this list discarding
+		} else {
+			const size = stat.size
+			const limit = pLimit(3)
+			const tasks = Object.keys(this.lists).map(url => {
+				return async () => {
 					if(!alreadyLoaded && url != list.url && this.lists[url] && this.lists[url].index.length == listIndexLength){
+						let err
 						const f = this.lists[url].file
-						fs.stat(f, (err, s) => {
-							if(!err && !alreadyLoaded){
-								if(this.debug){
-									console.log('already loaded', list.url, url, f, listDataFile, size, s.size)
-								}
-								if(size == s.size){
-									alreadyLoaded = true
-								}
+						const a = await fs.promises.stat(f).catch(e => err = e)
+						if(!err && !alreadyLoaded){
+							if(this.debug){
+								console.log('already loaded', list.url, url, f, listDataFile, size, s.size)
 							}
-							done()
-						})
-					} else {
-						done()
+							if(size == s.size){
+								alreadyLoaded = true
+							}
+						}
 					}
-				}, () => {
-					cb(alreadyLoaded)
-				})
-			}
-		})
+				}
+			}).map(limit)
+			await Promise.allSettled(tasks)
+			return alreadyLoaded
+		}
 	}
 	loadedListsCount(){
 		return Object.values(this.lists).filter(l => l.isReady).length
@@ -722,15 +721,15 @@ class Lists extends ListsEPGTools {
 		}
 	}
 	remove(u){
-		this.searchMapCacheInvalidate(u)
 		if(typeof(this.lists[u]) != 'undefined'){
+			this.searchMapCacheInvalidate(u)
 			this.lists[u].destroy()
 			delete this.lists[u]
+			if(this.debug){
+				console.log('Removed list', u)
+			}
+			this.updateActiveLists()
 		}
-		if(this.debug){
-			console.log('Removed list', u)
-		}
-		this.updateActiveLists()
 	}
     async directListRenderer(v, opts){
         if(typeof(this.lists[v.url]) != 'undefined' && (!opts.fetch || (this.lists[v.url].isReady && !this.lists[v.url].indexer.hasFailed))){ // if not loaded yet, fetch directly

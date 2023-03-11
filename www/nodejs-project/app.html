@@ -143,7 +143,11 @@
             window.addEventListener('load', () => {
                 // browserify -r @geut/discovery-swarm-webrtc -r crypto -r safe-buffer -o assets/js/libs/webrtc-bundle.js
                 loadJSOnIdle('./assets/js/libs/webrtc-bundle.js', () => {
-                    loadJSOnIdle('./modules/download/download-p2p-client.js', () => {})
+                    loadJSOnIdle('./modules/download/download-p2p-client.js', () => {
+                        if(typeof(initP2P) != 'undefined'){
+                            initP2P()
+                        }
+                    })
                 })
             })
         </script>        

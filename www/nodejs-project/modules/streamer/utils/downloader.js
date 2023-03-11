@@ -1,7 +1,7 @@
 
 const path = require('path'), http = require('http'), fs = require('fs'), stoppable = require('stoppable')
 const StreamerAdapterBase = require('../adapters/base.js'), closed = require('../../on-closed')
-const Writer = require('../../write-queue/writer')
+const Writer = require('../../write-queue/writer'), MPEGTSPacketProcessor = require('./ts-packet-processor')
 
 class Downloader extends StreamerAdapterBase {
 	constructor(url, opts){
@@ -14,6 +14,7 @@ class Downloader extends StreamerAdapterBase {
 		opts = Object.assign({
             debug: false,
 			debugHTTP: false,
+			persistent: false,
 			errorLimit: 5,
 			initialErrorLimit: 2, // at least 2
 			warmCache,
@@ -21,11 +22,15 @@ class Downloader extends StreamerAdapterBase {
 			sniffingSizeLimit: 196 * 1024 // if minor, check if is binary or ascii (maybe some error page)
 		}, opts || {})
 		super(url, opts)
+		if(opts.persistent){
+			this.opts.errorLimit = Number.MAX_SAFE_INTEGER
+			this.opts.initialErrorLimit = Number.MAX_SAFE_INTEGER
+		}
 		const ms = (global.config.get('connect-timeout') || 5) * 1000
 		this.timeoutOpts = {
 			lookup: ms,
-			connect: ms,
-			response: 30000
+			connect: opts.persistent ? (7 * (24 * 3600)) * 1000 : ms,
+			response: opts.persistent ? (7 * (24 * 3600)) * 1000 : 30000
 		}
 		this.type = 'downloader'
 		this.internalErrorLevel = 0
@@ -41,6 +46,7 @@ class Downloader extends StreamerAdapterBase {
 		this.ext = 'ts'
 		this.currentDownloadUID = undefined
 		this.collectBitrateSampleOffset = {}
+		this.processor = new MPEGTSPacketProcessor()
 		if(this.opts.warmCache){
 			this.warmCacheSize = 0
 			this.warmCacheFile = global.paths.temp +'/'+ parseInt(Math.random() * 100000000) + '.ts'
@@ -85,18 +91,23 @@ class Downloader extends StreamerAdapterBase {
 						'content-type': this.getContentType(),
 						'connection': 'close'
 					})
-					let stream, finished, buffer = false
+					let stream, finished, syncByteFound, buffer = false
 					let uid = parseInt(Math.random() * 1000000)
 					if(this.warmCacheSize){
-						buffer = []
+						syncByteFound =  true
+						let buffer = []
 						stream = fs.createReadStream(this.warmCacheFile, {start: 0, end: this.warmCacheSize})
-						stream.on('data', chunk => response.write(chunk))
+						stream.on('data', chunk => response.writable && response.write(chunk))
 						stream.on('end', () => {
-							response.write(Buffer.concat(buffer))
+							buffer.length && response.writable && response.write(Buffer.concat(buffer))
 							buffer = false
 						})
 						console.warn('SENT WARMCACHE', this.warmCacheSize)
-					}
+					} else {
+						if(!this.opts.persistent){
+							this.endRequest() // force new conn so
+						}
+					}					
 					if(this.connected === false){
 						this.connected = {}
 					}
@@ -104,8 +115,19 @@ class Downloader extends StreamerAdapterBase {
 					const listener = (url, chunk) => {
 						if(buffer !== false){
 							buffer.push(chunk)	
-						} else {	
-							response.write(chunk)
+						} else {
+							if(response.writable){
+								let offset = -1
+								if(!syncByteFound){
+									offset = this.processor.nextSyncByte(chunk)
+									if(offset != -1){
+										syncByteFound = true
+										response.write(chunk.slice(offset))
+									}
+								} else {
+									response.write(chunk)
+								}
+							}
 						}
 					}, finish = () => {
 						if(!finished){
@@ -166,7 +188,7 @@ class Downloader extends StreamerAdapterBase {
 			this.internalErrors.push(e)
 			if(this.internalErrorLevel >= (this.connectable ? this.opts.errorLimit : this.opts.initialErrorLimit)){
 				let status = this.internalErrorStatusCode()
-				console.error('[' + this.type + '] error limit reached', this.committed, this.internalErrorLevel, this.internalErrors, status, this.opts.errorLimit)
+				console.error('[' + this.type + '] error limit reached', this.committed, this.internalErrorLevel, this.internalErrors, status, this.opts.persistent, this.opts.errorLimit, this.opts.initialErrorLimit)
 				this.fail(status)
 			}
 		}
@@ -240,17 +262,25 @@ class Downloader extends StreamerAdapterBase {
 		this.finishBitrateSample(this.currentDownloadUID)
 		this.currentDownloadUID = String(connStart)
 		this.lastConnectionStartTime = connStart
-		let opts = {
+		const opts = {
 			url: this.url,
 			authURL: this.opts.authURL || false,
 			keepalive: this.committed && global.config.get('use-keepalive'),
 			followRedirect: true,
 			acceptRanges: false,
-			retries: 3, // strangely, some servers always abort the first try, throwing "The server aborted pending request"
+			retries: 2, // strangely, some servers always abort the first try, throwing "The server aborted pending request"
+			resume: false, // avoid download resuming as it won't work
 			debug: this.opts.debugHTTP,
 			headers: this.getDefaultRequestHeaders(),
 			timeout: this.timeoutOpts
-		}		
+		}
+		if(this.opts.persistent){
+			Object.assign(opts, {
+				initialErrorLimit: Number.MAX_SAFE_INTEGER, // wait server trying until connect it
+				errorLimit: 1
+			})
+			console.warn('opts', opts)
+		}
 		const download = this.currentRequest = new global.Download(opts)
 		download.on('error', error => {
 			let elapsed = global.time() - connStart

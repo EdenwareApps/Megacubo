@@ -39,6 +39,7 @@ class DownloadStreamResponse extends Events {
             this.emit('end')
             this.removeAllListeners()
         }
+        this.buffering = []
     }
 }
 

@@ -237,6 +237,9 @@ function loadScripts(){
 				updateSplashProgress()
 				loadJS('./assets/js/index/video.hls.js', function (){
 					updateSplashProgress()
+					loadJS('./assets/js/index/video.ts.js', function (){
+						updateSplashProgress()
+					})
 				})
 			})
 		})

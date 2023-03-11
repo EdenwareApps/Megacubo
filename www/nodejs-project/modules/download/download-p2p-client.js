@@ -26,10 +26,15 @@ if(typeof(require) != 'undefined') { // ReferenceError: require is not defined
         decode(buf){
             if(Buffer.isBuffer(buf)){
                 const msgSize = parseInt(buf.slice(0, P2P_ENC_HEADER_SIZE).toString().replace(new RegExp('^0+', 'g'), ''))
-                const data = JSON.parse(buf.slice(P2P_ENC_HEADER_SIZE, P2P_ENC_HEADER_SIZE + msgSize).toString())
-                const payload = buf.slice(P2P_ENC_HEADER_SIZE + msgSize)
-                data.data = payload
-                return data
+                try {
+                    const data = JSON.parse(buf.slice(P2P_ENC_HEADER_SIZE, P2P_ENC_HEADER_SIZE + msgSize).toString())
+                    const payload = buf.slice(P2P_ENC_HEADER_SIZE + msgSize)
+                    data.data = payload
+                    return data
+                } catch(e) {
+                    console.error(e)
+                }
+                return null
             } else {
                 return buf
             }
@@ -112,9 +117,13 @@ if(typeof(require) != 'undefined') { // ReferenceError: require is not defined
             this.sockets = []
             this.paused = []
             this.dataListener = data => {
-                data = this.decode(data)
-                if(P2P_DEBUG) console.log('peerdata decode', data)
-                this.emit('data', data)
+                const nfo = this.decode(data)
+                if(nfo){
+                    if(P2P_DEBUG) console.log('peerdata decode', nfo)
+                    this.emit('data', nfo)
+                } else {
+                    console.error('P2P error, cannot decode JSON', data)
+                }
             }
             this.drainListener = () => this.drain()
             this.maxInMemoryBuffer = 128 * 1024
@@ -410,41 +419,43 @@ if(typeof(require) != 'undefined') { // ReferenceError: require is not defined
             const bitrate = streamer.bitrate / (1024 * 1024), uplink = navigator.connection.downlink / 3
             return Math.max(Math.floor(uplink / bitrate), 1)
         }
-        async join(topic){
-            if(!config.p2p){
-                return false
-            }
-            if(!this.sw){
-                this.sw = swarm({
-                    bootstrap: [this.addr],
-                    maxPeers: this.maxPeers // max connections by peer
-                })
-                this.sw.on('connection', (peer, id) => {
-                    if(P2P_DEBUG) {
-                        console.log('connected to a new peer:', id, 'total peers:', this.sw.getPeers().length) // with this.sw it throwed TypeError: Cannot read property 'peers' of undefined
-                    }
-                    this.bind(peer, id)
-                })        
-                this.sw.on('connection-closed', (peer, id) => {
-                    const keep = this.sw.getPeers().some(p => peer.id == id.id)
-                    if(!keep){
-                        if(P2P_DEBUG) {
-                            console.log('disconnected from a peer:', id, 'total peers:', this.sw.getPeers().length)
-                        }
-                        this.unbind(peer, id)
-                    }
-                })
-            }
-            const hash = crypto.createHash('sha256').update(topic).digest()
-            if(hash != this.topic){
-                console.log('P2P topic: '+ topic)
-                if(this.topic){
-                    await this.sw.leave(this.topic).catch(console.error)
+        join(topic){ // SyntaxError: Unexpected identifier | better avoid async / await on client side to help users of older TV boxes
+            return new Promise(resolve => {
+                if(!config.p2p){
+                    return resolve(false)
                 }
-                this.topic = hash
-                await this.sw.join(hash)
-            }
-            return true
+                if(!this.sw){
+                    this.sw = swarm({
+                        bootstrap: [this.addr],
+                        maxPeers: this.maxPeers // max connections by peer
+                    })
+                    this.sw.on('connection', (peer, id) => {
+                        if(P2P_DEBUG) {
+                            console.log('connected to a new peer:', id, 'total peers:', this.sw.getPeers().length) // with this.sw it throwed TypeError: Cannot read property 'peers' of undefined
+                        }
+                        this.bind(peer, id)
+                    })        
+                    this.sw.on('connection-closed', (peer, id) => {
+                        const keep = this.sw.getPeers().some(p => peer.id == id.id)
+                        if(!keep){
+                            if(P2P_DEBUG) {
+                                console.log('disconnected from a peer:', id, 'total peers:', this.sw.getPeers().length)
+                            }
+                            this.unbind(peer, id)
+                        }
+                    })
+                }
+                const hash = crypto.createHash('sha256').update(topic).digest()
+                if(hash != this.topic){
+                    console.log('P2P topic: '+ topic)
+                    if(this.topic){
+                        this.sw.leave(this.topic).catch(console.error)
+                    }
+                    this.topic = hash
+                    this.sw.join(hash)
+                }
+                resolve(true)
+            })
         }
         mask(url){
             let smurl = this.getSimilarSegmentURLs(url, Object.keys(this.index))

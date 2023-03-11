@@ -15,7 +15,7 @@ class TunerUtils extends Events {
 		this.setMaxListeners(64)
         this.paused = true
         this.opts = {
-			debug: true,
+			debug: false,
 			shadow: false,
 			allowedTypes: null
 		}
@@ -54,7 +54,7 @@ class TunerTask extends TunerUtils {
 		this.domains = []
 		this.errors = []
 		this.states = []
-        this.domainDelay = {}		
+        this.domainDelay = {}
 	}
 	async test(e, i){
 		/*
@@ -78,7 +78,11 @@ class TunerTask extends TunerUtils {
 			console.log('Tuner test')
 		}
 		this.states[i] = 1
-		let err
+
+		const domain = this.domainAt(i)
+		this.domainDelay[domain] = global.time() + 1 // try to keep a max of 1 request per sec for same domain connections
+
+		let err		
 		const info = await streamer().info(e.url, 2, e).catch(r => err = r)
 		if(typeof(err) != 'undefined') {    
 			this.states[i] = -1
@@ -108,9 +112,13 @@ class TunerTask extends TunerUtils {
 	busyDomains(){
 		let busy = []
 		this.states.forEach((v, i) => {
+			const d = this.domainAt(i)
 			if(v == 1){
-				let d = this.domainAt(i)
 				if(!busy.includes(d)){
+					busy.push(d)
+				}
+			} else {
+				if(this.domainDelay[d] && this.domainDelay[d] > global.time() && !busy.includes(d)){
 					busy.push(d)
 				}
 			}
@@ -139,6 +147,7 @@ class TunerTask extends TunerUtils {
 					resolve(ret)
 				}
 			}
+			this.on('resume', updateListener)
 			this.on('update', updateListener)
 			this.on('finish', updateListener)
 			this.on('destroy', updateListener)

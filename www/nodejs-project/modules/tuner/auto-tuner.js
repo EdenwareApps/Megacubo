@@ -67,10 +67,10 @@ class AutoTuner extends Events {
 	}
     async ceilPreferredStreams(entries, preferredStreamServers, preferredStreamURL){
         let preferredStreamEntry
-        const preferHLS = global.config.get('prefer-hls')
-        const deferredStreams = [], deferredHLSStreams = []
+        const fmt = global.config.get('live-stream-fmt'), validfmt = ['hls', 'mpegts'].includes(fmt)
+        const streams = [], deferredStreams = []
         const preferredStreamServersLeveledEntries = {}
-        entries = entries.forEach(entry => {
+        entries.forEach(entry => {
             if(entry.url == preferredStreamURL){
                 preferredStreamEntry = entry
                 return
@@ -85,21 +85,26 @@ class AutoTuner extends Events {
                     return
                 }
             }
-            if(preferHLS && this.ext(entry.url) == 'm3u8'){
-                deferredHLSStreams.push(entry)
+            if(validfmt){
+                const isHLS = this.ext(entry.url) == 'm3u8'
+                if(isHLS == (fmt == 'hls')){
+                    streams.push(entry)
+                } else {
+                    deferredStreams.push(entry)
+                }
             } else {
-                deferredStreams.push(entry)
+                streams.push(entry)
             }
         })
         entries = []
+        if(preferredStreamEntry){
+            entries.push(preferredStreamEntry)
+        }
         Object.keys(preferredStreamServersLeveledEntries).sort().forEach(k => {
             entries.push(...preferredStreamServersLeveledEntries[k])
         })
-        entries.push(...deferredHLSStreams)
+        entries.push(...streams)
         entries.push(...deferredStreams)
-        if(preferredStreamEntry){
-            entries.unshift(preferredStreamEntry)
-        }
         return await global.watching.order(entries)
     }
     async ceilMyListsStreams(entries){
@@ -242,7 +247,7 @@ class AutoTuner extends Events {
         return e
     }
     getQueue(){
-        const busyDomains = this.tuner.busyDomains()
+        const busyDomains = [] // don't lock here considering Tuner busy domains
         let slotCount = global.config.get('tune-concurrency')
         let ffmpegBasedSlotCount = global.config.get('tune-ffmpeg-concurrency')
         let ks = Object.keys(this.succeededs).filter(i => {

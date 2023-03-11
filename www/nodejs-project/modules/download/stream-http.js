@@ -28,7 +28,7 @@ class DownloadStreamHttp extends DownloadStreamBase {
         this.failedIPs = []
         this.errors = []
         this.once('destroy', () => {
-            this.response && this.response.destroy()
+            this.response && this.response.end()
         })
 	}
     async options(ip, family){

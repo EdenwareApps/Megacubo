@@ -868,6 +868,9 @@ class StreamerSeek extends StreamerSpeedo {
     }
     seekTo(_s, type){
         if(!this.state) return
+        if(parent.cordova && this.activeMimetype == 'video/mp2t'){
+            return this.app.emit('streamer-seek-failure')
+        }
         if(typeof(this.seekingFrom) != 'number'){
             this.seekingFrom = parent.player.time()
         }
@@ -1004,6 +1007,7 @@ class StreamerLiveStreamClockTimer extends StreamerSeek {
 class StreamerClientTimeWarp extends StreamerLiveStreamClockTimer {
     constructor(controls, app){
         super(controls, app)
+        this.maxRateChange = 0.1
         this.bufferTimeSecs = 10
         this.currentPlaybackRate = 1
         parent.player.on('timeupdate', () => this.doTimeWarp())
@@ -1011,19 +1015,22 @@ class StreamerClientTimeWarp extends StreamerLiveStreamClockTimer {
     }
     doTimeWarp(){
         if(this.inLiveStream && config['playback-rate-control'] && this.timewarpInitialPlaybackTime !== null){
-            const expectedDuration = this.clockTimerDuration()
+            /*
+            On HLS we'll try to avoid gets behind live window.
+            On MPEGTS we'll just keep the buffer for smooth playback.
+            */
             const ptime = parent.player.time()
-            const remaining = expectedDuration - ptime
-            const diff = this.bufferTimeSecs - Math.max(Math.min(this.bufferTimeSecs * 2, remaining), 0)
-            const level = diff * (1 / this.bufferTimeSecs)
-            const maxRateChange = 0.1
-            let rate = 1 - (level * maxRateChange)
-            rate = Number(rate.toFixed(2))
-            //osd.show(rate +'x '+ parseInt(remaining)+'s', 'fas fa-clock', 'tw', 'persistent')
-            if(rate != this.currentPlaybackRate){
-                this.currentPlaybackRate = rate
-                console.warn('PLAYBACKRATE=*', rate, level, ptime, remaining + 's')
-                parent.player.playbackRate(rate)
+            const duration = this.activeMimetype.indexOf('mpegurl') ? this.clockTimerDuration() : parent.player.duration()
+            if(duration >= ptime){
+                const remaining = duration - ptime
+                let rate = 1 + ((remaining - this.bufferTimeSecs) * (this.maxRateChange / this.bufferTimeSecs))
+                rate = Math.min(1 + this.maxRateChange, Math.max(1 - this.maxRateChange, rate))
+                rate = Number(rate.toFixed(2))
+                if(rate != this.currentPlaybackRate){
+                    this.currentPlaybackRate = rate
+                    console.warn('PlaybackRate='+ rate +'x', 'remaining '+ parseInt(remaining) +' secs')
+                    parent.player.playbackRate(rate)
+                }
             }
         }
     }

@@ -111,7 +111,7 @@ class ListsUpdater extends Common {
 		const should = force || (await this.updaterShouldUpdate(url))
 		const now = global.time()
 		if(this.debug){
-			console.log('updater - should', url, should)
+			console.log('updater - should', url, should, force)
 		}
 		if(should){
 			if(this.debug){
@@ -162,7 +162,7 @@ class ListsUpdater extends Common {
 	async updaterShouldUpdate(url){
 		const updateMeta = await this.getListMeta(url)
 		if(this.debug){
-			console.log('updater shouldUpdate', updateMeta, url)
+			console.log('updater shouldUpdate', JSON.stringify(updateMeta, null, 3), url)
 		}
 		let now = global.time()
 		let should = !updateMeta || now >= updateMeta.updateAfter

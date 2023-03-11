@@ -69,13 +69,15 @@ class Zap extends Events {
                 tickets.push(...Array.from({length: e.weight}, () => i))
             }
         })
-        let ticket = tickets[Math.floor(Math.random() * tickets.length)]
-        this.skips.push(entries[ticket].name)
-        if(this.skips.length > 20){
-            this.skips = this.skips.slice(-20)
+        if(tickets.length){
+            let ticket = tickets[Math.floor(Math.random() * tickets.length)]
+            this.skips.push(entries[ticket].name)
+            if(this.skips.length > 20){
+                this.skips = this.skips.slice(-20)
+            }
+            console.log('zap random', entries[ticket])
+            return entries[ticket]
         }
-        console.log('zap random', entries[ticket])
-        return entries[ticket]
     }
     async go(){
         if(this.zappingLocked){
@@ -90,21 +92,20 @@ class Zap extends Events {
         }
         this.connecting = true
         let entry = await this.random()
-        entry.url = global.mega.build(entry.name, {
-            mediaType: 'live',
-            hlsOnly: 'auto'
-        })
-       
-        console.log('zap prom', entry)
-        let succeeded = await global.streamer.playPromise(entry, undefined, true).catch(console.error)
-        console.log('zap prom', entry, succeeded)
-        this.connecting = false
-        this.setZapping(true, succeeded)
-        global.tuning && global.tuning.destroy()
-        if(!succeeded){
-            return this.go()
+        if(entry){
+            entry.url = global.mega.build(entry.name, {
+                mediaType: 'live',
+                hlsOnly: 'auto'
+            })       
+            let succeeded = await global.streamer.playPromise(entry, undefined, true).catch(console.error)
+            this.connecting = false
+            this.setZapping(true, succeeded)
+            global.tuning && global.tuning.destroy()
+            if(!succeeded){
+                return this.go()
+            }
+            return succeeded === true
         }
-        return succeeded === true
     }
     setZapping(state, skipOSD, force){
         if(state && this.zappingLocked){

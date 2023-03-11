@@ -279,6 +279,7 @@ class EPG extends EPGPaginateChannelsList {
         return {e: end, t, c: programme.category || [], i: programme.icon || ''}
     }
     channel(channel){
+        if(!channel) return
         let name = channel.displayName || channel.name;
         [channel.id, channel.name || channel.displayName].forEach(cid => {
             if(typeof(this.channels[cid]) == 'undefined'){

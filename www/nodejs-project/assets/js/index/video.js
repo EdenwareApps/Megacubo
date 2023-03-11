@@ -40,7 +40,13 @@ class VideoControl extends EventEmitter {
 				return 0
 			}
 			if(r === Infinity){
-				r = this.current.time() + 2
+				if(this.current.object.buffered.length){
+					for(let i=0; i < this.current.object.buffered.length; i++){
+						r = this.current.object.buffered.end(i)
+					}
+				} else {
+					r = this.current.time() + 2
+				}
 			}
 			return r
 		}
@@ -131,18 +137,20 @@ class VideoControl extends EventEmitter {
 			this.current = null
 		}
 		this.state = 'loading'
-		this.emit('state', this.state)
-		if(!window.plugins || typeof(window.plugins['megacubo']) == 'undefined'){
+		if(!this.suspendStateChangeReporting) this.emit('state', this.state)
+		if(window.plugins && window.plugins.megacubo){
+			this.setup('native', VideoControlAdapterAndroidNative)
+		} else {
 			let m = mimetype.toLowerCase()
 			if(m.indexOf('mpegurl') != -1){
 				this.setup('html5h', VideoControlAdapterHTML5HLS)
+			} else if(m.indexOf('mp2t') != -1){
+				this.setup('html5t', VideoControlAdapterHTML5TS)
 			} else if(m.indexOf('audio/') != -1){
 				this.setup('html5a', VideoControlAdapterHTML5Audio)
 			} else {
 				this.setup('html5v', VideoControlAdapterHTML5Video)
 			}
-		} else {
-			this.setup('native', VideoControlAdapterAndroidNative)
 		}
 		this.current.errorsCount = 0
 		this.current.load(src, mimetype, cookie, mediatype)
@@ -161,7 +169,7 @@ class VideoControl extends EventEmitter {
 				if(!this.state && this.hasErr){
 					this.state = 'error'
 				}
-				this.emit('state', this.state, this.hasErr)
+				if(!this.suspendStateChangeReporting) this.emit('state', this.state, this.hasErr)
 			})
 			a.on('setup-ratio', r => {
 				if(!this.current) return
@@ -206,7 +214,7 @@ class VideoControl extends EventEmitter {
 				}
 				if(fatal === true){
 					this.state = 'error'
-					this.emit('state', this.state, err)
+					if(!this.suspendStateChangeReporting) this.emit('state', this.state, err)
 					a.unload()
 				} else {
 					this.hasErr = String(err)
@@ -218,7 +226,7 @@ class VideoControl extends EventEmitter {
 			a.on('ended', (err, fatal) => {
 				if(!this.current) return
 				this.state = 'ended'
-				this.emit('state', this.state)
+				if(!this.suspendStateChangeReporting) this.emit('state', this.state)
 			})
 			a.config = config
 			this.adapters[this.adapter] = a
@@ -260,7 +268,7 @@ class VideoControl extends EventEmitter {
 			this.current.unload()
 			this.current = null
 			this.state = ''
-			this.emit('state', this.state)
+			if(!this.suspendStateChangeReporting) this.emit('state', this.state)
 		}
 	}
 }
@@ -287,15 +295,12 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 	setup(tag){
 		console.log('adapter setup')
 		this.object = this.container.querySelector(tag)
-		if(typeof(this.object._pause) == 'undefined'){
-			this.object._pause = this.object.pause
-			this.object.pause = () => {} // prevent browser from pausing stream unexpectedly on Android
-		}
 	}
 	uiVisible(visible){
 		this.uiVisibility = visible
 	}
 	connect(){
+		this.suspendStateChangeReporting = false
 		this.object.currentTime = 0
 		const v = $(this.object)
 		v.off()
@@ -318,12 +323,14 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 			console.error('Video error', t, this.errorsCount, e, errStr, this.object.networkState +', '+ this.object.readyState, isFailed)
 			if(isFailed){
 				this.errorsCount++
-				if(this.errorsCount >= (t > 0 ? 200 : 2)){
+				if(this.errorsCount >= (t > 0 ? 20 : 2)){
 					this.emit('error', String(e), true)
 				} else {
 					const c = this.errorsCount // load() will reset the counter
+					this.suspendStateChangeReporting = true
 					this.unload()
 					setTimeout(() => {
+						this.suspendStateChangeReporting = false
 						this.load(this.currentSrc, this.currentMimetype)
 						if(t){
 							this.object.currentTime = t + 0.5 // nudge a bit to skip any decoding error on part of the file
@@ -333,14 +340,15 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 				}
 			}
 		}
-		if(this.currentMimetype.toLowerCase().indexOf('mpegurl') == -1){
+		if(this.currentMimetype.match(new RegExp('(mpegts|mpegurl)', 'i'))){
+			// let hls.js and mpegts.js do its own error handling first
+			v.on('error', () => setTimeout(() => this.object.error && onerr(), 10))
+		} else {
 			v.on('error', onerr)
 			const source = this.object.querySelector('source')
 			if(source){ // for video only, hls.js uses src directly
 				source.addEventListener('error', onerr)
 			}
-		} else {
-			v.on('error', () => setTimeout(() => this.object.error && onerr(), 10))
 		}
 		v.on('ended', e => {
 			console.log('video ended', e)
@@ -398,7 +406,7 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 			this.active = false
 			this.disconnect()
 			if(this.object.currentSrc){
-				this.object._pause()
+				this.object.pause()
 				this.object.innerHTML = '<source type="video/mp4" src="" />'
 				this.object.removeAttribute('src')
 				this.object.load()
@@ -416,7 +424,7 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 		}
 	}
 	pause(){
-		this.object._pause()
+		this.object.pause()
 	}
 	restart(){
 		this.time(0)
@@ -504,7 +512,7 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 		}
 		if(this.state != s){
 			this.state = s
-			this.emit('state')
+			if(!this.suspendStateChangeReporting) this.emit('state')
 		}
 	}
 	volume(l){
@@ -587,7 +595,7 @@ class VideoControlAdapterAndroidNative extends VideoControlAdapter {
 		this.object.on('state', state => {
 			if(state != this.state){
 				this.state = state
-				this.emit('state', this.state)
+				if(!this.suspendStateChangeReporting) this.emit('state', this.state)
 			}
 		})
 		this.object.on('timeupdate', () => {
@@ -618,6 +626,7 @@ class VideoControlAdapterAndroidNative extends VideoControlAdapter {
 		this.active = true
 		this.currentTime = 0
 		this.duration = 0
+		this.object.setBackBuffer(config['live-window-time'] * 1000)
 		this.object.play(src, mimetype, cookie, mediatype, this.successCallback.bind(this), this.errorCallback.bind(this))
 	}
 	successCallback(){

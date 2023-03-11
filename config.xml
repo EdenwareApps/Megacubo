@@ -1,6 +1,6 @@
 
 <?xml version='1.0' encoding='utf-8'?>
-<widget android-versionCode="337" id="tv.megacubo.app" version="16.8.8" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget android-versionCode="340" id="tv.megacubo.app" version="16.8.9" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>Megacubo</name>
     <description>
         An intuitive, free and open source IPTV player.
@@ -34,8 +34,8 @@
         </custom-config-file>
         <allow-intent href="market:*" />
         <preference name="android-minSdkVersion" value="24" />
-        <preference name="android-targetSdkVersion" value="32" />
-        <preference name="android-compileSdkVersion" value="32" />
+        <preference name="android-targetSdkVersion" value="33" />
+        <preference name="android-compileSdkVersion" value="33" />
         <custom-preference delete="true" name="android-manifest/uses-sdk" />
         <custom-preference name="android-manifest/application/@android:usesCleartextTraffic" value="true" />
         <custom-preference name="android-manifest/application/@android:extractNativeLibs" value="true" />

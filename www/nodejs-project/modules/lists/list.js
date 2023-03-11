@@ -149,7 +149,7 @@ class List extends Events {
         // relevantKeywords (check user channels presence in these lists and list size by consequence)
         let rks = this.parent() ? this.parent().relevantKeywords : this.relevantKeywords
 		if(!rks || !rks.length){
-			console.error('no parent keywords', this.parent(), this.relevantKeywords, rks)
+			console.error('no parent keywords', this.relevantKeywords, rks)
 			values.relevantKeywords = 50
 		} else {
             let hits = 0

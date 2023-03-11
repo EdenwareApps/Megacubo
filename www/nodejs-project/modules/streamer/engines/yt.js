@@ -9,14 +9,6 @@ class StreamerYTHLSIntent extends StreamerHLSIntent {
         this.mimetype = this.mimeTypes.hls
         this.mediaType = 'live'
     }
-    getTranscodingOpts(){
-        return Object.assign({
-            workDir: this.opts.workDir, 
-            authURL: this.data.source,
-            debug: this.opts.debug,
-            isLive: this.mediaType == 'live'
-        }, this.getTranscodingCodecs())
-    }
     generateMasterPlaylist(tracks){
         let resolutionMap = {
             '144p': '256x144',

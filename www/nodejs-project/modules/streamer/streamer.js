@@ -256,7 +256,10 @@ class StreamerBase extends StreamerTools {
 	retry(){		
 		console.warn('RETRYING')
 		let data = this.active ? this.active.data : this.lastActiveData
-		if(data) this.play(data)
+		if(data){
+			this.stop()
+			process.nextTick(() => this.play(data))
+		}
 	}
 	commit(intent){
 		if(intent){
@@ -311,7 +314,7 @@ class StreamerBase extends StreamerTools {
 						global.ui.emit('codecData', codecData)
 					}
 					if(!global.cordova && !intent.isTranscoding()){
-						if(codecData.video && codecData.video.match(new RegExp('(hevc|mpeg2video|mpeg4)')) && intent.opts.videoCodec != 'libx264'){
+						if(codecData.video && codecData.video.match(new RegExp('(mpeg2video|mpeg4)')) && intent.opts.videoCodec != 'libx264'){
 							if((!global.tuning && !global.zap.isZapping) || global.config.get('transcoding-tuning')){
 								this.transcode(null, err => {
 									if(err) intent.fail('unsupported format')
@@ -987,6 +990,18 @@ class Streamer extends StreamerAbout {
 					}
 				}
 			})
+			global.ui.on('streamer-seek-failure', async () => {
+				const ret = await global.explorer.dialog([
+					{template: 'question', fa: 'fas fa-warn-triangle', text: 'Force MPEGTS broadcasts to be seekable ('+ global.lang.SLOW +')'},
+					{template: 'message', text: global.lang.ENABLE_MPEGTS_SEEKING},
+					{template: 'option', text: global.lang.NO, fa: 'fas fa-globe', id: 'no'},
+					{template: 'option', text: global.lang.YES, fa: 'fas fa-check-circle', id: 'ok'}
+				], 'no')
+				if(ret == 'yes'){
+					global.config.set('preferred-livestream-fmt', 'hls')
+					this.retry()
+				}
+			})			
 		}
 	}
 	setTuneable(enable){

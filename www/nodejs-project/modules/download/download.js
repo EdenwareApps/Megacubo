@@ -20,6 +20,7 @@ class Download extends Events {
 			maxAbortErrors: 2,
 			redirectionLimit: 20,
 			retries: 3,
+			resume: true,
 			compression: true,
 			headers: {
 				'accept': '*/*',
@@ -27,7 +28,7 @@ class Download extends Events {
 				'accept-language': this.defaultAcceptLanguage()
 			},
 			authErrorCodes: [401, 403],
-			permanentErrorCodes: [-1, 400, 404, 405, 410], // -1 == permanentErrorRegex matched
+			permanentErrorCodes: [-1, 400, 404, 405, 410, 521], // -1 == permanentErrorRegex matched
 			permanentErrorRegex: new RegExp('(ENOTFOUND|ENODATA|ENETUNREACH|ECONNREFUSED|cannot resolve)', 'i'),
 			timeout: null,
 			followRedirect: true,
@@ -297,6 +298,7 @@ class Download extends Events {
 				requestHeaders.range = range // we dont know yet if the server support ranges, so check again on parseResponse
 			} else {
 				requestHeaders.range = 'bytes=' + this.receivedUncompressed + '-'
+				requestHeaders['accept-encoding'] = 'identity' // do not resume with gzip
 			}
 		} else {
 			if(this.received){ // here use received instead of receiveUncompressed
@@ -677,7 +679,7 @@ class Download extends Events {
 			return false
 		}
 		const isValidStatusCode = statusCode == 416 || (statusCode >= 200 && statusCode < 300)
-		const isComplete = this.contentLength == -1 || this.received >= this.contentLength
+		const isComplete = (this.contentLength == -1 && !this.opts.acceptRanges) || (this.contentLength > -1 && this.received >= this.contentLength)
 		if(isValidStatusCode && isComplete && this.contentLength == -1 && !this.currentRequestError){ // ended fine
 			this.contentLength = this.received // avoid loop retrying
 			if(this.opts.debug){
@@ -778,7 +780,7 @@ class Download extends Events {
 		let retry
 		if(!Download.isNetworkConnected){
 			retry = false
-		} else if(this.destroyed || this.ended){
+		} else if(this.destroyed || this.ended || (this.received && !this.opts.resume)){
 			return this.destroy()
 		} else if(this.opts.permanentErrorCodes.includes(this.statusCode) || this.retryCount >= this.opts.retries) { // no more retrying, permanent error
 			retry = false

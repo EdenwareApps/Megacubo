@@ -110,6 +110,7 @@ class PerformanceProfiles extends Timer {
                 'broadcast-start-timeout': 40,
                 'connect-timeout': 5,
                 'fx-nav-intensity': 2,
+                'live-window-time': 180,
                 'p2p': true,
                 'play-while-loading': true,
                 'search-missing-logos': true,
@@ -129,6 +130,8 @@ class PerformanceProfiles extends Timer {
                 'custom-background-video': '',
                 'epg': 'disabled',
                 'fx-nav-intensity': 0,
+                'live-stream-fmt': 'auto',
+                'live-window-time': 10,
                 'p2p': false,
                 'play-while-loading': false,
                 'resume': false,
@@ -138,7 +141,6 @@ class PerformanceProfiles extends Timer {
                 'ts-packet-filter-policy': 1,
                 'tune-concurrency': 4,
                 'tune-ffmpeg-concurrency': 2,
-                'prefer-hls': true,
                 'ui-sounds': false
             }
         }
@@ -381,7 +383,7 @@ class OptionsHardwareAcceleration extends OptionsExportImport {
     getHardwareAcceleration(){
         const fs = require('fs')
         let manifest = String(fs.readFileSync(global.APPDIR +'/package.json'))
-        return !this.hwaDisableFlags.every((flag) => {
+        return !this.hwaDisableFlags.every(flag => {
             return manifest.indexOf(flag) != -1
         })
     }    
@@ -696,36 +698,49 @@ class Options extends OptionsHardwareAcceleration {
                     return global.config.get('use-keepalive')
                 }, details: 'Recommended'},
                 {
-                    name: 'HLS prefetch', type: 'check', action: (data, checked) => {
-                    global.config.set('hls-prefetching', checked)
+                    name: 'Force MPEGTS broadcasts to be seekable ('+ global.lang.SLOW +')', type: 'check', action: (data, checked) => {
+                    global.config.set('preferred-livestream-fmt', checked ? 'hls' : 'auto')
                 }, checked: () => {
-                    return global.config.get('hls-prefetching')
-                }},
+                    return global.config.get('preferred-livestream-fmt') == 'hls'
+                }},                
                 {
-                    name: 'MPEGTS Joining', type: 'check', action: (data, checked) => {
-                    global.config.set('ts-packet-filter-policy', checked ? 1 : -1)
-                }, checked: () => {
-                    return global.config.get('ts-packet-filter-policy') !== -1                    
-                }},
-                {
-                    name: 'Use FFmpeg for HLS',
+                    name: 'Use FFmpeg pre-processing on live streams ('+ global.lang.SLOW +')',
                     fa: 'fas fa-cog', 
                     type: 'select', 
                     renderer: async () => {
                         /*
-                        Using FFmpeg as middleware for HLS breaks multi-tracks
+                        Using FFmpeg as middleware breaks HLS multi-tracks feature
                         but for single track streams can help by storing broadcast on disk
                         allowing a bigger in-disk backbuffer (default: auto)
                         */
-                        const def = global.config.get('ffmpeg-hls'), opts = [
+                        const def = global.config.get('ffmpeg-broadcast-pre-processing'), opts = [
                             {name: global.lang.NO, type: 'action', selected: (def == 'no'), action: () => {
-                                global.config.set('ffmpeg-hls', 'no')
+                                global.config.set('ffmpeg-broadcast-pre-processing', 'no')
                             }},
                             {name: global.lang.AUTO, type: 'action', selected: (def == 'auto' || !['yes', 'no'].includes(def)), action: () => {
-                                global.config.set('ffmpeg-hls', 'auto')
+                                global.config.set('ffmpeg-broadcast-pre-processing', 'auto')
                             }},
                             {name: global.lang.ALWAYS, type: 'action', selected: (def == 'yes'), action: () => {
-                                global.config.set('ffmpeg-hls', 'yes')
+                                global.config.set('ffmpeg-broadcast-pre-processing', 'yes')
+                            }}
+                        ]
+                        return opts
+                    }
+                },
+                {
+                    name: global.lang.PREFERRED_LIVESTREAM_FMT,
+                    fa: 'fas fa-cog', 
+                    type: 'select', 
+                    renderer: async () => {
+                        const def = String(global.config.get('preferred-livestream-fmt')), opts = [
+                            {name: 'Auto', type: 'action', selected: (!['mpegts','hls'].includes(def)), action: () => {
+                                global.config.set('preferred-livestream-fmt', '')
+                            }},
+                            {name: 'MPEGTS', type: 'action', selected: (def == 'mpegts'), action: () => {
+                                global.config.set('preferred-livestream-fmt', 'mpegts')
+                            }},
+                            {name: 'HLS', type: 'action', selected: (def == 'hls'), action: () => {
+                                global.config.set('preferred-livestream-fmt', 'hls')
                             }}
                         ]
                         return opts
@@ -769,18 +784,6 @@ class Options extends OptionsHardwareAcceleration {
                 },            
                 {
                     name: global.lang.TRANSCODE, type: 'group', fa: 'fas fa-film', renderer: this.transcodingEntries.bind(this)
-                },
-                {
-                    name: 'FFmpeg CRF',
-                    fa: 'fas fa-film',
-                    type: 'slider', 
-                    range: {start: 15, end: 30},
-                    action: (data, value) => {
-                        global.config.set('ffmpeg-crf', value)
-                    }, 
-                    value: () => {
-                        return global.config.get('ffmpeg-crf')
-                    }
                 }
             ]
             resolve(opts)
@@ -800,12 +803,6 @@ class Options extends OptionsHardwareAcceleration {
                     global.config.set('status-flags-type', checked)
                 }, checked: () => {
                     return global.config.get('status-flags-type')
-                }},
-                {
-                    name: global.lang.PREFER_HLS, type: 'check', action: (data, checked) => {
-                    global.config.set('prefer-hls', checked)
-                }, checked: () => {
-                    return global.config.get('prefer-hls')
                 }},
                 {
                     name: global.lang.TUNING_CONCURRENCY_LIMIT, 
@@ -1189,6 +1186,30 @@ class Options extends OptionsHardwareAcceleration {
                                     }, checked: () => {
                                         return global.config.get('enable-console')
                                     }},
+                                    {
+                                        name: 'HLS prefetch', type: 'check', action: (data, checked) => {
+                                        global.config.set('hls-prefetching', checked)
+                                    }, checked: () => {
+                                        return global.config.get('hls-prefetching')
+                                    }},
+                                    {
+                                        name: 'MPEGTS Joining', type: 'check', action: (data, checked) => {
+                                        global.config.set('ts-packet-filter-policy', checked ? 1 : -1)
+                                    }, checked: () => {
+                                        return global.config.get('ts-packet-filter-policy') !== -1                    
+                                    }},
+                                    {
+                                        name: 'FFmpeg CRF',
+                                        fa: 'fas fa-film',
+                                        type: 'slider', 
+                                        range: {start: 15, end: 30},
+                                        action: (data, value) => {
+                                            global.config.set('ffmpeg-crf', value)
+                                        }, 
+                                        value: () => {
+                                            return global.config.get('ffmpeg-crf')
+                                        }
+                                    },
                                     {
                                         name: 'Debug connections', type: 'check', action: (data, checked) => {
                                         global.debugConns = checked

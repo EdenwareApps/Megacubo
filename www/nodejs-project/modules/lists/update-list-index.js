@@ -78,7 +78,8 @@ class UpdateListIndex extends ListIndexUtils {
                     },
                     timeout: Math.max(30, global.config.get('connect-timeout')), // some servers will take too long to send the initial response
                     downloadLimit: 200 * (1024 * 1024), // 200Mb
-                    cacheTTL: 3600
+                    cacheTTL: 3600,
+                    debug: false
                 }
                 this.stream = new global.Download(opts)
                 this.stream.on('response', (statusCode, headers) => {
@@ -133,30 +134,37 @@ class UpdateListIndex extends ListIndexUtils {
             }
         })
 	}
-    hlsify(url){
-        let match, badfmt = new RegExp('(type|output)=(m3u|ts|mpegts)(&|$)', 'gi')
-        let hlsurl = url.replace(badfmt, (...args) => {
-            let fmt
+    setURLFmt(url, fmt){
+        let badfmt, type
+        if(fmt == 'hls') {
+            badfmt = new RegExp('(type|output)=(m3u|ts|mpegts)(&|$)', 'gi')
+            type = 'hls'
+        } else {
+            badfmt = new RegExp('(type|output)=(m3u_plus|m3u8|hls)(&|$)', 'gi')
+            type = 'ts'
+        }
+        let alturl = url.replace(badfmt, (...args) => {
+            let t = args[2]
             switch(args[1]){
                 case 'output':
-                    fmt = 'hls'
+                    t = type
                     break
                 case 'type':
-                    fmt = 'm3u_plus'
+                    t = 'm3u_plus'
                     break
             }
-            return args[1] +'='+ fmt + args[3]
+            return args[1] +'='+ t + args[3]
         })
-        if(hlsurl != url){
-            return hlsurl
+        if(alturl != url){
+            return alturl
         }
     }
 	async start(){
-        let urls = [this.directURL]
-        if(global.config.get('prefer-hls')){
-            const hlsurl = this.hlsify(this.directURL)
-            if(hlsurl){
-                urls.unshift(hlsurl)
+        let alturl, urls = [this.directURL], fmt = global.config.get('live-stream-fmt')
+        if(['hls', 'mpegts'].includes(fmt)){
+            alturl = this.setURLFmt(fmt)
+            if(alturl){
+                urls.unshift(alturl)
             }
         }
         await fs.promises.mkdir(global.dirname(this.tmpfile), {recursive: true}).catch(console.error)

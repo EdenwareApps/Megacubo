@@ -1054,8 +1054,9 @@ class Manager extends ManagerEPG {
         this.updaterClients++
         this.updater.close = () => {
             this.updaterClients--
-            if(!this.updaterClients){
-                this.updater.terminate()
+            if(global.cordova && !this.updaterClients){
+                console.error('Terminating updater worker')
+                this.updater.terminate() // this may cause app to close on PC, bug not seen on mobile yet
                 this.updater = null
             }
         }
@@ -1108,7 +1109,6 @@ class Manager extends ManagerEPG {
                 this.uiUpdating = true
                 const timer = setInterval(() => this.updateOSD(), 3000)
                 this.master.updaterFinished(false).catch(console.error)
-                this.master.keywords(keywords)
                 const allLists = myLists.concat(communityLists), updater = this.startUpdater()
                 this.updatingProcesses[uid].urls = allLists
                 updater.on('list-updated', url => {
@@ -1121,11 +1121,12 @@ class Manager extends ManagerEPG {
                         this.emit('sync-status', this.master.status())
                     })
                 })
+                await this.master.keywords(keywords)
                 await updater.setRelevantKeywords(keywords)
                 let results, expired = []
                 const cachedLists = await this.master.filterCachedUrls(allLists)
                 const loadCommmunityListsCaches = this.master.loadCachedLists(cachedLists)
-                const concurrency = cachedLists.length >= Math.min(Math.max(camount, myLists.length), 8) ? 2 : 6
+                const concurrency = cachedLists.length >= Math.min(Math.max(camount, myLists.length), 8) ? 4 : 8
                 const updating = updater.update(allLists.filter(u => !cachedLists.includes(u)).concat(cachedLists), concurrency).then(r => results = r).catch(err => {
                     console.error('Failed to update packages', err)
                 })

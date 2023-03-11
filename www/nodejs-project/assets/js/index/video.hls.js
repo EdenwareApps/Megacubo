@@ -40,6 +40,9 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
     handleMediaError(data) {
 		if(!this.active) return
         let msg = '', now = performance.now()
+		if(data.frag){
+			this.skipFragment(data.frag.start, data.frag.duration) // skip bad segment
+		}
         if (!this.recoverDecodingErrorDate || (now - this.recoverDecodingErrorDate) > 3000) {
             this.recoverDecodingErrorDate = now
             msg = 'trying to recover from media Error...'
@@ -96,7 +99,7 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 			console.error(msg, this.object.duration)
 			this.emit('error', this.prepareErrorDataStr(data), true)
 			this.state = ''
-			this.emit('state', '')
+			if(!this.suspendStateChangeReporting) this.emit('state', '')
 		}
 		/*
 		if(force === true || (!isNaN(this.object.duration) && this.object.duration)) {
@@ -107,7 +110,7 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 			console.error(msg, this.object.duration)
 			this.emit('error', this.prepareErrorDataStr(data), true)
 			this.state = ''
-			this.emit('state', '')
+			if(!this.suspendStateChangeReporting) this.emit('state', '')
 		}
 		*/
     }
@@ -283,7 +286,7 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 			/*
 			// https://github.com/video-dev/hls.js/blob/master/docs/API.md
 			defaultAudioCodec: 'mp4a.40.2',
-			debug: true,
+			debug: false,
 			progressive: true,
 			lowLatencyMode: false,
 			enableSoftwareAES: false,

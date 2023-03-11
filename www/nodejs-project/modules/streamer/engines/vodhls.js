@@ -7,14 +7,6 @@ class StreamerVODHLSIntent extends StreamerHLSIntent {
         this.mimetype = this.mimeTypes.hls
         this.mediaType = 'video'
     }
-    getTranscodingOpts(){
-        return Object.assign({
-            workDir: this.opts.workDir, 
-            authURL: this.data.source,
-            debug: this.opts.debug,
-            isLive: false
-        }, this.getTranscodingCodecs())
-    }
 }
 
 StreamerVODHLSIntent.mediaType = 'video'

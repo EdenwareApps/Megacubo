@@ -1,5 +1,5 @@
 const StreamerBaseIntent = require('./base.js'), StreamerProxy = require('../utils/proxy.js'), StreamerHLSProxy = require('../utils/proxy-hls.js')
-const Any2HLS = require('../utils/any2hls'), async = require('async'), m3u8Parser = require('m3u8-parser')
+const StreamerFFmpeg = require('../utils/ffmpeg'), async = require('async'), m3u8Parser = require('m3u8-parser')
 
 class HLSTrackSelector {
     constructor(){
@@ -120,13 +120,6 @@ class StreamerHLSIntent extends StreamerBaseIntent {
         this.endpoint = this.prx.proxify(url)
 		this.emit('streamer-connect')
 	}
-    getTranscodingOpts(){
-        return Object.assign({
-            workDir: this.opts.workDir, 
-            authURL: this.data.source,
-            debug: this.opts.debug
-        }, this.getTranscodingCodecs())
-    }
     transcode(){
         return new Promise((resolve, reject) => {
             this.resetTimeout()
@@ -140,7 +133,7 @@ class StreamerHLSIntent extends StreamerBaseIntent {
                 this.prx = new StreamerProxy(Object.assign({authURL: this.data.source}, this.opts))
                 this.connectAdapter(this.prx)
                 this.prx.start().then(() => {
-                    this.transcoder = new Any2HLS(this.prx.proxify(this.trackUrl), opts)
+                    this.transcoder = new StreamerFFmpeg(this.prx.proxify(this.trackUrl), opts)
                     this.connectAdapter(this.transcoder)
                     this.transcoder.once('destroy', () => {
                         if(!resolved){
@@ -154,6 +147,7 @@ class StreamerHLSIntent extends StreamerBaseIntent {
                         if(!resolved){
                             resolved = true
                             this.transcoderStarting = false
+                            this.mimetype = this.mimeTypes[this.ff.opts.outputFormat]
                             this.endpoint = this.transcoder.endpoint
                             resolve({endpoint: this.endpoint, mimetype: this.mimetype})
                             this.emit('transcode-started')           
@@ -187,18 +181,9 @@ class StreamerHLSIntent extends StreamerBaseIntent {
         })
     }
     async useFFmpeg(){
-        const f = global.config.get('ffmpeg-hls')
+        const f = global.config.get('ffmpeg-broadcast-pre-processing')
         if(f == 'yes'){
             return true
-        } else if(f != 'no') { // auto
-            if(!global.config.get('communitary-mode-lists-amount')){
-                // user should be using a good quality list so, skip FFmpeg
-                return false
-            }
-            const ret = await this.trackSelector.getPlaylistTracks(this.data.url).catch(console.error)
-            if(Array.isArray(ret) && ret.length == 1){
-                return true
-            }
         }
         return false
     }
@@ -213,12 +198,13 @@ class StreamerHLSIntent extends StreamerBaseIntent {
             if(ret && ret.url){
                 this.trackUrl = ret.url     
                 console.log('Track selected', this.trackUrl, ret, this.trackSelector.tracks)                    
-                this.ff = new Any2HLS(this.prx.proxify(this.trackUrl), {
+                this.ff = new StreamerFFmpeg(this.prx.proxify(this.trackUrl), {
                     videoCodec: 'copy',
                     audioCodec: 'copy'
                 })
                 this.connectAdapter(this.ff)
                 await this.ff.start()
+                this.mimetype = this.mimeTypes[this.ff.opts.outputFormat]
                 this.endpoint = this.ff.endpoint
                 if(ret.bandwidth){ // do it after resolve for right emit order on global.streamer
                     this.bitrate = ret.bandwidth

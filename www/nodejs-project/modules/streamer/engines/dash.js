@@ -1,4 +1,4 @@
-const StreamerBaseIntent = require('./base.js'), Any2HLS = require('../utils/any2hls')
+const StreamerBaseIntent = require('./base.js'), StreamerFFmpeg = require('../utils/ffmpeg')
 
 class StreamerDashIntent extends StreamerBaseIntent {    
     constructor(data, opts, info){
@@ -16,12 +16,13 @@ class StreamerDashIntent extends StreamerBaseIntent {
     }  
     _start(){ 
         return new Promise((resolve, reject) => {
-            this.dash2hls = new Any2HLS(this.data.url, this.opts)
+            this.dash2hls = new StreamerFFmpeg(this.data.url, this.opts)
+            this.mimetype = this.mimeTypes[this.ff.opts.outputFormat]
             this.connectAdapter(this.dash2hls)
             this.dash2hls.audioCodec = this.opts.audioCodec
             this.dash2hls.start().then(() => {
                 this.endpoint = this.dash2hls.endpoint
-                resolve()
+                resolve({endpoint: this.endpoint, mimetype: this.mimetype})
             }).catch(reject)
         })
     }

@@ -102,15 +102,16 @@ function initApp(){
     app.on('theme-background', (image, video, color, fontColor, animate) => {
         parent.theming(image, video, color, fontColor, animate)
     })
-    app.on('init-p2p', (addr, limit) => {
-        console.warn('INIT P2P', addr, limit)
-        if(!window.p2p){
-            if(typeof(P2PManager) == 'undefined'){
-                app.emit('init-p2p-failure')
-            } else {
-                window.p2p = new P2PManager(app, addr, limit)  
-            }
+    let initP2PDetails
+    window.initP2P = () => { 
+        if(initP2PDetails && !window.p2p && typeof(P2PManager) != 'undefined'){
+            const {addr, limit} = initP2PDetails
+            window.p2p = new P2PManager(app, addr, limit)
         }
+    }
+    app.on('init-p2p', (addr, limit) => {
+        initP2PDetails = {addr, limit}
+        initP2P()
     })
     app.on('download', (url, name) => {
         console.log('download', url, name)
@@ -137,10 +138,10 @@ function initApp(){
         } else {
             let e = document.createElement('a')
             e.setAttribute('href', url)
-            e.setAttribute('download', name)    
+            e.setAttribute('download', name)
             e.style.display = 'none'
-            document.body.appendChild(e)    
-            e.click()    
+            document.body.appendChild(e)
+            e.click()
             document.body.removeChild(e)
         }
     })

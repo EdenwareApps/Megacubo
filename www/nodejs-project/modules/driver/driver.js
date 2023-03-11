@@ -6,6 +6,7 @@ function prepare(file){ // workaround, macos throws not found for local files wh
 }
 
 module.exports = (file, opts) => {
+	// Using worker_threads causes immediate crashes on NW.js
 	const skipWorkerThreads = ((opts && opts.skipWorkerThreads) || (!global.cordova && typeof(Worker) != 'undefined')), workerData = {file, paths, APPDIR}
 	if(typeof(global.lang) != 'undefined'){
 		workerData.lang = global.lang.getTexts()
@@ -64,7 +65,7 @@ module.exports = (file, opts) => {
 			this.configChangeListener && global.config.removeListener('change', this.configChangeListener)
 			if(this.worker){
 				//this.worker.postMessage({method: 'unload', id: 0})
-				setTimeout(() => { // prevent closing by bug in nwjs
+				setTimeout(() => { // try to prevent closing due to bug in nwjs
 					this.worker.terminate()
 					this.worker = null
 				}, 5000)
@@ -137,7 +138,7 @@ module.exports = (file, opts) => {
 						this.promises[ret.id][ret.type](ret.data)
 						delete this.promises[ret.id]
 					} else {
-						console.error('Worker error', ret)
+						console.warn('Callback repeated: '+ JSON.stringify(ret))
 					}
 				} else if(ret.type && ret.type == 'event') {
 					let pos = ret.data.indexOf(':')

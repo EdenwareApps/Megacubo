@@ -4,7 +4,7 @@ Experiment in progress trying to convert a live streaming to a video file that c
 
 const fs = require('fs'), http = require('http'), path = require('path')
 const closed = require('../../on-closed'), decodeEntities = require('decode-entities')
-const Any2HLS = require('../utils/any2hls'), Events = require('events')
+const StreamerFFmpeg = require('../utils/ffmpeg'), Events = require('events')
 
 class PersistentReader extends Events {
     constructor(file){
@@ -75,7 +75,7 @@ class PersistentReader extends Events {
     }
 }
 
-class StreamerLiveToVideo extends Any2HLS {
+class StreamerLiveToVideo extends StreamerFFmpeg {
 	constructor(url){
 		super('', {})
         this.url = url

@@ -320,7 +320,6 @@ class ExplorerPointer extends ExplorerSelectionMemory {
         this.parentClassName = 'selected-parent'
         this.selectedIndex = 0
         this.setViewSize(2, 7)
-        window.addEventListener('resize', this.resize.bind(this))
         this.mouseWheelMovingTime = 0
         this.mouseWheelMovingInterval = 300
         this.scrolling = false
@@ -409,6 +408,8 @@ class ExplorerPointer extends ExplorerSelectionMemory {
                 }
             })
         }) 
+        window.addEventListener('resize', this.resize.bind(this))
+		this.resize() // to apply initial icons size
     }
     scrollSnap(scrollTop, direction, cb){
         if(this.rendering){

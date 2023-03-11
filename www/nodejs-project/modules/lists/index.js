@@ -280,11 +280,18 @@ class Index extends Common {
 	}
 	adjustSearchResults(entries, opts, limit){
 		let map = {}, nentries = [];
-		(
-			(opts && opts.type == 'live' && global.config.get('prefer-hls')) ? 
-			this.preferHLS(entries) : 
-			entries
-		).forEach(e => {
+		if(opts.type == 'live'){
+			const livefmt = global.config.get('live-stream-fmt')
+			switch(livefmt){
+				case 'hls':
+					entries = this.isolateHLS(entries, true)
+					break
+				case 'mpegts':
+					entries = this.isolateHLS(entries, false)
+					break
+			}
+		}
+		entries.forEach(e => {
 			let domain = this.getDomain(e.url)
 			if(typeof(map[domain]) == 'undefined'){
 				map[domain] = []
@@ -310,7 +317,7 @@ class Index extends Common {
     ext(file){
         return String(file).split('?')[0].split('#')[0].split('.').pop().toLowerCase()
     }
-    preferHLS(entries){
+    isolateHLS(entries, elevate){
         let notHLS = []
 		entries = entries.filter(a => {
 			if(this.ext(a.url) == 'm3u8'){
@@ -318,7 +325,11 @@ class Index extends Common {
 			}
 			notHLS.push(a)
         })
-		entries.push(...notHLS)
+		if(elevate){
+			entries.push(...notHLS)
+		} else {
+			entries = notHLS.push(...entries)
+		}
 		return entries
     }
 	mapSize(a, group){

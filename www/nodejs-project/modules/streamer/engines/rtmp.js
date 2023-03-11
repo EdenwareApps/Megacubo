@@ -1,4 +1,4 @@
-const StreamerBaseIntent = require('./base.js'), Any2HLS = require('../utils/any2hls')
+const StreamerBaseIntent = require('./base.js'), StreamerFFmpeg = require('../utils/ffmpeg')
 
 class StreamerRTMPIntent extends StreamerBaseIntent {    
     constructor(data, opts, info){
@@ -18,12 +18,13 @@ class StreamerRTMPIntent extends StreamerBaseIntent {
     }  
     _start(){ 
         return new Promise((resolve, reject) => {
-            this.rtmp2hls = new Any2HLS(this.data.url, this.opts)
+            this.rtmp2hls = new StreamerFFmpeg(this.data.url, this.opts)
+            this.mimetype = this.mimeTypes[decoder.opts.outputFormat]
             this.connectAdapter(this.rtmp2hls)
             this.rtmp2hls.audioCodec = this.opts.audioCodec
             this.rtmp2hls.start().then(() => {
                 this.endpoint = this.rtmp2hls.endpoint
-                resolve()
+                resolve({endpoint: this.endpoint, mimetype: this.mimetype})
             }).catch(reject)
         })
     }

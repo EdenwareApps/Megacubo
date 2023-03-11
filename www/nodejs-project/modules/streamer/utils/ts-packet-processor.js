@@ -38,15 +38,42 @@ class MPEGTSPacketProcessorUtils extends Events {
     checkSyncByte(c, pos){
         if(pos >= 0 && pos < (c.length - 4)){
             const header = c.readUInt32BE(pos || 0), packetSync = (header & 0xff000000) >> 24
-            return packetSync !== SYNC_BYTE
+            return packetSync === SYNC_BYTE
         }
     }
     nextSyncByte(c, pos){
-        while(pos < (c.length - 4)){
+        const maxCheckLength = 4 * PACKET_SIZE
+        let hints = [pos], maxPos = pos + maxCheckLength
+        while(pos < (c.length - 4) && pos < maxPos){
             if(this.checkSyncByte(c, pos)){
-                return pos
+                hints.push(pos)
             }
             pos++
+        }
+        return this.computeSyncBytePosition(hints)
+    }
+    computeSyncBytePosition(hints){
+        const scores = {}
+        hints.forEach(s => {
+            let n = s % 188
+            if(typeof(scores[n])== 'undefined'){
+                scores[n] = 0
+            }
+            scores[n]++
+        })
+        let maxVal = Math.max(...Object.values(scores))
+        for(let n of Object.keys(scores)){
+            if(scores[n] == maxVal){
+                n = parseInt(n)
+                let ret
+                hints.some(h => {
+                    if((h % 188) == n){
+                        ret = h
+                        return true
+                    }
+                })
+                return ret
+            }
         }
         return -1
     }
@@ -56,31 +83,33 @@ class MPEGTSPacketProcessor extends MPEGTSPacketProcessorUtils {
 	constructor(){
         super()
         this.debug = false
-        this.direction = -1 // -1 = uninitialized; 0 = new conn, buffering up; 1 = passing through
+        this.direction = -1 // -1 = uninitialized; 0 = new conn, buffering up; 1 = passing through; 2 = passing through permanently
         this.buffering = []
+        this.pcrJournalNudgeSize = 256
         this.maxPcrJournalSize = 8192 // 256 was not enough
         this.packetFilterPolicy = 1
         this.pcrJournal = []
         this.on('pcr', (pcr, data, start, end) => {
-            if(this.pcrJournal.includes(pcr)){
-                console.warn('REPEATED PCR LEAKING', pcr, data.length, this.direction)
-                return
-            } else {
+            if(!this.pcrJournal.includes(pcr)){
                 this.pcrJournal.push(pcr)
                 if(this.pcrJournal.length > this.maxPcrJournalSize){
-                    this.pcrJournal.splice(0, this.pcrJournal.length - this.maxPcrJournalSize)
+                    this.pcrJournal.splice(0, (this.pcrJournal.length - this.pcrJournalNudgeSize) - this.maxPcrJournalSize)
                 }
-                if(this.direction !== 1){
+                if(this.direction < 1){
                     this.direction = 1
                 }
             }
-            if(this.direction === 1){
-                this.emit('data', data.slice(start, end))
+            if(this.direction >= 1){
+                const chunk = data.slice(start, end)
+                if((chunk.length % PACKET_SIZE) > 0){
+                    console.error('BAD PCR SIZE', chunk, chunk.length, (chunk.length % PACKET_SIZE), start, end)
+                }
+                this.emit('data', chunk)
             }
         })
     }
     packetize(){
-        let currentPCR, cutpoint = 0, buf = Buffer.concat(this.buffering)
+        let currentPCR, cutpoint = 0, initialPos = 0, buf = Buffer.concat(this.buffering)
         let pointer = 0, positions = {}, errorCount = 0, iterationsCounter = 0
         if(!this.checkSyncByte(buf, 0)){
             pointer = this.nextSyncByte(buf, 0)
@@ -93,6 +122,7 @@ class MPEGTSPacketProcessor extends MPEGTSPacketProcessorUtils {
                 if(this.debug){
                     console.log('skipping first '+ pointer +' bytes')
                 }
+                initialPos = pointer
             }
         }
         while(pointer >= 0 && (pointer + PACKET_SIZE) <= buf.length){
@@ -147,7 +177,7 @@ class MPEGTSPacketProcessor extends MPEGTSPacketProcessorUtils {
                     currentPCR = 1 // dummy value
                 }
                 if(currentPCR){
-                    this.emit('pcr', pcr, buf, positions[currentPCR] || 0, pointer)
+                    this.emit('pcr', pcr, buf, positions[currentPCR] || initialPos, pointer)
                 }
                 cutpoint = pointer
                 currentPCR = pcr

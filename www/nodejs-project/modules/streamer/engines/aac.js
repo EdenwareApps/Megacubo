@@ -1,4 +1,4 @@
-const StreamerBaseIntent = require('./base.js'), StreamerAdapterAAC = require('../adapters/aac.js'), Any2HLS = require('../utils/any2hls'), fs = require('fs')
+const StreamerBaseIntent = require('./base.js'), StreamerAdapterAAC = require('../adapters/aac.js'), StreamerFFmpeg = require('../utils/ffmpeg'), fs = require('fs')
 
 class StreamerAACIntent extends StreamerBaseIntent {    
     constructor(data, opts, info){
@@ -15,14 +15,15 @@ class StreamerAACIntent extends StreamerBaseIntent {
     _start(){ 
         return new Promise((resolve, reject) => {
             this.downloader = new StreamerAdapterAAC(this.data.url, this.opts)
+            this.mimetype = this.mimeTypes[this.ff.opts.outputFormat]
             this.connectAdapter(this.downloader)
             this.downloader.start().then(() => {
-                this.hlsify = new Any2HLS(this.downloader.source.endpoint, this.opts)
-                this.hlsify.opts.audioCodec = this.opts.audioCodec
-                this.connectAdapter(this.hlsify)
-                this.hlsify.start().then(() => {
-                    this.endpoint = this.hlsify.endpoint
-                    resolve()
+                this.decoder = new StreamerFFmpeg(this.downloader.source.endpoint, this.opts)
+                this.decoder.opts.audioCodec = this.opts.audioCodec
+                this.connectAdapter(this.decoder)
+                this.decoder.start().then(() => {
+                    this.endpoint = this.decoder.endpoint
+                    resolve({endpoint: this.endpoint, mimetype: this.mimetype})
                 }).catch(reject)
             }).catch(reject)
         })
