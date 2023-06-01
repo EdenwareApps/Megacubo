@@ -1,3 +1,4 @@
+const pLimit = require('p-limit')
 
 class CloudData {
     constructor(opts){
@@ -10,7 +11,7 @@ class CloudData {
             'channels': 6 * 3600,
             'configure': 1 * 3600,
             'country-sources': 6 * 3600,
-            'sources': 6 * 3600,
+            'watching-country': 300,
             'watching': 300
         }
 		if(opts){
@@ -35,7 +36,7 @@ class CloudData {
             return this.server + '/stats/data/' + key + '.' + this.locale +'.json'
         }
     }
-    async get(key, raw, softTimeout){
+    async get(key, raw){
         if(this.debug){
             console.log('cloud: get', key, traceback())
         }
@@ -62,13 +63,14 @@ class CloudData {
                 timeout: 60,
                 retry: 10,
                 p2p,
+                p2pWaitMs: 500,
                 cacheTTL: this.expires[expiralKey] || 300
             }).catch(e => err = e)
             if(this.debug){
                 console.log('cloud: got', key, err, body)
             }
-            data = await store.promises.get(this.cachingDomain + key + '-fallback').catch(e => err2 = e)
             if(typeof(err) != 'undefined' || !body){
+                data = await store.promises.get(this.cachingDomain + key + '-fallback').catch(e => err2 = e)
                 if(data && !err2){
                     return data
                 } else {
@@ -90,6 +92,25 @@ class CloudData {
                 return body
             }
         }
+    }    
+    async discovery(timeout=30000){
+        const limit = pLimit(3)
+        let data = {}, locs = await global.lang.getActiveCountries(), solved = []
+        await Promise.allSettled(locs.map(loc => {
+            return async () => {
+                const es = await this.get('country-sources.'+ loc, false, timeout).catch(console.error)
+                solved.push(loc)
+                Array.isArray(es) && es.forEach(e => {
+                    const url = e.url
+                    let count = parseInt(e.label.replace('.', '').split(' ').shift())
+                    if(isNaN(count)) count = 0
+                    if(typeof(data[url]) != 'undefined') count += data[url]
+                    e.count = count
+                    data[url] = e
+                })
+            }
+        }).map(limit))
+        return Object.values(data).sort((a, b) => b.count - a.count)
     }
 }
 

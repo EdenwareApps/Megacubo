@@ -20,7 +20,7 @@ if(typeof(themeRefresh) == 'undefined'){
         }
         let sbg = colorMixer(Object.values(hexToRgb(config['background-color'])), [0, 0, 0], 0.5)
         let mbg = hexToRGBA(config['background-color'], config['background-color-transparency'] / 100)
-        let sfg = hexToRGBA(config['font-color'], 0.4)
+        let sfg = hexToRGBA(config['font-color'], 0.6)
         let fxNavIntensityStep = parseFloat(window.getComputedStyle(document.documentElement).getPropertyValue('--explorer-fx-nav-intensity-step').trim())
         let fxNavIntensity = config['fx-nav-intensity'] * fxNavIntensityStep
         let fxNavDuration

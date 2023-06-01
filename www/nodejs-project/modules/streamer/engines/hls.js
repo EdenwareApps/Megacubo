@@ -5,16 +5,6 @@ class HLSTrackSelector {
     constructor(){
         this.tracks = {}
     }
-    absolutize(path, url){
-		if(path.substr(0, 2) == '//'){
-			path = 'http:' + path
-		}
-        if(['http://', 'https:/'].includes(path.substr(0, 7))){
-            return path
-		}
-		let uri = new URL(path, url)
-        return uri.href
-	}
     fetch(url){
         return new Promise((resolve, reject) => {
             const download = new global.Download({
@@ -42,7 +32,7 @@ class HLSTrackSelector {
         //console.log('M3U8 PARSED', baseUrl, url, parser)
         if(parser.manifest && parser.manifest.playlists && parser.manifest.playlists.length){
             results = parser.manifest.playlists.map(playlist => {
-                let bandwidth = 0, url = this.absolutize(playlist.uri, masterUrl)
+                let bandwidth = 0, url = global.absolutize(playlist.uri, masterUrl)
                 if(playlist.attributes){
                     if(playlist.attributes['AVERAGE-BANDWIDTH'] && parseInt(playlist.attributes['AVERAGE-BANDWIDTH']) > 128){
                         bandwidth = parseInt(playlist.attributes['AVERAGE-BANDWIDTH'])
@@ -188,7 +178,7 @@ class StreamerHLSIntent extends StreamerBaseIntent {
         return false
     }
     async _start(){ 
-        const prefetch = global.config.get('hls-prefetching') && this.mediaType == 'live'
+        const prefetch = this.mediaType == 'live' && global.config.get('hls-prefetching')
         const useff = await this.useFFmpeg()
         this.prx = new (prefetch ? StreamerHLSProxy : StreamerProxy)(Object.assign({authURL: this.data.source}, this.opts))
         this.connectAdapter(this.prx)

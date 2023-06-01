@@ -1,4 +1,4 @@
-module.exports = function closed(req, response, cb){
+module.exports = function closed(req, response, cb, opts){
 	let socket
 	const socketCloseListener = () => setTimeout(callback, 2000)
 	const callback = () => {

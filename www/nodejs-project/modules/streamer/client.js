@@ -264,6 +264,18 @@ class StreamerState extends StreamerCasting {
                 next()
             }
         })
+        this.app.on('streamer-client-pause', () => {
+            const should = !this.casting && parent.player.state != 'paused'
+            if(should) {
+                parent.player.pause()
+            }
+        })
+        this.app.on('streamer-client-resume', () => {
+            const should = !this.casting && parent.player.state == 'paused'
+            if(should) {
+                parent.player.resume()
+            }
+        })
         this.positionReportingInterval = 10
         this.lastPositionReportingTime = time()
         this.lastPositionReported = 0
@@ -272,23 +284,20 @@ class StreamerState extends StreamerCasting {
             this.lastPositionReportingTime = time()
             this.lastPositionReported = 0
         })
-        parent.player.on('timeupdate', () => {
-            if(!this.inLiveStream){
+        parent.player.on('timeupdate', position => {
+            if(!this.inLiveStream && position >= 30){
                 const now = time()
                 if(now > (this.lastPositionReportingTime + this.positionReportingInterval)){
-                    let position = parent.player.time()
-                    if(position >= 30){
-                        let reportingDiff = Math.abs(position - this.lastPositionReported)
-                        if(reportingDiff >= this.positionReportingInterval){
-                            this.lastPositionReportingTime = now
-                            let duration = parent.player.duration()
-                            if(duration && duration > 0){
-                                this.lastPositionReported = position
-                                this.app.emit('state-atts', this.data.url, {duration, position})
-                            }
-                        } else {
-                            this.lastPositionReportingTime += (this.positionReportingInterval - reportingDiff + 0.1)
+                    let reportingDiff = Math.abs(position - this.lastPositionReported)
+                    if(reportingDiff >= this.positionReportingInterval){
+                        this.lastPositionReportingTime = now
+                        let duration = parent.player.duration()
+                        if(duration && duration > 0){
+                            this.lastPositionReported = position
+                            this.app.emit('state-atts', this.data.url, {duration, position})
                         }
+                    } else {
+                        this.lastPositionReportingTime += (this.positionReportingInterval - reportingDiff + 0.1)
                     }
                 }
             }
@@ -500,14 +509,14 @@ class StreamerIdle extends StreamerClientVideoAspectRatio {
                 done()
             }
         });
-        idle.on('start', () => {
+        idle.on('idle', () => {
             let c = document.body.className || ''
             if(!c.match(rx2)){
                 document.body.className += ' idle'
             }
             parent.player.uiVisible(false)
         })
-        idle.on('stop', () => {
+        idle.on('active', () => {
             let c = document.body.className || ''
             if(c.match(rx2)){
                 document.body.className = c.replace(rx2, ' ').trim()
@@ -688,7 +697,7 @@ class StreamerSeek extends StreamerSpeedo {
             })
             this.seekRewindLayerCounter = document.querySelector('div#seek-back > span.seek-layer-time > span') 
             this.seekForwardLayerCounter = document.querySelector('div#seek-fwd > span.seek-layer-time > span') 
-            idle.on('stop', () => this.seekBarUpdate(true))
+            idle.on('active', () => this.seekBarUpdate(true))
             this.seekBarUpdate(true)
         })
         this.on('state', s => {
@@ -869,7 +878,9 @@ class StreamerSeek extends StreamerSpeedo {
     seekTo(_s, type){
         if(!this.state) return
         if(parent.cordova && this.activeMimetype == 'video/mp2t'){
-            return this.app.emit('streamer-seek-failure')
+            clearTimeout(this.seekFailureTimer)
+            this.seekFailureTimer = setTimeout(() => this.app.emit('streamer-seek-failure'), 2000)
+            return
         }
         if(typeof(this.seekingFrom) != 'number'){
             this.seekingFrom = parent.player.time()
@@ -1007,30 +1018,31 @@ class StreamerLiveStreamClockTimer extends StreamerSeek {
 class StreamerClientTimeWarp extends StreamerLiveStreamClockTimer {
     constructor(controls, app){
         super(controls, app)
-        this.maxRateChange = 0.1
+        this.maxRateChange = 0.15
         this.bufferTimeSecs = 10
         this.currentPlaybackRate = 1
-        parent.player.on('timeupdate', () => this.doTimeWarp())
+        parent.player.on('timeupdate', pos => this.doTimeWarp(pos))
         parent.player.on('durationchange', () => this.doTimeWarp())
     }
-    doTimeWarp(){
+    doTimeWarp(ptime){
         if(this.inLiveStream && config['playback-rate-control'] && this.timewarpInitialPlaybackTime !== null){
             /*
             On HLS we'll try to avoid gets behind live window.
             On MPEGTS we'll just keep the buffer for smooth playback.
             */
-            const ptime = parent.player.time()
+            if(typeof(ptime) != 'number') {
+                ptime = parent.player.time()
+            }
             const duration = this.activeMimetype.indexOf('mpegurl') ? this.clockTimerDuration() : parent.player.duration()
-            if(duration >= ptime){
-                const remaining = duration - ptime
-                let rate = 1 + ((remaining - this.bufferTimeSecs) * (this.maxRateChange / this.bufferTimeSecs))
-                rate = Math.min(1 + this.maxRateChange, Math.max(1 - this.maxRateChange, rate))
-                rate = Number(rate.toFixed(2))
-                if(rate != this.currentPlaybackRate){
-                    this.currentPlaybackRate = rate
-                    console.warn('PlaybackRate='+ rate +'x', 'remaining '+ parseInt(remaining) +' secs')
-                    parent.player.playbackRate(rate)
-                }
+            if(duration < ptime) return // skip by now
+            const remaining = duration - ptime
+            let rate = 1 + ((remaining - this.bufferTimeSecs) * (this.maxRateChange / this.bufferTimeSecs))
+            rate = Math.min(1 + this.maxRateChange, Math.max(1 - this.maxRateChange, rate))
+            rate = Number(rate.toFixed(2))
+            if(rate != this.currentPlaybackRate){
+                this.currentPlaybackRate = rate
+                console.warn('PlaybackRate='+ rate +'x', 'remaining '+ parseInt(remaining) +' secs')
+                parent.player.playbackRate(rate)
             }
         }
     }
@@ -1293,7 +1305,7 @@ class StreamerAudioUI extends StreamerClientVideoFullScreen {
             }
         })
         this.once('start', () => this.volumeChanged())
-        idle.on('start', () => this.volumeBarHide())
+        idle.on('idle', () => this.volumeBarHide())
         explorer.on('focus', e => {
             if(e == this.volumeButton){
                 if(!this.volumeBarVisible()){
@@ -1386,7 +1398,7 @@ class StreamerClientControls extends StreamerAudioUI {
                 this.app.emit('streamer-update-streamer-info')
             }
         })
-        idle.on('stop', () => {
+        idle.on('active', () => {
             this.app.emit('streamer-update-streamer-info')
         })
         this.controls.innerHTML = `
@@ -1432,11 +1444,12 @@ class StreamerClientControls extends StreamerAudioUI {
         this.addPlayerButton('info', 'ABOUT', `
             <i class="about-icon-dot about-icon-dot-first"></i>
             <i class="about-icon-dot about-icon-dot-second"></i>
-            <i class="about-icon-dot about-icon-dot-third"></i>`, -1, 'about')
-        this.controls.querySelectorAll('button').forEach(bt => {
-            bt.addEventListener('touchstart', () => {
-                explorer.focus(bt)
+            <i class="about-icon-dot about-icon-dot-third"></i>`, -1, () => {
+                !this.casting && parent.player.pause()
+                this.app.emit('about')
             })
+        this.controls.querySelectorAll('button').forEach(bt => {
+            bt.addEventListener('touchstart', () => explorer.focus(bt))
         })
         this.emit('draw')
         $('#explorer').on('click', e => {

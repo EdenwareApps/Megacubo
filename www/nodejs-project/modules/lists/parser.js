@@ -1,7 +1,7 @@
 
 const Events = require('events'), bsplit = require('buffer-split')
 
-class IPTVPlaylistStreamParser extends Events {
+class IPTVM3UParser extends Events {
 	constructor(stream){
 		super()
 		this.buffer = []
@@ -75,19 +75,13 @@ class IPTVPlaylistStreamParser extends Events {
 		}
 	}
 	len(data){
-		if(!data){
+		if (!data) {
 			return 0
-		} else if(Array.isArray(data)) {
-			let len = 0
-			data.forEach(d => {
-				len += this.len(d)
-			})
-			return len
-		} else if(typeof(data.byteLength) != 'undefined') {
-			return data.byteLength
-		} else {
-			return data.length
 		}
+		if (Array.isArray(data)) {
+			return data.reduce((acc, val) => acc + this.len(val), 0)
+		}
+		return data.byteLength || data.length || 0
 	}
 	sanitizeName(s){
 		if(s.indexOf('[/') != -1){
@@ -147,12 +141,6 @@ class IPTVPlaylistStreamParser extends Events {
 			let lines = bsplit(buf, this.bnl)
 			this.buffer = []
 			let left = [], n
-			lines = lines.map((l, i) => {
-				if(i < (lines.length - 1)){
-					return Buffer.concat([l, this.bnl])
-				}
-				return l 
-			})
 			for(let i=lines.length - 1; i >= 0; i--){
 				if(this.isExtInf(lines[i])){
 					n = i
@@ -167,7 +155,7 @@ class IPTVPlaylistStreamParser extends Events {
 				lines = lines.slice(0, n) // ?!				
 			}
 			this.buffer.unshift(Buffer.concat(left))
-			data = lines.map(s => String(s)).join('')
+			data = lines.map(s => String(s)).join("\r\n")
 		}
 		if(data){
 			this.extractEntries(data)
@@ -379,4 +367,4 @@ class IPTVPlaylistStreamParser extends Events {
 	}
 }
 
-module.exports = IPTVPlaylistStreamParser
+module.exports = IPTVM3UParser

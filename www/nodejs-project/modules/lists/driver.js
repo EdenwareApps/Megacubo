@@ -1,14 +1,11 @@
 
-const pLimit = require('p-limit'), List = require('./list')
-const UpdateListIndex = require('./update-list-index'), ConnRacing = require('../conn-racing')
-const Common = require('./common'), Cloud = require(global.APPDIR + '/modules/cloud')
+const Common = require('./common'), List = require('./list')
+const UpdateListIndex = require('./update-list-index')
 
 require(global.APPDIR + '/modules/supercharge')(global)
 
 storage = require(global.APPDIR + '/modules/storage')({})
-
 Download = require(global.APPDIR + '/modules/download')
-cloud = new Cloud()
 
 const emit = (type, content) => {
 	postMessage({id: 0, type: 'event', data: type +':'+ JSON.stringify(content)})
@@ -18,7 +15,6 @@ class ListsUpdater extends Common {
 	constructor(){
 		super()
 		this.debug = false
-		this.isUpdating = false
 		this.relevantKeywords = []
 		this.info = {}
 	}
@@ -29,86 +25,35 @@ class ListsUpdater extends Common {
 	async getInfo(){
 		return this.info
 	}
-    update(urls, concurrency){
-		return new Promise((resolve, reject) => {
-			if(!urls.length){
-				return resolve(this.info)
-			}
-			if(this.isUpdating){
-				return this.once('finish', () => {
-					this.update(urls, concurrency).then(resolve).catch(reject)
-				})
-			}
-			this.doUpdate(urls, concurrency).then(resolve).catch(reject)
-		})
-	}
-	async doUpdate(urls, concurrency){
-		if(this.debug){
-			console.log('updater - start', urls)
+	async update(url, force){
+		if(!url){
+			return this.info[url] = 'invalid url'
 		}
-		this.info = {}
-		this.isUpdating = true		
-		this.racing = new ConnRacing(urls, {retries: 1, timeout: 5})
-		const retries = []
-		urls.forEach(url => this.info[url] = 'started')
-		const limit = pLimit(concurrency)
-		const tasks = new Array(urls.length).fill(async () => {
+		if(this.debug){
+			console.log('updater - start', url)
+		}
+		this.info[url] = 'updating'
+		if(this.debug){
+			console.log('updater - updating', url)
+		}
+		let err
+		const updated = await this.updateList(url, force).catch(e => err = e)
+		if(typeof(err) != 'undefined'){
+			this.info[url] = 'update failed, '+ String(err)
+			console.error('updater - err: '+ err, global.traceback())
+		} else {
 			if(this.debug){
-				console.log('updater - nxt')
+				console.log('updater - updated', url, updated)
 			}
-			const res = await this.racing.next().catch(err => {
-				console.error('updater - err', err)
-			})
-			if(this.debug){
-				console.log('updater - nxct', res)
-			}
-			if(res && res.valid){
-				this.info[res.url] = 'updating'
-				if(this.debug){
-					console.log('updater - updating', res.url)
-				}
-				let err
-				const updated = await this.updateList(res.url).catch(e => err = e)
-				if(typeof(err) != 'undefined'){
-					this.info[res.url] = 'update failed, '+ String(err)
-					console.error('updater - err: '+ err, global.traceback())
-				} else {
-					if(this.debug){
-						console.log('updater - updated', res.url, updated)
-					}
-					if(updated){
-						this.info[res.url] = 'updated'
-						emit('list-updated', res.url)
-					} else {
-						this.info[res.url] = 'already updated'
-					}
-				}
-			} else {
-				if(res){
-					this.info[res.url] = 'failed, '+ (res.status || 'timeout')
-					if(this.debug){
-						console.log('updater - failed', res.url, res)
-					}
-					retries.push(res.url)
-				}
-			}
-		}, 0, urls.length).map(limit)
-		if(this.debug){
-			console.log('updater - z')
+			this.info[url] = updated ? 'updated' : 'already updated'
 		}
-		const ret = await Promise.allSettled(tasks)
-		if(this.debug){
-			console.log('updater - zz', JSON.stringify(ret))
-		}
-		this.isUpdating = false
-		this.emit('finish')
-		return this.info
+		return this.info[url]
     }
 	async updateList(url, force){
 		if(this.debug){
 			console.log('updater updateList', url)
 		}
-		const should = force || (await this.updaterShouldUpdate(url))
+		const should = force === true || (await this.updaterShouldUpdate(url))
 		const now = global.time()
 		if(this.debug){
 			console.log('updater - should', url, should, force)
@@ -119,7 +64,7 @@ class ListsUpdater extends Common {
 			}
 			const updateMeta = {}
 			const file = global.storage.raw.resolve(global.LIST_DATA_KEY_MASK.format(url))
-			const updater = new UpdateListIndex(url, url, file, this, Object.assign({}, updateMeta))
+			const updater = new UpdateListIndex(url, url, file, this, Object.assign({}, updateMeta), force === true)
 			updateMeta.updateAfter = now + 180
 			if(this.debug){
 				console.log('updater - should', url, should)
@@ -153,7 +98,7 @@ class ListsUpdater extends Common {
 		}
 	}
 	async validateIndex(url){
-		const list = new List(url, null, this.relevantKeywords)
+		const list = new List(url, null)
 		await list.start()
 		const validated = list.index.length > 0
 		list.destroy()

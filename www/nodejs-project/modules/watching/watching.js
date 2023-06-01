@@ -1,4 +1,4 @@
-const path = require('path'), async = require('async'), EntriesGroup = require('../entries-group')
+const pLimit = require('p-limit'), EntriesGroup = require('../entries-group')
 
 class Watching extends EntriesGroup {
     constructor(){
@@ -137,13 +137,17 @@ class Watching extends EntriesGroup {
     }
     async getRawEntries(){
         let data = []
-        const locales = await global.lang.getActiveLanguages()
-        await Promise.allSettled(locales.map(async locale => {
-            let es = await global.cloud.get('watching.'+ locale, false).catch(console.error)
-            if(Array.isArray(es)) {
-                data.push(...es)
+        const limit = pLimit(3)
+        const countries = await global.lang.getActiveCountries()
+        const tasks = countries.map(country => {
+            return async () => {
+                let es = await global.cloud.get('watching-country.'+ country, false).catch(console.error)
+                if(Array.isArray(es)) {
+                    data.push(...es)
+                }
             }
-        }))
+        }).map(limit)
+        await Promise.allSettled(tasks)
         data.forEach((e, i) => {
             if(e.logo && !e.icon){
                 data[i].icon = e.logo

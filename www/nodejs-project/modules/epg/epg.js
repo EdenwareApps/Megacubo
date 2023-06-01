@@ -309,13 +309,15 @@ class EPG extends EPGPaginateChannelsList {
     applyMetaCache(){
         Object.keys(this.metaCache.categories).forEach(t => {
             if(this.metaCache.categories[t].some(c => c.indexOf('/') != -1)){
-                this.metaCache.categories[t].forEach((c, i) => {
+                this.metaCache.categories[t] = this.metaCache.categories[t].map((c, i) => {
                     if(c.indexOf('/') != -1){
-                        this.metaCache.categories[t] = c.split('/').map(s => s.trim()).filter(s => s)
+                        c = c.split('/').map(s => s.trim()).filter(s => s)
                     }
+                    return c
                 })
                 this.metaCache.categories[t] = this.metaCache.categories[t].flat()
             }
+            this.metaCache.categories[t] = this.metaCache.categories[t].map(s => s.toLowerCase())
         })
         Object.keys(this.data).forEach(channel => {
             Object.keys(this.data[channel]).forEach(start => {
@@ -422,18 +424,12 @@ class EPG extends EPGPaginateChannelsList {
         })
         return results
     }
-    getSuggestions(categories, until, searchTitles){
-        if(!categories.length){
+    getSuggestions(categories, until, limit = 24, searchTitles){
+        if(!Object.keys(categories).length){
             return {}
         }
-        let lcCategories = categories.map(c => {
-            c = c.toLowerCase()
-            if(c.indexOf('/') != -1){
-                c = c.split('/').map(s => s.trim())
-            }
-            return c
-        }).flat()
-        const results = {}, now = this.time()
+        const lcCategories = Object.keys(categories), now = this.time()
+        let results = []
         if(!until){
             until = now + (24 * 3600)
         }
@@ -447,7 +443,9 @@ class EPG extends EPGPaginateChannelsList {
                                 if(typeof(results[channel]) == 'undefined'){
                                     results[channel] = {}
                                 }
-                                results[channel][start] = this.data[channel][start]
+                                const row = this.data[channel][start]
+                                row.meta = {channel, start, score: 0}
+                                results.push(row)
                                 return true
                             }
                         })
@@ -456,10 +454,9 @@ class EPG extends EPGPaginateChannelsList {
                         let lct = (this.data[channel][start].t +' '+  this.data[channel][start].c.join(' ')).toLowerCase()
                         lcCategories.some(l => {
                             if(lct.indexOf(l) != -1){
-                                if(typeof(results[channel]) == 'undefined'){
-                                    results[channel] = {}
-                                }
-                                results[channel][start] = this.data[channel][start]
+                                const row = this.data[channel][start]
+                                row.meta = {channel, start, score: 0}
+                                results.push(row)
                                 return true
                             }
                         })
@@ -467,7 +464,27 @@ class EPG extends EPGPaginateChannelsList {
                 }
             })
         })
-        return results
+        results.forEach((row, i) => {
+            if(row.c && row.c.length){
+                let score = 0
+                row.c.forEach(t => {
+                    if(categories[t]){
+                        score += categories[t]
+                    }
+                })
+                results[i].score = score
+            }
+        })
+        results = results.sortByProp('score', true).slice(0, limit)
+        const ret = {}
+        results.forEach(row => {
+            if(typeof(ret[row.meta.channel]) == 'undefined'){
+                ret[row.meta.channel] = {}
+            }
+            ret[row.meta.channel][row.meta.start] = row
+            delete ret[row.meta.channel][row.meta.start].meta
+        })
+        return ret
     }
     hasProgramme(channel, start){
         return typeof(this.data[channel]) != 'undefined' && typeof(this.data[channel][start]) != 'undefined'
@@ -479,7 +496,7 @@ class EPG extends EPGPaginateChannelsList {
         if(typeof(this.data[channel][start]) == 'undefined'){
             this.data[channel][start] = data
         }
-        if(typeof(this.terms[channel]) == 'undefined'){
+        if(!this.terms[channel] || !Array.isArray(this.terms[channel])){
             this.terms[channel] = global.lists.terms(channel)
         }
         if(data.i){
@@ -553,8 +570,11 @@ class EPG extends EPGPaginateChannelsList {
         return results
     }
     order(data, limit){
-        let ndata = {}, now = this.time()
-        Object.keys(data).sort((a, b) => a - b).forEach(start => {
+        const ndata = {}, now = this.time(), ks = Object.keys(data)
+        if(ks.length < 2){
+            return data
+        }
+        ks.sort((a, b) => a - b).forEach(start => {
             if(limit && data[start].e > now){
                 ndata[start] = data[start]
                 limit--
@@ -565,7 +585,8 @@ class EPG extends EPGPaginateChannelsList {
     searchChannel(terms, limit=2){
         let results = {}, data = []
         Object.keys(this.terms).forEach(name => {
-            let score = this.terms[name].filter(t => terms.includes(t)).length
+            if(!Array.isArray(this.terms[name])) delete this.terms[name]
+            const score = this.terms[name].filter(t => terms.includes(t)).length
             data.push({name, score})
         })
         data = data.filter(r => r.score).sortByProp('score', true).slice(0, 24)
@@ -761,7 +782,7 @@ class EPG extends EPGPaginateChannelsList {
     }
     clean(){
         Object.keys(this.terms).forEach(e => {
-            if(typeof(this.data[e]) == 'undefined'){
+            if(typeof(this.data[e]) == 'undefined' || !Array.isArray(this.terms[e])){
                 delete this.terms[e]
             }
         })

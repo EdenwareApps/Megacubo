@@ -29,10 +29,12 @@ class VideoControlAdapterHTML5TS extends VideoControlAdapterHTML5Video {
         this.mpegts.attachMediaElement(this.object)
 		this.errorListener = err => {
             console.error('MPEGTS ERROR', err)
-			const t = this.time()
+			const t = this.time()			
 			this.errorsCount++
-			if(this.errorsCount >= (t > 0 ? 6 : 2)){
+			if(t != this.lastErrorTime && this.errorsCount >= (t > 0 ? 20 : 3)){
 				this.emit('error', String(err), true)
+				this.state = ''
+				this.emit('state', '')
 			} else {
 				const c = this.errorsCount // load() may reset the counter
 				if(this.object.error){					
@@ -41,10 +43,12 @@ class VideoControlAdapterHTML5TS extends VideoControlAdapterHTML5Video {
 					this.videoObjectRecycle()
 					this.mpegts.attachMediaElement(this.object)
 				}
+				this.mpegts.unload()
 				this.mpegts.load()
 				this.mpegts.play()
 				this.errorsCount = c
 			}
+			this.lastErrorTime = t
         }
 		this.logListener = (type, message) => {
 			if(String(message).indexOf('sync_byte') != -1){
@@ -62,6 +66,7 @@ class VideoControlAdapterHTML5TS extends VideoControlAdapterHTML5Video {
 			}
 		})
         this.mpegts.on(mpegts.Events.ERROR, this.errorListener)
+        this.mpegts.unload()
         this.mpegts.load()
         this.mpegts.play()
 		mpegts.LoggingControl.addLogListener(this.logListener)
@@ -84,15 +89,6 @@ class VideoControlAdapterHTML5TS extends VideoControlAdapterHTML5Video {
 			console.log('unload ts super.unload')
 			super.unload()
 			console.log('unload ts OK')
-		}
-	}
-	videoObjectRecycle(){
-		const p = this.object.parentNode
-		if(p){
-			const v = document.createElement('video')
-			p.removeChild(this.object)
-			p.appendChild(v)
-			this.object = v
 		}
 	}
     destroy(){

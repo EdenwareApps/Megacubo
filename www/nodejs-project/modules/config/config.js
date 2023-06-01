@@ -66,7 +66,6 @@ class Config extends Events {
 				}
 			})
 			if(changed.length){
-				//changed.forEach(k => console.warn('config changed on reload', k, oldData[k], this.data[k]))
 				this.emit('change', changed, this.data)
 			}
 		}
@@ -76,7 +75,7 @@ class Config extends Events {
 			if(JSON.stringify(a) != JSON.stringify(b)){
 				return false
 			}
-		} else if(a != b){
+		} else if(a != b) {
 			return false
 		}
 		return true
@@ -88,16 +87,6 @@ class Config extends Events {
 			data[key] = typeof(this.data[key]) != 'undefined' ? this.data[key] : this.defaults[key]
 		})
 		return data;
-	}
-	clone(val){
-		if(val !== null && typeof(val) == 'object'){
-			if(Array.isArray(val)){
-				return val.slice(0)
-			} else {
-				return Object.assign({}, val)
-			}
-		}
-		return val
 	}
 	get(key){
 		this.load()
@@ -111,7 +100,7 @@ class Config extends Events {
 		if(t == 'undefined'){
 			return null
 		} else if(t == 'object') { // avoid referencing
-			return this.clone(this.data[key])
+			return global.deepClone(this.data[key])
 		}
 		return this.data[key]
 	}
@@ -120,11 +109,12 @@ class Config extends Events {
 		// avoid referencing on val
 		let nval
 		if(typeof(val) == 'object'){
-			nval = this.clone(val)
+			nval = global.deepClone(val)
 		} else {
 			nval = val
 		}
-		if(!this.equal(this.data[key], nval)){
+		const equals = this.equal(this.data[key], nval)
+		if(!equals){
 			this.data[key] = nval
 			this.save()
 			this.emit('change', [key], this.data)

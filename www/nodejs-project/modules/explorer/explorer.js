@@ -1,5 +1,5 @@
 
-const Events = require('events'), path = require('path')
+const Events = require('events'), Limiter = require('../limiter')
 
 class Explorer extends Events {
 	constructor(opts){
@@ -38,6 +38,43 @@ class Explorer extends Events {
                 }))
             })
         })
+        
+        this.softRefreshLimiter = {
+            limiter: new Limiter(() => {
+                this.softRefresh()
+                this.deepRefreshLimiter.limiter.fromNow()
+            }, 5000),
+            path: ''
+        }
+        this.deepRefreshLimiter = {
+            limiter: new Limiter(p => {
+                this.deepRefresh(p)
+                this.softRefreshLimiter.limiter.fromNow()
+            }, 5000),
+            path: ''
+        }
+
+        global.uiReady(() => {
+            global.streamer.on('streamer-connect', () => {
+                this.softRefreshLimiter.limiter.pause()
+                this.deepRefreshLimiter.limiter.pause()
+            })
+            global.streamer.on('streamer-disconnect', () => {
+                this.softRefreshLimiter.limiter.resume()
+                this.deepRefreshLimiter.limiter.resume()
+            })
+        })
+        global.ui.on('explorer-menu-playing', showing => {
+            if(global.streamer.active){
+                if(showing) {
+                    this.softRefreshLimiter.limiter.resume()
+                    this.deepRefreshLimiter.limiter.resume()
+                } else {
+                    this.softRefreshLimiter.limiter.pause()
+                    this.deepRefreshLimiter.limiter.pause()
+                }
+            }
+        })
         global.ui.on('explorer-open', (path, tabindex) => {
             if(this.opts.debug){
                 console.log('explorer-open', path, tabindex)
@@ -62,6 +99,7 @@ class Explorer extends Events {
         global.ui.on('explorer-back', () => {
             this.back()
         })
+
         this.applyFilters(this.pages[this.path], this.path).then(es => {
             this.pages[this.path] = es
             if(this.waitingRender){
@@ -142,7 +180,22 @@ class Explorer extends Events {
             this.waitingRender = true
         }
     }
-    refresh(force){
+    refresh(deep=false, p){
+        if(this.rendering){
+            const type = deep === true ? 'deepRefreshLimiter' : 'softRefreshLimiter'
+            this.refreshingPath = this.path
+            if(this[type].path == this.path) {
+                this[type].limiter.call()
+            } else {
+                this[type].path = this.path
+                this[type].limiter.skip(p)
+            }
+        }
+    }
+    softRefresh(p, force){
+        if(force !== true && this.refreshingPath != this.path) return
+        if(!this.startExecTime) this.startExecTime = global.time()
+        console.error('softRefresh('+ this.path +') '+ (global.time() - this.startExecTime))
         if(this.rendering){
             if(this.path && typeof(this.pages[this.path]) != 'undefined'){
                 delete this.pages[this.path]
@@ -150,7 +203,10 @@ class Explorer extends Events {
             this.open(this.path).catch(global.displayErr)
         }
     }
-    deepRefresh(p){
+    deepRefresh(p, force){
+        if(force !== true && this.refreshingPath != this.path) return
+        if(!this.startExecTime) this.startExecTime = global.time()
+        console.error('deepRefresh('+ (p || this.path) +') '+ (global.time() - this.startExecTime))
         if(this.rendering){
             if(!p){
                 p = this.path

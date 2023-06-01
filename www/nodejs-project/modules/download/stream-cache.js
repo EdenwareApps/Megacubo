@@ -20,7 +20,7 @@ class DownloadStreamCache extends DownloadStreamBase {
         if(row && row.status && row.uid != this.opts.uid){
             let stream, range
             const headers = Object.assign({}, Download.cache.index[url].headers) || {}
-            headers['x-source'] = headers['x-source'] ? 'cache-'+ headers['x-source'] : 'cache'
+            headers['x-megacubo-dl-source'] = headers['x-megacubo-dl-source'] ? 'cache-'+ headers['x-megacubo-dl-source'] : 'cache'
             if(this.opts.headers.range){
                 range = this.parseRange(this.opts.headers.range)
                 if(!range.end && row.size){

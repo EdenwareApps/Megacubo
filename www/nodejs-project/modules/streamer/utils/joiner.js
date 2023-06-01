@@ -29,6 +29,7 @@ class Joiner extends Downloader {
         if(typeof(len) != 'number'){
             len = this.len(data)
         }
+		
 		if(len){
 			if(this.bitrate){
 				this.delayUntil = this.lastConnectionEndTime + (len / this.bitrate) - this.connectTime

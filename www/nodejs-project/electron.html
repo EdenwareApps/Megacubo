@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta name="color-scheme" content="light" />
+		<title>Megacubo</title>
+        <style type="text/css">
+			html {
+				background: #100927 url(assets/images/default_icon_white.png) no-repeat center center;
+				background-size: 25vh;
+			}
+			html, body {
+				margin: 0;
+				padding: 0;
+				overflow: hidden;
+				width: 100vw;
+				height: 100vh;
+			}
+			header {
+				z-index: 1;
+				height: 60px !important;
+				background: linear-gradient(to bottom, rgba(0, 0, 0, 0.5) 3%, transparent 100%) !important;
+				pointer-events: none;
+			}
+			.nw-cf-inner {
+				pointer-events: auto;
+			}
+			iframe {
+				position: absolute;
+				top: 0;
+				width: 100vw;
+				height: 100vh;
+				z-index: 0;
+				visibility: hidden;
+			}
+			.nw-cf-title {
+				color: white;
+				text-shadow: 1px 1px black;
+				opacity: 0.85;
+				font-size: small;
+				display: inline-flex;
+				-webkit-user-select: none;  
+  				-moz-user-select: none;    
+  				-ms-user-select: none;      
+  				user-select: none;
+			}
+			.nw-cf-icon {
+				background-image: url(assets/images/default_icon_white.png) !important;
+				transform: scale(0.75);
+			}
+			body.idle header {
+				display: none !important;
+			}
+        </style>
+    </head>
+    <body>
+		<iframe src="about:blank" frameborder="0" scrolling="no" allow="geolocation" allowFullScreen></iframe>
+		<script type="text/javascript" src="assets/js/index/electron.js"></script>
+		<script>
+			process.on('warning', e => {
+				console.warn(e, e.stack)
+			})
+			process.on('unhandledRejection', (reason, promise) => {
+				console.error('Unhandled Rejection at:', promise, 'reason:', reason)
+			})
+			process.on('uncaughtException', (exception) => {
+				console.error('uncaughtException', exception)
+			})
+			const fr = document.querySelector('iframe')
+			fr.onload = () => {
+				fr.style.visibility = 'visible'
+			}
+			fr.src = 'http://127.0.0.1:6342/index.html'
+			var Manager = new WindowManager()
+		</script>
+    </body>
+</html>

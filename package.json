@@ -1,22 +1,29 @@
 {
   "name": "tv.megacubo.app",
   "displayName": "Megacubo",
-  "version": "16.8.9",
+  "version": "17.0.0",
   "description": "A intuitive and multi-language IPTV player.",
   "main": "index.js",
   "scripts": {
+    "start": "cd www/nodejs-project && npm start",
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "bin": {
+    "megacubo": "./www/nodejs-project/bin.js",
+    "megacubo-debug": "./www/nodejs-project/bin-debug.js"
   },
   "author": "Apache Cordova Team",
   "license": "Apache-2.0",
   "dependencies": {
-    "cordova": "^11.0.0",
-    "cordova-plugin-customurlscheme": "github:EddyVerbruggen/Custom-URL-scheme"
+    "cordova": "^11.1.0",
+    "cordova-plugin-customurlscheme": "github:EddyVerbruggen/Custom-URL-scheme",
+    "megacubo-electron": "file:./www/nodejs-project"
   },
   "cordova": {
     "plugins": {
       "nodejs-mobile-cordova": {},
       "tv.megacubo.pip": {},
+      "tv.megacubo.player": {},
       "tv.megacubo.ffmpeg": {},
       "cordova-plugin-ionic-webview": {},
       "cordova-plugin-ionic-keyboard": {},
@@ -30,6 +37,7 @@
       "cordova-plugin-fullscreen": {},
       "cordova-plugin-android-permissions": {},
       "cordova-plugin-filechooser": {},
+      "cordova-plugin-android-tv": {},
       "cordova-plugin-customurlscheme": {
         "URL_SCHEME": "mega",
         "ANDROID_SCHEME": " ",
@@ -55,9 +63,7 @@
         "DEEPLINK_5_HOST": " "
       },
       "cordova-plugin-background-mode": {},
-      "cordova-custom-config": {},
-      "cordova-plugin-android-tv": {},
-      "tv.megacubo.player": {}
+      "cordova-custom-config": {}
     },
     "platforms": [
       "android"
@@ -67,7 +73,7 @@
     "cordova-android": "^10.1.2",
     "cordova-androidx-build": "^1.0.4",
     "cordova-custom-config": "^5.1.1",
-    "cordova-plugin-android-permissions": "^1.1.4",
+    "cordova-plugin-android-permissions": "^1.1.5",
     "cordova-plugin-android-tv": "github:efoxbr/cordova-plugin-android-tv",
     "cordova-plugin-background-mode": "bitbucket:TheBosZ/cordova-plugin-run-in-background",
     "cordova-plugin-device": "^2.1.0",
@@ -80,10 +86,11 @@
     "cordova-plugin-ionic-keyboard": "^2.2.0",
     "cordova-plugin-ionic-webview": "^5.0.0",
     "cordova-plugin-share": "^0.1.3",
-    "cordova-plugin-web-share": "^1.3.0",
+    "cordova-plugin-web-share": "^1.4.0",
     "cordova-support-android-plugin": "~2.0.4",
     "ionic-plugin-deeplinks": "^1.0.24",
     "nodejs-mobile-cordova": "github:nodejs-mobile/nodejs-mobile-cordova",
+    "tv.megacubo.app": "github:efoxbr/megacubo",
     "tv.megacubo.ffmpeg": "github:efoxbr/tv.megacubo.ffmpeg",
     "tv.megacubo.pip": "github:efoxbr/tv.megacubo.pip",
     "tv.megacubo.player": "github:efoxbr/tv.megacubo.player"

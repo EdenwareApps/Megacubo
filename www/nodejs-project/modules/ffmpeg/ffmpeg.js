@@ -403,10 +403,23 @@ class FFMPEGDiagnostic extends FFMPEGMediaInfo {
 class FFMPEG extends FFMPEGDiagnostic {
 	constructor(){
 		super()
+		if(!global.cordova){
+			global.ui.on('ffmpeg-download', state => {
+				this.downloading = state
+				state || this.emit('downloaded')
+			})
+			global.uiReady(() => {
+				global.ui.emit('ffmpeg-check', global.lang.INSTALLING_FFMPEG, global.paths.data)
+			})
+		}
+	}
+	ready(){
+		return new Promise(resolve => {
+			this.downloading ? this.once('downloaded', resolve) : resolve()
+		})
 	}
 	create(input){
-		let ret = new FFmpegController(input, this)
-		return ret
+		return new FFmpegController(input, this)
 	}
 	exec(input, cmd, cb, inputOptions){
 		const proc = this.create(input), timeout = setTimeout(() => {

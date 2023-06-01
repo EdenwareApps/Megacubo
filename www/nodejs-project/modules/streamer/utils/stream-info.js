@@ -1,3 +1,4 @@
+const fs = require('fs'), MediaURLInfo = require('./media-url-info')
 
 class StreamInfo {
     constructor(){
@@ -5,6 +6,7 @@ class StreamInfo {
             debug: false,
             probeSampleSize: 1024
         }
+        this.mi = new MediaURLInfo()
     }
 	_probe(url, timeoutSecs, retries=0, opts={}, recursion=10){
 		return new Promise((resolve, reject) => {
@@ -51,7 +53,7 @@ class StreamInfo {
 						let strSample = String(sample)
 						if(strSample.toLowerCase().indexOf('#ext-x-stream-inf') != -1){
 							let trackUrl = strSample.split("\n").map(s => s.trim()).filter(line => line.length > 3 && line.charAt(0) != '#').shift()
-							trackUrl = this.absolutize(trackUrl, url)
+							trackUrl = global.absolutize(trackUrl, url)
 							recursion--
 							if(!recursion){
 								return reject('Max recursion reached.')
@@ -62,7 +64,7 @@ class StreamInfo {
 							})
 						} else if(strSample.toLowerCase().indexOf('#extinf') != -1){
 							let trackUrl = strSample.split("\n").map(s => s.trim()).filter(line => line.length > 3 && line.charAt(0) != '#').shift()
-							trackUrl = this.absolutize(trackUrl, url)
+							trackUrl = global.absolutize(trackUrl, url)
 							recursion--
 							if(!recursion){
 								return reject('Max recursion reached.')
@@ -116,106 +118,71 @@ class StreamInfo {
 			}
 		})
 	}
-	probe(url, retries = 2, opts={}){
-		return new Promise((resolve, reject) => {
-			const timeout = global.config.get('connect-timeout') * 2
-			if(this.proto(url, 4) == 'http'){
-				this._probe(url, timeout, retries, opts).then(ret => { 
-					let cl = ret.headers['content-length'] || -1, ct = ret.headers['content-type'] || '', st = ret.status || 0
-					if(st < 200 || st >= 400 || st == 204){ // 204=No content
-						reject(st)
+	async probe(url, retries = 2, opts={}){
+		const timeout = global.config.get('connect-timeout') * 2
+		const proto = this.mi.proto(url)
+		if(proto.startsWith('http')) {
+			const ret = await this._probe(url, timeout, retries, opts)
+			let cl = ret.headers['content-length'] || -1, ct = ret.headers['content-type'] || '', st = ret.status || 0
+			if(st < 200 || st >= 400 || st == 204){ // 204=No content
+				throw st
+			}
+			if(ct){
+				ct = ct.split(',')[0].split(';')[0]
+			} else {
+				ct = ''
+			}
+			if((!ct || ct.substr(0, 5) == 'text/') && ret.sample){	// sniffing						
+				if(String(ret.sample).match(new RegExp('#EXT(M3U|INF)', 'i'))){
+					ct = 'application/x-mpegURL'
+				} else if(this.isBin(ret.sample) && ret.sample.length >= this.opts.probeSampleSize){ // check length too to skip plain text error messages
+					if(this.mi.isVideo(url)){
+						ct = 'video/mp4'
 					} else {
-						if(ct){
-							ct = ct.split(',')[0].split(';')[0]
-						} else {
-							ct = ''
-						}
-						if((!ct || ct.substr(0, 5) == 'text/') && ret.sample){	// sniffing						
-							if(String(ret.sample).match(new RegExp('#EXT(M3U|INF)', 'i'))){
-								ct = 'application/x-mpegURL'
-							} else if(this.isBin(ret.sample) && ret.sample.length >= this.opts.probeSampleSize){ // check length too to skip plain text error messages
-								if(global.lists.msi.isVideo(url)){
-									ct = 'video/mp4'
-								} else {
-									ct = 'video/MP2T'
-								}
-							}
-						}
-						if(ct.substr(0, 4) == 'text' && !this.isYT(url)){
-							console.error('Bad content type: ' + ct)
-							reject(404)
-						} else {
-							ret.status = st
-							ret.contentType = ct.toLowerCase()
-							ret.contentLength = cl
-							if(!ret.directURL){
-								ret.directURL = ret.url
-							}
-							ret.ext = this.ext(ret.directURL) || this.ext(url)
-							resolve(ret)
-						}
-						ret.status = st
-						ret.contentType = ct.toLowerCase()
-						ret.contentLength = cl
-						if(!ret.directURL){
-							ret.directURL = ret.url
-						}
-						ret.ext = this.ext(ret.directURL) || this.ext(url)
-						resolve(ret)
+						ct = 'video/MP2T'
 					}
-				}).catch(err => {
-					reject(err)
-				})
-			} else if(this.validate(url)) { // maybe rtmp
+				}
+			}
+			if(ct.substr(0, 4) == 'text' && !this.isYT(url)){
+				console.error('Bad content type: ' + ct)
+				throw 404
+			}
+			ret.status = st
+			ret.contentType = ct.toLowerCase()
+			ret.contentLength = cl
+			if(!ret.directURL){
+				ret.directURL = ret.url
+			}
+			ret.ext = this.ext(ret.directURL) || this.ext(url)
+			return ret
+		} else if(this.validate(url)) { // maybe rtmp
+			let ret = {}
+			ret.status = 200
+			ret.contentType = ''
+			ret.contentLength = 999999
+			ret.url = url
+			ret.directURL = url
+			ret.ext = this.ext(url)
+			return ret
+		} else if(this.isLocalFile(url)) {
+			let err
+			const stat = await fs.promises.stat(url).catch(e => err = e)
+			if(stat && stat.size){
 				let ret = {}
 				ret.status = 200
-				ret.contentType = ''
-				ret.contentLength = 999999
+				ret.contentType = 'video/mp4'
+				ret.contentLength = stat.size
 				ret.url = url
 				ret.directURL = url
 				ret.ext = this.ext(url)
+				ret.isLocalFile = true
 				resolve(ret)
-			} else if(this.isLocalFile(url)) {
-				require('fs').stat(url, (err, stat) => {
-					if(stat && stat.size){
-						let ret = {}
-						ret.status = 200
-						ret.contentType = 'video/mp4'
-						ret.contentLength = stat.size
-						ret.url = url
-						ret.directURL = url
-						ret.ext = this.ext(url)
-						ret.isLocalFile = true
-						resolve(ret)
-					} else {
-						reject(global.lang.NOT_FOUND)
-					}
-				})
-			} else {
-				reject(global.lang.INVALID_URL)
 			}
-		})
+			throw global.lang.NOT_FOUND
+		} else {
+			throw global.lang.INVALID_URL
+		}
 	}
-    absolutize(path, url){
-		if(!path){
-			return url
-		}
-		if(path.startsWith('//')){
-			path = 'http:'+ path
-		}
-        if(path.match(new RegExp('^[htps:]?//'))){
-            return path
-        }
-		if(url.startsWith('//')){
-			url = 'http:'+ url
-		}
-        let uri
-		try {
-			uri = new URL(path, url)
-			return uri.href
-		} catch(e) { }
-        return uri
-    }
     ext(file){
 		let basename = String(file).split('?')[0].split('#')[0].split('/').pop()
 		basename = basename.split('.')
@@ -236,6 +203,13 @@ class StreamInfo {
 			ret = ret.substr(0, len)
 		}
 		return ret
+	}
+	rawType(url){
+		const mediaType = this.mi.mediaType({url})
+		if(mediaType == 'live'){
+			return this.mi.isM3U8(url) ? 'hls' : 'ts'
+		}
+		return mediaType
 	}
 	isYT(url){
 		if(url.indexOf('youtube.com') != -1 || url.indexOf('youtu.be') != -1){
@@ -264,19 +238,13 @@ class StreamInfo {
 		}
 	}
 	len(data){
-		if(!data){
+		if (!data) {
 			return 0
-		} else if(Array.isArray(data)) {
-			let len = 0
-			data.forEach(d => {
-				len += this.len(d)
-			})
-			return len
-		} else if(typeof(data.byteLength) != 'undefined') {
-			return data.byteLength
-		} else {
-			return data.length
 		}
+		if (Array.isArray(data)) {
+			return data.reduce((acc, val) => acc + this.len(val), 0)
+		}
+		return data.byteLength || data.length || 0
 	}
 	isBin(buf){
 		if(!buf) {
@@ -285,9 +253,9 @@ class StreamInfo {
 		let sepsLimitPercentage = 5, seps = [' ', '<', '>', ',']
 		let sample = String(Buffer.concat([buf.slice(0, 64), buf.slice(buf.length - 64)]).toString('binary')), len = this.len(sample)
 		let isAscii = sample.match(new RegExp('^[ -~\t\n\r]+$')) // sample.match(new RegExp('^[\x00-\x7F]*[A-Za-z0-9]{3,}[\x00-\x7F]*$'))
-		if(isAscii){
+		if(isAscii) {
 			let sepsLen = sample.split('').filter(c => seps.includes(c)).length
-			if(sepsLen < (len / (100 / sepsLimitPercentage))){ // separators chars are less then x% of the string
+			if(sepsLen < (len / (100 / sepsLimitPercentage))) { // separators chars are less then x% of the string
 				isAscii = false
 			}
 		}

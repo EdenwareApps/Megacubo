@@ -31,7 +31,23 @@ function patch(scope){
 				return matches.length ? matches : []
 			}
 		})
-	}	
+	}
+	if (!scope.Array.prototype.unique) {
+		Object.defineProperty(Array.prototype, 'unique', {
+			enumerable: false,
+			configurable: false,
+			writable: false,
+			value: function() {
+				var arr = []
+				for (var i = 0; i < this.length; i++) {
+					if (arr.indexOf(this[i]) == -1){
+						arr.push(this[i])
+					}
+				}
+				return arr
+			}
+		})
+	}
 	if (!scope.Array.prototype.sortByProp) {
 		Object.defineProperty(Array.prototype, 'sortByProp', {
 			enumerable: false,
@@ -263,7 +279,24 @@ function patch(scope){
 			return path.replaceAll('\\', '/').replaceAll('//', '/')
 		}
 		return path
-	}	
+	}
+	scope.absolutize = (path, url) => {
+		if(!path) return url
+		if(!url) return path
+		if(path.startsWith('//')){
+			path = 'http:'+ path
+		}
+        if(path.match(new RegExp('^[htps:]?//'))){
+            return path
+        }
+        let uri
+		try {
+			uri = new URL(path, url)
+			return uri.href
+		} catch(e) {
+			return global.joinPath(url, path)
+		}
+    }
     scope.joinPath = (folder, file) => {
 		if(!file) return folder
 		if(!folder) return file

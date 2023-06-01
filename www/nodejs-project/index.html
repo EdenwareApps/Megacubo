@@ -107,7 +107,7 @@
 				display: flex;
 				align-items: center;
 				justify-content: center;
-				background-color: rgb(21, 0, 44);
+				background-color: #100927;
 				transition: background-color 1.5s ease-in 0s;
 			}
 			div#splash i {
@@ -201,8 +201,12 @@
 				visibility: hidden !important;
 				animation-name: none !important;
 			}
-			html.curtains .curtain, html.curtains-close .curtain {
-				transition: left 0.15s ease-in 0s, right 0.15s ease-in 0s;
+			html.curtains .curtain, html.curtains-close .curtain {				
+				transition: left 0.15s ease-in 0s, right 0.15s ease-in 0s, opacity 0.15s ease-in 0s;
+			}
+			html.curtains-alpha .curtain, html.curtains-close-alpha .curtain {				
+				opacity: 0.6; /* energy saving black filter */
+				pointer-events: none;
 			}
 			html.curtains-close .curtain-b {
 				left: 101vw;
@@ -261,7 +265,7 @@
 		</player>
 		<div class="curtain curtain-a"></div>
 		<div class="curtain curtain-b"></div>
-		<iframe id="app" src="about:blank" allow="geolocation" allowFullScreen scrolling="no" frameborder="0"></iframe> 
+		<iframe id="app" src="about:blank" allowFullScreen scrolling="no" frameborder="0"></iframe> 
         <script type="text/javascript" src="assets/js/libs/events.js"></script>
         <script type="text/javascript" src="assets/js/index/index.js"></script>
         <script type="text/javascript" src="node_modules/jquery/dist/jquery.min.js"></script>

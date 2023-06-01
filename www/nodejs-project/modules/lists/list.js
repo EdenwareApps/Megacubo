@@ -1,12 +1,13 @@
 const Events = require('events'), ListIndex = require('./list-index'), ConnRacing = require('../conn-racing')
 
 class List extends Events {
-	constructor(url, parent, relevantKeywords){
-		super(url, parent)
+	constructor(url, master){
+		super(url, master)
 		this.debug = false
 		if(url.substr(0, 2) == '//'){
 			url = 'http:'+ url
 		}
+		this.master = master
         this.url = url
         this.relevance = {}
         this.reset()
@@ -16,8 +17,6 @@ class List extends Events {
 		this._log = [
 			this.url
 		]
-        this.relevantKeywords = relevantKeywords || []
-		this.parent = (() => parent)
 	}
 	log(...args){
 		if(this.destroyed) return
@@ -55,7 +54,8 @@ class List extends Events {
             })
             this.indexer.on('data', index => {
                 if(index.length){
-                    this.setIndex(index, err => {
+                    let err
+                    this.setIndex(index).catch(e => err = e).finally(() => {
                         resolved = true
                         if(err){
                             reject(err)
@@ -80,17 +80,20 @@ class List extends Events {
         this.started = false
         return this.start()
     }
-    setIndex(index, cb){
+    async setIndex(index, cb){
         this.index = index
-        this.verify(this.index).then(ret => {
-            this.quality = ret.quality
-            this.relevance = ret.relevance
-            cb()
-        }).catch(err => {
-            this.quality = 0
-            this.relevance = 0
-            cb(err)
-        })
+        let quality = 0, relevance = 0
+        const qualityPromise = this.verifyListQuality().then(q => quality = q).catch(console.error)
+        const relevancePromise = this.verifyListRelevance(index).then(r => relevance = r).catch(console.error)
+        await qualityPromise
+        if(quality) {
+            await relevancePromise
+            this.quality = quality
+            this.relevance = relevance
+        } else {
+            this.quality = quality
+            this.relevance = {total: 0, err: 'list streams seems offline'}
+        }   
     }
 	progress(){
 		let p = 0
@@ -100,16 +103,6 @@ class List extends Events {
 			p = 100
 		}
 		return p
-	}
-	verify(index){
-		return new Promise((resolve, reject) => {
-		    this.verifyListQuality().then(quality => {
-                const relevance = quality ? this.verifyListRelevance(index) : {total: 0, err: 'list streams seems offline'}
-                resolve({quality, relevance})
-            }).catch(err => {
-                reject(err)
-            })
-        })
 	}
 	async verifyListQuality(){
         if(this.skipValidating){
@@ -136,7 +129,7 @@ class List extends Events {
         }
 		throw 'no valid links'
 	}
-	verifyListRelevance(index){
+	async verifyListRelevance(index){
         const values = {
             hits: 0
         }
@@ -145,11 +138,10 @@ class List extends Events {
             mtime: 0.25,
             hls: 0.25
         }
-
         // relevantKeywords (check user channels presence in these lists and list size by consequence)
-        let rks = this.parent() ? this.parent().relevantKeywords : this.relevantKeywords
+        let rks = this.master ? await this.master.relevantKeywords() : []
 		if(!rks || !rks.length){
-			console.error('no parent keywords', this.relevantKeywords, rks)
+			console.error('no parent keywords', rks)
 			values.relevantKeywords = 50
 		} else {
             let hits = 0
@@ -237,7 +229,7 @@ class List extends Events {
 			}
 			this.emit('destroy')
             this.removeAllListeners()
-			this.parent = (() => {return {}})
+			this.master = null
 			this._log = []
 		}
 	}

@@ -1450,7 +1450,7 @@ class ExplorerOpenFile extends ExplorerSelect {
 				this.sendFile(uploadURL, this.openFileDialogChooser.get(0).files[0], this.openFileDialogChooser.val(), cbID)
 			} else {
 				console.error('Bad upload data')
-				osd.show('Bad upload data', 'fas fa-exclamation-circle', 'explorer', 'normal')
+				osd.show('Bad upload data', 'fas fa-exclamation-triangle', 'explorer', 'normal')
 			}
 		})
 		this.openFileDialogChooser.trigger('click')
@@ -1561,7 +1561,7 @@ class ExplorerSlider extends ExplorerPrompt {
 	}
 	sliderSync(element, range, mask){
 		var l, h, n = element.querySelector('.modal-template-slider-track'), t = (range.end - range.start), step = 1, value = parseInt(n.value)
-		//console.warn('SLIDERSYNC', element, range, mask, step, value, this.sliderVal(element, range))
+		// console.warn('SLIDERSYNC', {element, range, mask, step, value, val: this.sliderVal(element, range)})
 		if(value < range.start){
 			value = range.start
 		} else if(value > range.end){
@@ -1570,8 +1570,16 @@ class ExplorerSlider extends ExplorerPrompt {
 		if(this.debug){
 			console.warn('SLIDER VALUE A', element, element.querySelector('.modal-template-slider-track').value, n.value)
 		}
-		h = element.parentNode.parentNode.querySelector('.modal-template-question')
-		h.innerHTML = h.innerHTML.split(': ')[0] + ': '+ (mask ? mask.replace(new RegExp('\\{0\\}'), value || '0') : (value || '0'))
+		var message
+		if(mask == 'time'){
+			message = clock.humanize(value, true)
+		} else if(mask) {
+			message = mask.replace(new RegExp('\\{0\\}'), value || '0')
+		} else {
+			message = value || '0'
+		}
+		h = element.parentNode.parentNode.querySelector('.modal-template-question')		
+		h.innerHTML = h.innerHTML.split(': ')[0] + ': '+ message
 		if(this.debug){
 			console.warn('SLIDER VALUE B', value, '|', n, n.style.background, l, t, range, step, n.value)
 		}
@@ -1612,7 +1620,7 @@ class ExplorerSlider extends ExplorerPrompt {
 		return value
 	}
 	slider(question, message, range, value, mask, callback, fa){
-		let m, s, n, e, step = 1
+		let s, n, e, step = 1
 		let opts = [
 			{template: 'question', text: question, fa}
 		]
@@ -1671,6 +1679,7 @@ class ExplorerSlider extends ExplorerPrompt {
 					break
 			}
 		})
+		// console.log('SLIDER SETUP VALUE', {e, value, range, mask})
 		this.sliderSetValue(e, value, range, mask)
 		this.modalContent.querySelector('.modal-template-slider-left').addEventListener('click', event => {
 			value = this.sliderIncreaseLeft(e, value, range, mask, step)
@@ -1803,6 +1812,7 @@ class Explorer extends ExplorerLoading {
 		this.app.on('menu-playing', () => {			
 			if(!this.body.hasClass('menu-playing')){
 				this.body.addClass('menu-playing')
+				this.app.emit('explorer-menu-playing', true)
 				setTimeout(() => this.reset(), 100)
 			}
 		})	
@@ -2102,7 +2112,6 @@ class Explorer extends ExplorerLoading {
 			this.range = this.viewportRange(targetScrollTop, this.currentEntries.length)
 			this.range.end = this.range.start + (vs -1)
 		}
-		console.log('RANGE', targetScrollTop, shouldRange, this.range)
 		if(shouldRange){
 			let trange = Object.assign({}, this.range)
 			trange.end += tolerance
@@ -2254,7 +2263,7 @@ class Explorer extends ExplorerLoading {
 		var start = parseInt(element.getAttribute('data-range-start') || 0)
 		var end = parseInt(element.getAttribute('data-range-end') || 100)
 		var mask = element.getAttribute('data-mask')
-		var def = element.getAttribute('data-default-value') || ''
+		var def = this.currentEntries[element.tabIndex].value || ''
 		var fa = element.getAttribute('data-original-icon') || ''
 		var question = element.getAttribute('data-question') || element.getAttribute('title')
 		var message = element.getAttribute('data-details')
@@ -2264,6 +2273,7 @@ class Explorer extends ExplorerLoading {
 					console.warn('NAVINPUT', path, value)
 				}
 				this.app.emit('explorer-input', path, value)
+				this.currentEntries[element.tabIndex].value = value
 				element.setAttribute('data-default-value', value)
 				this.emit('input-save', element, value)
 			}
@@ -2413,8 +2423,12 @@ class Explorer extends ExplorerLoading {
 			if(k == 'range') {
 				reps['range.start'] = e[k].start || 0
 				reps['range.end'] = e[k].end || 100
-			} else if (k == 'value' && typeof(e['mask']) != 'undefined') {
-				reps[k] = e.mask.replace('{0}', e[k])
+			} else if (k == 'value' && typeof(e['mask']) == 'string') {
+				if(e.mask == 'time'){
+					reps[k] = clock.humanize(e[k], true)
+				} else {
+					reps[k] = e.mask.replace('{0}', e[k])
+				}
 			} else {
 				reps[k] = e[k] || ''
 			}

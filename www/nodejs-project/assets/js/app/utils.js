@@ -1,5 +1,5 @@
 
-Object.defineProperty(Array.prototype, 'getUnique', {
+Object.defineProperty(Array.prototype, 'unique', {
     enumerable: false,
     configurable: false,
     writable: false,
@@ -78,13 +78,18 @@ function css(code, id, scope){
     if(scope && scope.document){
         try {
             //console.warn('style creating', code)
-            var s = scope.document.getElementById("css-"+id)
-            if(!s){
+            var s = scope.document.getElementById("css-"+ id)
+            if(s){
+                if(s.dataset.code == code){
+                    return
+                }
+            } else {
                 //console.warn('style created');
                 s = scope.document.createElement("style")
                 s.type = "text/css"
-                s.id = "css-"+id
+                s.id = "css-"+ id
             }
+            s.dataset.code = code
             s.innerText = '';
             s.appendChild(scope.document.createTextNode(code))
             scope.document.querySelector("head, body").appendChild(s)
@@ -827,6 +832,25 @@ if(typeof(logErr) != 'function'){
         } catch(e) { }
         log += traceback()+"\r\n\r\n"
     }
+}
+
+function checkPermissions(_perms, callback) {
+	if(!Array.isArray(_perms)){
+		_perms = [_perms]
+	}
+	_perms = _perms.map(p => {
+		if(typeof(p) == 'string'){
+			p = parent.cordova.plugins.permissions[p]
+		}
+		return p
+	})
+	parent.cordova.plugins.permissions.checkPermission(_perms, status => {
+		console.log('checking permissions => '+ JSON.stringify({_perms, status}))
+		if (status.hasPermission) {
+			return callback(true)
+		}
+        parent.cordova.plugins.permissions.requestPermissions(_perms, status => callback(!!status.hasPermission), () => callback(false))
+	}, null)
 }
 
 var openFileDialogChooser = false;

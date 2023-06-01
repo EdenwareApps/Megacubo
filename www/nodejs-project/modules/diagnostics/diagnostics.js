@@ -13,11 +13,11 @@ class Diagnostics extends Events {
 		const diskSpace = await this.checkDisk()
 		const freeMem = global.kbfmt(await this.checkMemory())
 		const config = global.deepClone(global.config.data)
-		const lists = global.lists.info()
+		const lists = global.lists.info(true)
 		const myLists = config.lists.map(a => a[1]);
 		const listsRequesting = global.lists.requesting
 		const tuning = global.tuning ? global.tuning.logText(false) : ''
-		const updaterResults = global.lists.manager.updaterResults;
+		const updaterResults = global.lists.loader.results;
 		['lists', 'parental-control-terms', 'parental-control-pw', 'premium-license'].forEach(k => delete config[k])
 		Object.keys(lists).forEach(url => {
 			lists[url].owned = myLists.includes(url)
@@ -39,18 +39,14 @@ class Diagnostics extends Events {
 		await fs.promises.writeFile(file, JSON.stringify(await this.report(), null, 3), {encoding: 'utf8'})
 		global.downloads.serve(file, true, false).catch(global.displayErr)
 	}
-    checkDisk(){
-		return new Promise((resolve, reject) => {
-			require('check-disk-space')(this.folder).then((diskSpace) => {
-				resolve(diskSpace) // // {diskPath: "C:", free: 12345678, size: 98756432}
-			})				
-		})
+    async checkDisk(){
+		return require('check-disk-space').default(this.folder) // {diskPath: "C:", free: 12345678, size: 98756432}
     }
     checkDiskOSD(){
 		this.checkDisk().then(data => {
 			let fine = data.free >= this.minDiskSpaceRequired
 			if(!fine){
-				global.osd.show(global.lang.LOW_DISK_SPACE_AVAILABLE.format(global.kbfmt(data.free)), 'fas fa-exclamation-triangle faclr-red', 'diagnostics', 'long')
+				global.osd.show(global.lang.LOW_DISK_SPACE_AVAILABLE.format(global.kbfmt(data.free)), 'fas fa-exclamation-triangle faclr-red', 'diag', 'long')
 			}
 		}).catch(console.error)
     }

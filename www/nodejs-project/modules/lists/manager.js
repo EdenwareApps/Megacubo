@@ -1,15 +1,9 @@
-const Events = require('events'), async = require('async')
-const pLimit = require('p-limit'), IPTV = require('../iptv')
+const Events = require('events'), Limiter = require('../limiter')
 
 class ManagerCommunityLists extends Events {
     constructor(){
         super()
-        this.iptv = new IPTV()
-    }
-    async extraCommunityLists(){
-        await this.iptv.ready()
-        return this.iptv.getLocalLists()
-    }   
+    }  
     async communityModeKeywords(){
         const badTerms = ['m3u8', 'ts', 'mp4', 'tv', 'channel']
         let terms = [], addTerms = (tms, score) => {
@@ -64,36 +58,39 @@ class ManagerCommunityLists extends Events {
         }
         return terms
     }    
-    communityLists(){
-        return new Promise((resolve, reject) => {
-            let limit = global.config.get('communitary-mode-lists-amount')
-            if(limit){
-                this.allCommunityLists(10000, true).then(lists => {
-                    lists = lists.slice(0, limit)
-                    resolve(lists)
-                }).catch(e => {
-                    console.error(e)
-                    resolve([])
-                })
-            } else {
-                resolve([])
+    async communityLists(){
+        let limit = global.config.get('communitary-mode-lists-amount')
+        if(limit){
+            let err, lists = await this.allCommunityLists(10000, true).catch(e => err = e)
+            if(!err){
+                return lists.slice(0, limit)
             }
-        })
+        }
+        return []
     }
-    async communityListsEntries(){
+    async receivedCommunityListsEntries(){
         const info = await this.master.info()
         let entries = Object.keys(info).filter(u => !info[u].owned).sort((a, b) => {
             if([a, b].some(a => typeof(info[a].score) == 'undefined')) return 0
             if(info[a].score == info[b].score) return 0
             return info[a].score > info[b].score ? -1 : 1
         }).map(url => {
-            let name = info[url].name || this.nameFromSourceURL(url)
-            let icon = info[url].icon || undefined
-            let details = info[url].author || ''
-            if(details){
-                details += ' &middot; '
+            let data = global.discovery.details(url)
+            if(!data){
+                console.error('LIST NOT FOUND '+ url)
+                return
             }
-            details += parseInt((info[url].score || 0) * 100) +'% &middot; '+ global.lang.X_BROADCASTS.format(global.kfmt(info[url].length, 1))
+            let health = global.discovery.averageHealth(data) || -1
+            let name = data.name || this.nameFromSourceURL(url)
+            let author = data.author || undefined
+            let icon = data.icon || undefined
+            let length = data.length || 0
+            let details = []
+            if(author) details.push(author)
+            if(health > -1) details.push(global.lang.QUALITY +': '+ parseInt(health * 100) +'%')
+            details.push(global.lang.RELEVANCE +': '+ parseInt((info[url].score || 0) * 100) +'%')
+            details.push('<i class="fas fa-play-circle" aria-label="hidden"></i> '+ global.kfmt(length, 1))
+            details = details.join(' &middot; ')
             return {
                 name, url, icon, details,
                 fa: 'fas fa-satellite-dish',
@@ -101,7 +98,7 @@ class ManagerCommunityLists extends Events {
                 class: 'skip-testing',
                 renderer: this.directListRenderer.bind(this)
             }
-        })
+        }).filter(l => l)
         if(!entries.length){
             if(!global.lists.loaded()){
                 entries = [this.updatingListsEntry()]
@@ -111,45 +108,26 @@ class ManagerCommunityLists extends Events {
         }
         return entries
     }
-    async getAllCommunitySources(fromLanguage, timeout=3000){
-        if(fromLanguage === true){
-            let ret = {}, sources = await global.cloud.get('sources', false, timeout)
-            if(!Array.isArray(sources)){
-                sources = []
+    async getAllCommunitySources(){
+        const ret = {}, lists = await global.discovery.get(128)
+        lists.map(list => {
+            let health = -1
+            if(list.perceivedHealth >= 0 && list.perceivedHealthTestCount) {
+                health = list.perceivedHealth
+            } else if(list.health >= 0) {
+                health = list.health
             }
-            sources.forEach(row => {
-                ret[row.url] = parseInt(row.label.split(' ').shift())
-            })
-            return ret
-        } else {
-            const limit = pLimit(3)
-            let ret = {}, locs = await global.lang.getActiveCountries()
-            let results = await Promise.allSettled(locs.map(loc => {
-                return () => global.cloud.get('country-sources.'+ loc, false, timeout).catch(console.error)
-            }).map(limit))
-            results.forEach(r => {
-                if(r.status == 'fulfilled' && r.value && typeof(r.value) == 'object'){
-                    r.value.forEach(row => {
-                        let count = parseInt(row.label.split(' ').shift())
-                        if(isNaN(count)) count = 0
-                        if(typeof(ret[row.url]) != 'undefined') count += ret[row.url]
-                        ret[row.url] = count
-                    })
-                }
-            })
-            if(Object.keys(ret).length <= 8){
-                return await this.getAllCommunitySources(true, timeout)
-            }
-            return Object.entries(ret).sort(([,a],[,b]) => b-a).reduce((r, [k, v]) => ({ ...r, [k]: v }), {})
-        }
+            ret[list.url] = parseInt(health == -1 ? -1 : health * 100)
+        })
+        return ret
     }
     async allCommunityLists(timeout=10000, urlsOnly=true){
         let limit = global.config.get('communitary-mode-lists-amount')
         if(limit){
-            let s = await this.getAllCommunitySources(false, timeout)
+            let s = await this.getAllCommunitySources()
             if(typeof(s) == 'object'){
                 let r = Object.keys(s).map(url => {
-                    return {url, count: s[url]}
+                    return {url, health: s[url]}
                 })
                 if(urlsOnly){
                     r = r.map(e => e.url)
@@ -167,23 +145,26 @@ class ManagerCommunityLists extends Events {
             })
         }))
         let lists = Object.keys(sources).map(url => {
-            let v = {url}
-            v.class = 'skip-testing'
-            v.details = sources[url] +' '+ (sources[url] > 1 ? global.lang.USERS : global.lang.USER)
-            v.type = 'group'
-            v.name = names[url]
-            v.fa = 'fas fa-satellite-dish'
-            v.renderer = async data => {
-                let haserr
-                this.openingList = true
-                let ret = await this.directListRenderer(data).catch(err => haserr = err)
-                this.openingList = false
-                global.osd.hide('list-open')
-                if(haserr) throw haserr
-                return ret
-            }
-            return v   
+            const details = sources[url] >= 0 ? global.lang.QUALITY +': '+ sources[url] +'%' : ''
+            return {
+                url,
+                details,
+                name: names[url],
+                type: 'group',
+                fa: 'fas fa-satellite-dish',
+                class: 'skip-testing',
+                renderer: async data => {
+                    let haserr
+                    this.openingList = true
+                    let ret = await this.directListRenderer(data, {fetch: true}).catch(err => haserr = err)
+                    this.openingList = false
+                    global.osd.hide('list-open')
+                    if(haserr) throw haserr
+                    return ret
+                }
+            } 
         })
+        console.error('ret: '+ lists.length)
         if(lists.length){
             if(global.config.get('parental-control') == 'block'){
                 lists = this.master.parentalControl.filter(lists)
@@ -200,65 +181,81 @@ class ManagerCommunityLists extends Events {
     listSharingEntry(){
         return {
             name: global.lang.COMMUNITY_LISTS, type: 'group', fa: 'fas fa-users', details: global.lang.LIST_SHARING,
-            renderer: () => {
-                return new Promise((resolve, reject) => {
-                    let options = [
-                        {name: global.lang.ACCEPT_LISTS, type: 'check', details: global.lang.LIST_SHARING, action: (data, checked) => {
-                            if(checked){
-                                global.ui.emit('dialog', [
-                                    {template: 'question', text: global.lang.COMMUNITY_LISTS, fa: 'fas fa-users'},
-                                    {template: 'message', text: global.lang.ASK_COMMUNITY_LIST},
-                                    {template: 'option', id: 'back', fa: 'fas fa-times-circle', text: global.lang.BACK},
-                                    {template: 'option', id: 'agree', fa: 'fas fa-check-circle', text: global.lang.I_AGREE}
-                                ], 'lists-manager', 'back', true)                
-                            } else {
-                                global.config.set('communitary-mode-lists-amount', 0)
-                                global.explorer.refresh()
+            renderer: async () => {
+                let options = [
+                    {name: global.lang.ACCEPT_LISTS, type: 'check', details: global.lang.LIST_SHARING, action: (data, checked) => {
+                        if(checked){
+                            global.ui.emit('dialog', [
+                                {template: 'question', text: global.lang.COMMUNITY_LISTS, fa: 'fas fa-users'},
+                                {template: 'message', text: global.lang.ASK_COMMUNITY_LIST},
+                                {template: 'option', id: 'back', fa: 'fas fa-times-circle', text: global.lang.BACK},
+                                {template: 'option', id: 'agree', fa: 'fas fa-check-circle', text: global.lang.I_AGREE}
+                            ], 'lists-manager', 'back', true)                
+                        } else {
+                            global.config.set('communitary-mode-lists-amount', 0)
+                            global.explorer.softRefresh(global.explorer.path, true) // epg options path
+                        }
+                    }, checked: () => {
+                        return global.config.get('communitary-mode-lists-amount') > 0
+                    }}
+                ]
+                if(global.config.get('communitary-mode-lists-amount') > 0){
+                    options.push({name: global.lang.RECEIVED_LISTS, details: global.lang.SHARED_AND_LOADED, fa: 'fas fa-users', type: 'group', renderer: this.receivedCommunityListsEntries.bind(this)})
+                    options.push({name: global.lang.ALL_LISTS, details: global.lang.SHARED_FROM_ALL, fa: 'fas fa-users', type: 'group', renderer: this.allCommunityListsEntries.bind(this)})
+                    options.push({
+                        name: global.lang.AMOUNT_OF_LISTS,
+                        details: global.lang.AMOUNT_OF_LISTS_HINT,
+                        type: 'slider', 
+                        fa: 'fas fa-cog', 
+                        mask: '{0} ' + global.lang.COMMUNITY_LISTS.toLowerCase(), 
+                        value: () => {
+                            return global.config.get('communitary-mode-lists-amount')
+                        }, 
+                        range: {start: 5, end: 72},
+                        action: (data, value) => {
+                            global.config.set('communitary-mode-lists-amount', value)
+                        }
+                    })                                
+                    options.push({
+                        name: global.lang.INTERESTS,
+                        details: global.lang.SEPARATE_WITH_COMMAS, 
+                        type: 'input',
+                        fa: 'fas fa-edit',
+                        action: (e, v) => {
+                            if(v !== false && v != global.config.get('communitary-mode-interests')){
+                                global.config.set('communitary-mode-interests', v)
+                                global.ui.emit('ask-restart')
                             }
-                        }, checked: () => {
-                            return global.config.get('communitary-mode-lists-amount') > 0
-                        }}
-                    ]
-                    if(global.config.get('communitary-mode-lists-amount') > 0){
-                        options.push({name: global.lang.RECEIVED_LISTS, details: global.lang.SHARED_AND_LOADED, fa: 'fas fa-users', type: 'group', renderer: this.communityListsEntries.bind(this)})
-                        options.push({name: global.lang.ALL_LISTS, details: global.lang.SHARED_FROM_ALL, fa: 'fas fa-users', type: 'group', renderer: this.allCommunityListsEntries.bind(this)})
-                        options.push({
-                            name: global.lang.AMOUNT_OF_LISTS,
-                            details: global.lang.AMOUNT_OF_LISTS_HINT,
-                            type: 'slider', 
-                            fa: 'fas fa-cog', 
-                            mask: '{0} ' + global.lang.COMMUNITY_LISTS.toLowerCase(), 
-                            value: () => {
-                                return global.config.get('communitary-mode-lists-amount')
-                            }, 
-                            range: {start: 5, end: 72},
-                            action: (data, value) => {
-                                global.config.set('communitary-mode-lists-amount', value)
-                            }
-                        })                                
-                        options.push({
-                            name: global.lang.INTERESTS,
-                            details: global.lang.SEPARATE_WITH_COMMAS, 
-                            type: 'input',
-                            fa: 'fas fa-edit',
-                            action: (e, v) => {
-                                if(v !== false && v != global.config.get('communitary-mode-interests')){
-                                    global.config.set('communitary-mode-interests', v)
-                                    global.ui.emit('ask-restart')
-                                }
-                            },
-                            value: () => {
-                                return global.config.get('communitary-mode-interests')
-                            },
-                            placeholder: global.lang.COMMUNITY_LISTS_INTERESTS_HINT,
-                            multiline: true,
-                            safe: true
-                        })
-                    }
-                    resolve(options)
-                })
+                        },
+                        value: () => {
+                            return global.config.get('communitary-mode-interests')
+                        },
+                        placeholder: global.lang.COMMUNITY_LISTS_INTERESTS_HINT,
+                        multiline: true,
+                        safe: true
+                    })
+                    options.push({
+                        name: global.lang.LEGAL_NOTICE,
+                        fa: 'fas fa-info-circle',
+                        type: 'action',
+                        action: this.showInfo.bind(this)
+                    })
+                }
+                return options
             }
         }
+    }
+    showInfo(){
+        global.explorer.dialog([
+            {template: 'question', text: global.lang.COUNTRIES, fa: this.icon},
+            {template: 'message', text: global.lang.IPTV_INFO},
+            {template: 'option', text: 'OK', id: 'ok', fa: 'fas fa-check-circle'},
+            {template: 'option', text: global.lang.KNOW_MORE, id: 'know', fa: 'fas fa-info-circle'}
+        ], 'ok').then(ret => {
+            if(ret == 'know'){
+                global.ui.emit('open-external-url', 'https://github.com/efoxbr/megacubo/')
+            }
+        }).catch(console.error)
     }
 }
 
@@ -403,7 +400,7 @@ class ManagerEPG extends ManagerCommunityLists {
                                     global.config.set('epg-'+ global.lang.locale, url)
                                     this.setEPG(url, true)
                                 }
-                                global.explorer.refresh()
+                                global.explorer.softRefresh(global.explorer.path, true) // epg options path
                             }
                         }
                     })
@@ -481,7 +478,7 @@ class ManagerEPG extends ManagerCommunityLists {
                 global.channels.load()
                 resolve(imported)
             }).catch(err => {
-                global.osd.show(global.lang.SYNC_EPG_CHANNELS_FAILED, 'fas fa-exclamation-circle faclr-red', 'epg', 'normal')
+                global.osd.show(global.lang.SYNC_EPG_CHANNELS_FAILED, 'fas fa-exclamation-triangle faclr-red', 'epg', 'normal')
                 reject(err)
             })
         })
@@ -505,7 +502,7 @@ class ManagerEPG extends ManagerCommunityLists {
                 await this.loadEPG(url, ui)
                 let refresh = () => {
                     if(global.explorer.path.indexOf(global.lang.EPG) != -1 || global.explorer.path.indexOf(global.lang.LIVE) != -1){
-                        global.explorer.refresh()
+                        global.explorer.softRefresh(global.explorer.path, true)
                     }
                 }
                 console.log('SETEPGc', url, ui, global.activeEPG)
@@ -521,7 +518,7 @@ class ManagerEPG extends ManagerCommunityLists {
                 refresh()
             } else {
                 if(ui){
-                    global.osd.show(global.lang.INVALID_URL, 'fas fa-exclamation-circle faclr-red', 'epg', 'normal')
+                    global.osd.show(global.lang.INVALID_URL, 'fas fa-exclamation-triangle faclr-red', 'epg', 'normal')
                 }
                 throw global.lang.INVALID_URL
             }
@@ -557,7 +554,7 @@ class ManagerEPG extends ManagerCommunityLists {
                 resolve(true)
             }).catch(err => {
                 console.error(err)
-                global.osd.show(global.lang.EPG_LOAD_FAILURE + ': ' + String(err), 'fas fa-check-circle', 'epg', 'normal')
+                global.osd.show(global.lang.EPG_LOAD_FAILURE + ': ' + String(err), 'fas fa-times-circle', 'epg', 'normal')
                 reject(err)
             })
         })
@@ -674,10 +671,8 @@ class Manager extends ManagerEPG {
         // this.listFaIcon = 'fas fa-broadcast-tower'
         this.key = 'lists'
         this.lastProgress = 0
-        this.openingList = false
-        this.updaterResults = {}
-        this.updatingProcesses = {}        
-        global.ui.once('init', () => {
+        this.openingList = false    
+        global.uiReady(() => {
             global.explorer.addFilter(async (es, path) => {
                 es = await this.expandEntries(es, path)
                 es = this.master.tools.dedup(es) // apply dedup here again for expanded entries 
@@ -691,11 +686,9 @@ class Manager extends ManagerEPG {
         })
         global.config.on('change', (keys, data) => {
             if(keys.includes('use-epg-channels-list')){
-                console.warn('config change', keys, data)
                 this.setImportEPGChannelsListTimer(data['use-epg-channels-list'])
             }
         })
-        this.master.on('sync-status', p => this.updateOSD(p))
     }
     async expandEntries(entries, path){
         let shouldExpand = entries.some(e => typeof(e._) == 'number' && !e.url)
@@ -707,8 +700,14 @@ class Manager extends ManagerEPG {
                     return true
                 }
             })
-            if(source && global.lists.lists[source]){
-                entries = await global.lists.lists[source].indexer.expandMap(entries)
+            if(source){
+                let list = global.lists.lists[source]
+                if(!list) {
+                    const fetch = new this.master.Fetcher(source, {}, this.master)
+                    await fetch.ready()
+                    list = fetch.list
+                }
+                entries = await list.indexer.expandMap(entries)
             }
         }
         return entries
@@ -731,12 +730,15 @@ class Manager extends ManagerEPG {
             return path.substr(i + 1)
         }
     }
-    waitListsReady(){
+    waitListsReady(timeoutSecs=0){
         return new Promise((resolve, reject) => {
-            if(this.master.satisfied){
+            const info = this.master.status()
+            if(info.satisfied) {
                 return resolve(true)
             }
-            this.master.once('satisfied', () => resolve(true))
+            const listener = () => resolve(true)
+            this.master.once('satisfied', listener)
+            timeoutSecs && setTimeout(() => resolve(false), timeoutSecs * 1000)
         })
     }
     inChannelPage(){
@@ -773,16 +775,6 @@ class Manager extends ManagerEPG {
             }).catch(console.error)
         }
     }
-    check(){
-        if(
-            !global.config.get('lists').length && 
-            !global.config.get('communitary-mode-lists-amount') && 
-            !Object.keys(this.updatingProcesses).length && 
-            !global.lists.activeLists.length
-        ){
-            global.ui.emit('setup-restart')
-        }
-    }
     get(){
         let r = false, lists = global.config.get(this.key) || []
         for(let i=0; i<lists.length; i++){
@@ -817,13 +809,18 @@ class Manager extends ManagerEPG {
                 return reject(global.lang.LIST_ALREADY_ADDED)
             }
         }
+        this.addingList = true
+        global.explorer.path.endsWith(global.lang.MY_LISTS) && global.explorer.softRefresh(global.explorer.path, true)
         const fetch = new this.master.Fetcher(url, {
             progress: p => {
                 global.osd.show(global.lang.RECEIVING_LIST +' '+ p +'%', 'fa-mega spin-x-alt', 'add-list-progress-'+ uid, 'persistent')
             }
         }, this.master)
-        let entries = await fetch.getMap()
-        if(entries.length){
+        let entries = await fetch.getMap().catch(console.error)
+        this.addingList = false
+        global.explorer.path.endsWith(global.lang.MY_LISTS) && global.explorer.softRefresh(global.explorer.path, true)
+        this.master.status()
+        if(Array.isArray(entries) && entries.length){
             if(!name){
                 let meta = await fetch.meta()
                 if(meta.name){
@@ -840,7 +837,7 @@ class Manager extends ManagerEPG {
             throw global.lang.INVALID_URL_MSG
         }
     }
-    async addList(value, name){
+    async addList(value, name, skipSharing){
         let err
         const uid = parseInt(Math.random() * 100000)
         global.osd.show(global.lang.RECEIVING_LIST, 'fa-mega spin-x-alt', 'add-list-progress-'+ uid, 'persistent')
@@ -855,12 +852,12 @@ class Manager extends ManagerEPG {
         } else {
             global.osd.show(global.lang.LIST_ADDED, 'fas fa-check-circle', 'add-list', 'normal')
             const currentEPG = global.config.get('epg-'+ global.lang.locale)            
-            let chosen = global.validateURL(value) ? await global.explorer.dialog([
+            let chosen = (!skipSharing && global.validateURL(value)) ? await global.explorer.dialog([
                 {template: 'question', text: global.lang.COMMUNITY_LISTS, fa: 'fas fa-users'},
                 {template: 'message', text: global.lang.WANT_SHARE_COMMUNITY},
-                {template: 'option', text: lang.YES, id: 'yes', fa: 'fas fa-thumbs-up'},
-                {template: 'option', text: lang.NO_THANKS, id: 'no', fa: 'fas fa-lock'}
-            ], 'yes') : 'no' // set local files as private
+                {template: 'option', text: lang.NO_THANKS, id: 'no', fa: 'fas fa-lock'},
+                {template: 'option', text: lang.SHARE, id: 'yes', fa: 'fas fa-users'}
+            ], 'no') : 'no' // set local files as private
             if(chosen == 'yes'){
                 global.osd.show(global.lang.COMMUNITY_THANKS_YOU, 'fas fa-heart faclr-purple', 'community-lists-thanks', 'normal')
             }
@@ -889,7 +886,7 @@ class Manager extends ManagerEPG {
                     }
                 }
             }
-            global.explorer.refresh()
+            global.explorer.softRefresh(global.explorer.path, true) // epg options path
             return true
         }
     }
@@ -1038,30 +1035,6 @@ class Manager extends ManagerEPG {
     wait(ms){
         return new Promise(resolve => setTimeout(resolve, ms))
     }
-    updatingProcessOutput(uid, message, fa){
-        this.updatingProcesses[uid].progress = 100
-        this.updatingProcesses[uid].ret = {message, fa}
-        if(global.explorer && global.explorer.currentEntries && global.explorer.currentEntries.some(e => [global.lang.LOAD_COMMUNITY_LISTS, global.lang.UPDATING_LISTS, global.lang.STARTING_LISTS, global.lang.STARTING_LISTS_FIRST_TIME_WAIT, global.lang.PROCESSING].includes(e.name))){
-            global.explorer.refresh()
-        }
-        this.updateOSD()
-    }
-    startUpdater(){
-        if(!this.updater){
-            this.updater = new (require('../driver')(global.APPDIR + '/modules/lists/driver'))
-            this.updaterClients = 0
-        }
-        this.updaterClients++
-        this.updater.close = () => {
-            this.updaterClients--
-            if(global.cordova && !this.updaterClients){
-                console.error('Terminating updater worker')
-                this.updater.terminate() // this may cause app to close on PC, bug not seen on mobile yet
-                this.updater = null
-            }
-        }
-        return this.updater
-    }
 	getUniqueLists(urls){ // remove duplicated lists even from different protocols
 		let already = []
 		return urls.filter(u => {
@@ -1073,165 +1046,53 @@ class Manager extends ManagerEPG {
 			}
 		})
 	}
-    async update(force, uid){
-        const camount = global.config.get('communitary-mode-lists-amount')
-        if(force === true || !global.lists.activeLists.length || global.lists.activeLists.length < camount){
-            let communityLists = [], keywords = [], myLists = await this.getURLs()
-            const loadMyListsCaches = this.master.loadCachedLists(myLists) // load my lists asap, before to possibly keep waiting for community lists
-            if(camount){
-                const maxListsToTry = 3 * camount
-                const loadKeywords = this.communityModeKeywords()
-                const ret = await Promise.allSettled([
-                    this.allCommunityLists(10000, true),
-                    this.extraCommunityLists()
-                ]).catch(console.error)
-                ret.forEach(r => {
-                    if(r.status == 'fulfilled' && r.value && r.value.length){
-                        communityLists.push(...r.value)
-                    }
-                })
-                communityLists = communityLists.filter(url => !myLists.includes(url))
-                communityLists = this.getUniqueLists(communityLists)
-                if(communityLists.length){
-                    if(communityLists.length > maxListsToTry){
-                        communityLists = communityLists.slice(0, maxListsToTry)
-                    }
-                    keywords = await loadKeywords
-                    await this.master.setCommunityLists(communityLists)
-                }
-            }
-            const alreadyUpdating = Object.keys(this.updatingProcesses).map(id => {
-                return this.updatingProcesses[id].urls || []
-            }).flat()
-            myLists = myLists.filter(url => !alreadyUpdating.includes(url))
-            communityLists = communityLists.filter(url => !alreadyUpdating.includes(url))            
-            if(communityLists.length || myLists.length){
-                this.uiUpdating = true
-                const timer = setInterval(() => this.updateOSD(), 3000)
-                this.master.updaterFinished(false).catch(console.error)
-                const allLists = myLists.concat(communityLists), updater = this.startUpdater()
-                this.updatingProcesses[uid].urls = allLists
-                updater.on('list-updated', url => {
-                    if(!allLists.includes(url)) return // from some other update scope
-                    this.master.syncList(url).then(() => {
-                        console.log('List updated and synced', url)
-                    }).catch(err => {
-                        console.error('List not synced', url, err)
-                    }).finally(async () => {
-                        this.emit('sync-status', this.master.status())
-                    })
-                })
-                await this.master.keywords(keywords)
-                await updater.setRelevantKeywords(keywords)
-                let results, expired = []
-                const cachedLists = await this.master.filterCachedUrls(allLists)
-                const loadCommmunityListsCaches = this.master.loadCachedLists(cachedLists)
-                const concurrency = cachedLists.length >= Math.min(Math.max(camount, myLists.length), 8) ? 4 : 8
-                const updating = updater.update(allLists.filter(u => !cachedLists.includes(u)).concat(cachedLists), concurrency).then(r => results = r).catch(err => {
-                    console.error('Failed to update packages', err)
-                })
-                await Promise.allSettled([loadMyListsCaches, loadCommmunityListsCaches, updating])
-                clearInterval(timer)
-                this.master.updaterFinished(true).catch(console.error)
-                this.updatingProcessOutput(uid, global.lang.LISTS_UPDATED, 'fas fa-check-circle') // warn user if there's no lists
-                updater.close()
-                if(this.master.activeLists.length){
-                    this.emit('lists-updated')
-                }
-                if(results && typeof(results) == 'object'){
-                    Object.keys(results).forEach(url => {
-                        this.updaterResults[url] = results[url]
-                        if(myLists.includes(url) && this.updaterResultExpired(url) && global.lists.isPrivateList(url)){
-                            expired.push(url)
-                        }
-                    })
-                }
-                if(expired.length)  {
-                    const ret = await global.explorer.dialog([
-                        {template: 'question', text: global.MANIFEST.window.title, fa: 'fas fa-info-circle'},
-                        {template: 'message', text: global.lang.IPTV_LIST_EXPIRED +'<br /><br />'+ expired.join('<br />')},
-                        {template: 'option', text: 'OK', id: 'ok', fa: 'fas fa-check-circle'},
-                        {template: 'option', text: global.lang.REMOVE_LIST, id: 'rm', fa: 'fas fa-trash'}
-                    ], 'ok').catch(console.error) // dont wait
-                    if(ret == 'rm'){
-                        expired.map(url => global.lists.manager.remove(url))
-                    }
-                }
+    update(){
+        let p = this.master.status()
+
+        const c = global.config.get('communitary-mode-lists-amount')
+        const m = p.progress ? (global.lang[p.firstRun ? 'STARTING_LISTS_FIRST_TIME_WAIT' : 'UPDATING_LISTS'] +' '+ p.progress +'%') : (c ? global.lang.SEARCH_COMMUNITY_LISTS : global.lang.STARTING_LISTS)
+        
+        if(p.satisfied || this.isUpdating) return
+
+        let lastProgress = 0
+        const listener = c => p = c
+        const processStatus = p => {
+            if(lastProgress === p.progress) return
+            lastProgress = p.progress
+            let m, fa = 'fa-mega spin-x-alt', duration = 'persistent'
+            if(p.satisfied) {
+                clearInterval(this.isUpdating)
+                this.isUpdating = 0
+                m = global.lang.LISTS_UPDATED
+                fa = 'fas fa-check-circle'
+                duration = 'normal'
+                this.master.removeListener('status', listener)
+                this.setImportEPGChannelsListTimer(global.config.get('use-epg-channels-list'))
             } else {
-                this.master.delimitActiveLists()
-                const suid = String(uid)
-                let failed
-                if(!this.master.activeLists.length){
-                    const isUpdating = Object.keys(this.updatingProcesses).filter(id => id != suid).length
-                    if(!isUpdating){
-                        failed = true
-                    }
-                }
-                if(failed){
-                    console.warn(global.lang.NO_LIST_PROVIDED, JSON.stringify(this.master.activeLists), Object.keys(this.master.lists))
-                    this.updatingProcessOutput(uid, global.lang.NO_LIST_PROVIDED, 'fas fa-exclamation-circle') // warn user if there's no lists
-                }
+                m = global.lang[p.firstRun ? 'STARTING_LISTS_FIRST_TIME_WAIT' : 'UPDATING_LISTS'] +' '+ p.progress +'%'
             }
-        }
-    }
-    async updateLists(force){
-        if(global.Download.isNetworkConnected) {
-            const uid = parseInt(Math.random() * 1000000000)
-            if(!this.uiShowing){
-                this.uiShowing = true
-                global.osd.show(global.lang.STARTING_LISTS, 'fa-mega spin-x-alt', 'update-progress', 'persistent')
-            }
-            this.updatingProcesses[uid] = {visibility: true, progress: 0}
-            await this.update(force === true, uid).catch(err => {
-                const isUIReady = !Array.isArray(global.uiReadyCallbacks)
-                console.error('lists-manager', err, isUIReady)
-                if(isUIReady){ // if error and lists hasn't loaded
-                    this.noListsRetryDialog(err)
-                }
-            })
-            global.osd.hide('update-progress')
-            this.updatingProcesses[uid].progress = 100
-            setTimeout(() => delete this.updatingProcesses[uid], 10000)
-        } else {
-            global.explorer.info(global.lang.NO_INTERNET_CONNECTION, global.lang.NO_INTERNET_CONNECTION)
-        }
-    }    
-    updateOSD(status){
-        const p = status || global.lists.status()
-        if(this.updateOSDLastProgress != p.progress || (p.progress == 100 && this.uiShowing)){
-            this.updateOSDLastProgress = p.progress
-            if(p.progress < 100){
-                if(!this.uiShowing){
-                    this.uiShowing = true
-                }
-                global.osd.show(global.lang[global.lists.isFirstRun ? 'STARTING_LISTS_FIRST_TIME_WAIT' : 'UPDATING_LISTS'] +' '+ p.progress +'%', 'fa-mega spin-x-alt', 'update-progress', 'persistent')
-            } else {
-                if(this.uiShowing){
-                    this.uiShowing = false
-                    global.osd.hide('update-progress')
-                    let ret = Object.values(this.updatingProcesses).filter(p => !!p.ret).map(p => p.ret).shift()
-                    if(ret){
-                        global.osd.show(ret.message, ret.fa, 'update', 'normal')
-                    }
-                    this.setImportEPGChannelsListTimer(global.config.get('use-epg-channels-list'))
-                }
-            }
-        }
-        if(this.updateOSDLastListsCount != p.length){
+            global.osd.show(m, fa, 'update-progress', duration)
             if(global.explorer && global.explorer.currentEntries) {
-                this.updateOSDLastListsCount = p.length
                 const updateEntryNames = [global.lang.PROCESSING, global.lang.UPDATING_LISTS, global.lang.STARTING_LISTS]
                 const updateBaseNames = [global.lang.TRENDING, global.lang.COMMUNITY_LISTS, global.lang.RECEIVED_LISTS]
                 if(
                     updateBaseNames.includes(global.explorer.basename(global.explorer.path)) || 
                     global.explorer.currentEntries.some(e => updateEntryNames.includes(e.name))
                 ) {
-                    global.explorer.refresh()
+                    global.explorer.softRefresh(global.explorer.path, true)
                 } else if(this.inChannelPage()) {
                     this.maybeRefreshChannelPage()
                 }
             }
         }
+        this.master.on('status', listener)
+        this.isUpdating = setInterval(() => {
+            if(!p) p = global.lists.status()
+            processStatus(p)
+            p = false
+        }, 1000)
+
+        global.osd.show(m, 'fa-mega spin-x-alt', 'update-progress', 'persistent')
     }
     noListsRetryDialog(err){
         if(global.Download.isNetworkConnected) {
@@ -1246,19 +1107,23 @@ class Manager extends ManagerEPG {
             }
             global.ui.emit('dialog', opts, 'lists-manager', 'retry', true) 
         } else {
-            global.explorer.info(global.lang.NO_INTERNET_CONNECTION, global.lang.NO_INTERNET_CONNECTION)
+            global.displayErr(global.lang.NO_INTERNET_CONNECTION)
         }
     }
     noListsEntry(){        
         if(global.config.get('communitary-mode-lists-amount') > 0){
             return this.noListsRetryEntry()
         } else {
-            return {
-                name: global.lang.NO_LISTS_ADDED,
-                fa: 'fas fa-plus-square',
-                type: 'action',
-                action: () => {
-                    global.explorer.open(global.lang.IPTV_LISTS).catch(console.error)
+            if(this.addingList) {
+                return this.updatingListsEntry()
+            } else {
+                return {
+                    name: global.lang.NO_LISTS_ADDED,
+                    fa: 'fas fa-plus-square',
+                    type: 'action',
+                    action: () => {
+                        global.explorer.open(global.lang.IPTV_LISTS).catch(console.error)
+                    }
                 }
             }
         }
@@ -1268,7 +1133,7 @@ class Manager extends ManagerEPG {
             name: global.lang.LOAD_COMMUNITY_LISTS,
             fa: 'fas fa-plus-square',
             type: 'action',
-            action: () => this.updateLists(true)
+            action: () => this.update()
         }
     }
     updatingListsEntry(name){
@@ -1321,7 +1186,7 @@ class Manager extends ManagerEPG {
             const id = 'add-list-dialog-file-'+ parseInt(10000000 * Math.random())
             global.ui.once(id, data => {
                 console.warn('!!! IMPORT M3U FILE !!!', data)
-                global.resolveFileFromClient(data).then(file => {
+                global.ui.resolveFileFromClient(data).then(file => {
                     this.addList(file).then(resolve).catch(reject)
                 }).catch(reject)
             })
@@ -1353,8 +1218,11 @@ class Manager extends ManagerEPG {
         const url = server +'/get.php?username='+ encodeURIComponent(user) +'&password='+ encodeURIComponent(pass) +'&output=ts&type=m3u_plus'            
         return await this.addList(url)
     }
-    updaterResultExpired(url){
-        return this.updaterResults[url] && this.updaterResults[url].substr(0, 6) == 'failed' && ['401', '403', '404', '410'].includes(this.updaterResults[url].substr(-3))
+    isListExpired(url){
+        if(this.master.loader.results[url]){
+            const ret = String(this.master.loader.results[url] || '')
+            return ret.substr(0, 6) == 'failed' && ['401', '403', '404', '410'].includes(result.substr(-3))
+        }        
     }
     myListsEntry(){
         return {
@@ -1363,7 +1231,7 @@ class Manager extends ManagerEPG {
             type: 'group', 
             renderer: async () => {
                 let lists = this.get()
-                const extInfo = await this.master.info()
+                const extInfo = await this.master.info(true)
                 const doNotShareHint = !global.config.get('communitary-mode-lists-amount')
                 let ls = lists.map(row => {
                     let url = row[1]
@@ -1372,7 +1240,7 @@ class Manager extends ManagerEPG {
                     let details = extInfo[url].author || ''
                     let icon = extInfo[url].icon || undefined
                     let priv = (row.length > 2 && typeof(row[2]['private']) != 'undefined') ? row[2]['private'] : doNotShareHint 
-                    let expired = this.updaterResultExpired(url)
+                    let expired = this.isListExpired(url)
                     let flag = expired ? 'fas fa-exclamation-triangle faclr-red' : (priv ? 'fas fa-lock' : 'fas fa-users')
                     return {
                         prepend: '<i class="'+ flag +'"></i>&nbsp;',
@@ -1444,7 +1312,15 @@ class Manager extends ManagerEPG {
                             return es
                         }
                     }
-                })                
+                })
+                if(this.addingList){
+                    ls.push({
+                        name: global.lang.RECEIVING_LIST,
+                        fa: 'fa-mega spin-x-alt',
+                        type: 'action',
+                        action: () => global.explorer.refresh()
+                    })
+                }
                 ls.push(this.addListEntry())
                 return ls
             }
@@ -1462,8 +1338,7 @@ class Manager extends ManagerEPG {
     async refreshList(data){
         let updateErr
         global.osd.show(global.lang.UPDATING_LISTS, 'fa-mega spin-x-alt', 'refresh-list', 'persistent')
-        const updater = this.startUpdater()
-        await updater.updateList(data.url, true).catch(err => updateErr = err)
+        await this.master.loader.reload(data.url).catch(e => updateErr = e)
         if(updateErr){
             if(updateErr == 'empty list'){
                 let haserr, msg = updateErr
@@ -1493,24 +1368,23 @@ class Manager extends ManagerEPG {
                 } else {
                     msg = haserr || 'Server offline error'
                 }
-                global.displayErr(msg)
-            } else {
-                global.displayErr(updateErr)
+                updateErr = msg
             }
+            global.displayErr(updateErr)
         } else {
-            await global.lists.syncLoadList(data.url).catch(err => updateErr = err)
+            await global.lists.loadList(data.url).catch(err => updateErr = err)
             if(updateErr){
                 global.displayErr(updateErr)
             } else {
                 global.osd.show('OK', 'fas fa-check-circle', 'refresh-list', 'normal')
-                global.explorer.deepRefresh()
+                global.explorer.softRefresh(global.explorer.path, true) // epg options path
                 return true // return here, so osd will not hide
             }
         }
         global.osd.hide('refresh-list')
     }
     async removeList(data){
-        const info = await this.master.info(), key = 'epg-'+ global.lang.locale
+        const info = await this.master.info(true), key = 'epg-'+ global.lang.locale
         if(info[data.url] && info[data.url].epg && this.parseEPGURL(info[data.url].epg) == global.config.get(key)) {
             global.config.set(key, '')
         }
@@ -1549,7 +1423,7 @@ class Manager extends ManagerEPG {
                         action: () => {             
                             this.remove(v.url)
                             global.osd.show(global.lang.LIST_REMOVED, 'fas fa-info-circle', 'list-open', 'normal')
-                            global.explorer.refresh()
+                            global.explorer.softRefresh(global.explorer.path, true) // epg options path
                         }
                     })
                 } else {
@@ -1558,7 +1432,9 @@ class Manager extends ManagerEPG {
                         fa: 'fas fa-plus-square',
                         name: global.lang.ADD_TO.format(global.lang.MY_LISTS),
                         action: () => {
-                            this.addList(v.url).catch(console.error).finally(() => global.explorer.refresh())
+                            this.addList(v.url, '', true).catch(console.error).finally(() => {
+                                setTimeout(() => global.explorer.softRefresh(global.explorer.path, true), 100)
+                            })
                         }
                     })
                 }

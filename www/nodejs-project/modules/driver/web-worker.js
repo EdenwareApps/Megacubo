@@ -5,7 +5,7 @@ if(workerData){
 }
 
 function logErr(data){
-    postMessage({id: -1, type: 'error', data, file})
+    postMessage({id: 0, type: 'event', data: 'error:'+ JSON.stringify(data), file})
 }
 
 crashlog = require(global.APPDIR +'/modules/crashlog')
@@ -14,7 +14,7 @@ process.on('warning', e => {
     console.warn(e, e.stack)
 })
 process.on('unhandledRejection', (reason, promise) => {
-    const msg = 'Unhandled Rejection at: '+String(promise)+ ', reason: '+ String(reason) + ' | ' + JSON.stringify(reason.stack)
+    const msg = 'Unhandled Rejection at: '+ String(promise) + ', reason: '+ String(reason) + ' | ' + JSON.stringify(reason.stack)
     console.error(msg, promise, 'reason:', reason)
     crashlog.save('Unhandled Rejection at:', promise, 'reason:', reason)
     logErr(msg)
@@ -44,7 +44,8 @@ onmessage = e => {
     } else if(msg.method == 'unload'){
         //setTimeout(() => close(), 10) // caused NW.js to close
     } else if(typeof(driver[msg.method]) == 'undefined'){
-        postMessage({id: msg.id, type: 'reject', data: 'method not exists ' + JSON.stringify(msg.data)})
+        console.error({msg, driver})
+        postMessage({id: msg.id, type: 'reject', data: 'method not exists ' + JSON.stringify(msg) +' '+ global.traceback()})
     } else {
         let type, data = null
         let call = driver[msg.method].apply(driver, msg.args)

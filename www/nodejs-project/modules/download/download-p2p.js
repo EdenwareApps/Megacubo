@@ -2,10 +2,12 @@ const fs = require('fs')
 
 class DownloadP2PStats {
     constructor(){
+        this.ui = global.ui
         this.statsWindowSecs = 30
         this.peers = {}
         this._stats = {http: [], p2p: []}
         process.nextTick(() => {
+            this.ui = global.ui
             this.ui.on('download-p2p-peers', peers => {
                 this.peers = peers
             })
@@ -56,80 +58,17 @@ class DownloadP2PStats {
 class DownloadP2POptions extends DownloadP2PStats {
     constructor() {
         super()
-        this.showing = false
-        this.osdID = 'p2p-debug'
-        this.fa = 'fas fa-users'
-        process.nextTick(() => {            
-            global.explorer.addFilter(this.hook.bind(this))
-        })
-    }
-    message(){
-        const stats = this.stats()
-        return 'P2P usage: {0}% &middot; {1} peers'.format(parseInt(stats.p2p.percent), Object.keys(this.peers).length)
-    }
-    show(){
-        this.showing = setInterval(() => {
-            const message = this.message()
-            if(message == this.lastMessage) return
-            this.lastMessage = message
-            global.osd.show(message, this.fa, this.osdID, 'persistent')
-        }, 1000)
-    }
-    hide(){
-        this.showing && clearInterval(this.showing)
-        global.osd.hide(this.osdID)
-    }
-    async hook(entries, path){
-        if(path == global.lang.OPTIONS +'/'+ global.lang.ADVANCED){
-            entries.push(this.entry())
-        }
-        return entries
-    }
-    entry(){
-        return {
-            name: 'P2P',
-            fa: this.fa,
-            type: 'group',
-            renderer: this.entries.bind(this)
-        }
-    }
-    async entries(){
-        return [
-            {
-                name: 'Allow P2P',
-                type: 'check',
-                action: (e, checked) => {
-                    global.config.set('p2p', checked)
-                    global.osd.show(lang.SHOULD_RESTART, 'fas fa-exclamation-circle faclr-red', 'restart', 'normal')
-                }, 
-                checked: () => {
-                    return global.config.get('p2p')
-                }
-            },
-            {
-                name: 'Debug P2P',
-                type: 'check',
-                action: (e, checked) => {
-                    if(checked){
-                        this.show()
-                    } else {
-                        this.hide()
-                    }
-                }, 
-                checked: () => {
-                    return this.showing
-                }
-            }
-        ]
     }
 }
 
 class DownloadP2PHandler extends DownloadP2POptions {
-    constructor(ui, cache) {
+    constructor(opts) {
         super()
         this.responders = {}
-        this.cache = cache
-        this.ui = ui
+        this.opts = opts
+        this.cache = opts.cache
+        this.discovery = opts.discovery
+        this.ui = opts.ui
         this.cache.on('update', index => {
             this.ui.emit('download-p2p-index-update', index)
         })
@@ -138,7 +77,22 @@ class DownloadP2PHandler extends DownloadP2POptions {
                 this.ui.emit('download-p2p-response', Object.assign({uid}, message))
             })
         })
+        this.ui.on('download-p2p-index-update', () => {
+            this.ui.emit('download-p2p-index-update', this.cache.index)
+        })
+        this.discovery.on('found', () => {
+            this.ui.emit(this.discovery.key, this.discovery.knownLists) // sync info to renderer, to respond faster on p2p lookups
+        })
+        this.ui.on(this.discovery.key, () => {
+            this.ui.emit(this.discovery.key, this.discovery.knownLists)
+        })
         this.ui.on('download-p2p-serve-request', this.serve.bind(this))
+        this.ui.on('download-p2p-init', () => this.initializeClient())
+        this.initializeClient()
+    }
+    initializeClient(){    
+        const stunServers = global.config.get('p2p-stun-servers') 
+        this.ui.emit('init-p2p', this.opts.addr, this.opts.limit, stunServers)
     }
     serve(data) {
         if(!data) return

@@ -3,62 +3,73 @@
 const debug = false, path = require('path'), fs = require('fs'), async = require('async'), Events = require('events'), Countries = require('../countries')
 
 class Language extends Events {
-    constructor(languageHint, explicitLanguage, folder){
+    constructor(languageHint, explicitLanguage, folder, timezone){
         super()
         this.folder = folder
         if(explicitLanguage){
             languageHint = explicitLanguage +', '+ languageHint
         }
-        this.findLanguages(languageHint)
+        this.languageHint = languageHint
+        this.findLanguages()
         this.cl = require('country-language')
         this.countries = new Countries()
         this.isReady = false
+        this.timezone = timezone
     }
-    ready(cb){
-        if(this.isReady){
-            cb()
-        } else {
-            this.on('ready', cb)
-        }
+    async ready(){
+        return new Promise(resolve => {
+            if(this.isReady){
+                resolve()
+            } else {
+                this.on('ready', resolve)
+            }
+        })
     }
-    async findLanguages(languageHint){
+    async findLanguages(){
         let files = await fs.promises.readdir(this.folder).catch(global.displayErr)
         this.availableLocales = files.filter(f => f.substr(-5).toLowerCase() == '.json').map(f => f.split('.').shift())
-        this.userLocales = this.parseLanguageHint(languageHint)
-        this.userAvailableLocales = this.userLocales.filter(l => this.availableLocales.includes(l))
-        return this.userLocales
+        this.hints = this.parseLanguageHint(this.languageHint)
+        this.userAvailableLocales = this.hints.langs.filter(l => this.availableLocales.includes(l))
+        return this.hints.langs
     }
-    async findCountryCode(){
-        let loc, maybeLoc = []
-        let countries = global.config.get('countries')
-        if(!countries || !countries.length){
-            countries = await this.getCountriesFromLanguage(this.locale)
-        }
-        if(countries.length == 1){
-            loc = countries[0]
-        } else {
-            this.userLocales.filter(l => l.length == 5).some(l => {
-                let ll = l.substr(-2).toLowerCase()
-                if(l.substr(0, 2) == this.locale || countries.includes(ll)){
-                    loc = ll
-                    return true
-                } else {
-                    maybeLoc.push(ll)
-                }
-            })
-        }
-        if(!loc){
-            maybeLoc = maybeLoc.filter(l => this.cl.countryCodeExists(l))
-            if(maybeLoc.length){
-                loc = maybeLoc.shift()
-            } else {
-                loc = this.locale
+    async findCountryCode(force){
+
+        const countriesTz = this.countries.getCountriesFromTZ(this.timezone.minutes)
+        const countriesHintsTz = this.hints.countries.filter(c => countriesTz.includes(c))
+
+        if(force !== true){
+            const country = global.config.get('country')
+            if(country){
+                this.alternateCountries = countriesHintsTz.filter(c => c != country)
+                this.countryCode = country
+                return
             }
         }
-        this.countryCode = loc
+
+        if(countriesHintsTz.length){ // country in navigator hints, right timezone
+            this.alternateCountries = countriesHintsTz
+            return this.countryCode = this.alternateCountries.shift()
+        }
+
+        const countriesTzAllLangs = this.hints.langs.map(l => this.getCountriesFromLanguage(l)).flat().filter(c => countriesTz.includes(c)) // country should be in tz
+        if(countriesTzAllLangs.length){ // language in navigator hints, right timezone
+            this.alternateCountries = countriesTzAllLangs
+            return this.countryCode = this.alternateCountries.shift()
+        }
+
+        if(this.hints.countries.length){ // country in navigator hints, wrong timezone
+            this.alternateCountries = this.hints.countries.slice(0)
+            return this.countryCode = this.alternateCountries.shift()
+        }
+
+        this.alternateCountries = []
+        return this.countryCode = 'us'
     }
     getCountryLanguages(code){
         return new Promise((resolve, reject) => {
+            if(typeof(code) != 'string' || code.length != 2){
+                return reject('Invalid country code '+ code +' '+ global.traceback())
+            }
             this.cl.getCountryLanguages(code, (err, countries) => {
                 if(err){
                     return reject(err)
@@ -106,19 +117,18 @@ class Language extends Events {
             })
         })
     }
-    async getActiveCountries(){
+    async getActiveCountries(limit=10){
+        await this.ready()
         let actives = global.config.get('countries')
         if(!Array.isArray(actives) || !actives.length){
+            await this.ready()
             let languages = await this.getCountryLanguages(this.countryCode)
             actives = await this.getCountries(languages)
-            if(!actives.includes(this.countryCode)){
-                actives.push(this.countryCode)
-            }
+            actives = actives.filter(a => !this.hints.countries.includes(a))
+            actives = this.hints.countries.slice(0).concat(actives)
         }
+        actives = this.countries.getNearest(this.countryCode, actives, limit || 999)
         return actives
-    }
-    async getActiveLanguages(){
-        return await this.getCountriesLanguages(await this.getActiveCountries())
     }
     getCountriesMap(locale, additionalCountries){ // return countries of same ui language
         return new Promise((resolve, reject) => {
@@ -158,6 +168,7 @@ class Language extends Events {
         return false
     }
     async load(){
+        await this.countries.ready()
         this.locale = 'en'
         let utexts, texts = await this.loadLanguage('en').catch(global.displayErr) // english will be a base/fallback language for any key missing in translation chosen
         if(!texts) texts = {}
@@ -186,15 +197,10 @@ class Language extends Events {
         return ret
     }
     parseLanguageHint(hint){
-        let retLocales = [], locales = hint.replace(new RegExp(' +', 'g'), '').split(',').filter(s => [2, 5].includes(s.length))
-        locales.forEach(loc => {
-            retLocales.push(loc)
-            if(loc.length == 5){
-                retLocales.push(loc.substr(-2).toLowerCase())
-                retLocales.push(loc.substr(0, 2).toLowerCase())
-            }
-        })
-        return [...new Set(retLocales)]
+        const hints = hint.split(',').map(s => s.trim())
+        const countries = hints.map(s => s.length === 5 ? s.substr(3).toLowerCase() : false).filter(s => s).unique()
+        const langs = hints.map(s => s.substr(0, 2)).unique()
+        return {langs, countries}
     }
     async availableLocalesMap(){
         if(!this._availableLocalesMap){
@@ -225,7 +231,7 @@ class Language extends Events {
         } else {
             throw 'Language file '+ file +' unavailable'
         }
-    }   
+    }
 }
 
 module.exports = Language

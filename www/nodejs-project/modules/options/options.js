@@ -8,17 +8,15 @@ class Timer extends Events {
         this.timerData = 0
         this.timerLabel = false
     }
-    timer(){
-        return new Promise((resolve, reject) => {
-            let opts = [];
-            [5, 15, 30, 45].forEach((m) => {
-                opts.push({name: global.lang.AFTER_X_MINUTES.format(m), details: global.lang.TIMER, fa: 'fas fa-clock', type: 'group', entries: [], renderer: this.timerChooseAction.bind(this, m)});
-            });
-            [1, 2, 3].forEach((h) => {
-                opts.push({name: global.lang.AFTER_X_HOURS.format(h), details: global.lang.TIMER, fa: 'fas fa-clock', type: 'group', entries: [], renderer: this.timerChooseAction.bind(this, h * 60)});
-            })
-            resolve(opts)
+    async timer(){
+        let opts = [];
+        [5, 15, 30, 45].forEach((m) => {
+            opts.push({name: global.lang.AFTER_X_MINUTES.format(m), details: global.lang.TIMER, fa: 'fas fa-clock', type: 'group', entries: [], renderer: this.timerChooseAction.bind(this, m)});
+        });
+        [1, 2, 3].forEach((h) => {
+            opts.push({name: global.lang.AFTER_X_HOURS.format(h), details: global.lang.TIMER, fa: 'fas fa-clock', type: 'group', entries: [], renderer: this.timerChooseAction.bind(this, h * 60)});
         })
+        return opts
     }
     timerEntry(){
         let details = ''
@@ -44,17 +42,15 @@ class Timer extends Events {
             }
         }
     }
-    timerChooseAction(minutes){
-        return new Promise((resolve, reject) => {
-            var opts = [
-                {name: global.lang.STOP, type: 'action', fa: 'fas fa-stop', action: () => this.timerChosen(minutes, global.lang.STOP)},
-                {name: global.lang.CLOSE, type: 'action', fa: 'fas fa-times-circle', action: () => this.timerChosen(minutes, global.lang.CLOSE)}
-            ]
-            if(!global.cordova){
-                opts.push({name: global.lang.SHUTDOWN, type: 'action', fa: 'fas fa-power-off', action: () => this.timerChosen(minutes, global.lang.SHUTDOWN)})
-            }
-            resolve(opts)
-        })
+    async timerChooseAction(minutes){
+        var opts = [
+            {name: global.lang.STOP, type: 'action', fa: 'fas fa-stop', action: () => this.timerChosen(minutes, global.lang.STOP)},
+            {name: global.lang.CLOSE, type: 'action', fa: 'fas fa-times-circle', action: () => this.timerChosen(minutes, global.lang.CLOSE)}
+        ]
+        if(!global.cordova){
+            opts.push({name: global.lang.SHUTDOWN, type: 'action', fa: 'fas fa-power-off', action: () => this.timerChosen(minutes, global.lang.SHUTDOWN)})
+        }
+        return opts
     }
     timerChosen(minutes, action){
         let t = global.time()
@@ -110,6 +106,7 @@ class PerformanceProfiles extends Timer {
                 'broadcast-start-timeout': 40,
                 'connect-timeout': 5,
                 'fx-nav-intensity': 2,
+                'hls-prefetching': true,
                 'live-window-time': 180,
                 'p2p': true,
                 'play-while-loading': true,
@@ -117,7 +114,7 @@ class PerformanceProfiles extends Timer {
                 'show-logos': true,
                 'transcoding': '1080p',
                 'ts-packet-filter-policy': 1,
-                'tune-concurrency': 12,
+                'tune-concurrency': 8,
                 'tune-ffmpeg-concurrency': 3,
                 'ui-sounds': true
             },
@@ -130,6 +127,7 @@ class PerformanceProfiles extends Timer {
                 'custom-background-video': '',
                 'epg': 'disabled',
                 'fx-nav-intensity': 0,
+                'hls-prefetching': false,
                 'live-stream-fmt': 'auto',
                 'live-window-time': 10,
                 'p2p': false,
@@ -179,7 +177,7 @@ class PerformanceProfiles extends Timer {
             console.log('performance-callback set', this.profiles[ret])
             global.config.setMulti(this.profiles[ret])
             if(typeof(this.profiles[ret].epg) != 'undefined'){
-                global.updateEPGConfig(this.profiles[ret].epg)
+                this.updateEPGConfig(this.profiles[ret].epg)
             }
             global.theme.refresh()
         }
@@ -389,32 +387,113 @@ class OptionsHardwareAcceleration extends OptionsExportImport {
     }    
 }
 
-class Options extends OptionsHardwareAcceleration {
+class OptionsP2P extends OptionsHardwareAcceleration {
+    constructor(){
+        super()
+        this.p2pDebugShowing = false
+        this.p2pOsdID = 'p2p-debug'
+        this.p2pFa = 'fas fa-users'
+    }
+    p2pMessage(){
+        if(!global.Download.p2p) return 'P2P not loaded'
+        const stats = global.Download.p2p.stats()
+        return 'P2P usage: {0}% &middot; {1} peers'.format(parseInt(stats.p2p.percent), Object.keys(global.Download.p2p.peers).length)
+    }
+    p2pEntry(){
+        return {
+            name: 'P2P',
+            fa: this.p2pFa,
+            type: 'group',
+            renderer: this.p2pEntries.bind(this)
+        }
+    }
+    p2pInfoShow(){
+        this.p2pDebugShowing = setInterval(() => {
+            const message = this.p2pMessage()
+            if(message == this.lastP2PMessage) return
+            this.lastP2PMessage = message
+            global.osd.show(message, this.p2pFa, this.p2pOsdID, 'persistent')
+        }, 1000)
+    }
+    p2pInfoHide(){
+        this.p2pDebugShowing && clearInterval(this.p2pDebugShowing)
+        global.osd.hide(this.p2pOsdID)
+    }
+    async p2pEntries(){
+        return [
+            {
+                name: 'Allow P2P',
+                type: 'check',
+                action: (e, checked) => {
+                    global.config.set('p2p', checked)
+                    global.ui.emit('ask-restart')
+                    global.osd.show(lang.SHOULD_RESTART, 'fas fa-exclamation-triangle faclr-red', 'restart', 'normal')
+                }, 
+                checked: () => {
+                    return global.config.get('p2p')
+                }
+            },
+            {
+                name: 'Debug P2P',
+                type: 'check',
+                action: (e, checked) => {
+                    if(checked){
+                        this.p2pInfoShow()
+                    } else {
+                        this.p2pInfoHide()
+                    }
+                }, 
+                checked: () => {
+                    return this.p2pDebugShowing
+                }
+            }
+        ]
+    }
+}
+
+class Options extends OptionsP2P {
     constructor(){
         super()
         global.ui.on('config-import-file', data => {
-            console.warn('!!! IMPORT FILE !!!', data)
-            global.importFileFromClient(data).then(ret => this.import(ret)).catch(err => {
+            console.warn('!!! IMPORT FILE !!! '+ typeof(global.ui.importFileFromClient), data)
+            global.ui.importFileFromClient(data).then(ret => this.import(ret)).catch(err => {
                 global.displayErr(err)
             })
         })        
     }
-    tools(){
-        return new Promise((resolve, reject) => {
-            let defaultURL = ''
-            global.storage.raw.get('open-url', url => {
-                if(url){
-                    defaultURL = url
+    async updateEPGConfig(c){
+        global.activeEPG = global.config.get('epg-'+ global.lang.locale)
+        if(global.activeEPG == 'disabled'){
+            global.activeEPG = false
+            await global.lists.manager.setEPG('', false).catch(console.error)
+        } else {
+            if(!global.activeEPG || global.activeEPG == 'auto'){
+                if(!c){
+                    c = await cloud.get('configure').catch(console.error)
                 }
-                let entries = [
-                    {name: global.lang.OPEN_URL, fa: 'fas fa-link', details: global.lang.STREAMS, type: 'action', action: () => {
-                        global.ui.emit('prompt', global.lang.OPEN_URL, 'http://.../example.m3u8', defaultURL, 'open-url', false, 'fas fa-link')
-                    }},
-                    this.timerEntry()
-                ]
-                resolve(entries)
-            })
-        })
+                if(c && c.epg){
+                    global.activeEPG = c.epg[global.lang.countryCode] || c.epg[global.lang.locale] || false
+                } else {
+                    global.activeEPG = false
+                }
+            }
+            await global.lists.manager.setEPG(global.activeEPG || '', false).catch(console.error)
+        }
+        console.log('SET-EPG', global.activeEPG)
+    }
+    async tools(){
+        let err, defaultURL = ''
+        const url = await global.storage.raw.promises.get('open-url').catch(e => err = e)
+        if(!err && url){
+            defaultURL = url
+        }
+        let entries = [
+            {name: global.lang.OPEN_URL, fa: 'fas fa-link', details: global.lang.STREAMS, type: 'action', action: () => {
+                global.ui.emit('prompt', global.lang.OPEN_URL, 'http://.../example.m3u8', defaultURL, 'open-url', false, 'fas fa-link')
+            }},
+            this.timerEntry()
+        ]
+        return entries
     }
     async showLanguageEntriesDialog(){
         let options = [], def = global.lang.locale
@@ -561,7 +640,7 @@ class Options extends OptionsHardwareAcceleration {
     async about(){
         let outdated, c = await cloud.get('configure').catch(console.error)
         if(c){
-            updateEPGConfig(c)
+            this.updateEPGConfig(c)
             console.log('checking update...')
             let vkey = 'version'
             outdated = c[vkey] > global.MANIFEST.version
@@ -578,7 +657,7 @@ class Options extends OptionsHardwareAcceleration {
             {template: 'option', text: global.lang.HELP, fa: 'fas fa-question-circle', id: 'help'},
             {template: 'option', text: global.lang.LICENSE_AGREEMENT, fa: 'fas fa-info-circle', id: 'tos'},
             {template: 'option', text: global.lang.PRIVACY_POLICY, fa: 'fas fa-info-circle', id: 'privacy'},
-            {template: 'option', text: global.lang.UNINSTALL, fa: 'fas fa-info-circle', id: 'uninstall'},
+            {template: 'option', text: global.lang.UNINSTALL, fa: 'fas fa-trash', id: 'uninstall'},
             {template: 'option', text: global.lang.SHARE, fa: 'fas fa-share-alt', id: 'share'}
         ], 'ok')
         console.log('about-callback', ret)
@@ -603,11 +682,11 @@ class Options extends OptionsHardwareAcceleration {
     aboutResources(){
         let txt = []
         async.parallel([done => {
-            global.diagnostics.checkDisk().then(data => {
+            global.diag.checkDisk().then(data => {
                 txt[1] = 'Free disk space: '+ global.kbfmt(data.free) +'<br />'
             }).catch(console.error).finally(() => done())
         }, done => {
-            global.diagnostics.checkMemory().then(freeMem => {
+            global.diag.checkMemory().then(freeMem => {
                 const used = process.memoryUsage().rss
                 txt[0] = 'App memory usage: '+ global.kbfmt(used) +'<br />Free memory: '+ global.kbfmt(freeMem) +'<br />'
             }).catch(console.error).finally(() => done())
@@ -629,8 +708,7 @@ class Options extends OptionsHardwareAcceleration {
         let ret = await global.explorer.dialog([
             {template: 'question', text: global.ucWords(global.MANIFEST.name)},
             {template: 'message', text},
-            {template: 'option', text: global.lang.YES, fa: 'fas fa-info-circle', id: 'yes'},
-            {template: 'option', text: global.lang.NO, fa: 'fas fa-times-circle', id: 'no'}
+            {template: 'option', text: global.lang.YES, fa: 'fas fa-check-circle', id: 'yes'},            {template: 'option', text: global.lang.NO, fa: 'fas fa-times-circle', id: 'no'}
         ], 'no')
         if(ret == 'yes'){
             global.rmdir(global.paths.data, false, true)
@@ -662,264 +740,278 @@ class Options extends OptionsHardwareAcceleration {
             },
             {
                 name: 'Resolution limit when transcoding', type: 'select', fa: 'fas fa-film',
-                renderer: () => {
-                    return new Promise((resolve, reject) => {
-                        let def = global.config.get('transcoding-resolution') || '720p', opts = [
-                            {name: global.lang.TRANSCODING_ENABLED_LIMIT_X.format('480p'), type: 'action', selected: (def == '480p'), action: data => {
-                                global.config.set('transcoding-resolution', '480p')
-                            }},
-                            {name: global.lang.TRANSCODING_ENABLED_LIMIT_X.format('720p'), type: 'action', selected: (def == '720p'), action: data => {
-                                global.config.set('transcoding-resolution', '720p')
-                            }},
-                            {name: global.lang.TRANSCODING_ENABLED_LIMIT_X.format('1080p'), type: 'action', selected: (def == '1080p'), action: data => {
-                                global.config.set('transcoding-resolution', '1080p')
-                            }}
-                        ]
-                        resolve(opts)
-                    })
+                renderer: async () => {
+                    let def = global.config.get('transcoding-resolution') || '720p', opts = [
+                        {name: global.lang.TRANSCODING_ENABLED_LIMIT_X.format('480p'), type: 'action', selected: (def == '480p'), action: data => {
+                            global.config.set('transcoding-resolution', '480p')
+                        }},
+                        {name: global.lang.TRANSCODING_ENABLED_LIMIT_X.format('720p'), type: 'action', selected: (def == '720p'), action: data => {
+                            global.config.set('transcoding-resolution', '720p')
+                        }},
+                        {name: global.lang.TRANSCODING_ENABLED_LIMIT_X.format('1080p'), type: 'action', selected: (def == '1080p'), action: data => {
+                            global.config.set('transcoding-resolution', '1080p')
+                        }}
+                    ]
+                    return opts
                 }
             }
         ]
         return entries
     }
-    playbackEntries(){
-        return new Promise((resolve, reject) => {
-            let opts = [
-                {
-                    name: global.lang.CONTROL_PLAYBACK_RATE, type: 'check', action: (data, checked) => {
-                    global.config.set('playback-rate-control', checked)
-                }, checked: () => {
-                    return global.config.get('playback-rate-control')
-                }, details: 'Recommended'}, 
-                {
-                    name: global.lang.USE_KEEPALIVE, type: 'check', action: (data, checked) => {
-                    global.config.set('use-keepalive', checked)
-                }, checked: () => {
-                    return global.config.get('use-keepalive')
-                }, details: 'Recommended'},
-                {
-                    name: 'Force MPEGTS broadcasts to be seekable ('+ global.lang.SLOW +')', type: 'check', action: (data, checked) => {
-                    global.config.set('preferred-livestream-fmt', checked ? 'hls' : 'auto')
-                }, checked: () => {
-                    return global.config.get('preferred-livestream-fmt') == 'hls'
-                }},                
-                {
-                    name: 'Use FFmpeg pre-processing on live streams ('+ global.lang.SLOW +')',
-                    fa: 'fas fa-cog', 
-                    type: 'select', 
-                    renderer: async () => {
-                        /*
-                        Using FFmpeg as middleware breaks HLS multi-tracks feature
-                        but for single track streams can help by storing broadcast on disk
-                        allowing a bigger in-disk backbuffer (default: auto)
-                        */
-                        const def = global.config.get('ffmpeg-broadcast-pre-processing'), opts = [
-                            {name: global.lang.NO, type: 'action', selected: (def == 'no'), action: () => {
-                                global.config.set('ffmpeg-broadcast-pre-processing', 'no')
-                            }},
-                            {name: global.lang.AUTO, type: 'action', selected: (def == 'auto' || !['yes', 'no'].includes(def)), action: () => {
-                                global.config.set('ffmpeg-broadcast-pre-processing', 'auto')
-                            }},
-                            {name: global.lang.ALWAYS, type: 'action', selected: (def == 'yes'), action: () => {
-                                global.config.set('ffmpeg-broadcast-pre-processing', 'yes')
-                            }}
-                        ]
-                        return opts
-                    }
+    async playbackEntries(){
+        let opts = [
+            {
+                name: global.lang.CONTROL_PLAYBACK_RATE, type: 'check', action: (data, checked) => {
+                global.config.set('playback-rate-control', checked)
+            }, checked: () => {
+                return global.config.get('playback-rate-control')
+            }, details: 'Recommended'}, 
+            {
+                name: global.lang.USE_KEEPALIVE, type: 'check', action: (data, checked) => {
+                global.config.set('use-keepalive', checked)
+            }, checked: () => {
+                return global.config.get('use-keepalive')
+            }, details: 'Recommended'},
+            {
+                name: 'Force MPEGTS broadcasts to be seekable ('+ global.lang.SLOW +')', type: 'check', 
+                action: (data, checked) => {
+                    global.config.set('mpegts-seeking-fix', checked)
                 },
-                {
-                    name: global.lang.PREFERRED_LIVESTREAM_FMT,
-                    fa: 'fas fa-cog', 
-                    type: 'select', 
-                    renderer: async () => {
-                        const def = String(global.config.get('preferred-livestream-fmt')), opts = [
-                            {name: 'Auto', type: 'action', selected: (!['mpegts','hls'].includes(def)), action: () => {
-                                global.config.set('preferred-livestream-fmt', '')
-                            }},
-                            {name: 'MPEGTS', type: 'action', selected: (def == 'mpegts'), action: () => {
-                                global.config.set('preferred-livestream-fmt', 'mpegts')
-                            }},
-                            {name: 'HLS', type: 'action', selected: (def == 'hls'), action: () => {
-                                global.config.set('preferred-livestream-fmt', 'hls')
-                            }}
-                        ]
-                        return opts
-                    }
-                },
-                {
-                    name: 'Unpause jumpback',
-                    fa: 'fas fa-undo', 
-                    type: 'select', 
-                    renderer: async () => {
-                        const def = global.config.get('unpause-jumpback'), opts = [
-                            {name: global.lang.DISABLED, type: 'action', selected: (def == 0), action: () => {
-                                global.config.set('unpause-jumpback', 0)
-                            }},
-                            {name: '2s', type: 'action', selected: (def == 2), action: () => {
-                                global.config.set('unpause-jumpback', 2)
-                            }},
-                            {name: '5s', type: 'action', selected: (def == 5), action: () => {
-                                global.config.set('unpause-jumpback', 5)
-                            }},
-                            {name: '10s', type: 'action', selected: (def == 10), action: () => {
-                                global.config.set('unpause-jumpback', 10)
-                            }}
-                        ]
-                        return opts
-                    }
-                },
-                {
-                    name: global.lang.ELAPSED_TIME_TO_KEEP_CACHED, 
-                    details: global.lang.LIVE,
-                    fa: 'fas fa-hdd', 
-                    type: 'slider', 
-                    range: {start: 30, end: 7200},
-                    action: (data, value) => {
-                        console.warn('ELAPSED_TIME_TO_KEEP_CACHED', data, value)
-                        global.config.set('live-window-time', value)
-                    }, 
-                    value: () => {
-                        return global.config.get('live-window-time')
-                    }
-                },            
-                {
-                    name: global.lang.TRANSCODE, type: 'group', fa: 'fas fa-film', renderer: this.transcodingEntries.bind(this)
+                checked: () => {
+                    return global.config.get('mpegts-seeking-fix')
                 }
-            ]
-            resolve(opts)
-        })
-    }
-    tuneEntries(){
-        return new Promise((resolve, reject) => {
-            let opts = [
-                {
-                    name: global.lang.TEST_STREAMS, type: 'check', action: (data, checked) => {
-                    global.config.set('auto-testing', checked)
-                }, checked: () => {
-                    return global.config.get('auto-testing')
-                }},
-                {
-                    name: global.lang.TEST_STREAMS_TYPE, type: 'check', action: (data, checked) => {
-                    global.config.set('status-flags-type', checked)
-                }, checked: () => {
-                    return global.config.get('status-flags-type')
-                }},
-                {
-                    name: global.lang.TUNING_CONCURRENCY_LIMIT, 
-                    fa: 'fas fa-poll-h', 
-                    type: 'slider', 
-                    range: {start: 4, end: 32},
-                    action: (data, value) => {
-                        console.warn('TUNING_CONCURRENCY_LIMIT', data, value)
-                        global.config.set('tune-concurrency', value)
-                    }, 
-                    value: () => {
-                        return global.config.get('tune-concurrency')
-                    }
-                },
-                {
-                    name: global.lang.TUNING_FFMPEG_CONCURRENCY_LIMIT, 
-                    fa: 'fas fa-poll-h', 
-                    type: 'slider', 
-                    range: {start: 1, end: 4},
-                    action: (data, value) => {
-                        console.warn('TUNING_FFMPEG_CONCURRENCY_LIMIT', data, value)
-                        global.config.set('tune-ffmpeg-concurrency', value)
-                    }, 
-                    value: () => {
-                        return global.config.get('tune-ffmpeg-concurrency')
-                    }
-                },
-                {
-                    name: global.lang.CONNECT_TIMEOUT, 
-                    fa: 'fas fa-plug', 
-                    type: 'slider', 
-                    range: {start: 3, end: 30},
-                    action: (data, value) => {
-                        global.config.set('connect-timeout', value)
-                    }, 
-                    value: () => {
-                        return global.config.get('connect-timeout')
-                    }
-                },
-                {
-                    name: global.lang.BROADCAST_START_TIMEOUT, 
-                    fa: 'fas fa-plug', 
-                    type: 'slider', 
-                    range: {start: 20, end: 90},
-                    action: (data, value) => {
-                        global.config.set('broadcast-start-timeout', value)
-                    }, 
-                    value: () => {
-                        return global.config.get('broadcast-start-timeout')
-                    }
-                },                
-                {
-                    name: 'User agent', type: 'select', fa: 'fas fa-user-secret',
-                    renderer: async () => {
-                        // Some lists wont open using a browser user agent
-                        let def = global.config.get('user-agent'), options = [
-                            {
-                                name: global.lang.DEFAULT,
-                                value: ''
-                            }, 
-                            {
-                                name: 'VLC',
-                                value: 'VLC/3.0.8 LibVLC/3.0.8'
-                            }, 
-                            {
-                                name: 'Kodi',
-                                value: 'Kodi/16.1 (Windows NT 10.0; WOW64) App_Bitness/32 Version/16.1-Git:20160424-c327c53'
+            },                
+            {
+                name: 'Use FFmpeg pre-processing on live streams',
+                fa: 'fas fa-cog', 
+                type: 'select', 
+                renderer: async () => {
+                    /*
+                    Using FFmpeg as middleware breaks HLS multi-tracks feature
+                    but for single track streams can help by storing broadcast on disk
+                    allowing a bigger in-disk backbuffer (default: auto)
+                    */
+                    const def = global.config.get('ffmpeg-broadcast-pre-processing'), opts = [
+                        {name: global.lang.NO, type: 'action', selected: (def == 'no'), action: () => {
+                            global.config.set('ffmpeg-broadcast-pre-processing', 'no')
+                        }},
+                        {name: global.lang.AUTO, type: 'action', selected: (def == 'auto' || !['yes', 'no'].includes(def)), action: () => {
+                            global.config.set('ffmpeg-broadcast-pre-processing', 'auto')
+                        }},
+                        {name: global.lang.ALWAYS, type: 'action', selected: (def == 'yes'), action: () => {
+                            global.config.set('ffmpeg-broadcast-pre-processing', 'yes')
+                        }}
+                    ]
+                    return opts
+                }
+            },
+            {
+                name: global.lang.PREFERRED_LIVESTREAM_FMT,
+                fa: 'fas fa-cog', 
+                type: 'select', 
+                renderer: async () => {
+                    const go = type => {
+                        let changed
+                        const lists = global.config.get('lists').map(l => {
+                            const newUrl = global.lists.mi.setM3UStreamFmt(l[1], type || 'hls') // hls as default, since it is adaptative and more compatible
+                            if(newUrl) {
+                                changed = true
+                                l[1] = newUrl
                             }
-                        ].map(n => {
-                            return {
-                                name: n.name,
-                                type: 'action',
-                                selected: def == n.value,
-                                action: () => {
-                                    global.config.set('user-agent', n.value)
-                                }
-                            }
+                            return l
                         })
-                        return options
-                    }
-                },       
-                {
-                    name: 'IPv6 usage policy', type: 'select', fa: 'fas fa-globe',
-                    renderer: async () => {
-                        // Some lists wont open using a browser user agent
-                        let def = global.config.get('prefer-ipv6')
-                        if(typeof(def) != 'number'){
-                            def = -1
+                        global.config.set('preferred-livestream-fmt', type)
+                        if(changed) {
+                            global.config.set('lists', lists)
                         }
-                        return [
-                            {
-                                name: global.lang.BLOCK,
-                                value: 4
-                            }, 
-                            {
-                                name: global.lang.ALLOW,
-                                value: -1
-                            }, 
-                            {
-                                name: global.lang.ONLY,
-                                value: 6
-                            }
-                        ].map(n => {
-                            return {
-                                name: n.name,
-                                type: 'action',
-                                selected: def == n.value,
-                                action: () => {
-                                    global.config.set('prefer-ipv6', n.value)
-                                }
-                            }
-                        })
                     }
+                    const def = String(global.config.get('preferred-livestream-fmt')), opts = [
+                        {name: 'Auto', type: 'action', selected: (!['mpegts', 'hls'].includes(def)), action: () => {
+                            go('')
+                        }},
+                        {name: 'MPEGTS', type: 'action', selected: (def == 'mpegts'), action: () => {
+                            go('mpegts')
+                        }},
+                        {name: 'HLS', type: 'action', selected: (def == 'hls'), action: () => {
+                            go('hls')
+                        }}
+                    ]
+                    return opts
                 }
-            ]
-            resolve(opts)
-        })
+            },
+            {
+                name: 'Unpause jumpback',
+                fa: 'fas fa-undo', 
+                type: 'select', 
+                renderer: async () => {
+                    const def = global.config.get('unpause-jumpback'), opts = [
+                        {name: global.lang.DISABLED, type: 'action', selected: (def == 0), action: () => {
+                            global.config.set('unpause-jumpback', 0)
+                        }},
+                        {name: '2s', type: 'action', selected: (def == 2), action: () => {
+                            global.config.set('unpause-jumpback', 2)
+                        }},
+                        {name: '5s', type: 'action', selected: (def == 5), action: () => {
+                            global.config.set('unpause-jumpback', 5)
+                        }},
+                        {name: '10s', type: 'action', selected: (def == 10), action: () => {
+                            global.config.set('unpause-jumpback', 10)
+                        }}
+                    ]
+                    return opts
+                }
+            },
+            {
+                name: global.lang.ELAPSED_TIME_TO_KEEP_CACHED +' ('+ global.lang.LIVE +')',
+                fa: 'fas fa-hdd', 
+                type: 'slider', 
+                mask: 'time',
+                range: {start: 30, end: 7200},
+                action: (data, value) => {
+                    console.warn('ELAPSED_TIME_TO_KEEP_CACHED', data, value)
+                    global.config.set('live-window-time', value)
+                }, 
+                value: () => {
+                    return global.config.get('live-window-time')
+                }
+            },            
+            {
+                name: global.lang.TRANSCODE, type: 'group', fa: 'fas fa-film', renderer: this.transcodingEntries.bind(this)
+            }
+        ]
+        return opts
+    }
+    async tuneEntries(){
+        let opts = [
+            {
+                name: global.lang.TEST_STREAMS, type: 'check', action: (data, checked) => {
+                global.config.set('auto-testing', checked)
+            }, checked: () => {
+                return global.config.get('auto-testing')
+            }},
+            {
+                name: global.lang.TEST_STREAMS_TYPE, type: 'check', action: (data, checked) => {
+                global.config.set('status-flags-type', checked)
+            }, checked: () => {
+                return global.config.get('status-flags-type')
+            }},
+            {
+                name: global.lang.TUNING_CONCURRENCY_LIMIT, 
+                fa: 'fas fa-poll-h', 
+                type: 'slider', 
+                range: {start: 4, end: 32},
+                action: (data, value) => {
+                    console.warn('TUNING_CONCURRENCY_LIMIT', data, value)
+                    global.config.set('tune-concurrency', value)
+                }, 
+                value: () => {
+                    return global.config.get('tune-concurrency')
+                }
+            },
+            {
+                name: global.lang.TUNING_FFMPEG_CONCURRENCY_LIMIT, 
+                fa: 'fas fa-poll-h', 
+                type: 'slider', 
+                range: {start: 1, end: 4},
+                action: (data, value) => {
+                    console.warn('TUNING_FFMPEG_CONCURRENCY_LIMIT', data, value)
+                    global.config.set('tune-ffmpeg-concurrency', value)
+                }, 
+                value: () => {
+                    return global.config.get('tune-ffmpeg-concurrency')
+                }
+            },
+            {
+                name: global.lang.CONNECT_TIMEOUT, 
+                fa: 'fas fa-plug', 
+                type: 'slider', 
+                mask: 'time',
+                range: {start: 3, end: 30},
+                action: (data, value) => {
+                    global.config.set('connect-timeout', value)
+                }, 
+                value: () => {
+                    return global.config.get('connect-timeout')
+                }
+            },
+            {
+                name: global.lang.BROADCAST_START_TIMEOUT, 
+                fa: 'fas fa-plug', 
+                type: 'slider', 
+                mask: 'time',
+                range: {start: 20, end: 90},
+                action: (data, value) => {
+                    global.config.set('broadcast-start-timeout', value)
+                }, 
+                value: () => {
+                    return global.config.get('broadcast-start-timeout')
+                }
+            },                
+            {
+                name: 'User agent', type: 'select', fa: 'fas fa-user-secret',
+                renderer: async () => {
+                    // Some lists wont open using a browser user agent
+                    let def = global.config.get('user-agent'), options = [
+                        {
+                            name: global.lang.DEFAULT,
+                            value: ''
+                        }, 
+                        {
+                            name: 'VLC',
+                            value: 'VLC/3.0.8 LibVLC/3.0.8'
+                        }, 
+                        {
+                            name: 'Kodi',
+                            value: 'Kodi/16.1 (Windows NT 10.0; WOW64) App_Bitness/32 Version/16.1-Git:20160424-c327c53'
+                        }
+                    ].map(n => {
+                        return {
+                            name: n.name,
+                            type: 'action',
+                            selected: def == n.value,
+                            action: () => {
+                                global.config.set('user-agent', n.value)
+                            }
+                        }
+                    })
+                    return options
+                }
+            },       
+            {
+                name: 'IPv6 usage policy', type: 'select', fa: 'fas fa-globe',
+                renderer: async () => {
+                    // Some lists wont open using a browser user agent
+                    let def = global.config.get('prefer-ipv6')
+                    if(typeof(def) != 'number'){
+                        def = -1
+                    }
+                    return [
+                        {
+                            name: global.lang.BLOCK,
+                            value: 4
+                        }, 
+                        {
+                            name: global.lang.ALLOW,
+                            value: -1
+                        }, 
+                        {
+                            name: global.lang.ONLY,
+                            value: 6
+                        }
+                    ].map(n => {
+                        return {
+                            name: n.name,
+                            type: 'action',
+                            selected: def == n.value,
+                            action: () => {
+                                global.config.set('prefer-ipv6', n.value)
+                            }
+                        }
+                    })
+                }
+            }
+        ]
+        return opts
     }
     requestClearCache(){
         let folders = [global.storage.folder, global.paths.temp, global.icons.opts.folder], size = 0, gfs = require('get-folder-size')
@@ -945,7 +1037,6 @@ class Options extends OptionsHardwareAcceleration {
     }
     clearCache(){
         global.osd.show(global.lang.CLEANING_CACHE, 'fa-mega spin-x-alt', 'clear-cache', 'persistent')
-        global.ui.emit('clear-cache')
         global.streamer.stop()
         if(global.tuning){
             global.tuning.destroy()
@@ -964,347 +1055,354 @@ class Options extends OptionsHardwareAcceleration {
         })
     }
     entries(){
-        return new Promise((resolve, reject) => {
-            let secOpt = global.lists.parentalControl.entry()
-            let opts = [
-                {name: global.lang.PERFORMANCE_MODE, details: global.lang.SELECT, fa: 'fas fa-tachometer-alt', type: 'action', action: () => this.performance()},
-                {name: global.lang.BEHAVIOUR, type: 'group', fa: 'fas fa-window-restore', renderer: async () => {
-                    let opts = [
-                        {
-                            name: global.lang.RESUME_PLAYBACK, type: 'check',
-                            action: (data, checked) => global.config.set('resume', checked),
-                            checked: () => global.config.get('resume')
-                        },
-                        {
-                            name: global.lang.AUTO_MINIPLAYER, type: 'check', 
-                            action: (data, checked) => global.config.set('miniplayer-auto', checked),
-                            checked: () => global.config.get('miniplayer-auto')
-                        },
-                        {
-                            name: global.lang.SHOW_LOGOS,
-                            type: 'check',
-                            action: (e, checked) => global.config.set('show-logos', checked),
-                            checked: () => global.config.get('show-logos')
-                        },
-                        {
-                            name: global.lang.STRETCH_THUMBNAILS,
-                            fa: 'fas fa-expand-alt',
-                            type: 'check', 
-                            action: (data, value) => {
-                                global.config.set('stretch-logos', value)
-                                global.theme.update()
-                            }, 
-                            checked: () => {
-                                return global.config.get('stretch-logos')
-                            }
-                        },                    
-                        {
-                            name: global.lang.PLAY_UI_SOUNDS,
-                            type: 'check',
-                            action: (e, checked) => {
-                                global.config.set('ui-sounds', checked)
-                            }, 
-                            checked: () => {
-                                return global.config.get('ui-sounds')
-                            }
-                        },
-                        {
-                            name: global.lang.SEARCH_MISSING_LOGOS,
-                            type: 'check',
-                            action: (e, checked) => {
-                                global.config.set('search-missing-logos', checked)
-                            }, 
-                            checked: () => {
-                                return global.config.get('search-missing-logos')
-                            }
-                        },
-                        {
-                            name: global.lang.HIDE_BACK_BUTTON, 
-                            type: 'check', 
-                            action: (data, value) => {
-                                global.config.set('hide-back-button', value)
-                                global.explorer.refresh()
-                            }, 
-                            checked: () => {
-                                return global.config.get('hide-back-button')
-                            }
-                        },                                
-                        {
-                            name: global.lang.ALSO_SEARCH_YOUTUBE,
-                            type: 'check',
-                            action: (e, checked) => {
-                                global.config.set('search-youtube', checked)
-                                global.explorer.refresh()
-                            }, 
-                            checked: () => {
-                                return global.config.get('search-youtube')
-                            }
-                        },
-                        {
-                            name: global.lang.FOLDER_SIZE_LIMIT, 
-                            fa: 'fas fa-folder', 
-                            type: 'slider', 
-                            range: {start: 8, end: 2048},
-                            action: (data, value) => {
-                                global.config.set('folder-size-limit', value)
-                            }, 
-                            value: () => {
-                                return global.config.get('folder-size-limit')
-                            }
-                        },
-                        {
-                            name: global.lang.SHOW_FUN_LETTERS.format(global.lang.CATEGORY_KIDS), 
-                            rawname: '[fun]'+ decodeEntities(global.lang.SHOW_FUN_LETTERS.format(global.lang.CATEGORY_KIDS)) +'[|fun]', 
-                            type: 'check',
-                            action: (e, checked) => {
-                                global.config.set('kids-fun-titles', checked)
-                                global.explorer.refresh()
-                            }, 
-                            checked: () => {
-                                return global.config.get('kids-fun-titles')
-                            }
-                        },
-                        {
-                            name: global.lang.USE_LOCAL_TIME_COUNTER, 
-                            type: 'check', 
-                            action: (e, checked) => {
-                                global.config.set('use-local-time-counter', checked)
-                            }, 
-                            checked: () => {
-                                return global.config.get('use-local-time-counter')
-                            }
-                        },
-                        {
-                            name: global.lang.NOTIFY_UPDATES,
-                            type: 'check',
-                            action: (e, checked) => global.config.set('hide-updates', !checked),
-                            checked: () => !global.config.get('hide-updates')
-                        },
-                        {
-                            name: global.lang.MATCH_ENTIRE_WORDS,
-                            type: 'check',
-                            action: (e, checked) => global.config.set('search-mode', checked ? 0 : 1),
-                            checked: () => global.config.get('search-mode') !== 1
+        let secOpt = global.lists.parentalControl.entry()
+        let opts = [
+            {name: global.lang.PERFORMANCE_MODE, details: global.lang.SELECT, fa: 'fas fa-tachometer-alt', type: 'action', action: () => this.performance()},
+            {name: global.lang.BEHAVIOUR, type: 'group', fa: 'fas fa-window-restore', renderer: async () => {
+                let opts = [
+                    {
+                        name: global.lang.RESUME_PLAYBACK, type: 'check',
+                        action: (data, checked) => global.config.set('resume', checked),
+                        checked: () => global.config.get('resume')
+                    },
+                    {
+                        name: global.lang.AUTO_MINIPLAYER, type: 'check', 
+                        action: (data, checked) => global.config.set('miniplayer-auto', checked),
+                        checked: () => global.config.get('miniplayer-auto')
+                    },
+                    {
+                        name: global.lang.SHOW_LOGOS,
+                        type: 'check',
+                        action: (e, checked) => global.config.set('show-logos', checked),
+                        checked: () => global.config.get('show-logos')
+                    },
+                    {
+                        name: global.lang.STRETCH_THUMBNAILS,
+                        fa: 'fas fa-expand-alt',
+                        type: 'check', 
+                        action: (data, value) => {
+                            global.config.set('stretch-logos', value)
+                            global.theme.update()
+                        }, 
+                        checked: () => {
+                            return global.config.get('stretch-logos')
                         }
-                    ]
-                    if(!global.cordova){
-                        opts.push({
-                            name: global.lang.SPEAK_NOTIFICATIONS, 
-                            type: 'check', 
-                            action: (data, value) => {
-                                global.config.set('osd-speak', value)
-                            }, 
-                            checked: () => {
-                                return global.config.get('osd-speak')
-                            }
-                        })
+                    },                    
+                    {
+                        name: global.lang.PLAY_UI_SOUNDS,
+                        type: 'check',
+                        action: (e, checked) => {
+                            global.config.set('ui-sounds', checked)
+                        }, 
+                        checked: () => {
+                            return global.config.get('ui-sounds')
+                        }
+                    },
+                    {
+                        name: global.lang.SEARCH_MISSING_LOGOS,
+                        type: 'check',
+                        action: (e, checked) => {
+                            global.config.set('search-missing-logos', checked)
+                        }, 
+                        checked: () => {
+                            return global.config.get('search-missing-logos')
+                        }
+                    },
+                    {
+                        name: global.lang.HIDE_BACK_BUTTON, 
+                        type: 'check', 
+                        action: (data, value) => {
+                            global.config.set('hide-back-button', value)
+                            global.explorer.refresh()
+                        }, 
+                        checked: () => {
+                            return global.config.get('hide-back-button')
+                        }
+                    },                                
+                    {
+                        name: global.lang.ALSO_SEARCH_YOUTUBE,
+                        type: 'check',
+                        action: (e, checked) => {
+                            global.config.set('search-youtube', checked)
+                            global.explorer.refresh()
+                        }, 
+                        checked: () => {
+                            return global.config.get('search-youtube')
+                        }
+                    },
+                    {
+                        name: global.lang.FOLDER_SIZE_LIMIT, 
+                        fa: 'fas fa-folder', 
+                        type: 'slider', 
+                        range: {start: 8, end: 2048},
+                        action: (data, value) => {
+                            global.config.set('folder-size-limit', value)
+                        }, 
+                        value: () => {
+                            return global.config.get('folder-size-limit')
+                        }
+                    },
+                    {
+                        name: global.lang.TIMEOUT_SECS_ENERGY_SAVING, 
+                        fa: 'fas fa-leaf', 
+                        type: 'slider',
+                        range: {start: 0, end: 600},
+                        mask: 'time',
+                        action: (data, value) => {
+                            global.config.set('timeout-secs-energy-saving', value)
+                        }, 
+                        value: () => {
+                            return global.config.get('timeout-secs-energy-saving')
+                        }
+                    },
+                    {
+                        name: global.lang.SHOW_FUN_LETTERS.format(global.lang.CATEGORY_KIDS), 
+                        rawname: '[fun]'+ decodeEntities(global.lang.SHOW_FUN_LETTERS.format(global.lang.CATEGORY_KIDS)) +'[|fun]', 
+                        type: 'check',
+                        action: (e, checked) => {
+                            global.config.set('kids-fun-titles', checked)
+                            global.explorer.refresh()
+                        }, 
+                        checked: () => {
+                            return global.config.get('kids-fun-titles')
+                        }
+                    },
+                    {
+                        name: global.lang.USE_LOCAL_TIME_COUNTER, 
+                        type: 'check', 
+                        action: (e, checked) => {
+                            global.config.set('use-local-time-counter', checked)
+                        }, 
+                        checked: () => {
+                            return global.config.get('use-local-time-counter')
+                        }
+                    },
+                    {
+                        name: global.lang.NOTIFY_UPDATES,
+                        type: 'check',
+                        action: (e, checked) => global.config.set('hide-updates', !checked),
+                        checked: () => !global.config.get('hide-updates')
+                    },
+                    {
+                        name: global.lang.MATCH_ENTIRE_WORDS,
+                        type: 'check',
+                        action: (e, checked) => global.config.set('search-mode', checked ? 0 : 1),
+                        checked: () => global.config.get('search-mode') !== 1
                     }
+                ]
+                if(!global.cordova){
                     opts.push({
-                        name: global.lang.WINDOW_MODE_TO_START,
-                        fa: 'fas fa-window-maximize', 
-                        type: 'select', 
-                        renderer: () => {
-                            return new Promise((resolve, reject) => {
-                                let def = global.config.get('startup-window'), opts = [
-                                    {name: global.lang.NORMAL, fa: 'fas fa-ban', type: 'action', selected: (def == ''), action: data => {
-                                        global.config.set('startup-window', '')
-                                    }},
-                                    {name: global.lang.FULLSCREEN, fa: 'fas fa-window-maximize', type: 'action', selected: (def == 'fullscreen'), action: data => {
-                                        global.config.set('startup-window', 'fullscreen')
-                                    }}
-                                ]
-                                if(!global.cordova){
-                                    opts.push({name: 'Miniplayer', fa: 'fas fa-level-down-alt', type: 'action', selected: (def == 'miniplayer'), action: data => {
-                                        global.config.set('startup-window', 'miniplayer')
-                                    }})
-                                }
-                                resolve(opts)
-                            })
+                        name: global.lang.SPEAK_NOTIFICATIONS, 
+                        type: 'check', 
+                        action: (data, value) => {
+                            global.config.set('osd-speak', value)
+                        }, 
+                        checked: () => {
+                            return global.config.get('osd-speak')
                         }
                     })
-                    return opts
-                }},
-                {name: global.lang.LANGUAGE, fa: 'fas fa-language', type: 'action', action: () => this.showLanguageEntriesDialog()},
-                {name: global.lang.COUNTRIES, details: global.lang.COUNTRIES_HINT, fa: 'fas fa-globe', type: 'group', renderer: () => this.countriesEntries()},
-                secOpt,
-                {name: global.lang.MANAGE_CHANNEL_LIST, fa: 'fas fa-list', type: 'group', details: global.lang.LIVE, renderer: global.channels.options.bind(global.channels)},
-                {name: global.lang.ADVANCED, fa: 'fas fa-cogs', type: 'group', renderer: () => {
-                    return new Promise((resolve, reject) => {
-                        const opts = [
-                            {name: global.lang.TUNE, fa: 'fas fa-satellite-dish', type: 'group', renderer: this.tuneEntries.bind(this)},
-                            {name: global.lang.PLAYBACK, fa: 'fas fa-play', type: 'group', renderer: this.playbackEntries.bind(this)},
-                            {  
-                                name: global.lang.CLEAR_CACHE, icon: 'fas fa-broom', type: 'action', action: () => this.requestClearCache()
-                            },
-                            {
-                                name: global.lang.RESET_CONFIG, 
-                                type: 'action',
-                                fa: 'fas fa-undo-alt', 
-                                action: () => this.resetConfig()
-                            },
-                            {
-                                name: global.lang.DEVELOPER_OPTIONS,
-                                fa: 'fas fa-cogs', 
-                                type: 'group',
-                                entries: [
-                                    {
-                                        name: 'Config server base URL', 
-                                        fa: 'fas fa-server', 
-                                        type: 'input', 
-                                        action: (e, value) => {
-                                            if(!value){
-                                                value = global.cloud.defaultServer // allow reset by leaving field empty
-                                            }
-                                            if(value != global.cloud.server){
-                                                global.cloud.testConfigServer(value).then(() => {
-                                                    global.osd.show('OK', 'fas fa-check-circle faclr-green', 'config-server', 'persistent')
-                                                    global.config.set('config-server', value)
-                                                    setTimeout(() => this.clearCache(), 2000) // allow user to see OK message
-                                                }).catch(global.displayErr)
-                                            }
-                                        },
-                                        value: () => {
-                                            return global.config.get('config-server')
-                                        },
-                                        placeholder: global.cloud.defaultServer
-                                    }, 
-                                    {
-                                        name: 'System info', fa: 'fas fa-memory', type: 'action', action: this.aboutResources.bind(this)
-                                    },
-                                    {
-                                        name: 'Network IP', fa: 'fas fa-globe', type: 'action', action: this.aboutNetwork.bind(this)
-                                    },
-                                    {
-                                        name: global.lang.FFMPEG_VERSION, 
-                                        fa: 'fas fa-info-circle', 
-                                        type: 'action', 
-                                        action: global.ffmpeg.diagnosticDialog.bind(global.ffmpeg)
-                                    },
-                                    {
-                                        name: 'Enable console logging', type: 'check', action: (data, checked) => {
-                                        global.config.set('enable-console', checked)
-                                    }, checked: () => {
-                                        return global.config.get('enable-console')
-                                    }},
-                                    {
-                                        name: 'HLS prefetch', type: 'check', action: (data, checked) => {
-                                        global.config.set('hls-prefetching', checked)
-                                    }, checked: () => {
-                                        return global.config.get('hls-prefetching')
-                                    }},
-                                    {
-                                        name: 'MPEGTS Joining', type: 'check', action: (data, checked) => {
-                                        global.config.set('ts-packet-filter-policy', checked ? 1 : -1)
-                                    }, checked: () => {
-                                        return global.config.get('ts-packet-filter-policy') !== -1                    
-                                    }},
-                                    {
-                                        name: 'FFmpeg CRF',
-                                        fa: 'fas fa-film',
-                                        type: 'slider', 
-                                        range: {start: 15, end: 30},
-                                        action: (data, value) => {
-                                            global.config.set('ffmpeg-crf', value)
-                                        }, 
-                                        value: () => {
-                                            return global.config.get('ffmpeg-crf')
-                                        }
-                                    },
-                                    {
-                                        name: 'Debug connections', type: 'check', action: (data, checked) => {
-                                        global.debugConns = checked
-                                    }, checked: () => {
-                                        return global.debugConns
-                                    }},
-                                    {
-                                        name: 'Save report', 
-                                        fa: 'fas fa-info-circle', 
-                                        type: 'action', 
-                                        action: async () => {
-                                            global.diagnostics.saveReport().catch(console.error)
-                                        }
-                                    },
-                                    {
-                                        name: 'Save crash log', 
-                                        fa: 'fas fa-info-circle', 
-                                        type: 'action', 
-                                        action: async () => {
-                                            const filename = 'megacubo-crash-log.txt', file = global.downloads.folder + path.sep + filename
-                                            let content = await global.crashlog.read()
-                                            fs.writeFile(file, content || 'Empty.', {encoding: 'utf-8'}, err => {
-                                                if(err) return global.displayErr(err)
-                                                global.downloads.serve(file, true, false).catch(global.displayErr)
-                                            })
-                                        }
-                                    },
-                                    {
-                                        name: 'Save last tuning log', 
-                                        fa: 'fas fa-info-circle', 
-                                        type: 'action', 
-                                        action: () => {
-                                            if(!global.tuning) return global.displayErr('No tuning found')
-                                            const filename = 'megacubo-tuning-log.txt', file = global.downloads.folder + path.sep + filename
-                                            fs.writeFile(file, global.tuning.logText(), {encoding: 'utf-8'}, err => {
-                                                if(err) return global.displayErr(err)
-                                                global.debugTuning = true
-                                                global.downloads.serve(file, true, false).catch(global.displayErr)
-                                                global.ui.emit('debug-tuning', true)
-                                            })
-                                        }
-                                    }                            
-                                ]
-                            }
+                }
+                opts.push({
+                    name: global.lang.WINDOW_MODE_TO_START,
+                    fa: 'fas fa-window-maximize', 
+                    type: 'select', 
+                    renderer: async () => {
+                        let def = global.config.get('startup-window'), opts = [
+                            {name: global.lang.NORMAL, fa: 'fas fa-ban', type: 'action', selected: (def == ''), action: data => {
+                                global.config.set('startup-window', '')
+                            }},
+                            {name: global.lang.FULLSCREEN, fa: 'fas fa-window-maximize', type: 'action', selected: (def == 'fullscreen'), action: data => {
+                                global.config.set('startup-window', 'fullscreen')
+                            }}
                         ]
                         if(!global.cordova){
-                            opts[opts.length - 1].entries.push({
-                                name: 'GPU rendering', type: 'check', action: (data, checked) => {
-                                this.setHardwareAcceleration(checked).catch(global.displayErr)
-                            }, checked: () => {
-                                return this.getHardwareAcceleration()
+                            opts.push({name: 'Miniplayer', fa: 'fas fa-level-down-alt', type: 'action', selected: (def == 'miniplayer'), action: data => {
+                                global.config.set('startup-window', 'miniplayer')
                             }})
                         }
-                        resolve(opts)
-                    })
-                }},
-                {
-                    name: global.lang.EXPORT_IMPORT,
-                    type: 'group',
-                    fa: 'fas fa-file-import',
-                    entries: [
-                        {
-                            name: global.lang.EXPORT_CONFIG,
-                            type: 'action',
-                            fa: 'fas fa-file-export', 
-                            action: () => {
-                                this.export(file => {
-                                    global.downloads.serve(file, true, false).catch(global.displayErr)
-                                })
-                            }
-                        },
-                        {
-                            name: global.lang.IMPORT_CONFIG,
-                            type: 'action',
-                            fa: 'fas fa-file-import', 
-                            action: () => {
-                                global.ui.emit('open-file', global.ui.uploadURL, 'config-import-file', 'application/json, application/zip, application/octet-stream, application/x-zip-compressed, multipart/x-zip', global.lang.IMPORT_CONFIG)
-                            }
-                        }
-                    ]
+                        return opts
+                    }
+                })
+                return opts
+            }},
+            {name: global.lang.LANGUAGE, fa: 'fas fa-language', type: 'action', action: () => this.showLanguageEntriesDialog()},
+            {name: global.lang.COUNTRIES, details: global.lang.COUNTRIES_HINT, fa: 'fas fa-globe', type: 'group', renderer: () => this.countriesEntries()},
+            secOpt,
+            {name: global.lang.MANAGE_CHANNEL_LIST, fa: 'fas fa-list', type: 'group', details: global.lang.LIVE, renderer: global.channels.options.bind(global.channels)},
+            {name: global.lang.ADVANCED, fa: 'fas fa-cogs', type: 'group', renderer: async () => {
+                const opts = [
+                    {name: global.lang.TUNE, fa: 'fas fa-satellite-dish', type: 'group', renderer: this.tuneEntries.bind(this)},
+                    {name: global.lang.PLAYBACK, fa: 'fas fa-play', type: 'group', renderer: this.playbackEntries.bind(this)},
+                    {  
+                        name: global.lang.CLEAR_CACHE, icon: 'fas fa-broom', type: 'action', action: () => this.requestClearCache()
+                    },
+                    {
+                        name: global.lang.RESET_CONFIG, 
+                        type: 'action',
+                        fa: 'fas fa-undo-alt', 
+                        action: () => this.resetConfig()
+                    },
+                    {
+                        name: global.lang.DEVELOPER_OPTIONS,
+                        fa: 'fas fa-cogs', 
+                        type: 'group',
+                        entries: [
+                            {
+                                name: 'Config server base URL', 
+                                fa: 'fas fa-server', 
+                                type: 'input', 
+                                action: (e, value) => {
+                                    if(!value){
+                                        value = global.cloud.defaultServer // allow reset by leaving field empty
+                                    }
+                                    if(value != global.cloud.server){
+                                        global.cloud.testConfigServer(value).then(() => {
+                                            global.osd.show('OK', 'fas fa-check-circle faclr-green', 'config-server', 'persistent')
+                                            global.config.set('config-server', value)
+                                            setTimeout(() => this.clearCache(), 2000) // allow user to see OK message
+                                        }).catch(global.displayErr)
+                                    }
+                                },
+                                value: () => {
+                                    return global.config.get('config-server')
+                                },
+                                placeholder: global.cloud.defaultServer
+                            }, 
+                            {
+                                name: 'System info', fa: 'fas fa-memory', type: 'action', action: this.aboutResources.bind(this)
+                            },
+                            {
+                                name: 'Network IP', fa: 'fas fa-globe', type: 'action', action: this.aboutNetwork.bind(this)
+                            },
+                            {
+                                name: global.lang.FFMPEG_VERSION, 
+                                fa: 'fas fa-info-circle', 
+                                type: 'action', 
+                                action: global.ffmpeg.diagnosticDialog.bind(global.ffmpeg)
+                            },
+                            {
+                                name: 'Enable console logging', type: 'check', action: (data, checked) => {
+                                global.config.set('enable-console', checked)
+                            }, checked: () => {
+                                return global.config.get('enable-console')
+                            }},
+                            {
+                                name: 'HLS prefetch', type: 'check', action: (data, checked) => {
+                                global.config.set('hls-prefetching', checked)
+                            }, checked: () => {
+                                return global.config.get('hls-prefetching')
+                            }},
+                            {
+                                name: 'MPEGTS Joining', type: 'check', action: (data, checked) => {
+                                global.config.set('ts-packet-filter-policy', checked ? 1 : -1)
+                            }, checked: () => {
+                                return global.config.get('ts-packet-filter-policy') !== -1                    
+                            }},
+                            {
+                                name: 'FFmpeg CRF',
+                                fa: 'fas fa-film',
+                                type: 'slider', 
+                                range: {start: 15, end: 30},
+                                action: (data, value) => {
+                                    global.config.set('ffmpeg-crf', value)
+                                }, 
+                                value: () => {
+                                    return global.config.get('ffmpeg-crf')
+                                }
+                            },
+                            {
+                                name: 'Debug connections', type: 'check', action: (data, checked) => {
+                                global.debugConns = checked
+                            }, checked: () => {
+                                return global.debugConns
+                            }},
+                            {
+                                name: 'Save report', 
+                                fa: 'fas fa-info-circle', 
+                                type: 'action', 
+                                action: async () => {
+                                    global.diag.saveReport().catch(console.error)
+                                }
+                            },
+                            {
+                                name: 'Save crash log', 
+                                fa: 'fas fa-info-circle', 
+                                type: 'action', 
+                                action: async () => {
+                                    const filename = 'megacubo-crash-log.txt', file = global.downloads.folder + path.sep + filename
+                                    let content = await global.crashlog.read()
+                                    fs.writeFile(file, content || 'Empty.', {encoding: 'utf-8'}, err => {
+                                        if(err) return global.displayErr(err)
+                                        global.downloads.serve(file, true, false).catch(global.displayErr)
+                                    })
+                                }
+                            },
+                            {
+                                name: 'Save last tuning log', 
+                                fa: 'fas fa-info-circle', 
+                                type: 'action', 
+                                action: () => {
+                                    if(!global.tuning) return global.displayErr('No tuning found')
+                                    const filename = 'megacubo-tuning-log.txt', file = global.downloads.folder + path.sep + filename
+                                    fs.writeFile(file, global.tuning.logText(), {encoding: 'utf-8'}, err => {
+                                        if(err) return global.displayErr(err)
+                                        global.debugTuning = true
+                                        global.downloads.serve(file, true, false).catch(global.displayErr)
+                                        global.ui.emit('debug-tuning', true)
+                                    })
+                                }
+                            }                            
+                        ]
+                    }
+                ]
+                if(!global.cordova){
+                    opts[opts.length - 1].entries.push({
+                        name: 'GPU rendering', type: 'check', action: (data, checked) => {
+                        this.setHardwareAcceleration(checked).catch(global.displayErr)
+                    }, checked: () => {
+                        return this.getHardwareAcceleration()
+                    }})
                 }
-            ]
-            resolve(opts)
-        })
-    }
-    hook(entries, path){
-        return new Promise((resolve, reject) => {
-            if(path == '' && !entries.some(e => e.name == global.lang.TOOLS)){
-                entries.splice(entries.length - 2, 0, {name: global.lang.TOOLS, fa: 'fas fa-box-open', type: 'group', renderer: this.tools.bind(this)})
-                entries = entries.concat([
-                    {name: global.lang.OPTIONS, fa: 'fas fa-cog', type: 'group', details: global.lang.CONFIGURE, renderer: this.entries.bind(this)},
-                ])
+                return opts
+            }},
+            {
+                name: global.lang.EXPORT_IMPORT,
+                type: 'group',
+                fa: 'fas fa-file-import',
+                entries: [
+                    {
+                        name: global.lang.EXPORT_CONFIG,
+                        type: 'action',
+                        fa: 'fas fa-file-export', 
+                        action: () => {
+                            this.export(file => {
+                                global.downloads.serve(file, true, false).catch(global.displayErr)
+                            })
+                        }
+                    },
+                    {
+                        name: global.lang.IMPORT_CONFIG,
+                        type: 'action',
+                        fa: 'fas fa-file-import', 
+                        action: () => {
+                            global.ui.emit('open-file', global.ui.uploadURL, 'config-import-file', 'application/json, application/zip, application/octet-stream, application/x-zip-compressed, multipart/x-zip', global.lang.IMPORT_CONFIG)
+                        }
+                    }
+                ]
             }
-            resolve(entries)
-        })
+        ]
+        return opts
+    }
+    async hook(entries, path){
+        if(path == '' && !entries.some(e => e.name == global.lang.TOOLS)){
+            entries.splice(entries.length - 2, 0, {name: global.lang.TOOLS, fa: 'fas fa-box-open', type: 'group', renderer: this.tools.bind(this)})
+            entries = entries.concat([
+                {name: global.lang.OPTIONS, fa: 'fas fa-cog', type: 'group', details: global.lang.CONFIGURE, renderer: this.entries.bind(this)},
+            ])
+        } else if(path == global.lang.OPTIONS +'/'+ global.lang.ADVANCED){
+            entries.push(this.p2pEntry())
+        }
+        return entries
     }
 }
 

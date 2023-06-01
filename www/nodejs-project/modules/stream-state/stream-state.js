@@ -102,7 +102,7 @@ class StreamState extends Events {
             return this.data[url].state
         }
         return null
-    }    
+    }
     set(url, state, isTrusted, atts){
         if(typeof(this.data) == 'object'){
             if(!isTrusted && typeof(this.clientFailures[url]) != 'undefined'){
@@ -225,7 +225,11 @@ class StreamState extends Events {
 	}
     test(entries, name){
         return new Promise((resolve, reject) => {
+            const ctrlKey = entries.map(e => e.url || '').join('')
             if(this.testing){
+                if(this.testing.ctrlKey == ctrlKey){
+                    return // already testing these same entries
+                }
                 this.testing.finish()
             }
             if(!entries.length){
@@ -234,7 +238,7 @@ class StreamState extends Events {
             if(this.debug){
                 console.log('streamState about to test', entries)
             }
-            const len = entries.length, nt = {name: global.lang.TEST_STREAMS}, autoTesting = global.config.get('auto-testing')
+            const nt = {name: global.lang.TEST_STREAMS}, autoTesting = global.config.get('auto-testing')
             if(!autoTesting){
                 global.ui.emit('set-loading', nt, true, global.lang.TESTING)
                 global.osd.show(global.lang.TESTING + ' 0%', 'fa-mega spin-x-alt', 'stream-state-tester', 'persistent') 
@@ -269,6 +273,9 @@ class StreamState extends Events {
                     }
                 }                
             })
+            if(!entries.length){
+                return resolve(true)
+            }
             global.ui.emit('sync-status-flags', syncData)
             if(retest.length){
                 entries.push(...retest)
@@ -276,6 +283,7 @@ class StreamState extends Events {
             this.testing = new Tuner(entries, {
                 shadow: true
             }, name)
+            this.testing.ctrlKey = ctrlKey
             this.testing.on('success', this.success.bind(this))
             this.testing.on('failure', this.failure.bind(this))
             this.testing.on('progress', i => {

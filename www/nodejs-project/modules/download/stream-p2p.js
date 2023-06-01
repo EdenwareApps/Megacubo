@@ -6,7 +6,13 @@ class DownloadStreamP2P extends DownloadStream {
         this.setMaxListeners(99)
         this.type = 'p2p'
         this.lmap = {}
-        this.on('destroy', () => this.unbind())
+        this.on('destroy', () => {
+            global.ui.emit('download-p2p-request-cancel', {
+                type: 'request',
+                uid: this.opts.uid
+            })
+            this.unbind()
+        })
 	}
     unbind(){
         global.ui.emit('download-p2p-cancel-request', this.opts.uid)
@@ -57,7 +63,7 @@ class DownloadStreamP2P extends DownloadStream {
                 if(data.ttl){
                     headers['x-cache-ttl'] = data.ttl
                 }
-                headers['x-source'] = 'p2p'
+                headers['x-megacubo-dl-source'] = 'p2p'
                 this.response = new DownloadStream.Response(200, headers)
                 this.emit('response', this.response)
             }
@@ -90,7 +96,7 @@ class DownloadStreamP2P extends DownloadStream {
             this.unbind()
         }
         Object.keys(this.lmap).forEach(n => global.ui.on(n, this.lmap[n]))
-        global.ui.emit('download-p2p-fetch-request', {
+        global.ui.emit('download-p2p-request', {
             type: 'request',
             url: this.opts.url,
             uid: this.opts.uid,

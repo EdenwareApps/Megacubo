@@ -40,17 +40,16 @@ class Wizard extends WizardUtils {
             global.setupSkipList = this.isDone = this.skipList = false
             this.init().catch(console.error)
         })
-        this.init().catch(console.error)
     }
     async init(){
-        await this.start()
+        await this.country()
+        await this.lists()
         await this.performance()
-        await this.countries()
         this.isDone = true
         this.active = false
         global.config.set('setup-completed', true)
     }
-    async start(){
+    async lists(){
         if(this.skipList) return true
         this.active = true
         let text = global.lang.ASK_IPTV_LIST_FIRST.split('. ').join(".\r\n"), def = 'ok', opts = [
@@ -79,7 +78,7 @@ class Wizard extends WizardUtils {
         console.log('ASKED', ret, global.traceback())
         if(typeof(err) != 'undefined'){
             global.displayErr(global.lang.INVALID_URL_MSG)
-            return await this.start()
+            return await this.lists()
         }
         return true
     }
@@ -88,26 +87,33 @@ class Wizard extends WizardUtils {
         let err, ret = await global.lists.manager.communityModeDialog().catch(e => err = e)
         console.warn('communityMode', err, ret)
         if(ret !== true) {
-            return await this.start()
+            return await this.lists()
         }
     }
     async performance(){
-        let ram = await global.diagnostics.checkMemory().catch(console.error)
+        let ram = await global.diag.checkMemory().catch(console.error)
         if(typeof(ram) == 'number' && (ram / 1024) >= 2048){ // at least 2G of RAM
             return true
         }
         await global.options.performance(true)
         return true
     }
-    async countries(){
-        let ret = await global.explorer.dialog([
-            {template: 'question', fa: 'fas fa-info-circle', text: global.lang.COUNTRIES},
-            {template: 'message', text: global.lang.COUNTRIES_THAT_SPEAK_YOUR_LANGUAGE},
-            {template: 'option', text: 'OK', fa: 'fas fa-check-circle', id: 'ok'},
-            {template: 'option', text: global.lang.COUNTRIES_HINT, fa: 'fas fa-globe', id: 'countries'}
-        ], 'ok')
-        if(ret == 'countries'){
-            await global.explorer.open(global.lang.OPTIONS +'/'+ global.lang.COUNTRIES)
+    async country(){
+        if(!global.config.get('country') && global.lang.alternateCountries && global.lang.alternateCountries.length){            
+            const to = global.lang.locale
+            const opts = [
+                {template: 'question', fa: 'fas fa-info-circle', text: global.lang.COUNTRIES}
+            ].concat(global.lang.alternateCountries.concat([global.lang.countryCode]).map(id => {
+                const text = global.lang.countries.nameFromCountryCode(code, to)
+                return {template: 'option', text, fa: 'fas fa-globe', id}
+            }))
+            opts.push({template: 'option', text: global.lang.OTHER_COUNTRIES, fa: 'fas fa-globe', id: 'countries'})
+            let ret = await global.explorer.dialog(opts)
+            if(ret && global.lang.countries.countryCodeExists(ret)){
+                global.config.set('country', ret)
+            } else if(ret == 'countries') {
+                await global.explorer.open(global.lang.OPTIONS +'/'+ global.lang.COUNTRIES)
+            }
         }
     }
 }

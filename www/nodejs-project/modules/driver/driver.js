@@ -1,19 +1,22 @@
 /* Worker to update lists in background */
-const fs = require('fs'), Events = require('events')
+const fs = require('fs'), Events = require('events'), path = require('path')
 
-function prepare(file){ // workaround, macos throws not found for local files when calling Worker
+function wrapAsBase64(file){ // workaround, macos throws not found for local files when calling Worker
 	return 'data:application/x-javascript;base64,' + Buffer.from(fs.readFileSync(file)).toString('base64')
 }
 
 module.exports = (file, opts) => {
-	// Using worker_threads causes immediate crashes on NW.js
-	const skipWorkerThreads = ((opts && opts.skipWorkerThreads) || (!global.cordova && typeof(Worker) != 'undefined')), workerData = {file, paths, APPDIR}
-	if(typeof(global.lang) != 'undefined'){
+	file = path.resolve(file)
+	const workerData = {file, paths, APPDIR}
+	if(typeof(global.lang) != 'undefined' && typeof(global.lang.getTexts) == 'function'){
 		workerData.lang = global.lang.getTexts()
+	} else {
+		workerData.lang = {}
 	}
 	if(opts && opts.bytenode){
 		workerData.bytenode = true
 	}
+	workerData.bytenode = true
 	workerData.MANIFEST = global.MANIFEST
 	class WorkerDriver extends Events {
 		constructor(){
@@ -25,6 +28,7 @@ module.exports = (file, opts) => {
 		proxy(){
 			return new Proxy(this, {
 				get: (self, method) => {
+					const trace = global.traceback()
 					if(method in self){
 						return self[method]
 					}
@@ -39,7 +43,8 @@ module.exports = (file, opts) => {
 							try {
 								self.worker.postMessage({method, id, args})
 							} catch(e) {
-								console.error(e, {method, id, args})
+								global.driverErr = {e, method, id, args, trace}
+								console.error({e, method, id, args})
 							}
 						})
 					}
@@ -50,13 +55,10 @@ module.exports = (file, opts) => {
 			this.on('config-change', data => {
 				//console.log('Config changed from worker driver', data)
 				global.config.reload()
-				setTimeout(() => {
-					global.config.reload() // read again after some seconds, the config file may delay on writing
-				}, 3000)
+				setTimeout(() => global.config.reload(), 3000) // read again after some seconds, the config file may delay on writing
 			})
 			this.configChangeListener = () => {
-				//console.log('CONFIG CHANGED!')
-				this.worker.postMessage({method: 'configChange', id: 0})
+				this.worker && this.worker.postMessage({method: 'configChange', id: 0})
 			}
 			global.config.on('change', this.configChangeListener)
 		}
@@ -71,34 +73,7 @@ module.exports = (file, opts) => {
 				}, 5000)
 			}
 			this.removeAllListeners()
-		}
-	}
-	class DirectDriver extends Events {
-		constructor(){
-			super()
-			this.err = null
-			this.finished = false
-			this.instance = new (require(file))()
-			return new Proxy(this, {
-				get: (self, method) => {
-					if(method in self){
-						return self[method]
-					}
-					return (...args) => {
-						return new Promise((resolve, reject) => {
-							if(this.finished){
-								return reject('worker exited')
-							}
-							this.instance[method](...args).then(resolve).catch(reject)
-						})
-					}
-				}
-			})
-		}
-		terminate(){
-			this.finished = true
-			this.instance = null
-			this.removeAllListeners()
+			global.config.removeListener('change', this.configChangeListener)
 		}
 	}
 	class ThreadWorkerDriver extends WorkerDriver {
@@ -161,7 +136,7 @@ module.exports = (file, opts) => {
 	class WebWorkerDriver extends WorkerDriver {
 		constructor(){
 			super()
-			this.worker = new Worker(prepare(global.APPDIR + '/modules/driver/web-worker.js'), {
+			this.worker = new Worker(global.APPDIR + '/modules/driver/web-worker.js', {
 				name: JSON.stringify(workerData)
 			})
 			this.worker.onerror = err => {  
@@ -213,14 +188,15 @@ module.exports = (file, opts) => {
 			}
 		} catch(e) { }		
 	}
-	if(skipWorkerThreads === true || !hasWorkerThreads()){
+	if(hasWorkerThreads()) {
+		return ThreadWorkerDriver
+	} else {
 		if(typeof(Worker) != 'undefined'){
 			return WebWorkerDriver
 		} else {
-			console.error('Driver loading inline, bad for performance: '+ file)
-			return DirectDriver
+			const msg = 'Web workers and worker_threads are not supported in this environment.'
+			console.error(msg)
+			global.displayErr(msg)			
 		}
-	} else {
-		return ThreadWorkerDriver
 	}
 }

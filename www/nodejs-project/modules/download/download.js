@@ -10,9 +10,9 @@ class Download extends Events {
 	   	super()
 		this.startTime = global.time()
 		this.opts = {
-			p2p: false,
-			p2pWaitMs: 2000,
 			cacheTTL: 0,
+			p2p: false,
+			p2pWaitMs: 500,
 			uid: parseInt(Math.random() * 10000000000000),
 			debug: Download.debug || false,
 			keepalive: false,
@@ -131,14 +131,20 @@ class Download extends Events {
 					if((!srvConfig || !srvConfig['disable-p2p']) && !Download.p2p){
 						console.warn('INIT P2P')
 						global.uiReady(() => {
-							Download.p2p = new DownloadP2PHandler(global.ui, Download.cache)
-							const addr = srvConfig['p2p-signal-server'] || global.config.get('p2p-signal-server') || 'ws://signal.megacubo.net'
+							const addr = srvConfig['p2p-signal-server'] || global.config.get('p2p-signal-server') || 'ws://signal.megacubo.net:80'
 							const limit = srvConfig['p2p-peers-limit'] || global.config.get('p2p-peers-limit') || 8
-							console.warn('INIT P2P', addr, limit)
-							global.ui.once('init-p2p-failure', () => {
+							Download.p2p = new DownloadP2PHandler({
+								ui: global.ui,
+								cache: Download.cache,
+								discovery: global.discovery,
+								addr, limit
+							})
+							/*
+							Download.p2p.swarm.on('error', err => {
+								console.error('P2P SWARM ERR: '+ err, err)
 								Download.p2p = 0 // lock, set zero to skip P2P usage
 							})
-							global.ui.emit('init-p2p', addr, limit)
+							*/
 						})
 					}
 				})
@@ -206,7 +212,7 @@ class Download extends Events {
 		}
 	}
 	defaultAcceptLanguage(){
-		if(global.lang){
+		if(global.lang && global.lang.countryCode){
 			return global.lang.locale +'-'+ global.lang.countryCode.toUpperCase() +','+ global.lang.locale +';q=1,*;q=0.7'
 		} else {
 			return '*'
@@ -365,13 +371,6 @@ class Download extends Events {
 		}
 		return err
 	}
-    absolutize(path, url){
-        if(path.match(new RegExp('^[htps:]*?//'))){
-            return path
-        }
-        let uri = new URL(path, url)
-        return uri.href
-    }
 	getTimeoutOptions(){
 		if(this.opts.timeout && typeof(this.opts.timeout) == 'object' && this.opts.timeout.connect && this.opts.timeout.response) {
 			return this.opts.timeout
@@ -405,7 +404,7 @@ class Download extends Events {
 			console.log('>> Download response', response.statusCode, JSON.stringify(response.headers), this.currentURL, this.retryCount)
 		}
 		this.currentResponse = response
-		this.responseSource = response.headers['x-source']
+		this.responseSource = response.headers['x-megacubo-dl-source']
 		let validate = this.validateResponse(response)
 		if(validate === true){
 			if(!this.isResponseCompressed){
@@ -536,7 +535,7 @@ class Download extends Events {
 						}
 					}
 					if(this.contentLength != -1 && (chunk.length + this.received) > this.contentLength){
-						console.error('Received more data then expected', this.contentLength, this, this.opts.url, this.received + chunk.length, global.traceback(), global.Download.cache.index[this.opts.url])
+						console.error('Received more data then expected', this.contentLength, this.opts.url, this.received + chunk.length, global.traceback(), global.Download.cache.index[this.opts.url])
 					}
 					this.received += chunk.length
 					this.emitData(chunk)
@@ -660,14 +659,11 @@ class Download extends Events {
 						this.connect()
 					}
 				})
-				//this.decompressor.once('end', chunk => console.log('ZLIB END'))
 				this.decompressor.on('finish', chunk => {
 					this.decompressEnded = 'finish'
 					this.emit('decompressed')
 				})
-				//this.decompressor.once('close', chunk => console.log('ZLIB CLS'))
 			}
-			//console.log('decompressor.write', chunk)
 			this.decompressor.write(chunk)
 		} else {
 			this._emitData(chunk)
@@ -732,7 +728,7 @@ class Download extends Events {
 			if(this.opts.cacheTTL){
 				Download.cache.save(this, null, true) // save redirect, before changing currentURL, end it always despite of responseSource
 			}
-			this.currentURL = this.absolutize(response.headers['location'], this.opts.url)			
+			this.currentURL = global.absolutize(response.headers['location'], this.opts.url)			
 			if(this.opts.debug){
 				console.log('>> Download redirect', this.opts.followRedirect, response.headers['location'], this.currentURL)
 			}	
@@ -899,27 +895,31 @@ class Download extends Events {
 		}
 	}
 	prepareOutputData(data){
-		if(Array.isArray(data)){
-			if(data.length && typeof(data[0]) == 'string'){
-				data = data.join('')
-			} else {
-				data = Buffer.concat(data)
-			}
-		}
-		switch(this.opts.responseType){
-			case 'text':
-				data = String(data)
-				break
-			case 'json':
-				try {
-					data = global.parseJSON(String(data))
-				} catch(e) {
-					if(this.listenerCount('error')){
-						this.emit('error', e)
-					}
-					data = undefined
+		if(data && data.length){
+			if(Array.isArray(data)){
+				if(data.length && typeof(data[0]) == 'string'){
+					data = data.join('')
+				} else {
+					data = Buffer.concat(data)
 				}
-				break
+			}
+			switch(this.opts.responseType){
+				case 'text':
+					data = String(data)
+					break
+				case 'json':
+					try {
+						data = global.parseJSON(String(data))
+					} catch(e) {
+						if(this.listenerCount('error')){
+							this.emit('error', e)
+						}
+						data = undefined
+					}
+					break
+			}
+		} else {
+			data = Buffer.alloc(0)
 		}
 		return data
 	}
@@ -1027,13 +1027,25 @@ class Download extends Events {
 	}
 }
 
+const networkListeners = []
 Download.stream = DownloadStreamHybrid
 Download.cache = new DownloadCacheMap()
 Download.keepAliveDomainBlacklist = []
 Download.isNetworkConnected = true
 Download.setNetworkConnectionState = state => {
 	Download.isNetworkConnected = state
+	if(state && networkListeners){
+		networkListeners.map(f => f())
+		networkListeners.splice(0)		
+	}
 }
+Download.waitNetworkConnection = () => {
+	return new Promise(resolve => {
+		if(Download.isNetworkConnected) return resolve()
+		networkListeners.push(resolve)
+	})
+}
+
 Download.head = (...args) => {
 	let _reject, g, resolved, opts = args[0]
 	let promise = new Promise((resolve, reject) => {

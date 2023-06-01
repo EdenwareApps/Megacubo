@@ -36,8 +36,8 @@ class ListIndex extends ListIndexUtils {
         return entries
     }
     async getMap(map){
-        let lines = await this.readLines(map)
-        let entries = Object.keys(lines).map((_, i) => {
+        const lines = await this.readLines(map)
+        const entries = Object.keys(lines).map((_, i) => {
             const e = JSON.parse(lines[_])
             return e && e.name ? {group: e.group, name: e.name, _: parseInt(_)} : false
         }).filter(s => s)

@@ -1,8 +1,8 @@
 
-const path = require('path'), fs = require('fs'), Events = require('events')
+const path = require('path'), fs = require('fs'), Events = require('events'), pLimit = require('p-limit')
 
 class ChannelsData extends Events {
-    constructor(opts){
+    constructor(){
         super()
         this.emptyEntry = {
             name: global.lang.EMPTY, 
@@ -22,7 +22,7 @@ class ChannelsData extends Events {
         this.load()
     }
     async updateCategoriesCacheKey(){
-        let countries = await global.lang.getActiveCountries()
+        let countries = await global.lang.getActiveCountries(0)
         const useEPGChannels = global.activeEPG && global.config.get('use-epg-channels-list')
         let categoriesCacheKey = 'categories-'+ countries.join('-')
         if(useEPGChannels) {
@@ -53,90 +53,6 @@ class ChannelsData extends Events {
                 this.emit('loaded')
                 if(typeof(cb) == 'function'){
                     cb()
-                }
-            })
-        })
-    }
-    loadCategories(cb){
-        global.storage.raw.get(this.categoriesCacheKey, data => {
-            const next = () => {
-                this.updateChannelsIndex(false)
-                if(!this.categories || typeof(this.categories) != 'object'){
-                    this.categories = {}
-                }
-                if(typeof(cb) == 'function'){
-                    cb()
-                }
-            }
-            const rebuild = () => {
-                this.getDefaultCategories().then(data => {
-                    if(!Object.keys(data).length){
-                        console.log('channel.load', data)
-                    }
-                    this.channelsIndex = null
-                    this.categories = data
-                    this.save(next)
-                }).catch(err => {
-                    console.error('channel.load error: '+ err)
-                    next()
-                })
-            }
-            if(data){
-                try {
-                    let cs = global.parseJSON(data)
-                    if(!Object.keys(cs).length){
-                        throw 'Empty list'
-                    }
-                    this.categories = cs
-                    return next()
-                } catch(e) {
-                    console.error(e)
-                }
-            }
-            rebuild()
-        })
-    }
-    async getDefaultCategories(countryOnly){
-        if(global.config.get('parental-control') == 'only'){
-            return await this.getAdultCategories()
-        }
-        let fallback, ret = {}, locs = await global.lang.getActiveCountries()
-        if(countryOnly && locs.includes(global.lang.countryCode)){
-            fallback = locs.length > 1
-            locs = [global.lang.countryCode]
-        }
-        let results = await Promise.allSettled(locs.map(loc => global.cloud.get('channels/'+ loc)))
-        results.forEach(r => {
-            if(r.status == 'fulfilled' && r.value && typeof(r.value) == 'object'){
-                Object.keys(r.value).forEach(k => {
-                    if(Array.isArray(r.value[k])){
-                        let lk = 'CATEGORY_' + k.replaceAll(' & ', ' ').replace(new RegExp(' +', 'g'), '_').toUpperCase()
-                        let nk = global.lang[lk] || k
-                        if(typeof(ret[nk]) == 'undefined') ret[nk] = []
-                        ret[nk].push(...(r.value[k]))
-                        ret[nk] = [...new Set(ret[nk])].sort()
-                    }
-                })
-            }
-        })
-        if(countryOnly && fallback && !Object.keys(ret).length) return await this.getDefaultCategories(false)
-        return ret
-    }
-    async getAdultCategories(){
-        return await global.cloud.get('channels/adult')
-    }
-    getCategories(compact){
-        return compact ? this.categories : this.expand(this.categories)
-    }
-    setCategories(data, silent){
-        console.log('channels.setCategories')
-        this.updateCategoriesCacheKey().catch(global.displayErr).finally(() => {
-            this.categories = data
-            this.channelsIndex = null
-            this.save(() => {
-                console.log('Categories file imported')
-                if(silent !== true){
-                    global.osd.show(global.lang.IMPORTED_FILE, 'fas fa-check-circle', 'options', 'normal')
                 }
             })
         })
@@ -217,37 +133,148 @@ class ChannelsData extends Events {
     }
 }
 
-class ChannelsEPG extends ChannelsData {
+class ChannelsCategories extends ChannelsData {
+    constructor(opts){
+        super(opts)
+    }    
+    loadCategories(cb){
+        global.storage.raw.get(this.categoriesCacheKey, data => {
+            const next = () => {
+                this.updateChannelsIndex(false)
+                if(!this.categories || typeof(this.categories) != 'object'){
+                    this.categories = {}
+                }
+                if(typeof(cb) == 'function'){
+                    cb()
+                }
+            }
+            const rebuild = () => {
+                this.getDefaultCategories().then(data => {
+                    if(!Object.keys(data).length){
+                        console.log('channel.load', data)
+                    }
+                    this.channelsIndex = null
+                    this.categories = data
+                    this.save(next)
+                }).catch(err => {
+                    console.error('channel.load error: '+ err)
+                    next()
+                })
+            }
+            if(data){
+                try {
+                    let cs = global.parseJSON(data)
+                    if(!Object.keys(cs).length){
+                        throw 'Empty list'
+                    }
+                    this.categories = cs
+                    return next()
+                } catch(e) {
+                    console.error(e)
+                }
+            }
+            rebuild()
+        })
+    }
+    mapSize(n) { // count strings (channel names) in channel maps
+        return Object.values(n).map(k => Array.isArray(k) ? k.length : 0).reduce((s, v) => s + v, 0)
+    }
+    applyMapCategories(map, target, amount, weighted = false) {
+        const categories = Object.keys(target).concat(Object.keys(map).map(k => this.translateKey(k)).filter(k => !(k in target)))
+        const quota = amount / Math.max(categories.length, 5)
+        for (const k of Object.keys(map)) {
+            const cat = this.translateKey(k)
+            target[cat] = target[cat] || []
+            const left = quota - target[cat].length
+            if (left > 0) {
+                const slice = map[k].filter(s => !target[cat].includes(s)).slice(0, weighted ? left : map[k].length)
+                if (slice.length) {
+                    target[cat].push(...slice)
+                }
+            }
+        }
+        return target
+    }
+    translateKey(k){
+        let lk = 'CATEGORY_' + k.replaceAll(' & ', ' ').replace(new RegExp(' +', 'g'), '_').toUpperCase()
+        let nk = global.lang[lk] || k
+        return nk
+    }
+    async getDefaultCategories(amount=96){
+        if(global.config.get('parental-control') === 'only'){
+            return await this.getAdultCategories()
+        }
+        let data = {}, weighted = true
+        const completed = () => this.mapSize(data) >= amount
+        const countries = await global.lang.getActiveCountries(0)
+        const limit = pLimit(3)
+        const tasks = () => countries.map(country => {
+            return limit(async () => {
+                let err
+                const map = await global.cloud.get('channels/' + country).catch(e => err = e)
+                if(completed()) throw 'completed'
+                if (!err) {
+                    data = await this.applyMapCategories(map, data, amount, weighted)
+                    if(completed()) throw 'completed'
+                }
+            })
+        })
+        await Promise.all(tasks()).catch(console.error)
+        if(!completed()){
+            data = {}
+            weighted = false
+            await Promise.all(tasks()).catch(console.error)
+        }
+        return data
+    }   
+    async getAdultCategories(){
+        return await global.cloud.get('channels/adult')
+    }
+    getCategories(compact){
+        return compact ? this.categories : this.expand(this.categories)
+    }
+    setCategories(data, silent){
+        this.updateCategoriesCacheKey().catch(global.displayErr).finally(() => {
+            this.categories = data
+            this.channelsIndex = null
+            this.save(() => {
+                console.log('Categories file imported')
+                if(silent !== true){
+                    global.osd.show(global.lang.IMPORTED_FILE, 'fas fa-check-circle', 'options', 'normal')
+                }
+            })
+        })
+    }
+}
+
+class ChannelsEPG extends ChannelsCategories {
     constructor(opts){
         super(opts)
         this.epgStatusTimer = false
         this.epgIcon = 'fas fa-th'
         this.clockIcon = '<i class="fas fa-clock"></i> '
-        const aboutInsertEPGTitle = data => {
-            return new Promise((resolve, reject) => {
-                if(global.streamer.active.mediaType != 'live'){
-                    return reject('local file')
+        const aboutInsertEPGTitle = async data => {
+            if(global.streamer.active.mediaType != 'live'){
+                throw 'local file'
+            }
+            if(!this.isChannel(global.streamer.active.data.originalName || global.streamer.active.data.name)){
+                throw 'not a channel'
+            }
+            const ret = await this.epgChannelLiveNowAndNext(global.streamer.active.data)
+            let ks = Object.keys(ret)
+            ret = ks.map((k, i) => {
+                if(i == 0){
+                    return {template: 'question', text: ret[k]}
+                } else {
+                    return {template: 'message', text: k +': '+ ret[k]}
                 }
-                if(!this.isChannel(global.streamer.active.data.originalName || global.streamer.active.data.name)){
-                    return reject('not a channel')
-                }
-                this.epgChannelLiveNowAndNext(global.streamer.active.data).then(ret => {
-                    let ks = Object.keys(ret)
-                    ret = ks.map((k, i) => {
-                        if(i == 0){
-                            return {template: 'question', text: ret[k]}
-                        } else {
-                            return {template: 'message', text: k +': '+ ret[k]}
-                        }
-                    })
-                    resolve(ret)
-                }).catch(reject)
             })
+            return ret
         }
         global.ui.once('streamer-ready', () => { 
             global.streamer.aboutRegisterEntry('epg', aboutInsertEPGTitle, null, 1)
             global.streamer.aboutRegisterEntry('epg', aboutInsertEPGTitle, null, 1, true)
-            global.streamer.aboutRegisterEntry('epg-more', data => {
+            global.streamer.aboutRegisterEntry('epg-more', () => {
                 if(streamer.active.mediaType == 'live'){
                     return {template: 'option', text: global.lang.EPG, id: 'epg-more', fa: this.epgIcon}
                 }
@@ -281,11 +308,11 @@ class ChannelsEPG extends ChannelsData {
             }, null, true)
         })
     }
-    isEPGActive(){
+    isEPGEnabled(){
         return global.activeEPG || global.config.get('lang-'+ global.lang.locale)
     }
     isEPGSyncActive(){
-        return global.config.get('use-epg-channels-list') && this.isEPGActive()
+        return global.config.get('use-epg-channels-list') && this.isEPGEnabled()
     }            
     clock(start, data, includeEnd){
         let t = this.clockIcon
@@ -399,6 +426,7 @@ class ChannelsEPG extends ChannelsData {
         })
     }
     async epgChannelLiveNow(entry){
+        if(!global.activeEPG) throw 'epg not loaded'
         let channel = this.epgPrepareSearch(entry)
         let epgData = await global.lists.epg(channel, 1)
         let ret = Object.values(epgData).shift()
@@ -414,6 +442,7 @@ class ChannelsEPG extends ChannelsData {
         return ret
     }
     async epgChannelLiveNowAndNextInfo(entry){
+        if(!global.activeEPG) throw 'epg not loaded'
         let channel = this.epgPrepareSearch(entry)
         let epgData = await global.lists.epg(channel, 2)
         if(typeof(epgData) == 'string') {
@@ -440,6 +469,7 @@ class ChannelsEPG extends ChannelsData {
         }
     }
     async epgChannelsLiveNow(entries){
+        if(!global.activeEPG) throw 'epg not loaded'
         let channels = entries.map(e => this.epgPrepareSearch(e))
         let epgData = await global.lists.epg(channels, 1)
         let ret = {}
@@ -567,7 +597,7 @@ class ChannelsEditing extends ChannelsEPG {
         super(opts)
         global.ui.on('channels-import-file', data => {
             console.warn('!!! IMPORT FILE !!!', data)
-            global.importFileFromClient(data).then(ret => this.importFile(ret)).catch(err => {
+            global.ui.importFileFromClient(data).then(ret => this.importFile(ret)).catch(err => {
                 global.displayErr(err)
             })
         })
@@ -610,7 +640,7 @@ class ChannelsEditing extends ChannelsEPG {
                                                 global.icons.adjust(ret.file, {shouldBeAlpha: false}).then(ret => {
                                                     global.icons.saveDefaultFile(terms, ret.file, destFile => {
                                                         console.log('icon changed', terms, destFile)
-                                                        global.explorer.deepRefresh(global.explorer.dirname(global.explorer.path))
+                                                        global.explorer.refresh(true, global.explorer.dirname(global.explorer.path))
                                                         global.osd.show(global.lang.ICON_CHANGED, 'fas fa-check-circle', 'channels', 'normal')
                                                     })
                                                 }).catch(global.displayErr)
@@ -625,7 +655,7 @@ class ChannelsEditing extends ChannelsEPG {
                                         global.icons.adjust(ret.file, {shouldBeAlpha: false}).then(ret => {
                                             global.icons.saveDefaultFile(terms, ret.file, destFile => {
                                                 console.log('icon changed', terms, destFile)
-                                                global.explorer.deepRefresh(global.explorer.dirname(global.explorer.path))
+                                                global.explorer.refresh(true, global.explorer.dirname(global.explorer.path))
                                                 global.osd.show(global.lang.ICON_CHANGED, 'fas fa-check-circle', 'channels', 'normal')
                                             })
                                         })
@@ -634,7 +664,7 @@ class ChannelsEditing extends ChannelsEPG {
                                 ret.push({name: global.lang.NO_ICON, type: 'action', fa: 'fas fa-ban', action: () => {   
                                     console.log('saveDefault', terms, '') 
                                     global.icons.saveDefault(terms, 'no-icon', () => {
-                                        global.explorer.deepRefresh(global.explorer.dirname(global.explorer.path))
+                                        global.explorer.refresh(true, global.explorer.dirname(global.explorer.path))
                                         global.osd.show(global.lang.ICON_CHANGED, 'fas fa-check-circle', 'channels', 'normal')
                                     })
                                 }})
@@ -667,7 +697,7 @@ class ChannelsEditing extends ChannelsEPG {
                                         console.warn('RENAMED*', this.categories[category][i], category, i)
                                         let destPath = global.explorer.path.replace(o.name, val).replace('/'+ global.lang.RENAME, '')
                                         console.log('opening', destPath)
-                                        global.explorer.deepRefresh(destPath)
+                                        global.explorer.refresh(true, destPath)
                                         global.osd.show(global.lang.CHANNEL_RENAMED, 'fas fa-check-circle', 'channels', 'normal')
                                     })
                                 } 
@@ -694,7 +724,7 @@ class ChannelsEditing extends ChannelsEPG {
                                 console.warn('ALIASES SET', JSON.stringify(this.categories[category], null, 3), category, JSON.stringify(this.categories, null, 3), e.terms)
                                 this.save()
                                 console.warn('ALIASES SET', JSON.stringify(this.categories, null, 3), this.categories[category], e.terms)
-                                global.explorer.deepRefresh(global.explorer.path)
+                                global.explorer.refresh(true, global.explorer.path)
                             }
                         }},
                         {name: global.lang.REMOVE, fa: 'fas fa-trash', type: 'action', details: o.name, action: () => {
@@ -709,7 +739,7 @@ class ChannelsEditing extends ChannelsEPG {
                             })
                             this.save(() => {
                                 console.log('REMOVING')
-                                global.explorer.deepRefresh(global.explorer.dirname(global.explorer.dirname(global.explorer.path)))
+                                global.explorer.refresh(true, global.explorer.dirname(global.explorer.dirname(global.explorer.path)))
                                 global.osd.show(global.lang.CHANNEL_REMOVED, 'fas fa-check-circle', 'channels', 'normal')
                             })
                         }}
@@ -776,7 +806,7 @@ class ChannelsEditing extends ChannelsEPG {
                             this.categories[val] = o
                             this.save(() => {
                                 let destPath = global.explorer.path.replace(cat.name, val).replace('/'+ global.lang.RENAME_CATEGORY, '')
-                                global.explorer.deepRefresh(destPath)
+                                global.explorer.refresh(true, destPath)
                                 global.osd.show(global.lang.CATEGORY_RENAMED, 'fas fa-check-circle', 'channels', 'normal')
                             })
                         }
@@ -816,7 +846,7 @@ class ChannelsEditing extends ChannelsEPG {
                             if(inline !== true){
                                 targetPath = global.explorer.dirname(targetPath)
                             }
-                            global.explorer.deepRefresh()
+                            global.explorer.refresh(true)
                             global.osd.show(global.lang.CHANNEL_ADDED, 'fas fa-check-circle', 'channels', 'normal')
                         })
                     }
@@ -831,7 +861,7 @@ class ChannelsAutoWatchNow extends ChannelsEditing {
         super()
         this.watchNowAuto = ''
         this.disableWatchNowAuto = false
-        global.ui.once('init', () => {
+        global.uiReady(() => {
             global.explorer.on('render', (entries, path) => {
                 if(path != this.watchNowAuto){
                     this.watchNowAuto = ''
@@ -852,7 +882,7 @@ class ChannelsAutoWatchNow extends ChannelsEditing {
 class ChannelsKids extends ChannelsAutoWatchNow {
     constructor(){
         super()
-        global.ui.once('init', () => {
+        global.uiReady(() => {
             global.explorer.addFilter(async (entries, path) => { 
                 const term = global.lang.CATEGORY_KIDS // lang can change in runtime, check the term here so
                 if(path.substr(term.length * -1) == term){
@@ -1174,7 +1204,7 @@ class Channels extends ChannelsKids {
             }
         } else {
             if(streams.length){
-                let call = global.lists.msi.isRadio(e.name +' '+ category) ? global.lang.LISTEN_NOW : global.lang.WATCH_NOW
+                let call = global.lists.mi.isRadio(e.name +' '+ category) ? global.lang.LISTEN_NOW : global.lang.WATCH_NOW
                 entries.push({
                     name: call, 
                     type: 'action',
@@ -1327,15 +1357,8 @@ class Channels extends ChannelsKids {
     keywords(){
         return new Promise((resolve, reject) => {
             this.ready(() => {
-                let keywords = [], badChrs = ['|', '-'];
-                ['histo', 'bookmarks'].forEach(k => {
-                    if(global[k]){
-                        global[k].get().forEach(e => {
-                            keywords.push(...this.entryTerms(e))
-                        })
-                    }
-                })
-                this.getDefaultCategories(true).then(data => {
+                let keywords = [], badChrs = ['|', '-']
+                this.getDefaultCategories().then(data => {
                     keywords.push(...Object.values(data).flat().map(n => this.expandName(n).terms.name).flat())
                 }).catch(reject).finally(() => {
                     keywords = [...new Set(keywords)].filter(w => !badChrs.includes(w.charAt(0)))

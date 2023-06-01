@@ -510,7 +510,8 @@ class StreamerFFmpeg extends Events {
     }
     start(restarting){
         return new Promise((resolve, reject) => {
-           this.setupDecoder(restarting).then(() => {
+            this.setupDecoder(restarting).then(() => {
+                const startTime = global.time()
                 const endListener = data => {
                     if(!this.destroyed){
                         console.warn('file ended '+ data, traceback())

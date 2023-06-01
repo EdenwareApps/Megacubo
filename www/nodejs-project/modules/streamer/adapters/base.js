@@ -234,7 +234,7 @@ class StreamerAdapterBase extends Events {
 			let matches = String(body).match(new RegExp('^[^#].+\\..+$','m'))
 			if(matches){
 				const basename = matches[0].trim()
-				const nurl = this.absolutize(basename, download.currentURL)
+				const nurl = global.absolutize(basename, download.currentURL)
 				if(nurl && nurl != url){
 					if(basename.toLowerCase().indexOf('.m3u8') == -1){
 						cb(nurl)
@@ -440,19 +440,13 @@ class StreamerAdapterBase extends Events {
 		return headers
 	}
 	len(data){
-		if(!data){
+		if (!data) {
 			return 0
-		} else if(Array.isArray(data)) {
-			let len = 0
-			data.forEach(d => {
-				len += this.len(d)
-			})
-			return len
-		} else if(typeof(data.byteLength) == 'number') {
-			return data.byteLength
-		} else {
-			return data.length
 		}
+		if (Array.isArray(data)) {
+			return data.reduce((acc, val) => acc + this.len(val), 0)
+		}
+		return data.byteLength || data.length || 0
 	}
 	ip(){
 		return this.opts.addr

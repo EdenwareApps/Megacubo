@@ -6,6 +6,9 @@ class Zap extends Events {
         this.isZapping = false
         this.skips = []
         this.icon = 'fas fa-random'
+        global.uiReady(() => this.init())
+    }
+    init(){
         global.explorer.addFilter(this.hook.bind(this))
         global.streamer.on('stop', err => {
             if(this.isZapping){
@@ -97,7 +100,7 @@ class Zap extends Events {
                 mediaType: 'live',
                 hlsOnly: 'auto'
             })       
-            let succeeded = await global.streamer.playPromise(entry, undefined, true).catch(console.error)
+            let succeeded = await global.streamer.play(entry, undefined, true).catch(console.error)
             this.connecting = false
             this.setZapping(true, succeeded)
             global.tuning && global.tuning.destroy()
@@ -127,7 +130,7 @@ class Zap extends Events {
             wdata[e.name] = e.users
         });
         Object.keys(global.channels.channelsIndex).forEach(name => {
-            if(!global.lists.msi.isRadio(name)){
+            if(!global.lists.mi.isRadio(name)){
                 channels.push({
                     name,
                     weight: wdata[name] || 1,

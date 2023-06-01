@@ -1,15 +1,18 @@
 const fs = require('fs'), Events = require('events'), Parser = require('./parser')
 const ListIndexUtils = require('./list-index-utils')
+const MediaURLInfo = require('../streamer/utils/media-url-info')
+
 
 class UpdateListIndex extends ListIndexUtils { 
-	constructor(url, directURL, file, parent, updateMeta){
+	constructor(url, directURL, file, master, updateMeta, forceDownload){
 		super()
         this.url = url
         this.file = file
 		this.playlists = []
+        this.master = master
         this.directURL = directURL
         this.updateMeta = updateMeta
-        this.parent = (() => parent)
+        this.forceDownload = forceDownload === true
         this.tmpfile = global.paths.temp +'/'+ parseInt(Math.random() * 100000000000) + '.tmp'
         this.seriesRegex = new RegExp('(\\b|^)[st]?[0-9]+ ?[epx]{1,2}[0-9]+($|\\b)', 'i')
         this.vodRegex = new RegExp('[\\.=](mp4|mkv|mpeg|mov|m4v|webm|ogv|hevc|divx)($|\\?|&)', 'i')
@@ -26,7 +29,7 @@ class UpdateListIndex extends ListIndexUtils {
 		}
     }
 	indexate(entry, i){
-		entry = this.parent().prepareEntry(entry)
+		entry = this.master.prepareEntry(entry)
 		entry.terms.name.concat(entry.terms.group).forEach(term => {
 			if(typeof(this.index.terms[term]) == 'undefined'){
 				this.index.terms[term] = {n: [], g: []}
@@ -69,7 +72,7 @@ class UpdateListIndex extends ListIndexUtils {
                 let resolved
                 const opts = {
                     url: path,
-                    p2p: true,
+                    p2p: !!this.forceDownload,
                     retries: 3,
                     followRedirect: true,
                     keepalive: false,
@@ -78,7 +81,7 @@ class UpdateListIndex extends ListIndexUtils {
                     },
                     timeout: Math.max(30, global.config.get('connect-timeout')), // some servers will take too long to send the initial response
                     downloadLimit: 200 * (1024 * 1024), // 200Mb
-                    cacheTTL: 3600,
+                    cacheTTL: this.forceDownload ? 0 : 3600,
                     debug: false
                 }
                 this.stream = new global.Download(opts)
@@ -134,35 +137,13 @@ class UpdateListIndex extends ListIndexUtils {
             }
         })
 	}
-    setURLFmt(url, fmt){
-        let badfmt, type
-        if(fmt == 'hls') {
-            badfmt = new RegExp('(type|output)=(m3u|ts|mpegts)(&|$)', 'gi')
-            type = 'hls'
-        } else {
-            badfmt = new RegExp('(type|output)=(m3u_plus|m3u8|hls)(&|$)', 'gi')
-            type = 'ts'
-        }
-        let alturl = url.replace(badfmt, (...args) => {
-            let t = args[2]
-            switch(args[1]){
-                case 'output':
-                    t = type
-                    break
-                case 'type':
-                    t = 'm3u_plus'
-                    break
-            }
-            return args[1] +'='+ t + args[3]
-        })
-        if(alturl != url){
-            return alturl
-        }
-    }
 	async start(){
         let alturl, urls = [this.directURL], fmt = global.config.get('live-stream-fmt')
-        if(['hls', 'mpegts'].includes(fmt)){
-            alturl = this.setURLFmt(fmt)
+        if(['hls', 'mpegts'].includes(fmt)) {
+            if(!this.mi) {
+                this.mi = new MediaURLInfo()
+            }
+            alturl = this.mi.setURLFmt(this.directURL, fmt)
             if(alturl){
                 urls.unshift(alturl)
             }
@@ -179,13 +160,18 @@ class UpdateListIndex extends ListIndexUtils {
                 if(this.indexateIterator) break
             }
         }
-        while(this.playlists.length){
-            const playlist = this.playlists.shift()
+        console.error('PLAYLISTS', this.playlists)
+        let i = 0
+        while(i < this.playlists.length){
+            const playlist = this.playlists[i]
+            i++
             connected = await this.connect(playlist.url).catch(console.error)
+            console.error('PLAYLIST '+ playlist.url +' '+ this.indexateIterator)
             if(connected === true){
                 await this.parseStream(writer, playlist).catch(console.error)
             }
         }
+        console.error('PLAYLISTS end')
         await this.writeIndex(writer).catch(err => console.warn('writeIndex error', err))
         writer.destroy()
         return true
@@ -264,6 +250,20 @@ class UpdateListIndex extends ListIndexUtils {
                 let progress = parseInt(received / pp)
                 if(progress > 99){
                     progress = 99
+                }
+                if(this.playlists.length){
+                    let i = -1
+                    this.playlists.some((p, n) => {
+                        if(p.url == playlist.url){
+                            i = n
+                            return true
+                        }
+                    })
+                    if(i != -1){
+                        const lr = 100 / (this.playlists.length + 1)
+                        const pr = (i * lr) + (progress * (lr / 100))
+                        progress = pr
+                    }
                 }
                 if(progress !== this.progress) {
                     this.progress = progress
@@ -379,7 +379,6 @@ class UpdateListIndex extends ListIndexUtils {
 			this.destroyed = true
 			this.emit('destroy')
             this.removeAllListeners()
-			this.parent = (() => {return {}})
 			this._log = []
 		}
 	}

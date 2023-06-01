@@ -25,88 +25,64 @@ class IconFetcher {
             }
         }
     }
-    fetchFromTerms(){
-        return new Promise((resolve, reject) => {
-            if(this.terms && this.terms.length){
-                this.master.search(this.terms).then(images => {
-                    let done
-                    if(this.master.opts.debug){
-                        console.log('GOFETCH', images)
-                    }
-                    async.eachOfLimit(images, 1, (image, i, acb) => {
-                        if(image.icon.match(this.isNonAlphaRegex) && !image.icon.match(this.isAlphaRegex)){
-                            return acb() // non alpha url
-                        }
-                        if(this.master.opts.debug){
-                            console.log('GOFETCH', image)
-                        }
-                        this.master.fetchURL(image.icon).then(ret => {
-                            const key = ret.key
-                            if(this.master.opts.debug){
-                                console.log('GOFETCH', image, 'THEN', ret.file)
-                            }
-                            this.master.validateFile(ret.file).then(type => {
-                                if(type != 2){
-                                    return acb() // not an alpha png
-                                }
-                                this.master.schedule('adjust', finish => {
-                                    if(done && !this.hasPriority(done.image, image, images)){
-                                        acb()
-                                        return finish()
-                                    }
-                                    this.master.adjust(ret.file, {shouldBeAlpha: true, minWidth: 100, minHeight: 100}).then(ret => {
-                                        this.master.saveHTTPCacheExpiration(key, () => {
-                                            if(ret.alpha){
-                                                if(!done || this.hasPriority(done.image, image, images)){
-                                                    done = ret
-                                                    done.key = key
-                                                    done.image = image
-                                                    this.ready(key, true, true)
-                                                }
-                                            }
-                                            acb()
-                                            finish()
-                                        })
-                                    }).catch(err => {
-                                        console.error(err, image.icon)
-                                        acb()
-                                        finish()
-                                    })
-                                })
-                            }).catch(err => {
-                                console.error(err)
-                                acb()
-                            })
-                        }).catch(err => {
-                            if(this.master.opts.debug){
-                                console.log('GOFETCH', image, 'CATCH', err)
-                            }
-                            console.error(err)
-                            acb()
-                        })
-                    }, () => {
-                        if(this.destroyed){
-                            return reject('destroyed')
-                        }
-                        if(this.master.opts.debug){
-                            console.log('GOFETCH', images, 'OK', done, this.destroyed)
-                        }
-                        if(done){
-                            resolve(done)
-                        } else {
-                            reject('Couldn\'t find a logo for: ' + JSON.stringify(this.terms) + '  ' + JSON.stringify(images))
-                        }
-                    })
-                }).catch(err => {
-                    console.error(err)
-                    reject(err)
-                })
-            } else {
-                reject('no terms, no url')
+    async fetchFromTerms(){
+        if(!this.terms || !this.terms.length) throw 'no terms, no url'
+        let done
+        const images = await this.master.search(this.terms)
+        if(this.master.opts.debug){
+            console.log('GOFETCH', images)
+        }
+        const tasks = images.map(async image => {
+            if(image.icon.match(this.isNonAlphaRegex) && !image.icon.match(this.isAlphaRegex)){
+                return false // non alpha url
+            }
+            if(done && !this.hasPriority(done.image, image, images)){
+                console.error('ICON DOWNLOADING CANCELLED')
+                return false
+            }
+            if(this.master.opts.debug){
+                console.log('GOFETCH', image)
+            }
+            const ret = await this.master.fetchURL(image.icon)
+            const key = ret.key
+            if(this.master.opts.debug){
+                console.log('GOFETCH', image, 'THEN', ret.file)
+            }
+            const type = await this.master.validateFile(ret.file)
+            if(type != 2){
+                return false // not an alpha png
+            }
+            if(done && !this.hasPriority(done.image, image, images)){
+                if(this.master.opts.debug){
+                    console.warn('ICON ADJUSTING CANCELLED')
+                }
+                return false
+            }
+            const ret2 = await this.master.adjust(ret.file, {shouldBeAlpha: true, minWidth: 100, minHeight: 100})
+            await this.master.saveHTTPCacheExpiration(key)
+            if(ret2.alpha){
+                if(!done || this.hasPriority(done.image, image, images)){
+                    done = ret2
+                    done.key = key
+                    done.image = image
+                    this.ready(key, true, true)
+                }
             }
         })
+        await Promise.allSettled(tasks)
+        if(this.destroyed){
+            throw 'destroyed'
+        }
+        if(this.master.opts.debug){
+            console.log('GOFETCH', images, 'OK', done, this.destroyed)
+        }
+        if(done){
+            return done
+        } else {
+            throw 'Couldn\'t find a logo for: ' + JSON.stringify(this.terms) + ' ' + JSON.stringify(images)
+        }
     }
-    get(){
+    async get(){
         let noEPGIcon = () => {
             let fromTerms = () => {
                 if(this.destroyed) return
@@ -186,7 +162,7 @@ class Icon extends IconFetcher {
         this.tabIndex = tabIndex
         this.readyState = 0 // 0=icon not sent, 1=sent non alpha icon, 2=sent alpha icon
         this.lastEmittedKey = ''
-        this.get()
+        this.get().catch(console.error)
     }
     destroy(){
         this.destroyed = true

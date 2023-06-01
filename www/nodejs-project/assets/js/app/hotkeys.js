@@ -6,6 +6,7 @@ function arePlayerControlsVisible(){
 
 function menuPlaying(enable, ignoreFocus){
     if(enable){
+        this.app.emit('explorer-menu-playing', true)
         explorer.body.addClass('menu-playing')
         if(!ignoreFocus) {
             setTimeout(() => {
@@ -13,6 +14,7 @@ function menuPlaying(enable, ignoreFocus){
             }, 100)
         }
     } else {
+        this.app.emit('explorer-menu-playing', false)
         explorer.body.removeClass('menu-playing')
         idle.reset()
         idle.lock(0.1)
@@ -71,6 +73,7 @@ function arrowDownPressed(noNav){
                 if(idle.isIdle) {
                     idle.reset()
                 } else if(noNav) {
+                    this.app.emit('explorer-menu-playing', true)
                     explorer.body.addClass('menu-playing')
                 } else {
                     if(!noNav) explorer.arrow('down')

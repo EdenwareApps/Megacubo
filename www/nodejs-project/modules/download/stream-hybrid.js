@@ -17,20 +17,19 @@ class DownloadStream extends DownloadStreamBase {
 			![204].includes(response.statusCode) // softly ignore these ones
 	}
     async start(){
-        const start = global.time()
         const types = [DownloadStreamHttp]
         let usecache, usep2p
-        if(this.opts.cacheTTL) {
+        if(typeof(this.opts.cacheTTL) == 'number' && this.opts.cacheTTL > 0) {
             usecache = true
             types.push(DownloadStreamCache)
-        }
-        if(this.opts.p2p === true && global.ui && global.Download.p2p){
-            const peersCount = Object.keys(global.Download.p2p.peers).length
-            if(peersCount >= 2){
-                usep2p = true
-                types.push(DownloadStreamP2P)
-            } else {
-                usep2p = false
+            if(this.opts.p2p === true && global.ui && global.Download.p2p) { // p2p requires cache
+                const peersCount = Object.keys(global.Download.p2p.peers).length
+                if(peersCount >= 2){
+                    usep2p = true
+                    types.push(DownloadStreamP2P)
+                } else {
+                    usep2p = false
+                }
             }
         }
         let chosen, responseData
@@ -40,6 +39,7 @@ class DownloadStream extends DownloadStreamBase {
                 opts.connectDelay = this.opts.p2pWaitMs
             }
             const via = new t(opts)
+            via.once('error', console.error)
             via.once('response', response => {
                 if(chosen){
                     return via.destroy()
@@ -48,7 +48,7 @@ class DownloadStream extends DownloadStreamBase {
                 if(this.validate(response)){
                     chosen = true
                     vias.filter(v => v != via).forEach(v => v.destroy())
-                    response.headers['x-source'] = via.type
+                    response.headers['x-megacubo-dl-source'] = via.type
                     this.emit('response', response)
                     if(response.ended){
                         this.end()
@@ -68,13 +68,11 @@ class DownloadStream extends DownloadStreamBase {
                 }
             })
             via.once('destroy', () => {
-                if(chosen) {
-                    return
-                }
+                if(chosen) return
                 process.nextTick(() => {
                     if(vias.every(v => v.destroyed)){
                         if(responseData){
-                            responseData.headers['x-source'] = '' //vias
+                            responseData.headers['x-megacubo-dl-source'] = '' //vias
                             const response = new DownloadStreamBase.Response(responseData.statusCode, responseData.headers)
                             this.emit('response', response)
                             response.end()

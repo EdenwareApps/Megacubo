@@ -57,7 +57,7 @@ class DownloadStream extends Events {
             this.opts.uid = parseInt(Math.random() * 10000000000000)
         }
 		process.nextTick(() => {
-            this.start().catch(err => this.emitError(err))
+            this.start().catch(err => this.emitError(err, true))
         })
 	}
 	parseRange(range){

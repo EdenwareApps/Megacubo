@@ -59,7 +59,6 @@ class History extends EntriesGroup {
             entries.push(this.entry())
         } else if(path == '') {
             let pos = -1, es = this.get()
-            console.log('HISTHOOK', es, es.length)
             entries = entries.filter(e => {
                 return e.hookId != this.key
             })

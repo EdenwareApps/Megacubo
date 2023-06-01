@@ -2,13 +2,13 @@
 const { workerData, parentPort } = require('worker_threads')
 postMessage = parentPort.postMessage.bind(parentPort)
 
-function logErr(data){
-    parentPort.postMessage({id: -1, type: 'error', data, file})
+function logErr(data) {
+    postMessage({id: 0, type: 'event', data: 'error:'+ JSON.stringify(data), file})
 }
 
 Object.keys(workerData).forEach(k => global[k] = workerData[k])
 
-crashlog = require('../crashlog')
+crashlog = require(global.APPDIR +'/modules/crashlog')
 
 process.on('warning', e => {
     console.warn(e, e.stack)
@@ -40,7 +40,6 @@ const Driver = require(file)
 driver = new Driver()
 parentPort.on('message', msg => {
     if(msg.method == 'configChange'){
-        //console.log('CONFIG CHANGED!', file)
         global.config.reload()
         setTimeout(() => {
             global.config.reload() // read again after some seconds, the config file may delay on writing
@@ -52,7 +51,12 @@ parentPort.on('message', msg => {
         parentPort.postMessage(data)
     } else {
         let type, data = null
-        driver[msg.method].apply(driver, msg.args).then(ret => {
+        const promise = driver[msg.method].apply(driver, msg.args)
+        if(!promise || typeof(promise.then) == 'undefined'){
+            data = {id: -1, type: 'event', data: 'error:Not a promise ('+ msg.method +').'}
+            return parentPort.postMessage(data)
+        }
+        promise.then(ret => {
             type = 'resolve'
             data = ret
         }).catch(err => {

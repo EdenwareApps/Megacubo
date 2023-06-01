@@ -1,7 +1,7 @@
 
 const path = require('path'), http = require('http'), fs = require('fs'), stoppable = require('stoppable')
 const StreamerAdapterBase = require('../adapters/base.js'), closed = require('../../on-closed')
-const Writer = require('../../write-queue/writer'), MPEGTSPacketProcessor = require('./ts-packet-processor')
+const Writer = require('../../write-queue/writer')
 
 class Downloader extends StreamerAdapterBase {
 	constructor(url, opts){
@@ -10,14 +10,13 @@ class Downloader extends StreamerAdapterBase {
 		that would have to restart connection to transcode. It aims to let this process
 		of starting trancode on a MPEGTS stream less slow.
 		*/
-		let warmCache = !global.cordova && !(global.tuning && global.tuning.active() && global.tuning.has(url))
 		opts = Object.assign({
             debug: false,
 			debugHTTP: false,
 			persistent: false,
 			errorLimit: 5,
 			initialErrorLimit: 2, // at least 2
-			warmCache,
+			warmCache: false, // in-disk startup cache
 			warmCacheMaxSize: 100 * (1024 * 1024),
 			sniffingSizeLimit: 196 * 1024 // if minor, check if is binary or ascii (maybe some error page)
 		}, opts || {})
@@ -46,7 +45,6 @@ class Downloader extends StreamerAdapterBase {
 		this.ext = 'ts'
 		this.currentDownloadUID = undefined
 		this.collectBitrateSampleOffset = {}
-		this.processor = new MPEGTSPacketProcessor()
 		if(this.opts.warmCache){
 			this.warmCacheSize = 0
 			this.warmCacheFile = global.paths.temp +'/'+ parseInt(Math.random() * 100000000) + '.ts'
@@ -89,7 +87,10 @@ class Downloader extends StreamerAdapterBase {
 				if(path.basename(req.url) == 'stream.'+ this.ext){
 					response.writeHead(200, {
 						'content-type': this.getContentType(),
-						'connection': 'close'
+						'connection': 'close',
+						'access-control-allow-origin': '*',
+						'access-control-allow-methods': 'get',
+						'access-control-allow-headers': 'origin, x-requested-with, content-type, content-length, content-range, cache-control, accept, accept-ranges, authorization'
 					})
 					let stream, finished, syncByteFound, buffer = false
 					let uid = parseInt(Math.random() * 1000000)
@@ -119,7 +120,7 @@ class Downloader extends StreamerAdapterBase {
 							if(response.writable){
 								let offset = -1
 								if(!syncByteFound){
-									offset = this.processor.nextSyncByte(chunk)
+									offset = chunk.indexOf(0x42)
 									if(offset != -1){
 										syncByteFound = true
 										response.write(chunk.slice(offset))
@@ -130,6 +131,7 @@ class Downloader extends StreamerAdapterBase {
 							}
 						}
 					}, finish = () => {
+						stream && stream.close()
 						if(!finished){
 							finished = true
 							this.removeListener('data', listener)

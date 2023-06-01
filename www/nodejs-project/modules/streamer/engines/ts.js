@@ -51,9 +51,7 @@ class StreamerTSIntent extends StreamerBaseIntent {
         if(global.config.get('ffmpeg-broadcast-pre-processing') == 'yes'){
             return true
         }
-        if(global.cordova && global.config.get('preferred-livestream-fmt') == 'hls'){
-            return true
-        }            
+        return false         
     }
     async _start(){ 
         this.mimetype = this.mimeTypes.mpegts

@@ -19,7 +19,7 @@ class StreamerRTMPIntent extends StreamerBaseIntent {
     _start(){ 
         return new Promise((resolve, reject) => {
             this.rtmp2hls = new StreamerFFmpeg(this.data.url, this.opts)
-            this.mimetype = this.mimeTypes[decoder.opts.outputFormat]
+            this.mimetype = this.mimeTypes[this.rtmp2hls.opts.outputFormat]
             this.connectAdapter(this.rtmp2hls)
             this.rtmp2hls.audioCodec = this.opts.audioCodec
             this.rtmp2hls.start().then(() => {

@@ -1,9 +1,9 @@
 
 const Events = require('events'), fs = require('fs'), ParentalControl = require('./parental-control')
-const Parser = require('./parser'), M3UTools = require('./tools'), MediaStreamInfo = require('./media-info')
+const Parser = require('./parser'), M3UTools = require('./tools'), MediaURLInfo = require('../streamer/utils/media-url-info')
 const List = require('./list'), UpdateListIndex = require('./update-list-index')
 
-LIST_DATA_KEY_MASK = 'list-data-1-{0}'
+global.LIST_DATA_KEY_MASK = 'list-data-1-{0}'
 
 class Fetcher extends Events {
 	constructor(url, atts, master){
@@ -32,7 +32,7 @@ class Fetcher extends Events {
 	}
 	start(){
 		return new Promise((resolve, reject) => {
-			this.list = new List(this.url, this.master, [])
+			this.list = new List(this.url, this.master)
 			this.list.skipValidating = true
 			this.list.start().then(resolve).catch(err => {
 				this.updater = new UpdateListIndex(this.url, this.url, this.file, this.master, {})
@@ -97,7 +97,7 @@ class Common extends Events {
 		this.opts = {
 			folderSizeLimitTolerance: 12,
 			offloadThreshold: 512,
-			defaultCommunityModeReach: global.cordova ? 18 : 24
+			defaultCommunityModeReach: global.cordova ? 8 : 18
 		}
         if(opts){
             Object.keys(opts).forEach(k => {
@@ -106,7 +106,7 @@ class Common extends Events {
         }
         this.parser = new Parser()
         this.tools = new M3UTools(opts)
-        this.msi = new MediaStreamInfo()
+        this.mi = new MediaURLInfo()
 		this.parentalControl = new ParentalControl()
 		this.loadSearchRedirects()
 	}
@@ -259,26 +259,26 @@ class Common extends Events {
 			switch(type){
 				case 'live':
 					if(strict){
-						return this.msi.isLive(e.url)
+						return this.mi.isLive(e.url)
 					} else {
-						let ext = this.msi.ext(e.url)
-						return !(this.msi.isVideo(e.url, ext) || this.msi.isAudio(e.url, ext))
+						let ext = this.mi.ext(e.url)
+						return !(this.mi.isVideo(e.url, ext) || this.mi.isAudio(e.url, ext))
 					}
 					break
 				case 'video':
 					if(strict){
-						return this.msi.isVideo(e.url)
+						return this.mi.isVideo(e.url)
 					} else {
-						let ext = this.msi.ext(e.url)
-						return !(this.msi.isLive(e.url, ext) || this.msi.isAudio(e.url, ext))
+						let ext = this.mi.ext(e.url)
+						return !(this.mi.isLive(e.url, ext) || this.mi.isAudio(e.url, ext))
 					}
 					break
 				case 'audio':
 					if(strict){
-						return this.msi.isAudio(e.url)
+						return this.mi.isAudio(e.url)
 					} else {
-						let ext = this.msi.ext(e.url)
-						return this.msi.isAudio(e.url, ext) || !(this.msi.isLive(e.url, ext) || this.msi.isVideo(e.url, ext))
+						let ext = this.mi.ext(e.url)
+						return this.mi.isAudio(e.url, ext) || !(this.mi.isLive(e.url, ext) || this.mi.isVideo(e.url, ext))
 					}
 					break
 			}

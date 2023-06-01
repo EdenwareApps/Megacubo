@@ -1,14 +1,21 @@
-
-
 const path = require('path'), http = require('http'), Events = require('events'), fs = require('fs'), url = require('url')
 const formidable = require('formidable'), closed = require('../on-closed')
 
-class CordovaCustomEmitter extends Events {
+class BaseCustomEmitter extends Events {
     constructor (){
         super()
         this.originalEmit = this.emit
         this.emit = this.customEmit
         this.setMaxListeners(20)
+    }
+    onMessage(args){
+        setTimeout(() => this.originalEmit.apply(this, args), 0) // async to prevent blocking renderer
+    }
+}
+
+class CordovaCustomEmitter extends BaseCustomEmitter {
+    constructor (){
+        super()
         this.attach()
     }
     customEmit(...args){
@@ -18,21 +25,30 @@ class CordovaCustomEmitter extends Events {
     attach(){
         if(!this.channel && global.cordova.channel){
             this.channel = global.cordova.channel
-            this.channel.on('message', args => {
-                this.originalEmit.apply(this, args)
-            })
+            this.channel.on('message', args => this.onMessage(args))
         }
+    }
+}
+
+class ElectronCustomEmitter extends BaseCustomEmitter {
+    constructor (){
+        super()
+        const { ipcMain } = require('electron')
+        this.outChannel = ipcMain
+        this.inChannel = new Events()
+        this.inChannel.on('message', args => this.onMessage(args)) // will be called from main through getGlobal, as ipcRenderer was not defined at renderer (?!)
+    }
+    customEmit(...args){
+        this.outChannel.emit('message', args)
     }
 }
 
 class BridgeServer extends Events {
     constructor(opts){
         super()
-        this.io = null
         this.map = {}
         this.opts = {
             addr: '127.0.0.1',
-            workDir: global.paths['data'] +'/bridge',
             port: 6342
         }
         if(opts){
@@ -40,11 +56,7 @@ class BridgeServer extends Events {
                 this.opts[k] = opts[k]
             })
         }
-        if(!global.cordova){
-            this.io = require("socket.io")(this.port)
-        }
         this.closed = false
-        this.bindings = {on: [], once: []}
         const mimes = {
           '.ico': 'image/x-icon',
           '.html': 'text/html',
@@ -56,13 +68,10 @@ class BridgeServer extends Events {
           '.wav': 'audio/wav',
           '.mp3': 'audio/mpeg',
           '.mp4': 'video/mp4',
-          '.svg': 'image/svg+xml',
-          '.pdf': 'application/pdf',
-          '.doc': 'application/msword'
+          '.svg': 'image/svg+xml'
         }
         this.setMaxListeners(20)
         this.server = http.createServer((req, response) => {
-            console.log(`${req.method} ${req.url}`)
             const parsedUrl = url.parse(req.url, false)
             if(parsedUrl.pathname == '/upload') {
                 const form = formidable({ multiples: true })
@@ -80,6 +89,8 @@ class BridgeServer extends Events {
                 }
                 if(typeof(this.map[pathname]) != 'undefined'){
                     pathname = this.map[pathname]
+                } else {
+                    pathname = path.join(global.APPDIR, pathname)
                 }
                 const ext = path.parse(pathname).ext
                 fs.access(pathname, err => {
@@ -96,19 +107,17 @@ class BridgeServer extends Events {
                     response.setHeader('Connection', 'close')
                     let stream = fs.createReadStream(pathname)
                     closed(req, response, () => {
+                        console.log(`${req.method} ${req.url} CLOSED`)
                         if(stream){
                             stream.destroy()
                             stream = null
                         }
                         response.end()
-                    })
+                    }, {closeOnError: true})
                     stream.pipe(response)
                 })
             }
         })
-        if(!global.cordova){
-            this.ui = this.io.listen(this.server, {log: false})
-        }
         this.server.listen(this.opts.port, this.opts.addr, err => {
             console.log('Bridge server started', err)
         })  
@@ -137,123 +146,79 @@ class BridgeServer extends Events {
     }
 }
 
-class Bridge extends BridgeServer {
+class BridgeUtils extends BridgeServer {
     constructor(opts){
-        super(opts)  
-        if(global.cordova){
-            console.log('NODEJS CORDOVA SETUP')
-            this.bind(new CordovaCustomEmitter())
+        super(opts)
+    }
+    async resolveFileFromClient(data) {
+        const check = async file => {
+            await fs.promises.access(file, fs.constants.R_OK)
+            return file
+        }
+        console.warn('!!! RESOLVE FILE !!!', data)
+        if(data) {
+            if(Array.isArray(data) && data.length){
+                return await check(data[0])
+            } else if(data.filename && data.filename.path) {
+                return await check(data.filename.path)
+            } else {
+                throw new Error('invalid file data')
+            }
         } else {
-            console.log('NODEJS SOCKET.IO SETUP')
-            this.ui.sockets.on('connection', this.bind.bind(this))   
+            throw new Error('invalid file data')
         }
     }
-    bind(socket){
-        if(socket != this.client){
-            if(this.client){
-                this.client.removeAllListeners()
-                if(typeof(this.client.disconnect) == 'function'){
-                    this.client.disconnect()
-                }
-                this.client = null
-            }
-            console.warn('BINDING')
-            this.client = socket  
-            this.client.setMaxListeners(20)
-            this.bindings.on.forEach(c => {
-                this.client.on.apply(this.client, c)
-            })
-            this.bindings.once.forEach(c => {
-                this.client.once.apply(this.client, c)
-            })
-            this.bindings.once = []
-            this.client.on('unbind', () => {
-                if(this.client){
-                    this.client.removeAllListeners()
-                    this.client = null
-                }
-            })
+    async importFileFromClient(data, target) {
+        console.warn('!!! IMPORT FILE !!!'+ target +' | '+ JSON.stringify(data))
+        const resolveFile = await this.resolveFileFromClient(data).catch(err => {
+            console.error('DATA='+ JSON.stringify(data) +' '+ err)
+        })
+        if(!resolveFile) throw 'Resolve error'
+        if(target){
+            await fs.promises.copyFile(resolveFile, target)
+            return target
+        } else {
+            return await fs.promises.readFile(resolveFile)
         }
+    }
+}
+
+class Bridge extends BridgeUtils {
+    constructor(opts){
+        super(opts)
+        if(global.cordova){
+            this.setClient(new CordovaCustomEmitter())
+        } else {
+            this.setClient(new ElectronCustomEmitter())
+        }
+    }
+    setClient(socket){
+        this.client = socket  
+        this.client.setMaxListeners && this.client.setMaxListeners(20)
     }
     on(...args){
-        this.bindings.on.push(args)
-        if(this.client){
-            this.client.on.apply(this.client, args)
-        }
+        this.client.on(...args)
     }
     once(...args){
-        if(this.client){
-            this.client.once.apply(this.client, args)
-        } else {
-            this.bindings.once.push(args)
-        }
+        this.client.once(...args)
     }
     emit(...args){
-        if(this.client){
-            return this.client.emit.apply(this.client, args)
-        } else {
-            console.error('Failed to emit.', args)
-        }
+        return this.client.emit(...args)
     }
     listenerCount(type){
         return this.listeners(type).length
     }
     listeners(type){
-        let ret = []
-        Object.keys(this.bindings).forEach(n => {
-            this.bindings[n].forEach(row => {
-                if(row[0] == type){
-                    ret.push(row[1])
-                }
-            })
-        })
-        return ret
+        return this.client.listeners(type)
     }
     removeListener(...args){
-        Object.keys(this.bindings).forEach(type => {
-            this.bindings[type] = this.bindings[type].filter(row => {
-                return !(row[0] == args[0] && row[1] == args[1])
-            })
-        })
-        if(this.client){
-            return this.client.removeListener.apply(this.client, args)
-        }
+        return this.client.removeListener(...args)
     }
     removeAllListeners(...args){
-        Object.keys(this.bindings).forEach(type => {
-            this.bindings[type] = this.bindings[type].filter(row => {
-                return !(row[0] == args[0])
-            })
-        })
-        if(this.client){
-            return this.client.removeAllListeners.apply(this.client, args)
-        }
+        return this.client.removeAllListeners(...args)
     }
     localEmit(...args){
-        let a = Array.from(args), id = a.shift()
-        this.bindings.on.forEach(c => {
-            if(c[0] == id){
-                c[1].apply(null, a)
-            }
-        })
-        this.bindings.once = this.bindings.once.filter(c => {
-            if(c[0] == id){
-                c[1].apply(null, a)
-            } else {
-                return true
-            }
-        })
-    }
-    assign(name, callback){
-        const c = 'call-' + name, f = data => {
-            console.log(c, !!this.client)
-            callback.apply(null, data.args).then(ret => {
-                this.client.emit('callback-' + data.id, {error: false, data: ret})
-            }).catch(err => {
-                this.client.emit('callback-' + data.id, {error: true, data: err})
-            })
-        }
-        this.on(c, f)
+        this.client.originalEmit(...args)
     }
     destroy(){
         if(this.server){

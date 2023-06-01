@@ -65,23 +65,6 @@ class StreamerProxyBase extends StreamerAdapterBase {
 		this.connections[_uid] = false
 		return _uid
 	}
-    absolutize(path, url){
-		if(!path) return url
-		if(!url) return path
-		if(path.substr(0, 2) == '//'){
-			path = 'http:' + path
-		}
-        if(['http://', 'https:/'].includes(path.substr(0, 7))){
-            return path
-		}
-		try{
-			let uri = new URL(path, url)
-        	return uri.href
-		} catch(e) {
-			console.error(e, path, url)
-			return path
-		}
-	}
 	getDomain(u){
 		if(u && u.indexOf('//') != -1){
 			let d = u.split('//')[1].split('/')[0]

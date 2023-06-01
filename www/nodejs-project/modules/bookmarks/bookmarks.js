@@ -17,14 +17,13 @@ class Bookmarks extends EntriesGroup {
                     global.explorer.open(global.lang.BOOKMARKS).catch(displayErr)
                 }
             })
-            global.streamer.aboutRegisterEntry('addfav', data => {
-                if(!data.isLocal && !this.has(this.simplify(data))){
-                    return {template: 'option', fa: 'fas fa-star', text: global.lang.ADD_TO.format(global.lang.BOOKMARKS), id: 'addfav'}
-                }
-            }, this.toggle.bind(this), 3)
-            global.streamer.aboutRegisterEntry('remfav', data => {
-                if(!data.isLocal && this.has(this.simplify(data))){
-                    return {template: 'option', fa: 'fas fa-star-half', text: global.lang.REMOVE_FROM.format(global.lang.BOOKMARKS), id: 'remfav'}
+            global.streamer.aboutRegisterEntry('fav', data => {
+                if(!data.isLocal){
+                    if(this.has(this.simplify(data))){
+                        return {template: 'option', fa: 'fas fa-star-half', text: global.lang.REMOVE_FROM.format(global.lang.BOOKMARKS), id: 'fav'}
+                    } else {
+                        return {template: 'option', fa: 'fas fa-star', text: global.lang.ADD_TO.format(global.lang.BOOKMARKS), id: 'fav'}
+                    }
                 }
             }, this.toggle.bind(this), 3)
         })

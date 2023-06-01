@@ -39,10 +39,10 @@ class JimpDriver {
                         return reject('not an alpha image')
                     }
                     if(opts.minWidth && opts.minWidth > image.bitmap.width){
-                        return reject('bad image dimensions')
+                        return reject('bad image dimensions '+ image.bitmap.width +'x'+ image.bitmap.height)
                     }
                     if(opts.minHeight && opts.minHeight > image.bitmap.height){
-                        return reject('bad image dimensions')
+                        return reject('bad image dimensions* '+ image.bitmap.width +'x'+ image.bitmap.height)
                     }
                     if(opts.shouldBeAlpha == 2 && !alpha){
                         return reject('not an alpha image')

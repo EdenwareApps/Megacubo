@@ -26,17 +26,6 @@ function importMomentLocale(locale, cb){
     })
 }
 
-function waitMessage(action, cb){
-    const listener = e => {
-        if(e.data.action == action){
-            console.log(action)
-            window.removeEventListener('message', listener)
-            cb()
-        }
-    }
-    window.addEventListener('message', listener)
-}
-
 var hidingBackButton = false
 function hideBackButton(doHide){
     if(doHide != hidingBackButton){
@@ -51,13 +40,12 @@ function hideBackButton(doHide){
 
 function configUpdated(keys, c){
     config = c
-    if(parent.updateConfig){
-        parent.updateConfig(config)
-    }
+    parent.updateConfig && parent.updateConfig.apply(parent, [config])
     uiSoundsEnable = config['ui-sounds']
     explorer.setViewSize(config['view-size-x'], config['view-size-y'])
     hideBackButton(config['hide-back-button'])
     parent.animateBackground(config['animate-background'])
+    idle.setTimeoutAwayState(config['timeout-secs-energy-saving'])
 }
 
 function langUpdated(){    
@@ -77,7 +65,42 @@ function langUpdated(){
     })
 }
 
-var fs
+function resolveNativePath(uri, callback) {
+    const originalURI = uri, errorcb = err => callback(err)
+    uri = decodeURIComponent(uri).replace('/raw%3A', '/raw:')
+    if (uri.startsWith('file://') === 0) {
+        uri = uri.replace('file://', '')
+    }
+    if (uri.indexOf('raw:') !== -1) {
+        uri = uri.substr(uri.indexOf('raw:') + 4);
+        uri = uri.replace(new RegExp('\\?.*$'), '')
+    }
+    uri = decodeURIComponent(uri)
+    if(!uri.startsWith('content:')){
+        return callback(null, uri)
+    }
+    parent.resolveLocalFileSystemURL(originalURI, fileEntry => {
+        fileEntry.file(file => {
+            const reader = new FileReader()
+            reader.onloadend = () => {
+                const tempDir = cordova.file.tempDirectory, blob = new Blob([new Uint8Array(this.result)], {
+                    type: file.type
+                })
+                parent.resolveLocalFileSystemURL(tempDir, tempEntry => {
+                    tempEntry.getFile(file.name, { create: true }, tempFileEntry => {
+                        tempFileEntry.createWriter(writer => {
+                            writer.write(blob)
+                            callback(null, tempFileEntry.nativeURL)
+                        }, errorcb)
+                    }, errorcb)
+                }, errorcb)
+            }
+            reader.readAsArrayBuffer(file)
+        }, errorcb)
+    }, errorcb)
+}
+
+var app
 function initApp(){
     if(!config) {
         config = parent.config
@@ -85,7 +108,18 @@ function initApp(){
     if(!lang) {
         lang = parent.lang
     }
-    console.log('INITAPP')
+    app = parent.appChannel
+    if(!parent.cordova){
+        app.on('ffmpeg-check', (mask, folder) => {
+            console.log('Starting FFmpeg check', [osd, mask, folder])
+            parent.parent.ffmpeg.check(osd, mask, folder).then(ret => {
+                console.log('FFmpeg checking succeeded', ret)
+            }).catch(err => {
+                console.error('FFmpeg checking error')
+                osd.show(String(err), 'fas fa-exclamation-triagle faclr-red', 'ffmpeg-dl', 'normal')
+            })
+        })
+    }
     app.on('open-external-url', url => parent.openExternalURL(url)) 
     app.on('open-external-file', (url, mimetype) => parent.openExternalFile(url, mimetype)) 
     app.on('load-js', src => {
@@ -102,21 +136,10 @@ function initApp(){
     app.on('theme-background', (image, video, color, fontColor, animate) => {
         parent.theming(image, video, color, fontColor, animate)
     })
-    let initP2PDetails
-    window.initP2P = () => { 
-        if(initP2PDetails && !window.p2p && typeof(P2PManager) != 'undefined'){
-            const {addr, limit} = initP2PDetails
-            window.p2p = new P2PManager(app, addr, limit)
-        }
-    }
-    app.on('init-p2p', (addr, limit) => {
-        initP2PDetails = {addr, limit}
-        initP2P()
-    })
     app.on('download', (url, name) => {
         console.log('download', url, name)
         if(parent.cordova){
-            parent.checkPermissions([
+            checkPermissions([
                 'READ_EXTERNAL_STORAGE', 
                 'WRITE_EXTERNAL_STORAGE'
             ], () => {
@@ -147,7 +170,7 @@ function initApp(){
     })
     app.on('open-file', (uploadURL, cbID, mimetypes, optionTitle) => {
         if(parent.cordova) {
-            parent.checkPermissions([
+            checkPermissions([
                 'READ_EXTERNAL_STORAGE', 
                 'WRITE_EXTERNAL_STORAGE'
             ], () => {
@@ -159,51 +182,27 @@ function initApp(){
                 }
                 console.log('MIMETYPES: ' + mimetypes.replace(new RegExp(' *, *', 'g'), '|'))
                 parent.fileChooser.open(file => { // {"mime": mimetypes.replace(new RegExp(' *, *', 'g'), '|')}, 
-                    console.log('FILE: ', file)
+                    console.log('FILE: '+ file)
                     osd.show(lang.PROCESSING, 'fa-mega spin-x-alt', 'theme-upload', 'normal')
                     explorer.get({name: optionTitle}).forEach(e => {
                         explorer.setLoading(e, true, lang.PROCESSING)
                     })
-                    const process = file => {
-                        parent.resolveLocalFileSystemURL(file, fileEntry => {
-                            let name = fileEntry.fullPath.split('/').pop().replace(new RegExp('[^0-9A-Za-z\\._\\- ]+', 'g'), '') || 'file.tmp', target = parent.cordova.file.cacheDirectory
-                            if(target.charAt(target.length - 1) != '/'){
-                                target += '/'
-                            }
-                            parent.resolveLocalFileSystemURL(target, dirEntry => {
-                                fileEntry.copyTo(dirEntry, name, () => {
-                                    console.log('Copy success', target, name)
-                                    app.emit(cbID, [
-                                        target.replace(new RegExp('^file:\/+'), '/') + name
-                                    ])
-                                    finish()
-                                }, e => {
-                                    app.emit(cbID, [null])
-                                    console.log('Copy failed', fileEntry, dirEntry, target, name, e)
-                                })
-                            }, null)
-                        }, err => {
-                            app.emit(cbID, [null])
+                    resolveNativePath(file, (err, file) => {
+                        console.log('FILE: '+ file +' '+ err)
+                        if(err){
                             console.error(err)
-                            finish()
-                            osd.show(String(err), 'fas fa-exclamation-circle faclr-red', 'theme-upload', 'normal')
-                        })
-                    }
-                    if(file.startsWith('content://')){
-                        if(file.indexOf('/raw%3A') != -1){
-                            file = file.replace('/raw%3A', '/raw:')
+                            osd.show(String(err), 'fas fa-exclamation-triangle faclr-red', 'theme-upload', 'normal')
+                        } else {
+                            app.emit(cbID, [file])
                         }
-                        parent.FilePath.resolveNativePath(file, process, err => {
-                            console.error(err)
-                            process(file)
-                        })
-                    } else {
-                        process(file)
-                    }                    
+                        finish()
+                    })
                 }, err => {
-                    console.error(err)
                     finish()
-                    osd.show(String(err), 'fas fa-exclamation-circle faclr-red', 'theme-upload', 'normal')
+                    if(String(err).indexOf('User cancelled') == -1){
+                        console.error(err)
+                        osd.show(String(err), 'fas fa-exclamation-triangle faclr-red', 'theme-upload', 'normal')
+                    }
                 })
             })
         } else if(parent.parent.Manager) {
@@ -213,15 +212,11 @@ function initApp(){
         }
     })
     app.on('display-error', txt => {
-        osd.show(txt, 'fas fa-exclamation-triangle faclr-red', 'error', 'normal')
-    })
-    app.on('clear-cache', () => {
-        if(window.nw){
-            window.nw.App.clearCache()
-        }
+        console.error(txt)
+        window.osd && osd.show(txt, 'fas fa-exclamation-triangle faclr-red', 'error', 'normal')
     })
     app.on('restart', () => {
-        parent.winman.restart()
+        parent.winman && parent.winman.restart()
     })
     app.on('config', configUpdated)
     app.on('fontlist', () => {
@@ -231,20 +226,51 @@ function initApp(){
         sound(n, v)
     })
     app.on('ask-exit', () => {
-        parent.winman.askExit()
+        parent.winman && parent.winman.askExit()
     })
     app.on('ask-restart', () => {
-        parent.winman.askRestart()
+        parent.winman && parent.winman.askRestart()
     })
     app.on('exit', force => {
-        parent.winman.exit(force)
+        parent.winman && parent.winman.exit(force)
     })
     app.on('background-mode-lock', name => {
-        if(parent.player && parent.winman) parent.winman.backgroundModeLock(name)
+        if(parent.player && parent.winman) parent.winman && parent.winman.backgroundModeLock(name)
     })
     app.on('background-mode-unlock', name => {
-        if(parent.player && parent.winman) parent.winman.backgroundModeUnlock(name)
+        if(parent.player && parent.winman) parent.winman && parent.winman.backgroundModeUnlock(name)
     })
+    let initP2PDetails
+    window.initP2P = () => { 
+        console.warn({initP2PDetails})
+        if(initP2PDetails) {
+            const done = () => {
+                if(typeof(require) == 'function') {
+                    console.warn({initP2PDetails})
+                    loadJSOnIdle('./modules/download/download-p2p-client.js', () => {
+                        console.warn({initP2PDetails})
+                        const {addr, limit, stunServers} = initP2PDetails
+                        window.p2p = new P2PManager(app, addr, limit, stunServers)
+                    })
+                }
+            }
+            if(typeof(require) != 'function' && typeof(parent.parent.require) == 'function') {
+                window.require = parent.parent.require
+            }
+            if(typeof(require) == 'function') {
+                done()
+            } else {
+                // browserify -r @geut/discovery-swarm-webrtc -r crypto -r safe-buffer -o assets/js/libs/webrtc-bundle.js
+                loadJSOnIdle('./modules/download/discovery-swarm-webrtc-bundle.js', done)
+            }
+        }
+    }
+    app.on('init-p2p', (addr, limit, stunServers) => {
+        initP2PDetails = {addr, limit, stunServers}
+        console.warn({initP2PDetails})
+        initP2P()
+    })
+    app.emit('download-p2p-init');
     $(() => {
         console.log('load app')
 
@@ -361,16 +387,8 @@ function initApp(){
         explorer.on('render', iconRange)
         explorer.on('update-range', iconRange)
         /* icons end */
-
-        if(navigator.app){
-            explorer.on('init', () => {
-                document.dispatchEvent(new CustomEvent('init', {}))
-            })
-        }
          
-        if(parent.updateConfig){
-            parent.updateConfig(config)
-        }
+        parent.updateConfig && parent.updateConfig.apply(parent, [config])
         
         window.osd = new OSD(document.getElementById('osd-root'), app)
         explorer.setViewSize(config['view-size-x'], config['view-size-y']);
@@ -463,7 +481,7 @@ function initApp(){
                 if(value.length > 12){
                     value = value.substr(0, 9) + '...'
                 }
-                t.innerHTML = mask.replace('{0}', value)
+                t.innerHTML = mask == 'time' ? clock.humanize(parseInt(value), true) : mask.replace('{0}', value)
             }
             setTimeout(() => {
                 explorer.focus(element, true)
@@ -482,6 +500,7 @@ function initApp(){
 
         langUpdated()
         app.emit('init')
+        window.idle = new Idle()
 
         window.streamer = new StreamerClient(document.querySelector('controls'), app)        
         streamer.on('show', explorer.reset.bind(explorer))
@@ -507,279 +526,288 @@ function initApp(){
         })
 
         configUpdated([], config)
-        window.dispatchEvent(new CustomEvent('appready'))
-        console.log('loaded app')
 
-        requestIdleCallback(() => {
-
-            hotkeys = new Hotkeys()
-            hotkeys.start(config.hotkeys)
-            app.on('config', (keys, c) => {
-                if(keys.includes('hotkeys')){
-                    hotkeys.start(c.hotkeys)
-                }
-            })
-
-            omni = new OMNI()
-            jQuery(document).on('keyup', omni.eventHandler.bind(omni))
-
-            explorer.on('scroll', y => {
-                //console.log('selectionMemory scroll', y)
-                explorer.updateRange(y)
-                elpShow()
-                haUpdate()
-            })
-
-            var elp = $('.explorer-location-pagination'), elpTxt = elp.find('span'), elpTimer = 0, elpDuration = 5000, elpShown = false, elpShow = txt => {
-                clearTimeout(elpTimer)
-                if(!elpShown){
-                    elpShown = true
-                    elp.show()
-                }
-                if(typeof(txt) == 'string'){
-                    elpTxt.html(txt)
-                }
-                if(explorer.selectedIndex < 2){
-                    elpTimer = setTimeout(() => {
-                        if(elpShown){
-                            elpShown = false
-                            elp.hide()
-                        }
-                    }, elpDuration)
-                }
-            }
-            const elpListener = () => {
-                requestIdleCallback(() => {
-                    let offset = explorer.path ? 0 : 1
-                    elpShow(' '+ (explorer.selectedIndex + offset + 1) +'/'+ (explorer.currentEntries.length + offset))
-                })
-            }
-            explorer.on('arrow', elpListener)
-            explorer.on('focus', elpListener)
-            explorer.on('render', elpListener)
-
-            var haTop = $('#home-arrows-top'), haBottom = $('#home-arrows-bottom')
-            haTop.on('click', () => {
-                explorer.arrow('up')
-            })
-            haBottom.on('click', () => {
-                explorer.arrow('down')
-            })
-    
-            window['home-arrows-active'] = {bottom: null, top: null, timer: 0};
-            window.haUpdate = () => {
-                var as = wrap.getElementsByTagName('a')
-                if(as.length > (explorer.viewSizeX * explorer.viewSizeY)){
-                    var lastY = (as[as.length - 1].offsetTop) - wrap.scrollTop, firstY = as[0].offsetTop - wrap.scrollTop
-                    if(lastY >= wrap.parentNode.offsetHeight){
-                        if(window['home-arrows-active'].bottom !== true){
-                            window['home-arrows-active'].bottom = true
-                            haBottom.css('opacity', 'var(--opacity-level-3)')
-                        }
-                    } else {
-                        if(window['home-arrows-active'].bottom !== false){
-                            window['home-arrows-active'].bottom = false
-                            haBottom.css('opacity', 0)
-                        }
-                    }
-                    if(firstY < 0){
-                        if(window['home-arrows-active'].top !== true){
-                            window['home-arrows-active'].top = true
-                            haTop.css('opacity', 'var(--opacity-level-3)')
-                        }
-                    } else {
-                        if(window['home-arrows-active'].top !== false){
-                            window['home-arrows-active'].top = false
-                            haTop.css('opacity', 0)
-                        }
-                    }
-                } else {
-                    window['home-arrows-active'].top = window['home-arrows-active'].bottom = false
-                    haBottom.add(haTop).css('opacity', 0)
-                }
-            }
-    
-            moment.tz.setDefault((Intl || parent.parent.Intl).DateTimeFormat().resolvedOptions().timeZone) // prevent "Intl is not defined"
-            if(lang.locale && !moment.locales().includes(lang.locale)){
-                importMomentLocale(lang.locale, () => {
-                    moment.locale(lang.locale)
-                    clock.update()
-                })
-            }
-    
-            clock = new Clock(document.querySelector('header time'))
-    
-            function handleSwipe(e){
-                if(explorer.inModal()) return
-                console.log('swipey', e)
-                let orientation = innerHeight > innerWidth ? 'portrait' : 'landscape'
-                let swipeDist, swipeArea = ['up', 'down'].includes(e.direction) ? innerHeight : innerWidth
-                switch(e.direction) {
-                    case 'left':
-                    case 'right':                        
-                        swipeDist = swipeArea / (orientation == 'portrait' ? 2 : 3)
-                        break
-                    case 'up':
-                    case 'down': // dont use default here to ignore diagonal moves
-                        swipeDist = swipeArea / (orientation == 'portrait' ? 3 : 2)
-                        break
-                }
-                if(swipeDist && e.swipeLength >= swipeDist){
-                    let swipeWeight = Math.round((e.swipeLength - swipeDist) / swipeDist)
-                    if(swipeWeight < 1) swipeWeight = 1
-                    console.log('SWIPE WEIGHT', swipeWeight)
-                    switch(e.direction){
-                        case 'left':
-                            if(explorer.inPlayer() && !explorer.isExploring()){       
-                                arrowRightPressed(true) 
-                            }
-                            break
-                        case 'right':                        
-                            if(explorer.inPlayer() && !explorer.isExploring()){   
-                                arrowLeftPressed(true)   
-                            } else {
-                                escapePressed()
-                            }
-                            break
-                        case 'up': // go down
-                            if(explorer.inPlayer()){
-                                if(!explorer.isExploring()){
-                                    arrowDownPressed(true)
-                                }
-                            }
-                            break
-                        case 'down': // go up
-                            if(explorer.inPlayer()){
-                                if(explorer.isExploring()){
-                                    if(!explorer.scrollContainer.scrollTop()){
-                                        explorer.body.removeClass('menu-playing')
-                                    }
-                                } else {
-                                    arrowUpPressed(false)
-                                }
-                            }
-                            break
-                    }
-                }
-            }
-            swipey.add(document.body, handleSwipe, {diagonal: false})
-            
-            var mouseWheelMovingTime = 0, mouseWheelMovingInterval = 200;
-            ['mousewheel', 'DOMMouseScroll'].forEach(n => {
-                window.addEventListener(n, event => {
-                    if(!explorer.inPlayer() || explorer.isExploring()) return
-                    let now = (new Date()).getTime()
-                    if(now > (mouseWheelMovingTime + mouseWheelMovingInterval)){
-                        mouseWheelMovingTime = now
-                        let delta = (event.wheelDelta || -event.detail)
-                        if(delta > 0){   
-                            //this.seekForward()
-                            arrowUpPressed()
-                        } else {
-                            //this.seekRewind()
-                            arrowDownPressed()
-                        }
-                    }
-                })
-            }) 
-
-            var internetConnStateOsdID = 'network-state', updateInternetConnState = () => {
-                if(navigator.onLine){
-                    app.emit('network-state-up')
-                    osd.hide(internetConnStateOsdID)
-                } else {
-                    app.emit('network-state-down')
-                    osd.show(lang.NO_INTERNET_CONNECTION, 'fas fa-exclamation-triangle faclr-red', internetConnStateOsdID, 'persistent')
-                }
-            }
-            jQuery(window).on('online', updateInternetConnState).on('offline', updateInternetConnState)
-            if(!navigator.onLine){
-                updateInternetConnState()
-            }
-            
-            app.on('share', (title, text, url) => {
-                console.log('share', title, text, url)
-                if(parent.cordova && typeof(parent.navigator.share) == 'function'){
-                    parent.navigator.share({
-                        text,
-                        url,
-                        title
-                    }).catch(err => {
-                        console.error('Share error', err)
-                    })
-                } else {
-                    parent.openExternalURL('https://megacubo.tv/share/?url=' + encodeURIComponent(url) + '&title=' + encodeURIComponent(title) + '&text=' + encodeURIComponent(text))
-                }
-            })
-    
-            idle.on('start', () => {
-                if(explorer.inPlayer() && !explorer.isExploring()){
-                    if(document.activeElement != document.body){
-                        document.activeElement.blur()
-                    }
-                }
-            })
-            
-            ffmpeg.bind()
-
-            let hs = document.getElementById('header-shutdown')
-            hs.title = hs.alt = lang.EXIT
-            hs.addEventListener('click',  () => {
-                parent.winman.askExit()
-            })
-
-            let ha = document.getElementById('header-about')
-            ha.title = ha.alt = lang.ABOUT
-            ha.addEventListener('click',  () => {
-                app.emit('about-dialog')
-            })
-
-            ha = hs = undefined
-
-            if(parent.cordova){
-                parent.winman.setBackgroundMode(true) // enable once at startup to prevent service not registered crash
-                parent.cordova.plugins.backgroundMode.disableBatteryOptimizations()
-				setTimeout(() => parent.winman.setBackgroundMode(false), 5000)
-                parent.cordova.plugins.backgroundMode.setDefaults({
-                    title: document.title,
-                    text: lang.RUNNING_IN_BACKGROUND || '...',                
-                    icon: 'icon', // this will look for icon.png in platforms/android/res/drawable|mipmap
-                    color: config['background-color'].slice(-6), // hex format like 'F14F4D'
-                    resume: true,
-                    hidden: true,
-                    silent: false,
-                    allowClose: true,
-                    closeTitle: lang.CLOSE || 'X'
-                    //, bigText: Boolean
-                })
-            } else {
-                jQuery('body').on('dblclick', event => {
-                    const rect = document.querySelector('header').getBoundingClientRect()
-                    const valid = event.clientY < (rect.top + rect.height)
-                    if(valid) {
-                        streamer.toggleFullScreen()
-                        event.preventDefault()
-                        event.stopPropagation()
-                    }
-                })
-            }           
-
-            if(parent.frontendBackendReadyCallback){
-                parent.frontendBackendReadyCallback('frontend') 
-            } else {
-                parent.addEventListener('load', () => {
-                    parent.frontendBackendReadyCallback('frontend') 
-                })
+        hotkeys = new Hotkeys()
+        hotkeys.start(config.hotkeys)
+        app.on('config', (keys, c) => {
+            if(keys.includes('hotkeys')){
+                hotkeys.start(c.hotkeys)
             }
         })
+
+        omni = new OMNI()
+        jQuery(document).on('keyup', omni.eventHandler.bind(omni))
+
+        explorer.on('scroll', y => {
+            //console.log('selectionMemory scroll', y)
+            explorer.updateRange(y)
+            elpShow()
+            haUpdate()
+        })
+
+        var elp = $('.explorer-location-pagination'), elpTxt = elp.find('span'), elpTimer = 0, elpDuration = 5000, elpShown = false
+        const elpShow = txt => {
+            clearTimeout(elpTimer)
+            if(!elpShown){
+                elpShown = true
+                elp.show()
+            }
+            if(typeof(txt) == 'string'){
+                elpTxt.html(txt)
+            }
+            if(explorer.selectedIndex < 2){
+                elpTimer = setTimeout(() => {
+                    if(elpShown){
+                        elpShown = false
+                        elp.hide()
+                    }
+                }, elpDuration)
+            }
+        }
+        const elpListener = () => {
+            let offset = explorer.path ? 0 : 1
+            elpShow(' '+ (explorer.selectedIndex + offset + 1) +'/'+ (explorer.currentEntries.length + offset))
+        }
+        explorer.on('arrow', elpListener)
+        explorer.on('focus', elpListener)
+        explorer.on('render', elpListener)
+
+        var haTop = $('#home-arrows-top'), haBottom = $('#home-arrows-bottom')
+        haTop.on('click', () => {
+            explorer.arrow('up')
+        })
+        haBottom.on('click', () => {
+            explorer.arrow('down')
+        })
+
+        window['home-arrows-active'] = {bottom: null, top: null, timer: 0};
+        window.haUpdate = () => {
+            var as = wrap.getElementsByTagName('a')
+            if(as.length > (explorer.viewSizeX * explorer.viewSizeY)){
+                var lastY = (as[as.length - 1].offsetTop) - wrap.scrollTop, firstY = as[0].offsetTop - wrap.scrollTop
+                if(lastY >= wrap.parentNode.offsetHeight){
+                    if(window['home-arrows-active'].bottom !== true){
+                        window['home-arrows-active'].bottom = true
+                        haBottom.css('opacity', 'var(--opacity-level-3)')
+                    }
+                } else {
+                    if(window['home-arrows-active'].bottom !== false){
+                        window['home-arrows-active'].bottom = false
+                        haBottom.css('opacity', 0)
+                    }
+                }
+                if(firstY < 0){
+                    if(window['home-arrows-active'].top !== true){
+                        window['home-arrows-active'].top = true
+                        haTop.css('opacity', 'var(--opacity-level-3)')
+                    }
+                } else {
+                    if(window['home-arrows-active'].top !== false){
+                        window['home-arrows-active'].top = false
+                        haTop.css('opacity', 0)
+                    }
+                }
+            } else {
+                window['home-arrows-active'].top = window['home-arrows-active'].bottom = false
+                haBottom.add(haTop).css('opacity', 0)
+            }
+        }
+
+        clock = new Clock(document.querySelector('header time'))
+
+        moment.tz.setDefault((Intl || parent.parent.Intl).DateTimeFormat().resolvedOptions().timeZone) // prevent "Intl is not defined"
+        if(lang.locale && !moment.locales().includes(lang.locale)){
+            importMomentLocale(lang.locale, () => {
+                moment.locale(lang.locale)
+                clock.update()
+            })
+        }
+
+        function handleSwipe(e){
+            if(explorer.inModal()) return
+            console.log('swipey', e)
+            let orientation = innerHeight > innerWidth ? 'portrait' : 'landscape'
+            let swipeDist, swipeArea = ['up', 'down'].includes(e.direction) ? innerHeight : innerWidth
+            switch(e.direction) {
+                case 'left':
+                case 'right':                        
+                    swipeDist = swipeArea / (orientation == 'portrait' ? 2 : 3)
+                    break
+                case 'up':
+                case 'down': // dont use default here to ignore diagonal moves
+                    swipeDist = swipeArea / (orientation == 'portrait' ? 3 : 2)
+                    break
+            }
+            if(swipeDist && e.swipeLength >= swipeDist){
+                let swipeWeight = Math.round((e.swipeLength - swipeDist) / swipeDist)
+                if(swipeWeight < 1) swipeWeight = 1
+                console.log('SWIPE WEIGHT', swipeWeight)
+                switch(e.direction){
+                    case 'left':
+                        if(explorer.inPlayer() && !explorer.isExploring()){       
+                            arrowRightPressed(true) 
+                        }
+                        break
+                    case 'right':                        
+                        if(explorer.inPlayer() && !explorer.isExploring()){   
+                            arrowLeftPressed(true)   
+                        } else {
+                            escapePressed()
+                        }
+                        break
+                    case 'up': // go down
+                        if(explorer.inPlayer()){
+                            if(!explorer.isExploring()){
+                                arrowDownPressed(true)
+                            }
+                        }
+                        break
+                    case 'down': // go up
+                        if(explorer.inPlayer()){
+                            if(explorer.isExploring()){
+                                if(!explorer.scrollContainer.scrollTop()){
+                                    explorer.app.emit('explorer-menu-playing', true)
+                                    explorer.body.removeClass('menu-playing')
+                                }
+                            } else {
+                                arrowUpPressed(false)
+                            }
+                        }
+                        break
+                }
+            }
+        }
+        swipey.add(document.body, handleSwipe, {diagonal: false})
+        
+        var mouseWheelMovingTime = 0, mouseWheelMovingInterval = 200;
+        ['mousewheel', 'DOMMouseScroll'].forEach(n => {
+            jQuery(window).on(n, event => {
+                if(!explorer.inPlayer() || explorer.isExploring()) return
+                let now = (new Date()).getTime()
+                if(now > (mouseWheelMovingTime + mouseWheelMovingInterval)){
+                    mouseWheelMovingTime = now
+                    let delta = (event.wheelDelta || -event.detail)
+                    if(delta > 0){   
+                        //this.seekForward()
+                        arrowUpPressed()
+                    } else {
+                        //this.seekRewind()
+                        arrowDownPressed()
+                    }
+                }
+            })
+        }) 
+
+        var internetConnStateOsdID = 'network-state', updateInternetConnState = () => {
+            if(navigator.onLine){
+                app.emit('network-state-up')
+                osd.hide(internetConnStateOsdID)
+            } else {
+                app.emit('network-state-down')
+                osd.show(lang.NO_INTERNET_CONNECTION, 'fas fa-exclamation-triangle faclr-red', internetConnStateOsdID, 'persistent')
+            }
+        }
+        jQuery(window).on('online', updateInternetConnState).on('offline', updateInternetConnState)
+        if(!navigator.onLine){
+            updateInternetConnState()
+        }
+        
+        app.on('share', (title, text, url) => {
+            console.log('share', title, text, url)
+            if(parent.cordova && typeof(parent.navigator.share) == 'function'){
+                parent.navigator.share({
+                    text,
+                    url,
+                    title
+                }).catch(err => {
+                    console.error('Share error', err)
+                })
+            } else {
+                parent.openExternalURL('https://megacubo.tv/share/?url=' + encodeURIComponent(url) + '&title=' + encodeURIComponent(title) + '&text=' + encodeURIComponent(text))
+            }
+        })
+
+        var parentRoot = jQuery(parent.document.documentElement)
+        var energySaver = {
+            start: () => {
+                parent.animateBackground('none')
+                parentRoot.addClass('curtains curtains-alpha').removeClass('curtains-close')
+            }, 
+            end: () => {
+                typeof(config) != 'undefined' && parent.animateBackground(config['animate-background'])
+                parentRoot.addClass('curtains-close curtains-alpha').removeClass('curtains')
+            }
+        }
+        idle.on('idle', () => {
+            if(explorer.inPlayer() && !explorer.isExploring()){
+                if(document.activeElement != document.body){
+                    document.activeElement.blur()
+                }
+            }
+        })
+        idle.on('away', () => {
+            streamer.active || streamer.isTuning() || energySaver.start()
+        })
+        idle.on('active', () => energySaver.end())
+        streamer.on('show', () => energySaver.start())
+        streamer.on('hide', () => {
+            idle.reset() // will not call idle.on('active') if not idle, so keep lines below to ensure
+            energySaver.end()
+        })
+        explorer.scrollContainer.on('scroll', () => idle.reset())
+        
+        ffmpeg.bind()
+
+        let hs = document.getElementById('header-shutdown')
+        hs.title = hs.alt = lang.EXIT
+        hs.addEventListener('click',  () => {
+            parent.winman && parent.winman.askExit()
+        })
+
+        let ha = document.getElementById('header-about')
+        ha.title = ha.alt = lang.ABOUT
+        ha.addEventListener('click',  () => {
+            app.emit('about-dialog')
+        })
+
+        ha = hs = undefined
+
+        if(parent.cordova){
+            parent.winman && parent.winman.setBackgroundMode(true) // enable once at startup to prevent service not registered crash
+            parent.cordova.plugins.backgroundMode.disableBatteryOptimizations()
+            setTimeout(() => parent.winman && parent.winman.setBackgroundMode(false), 5000)
+            parent.cordova.plugins.backgroundMode.setDefaults({
+                title: document.title,
+                text: lang.RUNNING_IN_BACKGROUND || '...',                
+                icon: 'icon', // this will look for icon.png in platforms/android/res/drawable|mipmap
+                color: config['background-color'].slice(-6), // hex format like 'F14F4D'
+                resume: true,
+                hidden: true,
+                silent: false,
+                allowClose: true,
+                closeTitle: lang.CLOSE || 'X'
+                //, bigText: Boolean
+            })
+        } else {
+            jQuery('body').on('dblclick', event => {
+                const rect = document.querySelector('header').getBoundingClientRect()
+                const valid = event.clientY < (rect.top + rect.height)
+                if(valid) {
+                    streamer.toggleFullScreen()
+                    event.preventDefault()
+                    event.stopPropagation()
+                }
+            })
+        }           
+
+        if(parent.frontendBackendReadyCallback){
+            parent.frontendBackendReadyCallback('frontend') 
+        } else {
+            parent.addEventListener('load', () => {
+                parent.frontendBackendReadyCallback('frontend') 
+            })
+        }
     })
 }
 
-var app
-parent.onBackendReady(() => {
-    app = setupIOCalls(new BridgeCustomEmitter())
-    app.emit('bind')
-    parent.channelGetLangCallback()
-    initApp()
-    console.log('ready OK')
-})
+parent.onBackendReady(initApp)

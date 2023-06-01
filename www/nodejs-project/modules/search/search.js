@@ -1,5 +1,4 @@
-
-const Events = require('events')
+const Events = require('events'), pLimit = require('p-limit')
 
 class SearchTermsHistory {
     constructor(){
@@ -361,22 +360,24 @@ class Search extends Events {
         })
     }
     async searchSuggestionEntries(removeAliases, countryOnly){
-        let ignoreKeywords = ['tv', 'hd', 'sd']
+        const limit = pLimit(3)
+        const ignoreKeywords = ['tv', 'hd', 'sd']
         let ret = {}, locs = await global.lang.getActiveCountries()
         if(countryOnly && locs.includes(global.lang.countryCode)){
             locs = [global.lang.countryCode]
         }
-        let results = await Promise.allSettled(locs.map(loc => global.cloud.get('searching.'+ loc)))
-        results.forEach(r => {
-            if(r.status == 'fulfilled' && r.value && typeof(r.value) == 'object'){
-                r.value.forEach(row => {
+        const tasks = locs.map(loc => {
+            return async () => {
+                const data = global.cloud.get('searching.'+ loc)
+                data.forEach(row => {
                     if(ignoreKeywords.includes(row.search_term)) return
 					let count = parseInt(row.cnt)
 					if(typeof(ret[row.search_term]) != 'undefined') count += ret[row.search_term]
 					ret[row.search_term] = count
                 })
             }
-        })
+        }).map(limit)
+        await Promise.allSettled(tasks)
         ret = Object.keys(ret).map(search_term => {
             return {search_term, cnt: ret[search_term]}
         })

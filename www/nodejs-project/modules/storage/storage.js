@@ -101,12 +101,7 @@ class StorageAsync extends StoragePromises {
 		}
 		this.queue.add(key, this._set.bind(this, key, val, expiration, cb))
 	}
-	checkDiskSpace(err){		
-		if(global.diagnostics && String(err).match(new RegExp('(out of space|space left)', 'i'))){
-			global.diagnostics.checkDiskOSD()
-		}
-	}
-	_get(key, cb, encoding){
+	_get(key, cb, encoding) {
 		return new Promise((resolve, reject) => { // promise is used by queue
 			if(encoding !== null && typeof(encoding) != 'string'){
 				encoding = 'utf-8'
@@ -272,9 +267,8 @@ class StorageAsync extends StoragePromises {
 		}
 		let tmpFile = path.join(path.dirname(file), String(parseInt(Math.random() * 1000000))) +'.commit'	
 		fs.writeFile(tmpFile, val, enc, err => { // to avoid corrupting, we'll write to a temp file first
-			if(err){
+			if(err) {
 				console.error(err)
-				this.checkDiskSpace(err)
 				cb(err)
 			} else {
 				global.moveFile(tmpFile, file, err => {
@@ -349,7 +343,6 @@ class StorageSync extends StorageAsync {
 			}
 			this.writeSync(fe, x, 'utf8')
 		} catch(e){
-			this.checkDiskSpace(e)
 			console.error(e)
 		}
 	}

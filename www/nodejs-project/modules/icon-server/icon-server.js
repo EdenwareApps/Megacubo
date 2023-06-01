@@ -1,5 +1,6 @@
 const fs = require('fs'), path = require('path'), http = require('http')
-const crypto = require('crypto'), Icon = require('./icon'), closed = require('../on-closed')
+const crypto = require('crypto'), Icon = require('./icon')
+const pLimit = require('p-limit'), closed = require('../on-closed')
 
 class IconDefault {
     constructor(){}
@@ -81,16 +82,19 @@ class IconDefault {
             })
         }
     }
-    adjust(file, options){
-        return new Promise((resolve, reject) => {
-            let opts = {
-                autocrop: global.config.get('autocrop-logos')
-            }
-            if(options){
-                Object.assign(opts, options)
-            }
-            global.jimp.transform(file, opts).then(resolve).catch(reject)
+    async adjust(file, options) {
+        return await this.limiter.adjust(async () => {
+            return await this.doAdjust(file, options)
         })
+    }
+    async doAdjust(file, options){
+        let opts = {
+            autocrop: global.config.get('autocrop-logos')
+        }
+        if(options){
+            Object.assign(opts, options)
+        }
+        return await global.jimp.transform(file, opts)
     }
 }
 
@@ -101,7 +105,7 @@ class IconSearch extends IconDefault {
         global.watching.on('watching', () => this.updateWatchingIcons())
     }
     seemsLive(e){
-        return (e.gid || global.lists.msi.isLive(e.url)) ? 1 : 0 // gid here serves as a hint of a live stream
+        return (e.gid || global.lists.mi.isLive(e.url)) ? 1 : 0 // gid here serves as a hint of a live stream
     }
     updateWatchingIcons(){
         const watchingIcons = {}
@@ -273,132 +277,81 @@ class IconServerStore extends IconSearch {
         const time = data && data.length ? this.ttlHTTPCache : this.ttlBadHTTPCache
         global.storage.rawTemp.set('icons-cache-' + key, data, time, cb || (() => {}))
     }
-    saveHTTPCacheExpiration(key, cb){
-        fs.stat(global.storage.rawTemp.resolve('icons-cache-' + key), (err, stat) => {
-            if(stat){
-                let time = this.ttlBadHTTPCache
-                if(stat.size){
-                    time = this.ttlHTTPCache
-                }
-                global.storage.rawTemp.setExpiration('icons-cache-' + key, time, cb)
-            } else {
-                cb()
-            }
-        })
-    }
-}
-
-class IconFetchSem extends IconServerStore {
-    constructor(opts){    
-        super()
-        this.fetching = {}
-    }
-    isFetching(url){
-        return typeof(this.fetching[url]) != 'undefined'
-    }
-    setFetching(url){
-        if(!this.isFetching(url)){
-            this.fetching[url] = []
+    async saveHTTPCacheExpiration(key, size){
+        let stat
+        const file = global.storage.rawTemp.resolve('icons-cache-' + key)
+        if(typeof(size) != 'number') {
+            let err
+            stat = await fs.promises.stat(file).catch(e => err = e)
+            err || (size = stat.size)
         }
+        let time = this.ttlBadHTTPCache
+        if(stat && stat.size){
+            time = this.ttlHTTPCache
+        }
+        global.storage.rawTemp.setExpiration('icons-cache-' + key, time, () => {})
     }
-    waitFetching(url, resolve, reject){
-        this.fetching[url].push({resolve, reject})
-    }
-    releaseFetching(url, ret){
-        const cbs = this.fetching[url].map(r => r.resolve)
-        delete this.fetching[url]
-        cbs.forEach(cb => cb(ret))
-    }
-    releaseFetchingErr(url, ret){
-        const cbs = this.fetching[url].map(r => r.reject)
-        delete this.fetching[url]
-        cbs.forEach(cb => cb(ret))
-    }
-    fetchURL(url){  
-        return new Promise((resolve, reject) => {
-            const suffix = 'data:image/png;base64,'
-            if(String(url).startsWith(suffix)) {
-                const key = this.key(url)
-                const file = this.resolveHTTPCache(key)
-                return fs.writeFile(file, Buffer.from(url.replace(suffix, ''), 'base64'), err => {
-                    if(err){
-                        return reject(err)
-                    }
-                    this.validateFile(file).then(ret => {
-                        resolve({key, file, isAlpha: ret == 2})
-                    }).catch(reject)
-                })
-            }
-            if(typeof(url) != 'string' || url.indexOf('//') == -1){
-                return reject('bad url')
-            }
-            if(this.isFetching(url)){
-                return this.waitFetching(url, resolve, reject)
-            }
-            const key = this.key(url)
-            if(this.opts.debug){
-                console.warn('WILLFETCH', url)
-            }
-            this.setFetching(url)
-            this.checkHTTPCache(key).then(file => {
-                if(this.opts.debug){
-					console.log('fetchURL', url, 'cached')
-                }
-                this.validateFile(file).then(ret => {
-                    let atts = {key, file, isAlpha: ret == 2}
-                    this.releaseFetching(url, atts)
-                    resolve(Object.assign({}, atts))
-                }).catch(err => {
-                    this.releaseFetchingErr(url, err)
-                    reject(err)
-                })
-            }).catch(err => {
-                if(this.opts.debug){
-					console.log('fetchURL', url, 'request', err)
-                }
-                this.schedule('download', done => {
-                    const file = this.resolveHTTPCache(key)
-                    global.Download.file({
-                        url,
-                        downloadLimit: this.opts.downloadLimit,
-                        retries: 3,
-                        headers: {
-                            'content-encoding': 'identity'
-                        },
-                        file
-                    }).then(ret => {
-                        this.saveHTTPCacheExpiration(key, () => {
-                            this.validateFile(file).then(ret => {
-                                const atts = {key, file, isAlpha: ret == 2}
-                                if(this.opts.debug){
-                                    console.log('fetchURL', url, 'validated')
-                                }
-                                resolve(Object.assign({}, atts))
-                                this.releaseFetching(url, atts)
-                            }).catch(err => {
-                                if(this.opts.debug){
-                                    console.log('fetchURL', url, 'NOT validated')
-                                }
-                                reject(err)
-                                this.releaseFetchingErr(url, err)
-                            }).finally(done)
-                        })
-                    }).catch(err => {
-                        err = 'Failed to read URL (2): '+ url +' '+ err
-                        if(this.opts.debug){
-                            console.log('fetchURL', err)
-                        }
-                        reject(err)
-                        this.releaseFetchingErr(url, err)
-                        done()
-                    })
-                })
-            })
+    async fetchURL(url){
+        return await this.limiter.download(async () => {
+            return await this.doFetchURL(url)
         })
+    }
+    async doFetchURL(url){
+        const suffix = 'data:image/png;base64,'
+        if(String(url).startsWith(suffix)) {
+            const key = this.key(url)
+            const file = this.resolveHTTPCache(key)
+            await fs.promises.writeFile(file, Buffer.from(url.replace(suffix, ''), 'base64'))
+            const ret = await this.validateFile(file)
+            return {key, file, isAlpha: ret == 2}
+        }
+        if(typeof(url) != 'string' || url.indexOf('//') == -1){
+            throw 'bad url '+ global.crashlog.stringify(url)
+        }
+        const key = this.key(url)
+        if(this.opts.debug){
+            console.warn('WILLFETCH', url)
+        }
+        let err
+        const cfile = await this.checkHTTPCache(key).catch(e => err = e)
+        if(!err) { // has cache
+            if(this.opts.debug){
+                console.log('fetchURL', url, 'cached')
+            }
+            const ret = await this.validateFile(cfile).catch(e => err = e)
+            if(!err) {
+                return {key, cfile, isAlpha: ret == 2}
+            }
+        }
+        if(this.opts.debug){
+            console.log('fetchURL', url, 'request', err)
+        }
+        const file = this.resolveHTTPCache(key)
+        err = null
+        await global.Download.file({
+            url,
+            downloadLimit: this.opts.downloadLimit,
+            retries: 3,
+            headers: {
+                'content-encoding': 'identity'
+            },
+            file
+        }).catch(e => err = e)
+        if(err){
+            await fs.promises.unlink(file)
+            throw err
+        }
+        await this.saveHTTPCacheExpiration(key)
+        const ret2 = await this.validateFile(file)
+        const atts = {key, file, isAlpha: ret2 == 2}
+        if(this.opts.debug){
+            console.log('fetchURL', url, 'validated')
+        }
+        return Object.assign({}, atts)
     }
 }
 
-class IconServer extends IconFetchSem {
+class IconServer extends IconServerStore {
     constructor(opts){    
         super()
         this.opts = {
@@ -421,7 +374,11 @@ class IconServer extends IconFetchSem {
 		})
         this.closed = false
         this.server = false
-        this.schedulingLimits = {download: 6, adjust: 1}
+        this.limiter = {
+            download: pLimit(6),
+            adjust: pLimit(1)
+        }
+        this.schedulingLimits = {download: 4, adjust: 1}
         this.activeSchedules = {}
         this.schedules = {}
         this.rendering = {}
@@ -472,10 +429,6 @@ class IconServer extends IconFetchSem {
                 }
             })
         }
-    }
-    absolutize(path, url){
-        let uri = new URL(path, url)
-        return uri.href
     }
     qualifyEntry(e){
         if(!e || (e.class && e.class.indexOf('no-icon') != -1)){

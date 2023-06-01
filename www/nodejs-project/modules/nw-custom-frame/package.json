@@ -1,0 +1,33 @@
+{
+  "author": {
+    "name": "Woem"
+  },
+  "bugs": {
+    "url": "https://github.com/efoxbr/nw-custom-frame/issues"
+  },
+  "bundleDependencies": false,
+  "description": "Custom frame and title bar for nw.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "homepage": "https://github.com/efoxbr/nw-custom-frame#readme",
+  "keywords": [
+    "nw",
+    "nwjs",
+    "node-webkit",
+    "custom-frame",
+    "nodejs"
+  ],
+  "license": "GPL-3.0",
+  "main": "nw-custom-frame.js",
+  "name": "nw-custom-frame",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/efoxbr/nw-custom-frame.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "style": "nw-custom-frame-core.css",
+  "version": "0.9.1"
+}

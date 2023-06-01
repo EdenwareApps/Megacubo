@@ -6,15 +6,14 @@
         <meta name="color-scheme" content="light" />
         <title>Megacubo</title>
         <script type="text/javascript" defer src="node_modules/jquery/dist/jquery.min.js"></script>
+        <script type="text/javascript" defer src="assets/js/libs/jquery.shortcuts.min.js"></script>
         <script type="text/javascript" defer src="assets/js/libs/events.js"></script>
         <script type="text/javascript" defer src="assets/js/app/utils.js"></script> 
-        <script type="text/javascript" defer src="modules/bridge/client.js"></script> 
         <script type="text/javascript" defer src="node_modules/buzz/dist/buzz.min.js"></script>
         <script type="text/javascript" defer src="assets/js/app/idle.js"></script>
         <script type="text/javascript" defer src="modules/supercharge/supercharge.js"></script>   
         <script type="text/javascript" defer src="modules/osd/client.js"></script>
         <script type="text/javascript" defer src="modules/streamer/client.js"></script>
-        <script type="text/javascript" defer src="assets/js/libs/jquery.shortcuts.min.js"></script>
         <script type="text/javascript" defer src="assets/js/libs/swipey.min.js"></script>          
         <script type="text/javascript" defer src="assets/js/libs/moment.min.js"></script>          
         <script type="text/javascript" defer src="assets/js/libs/moment-timezone-with-data.min.js"></script>            
@@ -139,17 +138,5 @@
         </div>
         <div id="osd-root"></div>		
 		<script type="text/javascript" defer src="assets/js/app/app.js"></script>
-        <script type="text/javascript">
-            window.addEventListener('load', () => {
-                // browserify -r @geut/discovery-swarm-webrtc -r crypto -r safe-buffer -o assets/js/libs/webrtc-bundle.js
-                loadJSOnIdle('./assets/js/libs/webrtc-bundle.js', () => {
-                    loadJSOnIdle('./modules/download/download-p2p-client.js', () => {
-                        if(typeof(initP2P) != 'undefined'){
-                            initP2P()
-                        }
-                    })
-                })
-            })
-        </script>        
     </body>
 </html>

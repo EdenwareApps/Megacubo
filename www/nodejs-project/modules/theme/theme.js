@@ -9,7 +9,7 @@ class Theme extends Events {
         this.customBackgroundVideoPath = global.paths.data +'/background'
         this.keys = ['theme-name', 'animate-background', 'background-color', 'background-color-transparency', 'custom-background-image', 'custom-background-video', 'font-color', 'font-family', 'font-size', 'uppercase-menu', 'view-size-x', 'view-size-y', 'fx-nav-intensity']
         this.folder = global.paths.data +'/Themes'
-        global.ui.once('init', () => {
+        global.uiReady(() => {
             this.refresh()
             global.explorer.on('render', (entries, path) => {
                 if(path == [global.lang.TOOLS, global.lang.THEMES].join('/')){
@@ -39,7 +39,7 @@ class Theme extends Events {
         })
         global.ui.on('theme-import-file', data => {
             console.warn('!!! IMPORT FILE !!!', data)
-            global.importFileFromClient(data).then(ret => {
+            global.ui.importFileFromClient(data).then(ret => {
                 global.options.importConfigFile(ret, this.keys, () => {
                     global.explorer.refresh()
                 })
@@ -117,7 +117,7 @@ class Theme extends Events {
     importBackgroundImage(data){
         global.ui.emit('set-loading', {name: global.lang.CHOOSE_BACKGROUND_IMAGE}, true, global.lang.PROCESSING)
         global.osd.show(global.lang.PROCESSING, 'fas fa-cog fa-spin', 'theme-upload', 'persistent')
-        global.importFileFromClient(data, this.customBackgroundImagePath).then(ret => this.importBackgroundImageCallback(ret)).catch(err => {
+        global.ui.importFileFromClient(data, this.customBackgroundImagePath).then(ret => this.importBackgroundImageCallback(ret)).catch(err => {
             global.displayErr(err)
         }).finally(() => {
             global.ui.emit('set-loading', {name: global.lang.CHOOSE_BACKGROUND_IMAGE}, false)
@@ -129,7 +129,7 @@ class Theme extends Events {
         global.osd.show(global.lang.PROCESSING, 'fas fa-cog fa-spin', 'theme-upload', 'persistent')
         const uid = parseInt(Math.random() * 1000)
         const file = this.customBackgroundVideoPath +'-'+ uid + '.mp4'
-        global.importFileFromClient(data, file).then(ret => {
+        global.ui.importFileFromClient(data, file).then(ret => {
             console.error('IMPORTED', ret, file)
             this.importBackgroundVideoCallback(file).then(() => {
                 global.osd.show(global.lang.BACKGROUND_VIDEO_BLACK_SCREEN_HINT, 'fas fa-info-circle', 'theme-upload-hint', 'long')
@@ -603,7 +603,6 @@ class Theme extends Events {
                     debug: false,
                     file,
                     url,
-                    compression: false,
                     progress: p => {
                         global.osd.show(global.lang.LOADING +' '+ p +'%', 'fas fa-download', 'theme', 'persistent')
                     },
@@ -612,11 +611,7 @@ class Theme extends Events {
                     cacheTTL: 24 * 3600
                 }).then(file => {
                     global.osd.hide('theme')
-                    this.load(file, err => {
-                        if(err){
-                            fs.unlink(file, () => {})
-                        }
-                    })
+                    this.load(file, err => err && fs.unlink(file, () => {}))
                     global.explorer.refresh()
                 }).catch(global.displayErr)
             }

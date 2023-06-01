@@ -25,16 +25,10 @@ class Suggestions {
         return l
     }
     async suggestions(categories, until){
-        let data
-        if(categories.length < 10) { // few tags, do an extended search to maximize results
-            data = {}
-            await Promise.allSettled(categories.map(async c => {
-                let map = await global.lists.epgSearch(global.lists.terms(c))
-                data = this.mergeMaps(data, map, until)
-            }))
-        } else {
-            data = await global.lists.epgSuggestions(categories, until)
-        }
+        let data = await global.lists.epgSuggestions(categories, until, 512)
+        return await this.validateChannels(data)
+    }
+    async validateChannels(data){
         let channels = {}
         Object.keys(data).forEach(ch => {
             let channel = global.channels.isChannel(ch)
@@ -109,21 +103,36 @@ class Suggestions {
 		})
         return ndata
     }
+    async tags(limit){
+        const programmeCategories = this.prepareCategories(this.programmeCategories(), limit)
+        if(Object.keys(programmeCategories).length < limit) {
+            let additionalCategories = {}
+            const additionalLimit = limit - Object.keys(programmeCategories).length
+            const expandedCategories = await global.lists.epgExpandSuggestions(Object.keys(programmeCategories))
+            Object.keys(expandedCategories).forEach(term => {
+                const score = programmeCategories[term]
+                expandedCategories[term].forEach(t => {
+                    if(programmeCategories[t]) return
+                    if(typeof(additionalCategories[t]) == 'undefined'){
+                        additionalCategories[t] = 0
+                    }
+                    additionalCategories[t] += score / 2
+                })
+            })
+            additionalCategories = this.prepareCategories(additionalCategories, additionalLimit)
+            Object.assign(programmeCategories, additionalCategories)
+        }
+        return this.prepareCategories(programmeCategories)
+    }
     async get(){
-        const categoriesLimit = 64
         const now = global.time()
         const timeRange = 24 * 3600
         const timeRangeP = timeRange / 100
         const until = now + timeRange  
-        const amount = ((global.config.get('view-size-x') * global.config.get('view-size-y')) * 2) - 2
-        const channels = this.channels()
-        const programmeCategories = this.prepareCategories(this.programmeCategories(), categoriesLimit)
-        const expandedCategories = Object.keys(programmeCategories).length >= categoriesLimit ? {} : (await global.lists.epgExpandSuggestions(Object.keys(programmeCategories)))
-        const allFoundCategories = [...new Set(Object.keys(programmeCategories).concat(Object.values(expandedCategories).flat()).filter(t => {
-            return t.split(' ').length <= 3 // filter too specific tags, like season+episode formatted ones
-        }))].slice(0, categoriesLimit)
-        let data = await this.suggestions(allFoundCategories, until)
-        console.log('suggestions.get', allFoundCategories, Object.keys(programmeCategories), expandedCategories)
+        const amount = ((global.config.get('view-size-x') * global.config.get('view-size-y')) * 2) - 3
+        const tags = await this.tags(64)
+        let data = await this.suggestions(tags, until)
+        // console.log('suggestions.get', tags)
         let results = this.mapDataToChannels(data)
         const watching = {}
         if(global.watching.currentEntries){
@@ -139,24 +148,12 @@ class Suggestions {
         results = results.map(r => {
             let score = 0
             
-            // bump programmes from same categories
+            // bump programmes by categories amount and relevance
             r.programme.c.forEach(l => {
-                if(programmeCategories[l]){
-                    score += programmeCategories[l]
-                } else if(allFoundCategories.includes(l)) {
-                    Object.keys(expandedCategories).forEach(k => {
-                        if(expandedCategories[k].includes(l)){
-                            // console.warn('half score', k, l, programmeCategories[k])
-                            score += (programmeCategories[k] / 2) // half score for indirect tags
-                        }
-                    })
+                if(tags[l]){
+                    score += tags[l]
                 }
             })
-            
-            // bump programmes from same channels
-            if(channels[r.channel.name]){
-                score += channels[r.channel.name]
-            }
             
             // bump programmes starting earlier
             let remainingTime = r.start - now
@@ -181,9 +178,9 @@ class Suggestions {
         if(results.length > amount) {
             const quotas = {}
             let total = 0
-            Object.values(programmeCategories).forEach(v => total += v)            
-            Object.keys(programmeCategories).forEach(k => {
-                quotas[k] = Math.max(2, Math.ceil((programmeCategories[k] / total) * amount))
+            Object.values(tags).forEach(v => total += v)            
+            Object.keys(tags).forEach(k => {
+                quotas[k] = Math.max(1, Math.ceil((tags[k] / total) * amount))
             })
             let nresults = []
             while(nresults.length < amount){
@@ -242,19 +239,6 @@ class Suggestions {
             entry.details += ' &middot; '+ r.channel.name
             return entry
         })
-    }
-    channels(){
-        const data = {}
-        this.master.data.slice(-6).forEach(row => {
-            const name = row.originalName || row.name
-            if(typeof(data[name]) == 'undefined'){
-                data[name] = 0
-            }
-            data[name] += row.watched.time
-        })
-        const pp = Math.max(...Object.values(data)) / 100
-        Object.keys(data).forEach(k => data[k] = data[k] / pp)
-        return data
     }
     channelsCategories(){
         const data = {}

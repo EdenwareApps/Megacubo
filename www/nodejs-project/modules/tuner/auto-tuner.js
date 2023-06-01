@@ -12,7 +12,7 @@ class AutoTuner extends Events {
         this.intents = []
         this.succeededs = {} // -1 = bad mediatype, 0 = initialized, 1 = intenting, 2 = committed, 3 = starting failed
         opts.mediaType = opts.mediaType == 'audio' ? 'all' : opts.mediaType // is we're searching a radio, no problem to return a radio studio webcam
-        if(!opts.allowedTypes || !Array.isArray(opts.allowedTypes)){
+        if(!opts.allowedTypes || !Array.isArray(opts.allowedTypes)) {
             opts.allowedTypes = []
             Object.keys(global.streamer.engines).forEach(n => {
                 if(global.streamer.engines[n].mediaType == opts.mediaType){
@@ -109,7 +109,7 @@ class AutoTuner extends Events {
     }
     async ceilMyListsStreams(entries){
         const deferredEntries = []
-        const listsInfo = global.lists.info()
+        const listsInfo = global.lists.info(true)
         entries = entries.filter(entry => {
             const isMine = listsInfo[entry.source] && listsInfo[entry.source].owned
             if(isMine){
@@ -445,7 +445,7 @@ class AutoTuner extends Events {
         this.emit('destroy')
         this.intents.forEach(n => n.destroy())                
         this.intents = []
-        this.tuner.destroy()
+        this.tuner && this.tuner.destroy()
         this.removeAllListeners()
         this.timer && clearInterval(this.timer)
     }

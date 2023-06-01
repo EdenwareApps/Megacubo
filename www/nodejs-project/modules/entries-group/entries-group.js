@@ -10,7 +10,7 @@ class EntriesGroup extends Events {
         this.data = []
         this.isReady = false
         this.isUIReady = false
-        global.ui.once('init', () => {
+        global.uiReady(() => {
             this.isUIReady = true
             this.emit('ui-ready')
         })

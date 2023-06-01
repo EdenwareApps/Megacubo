@@ -12,25 +12,10 @@ class HLSJournal {
 		this.maxLen = Math.ceil(global.config.get('live-window-time') / 3)
 		this.mediaSequence = {}
 		this.regexes = {
-			'unproxify': new RegExp('/127\.0\.0\.1:[0-9]+(/s/|/)'),
-			'protoNDomain': new RegExp('(https?://|//)[^/]+/'),
-			'tsBasename': new RegExp('[^/]*\\.(m4s|mts|m2ts|ts)', 'i'),
-			'ts': new RegExp('^.*\\.(m4s|mts|m2ts|ts)', 'i')			
-		}
-	}
-    absolutize(path, url){
-		if(path.substr(0, 2) == '//'){
-			path = 'http:' + path
-		}
-        if(['http://', 'https:/'].includes(path.substr(0, 7))){
-            return path
-		}
-		let uri
-		try{
-			uri = new URL(path, url)
-			return uri.href
-		} catch(e) {
-			return global.joinPath(url, path)
+			unproxify: new RegExp('/127\.0\.0\.1:[0-9]+(/s/|/)'),
+			protoNDomain: new RegExp('(https?://|//)[^/]+/'),
+			tsBasename: new RegExp('[^/]*\\.(m4s|mts|m2ts|ts)', 'i'),
+			ts: new RegExp('^.*\\.(m4s|mts|m2ts|ts)', 'i')			
 		}
 	}
 	process(content){
@@ -51,7 +36,7 @@ class HLSJournal {
 					header.push(line)
 				}
 			})
-			this.liveJournal = Object.keys(segments).map(u => this.absolutize(u, this.url))
+			this.liveJournal = Object.keys(segments).map(u => global.absolutize(u, this.url))
 			Object.keys(segments).forEach(name => {
 				if(typeof(this.journal[name]) == 'undefined' || this.journal[name] != segments[name]){
 					this.journal[name] = segments[name]
@@ -106,7 +91,7 @@ class HLSRequests extends StreamerProxyBase {
 		this.debugConns = false
 		this.debugUnfinishedRequests = false
 		this.finishRequestsOutsideFromLiveWindow = false
-		this.prefetchMaxConcurrency = 2
+		this.prefetchMaxConcurrency = 1
 		this.activeManifest = null
 		this.activeRequests = {}
 		this.once('destroy', () => {
@@ -120,10 +105,7 @@ class HLSRequests extends StreamerProxyBase {
 				global.osd.hide('hlsprefetch')
 			}
 		})
-		this.maxDiskUsage = 200 * (1024 * 1024)		
-		global.diagnostics.checkDisk().then(data => {
-			this.maxDiskUsage = data.free * 0.2
-		}).catch(console.error)
+		this.maxDiskUsage = 200 * (1024 * 1024)
 	}
     url2file(url){
         let f = global.sanitize(url)
@@ -176,7 +158,7 @@ class HLSRequests extends StreamerProxyBase {
 		ks.forEach(k => {
 			this.journals[journalUrl].journal[k].split("\n").forEach(line => {
 				if(line.length > 3 && !line.startsWith('#')){
-					let segmentUrl = this.unproxify(this.absolutize(line, journalUrl))
+					let segmentUrl = this.unproxify(global.absolutize(line, journalUrl))
 					if(typeof(this.activeRequests[segmentUrl]) != 'undefined' || typeof(global.Download.cache.index[segmentUrl]) != 'undefined') {
 						lastDownloading = k
 					}
@@ -191,13 +173,13 @@ class HLSRequests extends StreamerProxyBase {
 					if(ks[i + 1]){
 						this.journals[journalUrl].journal[ks[i + 1]].split("\n").some(line => {
 							if(line.length > 3 && !line.startsWith('#')){
-								next = this.absolutize(this.unproxify(line), journalUrl)
+								next = global.absolutize(this.unproxify(line), journalUrl)
 							}
 						})
 						ks.slice(i + 1).some(k => {
 							this.journals[journalUrl].journal[k].split("\n").some(line => {
 								if(line.length > 3 && !line.startsWith('#')){
-									let segmentUrl = this.absolutize(this.unproxify(line), journalUrl)
+									let segmentUrl = global.absolutize(this.unproxify(line), journalUrl)
 									if(!this.finishRequestsOutsideFromLiveWindow || this.journals[journalUrl].inLiveWindow(segmentUrl)){
 										next = segmentUrl
 										return true
@@ -222,7 +204,7 @@ class HLSRequests extends StreamerProxyBase {
 				ks.slice(0, i).forEach(k => {
 					this.journals[pos.journal].journal[k].split("\n").forEach(line => {
 						if(line.length > 3 && !line.startsWith('#')){
-							let segmentUrl = this.unproxify(this.absolutize(line, pos.journal))
+							let segmentUrl = this.unproxify(global.absolutize(line, pos.journal))
 							if(typeof(this.activeRequests[segmentUrl]) != 'undefined'){
 								const requestEnded = !this.activeRequests[segmentUrl] || this.activeRequests[segmentUrl].ended
 								const finishNotLive = this.finishRequestsOutsideFromLiveWindow && !this.journals[pos.journal].inLiveWindow(segmentUrl)
@@ -341,7 +323,6 @@ class HLSRequests extends StreamerProxyBase {
 					status = 204 // Exoplayer doesn't plays well with 404 errors
 				}
 			}
-			// console.warn('RESPONSE OK', status, headers, this.requestCacheMap[url])
 		})
 		request.on('data', chunk => this.downloadLog(this.len(chunk)))
 		request.once('end', end)
@@ -490,7 +471,7 @@ class StreamerProxyHLS extends HLSRequests {
 						if(this.opts.debug){
 							console.log('dn', dn, df, segment.uri)
 						}
-						u = this.absolutize(segment.uri, url)
+						u = global.absolutize(segment.uri, url)
 						let n = this.proxify(u)
 						replaces[dn] = n.substr(0, n.length - df)
 						if(this.opts.debug){
@@ -514,7 +495,7 @@ class StreamerProxyHLS extends HLSRequests {
 				}
 				parser.manifest.playlists.forEach(playlist => {
 					let dn = this.dirname(playlist.uri)
-					u = this.absolutize(playlist.uri, url)
+					u = global.absolutize(playlist.uri, url)
 					if(!Object.keys(this.playlists[url]).includes(u)){
 						this.playlists[url][u] = {state: true, name: this.trackName(playlist)} // state=true here means "online"
 					}
@@ -550,7 +531,7 @@ class StreamerProxyHLS extends HLSRequests {
 			*/
 			body = body.replace(new RegExp('(URI="?)([^\\n"\']+)', 'ig'), (...match) => { // for #EXT-X-KEY:METHOD=AES-128,URI="https://...
 				if(match[2].indexOf('127.0.0.1') == -1){
-					match[2] = this.absolutize(match[2], url)
+					match[2] = global.absolutize(match[2], url)
 					match[2] = this.proxify(match[2])
 				}
 				return match[1] + match[2]
@@ -642,14 +623,24 @@ class StreamerProxyHLS extends HLSRequests {
 				console.log('serving', url, req, url, reqHeaders)
 			}
 		}
-		const cacheTTL = (this.committed && url.match(this.isCacheableRegex)) ? 60 : 0
+		let match
+		const isCacheable = this.committed && (match = url.match(this.isCacheableRegex)) && match.length && match[0].length // strangely it was returning [""] sometimes on electron@9.1.2
+		const cacheTTL = isCacheable ? 60 : 0
 		const keepalive = this.committed && global.config.get('use-keepalive')
 		const download = this.download({
 			url,
 			cacheTTL,
+			cacheTTLDebug: [
+				this.committed, 
+				url,  
+				url.match(this.isCacheableRegex), 
+				isCacheable,
+				cacheTTL, 
+				(this.committed && url.match(this.isCacheableRegex)) ? 60 : 0
+			],
 			acceptRanges: !!cacheTTL,
 			p2p: !!cacheTTL,
-			p2pWaitMs: 500,
+			p2pWaitMs: 0,
 			debug: false,
 			headers: reqHeaders,
 			authURL: this.opts.authURL || false, 
@@ -663,7 +654,7 @@ class StreamerProxyHLS extends HLSRequests {
 				ended = true
 			}
 			response.destroy()
-			//download.destroy()
+			// download.destroy()
 			if(this.opts.debug){
 				console.log('abort', traceback())
 			}
@@ -772,7 +763,7 @@ class StreamerProxyHLS extends HLSRequests {
 						}
 					})
 				} else if(typeof(headers.location) != 'undefined') {
-					location = this.proxify(this.absolutize(headers.location, url))
+					location = this.proxify(global.absolutize(headers.location, url))
 				}
 				if(fallback){
 					headers.location = fallback
@@ -830,6 +821,7 @@ class StreamerProxyHLS extends HLSRequests {
 			return this.handleMetaResponse(download, statusCode, headers, response, end)
 		}
 		let closed
+		headers = this.removeHeaders(headers, ['content-length']) // avoid incorrect length error
 		if(!response.headersSent){
 			response.writeHead(statusCode, headers)
 			if(this.opts.debug){
