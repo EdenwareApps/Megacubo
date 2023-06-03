@@ -231,7 +231,7 @@ class Index extends Common {
 							} else {
 								bestResults.push(e)
 							}
-						}, smap[listUrl], icb)
+						}, smap[listUrl]).catch(console.error).finally(icb)
                     } else {
                         icb()
                     }
@@ -511,7 +511,7 @@ class Index extends Common {
 					e.source = group.url
 				}
 				entries.push(e)
-			}, map, () => {
+			}, map).catch(console.error).finally(() => {
 				entries = this.tools.dedup(entries) // dedup before parentalControl to improve blocking
 				entries = this.parentalControl.filter(entries, true)
 				entries = this.sort(entries)

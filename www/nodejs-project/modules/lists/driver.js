@@ -2,10 +2,10 @@
 const Common = require('./common'), List = require('./list')
 const UpdateListIndex = require('./update-list-index')
 
-require(global.APPDIR + '/modules/supercharge')(global)
+require('../supercharge')(global)
 
-storage = require(global.APPDIR + '/modules/storage')({})
-Download = require(global.APPDIR + '/modules/download')
+storage = require('../storage')({})
+Download = require('../download')
 
 const emit = (type, content) => {
 	postMessage({id: 0, type: 'event', data: type +':'+ JSON.stringify(content)})

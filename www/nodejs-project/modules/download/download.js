@@ -122,6 +122,10 @@ class Download extends Events {
 		}
 	}
 	start(){
+		if(typeof(this.opts.url) != 'string' || !global.validateURL(this.opts.url)){
+			this.endWithError('Invalid URL: '+ JSON.stringify(this.opts))
+			return
+		}
 		if(!this.started && !this.ended && !this.destroyed){
 			this.started = true
 			if(!Download.p2p && Download.p2p !== 0 && global.uiReady && global.config.get('p2p')){

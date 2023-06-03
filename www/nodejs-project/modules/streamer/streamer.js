@@ -1,7 +1,7 @@
 
 const path = require('path'), Events = require('events')
 const AutoTuner = require('../tuner/auto-tuner'), StreamInfo = require('./utils/stream-info')
-const Zap = require(global.APPDIR + '/modules/zap')
+const Zap = require('../zap')
 
 if(!Promise.allSettled){
 	Promise.allSettled = ((promises) => Promise.all(promises.map(p => p
@@ -901,7 +901,7 @@ class StreamerAbout extends StreamerTracks {
 					text += global.lang.SLOW_SERVER + ' (' + global.kbsfmt(currentSpeed) + ' < ' + global.kbsfmt(this.active.bitrate)+')'
 				}
 			}
-		} else if(currentSpeed && !isNaN(currentSpeed)) {
+		} else if(currentSpeed && !isNaN(currentSpeed) && currentSpeed >= 0) {
 			text += icon.format('faclr-orange') +' '+ global.kbsfmt(currentSpeed)
 		}
 		let meta = [this.active.type.toUpperCase()], dimensions = this.active.dimensions()

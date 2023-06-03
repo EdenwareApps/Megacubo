@@ -8,79 +8,51 @@ class ListsEPGTools extends Index {
 		super(opts)
 		this._epg = false
 	}
-	loadEPG(url){
-		return new Promise((resolve, reject) => {
-			if(this._epg){
-				if(this._epg.url != url){
-					console.error('changed epg url', this._epg.url, url)
-					this._epg.destroy()
-					delete this._epg
-				} else {
-					console.error('same epg url', this._epg.url, !!this._epg.parser)
-					if(this._epg.loaded){						
-						resolve()
-					} else if(this._epg.error) {
-						reject(this._epg.error)
-					} else {
-						this._epg.once('load', () => {				
-							console.log('loadEPG success') //, JSON.stringify(this._epg.data))
-							resolve()
-						})
-						this._epg.once('error', reject)
-					}
-					return
-				}
+	epgChannelsListSanityScore(data){
+		let count = Object.keys(data).length, idealCatCount = 8
+		if(count < 3){ // too few categories
+			return 0
+		}
+		let c = Math.abs(count - idealCatCount)
+		return 100 - c
+	}
+	async loadEPG(url){
+		if(this._epg){
+			if(this._epg.url == url){
+				console.error('same epg url', this._epg.url)
+				return await this._epg.ready()
 			}
-			if(url){
-				let resolved, retries = 2
-				const load = () => {
-					this._epg = new EPG(url)
-					this._epg.once('load', () => {				
-						console.log('loadEPG success') //, JSON.stringify(this._epg.data))
-						if(!resolved){
-							resolve()
-							resolved = true
-						}
-					})
-					this._epg.once('error', err => {
-						if(!resolved){
-							if(retries){
-								this._epg && this._epg.destroy()
-								retries--
-								load()
-							} else {
-								reject(err)
-								resolved = true
-							}
-						}
-					})
-					this._epg.on('error', console.error) // avoid ERR_UNHANDLED_ERROR
-				}
-				load()
-			} else {
-				resolve()
-			}
-		})
+			console.error('changed epg url', this._epg.url, url)
+			await this._epg.destroy()
+			this._epg.terminate()
+			delete this._epg
+		}
+		if(url){
+			this._epg = new EPG()
+			this._epg.setURL(url)
+			return await this._epg.ready()
+		}
 	}
 	async epg(channelsList, limit){
 		if(!this._epg){
 			throw 'no epg 0'
 		}
 		let data
-		if(this._epg.state == 'loaded' || Object.values(this._epg.data) >= 200){ // loaded enough
-			if(Array.isArray(channelsList)){
-				channelsList = channelsList.map(c => this.applySearchRedirectsOnObject(c))
-				data = this._epg.getMulti(channelsList, limit)
+		const { progress, state, error } = await this._epg.getState()
+		if(error) {
+			data = [state]
+			if(state == 'error'){
+				data.push(error)
 			} else {
-				channelsList = this.applySearchRedirectsOnObject(channelsList)
-				data = this._epg.get(channelsList, limit)
+				data.push(progress)
 			}
 		} else {
-			data = [this._epg.state]
-			if(this._epg.state == 'error'){
-				data.push(this._epg.error)
-			} else if(this._epg.request){
-				data.push(this._epg.request.progress)
+			if(Array.isArray(channelsList)){
+				channelsList = channelsList.map(c => this.applySearchRedirectsOnObject(c))
+				data = await this._epg.getMulti(channelsList, limit)
+			} else {
+				channelsList = this.applySearchRedirectsOnObject(channelsList)
+				data = await this._epg.get(channelsList, limit)
 			}
 		}
 		return data	
@@ -89,13 +61,13 @@ class ListsEPGTools extends Index {
 		if(!this._epg){
 			throw 'no epg 1'
 		}
-		return this._epg.expandSuggestions(categories)
+		return await this._epg.expandSuggestions(categories)
 	}
 	async epgSuggestions(categories, until, limit, searchTitles){
 		if(!this._epg){
 			throw 'no epg 2'
 		}
-		return this._epg.getSuggestions(categories, until, limit, searchTitles)
+		return await this._epg.getSuggestions(categories, until, limit, searchTitles)
 	}
 	async epgSearch(terms, nowLive){
 		if(!this._epg){
@@ -107,79 +79,61 @@ class ListsEPGTools extends Index {
 		if(!this._epg){
 			throw 'no epg 4'
 		}
-		return this._epg.searchChannel(this.applySearchRedirects(terms))
+		return await this._epg.searchChannel(this.applySearchRedirects(terms))
 	}
 	async epgSearchChannelIcon(terms){
 		if(!this._epg){
 			throw 'no epg 5'
 		}
-		return this._epg.searchChannelIcon(this.applySearchRedirects(terms))
-	}
-	async epgData(){
-		if(!this._epg){
-			throw 'no epg 6'
-		}
-		return this._epg.data
-	}
-	async foundEPGs(){
-		return this.epgs
-	}
-	epgChannelsListSanityScore(data){
-		let count = Object.keys(data).length, idealCatCount = 8
-		if(count < 3){ // too few categories
-			return 0
-		}
-		let c = Math.abs(count - idealCatCount)
-		return 100 - c
+		return await this._epg.searchChannelIcon(this.applySearchRedirects(terms))
 	}
 	async epgFindChannel(data){
-		return this._epg.findChannel(data)
+		return await this._epg.findChannel(data)
 	}
-	epgLiveNowChannelsList(){
-		return new Promise((resolve, reject) => {
-			if(!this._epg){
-				return reject('no epg 8')
-			}
-			let data = this._epg.liveNowChannelsList()
-			if(data && data['categories'] && Object.keys(data['categories']).length){
-				let currentScore = this.epgChannelsListSanityScore(data['categories'])
-				async.eachOfLimit(Object.keys(this.lists), 2, (url, i, done) => {
-					if(this.lists[url].index.meta['epg'] == this._epg.url){
-						let categories = {}
-						this.lists[url].iterate(e => {
-							if(e.groupName && this._epg.findChannel(this.terms(e.name))){
-								if(typeof(categories[e.groupName]) == 'undefined'){
-									categories[e.groupName] = []
-								}
-								if(!categories[e.groupName].includes(e.name)){
-									categories[e.groupName].push(e.name)
-								}
-							}
-						}, null, () => {
-							let newScore = this.epgChannelsListSanityScore(categories)
-							console.warn('epgChannelsList', categories, currentScore, newScore)
-							if(newScore > currentScore){
-								data.categories = categories
-								data.updateAfter = 24 * 3600
-								currentScore = newScore
-							}
-							done()
-						})
-					} else done()
-				}, () => {
-					resolve(data)
-				})
-			} else {
-				console.error('epgLiveNowChannelsList FAILED', JSON.stringify(data), ' || ', JSON.stringify(this._epg.data))
-				reject('failed')
-			}
-		})		
+	async epgLiveNowChannelsList(){
+		if(!this._epg){
+			throw 'no epg 8'
+		}
+		let data = await this._epg.liveNowChannelsList()
+		if(data && data['categories'] && Object.keys(data['categories']).length){
+			let currentScore = this.epgChannelsListSanityScore(data['categories'])
+			const limit = pLimit(3)
+			const tasks = Object.keys(this.lists).filter(url => {
+				return this.lists[url].index.meta['epg'] == this._epg.url
+			}).map(url => {
+				return async () => {
+					let categories = {}
+					await this.lists[url].iterate(async e => {
+						if(!e.groupName) return
+						const c = await this._epg.findChannel(this.terms(e.name))
+						if(typeof(categories[e.groupName]) == 'undefined'){
+							categories[e.groupName] = []
+						}
+						if(!categories[e.groupName].includes(e.name)){
+							categories[e.groupName].push(e.name)
+						}
+					}, null)
+					let newScore = this.epgChannelsListSanityScore(categories)
+					console.warn('epgChannelsList', categories, currentScore, newScore)
+					if(newScore > currentScore){
+						data.categories = categories
+						data.updateAfter = 24 * 3600
+						currentScore = newScore
+					}
+				}
+			}).map(limit)
+			await Promise.allSettled(tasks)
+			return data
+		} else {
+			console.error('epgLiveNowChannelsList FAILED', JSON.stringify(data))
+			throw 'failed'
+		}
 	}
 	async epgChannelsTermsList(){
 		if(!this._epg){
 			throw 'no epg'
 		}
-		let data = this._epg.terms
+		let data = await this._epg.getTerms()
 		if(data && Object.keys(data).length){
 			return data
 		} else {

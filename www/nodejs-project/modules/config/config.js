@@ -3,6 +3,7 @@ const fs = require('fs'), path = require('path'), Events = require('events')
 class Config extends Events {
 	constructor(file){
 		super()
+		this.setMaxListeners(20)
 		this.debug = false
 		this.loaded = false
 		this.file = file

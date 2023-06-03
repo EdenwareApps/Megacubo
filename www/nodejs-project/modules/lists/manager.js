@@ -277,7 +277,7 @@ class ManagerEPG extends ManagerCommunityLists {
     }
     async searchEPGs(){
         let epgs = []
-        let urls = await this.master.foundEPGs().catch(console.error)
+        let urls = this.master.epgs
         if(Array.isArray(urls)){
             urls = urls.map(u => this.parseEPGURL(u, true)).flat()
             epgs.push(...urls)

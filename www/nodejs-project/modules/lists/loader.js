@@ -76,7 +76,8 @@ class ListsLoader extends Events {
     }
     async prepareUpdater(){
         if(!this.updater || this.updater.finished === true){
-            const updater = this.updater = new (require('../driver')(global.APPDIR + '/modules/lists/driver'))
+            const Driver = require('../driver')(global.APPDIR + '/modules/lists/driver')
+            const updater = this.updater = new Driver()
             this.updaterClients = 1
             updater.close = () => {
                 this.updaterClients--

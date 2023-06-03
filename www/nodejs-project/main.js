@@ -34,7 +34,7 @@ global.moment = require('moment-timezone')
 global.onexit = require('node-cleanup')
 global.sanitize = txt => sanitizeFilename(txt).replace(new RegExp('[^\x00-\x7F]+', 'g'), '')
 
-require(global.APPDIR + '/modules/supercharge')(global)
+require('./modules/supercharge')(global)
 
 if(global.cordova){
     let datadir = global.cordova.app.datadir(), temp = path.join(path.dirname(datadir), 'cache')
@@ -52,7 +52,7 @@ Object.keys(global.paths).forEach(k => {
     console.log('DEFAULT PATH ' + k + '=' + global.paths[k])
 })
 
-global.crashlog = require(global.APPDIR + '/modules/crashlog')
+global.crashlog = require('./modules/crashlog')
 
 process.on('warning', e => {
     console.warn(e, e.stack)
@@ -67,7 +67,7 @@ process.on('uncaughtException', (exception) => {
     return false
 })
 
-global.storage = require(global.APPDIR + '/modules/storage')({main: true})
+global.storage = require('./modules/storage')({main: true})
 
 global.onexit(() => {
     global.isExiting = true
@@ -101,8 +101,8 @@ global.uiReady = (f, done) => {
     return ready
 }
 
-global.config = require(global.APPDIR + '/modules/config')(global.paths['data'] + '/config.json')
-global.Download = require(global.APPDIR + '/modules/download')
+global.config = require('./modules/config')(global.paths['data'] + '/config.json')
+global.Download = require('./modules/download')
 global.jimp = null
 
 let originalConsole
@@ -125,28 +125,28 @@ enableConsole(global.config.get('enable-console'))
 
 console.log('Loading modules...')
 
-const Bridge = require(global.APPDIR + '/modules/bridge')
-const FFMPEG = require(global.APPDIR + '/modules/ffmpeg')
-const Explorer = require(global.APPDIR + '/modules/explorer')
-const Language = require(global.APPDIR + '/modules/lang')
-const Cloud = require(global.APPDIR + '/modules/cloud')
-const Channels = require(global.APPDIR + '/modules/channels')
-const IconServer = require(global.APPDIR + '/modules/icon-server')
-const Streamer = require(global.APPDIR + '/modules/streamer')
-const OSD = require(global.APPDIR + '/modules/osd')
-const Options = require(global.APPDIR + '/modules/options')
-const Search = require(global.APPDIR + '/modules/search')
-const History = require(global.APPDIR + '/modules/history')
-const Bookmarks = require(global.APPDIR + '/modules/bookmarks')
-const Watching = require(global.APPDIR + '/modules/watching')
-const Theme = require(global.APPDIR + '/modules/theme')
-const Energy = require(global.APPDIR + '/modules/energy')
-const Analytics = require(global.APPDIR + '/modules/analytics')
-const Diagnostics = require(global.APPDIR + '/modules/diagnostics')
-const StreamState = require(global.APPDIR + '/modules/stream-state')
-const Downloads = require(global.APPDIR + '/modules/downloads')
-const OMNI = require(global.APPDIR + '/modules/omni')
-const Mega = require(global.APPDIR + '/modules/mega')
+const Bridge = require('./modules/bridge')
+const FFMPEG = require('./modules/ffmpeg')
+const Explorer = require('./modules/explorer')
+const Language = require('./modules/lang')
+const Cloud = require('./modules/cloud')
+const Channels = require('./modules/channels')
+const IconServer = require('./modules/icon-server')
+const Streamer = require('./modules/streamer')
+const OSD = require('./modules/osd')
+const Options = require('./modules/options')
+const Search = require('./modules/search')
+const History = require('./modules/history')
+const Bookmarks = require('./modules/bookmarks')
+const Watching = require('./modules/watching')
+const Theme = require('./modules/theme')
+const Energy = require('./modules/energy')
+const Analytics = require('./modules/analytics')
+const Diagnostics = require('./modules/diagnostics')
+const StreamState = require('./modules/stream-state')
+const Downloads = require('./modules/downloads')
+const OMNI = require('./modules/omni')
+const Mega = require('./modules/mega')
 
 console.log('Modules loaded.')
 
@@ -204,13 +204,13 @@ const init = (language, timezone) => {
     global.lang = new Language(language, global.config.get('locale'), global.APPDIR + '/lang', timezone)
     global.lang.load().catch(global.displayErr).finally(() => {
         console.log('Language loaded.')       
-        global.jimp = require(global.APPDIR + '/modules/jimp-wrapper')
+        global.jimp = require('./modules/jimp-wrapper')
 
         global.moment.locale(global.lang.locale)
         global.cloud = new Cloud()
         
-        const Lists = require(global.APPDIR + '/modules/lists')
-        const Discovery = require(global.APPDIR + '/modules/discovery')
+        const Lists = require('./modules/lists')
+        const Discovery = require('./modules/discovery')
         
         global.osd = new OSD()
         global.discovery = new Discovery()
@@ -239,7 +239,7 @@ const init = (language, timezone) => {
         global.explorer = new Explorer({})
         
         console.log('Initializing premium...')
-        Premium = require(global.APPDIR + '/modules/premium-helper')
+        Premium = require('./modules/premium-helper')
         if(typeof(Premium) != 'undefined'){
 			global.premium = new Premium()
 		}
@@ -616,7 +616,7 @@ const init = (language, timezone) => {
 
             const setupComplete = !!global.setupCompleted()
             if(!setupComplete) {
-                const Wizard = require(global.APPDIR + '/modules/wizard');
+                const Wizard = require('./modules/wizard');
                 const wizard = new Wizard()
                 await wizard.init()
             }

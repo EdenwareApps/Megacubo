@@ -180,6 +180,39 @@ module.exports = (file, opts) => {
 			return this.proxy()
 		}
 	}
+	class DirectDriver extends Events {
+		constructor(){
+			super()
+			this.err = null
+			this.finished = false
+			this.instance = new (require(file))()
+			return new Proxy(this, {
+				get: (self, method) => {
+					if(method in self){
+						return self[method]
+					}
+					return (...args) => {
+						return new Promise((resolve, reject) => {
+							if(this.finished){
+								return reject('worker exited')
+							}
+							const prom = this.instance[method](...args)
+							if(!prom || !prom.then){
+								console.error('Method '+ method +' does not returns a promise')
+								return
+							}
+							prom.then(resolve).catch(reject)
+						})
+					}
+				}
+			})
+		}
+		terminate(){
+			this.finished = true
+			this.instance = null
+			this.removeAllListeners()
+		}
+	}
 	function hasWorkerThreads(){				
 		try {
 			if(require.resolve('worker_threads')){
@@ -188,6 +221,7 @@ module.exports = (file, opts) => {
 			}
 		} catch(e) { }		
 	}
+	return DirectDriver
 	if(hasWorkerThreads()) {
 		return ThreadWorkerDriver
 	} else {

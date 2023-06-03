@@ -49,15 +49,20 @@ StreamerVideoIntent.supports = info => {
     }
     if(info.contentType){
         let c = info.contentType.toLowerCase()
-        if(c.indexOf('mp2t') != -1){
+        if(c.indexOf('mp2t') != -1 && !info.headers['content-length']){
             return false
         }
         if(c.indexOf('video') == 0){
             return true
         }
     }
-    if(info.ext && ['mp4', 'mkv', 'm4v', 'mov', 'mpeg', 'webm', 'ogv', 'hevc', 'wmv', 'divx', 'avi', 'asf'].includes(info.ext)){
-        return true
+    if(info.ext){
+        if(['mp4', 'mkv', 'm4v', 'mov', 'mpeg', 'webm', 'ogv', 'hevc', 'wmv', 'divx', 'avi', 'asf'].includes(info.ext)){
+            return true
+        }
+        if(info.headers['content-length'] && ['ts', 'mts', 'm2ts'].includes(info.ext)){ // not live
+            return true
+        }
     }
     return false
 }

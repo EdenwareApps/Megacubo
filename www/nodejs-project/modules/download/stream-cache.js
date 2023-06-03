@@ -57,7 +57,7 @@ class DownloadStreamCache extends DownloadStreamBase {
             }
             return true
         } else {
-            this.emitError('Cache download failed')
+            this.emitError('Cache download failed', false)
         }
     }
 }

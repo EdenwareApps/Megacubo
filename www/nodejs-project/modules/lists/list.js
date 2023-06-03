@@ -181,16 +181,18 @@ class List extends Events {
 
 		return values
 	}
-	iterate(fn, map, cb){
+	async iterate(fn, map){
 		if(!Array.isArray(map)){
 			map = false
 		}
-        this.indexer.entries(map).then(entries => {
-            entries.some(e => {
-                let ret = fn(e)
-                return ret === this.constants.BREAK
-            })
-        }).catch(console.error).finally(cb)
+        const entries = await this.indexer.entries(map)
+        for(const e of entries) {
+            let ret = fn(e)
+            if(ret instanceof Promise){
+                await ret
+            }
+            return ret === this.constants.BREAK
+        }
 	}
 	async fetchAll(){
         await this.ready()
