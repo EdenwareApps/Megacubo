@@ -61,7 +61,7 @@ class Bookmarks extends EntriesGroup {
                         name: global.lang.REMOVE_FROM.format(global.lang.BOOKMARKS),
                         action: () => {
                             this.remove(bookmarkable)
-                            global.explorer.refresh()
+                            global.explorer.refreshNow()
                             global.osd.show(global.lang.BOOKMARK_REMOVED.format(bookmarkable.name), 'fas fa-star-half', 'bookmarks', 'normal')
                         }
                     }
@@ -72,7 +72,7 @@ class Bookmarks extends EntriesGroup {
                         name: global.lang.ADD_TO.format(global.lang.BOOKMARKS),
                         action: () => {
                             this.add(bookmarkable)
-                            global.explorer.refresh()
+                            global.explorer.refreshNow()
                             global.osd.show(global.lang.BOOKMARK_ADDED.format(bookmarkable.name), 'fas fa-star', 'bookmarks', 'normal')
                         }
                     }
@@ -92,7 +92,7 @@ class Bookmarks extends EntriesGroup {
                 this.add(data)
                 global.osd.show(global.lang.BOOKMARK_ADDED.format(data.name), 'fas fa-star', 'bookmarks', 'normal')
             }
-            global.explorer.refresh()
+            global.explorer.refreshNow()
         }
     }
     current(){
@@ -138,7 +138,7 @@ class Bookmarks extends EntriesGroup {
             if(current && !this.has(current)){
                 es.push({name: global.lang.ADD + ': ' + current.name, fa: 'fas fa-star', icon: current.icon, type: 'action', action: () => {
                     this.add(current)
-                    global.explorer.refresh()
+                    global.explorer.refreshNow()
                 }})
             }
             es.push({name: global.lang.ADD_BY_NAME, fa: 'fas fa-star', type: 'group', renderer: this.addByNameEntries.bind(this)})
@@ -287,7 +287,7 @@ class Bookmarks extends EntriesGroup {
                         action: data => {
                             this.remove(e)
                             if(this.get().length){
-                                global.explorer.refresh()
+                                global.explorer.refreshNow()
                             } else {
                                 global.explorer.back()
                             }

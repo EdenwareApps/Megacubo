@@ -63,12 +63,12 @@ class ParentalControl extends Events {
 									safe: true,
 									action: async () => {
 										await this.auth()
-										process.nextTick(() => global.explorer.refresh())
+										process.nextTick(() => global.explorer.refreshNow())
 										if(['block', 'remove'].includes(n.key)){
 											let fine = !!global.config.get('parental-control-pw')
 											if(!fine) {
 												fine = await this.setupAuth().catch(console.error)
-												process.nextTick(() => global.explorer.refresh()) // needed again
+												process.nextTick(() => global.explorer.refreshNow()) // needed again
 											}
 											if(fine === true){
 												global.config.set('parental-control', n.key)

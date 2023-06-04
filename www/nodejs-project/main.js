@@ -714,7 +714,7 @@ if(global.cordova) {
                 webSecurity: false // desabilita o webSecurity
             }
         })
-        window.loadURL(global.APPDIR +'/electron.html')
+        window.loadURL('file://'+ global.APPDIR +'/electron.html') // file:// is required on Linux to prevent blank window on Electron 9.1.2
         app.on('browser-window-focus', () => { // We'll use Ctrl+M to enable Miniplayer instead of minimizing
             globalShortcut.registerAll(['CommandOrControl+M'], () => { return })
         })

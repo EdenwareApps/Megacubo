@@ -97,7 +97,7 @@ class Common extends Events {
 		this.opts = {
 			folderSizeLimitTolerance: 12,
 			offloadThreshold: 512,
-			defaultCommunityModeReach: global.cordova ? 8 : 18
+			defaultCommunityModeReach: global.cordova ? 12 : 18
 		}
         if(opts){
             Object.keys(opts).forEach(k => {

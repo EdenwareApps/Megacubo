@@ -30,7 +30,7 @@ class Timer extends Events {
                 action: () => {
                     clearTimeout(this.timerData['timer'])
                     this.timerData = 0
-                    global.explorer.refresh()
+                    global.explorer.refreshNow()
                 }
             }
         } else {
@@ -362,7 +362,7 @@ class OptionsHardwareAcceleration extends OptionsExportImport {
                 {template: 'message', text: 'You must run '+ global.MANIFEST.window.title +' as admin to change this option.'},
                 {template: 'option', text: 'OK', id: 'ok'}
             ], 'ok').catch(console.error) // dont wait
-            global.explorer.refresh()
+            global.explorer.refreshNow()
         } else {
             let manifest = await fs.promises.readFile(file)
             manifest = global.parseJSON(manifest) 
@@ -518,7 +518,7 @@ class Options extends OptionsP2P {
                 global.lang.applyTexts(texts)
                 global.ui.emit('lang', texts)
                 global.explorer.pages = {'': []}
-                global.explorer.refresh()
+                global.explorer.refreshNow()
             }
         }
     }
@@ -566,7 +566,7 @@ class Options extends OptionsP2P {
                 fa: 'fas fa-check-circle',
                 action: () => {
                     global.config.set('countries', map.map(row => row.code))
-                    global.explorer.refresh()
+                    global.explorer.refreshNow()
                 }
             })
         } else {
@@ -582,7 +582,7 @@ class Options extends OptionsP2P {
                         countries = countries.slice(0, 1) // at least one country should be enabled
                     }
                     global.config.set('countries', countries)
-                    global.explorer.refresh()
+                    global.explorer.refreshNow()
                 }
             })
         }
@@ -1113,7 +1113,7 @@ class Options extends OptionsP2P {
                         type: 'check', 
                         action: (data, value) => {
                             global.config.set('hide-back-button', value)
-                            global.explorer.refresh()
+                            global.explorer.refreshNow()
                         }, 
                         checked: () => {
                             return global.config.get('hide-back-button')
@@ -1124,7 +1124,7 @@ class Options extends OptionsP2P {
                         type: 'check',
                         action: (e, checked) => {
                             global.config.set('search-youtube', checked)
-                            global.explorer.refresh()
+                            global.explorer.refreshNow()
                         }, 
                         checked: () => {
                             return global.config.get('search-youtube')
@@ -1161,7 +1161,7 @@ class Options extends OptionsP2P {
                         type: 'check',
                         action: (e, checked) => {
                             global.config.set('kids-fun-titles', checked)
-                            global.explorer.refresh()
+                            global.explorer.refreshNow()
                         }, 
                         checked: () => {
                             return global.config.get('kids-fun-titles')

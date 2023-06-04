@@ -221,13 +221,13 @@ module.exports = (file, opts) => {
 			}
 		} catch(e) { }		
 	}
-	return DirectDriver
 	if(hasWorkerThreads()) {
 		return ThreadWorkerDriver
 	} else {
 		if(typeof(Worker) != 'undefined'){
 			return WebWorkerDriver
 		} else {
+			// return DirectDriver // useful for debugging, bad for performance
 			const msg = 'Web workers and worker_threads are not supported in this environment.'
 			console.error(msg)
 			global.displayErr(msg)			

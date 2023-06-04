@@ -55,7 +55,7 @@ class Downloads extends Events {
 						fs.unlink(this.activeDownloads[url].file, () => {})
 						global.ui.emit('background-mode-unlock', 'saving-file-'+ uid)
 						delete this.activeDownloads[url]
-						global.explorer.refresh()
+						global.explorer.refreshNow()
 						return true
 					}
 				})
@@ -355,7 +355,7 @@ class Downloads extends Events {
 						global.ui.emit('background-mode-unlock', 'saving-file-'+ uid)
 						delete this.activeDownloads[url]
 						if(global.explorer.path.indexOf(global.lang.ACTIVE_DOWNLOADS) != -1){
-							global.explorer.refresh()
+							global.explorer.refreshNow()
 						}
 					})
 				}

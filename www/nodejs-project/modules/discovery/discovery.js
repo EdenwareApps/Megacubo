@@ -60,16 +60,43 @@ class PublicIPTVListsDiscovery extends Events {
     }
     async get(amount=8) {
         await this.ready()
-        const filteredLists = this.knownLists
+        const sortedLists = this.knownLists
             // .filter(list => this.opts.countries.includes(list.country))
             .sort((a, b) => {
                 if (a.health === -1) return 1
                 if (b.health === -1) return -1
                 return b.health - a.health
             })
-            .slice(0, amount)
-
-        return filteredLists
+        return this.domainCap(sortedLists, amount)
+    }
+	domain(u){
+		if(u && u.indexOf('//')!=-1){
+			var domain = u.split('//')[1].split('/')[0]
+			if(domain == 'localhost' || domain.indexOf('.') != -1){
+				return domain
+			}
+		}
+		return ''
+	}
+    domainCap(lists, limit){
+        let currentLists = lists.slice(0)
+        const ret = [], domains = {}, quota = Math.ceil(limit / 5) // limit each domain up to 20% of selected links, except if there are no other domains enough
+        while(currentLists.length && ret.length < limit) {
+            currentLists = currentLists.filter(l => {
+                const dn = this.domain(l.url)
+                if(typeof(domains[dn]) == 'undefined') {
+                    domains[dn] = 0
+                }
+                if(domains[dn] < quota) {
+                    domains[dn]++
+                    ret.push(l)
+                    return false
+                }
+                return true
+            })
+            Object.keys(domains).forEach(dn => domains[dn] = 0) // reset counts and go again until fill limit
+        }
+        return ret
     }
     details(url) {
         return this.knownLists.find(l => l.url === url)

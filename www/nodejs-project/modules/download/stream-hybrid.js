@@ -39,7 +39,9 @@ class DownloadStream extends DownloadStreamBase {
                 opts.connectDelay = this.opts.p2pWaitMs
             }
             const via = new t(opts)
-            via.once('error', console.error)
+            via.once('error', (err, report) => {
+                report && console.error(err)
+            })
             via.once('response', response => {
                 if(chosen){
                     return via.destroy()

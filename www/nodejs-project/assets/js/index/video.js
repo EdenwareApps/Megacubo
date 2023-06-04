@@ -306,9 +306,12 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 	setup(tag){
 		console.log('adapter setup')
 		this.object = this.container.querySelector(tag)
+		this.patchPauseFn()
+	}
+	patchPauseFn(){		
 		if(typeof(this.object._pause) == 'undefined'){
 			this.object._pause = this.object.pause
-			this.object.pause = () => {} // prevent browser from pausing stream unexpectedly on Android
+			this.object.pause = () => {} // prevent hls.js or browser from messing with playback
 		}
 	}
 	uiVisible(visible){
@@ -412,7 +415,7 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 	disconnect(){
 		$(this.object).off()
 	}	
-	videoObjectRecycle() {
+	recycle() {
 		const p = this.object.parentNode
 		if (p) {
 			const v = document.createElement('video')
@@ -421,6 +424,7 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 			p.removeChild(this.object)
 			p.appendChild(v)
 			this.object = v
+			this.patchPauseFn()
 		}
 	}
 	load(src, mimetype){

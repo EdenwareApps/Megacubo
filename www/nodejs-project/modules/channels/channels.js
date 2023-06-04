@@ -640,7 +640,7 @@ class ChannelsEditing extends ChannelsEPG {
                                                 global.icons.adjust(ret.file, {shouldBeAlpha: false}).then(ret => {
                                                     global.icons.saveDefaultFile(terms, ret.file, destFile => {
                                                         console.log('icon changed', terms, destFile)
-                                                        global.explorer.refresh(true, global.explorer.dirname(global.explorer.path))
+                                                        global.explorer.refreshNow()
                                                         global.osd.show(global.lang.ICON_CHANGED, 'fas fa-check-circle', 'channels', 'normal')
                                                     })
                                                 }).catch(global.displayErr)
@@ -655,7 +655,7 @@ class ChannelsEditing extends ChannelsEPG {
                                         global.icons.adjust(ret.file, {shouldBeAlpha: false}).then(ret => {
                                             global.icons.saveDefaultFile(terms, ret.file, destFile => {
                                                 console.log('icon changed', terms, destFile)
-                                                global.explorer.refresh(true, global.explorer.dirname(global.explorer.path))
+                                                global.explorer.refreshNow()
                                                 global.osd.show(global.lang.ICON_CHANGED, 'fas fa-check-circle', 'channels', 'normal')
                                             })
                                         })
@@ -664,7 +664,7 @@ class ChannelsEditing extends ChannelsEPG {
                                 ret.push({name: global.lang.NO_ICON, type: 'action', fa: 'fas fa-ban', action: () => {   
                                     console.log('saveDefault', terms, '') 
                                     global.icons.saveDefault(terms, 'no-icon', () => {
-                                        global.explorer.refresh(true, global.explorer.dirname(global.explorer.path))
+                                        global.explorer.refreshNow()
                                         global.osd.show(global.lang.ICON_CHANGED, 'fas fa-check-circle', 'channels', 'normal')
                                     })
                                 }})
@@ -724,7 +724,7 @@ class ChannelsEditing extends ChannelsEPG {
                                 console.warn('ALIASES SET', JSON.stringify(this.categories[category], null, 3), category, JSON.stringify(this.categories, null, 3), e.terms)
                                 this.save()
                                 console.warn('ALIASES SET', JSON.stringify(this.categories, null, 3), this.categories[category], e.terms)
-                                global.explorer.refresh(true, global.explorer.path)
+                                global.explorer.refreshNow()
                             }
                         }},
                         {name: global.lang.REMOVE, fa: 'fas fa-trash', type: 'action', details: o.name, action: () => {
@@ -846,7 +846,7 @@ class ChannelsEditing extends ChannelsEPG {
                             if(inline !== true){
                                 targetPath = global.explorer.dirname(targetPath)
                             }
-                            global.explorer.refresh(true)
+                            global.explorer.refreshNow()
                             global.osd.show(global.lang.CHANNEL_ADDED, 'fas fa-check-circle', 'channels', 'normal')
                         })
                     }
@@ -1244,7 +1244,7 @@ class Channels extends ChannelsKids {
                     name: global.lang.REMOVE_FROM.format(global.lang.BOOKMARKS),
                     action: () => {
                         global.bookmarks.remove(bookmarkable)
-                        global.explorer.refresh()
+                        global.explorer.refreshNow()
                         global.osd.show(global.lang.BOOKMARK_REMOVED.format(bookmarkable.name), 'fas fa-star-half', 'bookmarks', 'normal')
                     }
                 })
@@ -1255,7 +1255,7 @@ class Channels extends ChannelsKids {
                     name: global.lang.ADD_TO.format(global.lang.BOOKMARKS),
                     action: () => {
                         global.bookmarks.add(bookmarkable)
-                        global.explorer.refresh()
+                        global.explorer.refreshNow()
                         global.osd.show(global.lang.BOOKMARK_ADDED.format(bookmarkable.name), 'fas fa-star', 'bookmarks', 'normal')
                     }
                 })
@@ -1526,7 +1526,7 @@ class Channels extends ChannelsKids {
                     type: 'check',
                     action: (e, checked) => {
                         global.config.set('allow-edit-channel-list', checked)
-                        global.explorer.refresh()
+                        global.explorer.refreshNow()
                     }, 
                     checked: () => {
                         return global.config.get('allow-edit-channel-list')

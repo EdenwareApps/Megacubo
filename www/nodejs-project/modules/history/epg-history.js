@@ -111,7 +111,7 @@ class EPGHistory extends EntriesGroup {
                         }
                         this.add(data)
                         if(this.inSection() == 1){
-                            global.explorer.refresh()
+                            global.explorer.refreshNow()
                         }
                     }
                 }
@@ -217,7 +217,7 @@ class EPGHistory extends EntriesGroup {
             e.type = 'action'
             e.action = () => {
                 this.remove(o)
-                global.explorer.refresh()
+                global.explorer.refreshNow()
             }
             e.fa = 'fas fa-trash'
             delete e.url

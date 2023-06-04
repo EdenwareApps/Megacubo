@@ -192,6 +192,9 @@ class Explorer extends Events {
             }
         }
     }
+    refreshNow(){
+        this.softRefresh(this.path, true)
+    }
     softRefresh(p, force){
         if(force !== true && this.refreshingPath != this.path) return
         if(!this.startExecTime) this.startExecTime = global.time()

@@ -127,7 +127,7 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 			this.currentSrc = src
 			this.currentMimetype = mimetype
 		}
-		this.videoObjectRecycle()
+		this.recycle()
 		const timeout = 10000
 		const config = {
 			enableWorker: true,

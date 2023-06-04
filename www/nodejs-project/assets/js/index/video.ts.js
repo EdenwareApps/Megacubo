@@ -40,7 +40,7 @@ class VideoControlAdapterHTML5TS extends VideoControlAdapterHTML5Video {
 				if(this.object.error){					
 					this.mpegts.detachMediaElement()
 					console.warn('!! RENEWING VIDEO OBJECT')
-					this.videoObjectRecycle()
+					this.recycle()
 					this.mpegts.attachMediaElement(this.object)
 				}
 				this.mpegts.unload()
@@ -60,7 +60,7 @@ class VideoControlAdapterHTML5TS extends VideoControlAdapterHTML5Video {
 			if(this.object.error){
 				this.mpegts.detachMediaElement()
 				console.warn('!! RENEWING VIDEO OBJECT')
-				this.videoObjectRecycle()
+				this.recycle()
 				this.mpegts.attachMediaElement(this.object)
 				this.mpegts.play()
 			}

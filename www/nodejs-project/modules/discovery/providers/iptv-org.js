@@ -69,7 +69,7 @@ class IPTV extends Events {
                                 global.lists.manager.remove(url)
                                 global.osd.show(global.lang.LIST_REMOVED, 'fas fa-info-circle', 'list-open', 'normal')
                                 setTimeout(() => {
-                                    global.explorer.refresh()
+                                    global.explorer.refreshNow()
                                 }, 100)
                             }
                         })
@@ -80,7 +80,7 @@ class IPTV extends Events {
                             name: global.lang.ADD_TO.format(global.lang.MY_LISTS),
                             action: () => {
                                 global.lists.manager.addList(url, '', true).then(() => {
-                                    setTimeout(() => global.explorer.refresh(), 100)
+                                    setTimeout(() => global.explorer.refreshNow(), 100)
                                 }).catch(console.error)
                             }
                         })

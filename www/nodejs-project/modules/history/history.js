@@ -118,7 +118,7 @@ class History extends EntriesGroup {
                 if(gentries.length){
                     gentries.push({name: global.lang.CLEAR, fa: 'fas fa-trash', type: 'action', action: () => {
                         this.clear()
-                        global.explorer.refresh()
+                        global.explorer.refreshNow()
                     }})
                 }
                 resolve(gentries)

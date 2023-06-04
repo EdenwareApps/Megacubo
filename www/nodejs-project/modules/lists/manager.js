@@ -87,7 +87,6 @@ class ManagerCommunityLists extends Events {
             let length = data.length || 0
             let details = []
             if(author) details.push(author)
-            if(health > -1) details.push(global.lang.QUALITY +': '+ parseInt(health * 100) +'%')
             details.push(global.lang.RELEVANCE +': '+ parseInt((info[url].score || 0) * 100) +'%')
             details.push('<i class="fas fa-play-circle" aria-label="hidden"></i> '+ global.kfmt(length, 1))
             details = details.join(' &middot; ')
@@ -145,10 +144,9 @@ class ManagerCommunityLists extends Events {
             })
         }))
         let lists = Object.keys(sources).map(url => {
-            const details = sources[url] >= 0 ? global.lang.QUALITY +': '+ sources[url] +'%' : ''
             return {
                 url,
-                details,
+                details: this.master.lists[url] ? global.lang.LIST_ADDED : '',
                 name: names[url],
                 type: 'group',
                 fa: 'fas fa-satellite-dish',
@@ -193,7 +191,7 @@ class ManagerCommunityLists extends Events {
                             ], 'lists-manager', 'back', true)                
                         } else {
                             global.config.set('communitary-mode-lists-amount', 0)
-                            global.explorer.softRefresh(global.explorer.path, true) // epg options path
+                            global.explorer.refreshNow() // epg options path
                         }
                     }, checked: () => {
                         return global.config.get('communitary-mode-lists-amount') > 0
@@ -400,7 +398,7 @@ class ManagerEPG extends ManagerCommunityLists {
                                     global.config.set('epg-'+ global.lang.locale, url)
                                     this.setEPG(url, true)
                                 }
-                                global.explorer.softRefresh(global.explorer.path, true) // epg options path
+                                global.explorer.refreshNow() // epg options path
                             }
                         }
                     })
@@ -502,7 +500,7 @@ class ManagerEPG extends ManagerCommunityLists {
                 await this.loadEPG(url, ui)
                 let refresh = () => {
                     if(global.explorer.path.indexOf(global.lang.EPG) != -1 || global.explorer.path.indexOf(global.lang.LIVE) != -1){
-                        global.explorer.softRefresh(global.explorer.path, true)
+                        global.explorer.refreshNow()
                     }
                 }
                 console.log('SETEPGc', url, ui, global.activeEPG)
@@ -810,7 +808,7 @@ class Manager extends ManagerEPG {
             }
         }
         this.addingList = true
-        global.explorer.path.endsWith(global.lang.MY_LISTS) && global.explorer.softRefresh(global.explorer.path, true)
+        global.explorer.path.endsWith(global.lang.MY_LISTS) && global.explorer.refreshNow()
         const fetch = new this.master.Fetcher(url, {
             progress: p => {
                 global.osd.show(global.lang.RECEIVING_LIST +' '+ p +'%', 'fa-mega spin-x-alt', 'add-list-progress-'+ uid, 'persistent')
@@ -818,7 +816,7 @@ class Manager extends ManagerEPG {
         }, this.master)
         let entries = await fetch.getMap().catch(console.error)
         this.addingList = false
-        global.explorer.path.endsWith(global.lang.MY_LISTS) && global.explorer.softRefresh(global.explorer.path, true)
+        global.explorer.path.endsWith(global.lang.MY_LISTS) && global.explorer.refreshNow()
         this.master.status()
         if(Array.isArray(entries) && entries.length){
             if(!name){
@@ -886,7 +884,7 @@ class Manager extends ManagerEPG {
                     }
                 }
             }
-            global.explorer.softRefresh(global.explorer.path, true) // epg options path
+            global.explorer.refreshNow() // epg options path
             return true
         }
     }
@@ -1079,7 +1077,7 @@ class Manager extends ManagerEPG {
                     updateBaseNames.includes(global.explorer.basename(global.explorer.path)) || 
                     global.explorer.currentEntries.some(e => updateEntryNames.includes(e.name))
                 ) {
-                    global.explorer.softRefresh(global.explorer.path, true)
+                    global.explorer.refreshNow()
                 } else if(this.inChannelPage()) {
                     this.maybeRefreshChannelPage()
                 }
@@ -1377,7 +1375,7 @@ class Manager extends ManagerEPG {
                 global.displayErr(updateErr)
             } else {
                 global.osd.show('OK', 'fas fa-check-circle', 'refresh-list', 'normal')
-                global.explorer.softRefresh(global.explorer.path, true) // epg options path
+                global.explorer.refreshNow() // epg options path
                 return true // return here, so osd will not hide
             }
         }
@@ -1423,7 +1421,7 @@ class Manager extends ManagerEPG {
                         action: () => {             
                             this.remove(v.url)
                             global.osd.show(global.lang.LIST_REMOVED, 'fas fa-info-circle', 'list-open', 'normal')
-                            global.explorer.softRefresh(global.explorer.path, true) // epg options path
+                            global.explorer.refreshNow() // epg options path
                         }
                     })
                 } else {
@@ -1433,7 +1431,7 @@ class Manager extends ManagerEPG {
                         name: global.lang.ADD_TO.format(global.lang.MY_LISTS),
                         action: () => {
                             this.addList(v.url, '', true).catch(console.error).finally(() => {
-                                setTimeout(() => global.explorer.softRefresh(global.explorer.path, true), 100)
+                                setTimeout(() => global.explorer.refreshNow(), 100)
                             })
                         }
                     })

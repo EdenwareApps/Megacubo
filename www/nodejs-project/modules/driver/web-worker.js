@@ -41,8 +41,6 @@ onmessage = e => {
     const msg = e.data
     if(msg.method == 'configChange'){
         global.config.reload()
-    } else if(msg.method == 'unload'){
-        //setTimeout(() => close(), 10) // caused NW.js to close
     } else if(typeof(driver[msg.method]) == 'undefined'){
         console.error({msg, driver})
         postMessage({id: msg.id, type: 'reject', data: 'method not exists ' + JSON.stringify(msg) +' '+ global.traceback()})

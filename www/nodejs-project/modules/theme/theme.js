@@ -41,7 +41,7 @@ class Theme extends Events {
             console.warn('!!! IMPORT FILE !!!', data)
             global.ui.importFileFromClient(data).then(ret => {
                 global.options.importConfigFile(ret, this.keys, () => {
-                    global.explorer.refresh()
+                    global.explorer.refreshNow()
                 })
             }).catch(err => {
                 global.displayErr(err)
@@ -204,7 +204,7 @@ class Theme extends Events {
                             fa: 'fas fa-check-circle',
                             action: () => {
                                 this.load(ffile, () => {
-                                    global.explorer.refresh()
+                                    global.explorer.refreshNow()
                                 })
                             }
                         },
@@ -236,7 +236,7 @@ class Theme extends Events {
                                     this.reset()
                                 }
                                 fs.unlink(ffile, () => {
-                                    global.explorer.refresh()
+                                    global.explorer.refreshNow()
                                 })
                             }
                         }
@@ -252,7 +252,7 @@ class Theme extends Events {
                 type: 'action',
                 action: () => {
                     this.reset()
-                    global.explorer.refresh()
+                    global.explorer.refreshNow()
                 }
             })
             cb(entries)
@@ -612,7 +612,7 @@ class Theme extends Events {
                 }).then(file => {
                     global.osd.hide('theme')
                     this.load(file, err => err && fs.unlink(file, () => {}))
-                    global.explorer.refresh()
+                    global.explorer.refreshNow()
                 }).catch(global.displayErr)
             }
             if(stat && stat.size){
