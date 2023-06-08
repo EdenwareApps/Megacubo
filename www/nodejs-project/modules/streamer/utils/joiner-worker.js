@@ -1,4 +1,3 @@
-
 const Downloader = require('./downloader.js'), MPEGTSPacketProcessor = require('./ts-packet-processor.js')
 	
 class Joiner extends Downloader {
@@ -8,11 +7,11 @@ class Joiner extends Downloader {
 		this.type = 'joiner'
 		this.delayUntil = 0
 		this.processor = new MPEGTSPacketProcessor()
-		// this.opts.debug = this.processor.debug  = true
 		this.processor.on('data', data => this.output(data))
 		this.processor.on('fail', () => this.emit('fail'))
+		// this.opts.debug = this.processor.debug  = true
 		this.once('destroy', () => {
-			if(!this.joinerDestroyed){
+			if(!this.joinerDestroyed) {
 				this.joinerDestroyed = true
 				this.processor.destroy()
 				this.processor = null
@@ -23,15 +22,14 @@ class Joiner extends Downloader {
 		this.processor.push(data)
 	}
 	output(data, len){
-		if(this.destroyed || this.joinerDestroyed){
+		if(this.destroyed || this.joinerDestroyed) {
 			return
         }
-        if(typeof(len) != 'number'){
+        if(typeof(len) != 'number') {
             len = this.len(data)
-        }
-		
-		if(len){
-			if(this.bitrate){
+        }		
+		if(len) {
+			if(this.bitrate) {
 				this.delayUntil = this.lastConnectionEndTime + (len / this.bitrate) - this.connectTime
 			} else {
 				this.delayUntil = 0
@@ -40,7 +38,7 @@ class Joiner extends Downloader {
 		}
 	}
 	pump(){
-		if(this.opts.debug){
+		if(this.opts.debug) {
 			console.log('[' + this.type + '] pump', this.destroyed || this.joinerDestroyed)
 		}
 		this.download(() => { 
@@ -67,5 +65,24 @@ class Joiner extends Downloader {
 		})
 	}
 }
+
+class JoinerWorker {
+	constructor() { }
+	async start(url, opts) {
+		this.joiner && this.joiner.destroy()
+		this.joiner = new Joiner(url, opts)
+		await this.joiner.start()
+		return this.joiner.endpoint
+	}
+	async cancelWarmCache() {
+		this.joiner.cancelWarmCache()
+	}
+	async isTranscoding() {
+		return false
+	}
+	async terminate() {
+		this.joiner && this.joiner.destroy()
+	}
+}
 	
-module.exports = Joiner
+module.exports = JoinerWorker

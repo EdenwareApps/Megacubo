@@ -48,7 +48,7 @@ class StreamerTSIntent extends StreamerBaseIntent {
         })
     }
     useFFmpeg(){
-        if(global.config.get('ffmpeg-broadcast-pre-processing') == 'yes' || global.config.get('mpegts-seeking-fix')){
+        if(global.config.get('ffmpeg-broadcast-pre-processing') != 'no'){
             return true
         }
         return false         
@@ -77,7 +77,7 @@ class StreamerTSIntent extends StreamerBaseIntent {
 
 StreamerTSIntent.mediaType = 'live'
 StreamerTSIntent.supports = info => {
-    if(info.headers['content-length']){
+    if(info.headers && info.headers['content-length']){
         return false // not live
     }
     if(info.contentType){

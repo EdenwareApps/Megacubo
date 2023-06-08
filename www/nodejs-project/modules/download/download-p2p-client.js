@@ -29,9 +29,15 @@ class P2PEncDec extends EventEmitter {
 				const data = JSON.parse(buf.slice(P2P_ENC_HEADER_SIZE, P2P_ENC_HEADER_SIZE + msgSize).toString())
 				const payload = buf.slice(P2P_ENC_HEADER_SIZE + msgSize)
 				data.data = payload
+				if(payload && payload.length) {
+					console.log('P2P payload received fine')
+				}
 				return data
 			} catch (e) {
-				console.error(e)
+				console.error(String(e) +' '+ JSON.stringify({
+					expectedMsgSize: msgSize,
+					receivedMsgSize: buf.length - P2P_ENC_HEADER_SIZE
+				}), e, buf)
 			}
 			return null
 		} else {

@@ -55,7 +55,6 @@ module.exports = {
 	'live-stream-fmt': 'auto',
 	'locale': '',
 	'miniplayer-auto': true,
-	'mpegts-seeking-fix': false,
 	'only-known-channels-in-been-watched': true,
 	'osd-speak': false,
 	'p2p': true,

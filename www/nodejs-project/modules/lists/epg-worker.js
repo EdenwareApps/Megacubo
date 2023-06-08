@@ -1,12 +1,3 @@
-require('../supercharge')(global)
-
-storage = require('../storage')({})
-Download = require('../download')
-
-const emit = (type, content) => {
-	postMessage({id: 0, type: 'event', data: type +':'+ JSON.stringify(content)})
-}
-
 const ListsCommon = require('../lists/common')
 const xmltv = require('xmltv'), fs = require('fs'), Events = require('events')
 
@@ -852,7 +843,7 @@ class EPG extends EPGPaginateChannelsList {
             }
         })
     }
-    async destroy(){
+    async terminate(){
         if(this.request) this.request.destroy()
         if(this.parser) this.parser.destroy()
         this.data = {}

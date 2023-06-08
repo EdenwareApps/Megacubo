@@ -2,7 +2,6 @@ const fs = require('fs'), Events = require('events'), Parser = require('./parser
 const ListIndexUtils = require('./list-index-utils')
 const MediaURLInfo = require('../streamer/utils/media-url-info')
 
-
 class UpdateListIndex extends ListIndexUtils { 
 	constructor(url, directURL, file, master, updateMeta, forceDownload){
 		super()

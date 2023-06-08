@@ -13,19 +13,30 @@ class StreamerVideoIntent extends StreamerBaseIntent {
         this.opts.minBitrateCheckSize = 6 * (1024 * 1024)
         this.opts.maxBitrateCheckSize = 3 * this.opts.minBitrateCheckSize
         this.opts.bitrateCheckingAmount = 1
-    }  
+    } 
+	domain(u){
+		if(u && u.indexOf('//') != -1){
+			let d = u.split('//')[1].split('/')[0].split(':')[0]
+			if(d == 'localhost' || d.indexOf('.') != -1){
+				return d
+			}
+		}
+		return ''
+	} 
     _start(){   
         return new Promise((resolve, reject) => {
-            if(this.opts['direct']){
+            const isLocalFile = this.info && this.info.isLocalFile
+            const isLocalHost = this.data.url.startsWith('http://127.0.0.1') // proxify https anyway to prevent SSL errors
+            if(isLocalFile || isLocalHost) {
                 this.endpoint = this.data.url
-                if(this.info && this.info.isLocalFile){
+                if(isLocalFile){
                     global.downloads.serve(this.data.url, false, false).then(url => {
                         this.endpoint = url
                         global.downloads.keepAwake(true)
                         this.on('uncommit', () => global.downloads.keepAwake(false))
                         resolve()
                     }).catch(reject)
-                } else {
+                } else { //  if is localhost URL, don't proxify
                     resolve()
                 }
             } else {
@@ -49,7 +60,7 @@ StreamerVideoIntent.supports = info => {
     }
     if(info.contentType){
         let c = info.contentType.toLowerCase()
-        if(c.indexOf('mp2t') != -1 && !info.headers['content-length']){
+        if(c.indexOf('mp2t') != -1 && (!info.headers || !info.headers['content-length'])){
             return false
         }
         if(c.indexOf('video') == 0){
@@ -60,7 +71,7 @@ StreamerVideoIntent.supports = info => {
         if(['mp4', 'mkv', 'm4v', 'mov', 'mpeg', 'webm', 'ogv', 'hevc', 'wmv', 'divx', 'avi', 'asf'].includes(info.ext)){
             return true
         }
-        if(info.headers['content-length'] && ['ts', 'mts', 'm2ts'].includes(info.ext)){ // not live
+        if(info.headers && info.headers['content-length'] && ['ts', 'mts', 'm2ts'].includes(info.ext)){ // not live
             return true
         }
     }

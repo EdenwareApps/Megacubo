@@ -105,7 +105,8 @@ class PublicIPTVListsDiscovery extends Events {
         const now = new Date().getTime() / 1000
         const aYear = 365 * (30 * 24) // aprox
         const oneYearAgo = now - aYear, newOnes = []
-        lists.forEach(list => {
+        Array.isArray(lists) && lists.forEach(list => {
+            if(!list || !list.url) return
             const existingListIndex = this.knownLists.findIndex(l => l.url === list.url)
             if (existingListIndex === -1) {
 

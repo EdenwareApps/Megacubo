@@ -2273,7 +2273,9 @@ class Explorer extends ExplorerLoading {
 					console.warn('NAVINPUT', path, value)
 				}
 				this.app.emit('explorer-input', path, value)
-				this.currentEntries[element.tabIndex].value = value
+				if(this.currentEntries[element.tabIndex]) {
+					this.currentEntries[element.tabIndex].value = value
+				}
 				element.setAttribute('data-default-value', value)
 				this.emit('input-save', element, value)
 			}

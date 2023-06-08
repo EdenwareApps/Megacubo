@@ -49,7 +49,7 @@ class StreamerAdapterBase extends Events {
         if(this.transcoderStarting || this.transcoder){
 			return true
 		}
-		return this.adapters.some(a => a.isTranscoding && a.isTranscoding())
+		return this.adapters.some(a => a.isTranscoding && a.isTranscoding() === true)
     }
     setOpts(opts){
         if(opts && typeof(opts) == 'object'){     
@@ -111,7 +111,7 @@ class StreamerAdapterBase extends Events {
 		adapter.committed = this.committed
         this.on('commit', () => {
             adapter.emit('commit')
-            if(!adapter.committed){
+            if(!adapter.committed) {
                 adapter.committed = true
             }
         })
@@ -131,7 +131,7 @@ class StreamerAdapterBase extends Events {
 			}
         })
 		if(adapter.bitrate){
-			if(bitrate >= 0 && this.bitrate != bitrate){
+			if(adapter.bitrate >= 0 && this.bitrate != adapter.bitrate) {
 				this.bitrate = adapter.bitrate
 				this.emit('bitrate', adapter.bitrate, this.currentSpeed)
 			}

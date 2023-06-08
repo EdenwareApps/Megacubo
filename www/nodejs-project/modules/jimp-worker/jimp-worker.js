@@ -1,5 +1,5 @@
 
-class JimpDriver {
+class JimpWorker {
 	constructor(){}	
     load(){
         if(typeof(this.jimp) == 'undefined'){
@@ -100,6 +100,7 @@ class JimpDriver {
             })
         })
     }
+    async terminate(){}
 }
 
-module.exports = JimpDriver
+module.exports = JimpWorker

@@ -8,7 +8,15 @@ function logErr(data){
     postMessage({id: 0, type: 'event', data: 'error:'+ JSON.stringify(data), file})
 }
 
-crashlog = require(global.APPDIR +'/modules/crashlog')
+require('../supercharge')(global)
+
+global.crashlog = require(global.APPDIR +'/modules/crashlog')
+global.storage = require('../storage')({})
+global.Download = require('../download')
+
+const emit = (type, content) => {
+	postMessage({id: 0, type: 'event', data: type +':'+ JSON.stringify(content)})
+}
 
 process.on('warning', e => {
     console.warn(e, e.stack)

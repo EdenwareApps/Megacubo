@@ -1,7 +1,7 @@
-const fs = require('fs'), async = require('async')
+const fs = require('fs'), async = require('async'), path = require('path')
 const pLimit = require('p-limit'), { default: PQueue } = require('p-queue')
 const Parser = require('./parser'), Manager = require('./manager'), Loader = require('./loader')
-const Index = require('./index'), List = require('./list'), EPG = require('../epg')
+const Index = require('./index'), List = require('./list'), MultiWorker = require('../multi-worker')
 
 class ListsEPGTools extends Index {
     constructor(opts){
@@ -23,12 +23,16 @@ class ListsEPGTools extends Index {
 				return await this._epg.ready()
 			}
 			console.error('changed epg url', this._epg.url, url)
-			await this._epg.destroy()
-			this._epg.terminate()
+			await this._epg.terminate()
+			await this._epgWorker.terminate()
 			delete this._epg
+			delete this._epgWorker
 		}
-		if(url){
-			this._epg = new EPG()
+		console.error('will load epg '+ JSON.stringify(url))
+		if(url) {
+			// give EPG his own worker, otherwise it may slow down app navigation
+			this._epgWorker = new MultiWorker()
+			this._epg = this._epgWorker.load(path.join(__dirname, 'epg-worker'))
 			this._epg.setURL(url)
 			return await this._epg.ready()
 		}
@@ -46,7 +50,9 @@ class ListsEPGTools extends Index {
 			} else {
 				data.push(progress)
 			}
-		} else {
+		} else if(!this._epg) { // unset in the meantime
+			data = []
+		} else {	
 			if(Array.isArray(channelsList)){
 				channelsList = channelsList.map(c => this.applySearchRedirectsOnObject(c))
 				data = await this._epg.getMulti(channelsList, limit)
@@ -269,7 +275,7 @@ class Lists extends ListsEPGTools {
         const max = Math.max(...terms.map(t => t.score))
         let cterms = global.config.get('communitary-mode-interests')
         if(cterms){ // user specified interests
-            cterms = this.master.terms(cterms, false).filter(c => c[0] != '-')
+            cterms = this.terms(cterms, false).filter(c => c[0] != '-')
             if(cterms.length){
                 addTerms(cterms, max)
             }
@@ -428,7 +434,7 @@ class Lists extends ListsEPGTools {
 		this.loadTimes[url].adding = global.time()
 		this.requesting[url] = 'loading'		
 		const list = new List(url, this)
-		list.skipValidating = true // list is already validated at lists/driver, always
+		list.skipValidating = true // list is already validated at lists/updater-worker, always
 		list.contentLength = contentLength
 		list.once('destroy', () => {
 			if(!this.requesting[url] || (this.requesting[url] == 'loading')){

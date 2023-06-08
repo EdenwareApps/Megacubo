@@ -15,7 +15,7 @@ class ParentalControl extends Events {
 			keys.includes('parental-control-terms') && this.setTerms()
 		})
 		this.setupTerms()
-		this.update()
+		global.uiReady && global.uiReady(() => this.update())
 	}
 	entry(){
 		return {

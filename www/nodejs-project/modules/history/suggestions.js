@@ -109,6 +109,9 @@ class Suggestions {
             let additionalCategories = {}
             const additionalLimit = limit - Object.keys(programmeCategories).length
             const expandedCategories = await global.lists.epgExpandSuggestions(Object.keys(programmeCategories))
+            if(!expandedCategories) {
+                throw 'Failed to generate suggestions: '+ JSON.stringify(expandedCategories)
+            }
             Object.keys(expandedCategories).forEach(term => {
                 const score = programmeCategories[term]
                 expandedCategories[term].forEach(t => {

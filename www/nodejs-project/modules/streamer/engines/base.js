@@ -46,7 +46,7 @@ class StreamerBaseIntent extends Events {
         if(this.transcoderStarting || this.transcoder){
 			return true
 		}
-		return this.adapters.some(a => a.isTranscoding && a.isTranscoding())
+		return this.adapters.some(a => a.isTranscoding && a.isTranscoding() === true)
     }
     getTranscodingCodecs(){
         const opts = {audioCodec: 'aac', videoCodec: 'libx264'}

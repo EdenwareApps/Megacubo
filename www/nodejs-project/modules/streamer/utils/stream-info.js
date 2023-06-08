@@ -176,7 +176,7 @@ class StreamInfo {
 				ret.directURL = url
 				ret.ext = this.ext(url)
 				ret.isLocalFile = true
-				resolve(ret)
+				return ret
 			}
 			throw global.lang.NOT_FOUND
 		} else {

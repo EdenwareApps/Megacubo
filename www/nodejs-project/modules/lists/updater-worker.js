@@ -2,15 +2,6 @@
 const Common = require('./common'), List = require('./list')
 const UpdateListIndex = require('./update-list-index')
 
-require('../supercharge')(global)
-
-storage = require('../storage')({})
-Download = require('../download')
-
-const emit = (type, content) => {
-	postMessage({id: 0, type: 'event', data: type +':'+ JSON.stringify(content)})
-}
-
 class ListsUpdater extends Common {
 	constructor(){
 		super()
@@ -119,7 +110,7 @@ class ListsUpdater extends Common {
 		}
 		return true
 	}
+	async terminate(){}
 }
-
 
 module.exports = ListsUpdater

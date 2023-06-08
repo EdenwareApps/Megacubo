@@ -90,9 +90,17 @@ class VideoControl extends EventEmitter {
 			if(useCurtains){
 				this.rootElement.removeClass('curtains')
 			}
-			if(!this.uiFrame) this.uiFrame = jQuery(document.querySelector('iframe').contentWindow.document.body)
-			this.uiFrame.addClass('video video-loading')
-			if(!(this.current instanceof VideoControlAdapterAndroidNative)){
+			if(!this.uiFrame) {
+				this.uiFrame = jQuery(document.querySelector('iframe').contentWindow.document.body)
+			}
+			const c = this.uiFrame.attr('class')
+			// console.warn('VIDEOCLASS* '+ c)
+            if(c.indexOf('video-') == -1) { // no state set yet, add 'video-loading' so
+				this.uiFrame.addClass('video video-loading')
+			} else {
+				this.uiFrame.addClass('video')
+			}
+			if(!(this.current instanceof VideoControlAdapterAndroidNative)) {
 				this.container.style.display = 'flex'
 				this.container.querySelectorAll('video, audio').forEach(e => {
 					e.style.display = (e == this.current.object) ? 'block' : 'none'
@@ -107,7 +115,7 @@ class VideoControl extends EventEmitter {
 		const useCurtains = config['fx-nav-intensity']
 		this.rootElement.removeClass('playing')
 		if(!this.uiFrame) this.uiFrame = jQuery(document.querySelector('iframe').contentWindow.document.body)
-		this.uiFrame.removeClass('video video-loading')		
+		this.uiFrame.removeClass('video video-loading video-playing video-paused')		
 		if(useCurtains){
 			this.rootElement.addClass('curtains-static').removeClass('curtains-alpha').removeClass('curtains').removeClass('curtains-close')
 			setTimeout(() => {

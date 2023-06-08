@@ -54,7 +54,7 @@ class BridgeClient extends EventEmitter {
 		const isDev = true
 		const argument = [
 			'--allow-insecure-localhost',
-			'--max-old-space-size=4096',
+			// '--max-old-space-size=4096', // 1/4 of total mem? should not exceed device memory
 			'--nojitless',
 			'--allow-natives-syntax'
 		]

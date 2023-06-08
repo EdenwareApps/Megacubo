@@ -1,4 +1,4 @@
-const { default: PQueue } = require('p-queue'), Events = require('events');
+const path = require('path'), Events = require('events'), { default: PQueue } = require('p-queue')
 
 class ListsLoader extends Events {
     constructor(master, opts) {
@@ -76,8 +76,7 @@ class ListsLoader extends Events {
     }
     async prepareUpdater(){
         if(!this.updater || this.updater.finished === true){
-            const Driver = require('../driver')(global.APPDIR + '/modules/lists/driver')
-            const updater = this.updater = new Driver()
+            const updater = this.updater = global.workers.load(path.join(__dirname, 'updater-worker'))
             this.updaterClients = 1
             updater.close = () => {
                 this.updaterClients--

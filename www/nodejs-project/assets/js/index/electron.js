@@ -227,7 +227,8 @@ class ExitPage {
 	open(){
 		if(this.allow()){
 			this.manifest(data => {
-				shell.openExternal('http://app.megacubo.net/out.php?ver='+ (data.version || ''))
+				const version = data && data.version ? data.version : ''
+				shell.openExternal('http://app.megacubo.net/out.php?ver='+ version)
 			})
 		}
 	}

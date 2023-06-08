@@ -93,7 +93,7 @@ class TunerTask extends TunerUtils {
 				this.states[i] = 2
 				return info
 			} else {
-				let err = 'Tuner bad intent type: ' + info.type +' '+ JSON.stringify(info)
+				let err = 'Tuner bad intent type: ' + info.type
 				console.error(err, info, e)
 				this.states[i] = -1
 				if(this.opts.debug){

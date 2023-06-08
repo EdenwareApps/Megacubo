@@ -113,7 +113,7 @@ class ListIndexUtils extends Events {
         if(index && typeof(index.length) != 'undefined'){
             return index
         } else {
-            console.error('Bad index', line, this.file)
+            console.error('Bad index', String(line).substr(0, 256), this.file)
             return this.indexTemplate
         }
     }

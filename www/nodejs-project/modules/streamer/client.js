@@ -487,20 +487,17 @@ class StreamerClientVideoAspectRatio extends StreamerUnmuteHack {
 class StreamerIdle extends StreamerClientVideoAspectRatio {
     constructor(controls, app){
         super(controls, app)
-        const rx = new RegExp('(^| )video[\\-a-z]*', 'g'), rx2 = new RegExp('(^| )idle', 'g'), rx3 = new RegExp('(^| )video[\\-a-z]+', 'g')
-        this.on('stop', s => {
-            let c = document.body.className
-            c = c.replace(rx, ' ')
-            document.body.className = c.trim()
-        })
+        const rgxIsIdle = new RegExp('(^| )idle', 'g')
+        const rgxVideoState = new RegExp('(^| )video[\\-a-z]+', 'g') // should not include 'video' class
         this.on('state', s => {
             const done = () => {
                 let c = document.body.className
                 if(s && s != 'error'){
-                    c = c.replace(rx3, ' ') +' video-'+ s
+                    c = c.replace(rgxVideoState, ' ') +' video-'+ s
                 } else {
-                    c = c.replace(rx, ' ')
+                    c = c.replace(rgxVideoState, ' ')
                 }
+                // console.warn('VIDEOCLASS '+ document.body.className +' => '+ c.trim())
                 document.body.className = c.trim()
             }
             if(this.animating){
@@ -510,16 +507,16 @@ class StreamerIdle extends StreamerClientVideoAspectRatio {
             }
         });
         idle.on('idle', () => {
-            let c = document.body.className || ''
-            if(!c.match(rx2)){
+            const c = document.body.className || ''
+            if(!c.match(rgxIsIdle)){
                 document.body.className += ' idle'
             }
             parent.player.uiVisible(false)
         })
         idle.on('active', () => {
-            let c = document.body.className || ''
-            if(c.match(rx2)){
-                document.body.className = c.replace(rx2, ' ').trim()
+            const c = document.body.className || ''
+            if(c.match(rgxIsIdle)){
+                document.body.className = c.replace(rgxIsIdle, ' ').trim()
             }
             parent.player.uiVisible(true)
         })

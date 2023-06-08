@@ -1,55 +1,109 @@
 /* Worker to update lists in background */
-const fs = require('fs'), Events = require('events'), path = require('path')
+const  Events = require('events'), path = require('path')
 
-function wrapAsBase64(file){ // workaround, macos throws not found for local files when calling Worker
+/*
+function wrapAsBase64(file){
+	// workaround, macos throws not found for local files when calling Worker
+	// TODO: maybe file:// could have solved that too
 	return 'data:application/x-javascript;base64,' + Buffer.from(fs.readFileSync(file)).toString('base64')
 }
+*/
 
-module.exports = (file, opts) => {
-	file = path.resolve(file)
-	const workerData = {file, paths, APPDIR}
+const setupConstructor = () => {
+	const workerData = {paths, APPDIR}
 	if(typeof(global.lang) != 'undefined' && typeof(global.lang.getTexts) == 'function'){
 		workerData.lang = global.lang.getTexts()
 	} else {
 		workerData.lang = {}
-	}
-	if(opts && opts.bytenode){
-		workerData.bytenode = true
 	}
 	workerData.bytenode = true
 	workerData.MANIFEST = global.MANIFEST
 	class WorkerDriver extends Events {
 		constructor(){
 			super()
+			this.iterator = 1
 			this.err = null
 			this.finished = false
 			this.promises = {}
+			this.instances = {}
+			this.terminating = {}
 		}
-		proxy(){
-			return new Proxy(this, {
+		proxy(file){
+			const instance = new Proxy(this, {
 				get: (self, method) => {
 					const trace = global.traceback()
-					if(method in self){
+					const terminating = ['destroy', 'terminate'].includes(method)
+					if(terminating) {
+						self.terminating[file] = true
+					} else if(method in self) {
 						return self[method]
+					} else if(method == 'toJSON') {
+						return () => JSON.stringify(null)
 					}
 					return (...args) => {
 						return new Promise((resolve, reject) => {
-							if(this.finished){
-								return reject('worker exited')
+							const debug = false
+							if(self.finished){
+								if(self.terminating[file]) {
+									return resolve()
+								}
+								return reject('worker already exited '+ file +' '+ method)
 							}
-							let id
-							for(id = 1; typeof(self.promises[id]) != 'undefined'; id++);
-							self.promises[id] = {resolve, reject}
+							const id = self.iterator
+							self.iterator++
+							self.promises[id] = {
+								resolve: ret => {
+									resolve(ret)
+									delete self.promises[id]
+									const pending = Object.values(self.promises).some(p => p.file == file)
+									if(!pending && self.terminating && self.terminating[file]) { // after resolve
+										delete self.instances[file]
+										delete self.terminating[file]
+									}									
+									debug && global.osd.show(path.basename(file) +' '+ method +' OK', 'fas fas-circle-notch', 'mwrk-'+ id, 'normal')
+								},
+								reject: err => {									
+									debug && global.osd.show(path.basename(file) +' '+ method +' '+ 	String(err), 'fas fas-circle-notch faclr-red', 'mwrk-'+ id, 'long')
+									reject(err)
+								},
+								file,
+								method
+							}
+							debug && global.osd.show(path.basename(file) +' '+ method, 'fas fas-circle-notch', 'mwrk-'+ id, 'persistent')
 							try {
-								self.worker.postMessage({method, id, args})
+								self.worker.postMessage({method, id, file, args})
 							} catch(e) {
-								global.driverErr = {e, method, id, args, trace}
-								console.error({e, method, id, args})
+								global.driverErr = {e, method, id, args, file, trace}
+								console.error({e, method, id, file, args})
+								debug && global.osd.show(path.basename(file) +' '+ method +' '+ 	String(err), 'fas fas-circle-notch faclr-red', 'mwrk-'+ id, 'long')
 							}
 						})
 					}
 				}
 			})
+			this.instances[file] = instance
+			return instance
+		}
+		rejectAll(file, err){
+			Object.keys(this.promises).forEach(id => {
+				if(!file || this.promises[id].file == file) {
+					const terminating = ['destroy', 'terminate'].includes(this.promises[id].method)
+					if(terminating) {
+						this.promises[id].resolve()
+					} else {
+						this.promises[id].reject(err)
+					}
+					delete this.promises[id]
+				}
+			})
+		}
+		load(file){
+			if(this.worker){
+				this.worker.postMessage({method: 'loadWorker', file})
+				return this.proxy(file)
+			} else {
+				throw 'Worker already terminated: '+ file
+			}
 		}
 		bindConfigChangeListener(){
 			this.on('config-change', data => {
@@ -66,12 +120,12 @@ module.exports = (file, opts) => {
 			this.finished = true
 			this.configChangeListener && global.config.removeListener('change', this.configChangeListener)
 			if(this.worker){
-				//this.worker.postMessage({method: 'unload', id: 0})
 				setTimeout(() => { // try to prevent closing due to bug in nwjs
 					this.worker.terminate()
 					this.worker = null
 				}, 5000)
 			}
+			this.rejectAll(null, 'worker manually terminated')
 			this.removeAllListeners()
 			global.config.removeListener('change', this.configChangeListener)
 		}
@@ -80,32 +134,31 @@ module.exports = (file, opts) => {
 		constructor(){
 			super()
 			this.Worker = require('worker_threads').Worker
-			this.worker = new this.Worker(global.APPDIR + '/modules/driver/worker.js', {
+			this.worker = new this.Worker(path.join(__dirname, 'worker.js'), {
 				workerData, 
 				stdout: true, 
 				stderr: true,
-				resourceLimits: {
-					maxOldGenerationSizeMb: 2048,
-					maxYoungGenerationSizeMb: 2048
-				}
+				resourceLimits: {} // limits removed
 			})
 			this.worker.on('error', err => {
 				let serr = String(err)
 				this.err = err
-				console.error('error ' + file +' '+ err +' '+ serr, {err, serr})
+				console.error('error '+ err +' '+ serr +' '+ JSON.stringify(this.instances, null, 3), {err, serr})
 				if(serr.match(new RegExp('(out of memory|out_of_memory)', 'i'))){
-					let msg = 'Worker '+ file.split('/').pop() +' exitted out of memory, fix the settings and restart the app.'
+					let msg = 'Worker exited out of memory, fix the settings and restart the app.'
 					global.osd.show(msg, 'fas fa-exclamation-triagle faclr-red', 'out-of-memory', 'persistent')
 				}
 				if(typeof(err.preventDefault) == 'function'){
 					err.preventDefault()
 				}
-				global.crashlog.save('Worker error at '+ file.split('/').pop() +': ', err)
+				global.crashlog.save('Worker error: ', err)
+				this.rejectAll(null, 'worker exited out of memory')
 			}, true, true)
 			this.worker.on('exit', () => {
 				this.finished = true
 				this.worker = null
-				console.warn('Worker exit. ' + file, this.err)
+				console.warn('Worker exited', this.err)
+				this.rejectAll(null, this.err || 'worker exited')
 			})
 			this.worker.on('message', ret => {
 				if(ret.id !== 0){
@@ -130,27 +183,26 @@ module.exports = (file, opts) => {
 				}
 			})
 			this.bindConfigChangeListener()
-			return this.proxy()
 		}
 	}
 	class WebWorkerDriver extends WorkerDriver {
 		constructor(){
 			super()
-			this.worker = new Worker(global.APPDIR + '/modules/driver/web-worker.js', {
+			this.worker = new Worker('file://'+ path.join(__dirname, 'web-worker.js'), {
 				name: JSON.stringify(workerData)
 			})
 			this.worker.onerror = err => {  
 				let serr = String(err)
 				this.err = err
-				console.error('error ' + file, err, serr)
+				console.error('error: '+ err, serr)
 				if(serr.match(new RegExp('(out of memory|out_of_memory)', 'i'))){
-					let msg = 'Webworker ' + file.split('/').pop() + ' exitted out of memory, fix the settings and restart the app.'
+					let msg = 'Webworker exited out of memory, fix the settings and restart the app.'
 					global.osd.show(msg, 'fas fa-exclamation-triagle faclr-red', 'out-of-memory', 'persistent')
 				}
 				if(typeof(err.preventDefault) == 'function'){
 					err.preventDefault()
 				}
-				global.crashlog.save('Worker error at '+ file.split('/').pop() +': ', err)
+				global.crashlog.save('Worker error: ', err)
 				return true
 			}
 			this.worker.onmessage = e => {
@@ -177,7 +229,6 @@ module.exports = (file, opts) => {
 				}
 			}
 			this.bindConfigChangeListener()
-			return this.proxy()
 		}
 	}
 	class DirectDriver extends Events {
@@ -185,18 +236,27 @@ module.exports = (file, opts) => {
 			super()
 			this.err = null
 			this.finished = false
-			this.instance = new (require(file))()
+			this.instances = {}
+		}
+		load(file){
+			this.instances[file] = new (require(file))()
 			return new Proxy(this, {
 				get: (self, method) => {
-					if(method in self){
+					if(method in self && method != 'terminate') {
 						return self[method]
 					}
 					return (...args) => {
 						return new Promise((resolve, reject) => {
 							if(this.finished){
-								return reject('worker exited')
+								if(['destroy', 'terminate'].includes(method)) {
+									return resolve()
+								}
+								return reject('worker exited '+ file +' '+ method)
 							}
-							const prom = this.instance[method](...args)
+							if(!this.instances[file]){
+								return reject('worker not loaded '+ file +' '+ method)
+							}
+							const prom = this.instances[file][method](...args)
 							if(!prom || !prom.then){
 								console.error('Method '+ method +' does not returns a promise')
 								return
@@ -208,8 +268,12 @@ module.exports = (file, opts) => {
 			})
 		}
 		terminate(){
+			console.error('destroyed a worker '+ global.traceback())
 			this.finished = true
-			this.instance = null
+			Object.keys(this.instances).forEach(file => {
+				this.instances[file] && this.instances[file].terminate && this.instances[file].terminate()
+				delete this.instances[file]
+			})
 			this.removeAllListeners()
 		}
 	}
@@ -234,3 +298,5 @@ module.exports = (file, opts) => {
 		}
 	}
 }
+
+module.exports = setupConstructor()

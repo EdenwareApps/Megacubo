@@ -119,6 +119,7 @@ class ChannelsData extends Events {
     save(cb){
         let ordering = {}
         Object.keys(this.categories).sort().forEach(k => {
+            if(!Array.isArray(this.categories[k])) return
             ordering[k] = this.categories[k].sort((a, b) => {
                 let aa = a.indexOf(',')
                 let bb = b.indexOf(',')

@@ -462,22 +462,22 @@ class Options extends OptionsP2P {
         })        
     }
     async updateEPGConfig(c){
-        global.activeEPG = global.config.get('epg-'+ global.lang.locale)
-        if(global.activeEPG == 'disabled'){
-            global.activeEPG = false
+        let activeEPG = global.config.get('epg-'+ global.lang.locale)
+        if(activeEPG == 'disabled'){
+            activeEPG = false
             await global.lists.manager.setEPG('', false).catch(console.error)
         } else {
-            if(!global.activeEPG || global.activeEPG == 'auto'){
+            if(!activeEPG || activeEPG == 'auto'){
                 if(!c){
-                    c = await cloud.get('configure').catch(console.error)
+                    c = await global.cloud.get('configure').catch(console.error)
                 }
                 if(c && c.epg){
-                    global.activeEPG = c.epg[global.lang.countryCode] || c.epg[global.lang.locale] || false
+                    activeEPG = c.epg[global.lang.countryCode] || c.epg[global.lang.locale] || false
                 } else {
-                    global.activeEPG = false
+                    activeEPG = false
                 }
             }
-            await global.lists.manager.setEPG(global.activeEPG || '', false).catch(console.error)
+            await global.lists.manager.setEPG(activeEPG || '', false).catch(console.error)
         }
         console.log('SET-EPG', global.activeEPG)
     }
@@ -772,15 +772,6 @@ class Options extends OptionsP2P {
             }, checked: () => {
                 return global.config.get('use-keepalive')
             }, details: 'Recommended'},
-            {
-                name: 'Force MPEGTS broadcasts to be seekable ('+ global.lang.SLOW +')', type: 'check', 
-                action: (data, checked) => {
-                    global.config.set('mpegts-seeking-fix', checked)
-                },
-                checked: () => {
-                    return global.config.get('mpegts-seeking-fix')
-                }
-            },                
             {
                 name: 'Use FFmpeg pre-processing on live streams',
                 fa: 'fas fa-cog', 

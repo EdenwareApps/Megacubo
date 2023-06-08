@@ -1,14 +1,8 @@
+const Cloud = require('../cloud')
+const { logErr, parentPort, loadGlobalVars } = require('./client')
 
-const { workerData, parentPort } = require('worker_threads')
-postMessage = parentPort.postMessage.bind(parentPort)
-
-function logErr(data) {
-    postMessage({id: 0, type: 'event', data: 'error:'+ JSON.stringify(data), file})
-}
-
-Object.keys(workerData).forEach(k => global[k] = workerData[k])
-
-crashlog = require(global.APPDIR +'/modules/crashlog')
+loadGlobalVars()
+require('../supercharge')(global)
 
 process.on('warning', e => {
     console.warn(e, e.stack)
@@ -27,29 +21,41 @@ process.on('uncaughtException', (exception) => {
     return false
 })
 
+global.crashlog = require(global.APPDIR +'/modules/crashlog')
+global.storage = require('../storage')({})
+
 global.config = require(global.APPDIR + '/modules/config')(global.paths['data'] + '/config.json')
 global.config.on('change', () => {
     parentPort.postMessage({id: 0, type: 'event', data: 'config-change'})
 })
 
+global.Download = require('../download')
+global.cloud = new Cloud()
+
 if(global.bytenode){
     global.bytenode = require('bytenode')
 }
 
-const Driver = require(file)
-driver = new Driver()
+const drivers = {}
+
 parentPort.on('message', msg => {
     if(msg.method == 'configChange'){
         global.config.reload()
         setTimeout(() => {
             global.config.reload() // read again after some seconds, the config file may delay on writing
         }, 3000)
-    } else if(typeof(driver[msg.method]) == 'undefined'){
-        data = {id: msg.id, type: 'reject', data: 'method not exists'}
+    } else if(msg.method == 'loadWorker') {
+        const Driver = require(msg.file)
+        drivers[msg.file] = new Driver()
+        if(typeof(drivers[msg.file].terminate) != 'function') {
+            console.error('Warning: worker '+ msg.file +' has no terminate() method.')
+        }
+    } else if(typeof(drivers[msg.file][msg.method]) == 'undefined'){
+        data = {id: msg.id, type: 'reject', data: 'method not exists ' + JSON.stringify(msg)}
         parentPort.postMessage(data)
     } else {
         let type, data = null
-        const promise = driver[msg.method].apply(driver, msg.args)
+        const promise = drivers[msg.file][msg.method].apply(drivers[msg.file], msg.args)
         if(!promise || typeof(promise.then) == 'undefined'){
             data = {id: -1, type: 'event', data: 'error:Not a promise ('+ msg.method +').'}
             return parentPort.postMessage(data)

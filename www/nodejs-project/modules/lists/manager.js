@@ -494,7 +494,10 @@ class ManagerEPG extends ManagerCommunityLists {
             if(url){
                 url = this.formatEPGURL(url)
             }
-            if(!url || global.validateURL(url)){
+            if(url == global.activeEPG) {
+                return
+            }
+            if(!url || global.validateURL(url)) {
                 global.activeEPG = url
                 global.channels.activeEPG = ''
                 await this.loadEPG(url, ui)

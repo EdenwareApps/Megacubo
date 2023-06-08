@@ -78,7 +78,7 @@ class VideoControlAdapterHTML5TS extends VideoControlAdapterHTML5Video {
 			console.log('unload ts disconnect')
 			this.disconnect()
             this.mpegts.unload()
-            this.mpegts.detachMediaElement()
+            // this.mpegts.detachMediaElement()
             this.mpegts.destroy()
             this.mpegts = null
 			if(this.logListener){

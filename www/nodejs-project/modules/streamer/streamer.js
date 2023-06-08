@@ -66,12 +66,14 @@ class StreamerTools extends Events {
 			return this.streamInfoCaching[cachingKey]
 		}
 		const nfo = await this.streamInfo.probe(url, retries, entry)
-		Object.keys(this.engines).some(name => {
-			if(this.engines[name].supports(nfo)){
-				type = name
-				return true
-			}
-		})
+		if(nfo && (nfo.headers || nfo.isLocalFile)) {
+			Object.keys(this.engines).some(name => {
+				if(this.engines[name].supports(nfo)) {
+					type = name
+					return true
+				}
+			})
+		}
 		if(type){
 			nfo.type = type
 			nfo.until = now + 600
@@ -990,10 +992,10 @@ class Streamer extends StreamerAbout {
 					{template: 'option', text: global.lang.YES, fa: 'fas fa-check-circle', id: 'ok'}
 				], 'no')
 				if(ret == 'yes'){
-					global.config.set('mpegts-seeking-fix', true)
+					global.config.set('ffmpeg-broadcast-pre-processing', 'auto')
 					this.retry()
 				}
-			})			
+			})
 		}
 	}
 	setTuneable(enable){

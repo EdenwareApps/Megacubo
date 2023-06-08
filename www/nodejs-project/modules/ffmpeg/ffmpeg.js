@@ -21,8 +21,8 @@ class FFmpegController extends Events {
 			// add these input options only if we have an input, not in -version, per example
 			cmd.push(...[
 				'-loglevel', 'info', // if logerror=(warning|error) it will not return the codec and bitrate data
-				'-analyzeduration', 10000000, // 10s in microseconds
-				'-probesize', 10485760,	// 10MB
+				'-analyzeduration', 50000000, // ~50s in microseconds
+				'-probesize', 50000000,	// ~50MB
 				'-err_detect', 'ignore_err',
 				'-i', this.input
 			])
@@ -206,17 +206,13 @@ class FFMPEGMediaInfo extends FFMPEGHelper {
 				}
 			})
 		}
-		if(length){
-			next()
-		} else {
-			fs.access(file, err => {
-				if(err) { 
-					cb('File not found or empty.', 0)
-				} else {
-					next()
-				}
-			})
-		}
+		fs.access(file, err => {
+			if(err) { 
+				cb('File not found or empty.', 0)
+			} else {
+				next()
+			}
+		})
 	}
 	bitrate(file, cb, length){
 		let next = () => {
