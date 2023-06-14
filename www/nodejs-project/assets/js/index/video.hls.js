@@ -152,7 +152,6 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 			if(['fragParsingError', 'fragLoadError'].includes(data.details)){
 				// handle fragment load errors
 				const loader = data.frag.loader
-				console.error('HLS ERRORLOADER ', data, loader)
 				if (data.response && data.response.status === 404) {
 					// skip current segment and continue with the same level
 					hls.streamController.skipCurrentSegment()
@@ -180,11 +179,13 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 						break
 					case ErrorTypes.NETWORK_ERROR:
 						console.error('HLS fatal network error encountered, reload')
-						// hls.startLoad() was not working
-						// no break
+						hls.stopLoad()
+						hls.recoverMediaError()
+						hls.startLoad()
+						break
 					default:
-						console.error('HLS fatal error encountered, destroy')
-						this.emit('error', 'HLS fatal error')
+						console.error('HLS unknown fatal error encountered, destroy')
+						this.emit('error', 'HLS fatal error', true)
 						break
 				}
 			} else {

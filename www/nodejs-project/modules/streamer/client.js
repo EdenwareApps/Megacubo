@@ -142,17 +142,14 @@ class StreamerCasting extends StreamerOSD {
                 parent.player.pause()
                 this.stateListener('playing')
                 this.jbody.addClass('casting')
-                if(this.inLiveStream){
-                    this.jbody.addClass('casting-live')
-                }
+                this.inLiveStream && this.jbody.addClass('casting-live')
             }
         })
         app.on('cast-stop', () => {
             if(this.casting){
                 this.casting = false
                 this.castingPaused = false
-                this.jbody.removeClass('casting')
-                this.jbody.removeClass('casting-live')
+                this.jbody.removeClass('casting casting-live')
                 if(this.active){
                     this.bindStateListener()
                     if(parent.player.state){

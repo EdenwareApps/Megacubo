@@ -77,9 +77,8 @@ class JoinerWorker {
 	async cancelWarmCache() {
 		this.joiner.cancelWarmCache()
 	}
-	async isTranscoding() {
-		return false
-	}
+	async isTranscoding() {}
+	async addCodecData() {}
 	async terminate() {
 		this.joiner && this.joiner.destroy()
 	}

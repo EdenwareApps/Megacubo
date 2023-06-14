@@ -7,7 +7,7 @@ class StreamerFFmpeg extends Events {
         super()
         let outputFormat = global.config.get('preferred-livestream-fmt')
         if(!['mpegts', 'hls'].includes(outputFormat)){
-            outputFormat = global.cordova ? 'hls' : 'mpegts' // Exoplayer can't seek live mpegts            
+            outputFormat = 'hls' // compat
         }
         this.timeout = global.config.get('connect-timeout') * 6
         this.started = false
@@ -414,9 +414,9 @@ class StreamerFFmpeg extends Events {
 
             format(this.opts.outputFormat)
         if(this.opts.outputFormat == 'hls'){
-            // fragTime=2 to start playing asap, it will generate 3 segments before create m3u8, so hls_init_time isn't enough
+            // fragTime=2 to start playing asap, it will generate 3 segments before create m3u8
             // fragTime=1 may cause manifestParsingError "invalid target duration" on hls.js
-            let fragTime = 3, lwt = global.config.get('live-window-time')
+            let fragTime = 2, lwt = global.config.get('live-window-time')
             if(typeof(lwt) != 'number'){
                 lwt = 120
             } else if(lwt < 30) { // too low will cause isBehindLiveWindowError
@@ -431,11 +431,12 @@ class StreamerFFmpeg extends Events {
             }
             this.decoder.
                 outputOptions('-hls_flags', hlsFlags). // ?? https://www.reddit.com/r/ffmpeg/comments/e9n7nb/ffmpeg_not_deleting_hls_segments/
+                outputOptions('-hls_init_time', fragTime).
                 outputOptions('-hls_time', fragTime).
                 outputOptions('-hls_list_size', hlsListSize).
                 outputOptions('-master_pl_name', 'master.m3u8').
                 outputOptions('-movflags', '+faststart')
-        } else { // mpegts
+        } else if(this.opts.outputFormat == 'mpegts') { // mpegts
             this.decoder.
                 outputOptions('-movflags', 'frag_keyframe+empty_moov').
                 outputOptions('-listen', 1) // 2 wont work
@@ -515,8 +516,8 @@ class StreamerFFmpeg extends Events {
                 const endListener = data => {
                     if(!this.destroyed){
                         console.warn('file ended '+ data, traceback())
-                        if(this.opts.isLive){
-                            if(this.committed){
+                        if(this.opts.isLive) {
+                            if(this.committed) {
                                 this.start(true).catch(console.error)
                             } else {
                                 this.emit('fail', 'media error')
@@ -604,8 +605,8 @@ class StreamerFFmpeg extends Events {
                                 this.destroy()
                             }
                         } else {
-                            if(this.opts.outputFormat == 'hls'){
-                                this.waitFile(this.decoder.playlist, this.timeout, true).then(() => {
+                            if(['hls', 'mp4'].includes(this.opts.outputFormat)) {
+                                this.waitFile(this.decoder.playlist || this.decoder.file, this.timeout, true).then(() => {
                                     this.serve().then(resolve).catch(err => {
                                         reject(err)
                                         this.decoder && this.decoder.kill()
@@ -644,11 +645,16 @@ class StreamerFFmpeg extends Events {
                             }
                         })
                     })
-                } else { // mpegts
+                } else if(this.opts.outputFormat == 'mpegts') { // mpegts
                     const port = 10000 + parseInt(Math.random() * 50000)
                     this.decoder.target = 'http://127.0.0.1:'+ port +'/'
                     console.log('FFMPEG run: '+ this.source, this.decoder.file)
                     this.decoder.output('http://127.0.0.1:'+ port +'?listen').run()
+                    // should be ip:port?listen without right slash before question mark
+                } else { // mp4
+                    this.decoder.file = this.opts.outputFile
+                    console.log('FFMPEG run: '+ this.source, this.decoder.file)
+                    this.decoder.output(this.decoder.file).run()
                     // should be ip:port?listen without right slash before question mark
                 }
             }).catch(reject)

@@ -22,22 +22,28 @@ class P2PEncDec extends EventEmitter {
 		s = '0'.repeat(P2P_ENC_HEADER_SIZE - s.length) + s
 		return Buffer.concat([Buffer.from(s + j), payload])
 	}
-	decode(buf) {
+	decode(buf, msgSize) {
 		if (Buffer.isBuffer(buf)) {
-			const msgSize = parseInt(buf.slice(0, P2P_ENC_HEADER_SIZE).toString().replace(new RegExp('^0+', 'g'), ''))
+			const expectedMsgSize = typeof(msgSize) == 'number' ? msgSize :
+				parseInt(buf.slice(0, P2P_ENC_HEADER_SIZE).toString().replace(new RegExp('^0+', 'g'), ''))
 			try {
-				const data = JSON.parse(buf.slice(P2P_ENC_HEADER_SIZE, P2P_ENC_HEADER_SIZE + msgSize).toString())
-				const payload = buf.slice(P2P_ENC_HEADER_SIZE + msgSize)
+				const data = JSON.parse(buf.slice(P2P_ENC_HEADER_SIZE, P2P_ENC_HEADER_SIZE + expectedMsgSize).toString())
+				const payload = buf.slice(P2P_ENC_HEADER_SIZE + expectedMsgSize)
 				data.data = payload
 				if(payload && payload.length) {
 					console.log('P2P payload received fine')
 				}
 				return data
 			} catch (e) {
-				console.error(String(e) +' '+ JSON.stringify({
-					expectedMsgSize: msgSize,
-					receivedMsgSize: buf.length - P2P_ENC_HEADER_SIZE
-				}), e, buf)
+				if(typeof(msgSize) == 'number') {
+					console.error(String(e) +' '+ JSON.stringify({
+						expectedMsgSize,
+						receivedMsgSize: buf.length - P2P_ENC_HEADER_SIZE
+					}), e, buf)
+				} else {				
+					const receivedMsgSize = buf.length - P2P_ENC_HEADER_SIZE
+					return this.decode(buf, receivedMsgSize)
+				}
 			}
 			return null
 		} else {
@@ -267,7 +273,6 @@ class P2PListsRequest extends P2PEncDec {
 	}
 	listener(message, i) {
 		if (message && message.lists && message.uid == this.opts.uid) {
-			console.error('P2P LISTS RECEIVED', message)
 			Array.isArray(message.lists) && 
 			message.lists.length && 
 			this.app.emit('public-iptv-lists-discovery', message.lists)

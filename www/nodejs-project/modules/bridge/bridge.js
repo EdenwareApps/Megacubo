@@ -49,7 +49,7 @@ class BridgeServer extends Events {
         this.map = {}
         this.opts = {
             addr: '127.0.0.1',
-            port: 6342
+            port: 0
         }
         if(opts){
             Object.keys(opts).forEach((k) => {
@@ -118,10 +118,11 @@ class BridgeServer extends Events {
                 })
             }
         })
-        this.server.listen(this.opts.port, this.opts.addr, err => {
+        this.server.listen(0, this.opts.addr, err => {
+            this.opts.port = this.server.address().port
             console.log('Bridge server started', err)
+            this.uploadURL = 'http://' + this.opts.addr + ':' + this.opts.port + '/upload'
         })  
-        this.uploadURL = 'http://' + this.opts.addr + ':' + this.opts.port + '/upload'
     }
     serve(file){
         if(fs.existsSync(file)){

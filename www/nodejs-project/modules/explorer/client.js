@@ -1296,8 +1296,8 @@ class ExplorerDialog extends ExplorerDialogQueue {
 				if(!e.plainText){
 					e.plainText = this.plainText(e.text)
 				}
-				e.text = e.text.replaceAll('"', '&quot;')
-				e.plainText = e.plainText.replaceAll('"', '')
+				e.text = String(e.text).replaceAll('"', '&quot;')
+				e.plainText = String(e.plainText).replaceAll('"', '')
 				tpl = this.replaceTags(tpl, e, true)
 				if(this.debug){
 					console.log(tpl, e)

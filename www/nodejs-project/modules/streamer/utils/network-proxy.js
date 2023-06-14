@@ -7,6 +7,7 @@ class StreamerNetworkProxy extends StreamerProxy {
 		this.type = 'network-proxy'
         this.opts.debug = false
         this.sourcePort = port
+        this.destPort = 0
         this.connectionsServed = 0
 	}
     proxify(url){
@@ -39,7 +40,6 @@ class StreamerNetworkProxy extends StreamerProxy {
             this.serverStopper = stoppable(this.server)
             this.listen().then(() => {
                 this.connectable = true
-                this.opts.port = this.server.address().port
                 resolve(true)
             }).catch(err => {
                 if(this.opts.debug){
@@ -52,12 +52,19 @@ class StreamerNetworkProxy extends StreamerProxy {
     }
     listen(){
         return new Promise((resolve, reject) => {
-            this.server.listen(6342, this.addr, (err) => {
-                if (!err) return resolve(true)
-                this.server.listen(0, this.addr, (err) => {
-                    if (err) return reject(err)
+            this.server.listen(this.destPort, this.addr, err => {
+                if(err && this.destPort != 0) {
+                    this.server.listen(0, this.addr, err => {
+                        if (err) return reject(err)
+                        this.opts.port = this.server.address().port
+                        resolve(true)
+                    })
+                } else if(err) {
+                    reject(err)
+                } else {        
+                    this.opts.port = this.server.address().port        
                     resolve(true)
-                })
+                }
             })
         })
     }

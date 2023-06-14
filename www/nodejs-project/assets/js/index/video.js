@@ -150,10 +150,9 @@ class VideoControl extends EventEmitter {
 		}
 	}
 	load(src, mimetype, cookie, mediatype){
-		if(this.current){
-			this.current.unload()
-		}
 		this.setState('loading')
+		this.suspendStateChangeReporting = true
+		this.current && this.current.unload(true)
 		if(window.plugins && window.plugins.megacubo){
 			this.setup('native', VideoControlAdapterAndroidNative)
 		} else {
@@ -168,12 +167,18 @@ class VideoControl extends EventEmitter {
 				this.setup('html5v', VideoControlAdapterHTML5Video)
 			}
 		}
-		this.current.errorsCount = 0
-		this.current.load(src, mimetype, cookie, mediatype)
+		const current = this.current
+		this.suspendStateChangeReporting = false
+		current.errorsCount = 0
+		try {
+			current.load(src, mimetype, cookie, mediatype)
+
+		} catch(err) {console.error(err)}
+		this.current = current
 		this.show()
-		this.current.volume(config['volume'])
+		config && current.volume(config['volume'])
 		document.body.style.backgroundColor = 'transparent'
-		return this.current
+		return current
 	}
 	setup(adapter, cls){
 		this.adapter = adapter
@@ -245,7 +250,7 @@ class VideoControl extends EventEmitter {
 			a.config = typeof(config) == 'object' ? config : {}
 			this.adapters[this.adapter] = a
 		}
-		this.current = this.adapters[this.adapter]
+		return this.current = this.adapters[this.adapter]
 	}
     equals(a, b){
 		return a && b && a.length == b.length ? a.every((r, i) => {
@@ -274,14 +279,15 @@ class VideoControl extends EventEmitter {
 			this.current.subtitleTrack(trackId)
 		}
 	}
-	unload(){
-		console.log('unload', traceback())
+	unload(silent){
+		silent || console.log('unload', traceback())
 		if(this.current){
-			console.log('unload')
-			this.hide()
-			this.current.unload()
-			this.current = null
-			this.setState('')
+			this.current.unload(true)
+			if(!silent) {
+				this.hide()
+				this.current = null
+				this.setState('')
+			}
 		}
 	}
 }
@@ -326,7 +332,6 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 		this.uiVisibility = visible
 	}
 	connect(){
-		this.suspendStateChangeReporting = true
 		this.object.currentTime = 0
 		const v = $(this.object)
 		v.off()
@@ -358,6 +363,7 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 					this.unload()
 					setTimeout(() => {
 						this.suspendStateChangeReporting = false
+						this.setState('loading')
 						this.load(this.currentSrc, this.currentMimetype)
 						if(t){
 							this.object.currentTime = t + 0.5 // nudge a bit to skip any decoding error on part of the file
@@ -417,7 +423,6 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 		['abort', 'canplay', 'canplaythrough', 'durationchange', 'emptied', 'ended', 'error', 'loadeddata', 'loadedmetadata', 'loadstart', 'pause', 'play', 'seeked', 'stalled', 'suspend'].forEach(n => {
 			v.on(n, this.processState.bind(this))
 		})
-		this.suspendStateChangeReporting = false
 		this.processState()
 	}
 	disconnect(){
@@ -442,23 +447,24 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 		}
 		this.setState('loading')
 		this.suspendStateChangeReporting = true
-		this.unload()
+		this.unload(true)
 		this.active = true
 		console.log('adapter load')
 		this.object.src = src
-		this.suspendStateChangeReporting = false
 		this.connect()
 		this.object.load()
+		this.setState('loading')
+		this.suspendStateChangeReporting = false
 		this.resume()
 		console.log('adapter resume', this.object.outerHTML, src, mimetype)
 	}
-	unload(){
+	unload(silent){
 		console.log('adapter unload')
 		this.hasReceivedRatio = false
 		if(this.active){
 			this.active = false
 			this.disconnect()
-			if(this.object.currentSrc){
+			if(!silent && this.object.currentSrc) {
 				this.object.pause()
 				this.object.innerHTML = '<source type="video/mp4" src="" />'
 				this.object.removeAttribute('src')
@@ -467,6 +473,7 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 		}
 	}
 	resume(){
+		this._paused = false
 		let promise = this.object.play()
 		if(promise){
 			promise.catch(err => {
@@ -477,6 +484,7 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 		}
 	}
 	pause(){
+		this._paused = true
 		this.object && this.object._pause && this.object._pause()
 	}
 	restart(){
@@ -540,15 +548,11 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 		var s = ''
 		if(this.active){
 			if(this.object.paused){
-				const isHLSLoading = () => {
-					return this.hls && this.object.currentTime === 0 && 
-						!Object.keys(this.hls.streamController.fragmentTracker.fragments).length
-				}
-				if(this.object.readyState < 3 || isNaN(this.object.duration) || isHLSLoading()){
-					s = 'loading'
-				} else {
+				if(this._paused) {
 					s = 'paused'
-				}            
+				} else {
+					this.object.play().catch(console.error)
+				} 
 			} else if(this.object.readyState < 4) { // if duration == Infinity, readyState will be 3		
 				this.lastSeenTime = this.object.currentTime
 				s = 'loading'
@@ -684,7 +688,7 @@ class VideoControlAdapterAndroidNative extends VideoControlAdapter {
 	}
 	errorCallback(...args){
 		console.error('exoplayer err', args)
-		this.emit('error', args.length ? args[0] : 'Exoplayer error')
+		this.emit('error', args.length ? args[0] : 'Exoplayer error', true)
 		this.state = ''
 		this.emit('state', '')
 		//console.error(err, arguments)

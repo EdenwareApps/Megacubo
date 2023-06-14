@@ -266,6 +266,12 @@ class WindowManagerCommon extends ClassesHandler {
 			details: require('./package.json').window
 		})
 		this.resizeListenerDisabled = false
+		this.load()
+	}
+	load(){
+		const target = document.querySelector('iframe')
+		const { opts: { port } } = getElectronRemote().getGlobal('ui')
+		target.src = 'http://127.0.0.1:'+ port +'/index.html'
 	}
 	screenScale(v, reverse){
 		if(Array.isArray(v)){

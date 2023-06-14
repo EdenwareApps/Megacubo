@@ -7,6 +7,52 @@ function wrapAsBase64(file){
 	// TODO: maybe file:// could have solved that too
 	return 'data:application/x-javascript;base64,' + Buffer.from(fs.readFileSync(file)).toString('base64')
 }
+	class WebWorkerDriver extends WorkerDriver {
+		constructor(){
+			super()
+			this.worker = new Worker('file://'+ path.join(__dirname, 'web-worker.js'), {
+				name: JSON.stringify(workerData)
+			})
+			this.worker.onerror = err => {  
+				let serr = String(err)
+				this.err = err
+				console.error('error: '+ err, serr)
+				if(serr.match(new RegExp('(out of memory|out_of_memory)', 'i'))){
+					let msg = 'Webworker exited out of memory, fix the settings and restart the app.'
+					global.osd.show(msg, 'fas fa-exclamation-triagle faclr-red', 'out-of-memory', 'persistent')
+				}
+				if(typeof(err.preventDefault) == 'function'){
+					err.preventDefault()
+				}
+				global.crashlog.save('Worker error: ', err)
+				return true
+			}
+			this.worker.onmessage = e => {
+				const ret = e.data
+				if(ret.id !== 0){
+					if(ret.id && typeof(this.promises[ret.id]) != 'undefined'){
+						this.promises[ret.id][ret.type](ret.data)
+						delete this.promises[ret.id]
+					} else {
+						console.error('Worker error', ret)
+					}
+				} else if(ret.type && ret.type == 'event') {
+					let pos = ret.data.indexOf(':')
+					if(pos != -1){
+						let evtType = ret.data.substr(0, pos)
+						let evtContent = ret.data.substr(pos + 1)
+						if(evtContent.length){
+							evtContent = global.parseJSON(evtContent)
+						}
+						this.emit(evtType, evtContent)
+					} else {
+						this.emit(ret.data)
+					}
+				}
+			}
+			this.bindConfigChangeListener()
+		}
+	}
 */
 
 const setupConstructor = () => {
@@ -185,52 +231,6 @@ const setupConstructor = () => {
 			this.bindConfigChangeListener()
 		}
 	}
-	class WebWorkerDriver extends WorkerDriver {
-		constructor(){
-			super()
-			this.worker = new Worker('file://'+ path.join(__dirname, 'web-worker.js'), {
-				name: JSON.stringify(workerData)
-			})
-			this.worker.onerror = err => {  
-				let serr = String(err)
-				this.err = err
-				console.error('error: '+ err, serr)
-				if(serr.match(new RegExp('(out of memory|out_of_memory)', 'i'))){
-					let msg = 'Webworker exited out of memory, fix the settings and restart the app.'
-					global.osd.show(msg, 'fas fa-exclamation-triagle faclr-red', 'out-of-memory', 'persistent')
-				}
-				if(typeof(err.preventDefault) == 'function'){
-					err.preventDefault()
-				}
-				global.crashlog.save('Worker error: ', err)
-				return true
-			}
-			this.worker.onmessage = e => {
-				const ret = e.data
-				if(ret.id !== 0){
-					if(ret.id && typeof(this.promises[ret.id]) != 'undefined'){
-						this.promises[ret.id][ret.type](ret.data)
-						delete this.promises[ret.id]
-					} else {
-						console.error('Worker error', ret)
-					}
-				} else if(ret.type && ret.type == 'event') {
-					let pos = ret.data.indexOf(':')
-					if(pos != -1){
-						let evtType = ret.data.substr(0, pos)
-						let evtContent = ret.data.substr(pos + 1)
-						if(evtContent.length){
-							evtContent = global.parseJSON(evtContent)
-						}
-						this.emit(evtType, evtContent)
-					} else {
-						this.emit(ret.data)
-					}
-				}
-			}
-			this.bindConfigChangeListener()
-		}
-	}
 	class DirectDriver extends Events {
 		constructor(){
 			super()
@@ -277,26 +277,8 @@ const setupConstructor = () => {
 			this.removeAllListeners()
 		}
 	}
-	function hasWorkerThreads(){				
-		try {
-			if(require.resolve('worker_threads')){
-				require('worker_threads')
-				return true
-			}
-		} catch(e) { }		
-	}
-	if(hasWorkerThreads()) {
-		return ThreadWorkerDriver
-	} else {
-		if(typeof(Worker) != 'undefined'){
-			return WebWorkerDriver
-		} else {
-			// return DirectDriver // useful for debugging, bad for performance
-			const msg = 'Web workers and worker_threads are not supported in this environment.'
-			console.error(msg)
-			global.displayErr(msg)			
-		}
-	}
+	return ThreadWorkerDriver
+	// return DirectDriver // useful for debugging
 }
 
 module.exports = setupConstructor()

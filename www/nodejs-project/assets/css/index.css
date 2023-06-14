@@ -669,7 +669,7 @@ seekbar label {
 body.video seekbar label {    
     transition: color 0.5s linear 0s;
 }
-body.audio:not(.miniplayer-cordova):not(.menu-playing) controls, body.casting:not(.menu-playing) controls, body.video-playing:not(.idle):not(.menu-playing):not(.miniplayer-cordova) controls, body.video-paused:not(.miniplayer-cordova):not(.menu-playing) controls, body.video-ended:not(.miniplayer-cordova):not(.menu-playing) controls, body.video-loading:not(.miniplayer-cordova):not(.menu-playing):not(.idle) controls {
+body.audio:not(.miniplayer-cordova):not(.menu-playing) controls, body.casting:not(.menu-playing) controls, body.video.video-playing:not(.idle):not(.menu-playing):not(.miniplayer-cordova) controls, body.video.video-paused:not(.miniplayer-cordova):not(.menu-playing) controls, body.video.video-ended:not(.miniplayer-cordova):not(.menu-playing) controls, body.video.video-loading:not(.miniplayer-cordova):not(.menu-playing):not(.idle) controls {
     bottom: 0;
     transform: none;
 }

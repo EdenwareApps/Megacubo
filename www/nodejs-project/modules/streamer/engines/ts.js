@@ -48,7 +48,7 @@ class StreamerTSIntent extends StreamerBaseIntent {
         })
     }
     useFFmpeg(){
-        if(global.config.get('ffmpeg-broadcast-pre-processing') != 'no'){
+        if(global.config.get('ffmpeg-broadcast-pre-processing') == 'yes'){
             return true
         }
         return false         

@@ -464,7 +464,7 @@ class Explorer extends Events {
                             console.error('deep path not found, falling back', destPath, this.pages[destPath])
                             return finish(this.pages[destPath])
                         }
-                        reject('deep path not found')
+                        reject('deep path not found: '+ destPath)
                     }
                 } else {
                     finish(pages[destPath])

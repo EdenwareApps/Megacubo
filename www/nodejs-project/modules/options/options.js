@@ -105,6 +105,7 @@ class PerformanceProfiles extends Timer {
                 'autocrop-logos': true,
                 'broadcast-start-timeout': 40,
                 'connect-timeout': 5,
+                'ffmpeg-broadcast-pre-processing': 'auto',
                 'fx-nav-intensity': 2,
                 'hls-prefetching': true,
                 'live-window-time': 180,
@@ -126,6 +127,7 @@ class PerformanceProfiles extends Timer {
                 'connect-timeout': 10,
                 'custom-background-video': '',
                 'epg': 'disabled',
+                'ffmpeg-broadcast-pre-processing': 'no',
                 'fx-nav-intensity': 0,
                 'hls-prefetching': false,
                 'live-stream-fmt': 'auto',
@@ -1337,7 +1339,6 @@ class Options extends OptionsP2P {
                                     const filename = 'megacubo-tuning-log.txt', file = global.downloads.folder + path.sep + filename
                                     fs.writeFile(file, global.tuning.logText(), {encoding: 'utf-8'}, err => {
                                         if(err) return global.displayErr(err)
-                                        global.debugTuning = true
                                         global.downloads.serve(file, true, false).catch(global.displayErr)
                                         global.ui.emit('debug-tuning', true)
                                     })
