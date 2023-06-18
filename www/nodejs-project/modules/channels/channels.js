@@ -1459,7 +1459,7 @@ class Channels extends ChannelsKids {
             data = global.parseJSON(data)
             if(typeof(data) == 'object'){
                 this.setCategories(data)
-                global.osd.show('OK', 'fas fa-check-circle', 'options', 'normal')
+                global.osd.show('OK', 'fas fa-check-circle faclr-green', 'options', 'normal')
             } else {
                 throw new Error('Not a JSON file.')
             }
@@ -1503,7 +1503,7 @@ class Channels extends ChannelsKids {
                         global.config.set('use-epg-channels-list', false)
                         global.storage.raw.delete(this.categoriesCacheKey, () => {
                             this.load(() => {
-                                global.osd.show('OK', 'fas fa-check-circle', 'options', 'normal')
+                                global.osd.show('OK', 'fas fa-check-circle faclr-green', 'options', 'normal')
                             })
                         })
                     }

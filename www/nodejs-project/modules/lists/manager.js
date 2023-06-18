@@ -1377,7 +1377,7 @@ class Manager extends ManagerEPG {
             if(updateErr){
                 global.displayErr(updateErr)
             } else {
-                global.osd.show('OK', 'fas fa-check-circle', 'refresh-list', 'normal')
+                global.osd.show('OK', 'fas fa-check-circle faclr-green', 'refresh-list', 'normal')
                 global.explorer.refreshNow() // epg options path
                 return true // return here, so osd will not hide
             }

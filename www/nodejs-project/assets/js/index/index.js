@@ -225,9 +225,8 @@ function openExternalFile(file, mimetype) {
 	console.log('openExternalFile', file);
 	if (parent.cordova) {
 		alert('cannot open file ' + file.split('/').pop());
-	} else if (!parent.cordova) {
-		var shell = parent.parent.require('electron').shell;
-		shell && shell.openItem(file);
+	} else if (parent.getElectronRemote) {
+		parent.getElectronRemote().shell.openExternal(file);
 	} else {
 		window.open(file, '_system');
 	}

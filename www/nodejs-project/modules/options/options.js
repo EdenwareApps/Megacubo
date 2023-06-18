@@ -197,7 +197,7 @@ class OptionsExportImport extends PerformanceProfiles {
             if(typeof(data) == 'object'){
                 data = this.prepareImportConfigFile(data, keysToImport)
                 global.config.setMulti(data)
-                global.osd.show('OK', 'fas fa-check-circle', 'options', 'normal')
+                global.osd.show('OK', 'fas fa-check-circle faclr-green', 'options', 'normal')
                 global.theme.update(cb)
             } else {
                 throw new Error('Not a JSON file.')
@@ -1042,7 +1042,7 @@ class Options extends OptionsP2P {
         async.eachOf(folders, (folder, i, done) => {
             global.rmdir(folder, false, done)
         }, () => {
-            global.osd.show('OK', 'fas fa-check-circle', 'clear-cache', 'normal')
+            global.osd.show('OK', 'fas fa-check-circle faclr-green', 'clear-cache', 'normal')
             global.config.save()
 			global.energy.restart()
         })

@@ -464,11 +464,13 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 		if(this.active){
 			this.active = false
 			this.disconnect()
-			if(!silent && this.object.currentSrc) {
-				this.object.pause()
-				this.object.innerHTML = '<source type="video/mp4" src="" />'
-				this.object.removeAttribute('src')
-				this.object.load()
+			if(this.object.currentSrc) {
+				this.pause()
+				if(!silent) {
+					this.object.innerHTML = '<source type="video/mp4" src="" />'
+					this.object.removeAttribute('src')
+					this.object.load()
+				}
 			}
 		}
 	}

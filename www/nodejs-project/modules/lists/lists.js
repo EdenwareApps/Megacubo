@@ -34,7 +34,12 @@ class ListsEPGTools extends Index {
 			this._epgWorker = new MultiWorker()
 			this._epg = this._epgWorker.load(path.join(__dirname, 'epg-worker'))
 			this._epg.setURL(url)
-			return await this._epg.ready()
+			this._epg.on('updated', () => {
+				console.error('EPG UPDATED! FINE '+ (new Date()).getUTCMinutes())
+				this.emit('epg-update')
+			})
+			await this._epg.ready()
+			return true
 		}
 	}
 	async epg(channelsList, limit){

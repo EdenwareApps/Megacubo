@@ -93,24 +93,18 @@ class CloudData {
             }
         }
     }    
-    async discovery(timeout=30000){
+    async discovery(adder){
+        const timeoutMs = 30000
         const limit = pLimit(3)
         let data = {}, locs = await global.lang.getActiveCountries(), solved = []
         await Promise.allSettled(locs.map(loc => {
             return async () => {
-                const es = await this.get('country-sources.'+ loc, false, timeout).catch(console.error)
+                const es = await this.get('country-sources.'+ loc, false, timeoutMs).catch(console.error)
                 solved.push(loc)
-                Array.isArray(es) && es.forEach(e => {
-                    const url = e.url
-                    let count = parseInt(e.label.replace('.', '').split(' ').shift())
-                    if(isNaN(count)) count = 0
-                    if(typeof(data[url]) != 'undefined') count += data[url]
-                    e.count = count
-                    data[url] = e
-                })
+                Array.isArray(es) && adder(es)
             }
         }).map(limit))
-        return Object.values(data).sort((a, b) => b.count - a.count)
+        return [] // used 'adder'
     }
 }
 

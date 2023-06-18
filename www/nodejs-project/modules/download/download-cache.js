@@ -28,6 +28,10 @@ class DownloadCacheFileReader extends Events {
             this.emit(name, ...args)
         })
     }
+    destroy(){
+        this.removeAllListeners()
+        this.stream && this.stream.destroy()
+    }
 }
 
 /*
@@ -84,6 +88,7 @@ class DownloadCacheChunksReader extends Events {
                     this.masterEnded = this.master.ended
                 }
                 if(this.stream !== null){
+                    this.stream.destroy()
                     this.stream = null
                     if(this.freaden){
                         this.processed = (this.opts.start || 0) + this.freaden
@@ -162,8 +167,11 @@ class DownloadCacheChunksReader extends Events {
             this.pending = []
             this.master.removeListener('data', this.masterDataListener)
             this.master.removeListener('end', this.masterEndListener)
-            this.removeAllListeners()
+            this.destroy()
         }
+    }
+    destroy(){
+        this.removeAllListeners()
     }
 }
 

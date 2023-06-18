@@ -45,7 +45,7 @@ class PublicIPTVListsDiscovery extends Events {
     register(provider){
         provider.ready = false
         this.providers.push(provider)
-        provider().then(this.add.bind(this)).catch(console.error).finally(() => {
+        provider(this.add.bind(this)).then(this.add.bind(this)).catch(console.error).finally(() => {
             provider.ready = true
             this.emit('registered')
         })

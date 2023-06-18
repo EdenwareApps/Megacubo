@@ -254,7 +254,7 @@ class StreamerProxy extends StreamerProxyBase {
 		if(this.opts.debug){
 			console.log('serving', url, req, path.basename(url), url, reqHeaders, uid)
 		}
-		if(this.type == 'network-proxy'){
+		if(this.type == 'network-proxy' && this.opts.debug) {
 			console.log('network serving', url, reqHeaders)
 		}
 		const cacheTTL = (this.committed && url.match(this.isCacheableRegex)) ? 60 : 0
@@ -338,7 +338,7 @@ class StreamerProxy extends StreamerProxyBase {
 				if(len && typeof(headers['content-range']) == 'undefined'){
 					headers['content-range'] = 'bytes 0-'+ (len - 1) +'/'+ len // improve upnp compat
 				}
-				if(this.type == 'network-proxy'){
+				if(this.type == 'network-proxy' && this.opts.debug){
 					console.log('network serving', url, reqHeaders, statusCode, headers)
 				}
 				if(req.method == 'HEAD'){
@@ -439,7 +439,7 @@ class StreamerProxy extends StreamerProxyBase {
 				console.log('download sent response headers', statusCode, headers)
 			}
 			response.writeHead(statusCode, headers)
-			if(this.type == 'network-proxy'){
+			if(this.type == 'network-proxy' && this.opts.debug){
 				console.log('network serving response', url, headers)
 			}
 		}

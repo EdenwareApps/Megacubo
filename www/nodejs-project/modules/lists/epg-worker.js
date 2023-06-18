@@ -1,5 +1,6 @@
 const ListsCommon = require('../lists/common')
-const xmltv = require('xmltv'), fs = require('fs'), Events = require('events')
+const xmltv = require('xmltv'), fs = require('fs')
+const Events = require('events'), utils = require('../multi-worker/utils')
 
 class EPGPaginateChannelsList extends Events {
     constructor(){
@@ -90,7 +91,7 @@ class EPG extends EPGPaginateChannelsList {
         this.transferred = 0
         this.loaded = false
         this.ttl = 2 * 3600
-        this.autoUpdateInterval = 3600
+        this.autoUpdateIntervalSecs = 3600
         this.minExpectedEntries = 72
         this.state = 'uninitialized'
         this.error = null
@@ -139,10 +140,12 @@ class EPG extends EPGPaginateChannelsList {
             }
             console.log('epg loaded', Object.keys(this.data).length)
             if(Object.keys(this.data).length >= this.minExpectedEntries) {
+                this.scheduleNextUpdate()
                 this.state = 'loaded'
                 this.loaded = true
                 this.emit('load')
             } else {
+                this.scheduleNextUpdate(600)
                 if(this.state != 'error') {
                     this.state = 'error'                    
                 }
@@ -212,6 +215,23 @@ class EPG extends EPGPaginateChannelsList {
                 this.parser && this.parser.destroy() // TypeError: Cannot read property 'destroy' of null
                 this.parser = null                                
                 this.scheduleNextUpdate()
+                if(Object.keys(this.data).length){
+                    if(newLastModified){
+                        global.storage.set(this.lastmCtrlKey, newLastModified, this.ttl)
+                    }
+                    global.storage.set(this.fetchCtrlKey, now, this.ttl)
+                    this.state = 'loaded'
+                    this.loaded = true
+                    this.error = null
+                    this.emit('load')
+                    utils.emit('updated')
+                } else {
+                    this.state = 'error'
+                    this.error = validEPG ? global.lang.EPG_OUTDATED : global.lang.EPG_BAD_FORMAT
+                    if(this.listenerCount('error')){
+                        this.emit('error', this.error)
+                    }
+                }
             })
             let validEPG, received = 0
             const req = {
@@ -228,7 +248,7 @@ class EPG extends EPGPaginateChannelsList {
                 },
                 encoding: 'utf8',
                 cacheTTL: 3600,
-                progress: p => emit('progress', p)
+                progress: p => utils.emit('progress', p)
             }
             this.request = new global.Download(req)
             this.request.on('error', err => {
@@ -262,25 +282,7 @@ class EPG extends EPGPaginateChannelsList {
                 this.request.destroy() 
                 this.request = null
                 console.log('EPG REQUEST ENDED', validEPG, received, Object.keys(this.data).length)
-                if(Object.keys(this.data).length){
-                    if(newLastModified){
-                        global.storage.set(this.lastmCtrlKey, newLastModified, this.ttl)
-                    }
-                    global.storage.set(this.fetchCtrlKey, now, this.ttl)
-                    this.state = 'loaded'
-                    this.loaded = true
-                    this.error = null
-                    this.emit('load')
-                } else {
-                    this.state = 'error'
-                    this.error = validEPG ? global.lang.EPG_OUTDATED : global.lang.EPG_BAD_FORMAT
-                    if(this.listenerCount('error')){
-                        this.emit('error', this.error)
-                    }
-                }
-                if(this.parser){
-                    this.parser.end()
-                }
+                this.parser && this.parser.end()
             })
             this.request.start()
             await this.ready()
@@ -292,15 +294,6 @@ class EPG extends EPGPaginateChannelsList {
     }
     fixSlashes(txt){
         return txt.replaceAll('/', '|') // this character will break internal app navigation
-    }
-    scheduleNextUpdate(time){        
-        if(this.autoUpdateTimer){
-            clearTimeout(this.autoUpdateTimer)
-        }
-        if(typeof(time) != 'number'){
-            time = this.autoUpdateInterval
-        }
-        this.autoUpdateTimer = setTimeout(() => this.update().catch(console.error), time * 1000)
     }
     prepareProgrammeData(programme, end){
         if(!end){
@@ -843,9 +836,19 @@ class EPG extends EPGPaginateChannelsList {
             }
         })
     }
+    scheduleNextUpdate(timeSecs){        
+        if(this.autoUpdateTimer){
+            clearTimeout(this.autoUpdateTimer)
+        }
+        if(typeof(timeSecs) != 'number'){
+            timeSecs = this.autoUpdateIntervalSecs
+        }
+        this.autoUpdateTimer = setTimeout(() => this.update().catch(console.error), timeSecs * 1000)
+    }
     async terminate(){
-        if(this.request) this.request.destroy()
-        if(this.parser) this.parser.destroy()
+        this.autoUpdateTimer && clearInterval(this.autoUpdateTimer)
+        this.request && this.request.destroy()
+        this.parser && this.parser.destroy()
         this.data = {}
         this.terms = {}
         this.removeAllListeners()

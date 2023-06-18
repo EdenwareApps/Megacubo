@@ -518,7 +518,8 @@ class WindowManager extends WindowManagerCommon {
 	}
 	prepareTray() {
 		if (!this.tray) {
-			const icon = './default_icon.png', title = document.title
+			const icon = path.join(process.resourcesPath, './app/default_icon.png')
+			const title = document.title
 			this.tray = new Tray(icon)
 			this.tray.setToolTip(title)
 			const contextMenu = Menu.buildFromTemplate([
@@ -574,9 +575,10 @@ class WindowManager extends WindowManagerCommon {
 		})
 	}
 	isFullScreen(){
+		const tolerance = 10
 		const scr = this.getScreenSize()
-		const win = this.size()
-		const ret = (win.width >= scr.width && win.height >= scr.height) || !!(this.win.isKioskMode || this.win.isFulscreen)
+		const { width, height } = this.size()
+		const ret = (width + tolerance) >= scr.width && (height + tolerance) >= scr.height
  		return !!ret
 	}
 	getScreen() {
@@ -608,30 +610,12 @@ class WindowManager extends WindowManagerCommon {
 		return {width, height, availWidth, availHeight}
 	}
 	async setFullScreen(enter){
-		console.warn('setFullscreen()', enter)
-		if(!enter){
-			this.inFullScreen = this.miniPlayerActive = false
-			this.emit('miniplayer-off')
-			this.win.setFullScreen(false)
-			this.fixMaximizeButton()
-			if(this.app && this.app.osd){
-				this.app.osd.hide('esc-to-exit')
-			}
-			if(window.document){
-				let e = window.document
-				if (e.exitFullscreen) {
-					e.exitFullscreen()
-				} else if (e.msExitFullscreen) {
-					e.msExitFullscreen()
-				} else if (e.mozCancelFullScreen) {
-					e.mozCancelFullScreen()
-				} else if (e.webkitExitFullscreen) {
-					e.webkitExitFullscreen()
-				}
-			}
-		} else {
-			this.inFullScreen = true
-			this.win.setFullScreen(true)
+		const was = this.isFullScreen()
+		console.error('SETFULLSCREEN', was, enter)
+		if(enter == was) return
+		this.inFullScreen = enter
+		this.win.setFullScreen(this.inFullScreen)
+		if(enter){
 			if(this.app){
 				if(this.app.osd && this.app.hotkeys && this.app.hotkeys){
 					let key = this.app.hotkeys.getHotkeyAction('FULLSCREEN', true)
@@ -640,40 +624,24 @@ class WindowManager extends WindowManagerCommon {
 					}
 				}
 			}
-			if(window.document && window.document.body){
-				let e = window.document.body
-				if (e.requestFullscreen) {
-					e.requestFullscreen()
-				} else if (e.msRequestFullscreen) {
-					e.msRequestFullscreen()
-				} else if (e.mozRequestFullScreen) {
-					e.mozRequestFullScreen()
-				} else if (e.webkitRequestFullscreen) {
-					e.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT)
-				}
+		} else {
+			this.miniPlayerActive = false
+			this.emit('miniplayer-off')
+			this.fixMaximizeButton()
+			if(this.app && this.app.osd){
+				this.app.osd.hide('esc-to-exit')
 			}
 		}
-		var done, f = () => {
-			if(done){
-				return
-			}
-			var _fs = !!this.isFullScreen()
-			if(_fs == enter){
-				done = true
-			}
-			this.win.setAlwaysOnTop(_fs || this.miniPlayerActive)
-			this.win.focus(_fs)
-			if(_fs) {
-				this.win.blur()
-				this.win.focus()
-			}
-			this.fixMaximizeButton()
-			this.updateTitlebarHeight()
-		};
-		[500, 1000, 2000].forEach(ms => setTimeout(f, ms))
 		this.win.show()
 		if(!this.nwcfHeader) this.nwcfHeader = document.querySelector('.nw-cf')
-		this.nwcfHeader.style.display = enter ? 'none' : 'block'
+		this.nwcfHeader.style.display = enter ? 'none' : 'block';
+		setTimeout(() => {
+			// if(enter) this.win.blur()
+			this.updateTitlebarHeight()
+			this.fixMaximizeButton()
+			this.win.setAlwaysOnTop(enter || this.miniPlayerActive)
+			this.win.focus()
+		}, 400)
 	}
 	restore(){
 		console.error('leaveMiniPlayer')
