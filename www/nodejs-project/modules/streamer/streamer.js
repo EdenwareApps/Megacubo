@@ -1145,7 +1145,7 @@ class Streamer extends StreamerAbout {
 				entries = entries.map(s => {
 					s.originalName = name
 					s.originalUrl = e.url
-					s.program = e.program
+					s.programme = e.programme
 					return s
 				})
 				succeeded = await this.playFromEntries(entries, name, e.url, txt, connectId, opts.mediaType, e.preferredStreamURL || this.findPreferredStreamURL(name), silent)

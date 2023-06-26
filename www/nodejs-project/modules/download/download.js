@@ -6,14 +6,14 @@ const DownloadCacheMap = require('./download-cache')
 const DownloadStreamHybrid = require('./stream-hybrid')
 
 class Download extends Events {
-   constructor(opts){
+	constructor(opts){
 	   	super()
 		this.startTime = global.time()
 		this.opts = {
 			cacheTTL: 0,
 			p2p: false,
 			p2pWaitMs: 500,
-			uid: parseInt(Math.random() * 10000000000000),
+			uid: parseInt(Math.random() * 100000000000),
 			debug: Download.debug || false,
 			keepalive: false,
 			maxAuthErrors: 2,
@@ -770,7 +770,7 @@ class Download extends Events {
 		return headers
 	}
   	next(){
-		if(this.opts.debug){
+		if(this.opts.debug){   
 			console.log('next', global.traceback())
 		}
 		this.destroyStream()
@@ -1113,6 +1113,7 @@ Download.get = opts => {
 			g.destroy()
 		}
 	}
+	promise.handle = () => g
 	return promise
 }
 Download.file = (...args) => {
@@ -1170,6 +1171,7 @@ Download.file = (...args) => {
 			})
 		}
 	}
+	promise.handle = () => g
 	return promise
 }
 

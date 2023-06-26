@@ -114,8 +114,8 @@ class EPGHistory extends EntriesGroup {
                             global.explorer.refreshNow()
                         }
                     }
-                }
-                [f.s, f.e].forEach(s => {
+                };
+                [f.start, f.e].forEach(s => {
                     if(s > now && (!nextRunTime || s < nextRunTime)){
                         nextRunTime = s
                     }
@@ -128,7 +128,7 @@ class EPGHistory extends EntriesGroup {
     }
     getWatchingTime(epgEntry){
         if(this.session){
-            const start = Math.max(this.session.startTime, epgEntry.s)
+            const start = Math.max(this.session.startTime, epgEntry.start)
             const end = Math.min(global.time(), epgEntry.e)
             return {
                 start, end, 
@@ -149,9 +149,9 @@ class EPGHistory extends EntriesGroup {
             hookId: this.key, 
             renderer: this.entries.bind(this)
         }
-        if(featured && featured.program){
-            e.details = featured.program.t
-            e.program = featured.program
+        if(featured && featured.programme){
+            e.details = featured.programme.t
+            e.programme = featured.programme
         }
         return e
     }
@@ -179,7 +179,7 @@ class EPGHistory extends EntriesGroup {
             if(entries.some(e => e.hookId == entry.hookId)){
                 entries = entries.filter(e => e.hookId != entry.hookId)
             }
-            if(!entry.program){
+            if(!entry.programme){
                 entries.some((e, i) => {
                     if(e.name == global.lang.TOOLS){
                         index = i + 1

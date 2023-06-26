@@ -3,14 +3,13 @@ const path = require('path'), http = require('http'), url = require('url')
 const closed = require('../on-closed'), parseRange = require('range-parser')
 
 class Downloads extends Events {
-   constructor(folder){
+   constructor(){
 	   	super()
 		this.map = {}
 		this.server = false
-		this.ttl = 120 // secs
 		this.timer = 0
 		this.served = []
-		this.folder = folder
+		this.folder = global.paths.temp
 		if(this.folder.charAt(this.folder.length - 1) != '/'){
 			this.folder += '/'
 		}
@@ -69,12 +68,11 @@ class Downloads extends Events {
 		const irange = range || {start: 0, end: size - 1}
     	return type + ' ' + irange.start + '-' + irange.end + '/' + (size || '*')
     }
-	wake(){
+	prepare(){ // jit server init
         return new Promise((resolve, reject) => {
 			if(this.server){
 				return resolve(this.opts.port)
 			}
-			this.resetTimeout()
 			this.server = http.createServer((req, res) => {
 				const uid = global.time()
 				this.clients.push(uid)
@@ -198,7 +196,6 @@ class Downloads extends Events {
 							if(i != -1){
 								this.clients.splice(i, 1)
 							}
-							this.resetTimeout()
 							res.end()
 						})
 						stream.pipe(res)
@@ -215,21 +212,6 @@ class Downloads extends Events {
                 resolve(this.opts.port)
 			}) 
 		})
-	}
-	sleep(){
-		if(this.server){
-			if(this.clients.length){
-				this.resetTimeout()
-			} else {
-				this.server.close()
-				this.server = null
-				this.clear()
-			}
-		}
-	}
-	keepAwake(enable){
-		this._keepAwake = enable
-		this.resetTimeout()
 	}
 	import(file){
         return new Promise((resolve, reject) => {	
@@ -251,39 +233,26 @@ class Downloads extends Events {
 			}
 		})
 	}
-	serve(file, triggerDownload, doImport, name){
-        return new Promise((resolve, reject) => {	
-			this.wake().then(() => {
-				if(!name){
-					name = path.basename(file)
-				}
-				if(doImport){
-					this.import(file).then(url => {
-						console.log('serve imported', fs.readdirSync(this.folder))
-						this.resetTimeout()
-						console.log('serve serve', file, url)
-						if(triggerDownload){						
-							global.ui.emit('download', url, name)
-						}
-						resolve(url)
-					}).catch(reject)
-				} else {
-					let url = 'http://' + this.opts.addr + ':' + this.opts.port + '/' + encodeURIComponent(name)
-					this.map['./' + name] = file
-					this.resetTimeout()
-					console.log('serve serve', file, url)
-					if(triggerDownload){						
-						global.ui.emit('download', url, name)
-					}
-					resolve(url)
-				}
-			}).catch(reject)
-		})
-	}
-	resetTimeout(){
-		clearTimeout(this.timer)
-		if(!this._keepAwake){
-			setTimeout(this.sleep.bind(this), this.ttl * 1000)
+	async serve(file, triggerDownload, doImport, name){
+        await this.prepare()
+		if(!name){
+			name = path.basename(file)
+		}
+		if(doImport){
+			const url = await this.import(file)
+			console.log('serve serve', file, url)
+			if(triggerDownload){						
+				global.ui.emit('download', url, name)
+			}
+			return url
+		} else {
+			let url = 'http://' + this.opts.addr + ':' + this.opts.port + '/' + encodeURIComponent(name)
+			this.map['./' + name] = file
+			console.log('serve serve', file, url)
+			if(triggerDownload){						
+				global.ui.emit('download', url, name)
+			}
+			return url
 		}
 	}
     clear(){

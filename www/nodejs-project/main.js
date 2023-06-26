@@ -32,7 +32,14 @@ global.MANIFEST = JSON.parse(fs.readFileSync(global.APPDIR + '/package.json'))
 global.tuning = false
 global.moment = require('moment-timezone')
 global.onexit = require('node-cleanup')
-global.sanitize = txt => sanitizeFilename(txt).replace(new RegExp('[^\x00-\x7F]+', 'g'), '')
+global.sanitize = (txt, keepAccents) => {
+    let ret = txt
+    if(keepAccents !== true) {
+        //ret = ret.replace(new RegExp('[^\x00-\x7F]+', 'g'), '')
+        ret = ret.normalize('NFD').replace(new RegExp('[\u0300-\u036f]', 'g'), '').replace(new RegExp('[^A-Za-z0-9\\._\\- ]', 'g'), '')
+    }
+    return sanitizeFilename(ret)
+}
 
 require('./modules/supercharge')(global)
 
@@ -228,7 +235,7 @@ const init = (language, timezone) => {
         global.energy = new Energy()
         global.streamer = new Streamer()
         global.channels = new Channels()
-        global.downloads = new Downloads(global.paths.temp)
+        global.downloads = new Downloads()
         global.theme = new Theme()
         global.search = new Search()
         global.histo = new History()
@@ -446,9 +453,7 @@ const init = (language, timezone) => {
                 console.warn('STREAMER STOP FROM CLIENT')
                 global.streamer.emit('stop-from-client')
                 global.streamer.stop()
-                if(global.tuning){
-                    global.tuning.pause()
-                }
+                global.tuning && global.tuning.pause()
             }
             let isEPGEnabledPath = !global.search.isSearching() && global.channels.activeEPG && [global.lang.TRENDING, global.lang.BOOKMARKS, global.lang.LIVE].some(p => global.explorer.path.substr(0, p.length) == p)
             if(isEPGEnabledPath){ // update current section data for epg freshness

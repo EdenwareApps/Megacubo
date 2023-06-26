@@ -358,7 +358,7 @@ class ChannelsEPG extends ChannelsCategories {
                     entries.push(...this.epgDataToEntries(epgData[ch], ch, terms))
                 })
                 entries = entries.sort((a, b) => {
-                    return a.program.start - b.program.start 
+                    return a.programme.start - b.programme.start 
                 })
                 resolve(entries)
             }).catch(reject)
@@ -382,7 +382,7 @@ class ChannelsEPG extends ChannelsCategories {
                 details: ch + ' | ' + at(start),
                 type: 'action',
                 fa: 'fas fa-play-circle',
-                program: {start, ch, i: epgIcon},
+                programme: {start, ch, i: epgIcon},
                 action: this.epgProgramAction.bind(this, start, ch, epgData[start], terms, epgIcon)
             }
         })
@@ -452,7 +452,6 @@ class ChannelsEPG extends ChannelsCategories {
         if(Array.isArray(epgData)){
             throw 'not found 1'
         }
-        Object.keys(epgData).forEach(k => epgData[k].s = parseInt(k))
         let now = Object.values(epgData).shift()
         if(now && now.t){
             let ret = {now}
@@ -493,7 +492,7 @@ class ChannelsEPG extends ChannelsCategories {
                             } else {
                                 entries[i].details = epg[e.name].t
                             }
-                            entries[i].program = epg[e.name]
+                            entries[i].programme = epg[e.name]
                         }
                     })
                 }).catch(console.error).finally(() => resolve(entries))
@@ -1131,14 +1130,14 @@ class Channels extends ChannelsKids {
             this.epgChannelsAddLiveNow(entries, true).then(es => {
                 this.epgSearch(terms, true).then(ees => {
                     epgEntries = ees.map(e => {
-                        let ch = this.isChannel(e.program.ch)
+                        let ch = this.isChannel(e.programme.ch)
                         if(ch){
                             if(!already.includes(ch.name)){
                                 already.push(ch.name)
                                 if(e.details){
-                                    e.details = e.details.replace(e.program.ch, ch.name)
+                                    e.details = e.details.replace(e.programme.ch, ch.name)
                                 }
-                                e.program.ch = ch.name
+                                e.programme.ch = ch.name
                                 return e
                             }
                         }
@@ -1160,7 +1159,7 @@ class Channels extends ChannelsKids {
         } else if(typeof(e.terms) != 'undefined' && typeof(e.terms.name) != 'undefined' && Array.isArray(e.terms.name) && e.terms.name.length) {
             terms = e.terms.name
         } else {
-            terms = global.lists.terms(e.program ? e.program.ch : e.name)
+            terms = global.lists.terms(e.programme ? e.programme.ch : e.name)
         }
         return this.expandTerms(terms)
     }
@@ -1182,7 +1181,7 @@ class Channels extends ChannelsKids {
         }
         let terms = this.entryTerms(e), streamsEntry, epgEntry, entries = [], moreOptions = [], url = e.url
         if(!url){
-            let name = e.program ? e.program.ch : e.name
+            let name = e.programme ? e.programme.ch : e.name
             let ch = this.isChannel(name)
             if(ch){
                 name = ch.name
@@ -1312,8 +1311,8 @@ class Channels extends ChannelsKids {
         let meta = Object.assign({}, e), terms = this.entryTerms(e)        
         if(typeof(meta.url) == 'undefined'){
             let name = e.name
-            if(e.program && e.program.ch){
-                name = e.program.ch
+            if(e.programme && e.programme.ch){
+                name = e.programme.ch
             }
             const ch = this.isChannel(name)
             if(ch && ch.name){
@@ -1426,7 +1425,7 @@ class Channels extends ChannelsKids {
             case 1:
                 break
                 entries = entries.map(e => {
-                    delete e.program
+                    delete e.programme
                     return e
                 })
             case 2:
@@ -1435,13 +1434,13 @@ class Channels extends ChannelsKids {
                 const adjust = es => {
                     return global.lists.sort(es.map(e => {
                         e.details = e.name
-                        e.name = e.program.t
+                        e.name = e.programme.t
                         return e
                     }))
                 }
                 let noEPG = [], noEPGI = []
                 entries = entries.filter(e => {
-                    if(!e.program){
+                    if(!e.programme){
                         noEPG.push(e)
                         return false
                     }

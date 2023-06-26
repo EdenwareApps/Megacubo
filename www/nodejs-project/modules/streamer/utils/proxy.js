@@ -209,7 +209,23 @@ class StreamerProxy extends StreamerProxyBase {
 		this.networkOnly = enable
 		this.destroyAllConns()
 	}
+	disable(){
+		this.disabled = true
+		this.destroyAllConns()
+	}
+	enable(){
+		if(this.disabled) {
+			delete this.disabled
+		}
+	}
 	handleRequest(req, response){
+		if(this.disabled){
+			response.writeHead(410, {
+				'Access-Control-Allow-Origin': '*',
+				'connection': 'close'
+			})
+			return response.end()
+		}
 		if(this.destroyed || req.url.indexOf('favicon.ico') != -1){
 			response.writeHead(404, {
 				'Access-Control-Allow-Origin': '*',
@@ -348,7 +364,7 @@ class StreamerProxy extends StreamerProxyBase {
 					response.writeHead(statusCode, headers)
 					end()
 				} else {
-					const mediaType = this.getMediaType(headers, url)
+					const mediaType = this.opts.agnostic ? '' : this.getMediaType(headers, url)
 					switch(mediaType){
 						case 'meta':
 							this.handleMetaResponse(download, statusCode, headers, response, end, url)

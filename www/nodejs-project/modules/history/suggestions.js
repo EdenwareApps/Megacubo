@@ -76,13 +76,13 @@ class Suggestions {
             e = await this.get()
             if(e.length){
                 const minWindow = 600, now = global.time(), validate = n => {
-                    return (n.program.e - minWindow) > now
+                    return (n.programme.e - minWindow) > now
                 }
-                if(e.some(n => n.program.i)){ // prefer entries with icons
-                    e = e.filter(n => n.program.i)
+                if(e.some(n => n.programme.i)){ // prefer entries with icons
+                    e = e.filter(n => n.programme.i)
                 }
                 e = e.shift()
-                const ttl = Math.min(600, (e.program.e - minWindow) - now)
+                const ttl = Math.min(600, (e.programme.e - minWindow) - now)
                 if (ttl > 0) {
                     global.storage.promises.set(key, e, ttl)                    
                 }
@@ -222,7 +222,7 @@ class Suggestions {
         })
         return results.slice(0, amount).sortByProp('score', true).sortByProp('st').map(r => {
             const entry = global.channels.toMetaEntry(r.channel)
-            entry.program = r.programme
+            entry.programme = r.programme
             entry.name = r.programme.t
             entry.originalName = r.channel.name
             entry.details = parseInt(r.score) +'% '

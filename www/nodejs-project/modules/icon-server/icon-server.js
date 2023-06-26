@@ -434,7 +434,7 @@ class IconServer extends IconServerStore {
         if(!e || (e.class && e.class.indexOf('no-icon') != -1)){
             return false
         }
-        if(e.icon || e.program){
+        if(e.icon || e.programme){
             return true
         }
         const t = e.type || 'stream'

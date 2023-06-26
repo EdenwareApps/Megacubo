@@ -6,7 +6,7 @@ class FFmpegController {
     }
     bind(){                
         app.on('ffmpeg-exec', this.exec.bind(this))
-        app.on('ffmpeg-kill', this.kill.bind(this))
+        app.on('ffmpeg-abort', this.abort.bind(this))
         app.on('ffmpeg-exit', this.exit.bind(this))
         window.addEventListener('beforeunload', () => this.exit())
         window.addEventListener('unload', () => this.exit())
@@ -29,7 +29,7 @@ class FFmpegController {
                     let executionId = parseInt(info)
                     if(this.executionIds[id] && this.executionIds[id] == 'kill'){ // a kill call is pending
                         delete this.executionIds[id]
-                        this._kill(executionId)
+                        this._abort(executionId)
                     } else {
                         this.executionIds[id] = executionId
                     }
@@ -53,13 +53,13 @@ class FFmpegController {
             delete this.executionIds[id]
         })
     }
-    kill(id){       
+    abort(id){       
         if(this.debug){
-            console.log('ffmpeg.exec kill '+ id)
+            console.log('ffmpeg.exec abort '+ id)
         }
         if(typeof(this.executionIds[id]) != 'undefined' && this.executionIds[id] != 'kill'){
             let executionId = this.executionIds[id]
-            this._kill(executionId)
+            this._abort(executionId)
         } else {
             this.executionIds[id] = 'kill'
         }
@@ -75,15 +75,15 @@ class FFmpegController {
         }
         Object.values(this.executionIds).forEach(pid => {
             if(pid != 'kill'){
-                this._kill(pid)
+                this._abort(pid)
             }
         })
     }
-    _kill(executionId){
+    _abort(executionId){
         if(this.debug){
-            console.log('ffmpeg.exec _kill '+  executionId)
+            console.log('ffmpeg.exec _abort '+  executionId)
         }
-        parent.parent.ffmpeg.kill(executionId)
+        parent.parent.ffmpeg.abort(executionId)
         let keepIds = []
         Object.keys(this.executionIds).forEach(k => {
             if(this.executionIds[k] == executionId){

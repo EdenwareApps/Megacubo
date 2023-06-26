@@ -10,7 +10,6 @@ class VideoControlAdapterHTML5TS extends VideoControlAdapterHTML5Video {
 			console.error('Bad source', src, mimetype, traceback())
 			return
 		}
-		console.warn('Load source', src)
 		this.active = true
 		this.engineType = type
 		if(this.currentSrc != src){
@@ -20,7 +19,7 @@ class VideoControlAdapterHTML5TS extends VideoControlAdapterHTML5Video {
         this.mpegts = mpegts.createPlayer({
             type: 'mse',  // could be mse, mpegts, m2ts, flv
             url: this.currentSrc,
-            isLive: true
+            isLive: type != 'video'
 		}, {
             lazyLoad: false,
             enableWorker: true,

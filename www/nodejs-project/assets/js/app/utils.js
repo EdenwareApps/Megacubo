@@ -217,11 +217,11 @@ function dirname(str){
 }
 
 function prepareFilename(file, keepAccents){
-    file = file.replace(new RegExp('[\\\\/:*?\"<>|]'), 'g')
+    let ret = file.replace(new RegExp('[\\\\/:*?\"<>|]', 'g'), '')
     if(!keepAccents){
-        file = file.normalize('NFD').replace(new RegExp('[\u0300-\u036f]', 'g'), '').replace(new RegExp('[^A-Za-z0-9\\._\\- ]', 'g'), '')
+        ret = ret.normalize('NFD').replace(new RegExp('[\u0300-\u036f]', 'g'), '').replace(new RegExp('[^A-Za-z0-9\\._\\- ]', 'g'), '')
     }
-    return file;
+    return ret
 }
 
 function ucWords(str){

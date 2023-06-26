@@ -134,22 +134,19 @@ class FFMpeg extends FFmpegDownloader {
 		child.stdout.on('data', log)
 		child.stderr.on('data', log)
 		child.on('error', err => {
-			delete this.childs[child.pid]
-			console.log('FFEXEC DONE', cmd, child, err, output)
-			if (err) {
-				cb(String(err || output) || 'error')
-			}
+			console.log('FFEXEC ERR', cmd, child, err, output)
 		})
 		child.once('close', () => {
 			delete this.childs[child.pid]
 			console.log('FFEXEC DONE', cmd, child, output)
 			cb('return-'+ output)
+			child.removeAllListeners()
 		})
 		console.log('FFEXEC '+ this.executable, cmd, child)
 		this.childs[child.pid] = child
 		cb('start-'+ child.pid)
 	}
-	kill(pid){
+	abort(pid){
 		if(typeof(this.childs[pid]) != 'undefined'){
 			const child = this.childs[pid]
 			delete this.childs[pid]
@@ -164,7 +161,7 @@ class FFMpeg extends FFmpegDownloader {
 				console.log("Cleanup keeping " + pid)
 			} else {
 				console.log("Cleanup kill " + pid)
-				this.kill(pid)
+				this.abort(pid)
 			}
 		})
 	}

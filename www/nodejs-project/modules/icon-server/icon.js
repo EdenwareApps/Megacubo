@@ -145,8 +145,8 @@ class IconFetcher {
                 }
             })
         }
-        if(this.entry.program && this.entry.program.i){
-            this.master.fetchURL(this.entry.program.i).then(ret => this.ready(ret.key, false, ret.isAlpha)).catch(noEPGIcon)
+        if(this.entry.programme && this.entry.programme.i){
+            this.master.fetchURL(this.entry.programme.i).then(ret => this.ready(ret.key, false, ret.isAlpha)).catch(noEPGIcon)
         } else {
             noEPGIcon()
         }

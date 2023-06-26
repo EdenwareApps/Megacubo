@@ -654,7 +654,7 @@ class ManagerEPG extends ManagerCommunityLists {
                         details: ch,
                         type: 'group',
                         fa: 'fas fa-play-circle',
-                        program: current,
+                        programme: current,
                         renderer: async () => global.channels.epgDataToEntries(epgData[ch], ch, terms[ch])
                     })
                 }
@@ -1216,7 +1216,7 @@ class Manager extends ManagerEPG {
         if(server.charAt(server.length - 1) == '/') {
             server = server.substr(0, server.length - 1)
         }
-        const url = server +'/get.php?username='+ encodeURIComponent(user) +'&password='+ encodeURIComponent(pass) +'&output=ts&type=m3u_plus'            
+        const url = server +'/get.php?username='+ encodeURIComponent(user) +'&password='+ encodeURIComponent(pass) +'&output=ts&type=m3u_plus'
         return await this.addList(url)
     }
     isListExpired(url){

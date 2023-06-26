@@ -32,8 +32,6 @@ class StreamerVideoIntent extends StreamerBaseIntent {
                 if(isLocalFile){
                     global.downloads.serve(this.data.url, false, false).then(url => {
                         this.endpoint = url
-                        global.downloads.keepAwake(true)
-                        this.on('uncommit', () => global.downloads.keepAwake(false))
                         resolve()
                     }).catch(reject)
                 } else { //  if is localhost URL, don't proxify

@@ -159,7 +159,7 @@ class VideoControl extends EventEmitter {
 			let m = mimetype.toLowerCase()
 			if(m.indexOf('mpegurl') != -1){
 				this.setup('html5h', VideoControlAdapterHTML5HLS)
-			} else if(m.indexOf('mp2t') != -1){
+			} else if(m.indexOf('mp2t') != -1 || (src.endsWith('.ts') && mediatype == 'video')){
 				this.setup('html5t', VideoControlAdapterHTML5TS)
 			} else if(m.indexOf('audio/') != -1){
 				this.setup('html5a', VideoControlAdapterHTML5Audio)
@@ -676,7 +676,6 @@ class VideoControlAdapterAndroidNative extends VideoControlAdapter {
 		this.object.uiVisible(visible)
 	}
 	load(src, mimetype, cookie, mediatype){
-		console.warn('Load source', src)
 		this.active = true
 		this.currentTime = 0
 		this.duration = 0

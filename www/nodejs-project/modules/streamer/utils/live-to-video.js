@@ -141,8 +141,7 @@ class StreamerLiveToVideo extends StreamerFFmpeg {
 	start(){
 		return new Promise((resolve, reject) => {
             const startTime = global.time()
-            this.decoder = global.ffmpeg.create(this.url).
-                inputOptions('-re').
+            this.decoder = global.ffmpeg.create(this.url, { live: true }).
                 inputOptions('-g', 52).
                 outputOptions('-map', '0:a?').
                 outputOptions('-map', '0:v?').
@@ -166,7 +165,6 @@ class StreamerLiveToVideo extends StreamerFFmpeg {
                 this.decoder.
 
                 /* HTML5 compat start */
-                outputOptions('-shortest').
                 outputOptions('-profile:v', this.opts.vprofile || 'baseline').
                 outputOptions('-pix_fmt', 'yuv420p').
                 outputOptions('-preset:v', 'ultrafast').
@@ -203,10 +201,9 @@ class StreamerLiveToVideo extends StreamerFFmpeg {
                     inputOptions('-reconnect', 1).
                     // inputOptions('-reconnect_at_eof', 1).
                     inputOptions('-reconnect_streamed', 1).
-                    inputOptions('-reconnect_delay_max', 20)
+                    inputOptions('-reconnect_delay_max', 30)
                 this.decoder.
                     inputOptions('-icy', 0).
-                    inputOptions('-seekable', -1).
                     inputOptions('-multiple_requests', 1)
                 if(this.agent){
                     this.decoder.inputOptions('-user_agent', this.agent) //  -headers ""
@@ -260,7 +257,7 @@ class StreamerLiveToVideo extends StreamerFFmpeg {
                                 resolve(true)
                             }).catch(err => {
                                 reject(err)
-                                this.decoder.kill()                                
+                                this.decoder.abort()                                
                             })
                         }).catch(e => {
                             console.error('waitFile failed', this.opts.timeout, e)
@@ -343,7 +340,7 @@ class StreamerLiveToVideo extends StreamerFFmpeg {
         if(!this.destroyed){
             this.destroyed = true
             if(this.decoder){
-                this.decoder.kill()
+                this.decoder.abort()
                 delete this.decoder
             }
             if(this.server){

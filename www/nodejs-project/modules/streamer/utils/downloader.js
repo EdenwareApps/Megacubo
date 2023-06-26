@@ -3,6 +3,9 @@ const path = require('path'), http = require('http'), fs = require('fs'), stoppa
 const StreamerAdapterBase = require('../adapters/base.js'), closed = require('../../on-closed')
 const Writer = require('../../write-queue/writer')
 
+const SYNC_BYTE = 0x47
+const PACKET_SIZE = 188
+
 class Downloader extends StreamerAdapterBase {
 	constructor(url, opts){
 		/*
@@ -84,10 +87,9 @@ class Downloader extends StreamerAdapterBase {
 	start(){
 		return new Promise((resolve, reject) => {
 			this.server = http.createServer((req, response) => {
-				if(path.basename(req.url) == 'stream.'+ this.ext){
+				if(path.basename(req.url) == 'stream'){
 					response.writeHead(200, {
 						'content-type': this.getContentType(),
-						'connection': 'close',
 						'access-control-allow-origin': '*',
 						'access-control-allow-methods': 'get',
 						'access-control-allow-headers': 'origin, x-requested-with, content-type, content-length, content-range, cache-control, accept, accept-ranges, authorization'
@@ -95,9 +97,10 @@ class Downloader extends StreamerAdapterBase {
 					let stream, finished, syncByteFound, buffer = false
 					let uid = parseInt(Math.random() * 1000000)
 					if(this.warmCacheSize){
+						buffer = [] // do not redeclare it
 						syncByteFound =  true
-						let buffer = []
-						stream = fs.createReadStream(this.warmCacheFile, {start: 0, end: this.warmCacheSize})
+						const end = parseInt(this.warmCacheSize / PACKET_SIZE) * PACKET_SIZE // packetize
+						stream = fs.createReadStream(this.warmCacheFile, {start: 0, end})
 						stream.on('data', chunk => response.writable && response.write(chunk))
 						stream.on('end', () => {
 							buffer.length && response.writable && response.write(Buffer.concat(buffer))
@@ -115,13 +118,15 @@ class Downloader extends StreamerAdapterBase {
 					this.connected[uid] = true
 					const listener = (url, chunk) => {
 						if(buffer !== false){
-							buffer.push(chunk)	
+							if(syncByteFound || buffer.length || chunk[0] === SYNC_BYTE) {
+								syncByteFound = true
+								buffer.push(chunk)
+							}
 						} else {
 							if(response.writable){
 								let offset = -1
 								if(!syncByteFound){
-									offset = chunk.indexOf(0x42)
-									if(offset != -1){
+									if(chunk[0] === SYNC_BYTE){
 										syncByteFound = true
 										response.write(chunk.slice(offset))
 									}
@@ -147,7 +152,7 @@ class Downloader extends StreamerAdapterBase {
 							}
 						}
 					}
-					closed(req, response, finish)
+					req.on('close', finish)
 					this.on('data', listener)
 					this.once('destroy', finish)
 					this.pump()
@@ -166,8 +171,8 @@ class Downloader extends StreamerAdapterBase {
 					return reject('destroyed')
 				}
 				this.opts.port = this.server.address().port
-				this.endpoint = 'http://127.0.0.1:'+ this.opts.port +'/stream.'+ this.ext
-				resolve(this.opts.port)
+				this.endpoint = 'http://127.0.0.1:'+ this.opts.port +'/stream'
+				resolve(this.endpoint)
 			}) 
 		})
 	}

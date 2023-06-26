@@ -596,6 +596,7 @@ class EPG extends EPGPaginateChannelsList {
                 return false
             }
         }
+        Object.keys(data).forEach(k => data[k].start = parseInt(k))
         //console.log('EPGGETCHANNEL', data)
         return this.order(data, limit)
     }

@@ -621,6 +621,7 @@ class Explorer extends Events {
     }
     async readEntry(e){
         let entries
+        if(!e) return []
         if(typeof(e.renderer) == 'function'){
             entries = await e.renderer(e)
         } else if(typeof(e.renderer) == 'string'){

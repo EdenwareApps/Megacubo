@@ -80,7 +80,7 @@ class MPEGTSPacketProcessor extends Events {
             }
             let offset = -1
             if((pointer + PACKET_SIZE) < this.packetBuffer.length){ // has a next packet start
-                if(this.checkSyncByte(pointer + PACKET_SIZE)){
+                if(!this.checkSyncByte(pointer + PACKET_SIZE)){
                     offset = this.packetBuffer.indexOf(SYNC_BYTE, pointer + PACKET_SIZE)
                 }
             }

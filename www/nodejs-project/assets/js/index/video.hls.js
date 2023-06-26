@@ -120,7 +120,6 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 			console.error('Bad source', src, mimetype, traceback())
 			return
 		}
-		console.warn('Load source', src)
 		this.active = true
 		this.engineType = type
 		if (this.currentSrc !== src) {

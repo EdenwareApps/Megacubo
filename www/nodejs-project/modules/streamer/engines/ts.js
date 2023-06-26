@@ -77,10 +77,10 @@ class StreamerTSIntent extends StreamerBaseIntent {
 
 StreamerTSIntent.mediaType = 'live'
 StreamerTSIntent.supports = info => {
-    if(info.headers && info.headers['content-length']){
+    if(info.headers && info.headers['content-length']) {
         return false // not live
     }
-    if(info.contentType){
+    if(info.contentType) {
         let c = info.contentType.toLowerCase()
         if(c.indexOf('mpegurl') != -1){ // is hls
             return false
@@ -91,7 +91,7 @@ StreamerTSIntent.supports = info => {
             return false // other video content type
         }
     }
-    if(info.ext && ['ts', 'mts', 'm2ts'].includes(info.ext)){
+    if(info.ext && ['ts', 'mts', 'm2ts'].includes(info.ext)) {
         return true
     }
     return false

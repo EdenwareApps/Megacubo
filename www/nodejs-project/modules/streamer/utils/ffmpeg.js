@@ -123,9 +123,7 @@ class StreamerFFmpeg extends Events {
                     } else if (filename === basename) {
                         fs.stat(file, (err, stat) => {
                             if(stat && stat.size){
-                                this.verify(file, fine => {
-                                    if(fine) finish()
-                                })
+                                this.verify(file, fine => fine && finish())
                             }
                         })
                     }
@@ -136,9 +134,7 @@ class StreamerFFmpeg extends Events {
             }
             fs.access(file, fs.constants.R_OK, err => {
                 if(!err){
-                    this.verify(file, fine => {
-                        if(fine) finish()
-                    })
+                    this.verify(file, fine => fine && finish())
                 }
             })
             clearTimeout(timer)
@@ -154,13 +150,7 @@ class StreamerFFmpeg extends Events {
                             if (err) {
                                 return finish('timeout')
                             }
-                            this.verify(file, fine => {
-                                if(fine){
-                                    finish()
-                                } else {
-                                    finish('timeout')
-                                }
-                            })
+                            this.verify(file, fine => finish(fine ? undefined : 'timeout'))
                         })
                     }
                 }
@@ -376,8 +366,7 @@ class StreamerFFmpeg extends Events {
         }
         // cores = Math.min(require('os').cpus().length, 2), 
         this.emit('wait') // If the intent took a while to start another component, make sure to allow time for FFmpeg to start.
-        this.decoder = global.ffmpeg.create(this.source).
-            
+        this.decoder = global.ffmpeg.create(this.source, { live: this.opts.isLive }).
             
             /* cast fix try
             inputOptions('-use_wallclock_as_timestamps', 1). // using it the hls fragments on a hls got #EXT-X-TARGETDURATION:0 and the m3u8 wont load
@@ -425,6 +414,9 @@ class StreamerFFmpeg extends Events {
             let hlsListSize = Math.ceil(lwt / fragTime), hlsFlags = 'delete_segments'
             if(this.opts.isLive){
                 hlsFlags += '+omit_endlist'
+                this.decoder.outputOptions('-hls_flags', -5)
+            } else {
+                this.decoder.outputOptions('-hls_flags', 0)
             }
             if(restarting){
                 hlsFlags += '+append_list'
@@ -434,8 +426,7 @@ class StreamerFFmpeg extends Events {
                 outputOptions('-hls_init_time', fragTime).
                 outputOptions('-hls_time', fragTime).
                 outputOptions('-hls_list_size', hlsListSize).
-                outputOptions('-master_pl_name', 'master.m3u8').
-                outputOptions('-movflags', '+faststart')
+                outputOptions('-master_pl_name', 'master.m3u8')
         } else if(this.opts.outputFormat == 'mpegts') { // mpegts
             this.decoder.
                 outputOptions('-movflags', 'frag_keyframe+empty_moov').
@@ -455,7 +446,6 @@ class StreamerFFmpeg extends Events {
         if(this.opts.videoCodec == 'libx264') {
             /* HTML5 compat start */
             this.decoder.
-            outputOptions('-shortest').
             outputOptions('-profile:v', this.opts.vprofile || 'baseline').
             outputOptions('-pix_fmt', 'yuv420p').
             outputOptions('-preset:v', 'ultrafast').
@@ -490,15 +480,12 @@ class StreamerFFmpeg extends Events {
         if (typeof(this.source) == 'string' && this.source.indexOf('http') == 0) { // skip other protocols
             this.decoder.
                 inputOptions('-stream_loop', -1).
-                // inputOptions('-timeout', -1).
                 inputOptions('-reconnect', 1).
-                // inputOptions('-reconnect_at_eof', 1).
+                inputOptions('-reconnect_at_eof', 1).
                 inputOptions('-reconnect_streamed', 1).
-                inputOptions('-reconnect_delay_max', 20)
+                inputOptions('-reconnect_delay_max', 30)
             this.decoder.
-                inputOptions('-icy', 0)
-                
-                // inputOptions('-seekable', -1).
+                inputOptions('-icy', 0)                
                 // inputOptions('-multiple_requests', 1) // will connect to 127.0.0.1 internal proxy
             if(this.agent){
                 this.decoder.inputOptions('-user_agent', this.agent) //  -headers ""
@@ -597,7 +584,7 @@ class StreamerFFmpeg extends Events {
                     if(this.decoder){
                         if(transcode){
                             this.decoder.removeListener('end', endListener)
-                            this.decoder.kill()
+                            this.decoder.abort()
                             if(global.config.get('transcoding')){
                                 this.start().then(resolve).catch(reject)
                             } else {
@@ -609,7 +596,7 @@ class StreamerFFmpeg extends Events {
                                 this.waitFile(this.decoder.playlist || this.decoder.file, this.timeout, true).then(() => {
                                     this.serve().then(resolve).catch(err => {
                                         reject(err)
-                                        this.decoder && this.decoder.kill()
+                                        this.decoder && this.decoder.abort()
                                     })
                                 }).catch(e => {
                                     console.error('waitFile failed', this.timeout, e)
@@ -670,7 +657,7 @@ class StreamerFFmpeg extends Events {
         if(this.decoder){
             const file = this.decoder.file
             console.log('ffmpeg destroy: '+ file, global.traceback())
-            this.decoder.kill()
+            this.decoder.abort()
             this.decoder = null
             if(file){
                 global.rmdir(path.dirname(file), true)

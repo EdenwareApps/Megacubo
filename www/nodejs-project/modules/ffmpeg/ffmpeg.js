@@ -17,21 +17,29 @@ class FFmpegController extends Events {
     cmdArr(){
 		let cmd = []
 		this.options.input.forEach(a => cmd.push(...a))
-		if(this.input){ 
+		if(this.input) { 
 			// add these input options only if we have an input, not in -version, per example
 			cmd.push(...[
+				'-y',
 				'-loglevel', 'info', // if logerror=(warning|error) it will not return the codec and bitrate data
-				'-analyzeduration', 50000000, // ~50s in microseconds
-				'-probesize', 50000000,	// ~50MB
+				'-analyzeduration', 60000000, // 60s in microseconds
+				'-probesize', 80000000,	// ~80MB
 				'-err_detect', 'ignore_err',
 				'-i', this.input
 			])
 		}
 		this.options.output.forEach(a => cmd.push(...a))
-		if(this.dest){
-			cmd.push(...['-strict', 'experimental']) // cmd = cmd.concat(['-strict', '-2'])
-			cmd.push(...['-max_muxing_queue_size', 2048]) // https://stackoverflow.com/questions/49686244/ffmpeg-too-many-packets-buffered-for-output-stream-01	
-			cmd.push(this.dest.replace(new RegExp('\\\\', 'g'), '/'))
+		if(this.dest) {
+			if(!cmd.includes('-movflags')) {
+                cmd.push(...['-movflags', '+faststart'])
+			}			
+			cmd.push(...[
+                '-shortest',
+				'-avoid_negative_ts', 'make_zero',
+				'-strict', 'experimental', // cmd = cmd.concat(['-strict', '-2'])
+				'-max_muxing_queue_size', 4096, // https://stackoverflow.com/questions/49686244/ffmpeg-too-many-packets-buffered-for-output-stream-01	
+				this.dest.replace(new RegExp('\\\\', 'g'), '/')
+			])
 		}
 		return cmd
     }
@@ -81,11 +89,12 @@ class FFmpegController extends Events {
 		global.ui.emit('ffmpeg-exec', this.uid, cmdArr)
 		this.emit('start', cmdArr.join(' '))
 	}
-	kill(){
-		global.ui.emit('ffmpeg-kill', this.uid)
+	abort(){
+		global.ui.emit('ffmpeg-abort', this.uid)
 		this.options.input = this.options.output = []
 		global.ui.removeAllListeners('ffmpeg-callback-'+ this.uid)
 		global.ui.removeAllListeners('ffmpeg-metadata-'+ this.uid)
+		this.emit('abort')
 	}
 	metadataCallback(nfo){
 		let codecs = this.master.codecs(nfo), dimensions = this.master.dimensions(nfo), bitrate = this.master.rawBitrate(nfo)
@@ -414,15 +423,19 @@ class FFMPEG extends FFMPEGDiagnostic {
 			this.downloading ? this.once('downloaded', resolve) : resolve()
 		})
 	}
-	create(input){
-		return new FFmpegController(input, this)
+	create(input, opts){
+		const proc = new FFmpegController(input, this)
+		if(opts) {
+			if(opts.live) {
+				proc.inputOptions('-re')
+			}
+		}
+		return proc
 	}
 	exec(input, cmd, cb, inputOptions){
-		const proc = this.create(input), timeout = setTimeout(() => {
-			if(proc){
-				proc.kill()
-			}
-			if(typeof(cb) == 'function'){
+		const proc = this.create(input, { live: false }), timeout = setTimeout(() => {
+			proc && proc.abort()
+			if(typeof(cb) == 'function') {
 				cb('timeout', '')
 				cb = null
 			}

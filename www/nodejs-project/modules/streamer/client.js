@@ -871,7 +871,7 @@ class StreamerSeek extends StreamerSpeedo {
     }
     seekTo(_s, type){
         if(!this.state) return
-        if(parent.cordova && this.activeMimetype == 'video/mp2t'){
+        if(parent.cordova && this.activeMimetype == 'video/mp2t') {
             clearTimeout(this.seekFailureTimer)
             this.seekFailureTimer = setTimeout(() => this.app.emit('streamer-seek-failure'), 2000)
             return
@@ -1032,8 +1032,9 @@ class StreamerClientTimeWarp extends StreamerLiveStreamClockTimer {
             const remaining = duration - ptime
             let rate = 1 + ((remaining - this.bufferTimeSecs) * (this.maxRateChange / this.bufferTimeSecs))
             rate = Math.min(1 + this.maxRateChange, Math.max(1 - this.maxRateChange, rate))
-            rate = Number(rate.toFixed(2))
-            if(rate != this.currentPlaybackRate){
+            // rate = Number(rate.toFixed(2))
+            // if(rate != this.currentPlaybackRate){
+            if(Math.abs(rate - this.currentPlaybackRate) > 0.02) {            
                 this.currentPlaybackRate = rate
                 console.warn('PlaybackRate='+ rate +'x', 'remaining '+ parseInt(remaining) +' secs')
                 parent.player.playbackRate(rate)
