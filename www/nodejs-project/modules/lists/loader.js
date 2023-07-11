@@ -1,13 +1,16 @@
-const path = require('path'), Events = require('events'), { default: PQueue } = require('p-queue')
+const path = require('path'), Events = require('events')
+const { default: PQueue } = require('p-queue'), ConnRacing = require('../conn-racing')
 
 class ListsLoader extends Events {
     constructor(master, opts) {
         super()
+        const concurrency = 3
         this.master = master
         this.opts = opts || {}
-        this.queue = new PQueue({ concurrency: 3 })
+        this.queue = new PQueue({ concurrency }) // got slow with '5' in a 2GB RAM device, save memory so
         this.osdID = 'lists-loader'
         this.tried = 0
+        this.pings = {}
         this.results = {}
         this.processes = []
         this.myCurrentLists = global.config.get('lists').map(l => l[1])
@@ -38,6 +41,10 @@ class ListsLoader extends Events {
                 this.queue._concurrency = 1 // try to change pqueue concurrency dinamically
                 this.resetLowPriorityUpdates()
             }
+        })
+        this.master.on('unsatisfied', () => {
+            this.queue._concurrency = concurrency // try to change pqueue concurrency dinamically
+            this.resetLowPriorityUpdates()
         })
         this.resetLowPriorityUpdates()
     }
@@ -75,7 +82,7 @@ class ListsLoader extends Events {
         })
     }
     async prepareUpdater(){
-        if(!this.updater || this.updater.finished === true){
+        if(!this.updater || this.updater.finished === true) {
             const updater = this.updater = global.workers.load(path.join(__dirname, 'updater-worker'))
             this.updaterClients = 1
             updater.close = () => {
@@ -98,7 +105,7 @@ class ListsLoader extends Events {
             }
         }
     }
-    enqueue(urls, priority=9){
+    async enqueue(urls, priority=9){
         if(priority == 1){ // priority=1 should be reprocessed, as it is in our lists            
             urls = urls.filter(url => {
                 return this.myCurrentLists.includes(url) // list still added
@@ -108,26 +115,52 @@ class ListsLoader extends Events {
                 return !this.processes.some(p => p.url == url) // already processing/processed
             })
         }
-        urls.forEach(url => {
-            let cancel, started
-            this.processes.push({
-                promise: this.queue.add(async () => {
-                    await global.Download.waitNetworkConnection()
-                    if(cancel) return
-                    started = true
-                    await this.prepareUpdater()
-                    this.results[url] = await this.updater.update(url).catch(console.error)
-                    const add = this.results[url] == 'updated' || (this.results[url] == 'already updated' && !this.master.processedLists.includes(url))
-                    add && this.master.addList(url)
-                    this.updater.close()
-                }, { priority }),
-                started: () => {
-                    return started
-                },
-                cancel: () => cancel = true,
-                priority,
-                url
-            })
+        if(!urls.length) return
+        let already = []
+        urls = urls.filter(url => {
+            if(typeof(this.pings[url]) == 'undefined'){
+                return true
+            }
+            if(this.pings[url] > 0) { // if zero, is loading yet
+                already.push({url, time: this.pings[url]})
+            }
+        })
+        urls.forEach(u => this.pings[u] = 0)
+        already.sortByProp('time').map(u => u.url).forEach(url => this.schedule(url, priority))
+        const start = global.time()
+        const racing = new ConnRacing(urls, {retries: 1, timeout: 5})
+		for(let i=0; i<urls.length; i++) {
+            const res = await racing.next().catch(console.error)
+            if(res && res.valid) {
+                const url = res.url
+                const time = global.time() - start
+                if(!this.pings[url] || this.pings[url] < time) {
+                    this.pings[url] = global.time() - start
+                }
+                this.schedule(url, priority)
+            }            
+        }
+        urls.filter(u => this.pings[u] == 0).forEach(u => delete this.pings[u])
+    }
+    schedule(url, priority){        
+        let cancel, started
+        this.processes.some(p => p.url == url) || this.processes.push({
+            promise: this.queue.add(async () => {
+                await global.Download.waitNetworkConnection()
+                if(cancel) return
+                started = true
+                await this.prepareUpdater()
+                this.results[url] = await this.updater.update(url).catch(console.error)
+                const add = this.results[url] == 'updated' || (this.results[url] == 'already updated' && !this.master.processedLists.includes(url))
+                add && this.master.addList(url)
+                this.updater.close()
+            }, { priority }),
+            started: () => {
+                return started
+            },
+            cancel: () => cancel = true,
+            priority,
+            url
         })
     }
     async reload(url){

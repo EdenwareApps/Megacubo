@@ -13,9 +13,6 @@ class UpdateListIndex extends ListIndexUtils {
         this.updateMeta = updateMeta
         this.forceDownload = forceDownload === true
         this.tmpfile = global.paths.temp +'/'+ parseInt(Math.random() * 100000000000) + '.tmp'
-        this.seriesRegex = new RegExp('(\\b|^)[st]?[0-9]+ ?[epx]{1,2}[0-9]+($|\\b)', 'i')
-        this.vodRegex = new RegExp('[\\.=](mp4|mkv|mpeg|mov|m4v|webm|ogv|hevc|divx)($|\\?|&)', 'i')
-        this.liveRegex = new RegExp('[\\.=](m3u8|ts)($|\\?|&)', 'i')
         this.reset()
     }
     ext(file){
@@ -201,7 +198,7 @@ class UpdateListIndex extends ListIndexUtils {
                     return
 				}
                 if(this.ext(entry.url) == 'm3u8'){
-                    this.hlsCount++
+                    this.hlsStreamsLength++
                 }
                 if(playlist){
                     entry.group = global.joinPath(global.joinPath(playlist.group, playlist.name), entry.group)
@@ -218,6 +215,10 @@ class UpdateListIndex extends ListIndexUtils {
                 }
                 entry = this.indexate(entry, this.indexateIterator)
                 writer.write(JSON.stringify(entry) + "\r\n")
+                if(!this.uniqueStreamsIndexate.includes(entry.url)) {
+                    this.uniqueStreamsIndexate.push(entry.url)
+                    this.uniqueStreamsIndexateIterator++
+                }
                 this.indexateIterator++
 			})
             this.once('destroy', destroyListener)
@@ -273,45 +274,50 @@ class UpdateListIndex extends ListIndexUtils {
 	}
     writeIndex(writer){
         return new Promise((resolve, reject) => {
-			let resolved
-            this.index.length = this.indexateIterator
-            this.index.hlsCount = this.hlsCount
-            this.index.groupsTypes = this.sniffGroupsTypes(this.groups)
-            if(this.index.length || !fs.existsSync(this.file)){
-                const finish = err => {
-                    if(resolved) return
+            fs.stat(this.file, (err, stat) => {
+                let resolved
+                const exists = !err && stat && stat.size
+                this.index.length = this.indexateIterator
+                this.index.hlsStreamsLength = this.hlsStreamsLength
+                this.index.uniqueStreamsLength = this.uniqueStreamsIndexateIterator
+                this.index.groupsTypes = this.sniffGroupsTypes(this.groups)
+                if(this.index.length || !exists) {
+                    const finish = err => {
+                        if(resolved) return
+                        resolved = true
+                        if(err) console.error(err)
+                        global.moveFile(this.tmpfile, this.file, err => {
+                            if(err){
+                                reject(err)
+                            } else if(this.index.length) {
+                                resolve(true)
+                            } else {
+                                resolve(false)
+                            }
+                            fs.access(this.tmpfile, err => err || fs.unlink(this.tmpfile, () => {}))
+                        }, 10)
+                    }
+                    writer.on('finish', finish)
+                    writer.on('close', finish)
+                    writer.on('error', finish)
+                    writer.write(JSON.stringify(this.index))
+                    writer.end()
+                } else {
                     resolved = true
-                    if(err) console.error(err)
-                    global.moveFile(this.tmpfile, this.file, err => {
-                        if(err){
-                            reject(err)
-                        } else if(this.index.length) {
-                            resolve(true)
-                        } else {
-                            resolve(false)
-                        }
-                        fs.access(this.tmpfile, err => err || fs.unlink(this.tmpfile, () => {}))
-                    }, 10)
+                    fs.unlink(this.tmpfile, () => reject('empty list'))
                 }
-                writer.on('finish', finish)
-                writer.on('close', finish)
-                writer.on('error', finish)
-                writer.write(JSON.stringify(this.index))
-                writer.end()
-            } else {
-                resolved = true
-                fs.unlink(this.tmpfile, () => reject('empty list'))
-            }
+            })
         })
     }
     sniffGroupsTypes(groups){
         let ret = {live: [], vod: [], series: []}
         Object.keys(groups).forEach(g => {
+            let isSeried = this.isGroupSeried(groups[g])
             let icon, types = groups[g].map(e => {
                 if(e.icon && !icon){
                     icon = e.icon
                 }
-                return this.sniffStreamType(e)
+                return isSeried ? 'series' : this.sniffStreamType(e)
             }).filter(s => s)
             let type = this.mode(types)
             if(type){
@@ -323,14 +329,16 @@ class UpdateListIndex extends ListIndexUtils {
         })
         return ret
     }
-    sniffStreamType(e){
-        if(e.name.match(this.seriesRegex)){
-            return 'series'
-        } else if(e.url.match(this.vodRegex)){
-            return 'vod'
-        } else if(e.url.match(this.liveRegex)){
-            return 'live'
-        }
+    isGroupSeried(es){
+        if(es.length < 5) return false
+        const masks = {}
+        const mask = n => n.replace(new RegExp('[0-9]+', 'g'), '*')
+        es.forEach(e => {
+            const m = mask(e.name)
+            if(typeof(masks[m]) == 'undefined') masks[m] = 0
+            masks[m]++
+        })
+        return Object.values(masks).some(n => n >= (es.length * 0.7))
     }
     mode(a){ // https://stackoverflow.com/a/65821663
         let obj = {}
@@ -355,14 +363,17 @@ class UpdateListIndex extends ListIndexUtils {
         this.groups = {}
 		this.index = {
             length: 0,
+            uniqueStreamsLength: 0,
             terms: {},
             groups: {},
             meta: {},
             gids: {}
         }
 		this.indexateIterator = 0
+		this.uniqueStreamsIndexate = []
+		this.uniqueStreamsIndexateIterator = 0
 		this.contentLength = -1
-        this.hlsCount = 0
+        this.hlsStreamsLength = 0
 	}
 	destroy(){
 		if(!this.destroyed){

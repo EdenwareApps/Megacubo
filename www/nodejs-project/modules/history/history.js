@@ -38,6 +38,20 @@ class History extends EntriesGroup {
         })
         this.epg = new EPGHistory()
     }
+    get(...args){
+        let ret = super.get(...args)        
+        const port = global.icons ? global.icons.opts.port : 0
+        if(port) {
+            const rgx = new RegExp('^(http://127\.0\.0\.1:)[0-9]+(/[A-Za-z0-9,]+)$')
+            ret = ret.map(e => {
+                if(e.icon && e.icon.startsWith('http://127.0.0.1:') && e.icon.match(rgx)) {
+                    e.icon = e.icon.replace(rgx, '$1'+ port +'$2')
+                }
+                return e
+            })
+        }
+        return ret
+    }
     resume(){
         this.ready(() => {
             if(!this.resumed && global.streamer){
@@ -70,61 +84,53 @@ class History extends EntriesGroup {
             })
             if(es.length){
                 pos = 0
-                let defs = {hookId: this.key, fa: 'fas fa-undo', class: 'entry-icon', details: '<i class="fas fa-play-circle"></i> '+ global.lang.KEEP_WATCHING}
+                let defs = {hookId: this.key, fa: 'fas fa-redo-alt', class: 'entry-icon', details: '<i class="fas fa-play-circle"></i> '+ global.lang.KEEP_WATCHING}
                 entries.splice(pos, 0, Object.assign(Object.assign({}, es[0]), defs))
             } else {
-                entries.splice(pos, 0, this.entry())
+                entries.splice(pos > 0 ? pos : entries.length - 3, 0, this.entry())
             }
         }
         entries = await this.epg.hook(entries, path)
         return entries
     }
-    entries(e){
-        return new Promise((resolve, reject) => {
-            const epgAddLiveNowMap = {}
-            let gentries = this.get().map((e, i) => {
-                e.details = global.ucFirst(global.moment(e.historyTime * 1000).fromNow(), true)
-                const isMega = e.url && global.mega.isMega(e.url)
-                if(isMega){
-                    let atts = global.mega.parse(e.url)
-                    if(atts.mediaType == 'live'){
-                        return (epgAddLiveNowMap[i] = global.channels.toMetaEntry(e, false))
-                    } else {
-                        e.type = 'group'
-                        e.renderer = () => {
-                            return new Promise((resolve, reject) => {
-                                let terms = atts.terms && Array.isArray(atts.terms) ? atts.terms : global.lists.terms(atts.name, true)
-                                global.lists.search(terms, {
-                                    type: 'video',
-                                    group: true,
-                                    safe: !global.lists.parentalControl.lazyAuth()
-                                }).then(es => {
-                                    resolve(es.results)
-                                }).catch(reject)
-                            })
-                        }
+    async entries(e){
+        const epgAddLiveNowMap = {}
+        let gentries = this.get().map((e, i) => {
+            e.details = global.ucFirst(global.moment(e.historyTime * 1000).fromNow(), true)
+            const isMega = e.url && global.mega.isMega(e.url)
+            if(isMega){
+                let atts = global.mega.parse(e.url)
+                if(atts.mediaType == 'live'){
+                    return (epgAddLiveNowMap[i] = global.channels.toMetaEntry(e, false))
+                } else {
+                    e.type = 'group'
+                    e.renderer = async () => {
+                        let terms = atts.terms && Array.isArray(atts.terms) ? atts.terms : global.lists.terms(atts.name, true)
+                        const es = await global.lists.search(terms, {
+                            type: 'video',
+                            group: true,
+                            safe: !global.lists.parentalControl.lazyAuth()
+                        })
+                        return es.results
                     }
-                } else if(e.type != 'group'){
-                    e.type = 'stream'
                 }
-                return e
-            })
-            global.channels.epgChannelsAddLiveNow(Object.values(epgAddLiveNowMap), true).then(entries => {
-                const ks = Object.keys(epgAddLiveNowMap)
-                entries.forEach((e, i) => {
-                    gentries[ks[i]] = e
-                })
-            }).catch(console.error).finally(() => {
-                if(gentries.length){
-                    gentries.push({name: global.lang.CLEAR, fa: 'fas fa-trash', type: 'action', action: () => {
-                        this.clear()
-                        global.explorer.refreshNow()
-                    }})
-                }
-                resolve(gentries)
-            })
-
+            } else if(e.type != 'group'){
+                e.type = 'stream'
+            }
+            return e
         })
+        let entries = await global.channels.epgChannelsAddLiveNow(Object.values(epgAddLiveNowMap), true).catch(console.error)
+        if(Array.isArray(entries)) {
+            const ks = Object.keys(epgAddLiveNowMap)
+            entries.forEach((e, i) => gentries[ks[i]] = e)
+        }
+        if(gentries.length){
+            gentries.push({name: global.lang.CLEAR, fa: 'fas fa-trash', type: 'action', action: () => {
+                this.clear()
+                global.explorer.refreshNow()
+            }})
+        }
+        return gentries
     }
 }
 

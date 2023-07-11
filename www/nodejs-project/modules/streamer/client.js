@@ -304,8 +304,8 @@ class StreamerState extends StreamerCasting {
                 console.warn('RESUME', position)
                 parent.player.pause()
                 explorer.dialog([
-                    {template: 'question', text: lang.CONTINUE, fa: 'fas fa-undo'},
-                    {template: 'option', text: lang.RESUME_FROM_X.format(hmsSecondsToClock(position)), id: 'resume', fa: 'fas fa-undo'},
+                    {template: 'question', text: lang.CONTINUE, fa: 'fas fa-redo-alt'},
+                    {template: 'option', text: lang.RESUME_FROM_X.format(hmsSecondsToClock(position)), id: 'resume', fa: 'fas fa-redo-alt'},
                     {template: 'option', text: lang.PLAY_FROM_START, id: 'play', fa: 'fas fa-play'}
                 ], choose => {
                     switch(choose){
@@ -1562,7 +1562,6 @@ class StreamerClientController extends StreamerClientControls {
 
 class StreamerClient extends StreamerClientController {
     constructor(controls, app){
-        console.log('CONT', controls)
         super(controls, app)
         this.app = app
         this.bind()

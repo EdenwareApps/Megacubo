@@ -4,7 +4,7 @@ class List extends Events {
 	constructor(url, master){
 		super(url, master)
 		this.debug = false
-		if(url.substr(0, 2) == '//'){
+		if(url.startsWith('//')){
 			url = 'http:'+ url
 		}
 		this.master = master
@@ -23,7 +23,7 @@ class List extends Events {
 		args.unshift(Date.now() / 1000)
 		this._log.push(args)
 	}
-	async ready(){
+	ready(){
 		return new Promise((resolve, reject) => {
             if(this.isReady){
                 resolve()
@@ -155,7 +155,7 @@ class List extends Events {
     
         /*
         // hls
-        values.hls = index.hlsCount / (index.length / 100)
+        values.hls = index.hlsStreamsLength / (index.length / 100)
 
         // mtime
         const rangeSize = 30 * (24 * 3600), now = global.time(), deadline = now - rangeSize
@@ -203,6 +203,9 @@ class List extends Events {
         await this.ready()
         if(!this.indexer) return []
         return await this.indexer.getMap(map)
+    }
+    async getEntries(map){
+        return await this.indexer.entries(map)
     }
 	reset(){		
 		this.index = {

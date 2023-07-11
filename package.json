@@ -1,7 +1,7 @@
 {
   "name": "tv.megacubo.app",
   "displayName": "Megacubo",
-  "version": "17.0.4",
+  "version": "17.0.5",
   "description": "A intuitive and multi-language IPTV player.",
   "main": "index.js",
   "scripts": {
@@ -16,34 +16,31 @@
   "license": "Apache-2.0",
   "dependencies": {
     "cordova": "^11.1.0",
-    "cordova-plugin-customurlscheme": "github:EddyVerbruggen/Custom-URL-scheme",
     "megacubo-electron": "file:./www/nodejs-project"
   },
   "cordova": {
     "plugins": {
-      "nodejs-mobile-cordova": {},
-      "tv.megacubo.pip": {},
-      "tv.megacubo.player": {},
-      "tv.megacubo.ffmpeg": {},
-      "cordova-plugin-ionic-webview": {},
-      "cordova-plugin-ionic-keyboard": {},
-      "cordova-plugin-insomnia": {},
-      "cordova-plugin-filepath": {},
-      "cordova-plugin-globalization": {},
-      "cordova-plugin-file": {
-        "ANDROIDX_WEBKIT_VERSION": "1.4.0"
-      },
-      "cordova-plugin-web-share": {},
-      "cordova-plugin-fullscreen": {},
-      "cordova-plugin-android-permissions": {},
-      "cordova-plugin-filechooser": {},
-      "cordova-plugin-android-tv": {},
       "cordova-plugin-customurlscheme": {
         "URL_SCHEME": "mega",
         "ANDROID_SCHEME": " ",
         "ANDROID_HOST": " ",
         "ANDROID_PATHPREFIX": "/"
       },
+      "tv.megacubo.pip": {},
+      "tv.megacubo.ffmpeg": {},
+      "cordova-plugin-ionic-webview": {},
+      "cordova-plugin-ionic-keyboard": {},
+      "cordova-plugin-insomnia": {},
+      "cordova-plugin-filepath": {},
+      "cordova-plugin-globalization": {},
+      "cordova-plugin-file": {},
+      "cordova-plugin-web-share": {},
+      "cordova-plugin-fullscreen": {},
+      "cordova-plugin-filechooser": {},
+      "nodejs-mobile-cordova": {},
+      "tv.megacubo.player": {},
+      "cordova-plugin-android-permissions": {},
+      "cordova-plugin-android-tv": {},
       "ionic-plugin-deeplinks": {
         "URL_SCHEME": "mega",
         "DEEPLINK_SCHEME": "https",
@@ -65,9 +62,7 @@
       "cordova-plugin-background-mode": {},
       "cordova-custom-config": {}
     },
-    "platforms": [
-      "android"
-    ]
+    "platforms": []
   },
   "devDependencies": {
     "cordova-android": "^10.1.2",
@@ -76,6 +71,7 @@
     "cordova-plugin-android-permissions": "^1.1.5",
     "cordova-plugin-android-tv": "github:efoxbr/cordova-plugin-android-tv",
     "cordova-plugin-background-mode": "bitbucket:TheBosZ/cordova-plugin-run-in-background",
+    "cordova-plugin-customurlscheme": "github:EddyVerbruggen/Custom-URL-scheme",
     "cordova-plugin-device": "^2.1.0",
     "cordova-plugin-file": "^7.0.0",
     "cordova-plugin-filechooser": "github:luckypal/cordova-filechooser",

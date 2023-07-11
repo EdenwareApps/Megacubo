@@ -276,7 +276,7 @@ class Download extends Events {
 		if(this.currentRequestError){
 			this.currentRequestError = ''
 		}
-		if(this.currentURL.substr(0, 2) == '//'){
+		if(this.currentURL.startsWith('//')){
 			this.currentURL = 'http:'+ this.currentURL
 		}
 		if(!global.validateURL(this.currentURL)){

@@ -599,6 +599,7 @@ class Theme extends Events {
         const file = this.folder +'/'+ global.sanitize(name) + '.theme.json'
         fs.stat(file, (err, stat) => {
             const next = () => {
+                global.osd.show(global.lang.LOADING +' 0%', 'fas fa-download', 'theme', 'persistent')
                 global.Download.file({
                     debug: false,
                     file,

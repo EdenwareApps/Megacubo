@@ -229,7 +229,7 @@ class StreamInfo {
 		return ''
 	}
 	validate(value) {
-		if(value.substr(0, 2) == '//') {
+		if(value.startsWith('//')) {
 			value = 'http:'+ value
 		}
 		let v = value.toLowerCase(), prt = v.substr(0, 4), pos = v.indexOf('://')

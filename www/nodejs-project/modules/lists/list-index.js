@@ -14,7 +14,8 @@ class ListIndex extends ListIndexUtils {
         }
         this.emit('end')
     }
-    async entries(map){
+    async entries(map){        
+		map.sort()
         let lines = await this.readLines(map)
         let entries, ids = Object.keys(lines)
         try {

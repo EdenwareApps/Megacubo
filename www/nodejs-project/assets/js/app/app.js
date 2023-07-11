@@ -314,9 +314,11 @@ function initApp(){
                 iconCaching[data.path][data.tabindex] = data
             }
             if(explorer.path == data.path){
+                const entry = explorer.currentEntries[data.tabindex]
                 const element = data.tabindex == -1 ? document.querySelector('.explorer-location-icon i') : explorer.currentElements[data.tabindex]
-                const isCover = element && !data.alpha && config['stretch-logos']
+                const isCover = element && !data.alpha && (config['stretch-logos'] || (entry && entry.class && entry.class.indexOf('entry-force-cover') != -1))
                 const bg = 'url("' + data.url + '")' // keep quotes
+                console.warn('THUMB',{isCover, data, entry})
                 const m = () => {
                     let d, g = document.createElement('img')
                     if(isCover){
@@ -536,7 +538,10 @@ function initApp(){
         })
 
         omni = new OMNI()
-        jQuery(document).on('keyup', omni.eventHandler.bind(omni))
+        omni.on('left', () => explorer.arrow('left'))
+        omni.on('right', () => explorer.arrow('right'))
+        omni.on('down', () => explorer.arrow('down'))
+        omni.on('up', () => explorer.arrow('up'))
 
         explorer.on('scroll', y => {
             //console.log('selectionMemory scroll', y)
@@ -573,12 +578,8 @@ function initApp(){
         explorer.on('render', elpListener)
 
         var haTop = $('#home-arrows-top'), haBottom = $('#home-arrows-bottom')
-        haTop.on('click', () => {
-            explorer.arrow('up')
-        })
-        haBottom.on('click', () => {
-            explorer.arrow('down')
-        })
+        haTop.on('click', () => explorer.arrow('up'))
+        haBottom.on('click', () => explorer.arrow('down'))
 
         window['home-arrows-active'] = {bottom: null, top: null, timer: 0};
         window.haUpdate = () => {

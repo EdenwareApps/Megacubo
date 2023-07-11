@@ -11,19 +11,21 @@ class JimpWorker {
         }
     }
     isAlpha(image){
+        const padding = 3
+        const padding2 = padding + 1
         let alphas = [], corners = [
-            [0, 0],
-            [0, image.bitmap.width - 1],
-            [image.bitmap.height - 1, 0],
-            [image.bitmap.height - 1, image.bitmap.width - 1]
+            [padding, padding],
+            [padding, image.bitmap.width - padding2],
+            [image.bitmap.height - padding2, padding],
+            [image.bitmap.height - padding2, image.bitmap.width - padding2]
         ], valid = corners.some(coords => {
             let px = this.jimp.intToRGBA(image.getPixelColor(coords[0], coords[1]))
             if(px){
                 alphas.push(px.a)
-                return px.a < 255
+                return px.a < 240
             }
         })
-        // if(!valid) console.log('not transparent image, corners: ' + JSON.stringify(corners) + ', alphas: ' + JSON.stringify(alphas))
+        if(!valid) console.warn('not transparent image, corners: ' + JSON.stringify(corners) + ', alphas: ' + JSON.stringify(alphas))
         return valid
     }
     transform(file, opts){

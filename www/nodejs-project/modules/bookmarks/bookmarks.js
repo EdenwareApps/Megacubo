@@ -35,52 +35,51 @@ class Bookmarks extends EntriesGroup {
         return e.type && e.type == 'group'
     }
     hook(entries, path){
-        return new Promise((resolve, reject) => {
-            if(path == '' && !entries.some(e => e.name == global.lang.BOOKMARKS)){ // add home option
-                entries.push({name: global.lang.BOOKMARKS, fa: 'fas fa-star', type: 'group', renderer: this.entries.bind(this)})
+        if(!path) {
+            const bmEntry = {name: global.lang.BOOKMARKS, fa: 'fas fa-star', type: 'group', renderer: this.entries.bind(this)}
+            global.options.insertEntry(bmEntry, entries, -3, global.lang.IPTV_LISTS, global.lang.CATEGORY_MOVIES_SERIES)
+        }
+        let isBookmarkable = path.startsWith(global.lang.CATEGORY_MOVIES_SERIES) || path.startsWith(global.lang.LIVE +'/'+ global.lang.MORE) || path.startsWith(global.lang.BOOKMARKS)
+        if(!isBookmarkable && path.startsWith(global.lang.IPTV_LISTS) && !entries.some(this.groupFilter)){
+            isBookmarkable = true
+        }
+        if(isBookmarkable && entries.some(this.streamFilter)){
+            let name = path.split('/').pop(), ges = entries.filter(e => e.url)
+            if(ges.length){
+                let gs = [...new Set(ges.map(e => e.groupName))]
+                if(gs.length == 1 && gs[0]){
+                    name = gs[0]
+                }
             }
-            let isBookmarkable = path.startsWith(global.lang.SERIES) || path.startsWith(global.lang.MOVIES) || path.startsWith(global.lang.LIVE +'/'+ global.lang.MORE) || path.startsWith(global.lang.BOOKMARKS)
-            if(!isBookmarkable && (path.startsWith(global.lang.IPTV_LISTS) || path.startsWith(global.lang.TRENDING)) && !entries.some(this.groupFilter)){
-                isBookmarkable = true
-            }
-            if(isBookmarkable && entries.some(this.streamFilter)){
-                let name = path.split('/').pop(), ges = entries.filter(e => e.url)
-                if(ges.length){
-                    let gs = [...new Set(ges.map(e => e.groupName))]
-                    if(gs.length == 1 && gs[0]){
-                        name = gs[0]
+            ges = null
+            let bookmarker, bookmarkable = {name, type: 'group', entries: entries.filter(this.streamFilter)}
+            console.log('bookmarkable', bookmarkable)
+            if(this.has(bookmarkable)){
+                bookmarker = {
+                    type: 'action',
+                    fa: 'fas fa-star-half',
+                    name: global.lang.REMOVE_FROM.format(global.lang.BOOKMARKS),
+                    action: () => {
+                        this.remove(bookmarkable)
+                        global.explorer.refreshNow()
+                        global.osd.show(global.lang.BOOKMARK_REMOVED.format(bookmarkable.name), 'fas fa-star-half', 'bookmarks', 'normal')
                     }
                 }
-                ges = null
-                let bookmarker, bookmarkable = {name, type: 'group', entries: entries.filter(this.streamFilter)}
-                console.log('bookmarkable', bookmarkable)
-                if(this.has(bookmarkable)){
-                    bookmarker = {
-                        type: 'action',
-                        fa: 'fas fa-star-half',
-                        name: global.lang.REMOVE_FROM.format(global.lang.BOOKMARKS),
-                        action: () => {
-                            this.remove(bookmarkable)
-                            global.explorer.refreshNow()
-                            global.osd.show(global.lang.BOOKMARK_REMOVED.format(bookmarkable.name), 'fas fa-star-half', 'bookmarks', 'normal')
-                        }
+            } else if(path.indexOf(global.lang.BOOKMARKS) == -1) {
+                bookmarker = {
+                    type: 'action',
+                    fa: 'fas fa-star',
+                    name: global.lang.ADD_TO.format(global.lang.BOOKMARKS),
+                    action: () => {
+                        this.add(bookmarkable)
+                        global.explorer.refreshNow()
+                        global.osd.show(global.lang.BOOKMARK_ADDED.format(bookmarkable.name), 'fas fa-star', 'bookmarks', 'normal')
                     }
-                } else if(path.indexOf(global.lang.BOOKMARKS) == -1) {
-                    bookmarker = {
-                        type: 'action',
-                        fa: 'fas fa-star',
-                        name: global.lang.ADD_TO.format(global.lang.BOOKMARKS),
-                        action: () => {
-                            this.add(bookmarkable)
-                            global.explorer.refreshNow()
-                            global.osd.show(global.lang.BOOKMARK_ADDED.format(bookmarkable.name), 'fas fa-star', 'bookmarks', 'normal')
-                        }
-                    }
-                } 
-                if(bookmarker) entries.unshift(bookmarker)
-            }
-            resolve(entries)
-        })
+                }
+            } 
+            if(bookmarker) entries.unshift(bookmarker)
+        }
+        return entries
     }
     toggle(){
         let data = this.current()

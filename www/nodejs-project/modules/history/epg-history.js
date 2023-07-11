@@ -162,7 +162,7 @@ class EPGHistory extends EntriesGroup {
         if(typeof(path) != 'string') {
             path = global.explorer.path
         }
-        if(this.data.length && global.channels.activeEPG){
+        if(this.data.length && global.channels.loadedEPG){
             if(path == global.lang.LIVE){
                 return 3
             } else if(path == global.lang.BOOKMARKS){
@@ -274,7 +274,7 @@ class EPGHistory extends EntriesGroup {
                     type: 'action', 
                     fa: 'fas fa-times-circle', 
                     class: 'entry-empty',
-                    action: async () => {                    
+                    action: async () => {
                         const path = global.lang.IPTV_LISTS +'/'+ global.lang.EPG
                         await global.explorer.open(path)
                     }

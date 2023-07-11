@@ -62,11 +62,27 @@ class Wizard extends WizardUtils {
         } else {
             opts.push({template: 'option', text: global.lang.ADD_LATER, fa: 'fas fa-clock', id: 'no'})
         }
+        let err, service
+        const svcIcon = 'fas fa-bag-shopping'
+        const c = await global.cloud.get('configure').catch(e => err = e)
+        if(!err && c) {
+            service = c['external-provider-service-'+ global.lang.countryCode] || c['external-provider-service']
+            service && opts.push({template: 'option', text: global.lang.GET_LIST, details: global.lang.GET_LIST_EXTERNAL, fa: svcIcon, id: 'get'})
+        }
         let choose = await global.explorer.dialog(opts, def, true)
-        if(choose == 'no'){
+        if(choose == 'no') {
             return true
         } else if(choose == 'sh') {
             return await this.communityMode()
+        } else if(choose == 'get') {
+            let eopts = [
+                {template: 'question', text: global.lang.GET_LIST_EXTERNAL, fa: svcIcon},
+                {template: 'message', text: global.lang.GET_LIST_EXTERNAL_INFO},
+                {template: 'option', text: global.lang.CONTINUE, fa: 'fas fa-check-circle', id: 'ok'}
+            ]            
+            await global.explorer.dialog(eopts, 'ok', true)
+            global.ui.emit('open-external-url', service)
+            return await this.lists()
         } else {
             return await this.input()
         }

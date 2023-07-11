@@ -9,6 +9,7 @@ class Zap extends Events {
         global.uiReady(() => this.init())
     }
     init(){
+        this.title = global.lang.ZAP
         global.explorer.addFilter(this.hook.bind(this))
         global.streamer.on('stop', err => {
             if(this.isZapping){
@@ -35,9 +36,6 @@ class Zap extends Events {
             global.ui.emit('add-player-button', 'zap', 'ZAP', this.icon, 5, 'zap')
         })
     }
-    title(){
-        return global.lang.ZAP
-    }
     ready(cb){
         if(this.isReady){
             cb()
@@ -49,9 +47,9 @@ class Zap extends Events {
         return new Promise((resolve, reject) => {
             if(path == global.lang.LIVE && global.lists.loaded() && global.lists.activeLists.length){
                 let pos, has = entries.some((e, i) => {
-                    e.name == this.title()
-                    if(e.entries && typeof(pos) == 'undefined'){
+                    if(e.name == this.title){
                         pos = i
+                        return true
                     }
                 })
                 if(!has){
@@ -142,7 +140,7 @@ class Zap extends Events {
     }
     entry(){
         const entry = {
-            name: this.title(),
+            name: this.title,
             details: global.lang.ZAP_DESCRIPTION,
             fa: this.icon,
             type: 'action',

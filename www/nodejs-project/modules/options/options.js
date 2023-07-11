@@ -113,7 +113,7 @@ class PerformanceProfiles extends Timer {
                 'play-while-loading': true,
                 'search-missing-logos': true,
                 'show-logos': true,
-                'transcoding': '1080p',
+                'transcoding-resolution': '1080p',
                 'ts-packet-filter-policy': 1,
                 'tune-concurrency': 8,
                 'tune-ffmpeg-concurrency': 3,
@@ -137,7 +137,7 @@ class PerformanceProfiles extends Timer {
                 'resume': false,
                 'search-missing-logos': false,
                 'show-logos': false,
-                'transcoding': '',
+                'transcoding-resolution': '480p',
                 'ts-packet-filter-policy': 1,
                 'tune-concurrency': 4,
                 'tune-ffmpeg-concurrency': 2,
@@ -481,7 +481,6 @@ class Options extends OptionsP2P {
             }
             await global.lists.manager.setEPG(activeEPG || '', false).catch(console.error)
         }
-        console.log('SET-EPG', global.activeEPG)
     }
     async tools(){
         let err, defaultURL = ''
@@ -834,7 +833,7 @@ class Options extends OptionsP2P {
             },
             {
                 name: 'Unpause jumpback',
-                fa: 'fas fa-undo', 
+                fa: 'fas fa-undo-alt', 
                 type: 'select', 
                 renderer: async () => {
                     const def = global.config.get('unpause-jumpback'), opts = [
@@ -1050,7 +1049,6 @@ class Options extends OptionsP2P {
     entries(){
         let secOpt = global.lists.parentalControl.entry()
         let opts = [
-            {name: global.lang.PERFORMANCE_MODE, details: global.lang.SELECT, fa: 'fas fa-tachometer-alt', type: 'action', action: () => this.performance()},
             {name: global.lang.BEHAVIOUR, type: 'group', fa: 'fas fa-window-restore', renderer: async () => {
                 let opts = [
                     {
@@ -1218,6 +1216,7 @@ class Options extends OptionsP2P {
                 })
                 return opts
             }},
+            {name: global.lang.PERFORMANCE_MODE, details: global.lang.SELECT, fa: 'fas fa-tachometer-alt', type: 'action', action: () => this.performance()},
             {name: global.lang.LANGUAGE, fa: 'fas fa-language', type: 'action', action: () => this.showLanguageEntriesDialog()},
             {name: global.lang.COUNTRIES, details: global.lang.COUNTRIES_HINT, fa: 'fas fa-globe', type: 'group', renderer: () => this.countriesEntries()},
             secOpt,
@@ -1385,12 +1384,33 @@ class Options extends OptionsP2P {
         ]
         return opts
     }
+    prm() {
+        const p = global.premium
+        if(p.active || p.enabling) return true
+        return global.config.get('premium-license') && !global.config.get('premium-disable')
+    }
+    insertEntry(entry, entries, preferredPosition=-1, before, after, prop='name'){
+        const i = entries.findIndex(e => e[prop] == entry[prop])
+        if(i >= 0) entries.splice(i, 1) // is already present
+        if(preferredPosition < 0) preferredPosition = entries.length - preferredPosition
+        if(before) {
+            const f = Array.isArray(before) ? (e => before.some(n => e.name == n || e.hookId == n)) : (e => e.name == before || e.hookId == before)
+            const n = entries.findIndex(f)
+            if(n >= 0) preferredPosition = n
+        }
+        if(after) {
+            const f = Array.isArray(after) ? (e => after.some(n => e.name == n || e.hookId == n)) : (e => e.name == before || e.hookId == before)
+            const n = entries.findLastIndex(f)
+            if(n >= 0) preferredPosition = n + 1
+        }
+        entries.splice(preferredPosition, 0, entry)
+    }
     async hook(entries, path){
-        if(path == '' && !entries.some(e => e.name == global.lang.TOOLS)){
-            entries.splice(entries.length - 2, 0, {name: global.lang.TOOLS, fa: 'fas fa-box-open', type: 'group', renderer: this.tools.bind(this)})
-            entries = entries.concat([
-                {name: global.lang.OPTIONS, fa: 'fas fa-cog', type: 'group', details: global.lang.CONFIGURE, renderer: this.entries.bind(this)},
-            ])
+        if(!path) {
+            const sopts = this.prm() ? [global.lang.RECORDINGS, global.lang.TIMER] :  [global.lang.TIMER, global.lang.THEMES]
+            const details = sopts.join(', ')
+            this.insertEntry({name: global.lang.TOOLS, fa: 'fas fa-box-open', type: 'group', details, renderer: this.tools.bind(this)}, entries, -2)
+            this.insertEntry({name: global.lang.OPTIONS, fa: 'fas fa-cog', type: 'group', details: global.lang.CONFIGURE, renderer: this.entries.bind(this)}, entries, -1)
         } else if(path == global.lang.OPTIONS +'/'+ global.lang.ADVANCED){
             entries.push(this.p2pEntry())
         }

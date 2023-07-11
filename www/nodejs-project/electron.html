@@ -60,7 +60,7 @@
 				console.warn(e, e.stack)
 			})
 			process.on('unhandledRejection', (reason, promise) => {
-				console.error('Unhandled Rejection at:', promise, 'reason:', reason)
+				console.error('Unhandled rejection (client) at:', promise, 'reason:', reason)
 			})
 			process.on('uncaughtException', (exception) => {
 				console.error('uncaughtException', exception)

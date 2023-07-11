@@ -17,25 +17,23 @@ class Explorer extends Events {
         this.filters = []
         this.currentEntries = []
         this.backIcon = 'fas fa-chevron-left'
-        this.addFilter((es, path) => { 
-            return new Promise((resolve, reject) => {
-                resolve(es.map(e => {
-                    let o = e
-                    if(o){
-                        if(!e.path || e.path.indexOf(path) == -1){
-                            o.path = e.name
-                            if(path){
-                                o.path = path +'/'+ o.path
-                            }
-                        }
-                        if(typeof(e.checked) == 'function'){
-                            o.value = !!e.checked(e)
-                        } else if(typeof(e.value) == 'function'){
-                            o.value = e.value()
+        this.addFilter(async (es, path) => {
+            return es.map(e => {
+                let o = e
+                if(o){
+                    if(!e.path || e.path.indexOf(path) == -1){
+                        o.path = e.name
+                        if(path){
+                            o.path = path +'/'+ o.path
                         }
                     }
-                    return o
-                }))
+                    if(typeof(e.checked) == 'function'){
+                        o.value = !!e.checked(e)
+                    } else if(typeof(e.value) == 'function'){
+                        o.value = e.value()
+                    }
+                }
+                return o
             })
         })
         
@@ -198,7 +196,6 @@ class Explorer extends Events {
     softRefresh(p, force){
         if(force !== true && this.refreshingPath != this.path) return
         if(!this.startExecTime) this.startExecTime = global.time()
-        console.error('softRefresh('+ this.path +') '+ (global.time() - this.startExecTime))
         if(this.rendering){
             if(this.path && typeof(this.pages[this.path]) != 'undefined'){
                 delete this.pages[this.path]
@@ -209,7 +206,6 @@ class Explorer extends Events {
     deepRefresh(p, force){
         if(force !== true && this.refreshingPath != this.path) return
         if(!this.startExecTime) this.startExecTime = global.time()
-        console.error('deepRefresh('+ (p || this.path) +') '+ (global.time() - this.startExecTime))
         if(this.rendering){
             if(!p){
                 p = this.path
@@ -264,41 +260,41 @@ class Explorer extends Events {
     addFilter(f){
         this.filters.push(f)
     }
-    applyFilters(entries, path){
-        return new Promise((resolve, reject) => {
-            let i = 0, next = () => {
-                if(typeof(this.filters[i]) == 'undefined'){
-                    entries = entries.map(e => {
-                        if(!e.path){
-                            e.path = (path ? path +'/' : '') + e.name
-                        } else if(e.path && this.basename(e.path) != e.name){
-                            e.path += '/'+ e.name
-                        }
-                        return e
-                    })
-                    resolve(entries)
-                } else {
-                    this.filters[i](entries, path).then(es => {
-                        i++
-                        if(Array.isArray(es)){
-                            entries = es
-                        } else {
-                            console.error('Explorer filter failure', this.filters[i], es)
-                        }
-                        next()
-                    }).catch(e => {
-                        i++
-                        console.error(e)
-                        next()
-                    })
+    async applyFilters(entries, path) {
+        let i = 0
+        const next = async () => {
+            if (typeof this.filters[i] === 'undefined') {
+                entries = entries.map((e) => {
+                    if (!e.path) {
+                        e.path = (path ? path + '/' : '') + e.name
+                    } else if (e.path && this.basename(e.path) !== e.name) {
+                        e.path += '/' + e.name
+                    }
+                    return e
+                })
+                return entries
+            } else {
+                try {
+                    const es = await this.filters[i](entries, path)
+                    i++;
+                    if (Array.isArray(es)) {
+                        entries = es
+                    } else {
+                        console.error('Explorer filter failure', this.filters[i], es)
+                    }
+                    return next()
+                } catch (e) {
+                    i++
+                    console.error(e)
+                    return next()
                 }
             }
-            if(Array.isArray(entries)){
-                next()
-            } else {
-                resolve(entries || [])
-            }
-        })
+        }
+        if (Array.isArray(entries)) {
+            return await next()
+        } else {
+            return entries || []
+        }
     }
     syncPages(){
         Object.keys(this.pages).forEach(page => {
@@ -533,91 +529,71 @@ class Explorer extends Events {
             }
         })
     }
-    open(destPath, tabindex, deep, isFolder, backInSelect){
-        return new Promise((resolve, reject) => {
-            if(['.', '/'].includes(destPath)){
-                destPath = ''
+    async open(destPath, tabindex, deep, isFolder, backInSelect){
+        if(['.', '/'].includes(destPath)){
+            destPath = ''
+        }
+        if(this.opts.debug){
+            console.log('open', destPath, tabindex, traceback())
+        }
+        this.emit('open', destPath)
+        let parentEntry, name = this.basename(destPath), parentPath = this.dirname(destPath)
+        let finish = async es => {
+            if(backInSelect && parentEntry && parentEntry.type == 'select'){
+                if(this.opts.debug){
+                    console.log('backInSelect', backInSelect, parentEntry, destPath, global.traceback())
+                }
+                return await this.open(this.dirname(destPath), -1, deep, isFolder, backInSelect)
             }
+            this.path = destPath
+            es = this.addMetaEntries(es, destPath, parentPath)
+            this.pages[this.path] = es
+            await this.render(this.pages[this.path], this.path, parentEntry)
+            return true
+        }
+        let ret = await this[deep === true ? 'deepRead' : 'read'](parentPath, undefined)
+        if(this.opts.debug){
+            console.log('readen', deep, parentPath, name, ret)
+        }
+        if(ret == -1) return
+        parentEntry = ret.parent
+        if(name){
+            let e = this.selectEntry(ret.entries, name, tabindex, isFolder)
             if(this.opts.debug){
-                console.log('open', destPath, tabindex, traceback())
+                console.log('selectEntry', destPath, ret.entries, name, tabindex, isFolder, e)
             }
-            this.emit('open', destPath)
-            let parentEntry, name = this.basename(destPath), parentPath = this.dirname(destPath)
-            let finish = es => {
-                if(backInSelect && parentEntry && parentEntry.type == 'select'){
-                    if(this.opts.debug){
-                        console.log('backInSelect', backInSelect, parentEntry, destPath, global.traceback())
-                    }
-                    return this.open(this.dirname(destPath), -1, deep, isFolder, backInSelect)
-                }
-                this.path = destPath
-                es = this.addMetaEntries(es, destPath, parentPath)
-                this.pages[this.path] = es
-                this.render(this.pages[this.path], this.path, parentEntry)
-                resolve(true)
-            }
-            let next = ret => {
-                if(this.opts.debug){
-                    console.log('readen', ret)
-                }
-                if(ret == -1) return
-                if(this.opts.debug){
-                    console.log('readen', destPath, tabindex, ret, traceback())
-                }
-                parentEntry = ret.parent
-                if(name){
-                    let e = this.selectEntry(ret.entries, name, tabindex, isFolder)
-                    if(this.opts.debug){
-                        console.log('selectEntry', destPath, ret.entries, name, tabindex, isFolder, e)
-                    }
-                    if(e){
-                        parentEntry = e
-                        if(e.type == 'group'){
-                            this.readEntry(e, parentPath).then(es => {
-                                this.applyFilters(es, destPath).then(finish).catch(reject)
-                            }).catch(reject)
-                        } else if(e.type == 'select'){
-                            if(backInSelect){
-                                return this.open(this.dirname(destPath), -1, deep, isFolder, backInSelect)
-                            } else {
-                                this.select(destPath, tabindex)
-                                resolve(true)
-                            }
-                        } else {
-                            this.action(destPath, tabindex)
-                            resolve(true)
-                        }
+            if(e){
+                parentEntry = e
+                if(e.type == 'group'){
+                    let es = await this.readEntry(e, parentPath)
+                    es = await this.applyFilters(es, destPath)
+                    return await finish(es)
+                } else if(e.type == 'select'){
+                    if(backInSelect){
+                        return await this.open(this.dirname(destPath), -1, deep, isFolder, backInSelect)
                     } else {
-                        if(this.opts.debug){
-                            console.log('noParentEntry', destPath, this.pages[destPath], ret)
-                        }
-                        if(typeof(this.pages[destPath]) != 'undefined'){
-                            finish(this.pages[destPath])
-                        } else {
-                            this.open(this.dirname(destPath), undefined, deep, undefined, backInSelect).then(resolve).catch(reject)
-                        }
+                        await this.select(destPath, tabindex)
+                        return true
                     }
                 } else {
-                    this.path = destPath
-                    this.render(this.pages[this.path], this.path, parentEntry)
-                    resolve(true)
+                    this.action(destPath, tabindex)
+                    return true
+                }
+            } else {
+                if(this.opts.debug){
+                    console.log('noParentEntry', destPath, this.pages[destPath], ret)
+                }
+                if(typeof(this.pages[destPath]) != 'undefined'){
+                    return await finish(this.pages[destPath])
+                } else {
+                    return await this.open(this.dirname(destPath), undefined, deep, undefined, backInSelect)
                 }
             }
-            if(parentPath == this.path){
-                next({parent: this.selectEntry(this.pages[this.dirname(parentPath)], this.basename(parentPath)), entries: this.pages[this.path]})
-                return
-            }
-            if(this.opts.debug){
-                console.log('readen', deep, parentPath, name)
-            }
-            this[deep === true ? 'deepRead' : 'read'](parentPath, undefined).then(next).catch(err => {
-                global.displayErr(err)
-                if(name){
-                    global.ui.emit('set-loading', {name}, false)
-                }
-                reject(err)
-            })
-        })
+        } else {
+            this.path = destPath
+            await this.render(this.pages[this.path], this.path, parentEntry)
+            return true
+        }
     }
     async readEntry(e){
         let entries

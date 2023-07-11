@@ -1,6 +1,6 @@
 const pLimit = require('p-limit')
 
-class CloudData {
+class CloudConfiguration {
     constructor(opts){
         this.debug = false
         this.defaultServer = 'http://app.megacubo.net'
@@ -9,11 +9,11 @@ class CloudData {
         this.expires = {
             'searching': 6 * 3600,
             'channels': 6 * 3600,
-            'configure': 1 * 3600,
+            'configure': 3600,
             'country-sources': 6 * 3600,
-            'watching-country': 300,
-            'watching': 300
+            'watching-country': 300
         }
+        this.notFound = []
 		if(opts){
 			Object.keys(opts).forEach(k => this[k] = opts[k])
         }
@@ -36,9 +36,12 @@ class CloudData {
             return this.server + '/stats/data/' + key + '.' + this.locale +'.json'
         }
     }
-    async get(key, raw){
+    async get(key, raw, validator){
         if(this.debug){
             console.log('cloud: get', key, traceback())
+        }        
+        if(this.notFound.includes(key)) {
+            throw "cloud data \'"+ key +"\' not found"
         }
         const expiralKey = key.split('/')[0].split('.')[0]
         const store = raw === true ? global.storage.raw : global.storage
@@ -55,8 +58,8 @@ class CloudData {
             if(this.debug){
                 console.log('cloud: fallback', key)
             }
-            let p2p = key != 'configure' && !key.startsWith('channels') && global.config.get('p2p') 
-            let url = this.url(key)
+            const p2p = key != 'configure' && !key.startsWith('channels') && global.config.get('p2p') 
+            const url = this.url(key)
             let err, err2, body = await global.Download.get({
                 url,
                 responseType: raw === true ? 'text' : 'json',
@@ -69,14 +72,9 @@ class CloudData {
             if(this.debug){
                 console.log('cloud: got', key, err, body)
             }
-            if(typeof(err) != 'undefined' || !body){
-                data = await store.promises.get(this.cachingDomain + key + '-fallback').catch(e => err2 = e)
-                if(data && !err2){
-                    return data
-                } else {
-                    throw err || 'empty response, no fallback'
-                }
-            } else {
+            // use validator here only for minor overhead, so we'll not cache any bad data
+            const succeeded = !err && body && (typeof(validator) != 'function' || validator(body))
+            if(succeeded){
                 if(this.debug){
                     console.log('cloud: got', key, body, this.expires[expiralKey])
                 }
@@ -90,6 +88,14 @@ class CloudData {
                     console.log('cloud: got', key, body, this.expires[expiralKey])
                 }
                 return body
+            } else {
+                data = await store.promises.get(this.cachingDomain + key + '-fallback').catch(e => err2 = e)
+                if(data && !err2){
+                    return data
+                } else {
+                    if(err && String(err).endsWith('404')) this.notFound.push(key)
+                    throw err || 'empty response, no fallback'
+                }
             }
         }
     }    
@@ -108,4 +114,4 @@ class CloudData {
     }
 }
 
-module.exports = CloudData
+module.exports = CloudConfiguration

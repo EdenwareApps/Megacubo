@@ -362,7 +362,7 @@ class P2PRequest extends P2PEncDec {
 		const failed = finished && vs.every(s => s == -1)
 		const candidates = ks.filter(i => validate(i))
 		if (finished && failed) { // no peer has the file
-			this.fail('No peer has the file.')
+			this.fail('No peer has the file. '+ [this.opts.url, this.opts.uid].join('-'))
 		} else {
 			if (candidates.length) {
 				const i = candidates[Math.floor(Math.random() * candidates.length)] // randomly

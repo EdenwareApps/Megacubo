@@ -401,58 +401,30 @@ class Index extends Common {
 	cloneMap(a){
 		return global.deepClone(a)
 	}
-	async groups(type){
+	async groups(types){
 		let groups = [], map = {}
 		Object.keys(this.lists).forEach(url => {
 			let entries = this.lists[url].index.groupsTypes
-			if(!entries || !entries[type]) return
-			entries[type].forEach(group => {
-				const parts = group.name.split('/')
-				if(parts.length > 1){
-					parts.forEach((part, i) => {
-						const path = parts.slice(0, i + 1).join('/')
-						if(typeof(map[path]) == 'undefined') map[path] = []
-						if(i < (parts.length - 1)) map[path].push(parts[i + 1])
+			types.forEach(type => {
+				if(!entries || !entries[type]) return
+				entries[type].forEach(group => {
+					const parts = group.name.split('/')
+					if(parts.length > 1){
+						parts.forEach((part, i) => {
+							const path = parts.slice(0, i + 1).join('/')
+							if(typeof(map[path]) == 'undefined') map[path] = []
+							if(i < (parts.length - 1)) map[path].push(parts[i + 1])
+						})
+					}
+					groups.push({
+						group: group.name,
+						name: group.name.split('/').pop(),
+						url,
+						icon: group.icon
 					})
-				}
-				groups.push({
-					group: group.name,
-					name: group.name.split('/').pop(),
-					url,
-					icon: group.icon
 				})
 			})
 		})
-		if(['series', 'vod'].includes(type)){
-			const rgx = new RegExp('(^[0-9]{1,2})(?:[^0-9]|$)|(?:[^0-9]|^)([0-9]{1,2}$)') // episode 1 OR 1st episode
-			Object.keys(map).forEach(path => { // better filter series by episodes disposition
-				if(map[path].length){
-					let seemsSeries, ns = map[path].map(n => {
-						let m = n.match(rgx)
-						return m ? m.slice(0, 2).map(n => parseInt(n)).filter(n => n).shift() : false
-					}).filter(n => n)
-					if(ns.length >= (map[path].length * 0.75)){
-						let dfs = [...new Set(ns)]
-						if(dfs.length >= (ns.length * 0.75)){
-							//let max = Math.max(...dfs)
-							//if(max <= (map[path].length * 1.5)) {
-							seemsSeries = true
-							//}
-						}
-					}
-					if(type == 'series'){
-						if(seemsSeries){
-							return
-						}
-					} else { // vod
-						if(!seemsSeries){
-							return
-						}
-					}
-				}
-				delete map[path]
-			})
-		}
 		groups = this.sort(groups)
 		const routerVar = {} 
 		let ret = groups.filter((group, i) => { // group repeated series
@@ -490,34 +462,25 @@ class Index extends Common {
             return entries.sort((a, b) => (a[key] > b[key] ? 1 : (a[key] < b[key] ? -1 : 1)))
         }
     }
-	group(group){
-		return new Promise((resolve, reject) => {
-			let entries = []
-			if(!this.lists[group.url]){
-				return reject('List unloaded')
+	async group(group){
+		if(!this.lists[group.url]){
+			throw 'List not loaded'
+		}
+
+		let map = this.lists[group.url].index.groups[group.group]
+		if(!map) map = []
+		Object.keys(this.lists[group.url].index.groups).forEach(s => {
+			if(s.indexOf('/') != -1 && s.startsWith(group.group)){
+				this.lists[group.url].index.groups[s].forEach(n => map.includes(n) || map.push(n))
 			}
-			let map = this.lists[group.url].index.groups[group.group]
-			if(!map){
-				map = []
-				Object.keys(this.lists[group.url].index.groups).forEach(s => {
-    				if(s.indexOf('/') != -1 && s.indexOf(group.group) != -1 && s.split('/').includes(group.group)){
-        				this.lists[group.url].index.groups[s].forEach(n => map.includes(n) || map.push(n))
-    				}
-				})
-				map.sort()
-			}
-			this.lists[group.url].iterate(e => {
-				if(!e.source){
-					e.source = group.url
-				}
-				entries.push(e)
-			}, map).catch(console.error).finally(() => {
-				entries = this.tools.dedup(entries) // dedup before parentalControl to improve blocking
-				entries = this.parentalControl.filter(entries, true)
-				entries = this.sort(entries)
-				resolve(entries)
-			})
 		})
+
+		let entries = await this.lists[group.url].getEntries(map)
+		entries = this.tools.dedup(entries) // dedup before parentalControl to improve blocking
+		entries = this.parentalControl.filter(entries, true)
+		entries = this.sort(entries)
+
+		return entries
 	}
 }
 

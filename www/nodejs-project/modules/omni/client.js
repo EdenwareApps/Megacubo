@@ -29,11 +29,13 @@ class OMNI extends OMNIUtils {
         this.type = '' 
         this.typing = ''
         this.defaultValue = ''
-        this.input = jQuery('.explorer-omni input')
         this.element = jQuery('.explorer-omni > span')
         this.button = jQuery('.explorer-omni .explorer-omni-submit')
+        this.input = jQuery('.explorer-omni input')
+        this.rinput = this.input.get(0)
         this.setup()
-        this.bind()
+        this.bind()        
+        jQuery(document).on('keyup', this.eventHandler.bind(this))
     }
     bind(){
         app.on('omni-enable', () => {
@@ -69,10 +71,8 @@ class OMNI extends OMNIUtils {
 			}
 		})
 		this.input.attr('placeholder', lang.WHAT_TO_WATCH).on('keydown', event => {
-			if(event.key === 'Enter'){
-				this.submit()
-			}
-		})
+            if(event.key === 'Enter') this.submit()
+        })
 	}
 	focus(select){
         this.input.val(this.defaultValue)
@@ -100,11 +100,29 @@ class OMNI extends OMNIUtils {
             console.warn('MODKEY ignored')
             return
         }
-        if(['Up', 'Down', 'Left', 'Right'].indexOf(evt.key) != -1){
-            console.warn('ARROW ignored')
+        if(evt.key && evt.key.startsWith('Arrow') || ['Up', 'Down', 'Left', 'Right'].includes(evt.key)){
+            if(evt.target == this.rinput) {
+                switch(evt.key.replace('Arrow', '')) {
+                    case 'Right':
+                        const isEndOfText = this.rinput.selectionEnd === this.rinput.value.length
+                        isEndOfText && this.emit('right')
+                        break
+                    case 'Left':
+                        const isStartOfText = this.rinput.selectionStart === 0
+                        isStartOfText && this.emit('left')
+                        break
+                    case 'Up':
+                        this.rinputLastKey === evt.key && this.emit('up')
+                        break
+                    case 'Down':
+                        this.rinputLastKey === evt.key && this.emit('down')
+                        break
+                }
+                this.rinputLastKey = evt.key
+            }
             return
         }    
-        if(evt.target && evt.target.tagName.match(new RegExp('^(input|textarea)$', 'i')) && evt.target != this.input.get(0)){
+        if(evt.target && evt.target.tagName.match(new RegExp('^(input|textarea)$', 'i')) && evt.target != this.rinput){
             console.warn('INPUT ignored')
             return
         }
@@ -119,7 +137,7 @@ class OMNI extends OMNIUtils {
     }
     update(){
         clearTimeout(this.omniTimer)
-        this.typing = this.input.val()
+        this.typing = this.rinput.value
         if(!this.typing.length){
             return
         }
@@ -137,7 +155,7 @@ class OMNI extends OMNIUtils {
     }
     eventHandler(evt){
         if(!this.validateEvent(evt)) return
-        if(evt.target && (evt.target != this.input.get(0))){
+        if(evt.target && evt.target != this.rinput){
             if(evt.key && evt.key.length == 1){
                 this.defaultValue = evt.key
                 this.focus(false)

@@ -65,8 +65,8 @@ process.on('warning', e => {
     console.warn(e, e.stack)
 })
 process.on('unhandledRejection', (reason, promise) => {
-    console.error('Unhandled Rejection at:', promise, 'reason:', reason, reason.stack || '')
-    global.crashlog.save('Unhandled Rejection at:', promise, 'reason:', reason)
+    console.error('Unhandled rejection at:', promise, 'reason:', reason, reason.stack || '')
+    global.crashlog.save('Unhandled rejection at:', promise, 'reason:', reason)
 })
 process.on('uncaughtException', (exception) => {
     console.error('uncaughtException: '+ global.crashlog.stringify(exception), exception.stack)
@@ -102,7 +102,16 @@ global.uiReady = (f, done) => {
         }
     }
     if(!ready && done === true){
-        uiReadyCallbacks.map(f => f())
+        uiReadyCallbacks.map(f => {
+            try {
+                const p = f()
+                if(p && typeof(p.catch) == 'function') {
+                    p.catch(console.error)
+                }
+            } catch(e) {
+                console.error(e)
+            }
+        })
         uiReadyCallbacks = null
     }
     return ready
@@ -215,6 +224,7 @@ const init = (language, timezone) => {
         const Downloads = require('./modules/downloads')
         const OMNI = require('./modules/omni')
         const Mega = require('./modules/mega')
+        const Emphasis = require('./modules/emphasis')
 
         global.moment.locale(global.lang.locale)
         global.cloud = new Cloud()
@@ -254,6 +264,8 @@ const init = (language, timezone) => {
 			global.premium = new Premium()
 		}
 
+        new Emphasis()
+        
         streamState = new StreamState()
         streamState.on('state', (url, state) => {
             if(!global.explorer.pages[global.explorer.path]) return
@@ -455,7 +467,7 @@ const init = (language, timezone) => {
                 global.streamer.stop()
                 global.tuning && global.tuning.pause()
             }
-            let isEPGEnabledPath = !global.search.isSearching() && global.channels.activeEPG && [global.lang.TRENDING, global.lang.BOOKMARKS, global.lang.LIVE].some(p => global.explorer.path.substr(0, p.length) == p)
+            let isEPGEnabledPath = !global.search.isSearching() && global.channels.loadedEPG && [global.lang.TRENDING, global.lang.BOOKMARKS, global.lang.LIVE].some(p => global.explorer.path.substr(0, p.length) == p)
             if(isEPGEnabledPath){ // update current section data for epg freshness
                 global.explorer.refresh()
             }

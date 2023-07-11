@@ -143,8 +143,8 @@ var absolutize = (url, base) => {
         return null; // wrong or empty url
     } else if(url.match(/^[a-z]+\:\/\//i)){ 
         return url; // url is absolute already 
-    } else if(url.match(/^\/\//)){ 
-        return 'http:'+url; // url is absolute already 
+    } else if(url.startsWith('//')){ 
+        return 'http:'+ url; // url is absolute already 
     } else if(url.match(/^[a-z]+\:/i)){ 
         return url; // data URI, mailto:, tel:, etc.
     } else if('string' !== typeof(base)){

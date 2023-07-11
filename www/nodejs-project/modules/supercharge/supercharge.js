@@ -32,8 +32,21 @@ function patch(scope){
 			}
 		})
 	}
+	if (!scope.Array.prototype.findLastIndex) {
+		Object.defineProperty(scope.Array.prototype, 'findLastIndex', {
+			enumerable: false,
+			configurable: false,
+			writable: false,
+			value: function (callback, thisArg) {
+				for (let i = this.length - 1; i >= 0; i--) {
+				  if (callback.call(thisArg, this[i], i, this)) return i;
+				}
+				return -1;
+			}
+		})
+	} 
 	if (!scope.Array.prototype.unique) {
-		Object.defineProperty(Array.prototype, 'unique', {
+		Object.defineProperty(scope.Array.prototype, 'unique', {
 			enumerable: false,
 			configurable: false,
 			writable: false,
@@ -49,7 +62,7 @@ function patch(scope){
 		})
 	}
 	if (!scope.Array.prototype.sortByProp) {
-		Object.defineProperty(Array.prototype, 'sortByProp', {
+		Object.defineProperty(scope.Array.prototype, 'sortByProp', {
 			enumerable: false,
 			configurable: false,
 			writable: false,

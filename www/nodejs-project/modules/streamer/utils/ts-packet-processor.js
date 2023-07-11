@@ -2,7 +2,6 @@ const Events = require('events'), { BufferList } = require('bl')
 
 const SYNC_BYTE = 0x47
 const PACKET_SIZE = 188
-const PCR_BUFFER_NUDGE_SIZE = 256
 const ADAPTATION_POSITION = 6
 
 class MultiBuffer extends BufferList {
@@ -31,6 +30,7 @@ class MPEGTSPacketProcessor extends Events {
 	constructor(){
         super()
         this.debug = false
+        this.maxPcrMemoSize = 1536 // max pcrs memory to prevent repetitions on reconnect
         /*
         -1 = uninitialized
         0 = new conn, buffer up
@@ -39,9 +39,10 @@ class MPEGTSPacketProcessor extends Events {
         */
         this.direction = 1 
         this.packetBuffer = new MultiBuffer()
-        this.maxpcrBufferSize = 8192 // 256 was not enough
         this.packetFilterPolicy = 0
-        this.pcrBuffer = []
+        this.pcrMemoNudgeSize = parseInt(this.maxPcrMemoSize / 10)
+        this.pcrMemoSize = 0
+        this.pcrMemo = {} // we're storing PCRs in an object to prevent lookups
     }    
     checkSyncByte(pos){
         return pos >= 0 && pos < this.packetBuffer.length && this.packetBuffer.get(pos) == SYNC_BYTE
@@ -151,10 +152,14 @@ class MPEGTSPacketProcessor extends Events {
         }
     }
     handlePCR(pcr){
-        if(!this.pcrBuffer.includes(pcr)){
-            this.pcrBuffer.push(pcr)
-            if(this.pcrBuffer.length > this.maxpcrBufferSize){
-                this.pcrBuffer.splice(0, (this.pcrBuffer.length - PCR_BUFFER_NUDGE_SIZE) - this.maxpcrBufferSize)
+        if(typeof(this.pcrMemo[pcr]) == 'undefined'){
+            this.pcrMemoSize++
+            this.pcrMemo[pcr] = 0
+            if(this.pcrMemoSize > this.maxPcrMemoSize){
+                const deleteCount = this.pcrMemoSize - (this.maxPcrMemoSize - this.pcrMemoNudgeSize)
+                Object.keys(this.pcrMemo).slice(0, deleteCount).forEach(pcr => delete this.pcrMemo[pcr])
+                // console.error('HANDLEPCR '+ this.pcrMemoSize +' => '+ Object.keys(this.pcrMemo).length)
+                this.pcrMemoSize -= deleteCount
             }
             if(this.direction < 1){
                 this.direction = 1
@@ -201,7 +206,7 @@ class MPEGTSPacketProcessor extends Events {
     }
     destroy(){
         this.destroyed = true
-        this.pcrBuffer = []
+        this.pcrMemo = []
         this.removeAllListeners()
         this.packetBuffer.clear()
     }

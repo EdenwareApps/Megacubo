@@ -376,7 +376,7 @@ class ManagerEPG extends ManagerCommunityLists {
                             if(activeEPGDetails){
                                 details = activeEPGDetails
                             } else {
-                                if(global.channels.activeEPG == url){
+                                if(global.channels.loadedEPG == url){
                                     details = global.lang.EPG_LOAD_SUCCESS
                                 } else {
                                     details = global.lang.PROCESSING
@@ -401,21 +401,6 @@ class ManagerEPG extends ManagerCommunityLists {
                                 global.explorer.refreshNow() // epg options path
                             }
                         }
-                    })
-                    options.unshift({
-                        name: global.lang.SYNC_EPG_CHANNELS,
-                        type: 'check',
-                        action: (e, checked) => {
-                            global.config.set('use-epg-channels-list', checked)
-                            if(checked){
-                                if(global.activeEPG){
-                                    this.importEPGChannelsList(global.activeEPG).catch(console.error)
-                                }
-                            } else {
-                                global.channels.load()
-                            }
-                        }, 
-                        checked: () => global.config.get('use-epg-channels-list')
                     })
                     options.unshift({name: global.lang.ADD, fa: 'fas fa-plus-square', type: 'action', action: () => {
                         global.ui.emit('prompt', global.lang.EPG, 'http://.../epg.xml', global.activeEPG || '', 'set-epg', false, global.channels.epgIcon)
@@ -454,33 +439,6 @@ class ManagerEPG extends ManagerCommunityLists {
             })
         })
     }
-    shouldImportEPGChannelsList(url){
-        return url == global.activeEPG && global.config.get('use-epg-channels-list')
-    }
-    importEPGChannelsList(url){
-        return new Promise((resolve, reject) => {
-            this.master.epgLiveNowChannelsList().then(data => {
-                let imported = false
-                global.channels.updateCategoriesCacheKey()
-                if(this.shouldImportEPGChannelsList(url)){ // check again if user didn't changed his mind
-                    console.log('CHANNELS LIST IMPORT', data.categories, data.updateAfter, url, global.activeEPG)
-                    global.channels.setCategories(data.categories, true)
-                    if(this.importEPGChannelsListTimer){
-                        clearTimeout(this.importEPGChannelsListTimer)                        
-                    }
-                    this.importEPGChannelsListTimer = setTimeout(() => {
-                        this.importEPGChannelsList(url).catch(console.error)
-                    }, data.updateAfter * 1000)
-                    imported = true
-                }
-                global.channels.load()
-                resolve(imported)
-            }).catch(err => {
-                global.osd.show(global.lang.SYNC_EPG_CHANNELS_FAILED, 'fas fa-exclamation-triangle faclr-red', 'epg', 'normal')
-                reject(err)
-            })
-        })
-    }
     formatEPGURL(url){        
         const fragment = ',http'
         if(url && url.indexOf(fragment) != -1){
@@ -499,22 +457,19 @@ class ManagerEPG extends ManagerCommunityLists {
             }
             if(!url || global.validateURL(url)) {
                 global.activeEPG = url
-                global.channels.activeEPG = ''
+                global.channels.loadedEPG = ''
                 await this.loadEPG(url, ui)
                 let refresh = () => {
                     if(global.explorer.path.indexOf(global.lang.EPG) != -1 || global.explorer.path.indexOf(global.lang.LIVE) != -1){
                         global.explorer.refreshNow()
                     }
                 }
-                console.log('SETEPGc', url, ui, global.activeEPG)
                 if(!url){
                     global.channels.updateCategoriesCacheKey()
                     global.channels.load()
                     if(ui){
                         global.osd.show(global.lang.EPG_DISABLED, 'fas fa-times-circle', 'epg', 'normal')                            
                     }
-                } else if(this.shouldImportEPGChannelsList(url)) {
-                    this.importEPGChannelsList(url).catch(console.error)
                 }
                 refresh()
             } else {
@@ -527,7 +482,7 @@ class ManagerEPG extends ManagerCommunityLists {
     }
     loadEPG(url, ui){
         return new Promise((resolve, reject) => {
-            global.channels.activeEPG = ''
+            global.channels.loadedEPG = ''
             if(!url && global.config.get('epg-'+ global.lang.locale) != 'disabled'){
                 url = global.config.get('epg-'+ global.lang.locale)
             }
@@ -537,20 +492,13 @@ class ManagerEPG extends ManagerCommunityLists {
             }
             console.log('loadEPG', url)
             this.master.loadEPG(url).then(() => {
-                global.channels.activeEPG = url
+                global.channels.loadedEPG = url
                 global.channels.emit('epg-loaded', url)
                 if(ui){
                     global.osd.show(global.lang.EPG_LOAD_SUCCESS, 'fas fa-check-circle', 'epg', 'normal')
                 }
                 if(global.explorer.path == global.lang.TRENDING || (global.explorer.path.startsWith(global.lang.LIVE) && global.explorer.path.split('/').length == 2)){
                     global.explorer.refresh()
-                }
-                if(this.shouldImportEPGChannelsList()) {
-                    this.importEPGChannelsList(url).then(() => {
-                        if(global.explorer.path == global.lang.TRENDING || (global.explorer.path.startsWith(global.lang.LIVE) && global.explorer.path.split('/').length == 2)){
-                            global.explorer.refresh()
-                        }
-                    }).catch(console.error)
                 }
                 resolve(true)
             }).catch(err => {
@@ -559,31 +507,6 @@ class ManagerEPG extends ManagerCommunityLists {
                 reject(err)
             })
         })
-    }
-    setImportEPGChannelsListTimer(){
-        const allow = () => {
-            return global.config.get('use-epg-channels-list') && global.config.get('epg-'+ global.lang.locale)
-        }
-        const disable = () => {            
-            if(this.importEPGChannelsListTimer){
-                clearInterval(this.importEPGChannelsListTimer)
-                delete this.importEPGChannelsListTimer
-            }
-        }
-        if(allow()){
-            if(typeof(this.importEPGChannelsListTimer) == 'undefined') {
-                this.importEPGChannelsListTimer = setInterval(() => {
-                    if(allow()){
-                        const url = global.config.get('epg-'+ global.lang.locale)
-                        this.importEPGChannelsList(url).catch(console.error)
-                    } else {
-                        disable()
-                    }
-                }, 300000) // 5min
-            }
-        } else {
-            disable()
-        }
     }
     epgEntry(){
         return {
@@ -600,20 +523,37 @@ class ManagerEPG extends ManagerCommunityLists {
                             const epgData = this.master.epg([], 2)
                             return this.epgOptionsEntries(this.epgLoadingStatus(epgData))
                         }
-                    },
-                    global.channels.epgSearchEntry()
-                ]
-                entries.push(...global.channels.getCategories().map(category => {
-                    const rawname = global.lang.CATEGORY_KIDS == category.name ? '[fun]'+ category.name +'[|fun]' : category.name
-                    return {
-                        name: category.name,
-                        rawname,
-                        type: 'group',
-                        renderer: () => {
-                            return this.epgCategoryEntries(category)
-                        }
                     }
-                }))
+                ]
+                if(global.channels.loadedEPG) {
+                    entries.push(global.channels.epgSearchEntry())
+                    entries.push(...global.channels.getCategories().map(category => {
+                        const rawname = global.lang.CATEGORY_KIDS == category.name ? '[fun]'+ category.name +'[|fun]' : category.name
+                        return {
+                            name: category.name,
+                            rawname,
+                            type: 'group',
+                            renderer: () => {
+                                return this.epgCategoryEntries(category)
+                            }
+                        }
+                    }))
+                } else {
+                    entries.push({
+                        name: global.channels.loadedEPG ? global.lang.EMPTY : global.lang.EPG_DISABLED,
+                        fa: 'fas fa-info-circle',
+                        type: 'action',
+                        class: 'entry-empty',
+                        action: () => {
+                            if(global.activeEPG) {
+                                global.explorer.refresh()
+                            } else {
+                                const p = global.lang.IPTV_LISTS +'/'+ global.lang.EPG +'/'+ global.lang.OPTIONS
+                                global.explorer.open(p).catch(console.error)
+                            }
+                        }
+                    })
+                }
                 return entries
             }            
         }
@@ -679,15 +619,11 @@ class Manager extends ManagerEPG {
                 es = this.master.tools.dedup(es) // apply dedup here again for expanded entries 
                 return this.labelify(es)
             })
+            this.master.on('unsatisfied', () => this.update())
         })
         global.ui.on('explorer-back', () => {
             if(this.openingList){
                 global.osd.hide('list-open')
-            }
-        })
-        global.config.on('change', (keys, data) => {
-            if(keys.includes('use-epg-channels-list')){
-                this.setImportEPGChannelsListTimer(data['use-epg-channels-list'])
             }
         })
     }
@@ -797,7 +733,7 @@ class Manager extends ManagerEPG {
     }
     async add(url, name, uid){
         url = String(url).trim()
-        if(url.substr(0, 2) == '//'){
+        if(url.startsWith('//')){
             url = 'http:'+ url
         }
         let isURL = global.validateURL(url), isFile = this.isLocal(url)
@@ -863,7 +799,7 @@ class Manager extends ManagerEPG {
                 global.osd.show(global.lang.COMMUNITY_THANKS_YOU, 'fas fa-heart faclr-purple', 'community-lists-thanks', 'normal')
             }
             this.setMeta(value, 'private', chosen != 'yes')
-            let info, i = 10
+            let info, i = 20
             if(currentEPG != 'disabled'){
                 while(i && (!info || !info[value])){
                     i--
@@ -871,7 +807,7 @@ class Manager extends ManagerEPG {
                     info = await this.master.info()
                 }
             }
-            if(info[value] && info[value].epg){
+            if(info && info[value] && info[value].epg){
                 info[value].epg = this.parseEPGURL(info[value].epg, false)
                 if(global.validateURL(info[value].epg) && info[value].epg != currentEPG){
                     let chosen = await global.explorer.dialog([
@@ -1053,26 +989,33 @@ class Manager extends ManagerEPG {
         const c = global.config.get('communitary-mode-lists-amount')
         const m = p.progress ? (global.lang[p.firstRun ? 'STARTING_LISTS_FIRST_TIME_WAIT' : 'UPDATING_LISTS'] +' '+ p.progress +'%') : (c ? global.lang.SEARCH_COMMUNITY_LISTS : global.lang.STARTING_LISTS)
         
-        if(p.satisfied || this.isUpdating) return
+        if(p.satisfied || this.isUpdating || (!p.length && !c)) return
 
         let lastProgress = 0
         const listener = c => p = c
         const processStatus = p => {
             if(lastProgress === p.progress) return
-            lastProgress = p.progress
+            lastProgress = p.length ? p.progress : 0
             let m, fa = 'fa-mega spin-x-alt', duration = 'persistent'
             if(p.satisfied) {
                 clearInterval(this.isUpdating)
-                this.isUpdating = 0
-                m = global.lang.LISTS_UPDATED
+                delete this.isUpdating
+                if(p.length) {
+                    m = global.lang.LISTS_UPDATED
+                } else {
+                    m = -1 // do not show 'lists updated' message yet
+                }
                 fa = 'fas fa-check-circle'
                 duration = 'normal'
                 this.master.removeListener('status', listener)
-                this.setImportEPGChannelsListTimer(global.config.get('use-epg-channels-list'))
             } else {
                 m = global.lang[p.firstRun ? 'STARTING_LISTS_FIRST_TIME_WAIT' : 'UPDATING_LISTS'] +' '+ p.progress +'%'
             }
-            global.osd.show(m, fa, 'update-progress', duration)
+            if(m == -1) {
+                global.osd.hide('update-progress')
+            } else {
+                global.osd.show(m, fa, 'update-progress', duration)
+            }
             if(global.explorer && global.explorer.currentEntries) {
                 const updateEntryNames = [global.lang.PROCESSING, global.lang.UPDATING_LISTS, global.lang.STARTING_LISTS]
                 const updateBaseNames = [global.lang.TRENDING, global.lang.COMMUNITY_LISTS, global.lang.RECEIVED_LISTS]
@@ -1088,8 +1031,7 @@ class Manager extends ManagerEPG {
         }
         this.master.on('status', listener)
         this.isUpdating = setInterval(() => {
-            if(!p) p = global.lists.status()
-            processStatus(p)
+            processStatus(global.lists.status())
             p = false
         }, 1000)
 
@@ -1259,7 +1201,7 @@ class Manager extends ManagerEPG {
                             }
                             if(es && es.length){
                                 es = this.master.parentalControl.filter(es)
-                                es = await this.master.tools.deepify(es, url)  
+                                es = await this.master.tools.deepify(es,  {source: url})  
                             }
                             es.unshift({
                                 name: global.lang.OPTIONS,
@@ -1446,8 +1388,14 @@ class Manager extends ManagerEPG {
         return list
     }
     async hook(entries, path){
-        if(path == '' && !entries.some(e => e.name == global.lang.IPTV_LISTS)){
-            entries.push({name: global.lang.IPTV_LISTS, details: global.lang.CONFIGURE, fa: 'fas fa-list', type: 'group', renderer: this.listsEntries.bind(this)})
+        if(!path) {
+            const entry = {name: global.lang.IPTV_LISTS, details: global.lang.CONFIGURE, fa: 'fas fa-list', type: 'group', renderer: this.listsEntries.bind(this)}
+            global.options.insertEntry(entry, entries, -2, global.lang.TOOLS, [
+                global.lang.BOOKMARKS,
+                global.lang.KEEP_WATHING,
+                global.lang.RECOMMENDED_FOR_YOU,
+                global.lang.CATEGORY_MOVIES_SERIES
+            ])
         }
         return entries
     }

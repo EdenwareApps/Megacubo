@@ -63,12 +63,10 @@ class ParentalControl extends Events {
 									safe: true,
 									action: async () => {
 										await this.auth()
-										process.nextTick(() => global.explorer.refreshNow())
 										if(['block', 'remove'].includes(n.key)){
 											let fine = !!global.config.get('parental-control-pw')
 											if(!fine) {
 												fine = await this.setupAuth().catch(console.error)
-												process.nextTick(() => global.explorer.refreshNow()) // needed again
 											}
 											if(fine === true){
 												global.config.set('parental-control', n.key)
@@ -83,6 +81,9 @@ class ParentalControl extends Events {
 												delete this.authenticated
 											}
 										}
+										global.osd.show('OK', 'fas fa-check-circle faclr-green', 'options', 'normal')
+										global.watching.update().catch(console.error)
+										process.nextTick(() => global.explorer.refreshNow())
 									}
 								}
 							})                                
@@ -221,7 +222,7 @@ class ParentalControl extends Events {
 		}
 	}
 	async setupAuth(){
-		const pass = await global.explorer.prompt(global.lang.CREATE_YOUR_PASS, global.lang.CREATE_YOUR_PASS, false, 'fas fa-key', '', [], true)
+		const pass = await global.explorer.prompt(global.lang.CREATE_YOUR_PASS, global.lang.CREATE_YOUR_PASS, '', false, 'fas fa-key', '', [], true)
 		if(pass){
 			const pass2 = await global.explorer.prompt(global.lang.TYPE_PASSWORD_AGAIN, global.lang.TYPE_PASSWORD_AGAIN, '', false, 'fas fa-key', '', [], true)
 			if(pass === pass2){

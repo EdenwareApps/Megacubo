@@ -123,15 +123,22 @@ class Tools {
 		if(categories) details.push(global.lang.X_CATEGORIES.format(categories))
 		return details.join(', ')
 	}
-	paginateList(sentries){
+	paginateList(sentries, minPageCount){
 		sentries = global.lists.sort(sentries)
-		if(sentries.length > (global.config.get('folder-size-limit') + this.folderSizeLimitTolerance)){
-			let folderSizeLimit = global.config.get('folder-size-limit')
+		const folderSizeLimit = global.config.get('folder-size-limit')
+		if(sentries.length > (folderSizeLimit + this.folderSizeLimitTolerance)){
+			let expectedFolderSizeLimit = folderSizeLimit
+			if(minPageCount) {
+				let n = Math.ceil(sentries.length / minPageCount)
+				if(n < expectedFolderSizeLimit){
+					expectedFolderSizeLimit = n
+				}
+			}
 			let group, nextName, lastName, entries = [], template = {type: 'group', fa: 'fas fa-box-open'}, n = 1
-			for(let i=0; i<sentries.length; i += folderSizeLimit){
+			for(let i=0; i<sentries.length; i += expectedFolderSizeLimit){
 				group = Object.assign({}, template);
-				let gentries = sentries.slice(i, i + folderSizeLimit)
-				nextName = sentries.slice(i + folderSizeLimit, i + folderSizeLimit + 1)
+				let gentries = sentries.slice(i, i + expectedFolderSizeLimit)
+				nextName = sentries.slice(i + expectedFolderSizeLimit, i + expectedFolderSizeLimit + 1)
 				nextName = nextName.length ? nextName[0].name : null
 				group.name = this.getRangeName(gentries, lastName, nextName)
                 if(group.name.indexOf('[') != -1){
@@ -256,8 +263,21 @@ class Tools {
 		}
 		return a
 	}
-	async deepify(entries, source=''){
-        const shouldOffload = entries.length > 8192
+	shortenSingleFolders(list){
+		for (var i=0; i<list.length; i++){
+			if(list[i].type == 'group'){
+				if(typeof(list[i].entries) != 'undefined' && list[i].entries.length == 1){
+					list[i].entries[0].name = this.mergeNames(list[i].name, list[i].entries[0].name)
+					list[i] = list[i].entries[0]
+					list[i].path = this.dirname(list[i].path)
+					list[i].group = this.dirname(list[i].group)
+				}
+			}
+		}
+		return list
+	}
+	async deepify(entries, opts={}){
+        const shouldOffload = entries.length > 4096
 		let parsedGroups = {}, groupedEntries = []
 		for(let i=0;i<entries.length;i++){
 			if(entries[i].group){
@@ -283,11 +303,13 @@ class Tools {
 			}
 		}
 		groupedEntries = parsedGroups = null
-		entries = this.mapRecursively(entries, this.paginateList.bind(this), true)
-        if(source){
+		entries = this.mapRecursively(entries, es => {
+			return this.paginateList(es, opts.minPageCount)
+		}, true)
+        if(opts.source){
 			entries = this.mapRecursively(entries, list => {
 				if(list.length && !list[0].source){
-					list[0].source = source // leave a hint for expandEntries
+					list[0].source = opts.source // leave a hint for expandEntries
 				}
 				return list
 			}, true)

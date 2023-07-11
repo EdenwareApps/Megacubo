@@ -146,7 +146,7 @@ class Search extends Events {
                         let opts = [
                             {template: 'question', text: global.lang.SEARCH_MORE, fa: 'fas fa-search-plus'},
                             {template: 'option', text: global.lang.EPG, details: global.lang.LIVE, fa: 'fas fa-th', id: 'epg'},
-                            {template: 'option', text: global.lang.IPTV_LISTS, details: global.lang.MOVIES +', '+ global.lang.SERIES, fa: 'fas fa-list', id: 'lists'}
+                            {template: 'option', text: global.lang.IPTV_LISTS, details: global.lang.CATEGORY_MOVIES_SERIES, fa: 'fas fa-list', id: 'lists'}
                         ], def = 'epg'
                         let ret = await global.explorer.dialog(opts, def)
                         if(ret == 'epg'){
@@ -485,7 +485,7 @@ class Search extends Events {
             if(global.lists.loaded() && global.lists.activeLists.length){
                 if(path == global.lang.LIVE){
                     entries.unshift(this.entry('live'))
-                } else if([global.lang.SERIES, global.lang.MOVIES].includes(path)){
+                } else if(global.lang.CATEGORY_MOVIES_SERIES == path){
                     entries.unshift(this.entry('all'))
                 }
             }

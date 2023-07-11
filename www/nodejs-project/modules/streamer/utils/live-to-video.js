@@ -163,36 +163,8 @@ class StreamerLiveToVideo extends StreamerFFmpeg {
             }
             if(this.opts.videoCodec == 'libx264') {
                 this.decoder.
-
-                /* HTML5 compat start */
                 outputOptions('-profile:v', this.opts.vprofile || 'baseline').
-                outputOptions('-pix_fmt', 'yuv420p').
-                outputOptions('-preset:v', 'ultrafast').
-                outputOptions('-movflags', 'frag_keyframe+empty_moov+faststart').
-                /* HTML5 compat end */
-
                 outputOptions('-crf', global.config.get('ffmpeg-crf')) // we are encoding for watching, so avoid to waste too much time and cpu with encoding, at cost of bigger disk space usage
-
-                let resolutionLimit = global.config.get('transcoding')
-                switch(resolutionLimit){
-                    case '480p':
-                        this.decoder.outputOptions('-vf', 'scale=\'min(852,iw)\':min\'(480,ih)\':force_original_aspect_ratio=decrease,pad=852:480:(ow-iw)/2:(oh-ih)/2')
-                        break
-                    case '720p':
-                        this.decoder.outputOptions('-vf', 'scale=\'min(1280,iw)\':min\'(720,ih)\':force_original_aspect_ratio=decrease,pad=1280:720:(ow-iw)/2:(oh-ih)/2')
-                        break
-                    case '1080p':
-                        this.decoder.outputOptions('-vf', 'scale=\'min(1920,iw)\':min\'(1080,ih)\':force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2')
-                        break
-                }
-            }
-            if(this.opts.audioCodec == 'aac'){
-                this.decoder.outputOptions('-profile:a', 'aac_low').
-                outputOptions('-preset:a', 'ultrafast').
-                outputOptions('-b:a', '128k').
-                outputOptions('-ac', 2). // stereo
-                outputOptions('-ar', 48000).
-                outputOptions('-af', 'aresample=async=1:min_hard_comp=0.100000:first_pts=0')      
             }
             if (this.url.indexOf('http') == 0) { // skip other protocols
                 this.decoder.

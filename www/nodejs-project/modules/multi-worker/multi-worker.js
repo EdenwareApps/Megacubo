@@ -75,6 +75,7 @@ const setupConstructor = () => {
 			this.terminating = {}
 		}
 		proxy(file){
+			const trace = '' // global.traceback()
 			const instance = new Proxy(this, {
 				get: (self, method) => {
 					const trace = global.traceback()
@@ -119,8 +120,7 @@ const setupConstructor = () => {
 							try {
 								self.worker.postMessage({method, id, file, args})
 							} catch(e) {
-								global.driverErr = {e, method, id, args, file, trace}
-								console.error({e, method, id, file, args})
+								console.error({e, method, id, file, args, trace})
 								debug && global.osd.show(path.basename(file) +' '+ method +' '+ 	String(err), 'fas fas-circle-notch faclr-red', 'mwrk-'+ id, 'long')
 							}
 						})

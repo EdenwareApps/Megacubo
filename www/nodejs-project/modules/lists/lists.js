@@ -358,10 +358,15 @@ class Lists extends ListsEPGTools {
 			progress = Math.min(100, parseInt(sumProgress / (allProgress / 100)))
 		}
 		if(progress > 99) {
-			this.satisfied = true
-			this.emit('satisfied')
+			if(!this.satisfied) {
+				this.satisfied = true
+				this.emit('satisfied')
+			}
 		} else {
-			this.satisfied = false
+			if(this.satisfied) {
+				this.satisfied = false
+				this.emit('unsatisfied')
+			}
 		}
 		if(this.debug){
 			console.log('status() progresses', progress)
@@ -381,11 +386,11 @@ class Lists extends ListsEPGTools {
 		return ret
 	}
 	loaded(){
-		return this.status().progress > 99
+		const stat = this.status(), ret = stat.progress > 99
+		return ret
 	}
 	addList(url, priority=9){
 		let cancelled, started
-		console.log('ADDLIST '+ url +' '+ priority +' '+ global.traceback())
 		this.processes.push({
 			promise: this.queue.add(async () => {
 				if(cancelled) return
@@ -452,8 +457,7 @@ class Lists extends ListsEPGTools {
 		})
 		this.lists[url] = list
 		await list.start().catch(e => err = e)
-		if(err){ 
-			//console.warn('LOAD LIST FAIL', url, list)
+		if(err){
 			this.loadTimes[url].synced = global.time()
 			if(!this.requesting[url] || this.requesting[url] == 'loading'){
 				this.requesting[url] = String(err)
@@ -468,10 +472,10 @@ class Lists extends ListsEPGTools {
 			if(this.debug){
 				console.log('loadList started', url)
 			}
-			let repeated
-			if(!this.lists[url] || (repeated=this.isRepeatedList(url))) {
+			let repeated, expired
+			if(!this.lists[url] || (expired=this.isExpiredList(this.lists[url])) || (repeated=this.isRepeatedList(url))) {
 				if(!this.requesting[url] || this.requesting[url] == 'loading'){
-					this.requesting[url] = repeated ? 'repeated at '+ repeated : 'loaded, but destroyed'
+					this.requesting[url] = repeated ? 'repeated at '+ repeated : (expired ? 'seems expired, destroyed' : 'loaded, but destroyed')
 				}
 				if(this.debug){
 					if(repeated){
@@ -584,6 +588,15 @@ class Lists extends ListsEPGTools {
 			}
 		})
 		return dup
+	}
+	isExpiredList(list){
+		if(!list || !list.index || this.myLists.includes(list.url)){
+			return
+		}
+		const quota = list.index.length  * 0.7
+		if(list.index.uniqueStreamsLength && list.index.uniqueStreamsLength < quota) {
+			return true
+		}
 	}
 	async isSameContentLoaded(list){
 		let err, alreadyLoaded, listDataFile = list.file, listIndexLength = list.index.length
@@ -761,7 +774,7 @@ class Lists extends ListsEPGTools {
 			list = this.tools.dedup(list) // dedup before parentalControl to improve blocking
 			list = this.parentalControl.filter(list, true)
 			list = this.prepareEntries(list)
-			list = await this.tools.deepify(list, url)
+			list = await this.tools.deepify(list,  {source: url})
 		}
 		if(olen >= this.opts.offloadThreshold){
 			this.directListRendererPrepareCache[url] = {list, time: now, size: olen}

@@ -7,6 +7,8 @@ class FFmpegController extends Events {
 		super()
 		this.master = master
 		this.input = input
+		this.outputVideoCodec = 'copy'
+		this.outputAudioCodec = 'copy'
 		this.options = {
 			input: [],
 			output: []
@@ -27,17 +29,63 @@ class FFmpegController extends Events {
 				'-err_detect', 'ignore_err',
 				'-i', this.input
 			])
+			
+            if (this.input.startsWith('https')) {
+                cmd.push(...['-tls_verify', 0])
+            }
 		}
 		this.options.output.forEach(a => cmd.push(...a))
 		if(this.dest) {
-			if(!cmd.includes('-movflags')) {
-                cmd.push(...['-movflags', '+faststart'])
-			}			
+			const defaults = [
+				['-preset', 'ultrafast'],
+				['-map', '0:a?', '-map', '0:v?'], // keep in same line
+				['-sn'],
+				['-shortest'],
+				['-avoid_negative_ts', 'make_zero'],
+				['-strict', '-2'],
+				['-max_muxing_queue_size', 4096] // https://stackoverflow.com/questions/49686244/ffmpeg-too-many-packets-buffered-for-output-stream-01	
+			]
+			defaults.forEach(f => cmd.includes(f[0]) || cmd.push(...f))
+			if(this.outputVideoCodec.endsWith('264')) {
+				// libx264, h264 - make HTML5 compatible
+				const vdefaults = [
+					['-movflags', '+faststart'],
+					['-profile:v', 'baseline'],
+					['-preset:v', 'ultrafast'],
+					['-pix_fmt', 'yuv420p'],
+					['-level:v', '3.0'],
+					
+					// we are encoding for watching, so avoid to waste too much time+cpu with encoding, at cost of bigger disk space usage
+					['-crf', global.config.get('ffmpeg-crf')]
+				]
+				const resolutionLimit = global.config.get('transcoding-resolution')
+				switch(resolutionLimit) {
+					case '480p':
+						vdefaults.push(['-vf', 'scale=\'min(852,iw)\':min\'(480,ih)\':force_original_aspect_ratio=decrease'])
+						break
+					case '720p':
+						vdefaults.push(['-vf', 'scale=\'min(1280,iw)\':min\'(720,ih)\':force_original_aspect_ratio=decrease'])
+						break
+					case '1080p':
+						vdefaults.push(['-vf', 'scale=\'min(1920,iw)\':min\'(1080,ih)\':force_original_aspect_ratio=decrease'])
+						break
+				}
+				vdefaults.forEach(f => cmd.includes(f[0]) || cmd.push(...f))
+			}
+			if(this.outputAudioCodec == 'aac') {
+				const adefaults = [
+					['-preset:a', 'ultrafast'],
+					['-profile:a', 'aac_low'],
+					['-preset:a', 'ultrafast'],
+					['-b:a', '128k'],
+					['-ac', 2], // stereo
+					['-ar', 48000],
+					['-af', 'aresample=async=1:min_hard_comp=0.100000:first_pts=0'],
+					['-bsf:a', 'aac_adtstoasc'] // The aac_ adtstoasc switch may not be necessary with more recent versions of FFmpeg, which may insert the switch automatically. https://streaminglearningcenter.com/blogs/discover-six-ffmpeg-commands-you-cant-live-without.html
+				]
+				adefaults.forEach(f => cmd.includes(f[0]) || cmd.push(...f))
+			}
 			cmd.push(...[
-                '-shortest',
-				'-avoid_negative_ts', 'make_zero',
-				'-strict', 'experimental', // cmd = cmd.concat(['-strict', '-2'])
-				'-max_muxing_queue_size', 4096, // https://stackoverflow.com/questions/49686244/ffmpeg-too-many-packets-buffered-for-output-stream-01	
 				this.dest.replace(new RegExp('\\\\', 'g'), '/')
 			])
 		}
@@ -71,11 +119,13 @@ class FFmpegController extends Events {
 		return this
 	}
 	audioCodec(codec){
-		this.outputOptions('-acodec', codec)
+		this.outputAudioCodec = codec
+		this.outputOptions('-c:a', this.outputAudioCodec)
 		return this
 	}
 	videoCodec(codec){
-		this.outputOptions('-vcodec', codec)
+		this.outputVideoCodec = codec
+		this.outputOptions('-c:v', this.outputVideoCodec)
 		return this
 	}
 	output(dest){
@@ -427,7 +477,7 @@ class FFMPEG extends FFMPEGDiagnostic {
 		const proc = new FFmpegController(input, this)
 		if(opts) {
 			if(opts.live) {
-				proc.inputOptions('-re')
+				// proc.inputOptions('-re') // it will make hls startup slower
 			}
 		}
 		return proc

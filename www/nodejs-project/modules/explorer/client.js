@@ -315,7 +315,7 @@ class ExplorerPointer extends ExplorerSelectionMemory {
 		this.scrollContainer = this.j(this._scrollContainer)
 		this.views = []
 		this.defaultNavGroup = ''
-        this.distanceAngleWeight = 0.005
+        this.angleWeight = 0.005
         this.className = 'selected'
         this.parentClassName = 'selected-parent'
         this.selectedIndex = 0
@@ -534,7 +534,10 @@ class ExplorerPointer extends ExplorerSelectionMemory {
             } else {
                 element = elements.get(0)
             }
-        }        
+        }
+		if(element && element.id == 'explorer-omni-input') {
+			element = element.parentNode
+		}
         if(this.debug){
             console.log('findSelected', element, elements)
         }
@@ -694,12 +697,9 @@ class ExplorerPointer extends ExplorerSelectionMemory {
     distance(c, e, m){
         let r = Math.hypot(e.left - c.left, e.top - c.top);
         if(m){
-            r += r * (this.distanceAngleWeight * m)
+            r += r * (this.angleWeight * m)
         }
         return r;
-    }
-    ndiff(a, b){
-        return (a > b) ? a - b : b - a;
     }
     angle(c, e){
         let dy = e.top - c.top
@@ -712,7 +712,7 @@ class ExplorerPointer extends ExplorerSelectionMemory {
         }
         return theta
     }
-    inAngle(angle, start, end){
+    isAngleWithinRange(angle, start, end){
         if(end > start){
             return angle >= start && angle <= end
         } else {
@@ -723,19 +723,9 @@ class ExplorerPointer extends ExplorerSelectionMemory {
         if(element && typeof(element.getBoundingClientRect) == 'function'){
             let c = element.getBoundingClientRect()
             return {
-                left: c.left + (c.width / 2), 
-                top: c.top + (c.height / 2)
+                left: parseInt(c.left + (c.width / 2)), 
+                top: parseInt(c.top + (c.height / 2))
             }
-        }
-    }
-    ecoords(element){
-        if(element && typeof(element.getBoundingClientRect) == 'function'){
-            let c = element.getBoundingClientRect()
-            return [
-                {left: c.left, top: c.top}, // left
-                {left: c.left + (c.width / 2), top: c.top}, // center
-                {left: c.left + c.width, top: c.top} // right
-            ]
         }
     }
     opposite(selected, items, direction){
@@ -770,109 +760,74 @@ class ExplorerPointer extends ExplorerSelectionMemory {
         }
         return items[i]
     }
+	angleCenter(angle1, angle2) {
+		const diff = (angle2 - angle1 + 360) % 360
+		const center = (angle1 + diff / 2) % 360
+		return center < 0 ? center + 360 : center
+	}
+	angleDiff(angle1, angle2Start, angle2End){
+		const angle2 = this.angleCenter(angle2Start, angle2End)
+		const diff = Math.abs(angle1 - angle2)
+		return Math.min(diff, 360 - diff)
+	}
     arrow(direction, noCycle){
-        let closer, closerDist, ft = n => n.parentNode == this._wrapper
+        let closer, closerDist, directionAngleStart, directionAngleEnd
 		let items = this.entries(), view = this.activeView(), e = this.selected()
-        if(view.default === true && items.filter(ft).indexOf(e) != -1) { // on default view, calc it based on view size		
-            items = items.filter(ft)
-			let i = items.indexOf(e)
-			switch(direction){
-                case 'up':
-                    i -= this.viewSizeX
-                    if(i < 0){
-                        i = -1
-                    }
-                    break
-                case 'down':
-                    i += this.viewSizeX
-                    if(i >= items.length){
-                        i = -1
-                    }
-                    break
-                case 'right':
-                    i++
-                    if(!(i % this.viewSizeX) || i >= items.length){
-                        i = -1
-                    }
-                    break
-                case 'left':
-                    if(!(i % this.viewSizeX)){
-                        i = -1
-                    } else {
-                        i--
-                        if(i < 0){
-                            i = -1
-                        }
-                    }
-                    break
-            }            
-            if(this.debug){
-                console.log('default calc', i)
-            }
-            if(i >= 0){
-                closer = items[i]
-            }
-        } else { // on other views, check spatially where to go
-            let angleStart = 0, angleEnd = 0, distTolerance = 50
-            switch(direction){
-                case 'up':
-                    angleStart = 270, angleEnd = 90
-                    break
-                case 'right':
-                    angleStart = 0, angleEnd = 180
-                    break
-                case 'down':
-                    angleStart = 90, angleEnd = 270
-                    break
-                case 'left':
-                    angleStart = 180, angleEnd = 360
-                    break
-            }
-            let closerDist, exy = this.coords(e)
-            if(exy){
-                items.forEach(n => {
-                    if(n != e){
-                        let nxy = this.coords(n)
-                        if(nxy){
-							if(['up', 'down'].indexOf(direction) != -1){ // avoid bad horizontal moving
-                                if(nxy.top == exy.top && n.offsetHeight == e.offsetHeight){
-                                    return
-                                }
-                            }
-                            if(['left', 'right'].indexOf(direction) != -1){ // avoid bad vertical moving
-                                if(nxy.left == exy.left && n.offsetWidth == e.offsetWidth){
-                                    return
-                                }
-                            }
-                            let angle = this.angle(exy, nxy)
-                            if(this.inAngle(angle, angleStart, angleEnd)){
-                                let df, dist
-                                if(angleEnd > angleStart){
-                                    df = angleEnd - ((angleEnd - angleStart) / 2)
-                                } else {
-                                    df = angleEnd - (((angleEnd + 360) - angleStart) / 2)
-                                    if(df < 0){
-                                        df = 360 - df
-                                    }
-                                }
-                                df = this.ndiff(df, angle)
-                                dist = this.distance(exy, nxy, df)
-                                if(this.debug){
-                                    console.warn('POINTER', dist, df, e, n, exy, nxy, angle, direction, angleStart, angleEnd, traceback())
-                                }
-                                if(!closer || dist < closerDist){
-                                    closer = n
-                                    closerDist = dist
-                                }
-                            }
-                        }
-                    }
-                })
-            } else { // if none selected, pick anyone (first in items for now)
-                closer = items[0]
-                closerDist = 99999
-            }
-        }
+		switch(direction){
+			case 'up':
+				directionAngleStart = 270
+				directionAngleEnd = 90
+				break
+			case 'right':
+				directionAngleStart = 0
+				directionAngleEnd = 180
+				break
+			case 'down':
+				directionAngleStart = 90
+				directionAngleEnd = 270
+				break
+			case 'left':
+				directionAngleStart = 180
+				directionAngleEnd = 360
+				break
+		}
+		const exy = this.coords(e)
+		if(exy) {
+			items.forEach(n => {
+				if(n != e) {
+					const nxy = this.coords(n)
+					if(nxy) {
+						if(['up', 'down'].includes(direction)) { // avoid bad horizontal moving
+							if(nxy.top == exy.top && n.offsetHeight == e.offsetHeight){
+								return
+							}
+						}
+						if(['left', 'right'].includes(direction)) { // avoid bad vertical moving
+							if(nxy.left == exy.left && n.offsetWidth == e.offsetWidth){
+								return
+							}
+						}
+						const angle = this.angle(exy, nxy)
+						if(this.isAngleWithinRange(angle, directionAngleStart, directionAngleEnd)){
+							const df = this.angleDiff(angle, directionAngleStart, directionAngleEnd)
+							const dist = this.distance(exy, nxy, df)
+							if(this.debug){
+								console.warn('POINTER', dist, {df, angle, directionAngleStart, directionAngleEnd}, direction, e, n, exy, nxy, traceback())
+							}
+							if(!closer || dist < closerDist || 
+								(n.parentNode == e.parentNode && closer.parentNode != e.parentNode)
+								){
+								closer = n
+								closerDist = dist
+							}
+						}
+					}
+				}
+			})
+		} else { // if none selected, pick anyone (first in items for now)
+			closer = items[0]
+			closerDist = 99999
+		}
         if(!closer){
             if(typeof(view.overScrollAction) != 'function' || view.overScrollAction(direction, e) !== true && noCycle !== true){
                 closer = this.opposite(e, items, direction)                
@@ -1874,7 +1829,7 @@ class Explorer extends ExplorerLoading {
 	</span>
 </a>`,
 			spacer: `
-<a tabindex="{tabindex}" href="{url}" title="{name}" aria-label="{name}" data-path="{path}" data-type="{type}" onclick="explorer.action(event, this)">
+<a tabindex="{tabindex}" href="{url}" title="{name}" aria-label="{name}" data-path="{path}" data-type="{type}" onclick="explorer.action(event, this)" class="{class}">
 	<span class="entry-wrapper">
 		<span class="entry-data-in">
 			<span class="entry-name" aria-hidden="true">
@@ -1887,7 +1842,7 @@ class Explorer extends ExplorerLoading {
 	</span>
 </a>`,
 			input: `
-<a tabindex="{tabindex}" href="{url}" title="{name}" aria-label="{name}" data-default-value="{value}" data-original-icon="{fa}" data-question="{question}" data-path="{path}" data-type="{type}" data-multiline="{multiline}" data-placeholder="{placeholder}" onclick="explorer.action(event, this)">
+<a tabindex="{tabindex}" href="{url}" title="{name}" aria-label="{name}" data-default-value="{value}" data-original-icon="{fa}" data-question="{question}" data-path="{path}" data-type="{type}" data-multiline="{multiline}" data-placeholder="{placeholder}" onclick="explorer.action(event, this)" class="{class}">
 	<span class="entry-wrapper">
 		<span class="entry-data-in">
 			<span class="entry-name" aria-hidden="true">
@@ -1902,7 +1857,7 @@ class Explorer extends ExplorerLoading {
 	</span>
 </a>`,
 			select: `
-<a tabindex="{tabindex}" href="{url}" title="{name}" aria-label="{name}" data-original-icon="{fa}" data-question="{question}" data-path="{path}" data-type="{type}" onclick="explorer.action(event, this)">
+<a tabindex="{tabindex}" href="{url}" title="{name}" aria-label="{name}" data-original-icon="{fa}" data-question="{question}" data-path="{path}" data-type="{type}" onclick="explorer.action(event, this)" class="{class}">
 	<span class="entry-wrapper">
 		<span class="entry-data-in">			
 			<span class="entry-name" aria-hidden="true">
@@ -1917,7 +1872,7 @@ class Explorer extends ExplorerLoading {
 	</span>
 </a>`,
 			slider: `
-<a tabindex="{tabindex}" href="{url}" title="{name}" aria-label="{name}" data-default-value="{value}" data-range-start="{range.start}" data-range-end="{range.end}" data-mask="{mask}" data-original-icon="{fa}" data-question="{question}" data-details="{details}" data-path="{path}" data-type="{type}" onclick="explorer.action(event, this)">
+<a tabindex="{tabindex}" href="{url}" title="{name}" aria-label="{name}" data-default-value="{value}" data-range-start="{range.start}" data-range-end="{range.end}" data-mask="{mask}" data-original-icon="{fa}" data-question="{question}" data-details="{details}" data-path="{path}" data-type="{type}" onclick="explorer.action(event, this)" class="{class}">
 	<span class="entry-wrapper">
 		<span class="entry-data-in">		
 			<span class="entry-name" aria-hidden="true">
@@ -1932,7 +1887,7 @@ class Explorer extends ExplorerLoading {
 	</span>
 </a>`,
 			check: `
-<a tabindex="{tabindex}" href="{url}" title="{name}" aria-label="{name}" data-icon="" data-path="{path}" data-type="{type}" onclick="explorer.action(event, this)">
+<a tabindex="{tabindex}" href="{url}" title="{name}" aria-label="{name}" data-icon="" data-path="{path}" data-type="{type}" onclick="explorer.action(event, this)" class="{class}">
 	<span class="entry-wrapper">
 		<span class="entry-data-in">		
 			<span class="entry-name" aria-hidden="true">
@@ -1972,7 +1927,7 @@ class Explorer extends ExplorerLoading {
 	}
 	diffEntries(a, b){
 		let diff;
-		['name', 'details', 'fa', 'type', 'prepend'].some(p => { // url comparing give false positives like undefined != javascript:;
+		['name', 'details', 'fa', 'type', 'prepend', 'class'].some(p => { // url comparing give false positives like undefined != javascript:;
 			if(a[p] != b[p]){
 				diff = p
 				return true

@@ -25,14 +25,14 @@ class AnalyticsBase extends Events {
         data.country = global.lang.countryCode
         data.ver = global.MANIFEST.version
         data.verinf = ''
-        if(global.premium && global.premium.active){
+        if(global.options.prm()) {
             data.verinf = global.premium.active
         }
         if(data.source && global.lists.isPrivateList(data.source)){
             // console.log('Source URL not shareable.')
             data.source = ''
         }
-        data.epg = global.channels.activeEPG || data.epg || ''
+        data.epg = global.channels.loadedEPG || data.epg || ''
         let postData = this.toQS(data)
         let options = {
             port: 80,

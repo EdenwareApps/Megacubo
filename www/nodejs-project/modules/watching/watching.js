@@ -6,7 +6,7 @@ class Watching extends EntriesGroup {
         this.timer = 0
         this.currentEntries = null
         this.currentRawEntries = null
-        this.updateIntervalSecs = global.cloud.expires.watching
+        this.updateIntervalSecs = global.cloud.expires['watching-country'] || 300
         global.config.on('change', (keys, data) => {
             if(keys.includes('only-known-channels-in-been-watched') || keys.includes('parental-control') || keys.includes('parental-control-terms')){
                 this.update().catch(console.error)
@@ -47,7 +47,7 @@ class Watching extends EntriesGroup {
     showChannelOnHome(){
         return global.lists.manager.get().length || global.config.get('communitary-mode-lists-amount')
     }
-    async update(rawEntries){
+    async update(rawEntries=null){
         clearTimeout(this.timer)
         let prv = this.entry()
         await this.process(rawEntries).catch(err => {
@@ -141,7 +141,7 @@ class Watching extends EntriesGroup {
         const countries = await global.lang.getActiveCountries()
         const tasks = countries.map(country => {
             return async () => {
-                let es = await global.cloud.get('watching-country.'+ country, false).catch(console.error)
+                let es = await global.cloud.get('watching-country.'+ country, false, a => Array.isArray(a) && a.length).catch(console.error)
                 if(Array.isArray(es)) {
                     data.push(...es)
                 }

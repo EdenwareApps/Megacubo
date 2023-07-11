@@ -173,7 +173,7 @@ class IconSearch extends IconDefault {
                     }
                 }).catch(console.error).finally(() => resolve(images))
             }
-            if(global.channels.activeEPG){
+            if(global.channels.loadedEPG){
                 global.lists.epgSearchChannelIcon(ntms).then(srcs => images = srcs.map(src => {
                     return {icon: src, live: true, hits: 1, watching: 1, epg: 1}
                 })).catch(console.error).finally(next)
@@ -200,31 +200,29 @@ class IconServerStore extends IconSearch {
         return this.opts.folder + '/logo-' + (isKey === true ? url : this.key(url)) + '.cache'
     }
     validate(content){
-        if(content && content.length > 25){
-            let magic = content.toString('hex', 0, 4)
-            if([
-                    'ffd8ffe0', // jpeg
-                    'ffd8ffe8', // jpeg spif
-                    'ffd8ffe1', // jpeg exif
-                    'ffd8ffed', // adobe jpeg, photoshop cmyk buffer
-                    'ffd8ffee', // adobe jpeg 
-                    'ffd8ffe2', // canon jpeg
-                    'ffd8ffe3', // samsung jpeg, e.g. samsung d500
-                    'ffd8ffdb', // samsung jpeg, e.g. samsung d807
-                    '47494638'  // gif
-                ].includes(magic)){
-                return 1 // valid, no alpha
-            } else if(magic == '89504e47') {
-                const uint8arr = new Uint8Array(content.byteLength)
-                content.copy(uint8arr, 0, 0, content.byteLength)
-                const view = new DataView(uint8arr.buffer)
-                if([4, 6].includes(view.getUint8(8 + 8 + 9))){
-                    return 2 // valid, has alpha
-                } else {
-                    return 1
-                }
+        if (content && content.length > 25) {
+            const jsign = content.readUInt16BE(0)
+            if(jsign === 0xFFD8) {
+                return 1 // is JPEG
             } else {
-                console.log('BAD MAGIC', magic, content)
+                const gsign = content.toString('ascii', 0, 3)
+                if(gsign === 'GIF') {
+                    return 0 // no GIF please, too problematic
+                }
+            }
+            const magic = content.toString('hex', 0, 4)
+            if (magic === '89504e47') {
+                const chunkType = content.toString('ascii', 12, 16)
+                if (chunkType === 'IHDR') {
+                    const colorType = content.readUInt8(25)
+                    const hasAlpha = (colorType & 0x04) !== 0
+                    if (hasAlpha) {
+                        return 2 // valid, has alpha
+                    }
+                }
+                return 1
+            } else {
+                console.error('BAD MAGIC', magic, content)
             }
         }
     }
@@ -289,7 +287,7 @@ class IconServerStore extends IconSearch {
         if(stat && stat.size){
             time = this.ttlHTTPCache
         }
-        global.storage.rawTemp.setExpiration('icons-cache-' + key, time, () => {})
+        global.storage.rawTemp.setExpiration('icons-cache-'+ key, time, () => {})
     }
     async fetchURL(url){
         return await this.limiter.download(async () => {
@@ -320,7 +318,7 @@ class IconServerStore extends IconSearch {
             }
             const ret = await this.validateFile(cfile).catch(e => err = e)
             if(!err) {
-                return {key, cfile, isAlpha: ret == 2}
+                return {key, file: cfile, isAlpha: ret == 2}
             }
         }
         if(this.opts.debug){
@@ -338,7 +336,7 @@ class IconServerStore extends IconSearch {
             file
         }).catch(e => err = e)
         if(err){
-            await fs.promises.unlink(file)
+            await fs.promises.unlink(file).catch(console.error)
             throw err
         }
         await this.saveHTTPCacheExpiration(key)
@@ -375,12 +373,9 @@ class IconServer extends IconServerStore {
         this.closed = false
         this.server = false
         this.limiter = {
-            download: pLimit(6),
+            download: pLimit(20),
             adjust: pLimit(1)
         }
-        this.schedulingLimits = {download: 4, adjust: 1}
-        this.activeSchedules = {}
-        this.schedules = {}
         this.rendering = {}
         this.renderingPath = null
         this.listen()
@@ -390,45 +385,6 @@ class IconServer extends IconServerStore {
     }
     debug(...args){
         global.osd.show(Array.from(args).map(s => String(s)).join(', '), 'fas fa-info-circle', 'active-downloads', 'persistent')
-    }
-    schedule(id, cb){
-        if(typeof(this.activeSchedules[id]) == 'undefined'){
-            this.activeSchedules[id] = 0
-            this.schedules[id] = []
-        }
-        if(this.activeSchedules[id] >= this.schedulingLimits[id]){
-            this.schedules[id].push(cb)
-            //this.debug('activeSchedules', 'scheduled')
-        } else {
-            this.activeSchedules[id]++
-            //this.debug('activeSchedules', Object.keys(this.activeSchedules).map(d => { return d +'='+ this.activeSchedules[d] }).join(','))
-            let finished
-            cb(() => {
-                if(!finished){
-                    finished = true
-                    process.nextTick(this.scheduleFinished.bind(this, id)) // stacking breaker
-                }
-            })
-        }
-    }
-    scheduleFinished(id){
-        this.activeSchedules[id]--
-        //this.debug('activeSchedules', Object.keys(this.activeSchedules).map(d => { return d +'='+ this.activeSchedules[d] }).join(','))
-        this.goNextSchedule(id)
-    }
-    goNextSchedule(id){
-        if(this.activeSchedules[id] < this.schedulingLimits[id] && this.schedules[id].length){
-            const cb = this.schedules[id].shift()
-            this.activeSchedules[id]++
-            //console.log('activeSchedules unschedule', this.activeSchedules[id])
-            let finished
-            cb(() => {
-                if(!finished){
-                    finished = true
-                    this.scheduleFinished(id)
-                }
-            })
-        }
     }
     qualifyEntry(e){
         if(!e || (e.class && e.class.indexOf('no-icon') != -1)){

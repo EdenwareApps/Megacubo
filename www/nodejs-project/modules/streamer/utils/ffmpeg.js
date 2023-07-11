@@ -388,11 +388,7 @@ class StreamerFFmpeg extends Events {
 
             //inputOptions('-fflags', '+genpts+igndts').
             inputOptions('-fflags', '+igndts'). // genpts was messing the duration of s hls adding "fake hours" on hls.js #wtf
-            outputOptions('-map', '0:a?').
-            outputOptions('-map', '0:v?').
-            outputOptions('-sn').
-            outputOptions('-preset', 'ultrafast').
-
+            
             /* lhls, seems not enabled in our ffmpeg yet
             outputOptions('-hls_playlist', 1).
             outputOptions('-seg_duration', 3).
@@ -444,38 +440,8 @@ class StreamerFFmpeg extends Events {
             this.decoder.videoCodec(this.opts.videoCodec)
         }
         if(this.opts.videoCodec == 'libx264') {
-            /* HTML5 compat start */
-            this.decoder.
-            outputOptions('-profile:v', this.opts.vprofile || 'baseline').
-            outputOptions('-pix_fmt', 'yuv420p').
-            outputOptions('-preset:v', 'ultrafast').
-            /* HTML5 compat end */
-
-            outputOptions('-crf', global.config.get('ffmpeg-crf')) // we are encoding for watching, so avoid to waste too much time and cpu with encoding, at cost of bigger disk space usage
-
+            this.decoder.outputOptions('-profile:v', this.opts.vprofile || 'baseline')
             //this.decoder.outputOptions('-filter_complex', 'scale=iw*min(1\,min(640/iw\,360/ih)):-1')
-
-            let resolutionLimit = global.config.get('transcoding')
-            switch(resolutionLimit){
-                case '480p':
-                    this.decoder.outputOptions('-vf', 'scale=\'min(852,iw)\':min\'(480,ih)\':force_original_aspect_ratio=decrease')
-                    break
-                case '720p':
-                    this.decoder.outputOptions('-vf', 'scale=\'min(1280,iw)\':min\'(720,ih)\':force_original_aspect_ratio=decrease')
-                    break
-                case '1080p':
-                    this.decoder.outputOptions('-vf', 'scale=\'min(1920,iw)\':min\'(1080,ih)\':force_original_aspect_ratio=decrease')
-                    break
-            }
-        }
-        if(this.opts.audioCodec == 'aac'){
-            this.decoder.outputOptions('-profile:a', 'aac_low').
-            outputOptions('-preset:a', 'ultrafast').
-            outputOptions('-b:a', '128k').
-            outputOptions('-ac', 2). // stereo
-            outputOptions('-ar', 48000).
-            outputOptions('-af', 'aresample=async=1:min_hard_comp=0.100000:first_pts=0')
-            // -bsf:a aac_adtstoasc // The aac_ adtstoasc switch may not be necessary with more recent versions of FFmpeg, which may insert the switch automatically. https://streaminglearningcenter.com/blogs/discover-six-ffmpeg-commands-you-cant-live-without.html
         }
         if (typeof(this.source) == 'string' && this.source.indexOf('http') == 0) { // skip other protocols
             this.decoder.

@@ -3,10 +3,22 @@ const fs = require('fs'), Events = require('events'), readline = require('readli
 class ListIndexUtils extends Events {
 	constructor(){
 		super()
-		this.indexTemplate = {
+        this.seriesRegex = new RegExp('(\\b|^)[st]?[0-9]+ ?[epx]{1,2}[0-9]+($|\\b)', 'i')
+        this.vodRegex = new RegExp('[\\.=](mp4|mkv|mpeg|mov|m4v|webm|ogv|hevc|divx)($|\\?|&)', 'i')
+        this.liveRegex = new RegExp('[\\.=](m3u8|ts)($|\\?|&)', 'i')
+        this.indexTemplate = {
             groups: {},
             terms: {},
             meta: {}
+        }
+    }
+    sniffStreamType(e){
+        if(e.name.match(this.seriesRegex)){
+            return 'series'
+        } else if(e.url.match(this.vodRegex)){
+            return 'vod'
+        } else if(e.url.match(this.liveRegex)){
+            return 'live'
         }
     }
     readLines(map){

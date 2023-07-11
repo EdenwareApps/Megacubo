@@ -212,12 +212,20 @@ body.video #explorer header .explorer-omni {
     background: transparent;
     font-size: var(--explorer-entry-name-font-size);
 }
+body.home #explorer content a.entry-2x {
+    width: calc(200% / var(--entries-per-row));
+}
 @media (orientation: portrait) {
     #explorer header .explorer-omni > span:not(.selected) input {
         display: none;
     }
     #explorer header .explorer-omni > span {
         min-width: 0;
+    }
+}
+@media (orientation: landscape) {
+    #explorer content a.entry-2x {
+        width: calc(200% / var(--entries-per-row));
     }
 }
 #explorer header .explorer-omni > span.selected {
@@ -400,13 +408,14 @@ div#home-arrows > div > * {
 }
 #explorer content a .entry-icon-image i {
     width: auto;
-    height: 100%;
-    max-width: 100%;
+    height: auto !important;
+    max-height: 100%;
     font-size: calc(var(--explorer-entry-icon-height) * 0.9);
     max-height: var(--explorer-entry-icon-height);
 }
-#explorer content a .entry-icon-image img {
-    height: 100%;
+#explorer content a .entry-icon-image img {    
+    height: auto !important;
+    max-height: 100%;
     width: 100%;
     background-repeat: no-repeat;
     background-position: center center;
@@ -423,7 +432,19 @@ div#home-arrows > div > * {
     position: relative;
     display: inline-block;    
     border-radius: var(--radius);
+    border: 0px solid rgba(255, 255, 255, 0);
+    box-sizing: content-box;
     background: linear-gradient(to top, rgba(255, 255, 255, 0.025) 0%, rgba(255, 255, 255, 0) 75%, rgba(255, 255, 255, 0.025) 100%);
+}
+#explorer content a:not(.selected) span.entry-wrapper {
+    border: 1px solid rgba(255, 255, 255, 0.009);
+    width: calc(100% - 2px);
+    height: calc(100% - 2px);
+}
+#explorer content a.entry-cover:not(.selected) span.entry-wrapper {
+    border: 1px solid rgba(255,255,255,0.03) !important;
+    width: calc(100% - 2px);
+    height: calc(100% - 2px);
 }
 #explorer content a.selected span.entry-wrapper {
     background: linear-gradient(to top, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 75%, rgba(255, 255, 255, 0.375) 100%);

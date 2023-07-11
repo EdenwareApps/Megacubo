@@ -298,7 +298,7 @@ class IPTVM3UParser extends Events {
 				}
 			} else if(line.charAt(0) == '/' || line.substr(0, 7) == 'magnet:' || line.indexOf('://') != -1) {
 				e.url = line
-				if(e.url.substr(0, 2) == '//'){
+				if(e.url.startsWith('//')){
 					e.url = 'http:' + e.url
 				}
 				if(e.url.indexOf('|') != -1 && e.url.match(new RegExp('.*\\|[A-Za-z0-9\\-]*='))){

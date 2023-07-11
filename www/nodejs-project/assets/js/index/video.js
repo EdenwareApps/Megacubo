@@ -445,6 +445,7 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 			this.currentSrc = src
 			this.currentMimetype = mimetype
 		}
+		this._paused = false
 		this.setState('loading')
 		this.suspendStateChangeReporting = true
 		this.unload(true)
@@ -550,9 +551,10 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 		var s = ''
 		if(this.active){
 			if(this.object.paused){
-				if(this._paused) {
+				if(this._paused === true) {
 					s = 'paused'
 				} else {
+					s = 'loading'
 					this.object.play().catch(console.error)
 				} 
 			} else if(this.object.readyState < 4) { // if duration == Infinity, readyState will be 3		
