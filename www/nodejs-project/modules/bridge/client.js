@@ -51,36 +51,13 @@ class BridgeClient extends EventEmitter {
 		}
 	}
 	startNodeMainScript() {
-		const isDev = true
-		const argument = [
-			'--allow-insecure-localhost',
-			// '--max-old-space-size=4096', // 1/4 of total mem? should not exceed device memory
-			'--nojitless',
-			'--allow-natives-syntax'
-		]
-		if (isDev) {
-			argument.push(...[
-				'--trace-warnings',
-				'--async-stack-traces',
-				'--stack-trace-limit=20'
-			])
-		}
 		window.parent.nodejs.start('main.js', err => {
 			err && log(String(err))
 			this.channelGetLangCallback()
 			updateSplashProgress()
 			console.log('Node main script loaded.')
 		}, {
-			maxPayloadInBytes: 50 * 1024 * 1024,
-			forwardStderr: true,
-			enableInspector: isDev,
-			redirectOutputToLogcat: isDev,
-			argument,
-			/* maxPayloadInBytes: max message size for channel.post()
-			   forwardStderr: Specifies whether Node.js standard errors should be forwarded to the Cordova application's standard error output. The default value is true.
-			   enableInspector: specifies whether Node.js built-in debugger should be enabled. The default value is false.
-			   redirectOutputToLogcat: Specifies whether Node.js output should be redirected to Android's logcat. The default value is false.
-			   argument: specifies a list of additional arguments to pass to the Node.js process during startup. */
+			redirectOutputToLogcat: false
 		})
 	}
 	configureCordovaChannel() {

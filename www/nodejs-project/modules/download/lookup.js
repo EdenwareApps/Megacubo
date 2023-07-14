@@ -49,7 +49,7 @@ class UltimateLookup extends Events {
 		return 6
 	}
 	preferableIpVersion(){
-		return global.config.get('prefer-ipv6') == 6 ? 6 : 4
+		return global.config.get('preferred-ip-version') == 6 ? 6 : 4
 	}
 	promotePreferableIpVersion(hostname, ips, keepAll){
 		let family, pref = this.preferableIpVersion()
@@ -210,7 +210,7 @@ class UltimateLookup extends Events {
 		}
 		this.ready(() => {			
 			let family = typeof(options.family) == 'undefined' ? 0 : options.family
-			let policy = global.config.get('prefer-ipv6')
+			let policy = global.config.get('preferred-ip-version')
 			if([4, 6].includes(policy)){
 				family = policy
 			}

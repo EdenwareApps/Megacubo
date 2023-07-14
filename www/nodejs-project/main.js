@@ -78,7 +78,7 @@ global.storage = require('./modules/storage')({main: true})
 
 global.onexit(() => {
     global.isExiting = true
-    console.log('APP_EXIT', traceback())
+    console.error('APP_EXIT='+ traceback())
     if(typeof(global.streamer) != 'undefined' && global.streamer.active){
         global.streamer.stop()
     }
@@ -597,6 +597,7 @@ const init = (language, timezone) => {
             global.energy.exit()
         })
         global.ui.once('exit', () => {
+            console.error('Immediate exit called from client.')
             process.exit(0)
         })
         global.ui.on('suspend', () => { // cordova only

@@ -5,6 +5,12 @@ class StreamerProxyBase extends StreamerAdapterBase {
 	constructor(opts){
 		super('', opts)
 		this.connectable = false
+		this.segmentExts = {
+			'ts': null,
+			'mts': null,
+			'm2ts': null,
+			'm4s': null
+		}
 	}
     basename(path){
         let i = path.lastIndexOf('/')
@@ -95,7 +101,7 @@ class StreamerProxyBase extends StreamerAdapterBase {
 		return type
 	}
 	isSegmentURL(url){
-		return ['ts', 'mts', 'm2ts', 'm4s'].includes(this.ext(url))
+		return typeof(this.segmentExts[this.ext(url)]) != 'undefined'
 	}
 	addCachingHeaders(headers, secs){		
 		return Object.assign(headers, {

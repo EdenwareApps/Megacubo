@@ -1,5 +1,6 @@
 const fs = require('fs'), http = require('http'), path = require('path'), Events = require('events')
 const stoppable = require('stoppable'), Downloader = require('./downloader')
+const createReader = require('../../reader')
 const closed = require('../../on-closed'), decodeEntities = require('decode-entities')
 
 class StreamerFFmpeg extends Events {
@@ -303,7 +304,7 @@ class StreamerFFmpeg extends Events {
                 if(ctype){
                     headers['content-type'] =  ctype
                 }
-                let ended, stream = fs.createReadStream(file)
+                let ended, stream = createReader(file)
                 response.writeHead(200, headers)
                 const end = () => {
                     if(!ended){

@@ -6,8 +6,9 @@ class Emphasis {
 		}
     }
 	async ad(){
+		const k = global.config.get('communitary-mode-lists-amount') ? 'ad-cm' : 'ad'
 		const c = await global.cloud.get('configure')
-		const a = c['ad-'+ global.lang.countryCode] || c['ad']
+		const a = c[k +'-'+ global.lang.countryCode] || c[k]
 		if(a) {
 			// icon, url, name, details
 			a.prepend = '<i class="fas fa-rectangle-ad" aria-hidden="true"></i> '
@@ -33,13 +34,30 @@ class Emphasis {
 				}
 			})
 			if(!path) { // move entries with icon to top on home
-				let ni = entries.findIndex(e => {
-					return (e.programme && e.programme.i) || (e.icon && !e.icon.startsWith('http://127.0.0.1:'))
+				const orderHint = ['history', 'epg-history', 'watching']
+				const hasProgrammeIcon = e => e.programme && e.programme.i
+				const hasProgramme = e => e.programme && e.programme.t
+				const hasIcon = e => e.icon && !e.icon.startsWith('http://127.0.0.1:')
+				const getScore = e => {
+					let score = 0
+					const p = hasProgramme(e), c = hasIcon(e)
+					if(hasProgrammeIcon(e)) score += 1000
+					else if(p && c) score += 100
+					else if(c) score += 10
+					const i = e.hookId ? orderHint.indexOf(e.hookId) : -1
+					if(i >= 0) score -= i // subtract instead of sum, sorting helper
+					return score
+				}
+				let max
+				entries.forEach((e, i) => {
+					const score = getScore(e)
+					if(score >= 7 && (!max || score > max.score)) {
+						max = {i, score}
+					}
 				})
-				if(ni == -1) ni = entries.findIndex(e => e.icon)
-				if(ni > 0) {
-					const n = entries[ni]
-					entries.splice(ni, 1)
+				if(max && max.i >= 0) {
+					const n = entries[max.i]
+					entries.splice(max.i, 1)
 					entries.unshift(n)
 				}
 			}

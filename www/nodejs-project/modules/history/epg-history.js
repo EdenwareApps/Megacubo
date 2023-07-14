@@ -149,7 +149,7 @@ class EPGHistory extends EntriesGroup {
             hookId: this.key, 
             renderer: this.entries.bind(this)
         }
-        if(featured && featured.programme){
+        if(featured && featured.programme) {
             e.details = featured.programme.t
             e.programme = featured.programme
         }
@@ -261,11 +261,15 @@ class EPGHistory extends EntriesGroup {
                     fa: 'fas fa-info-circle', 
                     class: 'entry-empty',
                     action: async () => {                    
-                        await global.explorer.dialog([
+                        const ret = await global.explorer.dialog([
                             {template: 'question', text: global.lang.NO_RECOMMENDATIONS_YET, fa: 'fas fa-info-circle'},
                             {template: 'message', text: global.lang.RECOMMENDATIONS_INITIAL_HINT},
-                            {template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle'}
+                            {template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle'},
+                            {template: 'option', text: global.lang.EPG, id: 'epg', fa: 'fas fa-th'}
                         ])
+                        if(ret == 'epg') {
+                            explorer.open(global.lang.IPTV_LISTS +'/'+ global.lang.EPG).catch(console.error)
+                        }
                     }
                 })
             } else {

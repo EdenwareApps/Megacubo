@@ -1,4 +1,5 @@
-const fs = require('fs'), Events = require('events'), readline = require('readline')
+const fs = require('fs'), Events = require('events')
+const readline = require('readline'), createReader = require('../reader')
 
 class ListIndexUtils extends Events {
 	constructor(){
@@ -35,7 +36,7 @@ class ListIndexUtils extends Events {
                 }
                 if(stat.size){
                     let max, i = 0, lines = {}, rl = readline.createInterface({
-                        input: fs.createReadStream(this.file),
+                        input: createReader(this.file),
                         crlfDelay: Infinity
                     })
                     if(map){

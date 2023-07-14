@@ -275,7 +275,7 @@ class P2PListsRequest extends P2PEncDec {
 		if (message && message.lists && message.uid == this.opts.uid) {
 			Array.isArray(message.lists) && 
 			message.lists.length && 
-			this.app.emit('public-iptv-lists-discovery', message.lists)
+			this.app.emit('public-iptv-lists-discovery', message.lists) // from peer
 		}
 	}
 	destroy() {
@@ -453,11 +453,6 @@ class P2PManager extends P2PSegmentTools {
 				})
 			}
 		})
-		this.app.on('download-p2p-request-cancel', r => {
-			if(this.activeRequests[r.uid]){
-				this.activeRequests[r.uid].destroy()
-			}
-		})
 		this.app.on('download-p2p-cancel-request', ruid => {
 			Object.keys(this.activeRequests).forEach(uid => {
 				if (uid == ruid) {
@@ -481,7 +476,7 @@ class P2PManager extends P2PSegmentTools {
 				this.lists = lists
 			}
 		})
-		this.app.emit('public-iptv-lists-discovery')
+		this.app.emit('public-iptv-lists-discovery') // request
 		this.app.emit('download-p2p-index-update')
 		this.join('default').catch(console.error)
 	}
@@ -622,7 +617,7 @@ class P2PManager extends P2PSegmentTools {
 					break
 				case 'lists':
 					message.pid = id
-					this.app.emit('download-p2p-discovery-lists', message)
+					this.app.emit('public-iptv-lists-discovery', message.lists) // from peer
 					break
 			}
 		}

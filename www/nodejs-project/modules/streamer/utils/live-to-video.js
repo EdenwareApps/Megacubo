@@ -2,9 +2,10 @@
 Experiment in progress trying to convert a live streaming to a video file that can be served in realtime. By now, FFmpeg don't flush the video to disk in time.
 */
 
-const fs = require('fs'), http = require('http'), path = require('path')
-const closed = require('../../on-closed'), decodeEntities = require('decode-entities')
-const StreamerFFmpeg = require('../utils/ffmpeg'), Events = require('events')
+const fs = require('fs'), path = require('path')
+const closed = require('../../on-closed')
+const StreamerFFmpeg = require('../utils/ffmpeg')
+const Events = require('events'), createReader = require('../../reader')
 
 class PersistentReader extends Events {
     constructor(file){
@@ -120,7 +121,7 @@ class StreamerLiveToVideo extends StreamerFFmpeg {
                 if(ctype){
                     headers['content-type'] =  ctype
                 }
-                let ended, stream = fs.createReadStream(file)
+                let ended, stream = createReader(file)
                 response.writeHead(200, headers)
                 const end = () => {
                     if(!ended){
@@ -299,8 +300,12 @@ class StreamerLiveToVideo extends StreamerFFmpeg {
         }
     }
 	removeHeaders(headers, keys){
+        const identityKeys = {
+            'accept-encoding': null,
+            'content-encoding': null
+        }
 		keys.forEach(key => {
-			if(['accept-encoding', 'content-encoding'].includes(key)){
+			if(typeof(identityKeys[key]) != 'undefined'){
 				headers[key] = 'identity'
 			} else {
 				delete headers[key]

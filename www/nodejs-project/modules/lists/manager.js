@@ -84,7 +84,7 @@ class ManagerCommunityLists extends Events {
             let name = data.name || this.nameFromSourceURL(url)
             let author = data.author || undefined
             let icon = data.icon || undefined
-            let length = data.length || 0
+            let length = data.length || info[url].length || 0
             let details = []
             if(author) details.push(author)
             details.push(global.lang.RELEVANCE +': '+ parseInt((info[url].score || 0) * 100) +'%')
@@ -737,6 +737,7 @@ class Manager extends ManagerEPG {
             url = 'http:'+ url
         }
         let isURL = global.validateURL(url), isFile = this.isLocal(url)
+        console.error('lists.add '+url+' | '+ name +' | '+ isFile +' | '+ !isURL)
         if(!isFile && !isURL){
             throw global.lang.INVALID_URL_MSG
         }
@@ -778,9 +779,11 @@ class Manager extends ManagerEPG {
         let err
         const uid = parseInt(Math.random() * 100000)
         global.osd.show(global.lang.RECEIVING_LIST, 'fa-mega spin-x-alt', 'add-list-progress-'+ uid, 'persistent')
+        global.ui.emit('background-mode-lock', 'add-list')
         value = global.forwardSlashes(value)
         await this.add(value, name, uid).catch(e => err = String(e))
         global.osd.hide('add-list-progress-'+ uid)
+        global.ui.emit('background-mode-unlock', 'add-list')
         if(typeof(err) != 'undefined'){
             if(err.match('http error') != -1){
                 err = global.lang.INVALID_URL_MSG
@@ -1128,7 +1131,7 @@ class Manager extends ManagerEPG {
         return new Promise((resolve, reject) => {
             const id = 'add-list-dialog-file-'+ parseInt(10000000 * Math.random())
             global.ui.once(id, data => {
-                console.warn('!!! IMPORT M3U FILE !!!', data)
+                console.error('!!! IMPORT M3U FILE !!! '+ JSON.stringify(data))
                 global.ui.resolveFileFromClient(data).then(file => {
                     this.addList(file).then(resolve).catch(reject)
                 }).catch(reject)

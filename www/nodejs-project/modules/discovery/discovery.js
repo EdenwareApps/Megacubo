@@ -33,7 +33,13 @@ class PublicIPTVListsDiscovery extends Events {
         this.restore().catch(console.error)
         const iptv = new IPTVOrgProvider()
         this.register(iptv.discovery.bind(iptv), 24 * 3600)
-        global.ui.on('download-p2p-discovery-lists', lists => this.add(lists))
+        global.ui.on('public-iptv-lists-discovery', lists => {
+            if(Array.isArray(lists)) { // received from a peer
+                this.add(lists)
+            } else { // requested by client, update him
+                global.ui.emit('public-iptv-lists-discovery', this.knownLists)
+            }
+        })
     }
     async restore(){
         const data = await global.storage.promises.get(this.key).catch(console.error)
@@ -109,7 +115,6 @@ class PublicIPTVListsDiscovery extends Events {
             if(!list || !list.url) return
             const existingListIndex = this.knownLists.findIndex(l => l.url === list.url)
             if (existingListIndex === -1) {
-
                 this.knownLists.push(Object.assign({
                     health: -1,
                     perceivedHealth: 0,
@@ -148,11 +153,15 @@ class PublicIPTVListsDiscovery extends Events {
             health,
             name: existingList.name || list.name, // trusting more on own info
             image: existingList.image || list.image,
-            countries: existingList.countries.concat(list.countries.filter(c => !existingList.countries.includes(c))),
+            countries: this.mergeCountries(existingList, list),
             perceivedHealth: existingList.perceivedHealth, // perceived health is personal, should not be merged
             perceivedHealthTestCount: existingList.perceivedHealthTestCount,
             lastModified: list.lastModified
         }
+    }
+    mergeCountries(a, b) { // TODO: implement here some capping to avoid countries overflow
+        const c = a.countries || []
+        return c.concat((b.countries || []).filter(g => !c.includes(g)))
     }
     reportHealth(sourceListUrl, success) {
         return this.knownLists.some((list, i) => {
@@ -263,7 +272,6 @@ class PublicIPTVListsDiscovery extends Events {
             return a
         })
         this.knownLists.sort((a, b) => b.averageHealth - a.averageHealth)
-        return health
     }
     cleanupKnownLists() {
         if (this.knownLists.length > this.opts.limit) {

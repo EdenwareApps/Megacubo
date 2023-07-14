@@ -484,7 +484,7 @@ class Download extends Events {
 				}
 			}
 			if(this.opts.downloadLimit && this.contentLength > this.opts.downloadLimit){
-				this.emit('error', 'Download limit exceeds ' + this.contentLength + ' > ' + this.opts.downloadLimit)
+				this.listenerCount('error') && this.emit('error', 'Download limit exceeds ' + this.contentLength + ' > ' + this.opts.downloadLimit)
 				if(!this.headersSent){
 					this.statusCode = 500
 					this.headersSent = true
@@ -915,9 +915,7 @@ class Download extends Events {
 					try {
 						data = global.parseJSON(String(data))
 					} catch(e) {
-						if(this.listenerCount('error')){
-							this.emit('error', e)
-						}
+						this.listenerCount('error') && this.emit('error', e)
 						data = undefined
 					}
 					break
@@ -935,9 +933,7 @@ class Download extends Events {
 		if(!this.currentRequestError){
 			this.currentRequestError = 'error'
 		}
-		if(this.listenerCount('error')){
-			this.emit('error', err)
-		}
+		this.listenerCount('error') && this.emit('error', err)
 		this.end()
 	}
 	end(){

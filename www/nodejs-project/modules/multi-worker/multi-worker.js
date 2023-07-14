@@ -7,52 +7,6 @@ function wrapAsBase64(file){
 	// TODO: maybe file:// could have solved that too
 	return 'data:application/x-javascript;base64,' + Buffer.from(fs.readFileSync(file)).toString('base64')
 }
-	class WebWorkerDriver extends WorkerDriver {
-		constructor(){
-			super()
-			this.worker = new Worker('file://'+ path.join(__dirname, 'web-worker.js'), {
-				name: JSON.stringify(workerData)
-			})
-			this.worker.onerror = err => {  
-				let serr = String(err)
-				this.err = err
-				console.error('error: '+ err, serr)
-				if(serr.match(new RegExp('(out of memory|out_of_memory)', 'i'))){
-					let msg = 'Webworker exited out of memory, fix the settings and restart the app.'
-					global.osd.show(msg, 'fas fa-exclamation-triagle faclr-red', 'out-of-memory', 'persistent')
-				}
-				if(typeof(err.preventDefault) == 'function'){
-					err.preventDefault()
-				}
-				global.crashlog.save('Worker error: ', err)
-				return true
-			}
-			this.worker.onmessage = e => {
-				const ret = e.data
-				if(ret.id !== 0){
-					if(ret.id && typeof(this.promises[ret.id]) != 'undefined'){
-						this.promises[ret.id][ret.type](ret.data)
-						delete this.promises[ret.id]
-					} else {
-						console.error('Worker error', ret)
-					}
-				} else if(ret.type && ret.type == 'event') {
-					let pos = ret.data.indexOf(':')
-					if(pos != -1){
-						let evtType = ret.data.substr(0, pos)
-						let evtContent = ret.data.substr(pos + 1)
-						if(evtContent.length){
-							evtContent = global.parseJSON(evtContent)
-						}
-						this.emit(evtType, evtContent)
-					} else {
-						this.emit(ret.data)
-					}
-				}
-			}
-			this.bindConfigChangeListener()
-		}
-	}
 */
 
 const setupConstructor = () => {
@@ -184,7 +138,9 @@ const setupConstructor = () => {
 				workerData, 
 				stdout: true, 
 				stderr: true,
-				resourceLimits: {} // limits removed
+				resourceLimits: {
+					maxOldGenerationSizeMb: 512
+				}
 			})
 			this.worker.on('error', err => {
 				let serr = String(err)

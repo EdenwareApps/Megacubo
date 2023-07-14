@@ -49,7 +49,7 @@ class ListsLoader extends Events {
         this.resetLowPriorityUpdates()
     }
     async resetLowPriorityUpdates(){ // load community lists
-        const maxToTry = (this.communityListsAmount * 2) - this.master.processedLists.length
+        const maxToTry = (this.communityListsAmount * 2) - this.master.processedLists.size
         if(maxToTry <= 0) return
 
         const taskId = Math.random()
@@ -69,7 +69,7 @@ class ListsLoader extends Events {
         lists.some(({ url }) => {
             if( !this.myCurrentLists.includes(url) && 
                 !this.processes.some(p => p.url == url) && 
-                !this.master.processedLists.includes(url)) {
+                !this.master.processedLists.has(url)) {
                     communityLists.push(url)
                     return communityLists.length == maxToTry
                 }
@@ -150,8 +150,9 @@ class ListsLoader extends Events {
                 if(cancel) return
                 started = true
                 await this.prepareUpdater()
+                this.results[url] = 'awaiting'
                 this.results[url] = await this.updater.update(url).catch(console.error)
-                const add = this.results[url] == 'updated' || (this.results[url] == 'already updated' && !this.master.processedLists.includes(url))
+                const add = this.results[url] == 'updated' || (this.results[url] == 'already updated' && !this.master.processedLists.has(url))
                 add && this.master.addList(url)
                 this.updater.close()
             }, { priority }),
@@ -166,6 +167,7 @@ class ListsLoader extends Events {
     async reload(url){
         let updateErr
         await this.prepareUpdater()
+        this.results[url] = 'reloading'
         this.results[url] = await this.updater.updateList(url, true).catch(err => updateErr = err)
         if(updateErr) throw updateErr
         await this.master.loadList(url).catch(err => updateErr = err)

@@ -68,7 +68,7 @@ function langUpdated(){
 function resolveNativePath(uri, callback) {
     const originalURI = uri, errorcb = err => callback(err)
     uri = decodeURIComponent(uri).replace('/raw%3A', '/raw:')
-    if (uri.startsWith('file://') === 0) {
+    if (uri.startsWith('file://')) {
         uri = uri.replace('file://', '')
     }
     if (uri.indexOf('raw:') !== -1) {
@@ -180,10 +180,12 @@ function initApp(){
                         explorer.setLoading(e, false)
                     })
                 }
+                parent.winman && parent.winman.backgroundModeLock('open-file')
                 console.log('MIMETYPES: ' + mimetypes.replace(new RegExp(' *, *', 'g'), '|'))
                 parent.fileChooser.open(file => { // {"mime": mimetypes.replace(new RegExp(' *, *', 'g'), '|')}, 
                     console.log('FILE: '+ file)
                     osd.show(lang.PROCESSING, 'fa-mega spin-x-alt', 'theme-upload', 'normal')
+                    parent.winman && parent.winman.backgroundModeUnlock('open-file')
                     explorer.get({name: optionTitle}).forEach(e => {
                         explorer.setLoading(e, true, lang.PROCESSING)
                     })
@@ -240,34 +242,28 @@ function initApp(){
     app.on('background-mode-unlock', name => {
         if(parent.player && parent.winman) parent.winman && parent.winman.backgroundModeUnlock(name)
     })
-    let initP2PDetails
-    window.initP2P = () => { 
-        console.warn({initP2PDetails})
-        if(initP2PDetails) {
-            const done = () => {
-                if(typeof(require) == 'function') {
-                    console.warn({initP2PDetails})
-                    loadJSOnIdle('./modules/download/download-p2p-client.js', () => {
-                        console.warn({initP2PDetails})
-                        const {addr, limit, stunServers} = initP2PDetails
-                        window.p2p = new P2PManager(app, addr, limit, stunServers)
-                    })
-                }
-            }
-            if(typeof(require) != 'function' && typeof(parent.parent.require) == 'function') {
-                window.require = parent.parent.require
-            }
+    let initP2PDetails, initP2P = () => { 
+        if(!initP2PDetails || !config || !config['p2p']) return
+        const done = () => {
             if(typeof(require) == 'function') {
-                done()
-            } else {
-                // browserify -r @geut/discovery-swarm-webrtc -r crypto -r safe-buffer -o assets/js/libs/webrtc-bundle.js
-                loadJSOnIdle('./modules/download/discovery-swarm-webrtc-bundle.js', done)
+                loadJSOnIdle('./modules/download/download-p2p-client.js', () => {
+                    const {addr, limit, stunServers} = initP2PDetails
+                    window.p2p = new P2PManager(app, addr, limit, stunServers)
+                })
             }
+        }
+        if(typeof(require) != 'function' && typeof(parent.parent.require) == 'function') {
+            window.require = parent.parent.require
+        }
+        if(typeof(require) == 'function') {
+            done()
+        } else {
+            // browserify -r @geut/discovery-swarm-webrtc -r crypto -r safe-buffer -o assets/js/libs/webrtc-bundle.js
+            loadJSOnIdle('./modules/download/discovery-swarm-webrtc-bundle.js', done)
         }
     }
     app.on('init-p2p', (addr, limit, stunServers) => {
         initP2PDetails = {addr, limit, stunServers}
-        console.warn({initP2PDetails})
         initP2P()
     })
     app.emit('download-p2p-init');
@@ -532,7 +528,7 @@ function initApp(){
         hotkeys = new Hotkeys()
         hotkeys.start(config.hotkeys)
         app.on('config', (keys, c) => {
-            if(keys.includes('hotkeys')){
+            if(keys.includes('hotkeys')) {
                 hotkeys.start(c.hotkeys)
             }
         })

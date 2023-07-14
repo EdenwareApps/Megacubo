@@ -62,15 +62,8 @@
         <preference name="SplashMaintainAspectRatio" value="true" />
         <preference name="ShowSplashScreenSpinner" value="false" />
         <preference name="AndroidXEnabled" value="true" />
-        <resource-file src="resources/android/notification.png" target="/app/src/main/res/mipmap-ldpi/icon.png" />
-        <resource-file src="resources/android/notification.png" target="/app/src/main/res/mipmap-mdpi/icon.png" />
-        <resource-file src="resources/android/notification.png" target="/app/src/main/res/mipmap-hdpi/icon.png" />
-        <resource-file src="resources/android/notification.png" target="/app/src/main/res/mipmap-xhdpi/icon.png" />
-        <resource-file src="resources/android/notification.png" target="/app/src/main/res/mipmap-xxhdpi/icon.png" />
-        <resource-file src="resources/android/banner.png" target="/app/src/main/res/drawable/banner.png" />
-        <resource-file src="resources/values/colors.xml" target="/app/src/main/res/values/colors.xml" />
-        <resource-file src="resources/values/themes.xml" target="/app/src/main/res/values/themes.xml" />
-        <resource-file src="resources/values/colors.xml" target="/app/src/main/res/values/colors.xml" />
+        <preference name="AndroidWindowSplashScreenAnimatedIcon" value="resources/android/icon/drawable-xxxhdpi-icon.png" />
+        <preference name="AndroidWindowSplashScreenBackground" value="#362064" />
         <icon src="resources/android/icon/drawable-ldpi-icon.png" />
         <icon background="@color/background" density="ldpi" foreground="resources/android/icon/ldpi-foreground.png" qualifier="ldpi" src="resources/android/icon/drawable-ldpi-icon.png" />
         <icon background="@color/background" density="mdpi" foreground="resources/android/icon/mdpi-foreground.png" qualifier="mdpi" src="resources/android/icon/drawable-mdpi-icon.png" />
@@ -78,7 +71,13 @@
         <icon background="@color/background" density="xhdpi" foreground="resources/android/icon/xhdpi-foreground.png" qualifier="xhdpi" src="resources/android/icon/drawable-xhdpi-icon.png" />
         <icon background="@color/background" density="xxhdpi" foreground="resources/android/icon/xxhdpi-foreground.png" qualifier="xxhdpi" src="resources/android/icon/drawable-xxhdpi-icon.png" />
         <icon background="@color/background" density="xxxhdpi" foreground="resources/android/icon/xxxhdpi-foreground.png" qualifier="xxxhdpi" src="resources/android/icon/drawable-xxxhdpi-icon.png" />
-        <preference name="AndroidWindowSplashScreenAnimatedIcon" value="resources/android/icon/drawable-xxxhdpi-icon.png" />
-        <preference name="AndroidWindowSplashScreenBackground" value="#362064" />
+        <resource-file src="resources/values/colors.xml" target="/app/src/main/res/values/colors.xml" />
+        <resource-file src="resources/values/themes.xml" target="/app/src/main/res/values/themes.xml" />
+        <resource-file src="resources/android/notification.png" target="/app/src/main/res/mipmap-ldpi/icon.png" />
+        <resource-file src="resources/android/notification.png" target="/app/src/main/res/mipmap-mdpi/icon.png" />
+        <resource-file src="resources/android/notification.png" target="/app/src/main/res/mipmap-hdpi/icon.png" />
+        <resource-file src="resources/android/notification.png" target="/app/src/main/res/mipmap-xhdpi/icon.png" />
+        <resource-file src="resources/android/notification.png" target="/app/src/main/res/mipmap-xxhdpi/icon.png" />
+        <resource-file src="resources/android/banner.png" target="/app/src/main/res/drawable/banner.png" />
     </platform>
 </widget>

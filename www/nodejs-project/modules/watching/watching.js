@@ -168,7 +168,7 @@ class Watching extends EntriesGroup {
                     e.name = global.ucWords(n.name)
                 }
             }
-            e.name = global.lists.parser.sanitizeName(e.name)
+            e.name = global.lists.sanitizeName(e.name)
             e.users = this.extractUsersCount(e)
             e.details = ''
             if(ex && !isMega){

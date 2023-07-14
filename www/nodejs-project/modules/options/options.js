@@ -973,7 +973,7 @@ class Options extends OptionsP2P {
                 name: 'IPv6 usage policy', type: 'select', fa: 'fas fa-globe',
                 renderer: async () => {
                     // Some lists wont open using a browser user agent
-                    let def = global.config.get('prefer-ipv6')
+                    let def = global.config.get('preferred-ip-version')
                     if(typeof(def) != 'number'){
                         def = -1
                     }
@@ -996,7 +996,7 @@ class Options extends OptionsP2P {
                             type: 'action',
                             selected: def == n.value,
                             action: () => {
-                                global.config.set('prefer-ipv6', n.value)
+                                global.config.set('preferred-ip-version', n.value)
                             }
                         }
                     })

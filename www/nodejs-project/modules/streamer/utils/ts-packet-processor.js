@@ -42,7 +42,7 @@ class MPEGTSPacketProcessor extends Events {
         this.packetFilterPolicy = 0
         this.pcrMemoNudgeSize = parseInt(this.maxPcrMemoSize / 10)
         this.pcrMemoSize = 0
-        this.pcrMemo = {} // we're storing PCRs in an object to prevent lookups
+        this.pcrMemo = new Map()
     }    
     checkSyncByte(pos){
         return pos >= 0 && pos < this.packetBuffer.length && this.packetBuffer.get(pos) == SYNC_BYTE
@@ -152,20 +152,20 @@ class MPEGTSPacketProcessor extends Events {
         }
     }
     handlePCR(pcr){
-        if(typeof(this.pcrMemo[pcr]) == 'undefined'){
+        if (!this.pcrMemo.has(pcr)) {
             this.pcrMemoSize++
-            this.pcrMemo[pcr] = 0
-            if(this.pcrMemoSize > this.maxPcrMemoSize){
+            this.pcrMemo.set(pcr, 0)
+            if (this.pcrMemoSize > this.maxPcrMemoSize) {
                 const deleteCount = this.pcrMemoSize - (this.maxPcrMemoSize - this.pcrMemoNudgeSize)
-                Object.keys(this.pcrMemo).slice(0, deleteCount).forEach(pcr => delete this.pcrMemo[pcr])
-                // console.error('HANDLEPCR '+ this.pcrMemoSize +' => '+ Object.keys(this.pcrMemo).length)
+                const keysToDelete = Array.from(this.pcrMemo.keys()).slice(0, deleteCount)
+                keysToDelete.forEach((pcr) => this.pcrMemo.delete(pcr))
                 this.pcrMemoSize -= deleteCount
             }
-            if(this.direction < 1){
+            if (this.direction < 1) {
                 this.direction = 1
             }
         }
-        if(this.direction >= 1){
+        if (this.direction >= 1) {
             return true
         }
     }   
@@ -206,8 +206,8 @@ class MPEGTSPacketProcessor extends Events {
     }
     destroy(){
         this.destroyed = true
-        this.pcrMemo = []
         this.removeAllListeners()
+        this.pcrMemo.clear()
         this.packetBuffer.clear()
     }
 }

@@ -1,5 +1,5 @@
 const fs = require('fs'), path = require('path'), http = require('http')
-const crypto = require('crypto'), Icon = require('./icon')
+const crypto = require('crypto'), Icon = require('./icon'), createReader = require('../reader')
 const pLimit = require('p-limit'), closed = require('../on-closed')
 
 class IconDefault {
@@ -493,7 +493,7 @@ class IconServer extends IconServerStore {
                             'Cache-Control': 'max-age=0, no-cache, no-store',
                             'Content-Type': 'image/png'
                         })
-                        let stream = fs.createReadStream(file)
+                        let stream = createReader(file)
                         closed(req, response, () => {
                             if(stream){
                                 stream.destroy()

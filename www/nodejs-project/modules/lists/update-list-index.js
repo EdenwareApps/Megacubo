@@ -59,12 +59,13 @@ class UpdateListIndex extends ListIndexUtils {
 		this.index.groups[entry.group].push(i)
 		return entry
 	}
-	connect(path){
+	fetch(path){
 		return new Promise((resolve, reject) => {
             if(path.match(new RegExp('^//[^/]+\\.'))){
                 path = 'http:' + path
             }
             if(path.match(new RegExp('^https?:'))){
+                console.error('ADDLISThttp='+path)
                 let resolved
                 const opts = {
                     url: path,
@@ -81,6 +82,7 @@ class UpdateListIndex extends ListIndexUtils {
                     debug: false
                 }
                 this.stream = new global.Download(opts)
+                const file = global.paths.temp + '/'+ this.stream.opts.uid +'.bin'
                 this.stream.on('response', (statusCode, headers) => {
                     if(this.debug){
                         console.log('response', statusCode, headers, this.updateMeta)
@@ -92,8 +94,13 @@ class UpdateListIndex extends ListIndexUtils {
                             this.stream.destroy()
                             resolve(false) // no need to update
                         } else {
-                            this.stream.currentResponse.pause()
-                            resolve(true)
+                            this.writer = fs.createWriteStream(file)
+                            this.stream.on('data', c => this.writer.write(c))
+                            this.stream.on('end', () => {
+                                this.writer.on('close', () => this.parser && this.parser.end())
+                                this.writer.end()
+                            })
+                            resolve({file, persistent: true})
                         }
                     } else {
                         this.stream.destroy()
@@ -117,14 +124,15 @@ class UpdateListIndex extends ListIndexUtils {
                 })
                 this.stream.start()
             } else {
-                fs.stat(path, (err, stat) => {
+                const file = path
+                fs.stat(file, (err, stat) => {
+                    console.error('ADDLISTSTAT='+JSON.stringify({file, stat, err, cl: this.updateMeta.contentLength}))
                     if(stat && stat.size){
                         this.contentLength = stat.size
                         if(stat.size > 0 && stat.size == this.updateMeta.contentLength){
                             resolve(false) // no need to update
                         } else {
-                            this.stream = fs.createReadStream(path)
-                            resolve(true)
+                            resolve({file, persistent: false})
                         }
                     } else {
                         reject('file not found or empty*')
@@ -145,26 +153,24 @@ class UpdateListIndex extends ListIndexUtils {
             }
         }
         await fs.promises.mkdir(global.dirname(this.tmpfile), {recursive: true}).catch(console.error)
-        const writer = fs.createWriteStream(this.tmpfile, {
-            highWaterMark: Number.MAX_SAFE_INTEGER
-        })
-        let connected
+        const writer = fs.createWriteStream(this.tmpfile)
         for(let url of urls){
-            connected = await this.connect(url).catch(console.error)
-            if(connected === true){
-                await this.parseStream(writer).catch(console.error)     
+            let err
+            const ret = await this.fetch(url).catch(e => err = e)
+            if(!err && ret){
+                await this.parse(ret, writer).catch(console.error)
                 if(this.indexateIterator) break
             }
         }
-        console.error('PLAYLISTS', this.playlists)
         let i = 0
         while(i < this.playlists.length){
+            let err
             const playlist = this.playlists[i]
             i++
-            connected = await this.connect(playlist.url).catch(console.error)
+            const ret = await this.fetch(playlist.url).catch(e => err = e)
             console.error('PLAYLIST '+ playlist.url +' '+ this.indexateIterator)
-            if(connected === true){
-                await this.parseStream(writer, playlist).catch(console.error)
+            if(!err && ret){
+                await this.parse(ret, writer, playlist).catch(console.error)
             }
         }
         console.error('PLAYLISTS end')
@@ -172,7 +178,7 @@ class UpdateListIndex extends ListIndexUtils {
         writer.destroy()
         return true
 	}
-	parseStream(writer, playlist){
+	parse(opts, writer, playlist){
 		return new Promise((resolve, reject) => {
 			let resolved, count, destroyListener = () => {
                 if(!resolved){
@@ -181,7 +187,9 @@ class UpdateListIndex extends ListIndexUtils {
                     reject('destroyed')
                 }
             }
-			this.parser = new Parser(this.stream)
+            console.log('WILLPARSE='+ JSON.stringify(opts))
+            this.parser && this.parser.destroy()
+            this.parser = new Parser(opts)
 			this.parser.on('meta', meta => {
 				Object.assign(this.index.meta, meta)
 			})
@@ -215,14 +223,40 @@ class UpdateListIndex extends ListIndexUtils {
                 }
                 entry = this.indexate(entry, this.indexateIterator)
                 writer.write(JSON.stringify(entry) + "\r\n")
-                if(!this.uniqueStreamsIndexate.includes(entry.url)) {
-                    this.uniqueStreamsIndexate.push(entry.url)
+                if(!this.uniqueStreamsIndexate.has(entry.url)) {
+                    this.uniqueStreamsIndexate.set(entry.url, null)
                     this.uniqueStreamsIndexateIterator++
                 }
                 this.indexateIterator++
 			})
+            this.parser.on('progress', readen => {
+                const cl = this.contentLength || 40 * (1024 * 1024) // estimate it if we don't know
+                const pp = cl / 100
+                let progress = parseInt(readen / pp)
+                if(progress > 99) progress = 99
+
+                if(this.playlists.length){
+                    let i = -1
+                    this.playlists.some((p, n) => {
+                        if(!playlist || playlist.url == p.url){
+                            i = n
+                            return true
+                        }
+                    })
+                    if(i != -1){
+                        const lr = 100 / (this.playlists.length + 1)
+                        const pr = (i * lr) + (progress * (lr / 100))
+                        progress = pr
+                    }
+                }
+
+                if(progress !== this.lastProgress) {
+                    this.lastProgress = progress
+                    this.emit('progress', progress)
+                }
+            })
             this.once('destroy', destroyListener)
-			this.parser.once('end', () => {
+			this.parser.once('finish', () => {
                 this.removeListener('destroy', destroyListener)
                 if(!resolved){
                     resolved = true
@@ -235,41 +269,10 @@ class UpdateListIndex extends ListIndexUtils {
                         this.contentLength = this.stream.received
                     }
                     this.parser.destroy()
-                    this.stream.destroy()
+                    this.stream && this.stream.destroy()
                     this.stream = this.parser = null
                 }
 			})
-            if(this.stream instanceof global.Download){                
-                this.stream.currentResponse.resume()
-            }
-            // if we dont know contentLength, we'll estimate a big list size to show some progress for the user, even it being less consistent
-            let contentLength = this.contentLength && this.contentLength > 0 ? this.contentLength : (100 * (1024 * 1024))
-            let received = 0, pp = contentLength / 100
-            this.stream.on('data', chunk => {
-                received += chunk.length
-                let progress = parseInt(received / pp)
-                if(progress > 99){
-                    progress = 99
-                }
-                if(this.playlists.length){
-                    let i = -1
-                    this.playlists.some((p, n) => {
-                        if(p.url == playlist.url){
-                            i = n
-                            return true
-                        }
-                    })
-                    if(i != -1){
-                        const lr = 100 / (this.playlists.length + 1)
-                        const pr = (i * lr) + (progress * (lr / 100))
-                        progress = pr
-                    }
-                }
-                if(progress !== this.progress) {
-                    this.progress = progress
-                    this.emit('progress', progress)
-                }
-            })
 		})
 	}
     writeIndex(writer){
@@ -370,7 +373,7 @@ class UpdateListIndex extends ListIndexUtils {
             gids: {}
         }
 		this.indexateIterator = 0
-		this.uniqueStreamsIndexate = []
+		this.uniqueStreamsIndexate = new Map()
 		this.uniqueStreamsIndexateIterator = 0
 		this.contentLength = -1
         this.hlsStreamsLength = 0

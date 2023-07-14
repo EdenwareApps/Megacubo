@@ -6,13 +6,7 @@ class DownloadStreamP2P extends DownloadStream {
         this.setMaxListeners(99)
         this.type = 'p2p'
         this.lmap = {}
-        this.on('destroy', () => {
-            global.ui.emit('download-p2p-request-cancel', {
-                type: 'request',
-                uid: this.opts.uid
-            })
-            this.unbind()
-        })
+        this.on('destroy', () => this.unbind())
 	}
     unbind(){
         global.ui.emit('download-p2p-cancel-request', this.opts.uid)

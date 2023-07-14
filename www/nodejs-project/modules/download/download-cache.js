@@ -1,4 +1,4 @@
-const fs = require('fs'), Events = require('events')
+const fs = require('fs'), Events = require('events'), createReader = require('../reader')
 
 const CACHE_MEM_ONLY = false
 
@@ -11,17 +11,8 @@ class DownloadCacheFileReader extends Events {
         process.nextTick(() => this.init())
     }
     init(){
-        try {
-            this.stream = fs.createReadStream(this.file, this.opts)
-        } catch(e) {
-            this.stream = null
-        }
-        if(this.stream){
-            ['data', 'end', 'error', 'finish'].forEach(n => this.forward(n))
-        } else {
-            this.emit('end')
-            this.emit('finish')
-        }
+        this.stream = createReader(this.file, this.opts);
+        ['data', 'end', 'error', 'finish'].forEach(n => this.forward(n));
     }
     forward(name){
         this.stream.on(name, (...args) => {
@@ -293,7 +284,9 @@ class DownloadCacheMap extends Events {
         }
     }
     async readIndexFile(){
-        let ret = {}
+        let hasErr, ret = {}
+        await fs.promises.access(this.indexFile, fs.constants.R_OK).catch(e => hasErr = e)
+        if(hasErr) return ret
         try {
             let data = await fs.promises.readFile(this.indexFile, {encoding: null})
             data = global.parseJSON(data)

@@ -1,6 +1,7 @@
 const Events = require('events'), fs = require('fs')
 const path = require('path'), http = require('http'), url = require('url')
 const closed = require('../on-closed'), parseRange = require('range-parser')
+const createReader = require('../reader')
 
 class Downloads extends Events {
    constructor(){
@@ -184,7 +185,7 @@ class Downloads extends Events {
 						resHeaders['x-debug'] = start +'-'+ end +'/'+ stat.size
 						res.writeHead(status, resHeaders)
 						if (req.method === 'HEAD' || len == 0) return res.end()
-						let stream = fs.createReadStream(pathname, {start, end})
+						let stream = createReader(pathname, {start, end})
 						let sent = 0
 						closed(req, res, () => {
 							console.log('serve res finished', sent, start, end)

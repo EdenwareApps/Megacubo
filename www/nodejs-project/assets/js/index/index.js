@@ -332,7 +332,7 @@ function fakeUpdateProgress() {
 	let stack = typeof errorObj == 'object' && errorObj !== null && errorObj.stack ? errorObj.stack : traceback();
 	if (maxAlerts) {
 		maxAlerts--;
-		if (file && file.startsWith('blob:http://') == -1) { // ignore hls.js errors
+		if (file && file.startsWith('blob:http://')) { // ignore hls.js errors
 			alert(message + ' ' + file + ':' + line + ' ' + stack);
 			log(message);
 		}

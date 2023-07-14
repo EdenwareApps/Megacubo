@@ -212,14 +212,14 @@ class ChannelsCategories extends ChannelsData {
         let data = {}, weighted = true
         const completed = () => this.mapSize(data) >= amount
         const countries = await global.lang.getActiveCountries(0)
-        const limit = pLimit(3)
-        const tasks = () => countries.map(country => {
+        const limit = pLimit(2)
+        const tasks = () => countries.map((country, i) => {
             return limit(async () => {
                 let err
                 const map = await global.cloud.get('channels/' + country).catch(e => err = e)
                 if(completed()) throw 'completed'
                 if (!err) {
-                    data = await this.applyMapCategories(map, data, amount, weighted)
+                    data = await this.applyMapCategories(map, data, amount, i ? weighted : false)
                     if(completed()) throw 'completed'
                 }
             })
@@ -1111,13 +1111,12 @@ class Channels extends ChannelsKids {
             if(typeof(terms) == 'string'){
                 terms = global.lists.terms(terms)
             }
-            let epgEntries = [], already = []
-            let entries = []
+            let epgEntries = [], entries = [], already = {}
             Object.keys(this.channelsIndex).sort().forEach(name => {
-                if(!already.includes(name)){
+                if(typeof(already[name]) == 'undefined'){
                     let score = this.cmatch(this.channelsIndex[name], terms, partial)
                     if(score){
-                        already.push(name)
+                        already[name] = null
                         entries.push({
                             name,
                             terms: {name: this.channelsIndex[name]}
@@ -1131,8 +1130,8 @@ class Channels extends ChannelsKids {
                     epgEntries = ees.map(e => {
                         let ch = this.isChannel(e.programme.ch)
                         if(ch){
-                            if(!already.includes(ch.name)){
-                                already.push(ch.name)
+                            if(typeof(already[ch.name]) == 'undefined'){
+                                already[ch.name] = null
                                 if(e.details){
                                     e.details = e.details.replace(e.programme.ch, ch.name)
                                 }
@@ -1697,12 +1696,12 @@ class Channels extends ChannelsKids {
                     class: isSeries ? 'entry-cover' : undefined,
                     details: namedGroups[name].details,
                     renderer: async () => {
-                        const entries = [], already = []
+                        const entries = [], already = {}
                         await Promise.allSettled(namedGroups[name].map(g => g.renderer().then(es => {
                             es.forEach(e => {
-                                if(already.includes(e.url)) return
+                                if(typeof(already[e.url]) != 'undefined') return
                                 entries.push(e)
-                                already.push(e.url)
+                                already[e.url] = null
                             })
                         })))
                         return await global.lists.tools.deepify(entries, { minPageCount: 8 })

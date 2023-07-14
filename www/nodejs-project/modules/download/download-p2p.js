@@ -1,4 +1,4 @@
-const fs = require('fs')
+const fs = require('fs'), createReader = require('../reader')
 
 class DownloadP2PStats {
     constructor(){
@@ -91,7 +91,7 @@ class DownloadP2PHandler extends DownloadP2POptions {
         this.initializeClient()
     }
     initializeClient(){    
-        const stunServers = global.config.get('p2p-stun-servers') 
+        const stunServers = (global.config.get('p2p-stun-servers') || []).sort(() => Math.random() - 0.5)
         this.ui.emit('init-p2p', this.opts.addr, this.opts.limit, stunServers)
     }
     serve(data) {
@@ -125,7 +125,7 @@ class DownloadP2PHandler extends DownloadP2POptions {
                             if(reqRange.start) dopts.start = reqRange.start
                             if(reqRange.end) dopts.end = reqRange.end
                         }
-                        stream = fs.createReadStream(this.cache.index[data.url].data, dopts)
+                        stream = createReader(this.cache.index[data.url].data, dopts)
                         break
                 }
                 this.responders[data.uid] = stream

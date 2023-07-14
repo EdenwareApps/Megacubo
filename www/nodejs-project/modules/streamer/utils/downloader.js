@@ -1,7 +1,7 @@
 
 const path = require('path'), http = require('http'), fs = require('fs'), stoppable = require('stoppable')
 const StreamerAdapterBase = require('../adapters/base.js'), closed = require('../../on-closed')
-const Writer = require('../../write-queue/writer')
+const Writer = require('../../write-queue/writer'), createReader = require('../../reader')
 
 const SYNC_BYTE = 0x47
 const PACKET_SIZE = 188
@@ -100,7 +100,7 @@ class Downloader extends StreamerAdapterBase {
 						buffer = [] // do not redeclare it
 						syncByteFound =  true
 						const end = parseInt(this.warmCacheSize / PACKET_SIZE) * PACKET_SIZE // packetize
-						stream = fs.createReadStream(this.warmCacheFile, {start: 0, end})
+						stream = createReader(this.warmCacheFile, {start: 0, end})
 						stream.on('data', chunk => response.writable && response.write(chunk))
 						stream.on('end', () => {
 							buffer.length && response.writable && response.write(Buffer.concat(buffer))

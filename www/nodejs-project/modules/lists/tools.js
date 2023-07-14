@@ -15,7 +15,7 @@ class Tools {
 				!entries[i].prepend && 
 				(typeof(entries[i].type) == 'undefined' || entries[i].type == 'stream')
 				){
-				if(typeof(already[entries[i].url])!='undefined'){
+				if(typeof(already[entries[i].url]) != 'undefined'){
 					changed = true
 					var j = map[entries[i].url]
 					entries[j] = this.mergeEntries(entries[j], entries[i])
@@ -143,7 +143,7 @@ class Tools {
 				group.name = this.getRangeName(gentries, lastName, nextName)
                 if(group.name.indexOf('[') != -1){
                     group.rawname = group.name
-                    group.name = group.name.replace(global.lists.parser.regexes['between-brackets'], '')
+                    group.name = group.name.replace(global.lists.regexes['between-brackets'], '')
                 }
 				if(gentries.length){
 					lastName = gentries[gentries.length - 1].name
@@ -315,7 +315,7 @@ class Tools {
 			}, true)
 		}
         if(shouldOffload){
-            entries = await this.offload(entries, source)
+            entries = await this.offload(entries, opts.source)
         }
         return entries
 	}

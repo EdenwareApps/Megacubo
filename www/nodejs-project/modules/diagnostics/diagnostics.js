@@ -17,6 +17,14 @@ class Diagnostics extends Events {
 		const myLists = config.lists.map(a => a[1]);
 		const listsRequesting = global.lists.requesting
 		const tuning = global.tuning ? global.tuning.logText(false) : ''
+		const processedLists = global.lists.processedLists.keys();
+		const processing = global.lists.loader.processes.map(p => {
+			return {
+				url: p.url,
+				started: p.started(),
+				priority: p.priority
+			}
+		});
 		const updaterResults = global.lists.loader.results;
 		['lists', 'parental-control-terms', 'parental-control-pw', 'premium-license'].forEach(k => delete config[k])
 		Object.keys(lists).forEach(url => {
@@ -32,7 +40,7 @@ class Diagnostics extends Events {
 			diskSpace.free = global.kbfmt(diskSpace.free)
 			diskSpace.size = global.kbfmt(diskSpace.size)
 		}
-		return {diskSpace, freeMem, config, lists, listsRequesting, updaterResults, tuning}
+		return {diskSpace, freeMem, config, lists, listsRequesting, updaterResults, processedLists, processing, tuning}
 	}
 	async saveReport(){
 		const file = global.downloads.folder +'/report.txt'

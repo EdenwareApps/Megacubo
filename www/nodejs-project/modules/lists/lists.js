@@ -166,7 +166,7 @@ class Lists extends ListsEPGTools {
 		this.epgs = []
         this.myLists = []
         this.communityLists = []
-        this.processedLists = []
+        this.processedLists = new Map()
 		this.requesting = {}
 		this.loadTimes = {}
 		this.processes = []
@@ -418,7 +418,7 @@ class Lists extends ListsEPGTools {
 	}
 	async loadList(url, contentLength){
 		url = global.forwardSlashes(url)
-		this.processedLists.includes(url) || this.processedLists.push(url)
+		this.processedLists.has(url) || this.processedLists.set(url, null)
 		if(typeof(contentLength) != 'number'){ // contentLength controls when the list should refresh
 			let err
 			const meta = await this.getListMeta(url).catch(e => err = e)
@@ -750,17 +750,6 @@ class Lists extends ListsEPGTools {
         } else {
 			throw 'List not loaded'
 		}
-    }
-    directListRendererParse(content){
-        return new Promise((resolve, reject) => {
-			let entries = [], parser = new Parser()
-			parser.on('entry', e => entries.push(e))
-			parser.once('end', () => {
-				resolve(entries)
-			})
-			parser.write(content)
-			parser.end()
-        })
     }
     async directListRendererPrepare(list, url){
 		if(typeof(this.directListRendererPrepareCache) == 'undefined'){

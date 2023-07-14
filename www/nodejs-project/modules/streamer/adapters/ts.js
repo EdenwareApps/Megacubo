@@ -16,7 +16,7 @@ class StreamerAdapterTS extends StreamerAdapterBase {
 			if(global.config.get('ts-packet-filter-policy') == -1){
 				this.source = new Downloader(...args)
 			} else {
-				const useWorker = false
+				const useWorker = true
 				if(useWorker) {
 					const exclusiveWorker = true
 					if(exclusiveWorker) {

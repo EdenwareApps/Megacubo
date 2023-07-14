@@ -8,6 +8,7 @@ class Energy extends Events {
 		global.ui.emit('restart')
 	}
     exit(){
+		console.error('ENERGY_EXIT='+ global.traceback())
 		global.ui.emit('exit', false)
 	}
 	askRestart(){

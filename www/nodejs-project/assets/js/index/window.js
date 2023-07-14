@@ -109,7 +109,7 @@ class WinMan extends EventEmitter {
 		}
 	}
 	exit(force){
-		console.log('exit()', traceback())
+		console.log('exit('+ force +')', traceback())
 		let w = this.getAppWindow()
 		if(w.streamer && w.streamer.active){
 			w.streamer.stop()

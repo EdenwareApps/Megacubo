@@ -1,4 +1,4 @@
-const fs = require('fs'), Events = require('events'), DownloadStreamBase = require('./stream-base')
+const fs = require('fs'), createReader = require('../reader'), DownloadStreamBase = require('./stream-base')
 
 class DownloadStreamCache extends DownloadStreamBase {
 	constructor(opts){
@@ -40,7 +40,12 @@ class DownloadStreamCache extends DownloadStreamBase {
                     stream = Download.cache.index[url].chunks.createReadStream(range)
                     break
                 case 'file':
-                    stream = fs.createReadStream(String(row.data), range)
+                    const file = String(row.data)
+                    if(fs.existsSync(file)) {
+                        stream = createReader(file, range)
+                    } else {
+                        this.emitError('Cache download failed', false)
+                    }
                     break
             }
             stream.on('error', err => {

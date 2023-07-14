@@ -170,10 +170,10 @@ class Suggestions {
         })
 
         // remove repeated programmes
-        let already = []
+        let already = {}
         results = results.sortByProp('start').filter(r => {
-            if(already.includes(r.programme.t)) return false
-            already.push(r.programme.t)
+            if(typeof(already[r.programme.t]) != 'undefined') return false
+            already[r.programme.t] = null
             return true
         }).sortByProp('score', true)
         

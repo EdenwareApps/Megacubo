@@ -5,10 +5,22 @@ const Events = require('events'), utils = require('../multi-worker/utils')
 class EPGPaginateChannelsList extends Events {
     constructor(){
         super()
+        this.badTerms = new Map([
+            ['H.265', null],
+            ['H.264', null],
+            ['H265', null],
+            ['H264', null],
+            ['SD', null],
+            ['HD', null],
+            ['FHD', null],
+            ['2K', null],
+            ['4K', null],
+            ['8K', null]
+        ])
     }
     prepareChannelName(name){
         const badTerms = ['H.265', 'H.264', 'H265', 'H264', 'SD', 'HD', 'FHD', '2K', '4K', '8K']
-        return global.ucWords(name.split('[')[0].split(' ').filter(s => s && !badTerms.includes(s.toUpperCase())).join(' '))
+        return global.ucWords(name.split('[')[0].split(' ').filter(s => s && !badTerms.has(s.toUpperCase())).join(' '))
     }
     isASCIIChar(chr){
         let c = chr.charCodeAt(0)
@@ -235,8 +247,6 @@ class EPG extends EPGPaginateChannelsList {
             })
             let validEPG, received = 0
             const req = {
-                p2p: true,
-                p2pWaitMs: 5000,
                 debug: false,
                 url: this.url,
                 followRedirect: true,

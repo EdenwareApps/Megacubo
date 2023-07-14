@@ -1,5 +1,10 @@
 const { workerData, parentPort } = require('worker_threads')
-postMessage = parentPort.postMessage.bind(parentPort)
+
+if(parentPort) {
+    postMessage = parentPort.postMessage.bind(parentPort)
+} else {
+    postMessage = () => {}
+}
 
 const emit = (type, content) => {
 	postMessage({id: 0, type: 'event', data: type +':'+ JSON.stringify(content)})
@@ -10,7 +15,7 @@ function logErr(data) {
 }
 
 function loadGlobalVars() {
-    Object.keys(workerData).forEach(k => global[k] = workerData[k])
+    Object.keys(workerData || {}).forEach(k => global[k] = workerData[k])
 }
 
 module.exports = {logErr, postMessage, parentPort, emit, loadGlobalVars}
