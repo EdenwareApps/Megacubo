@@ -1,6 +1,6 @@
 
 const Events = require('events'), fs = require('fs'), ParentalControl = require('./parental-control')
-const Parser = require('./parser'), M3UTools = require('./tools'), MediaURLInfo = require('../streamer/utils/media-url-info')
+const { regexes, sanitizeName } = require('./parser'), M3UTools = require('./tools'), MediaURLInfo = require('../streamer/utils/media-url-info')
 const List = require('./list'), UpdateListIndex = require('./update-list-index')
 
 global.LIST_DATA_KEY_MASK = 'list-data-1-{0}'
@@ -90,6 +90,8 @@ class Fetcher extends Events {
 class Common extends Events {
 	constructor(opts){
 		super()
+		this.regexes = regexes
+		this.sanitizeName = sanitizeName
 		this.Fetcher = Fetcher
 		this.searchRedirects = []
 		this.stopWords = ['sd', 'hd', 'h264', 'h.264', 'fhd'] // common words to ignore on searching
@@ -104,7 +106,6 @@ class Common extends Events {
                 this[k] = opts[k]
             })
         }
-        this.parser = new Parser()
         this.tools = new M3UTools(opts)
         this.mi = new MediaURLInfo()
 		this.parentalControl = new ParentalControl()
@@ -160,14 +161,14 @@ class Common extends Events {
 			}
 		})
 		txt = txt.toLowerCase()
-		let tms = this.applySearchRedirects(txt.replace(this.parser.regexes['plus-signal'], 'plus').
-			replace(this.parser.regexes['between-brackets'], '').
-			normalize('NFD').toLowerCase().replace(this.parser.regexes['accents'], ''). // replace/normalize accents
+		let tms = this.applySearchRedirects(txt.replace(this.regexes['plus-signal'], 'plus').
+			replace(this.regexes['between-brackets'], '').
+			normalize('NFD').toLowerCase().replace(this.regexes['accents'], ''). // replace/normalize accents
 			split(' ').
 			map(s => {
 				if(s.charAt(0) == '-'){
 					if(allowModifier){
-						s = s.replace(this.parser.regexes['hyphen-not-modifier'], '$1')
+						s = s.replace(this.regexes['hyphen-not-modifier'], '$1')
 						return s.length > 1 ? s : ''
 					} else {
 						return ''
@@ -175,7 +176,7 @@ class Common extends Events {
 				} else if(s == '|' && !allowModifier){
 					return ''
 				}
-				return s.replace(this.parser.regexes['hyphen-not-modifier'], '$1')
+				return s.replace(this.regexes['hyphen-not-modifier'], '$1')
 			}))
 		tms = tms.filter(s => s)
 		if(!keepStopWords){
