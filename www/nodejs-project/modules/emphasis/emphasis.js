@@ -5,22 +5,38 @@ class Emphasis {
 			global.explorer.applyFilters = this.applyFilters.bind(this)
 		}
     }
-	async ad(){
-		const k = global.config.get('communitary-mode-lists-amount') ? 'ad-cm' : 'ad'
-		const c = await global.cloud.get('configure')
-		const a = c[k +'-'+ global.lang.countryCode] || c[k]
-		if(a) {
-			// icon, url, name, details
-			a.prepend = '<i class="fas fa-rectangle-ad" aria-hidden="true"></i> '
-			a.fa = 'fas fa-rectangle-ad'
-			a.hookId = 'emphasis'
-			if(!a.type) {
-				a.type = 'action'
-				a.action = () => {
-					global.ui.emit('open-external-url', a.url)
+	async promote(){
+		const atts = {
+			communitary: global.config.get('communitary-mode-lists-amount') > 0,
+			premium: global.options.prm(true),
+			country: global.lang.countryCode
+		}
+		const c = await global.cloud.get('promote')
+		if(!Array.isArray(c)) return
+		const promos = c.filter(p => {
+			return Object.keys(atts).every(k => {
+				if(k == 'country') {
+					return p.countries.includes(atts[k])
+				} else {
+					return p[k] == atts[k]
 				}
+			})
+		})
+		if(promos.length) {
+			const a = promos.shift()
+			if(a) {
+				// icon, url, name, details
+				a.prepend = '<i class="fas fa-rectangle-ad" aria-hidden="true"></i> '
+				a.fa = 'fas fa-rectangle-ad'
+				a.hookId = 'emphasis'
+				if(!a.type) {
+					a.type = 'action'
+					a.action = () => {
+						global.ui.emit('open-external-url', a.url)
+					}
+				}
+				return a
 			}
-			return a
 		}
 	}
 	async applyFilters(entries, path){
@@ -62,13 +78,13 @@ class Emphasis {
 				}
 			}
 			if(entries[i]){
-				const prm = global.options.prm()
+				const prm = global.options.prm(true)
 				const hasIcon = entries[i].icon || (entries[i].programme && entries[i].programme.i)
 				if(!path && !hasIcon && !prm) {
-					const ad = await this.ad().catch(console.error)
-					if(ad && ad.url) {
+					const promo = await this.promote().catch(console.error)
+					if(promo && promo.url) {
 						entries = entries.filter(e => e.hookId != 'epg-history')
-						entries.unshift(ad)
+						entries.unshift(promo)
 					}
 				}
 				if (!path || entries.length == (i + 1) || hasIcon) {

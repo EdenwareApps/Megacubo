@@ -1384,10 +1384,12 @@ class Options extends OptionsP2P {
         ]
         return opts
     }
-    prm() {
+    prm(strict) {
         const p = global.premium
-        if(p.active || p.enabling) return true
-        return global.config.get('premium-license') && !global.config.get('premium-disable')
+        if(p.active) return !strict || p.active == 'activation'
+        if(p.enabling) return true
+        const licensed = global.config.get('premium-license') && !global.config.get('premium-disable')
+        return !!licensed
     }
     insertEntry(entry, entries, preferredPosition=-1, before, after, prop='name'){
         const i = entries.findIndex(e => e[prop] == entry[prop])

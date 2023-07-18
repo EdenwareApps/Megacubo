@@ -5,6 +5,7 @@ class PersistentFileReader extends EventEmitter {
 	constructor(opts={}) {
 		super()
 		this.opts = opts
+		this.minBufferSize = 8192 // avoid opening files too frequently
 		this.readOffset = 0
 		this.readStream = null
 		this.lineReader = null
@@ -12,39 +13,26 @@ class PersistentFileReader extends EventEmitter {
 		this.isWatching = false
 		this.isReading = false
 		this.isEnding = false
-		this.startReading()
+		this.startWatch()
 	}
 	watch(path, callback) {
+		const minSize = this.readOffset + this.minBufferSize
 		const close = () => {
 			callback = () => {}
 			watcher.close()
-			fs.unwatchFile(path, watcherFile)
 		}
-		const watcher = fs.watch(path, (eventType, filename) => {
-			if (eventType === 'change') {
-				fs.stat(path, (err, stats) => {
-					if (err || stats.size !== initialSize) {
-						callback(eventType, filename)
-						close()
-					}
-				})
-			}
-		})
-		const watcherFile = fs.watchFile(path, { persistent: true, interval: 1000 }, (curr, prev) => {
-			if (curr.size !== prev.size && curr.size !== initialSize) {
-				callback('change', path)
+		const statCallback = (err, stats) => {
+			if (!err && stats.size >= minSize) {
+				callback()
 				close()
 			}
-		})
-		let initialSize
-		fs.stat(path, (err, stats) => {
-			if (err) {
-				console.error('Erro ao obter informações do arquivo:', err)
-				initialSize = 0
-				return
+		}
+		const watcher = fs.watch(path, eventType => {
+			if (eventType === 'change') {
+				fs.stat(path, statCallback)
 			}
-			initialSize = stats.size
 		})
+		fs.stat(path, statCallback)
 		return { close }
 	}
 	startWatch() {
@@ -66,7 +54,6 @@ class PersistentFileReader extends EventEmitter {
 		}
 	}
 	async hasChanges(){
-		let err
 		const stat = await fs.promises.stat(this.opts.file)
 		return stat.size > this.readOffset
 	}
@@ -94,7 +81,13 @@ class PersistentFileReader extends EventEmitter {
 				start: this.readOffset,
 				encoding: 'utf8'
 			})
-			this.lineReader = readline.createInterface({ input: this.readStream })
+			this.lineReader = readline.createInterface({
+				input: this.readStream,
+				terminal: false,
+				historySize: 0,
+				removeHistoryDuplicates: false,
+				crlfDelay: Infinity			
+			})
 			this.lineReader.on('line', line => this.emit('line', line))
 			this.lineReader.on('close', () => {
 				this.readOffset += this.readStream.bytesRead
@@ -177,6 +170,7 @@ class IPTVM3UParser extends EventEmitter {
 			}
 			this.reader.on('line', line => {
 				this.readen += (line.length + 1)
+				console.error('LINE: '+ line)
 				if(line.length < 6) return
 				const hashed = line.charAt(0) === '#'
 				if (hashed && this.isExtM3U(line)) {

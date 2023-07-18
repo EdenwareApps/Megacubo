@@ -620,6 +620,7 @@ class Manager extends ManagerEPG {
                 return this.labelify(es)
             })
             this.master.on('unsatisfied', () => this.update())
+            this.master.on('epg-update', () => global.explorer.updateHomeFilters())            
         })
         global.ui.on('explorer-back', () => {
             if(this.openingList){
@@ -791,7 +792,10 @@ class Manager extends ManagerEPG {
             throw err
         } else {
             global.osd.show(global.lang.LIST_ADDED, 'fas fa-check-circle', 'add-list', 'normal')
-            const currentEPG = global.config.get('epg-'+ global.lang.locale)            
+            const currentEPG = global.config.get('epg-'+ global.lang.locale)
+            if(!skipSharing && value.match(new RegExp('(pwd|pass|password)=', 'i'))) { // protect sensitive lists
+                skipSharing = true
+            }
             let chosen = (!skipSharing && global.validateURL(value)) ? await global.explorer.dialog([
                 {template: 'question', text: global.lang.COMMUNITY_LISTS, fa: 'fas fa-users'},
                 {template: 'message', text: global.lang.WANT_SHARE_COMMUNITY},
@@ -1156,7 +1160,7 @@ class Manager extends ManagerEPG {
         if(!server) throw 'no server provided'
         const user = await global.explorer.prompt(global.lang.USERNAME, global.lang.USERNAME, '', false, 'fas fa-user', '', [])
         if(!user) throw 'no user provided'
-        const pass = await global.explorer.prompt(global.lang.PASSWORD, global.lang.PASSWORD, '', false, 'fas fa-key', '', [])
+        const pass = await global.explorer.prompt(global.lang.PASSWORD, global.lang.PASSWORD, '', false, 'fas fa-key', '', [], true)
         if(!pass) throw 'no pass provided'
         if(server.charAt(server.length - 1) == '/') {
             server = server.substr(0, server.length - 1)
@@ -1183,7 +1187,7 @@ class Manager extends ManagerEPG {
                     let url = row[1]
                     if(!extInfo[url]) extInfo[url] = {}
                     let name = extInfo[url].name || row[0] || this.nameFromSourceURL(url)
-                    let details = extInfo[url].author || ''
+                    let details = [extInfo[url].author || '', '<i class="fas fa-play-circle"></i> '+ global.kfmt(extInfo[url].length || 0)].filter(n => n).join(' &nbsp;&middot;&nbsp; ')
                     let icon = extInfo[url].icon || undefined
                     let priv = (row.length > 2 && typeof(row[2]['private']) != 'undefined') ? row[2]['private'] : doNotShareHint 
                     let expired = this.isListExpired(url)

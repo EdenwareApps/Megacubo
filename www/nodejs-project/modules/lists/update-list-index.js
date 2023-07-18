@@ -9,6 +9,7 @@ class UpdateListIndex extends ListIndexUtils {
         this.file = file
 		this.playlists = []
         this.master = master
+        this.lastProgress = -1
         this.directURL = directURL
         this.updateMeta = updateMeta
         this.forceDownload = forceDownload === true
@@ -168,7 +169,7 @@ class UpdateListIndex extends ListIndexUtils {
             const playlist = this.playlists[i]
             i++
             const ret = await this.fetch(playlist.url).catch(e => err = e)
-            console.error('PLAYLIST '+ playlist.url +' '+ this.indexateIterator)
+            console.error('PLAYLIST '+ playlist.url +' '+ this.indexateIterator +' '+ err)
             if(!err && ret){
                 await this.parse(ret, writer, playlist).catch(console.error)
             }
@@ -246,11 +247,11 @@ class UpdateListIndex extends ListIndexUtils {
                     if(i != -1){
                         const lr = 100 / (this.playlists.length + 1)
                         const pr = (i * lr) + (progress * (lr / 100))
-                        progress = pr
+                        progress = parseInt(pr)
                     }
                 }
 
-                if(progress !== this.lastProgress) {
+                if(progress > this.lastProgress) {
                     this.lastProgress = progress
                     this.emit('progress', progress)
                 }

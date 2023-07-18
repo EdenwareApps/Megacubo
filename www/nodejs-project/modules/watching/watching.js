@@ -121,8 +121,19 @@ class Watching extends EntriesGroup {
                         list = global.lists.parentalControl.only(list)
                     }     
                 }
+                this.currentTopProgrammeEntry = false
                 list = this.prepare(list) 
-                global.channels.epgChannelsAddLiveNow(list, false).then(resolve).catch(reject)
+                global.channels.epgChannelsAddLiveNow(list, false).then(es => {
+                    if(es.length) {
+                        es.some(e => {
+                            if(e.programme && e.programme.i) {
+                                this.currentTopProgrammeEntry = e
+                                return true
+                            }
+                        })
+                    }
+                    resolve(es)
+                }).catch(reject)
             })       
         })
     }
@@ -281,20 +292,15 @@ class Watching extends EntriesGroup {
     entry(){
         const entry = {name: this.title(), details: global.lang.BEEN_WATCHED, fa: 'fas fa-chart-bar', hookId: this.key, type: 'group', renderer: this.entries.bind(this)}
         if(this.currentEntries && this.showChannelOnHome()){
-            let top, rootPage = global.explorer.pages['']
-            this.currentEntries.some(e => {
-                if(!rootPage.some(r => (r.name == e.name && r.hookId != this.key)) && global.channels.isChannel(e.name)){
-                    top = e
-                    return true
-                }
-            })
-            if(top){
+            let top = this.currentTopProgrammeEntry
+            if(top) {
                 let s = top.users == 1 ? 'user' : 'users'
                 entry.name = this.title()
                 entry.class = 'entry-icon' 
                 entry.originalName = top.name
                 entry.prepend = '<i class="fas fa-chart-bar"></i> '
-                entry.details = top.name + ' &middot; <i class="fas fa-'+ s +'"></i> '+ global.lang.X_WATCHING.format(top.users)
+                entry.details = top.programme.t + ' &middot; <i class="fas fa-'+ s +'"></i> '+ global.lang.X_WATCHING.format(top.users)
+                entry.programme = top.programme
             }
         }
         return entry

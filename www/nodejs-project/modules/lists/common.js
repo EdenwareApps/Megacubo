@@ -35,11 +35,7 @@ class Fetcher extends Events {
 			this.list = new List(this.url, this.master)
 			this.list.skipValidating = true
 			this.list.start().then(resolve).catch(err => {
-				this.updater = new UpdateListIndex(this.url, this.url, this.file, this.master, {})
-				if(typeof(this.atts.progress) == 'function'){
-					this.updater.on('progress', p => this.atts.progress(p))
-				}
-				this.updater.start().then(() => {
+				this.master.loader.addListNow(this.url, this.atts.progress).then(() => {
 					this.list.start().then(resolve).catch(err => {
 						this.list.destroy()
 						this.updater.destroy()

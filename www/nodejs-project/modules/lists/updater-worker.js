@@ -1,6 +1,6 @@
 
 const Common = require('./common'), List = require('./list')
-const UpdateListIndex = require('./update-list-index')
+const UpdateListIndex = require('./update-list-index'), utils = require('../multi-worker/utils')
 
 class ListsUpdater extends Common {
 	constructor(){
@@ -16,7 +16,7 @@ class ListsUpdater extends Common {
 	async getInfo(){
 		return this.info
 	}
-	async update(url, force){
+	async update(url, force, progressId){
 		if(!url){
 			return this.info[url] = 'invalid url'
 		}
@@ -28,7 +28,7 @@ class ListsUpdater extends Common {
 			console.log('updater - updating', url)
 		}
 		let err
-		const updated = await this.updateList(url, force).catch(e => err = e)
+		const updated = await this.updateList(url, force, progressId).catch(e => err = e)
 		if(typeof(err) != 'undefined'){
 			this.info[url] = 'update failed, '+ String(err)
 			console.error('updater - err: '+ err, global.traceback())
@@ -40,7 +40,7 @@ class ListsUpdater extends Common {
 		}
 		return this.info[url]
     }
-	async updateList(url, force){
+	async updateList(url, force, progressId=0){
 		if(this.debug){
 			console.log('updater updateList', url)
 		}
@@ -64,6 +64,11 @@ class ListsUpdater extends Common {
 			let ret
 			if(this.debug){
 				console.log('updater - should', url, should)
+			}
+			if(progressId) {
+				updater.on('progress', progress => {
+					utils.emit('progress', {progressId, progress})
+				})
 			}
 			await updater.start()
 			if(this.debug){

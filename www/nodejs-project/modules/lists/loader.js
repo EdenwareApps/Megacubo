@@ -83,7 +83,10 @@ class ListsLoader extends Events {
     }
     async prepareUpdater(){
         if(!this.updater || this.updater.finished === true) {
-            const updater = this.updater = global.workers.load(path.join(__dirname, 'updater-worker'))
+            const MultiWorker = require('../multi-worker')
+            this.worker = new MultiWorker()
+            const updater = this.updater = this.worker.load(path.join(__dirname, 'updater-worker'))
+            this.once('destroy', () => updater.terminate())
             this.updaterClients = 1
             updater.close = () => {
                 this.updaterClients--
@@ -142,6 +145,17 @@ class ListsLoader extends Events {
         }
         urls.filter(u => this.pings[u] == 0).forEach(u => delete this.pings[u])
     }
+    async addListNow(url, progress) {
+        const uid = parseInt(Math.random() * 1000000)
+        await global.Download.waitNetworkConnection()
+        await this.prepareUpdater()
+        progress && this.updater.on('progress', p => {
+            if(p.progressId == uid) progress(p.progress)
+        })
+        await this.updater.update(url, false, uid).catch(console.error)
+        this.master.addList(url, 1)
+        this.updater.close()
+    }
     schedule(url, priority){        
         let cancel, started
         this.processes.some(p => p.url == url) || this.processes.push({
@@ -153,7 +167,7 @@ class ListsLoader extends Events {
                 this.results[url] = 'awaiting'
                 this.results[url] = await this.updater.update(url).catch(console.error)
                 const add = this.results[url] == 'updated' || (this.results[url] == 'already updated' && !this.master.processedLists.has(url))
-                add && this.master.addList(url)
+                add && this.master.addList(url, priority)
                 this.updater.close()
             }, { priority }),
             started: () => {

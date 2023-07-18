@@ -26,7 +26,7 @@ class StreamState extends Events {
                 this.set(data.url, 'offline', true)
             }
             if(global.config.get('auto-testing')){
-                this.test(global.explorer.currentStreamEntries())
+                this.test(global.explorer.currentStreamEntries()).catch(console.error)
             }
         })
         global.streamer.on('commit', intent => {
@@ -51,7 +51,7 @@ class StreamState extends Events {
         global.streamer.on('stop', (err, e) => {
             setTimeout(() => {
                 if(!global.streamer.active && global.config.get('auto-testing')){
-                    this.test(global.explorer.currentStreamEntries())
+                    this.test(global.explorer.currentStreamEntries()).catch(console.error)
                 }
             }, 500)
         })
@@ -61,7 +61,7 @@ class StreamState extends Events {
         global.explorer.on('render', entries => {
             this.cancelTests()
             if(global.config.get('auto-testing') && entries.some(e => this.supports(e))){
-                this.test(entries)
+                this.test(entries).catch(console.error)
             }
         })
         global.ui.on('state-atts', (url, atts) => {
@@ -273,16 +273,15 @@ class StreamState extends Events {
                     }
                 }                
             })
+            global.ui.emit('sync-status-flags', syncData)
             if(!entries.length){
+                global.osd.show(global.lang.TESTING + ' 100%', 'fa-mega spin-x-alt', 'stream-state-tester', 'normal') 
                 return resolve(true)
             }
-            global.ui.emit('sync-status-flags', syncData)
             if(retest.length){
                 entries.push(...retest)
             }
-            this.testing = new Tuner(entries, {
-                shadow: true
-            }, name)
+            this.testing = new Tuner(entries, { shadow: true }, name)
             this.testing.ctrlKey = ctrlKey
             this.testing.on('success', this.success.bind(this))
             this.testing.on('failure', this.failure.bind(this))
