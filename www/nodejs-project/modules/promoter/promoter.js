@@ -1,49 +1,86 @@
-class Emphasis {
+class Promoter {
     constructor(){
 		if(!this.originalApplyFilters){
 			this.originalApplyFilters = global.explorer.applyFilters.bind(global.explorer)
 			global.explorer.applyFilters = this.applyFilters.bind(this)
 		}
+		this.startTime = global.time()
+		global.ui.on('video-error', () => this.promote())
+		global.ui.on('streamer-is-slow', () => this.promote())
+		global.streamer.on('hard-failure', () => this.promote())
     }
 	async promote(){
+		if(this.promoteDialogShown) return
+		const elapsedTime = global.time() - this.startTime
+		if(elapsedTime < 30) return
+		const a = await this.offer('dialog')
+		if(a) {
+			this.dialogOffer(a).catch(global.displayErr)
+		}
+	}
+	async offer(type){
 		const atts = {
 			communitary: global.config.get('communitary-mode-lists-amount') > 0,
 			premium: global.options.prm(true),
 			country: global.lang.countryCode
 		}
-		const c = await global.cloud.get('promote')
+		const c = await global.cloud.get('promo')
 		if(!Array.isArray(c)) return
 		const promos = c.filter(p => {
+			if(p.type != type) return
 			return Object.keys(atts).every(k => {
 				if(k == 'country') {
-					return p.countries.includes(atts[k])
+					return typeof(p.countries) == 'undefined' || p.countries.includes(atts[k])
 				} else {
-					return p[k] == atts[k]
+					return typeof(p[k]) == 'undefined' || p[k] == atts[k]
 				}
 			})
 		})
 		if(promos.length) {
-			const a = promos.shift()
-			if(a) {
-				// icon, url, name, details
-				a.prepend = '<i class="fas fa-rectangle-ad" aria-hidden="true"></i> '
-				a.fa = 'fas fa-rectangle-ad'
-				a.hookId = 'emphasis'
-				if(!a.type) {
-					a.type = 'action'
-					a.action = () => {
-						global.ui.emit('open-external-url', a.url)
-					}
-				}
-				return a
-			}
+			return promos.shift()
 		}
 	}
+    async dialogOffer(a){
+		this.promoteDialogShown = true
+		const text = a.description
+        let callbacks = {}, opts = [
+            {template: 'question', text: a.title, fa: a.fa},
+            {template: 'message', text}
+        ]		
+		opts.push(...a.opts.map((o, i) => {
+			const id = 'opt-'+ i
+			callbacks[id] = async () => {
+				if(!o.url) return
+				if(o.url.indexOf('{email}') != -1) {
+					const email = await global.explorer.prompt(o.prompt || o.name, o.placeholder || '', '', false, o.fa, null)
+					o.url = o.url.replace('{email}', encodeURIComponent(email || ''))
+				}
+				if(o.confirmation) {
+					global.Download.get({
+						url: o.url,
+						retries: 10
+					}).catch(console.error)
+					global.explorer.info(o.name, o.confirmation)
+				} else {
+					global.ui.emit('open-external-url', o.url)
+				}
+			}
+			return {
+				template: 'option',
+				text: o.name,
+				details: o.details,
+				id,
+				fa: o.fa
+			}
+		}))
+		const id = await global.explorer.dialog(opts)
+		if(typeof(callbacks[id]) == 'function') await callbacks[id]()
+    }
 	async applyFilters(entries, path){
 		entries = await this.originalApplyFilters(entries, path)
 		if(Array.isArray(entries) && entries.length) {
 			const i = entries[0].type == 'back' ? 1 : 0
-			entries = entries.filter(e => e.hookId != 'emphasis')
+			entries = entries.filter(e => e.hookId != 'promoter')
 			entries.forEach((e, i) => { // clear
 				if(e.class && e.class.indexOf('entry-2x') != -1) {
 					entries[i].class = e.class.replace(new RegExp('(entry-2x|entry-cover|entry-force-cover)', 'g'), '')
@@ -78,15 +115,7 @@ class Emphasis {
 				}
 			}
 			if(entries[i]){
-				const prm = global.options.prm(true)
 				const hasIcon = entries[i].icon || (entries[i].programme && entries[i].programme.i)
-				if(!path && !hasIcon && !prm) {
-					const promo = await this.promote().catch(console.error)
-					if(promo && promo.url) {
-						entries = entries.filter(e => e.hookId != 'epg-history')
-						entries.unshift(promo)
-					}
-				}
 				if (!path || entries.length == (i + 1) || hasIcon) {
 					if (typeof (entries[i].class) == 'undefined') {
 						entries[i].class = ''
@@ -102,4 +131,4 @@ class Emphasis {
 	}
 }
 
-module.exports = Emphasis
+module.exports = Promoter

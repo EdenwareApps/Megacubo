@@ -195,7 +195,6 @@ const videoErrorTimeoutCallback = ret => {
     }
 }
 
-
 const init = (language, timezone) => {
     if(global.lang) return
     global.lang = new Language(language, global.config.get('locale'), global.APPDIR + '/lang', timezone)
@@ -224,7 +223,7 @@ const init = (language, timezone) => {
         const Downloads = require('./modules/downloads')
         const OMNI = require('./modules/omni')
         const Mega = require('./modules/mega')
-        const Emphasis = require('./modules/emphasis')
+        const Promoter = require('./modules/promoter')
 
         global.moment.locale(global.lang.locale)
         global.cloud = new Cloud()
@@ -264,21 +263,11 @@ const init = (language, timezone) => {
 			global.premium = new Premium()
 		}
 
-        new Emphasis()
+        promo = new Promoter()
         
         streamState = new StreamState()
-        streamState.on('state', (url, state) => {
-            if(!global.explorer.pages[global.explorer.path]) return
-            let source = ''
-            global.explorer.pages[global.explorer.path].some(e => {
-                if(e.url == url){
-                    source = e.source
-                    return true
-                }
-            })
-            if(source){
-                global.discovery.reportHealth(source, state != 'offline')
-            }
+        streamState.on('state', (url, state, source) => {
+            source && global.discovery.reportHealth(source, state != 'offline')
         })
 
         global.explorer.addFilter(global.channels.hook.bind(global.channels))

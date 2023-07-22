@@ -23,7 +23,7 @@ class StreamState extends Events {
         })
         global.streamer.on('connecting-failure', data => {
             if(data){
-                this.set(data.url, 'offline', true)
+                this.set(data.url, 'offline', true, { source: data.source })
             }
             if(global.config.get('auto-testing')){
                 this.test(global.explorer.currentStreamEntries()).catch(console.error)
@@ -32,7 +32,7 @@ class StreamState extends Events {
         global.streamer.on('commit', intent => {
             const url = intent.data.url
             this.cancelTests()
-            this.set(url, intent.type, true)
+            this.set(url, intent.type, true, { source: intent.data.source })
             if(this.data[url]){
                 const data = this.data[url]
                 if(data.position && data.position > 10 && (data.position < (data.duration - 30))){
@@ -45,7 +45,7 @@ class StreamState extends Events {
         })
         global.streamer.on('failure', data => {
             if(data){
-                this.set(data.url, 'offline', true)
+                this.set(data.url, 'offline', true, { source: data.source })
             }
         })
         global.streamer.on('stop', (err, e) => {
@@ -149,7 +149,7 @@ class StreamState extends Events {
                     }
                 }
                 if(changed){
-                    this.emit('state', url, state)
+                    this.emit('state', url, state, atts.source)
                     this.saveAsync()
                 }
             }
@@ -257,7 +257,7 @@ class StreamState extends Events {
                         if(typeof(state) == 'string'){
                             if(state && state != 'offline'){
                                 syncData[e.url] = state
-                                this.set(e.url, state)
+                                this.set(e.url, state, false, { source: e.source })
                             } else if(typeof(this.clientFailures[e.url]) != 'undefined') {
                                 syncData[e.url] = 'offline'
                             } else { // if did it failed previously, move to end of queue to try again after the untested ones
@@ -275,7 +275,7 @@ class StreamState extends Events {
             })
             global.ui.emit('sync-status-flags', syncData)
             if(!entries.length){
-                global.osd.show(global.lang.TESTING + ' 100%', 'fa-mega spin-x-alt', 'stream-state-tester', 'normal') 
+                autoTesting || global.osd.show(global.lang.TESTING + ' 100%', 'fa-mega spin-x-alt', 'stream-state-tester', 'normal') 
                 return resolve(true)
             }
             if(retest.length){
@@ -286,9 +286,7 @@ class StreamState extends Events {
             this.testing.on('success', this.success.bind(this))
             this.testing.on('failure', this.failure.bind(this))
             this.testing.on('progress', i => {
-                if(!autoTesting){
-                    global.osd.show(global.lang.TESTING + ' ' + i.progress + '%', 'fa-mega spin-x-alt', 'stream-state-tester', 'persistent') 
-                }
+                autoTesting || global.osd.show(global.lang.TESTING + ' ' + i.progress + '%', 'fa-mega spin-x-alt', 'stream-state-tester', 'persistent') 
             })
             this.testing.on('finish', () => {
                 if(this.testing){
@@ -309,10 +307,10 @@ class StreamState extends Events {
         })
     }
     success(entry, info){
-        this.set(entry.url, info.type)
+        this.set(entry.url, info.type, false, { source: entry.source })
     }
     failure(entry){
-        this.set(entry.url, 'offline')
+        this.set(entry.url, 'offline', false, { source: entry.source })
     }
     cancelTests(){
         if(this.testing){

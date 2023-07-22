@@ -260,8 +260,7 @@ class DownloadCacheMap extends Events {
         super()
         this.index = {}
         this.debug = false
-        this.minDiskAllocation = 96 * (1024 * 1024) // 96MB
-        this.maxDiskAllocation = 512 * (1024 * 1024) // 512MB
+        this.maxDiskUsage = 512 * (1024 * 1024) // 512MB
         this.maxMaintenanceInterval = 60
         this.folder = global.storage.folder +'/dlcache'
         this.indexFile = this.folder +'/index.json'
@@ -367,23 +366,17 @@ class DownloadCacheMap extends Events {
         if(!now){
             now = global.time()
         }
-        if(global.diag && !this.diskSpaceChecked) {
-            // use 10% of free space, limited to 1GB, at least 100MB
-            this.diskSpaceChecked = true
-            const nfo = await global.diag.checkDisk()
-            this.maxDiskUsage = Math.min(Math.max(nfo.free / 10, this.minDiskAllocation), this.maxDiskAllocation)
-        }
         expired = Object.keys(this.index).map(url => {
             return {
                 ttl: this.index[url].ttl,
                 url
             }
         }).sortByProp('ttl', true).filter(row => {
-            if(now > row.ttl){
+            if(now > row.ttl) {
                 return true // expired
             }
             diskUsage += this.index[row.url].size
-            if(diskUsage >= this.maxDiskUsage){
+            if(diskUsage >= this.maxDiskUsage) {
                 return true // freeup
             }
             if(nextRun <= 0 || nextRun > this.index[row.url].ttl) {

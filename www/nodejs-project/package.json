@@ -1,88 +1,87 @@
 {
-   "bugs": "https://www.facebook.com/messages/t/MegacuboTV",
-   "dependencies": {
-      "@fortawesome/fontawesome-free": "^6.4.0",
-      "@geut/discovery-swarm-webrtc": "github:geut/discovery-swarm-webrtc",
-      "adm-zip": "github:efoxbr/adm-zip",
-      "agentkeepalive": "^4.3.0",
-      "async": "^3.2.4",
-      "bl": "^6.0.1",
-      "buffer-split": "^1.0.0",
-      "buzz": "^1.2.1",
-      "bytenode": "github:efoxbr/bytenode",
-      "check-disk-space": "^3.3.1",
-      "color-thief-jimp": "^2.0.2",
-      "country-language": "^0.1.7",
-      "decode-entities": "^1.0.7",
-      "env-paths": "^2.2.1",
-      "formidable": "^2.1.1",
-      "fs-chmod": "^1.0.6",
-      "get-folder-size": "^2.0.1",
-      "hls.js": "^1.3.5",
-      "http-cookie-agent": "^5.0.2",
-      "jimp": "^0.22.7",
-      "jquery": "^3.6.4",
-      "m3u8-parser": "^6.0.0",
-      "moment": "^2.29.4",
-      "moment-timezone": "^0.5.42",
-      "mpegts.js": "^1.7.2",
-      "node-cleanup": "^2.1.2",
-      "nw-custom-frame": "github:efoxbr/nw-custom-frame",
-      "p-queue": "^6.6.2",
-      "range-parser": "^1.2.1",
-      "read-last-lines": "^1.8.0",
-      "resize-observer": "^1.0.4",
-      "rimraf": "^3.0.2",
-      "safe-buffer": "^5.2.1",
-      "sanitize-filename": "^1.6.3",
-      "stoppable": "^1.1.0",
-      "swipey.js": "^1.0.3",
-      "tough-cookie": "^4.1.2",
-      "url-search-params-polyfill": "^8.1.1",
-      "ws": "^8.13.0",
-      "xmltv": "github:efoxbr/node-xmltv",
-      "ytdl-core": "^4.11.2",
-      "ytsr": "^3.8.0"
-   },
-   "description": "A intuitive, multi-language and cross-platform IPTV player.",
-   "name": "megacubo",
-   "icon": "./default_icon.png",
-   "version": "17.0.6",
-   "theme": {
-      "fullScreen": true
-   },
-   "permission": [
-      "<all_urls>",
-      "alwaysOnTopWindows",
-      "http://*/",
-      "https://*/"
-   ],
-   "main": "main.js",
-   "chromium-args": "--enable-node-worker --enable-features=PlatformHEVCDecoderSupport --experimental-worker --ignore-urlfetcher-cert-requests --tls13-variant=disabled --disable-web-security --allow-hidden-media-playback --disable-background-timer-throttling --proxy-auto-detect --no-zygote --no-sandbox --enable-gpu-async-worker-context --password-store=basic --force-device-scale-factor=1 --process-per-tab --enable-smooth-scrolling --disable-crash-handler=true --disable-breakpad --no-experiments --no-pings --disable-transparency --enable-experimental-web-platform-features --remote-debugging-port=9229  --disable-features=IsolateOrigins,site-per-process,nw2,NetworkPrediction",
-   "js-flags": "--max_old_space_size=2048",
-   "webkit": {
-      "page-cache": true
-   },
-   "window": {
-      "icon": "default_icon.png",
-      "position": "center",
-      "title": "Megacubo",
-      "frame": false,
-      "height": 562,
-      "width": 1000,
-      "show": true,
-      "transparent": false
-   },
-   "bin": {
-      "megacubo": "./bin.js",
-      "megacubo-debug": "./bin-debug.js"
-   },
-   "scripts": {
-      "start": "electron .",
-      "debug": "electron --inspect .",
-      "lint": "echo \"No linting configured\""
-   },
-   "devDependencies": {
-      "electron": "^9.1.2"
-   }
+  "bugs": "https://www.facebook.com/messages/t/MegacuboTV",
+  "dependencies": {
+    "@fortawesome/fontawesome-free": "^6.4.0",
+    "@geut/discovery-swarm-webrtc": "github:geut/discovery-swarm-webrtc",
+    "adm-zip": "github:efoxbr/adm-zip",
+    "agentkeepalive": "^4.3.0",
+    "async": "^3.2.4",
+    "bl": "^6.0.1",
+    "buzz": "^1.2.1",
+    "bytenode": "github:efoxbr/bytenode",
+    "check-disk-space": "^3.3.1",
+    "color-thief-jimp": "^2.0.2",
+    "country-language": "^0.1.7",
+    "decode-entities": "^1.0.7",
+    "env-paths": "^2.2.1",
+    "formidable": "^2.1.1",
+    "fs-chmod": "^1.0.6",
+    "get-folder-size": "^2.0.1",
+    "hls.js": "^1.3.5",
+    "http-cookie-agent": "^5.0.2",
+    "jimp": "^0.22.7",
+    "jquery": "^3.6.4",
+    "m3u8-parser": "^6.0.0",
+    "moment": "^2.29.4",
+    "moment-timezone": "^0.5.42",
+    "mpegts.js": "^1.7.2",
+    "node-cleanup": "^2.1.2",
+    "nw-custom-frame": "github:efoxbr/nw-custom-frame",
+    "p-queue": "^6.6.2",
+    "range-parser": "^1.2.1",
+    "read-last-lines": "^1.8.0",
+    "resize-observer": "^1.0.4",
+    "rimraf": "^3.0.2",
+    "safe-buffer": "^5.2.1",
+    "sanitize-filename": "^1.6.3",
+    "stoppable": "^1.1.0",
+    "swipey.js": "^1.0.3",
+    "tough-cookie": "^4.1.2",
+    "url-search-params-polyfill": "^8.1.1",
+    "ws": "^8.13.0",
+    "xmltv": "github:efoxbr/node-xmltv",
+    "ytdl-core": "^4.11.2",
+    "ytsr": "^3.8.0"
+  },
+  "description": "A intuitive, multi-language and cross-platform IPTV player.",
+  "name": "megacubo",
+  "icon": "./default_icon.png",
+  "version": "17.0.7",
+  "theme": {
+    "fullScreen": true
+  },
+  "permission": [
+    "<all_urls>",
+    "alwaysOnTopWindows",
+    "http://*/",
+    "https://*/"
+  ],
+  "main": "main.js",
+  "chromium-args": "--enable-node-worker --enable-features=PlatformHEVCDecoderSupport --experimental-worker --ignore-urlfetcher-cert-requests --tls13-variant=disabled --disable-web-security --allow-hidden-media-playback --disable-background-timer-throttling --proxy-auto-detect --no-zygote --no-sandbox --enable-gpu-async-worker-context --password-store=basic --force-device-scale-factor=1 --process-per-tab --enable-smooth-scrolling --disable-crash-handler=true --disable-breakpad --no-experiments --no-pings --disable-transparency --enable-experimental-web-platform-features --remote-debugging-port=9229  --disable-features=IsolateOrigins,site-per-process,nw2,NetworkPrediction",
+  "js-flags": "--max_old_space_size=2048",
+  "webkit": {
+    "page-cache": true
+  },
+  "window": {
+    "icon": "default_icon.png",
+    "position": "center",
+    "title": "Megacubo",
+    "frame": false,
+    "height": 562,
+    "width": 1000,
+    "show": true,
+    "transparent": false
+  },
+  "bin": {
+    "megacubo": "./bin.js",
+    "megacubo-debug": "./bin-debug.js"
+  },
+  "scripts": {
+    "start": "electron .",
+    "debug": "electron --inspect .",
+    "lint": "echo \"No linting configured\""
+  },
+  "devDependencies": {
+    "electron": "^9.1.2"
+  }
 }

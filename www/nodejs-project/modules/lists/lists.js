@@ -43,9 +43,7 @@ class ListsEPGTools extends Index {
 		}
 	}
 	async epg(channelsList, limit){
-		if(!this._epg){
-			throw 'no epg 0'
-		}
+		if(!this._epg) throw 'no epg 0'
 		let data
 		const { progress, state, error } = await this._epg.getState()
 		if(error) {
@@ -69,33 +67,23 @@ class ListsEPGTools extends Index {
 		return data	
 	}
 	async epgExpandSuggestions(categories){
-		if(!this._epg){
-			throw 'no epg 1'
-		}
+		if(!this._epg) throw 'no epg 1'
 		return await this._epg.expandSuggestions(categories)
 	}
 	async epgSuggestions(categories, until, limit, searchTitles){
-		if(!this._epg){
-			throw 'no epg 2'
-		}
+		if(!this._epg) throw 'no epg 2'
 		return await this._epg.getSuggestions(categories, until, limit, searchTitles)
 	}
 	async epgSearch(terms, nowLive){
-		if(!this._epg){
-			throw 'no epg 3'
-		}
+		if(!this._epg) throw 'no epg 3'
 		return await this._epg.search(this.applySearchRedirects(terms), nowLive)
 	}
 	async epgSearchChannel(terms){
-		if(!this._epg){
-			throw 'no epg 4'
-		}
+		if(!this._epg) throw 'no epg 4'
 		return await this._epg.searchChannel(this.applySearchRedirects(terms))
 	}
 	async epgSearchChannelIcon(terms){
-		if(!this._epg){
-			throw 'no epg 5'
-		}
+		if(!this._epg) throw 'no epg 5'
 		return await this._epg.searchChannelIcon(this.applySearchRedirects(terms))
 	}
 	async epgFindChannel(data){
@@ -175,7 +163,12 @@ class Lists extends ListsEPGTools {
 		this.queue = new PQueue({ concurrency: 2 })
 		global.config.on('change', keys => {
 			keys.includes('lists') && this.configChanged()
-		})		
+		})
+		global.uiReady(() => {
+			global.channels.on('channel-grid-updated', keys => {
+				this._relevantKeywords = null
+			})
+		})	
         this.on('satisfied', () => {
             if(this.activeLists.length){
                 this.queue._concurrency = 1 // try to change pqueue concurrency dinamically
@@ -236,7 +229,7 @@ class Lists extends ListsEPGTools {
 		return this.isUpdaterFinished
 	}
     async relevantKeywords(refresh) { // pick keywords that are relevant for the user, it will be used to choose community lists
-		if(!refresh && this._relevantKeywords) return this._relevantKeywords
+		if(!refresh && Array.isArray(this._relevantKeywords) && this._relevantKeywords.length) return this._relevantKeywords
         const badTerms = ['m3u8', 'ts', 'mp4', 'tv', 'channel']
         let terms = [], addTerms = (tms, score) => {
             if(typeof(score) != 'number'){
@@ -334,7 +327,7 @@ class Lists extends ListsEPGTools {
         return hits
     }
 	status(url=''){
-		let progress = 0, firstRun = true, satisfyAmount = this.myLists.length				
+		let progress = 0, firstRun = this.isFirstRun, satisfyAmount = this.myLists.length				
 		const isUpdatingFinished = this.isUpdaterFinished && !this.queue._pendingCount
 		const communityListsAmount = global.config.get('communitary-mode-lists-amount')
 		const progresses = this.myLists.map(url => this.lists[url] ? this.lists[url].progress() : 0)

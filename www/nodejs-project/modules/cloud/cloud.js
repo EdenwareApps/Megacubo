@@ -10,7 +10,7 @@ class CloudConfiguration {
             'searching': 6 * 3600,
             'channels': 6 * 3600,
             'configure': 3600,
-            'promote': 300,
+            'promo': 300,
             'country-sources': 6 * 3600,
             'watching-country': 300
         }
@@ -29,7 +29,7 @@ class CloudConfiguration {
         throw 'Bad config server URL'
     }
     url(key){
-        if(['configure', 'promote', 'themes'].includes(key)){
+        if(['configure', 'promo', 'themes'].includes(key)){
             return this.server + '/' + key + '.json'
         } else if(key.indexOf('/') != -1 || key.indexOf('.') != -1) {
             return this.server + '/stats/data/' + key + '.json'

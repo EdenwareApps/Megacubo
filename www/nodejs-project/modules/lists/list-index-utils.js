@@ -14,11 +14,11 @@ class ListIndexUtils extends Events {
         }
     }
     sniffStreamType(e){
-        if(e.name.match(this.seriesRegex)){
+        if(e.name.match(this.seriesRegex)) {
             return 'series'
-        } else if(e.url.match(this.vodRegex)){
+        } else if(e.url.match(this.vodRegex)) {
             return 'vod'
-        } else if(e.url.match(this.liveRegex)){
+        } else if(e.url.match(this.liveRegex)) {
             return 'live'
         }
     }
@@ -78,40 +78,29 @@ class ListIndexUtils extends Events {
             })
         })
     }
-    async readLastLine(file) {         
-        let bufferSize = 1024
-        let self = {
-            stat: null,
-            file: null,
-        }
-        self.stat = await fs.promises.stat(file)
-        self.file = await fs.promises.open(file, 'r')
-        let chars = 0
-        let lineCount = 0
-        let lines = ''
-        while(true){
-            if (lines.length > self.stat.size) {
-                lines = lines.substring(lines.length - self.stat.size)
-            }
-            if (lines.length >= self.stat.size || lineCount >= 1) {
-                let pos = lines.indexOf("\n")
-                if (pos != -1) {
-                    lines = lines.substring(pos + 1);
-                }
-                self.file.close()
-                self.file = null
+    async readLastLine(filePath) {
+        const bufferSize = 1024
+        const { size } = await fs.promises.stat(filePath)
+        const fd = await fs.promises.open(filePath, 'r')
+        let line = ''
+        let readPosition = Math.max(size - bufferSize, 0)
+        while(readPosition >= 0){
+            const readSize = Math.min(bufferSize, size - readPosition)
+            const nextChunk = await fd.read(Buffer.alloc(readSize), 0, readSize, readPosition)
+            const content = String(nextChunk.buffer)
+            line = content + line
+            const pos = content.lastIndexOf("\n")
+            if (pos != -1) {
+                line = line.substring(pos + 1)
                 break
             }
-            let readSize = Math.min(bufferSize, self.stat.size - chars)
-            let nextChunk = await self.file.read(Buffer.alloc(readSize), 0, readSize, self.stat.size - readSize - chars)
-            let chunk = String(nextChunk.buffer)
-            lines = chunk + lines
-            if (chunk.indexOf("\n") != -1 && lines.length > 1) {
-                lineCount++;
+            if(!nextChunk.bytesRead) {
+                break
             }
-            chars += nextChunk.bytesRead
+            readPosition -= nextChunk.bytesRead
         }
-        return lines.split("\n").pop()
+        await fd.close().catch(console.error)
+        return line
     }
     async readIndex(){
         let line = await this.readLastLine(this.file)

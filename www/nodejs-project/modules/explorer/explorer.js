@@ -106,7 +106,7 @@ class Explorer extends Events {
             }
         }).catch(global.displayErr)
     }
-    updateHomeFilters(){
+    async updateHomeFilters(){
         this.applyFilters(this.pages[''], '').then(es => {
             this.pages[''] = es
             if(this.path == ''){
@@ -538,6 +538,15 @@ class Explorer extends Events {
         }
         this.emit('open', destPath)
         let parentEntry, name = this.basename(destPath), parentPath = this.dirname(destPath)
+        if(Array.isArray(this.pages[parentPath])) {
+            const i = this.pages[parentPath].findIndex(e => e.name == name)
+            if(i != -1) {
+                const e = this.pages[parentPath][i]
+                if(e.url && (!e.type || e.type == 'stream')) { // force search results to open directly
+                    return this.action(destPath, tabindex)
+                }
+            }
+        }
         let finish = async es => {
             if(backInSelect && parentEntry && parentEntry.type == 'select'){
                 if(this.opts.debug){

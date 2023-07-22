@@ -440,7 +440,7 @@ class StreamerBase extends StreamerTools {
 			if(!err){ // stopped with no error
 				let longWatchingThreshold = 15 * 60, watchingDuration = (global.time() - this.active.commitTime)
 				console.log('STREAMER->STOP', watchingDuration, this.active.commitTime)
-				if(this.active.commitTime && watchingDuration > longWatchingThreshold){
+				if(this.active.commitTime && watchingDuration > longWatchingThreshold) {
 					global.ui.emit('streamer-long-watching', watchingDuration)
 					this.emit('streamer-long-watching', watchingDuration)
 				}
@@ -1012,12 +1012,6 @@ class Streamer extends StreamerAbout {
 		})
 		return ret
 	}
-    hlsOnly(entries){
-        let nentries = entries.filter(a => {
-			return this.ext(a.url) == 'm3u8'
-		})
-		return nentries.length ? nentries : entries
-    }
 	async playFromEntries(entries, name, megaURL, txt, connectId, mediaType, preferredStreamURL, silent){
 		if(this.opts.shadow){
 			throw 'in shadow mode'
@@ -1137,10 +1131,6 @@ class Streamer extends StreamerAbout {
 			}		
 			//console.warn('ABOUT TO TUNE', name, JSON.stringify(entries), opts)
 			entries = entries.results		
-			if(opts.hlsOnly === true){
-				entries = this.hlsOnly(entries)
-			}
-			//console.warn('ABOUT TO TUNE', name, opts, entries.length)
 			if(entries.length){
 				entries = entries.map(s => {
 					s.originalName = name
@@ -1261,9 +1251,7 @@ class Streamer extends StreamerAbout {
 			this.stop({err: r, trace})
 		}
 		this.emit('failure', e)		
-		if(this.opts.shadow){
-			return
-		}
+		if(this.opts.shadow) return
 		if(this.zap.isZapping){
 			c = 'stop'
 		} else if(c != 'tune' && e && (global.tuning && global.tuning.has(e.url))){
@@ -1273,20 +1261,17 @@ class Streamer extends StreamerAbout {
 			this.handleFailureMessage(r)
 		}
 		console.error('handleFailure', r, c, e)
-		if(c == 'stop'){
-			return
-		} else {
-			if(!e){
-				return false
-			}
-			if(!global.mega.isMega(e.url)){
-				if(!this.tune(e)){
-					if(!global.config.get('play-while-loading')){
-						this.stop({err: 'tune failure', trace})
-					}
+		if(c != 'stop'){
+			if(e && !global.mega.isMega(e.url)){
+				if(this.tune(e)){
+					return
+				}
+				if(!global.config.get('play-while-loading')){
+					this.stop({err: 'tune failure', trace})
 				}
 			}
 		}
+		this.emit('hard-failure', c, e)
 	}
 	humanizeFailureMessage(r){
 		r = String(r)

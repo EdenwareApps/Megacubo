@@ -996,12 +996,21 @@ class Manager extends ManagerEPG {
         const c = global.config.get('communitary-mode-lists-amount')
         const m = p.progress ? (global.lang[p.firstRun ? 'STARTING_LISTS_FIRST_TIME_WAIT' : 'UPDATING_LISTS'] +' '+ p.progress +'%') : (c ? global.lang.SEARCH_COMMUNITY_LISTS : global.lang.STARTING_LISTS)
         
+        if(!this.receivedCommunityListsListener) {
+            this.receivedCommunityListsListener = () => { // live update received lists view
+                if(global.explorer.path && global.explorer.basename(global.explorer.path) == global.lang.RECEIVED_LISTS) {
+                    global.explorer.refresh()
+                }
+            }
+            this.master.on('status', this.receivedCommunityListsListener)
+        }
+
         if(p.satisfied || this.isUpdating || (!p.length && !c)) return
 
         let lastProgress = 0
         const listener = c => p = c
         const processStatus = p => {
-            if(lastProgress === p.progress) return
+            if(lastProgress == p.progress) return
             lastProgress = p.length ? p.progress : 0
             let m, fa = 'fa-mega spin-x-alt', duration = 'persistent'
             if(p.satisfied) {
@@ -1009,6 +1018,7 @@ class Manager extends ManagerEPG {
                 delete this.isUpdating
                 if(p.length) {
                     m = global.lang.LISTS_UPDATED
+                    this.master.isFirstRun = false
                 } else {
                     m = -1 // do not show 'lists updated' message yet
                 }
@@ -1025,12 +1035,16 @@ class Manager extends ManagerEPG {
             }
             if(global.explorer && global.explorer.currentEntries) {
                 const updateEntryNames = [global.lang.PROCESSING, global.lang.UPDATING_LISTS, global.lang.STARTING_LISTS]
-                const updateBaseNames = [global.lang.TRENDING, global.lang.COMMUNITY_LISTS, global.lang.RECEIVED_LISTS]
+                const updateBaseNames = [global.lang.TRENDING, global.lang.COMMUNITY_LISTS]
                 if(
                     updateBaseNames.includes(global.explorer.basename(global.explorer.path)) || 
                     global.explorer.currentEntries.some(e => updateEntryNames.includes(e.name))
                 ) {
-                    global.explorer.refreshNow()
+                    if(m == -1) {
+                        global.explorer.refreshNow()
+                    } else {
+                        global.explorer.refresh()
+                    }                    
                 } else if(this.inChannelPage()) {
                     this.maybeRefreshChannelPage()
                 }
@@ -1043,22 +1057,6 @@ class Manager extends ManagerEPG {
         }, 1000)
 
         global.osd.show(m, 'fa-mega spin-x-alt', 'update-progress', 'persistent')
-    }
-    noListsRetryDialog(err){
-        if(global.Download.isNetworkConnected) {
-            const opts = [
-                {template: 'question', text: global.lang.NO_COMMUNITY_LISTS_FOUND, fa: 'fas fa-users'},
-                {template: 'message', text: String(err)},
-                {template: 'option', id: 'retry', fa: 'fas fa-redo', text: global.lang.RETRY},
-                {template: 'option', id: 'list-open', fa: 'fas fa-plus-square', text: global.lang.ADD_LIST}
-            ]
-            if(!err){
-                opts.splice(1, 1)
-            }
-            global.ui.emit('dialog', opts, 'lists-manager', 'retry', true) 
-        } else {
-            global.displayErr(global.lang.NO_INTERNET_CONNECTION)
-        }
     }
     noListsEntry(){        
         if(global.config.get('communitary-mode-lists-amount') > 0){
@@ -1115,7 +1113,8 @@ class Manager extends ManagerEPG {
         if(offerCommunityMode){
             extraOpts.push({template: 'option', text: global.lang.COMMUNITY_LISTS, fa: 'fas fa-users', id: 'sh'})
         }
-        let id = await global.explorer.prompt(global.lang.ASK_IPTV_LIST, 'http://', '', true, 'fas fa-info-circle', null, extraOpts)
+        extraOpts.push({template: 'option', text: global.lang.ADD_MAC_ADDRESS, fa: 'fas fa-hard-drive', id: 'mac'})
+        let id = await global.explorer.prompt(global.lang.ASK_IPTV_LIST, 'http://', '', true, 'fas fa-plus-square', null, extraOpts)
         if(id == 'file'){
             return await this.addListDialogFile()
         } else if(id == 'code') {
@@ -1127,6 +1126,8 @@ class Manager extends ManagerEPG {
             } else {
                 return await this.addListDialog(offerCommunityMode)
             }
+        } else if(id == 'mac') {
+            return await this.addListMacDialog()
         } else {
             return await this.addList(id)
         }
@@ -1168,13 +1169,90 @@ class Manager extends ManagerEPG {
         const url = server +'/get.php?username='+ encodeURIComponent(user) +'&password='+ encodeURIComponent(pass) +'&output=ts&type=m3u_plus'
         return await this.addList(url)
     }
+    async addListMacDialog() {
+        // 00-22-18-FB-7A-12”, “0022.18FB.7A12” e “00:22:18:FB:7A:12”
+        const macAddress = this.formatMacAddress(await global.explorer.prompt(global.lang.MAC_ADDRESS, global.lang.MAC_ADDRESS, '00:00:00:00:00:00', false, 'fas fa-hard-drive', '', []))
+        if(!macAddress || macAddress.length != 17) throw 'Invalid MAC address'
+        let server = await global.explorer.prompt(global.lang.PASTE_SERVER_ADDRESS, 'http://host:port', '', false, 'fas fa-globe', '', [])
+        if(!server) throw 'Invalid server provided'
+        if(server.charAt(server.length - 1) == '/') {
+            server = server.substr(0, server.length - 1)
+        }
+        const url = await this.getM3UPlaylistForMac(macAddress, server)
+        return await this.addList(url)
+    }
+    formatMacAddress(str) {
+        const mask = []
+        const filteredStr = str.replace(new RegExp('[^0-9a-fA-F]', 'g'), '').toUpperCase()
+        for (let i = 0; i < 12; i += 2) {
+            mask.push(filteredStr.substr(i, 2))
+        }
+        return mask.join(':').substr(0, 17)
+    }
+    async getM3UPlaylistForMac(mac, baseUrl) {
+        const macAddress = encodeURIComponent(mac)
+        const tokenUrl = '/portal.php?action=handshake&type=stb&token='
+        const profileUrl = '/portal.php?type=stb&action=get_profile'
+        const listUrl = '/portal.php?action=get_ordered_list&type=vod&p=1&JsHttpRequest=1-xml'
+        const firstToken  = (await global.Download.get({
+            url: baseUrl + tokenUrl,
+            responseType: 'json'
+        })).js.token
+        const secondToken = (await global.Download.get({
+            url: baseUrl + tokenUrl,
+            responseType: 'json',
+            headers: {
+                'authorization': 'Bearer '+ firstToken,
+                'cookie': 'mac='+ macAddress +'; stb_lang=en; timezone=Europe%2FAmsterdam'
+            }
+        })).js.token
+        /*
+        const profileId = await global.Download.get({ // is this call required?
+            url: baseUrl + profileUrl,
+            responseType: 'json',
+            headers: {
+                'authorization': 'Bearer '+ secondToken,
+                'cookie': 'mac='+ macAddress +'; stb_lang=en; timezone=Europe%2FAmsterdam'
+            }
+        }).js.id
+        if (typeof(profileId) === 'undefined') throw 'Profile not found'
+        */       
+        await global.Download.get({ // is this call required for auth?
+            url: baseUrl + profileUrl,
+            responseType: 'json',
+            headers: {
+                'authorization': 'Bearer '+ secondToken,
+                'cookie': 'mac='+ macAddress +'; stb_lang=en; timezone=Europe%2FAmsterdam'
+            }
+        })
+        const list = await global.Download.get({
+            url: baseUrl + listUrl, 
+            responseType: 'json',
+            headers: {
+                'authorization': 'Bearer '+ secondToken,
+                'cookie': 'mac='+ macAddress +'; stb_lang=en; timezone=Europe%2FAmsterdam'
+        }})
+        const cmd = list.js.data[0].cmd
+        const commandUrl = '/portal.php?action=create_link&type=vod&cmd='+ cmd +'a&JsHttpRequest=1-xml'
+        const res = (await global.Download.get({
+            url: baseUrl + commandUrl,
+            responseType: 'json',
+            headers: {
+                'authorization': 'Bearer '+ secondToken,
+                'cookie': 'mac='+ macAddress +'; stb_lang=en; timezone=Europe%2FAmsterdam'
+            }
+        })).js.cmd.split('/')
+        if (res.length < 6) return false
+        const usr = res[4], pw = res[5]
+        return baseUrl +'/get.php?username='+ encodeURIComponent(usr) +'&password='+ encodeURIComponent(pw) +'&type=m3u&output=ts'
+    }     
     isListExpired(url){
         if(this.master.loader.results[url]){
             const ret = String(this.master.loader.results[url] || '')
             return ret.substr(0, 6) == 'failed' && ['401', '403', '404', '410'].includes(result.substr(-3))
         }        
     }
-    myListsEntry(){
+    myListsEntry(manageOnly){
         return {
             name: global.lang.MY_LISTS, 
             details: global.lang.IPTV_LISTS, 
@@ -1199,14 +1277,59 @@ class Manager extends ManagerEPG {
                         type: 'group',
                         class: 'skip-testing',
                         renderer: async () => {
-                            let es = await this.directListRenderer({url}, {
+                            let es = []
+                            const options = [
+                                {
+                                    name: global.lang.RENAME, 
+                                    fa: 'fas fa-edit', 
+                                    type: 'input', 
+                                    class: 'skip-testing', 
+                                    action: (e, v) => {
+                                        if(v !== false){
+                                            let path = global.explorer.path, parentPath = global.explorer.dirname(global.explorer.dirname(path))
+                                            if(path.indexOf(name) != -1){
+                                                path = path.replace('/'+ name, '/'+ v)
+                                            } else {
+                                                path = false
+                                            }
+                                            name = v
+                                            this.rename(url, v)
+                                            if(path){
+                                                delete global.explorer.pages[parentPath]
+                                                global.explorer.open(path).catch(global.displayErr)
+                                            } else {
+                                                global.explorer.back(1, true)
+                                            }
+                                        }
+                                    },
+                                    value: () => {
+                                        return name
+                                    },
+                                    safe: true
+                                },
+                                {
+                                    name: global.lang.RELOAD, 
+                                    fa: 'fas fa-sync', 
+                                    type: 'action', url, 
+                                    class: 'skip-testing', 
+                                    action: this.refreshList.bind(this)
+                                },
+                                {
+                                    name: global.lang.REMOVE_LIST, 
+                                    fa: 'fas fa-trash', 
+                                    type: 'action', url, 
+                                    class: 'skip-testing', 
+                                    action: this.removeList.bind(this)
+                                }
+                            ]
+                            if(manageOnly) return options
+                            es = await this.directListRenderer({url}, {
                                 raw: true,
                                 fetch: false
                             }).catch(err => global.displayErr(err))
                             if(!Array.isArray(es)){
                                 es = []
-                            }
-                            if(es && es.length){
+                            } else if(es.length) {
                                 es = this.master.parentalControl.filter(es)
                                 es = await this.master.tools.deepify(es,  {source: url})  
                             }
@@ -1214,50 +1337,7 @@ class Manager extends ManagerEPG {
                                 name: global.lang.OPTIONS,
                                 fa: 'fas fa-edit', 
                                 type: 'select',
-                                entries: [
-                                    {
-                                        name: global.lang.RENAME, 
-                                        fa: 'fas fa-edit', 
-                                        type: 'input', 
-                                        class: 'skip-testing', 
-                                        action: (e, v) => {
-                                            if(v !== false){
-                                                let path = global.explorer.path, parentPath = global.explorer.dirname(global.explorer.dirname(path))
-                                                if(path.indexOf(name) != -1){
-                                                    path = path.replace('/'+ name, '/'+ v)
-                                                } else {
-                                                    path = false
-                                                }
-                                                name = v
-                                                this.rename(url, v)
-                                                if(path){
-                                                    delete global.explorer.pages[parentPath]
-                                                    global.explorer.open(path).catch(global.displayErr)
-                                                } else {
-                                                    global.explorer.back(1, true)
-                                                }
-                                            }
-                                        },
-                                        value: () => {
-                                            return name
-                                        },
-                                        safe: true
-                                    },
-                                    {
-                                        name: global.lang.RELOAD, 
-                                        fa: 'fas fa-sync', 
-                                        type: 'action', url, 
-                                        class: 'skip-testing', 
-                                        action: this.refreshList.bind(this)
-                                    },
-                                    {
-                                        name: global.lang.REMOVE_LIST, 
-                                        fa: 'fas fa-trash', 
-                                        type: 'action', url, 
-                                        class: 'skip-testing', 
-                                        action: this.removeList.bind(this)
-                                    }
-                                ]
+                                entries: options
                             })
                             return es
                         }

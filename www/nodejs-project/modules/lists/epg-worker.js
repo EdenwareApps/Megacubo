@@ -1,5 +1,4 @@
-const ListsCommon = require('../lists/common')
-const xmltv = require('xmltv')
+const ListsCommon = require('../lists/common'), xmltv = require('xmltv')
 const Events = require('events'), utils = require('../multi-worker/utils')
 
 class EPGPaginateChannelsList extends Events {
@@ -10,17 +9,16 @@ class EPGPaginateChannelsList extends Events {
             ['H.264', null],
             ['H265', null],
             ['H264', null],
-            ['SD', null],
-            ['HD', null],
             ['FHD', null],
+            ['HD', null],
+            ['SD', null],
             ['2K', null],
             ['4K', null],
             ['8K', null]
         ])
     }
     prepareChannelName(name){
-        const badTerms = ['H.265', 'H.264', 'H265', 'H264', 'SD', 'HD', 'FHD', '2K', '4K', '8K']
-        return global.ucWords(name.split('[')[0].split(' ').filter(s => s && !badTerms.has(s.toUpperCase())).join(' '))
+        return global.ucWords(name.split('[')[0].split(' ').filter(s => s && !this.badTerms.has(s.toUpperCase())).join(' '))
     }
     isASCIIChar(chr){
         let c = chr.charCodeAt(0)

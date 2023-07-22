@@ -210,21 +210,32 @@ class ChannelsCategories extends ChannelsData {
             return await this.getEPGCategories()
         }
         let data = {}, weighted = true
-        const completed = () => this.mapSize(data) >= amount
         const countries = await global.lang.getActiveCountries(0)
-        const limit = pLimit(2)
-        const tasks = () => countries.map((country, i) => {
-            return limit(async () => {
-                let err
-                const map = await global.cloud.get('channels/' + country).catch(e => err = e)
-                if(completed()) throw 'completed'
-                if (!err) {
-                    data = await this.applyMapCategories(map, data, amount, i ? weighted : false)
-                    if(completed()) throw 'completed'
-                }
-            })
-        })
-        await Promise.allSettled(tasks()).catch(console.error)
+        const completed = c => {
+            return this.mapSize(data) >= amount
+        }
+        const processCountry = async country => {
+            let err
+            if(completed()) throw 'completed'
+            const map = await global.cloud.get('channels/' + country).catch(e => err = e)
+            if(completed()) throw 'completed'
+            if (!err) {
+                const isMainCountry = countries[0] == country
+                data = await this.applyMapCategories(map, data, amount, isMainCountry ? false : weighted)
+            }
+        }
+        if(countries.length) {
+            await processCountry(countries[0])
+            if(countries.length > 1) {
+                const limit = pLimit(2)
+                const tasks = () => countries.slice(1).map(country => {
+                    return limit(async () => {
+                        return await processCountry(country)
+                    })
+                })
+                await Promise.allSettled(tasks()).catch(console.error)
+            }
+        }
         if(!completed()){
             data = {}
             weighted = false
@@ -1369,6 +1380,7 @@ class Channels extends ChannelsKids {
         global.osd.show(global.lang.PROCESSING, 'fas fa-circle-notch fa-spin', 'channel-grid', 'persistent')
         global.config.set('channel-grid', type)
         this.load(() => {
+            this.emit('channel-grid-updated')
             global.explorer.once('render', () => {
                 global.osd.show('OK', 'fas fa-check-circle faclr-green', 'channel-grid', 'normal')
             })
@@ -1551,6 +1563,7 @@ class Channels extends ChannelsKids {
             }
             entries.push(...[
                 this.exportImportOption(),
+                global.lists.manager.myListsEntry(true),
                 {name: global.lang.EPG, fa: this.epgIcon, type: 'action', details: 'EPG', action: () => {
                     global.ui.emit('prompt', global.lang.EPG, 'http://.../epg.xml', this.loadedEPG, 'set-epg', false, this.epgIcon)
                 }},
@@ -1654,26 +1667,21 @@ class Channels extends ChannelsKids {
                 fa: isSeries ? 'fas fa-play-circle' : undefined,
                 renderer: async () => {
                     let entries = await global.lists.group(group).catch(console.error)
-                    console.warn('GROUP='+ JSON.stringify({group, entries}))
                     if(Array.isArray(entries)) {
                         if(acpolicy == 'block'){
                             entries = global.lists.parentalControl.filter(entries)
                         }
-                        console.warn('GROUP*='+ JSON.stringify({group, entries}))
-                        if(entries.length){
-                            entries = await global.lists.tools.deepify(entries, {source: group.url})
-                            if(entries.length == 1){
-                                if(entries[0].entries){
-                                    return entries[0].entries
-                                } else if(typeof(entries[0].renderer) == 'function') {
-                                    return await entries[0].renderer(entries[0])
-                                } else if(typeof(entries[0].renderer) == 'string') {
-                                    return await global.storage.temp.promises.get(entries[0].renderer)
-                                }
+                        entries = await global.lists.tools.deepify(entries, {source: group.url})
+                        while(entries.length == 1 && entries[0].type == 'group'){
+                            if(entries[0].entries){
+                                entries = entries[0].entries
+                            } else if(typeof(entries[0].renderer) == 'function') {
+                                entries = await entries[0].renderer(entries[0])
+                            } else if(typeof(entries[0].renderer) == 'string') {
+                                entries = await global.storage.temp.promises.get(entries[0].renderer)
                             }
-                            return entries
                         }
-                        return []
+                        return entries
                     } else {
                         process.nextTick(() => global.explorer.back(1, true))
                         return []

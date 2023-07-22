@@ -38,12 +38,10 @@ class Fetcher extends Events {
 				this.master.loader.addListNow(this.url, this.atts.progress).then(() => {
 					this.list.start().then(resolve).catch(err => {
 						this.list.destroy()
-						this.updater.destroy()
 						reject(err)
 					})
 				}).catch(err => {
 					this.list.destroy()
-					this.updater.destroy()
 					reject(err)
 				})
 			})

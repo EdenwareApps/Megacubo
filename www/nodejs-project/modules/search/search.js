@@ -100,8 +100,9 @@ class Search extends Events {
             if(!global.explorer.path){
                 global.explorer.path = global.lang.SEARCH
             }
+            const resultsCount = rs.length
             global.explorer.render(this.addFixedEntries(mediaType, rs), global.explorer.path, 'fas fa-search', '/')
-            global.osd.show(global.lang.X_RESULTS.format(rs.length), 'fas fa-check-circle', 'search', 'normal')
+            global.osd.show(global.lang.X_RESULTS.format(resultsCount), 'fas fa-check-circle', 'search', 'normal')
         } else {
             global.displayErr(err)
         }

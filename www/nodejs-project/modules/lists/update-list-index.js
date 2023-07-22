@@ -206,14 +206,11 @@ class UpdateListIndex extends ListIndexUtils {
                     }
                     return
 				}
-                if(this.ext(entry.url) == 'm3u8'){
-                    this.hlsStreamsLength++
-                }
                 if(playlist){
                     entry.group = global.joinPath(global.joinPath(playlist.group, playlist.name), entry.group)
                 }
-                if(entry.group){ // collect some data to sniff after if each group seems live, serie or movie
-                    if(typeof(this.groups[entry.group]) == 'undefined'){
+                if(entry.group) { // collect some data to sniff after if each group seems live, serie or movie
+                    if(typeof(this.groups[entry.group]) == 'undefined') {
                         this.groups[entry.group] = []
                     }
                     this.groups[entry.group].push({
@@ -282,8 +279,8 @@ class UpdateListIndex extends ListIndexUtils {
                 let resolved
                 const exists = !err && stat && stat.size
                 this.index.length = this.indexateIterator
-                this.index.hlsStreamsLength = this.hlsStreamsLength
                 this.index.uniqueStreamsLength = this.uniqueStreamsIndexateIterator
+                this.index.rawGroups = this.groups
                 this.index.groupsTypes = this.sniffGroupsTypes(this.groups)
                 if(this.index.length || !exists) {
                     const finish = err => {
@@ -314,21 +311,19 @@ class UpdateListIndex extends ListIndexUtils {
         })
     }
     sniffGroupsTypes(groups){
-        let ret = {live: [], vod: [], series: []}
+        const ret = {live: [], vod: [], series: []}
         Object.keys(groups).forEach(g => {
-            let isSeried = this.isGroupSeried(groups[g])
-            let icon, types = groups[g].map(e => {
+            let icon
+            const isSeried = this.isGroupSeried(groups[g])
+            const types = groups[g].map(e => {
                 if(e.icon && !icon){
                     icon = e.icon
                 }
                 return isSeried ? 'series' : this.sniffStreamType(e)
             }).filter(s => s)
-            let type = this.mode(types)
+            const type = this.mode(types)
             if(type){
-                ret[type].push({
-                    name: g,
-                    icon
-                })
+                ret[type].push({ name: g, icon })
             }
         })
         return ret
@@ -377,7 +372,6 @@ class UpdateListIndex extends ListIndexUtils {
 		this.uniqueStreamsIndexate = new Map()
 		this.uniqueStreamsIndexateIterator = 0
 		this.contentLength = -1
-        this.hlsStreamsLength = 0
 	}
 	destroy(){
 		if(!this.destroyed){

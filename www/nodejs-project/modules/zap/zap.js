@@ -94,10 +94,7 @@ class Zap extends Events {
         this.connecting = true
         let entry = await this.random()
         if(entry){
-            entry.url = global.mega.build(entry.name, {
-                mediaType: 'live',
-                hlsOnly: 'auto'
-            })       
+            entry.url = global.mega.build(entry.name, { mediaType: 'live' })
             let succeeded = await global.streamer.play(entry, undefined, true).catch(console.error)
             this.connecting = false
             this.setZapping(true, succeeded)

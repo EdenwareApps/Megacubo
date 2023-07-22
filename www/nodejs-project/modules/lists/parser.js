@@ -315,7 +315,7 @@ class IPTVM3UParser extends EventEmitter {
 			return ''
 		}
 		s = global.forwardSlashes(s)
-		s = s.replaceAll('|', '/')
+		s = s.replaceAll('|', '/').replaceAll(';', '/')
 		s = s.split('/').map(t => t.trim()).filter(t => t.length).join('/')
 		return s
 	}

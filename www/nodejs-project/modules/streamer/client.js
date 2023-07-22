@@ -97,6 +97,7 @@ class StreamerOSD extends StreamerPlaybackTimeout {
                                     const icon = this.isZapping ? this.zappingIcon : config['tuning-icon']
                                     osd.show(lang.BROADCAST_NOT_WORKING_HINT.format('<i class=\"'+ icon +'\"></i>'), '', this.osdID +'-sub', 'persistent')
                                 }
+                                this.app.emit('streamer-is-slow')
                             }
                         }, this.transmissionNotWorkingHintDelay)                    
                     }
@@ -291,7 +292,7 @@ class StreamerState extends StreamerCasting {
                         let duration = parent.player.duration()
                         if(duration && duration > 0){
                             this.lastPositionReported = position
-                            this.app.emit('state-atts', this.data.url, {duration, position})
+                            this.app.emit('state-atts', this.data.url, {duration, position, source: this.data.source})
                         }
                     } else {
                         this.lastPositionReportingTime += (this.positionReportingInterval - reportingDiff + 0.1)

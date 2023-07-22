@@ -135,8 +135,7 @@ class List extends Events {
         }
         const factors = {
             relevantKeywords: 1,
-            mtime: 0.25,
-            hls: 0.25
+            mtime: 0.25
         }
         // relevantKeywords (check user channels presence in these lists and list size by consequence)
         let rks = this.master ? await this.master.relevantKeywords() : []
@@ -153,18 +152,12 @@ class List extends Events {
             values.relevantKeywords = hits / (rks.length / 100)
         }
     
-        /*
-        // hls
-        values.hls = index.hlsStreamsLength / (index.length / 100)
-
-        // mtime
         const rangeSize = 30 * (24 * 3600), now = global.time(), deadline = now - rangeSize
         if(!index.lastmtime || index.lastmtime < deadline){
             values.mtime = 0
         } else {
             values.mtime = (index.lastmtime - deadline) / (rangeSize / 100)
         }
-        */
 
         let log = '', total = 0, maxtotal = 0
         Object.values(factors).map(n => maxtotal += n)

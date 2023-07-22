@@ -10,6 +10,7 @@ class Diagnostics extends Events {
 		this.checkDiskUI().catch(console.error)
 	}
 	async report(){
+		const version = global.MANIFEST.version
 		const diskSpace = await this.checkDisk()
 		const freeMem = global.kbfmt(await this.checkMemory())
 		const config = global.deepClone(global.config.data)
@@ -40,7 +41,7 @@ class Diagnostics extends Events {
 			diskSpace.free = global.kbfmt(diskSpace.free)
 			diskSpace.size = global.kbfmt(diskSpace.size)
 		}
-		return {diskSpace, freeMem, config, lists, listsRequesting, updaterResults, processedLists, processing, tuning}
+		return {version, diskSpace, freeMem, config, lists, listsRequesting, updaterResults, processedLists, processing, tuning}
 	}
 	async saveReport(){
 		const file = global.downloads.folder +'/report.txt'

@@ -4,7 +4,7 @@ const { default: PQueue } = require('p-queue'), ConnRacing = require('../conn-ra
 class ListsLoader extends Events {
     constructor(master, opts) {
         super()
-        const concurrency = 3
+        const concurrency = 4
         this.master = master
         this.opts = opts || {}
         this.queue = new PQueue({ concurrency }) // got slow with '5' in a 2GB RAM device, save memory so
