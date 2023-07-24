@@ -803,7 +803,7 @@ class Manager extends ManagerEPG {
                 {template: 'option', text: lang.SHARE, id: 'yes', fa: 'fas fa-users'}
             ], 'no') : 'no' // set local files as private
             if(chosen == 'yes'){
-                global.osd.show(global.lang.COMMUNITY_THANKS_YOU, 'fas fa-heart faclr-purple', 'community-lists-thanks', 'normal')
+                global.osd.show(global.lang.COMMUNITY_THANKS_YOU, 'fas fa-heart faclr-purple', 'communitary-lists-thanks', 'normal')
             }
             this.setMeta(value, 'private', chosen != 'yes')
             let info, i = 20

@@ -29,6 +29,9 @@ function frontendBackendReadyCallback(origin){
 		frontendBackendReady.backendCallbacks.forEach(f => f())
 		frontendBackendReady.backendCallbacks = []
 	}
+	if(!app) {
+		app = document.querySelector('iframe').contentWindow
+	}
 	if(frontendBackendReady.frontend && frontendBackendReady.backend){
 		app.lang = lang
 		app.config = config

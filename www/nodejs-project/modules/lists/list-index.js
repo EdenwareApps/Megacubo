@@ -32,6 +32,9 @@ class ListIndex extends ListIndexUtils {
             }
             entries.forEach((s, i) => {
                 entries[i]._ = parseInt(ids[i])
+                if(!entries[i].source) {
+                    entries[i].source = this.url
+                }
             })
         }
         return entries

@@ -26,12 +26,16 @@ class ListsLoader extends Events {
                 const added = newMyLists.filter(l => !this.myCurrentLists.includes(l))
                 const removed = this.myCurrentLists.filter(l => !newMyLists.includes(l))
                 removed.forEach(u => this.master.remove(u))
+                newMyLists.forEach(u => {
+                    this.master.processedLists.has(u) && this.master.processedLists.delete(u)
+                })
                 this.myCurrentLists = newMyLists
                 this.enqueue(added, 1)
             }
             if(keys.includes('communitary-mode-lists-amount')){
                 if(this.communityListsAmount != data['communitary-mode-lists-amount']){
                     this.communityListsAmount = data['communitary-mode-lists-amount']
+                    this.master.processedLists.clear()
                     this.resetLowPriorityUpdates()
                 }
             }
@@ -49,29 +53,30 @@ class ListsLoader extends Events {
         this.resetLowPriorityUpdates()
     }
     async resetLowPriorityUpdates(){ // load community lists
-        const maxToTry = (this.communityListsAmount * 2) - this.master.processedLists.size
-        if(maxToTry <= 0) return
+        const maxListsToTry = 192
+        const minListsToTry = Math.max(64, 3 * this.communityListsAmount)
+        if(minListsToTry < this.master.processedLists.size) return
 
         const taskId = Math.random()
         this.currentTaskId = taskId
         this.master.updaterFinished(false)
         this.processes = this.processes.filter(p => {
             /* Cancel pending processes to reorder it */
-            if(p.priority > 1 && !p.started() && !this.myCurrentLists.includes(p.url)) {
+            if(p.priority > 1 && !p.started() && !p.done()) {
                 p.cancel()
                 return false
             }
             return true
         })
 
-        const lists = await global.discovery.get(maxToTry * 2) // query a bit more to filter it
+        const lists = await global.discovery.get(maxListsToTry)
         const communityLists = []
         lists.some(({ url }) => {
             if( !this.myCurrentLists.includes(url) && 
                 !this.processes.some(p => p.url == url) && 
                 !this.master.processedLists.has(url)) {
                     communityLists.push(url)
-                    return communityLists.length == maxToTry
+                    return communityLists.length == maxListsToTry
                 }
         })
         const communityListsCached = await this.master.filterCachedUrls(communityLists)
@@ -157,7 +162,7 @@ class ListsLoader extends Events {
         this.updater.close()
     }
     schedule(url, priority){        
-        let cancel, started
+        let cancel, started, done
         this.processes.some(p => p.url == url) || this.processes.push({
             promise: this.queue.add(async () => {
                 await global.Download.waitNetworkConnection()
@@ -166,6 +171,7 @@ class ListsLoader extends Events {
                 await this.prepareUpdater()
                 this.results[url] = 'awaiting'
                 this.results[url] = await this.updater.update(url).catch(console.error)
+                done = true
                 const add = this.results[url] == 'updated' || (this.results[url] == 'already updated' && !this.master.processedLists.has(url))
                 add && this.master.addList(url, priority)
                 this.updater.close()
@@ -174,6 +180,7 @@ class ListsLoader extends Events {
                 return started
             },
             cancel: () => cancel = true,
+			done: () => done || cancel,
             priority,
             url
         })

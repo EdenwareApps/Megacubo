@@ -14,6 +14,8 @@ class UpdateListIndex extends ListIndexUtils {
         this.updateMeta = updateMeta
         this.forceDownload = forceDownload === true
         this.tmpfile = global.paths.temp +'/'+ parseInt(Math.random() * 100000000000) + '.tmp'
+        this.linesMapPtr = 0
+        this.linesMap = []
         this.reset()
     }
     ext(file){
@@ -127,7 +129,6 @@ class UpdateListIndex extends ListIndexUtils {
             } else {
                 const file = path
                 fs.stat(file, (err, stat) => {
-                    console.error('ADDLISTSTAT='+JSON.stringify({file, stat, err, cl: this.updateMeta.contentLength}))
                     if(stat && stat.size){
                         this.contentLength = stat.size
                         if(stat.size > 0 && stat.size == this.updateMeta.contentLength){
@@ -188,7 +189,6 @@ class UpdateListIndex extends ListIndexUtils {
                     reject('destroyed')
                 }
             }
-            console.log('WILLPARSE='+ JSON.stringify(opts))
             this.parser && this.parser.destroy()
             this.parser = new Parser(opts)
 			this.parser.on('meta', meta => {
@@ -220,7 +220,10 @@ class UpdateListIndex extends ListIndexUtils {
                     })
                 }
                 entry = this.indexate(entry, this.indexateIterator)
-                writer.write(JSON.stringify(entry) + "\r\n")
+                const line = JSON.stringify(entry) + "\n"
+                writer.write(line)
+                this.linesMap.push(this.linesMapPtr)
+                this.linesMapPtr += Buffer.byteLength(line, 'utf8')
                 if(!this.uniqueStreamsIndexate.has(entry.url)) {
                     this.uniqueStreamsIndexate.set(entry.url, null)
                     this.uniqueStreamsIndexateIterator++
@@ -280,7 +283,6 @@ class UpdateListIndex extends ListIndexUtils {
                 const exists = !err && stat && stat.size
                 this.index.length = this.indexateIterator
                 this.index.uniqueStreamsLength = this.uniqueStreamsIndexateIterator
-                this.index.rawGroups = this.groups
                 this.index.groupsTypes = this.sniffGroupsTypes(this.groups)
                 if(this.index.length || !exists) {
                     const finish = err => {
@@ -301,6 +303,8 @@ class UpdateListIndex extends ListIndexUtils {
                     writer.on('finish', finish)
                     writer.on('close', finish)
                     writer.on('error', finish)
+                    this.linesMap.push(this.linesMapPtr)
+                    this.index.linesMap = this.linesMap
                     writer.write(JSON.stringify(this.index))
                     writer.end()
                 } else {

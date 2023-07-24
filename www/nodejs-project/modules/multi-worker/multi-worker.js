@@ -70,7 +70,7 @@ const setupConstructor = () => {
 								file,
 								method
 							}
-							debug && global.osd.show(path.basename(file) +' '+ method, 'fas fas-circle-notch', 'mwrk-'+ id, 'persistent')
+							debug && global.osd.show(path.basename(file) +' '+ method, 'fas fas-circle-notch', 'mwrk-'+ id, 'long')
 							try {
 								self.worker.postMessage({method, id, file, args})
 							} catch(e) {
@@ -137,18 +137,16 @@ const setupConstructor = () => {
 			this.worker = new this.Worker(path.join(__dirname, 'worker.js'), {
 				workerData, 
 				stdout: true, 
-				stderr: true,
-				resourceLimits: {
-					maxOldGenerationSizeMb: 512
-				}
+				stderr: true
 			})
 			this.worker.on('error', err => {
 				let serr = String(err)
 				this.err = err
 				console.error('error '+ err +' '+ serr +' '+ JSON.stringify(this.instances, null, 3), {err, serr})
 				if(serr.match(new RegExp('(out of memory|out_of_memory)', 'i'))){
+					this.finished = true
 					let msg = 'Worker exited out of memory, fix the settings and restart the app.'
-					global.osd.show(msg, 'fas fa-exclamation-triagle faclr-red', 'out-of-memory', 'persistent')
+					global.osd.show(msg, 'fas fa-exclamation-triangle faclr-red', 'out-of-memory', 'long')
 				}
 				if(typeof(err.preventDefault) == 'function'){
 					err.preventDefault()

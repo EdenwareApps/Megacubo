@@ -1475,7 +1475,7 @@ class ExplorerPrompt extends ExplorerOpenFile {
 				this.endModal()
 				this.emit('prompt-end', id)
 			}
-		}, config['communitary-mode-lists-amount'])
+		}, 'submit')
 		this.inputHelper.stop()
 
 		this.emit('prompt-start')

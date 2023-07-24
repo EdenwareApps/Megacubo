@@ -96,6 +96,9 @@ class StreamerTools extends Events {
 			delete this.streamInfoCaching[cachingKey]
 		}
 	}
+	isTuning(){
+		return global.tuning && global.tuning.active()
+	}
     ext(file){
 		let basename = String(file).split('?')[0].split('#')[0].split('/').pop()
 		basename = basename.split('.')
@@ -1056,6 +1059,7 @@ class Streamer extends StreamerAbout {
 			if(!silent){
 				global.osd.show(global.lang.NONE_STREAM_WORKED_X.format(name), 'fas fa-exclamation-triangle faclr-red', 'streamer', 'normal')
 			}
+			this.emit('hard-failure')
 		} else {
 			this.setTuneable(true)
 		}

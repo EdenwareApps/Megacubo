@@ -68,7 +68,7 @@ class FFmpegDownloader {
 				let err
 				const file = await this.download(folder, osd, mask).catch(e => err = e)
 				if (err) {
-					osd.show(String(err), 'fas fa-exclamation-triagle faclr-red', 'ffmpeg-dl', 'normal')
+					osd.show(String(err), 'fas fa-exclamation-triangle faclr-red', 'ffmpeg-dl', 'normal')
 				} else {
 					osd.show(mask.replace('{0}', '100%'), 'fas fa-circle-notch fa-spin', 'ffmpeg-dl', 'normal')
 					this.executableDir = path.dirname(file)

@@ -22,6 +22,39 @@ class ListIndexUtils extends Events {
             return 'live'
         }
     }
+    getRangesFromMap(map) {
+        const ranges = []
+        map.forEach(n => ranges.push({start: this.linesMap[n], end: this.linesMap[n + 1] - 1}))
+        return ranges
+    }
+    async readLinesByMap(map) {
+        const ranges = this.getRangesFromMap(map)
+        const lines = {}
+        let fd = null
+        try {
+            fd = await fs.promises.open(this.file, 'r')
+            for (const [index, range] of ranges.entries()) {
+                const length = range.end - range.start
+                const buffer = Buffer.alloc(length)
+                const { bytesRead } = await fd.read(buffer, 0, length, range.start)                
+                if(bytesRead < buffer.length) {
+                    buffer = buffer.slice(0, bytesRead)
+                }
+                lines[map[index]] = buffer.toString()
+            }
+        } catch (error) {
+            console.error(error)
+        } finally {
+            if (fd !== null) {
+                try {
+                    await fd.close().catch(console.error)
+                } catch (error) {
+                    console.error("Error closing file descriptor:", error)
+                }
+            }
+        }
+        return lines
+    }
     readLines(map){
         return new Promise((resolve, reject) => {
             if(map){
@@ -29,6 +62,9 @@ class ListIndexUtils extends Events {
                     return reject('empty map requested')
                 }
                 map.sort()
+                if(Array.isArray(this.linesMap)) {
+                    return this.readLinesByMap(map).then(resolve).catch(reject)
+                }
             }
             fs.stat(this.file, (err, stat) => {
                 if(err || !stat){
@@ -78,32 +114,32 @@ class ListIndexUtils extends Events {
             })
         })
     }
-    async readLastLine(filePath) {
-        const bufferSize = 1024
-        const { size } = await fs.promises.stat(filePath)
-        const fd = await fs.promises.open(filePath, 'r')
+    async readLastLine() {
+        const bufferSize = 2048
+        const { size } = await fs.promises.stat(this.file)
+        const fd = await fs.promises.open(this.file, 'r')
         let line = ''
         let readPosition = Math.max(size - bufferSize, 0)
         while(readPosition >= 0){
             const readSize = Math.min(bufferSize, size - readPosition)
-            const nextChunk = await fd.read(Buffer.alloc(readSize), 0, readSize, readPosition)
-            const content = String(nextChunk.buffer)
+            const { buffer, bytesRead } = await fd.read(Buffer.alloc(readSize), 0, readSize, readPosition)
+            const content = String(buffer)
             line = content + line
             const pos = content.lastIndexOf("\n")
             if (pos != -1) {
                 line = line.substring(pos + 1)
                 break
             }
-            if(!nextChunk.bytesRead) {
+            if(!bytesRead) {
                 break
             }
-            readPosition -= nextChunk.bytesRead
+            readPosition -= bytesRead
         }
         await fd.close().catch(console.error)
         return line
     }
     async readIndex(){
-        let line = await this.readLastLine(this.file)
+        let line = await this.readLastLine()
         let index = false
         if(line){
             try {
@@ -113,6 +149,8 @@ class ListIndexUtils extends Events {
             }
         }
         if(index && typeof(index.length) != 'undefined'){
+            this.linesMap = index.linesMap
+            delete index.linesMap
             return index
         } else {
             console.error('Bad index', String(line).substr(0, 256), this.file)

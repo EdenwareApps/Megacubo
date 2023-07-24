@@ -1,4 +1,4 @@
-const async = require('async'), Common = require('../lists/common.js')
+const pLimit = require('p-limit'), Common = require('../lists/common.js')
 
 class Index extends Common {
     constructor(opts){
@@ -186,88 +186,88 @@ class Index extends Common {
 		this.searchMapCache[key] = {}
 		return {}
 	}
-	search(terms, opts={}){	
-		return new Promise((resolve, reject) => {
-			if(typeof(terms) == 'string'){
-				terms = this.terms(terms, true, true)
+	async search(terms, opts={}){
+		if(typeof(terms) == 'string'){
+			terms = this.terms(terms, true, true)
+		}
+		let start = global.time(), bestResults = [], maybe = [], limit = opts.limit || 256
+		if(!terms){
+			return []
+		}
+		const query = this.parseQuery(terms, opts)
+		let smap = this.searchMap(query, opts), ks = Object.keys(smap)
+		if(ks.length){
+			if(this.debug){
+				console.warn('M3U SEARCH PRE', terms, opts, (global.time() - start) +'s (pre time)', Object.assign({}, smap), (global.time() - start) +'s', terms)
 			}
-            let start = global.time(), bestResults = [], maybe = [], limit = opts.limit || 256
-			if(!terms){
-				return []
-			}
-			const query = this.parseQuery(terms, opts)
-			let smap = this.searchMap(query, opts), ks = Object.keys(smap)
-			if(ks.length){
-				if(this.debug){
-					console.warn('M3U SEARCH RESULTS', terms, opts, (global.time() - start) +'s (pre time)', Object.assign({}, smap), (global.time() - start) +'s', terms)
+			let results = []
+			ks.forEach(listUrl => {
+				let ls = smap[listUrl]['n']
+				if(opts.group){
+					ls.push(...smap[listUrl]['g'])
 				}
-                let results = []
-				ks.forEach(listUrl => {
-					let ls = smap[listUrl]['n']
-					if(opts.group){
-						ls.push(...smap[listUrl]['g'])
-					}
-					smap[listUrl] = ls
-				})
-                async.eachOfLimit(ks, 4, (listUrl, i, icb) => {
-                    if(listUrl && typeof(this.lists[listUrl]) != 'undefined' && smap[listUrl].length){
-						if(this.debug){
-							console.warn('M3U SEARCH ITERATE', smap[listUrl].slice(0))
-						}
-						this.lists[listUrl].iterate(e => {
-							if(this.debug){
-								console.warn('M3U SEARCH ITERATE', e)
-							}
-							if(opts.type){
-								if(this.validateType(e, opts.type, opts.typeStrict === true)){
-									if(opts.typeStrict === true) {
-										e.source = listUrl
-										bestResults.push(e)
-									} else {
-										e.source = listUrl
-										results.push(e)
-									}
-								}
-							} else {
-								bestResults.push(e)
-							}
-						}, smap[listUrl]).catch(console.error).finally(icb)
-                    } else {
-                        icb()
-                    }
-                }, () => {
-                    if(this.debug){
-						console.warn('M3U SEARCH RESULTS', (global.time() - start) +'s (partial time)', (global.time() - start) +'s', terms, bestResults.slice(0), results.slice(0), maybe.slice(0))
-					}
-                    results = bestResults.concat(results)
-                    if(maybe.length){
-                        if(!results.length){
-                            results = maybe
-                            maybe = []
-                        }
-                    }
-                    results = this.tools.dedup(results) // dedup before parentalControl to improve blocking
-					results = this.prepareEntries(results)
-					if(opts.parentalControl !== false){
-						results = this.parentalControl.filter(results, true)
-						maybe = this.parentalControl.filter(maybe, true)
-					}
-					results = this.adjustSearchResults(results, opts, limit)
-					if(results.length < limit){
-						maybe = this.adjustSearchResults(maybe, opts, limit - results.length)
-					} else {
-						maybe = []
-					}
+				smap[listUrl] = ls
+			})
+			const limiter = pLimit(4)
+			const tasks = ks.map(listUrl => {
+				return async () => {
 					if(this.debug){
-						console.warn('M3U SEARCH RESULTS', (global.time() - start) +'s (total time)', terms)
+						console.warn('M3U SEARCH ITERATE LIST '+ listUrl, smap[listUrl].slice(0))
 					}
-					resolve({results, maybe})
-					smap = bestResults = results = maybe = null
-                })
-            } else {
-                resolve({results:[], maybe: []})
-            }
-        })
+					if(typeof(this.lists[listUrl]) == 'undefined' || !smap[listUrl].length) return
+					let i = 0
+					await this.lists[listUrl].iterate(e => {
+						i++
+						if(this.debug){
+							console.warn('M3U SEARCH ITERATE '+ listUrl +':'+ i +' '+ e.url)
+						}
+						if(opts.type){
+							if(this.validateType(e, opts.type, opts.typeStrict === true)){
+								if(opts.typeStrict === true) {
+									e.source = listUrl
+									bestResults.push(e)
+								} else {
+									e.source = listUrl
+									results.push(e)
+								}
+							}
+						} else {
+							bestResults.push(e)
+						}
+					}, smap[listUrl])
+				}
+			}).map(limiter)
+			await Promise.allSettled(tasks)			
+			if(this.debug){
+				console.warn('M3U SEARCH RESULTS', (global.time() - start) +'s (partial time)', (global.time() - start) +'s', terms, bestResults.slice(0), results.slice(0), maybe.slice(0))
+			}
+			results = bestResults.concat(results)
+			if(maybe.length){
+				if(!results.length){
+					results = maybe
+					maybe = []
+				}
+			}
+			results = this.tools.dedup(results) // dedup before parentalControl to improve blocking
+			results = this.prepareEntries(results)
+
+			if(opts.parentalControl !== false){
+				results = this.parentalControl.filter(results, true)
+				maybe = this.parentalControl.filter(maybe, true)
+			}
+			results = this.adjustSearchResults(results, opts, limit)
+			if(results.length < limit){
+				maybe = this.adjustSearchResults(maybe, opts, limit - results.length)
+			} else {
+				maybe = []
+			}
+			if(this.debug){
+				console.warn('M3U SEARCH RESULTS*', (global.time() - start) +'s (total time)', terms)
+			}
+			return {results, maybe}
+		} else {
+			return {results:[], maybe: []}
+		}
 	}
 	getDomain(u){
     	if(u && u.indexOf('//')!=-1){

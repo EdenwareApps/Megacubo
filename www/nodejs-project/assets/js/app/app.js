@@ -116,7 +116,7 @@ function initApp(){
                 console.log('FFmpeg checking succeeded', ret)
             }).catch(err => {
                 console.error('FFmpeg checking error')
-                osd.show(String(err), 'fas fa-exclamation-triagle faclr-red', 'ffmpeg-dl', 'normal')
+                osd.show(String(err), 'fas fa-exclamation-triangle faclr-red', 'ffmpeg-dl', 'normal')
             })
         })
     }

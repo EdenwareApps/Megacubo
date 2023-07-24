@@ -5,18 +5,31 @@ class Promoter {
 			global.explorer.applyFilters = this.applyFilters.bind(this)
 		}
 		this.startTime = global.time()
-		global.ui.on('video-error', () => this.promote())
-		global.ui.on('streamer-is-slow', () => this.promote())
-		global.streamer.on('hard-failure', () => this.promote())
+		this.promoteDialogTime = 0
+		this.promoteDialogInterval = 1800
+		global.ui.on('video-error', () => this.promoteDialogSignal())
+		global.ui.on('streamer-is-slow', () => this.promoteDialogSignal())
+		global.streamer.on('hard-failure', () => this.promoteDialogSignal())
+		global.streamer.on('stop', () => this.promoteDialog())
     }
-	async promote(){
-		if(this.promoteDialogShown) return
-		const elapsedTime = global.time() - this.startTime
-		if(elapsedTime < 30) return
-		const a = await this.offer('dialog')
-		if(a) {
-			this.dialogOffer(a).catch(global.displayErr)
-		}
+	async promoteDialog(){
+		const now = global.time()
+		if(this.promoteDialogPending !== true) return
+		// small delay to check if it will not load other stream right after
+		process.nextTick(() => {
+			if(this.promoteDialogPending !== true) return
+			if((now - this.promoteDialogTime) < this.promoteDialogInterval) return
+			if(global.streamer.active || global.streamer.isTuning()) return
+			const runningTime = now - this.startTime
+			if(runningTime < 30) return
+			this.promoteDialogTime = now
+			this.promoteDialogPending = false
+			this.offer('dialog').then(a => this.dialogOffer(a)).catch(console.error)
+		})
+	}
+	async promoteDialogSignal(){
+		this.promoteDialogPending = true
+		this.promoteDialog().catch(console.error)
 	}
 	async offer(type){
 		const atts = {

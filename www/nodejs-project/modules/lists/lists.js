@@ -383,18 +383,18 @@ class Lists extends ListsEPGTools {
 		return ret
 	}
 	addList(url, priority=9){
-		let cancelled, started
+		let cancel, started, done
 		this.processes.push({
 			promise: this.queue.add(async () => {
-				if(cancelled) return
+				if(cancel) return
 				let err, contentLength
 				if(typeof(this.lists[url]) == 'undefined'){
 					contentLength = await this.getListContentLength(url)
-					if(cancelled) return
+					if(cancel) return
 					await this.loadList(url, contentLength).catch(e => err = e)
 				} else {
 					let contentLength = await this.shouldReloadList(url)
-					if(cancelled) return
+					if(cancel) return
 					if(typeof(contentLength) == 'number'){
 						console.log('List got updated, reload it. '+ this.lists[url].contentLength +' => '+ contentLength)
 						await this.loadList(url, contentLength).catch(e => err = e)
@@ -402,9 +402,11 @@ class Lists extends ListsEPGTools {
 						err = 'no need to update'
 					}
 				}
+				done = true
 			}, { priority }),
 			started: () => started,
-			cancel: () => cancelled = true,
+			cancel: () => cancel = true,
+			done: () => done || cancel,
 			priority,
 			url
 		})
@@ -451,6 +453,7 @@ class Lists extends ListsEPGTools {
 		this.lists[url] = list
 		await list.start().catch(e => err = e)
 		if(err){
+			this.processedLists.delete(url)
 			this.loadTimes[url].synced = global.time()
 			if(!this.requesting[url] || this.requesting[url] == 'loading'){
 				this.requesting[url] = String(err)

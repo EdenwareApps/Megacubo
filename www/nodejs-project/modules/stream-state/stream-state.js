@@ -104,12 +104,12 @@ class StreamState extends Events {
         return null
     }
     set(url, state, isTrusted, atts){
-        if(typeof(this.data) == 'object'){
-            if(!isTrusted && typeof(this.clientFailures[url]) != 'undefined'){
+        if(typeof(this.data) == 'object') {
+            if(!isTrusted && typeof(this.clientFailures[url]) != 'undefined') {
                 return
             }
             let isMega = global.mega.isMega(url)
-            if(!isMega){
+            if(!isMega) {
                 let changed, time = global.time()
                 if(typeof(this.waiting[url]) != 'undefined'){
                     changed = true

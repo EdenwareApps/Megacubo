@@ -69,9 +69,10 @@ class PublicIPTVListsDiscovery extends Events {
         const sortedLists = this.knownLists
             // .filter(list => this.opts.countries.includes(list.country))
             .sort((a, b) => {
+                if (a.health === -1 && b.health === -1) return 0
                 if (a.health === -1) return 1
                 if (b.health === -1) return -1
-                return b.health - a.health
+                return b.health > a.health ? 1 : (b.health < a.health ? -1 : 0)
             })
         return this.domainCap(sortedLists, amount)
     }
@@ -102,7 +103,7 @@ class PublicIPTVListsDiscovery extends Events {
             })
             Object.keys(domains).forEach(dn => domains[dn] = 0) // reset counts and go again until fill limit
         }
-        return ret
+        return ret.slice(0, limit)
     }
     details(url) {
         return this.knownLists.find(l => l.url === url)

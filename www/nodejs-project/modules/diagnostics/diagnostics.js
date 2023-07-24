@@ -19,10 +19,9 @@ class Diagnostics extends Events {
 		const listsRequesting = global.lists.requesting
 		const tuning = global.tuning ? global.tuning.logText(false) : ''
 		const processedLists = global.lists.processedLists.keys();
-		const processing = global.lists.loader.processes.map(p => {
+		const processing = global.lists.loader.processes.filter(p => p.started() && !p.done()).map(p => {
 			return {
 				url: p.url,
-				started: p.started(),
 				priority: p.priority
 			}
 		});

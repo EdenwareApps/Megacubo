@@ -180,11 +180,8 @@ class List extends Events {
 		}
         const entries = await this.indexer.entries(map)
         for(const e of entries) {
-            let ret = fn(e)
-            if(ret instanceof Promise){
-                await ret
-            }
-            return ret === this.constants.BREAK
+            let ret = await fn(e)
+            if(ret === this.constants.BREAK) break
         }
 	}
 	async fetchAll(){

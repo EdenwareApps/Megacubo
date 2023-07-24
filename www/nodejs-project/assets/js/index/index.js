@@ -356,7 +356,7 @@ document.addEventListener('resume', function () {
 document.addEventListener('backbutton', function (e) {
 	if (app) {
 		e.preventDefault();
-		app.contentWindow.postMessage({ action: 'backbutton' }, location.origin);
+		app.postMessage({ action: 'backbutton' }, location.origin);
 	}
 }, false);
 
