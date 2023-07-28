@@ -118,6 +118,7 @@
    "CONNECTING": "Συνδετικός",
    "CONNECTION_FAILURE": "Η σύνδεση αποτυγχάνει",
    "CONNECT_TIMEOUT": "Συνδέστε το χρονικό όριο",
+   "CONTACT_PROVIDER": "Επικοινωνήστε με τον παροχέα σας",
    "CONTINUE": "Να συνεχίσει",
    "CONTROL_PLAYBACK_RATE": "Ποσοστό αναπαραγωγής ελέγχου σύμφωνα με το buffer",
    "CONVERTING": "Μετατροπή...",

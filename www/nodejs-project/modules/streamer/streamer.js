@@ -1059,7 +1059,7 @@ class Streamer extends StreamerAbout {
 			if(!silent){
 				global.osd.show(global.lang.NONE_STREAM_WORKED_X.format(name), 'fas fa-exclamation-triangle faclr-red', 'streamer', 'normal')
 			}
-			this.emit('hard-failure')
+			this.emit('hard-failure', entries)
 		} else {
 			this.setTuneable(true)
 		}
@@ -1275,7 +1275,7 @@ class Streamer extends StreamerAbout {
 				}
 			}
 		}
-		this.emit('hard-failure', c, e)
+		this.emit('hard-failure', [e])
 	}
 	humanizeFailureMessage(r){
 		r = String(r)

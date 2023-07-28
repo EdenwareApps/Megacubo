@@ -115,7 +115,7 @@ class ListIndexUtils extends Events {
         })
     }
     async readLastLine() {
-        const bufferSize = 2048
+        const bufferSize = 16834
         const { size } = await fs.promises.stat(this.file)
         const fd = await fs.promises.open(this.file, 'r')
         let line = ''
@@ -143,14 +143,29 @@ class ListIndexUtils extends Events {
         let index = false
         if(line){
             try {
-                index = global.parseJSON(line)
+                let parsed = global.parseJSON(line)
+                if(Array.isArray(parsed)) {
+                    this.linesMap = parsed
+                    const fd = await fs.promises.open(this.file, 'r')
+                    const from = parsed[parsed.length - 2]
+                    const length = parsed[parsed.length - 1] - from
+                    const buffer = Buffer.alloc(length)
+                    const { bytesRead } = await fd.read(buffer, 0, length, from)
+                    await fd.close().catch(console.error)
+                    line = String(buffer).substr(0, bytesRead)
+                    index = JSON.parse(line)
+                } else {
+                    index = parsed // old style compat
+                }
             } catch(e) {
                 console.error('Index parsing failure', line, e, this.file)
             }
         }
         if(index && typeof(index.length) != 'undefined'){
-            this.linesMap = index.linesMap
-            delete index.linesMap
+            if(index.linesMap) {
+                this.linesMap = index.linesMap
+                delete index.linesMap
+            }
             return index
         } else {
             console.error('Bad index', String(line).substr(0, 256), this.file)

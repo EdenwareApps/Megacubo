@@ -403,9 +403,9 @@ class StreamerUnmuteHack extends StreamerTranscode { // unmute player on browser
         }
     }
     unmuteHack(){
-        parent.player.container.querySelectorAll('video, audio').forEach(e => {
-            e.muted = false
-        })
+        if(this.unmuteHackApplied) return
+        this.unmuteHackApplied = true
+        parent.player.container.querySelectorAll('video, audio').forEach(e => e.muted = false)
     }
 }
 
@@ -1213,6 +1213,11 @@ class StreamerAudioUI extends StreamerClientVideoFullScreen {
             parent.winman.backgroundModeUnlock('audio')
             this.jbody.removeClass('audio')
         })
+        this.on('state', s => {
+            if(s == 'playing' && this.muted) {
+                if(!parent.player.muted()) this.volumeMute()
+            }
+        })
 		parent.player.on('audioTracks', tracks => this.app.emit('audioTracks', tracks))
 		parent.player.on('subtitleTracks', tracks => {
 			console.warn('subtitleTracks', tracks)
@@ -1335,10 +1340,12 @@ class StreamerAudioUI extends StreamerClientVideoFullScreen {
         if(volume){
             this.unmuteVolume = volume
         }
+        this.muted = true
         this.volumeInput.value = 0
         this.volumeChanged()
     }
     volumeUnmute(){
+        this.muted = false
         this.volumeInput.value = this.unmuteVolume || 100
         this.volumeChanged()
     }

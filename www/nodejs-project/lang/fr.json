@@ -118,6 +118,7 @@
    "CONNECTING": "De liaison",
    "CONNECTION_FAILURE": "Échec de la connexion",
    "CONNECT_TIMEOUT": "Connecter le délai d'attente",
+   "CONTACT_PROVIDER": "Contactez votre fournisseur",
    "CONTINUE": "Continuez",
    "CONTROL_PLAYBACK_RATE": "Taux de reproduction de contrôle en fonction de la mémoire tampon",
    "CONVERTING": "Conversion...",

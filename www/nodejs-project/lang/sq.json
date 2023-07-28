@@ -118,6 +118,7 @@
    "CONNECTING": "Lidh",
    "CONNECTION_FAILURE": "Lidhja dështon",
    "CONNECT_TIMEOUT": "Lidhni timout",
+   "CONTACT_PROVIDER": "Kontaktoni me ofruesin tuaj",
    "CONTINUE": "Vazhdoj",
    "CONTROL_PLAYBACK_RATE": "Norma e riprodhimit të kontrollit sipas tamponit",
    "CONVERTING": "Duke u kthyer...",

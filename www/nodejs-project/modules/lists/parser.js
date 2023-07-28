@@ -170,7 +170,6 @@ class IPTVM3UParser extends EventEmitter {
 			}
 			this.reader.on('line', line => {
 				this.readen += (line.length + 1)
-				console.error('LINE: '+ line)
 				if(line.length < 6) return
 				const hashed = line.charAt(0) === '#'
 				if (hashed && this.isExtM3U(line)) {
@@ -231,7 +230,7 @@ class IPTVM3UParser extends EventEmitter {
 				} else if (hashed) {
 					// parse here extra info like #EXTGRP and #EXTVLCOPT
 					let lcline = line.toLowerCase()
-					if (lcline.indexOf('#EXTGRP') !== -1) {
+					if (lcline.startsWith('#extgrp') !== -1) {
 						let i = lcline.indexOf(':')
 						if (i !== -1) {
 							let nwg = line.substr(i + 1).trim()
@@ -239,7 +238,7 @@ class IPTVM3UParser extends EventEmitter {
 								g = nwg
 							}
 						}
-					} else if (lcline.indexOf('#EXTVLCOPT') !== -1) {
+					} else if (lcline.startsWith('#extvlcopt') !== -1) {
 						let i = lcline.indexOf(':')
 						if (i !== -1) {
 							let nwa = line.substr(i + 1).trim().split('=')
@@ -249,7 +248,7 @@ class IPTVM3UParser extends EventEmitter {
 							}
 						}
 					}
-				} else if (line.charAt(0) === '/' || line.substr(0, 7) === 'magnet:' || line.indexOf('://') !== -1) {
+				} else { // not hashed so, length already checked
 					e.url = line
 					if (e.url.startsWith('//')) {
 						e.url = 'http:' + e.url
@@ -329,22 +328,21 @@ class IPTVM3UParser extends EventEmitter {
 			.replace(IPTVM3UParser.regexes['spaces'], ' ')
 	}
 	isExtInf(line) {
-		return String(line).toLowerCase().indexOf('#extinf') !== -1
+		return line.charAt(0) == '#' && line.substr(0, 7).toLowerCase() == '#extinf'
 	}
 	isExtInfPlaylist(line) {
-		const l = String(line).toLowerCase()
-		return l.indexOf('#extinf') !== -1 && l.match(IPTVM3UParser.regexes['type-playlist'])
+		return this.isExtInf(line) && line.match(IPTVM3UParser.regexes['type-playlist'])
 	}
 	isExtM3U(line) {
-		let lcline = String(line).toLowerCase()
-		return lcline.indexOf('#extm3u') !== -1 || lcline.indexOf('#playlistv') !== -1
+		let lcline = line.substr(0, 7).toLowerCase()
+		return lcline == '#extm3u' || lcline == '#playli' // #playlistv
 	}
 	trimQuotes(text) {
-		const quotes = ["'", '"']
-		if (quotes.includes(text.charAt(0))) {
+		const f = text.charAt(0), l = text.charAt(text.length - 1)
+		if (f == '"' || f == "'") {
 			text = text.substr(1)
 		}
-		if (quotes.includes(text.charAt(text.length - 1))) {
+		if (l == '"' || l == "'") {
 			text = text.substr(0, text.length - 1)
 		}
 		return text

@@ -118,6 +118,7 @@
    "CONNECTING": "Conectando",
    "CONNECTION_FAILURE": "Conexión fallida",
    "CONNECT_TIMEOUT": "Tiempo de espera para conexión",
+   "CONTACT_PROVIDER": "Póngase en contacto con su proveedor",
    "CONTINUE": "Continuar",
    "CONTROL_PLAYBACK_RATE": "Tasa de reproducción de control según el búfer",
    "CONVERTING": "Convertir...",

@@ -303,9 +303,14 @@ class UpdateListIndex extends ListIndexUtils {
                     writer.on('finish', finish)
                     writer.on('close', finish)
                     writer.on('error', finish)
+                    
+                    const indexLine = JSON.stringify(this.index) +"\n"
                     this.linesMap.push(this.linesMapPtr)
-                    this.index.linesMap = this.linesMap
-                    writer.write(JSON.stringify(this.index))
+                    this.linesMapPtr += Buffer.byteLength(indexLine, 'utf8')
+                    this.linesMap.push(this.linesMapPtr)
+
+                    const linesMapLine = JSON.stringify(this.linesMap)
+                    writer.write(indexLine + linesMapLine)
                     writer.end()
                 } else {
                     resolved = true

@@ -118,6 +118,7 @@
    "CONNECTING": "Соединение",
    "CONNECTION_FAILURE": "Сбой соединения",
    "CONNECT_TIMEOUT": "Подключите тайм-аут",
+   "CONTACT_PROVIDER": "Свяжитесь с вашим провайдером",
    "CONTINUE": "Продолжать",
    "CONTROL_PLAYBACK_RATE": "Уровень воспроизведения контроля в соответствии с буфером",
    "CONVERTING": "Конвертирование...",

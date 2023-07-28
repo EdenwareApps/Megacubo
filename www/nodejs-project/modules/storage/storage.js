@@ -111,7 +111,7 @@ class StorageAsync extends StoragePromises {
 			}
 			this.expiration(key, expiral => {
 				let now = global.time()
-				if(expiral > now){										
+				if(expiral > now) {										
 					if(this.cacheExpiration[key] != expiral){
 						this.cacheExpiration[key] = expiral
 					}

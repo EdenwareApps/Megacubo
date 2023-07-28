@@ -118,6 +118,7 @@
    "CONNECTING": "Bağlanıyor",
    "CONNECTION_FAILURE": "Bağlantı başarısız",
    "CONNECT_TIMEOUT": "Bağlantı zaman aşımı",
+   "CONTACT_PROVIDER": "Sağlayıcınızla iletişime geçin",
    "CONTINUE": "Devam et",
    "CONTROL_PLAYBACK_RATE": "Tampona göre reprodüksiyon oranını kontrol edin",
    "CONVERTING": "Dönüştürme...",

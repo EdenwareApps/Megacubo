@@ -15,7 +15,7 @@ class TunerUtils extends Events {
 		this.setMaxListeners(64)
         this.paused = true
         this.opts = {
-			debug: false,
+			debug: true,
 			shadow: false,
 			allowedTypes: null
 		}
@@ -126,8 +126,10 @@ class TunerTask extends TunerUtils {
 		return busy
 	}
 	nextEntry(){
-		return new Promise((resolve, reject) => {
+		return new Promise(resolve => {
+			let timer = 0
 			const updateListener = () => {
+				clearTimeout(timer)
 				if(this.paused) return
 				let ret = -1
 				let busy = this.busyDomains()
@@ -145,6 +147,8 @@ class TunerTask extends TunerUtils {
 					this.removeListener('destroy', updateListener)
 					this.results[ret] = 0 // ticket taken
 					resolve(ret)
+				} else {
+					timer = setTimeout(updateListener, 5000) // busyDomains logic makes timer required yet
 				}
 			}
 			this.on('resume', updateListener)
@@ -184,13 +188,6 @@ class TunerTask extends TunerUtils {
 			this.results[i] = 1
 		}
 		this.pump()
-		let processing = this.entries.some((e, n) => typeof(this.results[n]) == 'undefined' || this.results[n] == 0)
-		if(!processing){
-			if(this.opts.debug){
-				console.log('Tuner end')
-			}
-			this.finish()
-		}
 	}
 	pause(){
 		if(!this.paused){
@@ -250,7 +247,7 @@ class TunerTask extends TunerUtils {
 		}
 	}
 	finish(){
-        console.warn('TUNER FINISH', traceback())
+        console.error('TUNER FINISH', traceback())
 		if(!this.finished){
 			if(!this.aborted && !this.destroyed){
 				this.pump()

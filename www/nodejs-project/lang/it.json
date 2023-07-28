@@ -118,6 +118,7 @@
    "CONNECTING": "Connessione in corso",
    "CONNECTION_FAILURE": "Connessione fallimento",
    "CONNECT_TIMEOUT": "Timeout connessione",
+   "CONTACT_PROVIDER": "Contatta il tuo provider",
    "CONTINUE": "Continua",
    "CONTROL_PLAYBACK_RATE": "Controllare la velocità di riproduzione in base al buffer",
    "CONVERTING": "Convertire...",

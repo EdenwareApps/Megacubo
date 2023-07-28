@@ -325,8 +325,8 @@ class ManagerEPG extends ManagerCommunityLists {
         return details
     }
     updateEPGStatus(){
-        let p = global.explorer.path
-        if(p.indexOf(global.lang.EPG) == -1){
+        const p = global.explorer.path
+        if(p.indexOf(global.lang.EPG +'/'+ global.lang.OPTIONS) == -1) {
             clearInterval(this.epgStatusTimer)
             this.epgStatusTimer = false
         } else {
@@ -407,6 +407,7 @@ class ManagerEPG extends ManagerCommunityLists {
                     }})
                     resolve(options)
                 }
+                this.lastActiveEPGDetails = ''
                 if(activeEPG){
                     const epgNext = () => {
                         if(activeEPGDetails == global.lang.ENABLED){
@@ -415,9 +416,8 @@ class ManagerEPG extends ManagerCommunityLists {
                                 this.epgStatusTimer = false
                             }
                         } else {
-                            if(!this.epgStatusTimer){
-                                this.epgStatusTimer = setInterval(this.updateEPGStatus.bind(this), 1000)
-                            }
+                            this.epgStatusTimer && clearInterval(this.epgStatusTimer)
+                            this.epgStatusTimer = setInterval(this.updateEPGStatus.bind(this), 1000)
                         }
                         next()
                     }
@@ -426,12 +426,10 @@ class ManagerEPG extends ManagerCommunityLists {
                     } else {
                         this.master.epg([], 2).then(epgData => {
                             this.lastActiveEPGDetails = activeEPGDetails = this.epgLoadingStatus(epgData)
-                            epgNext()
                         }).catch(err => {
                             console.error(err)
                             activeEPGDetails = ''
-                            epgNext()
-                        })
+                        }).finally(epgNext)
                     }
                 } else {
                     next()
@@ -614,6 +612,7 @@ class Manager extends ManagerEPG {
         this.lastProgress = 0
         this.openingList = false    
         global.uiReady(() => {
+            global.streamer.on('hard-failure', es => this.checkListExpiral(es))
             global.explorer.addFilter(async (es, path) => {
                 es = await this.expandEntries(es, path)
                 es = this.master.tools.dedup(es) // apply dedup here again for expanded entries 
@@ -776,7 +775,7 @@ class Manager extends ManagerEPG {
             throw global.lang.INVALID_URL_MSG
         }
     }
-    async addList(value, name, skipSharing){
+    async addList(value, name, fromCommunity){
         let err
         const uid = parseInt(Math.random() * 100000)
         global.osd.show(global.lang.RECEIVING_LIST, 'fa-mega spin-x-alt', 'add-list-progress-'+ uid, 'persistent')
@@ -792,18 +791,21 @@ class Manager extends ManagerEPG {
             throw err
         } else {
             global.osd.show(global.lang.LIST_ADDED, 'fas fa-check-circle', 'add-list', 'normal')
+            const protect = !fromCommunity && value.match(new RegExp('(pwd?|pass|password)=', 'i')) // protect sensible lists
             const currentEPG = global.config.get('epg-'+ global.lang.locale)
-            if(!skipSharing && value.match(new RegExp('(pwd|pass|password)=', 'i'))) { // protect sensitive lists
-                skipSharing = true
-            }
-            let chosen = (!skipSharing && global.validateURL(value)) ? await global.explorer.dialog([
+            const community = global.config.get('communitary-mode-lists-amount') > 0
+            const chosen = (!protect && community && global.validateURL(value)) ? await global.explorer.dialog([
                 {template: 'question', text: global.lang.COMMUNITY_LISTS, fa: 'fas fa-users'},
                 {template: 'message', text: global.lang.WANT_SHARE_COMMUNITY},
                 {template: 'option', text: lang.NO_THANKS, id: 'no', fa: 'fas fa-lock'},
                 {template: 'option', text: lang.SHARE, id: 'yes', fa: 'fas fa-users'}
             ], 'no') : 'no' // set local files as private
-            if(chosen == 'yes'){
+            if(chosen == 'yes') {
                 global.osd.show(global.lang.COMMUNITY_THANKS_YOU, 'fas fa-heart faclr-purple', 'communitary-lists-thanks', 'normal')
+            } else if(protect && community) {
+                // maybe the app should ask user about it, for now
+                // just disable to focus on user lists
+                global.config.set('communitary-mode-lists-amount', 0)
             }
             this.setMeta(value, 'private', chosen != 'yes')
             let info, i = 20
@@ -1182,6 +1184,7 @@ class Manager extends ManagerEPG {
         return await this.addList(url)
     }
     formatMacAddress(str) {
+        if(!str) return ''
         const mask = []
         const filteredStr = str.replace(new RegExp('[^0-9a-fA-F]', 'g'), '').toUpperCase()
         for (let i = 0; i < 12; i += 2) {
@@ -1246,11 +1249,15 @@ class Manager extends ManagerEPG {
         const usr = res[4], pw = res[5]
         return baseUrl +'/get.php?username='+ encodeURIComponent(usr) +'&password='+ encodeURIComponent(pw) +'&type=m3u&output=ts'
     }     
-    isListExpired(url){
+    async isListExpired(url, test){
         if(this.master.loader.results[url]){
             const ret = String(this.master.loader.results[url] || '')
-            return ret.substr(0, 6) == 'failed' && ['401', '403', '404', '410'].includes(result.substr(-3))
-        }        
+            return ret.startsWith('failed') && ['401', '403', '404', '410'].includes(ret.substr(-3))
+        }
+        if(!test || !this.master.lists[url]) return false
+        this.master.lists[url].skipValidating = false
+        const connectable = await this.master.lists[url].verifyListQuality()
+        return !connectable
     }
     myListsEntry(manageOnly){
         return {
@@ -1261,16 +1268,17 @@ class Manager extends ManagerEPG {
                 let lists = this.get()
                 const extInfo = await this.master.info(true)
                 const doNotShareHint = !global.config.get('communitary-mode-lists-amount')
-                let ls = lists.map(row => {
+                let ls = []
+                for(const row of lists){
                     let url = row[1]
                     if(!extInfo[url]) extInfo[url] = {}
                     let name = extInfo[url].name || row[0] || this.nameFromSourceURL(url)
                     let details = [extInfo[url].author || '', '<i class="fas fa-play-circle"></i> '+ global.kfmt(extInfo[url].length || 0)].filter(n => n).join(' &nbsp;&middot;&nbsp; ')
                     let icon = extInfo[url].icon || undefined
                     let priv = (row.length > 2 && typeof(row[2]['private']) != 'undefined') ? row[2]['private'] : doNotShareHint 
-                    let expired = this.isListExpired(url)
+                    let expired = await this.isListExpired(url, false)
                     let flag = expired ? 'fas fa-exclamation-triangle faclr-red' : (priv ? 'fas fa-lock' : 'fas fa-users')
-                    return {
+                    ls.push({
                         prepend: '<i class="'+ flag +'"></i>&nbsp;',
                         name, url, icon, details,
                         fa: 'fas fa-satellite-dish',
@@ -1341,8 +1349,8 @@ class Manager extends ManagerEPG {
                             })
                             return es
                         }
-                    }
-                })
+                    })
+                }
                 if(this.addingList){
                     ls.push({
                         name: global.lang.RECEIVING_LIST,
@@ -1427,7 +1435,7 @@ class Manager extends ManagerEPG {
         global.explorer.back(1, true)
     }
     async directListRenderer(data, opts={}){
-        let v = Object.assign({}, data), isMine = global.lists.activeLists.my.includes(v.url), isCommunity = global.lists.activeLists.community.includes(v.url)
+        let v = Object.assign({}, data)
         global.osd.show(global.lang.OPENING_LIST, 'fa-mega spin-x-alt', 'list-open', 'persistent')
         let list = await this.master.directListRenderer(v, {
             fetch: opts.fetch,
@@ -1473,6 +1481,49 @@ class Manager extends ManagerEPG {
         this.openingList = false
         global.osd.hide('list-open')
         return list
+    }
+    checkListExpiral(es){
+        if(!this.master.activeLists.my.length) return
+        const myBadSources = [...new Set(es.map(e => e.source).filter(e => e))].filter(u => this.master.activeLists.my.includes(u))
+        for(const source of myBadSources) {
+            let expired
+            this.isListExpired(source, true).then(e => expired = e).catch(err => {
+                console.error(err)
+                expired = true // 'no valid links' error
+            }).finally(() => {
+                if(expired) {
+                    const meta = this.master.lists[source].index.meta
+                    const name = meta.name || meta.author || global.MANIFEST.name
+                    const opts = [
+                        { template: 'question', text: name, fa: 'fas fa-exclamation-triangle faclr-red' },
+                        { template: 'message', text: global.lang.IPTV_LIST_EXPIRED +"\r\n\r\n"+ source },
+                        { template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle' }
+                    ]
+                    let contactUrl, contactFa
+                    if(meta.site) {
+                        contactUrl = meta.site
+                        contactFa = 'fas fa-globe'
+                    } else if(meta.email) {
+                        contactUrl = 'mailto:'+ meta.email
+                        contactFa = 'fas fa-envelope'
+                    } else if(meta.phone) {
+                        contactUrl = 'tel:+'+ meta.phone.replace(new RegExp('[^0-9]+'), '')
+                        contactFa = 'fas fa-phone'
+                    }
+                    if(contactUrl) {
+                        opts.push({
+                            template: 'option',
+                            text: global.lang.CONTACT_PROVIDER,
+                            id: 'contact',
+                            fa: contactFa
+                        })
+                    }
+                    global.explorer.dialog(opts).then(ret => {
+                        if(ret == 'contact') global.ui.emit('open-external-url', contactUrl)
+                    }).catch(console.error)
+                }
+            })
+        }
     }
     async hook(entries, path){
         if(!path) {

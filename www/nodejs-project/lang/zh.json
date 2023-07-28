@@ -118,6 +118,7 @@
    "CONNECTING": "连接",
    "CONNECTION_FAILURE": "连接失败",
    "CONNECT_TIMEOUT": "限制时间连接",
+   "CONTACT_PROVIDER": "联系您的提供商",
    "CONTINUE": "继续",
    "CONTROL_PLAYBACK_RATE": "根据缓冲区控制播放率",
    "CONVERTING": "转换...",

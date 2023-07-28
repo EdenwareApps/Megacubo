@@ -346,26 +346,35 @@ class Index extends Common {
 	}
 	intersectMap(a, b){
 		let c = {}
-		Object.keys(b).forEach(listUrl => {
+		for(const listUrl in b) {
 			if(typeof(a[listUrl]) != 'undefined'){
+				const gset = new Set(
+					a[listUrl].g.length && b[listUrl].g.length ?
+					b[listUrl].g : []
+				)
+				const nset = new Set(
+					a[listUrl].n.length && b[listUrl].n.length ?
+					b[listUrl].n : []
+				)
 				c[listUrl] = {
-					g: a[listUrl].g ? a[listUrl].g.filter(n => b[listUrl].g.includes(n)).sort((a, b) => a - b) : [], 
-					n: a[listUrl].n ? a[listUrl].n.filter(n => b[listUrl].n.includes(n)).sort((a, b) => a - b) : []
+					g: gset.size ? a[listUrl].g.filter(n => gset.has(n)) : [],
+					n: nset.size ? a[listUrl].n.filter(n => nset.has(n)) : []
 				}
 			}
-		})
+		}
 		return c
 	}
 	joinMap(a, b){
 		let c = this.cloneMap(a) // clone it
-		Object.keys(b).forEach(listUrl => {
+		for(const listUrl in b) {
 			if(typeof(c[listUrl]) == 'undefined'){
 				c[listUrl] = {g: [], n: []}
 			}
-			Object.keys(b[listUrl]).forEach(type => {
+			for(const type in b[listUrl]) {
 				let changed
+				const map = new Set(c[listUrl][type] || [])
 				b[listUrl][type].forEach(n => {
-					if(!c[listUrl][type].includes(n)){
+					if(!map.has(n)){
 						c[listUrl][type].push(n)
 						if(!changed){
 							changed = true
@@ -375,29 +384,51 @@ class Index extends Common {
 				if(changed){
 					c[listUrl][type].sort((a, b) => a - b)
 				}
-			})
-		})
+			}
+		}
 		return c
 	}
-	diffMap(a, b){
+	_diffMap(a, b){
 		let c
-		Object.keys(b).forEach(listUrl => {
-			if(typeof(a[listUrl]) != 'undefined'){
-				Object.keys(b[listUrl]).forEach(type => {
+		for(const listUrl in b) {
+			if(typeof(a[listUrl]) != 'undefined') {
+				for(const type in b[listUrl]) {
 					if(typeof(a[listUrl][type]) != 'undefined'){
+						const map = new Set(c ? c[listUrl][type] : a[listUrl][type])
 						b[listUrl][type].forEach(n => {
 							let i = c ? c[listUrl][type].indexOf(n) : a[listUrl][type].indexOf(n)
-							if(i != -1){
+							if(map.has(n)){
 								if(!c) c = this.cloneMap(a) // clone it lazily
 								c[listUrl][type].splice(i, 1)
 							}
 						})
 					}
-				})
+				}
 			}
-		})
+		}
 		return c || a
 	}
+	diffMap(a, b) {
+		let c = {}
+		for (const listUrl in b) {
+			if (a[listUrl] !== undefined) {
+				c[listUrl] = {g: [], n: []}
+				const gSet = new Set(a[listUrl].g)
+				const nSet = new Set(a[listUrl].n)
+				for (const type in b[listUrl]) {
+					if (a[listUrl][type] !== undefined) {
+						const diffSet = new Set(b[listUrl][type])
+						if (type === 'g') {
+							c[listUrl].g = [...gSet].filter(n => !diffSet.has(n))
+						} else {
+							c[listUrl].n = [...nSet].filter(n => !diffSet.has(n))
+						}
+					}
+				}
+			}
+		}
+		return c
+	}  
 	cloneMap(a){
 		return global.deepClone(a)
 	}

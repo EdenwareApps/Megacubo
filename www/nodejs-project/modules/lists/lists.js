@@ -585,7 +585,7 @@ class Lists extends ListsEPGTools {
 		})
 		return dup
 	}
-	isExpiredList(list){
+	isExpiredList(list){ // check if links are all pointing to some few URLs
 		if(!list || !list.index || this.myLists.includes(list.url)){
 			return
 		}

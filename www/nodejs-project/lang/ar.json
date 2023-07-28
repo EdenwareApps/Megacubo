@@ -118,6 +118,7 @@
    "CONNECTING": "جاري الاتصال",
    "CONNECTION_FAILURE": "فشل الاتصال",
    "CONNECT_TIMEOUT": "انتهاء مهلة الاصتال",
+   "CONTACT_PROVIDER": "اتصل بمزودك",
    "CONTINUE": "استمر",
    "CONTROL_PLAYBACK_RATE": "التحكم بمعدل تشغيل وفقًا للمخزن المؤقت",
    "CONVERTING": "التحويل...",

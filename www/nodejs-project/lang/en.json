@@ -118,6 +118,7 @@
    "CONNECTING": "Connecting",
    "CONNECTION_FAILURE": "Connection fail",
    "CONNECT_TIMEOUT": "Connect timeout",
+   "CONTACT_PROVIDER": "Contact your provider",
    "CONTINUE": "Continue",
    "CONTROL_PLAYBACK_RATE": "Control reproduction rate according to buffer",
    "CONVERTING": "Converting...",

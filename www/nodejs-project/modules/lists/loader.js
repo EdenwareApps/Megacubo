@@ -158,10 +158,10 @@ class ListsLoader extends Events {
             if(p.progressId == uid) progress(p.progress)
         })
         await this.updater.update(url, false, uid).catch(console.error)
+        this.updater && this.updater.close()  
         this.master.addList(url, 1)
-        this.updater.close()
     }
-    schedule(url, priority){        
+    schedule(url, priority){
         let cancel, started, done
         this.processes.some(p => p.url == url) || this.processes.push({
             promise: this.queue.add(async () => {
@@ -171,10 +171,10 @@ class ListsLoader extends Events {
                 await this.prepareUpdater()
                 this.results[url] = 'awaiting'
                 this.results[url] = await this.updater.update(url).catch(console.error)
+                this.updater && this.updater.close()
                 done = true
                 const add = this.results[url] == 'updated' || (this.results[url] == 'already updated' && !this.master.processedLists.has(url))
                 add && this.master.addList(url, priority)
-                this.updater.close()
             }, { priority }),
             started: () => {
                 return started
@@ -190,6 +190,7 @@ class ListsLoader extends Events {
         await this.prepareUpdater()
         this.results[url] = 'reloading'
         this.results[url] = await this.updater.updateList(url, true).catch(err => updateErr = err)
+        this.updater && this.updater.close()
         if(updateErr) throw updateErr
         await this.master.loadList(url).catch(err => updateErr = err)
         if(updateErr) throw updateErr

@@ -114,7 +114,9 @@ class VideoControl extends EventEmitter {
 		}
 		const useCurtains = config['fx-nav-intensity']
 		this.rootElement.removeClass('playing')
-		if(!this.uiFrame) this.uiFrame = jQuery(document.querySelector('iframe').contentWindow.document.body)
+		if(!this.uiFrame) {
+			this.uiFrame = jQuery(document.querySelector('iframe').contentWindow.document.body)
+		}
 		this.uiFrame.removeClass('video video-loading video-playing video-paused')		
 		if(useCurtains){
 			this.rootElement.addClass('curtains-static').removeClass('curtains-alpha').removeClass('curtains').removeClass('curtains-close')
@@ -141,6 +143,11 @@ class VideoControl extends EventEmitter {
 	volume(l){
 		if(this.current){
 			this.current.volume(l)
+		}
+	}
+	muted(){
+		if(this.current){
+			return this.current.object.muted
 		}
 	}
 	setState(s, err){

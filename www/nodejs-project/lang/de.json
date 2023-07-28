@@ -118,6 +118,7 @@
    "CONNECTING": "Anschluss",
    "CONNECTION_FAILURE": "Verbindung fehlschlagen",
    "CONNECT_TIMEOUT": "Verbindungs Timeout",
+   "CONTACT_PROVIDER": "Wenden Sie sich an Ihren Anbieter",
    "CONTINUE": "Fortsetzen",
    "CONTROL_PLAYBACK_RATE": "Steuerungsreproduktionsrate gemäß Puffer",
    "CONVERTING": "Konvertieren...",

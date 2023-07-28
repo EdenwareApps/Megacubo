@@ -294,11 +294,15 @@ class ChannelsEPG extends ChannelsCategories {
             }, async data => {
                 const name = data.originalName || data.name
                 const category = this.getChannelCategory(name)
-                if(category){
+                if(!global.activeEPG) {
+                    global.displayErr(global.lang.EPG_DISABLED)
+                } else if(!this.loadedEPG) {
+                    global.displayErr(global.lang.EPG_AVAILABLE_SOON)
+                } else if(category) {
                     let err
                     await this.epgChannelLiveNow(data).catch(e => {
                         err = e
-                        global.displayErr(global.lang.CHANNEL_EPG_NOT_FOUND)
+                        global.displayErr(global.lang.CHANNEL_EPG_NOT_FOUND +' *')
                     })
                     if(!err) {
                         const _path = [global.lang.LIVE, category, name, global.lang.EPG].join('/')
