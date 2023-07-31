@@ -15,7 +15,7 @@ class TunerUtils extends Events {
 		this.setMaxListeners(64)
         this.paused = true
         this.opts = {
-			debug: true,
+			debug: false,
 			shadow: false,
 			allowedTypes: null
 		}

@@ -35,7 +35,7 @@ class StreamerYTHLSIntent extends StreamerHLSIntent {
     }
     async getYTInfo(id){
         let info, err, retries = 5, url = 'https://www.youtube.com/watch?v='+ id
-        while((!info || !info.formats) && retries){
+        while((!info || !info.formats) && retries) {
             retries--
             console.warn('TRY', global.time())
             info = await ytdl.getInfo(url, {     

@@ -315,7 +315,7 @@ class HLSRequests extends StreamerProxyBase {
 				if(status == 410){
 					status = 404
 				}
-				if(status == 403 && this.prefetchMaxConcurrency){ // concurrent connection limit?
+				if(status == 403 && this.prefetchMaxConcurrency > 0){ // concurrent connection limit?
 					this.prefetchMaxConcurrency--
 				}
 				if(status == 404){

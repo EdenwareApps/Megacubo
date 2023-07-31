@@ -205,7 +205,7 @@ class P2PPeer extends P2PEncDec {
 		let left = this.sockets.length
 		const done = () => {
 			left--
-			if (left == 0) {
+			if (left <= 0) {
 				this.writing = false
 				this.drain()
 			}

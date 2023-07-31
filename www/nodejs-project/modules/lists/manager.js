@@ -791,7 +791,7 @@ class Manager extends ManagerEPG {
             throw err
         } else {
             global.osd.show(global.lang.LIST_ADDED, 'fas fa-check-circle', 'add-list', 'normal')
-            const protect = !fromCommunity && value.match(new RegExp('(pwd?|pass|password)=', 'i')) // protect sensible lists
+            const protect = !fromCommunity && (value.match(new RegExp('(pwd?|pass|password)=', 'i')) || value.match(new RegExp('/[0-9]{5,}/[0-9]{5,}'))) // protect sensible lists
             const currentEPG = global.config.get('epg-'+ global.lang.locale)
             const community = global.config.get('communitary-mode-lists-amount') > 0
             const chosen = (!protect && community && global.validateURL(value)) ? await global.explorer.dialog([
@@ -810,7 +810,7 @@ class Manager extends ManagerEPG {
             this.setMeta(value, 'private', chosen != 'yes')
             let info, i = 20
             if(currentEPG != 'disabled'){
-                while(i && (!info || !info[value])){
+                while(i > 0 && (!info || !info[value])){
                     i--
                     await this.wait(500)
                     info = await this.master.info()
@@ -1285,7 +1285,19 @@ class Manager extends ManagerEPG {
                         type: 'group',
                         class: 'skip-testing',
                         renderer: async () => {
-                            let es = []
+                            let es = []     
+                            let contactUrl, contactFa
+                            const meta = this.master.lists[url] ? this.master.lists[url].index.meta : {}
+                            if(meta.site) {
+                                contactUrl = meta.site
+                                contactFa = 'fas fa-globe'
+                            } else if(meta.email) {
+                                contactUrl = 'mailto:'+ meta.email
+                                contactFa = 'fas fa-envelope'
+                            } else if(meta.phone) {
+                                contactUrl = 'tel:+'+ meta.phone.replace(new RegExp('[^0-9]+'), '')
+                                contactFa = 'fas fa-phone'
+                            }
                             const options = [
                                 {
                                     name: global.lang.RENAME, 
@@ -1329,7 +1341,17 @@ class Manager extends ManagerEPG {
                                     class: 'skip-testing', 
                                     action: this.removeList.bind(this)
                                 }
-                            ]
+                            ]                            
+                            if(contactUrl) {
+                                options.splice(2, 0, {
+                                    name: global.lang.CONTACT_PROVIDER, 
+                                    type: 'action',
+                                    fa: contactFa,
+                                    action: () => {
+                                        global.ui.emit('open-external-url', contactUrl)
+                                    }
+                                })
+                            }
                             if(manageOnly) return options
                             es = await this.directListRenderer({url}, {
                                 raw: true,
@@ -1343,7 +1365,7 @@ class Manager extends ManagerEPG {
                             }
                             es.unshift({
                                 name: global.lang.OPTIONS,
-                                fa: 'fas fa-edit', 
+                                fa: 'fas fa-bars', 
                                 type: 'select',
                                 entries: options
                             })
@@ -1375,7 +1397,6 @@ class Manager extends ManagerEPG {
     }
     async refreshList(data){
         let updateErr
-        global.osd.show(global.lang.UPDATING_LISTS, 'fa-mega spin-x-alt', 'refresh-list', 'persistent')
         await this.master.loader.reload(data.url).catch(e => updateErr = e)
         if(updateErr){
             if(updateErr == 'empty list'){

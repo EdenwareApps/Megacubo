@@ -1,6 +1,7 @@
 
 const Common = require('./common'), List = require('./list')
-const UpdateListIndex = require('./update-list-index'), utils = require('../multi-worker/utils')
+const UpdateListIndex = require('./update-list-index')
+const utils = require('../multi-worker/utils')(__filename)
 
 class ListsUpdater extends Common {
 	constructor(){
@@ -44,6 +45,7 @@ class ListsUpdater extends Common {
 		if(this.debug){
 			console.log('updater updateList', url)
 		}
+		progressId && utils.emit('progress', {progressId, progress: 0})
 		const should = force === true || (await this.updaterShouldUpdate(url))
 		const now = global.time()
 		if(this.debug){

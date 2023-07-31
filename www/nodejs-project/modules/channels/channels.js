@@ -1281,7 +1281,7 @@ class Channels extends ChannelsKids {
             moreOptions.push(this.shareChannelEntry(e))
             moreOptions.push(streamsEntry)
         }
-        if(global.config.get('channel-grid') == '' && global.config.get('allow-edit-channel-list') && (e.path || global.explorer.path).indexOf(global.lang.SEARCH) == -1){ // avoid it on search results to prevent bugs
+        if(!global.config.get('channel-grid') && global.config.get('allow-edit-channel-list') && (e.path || global.explorer.path).indexOf(global.lang.SEARCH) == -1){ // avoid it on search results to prevent bugs
             const editEntry = this.editChannelEntry(e, category, {name: category ? global.lang.EDIT_CHANNEL : global.lang.EDIT, details: undefined, class: 'no-icon', fa: 'fas fa-edit', users: undefined, usersPercentage: undefined, path: undefined, url: undefined})
             moreOptions.push(editEntry)
         }
@@ -1400,7 +1400,7 @@ class Channels extends ChannelsKids {
         }
         let list
         const type = global.config.get('channel-grid')
-        const editable = type == '' && global.config.get('allow-edit-channel-list')
+        const editable = !type && global.config.get('allow-edit-channel-list')
         if(type == 'lists') {
             list = await this.groupsRenderer('live')
         } else {
@@ -1562,7 +1562,7 @@ class Channels extends ChannelsKids {
     options(){
         return new Promise((resolve, reject) => {
             let entries = []
-            if(global.config.get('channel-grid') == '' && global.config.get('allow-edit-channel-list')){
+            if(!global.config.get('channel-grid') && global.config.get('allow-edit-channel-list')){
                 entries.push(this.editCategoriesEntry())
             }
             entries.push(...[

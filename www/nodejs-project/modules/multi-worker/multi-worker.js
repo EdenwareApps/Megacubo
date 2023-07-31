@@ -29,7 +29,11 @@ const setupConstructor = () => {
 			this.terminating = {}
 		}
 		proxy(file){
-			const trace = '' // global.traceback()
+			file = path.resolve(file)
+			if(this.instances[file]) {
+				return this.instances[file]
+			}
+			this.worker.postMessage({method: 'loadWorker', file})
 			const instance = new Proxy(this, {
 				get: (self, method) => {
 					const trace = global.traceback()
@@ -43,7 +47,6 @@ const setupConstructor = () => {
 					}
 					return (...args) => {
 						return new Promise((resolve, reject) => {
-							const debug = false
 							if(self.finished){
 								if(self.terminating[file]) {
 									return resolve()
@@ -61,21 +64,17 @@ const setupConstructor = () => {
 										delete self.instances[file]
 										delete self.terminating[file]
 									}									
-									debug && global.osd.show(path.basename(file) +' '+ method +' OK', 'fas fas-circle-notch', 'mwrk-'+ id, 'normal')
 								},
 								reject: err => {									
-									debug && global.osd.show(path.basename(file) +' '+ method +' '+ 	String(err), 'fas fas-circle-notch faclr-red', 'mwrk-'+ id, 'long')
 									reject(err)
 								},
 								file,
 								method
 							}
-							debug && global.osd.show(path.basename(file) +' '+ method, 'fas fas-circle-notch', 'mwrk-'+ id, 'long')
 							try {
 								self.worker.postMessage({method, id, file, args})
 							} catch(e) {
 								console.error({e, method, id, file, args, trace})
-								debug && global.osd.show(path.basename(file) +' '+ method +' '+ 	String(err), 'fas fas-circle-notch faclr-red', 'mwrk-'+ id, 'long')
 							}
 						})
 					}
@@ -99,7 +98,6 @@ const setupConstructor = () => {
 		}
 		load(file){
 			if(this.worker){
-				this.worker.postMessage({method: 'loadWorker', file})
 				return this.proxy(file)
 			} else {
 				throw 'Worker already terminated: '+ file
@@ -161,24 +159,29 @@ const setupConstructor = () => {
 				this.rejectAll(null, this.err || 'worker exited')
 			})
 			this.worker.on('message', ret => {
-				if(ret.id !== 0){
+				if(ret.id){
 					if(ret.id && typeof(this.promises[ret.id]) != 'undefined'){
 						this.promises[ret.id][ret.type](ret.data)
 						delete this.promises[ret.id]
 					} else {
 						console.warn('Callback repeated: '+ JSON.stringify(ret))
 					}
-				} else if(ret.type && ret.type == 'event') {
-					let pos = ret.data.indexOf(':')
+				} else {
+					let args = [], pos = ret.data.indexOf(':')
 					if(pos != -1){
 						let evtType = ret.data.substr(0, pos)
 						let evtContent = ret.data.substr(pos + 1)
 						if(evtContent.length){
 							evtContent = global.parseJSON(evtContent)
 						}
-						this.emit(evtType, evtContent)
+						args = [evtType, evtContent]
 					} else {
-						this.emit(ret.data)
+						args = [ret.data]
+					}
+					if(ret.file) {
+						this.instances[ret.file] && this.instances[ret.file].emit(...args)
+					} else {
+						this.emit(...args)
 					}
 				}
 			})
@@ -232,7 +235,7 @@ const setupConstructor = () => {
 		}
 	}
 	return ThreadWorkerDriver
-	// return DirectDriver // useful for debugging
+	//return DirectDriver // useful for debugging
 }
 
 module.exports = setupConstructor()

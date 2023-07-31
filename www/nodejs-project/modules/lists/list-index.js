@@ -22,7 +22,7 @@ class ListIndex extends ListIndexUtils {
             entries = global.parseJSON('['+ Object.values(lines).join(',') +']') // remove undefineds too
         } catch(e) {}
         if(!Array.isArray(entries)){
-            console.error('Failed to get lines', lines, map, entries, this.file)
+            console.error('Failed to get lines', this.file)
             throw 'failed to get lines'
         }
         if(entries.length) {

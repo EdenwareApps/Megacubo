@@ -321,7 +321,7 @@ function updateSplashProgress(increase) {
 function fakeUpdateProgress() {
 	let timer = setInterval(function () {
 		fakeTasksCount--;
-		if (!fakeTasksCount) {
+		if (fakeTasksCount <= 0) {
 			clearInterval(timer);
 		}
 		updateSplashProgress();

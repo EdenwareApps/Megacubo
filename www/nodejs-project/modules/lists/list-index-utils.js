@@ -89,7 +89,7 @@ class ListIndexUtils extends Events {
                             reject('list destroyed')
                         } else {
                             if(!line || line.charAt(0) != '{'){
-                                console.error('Bad line readen', line, this.file, i)
+                                console.error('Bad line readen', this.file, i)
                             }
                             if(!map || map.includes(i)){
                                 lines[i] = line
@@ -158,7 +158,7 @@ class ListIndexUtils extends Events {
                     index = parsed // old style compat
                 }
             } catch(e) {
-                console.error('Index parsing failure', line, e, this.file)
+                console.error('Index parsing failure', e, this.file)
             }
         }
         if(index && typeof(index.length) != 'undefined'){

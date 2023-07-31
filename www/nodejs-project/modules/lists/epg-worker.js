@@ -1,5 +1,5 @@
 const ListsCommon = require('../lists/common'), xmltv = require('xmltv')
-const Events = require('events'), utils = require('../multi-worker/utils')
+const Events = require('events'), utils = require('../multi-worker/utils')(__filename)
 
 class EPGPaginateChannelsList extends Events {
     constructor(){

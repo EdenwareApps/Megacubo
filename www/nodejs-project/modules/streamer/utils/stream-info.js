@@ -55,7 +55,7 @@ class StreamInfo {
 							let trackUrl = strSample.split("\n").map(s => s.trim()).filter(line => line.length > 3 && line.charAt(0) != '#').shift()
 							trackUrl = global.absolutize(trackUrl, url)
 							recursion--
-							if(!recursion){
+							if(recursion <= 0){
 								return reject('Max recursion reached.')
 							}
 							return this._probe(trackUrl, timeoutSecs, retries, opts, recursion).then( resolve ).catch(err => {
@@ -66,7 +66,7 @@ class StreamInfo {
 							let trackUrl = strSample.split("\n").map(s => s.trim()).filter(line => line.length > 3 && line.charAt(0) != '#').shift()
 							trackUrl = global.absolutize(trackUrl, url)
 							recursion--
-							if(!recursion){
+							if(recursion <= 0){
 								return reject('Max recursion reached.')
 							}
 							return this._probe(trackUrl, timeoutSecs, retries, opts, recursion).then(ret =>{

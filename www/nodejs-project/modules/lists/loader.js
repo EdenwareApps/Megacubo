@@ -53,13 +53,6 @@ class ListsLoader extends Events {
         this.resetLowPriorityUpdates()
     }
     async resetLowPriorityUpdates(){ // load community lists
-        const maxListsToTry = 192
-        const minListsToTry = Math.max(64, 3 * this.communityListsAmount)
-        if(minListsToTry < this.master.processedLists.size) return
-
-        const taskId = Math.random()
-        this.currentTaskId = taskId
-        this.master.updaterFinished(false)
         this.processes = this.processes.filter(p => {
             /* Cancel pending processes to reorder it */
             if(p.priority > 1 && !p.started() && !p.done()) {
@@ -68,6 +61,16 @@ class ListsLoader extends Events {
             }
             return true
         })
+
+        if(!this.communityListsAmount) return
+
+        const maxListsToTry = 192
+        const minListsToTry = Math.max(64, 3 * this.communityListsAmount)
+        if(minListsToTry < this.master.processedLists.size) return
+
+        const taskId = Math.random()
+        this.currentTaskId = taskId
+        this.master.updaterFinished(false)
 
         const lists = await global.discovery.get(maxListsToTry)
         const communityLists = []
@@ -94,7 +97,9 @@ class ListsLoader extends Events {
             this.once('destroy', () => updater.terminate())
             this.updaterClients = 1
             updater.close = () => {
-                this.updaterClients--
+                if(this.updaterClients > 0){
+                    this.updaterClients--
+                }
                 if(!this.updaterClients && !this.updater.terminating){
                     this.updater.terminating = setTimeout(() => {
                         console.error('Terminating updater worker')
@@ -187,10 +192,20 @@ class ListsLoader extends Events {
     }
     async reload(url){
         let updateErr
+        const progressId = 'reloading-'+ parseInt(Math.random() * 1000000)
+        const progressListener = p => {
+            if(p.progressId == progressId) {
+                global.osd.show(global.lang.RECEIVING_LIST +' '+ p.progress +'%', 'fas fa-circle-notch fa-spin', 'progress-'+ progressId, 'persistent')
+            }
+        }
+        progressListener({progressId, progress: 0})
         await this.prepareUpdater()
-        this.results[url] = 'reloading'
-        this.results[url] = await this.updater.updateList(url, true).catch(err => updateErr = err)
+        this.updater.on('progress', progressListener)
+        this.results[url] = 'reloading'       
+        this.results[url] = await this.updater.updateList(url, true, progressId).catch(err => updateErr = err)
         this.updater && this.updater.close()
+        this.updater.removeListener('progress', progressListener)
+        global.osd.hide('progress-'+ progressId)
         if(updateErr) throw updateErr
         await this.master.loadList(url).catch(err => updateErr = err)
         if(updateErr) throw updateErr

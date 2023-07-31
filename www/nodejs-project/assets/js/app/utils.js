@@ -115,7 +115,6 @@ function loadJS(url, cb, retries=3){
 				setTimeout(function (){
 					loadJS(url, cb, retries)
 				}, 1)
-
 			} else {
 				console.warn('ERROR', url);
 				setTimeout(cb, 1)

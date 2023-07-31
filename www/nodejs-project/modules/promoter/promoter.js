@@ -35,15 +35,21 @@ class Promoter {
 		const atts = {
 			communitary: global.config.get('communitary-mode-lists-amount') > 0,
 			premium: global.options.prm(true),
-			country: global.lang.countryCode
+			country: global.lang.countryCode,
+			platform: process.platform,
+			version: global.MANIFEST.version
 		}
-		const c = await global.cloud.get('promo')
+		const c = await global.cloud.get('promos')
 		if(!Array.isArray(c)) return
 		const promos = c.filter(p => {
 			if(p.type != type) return
 			return Object.keys(atts).every(k => {
 				if(k == 'country') {
 					return typeof(p.countries) == 'undefined' || p.countries.includes(atts[k])
+				} else if(k == 'platform') {
+					return typeof(p.platforms) == 'undefined' || p.platforms.includes(atts[k])
+				} else if(k == 'version') {
+					return typeof(p.minVersion) == 'undefined' || atts.version >= p.minVersion
 				} else {
 					return typeof(p[k]) == 'undefined' || p[k] == atts[k]
 				}
@@ -65,8 +71,12 @@ class Promoter {
 			callbacks[id] = async () => {
 				if(!o.url) return
 				if(o.url.indexOf('{email}') != -1) {
-					const email = await global.explorer.prompt(o.prompt || o.name, o.placeholder || '', '', false, o.fa, null)
+					const email = await global.explorer.prompt(o.emailPrompt || '', o.emailPlaceholder || '', '', false, o.fa, null)
 					o.url = o.url.replace('{email}', encodeURIComponent(email || ''))
+				}
+				if(o.url.indexOf('{name}') != -1) {
+					const email = await global.explorer.prompt(o.namePrompt || '', o.namePlaceholder || '', '', false, o.fa, null)
+					o.url = o.url.replace('{name}', encodeURIComponent(email || ''))
 				}
 				if(o.confirmation) {
 					global.Download.get({

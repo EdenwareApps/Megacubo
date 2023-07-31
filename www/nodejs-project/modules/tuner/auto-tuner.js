@@ -276,7 +276,7 @@ class AutoTuner extends Events {
                 index.length = 0
             }
         } else {
-            if(slotCount){
+            if(slotCount > 0){
                 this.tuner.paused && this.tuner.resume()
             } else {
                 !this.tuner.paused && this.tuner.pause()

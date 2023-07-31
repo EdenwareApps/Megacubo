@@ -71,6 +71,7 @@ class UpdateListIndex extends ListIndexUtils {
                 console.error('ADDLISThttp='+path)
                 let resolved
                 const opts = {
+                    debug: false,
                     url: path,
                     p2p: !!this.forceDownload,
                     retries: 3,
@@ -231,7 +232,7 @@ class UpdateListIndex extends ListIndexUtils {
                 this.indexateIterator++
 			})
             this.parser.on('progress', readen => {
-                const cl = this.contentLength || 40 * (1024 * 1024) // estimate it if we don't know
+                const cl = this.contentLength > 0 ? this.contentLength : 62 * (1024 * 1024) // estimate it if we don't know
                 const pp = cl / 100
                 let progress = parseInt(readen / pp)
                 if(progress > 99) progress = 99
@@ -251,7 +252,7 @@ class UpdateListIndex extends ListIndexUtils {
                     }
                 }
 
-                if(progress > this.lastProgress) {
+                if(progress != this.lastProgress) {
                     this.lastProgress = progress
                     this.emit('progress', progress)
                 }

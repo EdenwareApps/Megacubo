@@ -1,5 +1,5 @@
 const Cloud = require('../cloud')
-const { logErr, parentPort, loadGlobalVars } = require('./utils')
+const { logErr, parentPort, loadGlobalVars } = require('./utils')(__filename)
 
 loadGlobalVars()
 require('../supercharge')(global)

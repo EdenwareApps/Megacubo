@@ -242,7 +242,7 @@ class Explorer extends Events {
             if(typeof(level) != 'number'){
                 level = 1
             }
-            while(p && level){
+            while(p && level >= 0){
                 p = this.dirname(p)
                 level--
             }
