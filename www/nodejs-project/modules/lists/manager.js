@@ -612,10 +612,9 @@ class Manager extends ManagerEPG {
         this.lastProgress = 0
         this.openingList = false    
         global.uiReady(() => {
-            global.streamer.on('hard-failure', es => this.checkListExpiral(es))
+            global.streamer.on('hard-failure', es => this.checkListExpiral(es).catch(console.error))
             global.explorer.addFilter(async (es, path) => {
                 es = await this.expandEntries(es, path)
-                es = this.master.tools.dedup(es) // apply dedup here again for expanded entries 
                 return this.labelify(es)
             })
             this.master.on('unsatisfied', () => this.update())
@@ -1248,17 +1247,7 @@ class Manager extends ManagerEPG {
         if (res.length < 6) return false
         const usr = res[4], pw = res[5]
         return baseUrl +'/get.php?username='+ encodeURIComponent(usr) +'&password='+ encodeURIComponent(pw) +'&type=m3u&output=ts'
-    }     
-    async isListExpired(url, test){
-        if(this.master.loader.results[url]){
-            const ret = String(this.master.loader.results[url] || '')
-            return ret.startsWith('failed') && ['401', '403', '404', '410'].includes(ret.substr(-3))
-        }
-        if(!test || !this.master.lists[url]) return false
-        this.master.lists[url].skipValidating = false
-        const connectable = await this.master.lists[url].verifyListQuality()
-        return !connectable
-    }
+    }    
     myListsEntry(manageOnly){
         return {
             name: global.lang.MY_LISTS, 
@@ -1276,7 +1265,7 @@ class Manager extends ManagerEPG {
                     let details = [extInfo[url].author || '', '<i class="fas fa-play-circle"></i> '+ global.kfmt(extInfo[url].length || 0)].filter(n => n).join(' &nbsp;&middot;&nbsp; ')
                     let icon = extInfo[url].icon || undefined
                     let priv = (row.length > 2 && typeof(row[2]['private']) != 'undefined') ? row[2]['private'] : doNotShareHint 
-                    let expired = await this.isListExpired(url, false)
+                    let expired = await this.master.isListExpired(url, false)
                     let flag = expired ? 'fas fa-exclamation-triangle faclr-red' : (priv ? 'fas fa-lock' : 'fas fa-users')
                     ls.push({
                         prepend: '<i class="'+ flag +'"></i>&nbsp;',
@@ -1318,7 +1307,7 @@ class Manager extends ManagerEPG {
                                                 delete global.explorer.pages[parentPath]
                                                 global.explorer.open(path).catch(global.displayErr)
                                             } else {
-                                                global.explorer.back(1, true)
+                                                global.explorer.back(null, true)
                                             }
                                         }
                                     },
@@ -1453,7 +1442,7 @@ class Manager extends ManagerEPG {
         } catch(e) { }
         global.osd.show(global.lang.LIST_REMOVED, 'fas fa-info-circle', 'list-open', 'normal')
         global.explorer.resumeRendering()
-        global.explorer.back(1, true)
+        global.explorer.back(null, true)
     }
     async directListRenderer(data, opts={}){
         let v = Object.assign({}, data)
@@ -1503,47 +1492,53 @@ class Manager extends ManagerEPG {
         global.osd.hide('list-open')
         return list
     }
-    checkListExpiral(es){
+    async checkListExpiral(es){
         if(!this.master.activeLists.my.length) return
+        if(!this.checkListExpiralTimes) this.checkListExpiralTimes = {}
+        const now = global.time()
+        const checkListExpiralInterval = 120
         const myBadSources = [...new Set(es.map(e => e.source).filter(e => e))].filter(u => this.master.activeLists.my.includes(u))
         for(const source of myBadSources) {
+            if(this.checkListExpiralTimes[source] && (now < (this.checkListExpiralTimes[source] + checkListExpiralInterval))) {
+                continue
+            }
+            this.checkListExpiralTimes[source] = now
             let expired
-            this.isListExpired(source, true).then(e => expired = e).catch(err => {
+            await this.master.isListExpired(source, true).then(e => expired = e).catch(err => {
                 console.error(err)
                 expired = true // 'no valid links' error
-            }).finally(() => {
-                if(expired) {
-                    const meta = this.master.lists[source].index.meta
-                    const name = meta.name || meta.author || global.MANIFEST.name
-                    const opts = [
-                        { template: 'question', text: name, fa: 'fas fa-exclamation-triangle faclr-red' },
-                        { template: 'message', text: global.lang.IPTV_LIST_EXPIRED +"\r\n\r\n"+ source },
-                        { template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle' }
-                    ]
-                    let contactUrl, contactFa
-                    if(meta.site) {
-                        contactUrl = meta.site
-                        contactFa = 'fas fa-globe'
-                    } else if(meta.email) {
-                        contactUrl = 'mailto:'+ meta.email
-                        contactFa = 'fas fa-envelope'
-                    } else if(meta.phone) {
-                        contactUrl = 'tel:+'+ meta.phone.replace(new RegExp('[^0-9]+'), '')
-                        contactFa = 'fas fa-phone'
-                    }
-                    if(contactUrl) {
-                        opts.push({
-                            template: 'option',
-                            text: global.lang.CONTACT_PROVIDER,
-                            id: 'contact',
-                            fa: contactFa
-                        })
-                    }
-                    global.explorer.dialog(opts).then(ret => {
-                        if(ret == 'contact') global.ui.emit('open-external-url', contactUrl)
-                    }).catch(console.error)
-                }
             })
+            if(expired) {
+                const meta = this.master.lists[source].index.meta
+                const name = meta.name || meta.author || global.MANIFEST.name
+                const opts = [
+                    { template: 'question', text: name, fa: 'fas fa-exclamation-triangle faclr-red' },
+                    { template: 'message', text: global.lang.IPTV_LIST_EXPIRED +"\r\n\r\n"+ source },
+                    { template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle' }
+                ]
+                let contactUrl, contactFa
+                if(meta.site) {
+                    contactUrl = meta.site
+                    contactFa = 'fas fa-globe'
+                } else if(meta.email) {
+                    contactUrl = 'mailto:'+ meta.email
+                    contactFa = 'fas fa-envelope'
+                } else if(meta.phone) {
+                    contactUrl = 'tel:+'+ meta.phone.replace(new RegExp('[^0-9]+'), '')
+                    contactFa = 'fas fa-phone'
+                }
+                if(contactUrl) {
+                    opts.push({
+                        template: 'option',
+                        text: global.lang.CONTACT_PROVIDER,
+                        id: 'contact',
+                        fa: contactFa
+                    })
+                }
+                global.explorer.dialog(opts).then(ret => {
+                    if(ret == 'contact') global.ui.emit('open-external-url', contactUrl)
+                }).catch(console.error)
+            }
         }
     }
     async hook(entries, path){

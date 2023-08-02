@@ -248,9 +248,7 @@ class Index extends Common {
 					maybe = []
 				}
 			}
-			results = this.tools.dedup(results) // dedup before parentalControl to improve blocking
 			results = this.prepareEntries(results)
-
 			if(opts.parentalControl !== false){
 				results = this.parentalControl.filter(results, true)
 				maybe = this.parentalControl.filter(maybe, true)
@@ -507,7 +505,6 @@ class Index extends Common {
 		})
 
 		let entries = await this.lists[group.url].getEntries(map)
-		entries = this.tools.dedup(entries) // dedup before parentalControl to improve blocking
 		entries = this.parentalControl.filter(entries, true)
 		entries = this.sort(entries)
 

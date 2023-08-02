@@ -151,14 +151,17 @@ class IPTVM3UParser extends EventEmitter {
 		}
 		this.attrMapRegex = this.generateAttrMapRegex(this.attrMap)
 		this.headerAttrMapRegex = this.generateAttrMapRegex(this.headerAttrMap)
-		this.headerRegex = new RegExp('#(extm3u|playlistv)[^\r\n]*', 'gim')
+		this.headerRegex = new RegExp('^#(extm3u|playlistv)[^\r\n]*', 'gim')
 		this.readen = 0 // no precision required, just for progress stats
 		this.lastProgress = -1
 		this.reader = new PersistentFileReader(this.opts)
 		this.parse().catch(console.error)
 	}
 	generateAttrMapRegex(attrs) {
-		return new RegExp('(' + Object.keys(attrs).join('|').replace(new RegExp('-', 'g'), '\\-') + ')\\s*=\\s*[\'"]([^\r\n\'"]*)', 'gi')
+		return new RegExp('(' +
+			Object.keys(attrs).join('|').replace(new RegExp('-', 'g'), '\\-') +
+			')\\s*=\\s*[\'"]([^\r\n\'"]*)[\'"]',
+			'gi')
 	}
 	parse() {
 		return new Promise((resolve, reject) => {
@@ -174,21 +177,16 @@ class IPTVM3UParser extends EventEmitter {
 				const hashed = line.charAt(0) === '#'
 				if (hashed && this.isExtM3U(line)) {
 					if (this.expectingHeader) {
-						const matches = line.match(this.headerRegex)
-						if (matches) {
-							matches.forEach(l => {
-								for (const t of l.matchAll(this.headerAttrMapRegex)) {
-									if (this.destroyed) break
-									if (t && t[2]) {
-										if (this.headerAttrMap[t[1]]) {
-											t[1] = this.headerAttrMap[t[1]]
-										}
-										if (!this.meta[t[1]]) {
-											this.meta[t[1]] = t[2]
-										}
-									}
+						for (const t of line.matchAll(this.headerAttrMapRegex)) {
+							if (this.destroyed) break
+							if (t && t[2]) {
+								if (this.headerAttrMap[t[1]]) {
+									t[1] = this.headerAttrMap[t[1]]
 								}
-							})
+								if (!this.meta[t[1]]) {
+									this.meta[t[1]] = t[2]
+								}
+							}
 						}
 					}
 				} else if (hashed && this.isExtInf(line)) {
@@ -203,20 +201,27 @@ class IPTVM3UParser extends EventEmitter {
 					}
 					for (const t of line.matchAll(this.attrMapRegex)) {
 						if (t && t[2]) {
-							if (this.attrMap[t[1]] === 'name') {
-								if (!n || n === 'N/A') {
-									n = t[2]
-								}
-							} else if (this.attrMap[t[1]] === 'group') {
-								if (!g || g === 'N/A') {
-									g = t[2]
-								}
-							} else if (this.attrMap[t[1]] === 'sub-group') {
-								if (!sg || sg === 'N/A') {
-									sg = t[2]
-								}
-							} else if (!e[this.attrMap[t[1]]]) {
-								e[this.attrMap[t[1]]] = t[2]
+							const tag = this.attrMap[t[1]] || t[1]
+							switch (tag)  {
+								case 'name':
+									if (!n || n.indexOf('"') != -1 || n === 'N/A') {
+										n = t[2]
+									}
+									break
+								case 'group':
+									if (!g || g === 'N/A') {
+										g = t[2]
+									}
+									break
+								case 'sub-group':
+									if (!sg || sg === 'N/A') {
+										sg = t[2]
+									}
+									break
+								default:
+									if (!e[this.attrMap[t[1]]]) {
+										e[this.attrMap[t[1]]] = t[2]
+									}
 							}
 						}
 					}

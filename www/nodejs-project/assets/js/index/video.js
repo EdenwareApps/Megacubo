@@ -252,7 +252,12 @@ class VideoControl extends EventEmitter {
 			})
 			a.on('ended', (err, fatal) => {
 				if(!this.current) return
-				this.setState('ended')
+				this.suspendStateChangeReporting = true
+				this.pause()
+				setTimeout(() => {
+					this.suspendStateChangeReporting = false
+					this.setState('ended')
+				}, 0)
 			})
 			a.config = typeof(config) == 'object' ? config : {}
 			this.adapters[this.adapter] = a

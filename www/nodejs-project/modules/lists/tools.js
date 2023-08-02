@@ -4,7 +4,7 @@ class Tools {
 	constructor(){
 		this.folderSizeLimitTolerance = 12
 	}
-	dedup(entries){
+	dedup(entries){ // dedup usage should be avoided, for performance, prevent app nav errors and respect lists planned structure
 		let changed, already = {}, map = {};
 		for(var i=0; i<entries.length; i++){
 			if(!entries[i]){
@@ -248,6 +248,7 @@ class Tools {
 	}
 	mergeEntries(a, b){
 		if(a.name != b.name){
+			const oaName = a.name
 			a.name = this.mergeNames(a.name, b.name)
 			if(
 				(a.rawname && a.rawname != a.name) || 
@@ -256,6 +257,13 @@ class Tools {
 				a.rawname = this.mergeNames(a.rawname || a.name, b.rawname || a.name)
 			} else {
 				a.rawname = a.name
+			}
+			if(a.path) {
+				const parts = a.path.split('/')
+				if(parts[parts.length - 1] == oaName) {
+					parts[parts.length - 1] = a.name
+					a.path = parts.join('/')
+				}
 			}
 		}
 		if(b.icon && !a.icon){

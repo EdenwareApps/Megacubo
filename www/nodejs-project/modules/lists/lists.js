@@ -469,7 +469,9 @@ class Lists extends ListsEPGTools {
 				console.log('loadList started', url)
 			}
 			let repeated, expired
-			if(!this.lists[url] || (expired=this.isExpiredList(this.lists[url])) || (repeated=this.isRepeatedList(url))) {
+			if(!this.lists[url] || (!isMine &&
+				(expired=this.seemsExpiredList(this.lists[url])) || (repeated=this.isRepeatedList(url))
+				)) {
 				if(!this.requesting[url] || this.requesting[url] == 'loading'){
 					this.requesting[url] = repeated ? 'repeated at '+ repeated : (expired ? 'seems expired, destroyed' : 'loaded, but destroyed')
 				}
@@ -585,15 +587,29 @@ class Lists extends ListsEPGTools {
 		})
 		return dup
 	}
-	isExpiredList(list){ // check if links are all pointing to some few URLs
-		if(!list || !list.index || this.myLists.includes(list.url)){
+	seemsExpiredList(list){ // check if links are all pointing to some few URLs
+		if(!list || !list.index){
 			return
 		}
-		const quota = list.index.length  * 0.7
+		if(this.loader.results[list.url]){
+            const ret = String(this.loader.results[list.url] || '')
+            if(ret.startsWith('failed') && ['401', '403', '404', '410'].includes(ret.substr(-3))) {
+				return true
+			}
+        }
+        const quota = list.index.length  * 0.7
 		if(list.index.uniqueStreamsLength && list.index.uniqueStreamsLength < quota) {
 			return true
 		}
-	}
+	} 
+    async isListExpired(url, test){
+        if(!this.lists[url]) return false
+		if(this.seemsExpiredList(this.lists[url])) return true
+        if(!test) return false
+        this.lists[url].skipValidating = false
+        const connectable = await this.lists[url].verifyListQuality()
+        return !connectable
+    }
 	async isSameContentLoaded(list){
 		let err, alreadyLoaded, listDataFile = list.file, listIndexLength = list.index.length
 		const stat = await fs.promises.stat(listDataFile).catch(e => err = e)
@@ -756,7 +772,6 @@ class Lists extends ListsEPGTools {
 			return this.directListRendererPrepareCache[url].list
 		}
 		if(list.length){
-			list = this.tools.dedup(list) // dedup before parentalControl to improve blocking
 			list = this.parentalControl.filter(list, true)
 			list = this.prepareEntries(list)
 			list = await this.tools.deepify(list,  {source: url})

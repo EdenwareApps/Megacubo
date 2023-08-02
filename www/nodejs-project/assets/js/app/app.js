@@ -79,23 +79,25 @@ function resolveNativePath(uri, callback) {
     if(!uri.startsWith('content:')){
         return callback(null, uri)
     }
-    parent.resolveLocalFileSystemURL(originalURI, fileEntry => {
-        fileEntry.file(file => {
-            const reader = new FileReader()
-            reader.onloadend = () => {
-                const tempDir = cordova.file.tempDirectory, blob = new Blob([new Uint8Array(this.result)], {
-                    type: file.type
-                })
-                parent.resolveLocalFileSystemURL(tempDir, tempEntry => {
-                    tempEntry.getFile(file.name, { create: true }, tempFileEntry => {
-                        tempFileEntry.createWriter(writer => {
-                            writer.write(blob)
-                            callback(null, tempFileEntry.nativeURL)
+    parent.FilePath.resolveNativePath(originalURI, filepath => {
+        parent.resolveLocalFileSystemURL(filepath, fileEntry => {
+            fileEntry.file(file => {
+                const reader = new FileReader()
+                reader.onloadend = () => {
+                    const tempDir = cordova.file.tempDirectory, blob = new Blob([new Uint8Array(this.result)], {
+                        type: file.type
+                    })
+                    parent.resolveLocalFileSystemURL(tempDir, tempEntry => {
+                        tempEntry.getFile(file.name, { create: true }, tempFileEntry => {
+                            tempFileEntry.createWriter(writer => {
+                                writer.write(blob)
+                                callback(null, tempFileEntry.nativeURL)
+                            }, errorcb)
                         }, errorcb)
                     }, errorcb)
-                }, errorcb)
-            }
-            reader.readAsArrayBuffer(file)
+                }
+                reader.readAsArrayBuffer(file)
+            }, errorcb)
         }, errorcb)
     }, errorcb)
 }
@@ -169,48 +171,23 @@ function initApp(){
         }
     })
     app.on('open-file', (uploadURL, cbID, mimetypes, optionTitle) => {
+        const next = () => {
+            explorer.openFile(uploadURL, cbID, mimetypes).catch(err => {
+                osd.show(String(err), 'fas fa-exclamation-triangle', 'explorer', 'normal')
+            }).finally(() => {
+                parent.winman && parent.winman.backgroundModeLock('open-file')
+            })
+        }
         if(parent.cordova) {
+            parent.winman && parent.winman.backgroundModeLock('open-file')
             checkPermissions([
                 'READ_EXTERNAL_STORAGE', 
                 'WRITE_EXTERNAL_STORAGE'
-            ], () => {
-                let finish = () => {
-                    osd.hide('theme-upload')
-                    explorer.get({name: optionTitle}).forEach(e => {
-                        explorer.setLoading(e, false)
-                    })
-                }
-                parent.winman && parent.winman.backgroundModeLock('open-file')
-                console.log('MIMETYPES: ' + mimetypes.replace(new RegExp(' *, *', 'g'), '|'))
-                parent.fileChooser.open(file => { // {"mime": mimetypes.replace(new RegExp(' *, *', 'g'), '|')}, 
-                    console.log('FILE: '+ file)
-                    osd.show(lang.PROCESSING, 'fa-mega spin-x-alt', 'theme-upload', 'normal')
-                    parent.winman && parent.winman.backgroundModeUnlock('open-file')
-                    explorer.get({name: optionTitle}).forEach(e => {
-                        explorer.setLoading(e, true, lang.PROCESSING)
-                    })
-                    resolveNativePath(file, (err, file) => {
-                        console.log('FILE: '+ file +' '+ err)
-                        if(err){
-                            console.error(err)
-                            osd.show(String(err), 'fas fa-exclamation-triangle faclr-red', 'theme-upload', 'normal')
-                        } else {
-                            app.emit(cbID, [file])
-                        }
-                        finish()
-                    })
-                }, err => {
-                    finish()
-                    if(String(err).indexOf('User cancelled') == -1){
-                        console.error(err)
-                        osd.show(String(err), 'fas fa-exclamation-triangle faclr-red', 'theme-upload', 'normal')
-                    }
-                })
-            })
+            ], next)
         } else if(parent.parent.Manager) {
             parent.parent.Manager.openFile(mimetypes, (err, file) => app.emit(cbID, [file]))
         } else {
-            explorer.openFile(uploadURL, cbID, mimetypes)
+            next()
         }
     })
     app.on('display-error', txt => {

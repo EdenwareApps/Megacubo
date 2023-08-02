@@ -74,6 +74,10 @@ class BridgeServer extends Events {
         this.setMaxListeners(20)
         this.server = http.createServer((req, response) => {
             const parsedUrl = url.parse(req.url, false)
+            response.setHeader('Access-Control-Allow-Origin', '*')
+            response.setHeader('Access-Control-Allow-Methods', 'GET')
+            response.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Cache-Control, Accept, Authorization')
+            response.setHeader('Connection', 'close')
             if(parsedUrl.pathname == '/upload') {
                 const form = formidable({ multiples: true })
                 form.parse(req, (err, fields, files) => {
@@ -101,11 +105,7 @@ class BridgeServer extends Events {
                         return
                     }
                     response.setHeader('Content-type', mimes[ext] || 'text/plain' )
-                    response.setHeader('Access-Control-Allow-Origin', '*')
-                    response.setHeader('Access-Control-Allow-Methods', 'GET')
-                    response.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Cache-Control, Accept, Authorization')
                     response.setHeader('Cache-Control', 'max-age=0, no-cache, no-store')
-                    response.setHeader('Connection', 'close')
                     let stream = createReader(pathname)
                     closed(req, response, () => {
                         console.log(`${req.method} ${req.url} CLOSED`)
@@ -161,6 +161,8 @@ class BridgeUtils extends BridgeServer {
         if(data) {
             if(Array.isArray(data) && data.length){
                 return await check(data[0])
+            } else if(data.file && data.file.filepath && data.file.filepath) {
+                return await check(data.file.filepath)
             } else if(data.filename && data.filename.path) {
                 return await check(data.filename.path)
             } else {

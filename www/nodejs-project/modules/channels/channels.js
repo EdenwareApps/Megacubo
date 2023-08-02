@@ -1246,6 +1246,11 @@ class Channels extends ChannelsKids {
                 }
             } else {    
                 entries.push(Object.assign(this.emptyEntry, {name: global.lang.NONE_STREAM_FOUND}))
+                if(global.lists.activeLists.my.length) {
+                    global.lists.manager.checkListExpiral(
+                        global.lists.activeLists.my.map(source => ({source}))
+                    ).catch(console.error)
+                }
             }
         }
         if(entries.length){
@@ -1687,7 +1692,7 @@ class Channels extends ChannelsKids {
                         }
                         return entries
                     } else {
-                        process.nextTick(() => global.explorer.back(1, true))
+                        process.nextTick(() => global.explorer.back(null, true))
                         return []
                     }
                 }

@@ -538,6 +538,8 @@ class StreamerGoNext extends StreamerThrottling {
 		super(opts)
 		if(!this.opts.shadow){
 			global.ui.on('video-ended', () => this.goNext().catch(global.displayErr))
+			global.ui.on('video-resumed', () => this.cancelGoNext())
+			global.ui.on('stop', () => this.cancelGoNext())
 			this.on('pre-play-entry', e => this.goNextPrepare(e).catch(global.displayErr))
 			process.nextTick(() => {
 				this.aboutRegisterEntry('gonext', () => {
@@ -590,11 +592,13 @@ class StreamerGoNext extends StreamerThrottling {
 		if(next){
 			const start = global.time(), delay = 5, ret = {}
             global.osd.show(global.lang.GOING_NEXT_SECS_X.format(delay), 'fa-mega spin-x-alt', 'go-next', 'persistent')
+			this.goingNext = true
             ret.info = await this.info(next.url, 2, next).catch(err => ret.err = err)
 			const now = global.time()
 			if(!ret.err && (now - start) < 5){
 				await this.sleep((5 - (now - start)) * 1000)
 			}
+			if(this.goingNext !== true) return // cancelled
 			global.osd.hide('go-next')
 			if(ret.ui == 'cancel'){
 				return
@@ -604,6 +608,10 @@ class StreamerGoNext extends StreamerThrottling {
 				return this.intentFromInfo(next, {}, undefined, ret.info)
 			}
 		}
+	}
+	cancelGoNext(){
+		delete this.goingNext
+		global.osd.hide('go-next')
 	}
 }
 

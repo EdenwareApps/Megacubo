@@ -210,6 +210,9 @@ class StreamerState extends StreamerCasting {
         this.state = ''
         this.stateListener = (s, data, force) => {
             if(s != this.state || force){
+                if(this.state == 'ended') {
+                    this.app.emit('video-resumed')
+                }
                 this.state = s
                 console.log('STREAMER-STATE', this.state)
                 switch(this.state){

@@ -1389,44 +1389,46 @@ class ExplorerOpenFile extends ExplorerSelect {
 		this.openFileDialogChooser = false
 	}	
 	openFile(uploadURL, cbID, accepts){
-		if(!this.openFileDialogChooser){ // JIT
-			this.openFileDialogChooser = this.j('<input type="file" />')
-			this.body.append(this.openFileDialogChooser)			
-		}
-		this.openFileDialogChooser.get(0).value = ""
-		if(accepts){
-			this.openFileDialogChooser.attr("accept", accepts)
-		} else {
-			this.openFileDialogChooser.removeAttr("accept")
-		}
-		this.openFileDialogChooser.off('change')
-		this.openFileDialogChooser.on('change', (evt) => {
-			if(this.openFileDialogChooser.get(0).files.length && this.openFileDialogChooser.get(0).files[0].name){
-				this.sendFile(uploadURL, this.openFileDialogChooser.get(0).files[0], this.openFileDialogChooser.val(), cbID)
-			} else {
-				console.error('Bad upload data')
-				osd.show('Bad upload data', 'fas fa-exclamation-triangle', 'explorer', 'normal')
+		return new Promise((resolve, reject) => {
+			if(!this.openFileDialogChooser){ // JIT
+				this.openFileDialogChooser = this.j('<input type="file" />')
+				this.body.append(this.openFileDialogChooser)			
 			}
+			this.openFileDialogChooser.get(0).value = ""
+			if(accepts){
+				this.openFileDialogChooser.attr("accept", accepts)
+			} else {
+				this.openFileDialogChooser.removeAttr("accept")
+			}
+			this.openFileDialogChooser.off('change')
+			this.openFileDialogChooser.on('change', (evt) => {
+				if(this.openFileDialogChooser.get(0).files.length && this.openFileDialogChooser.get(0).files[0].name){
+					this.sendFile(uploadURL, this.openFileDialogChooser.get(0).files[0], this.openFileDialogChooser.val(), cbID).then(resolve).catch(reject)
+				} else {
+					reject('Bad upload data')
+				}
+			})
+			this.openFileDialogChooser.trigger('click')
 		})
-		this.openFileDialogChooser.trigger('click')
-		return this.openFileDialogChooser
 	}
 	sendFile(uploadURL, fileData, path, cbID){
-		console.warn('FILESEND', fileData, path)
-		let formData = new FormData()
-		if(cbID){
-			formData.append('cbid', cbID)
-		}
-        formData.append('filename', fileData)
-        formData.append('fname', fileData.name)
-        formData.append('location', path)
-        this.j.ajax({
-            type: "POST",
-            url: uploadURL,
-            data: formData,
-            cache: false,
-			processData: false,  // tell jQuery not to process the data
-			contentType: false   // tell jQuery not to set contentType
+		return new Promise((resolve, reject) => {
+			window.filesent = fileData
+			let formData = new FormData()
+			if(cbID){
+				formData.append('cbid', cbID)
+			}
+			formData.append('file', fileData)
+			this.j.ajax({
+				type: "POST",
+				url: uploadURL,
+				data: formData,
+				success: resolve,
+				error: reject,
+				cache: false,
+				processData: false,  // tell jQuery not to process the data
+				contentType: false   // tell jQuery not to set contentType
+			})	
 		})
 	}
 }

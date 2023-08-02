@@ -242,7 +242,7 @@ class Explorer extends Events {
             if(typeof(level) != 'number'){
                 level = 1
             }
-            while(p && level >= 0){
+            while(p && level > 0){
                 p = this.dirname(p)
                 level--
             }
@@ -469,65 +469,61 @@ class Explorer extends Events {
             next()
         })
     }
-    read(destPath, tabindex, allowCache){
-        return new Promise((resolve, reject) => {
-            const refPath = this.path
-            if(['.', '/'].includes(destPath)){
-                destPath = ''
+    async read(destPath, tabindex, allowCache){
+        const refPath = this.path
+        if(['.', '/'].includes(destPath)){
+            destPath = ''
+        }
+        let parentPath = this.dirname(destPath)
+        if(typeof(this.pages[parentPath]) == 'undefined'){
+            return await this.deepRead(destPath, tabindex)
+        }
+        let basePath = this.basename(destPath), finish = (entries, parent) => {
+            if(![refPath, destPath].includes(this.path)){
+                console.warn('Out of sync read() blocked', refPath, destPath, this.path)
+                return -1 // user already navigated away, abort it
             }
-            let parentPath = this.dirname(destPath)
-            if(typeof(this.pages[parentPath]) == 'undefined'){
-                return this.deepRead(destPath, tabindex).then(resolve).catch(reject)
+            if(!parent || !['select'].includes(parent.type)){
+                this.path = destPath
             }
-            let basePath = this.basename(destPath), finish = (entries, parent) => {
-                if(![refPath, destPath].includes(this.path)){
-                    console.warn('Out of sync read() blocked', refPath, destPath, this.path)
-                    return resolve(-1) // user already navigated away, abort it
-                }
-                if(!parent || !['select'].includes(parent.type)){
-                    this.path = destPath
-                }
-                resolve({entries, parent})
-            }
-            if(!basePath){
-                this.applyFilters(this.pages[parentPath], parentPath).then(es => {
-                    this.pages[parentPath] = es
-                    finish(this.pages[parentPath])
-                })
-                return
-            }
-            let page = this.pages[parentPath]
-            let hr = page.some((e, i) => {
-                if(e.name == basePath && (typeof(tabindex) != 'number' || i == tabindex)){
-                    if(['group', 'select'].indexOf(e.type) != -1){              
-                        if(allowCache && typeof(this.pages[destPath]) != 'undefined'){
-                            return finish(this.pages[destPath], e)
-                        }
-                        this.readEntry(e, parentPath).then(es => {
-                            if(!Array.isArray(es)){
-                                return resolve(es)
-                            }
-                            this.applyFilters(es, destPath).then(es => {
-                                if(e.type == 'group'){
-                                    es = this.addMetaEntries(es, destPath, parentPath)
-                                }
-                                this.pages[destPath] = es
-                                finish(this.pages[destPath], e)
-                            })
-                        }).catch(reject)
+            return {entries, parent}
+        }
+        if(!basePath){
+            const es = await this.applyFilters(this.pages[parentPath], parentPath)
+            this.pages[parentPath] = es
+            return finish(this.pages[parentPath])
+        }
+        let i = 0, found, page = this.pages[parentPath]
+        for(const e of page) {
+            if(e.name == basePath && (typeof(tabindex) != 'number' || i == tabindex)) {
+                if(['group', 'select'].indexOf(e.type) != -1) {
+                    if(allowCache && typeof(this.pages[destPath]) != 'undefined') {
+                        return finish(this.pages[destPath], e)
                     }
-                    return true
+                    let es = await this.readEntry(e, parentPath)
+                    if(!Array.isArray(es)){
+                        return es
+                    }
+                    es = await this.applyFilters(es, destPath)
+                    if(e.type == 'group'){
+                        es = this.addMetaEntries(es, destPath, parentPath)
+                    }
+                    this.pages[destPath] = es
+                    return finish(this.pages[destPath], e)
                 }
-            })
-            if(!hr){
-                if(typeof(this.pages[destPath]) != 'undefined'){ // fallback
-                    console.error('path not found, falling back', destPath, this.pages[destPath])
-                    return finish(this.pages[destPath])
-                }
-                console.error('path not found', page, basePath)
-                reject('path not found')
+                found = true
+                break
             }
-        })
+            i++
+        }
+        if(!found) {
+            if(typeof(this.pages[destPath]) != 'undefined'){ // fallback
+                console.error('path not found, falling back', destPath, this.pages[destPath])
+                return finish(this.pages[destPath])
+            }
+            console.error('path not found', destPath, tabindex, basePath, page.map(e => e.name))
+            throw 'path not found '+ global.traceback()
+        }
     }
     async open(destPath, tabindex, deep, isFolder, backInSelect){
         if(['.', '/'].includes(destPath)){
