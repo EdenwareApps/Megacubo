@@ -6,7 +6,7 @@ class ListIndexUtils extends Events {
 		super()
         this.seriesRegex = new RegExp('(\\b|^)[st]?[0-9]+ ?[epx]{1,2}[0-9]+($|\\b)', 'i')
         this.vodRegex = new RegExp('[\\.=](mp4|mkv|mpeg|mov|m4v|webm|ogv|hevc|divx)($|\\?|&)', 'i')
-        this.liveRegex = new RegExp('[\\.=](m3u8|ts)($|\\?|&)', 'i')
+        this.liveRegex = new RegExp('([0-9]+/[0-9]+|[\\.=](m3u8|ts))($|\\?|&)', 'i')
         this.indexTemplate = {
             groups: {},
             terms: {},

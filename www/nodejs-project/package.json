@@ -11,7 +11,6 @@
     "bytenode": "github:efoxbr/bytenode",
     "check-disk-space": "^3.3.1",
     "color-thief-jimp": "^2.0.2",
-    "country-language": "^0.1.7",
     "decode-entities": "^1.0.7",
     "env-paths": "^2.2.1",
     "formidable": "^2.1.1",
@@ -46,7 +45,7 @@
   "description": "A intuitive, multi-language and cross-platform IPTV player.",
   "name": "megacubo",
   "icon": "./default_icon.png",
-  "version": "17.1.0",
+  "version": "17.1.1",
   "theme": {
     "fullScreen": true
   },

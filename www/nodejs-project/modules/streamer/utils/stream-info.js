@@ -206,7 +206,7 @@ class StreamInfo {
 	}
 	rawType(url){
 		const mediaType = this.mi.mediaType({url})
-		if(mediaType == 'live'){
+		if(mediaType == 'live') {
 			return this.mi.isM3U8(url) ? 'hls' : 'ts'
 		}
 		return mediaType

@@ -214,6 +214,7 @@ body.video #explorer header .explorer-omni {
 }
 body.home #explorer content a.entry-2x {
     width: calc(200% / var(--entries-per-row));
+    max-width: 100%;
 }
 @media (orientation: portrait) {
     #explorer header .explorer-omni > span:not(.selected) input {
@@ -221,6 +222,35 @@ body.home #explorer content a.entry-2x {
     }
     #explorer header .explorer-omni > span {
         min-width: 0;
+    }
+    body.explorer-vertical #explorer content a.entry-2x {
+        height: calc(200% / var(--entries-per-col));
+    }
+    body.explorer-vertical span.entry-icon-image {
+        height: 100% !important;
+        justify-content: left !important;
+        bottom: 0 !important;
+        margin-left: 1%;
+    }
+    body.explorer-vertical span.entry-icon-image img {
+        background-position: center left !important;
+        max-width: calc(var(--explorer-entry-height) * 0.94);
+    }
+    body.explorer-vertical #explorer content a span.entry-data-in {
+        --explorer-entry-name-font-size: calc(((100vmin + 100vmax) * 0.45) * 0.032) !important;
+        --explorer-entry-details-font-size: calc(var(--explorer-entry-name-font-size) * 0.8);
+        height: -webkit-fill-available;
+        display: flex;
+        align-items: start;
+        justify-content: center;
+        flex-direction: column;
+        padding-left: calc(var(--explorer-entry-height) * 1.25);
+        box-sizing: border-box;
+        padding-bottom: 0;
+        top: 0;
+    }
+    body.explorer-vertical #explorer content a .entry-name, body.explorer-vertical #explorer content a .entry-details {
+        text-align: left !important;
     }
 }
 @media (orientation: landscape) {

@@ -42,7 +42,7 @@ function configUpdated(keys, c){
     config = c
     parent.updateConfig && parent.updateConfig.apply(parent, [config])
     uiSoundsEnable = config['ui-sounds']
-    explorer.setViewSize(config['view-size-x'], config['view-size-y'])
+    explorer.setViewSize(config['view-size-x'], config['view-size-y'], config['view-size-portrait-x'], config['view-size-portrait-y'])
     hideBackButton(config['hide-back-button'])
     parent.animateBackground(config['animate-background'])
     idle.setTimeoutAwayState(config['timeout-secs-energy-saving'])
@@ -366,7 +366,7 @@ function initApp(){
         parent.updateConfig && parent.updateConfig.apply(parent, [config])
         
         window.osd = new OSD(document.getElementById('osd-root'), app)
-        explorer.setViewSize(config['view-size-x'], config['view-size-y']);
+        explorer.setViewSize(config['view-size-x'], config['view-size-y'], config['view-size-portrait-x'], config['view-size-portrait-y']);
         
         ([
             {

@@ -7,7 +7,7 @@ class Theme extends Events {
         this.backgroundVideoSizeLimit = 40 * (1024 * 1024)
         this.customBackgroundImagePath = global.paths.data +'/background.png'
         this.customBackgroundVideoPath = global.paths.data +'/background'
-        this.keys = ['theme-name', 'animate-background', 'background-color', 'background-color-transparency', 'custom-background-image', 'custom-background-video', 'font-color', 'font-family', 'font-size', 'uppercase-menu', 'view-size-x', 'view-size-y', 'fx-nav-intensity']
+        this.keys = ['theme-name', 'animate-background', 'background-color', 'background-color-transparency', 'custom-background-image', 'custom-background-video', 'font-color', 'font-family', 'font-size', 'uppercase-menu', 'view-size-x', 'view-size-y', 'view-size-portrait-x', 'view-size-portrait-y', 'fx-nav-intensity']
         this.folder = global.paths.data +'/Themes'
         global.uiReady(() => {
             this.refresh()
@@ -642,43 +642,87 @@ class Theme extends Events {
         }
         return []
     }
-    viewSizeEntries(){
-        return new Promise((resolve, reject) => {
-            resolve([
-                {
-                    name: global.lang.HORIZONTAL, 
-                    type: 'slider', 
-                    fa: 'fas fa-ruler-horizontal', 
-                    value: () => {
-                        return global.config.get('view-size-x')
-                    }, 
-                    range: {start: 1, end: 10},
-                    action: (data, value) => {
-                        console.log('viewSizeX', data, value)
-                        if(value != global.config.get('view-size-x')){
-                            global.config.set('view-size-x', value)
-                            this.update()
+    async viewSizeEntries(){
+        return [
+            {
+                name: global.lang.LANDSCAPE_MODE, 
+                type: 'group', 
+                fa: 'fas fa-grip-horizontal', 
+                entries: [
+                    {
+                        name: global.lang.HORIZONTAL, 
+                        type: 'slider', 
+                        fa: 'fas fa-ruler-horizontal', 
+                        value: () => {
+                            return global.config.get('view-size-x')
+                        }, 
+                        range: {start: 1, end: 10},
+                        action: (data, value) => {
+                            console.log('viewSizeX', data, value)
+                            if(value != global.config.get('view-size-x')){
+                                global.config.set('view-size-x', value)
+                                this.update()
+                            }
+                        }
+                    },
+                    {
+                        name: global.lang.VERTICAL, 
+                        type: 'slider', 
+                        fa: 'fas fa-ruler-vertical', 
+                        value: () => {
+                            return global.config.get('view-size-y')
+                        }, 
+                        range: {start: 1, end: 4}, 
+                        action: (data, value) => {
+                            console.log('viewSizeY', data, value)
+                            if(value != global.config.get('view-size-y')){
+                                global.config.set('view-size-y', value)
+                                this.update()
+                            }
                         }
                     }
-                },
-                {
-                    name: global.lang.VERTICAL, 
-                    type: 'slider', 
-                    fa: 'fas fa-ruler-vertical', 
-                    value: () => {
-                        return global.config.get('view-size-y')
-                    }, 
-                    range: {start: 1, end: 4}, 
-                    action: (data, value) => {
-                        console.log('viewSizeY', data, value)
-                        if(value != global.config.get('view-size-y')){
-                            global.config.set('view-size-y', value)
-                            this.update()
+                ]
+            },
+            {
+                name: global.lang.PORTRAIT_MODE, 
+                type: 'group', 
+                fa: 'fas fa-grip-vertical', 
+                entries: [
+                    {
+                        name: global.lang.HORIZONTAL, 
+                        type: 'slider', 
+                        fa: 'fas fa-ruler-horizontal', 
+                        range: {start: 1, end: 4}, 
+                        value: () => {
+                            return global.config.get('view-size-portrait-x')
+                        }, 
+                        action: (data, value) => {
+                            console.log('viewSizeX', data, value)
+                            if(value != global.config.get('view-size-portrait-x')){
+                                global.config.set('view-size-portrait-x', value)
+                                this.update()
+                            }
+                        }
+                    },
+                    {
+                        name: global.lang.VERTICAL, 
+                        type: 'slider', 
+                        fa: 'fas fa-ruler-vertical',
+                        range: {start: 1, end: 10}, 
+                        value: () => {
+                            return global.config.get('view-size-portrait-y')
+                        }, 
+                        action: (data, value) => {
+                            console.log('viewSizeY', data, value)
+                            if(value != global.config.get('view-size-portrait-y')){
+                                global.config.set('view-size-portrait-y', value)
+                                this.update()
+                            }
                         }
                     }
-                }
-            ])
-        })
+                ]
+            }
+        ]
     }
     refreshCallback(bgi, bgv){
         global.ui.emit('theme-background', bgi, bgv, global.config.get('background-color'), global.config.get('font-color'), global.config.get('animate-background'))

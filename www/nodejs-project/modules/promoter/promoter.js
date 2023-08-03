@@ -24,7 +24,7 @@ class Promoter {
 			if(runningTime < 30) return
 			this.promoteDialogTime = now
 			this.promoteDialogPending = false
-			this.offer('dialog').then(a => this.dialogOffer(a)).catch(console.error)
+			this.offer('dialog').then(a => a && this.dialogOffer(a)).catch(console.error)
 		})
 	}
 	async promoteDialogSignal(){
@@ -102,7 +102,7 @@ class Promoter {
 	async applyFilters(entries, path){
 		entries = await this.originalApplyFilters(entries, path)
 		if(Array.isArray(entries) && entries.length) {
-			const i = entries[0].type == 'back' ? 1 : 0
+			const chosen = entries[0].type == 'back' ? 1 : 0
 			entries = entries.filter(e => e.hookId != 'promoter')
 			entries.forEach((e, i) => { // clear
 				if(e.class && e.class.indexOf('entry-2x') != -1) {
@@ -137,15 +137,15 @@ class Promoter {
 					entries.unshift(n)
 				}
 			}
-			if(entries[i]){
-				const hasIcon = entries[i].icon || (entries[i].programme && entries[i].programme.i)
-				if (!path || entries.length == (i + 1) || hasIcon) {
-					if (typeof (entries[i].class) == 'undefined') {
-						entries[i].class = ''
+			if(entries[chosen]){
+				const hasIcon = entries[chosen].icon || (entries[chosen].programme && entries[chosen].programme.i)
+				if (!path || entries.length == (chosen + 1) || hasIcon) {
+					if (typeof (entries[chosen].class) == 'undefined') {
+						entries[chosen].class = ''
 					}
-					entries[i].class += ' entry-2x'
+					entries[chosen].class += ' entry-2x'
 					if (hasIcon || !path) {
-						entries[i].class += ' entry-cover entry-force-cover'
+						entries[chosen].class += ' entry-cover entry-force-cover'
 					}
 				}
 			}

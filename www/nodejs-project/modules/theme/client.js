@@ -51,8 +51,8 @@ if(typeof(themeRefresh) == 'undefined'){
 }
 @media (orientation: portrait) {
     :root {
-        --entries-per-row: ${config['view-size-y']};
-        --entries-per-col: ${config['view-size-x']};
+        --entries-per-row: ${config['view-size-portrait-x']};
+        --entries-per-col: ${config['view-size-portrait-y']};
     }
 }
 body {
@@ -66,6 +66,8 @@ body {
 }
 `
         css(cssCode, 'theme')
+        const allowVerticalLayout = config['view-size-portrait-x'] == 1
+        jQuery(document.body)[allowVerticalLayout ? 'addClass' : 'removeClass']('explorer-vertical')
         parent.animateBackground(config['animate-background'])
         parent.loaded()
         explorer.resize()

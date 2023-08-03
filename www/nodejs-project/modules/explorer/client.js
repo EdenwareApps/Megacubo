@@ -319,7 +319,7 @@ class ExplorerPointer extends ExplorerSelectionMemory {
         this.className = 'selected'
         this.parentClassName = 'selected-parent'
         this.selectedIndex = 0
-        this.setViewSize(2, 7)
+        this.setViewSize(2, 5, 1, 8)
         this.mouseWheelMovingTime = 0
         this.mouseWheelMovingInterval = 300
         this.scrolling = false
@@ -436,21 +436,23 @@ class ExplorerPointer extends ExplorerSelectionMemory {
             cb()
         })
     }
-    setViewSize(x, y){
+    setViewSize(x, y, px, py){
         this._viewSizeX = x
         this._viewSizeY = y
+        this._viewSizePortraitX = px
+        this._viewSizePortraitY = py
         this.resize()
     }
     resize(){
         const portrait = (window.innerHeight > window.innerWidth)
         if (portrait) {
-            this.viewSizeX = this._viewSizeY
-            this.viewSizeY = this._viewSizeX
+            this.viewSizeX = this._viewSizePortraitX
+            this.viewSizeY = this._viewSizePortraitY
         } else {
             this.viewSizeX = this._viewSizeX
             this.viewSizeY = this._viewSizeY
         }
-		let e = document.querySelector('.entry-icon-image')
+		let e = document.querySelector('a:not(.entry-2x) .entry-icon-image')
 		if(e){
 			let metrics = e.getBoundingClientRect()
 			if(metrics && metrics.width){
@@ -1143,7 +1145,7 @@ class ExplorerDialog extends ExplorerDialogQueue {
 		this.modalTemplates['text'] = `
 			<span class="modal-template-text" id="modal-template-option-{id}">
 				<i class="fas fa-caret-right"></i>
-				<input type="text" placeholder="{placeholder}" value="{text}" aria-label="{plainText}" />
+				<input type="text" placeholder="{placeholder}" value="{text}" aria-label="{plainText}" onmousedown="explorer.inputPaste(this).catch(console.error)" />
 			</span>
 		`
 		this.modalTemplates['textarea'] = `
@@ -1176,6 +1178,16 @@ class ExplorerDialog extends ExplorerDialogQueue {
 		this.modalTemplates['spacer'] = `
 			<span class="modal-template-spacer">&nbsp;</span>
 		`
+	}
+	async inputPaste(input) {
+		if(input.value) return
+		let paste = await top.navigator.clipboard.readText()
+		if(paste) {
+			paste = paste.trim()
+			if(paste.startsWith('http') || paste.startsWith('//')) { // seems URL
+				input.value = paste
+			}
+		}
 	}
 	text2id(txt){
 		if(txt.match(new RegExp('^[A-Za-z0-9\\-_]+$', 'g'))){

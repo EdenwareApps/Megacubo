@@ -63,7 +63,7 @@ class IPTV extends Events {
         const { sources } = await global.cloud.get('configure')
         let entries = Object.keys(sources).map(countryCode => {
             return {
-                name: this.countries.nameFromCountryCode(countryCode, global.lang.locale),
+                name: this.countries.getCountryName(countryCode, global.lang.locale),
                 type: 'group',
                 url: sources[countryCode],
                 renderer: async data => {

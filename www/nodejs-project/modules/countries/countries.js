@@ -54,32 +54,49 @@ class Countries extends Events {
 	countryCodeExists(code){
 		return this.data.some(c => c.code == code)
 	}
+	getCountry(code){
+		let ret
+		if(typeof(code) == 'string' && code.length == 2){
+			this.data.some(c => {
+				if(c.code == code) {
+					ret = c
+					return true
+				}
+			})
+		}
+		return ret
+	}
+	getCountryName(code, targetLanguage){
+		let row = this.getCountry(code)
+		return row ? 
+			(row[targetLanguage] || row['iso'])
+			: ''
+	}
+	getCountries(){
+		return this.data.map(c => c.code)
+	}
 	getCountriesFromTZ(tzMins){
 		return this.data.map(c => c.tz && c.tz.includes(tzMins) ? c.code : false).filter(c => c)
 	}
+	getCountryLanguages(code) {
+		let row = this.getCountry(code)
+		return row ? row.languages : []
+	}
+    getCountriesFromLanguage(locale){ // return countries of same ui language
+		let countries = []
+		for(const row of this.data){
+			if(row.languages.includes(locale)) {
+				countries.push(row.code)
+			}
+		}
+		return countries
+    }
 	extractCountryCodes(text){
 		let results = text.toLowerCase().matchAll(new RegExp('(^|[^a-z])([a-z]{2})(^|[^a-z])', 'g'))
 		if(results){
 			return ([...new Set(results)]).map(r => r[2]).filter(cc => this.data.some(c => c.code == cc)).reverse()
 		}
 		return []
-	}
-	nameFromCountryCode(code, targetLanguage){
-		let name = ''
-		if(targetLanguage && targetLanguage.length > 3){
-			targetLanguage = targetLanguage.substr(0, 2).toLowerCase()
-		}
-		this.data.some(c => {
-			if(c.code == code){
-				if(targetLanguage && c[targetLanguage]){
-					name = c[targetLanguage]
-				} else {
-					name = c.iso || c.code
-				}
-				return true
-			}
-		})
-		return name
 	}
 	getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
 		const R = 6371; // radius of earth in km

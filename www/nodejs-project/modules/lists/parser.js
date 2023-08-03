@@ -119,7 +119,7 @@ class PersistentFileReader extends EventEmitter {
 	}
 }
 
-class IPTVM3UParser extends EventEmitter {
+class Parser extends EventEmitter {
 	constructor(opts) {
 		super()
 		this.opts = opts
@@ -154,14 +154,16 @@ class IPTVM3UParser extends EventEmitter {
 		this.headerRegex = new RegExp('^#(extm3u|playlistv)[^\r\n]*', 'gim')
 		this.readen = 0 // no precision required, just for progress stats
 		this.lastProgress = -1
-		this.reader = new PersistentFileReader(this.opts)
-		this.parse().catch(console.error)
+		if(this.opts.file){
+			this.reader = new PersistentFileReader(this.opts)
+			this.parse().catch(console.error)
+		}
 	}
 	generateAttrMapRegex(attrs) {
 		return new RegExp('(' +
 			Object.keys(attrs).join('|').replace(new RegExp('-', 'g'), '\\-') +
 			')\\s*=\\s*[\'"]([^\r\n\'"]*)[\'"]',
-			'gi')
+			'g')
 	}
 	parse() {
 		return new Promise((resolve, reject) => {
@@ -195,18 +197,13 @@ class IPTVM3UParser extends EventEmitter {
 						this.emit('meta', this.meta)
 					}
 					this.expectingPlaylist = this.isExtInfPlaylist(line)
-					let n = '', sg = '', pos = line.lastIndexOf(',')
-					if (pos !== -1) {
-						n = line.substr(pos + 1).trim()
-					}
+					let n = '', sg = ''
 					for (const t of line.matchAll(this.attrMapRegex)) {
 						if (t && t[2]) {
 							const tag = this.attrMap[t[1]] || t[1]
 							switch (tag)  {
 								case 'name':
-									if (!n || n.indexOf('"') != -1 || n === 'N/A') {
-										n = t[2]
-									}
+									n = t[2]
 									break
 								case 'group':
 									if (!g || g === 'N/A') {
@@ -229,13 +226,17 @@ class IPTVM3UParser extends EventEmitter {
 					if (sg) {
 						g = this.mergePath(g, sg)
 					}
-					if (n) {
-						e.name = IPTVM3UParser.sanitizeName(n)
+					if(!n) {
+						const pos = line.lastIndexOf(',')
+						if (pos != -1) {
+							n = line.substr(pos + 1).trim()
+						}
 					}
+					e.name = Parser.sanitizeName(n)
 				} else if (hashed) {
 					// parse here extra info like #EXTGRP and #EXTVLCOPT
 					let lcline = line.toLowerCase()
-					if (lcline.startsWith('#extgrp') !== -1) {
+					if (lcline.startsWith('#extgrp')) {
 						let i = lcline.indexOf(':')
 						if (i !== -1) {
 							let nwg = line.substr(i + 1).trim()
@@ -243,7 +244,7 @@ class IPTVM3UParser extends EventEmitter {
 								g = nwg
 							}
 						}
-					} else if (lcline.startsWith('#extvlcopt') !== -1) {
+					} else if (lcline.startsWith('#extvlcopt')) {
 						let i = lcline.indexOf(':')
 						if (i !== -1) {
 							let nwa = line.substr(i + 1).trim().split('=')
@@ -258,7 +259,7 @@ class IPTVM3UParser extends EventEmitter {
 					if (e.url.startsWith('//')) {
 						e.url = 'http:' + e.url
 					}
-					if (e.url.indexOf('|') !== -1 && e.url.match(IPTVM3UParser.regexes['m3u-url-params'])) {
+					if (e.url.indexOf('|') !== -1 && e.url.match(Parser.regexes['m3u-url-params'])) {
 						let parts = e.url.split('|')
 						e.url = parts[0]
 						parts = parts[1].split('=')
@@ -269,7 +270,7 @@ class IPTVM3UParser extends EventEmitter {
 						if (!e.name) {
 							e.name = e.gid || this.nameFromURL(e.url)
 						}
-						const name = e.name.replace(IPTVM3UParser.regexes['between-brackets'], '')
+						const name = e.name.replace(Parser.regexes['between-brackets'], '')
 						if (name === e.name) {
 							e.rawname = e.name
 							e.name = name
@@ -319,24 +320,28 @@ class IPTVM3UParser extends EventEmitter {
 			return ''
 		}
 		s = global.forwardSlashes(s)
-		s = s.replaceAll('|', '/').replaceAll(';', '/')
-		s = s.split('/').map(t => t.trim()).filter(t => t.length).join('/')
+		s = s.replace(new RegExp('[\|;]', 'g'), '/')
+		s = s.replace(new RegExp(' /|/ ', 'g'), '/')
 		return s
 	}
 	sanitizeGroup(s) {
+		if(s.indexOf('[') != -1) {
+			s = s.replace(Parser.regexes['between-brackets'], '')
+		}
+		// s = s.normalize('NFD') // is it really needed?
+		if(s.indexOf('-') != -1) {
+			s = s.replace(Parser.regexes['hyphen'], ' ')
+		}
+		if(s.indexOf('  ') != -1) {
+			s = s.replace(Parser.regexes['spaces'], ' ')
+		}
 		return s
-			.replace(IPTVM3UParser.regexes['plus-signal'], 'plus')
-			.replace(IPTVM3UParser.regexes['between-brackets'], '')
-			.normalize('NFD')
-			.replace(IPTVM3UParser.regexes['hyphen'], ' ')
-			.replace(IPTVM3UParser.regexes['non-alpha'], '')
-			.replace(IPTVM3UParser.regexes['spaces'], ' ')
 	}
 	isExtInf(line) {
 		return line.charAt(0) == '#' && line.substr(0, 7).toLowerCase() == '#extinf'
 	}
 	isExtInfPlaylist(line) {
-		return this.isExtInf(line) && line.match(IPTVM3UParser.regexes['type-playlist'])
+		return this.isExtInf(line) && line.match(Parser.regexes['type-playlist'])
 	}
 	isExtM3U(line) {
 		let lcline = line.substr(0, 7).toLowerCase()
@@ -374,9 +379,9 @@ class IPTVM3UParser extends EventEmitter {
 			}
 			return name
 		}
-		url = url.replace(IPTVM3UParser.regexes['strip-proto'], '').split('/').filter(s => s.length)
+		url = url.replace(Parser.regexes['strip-proto'], '').split('/').filter(s => s.length)
 		if (url.length > 1) {
-			return (url[0].split('.')[0] + ' ' + url[url.length - 1]).replace(IPTVM3UParser.regexes['strip-query-string'], '')
+			return (url[0].split('.')[0] + ' ' + url[url.length - 1]).replace(Parser.regexes['strip-query-string'], '')
 		} else {
 			return 'Untitled ' + parseInt(Math.random() * 100000)
 		}
@@ -413,35 +418,37 @@ class IPTVM3UParser extends EventEmitter {
 	}
 }
 
-IPTVM3UParser.regexes = {
+Parser.regexes = {
 	'notags': new RegExp('\\[[^\\]]*\\]', 'g'),
-	'non-alpha': new RegExp('^[^0-9A-Za-zÀ-ÖØ-öø-ÿ!\n]+|[^0-9A-Za-zÀ-ÖØ-öø-ÿ!\n]+$', 'g'), // match non alphanumeric on start or end,
 	'between-brackets': new RegExp('\\[[^\\]]*\\]', 'g'), // match data between brackets
 	'accents': new RegExp('[\\u0300-\\u036f]', 'g'), // match accents
 	'plus-signal': new RegExp('\\+', 'g'), // match plus signal
 	'hyphen': new RegExp('\\-', 'g'), // match any hyphen
 	'hyphen-not-modifier': new RegExp('(.)\\-', 'g'), // match any hyphen except if it's the first char (exclude modifier)
-	'spaces': new RegExp(' +', 'g'),
+	'spaces': new RegExp(' {2,}', 'g'),
 	'type-playlist': new RegExp('type[\s\'"]*=[\s\'"]*playlist[\s\'"]*'),
 	'strip-query-string': new RegExp('\\?.*$'),
 	'strip-proto': new RegExp('^[a-z]*://'),
 	'm3u-url-params': new RegExp('.*\\|[A-Za-z0-9\\-]*=')
 }
 
-IPTVM3UParser.sanitizeName = (s) => {
-	if (s.indexOf('[/') !== -1) {
-		s = s.split('[/').join('[|')
+Parser.sanitizeName = s => {
+	if(typeof(n) != 'string' || !n) {
+		n = 'Untitled '+ parseInt(Math.random() * 10000)
+	} else if (s.indexOf('/') !== -1) {
+		if (s.indexOf('[/') !== -1) {
+			s = s.split('[/').join('[|')
+		}
+		if (s.indexOf('/') !== -1) {
+			s = s.replaceAll('/', ' ')
+		}
 	}
+	/* needed on too specific cases, but bad for performance
 	if (s.indexOf('\\') !== -1) {
-		s = global.forwardSlashes(s)
+		s = global.replaceAll('\\', ' ')
 	}
-	if (s.indexOf('/') !== -1) {
-		s = s.replaceAll('/', ' ')
-	}
-	if (s.charAt(0) === ' ' || s.charAt(s.length - 1) === ' ') {
-		s = s.trim()
-	}
+	*/
 	return s
 }
 
-module.exports = IPTVM3UParser
+module.exports = Parser

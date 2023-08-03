@@ -1,1 +1,4781 @@
-[{"code":"ad","iso":"Andorra","cs":"Andorra","da":"Andorra","de":"Andorra","en":"Andorra","es":"Andorra","fr":"Andorre","it":"Andorra","nl":"Andorra","pt":"Andorra","locale":"ca_AD","lat":42.5407167,"lng":1.5732033,"tz":[60],"id":0},{"code":"ae","iso":"United Arab Emirates","cs":"Spojené arabské emiráty","da":"Forenede Arabiske Emirater","de":"Vereinigte Arabische Emirate","en":"United Arab Emirates","es":"Emiratos Árabes Unidos","fr":"Émirats arabes unis","it":"Emirati Arabi Uniti","nl":"Verenigde Arabische Emiraten","pt":"Emirados Árabes Unidos","locale":"ar_AE","lat":24.0002488,"lng":53.9994829,"tz":[240],"id":1},{"code":"af","iso":"Afghanistan","cs":"Afghánistán","da":"Afghanistan","de":"Afghanistan","en":"Afghanistan","es":"Afganistán","fr":"Afghanistan","it":"Afghanistan","nl":"Afghanistan","pt":"Afeganistão","locale":"fa_AF,ps_AF","lat":33.7680065,"lng":66.2385139,"tz":[270],"id":2},{"code":"ag","iso":"Antigua and Barbuda","cs":"Antigua a Barbuda","da":"Antigua og Barbuda","de":"Antigua und Barbuda","en":"Antigua and Barbuda","es":"Antigua y Barbuda","fr":"Antigua-et-Barbuda","it":"Antigua e Barbuda","nl":"Antigua en Barbuda","pt":"Antígua e Barbuda","locale":"en_AG","lat":17.2234721,"lng":-61.9554608,"tz":[-240],"id":3},{"code":"ai","iso":"Anguilla","cs":"Anguila","da":"Anguilla","de":"Anguilla","en":"Anguilla","es":"Anguila","fr":"Anguilla","it":"Anguilla","nl":"Anguilla","pt":"Anguilha","locale":"en_AI","lat":18.1954947,"lng":-63.0750234,"tz":[-240],"id":4},{"code":"al","iso":"Albania","cs":"Albánie","da":"Albanien","de":"Albanien","en":"Albania","es":"Albania","fr":"Albanie","it":"Albania","nl":"Albanië","pt":"Albânia","locale":"sq_AL","lat":33.2588817,"lng":-86.8295337,"tz":[60],"id":5},{"code":"am","iso":"Armenia","cs":"Arménie","da":"Armenien","de":"Armenien","en":"Armenia","es":"Armenia","fr":"Arménie","it":"Armenia","nl":"Armenië","pt":"Arménia","locale":"hy_AM","lat":40.7696272,"lng":44.6736646,"tz":[240],"id":6},{"code":"an","iso":"Netherlands Antilles","cs":"Nizozemské Antily","da":"Netherlands Antilles","de":"Niederländische Antillen","en":"Netherlands Antilles","es":"Antillas Neerlandesas","fr":"Antilles néerlandaises","it":"Antille Olandesi","nl":"Nederlandse Antillen","pt":"Antilhas Holandesas","locale":"nl_AN,en_AN","lat":37.3399964,"lng":-4.5811614,"id":7},{"code":"ao","iso":"Angola","cs":"Angola","da":"Angola","de":"Angola","en":"Angola","es":"Angola","fr":"Angola","it":"Angola","nl":"Angola","pt":"Angola","locale":"pt_AO","lat":47.59397,"lng":14.12456,"tz":[60],"id":8},{"code":"aq","iso":"Antarctica","cs":"Antarktida","da":"Antarctica","de":"Antarktis","en":"Antarctica","es":"Antártida","fr":"Antarctique","it":"Antartide","nl":"Antarctica","pt":"Antárctica","locale":"en_AQ","lat":42.1368853,"lng":13.610341,"tz":[180],"id":9},{"id":10,"code":"ar","iso":"Argentina","cs":"Argentina","da":"Argentina","de":"Argentinien","en":"Argentina","es":"Argentina","fr":"Argentine","it":"Argentina","nl":"Argentinië","pt":"Argentina","locale":"es_AR","lat":35.2048883,"lng":-92.4479108,"tz":[-180]},{"id":11,"code":"as","iso":"American Samoa","cs":"Americká Samoa","da":"Amerikansk Samoa","de":"Amerikanisch-Samoa","en":"American Samoa","es":"Samoa Americana","fr":"Samoa américaines","it":"Samoa Americane","nl":"Amerikaans Samoa","pt":"Samoa Americana","locale":"en_AS,sm_AS","lat":42.6073975,"lng":25.4856617,"tz":[-660]},{"id":12,"code":"at","iso":"Austria","cs":"Rakousko","da":"Østrig","de":"Österreich","en":"Austria","es":"Austria","fr":"Autriche","it":"Austria","nl":"Oostenrijk","pt":"Áustria","locale":"de_AT","lat":47.59397,"lng":14.12456,"tz":[60]},{"id":13,"code":"au","iso":"Australia","cs":"Austrálie","da":"Australien","de":"Australien","en":"Australia","es":"Australia","fr":"Australie","it":"Australia","nl":"Australië","pt":"Austrália","locale":"en_AU","lat":-24.7761086,"lng":134.755,"tz":"[300,360,420,480,570],600"},{"id":14,"code":"aw","iso":"Aruba","cs":"Aruba","da":"Aruba","de":"Aruba","en":"Aruba","es":"Aruba","fr":"Aruba","it":"Aruba","nl":"Aruba","pt":"Aruba","locale":"nl_AW,pap_AW","lat":12.5013629,"lng":-69.9618475,"tz":[-240]},{"id":15,"code":"az","iso":"Azerbaijan","cs":"Ázerbájd?án","da":"Aserbajdsjan","de":"Aserbaidschan","en":"Azerbaijan","es":"Azerbaiyán","fr":"Azerbaïdjan","it":"Azerbaigian","nl":"Azerbeidzjan","pt":"Azerbeijão","locale":"az_AZ","lat":34.395342,"lng":-111.763275,"tz":[240]},{"id":16,"code":"ba","iso":"Bosnia and Herzegovina","cs":"Bosna a Hercegovina","da":"Bosnien-Herzegovina","de":"Bosnien und Herzegowina","en":"Bosnia and Herzegovina","es":"Bosnia-Herzegovina","fr":"Bosnie-Herzégovine","it":"Bosnia Erzegovina","nl":"Bosnië en Herzegovina","pt":"Bósnia-Herzegovina","locale":"bs_BA,hr_BA,sr_BA","lat":44.3053476,"lng":17.5961467,"tz":[60]},{"id":17,"code":"bb","iso":"Barbados","cs":"Barbados","da":"Barbados","de":"Barbados","en":"Barbados","es":"Barbados","fr":"Barbade","it":"Barbados","nl":"Barbados","pt":"Barbados","locale":"en_BB","lat":13.1500331,"lng":-59.5250305,"tz":[-240]},{"id":18,"code":"bd","iso":"Bangladesh","cs":"Bangladé?","da":"Bangladesh","de":"Bangladesch","en":"Bangladesh","es":"Bangladesh","fr":"Bangladesh","it":"Bangladesh","nl":"Bangladesh","pt":"Bangladeche","locale":"bn_BD","lat":24.4769288,"lng":90.2934413,"tz":[360]},{"id":19,"code":"be","iso":"Belgium","cs":"Belgie","da":"Belgien","de":"Belgien","en":"Belgium","es":"Bélgica","fr":"Belgique","it":"Belgio","nl":"België","pt":"Bélgica","locale":"nl_BE,fr_BE,de_BE","lat":50.6402809,"lng":4.6667145,"tz":[60]},{"id":20,"code":"bf","iso":"Burkina Faso","cs":"Burkina Faso","da":"Burkina Faso","de":"Burkina Faso","en":"Burkina Faso","es":"Burkina Faso","fr":"Burkina Faso","it":"Burkina Faso","nl":"Burkina Faso","pt":"Burkina-Faso","locale":"fr_BF","lat":12.0753083,"lng":-1.6880314,"tz":[0]},{"id":21,"code":"bg","iso":"Bulgaria","cs":"Bulharsko","da":"Bulgarien","de":"Bulgarien","en":"Bulgaria","es":"Bulgaria","fr":"Bulgarie","it":"Bulgaria","nl":"Bulgarije","pt":"Bulgária","locale":"bg_BG","lat":42.6073975,"lng":25.4856617,"tz":[120]},{"id":22,"code":"bh","iso":"Bahrain","cs":"Bahrajn","da":"Bahrain","de":"Bahrain","en":"Bahrain","es":"Bahréin","fr":"Bahreïn","it":"Bahrein","nl":"Bahrein","pt":"Bahrein","locale":"ar_BH","lat":44.3053476,"lng":17.5961467,"tz":[180]},{"id":23,"code":"bi","iso":"Burundi","cs":"Burundi","da":"Burundi","de":"Burundi","en":"Burundi","es":"Burundi","fr":"Burundi","it":"Burundi","nl":"Burundi","pt":"Burundi","locale":"fr_BI","lat":50.6402809,"lng":4.6667145,"tz":[120]},{"id":24,"code":"bj","iso":"Benin","cs":"Benin","da":"Benin","de":"Benin","en":"Benin","es":"Benín","fr":"Bénin","it":"Benin","nl":"Benin","pt":"Benim","locale":"fr_BJ","lat":9.5293472,"lng":2.2584408,"tz":[0]},{"id":25,"code":"bm","iso":"Bermuda","cs":"Bermudy","da":"Bermuda","de":"Bermuda","en":"Bermuda","es":"Bermudas","fr":"Bermudes","it":"Bermuda","nl":"Bermuda","pt":"Bermudas","locale":"en_BM","lat":32.30382,"lng":-64.7561647,"tz":[-240]},{"id":26,"code":"bn","iso":"Brunei Darussalam","cs":"Brunej Darussalam","da":"Brunei Darussalam","de":"Brunei Darussalam","en":"Brunei Darussalam","es":"Brunéi","fr":"Brunéi Darussalam","it":"Brunei","nl":"Brunei","pt":"Brunei","locale":"ms_BN","lat":4.4137155,"lng":114.5653908,"tz":[480]},{"id":27,"code":"bo","iso":"Bolivia","cs":"Bolívie","da":"Bolivia","de":"Bolivien","en":"Bolivia","es":"Bolivia","fr":"Bolivie","it":"Bolivia","nl":"Bolivia","pt":"Bolívia","locale":"es_BO,qu_BO,ay_BO","lat":-17.0568696,"lng":-64.9912286,"tz":[-240]},{"id":28,"code":"br","iso":"Brazil","cs":"Brazílie","da":"Brasilien","de":"Brasilien","en":"Brazil","es":"Brasil","fr":"Brésil","it":"Brasile","nl":"Brazilië","pt":"Brasil","locale":"pt_BR","lat":-10.3333333,"lng":-53.2,"tz":[-180,-240,-120,-60]},{"id":29,"code":"bs","iso":"Bahamas","cs":"Bahamy","da":"Bahamas","de":"Bahamas","en":"Bahamas","es":"Bahamas","fr":"Bahamas","it":"Bahamas","nl":"Bahama?s","pt":"Baamas","locale":"en_BS","lat":24.7736546,"lng":-78.0000547,"tz":[-300]},{"id":30,"code":"bt","iso":"Bhutan","cs":"Bhútán","da":"Bhutan","de":"Bhutan","en":"Bhutan","es":"Bután","fr":"Bhoutan","it":"Bhutan","nl":"Bhutan","pt":"Butão","locale":"dz_BT","lat":27.549511,"lng":90.5119273,"tz":[360]},{"id":31,"code":"bv","iso":"Bouvet Island","cs":"Ostrov Bouvet","da":"Bouvet Island","de":"Bouvetinsel","en":"Bouvet Island","es":"Isla Bouvet","fr":"Île Bouvet","it":"Isola Bouvet","nl":"Bouveteiland","pt":"Ilha Bouvet","locale":"no_BV","lat":15.1009234,"lng":-90.3139743,"tz":[60]},{"id":32,"code":"bw","iso":"Botswana","cs":"Botswana","da":"Botswana","de":"Botsuana","en":"Botswana","es":"Botsuana","fr":"Botswana","it":"Botswana","nl":"Botswana","pt":"Botswana","locale":"en_BW,tn_BW","lat":48.53775,"lng":9.041169,"tz":[120]},{"id":33,"code":"by","iso":"Belarus","cs":"B?lorusko","da":"Hviderusland","de":"Belarus","en":"Belarus","es":"Bielorrusia","fr":"Bélarus","it":"Bielorussia","nl":"Wit-Rusland","pt":"Bielorrússia","locale":"be_BY,ru_BY","lat":53.4250605,"lng":27.6971358,"tz":[180]},{"id":34,"code":"bz","iso":"Belize","cs":"Belize","da":"Belize","de":"Belize","en":"Belize","es":"Belice","fr":"Belize","it":"Belize","nl":"Belize","pt":"Belize","locale":"en_BZ","lat":16.8259793,"lng":-88.7600927,"tz":[-360]},{"id":35,"code":"ca","iso":"Canada","cs":"Kanada","da":"Canada","de":"Kanada","en":"Canada","es":"Canadá","fr":"Canada","it":"Canada","nl":"Canada","pt":"Canadá","locale":"en_CA,fr_CA","lat":36.7014631,"lng":-118.755997,"tz":[-210,-240,-300,-360,-420,-480,-540,-570,-600,-660]},{"id":36,"code":"cc","iso":"Cocos (Keeling) Islands","cs":"Kokosové ostrovy","da":"Cocosøerne","de":"Kokosinseln","en":"Cocos (Keeling) Islands","es":"Islas Cocos","fr":"Îles Cocos - Keeling","it":"Isole Cocos","nl":"Cocoseilanden","pt":"Ilhas Cocos","locale":"en_CC","lat":-12.0728315,"lng":96.8409375,"tz":[390]},{"id":37,"code":"cf","iso":"Central African Republic","cs":"St?edoafrická republika","da":"Den centralafrikanske republik","de":"Zentralafrikanische Republik","en":"Central African Republic","es":"República Centroafricana","fr":"République centrafricaine","it":"Repubblica Centrafricana","nl":"Centraal-Afrikaanse Republiek","pt":"República Centro-Africana","locale":"fr_CF","lat":7.0323598,"lng":19.9981227,"tz":[60]},{"id":38,"code":"cg","iso":"Congo","cs":"Kongo","da":"Den demokratiske republik Congo","de":"Kongo","en":"Congo","es":"Congo","fr":"Congo","it":"Congo","nl":"Congo","pt":"Congo-Brazzaville","locale":"fr_CG","lat":-0.7264327,"lng":15.6419155,"tz":[60]},{"id":39,"code":"ch","iso":"Switzerland","cs":"?výcarsko","da":"Schweiz","de":"Schweiz","en":"Switzerland","es":"Suiza","fr":"Suisse","it":"Svizzera","nl":"Zwitserland","pt":"Suíça","locale":"de_CH,fr_CH,it_CH,rm_CH","lat":46.7985624,"lng":8.2319736,"tz":[60]},{"id":40,"code":"ck","iso":"Cook Islands","cs":"Cookovy ostrovy","da":"Cook-øerne","de":"Cookinseln","en":"Cook Islands","es":"Islas Cook","fr":"Îles Cook","it":"Isole Cook","nl":"Cookeilanden","pt":"Ilhas Cook","locale":"en_CK,rar_CK","lat":-19.9969716,"lng":-157.7858714,"tz":[-600]},{"id":41,"code":"cl","iso":"Chile","cs":"Chile","da":"Chile","de":"Chile","en":"Chile","es":"Chile","fr":"Chili","it":"Cile","nl":"Chili","pt":"Chile","locale":"es_CL","lat":-31.7613365,"lng":-71.3187697,"tz":[-180,-240]},{"id":42,"code":"cm","iso":"Cameroon","cs":"Kamerun","da":"Cameroon","de":"Kamerun","en":"Cameroon","es":"Camerún","fr":"Cameroun","it":"Camerun","nl":"Kameroen","pt":"República dos Camarões","locale":"fr_CM,en_CM","lat":4.6125522,"lng":13.1535811,"tz":[60]},{"id":43,"code":"cn","iso":"China","cs":"?ína","da":"Kina","de":"China","en":"China","es":"China","fr":"Chine","it":"Cina","nl":"China","pt":"China","locale":"zh_CN","lat":35.000074,"lng":104.999927,"tz":[480]},{"id":44,"code":"co","iso":"Colombia","cs":"Kolumbie","da":"Colombia","de":"Kolumbien","en":"Colombia","es":"Colombia","fr":"Colombie","it":"Colombia","nl":"Colombia","pt":"Colômbia","locale":"es_CO","lat":38.7251776,"lng":-105.607716,"tz":[-300]},{"id":45,"code":"cr","iso":"Costa Rica","cs":"Kostarika","da":"Costa Rica","de":"Costa Rica","en":"Costa Rica","es":"Costa Rica","fr":"Costa Rica","it":"Costa Rica","nl":"Costa Rica","pt":"Costa Rica","locale":"es_CR","lat":45.2208641,"lng":10.037038,"tz":[-360]},{"id":46,"code":"cs","iso":"Serbia and Montenegro","cs":"Srbsko a ?erná Hora","da":"Serbien og Montenegro","de":"Serbien und Montenegro","en":"Serbia and Montenegro","es":"Serbia y Montenegro","fr":"Serbie-et-Monténégro","it":"Serbia e Montenegro","nl":"Servië en Montenegro","pt":"Sérvia e Montenegro","locale":"sr_RS","lat":39.5966853,"lng":16.3330556},{"id":47,"code":"cu","iso":"Cuba","cs":"Kuba","da":"Cuba","de":"Kuba","en":"Cuba","es":"Cuba","fr":"Cuba","it":"Cuba","nl":"Cuba","pt":"Cuba","locale":"es_CU","lat":23.0131338,"lng":-80.8328748,"tz":[-300]},{"id":48,"code":"cv","iso":"Cape Verde","cs":"Kapverdy","da":"Cape Verde","de":"Kap Verde","en":"Cape Verde","es":"Cabo Verde","fr":"Cap-Vert","it":"Capo Verde","nl":"Kaapverdië","pt":"Cabo Verde","locale":"pt_CV","lat":16.0000552,"lng":-24.0083947,"tz":[-60]},{"id":49,"code":"cx","iso":"Christmas Island","cs":"Váno?ní ostrovy","da":"Juleøerne","de":"Weihnachtsinsel","en":"Christmas Island","es":"Isla Christmas","fr":"Île Christmas","it":"Isola di Christmas","nl":"Christmaseiland","pt":"Ilha do Natal","locale":"en_CX","lat":-10.4837768,"lng":105.64723,"tz":[420]},{"id":50,"code":"cy","iso":"Cyprus","cs":"Kypr","da":"Cypern","de":"Zypern","en":"Cyprus","es":"Chipre","fr":"Chypre","it":"Cipro","nl":"Cyprus","pt":"Chipre","locale":"el_CY,tr_CY","lat":34.9823018,"lng":33.1451285,"tz":[12]},{"id":51,"code":"cz","iso":"Czech Republic","cs":"?esko","da":"Tjekkiet","de":"Tschechei","en":"Czechia","es":"Chequia","fr":"Tchéquie","it":"Cechia","nl":"Tsjechië","pt":"Tcheca","locale":"cs_CZ","lat":49.7439047,"lng":15.3381061,"tz":[60]},{"id":52,"code":"de","iso":"Germany","cs":"N?mecko","da":"Tyskland","de":"Deutschland","en":"Germany","es":"Alemania","fr":"Allemagne","it":"Germania","nl":"Duitsland","pt":"Alemanha","locale":"de_DE","lat":51.1638175,"lng":10.4478313,"tz":[60]},{"id":53,"code":"dj","iso":"Djibouti","cs":"D?ibuti","da":"Djibouti","de":"Dschibuti","en":"Djibouti","es":"Yibuti","fr":"Djibouti","it":"Gibuti","nl":"Djibouti","pt":"Djibuti","locale":"fr_DJ,ar_DJ,so_DJ","lat":11.8145966,"lng":42.8453061,"tz":[180]},{"id":54,"code":"dk","iso":"Denmark","cs":"Dánsko","da":"Danmark","de":"Dänemark","en":"Denmark","es":"Dinamarca","fr":"Danemark","it":"Danimarca","nl":"Denemarken","pt":"Dinamarca","locale":"da_DK","lat":55.670249,"lng":10.3333283,"tz":[60]},{"id":55,"code":"dm","iso":"Dominica","cs":"Dominika","da":"Dominica","de":"Dominica","en":"Dominica","es":"Dominica","fr":"Dominique","it":"Dominica","nl":"Dominica","pt":"Dominica","locale":"en_DM","lat":15.4113138,"lng":-61.3653618,"tz":[-240]},{"id":56,"code":"do","iso":"Dominican Republic","cs":"Dominikánská republika","da":"Dominikanske Republik","de":"Dominikanische Republik","en":"Dominican Republic","es":"República Dominicana","fr":"République dominicaine","it":"Repubblica Dominicana","nl":"Dominicaanse Republiek","pt":"República Dominicana","locale":"es_DO","lat":19.0974031,"lng":-70.3028026,"tz":[-240]},{"id":57,"code":"dz","iso":"Algeria","cs":"Al?írsko","da":"Algeriet","de":"Algerien","en":"Algeria","es":"Argelia","fr":"Algérie","it":"Algeria","nl":"Algerije","pt":"Argélia","locale":"ar_DZ","lat":28.0000272,"lng":2.9999825,"tz":[60]},{"id":58,"code":"ec","iso":"Ecuador","cs":"Ekvádor","da":"Ecuador","de":"Ecuador","en":"Ecuador","es":"Ecuador","fr":"Équateur","it":"Ecuador","nl":"Ecuador","pt":"Equador","locale":"es_EC","lat":-1.3397668,"lng":-79.3666965,"tz":[-300]},{"id":59,"code":"ee","iso":"Estonia","cs":"Estonsko","da":"Estland","de":"Estland","en":"Estonia","es":"Estonia","fr":"Estonie","it":"Estonia","nl":"Estland","pt":"Estónia","locale":"et_EE","lat":58.7523778,"lng":25.3319078,"tz":[120]},{"id":60,"code":"eg","iso":"Egypt","cs":"Egypt","da":"Egypten","de":"Ägypten","en":"Egypt","es":"Egipto","fr":"Égypte","it":"Egitto","nl":"Egypte","pt":"Egipto","locale":"ar_EG","lat":26.2540493,"lng":29.2675469,"tz":[120]},{"id":61,"code":"eh","iso":"Western Sahara","cs":"Západní Sahara","da":"Vestsahara","de":"Westsahara","en":"Western Sahara","es":"Sáhara Occidental","fr":"Sahara occidental","it":"Sahara Occidentale","nl":"Westelijke Sahara","pt":"Sara Ocidental","locale":"ar_EH,es_EH,fr_EH","lat":23.3406945,"lng":-13.1291327},{"id":62,"code":"er","iso":"Eritrea","cs":"Eritrea","da":"Eritrea","de":"Eritrea","en":"Eritrea","es":"Eritrea","fr":"Érythrée","it":"Eritrea","nl":"Eritrea","pt":"Eritreia","locale":"ti_ER,ar_ER,en_ER","lat":52.865196,"lng":-7.9794599,"tz":[180]},{"id":63,"code":"es","iso":"Spain","cs":"?pan?lsko","da":"Spanien","de":"Spanien","en":"Spain","es":"España","fr":"Espagne","it":"Spagna","nl":"Spanje","pt":"Espanha","locale":"ast_ES,ca_ES,es_ES,eu_ES,gl_ES","lat":39.3260685,"lng":-4.8379791,"tz":[60]},{"id":64,"code":"et","iso":"Ethiopia","cs":"Etiopie","da":"Etiopien","de":"Äthiopien","en":"Ethiopia","es":"Etiopía","fr":"Éthiopie","it":"Etiopia","nl":"Ethiopië","pt":"Etiópia","locale":"am_ET,om_ET","lat":10.2116702,"lng":38.6521203,"tz":[180]},{"id":65,"code":"fi","iso":"Finland","cs":"Finsko","da":"Finland","de":"Finnland","en":"Finland","es":"Finlandia","fr":"Finlande","it":"Finlandia","nl":"Finland","pt":"Finlândia","locale":"fi_FI,sv_FI,se_FI","lat":63.2467777,"lng":25.9209164,"tz":[120]},{"id":66,"code":"fj","iso":"Fiji","cs":"Fid?i","da":"Fiji","de":"Fidschi","en":"Fiji","es":"Fiyi","fr":"Fidji","it":"Figi","nl":"Fiji","pt":"Fiji","locale":"en_FJ","lat":-18.1239696,"lng":179.0122737,"tz":[720]},{"id":67,"code":"fk","iso":"Falkland Islands (Malvinas)","cs":"Falklandské ostrovy","da":"Falkland-øerne","de":"Falklandinseln","en":"Falkland Islands","es":"Islas Malvinas","fr":"Îles Malouines","it":"Isole Falkland","nl":"Falklandeilanden","pt":"Ilhas Falkland ou Malvinas","locale":"en_FK","lat":-51.9492937,"lng":-59.5383657,"tz":[-240]},{"id":68,"code":"fm","iso":"Micronesia","cs":"Mikronézie","da":"Mikronesien","de":"Mikronesien","en":"Micronesia","es":"Micronesia","fr":"Micronésie","it":"Micronesia","nl":"Micronesië","pt":"Micronésia","locale":"en_FM","lat":43.0922489,"lng":13.6387681,"tz":[660]},{"id":69,"code":"fo","iso":"Faroe Islands","cs":"Faerské ostrovy","da":"Færøerne","de":"Färöer","en":"Faroe Islands","es":"Islas Feroe","fr":"Îles Féroé","it":"Isole Faroe","nl":"Faeröer","pt":"Ilhas Faroé","locale":"fo_FO","lat":19.1399952,"lng":-72.3570972,"tz":[0]},{"id":70,"code":"fr","iso":"France","cs":"Francie","da":"France","de":"Frankreich","en":"France","es":"Francia","fr":"France","it":"Francia","nl":"Frankrijk","pt":"França","locale":"fr_FR","lat":46.603354,"lng":1.8883335,"tz":[60]},{"id":71,"code":"ci","iso":"Cote D?ivoire","cs":"Pob?e?í slonoviny","da":"Elfenbenskysten","de":"Côte d?Ivoire","en":"Ivory Coast","es":"Costa de Marfil","fr":"Côte d?Ivoire","it":"Costa d?Avorio","nl":"Ivoorkust","pt":"Costa do Marfim","locale":"fr_CI","lat":7.9897371,"lng":-5.5679458,"tz":[0]},{"id":72,"code":"ga","iso":"Gabon","cs":"Gabon","da":"Gabon","de":"Gabun","en":"Gabon","es":"Gabón","fr":"Gabon","it":"Gabon","nl":"Gabon","pt":"Gabão","locale":"fr_GA","lat":32.3293809,"lng":-83.1137366,"tz":[60]},{"id":73,"code":"gd","iso":"Grenada","cs":"Grenada","da":"Grenada","de":"Grenada","en":"Grenada","es":"Granada","fr":"Grenade","it":"Grenada","nl":"Grenada","pt":"Granada","locale":"en_GD","lat":12.1360374,"lng":-61.6904045,"tz":[-240]},{"id":74,"code":"ge","iso":"Georgia","cs":"Gruzie","da":"Georgia","de":"Georgien","en":"Georgia","es":"Georgia","fr":"Géorgie","it":"Georgia","nl":"Georgië","pt":"Geórgia","locale":"ka_GE","lat":41.6809707,"lng":44.0287382,"tz":[240]},{"id":75,"code":"gf","iso":"French Guiana","cs":"Francouzská Guyana","da":"Fransk Guiana","de":"Französisch-Guayana","en":"French Guiana","es":"Guayana Francesa","fr":"Guyane française","it":"Guiana Francese","nl":"Frans-Guyana","pt":"Guiana Francesa","locale":"fr_GF","lat":48.3800301,"lng":16.7157604,"tz":[-180]},{"id":76,"code":"gh","iso":"Ghana","cs":"Ghana","da":"Ghana","de":"Ghana","en":"Ghana","es":"Ghana","fr":"Ghana","it":"Ghana","nl":"Ghana","pt":"Gana","locale":"en_GH","lat":8.0300284,"lng":-1.0800271,"tz":[0]},{"id":77,"code":"gi","iso":"Gibraltar","cs":"Gibraltar","da":"Gibraltar","de":"Gibraltar","en":"Gibraltar","es":"Gibraltar","fr":"Gibraltar","it":"Gibilterra","nl":"Gibraltar","pt":"Gibraltar","locale":"en_GI","lat":36.1285933,"lng":-5.3474761,"tz":[60]},{"id":78,"code":"gl","iso":"Greenland","cs":"Grónsko","da":"Grønland","de":"Grönland","en":"Greenland","es":"Groenlandia","fr":"Groenland","it":"Groenlandia","nl":"Groenland","pt":"Gronelândia","locale":"kl_GL,da_GL","lat":77.6192349,"lng":-42.8125967,"tz":[-180]},{"id":79,"code":"gm","iso":"Gambia","cs":"Gambie","da":"Gambia","de":"Gambia","en":"Gambia","es":"Gambia","fr":"Gambie","it":"Gambia","nl":"Gambia","pt":"Gâmbia","locale":"en_GM","lat":13.470062,"lng":-15.4900464,"tz":[0]},{"id":80,"code":"gn","iso":"Guinea","cs":"Guinea","da":"Guinea","de":"Guinea","en":"Guinea","es":"Guinea","fr":"Guinée","it":"Guinea","nl":"Guinee","pt":"Guiné","locale":"fr_GN","lat":8.0300284,"lng":-1.0800271,"tz":[0]},{"id":81,"code":"gp","iso":"Guadeloupe","cs":"Guadeloupe","da":"Guadeloupe","de":"Guadeloupe","en":"Guadeloupe","es":"Guadalupe","fr":"Guadeloupe","it":"Guadalupa","nl":"Guadeloupe","pt":"Guadalupe","locale":"fr_GP","lat":16.2528827,"lng":-61.5686855,"tz":[-240]},{"id":82,"code":"gq","iso":"Equatorial Guinea","cs":"Rovníková Guinea","da":"Ækvatorial Guinea","de":"Äquatorialguinea","en":"Equatorial Guinea","es":"Guinea Ecuatorial","fr":"Guinée équatoriale","it":"Guinea Equatoriale","nl":"Equatoriaal-Guinea","pt":"Guiné Equatorial","locale":"es_GQ,fr_GQ,pt_GQ","lat":1.613172,"lng":10.5170357,"tz":[60]},{"id":83,"code":"gr","iso":"Greece","cs":"?ecko","da":"Grækenland","de":"Griechenland","en":"Greece","es":"Grecia","fr":"Grèce","it":"Grecia","nl":"Griekenland","pt":"Grécia","locale":"el_GR","lat":38.9953683,"lng":21.9877132,"tz":[120]},{"id":84,"code":"gs","iso":"South Georgia and the South Sandwich Islands","cs":"Ji?ní Georgie a Ji?ní Sandwichovy ostrovy","da":"Det sydlige Georgia og de sydlige Sandwich-øer","de":"Südgeorgien und die Südlichen Sandwichinseln","en":"S. Georgia and S. Sandwich Isls.","es":"Islas Georgia del Sur y Sandwich del Sur","fr":"Géorgie du Sud et les îles Sandwich du Sud","it":"Georgia del Sud e Isole Sandwich del Sud","nl":"Zuid-Georgië en Zuidelijke Sandwicheilanden","pt":"Geórgia do Sul e Ilhas Sandwich do Sul","locale":"en_GS","lat":-54.8432857,"lng":-35.8090698,"tz":[-120]},{"id":85,"code":"gt","iso":"Guatemala","cs":"Guatemala","da":"Guatemala","de":"Guatemala","en":"Guatemala","es":"Guatemala","fr":"Guatemala","it":"Guatemala","nl":"Guatemala","pt":"Guatemala","locale":"es_GT","lat":15.5855545,"lng":-90.345759,"tz":[-360]},{"id":86,"code":"gu","iso":"Guam","cs":"Guam","da":"Guam","de":"Guam","en":"Guam","es":"Guam","fr":"Guam","it":"Guam","nl":"Guam","pt":"Guam","locale":"en_GU,ch_GU","lat":13.4499943,"lng":144.7651677,"tz":[600]},{"id":87,"code":"gw","iso":"Guinea-Bissau","cs":"Guinea-Bissau","da":"Guinea-Bissau","de":"Guinea-Bissau","en":"Guinea-Bissau","es":"Guinea-Bissau","fr":"Guinée-Bissau","it":"Guinea-Bissau","nl":"Guinee-Bissau","pt":"Guiné-Bissau","locale":"pt_GW","lat":12.100035,"lng":-14.9000214,"tz":[0]},{"id":88,"code":"gy","iso":"Guyana","cs":"Guyana","da":"Guyana","de":"Guyana","en":"Guyana","es":"Guyana","fr":"Guyana","it":"Guyana","nl":"Guyana","pt":"Guiana","locale":"en_GY","lat":4.8417097,"lng":-58.6416891,"tz":[-240]},{"id":89,"code":"hk","iso":"Hong Kong, Special Administrative Region","cs":"Hongkong","da":"Hong Kong","de":"Hongkong","en":"Hong Kong","es":"Hong Kong","fr":"Hong Kong","it":"Hong Kong","nl":"Hongkong","pt":"Hong Kong","locale":"zh_HK,en_HK","lat":22.350627,"lng":114.1849161,"tz":[480]},{"id":90,"code":"hm","iso":"Heard Island and Mcdonald Islands","cs":"Ostrovy Heard a McDonald","da":"Heard Island og McDonald Islands","de":"Heard- und McDonald-Inseln","en":"Heard and McDonald Islands","es":"Islas Heard y McDonald","fr":"Îles Heard et MacDonald","it":"Isole Heard ed Isole McDonald","nl":"Heard- en McDonaldeilanden","pt":"Ilha Heard e Ilhas McDonald","locale":"en_HM","lat":51.6804093,"lng":7.815197,"tz":[300]},{"id":91,"code":"hn","iso":"Honduras","cs":"Honduras","da":"Honduras","de":"Honduras","en":"Honduras","es":"Honduras","fr":"Honduras","it":"Honduras","nl":"Honduras","pt":"Honduras","locale":"es_HN","lat":15.2572432,"lng":-86.0755145,"tz":[-360]},{"id":92,"code":"hr","iso":"Croatia (Hrvatska)","cs":"Chorvatsko","da":"Kroatien","de":"Kroatien","en":"Croatia (Hrvatska)","es":"Croacia","fr":"Croatie","it":"Croazia","nl":"Kroatië","pt":"Croácia","locale":"hr_HR","lat":45.3658443,"lng":15.6575209,"tz":[60]},{"id":93,"code":"ht","iso":"Haiti","cs":"Haiti","da":"Haiti","de":"Haiti","en":"Haiti","es":"Haití","fr":"Haïti","it":"Haiti","nl":"Haïti","pt":"Haiti","locale":"fr_HT,ht_HT","lat":19.1399952,"lng":-72.3570972,"tz":[-300]},{"id":94,"code":"hu","iso":"Hungary","cs":"Ma?arsko","da":"Ungarn","de":"Ungarn","en":"Hungary","es":"Hungría","fr":"Hongrie","it":"Ungheria","nl":"Hongarije","pt":"Hungria","locale":"hu_HU","lat":47.1817585,"lng":19.5060937,"tz":[60]},{"id":95,"code":"id","iso":"Indonesia","cs":"Indonésie","da":"Indonesien","de":"Indonesien","en":"Indonesia","es":"Indonesia","fr":"Indonésie","it":"Indonesia","nl":"Indonesië","pt":"Indonésia","locale":"id_ID","lat":43.6447642,"lng":-114.015407,"tz":[420]},{"id":96,"code":"ie","iso":"Ireland","cs":"Irsko","da":"Ireland","de":"Irland","en":"Ireland","es":"Irlanda","fr":"Irlande","it":"Irlanda","nl":"Ierland","pt":"Irlanda","locale":"en_IE,ga_IE","lat":52.865196,"lng":-7.9794599,"tz":[0]},{"id":97,"code":"il","iso":"Israel","cs":"Izrael","da":"Israel","de":"Israel","en":"Israel","es":"Israel","fr":"Israël","it":"Israele","nl":"Israël","pt":"Israel","locale":"he_IL","lat":40.0796606,"lng":-89.4337288,"tz":[120]},{"id":98,"code":"in","iso":"India","cs":"Indie","da":"Indien","de":"Indien","en":"India","es":"India","fr":"Inde","it":"India","nl":"India","pt":"Índia","locale":"hi_IN,en_IN","lat":40.3270127,"lng":-86.1746933,"tz":[330]},{"id":99,"code":"io","iso":"British Indian Ocean Territory","cs":"Britské území v Indickém oceánu","da":"Det britiske territorium i Det Indiske Ocean","de":"Britisches Territorium im Indischen Ozean","en":"British Indian Ocean Territory","es":"Territorio Británico del Océano Índico","fr":"Territoire britannique de l'océan Indien","it":"Territorio Britannico dell?Oceano Indiano","nl":"Britse Gebieden in de Indische Oceaan","pt":"Território Britânico do Oceano Índico","locale":"en_IO","lat":-5.3497093,"lng":71.8606423,"tz":[360]},{"id":100,"code":"iq","iso":"Iraq","cs":"Irák","da":"Irak","de":"Irak","en":"Iraq","es":"Iraq","fr":"Irak","it":"Iraq","nl":"Irak","pt":"Iraque","locale":"ar_IQ,ku_IQ","lat":33.0955793,"lng":44.1749775,"tz":[180]},{"id":101,"code":"ir","iso":"Iran, Islamic Republic of","cs":"Írán","da":"Iran","de":"Iran","en":"Iran","es":"Irán","fr":"Iran","it":"Iran","nl":"Iran","pt":"Irão","locale":"fa_IR","lat":32.6475314,"lng":54.5643516,"tz":[210]},{"id":102,"code":"is","iso":"Iceland","cs":"Island","da":"Island","de":"Island","en":"Iceland","es":"Islandia","fr":"Islande","it":"Islanda","nl":"IJsland","pt":"Islândia","locale":"is_IS","lat":64.9841821,"lng":-18.1059013,"tz":[0]},{"id":103,"code":"it","iso":"Italy","cs":"Itálie","da":"Italien","de":"Italien","en":"Italy","es":"Italia","fr":"Italie","it":"Italia","nl":"Italië","pt":"Itália","locale":"it_IT,de_IT,fr_IT","lat":42.6384261,"lng":12.674297,"tz":[60]},{"id":104,"code":"jm","iso":"Jamaica","cs":"Jamajka","da":"Jamaica","de":"Jamaika","en":"Jamaica","es":"Jamaica","fr":"Jamaïque","it":"Giamaica","nl":"Jamaica","pt":"Jamaica","locale":"en_JM","lat":18.1850507,"lng":-77.3947693,"tz":[-300]},{"id":105,"code":"jo","iso":"Jordan","cs":"Jordánsko","da":"Jordan","de":"Jordanien","en":"Jordan","es":"Jordania","fr":"Jordanie","it":"Giordania","nl":"Jordanië","pt":"Jordânia","locale":"ar_JO","lat":31.1667049,"lng":36.941628,"tz":[180]},{"id":106,"code":"jp","iso":"Japan","cs":"Japonsko","da":"Japan","de":"Japan","en":"Japan","es":"Japón","fr":"Japon","it":"Giappone","nl":"Japan","pt":"Japão","locale":"ja_JP","lat":36.5748441,"lng":139.2394179,"tz":[540]},{"id":107,"code":"ke","iso":"Kenya","cs":"Ke?a","da":"Kenya","de":"Kenia","en":"Kenya","es":"Kenia","fr":"Kenya","it":"Kenya","nl":"Kenia","pt":"Quénia","locale":"sw_KE,en_KE","lat":1.4419683,"lng":38.4313975,"tz":[180]},{"id":108,"code":"kg","iso":"Kyrgyzstan","cs":"Kyrgyzstán","da":"Kyrgyzstan","de":"Kirgisistan","en":"Kyrgyzstan","es":"Kirguistán","fr":"Kirghizistan","it":"Kirghizistan","nl":"Kirgizië","pt":"Quirguizistão","locale":"ky_KG,ru_KG","lat":41.5089324,"lng":74.724091,"tz":[360]},{"id":109,"code":"kh","iso":"Cambodia","cs":"Kambod?a","da":"Cambodia","de":"Kambodscha","en":"Cambodia","es":"Camboya","fr":"Cambodge","it":"Cambogia","nl":"Cambodja","pt":"Camboja","locale":"km_KH","lat":31.5535141,"lng":49.0077168,"tz":[420]},{"id":110,"code":"ki","iso":"Kiribati","cs":"Kiribati","da":"Kiribati","de":"Kiribati","en":"Kiribati","es":"Kiribati","fr":"Kiribati","it":"Kiribati","nl":"Kiribati","pt":"Quiribati","locale":"en_KI","lat":0.3448612,"lng":173.6641773,"tz":[720]},{"id":111,"code":"km","iso":"Comoros","cs":"Komory","da":"Comoros","de":"Komoren","en":"Comoros","es":"Comoras","fr":"Comores","it":"Comore","nl":"Comoren","pt":"Comores","locale":"ar_KM,fr_KM","lat":-12.2045176,"lng":44.2832964,"tz":[180]},{"id":112,"code":"kn","iso":"Saint Kitts and Nevis","cs":"Svatý Kitts a Nevis","da":"Saint Kitts og Nevis","de":"St. Kitts und Nevis","en":"Saint Kitts and Nevis","es":"San Cristóbal y Nieves","fr":"Saint-Kitts-et-Nevis","it":"Saint Kitts e Nevis","nl":"Saint Kitts en Nevis","pt":"Saint Kitts e Nevis","locale":"en_KN","lat":50.776351,"lng":6.083862,"tz":[-240]},{"id":113,"code":"kp","iso":"Korea, Democratic People?s Republic of (North)","cs":"Severní Korea","da":"Nordkorea","de":"Nord Korea","en":"Korea (North)","es":"Corea del Norte","fr":"Corée du Nord","it":"Corea del Nord","nl":"Noord-Korea","pt":"Coreia do Norte","locale":"ko_KP","lat":40.3736611,"lng":127.0870417,"tz":[510]},{"id":114,"code":"kr","iso":"Korea, Republic of (South)","cs":"Ji?ní Korea","da":"Sydkorea","de":"Südkorea","en":"Korea (South)","es":"Corea del Sur","fr":"Corée du Sud","it":"Corea del Sud","nl":"Zuid-Korea","pt":"Coreia do Sul","locale":"ko_KR,en_KR","lat":36.638392,"lng":127.6961188,"tz":[540]},{"id":115,"code":"kw","iso":"Kuwait","cs":"Kuvajt","da":"Kuwait","de":"Kuwait","en":"Kuwait","es":"Kuwait","fr":"Koweït","it":"Kuwait","nl":"Koeweit","pt":"Cuaite","locale":"ar_KW","lat":29.2733964,"lng":47.4979476,"tz":[180]},{"id":116,"code":"ky","iso":"Cayman Islands","cs":"Kajmanské ostrovy","da":"Caymanøerne","de":"Kaimaninseln","en":"Cayman Islands","es":"Islas Caimán","fr":"Îles Caïmans","it":"Isole Cayman","nl":"Caymaneilanden","pt":"Ilhas Caimão","locale":"en_KY","lat":37.5726028,"lng":-85.1551411,"tz":[-300]},{"id":117,"code":"kz","iso":"Kazakhstan","cs":"Kazachstán","da":"Kazakhstan","de":"Kasachstan","en":"Kazakhstan","es":"Kazajistán","fr":"Kazakhstan","it":"Kazakistan","nl":"Kazachstan","pt":"Cazaquistão","locale":"kk_KZ,ru_KZ","lat":48.1012954,"lng":66.7780818,"tz":[360,420]},{"id":118,"code":"la","iso":"Lao People?s Democratic Republic","cs":"Laos","da":"Laos","de":"Laos","en":"Laos","es":"Laos","fr":"Laos","it":"Laos","nl":"Laos","pt":"Laos","locale":"lo_LA","lat":30.8703881,"lng":-92.007126,"tz":[420]},{"id":119,"code":"lb","iso":"Lebanon","cs":"Libanon","da":"Libanon","de":"Libanon","en":"Lebanon","es":"Líbano","fr":"Liban","it":"Libano","nl":"Libanon","pt":"Líbano","locale":"ar_LB,fr_LB","lat":33.8750629,"lng":35.843409,"tz":[120]},{"id":120,"code":"lc","iso":"Saint Lucia","cs":"Svatá Lucie","da":"Saint Lucia","de":"St. Lucia","en":"Saint Lucia","es":"Santa Lucía","fr":"Sainte-Lucie","it":"Saint Lucia","nl":"Saint Lucia","pt":"Santa Lúcia","locale":"en_LC","lat":13.8250489,"lng":-60.975036,"tz":[-240]},{"id":121,"code":"li","iso":"Liechtenstein","cs":"Lichten?tejnsko","da":"Liechtenstein","de":"Liechtenstein","en":"Liechtenstein","es":"Liechtenstein","fr":"Liechtenstein","it":"Liechtenstein","nl":"Liechtenstein","pt":"Liechtenstein","locale":"de_LI","lat":42.7902166,"lng":10.3402787,"tz":[60]},{"id":122,"code":"lk","iso":"Sri Lanka","cs":"Srí Lanka","da":"Sri Lanka","de":"Sri Lanka","en":"Sri Lanka","es":"Sri Lanka","fr":"Sri Lanka","it":"Sri Lanka","nl":"Sri Lanka","pt":"Sri Lanka","locale":"si_LK,ta_LK","lat":7.5554942,"lng":80.7137847,"tz":[330]},{"id":123,"code":"lr","iso":"Liberia","cs":"Libérie","da":"Liberia","de":"Liberia","en":"Liberia","es":"Liberia","fr":"Libéria","it":"Liberia","nl":"Liberia","pt":"Libéria","locale":"en_LR","lat":5.7499721,"lng":-9.3658524,"tz":[0]},{"id":124,"code":"ls","iso":"Lesotho","cs":"Lesotho","da":"Lesotho","de":"Lesotho","en":"Lesotho","es":"Lesoto","fr":"Lesotho","it":"Lesotho","nl":"Lesotho","pt":"Lesoto","locale":"en_LS,st_LS","lat":20.0171109,"lng":103.378253,"tz":[120]},{"id":125,"code":"lt","iso":"Lithuania","cs":"Litva","da":"Litauen","de":"Litauen","en":"Lithuania","es":"Lituania","fr":"Lituanie","it":"Lituania","nl":"Litouwen","pt":"Lituânia","locale":"lt_LT","lat":55.3500003,"lng":23.7499997,"tz":[120]},{"id":126,"code":"lu","iso":"Luxembourg","cs":"Lucembursko","da":"Luxembourg","de":"Luxemburg","en":"Luxembourg","es":"Luxemburgo","fr":"Luxembourg","it":"Lussemburgo","nl":"Luxemburg","pt":"Luxemburgo","locale":"lb_LU,fr_LU,de_LU","lat":49.8158683,"lng":6.1296751,"tz":[60]},{"id":127,"code":"lv","iso":"Latvia","cs":"Loty?sko","da":"Letland","de":"Lettland","en":"Latvia","es":"Letonia","fr":"Lettonie","it":"Lettonia","nl":"Letland","pt":"Letónia","locale":"lv_LV","lat":56.8406494,"lng":24.7537645,"tz":[120]},{"id":128,"code":"ly","iso":"Libyan Arab Jamahiriya","cs":"Libye","da":"Libyen","de":"Libyen","en":"Libya","es":"Libia","fr":"Libye","it":"Libia","nl":"Libië","pt":"Líbia","locale":"ar_LY","lat":26.8234472,"lng":18.1236723,"tz":[120]},{"id":129,"code":"ma","iso":"Morocco","cs":"Maroko","da":"Marokko","de":"Marokko","en":"Morocco","es":"Marruecos","fr":"Maroc","it":"Marocco","nl":"Marokko","pt":"Marrocos","locale":"ar_MA","lat":42.3788774,"lng":-72.032366,"tz":[0]},{"id":130,"code":"mc","iso":"Monaco","cs":"Monako","da":"Monaco","de":"Monaco","en":"Monaco","es":"Mónaco","fr":"Monaco","it":"Monaco","nl":"Monaco","pt":"Mónaco","locale":"fr_MC","lat":43.7323492,"lng":7.4276832,"tz":[60]},{"id":131,"code":"md","iso":"Moldova","cs":"Moldavsko","da":"Moldova","de":"Moldawien","en":"Moldova","es":"Moldavia","fr":"Moldavie","it":"Moldavia","nl":"Moldavië","pt":"Moldávia","locale":"ru_MD,uk_MD,ro_MD","lat":39.5162401,"lng":-76.9382069,"tz":[120]},{"id":132,"code":"mg","iso":"Madagascar","cs":"Madagaskar","da":"Madagascar","de":"Madagaskar","en":"Madagascar","es":"Madagascar","fr":"Madagascar","it":"Madagascar","nl":"Madagaskar","pt":"Madagáscar","locale":"mg_MG,fr_MG","lat":-18.9249604,"lng":46.4416422,"tz":[180]},{"id":133,"code":"mh","iso":"Marshall Islands","cs":"Marshallovy ostrovy","da":"Marshall-øerne","de":"Marshallinseln","en":"Marshall Islands","es":"Islas Marshall","fr":"Îles Marshall","it":"Isole Marshall","nl":"Marshalleilanden","pt":"Ilhas Marshall","locale":"en_MH,mh_MH","lat":33.8389917,"lng":-96.7599994,"tz":[720]},{"id":134,"code":"mk","iso":"Macedonia, the Former Yugoslav Republic of","cs":"Macedonia","da":"Makedonien","de":"Mazedonien","en":"Macedonia","es":"Macedonia","fr":"Macédoine","it":"Macedonia","nl":"Macedonië","pt":"Macedónia","locale":"mk_MK","lat":41.6171214,"lng":21.7168387,"tz":[60]},{"id":135,"code":"ml","iso":"Mali","cs":"Mali","da":"Mali","de":"Mali","en":"Mali","es":"Mali","fr":"Mali","it":"Mali","nl":"Mali","pt":"Mali","locale":"fr_ML","lat":16.3700359,"lng":-2.2900239,"tz":[0]},{"id":136,"code":"mm","iso":"Myanmar","cs":"Myanmar","da":"Myanmar (Burma)","de":"Myanmar","en":"Burma (Myanmar)","es":"Myanmar","fr":"Myanmar","it":"Myanmar","nl":"Myanmar","pt":"Mianmar","locale":"my_MM","lat":17.1750495,"lng":95.9999652,"tz":[390]},{"id":137,"code":"mn","iso":"Mongolia","cs":"Mongolsko","da":"Mongoliet","de":"Mongolei","en":"Mongolia","es":"Mongolia","fr":"Mongolie","it":"Mongolia","nl":"Mongolië","pt":"Mongólia","locale":"mn_MN","lat":45.9896587,"lng":-94.6113288,"tz":[480,540]},{"id":138,"code":"mo","iso":"Macau","cs":"Macao","da":"Macau","de":"Macao","en":"Macau","es":"Macao","fr":"Macao","it":"Macao","nl":"Macao","pt":"Macau","locale":"zh_MO,en_MO,pt_MO","lat":38.7604815,"lng":-92.5617875,"tz":[480]},{"id":139,"code":"mp","iso":"Northern Mariana Islands","cs":"Severní Mariany","da":"Nordmarianerne","de":"Nördliche Marianen","en":"Northern Mariana Islands","es":"Islas Marianas del Norte","fr":"Îles Mariannes du Nord","it":"Isole Marianne Settentrionali","nl":"Noordelijke Marianeneilanden","pt":"Ilhas Mariana do Norte","locale":"ch_MP","lat":15.1753648,"lng":145.7379338,"tz":[600]},{"id":140,"code":"mq","iso":"Martinique","cs":"Martinik","da":"Martinique","de":"Martinique","en":"Martinique","es":"Martinica","fr":"Martinique","it":"Martinica","nl":"Martinique","pt":"Martinica","locale":"fr_MQ","lat":48.2031834,"lng":16.3583503,"tz":[-240]},{"id":141,"code":"mr","iso":"Mauritania","cs":"Mauritánie","da":"Mauritania","de":"Mauretanien","en":"Mauritania","es":"Mauritania","fr":"Mauritanie","it":"Mauritania","nl":"Mauritanië","pt":"Mauritânia","locale":"ar_MR,fr_MR","lat":20.2540382,"lng":-9.2399263,"tz":[0]},{"id":142,"code":"ms","iso":"Montserrat","cs":"Montserrat","da":"Montserrat","de":"Montserrat","en":"Montserrat","es":"Montserrat","fr":"Montserrat","it":"Montserrat","nl":"Montserrat","pt":"Monserrate","locale":"en_MS","lat":32.9715285,"lng":-89.7348497,"tz":[-240]},{"id":143,"code":"mt","iso":"Malta","cs":"Malta","da":"Malta","de":"Malta","en":"Malta","es":"Malta","fr":"Malte","it":"Malta","nl":"Malta","pt":"Malta","locale":"mt_MT,en_MT","lat":47.3752671,"lng":-109.638757,"tz":[60]},{"id":144,"code":"mu","iso":"Mauritius","cs":"Mauricius","da":"Mauritius","de":"Mauritius","en":"Mauritius","es":"Mauricio","fr":"Maurice","it":"Mauritius","nl":"Mauritius","pt":"Maurícias","locale":"mfe_MU,fr_MU,en_MU","lat":-20.2759451,"lng":57.5703566,"tz":[240]},{"id":145,"code":"mv","iso":"Maldives","cs":"Maladivy","da":"Maldiverne","de":"Malediven","en":"Maldives","es":"Maldivas","fr":"Maldives","it":"Maldive","nl":"Maldiven","pt":"Maldivas","locale":"dv_MV","lat":3.7203503,"lng":73.2244152,"tz":[300]},{"id":146,"code":"mw","iso":"Malawi","cs":"Malawi","da":"Malawi","de":"Malawi","en":"Malawi","es":"Malaui","fr":"Malawi","it":"Malawi","nl":"Malawi","pt":"Malaui","locale":"en_MW,ny_MW","lat":-13.2687204,"lng":33.9301963,"tz":[120]},{"id":147,"code":"mx","iso":"Mexico","cs":"Mexiko","da":"Mexico","de":"Mexiko","en":"Mexico","es":"México","fr":"Mexique","it":"Messico","nl":"Mexico","pt":"México","locale":"es_MX","lat":23.6585116,"lng":-102.0077097,"tz":[-360,-420,-300]},{"id":148,"code":"my","iso":"Malaysia","cs":"Malajsie","da":"Malaysia","de":"Malaysia","en":"Malaysia","es":"Malasia","fr":"Malaisie","it":"Malesia","nl":"Maleisië","pt":"Malásia","locale":"ms_MY,en_MY,zh_MY","lat":39.7837304,"lng":-100.445882,"tz":[480]},{"id":149,"code":"mz","iso":"Mozambique","cs":"Mosambik","da":"Mozambique","de":"Mosambik","en":"Mozambique","es":"Mozambique","fr":"Mozambique","it":"Mozambico","nl":"Mozambique","pt":"Moçambique","locale":"pt_MZ","lat":-19.302233,"lng":34.9144977,"tz":[120]},{"id":150,"code":"na","iso":"Namibia","cs":"Namibie","da":"Namibia","de":"Namibia","en":"Namibia","es":"Namibia","fr":"Namibie","it":"Namibia","nl":"Namibië","pt":"Namíbia","locale":"en_NA,sf_NA,de_NA","lat":-23.2335499,"lng":17.3231107,"tz":[60]},{"id":151,"code":"nc","iso":"New Caledonia","cs":"Nová Kaledonie","da":"Ny Kaledonien","de":"Neukaledonien","en":"New Caledonia","es":"Nueva Caledonia","fr":"Nouvelle-Calédonie","it":"Nuova Caledonia","nl":"Nieuw-Caledonië","pt":"Nova Caledónia","locale":"fr_NC","lat":35.6729639,"lng":-79.0392919,"tz":[660]},{"id":152,"code":"ne","iso":"Niger","cs":"Niger","da":"Niger","de":"Niger","en":"Niger","es":"Níger","fr":"Niger","it":"Niger","nl":"Niger","pt":"Níger","locale":"fr_NE","lat":41.7370229,"lng":-99.5873816,"tz":[60]},{"id":153,"code":"nf","iso":"Norfolk Island","cs":"Norfolk","da":"Norfolk","de":"Norfolkinsel","en":"Norfolk Island","es":"Isla Norfolk","fr":"Île Norfolk","it":"Isola Norfolk","nl":"Norfolkeiland","pt":"Ilha Norfolque","locale":"en_NF,pih_NF","lat":51.4413766,"lng":0.3507035,"tz":[690]},{"id":154,"code":"ng","iso":"Nigeria","cs":"Nigérie","da":"Nigeria","de":"Nigeria","en":"Nigeria","es":"Nigeria","fr":"Nigéria","it":"Nigeria","nl":"Nigeria","pt":"Nigéria","locale":"en_NG","lat":9.6000359,"lng":7.9999721,"tz":[60]},{"id":155,"code":"ni","iso":"Nicaragua","cs":"Nikaragua","da":"Nicaragua","de":"Nicaragua","en":"Nicaragua","es":"Nicaragua","fr":"Nicaragua","it":"Nicaragua","nl":"Nicaragua","pt":"Nicarágua","locale":"es_NI","lat":54.5859836,"lng":-6.9591554,"tz":[-360]},{"id":156,"code":"nl","iso":"Netherlands","cs":"Nizozemsko","da":"Holland","de":"Niederlande","en":"Netherlands","es":"Países Bajos","fr":"Pays-Bas","it":"Paesi Bassi","nl":"Nederland","pt":"Países Baixos","locale":"nl_NL","lat":52.2476498,"lng":5.5412468,"tz":[60]},{"id":157,"code":"no","iso":"Norway","cs":"Norsko","da":"Norge","de":"Norwegen","en":"Norway","es":"Noruega","fr":"Norvège","it":"Norvegia","nl":"Noorwegen","pt":"Noruega","locale":"nb_NO,nn_NO,no_NO,se_NO","lat":61.1529386,"lng":8.7876653,"tz":[0]},{"id":158,"code":"np","iso":"Nepal","cs":"Nepál","da":"Nepal","de":"Nepal","en":"Nepal","es":"Nepal","fr":"Népal","it":"Nepal","nl":"Nepal","pt":"Nepal","locale":"ne_NP","lat":28.1083929,"lng":84.0917139,"tz":[345]},{"id":159,"code":"nr","iso":"Nauru","cs":"Nauru","da":"Nauru","de":"Nauru","en":"Nauru","es":"Nauru","fr":"Nauru","it":"Nauru","nl":"Nauru","pt":"Nauru","locale":"na_NR,en_NR","lat":-0.5252306,"lng":166.9324426,"tz":[720]},{"id":160,"code":"nt","iso":"Neutral Zone","cs":"neutrální zóna","da":"Neutral zone","de":"Neutral Zone","en":"Neutral Zone","es":"zona neutral","fr":"zone neutre","it":"zona neutra","nl":"neutrale zone","pt":"zona neutra","locale":"en_GB","lat":65.0000004,"lng":-118},{"id":161,"code":"nu","iso":"Niue","cs":"Niue","da":"Niue","de":"Niue","en":"Niue","es":"Isla Niue","fr":"Niue","it":"Niue","nl":"Niue","pt":"Niue","locale":"niu_NU,en_NU","lat":40.7127281,"lng":-74.0060152,"tz":[-660]},{"id":162,"code":"nz","iso":"New Zealand","cs":"Nový Zéland","da":"New Zealand","de":"Neuseeland","en":"New Zealand","es":"Nueva Zelanda","fr":"Nouvelle-Zélande","it":"Nuova Zelanda","nl":"Nieuw-Zeeland","pt":"Nova Zelândia","locale":"mi_NZ,en_NZ","lat":-41.5000831,"lng":172.8344077,"tz":[720]},{"id":163,"code":"om","iso":"Oman","cs":"Omán","da":"Oman","de":"Oman","en":"Oman","es":"Omán","fr":"Oman","it":"Oman","nl":"Oman","pt":"Omã","locale":"ar_OM","lat":21.0000287,"lng":57.0036901,"tz":[240]},{"id":164,"code":"pa","iso":"Panama","cs":"Panama","da":"Panama","de":"Panama","en":"Panama","es":"Panamá","fr":"Panama","it":"Panama","nl":"Panama","pt":"Panamá","locale":"es_PA","lat":40.9699889,"lng":-77.7278831,"tz":[-300]},{"id":165,"code":"pe","iso":"Peru","cs":"Peru","da":"Peru","de":"Peru","en":"Peru","es":"Perú","fr":"Pérou","it":"Perù","nl":"Peru","pt":"Peru","locale":"es_PE","lat":46.5036807,"lng":-63.595411,"tz":[-300]},{"id":166,"code":"pf","iso":"French Polynesia","cs":"Francouzská Polynésie","da":"Fransk Polynesien","de":"Französisch-Polynesien","en":"French Polynesia","es":"Polinesia Francesa","fr":"Polynésie française","it":"Polinesia Francese","nl":"Frans-Polynesië","pt":"Polinésia Francesa","locale":"fr_PF","lat":48.6164857,"lng":9.6719927,"tz":[-600]},{"id":167,"code":"pg","iso":"Papua New Guinea","cs":"Papua-Nová Guinea","da":"Papua Ny Guinea","de":"Papua-Neuguinea","en":"Papua New Guinea","es":"Papúa Nueva Guinea","fr":"Papouasie-Nouvelle-Guinée","it":"Papua Nuova Guinea","nl":"Papoea-Nieuw-Guinea","pt":"Papua Nova Guiné","locale":"en_PG,tpi_PG,ho_PG","lat":-5.6816069,"lng":144.2489081,"tz":[600]},{"id":168,"code":"ph","iso":"Philippines","cs":"Filipíny","da":"Filippinerne","de":"Philippinen","en":"Philippines","es":"Filipinas","fr":"Philippines","it":"Filippine","nl":"Filipijnen","pt":"Filipinas","locale":"en_PH,tl_PH","lat":12.7503486,"lng":122.7312101,"tz":[480]},{"id":169,"code":"pk","iso":"Pakistan","cs":"Pákistán","da":"Pakistan","de":"Pakistan","en":"Pakistan","es":"Pakistán","fr":"Pakistan","it":"Pakistan","nl":"Pakistan","pt":"Paquistão","locale":"en_PK,ur_PK","lat":30.3308401,"lng":71.247499,"tz":[300]},{"id":170,"code":"pl","iso":"Poland","cs":"Polsko","da":"Polen","de":"Polen","en":"Poland","es":"Polonia","fr":"Pologne","it":"Polonia","nl":"Polen","pt":"Polónia","locale":"pl_PL","lat":52.215933,"lng":19.134422,"tz":[60]},{"id":171,"code":"pm","iso":"Saint Pierre and Miquelon","cs":"Svatý Pierre a Miquelon","da":"Saint Pierre og Miquelon","de":"St. Pierre und Miquelon","en":"St. Pierre and Miquelon","es":"San Pedro y Miquelón","fr":"Saint-Pierre-et-Miquelon","it":"Saint Pierre e Miquelon","nl":"Saint Pierre en Miquelon","pt":"Saint Pierre e Miquelon","locale":"fr_PM","lat":54.24556,"lng":18.1099,"tz":[-120]},{"id":172,"code":"pn","iso":"Pitcairn","cs":"Pitcairn","da":"Pitcairn-øerne","de":"Pitcairn","en":"Pitcairn","es":"Pitcairn","fr":"Pitcairn","it":"Pitcairn","nl":"Pitcairn","pt":"Pitcairn","locale":"en_PN,pih_PN","lat":-25.0657719,"lng":-130.101782,"tz":[-480]},{"id":173,"code":"pr","iso":"Puerto Rico","cs":"Portoriko","da":"Puerto Rico","de":"Puerto Rico","en":"Puerto Rico","es":"Puerto Rico","fr":"Porto Rico","it":"Portorico","nl":"Puerto Rico","pt":"Porto Rico","locale":"es_PR,en_PR","lat":18.2247706,"lng":-66.4858295,"tz":[-240]},{"id":174,"code":"pt","iso":"Portugal","cs":"Portugalsko","da":"Portugal","de":"Portugal","en":"Portugal","es":"Portugal","fr":"Portugal","it":"Portogallo","nl":"Portugal","pt":"Portugal","locale":"pt_PT","lat":39.6621648,"lng":-8.1353519,"tz":[0]},{"id":175,"code":"pw","iso":"Palau","cs":"Palau","da":"Palau","de":"Palau","en":"Palau","es":"Palau","fr":"Palaos","it":"Palau","nl":"Palau","pt":"Palau","locale":"en_PW,pau_PW,ja_PW,sov_PW,tox_PW","lat":5.3783537,"lng":132.9102573,"tz":[600]},{"id":176,"code":"py","iso":"Paraguay","cs":"Paraguay","da":"Paraguay","de":"Paraguay","en":"Paraguay","es":"Paraguay","fr":"Paraguay","it":"Paraguay","nl":"Paraguay","pt":"Paraguai","locale":"es_PY,gn_PY","lat":-23.3165935,"lng":-58.1693445,"tz":[-240]},{"id":177,"code":"qa","iso":"Qatar","cs":"Katar","da":"Qatar","de":"Katar","en":"Qatar","es":"Qatar","fr":"Qatar","it":"Qatar","nl":"Qatar","pt":"Qatar","locale":"ar_QA","lat":25.3336984,"lng":51.2295295,"tz":[180]},{"id":178,"code":"re","iso":"Reunion","cs":"Réunion","da":"Reunion","de":"Réunion","en":"Reunion","es":"Reunión","fr":"Réunion","it":"Réunion","nl":"Réunion","pt":"Reunião","locale":"fr_RE","lat":44.608664,"lng":10.5947968,"tz":[240]},{"id":179,"code":"ro","iso":"Romania","cs":"Rumunsko","da":"Rumænien","de":"Rumänien","en":"Romania","es":"Rumanía","fr":"Roumanie","it":"Romania","nl":"Roemenië","pt":"Roménia","locale":"ro_RO","lat":45.9852129,"lng":24.6859225,"tz":[120]},{"id":180,"code":"ru","iso":"Russian Federation","cs":"Rusko","da":"Rusland","de":"Russland","en":"Russia","es":"Rusia","fr":"Russie","it":"Russia","nl":"Rusland","pt":"Rússia","locale":"ru_RU","lat":64.6863136,"lng":97.7453061,"tz":[180,240,300,360,420,480,540,600,660,720]},{"id":181,"code":"rw","iso":"Rwanda","cs":"Rwanda","da":"Rwanda","de":"Ruanda","en":"Rwanda","es":"Ruanda","fr":"Rwanda","it":"Ruanda","nl":"Rwanda","pt":"Ruanda","locale":"rw_RW,fr_RW,en_RW","lat":-1.9646631,"lng":30.0644358,"tz":[120]},{"id":182,"code":"sa","iso":"Saudi Arabia","cs":"Saúdská Arábie","da":"Saudiarabien","de":"Saudi-Arabien","en":"Saudi Arabia","es":"Arabia Saudí","fr":"Arabie saoudite","it":"Arabia Saudita","nl":"Saoedi-Arabië","pt":"Arábia Saudita","locale":"ar_SA","lat":25.6242618,"lng":42.3528328,"tz":[180]},{"id":183,"code":"sb","iso":"Solomon Islands","cs":"?alamounovy ostrovy","da":"Solomon-øerne","de":"Salomonen","en":"Solomon Islands","es":"Islas Salomón","fr":"Îles Salomon","it":"Isole Solomon","nl":"Salomonseilanden","pt":"Ilhas Salomão","locale":"en_SB","lat":44.1534121,"lng":20.55144,"tz":[660]},{"id":184,"code":"sc","iso":"Seychelles","cs":"Seychely","da":"Seychellerne","de":"Seychellen","en":"Seychelles","es":"Seychelles","fr":"Seychelles","it":"Seychelles","nl":"Seychellen","pt":"Seicheles","locale":"fr_SC,en_SC,crs_SC","lat":33.6874388,"lng":-80.4363743,"tz":[240]},{"id":185,"code":"sd","iso":"Sudan","cs":"Súdán","da":"Sudan","de":"Sudan","en":"Sudan","es":"Sudán","fr":"Soudan","it":"Sudan","nl":"Soedan","pt":"Sudão","locale":"ar_SD,en_SD","lat":44.6471761,"lng":-100.348761,"tz":[120]},{"id":186,"code":"se","iso":"Sweden","cs":"?védsko","da":"Sverige","de":"Schweden","en":"Sweden","es":"Suecia","fr":"Suède","it":"Svezia","nl":"Zweden","pt":"Suécia","locale":"sv_SE","lat":59.6749712,"lng":14.5208584,"tz":[60]},{"id":187,"code":"sg","iso":"Singapore","cs":"Singapur","da":"Singapore","de":"Singapur","en":"Singapore","es":"Singapur","fr":"Singapour","it":"Singapore","nl":"Singapore","pt":"Singapura","locale":"en_SG,ms_SG,zh_SG,ta_SG","lat":1.357107,"lng":103.8194992,"tz":[480]},{"id":188,"code":"sh","iso":"Saint Helena","cs":"Svatá Helena","da":"Sankt Helena","de":"St. Helena","en":"St. Helena","es":"Santa Elena","fr":"Sainte-Hélène","it":"Sant?Elena","nl":"Sint-Helena","pt":"Santa Helena","locale":"en_SH","lat":54.1853998,"lng":9.8220089,"tz":[0]},{"id":189,"code":"si","iso":"Slovenia","cs":"Slovinsko","da":"Slovenien","de":"Slowenien","en":"Slovenia","es":"Eslovenia","fr":"Slovénie","it":"Slovenia","nl":"Slovenië","pt":"Eslovénia","locale":"sl_SI","lat":46.1199444,"lng":14.8153333,"tz":[60]},{"id":190,"code":"sj","iso":"Svalbard and Jan Mayen Islands","cs":"Svalbard a Jan Mayen","da":"Jan Mayen","de":"Svalbard und Jan Mayen","en":"Svalbard and Jan Mayen Islands","es":"Svalbard y Jan Mayen","fr":"Svalbard et Île Jan Mayen","it":"Svalbard e Jan Mayen","nl":"Svalbard en Jan Mayen","pt":"Esvalbarda e Jan Mayen","locale":"no_SJ","lat":-30.7054363,"lng":-69.1988222,"tz":[0]},{"id":191,"code":"sk","iso":"Slovakia","cs":"Slovensko","da":"Slovakiet","de":"Slowakei","en":"Slovakia","es":"Eslovaquia","fr":"Slovaquie","it":"Slovacchia","nl":"Slowakije","pt":"Eslováquia","locale":"sk_SK","lat":55.5321257,"lng":-106.1412243,"tz":[60]},{"id":192,"code":"sl","iso":"Sierra Leone","cs":"Sierra Leone","da":"Sierra Leone","de":"Sierra Leone","en":"Sierra Leone","es":"Sierra Leona","fr":"Sierra Leone","it":"Sierra Leone","nl":"Sierra Leone","pt":"Serra Leoa","locale":"en_SL","lat":8.6400349,"lng":-11.8400269,"tz":[0]},{"id":193,"code":"sm","iso":"San Marino","cs":"San Marino","da":"San Marino","de":"San Marino","en":"San Marino","es":"San Marino","fr":"Saint-Marin","it":"San Marino","nl":"San Marino","pt":"São Marino","locale":"it_SM","lat":43.9458623,"lng":12.458306,"tz":[60]},{"id":194,"code":"sn","iso":"Senegal","cs":"Senegal","da":"Senegal","de":"Senegal","en":"Senegal","es":"Senegal","fr":"Sénégal","it":"Senegal","nl":"Senegal","pt":"Senegal","locale":"fr_SN","lat":14.4750607,"lng":-14.4529612,"tz":[0]},{"id":195,"code":"so","iso":"Somalia","cs":"Somálsko","da":"Somalia","de":"Somalia","en":"Somalia","es":"Somalia","fr":"Somalie","it":"Somalia","nl":"Somalië","pt":"Somália","locale":"so_SO,ar_SO","lat":8.3676771,"lng":49.083416,"tz":[180]},{"id":196,"code":"sr","iso":"Suriname","cs":"Surinam","da":"Suriname","de":"Suriname","en":"Suriname","es":"Surinam","fr":"Suriname","it":"Suriname","nl":"Suriname","pt":"Suriname","locale":"nl_SR","lat":4.1413025,"lng":-56.0771187,"tz":[-180]},{"id":197,"code":"st","iso":"Sao Tome and Principe","cs":"Svatý Tomá?","da":"São Tomé og Príncipe","de":"São Tomé und Príncipe","en":"Sao Tome and Principe","es":"Santo Tomé y Príncipe","fr":"Sao Tomé-et-Principe","it":"Sao Tomé e Príncipe","nl":"Sao Tomé en Principe","pt":"São Tomé e Príncipe","locale":"pt_ST","lat":50.0601579,"lng":13.8307479,"tz":[0]},{"id":198,"code":"sv","iso":"El Salvador","cs":"El Salvador","da":"El Salvador","de":"El Salvador","en":"El Salvador","es":"El Salvador","fr":"El Salvador","it":"El Salvador","nl":"El Salvador","pt":"El Salvador","locale":"es_SV","lat":13.8000382,"lng":-88.9140683,"tz":[-360]},{"id":199,"code":"sy","iso":"Syrian Arab Republic","cs":"Sýrie","da":"Syrien","de":"Syrien","en":"Syria","es":"Siria","fr":"Syrie","it":"Siria","nl":"Syrië","pt":"Síria","locale":"ar_SY","lat":34.6401861,"lng":39.0494106,"tz":[120]},{"id":200,"code":"sz","iso":"Swaziland","cs":"Svazijsko","da":"Swaziland","de":"Swasiland","en":"Swaziland","es":"Suazilandia","fr":"Swaziland","it":"Swaziland","nl":"Swaziland","pt":"Suazilândia","locale":"en_SZ,ss_SZ","lat":-26.5624806,"lng":31.3991317,"tz":[120]},{"id":201,"code":"tc","iso":"Turks and Caicos Islands","cs":"Ostrovy Caicos a Turks","da":"Turks- og Caicosøerne","de":"Turks- und Caicosinseln","en":"Turks and Caicos Islands","es":"Islas Turcas y Caicos","fr":"Îles Turks et Caïques","it":"Isole Turks e Caicos","nl":"Turks- en Caicoseilanden","pt":"Ilhas Turcas e Caicos","locale":"en_TC","lat":21.721746,"lng":-71.5527809,"tz":[-300]},{"id":202,"code":"td","iso":"Chad","cs":"?ad","da":"Chad","de":"Tschad","en":"Chad","es":"Chad","fr":"Tchad","it":"Ciad","nl":"Tsjaad","pt":"Chade","locale":"fr_TD,ar_TD","lat":15.6134137,"lng":19.0156172,"tz":[60]},{"id":203,"code":"tf","iso":"French Southern Territories","cs":"Francouzská ji?ní teritoria","da":"De franske besiddelser i det sydlige Indiske Ocean","de":"Französische Süd- und Antarktisgebiete","en":"French Southern Territories","es":"Territorios Australes Franceses","fr":"Terres australes françaises","it":"Territori australi francesi","nl":"Franse Gebieden in de zuidelijke Indische Oceaan","pt":"Territórios Franceses do Sul","locale":"fr_TF","lat":60.1860107,"lng":24.8326676,"tz":[300]},{"id":204,"code":"tg","iso":"Togo","cs":"Togo","da":"Togo","de":"Togo","en":"Togo","es":"Togo","fr":"Togo","it":"Togo","nl":"Togo","pt":"Togo","locale":"fr_TG","lat":8.7800265,"lng":1.0199765,"tz":[0]},{"id":205,"code":"th","iso":"Thailand","cs":"Thajsko","da":"Thailand","de":"Thailand","en":"Thailand","es":"Tailandia","fr":"Thaïlande","it":"Tailandia","nl":"Thailand","pt":"Tailândia","locale":"th_TH","lat":14.8971921,"lng":100.83273,"tz":[420]},{"id":206,"code":"tj","iso":"Tajikistan","cs":"Tád?ikistán","da":"Tajikistan","de":"Tadschikistan","en":"Tajikistan","es":"Tayikistán","fr":"Tadjikistan","it":"Tagikistan","nl":"Tadzjikistan","pt":"Tajiquistão","locale":"tg_TJ,ru_TJ","lat":38.6281733,"lng":70.8156541,"tz":[300]},{"id":207,"code":"tk","iso":"Tokelau","cs":"Tokelau","da":"Tokelau","de":"Tokelau","en":"Tokelau","es":"Tokelau","fr":"Tokelau","it":"Tokelau","nl":"Tokelau","pt":"Toquelau","locale":"tkl_TK,en_TK,sm_TK","lat":50.1039198,"lng":14.3906435,"tz":[780]},{"id":208,"code":"tm","iso":"Turkmenistan","cs":"Turkmenistán","da":"Turkmenistan","de":"Turkmenistan","en":"Turkmenistan","es":"Turkmenistán","fr":"Turkménistan","it":"Turkmenistan","nl":"Turkmenistan","pt":"Turquemenistão","locale":"tk_TM","lat":39.3763807,"lng":59.3924609,"tz":[300]},{"id":209,"code":"tn","iso":"Tunisia","cs":"Tunisko","da":"Tunesien","de":"Tunesien","en":"Tunisia","es":"Túnez","fr":"Tunisie","it":"Tunisia","nl":"Tunesië","pt":"Tunísia","locale":"ar_TN","lat":35.7730076,"lng":-86.2820081,"tz":[60]},{"id":210,"code":"to","iso":"Tonga","cs":"Tonga","da":"Tonga","de":"Tonga","en":"Tonga","es":"Tonga","fr":"Tonga","it":"Tonga","nl":"Tonga","pt":"Tonga","locale":"en_TO","lat":-19.9160819,"lng":-175.202642,"tz":[780]},{"id":211,"code":"tl","iso":"Timor-Leste","cs":"Východní Timor","da":"Timor-Leste","de":"Osttimor","en":"East Timor","es":"Timor Oriental","fr":"Timor oriental","it":"Timor Est","nl":"Oost-Timor","pt":"Timor Leste","locale":"pt_TL,tet_TL","lat":-8.7443169,"lng":126.063482,"tz":[540]},{"id":212,"code":"tr","iso":"Turkey","cs":"Turecko","da":"Tyrkiet","de":"Türkei","en":"Turkey","es":"Turquía","fr":"Turquie","it":"Turchia","nl":"Turkije","pt":"Turquia","locale":"tr_TR","lat":38.9597594,"lng":34.9249653,"tz":[120]},{"id":213,"code":"tt","iso":"Trinidad and Tobago","cs":"Trinidad a Tobago","da":"Trinidad og Tobago","de":"Trinidad und Tobago","en":"Trinidad and Tobago","es":"Trinidad y Tobago","fr":"Trinité-et-Tobago","it":"Trinidad e Tobago","nl":"Trinidad en Tobago","pt":"Trindade e Tobago","locale":"en_TT","lat":10.7466905,"lng":-61.0840075,"tz":[-240]},{"id":214,"code":"tv","iso":"Tuvalu","cs":"Tuvalu","da":"Tuvalu","de":"Tuvalu","en":"Tuvalu","es":"Tuvalu","fr":"Tuvalu","it":"Tuvalu","nl":"Tuvalu","pt":"Tuvalu","locale":"en_TV","lat":45.8066913,"lng":12.2063158,"tz":[720]},{"id":215,"code":"tw","iso":"Taiwan","cs":"Tchaj-wan","da":"Taiwan","de":"Taiwan","en":"Taiwan","es":"Taiwán","fr":"Taïwan","it":"Taiwan","nl":"Taiwan","pt":"Taiwan","locale":"zh_TW","lat":23.9739374,"lng":120.9820179,"tz":[480]},{"id":216,"code":"tz","iso":"Tanzania, United Republic of","cs":"Tanzanie","da":"Tanzania","de":"Tansania","en":"Tanzania","es":"Tanzania","fr":"Tanzanie","it":"Tanzania","nl":"Tanzania","pt":"Tanzânia","locale":"sw_TZ,en_TZ","lat":-6.5247123,"lng":35.7878438,"tz":[180]},{"id":217,"code":"ua","iso":"Ukraine","cs":"Ukrajina","da":"Ukraine","de":"Ukraine","en":"Ukraine","es":"Ucrania","fr":"Ukraine","it":"Ucraina","nl":"Oekraïne","pt":"Ucrânia","locale":"uk_UA","lat":49.4871968,"lng":31.2718321,"tz":[120]},{"id":218,"code":"ug","iso":"Uganda","cs":"Uganda","da":"Uganda","de":"Uganda","en":"Uganda","es":"Uganda","fr":"Ouganda","it":"Uganda","nl":"Oeganda","pt":"Uganda","locale":"en_UG,sw_UG","lat":1.5333554,"lng":32.2166578,"tz":[180]},{"id":219,"code":"gb","iso":"United Kingdom","cs":"Velká Británie","da":"Storbritannien","de":"Großbritannien","en":"United Kingdom","es":"Gran Bretaña","fr":"Grande-Bretagne","it":"Gran Bretagna","nl":"Groot-Brittannië","pt":"Grã-Bretanha","locale":"en_GB,ga_GB,cy_GB,gd_GB,kw_GB","lat":54.7023545,"lng":-3.2765753,"tz":[0]},{"id":220,"code":"us","iso":"United States","cs":"Spojené státy","da":"Forenede Stater","de":"Vereinigte Staaten","en":"United States","es":"Estados Unidos","fr":"États-Unis","it":"Stati Uniti","nl":"Verenigde Staten","pt":"Estados Unidos","locale":"en_US","lat":39.7837304,"lng":-100.445882,"tz":[-660,-600,-540,-480,-420,-360,-300,-240,-210,-180,-150,-120,-90,-60,-30]},{"id":221,"code":"uy","iso":"Uruguay","cs":"Uruguay","da":"Uruguay","de":"Uruguay","en":"Uruguay","es":"Uruguay","fr":"Uruguay","it":"Uruguay","nl":"Uruguay","pt":"Uruguai","locale":"es_UY","lat":-32.8755548,"lng":-56.0201525},{"id":222,"code":"uz","iso":"Uzbekistan","cs":"Uzbekistán","da":"Uzbekistan","de":"Usbekistan","en":"Uzbekistan","es":"Uzbekistán","fr":"Ouzbékistan","it":"Uzbekistan","nl":"Oezbekistan","pt":"Usbequistão","locale":"uz_UZ,kaa_UZ","lat":41.32373,"lng":63.9528098},{"id":223,"code":"va","iso":"Vatican City State","cs":"Svatý stolec","da":"Vatican City State","de":"Vatikanstadt","en":"Vatican City State","es":"Ciudad del Vaticano","fr":"État de la Cité du Vatican","it":"Vaticano","nl":"Vaticaanstad","pt":"Vaticano","locale":"it_VA","lat":37.1232245,"lng":-78.4927721,"tz":[60]},{"id":224,"code":"vc","iso":"Saint Vincent and the Grenadines","cs":"Svatý Vincent a Grenadiny","da":"Saint Vincent og Grenadinerne","de":"St. Vincent und die Grenadinen","en":"Saint Vincent and the Grenadines","es":"San Vicente y las Granadinas","fr":"Saint-Vincent-et-les Grenadines","it":"Saint Vincent e Grenadines","nl":"Saint Vincent en de Grenadines","pt":"São Vicente e Granadinas","locale":"en_VC","lat":39.6819591,"lng":-0.7654406,"tz":[-240]},{"id":225,"code":"ve","iso":"Venezuela","cs":"Venezuela","da":"Venezuela","de":"Venezuela","en":"Venezuela","es":"Venezuela","fr":"Venezuela","it":"Venezuela","nl":"Venezuela","pt":"Venezuela","locale":"es_VE","lat":8.0018709,"lng":-66.1109318},{"id":226,"code":"vg","iso":"Virgin Islands, British","cs":"Britské Panenské ostrovy","da":"De britiske jomfruøer","de":"Britische Jungferninseln","en":"Virgin Islands (British)","es":"Islas Vírgenes Británicas","fr":"Îles Vierges britanniques","it":"Isole Vergini Britanniche","nl":"Britse Maagdeneilanden","pt":"Ilhas Virgens Britânicas","locale":"en_VG","lat":18.4024395,"lng":-64.5661642},{"id":227,"code":"vi","iso":"Virgin Islands, U.S.","cs":"Americké Panenské ostrovy","da":"Jomfruøerne","de":"Amerikanische Jungferninseln","en":"Virgin Islands (U.S.)","es":"Islas Vírgenes de los Estados Unidos","fr":"Îles Vierges des États-Unis","it":"Isole Vergini Americane","nl":"Amerikaanse Maagdeneilanden","pt":"Ilhas Virgin E.U.A.","locale":"en_VI","lat":17.789187,"lng":-64.7080574},{"id":228,"code":"vn","iso":"Vietnam","cs":"Vietnam","da":"Vietnam","de":"Vietnam","en":"Vietnam","es":"Vietnam","fr":"Viêt Nam","it":"Vietnam","nl":"Vietnam","pt":"Vietname","locale":"vi_VN","lat":15.9266657,"lng":107.9650855},{"id":229,"code":"vu","iso":"Vanuatu","cs":"Vanuatu","da":"Vanuatu","de":"Vanuatu","en":"Vanuatu","es":"Vanuatu","fr":"Vanuatu","it":"Vanuatu","nl":"Vanuatu","pt":"Vanuatu","locale":"bi_VU,en_VU,fr_VU","lat":-16.5255069,"lng":168.1069154},{"id":230,"code":"wf","iso":"Wallis and Futuna Islands","cs":"Wallis a Futuna","da":"Wallis og Futuna","de":"Wallis und Futuna","en":"Wallis and Futuna Islands","es":"Wallis y Futuna","fr":"Wallis-et-Futuna","it":"Wallis e Futuna","nl":"Wallis en Futuna","pt":"Wallis e Futuna","locale":"fr_WF","lat":22.9912205,"lng":58.49509},{"id":231,"code":"ws","iso":"Samoa","cs":"Samoa","da":"Samoa","de":"Samoa","en":"Samoa","es":"Samoa","fr":"Samoa","it":"Samoa","nl":"Samoa","pt":"Samoa","locale":"sm_WS,en_WS","lat":-13.7693895,"lng":-172.12005,"tz":[660]},{"id":232,"code":"ye","iso":"Yemen","cs":"Jemen","da":"Yemen","de":"Jemen","en":"Yemen","es":"Yemen","fr":"Yémen","it":"Yemen","nl":"Jemen","pt":"Iémen","locale":"ar_YE","lat":16.3471243,"lng":47.8915271},{"id":233,"code":"yt","iso":"Mayotte","cs":"Mayotte","da":"Mayotte","de":"Mayotte","en":"Mayotte","es":"Mayotte","fr":"Mayotte","it":"Mayotte","nl":"Mayotte","pt":"Mayotte","locale":"fr_YT","lat":63.000147,"lng":-136.002502,"tz":[180]},{"id":234,"code":"yu","iso":"Yugoslavia","cs":"Jugoslávie","da":"Jugoslavien","de":"Jugoslawien","en":"Yugoslavia","es":"Yugoslavia","fr":"Yougoslavie","it":"Jugoslavia","nl":"Joegoslavië","pt":"Iugoslávia","locale":"sr_RS","lat":29.5647398,"lng":106.5478767},{"id":235,"code":"za","iso":"South Africa","cs":"Jihoafrická republika","da":"Sydafrika","de":"Südafrika","en":"South Africa","es":"Sudáfrica","fr":"Afrique du Sud","it":"Sudafrica","nl":"Zuid-Afrika","pt":"África do Sul","locale":"zu_ZA,xh_ZA,af_ZA,st_ZA,tn_ZA,en_ZA","lat":-28.8166236,"lng":24.991639,"tz":[120,180]},{"id":236,"code":"zm","iso":"Zambia","cs":"Zambie","da":"Zambia","de":"Sambia","en":"Zambia","es":"Zambia","fr":"Zambie","it":"Zambia","nl":"Zambia","pt":"Zâmbia","locale":"en_ZM","lat":-14.5189121,"lng":27.5589884},{"id":237,"code":"cd","iso":"Congo, Democratic Republic of the","cs":"Demokratická republika Kongo","da":"Den Demokratiske Republik Congo","de":"Demokratische Republik Kongo","en":"Democratic Republic of Congo","es":"República Democrática del Congo","fr":"République démocratique du Congo","it":"Repubblica Democratica del Congo","nl":"Congo-Kinshasa","pt":"República Democrática do Congo","locale":"fr_CD","lat":-2.9814344,"lng":23.8222636,"tz":[60,120]},{"id":238,"code":"zw","iso":"Zimbabwe","cs":"Zimbabwe","da":"Zimbabwe","de":"Simbabwe","en":"Zimbabwe","es":"Zimbabue","fr":"Zimbabwe","it":"Zimbabwe","nl":"Zimbabwe","pt":"Zimbabwe","locale":"en_ZW,sn_ZW,nd_ZW","lat":-18.4554963,"lng":29.7468414},{"id":239,"code":"ap","iso":"","cs":"Asie a Tichomo?í","da":"Asien Stillehavet","de":"Asien-Pazifik","en":"Asia-Pacific","es":"Asia y el Pacífico","fr":"Asie-Pacifique","it":"Asia-Pacifico","nl":"Asia-Pacific","pt":"Ásia-Pacífico","locale":"en_GB","lat":1.3545442,"lng":-51.9161977},{"id":240,"code":"rs","iso":"Serbia","cs":"Srbsko","da":"Serbien","de":"Serbien","en":"Serbia","es":"Serbia","fr":"Serbie","it":"Serbia","nl":"Servië","pt":"Sérvia","locale":"sr_RS","lat":44.1534121,"lng":20.55144,"tz":[60]},{"id":241,"code":"ax","iso":"Aland Islands","cs":"Alandy","da":"Åland","de":"Alandinseln","en":"Åland Islands","es":"Islas Åland","fr":"Îles Åland","it":"Isole Aland","nl":"Alandeilanden","pt":"Ilhas Alanda","locale":"sv_AX","lat":42.7193597,"lng":1.8379765,"tz":[120]},{"id":242,"code":"eu","iso":"European Union","cs":"Evropská unie","da":"europæiske Union","de":"Europäische Union","en":"European Union","es":"Unión Europea","fr":"Union européenne","it":"Unione europea","nl":"Europeese Unie","pt":"União Européia","locale":"en_GB","lat":50.0491699,"lng":1.4175744},{"id":243,"code":"01","iso":"","cs":"soukromá","da":"privat","de":"privat","en":"private","es":"privada","fr":"privé","it":"privato","nl":"privaat","pt":"privada","locale":"en_GB","lat":37.5666791,"lng":126.9782914},{"id":244,"code":"ps","iso":"State of Palestine","cs":"Palestina","da":"Palæstina","de":"Palästina","en":"Palestine","es":"Palestina","fr":"Palestine","it":"Palestina","nl":"Palestina","pt":"Palestina","locale":"ar_PS,he_PS","lat":34.0346534,"lng":-5.0161926,"tz":[120]},{"id":245,"code":"me","iso":"Montenegro","cs":"?erná Hora","da":"Montenegro","de":"Montenegro","en":"Montenegro","es":"Montenegro","fr":"Monténégro","it":"Montenegro","nl":"Montenegro","pt":"Montenegro","locale":"srp_ME,sq_ME,bs_ME,hr_ME,sr_ME","lat":45.709097,"lng":-68.8590201,"tz":[60]},{"id":246,"code":"cw","iso":"Curaçao","cs":"Curaçao","da":"Curaçao","de":"Curaçao","en":"Curaçao","es":"Curaçao","fr":"Curaçao","it":"Curaçao","nl":"Curaçao","pt":"Curaçao","locale":"nl_CW","lat":12.1176488,"lng":-68.9309263,"tz":[-240]},{"id":247,"code":"sx","iso":"Sint Maarten","cs":"Sint Maarten","da":"Sint Maarten","de":"Sint Maarten","en":"Sint Maarten","es":"Sint Maarten","fr":"Sint Maarten","it":"Sint Maarten","nl":"Sint Maarten","pt":"Sint Maarten","locale":"nl_NL,en_NL","lat":18.0423736,"lng":-63.0549948,"tz":[-240]},{"id":248,"code":"bq","iso":"Caribbean Netherlands","cs":"Karibské Holandsko","da":"Caribbean Netherlands","de":"Karibische Niederlande","en":"Caribbean Netherlands","es":"Caribe Países Bajos","fr":"Caraïbes Pays-Bas","it":"Caraibi Olandesi","nl":"Caribisch Nederland","pt":"Caribe Holanda","locale":"nl_NL,en_NL","lat":36.2109553,"lng":54.448222,"tz":[-240]},{"id":249,"code":"im","iso":"Isle of Man","cs":"Isle of Man","da":"Isle of Man","de":"Isle of Man","en":"Isle of Man","es":"Isla de Man","fr":"Isle of Man","it":"Isle of Man","nl":"Isle of Man","pt":"Ilha de Man","locale":"en_GB","lat":43.9583753,"lng":7.8667427,"tz":[0]},{"id":250,"code":"je","iso":"Jersey","cs":"Jersey","da":"Jersey","de":"Jersey","en":"Jersey","es":"Jersey","fr":"Jersey","it":"Jersey","nl":"Jersey","pt":"Jersey","locale":"en_JE","lat":49.2214561,"lng":-2.1358386,"tz":[0]},{"id":251,"code":"gg","iso":"Guernsey","cs":"Guernsey","da":"Guernsey","de":"Guernsey","en":"Guernsey","es":"Guernsey","fr":"Guernsey","it":"Guernsey","nl":"Guernsey","pt":"Guernsey","locale":"en_GG","lat":49.4566233,"lng":-2.5822348,"tz":[0]}]
+[
+   {
+      "code": "ad",
+      "iso": "Andorra",
+      "da": "Andorra",
+      "de": "Andorra",
+      "en": "Andorra",
+      "es": "Andorra",
+      "fr": "Andorre",
+      "it": "Andorra",
+      "nl": "Andorra",
+      "pt": "Andorra",
+      "lat": 42.5407167,
+      "lng": 1.5732033,
+      "tz": [
+         60
+      ],
+      "languages": [
+         "ca"
+      ]
+   },
+   {
+      "code": "ae",
+      "iso": "United Arab Emirates",
+      "da": "Forenede Arabiske Emirater",
+      "de": "Vereinigte Arabische Emirate",
+      "en": "United Arab Emirates",
+      "es": "Emiratos Árabes Unidos",
+      "fr": "Émirats arabes unis",
+      "it": "Emirati Arabi Uniti",
+      "nl": "Verenigde Arabische Emiraten",
+      "pt": "Emirados Árabes Unidos",
+      "lat": 24.0002488,
+      "lng": 53.9994829,
+      "tz": [
+         240
+      ],
+      "languages": [
+         "ar"
+      ]
+   },
+   {
+      "code": "af",
+      "iso": "Afghanistan",
+      "da": "Afghanistan",
+      "de": "Afghanistan",
+      "en": "Afghanistan",
+      "es": "Afganistán",
+      "fr": "Afghanistan",
+      "it": "Afghanistan",
+      "nl": "Afghanistan",
+      "pt": "Afeganistão",
+      "lat": 33.7680065,
+      "lng": 66.2385139,
+      "tz": [
+         270
+      ],
+      "languages": [
+         "ps",
+         "fa"
+      ]
+   },
+   {
+      "code": "ag",
+      "iso": "Antigua and Barbuda",
+      "da": "Antigua og Barbuda",
+      "de": "Antigua und Barbuda",
+      "en": "Antigua and Barbuda",
+      "es": "Antigua y Barbuda",
+      "fr": "Antigua-et-Barbuda",
+      "it": "Antigua e Barbuda",
+      "nl": "Antigua en Barbuda",
+      "pt": "Antígua e Barbuda",
+      "lat": 17.2234721,
+      "lng": -61.9554608,
+      "tz": [
+         -240
+      ],
+      "languages": [
+         "en"
+      ]
+   },
+   {
+      "code": "ai",
+      "iso": "Anguilla",
+      "da": "Anguilla",
+      "de": "Anguilla",
+      "en": "Anguilla",
+      "es": "Anguila",
+      "fr": "Anguilla",
+      "it": "Anguilla",
+      "nl": "Anguilla",
+      "pt": "Anguilha",
+      "lat": 18.1954947,
+      "lng": -63.0750234,
+      "tz": [
+         -240
+      ],
+      "languages": []
+   },
+   {
+      "code": "al",
+      "iso": "Albania",
+      "da": "Albanien",
+      "de": "Albanien",
+      "en": "Albania",
+      "es": "Albania",
+      "fr": "Albanie",
+      "it": "Albania",
+      "nl": "Albanië",
+      "pt": "Albânia",
+      "lat": 33.2588817,
+      "lng": -86.8295337,
+      "tz": [
+         60
+      ],
+      "languages": [
+         "sq"
+      ]
+   },
+   {
+      "code": "am",
+      "iso": "Armenia",
+      "da": "Armenien",
+      "de": "Armenien",
+      "en": "Armenia",
+      "es": "Armenia",
+      "fr": "Arménie",
+      "it": "Armenia",
+      "nl": "Armenië",
+      "pt": "Arménia",
+      "lat": 40.7696272,
+      "lng": 44.6736646,
+      "tz": [
+         240
+      ],
+      "languages": [
+         "hy"
+      ]
+   },
+   {
+      "code": "ao",
+      "iso": "Angola",
+      "da": "Angola",
+      "de": "Angola",
+      "en": "Angola",
+      "es": "Angola",
+      "fr": "Angola",
+      "it": "Angola",
+      "nl": "Angola",
+      "pt": "Angola",
+      "lat": 47.59397,
+      "lng": 14.12456,
+      "tz": [
+         60
+      ],
+      "languages": [
+         "kg",
+         "kj",
+         "pt"
+      ]
+   },
+   {
+      "code": "aq",
+      "iso": "Antarctica",
+      "da": "Antarctica",
+      "de": "Antarktis",
+      "en": "Antarctica",
+      "es": "Antártida",
+      "fr": "Antarctique",
+      "it": "Antartide",
+      "nl": "Antarctica",
+      "pt": "Antárctica",
+      "lat": 42.1368853,
+      "lng": 13.610341,
+      "tz": [
+         180
+      ],
+      "languages": []
+   },
+   {
+      "code": "ar",
+      "iso": "Argentina",
+      "da": "Argentina",
+      "de": "Argentinien",
+      "en": "Argentina",
+      "es": "Argentina",
+      "fr": "Argentine",
+      "it": "Argentina",
+      "nl": "Argentinië",
+      "pt": "Argentina",
+      "lat": 35.2048883,
+      "lng": -92.4479108,
+      "tz": [
+         -180
+      ],
+      "languages": [
+         "es"
+      ]
+   },
+   {
+      "code": "as",
+      "iso": "American Samoa",
+      "da": "Amerikansk Samoa",
+      "de": "Amerikanisch-Samoa",
+      "en": "American Samoa",
+      "es": "Samoa Americana",
+      "fr": "Samoa américaines",
+      "it": "Samoa Americane",
+      "nl": "Amerikaans Samoa",
+      "pt": "Samoa Americana",
+      "lat": 42.6073975,
+      "lng": 25.4856617,
+      "tz": [
+         -660
+      ],
+      "languages": []
+   },
+   {
+      "code": "at",
+      "iso": "Austria",
+      "da": "Østrig",
+      "de": "Österreich",
+      "en": "Austria",
+      "es": "Austria",
+      "fr": "Autriche",
+      "it": "Austria",
+      "nl": "Oostenrijk",
+      "pt": "Áustria",
+      "lat": 47.59397,
+      "lng": 14.12456,
+      "tz": [
+         60
+      ],
+      "languages": [
+         "de"
+      ]
+   },
+   {
+      "code": "au",
+      "iso": "Australia",
+      "da": "Australien",
+      "de": "Australien",
+      "en": "Australia",
+      "es": "Australia",
+      "fr": "Australie",
+      "it": "Australia",
+      "nl": "Australië",
+      "pt": "Austrália",
+      "lat": -24.7761086,
+      "lng": 134.755,
+      "tz": [
+         600,
+         660,
+         570,
+         630,
+         480
+      ],
+      "languages": [
+         "en"
+      ]
+   },
+   {
+      "code": "aw",
+      "iso": "Aruba",
+      "da": "Aruba",
+      "de": "Aruba",
+      "en": "Aruba",
+      "es": "Aruba",
+      "fr": "Aruba",
+      "it": "Aruba",
+      "nl": "Aruba",
+      "pt": "Aruba",
+      "lat": 12.5013629,
+      "lng": -69.9618475,
+      "tz": [
+         -240
+      ],
+      "languages": [
+         "nl"
+      ]
+   },
+   {
+      "code": "az",
+      "iso": "Azerbaijan",
+      "da": "Aserbajdsjan",
+      "de": "Aserbaidschan",
+      "en": "Azerbaijan",
+      "es": "Azerbaiyán",
+      "fr": "Azerbaïdjan",
+      "it": "Azerbaigian",
+      "nl": "Azerbeidzjan",
+      "pt": "Azerbeijão",
+      "lat": 34.395342,
+      "lng": -111.763275,
+      "tz": [
+         240
+      ],
+      "languages": [
+         "az"
+      ]
+   },
+   {
+      "code": "ba",
+      "iso": "Bosnia and Herzegovina",
+      "da": "Bosnien-Herzegovina",
+      "de": "Bosnien und Herzegowina",
+      "en": "Bosnia and Herzegovina",
+      "es": "Bosnia-Herzegovina",
+      "fr": "Bosnie-Herzégovine",
+      "it": "Bosnia Erzegovina",
+      "nl": "Bosnië en Herzegovina",
+      "pt": "Bósnia-Herzegovina",
+      "lat": 44.3053476,
+      "lng": 17.5961467,
+      "tz": [
+         60
+      ],
+      "languages": [
+         "bs",
+         "hr",
+         "sr"
+      ]
+   },
+   {
+      "code": "bb",
+      "iso": "Barbados",
+      "da": "Barbados",
+      "de": "Barbados",
+      "en": "Barbados",
+      "es": "Barbados",
+      "fr": "Barbade",
+      "it": "Barbados",
+      "nl": "Barbados",
+      "pt": "Barbados",
+      "lat": 13.1500331,
+      "lng": -59.5250305,
+      "tz": [
+         -240
+      ],
+      "languages": [
+         "en"
+      ]
+   },
+   {
+      "code": "bd",
+      "iso": "Bangladesh",
+      "da": "Bangladesh",
+      "de": "Bangladesch",
+      "en": "Bangladesh",
+      "es": "Bangladesh",
+      "fr": "Bangladesh",
+      "it": "Bangladesh",
+      "nl": "Bangladesh",
+      "pt": "Bangladeche",
+      "lat": 24.4769288,
+      "lng": 90.2934413,
+      "tz": [
+         360
+      ],
+      "languages": [
+         "bn"
+      ]
+   },
+   {
+      "code": "be",
+      "iso": "Belgium",
+      "da": "Belgien",
+      "de": "Belgien",
+      "en": "Belgium",
+      "es": "Bélgica",
+      "fr": "Belgique",
+      "it": "Belgio",
+      "nl": "België",
+      "pt": "Bélgica",
+      "lat": 50.6402809,
+      "lng": 4.6667145,
+      "tz": [
+         60
+      ],
+      "languages": [
+         "nl",
+         "fr",
+         "de"
+      ]
+   },
+   {
+      "code": "bf",
+      "iso": "Burkina Faso",
+      "da": "Burkina Faso",
+      "de": "Burkina Faso",
+      "en": "Burkina Faso",
+      "es": "Burkina Faso",
+      "fr": "Burkina Faso",
+      "it": "Burkina Faso",
+      "nl": "Burkina Faso",
+      "pt": "Burkina-Faso",
+      "lat": 12.0753083,
+      "lng": -1.6880314,
+      "tz": [
+         0
+      ],
+      "languages": [
+         "fr",
+         "ff"
+      ]
+   },
+   {
+      "code": "bg",
+      "iso": "Bulgaria",
+      "da": "Bulgarien",
+      "de": "Bulgarien",
+      "en": "Bulgaria",
+      "es": "Bulgaria",
+      "fr": "Bulgarie",
+      "it": "Bulgaria",
+      "nl": "Bulgarije",
+      "pt": "Bulgária",
+      "lat": 42.6073975,
+      "lng": 25.4856617,
+      "tz": [
+         120
+      ],
+      "languages": [
+         "bg"
+      ]
+   },
+   {
+      "code": "bh",
+      "iso": "Bahrain",
+      "da": "Bahrain",
+      "de": "Bahrain",
+      "en": "Bahrain",
+      "es": "Bahréin",
+      "fr": "Bahreïn",
+      "it": "Bahrein",
+      "nl": "Bahrein",
+      "pt": "Bahrein",
+      "lat": 44.3053476,
+      "lng": 17.5961467,
+      "tz": [
+         180
+      ],
+      "languages": [
+         "ar"
+      ]
+   },
+   {
+      "code": "bi",
+      "iso": "Burundi",
+      "da": "Burundi",
+      "de": "Burundi",
+      "en": "Burundi",
+      "es": "Burundi",
+      "fr": "Burundi",
+      "it": "Burundi",
+      "nl": "Burundi",
+      "pt": "Burundi",
+      "lat": 50.6402809,
+      "lng": 4.6667145,
+      "tz": [
+         120
+      ],
+      "languages": [
+         "fr",
+         "rn"
+      ]
+   },
+   {
+      "code": "bj",
+      "iso": "Benin",
+      "da": "Benin",
+      "de": "Benin",
+      "en": "Benin",
+      "es": "Benín",
+      "fr": "Bénin",
+      "it": "Benin",
+      "nl": "Benin",
+      "pt": "Benim",
+      "lat": 9.5293472,
+      "lng": 2.2584408,
+      "tz": [
+         0
+      ],
+      "languages": [
+         "fr",
+         "ff",
+         "yo"
+      ]
+   },
+   {
+      "code": "bm",
+      "iso": "Bermuda",
+      "da": "Bermuda",
+      "de": "Bermuda",
+      "en": "Bermuda",
+      "es": "Bermudas",
+      "fr": "Bermudes",
+      "it": "Bermuda",
+      "nl": "Bermuda",
+      "pt": "Bermudas",
+      "lat": 32.30382,
+      "lng": -64.7561647,
+      "tz": [
+         -240
+      ],
+      "languages": []
+   },
+   {
+      "code": "bn",
+      "iso": "Brunei Darussalam",
+      "da": "Brunei Darussalam",
+      "de": "Brunei Darussalam",
+      "en": "Brunei Darussalam",
+      "es": "Brunéi",
+      "fr": "Brunéi Darussalam",
+      "it": "Brunei",
+      "nl": "Brunei",
+      "pt": "Brunei",
+      "lat": 4.4137155,
+      "lng": 114.5653908,
+      "tz": [
+         480
+      ],
+      "languages": [
+         "ms"
+      ]
+   },
+   {
+      "code": "bo",
+      "iso": "Bolivia",
+      "da": "Bolivia",
+      "de": "Bolivien",
+      "en": "Bolivia",
+      "es": "Bolivia",
+      "fr": "Bolivie",
+      "it": "Bolivia",
+      "nl": "Bolivia",
+      "pt": "Bolívia",
+      "lat": -17.0568696,
+      "lng": -64.9912286,
+      "tz": [
+         -240
+      ],
+      "languages": [
+         "ay",
+         "gn",
+         "qu",
+         "es"
+      ]
+   },
+   {
+      "code": "br",
+      "iso": "Brazil",
+      "da": "Brasilien",
+      "de": "Brasilien",
+      "en": "Brazil",
+      "es": "Brasil",
+      "fr": "Brésil",
+      "it": "Brasile",
+      "nl": "Brazilië",
+      "pt": "Brasil",
+      "lat": -10.3333333,
+      "lng": -53.2,
+      "tz": [
+         -180,
+         -240,
+         -120,
+         -60
+      ],
+      "languages": [
+         "pt"
+      ]
+   },
+   {
+      "code": "bs",
+      "iso": "Bahamas",
+      "da": "Bahamas",
+      "de": "Bahamas",
+      "en": "Bahamas",
+      "es": "Bahamas",
+      "fr": "Bahamas",
+      "it": "Bahamas",
+      "nl": "Bahama?s",
+      "pt": "Baamas",
+      "lat": 24.7736546,
+      "lng": -78.0000547,
+      "tz": [
+         -300
+      ],
+      "languages": [
+         "en"
+      ]
+   },
+   {
+      "code": "bt",
+      "iso": "Bhutan",
+      "da": "Bhutan",
+      "de": "Bhutan",
+      "en": "Bhutan",
+      "es": "Bután",
+      "fr": "Bhoutan",
+      "it": "Bhutan",
+      "nl": "Bhutan",
+      "pt": "Butão",
+      "lat": 27.549511,
+      "lng": 90.5119273,
+      "tz": [
+         360
+      ],
+      "languages": [
+         "dz"
+      ]
+   },
+   {
+      "code": "bv",
+      "iso": "Bouvet Island",
+      "da": "Bouvet Island",
+      "de": "Bouvetinsel",
+      "en": "Bouvet Island",
+      "es": "Isla Bouvet",
+      "fr": "Île Bouvet",
+      "it": "Isola Bouvet",
+      "nl": "Bouveteiland",
+      "pt": "Ilha Bouvet",
+      "lat": 15.1009234,
+      "lng": -90.3139743,
+      "tz": [
+         60
+      ],
+      "languages": []
+   },
+   {
+      "code": "bw",
+      "iso": "Botswana",
+      "da": "Botswana",
+      "de": "Botsuana",
+      "en": "Botswana",
+      "es": "Botsuana",
+      "fr": "Botswana",
+      "it": "Botswana",
+      "nl": "Botswana",
+      "pt": "Botswana",
+      "lat": 48.53775,
+      "lng": 9.041169,
+      "tz": [
+         120
+      ],
+      "languages": [
+         "en",
+         "tn"
+      ]
+   },
+   {
+      "code": "by",
+      "iso": "Belarus",
+      "da": "Hviderusland",
+      "de": "Belarus",
+      "en": "Belarus",
+      "es": "Bielorrusia",
+      "fr": "Bélarus",
+      "it": "Bielorussia",
+      "nl": "Wit-Rusland",
+      "pt": "Bielorrússia",
+      "lat": 53.4250605,
+      "lng": 27.6971358,
+      "tz": [
+         180
+      ],
+      "languages": [
+         "be",
+         "ru"
+      ]
+   },
+   {
+      "code": "bz",
+      "iso": "Belize",
+      "da": "Belize",
+      "de": "Belize",
+      "en": "Belize",
+      "es": "Belice",
+      "fr": "Belize",
+      "it": "Belize",
+      "nl": "Belize",
+      "pt": "Belize",
+      "lat": 16.8259793,
+      "lng": -88.7600927,
+      "tz": [
+         -360
+      ],
+      "languages": [
+         "en"
+      ]
+   },
+   {
+      "code": "ca",
+      "iso": "Canada",
+      "da": "Canada",
+      "de": "Kanada",
+      "en": "Canada",
+      "es": "Canadá",
+      "fr": "Canada",
+      "it": "Canada",
+      "nl": "Canada",
+      "pt": "Canadá",
+      "lat": 36.7014631,
+      "lng": -118.755997,
+      "tz": [
+         -210,
+         -240,
+         -300,
+         -360,
+         -420,
+         -480,
+         -540,
+         -570,
+         -600,
+         -660
+      ],
+      "languages": [
+         "en",
+         "fr"
+      ]
+   },
+   {
+      "code": "cc",
+      "iso": "Cocos (Keeling) Islands",
+      "da": "Cocosøerne",
+      "de": "Kokosinseln",
+      "en": "Cocos (Keeling) Islands",
+      "es": "Islas Cocos",
+      "fr": "Îles Cocos - Keeling",
+      "it": "Isole Cocos",
+      "nl": "Cocoseilanden",
+      "pt": "Ilhas Cocos",
+      "lat": -12.0728315,
+      "lng": 96.8409375,
+      "tz": [
+         390
+      ],
+      "languages": []
+   },
+   {
+      "code": "cf",
+      "iso": "Central African Republic",
+      "da": "Den centralafrikanske republik",
+      "de": "Zentralafrikanische Republik",
+      "en": "Central African Republic",
+      "es": "República Centroafricana",
+      "fr": "République centrafricaine",
+      "it": "Repubblica Centrafricana",
+      "nl": "Centraal-Afrikaanse Republiek",
+      "pt": "República Centro-Africana",
+      "lat": 7.0323598,
+      "lng": 19.9981227,
+      "tz": [
+         60
+      ],
+      "languages": [
+         "fr",
+         "sg"
+      ]
+   },
+   {
+      "code": "cg",
+      "iso": "Congo",
+      "da": "Den demokratiske republik Congo",
+      "de": "Kongo",
+      "en": "Congo",
+      "es": "Congo",
+      "fr": "Congo",
+      "it": "Congo",
+      "nl": "Congo",
+      "pt": "Congo-Brazzaville",
+      "lat": -0.7264327,
+      "lng": 15.6419155,
+      "tz": [
+         60
+      ],
+      "languages": [
+         "fr",
+         "kg",
+         "ln"
+      ]
+   },
+   {
+      "code": "ch",
+      "iso": "Switzerland",
+      "da": "Schweiz",
+      "de": "Schweiz",
+      "en": "Switzerland",
+      "es": "Suiza",
+      "fr": "Suisse",
+      "it": "Svizzera",
+      "nl": "Zwitserland",
+      "pt": "Suíça",
+      "lat": 46.7985624,
+      "lng": 8.2319736,
+      "tz": [
+         60
+      ],
+      "languages": [
+         "fr",
+         "de",
+         "it",
+         "rm"
+      ]
+   },
+   {
+      "code": "ck",
+      "iso": "Cook Islands",
+      "da": "Cook-øerne",
+      "de": "Cookinseln",
+      "en": "Cook Islands",
+      "es": "Islas Cook",
+      "fr": "Îles Cook",
+      "it": "Isole Cook",
+      "nl": "Cookeilanden",
+      "pt": "Ilhas Cook",
+      "lat": -19.9969716,
+      "lng": -157.7858714,
+      "tz": [
+         -600
+      ],
+      "languages": []
+   },
+   {
+      "code": "cl",
+      "iso": "Chile",
+      "da": "Chile",
+      "de": "Chile",
+      "en": "Chile",
+      "es": "Chile",
+      "fr": "Chili",
+      "it": "Cile",
+      "nl": "Chili",
+      "pt": "Chile",
+      "lat": -31.7613365,
+      "lng": -71.3187697,
+      "tz": [
+         -180,
+         -240
+      ],
+      "languages": [
+         "es"
+      ]
+   },
+   {
+      "code": "cm",
+      "iso": "Cameroon",
+      "da": "Cameroon",
+      "de": "Kamerun",
+      "en": "Cameroon",
+      "es": "Camerún",
+      "fr": "Cameroun",
+      "it": "Camerun",
+      "nl": "Kameroen",
+      "pt": "República dos Camarões",
+      "lat": 4.6125522,
+      "lng": 13.1535811,
+      "tz": [
+         60
+      ],
+      "languages": [
+         "en",
+         "fr"
+      ]
+   },
+   {
+      "code": "cn",
+      "iso": "China",
+      "da": "Kina",
+      "de": "China",
+      "en": "China",
+      "es": "China",
+      "fr": "Chine",
+      "it": "Cina",
+      "nl": "China",
+      "pt": "China",
+      "lat": 35.000074,
+      "lng": 104.999927,
+      "tz": [
+         480
+      ],
+      "ownDiffLangCode": "zh",
+      "languages": [
+         "zh"
+      ]
+   },
+   {
+      "code": "co",
+      "iso": "Colombia",
+      "da": "Colombia",
+      "de": "Kolumbien",
+      "en": "Colombia",
+      "es": "Colombia",
+      "fr": "Colombie",
+      "it": "Colombia",
+      "nl": "Colombia",
+      "pt": "Colômbia",
+      "lat": 38.7251776,
+      "lng": -105.607716,
+      "tz": [
+         -300
+      ],
+      "languages": [
+         "es"
+      ]
+   },
+   {
+      "code": "cr",
+      "iso": "Costa Rica",
+      "da": "Costa Rica",
+      "de": "Costa Rica",
+      "en": "Costa Rica",
+      "es": "Costa Rica",
+      "fr": "Costa Rica",
+      "it": "Costa Rica",
+      "nl": "Costa Rica",
+      "pt": "Costa Rica",
+      "lat": 45.2208641,
+      "lng": 10.037038,
+      "tz": [
+         -360
+      ],
+      "languages": [
+         "es"
+      ]
+   },
+   {
+      "code": "cu",
+      "iso": "Cuba",
+      "da": "Cuba",
+      "de": "Kuba",
+      "en": "Cuba",
+      "es": "Cuba",
+      "fr": "Cuba",
+      "it": "Cuba",
+      "nl": "Cuba",
+      "pt": "Cuba",
+      "lat": 23.0131338,
+      "lng": -80.8328748,
+      "tz": [
+         -300
+      ],
+      "languages": [
+         "es"
+      ]
+   },
+   {
+      "code": "cv",
+      "iso": "Cape Verde",
+      "da": "Cape Verde",
+      "de": "Kap Verde",
+      "en": "Cape Verde",
+      "es": "Cabo Verde",
+      "fr": "Cap-Vert",
+      "it": "Capo Verde",
+      "nl": "Kaapverdië",
+      "pt": "Cabo Verde",
+      "lat": 16.0000552,
+      "lng": -24.0083947,
+      "tz": [
+         -60
+      ],
+      "languages": [
+         "pt"
+      ]
+   },
+   {
+      "code": "cx",
+      "iso": "Christmas Island",
+      "da": "Juleøerne",
+      "de": "Weihnachtsinsel",
+      "en": "Christmas Island",
+      "es": "Isla Christmas",
+      "fr": "Île Christmas",
+      "it": "Isola di Christmas",
+      "nl": "Christmaseiland",
+      "pt": "Ilha do Natal",
+      "lat": -10.4837768,
+      "lng": 105.64723,
+      "tz": [
+         420
+      ],
+      "languages": []
+   },
+   {
+      "code": "cy",
+      "iso": "Cyprus",
+      "da": "Cypern",
+      "de": "Zypern",
+      "en": "Cyprus",
+      "es": "Chipre",
+      "fr": "Chypre",
+      "it": "Cipro",
+      "nl": "Cyprus",
+      "pt": "Chipre",
+      "lat": 34.9823018,
+      "lng": 33.1451285,
+      "tz": [
+         12
+      ],
+      "languages": [
+         "el",
+         "tr"
+      ]
+   },
+   {
+      "code": "cz",
+      "iso": "Czech Republic",
+      "da": "Tjekkiet",
+      "de": "Tschechei",
+      "en": "Czechia",
+      "es": "Chequia",
+      "fr": "Tchéquie",
+      "it": "Cechia",
+      "nl": "Tsjechië",
+      "pt": "Tcheca",
+      "lat": 49.7439047,
+      "lng": 15.3381061,
+      "tz": [
+         60
+      ],
+      "languages": [
+         "cs",
+         "sk"
+      ]
+   },
+   {
+      "code": "de",
+      "iso": "Germany",
+      "da": "Tyskland",
+      "de": "Deutschland",
+      "en": "Germany",
+      "es": "Alemania",
+      "fr": "Allemagne",
+      "it": "Germania",
+      "nl": "Duitsland",
+      "pt": "Alemanha",
+      "lat": 51.1638175,
+      "lng": 10.4478313,
+      "tz": [
+         60
+      ],
+      "languages": [
+         "de"
+      ]
+   },
+   {
+      "code": "dj",
+      "iso": "Djibouti",
+      "da": "Djibouti",
+      "de": "Dschibuti",
+      "en": "Djibouti",
+      "es": "Yibuti",
+      "fr": "Djibouti",
+      "it": "Gibuti",
+      "nl": "Djibouti",
+      "pt": "Djibuti",
+      "lat": 11.8145966,
+      "lng": 42.8453061,
+      "tz": [
+         180
+      ],
+      "languages": [
+         "aa",
+         "ar",
+         "fr",
+         "so"
+      ]
+   },
+   {
+      "code": "dk",
+      "iso": "Denmark",
+      "da": "Danmark",
+      "de": "Dänemark",
+      "en": "Denmark",
+      "es": "Dinamarca",
+      "fr": "Danemark",
+      "it": "Danimarca",
+      "nl": "Denemarken",
+      "pt": "Dinamarca",
+      "lat": 55.670249,
+      "lng": 10.3333283,
+      "tz": [
+         60
+      ],
+      "languages": [
+         "da"
+      ]
+   },
+   {
+      "code": "dm",
+      "iso": "Dominica",
+      "da": "Dominica",
+      "de": "Dominica",
+      "en": "Dominica",
+      "es": "Dominica",
+      "fr": "Dominique",
+      "it": "Dominica",
+      "nl": "Dominica",
+      "pt": "Dominica",
+      "lat": 15.4113138,
+      "lng": -61.3653618,
+      "tz": [
+         -240
+      ],
+      "languages": [
+         "en"
+      ]
+   },
+   {
+      "code": "do",
+      "iso": "Dominican Republic",
+      "da": "Dominikanske Republik",
+      "de": "Dominikanische Republik",
+      "en": "Dominican Republic",
+      "es": "República Dominicana",
+      "fr": "République dominicaine",
+      "it": "Repubblica Dominicana",
+      "nl": "Dominicaanse Republiek",
+      "pt": "República Dominicana",
+      "lat": 19.0974031,
+      "lng": -70.3028026,
+      "tz": [
+         -240
+      ],
+      "languages": [
+         "es"
+      ]
+   },
+   {
+      "code": "dz",
+      "iso": "Algeria",
+      "da": "Algeriet",
+      "de": "Algerien",
+      "en": "Algeria",
+      "es": "Argelia",
+      "fr": "Algérie",
+      "it": "Algeria",
+      "nl": "Algerije",
+      "pt": "Argélia",
+      "lat": 28.0000272,
+      "lng": 2.9999825,
+      "tz": [
+         60
+      ],
+      "languages": [
+         "ar"
+      ]
+   },
+   {
+      "code": "ec",
+      "iso": "Ecuador",
+      "da": "Ecuador",
+      "de": "Ecuador",
+      "en": "Ecuador",
+      "es": "Ecuador",
+      "fr": "Équateur",
+      "it": "Ecuador",
+      "nl": "Ecuador",
+      "pt": "Equador",
+      "lat": -1.3397668,
+      "lng": -79.3666965,
+      "tz": [
+         -300
+      ],
+      "languages": [
+         "es"
+      ]
+   },
+   {
+      "code": "ee",
+      "iso": "Estonia",
+      "da": "Estland",
+      "de": "Estland",
+      "en": "Estonia",
+      "es": "Estonia",
+      "fr": "Estonie",
+      "it": "Estonia",
+      "nl": "Estland",
+      "pt": "Estónia",
+      "lat": 58.7523778,
+      "lng": 25.3319078,
+      "tz": [
+         120
+      ],
+      "languages": [
+         "et"
+      ]
+   },
+   {
+      "code": "eg",
+      "iso": "Egypt",
+      "da": "Egypten",
+      "de": "Ägypten",
+      "en": "Egypt",
+      "es": "Egipto",
+      "fr": "Égypte",
+      "it": "Egitto",
+      "nl": "Egypte",
+      "pt": "Egipto",
+      "lat": 26.2540493,
+      "lng": 29.2675469,
+      "tz": [
+         120
+      ],
+      "languages": [
+         "ar"
+      ]
+   },
+   {
+      "code": "er",
+      "iso": "Eritrea",
+      "da": "Eritrea",
+      "de": "Eritrea",
+      "en": "Eritrea",
+      "es": "Eritrea",
+      "fr": "Érythrée",
+      "it": "Eritrea",
+      "nl": "Eritrea",
+      "pt": "Eritreia",
+      "lat": 52.865196,
+      "lng": -7.9794599,
+      "tz": [
+         180
+      ],
+      "languages": [
+         "ar",
+         "en",
+         "ti"
+      ]
+   },
+   {
+      "code": "es",
+      "iso": "Spain",
+      "da": "Spanien",
+      "de": "Spanien",
+      "en": "Spain",
+      "es": "España",
+      "fr": "Espagne",
+      "it": "Spagna",
+      "nl": "Spanje",
+      "pt": "Espanha",
+      "lat": 39.3260685,
+      "lng": -4.8379791,
+      "tz": [
+         60
+      ],
+      "languages": [
+         "es"
+      ]
+   },
+   {
+      "code": "et",
+      "iso": "Ethiopia",
+      "da": "Etiopien",
+      "de": "Äthiopien",
+      "en": "Ethiopia",
+      "es": "Etiopía",
+      "fr": "Éthiopie",
+      "it": "Etiopia",
+      "nl": "Ethiopië",
+      "pt": "Etiópia",
+      "lat": 10.2116702,
+      "lng": 38.6521203,
+      "tz": [
+         180
+      ],
+      "languages": [
+         "am"
+      ]
+   },
+   {
+      "code": "fi",
+      "iso": "Finland",
+      "da": "Finland",
+      "de": "Finnland",
+      "en": "Finland",
+      "es": "Finlandia",
+      "fr": "Finlande",
+      "it": "Finlandia",
+      "nl": "Finland",
+      "pt": "Finlândia",
+      "lat": 63.2467777,
+      "lng": 25.9209164,
+      "tz": [
+         120
+      ],
+      "languages": [
+         "fi",
+         "sv"
+      ]
+   },
+   {
+      "code": "fj",
+      "iso": "Fiji",
+      "da": "Fiji",
+      "de": "Fidschi",
+      "en": "Fiji",
+      "es": "Fiyi",
+      "fr": "Fidji",
+      "it": "Figi",
+      "nl": "Fiji",
+      "pt": "Fiji",
+      "lat": -18.1239696,
+      "lng": 179.0122737,
+      "tz": [
+         720
+      ],
+      "languages": [
+         "en",
+         "fj",
+         "hi",
+         "ur"
+      ]
+   },
+   {
+      "code": "fk",
+      "iso": "Falkland Islands (Malvinas)",
+      "da": "Falkland-øerne",
+      "de": "Falklandinseln",
+      "en": "Falkland Islands",
+      "es": "Islas Malvinas",
+      "fr": "Îles Malouines",
+      "it": "Isole Falkland",
+      "nl": "Falklandeilanden",
+      "pt": "Ilhas Falkland ou Malvinas",
+      "lat": -51.9492937,
+      "lng": -59.5383657,
+      "tz": [
+         -240
+      ],
+      "languages": []
+   },
+   {
+      "code": "fm",
+      "iso": "Micronesia",
+      "da": "Mikronesien",
+      "de": "Mikronesien",
+      "en": "Micronesia",
+      "es": "Micronesia",
+      "fr": "Micronésie",
+      "it": "Micronesia",
+      "nl": "Micronesië",
+      "pt": "Micronésia",
+      "lat": 43.0922489,
+      "lng": 13.6387681,
+      "tz": [
+         660
+      ],
+      "languages": [
+         "en"
+      ]
+   },
+   {
+      "code": "fo",
+      "iso": "Faroe Islands",
+      "da": "Færøerne",
+      "de": "Färöer",
+      "en": "Faroe Islands",
+      "es": "Islas Feroe",
+      "fr": "Îles Féroé",
+      "it": "Isole Faroe",
+      "nl": "Faeröer",
+      "pt": "Ilhas Faroé",
+      "lat": 19.1399952,
+      "lng": -72.3570972,
+      "tz": [
+         0
+      ],
+      "languages": [
+         "da"
+      ]
+   },
+   {
+      "code": "fr",
+      "iso": "France",
+      "da": "France",
+      "de": "Frankreich",
+      "en": "France",
+      "es": "Francia",
+      "fr": "France",
+      "it": "Francia",
+      "nl": "Frankrijk",
+      "pt": "França",
+      "lat": 46.603354,
+      "lng": 1.8883335,
+      "tz": [
+         60
+      ],
+      "languages": [
+         "fr"
+      ]
+   },
+   {
+      "code": "ci",
+      "iso": "Cote D?ivoire",
+      "da": "Elfenbenskysten",
+      "de": "Côte d?Ivoire",
+      "en": "Ivory Coast",
+      "es": "Costa de Marfil",
+      "fr": "Côte d?Ivoire",
+      "it": "Costa d?Avorio",
+      "nl": "Ivoorkust",
+      "pt": "Costa do Marfim",
+      "lat": 7.9897371,
+      "lng": -5.5679458,
+      "tz": [
+         0
+      ],
+      "languages": [
+         "fr"
+      ]
+   },
+   {
+      "code": "ga",
+      "iso": "Gabon",
+      "da": "Gabon",
+      "de": "Gabun",
+      "en": "Gabon",
+      "es": "Gabón",
+      "fr": "Gabon",
+      "it": "Gabon",
+      "nl": "Gabon",
+      "pt": "Gabão",
+      "lat": 32.3293809,
+      "lng": -83.1137366,
+      "tz": [
+         60
+      ],
+      "languages": [
+         "fr"
+      ]
+   },
+   {
+      "code": "gd",
+      "iso": "Grenada",
+      "da": "Grenada",
+      "de": "Grenada",
+      "en": "Grenada",
+      "es": "Granada",
+      "fr": "Grenade",
+      "it": "Grenada",
+      "nl": "Grenada",
+      "pt": "Granada",
+      "lat": 12.1360374,
+      "lng": -61.6904045,
+      "tz": [
+         -240
+      ],
+      "languages": [
+         "en"
+      ]
+   },
+   {
+      "code": "ge",
+      "iso": "Georgia",
+      "da": "Georgia",
+      "de": "Georgien",
+      "en": "Georgia",
+      "es": "Georgia",
+      "fr": "Géorgie",
+      "it": "Georgia",
+      "nl": "Georgië",
+      "pt": "Geórgia",
+      "lat": 41.6809707,
+      "lng": 44.0287382,
+      "tz": [
+         240
+      ],
+      "languages": [
+         "ka"
+      ]
+   },
+   {
+      "code": "gf",
+      "iso": "French Guiana",
+      "da": "Fransk Guiana",
+      "de": "Französisch-Guayana",
+      "en": "French Guiana",
+      "es": "Guayana Francesa",
+      "fr": "Guyane française",
+      "it": "Guiana Francese",
+      "nl": "Frans-Guyana",
+      "pt": "Guiana Francesa",
+      "lat": 48.3800301,
+      "lng": 16.7157604,
+      "tz": [
+         -180
+      ],
+      "languages": [
+         "fr"
+      ]
+   },
+   {
+      "code": "gh",
+      "iso": "Ghana",
+      "da": "Ghana",
+      "de": "Ghana",
+      "en": "Ghana",
+      "es": "Ghana",
+      "fr": "Ghana",
+      "it": "Ghana",
+      "nl": "Ghana",
+      "pt": "Gana",
+      "lat": 8.0300284,
+      "lng": -1.0800271,
+      "tz": [
+         0
+      ],
+      "languages": [
+         "ak",
+         "en",
+         "ee"
+      ]
+   },
+   {
+      "code": "gi",
+      "iso": "Gibraltar",
+      "da": "Gibraltar",
+      "de": "Gibraltar",
+      "en": "Gibraltar",
+      "es": "Gibraltar",
+      "fr": "Gibraltar",
+      "it": "Gibilterra",
+      "nl": "Gibraltar",
+      "pt": "Gibraltar",
+      "lat": 36.1285933,
+      "lng": -5.3474761,
+      "tz": [
+         60
+      ],
+      "languages": []
+   },
+   {
+      "code": "gl",
+      "iso": "Greenland",
+      "da": "Grønland",
+      "de": "Grönland",
+      "en": "Greenland",
+      "es": "Groenlandia",
+      "fr": "Groenland",
+      "it": "Groenlandia",
+      "nl": "Groenland",
+      "pt": "Gronelândia",
+      "lat": 77.6192349,
+      "lng": -42.8125967,
+      "tz": [
+         -180
+      ],
+      "languages": []
+   },
+   {
+      "code": "gm",
+      "iso": "Gambia",
+      "da": "Gambia",
+      "de": "Gambia",
+      "en": "Gambia",
+      "es": "Gambia",
+      "fr": "Gambie",
+      "it": "Gambia",
+      "nl": "Gambia",
+      "pt": "Gâmbia",
+      "lat": 13.470062,
+      "lng": -15.4900464,
+      "tz": [
+         0
+      ],
+      "languages": [
+         "en"
+      ]
+   },
+   {
+      "code": "gn",
+      "iso": "Guinea",
+      "da": "Guinea",
+      "de": "Guinea",
+      "en": "Guinea",
+      "es": "Guinea",
+      "fr": "Guinée",
+      "it": "Guinea",
+      "nl": "Guinee",
+      "pt": "Guiné",
+      "lat": 8.0300284,
+      "lng": -1.0800271,
+      "tz": [
+         0
+      ],
+      "languages": [
+         "fr"
+      ]
+   },
+   {
+      "code": "gp",
+      "iso": "Guadeloupe",
+      "da": "Guadeloupe",
+      "de": "Guadeloupe",
+      "en": "Guadeloupe",
+      "es": "Guadalupe",
+      "fr": "Guadeloupe",
+      "it": "Guadalupa",
+      "nl": "Guadeloupe",
+      "pt": "Guadalupe",
+      "lat": 16.2528827,
+      "lng": -61.5686855,
+      "tz": [
+         -240
+      ],
+      "languages": [
+         "fr"
+      ]
+   },
+   {
+      "code": "gq",
+      "iso": "Equatorial Guinea",
+      "da": "Ækvatorial Guinea",
+      "de": "Äquatorialguinea",
+      "en": "Equatorial Guinea",
+      "es": "Guinea Ecuatorial",
+      "fr": "Guinée équatoriale",
+      "it": "Guinea Equatoriale",
+      "nl": "Equatoriaal-Guinea",
+      "pt": "Guiné Equatorial",
+      "lat": 1.613172,
+      "lng": 10.5170357,
+      "tz": [
+         60
+      ],
+      "languages": [
+         "fr",
+         "pt",
+         "es"
+      ]
+   },
+   {
+      "code": "gr",
+      "iso": "Greece",
+      "da": "Grækenland",
+      "de": "Griechenland",
+      "en": "Greece",
+      "es": "Grecia",
+      "fr": "Grèce",
+      "it": "Grecia",
+      "nl": "Griekenland",
+      "pt": "Grécia",
+      "lat": 38.9953683,
+      "lng": 21.9877132,
+      "tz": [
+         120
+      ],
+      "ownDiffLangCode": "el",
+      "languages": [
+         "el"
+      ]
+   },
+   {
+      "code": "gs",
+      "iso": "South Georgia and the South Sandwich Islands",
+      "da": "Det sydlige Georgia og de sydlige Sandwich-øer",
+      "de": "Südgeorgien und die Südlichen Sandwichinseln",
+      "en": "S. Georgia and S. Sandwich Isls.",
+      "es": "Islas Georgia del Sur y Sandwich del Sur",
+      "fr": "Géorgie du Sud et les îles Sandwich du Sud",
+      "it": "Georgia del Sud e Isole Sandwich del Sud",
+      "nl": "Zuid-Georgië en Zuidelijke Sandwicheilanden",
+      "pt": "Geórgia do Sul e Ilhas Sandwich do Sul",
+      "lat": -54.8432857,
+      "lng": -35.8090698,
+      "tz": [
+         -120
+      ],
+      "languages": []
+   },
+   {
+      "code": "gt",
+      "iso": "Guatemala",
+      "da": "Guatemala",
+      "de": "Guatemala",
+      "en": "Guatemala",
+      "es": "Guatemala",
+      "fr": "Guatemala",
+      "it": "Guatemala",
+      "nl": "Guatemala",
+      "pt": "Guatemala",
+      "lat": 15.5855545,
+      "lng": -90.345759,
+      "tz": [
+         -360
+      ],
+      "languages": [
+         "es"
+      ]
+   },
+   {
+      "code": "gu",
+      "iso": "Guam",
+      "da": "Guam",
+      "de": "Guam",
+      "en": "Guam",
+      "es": "Guam",
+      "fr": "Guam",
+      "it": "Guam",
+      "nl": "Guam",
+      "pt": "Guam",
+      "lat": 13.4499943,
+      "lng": 144.7651677,
+      "tz": [
+         600
+      ],
+      "languages": []
+   },
+   {
+      "code": "gw",
+      "iso": "Guinea-Bissau",
+      "da": "Guinea-Bissau",
+      "de": "Guinea-Bissau",
+      "en": "Guinea-Bissau",
+      "es": "Guinea-Bissau",
+      "fr": "Guinée-Bissau",
+      "it": "Guinea-Bissau",
+      "nl": "Guinee-Bissau",
+      "pt": "Guiné-Bissau",
+      "lat": 12.100035,
+      "lng": -14.9000214,
+      "tz": [
+         0
+      ],
+      "languages": [
+         "pt"
+      ]
+   },
+   {
+      "code": "gy",
+      "iso": "Guyana",
+      "da": "Guyana",
+      "de": "Guyana",
+      "en": "Guyana",
+      "es": "Guyana",
+      "fr": "Guyana",
+      "it": "Guyana",
+      "nl": "Guyana",
+      "pt": "Guiana",
+      "lat": 4.8417097,
+      "lng": -58.6416891,
+      "tz": [
+         -240
+      ],
+      "languages": [
+         "en"
+      ]
+   },
+   {
+      "code": "hk",
+      "iso": "Hong Kong, Special Administrative Region",
+      "da": "Hong Kong",
+      "de": "Hongkong",
+      "en": "Hong Kong",
+      "es": "Hong Kong",
+      "fr": "Hong Kong",
+      "it": "Hong Kong",
+      "nl": "Hongkong",
+      "pt": "Hong Kong",
+      "lat": 22.350627,
+      "lng": 114.1849161,
+      "tz": [
+         480
+      ],
+      "languages": [
+         "zh",
+         "en"
+      ]
+   },
+   {
+      "code": "hm",
+      "iso": "Heard Island and Mcdonald Islands",
+      "da": "Heard Island og McDonald Islands",
+      "de": "Heard- und McDonald-Inseln",
+      "en": "Heard and McDonald Islands",
+      "es": "Islas Heard y McDonald",
+      "fr": "Îles Heard et MacDonald",
+      "it": "Isole Heard ed Isole McDonald",
+      "nl": "Heard- en McDonaldeilanden",
+      "pt": "Ilha Heard e Ilhas McDonald",
+      "lat": 51.6804093,
+      "lng": 7.815197,
+      "tz": [
+         300
+      ],
+      "languages": []
+   },
+   {
+      "code": "hn",
+      "iso": "Honduras",
+      "da": "Honduras",
+      "de": "Honduras",
+      "en": "Honduras",
+      "es": "Honduras",
+      "fr": "Honduras",
+      "it": "Honduras",
+      "nl": "Honduras",
+      "pt": "Honduras",
+      "lat": 15.2572432,
+      "lng": -86.0755145,
+      "tz": [
+         -360
+      ],
+      "languages": [
+         "es"
+      ]
+   },
+   {
+      "code": "hr",
+      "iso": "Croatia (Hrvatska)",
+      "da": "Kroatien",
+      "de": "Kroatien",
+      "en": "Croatia (Hrvatska)",
+      "es": "Croacia",
+      "fr": "Croatie",
+      "it": "Croazia",
+      "nl": "Kroatië",
+      "pt": "Croácia",
+      "lat": 45.3658443,
+      "lng": 15.6575209,
+      "tz": [
+         60
+      ],
+      "languages": [
+         "hr",
+         "it"
+      ]
+   },
+   {
+      "code": "ht",
+      "iso": "Haiti",
+      "da": "Haiti",
+      "de": "Haiti",
+      "en": "Haiti",
+      "es": "Haití",
+      "fr": "Haïti",
+      "it": "Haiti",
+      "nl": "Haïti",
+      "pt": "Haiti",
+      "lat": 19.1399952,
+      "lng": -72.3570972,
+      "tz": [
+         -300
+      ],
+      "languages": [
+         "fr",
+         "ht"
+      ]
+   },
+   {
+      "code": "hu",
+      "iso": "Hungary",
+      "da": "Ungarn",
+      "de": "Ungarn",
+      "en": "Hungary",
+      "es": "Hungría",
+      "fr": "Hongrie",
+      "it": "Ungheria",
+      "nl": "Hongarije",
+      "pt": "Hungria",
+      "lat": 47.1817585,
+      "lng": 19.5060937,
+      "tz": [
+         60
+      ],
+      "languages": [
+         "hu"
+      ]
+   },
+   {
+      "code": "id",
+      "iso": "Indonesia",
+      "da": "Indonesien",
+      "de": "Indonesien",
+      "en": "Indonesia",
+      "es": "Indonesia",
+      "fr": "Indonésie",
+      "it": "Indonesia",
+      "nl": "Indonesië",
+      "pt": "Indonésia",
+      "lat": 43.6447642,
+      "lng": -114.015407,
+      "tz": [
+         420
+      ],
+      "languages": [
+         "id",
+         "ms"
+      ]
+   },
+   {
+      "code": "ie",
+      "iso": "Ireland",
+      "da": "Ireland",
+      "de": "Irland",
+      "en": "Ireland",
+      "es": "Irlanda",
+      "fr": "Irlande",
+      "it": "Irlanda",
+      "nl": "Ierland",
+      "pt": "Irlanda",
+      "lat": 52.865196,
+      "lng": -7.9794599,
+      "tz": [
+         0
+      ],
+      "languages": [
+         "en",
+         "ga"
+      ]
+   },
+   {
+      "code": "il",
+      "iso": "Israel",
+      "da": "Israel",
+      "de": "Israel",
+      "en": "Israel",
+      "es": "Israel",
+      "fr": "Israël",
+      "it": "Israele",
+      "nl": "Israël",
+      "pt": "Israel",
+      "lat": 40.0796606,
+      "lng": -89.4337288,
+      "tz": [
+         120
+      ],
+      "languages": [
+         "ar",
+         "he"
+      ]
+   },
+   {
+      "code": "in",
+      "iso": "India",
+      "da": "Indien",
+      "de": "Indien",
+      "en": "India",
+      "es": "India",
+      "fr": "Inde",
+      "it": "India",
+      "nl": "India",
+      "pt": "Índia",
+      "lat": 40.3270127,
+      "lng": -86.1746933,
+      "tz": [
+         330
+      ],
+      "languages": [
+         "bn",
+         "en",
+         "gu",
+         "hi",
+         "pa",
+         "ta",
+         "te"
+      ]
+   },
+   {
+      "code": "io",
+      "iso": "British Indian Ocean Territory",
+      "da": "Det britiske territorium i Det Indiske Ocean",
+      "de": "Britisches Territorium im Indischen Ozean",
+      "en": "British Indian Ocean Territory",
+      "es": "Territorio Británico del Océano Índico",
+      "fr": "Territoire britannique de l'océan Indien",
+      "it": "Territorio Britannico dell?Oceano Indiano",
+      "nl": "Britse Gebieden in de Indische Oceaan",
+      "pt": "Território Britânico do Oceano Índico",
+      "lat": -5.3497093,
+      "lng": 71.8606423,
+      "tz": [
+         360
+      ],
+      "languages": []
+   },
+   {
+      "code": "iq",
+      "iso": "Iraq",
+      "da": "Irak",
+      "de": "Irak",
+      "en": "Iraq",
+      "es": "Iraq",
+      "fr": "Irak",
+      "it": "Iraq",
+      "nl": "Irak",
+      "pt": "Iraque",
+      "lat": 33.0955793,
+      "lng": 44.1749775,
+      "tz": [
+         180
+      ],
+      "languages": [
+         "ar",
+         "ku"
+      ]
+   },
+   {
+      "code": "ir",
+      "iso": "Iran, Islamic Republic of",
+      "da": "Iran",
+      "de": "Iran",
+      "en": "Iran",
+      "es": "Irán",
+      "fr": "Iran",
+      "it": "Iran",
+      "nl": "Iran",
+      "pt": "Irão",
+      "lat": 32.6475314,
+      "lng": 54.5643516,
+      "tz": [
+         210
+      ],
+      "languages": [
+         "fa"
+      ]
+   },
+   {
+      "code": "is",
+      "iso": "Iceland",
+      "da": "Island",
+      "de": "Island",
+      "en": "Iceland",
+      "es": "Islandia",
+      "fr": "Islande",
+      "it": "Islanda",
+      "nl": "IJsland",
+      "pt": "Islândia",
+      "lat": 64.9841821,
+      "lng": -18.1059013,
+      "tz": [
+         0
+      ],
+      "ownDiffLangCode": "is",
+      "languages": [
+         "is"
+      ]
+   },
+   {
+      "code": "it",
+      "iso": "Italy",
+      "da": "Italien",
+      "de": "Italien",
+      "en": "Italy",
+      "es": "Italia",
+      "fr": "Italie",
+      "it": "Italia",
+      "nl": "Italië",
+      "pt": "Itália",
+      "lat": 42.6384261,
+      "lng": 12.674297,
+      "tz": [
+         60
+      ],
+      "languages": [
+         "fr",
+         "de",
+         "it"
+      ]
+   },
+   {
+      "code": "jm",
+      "iso": "Jamaica",
+      "da": "Jamaica",
+      "de": "Jamaika",
+      "en": "Jamaica",
+      "es": "Jamaica",
+      "fr": "Jamaïque",
+      "it": "Giamaica",
+      "nl": "Jamaica",
+      "pt": "Jamaica",
+      "lat": 18.1850507,
+      "lng": -77.3947693,
+      "tz": [
+         -300
+      ],
+      "languages": [
+         "en"
+      ]
+   },
+   {
+      "code": "jo",
+      "iso": "Jordan",
+      "da": "Jordan",
+      "de": "Jordanien",
+      "en": "Jordan",
+      "es": "Jordania",
+      "fr": "Jordanie",
+      "it": "Giordania",
+      "nl": "Jordanië",
+      "pt": "Jordânia",
+      "lat": 31.1667049,
+      "lng": 36.941628,
+      "tz": [
+         180
+      ],
+      "languages": [
+         "ar"
+      ]
+   },
+   {
+      "code": "jp",
+      "iso": "Japan",
+      "da": "Japan",
+      "de": "Japan",
+      "en": "Japan",
+      "es": "Japón",
+      "fr": "Japon",
+      "it": "Giappone",
+      "nl": "Japan",
+      "pt": "Japão",
+      "lat": 36.5748441,
+      "lng": 139.2394179,
+      "tz": [
+         540
+      ],
+      "ownDiffLangCode": "ja",
+      "languages": [
+         "ja"
+      ]
+   },
+   {
+      "code": "ke",
+      "iso": "Kenya",
+      "da": "Kenya",
+      "de": "Kenia",
+      "en": "Kenya",
+      "es": "Kenia",
+      "fr": "Kenya",
+      "it": "Kenya",
+      "nl": "Kenia",
+      "pt": "Quénia",
+      "lat": 1.4419683,
+      "lng": 38.4313975,
+      "tz": [
+         180
+      ],
+      "languages": [
+         "en",
+         "sw"
+      ]
+   },
+   {
+      "code": "kg",
+      "iso": "Kyrgyzstan",
+      "da": "Kyrgyzstan",
+      "de": "Kirgisistan",
+      "en": "Kyrgyzstan",
+      "es": "Kirguistán",
+      "fr": "Kirghizistan",
+      "it": "Kirghizistan",
+      "nl": "Kirgizië",
+      "pt": "Quirguizistão",
+      "lat": 41.5089324,
+      "lng": 74.724091,
+      "tz": [
+         360
+      ],
+      "languages": [
+         "ky",
+         "ru"
+      ]
+   },
+   {
+      "code": "kh",
+      "iso": "Cambodia",
+      "da": "Cambodia",
+      "de": "Kambodscha",
+      "en": "Cambodia",
+      "es": "Camboya",
+      "fr": "Cambodge",
+      "it": "Cambogia",
+      "nl": "Cambodja",
+      "pt": "Camboja",
+      "lat": 31.5535141,
+      "lng": 49.0077168,
+      "tz": [
+         420
+      ],
+      "languages": [
+         "km"
+      ]
+   },
+   {
+      "code": "ki",
+      "iso": "Kiribati",
+      "da": "Kiribati",
+      "de": "Kiribati",
+      "en": "Kiribati",
+      "es": "Kiribati",
+      "fr": "Kiribati",
+      "it": "Kiribati",
+      "nl": "Kiribati",
+      "pt": "Quiribati",
+      "lat": 0.3448612,
+      "lng": 173.6641773,
+      "tz": [
+         720
+      ],
+      "languages": [
+         "en"
+      ]
+   },
+   {
+      "code": "km",
+      "iso": "Comoros",
+      "da": "Comoros",
+      "de": "Komoren",
+      "en": "Comoros",
+      "es": "Comoras",
+      "fr": "Comores",
+      "it": "Comore",
+      "nl": "Comoren",
+      "pt": "Comores",
+      "lat": -12.2045176,
+      "lng": 44.2832964,
+      "tz": [
+         180
+      ],
+      "languages": [
+         "ar",
+         "fr"
+      ]
+   },
+   {
+      "code": "kn",
+      "iso": "Saint Kitts and Nevis",
+      "da": "Saint Kitts og Nevis",
+      "de": "St. Kitts und Nevis",
+      "en": "Saint Kitts and Nevis",
+      "es": "San Cristóbal y Nieves",
+      "fr": "Saint-Kitts-et-Nevis",
+      "it": "Saint Kitts e Nevis",
+      "nl": "Saint Kitts en Nevis",
+      "pt": "Saint Kitts e Nevis",
+      "lat": 50.776351,
+      "lng": 6.083862,
+      "tz": [
+         -240
+      ],
+      "languages": [
+         "en"
+      ]
+   },
+   {
+      "code": "kp",
+      "iso": "Korea, Democratic People?s Republic of (North)",
+      "da": "Nordkorea",
+      "de": "Nord Korea",
+      "en": "Korea (North)",
+      "es": "Corea del Norte",
+      "fr": "Corée du Nord",
+      "it": "Corea del Nord",
+      "nl": "Noord-Korea",
+      "pt": "Coreia do Norte",
+      "lat": 40.3736611,
+      "lng": 127.0870417,
+      "tz": [
+         510
+      ],
+      "languages": [
+         "ko"
+      ]
+   },
+   {
+      "code": "kr",
+      "iso": "Korea, Republic of (South)",
+      "da": "Sydkorea",
+      "de": "Südkorea",
+      "en": "Korea (South)",
+      "es": "Corea del Sur",
+      "fr": "Corée du Sud",
+      "it": "Corea del Sud",
+      "nl": "Zuid-Korea",
+      "pt": "Coreia do Sul",
+      "lat": 36.638392,
+      "lng": 127.6961188,
+      "tz": [
+         540
+      ],
+      "ownDiffLangCode": "ko",
+      "languages": [
+         "ko"
+      ]
+   },
+   {
+      "code": "kw",
+      "iso": "Kuwait",
+      "da": "Kuwait",
+      "de": "Kuwait",
+      "en": "Kuwait",
+      "es": "Kuwait",
+      "fr": "Koweït",
+      "it": "Kuwait",
+      "nl": "Koeweit",
+      "pt": "Cuaite",
+      "lat": 29.2733964,
+      "lng": 47.4979476,
+      "tz": [
+         180
+      ],
+      "languages": [
+         "ar"
+      ]
+   },
+   {
+      "code": "ky",
+      "iso": "Cayman Islands",
+      "da": "Caymanøerne",
+      "de": "Kaimaninseln",
+      "en": "Cayman Islands",
+      "es": "Islas Caimán",
+      "fr": "Îles Caïmans",
+      "it": "Isole Cayman",
+      "nl": "Caymaneilanden",
+      "pt": "Ilhas Caimão",
+      "lat": 37.5726028,
+      "lng": -85.1551411,
+      "tz": [
+         -300
+      ],
+      "languages": []
+   },
+   {
+      "code": "kz",
+      "iso": "Kazakhstan",
+      "da": "Kazakhstan",
+      "de": "Kasachstan",
+      "en": "Kazakhstan",
+      "es": "Kazajistán",
+      "fr": "Kazakhstan",
+      "it": "Kazakistan",
+      "nl": "Kazachstan",
+      "pt": "Cazaquistão",
+      "lat": 48.1012954,
+      "lng": 66.7780818,
+      "tz": [
+         360,
+         420
+      ],
+      "languages": [
+         "kk",
+         "ru"
+      ]
+   },
+   {
+      "code": "la",
+      "iso": "Lao People?s Democratic Republic",
+      "da": "Laos",
+      "de": "Laos",
+      "en": "Laos",
+      "es": "Laos",
+      "fr": "Laos",
+      "it": "Laos",
+      "nl": "Laos",
+      "pt": "Laos",
+      "lat": 30.8703881,
+      "lng": -92.007126,
+      "tz": [
+         420
+      ],
+      "languages": [
+         "lo"
+      ]
+   },
+   {
+      "code": "lb",
+      "iso": "Lebanon",
+      "da": "Libanon",
+      "de": "Libanon",
+      "en": "Lebanon",
+      "es": "Líbano",
+      "fr": "Liban",
+      "it": "Libano",
+      "nl": "Libanon",
+      "pt": "Líbano",
+      "lat": 33.8750629,
+      "lng": 35.843409,
+      "tz": [
+         120
+      ],
+      "languages": [
+         "ar"
+      ]
+   },
+   {
+      "code": "lc",
+      "iso": "Saint Lucia",
+      "da": "Saint Lucia",
+      "de": "St. Lucia",
+      "en": "Saint Lucia",
+      "es": "Santa Lucía",
+      "fr": "Sainte-Lucie",
+      "it": "Saint Lucia",
+      "nl": "Saint Lucia",
+      "pt": "Santa Lúcia",
+      "lat": 13.8250489,
+      "lng": -60.975036,
+      "tz": [
+         -240
+      ],
+      "languages": [
+         "en"
+      ]
+   },
+   {
+      "code": "li",
+      "iso": "Liechtenstein",
+      "da": "Liechtenstein",
+      "de": "Liechtenstein",
+      "en": "Liechtenstein",
+      "es": "Liechtenstein",
+      "fr": "Liechtenstein",
+      "it": "Liechtenstein",
+      "nl": "Liechtenstein",
+      "pt": "Liechtenstein",
+      "lat": 42.7902166,
+      "lng": 10.3402787,
+      "tz": [
+         60
+      ],
+      "languages": [
+         "de"
+      ]
+   },
+   {
+      "code": "lk",
+      "iso": "Sri Lanka",
+      "da": "Sri Lanka",
+      "de": "Sri Lanka",
+      "en": "Sri Lanka",
+      "es": "Sri Lanka",
+      "fr": "Sri Lanka",
+      "it": "Sri Lanka",
+      "nl": "Sri Lanka",
+      "pt": "Sri Lanka",
+      "lat": 7.5554942,
+      "lng": 80.7137847,
+      "tz": [
+         330
+      ],
+      "languages": [
+         "en",
+         "si",
+         "ta"
+      ]
+   },
+   {
+      "code": "lr",
+      "iso": "Liberia",
+      "da": "Liberia",
+      "de": "Liberia",
+      "en": "Liberia",
+      "es": "Liberia",
+      "fr": "Libéria",
+      "it": "Liberia",
+      "nl": "Liberia",
+      "pt": "Libéria",
+      "lat": 5.7499721,
+      "lng": -9.3658524,
+      "tz": [
+         0
+      ],
+      "languages": [
+         "en"
+      ]
+   },
+   {
+      "code": "ls",
+      "iso": "Lesotho",
+      "da": "Lesotho",
+      "de": "Lesotho",
+      "en": "Lesotho",
+      "es": "Lesoto",
+      "fr": "Lesotho",
+      "it": "Lesotho",
+      "nl": "Lesotho",
+      "pt": "Lesoto",
+      "lat": 20.0171109,
+      "lng": 103.378253,
+      "tz": [
+         120
+      ],
+      "languages": [
+         "en",
+         "st"
+      ]
+   },
+   {
+      "code": "lt",
+      "iso": "Lithuania",
+      "da": "Litauen",
+      "de": "Litauen",
+      "en": "Lithuania",
+      "es": "Lituania",
+      "fr": "Lituanie",
+      "it": "Lituania",
+      "nl": "Litouwen",
+      "pt": "Lituânia",
+      "lat": 55.3500003,
+      "lng": 23.7499997,
+      "tz": [
+         120
+      ],
+      "languages": [
+         "lt"
+      ]
+   },
+   {
+      "code": "lu",
+      "iso": "Luxembourg",
+      "da": "Luxembourg",
+      "de": "Luxemburg",
+      "en": "Luxembourg",
+      "es": "Luxemburgo",
+      "fr": "Luxembourg",
+      "it": "Lussemburgo",
+      "nl": "Luxemburg",
+      "pt": "Luxemburgo",
+      "lat": 49.8158683,
+      "lng": 6.1296751,
+      "tz": [
+         60
+      ],
+      "languages": [
+         "fr",
+         "de",
+         "lb"
+      ]
+   },
+   {
+      "code": "lv",
+      "iso": "Latvia",
+      "da": "Letland",
+      "de": "Lettland",
+      "en": "Latvia",
+      "es": "Letonia",
+      "fr": "Lettonie",
+      "it": "Lettonia",
+      "nl": "Letland",
+      "pt": "Letónia",
+      "lat": 56.8406494,
+      "lng": 24.7537645,
+      "tz": [
+         120
+      ],
+      "languages": [
+         "lv"
+      ]
+   },
+   {
+      "code": "ly",
+      "iso": "Libyan Arab Jamahiriya",
+      "da": "Libyen",
+      "de": "Libyen",
+      "en": "Libya",
+      "es": "Libia",
+      "fr": "Libye",
+      "it": "Libia",
+      "nl": "Libië",
+      "pt": "Líbia",
+      "lat": 26.8234472,
+      "lng": 18.1236723,
+      "tz": [
+         120
+      ],
+      "languages": [
+         "ar"
+      ]
+   },
+   {
+      "code": "ma",
+      "iso": "Morocco",
+      "da": "Marokko",
+      "de": "Marokko",
+      "en": "Morocco",
+      "es": "Marruecos",
+      "fr": "Maroc",
+      "it": "Marocco",
+      "nl": "Marokko",
+      "pt": "Marrocos",
+      "lat": 42.3788774,
+      "lng": -72.032366,
+      "tz": [
+         0
+      ],
+      "languages": [
+         "ar"
+      ]
+   },
+   {
+      "code": "mc",
+      "iso": "Monaco",
+      "da": "Monaco",
+      "de": "Monaco",
+      "en": "Monaco",
+      "es": "Mónaco",
+      "fr": "Monaco",
+      "it": "Monaco",
+      "nl": "Monaco",
+      "pt": "Mónaco",
+      "lat": 43.7323492,
+      "lng": 7.4276832,
+      "tz": [
+         60
+      ],
+      "languages": [
+         "fr"
+      ]
+   },
+   {
+      "code": "md",
+      "iso": "Moldova",
+      "da": "Moldova",
+      "de": "Moldawien",
+      "en": "Moldova",
+      "es": "Moldavia",
+      "fr": "Moldavie",
+      "it": "Moldavia",
+      "nl": "Moldavië",
+      "pt": "Moldávia",
+      "lat": 39.5162401,
+      "lng": -76.9382069,
+      "tz": [
+         120
+      ],
+      "languages": [
+         "ro"
+      ]
+   },
+   {
+      "code": "mg",
+      "iso": "Madagascar",
+      "da": "Madagascar",
+      "de": "Madagaskar",
+      "en": "Madagascar",
+      "es": "Madagascar",
+      "fr": "Madagascar",
+      "it": "Madagascar",
+      "nl": "Madagaskar",
+      "pt": "Madagáscar",
+      "lat": -18.9249604,
+      "lng": 46.4416422,
+      "tz": [
+         180
+      ],
+      "languages": [
+         "fr",
+         "mg"
+      ]
+   },
+   {
+      "code": "mh",
+      "iso": "Marshall Islands",
+      "da": "Marshall-øerne",
+      "de": "Marshallinseln",
+      "en": "Marshall Islands",
+      "es": "Islas Marshall",
+      "fr": "Îles Marshall",
+      "it": "Isole Marshall",
+      "nl": "Marshalleilanden",
+      "pt": "Ilhas Marshall",
+      "lat": 33.8389917,
+      "lng": -96.7599994,
+      "tz": [
+         720
+      ],
+      "languages": [
+         "en",
+         "mh"
+      ]
+   },
+   {
+      "code": "mk",
+      "iso": "Macedonia, the Former Yugoslav Republic of",
+      "da": "Makedonien",
+      "de": "Mazedonien",
+      "en": "Macedonia",
+      "es": "Macedonia",
+      "fr": "Macédoine",
+      "it": "Macedonia",
+      "nl": "Macedonië",
+      "pt": "Macedónia",
+      "lat": 41.6171214,
+      "lng": 21.7168387,
+      "tz": [
+         60
+      ],
+      "languages": [
+         "mk"
+      ]
+   },
+   {
+      "code": "ml",
+      "iso": "Mali",
+      "da": "Mali",
+      "de": "Mali",
+      "en": "Mali",
+      "es": "Mali",
+      "fr": "Mali",
+      "it": "Mali",
+      "nl": "Mali",
+      "pt": "Mali",
+      "lat": 16.3700359,
+      "lng": -2.2900239,
+      "tz": [
+         0
+      ],
+      "languages": [
+         "bm",
+         "fr",
+         "ff"
+      ]
+   },
+   {
+      "code": "mm",
+      "iso": "Myanmar",
+      "da": "Myanmar (Burma)",
+      "de": "Myanmar",
+      "en": "Burma (Myanmar)",
+      "es": "Myanmar",
+      "fr": "Myanmar",
+      "it": "Myanmar",
+      "nl": "Myanmar",
+      "pt": "Mianmar",
+      "lat": 17.1750495,
+      "lng": 95.9999652,
+      "tz": [
+         390
+      ],
+      "languages": [
+         "my"
+      ]
+   },
+   {
+      "code": "mn",
+      "iso": "Mongolia",
+      "da": "Mongoliet",
+      "de": "Mongolei",
+      "en": "Mongolia",
+      "es": "Mongolia",
+      "fr": "Mongolie",
+      "it": "Mongolia",
+      "nl": "Mongolië",
+      "pt": "Mongólia",
+      "lat": 45.9896587,
+      "lng": -94.6113288,
+      "tz": [
+         480,
+         540
+      ],
+      "languages": [
+         "mn"
+      ]
+   },
+   {
+      "code": "mo",
+      "iso": "Macau",
+      "da": "Macau",
+      "de": "Macao",
+      "en": "Macau",
+      "es": "Macao",
+      "fr": "Macao",
+      "it": "Macao",
+      "nl": "Macao",
+      "pt": "Macau",
+      "lat": 38.7604815,
+      "lng": -92.5617875,
+      "tz": [
+         480
+      ],
+      "languages": [
+         "zh",
+         "pt"
+      ]
+   },
+   {
+      "code": "mp",
+      "iso": "Northern Mariana Islands",
+      "da": "Nordmarianerne",
+      "de": "Nördliche Marianen",
+      "en": "Northern Mariana Islands",
+      "es": "Islas Marianas del Norte",
+      "fr": "Îles Mariannes du Nord",
+      "it": "Isole Marianne Settentrionali",
+      "nl": "Noordelijke Marianeneilanden",
+      "pt": "Ilhas Mariana do Norte",
+      "lat": 15.1753648,
+      "lng": 145.7379338,
+      "tz": [
+         600
+      ],
+      "languages": []
+   },
+   {
+      "code": "mq",
+      "iso": "Martinique",
+      "da": "Martinique",
+      "de": "Martinique",
+      "en": "Martinique",
+      "es": "Martinica",
+      "fr": "Martinique",
+      "it": "Martinica",
+      "nl": "Martinique",
+      "pt": "Martinica",
+      "lat": 48.2031834,
+      "lng": 16.3583503,
+      "tz": [
+         -240
+      ],
+      "languages": [
+         "fr"
+      ]
+   },
+   {
+      "code": "mr",
+      "iso": "Mauritania",
+      "da": "Mauritania",
+      "de": "Mauretanien",
+      "en": "Mauritania",
+      "es": "Mauritania",
+      "fr": "Mauritanie",
+      "it": "Mauritania",
+      "nl": "Mauritanië",
+      "pt": "Mauritânia",
+      "lat": 20.2540382,
+      "lng": -9.2399263,
+      "tz": [
+         0
+      ],
+      "languages": [
+         "ar"
+      ]
+   },
+   {
+      "code": "ms",
+      "iso": "Montserrat",
+      "da": "Montserrat",
+      "de": "Montserrat",
+      "en": "Montserrat",
+      "es": "Montserrat",
+      "fr": "Montserrat",
+      "it": "Montserrat",
+      "nl": "Montserrat",
+      "pt": "Monserrate",
+      "lat": 32.9715285,
+      "lng": -89.7348497,
+      "tz": [
+         -240
+      ],
+      "languages": []
+   },
+   {
+      "code": "mt",
+      "iso": "Malta",
+      "da": "Malta",
+      "de": "Malta",
+      "en": "Malta",
+      "es": "Malta",
+      "fr": "Malte",
+      "it": "Malta",
+      "nl": "Malta",
+      "pt": "Malta",
+      "lat": 47.3752671,
+      "lng": -109.638757,
+      "tz": [
+         60
+      ],
+      "languages": [
+         "en",
+         "mt"
+      ]
+   },
+   {
+      "code": "mu",
+      "iso": "Mauritius",
+      "da": "Mauritius",
+      "de": "Mauritius",
+      "en": "Mauritius",
+      "es": "Mauricio",
+      "fr": "Maurice",
+      "it": "Mauritius",
+      "nl": "Mauritius",
+      "pt": "Maurícias",
+      "lat": -20.2759451,
+      "lng": 57.5703566,
+      "tz": [
+         240
+      ],
+      "languages": [
+         "en",
+         "fr",
+         "ta"
+      ]
+   },
+   {
+      "code": "mv",
+      "iso": "Maldives",
+      "da": "Maldiverne",
+      "de": "Malediven",
+      "en": "Maldives",
+      "es": "Maldivas",
+      "fr": "Maldives",
+      "it": "Maldive",
+      "nl": "Maldiven",
+      "pt": "Maldivas",
+      "lat": 3.7203503,
+      "lng": 73.2244152,
+      "tz": [
+         300
+      ],
+      "languages": [
+         "dv"
+      ]
+   },
+   {
+      "code": "mw",
+      "iso": "Malawi",
+      "da": "Malawi",
+      "de": "Malawi",
+      "en": "Malawi",
+      "es": "Malaui",
+      "fr": "Malawi",
+      "it": "Malawi",
+      "nl": "Malawi",
+      "pt": "Malaui",
+      "lat": -13.2687204,
+      "lng": 33.9301963,
+      "tz": [
+         120
+      ],
+      "languages": [
+         "ny",
+         "en"
+      ]
+   },
+   {
+      "code": "mx",
+      "iso": "Mexico",
+      "da": "Mexico",
+      "de": "Mexiko",
+      "en": "Mexico",
+      "es": "México",
+      "fr": "Mexique",
+      "it": "Messico",
+      "nl": "Mexico",
+      "pt": "México",
+      "lat": 23.6585116,
+      "lng": -102.0077097,
+      "tz": [
+         -360,
+         -420,
+         -300
+      ],
+      "languages": [
+         "es"
+      ]
+   },
+   {
+      "code": "my",
+      "iso": "Malaysia",
+      "da": "Malaysia",
+      "de": "Malaysia",
+      "en": "Malaysia",
+      "es": "Malasia",
+      "fr": "Malaisie",
+      "it": "Malesia",
+      "nl": "Maleisië",
+      "pt": "Malásia",
+      "lat": 39.7837304,
+      "lng": -100.445882,
+      "tz": [
+         480
+      ],
+      "languages": [
+         "en",
+         "ms",
+         "ta"
+      ]
+   },
+   {
+      "code": "mz",
+      "iso": "Mozambique",
+      "da": "Mozambique",
+      "de": "Mosambik",
+      "en": "Mozambique",
+      "es": "Mozambique",
+      "fr": "Mozambique",
+      "it": "Mozambico",
+      "nl": "Mozambique",
+      "pt": "Moçambique",
+      "lat": -19.302233,
+      "lng": 34.9144977,
+      "tz": [
+         120
+      ],
+      "languages": [
+         "pt"
+      ]
+   },
+   {
+      "code": "na",
+      "iso": "Namibia",
+      "da": "Namibia",
+      "de": "Namibia",
+      "en": "Namibia",
+      "es": "Namibia",
+      "fr": "Namibie",
+      "it": "Namibia",
+      "nl": "Namibië",
+      "pt": "Namíbia",
+      "lat": -23.2335499,
+      "lng": 17.3231107,
+      "tz": [
+         60
+      ],
+      "languages": [
+         "en"
+      ]
+   },
+   {
+      "code": "nc",
+      "iso": "New Caledonia",
+      "da": "Ny Kaledonien",
+      "de": "Neukaledonien",
+      "en": "New Caledonia",
+      "es": "Nueva Caledonia",
+      "fr": "Nouvelle-Calédonie",
+      "it": "Nuova Caledonia",
+      "nl": "Nieuw-Caledonië",
+      "pt": "Nova Caledónia",
+      "lat": 35.6729639,
+      "lng": -79.0392919,
+      "tz": [
+         660
+      ],
+      "languages": [
+         "fr"
+      ]
+   },
+   {
+      "code": "ne",
+      "iso": "Niger",
+      "da": "Niger",
+      "de": "Niger",
+      "en": "Niger",
+      "es": "Níger",
+      "fr": "Niger",
+      "it": "Niger",
+      "nl": "Niger",
+      "pt": "Níger",
+      "lat": 41.7370229,
+      "lng": -99.5873816,
+      "tz": [
+         60
+      ],
+      "languages": [
+         "ar",
+         "fr",
+         "ff",
+         "ha",
+         "kr"
+      ]
+   },
+   {
+      "code": "nf",
+      "iso": "Norfolk Island",
+      "da": "Norfolk",
+      "de": "Norfolkinsel",
+      "en": "Norfolk Island",
+      "es": "Isla Norfolk",
+      "fr": "Île Norfolk",
+      "it": "Isola Norfolk",
+      "nl": "Norfolkeiland",
+      "pt": "Ilha Norfolque",
+      "lat": 51.4413766,
+      "lng": 0.3507035,
+      "tz": [
+         690
+      ],
+      "languages": []
+   },
+   {
+      "code": "ng",
+      "iso": "Nigeria",
+      "da": "Nigeria",
+      "de": "Nigeria",
+      "en": "Nigeria",
+      "es": "Nigeria",
+      "fr": "Nigéria",
+      "it": "Nigeria",
+      "nl": "Nigeria",
+      "pt": "Nigéria",
+      "lat": 9.6000359,
+      "lng": 7.9999721,
+      "tz": [
+         60
+      ],
+      "languages": [
+         "en",
+         "ha",
+         "ig",
+         "yo"
+      ]
+   },
+   {
+      "code": "ni",
+      "iso": "Nicaragua",
+      "da": "Nicaragua",
+      "de": "Nicaragua",
+      "en": "Nicaragua",
+      "es": "Nicaragua",
+      "fr": "Nicaragua",
+      "it": "Nicaragua",
+      "nl": "Nicaragua",
+      "pt": "Nicarágua",
+      "lat": 54.5859836,
+      "lng": -6.9591554,
+      "tz": [
+         -360
+      ],
+      "languages": [
+         "es"
+      ]
+   },
+   {
+      "code": "nl",
+      "iso": "Netherlands",
+      "da": "Holland",
+      "de": "Niederlande",
+      "en": "Netherlands",
+      "es": "Países Bajos",
+      "fr": "Pays-Bas",
+      "it": "Paesi Bassi",
+      "nl": "Nederland",
+      "pt": "Países Baixos",
+      "lat": 52.2476498,
+      "lng": 5.5412468,
+      "tz": [
+         60
+      ],
+      "languages": [
+         "nl"
+      ]
+   },
+   {
+      "code": "no",
+      "iso": "Norway",
+      "da": "Norge",
+      "de": "Norwegen",
+      "en": "Norway",
+      "es": "Noruega",
+      "fr": "Norvège",
+      "it": "Norvegia",
+      "nl": "Noorwegen",
+      "pt": "Noruega",
+      "lat": 61.1529386,
+      "lng": 8.7876653,
+      "tz": [
+         0
+      ],
+      "ownDiffLangCode": "no",
+      "languages": [
+         "nb",
+         "nn",
+         "no"
+      ]
+   },
+   {
+      "code": "np",
+      "iso": "Nepal",
+      "da": "Nepal",
+      "de": "Nepal",
+      "en": "Nepal",
+      "es": "Nepal",
+      "fr": "Népal",
+      "it": "Nepal",
+      "nl": "Nepal",
+      "pt": "Nepal",
+      "lat": 28.1083929,
+      "lng": 84.0917139,
+      "tz": [
+         345
+      ],
+      "languages": [
+         "ne"
+      ]
+   },
+   {
+      "code": "nr",
+      "iso": "Nauru",
+      "da": "Nauru",
+      "de": "Nauru",
+      "en": "Nauru",
+      "es": "Nauru",
+      "fr": "Nauru",
+      "it": "Nauru",
+      "nl": "Nauru",
+      "pt": "Nauru",
+      "lat": -0.5252306,
+      "lng": 166.9324426,
+      "tz": [
+         720
+      ],
+      "languages": [
+         "en"
+      ]
+   },
+   {
+      "code": "nu",
+      "iso": "Niue",
+      "da": "Niue",
+      "de": "Niue",
+      "en": "Niue",
+      "es": "Isla Niue",
+      "fr": "Niue",
+      "it": "Niue",
+      "nl": "Niue",
+      "pt": "Niue",
+      "lat": 40.7127281,
+      "lng": -74.0060152,
+      "tz": [
+         -660
+      ],
+      "languages": []
+   },
+   {
+      "code": "nz",
+      "iso": "New Zealand",
+      "da": "New Zealand",
+      "de": "Neuseeland",
+      "en": "New Zealand",
+      "es": "Nueva Zelanda",
+      "fr": "Nouvelle-Zélande",
+      "it": "Nuova Zelanda",
+      "nl": "Nieuw-Zeeland",
+      "pt": "Nova Zelândia",
+      "lat": -41.5000831,
+      "lng": 172.8344077,
+      "tz": [
+         720
+      ],
+      "languages": [
+         "en",
+         "mi"
+      ]
+   },
+   {
+      "code": "om",
+      "iso": "Oman",
+      "da": "Oman",
+      "de": "Oman",
+      "en": "Oman",
+      "es": "Omán",
+      "fr": "Oman",
+      "it": "Oman",
+      "nl": "Oman",
+      "pt": "Omã",
+      "lat": 21.0000287,
+      "lng": 57.0036901,
+      "tz": [
+         240
+      ],
+      "languages": [
+         "ar"
+      ]
+   },
+   {
+      "code": "pa",
+      "iso": "Panama",
+      "da": "Panama",
+      "de": "Panama",
+      "en": "Panama",
+      "es": "Panamá",
+      "fr": "Panama",
+      "it": "Panama",
+      "nl": "Panama",
+      "pt": "Panamá",
+      "lat": 40.9699889,
+      "lng": -77.7278831,
+      "tz": [
+         -300
+      ],
+      "languages": [
+         "es"
+      ]
+   },
+   {
+      "code": "pe",
+      "iso": "Peru",
+      "da": "Peru",
+      "de": "Peru",
+      "en": "Peru",
+      "es": "Perú",
+      "fr": "Pérou",
+      "it": "Perù",
+      "nl": "Peru",
+      "pt": "Peru",
+      "lat": 46.5036807,
+      "lng": -63.595411,
+      "tz": [
+         -300
+      ],
+      "languages": [
+         "ay",
+         "qu",
+         "es"
+      ]
+   },
+   {
+      "code": "pf",
+      "iso": "French Polynesia",
+      "da": "Fransk Polynesien",
+      "de": "Französisch-Polynesien",
+      "en": "French Polynesia",
+      "es": "Polinesia Francesa",
+      "fr": "Polynésie française",
+      "it": "Polinesia Francese",
+      "nl": "Frans-Polynesië",
+      "pt": "Polinésia Francesa",
+      "lat": 48.6164857,
+      "lng": 9.6719927,
+      "tz": [
+         -600
+      ],
+      "languages": [
+         "fr"
+      ]
+   },
+   {
+      "code": "pg",
+      "iso": "Papua New Guinea",
+      "da": "Papua Ny Guinea",
+      "de": "Papua-Neuguinea",
+      "en": "Papua New Guinea",
+      "es": "Papúa Nueva Guinea",
+      "fr": "Papouasie-Nouvelle-Guinée",
+      "it": "Papua Nuova Guinea",
+      "nl": "Papoea-Nieuw-Guinea",
+      "pt": "Papua Nova Guiné",
+      "lat": -5.6816069,
+      "lng": 144.2489081,
+      "tz": [
+         600
+      ],
+      "languages": [
+         "en",
+         "ho"
+      ]
+   },
+   {
+      "code": "ph",
+      "iso": "Philippines",
+      "da": "Filippinerne",
+      "de": "Philippinen",
+      "en": "Philippines",
+      "es": "Filipinas",
+      "fr": "Philippines",
+      "it": "Filippine",
+      "nl": "Filipijnen",
+      "pt": "Filipinas",
+      "lat": 12.7503486,
+      "lng": 122.7312101,
+      "tz": [
+         480
+      ],
+      "languages": [
+         "en",
+         "tl"
+      ]
+   },
+   {
+      "code": "pk",
+      "iso": "Pakistan",
+      "da": "Pakistan",
+      "de": "Pakistan",
+      "en": "Pakistan",
+      "es": "Pakistán",
+      "fr": "Pakistan",
+      "it": "Pakistan",
+      "nl": "Pakistan",
+      "pt": "Paquistão",
+      "lat": 30.3308401,
+      "lng": 71.247499,
+      "tz": [
+         300
+      ],
+      "languages": [
+         "en",
+         "ur"
+      ]
+   },
+   {
+      "code": "pl",
+      "iso": "Poland",
+      "da": "Polen",
+      "de": "Polen",
+      "en": "Poland",
+      "es": "Polonia",
+      "fr": "Pologne",
+      "it": "Polonia",
+      "nl": "Polen",
+      "pt": "Polónia",
+      "lat": 52.215933,
+      "lng": 19.134422,
+      "tz": [
+         60
+      ],
+      "languages": [
+         "pl"
+      ]
+   },
+   {
+      "code": "pm",
+      "iso": "Saint Pierre and Miquelon",
+      "da": "Saint Pierre og Miquelon",
+      "de": "St. Pierre und Miquelon",
+      "en": "St. Pierre and Miquelon",
+      "es": "San Pedro y Miquelón",
+      "fr": "Saint-Pierre-et-Miquelon",
+      "it": "Saint Pierre e Miquelon",
+      "nl": "Saint Pierre en Miquelon",
+      "pt": "Saint Pierre e Miquelon",
+      "lat": 54.24556,
+      "lng": 18.1099,
+      "tz": [
+         -120
+      ],
+      "languages": [
+         "fr"
+      ]
+   },
+   {
+      "code": "pn",
+      "iso": "Pitcairn",
+      "da": "Pitcairn-øerne",
+      "de": "Pitcairn",
+      "en": "Pitcairn",
+      "es": "Pitcairn",
+      "fr": "Pitcairn",
+      "it": "Pitcairn",
+      "nl": "Pitcairn",
+      "pt": "Pitcairn",
+      "lat": -25.0657719,
+      "lng": -130.101782,
+      "tz": [
+         -480
+      ],
+      "languages": []
+   },
+   {
+      "code": "pr",
+      "iso": "Puerto Rico",
+      "da": "Puerto Rico",
+      "de": "Puerto Rico",
+      "en": "Puerto Rico",
+      "es": "Puerto Rico",
+      "fr": "Porto Rico",
+      "it": "Portorico",
+      "nl": "Puerto Rico",
+      "pt": "Porto Rico",
+      "lat": 18.2247706,
+      "lng": -66.4858295,
+      "tz": [
+         -240
+      ],
+      "languages": [
+         "es"
+      ]
+   },
+   {
+      "code": "pt",
+      "iso": "Portugal",
+      "da": "Portugal",
+      "de": "Portugal",
+      "en": "Portugal",
+      "es": "Portugal",
+      "fr": "Portugal",
+      "it": "Portogallo",
+      "nl": "Portugal",
+      "pt": "Portugal",
+      "lat": 39.6621648,
+      "lng": -8.1353519,
+      "tz": [
+         0
+      ],
+      "languages": [
+         "pt"
+      ]
+   },
+   {
+      "code": "pw",
+      "iso": "Palau",
+      "da": "Palau",
+      "de": "Palau",
+      "en": "Palau",
+      "es": "Palau",
+      "fr": "Palaos",
+      "it": "Palau",
+      "nl": "Palau",
+      "pt": "Palau",
+      "lat": 5.3783537,
+      "lng": 132.9102573,
+      "tz": [
+         600
+      ],
+      "languages": [
+         "en"
+      ]
+   },
+   {
+      "code": "py",
+      "iso": "Paraguay",
+      "da": "Paraguay",
+      "de": "Paraguay",
+      "en": "Paraguay",
+      "es": "Paraguay",
+      "fr": "Paraguay",
+      "it": "Paraguay",
+      "nl": "Paraguay",
+      "pt": "Paraguai",
+      "lat": -23.3165935,
+      "lng": -58.1693445,
+      "tz": [
+         -240
+      ],
+      "languages": [
+         "gn",
+         "es"
+      ]
+   },
+   {
+      "code": "qa",
+      "iso": "Qatar",
+      "da": "Qatar",
+      "de": "Katar",
+      "en": "Qatar",
+      "es": "Qatar",
+      "fr": "Qatar",
+      "it": "Qatar",
+      "nl": "Qatar",
+      "pt": "Qatar",
+      "lat": 25.3336984,
+      "lng": 51.2295295,
+      "tz": [
+         180
+      ],
+      "languages": [
+         "ar"
+      ]
+   },
+   {
+      "code": "re",
+      "iso": "Reunion",
+      "da": "Reunion",
+      "de": "Réunion",
+      "en": "Reunion",
+      "es": "Reunión",
+      "fr": "Réunion",
+      "it": "Réunion",
+      "nl": "Réunion",
+      "pt": "Reunião",
+      "lat": 44.608664,
+      "lng": 10.5947968,
+      "tz": [
+         240
+      ],
+      "languages": [
+         "fr"
+      ]
+   },
+   {
+      "code": "ro",
+      "iso": "Romania",
+      "da": "Rumænien",
+      "de": "Rumänien",
+      "en": "Romania",
+      "es": "Rumanía",
+      "fr": "Roumanie",
+      "it": "Romania",
+      "nl": "Roemenië",
+      "pt": "Roménia",
+      "lat": 45.9852129,
+      "lng": 24.6859225,
+      "tz": [
+         120
+      ],
+      "languages": [
+         "ro"
+      ]
+   },
+   {
+      "code": "ru",
+      "iso": "Russian Federation",
+      "da": "Rusland",
+      "de": "Russland",
+      "en": "Russia",
+      "es": "Rusia",
+      "fr": "Russie",
+      "it": "Russia",
+      "nl": "Rusland",
+      "pt": "Rússia",
+      "lat": 64.6863136,
+      "lng": 97.7453061,
+      "tz": [
+         180,
+         240,
+         300,
+         360,
+         420,
+         480,
+         540,
+         600,
+         660,
+         720
+      ],
+      "languages": [
+         "ru"
+      ]
+   },
+   {
+      "code": "rw",
+      "iso": "Rwanda",
+      "da": "Rwanda",
+      "de": "Ruanda",
+      "en": "Rwanda",
+      "es": "Ruanda",
+      "fr": "Rwanda",
+      "it": "Ruanda",
+      "nl": "Rwanda",
+      "pt": "Ruanda",
+      "lat": -1.9646631,
+      "lng": 30.0644358,
+      "tz": [
+         120
+      ],
+      "languages": [
+         "en",
+         "fr",
+         "rw"
+      ]
+   },
+   {
+      "code": "sa",
+      "iso": "Saudi Arabia",
+      "da": "Saudiarabien",
+      "de": "Saudi-Arabien",
+      "en": "Saudi Arabia",
+      "es": "Arabia Saudí",
+      "fr": "Arabie saoudite",
+      "it": "Arabia Saudita",
+      "nl": "Saoedi-Arabië",
+      "pt": "Arábia Saudita",
+      "lat": 25.6242618,
+      "lng": 42.3528328,
+      "tz": [
+         180
+      ],
+      "languages": [
+         "ar"
+      ]
+   },
+   {
+      "code": "sb",
+      "iso": "Solomon Islands",
+      "da": "Solomon-øerne",
+      "de": "Salomonen",
+      "en": "Solomon Islands",
+      "es": "Islas Salomón",
+      "fr": "Îles Salomon",
+      "it": "Isole Solomon",
+      "nl": "Salomonseilanden",
+      "pt": "Ilhas Salomão",
+      "lat": 44.1534121,
+      "lng": 20.55144,
+      "tz": [
+         660
+      ],
+      "languages": [
+         "en"
+      ]
+   },
+   {
+      "code": "sc",
+      "iso": "Seychelles",
+      "da": "Seychellerne",
+      "de": "Seychellen",
+      "en": "Seychelles",
+      "es": "Seychelles",
+      "fr": "Seychelles",
+      "it": "Seychelles",
+      "nl": "Seychellen",
+      "pt": "Seicheles",
+      "lat": 33.6874388,
+      "lng": -80.4363743,
+      "tz": [
+         240
+      ],
+      "languages": [
+         "en",
+         "fr"
+      ]
+   },
+   {
+      "code": "sd",
+      "iso": "Sudan",
+      "da": "Sudan",
+      "de": "Sudan",
+      "en": "Sudan",
+      "es": "Sudán",
+      "fr": "Soudan",
+      "it": "Sudan",
+      "nl": "Soedan",
+      "pt": "Sudão",
+      "lat": 44.6471761,
+      "lng": -100.348761,
+      "tz": [
+         120
+      ],
+      "languages": [
+         "ar",
+         "en"
+      ]
+   },
+   {
+      "code": "se",
+      "iso": "Sweden",
+      "da": "Sverige",
+      "de": "Schweden",
+      "en": "Sweden",
+      "es": "Suecia",
+      "fr": "Suède",
+      "it": "Svezia",
+      "nl": "Zweden",
+      "pt": "Suécia",
+      "lat": 59.6749712,
+      "lng": 14.5208584,
+      "tz": [
+         60
+      ],
+      "languages": [
+         "sv"
+      ]
+   },
+   {
+      "code": "sg",
+      "iso": "Singapore",
+      "da": "Singapore",
+      "de": "Singapur",
+      "en": "Singapore",
+      "es": "Singapur",
+      "fr": "Singapour",
+      "it": "Singapore",
+      "nl": "Singapore",
+      "pt": "Singapura",
+      "lat": 1.357107,
+      "lng": 103.8194992,
+      "tz": [
+         480
+      ],
+      "languages": [
+         "zh",
+         "en",
+         "ms",
+         "ta"
+      ]
+   },
+   {
+      "code": "sh",
+      "iso": "Saint Helena",
+      "da": "Sankt Helena",
+      "de": "St. Helena",
+      "en": "St. Helena",
+      "es": "Santa Elena",
+      "fr": "Sainte-Hélène",
+      "it": "Sant?Elena",
+      "nl": "Sint-Helena",
+      "pt": "Santa Helena",
+      "lat": 54.1853998,
+      "lng": 9.8220089,
+      "tz": [
+         0
+      ],
+      "languages": []
+   },
+   {
+      "code": "si",
+      "iso": "Slovenia",
+      "da": "Slovenien",
+      "de": "Slowenien",
+      "en": "Slovenia",
+      "es": "Eslovenia",
+      "fr": "Slovénie",
+      "it": "Slovenia",
+      "nl": "Slovenië",
+      "pt": "Eslovénia",
+      "lat": 46.1199444,
+      "lng": 14.8153333,
+      "tz": [
+         60
+      ],
+      "languages": [
+         "it",
+         "sl"
+      ]
+   },
+   {
+      "code": "sj",
+      "iso": "Svalbard and Jan Mayen Islands",
+      "da": "Jan Mayen",
+      "de": "Svalbard und Jan Mayen",
+      "en": "Svalbard and Jan Mayen Islands",
+      "es": "Svalbard y Jan Mayen",
+      "fr": "Svalbard et Île Jan Mayen",
+      "it": "Svalbard e Jan Mayen",
+      "nl": "Svalbard en Jan Mayen",
+      "pt": "Esvalbarda e Jan Mayen",
+      "lat": -30.7054363,
+      "lng": -69.1988222,
+      "tz": [
+         0
+      ],
+      "languages": []
+   },
+   {
+      "code": "sk",
+      "iso": "Slovakia",
+      "da": "Slovakiet",
+      "de": "Slowakei",
+      "en": "Slovakia",
+      "es": "Eslovaquia",
+      "fr": "Slovaquie",
+      "it": "Slovacchia",
+      "nl": "Slowakije",
+      "pt": "Eslováquia",
+      "lat": 55.5321257,
+      "lng": -106.1412243,
+      "tz": [
+         60
+      ],
+      "languages": [
+         "cs",
+         "sk"
+      ]
+   },
+   {
+      "code": "sl",
+      "iso": "Sierra Leone",
+      "da": "Sierra Leone",
+      "de": "Sierra Leone",
+      "en": "Sierra Leone",
+      "es": "Sierra Leona",
+      "fr": "Sierra Leone",
+      "it": "Sierra Leone",
+      "nl": "Sierra Leone",
+      "pt": "Serra Leoa",
+      "lat": 8.6400349,
+      "lng": -11.8400269,
+      "tz": [
+         0
+      ],
+      "languages": [
+         "en"
+      ]
+   },
+   {
+      "code": "sm",
+      "iso": "San Marino",
+      "da": "San Marino",
+      "de": "San Marino",
+      "en": "San Marino",
+      "es": "San Marino",
+      "fr": "Saint-Marin",
+      "it": "San Marino",
+      "nl": "San Marino",
+      "pt": "São Marino",
+      "lat": 43.9458623,
+      "lng": 12.458306,
+      "tz": [
+         60
+      ],
+      "languages": [
+         "it"
+      ]
+   },
+   {
+      "code": "sn",
+      "iso": "Senegal",
+      "da": "Senegal",
+      "de": "Senegal",
+      "en": "Senegal",
+      "es": "Senegal",
+      "fr": "Sénégal",
+      "it": "Senegal",
+      "nl": "Senegal",
+      "pt": "Senegal",
+      "lat": 14.4750607,
+      "lng": -14.4529612,
+      "tz": [
+         0
+      ],
+      "languages": [
+         "fr",
+         "ff",
+         "wo"
+      ]
+   },
+   {
+      "code": "so",
+      "iso": "Somalia",
+      "da": "Somalia",
+      "de": "Somalia",
+      "en": "Somalia",
+      "es": "Somalia",
+      "fr": "Somalie",
+      "it": "Somalia",
+      "nl": "Somalië",
+      "pt": "Somália",
+      "lat": 8.3676771,
+      "lng": 49.083416,
+      "tz": [
+         180
+      ],
+      "languages": [
+         "ar",
+         "so"
+      ]
+   },
+   {
+      "code": "sr",
+      "iso": "Suriname",
+      "da": "Suriname",
+      "de": "Suriname",
+      "en": "Suriname",
+      "es": "Surinam",
+      "fr": "Suriname",
+      "it": "Suriname",
+      "nl": "Suriname",
+      "pt": "Suriname",
+      "lat": 4.1413025,
+      "lng": -56.0771187,
+      "tz": [
+         -180
+      ],
+      "languages": [
+         "nl"
+      ]
+   },
+   {
+      "code": "st",
+      "iso": "Sao Tome and Principe",
+      "da": "São Tomé og Príncipe",
+      "de": "São Tomé und Príncipe",
+      "en": "Sao Tome and Principe",
+      "es": "Santo Tomé y Príncipe",
+      "fr": "Sao Tomé-et-Principe",
+      "it": "Sao Tomé e Príncipe",
+      "nl": "Sao Tomé en Principe",
+      "pt": "São Tomé e Príncipe",
+      "lat": 50.0601579,
+      "lng": 13.8307479,
+      "tz": [
+         0
+      ],
+      "languages": [
+         "pt"
+      ]
+   },
+   {
+      "code": "sv",
+      "iso": "El Salvador",
+      "da": "El Salvador",
+      "de": "El Salvador",
+      "en": "El Salvador",
+      "es": "El Salvador",
+      "fr": "El Salvador",
+      "it": "El Salvador",
+      "nl": "El Salvador",
+      "pt": "El Salvador",
+      "lat": 13.8000382,
+      "lng": -88.9140683,
+      "tz": [
+         -360
+      ],
+      "languages": [
+         "es"
+      ]
+   },
+   {
+      "code": "sy",
+      "iso": "Syrian Arab Republic",
+      "da": "Syrien",
+      "de": "Syrien",
+      "en": "Syria",
+      "es": "Siria",
+      "fr": "Syrie",
+      "it": "Siria",
+      "nl": "Syrië",
+      "pt": "Síria",
+      "lat": 34.6401861,
+      "lng": 39.0494106,
+      "tz": [
+         120
+      ],
+      "languages": [
+         "ar"
+      ]
+   },
+   {
+      "code": "sz",
+      "iso": "Swaziland",
+      "da": "Swaziland",
+      "de": "Swasiland",
+      "en": "Swaziland",
+      "es": "Suazilandia",
+      "fr": "Swaziland",
+      "it": "Swaziland",
+      "nl": "Swaziland",
+      "pt": "Suazilândia",
+      "lat": -26.5624806,
+      "lng": 31.3991317,
+      "tz": [
+         120
+      ],
+      "languages": [
+         "en",
+         "ss"
+      ]
+   },
+   {
+      "code": "tc",
+      "iso": "Turks and Caicos Islands",
+      "da": "Turks- og Caicosøerne",
+      "de": "Turks- und Caicosinseln",
+      "en": "Turks and Caicos Islands",
+      "es": "Islas Turcas y Caicos",
+      "fr": "Îles Turks et Caïques",
+      "it": "Isole Turks e Caicos",
+      "nl": "Turks- en Caicoseilanden",
+      "pt": "Ilhas Turcas e Caicos",
+      "lat": 21.721746,
+      "lng": -71.5527809,
+      "tz": [
+         -300
+      ],
+      "languages": []
+   },
+   {
+      "code": "td",
+      "iso": "Chad",
+      "da": "Chad",
+      "de": "Tschad",
+      "en": "Chad",
+      "es": "Chad",
+      "fr": "Tchad",
+      "it": "Ciad",
+      "nl": "Tsjaad",
+      "pt": "Chade",
+      "lat": 15.6134137,
+      "lng": 19.0156172,
+      "tz": [
+         60
+      ],
+      "languages": [
+         "ar",
+         "fr"
+      ]
+   },
+   {
+      "code": "tf",
+      "iso": "French Southern Territories",
+      "da": "De franske besiddelser i det sydlige Indiske Ocean",
+      "de": "Französische Süd- und Antarktisgebiete",
+      "en": "French Southern Territories",
+      "es": "Territorios Australes Franceses",
+      "fr": "Terres australes françaises",
+      "it": "Territori australi francesi",
+      "nl": "Franse Gebieden in de zuidelijke Indische Oceaan",
+      "pt": "Territórios Franceses do Sul",
+      "lat": 60.1860107,
+      "lng": 24.8326676,
+      "tz": [
+         300
+      ],
+      "languages": []
+   },
+   {
+      "code": "tg",
+      "iso": "Togo",
+      "da": "Togo",
+      "de": "Togo",
+      "en": "Togo",
+      "es": "Togo",
+      "fr": "Togo",
+      "it": "Togo",
+      "nl": "Togo",
+      "pt": "Togo",
+      "lat": 8.7800265,
+      "lng": 1.0199765,
+      "tz": [
+         0
+      ],
+      "languages": [
+         "ee",
+         "fr"
+      ]
+   },
+   {
+      "code": "th",
+      "iso": "Thailand",
+      "da": "Thailand",
+      "de": "Thailand",
+      "en": "Thailand",
+      "es": "Tailandia",
+      "fr": "Thaïlande",
+      "it": "Tailandia",
+      "nl": "Thailand",
+      "pt": "Tailândia",
+      "lat": 14.8971921,
+      "lng": 100.83273,
+      "tz": [
+         420
+      ],
+      "languages": [
+         "th"
+      ]
+   },
+   {
+      "code": "tj",
+      "iso": "Tajikistan",
+      "da": "Tajikistan",
+      "de": "Tadschikistan",
+      "en": "Tajikistan",
+      "es": "Tayikistán",
+      "fr": "Tadjikistan",
+      "it": "Tagikistan",
+      "nl": "Tadzjikistan",
+      "pt": "Tajiquistão",
+      "lat": 38.6281733,
+      "lng": 70.8156541,
+      "tz": [
+         300
+      ],
+      "languages": [
+         "fa",
+         "ru",
+         "tg"
+      ]
+   },
+   {
+      "code": "tk",
+      "iso": "Tokelau",
+      "da": "Tokelau",
+      "de": "Tokelau",
+      "en": "Tokelau",
+      "es": "Tokelau",
+      "fr": "Tokelau",
+      "it": "Tokelau",
+      "nl": "Tokelau",
+      "pt": "Toquelau",
+      "lat": 50.1039198,
+      "lng": 14.3906435,
+      "tz": [
+         780
+      ],
+      "languages": []
+   },
+   {
+      "code": "tm",
+      "iso": "Turkmenistan",
+      "da": "Turkmenistan",
+      "de": "Turkmenistan",
+      "en": "Turkmenistan",
+      "es": "Turkmenistán",
+      "fr": "Turkménistan",
+      "it": "Turkmenistan",
+      "nl": "Turkmenistan",
+      "pt": "Turquemenistão",
+      "lat": 39.3763807,
+      "lng": 59.3924609,
+      "tz": [
+         300
+      ],
+      "languages": [
+         "tk"
+      ]
+   },
+   {
+      "code": "tn",
+      "iso": "Tunisia",
+      "da": "Tunesien",
+      "de": "Tunesien",
+      "en": "Tunisia",
+      "es": "Túnez",
+      "fr": "Tunisie",
+      "it": "Tunisia",
+      "nl": "Tunesië",
+      "pt": "Tunísia",
+      "lat": 35.7730076,
+      "lng": -86.2820081,
+      "tz": [
+         60
+      ],
+      "languages": [
+         "ar"
+      ]
+   },
+   {
+      "code": "to",
+      "iso": "Tonga",
+      "da": "Tonga",
+      "de": "Tonga",
+      "en": "Tonga",
+      "es": "Tonga",
+      "fr": "Tonga",
+      "it": "Tonga",
+      "nl": "Tonga",
+      "pt": "Tonga",
+      "lat": -19.9160819,
+      "lng": -175.202642,
+      "tz": [
+         780
+      ],
+      "languages": [
+         "en"
+      ]
+   },
+   {
+      "code": "tl",
+      "iso": "Timor-Leste",
+      "da": "Timor-Leste",
+      "de": "Osttimor",
+      "en": "East Timor",
+      "es": "Timor Oriental",
+      "fr": "Timor oriental",
+      "it": "Timor Est",
+      "nl": "Oost-Timor",
+      "pt": "Timor Leste",
+      "lat": -8.7443169,
+      "lng": 126.063482,
+      "tz": [
+         540
+      ],
+      "languages": [
+         "pt"
+      ]
+   },
+   {
+      "code": "tr",
+      "iso": "Turkey",
+      "da": "Tyrkiet",
+      "de": "Türkei",
+      "en": "Turkey",
+      "es": "Turquía",
+      "fr": "Turquie",
+      "it": "Turchia",
+      "nl": "Turkije",
+      "pt": "Turquia",
+      "lat": 38.9597594,
+      "lng": 34.9249653,
+      "tz": [
+         120
+      ],
+      "languages": [
+         "tr"
+      ]
+   },
+   {
+      "code": "tt",
+      "iso": "Trinidad and Tobago",
+      "da": "Trinidad og Tobago",
+      "de": "Trinidad und Tobago",
+      "en": "Trinidad and Tobago",
+      "es": "Trinidad y Tobago",
+      "fr": "Trinité-et-Tobago",
+      "it": "Trinidad e Tobago",
+      "nl": "Trinidad en Tobago",
+      "pt": "Trindade e Tobago",
+      "lat": 10.7466905,
+      "lng": -61.0840075,
+      "tz": [
+         -240
+      ],
+      "languages": [
+         "en"
+      ]
+   },
+   {
+      "code": "tv",
+      "iso": "Tuvalu",
+      "da": "Tuvalu",
+      "de": "Tuvalu",
+      "en": "Tuvalu",
+      "es": "Tuvalu",
+      "fr": "Tuvalu",
+      "it": "Tuvalu",
+      "nl": "Tuvalu",
+      "pt": "Tuvalu",
+      "lat": 45.8066913,
+      "lng": 12.2063158,
+      "tz": [
+         720
+      ],
+      "languages": [
+         "en"
+      ]
+   },
+   {
+      "code": "tw",
+      "iso": "Taiwan",
+      "da": "Taiwan",
+      "de": "Taiwan",
+      "en": "Taiwan",
+      "es": "Taiwán",
+      "fr": "Taïwan",
+      "it": "Taiwan",
+      "nl": "Taiwan",
+      "pt": "Taiwan",
+      "lat": 23.9739374,
+      "lng": 120.9820179,
+      "tz": [
+         480
+      ],
+      "languages": [
+         "zh"
+      ]
+   },
+   {
+      "code": "tz",
+      "iso": "Tanzania, United Republic of",
+      "da": "Tanzania",
+      "de": "Tansania",
+      "en": "Tanzania",
+      "es": "Tanzania",
+      "fr": "Tanzanie",
+      "it": "Tanzania",
+      "nl": "Tanzania",
+      "pt": "Tanzânia",
+      "lat": -6.5247123,
+      "lng": 35.7878438,
+      "tz": [
+         180
+      ],
+      "languages": [
+         "en",
+         "sw"
+      ]
+   },
+   {
+      "code": "ua",
+      "iso": "Ukraine",
+      "da": "Ukraine",
+      "de": "Ukraine",
+      "en": "Ukraine",
+      "es": "Ucrania",
+      "fr": "Ukraine",
+      "it": "Ucraina",
+      "nl": "Oekraïne",
+      "pt": "Ucrânia",
+      "lat": 49.4871968,
+      "lng": 31.2718321,
+      "tz": [
+         120
+      ],
+      "ownDiffLangCode": "uk",
+      "languages": [
+         "uk"
+      ]
+   },
+   {
+      "code": "ug",
+      "iso": "Uganda",
+      "da": "Uganda",
+      "de": "Uganda",
+      "en": "Uganda",
+      "es": "Uganda",
+      "fr": "Ouganda",
+      "it": "Uganda",
+      "nl": "Oeganda",
+      "pt": "Uganda",
+      "lat": 1.5333554,
+      "lng": 32.2166578,
+      "tz": [
+         180
+      ],
+      "languages": [
+         "en",
+         "sw"
+      ]
+   },
+   {
+      "code": "gb",
+      "iso": "United Kingdom",
+      "da": "Storbritannien",
+      "de": "Großbritannien",
+      "en": "United Kingdom",
+      "es": "Gran Bretaña",
+      "fr": "Grande-Bretagne",
+      "it": "Gran Bretagna",
+      "nl": "Groot-Brittannië",
+      "pt": "Grã-Bretanha",
+      "lat": 54.7023545,
+      "lng": -3.2765753,
+      "tz": [
+         0
+      ],
+      "languages": [
+         "en",
+         "cy"
+      ]
+   },
+   {
+      "code": "us",
+      "iso": "United States",
+      "da": "Forenede Stater",
+      "de": "Vereinigte Staaten",
+      "en": "United States",
+      "es": "Estados Unidos",
+      "fr": "États-Unis",
+      "it": "Stati Uniti",
+      "nl": "Verenigde Staten",
+      "pt": "Estados Unidos",
+      "lat": 39.7837304,
+      "lng": -100.445882,
+      "tz": [
+         -660,
+         -600,
+         -540,
+         -480,
+         -420,
+         -360,
+         -300,
+         -240,
+         -210,
+         -180,
+         -150,
+         -120,
+         -90,
+         -60,
+         -30
+      ],
+      "languages": [
+         "en"
+      ]
+   },
+   {
+      "code": "va",
+      "iso": "Vatican City State",
+      "da": "Vatican City State",
+      "de": "Vatikanstadt",
+      "en": "Vatican City State",
+      "es": "Ciudad del Vaticano",
+      "fr": "État de la Cité du Vatican",
+      "it": "Vaticano",
+      "nl": "Vaticaanstad",
+      "pt": "Vaticano",
+      "lat": 37.1232245,
+      "lng": -78.4927721,
+      "tz": [
+         60
+      ],
+      "languages": [
+         "it",
+         "la"
+      ]
+   },
+   {
+      "code": "vc",
+      "iso": "Saint Vincent and the Grenadines",
+      "da": "Saint Vincent og Grenadinerne",
+      "de": "St. Vincent und die Grenadinen",
+      "en": "Saint Vincent and the Grenadines",
+      "es": "San Vicente y las Granadinas",
+      "fr": "Saint-Vincent-et-les Grenadines",
+      "it": "Saint Vincent e Grenadines",
+      "nl": "Saint Vincent en de Grenadines",
+      "pt": "São Vicente e Granadinas",
+      "lat": 39.6819591,
+      "lng": -0.7654406,
+      "tz": [
+         -240
+      ],
+      "languages": [
+         "en"
+      ]
+   },
+   {
+      "code": "ws",
+      "iso": "Samoa",
+      "da": "Samoa",
+      "de": "Samoa",
+      "en": "Samoa",
+      "es": "Samoa",
+      "fr": "Samoa",
+      "it": "Samoa",
+      "nl": "Samoa",
+      "pt": "Samoa",
+      "lat": -13.7693895,
+      "lng": -172.12005,
+      "tz": [
+         660
+      ],
+      "languages": [
+         "en"
+      ]
+   },
+   {
+      "code": "yt",
+      "iso": "Mayotte",
+      "da": "Mayotte",
+      "de": "Mayotte",
+      "en": "Mayotte",
+      "es": "Mayotte",
+      "fr": "Mayotte",
+      "it": "Mayotte",
+      "nl": "Mayotte",
+      "pt": "Mayotte",
+      "lat": 63.000147,
+      "lng": -136.002502,
+      "tz": [
+         180
+      ],
+      "languages": [
+         "fr"
+      ]
+   },
+   {
+      "code": "za",
+      "iso": "South Africa",
+      "da": "Sydafrika",
+      "de": "Südafrika",
+      "en": "South Africa",
+      "es": "Sudáfrica",
+      "fr": "Afrique du Sud",
+      "it": "Sudafrica",
+      "nl": "Zuid-Afrika",
+      "pt": "África do Sul",
+      "lat": -28.8166236,
+      "lng": 24.991639,
+      "tz": [
+         120,
+         180
+      ],
+      "languages": [
+         "af",
+         "en",
+         "nd",
+         "nr",
+         "st",
+         "ss",
+         "ts",
+         "tn",
+         "ve",
+         "xh",
+         "zu"
+      ]
+   },
+   {
+      "code": "cd",
+      "iso": "Congo, Democratic Republic of the",
+      "da": "Den Demokratiske Republik Congo",
+      "de": "Demokratische Republik Kongo",
+      "en": "Democratic Republic of Congo",
+      "es": "República Democrática del Congo",
+      "fr": "République démocratique du Congo",
+      "it": "Repubblica Democratica del Congo",
+      "nl": "Congo-Kinshasa",
+      "pt": "República Democrática do Congo",
+      "lat": -2.9814344,
+      "lng": 23.8222636,
+      "tz": [
+         60,
+         120
+      ],
+      "languages": [
+         "fr",
+         "kg",
+         "ln",
+         "sw",
+         "lu"
+      ]
+   },
+   {
+      "code": "rs",
+      "iso": "Serbia",
+      "da": "Serbien",
+      "de": "Serbien",
+      "en": "Serbia",
+      "es": "Serbia",
+      "fr": "Serbie",
+      "it": "Serbia",
+      "nl": "Servië",
+      "pt": "Sérvia",
+      "lat": 44.1534121,
+      "lng": 20.55144,
+      "tz": [
+         60
+      ],
+      "ownDiffLangCode": "sr",
+      "languages": [
+         "sr"
+      ]
+   },
+   {
+      "code": "ax",
+      "iso": "Aland Islands",
+      "da": "Åland",
+      "de": "Alandinseln",
+      "en": "Åland Islands",
+      "es": "Islas Åland",
+      "fr": "Îles Åland",
+      "it": "Isole Aland",
+      "nl": "Alandeilanden",
+      "pt": "Ilhas Alanda",
+      "lat": 42.7193597,
+      "lng": 1.8379765,
+      "tz": [
+         120
+      ],
+      "languages": [
+         "sv"
+      ]
+   },
+   {
+      "code": "ps",
+      "iso": "State of Palestine",
+      "da": "Palæstina",
+      "de": "Palästina",
+      "en": "Palestine",
+      "es": "Palestina",
+      "fr": "Palestine",
+      "it": "Palestina",
+      "nl": "Palestina",
+      "pt": "Palestina",
+      "lat": 34.0346534,
+      "lng": -5.0161926,
+      "tz": [
+         120
+      ],
+      "languages": []
+   },
+   {
+      "code": "me",
+      "iso": "Montenegro",
+      "da": "Montenegro",
+      "de": "Montenegro",
+      "en": "Montenegro",
+      "es": "Montenegro",
+      "fr": "Monténégro",
+      "it": "Montenegro",
+      "nl": "Montenegro",
+      "pt": "Montenegro",
+      "lat": 45.709097,
+      "lng": -68.8590201,
+      "tz": [
+         60
+      ],
+      "languages": []
+   },
+   {
+      "code": "cw",
+      "iso": "Curaçao",
+      "da": "Curaçao",
+      "de": "Curaçao",
+      "en": "Curaçao",
+      "es": "Curaçao",
+      "fr": "Curaçao",
+      "it": "Curaçao",
+      "nl": "Curaçao",
+      "pt": "Curaçao",
+      "lat": 12.1176488,
+      "lng": -68.9309263,
+      "tz": [
+         -240
+      ],
+      "languages": [
+         "nl",
+         "en"
+      ]
+   },
+   {
+      "code": "sx",
+      "iso": "Sint Maarten",
+      "da": "Sint Maarten",
+      "de": "Sint Maarten",
+      "en": "Sint Maarten",
+      "es": "Sint Maarten",
+      "fr": "Sint Maarten",
+      "it": "Sint Maarten",
+      "nl": "Sint Maarten",
+      "pt": "Sint Maarten",
+      "lat": 18.0423736,
+      "lng": -63.0549948,
+      "tz": [
+         -240
+      ],
+      "languages": [
+         "nl",
+         "en"
+      ]
+   },
+   {
+      "code": "bq",
+      "iso": "Caribbean Netherlands",
+      "da": "Caribbean Netherlands",
+      "de": "Karibische Niederlande",
+      "en": "Caribbean Netherlands",
+      "es": "Caribe Países Bajos",
+      "fr": "Caraïbes Pays-Bas",
+      "it": "Caraibi Olandesi",
+      "nl": "Caribisch Nederland",
+      "pt": "Caribe Holanda",
+      "lat": 36.2109553,
+      "lng": 54.448222,
+      "tz": [
+         -240
+      ],
+      "languages": []
+   },
+   {
+      "code": "im",
+      "iso": "Isle of Man",
+      "da": "Isle of Man",
+      "de": "Isle of Man",
+      "en": "Isle of Man",
+      "es": "Isla de Man",
+      "fr": "Isle of Man",
+      "it": "Isle of Man",
+      "nl": "Isle of Man",
+      "pt": "Ilha de Man",
+      "lat": 43.9583753,
+      "lng": 7.8667427,
+      "tz": [
+         0
+      ],
+      "languages": []
+   },
+   {
+      "code": "je",
+      "iso": "Jersey",
+      "da": "Jersey",
+      "de": "Jersey",
+      "en": "Jersey",
+      "es": "Jersey",
+      "fr": "Jersey",
+      "it": "Jersey",
+      "nl": "Jersey",
+      "pt": "Jersey",
+      "lat": 49.2214561,
+      "lng": -2.1358386,
+      "tz": [
+         0
+      ],
+      "languages": [
+         "fr"
+      ]
+   },
+   {
+      "code": "gg",
+      "iso": "Guernsey",
+      "da": "Guernsey",
+      "de": "Guernsey",
+      "en": "Guernsey",
+      "es": "Guernsey",
+      "fr": "Guernsey",
+      "it": "Guernsey",
+      "nl": "Guernsey",
+      "pt": "Guernsey",
+      "lat": 49.4566233,
+      "lng": -2.5822348,
+      "tz": [
+         0
+      ],
+      "languages": []
+   }
+]

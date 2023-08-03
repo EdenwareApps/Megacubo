@@ -124,7 +124,7 @@ class Wizard extends WizardUtils {
             const opts = [
                 {template: 'question', fa: 'fas fa-info-circle', text: global.lang.COUNTRIES}
             ].concat(global.lang.alternateCountries.concat([global.lang.countryCode]).map(id => {
-                const text = global.lang.countries.nameFromCountryCode(code, to)
+                const text = global.lang.countries.getCountryName(code, to)
                 return {template: 'option', text, fa: 'fas fa-globe', id}
             }))
             opts.push({template: 'option', text: global.lang.OTHER_COUNTRIES, fa: 'fas fa-globe', id: 'countries'})

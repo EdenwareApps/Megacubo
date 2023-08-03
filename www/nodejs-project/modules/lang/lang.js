@@ -11,7 +11,6 @@ class Language extends Events {
         }
         this.languageHint = languageHint
         this.findLanguages()
-        this.cl = require('country-language')
         this.countries = new Countries()
         this.isReady = false
         this.timezone = timezone
@@ -53,7 +52,7 @@ class Language extends Events {
 
         const countriesTzAllLangs = this.hints.langs.map(l => this.getCountriesFromLanguage(l)).flat().filter(c => countriesTz.includes(c)) // country should be in tz
         if(countriesTzAllLangs.length){ // language in navigator hints, right timezone
-            this.alternateCountries = countriesTzAllLangs
+            this.alternateCountries = [...new Set(countriesTzAllLangs)]
             return this.countryCode = this.alternateCountries.shift()
         }
 
@@ -65,64 +64,33 @@ class Language extends Events {
         this.alternateCountries = []
         return this.countryCode = 'us'
     }
-    getCountryLanguages(code){
-        return new Promise((resolve, reject) => {
-            if(typeof(code) != 'string' || code.length != 2){
-                return reject('Invalid country code '+ code +' '+ global.traceback())
-            }
-            this.cl.getCountryLanguages(code, (err, countries) => {
-                if(err){
-                    return reject(err)
-                }
-                resolve(countries.map(r => r.iso639_1).filter(r => r))
-            })
-        })
-    }
     async getCountriesLanguages(codes){
         let languages = []
         for(let code of codes){
-            let ls = await this.getCountryLanguages(code).catch(console.error)
+            let ls = this.countries.getCountryLanguages(code)
             if(Array.isArray(ls)){
                 ls.filter(l => !languages.includes(l)).forEach(l => languages.push(l))
             }
         }
         return languages
     }
-    async getCountries(locales){ // return countries of same ui languageS
+    async getCountries(locales){ // return countries which speaks these languages
         if(!locales){
-            return this.cl.getCountries().map(l => l.code_2.toLowerCase())
+            return this.countries.getCountries()
         }
-        const countries = []
         if(!Array.isArray(locales)){
             locales = [locales]
         }
-        await Promise.allSettled(locales.map(async loc => {
-            const cs = await this.getCountriesFromLanguage(loc).catch(console.error)
-            if(Array.isArray(cs)){
-                cs.forEach(c => {
-                    if(!countries.includes(c)) countries.push(c)
-                })
-            }
-        }))
-        return countries
-    }
-    getCountriesFromLanguage(locale){ // return countries of same ui language
-        return new Promise((resolve, reject) => {
-            global.lang.cl.getLanguage(locale, (err, language) => {
-                if (err) {
-                    reject(err)
-                } else {
-                    resolve(language.countries.map(l => l.code_2.toLowerCase()))
-                }
-            })
-        })
+        return [...new Set(locales.map(loc => {
+            return this.countries.getCountriesFromLanguage(loc)
+        }).flat())]
     }
     async getActiveCountries(limit=10){
         await this.ready()
         let actives = global.config.get('countries')
         if(!Array.isArray(actives) || !actives.length){
             await this.ready()
-            let languages = await this.getCountryLanguages(this.countryCode)
+            let languages = this.countries.getCountryLanguages(this.countryCode)
             actives = await this.getCountries(languages)
             actives = actives.filter(a => !this.hints.countries.includes(a))
             actives = this.hints.countries.slice(0).concat(actives)
@@ -130,36 +98,20 @@ class Language extends Events {
         actives = this.countries.getNearest(this.countryCode, actives, limit || 999)
         return actives
     }
-    getCountriesMap(locale, additionalCountries){ // return countries of same ui language
-        return new Promise((resolve, reject) => {
-            this.getCountries(locale).then(codes => {
-                this.countries.ready().then(() => {
-                    let entries = []
-                    if(Array.isArray(additionalCountries)) {
-                        additionalCountries.forEach(c => {
-                            if(!codes.includes(c)) codes.push(c)
-                        })
-                    }
-                    async.eachOf(codes, (code, i, done) => {
-                        let name = this.countries.nameFromCountryCode(code, this.locale)
-                        if(name && name != code){
-                            entries.push({code, name})
-                            done()
-                        } else {
-                            this.cl.getCountry(code.toUpperCase(), (err, data) => {
-                                entries.push({
-                                    name: data && data.name ? data.name : code,
-                                    code
-                                })
-                                done()
-                            })
-                        }
-                    }, () => {
-                        resolve(entries.sortByProp('name'))
-                    })
-                }).catch(reject)  
-            }).catch(reject)
-        })
+    async getCountriesMap(locale, additionalCountries){ // return countries of same ui language
+        await this.countries.ready()
+        const codes = await this.getCountries(locale)
+        if(Array.isArray(additionalCountries)) {
+            additionalCountries.forEach(c => {
+                if(!codes.includes(c)) codes.push(c)
+            })
+        }
+        return codes.map(code => {
+            let name = this.countries.getCountryName(code, this.locale)
+            if(name && name != code){
+                return {code, name}
+            }
+        }).sortByProp('name')
     }
     async asyncSome(arr, predicate){
         for (let e of arr) {

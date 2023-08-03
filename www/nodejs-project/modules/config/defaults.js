@@ -92,6 +92,8 @@ module.exports = {
 	'user-agent': 'VLC/3.0.8 LibVLC/3.0.8',
 	'view-size-x': 5,
 	'view-size-y': 2,
+	'view-size-portrait-x': 1,
+	'view-size-portrait-y': 8,
 	'volume': 100,
 	'watch-now-auto': 'auto',
 	'ui-sounds': true,

@@ -529,7 +529,7 @@ class Options extends OptionsP2P {
         }
         const entries = []
         let map = await global.lang.getCountriesMap(
-            allCountries === true ? null : await global.lang.getCountryLanguages(global.lang.countryCode),
+            allCountries === true ? null : global.lang.countries.getCountryLanguages(global.lang.countryCode),
             global.config.get('countries')
         )
         if(!allCountries && !map.length){
