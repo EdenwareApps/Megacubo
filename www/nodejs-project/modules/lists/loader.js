@@ -163,7 +163,7 @@ class ListsLoader extends Events {
             if(p.progressId == uid) progress(p.progress)
         })
         await this.updater.update(url, false, uid).catch(console.error)
-        this.updater && this.updater.close()  
+        this.updater && this.updater.close && this.updater.close()  
         this.master.addList(url, 1)
     }
     schedule(url, priority){
@@ -176,7 +176,7 @@ class ListsLoader extends Events {
                 await this.prepareUpdater()
                 this.results[url] = 'awaiting'
                 this.results[url] = await this.updater.update(url).catch(console.error)
-                this.updater && this.updater.close()
+                this.updater && this.updater.close && this.updater.close()
                 done = true
                 const add = this.results[url] == 'updated' || (this.results[url] == 'already updated' && !this.master.processedLists.has(url))
                 add && this.master.addList(url, priority)
@@ -203,7 +203,7 @@ class ListsLoader extends Events {
         this.updater.on('progress', progressListener)
         this.results[url] = 'reloading'       
         this.results[url] = await this.updater.updateList(url, true, progressId).catch(err => updateErr = err)
-        this.updater && this.updater.close()
+        this.updater && this.updater.close && this.updater.close()
         this.updater.removeListener('progress', progressListener)
         global.osd.hide('progress-'+ progressId)
         if(updateErr) throw updateErr

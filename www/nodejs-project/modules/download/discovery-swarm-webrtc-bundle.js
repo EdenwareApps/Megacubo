@@ -31234,7 +31234,7 @@ const pLimit = concurrency => {
 
 		try {
 			await result;
-		} catch {}
+		} catch(e) { }
 
 		next();
 	};

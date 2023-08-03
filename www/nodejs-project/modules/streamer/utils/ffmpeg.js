@@ -108,7 +108,7 @@ class StreamerFFmpeg extends Events {
                                                 reject('file empty'+ t)
                                             }
                                         } else {
-                                            reject(oerr)
+                                            reject(oerr || aerr || '')
                                         }
                                     }
                                 })
@@ -567,7 +567,7 @@ class StreamerFFmpeg extends Events {
                                     })
                                 }).catch(e => {
                                     console.error('waitFile failed', this.timeout, e)
-                                    if(e.indexOf('timeout') != -1){
+                                    if(String(e).indexOf('timeout') != -1){
                                         e = 'timeout'
                                     }
                                     reject(e)

@@ -136,8 +136,8 @@ class ChannelsData extends Events {
 }
 
 class ChannelsCategories extends ChannelsData {
-    constructor(opts){
-        super(opts)
+    constructor(){
+        super()
     }    
     loadCategories(cb){
         global.storage.raw.get(this.categoriesCacheKey, data => {
@@ -224,22 +224,19 @@ class ChannelsCategories extends ChannelsData {
                 data = await this.applyMapCategories(map, data, amount, isMainCountry ? false : weighted)
             }
         }
+        const limit = pLimit(2)
+        const tasks = () => countries.map(country => {
+            return limit(async () => {
+                return await processCountry(country)
+            })
+        })
         if(countries.length) {
-            await processCountry(countries[0])
-            if(countries.length > 1) {
-                const limit = pLimit(2)
-                const tasks = () => countries.slice(1).map(country => {
-                    return limit(async () => {
-                        return await processCountry(country)
-                    })
-                })
+            await Promise.allSettled(tasks()).catch(console.error)
+            if(!completed()){
+                data = {}
+                weighted = false
                 await Promise.allSettled(tasks()).catch(console.error)
             }
-        }
-        if(!completed()){
-            data = {}
-            weighted = false
-            await Promise.allSettled(tasks()).catch(console.error)
         }
         return data
     }   
@@ -261,8 +258,8 @@ class ChannelsCategories extends ChannelsData {
 }
 
 class ChannelsEPG extends ChannelsCategories {
-    constructor(opts){
-        super(opts)
+    constructor(){
+        super()
         this.epgStatusTimer = false
         this.epgIcon = 'fas fa-th'
         this.clockIcon = '<i class="fas fa-clock"></i> '
@@ -606,8 +603,8 @@ class ChannelsEPG extends ChannelsCategories {
 }
 
 class ChannelsEditing extends ChannelsEPG {
-    constructor(opts){
-        super(opts)
+    constructor(){
+        super()
         global.ui.on('channels-import-file', data => {
             console.warn('!!! IMPORT FILE !!!', data)
             global.ui.importFileFromClient(data).then(ret => this.importFile(ret)).catch(err => {
@@ -924,13 +921,8 @@ class ChannelsKids extends ChannelsAutoWatchNow {
 }
 
 class Channels extends ChannelsKids {
-    constructor(opts){
+    constructor(){
         super()
-		if(opts){
-			Object.keys(opts).forEach((k) => {
-				this[k] = opts[k]
-			})
-		}
     }
     async goChannelWebsite(name){
         if(!name){

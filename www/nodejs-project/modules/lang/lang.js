@@ -50,7 +50,7 @@ class Language extends Events {
             return this.countryCode = this.alternateCountries.shift()
         }
 
-        const countriesTzAllLangs = this.hints.langs.map(l => this.getCountriesFromLanguage(l)).flat().filter(c => countriesTz.includes(c)) // country should be in tz
+        const countriesTzAllLangs = this.hints.langs.map(l => this.countries.getCountriesFromLanguage(l)).flat().filter(c => countriesTz.includes(c)) // country should be in tz
         if(countriesTzAllLangs.length){ // language in navigator hints, right timezone
             this.alternateCountries = [...new Set(countriesTzAllLangs)]
             return this.countryCode = this.alternateCountries.shift()

@@ -115,7 +115,7 @@ class UpdateListIndex extends ListIndexUtils {
                     if(this.debug){
                         console.log('end')
                     }
-                    this.stream.destroy()
+                    this.stream && this.stream.destroy()
                     if(!resolved) {
                         resolved = true
                         reject('unknown http error')

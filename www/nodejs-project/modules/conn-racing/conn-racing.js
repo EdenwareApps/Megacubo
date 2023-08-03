@@ -46,7 +46,7 @@ class ConnRacing extends Events {
                     }
                     this.results.push(result)
                     this.pump()
-                    return ret.status
+                    return status
                 } else {
                     return false
                 }
