@@ -98,11 +98,11 @@ class UpdateListIndex extends ListIndexUtils {
                             this.stream.destroy()
                             resolve(false) // no need to update
                         } else {
-                            this.writer = fs.createWriteStream(file)
-                            this.stream.on('data', c => this.writer.write(c))
+                            const fetcher = fs.createWriteStream(file)
+                            this.stream.on('data', c => fetcher.write(c))
                             this.stream.on('end', () => {
-                                this.writer.on('close', () => this.parser && this.parser.end())
-                                this.writer.end()
+                                fetcher.on('close', () => this.parser && this.parser.end())
+                                fetcher.end()
                             })
                             resolve({file, persistent: true})
                         }

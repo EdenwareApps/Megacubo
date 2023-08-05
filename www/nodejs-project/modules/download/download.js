@@ -240,7 +240,7 @@ class Download extends Events {
 		}
 		if(this.decompressor && this.opts.acceptRanges){
 			// resume with byte ranging should not use gzip
-			// if will not use ranging but redownload, why not keep using compression?
+			// if it will not use ranging but redownload, why not keep using compression?
 			const continueWithoutCompression = () => {
 				this.isResponseCompressed = false
 				this.decompressor = undefined

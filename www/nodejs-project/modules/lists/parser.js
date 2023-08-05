@@ -224,7 +224,7 @@ class Parser extends EventEmitter {
 					}
 					g = this.trimPath(g)
 					if (sg) {
-						g = this.mergePath(g, sg)
+						g = this.mergePath(g, this.trimPath(sg))
 					}
 					if(!n) {
 						const pos = line.lastIndexOf(',')
@@ -235,17 +235,17 @@ class Parser extends EventEmitter {
 					e.name = Parser.sanitizeName(n)
 				} else if (hashed) {
 					// parse here extra info like #EXTGRP and #EXTVLCOPT
-					let lcline = line.toLowerCase()
-					if (lcline.startsWith('#extgrp')) {
-						let i = lcline.indexOf(':')
+					let ucline = line.toUpperCase()
+					if (ucline.startsWith('#EXTGRP')) {
+						let i = ucline.indexOf(':')
 						if (i !== -1) {
 							let nwg = line.substr(i + 1).trim()
 							if (nwg.length && (!g || g.length < nwg.length)) {
 								g = nwg
 							}
 						}
-					} else if (lcline.startsWith('#extvlcopt')) {
-						let i = lcline.indexOf(':')
+					} else if (ucline.startsWith('#EXTVLCOPT')) {
+						let i = ucline.indexOf(':')
 						if (i !== -1) {
 							let nwa = line.substr(i + 1).trim().split('=')
 							if (nwa) {
@@ -275,22 +275,21 @@ class Parser extends EventEmitter {
 							e.rawname = e.name
 							e.name = name
 						}
-						g = this.preSanitizeGroup(g)
-						e.groupName = g.split('/').pop()
-						g = this.sanitizeGroup(g)
 						if (Object.keys(a).length) {
 							e.atts = a
 						}
+						g = this.sanitizeGroup(g)
 						e.group = g
 						e.groups = g.split('/')
+						e.groupName = e.groups[e.groups.length - 1]
 						if (this.expectingPlaylist) {
 							this.emit('playlist', e)
 						} else {
 							this.emit('entry', e)
 						}
+						e = { url: '', icon: '' }
+						g = ''
 					}
-					e = { url: '', icon: '' }
-					g = ''
 				}
 				this.emit('progress', this.readen)
 			})
@@ -306,46 +305,28 @@ class Parser extends EventEmitter {
 			this.reader.end()
 		}
 	}
-	len(data) {
-		if (!data) {
-			return 0
-		}
-		if (Array.isArray(data)) {
-			return data.reduce((acc, val) => acc + this.len(val), 0)
-		}
-		return data.byteLength || data.length || 0
-	}
-	preSanitizeGroup(s) {
-		if (s.toLowerCase().trim() === 'n/a') {
+	sanitizeGroup(s) {
+		if (s.length == 3 && s.toLowerCase().trim() === 'n/a') {
 			return ''
 		}
-		s = global.forwardSlashes(s)
-		s = s.replace(new RegExp('[\|;]', 'g'), '/')
-		s = s.replace(new RegExp(' /|/ ', 'g'), '/')
-		return s
-	}
-	sanitizeGroup(s) {
+		if(s.match(Parser.regexes['group-separators'], '/')) { // if there are few cases, is better not replace directly
+			s = s.replace(Parser.regexes['group-separators'], '/')
+		}
 		if(s.indexOf('[') != -1) {
 			s = s.replace(Parser.regexes['between-brackets'], '')
 		}
 		// s = s.normalize('NFD') // is it really needed?
-		if(s.indexOf('-') != -1) {
-			s = s.replace(Parser.regexes['hyphen'], ' ')
-		}
-		if(s.indexOf('  ') != -1) {
-			s = s.replace(Parser.regexes['spaces'], ' ')
-		}
 		return s
 	}
 	isExtInf(line) {
-		return line.charAt(0) == '#' && line.substr(0, 7).toLowerCase() == '#extinf'
+		return line.charAt(0) == '#' && line.substr(0, 7).toUpperCase() == '#EXTINF'
 	}
 	isExtInfPlaylist(line) {
-		return this.isExtInf(line) && line.match(Parser.regexes['type-playlist'])
+		return line.indexOf('playlist') != -1 && line.match(Parser.regexes['type-playlist'])
 	}
 	isExtM3U(line) {
-		let lcline = line.substr(0, 7).toLowerCase()
-		return lcline == '#extm3u' || lcline == '#playli' // #playlistv
+		let ucline = line.substr(0, 7).toUpperCase()
+		return ucline == '#EXTM3U' || ucline == '#PLAYLI' // #playlistv
 	}
 	trimQuotes(text) {
 		const f = text.charAt(0), l = text.charAt(text.length - 1)
@@ -358,9 +339,8 @@ class Parser extends EventEmitter {
 		return text
 	}
 	nameFromURL(url) {
-		let name, ourl = url
+		let name
 		if (url.indexOf('?') !== -1) {
-			let qs = {}
 			url.split('?')[1].split('&').forEach(s => {
 				s = s.split('=')
 				if (s.length > 1) {
@@ -388,12 +368,14 @@ class Parser extends EventEmitter {
 	}
 	trimPath(b) {
 		if (b) {
-			if (b.charAt(b.length - 1) === '/') {
+			const chr = b.charAt(b.length - 1)
+			if (chr === '/' || chr === ' ') {
 				b = b.substr(0, b.length - 1)
 			}
 		}
 		if (b) {
-			if (b.charAt(0) === '/') {
+			const chr = b.charAt(0)
+			if (chr === '/' || chr === ' ') {
 				b = b.substr(1)
 			}
 		}
@@ -401,10 +383,7 @@ class Parser extends EventEmitter {
 	}
 	mergePath(a, b) {
 		if (b) {
-			b = this.trimPath(b)
-			if (b) {
-				a = [a, b].join('/')
-			}
+			a = [a, b].join('/')
 		}
 		return a
 	}
@@ -419,6 +398,7 @@ class Parser extends EventEmitter {
 }
 
 Parser.regexes = {
+	'group-separators': new RegExp('([\\\\|;]| /|/ )', 'g'),
 	'notags': new RegExp('\\[[^\\]]*\\]', 'g'),
 	'between-brackets': new RegExp('\\[[^\\]]*\\]', 'g'), // match data between brackets
 	'accents': new RegExp('[\\u0300-\\u036f]', 'g'), // match accents

@@ -1496,7 +1496,7 @@ class Manager extends ManagerEPG {
         if(!this.master.activeLists.my.length) return
         if(!this.checkListExpiralTimes) this.checkListExpiralTimes = {}
         const now = global.time()
-        const checkListExpiralInterval = 120
+        const checkListExpiralInterval = this.master.activeLists.community.length ? 120 : 10
         const myBadSources = [...new Set(es.map(e => e.source).filter(e => e))].filter(u => this.master.activeLists.my.includes(u))
         for(const source of myBadSources) {
             if(this.checkListExpiralTimes[source] && (now < (this.checkListExpiralTimes[source] + checkListExpiralInterval))) {

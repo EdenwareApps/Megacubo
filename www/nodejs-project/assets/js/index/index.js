@@ -43,7 +43,7 @@ function updateWebView(){
 	alert(msg);
 	var playStoreUrl = 'market://details?id=com.google.android.webview';
 	window.open(playStoreUrl, '_system');
-	parent.close();
+	setTimeout(() => parent.close(), 5000);
 }
 
 function theming(image, video, color, fontColor, animate){
