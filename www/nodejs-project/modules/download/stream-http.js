@@ -89,7 +89,7 @@ class DownloadStreamHttp extends DownloadStreamBase {
             this.delay = null
         }
     }
-    async wait(ms){
+    wait(ms){
         return new Promise(resolve => {
             this.delay = {
                 timer: setTimeout(() => {

@@ -66,15 +66,8 @@ class PublicIPTVListsDiscovery extends Events {
     }
     async get(amount=8) {
         await this.ready()
-        const sortedLists = this.knownLists
-            // .filter(list => this.opts.countries.includes(list.country))
-            .sort((a, b) => {
-                if (a.health === -1 && b.health === -1) return 0
-                if (a.health === -1) return 1
-                if (b.health === -1) return -1
-                return b.health > a.health ? 1 : (b.health < a.health ? -1 : 0)
-            })
-        return this.domainCap(sortedLists, amount)
+        this.sort()
+        return this.domainCap(this.knownLists.slice(0), amount)
     }
 	domain(u){
 		if(u && u.indexOf('//')!=-1){
@@ -148,7 +141,10 @@ class PublicIPTVListsDiscovery extends Events {
     }
     assimilate(existingListIndex, list){
         const existingList = this.knownLists[existingListIndex]
-        const health = this.averageHealth({ health: existingList.health, perceivedHealth: list.health}) // average health from both
+        const health = this.averageHealth({
+            health: existingList.health,
+            perceivedHealth: list.health
+        }) // average health from both
         this.knownLists[existingListIndex] = {
             ...list,
             health,

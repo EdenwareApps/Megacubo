@@ -280,21 +280,19 @@ class ManagerEPG extends ManagerCommunityLists {
             urls = urls.map(u => this.parseEPGURL(u, true)).flat()
             epgs.push(...urls)
         }
-        if(global.config.get('communitary-mode-lists-amount')){
-            let c = await cloud.get('configure').catch(console.error)
-            if(c && c.epg) {
-                let cs = await global.lang.getActiveCountries()
-                if(!cs.includes(global.lang.countryCode)){
-                    cs.push(global.lang.countryCode)
-                }
-                cs.forEach(code => {
-                    if(c.epg[code] && !epgs.includes(c.epg[code])){
-                        epgs.push(c.epg[code])
-                    }
-                })
+        let c = await cloud.get('configure').catch(console.error)
+        if(c && c.epg) {
+            let cs = await global.lang.getActiveCountries()
+            if(!cs.includes(global.lang.countryCode)){
+                cs.push(global.lang.countryCode)
             }
-            epgs.push(...global.watching.currentRawEntries.map(e => e.epg).filter(e => !!e))
+            cs.forEach(code => {
+                if(c.epg[code] && !epgs.includes(c.epg[code])){
+                    epgs.push(c.epg[code])
+                }
+            })
         }
+        epgs.push(...global.watching.currentRawEntries.map(e => e.epg).filter(e => !!e))
         epgs = [...new Set(epgs)].sort()
         return epgs
     }

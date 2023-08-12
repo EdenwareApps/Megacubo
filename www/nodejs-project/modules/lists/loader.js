@@ -10,7 +10,6 @@ class ListsLoader extends Events {
         this.queue = new PQueue({ concurrency }) // got slow with '5' in a 2GB RAM device, save memory so
         this.osdID = 'lists-loader'
         this.tried = 0
-        this.pings = {}
         this.results = {}
         this.processes = []
         this.myCurrentLists = global.config.get('lists').map(l => l[1])
@@ -129,31 +128,9 @@ class ListsLoader extends Events {
             })
         }
         if(!urls.length) return
-        let already = []
-        urls = urls.filter(url => {
-            if(typeof(this.pings[url]) == 'undefined'){
-                return true
-            }
-            if(this.pings[url] > 0) { // if zero, is loading yet
-                already.push({url, time: this.pings[url]})
-            }
-        })
-        urls.forEach(u => this.pings[u] = 0)
-        already.sortByProp('time').map(u => u.url).forEach(url => this.schedule(url, priority))
-        const start = global.time()
-        const racing = new ConnRacing(urls, {retries: 1, timeout: 5})
-		for(let i=0; i<urls.length; i++) {
-            const res = await racing.next().catch(console.error)
-            if(res && res.valid) {
-                const url = res.url
-                const time = global.time() - start
-                if(!this.pings[url] || this.pings[url] < time) {
-                    this.pings[url] = global.time() - start
-                }
-                this.schedule(url, priority)
-            }            
+        for(const url of urls) {
+            this.schedule(url, priority)
         }
-        urls.filter(u => this.pings[u] == 0).forEach(u => delete this.pings[u])
     }
     async addListNow(url, progress) {
         const uid = parseInt(Math.random() * 1000000)

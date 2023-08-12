@@ -338,17 +338,6 @@ class StreamerFFmpeg extends Events {
 		}
 		return this.codecData
 	}
-    async wait(ms){
-        return new Promise(resolve => {
-            this.delay = {
-                timer: setTimeout(() => {
-                    this.delay = null
-                    resolve()
-                }, ms),
-                resolve
-            }
-        })
-    }
     async setupDecoder(restarting){
         await this.genUID()
         if(restarting){                    

@@ -37,13 +37,9 @@ class IPTV extends Events {
 	}
     async discovery(){
         await this.ready()
-        let locs = []
-        let nlocs = await global.lang.getActiveCountries(0).catch(console.error)
-        if(Array.isArray(nlocs)){
-            locs.push(...nlocs.filter(l => !locs.includes(l)))
-        }
-        if(!locs.length){
-            locs.push(global.lang.countryCode)
+        let locs = await global.lang.getActiveCountries(0).catch(console.error)
+        if(Array.isArray(locs) || !locs.length){
+            locs.push = [global.lang.countryCode]
         }
         let lists = locs.map(code => this.data[code]).filter(c => c)
         if(lists.length){
@@ -51,8 +47,8 @@ class IPTV extends Events {
             if(lists.length > maxLists){
                 lists = lists.slice(0, maxLists)
             }
-            return lists.map(list => {
-                list = {url: list}
+            return lists.map((list, i) => {
+                list = {url: list, health: 1 - (i * (1 / lists.length))}
                 return list
             })
         } else {

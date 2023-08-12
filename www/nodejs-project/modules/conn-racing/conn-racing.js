@@ -11,18 +11,26 @@ class ConnRacing extends Events {
         this.ended = false
         this.racingEnded = false
         this.readyIterator = 0
+        this.triggerInterval = 0
         this.uid = parseInt(Math.random() * 10000000000000)
         this.start().catch(console.error)
+    }
+    wait(ms){
+        return new Promise(resolve => setTimeout(resolve, ms))
     }
     async start(){
         if(!this.urls.length){
             return this.end()
         }
         const limit = pLimit(20)
-        const tasks = this.urls.map(url => {
+        const tasks = this.urls.map((url, i) => {
             return async () => {
                 if(!url.match(new RegExp('^(//|https?://)'))){ // url not testable
                     throw 'url not testable'
+                }
+                if(this.triggerInterval && i) {
+                    const delay = i * this.triggerInterval
+                    await this.wait(delay)
                 }
                 if(this.ended){
                     return false
