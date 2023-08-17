@@ -212,7 +212,7 @@ body.video #explorer header .explorer-omni {
     background: transparent;
     font-size: var(--explorer-entry-name-font-size);
 }
-body.home #explorer content a.entry-2x {
+body.home #explorer content a.entry-2x, body.explorer-wide #explorer content a.entry-2x {
     width: calc(200% / var(--entries-per-row));
     max-width: 100%;
 }
