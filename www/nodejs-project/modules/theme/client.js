@@ -66,8 +66,6 @@ body {
 }
 `
         css(cssCode, 'theme')
-        const allowVerticalLayout = config['view-size-portrait-x'] == 1
-        jQuery(document.body)[allowVerticalLayout ? 'addClass' : 'removeClass']('explorer-vertical')
         parent.animateBackground(config['animate-background'])
         parent.loaded()
         explorer.resize()

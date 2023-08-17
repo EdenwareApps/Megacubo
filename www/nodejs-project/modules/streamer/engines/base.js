@@ -31,6 +31,9 @@ class StreamerBaseIntent extends Events {
         this.audioTrack = 0
         this.subtitleTrack = null
         this.failListener = this.onFail.bind(this)
+        if(!this.data.authURL && this.data.source) {
+            this.data.authURL = global.lists.getAuthURL(this.data.source)
+        }
         if(opts){
             this.setOpts(opts)
         }
@@ -63,7 +66,7 @@ class StreamerBaseIntent extends Events {
     getTranscodingOpts(){
         return Object.assign({
             workDir: this.opts.workDir, 
-            authURL: this.data.source,
+            authURL: this.data.authURL || this.data.source,
             debug: this.opts.debug,
             isLive: this.mediaType == 'live'
         }, this.getTranscodingCodecs())

@@ -38,7 +38,9 @@ class StreamerVideoIntent extends StreamerBaseIntent {
                     resolve()
                 }
             } else {
-                this.adapter = new StreamerProxy(Object.assign({authURL: this.data.source}, this.opts))
+                this.adapter = new StreamerProxy(Object.assign({
+                    authURL: this.data.authURL || this.data.source
+                }, this.opts))
                 this.connectAdapter(this.adapter)
                 this.adapter.start().then(() => {
                     this.endpoint = this.adapter.proxify(this.data.url)

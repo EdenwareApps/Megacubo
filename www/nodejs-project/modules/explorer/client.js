@@ -452,6 +452,8 @@ class ExplorerPointer extends ExplorerSelectionMemory {
             this.viewSizeX = this._viewSizeX
             this.viewSizeY = this._viewSizeY
         }
+		const verticalLayout = config[portrait ? 'view-size-portrait-x' : 'view-size-x'] == 1
+        jQuery(document.body)[verticalLayout ? 'addClass' : 'removeClass']('explorer-vertical')        
 		let e = document.querySelector('a:not(.entry-2x) .entry-icon-image')
 		if(e){
 			let metrics = e.getBoundingClientRect()
@@ -1716,7 +1718,10 @@ class ExplorerStatusFlags extends ExplorerSlider {
 						this[status == 'offline' ? 'addClass' : 'removeClass'](element, 'entry-disabled')
 						if(content != element.getAttribute('data-status-flags-html')){
 							element.setAttribute('data-status-flags-html', content)
-							element.querySelector('.entry-status-flags').innerHTML = content
+							var flagsElement = element.querySelector('.entry-status-flags')
+							if(flagsElement) {
+								flagsElement.innerHTML = content
+							}
 						}
 					}
 				}

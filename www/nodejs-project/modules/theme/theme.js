@@ -7,7 +7,13 @@ class Theme extends Events {
         this.backgroundVideoSizeLimit = 40 * (1024 * 1024)
         this.customBackgroundImagePath = global.paths.data +'/background.png'
         this.customBackgroundVideoPath = global.paths.data +'/background'
-        this.keys = ['theme-name', 'animate-background', 'background-color', 'background-color-transparency', 'custom-background-image', 'custom-background-video', 'font-color', 'font-family', 'font-size', 'uppercase-menu', 'view-size-x', 'view-size-y', 'view-size-portrait-x', 'view-size-portrait-y', 'fx-nav-intensity']
+        this.keys = [
+            'theme-name', 'animate-background', 'background-color', 
+            'background-color-transparency', 'custom-background-image', 
+            'custom-background-video', 'font-color', 'font-family', 
+            'font-size', 'uppercase-menu', 'view-size-x', 'view-size-y', 
+            'view-size-portrait-x', 'view-size-portrait-y', 'fx-nav-intensity'
+        ]
         this.folder = global.paths.data +'/Themes'
         global.uiReady(() => {
             this.refresh()
@@ -672,7 +678,7 @@ class Theme extends Events {
                         value: () => {
                             return global.config.get('view-size-y')
                         }, 
-                        range: {start: 1, end: 4}, 
+                        range: {start: 1, end: 8}, 
                         action: (data, value) => {
                             console.log('viewSizeY', data, value)
                             if(value != global.config.get('view-size-y')){

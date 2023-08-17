@@ -219,25 +219,17 @@ function initApp(){
     app.on('background-mode-unlock', name => {
         if(parent.player && parent.winman) parent.winman && parent.winman.backgroundModeUnlock(name)
     })
-    let initP2PDetails, initP2P = () => { 
-        if(!initP2PDetails || !config || !config['p2p']) return
-        const done = () => {
+    let initP2PDetails, initializedP2P, initP2P = () => { 
+        if(!initP2PDetails || !config || initializedP2P || !config['p2p']) return
+        initializedP2P = true
+        loadJSOnIdle('./modules/download/discovery-swarm-webrtc-bundle.js', () => {
             if(typeof(require) == 'function') {
                 loadJSOnIdle('./modules/download/download-p2p-client.js', () => {
                     const {addr, limit, stunServers} = initP2PDetails
                     window.p2p = new P2PManager(app, addr, limit, stunServers)
                 })
             }
-        }
-        if(typeof(require) != 'function' && typeof(parent.parent.require) == 'function') {
-            window.require = parent.parent.require
-        }
-        if(typeof(require) == 'function') {
-            done()
-        } else {
-            // browserify -r @geut/discovery-swarm-webrtc -r crypto -r safe-buffer -o assets/js/libs/webrtc-bundle.js
-            loadJSOnIdle('./modules/download/discovery-swarm-webrtc-bundle.js', done)
-        }
+        })
     }
     app.on('init-p2p', (addr, limit, stunServers) => {
         initP2PDetails = {addr, limit, stunServers}

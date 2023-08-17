@@ -720,6 +720,7 @@ class ChannelsEditing extends ChannelsEPG {
                             return t
                         }, action: (entry, val) => {
                             const category = _category
+                            if(!this.categories[category]) return console.error('Category not found')
                             console.warn('ALIASES', this.categories[category], category, val, o)
                             let i = -1
                             this.categories[category].some((n, j) => {

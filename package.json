@@ -1,7 +1,7 @@
 {
   "name": "tv.megacubo.app",
   "displayName": "Megacubo",
-  "version": "17.1.4",
+  "version": "17.1.5",
   "description": "A intuitive and multi-language IPTV player.",
   "main": "index.js",
   "scripts": {

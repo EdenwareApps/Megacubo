@@ -120,7 +120,9 @@ class StreamerHLSIntent extends StreamerBaseIntent {
                 this.resetTimeout()
                 let resolved, opts = this.getTranscodingOpts()
                 this.trackUrl = ret.url
-                this.prx = new StreamerProxy(Object.assign({authURL: this.data.source}, this.opts))
+                this.prx = new StreamerProxy(Object.assign({
+                    authURL: this.data.authURL || this.data.source
+                }, this.opts))
                 this.connectAdapter(this.prx)
                 this.prx.start().then(() => {
                     this.transcoder = new StreamerFFmpeg(this.prx.proxify(this.trackUrl), opts)
@@ -180,7 +182,9 @@ class StreamerHLSIntent extends StreamerBaseIntent {
     async _start(){ 
         const prefetch = this.mediaType == 'live' && global.config.get('hls-prefetching')
         const useff = await this.useFFmpeg()
-        this.prx = new (prefetch ? StreamerHLSProxy : StreamerProxy)(Object.assign({authURL: this.data.source}, this.opts))
+        this.prx = new (prefetch ? StreamerHLSProxy : StreamerProxy)(Object.assign({
+            authURL: this.data.authURL || this.data.source
+        }, this.opts))
         this.connectAdapter(this.prx)
         await this.prx.start()
         if(useff){

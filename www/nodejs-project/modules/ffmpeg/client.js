@@ -83,7 +83,6 @@ class FFmpegController {
         if(this.debug){
             console.log('ffmpeg.exec _abort '+  executionId)
         }
-        parent.parent.ffmpeg.abort(executionId)
         let keepIds = []
         Object.keys(this.executionIds).forEach(k => {
             if(this.executionIds[k] == executionId){
@@ -92,6 +91,12 @@ class FFmpegController {
                 keepIds.push(this.executionIds[k])
             }
         })
+        const ffmpeg = parent.parent.ffmpeg
+        if(ffmpeg.abort) {
+            ffmpeg.abort(executionId)
+        } else {
+            ffmpeg.kill(executionId)
+        }
     }
 }
 

@@ -21,7 +21,7 @@ class DownloadCacheFileReader extends Events {
     }
     destroy(){
         this.removeAllListeners()
-        this.stream && this.stream.close()
+        this.stream && this.stream.close && this.stream.close()
     }
 }
 

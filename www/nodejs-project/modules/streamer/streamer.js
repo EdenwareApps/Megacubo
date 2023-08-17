@@ -292,7 +292,7 @@ class StreamerBase extends StreamerTools {
 				intent.commitTime = global.time()
 				intent.once('destroy', () => {
 					console.error('streamer intent destroy()')
-					if(intent == this.active){
+					if(intent == this.active) {
 						this.emit('uncommit', intent)
 						if(this.opts.debug){
 							console.log('ACTIVE INTENT UNCOMMITTED & DESTROYED!!', intent, this.active)

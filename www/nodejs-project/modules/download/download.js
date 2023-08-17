@@ -81,7 +81,6 @@ class Download extends Events {
 		this.connectCount = 0
 		this.currentRequestError = ''
 		this.currentResponse = null
-		this.authURLPingAfter = 0
 		this.responseSource = ''
 		this.on('error', () => {}) // avoid uncaught exception, make error listening not mandatory
 		if(typeof(this.opts.headers['range']) != 'undefined'){
@@ -108,13 +107,14 @@ class Download extends Events {
 	}
 	pingAuthURL(){
 		const now = global.time()
-		if(this.opts.authURL && now > this.authURLPingAfter){
-			this.authURLPingAfter = now + 10
+		if(this.opts.authURL && (!Download.pingAuthDelay[this.opts.authURL] || now > Download.pingAuthDelay[this.opts.authURL])){
+			Download.pingAuthDelay[this.opts.authURL] = now + 120
 			Download.get({
 				url: this.opts.authURL,
-				timeout: 10,
+				timeout: 20,
 				retry: 0,
 				receiveLimit: 1,
+				downloadLimit: 1,
 				followRedirect: true
 			}).catch(err => {
 				console.error('pingAuthURL error: '+ String(err))
@@ -737,6 +737,7 @@ class Download extends Events {
 				console.log('>> Download redirect', this.opts.followRedirect, response.headers['location'], this.currentURL)
 			}	
 			this.redirectLog.push(this.currentURL)
+			this.emit('redirect', this.currentURL, response.headers)
 			process.nextTick(() => {
 				if(this.opts.followRedirect){
 					this.destroyStream()
@@ -1031,6 +1032,7 @@ const networkListeners = []
 Download.stream = DownloadStreamHybrid
 Download.cache = new DownloadCacheMap()
 Download.keepAliveDomainBlacklist = []
+Download.pingAuthDelay = {}
 Download.isNetworkConnected = true
 Download.setNetworkConnectionState = state => {
 	Download.isNetworkConnected = state

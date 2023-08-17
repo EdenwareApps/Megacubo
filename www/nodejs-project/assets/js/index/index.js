@@ -224,11 +224,11 @@ function exit() {
 function openExternalFile(file, mimetype) {
 	console.log('openExternalFile', file);
 	if (parent.cordova) {
-		alert('cannot open file ' + file.split('/').pop());
+		alert('Cannot open file: ' + file.split('/').pop())
 	} else if (parent.getElectronRemote) {
-		parent.getElectronRemote().shell.openExternal(file);
+		parent.getElectronRemote().shell.openExternal(file)
 	} else {
-		window.open(file, '_system');
+		window.open(file, '_system')
 	}
 }
 
@@ -237,9 +237,9 @@ function openExternalURL(url) {
 		if (url.match(new RegExp('https://megacubo.tv', 'i'))) {
 			url = url.replace('https:', 'http:'); // bypass Ionic Deeplink
 		}
-		parent.navigator.app.loadUrl(url, { openExternal: true });
+		parent.navigator.app.loadUrl(url, { openExternal: true })
 	} else if (parent.getElectronRemote) {
-		parent.getElectronRemote().shell.openExternal(url);
+		parent.getElectronRemote().shell.openExternal(url)
 	} else {
 		window.open(url);
 	}

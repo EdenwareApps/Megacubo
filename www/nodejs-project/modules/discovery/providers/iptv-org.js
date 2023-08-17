@@ -43,12 +43,12 @@ class IPTV extends Events {
         }
         let lists = locs.map(code => this.data[code]).filter(c => c)
         if(lists.length){
-            const maxLists = 48
+            const maxLists = 48, factor = 0.9 // factor here adds some gravity to grant higher priority to community lists instead
             if(lists.length > maxLists){
                 lists = lists.slice(0, maxLists)
             }
             return lists.map((list, i) => {
-                list = {url: list, health: 1 - (i * (1 / lists.length))}
+                list = {url: list, health: factor * (1 - (i * (1 / lists.length)))}
                 return list
             })
         } else {

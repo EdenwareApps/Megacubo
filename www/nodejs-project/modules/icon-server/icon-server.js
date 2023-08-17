@@ -236,7 +236,7 @@ class IconServerStore extends IconSearch {
                     fs.read(fd, Buffer.alloc(readSize), 0, readSize, 0, (err, bytesRead, content) => {
                         if(err) return reject(err)
                         let v = this.validate(content)
-                        if(v){
+                        if(v) {
                             resolve(v)
                         } else {
                             reject('file not validated')

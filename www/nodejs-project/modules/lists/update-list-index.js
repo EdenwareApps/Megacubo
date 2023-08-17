@@ -62,6 +62,13 @@ class UpdateListIndex extends ListIndexUtils {
 		this.index.groups[entry.group].push(i)
 		return entry
 	}
+    parseHeadersMeta(headers) {
+        const prefix = 'x-m3u-meta-'
+        Object.keys(headers).filter(k => k.startsWith(prefix)).forEach(k => {
+            const name = k.substr(prefix.length)
+            this.index.meta[name] = headers[k]
+        })
+    }
 	fetch(path){
 		return new Promise((resolve, reject) => {
             if(path.match(new RegExp('^//[^/]+\\.'))){
@@ -87,11 +94,13 @@ class UpdateListIndex extends ListIndexUtils {
                 }
                 this.stream = new global.Download(opts)
                 const file = global.paths.temp + '/'+ this.stream.opts.uid +'.bin'
+                this.stream.on('redirect', (url, headers) => this.parseHeadersMeta(headers))
                 this.stream.on('response', (statusCode, headers) => {
                     if(this.debug){
                         console.log('response', statusCode, headers, this.updateMeta)
                     }
                     resolved = true
+                    this.parseHeadersMeta(headers)
                     if(statusCode >= 200 && statusCode < 300){
                         this.contentLength = this.stream.totalContentLength
                         if(this.stream.totalContentLength > 0 && (this.stream.totalContentLength == this.updateMeta.contentLength)){

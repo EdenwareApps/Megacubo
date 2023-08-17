@@ -178,6 +178,12 @@ class Lists extends ListsEPGTools {
         this.manager = new Manager(this)
 		this.configChanged()
 	}
+	getAuthURL(listUrl) {
+		if(listUrl && this.lists[listUrl] && this.lists[listUrl].index && this.lists[listUrl].index.meta && this.lists[listUrl].index.meta['auth-url']) {
+			return this.lists[listUrl].index.meta['auth-url']
+		}
+		return listUrl
+	}
 	configChanged(){
 		const myLists = global.config.get('lists').map(l => l[1])
 		const newLists = myLists.filter(u => !this.myLists.includes(u))
