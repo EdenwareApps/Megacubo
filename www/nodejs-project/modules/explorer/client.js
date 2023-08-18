@@ -1190,6 +1190,7 @@ class ExplorerDialog extends ExplorerDialogQueue {
 			paste = paste.trim()
 			if(paste.startsWith('http') || paste.startsWith('//')) { // seems URL
 				input.value = paste
+				input.select()
 			}
 		}
 	}

@@ -655,11 +655,13 @@ class StreamerTracks extends StreamerGoNext {
 		return opts
 	}
 	getExtTrackOptions(tracks, activeTrack){
-		return tracks.map(track => {
+		return this.removeCommonAttributes(tracks).map(track => {
 			let text = track.label || track.name
 			if(!text){				
 				if(track.lang){
 					text = track.lang +' '+ String(track.id)
+				} else if(track.language){
+					text = track.language +' '+ String(track.id)
 				} else {
 					text = String(track.id)
 				}
@@ -670,6 +672,29 @@ class StreamerTracks extends StreamerGoNext {
 			}
 			return opt
 		})
+	}
+	removeCommonAttributes(arr) {
+		const valueCounts = {}
+		arr.forEach(obj => {
+			for (const key in obj) {
+				valueCounts[key] = valueCounts[key] || {};
+				valueCounts[key][obj[key]] = (valueCounts[key][obj[key]] || 0) + 1
+			}
+		})
+		const totalObjects = arr.length
+		const attributesToDelete = []
+		for (const key in valueCounts) {
+			const values = Object.keys(valueCounts[key])
+			if (values.length !== totalObjects) {
+				attributesToDelete.push(key)
+			}
+		}
+		arr.forEach(obj => {
+			attributesToDelete.forEach(attr => {
+				delete obj[attr]
+			})
+		})
+		return arr
 	}
 	async showQualityTrackSelector(){
 		if(!this.active) return

@@ -705,6 +705,7 @@ if(global.cordova) {
     app.commandLine.appendSwitch('enable-accelerated-video-decode')
     app.commandLine.appendSwitch('enable-accelerated-mjpeg-decode')
     app.commandLine.appendSwitch('enable-native-gpu-memory-buffers')
+    app.commandLine.appendSwitch('enable-experimental-web-platform-features') // audioTracks support
     app.commandLine.appendSwitch('enable-features', 'PlatformHEVCDecoderSupport') 
     app.commandLine.appendSwitch('disable-features', 'SitePerProcess')
     app.whenReady().then(() => {
@@ -721,6 +722,7 @@ if(global.cordova) {
                 nodeIntegrationInWorker: true,
                 nodeIntegrationInSubFrames: false,
                 enableRemoteModule: true,
+                experimentalFeatures: true, // audioTracks support
                 webSecurity: false // desabilita o webSecurity
             }
         })

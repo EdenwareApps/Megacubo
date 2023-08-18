@@ -588,7 +588,8 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 	}
 	audioTrack(trackId){
 		for (let i = 0; i < this.object.audioTracks.length; i++) {
-			this.object.audioTracks[i].enabled = i == trackId
+			const enable = i == trackId || this.object.audioTracks[i].id == trackId
+			this.object.audioTracks[i].enabled = enable
 		}
 	}
 	subtitleTracks(){
@@ -596,7 +597,8 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 	}
 	subtitleTrack(trackId){
 		for (let i = 0; i < this.object.subtitleTracks.length; i++) {
-			this.object.subtitleTracks[i].enabled = i == trackId
+			const enable = i == trackId || this.object.subtitleTracks[i].id == trackId
+			this.object.subtitleTracks[i].enabled = enable
 		}
 	}
 	formatTracks(tracks, activeId){
@@ -606,10 +608,17 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 		if(!Array.isArray(tracks)){
 			tracks = Array.from(tracks)
 		}
-		const allow = ['id', 'lang', 'enabled', 'label', 'name']
-		return tracks.map(t => {
+		const allow = ['id', 'lang', 'language', 'enabled', 'label', 'name']
+		return tracks.map((t, i) => {
 			const ts = {}
-			Object.keys(t).filter(k => allow.includes(k)).forEach(k => ts[k] = t[k])
+			for(const k of allow) {
+				if(t[k]) {
+					ts[k] = t[k]
+				}
+			}
+			if(typeof(ts.id) == 'undefined') {
+				ts.id = i
+			}
 			if(typeof(activeId) != 'undefined' && activeId == ts.id){
 				ts.enabled = true
 			}
