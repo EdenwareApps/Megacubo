@@ -109,6 +109,7 @@ class Download extends Events {
 		const now = global.time()
 		if(this.opts.authURL && (!Download.pingAuthDelay[this.opts.authURL] || now > Download.pingAuthDelay[this.opts.authURL])){
 			Download.pingAuthDelay[this.opts.authURL] = now + 120
+			console.error('PINGAUTHURL: '+ this.opts.authURL +' '+ now)
 			Download.get({
 				url: this.opts.authURL,
 				timeout: 20,
@@ -732,7 +733,7 @@ class Download extends Events {
 			if(this.opts.cacheTTL){
 				Download.cache.save(this, null, true) // save redirect, before changing currentURL, end it always despite of responseSource
 			}
-			this.currentURL = global.absolutize(response.headers['location'], this.opts.url)			
+			this.currentURL = global.absolutize(response.headers['location'], this.currentURL)			
 			if(this.opts.debug){
 				console.log('>> Download redirect', this.opts.followRedirect, response.headers['location'], this.currentURL)
 			}	

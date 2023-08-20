@@ -17,7 +17,7 @@ class VideoControlAdapterHTML5TS extends VideoControlAdapterHTML5Video {
 			this.currentMimetype = mimetype
 		}
         this.mpegts = mpegts.createPlayer({
-            type: 'mse',  // could be mse, mpegts, m2ts, flv
+            type: 'mse', // could be mse, mpegts, m2ts, flv
             url: this.currentSrc,
             isLive: type != 'video'
 		}, {
@@ -27,10 +27,13 @@ class VideoControlAdapterHTML5TS extends VideoControlAdapterHTML5Video {
         })
         this.mpegts.attachMediaElement(this.object)
 		this.errorListener = err => {
-            console.error('MPEGTS ERROR', err)
-			const t = this.time()			
+			const t = this.time()
+			if(t != this.lastErrorTime) {
+				this.errorsCount = 0
+			}
 			this.errorsCount++
-			if(t != this.lastErrorTime && this.errorsCount >= (t > 0 ? 20 : 3)){
+            console.error('MPEGTS ERROR', err, this.errorsCount, t != this.lastErrorTime)
+			if(this.errorsCount >= (t > 0 ? 20 : 3)){
 				this.emit('error', String(err), true)
 				this.state = ''
 				this.emit('state', '')

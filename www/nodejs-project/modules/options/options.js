@@ -347,49 +347,7 @@ class OptionsExportImport extends PerformanceProfiles {
     }
 }
 
-class OptionsHardwareAcceleration extends OptionsExportImport {
-    constructor(){
-        super()
-        this.hwaDisableFlags = ['--disable-gpu', '--force-cpu-draw']
-    }
-    async setHardwareAcceleration(enable){
-        let hasErr
-        const fs = require('fs'), file = APPDIR +'/package.json'
-        const ret = await fs.promises.access(file, fs.constants.W_OK).catch(err => {
-            hasErr = err
-        })
-        if(hasErr){
-            global.explorer.dialog([
-                {template: 'question', text: global.MANIFEST.window.title, fa: 'fas fa-info-circle'},
-                {template: 'message', text: 'You must run '+ global.MANIFEST.window.title +' as admin to change this option.'},
-                {template: 'option', text: 'OK', id: 'ok'}
-            ], 'ok').catch(console.error) // dont wait
-            global.explorer.refreshNow()
-        } else {
-            let manifest = await fs.promises.readFile(file)
-            manifest = global.parseJSON(manifest) 
-            this.hwaDisableFlags.forEach(flag => {
-                manifest['chromium-args'] = manifest['chromium-args'].replace(flag, '').trim()
-            });
-            if(!enable){
-                this.hwaDisableFlags.forEach((flag) => {
-                    manifest['chromium-args'] += ' '+ flag
-                })
-            }
-            await fs.promises.writeFile(file, JSON.stringify(manifest, null, 3))
-            global.energy.restart()
-        }
-    }
-    getHardwareAcceleration(){
-        const fs = require('fs')
-        let manifest = String(fs.readFileSync(global.APPDIR +'/package.json'))
-        return !this.hwaDisableFlags.every(flag => {
-            return manifest.indexOf(flag) != -1
-        })
-    }    
-}
-
-class OptionsP2P extends OptionsHardwareAcceleration {
+class OptionsP2P extends OptionsExportImport {
     constructor(){
         super()
         this.p2pDebugShowing = false
@@ -1348,11 +1306,20 @@ class Options extends OptionsP2P {
                 ]
                 if(!global.cordova){
                     opts[opts.length - 1].entries.push({
-                        name: 'GPU rendering', type: 'check', action: (data, checked) => {
-                        this.setHardwareAcceleration(checked).catch(global.displayErr)
-                    }, checked: () => {
-                        return this.getHardwareAcceleration()
-                    }})
+                        name: 'GPU rendering', type: 'check',
+                        action: (data, checked) => {
+                            let value = '' // auto, enabled
+                            if(!checked) {
+                                value = '--disable-gpu --force-cpu-draw'
+                            }
+                            global.config.set('hw-acceleration', value)
+                            global.energy.restart()
+                        },
+                        checked: () => {
+                            const value = global.config.get('hw-acceleration')
+                            return value.indexOf('--disable-gpu') == -1
+                        }
+                    })
                 }
                 return opts
             }},

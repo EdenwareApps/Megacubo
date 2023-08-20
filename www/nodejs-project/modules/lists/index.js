@@ -492,22 +492,36 @@ class Index extends Common {
         }
     }
 	async group(group){
+		console.error('GGROUP='+JSON.stringify(group))
+		
 		if(!this.lists[group.url]){
 			throw 'List not loaded'
 		}
 
-		let map = this.lists[group.url].index.groups[group.group]
+/*
+		let mmap, map = this.lists[group.url].index.groups[group.group].slice(0)
 		if(!map) map = []
 		Object.keys(this.lists[group.url].index.groups).forEach(s => {
-			if(s.indexOf('/') != -1 && s.startsWith(group.group)){
-				this.lists[group.url].index.groups[s].forEach(n => map.includes(n) || map.push(n))
+			if(s != group.group && s.indexOf('/') != -1 && s.startsWith(group.group)){
+				if(!mmap) { // jit
+					mmap = new Map(map.map(m => [m, null]))
+					map = [] // freeup mem
+				}
+				this.lists[group.url].index.groups[s].forEach(n => mmap.has(n) || mmap.set(n, null))
 			}
 		})
 
-		let entries = await this.lists[group.url].getEntries(map)
+		if(mmap) {
+			map = Array.from(mmap, ([key]) => key)
+		}
+*/
+		let entries = [], map = this.lists[group.url].index.groups[group.group] || []
+		if(map.length) {
+			entries = await this.lists[group.url].getEntries(map)
+			return entries
+		}
 		entries = this.parentalControl.filter(entries, true)
 		entries = this.sort(entries)
-
 		return entries
 	}
 }

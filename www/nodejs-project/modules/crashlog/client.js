@@ -29,19 +29,16 @@ class Crashlog {
         return val
     }
     save(message, file, line, column, errorObj){
-        console.warn('IDX', message, file, line, column, errorObj)
-        let stack = errorObj !== undefined && errorObj !== null ? errorObj.stack : traceback()
-        if(this.maxAlerts){
-            this.maxAlerts--
-            alert(message +' '+ file +':'+ line +' '+ stack)
-            console.error(errorObj || message)
-        }
-        app && app.emit('crash', message +' '+ file +':'+ line +' '+ stack)
+        if(!window.app) return
+        const stack = errorObj !== undefined && errorObj !== null ? errorObj.stack : traceback()
+        app.emit('crash', message +' '+ file +':'+ line +' '+ stack)
     }
 }
 
 var crashlog = new Crashlog()
-window.onerror = (...args) => {
-    crashlog.save(...args)
+window.onerror = function (arguments) {
+    var args = Array.from(arguments)
+    parent.onerror && parent.onerror.apply(null, args)
+    crashlog.save(args)
     return true
 }

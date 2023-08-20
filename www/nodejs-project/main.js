@@ -681,33 +681,38 @@ global.ui.on('get-lang-callback', (locale, timezone, ua, online) => {
 if(global.cordova) {
     global.ui.emit('get-lang')
 } else {
-    let remoteModuleExternal = parseFloat(process.versions.electron) >= 22
+    const remoteModuleExternal = parseFloat(process.versions.electron) >= 22
     remoteModuleExternal && require('@electron/remote/main').initialize()
     const { app, BrowserWindow, globalShortcut } = require('electron')
-    onexit(() => {        
-        app.quit()
-    })
-    app.on('window-all-closed', () => {
-        app.quit()        
-    })
+    onexit(() => app.quit())
     if(remoteModuleExternal){
         app.on('browser-window-created', (_, window) => {
             require('@electron/remote/main').enable(window.webContents)
         })
     }
+
+    const hwDefaultAccelFlags = `
+        --use-gl=desktop
+        --enable-gpu-rasterization
+        --enable-accelerated-video
+        --enable-accelerated-video-decode
+        --enable-accelerated-mjpeg-decode
+        --enable-native-gpu-memory-buffers
+    `
+    let hwAccelFlags = global.config.get('hw-acceleration') || hwDefaultAccelFlags
+    hwAccelFlags = hwAccelFlags.replace(new RegExp('[\t\n ]+', 'g'), ' ').trim().split(' ').map(s => s.substr(2)).filter(s => s).map(s => s.split('='))
+    hwAccelFlags.forEach(a => app.commandLine.appendSwitch(...a))
+
     app.commandLine.appendSwitch('no-prefetch')
-    app.commandLine.appendSwitch('use-gl', 'desktop')
     app.commandLine.appendSwitch('disable-http-cache')
     app.commandLine.appendSwitch('disable-websql', 'true')
-    app.commandLine.appendSwitch('enable-gpu-rasterization')
-    app.commandLine.appendSwitch('enable-accelerated-video')
+    app.commandLine.appendSwitch('password-store', 'basic')
+    app.commandLine.appendSwitch('enable-smooth-scrolling')
+    app.commandLine.appendSwitch('disable-transparency', 'true')
     app.commandLine.appendSwitch('disable-site-isolation-trials')
-    app.commandLine.appendSwitch('enable-accelerated-video-decode')
-    app.commandLine.appendSwitch('enable-accelerated-mjpeg-decode')
-    app.commandLine.appendSwitch('enable-native-gpu-memory-buffers')
     app.commandLine.appendSwitch('enable-experimental-web-platform-features') // audioTracks support
     app.commandLine.appendSwitch('enable-features', 'PlatformHEVCDecoderSupport') 
-    app.commandLine.appendSwitch('disable-features', 'SitePerProcess')
+    app.commandLine.appendSwitch('disable-features', 'IsolateOrigins,SitePerProcess,NetworkPrediction')
     app.whenReady().then(() => {
         const window = new BrowserWindow({  
             titleBarStyle: 'hidden',

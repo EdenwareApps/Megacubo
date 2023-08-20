@@ -309,7 +309,7 @@ class Parser extends EventEmitter {
 		if (s.length == 3 && s.toLowerCase().trim() === 'n/a') {
 			return ''
 		}
-		if(s.match(Parser.regexes['group-separators'], '/')) { // if there are few cases, is better not replace directly
+		if(s.match(Parser.regexes['group-separators'])) { // if there are few cases, is better not replace directly
 			s = s.replace(Parser.regexes['group-separators'], '/')
 		}
 		if(s.indexOf('[') != -1) {
@@ -398,7 +398,7 @@ class Parser extends EventEmitter {
 }
 
 Parser.regexes = {
-	'group-separators': new RegExp('([\\\\|;]| /|/ )', 'g'),
+	'group-separators': new RegExp('( ?[\\\\|;] ?| /|/ )', 'g'),
 	'notags': new RegExp('\\[[^\\]]*\\]', 'g'),
 	'between-brackets': new RegExp('\\[[^\\]]*\\]', 'g'), // match data between brackets
 	'accents': new RegExp('[\\u0300-\\u036f]', 'g'), // match accents

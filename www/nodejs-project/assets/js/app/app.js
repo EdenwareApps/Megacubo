@@ -1,9 +1,5 @@
 var body = $('body'), content = $('#explorer content'), wrap = document.querySelector('#explorer wrap'), wrapper = $(wrap)
 
-if(typeof(window.onerror) != 'function'){
-    window.onerror = parent.onerror
-}
-
 function parseMomentLocale(content){
     let startPos = content.indexOf('moment.defineLocale('), endPos = content.lastIndexOf('return ')
     if(startPos != -1 && endPos != -1){
@@ -477,7 +473,10 @@ function initApp(){
             }
         })
         streamer.on('stop', () => {
-            if(explorer.modalContainer && explorer.modalContainer.querySelector('#modal-template-option-wait')){
+            if(explorer.modalContainer && (
+                explorer.modalContainer.querySelector('#modal-template-option-wait') || 
+                explorer.modalContainer.querySelector('#modal-template-option-resume')
+            )){
                 explorer.endModal()
             }
             menuPlaying(false)

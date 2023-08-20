@@ -8,9 +8,10 @@ if(typeof(themeRefresh) == 'undefined'){
         var r = colorChannelMixer(rgbA[0], rgbB[0], amountToMix)
         var g = colorChannelMixer(rgbA[1], rgbB[1], amountToMix)
         var b = colorChannelMixer(rgbA[2], rgbB[2], amountToMix)
-        return "rgb("+r+","+g+","+b+")"
+        return "rgb("+ [r, g, b].join(", ") +")"
     }
     function themeRefresh(){
+        if(!window.hexToRGBA) return
         const systemFont = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif'
         let family = config['font-family'], nfs = 0.0275 + (config['font-size'] * 0.0015)
         if(!family){

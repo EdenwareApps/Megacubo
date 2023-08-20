@@ -156,7 +156,7 @@ class StreamerCasting extends StreamerOSD {
                     if(parent.player.state){
                         parent.player.resume()
                     } else {
-                        parent.player.load(this.activeSrc, this.activeMimetype, this.activeCookie, this.activeMediatype)
+                        parent.player.load(this.activeSrc, this.activeMimetype, this.activeCookie, this.activeMediatype, this.data)
                         this.stateListener('loading')
                     }
                 }
@@ -1553,7 +1553,7 @@ class StreamerClientController extends StreamerClientControls {
         this.activeMimetype = (mimetype || '').toLowerCase()
         this.activeMediatype = mediatype
         this.inLiveStream = this.activeMediatype == 'live'
-        parent.player.load(src, mimetype, cookie, this.activeMediatype)
+        parent.player.load(src, mimetype, cookie, this.activeMediatype, this.data)
         this.emit('start')
     }
     stop(fromServer){

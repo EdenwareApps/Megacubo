@@ -1,5 +1,6 @@
 const fs = require('fs'), Events = require('events')
 const readline = require('readline'), createReader = require('../reader')
+const pLimit = require('p-limit')
 
 class ListIndexUtils extends Events {
 	constructor(){
@@ -33,6 +34,7 @@ class ListIndexUtils extends Events {
         let fd = null
         try {
             fd = await fs.promises.open(this.file, 'r')
+            /*
             for (const [index, range] of ranges.entries()) {
                 const length = range.end - range.start
                 const buffer = Buffer.alloc(length)
@@ -42,6 +44,20 @@ class ListIndexUtils extends Events {
                 }
                 lines[map[index]] = buffer.toString()
             }
+            */
+           const limit = pLimit(4)
+           const tasks = ranges.map((r, i) => {
+                return async () => {
+                    const length = r.end - r.start
+                    const buffer = Buffer.alloc(length)
+                    const { bytesRead } = await fd.read(buffer, 0, length, r.start)                
+                    if(bytesRead < buffer.length) {
+                        buffer = buffer.slice(0, bytesRead)
+                    }
+                    lines[map[i]] = buffer.toString()
+                }
+            }).map(limit)
+            await Promise.allSettled(tasks)
         } catch (error) {
             console.error(error)
         } finally {

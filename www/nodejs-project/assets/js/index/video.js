@@ -156,7 +156,7 @@ class VideoControl extends EventEmitter {
 			if(!this.suspendStateChangeReporting) this.emit('state', s, err)
 		}
 	}
-	load(src, mimetype, cookie, mediatype){
+	load(src, mimetype, cookie, mediatype, data){
 		this.setState('loading')
 		this.suspendStateChangeReporting = true
 		this.current && this.current.unload(true)
@@ -166,7 +166,7 @@ class VideoControl extends EventEmitter {
 			let m = mimetype.toLowerCase()
 			if(m.indexOf('mpegurl') != -1){
 				this.setup('html5h', VideoControlAdapterHTML5HLS)
-			} else if(m.indexOf('mp2t') != -1 || (src.endsWith('.ts') && mediatype == 'video')){
+			} else if(m.indexOf('mp2t') != -1 || (src.endsWith('.ts') && mediatype == 'video') || (data && data.mpegts === true)){
 				this.setup('html5t', VideoControlAdapterHTML5TS)
 			} else if(m.indexOf('audio/') != -1){
 				this.setup('html5a', VideoControlAdapterHTML5Audio)

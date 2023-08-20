@@ -328,33 +328,33 @@ function fakeUpdateProgress() {
 	}, 1000);
 }
 
-(window.onerror = function (message, file, line, column, errorObj) {
+window.onerror = function (message, file, line, column, errorObj) {
 	let stack = typeof errorObj == 'object' && errorObj !== null && errorObj.stack ? errorObj.stack : traceback();
 	if (maxAlerts) {
 		maxAlerts--;
-		if (file && file.startsWith('blob:http://')) { // ignore hls.js errors
+		if (file && !file.startsWith('blob:http://')) { // ignore hls.js errors
 			alert(message + ' ' + file + ':' + line + ' ' + stack);
 			log(message);
 		}
 	}
 	console.error(errorObj || message, { errorObj, message, file, stack });
 	return true;
-});
+}
 	
 document.addEventListener('pause', function () {
-	if (channel) {
+	if (window.channel) {
 		channel.post('message', ['suspend']);
 	}
 });
 
 document.addEventListener('resume', function () {
-	if (channel) {
+	if (window.channel) {
 		channel.post('message', ['resume']);
 	}
 });
 
 document.addEventListener('backbutton', function (e) {
-	if (app) {
+	if (window.app) {
 		e.preventDefault();
 		app.postMessage({ action: 'backbutton' }, location.origin);
 	}

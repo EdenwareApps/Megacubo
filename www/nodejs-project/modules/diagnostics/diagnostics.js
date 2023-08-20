@@ -25,26 +25,28 @@ class Diagnostics extends Events {
 				priority: p.priority
 			}
 		});
-		const updaterResults = global.lists.loader.results;
+		const updaterResults = global.lists.loader.results, privateLists = [];
 		['lists', 'parental-control-terms', 'parental-control-pw', 'premium-license'].forEach(k => delete config[k])
 		Object.keys(lists).forEach(url => {
 			lists[url].owned = myLists.includes(url)
 			if(lists[url].private){
-				const u = url.replace(new RegExp('(://[^/]+/).*'), '$1***'), n = lists[url]
-				n.url = u
-				delete lists[url]
-				lists[u] = n
+				privateLists.push(url)
 			}
 		})
 		if(diskSpace && diskSpace.size){
 			diskSpace.free = global.kbfmt(diskSpace.free)
 			diskSpace.size = global.kbfmt(diskSpace.size)
 		}
-		return {version, diskSpace, freeMem, config, lists, listsRequesting, updaterResults, processedLists, processing, tuning}
+		let report = {version, diskSpace, freeMem, config, lists, listsRequesting, updaterResults, processedLists, processing, tuning}
+		report = JSON.stringify(report, null, 3)
+		privateLists.forEach(url => {
+			report = report.replace(url, 'http://***')
+		})
+		return report
 	}
 	async saveReport(){
 		const file = global.downloads.folder +'/report.txt'
-		await fs.promises.writeFile(file, JSON.stringify(await this.report(), null, 3), {encoding: 'utf8'})
+		await fs.promises.writeFile(file, await this.report(), {encoding: 'utf8'})
 		global.downloads.serve(file, true, false).catch(global.displayErr)
 	}
     async checkDisk(){

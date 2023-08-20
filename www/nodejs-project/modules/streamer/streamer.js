@@ -336,21 +336,21 @@ class StreamerBase extends StreamerTools {
 						}
 					}
 				})
-				intent.on('streamer-connect', () => this.connect())
+				intent.on('streamer-connect', () => this.uiConnect())
 				if(intent.codecData){
 					intent.emit('codecData', intent.codecData)
 				}
 				this.emit('commit', intent)
 				intent.emit('commit')
-				let data = this.connect(intent)
-				console.warn('STREAMER COMMIT '+ data.url)
+				this.uiConnect(intent)
+				console.warn('STREAMER COMMIT '+ intent.data.url)
 				return true
 			}
 		} else {
 			return 'NO INTENT'
 		}
 	}
-	connect(intent){
+	uiConnect(intent, skipTranscodingCheck){
 		if(!intent) intent = this.active
 		let data = intent.data
 		data.engine = intent.type
@@ -361,11 +361,11 @@ class StreamerBase extends StreamerTools {
 			data.icon = global.icons.url + global.channels.entryTerms(data).join(',')
 		}
 		this.emit('streamer-connect', intent.endpoint, intent.mimetype, data)
-		if(intent.transcoderStarting){
+		if(!skipTranscodingCheck && intent.transcoderStarting){
 			global.ui.emit('streamer-connect-suspend')
-		}
-		if(!this.opts.shadow){
-			global.osd.hide('streamer')
+			if(!this.opts.shadow){
+				global.osd.hide('streamer')
+			}
 		}
 		return data
 	}
@@ -399,7 +399,7 @@ class StreamerBase extends StreamerTools {
 					global.ui.emit('transcode-starting', true)
 				}
 				intent.transcode().then(() => {
-					this.emit('streamer-connect', intent.endpoint, intent.mimetype, intent.data)
+					this.uiConnect(intent, true)
 					cb(null, intent.transcoder)
 				}).catch(err => {
 					if(this.active){
@@ -711,7 +711,7 @@ class StreamerTracks extends StreamerGoNext {
 			})
 			if(uri && uri != this.active.endpoint){
 				this.active.endpoint = uri
-				this.connect()
+				this.uiConnect()
 			}
 		}
 		return {ret, opts}

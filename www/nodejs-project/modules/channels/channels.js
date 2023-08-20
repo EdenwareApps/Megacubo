@@ -1644,22 +1644,13 @@ class Channels extends ChannelsKids {
         if(!global.lists.activeLists.length){ // one list available on index beyound meta watching list
             return [global.lists.manager.noListsEntry()]
         }
-        const namedGroups = {}, isSeries = type == 'series'
-        let entries = [], groups = await global.lists.groups(type ? [type] : ['series', 'vod'])
-        const acpolicy = global.config.get('parental-control')
-        if(acpolicy == 'remove'){
-            groups = global.lists.parentalControl.filter(groups)		
-        } else if(acpolicy == 'only') {
-            groups = global.lists.parentalControl.only(groups)
-        }
-        groups.forEach(group => {
+        const isSeries = type == 'series'
+        let groups = await global.lists.groups(type ? [type] : ['series', 'vod'])
+        const acpolicy = global.config.get('parental-control')        
+        const groupToEntry = group => {
             const name = group.name
-            const slug = name.toLowerCase().normalize('NFD').replace(new RegExp('[^a-z0-9]', 'g'), '')
-            if(typeof(namedGroups[slug]) == 'undefined'){
-                namedGroups[slug] = []
-            }
             const details = group.group.split('/').filter(n => n != name).join(' &middot; ')
-            namedGroups[slug].push({
+            return {
                 name,
                 details,
                 type: 'group',
@@ -1668,59 +1659,50 @@ class Channels extends ChannelsKids {
                 class: isSeries ? 'entry-cover' : undefined,
                 fa: isSeries ? 'fas fa-play-circle' : undefined,
                 renderer: async () => {
-                    let entries = await global.lists.group(group).catch(console.error)
-                    if(Array.isArray(entries)) {
-                        if(acpolicy == 'block'){
-                            entries = global.lists.parentalControl.filter(entries)
-                        }
-                        entries = await global.lists.tools.deepify(entries, {source: group.url})
-                        while(entries.length == 1 && entries[0].type == 'group'){
-                            if(entries[0].entries){
-                                entries = entries[0].entries
-                            } else if(typeof(entries[0].renderer) == 'function') {
-                                entries = await entries[0].renderer(entries[0])
-                            } else if(typeof(entries[0].renderer) == 'string') {
-                                entries = await global.storage.temp.promises.get(entries[0].renderer)
-                            }
-                        }
-                        return entries
+                    return await renderer(group)
+                }
+            }
+        }
+        const parentalFilter = entries => {
+            if(acpolicy == 'block'){
+                entries = global.lists.parentalControl.filter(entries)
+            } else if(acpolicy == 'remove'){
+                entries = global.lists.parentalControl.filter(entries)		
+            } else if(acpolicy == 'only') {
+                entries = global.lists.parentalControl.only(entries)
+            }
+            return entries
+        }        
+        const renderer = async group => {
+            console.error('GROUP='+ JSON.stringify(group))
+            let entries = await global.lists.group(group).catch(console.error)
+            if(Array.isArray(entries)) {
+                let gentries = (group.entries || []).map(g => groupToEntry(g))
+                gentries.push(...entries)
+                while(entries.length == 1){
+                    const entry = entries[0]
+                    if(entry.entries){
+                        entries = entry.entries
+                    } else if(typeof(entry.renderer) == 'function') {
+                        entries = await entry.renderer(entry)
+                    } else if(typeof(entry.renderer) == 'string') {
+                        entries = await global.storage.temp.promises.get(entry.renderer)
                     } else {
-                        process.nextTick(() => global.explorer.back(null, true))
-                        return []
+                        break
                     }
                 }
-            })
-        })
-        Object.keys(namedGroups).forEach(name => {
-            if(namedGroups[name].length == 1){
-                entries.push(namedGroups[name][0])
+                entries = parentalFilter(entries).sortByProp('name')
+                const deepEntries = await global.lists.tools.deepify(entries, {source: group.url}).catch(console.error)
+                if(Array.isArray(deepEntries)) {
+                    entries = deepEntries
+                }
+                return gentries
             } else {
-                let rname = namedGroups[name][0].name || name
-                let fa = 'fas fa-box-open'
-                let icon = namedGroups[name].map(g => g.icon).filter(g => g).shift()
-                entries.push({
-                    name: rname,
-                    type: 'group',
-                    fa,
-                    icon,
-                    class: isSeries ? 'entry-cover' : undefined,
-                    details: namedGroups[name].details,
-                    renderer: async () => {
-                        const entries = [], already = {}
-                        await Promise.allSettled(namedGroups[name].map(g => g.renderer().then(es => {
-                            es.forEach(e => {
-                                if(typeof(already[e.url]) != 'undefined') return
-                                entries.push(e)
-                                already[e.url] = null
-                            })
-                        })))
-                        return await global.lists.tools.deepify(entries, { minPageCount: 8 })
-                    }
-                })
+                process.nextTick(() => global.explorer.back(null, true))
+                return []
             }
-        })
-        entries = await global.lists.tools.deepify(entries, { minPageCount: 5 })
-        return entries
+        }
+        return parentalFilter(groups).map(group => groupToEntry(group))
     }
     async hook(entries, path){
         if(!path) {
