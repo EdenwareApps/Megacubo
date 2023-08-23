@@ -13,6 +13,7 @@
     "color-thief-jimp": "^2.0.2",
     "decode-entities": "^1.0.7",
     "env-paths": "^2.2.1",
+    "exec-finder": "^0.0.2",
     "formidable": "^2.1.1",
     "fs-chmod": "^1.0.6",
     "get-folder-size": "^2.0.1",
@@ -45,7 +46,7 @@
   "description": "A intuitive, multi-language and cross-platform IPTV player.",
   "name": "megacubo",
   "icon": "./default_icon.png",
-  "version": "17.1.6",
+  "version": "17.1.7",
   "theme": {
     "fullScreen": true
   },

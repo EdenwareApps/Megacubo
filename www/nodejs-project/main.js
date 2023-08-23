@@ -683,7 +683,9 @@ if(global.cordova) {
 } else {
     const remoteModuleExternal = parseFloat(process.versions.electron) >= 22
     remoteModuleExternal && require('@electron/remote/main').initialize()
-    const { app, BrowserWindow, globalShortcut } = require('electron')
+    const { app, BrowserWindow, globalShortcut, Menu } = require('electron')
+
+    Menu.setApplicationMenu(null)
     onexit(() => app.quit())
     if(remoteModuleExternal){
         app.on('browser-window-created', (_, window) => {
@@ -691,35 +693,30 @@ if(global.cordova) {
         })
     }
 
-    const hwDefaultAccelFlags = `
-        --use-gl=desktop
-        --enable-gpu-rasterization
-        --enable-accelerated-video
-        --enable-accelerated-video-decode
-        --enable-accelerated-mjpeg-decode
-        --enable-native-gpu-memory-buffers
-    `
-    let hwAccelFlags = global.config.get('hw-acceleration') || hwDefaultAccelFlags
-    hwAccelFlags = hwAccelFlags.replace(new RegExp('[\t\n ]+', 'g'), ' ').trim().split(' ').map(s => s.substr(2)).filter(s => s).map(s => s.split('='))
-    hwAccelFlags.forEach(a => app.commandLine.appendSwitch(...a))
+    global.config.get('gpu-flags').forEach(f => app.commandLine.appendSwitch(f))
+    global.config.get('gpu') || app.disableHardwareAcceleration()
 
+    app.commandLine.appendSwitch('no-sandbox')
     app.commandLine.appendSwitch('no-prefetch')
-    app.commandLine.appendSwitch('disable-http-cache')
     app.commandLine.appendSwitch('disable-websql', 'true')
     app.commandLine.appendSwitch('password-store', 'basic')
-    app.commandLine.appendSwitch('enable-smooth-scrolling')
+    app.commandLine.appendSwitch('disable-http-cache', 'true')
+    app.commandLine.appendSwitch('enable-tcp-fast-open', 'true')
     app.commandLine.appendSwitch('disable-transparency', 'true')
     app.commandLine.appendSwitch('disable-site-isolation-trials')
+    app.commandLine.appendSwitch('enable-smooth-scrolling', 'true')
     app.commandLine.appendSwitch('enable-experimental-web-platform-features') // audioTracks support
-    app.commandLine.appendSwitch('enable-features', 'PlatformHEVCDecoderSupport') 
+    app.commandLine.appendSwitch('enable-features', 'PlatformHEVCDecoderSupport')  // TODO: Allow user to activate Metal (macOS) and VaapiVideoDecoder (Linux) features
     app.commandLine.appendSwitch('disable-features', 'IsolateOrigins,SitePerProcess,NetworkPrediction')
     app.whenReady().then(() => {
         const window = new BrowserWindow({  
-            titleBarStyle: 'hidden',
             frame: false,
+            titleBarStyle: 'hidden',
             icon: path.join(global.APPDIR, 'default_icon.png'),
             webPreferences: {
                 cache: false,
+                sandbox: false,
+                fullscreenable: true,
                 disablePreconnect: true,
                 dnsPrefetchingEnabled: false,
                 contextIsolation: false, // false is required for nodeIntegration

@@ -360,6 +360,7 @@
    "RETURNING": "Powracający...",
    "RUNNING_IN_BACKGROUND": "Działa w tle",
    "SAVE": "Zapisać",
+   "SAVE_REPORT": "Zapisz raport",
    "SAVE_SCHEDULE": "Zapisz harmonogram",
    "SAVING_FILE": "Zapisywanie pliku...",
    "SAVING_FILE_X": "Zapisywanie pliku \"{0}\"...",

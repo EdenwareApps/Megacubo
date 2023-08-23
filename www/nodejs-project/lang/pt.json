@@ -360,6 +360,7 @@
    "RETURNING": "Voltando...",
    "RUNNING_IN_BACKGROUND": "Rodando em segundo plano",
    "SAVE": "Salvar",
+   "SAVE_REPORT": "Salvar o relatorio",
    "SAVE_SCHEDULE": "Salvar agendamento",
    "SAVING_FILE": "Salvando arquivo...",
    "SAVING_FILE_X": "Salvando arquivo \"{0}\"...",

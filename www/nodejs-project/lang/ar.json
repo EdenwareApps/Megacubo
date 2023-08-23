@@ -360,6 +360,7 @@
    "RETURNING": "جاري العودة ...",
    "RUNNING_IN_BACKGROUND": "يعمل في الخلفية",
    "SAVE": "حفظ",
+   "SAVE_REPORT": "احفظ التقرير",
    "SAVE_SCHEDULE": "حفظ الجدول",
    "SAVING_FILE": "حفظ الملف...",
    "SAVING_FILE_X": "حفظ الملف \"{0}\"...",

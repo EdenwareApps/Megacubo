@@ -360,6 +360,7 @@
    "RETURNING": "Retourner...",
    "RUNNING_IN_BACKGROUND": "Courir en arrière-plan",
    "SAVE": "Sauvegarder",
+   "SAVE_REPORT": "Sauver le rapport",
    "SAVE_SCHEDULE": "Enregistrer la planification",
    "SAVING_FILE": "Sauvegarde du fichier...",
    "SAVING_FILE_X": "Sauvegarde du fichier \"{0}\"...",

@@ -360,6 +360,7 @@
    "RETURNING": "Volvendo...",
    "RUNNING_IN_BACKGROUND": "Ejecutando en segundo plano",
    "SAVE": "Guardar",
+   "SAVE_REPORT": "Guardar reporte",
    "SAVE_SCHEDULE": "Guardar programación",
    "SAVING_FILE": "Guardando archivo...",
    "SAVING_FILE_X": "Guardando archivo \"{0}\"...",

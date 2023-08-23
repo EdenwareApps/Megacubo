@@ -21,6 +21,15 @@ module.exports = {
 	'font-family': '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;',
 	'font-size': 3,
 	'fx-nav-intensity': 2,
+	'gpu': true,
+	'gpu-flags': [
+		'in-process-gpu',
+		'enable-gpu-rasterization',
+		'enable-accelerated-video',
+		'enable-accelerated-video-decode',
+		'enable-accelerated-mjpeg-decode',
+		'enable-native-gpu-memory-buffers'
+	],
 	'hide-back-button': false,
 	'hls-prefetching': true,
 	'hotkeys': {

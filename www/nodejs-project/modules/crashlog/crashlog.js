@@ -47,7 +47,7 @@ class Crashlog {
     }
     async read(){
         let content = ''
-        for(let file of [this.crashFile, this.crashLogFile]){
+        for(let file of [this.crashFile, this.crashLogFile]) {
             let text = await fs.promises.readFile(file).catch(console.error)
             if(text){ // filter "undefined"
                 content += text

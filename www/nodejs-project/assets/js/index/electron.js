@@ -473,6 +473,7 @@ class WindowManager extends WindowManagerCommon {
 	constructor(){
 		super()
 		let appStarted
+		this.fsapiLastState = this.fsapi = false
 		this.on('miniplayer-on', () => {
 			this.setShowInTaskbar(false)
 			this.fixMaximizeButton()
@@ -571,13 +572,6 @@ class WindowManager extends WindowManagerCommon {
 			app.exit()
 		})
 	}
-	isFullScreen(){
-		const tolerance = 10
-		const scr = this.getScreenSize()
-		const { width, height } = this.size()
-		const ret = (width + tolerance) >= scr.width && (height + tolerance) >= scr.height
- 		return !!ret
-	}
 	getScreen() {
 		const primaryDisplay = electronScreen.getPrimaryDisplay()
 		const scaleFactor = primaryDisplay.scaleFactor
@@ -606,13 +600,40 @@ class WindowManager extends WindowManagerCommon {
 		}
 		return {width, height, availWidth, availHeight}
 	}
-	async setFullScreen(enter){
-		const was = this.isFullScreen()
-		console.error('SETFULLSCREEN', was, enter)
-		if(enter == was) return
-		this.inFullScreen = enter
-		this.win.setFullScreen(this.inFullScreen)
-		if(enter){
+	isFullScreen(){
+		if(this.fsapiLastState) {
+			return !!document.fullscreenElement
+		} else {
+			const tolerance = 10
+			const scr = this.getScreenSize()
+			const { width, height } = this.size()
+			const ret = (width + tolerance) >= scr.width && (height + tolerance) >= scr.height
+			return !!ret
+		}
+	}
+	async setFullScreen(enterFullscreen){
+		const wasFullscreen = this.isFullScreen()
+		console.error('SETFULLSCREEN', wasFullscreen, enterFullscreen)
+		if(enterFullscreen == wasFullscreen) return
+		this.inFullScreen = enterFullscreen
+		const usefsapi = wasFullscreen ? this.fsapiLastState : this.fsapi // exit fullscreen with right method on config change
+		this.fsapiLastState = this.fsapi
+		if(usefsapi) {
+			if(wasFullscreen) {
+				document.exitFullscreen()
+			} else {
+				try {
+					document.body.requestFullscreen()
+				} catch(e) {
+					console.error(e)
+					this.inFullScreen = false
+					document.exitFullscreen()
+				}
+			}
+		} else {
+			this.win.setFullScreen(this.inFullScreen)
+		}
+		if(enterFullscreen){
 			if(this.app){
 				if(this.app.osd && this.app.hotkeys && this.app.hotkeys){
 					let key = this.app.hotkeys.getHotkeyAction('FULLSCREEN', true)
@@ -631,12 +652,12 @@ class WindowManager extends WindowManagerCommon {
 		}
 		this.win.show()
 		if(!this.nwcfHeader) this.nwcfHeader = document.querySelector('.nw-cf')
-		this.nwcfHeader.style.display = enter ? 'none' : 'block';
+		this.nwcfHeader.style.display = enterFullscreen ? 'none' : 'block';
 		setTimeout(() => {
-			// if(enter) this.win.blur()
+			// if(enterFullscreen) this.win.blur()
 			this.updateTitlebarHeight()
 			this.fixMaximizeButton()
-			this.win.setAlwaysOnTop(enter || this.miniPlayerActive)
+			this.win.setAlwaysOnTop(enterFullscreen || this.miniPlayerActive)
 			this.win.focus()
 		}, 400)
 	}

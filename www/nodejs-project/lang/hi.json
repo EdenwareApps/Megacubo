@@ -360,6 +360,7 @@
    "RETURNING": "लौटते हुए...",
    "RUNNING_IN_BACKGROUND": "पृष्ठभूमि में चल रहा है",
    "SAVE": "बचाना",
+   "SAVE_REPORT": "रिपोर्ट सुरक्षित रखना",
    "SAVE_SCHEDULE": "अनुसूची सहेजें",
    "SAVING_FILE": "सेविंग फाइल...",
    "SAVING_FILE_X": "सेविंग फाइल \"{0}\"...",

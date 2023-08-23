@@ -149,6 +149,9 @@ class Common extends Events {
 		if(!txt){
 			return []
 		}
+		if(Array.isArray(txt)) {
+			txt = txt.join(' ')
+		};
 		['"', '/', '=', '.', ','].forEach(c => {
 			if(txt.indexOf(c) != -1){
 				txt = txt.replaceAll(c, ' ')

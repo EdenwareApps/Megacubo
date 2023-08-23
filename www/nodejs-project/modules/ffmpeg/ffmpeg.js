@@ -167,10 +167,6 @@ class FFMPEGHelper extends Events {
 	constructor(){
 		super()
 		this.debug = false
-		this.executable = require('path').resolve('ffmpeg/ffmpeg')
-		if(process.platform == 'win32'){
-			this.executable += '.exe'
-		}
 	}
 	clockToSeconds(str) {
 		let cs = str.split('.'), p = cs[0].split(':'), s = 0, m = 1
@@ -400,14 +396,7 @@ class FFMPEGDiagnostic extends FFMPEGMediaInfo {
 					let finish = () => {
 						resolve(this.log)
 					}
-					if(process.platform == 'android'){
-						finish()
-					} else {
-						fs.stat(this.executable, (err, stat) => {
-							this.log += 'File: '+ this.executable +' '+ ((err || !stat) ? 'NOT EXISTS' : global.kbfmt(stat.size)) + nl
-							finish()
-						})
-					}
+					finish()
 				})
 			})
 		})

@@ -36,7 +36,7 @@ class Crashlog {
 }
 
 var crashlog = new Crashlog()
-window.onerror = function (arguments) {
+window.onerror = function () {
     var args = Array.from(arguments)
     parent.onerror && parent.onerror.apply(null, args)
     crashlog.save(args)

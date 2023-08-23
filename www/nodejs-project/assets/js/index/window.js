@@ -483,19 +483,6 @@ function updateConfig(cfg){
 		cfg = config
 	}
 	if(cfg){
-		if(!cfgReceived){ // run once
-			cfgReceived = true
-			switch(cfg['startup-window']){
-				case 'fullscreen':
-					if(parent.parent.Manager && parent.parent.Manager.setFullScreen){
-						parent.parent.Manager.setFullScreen(true)
-					}
-					break
-				case 'miniplayer':
-					window['winman'].enter()
-					break
-			}
-		}
 		window.config = cfg
 		if(window.player){
 			player.config = cfg
@@ -504,6 +491,22 @@ function updateConfig(cfg){
 			})
 		}
 		window['winman'].enabled = cfg['miniplayer-auto']
+		if(!parent.parent.cordova) {
+			parent.parent.Manager.fsapi = !!cfg['fsapi']
+			if(!cfgReceived){ // run once
+				cfgReceived = true
+				switch(cfg['startup-window']){
+					case 'fullscreen':
+						if(parent.parent.Manager && parent.parent.Manager.setFullScreen){
+							parent.parent.Manager.setFullScreen(true)
+						}
+						break
+					case 'miniplayer':
+						window['winman'].enter()
+						break
+				}
+			}
+		}
 	}
 }
 

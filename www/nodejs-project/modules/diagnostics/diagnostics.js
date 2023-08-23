@@ -18,13 +18,16 @@ class Diagnostics extends Events {
 		const myLists = config.lists.map(a => a[1]);
 		const listsRequesting = global.lists.requesting
 		const tuning = global.tuning ? global.tuning.logText(false) : ''
-		const processedLists = global.lists.processedLists.keys();
+		const processedLists = global.lists.processedLists.keys()
 		const processing = global.lists.loader.processes.filter(p => p.started() && !p.done()).map(p => {
 			return {
 				url: p.url,
 				priority: p.priority
 			}
-		});
+		})
+		let err, crashlogContent = await global.crashlog.read().catch(e => err = e)
+		const crashlog = crashlogContent || err || 'Empty'
+		const gpu = await this.gpuReport()
 		const updaterResults = global.lists.loader.results, privateLists = [];
 		['lists', 'parental-control-terms', 'parental-control-pw', 'premium-license'].forEach(k => delete config[k])
 		Object.keys(lists).forEach(url => {
@@ -37,15 +40,27 @@ class Diagnostics extends Events {
 			diskSpace.free = global.kbfmt(diskSpace.free)
 			diskSpace.size = global.kbfmt(diskSpace.size)
 		}
-		let report = {version, diskSpace, freeMem, config, lists, listsRequesting, updaterResults, processedLists, processing, tuning}
+		let report = {version, diskSpace, freeMem, config, lists, listsRequesting, updaterResults, processedLists, processing, tuning, gpu, crashlog}
 		report = JSON.stringify(report, null, 3)
 		privateLists.forEach(url => {
 			report = report.replace(url, 'http://***')
 		})
 		return report
 	}
+    async gpuReport(){
+        let err
+        const { app } = require('electron')
+        const report = {
+            featureStatus: app.getGPUFeatureStatus(),
+            info: await app.getGPUInfo('complete').catch(e => err = e)
+        }
+        if(err) {
+            report.info = String(err)
+        }
+        return report
+    }
 	async saveReport(){
-		const file = global.downloads.folder +'/report.txt'
+		const file = global.downloads.folder +'/megacubo-report.txt'
 		await fs.promises.writeFile(file, await this.report(), {encoding: 'utf8'})
 		global.downloads.serve(file, true, false).catch(global.displayErr)
 	}

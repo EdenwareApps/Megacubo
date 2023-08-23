@@ -360,6 +360,7 @@
    "RETURNING": "返回...",
    "RUNNING_IN_BACKGROUND": "在后台运行",
    "SAVE": "保存",
+   "SAVE_REPORT": "保存报告",
    "SAVE_SCHEDULE": "节省",
    "SAVING_FILE": "保存文件...",
    "SAVING_FILE_X": "保存文件“ {0}”...",

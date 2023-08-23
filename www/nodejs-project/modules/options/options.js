@@ -186,7 +186,140 @@ class PerformanceProfiles extends Timer {
     }
 }
 
-class OptionsExportImport extends PerformanceProfiles {
+class OptionsGPU extends PerformanceProfiles {
+    constructor() {
+        super()
+        this.availableGPUFlags = {
+            enable: {
+                'in-process-gpu': true,
+                'ignore-gpu-blacklist': false,
+                'enable-gpu-rasterization': true,
+                'force-gpu-rasterization': false,
+                'enable-accelerated-video': true,
+                'enable-accelerated-video-decode': true,
+                'enable-accelerated-mjpeg-decode': true,
+                'enable-native-gpu-memory-buffers': true
+            },
+            disable: {
+                'disable-gpu': true,
+                'force-cpu-draw': true,
+                'disable-gpu-compositing': true,
+                'disable-software-rasterizer': true
+            }
+        }
+        this.originalGPUFlags = JSON.stringify(global.config.get('gpu-flags')) // never change it, will be used to detect config changes and ask for app restarting
+    }
+    gpuFlagsEntries() {
+        const state = global.config.get('gpu') ? 'enable' : 'disable'
+        const opts = Object.keys(this.availableGPUFlags[state]).map(flag => {
+            const name = global.ucFirst(flag.replaceAll('gpu', 'GPU').replaceAll('mjpeg', 'MJPEG').split('-').join(' '), true)
+            return {
+                name, type: 'check',
+                action: (_, checked) => {
+                    let flags = global.config.get('gpu-flags')
+                    if(checked) {
+                        if(!flags.includes(flag)) {
+                            flags.push(flag)
+                            const state = global.config.get('gpu') ? 'enable' : 'disable'
+                            const availableFlags = Object.keys(this.availableGPUFlags[state])
+                            flags.sort((a, b) => {
+                                return availableFlags.indexOf(b) - availableFlags.indexOf(a)
+                            })
+                        }
+                    } else {
+                        flags = flags.filter(f => f != flag)
+                    }
+                    global.config.set('gpu-flags', flags)
+                },
+                checked: () => {
+                    let flags = global.config.get('gpu-flags')
+                    return flags.includes(flag)
+                }
+            }
+        })
+        opts.push({
+            name: global.lang.RESET,
+            fa: 'fas fa-undo-alt',
+            type: 'action',
+            action: () => {
+                this.resetGPUFlags()
+                global.explorer.refreshNow()
+            }
+        })
+        return opts
+    }
+    resetGPUFlags() {
+        const state = global.config.get('gpu') ? 'enable' : 'disable'
+        const opts = Object.keys(this.availableGPUFlags[state]).filter(f => this.availableGPUFlags[state][f] === true)
+        global.config.set('gpu-flags', opts)
+    }
+    gpuFlagsChanged() {
+        return JSON.stringify(global.config.get('gpu-flags')) != this.originalGPUFlags
+    }
+    gpuEntry() {
+        if(this.gpuFlagsChanged()) {
+            const current = JSON.stringify(global.config.get('gpu-flags'))
+            if(this.lastGPUChangeAsked != current) {
+                this.lastGPUChangeAsked = current
+                global.energy.askRestart()
+            }
+        }
+        return {
+            name: 'GPU rendering',
+            type: 'group',
+            fa: 'fas fa-microchip',
+            renderer: this.gpuEntries.bind(this)
+        }
+    }
+    async gpuEntries() {
+        let opts = [
+            {
+                name: global.lang.ENABLE, type: 'check',
+                action: (data, checked) => {
+                    global.config.set('gpu', checked)
+                    this.resetGPUFlags()
+                    global.explorer.refreshNow()
+                },
+                checked: () => {
+                    return global.config.get('gpu')
+                }
+            },            
+            {
+                name: global.lang.CONFIGURE,
+                type: 'group',
+                fa: 'fas fa-cog',
+                renderer: this.gpuFlagsEntries.bind(this)
+            }
+        ]
+        opts.push({
+            name: 'Use HTML5 Fullscreen API', 
+            type: 'check',
+            action: (_, checked) => {
+                global.config.set('fsapi', checked)
+            },
+            checked: () => {
+                return global.config.get('fsapi')
+            }
+        })
+        return opts
+    }
+    async saveGPUReport(){
+        let err
+        const { app } = require('electron')
+        const file = global.downloads.folder +'/gpu-report.txt'
+        const report = {
+            featureStatus: app.getGPUFeatureStatus(),
+            info: await app.getGPUInfo('complete').catch(e => err = e)
+        }
+        if(err) {
+            report.info = String(err)
+        }
+        await fs.promises.writeFile(file, JSON.stringify(report, null, 3), {encoding: 'utf8'})
+        global.downloads.serve(file, true, false).catch(global.displayErr)
+    }
+}
+
+class OptionsExportImport extends OptionsGPU {
     constructor(){
         super()
     }
@@ -1267,59 +1400,27 @@ class Options extends OptionsP2P {
                                 return global.debugConns
                             }},
                             {
-                                name: 'Save report', 
+                                name: global.lang.SAVE_REPORT, 
                                 fa: 'fas fa-info-circle', 
                                 type: 'action', 
                                 action: async () => {
                                     global.diag.saveReport().catch(console.error)
                                 }
-                            },
-                            {
-                                name: 'Save crash log', 
-                                fa: 'fas fa-info-circle', 
-                                type: 'action', 
-                                action: async () => {
-                                    const filename = 'megacubo-crash-log.txt', file = global.downloads.folder + path.sep + filename
-                                    let content = await global.crashlog.read()
-                                    fs.writeFile(file, content || 'Empty.', {encoding: 'utf-8'}, err => {
-                                        if(err) return global.displayErr(err)
-                                        global.downloads.serve(file, true, false).catch(global.displayErr)
-                                    })
-                                }
-                            },
-                            {
-                                name: 'Save last tuning log', 
-                                fa: 'fas fa-info-circle', 
-                                type: 'action', 
-                                action: () => {
-                                    if(!global.tuning) return global.displayErr('No tuning found')
-                                    const filename = 'megacubo-tuning-log.txt', file = global.downloads.folder + path.sep + filename
-                                    fs.writeFile(file, global.tuning.logText(), {encoding: 'utf-8'}, err => {
-                                        if(err) return global.displayErr(err)
-                                        global.downloads.serve(file, true, false).catch(global.displayErr)
-                                        global.ui.emit('debug-tuning', true)
-                                    })
-                                }
-                            }                            
+                            }                          
                         ]
                     }
                 ]
                 if(!global.cordova){
                     opts[opts.length - 1].entries.push({
-                        name: 'GPU rendering', type: 'check',
-                        action: (data, checked) => {
-                            let value = '' // auto, enabled
-                            if(!checked) {
-                                value = '--disable-gpu --force-cpu-draw'
-                            }
-                            global.config.set('hw-acceleration', value)
-                            global.energy.restart()
-                        },
-                        checked: () => {
-                            const value = global.config.get('hw-acceleration')
-                            return value.indexOf('--disable-gpu') == -1
+                        name: 'DevTools',
+                        type: 'action',
+                        fa: 'fas fa-terminal',
+                        action: () => {
+                            const { BrowserWindow } = require('electron')
+                            BrowserWindow.getAllWindows().shift().openDevTools()
                         }
                     })
+                    opts.splice(opts.length - 2, 0, this.gpuEntry())
                 }
                 return opts
             }},
@@ -1381,7 +1482,7 @@ class Options extends OptionsP2P {
             this.insertEntry({name: global.lang.TOOLS, fa: 'fas fa-box-open', type: 'group', details, renderer: this.tools.bind(this)}, entries, -2)
             this.insertEntry({name: global.lang.OPTIONS, fa: 'fas fa-cog', type: 'group', details: global.lang.CONFIGURE, renderer: this.entries.bind(this)}, entries, -1)
         } else if(path == global.lang.OPTIONS +'/'+ global.lang.ADVANCED){
-            entries.push(this.p2pEntry())
+            entries.splice(entries.length - 2, 0, this.p2pEntry())
         }
         return entries
     }

@@ -12,10 +12,10 @@
    "ADD_CODE": "コードを追加します",
    "ADD_LATER": "後で追加します",
    "ADD_LIST": "リストを追加します",
+   "ADD_MAC_ADDRESS": "Macアドレスを追加します",
    "ADD_SCHEDULE": "スケジュールを追加します",
    "ADD_TO": "「{0}」に追加",
    "ADD_USER_PASS": "ユーザー名とパスワードを追加します",
-   "ADD_MAC_ADDRESS": "Macアドレスを追加します",
    "ADULT_CONTENT": "成人コンテンツ",
    "ADULT_CONTENT_BLOCKED": "大人のコンテンツがブロックされました",
    "ADULT_CONTENT_BLOCKED_INFO": "大人のコンテンツは、MegaCuboでデフォルトでブロックされます。 {0}> {1}でリリースできます。",
@@ -226,6 +226,7 @@
    "KNOW_MORE": "もっと知ってください",
    "LANDSCAPE_MODE": "横長モード",
    "LANGUAGE": "言語",
+   "LANGUAGE_NAME": "日本",
    "LAYOUT_GRID_SIZE": "グリッドサイズのレイアウト",
    "LEAVE_EMPTY": "わからない場合は空のままにしておきます",
    "LEGAL_IPTV": "法的IPTV",
@@ -359,6 +360,7 @@
    "RETURNING": "戻ってきます...",
    "RUNNING_IN_BACKGROUND": "バックグラウンドで走っています",
    "SAVE": "保存",
+   "SAVE_REPORT": "レポートを保存",
    "SAVE_SCHEDULE": "スケジュールを保存します",
    "SAVING_FILE": "ファイルを保存...",
    "SAVING_FILE_X": "ファイルを保存 \"{0}\"...",
@@ -485,6 +487,5 @@
    "YOUR_CONNECTION_IS_SLOW_TIP": "このブロードキャストの接続は遅い、{0}をクリックして別のものを試す",
    "ZAP": "ザッピング",
    "ZAPPING": "ザッピング...",
-   "ZAP_DESCRIPTION": "チャンネルでランダムにサーフィンします",
-   "LANGUAGE_NAME": "日本"
+   "ZAP_DESCRIPTION": "チャンネルでランダムにサーフィンします"
 }
