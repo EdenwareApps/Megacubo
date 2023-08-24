@@ -115,6 +115,11 @@ var hotkeysActions = {
             app.emit('toggle-fav')
         }, 'up', true
     ],
+    'DEVTOOLS': [
+        () => {
+            app.emit('devtools')
+        }, 'up', true
+    ],
     'RELOAD': [
         () => {
             if(streamer.isZapping){

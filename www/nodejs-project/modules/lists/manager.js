@@ -28,19 +28,19 @@ class ManagerCommunityLists extends Events {
         let bterms = global.bookmarks.get()
         if(bterms.length){ // bookmarks terms
             bterms = bterms.slice(-24)
-            bterms = [...new Set(bterms.map(e => global.channels.entryTerms(e)).flat())].filter(c => c[0] != '-')
+            bterms = bterms.map(e => global.channels.entryTerms(e)).flat().unique().filter(c => c[0] != '-')
             addTerms(bterms)
         }
         let sterms = await global.search.history.terms()
         if(sterms.length){ // searching terms history
             sterms = sterms.slice(-24)
-            sterms = [...new Set(sterms.map(e => global.channels.entryTerms(e)).flat())].filter(c => c[0] != '-')
+            sterms = sterms.map(e => global.channels.entryTerms(e)).flat().unique().filter(c => c[0] != '-')
             addTerms(sterms)
         }
         let hterms = global.histo.get()
         if(hterms.length){ // user history terms
             hterms = hterms.slice(-24)
-            hterms = [...new Set(hterms.map(e => channels.entryTerms(e)).flat())].filter(c => c[0] != '-')
+            hterms = hterms.map(e => channels.entryTerms(e)).flat().unique().filter(c => c[0] != '-')
             addTerms(hterms)
         }
         addTerms(await global.channels.keywords())
@@ -293,7 +293,7 @@ class ManagerEPG extends ManagerCommunityLists {
             })
         }
         epgs.push(...global.watching.currentRawEntries.map(e => e.epg).filter(e => !!e))
-        epgs = [...new Set(epgs)].sort()
+        epgs = epgs.sort().unique()
         return epgs
     }
     epgLoadingStatus(epgStatus){
@@ -368,7 +368,7 @@ class ManagerEPG extends ManagerCommunityLists {
                     }
                 }
                 const next = () => {
-                    options = [...new Set(epgs)].sort().map(url => {
+                    options = epgs.unique().sort().map(url => {
                         let details = '', name = this.nameFromSourceURL(url)
                         if(url == activeEPG){
                             if(activeEPGDetails){
@@ -1495,7 +1495,7 @@ class Manager extends ManagerEPG {
         if(!this.checkListExpiralTimes) this.checkListExpiralTimes = {}
         const now = global.time()
         const checkListExpiralInterval = this.master.activeLists.community.length ? 120 : 10
-        const myBadSources = [...new Set(es.map(e => e.source).filter(e => e))].filter(u => this.master.activeLists.my.includes(u))
+        const myBadSources = es.map(e => e.source).filter(e => e).unique().filter(u => this.master.activeLists.my.includes(u))
         for(const source of myBadSources) {
             if(this.checkListExpiralTimes[source] && (now < (this.checkListExpiralTimes[source] + checkListExpiralInterval))) {
                 continue

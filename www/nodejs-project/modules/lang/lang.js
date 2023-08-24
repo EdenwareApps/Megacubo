@@ -52,7 +52,7 @@ class Language extends Events {
 
         const countriesTzAllLangs = this.hints.langs.map(l => this.countries.getCountriesFromLanguage(l)).flat().filter(c => countriesTz.includes(c)) // country should be in tz
         if(countriesTzAllLangs.length){ // language in navigator hints, right timezone
-            this.alternateCountries = [...new Set(countriesTzAllLangs)]
+            this.alternateCountries = countriesTzAllLangs.unique()
             return this.countryCode = this.alternateCountries.shift()
         }
 
@@ -81,9 +81,9 @@ class Language extends Events {
         if(!Array.isArray(locales)){
             locales = [locales]
         }
-        return [...new Set(locales.map(loc => {
+        return locales.map(loc => {
             return this.countries.getCountriesFromLanguage(loc)
-        }).flat())]
+        }).flat().unique()
     }
     async getActiveCountries(limit=10){
         await this.ready()
@@ -159,7 +159,7 @@ class Language extends Events {
             this._availableLocalesMap = {}
             let locales = this.userAvailableLocales.concat(this.availableLocales)
             locales.splice(1, 0, 'en')
-            locales = [...new Set(locales)]
+            locales = locales.unique()
             for(let loc of locales){
                 let texts = await this.loadLanguage(loc).catch(console.error)
                 if(texts){

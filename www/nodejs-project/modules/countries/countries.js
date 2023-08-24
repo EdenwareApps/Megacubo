@@ -94,7 +94,7 @@ class Countries extends Events {
 	extractCountryCodes(text){
 		let results = text.toLowerCase().matchAll(new RegExp('(^|[^a-z])([a-z]{2})(^|[^a-z])', 'g'))
 		if(results){
-			return ([...new Set(results)]).map(r => r[2]).filter(cc => this.data.some(c => c.code == cc)).reverse()
+			return results.unique().map(r => r[2]).filter(cc => this.data.some(c => c.code == cc)).reverse()
 		}
 		return []
 	}

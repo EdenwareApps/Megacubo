@@ -81,13 +81,16 @@ class Config extends Events {
 		}
 		return true
 	}
+	keys(){
+		return Object.keys(this.defaults).concat(Object.keys(this.data)).sort().unique()
+	}
 	all(){
 		this.load()
 		var data = {};
-		Object.keys(this.defaults).forEach((key) => {
+		this.keys().forEach(key => {
 			data[key] = typeof(this.data[key]) != 'undefined' ? this.data[key] : this.defaults[key]
 		})
-		return data;
+		return data
 	}
 	get(key){
 		this.load()

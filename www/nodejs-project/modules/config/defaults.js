@@ -57,7 +57,8 @@ module.exports = {
 		'Ctrl+D Ctrl+Shift+D': 'BOOKMARK',
 		'F9 Ctrl+X': 'RECORDING',
 		'F1 Ctrl+I': 'ABOUT',
-		'F11 Alt+Enter': 'FULLSCREEN'
+		'F11 Alt+Enter': 'FULLSCREEN',
+		'F12 Ctrl+Shift+I': 'DEVTOOLS'
 	},
 	'kids-fun-titles': true,
 	'lists': [],

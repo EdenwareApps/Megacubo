@@ -547,12 +547,11 @@ class OptionsP2P extends OptionsExportImport {
 class Options extends OptionsP2P {
     constructor(){
         super()
+        global.ui.on('devtools', () => this.devtools())
         global.ui.on('config-import-file', data => {
             console.warn('!!! IMPORT FILE !!! '+ typeof(global.ui.importFileFromClient), data)
-            global.ui.importFileFromClient(data).then(ret => this.import(ret)).catch(err => {
-                global.displayErr(err)
-            })
-        })        
+            global.ui.importFileFromClient(data).then(ret => this.import(ret)).catch(global.displayErr)
+        })
     }
     async updateEPGConfig(c){
         let activeEPG = global.config.get('epg-'+ global.lang.locale)
@@ -850,8 +849,31 @@ class Options extends OptionsP2P {
         ]
         return entries
     }
+    chooseExternalPlayer() {
+        return new Promise((resolve, reject) => {
+            if(!this.availableExternalPlayers) {
+                global.ui.once('external-players', players => {
+                    this.availableExternalPlayers = players
+                    this.chooseExternalPlayer().then(resolve).catch(reject)
+                })
+                global.ui.emit('get-external-players')
+                return
+            }
+            const opts = Object.keys(this.availableExternalPlayers).map(name => {
+                return {template: 'option', fa: 'fas fa-play-circle', text: name, id: name}
+            })
+            opts.unshift({template: 'question', fa: 'fas fa-window-restore', text: global.lang.OPEN_EXTERNAL_PLAYER})
+            global.explorer.dialog(opts, null, true).then(chosen => {
+                if(chosen && this.availableExternalPlayers[chosen]) {
+                    global.config.set('external-player', chosen)
+                }
+                global.osd.show('OK', 'fas fa-check-circle faclr-green', 'external-player', 'normal')
+                resolve(chosen)
+            }).catch(reject)
+        })
+    }
     async playbackEntries(){
-        let opts = [
+        const opts = [
             {
                 name: global.lang.CONTROL_PLAYBACK_RATE, type: 'check', action: (data, checked) => {
                 global.config.set('playback-rate-control', checked)
@@ -962,6 +984,14 @@ class Options extends OptionsP2P {
                 name: global.lang.TRANSCODE, type: 'group', fa: 'fas fa-film', renderer: this.transcodingEntries.bind(this)
             }
         ]
+        if(!global.cordova) {
+            opts.unshift({
+                name: global.lang.SET_DEFAULT_EXTERNAL_PLAYER,
+                fa: 'fas fa-window-restore', 
+                type: 'action', 
+                action: this.chooseExternalPlayer.bind(this)
+            })
+        }
         return opts
     }
     async tuneEntries(){
@@ -1415,10 +1445,7 @@ class Options extends OptionsP2P {
                         name: 'DevTools',
                         type: 'action',
                         fa: 'fas fa-terminal',
-                        action: () => {
-                            const { BrowserWindow } = require('electron')
-                            BrowserWindow.getAllWindows().shift().openDevTools()
-                        }
+                        action: this.devtools.bind(this)
                     })
                     opts.splice(opts.length - 2, 0, this.gpuEntry())
                 }
@@ -1451,6 +1478,10 @@ class Options extends OptionsP2P {
             }
         ]
         return opts
+    }
+    devtools(){
+        const { BrowserWindow } = require('electron')
+        BrowserWindow.getAllWindows().shift().openDevTools()
     }
     prm(strict) {
         const p = global.premium

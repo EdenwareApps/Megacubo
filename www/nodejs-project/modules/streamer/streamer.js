@@ -315,18 +315,27 @@ class StreamerBase extends StreamerTools {
 					}
 					this.handleFailure(intent.data, err)
 				})
-				intent.on('codecData', codecData => {
+				intent.on('codecData', async codecData => {
 					if(codecData && intent == this.active){
 						global.ui.emit('codecData', codecData)
 					}
 					if(!global.cordova && !intent.isTranscoding()){
 						if(codecData.video && codecData.video.match(new RegExp('(mpeg2video|mpeg4)')) && intent.opts.videoCodec != 'libx264'){
-							if((!global.tuning && !this.zap.isZapping) || global.config.get('transcoding-tuning')){
-								this.transcode(null, err => {
-									if(err) intent.fail('unsupported format')
-								})
+							let chosen = await global.explorer.dialog([
+								{template: 'question', text: global.OPEN_EXTERNAL_PLAYER_ASK, fa: 'fas fa-play'},
+								{template: 'option', text: global.lang.YES, id: 'yes', fa: 'fas fa-check-circle'},
+								{template: 'option', text: global.lang.NO_THANKS, id: 'no', fa: 'fas fa-times-circle'}
+							], 'yes')
+							if(chosen == 'yes') {
+								global.ui.emit('external-player')
 							} else {
-								return intent.fail('unsupported format')
+								if((!global.tuning && !this.zap.isZapping) || global.config.get('transcoding-tuning')){
+									this.transcode(null, err => {
+										if(err) intent.fail('unsupported format')
+									})
+								} else {
+									return intent.fail('unsupported format')
+								}
 							}
 						}
 					}

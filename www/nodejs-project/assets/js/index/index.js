@@ -332,7 +332,10 @@ window.onerror = function (message, file, line, column, errorObj) {
 	let stack = typeof errorObj == 'object' && errorObj !== null && errorObj.stack ? errorObj.stack : traceback();
 	if (maxAlerts) {
 		maxAlerts--;
-		if (file && !file.startsWith('blob:http://')) { // ignore hls.js errors
+		if (file && 
+			!file.startsWith('blob:http://') && // ignore hls.js internal errors
+			!file.endsWith('mpegts.js') // ignore mpegts.js internal errors
+			) {
 			alert(message + ' ' + file + ':' + line + ' ' + stack);
 			log(message);
 		}

@@ -46,7 +46,7 @@ class Bookmarks extends EntriesGroup {
         if(isBookmarkable && entries.some(this.streamFilter)){
             let name = path.split('/').pop(), ges = entries.filter(e => e.url)
             if(ges.length){
-                let gs = [...new Set(ges.map(e => e.groupName))]
+                let gs = ges.map(e => e.groupName).unique()
                 if(gs.length == 1 && gs[0]){
                     name = gs[0]
                 }

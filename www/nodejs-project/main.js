@@ -188,6 +188,8 @@ const videoErrorTimeoutCallback = ret => {
         global.streamer.retry()
     } else if(ret == 'transcode') {
         global.streamer.transcode()
+    } else if(ret == 'external') {
+        global.ui.emit('external-player')
     } else if(ret == 'stop') {
         global.streamer.stop()
     } else {
@@ -381,6 +383,9 @@ const init = (language, timezone) => {
                 def = 'try-other'
             }
             opts.push({template: 'option', text: global.lang.RELOAD_THIS_BROADCAST, fa: 'fas fa-redo', id: 'retry'})
+            if(!global.cordova){
+                opts.push({template: 'option', text: global.lang.OPEN_EXTERNAL_PLAYER, fa: 'fas fa-window-restore', id: 'external'})
+            }
             if(typeof(global.streamer.active.transcode) == 'function' && !global.streamer.active.isTranscoding()){
                 opts.push({template: 'option', text: global.lang.FIX_AUDIO_OR_VIDEO +' &middot; '+ global.lang.TRANSCODE, fa: 'fas fa-film', id: 'transcode'})
             }

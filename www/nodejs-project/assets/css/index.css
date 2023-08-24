@@ -208,9 +208,10 @@ body.video #explorer header .explorer-omni {
 }
 #explorer header .explorer-omni input {
     border-width: 0;
-    width: calc(100% - var(--explorer-entry-name-font-size));
+    width: calc(100% - var(--explorer-entry-name-font-size));    
+    min-width: calc(13 * var(--explorer-entry-name-font-size));
     background: transparent;
-    font-size: var(--explorer-entry-name-font-size);
+    font-size: var(--explorer-entry-name-font-size);    
 }
 body.home #explorer content a.entry-2x, body.explorer-wide #explorer content a.entry-2x {
     width: calc(200% / var(--entries-per-row));

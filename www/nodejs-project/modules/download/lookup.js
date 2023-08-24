@@ -65,7 +65,7 @@ class UltimateLookup extends Events {
 			family = pref == 4 ? 6 : 4
 		}
 		if(ips.length > 1){
-			ips = [...new Set(ips)].sort((a, b) => {
+			ips = ips.unique().sort((a, b) => {
 				if(!this.failedIPs[hostname]) return 0
 				let aa = this.failedIPs[hostname].indexOf(a)
 				let bb = this.failedIPs[hostname].indexOf(b)

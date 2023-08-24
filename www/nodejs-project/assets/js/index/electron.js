@@ -180,6 +180,75 @@ function getElectronRemote(){
 	return electronRemote
 }
 
+class ExternalPlayer {
+	constructor() {
+		this.players = [
+			{processName: 'vlc', playerName: 'VLC Media Player'},
+			{processName: 'smplayer', playerName: 'SMPlayer'},
+			{processName: 'mpv', playerName: 'MPV'},
+			{processName: 'mplayer', playerName: 'MPlayer'},
+			{processName: 'xine', playerName: 'Xine'},
+			{processName: 'wmplayer', playerName: 'Windows Media Player'},
+			{processName: 'mpc-hc64', playerName: 'Media Player Classic - Home Cinema (64-bit)'},
+			{processName: 'mpc-hc', playerName: 'Media Player Classic - Home Cinema (32-bit)'},
+			{processName: 'mpc-be64', playerName: 'MPC-BE (64-bit)'},
+			{processName: 'mpc-be', playerName: 'MPC-BE (32-bit)'},
+			{processName: 'GOM', playerName: 'GOM Player'}
+		]
+	}
+	setContext(context) {
+		this.context = context
+		this.context.app.on('get-external-players', () => {
+			this.available().catch(console.error) // will report available external players to main process
+		})
+	}
+	async play() {
+		this.context.app.localEmit('cast-start')
+		const url = this.context.streamer.data.url
+		const availables = await this.available()
+		const chosen = await this.ask(availables)
+		if(!chosen || !availables[chosen]) {
+			this.context.osd.hide('casting')
+			this.context.app.localEmit('cast-stop')
+			return false
+		}
+		const message = this.context.lang.CASTING_TO.replace('{0}', chosen)
+		this.context.osd.show(message, 'fab fa-chromecast', 'casting', 'persistent')
+		this.context.streamer.once('stop', () => this.context.osd.hide('casting'))
+		const { spawn } = require('child_process');
+		const player = spawn(availables[chosen], [url], {detached: true, stdio: 'ignore'})
+		player.unref()
+		return true
+	}
+	async available() {
+		const results = {}
+		if(!this.finder) {
+			const ExecFinder = require('exec-finder')
+			this.finder = new ExecFinder({recursion: 3})
+		}
+		const available = await this.finder.find(this.players.map(p => p.processName))
+		Object.keys(available).filter(name => available[name].length).forEach(p => {
+			const name = this.players.filter(r => r.processName == p).shift().playerName
+			results[name] = available[p].sort((a, b) => a.length - b.length).shift()
+		})
+		this.context.app.emit('external-players', results)
+		return results
+	}
+	ask(players) {
+		return new Promise(resolve => {
+			if(this.context.config['external-player'] && players[this.context.config['external-player']]) {
+				return resolve(this.context.config['external-player'])
+			}
+			const opts = Object.keys(players).map(name => {
+				return {template: 'option', fa: 'fas fa-play-circle', text: name, id: name}
+			})
+			opts.unshift({template: 'question', fa: 'fas fa-window-restore', text: this.context.lang.OPEN_EXTERNAL_PLAYER})
+			opts.push({template: 'option', fa: 'fas fa-times-circle', text: this.context.lang.CANCEL, id: 'cancel'})
+			this.context.explorer.dialog(opts, resolve, null, true)
+		})
+	}
+}
+
 var ffmpeg = new FFMpeg()
 const { screen: electronScreen, Menu, Tray, getCurrentWindow, shell } = getElectronRemote()
 
@@ -252,6 +321,7 @@ class WindowManagerCommon extends ClassesHandler {
 		this.win.setSize(...this.initialSizeUnscaled, false)
 		this.centralizeWindow(...this.initialSizeUnscaled)
 		this.exitPage = new ExitPage()
+		this.externalPlayer = new ExternalPlayer()
 		this.inFullScreen = false
 		this.nwcf = require('./modules/nw-custom-frame')
 		this.nwcf.attach(window, {
@@ -382,6 +452,7 @@ class WindowManagerCommon extends ClassesHandler {
 			const app = this.container.document.querySelector('iframe')
 			if(app && app.contentWindow){
 				this.app = app.contentWindow
+				this.externalPlayer.setContext(this.app)
 			}
 		}
 		return this.app && this.app.streamer ? this.app : false

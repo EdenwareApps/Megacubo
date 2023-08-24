@@ -134,7 +134,7 @@ class ParentalControl extends Events {
 			console.error('Bad terms format', terms)
 			return
 		}
-		this.terms = [...new Set(this.terms)] // make unique
+		this.terms = this.terms.unique() // make unique
 		let sterms = this.terms.join(',')
 		global.config.set('parental-control-terms', sterms)
 		this.setupTerms(sterms)

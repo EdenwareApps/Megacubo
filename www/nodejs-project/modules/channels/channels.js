@@ -1072,7 +1072,7 @@ class Channels extends ChannelsKids {
                         return !skipChrs.includes(t.charAt(0)) && !chTerms.includes(t)
                     }))
                 })
-                excludes = [...new Set(excludes)]
+                excludes = excludes.unique()
                 const seemsRadio = chTerms.some(c => this.radioTerms.includes(c))
                 chTerms = chTerms.join(' ').split(' | ').map(s => s.split(' ')).filter(s => s).map(t => {
                     t.push(...excludes.map(s => '-' + s))
@@ -1372,7 +1372,7 @@ class Channels extends ChannelsKids {
                 this.getDefaultCategories().then(data => {
                     keywords.push(...Object.values(data).flat().map(n => this.expandName(n).terms.name).flat())
                 }).catch(reject).finally(() => {
-                    keywords = [...new Set(keywords)].filter(w => !badChrs.includes(w.charAt(0)))
+                    keywords = keywords.unique().filter(w => !badChrs.includes(w.charAt(0)))
                     resolve(keywords)
                 })
             })

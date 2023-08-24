@@ -69,7 +69,7 @@ class EPGPaginateChannelsList extends Events {
     }	
     paginateChannelList(snames){
         let ret = {}, folderSizeLimit = global.config.get('folder-size-limit')
-        snames = [...new Set(snames.map(s => this.prepareChannelName(s)).sort())]
+        snames = snames.map(s => this.prepareChannelName(s)).sort().unique()
         folderSizeLimit = Math.min(folderSizeLimit, snames.length / 8) // generate at least 8 pages to ease navigation
         let nextName, lastName
         for(let i=0; i<snames.length; i += folderSizeLimit){
@@ -653,7 +653,7 @@ class EPG extends EPGPaginateChannelsList {
                 }
             }
         })
-        return [...new Set(results)]
+        return results.unique()
     }
     async findChannel(data){
         if(data.searchName && data.searchName != '-' && typeof(this.data[data.searchName]) != 'undefined'){
@@ -689,7 +689,7 @@ class EPG extends EPGPaginateChannelsList {
             // first spit out the divergent ones
             let maxSimilarityScore = 0, candidatesData = {}, candidatesSimilarityScores = {}
             candidates.forEach(c => {
-                candidatesData[c.name] = [...new Set(Object.values(this.data[c.name]).map(p => p.t))]
+                candidatesData[c.name] = Object.values(this.data[c.name]).map(p => p.t).unique()
             })
             Object.keys(candidatesData).forEach(name => {
                 let similarityScore = 0

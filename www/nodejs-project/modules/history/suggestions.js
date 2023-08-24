@@ -271,7 +271,7 @@ class Suggestions {
             if(row.groupName && !cs.includes(row.groupName)){
                 cs.push(row.groupName)
             };
-            [...new Set(cs)].forEach(category => {
+            cs.unique().forEach(category => {
                 if(category){
                     let lc = category.toLowerCase()
                     if(typeof(data[lc]) == 'undefined'){

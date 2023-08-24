@@ -54,7 +54,7 @@ class AutoTuner extends Events {
         return String(file).split('?')[0].split('#')[0].split('.').pop().toLowerCase()
     }
     preferredStreamServers(){
-        return [...new Set(global.histo.get().map(e => e.preferredStreamURL || e.url).map(u => this.domain(u)))]
+        return global.histo.get().map(e => e.preferredStreamURL || e.url).map(u => this.domain(u)).unique()
     }
 	domain(u){
 		if(u && u.indexOf('//') != -1){

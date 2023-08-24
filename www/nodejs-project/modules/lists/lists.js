@@ -259,7 +259,7 @@ class Lists extends ListsEPGTools {
         const searchHistoryPromise = global.search.history.terms().then(sterms => {
 			if(sterms.length){ // searching terms history
 				sterms = sterms.slice(-24)
-				sterms = [...new Set(sterms.map(e => global.channels.entryTerms(e)).flat())].filter(c => c[0] != '-')
+				sterms = sterms.map(e => global.channels.entryTerms(e)).flat().unique().filter(c => c[0] != '-')
 				addTerms(sterms)
 			}
 		})
@@ -267,13 +267,13 @@ class Lists extends ListsEPGTools {
         let bterms = global.bookmarks.get()
         if(bterms.length){ // bookmarks terms
             bterms = bterms.slice(-24)
-            bterms = [...new Set(bterms.map(e => global.channels.entryTerms(e)).flat())].filter(c => c[0] != '-')
+            bterms = bterms.map(e => global.channels.entryTerms(e)).flat().unique().filter(c => c[0] != '-')
             addTerms(bterms)
         }
         let hterms = global.histo.get()
         if(hterms.length){ // user history terms
             hterms = hterms.slice(-24)
-            hterms = [...new Set(hterms.map(e => channels.entryTerms(e)).flat())].filter(c => c[0] != '-')
+            hterms = hterms.map(e => channels.entryTerms(e)).flat().unique().filter(c => c[0] != '-')
             addTerms(hterms)
         }
         const max = Math.max(...terms.map(t => t.score))

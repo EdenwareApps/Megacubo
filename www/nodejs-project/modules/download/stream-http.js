@@ -125,7 +125,7 @@ class DownloadStreamHttp extends DownloadStreamBase {
         if(fine){
             this.end()
         } else {
-            this.emitError([...new Set(this.errors.map(s => String(s)))].join("\n"), true)
+            this.emitError(this.errors.map(s => String(s)).unique().join("\n"), true)
         }
     }
 	get(options){

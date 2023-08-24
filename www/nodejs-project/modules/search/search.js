@@ -25,7 +25,7 @@ class SearchTermsHistory {
     }
     async terms(){
         let ret = await this.get()
-        return [...new Set(ret.flat())]
+        return ret.flat().unique()
     }
 }
 

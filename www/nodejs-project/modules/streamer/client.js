@@ -162,6 +162,9 @@ class StreamerCasting extends StreamerOSD {
                 }
             }
         })
+        app.on('external-player', () => {
+            parent.parent.Manager.externalPlayer.play().catch(console.error)
+        })
         this.on('before-seek', s => {
             if(this.casting){
                 if(!parent.player.otime){
