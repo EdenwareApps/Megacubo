@@ -460,11 +460,13 @@ class ExplorerPointer extends ExplorerSelectionMemory {
 		if(e){
 			let metrics = e.getBoundingClientRect()
 			if(metrics && metrics.width){
-				let min = Math.min(metrics.width, metrics.height) * 0.9
+				let min = Math.min(metrics.width, metrics.height) * 0.85
 				css(`
 
 				#explorer content a .entry-icon-image i {
     				font-size: ${min}px;
+    				line-height: ${metrics.height}px;
+    				min-height: ${metrics.height}px;
 				}
 
 				`, 'entry-icon-i')

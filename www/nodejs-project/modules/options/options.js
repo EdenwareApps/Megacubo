@@ -770,6 +770,9 @@ class Options extends OptionsP2P {
                 break
         }
     }
+    aboutNetwork(){
+        global.explorer.info('Network IP', data, 'fas fa-globe')
+    }
     aboutResources(){
         let txt = []
         async.parallel([done => {
@@ -784,15 +787,12 @@ class Options extends OptionsP2P {
         }], () => {
             txt[2] = 'Connection speed: '+ global.kbsfmt(global.streamer.downlink || 0) +'<br />'
             txt[3] = 'User agent: '+ (global.config.get('user-agent') || global.config.get('default-user-agent')) +'<br />'
+            txt[4] = 'Network IP: '+ global.networkIP() +'<br />'
+            if(process.platform == 'android'){
+                txt[4] = global.androidIPCommand() +'<br />'
+            } 
             global.explorer.info('System info', txt.join(''), 'fas fa-memory')
         })
-    }
-    aboutNetwork(){
-        let data = 'Network IP: '+ global.networkIP()
-        if(process.platform == 'android'){
-            data += '<br />'+ global.androidIPCommand()
-        } 
-        global.explorer.info('Network IP', data, 'fas fa-globe')
     }
     async resetConfig(){
         let text = global.lang.RESET_CONFIRM
@@ -1387,9 +1387,6 @@ class Options extends OptionsP2P {
                             }, 
                             {
                                 name: 'System info', fa: 'fas fa-memory', type: 'action', action: this.aboutResources.bind(this)
-                            },
-                            {
-                                name: 'Network IP', fa: 'fas fa-globe', type: 'action', action: this.aboutNetwork.bind(this)
                             },
                             {
                                 name: global.lang.FFMPEG_VERSION, 

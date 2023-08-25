@@ -220,14 +220,18 @@ body.home #explorer content a.entry-2x, body.explorer-wide #explorer content a.e
 body.explorer-vertical #explorer content a.entry-2x {
     height: calc(200% / var(--entries-per-col));
 }
+body.explorer-vertical controls button label span {
+    display: none;
+}
 body.explorer-vertical span.entry-icon-image {
     height: 100% !important;
+    left: 0 !important;
     justify-content: left !important;
     bottom: 0 !important;
-    margin-left: 1%;
+    max-width: calc(1.25 * var(--explorer-entry-height));
+    justify-content: center !important;
 }
 body.explorer-vertical span.entry-icon-image img {
-    background-position: center left !important;
     max-width: calc(var(--explorer-entry-height) * 0.94);
 }
 body.explorer-vertical #explorer content a span.entry-data-in {
@@ -237,7 +241,7 @@ body.explorer-vertical #explorer content a span.entry-data-in {
     align-items: start;
     justify-content: center;
     flex-direction: column;
-    padding-left: calc(6% + var(--explorer-entry-height));
+    padding-left: calc(1.25 * var(--explorer-entry-height));
     box-sizing: border-box;
     padding-bottom: 0;
     top: 0;
@@ -433,9 +437,9 @@ div#home-arrows > div > * {
     align-items: center;
     justify-content: center;
     border-radius: var(--radius);
-    margin-left: 4%;
     position: absolute;
     bottom: 4%;
+    left: 4%;
 }
 #explorer content a .entry-icon-image i {
     width: auto;
@@ -748,7 +752,6 @@ controls button {
     justify-content: center; 
     opacity: 0.9;
     margin: 0 0 0 1.5%;
-    padding: 2vmin;
 }
 body.video controls button span.button-icon {
     transition: -webkit-mask-image 0.2s linear;
@@ -792,7 +795,7 @@ controls button label span {
     color: white;
     font-size: var(--explorer-entry-details-font-size);
     position: absolute;
-    top: calc(-0.5 * var(--padding));
+    top: calc(-1.5 * var(--padding));
     white-space: nowrap;
     border-radius: var(--radius);
     display: inline-table;
@@ -805,7 +808,8 @@ controls span.button-icon { /* classes added to override fontAwesome display pro
     max-height: var(--controls-button-height);
     display: flex;
     justify-content: center;
-    cursor: pointer;
+    cursor: pointer;    
+    padding: 2vmin 0;
 }
 controls button.info span.button-icon { /* classes added to override fontAwesome display property */
     flex-direction: column;
@@ -816,13 +820,11 @@ controls button.info:hover span.button-icon, controls button.info.selected span.
 }
 controls button i.fas, controls button i.fab, controls button span { /* classes added to override fontAwesome display property */
     color: var(--font-color);
-    width: 100% !important;
     height: 100% !important;
     max-height: var(--controls-button-height);
     font-size: calc(var(--controls-button-height) - 4vmin);
     line-height: 100%;
-    display: flex;
-    justify-content: center;
+    display: inline-flex;
 }
 div#arrow-down-hint {
     justify-content: center;
@@ -900,6 +902,7 @@ volume-wrap {
     position: relative;
     height: calc(var(--controls-button-height) * 0.6);
     width: calc(var(--controls-button-height) * 3);
+    left: calc(var(--controls-button-height) * 0.125);
     display: inline-block;
 }
 volume-wrap > div {

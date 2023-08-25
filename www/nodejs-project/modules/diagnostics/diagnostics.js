@@ -48,6 +48,7 @@ class Diagnostics extends Events {
 		return report
 	}
     async gpuReport(){
+		if(global.cordova) return {}
         let err
         const { app } = require('electron')
         const report = {
