@@ -440,9 +440,7 @@ div#home-arrows > div > * {
 #explorer content a .entry-icon-image i {
     width: auto;
     height: auto !important;
-    max-height: 100%;
     font-size: calc(var(--explorer-entry-icon-height) * 0.9);
-    max-height: var(--explorer-entry-icon-height);
 }
 #explorer content a .entry-icon-image img {    
     height: auto !important;
