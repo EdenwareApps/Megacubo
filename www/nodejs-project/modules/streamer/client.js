@@ -163,7 +163,10 @@ class StreamerCasting extends StreamerOSD {
             }
         })
         app.on('external-player', () => {
-            parent.parent.Manager.externalPlayer.play().catch(console.error)
+            parent.parent.Manager.externalPlayer.play().catch(err => {
+                console.error(err)
+                osd.show(String(err), 'fas fa-exclamation-triangle faclr-red', 'external-player', 'normal')
+            })
         })
         this.on('before-seek', s => {
             if(this.casting){

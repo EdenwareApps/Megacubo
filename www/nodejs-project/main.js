@@ -318,7 +318,7 @@ const init = (language, timezone) => {
                 case 'action':
                     if(typeof(e.action) == 'function') {
                         let ret = e.action(e)
-                        if(ret && ret.catch) ret.catch(console.error)
+                        if(ret && ret.catch) ret.catch(displayErr)
                     } else if(e.url && global.mega.isMega(e.url)) {
                         if(global.tuning){
                             global.tuning.destroy()
@@ -392,7 +392,7 @@ const init = (language, timezone) => {
             if(opts.length > 2){
                 let ret = await global.explorer.dialog(opts, def)
                 videoErrorTimeoutCallback(ret)
-            } else { // only reload actionm is available
+            } else { // only reload action is available
                 global.streamer.retry()
             }
         })

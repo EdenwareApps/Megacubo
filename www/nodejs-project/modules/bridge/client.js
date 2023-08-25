@@ -60,7 +60,7 @@ class BridgeClient extends EventEmitter {
 			updateSplashProgress()
 			console.log('Node main script loaded.')
 		}, {
-			redirectOutputToLogcat: false
+			redirectOutputToLogcat: true
 		})
 	}
 	configureCordovaChannel() {

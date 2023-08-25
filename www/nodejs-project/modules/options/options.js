@@ -192,7 +192,7 @@ class OptionsGPU extends PerformanceProfiles {
         this.availableGPUFlags = {
             enable: {
                 'in-process-gpu': true,
-                'ignore-gpu-blacklist': false,
+                'ignore-gpu-blacklist': true,
                 'enable-gpu-rasterization': true,
                 'force-gpu-rasterization': false,
                 'enable-accelerated-video': true,
@@ -859,7 +859,11 @@ class Options extends OptionsP2P {
                 global.ui.emit('get-external-players')
                 return
             }
-            const opts = Object.keys(this.availableExternalPlayers).map(name => {
+            const keys = Object.keys(this.availableExternalPlayers)
+            if(!keys.length) {
+                return reject('No external players detected.')
+            }
+            const opts = keys.map(name => {
                 return {template: 'option', fa: 'fas fa-play-circle', text: name, id: name}
             })
             opts.unshift({template: 'question', fa: 'fas fa-window-restore', text: global.lang.OPEN_EXTERNAL_PLAYER})

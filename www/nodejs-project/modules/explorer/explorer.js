@@ -236,7 +236,7 @@ class Explorer extends Events {
             }
             if(e && e.action){
                 let ret = e.action()
-                if(ret && ret.catch) ret.catch(console.error)
+                if(ret && ret.catch) ret.catch(global.displayErr)
                 return
             }
             if(typeof(level) != 'number'){

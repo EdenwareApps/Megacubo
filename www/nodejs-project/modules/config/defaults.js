@@ -24,6 +24,7 @@ module.exports = {
 	'gpu': true,
 	'gpu-flags': [
 		'in-process-gpu',
+		'ignore-gpu-blacklist',
 		'enable-gpu-rasterization',
 		'enable-accelerated-video',
 		'enable-accelerated-video-decode',
