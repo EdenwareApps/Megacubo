@@ -813,6 +813,7 @@ controls span.button-icon { /* classes added to override fontAwesome display pro
 }
 controls button.info span.button-icon { /* classes added to override fontAwesome display property */
     flex-direction: column;
+    padding-left: 1.5vmin;
 }
 controls button.info:hover span.button-icon, controls button.info.selected span.button-icon { /* classes added to override fontAwesome display property */
     mask-image: none;
@@ -854,15 +855,15 @@ controls button.info i.about-icon-dot-second {
 }
 controls button.info.faclr-green i.about-icon-dot-first, seekbar.faclr-green > div > div {
     background: #0f0;
-    box-shadow: 0 0 2vmin 0.2vmin #0f0;
+    box-shadow: 0 0 1.5vmin 0.2vmin #0f0;
 }
 controls button.info.faclr-orange i.about-icon-dot-second, seekbar.faclr-orange > div > div {
     background: #e0d213;
-    box-shadow: 0 0 2vmin 0.2vmin #e0d213;
+    box-shadow: 0 0 1.5vmin 0.2vmin #e0d213;
 }
 controls button.info.faclr-red i.about-icon-dot-third, seekbar.faclr-red > div > div {
     background: #f05;
-    box-shadow: 0 0 2vmin 0.2vmin #f05;
+    box-shadow: 0 0 1.5vmin 0.2vmin #f05;
 }
 controls button.recording.faclr-green i {
     color: #0f0;
