@@ -50,14 +50,17 @@ parentPort.on('message', msg => {
         if(typeof(drivers[msg.file].terminate) != 'function') {
             console.error('Warning: worker '+ msg.file +' has no terminate() method.')
         }
+    } else if(!drivers[msg.file]) {
+        data = {id: msg.id, type: 'reject', data: 'worker not found '+ JSON.stringify(msg)}
+        parentPort.postMessage(data)
     } else if(typeof(drivers[msg.file][msg.method]) == 'undefined'){
-        data = {id: msg.id, type: 'reject', data: 'method not exists ' + JSON.stringify(msg)}
+        data = {id: msg.id, type: 'reject', data: 'method not exists '+ JSON.stringify(msg)}
         parentPort.postMessage(data)
     } else {
         let type, data = null
         const promise = drivers[msg.file][msg.method].apply(drivers[msg.file], msg.args)
         if(!promise || typeof(promise.then) == 'undefined'){
-            data = {id: -1, type: 'event', data: 'error:Not a promise ('+ msg.method +').'}
+            data = {id: -1, type: 'event', data: 'error: Not a promise ('+ msg.method +').'}
             return parentPort.postMessage(data)
         }
         promise.then(ret => {

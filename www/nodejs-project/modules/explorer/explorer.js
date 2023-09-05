@@ -92,7 +92,7 @@ class Explorer extends Events {
             this.action(path, tabindex)
         })
         global.ui.on('explorer-select', (path, tabindex) => {
-            this.select(path, tabindex)
+            this.select(path, tabindex).catch(global.displayErr)
         })
         global.ui.on('explorer-back', () => {
             this.back()
@@ -603,9 +603,9 @@ class Explorer extends Events {
     async readEntry(e){
         let entries
         if(!e) return []
-        if(typeof(e.renderer) == 'function'){
+        if(typeof(e.renderer) == 'function') {
             entries = await e.renderer(e)
-        } else if(typeof(e.renderer) == 'string'){
+        } else if(typeof(e.renderer) == 'string') {
             entries = await global.storage.temp.promises.get(e.renderer)
         } else {
             entries = e.entries || []
@@ -674,7 +674,7 @@ class Explorer extends Events {
     }
     async select(destPath, tabindex){
         let ret = await this.read(destPath, tabindex)
-        if(ret != -1 && ret.entries && ret.entries.length > 1){
+        if(ret && ret != -1 && ret.entries && ret.entries.length > 1){
             let d = this.dirname(destPath)
             let icon = ret.parent ? ret.parent.fa : ''
             global.ui.emit('explorer-select', ret.entries, destPath, icon)

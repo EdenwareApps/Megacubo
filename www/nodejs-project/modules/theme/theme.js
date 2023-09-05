@@ -613,8 +613,6 @@ class Theme extends Events {
                     progress: p => {
                         global.osd.show(global.lang.LOADING +' '+ p +'%', 'fas fa-download', 'theme', 'persistent')
                     },
-                    p2p: global.config.get('p2p'),
-                    p2pWaitMs: 5000,
                     cacheTTL: 24 * 3600
                 }).then(file => {
                     global.osd.hide('theme')

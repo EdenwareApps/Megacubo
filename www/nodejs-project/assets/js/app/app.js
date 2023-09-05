@@ -214,24 +214,7 @@ function initApp(){
     })
     app.on('background-mode-unlock', name => {
         if(parent.player && parent.winman) parent.winman && parent.winman.backgroundModeUnlock(name)
-    })
-    let initP2PDetails, initializedP2P, initP2P = () => { 
-        if(!initP2PDetails || !config || initializedP2P || !config['p2p']) return
-        initializedP2P = true
-        loadJSOnIdle('./modules/download/discovery-swarm-webrtc-bundle.js', () => {
-            if(typeof(require) == 'function') {
-                loadJSOnIdle('./modules/download/download-p2p-client.js', () => {
-                    const {addr, limit, stunServers} = initP2PDetails
-                    window.p2p = new P2PManager(app, addr, limit, stunServers)
-                })
-            }
-        })
-    }
-    app.on('init-p2p', (addr, limit, stunServers) => {
-        initP2PDetails = {addr, limit, stunServers}
-        initP2P()
-    })
-    app.emit('download-p2p-init');
+    });
     $(() => {
         console.log('load app')
 

@@ -58,7 +58,7 @@ class MediaStreamInfo {
             return alturl
         }
     }
-	mediaType(entry){
+	mediaType(entry, def){
 		if(!entry || typeof(entry) != 'object'){
 			entry = {
 				url: String(entry)
@@ -72,17 +72,17 @@ class MediaStreamInfo {
 			return 'live'
 		} if(this.isVideo(entry.url, ext, proto) || this.isAudio(entry.url, ext) || this.isYT(entry.url)) {
 			return 'video'
-		} else if(entry.url.indexOf('video') != -1) {
-			return 'video'
 		} else if(entry.url.match(this.seemsLiveRegex)){
 			return 'live'
+		} else if(entry.url.indexOf('video') != -1) {
+			return 'video'
 		} else {
 			const name = entry.name + ' ' + (entry.group || '')
 			if(this.isRadio(name)){
 				return 'live'
 			}
 		}
-		return 'live' // "live" by default
+		return (def && typeof(def) == 'string') ? def : 'live' // "live" by default
 	}
 	isM3U8(url, ext){
 		if(!ext){

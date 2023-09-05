@@ -80,7 +80,6 @@ class UpdateListIndex extends ListIndexUtils {
                 const opts = {
                     debug: false,
                     url: path,
-                    p2p: !!this.forceDownload,
                     retries: 3,
                     followRedirect: true,
                     keepalive: false,

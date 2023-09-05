@@ -2,7 +2,6 @@ const Events = require('events')
 
 const DownloadStreamHttp = require('./stream-http')
 const DownloadStreamCache = require('./stream-cache')
-const DownloadStreamP2P = require('./stream-p2p')
 const DownloadStreamBase = require('./stream-base')
 
 class DownloadStream extends DownloadStreamBase {
@@ -18,26 +17,12 @@ class DownloadStream extends DownloadStreamBase {
 	}
     async start(){
         const types = [DownloadStreamHttp]
-        let usecache, usep2p
         if(typeof(this.opts.cacheTTL) == 'number' && this.opts.cacheTTL > 0) {
-            usecache = true
-            types.push(DownloadStreamCache)
-            if(this.opts.p2p === true && global.ui && global.Download.p2p) { // p2p requires cache
-                const peersCount = Object.keys(global.Download.p2p.peers).length
-                if(peersCount >= 2){
-                    usep2p = true
-                    types.push(DownloadStreamP2P)
-                } else {
-                    usep2p = false
-                }
-            }
+            types.unshift(DownloadStreamCache)
         }
         let chosen, responseData
         const vias = types.map((t, i) => {
             const opts = Object.assign({}, this.ropts)
-            if(t == DownloadStreamHttp && (usep2p || usecache)) { // put a delay on http to give chance for p2p/cache
-                opts.connectDelay = this.opts.p2pWaitMs
-            }
             const via = new t(opts)
             via.once('error', (err, report) => {
                 report && console.error(err)
@@ -64,9 +49,6 @@ class DownloadStream extends DownloadStreamBase {
                             headers: response.headers
                         }
                     }
-                    if(via.type == 'p2p' || (!usep2p && via.type == 'cache')) {
-                        vias.filter(v => v.type == 'http').shift().skipWait()
-                    }
                 }
             })
             via.once('destroy', () => {
@@ -83,8 +65,6 @@ class DownloadStream extends DownloadStreamBase {
                             const err = vias.filter(v => v.type == 'http').map(v => v.errors.length ? v.errors[0] : null).pop() || 'Failed to fetch.'
                             this.emitError(err)
                         }
-                    } else if(via.type == 'p2p' || (!usep2p && via.type == 'cache')) {
-                        vias.filter(v => v.type == 'http').shift().skipWait()
                     }
                 })
             })
@@ -93,10 +73,9 @@ class DownloadStream extends DownloadStreamBase {
     }
 }
 
-DownloadStream.engines = {}
-
-DownloadStream.engines.http = require('./stream-http')
-DownloadStream.engines.cache = require('./stream-cache')
-DownloadStream.engines.p2p = require('./stream-p2p')
+DownloadStream.engines = {
+    http: require('./stream-http'),
+    cache: require('./stream-cache')
+}
 
 module.exports = DownloadStream

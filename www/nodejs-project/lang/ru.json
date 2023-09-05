@@ -117,6 +117,7 @@
    "CONFIRM": "Подтверждение",
    "CONNECTING": "Соединение",
    "CONNECTION_FAILURE": "Сбой соединения",
+   "CONNECTIVITY": "Подключение",
    "CONNECT_TIMEOUT": "Подключите тайм-аут",
    "CONTACT_PROVIDER": "Свяжитесь с вашим провайдером",
    "CONTINUE": "Продолжать",

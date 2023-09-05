@@ -221,7 +221,11 @@ class Watching extends EntriesGroup {
             } else {
                 if(onlyKnownChannels){
                     delete data[i]
-                } else if(global.mega.isMega(entry.url)) {
+                } else {
+                    if(!global.mega.isMega(entry.url)) {
+                        const mediaType = global.lists.mi.mediaType(entry)
+                        entry.url = global.mega.build(entry.name, {mediaType})
+                    }
                     data[i] = global.channels.toMetaEntry(entry)
                 }
             }

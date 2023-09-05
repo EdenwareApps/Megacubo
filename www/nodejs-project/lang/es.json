@@ -117,6 +117,7 @@
    "CONFIRM": "Confirmación",
    "CONNECTING": "Conectando",
    "CONNECTION_FAILURE": "Conexión fallida",
+   "CONNECTIVITY": "Conectividad",
    "CONNECT_TIMEOUT": "Tiempo de espera para conexión",
    "CONTACT_PROVIDER": "Póngase en contacto con su proveedor",
    "CONTINUE": "Continuar",

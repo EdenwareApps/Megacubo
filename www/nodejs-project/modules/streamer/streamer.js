@@ -811,7 +811,7 @@ class StreamerAbout extends StreamerTracks {
 			})
 		}	
 	}
-	aboutRegisterEntry(id, renderer, action, position, more){
+	aboutRegisterEntry(id, renderer, action, position, more) {
 		if(this.opts.shadow) return
 		let e = {id, renderer, action}
 		let k = more ? 'moreAboutEntries' : 'aboutEntries'
@@ -1234,7 +1234,7 @@ class Streamer extends StreamerAbout {
 		return succeeded
 	}
 	play(e, results, silent){
-		return this.playPromise(e, results, silent).catch(console.error)
+		return this.playPromise(e, results, silent).catch(silent ? console.error : global.displayErr)
 	}
 	tune(e){
 		if(this.opts.shadow){

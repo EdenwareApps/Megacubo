@@ -132,8 +132,7 @@ body.video.idle {
 #main {
     width: 100%;
     height: 100%;
-    display: flex;       
-    align-items: baseline;
+    display: flex;
     justify-content: center;
     background-color: transparent;
 }
@@ -1081,6 +1080,7 @@ div#modal {
     position: fixed;
     width: 100vw;
     height: 100vh;
+    left: 0;
     z-index: 9;
     background: var(--modal-background-color);
 }

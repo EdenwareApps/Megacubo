@@ -29,7 +29,8 @@ class Crashlog {
         return val
     }
     save(message, file, line, column, errorObj){
-        if(!window.app) return
+        const app = parent.parent.appChannel || window.app
+        if(!app) return
         const stack = errorObj !== undefined && errorObj !== null ? errorObj.stack : traceback()
         app.emit('crash', message +' '+ file +':'+ line +' '+ stack)
     }

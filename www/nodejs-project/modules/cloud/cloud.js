@@ -59,15 +59,12 @@ class CloudConfiguration {
             if(this.debug){
                 console.log('cloud: fallback', key)
             }
-            const p2p = key != 'configure' && global.config.get('p2p') 
             const url = this.url(key)
             let err, err2, body = await global.Download.get({
                 url,
                 responseType: raw === true ? 'text' : 'json',
                 timeout: 60,
                 retry: 10,
-                p2p,
-                p2pWaitMs: 500,
                 cacheTTL: this.expires[expiralKey] || 300
             }).catch(e => err = e)
             if(this.debug){

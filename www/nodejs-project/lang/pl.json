@@ -117,6 +117,7 @@
    "CONFIRM": "Potwierdź",
    "CONNECTING": "Złączony",
    "CONNECTION_FAILURE": "Połączenie awarii",
+   "CONNECTIVITY": "Łączność",
    "CONNECT_TIMEOUT": "Connect timeout",
    "CONTACT_PROVIDER": "Skontaktuj się z dostawcą",
    "CONTINUE": "Kontyntynuj",

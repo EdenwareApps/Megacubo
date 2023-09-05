@@ -117,6 +117,7 @@
    "CONFIRM": "تأكيد",
    "CONNECTING": "جاري الاتصال",
    "CONNECTION_FAILURE": "فشل الاتصال",
+   "CONNECTIVITY": "الاتصال",
    "CONNECT_TIMEOUT": "انتهاء مهلة الاصتال",
    "CONTACT_PROVIDER": "اتصل بمزودك",
    "CONTINUE": "استمر",

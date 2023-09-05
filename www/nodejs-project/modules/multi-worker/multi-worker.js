@@ -90,7 +90,8 @@ const setupConstructor = () => {
 					if(terminating) {
 						this.promises[id].resolve()
 					} else {
-						this.promises[id].reject(err)
+						const method = this.promises[id] ? this.promises[id].method : ''
+						this.promises[id].reject(err +', while calling '+ method)
 					}
 					delete this.promises[id]
 				}
@@ -133,7 +134,7 @@ const setupConstructor = () => {
 			super()
 			this.Worker = require('worker_threads').Worker
 			this.worker = new this.Worker(path.join(__dirname, 'worker.js'), {
-				workerData, 
+				workerData,
 				stdout: true, 
 				stderr: true
 			})

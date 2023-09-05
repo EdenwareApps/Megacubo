@@ -302,19 +302,9 @@ class ChannelsEPG extends ChannelsCategories {
                         global.displayErr(global.lang.CHANNEL_EPG_NOT_FOUND +' *')
                     })
                     if(!err) {
-                        const _path = [global.lang.LIVE, category, name, global.lang.EPG].join('/')
-                        this.watchNowAuto = ''
-                        this.skipSmartSorting = true
-                        global.osd.show(global.lang.OPENING, 'fas fa-circle-notch fa-spin', 'open-epg', 'persistent')
-                        let err
-                        await global.explorer.open(_path).catch(err => {
-                            console.error(err)
-                        })
-                        if(!err) {
-                            global.ui.emit('menu-playing')
-                            global.osd.hide('open-epg')
-                        }
-                        this.skipSmartSorting = false
+                        const entries = await this.epgChannelEntries({name})
+                        global.explorer.render(entries, global.lang.EPG, 'fas fa-plus', '/')
+                        global.ui.emit('menu-playing')
                     }
                 } else {
                     global.displayErr(global.lang.CHANNEL_EPG_NOT_FOUND)
@@ -415,26 +405,23 @@ class ChannelsEPG extends ChannelsCategories {
             global.lists.epg(data, limit).then(resolve).catch(reject)
         })
     }
-    epgChannelEntries(e, limit){
-        return new Promise((resolve, reject) => {
-            if(typeof(limit) != 'number'){
-                limit = 72
-            }
-            let data = this.epgPrepareSearch(e)
-            global.lists.epg(data, limit).then(epgData => {
-                let centries = []
-                if(epgData){
-                    if(typeof(epgData[0]) != 'string'){
-                        centries = this.epgDataToEntries(epgData, data.name, data.terms)
-                        if(!centries.length){
-                            centries.push(global.explorer.emptyEntry(global.lang.NOT_FOUND))
-                        }
-                    }
+    async epgChannelEntries(e, limit){
+        if(typeof(limit) != 'number'){
+            limit = 72
+        }
+        let data = this.epgPrepareSearch(e)
+        const epgData = await global.lists.epg(data, limit)
+        let centries = []
+        if(epgData){
+            if(typeof(epgData[0]) != 'string'){
+                centries = this.epgDataToEntries(epgData, data.name, data.terms)
+                if(!centries.length){
+                    centries.push(global.explorer.emptyEntry(global.lang.NOT_FOUND))
                 }
-                centries.unshift(this.adjustEPGChannelEntry(e))
-                resolve(centries)
-            }).catch(reject)
-        })
+            }
+        }
+        centries.unshift(this.adjustEPGChannelEntry(e))
+        return centries
     }
     async epgChannelLiveNow(entry){
         if(!global.activeEPG) throw 'epg not loaded'
@@ -782,11 +769,9 @@ class ChannelsEditing extends ChannelsEPG {
             name: global.lang.EDIT_CHANNEL_LIST,
             type: 'group',
             fa: 'fas fa-tasks',
-            renderer: () => {
-                return new Promise((resolve, reject) => {
-                    this.disableWatchNowAuto = true
-                    resolve(this.getCategories(false).map(c => this.editCategoryEntry(c, true)))
-                })
+            renderer: async () => {
+                this.disableWatchNowAuto = true
+                return this.getCategories(false).map(c => this.editCategoryEntry(c, true))
             }
         }
     }
@@ -796,44 +781,42 @@ class ChannelsEditing extends ChannelsEPG {
         if(useCategoryName !== true){
             Object.assign(category, {name: global.lang.EDIT_CATEGORY, rawname: global.lang.EDIT_CATEGORY, type: 'select', details: category.name})
         }
-        category.renderer = (c, e) => {
-            return new Promise((resolve, reject) => {
-                this.disableWatchNowAuto = true
-                let entries = [
-                    this.addChannelEntry(category, false),
-                    {name: global.lang.EDIT_CHANNELS, fa: 'fas fa-th', details: cat.name, type: 'group', renderer: () => {
-                        return new Promise((resolve, reject) => {
-                            let entries = c.entries.map(e => {
-                                return this.editChannelEntry(e, cat.name, {})
-                            })
-                            entries.unshift(this.addChannelEntry(cat))
-                            resolve(entries)
+        category.renderer = async (c, e) => {
+            this.disableWatchNowAuto = true
+            let entries = [
+                this.addChannelEntry(category, false),
+                {name: global.lang.EDIT_CHANNELS, fa: 'fas fa-th', details: cat.name, type: 'group', renderer: () => {
+                    return new Promise((resolve, reject) => {
+                        let entries = c.entries.map(e => {
+                            return this.editChannelEntry(e, cat.name, {})
                         })
-                    }},
-                    {name: global.lang.RENAME_CATEGORY, fa: 'fas fa-edit', type: 'input', details: cat.name, value: cat.name, action: (e, val) => {
-                        console.warn('RENAME', cat.name, 'TO', val)
-                        if(val && val != cat.name && typeof(this.categories[val]) == 'undefined'){
-                            let o = this.categories[cat.name]
-                            delete this.categories[cat.name]
-                            this.categories[val] = o
-                            this.save(() => {
-                                let destPath = global.explorer.path.replace(cat.name, val).replace('/'+ global.lang.RENAME_CATEGORY, '')
-                                global.explorer.refresh(true, destPath)
-                                global.osd.show(global.lang.CATEGORY_RENAMED, 'fas fa-check-circle', 'channels', 'normal')
-                            })
-                        }
-                    }},
-                    {name: global.lang.REMOVE_CATEGORY, fa: 'fas fa-trash', type: 'action', details: cat.name, action: () => {
+                        entries.unshift(this.addChannelEntry(cat))
+                        resolve(entries)
+                    })
+                }},
+                {name: global.lang.RENAME_CATEGORY, fa: 'fas fa-edit', type: 'input', details: cat.name, value: cat.name, action: (e, val) => {
+                    console.warn('RENAME', cat.name, 'TO', val)
+                    if(val && val != cat.name && typeof(this.categories[val]) == 'undefined'){
+                        let o = this.categories[cat.name]
                         delete this.categories[cat.name]
+                        this.categories[val] = o
                         this.save(() => {
-                            global.explorer.open(global.lang.LIVE).catch(displayErr)
-                            global.osd.show(global.lang.CATEGORY_REMOVED, 'fas fa-check-circle', 'channels', 'normal')
+                            let destPath = global.explorer.path.replace(cat.name, val).replace('/'+ global.lang.RENAME_CATEGORY, '')
+                            global.explorer.refresh(true, destPath)
+                            global.osd.show(global.lang.CATEGORY_RENAMED, 'fas fa-check-circle', 'channels', 'normal')
                         })
-                    }}
-                ]
-                console.warn('editcat entries', entries)
-                resolve(entries)
-            })
+                    }
+                }},
+                {name: global.lang.REMOVE_CATEGORY, fa: 'fas fa-trash', type: 'action', details: cat.name, action: () => {
+                    delete this.categories[cat.name]
+                    this.save(() => {
+                        global.explorer.open(global.lang.LIVE).catch(displayErr)
+                        global.osd.show(global.lang.CATEGORY_REMOVED, 'fas fa-check-circle', 'channels', 'normal')
+                    })
+                }}
+            ]
+            console.warn('editcat entries', entries)
+            return entries
         }
         return category
     }
@@ -871,23 +854,24 @@ class ChannelsEditing extends ChannelsEPG {
 class ChannelsAutoWatchNow extends ChannelsEditing {
     constructor(){
         super()
-        this.watchNowAuto = ''
+        this.watchNowAuto = false
         this.disableWatchNowAuto = false
         global.uiReady(() => {
             global.explorer.on('render', (entries, path) => {
                 if(path != this.watchNowAuto){
-                    this.watchNowAuto = ''
+                    this.watchNowAuto = false
                 }
             })
             global.streamer.on('stop-from-client', () => {
-                this.watchNowAuto = ''
+                this.watchNowAuto = false
             })
         })
     }
     autoplay(){
-        if(this.disableWatchNowAuto) return false
-        let watchNowAuto = global.config.get('watch-now-auto')
-        return watchNowAuto == 'always' || (watchNowAuto == 'auto' && this.watchNowAuto)
+        const watchNowAuto = global.config.get('watch-now-auto')
+        if(watchNowAuto == 'always') return true
+        if(this.disableWatchNowAuto || watchNowAuto == 'never') return false
+        return (watchNowAuto == 'auto' && this.watchNowAuto)
     }
 }
 
@@ -1293,7 +1277,7 @@ class Channels extends ChannelsKids {
         })
         entries.push({name: global.lang.MORE_OPTIONS, type: 'select', fa: 'fas fa-ellipsis-v', entries: moreOptions})
         return entries.map(e => {
-            if(e.renderer || e.entries){
+            if(e.renderer || e.entries) {
                 let originalRenderer = e.renderer || e.entries
                 e.renderer = data => {
                     if(data.name != global.lang.WATCH_NOW){
@@ -1457,9 +1441,6 @@ class Channels extends ChannelsKids {
         return list
     }
     sortCategoryEntries(entries){
-        if(this.skipSmartSorting){
-            return entries
-        }
         entries = global.lists.sort(entries)                                
         const policy = global.config.get('channels-list-smart-sorting')
         /*

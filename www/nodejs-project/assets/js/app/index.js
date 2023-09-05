@@ -16,7 +16,7 @@ function log(msg, id){
 
 function isES6(){
 	try{
-		new Function('() => { const a = 1 }');
+		new Function('class ES6Test { constructor() { const a = 1 } }; return new ES6Test()');
 		return true;
 	} catch(exception) {
 		return false;
@@ -24,7 +24,7 @@ function isES6(){
 }
 
 function updateWebView(){
-	var msg;
+	var msg, playStoreUrl = 'market://details?id=com.google.android.webview';
 	switch(navigator.language.substr(0, 2)){
 		case 'pt':
 			msg = 'Oops, voce precisa atualizar o WebView de seu sistema para rodar este aplicativo.';
@@ -41,7 +41,6 @@ function updateWebView(){
 	}
 	log(msg);
 	alert(msg);
-	var playStoreUrl = 'market://details?id=com.google.android.webview';
 	window.open(playStoreUrl, '_system');
 	setTimeout(() => parent.close(), 5000);
 }

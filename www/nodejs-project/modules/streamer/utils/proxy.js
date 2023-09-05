@@ -278,8 +278,6 @@ class StreamerProxy extends StreamerProxyBase {
 			url,
 			cacheTTL,
 			acceptRanges: !!cacheTTL,
-			p2p: !!cacheTTL,
-			p2pWaitMs: 0,
 			retries: this.committed ? 10 : 2,
 			maxAuthErrors: this.committed ? 10 : 2,
 			headers: reqHeaders,

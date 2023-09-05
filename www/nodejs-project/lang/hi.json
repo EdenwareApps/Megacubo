@@ -117,6 +117,7 @@
    "CONFIRM": "पुष्टिकरण",
    "CONNECTING": "कनेक्ट",
    "CONNECTION_FAILURE": "संबंध विफल",
+   "CONNECTIVITY": "कनेक्टिविटी",
    "CONNECT_TIMEOUT": "टाइमआउट कनेक्ट करें",
    "CONTACT_PROVIDER": "अपने प्रदाता से संपर्क करें",
    "CONTINUE": "जारी रखें",

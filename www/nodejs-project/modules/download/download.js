@@ -1,7 +1,6 @@
 const Events = require('events'), parseRange = require('range-parser')
 const zlib = require('zlib'), Writer = require('../write-queue/writer')
 const StringDecoder = require('string_decoder').StringDecoder
-const DownloadP2PHandler = require('./download-p2p')
 const DownloadCacheMap = require('./download-cache')
 const DownloadStreamHybrid = require('./stream-hybrid')
 
@@ -11,8 +10,6 @@ class Download extends Events {
 		this.startTime = global.time()
 		this.opts = {
 			cacheTTL: 0,
-			p2p: false,
-			p2pWaitMs: 500,
 			uid: parseInt(Math.random() * 100000000000),
 			debug: Download.debug || false,
 			keepalive: false,
@@ -129,31 +126,6 @@ class Download extends Events {
 		}
 		if(!this.started && !this.ended && !this.destroyed){
 			this.started = true
-			if(!Download.p2p && Download.p2p !== 0 && global.uiReady && global.config.get('p2p')){
-				Download.p2p = 0 // lock, zero means loading
-				let srvConfig = {}	
-				global.cloud.get('configure').then(c => srvConfig = c).catch(console.error).finally(() => {
-					if((!srvConfig || !srvConfig['disable-p2p']) && !Download.p2p){
-						console.warn('INIT P2P')
-						global.uiReady(() => {
-							const addr = srvConfig['p2p-signal-server'] || global.config.get('p2p-signal-server') || 'ws://signal.megacubo.net:80'
-							const limit = srvConfig['p2p-peers-limit'] || global.config.get('p2p-peers-limit') || 8
-							Download.p2p = new DownloadP2PHandler({
-								ui: global.ui,
-								cache: Download.cache,
-								discovery: global.discovery,
-								addr, limit
-							})
-							/*
-							Download.p2p.swarm.on('error', err => {
-								console.error('P2P SWARM ERR: '+ err, err)
-								Download.p2p = 0 // lock, set zero to skip P2P usage
-							})
-							*/
-						})
-					}
-				})
-			}
 			if(global.osd && global.debugConns){
 				let txt = this.opts.url.split('?')[0].split('/').pop()
 				global.osd.show(txt, 'fas fa-download', 'down-'+ this.opts.uid, 'persistent')
@@ -616,22 +588,19 @@ class Download extends Events {
 		}
 	}
 	_emitData(chunk){
-		if(!this.responseSource.startsWith('cache')){
-			if(Download.p2p){
-				Download.p2p.addStats(this.responseSource, chunk.length)
-			}		
-			if(this.opts.cacheTTL){
+		if(!this.responseSource.startsWith('cache')) {
+			if(this.opts.cacheTTL) {
 				Download.cache.save(this, chunk, false) // before to be converted by StringDecoder
 			}
 		}
-		if(this.opts.encoding && this.opts.encoding != 'binary'){
+		if(this.opts.encoding && this.opts.encoding != 'binary') {
 			if(!this.stringDecoder){
 				this.stringDecoder = new StringDecoder(this.opts.encoding)
 			}
 			chunk = this.stringDecoder.write(chunk)
 		}
 		this.receivedUncompressed += chunk.length
-		if(this.listenerCount('data')){
+		if(this.listenerCount('data')) {
 			this.emit('data', chunk)
 		} else {
 			this.buffer.push(chunk)

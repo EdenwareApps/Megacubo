@@ -686,6 +686,7 @@ global.ui.on('get-lang-callback', (locale, timezone, ua, online) => {
 if(global.cordova) {
     global.ui.emit('get-lang')
 } else {
+    const tcpFastOpen = global.config.get('tcp-fast-open') ? 'true' : 'false'
     const remoteModuleExternal = parseFloat(process.versions.electron) >= 22
     remoteModuleExternal && require('@electron/remote/main').initialize()
     const { app, BrowserWindow, globalShortcut, Menu } = require('electron')
@@ -701,12 +702,13 @@ if(global.cordova) {
     global.config.get('gpu-flags').forEach(f => app.commandLine.appendSwitch(f))
     global.config.get('gpu') || app.disableHardwareAcceleration()
 
+    app.commandLine.appendSwitch('no-zygote')
     app.commandLine.appendSwitch('no-sandbox')
     app.commandLine.appendSwitch('no-prefetch')
     app.commandLine.appendSwitch('disable-websql', 'true')
     app.commandLine.appendSwitch('password-store', 'basic')
     app.commandLine.appendSwitch('disable-http-cache', 'true')
-    app.commandLine.appendSwitch('enable-tcp-fast-open', 'true')
+    app.commandLine.appendSwitch('enable-tcp-fast-open', tcpFastOpen) // networking environments that do not fully support the TCP Fast Open standard may have problems connecting to some websites
     app.commandLine.appendSwitch('disable-transparency', 'true')
     app.commandLine.appendSwitch('disable-site-isolation-trials')
     app.commandLine.appendSwitch('enable-smooth-scrolling', 'true')
@@ -726,7 +728,7 @@ if(global.cordova) {
                 dnsPrefetchingEnabled: false,
                 contextIsolation: false, // false is required for nodeIntegration
                 nodeIntegration: true,
-                nodeIntegrationInWorker: true,
+                nodeIntegrationInWorker: false,
                 nodeIntegrationInSubFrames: false,
                 enableRemoteModule: true,
                 experimentalFeatures: true, // audioTracks support

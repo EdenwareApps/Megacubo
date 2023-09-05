@@ -117,6 +117,7 @@
    "CONFIRM": "Doğrulayıcı",
    "CONNECTING": "Bağlanıyor",
    "CONNECTION_FAILURE": "Bağlantı başarısız",
+   "CONNECTIVITY": "Bağlantı",
    "CONNECT_TIMEOUT": "Bağlantı zaman aşımı",
    "CONTACT_PROVIDER": "Sağlayıcınızla iletişime geçin",
    "CONTINUE": "Devam et",

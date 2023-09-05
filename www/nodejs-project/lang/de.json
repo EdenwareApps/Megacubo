@@ -117,6 +117,7 @@
    "CONFIRM": "Bestätigen",
    "CONNECTING": "Anschluss",
    "CONNECTION_FAILURE": "Verbindung fehlschlagen",
+   "CONNECTIVITY": "Konnektivität",
    "CONNECT_TIMEOUT": "Verbindungs Timeout",
    "CONTACT_PROVIDER": "Wenden Sie sich an Ihren Anbieter",
    "CONTINUE": "Fortsetzen",

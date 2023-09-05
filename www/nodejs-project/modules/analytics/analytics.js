@@ -29,8 +29,8 @@ class AnalyticsBase extends Events {
             data.verinf = global.premium.active
         }
         if(data.source && global.lists.isPrivateList(data.source)){
-            // console.log('Source URL not shareable.')
-            data.source = ''
+            data.url = this.obfuscateURL(data.url)
+            data.source = '' // Source URL not shareable.
         }
         data.epg = global.channels.loadedEPG || data.epg || ''
         let postData = this.toQS(data)
@@ -38,11 +38,11 @@ class AnalyticsBase extends Events {
             port: 80,
             family: 4, // https://github.com/nodejs/node/issues/5436
             method: 'POST',
-            path: '/stats/' + action,
+            path: '/stats/'+ action,
             hostname: 'app.megacubo.net',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Content-Length': Buffer.byteLength(postData),
+                'Content-Length': postData.length,
                 'Cache-Control': 'no-cache'
             }
         }
@@ -75,6 +75,10 @@ class AnalyticsBase extends Events {
         } else {
             return Object.assign({}, entry)
         }
+    }
+    obfuscateURL(url) {
+        const file = url.split('?').shift().split('/').pop() // keep only the original filename as hint to know if it is a 'live' or 'vod' content
+        return 'https://localhost/'+ file
     }
 }
 

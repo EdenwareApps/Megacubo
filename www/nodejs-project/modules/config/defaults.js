@@ -69,15 +69,6 @@ module.exports = {
 	'miniplayer-auto': true,
 	'only-known-channels-in-been-watched': true,
 	'osd-speak': false,
-	'p2p': true,
-	'p2p-stun-servers': [
-		'stun:stun.l.google.com:19302',
-		'stun:stun1.l.google.com:19302',
-		'stun:stun2.l.google.com:19302',
-		'stun:stun3.l.google.com:19302',
-		'stun:stun4.l.google.com:19302',
-		'stun:stun.stunprotocol.org'
-	],
 	'parental-control': 'remove',
 	'parental-control-terms': '.',
 	'play-while-loading': true,

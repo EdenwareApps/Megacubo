@@ -630,17 +630,7 @@ class StreamerProxyHLS extends HLSRequests {
 		const download = this.download({
 			url,
 			cacheTTL,
-			cacheTTLDebug: [
-				this.committed, 
-				url,  
-				url.match(this.isCacheableRegex), 
-				isCacheable,
-				cacheTTL, 
-				(this.committed && url.match(this.isCacheableRegex)) ? 60 : 0
-			],
 			acceptRanges: !!cacheTTL,
-			p2p: !!cacheTTL,
-			p2pWaitMs: 0,
 			debug: false,
 			headers: reqHeaders,
 			authURL: this.opts.authURL || false, 

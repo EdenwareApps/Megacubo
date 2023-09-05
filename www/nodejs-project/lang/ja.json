@@ -117,6 +117,7 @@
    "CONFIRM": "確認",
    "CONNECTING": "接続",
    "CONNECTION_FAILURE": "接続失敗",
+   "CONNECTIVITY": "接続性",
    "CONNECT_TIMEOUT": "タイムアウトを接続します",
    "CONTACT_PROVIDER": "プロバイダーに連絡してください",
    "CONTINUE": "続く",

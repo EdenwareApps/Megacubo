@@ -425,11 +425,9 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 			this.emit('subtitleTracks', this.subtitleTracks())
 		});
 		v.on('waiting', () => {
-			this.isPlaying = false
 			this.setState('loading')
 		})
 		v.on('playing', () => {
-			this.isPlaying = true
 			this.setState('playing')
 		});
 		['abort', 'canplay', 'canplaythrough', 'durationchange', 'emptied', 'ended', 'error', 'loadeddata', 'loadedmetadata', 'loadstart', 'pause', 'play', 'seeked', 'stalled', 'suspend'].forEach(n => {
@@ -466,6 +464,7 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 		this.object.src = src
 		this.connect()
 		this.object.load()
+		this._paused = false
 		this.setState('loading')
 		this.suspendStateChangeReporting = false
 		this.resume()
@@ -479,6 +478,7 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 			this.disconnect()
 			if(this.object.currentSrc) {
 				this.pause()
+				this._paused = false
 				if(!silent) {
 					this.object.innerHTML = '<source type="video/mp4" src="" />'
 					this.object.removeAttribute('src')
