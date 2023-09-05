@@ -91,9 +91,9 @@ class Common extends Events {
 		this.stopWords = ['sd', 'hd', 'h264', 'h.264', 'fhd'] // common words to ignore on searching
 		this.listMetaKeyPrefix = 'meta-cache-'
 		this.opts = {
+			defaultCommunityModeReach: 18,
 			folderSizeLimitTolerance: 12,
-			offloadThreshold: 512,
-			defaultCommunityModeReach: global.cordova ? 12 : 18
+			offloadThreshold: 256
 		}
         if(opts){
             Object.keys(opts).forEach(k => {

@@ -540,7 +540,7 @@ class Download extends Events {
 						this.end()
 					}
 				})
-				response.on('error', this.errorCallback.bind(this))
+				response.on('error', console.error)
 				const onend = () => {
 					if(!this.destroyed && !this.ended){
 						if(this.isResponseComplete(response.statusCode, response.headers)){

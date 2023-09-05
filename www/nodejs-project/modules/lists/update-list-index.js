@@ -195,6 +195,7 @@ class UpdateListIndex extends ListIndexUtils {
                 if(!resolved){
                     resolved = true
                     fs.unlink(this.tmpfile, () => {})
+                    opts.file && fs.unlink(opts.file, () => {})
                     reject('destroyed')
                 }
             }

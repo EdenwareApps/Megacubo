@@ -1426,6 +1426,12 @@ class Options extends OptionsExportImport {
                         action: () => {
                             global.ui.emit('open-file', global.ui.uploadURL, 'config-import-file', 'application/json, application/zip, application/octet-stream, application/x-zip-compressed, multipart/x-zip', global.lang.IMPORT_CONFIG)
                         }
+                    },                    
+                    {
+                        name: global.lang.RESET_CONFIG, 
+                        type: 'action',
+                        fa: 'fas fa-undo-alt', 
+                        action: () => this.resetConfig()
                     }
                 ]
             }
