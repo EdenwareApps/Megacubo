@@ -137,7 +137,7 @@ function enableConsole(enable){
     }
 }
 
-enableConsole(global.config.get('enable-console'))
+enableConsole(global.config.get('enable-console') || process.argv.includes('--inspect'))
 
 console.log('Loading modules...')
 
@@ -362,9 +362,7 @@ const init = (language, timezone) => {
                 case 'agree':
                     break
                 default:
-                    global.lists.manager.addList(ret).catch(err => {
-                        global.lists.manager.catch(global.displayErr)
-                    })
+                    global.lists.manager.addList(ret).catch(global.displayErr)
                     break
             }
         })
@@ -654,6 +652,7 @@ const init = (language, timezone) => {
                     console.log('updated')
                 }
             }
+            global.ui.emit('arguments', process.argv)
         })
         
         console.warn('Prepared to connect...')
@@ -691,6 +690,7 @@ if(global.cordova) {
     remoteModuleExternal && require('@electron/remote/main').initialize()
     const { app, BrowserWindow, globalShortcut, Menu } = require('electron')
 
+    app.requestSingleInstanceLock() || app.quit()    
     Menu.setApplicationMenu(null)
     onexit(() => app.quit())
     if(remoteModuleExternal){
@@ -715,6 +715,7 @@ if(global.cordova) {
     app.commandLine.appendSwitch('enable-experimental-web-platform-features') // audioTracks support
     app.commandLine.appendSwitch('enable-features', 'PlatformHEVCDecoderSupport')  // TODO: Allow user to activate Metal (macOS) and VaapiVideoDecoder (Linux) features
     app.commandLine.appendSwitch('disable-features', 'IsolateOrigins,SitePerProcess,NetworkPrediction')
+
     app.whenReady().then(() => {
         const window = new BrowserWindow({  
             frame: false,
@@ -735,7 +736,7 @@ if(global.cordova) {
                 webSecurity: false // desabilita o webSecurity
             }
         })
-        window.loadURL('file://'+ global.APPDIR +'/electron.html') // file:// is required on Linux to prevent blank window on Electron 9.1.2
+        window.loadURL('file://'+ global.APPDIR +'/electron.html', {userAgent: global.ui.ua}) // file:// is required on Linux to prevent blank window on Electron 9.1.2
         app.on('browser-window-focus', () => {
             // We'll use Ctrl+M to enable Miniplayer instead of minimizing
             globalShortcut.registerAll(['CommandOrControl+M'], () => { return })
@@ -743,6 +744,13 @@ if(global.cordova) {
         })
         app.on('browser-window-blur', () => {
             globalShortcut.unregisterAll()
+        })
+        app.on('second-instance', (event, commandLine) => {
+            if (window) {
+                window.isMinimized() || window.restore()
+                window.focus()
+                global.ui.emit('arguments', commandLine)
+            }
         })
     }).catch(console.error)
 }

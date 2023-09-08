@@ -295,11 +295,13 @@ function loadScripts() {
 		updateSplashProgress();
 		loadResizeObserverPolyfill(function () {
 			loadJS('./assets/js/app/video.js', function () {
-				loadJS('./assets/js/app/video.hls.js', function () {
-					updateSplashProgress();
-					loadJS('./assets/js/app/video.ts.js', function () {
-						loadJS('./assets/js/app/window.js', function () {
-							updateSplashProgress();
+				loadJS('./node_modules/hls.js/dist/hls.js', function() { // hls.light.js will not play fmp4
+					loadJS('./assets/js/app/video.hls.js', function () {
+						updateSplashProgress();
+						loadJS('./assets/js/app/video.ts.js', function () {
+							loadJS('./assets/js/app/window.js', function () {
+								updateSplashProgress();
+							});
 						});
 					});
 				});

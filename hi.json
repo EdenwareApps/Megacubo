@@ -56,8 +56,6 @@
    "BLOCK": "अवरोध पैदा करना",
    "BOOKMARKS": "बुकमार्क",
    "BOOKMARK_ADDED": "{0} बुकमार्क में जोड़ा गया",
-   "BOOKMARK_CREATE_DESKTOP_ICONS": "डेस्कटॉप पर बुकमार्क आइकन बनाएं",
-   "BOOKMARK_ICONS_SYNC": "सिंक डेस्कटॉप आइकन",
    "BOOKMARK_REMOVED": "{0} बुकमार्क से हटा दिया गया",
    "BROADCAST_NOT_WORKING_HINT": "ट्रांसमिशन समस्या? एक और प्रसारण खोलने के लिए {0} पर क्लिक करें",
    "BROADCAST_START_TIMEOUT": "प्रसारण शुरू करने के लिए टाइमआउट",

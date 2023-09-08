@@ -56,8 +56,6 @@
    "BLOCK": "Bloccare",
    "BOOKMARKS": "I Miei Preferiti",
    "BOOKMARK_ADDED": "{0} aggiunto ai preferiti",
-   "BOOKMARK_CREATE_DESKTOP_ICONS": "Crea icona del segnalibro sul desktop",
-   "BOOKMARK_ICONS_SYNC": "Icone desktop sincronizzate",
    "BOOKMARK_REMOVED": "{0} rimosso dai preferiti",
    "BROADCAST_NOT_WORKING_HINT": "Problema di trasmissione? Fai clic su {0} per aprire un'altra trasmissione",
    "BROADCAST_START_TIMEOUT": "Timeout per iniziare la trasmissione",

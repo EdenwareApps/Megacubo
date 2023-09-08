@@ -2,7 +2,6 @@
   "bugs": "https://www.facebook.com/messages/t/MegacuboTV",
   "dependencies": {
     "@fortawesome/fontawesome-free": "^6.4.2",
-    "@geut/discovery-swarm-webrtc": "github:geut/discovery-swarm-webrtc",
     "adm-zip": "github:efoxbr/adm-zip",
     "agentkeepalive": "^4.3.0",
     "async": "^3.2.4",
@@ -11,6 +10,7 @@
     "bytenode": "github:efoxbr/bytenode",
     "check-disk-space": "^3.3.1",
     "color-thief-jimp": "^2.0.2",
+    "create-desktop-shortcuts": "^1.10.1",
     "decode-entities": "^1.0.7",
     "env-paths": "^2.2.1",
     "exec-finder": "^0.0.2",
@@ -28,6 +28,7 @@
     "node-cleanup": "^2.1.2",
     "nw-custom-frame": "github:efoxbr/nw-custom-frame",
     "p-queue": "^6.6.2",
+    "png-to-ico": "^2.1.8",
     "range-parser": "^1.2.1",
     "read-last-lines": "^1.8.0",
     "resize-observer": "^1.0.4",
@@ -38,7 +39,6 @@
     "swipey.js": "^1.0.3",
     "tough-cookie": "^4.1.2",
     "url-search-params-polyfill": "^8.1.1",
-    "ws": "^8.13.0",
     "xmltv": "github:efoxbr/node-xmltv",
     "ytdl-core": "^4.11.5",
     "ytsr": "^3.8.4"
@@ -46,7 +46,7 @@
   "description": "A intuitive, multi-language and cross-platform IPTV player.",
   "name": "megacubo",
   "icon": "./default_icon.png",
-  "version": "17.2.0",
+  "version": "17.2.1",
   "theme": {
     "fullScreen": true
   },

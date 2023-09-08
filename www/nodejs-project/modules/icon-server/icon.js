@@ -1,8 +1,9 @@
 
-const fs = require('fs'), async = require('async')
+const fs = require('fs'), Events = require('events'), pLimit = require('p-limit')
 
-class IconFetcher {
+class IconFetcher extends Events {
     constructor(){
+        super()
         this.isAlphaRegex = new RegExp('\.png', 'i')
         this.isNonAlphaRegex = new RegExp('\.(jpe?g|webp|gif)', 'i')
     }
@@ -32,47 +33,53 @@ class IconFetcher {
         if(this.master.opts.debug){
             console.log('GOFETCH', images)
         }
-        const tasks = images.map(async image => {
-            if(image.icon.match(this.isNonAlphaRegex) && !image.icon.match(this.isAlphaRegex)){
-                return false // non alpha url
-            }
-            if(done && !this.hasPriority(done.image, image, images)){
-                console.error('ICON DOWNLOADING CANCELLED')
-                return false
-            }
-            if(this.master.opts.debug){
-                console.log('GOFETCH', image)
-            }
-            const ret = await this.master.fetchURL(image.icon)
-            const key = ret.key
-            if(this.master.opts.debug){
-                console.log('GOFETCH', image, 'THEN', ret.file)
-            }
-            const type = await this.master.validateFile(ret.file)
-            if(type != 2){
-                return false // not an alpha png
-            }
-            if(done && !this.hasPriority(done.image, image, images)){
+        const limit = pLimit(3)
+        const tasks = images.map(image => {
+            return async () => {
+                if(image.icon.match(this.isNonAlphaRegex) && !image.icon.match(this.isAlphaRegex)){
+                    return false // non alpha url
+                }
+                if(done && !this.hasPriority(done.image, image, images)){
+                    if(this.master.opts.debug){
+                        console.log('ICON DOWNLOADING CANCELLED')
+                    }
+                    return false
+                }
                 if(this.master.opts.debug){
-                    console.warn('ICON ADJUSTING CANCELLED')
+                    console.log('GOFETCH', image)
                 }
-                return false
-            }
-            const ret2 = await this.master.adjust(ret.file, {shouldBeAlpha: true, minWidth: 100, minHeight: 100})
-            await this.master.saveHTTPCacheExpiration(key)
-            if(ret2.alpha){
-                if(!done || this.hasPriority(done.image, image, images)){
-                    done = ret2
-                    done.key = key
-                    done.image = image
-                    this.ready(key, true, true)
+                const ret = await this.master.fetchURL(image.icon)
+                const key = ret.key
+                if(this.master.opts.debug){
+                    console.log('GOFETCH', image, 'THEN', ret.file)
+                }
+                const type = await this.master.validateFile(ret.file)
+                if(type != 2){
+                    return false // not an alpha png
+                }
+                if(done && !this.hasPriority(done.image, image, images)){
+                    if(this.master.opts.debug){
+                        console.warn('ICON ADJUSTING CANCELLED')
+                    }
+                    return false
+                }
+                const ret2 = await this.master.adjust(ret.file, {shouldBeAlpha: true, minWidth: 100, minHeight: 100})
+                await this.master.saveHTTPCacheExpiration(key)
+                if(ret2.alpha){
+                    if(!done || this.hasPriority(done.image, image, images)){
+                        done = ret2
+                        if(!done.key) done.key = key
+                        done.image = image                        
+                        done.url = this.master.url + done.key
+                        this.succeeded = true
+                        this.result = done
+                        this.emit('result', done)
+                    }
                 }
             }
-        })
+        }).map(limit)
         await Promise.allSettled(tasks)
-        if(this.destroyed){
-            throw 'destroyed'
-        }
+        if(this.destroyed) throw 'destroyed'
         if(this.master.opts.debug){
             console.log('GOFETCH', images, 'OK', done, this.destroyed)
         }
@@ -82,107 +89,100 @@ class IconFetcher {
             throw 'Couldn\'t find a logo for: ' + JSON.stringify(this.terms) + ' ' + JSON.stringify(images)
         }
     }
-    async get(){
-        let noEPGIcon = () => {
-            let fromTerms = () => {
-                if(this.destroyed) return
-                this.master.getDefaultFile(this.terms).then(file => {
-                    if(this.destroyed) return
-                    if(this.master.opts.debug){
-                        console.log('get > getDefault', this.entry.icon, this.terms, file)
-                    }
-                    const search = () => {                            
-                        if(global.config.get('search-missing-logos')){
-                            this.fetchFromTerms().then(ret => {
-                                if(this.master.opts.debug){
-                                    console.log('get > fetch', this.terms, ret)
-                                }
-                                if(this.master.listsLoaded()){
-                                    this.master.saveDefaultFile(this.terms, ret.file, () => {})
-                                }
-                            }).catch(err => {
-                                if(this.destroyed) return
-                                console.error(err)
-                            })
-                        }
-                    }
-                    if(file){
-                        const noIcon = 'no-icon'
-                        fs.stat(file, (err, stat) => {
-                            if(err){
-                                search()
-                            } else if(stat.size == noIcon.length) {
-                                return
-                            } else {
-                                this.ready(this.terms.join(','), false, true)
-                            }
-                        })
-                    } else {
-                        search()
-                    }
-                }).catch(console.error)
+    async resolve() {
+        if(this.entry.programme && this.entry.programme.i){
+            let err
+            const ret = await this.master.fetchURL(this.entry.programme.i).catch(e => err = e)
+            if(!err) return [ret.key, true, ret.isAlpha]
+        }
+        let err
+        const ret = await this.master.fetchURL(this.entry.icon).catch(e => err = e)
+        if(!err) return [ret.key, true, ret.isAlpha]
+        if(!this.entry.class || this.entry.class.indexOf('entry-icon-no-fallback') == -1) {
+            let atts
+            this.terms = global.channels.entryTerms(this.entry)
+            this.isChannel = global.channels.isChannel(this.terms)
+            if(this.isChannel){
+                this.terms = this.isChannel.terms
+            } else if(atts = global.mega.parse(this.entry.url)) {
+                if(!atts.terms){
+                    atts.terms = this.entry.name
+                }
+                if(!Array.isArray(atts.terms)){
+                    atts.terms = global.lists.terms(atts.terms)
+                }
+                this.terms = atts.terms
             }
-            this.master.fetchURL(this.entry.icon).then(ret => this.ready(ret.key, false, ret.isAlpha)).catch(err => {
-                if(!this.entry.class || this.entry.class.indexOf('entry-icon-no-fallback') == -1) {
-                    let atts
-                    this.terms = global.channels.entryTerms(this.entry)
-                    this.isChannel = global.channels.isChannel(this.terms)
-                    if(this.isChannel){
-                        this.terms = this.isChannel.terms
-                        fromTerms()
-                    } else if(atts = global.mega.parse(this.entry.url)) {
-                        if(!atts.terms){
-                            atts.terms = this.entry.name
-                        }
-                        if(!Array.isArray(atts.terms)){
-                            atts.terms = global.lists.terms(atts.terms)
-                        }
-                        this.terms = atts.terms
-                        fromTerms()
+            if(this.destroyed) throw 'destroyed'
+            const file = await this.master.getDefaultFile(this.terms)
+            if(this.destroyed) throw 'destroyed'
+            if(this.master.opts.debug){
+                console.log('get > getDefault', this.entry.icon, this.terms, file)
+            }
+            if(file){
+                let err
+                const noIcon = 'no-icon'
+                const stat = await fs.promises.stat(file).catch(e => err = e)
+                if(!err){
+                    if(stat.size == noIcon.length) {
+                        throw 'icon not found'
                     } else {
-                        this.error = err
+                        return [this.terms.join(','), false, true]
                     }
                 }
-            })
+            }                           
+            if(global.config.get('search-missing-logos')){
+                const ret = await this.fetchFromTerms()
+                if(this.master.opts.debug){
+                    console.log('get > fetch', this.terms, ret)
+                }
+                if(this.master.listsLoaded()){
+                    this.master.saveDefaultFile(this.terms, ret.file, () => {})
+                }
+                return [ret.key, false, ret.isAlpha]
+            }
         }
-        if(this.entry.programme && this.entry.programme.i){
-            this.master.fetchURL(this.entry.programme.i).then(ret => this.ready(ret.key, false, ret.isAlpha)).catch(noEPGIcon)
-        } else {
-            noEPGIcon()
-        }
+        throw 'icon not found'
     }
 }
 
 class Icon extends IconFetcher {
-    constructor(entry, path, tabIndex, master){
-        super(entry, path, tabIndex, master)
+    constructor(entry, master){
+        super()
         this.master = master
         this.entry = entry
-        this.path = path
-        this.tabIndex = tabIndex
-        this.readyState = 0 // 0=icon not sent, 1=sent non alpha icon, 2=sent alpha icon
-        this.lastEmittedKey = ''
-        this.get().catch(console.error)
+        this.start().catch(console.error)
+    }
+    async start(){
+        let err
+        const ret = await this.resolve().catch(e => err = e)
+        this.succeeded = Array.isArray(ret)
+        if(this.succeeded) {
+            const key = ret[0]
+            const url = this.master.url + key
+            const force = ret[1]
+            const alpha = ret[2]
+            this.result = {key, url, force, alpha}
+        } else {
+            this.result = err
+        }
+        this.emit('result', this.result)
+    }
+    get() {
+        return new Promise((resolve, reject) => {
+            let cb = () => {
+                (this.succeeded ? resolve : reject)(this.result)
+                cb = () => {}
+            }
+            if(typeof(this.result) != 'undefined') {
+                cb()
+            } else {
+                this.once('result', cb)
+            }
+        })
     }
     destroy(){
         this.destroyed = true
-    }
-    ready(key, force, alpha){
-        if(!this.destroyed){
-            this.lastEmittedKey = key
-            if(!force && !this.master.isHashKey(key)) force = true
-            if(this.master.opts.debug){
-                console.log('icon', this.master.url + key, this.path, this.tabIndex, this.entry.name, this.entry, force)
-            }
-            global.ui.emit('icon', {
-                url: this.master.url + key, 
-                path: this.path, 
-                tabindex: this.tabIndex, 
-                name: this.entry.name, 
-                force, 
-                alpha
-            })
-        }
     }
 }
 

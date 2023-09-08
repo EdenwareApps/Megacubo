@@ -733,15 +733,15 @@ class Manager extends ManagerEPG {
         if(url.startsWith('//')){
             url = 'http:'+ url
         }
-        let isURL = global.validateURL(url), isFile = this.isLocal(url)
+        const isURL = global.validateURL(url), isFile = this.isLocal(url)
         console.error('lists.add '+url+' | '+ name +' | '+ isFile +' | '+ !isURL)
         if(!isFile && !isURL){
-            throw global.lang.INVALID_URL_MSG
+            throw global.lang.INVALID_URL_MSG +' Not a file or URL'
         }
         let lists = this.get()
         for(let i in lists){
             if(lists[i][1] == url){
-                return reject(global.lang.LIST_ALREADY_ADDED)
+                throw global.lang.LIST_ALREADY_ADDED
             }
         }
         this.addingList = true
@@ -751,7 +751,7 @@ class Manager extends ManagerEPG {
                 global.osd.show(global.lang.RECEIVING_LIST +' '+ p +'%', 'fa-mega spin-x-alt', 'add-list-progress-'+ uid, 'persistent')
             }
         }, this.master)
-        let entries = await fetch.getMap().catch(console.error)
+        let err, entries = await fetch.getMap().catch(e => err = e)
         this.addingList = false
         global.explorer.path.endsWith(global.lang.MY_LISTS) && global.explorer.refreshNow()
         this.master.status()
@@ -769,7 +769,7 @@ class Manager extends ManagerEPG {
             global.config.set(this.key, lists)
             return true
         } else {                    
-            throw global.lang.INVALID_URL_MSG
+            throw global.lang.INVALID_URL_MSG +' - '+ (err || fetch.error || 'No M3U entries were found')
         }
     }
     async addList(value, name, fromCommunity){
@@ -778,13 +778,10 @@ class Manager extends ManagerEPG {
         global.osd.show(global.lang.RECEIVING_LIST, 'fa-mega spin-x-alt', 'add-list-progress-'+ uid, 'persistent')
         global.ui.emit('background-mode-lock', 'add-list')
         value = global.forwardSlashes(value)
-        await this.add(value, name, uid).catch(e => err = String(e))
+        await this.add(value, name, uid).catch(e => err = e)
         global.osd.hide('add-list-progress-'+ uid)
         global.ui.emit('background-mode-unlock', 'add-list')
         if(typeof(err) != 'undefined'){
-            if(err.match('http error') != -1){
-                err = global.lang.INVALID_URL_MSG
-            }
             throw err
         } else {
             global.osd.show(global.lang.LIST_ADDED, 'fas fa-check-circle', 'add-list', 'normal')

@@ -56,8 +56,6 @@
    "BLOCK": "Bloquear",
    "BOOKMARKS": "Favoritos",
    "BOOKMARK_ADDED": "{0} adicionado aos favoritos",
-   "BOOKMARK_CREATE_DESKTOP_ICONS": "Crie ícones de favoritos na área de trabalho",
-   "BOOKMARK_ICONS_SYNC": "Sincronizar ícones da área de trabalho",
    "BOOKMARK_REMOVED": "{0} removido dos favoritos",
    "BROADCAST_NOT_WORKING_HINT": "Problema na transmissão? Clique em {0} para abrir outra transmissão",
    "BROADCAST_START_TIMEOUT": "Tempo limite para iniciar a transmissão",

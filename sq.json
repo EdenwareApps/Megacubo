@@ -56,8 +56,6 @@
    "BLOCK": "Bllokoni",
    "BOOKMARKS": "Bookmarks",
    "BOOKMARK_ADDED": "{0} shtuar në bookmarks",
-   "BOOKMARK_CREATE_DESKTOP_ICONS": "Krijoni ikonën e faqerojtës në desktop",
-   "BOOKMARK_ICONS_SYNC": "Sinkronizoni ikonat e desktopit",
    "BOOKMARK_REMOVED": "{0} hequr nga bookmarks",
    "BROADCAST_NOT_WORKING_HINT": "Problemi i transmetimit? Klikoni mbi {0} për të hapur një transmetim tjetër",
    "BROADCAST_START_TIMEOUT": "Kohëzgjatja për të filluar transmetimin",

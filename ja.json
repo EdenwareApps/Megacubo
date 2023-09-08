@@ -56,8 +56,6 @@
    "BLOCK": "ブロック",
    "BOOKMARKS": "ブックマーク",
    "BOOKMARK_ADDED": "{0}ブックマークに追加されました",
-   "BOOKMARK_CREATE_DESKTOP_ICONS": "デスクトップにブックマークアイコンを作成します",
-   "BOOKMARK_ICONS_SYNC": "デスクトップアイコンを同期します",
    "BOOKMARK_REMOVED": "{0}ブックマークから削除されました",
    "BROADCAST_NOT_WORKING_HINT": "送信の問題？ {0}をクリックして、別のブロードキャストを開きます",
    "BROADCAST_START_TIMEOUT": "ブロードキャストを開始するためのタイムアウト",

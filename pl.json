@@ -56,8 +56,6 @@
    "BLOCK": "Zablokuj",
    "BOOKMARKS": "Zakładki",
    "BOOKMARK_ADDED": "{0} Dodano do zakładek",
-   "BOOKMARK_CREATE_DESKTOP_ICONS": "Utwórz ikonę zakładki na komputerze",
-   "BOOKMARK_ICONS_SYNC": "Synchronizacja ikony komputerów stacjonarnych",
    "BOOKMARK_REMOVED": "{0} Usunięto z zakładek",
    "BROADCAST_NOT_WORKING_HINT": "Problem transmisji? Kliknij {0}, aby otworzyć kolejną transmisję",
    "BROADCAST_START_TIMEOUT": "Limit czasu na rozpoczęcie transmisji",

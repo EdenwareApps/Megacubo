@@ -56,8 +56,6 @@
    "BLOCK": "Engelle",
    "BOOKMARKS": "Yer imleri",
    "BOOKMARK_ADDED": "{0} Yer imlerine eklendi",
-   "BOOKMARK_CREATE_DESKTOP_ICONS": "Masaüstünde yer imi simgesi oluşturun",
-   "BOOKMARK_ICONS_SYNC": "Masaüstü simgelerini senkronize",
    "BOOKMARK_REMOVED": "{0} yer imlerinden kaldırıldı",
    "BROADCAST_NOT_WORKING_HINT": "İletim sorunu? Başka bir yayın açmak için {0} üzerine tıklayın.",
    "BROADCAST_START_TIMEOUT": "Yayını başlatmak için zaman aşımı",

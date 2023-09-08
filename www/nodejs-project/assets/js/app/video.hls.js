@@ -13,7 +13,7 @@ class HLSObserver extends EventEmitter {
 		this.hls.on(Events.FRAG_LOAD_TIMEOUT, () => this.handleFragLoadTimeout())
 		this.hls.on(Events.FRAG_LOADING, () => this.handleFragLoading())
 		this.hls.on(Events.FRAG_LOADED, () => this.handleFragLoaded())
-		this.hls.on(Events.ERROR, (data) => this.handleError(data))
+		this.hls.on(Events.ERROR, data => this.handleError(data))
 		this.hls.on(Events.MANIFEST_LOADING, () => this.handleManifestLoading())
 		this.hls.on(Events.MANIFEST_LOADED, () => this.handleManifestLoaded())
 		this.hls.on(Events.MANIFEST_LOAD_ERROR, () => this.handleManifestLoadError())

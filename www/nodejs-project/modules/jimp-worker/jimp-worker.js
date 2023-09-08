@@ -102,6 +102,25 @@ class JimpWorker {
             })
         })
     }
+    async iconize(file, outputFolder){
+        const fs = require('fs'), path = require('path')
+        const ext = process.platform == 'win32' ? 'ico' : 'png'
+        const pngOutputFile = global.paths.temp +'/temp.png'
+        const outputFile = outputFolder +'/'+ path.basename(file) +'.'+ ext
+        this.load()
+        let image = await this.jimp.read(file)
+        image.contain(64, 64, this.jimp.HORIZONTAL_ALIGN_CENTER | this.jimp.VERTICAL_ALIGN_MIDDLE)
+        const imagerd = new this.jimp(64, 64, 0x00000000)
+        imagerd.composite(image, 0, 0)
+        await imagerd.writeAsync(pngOutputFile, this.jimp.MIME_PNG)
+        if(process.platform == 'win32') {
+            const pngToIco = require('png-to-ico')
+            await fs.promises.writeFile(outputFile, await pngToIco(pngOutputFile))
+        } else {
+            await fs.promises.copyFile(pngOutputFile, outputFile)
+        }
+        return outputFile
+    }
     async terminate(){}
 }
 

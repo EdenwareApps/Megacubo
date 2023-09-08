@@ -120,59 +120,61 @@ class Bookmarks extends EntriesGroup {
             })
         })
     }
-    entries(e){
-        return new Promise((resolve, reject) => {
-            let es = [], current
-            if(global.streamer && global.streamer.active){
-                current = global.streamer.active.data
-            }
-            if(!current && global.histo){
-                let cs = global.histo.get().filter(c => {
-                    return !this.has(c)
-                })
-                if(cs.length){
-                    current = cs.shift()
-                }
-            }
-            if(current && !this.has(current)){
-                es.push({name: global.lang.ADD + ': ' + current.name, fa: 'fas fa-star', icon: current.icon, type: 'action', action: () => {
-                    this.add(current)
-                    global.explorer.refreshNow()
-                }})
-            }
-            es.push({name: global.lang.ADD_BY_NAME, fa: 'fas fa-star', type: 'group', renderer: this.addByNameEntries.bind(this)})
-            const epgAddLiveNowMap = {}
-            let gentries = this.get().map((e, i) => {
-                const isMega = e.url && global.mega.isMega(e.url)
-                e.fa = 'fas fa-star'
-                e.details = '<i class="fas fa-star"></i> ' + e.bookmarkId
-                if(isMega){
-                    let atts = global.mega.parse(e.url)
-                    if(atts.mediaType == 'live'){
-                        return (epgAddLiveNowMap[i] = global.channels.toMetaEntry(e, false))
-                    } else {
-                        let terms = atts.terms && Array.isArray(atts.terms) ? atts.terms : global.lists.terms(atts.name, true)
-                        e.url = global.mega.build(global.ucWords(terms.join(' ')), {terms, mediaType: 'video'})
-                        e = global.channels.toMetaEntry(e)
-                    }
-                } else if(e.type != 'group'){
-                    e.type = 'stream'
-                }
-                return e
+    async entries(e){
+        let es = [], current
+        if(global.streamer && global.streamer.active){
+            current = global.streamer.active.data
+        }
+        if(!current && global.histo){
+            let cs = global.histo.get().filter(c => {
+                return !this.has(c)
             })
-            global.channels.epgChannelsAddLiveNow(Object.values(epgAddLiveNowMap), false).then(entries => {
-                const ks = Object.keys(epgAddLiveNowMap)
-                entries.forEach((e, i) => {
-                    gentries[ks[i]] = e
-                })
-            }).catch(console.error).finally(() => {
-                es.push(...gentries)
-                if(this.get().length){
-                    es.push({name: global.lang.REMOVE, fa: 'fas fa-trash', type: 'group', renderer: this.removalEntries.bind(this)})
+            if(cs.length){
+                current = cs.shift()
+            }
+        }
+        if(current && !this.has(current)){
+            es.push({name: global.lang.ADD + ': ' + current.name, fa: 'fas fa-star', icon: current.icon, type: 'action', action: () => {
+                this.add(current)
+                global.explorer.refreshNow()
+            }})
+        }
+        es.push({name: global.lang.ADD_BY_NAME, fa: 'fas fa-star', type: 'group', renderer: this.addByNameEntries.bind(this)})
+        const epgAddLiveNowMap = {}
+        let gentries = this.get().map((e, i) => {
+            const isMega = e.url && global.mega.isMega(e.url)
+            e.fa = 'fas fa-star'
+            e.details = '<i class="fas fa-star"></i> ' + e.bookmarkId
+            if(isMega){
+                let atts = global.mega.parse(e.url)
+                if(atts.mediaType == 'live'){
+                    return (epgAddLiveNowMap[i] = global.channels.toMetaEntry(e, false))
+                } else {
+                    let terms = atts.terms && Array.isArray(atts.terms) ? atts.terms : global.lists.terms(atts.name, true)
+                    e.url = global.mega.build(global.ucWords(terms.join(' ')), {terms, mediaType: 'video'})
+                    e = global.channels.toMetaEntry(e)
                 }
-                resolve(es)
-            })
+            } else if(e.type != 'group'){
+                e.type = 'stream'
+            }
+            return e
         })
+        let err
+        const entries = await global.channels.epgChannelsAddLiveNow(Object.values(epgAddLiveNowMap), false).catch(e => err = e)
+        if(!err) {
+            const ks = Object.keys(epgAddLiveNowMap)
+            entries.forEach((e, i) => {
+                gentries[ks[i]] = e
+            })
+        }
+        es.push(...gentries)
+        if(this.get().length){
+            if(!global.cordova && global.config.get('bookmarks-desktop-icons')) {
+                es.push({name: global.lang.BOOKMARK_ICONS_SYNC, fa: 'fas fa-sync-alt', type: 'action', action: () => this.desktopIconsSync().catch(console.error)})
+            }
+            es.push({name: global.lang.REMOVE, fa: 'fas fa-trash', type: 'group', renderer: this.removalEntries.bind(this)})
+        }
+        return es
     }
     addByNameEntries(){
         return new Promise((resolve, reject) => {
@@ -260,7 +262,6 @@ class Bookmarks extends EntriesGroup {
         if(typeof(n) == 'number'){
             backLvl = n
         }
-        console.warn('ZAZZ', e, this.currentBookmarkAddingByName, backLvl)
         this.currentBookmarkAddingByName.icon = e.value
         this.add({
             name: this.currentBookmarkAddingByName.name,
@@ -321,6 +322,92 @@ class Bookmarks extends EntriesGroup {
             }
         })
         return entries.slice(0).sortByProp('bookmarkId')
+    }
+    async desktopIconsSync() {
+        global.osd.show(global.lang.PROCESSING, 'fas fa-circle-notch fa-spin', 'bookmarks-desktop-icons', 'persistent')
+        for(const e of this.get()) {
+            await this.createDesktopShortcut(e).catch(console.error)
+        }
+        global.osd.show('OK', 'fas fa-check-circle faclr-green', 'bookmarks-desktop-icons', 'normal')
+    }
+    getWindowsDesktop() {
+        return new Promise((resolve, reject) => {
+            const fs = require('fs'), iconv = require('iconv-lite')
+            const { exec } = require('child_process')
+
+            const command = 'REG QUERY "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders" /v Desktop'
+            const child = exec(command, { encoding: 'buffer' }, (error, stdout, stderr) => {
+                if (error) {
+                    return reject('Error querying registry:' + error)
+                }
+                const output = iconv.decode(stdout, 'cp850') // 'cp850' is the default command prompt encoding
+                const outputLines = output.split('\n')
+                const desktopDirLine = outputLines.find(line => line.includes('REG_SZ'))
+                const desktopDir = desktopDirLine.match(new RegExp('REG_SZ +(.*)'))
+                const desktopPath = desktopDir ? desktopDir[1] : null
+                if (desktopPath) {
+                    if (fs.existsSync(desktopPath)) {
+                        resolve(desktopPath)
+                    } else {
+                        reject('Folder not exists: ' + desktopPath)
+                    }
+                } else {
+                    reject('Folder not found')
+                }
+            })
+            child.stdout.setEncoding('binary')
+            child.stderr.setEncoding('binary')
+        })
+    }
+    async createDesktopShortcut(entry) {
+        if(global.cordova || !global.config.get('bookmarks-desktop-icons')) return
+        let outputPath, icon = global.APPDIR +'/default_icon.png'
+        if(process.platform == 'win32') {
+            const folder = await this.getWindowsDesktop().catch(console.error)
+            if(typeof(folder) == 'string') {
+                outputPath = folder
+            }
+            icon = global.APPDIR +'/default_icon.ico'
+        }
+        let err, noEPGEntry = entry
+        if(noEPGEntry.program) delete noEPGEntry.program
+        const nicon = await global.icons.get(noEPGEntry).catch(e => err = e)
+        if(!err) {
+            if(!nicon.file) {
+                const fs = require('fs')
+                const file = await global.Download.file({url: nicon.url})
+                const stat = await fs.promises.stat(file).catch(e => err = e)
+                if(!err && stat.size >= 512) {
+                    nicon.file = file
+                }
+            }
+            if(nicon.file) {
+                const file = await global.jimp.iconize(nicon.file, global.paths.temp).catch(e => err = e)
+                if(!err) {
+                    icon = file
+                }
+            }
+        }
+        const values = {
+            name: entry.name,
+            filePath: process.execPath,
+            arguments: '"'+ entry.url +'"',
+            icon,
+            outputPath
+        }
+        const options = {
+            windows: values,
+            linux: values,
+            osx: values
+        }
+        if(!this.createShortcut) {
+            this.createShortcut = require('create-desktop-shortcuts')
+        }
+        this.createShortcut(options)
+    }
+    add(entry) {
+        super.add(entry)
+        this.createDesktopShortcut(entry).catch(console.error)
     }
 }
 

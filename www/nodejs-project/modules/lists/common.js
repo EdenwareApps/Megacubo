@@ -15,14 +15,14 @@ class Fetcher extends Events {
 		this.master = master
 		this.file = global.storage.raw.resolve(global.LIST_DATA_KEY_MASK.format(url))
 		process.nextTick(() => {
-			this.start().catch(console.error).finally(() => {
+			this.start().catch(e => this.error = e).finally(() => {
 				this.isReady = true
 				this.emit('ready')
 			})
 		})
 	}
 	ready(){
-		return new Promise((resolve, reject) => {
+		return new Promise(resolve => {
 			if(this.isReady){
 				resolve()
 			} else {
@@ -35,14 +35,17 @@ class Fetcher extends Events {
 			this.list = new List(this.url, this.master)
 			this.list.skipValidating = true
 			this.list.start().then(resolve).catch(err => {
+				this.error = err
 				this.master.loader.addListNow(this.url, this.atts.progress).then(() => {
 					this.list.start().then(resolve).catch(err => {
+						this.error += ' '+ err
 						this.list.destroy()
 						reject(err)
 					})
 				}).catch(err => {
+					this.error += ' '+ err
 					this.list.destroy()
-					reject(err)
+					reject(this.error)
 				})
 			})
 		})

@@ -56,8 +56,6 @@
    "BLOCK": "احجب هذا",
    "BOOKMARKS": "المفضلة",
    "BOOKMARK_ADDED": "{0} تمت إضافة إلى المفضلة",
-   "BOOKMARK_CREATE_DESKTOP_ICONS": "قم بإنشاء أيقونة إشارة مرجعية على سطح المكتب",
-   "BOOKMARK_ICONS_SYNC": "مزامنة أيقونات سطح المكتب",
    "BOOKMARK_REMOVED": "{0} تم إزالته من المفضلة",
    "BROADCAST_NOT_WORKING_HINT": "مشكلة انتقال؟ انقر فوق {0} لفتح بث آخر",
    "BROADCAST_START_TIMEOUT": "مهلة لبدء البث",

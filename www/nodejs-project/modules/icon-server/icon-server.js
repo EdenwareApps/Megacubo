@@ -1,4 +1,4 @@
-const fs = require('fs'), path = require('path'), http = require('http')
+const fs = require('fs'), pathm = require('path'), http = require('http')
 const crypto = require('crypto'), Icon = require('./icon'), createReader = require('../reader')
 const pLimit = require('p-limit'), closed = require('../on-closed')
 
@@ -15,7 +15,7 @@ class IconDefault {
             if(!terms || !terms.length){
                 return resolve(false)
             }
-            let name = this.prepareDefaultName(terms) + '.png', file = this.opts.folder + path.sep + name
+            let name = this.prepareDefaultName(terms) + '.png', file = this.opts.folder + pathm.sep + name
             fs.stat(file, (err, stat) => {
                 if(stat && stat.size){
                     fs.readFile(file, {encoding: null}, (err, content) => {
@@ -37,7 +37,7 @@ class IconDefault {
             if(!terms || !terms.length) {
                 return resolve(false)
             }
-            let name = this.prepareDefaultName(terms) + '.png', file = this.opts.folder + path.sep + name
+            let name = this.prepareDefaultName(terms) + '.png', file = this.opts.folder + pathm.sep + name
             fs.stat(file, (err, stat) => {
                 if(stat && stat.size >= 32) {
                     resolve(file)
@@ -50,7 +50,7 @@ class IconDefault {
     saveDefault(terms, data, cb){
         const updating = !global.lists.loaded() || !global.lists.activeLists.length // we may find a better logo after
         if(!updating && terms && terms.length){
-            let name = this.prepareDefaultName(terms) + '.png', file = this.opts.folder + path.sep + name
+            let name = this.prepareDefaultName(terms) + '.png', file = this.opts.folder + pathm.sep + name
             if(this.opts.debug){
                 console.log('saveDefault', terms, name, file)
             }
@@ -71,7 +71,7 @@ class IconDefault {
             return
         }
         if(terms && terms.length){
-            let name = this.prepareDefaultName(terms) + '.png', file = this.opts.folder + path.sep + name
+            let name = this.prepareDefaultName(terms) + '.png', file = this.opts.folder + pathm.sep + name
             if(this.opts.debug){
                 console.log('saveDefaultFile', terms, name, sourceFile, file)
             }
@@ -290,11 +290,6 @@ class IconServerStore extends IconSearch {
         global.storage.rawTemp.setExpiration('icons-cache-'+ key, time, () => {})
     }
     async fetchURL(url){
-        return await this.limiter.download(async () => {
-            return await this.doFetchURL(url)
-        })
-    }
-    async doFetchURL(url){
         const suffix = 'data:image/png;base64,'
         if(String(url).startsWith(suffix)) {
             const key = this.key(url)
@@ -326,15 +321,17 @@ class IconServerStore extends IconSearch {
         }
         const file = this.resolveHTTPCache(key)
         err = null
-        await global.Download.file({
-            url,
-            downloadLimit: this.opts.downloadLimit,
-            retries: 3,
-            headers: {
-                'content-encoding': 'identity'
-            },
-            file
-        }).catch(e => err = e)
+        await this.limiter.download(async () => {
+            await global.Download.file({
+                url,
+                downloadLimit: this.opts.downloadLimit,
+                retries: 3,
+                headers: {
+                    'content-encoding': 'identity'
+                },
+                file
+            }).catch(e => err = e)
+        })
         if(err){
             await fs.promises.unlink(file).catch(console.error)
             throw err
@@ -364,7 +361,7 @@ class IconServer extends IconServerStore {
 				this.opts[k] = opts[k]
 			})
 		}
-        this.opts.folder = path.resolve(this.opts.folder)
+        this.opts.folder = pathm.resolve(this.opts.folder)
 		fs.access(this.opts.folder, err => {
 			if(err !== null) {
 				fs.mkdir(this.opts.folder, () => {})
@@ -379,6 +376,29 @@ class IconServer extends IconServerStore {
         this.rendering = {}
         this.renderingPath = null
         this.listen()
+    }
+    get(e) {        
+        const icon = new Icon(e, this)
+        const promise = icon.get()
+        promise.icon = icon
+        promise.entry = e
+        promise.destroy = () => icon.destroy()
+        return promise
+    }
+    result(e, path, tabindex, ret){
+        if(!this.destroyed){
+            if(this.opts.debug){
+                console.log('icon', e.name, JSON.stringify(ret), path, tabindex, e)
+            }
+            global.ui.emit('icon', {
+                url: ret.url, 
+                path, 
+                tabindex, 
+                name: e.name, 
+                force: ret.force, 
+                alpha: ret.alpha
+            })
+        }
     }
     listsLoaded(){
         return global.lists.loaded() && global.lists.activeLists.length
@@ -420,7 +440,11 @@ class IconServer extends IconServerStore {
         range = this.addRenderTolerance(range, entries.length)
         this.renderRange(range, path)
         if(parentEntry && typeof(parentEntry) != 'string'){
-            this.rendering[-1] = new Icon(parentEntry, parentEntry.path, -1, this)
+            this.rendering[-1] = this.get(parentEntry) // do not use then directly to avoid losing destroy method
+            this.rendering[-1].icon.on('result', ret => {
+                this.result(parentEntry, path, -1, ret)
+            })
+            this.rendering[-1].catch(console.error)
         }
     }
     renderRange(range, path){
@@ -439,7 +463,13 @@ class IconServer extends IconServerStore {
                 this.renderingPath = path
                 global.explorer.pages[path].slice(range.start, range.end).map((e, i) => {
                     if(this.qualifyEntry(e)){
-                        this.rendering[range.start + i] = new Icon(e, path, range.start + i, this)
+                        this.rendering[range.start + i] = this.get(e) // do not use then directly to avoid losing destroy method
+                        this.rendering[range.start + i].icon.on('result', ret => {
+                            let _path = pathm.dirname(e.path)
+                            if(_path == '.') _path = ''
+                            this.result(e, _path, range.start + i, ret)
+                        })
+                        this.rendering[range.start + i].catch(console.error)
                     } else {
                         this.rendering[range.start + i] = null
                     }
@@ -453,7 +483,11 @@ class IconServer extends IconServerStore {
                 })
                 global.explorer.pages[path].slice(range.start, range.end).map((e, i) => {
                     if((!this.rendering[range.start + i] || this.rendering[range.start + i].entry.name != e.name) && this.qualifyEntry(e)){
-                        this.rendering[range.start + i] = new Icon(e, path, range.start + i, this)
+                        this.rendering[range.start + i] = this.get(e) // do not use then directly to avoid losing destroy method
+                        this.rendering[range.start + i].icon.on('result', ret => {
+                            this.result(e, path, range.start + i, ret)
+                        })
+                        this.rendering[range.start + i].catch(console.error)
                     }
                 })
             }

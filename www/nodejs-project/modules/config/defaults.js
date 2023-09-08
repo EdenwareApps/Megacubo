@@ -5,6 +5,7 @@ module.exports = {
 	'autocrop-logos': true,
 	'background-color': '#110B24',
 	'background-color-transparency': 10,
+	'bookmarks-desktop-icons': true,
 	'broadcast-start-timeout': 40,
 	'channels-list-smart-sorting': 0,
 	'communitary-mode-lists-amount': 0,

@@ -56,8 +56,6 @@
    "BLOCK": "Blockieren",
    "BOOKMARKS": "Lesezeichen",
    "BOOKMARK_ADDED": "{0} In den Lesezeichen hinzugefügt",
-   "BOOKMARK_CREATE_DESKTOP_ICONS": "Erstellen Sie ein Lesezeichen -Symbol auf dem Desktop",
-   "BOOKMARK_ICONS_SYNC": "Desktop-Symbole synchronisieren",
    "BOOKMARK_REMOVED": "{0} aus Lesezeichen entfernt",
    "BROADCAST_NOT_WORKING_HINT": "Übertragungsproblem? Klicken Sie auf {0}, um eine andere Sendung zu öffnen",
    "BROADCAST_START_TIMEOUT": "Zeitüberschreitung, um die Sendung zu starten",

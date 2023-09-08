@@ -14,17 +14,14 @@ class StreamerDashIntent extends StreamerBaseIntent {
             console.log('DASHINTENTDESTROY')
         })
     }  
-    _start(){ 
-        return new Promise((resolve, reject) => {
-            this.dash2hls = new StreamerFFmpeg(this.data.url, this.opts)
-            this.mimetype = this.mimeTypes[this.ff.opts.outputFormat]
-            this.connectAdapter(this.dash2hls)
-            this.dash2hls.audioCodec = this.opts.audioCodec
-            this.dash2hls.start().then(() => {
-                this.endpoint = this.dash2hls.endpoint
-                resolve({endpoint: this.endpoint, mimetype: this.mimetype})
-            }).catch(reject)
-        })
+    async _start(){
+        this.tohls = new StreamerFFmpeg(this.data.url, this.opts)
+        this.mimetype = this.mimeTypes[this.tohls.opts.outputFormat]
+        this.connectAdapter(this.tohls)
+        this.tohls.audioCodec = this.opts.audioCodec
+        await this.tohls.start()
+        this.endpoint = this.tohls.endpoint
+        return {endpoint: this.endpoint, mimetype: this.mimetype}
     }
 }
 

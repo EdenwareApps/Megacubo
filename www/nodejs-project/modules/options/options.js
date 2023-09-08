@@ -547,16 +547,18 @@ class Options extends OptionsExportImport {
             }
         }
     }
-    async countriesEntries(allCountries, path){
+    async countriesEntries(chosenLocale, path){
         if(!path){
             path = global.explorer.path
         }
-        const entries = []
-        let map = await global.lang.getCountriesMap(
-            allCountries === true ? null : global.lang.countries.getCountryLanguages(global.lang.countryCode),
-            global.config.get('countries')
+        const entries = [], locale = chosenLocale === true ? null : (
+            chosenLocale || global.lang.countryCode
         )
-        if(!allCountries && !map.length){
+        let map = await global.lang.getCountriesMap(
+            locale,
+            chosenLocale ? [] : global.config.get('countries')
+        )
+        if(!chosenLocale && !map.length){
             map = await global.lang.getCountriesMap([global.lang.locale])
         }
         let actives = global.config.get('countries')
@@ -633,12 +635,28 @@ class Options extends OptionsExportImport {
                 }
             }
         }))
-        if(allCountries !== true){
-            entries.push({
+        if(chosenLocale !== true){
+            let options = [], def = global.lang.locale
+            let map = await global.lang.availableLocalesMap()
+            Object.keys(map).forEach(id => {
+                options.push({
+                    name: map[id] || id,
+                    type: 'group',
+                    fa: 'fas fa-language',
+                    renderer: async () => this.countriesEntries(id, path)
+                })
+            })
+            options.push({
                 name: global.lang.OTHER_COUNTRIES,
                 fa: 'fas fa-chevron-right',
                 type: 'group',
                 renderer: () => this.countriesEntries(true, path)
+            })
+            entries.push({
+                name: global.lang.OTHER_COUNTRIES,
+                fa: 'fas fa-chevron-right',
+                type: 'group',
+                entries: options
             })
         }
         global.osd.show(global.lang.WHEN_READY_CLICK_BACK.format(global.lang.BACK), 'fas fa-info-circle', 'click-back-to-save', 'persistent')
@@ -1352,6 +1370,16 @@ class Options extends OptionsExportImport {
                             return global.config.get('osd-speak')
                         }
                     })
+                    opts.push({
+                        name: global.lang.BOOKMARK_CREATE_DESKTOP_ICONS, 
+                        type: 'check', 
+                        action: (data, value) => {
+                            global.config.set('bookmarks-desktop-icons', value)
+                        }, 
+                        checked: () => {
+                            return global.config.get('bookmarks-desktop-icons')
+                        }
+                    })
                 }
                 opts.push({
                     name: global.lang.WINDOW_MODE_TO_START,
@@ -1387,7 +1415,7 @@ class Options extends OptionsExportImport {
                     {name: global.lang.PLAYBACK, fa: 'fas fa-play', type: 'group', renderer: this.playbackEntries.bind(this)},
                     {name: global.lang.CONNECTIVITY, fa: 'fas fa-network-wired', type: 'group', renderer: this.connectivityEntries.bind(this)},
                     {  
-                        name: global.lang.CLEAR_CACHE, icon: 'fas fa-broom', type: 'action', action: () => this.requestClearCache()
+                        name: global.lang.CLEAR_CACHE, icon: 'fas fa-broom', class: 'no-icon', type: 'action', action: () => this.requestClearCache()
                     },
                     {
                         name: global.lang.RESET_CONFIG, 

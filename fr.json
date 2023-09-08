@@ -56,8 +56,6 @@
    "BLOCK": "Bloquer",
    "BOOKMARKS": "Favoris",
    "BOOKMARK_ADDED": "{0} ajouté à Signets",
-   "BOOKMARK_CREATE_DESKTOP_ICONS": "Créer l'icône de signet sur le bureau",
-   "BOOKMARK_ICONS_SYNC": "Sync Icônes de bureau",
    "BOOKMARK_REMOVED": "{0} Supprimé des signets",
    "BROADCAST_NOT_WORKING_HINT": "Problème de transmission? Cliquez sur {0} pour ouvrir une autre diffusion",
    "BROADCAST_START_TIMEOUT": "Timeout pour démarrer la diffusion",

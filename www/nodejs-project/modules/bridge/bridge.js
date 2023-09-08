@@ -47,6 +47,10 @@ class ElectronCustomEmitter extends BaseCustomEmitter {
 class BridgeServer extends Events {
     constructor(opts){
         super()
+        this.ua = 'Megacubo '+ global.MANIFEST.version
+        if(!global.cordova) {
+            this.ua += ' '+ this.secret(8)
+        }
         this.map = {}
         this.opts = {
             addr: '127.0.0.1',
@@ -73,6 +77,9 @@ class BridgeServer extends Events {
         }
         this.setMaxListeners(20)
         this.server = http.createServer((req, response) => {
+            if(!this.checkUA(req.headers)) {
+                return response.end()
+            }
             const parsedUrl = url.parse(req.url, false)
             response.setHeader('Access-Control-Allow-Origin', '*')
             response.setHeader('Access-Control-Allow-Methods', 'GET')
@@ -125,6 +132,18 @@ class BridgeServer extends Events {
             console.log('Bridge server started', err)
             this.uploadURL = 'http://' + this.opts.addr + ':' + this.opts.port + '/upload'
         })  
+    }
+    secret(length) {
+        const charset = 'abcdefghijklmnopqrstuvwxyz0123456789'
+        let result = ''
+        for (let i = 0; i < length; i++) {
+          const randomIndex = Math.floor(Math.random() * charset.length)
+          result += charset.charAt(randomIndex)
+        }
+        return result
+    }      
+    checkUA(headers){
+        return headers && headers['user-agent'] && headers['user-agent'] == this.ua
     }
     serve(file){
         if(fs.existsSync(file)){

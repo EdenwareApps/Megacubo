@@ -372,19 +372,22 @@ class WindowManagerCommon extends ClassesHandler {
 		}
 		if(cmd.length){
 			cmd = cmd.pop()
-			if(cmd.length && cmd.charAt(0) != '-' && !cmd.match(new RegExp('^/[^/]'))){
-				console.log('cmdline*: ' + cmd)
-				let sharing = '/w/', pos = cmd.indexOf(sharing)
-				if(pos != -1){
-					cmd = cmd.substr(pos + sharing.length)
+			if(cmd.length && cmd.charAt(0) != '-'){
+				cmd = cmd.replace(new RegExp('^"|"$', 'g'), '')
+				if(!cmd.match(new RegExp('^/[^/]'))){
+					console.log('cmdline*: ' + cmd)
+					let sharing = '/w/', pos = cmd.indexOf(sharing)
+					if(pos != -1){
+						cmd = cmd.substr(pos + sharing.length)
+					}
+					if(cmd.indexOf('//') == -1){
+						cmd = 'mega://'+ cmd
+					}
+					console.log('cmdline**: ' + cmd)
+					this.container.onBackendReady(() => {
+						this.app.app.emit('open-url', decodeURIComponent(cmd))
+					})
 				}
-				if(cmd.indexOf('//') == -1){
-					cmd = 'mega://'+ cmd
-				}
-				console.log('cmdline**: ' + cmd)
-				this.container.onBackendReady(() => {
-					this.container.channel.post('message', ['open-url', decodeURIComponent(cmd)])
-				})
 			}
 		}
 		if(this.tray){
@@ -574,13 +577,13 @@ class WindowManager extends WindowManagerCommon {
 			this.app.streamer.on('state', this.idleChange.bind(this))
 			this.app.idle.on('idle', this.idleChange.bind(this))
 			this.app.idle.on('active', this.idleChange.bind(this))
+			this.app.app.on('arguments', this.handleArgs.bind(this))
 			this.patch()
 			setTimeout(() => {
 				this.focusApp()
 				this.app.explorer.reset()
 				const { app } = getElectronRemote()
 				app.on('open-file', (event, path) => this.handleArgs(path))
-				this.handleArgs(process.argv)
 			}, 100)
 		})
 	}
