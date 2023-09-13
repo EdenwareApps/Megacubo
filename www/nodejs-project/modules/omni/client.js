@@ -22,9 +22,9 @@ class OMNI extends OMNIUtils {
     constructor(app){
         super()
         this.opts = {
-            omniInterval: 1500
+            omniInterval: 1500,
+            autoSubmit: true
         }
-        this.autoSubmit = false // accessibility :)
         this.omniTimer = 0, 
         this.type = '' 
         this.typing = ''
@@ -34,7 +34,7 @@ class OMNI extends OMNIUtils {
         this.input = jQuery('.explorer-omni input')
         this.rinput = this.input.get(0)
         this.setup()
-        this.bind()        
+        this.bind()
         jQuery(document).on('keyup', this.eventHandler.bind(this))
     }
     bind(){
@@ -84,11 +84,13 @@ class OMNI extends OMNIUtils {
 			explorer.focus(explorer.currentElements[0])
 			this.save()				
 		})
+        if(!select) { // as last, move to the end
+            this.rinput.selectionStart = this.rinput.selectionEnd = this.rinput.value.length
+        }
 	}
 	save(){
         this.updateIcon('fas fa-search')
 		let val = this.input.val()
-		this.input.val('')
 		if(val){
 			val = val.toLowerCase()
 			this.defaultValue = val
@@ -110,12 +112,6 @@ class OMNI extends OMNIUtils {
                     case 'Left':
                         const isStartOfText = this.rinput.selectionStart === 0
                         isStartOfText && this.emit('left')
-                        break
-                    case 'Up':
-                        this.rinputLastKey === evt.key && this.emit('up')
-                        break
-                    case 'Down':
-                        this.rinputLastKey === evt.key && this.emit('down')
                         break
                 }
                 this.rinputLastKey = evt.key
@@ -143,7 +139,7 @@ class OMNI extends OMNIUtils {
         }
         this.type = this.isNumeric(this.typing) ? 'numeric' : 'mixed'
         this.updateIcon(this.type == 'numeric' ? 'fas fa-star' : 'fas fa-search')
-        if(this.autoSubmit){
+        if(this.opts.autoSubmit) {
             this.omniTimer = setTimeout(this.trigger.bind(this), this.opts.omniInterval)
         }
     }
@@ -158,6 +154,9 @@ class OMNI extends OMNIUtils {
         if(evt.target && evt.target != this.rinput){
             if(evt.key && evt.key.length == 1){
                 this.defaultValue = evt.key
+                if(explorer.inPlayer() && !explorer.isExploring()) {
+                    menuPlaying(true, true)
+                }
                 this.focus(false)
                 this.update()
             }

@@ -57,6 +57,9 @@ class StoragePromises extends StorageBase {
 	constructor(label, opts){
 		super(label, opts)
 		this.promises = {
+			has: key => {
+				return new Promise(resolve => this.has(key, resolve))
+			},
 			get: (key, encoding) => {
 				return new Promise((resolve, reject) => {
 					this.get(key, resolve, encoding)

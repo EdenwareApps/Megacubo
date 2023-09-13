@@ -1070,7 +1070,7 @@ class Options extends OptionsExportImport {
                     let def = global.config.get('user-agent'), options = [
                         {
                             name: global.lang.DEFAULT,
-                            value: ''
+                            value: global.config.get('default-user-agent')
                         }, 
                         {
                             name: 'VLC',
@@ -1079,14 +1079,26 @@ class Options extends OptionsExportImport {
                         {
                             name: 'Kodi',
                             value: 'Kodi/16.1 (Windows NT 10.0; WOW64) App_Bitness/32 Version/16.1-Git:20160424-c327c53'
+                        }, 
+                        {
+                            name: global.lang.CUSTOMIZE,
+                            value: 'custom',
+                            details: global.config.get('user-agent') || global.config.get('default-user-agent')
                         }
                     ].map(n => {
                         return {
                             name: n.name,
                             type: 'action',
+                            details: n.details || '',
                             selected: def == n.value,
-                            action: () => {
-                                global.config.set('user-agent', n.value)
+                            action: async () => {
+                                if(n.value == 'custom') {
+                                    n.value = await global.explorer.prompt('User agent', global.lang.CUSTOMIZE, n.details, true, 'fas fa-user-secret', null)
+                                }
+                                if(n.value) {
+                                    global.config.set('user-agent', n.value)
+                                    global.explorer.refresh()
+                                }
                             }
                         }
                     })

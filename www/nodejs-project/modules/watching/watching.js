@@ -248,7 +248,8 @@ class Watching extends EntriesGroup {
         data = this.addTrendAttr(data)
         data = this.applyUsersPercentages(data)
         this.currentEntries = data
-        global.storage.promises.set('watching-current', this.currentRawEntries, true).catch(console.error)
+        global.storage.promises.set('watching-current', this.currentRawEntries, true).catch(console.error) // do not await
+        global.updateUserTasks().catch(console.error) // do not await
         return data
     }
     addTrendAttr(entries){

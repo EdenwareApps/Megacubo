@@ -65,16 +65,14 @@ class IconFetcher extends Events {
                 }
                 const ret2 = await this.master.adjust(ret.file, {shouldBeAlpha: true, minWidth: 100, minHeight: 100})
                 await this.master.saveHTTPCacheExpiration(key)
-                if(ret2.alpha){
-                    if(!done || this.hasPriority(done.image, image, images)){
-                        done = ret2
-                        if(!done.key) done.key = key
-                        done.image = image                        
-                        done.url = this.master.url + done.key
-                        this.succeeded = true
-                        this.result = done
-                        this.emit('result', done)
-                    }
+                if(!done || this.hasPriority(done.image, image, images)){
+                    done = ret2
+                    if(!done.key) done.key = key
+                    done.image = image                        
+                    done.url = this.master.url + done.key
+                    this.succeeded = true
+                    this.result = done
+                    this.emit('result', done)
                 }
             }
         }).map(limit)

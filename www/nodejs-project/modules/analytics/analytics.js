@@ -28,10 +28,8 @@ class AnalyticsBase extends Events {
         if(global.options.prm()) {
             data.verinf = global.premium.active
         }
-        if(data.source && global.lists.isPrivateList(data.source)){
-            data.url = this.obfuscateURL(data.url)
-            data.source = '' // Source URL not shareable.
-        }
+        if(data.url) data.url = this.obfuscateURL(data.url)
+        if(data.source && global.lists.isPrivateList(data.source)) data.source = '' // Source URL not shareable.
         data.epg = global.channels.loadedEPG || data.epg || ''
         let postData = this.toQS(data)
         let options = {
@@ -64,9 +62,7 @@ class AnalyticsBase extends Events {
         req.on('error', (e) => {
             console.error('Houve um erro', e)
         })
-        if(global.isWritable(req)){
-            req.write(postData)
-        }
+        global.isWritable(req) && req.write(postData)
         req.end()
     }
     prepareEntry(entry){

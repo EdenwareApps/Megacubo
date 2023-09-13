@@ -382,7 +382,7 @@ class Bookmarks extends EntriesGroup {
                 }
             }
             if(nicon.file) {
-                const file = await global.jimp.iconize(nicon.file, global.paths.temp).catch(e => err = e)
+                const file = await global.jimp.iconize(nicon.file).catch(e => err = e)
                 if(!err) {
                     icon = file
                 }
@@ -408,6 +408,7 @@ class Bookmarks extends EntriesGroup {
     add(entry) {
         super.add(entry)
         this.createDesktopShortcut(entry).catch(console.error)
+        global.updateUserTasks().catch(console.error)
     }
 }
 

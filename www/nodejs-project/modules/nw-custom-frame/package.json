@@ -12,10 +12,9 @@
   },
   "homepage": "https://github.com/efoxbr/nw-custom-frame#readme",
   "keywords": [
-    "nw",
-    "nwjs",
+    "electron",
     "node-webkit",
-    "custom-frame",
+    "cordova",
     "nodejs"
   ],
   "license": "GPL-3.0",

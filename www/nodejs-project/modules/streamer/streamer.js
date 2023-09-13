@@ -439,7 +439,7 @@ class StreamerBase extends StreamerTools {
 		console.error('streamer stop()')
 		if(!this.opts.shadow){
 			global.osd.hide('streamer')
-			global.osd.hide('transcode')
+			global.osd.hide('transcode')			
 		}
 		this.unregisterAllLoadingIntents()
 		if(this.active){

@@ -180,6 +180,47 @@ global.setupCompleted = () => {
 
 let playOnLoaded, tuningHintShown, showingSlowBroadcastDialog
 
+global.updateUserTasks = async app => {
+    if(process.platform != 'win32') return
+    if(app) { // set from cache, Electron won't set after window is opened
+        const tasks = await global.storage.promises.get('user-tasks')
+        if(!app.setUserTasks(tasks)) {
+            throw 'Failed to set user tasks. '+ JSON.stringify(tasks)
+        }
+        return
+    }
+    const limit = 12
+    const entries = []
+    entries.push(...global.bookmarks.get().slice(0, limit))
+    if(entries.length < limit) {
+        for(const entry of global.histo.get()) {
+            if(!entries.some(e => e.name == entry.name)) {
+                entries.push(entry)
+                if(entries.length == limit) break
+            }
+        }
+        if(entries.length < limit && Array.isArray(global.watching.currentEntries)) {
+            for(const entry of global.watching.currentEntries) {
+                if(!entries.some(e => e.name == entry.name)) {
+                    entries.push(entry)
+                    if(entries.length == limit) break
+                }
+            }
+        }
+    }
+    const tasks = entries.map(entry => {
+        return {
+            arguments: '"'+ entry.url +'"',
+            title: entry.name,
+            description: entry.name,
+            program: process.execPath,
+            iconPath: process.execPath,
+            iconIndex: 0
+        }
+    })
+    await global.storage.promises.set('user-tasks', tasks, true)
+}
+
 const videoErrorTimeoutCallback = ret => {
     console.log('video-error-timeout-callback', ret)
     if(ret == 'try-other'){
@@ -699,28 +740,30 @@ if(global.cordova) {
         })
     }
 
-    global.config.get('gpu-flags').forEach(f => app.commandLine.appendSwitch(f))
-    global.config.get('gpu') || app.disableHardwareAcceleration()
+    const initAppWindow = async () => {
+        await global.updateUserTasks(app).catch(console.error)
 
-    app.commandLine.appendSwitch('no-zygote')
-    app.commandLine.appendSwitch('no-sandbox')
-    app.commandLine.appendSwitch('no-prefetch')
-    app.commandLine.appendSwitch('disable-websql', 'true')
-    app.commandLine.appendSwitch('password-store', 'basic')
-    app.commandLine.appendSwitch('disable-http-cache', 'true')
-    app.commandLine.appendSwitch('enable-tcp-fast-open', tcpFastOpen) // networking environments that do not fully support the TCP Fast Open standard may have problems connecting to some websites
-    app.commandLine.appendSwitch('disable-transparency', 'true')
-    app.commandLine.appendSwitch('disable-site-isolation-trials')
-    app.commandLine.appendSwitch('enable-smooth-scrolling', 'true')
-    app.commandLine.appendSwitch('enable-experimental-web-platform-features') // audioTracks support
-    app.commandLine.appendSwitch('enable-features', 'PlatformHEVCDecoderSupport')  // TODO: Allow user to activate Metal (macOS) and VaapiVideoDecoder (Linux) features
-    app.commandLine.appendSwitch('disable-features', 'IsolateOrigins,SitePerProcess,NetworkPrediction')
+        global.config.get('gpu-flags').forEach(f => app.commandLine.appendSwitch(f))
+        global.config.get('gpu') || app.disableHardwareAcceleration()
 
-    app.whenReady().then(() => {
+        app.commandLine.appendSwitch('no-zygote')
+        app.commandLine.appendSwitch('no-sandbox')
+        app.commandLine.appendSwitch('no-prefetch')
+        app.commandLine.appendSwitch('disable-websql', 'true')
+        app.commandLine.appendSwitch('password-store', 'basic')
+        app.commandLine.appendSwitch('disable-http-cache', 'true')
+        app.commandLine.appendSwitch('enable-tcp-fast-open', tcpFastOpen) // networking environments that do not fully support the TCP Fast Open standard may have problems connecting to some websites
+        app.commandLine.appendSwitch('disable-transparency', 'true')
+        app.commandLine.appendSwitch('disable-site-isolation-trials')
+        app.commandLine.appendSwitch('enable-smooth-scrolling', 'true')
+        app.commandLine.appendSwitch('enable-experimental-web-platform-features') // audioTracks support
+        app.commandLine.appendSwitch('enable-features', 'PlatformHEVCDecoderSupport')  // TODO: Allow user to activate Metal (macOS) and VaapiVideoDecoder (Linux) features
+        app.commandLine.appendSwitch('disable-features', 'IsolateOrigins,SitePerProcess,NetworkPrediction')
+
+        await app.whenReady()
         const window = new BrowserWindow({  
             frame: false,
             titleBarStyle: 'hidden',
-            icon: path.join(global.APPDIR, 'default_icon.png'),
             webPreferences: {
                 cache: false,
                 sandbox: false,
@@ -752,5 +795,7 @@ if(global.cordova) {
                 global.ui.emit('arguments', commandLine)
             }
         })
-    }).catch(console.error)
+    }
+
+    initAppWindow().catch(console.error)
 }

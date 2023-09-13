@@ -772,62 +772,71 @@ class Manager extends ManagerEPG {
             throw global.lang.INVALID_URL_MSG +' - '+ (err || fetch.error || 'No M3U entries were found')
         }
     }
-    async addList(value, name, fromCommunity){
+    async addList(listUrl, name, fromCommunity){
         let err
         const uid = parseInt(Math.random() * 100000)
         global.osd.show(global.lang.RECEIVING_LIST, 'fa-mega spin-x-alt', 'add-list-progress-'+ uid, 'persistent')
         global.ui.emit('background-mode-lock', 'add-list')
-        value = global.forwardSlashes(value)
-        await this.add(value, name, uid).catch(e => err = e)
+        listUrl = global.forwardSlashes(listUrl)
+        await this.add(listUrl, name, uid).catch(e => err = e)
         global.osd.hide('add-list-progress-'+ uid)
         global.ui.emit('background-mode-unlock', 'add-list')
         if(typeof(err) != 'undefined'){
             throw err
         } else {
             global.osd.show(global.lang.LIST_ADDED, 'fas fa-check-circle', 'add-list', 'normal')
-            const protect = !fromCommunity && (value.match(new RegExp('(pwd?|pass|password)=', 'i')) || value.match(new RegExp('/[0-9]{5,}/[0-9]{5,}'))) // protect sensible lists
-            const currentEPG = global.config.get('epg-'+ global.lang.locale)
-            const community = global.config.get('communitary-mode-lists-amount') > 0
-            const chosen = (!protect && community && global.validateURL(value)) ? await global.explorer.dialog([
-                {template: 'question', text: global.lang.COMMUNITY_LISTS, fa: 'fas fa-users'},
-                {template: 'message', text: global.lang.WANT_SHARE_COMMUNITY},
-                {template: 'option', text: lang.NO_THANKS, id: 'no', fa: 'fas fa-lock'},
-                {template: 'option', text: lang.SHARE, id: 'yes', fa: 'fas fa-users'}
-            ], 'no') : 'no' // set local files as private
-            if(chosen == 'yes') {
-                global.osd.show(global.lang.COMMUNITY_THANKS_YOU, 'fas fa-heart faclr-purple', 'communitary-lists-thanks', 'normal')
-            } else if(protect && community) {
-                // maybe the app should ask user about it, for now
-                // just disable to focus on user lists
-                global.config.set('communitary-mode-lists-amount', 0)
-            }
-            this.setMeta(value, 'private', chosen != 'yes')
-            let info, i = 20
-            if(currentEPG != 'disabled'){
-                while(i > 0 && (!info || !info[value])){
-                    i--
-                    await this.wait(500)
-                    info = await this.master.info()
+            const isURL = global.validateURL(listUrl)
+            const sensible = listUrl.match(new RegExp('(pwd?|pass|password)=', 'i')) || listUrl.indexOf('supratv') != -1 // protect sensible lists
+            let makePrivate
+            if(fromCommunity) {
+                makePrivate = false
+            } else if(!isURL || sensible) {
+                makePrivate = true
+                global.config.set('communitary-mode-lists-amount', 0) // disable community lists to focus on user list
+            } else {
+                chosen = await global.explorer.dialog([
+                    {template: 'question', text: global.lang.COMMUNITY_LISTS, fa: 'fas fa-users'},
+                    {template: 'message', text: global.lang.WANT_SHARE_COMMUNITY},
+                    {template: 'option', text: lang.NO_THANKS, id: 'no', fa: 'fas fa-lock'},
+                    {template: 'option', text: lang.SHARE, id: 'yes', fa: 'fas fa-users'}
+                ], 'no') // set local files as private
+                if(chosen == 'yes') {
+                    makePrivate = false
+                    global.osd.show(global.lang.COMMUNITY_THANKS_YOU, 'fas fa-heart faclr-purple', 'communitary-lists-thanks', 'normal')
+                } else {
+                    makePrivate = true
+                    global.config.set('communitary-mode-lists-amount', 0) // disable community lists to focus on user lists
                 }
             }
-            if(info && info[value] && info[value].epg){
-                info[value].epg = this.parseEPGURL(info[value].epg, false)
-                if(global.validateURL(info[value].epg) && info[value].epg != currentEPG){
-                    let chosen = await global.explorer.dialog([
-                        {template: 'question', text: ucWords(MANIFEST.name), fa: 'fas fa-star'},
-                        {template: 'message', text: global.lang.ADDED_LIST_EPG},
-                        {template: 'option', text: lang.YES, id: 'yes', fa: 'fas fa-check-circle'},
-                        {template: 'option', text: lang.NO_THANKS, id: 'no', fa: 'fas fa-times-circle'}
-                    ], 'yes')
-                    if(chosen == 'yes'){
-                        global.config.set('epg-'+ global.lang.locale, info[value].epg)
-                        await this.setEPG(info[value].epg, true)
-                        console.error('XEPG', chosen)
-                    }
-                }
-            }
+            this.setMeta(listUrl, 'private', makePrivate)
+            await this.askAddEPG(listUrl)
             global.explorer.refreshNow() // epg options path
             return true
+        }
+    }
+    async askAddEPG(listUrl) {
+        let info, i = 20
+        while(i > 0 && (!info || !info[listUrl])){
+            i--
+            await this.wait(500)
+            info = await this.master.info()
+        }
+        if(info && info[listUrl] && info[listUrl].epg){
+            const currentEPG = global.config.get('epg-'+ global.lang.locale)
+            info[listUrl].epg = this.parseEPGURL(info[listUrl].epg, false)
+            if(global.validateURL(info[listUrl].epg) && info[listUrl].epg != currentEPG){
+                let chosen = await global.explorer.dialog([
+                    {template: 'question', text: ucWords(global.MANIFEST.name), fa: 'fas fa-star'},
+                    {template: 'message', text: global.lang.ADDED_LIST_EPG},
+                    {template: 'option', text: global.lang.YES, id: 'yes', fa: 'fas fa-check-circle'},
+                    {template: 'option', text: global.lang.NO_THANKS, id: 'no', fa: 'fas fa-times-circle'}
+                ], 'yes')
+                if(chosen == 'yes'){
+                    global.config.set('epg-'+ global.lang.locale, info[listUrl].epg)
+                    await this.setEPG(info[listUrl].epg, true)
+                    console.error('XEPG', chosen)
+                }
+            }
         }
     }
     remove(url){

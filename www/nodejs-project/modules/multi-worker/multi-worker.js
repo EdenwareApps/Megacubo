@@ -118,12 +118,8 @@ const setupConstructor = () => {
 		terminate(){
 			this.finished = true
 			this.configChangeListener && global.config.removeListener('change', this.configChangeListener)
-			if(this.worker){
-				setTimeout(() => { // try to prevent closing due to bug in nwjs
-					this.worker.terminate()
-					this.worker = null
-				}, 5000)
-			}
+			this.worker.terminate()
+			this.worker = null
 			this.rejectAll(null, 'worker manually terminated')
 			this.removeAllListeners()
 			global.config.removeListener('change', this.configChangeListener)

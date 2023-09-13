@@ -103,6 +103,7 @@ class JimpWorker {
         })
     }
     async iconize(file, outputFolder){
+        if(!outputFolder) outputFolder = global.paths.temp
         const fs = require('fs'), path = require('path')
         const ext = process.platform == 'win32' ? 'ico' : 'png'
         const pngOutputFile = global.paths.temp +'/temp.png'

@@ -249,27 +249,19 @@ class IconServerStore extends IconSearch {
     resolveHTTPCache(key){
         return global.storage.rawTemp.resolve('icons-cache-'+ key)
     }
-    checkHTTPCache(key){
-        return new Promise((resolve, reject) => {
-            global.storage.rawTemp.has('icons-cache-' + key, has => {
-                if(has !== false){
-                    resolve(this.resolveHTTPCache(key))
-                } else {
-                    reject('no http cache')
-                }
-            })
-        })
+    async checkHTTPCache(key){
+        const has = await global.storage.rawTemp.promises.has('icons-cache-' + key)
+        if(has !== false){
+            return this.resolveHTTPCache(key)
+        }
+        throw 'no http cache'
     }
-    getHTTPCache(key){
-        return new Promise((resolve, reject) => {
-            global.storage.rawTemp.get('icons-cache-'+ key, data => {
-                if(data){
-                    resolve({data})
-                } else {
-                    reject('no cache*')
-                }
-            }, null)
-        })
+    async getHTTPCache(key){
+        const data = await global.storage.rawTemp.promises.get('icons-cache-'+ key)
+        if(data){
+            return {data}
+        }
+        throw 'no cache*'
     }
     saveHTTPCache(key, data, cb){
         const time = data && data.length ? this.ttlHTTPCache : this.ttlBadHTTPCache
@@ -386,9 +378,12 @@ class IconServer extends IconServerStore {
         return promise
     }
     result(e, path, tabindex, ret){
-        if(!this.destroyed){
+        if(!this.destroyed && ret.url){
             if(this.opts.debug){
-                console.log('icon', e.name, JSON.stringify(ret), path, tabindex, e)
+                console.error('ICON='+ e.path +' ('+ e.name +', '+ tabindex +') '+ ret.url)
+            }
+            if(path.endsWith(e.name) && tabindex != -1) {
+                path = path.substr(0, path.length - 1 - e.name.length)
             }
             global.ui.emit('icon', {
                 url: ret.url, 
@@ -439,10 +434,10 @@ class IconServer extends IconServerStore {
         }
         range = this.addRenderTolerance(range, entries.length)
         this.renderRange(range, path)
-        if(parentEntry && typeof(parentEntry) != 'string'){
+        if(parentEntry && typeof(parentEntry) != 'string' && this.qualifyEntry(parentEntry)){
             this.rendering[-1] = this.get(parentEntry) // do not use then directly to avoid losing destroy method
             this.rendering[-1].icon.on('result', ret => {
-                this.result(parentEntry, path, -1, ret)
+                this.result(parentEntry, parentEntry.path, -1, ret)
             })
             this.rendering[-1].catch(console.error)
         }
@@ -462,16 +457,15 @@ class IconServer extends IconServerStore {
                 })
                 this.renderingPath = path
                 global.explorer.pages[path].slice(range.start, range.end).map((e, i) => {
+                    const j = range.start + i
                     if(this.qualifyEntry(e)){
-                        this.rendering[range.start + i] = this.get(e) // do not use then directly to avoid losing destroy method
-                        this.rendering[range.start + i].icon.on('result', ret => {
-                            let _path = pathm.dirname(e.path)
-                            if(_path == '.') _path = ''
-                            this.result(e, _path, range.start + i, ret)
+                        this.rendering[j] = this.get(e) // do not use then directly to avoid losing destroy method
+                        this.rendering[j].icon.on('result', ret => {
+                            this.result(e, e.path, j, ret)
                         })
-                        this.rendering[range.start + i].catch(console.error)
+                        this.rendering[j].catch(console.error)
                     } else {
-                        this.rendering[range.start + i] = null
+                        this.rendering[j] = null
                     }
                 })
             } else {
@@ -482,12 +476,13 @@ class IconServer extends IconServerStore {
                     }
                 })
                 global.explorer.pages[path].slice(range.start, range.end).map((e, i) => {
-                    if((!this.rendering[range.start + i] || this.rendering[range.start + i].entry.name != e.name) && this.qualifyEntry(e)){
-                        this.rendering[range.start + i] = this.get(e) // do not use then directly to avoid losing destroy method
-                        this.rendering[range.start + i].icon.on('result', ret => {
-                            this.result(e, path, range.start + i, ret)
+                    const j = range.start + i
+                    if((!this.rendering[j] || this.rendering[j].entry.name != e.name) && this.qualifyEntry(e)){
+                        this.rendering[j] = this.get(e) // do not use then directly to avoid losing destroy method
+                        this.rendering[j].icon.on('result', ret => {
+                            this.result(e, path, j, ret)
                         })
-                        this.rendering[range.start + i].catch(console.error)
+                        this.rendering[j].catch(console.error)
                     }
                 })
             }

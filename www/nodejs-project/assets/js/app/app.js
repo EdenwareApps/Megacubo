@@ -257,7 +257,7 @@ function initApp(){
             if(data.force || !iconCaching[data.path][data.tabindex] || iconCaching[data.path][data.tabindex].url != data.url || iconCaching[data.path][data.tabindex].name != data.name){
                 iconCaching[data.path][data.tabindex] = data
             }
-            if(explorer.path == data.path){
+            if(explorer.path == data.path) {
                 const entry = explorer.currentEntries[data.tabindex]
                 const element = data.tabindex == -1 ? document.querySelector('.explorer-location-icon i') : explorer.currentElements[data.tabindex]
                 const isCover = element && !data.alpha && (config['stretch-logos'] || (entry && entry.class && entry.class.indexOf('entry-force-cover') != -1))
@@ -342,7 +342,7 @@ function initApp(){
         ([
             {
                 level: 'default', 
-                selector: '#explorer wrap a, .explorer-omni span, .header-entry', 
+                selector: '#explorer wrap a, .explorer-omni span, .header-entry, #menu-playing-close', 
                 condition: () => {
                     return explorer.isExploring()
                 },
@@ -353,8 +353,8 @@ function initApp(){
                 overScrollAction: (direction, e) => {
                     if(direction == 'up'){
                         let playing = explorer.inPlayer()
+                        console.log('OVERSCROLLACTION!!!!!!!', playing)
                         if(!playing){
-                            console.log('OVERSCROLLACTION!!!!!!!')
                             let n
                             if(e){
                                 let entries = explorer.entries(true), i = entries.indexOf(e)
@@ -369,7 +369,6 @@ function initApp(){
                             explorer.focus(n, true)
                             return true
                         } else {
-                            console.log('OVERSCROLLACTION!!!!!!!')
                             menuPlaying(false)
                         }
                     }

@@ -192,8 +192,8 @@ input {
     flex-grow: inherit;    
     text-align: right;
 }
-body.video #explorer header .explorer-omni {
-    visibility: hidden;
+body.video.menu-playing #explorer header .explorer-omni {
+    visibility: visible !important;
 }
 #explorer header .explorer-omni > span {
     background: linear-gradient(to bottom, rgba(0,0,0, 0.3), rgba(255, 255, 255, 0.05));
@@ -393,7 +393,7 @@ div#home-arrows > div > * {
     height: inherit;
     transition: transform var(--explorer-fx-nav-duration) ease-in-out 0s;
 }
-#explorer content a {
+#explorer content wrap a {
     width: calc(100% / var(--entries-per-row));
     height: var(--explorer-entry-height);
     box-sizing: border-box;
@@ -1369,7 +1369,7 @@ body.menu-playing #explorer content {
     border-bottom-right-radius: 0;
     border-top-right-radius: 0;
 }
-body.menu-playing #explorer header > div > span {
+body.video #explorer header > div > span {
     visibility: hidden !important;
 }
 body.menu-playing #explorer content {
@@ -1385,17 +1385,23 @@ body.menu-playing #main {
     position: absolute;
     right: 0;
     cursor: pointer;
+    color: #ffffff;
 }
 #menu-playing-close > div {
     position: relative;
-    height: calc(1.5 * var(--explorer-entry-name-font-size));
+    height: var(--explorer-header-height);
     font-size: calc(1.5 * var(--explorer-entry-name-font-size));
-    padding: calc(2 * var(--explorer-padding));
-    top: calc(((1.5 * var(--explorer-entry-name-font-size)) + (4 * var(--explorer-padding))) * -1);
+    padding: 0;
+    top: calc(var(--explorer-header-height) * -1);
     line-height: 100%;
     border-top-left-radius: 2vmin;
     border-top-right-radius: 2vmin;
+    display: inline-flex;
+    align-items: center;
+}
+#menu-playing-close.selected > div > i {
     color: #ffffff;
+    font-size: calc(1.75 * var(--explorer-entry-name-font-size)) !important;
 }
 @keyframes slide-in-from-left {
     from { 

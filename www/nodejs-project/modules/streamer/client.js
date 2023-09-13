@@ -1620,7 +1620,7 @@ class StreamerClient extends StreamerClientController {
             }
             this.animating = true
             this.bindStateListener()
-            if(explorer.inModal()){
+            if(this.isTryOtherDlgActive()){
                 explorer.endModal()
             }
             this.data = data

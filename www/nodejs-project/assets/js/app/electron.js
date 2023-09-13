@@ -298,7 +298,7 @@ class ExitPage {
 	}
 	open(){
 		if(this.allow()){
-			this.manifest(data => {
+			this.manifest((err, data) => {
 				const version = data && data.version ? data.version : ''
 				shell.openExternal('http://app.megacubo.net/out.php?ver='+ version)
 			})
@@ -372,7 +372,7 @@ class WindowManagerCommon extends ClassesHandler {
 		}
 		if(cmd.length){
 			cmd = cmd.pop()
-			if(cmd.length && cmd.charAt(0) != '-'){
+			if(cmd.length && cmd.charAt(0) != '-' && cmd.indexOf('\\') == -1) {
 				cmd = cmd.replace(new RegExp('^"|"$', 'g'), '')
 				if(!cmd.match(new RegExp('^/[^/]'))){
 					console.log('cmdline*: ' + cmd)
@@ -628,8 +628,8 @@ class WindowManager extends WindowManagerCommon {
 	}
 	removeFromTray(){
 		console.error('leaveMiniPlayer')
-		if(this.tray){
-			this.tray.remove()
+		if(this.tray) {
+			this.tray.destroy()
 			this.tray = false
 			this.setShowInTaskbar(true)
 		}

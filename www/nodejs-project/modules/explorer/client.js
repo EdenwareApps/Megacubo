@@ -265,6 +265,8 @@ class ExplorerSelectionMemory extends ExplorerBase {
 		}
     }
     restoreSelection(){
+		const selected = this.selected()
+		if(selected && selected.id == 'explorer-search') return;
         let data = {scroll: 0, index: this.path ? 1 : 0}
         if(
 			typeof(this.selectionMemory[this.path]) != 'undefined' && 
