@@ -12,9 +12,6 @@ class StreamerRTMPIntent extends StreamerBaseIntent {
         this.type = 'rtmp'
         this.mimetype = this.mimeTypes.hls
         this.mediaType = 'live'
-        this.once('destroy', () => {
-            console.log('RTMPINTENTDESTROY')
-        })
     }  
     _start(){ 
         return new Promise((resolve, reject) => {

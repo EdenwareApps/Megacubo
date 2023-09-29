@@ -167,8 +167,7 @@ class ParentalControl extends Events {
 		if(entry.type && !['group', 'stream'].includes(entry.type)){
 			return true
 		}
-		let allow = true
-		let str
+		let str, allow = true
 		str = entry.name
 		if(entry.group){
 			str += ' ' + entry.group
@@ -180,7 +179,7 @@ class ParentalControl extends Events {
 	}
 	filter(entries, skipProtect){
 		if(entries.length){
-			switch(global.config.get('parental-control')){
+			switch(global.config.get('parental-control')) {
 				case 'remove':
 					entries = entries.filter(this.allow.bind(this))
 					break
@@ -189,6 +188,9 @@ class ParentalControl extends Events {
 						entries = entries.map(e => this.allow(e) ? e : this.protect(e))
 					}
 					break
+			}
+			if(entries.entries && Array.isArray(entries.entries)) {
+				entries.entries = this.filter(entries.entries, skipProtect)
 			}
 		}
 		return entries
@@ -209,7 +211,11 @@ class ParentalControl extends Events {
 	async auth(){
 		const now = global.time()
 		if((!this.authenticated || now > this.authenticated) && ['block', 'remove'].includes(global.config.get('parental-control')) && global.config.get('parental-control-pw')){
-			const pass = await global.explorer.prompt(global.lang.PASSWORD, global.lang.PASSWORD, '', false, 'fas fa-key', '', [], true)
+			const pass = await global.explorer.prompt({
+				question: global.lang.PASSWORD,
+				fa: 'fas fa-key',
+				isPassword: true
+			})
 			if(pass && this.md5(pass) == global.config.get('parental-control-pw')){
 				this.authenticated = now + this.authTTL
 				return true
@@ -222,9 +228,17 @@ class ParentalControl extends Events {
 		}
 	}
 	async setupAuth(){
-		const pass = await global.explorer.prompt(global.lang.CREATE_YOUR_PASS, global.lang.CREATE_YOUR_PASS, '', false, 'fas fa-key', '', [], true)
+		const pass = await global.explorer.prompt({
+			question: global.lang.CREATE_YOUR_PASS,
+			fa: 'fas fa-key',
+			isPassword: true
+		})
 		if(pass){
-			const pass2 = await global.explorer.prompt(global.lang.TYPE_PASSWORD_AGAIN, global.lang.TYPE_PASSWORD_AGAIN, '', false, 'fas fa-key', '', [], true)
+			const pass2 = await global.explorer.prompt({
+				question: global.lang.TYPE_PASSWORD_AGAIN,
+				fa: 'fas fa-key',
+				isPassword: true
+			})
 			if(pass === pass2){
 				global.config.set('parental-control-pw', this.md5(pass))
 				return true

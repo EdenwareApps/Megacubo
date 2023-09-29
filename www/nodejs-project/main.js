@@ -57,6 +57,7 @@ if(global.cordova){
 Object.keys(global.paths).forEach(k => {
     global.paths[k] = forwardSlashes(global.paths[k])
     console.log('DEFAULT PATH ' + k + '=' + global.paths[k])
+    fs.mkdir(global.paths[k], {}, () => {})
 })
 
 global.crashlog = require('./modules/crashlog')
@@ -85,6 +86,7 @@ global.onexit(() => {
     if(typeof(global.tuning) != 'undefined' && global.tuning){
         global.tuning.destroy()
     }
+    global.rmdir(global.paths.temp, false, true)
     if(typeof(global.ui) != 'undefined' && global.ui){
         global.ui.emit('exit', true)
         global.ui.destroy()
@@ -184,7 +186,7 @@ global.updateUserTasks = async app => {
     if(process.platform != 'win32') return
     if(app) { // set from cache, Electron won't set after window is opened
         const tasks = await global.storage.promises.get('user-tasks')
-        if(!app.setUserTasks(tasks)) {
+        if(tasks && !app.setUserTasks(tasks)) {
             throw 'Failed to set user tasks. '+ JSON.stringify(tasks)
         }
         return
@@ -350,8 +352,14 @@ const init = (language, timezone) => {
                     break
                 case 'input':
                     if(typeof(e.action) == 'function') {
-                        let defVal = typeof(e.value) == 'function' ? e.value() : (e.value || undefined)
-                        let val = await global.explorer.prompt(e.name, '', defVal, false, e.fa, null)
+                        let defaultValue = typeof(e.value) == 'function' ? e.value() : (e.value || undefined)
+                        let val = await global.explorer.prompt({
+                            question: e.name,
+                            placeholder: '',
+                            defaultValue,
+                            multiline: e.multiline,
+                            fa: e.fa
+                        })
                         let ret = e.action(e, val)
                         if(ret && ret.catch) ret.catch(console.error)
                     }
@@ -387,7 +395,13 @@ const init = (language, timezone) => {
                     global.lists.manager.update()
                     break
                 case 'add-list':
-                    global.ui.emit('prompt', global.lang.ASK_IPTV_LIST, 'http://.../example.m3u', '', 'lists-manager', false, 'fas fa-plus-square')
+                    global.explorer.prompt({
+                        question: global.lang.ASK_IPTV_LIST, 
+                        placeholder: 'http://.../example.m3u',
+                        defaultValue: '',
+                        callback: 'lists-manager', 
+                        fa: 'fas fa-plus-square'
+                    }).catch(console.error)
                     break
                 case 'back':
                     global.explorer.refresh()
@@ -477,11 +491,15 @@ const init = (language, timezone) => {
                             opts.push({template: 'option', text: global.lang.STOP, fa: 'fas fa-stop', id: 'stop'})                        
                         }
                         showingSlowBroadcastDialog = true
-                        let ret = await global.explorer.dialog(opts, def)
+                        let ret = await global.explorer.dialog(opts, def, true)
                         showingSlowBroadcastDialog = false
                         videoErrorTimeoutCallback(ret)
                     }
                 } else {
+                    if(type == 'playback') {
+                        const openedExternal = await global.streamer.askExternalPlayer().catch(console.error)
+						if(openedExternal === true) return
+                    }
                     console.error('VIDEO ERR', type, errData)
                     if(global.streamer.active && global.streamer.active.type == 'hls' && global.streamer.active.adapters.length){
                         console.error('VIDEO ERR EXT', global.streamer.active.endpoint)
@@ -680,8 +698,9 @@ const init = (language, timezone) => {
             await global.crashlog.send().catch(console.error) 
                        
             global.lists.manager.update()
-            await global.lists.manager.waitListsReady()
+            const inf = await global.lists.manager.waitListsReady()
 
+            console.log('WaitListsReady resolved!')
             let c = await global.cloud.get('configure') // all below in func depends on 'configure' data
             await global.options.updateEPGConfig(c).catch(console.error)
             console.log('checking update...')

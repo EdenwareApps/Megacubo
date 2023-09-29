@@ -1,5 +1,5 @@
 const path = require('path'), http = require('http'), Events = require('events')
-const fs = require('fs'), url = require('url'), createReader = require('../reader')
+const fs = require('fs'), url = require('url')
 const formidable = require('formidable'), closed = require('../on-closed')
 
 class BaseCustomEmitter extends Events {
@@ -114,7 +114,7 @@ class BridgeServer extends Events {
                     }
                     response.setHeader('Content-type', mimes[ext] || 'text/plain' )
                     response.setHeader('Cache-Control', 'max-age=0, no-cache, no-store')
-                    let stream = createReader(pathname)
+                    let stream = fs.createReadStream(pathname)
                     closed(req, response, () => {
                         console.log(`${req.method} ${req.url} CLOSED`)
                         if(stream){

@@ -1,6 +1,6 @@
 
 const path = require('path'), fs = require('fs'), http = require('http')
-const Events = require('events'), Writer = require('../../write-queue/writer')
+const Events = require('events'), Writer = require('../../writer')
 
 class StreamerAdapterBase extends Events {
 	constructor(url, opts, data){
@@ -103,9 +103,7 @@ class StreamerAdapterBase extends Events {
 				this.currentSpeed = speed
 			}
         })
-		adapter.on('wait', () => {
-			this.emit('wait')
-		})
+		adapter.on('wait', () => this.emit('wait'))
         adapter.on('fail', this.onFail)
 		adapter.on('streamer-connect', () => this.emit('streamer-connect'))
 		adapter.committed = this.committed
@@ -151,15 +149,6 @@ class StreamerAdapterBase extends Events {
             this.fail(err)
         }
     }
-	getDomain(u){
-		if(u && u.indexOf('//') != -1){
-			let d = u.split('//')[1].split('/')[0]
-			if(d == 'localhost' || d.indexOf('.') != -1){
-				return d
-			}
-		}
-		return ''
-	}
 	ext(url){
 		return url.split('?')[0].split('#')[0].split('.').pop().toLowerCase()  
 	}
@@ -319,7 +308,7 @@ class StreamerAdapterBase extends Events {
 		Object.keys(this.bitrateCheckBuffer).forEach(id => {
 			let file = this.bitrateCheckBuffer[id].file
 			this.bitrateCheckBuffer[id].destroy()
-			fs.unlink(file, () => {})
+			file && fs.unlink(file, () => {})
 		})
 		this.bitrateCheckBuffer = {}
 	}

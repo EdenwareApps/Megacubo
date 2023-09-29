@@ -5,7 +5,7 @@ class StreamerVideoIntent extends StreamerBaseIntent {
         super(data, opts, info)
         this.type = 'video'
         this.mediaType = 'video'
-        if(this.info.contentType && this.info.contentType.indexOf('o/') != -1){
+        if(this.info.contentType && this.info.contentType.indexOf('o/') != -1 && this.info.contentType.indexOf('mp2t') == -1){
             this.mimetype = this.info.contentType
         } else {
             this.mimetype = this.mimeTypes.video
@@ -55,6 +55,14 @@ class StreamerVideoIntent extends StreamerBaseIntent {
 
 StreamerVideoIntent.mediaType = 'video'
 StreamerVideoIntent.supports = info => {
+    if(info.ext){
+        if(info.sample && global.streamer.isPacketized(info.sample)) {
+            return false // is vod-ts
+        }
+        if(['mp4', 'mkv', 'm4v', 'mov', 'mpeg', 'webm', 'ogv', 'hevc', 'wmv', 'divx', 'avi', 'asf'].includes(info.ext)){
+            return true
+        }
+    }
     if(info.isLocalFile){
         return true
     }
@@ -68,9 +76,6 @@ StreamerVideoIntent.supports = info => {
         }
     }
     if(info.ext){
-        if(['mp4', 'mkv', 'm4v', 'mov', 'mpeg', 'webm', 'ogv', 'hevc', 'wmv', 'divx', 'avi', 'asf'].includes(info.ext)){
-            return true
-        }
         if(info.headers && info.headers['content-length'] && ['ts', 'mts', 'm2ts'].includes(info.ext)){ // not live
             return true
         }

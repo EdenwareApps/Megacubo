@@ -1,8 +1,22 @@
 const Events = require('events'), parseRange = require('range-parser')
-const zlib = require('zlib'), Writer = require('../write-queue/writer')
+const zlib = require('zlib')
 const StringDecoder = require('string_decoder').StringDecoder
-const DownloadCacheMap = require('./download-cache')
+const DownloadCacheMap = require('./download-cache'), fs = require('fs')
 const DownloadStreamHybrid = require('./stream-hybrid')
+
+const getDomain = (u, includePort) => {
+	let d = u
+	if(u && u.indexOf('//') != -1){
+		d = u.split('//')[1].split('/')[0]
+	}
+	if(d.indexOf('@') != -1){
+		d = d.split('@')[1]
+	}
+	if(d.indexOf(':') != -1 && !includePort) {
+		d = d.split(':')[0]
+	}
+	return d
+}
 
 class Download extends Events {
 	constructor(opts){
@@ -85,7 +99,7 @@ class Download extends Events {
 		}
 	}
 	avoidKeepAlive(url){ // on some servers, the number of sockets increase indefinitely causing downloads to hang up after some time, doesn't seems that these sockets are really being reused
-		const d = this.getDomain(url, true)
+		const d = getDomain(url, true)
 		if(Download.keepAliveDomainBlacklist.includes(d)){
 			return true
 		}
@@ -105,7 +119,7 @@ class Download extends Events {
 	pingAuthURL(){
 		const now = global.time()
 		if(this.opts.authURL && (!Download.pingAuthDelay[this.opts.authURL] || now > Download.pingAuthDelay[this.opts.authURL])){
-			Download.pingAuthDelay[this.opts.authURL] = now + 120
+			Download.pingAuthDelay[this.opts.authURL] = now + 1800
 			console.error('PINGAUTHURL: '+ this.opts.authURL +' '+ now)
 			Download.get({
 				url: this.opts.authURL,
@@ -126,6 +140,9 @@ class Download extends Events {
 		}
 		if(!this.started && !this.ended && !this.destroyed){
 			this.started = true
+			if(this.opts.file) {
+				this.fileStream = fs.createWriteStream(this.opts.file)
+			}
 			if(global.osd && global.debugConns){
 				let txt = this.opts.url.split('?')[0].split('/').pop()
 				global.osd.show(txt, 'fas fa-download', 'down-'+ this.opts.uid, 'persistent')
@@ -137,19 +154,6 @@ class Download extends Events {
 	}
 	ext(url){
 		return String(url).split('?')[0].split('#')[0].split('.').pop().toLowerCase();        
-	}
-	getDomain(u, includePort){
-		let d = u
-		if(u && u.indexOf('//') != -1){
-			d = u.split('//')[1].split('/')[0]
-		}
-		if(d.indexOf('@') != -1){
-			d = d.split('@')[1]
-		}
-		if(d.indexOf(':') != -1 && !includePort) {
-			d = d.split(':')[0]
-		}
-		return d
 	}
 	titleCaseHeaders(headers){
 		const nheaders = {}
@@ -288,7 +292,7 @@ class Download extends Events {
 				this.ignoreBytes = this.received // ignore data already received on last connection so
 			}
 		}
-		requestHeaders.host = this.getDomain(opts.url, true)
+		requestHeaders.host = getDomain(opts.url, true)
 		const match = opts.url.match(new RegExp('//([^/]+:[^/]+)@'))
 		if(match){
 			requestHeaders.authorization = 'Basic '+ Buffer.from(match[1]).toString('base64')
@@ -593,6 +597,7 @@ class Download extends Events {
 				Download.cache.save(this, chunk, false) // before to be converted by StringDecoder
 			}
 		}
+		this.opts.file && this.fileStream.write(chunk)
 		if(this.opts.encoding && this.opts.encoding != 'binary') {
 			if(!this.stringDecoder){
 				this.stringDecoder = new StringDecoder(this.opts.encoding)
@@ -602,7 +607,7 @@ class Download extends Events {
 		this.receivedUncompressed += chunk.length
 		if(this.listenerCount('data')) {
 			this.emit('data', chunk)
-		} else {
+		} else if(!this.opts.file) {
 			this.buffer.push(chunk)
 		}
 	}
@@ -975,6 +980,7 @@ class Download extends Events {
 			this.emit('destroy')
 			this.removeAllListeners()
 			this.buffer = []
+			this.fileStream && this.fileStream.close()
 			process.nextTick(() => {
 				if(global.osd && global.debugConns){
 					let txt = this.opts.url.split('?')[0].split('/').pop() +' ('+ this.statusCode +') - '
@@ -999,6 +1005,7 @@ class Download extends Events {
 }
 
 const networkListeners = []
+Download.domain = getDomain
 Download.stream = DownloadStreamHybrid
 Download.cache = new DownloadCacheMap()
 Download.keepAliveDomainBlacklist = []
@@ -1085,47 +1092,29 @@ Download.get = opts => {
 	return promise
 }
 Download.file = (...args) => {
-	let _reject, g, err, opts = args[0], file = opts && opts.file ? opts.file : global.paths.temp +'/dlf-'+ parseInt(Math.random() * 10000000000000)
+	let _reject, g, err, opts = args[0] || {}
+	if(!opts.file) opts.file = global.paths.temp +'/dl-file-'+ parseInt(Math.random() * 1000000000)
+	const file = opts.file
 	let promise = new Promise((resolve, reject) => {
 		_reject = reject
-		let writer
 		g = new Download(opts)
 		g.once('response', statusCode => {
-			// console.log('Download', g, global.traceback(), buf)
 			if(statusCode < 200 && statusCode >= 400){
 				g.destroy()	
 				reject('http error '+ statusCode)
 			}
-		})
-		g.on('data', buf => {
-			if(!writer){
-				writer = new Writer(file)
-				writer.autoclose = false
-			}
-			writer.write(buf)
 		})
 		g.on('error', e => {
 			err = e
 		})
 		g.once('end', () => {
 			g.destroy()
-			if(writer){
-				if(writer.hasErr){
-					reject(writer.hasErr)
-				} else {
-					writer.ready(() => {
-						writer.destroy()
-						resolve(file)
-					})
-				}
-			} else {
-				reject(err || 'empty data '+ g.statusCode)
-			}
+			resolve(file)
 		})
 		if(typeof(opts.progress) == 'function'){
 			g.on('progress', opts.progress)
 		}
-		g.start()
+		if(opts.autostart !== false) g.start()
 	})
 	promise.cancel = () => {
 		if(!g.ended){
@@ -1139,6 +1128,7 @@ Download.file = (...args) => {
 			})
 		}
 	}
+	promise.start = () => g.start()
 	promise.handle = () => g
 	return promise
 }

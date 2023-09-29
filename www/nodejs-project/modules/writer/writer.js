@@ -11,6 +11,7 @@ class Writer extends Events {
 		this.writing = false
 		this.writeQueue = []
 		this.position = 0
+		this.prepare(() => this.emit('open'))
 	}
 	write(data, position){
 		if(typeof(position) == 'undefined'){
@@ -96,7 +97,7 @@ class Writer extends Events {
 			if(this.debug){
 				console.log('writeat writing', this.file, fs.statSync(this.file).size, len, fs.statSync(this.file).size + len, position)
 			}
-			fs.write(fd, data, 0, data.length, position, (err, writtenBytes) => {
+			const callback = (err, writtenBytes) => {
 				if(err){
 					if(this.debug){
 						console.error('writeat error: '+ String(err), err)
@@ -126,14 +127,23 @@ class Writer extends Events {
 					}
 				}
 				this._write(fd, cb)
-			})
+			}
+			if(!Buffer.isBuffer(data)) data = Buffer.from(data)
+			fs.write(fd, data, 0, data.length, position, callback)
 		} else {
 			cb()
 		}
 	}
+	end() {
+		this.ready(() => this.destroy())
+	}
+	close() {
+		this.end()
+	}
 	destroy(){
 		this.destroyed = parseInt(((new Date()).getTime() - this.uid) / 1000)
 		this.writeQueue = []
+		this.emit('close')
 		this.emit('destroy')
 		this.removeAllListeners()
 	}

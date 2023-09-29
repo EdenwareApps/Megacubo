@@ -1,6 +1,7 @@
-const fs = require('fs'), Events = require('events'), Parser = require('./parser')
+const fs = require('fs'), Events = require('events')
 const ListIndexUtils = require('./list-index-utils')
 const MediaURLInfo = require('../streamer/utils/media-url-info')
+const Parser = require('./parser')
 
 class UpdateListIndex extends ListIndexUtils { 
 	constructor(url, directURL, file, master, updateMeta, forceDownload){
@@ -13,7 +14,8 @@ class UpdateListIndex extends ListIndexUtils {
         this.directURL = directURL
         this.updateMeta = updateMeta
         this.forceDownload = forceDownload === true
-        this.tmpfile = global.paths.temp +'/'+ parseInt(Math.random() * 100000000000) + '.tmp'
+        this.uid = parseInt(Math.random() * 100000000000)
+        this.tmpOutputFile = global.paths.temp +'/'+ this.uid + '.out.tmp'
         this.linesMapPtr = 0
         this.linesMap = []
         this.reset()
@@ -75,7 +77,7 @@ class UpdateListIndex extends ListIndexUtils {
                 path = 'http:' + path
             }
             if(path.match(new RegExp('^https?:'))){
-                console.error('ADDLISThttp='+path)
+                console.error('ADDLIST '+ path)
                 let resolved
                 const opts = {
                     debug: false,
@@ -89,10 +91,10 @@ class UpdateListIndex extends ListIndexUtils {
                     timeout: Math.max(30, global.config.get('connect-timeout')), // some servers will take too long to send the initial response
                     downloadLimit: 200 * (1024 * 1024), // 200Mb
                     cacheTTL: this.forceDownload ? 0 : 3600,
+                    file: global.paths.temp + '/update-'+ parseInt(Math.random() * 10000000) +'.tmp',
                     debug: false
                 }
                 this.stream = new global.Download(opts)
-                const file = global.paths.temp + '/'+ this.stream.opts.uid +'.bin'
                 this.stream.on('redirect', (url, headers) => this.parseHeadersMeta(headers))
                 this.stream.on('response', (statusCode, headers) => {
                     if(this.debug){
@@ -106,13 +108,10 @@ class UpdateListIndex extends ListIndexUtils {
                             this.stream.destroy()
                             resolve(false) // no need to update
                         } else {
-                            const fetcher = fs.createWriteStream(file)
-                            this.stream.on('data', c => fetcher.write(c))
                             this.stream.on('end', () => {
-                                fetcher.on('close', () => this.parser && this.parser.end())
-                                fetcher.end()
+                                this.parser && this.parser.end()
                             })
-                            resolve({file, persistent: true})
+                            resolve({file: opts.file, persistent: true})
                         }
                     } else {
                         this.stream.destroy()
@@ -163,8 +162,8 @@ class UpdateListIndex extends ListIndexUtils {
                 urls.unshift(alturl)
             }
         }
-        await fs.promises.mkdir(global.dirname(this.tmpfile), {recursive: true}).catch(console.error)
-        const writer = fs.createWriteStream(this.tmpfile)
+        await fs.promises.mkdir(global.dirname(this.tmpOutputFile), {recursive: true}).catch(console.error)
+        const writer = fs.createWriteStream(this.tmpOutputFile)
         for(let url of urls){
             let err
             const ret = await this.fetch(url).catch(e => err = e)
@@ -184,18 +183,20 @@ class UpdateListIndex extends ListIndexUtils {
                 await this.parse(ret, writer, playlist).catch(console.error)
             }
         }
-        console.error('PLAYLISTS end')
         await this.writeIndex(writer).catch(err => console.warn('writeIndex error', err))
         writer.destroy()
         return true
 	}
 	parse(opts, writer, playlist){
 		return new Promise((resolve, reject) => {
-			let resolved, count, destroyListener = () => {
+			let resolved, count
+            const destroyTempFile = () => {
+                opts.file && fs.unlink(opts.file, () => {})
+            }
+            const destroyListener = () => {
                 if(!resolved){
                     resolved = true
-                    fs.unlink(this.tmpfile, () => {})
-                    opts.file && fs.unlink(opts.file, () => {})
+                    destroyTempFile()
                     reject('destroyed')
                 }
             }
@@ -212,6 +213,7 @@ class UpdateListIndex extends ListIndexUtils {
 				if(this.destroyed){
                     if(!resolved){
                         resolved = true
+                        destroyTempFile()
                         reject('destroyed')
                     }
                     return
@@ -245,7 +247,6 @@ class UpdateListIndex extends ListIndexUtils {
                 const pp = cl / 100
                 let progress = parseInt(readen / pp)
                 if(progress > 99) progress = 99
-
                 if(this.playlists.length){
                     let i = -1
                     this.playlists.some((p, n) => {
@@ -260,15 +261,23 @@ class UpdateListIndex extends ListIndexUtils {
                         progress = parseInt(pr)
                     }
                 }
-
                 if(progress != this.lastProgress) {
                     this.lastProgress = progress
                     this.emit('progress', progress)
                 }
             })
+            if(this.stream.ended) {
+                this.parser.end()
+            } else {
+                this.stream.once('end', () => this.parser.end())
+            }
+            if(this.stream.received) {
+                this.parser.start()
+            } else {
+                this.stream.once('data', () => this.parser.start())
+            }
             this.once('destroy', destroyListener)
 			this.parser.once('finish', () => {
-                this.removeListener('destroy', destroyListener)
                 if(!resolved){
                     resolved = true
                     if(count){
@@ -282,7 +291,9 @@ class UpdateListIndex extends ListIndexUtils {
                     this.parser.destroy()
                     this.stream && this.stream.destroy()
                     this.stream = this.parser = null
+                    destroyTempFile()
                 }
+                this.removeListener('destroy', destroyListener)
 			})
 		})
 	}
@@ -299,7 +310,7 @@ class UpdateListIndex extends ListIndexUtils {
                         if(resolved) return
                         resolved = true
                         if(err) console.error(err)
-                        global.moveFile(this.tmpfile, this.file, err => {
+                        global.moveFile(this.tmpOutputFile, this.file, err => {
                             if(err){
                                 reject(err)
                             } else if(this.index.length) {
@@ -307,10 +318,9 @@ class UpdateListIndex extends ListIndexUtils {
                             } else {
                                 resolve(false)
                             }
-                            fs.access(this.tmpfile, err => err || fs.unlink(this.tmpfile, () => {}))
+                            fs.access(this.tmpOutputFile, err => err || fs.unlink(this.tmpOutputFile, () => {}))
                         }, 10)
                     }
-                    writer.on('finish', finish)
                     writer.on('close', finish)
                     writer.on('error', finish)
                     
@@ -324,7 +334,7 @@ class UpdateListIndex extends ListIndexUtils {
                     writer.end()
                 } else {
                     resolved = true
-                    fs.unlink(this.tmpfile, () => reject('empty list'))
+                    fs.unlink(this.tmpOutputFile, () => reject('empty list'))
                 }
             })
         })

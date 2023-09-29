@@ -441,12 +441,14 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 	recycle() {
 		const p = this.object.parentNode
 		if (p) {
+			const volume = this.object.volume
 			const v = document.createElement('video')
 			$(this.object).off()
 			v.autoplay = true
 			p.removeChild(this.object)
 			p.appendChild(v)
 			this.object = v
+			this.object.volume = volume
 			this.patchPauseFn()
 		}
 	}

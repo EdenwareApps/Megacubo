@@ -1,7 +1,6 @@
 const Events = require('events'), fs = require('fs')
 const path = require('path'), http = require('http'), url = require('url')
 const closed = require('../on-closed'), parseRange = require('range-parser')
-const createReader = require('../reader')
 
 class Downloads extends Events {
    constructor(){
@@ -51,6 +50,7 @@ class Downloads extends Events {
 				const uid = ret.substr(cancelPrefix.length)
 				Object.keys(this.activeDownloads).some(url => {
 					if(this.activeDownloads[url].uid == uid){
+						this.activeDownloads[url].cancelled = true
 						this.activeDownloads[url].destroy()
 						fs.unlink(this.activeDownloads[url].file, () => {})
 						global.ui.emit('background-mode-unlock', 'saving-file-'+ uid)
@@ -185,7 +185,7 @@ class Downloads extends Events {
 						resHeaders['x-debug'] = start +'-'+ end +'/'+ stat.size
 						res.writeHead(status, resHeaders)
 						if (req.method === 'HEAD' || len == 0) return res.end()
-						let stream = createReader(pathname, {start, end})
+						let stream = fs.createReadStream(pathname, {start, end})
 						let sent = 0
 						closed(req, res, () => {
 							console.log('serve res finished', sent, start, end)
@@ -294,7 +294,7 @@ class Downloads extends Events {
 			global.ui.emit('background-mode-lock', 'saving-file-'+ uid)
 			global.osd.show(global.lang.SAVING_FILE_X.format(name) +' 0%', 'fa-mega spin-x-alt', uid, 'persistent')
 			const file = target +'/'+ name
-			const writer = fs.createWriteStream(file, {highWaterMark: Number.MAX_SAFE_INTEGER}), download = new global.Download({
+			const writer = fs.createWriteStream(file, {flags: 'w' , highWaterMark: Number.MAX_SAFE_INTEGER}), download = new global.Download({
 				url,
 				keepalive: false,
 				retries: 999,
@@ -319,15 +319,22 @@ class Downloads extends Events {
 			download.once('end', () => {
 				const finished = () => {
 					writer.destroy()
-					global.osd.show(global.lang.FILE_SAVED_ON.format(explorer.basename(target) || target, name), 'fas fa-check-circle', uid, 'normal')
-					fs.chmod(file, 0o777, err => { // https://stackoverflow.com/questions/45133892/fs-writefile-creates-read-only-file#comment77251452_45140694
-						console.log('Updated file permissions', err)
+					const done = () => {
 						global.ui.emit('background-mode-unlock', 'saving-file-'+ uid)
 						delete this.activeDownloads[url]
 						if(global.explorer.path.indexOf(global.lang.ACTIVE_DOWNLOADS) != -1){
 							global.explorer.refreshNow()
 						}
-					})
+					}
+					if(download.cancelled) {
+						done()
+					} else {
+						global.osd.show(global.lang.FILE_SAVED_ON.format(explorer.basename(target) || target, name), 'fas fa-check-circle', uid, 'normal')
+						fs.chmod(file, 0o777, err => { // https://stackoverflow.com/questions/45133892/fs-writefile-creates-read-only-file#comment77251452_45140694
+							console.log('Updated file permissions', err)
+							done()
+						})
+					}
 				}
 				writer.on('finish', finished)
 				writer.on('error', finished)

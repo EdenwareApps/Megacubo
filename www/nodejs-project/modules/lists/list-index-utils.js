@@ -1,5 +1,5 @@
 const fs = require('fs'), Events = require('events')
-const readline = require('readline'), createReader = require('../reader')
+const readline = require('readline')
 const pLimit = require('p-limit')
 
 class ListIndexUtils extends Events {
@@ -33,18 +33,7 @@ class ListIndexUtils extends Events {
         const lines = {}
         let fd = null
         try {
-            fd = await fs.promises.open(this.file, 'r')
-            /*
-            for (const [index, range] of ranges.entries()) {
-                const length = range.end - range.start
-                const buffer = Buffer.alloc(length)
-                const { bytesRead } = await fd.read(buffer, 0, length, range.start)                
-                if(bytesRead < buffer.length) {
-                    buffer = buffer.slice(0, bytesRead)
-                }
-                lines[map[index]] = buffer.toString()
-            }
-            */
+           fd = await fs.promises.open(this.file, 'r')
            const limit = pLimit(4)
            const tasks = ranges.map((r, i) => {
                 return async () => {
@@ -88,7 +77,7 @@ class ListIndexUtils extends Events {
                 }
                 if(stat.size){
                     let max, i = 0, lines = {}, rl = readline.createInterface({
-                        input: createReader(this.file),
+                        input: fs.createReadStream(this.file),
                         crlfDelay: Infinity
                     })
                     if(map){
@@ -184,7 +173,7 @@ class ListIndexUtils extends Events {
             }
             return index
         } else {
-            console.error('Bad index', String(line).substr(0, 256), this.file)
+            console.error('Bad index on '+ this.file, String(line).substr(0, 256), this.file)
             return this.indexTemplate
         }
     }

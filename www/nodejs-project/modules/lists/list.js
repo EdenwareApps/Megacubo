@@ -143,13 +143,17 @@ class List extends Events {
 			console.error('no parent keywords', rks)
 			values.relevantKeywords = 50
 		} else {
-            let hits = 0
+            let hits = 0, presence = 0
             rks.forEach(term => {
                 if(typeof(index.terms[term]) != 'undefined'){
                     hits++
+                    presence += index.terms[term].n.length
                 }
             })
-            values.relevantKeywords = hits / (rks.length / 100)
+            presence /= Math.min(index.length, 1024) // to avoid too small lists
+            if(presence > 1) presence = 1
+            // presence factor aims to decrease relevance of too big lists for the contents that we want
+            values.relevantKeywords = presence * (hits / (rks.length / 100))
         }
     
         const rangeSize = 30 * (24 * 3600), now = global.time(), deadline = now - rangeSize

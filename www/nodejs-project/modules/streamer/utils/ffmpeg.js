@@ -1,6 +1,5 @@
 const fs = require('fs'), http = require('http'), path = require('path'), Events = require('events')
 const stoppable = require('stoppable'), Downloader = require('./downloader')
-const createReader = require('../../reader')
 const closed = require('../../on-closed'), decodeEntities = require('decode-entities')
 
 class StreamerFFmpeg extends Events {
@@ -10,7 +9,7 @@ class StreamerFFmpeg extends Events {
         if(!['mpegts', 'hls'].includes(outputFormat)){
             outputFormat = 'hls' // compat
         }
-        this.timeout = global.config.get('connect-timeout') * 6
+        this.timeout = Math.max(60, global.config.get('connect-timeout') * 6)
         this.started = false
         this.source = source 
         this.type = 'ffmpeg'
@@ -304,7 +303,7 @@ class StreamerFFmpeg extends Events {
                 if(ctype){
                     headers['content-type'] =  ctype
                 }
-                let ended, stream = createReader(file)
+                let ended, stream = fs.createReadStream(file)
                 response.writeHead(200, headers)
                 const end = () => {
                     if(!ended){
@@ -343,8 +342,7 @@ class StreamerFFmpeg extends Events {
         if(restarting){                    
             if(this.lastRestart && this.lastRestart >= (global.time() - 10)){
                 if(this.opts.isLive){
-                    this.emit('fail', global.lang.PLAYBACK_CORRUPTED_STREAM)
-                    this.destroy()
+                    this.fail(global.lang.PLAYBACK_CORRUPTED_STREAM)
                 } else {
                     return
                 }
@@ -452,8 +450,48 @@ class StreamerFFmpeg extends Events {
         }
         return this.decoder
     }
+    fail(err){
+        this.emit('fail', err)
+        this.destroy()
+    }
+    setTimeout(secs){
+        if(this.committed) return
+        if(this.timeout != secs){
+            this.timeout = secs
+        }
+        this.clearTimeout()
+        this.timeoutStart = global.time()
+        this.timeoutTimer = setTimeout(() => {
+            if(this && !this.failed && !this.destroyed && !this.committed){
+                console.log('Timeouted engine after '+ (global.time() - this.timeoutStart), this.committed)
+                this.fail('timeout')
+                this.destroy()
+            }
+        }, secs * 1000)
+    }    
+    clearTimeout(){
+        clearTimeout(this.timeoutTimer)
+        this.timeoutTimer = 0
+    }
+    resetTimeout(){
+        this.setTimeout(this.timeout)
+    }
     start(restarting){
-        return new Promise((resolve, reject) => {
+        return new Promise((res, rej) => {
+            let responded
+            const resolve = (...args) => {
+                if(!responded) {
+                    res(...args)
+                    responded = true
+                }
+            }
+            const reject = (...args) => {
+                if(!responded) {
+                    rej(...args)
+                    responded = true
+                }
+            }
+            this.on('fail', reject)
             this.setupDecoder(restarting).then(() => {
                 const startTime = global.time()
                 const endListener = data => {
@@ -463,12 +501,12 @@ class StreamerFFmpeg extends Events {
                             if(this.committed) {
                                 this.start(true).catch(console.error)
                             } else {
-                                this.emit('fail', 'media error')
-                                this.destroy()
+                                this.fail('media error')
                             }
                         }
                     }
                 }
+                this.resetTimeout()
                 this.decoder.
                 once('end', endListener).
                 on('error', err => {
@@ -480,19 +518,17 @@ class StreamerFFmpeg extends Events {
                             err = parseInt(m[1])
                         }
                         if([404].includes(err) || !this.opts.isLive || !this.committed){
-                            this.emit('fail', err)
-                            this.destroy()
+                            this.fail(err)
                         } else {
-                            this.start(true).catch(console.error)
+                            this.start(true).then(resolve).catch(reject)
                         }
                     }
                 }).
                 on('start', (commandLine) => {
-                    if(this.destroyed){ // already destroyed
-                        return
-                    }
+                    if(this.destroyed) return // already destroyed
                     console.log('Spawned FFmpeg with command: ' + commandLine, 'file:', this.decoder.file, 'workDir:', this.opts.workDir, 'cwd:', process.cwd(), 'PATHs', global.paths, 'cordova:', !!global.cordova)
                     if(this.opts.outputFormat == 'mpegts'){
+                        this.resetTimeout()
                         this.wrapper = new Downloader(this.decoder.target, Object.assign(this.opts,{
                             debug: false,
                             debugHTTP: false,
@@ -501,8 +537,7 @@ class StreamerFFmpeg extends Events {
                         }))
                         this.wrapper.on('destroy', () => {
                             if(this.committed){
-                                this.emit('fail', 'FFmpeg wrapper destroyed')
-                                this.destroy()
+                                this.fail('FFmpeg wrapper destroyed')
                             }
                         })
                         this.wrapper.start().then(() => {
@@ -544,15 +579,13 @@ class StreamerFFmpeg extends Events {
                             if(global.config.get('transcoding')){
                                 this.start().then(resolve).catch(reject)
                             } else {
-                                this.emit('fail', 'transcoding disabled')
-                                this.destroy()
+                                this.fail('transcoding disabled')
                             }
                         } else {
                             if(['hls', 'mp4'].includes(this.opts.outputFormat)) {
                                 this.waitFile(this.decoder.playlist || this.decoder.file, this.timeout, true).then(() => {
                                     this.serve().then(resolve).catch(err => {
-                                        reject(err)
-                                        this.decoder && this.decoder.abort()
+                                        this.fail(err)
                                     })
                                 }).catch(e => {
                                     console.error('waitFile failed', this.timeout, e)
@@ -600,7 +633,7 @@ class StreamerFFmpeg extends Events {
                     this.decoder.output(this.decoder.file).run()
                     // should be ip:port?listen without right slash before question mark
                 }
-            }).catch(reject)
+            }).catch(this.fail.bind(this))
         })
     }
     destroy(){

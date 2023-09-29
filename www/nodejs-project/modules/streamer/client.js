@@ -162,8 +162,8 @@ class StreamerCasting extends StreamerOSD {
                 }
             }
         })
-        app.on('external-player', () => {
-            parent.parent.Manager.externalPlayer.play().catch(err => {
+        app.on('external-player', url => {
+            parent.parent.Manager.externalPlayer.play(url).catch(err => {
                 console.error(err)
                 osd.show(String(err), 'fas fa-exclamation-triangle faclr-red', 'external-player', 'normal')
             })
@@ -1279,7 +1279,7 @@ class StreamerAudioUI extends StreamerClientVideoFullScreen {
         }
     }
     setupVolume(){        
-        this.addPlayerButton('volume', 'VOLUME', 'fas fa-volume-up', 2, this.volumeBarShow.bind(this))
+        this.addPlayerButton('volume', 'VOLUME', 'fas fa-volume-up', 4, this.volumeBarShow.bind(this))
         this.volumeButton = this.getPlayerButton('volume')
         jQuery('<volume><volume-wrap><div><input type="range" min="0" max="100" step="1" value="'+ config['volume'] +'" /><div id="volume-arrow"></div></div></volume-wrap></volume>').prependTo(this.volumeButton)
         this.volumeBar = this.volumeButton.querySelector('volume')
@@ -1410,9 +1410,7 @@ class StreamerClientControls extends StreamerAudioUI {
                 this.app.emit('streamer-update-streamer-info')
             }
         })
-        idle.on('active', () => {
-            this.app.emit('streamer-update-streamer-info')
-        })
+        idle.on('active', () => this.app.emit('streamer-update-streamer-info'))
         this.controls.innerHTML = `
     <div id="streamer-info">
         <div></div>
@@ -1436,27 +1434,24 @@ class StreamerClientControls extends StreamerAudioUI {
             <i class="fas fa-pause pause-button"></i>`, 0, () => {
             this.playOrPauseNotIdle()
         })
-        this.addPlayerButton('stop', 'STOP', 'fas fa-stop', 1, () => {
-            this.stop()
-        })
+        this.addPlayerButton('stop', 'STOP', 'fas fa-stop', 1, () => this.stop())
+        this.addPlayerButton('next', 'GO_NEXT', 'fas fa-step-forward', 5, () => this.app.emit('go-next'))
         this.setupVolume()
-        this.addPlayerButton('tune', 'RETRY', config['tuning-icon'], -1, () => {
-            this.app.emit('reload-dialog')
-        })
-        this.addPlayerButton('ratio', 'ASPECT_RATIO', 'fas fa-expand-alt', -1, () => {
+        this.addPlayerButton('tune', 'RETRY', config['tuning-icon'], 7, () => this.app.emit('reload-dialog'))
+        this.addPlayerButton('ratio', 'ASPECT_RATIO', 'fas fa-expand-alt', 10, () => {
             this.switchAspectRatio()
             let label = this.activeAspectRatio.custom ? lang.ORIGINAL : (this.activeAspectRatio.h + ':' + this.activeAspectRatio.v)
             osd.show(lang.ASPECT_RATIO +': '+ label, '', 'ratio', 'normal')
         }, 0.9)
         if(!parent.cordova && config['startup-window'] != 'fullscreen'){
-            this.addPlayerButton('fullscreen', 'FULLSCREEN', 'fas fa-expand', -1, () => {
+            this.addPlayerButton('fullscreen', 'FULLSCREEN', 'fas fa-expand', 11, () => {
                 this.toggleFullScreen()
             }, 0.85)
         }
         this.addPlayerButton('info', 'ABOUT', `
             <i class="about-icon-dot about-icon-dot-first"></i>
             <i class="about-icon-dot about-icon-dot-second"></i>
-            <i class="about-icon-dot about-icon-dot-third"></i>`, -1, () => {
+            <i class="about-icon-dot about-icon-dot-third"></i>`, 12, () => {
                 !this.casting && parent.player.pause()
                 this.app.emit('about')
             })
@@ -1473,14 +1468,12 @@ class StreamerClientControls extends StreamerAudioUI {
         })
     }
     addPlayerButton(cls, langKey, fa, position = -1, action, scale = -1){
-        let id = cls.split(' ')[0], name = lang[langKey]
-        if(this.getPlayerButton(id)){
-            return
-        }
+        const id = cls.split(' ')[0], name = lang[langKey]
+        if(this.getPlayerButton(id)) return
         let container = this.controls.querySelector('#buttons')
         let iconTpl = fa.indexOf('<') == -1 ? '<i class="'+ fa +'"></i>' : fa
         let template = `
-        <button id="${id}" class="${cls}" title="${name}" aria-label="${name}" data-language="${langKey}">
+        <button id="${id}" data-position="${position}" class="${cls}" title="${name}" aria-label="${name}" data-language="${langKey}">
             <span class="button-icon">${iconTpl}</span>
             <label><span data-language="${langKey}">${name}</span></label>
         </button>
@@ -1488,33 +1481,33 @@ class StreamerClientControls extends StreamerAudioUI {
         if(scale != -1){
             template = template.replace('></i>', ' style="transform: scale('+ scale +')"></i>')
         }
-        if(position == -1){
-            $(container).append(template)
-        } else if(position == 0){
-            $(container).prepend(template)
-        } else {
-            let bts = $(container).find('button')
-            if(bts.length){
-                if(position) {
-                    bts.eq(position - 1).after(template)
-                } else {
-                    $(container).prepend(template)
+        const bts = container.querySelectorAll('button')
+        if(bts.length) {
+            let ptr, type = 'after'
+            Array.from(bts).some(e => {
+                const btpos = parseInt(e.getAttribute('data-position'))
+                if(btpos < position) {
+                    ptr = e                        
+                } else { // >= position
+                    ptr = e
+                    type = 'before'
+                    return true
                 }
-            } else {
-                $(container).append(template)
+            })
+            if(type == 'after' && position >= 7 && parseInt(ptr.getAttribute('data-position')) < 7) {
+                ptr = container.querySelector('span.filler')
             }
+            jQuery(ptr)[type](template)
+        } else {
+            $(container).prepend(template)
         }
         let button = container.querySelector('#' + id)
         if(typeof(action) == 'function'){
             button.addEventListener('click', action)
         } else {
-            button.addEventListener('click', () => {
-                this.app.emit(action)
-            })
+            button.addEventListener('click', () => this.app.emit(action))
         }
-        if(name == 'cast' && parent.parent.Manager){
-            parent.parent.Manager.exitPage.touch()
-        }
+        if(name == 'cast' && parent.parent.Manager) parent.parent.Manager.exitPage.touch()
     }
     getPlayerButton(id){
         return this.controls.querySelector('#buttons #' + id.split(' ')[0])

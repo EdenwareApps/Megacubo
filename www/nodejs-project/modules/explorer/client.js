@@ -4,7 +4,7 @@
 *  http://www.webtoolkit.info
 *
 **/
-var Base64 = {
+const Base64 = {
     _keyStr: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=", 
 	encode: function (input)
     {
@@ -217,43 +217,55 @@ class ExplorerSelectionMemory extends ExplorerBase {
 		super(jQuery, container, app)
 		this.selectionMemory = {}
 		this.on('open', () => {
-			//if(type == 'group'){
-				//console.log('selectionMemory open', this._wrapper.scrollTop, this.selectedIndex)
-				this.selectionMemory[this.path] = {scroll: this._wrapper.scrollTop, index: this.selectedIndex}
-			//}
+			this.selectionMemory[this.path] = {
+				scroll: this._wrapper.scrollTop,
+				index: this.selectedIndex,
+				search: this.currentSearch
+			}
 		})
 		this.on('arrow', () => {
-			//if(type == 'group'){
-				//console.log('selectionMemory arrow', this._wrapper.scrollTop, this.selectedIndex)
-				this.selectionMemory[this.path] = {scroll: this._wrapper.scrollTop, index: this.selectedIndex}
-			//}
+			this.selectionMemory[this.path] = {
+				scroll: this._wrapper.scrollTop,
+				index: this.selectedIndex,
+				search: this.currentSearch
+			}
 		})
 		this.on('pre-render', () => {
-			//if(type == 'group'){
-				//console.log('selectionMemory pre-render', this._wrapper.scrollTop, this.selectedIndex)
-				this.selectionMemory[this.path] = {scroll: this._wrapper.scrollTop, index: this.selectedIndex}
-			//}
+			this.selectionMemory[this.path] = {
+				scroll: this._wrapper.scrollTop,
+				index: this.selectedIndex,
+				search: this.currentSearch
+			}
 		})
 		this.on('pre-modal-start', () => {
 			let e = this.selected()
 			if(e && e.title){
-				this.selectionMemory[this.path] = {scroll: this._wrapper.scrollTop, index: this.selectedIndex}
+				this.selectionMemory[this.path] = {
+					scroll: this._wrapper.scrollTop,
+					index: this.selectedIndex,
+					search: this.currentSearch
+				}
 			}
 		})
         this.on('pos-modal-end', this.updateSelection.bind(this))
 		this.app.on('explorer-reset-selection', () => {
             this.selectionMemory = {}
         })
+		this.app.on('current-search', (terms, type) => {
+            this.currentSearch = JSON.stringify({terms, type})
+        })
 	}
 	updateSelection(){
-		return this.updateSelectionCB(this.path, '', true)
+		return this.updateSelectionCB(this.path, '')
 	}
 	updateSelectionCB(path, icon){
 		if(this.isExploring()){
             this.scrollDirection = ''
             this.scrollSnapping = true
-			let target = 0, index = 1, isSearch = path.split('/').pop() == lang.SEARCH
-			if(isSearch){
+			let target = 0, index = 1
+			const inSearch = path.indexOf(lang.SEARCH) != -1 || this.path.indexOf(lang.MORE_RESULTS) != -1 || this.path.indexOf(lang.SEARCH_MORE) != -1
+			const inSameSearch = inSearch && this.currentSearch == this.selectionMemory[path].search		
+			if(inSearch && !inSameSearch){
                 this._scrollContainer.scrollTop = target
                 this.focusIndex(index, false, true)
                 this.scrollSnapping = false
@@ -268,16 +280,15 @@ class ExplorerSelectionMemory extends ExplorerBase {
 		const selected = this.selected()
 		if(selected && selected.id == 'explorer-search') return;
         let data = {scroll: 0, index: this.path ? 1 : 0}
-        if(
-			typeof(this.selectionMemory[this.path]) != 'undefined' && 
-			this.path.indexOf(lang.SEARCH) == -1 && 
-			this.path.indexOf(lang.MORE_RESULTS) == -1 && 
-			this.path.indexOf(lang.SEARCH_MORE) == -1
-		){
-            data = this.selectionMemory[this.path]
-            if(data.index == 0 && this.path){
-                data.index = 1
-            }
+		if(typeof(this.selectionMemory[this.path]) != 'undefined'){
+			const inSearch = this.path.indexOf(lang.SEARCH) != -1 || this.path.indexOf(lang.MORE_RESULTS) != -1 || this.path.indexOf(lang.SEARCH_MORE) != -1
+			const inSameSearch = inSearch && this.currentSearch == this.selectionMemory[this.path].search
+			if(!inSearch || inSameSearch) {
+				data = this.selectionMemory[this.path]
+				if(data.index == 0 && this.path){
+					data.index = 1
+				}
+			}
         }
         //console.log('selectionMemory restore', data.scroll, data.index, this.path)
 		// this._scrollContainer.scrollTop = data.scroll
@@ -962,7 +973,7 @@ class ExplorerModal extends ExplorerBBCode {
 		})
 	}
 	plainText(html) {
-		var temp = document.createElement('div');
+		const temp = document.createElement('div');
 		temp.innerHTML = html;
 		return temp.textContent; // Or return temp.innerText if you need to return only visible text. It's slower.
 	}
@@ -981,14 +992,14 @@ class ExplorerModal extends ExplorerBBCode {
 		this.inputHelper.start()
 		this.reset()
 	}
-	endModal(){
+	endModal(cancel){
 		if(this.inModal()){
 			if(this.debug){
 				console.log('ENDMODAL', traceback())
 			}
 			this.inputHelper.stop()
 			this.body.removeClass('modal modal-mandatory')
-			this.emit('modal-end')
+			this.emit('modal-end', cancel)
 			setTimeout(() => this.emit('pos-modal-end'), 100)
 		}
 	}
@@ -1206,13 +1217,16 @@ class ExplorerDialog extends ExplorerDialogQueue {
 	}
 	dialog(entries, cb, defaultIndex, mandatory){
 		this.queueDialog(() => {
-			console.log('DIALOG', entries, cb, defaultIndex, mandatory, traceback())
-			let html = '', opts = '', complete, callback = k => {
-				complete = true
+			if(this.debug){
+				console.log('DIALOG', entries, cb, defaultIndex, mandatory, traceback())
+			}
+			let html = '', opts = '', complete, callback = (k, cancel) => {
+				if(complete) return
 				if(this.debug){
-					console.log('DIALOG CALLBACK', k, parseInt(k), traceback())
+					console.log('DIALOG CALLBACK', k, parseInt(k), cancel, complete, traceback())
 				}
 				// k = parseInt(k)
+				complete = true
 				if(k == -1){
 					k = false
 				}
@@ -1222,6 +1236,7 @@ class ExplorerDialog extends ExplorerDialogQueue {
 						k = el.value
 					}
 				}
+				if(cancel === true) return
 				this.endModal()
 				if(typeof(cb) == 'function'){
 					cb(k)
@@ -1320,7 +1335,9 @@ class ExplorerDialog extends ExplorerDialogQueue {
 					if(p){
 						p.addEventListener('click', () => {
 							let id = e.oid || e.id
-							console.log('OPTCLK', id)
+							if(this.debug){
+								console.log('OPTCLK', id, callback)
+							}
 							callback(id)
 						})
 						if(String(e.id) == String(validatedDefaultIndex)) {						
@@ -1336,10 +1353,8 @@ class ExplorerDialog extends ExplorerDialogQueue {
 					}
 				}
 			})
-			this.on('modal-end', () => {
-				if(!complete){
-					callback(-1)
-				}
+			this.on('modal-end', cancel => {
+				complete || callback(-1, cancel)
 			})
 			this.emit('dialog-start')
 		})
@@ -1458,41 +1473,47 @@ class ExplorerPrompt extends ExplorerOpenFile {
 	constructor(jQuery, container, app){
 		super(jQuery, container, app)
 	}
-	prompt(question, placeholder, defaultValue, callback, multiline, fa, message, extraOpts, isPassword){
+	prompt(atts){
 		if(this.debug){
-			console.log('PROMPT', {question, placeholder, defaultValue, callback, multiline, fa, extraOpts})
+			console.log('PROMPT', atts)
 		}
 		let p, opts = [
-			{template: 'question', text: question, fa}
-		];
-		if(message){
-			opts.splice(1, 0, {template: 'message', text: message})
+			{template: 'question', text: atts.question, fa: atts.fa}
+		]
+		if(atts.message){
+			opts.splice(1, 0, {template: 'message', text: atts.message})
 		}
-		opts.push({template: multiline === 'true' ? 'textarea' : 'text', text: defaultValue || '', id: 'text', isPassword, placeholder})
-		if(Array.isArray(extraOpts) && extraOpts.length){
-			opts.push(...extraOpts)
+		opts.push({
+			template: atts.multiline ? 'textarea' : 'text',
+			text: atts.defaultValue || '',
+			id: 'text',
+			isPassword: atts.isPassword,
+			placeholder: atts.placeholder
+		})
+		if(Array.isArray(atts.extraOpts) && atts.extraOpts.length){
+			opts.push(...atts.extraOpts)
 		} else {
 			opts.push({template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle'})
 		}
 		this.dialog(opts, id => {
 			let ret = true
 			if(this.debug){
-				console.log('PROMPT CALLBACK', id, callback, typeof(callback))
+				console.log('PROMPT CALLBACK', id, atts.callback, typeof(atts.callback))
 			}
-			if(typeof(callback) == 'function'){
-				ret = callback(id)
-			} else if(typeof(callback) == 'string'){
-				callback = [callback, id]
+			if(typeof(atts.callback) == 'function'){
+				ret = atts.callback(id)
+			} else if(typeof(atts.callback) == 'string'){
+				atts.callback = [atts.callback, id]
 				if(this.debug){
-					console.warn('STRCB', callback)
+					console.warn('STRCB', atts.callback)
 				}
-				this.app.emit.apply(this.app, callback)
-			} else if(Array.isArray(callback)){
-				callback.push(id)
+				this.app.emit.apply(this.app, atts.callback)
+			} else if(Array.isArray(atts.callback)){
+				atts.callback.push(id)
 				if(this.debug){
-					console.warn('ARRCB', callback)
+					console.warn('ARRCB', atts.callback)
 				}
-				this.app.emit.apply(this.app, callback)
+				this.app.emit.apply(this.app, atts.callback)
 			}
 			if(ret !== false){
 				this.endModal()
@@ -1526,7 +1547,7 @@ class ExplorerSlider extends ExplorerPrompt {
 		super(jQuery, container, app)
 	}
 	sliderSetValue(element, value, range, mask){
-		var n = element.querySelector('.modal-template-slider-track')
+		const n = element.querySelector('.modal-template-slider-track')
 		if(this.debug){
 			console.warn('BROOW', n.value, value, traceback())
 		}
@@ -1534,7 +1555,7 @@ class ExplorerSlider extends ExplorerPrompt {
 		this.sliderSync(element, range, mask)
 	}
 	sliderVal(element, range){
-		var n = element.querySelector('.modal-template-slider-track'), value = parseInt(n.value)
+		const n = element.querySelector('.modal-template-slider-track'), value = parseInt(n.value)
 		return value
 	}
 	sliderSync(element, range, mask){
@@ -1725,7 +1746,7 @@ class ExplorerStatusFlags extends ExplorerSlider {
 						this[status == 'offline' ? 'addClass' : 'removeClass'](element, 'entry-disabled')
 						if(content != element.getAttribute('data-status-flags-html')){
 							element.setAttribute('data-status-flags-html', content)
-							var flagsElement = element.querySelector('.entry-status-flags')
+							const flagsElement = element.querySelector('.entry-status-flags')
 							if(flagsElement) {
 								flagsElement.innerHTML = content
 							}
@@ -1756,7 +1777,7 @@ class ExplorerLoading extends ExplorerStatusFlags {
 		})
 	}
 	setLoading(element, active, txt){
-		var e = this.j(element), c = e.find('.entry-name label')
+		const e = this.j(element), c = e.find('.entry-name label')
 		console.log('setLoading', element, c, active, txt)
 		if(active){
 			if(!e.hasClass('entry-loading')){
@@ -1809,13 +1830,10 @@ class Explorer extends ExplorerLoading {
 		this.app.on('dialog', (a, b, c, d) => {
 			this.dialog(a, b, c, d)
 		})
-		this.app.on('dialog-close', (a, b, c, d) => {
-			this.endModal()
+		this.app.on('dialog-close', cancel => {
+			this.endModal(cancel)
 		})
-		this.app.on('prompt', (...args) => {
-			console.warn('prompt', args)
-			this.prompt.apply(this, args)
-		})
+		this.app.on('prompt', atts => this.prompt(atts))
 		this.initialized = false
 		this.currentEntries = []
 		this.currentElements = []
@@ -2113,7 +2131,7 @@ class Explorer extends ExplorerLoading {
     }
 	updateRange(y){
 		if(this.ranging){
-			var changed = [], shouldUpdateRange = config['show-logos'] && this.currentEntries.length > (this.viewSizeX * this.viewSizeY)
+			const changed = [], shouldUpdateRange = config['show-logos'] && this.currentEntries.length > (this.viewSizeX * this.viewSizeY)
 			if(shouldUpdateRange){
 				let rgx = new RegExp('<img', 'i'), elements = this.currentElements, entries = this.getRange(y || this._wrapper.scrollTop)
 				//console.log('selectionMemory upadeteRange', entries)
@@ -2173,31 +2191,12 @@ class Explorer extends ExplorerLoading {
 	}
 	check(element){
 		sound('switch', 12)
-		var path = element.getAttribute('data-path'), value = !element.querySelector('.fa-toggle-on')
+		const path = element.getAttribute('data-path'), value = !element.querySelector('.fa-toggle-on')
 		element.querySelector('.entry-icon-image').innerHTML = '<i class="fas fa-toggle-'+ (value?'on':'off') +' entry-logo-fa" aria-hidden="true"></i>'
 		if(this.debug){
 			console.warn('NAVCHK', path, value)
 		}
 		this.app.emit('explorer-check', path, value)
-	}
-	setupInput(element){
-		var path = element.getAttribute('data-path')
-		var def = element.getAttribute('data-default-value') || ''
-		var fa = element.getAttribute('data-original-icon') || ''
-		var placeholder = element.getAttribute('data-placeholder') || ''
-		var question = element.getAttribute('data-question') || element.getAttribute('title')
-		var multiline = element.getAttribute('data-multiline') || false
-		this.prompt(question, placeholder, def, value => {
-			if(value !== false && value != -1){
-				if(this.debug){
-					console.warn('NAVINPUT', path, value)
-				}
-				this.app.emit('explorer-input', path, value)
-				element.setAttribute('data-default-value', value)
-				this.emit('input-save', element, value)
-			}
-			this.delayedFocus(element, true)
-		}, multiline, fa)
 	}
 	setupSelect(entries, path, fa){
 		const element = this.container.find('[data-path="'+ path.replaceAll('"', '&quot;') +'"]').eq(0)
@@ -2240,14 +2239,14 @@ class Explorer extends ExplorerLoading {
 		})
 	}
 	setupSlider(element){
-		var path = element.getAttribute('data-path')
-		var start = parseInt(element.getAttribute('data-range-start') || 0)
-		var end = parseInt(element.getAttribute('data-range-end') || 100)
-		var mask = element.getAttribute('data-mask')
-		var def = this.currentEntries[element.tabIndex].value || ''
-		var fa = element.getAttribute('data-original-icon') || ''
-		var question = element.getAttribute('data-question') || element.getAttribute('title')
-		var message = element.getAttribute('data-details')
+		const path = element.getAttribute('data-path')
+		const start = parseInt(element.getAttribute('data-range-start') || 0)
+		const end = parseInt(element.getAttribute('data-range-end') || 100)
+		const mask = element.getAttribute('data-mask')
+		const def = this.currentEntries[element.tabIndex].value || ''
+		const fa = element.getAttribute('data-original-icon') || ''
+		const question = element.getAttribute('data-question') || element.getAttribute('title')
+		const message = element.getAttribute('data-details')
 		this.slider(question, message, {start, end}, parseInt(def || 0), mask, value => {
 			if(value !== false){
 				if(this.debug){
@@ -2322,9 +2321,6 @@ class Explorer extends ExplorerLoading {
 		let type = element.getAttribute('data-type')
 		console.log('action', type, event, element)
 		switch(type){
-			case 'input':
-				this.setupInput(element)
-				break
 			case 'slider':
 				this.setupSlider(element)
 				break
@@ -2401,7 +2397,7 @@ class Explorer extends ExplorerLoading {
 	}
 	renderEntry(e, tpl, path){
 		e = this.prepareEntry(e, path)
-		var reps = {}
+		const reps = {}
 		Object.keys(e).forEach(k => {
 			if(k == 'range') {
 				reps['range.start'] = e[k].start || 0

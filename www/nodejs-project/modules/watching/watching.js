@@ -303,6 +303,7 @@ class Watching extends EntriesGroup {
                 entry.name = this.title()
                 entry.class = 'entry-icon' 
                 entry.originalName = top.name
+                if(entry.rawname) entry.rawname = top.name
                 entry.prepend = '<i class="fas fa-chart-bar"></i> '
                 entry.details = top.programme.t + ' &middot; <i class="fas fa-'+ s +'"></i> '+ global.lang.X_WATCHING.format(top.users)
                 entry.programme = top.programme

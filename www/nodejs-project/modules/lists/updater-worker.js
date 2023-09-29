@@ -32,7 +32,7 @@ class ListsUpdater extends Common {
 		const updated = await this.updateList(url, force, progressId).catch(e => err = e)
 		if(typeof(err) != 'undefined'){
 			this.info[url] = 'update failed, '+ String(err)
-			console.error('updater - err: '+ err, global.traceback())
+			console.error('updater - err: '+ err +' '+ global.traceback())
 		} else {
 			if(this.debug){
 				console.log('updater - updated', url, updated)
@@ -69,12 +69,16 @@ class ListsUpdater extends Common {
 			}
 			if(progressId) {
 				updater.on('progress', progress => {
+					if(this.debug){
+						console.log('updater - progress ', {progressId, progress})
+					}
 					utils.emit('progress', {progressId, progress})
 				})
 			}
+			const start = global.time()
 			await updater.start()
 			if(this.debug){
-				console.log('updater - should', url, should)
+				console.log('updater - updated after '+ parseInt(global.time() - start) +'s', url, should)
 			}
 			if(updater.index){
 				updateMeta.contentLength = updater.contentLength
@@ -84,11 +88,11 @@ class ListsUpdater extends Common {
 				ret = true
 			} 
 			if(this.debug){
-				console.log('updater - should', url, should)
+				console.log('updater - updated 1', url, should)
 			}
 			updater.destroy()
 			if(this.debug){
-				console.log('updater - should', url, should)
+				console.log('updater - updated 2', url, should)
 			}
 			return ret || false
 		} else {
@@ -110,7 +114,11 @@ class ListsUpdater extends Common {
 		let now = global.time()
 		let should = !updateMeta || now >= updateMeta.updateAfter
 		if(!should){
+			const start = global.time()
 			const valid = await this.validateIndex(url).catch(console.error)
+			if(this.debug){
+				console.log('updater shouldUpdate index validation took '+ parseInt(global.time() - start) +'s', JSON.stringify(updateMeta, null, 3), url)
+			}
 			if(valid === true) {
 				return false
 			}

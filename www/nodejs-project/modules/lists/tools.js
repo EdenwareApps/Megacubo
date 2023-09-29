@@ -285,6 +285,8 @@ class Tools {
 		return list
 	}
 	async deepify(entries, opts={}){
+		const folderSizeLimit = global.config.get('folder-size-limit')
+		if(entries.length <= folderSizeLimit) return entries
         const shouldOffload = entries.length > 4096
 		let parsedGroups = {}, groupedEntries = []
 		for(let i=0;i<entries.length;i++){

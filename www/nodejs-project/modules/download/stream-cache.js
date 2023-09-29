@@ -1,4 +1,4 @@
-const fs = require('fs'), createReader = require('../reader'), DownloadStreamBase = require('./stream-base')
+const fs = require('fs'), Reader = require('../reader'), DownloadStreamBase = require('./stream-base')
 
 class DownloadStreamCache extends DownloadStreamBase {
 	constructor(opts){
@@ -42,7 +42,7 @@ class DownloadStreamCache extends DownloadStreamBase {
                 case 'file':
                     const file = String(row.data)
                     if(fs.existsSync(file)) {
-                        stream = createReader(file, range)
+                        stream = new Reader(file, range)
                     } else {
                         this.emitError('Cache download failed', false)
                     }

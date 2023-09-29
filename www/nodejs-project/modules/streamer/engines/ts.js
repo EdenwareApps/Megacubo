@@ -28,7 +28,6 @@ class StreamerTSIntent extends StreamerBaseIntent {
                 decoder.start().then(() => {
                     if(!resolved){
                         this.endpoint = decoder.endpoint
-                        this.downloader.source.cancelWarmCache()
                         resolved = true
                         resolve({endpoint: this.endpoint, mimetype: this.mimetype})
                         this.emit('transcode-started')
@@ -68,7 +67,6 @@ class StreamerTSIntent extends StreamerBaseIntent {
             decoder.opts.audioCodec = this.opts.audioCodec
             await decoder.start()
             this.endpoint = decoder.endpoint
-            this.downloader.source.cancelWarmCache()
             return {endpoint: this.endpoint, mimetype: this.mimetype}
         }
         this.mimetype = this.mimeTypes.mpegts
@@ -79,6 +77,9 @@ class StreamerTSIntent extends StreamerBaseIntent {
 
 StreamerTSIntent.mediaType = 'live'
 StreamerTSIntent.supports = info => {
+    if(info.ext && ['mp4'].includes(info.ext)) { // mp4 files have been seen with video/mp2t contentType
+        return false
+    }
     if(info.headers && info.headers['content-length']) {
         return false // not live
     }

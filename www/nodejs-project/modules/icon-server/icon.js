@@ -135,7 +135,7 @@ class IconFetcher extends Events {
                     console.log('get > fetch', this.terms, ret)
                 }
                 if(this.master.listsLoaded()){
-                    this.master.saveDefaultFile(this.terms, ret.file, () => {})
+                    await this.master.saveDefaultFile(this.terms, ret.file)
                 }
                 return [ret.key, false, ret.isAlpha]
             }

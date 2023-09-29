@@ -121,11 +121,12 @@ class Explorer extends Events {
             global.ui.emit('dialog', opts, uid, def, mandatory)
         })
     }
-    prompt(question, placeholder, defaultValue, multiline, fa, message, extraOpts, isPassword){
+    prompt(atts){
         return new Promise((resolve, reject) => {
-            let uid = 'ac-'+ Date.now()
-            global.ui.once(uid, ret => resolve(ret))
-            global.ui.emit('prompt', question, placeholder, defaultValue, uid, multiline, fa, message, extraOpts, isPassword)
+            if(!atts.placeholder) atts.placeholder = atts.question
+            if(!atts.callback) atts.callback = 'ac-'+ Date.now()
+            global.ui.once(atts.callback, ret => resolve(ret))
+            global.ui.emit('prompt', atts)
         })
     }
     info(question, message, fa){

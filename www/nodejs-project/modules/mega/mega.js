@@ -2,16 +2,7 @@
 class Mega {
     constructor(){
 
-    }  
-	getDomain(u){
-    	if(u && u.indexOf('//')!=-1){
-	        let domain = u.split('//')[1].split('/')[0]
-        	if(domain == 'localhost' || domain.indexOf('.') != -1){
-	            return domain.split(':')[0]
-        	}
-    	}
-    	return ''
-	}
+    }
 	isMega(url){
 		if(typeof(url) != 'string'){
 			return false
@@ -50,7 +41,7 @@ class Mega {
 				name = nparts[0]
 			}
 			if(url && !name){
-				name = global.MANIFEST.window.title +' '+ this.getDomain(url)
+				name = global.MANIFEST.window.title +' '+ global.Download.domain(url)
 			} else if(name.charAt(name.length - 1) == '/'){
 				name = name.substr(0, name.length - 1)
 			}

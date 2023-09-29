@@ -31,8 +31,8 @@ class AnalyticsBase extends Events {
         if(data.url) data.url = this.obfuscateURL(data.url)
         if(data.source && global.lists.isPrivateList(data.source)) data.source = '' // Source URL not shareable.
         data.epg = global.channels.loadedEPG || data.epg || ''
-        let postData = this.toQS(data)
-        let options = {
+        const postData = this.toQS(data)
+        const options = {
             port: 80,
             family: 4, // https://github.com/nodejs/node/issues/5436
             method: 'POST',
@@ -47,7 +47,7 @@ class AnalyticsBase extends Events {
         if(this.debug){
             console.log('register', options, postData)
         }
-        let req = http.request(options, res => {
+        const req = http.request(options, res => {
             res.setEncoding('utf8')
             let data = ''
             res.on('data', (d) => {

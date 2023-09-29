@@ -97,6 +97,7 @@ class EntriesGroup extends Events {
             }
             if(entry.originalName){
                 entry.name = entry.originalName
+                if(entry.rawname) delete entry.rawname
             }
         }
         if(entry.originalIcon){

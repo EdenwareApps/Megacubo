@@ -26,7 +26,7 @@ class MultiBuffer extends BufferList {
     }
 }
 
-class MPEGTSPacketProcessor extends Events {
+class MPEGTSProcessor extends Events {
 	constructor(){
         super()
         this.debug = false
@@ -210,6 +210,9 @@ class MPEGTSPacketProcessor extends Events {
         this.pcrMemo.clear()
         this.packetBuffer.clear()
     }
+    async terminate(){
+        this.destroy()
+    }
 }
 
-module.exports = MPEGTSPacketProcessor
+module.exports = MPEGTSProcessor

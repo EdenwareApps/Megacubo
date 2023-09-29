@@ -21,11 +21,13 @@ class FFmpegController extends Events {
 		this.options.input.forEach(a => cmd.push(...a))
 		if(this.input) { 
 			// add these input options only if we have an input, not in -version, per example
+			// set probesize/analyzeduration too high will make ffmpeg startup too slow
+			// TODO: allow to customize probesize and analyzeduration
 			cmd.push(...[
 				'-y',
 				'-loglevel', 'info', // if logerror=(warning|error) it will not return the codec and bitrate data
-				'-analyzeduration', 60000000, // 60s in microseconds
-				'-probesize', 80000000,	// ~80MB
+				'-analyzeduration', 10000000, // 10s in microseconds
+				'-probesize', 10000000,	// ~10MB
 				'-err_detect', 'ignore_err',
 				'-i', this.input
 			])

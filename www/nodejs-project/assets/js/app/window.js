@@ -226,13 +226,8 @@ class CordovaMiniplayer extends MiniPlayerBase {
 			}
 		})
 	}
-	getAndroidVersion() {
-		let ua = navigator.userAgent.toLowerCase()
-		let match = ua.match(/android\s([0-9\.]*)/i)
-		return match ? parseInt(match[1], 10) : undefined
-	}
 	supports(){
-		return this.getAndroidVersion() >= 8
+		return true // no way to detect here
 	}
 	observePIPLeave(){
 		if(this.observePIPLeaveTimer){

@@ -71,12 +71,20 @@ class Promoter {
 			callbacks[id] = async () => {
 				if(!o.url) return
 				if(o.url.indexOf('{email}') != -1) {
-					const email = await global.explorer.prompt(o.emailPrompt || '', o.emailPlaceholder || '', '', false, o.fa, null)
+					const email = await global.explorer.prompt({
+						question: o.emailPrompt || '',
+						placeholder: o.emailPlaceholder || '',
+						fa: o.fa
+					})
 					o.url = o.url.replace('{email}', encodeURIComponent(email || ''))
 				}
 				if(o.url.indexOf('{name}') != -1) {
-					const email = await global.explorer.prompt(o.namePrompt || '', o.namePlaceholder || '', '', false, o.fa, null)
-					o.url = o.url.replace('{name}', encodeURIComponent(email || ''))
+					const name = await global.explorer.prompt({
+						question: o.namePrompt || '',
+						placeholder: o.namePlaceholder || '',
+						fa: o.fa
+					})
+					o.url = o.url.replace('{name}', encodeURIComponent(name || ''))
 				}
 				if(o.confirmation) {
 					global.Download.get({

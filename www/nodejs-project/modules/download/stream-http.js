@@ -71,14 +71,10 @@ class DownloadStreamHttp extends DownloadStreamBase {
                 ]
                 return resolve(this.ips)
             } else {
-                lookup.lookup(host, {all: true, family: -1}, (err, ips) => {
-                    if(err){
-                        reject(err)
-                    } else {
-                        this.ips = ips
-                        resolve(ips)
-                    }
-                })
+                lookup.lookup(host, {all: true, family: 0}).then(ips => {
+                    this.ips = ips
+                    resolve(ips)
+                }).catch(reject)
             }
         })
     }
@@ -244,5 +240,6 @@ class DownloadStreamHttp extends DownloadStreamBase {
     }
 }
 
+DownloadStreamHttp.lookup = lookup
 DownloadStreamHttp.keepAliveAgents = {KHttpAgent, KHttpsAgent}
 module.exports = DownloadStreamHttp

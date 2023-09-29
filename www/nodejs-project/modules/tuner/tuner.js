@@ -55,6 +55,7 @@ class TunerTask extends TunerUtils {
 		this.errors = []
 		this.states = []
         this.domainDelay = {}
+		this.setMaxListeners(entries.length)
 	}
 	async test(e, i){
 		/*

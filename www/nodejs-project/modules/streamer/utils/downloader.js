@@ -1,7 +1,6 @@
 
 const path = require('path'), http = require('http'), fs = require('fs'), stoppable = require('stoppable')
 const StreamerAdapterBase = require('../adapters/base.js'), closed = require('../../on-closed')
-const Writer = require('../../write-queue/writer'), createReader = require('../../reader')
 
 const SYNC_BYTE = 0x47
 const PACKET_SIZE = 188
@@ -19,8 +18,8 @@ class Downloader extends StreamerAdapterBase {
 			persistent: false,
 			errorLimit: 5,
 			initialErrorLimit: 2, // at least 2
-			warmCache: false, // in-disk startup cache
-			warmCacheMaxSize: 100 * (1024 * 1024),
+			warmCache: true, // in-disk startup cache
+			warmCacheMaxSize: 18 * (1024 * 1024),
 			sniffingSizeLimit: 196 * 1024 // if minor, check if is binary or ascii (maybe some error page)
 		}, opts || {})
 		super(url, opts)
@@ -51,7 +50,8 @@ class Downloader extends StreamerAdapterBase {
 		if(this.opts.warmCache){
 			this.warmCacheSize = 0
 			this.warmCacheFile = global.paths.temp +'/'+ parseInt(Math.random() * 100000000) + '.ts'
-			this.warmCache = new Writer(this.warmCacheFile)
+			this.warmCache = fs.createWriteStream(this.warmCacheFile)
+			this.on('destroy', () => this.destroyWarmCache().catch(console.error))
 		}
 		let m = url.match(new RegExp('\\.([a-z0-9]{2,4})($|[\\?#])', 'i'))
 		if(m && m.length > 1){
@@ -100,7 +100,7 @@ class Downloader extends StreamerAdapterBase {
 						buffer = [] // do not redeclare it
 						syncByteFound =  true
 						const end = parseInt(this.warmCacheSize / PACKET_SIZE) * PACKET_SIZE // packetize
-						stream = createReader(this.warmCacheFile, {start: 0, end})
+						stream = fs.createReadStream(this.warmCacheFile, {start: 0, end})
 						stream.on('data', chunk => response.writable && response.write(chunk))
 						stream.on('end', () => {
 							buffer.length && response.writable && response.write(Buffer.concat(buffer))
@@ -176,18 +176,78 @@ class Downloader extends StreamerAdapterBase {
 			}) 
 		})
 	}
-	cancelWarmCache(){
-		console.warn('CANCEL WARMCACHE')
-		if(this.warmCache){
-			this.warmCache.destroy()
-			this.warmCache = null
-			this.warmCacheSize = 0
-			setTimeout(() => {
-				if(this.warmCacheFile){
-					fs.unlink(this.warmCacheFile, () => {})
+	async rotateWarmCache() {
+		const inputFilePath = this.warmCacheFile
+		const outputFilePath = this.warmCacheFile +'.tmp'
+		if(this.warmCacheSize <= this.opts.warmCacheMaxSize) return
+
+		const desiredSize = this.opts.warmCacheMaxSize * 0.75 // avoid to run it too frequently
+		const startPosition = this.warmCacheSize - desiredSize
+		const readStream = fs.createReadStream(inputFilePath, { start: startPosition });
+
+		let foundSyncByte = false
+		let syncBytePosition = -1
+		let currentPos = 0
+
+		readStream.on('data', chunk => {
+			for (let i = 0; i < chunk.length; i++) {
+				if (chunk[i] === 0x47) {
+					foundSyncByte = true
+					syncBytePosition = startPosition + currentPos
+					readStream.close()
+					break
+				} else {
+					currentPos++
 				}
-			}, 2000)
-		}
+			}
+		})
+		await new Promise((resolve, reject) => {
+			readStream.on('end', () => {
+				if (foundSyncByte) {
+					const writeStream = fs.createWriteStream(outputFilePath)
+					const copyStream = fs.createReadStream(inputFilePath, {start: syncBytePosition})
+					copyStream.on('data', chunk => writeStream.write(chunk))
+					copyStream.on('end', () => {
+						writeStream.ready(() => {
+							global.moveFile(outputFilePath, inputFilePath, () => {
+								if(err) return reject()
+								fs.stat(inputFilePath, (err, stat) => {
+									if(err) return reject(err)
+									this.warmCacheSize = stat.size
+									resolve()
+								})
+							})
+						})
+						writeStream.end()
+					})
+					copyStream.on('error', reject)
+				} else {
+					reject('SYNC_BYTE não encontrado')
+				}
+			})
+			readStream.on('error', reject)
+		})
+	}
+	destroyWarmCache(){
+		return new Promise(resolve => {
+			if(this.warmCache){
+				this.warmCache.destroy()
+				this.warmCache = null
+				this.warmCacheSize = 0
+				setTimeout(() => {
+					if(this.warmCacheFile){
+						const next = () => {
+							fs.unlink(this.warmCacheFile, () => {})
+							fs.unlink(this.warmCacheFile +'.tmp', () => {})
+							resolve()
+						}
+						this.rotating ? this.once('rotated', next) : next()
+					}
+				}, 100)
+			} else {
+				resolve()
+			}
+		})
 	}
 	internalError(e){
 		if(!this.committed){
@@ -236,12 +296,20 @@ class Downloader extends StreamerAdapterBase {
 		    this.collectBitrateSample(data, this.collectBitrateSampleOffset[this.currentDownloadUID], len, this.currentDownloadUID)
 			this.collectBitrateSampleOffset[this.currentDownloadUID] += data.length
 			this.emit('data', this.url, data, len)
-			if(this.warmCache && this.opts.warmCacheMaxSize){
-				if(this.warmCacheSize < this.opts.warmCacheMaxSize){
+			if(this.warmCache){
+				const next = () => {
 					this.warmCacheSize += this.len(data)
 					this.warmCache.write(data)
-				} else {
-					this.cancelWarmCache()
+				}
+				this.once('rotated', next)
+				if(!this.rotating) {
+					this.rotating = true
+					this.rotateWarmCache().catch(err => {
+						console.warn('WARMCACHE NOT ROTATED!!! '+ err)						
+					}).finally(() => {
+						this.rotating = false
+						this.emit('rotated')
+					})
 				}
 			}
 		}
@@ -258,9 +326,7 @@ class Downloader extends StreamerAdapterBase {
                 console.log('[' + this.type + '] after download', data)
             }
         }
-        if(callback){
-            process.nextTick(callback.bind(this, err, data))
-        }
+        callback && process.nextTick(callback.bind(this, err, data))
     }
 	download(callback){
         clearTimeout(this.timer)
@@ -297,7 +363,7 @@ class Downloader extends StreamerAdapterBase {
 				if(error && error.response && error.response.statusCode){
 					statusCode = error.response.statusCode
 				}
-				global.osd.show(global.streamer.humanizeFailureMessage(statusCode || 'timeout'), 'fas fa-times-circle', 'debug-conn-err', 'normal')
+				global.osd.show(global.lang.CONNECTION_FAILURE +' ('+ (statusCode || 'timeout') +')', 'fas fa-times-circle', 'debug-conn-err', 'normal')
 			}
 		})
 		download.once('response', (statusCode, headers) => {
@@ -341,7 +407,6 @@ class Downloader extends StreamerAdapterBase {
 			} else {
 				download.end()
 				if(this.committed && (!statusCode || statusCode < 200 || statusCode >= 400)){ // skip redirects
-					//global.osd.show(global.streamer.humanizeFailureMessage(statusCode || 'timeout'), 'fas fa-times-circle', 'debug-conn-err', 'normal')
 					global.osd.show(global.lang.CONNECTION_FAILURE +' ('+ (statusCode || 'timeout') +')', 'fas fa-times-circle', 'debug-conn-err', 'normal')				
 				}
 				this.internalError(statusCode)

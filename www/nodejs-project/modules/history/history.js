@@ -42,14 +42,19 @@ class History extends EntriesGroup {
     get(...args){
         let ret = super.get(...args)        
         const port = global.icons ? global.icons.opts.port : 0
-        if(port) {
-            const rgx = new RegExp('^(http://127\.0\.0\.1:)[0-9]+(/[A-Za-z0-9,]+)$')
-            ret = ret.map(e => {
+        if(ret && port) {
+            const fixIcon = e => {
                 if(e.icon && e.icon.startsWith('http://127.0.0.1:') && e.icon.match(rgx)) {
                     e.icon = e.icon.replace(rgx, '$1'+ port +'$2')
                 }
                 return e
-            })
+            }
+            const rgx = new RegExp('^(http://127\.0\.0\.1:)[0-9]+(/[A-Za-z0-9,]+)$')
+            if(Array.isArray(ret)) {
+                ret = ret.map(fixIcon)
+            } else {
+                ret = fixIcon(ret)
+            }
         }
         return ret
     }

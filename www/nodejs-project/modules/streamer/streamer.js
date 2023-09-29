@@ -3,6 +3,9 @@ const path = require('path'), Events = require('events')
 const AutoTuner = require('../tuner/auto-tuner'), StreamInfo = require('./utils/stream-info')
 const Zap = require('../zap')
 
+const SYNC_BYTE = 0x47
+const PACKET_SIZE = 188
+
 if(!Promise.allSettled){
 	Promise.allSettled = ((promises) => Promise.all(promises.map(p => p
 		.then(value => ({
@@ -117,6 +120,9 @@ class StreamerTools extends Events {
 		}
 		return data.byteLength || data.length || 0
 	}
+	isPacketized(sample){
+		return Buffer.isBuffer(sample) && sample.length >= PACKET_SIZE && sample[0] == SYNC_BYTE && sample[PACKET_SIZE] == SYNC_BYTE
+	}
 	destroy(){
 		this.removeAllListeners()
 		this.destroyed = true
@@ -140,7 +146,8 @@ class StreamerBase extends StreamerTools {
             dash: require('./engines/dash'),
             ts: require('./engines/ts'),
             video: require('./engines/video'),
-            vodhls: require('./engines/vodhls'),
+            vodhls: require('./engines/vod-hls'),
+            vodts: require('./engines/vod-ts'),
             yt: require('./engines/yt')
 		}
 		this.loadingIntents = []
@@ -259,6 +266,19 @@ class StreamerBase extends StreamerTools {
 			}
 		})
 	}
+	async askExternalPlayer() {
+		if(!this.active) return
+		const url = this.active.data.url
+		const chosen = await global.explorer.dialog([
+			{template: 'question', text: global.lang.OPEN_EXTERNAL_PLAYER_ASK, fa: 'fas fa-play'},
+			{template: 'option', text: global.lang.YES, id: 'yes', fa: 'fas fa-check-circle'},
+			{template: 'option', text: global.lang.NO_THANKS, id: 'no', fa: 'fas fa-times-circle'}
+		], 'yes')
+		if(chosen == 'yes') {
+			global.ui.emit('external-player', url)
+			return true
+		}
+	}
 	retry(){		
 		console.warn('RETRYING')
 		let data = this.active ? this.active.data : this.lastActiveData
@@ -321,14 +341,8 @@ class StreamerBase extends StreamerTools {
 					}
 					if(!global.cordova && !intent.isTranscoding()){
 						if(codecData.video && codecData.video.match(new RegExp('(mpeg2video|mpeg4)')) && intent.opts.videoCodec != 'libx264'){
-							let chosen = await global.explorer.dialog([
-								{template: 'question', text: global.OPEN_EXTERNAL_PLAYER_ASK, fa: 'fas fa-play'},
-								{template: 'option', text: global.lang.YES, id: 'yes', fa: 'fas fa-check-circle'},
-								{template: 'option', text: global.lang.NO_THANKS, id: 'no', fa: 'fas fa-times-circle'}
-							], 'yes')
-							if(chosen == 'yes') {
-								global.ui.emit('external-player')
-							} else {
+							const openedExternal = await this.askExternalPlayer().catch(console.error)
+							if(openedExternal !== true) {
 								if((!global.tuning && !this.zap.isZapping) || global.config.get('transcoding-tuning')){
 									this.transcode(null, err => {
 										if(err) intent.fail('unsupported format')
@@ -415,9 +429,7 @@ class StreamerBase extends StreamerTools {
 						console.error(err)
 						cb(err)
 						intent.fail('unsupported format', err, intent.codecData)
-						if(!silent){
-							intent.fail('unsupported format')
-						}
+						silent || intent.fail('unsupported format')
 					}
 				}).finally(() => {
 					global.ui.emit('transcode-starting', false)					
@@ -549,11 +561,14 @@ class StreamerGoNext extends StreamerThrottling {
 			global.ui.on('video-ended', () => this.goNext().catch(global.displayErr))
 			global.ui.on('video-resumed', () => this.cancelGoNext())
 			global.ui.on('stop', () => this.cancelGoNext())
+			global.ui.on('go-next', () => this.goNext(true))
 			this.on('pre-play-entry', e => this.goNextPrepare(e).catch(global.displayErr))
+			this.on('streamer-connect', () => this.goNextButtonVisibility().catch(global.displayErr))				
 			process.nextTick(() => {
-				this.aboutRegisterEntry('gonext', () => {
+				this.aboutRegisterEntry('gonext', async () => {
 					if(this.active.mediaType == 'video'){
-						return {template: 'option', fa: 'fas fa-step-forward', text: global.lang.GO_NEXT, id: 'gonext'}
+						const next = await this.getNext()
+						if(next) return {template: 'option', fa: 'fas fa-step-forward', text: global.lang.GO_NEXT, id: 'gonext'}
 					}
 				}, this.goNext.bind(this), null, true)
 			})
@@ -596,22 +611,27 @@ class StreamerGoNext extends StreamerThrottling {
 			}
 		}
 	}
-	async goNext(){
+	async goNextButtonVisibility() {
+		const entry = this.active ? this.active.data : this.lastActiveData
+		const next = await this.getNext(entry)
+		global.ui.emit('enable-player-button', 'next', !!next)
+	}
+	async goNext(immediate){
 		const next = await this.getNext()
 		if(next){
-			const start = global.time(), delay = 5, ret = {}
+			const start = global.time(), delay = immediate ? 0 : 5, ret = {}
             global.osd.show(global.lang.GOING_NEXT_SECS_X.format(delay), 'fa-mega spin-x-alt', 'go-next', 'persistent')
 			this.goingNext = true
             ret.info = await this.info(next.url, 2, next).catch(err => ret.err = err)
-			const now = global.time()
-			if(!ret.err && (now - start) < 5){
-				await this.sleep((5 - (now - start)) * 1000)
+			const now = global.time(), elapsed = now - start
+			if(!ret.err && elapsed < delay){
+				await this.sleep((delay - elapsed) * 1000)
 			}
 			if(this.goingNext !== true) return // cancelled
 			global.osd.hide('go-next')
-			if(ret.ui == 'cancel'){
+			if(ret.ui == 'cancel') {
 				return
-			} else if(ret.err){
+			} else if(ret.err) {
 				throw ret.err
 			} else {
 				return this.intentFromInfo(next, {}, undefined, ret.info)
@@ -801,6 +821,11 @@ class StreamerAbout extends StreamerTracks {
 			this.aboutRegisterEntry('subtitletracks', () => {
 				return {template: 'option', fa: 'fas fa-comments', text: global.lang.SELECT_SUBTITLE, id: 'subtitletracks'}
 			}, this.showSubtitleTrackSelector.bind(this), null, true)
+			this.aboutRegisterEntry('streamInfo', () => {
+				if(this.active && this.active.data.url.indexOf('://') != -1) {
+					return {template: 'option', fa: 'fas fa-info-circle', text: global.lang.KNOW_MORE, id: 'streamInfo'}
+				}
+			}, this.showStreamInfo.bind(this), 99, true)
 			global.ui.on('streamer-update-streamer-info', async () => {
 				if(this.active){
 					let opts = await this.aboutStructure(true)
@@ -810,6 +835,14 @@ class StreamerAbout extends StreamerTracks {
 				}
 			})
 		}	
+	}
+	async showStreamInfo(){
+		if(!this.active) return
+		const domain = global.Download.domain(this.active.data.url)
+		const addr = await Download.stream.lookup.lookup(domain, {})
+		const countryCode = await global.cloud.getCountry(addr).catch(global.displayErr)
+		const country = global.lang.countries.getCountryName(countryCode, global.lang.locale)
+		await global.explorer.info(global.lang.KNOW_MORE, 'Broadcast server country: '+ (country || countryCode))
 	}
 	aboutRegisterEntry(id, renderer, action, position, more) {
 		if(this.opts.shadow) return
@@ -824,6 +857,19 @@ class StreamerAbout extends StreamerTracks {
 		} else {
 			console.error('aboutRegisterEntry ERR '+ k, this[k])
 		}
+	}
+	async aboutTrigger(id, more) {
+		let k = more ? 'moreAboutEntries' : 'aboutEntries'
+		const found = this[k].some(e => {
+			if(e.id == id) {
+				this.active && e.action(this.active.data)
+				return true
+			}
+		})
+		if(!found && !more) {
+			return await this.aboutTrigger(id, true)
+		}
+		return found
 	}
 	async aboutStructure(short){
 		const benchmarks = {}
@@ -997,8 +1043,8 @@ class StreamerAbout extends StreamerTracks {
 			this.aboutEntries.concat(this.moreAboutEntries).some(o => {
 				if(o.id && o.id == chosen){
 					if(typeof(o.action) == 'function'){						
-                        let ret = o.action(this.active.data)
-                        if(ret && ret.catch) ret.catch(console.error)
+                        const ret = o.action(this.active.data)
+                        ret && ret.catch && ret.catch(global.displayErr)
 					}
 					return true
 				}
@@ -1064,12 +1110,8 @@ class Streamer extends StreamerAbout {
 		const loadingEntriesData = [global.lang.AUTO_TUNING, name]
 		console.warn('playFromEntries', name, connectId, silent)
 		global.explorer.setLoadingEntries(loadingEntriesData, true, txt)
-		if(!silent){
-			global.osd.show(global.lang.TUNING_WAIT_X.format(name) + ' 0%', 'fa-mega spin-x-alt', 'streamer', 'persistent')
-		}
-		if(global.tuning){
-			global.tuning.destroy()
-		}
+		silent || global.osd.show(global.lang.TUNING_WAIT_X.format(name) + ' 0%', 'fa-mega spin-x-alt', 'streamer', 'persistent')
+		global.tuning && global.tuning.destroy()
 		entries = await global.watching.order(entries)
 		if(this.connectId != connectId){
 			throw 'another play intent in progress'
@@ -1098,9 +1140,7 @@ class Streamer extends StreamerAbout {
 			}
 		})
 		if(hasErr){
-			if(!silent){
-				global.osd.show(global.lang.NONE_STREAM_WORKED_X.format(name), 'fas fa-exclamation-triangle faclr-red', 'streamer', 'normal')
-			}
+			silent || global.osd.show(global.lang.NONE_STREAM_WORKED_X.format(name), 'fas fa-exclamation-triangle faclr-red', 'streamer', 'normal')
 			this.emit('hard-failure', entries)
 		} else {
 			this.setTuneable(true)
@@ -1128,10 +1168,7 @@ class Streamer extends StreamerAbout {
 		const isMega = global.mega.isMega(e.url), txt = isMega ? global.lang.TUNING : undefined
 		const opts = isMega ? global.mega.parse(e.url) : {mediaType: 'live'};		
 		const loadingEntriesData = [e, global.lang.AUTO_TUNING]
-		if(!silent){
-			console.log('SETLOADINGENTRIES', loadingEntriesData)
-			global.explorer.setLoadingEntries(loadingEntriesData, true, txt)
-		}
+		silent || global.explorer.setLoadingEntries(loadingEntriesData, true, txt)
 		console.warn('STREAMER INTENT', e, results, traceback());
 		let succeeded
 		if(Array.isArray(results)){
@@ -1146,9 +1183,7 @@ class Streamer extends StreamerAbout {
 					this.emit('connecting-failure', e)
 				}
 			} else {
-				if(!silent){
-					global.explorer.setLoadingEntries(loadingEntriesData, false)
-				}
+				silent || global.explorer.setLoadingEntries(loadingEntriesData, false)
 				throw 'another play intent in progress'
 			}
 		} else if(isMega && !opts.url) {
@@ -1157,11 +1192,10 @@ class Streamer extends StreamerAbout {
 				name = opts.name
 			}
 			let terms = opts.terms ? opts.terms.split(',') : global.lists.terms(name, false)
-			if(!silent){
-				global.osd.show(global.lang.TUNING_WAIT_X.format(name), 'fa-mega spin-x-alt', 'streamer', 'persistent')   
-			}
+			silent || global.osd.show(global.lang.TUNING_WAIT_X.format(name), 'fa-mega spin-x-alt', 'streamer', 'persistent')
 			const listsReady = await global.lists.manager.waitListsReady(10)
-			if(listsReady !== true) {
+			if(listsReady !== true) {				
+				silent || global.osd.hide('streamer')
 				throw global.lang.WAIT_LISTS_READY
 			}
 			let entries = await global.lists.search(terms, {
@@ -1170,9 +1204,7 @@ class Streamer extends StreamerAbout {
                 limit: 1024
 			})
 			if(this.connectId != connectId){
-				if(!silent){
-					global.explorer.setLoadingEntries(loadingEntriesData, false)
-				}
+				silent || global.explorer.setLoadingEntries(loadingEntriesData, false)
 				throw 'another play intent in progress'
 			}		
 			//console.warn('ABOUT TO TUNE', name, JSON.stringify(entries), opts)
@@ -1180,6 +1212,7 @@ class Streamer extends StreamerAbout {
 			if(entries.length){
 				entries = entries.map(s => {
 					s.originalName = name
+					if(s.rawname) s.rawname = name
 					s.originalUrl = e.url
 					s.programme = e.programme
 					return s
@@ -1204,15 +1237,11 @@ class Streamer extends StreamerAbout {
 			this.emit('pre-play-entry', e)
 			let terms = global.channels.entryTerms(e)
 			this.setTuneable(!global.lists.mi.isVideo(e.url) && global.channels.isChannel(terms))
-			if(!silent){
-				global.osd.show(global.lang.CONNECTING +' '+ e.name + '...', 'fa-mega spin-x-alt', 'streamer', 'persistent')
-			}
+			silent || global.osd.show(global.lang.CONNECTING +' '+ e.name + '...', 'fa-mega spin-x-alt', 'streamer', 'persistent')
 			let hasErr, intent = await this.intent(e).catch(r => hasErr = r)
 			if(typeof(hasErr) != 'undefined'){
 				if(this.connectId != connectId){
-					if(!silent){
-						global.explorer.setLoadingEntries(loadingEntriesData, false)
-					}
+					silent || global.explorer.setLoadingEntries(loadingEntriesData, false)
 					throw 'another play intent in progress'
 				}		
 				console.warn('STREAMER INTENT ERROR', hasErr, traceback())
@@ -1228,9 +1257,7 @@ class Streamer extends StreamerAbout {
 				succeeded = true
 			}
 		}
-		if(!silent){
-			global.explorer.setLoadingEntries(loadingEntriesData, false)
-		}
+		silent || global.explorer.setLoadingEntries(loadingEntriesData, false)
 		return succeeded
 	}
 	play(e, results, silent){
@@ -1321,8 +1348,8 @@ class Streamer extends StreamerAbout {
 	}
 	humanizeFailureMessage(r){
 		r = String(r)
-		let msg = global.lang.PLAYBACK_OFFLINE_STREAM
-		switch(r){
+		let msg = global.lang.PLAYBACK_OFFLINE_STREAM, status = ''
+		switch(r) {
 			case 'playback':
 				msg = lang.PLAYBACK_ERROR
 				break
@@ -1331,9 +1358,11 @@ class Streamer extends StreamerAbout {
 				break
 			case 'request error':
 				msg = global.lang.PLAYBACK_OFFLINE_STREAM
+				status = r
 				break
 			case 'timeout':
 				msg = global.lang.SLOW_SERVER
+				status = 'timeout'
 				break
 			case 'unsupported format':
 			case 'invalid url':
@@ -1343,9 +1372,14 @@ class Streamer extends StreamerAbout {
 				msg = r
 				let code = msg.match(new RegExp('(code|error):? ([0-9]+)'))
 				code = String((code && code.length) ? code[2] : msg)
+				const http = require('http');
+				if(http.STATUS_CODES[code]) {
+					status = http.STATUS_CODES[code].toLowerCase()
+				}
 				switch(code){
 					case '0':
 						msg = global.lang.SLOW_SERVER
+						status = 'timeout'
 						break
 					case '400':
 					case '401':
@@ -1354,8 +1388,10 @@ class Streamer extends StreamerAbout {
 						break
 					case '-1':
 					case '404':
+					case '406':
 					case '410':
 						msg = global.lang.PLAYBACK_OFFLINE_STREAM
+						if(r == -1) status = 'unreachable'
 						break
 					case '421':
 					case '453':
@@ -1366,6 +1402,9 @@ class Streamer extends StreamerAbout {
 						msg = global.lang.PLAYBACK_OVERLOADED_SERVER
 						break
 				}
+		}
+		if(status) {
+			msg += ': '+ global.ucFirst(status)
 		}
 		return msg
 	}

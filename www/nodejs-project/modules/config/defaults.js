@@ -74,7 +74,7 @@ module.exports = {
 	'parental-control-terms': '.',
 	'play-while-loading': true,
 	'playback-rate-control': true,
-	'preferred-ip-version': -1,
+	'preferred-ip-version': 0,
 	'resume': false,
 	'stretch-logos': false,
 	'search-missing-logos': true,

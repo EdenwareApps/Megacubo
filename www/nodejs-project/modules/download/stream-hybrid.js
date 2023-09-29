@@ -73,6 +73,7 @@ class DownloadStream extends DownloadStreamBase {
     }
 }
 
+DownloadStream.lookup = DownloadStreamHttp.lookup
 DownloadStream.engines = {
     http: require('./stream-http'),
     cache: require('./stream-cache')

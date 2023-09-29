@@ -1,9 +1,11 @@
 const fs = require('fs'), pathm = require('path'), http = require('http')
-const crypto = require('crypto'), Icon = require('./icon'), createReader = require('../reader')
+const crypto = require('crypto'), Icon = require('./icon')
 const pLimit = require('p-limit'), closed = require('../on-closed')
 
 class IconDefault {
-    constructor(){}
+    constructor(){
+        this.defaultIconExtension = process.platform == 'win32' ? 'ico' : 'png'
+    }
     prepareDefaultName(terms){
         if(!Array.isArray(terms)){
             terms = global.lists.terms(terms)
@@ -65,21 +67,41 @@ class IconDefault {
             }        
         }
     }
-    saveDefaultFile(terms, sourceFile, cb){
+    async saveDefaultFile(terms, sourceFile){
         if(!global.lists.loaded() || !global.lists.activeLists.length){ // we may find a better logo later
-            if(cb) cb()
-            return
+            return false
         }
         if(terms && terms.length){
             let name = this.prepareDefaultName(terms) + '.png', file = this.opts.folder + pathm.sep + name
             if(this.opts.debug){
                 console.log('saveDefaultFile', terms, name, sourceFile, file)
             }
-            fs.copyFile(sourceFile, file, () => {
-                if(cb){
-                    cb()
+            await fs.promises.copyFile(sourceFile, file)
+        }
+    }
+    getDefaultIcon(terms){
+        return new Promise(resolve => {
+            if(!terms || !terms.length) {
+                return resolve(false)
+            }
+            let name = this.prepareDefaultName(terms) + '.icon.'+ this.defaultIconExtension, file = this.opts.folder + pathm.sep + name
+            fs.stat(file, (err, stat) => {
+                if(stat && stat.size >= 32) {
+                    resolve(file)
+                } else { 
+                    resolve(false)
                 }
             })
+        })
+    }
+    async saveDefaultIcon(terms, sourceFile){
+        if(terms && terms.length){
+            let name = this.prepareDefaultName(terms) + '.icon.'+ this.defaultIconExtension, file = this.opts.folder + pathm.sep + name
+            if(this.opts.debug){
+                console.log('saveDefaultFile', terms, name, sourceFile, file)
+            }
+            await fs.promises.copyFile(sourceFile, file)
+            return file
         }
     }
     async adjust(file, options) {
@@ -522,7 +544,7 @@ class IconServer extends IconServerStore {
                             'Cache-Control': 'max-age=0, no-cache, no-store',
                             'Content-Type': 'image/png'
                         })
-                        let stream = createReader(file)
+                        let stream = fs.createReadStream(file)
                         closed(req, response, () => {
                             if(stream){
                                 stream.destroy()

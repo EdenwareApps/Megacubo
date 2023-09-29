@@ -1,7 +1,9 @@
 
-const Events = require('events'), fs = require('fs'), ParentalControl = require('./parental-control')
-const { regexes, sanitizeName } = require('./parser'), M3UTools = require('./tools'), MediaURLInfo = require('../streamer/utils/media-url-info')
-const List = require('./list'), UpdateListIndex = require('./update-list-index')
+const Events = require('events'), fs = require('fs')
+const ParentalControl = require('./parental-control')
+const { regexes, sanitizeName } = require('./parser')
+const MediaURLInfo = require('../streamer/utils/media-url-info')
+const M3UTools = require('./tools'), List = require('./list')
 
 global.LIST_DATA_KEY_MASK = 'list-data-1-{0}'
 
@@ -94,7 +96,7 @@ class Common extends Events {
 		this.stopWords = ['sd', 'hd', 'h264', 'h.264', 'fhd'] // common words to ignore on searching
 		this.listMetaKeyPrefix = 'meta-cache-'
 		this.opts = {
-			defaultCommunityModeReach: 18,
+			defaultCommunityModeReach: 12,
 			folderSizeLimitTolerance: 12,
 			offloadThreshold: 256
 		}

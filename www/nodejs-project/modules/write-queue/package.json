@@ -1,7 +1,0 @@
-{
-   "main": "write-queue.js",
-   "name": "write-queue",
-   "version": "0.0.1",
-   "dependencies": {
-   }   
-}

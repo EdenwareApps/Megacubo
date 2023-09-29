@@ -225,6 +225,7 @@ class Suggestions {
             entry.programme = r.programme
             entry.name = r.programme.t
             entry.originalName = r.channel.name
+            if(entry.rawname) entry.rawname = r.channel.name
             entry.details = parseInt(r.score) +'% '
             if(r.programme.i){
                 entry.icon = r.programme.i

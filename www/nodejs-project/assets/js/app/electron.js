@@ -202,9 +202,9 @@ class ExternalPlayer {
 			this.available().catch(console.error) // will report available external players to main process
 		})
 	}
-	async play() {
+	async play(url) {
 		this.context.app.localEmit('cast-start')
-		const url = this.context.streamer.data.url
+		if(!url) url = this.context.streamer.data.url
 		const availables = await this.available()
 		const chosen = await this.ask(availables)
 		if(!chosen || !availables[chosen]) {
@@ -214,8 +214,18 @@ class ExternalPlayer {
 		}
 		const message = this.context.lang.CASTING_TO.replace('{0}', chosen)
 		this.context.osd.show(message, 'fab fa-chromecast', 'casting', 'persistent')
-		this.context.streamer.once('stop', () => this.context.osd.hide('casting'))
+		const exitUI = () => {
+			this.context.osd.hide('casting')
+			this.context.app.localEmit('cast-stop')
+		}
 		const { spawn } = require('child_process');
+		const inPlayer = this.context.streamer.active
+		if(inPlayer) {
+			this.context.streamer.once('stop', exitUI)
+			url = this.context.streamer.activeSrc
+		} else {
+			exitUI()
+		}
 		const player = spawn(availables[chosen], [url], {detached: true, stdio: 'ignore'})
 		player.unref()
 		return true

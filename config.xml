@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget android-versionCode="409" id="tv.megacubo.app" version="17.2.2" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget android-versionCode="414" id="tv.megacubo.app" version="17.2.3" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>Megacubo</name>
     <description>
         An intuitive, free and open source IPTV player.
@@ -65,7 +65,7 @@
         <preference name="AndroidXEnabled" value="true" />
         <preference name="AndroidWindowSplashScreenAnimatedIcon" value="resources/android/icon/drawable-xxxhdpi-icon.png" />
         <preference name="AndroidWindowSplashScreenBackground" value="#362064" />
-        <preference name="OverrideUserAgent" value="Megacubo 17.2.2" />
+        <preference name="OverrideUserAgent" value="Megacubo 17.2.3" />
         <icon src="resources/android/icon/drawable-ldpi-icon.png" />
         <icon background="@color/background" density="ldpi" foreground="resources/android/icon/ldpi-foreground.png" qualifier="ldpi" src="resources/android/icon/drawable-ldpi-icon.png" />
         <icon background="@color/background" density="mdpi" foreground="resources/android/icon/mdpi-foreground.png" qualifier="mdpi" src="resources/android/icon/drawable-mdpi-icon.png" />

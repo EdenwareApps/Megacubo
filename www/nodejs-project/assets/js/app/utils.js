@@ -353,16 +353,6 @@ function arrayMax(arr) {
     return max;
 }
 
-function getDomain(u){
-    if(u && u.indexOf('//')!=-1){
-        var domain = u.split('//')[1].split('/')[0];
-        if(domain == 'localhost' || domain.indexOf('.') != -1){
-            return domain.split(':')[0]
-        }
-    }
-    return ''
-}
-
 function getProto(u){
     var pos = u.indexOf('://');
     if(pos != -1){

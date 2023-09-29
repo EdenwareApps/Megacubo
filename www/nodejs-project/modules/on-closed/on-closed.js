@@ -23,14 +23,10 @@ module.exports = function closed(req, response, cb, opts){
 	} else {
 		response.once('socket', onSocket)
 	}	
-	req.once('close', () => { // req disconnected
-		callback()
-	})
+	req.once('close', () => callback()) // req disconnected
 	if(response.ended){
 		callback()
 	} else {
-		response.once('end', () => { // req disconnected
-			callback()
-		})
+		response.once('end', () => callback()) // req disconnected
 	}
 }

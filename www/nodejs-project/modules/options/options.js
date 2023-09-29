@@ -513,8 +513,14 @@ class Options extends OptionsExportImport {
             defaultURL = url
         }
         let entries = [
-            {name: global.lang.OPEN_URL, fa: 'fas fa-link', details: global.lang.STREAMS, type: 'action', action: () => {
-                global.ui.emit('prompt', global.lang.OPEN_URL, 'http://.../example.m3u8', defaultURL, 'open-url', false, 'fas fa-link')
+            {name: global.lang.OPEN_URL, fa: 'fas fa-link', details: global.lang.STREAMS, type: 'action', action: async () => {
+                await global.explorer.prompt({
+                    question: global.lang.OPEN_URL,
+                    placeholder: 'http://.../example.m3u8',
+                    defaultValue: defaultURL,
+                    callback: 'open-url',
+                    fa: 'fas fa-link'
+                })
             }},
             this.timerEntry()
         ]
@@ -994,9 +1000,7 @@ class Options extends OptionsExportImport {
                 renderer: async () => {
                     // Some lists wont open using a browser user agent
                     let def = global.config.get('preferred-ip-version')
-                    if(typeof(def) != 'number'){
-                        def = -1
-                    }
+                    if(typeof(def) != 'number') def = 0
                     return [
                         {
                             name: global.lang.BLOCK,
@@ -1004,7 +1008,7 @@ class Options extends OptionsExportImport {
                         }, 
                         {
                             name: global.lang.ALLOW,
-                            value: -1
+                            value: 0
                         }, 
                         {
                             name: global.lang.ONLY,
@@ -1056,7 +1060,7 @@ class Options extends OptionsExportImport {
                 name: global.lang.TUNING_FFMPEG_CONCURRENCY_LIMIT, 
                 fa: 'fas fa-poll-h', 
                 type: 'slider', 
-                range: {start: 1, end: 4},
+                range: {start: 1, end: 8},
                 action: (data, value) => {
                     console.warn('TUNING_FFMPEG_CONCURRENCY_LIMIT', data, value)
                     global.config.set('tune-ffmpeg-concurrency', value)
@@ -1093,7 +1097,12 @@ class Options extends OptionsExportImport {
                             selected: def == n.value,
                             action: async () => {
                                 if(n.value == 'custom') {
-                                    n.value = await global.explorer.prompt('User agent', global.lang.CUSTOMIZE, n.details, true, 'fas fa-user-secret', null)
+                                    n.value = await global.explorer.prompt({
+                                        question: 'User agent',
+                                        placeholder: global.lang.CUSTOMIZE,
+                                        defaultValue: n.details,
+                                        fa: 'fas fa-user-secret'
+                                    })
                                 }
                                 if(n.value) {
                                     global.config.set('user-agent', n.value)

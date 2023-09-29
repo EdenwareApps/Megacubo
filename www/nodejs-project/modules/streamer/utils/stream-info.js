@@ -118,6 +118,13 @@ class StreamInfo {
 			}
 		})
 	}
+	async readFilePartial(filePath, length) {
+		const fileHandle = await fs.promises.open(filePath, 'r')
+		const buffer = Buffer.alloc(length)
+		const { bytesRead } = await fileHandle.read(buffer, 0, length, 0)
+		fileHandle.close().catch(console.error)
+		return buffer.slice(0, bytesRead)
+	}
 	async probe(url, retries = 2, opts={}){
 		const timeout = global.config.get('connect-timeout') * 2
 		const proto = this.mi.proto(url)
@@ -176,6 +183,10 @@ class StreamInfo {
 				ret.directURL = url
 				ret.ext = this.ext(url)
 				ret.isLocalFile = true
+
+				let err
+				const sample = await this.readFilePartial(url, Math.max(stat.size, this.opts.probeSampleSize)).catch(e => err = e)
+				ret.sample = err ? null : sample
 				return ret
 			}
 			throw global.lang.NOT_FOUND

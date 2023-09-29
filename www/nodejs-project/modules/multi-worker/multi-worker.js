@@ -118,8 +118,13 @@ const setupConstructor = () => {
 		terminate(){
 			this.finished = true
 			this.configChangeListener && global.config.removeListener('change', this.configChangeListener)
-			this.worker.terminate()
-			this.worker = null
+			if(this.worker){
+				setTimeout(() => { // try to prevent closing abruptely due to bug in v8 (FATAL ERROR: v8::FromJust Maybe value is Nothing)
+					const maybePromise = this.worker.terminate()
+					maybePromise && maybePromise.catch && maybePromise.catch(console.error)
+					this.worker = null
+				}, 3000)
+			}
 			this.rejectAll(null, 'worker manually terminated')
 			this.removeAllListeners()
 			global.config.removeListener('change', this.configChangeListener)
@@ -130,9 +135,7 @@ const setupConstructor = () => {
 			super()
 			this.Worker = require('worker_threads').Worker
 			this.worker = new this.Worker(path.join(__dirname, 'worker.js'), {
-				workerData,
-				stdout: true, 
-				stderr: true
+				workerData // leave stdout/stderr undefined
 			})
 			this.worker.on('error', err => {
 				let serr = String(err)
@@ -161,7 +164,7 @@ const setupConstructor = () => {
 						this.promises[ret.id][ret.type](ret.data)
 						delete this.promises[ret.id]
 					} else {
-						console.warn('Callback repeated: '+ JSON.stringify(ret))
+						console.warn('Callback repeated', ret)
 					}
 				} else {
 					let args = [], pos = ret.data.indexOf(':')
@@ -170,6 +173,9 @@ const setupConstructor = () => {
 						let evtContent = ret.data.substr(pos + 1)
 						if(evtContent.length){
 							evtContent = global.parseJSON(evtContent)
+						}
+						if(typeof(evtContent) == 'object' && evtContent.type == 'Buffer') {
+							evtContent = Buffer.from(evtContent.data)
 						}
 						args = [evtType, evtContent]
 					} else {

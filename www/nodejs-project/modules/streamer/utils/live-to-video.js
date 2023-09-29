@@ -5,7 +5,7 @@ Experiment in progress trying to convert a live streaming to a video file that c
 const fs = require('fs'), path = require('path')
 const closed = require('../../on-closed')
 const StreamerFFmpeg = require('../utils/ffmpeg')
-const Events = require('events'), createReader = require('../../reader')
+const Events = require('events')
 
 class PersistentReader extends Events {
     constructor(file){
@@ -121,7 +121,7 @@ class StreamerLiveToVideo extends StreamerFFmpeg {
                 if(ctype){
                     headers['content-type'] =  ctype
                 }
-                let ended, stream = createReader(file)
+                let ended, stream = fs.createReadStream(file)
                 response.writeHead(200, headers)
                 const end = () => {
                     if(!ended){

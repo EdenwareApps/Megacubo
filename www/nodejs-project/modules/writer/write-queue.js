@@ -1,12 +1,10 @@
-const Writer = require('./writer')
-
 class WriteQueue {
 	constructor(){
 		this.pool = {}
 	}
 	write(file, data, position){
 		if(typeof(this.pool[file]) == 'undefined'){
-			this.pool[file] = new Writer(file)
+			this.pool[file] = fs.createWriteStream(file)
 			this.pool[file].once('end', () => {
 				this.pool[file].destroy()
 				delete this.pool[file]

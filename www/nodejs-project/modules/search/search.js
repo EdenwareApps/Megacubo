@@ -222,6 +222,7 @@ class Search extends Events {
                 es = global.lists.parentalControl.filter(es)
             }
         }
+        global.ui.emit('current-search', terms, this.searchMediaType)
         return es
     }
     fixYTTitles(name){

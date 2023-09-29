@@ -4,10 +4,10 @@ const { default: PQueue } = require('p-queue'), ConnRacing = require('../conn-ra
 class ListsLoader extends Events {
     constructor(master, opts) {
         super()
-        const concurrency = 4
+        const concurrency = 4 // avoid too many concurrency on mobiles
         this.master = master
         this.opts = opts || {}
-        this.queue = new PQueue({ concurrency }) // got slow with '5' in a 2GB RAM device, save memory so
+        this.queue = new PQueue({ concurrency })
         this.osdID = 'lists-loader'
         this.tried = 0
         this.results = {}
@@ -63,8 +63,8 @@ class ListsLoader extends Events {
 
         if(!this.communityListsAmount) return
 
-        const maxListsToTry = 192
-        const minListsToTry = Math.max(64, 3 * this.communityListsAmount)
+        const maxListsToTry = 72
+        const minListsToTry = Math.max(32, 3 * this.communityListsAmount)
         if(minListsToTry < this.master.processedLists.size) return
 
         const taskId = Math.random()
@@ -134,12 +134,14 @@ class ListsLoader extends Events {
     }
     async addListNow(url, progress) {
         const uid = parseInt(Math.random() * 1000000)
+        const progressListener = p => {
+            if(p.progressId == uid) progress(p.progress)
+        }
         await global.Download.waitNetworkConnection()
         await this.prepareUpdater()
-        progress && this.updater.on('progress', p => {
-            if(p.progressId == uid) progress(p.progress)
-        })
+        progress && this.updater.on('progress', progressListener)
         await this.updater.update(url, false, uid).catch(console.error)
+        progress && this.updater.removeListener('progress', progressListener)
         this.updater && this.updater.close && this.updater.close()  
         this.master.addList(url, 1)
     }
@@ -152,7 +154,7 @@ class ListsLoader extends Events {
                 started = true
                 await this.prepareUpdater()
                 this.results[url] = 'awaiting'
-                this.results[url] = await this.updater.update(url).catch(console.error)
+                this.results[url] = await this.updater.update(url, false).catch(console.error)
                 this.updater && this.updater.close && this.updater.close()
                 done = true
                 const add = this.results[url] == 'updated' || (this.results[url] == 'already updated' && !this.master.processedLists.has(url))

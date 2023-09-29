@@ -1,4 +1,4 @@
-const Downloader = require('./downloader.js'), MPEGTSPacketProcessor = require('./ts-packet-processor.js')
+const path = require('path'), Downloader = require('./downloader.js')
 	
 class Joiner extends Downloader {
 	constructor(url, opts){
@@ -6,7 +6,33 @@ class Joiner extends Downloader {
 		this.minConnectionInterval = 1
 		this.type = 'joiner'
 		this.delayUntil = 0
-		this.processor = new MPEGTSPacketProcessor()
+		
+		const useWorker = true
+		if(useWorker) {
+			const exclusiveWorker = true
+			const workerPath = path.join(__dirname, './mpegts-processor-worker')
+			if(exclusiveWorker) {
+				const MultiWorker = require('../../multi-worker')
+				this.worker = new MultiWorker()
+				this.processor = this.worker.load(workerPath)
+				this.once('destroy', () => {
+					const done = () => this.worker && this.worker.terminate()
+					if(this.processor) {
+						this.processor.terminate().catch(console.error).finally(done)
+					} else {
+						done()
+					}
+				})
+			} else {
+				this.processor = global.workers.load(workerPath)
+				this.once('destroy', () => this.processor && this.processor.terminate().catch(console.error))
+			}
+		} else {
+			const MPEGTSProcessor = require(path.join(__dirname, './mpegts-processor'))
+			this.processor = new MPEGTSProcessor()
+			this.once('destroy', () => this.processor && this.processor.terminate().catch(console.error))
+		}
+
 		this.processor.on('data', data => this.output(data))
 		this.processor.on('fail', () => this.emit('fail'))
 		// this.opts.debug = this.processor.debug  = true
@@ -19,7 +45,7 @@ class Joiner extends Downloader {
 		})
 	}
 	handleData(data){
-		this.processor.push(data)
+		this.processor && this.processor.push(data)
 	}
 	output(data, len){
 		if(this.destroyed || this.joinerDestroyed) {

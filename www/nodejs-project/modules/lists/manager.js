@@ -400,8 +400,14 @@ class ManagerEPG extends ManagerCommunityLists {
                             }
                         }
                     })
-                    options.unshift({name: global.lang.ADD, fa: 'fas fa-plus-square', type: 'action', action: () => {
-                        global.ui.emit('prompt', global.lang.EPG, 'http://.../epg.xml', global.activeEPG || '', 'set-epg', false, global.channels.epgIcon)
+                    options.unshift({name: global.lang.ADD, fa: 'fas fa-plus-square', type: 'action', action: async () => {
+                        await global.explorer.prompt({
+                            question: global.lang.EPG,
+                            placeholder: 'http://.../epg.xml',
+                            defaultValue: global.activeEPG || '',
+                            callback: 'set-epg',
+                            fa: global.channels.epgIcon
+                        })
                     }})
                     resolve(options)
                 }
@@ -664,15 +670,18 @@ class Manager extends ManagerEPG {
             return path.substr(i + 1)
         }
     }
-    waitListsReady(timeoutSecs=0){
-        return new Promise((resolve, reject) => {
-            const info = this.master.status()
-            if(info.satisfied) {
-                return resolve(true)
+    waitListsReady(timeoutSecs){
+        return new Promise(resolve => {
+            const listener = () => {
+                const info = this.master.status()
+                if(info.satisfied && info.length) {
+                    this.master.removeListener('satisfied', listener)
+                    resolve(info)
+                }
             }
-            const listener = () => resolve(true)
-            this.master.once('satisfied', listener)
-            timeoutSecs && setTimeout(() => resolve(false), timeoutSecs * 1000)
+            this.master.on('satisfied', listener)
+            typeof(timeoutSecs) == 'number' && setTimeout(() => resolve(false), timeoutSecs * 1000)
+            listener()
         })
     }
     inChannelPage(){
@@ -1106,7 +1115,7 @@ class Manager extends ManagerEPG {
             type: 'action', 
             action: () => {
                 const offerCommunityMode = !global.config.get('communitary-mode-lists-amount')
-                this.addListDialog(offerCommunityMode).catch(err => global.displayErr(err))
+                this.addListDialog(offerCommunityMode).catch(global.displayErr)
             }
         }
     }
@@ -1119,7 +1128,13 @@ class Manager extends ManagerEPG {
             extraOpts.push({template: 'option', text: global.lang.COMMUNITY_LISTS, fa: 'fas fa-users', id: 'sh'})
         }
         extraOpts.push({template: 'option', text: global.lang.ADD_MAC_ADDRESS, fa: 'fas fa-hard-drive', id: 'mac'})
-        let id = await global.explorer.prompt(global.lang.ASK_IPTV_LIST, 'http://', '', true, 'fas fa-plus-square', null, extraOpts)
+        let id = await global.explorer.prompt({
+            question: global.lang.ASK_IPTV_LIST,
+            placeholder: 'http://',
+            fa: 'fas fa-plus-square',
+            extraOpts
+        })
+        console.log('lists.manager '+ id)
         if(id == 'file'){
             return await this.addListDialogFile()
         } else if(id == 'code') {
@@ -1134,6 +1149,7 @@ class Manager extends ManagerEPG {
         } else if(id == 'mac') {
             return await this.addListMacDialog()
         } else {
+            console.log('lists.manager.addList('+ id +')')
             return await this.addList(id)
         }
     }
@@ -1162,11 +1178,24 @@ class Manager extends ManagerEPG {
         }
     }
     async addListUserPassDialogFile(){     
-        let server = await global.explorer.prompt(global.lang.PASTE_SERVER_ADDRESS, 'http://host:port', '', false, 'fas fa-globe', '', [])
+        let server = await global.explorer.prompt({
+            question: global.lang.PASTE_SERVER_ADDRESS,
+            placceholder: 'http://host:port',
+            fa: 'fas fa-globe'
+        })
         if(!server) throw 'no server provided'
-        const user = await global.explorer.prompt(global.lang.USERNAME, global.lang.USERNAME, '', false, 'fas fa-user', '', [])
+        const user = await global.explorer.prompt({
+            question: global.lang.USERNAME,
+            placeholder: global.lang.USERNAME,
+            fa: 'fas fa-user'
+        })
         if(!user) throw 'no user provided'
-        const pass = await global.explorer.prompt(global.lang.PASSWORD, global.lang.PASSWORD, '', false, 'fas fa-key', '', [], true)
+        const pass = await global.explorer.prompt({
+            question: global.lang.PASSWORD,
+            placeholder: global.lang.PASSWORD,
+            fa: 'fas fa-key',
+            isPassword: true
+        })
         if(!pass) throw 'no pass provided'
         if(server.charAt(server.length - 1) == '/') {
             server = server.substr(0, server.length - 1)
@@ -1175,10 +1204,17 @@ class Manager extends ManagerEPG {
         return await this.addList(url)
     }
     async addListMacDialog() {
-        // 00-22-18-FB-7A-12”, “0022.18FB.7A12” e “00:22:18:FB:7A:12”
-        const macAddress = this.formatMacAddress(await global.explorer.prompt(global.lang.MAC_ADDRESS, global.lang.MAC_ADDRESS, '00:00:00:00:00:00', false, 'fas fa-hard-drive', '', []))
+        const macAddress = this.formatMacAddress(await global.explorer.prompt({
+            question: global.lang.MAC_ADDRESS,
+            placeholder: '00:00:00:00:00:00',
+            fa: 'fas fa-hard-drive'
+        }))
         if(!macAddress || macAddress.length != 17) throw 'Invalid MAC address'
-        let server = await global.explorer.prompt(global.lang.PASTE_SERVER_ADDRESS, 'http://host:port', '', false, 'fas fa-globe', '', [])
+        let server = await global.explorer.prompt({
+            question: global.lang.PASTE_SERVER_ADDRESS,
+            placeholder: 'http://host:port',
+            fa: 'fas fa-globe'
+        })
         if(!server) throw 'Invalid server provided'
         if(server.charAt(server.length - 1) == '/') {
             server = server.substr(0, server.length - 1)

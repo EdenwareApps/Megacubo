@@ -675,7 +675,6 @@ class StreamerProxyHLS extends HLSRequests {
 				console.log('network request error', url, err)
 			}
 			if(this.committed){
-				// global.osd.show(global.streamer.humanizeFailureMessage(err.response ? err.response.statusCode : 'timeout'), 'fas fa-times-circle', 'debug-conn-err', 'normal')
 				global.osd.show(global.lang.CONNECTION_FAILURE +' ('+ (err.response ? err.response.statusCode : 'timeout') +')', 'fas fa-times-circle', 'debug-conn-err', 'normal')
 				if(this.opts.debug){
 					console.log('download err', err)
@@ -725,7 +724,6 @@ class StreamerProxyHLS extends HLSRequests {
 				}
 			} else {
 				if(this.committed && (!statusCode || statusCode < 200 || statusCode >= 400)){ // skip redirects
-					// global.osd.show(global.streamer.humanizeFailureMessage(statusCode || 'timeout'), 'fas fa-times-circle', 'debug-conn-err', 'normal')
 					global.osd.show(global.lang.CONNECTION_FAILURE +' ('+ (statusCode || 'timeout') +')', 'fas fa-times-circle', 'debug-conn-err', 'normal')
 				}
 				let fallback, location

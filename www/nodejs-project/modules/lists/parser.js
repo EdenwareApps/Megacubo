@@ -1,123 +1,5 @@
-const { EventEmitter } = require('events'), fs = require('fs')
-const readline = require('readline')
-
-class PersistentFileReader extends EventEmitter {
-	constructor(opts={}) {
-		super()
-		this.opts = opts
-		this.minBufferSize = 8192 // avoid opening files too frequently
-		this.readOffset = 0
-		this.readStream = null
-		this.lineReader = null
-		this.watcher = null
-		this.isWatching = false
-		this.isReading = false
-		this.isEnding = false
-		this.startWatch()
-	}
-	watch(path, callback) {
-		const minSize = this.readOffset + this.minBufferSize
-		const close = () => {
-			callback = () => {}
-			watcher.close()
-		}
-		const statCallback = (err, stats) => {
-			if (!err && stats.size >= minSize) {
-				callback()
-				close()
-			}
-		}
-		const watcher = fs.watch(path, eventType => {
-			if (eventType === 'change') {
-				fs.stat(path, statCallback)
-			}
-		})
-		fs.stat(path, statCallback)
-		return { close }
-	}
-	startWatch() {
-		if (!this.isWatching) {
-			this.isWatching = true
-			this.watcher = this.watch(this.opts.file, () => {
-				this.stopWatch()
-				this.startReading()
-			})
-		}
-	}
-	stopWatch() {
-		if (this.isWatching) {
-			this.isWatching = false
-			if(this.watcher) {
-				this.watcher.close()
-				this.watcher = null
-			}
-		}
-	}
-	async hasChanges(){
-		const stat = await fs.promises.stat(this.opts.file)
-		return stat.size > this.readOffset
-	}
-	startReading() {
-		if (!this.isReading) {
-			this.hasChanges().then(has => {
-				if(has) {
-					this.isReading || this.read()
-				} else if(this.isEnding) {
-					this.emit('close')
-					return this.stopWatch()
-				}
-			}).catch(err => {
-				console.error(err)				
-				this.emit('close')
-				this.stopWatch()
-			})
-		}
-	}
-	read() {
-		if (!this.isReading) {
-			this.stopWatch()
-			this.isReading = true
-			this.readStream = fs.createReadStream(this.opts.file, {
-				start: this.readOffset,
-				encoding: 'utf8'
-			})
-			this.lineReader = readline.createInterface({
-				input: this.readStream,
-				terminal: false,
-				historySize: 0,
-				removeHistoryDuplicates: false,
-				crlfDelay: Infinity			
-			})
-			this.lineReader.on('line', line => this.emit('line', line))
-			this.lineReader.on('close', () => {
-				this.readOffset += this.readStream.bytesRead
-				if (!this.opts.persistent || this.isEnding) {
-					this.emit('close')
-					this.stopWatch()
-				} else {
-					this.startWatch()
-				}
-			})
-			this.readStream.on('error', err => {
-				console.error(err)
-				this.emit('error', err)
-				this.readStream.close()
-				this.isReading = false
-			})
-			this.readStream.on('end', () => {
-				this.readStream.close()
-				this.isReading = false
-			})
-		}
-	}
-	end() {
-		this.isEnding = true
-		if (this.isReading) {
-			this.isReading = false
-		}
-		this.startReading()
-	}
-}
+const { EventEmitter } = require('events')
+const LineReader = require('../line-reader')
 
 class Parser extends EventEmitter {
 	constructor(opts) {
@@ -151,13 +33,9 @@ class Parser extends EventEmitter {
 		}
 		this.attrMapRegex = this.generateAttrMapRegex(this.attrMap)
 		this.headerAttrMapRegex = this.generateAttrMapRegex(this.headerAttrMap)
-		this.headerRegex = new RegExp('^#(extm3u|playlistv)[^\r\n]*', 'gim')
 		this.readen = 0 // no precision required, just for progress stats
 		this.lastProgress = -1
-		if(this.opts.file){
-			this.reader = new PersistentFileReader(this.opts)
-			this.parse().catch(console.error)
-		}
+		if(!this.opts.file) throw 'Parser instance with no file set!'
 	}
 	generateAttrMapRegex(attrs) {
 		return new RegExp('(' +
@@ -165,8 +43,10 @@ class Parser extends EventEmitter {
 			')\\s*=\\s*[\'"]([^\r\n\'"]*)[\'"]',
 			'g')
 	}
-	parse() {
-		return new Promise((resolve, reject) => {
+	start() {
+		return new Promise(resolve => {
+			this.opts.persistent = !this.ended
+			this.reader = new LineReader(this.opts)
 			let g = '', a = {}, e = {url: '', icon: ''}, attsMap = {
 				'http-user-agent': 'user-agent',
 				'referrer': 'referer',
@@ -175,30 +55,31 @@ class Parser extends EventEmitter {
 			}
 			this.reader.on('line', line => {
 				this.readen += (line.length + 1)
-				if(line.length < 6) return
-				const hashed = line.charAt(0) === '#'
-				if (hashed && this.isExtM3U(line)) {
+				const hashed = line.startsWith('#')
+				const sig = hashed ? line.substr(0, 7).toUpperCase() : ''
+				const isExtM3U = hashed && this.isExtM3U(sig)
+				const isExtInf = hashed && !isExtM3U && this.isExtInf(sig)
+				if (!hashed && line.length < 6) return
+				if (isExtM3U) {
 					if (this.expectingHeader) {
-						for (const t of line.matchAll(this.headerAttrMapRegex)) {
-							if (this.destroyed) break
+						const matches = [...line.matchAll(this.headerAttrMapRegex)];
+						for (const t of matches) {
 							if (t && t[2]) {
-								if (this.headerAttrMap[t[1]]) {
-									t[1] = this.headerAttrMap[t[1]]
-								}
-								if (!this.meta[t[1]]) {
-									this.meta[t[1]] = t[2]
-								}
+								t[1] = this.headerAttrMap[t[1]] || t[1];
+								this.meta[t[1]] = t[2];
 							}
 						}
 					}
-				} else if (hashed && this.isExtInf(line)) {
+				} else if (isExtInf) {
 					if (this.expectingHeader) {
 						this.expectingHeader = false
 						this.emit('meta', this.meta)
 					}
 					this.expectingPlaylist = this.isExtInfPlaylist(line)
 					let n = '', sg = ''
-					for (const t of line.matchAll(this.attrMapRegex)) {
+					const attributes = {}
+					const matches = [...line.matchAll(this.attrMapRegex)]
+					for (const t of matches) {
 						if (t && t[2]) {
 							const tag = this.attrMap[t[1]] || t[1]
 							switch (tag)  {
@@ -235,17 +116,16 @@ class Parser extends EventEmitter {
 					e.name = Parser.sanitizeName(n)
 				} else if (hashed) {
 					// parse here extra info like #EXTGRP and #EXTVLCOPT
-					let ucline = line.toUpperCase()
-					if (ucline.startsWith('#EXTGRP')) {
-						let i = ucline.indexOf(':')
+					if (sig == '#EXTGRP') {
+						let i = line.indexOf(':')
 						if (i !== -1) {
 							let nwg = line.substr(i + 1).trim()
 							if (nwg.length && (!g || g.length < nwg.length)) {
 								g = nwg
 							}
 						}
-					} else if (ucline.startsWith('#EXTVLCOPT')) {
-						let i = ucline.indexOf(':')
+					} else if (sig == '#EXTVLC') { // #EXTVLCOPT
+						let i = line.indexOf(':')
 						if (i !== -1) {
 							let nwa = line.substr(i + 1).trim().split('=')
 							if (nwa) {
@@ -266,32 +146,36 @@ class Parser extends EventEmitter {
 						parts[0] = parts[0].toLowerCase()
 						a[attsMap[parts[0]] || parts[0]] = this.trimQuotes(parts[1] || '')
 					}
-					if (global.validateURL(e.url)) {
-						if (!e.name) {
-							e.name = e.gid || this.nameFromURL(e.url)
-						}
-						const name = e.name.replace(Parser.regexes['between-brackets'], '')
-						if (name === e.name) {
-							e.rawname = e.name
-							e.name = name
-						}
-						if (Object.keys(a).length) {
-							e.atts = a
-						}
-						g = this.sanitizeGroup(g)
-						e.group = g
-						e.groups = g.split('/')
-						e.groupName = e.groups[e.groups.length - 1]
-						if (this.expectingPlaylist) {
-							this.emit('playlist', e)
-						} else {
-							this.emit('entry', e)
-						}
-						e = { url: '', icon: '' }
-						g = ''
+					// removed url validation for performance
+					if (!e.name) {
+						e.name = e.gid || this.nameFromURL(e.url)
 					}
+					const name = e.name.replace(Parser.regexes['between-brackets'], '')
+					if (name === e.name) {
+						e.rawname = e.name
+						e.name = name
+					}
+					if (Object.keys(a).length) {
+						e.atts = a
+					}
+					g = this.sanitizeGroup(g)
+					e.group = g
+					e.groups = g.split('/')
+					e.groupName = e.groups[e.groups.length - 1]
+					if (this.expectingPlaylist) {
+						this.emit('playlist', e)
+					} else {
+						this.emit('entry', e)
+					}
+					e = { url: '', icon: '' }
+					g = ''
 				}
 				this.emit('progress', this.readen)
+			})
+			this.reader.on('error', err => {
+				console.error('PARSER READ ERROR', err)
+				this.emit('finish')
+				resolve(true)
 			})
 			this.reader.on('close', () => {
 				this.emit('finish')
@@ -318,15 +202,14 @@ class Parser extends EventEmitter {
 		// s = s.normalize('NFD') // is it really needed?
 		return s
 	}
-	isExtInf(line) {
-		return line.charAt(0) == '#' && line.substr(0, 7).toUpperCase() == '#EXTINF'
+	isExtInf(sig) {
+		return sig == '#EXTINF'
 	}
 	isExtInfPlaylist(line) {
 		return line.indexOf('playlist') != -1 && line.match(Parser.regexes['type-playlist'])
 	}
-	isExtM3U(line) {
-		let ucline = line.substr(0, 7).toUpperCase()
-		return ucline == '#EXTM3U' || ucline == '#PLAYLI' // #playlistv
+	isExtM3U(sig) {
+		return sig == '#EXTM3U' || sig == '#PLAYLI' // #playlistv
 	}
 	trimQuotes(text) {
 		const f = text.charAt(0), l = text.charAt(text.length - 1)
@@ -383,7 +266,7 @@ class Parser extends EventEmitter {
 	}
 	mergePath(a, b) {
 		if (b) {
-			a = [a, b].join('/')
+			a = a +'/'+ b
 		}
 		return a
 	}
@@ -393,6 +276,7 @@ class Parser extends EventEmitter {
 			this.emit('destroy')
 			this.end()
 		}
+		this.reader && this.reader.destroy()
 		this.removeAllListeners()
 	}
 }

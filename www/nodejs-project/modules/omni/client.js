@@ -152,7 +152,7 @@ class OMNI extends OMNIUtils {
     eventHandler(evt){
         if(!this.validateEvent(evt)) return
         if(evt.target && evt.target != this.rinput){
-            if(evt.key && evt.key.length == 1){
+            if(evt.key && evt.key.length == 1 && evt.key != ' '){
                 this.defaultValue = evt.key
                 if(explorer.inPlayer() && !explorer.isExploring()) {
                     menuPlaying(true, true)

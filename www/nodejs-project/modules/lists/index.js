@@ -71,7 +71,6 @@ class Index extends Common {
 			terms = this.applySearchRedirects(terms)
 			if(opts.partial){
 				let filter
-				const start = global.time()
 				if(global.config.get('search-mode') == 1){
 					filter = (term, t) => {
 						if(term.indexOf(t) !== -1 && t != term) {
@@ -85,11 +84,13 @@ class Index extends Common {
 						}
 					}
 				}
+				const maxAliases = 6, aliasingTerms = {}
+				terms.forEach(t => aliasingTerms[t] = 0)
 				Object.keys(this.lists).forEach(listUrl => {
 					Object.keys(this.lists[listUrl].index.terms).forEach(term => {
 						let from
 						terms.some(t => {
-							if(filter(term, t)){
+							if(aliasingTerms[t] < maxAliases && filter(term, t)){
 								from = t
 								return true
 							}
@@ -100,6 +101,7 @@ class Index extends Common {
 							}
 							if(!aliases[from].includes(term)){
 								aliases[from].push(term)
+								aliasingTerms[from]++
 							}
 						}
 					})
@@ -128,17 +130,26 @@ class Index extends Common {
 		let tmap
 		terms.forEach(term => {
 			let map = {}
+			if(this.debug) {
+				console.log('querying term map '+ term)
+			}
 			Object.keys(this.lists).forEach(listUrl => {
 				if(typeof(this.lists[listUrl].index.terms[term]) != 'undefined'){
 					map[listUrl] = this.lists[listUrl].index.terms[term]
 				}
 			})
 			if(tmap){
+				if(this.debug) {
+					console.log('joining map '+ term)
+				}
 				tmap = this.joinMap(tmap, map)
 			} else {
 				tmap = this.cloneMap(map)
 			}
 		})
+		if(this.debug) {
+			console.log('querying term map done')
+		}
 		this.searchMapCache[key] = this.cloneMap(tmap)
 		return tmap
 	}
@@ -156,11 +167,17 @@ class Index extends Common {
 			if(typeof(q.aliases[term]) != 'undefined'){
 				tms.push(...q.aliases[term])
 			}
+			if(this.debug) {
+				console.log('querying term map', tms)
+			}
 			let tmap = this.queryTermMap(tms)
 			//console.warn('TMAPSIZE', term, tmap ? this.mapSize(tmap) : 0)
 			//console.warn('SMAPSIZE', term, smap ? this.mapSize(smap) : 0)
 			if(tmap){
 				if(smap){
+					if(this.debug) {
+						console.log('intersecting term map')
+					}
 					smap = this.intersectMap(smap, tmap)
 				} else {
 					smap = tmap
@@ -172,6 +189,9 @@ class Index extends Common {
 		})
 		if(smap){
 			if(q.excludes.length){
+				if(this.debug) {
+					console.log('processing search excludes')
+				}
 				let ms = this.mapSize(smap, opts.group)
 				if(ms){
 					let xmap = this.queryTermMap(q.excludes)
@@ -180,25 +200,38 @@ class Index extends Common {
 					//console.warn('XMAPSIZE', this.mapSize(xmap), ms)
 				}
 			}
+			if(this.debug) {
+				console.log('done')
+			}
 			this.searchMapCache[key] = this.cloneMap(smap)
 			return smap
 		}
 		this.searchMapCache[key] = {}
 		return {}
 	}
-	async search(terms, opts={}){
+	async search(terms, opts={}) {
 		if(typeof(terms) == 'string'){
 			terms = this.terms(terms, true, true)
 		}
-		let start = global.time(), bestResults = [], maybe = [], limit = opts.limit || 256
+		let start = global.time(), bestResults = [], maybe = []
+		const limit = opts.limit || 256, maxWorkingSetLimit = limit * 2
 		if(!terms){
 			return []
 		}
-		const query = this.parseQuery(terms, opts)
+		if(this.debug){
+			console.warn('lists.search() parsing query', (global.time() - start) +'s (pre time)')
+		}
+		const query = this.parseQuery(terms, opts), checkType = opts.type && opts.type != 'all'
+		if(this.debug){
+			console.warn('lists.search() map searching', (global.time() - start) +'s (pre time)', query)
+		}
 		let smap = this.searchMap(query, opts), ks = Object.keys(smap)
+		if(this.debug){
+			console.warn('lists.search() parsing results', terms, opts, (global.time() - start) +'s (pre time)')
+		}
 		if(ks.length){
 			if(this.debug){
-				console.warn('M3U SEARCH PRE', terms, opts, (global.time() - start) +'s (pre time)', Object.assign({}, smap), (global.time() - start) +'s', terms)
+				console.warn('lists.search() iterating lists', terms, opts, (global.time() - start) +'s (pre time)')
 			}
 			let results = []
 			ks.forEach(listUrl => {
@@ -209,37 +242,36 @@ class Index extends Common {
 				smap[listUrl] = ls
 			})
 			const limiter = pLimit(4)
+			const alreadyMap = {}
 			const tasks = ks.map(listUrl => {
 				return async () => {
 					if(this.debug){
-						console.warn('M3U SEARCH ITERATE LIST '+ listUrl, smap[listUrl].slice(0))
+						console.warn('lists.search() ITERATE LIST '+ listUrl)
 					}
 					if(typeof(this.lists[listUrl]) == 'undefined' || !smap[listUrl].length) return
-					let i = 0
 					await this.lists[listUrl].iterate(e => {
-						i++
-						if(this.debug){
-							console.warn('M3U SEARCH ITERATE '+ listUrl +':'+ i +' '+ e.url)
-						}
-						if(opts.type){
-							if(this.validateType(e, opts.type, opts.typeStrict === true)){
-								if(opts.typeStrict === true) {
-									e.source = listUrl
-									bestResults.push(e)
-								} else {
-									e.source = listUrl
-									results.push(e)
-								}
-							}
-						} else {
+						if(typeof(alreadyMap[e.url]) != 'undefined') return
+						alreadyMap[e.url] = null
+						const BREAK = this.lists[listUrl].constants.BREAK
+						if(checkType && this.validateType(e, opts.type, opts.typeStrict === true)){
+							e.source = listUrl
 							bestResults.push(e)
+							if(bestResults.length == maxWorkingSetLimit) return BREAK
+						} else {
+							e.source = listUrl
+							if(checkType) {
+								results.push(e)
+							} else {
+								bestResults.push(e)
+								if(bestResults.length == maxWorkingSetLimit) return BREAK
+							}
 						}
 					}, smap[listUrl])
 				}
 			}).map(limiter)
 			await Promise.allSettled(tasks)			
 			if(this.debug){
-				console.warn('M3U SEARCH RESULTS', (global.time() - start) +'s (partial time)', (global.time() - start) +'s', terms, bestResults.slice(0), results.slice(0), maybe.slice(0))
+				console.warn('lists.search() RESULTS', (global.time() - start) +'s (partial time)', (global.time() - start) +'s', terms, bestResults.slice(0), results.slice(0), maybe.slice(0))
 			}
 			results = bestResults.concat(results)
 			if(maybe.length){
@@ -260,21 +292,12 @@ class Index extends Common {
 				maybe = []
 			}
 			if(this.debug){
-				console.warn('M3U SEARCH RESULTS*', (global.time() - start) +'s (total time)', terms)
+				console.warn('lists.search() RESULTS*', (global.time() - start) +'s (total time)', terms)
 			}
 			return {results, maybe}
 		} else {
 			return {results:[], maybe: []}
 		}
-	}
-	getDomain(u){
-    	if(u && u.indexOf('//')!=-1){
-	        let domain = u.split('//')[1].split('/')[0]
-        	if(domain == 'localhost' || domain.indexOf('.') != -1){
-	            return domain.split(':')[0]
-        	}
-    	}
-    	return ''
 	}
 	adjustSearchResults(entries, opts, limit){
 		let map = {}, nentries = [];
@@ -290,7 +313,7 @@ class Index extends Common {
 			}
 		}
 		entries.forEach(e => {
-			let domain = this.getDomain(e.url)
+			let domain = global.Download.domain(e.url)
 			if(typeof(map[domain]) == 'undefined'){
 				map[domain] = []
 			}

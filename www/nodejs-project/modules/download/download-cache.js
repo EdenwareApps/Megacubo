@@ -1,4 +1,4 @@
-const fs = require('fs'), Events = require('events'), createReader = require('../reader')
+const fs = require('fs'), Events = require('events'), Reader = require('../reader')
 
 const CACHE_MEM_ONLY = false
 
@@ -11,13 +11,11 @@ class DownloadCacheFileReader extends Events {
         process.nextTick(() => this.init())
     }
     init(){
-        this.stream = createReader(this.file, this.opts);
-        ['data', 'end', 'error', 'finish'].forEach(n => this.forward(n));
+        this.stream = new Reader(this.file, this.opts);
+        ['data', 'end', 'error', 'finish'].forEach(n => this.forward(n))
     }
     forward(name){
-        this.stream.on(name, (...args) => {
-            this.emit(name, ...args)
-        })
+        this.stream.on(name, (...args) => this.emit(name, ...args))
     }
     destroy(){
         this.removeAllListeners()
@@ -25,9 +23,7 @@ class DownloadCacheFileReader extends Events {
     }
 }
 
-/*
-Read cache from a DownloadCacheChunks instance.
-*/
+/* Read cache from a DownloadCacheChunks instance */
 class DownloadCacheChunksReader extends Events {
     constructor(master, opts){
         super()
@@ -59,18 +55,11 @@ class DownloadCacheChunksReader extends Events {
             this.master.on('data', this.masterDataListener)
             this.master.once('finish', this.masterEndListener)
         }
-        console.error('DownloadCacheChunks()')
         fs.stat(this.master.file, (err, stat) => {
             this.fcheck = true
-            console.error('DownloadCacheChunks()', err, stat)
             if(err) return this.emitError(err)
             if(stat.size == 0) return this.emit('end')
             if(this.opts.start && this.opts.start >= stat.size) return this.pump()
-            this.stream = new DownloadCacheFileReader(this.master.file, this.opts)
-            this.stream.on('data', chunk => {
-                this.emitData(chunk, (this.opts.start || 0) + this.freaden)
-                this.freaden += chunk.length
-            })
             const end = err => {
                 if(err){
                     console.error('DownloadCacheChunks()', err)
@@ -87,7 +76,12 @@ class DownloadCacheChunksReader extends Events {
                     this.pump()
                 }
             }
+            this.stream = new DownloadCacheFileReader(this.master.file, this.opts)
             this.stream.on('error', end)
+            this.stream.on('data', chunk => {
+                this.emitData(chunk, (this.opts.start || 0) + this.freaden)
+                this.freaden += chunk.length
+            })
             this.stream.once('end', end)
         })
     }
@@ -173,7 +167,7 @@ class DownloadCacheChunks extends Events {
     constructor(){
         super()
         this.setMaxListeners(99)
-        this.uid = 'dcc-'+ parseInt(Math.random() * 10000000000000)
+        this.uid = 'dcc-'+ parseInt(Math.random() * 100000000000)
         this.file = global.storage.folder +'/dlcache/'+ this.uid
         this.chunks = []
         this.size = 0

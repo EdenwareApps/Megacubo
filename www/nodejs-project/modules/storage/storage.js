@@ -61,19 +61,13 @@ class StoragePromises extends StorageBase {
 				return new Promise(resolve => this.has(key, resolve))
 			},
 			get: (key, encoding) => {
-				return new Promise((resolve, reject) => {
-					this.get(key, resolve, encoding)
-				})
+				return new Promise(resolve => this.get(key, resolve, encoding))
 			},
 			set: (key, val, expiration) => {
-				return new Promise((resolve, reject) => {
-					this.set(key, val, expiration, resolve)
-				})
+				return new Promise(resolve => this.set(key, val, expiration, resolve))
 			},
 			delete: key => {
-				return new Promise((resolve, reject) => {
-					this.delete(key, resolve)
-				})
+				return new Promise(resolve => this.delete(key, resolve))
 			}
 		}
 	}

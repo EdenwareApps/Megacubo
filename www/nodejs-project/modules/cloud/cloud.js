@@ -23,6 +23,43 @@ class CloudConfiguration {
         }
         this.cachingDomain = 'cloud-' + this.locale + '-'
     }
+    getCountry(ip){
+        return new Promise((resolve, reject) => {
+            const postData = 'ip='+ ip, http = require('http')
+            const options = {
+                port: 80,
+                family: 4, // https://github.com/nodejs/node/issues/5436
+                method: 'POST',
+                path: '/stats/get_country_low',
+                hostname: global.Download.domain(this.server),
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Content-Length': postData.length,
+                    'Cache-Control': 'no-cache'
+                }
+            }
+            const req = http.request(options, res => {
+                res.setEncoding('utf8')
+                let data = ''
+                res.on('data', (d) => {
+                    data += d
+                })
+                res.on('error', reject)
+                res.once('end', () => {
+                    try {
+                        data = JSON.parse(data)
+                        if(!data || !data.country_code) throw 'invalid response: '+ data
+                        resolve(data.country_code)
+                    } catch(e) {
+                        reject(e)
+                    }
+                })
+            }).on('error', reject)
+            req.on('error', reject)
+            req.write(postData)
+            req.end()
+        })
+    }
     async testConfigServer(baseUrl){
         let data = await Download.get({url: baseUrl + '/configure.json', responseType: 'json'})
         if(data && data.version) return true

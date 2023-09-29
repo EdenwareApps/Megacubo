@@ -295,8 +295,14 @@ class Theme extends Events {
             }
         })
     }
-    rename(name){
-        global.ui.emit('prompt', global.lang.THEME_NAME, '', name || '', 'theme-creating-name', false, 'fas fa-palette')
+    async rename(name){
+        await global.explorer.prompt({
+            question: global.lang.THEME_NAME,
+            placeholder: '',
+            defaultValue: name || '',
+            callback: 'theme-creating-name',
+            fa: 'fas fa-palette'
+        })
     }
     entries(){
         return new Promise((resolve, reject) => {
@@ -309,7 +315,7 @@ class Theme extends Events {
                     renderer: () => {
                         return new Promise((resolve, reject) => {
                             if(!this.creatingThemeName){
-                                this.rename()
+                                this.rename().catch(console.error)
                             }
                             let opts = [
                                 {
@@ -563,7 +569,7 @@ class Theme extends Events {
                                         }
                                     ]
                                 },
-                                {name: global.lang.RENAME, fa: 'fas fa-edit', type: 'action', action: () => this.rename(global.config.get('theme-name'))},
+                                {name: global.lang.RENAME, fa: 'fas fa-edit', type: 'action', action: () => this.rename(global.config.get('theme-name')).catch(console.error)},
                                 {name: global.lang.LAYOUT_GRID_SIZE, fa: 'fas fa-th', type: 'group', renderer: this.viewSizeEntries.bind(this)},
                                 {
                                     name: 'FX Navigation Intensity',

@@ -33,7 +33,7 @@ class Zap extends Events {
         global.ui.on('streamer-ready', () => {
             let dir = '.'+ __dirname.replace(path.dirname(require.main.filename), '').replace(new RegExp('\\\\', 'g'), '/')
             global.ui.emit('load-js', dir + '/client.js')
-            global.ui.emit('add-player-button', 'zap', 'ZAP', this.icon, 5, 'zap')
+            global.ui.emit('add-player-button', 'zap', 'ZAP', this.icon, 6, 'zap')
         })
     }
     ready(cb){

@@ -71,15 +71,6 @@ class StreamerProxyBase extends StreamerAdapterBase {
 		this.connections[_uid] = false
 		return _uid
 	}
-	getDomain(u){
-		if(u && u.indexOf('//') != -1){
-			let d = u.split('//')[1].split('/')[0]
-			if(d == 'localhost' || d.indexOf('.') != -1){
-				return d
-			}
-		}
-		return ''
-	}
 	getMediaType(headers, url){
 		let type = '', minSegmentSize = 96 * 1024
 		if(typeof(headers['content-length']) != 'undefined' && parseInt(headers['content-length']) >= minSegmentSize && this.ext(url) == 'ts') { // a ts was being sent with m3u8 content-type

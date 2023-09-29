@@ -176,28 +176,26 @@ class Bookmarks extends EntriesGroup {
         }
         return es
     }
-    addByNameEntries(){
-        return new Promise((resolve, reject) => {
-            resolve([
-                {name: global.lang.CHANNEL_OR_CONTENT_NAME, type: 'input', value: this.currentBookmarkAddingByName.name, action: (data, value) => {
-                    this.currentBookmarkAddingByName.name = value
+    async addByNameEntries(){
+        return [
+            {name: global.lang.CHANNEL_OR_CONTENT_NAME, type: 'input', value: this.currentBookmarkAddingByName.name, action: (data, value) => {
+                this.currentBookmarkAddingByName.name = value
+            }},
+            {name: global.lang.ADVANCED, type: 'select', fa: 'fas fa-cog', entries: [
+                {name: global.lang.STREAM_URL, type: 'input', value: this.currentBookmarkAddingByName.url, details: global.lang.LEAVE_EMPTY, placeholder: global.lang.LEAVE_EMPTY, action: (data, value) => {
+                    this.currentBookmarkAddingByName.url = value
                 }},
-                {name: global.lang.ADVANCED, type: 'select', fa: 'fas fa-cog', entries: [
-                    {name: global.lang.STREAM_URL, type: 'input', value: this.currentBookmarkAddingByName.url, details: global.lang.LEAVE_EMPTY, placeholder: global.lang.LEAVE_EMPTY, action: (data, value) => {
-                        this.currentBookmarkAddingByName.url = value
-                    }},
-                    {name: global.lang.ICON_URL, type: 'input', value: this.currentBookmarkAddingByName.icon, details: global.lang.LEAVE_EMPTY, placeholder: global.lang.LEAVE_EMPTY, action: (data, value) => {
-                        this.currentBookmarkAddingByName.icon = value
-                    }}
-                ]},
-                {name: global.lang.LIVE, type: 'check', checked: () => {
-                    return this.currentBookmarkAddingByName.live
-                }, action: (e, value) => {
-                    this.currentBookmarkAddingByName.live = value
-                }},
-                {name: global.lang.SAVE, fa: 'fas fa-check-circle', type: 'group', renderer: this.addByNameEntries2.bind(this)}
-            ])
-        })
+                {name: global.lang.ICON_URL, type: 'input', value: this.currentBookmarkAddingByName.icon, details: global.lang.LEAVE_EMPTY, placeholder: global.lang.LEAVE_EMPTY, action: (data, value) => {
+                    this.currentBookmarkAddingByName.icon = value
+                }}
+            ]},
+            {name: global.lang.LIVE, type: 'check', checked: () => {
+                return this.currentBookmarkAddingByName.live
+            }, action: (e, value) => {
+                this.currentBookmarkAddingByName.live = value
+            }},
+            {name: global.lang.SAVE, fa: 'fas fa-check-circle', type: 'group', renderer: this.addByNameEntries2.bind(this)}
+        ]
     }
     addByNameEntries2(){
         return new Promise((resolve, reject) => {
@@ -370,7 +368,7 @@ class Bookmarks extends EntriesGroup {
             icon = global.APPDIR +'/default_icon.ico'
         }
         let err, noEPGEntry = entry
-        if(noEPGEntry.program) delete noEPGEntry.program
+        if(noEPGEntry.programme) delete noEPGEntry.programme
         const nicon = await global.icons.get(noEPGEntry).catch(e => err = e)
         if(!err) {
             if(!nicon.file) {
@@ -385,6 +383,10 @@ class Bookmarks extends EntriesGroup {
                 const file = await global.jimp.iconize(nicon.file).catch(e => err = e)
                 if(!err) {
                     icon = file
+                    const cachedFile = await global.icons.saveDefaultIcon(entry.name, file).catch(e => err = e)
+                    if(!err && cachedFile) {
+                        icon = cachedFile
+                    }
                 }
             }
         }
