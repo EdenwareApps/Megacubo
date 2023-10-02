@@ -423,7 +423,7 @@ class Theme extends Events {
                                                     fa: 'fas fa-palette', 
                                                     value: () => global.config.get('background-color'),
                                                     action: (data, value) => {
-                                                        if(value.match(new RegExp('^#?[0-9a-fA-F]{6}$'))){
+                                                        if(String(value).match(new RegExp('^#?[0-9a-fA-F]{6}$'))){ // TypeError: value.match is not a function 
                                                             if(value.length == 6){
                                                                 value = '#' + value
                                                             }

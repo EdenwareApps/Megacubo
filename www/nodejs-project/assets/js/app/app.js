@@ -217,6 +217,9 @@ function initApp(){
     });
     $(() => {
         console.log('load app')
+        if(typeof(Explorer) == 'undefined') {
+            parent.updateWebView()
+        }
 
         explorer = new Explorer(jQuery, '#explorer', app)   
         explorer.on('render', (path, icon) => {

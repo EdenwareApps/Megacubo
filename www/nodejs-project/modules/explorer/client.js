@@ -264,7 +264,7 @@ class ExplorerSelectionMemory extends ExplorerBase {
             this.scrollSnapping = true
 			let target = 0, index = 1
 			const inSearch = path.indexOf(lang.SEARCH) != -1 || this.path.indexOf(lang.MORE_RESULTS) != -1 || this.path.indexOf(lang.SEARCH_MORE) != -1
-			const inSameSearch = inSearch && this.currentSearch == this.selectionMemory[path].search		
+			const inSameSearch = inSearch && this.selectionMemory[path] && this.currentSearch == this.selectionMemory[path].search		
 			if(inSearch && !inSameSearch){
                 this._scrollContainer.scrollTop = target
                 this.focusIndex(index, false, true)
@@ -698,7 +698,7 @@ class ExplorerPointer extends ExplorerSelectionMemory {
             e.push(...sel)
         }
 		e = e.filter(n => {
-            return !n.className || n.className.indexOf('explorer-not-navigable') == -1
+            return !n.className || String(n.className).indexOf('explorer-not-navigable') == -1 // Uncaught TypeError: n.className.indexOf is not a function
         })
 		if(noAsides === true){
 			e = e.filter(n => n.parentNode && n.parentNode == this._wrapper)
@@ -1983,7 +1983,9 @@ class Explorer extends ExplorerLoading {
 		if(i == 0){
 			this.wrapper.prepend(e)
 		} else {
-			this.wrapper.find('a:nth-child('+ i +')').after(e)
+			let dest = this.wrapper.find('a:nth-child('+ i +')')
+			if(!dest.length) dest = this.wrapper.find('a').last()
+			dest.after(e)
 		}
 	}
 	adaptiveRender(entries, path, prevEntries){

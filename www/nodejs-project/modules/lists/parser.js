@@ -186,7 +186,7 @@ class Parser extends EventEmitter {
 	end() {
 		if (!this.ended && !this.destroyed) {
 			this.ended = true
-			this.reader.end()
+			this.reader && this.reader.end()
 		}
 	}
 	sanitizeGroup(s) {

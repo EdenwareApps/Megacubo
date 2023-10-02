@@ -228,7 +228,12 @@ class StreamerBase extends StreamerTools {
 	intentFromInfo(data, opts, aside, nfo){
         return new Promise((resolve, reject) => {
 			opts = Object.assign(Object.assign({}, this.opts), opts || {})
-			let intent = new this.engines[nfo.type](data, opts, nfo)
+			let intent
+			try {
+				intent = new this.engines[nfo.type](data, opts, nfo)
+			} catch(err) {
+				return reject('Engine "'+ nfo.type +'" not found. '+ err)
+			}
 			if(aside){
 				resolve(intent)
 			} else {
@@ -561,7 +566,7 @@ class StreamerGoNext extends StreamerThrottling {
 			global.ui.on('video-ended', () => this.goNext().catch(global.displayErr))
 			global.ui.on('video-resumed', () => this.cancelGoNext())
 			global.ui.on('stop', () => this.cancelGoNext())
-			global.ui.on('go-next', () => this.goNext(true))
+			global.ui.on('go-next', () => this.goNext(true).catch(global.displayErr))
 			this.on('pre-play-entry', e => this.goNextPrepare(e).catch(global.displayErr))
 			this.on('streamer-connect', () => this.goNextButtonVisibility().catch(global.displayErr))				
 			process.nextTick(() => {
@@ -570,7 +575,7 @@ class StreamerGoNext extends StreamerThrottling {
 						const next = await this.getNext()
 						if(next) return {template: 'option', fa: 'fas fa-step-forward', text: global.lang.GO_NEXT, id: 'gonext'}
 					}
-				}, this.goNext.bind(this), null, true)
+				}, () => this.goNext().catch(global.displayErr), null, true)
 			})
 		}
 	}
