@@ -43,6 +43,12 @@ class StreamerBaseIntent extends Events {
 			}
 		})
         this.info = info
+        this.on('dimensions', dimensions => {
+			if(dimensions && this._dimensions != dimensions){
+				this._dimensions = dimensions
+				this.emit('dimensions', this._dimensions)
+			}
+        })
         this.on('error', () => this.unload())
 	}
     isTranscoding(){
@@ -86,10 +92,7 @@ class StreamerBaseIntent extends Events {
         this.adapters.push(adapter)
         adapter.mediaType = this.mediaType
         adapter.on('dimensions', dimensions => {
-			if(dimensions && this._dimensions != dimensions){
-				this._dimensions = dimensions
-				this.emit('dimensions', this._dimensions)
-			}
+			this.emit('dimensions', dimensions)
         })
         adapter.on('codecData', codecData => this.addCodecData(codecData))
         adapter.on('speed', speed => {

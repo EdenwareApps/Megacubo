@@ -14,7 +14,8 @@ class Writer extends Events {
 		this.prepare(() => this.emit('open'))
 	}
 	write(data, position){
-		if(typeof(position) == 'undefined'){
+		if (this.destroyed) return
+		if (typeof(position) == 'undefined'){
 			position = this.position
 			this.position += data.length
 		}
@@ -22,7 +23,7 @@ class Writer extends Events {
 		this.pump()
 	}
 	ready(cb){
-		let finish = () => {
+		const done = () => {
 			if(this.fd){
 				fs.close(this.fd, () => {})
 				this.fd = null
@@ -30,13 +31,18 @@ class Writer extends Events {
 			cb()
 		}
 		if(this.writing || this.writeQueue.length){
-			this.once('end', finish)
+			this.once('drain', done)
 		} else {
-			finish()
+			done()
 		}
 	}
+	sleep(ms) {
+		return new Promise(resolve => setTimeout(resolve, ms))
+	}
 	prepare(cb){
+		this.debug && console.log('writeat prepare', this.file)
 		fs.access(this.file, err => {
+			this.debug && console.log('writeat prepared', this.file, err)
 			if(err){
 				if(this.debug){
 					console.log('writeat creating', this.file)
@@ -49,92 +55,80 @@ class Writer extends Events {
 			}
 		})
 	}
-	check(cb){
-		fs.stat(this.file, (err) => cb(!err))
-	}
-	pump(){
-		if(this.writing) {
-			return
-		}
-		if(!this.writeQueue.length){
-			return this.emit('end')
-		}
-		this.writing = true
-		this.prepare(() => {
-			this.open(this.file, 'r+', err => {
-				if(err){
-					console.error(err)
-					this.writing = false
-					this.writeQueue = []
-					this.hasErr = err
-					this.emit('end')
-				} else {
-					this._write(this.fd, () => {
-						if(this.autoclose && this.fd){
-							fs.close(this.fd, () => {})
-							this.fd = null
-						}
-						this.writing = false
-						this.emit('end')
-					})
-				}
-			})
-		})
-	}
-	open(file, flags, cb){
+	open(file='', flags, cb){
 		if(this.fd){
 			cb(null)
 		} else {
-			fs.open(this.file, 'r+', (err, fd) => {
+			this.debug && console.log('writeat open', this.file)
+			fs.open(this.file, flags, (err, fd) => {
+				this.debug && console.log('writeat opened', this.file)
 				this.fd = fd
 				cb(err)
 			})
 		}
 	}
-	_write(fd, cb){
-		if(this.writeQueue.length){
-			let {data, position} = this.writeQueue.shift(), len = data.length
-			if(this.debug){
-				console.log('writeat writing', this.file, fs.statSync(this.file).size, len, fs.statSync(this.file).size + len, position)
+	pump(){
+		if(this.writing) return
+		if(!this.writeQueue.length) return this.emit('drain')
+		this.writing = true
+		this.prepare(() => {
+			this.open(undefined, 'r+', err => {
+				this.debug && console.log('writeat opened*', this.file, err)
+				if(err) return this.fail(err)
+				this._write(this.fd).catch(console.error).finally(() => {
+					if(this.autoclose && this.fd){
+						fs.close(this.fd, () => {})
+						this.fd = null
+					}
+					this.writing = false
+					this.emit('drain')
+				})
+			})
+		})
+	}
+	fsWrite(fd, data, offset, length, position) {
+		return new Promise((resolve, reject) => {
+			fs.write(fd, data, offset, length, position, (err, writtenBytes) => {
+				if(err) return reject(err)
+				resolve(writtenBytes)
+			})
+		})
+	}
+	async _write(fd) {
+		while (this.writeQueue.length) {
+			let err
+			const current = this.writeQueue.shift()
+			if(!Buffer.isBuffer(current.data)) current.data = Buffer.from(current.data)
+			this.debug && console.log('writeat writing', this.file, current)
+			const len = current.data.length
+			const writtenBytes = await this.fsWrite(fd, current.data, 0, len, current.position).catch(e => err = e)
+			if (err) {
+				this.debug && console.error('writeat error: ' + String(err), err)
+				if (this.destroyed) return
+				let err
+				await fs.promises.stat(this.file).catch(e => err = e)
+				if(err) return this.fail(err)
+				this.writeQueue.unshift(current)
+				await this.sleep(250)
+				continue
 			}
-			const callback = (err, writtenBytes) => {
-				if(err){
-					if(this.debug){
-						console.error('writeat error: '+ String(err), err)
-					}
-					if(this.destroyed){
-						cb()
-					} else {
-						this.check(fine => {
-							if(fine){
-								this.writeQueue.unshift({data, position})
-							}
-							cb()
-						})
-					}
-					return
-				} else {
-					this.written += writtenBytes
-					if(writtenBytes < len){
-						if(this.debug){
-							console.warn('writeat written PARTIALLY', this.file, fs.statSync(this.file).size)
-						}
-						this.writeQueue.push({data: data.slice(writtenBytes), position: position + writtenBytes})
-					} else {
-						if(this.debug){
-							console.log('writeat written', this.file, fs.statSync(this.file).size)
-						}
-					}
-				}
-				this._write(fd, cb)
+			this.written += writtenBytes
+			if (writtenBytes < len) {
+				this.debug && console.warn('writeat written PARTIALLY', this.file)
+				this.writeQueue.unshift({ data: current.data.slice(writtenBytes), position: current.position + writtenBytes })
+				continue
 			}
-			if(!Buffer.isBuffer(data)) data = Buffer.from(data)
-			fs.write(fd, data, 0, data.length, position, callback)
-		} else {
-			cb()
+			this.debug && console.log('writeat written', this.file)
 		}
 	}
+	fail(err) {
+		this.error = err
+		this.listenerCount('error') && this.emit('error', err)
+		this.close()
+		this.writeQueue = []
+	}
 	end() {
+		this.ended = true
 		this.ready(() => this.destroy())
 	}
 	close() {

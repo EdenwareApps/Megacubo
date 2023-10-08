@@ -83,7 +83,7 @@ class BridgeServer extends Events {
             const parsedUrl = url.parse(req.url, false)
             response.setHeader('Access-Control-Allow-Origin', '*')
             response.setHeader('Access-Control-Allow-Methods', 'GET')
-            response.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Cache-Control, Accept, Authorization')
+            response.setHeader('Access-Control-Allow-Headers', global.DEFAULT_ACCESS_CONTROL_ALLOW_HEADERS)
             response.setHeader('Connection', 'close')
             response.setHeader('Feature-Policy', 'clipboard-read; fullscreen; autoplay;')
             if(parsedUrl.pathname == '/upload') {

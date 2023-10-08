@@ -253,18 +253,16 @@ class Index extends Common {
 						if(typeof(alreadyMap[e.url]) != 'undefined') return
 						alreadyMap[e.url] = null
 						const BREAK = this.lists[listUrl].constants.BREAK
-						if(checkType && this.validateType(e, opts.type, opts.typeStrict === true)){
-							e.source = listUrl
-							bestResults.push(e)
-							if(bestResults.length == maxWorkingSetLimit) return BREAK
-						} else {
-							e.source = listUrl
-							if(checkType) {
-								results.push(e)
-							} else {
+						if(checkType) {
+							if(this.validateType(e, opts.type, opts.typeStrict === true)) {
+								e.source = listUrl
 								bestResults.push(e)
 								if(bestResults.length == maxWorkingSetLimit) return BREAK
 							}
+						} else {
+							e.source = listUrl
+							bestResults.push(e)
+							if(bestResults.length == maxWorkingSetLimit) return BREAK
 						}
 					}, smap[listUrl])
 				}

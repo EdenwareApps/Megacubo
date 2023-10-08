@@ -120,7 +120,7 @@ class Bookmarks extends EntriesGroup {
             })
         })
     }
-    async entries(e){
+    async entries(){
         let es = [], current
         if(global.streamer && global.streamer.active){
             current = global.streamer.active.data
@@ -168,7 +168,7 @@ class Bookmarks extends EntriesGroup {
             })
         }
         es.push(...gentries)
-        if(this.get().length){
+        if(gentries.length){
             if(!global.cordova && global.config.get('bookmarks-desktop-icons')) {
                 es.push({name: global.lang.BOOKMARK_ICONS_SYNC, fa: 'fas fa-sync-alt', type: 'action', action: () => this.desktopIconsSync().catch(console.error)})
             }
@@ -256,10 +256,7 @@ class Bookmarks extends EntriesGroup {
         })
     }
     addByNameEntries3(e, n){
-        let backLvl = 2
-        if(typeof(n) == 'number'){
-            backLvl = n
-        }
+        let backLvl = typeof(n) == 'number' ? n : 2
         this.currentBookmarkAddingByName.icon = e.value
         this.add({
             name: this.currentBookmarkAddingByName.name,
@@ -272,32 +269,6 @@ class Bookmarks extends EntriesGroup {
             icon: ''
         }
         global.explorer.back(backLvl)
-    }
-    removalEntries(){
-        return new Promise((resolve, reject) => {
-            let entries = []
-            this.get().forEach(e => {
-                if(e.name){
-                    entries.push({
-                        name: global.lang.REMOVE + ': ' + e.name, 
-                        fa: 'fas fa-trash',
-                        type: 'action',
-                        action: data => {
-                            this.remove(e)
-                            if(this.get().length){
-                                global.explorer.refreshNow()
-                            } else {
-                                global.explorer.back()
-                            }
-                        }
-                    })
-                }
-            })            
-            if(!entries.length){
-                entries = []
-            }
-            resolve(entries)
-        })
     }
     prepare(_entries){
         var knownBMIDs = [], entries = _entries.slice(0)

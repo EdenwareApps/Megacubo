@@ -86,7 +86,7 @@ class EntriesGroup extends Events {
         })
     }
     add(oentry){
-        console.log('[entries-group-'+this.key+'] ADD', oentry)
+        //console.log('[entries-group-'+this.key+'] ADD', oentry)
         let entry = this.cleanAtts(oentry)
         if(entry.url && !entry.url.startsWith('mega://') && entry.originalUrl && entry.originalUrl.startsWith('mega://')){
             entry.preferredStreamURL = entry.url
@@ -115,7 +115,7 @@ class EntriesGroup extends Events {
         if(this.limit){
 			this.data = this.data.slice(0, this.limit)
 		}
-        console.log('[entries-group-'+ this.key +'] ADDED', this.data)
+        //console.log('[entries-group-'+ this.key +'] ADDED', this.data)
         this.save(true)
     }
     save(changed){
@@ -124,6 +124,27 @@ class EntriesGroup extends Events {
         if(changed){
             this.emit('change', this.data)
         }
+    }
+    async removalEntries(){
+        const entries = []
+        this.get().forEach(e => {
+            if(e.name){
+                entries.push({
+                    name: global.lang.REMOVE + ': ' + e.name, 
+                    fa: 'fas fa-trash',
+                    type: 'action',
+                    action: () => {
+                        this.remove(e)
+                        if(this.get().length){
+                            global.explorer.refreshNow()
+                        } else {
+                            global.explorer.back()
+                        }
+                    }
+                })
+            }
+        })
+        return entries
     }
     remove(entry){
         for(var i in this.data){

@@ -676,7 +676,7 @@ class Manager extends ManagerEPG {
                 const info = this.master.status()
                 if(info.satisfied && info.length) {
                     this.master.removeListener('satisfied', listener)
-                    resolve(info)
+                    resolve(true)
                 }
             }
             this.master.on('satisfied', listener)
@@ -707,7 +707,7 @@ class Manager extends ManagerEPG {
         })
         console.log('maybeRefreshChannelPage', streamsCount, mega)
         if(mega && mega.terms){
-            this.master.search(mega.terms.split(','), {
+            this.master.search(mega.terms, {
                 safe: !this.master.parentalControl.lazyAuth(),
                 type: mega.mediaType, 
                 group: mega.mediaType != 'live'
@@ -1180,7 +1180,7 @@ class Manager extends ManagerEPG {
     async addListUserPassDialogFile(){     
         let server = await global.explorer.prompt({
             question: global.lang.PASTE_SERVER_ADDRESS,
-            placceholder: 'http://host:port',
+            placeholder: 'http://host:port',
             fa: 'fas fa-globe'
         })
         if(!server) throw 'no server provided'
@@ -1200,8 +1200,22 @@ class Manager extends ManagerEPG {
         if(server.charAt(server.length - 1) == '/') {
             server = server.substr(0, server.length - 1)
         }
-        const url = server +'/get.php?username='+ encodeURIComponent(user) +'&password='+ encodeURIComponent(pass) +'&output=ts&type=m3u_plus'
+        const url = await this.getM3UFromCredentials(server, user, pass)
         return await this.addList(url)
+    }    
+    async getM3UFromCredentials(server, user, pass) {
+        const masks = [
+            '{0}/get.php?username={1}&password={2}&output=mpegts&type=m3u_plus',
+            '{0}/get.php?username={1}&password={2}&output=ts&type=m3u_plus',
+            '{0}/get.php?username={1}&password={2}&output=hls&type=m3u_plus',
+            '{0}/get.php?username={1}&password={2}&type=m3u_plus'
+        ]
+        for(const mask of masks) {
+            const url = mask.format(server, user, pass)
+            const ret = await global.Download.head({url}).catch(() => {})
+            if(ret && ret.statusCode == 200) return url
+        }
+        throw 'Invalid credentials.'
     }
     async addListMacDialog() {
         const macAddress = this.formatMacAddress(await global.explorer.prompt({

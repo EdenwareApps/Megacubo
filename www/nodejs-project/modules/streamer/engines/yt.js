@@ -106,11 +106,13 @@ class StreamerYTHLSIntent extends StreamerHLSIntent {
         if(valid !== true){
             tracks = tracks.filter(t => t.url != chosen)
             if(tracks.length){
-                return (await this.selectTrackBW(tracks, bandwidth))
+                return await this.selectTrackBW(tracks, bandwidth)
             } else {
                 throw 'no valid track'
             }
         }
+        chosenBandwidth && this.prx.resetBitrate(chosenBandwidth)
+        console.error('CHOSEN BANDWIDTH: '+ chosenBandwidth)
         return {url: chosen, mimetype: chosenMimeType, bandwidth: chosenBandwidth}
     }
     async _startVideo(info){

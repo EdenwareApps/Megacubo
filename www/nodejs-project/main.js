@@ -698,7 +698,7 @@ const init = (language, timezone) => {
             await global.crashlog.send().catch(console.error) 
                        
             global.lists.manager.update()
-            const inf = await global.lists.manager.waitListsReady()
+            await global.lists.manager.waitListsReady()
 
             console.log('WaitListsReady resolved!')
             let c = await global.cloud.get('configure') // all below in func depends on 'configure' data

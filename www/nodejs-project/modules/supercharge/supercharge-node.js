@@ -7,6 +7,7 @@ function patch(scope) {
 			scope.URLSearchParams = require('url-search-params-polyfill')
 		}
 	}
+	scope.DEFAULT_ACCESS_CONTROL_ALLOW_HEADERS = 'Origin, X-Requested-With, Content-Type, Cache-Control, Accept, Range, range, Authorization'
 	scope.isWritable = stream => {
 		return (stream.writable || stream.writeable) && !stream.finished
 	}	
@@ -77,9 +78,9 @@ function patch(scope) {
 		return true
 	}
 	scope.moveFile = (from, to, _cb, timeout=5, until=null, startedAt = null, fromSize=null) => {
-		const fs = scope.getFS(), now = scope.time(), cb = () => {
+		const fs = scope.getFS(), now = scope.time(), cb = err => {
 			if(_cb){
-				_cb()
+				_cb(err)
 				_cb = null
 			}
 		}

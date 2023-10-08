@@ -523,7 +523,7 @@ class IconServer extends IconServerStore {
                     response.writeHead(200, {
                         'Access-Control-Allow-Origin': '*',
                         'Access-Control-Allow-Methods': 'GET',
-                        'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Cache-Control, Accept, Authorization',
+                        'Access-Control-Allow-Headers': global.DEFAULT_ACCESS_CONTROL_ALLOW_HEADERS,
                         'Content-Length': 0,
                         'Connection': 'close',
                         'Cache-Control': 'max-age=0, no-cache, no-store'
@@ -539,7 +539,7 @@ class IconServer extends IconServerStore {
                         response.writeHead(200, {
                             'Access-Control-Allow-Origin': '*',
                             'Access-Control-Allow-Methods': 'GET',
-                            'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Cache-Control, Accept, Authorization',
+                            'Access-Control-Allow-Headers': global.DEFAULT_ACCESS_CONTROL_ALLOW_HEADERS,
                             'Connection': 'close',
                             'Cache-Control': 'max-age=0, no-cache, no-store',
                             'Content-Type': 'image/png'
@@ -561,7 +561,7 @@ class IconServer extends IconServerStore {
                         response.writeHead(404, {
                             'Access-Control-Allow-Origin': '*',
                             'Access-Control-Allow-Methods': 'GET',
-                            'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Cache-Control, Accept, Authorization',
+                            'Access-Control-Allow-Headers': global.DEFAULT_ACCESS_CONTROL_ALLOW_HEADERS,
                             'Connection': 'close',
                             'Cache-Control': 'max-age=0, no-cache, no-store'
                         })
@@ -579,7 +579,7 @@ class IconServer extends IconServerStore {
                     response.writeHead(404, {
                         'Access-Control-Allow-Origin': '*',
                         'Access-Control-Allow-Methods': 'GET',
-                        'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Cache-Control, Accept, Authorization',
+                        'Access-Control-Allow-Headers': global.DEFAULT_ACCESS_CONTROL_ALLOW_HEADERS,
                         'Connection': 'close',
                         'Cache-Control': 'max-age=0, no-cache, no-store'
                     })

@@ -677,7 +677,47 @@ class StreamerSpeedo extends StreamerIdle {
     }
 }
 
-class StreamerSeek extends StreamerSpeedo {
+class StreamerButtonActionFeedback extends StreamerSpeedo {
+    constructor(controls, app){
+        super(controls, app)
+        this.buttonActionFeedbackTimer = 0
+        this.buttonActionFeedbackIgnores = ['stop', 'info', 'tune', 'volume']
+        this.buttonActionFeedbackListeners = {}
+        this.on('draw', () => {
+            this.buttonActionFeedbackLayer = jQuery('#button-action-feedback')
+            this.buttonActionFeedbackLayer.css('visibility', 'visible')
+            this.buttonActionFeedbackLayerInner = this.buttonActionFeedbackLayer.find('span')
+        })
+        this.on('added-player-button', this.addedPlayerButton.bind(this))
+        this.on('updated-player-button', this.updatedPlayerButton.bind(this))
+    }
+    addedPlayerButton(id, name, button, fa) {
+        if(this.buttonActionFeedbackIgnores.includes(id)) return
+        this.buttonActionFeedbackListeners[name] = () => this.buttonActionFeedback(id, fa)
+        button.addEventListener('click', this.buttonActionFeedbackListeners[name])
+    }
+    updatedPlayerButton(id, name, button, fa) {
+        if(this.buttonActionFeedbackIgnores.includes(id)) return
+        console.warn('updatedPlayerButton', id, name, button, fa)
+        button.removeEventListener('click', this.buttonActionFeedbackListeners[name])
+        this.buttonActionFeedbackListeners[name] = () => this.buttonActionFeedback(id, fa)
+        button.addEventListener('click', this.buttonActionFeedbackListeners[name])
+    }
+    buttonActionFeedback(id, fa) {
+        if(this.state == 'loading') return
+        if(id == 'play-pause') {
+            if(this.state == 'playing') return
+            fa = 'fas fa-play'
+        }
+        clearTimeout(this.buttonActionFeedbackTimer)        
+        this.buttonActionFeedbackLayerInner.html('<i class="'+ fa +'" style="transform: scale(1); opacity: 1;"></i>')
+        this.buttonActionFeedbackLayer.show()
+        this.buttonActionFeedbackLayerInner.find('i').css('transform', 'scale(1.5)').css('opacity', '0.01')
+        this.buttonActionFeedbackTimer = setTimeout(() => this.buttonActionFeedbackLayer.hide(), 500)
+    }
+}
+
+class StreamerSeek extends StreamerButtonActionFeedback {
     constructor(controls, app){
         super(controls, app)
         this.seekSkipSecs = 5
@@ -1037,7 +1077,12 @@ class StreamerClientTimeWarp extends StreamerLiveStreamClockTimer {
             if(typeof(ptime) != 'number') {
                 ptime = parent.player.time()
             }
-            const duration = this.activeMimetype.indexOf('mpegurl') ? this.clockTimerDuration() : parent.player.duration()
+            let duration, pduration = parent.player.duration()
+            if(this.activeMimetype.indexOf('mpegurl') != -1 && this.activeMediatype != 'video') {
+                duration = this.clockTimerDuration()
+            } else {
+                duration = pduration
+            }
             if(duration < ptime) return // skip by now
             const remaining = duration - ptime
             let rate = 1 + ((remaining - this.bufferTimeSecs) * (this.maxRateChange / this.bufferTimeSecs))
@@ -1189,7 +1234,11 @@ class StreamerClientVideoFullScreen extends StreamerAndroidNetworkIP {
         if(this.inFullScreen){
             this.leaveFullScreen()
         } else {
-            this.enterFullScreen()
+            if(parent.winman.inPIP) {
+                parent.winman.leave().catch(console.error)
+            } else {
+                this.enterFullScreen()
+            }
         }
     }
 }
@@ -1508,6 +1557,7 @@ class StreamerClientControls extends StreamerAudioUI {
             button.addEventListener('click', () => this.app.emit(action))
         }
         if(name == 'cast' && parent.parent.Manager) parent.parent.Manager.exitPage.touch()
+        this.emit('added-player-button', id, name, button, fa)
     }
     getPlayerButton(id){
         return this.controls.querySelector('#buttons #' + id.split(' ')[0])
@@ -1527,6 +1577,7 @@ class StreamerClientControls extends StreamerAudioUI {
             }            
             $(button).find('i').replaceWith(template)
         }
+        this.emit('updated-player-button', id, name, button, fa)
     }
     enablePlayerButton(id, show){
         let button = this.getPlayerButton(id)

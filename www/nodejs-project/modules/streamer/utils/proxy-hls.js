@@ -90,7 +90,7 @@ class HLSRequests extends StreamerProxyBase {
 		super(opts)
 		this.debugConns = false
 		this.debugUnfinishedRequests = false
-		this.finishRequestsOutsideFromLiveWindow = false
+		this.finishRequestsOutsideFromLiveWindow = true
 		this.prefetchMaxConcurrency = 1
 		this.activeManifest = null
 		this.activeRequests = {}
@@ -178,7 +178,7 @@ class HLSRequests extends StreamerProxyBase {
 						})
 						ks.slice(i + 1).some(k => {
 							this.journals[journalUrl].journal[k].split("\n").some(line => {
-								if(line.length > 3 && !line.startsWith('#')){
+								if(line.length > 3 && !line.startsWith('#')) {
 									let segmentUrl = global.absolutize(this.unproxify(line), journalUrl)
 									if(!this.finishRequestsOutsideFromLiveWindow || this.journals[journalUrl].inLiveWindow(segmentUrl)){
 										next = segmentUrl
@@ -280,16 +280,21 @@ class HLSRequests extends StreamerProxyBase {
 						}
 					}
 				}
-				if(manifest && manifest != this.activeManifest && (!this.playlistBitrates[this.activeManifest] || this.playlistBitrates[manifest])){
+				if(manifest && manifest != this.activeManifest){
 					this.activeManifest = manifest
-					if(this.playlistBitrates[manifest] && !isNaN(this.playlistBitrates[manifest]) && this.playlistBitrates[manifest] > 0){
-						this.saveBitrate(this.playlistBitrates[manifest], true)
+					if(this.playlistsMeta[manifest]) {
+						if(this.playlistsMeta[manifest].bandwidth && !isNaN(this.playlistsMeta[manifest].bandwidth) && this.playlistsMeta[manifest].bandwidth > 0) {
+							this.saveBitrate(this.playlistsMeta[manifest].bandwidth, true)
+						}
+						if(this.playlistsMeta[manifest].resolution) {
+							this.emit('dimensions', this.playlistsMeta[manifest].resolution)
+						}
 					}
 					this.finishObsoleteSegmentRequests(manifest)
 				}
 				if(this.activeManifest && this.committed){ // has downloaded at least one segment to know from where the player is starting
-					if(seg &&  !this.bitrateChecking && (this.bitrates.length < this.opts.bitrateCheckingAmount || !this.codecData)){
-						if(!this.playlistBitrates[this.activeManifest] || !this.codecData || !(this.codecData.audio || this.codecData.video)) {
+					if(seg &&  !this.bitrateChecking && (this.bitrates.length <= this.opts.bitrateCheckingAmount || !this.codecData)){
+						if(!this.playlistsMeta[this.activeManifest] || !this.codecData || !(this.codecData.audio || this.codecData.video)) {
 							this.getBitrate(this.proxify(url))
 						}
 					}					
@@ -383,8 +388,7 @@ class StreamerProxyHLS extends HLSRequests {
 			}
 		})
 		this.playlists = {} // fallback mirrors for when one playlist of these returns 404, it happens, strangely...
-		this.playlistBitrates = {}
-		this.playlistBitratesSaved = {}
+		this.playlistsMeta = {}
 	}
     proxify(url){
         if(typeof(url) == 'string' && url.indexOf('//') != -1){
@@ -496,7 +500,7 @@ class StreamerProxyHLS extends HLSRequests {
 				parser.manifest.playlists.forEach(playlist => {
 					let dn = this.dirname(playlist.uri)
 					u = global.absolutize(playlist.uri, url)
-					if(!Object.keys(this.playlists[url]).includes(u)){
+					if(!this.playlists[url][u]){
 						this.playlists[url][u] = {state: true, name: this.trackName(playlist)} // state=true here means "online"
 					}
 					if(typeof(replaces[dn]) == 'undefined'){
@@ -511,12 +515,16 @@ class StreamerProxyHLS extends HLSRequests {
 						if(this.opts.debug){
 							console.log('ok')
 						}
-						if(playlist.attributes){
-							if(playlist.attributes['AVERAGE-BANDWIDTH'] && parseInt(playlist.attributes['AVERAGE-BANDWIDTH']) > 128){
-								this.playlistBitrates[u] = parseInt(playlist.attributes['AVERAGE-BANDWIDTH'])
-							} else if(playlist.attributes['BANDWIDTH'] && parseInt(playlist.attributes['BANDWIDTH']) > 128){
-								this.playlistBitrates[u] = parseInt(playlist.attributes['BANDWIDTH'])
-							}
+					}
+					if(playlist.attributes && !this.playlistsMeta[u]){
+						this.playlistsMeta[u] = {}
+						if(playlist.attributes['AVERAGE-BANDWIDTH'] && parseInt(playlist.attributes['AVERAGE-BANDWIDTH']) > 128){
+							this.playlistsMeta[u].bandwidth = parseInt(playlist.attributes['AVERAGE-BANDWIDTH'])
+						} else if(playlist.attributes['BANDWIDTH'] && parseInt(playlist.attributes['BANDWIDTH']) > 128){
+							this.playlistsMeta[u].bandwidth = parseInt(playlist.attributes['BANDWIDTH'])
+						}
+						if(playlist.attributes['RESOLUTION']){
+							this.playlistsMeta[u].resolution = playlist.attributes['RESOLUTION'].width +'x'+ playlist.attributes['RESOLUTION'].height
 						}
 					}
 				})
@@ -693,6 +701,8 @@ class StreamerProxyHLS extends HLSRequests {
 				'cross-origin-resource-policy'
 			])
 			headers['access-control-allow-origin'] = '*'
+			headers['access-control-allow-methods'] = 'get'
+			headers['access-control-allow-headers'] = global.DEFAULT_ACCESS_CONTROL_ALLOW_HEADERS
 			if(this.opts.forceExtraHeaders){
 				Object.assign(headers, this.opts.forceExtraHeaders)
 			}

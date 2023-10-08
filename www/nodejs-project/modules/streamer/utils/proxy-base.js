@@ -5,6 +5,7 @@ class StreamerProxyBase extends StreamerAdapterBase {
 	constructor(opts){
 		super('', opts)
 		this.connectable = false
+		this.isCacheableRegex = new RegExp('^.*\\.(m4s|mts|m2ts|ts|key)', 'i')
 		this.segmentExts = {
 			'ts': null,
 			'mts': null,

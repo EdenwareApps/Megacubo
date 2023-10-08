@@ -569,7 +569,7 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 					s = 'paused'
 				} else {
 					s = 'loading'
-					this.object.play().catch(console.error)
+					this.resume()
 				} 
 			} else if(this.object.readyState < 4) { // if duration == Infinity, readyState will be 3		
 				this.lastSeenTime = this.object.currentTime

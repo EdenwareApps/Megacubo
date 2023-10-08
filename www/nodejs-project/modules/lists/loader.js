@@ -17,6 +17,12 @@ class ListsLoader extends Events {
         this.enqueue(this.myCurrentLists, 1)
         global.uiReady(async () => {
             global.discovery.on('found', () => this.resetLowPriorityUpdates())
+            global.streamer.on('commit', () => this.pause())
+            global.streamer.on('stop', () => {
+                setTimeout(() => {
+                    global.streamer.active || this.resume()
+                }, 2000) // wait 2 seconds, maybe user was just switching channels
+            })
             this.resetLowPriorityUpdates()
         })
         global.config.on('change', (keys, data) => {
@@ -149,9 +155,10 @@ class ListsLoader extends Events {
         let cancel, started, done
         this.processes.some(p => p.url == url) || this.processes.push({
             promise: this.queue.add(async () => {
+                started = true
+                this.paused && await this.wait()
                 await global.Download.waitNetworkConnection()
                 if(cancel) return
-                started = true
                 await this.prepareUpdater()
                 this.results[url] = 'awaiting'
                 this.results[url] = await this.updater.update(url, false).catch(console.error)
@@ -167,6 +174,19 @@ class ListsLoader extends Events {
 			done: () => done || cancel,
             priority,
             url
+        })
+    }
+    pause() {
+        this.paused = true
+    }
+    resume() {
+        this.paused = false
+        this.emit('resume')
+    }
+    wait() {
+        return new Promise(resolve => {
+            if(!this.paused) return resolve()
+            this.once('resume', resolve)
         })
     }
     async reload(url){

@@ -99,7 +99,7 @@ class Downloads extends Events {
 					'content-type': this.mimes[ext] || 'text/plain',
 					'access-control-allow-origin': '*',
 					'access-control-allow-methods': 'get',
-					'access-control-allow-headers': 'origin, x-requested-with, content-type, content-length, content-range, cache-control, accept, accept-ranges, authorization',
+					'access-control-allow-headers': global.DEFAULT_ACCESS_CONTROL_ALLOW_HEADERS,
 					'cache-control': 'max-age=0, no-cache, no-store',
 					//'content-disposition': 'attachment; filename="' + name + '"',
 					'connection': 'close'

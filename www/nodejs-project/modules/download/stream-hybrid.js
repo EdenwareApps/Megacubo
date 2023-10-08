@@ -16,6 +16,15 @@ class DownloadStream extends DownloadStreamBase {
 			![204].includes(response.statusCode) // softly ignore these ones
 	}
     async start(){
+        if(this.started){
+            throw 'Already started'
+        }
+        if(this.ended){
+            throw 'Already ended'
+        }
+        if(this.destroyed){
+            throw 'Already destroyed'
+        }
         const types = [DownloadStreamHttp]
         if(typeof(this.opts.cacheTTL) == 'number' && this.opts.cacheTTL > 0) {
             types.unshift(DownloadStreamCache)
@@ -25,7 +34,7 @@ class DownloadStream extends DownloadStreamBase {
             const opts = Object.assign({}, this.ropts)
             const via = new t(opts)
             via.once('error', (err, report) => {
-                report && console.error(err)
+                (report || via == chosen) && console.error(err)
             })
             via.once('response', response => {
                 if(chosen){
@@ -33,7 +42,7 @@ class DownloadStream extends DownloadStreamBase {
                 }
                 via.validation = [response, this.validate(response)]
                 if(this.validate(response)){
-                    chosen = true
+                    chosen = via
                     vias.filter(v => v != via).forEach(v => v.destroy())
                     response.headers['x-megacubo-dl-source'] = via.type
                     this.emit('response', response)
@@ -43,7 +52,7 @@ class DownloadStream extends DownloadStreamBase {
                         response.once('end', () => this.end())
                     }
                 } else {
-                    if(response.statusCode && (!responseData || via.type == 'http')) {
+                    if(via.type == 'http') {
                         responseData = {
                             statusCode: response.statusCode,
                             headers: response.headers

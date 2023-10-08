@@ -5,41 +5,19 @@ class DownloadStreamResponse extends Events {
 		super()
         this.statusCode = statusCode
         this.headers = headers
-        this.buffering = []
     }
     write(chunk){
-        if(this.paused){
-            this.buffering.push(chunk)
-        } else {
-            this.emit('data', chunk)
-        }
-    }
-    resume(){
-        this.buffering.map(c => this.emit('data', c))
-        this.buffering = []
-        this.paused = false
-        if(this.pausedEnded){
-            this.end()
-        }
-    }
-    pause(){
-        this.paused = true
+        this.emit('data', chunk)
     }
 	emitError(error){
-		if(this.listenerCount('error')){
-			this.emit('error', error)
-		}
+        this.error = error
+		this.listenerCount('error') && this.emit('error', error)
 		this.end()
 	}
     end(){
-        if(this.paused){
-            this.pausedEnded = true
-        } else {
-            this.ended = true
-            this.emit('end')
-            this.removeAllListeners()
-        }
-        this.buffering = []
+        this.ended = global.traceback()
+        this.emit('end')
+        this.removeAllListeners()
     }
 }
 
@@ -92,15 +70,13 @@ class DownloadStream extends Events {
     }
 	emitError(error, report){
         this.error = error
-        report && console.warn('DownloadStream:'+ this.type, this.opts.url, error)
-		if(this.listenerCount('error')){
-			this.emit('error', error, report)
-		}
+        report && !this.destroyed && console.warn('DownloadStream:'+ this.type, this.opts.url, error)
+		this.listenerCount('error') && this.emit('error', error, report)
 		this.end()
 	}
     end(){
         if(!this.ended){
-            this.ended = true
+            this.ended = global.traceback()
             this.emit('end')
         }
         this.destroy()

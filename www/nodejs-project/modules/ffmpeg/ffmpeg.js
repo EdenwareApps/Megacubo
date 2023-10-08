@@ -333,9 +333,7 @@ class FFMPEGMediaInfo extends FFMPEGHelper {
 			this.exec(path, ['-c', 'copy', tempFile], (error, output) => {
 				cb(String(error || output))
 				fs.unlink(tempFile, err => {
-					if(err){
-						console.error('CANNOT DELETE', err, error, output)
-					}
+					err && console.error('CANNOT DELETE', err, error, output)
 				})
 			}, ['-ss', '00:00:00', '-to', '00:00:02'])
 		}

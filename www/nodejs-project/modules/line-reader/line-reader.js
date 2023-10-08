@@ -5,21 +5,13 @@ class LineEmitter extends Writable {
 	constructor(options = {}) {
 		super(options)
 		this.buffer = ''
-		this.maxBufferSize = options.maxBufferSize || 1024 * 1024
+		this.maxBufferSize = options.maxBufferSize || 1024 * 256
 	}
 	_write(chunk, encoding, callback) {
 		this.buffer += chunk
 		if (this.buffer.length > this.maxBufferSize) {
 			this.emitLines()
 		}
-		let startIndex = 0
-		let lineIndex
-		while ((lineIndex = this.buffer.indexOf('\n', startIndex)) !== -1) {
-			const line = this.buffer.substring(startIndex, lineIndex)
-			this.emit('line', line)
-			startIndex = lineIndex + 1
-		}
-		this.buffer = this.buffer.substring(startIndex)
 		callback()
 	}
 	_final(callback) {
@@ -28,12 +20,14 @@ class LineEmitter extends Writable {
 		callback()
 	}
 	emitLines() {
-		const lines = this.buffer.split('\n')
-		const lastLine = lines.pop()
-		for (const line of lines) {
+		let startIndex = 0
+		let lineIndex
+		while ((lineIndex = this.buffer.indexOf('\n', startIndex)) !== -1) {
+			let line = this.buffer.substring(startIndex, this.buffer[lineIndex - 1] == '\r' ? (lineIndex - 1) : lineIndex)
 			this.emit('line', line)
+			startIndex = lineIndex + 1
 		}
-		this.buffer = lastLine || ''
+		this.buffer = this.buffer.substring(startIndex)
 	}
 }
 

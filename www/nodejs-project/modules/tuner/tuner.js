@@ -12,7 +12,6 @@ const streamer = () => {
 class TunerUtils extends Events {
     constructor(entries, opts, name){
         super()
-		this.setMaxListeners(64)
         this.paused = true
         this.opts = {
 			debug: false,
@@ -55,7 +54,7 @@ class TunerTask extends TunerUtils {
 		this.errors = []
 		this.states = []
         this.domainDelay = {}
-		this.setMaxListeners(entries.length)
+		this.setMaxListeners(entries.length * 2)
 	}
 	async test(e, i){
 		/*

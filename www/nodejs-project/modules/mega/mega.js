@@ -10,7 +10,7 @@ class Mega {
 		return url.substr(0, 7) == 'mega://'      
 	}	
 	parse(megaURL){
-		if(this.isMega(megaURL)){
+		if(this.isMega(megaURL)) {
 			let mediaType = 'live', url = '', name = '', qs = {}, type = 'name'
 			let parts = megaURL.substr(7).split('#')[0]
 			parts = parts.split('?')
@@ -49,6 +49,9 @@ class Mega {
 			Object.keys(qs).forEach(k => {
 				if(qs[k]){
 					ret[k] = qs[k]
+					if(k === 'terms') {
+						ret[k] = ret[k].toLowerCase().split(',')
+					}
 				}
 			})
 			return ret

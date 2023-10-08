@@ -12,7 +12,6 @@ class StreamerProxy extends StreamerProxyBase {
 		this.internalRequestAbortedEvent = 'request-aborted'
 		this.opts.followRedirect = true
 		this.opts.forceExtraHeaders = null
-		this.isCacheableRegex = new RegExp('^.*\\.(m4s|mts|m2ts|ts|key)', 'i')
 		if(this.opts.debug){
 			console.log('OPTS', this.opts)
 		}
@@ -30,7 +29,9 @@ class StreamerProxy extends StreamerProxyBase {
 			if(this.connections[uid].response){
 				if(data && typeof(data) != 'number' && global.isWritable(this.connections[uid].response)){
 					if(!this.connections[uid].response.headersSent){
-						this.connections[uid].response.setHeader('access-control-allow-origin', '*')
+            			response.setHeader('Access-Control-Allow-Origin', '*')
+						response.setHeader('Access-Control-Allow-Methods', 'GET')
+			            response.setHeader('Access-Control-Allow-Headers', global.DEFAULT_ACCESS_CONTROL_ALLOW_HEADERS)
 					}
 					this.connections[uid].response.end(data)
 				} else {
@@ -221,14 +222,18 @@ class StreamerProxy extends StreamerProxyBase {
 	handleRequest(req, response){
 		if(this.disabled){
 			response.writeHead(410, {
-				'Access-Control-Allow-Origin': '*',
+				'access-control-allow-origin': '*',
+				'access-control-allow-methods': 'get',
+				'access-control-allow-headers': global.DEFAULT_ACCESS_CONTROL_ALLOW_HEADERS,
 				'connection': 'close'
 			})
 			return response.end()
 		}
 		if(this.destroyed || req.url.indexOf('favicon.ico') != -1){
 			response.writeHead(404, {
-				'Access-Control-Allow-Origin': '*',
+				'access-control-allow-origin': '*',
+				'access-control-allow-methods': 'get',
+				'access-control-allow-headers': global.DEFAULT_ACCESS_CONTROL_ALLOW_HEADERS,
 				'connection': 'close'
 			})
 			return response.end()
@@ -238,7 +243,9 @@ class StreamerProxy extends StreamerProxyBase {
 				if(!req.headers['x-from-network-proxy'] && !req.rawHeaders.includes('x-from-network-proxy')){
 					console.warn('networkOnly block', this.type, req.rawHeaders)
 					response.writeHead(504, {
-						'Access-Control-Allow-Origin': '*',
+						'access-control-allow-origin': '*',
+						'access-control-allow-methods': 'get',
+						'access-control-allow-headers': global.DEFAULT_ACCESS_CONTROL_ALLOW_HEADERS,
 						'connection': 'close'
 					})
 					return response.end()
@@ -331,6 +338,8 @@ class StreamerProxy extends StreamerProxyBase {
 				'cross-origin-resource-policy'
 			])
 			headers['access-control-allow-origin'] = '*'
+			headers['access-control-allow-methods'] = 'get'
+			headers['access-control-allow-headers'] = global.DEFAULT_ACCESS_CONTROL_ALLOW_HEADERS
 			if(this.opts.forceExtraHeaders){
 				Object.assign(headers, this.opts.forceExtraHeaders)
 			}
@@ -457,7 +466,7 @@ class StreamerProxy extends StreamerProxyBase {
 			}
 		}
 		let initialOffset = download.requestingRange ? download.requestingRange.start : 0, offset = initialOffset
-		let sampleCollected, doBitrateCheck = this.committed && this.type != 'network-proxy' && this.bitrates.length < this.opts.bitrateCheckingAmount
+		let sampleCollected, doBitrateCheck = this.committed && this.type != 'network-proxy' && this.bitrates.length <= this.opts.bitrateCheckingAmount
 		let onend = () => {
 			if(doBitrateCheck){
 				if(this.opts.debug){

@@ -61,9 +61,7 @@ class DownloadCacheChunksReader extends Events {
             if(stat.size == 0) return this.emit('end')
             if(this.opts.start && this.opts.start >= stat.size) return this.pump()
             const end = err => {
-                if(err){
-                    console.error('DownloadCacheChunks()', err)
-                }
+                err && console.error('DownloadCacheChunks()', err)
                 if(!this.masterEnded){
                     this.masterEnded = this.master.ended
                 }
@@ -84,15 +82,6 @@ class DownloadCacheChunksReader extends Events {
             })
             this.stream.once('end', end)
         })
-    }
-    pause(){
-        this.paused = true
-        this.stream && this.stream.pause()
-    }
-    resume(){
-        this.paused = false
-        this.stream && this.stream.resume()
-        this.pump()
     }
     emitData(data, offset){
         if(typeof(this.opts.start) == 'number'){
@@ -127,15 +116,13 @@ class DownloadCacheChunksReader extends Events {
         this.emit('end')
 	}
     pump(){
-        if(!this.fcheck || this.stream || this.paused){
-            return
-        }
+        if(!this.fcheck || this.stream) return
         this.pending.forEach((c, i) => {
             if(!c.data) return
             let len = c.data.length, start = c.offset, end = start + len
             if(this.processed < end){
                 const data = this.processed > start ? c.data.slice(this.processed - start) : c.data
-                this.emitData(c.data, this.processed)
+                this.emitData(data, this.processed)
                 this.processed += len
                 /*
                 TODO: workaround it, console.warn('Bad pumping', this.processed, end)
@@ -164,11 +151,12 @@ class DownloadCacheChunksReader extends Events {
 Cache saver to disk which allows to read it even while saving, with createReadStream()
 */
 class DownloadCacheChunks extends Events {
-    constructor(){
+    constructor(url){
         super()
         this.setMaxListeners(99)
-        this.uid = 'dcc-'+ parseInt(Math.random() * 100000000000)
-        this.file = global.storage.folder +'/dlcache/'+ this.uid
+        this.folder = global.storage.folder +'/dlcache/'
+        this.uid = 'dcc-'+ url.replace(new RegExp('^https?://'), '').replace(new RegExp('[^A-Za-z0-9]+', 'g'), '-').substr(0, 260 - (this.folder.length + 4))
+        this.file = this.folder + this.uid + '.bin'
         this.chunks = []
         this.size = 0
         this.created = false
@@ -416,14 +404,14 @@ class DownloadCacheMap extends Events {
     save(downloader, chunk, ended){
         const opts = downloader.opts
         const url = downloader.currentURL
+        if(downloader.requestingRange && 
+            (downloader.requestingRange.start > 0 || 
+                (downloader.requestingRange.end && downloader.requestingRange.end < (downloader.totalContentLength - 1))
+            )
+        ){ // partial content request, skip saving
+            return
+        }
         if(typeof(this.index[url]) == 'undefined') {
-            if(downloader.requestingRange && 
-                (downloader.requestingRange.start > 0 || 
-                    (downloader.requestingRange.end && downloader.requestingRange.end < (downloader.totalContentLength - 1))
-                )
-            ){ // partial content request, skip saving
-                return
-            }
             const time = parseInt(global.time())
             let ttl = time + opts.cacheTTL
             if(downloader.lastHeadersReceived && typeof(downloader.lastHeadersReceived['x-cache-ttl']) != 'undefined') {
@@ -433,10 +421,11 @@ class DownloadCacheMap extends Events {
                 }
             }
             const headers = downloader.lastHeadersReceived ? Object.assign({}, downloader.lastHeadersReceived) : {}
-            const chunks = new DownloadCacheChunks()
-            if(headers['content-encoding']){
+            const chunks = new DownloadCacheChunks(url)
+            chunks.on('error', err => console.error('DownloadCacheChunks error: '+ err))
+            if(headers['content-encoding']) {
                 delete headers['content-encoding'] // already uncompressed
-                if(headers['content-length']){
+                if(headers['content-length']) {
                     delete headers['content-length'] // length uncompressed is unknown
                 }
             }
@@ -459,24 +448,23 @@ class DownloadCacheMap extends Events {
                 chunk = null // freeup
             }
             if(ended) {
+                const chunks = this.index[url].chunks
                 const finish = () => {
-                    if(!this.index[url] || this.index[url].type != 'saving'){
-                        return
-                    }
-                    const expectedLength = this.index[url].size === false ? downloader.totalContentLength : this.index[url].chunks.size
-                    if(this.index[url].chunks.error) {
-                        console.warn(this.index[url].chunks.error)
-                        this.index[url].chunks.destroy()
+                    if(!this.index[url] || this.index[url].type != 'saving') return
+                    const expectedLength = this.index[url].size === false ? downloader.totalContentLength : chunks.size
+                    if(chunks.error) {
+                        console.warn(chunks.error)
+                        chunks.destroy()
                         delete this.index[url].chunks
                         delete this.index[url]
-                    } else if((this.index[url].size === false && !expectedLength) || (expectedLength != this.index[url].chunks.size)) {
-                        console.warn('Bad file size. Expected: '+ this.index[url].size +', received: '+ this.index[url].chunks.size +', discarding http cache.')
-                        this.index[url].chunks.destroy()
+                    } else if((this.index[url].size === false && !expectedLength) || (expectedLength != chunks.size)) {
+                        console.warn('Bad file size. Expected: '+ this.index[url].size +', received: '+ chunks.size +', discarding http cache.')
+                        chunks.destroy()
                         delete this.index[url].chunks
                         delete this.index[url]
                     } else if(downloader.statusCode < 200 || downloader.statusCode > 400 || (downloader.errors.length && !downloader.received)) {
-                        console.warn('Bad download. Status: '+ downloader.statusCode +', received: '+ this.index[url].chunks.size, downloader.errors, downloader.received)
-                        this.index[url].chunks.destroy()
+                        console.warn('Bad download. Status: '+ downloader.statusCode +', received: '+ chunks.size, downloader.errors, downloader.received)
+                        chunks.destroy()
                         delete this.index[url].chunks
                         delete this.index[url]
                     } else {
@@ -484,23 +472,23 @@ class DownloadCacheMap extends Events {
                             this.index[url].status = downloader.statusCode
                         }
                         if(CACHE_MEM_ONLY){
-                            this.index[url].headers['content-length'] = this.index[url].size = this.index[url].chunks.size
-                            this.index[url].chunks.end()
+                            this.index[url].headers['content-length'] = this.index[url].size = chunks.size
+                            chunks.end()
                         } else {
-                            this.index[url].headers['content-length'] = this.index[url].size = this.index[url].chunks.size
-                            this.index[url].data = this.index[url].chunks.file
+                            this.index[url].headers['content-length'] = this.index[url].size = chunks.size
+                            this.index[url].data = chunks.file
                             this.index[url].type = 'file'
-                            this.index[url].chunks.destroy()
+                            chunks.destroy()
                             delete this.index[url].chunks
                         }
                     }
                 }
-                if(this.index[url].chunks.finished){
+                if(chunks.finished){
                     finish()
                 } else {
-                    this.index[url].chunks.on('finish', finish)
+                    chunks.on('finish', finish)
                 }
-                this.index[url].chunks.end()
+                chunks.end()
             }
         }
     }

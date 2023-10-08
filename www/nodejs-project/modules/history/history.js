@@ -131,10 +131,7 @@ class History extends EntriesGroup {
             entries.forEach((e, i) => gentries[ks[i]] = e)
         }
         if(gentries.length){
-            gentries.push({name: global.lang.CLEAR, fa: 'fas fa-trash', type: 'action', action: () => {
-                this.clear()
-                global.explorer.refreshNow()
-            }})
+            gentries.push({name: global.lang.REMOVE, fa: 'fas fa-trash', type: 'group', renderer: this.removalEntries.bind(this)})
         }
         return gentries
     }

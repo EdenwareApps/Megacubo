@@ -46,7 +46,7 @@ class StreamerTSIntent extends StreamerBaseIntent {
             }
         })
     }
-    useFFmpeg(){
+    useFF(){
         if(global.config.get('ffmpeg-broadcast-pre-processing') == 'yes'){
             return true
         }
@@ -59,7 +59,7 @@ class StreamerTSIntent extends StreamerBaseIntent {
         }, this.opts))
         this.connectAdapter(this.downloader)
         await this.downloader.start()
-        if(this.useFFmpeg()){
+        if(this.useFF()){
             const decoder = new StreamerFFmpeg(this.downloader.source.endpoint, this.opts)
             this.mimetype = this.mimeTypes[decoder.opts.outputFormat]
             this.decoder = decoder

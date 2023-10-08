@@ -57,26 +57,17 @@ class DownloadStreamHttp extends DownloadStreamBase {
         }        
 		return opts
 	}
-    resolve(host){
-        return new Promise((resolve, reject) => {
-            if(this.ended || this.destroyed) {
-                return reject('Connection already ended')
-            }
-            if(Array.isArray(this.ips)) {
-                return resolve(this.ips)
-            }
+    async resolve(host){
+        if(this.ended || this.destroyed) throw 'Connection already ended (on resolve)'
+        if(!Array.isArray(this.ips)) {
             if(net.isIPv4(host) || net.isIPv6(host)){
-                this.ips = [
-                    {address: host, family: net.isIPv6(host) ? 6 : 4}
-                ]
-                return resolve(this.ips)
+                this.ips = [{address: host, family: net.isIPv6(host) ? 6 : 4}]
             } else {
-                lookup.lookup(host, {all: true, family: 0}).then(ips => {
-                    this.ips = ips
-                    resolve(ips)
-                }).catch(reject)
+                const ips = await lookup.lookup(host, {all: true, family: 0})
+                this.ips = ips
             }
-        })
+        }
+        return this.ips
     }
     skipWait(){
         if(this.delay){
@@ -97,8 +88,11 @@ class DownloadStreamHttp extends DownloadStreamBase {
         })
     }
     async start(){
-        if(this.ended || this.destroyed) {
-            throw 'Connection already ended'
+        if(this.ended) {
+            throw 'Connection already ended (on start) '+ (this.error || this.ended || this.destroyed)
+        }
+        if(this.destroyed) {
+            throw 'Connection already destroyed (on start) '+ (this.error || this.ended || this.destroyed)
         }
         const start = global.time()
         let fine

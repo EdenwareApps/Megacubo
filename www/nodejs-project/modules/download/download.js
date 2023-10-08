@@ -1025,8 +1025,8 @@ Download.waitNetworkConnection = () => {
 	})
 }
 
-Download.head = (...args) => {
-	let _reject, g, resolved, opts = args[0]
+Download.head = opts => {
+	let _reject, g, resolved
 	let promise = new Promise((resolve, reject) => {
 		_reject = reject
 		g = new Download(opts)

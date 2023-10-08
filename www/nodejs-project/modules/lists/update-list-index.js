@@ -94,6 +94,7 @@ class UpdateListIndex extends ListIndexUtils {
                     file: global.paths.temp + '/update-'+ parseInt(Math.random() * 10000000) +'.tmp',
                     debug: false
                 }
+                this.on('destroy', () => fs.unlink(opts.file, () => {}))
                 this.stream = new global.Download(opts)
                 this.stream.on('redirect', (url, headers) => this.parseHeadersMeta(headers))
                 this.stream.on('response', (statusCode, headers) => {

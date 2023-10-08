@@ -582,19 +582,23 @@ class StreamerGoNext extends StreamerThrottling {
 	sleep(ms){
 		return new Promise(resolve => setTimeout(resolve, ms))
 	}
-	async getNext(){
+	async getNext(offset=0){
 		const entry = this.active ? this.active.data : this.lastActiveData
 		const entries = await global.storage.promises.get('streamer-go-next-queue').catch(console.error)
 		if(entry && Array.isArray(entries)){
-			let next, found
+			let next, found = -1
 			entries.some(e => {
 				if(e){
-					if(found){
-						next = e
-						return true
+					if(found >= 0){
+						if(found == offset) {
+							next = e
+							return true
+						} else {
+							found++
+						}
 					} else {
 						if(e.url == entry.url) {
-							found = true
+							found = 0
 						}
 					}
 				}
@@ -617,31 +621,35 @@ class StreamerGoNext extends StreamerThrottling {
 		}
 	}
 	async goNextButtonVisibility() {
-		const entry = this.active ? this.active.data : this.lastActiveData
-		const next = await this.getNext(entry)
+		const next = await this.getNext()
 		global.ui.emit('enable-player-button', 'next', !!next)
 	}
 	async goNext(immediate){
-		const next = await this.getNext()
-		if(next){
-			const start = global.time(), delay = immediate ? 0 : 5, ret = {}
-            global.osd.show(global.lang.GOING_NEXT_SECS_X.format(delay), 'fa-mega spin-x-alt', 'go-next', 'persistent')
-			this.goingNext = true
-            ret.info = await this.info(next.url, 2, next).catch(err => ret.err = err)
-			const now = global.time(), elapsed = now - start
-			if(!ret.err && elapsed < delay){
-				await this.sleep((delay - elapsed) * 1000)
+		let offset = 0, start = global.time(), delay = immediate ? 0 : 5
+		global.osd.show(global.lang.GOING_NEXT_SECS_X.format(delay), 'fa-mega spin-x-alt', 'go-next', 'persistent')
+		this.goingNext = true
+		while(true) {
+			const next = await this.getNext(offset), ret = {}
+			if(!next) break
+			ret.info = await this.info(next.url, 2, next).catch(err => ret.err = err)
+			if(ret.err) {
+				offset++
+				continue // try next one
 			}
+			const now = global.time(), elapsed = now - start
 			if(this.goingNext !== true) return // cancelled
-			global.osd.hide('go-next')
-			if(ret.ui == 'cancel') {
-				return
-			} else if(ret.err) {
-				throw ret.err
+			let err
+			if(elapsed < delay) await this.sleep((delay - elapsed) * 1000)
+			await this.intentFromInfo(next, {}, undefined, ret.info).catch(e => err = e)
+			if(err) {
+				offset++
+				continue // try next one
 			} else {
-				return this.intentFromInfo(next, {}, undefined, ret.info)
+				break
 			}
 		}
+		this.goingNext = false
+		global.osd.hide('go-next')
 	}
 	cancelGoNext(){
 		delete this.goingNext
@@ -669,7 +677,7 @@ class StreamerTracks extends StreamerGoNext {
 	getTrackOptions(tracks, activeTrack){
 		const sep = ' &middot; ', opts = Object.keys(tracks).map((name, i) => {
 			let opt = {template: 'option', text: name, id: 'track-'+ i}
-			if(tracks[name] == activeTrack){
+			if(tracks[name].url == activeTrack){
 				opt.fa = 'fas fa-play'
 			}
 			return opt
@@ -723,7 +731,7 @@ class StreamerTracks extends StreamerGoNext {
 				attributesToDelete.push(key)
 			}
 		}
-		arr.forEach(obj => {
+		attributesToDelete.length && arr.forEach(obj => {
 			attributesToDelete.forEach(attr => {
 				delete obj[attr]
 			})
@@ -732,18 +740,25 @@ class StreamerTracks extends StreamerGoNext {
 	}
 	async showQualityTrackSelector(){
 		if(!this.active) return
-		let activeTrackId, activeTrack = this.active.getActiveQualityTrack(), tracks = this.active.getQualityTracks(), opts = this.getTrackOptions(tracks, activeTrack)
+		let activeTrackId, activeTrack = this.active.getActiveQualityTrack(), tracks = await this.active.getQualityTracks(true), opts = this.getTrackOptions(tracks, activeTrack)
 		opts.forEach(o => {
 			if(o.fa) activeTrackId = o.id
 		})
 		opts.unshift({template: 'question', text: global.lang.SELECT_QUALITY})
 		let ret = await global.explorer.dialog(opts, activeTrackId)
 		if(ret){
-			let uri
-			opts.filter(o => o.id == ret).forEach(o => {
-				uri = tracks[o.otext || o.text]
+			let uri, bandwidth
+			opts.some(o => {
+				if(o.id != ret) return
+				const track = tracks[o.otext || o.text]
+				if(track) {
+					uri = this.active.prx.proxify(track.url)
+					bandwidth = track.bandwidth
+					return true
+				}
 			})
 			if(uri && uri != this.active.endpoint){
+				this.active.setActiveQualityTrack(uri, bandwidth)
 				this.active.endpoint = uri
 				this.uiConnect()
 			}
@@ -815,9 +830,12 @@ class StreamerAbout extends StreamerTracks {
 			this.aboutRegisterEntry('more', data => {
 				return {template: 'option', text: global.lang.MORE_OPTIONS, id: 'more', fa: 'fas fa-ellipsis-v'}
 			}, this.moreAbout.bind(this))
-			this.aboutRegisterEntry('tracks', () => {
-				if(this.active.getQualityTracks && Object.keys(this.active.getQualityTracks()).length){
-					return {template: 'option', fa: 'fas fa-bars', text: global.lang.SELECT_QUALITY, id: 'tracks'}
+			this.aboutRegisterEntry('tracks', async () => {
+				if(this.active.getQualityTracks) {
+					const tracks = await this.active.getQualityTracks()
+					if(Object.keys(tracks).length > 1) {
+						return {template: 'option', fa: 'fas fa-bars', text: global.lang.SELECT_QUALITY, id: 'tracks'}
+					}
 				}
 			}, this.showQualityTrackSelector.bind(this), null, true)
 			this.aboutRegisterEntry('audiotracks', () => {
@@ -1121,7 +1139,7 @@ class Streamer extends StreamerAbout {
 		if(this.connectId != connectId){
 			throw 'another play intent in progress'
 		}
-		console.log('tuning', name)
+		console.log('tuning', name, entries.length)
 		let tuning = new AutoTuner(entries, {preferredStreamURL, name, megaURL, mediaType})
 		global.tuning = tuning
 		tuning.txt = txt
@@ -1196,7 +1214,7 @@ class Streamer extends StreamerAbout {
 			if(opts.name){
 				name = opts.name
 			}
-			let terms = opts.terms ? opts.terms.split(',') : global.lists.terms(name, false)
+			let terms = opts.terms || global.lists.terms(name, false)
 			silent || global.osd.show(global.lang.TUNING_WAIT_X.format(name), 'fa-mega spin-x-alt', 'streamer', 'persistent')
 			const listsReady = await global.lists.manager.waitListsReady(10)
 			if(listsReady !== true) {				
@@ -1212,7 +1230,7 @@ class Streamer extends StreamerAbout {
 				silent || global.explorer.setLoadingEntries(loadingEntriesData, false)
 				throw 'another play intent in progress'
 			}		
-			//console.warn('ABOUT TO TUNE', name, JSON.stringify(entries), opts)
+			// console.warn('ABOUT TO TUNE', terms, name, JSON.stringify(entries), opts)
 			entries = entries.results		
 			if(entries.length){
 				entries = entries.map(s => {

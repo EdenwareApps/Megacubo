@@ -544,6 +544,9 @@ div#seek-back, div#seek-fwd {
     font-size: var(--controls-button-height);    
     flex-direction: column;
 }
+div#button-action-feedback i {
+    transition: transform 0.5s ease-out 0s, opacity 0.5s ease-out 0s;
+}
 span.seek-layer-time {
     display: block;
     height: 0;

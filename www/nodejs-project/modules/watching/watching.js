@@ -172,7 +172,7 @@ class Watching extends EntriesGroup {
         let recoverNameFromMegaURL = true, ex = !global.config.get('communitary-mode-lists-amount') // we'll make entries URLless for exclusive mode, to use the provided lists only
         data = global.lists.prepareEntries(data)
         data = data.filter(e => (e && typeof(e) == 'object' && typeof(e.name) == 'string')).map(e => {
-            let isMega = global.mega.isMega(e.url)
+            const isMega = global.mega.isMega(e.url)
             if(isMega && recoverNameFromMegaURL){
                 let n = global.mega.parse(e.url)
                 if(n && n.name){
@@ -199,9 +199,7 @@ class Watching extends EntriesGroup {
                 searchTerms.some(terms => {
                     if(global.lists.match(terms, entry.terms.name)){
                         const name = terms.join(' ')
-                        if(!gsearches.includes(name)){
-                            gsearches.push(name)
-                        }
+                        gsearches.includes(name) || gsearches.push(name)
                         ch = {name}
                         return true
                     }
@@ -237,7 +235,7 @@ class Watching extends EntriesGroup {
                 type: 'group',
                 fa: 'fas fa-play-circle',
                 users: gcount[n],
-                url: gsearches.includes(n) ? global.mega.build(name, {terms: n.split(' '), mediaType: 'all'}) : undefined
+                url: global.mega.build(name, {terms: n.split(' '), mediaType: gsearches.includes(n) ? 'all' : 'live'})
             }))
         })
         data = data.filter(e => {

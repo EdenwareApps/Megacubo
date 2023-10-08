@@ -2,7 +2,160 @@
 const path = require('path'), fs = require('fs'), http = require('http')
 const Events = require('events'), Writer = require('../../writer')
 
-class StreamerAdapterBase extends Events {
+class StreamerAdapterBaseBitrate extends Events {
+	constructor(){
+		super()
+	}
+	getBitrateHLS(url){
+		this.getTSFromM3U8(url, url => {
+			if(url){
+				this.getBitrate(url)
+			}
+		})
+	}
+	saveBitrate(bitrate, force){
+		const prevBitrate = this.bitrate
+		if(force){
+			this.bitrates = [bitrate]
+			this.bitrate = bitrate
+		} else {
+			this.bitrates.push(bitrate)
+			if(this.bitrates.length >= 3){
+				this.bitrate = this.findTwoClosestValues(this.bitrates).reduce((a, b) => a + b, 0) / 2
+				this.bitrates = this.bitrates.slice(-3)
+			} else {
+				this.bitrate = this.bitrates.reduce((a, b) => a + b, 0) / this.bitrates.length
+			}
+		}
+		if(this.bitrate != prevBitrate){
+			this.emit('bitrate', this.bitrate, this.currentSpeed)
+		}
+	}
+	pumpGetBitrateQueue(){
+		this.bitrateChecking = false
+		if(this.getBitrateQueue.length && !this.destroyed){
+			this.getBitrate(this.getBitrateQueue.shift())
+		}
+	}
+	getBitrate(file){
+		if(this.bitrateChecking){
+			this.getBitrateQueue.includes(file) || this.getBitrateQueue.push(file)
+			return
+		}
+		this.bitrateChecking = true
+		const isHTTP = file.match(new RegExp('^((rtmp|rtsp|https?://)|//)'))
+		const next = (err, stat) => {
+			if(this.destroyed || (this.bitrates.length >= this.opts.bitrateCheckingAmount && this.codecData) || this.bitrateCheckFails >= this.opts.maxBitrateCheckingFails){
+				this.bitrateChecking = false
+				this.getBitrateQueue = []
+				this.clearBitrateSampleFiles()
+			} else if(err || (!isHTTP && stat.size < this.opts.minBitrateCheckSize)) {
+				this.pumpGetBitrateQueue()
+			} else {
+				console.log('getBitrate', file, this.url, isHTTP ? null : stat.size, this.opts.minBitrateCheckSize, traceback())
+				global.ffmpeg.bitrate(file, (err, bitrate, codecData, dimensions, nfo) => {
+					isHTTP || fs.unlink(file, () => {})
+					if(!this.destroyed){
+						console.log('getBitrate', file, bitrate, codecData, dimensions, nfo)
+						if(codecData){
+							this.addCodecData(codecData)
+						}
+						if(dimensions && !this._dimensions){
+							this._dimensions = dimensions
+							this.emit('dimensions', this._dimensions)
+						}
+						if(err){
+							this.bitrateCheckFails++
+							this.opts.minBitrateCheckSize += this.opts.minBitrateCheckSize * 0.5
+							this.opts.maxBitrateCheckSize += this.opts.maxBitrateCheckSize * 0.5
+						} else {
+							if(this.opts.debug){
+								console.log('getBitrate', err, bitrate, codecData, dimensions, this.url)
+							}
+							if(bitrate && bitrate > 0){
+								this.saveBitrate(bitrate)	
+							}
+							if(this.opts.debug){
+								console.log('[' + this.type + '] analyzing: ' + file, isHTTP ? '' : 'sample len: '+ global.kbfmt(stat.size), 'bitrate: '+ global.kbsfmt(this.bitrate), this.bitrates, this.url, nfo)
+							}
+						}
+						this.pumpGetBitrateQueue()
+					}
+				}, stat.size)
+			}
+		}
+		if(isHTTP){
+			next(null, {})
+		} else {
+			fs.stat(file, next)
+		}
+	}
+	resetBitrate(bitrate){
+		this.clearBitrateSampleFiles()
+		this.bitrates = []
+		if(bitrate) {
+			this.saveBitrate(bitrate, true)
+		}
+	}
+	clearBitrateSampleFiles(){
+		Object.keys(this.bitrateCheckBuffer).forEach(id => {
+			let file = this.bitrateCheckBuffer[id].file
+			this.bitrateCheckBuffer[id].destroy()
+			file && fs.unlink(file, () => {})
+		})
+		this.bitrateCheckBuffer = {}
+	}
+	bitrateSampleFilename(id){ // normally id is the URL
+		let filename = id.split('?')[0].split('/').pop()
+		if(!filename){
+			filename = 'bitrate-check-'+ String(parseInt(Math.random() * 1000000))
+		} else if(filename.length >= 42){ // Android filename length limit may be lower https://www.reddit.com/r/AndroidQuestions/comments/65o0ds/filename_50character_limit/
+			filename = this.md5(filename)
+		}
+		return global.streamer.opts.workDir +'/'+ global.sanitize(filename)
+	}
+	shouldCheckBitrate(){
+		return this.committed && 
+				this.bitrates.length <= this.opts.bitrateCheckingAmount && 
+				this.bitrateCheckFails < this.opts.maxBitrateCheckingFails
+	}
+	collectBitrateSample(chunk, offset, len, id = 'default'){
+		if(this.shouldCheckBitrate()){
+			if(typeof(this.bitrateCheckBuffer[id]) == 'undefined'){
+				let file = this.bitrateSampleFilename(id)
+				this.bitrateCheckBuffer[id] = new Writer(file)
+			}
+			if(this.bitrateCheckBuffer[id]._finished){
+				return false
+			} else {
+				this.bitrateCheckBuffer[id].write(chunk, offset)
+				if(this.bitrateCheckBuffer[id].written >= this.opts.maxBitrateCheckSize){
+					this.finishBitrateSample(id)
+					return false
+				}
+				return true
+			}
+		}
+	}
+	finishBitrateSample(id = 'default'){
+		if(typeof(this.bitrateCheckBuffer[id]) != 'undefined' && !this.bitrateCheckBuffer[id]._finished){
+			if(this.bitrates.length <= this.opts.bitrateCheckingAmount){
+				this.bitrateCheckBuffer[id]._finished = true
+				this.bitrateCheckBuffer[id].end()
+				this.bitrateCheckBuffer[id].ready(() => { // keep after end()
+					if(this.bitrateCheckBuffer[id].written >= this.opts.minBitrateCheckSize){
+						this.bitrateCheckBuffer[id].error || this.getBitrate(this.bitrateCheckBuffer[id].file)
+						delete this.bitrateCheckBuffer[id]
+					} else {
+						this.bitrateCheckBuffer[id]._finished = false
+					}
+				})
+			}
+		}
+	}
+}
+
+class StreamerAdapterBase extends StreamerAdapterBaseBitrate {
 	constructor(url, opts, data){
 		super()
 		this.data = data || {}
@@ -190,30 +343,6 @@ class StreamerAdapterBase extends Events {
 		}
 		return this.crypto.createHash('md5').update(txt).digest('hex')
 	}
-	saveBitrate(bitrate, force){
-		const prevBitrate = this.bitrate
-		if(force){
-			this.bitrates = [bitrate]
-			this.bitrate = bitrate
-		} else {
-			this.bitrates.push(bitrate)
-			if(this.bitrates.length >= 3){
-				this.bitrate = this.findTwoClosestValues(this.bitrates).reduce((a, b) => a + b, 0) / 2
-				this.bitrates = this.bitrates.slice(-3)
-			} else {
-				this.bitrate = this.bitrates.reduce((a, b) => a + b, 0) / this.bitrates.length
-			}
-		}
-		if(this.bitrate != prevBitrate){
-			this.emit('bitrate', this.bitrate, this.currentSpeed)
-		}
-	}
-	pumpGetBitrateQueue(){
-		this.bitrateChecking = false
-		if(this.getBitrateQueue.length && !this.destroyed){
-			this.getBitrate(this.getBitrateQueue.shift())
-		}
-	}
 	getTSFromM3U8(url, cb){
 		const download = new global.Download({
 			url,
@@ -239,121 +368,6 @@ class StreamerAdapterBase extends Events {
 			download.destroy()
 		})
 		download.start()
-	}
-	getBitrateHLS(url){
-		this.getTSFromM3U8(url, url => {
-			if(url){
-				this.getBitrate(url)
-			}
-		})
-	}
-	getBitrate(file){
-		if(this.bitrateChecking){
-			if(!this.getBitrateQueue.includes(file)){
-				this.getBitrateQueue.push(file)
-			}
-			return
-		}
-		this.bitrateChecking = true
-		const isHTTP = file.match(new RegExp('^((rtmp|rtsp|https?://)|//)'))
-		const next = (err, stat) => {
-			if(this.destroyed || (this.bitrates.length >= this.opts.bitrateCheckingAmount && this.codecData) || this.bitrateCheckFails >= this.opts.maxBitrateCheckingFails){
-				this.bitrateChecking = false
-				this.getBitrateQueue = []
-				this.clearBitrateSampleFiles()
-			} else if(err || (!isHTTP && stat.size < this.opts.minBitrateCheckSize)) {
-				this.pumpGetBitrateQueue()
-			} else {
-				console.log('getBitrate', file, this.url, isHTTP ? null : stat.size, this.opts.minBitrateCheckSize, traceback())
-				global.ffmpeg.bitrate(file, (err, bitrate, codecData, dimensions, nfo) => {
-					if(!isHTTP){
-						fs.unlink(file, () => {})
-					}
-					if(!this.destroyed){
-						console.log('getBitrate', file, bitrate, codecData, dimensions, nfo)
-						if(codecData){
-							this.addCodecData(codecData)
-						}
-						if(dimensions && !this._dimensions){
-							this._dimensions = dimensions
-							this.emit('dimensions', this._dimensions)
-						}
-						if(err){
-							this.bitrateCheckFails++
-							this.opts.minBitrateCheckSize += this.opts.minBitrateCheckSize * 0.5
-							this.opts.maxBitrateCheckSize += this.opts.maxBitrateCheckSize * 0.5
-						} else {
-							if(this.opts.debug){
-								console.log('getBitrate', err, bitrate, codecData, dimensions, this.url)
-							}
-							if(bitrate && bitrate > 0){
-								this.saveBitrate(bitrate)	
-							}
-							if(this.opts.debug){
-								console.log('[' + this.type + '] analyzing: ' + file, isHTTP ? '' : 'sample len: '+ global.kbfmt(stat.size), 'bitrate: '+ global.kbsfmt(this.bitrate), this.bitrates, this.url, nfo)
-							}
-						}
-						this.pumpGetBitrateQueue()
-					}
-				}, stat.size)
-			}
-		}
-		if(isHTTP){
-			next(null, {})
-		} else {
-			fs.stat(file, next)
-		}
-	}
-	clearBitrateSampleFiles(){
-		Object.keys(this.bitrateCheckBuffer).forEach(id => {
-			let file = this.bitrateCheckBuffer[id].file
-			this.bitrateCheckBuffer[id].destroy()
-			file && fs.unlink(file, () => {})
-		})
-		this.bitrateCheckBuffer = {}
-	}
-	bitrateSampleFilename(id){ // normally id is the URL
-		let filename = id.split('?')[0].split('/').pop()
-		if(!filename){
-			filename = String(Math.random())
-		}
-		if(filename.length >= 42){ // Android filename length limit may be lower https://www.reddit.com/r/AndroidQuestions/comments/65o0ds/filename_50character_limit/
-			filename = this.md5(filename)
-		}
-		return global.streamer.opts.workDir +'/'+ global.sanitize(filename)
-	}
-	collectBitrateSample(chunk, offset, len, id = 'default'){
-		this.downloadLog(len)
-		if(this.committed && this.bitrates.length < this.opts.bitrateCheckingAmount && this.bitrateCheckFails < this.opts.maxBitrateCheckingFails){
-			if(typeof(this.bitrateCheckBuffer[id]) == 'undefined'){
-				let file = this.bitrateSampleFilename(id)
-				this.bitrateCheckBuffer[id] = new Writer(file)
-			}
-			if(this.bitrateCheckBuffer[id]._finished){
-				return false
-			} else {
-				this.bitrateCheckBuffer[id].write(chunk, offset)
-				if(this.bitrateCheckBuffer[id].written >= this.opts.maxBitrateCheckSize){
-					this.finishBitrateSample(id)
-					return false
-				}
-				return true
-			}
-		}
-	}
-	finishBitrateSample(id = 'default'){
-		if(typeof(this.bitrateCheckBuffer[id]) != 'undefined' && !this.bitrateCheckBuffer[id]._finished){
-			if(this.bitrates.length < this.opts.bitrateCheckingAmount){
-				this.bitrateCheckBuffer[id]._finished = true
-				this.bitrateCheckBuffer[id].ready(() => {
-					if(this.bitrateCheckBuffer[id].written >= this.opts.minBitrateCheckSize){
-						this.getBitrate(this.bitrateCheckBuffer[id].file)
-					} else {
-						this.bitrateCheckBuffer[id]._finished = false
-					}
-				})
-			}
-		}
 	}
 	concatSlice(bufArr, limit){
 		let len = 0
