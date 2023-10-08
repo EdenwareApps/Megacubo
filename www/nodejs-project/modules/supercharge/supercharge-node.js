@@ -63,18 +63,17 @@ function patch(scope) {
 		const fstat = await fs.promises.stat(from).catch(console.error)
 		if(!fstat) throw '"from" file not found'
 		let err
-		await fs.promises.copyFile(from, to).catch(e => err = e)
-		let tstat
-		if(typeof(err) != 'undefined'){
-			tstat = await fs.promises.stat(to).catch(console.error)
-			if(tstat && tstat.size == fstat.size){
-				err = null
+		await fs.promises.rename(from, to).catch(e => err = e)
+		if(err) {
+			let err
+			await fs.promises.copyFile(from, to).catch(e => err = e)
+			if(typeof(err) != 'undefined'){
+				const tstat = await fs.promises.stat(to).catch(console.error)
+				if(tstat && tstat.size == fstat.size) err = null
 			}
+			if(err) throw err
+			await fs.promises.unlink(from).catch(() => {})
 		}
-		if(err){
-			throw err
-		}
-		fs.promises.unlink(from).catch(() => {})
 		return true
 	}
 	scope.moveFile = (from, to, _cb, timeout=5, until=null, startedAt = null, fromSize=null) => {
@@ -93,8 +92,8 @@ function patch(scope) {
 		const move = () => {
 			scope._moveFile(from, to).then(() => cb()).catch(err => {
 				if(until <= now){
-					fs.access(from, (err, stat) => {
-						console.error('MOVERETRY GAVEUP AFTER '+ (now - startedAt) +' SECONDS', err, fromSize, err)
+					fs.access(from, (aerr, stat) => {
+						console.error('MOVERETRY GAVEUP AFTER '+ (now - startedAt) +' SECONDS', err, fromSize, aerr)
 						return cb(err)
 					})
 					return
@@ -121,7 +120,7 @@ function patch(scope) {
 		if(fromSize === null){
 			fs.stat(from, (err, stat) => {
 				if(err){
-					console.error('MOVERETRY FROM FILE NEVER EXISTED', err)
+					console.error('MOVERETRY FROM FILE WHICH NEVER EXISTED', err)
 					cb(err)
 				} else {
 					fromSize = stat.size

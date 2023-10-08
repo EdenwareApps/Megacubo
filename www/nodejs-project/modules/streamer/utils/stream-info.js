@@ -185,7 +185,7 @@ class StreamInfo {
 				ret.isLocalFile = true
 
 				let err
-				const sample = await this.readFilePartial(url, Math.max(stat.size, this.opts.probeSampleSize)).catch(e => err = e)
+				const sample = await this.readFilePartial(url, Math.min(stat.size, this.opts.probeSampleSize)).catch(e => err = e)
 				ret.sample = err ? null : sample
 				return ret
 			}
