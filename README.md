@@ -36,4 +36,4 @@ Please, feel free to contribute to the project by opening a discussion under Iss
 
 You can help us by [improving/creating translations](https://github.com/efoxbr/megacubo/tree/master/www/nodejs-project/lang) and the [known channel names list for your country](https://github.com/efoxbr/world-tv-channels).
 
-If you want to thank me for developing this software you can buy me a coffee via [PayPal](https://www.paypal.com/donate/?item_name=megacubo.tv&cmd=_donations&business=efox.web%40gmail.com).
+Do you want to thank me for the development and help maintain this project in another way? How about buying me a coffee via [PayPal by clicking here](https://www.paypal.com/donate/?item_name=megacubo.tv&cmd=_donations&business=efox.web%40gmail.com)? This will help me a lot! :)
