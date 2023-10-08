@@ -108,6 +108,7 @@ class PerformanceProfiles extends Timer {
                 'ffmpeg-broadcast-pre-processing': 'auto',
                 'fx-nav-intensity': 2,
                 'hls-prefetching': true,
+                'in-disk-caching': true,
                 'live-window-time': 180,
                 'play-while-loading': true,
                 'search-missing-logos': true,
@@ -129,6 +130,7 @@ class PerformanceProfiles extends Timer {
                 'ffmpeg-broadcast-pre-processing': 'no',
                 'fx-nav-intensity': 0,
                 'hls-prefetching': false,
+                'in-disk-caching': false,
                 'live-stream-fmt': 'auto',
                 'live-window-time': 10,
                 'play-while-loading': false,
@@ -1044,6 +1046,15 @@ class Options extends OptionsExportImport {
                     global.config.set('status-flags-type', checked)
                 },
                 checked: () => global.config.get('status-flags-type')
+            },
+            {
+                name: global.lang.ENABLE_DISK_CACHE, type: 'check',
+                details: global.lang.RECOMMENDED,
+                action: (data, checked) => {
+                    global.config.set('in-disk-caching', checked)
+                    global.streamer.active && global.streamer.reload()
+                },
+                checked: () => global.config.get('in-disk-caching')
             },
             {
                 name: global.lang.TUNING_CONCURRENCY_LIMIT, 

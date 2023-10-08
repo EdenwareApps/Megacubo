@@ -112,7 +112,6 @@ class StreamerYTHLSIntent extends StreamerHLSIntent {
             }
         }
         chosenBandwidth && this.prx.resetBitrate(chosenBandwidth)
-        console.error('CHOSEN BANDWIDTH: '+ chosenBandwidth)
         return {url: chosen, mimetype: chosenMimeType, bandwidth: chosenBandwidth}
     }
     async _startVideo(info){

@@ -155,6 +155,8 @@
    "EMPTY": "Pusty",
    "ENABLE": "Włączyć",
    "ENABLED": "Włączony",
+   "ENABLE_DISK_CACHE": "Włącz buforowanie w disk",
+   "ENABLE_DISK_CACHE_HINT": "Aby szybciej otwierać przesyłanie strumieniowe na urządzenia, zaleca się, aby umożliwić buforowanie w dyskach. Chcesz włączyć?",
    "ENABLE_MPEGTS_SEEKING": "Umożliwienie wsparcia dla szybkich strumieni na żywo w Fast Forward i Rewind w MPEGT może powodować, że transmisje potrwają nieco dłużej. Czy i tak chcesz to włączyć?",
    "ENABLE_PREMIUM_FEATURES": "Włącz specjalne funkcje",
    "ENABLE_PREMIUM_MESSAGE": "Zainstalowana wersja nie ma specjalnych funkcji. Aby je uzyskać, pobierz pełny program z naszej strony internetowej i zainstaluj go.",

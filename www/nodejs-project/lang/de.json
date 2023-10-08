@@ -155,6 +155,8 @@
    "EMPTY": "Leer",
    "ENABLE": "Ermöglichen",
    "ENABLED": "Ermöglicht",
+   "ENABLE_DISK_CACHE": "Aktivieren Sie das Zwischenspeichern",
+   "ENABLE_DISK_CACHE_HINT": "Um das Streaming für Geräte schneller zu öffnen, wird empfohlen, ein Inisk-Caching zu ermöglichen. Möchten Sie aktivieren?",
    "ENABLE_MPEGTS_SEEKING": "Das Ermöglichen von Unterstützung für schnelle Vorwärts- und Rückspulen -Live -Streams in MPEGTS kann dazu führen, dass Sendungen etwas länger dauern. Möchten Sie es trotzdem aktivieren?",
    "ENABLE_PREMIUM_FEATURES": "Besondere Merkmale aktivieren",
    "ENABLE_PREMIUM_MESSAGE": "Die installierte Version verfügt nicht über spezielle Funktionen. Laden Sie das vollständige Programm von unserer Website herunter und installieren Sie ihn.",

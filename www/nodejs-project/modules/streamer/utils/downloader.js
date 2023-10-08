@@ -18,8 +18,9 @@ class Downloader extends StreamerAdapterBase {
 			persistent: false,
 			errorLimit: 5,
 			initialErrorLimit: 2, // at least 2
-			warmCache: true, // in-disk startup cache
-			warmCacheMaxSize: 5 * (1024 * 1024),
+			warmCache: global.config.get('in-disk-caching'), // in-disk startup cache
+			warmCacheMaxSize: 36 * (1024 * 1024),
+			warmCacheMaxSeconds: 6,
 			sniffingSizeLimit: 196 * 1024 // if minor, check if is binary or ascii (maybe some error page)
 		}, opts || {})
 		super(url, opts)
@@ -50,6 +51,12 @@ class Downloader extends StreamerAdapterBase {
 			this.warmCacheSize = 0
 			this.warmCacheFile = global.paths.temp +'/'+ parseInt(Math.random() * 100000000) + '.ts'
 			this.warmCache = new Writer(this.warmCacheFile)
+			this.on('bitrate', bitrate => {
+				const newMaxSize = bitrate * this.opts.warmCacheMaxSeconds
+				if(typeof(newMaxSize) == 'number' && !isNaN(newMaxSize)) {
+					this.opts.warmCacheMaxSize = newMaxSize
+				}
+			})
 			this.on('destroy', () => this.destroyWarmCache().catch(console.error))
 		}
 		let m = url.match(new RegExp('\\.([a-z0-9]{2,4})($|[\\?#])', 'i'))

@@ -26,7 +26,7 @@ class DownloadStream extends DownloadStreamBase {
             throw 'Already destroyed'
         }
         const types = [DownloadStreamHttp]
-        if(typeof(this.opts.cacheTTL) == 'number' && this.opts.cacheTTL > 0) {
+        if(typeof(this.opts.cacheTTL) == 'number' && this.opts.cacheTTL > 0 && global.config.get('in-disk-caching')) {
             types.unshift(DownloadStreamCache)
         }
         let chosen, responseData

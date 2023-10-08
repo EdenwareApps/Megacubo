@@ -155,6 +155,8 @@
    "EMPTY": "Vacío",
    "ENABLE": "Activar",
    "ENABLED": "Activado",
+   "ENABLE_DISK_CACHE": "Habilitar almacenamiento de caché en disco",
+   "ENABLE_DISK_CACHE_HINT": "Para abrir la transmisión a los dispositivos más rápidamente, se recomienda habilitar el almacenamiento en caché en disco. ¿Quieres habilitar?",
    "ENABLE_MPEGTS_SEEKING": "Habilitar el soporte para avanzar y retroceder en transmisiones MPEGTS en vivo puede hacer que las transmisiones tardan un poco más en comenzar. ¿Quieres habilitarlo de todos modos?",
    "ENABLE_PREMIUM_FEATURES": "Activar recursos especiales",
    "ENABLE_PREMIUM_MESSAGE": "La versione installata non ha caratteristiche speciali. Per ottenerle, scarica il programma completo dal nostro sito web e installalo.",

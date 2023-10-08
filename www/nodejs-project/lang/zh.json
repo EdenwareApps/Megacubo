@@ -155,6 +155,8 @@
    "EMPTY": "空的",
    "ENABLE": "使能够",
    "ENABLED": "活性",
+   "ENABLE_DISK_CACHE": "启用内盘缓存",
+   "ENABLE_DISK_CACHE_HINT": "要更快地打开流向设备的流媒体，建议启用盘中缓存。 您想启用吗？",
    "ENABLE_MPEGTS_SEEKING": "为MPEGTS中的快速前进和倒带实时流提供支持可能会导致广播需要更长的时间才能开始。 您是否要启用它？",
    "ENABLE_PREMIUM_FEATURES": "激活特殊资源",
    "ENABLE_PREMIUM_MESSAGE": "安装的版本没有特殊功能。 从我们的网站下载完整版并安装。",

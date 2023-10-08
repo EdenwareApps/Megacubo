@@ -62,6 +62,7 @@ module.exports = {
 		'F11 Alt+Enter': 'FULLSCREEN',
 		'F12 Ctrl+Shift+I': 'DEVTOOLS'
 	},
+	'in-disk-caching': true,
 	'kids-fun-titles': true,
 	'lists': [],
 	'live-window-time': 180,

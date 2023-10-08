@@ -155,6 +155,8 @@
    "EMPTY": "Boş",
    "ENABLE": "Olanak vermek",
    "ENABLED": "Etkinleştirilmiş",
+   "ENABLE_DISK_CACHE": "Disk içi önbelleklemeyi etkinleştirin",
+   "ENABLE_DISK_CACHE_HINT": "Cihazlara daha hızlı akış açmak için, disk önbelleklemeyi etkinleştirmeniz önerilir. Etkinleştirmek ister misiniz?",
    "ENABLE_MPEGTS_SEEKING": "MPEGTS'lerde hızlı ileri ve canlı akışların desteğini sağlamak, yayınların biraz daha uzun sürmesine neden olabilir. Yine de etkinleştirmek istiyor musunuz?",
    "ENABLE_PREMIUM_FEATURES": "Özel özellikleri etkinleştir",
    "ENABLE_PREMIUM_MESSAGE": "Yüklenen sürüm özel özellikleri yoktur. Onları elde etmek için, tüm programı web sitemizden indirin ve yükleyin.",

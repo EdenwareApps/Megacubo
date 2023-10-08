@@ -155,6 +155,8 @@
    "EMPTY": "Vide",
    "ENABLE": "Activer",
    "ENABLED": "Activée",
+   "ENABLE_DISK_CACHE": "Activer la mise en cache en disque",
+   "ENABLE_DISK_CACHE_HINT": "Pour ouvrir le streaming sur les appareils plus rapidement, il est recommandé de permettre la mise en cache en disque. Voulez-vous activer?",
    "ENABLE_MPEGTS_SEEKING": "L'activation de la prise en charge des flux en direct rapide et rembobinés dans MPEGTS peut entraîner le démarrage des émissions de diffusion. Voulez-vous l'activer de toute façon?",
    "ENABLE_PREMIUM_FEATURES": "Activer des fonctionnalités spéciales",
    "ENABLE_PREMIUM_MESSAGE": "La version installée n'a pas de fonctionnalités spéciales. Pour les obtenir, téléchargez le programme complet de notre site Web et installez-le.",

@@ -155,6 +155,8 @@
    "EMPTY": "Vazio",
    "ENABLE": "Ativar",
    "ENABLED": "Ativado",
+   "ENABLE_DISK_CACHE": "Ativar cache em disco",
+   "ENABLE_DISK_CACHE_HINT": "Para abrir o streaming para dispositivos mais rapidamente, é recomendável ativar o cache em disco. Você quer ativar?",
    "ENABLE_MPEGTS_SEEKING": "Ativar o suporte para avançar e retroceder em transmissões MPEGTS ao vivo pode fazer com que as transmissões demorem um pouco mais para iniciar. Você quer ativar de qualquer maneira?",
    "ENABLE_PREMIUM_FEATURES": "Ativar recursos especiais",
    "ENABLE_PREMIUM_MESSAGE": "A versão instalada não possui os recursos especiais. Para obte-los faça o download do programa completo em nosso site e instale-o.",

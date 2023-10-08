@@ -228,7 +228,7 @@ const videoErrorTimeoutCallback = ret => {
     if(ret == 'try-other'){
         global.streamer.handleFailure(null, 'timeout', true, true)
     } else if(ret == 'retry') {
-        global.streamer.retry()
+        global.streamer.reload()
     } else if(ret == 'transcode') {
         global.streamer.transcode()
     } else if(ret == 'external') {
@@ -446,7 +446,7 @@ const init = (language, timezone) => {
                 let ret = await global.explorer.dialog(opts, def)
                 videoErrorTimeoutCallback(ret)
             } else { // only reload action is available
-                global.streamer.retry()
+                global.streamer.reload()
             }
         })
         global.ui.on('testing-stop', () => {
@@ -464,7 +464,7 @@ const init = (language, timezone) => {
         })
         global.ui.on('retry', () => {
             console.warn('RETRYING')
-            global.streamer.retry()
+            global.streamer.reload()
         })
         global.ui.on('video-transcode', () => {
             console.error('VIDEO TRANSCODE')

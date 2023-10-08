@@ -155,6 +155,8 @@
    "EMPTY": "Vuoto",
    "ENABLE": "Abilitare",
    "ENABLED": "Abilitato",
+   "ENABLE_DISK_CACHE": "Abilita la memorizzazione nella cache in disco",
+   "ENABLE_DISK_CACHE_HINT": "Per aprire lo streaming sui dispositivi più rapidamente, si consiglia di abilitare la memorizzazione nella cache in disco. Vuoi abilitare?",
    "ENABLE_MPEGTS_SEEKING": "Abilitare il supporto per l'inoltro e il riavvolgimento dei flussi live in MPEGTS può causare l'inizio dei flussi. Vuoi attivare comunque?",
    "ENABLE_PREMIUM_FEATURES": "Abilita funzioni speciali",
    "ENABLE_PREMIUM_MESSAGE": "La versione installata non ha caratteristiche speciali. Per ottenerle, scarica il programma completo dal nostro sito web e installalo.",

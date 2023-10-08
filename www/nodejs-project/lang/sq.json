@@ -155,6 +155,8 @@
    "EMPTY": "Bosh",
    "ENABLE": "Mundësoj",
    "ENABLED": "I afruar",
+   "ENABLE_DISK_CACHE": "Aktivizo caching në disk",
+   "ENABLE_DISK_CACHE_HINT": "Për të hapur transmetimin në pajisje më shpejt, rekomandohet të mundësoni caching në disk. A doni të aktivizoni?",
    "ENABLE_MPEGTS_SEEKING": "Mundësimi i mbështetjes për Fast Forward dhe Rewind Live Streams në MPEGTS mund të bëjë që transmetimet të zgjasin pak më shumë për të filluar. A doni ta aktivizoni gjithsesi?",
    "ENABLE_PREMIUM_FEATURES": "Aktivizo karakteristika të veçanta",
    "ENABLE_PREMIUM_MESSAGE": "Versioni i instaluar nuk ka karakteristika të veçanta. Për të marrë ato, shkarkoni programin e plotë nga faqja jonë e internetit dhe instaloni atë.",

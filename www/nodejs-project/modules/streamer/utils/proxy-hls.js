@@ -91,7 +91,7 @@ class HLSRequests extends StreamerProxyBase {
 		this.debugConns = false
 		this.debugUnfinishedRequests = false
 		this.finishRequestsOutsideFromLiveWindow = true
-		this.prefetchMaxConcurrency = 1
+		this.prefetchMaxConcurrency = global.config.get('in-disk-caching') ? 1 : 0 // meaningless with no in-disk caching
 		this.activeManifest = null
 		this.activeRequests = {}
 		this.once('destroy', () => {

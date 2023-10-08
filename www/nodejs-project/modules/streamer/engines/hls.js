@@ -107,7 +107,6 @@ class StreamerHLSIntent extends StreamerBaseIntent {
 	}
 	setActiveQualityTrack(chosen, chosenBandwidth){
         chosenBandwidth && this.prx.resetBitrate(chosenBandwidth)
-        console.error('CHOSEN BANDWIDTH: '+ chosenBandwidth)
 	}
     async transcode(){
         this.resetTimeout()

@@ -284,8 +284,8 @@ class StreamerBase extends StreamerTools {
 			return true
 		}
 	}
-	retry(){		
-		console.warn('RETRYING')
+	reload(){		
+		console.warn('RELOADING')
 		let data = this.active ? this.active.data : this.lastActiveData
 		if(data){
 			this.stop()
@@ -1103,11 +1103,11 @@ class Streamer extends StreamerAbout {
 					{template: 'question', fa: 'fas fa-warn-triangle', text: 'Force MPEGTS broadcasts to be seekable ('+ global.lang.SLOW +')'},
 					{template: 'message', text: global.lang.ENABLE_MPEGTS_SEEKING},
 					{template: 'option', text: global.lang.NO, fa: 'fas fa-times-circle', id: 'no'},
-					{template: 'option', text: global.lang.YES, fa: 'fas fa-check-circle', id: 'ok'}
+					{template: 'option', text: global.lang.YES, fa: 'fas fa-check-circle', id: 'yes'}
 				], 'no')
 				if(ret == 'yes'){
 					global.config.set('ffmpeg-broadcast-pre-processing', 'auto')
-					this.retry()
+					this.reload()
 				}
 			})
 		}

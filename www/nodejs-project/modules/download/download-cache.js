@@ -404,6 +404,7 @@ class DownloadCacheMap extends Events {
     save(downloader, chunk, ended){
         const opts = downloader.opts
         const url = downloader.currentURL
+        if(!global.config.get('in-disk-caching')) return
         if(downloader.requestingRange && 
             (downloader.requestingRange.start > 0 || 
                 (downloader.requestingRange.end && downloader.requestingRange.end < (downloader.totalContentLength - 1))

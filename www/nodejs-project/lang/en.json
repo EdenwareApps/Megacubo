@@ -155,6 +155,8 @@
    "EMPTY": "Empty",
    "ENABLE": "Enable",
    "ENABLED": "Enabled",
+   "ENABLE_DISK_CACHE": "Enable in-disk caching",
+   "ENABLE_DISK_CACHE_HINT": "To open streaming to devices more quickly, it is recommended to enable in-disk caching. Do you want to enable?",
    "ENABLE_MPEGTS_SEEKING": "Enabling support for fast forward and rewind live streams in MPEGTS may cause broadcasts to take a bit longer to start. Do you want to enable it anyway?",
    "ENABLE_PREMIUM_FEATURES": "Enable special features",
    "ENABLE_PREMIUM_MESSAGE": "The version installed does not have special features. To obtain them, download the complete program from our website and install it.",
