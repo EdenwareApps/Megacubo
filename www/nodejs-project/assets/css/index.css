@@ -536,7 +536,7 @@ div#home-arrows > div > * {
     mask-image: var(--controls-mask-image);
     -webkit-mask-image: var(--controls-mask-image);
 }
-body.menu-playing .control-layer {
+body.menu-playing .control-layer, body:not(.video) .control-layer {
     display: none;
     visibility: hidden;
 }

@@ -161,11 +161,8 @@ class StreamerHLSIntent extends StreamerBaseIntent {
         return {endpoint: this.endpoint, mimetype: this.mimetype}
     }
     async useFF(){
-        const f = global.config.get('ffmpeg-broadcast-pre-processing')
-        if(f == 'yes'){
-            return true
-        }
-        return false
+        const choice = global.config.get('ffmpeg-broadcast-pre-processing')
+        return choice == 'yes'
     }
     async setFF(url, transcodingOpts) {
         const type = (transcodingOpts || this.transcoder) ? 'transcoder' : 'ff'

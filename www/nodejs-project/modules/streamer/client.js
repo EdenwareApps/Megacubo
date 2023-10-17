@@ -570,7 +570,6 @@ class StreamerSpeedo extends StreamerIdle {
             this.bitrate = 0
             this.currentSpeed = 0
             this.speedoDurationReported = false
-            jQuery('.control-layer').hide()
         })
         this.app.on('streamer-speed', speed => {
             this.currentSpeed = speed
@@ -707,7 +706,7 @@ class StreamerButtonActionFeedback extends StreamerSpeedo {
         button.addEventListener('click', this.buttonActionFeedbackListeners[name])
     }
     buttonActionFeedback(id, fa) {
-        if(this.state == 'loading') return
+        if(['paused', 'loading'].includes(this.state)) return
         if(id == 'play-pause') {
             if(this.state == 'playing') return
             fa = 'fas fa-play'

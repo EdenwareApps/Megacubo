@@ -867,7 +867,10 @@ class Options extends OptionsExportImport {
                         }},
                         {name: global.lang.ALWAYS, type: 'action', selected: (def == 'yes'), action: () => {
                             global.config.set('ffmpeg-broadcast-pre-processing', 'yes')
-                        }}
+                        }},
+                        {name: global.lang.ONLY +' MPEGTS', type: 'action', selected: (def == 'yes'), action: () => {
+                            global.config.set('ffmpeg-broadcast-pre-processing', 'mpegts')
+                        }},
                     ]
                     return opts
                 }

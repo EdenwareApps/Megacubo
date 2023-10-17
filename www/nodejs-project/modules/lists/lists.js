@@ -43,9 +43,11 @@ class ListsEPGTools extends Index {
 		}
 	}
 	async epg(channelsList, limit){
-		if(!this._epg) throw 'no epg 0'
-		let data
-		const { progress, state, error } = await this._epg.getState()
+		let data, err
+		if(!this._epg) return ['error', 'no epg']
+		const ret = await this._epg.getState().catch(e => err = e)
+		if(err) return ['error', String(err)]
+		const { progress, state, error } = ret
 		if(error) {
 			data = [state]
 			if(state == 'error'){

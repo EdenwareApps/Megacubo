@@ -47,10 +47,8 @@ class StreamerTSIntent extends StreamerBaseIntent {
         })
     }
     useFF(){
-        if(global.config.get('ffmpeg-broadcast-pre-processing') == 'yes'){
-            return true
-        }
-        return false         
+        const choice = global.config.get('ffmpeg-broadcast-pre-processing')
+        return choice === 'yes' || choice === 'mpegts'
     }
     async _start(){ 
         this.mimetype = this.mimeTypes.mpegts

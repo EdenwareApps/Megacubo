@@ -1175,7 +1175,7 @@ class Streamer extends StreamerAbout {
 					{template: 'option', text: global.lang.YES, fa: 'fas fa-check-circle', id: 'yes'}
 				], 'no')
 				if(ret == 'yes'){
-					global.config.set('ffmpeg-broadcast-pre-processing', 'auto')
+					global.config.set('ffmpeg-broadcast-pre-processing', 'mpegts')
 					this.reload()
 				}
 			})
