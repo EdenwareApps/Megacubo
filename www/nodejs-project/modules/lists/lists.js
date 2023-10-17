@@ -351,6 +351,12 @@ class Lists extends ListsEPGTools {
 				progresses.push(
 					...Object.values(this.lists).map(l => l.progress() || 0).sort((a, b) => b - a).slice(0, communityListsQuota)
 				)
+				const left = communityListsQuota - progresses.length
+				if(left > 0) {
+					progresses.push(
+						...Object.keys(this.loader.progresses).filter(u => !this.lists[u]).map(u => this.loader.progresses[u]).sort((a, b) => b - a).slice(0, left)
+					)
+				}
 			}
 			const allProgress = satisfyAmount * 100
 			const sumProgress = progresses.reduce((a, b) => a + b, 0)

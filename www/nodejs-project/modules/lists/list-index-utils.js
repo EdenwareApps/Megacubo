@@ -100,7 +100,10 @@ class ListIndexUtils extends Events {
                                 lines[i] = line
                             }
                             if(max > 0 && i == max){
-                                rl.close()
+                                if(rl){
+                                    rl.close()
+                                    rl = null
+                                }
                             }
                             i++
                         }

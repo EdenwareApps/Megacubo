@@ -340,7 +340,47 @@ function patch(scope, isBrowser){
 			}
 		}
 	}
-	scope.filenameFromURL = (url, defaultExt = 'mp4') => {
+	scope.listNameFromURL = url => {
+		let name
+		if (url.indexOf('?') !== -1) {
+			url.split('?')[1].split('&').forEach(s => {
+				s = s.split('=')
+				if (s.length > 1) {
+					if (['name', 'dn', 'title'].includes(s[0])) {
+						if (!name || name.length < s[1].length) {
+							name = s[1]
+						}
+					}
+				}
+			})
+		}
+		if(!name && url.indexOf('@') != -1) {
+			const m = url.match(new RegExp('//([^:]+):[^@]+@([^/#]+)'))
+			if(m) {
+				name = m[2] +' '+ m[1]
+			}
+		}
+		if (name) {
+			name = scope.decodeURIComponentSafe(name)
+			if (name.indexOf(' ') === -1 && name.indexOf('+') !== -1) {
+				name = name.replaceAll('+', ' ').replaceAll('<', '').replaceAll('>', '')
+			}
+			return name
+		}
+        if(url.indexOf('//') == -1){ // isLocal
+            return url.split('/').pop().replace(new RegExp('\\.[A-Za-z0-9]{2,4}$', 'i'), '')
+        } else {
+            url = String(url).replace(new RegExp('^[a-z]*://', 'i'), '').split('/').filter(s => s.length)
+            if(!url.length){
+                return 'Untitled '+ parseInt(Math.random() * 9999)
+            } else if(url.length == 1) {
+                return url[0]
+            } else {
+                return (url[0].split('.')[0] + ' ' + url[url.length - 1]).replace(new RegExp('\\?.*$'), '')
+            }
+        }
+	}
+	scope.fileNameFromURL = (url, defaultExt = 'mp4') => {
 		let filename = url.split('?')[0].split('/').filter(s => s).pop()
 		if(!filename || filename.indexOf('=') != -1){
 			filename = 'video'
@@ -362,6 +402,9 @@ function patch(scope, isBrowser){
 			ret = parsed
 		} catch(e) { }
 		return ret
+	}
+	scope.sanitize = txt => {
+		return txt.replace(new RegExp('[^A-Za-z0-9]+'), '')
 	}
 	if(isBrowser !== true) {
 		const nodePatch = require('./supercharge-node')

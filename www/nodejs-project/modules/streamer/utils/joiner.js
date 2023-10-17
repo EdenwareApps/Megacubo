@@ -1,51 +1,73 @@
 const path = require('path'), Downloader = require('./downloader.js')
 	
 class Joiner extends Downloader {
-	constructor(url, opts){
+	constructor(url, opts={}){
+		opts.persistent = global.config.get('mpegts-persistent-connections')
+
 		super(url, opts)
 		this.minConnectionInterval = 1
 		this.type = 'joiner'
 		this.delayUntil = 0
-		
-		const useWorker = true
-		if(useWorker) {
-			const exclusiveWorker = true
-			const workerPath = path.join(__dirname, './mpegts-processor-worker')
-			if(exclusiveWorker) {
-				const MultiWorker = require('../../multi-worker')
-				this.worker = new MultiWorker()
-				this.processor = this.worker.load(workerPath)
-				this.once('destroy', () => {
-					const done = () => this.worker && this.worker.terminate()
-					if(this.processor) {
-						this.processor.terminate().catch(console.error).finally(done)
-					} else {
-						done()
-					}
-				})
-			} else {
-				this.processor = global.workers.load(workerPath)
-				this.once('destroy', () => this.processor && this.processor.terminate().catch(console.error))
+
+		// when using worker avoid messaging overload, do some buffering
+		this.workerMessageBuffer = []
+		this.workerMessageBufferSize = Math.max(this.bitrate || 0, 512 * 1024)
+		this.on('bitrate', bitrate => {
+			if(bitrate > this.workerMessageBufferSize) {
+				this.workerMessageBufferSize = bitrate
 			}
+		})
+		
+		this.usingWorker = global.config.get('mpegts-use-worker')
+		if(this.usingWorker) {
+			const workerPath = path.join(__dirname, './mpegts-processor-worker')
+			const MultiWorker = require('../../multi-worker')
+			this.worker = new MultiWorker()
+			this.processor = this.worker.load(workerPath)			
+			this.worker.worker.on('exit', () => this.fail(-7))
+			this.once('destroy', () => {
+				const done = () => this.worker && this.worker.terminate()
+				if(this.processor) {
+					this.processor.terminate().catch(console.error).finally(done)
+				} else {
+					done()
+				}
+			})
 		} else {
 			const MPEGTSProcessor = require(path.join(__dirname, './mpegts-processor'))
 			this.processor = new MPEGTSProcessor()
 			this.once('destroy', () => this.processor && this.processor.terminate().catch(console.error))
 		}
-
 		this.processor.on('data', data => this.output(data))
 		this.processor.on('fail', () => this.emit('fail'))
 		// this.opts.debug = this.processor.debug  = true
 		this.once('destroy', () => {
 			if(!this.joinerDestroyed) {
-				this.joinerDestroyed = true
+				this.joinerDestroyed = global.traceback()
 				this.processor.destroy()
 				this.processor = null
 			}
 		})
-	}
+	}	
 	handleData(data){
-		this.processor && this.processor.push(data)
+		if(this.usingWorker) {
+			this.workerMessageBuffer.push(data)
+			if(!this.processor || this.len(this.workerMessageBuffer) < this.workerMessageBufferSize) return
+			data = Buffer.concat(this.workerMessageBuffer)
+			this.workerMessageBuffer = []
+		}
+		this.processor.push(data)
+	}
+	flush(force){
+		if(this.usingWorker) {
+			const data = Buffer.concat(this.workerMessageBuffer)
+			this.workerMessageBuffer = []
+			if(!this.processor) return // discard so
+			this.processor.push(data)
+			this.processor.flush(force)
+		} else {
+			this.processor.flush(force)
+		}
 	}
 	output(data, len){
 		if(this.destroyed || this.joinerDestroyed) {
@@ -68,7 +90,7 @@ class Joiner extends Downloader {
 			console.log('[' + this.type + '] pump', this.destroyed || this.joinerDestroyed)
 		}
 		this.download(() => { 
-			this.processor.flush(true) // join prematurely to be ready for next connection anyway
+			this.flush(true) // join prematurely to be ready for next connection anyway
 			let now = global.time(), ms = 0
 			if(this.delayUntil && now < this.delayUntil){
 				ms = this.delayUntil - now

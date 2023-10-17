@@ -61,7 +61,7 @@ class CloudConfiguration {
         })
     }
     async testConfigServer(baseUrl){
-        let data = await Download.get({url: baseUrl + '/configure.json', responseType: 'json'})
+        let data = await global.Download.get({url: baseUrl + '/configure.json', responseType: 'json'})
         if(data && data.version) return true
         throw 'Bad config server URL'
     }

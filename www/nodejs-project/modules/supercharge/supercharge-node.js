@@ -5,9 +5,18 @@ function patch(scope) {
 		}
 		if(typeof(scope.URLSearchParams) == 'undefined'){ // node
 			scope.URLSearchParams = require('url-search-params-polyfill')
+		}		
+		const sanitizeFilename = require('sanitize-filename')
+		scope.sanitize = (txt, keepAccents) => {
+			let ret = txt
+			if(keepAccents !== true) {
+				//ret = ret.replace(new RegExp('[^\x00-\x7F]+', 'g'), '')
+				ret = ret.normalize('NFD').replace(new RegExp('[\u0300-\u036f]', 'g'), '').replace(new RegExp('[^A-Za-z0-9\\._\\- ]', 'g'), '')
+			}
+			return sanitizeFilename(ret)
 		}
 	}
-	scope.DEFAULT_ACCESS_CONTROL_ALLOW_HEADERS = 'Origin, X-Requested-With, Content-Type, Cache-Control, Accept, Range, range, Authorization'
+	scope.DEFAULT_ACCESS_CONTROL_ALLOW_HEADERS = 'Origin, X-Requested-With, Content-Type, Cache-Control, Accept, Content-Range, Range, range, Authorization'
 	scope.isWritable = stream => {
 		return (stream.writable || stream.writeable) && !stream.finished
 	}	

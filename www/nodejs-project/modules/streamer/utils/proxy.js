@@ -355,7 +355,7 @@ class StreamerProxy extends StreamerProxyBase {
 				if(!headers['content-disposition'] || headers['content-disposition'].indexOf('attachment') == -1 || headers['content-disposition'].indexOf('filename=') == -1){
 					// setting filename to allow future file download feature
 					// will use sanitize to prevent net::ERR_RESPONSE_HEADERS_MULTIPLE_CONTENT_DISPOSITION on bad filename
-					headers['content-disposition'] = 'attachment; filename="' + global.filenameFromURL(url) + '"'
+					headers['content-disposition'] = 'attachment; filename="' + global.fileNameFromURL(url) + '"'
 				}
 				let len = parseInt(headers['content-length'])
 				if(len && typeof(headers['content-range']) == 'undefined'){
@@ -483,7 +483,7 @@ class StreamerProxy extends StreamerProxyBase {
 			this.downloadLog(len)
 			if(doBitrateCheck && !sampleCollected){
 				//console.warn('forceFirstBitrateDetection data', this.bitrateCheckBuffer[uid], offset, chunk)
-				if(!this.collectBitrateSample(chunk, offset, len, url)){                       
+				if(!this.collectBitrateSample(chunk, offset, url)){                       
 					sampleCollected = true
 					if(this.opts.debug){
 						console.log('collectBitrateSampleProxy', url, sampleCollected, initialOffset, offset)

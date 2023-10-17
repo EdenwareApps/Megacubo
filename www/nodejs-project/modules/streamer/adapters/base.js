@@ -6,6 +6,32 @@ class StreamerAdapterBaseBitrate extends Events {
 	constructor(){
 		super()
 	}
+	getTSFromM3U8(url, cb){
+		const download = new global.Download({
+			url,
+			responseType: 'text'
+		})
+		download.once('end', body => {
+			let matches = String(body).match(new RegExp('^[^#].+\\..+$','m'))
+			if(matches){
+				const basename = matches[0].trim()
+				const nurl = global.absolutize(basename, download.currentURL)
+				if(nurl && nurl != url){
+					if(basename.toLowerCase().indexOf('.m3u8') == -1){
+						cb(nurl)
+					} else {
+						this.getTSFromM3U8(nurl, cb)
+					}
+				} else {
+					cb(false)
+				}
+			} else {
+				cb(false)
+			}
+			download.destroy()
+		})
+		download.start()
+	}
 	getBitrateHLS(url){
 		this.getTSFromM3U8(url, url => {
 			if(url){
@@ -43,7 +69,7 @@ class StreamerAdapterBaseBitrate extends Events {
 			return
 		}
 		this.bitrateChecking = true
-		const isHTTP = file.match(new RegExp('^((rtmp|rtsp|https?://)|//)'))
+		const isHTTP = file.match(new RegExp('^(((rtmp|rtsp|https?)://)|//)'))
 		const next = (err, stat) => {
 			if(this.destroyed || (this.bitrates.length >= this.opts.bitrateCheckingAmount && this.codecData) || this.bitrateCheckFails >= this.opts.maxBitrateCheckingFails){
 				this.bitrateChecking = false
@@ -119,7 +145,7 @@ class StreamerAdapterBaseBitrate extends Events {
 				this.bitrates.length <= this.opts.bitrateCheckingAmount && 
 				this.bitrateCheckFails < this.opts.maxBitrateCheckingFails
 	}
-	collectBitrateSample(chunk, offset, len, id = 'default'){
+	collectBitrateSample(chunk, offset, id = 'default'){
 		if(this.shouldCheckBitrate()){
 			if(typeof(this.bitrateCheckBuffer[id]) == 'undefined'){
 				let file = this.bitrateSampleFilename(id)
@@ -189,12 +215,10 @@ class StreamerAdapterBase extends StreamerAdapterBaseBitrate {
     }
 	getDefaultRequestHeaders(headers={}){		
 		if(this.data.atts){
-			if(this.data.atts['user-agent']){
-				headers['user-agent'] = this.data.atts['user-agent']
-			}
-			if(this.data.atts['referer']){
-				headers['referer'] = this.data.atts['referer']
-			}
+			const ua = this.data.atts['user-agent'] || this.opts.userAgent
+			const referer = this.data.atts['referer'] || this.opts.referer
+			if(ua) headers['user-agent'] = ua
+			if(referer) headers['referer'] = referer
 		}
 		return headers
 	}
@@ -342,32 +366,6 @@ class StreamerAdapterBase extends StreamerAdapterBaseBitrate {
 			this.crypto = require('crypto')
 		}
 		return this.crypto.createHash('md5').update(txt).digest('hex')
-	}
-	getTSFromM3U8(url, cb){
-		const download = new global.Download({
-			url,
-			responseType: 'text'
-		})
-		download.once('end', body => {
-			let matches = String(body).match(new RegExp('^[^#].+\\..+$','m'))
-			if(matches){
-				const basename = matches[0].trim()
-				const nurl = global.absolutize(basename, download.currentURL)
-				if(nurl && nurl != url){
-					if(basename.toLowerCase().indexOf('.m3u8') == -1){
-						cb(nurl)
-					} else {
-						this.getTSFromM3U8(nurl, cb)
-					}
-				} else {
-					cb(false)
-				}
-			} else {
-				cb(false)
-			}
-			download.destroy()
-		})
-		download.start()
 	}
 	concatSlice(bufArr, limit){
 		let len = 0

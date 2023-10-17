@@ -674,11 +674,18 @@ class Explorer extends Events {
         return ret
     }
     async select(destPath, tabindex){
+        if(this.opts.debug){
+            console.log('select '+ destPath+', '+ tabindex)
+        }
         let ret = await this.read(destPath, tabindex)
-        if(ret && ret != -1 && ret.entries && ret.entries.length > 1){
-            let d = this.dirname(destPath)
-            let icon = ret.parent ? ret.parent.fa : ''
-            global.ui.emit('explorer-select', ret.entries, destPath, icon)
+        if(ret && ret != -1){
+            if(ret.entries && ret.entries.length > 1){
+                let d = this.dirname(destPath)
+                let icon = ret.parent ? ret.parent.fa : ''
+                global.ui.emit('explorer-select', ret.entries, destPath, icon)
+            } else {
+                await this.open(destPath, tabindex)
+            }
         }
         return ret
     }

@@ -529,7 +529,7 @@ class StreamerFFmpeg extends Events {
                     console.log('Spawned FFmpeg with command: ' + commandLine, 'file:', this.decoder.file, 'workDir:', this.opts.workDir, 'cwd:', process.cwd(), 'PATHs', global.paths, 'cordova:', !!global.cordova)
                     if(this.opts.outputFormat == 'mpegts'){
                         this.resetTimeout()
-                        this.wrapper = new Downloader(this.decoder.target, Object.assign(this.opts,{
+                        this.wrapper = new Downloader(this.decoder.target, Object.assign(this.opts, {
                             debug: false,
                             debugHTTP: false,
                             warmCache: true,

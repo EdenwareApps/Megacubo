@@ -1,5 +1,6 @@
 const Events = require('events'), http = require('http'), https = require('https'), url = require('url')
 const {CookieJar} = require('tough-cookie')
+const AbortController = require("abort-controller")
 const KeepAliveAgent = require('agentkeepalive'), net = require('net')
 const lookup = require('./lookup'), DownloadStreamBase = require('./stream-base')
 
@@ -28,7 +29,7 @@ class DownloadStreamHttp extends DownloadStreamBase {
         this.failedIPs = []
         this.errors = []
         this.once('destroy', () => {
-            this.response && this.response.end()
+            this.responseWrapper && this.responseWrapper.end()
         })
 	}
     async options(ip, family){
@@ -120,12 +121,21 @@ class DownloadStreamHttp extends DownloadStreamBase {
     }
 	get(options){
         return new Promise(resolve => {
-            let timer, fine, req, resolved
+            let timer, fine, req, res, resolved
+            
+            const controller = new AbortController()
+            const signal = controller.signal            
             const close = () => {
                 this.removeListener('destroy', close)
-                this.response && this.response.end()
-                req && req.destroy()
-                this.response = req = null
+                this.responseWrapper && this.responseWrapper.end()
+                controller.abort()
+                if(req) {
+                    req.abort()
+                    req.destroy()
+                }
+                if(res) {
+                    res.destroy()
+                }
             }
             const fail = error => {
                 clearTimer()
@@ -137,8 +147,8 @@ class DownloadStreamHttp extends DownloadStreamBase {
                     }
                     resolve(fine)
                 }
-                if(this.response){
-                    this.response.emitError(error)
+                if(this.responseWrapper){
+                    this.responseWrapper.emitError(error)
                 }
                 close()
             }
@@ -154,35 +164,34 @@ class DownloadStreamHttp extends DownloadStreamBase {
                 if(state != currentState){
                     currentState = state
                 }
-                timer = setTimeout(() => {
-                    fail('Timeouted')
-                    close()
-                }, this.timeout[state])
+                timer = setTimeout(() => fail('Timeouted'), this.timeout[state])
             }
             const finish = () => {
                 clearTimer()
                 if(!resolved){
-                    this.finishTraceback = global.traceback()
+                    this.finishTraceback = true
                     resolved = true
                     resolve(fine)
-                    close()
                 }
+                close()
             }
             this.once('destroy', close)
-            req = (options.protocol == 'http:' ? http : https).request(options, res => {
+            options.signal = { signal }
+            req = (options.protocol == 'http:' ? http : https).request(options, response => {
                 if(this.destroyed){
                     fail('destroyed')
                     return close()
                 }
                 fine = true
-                this.response = new DownloadStreamBase.Response(res.statusCode, res.headers)
-                if(this.response.headers['set-cookie']){
-                    if (this.response.headers['set-cookie'] instanceof Array) {
-                        this.response.headers['set-cookie'].map(c => this.setCookies(c).catch(console.error))
+                res = response
+                this.responseWrapper = new DownloadStreamBase.Response(res.statusCode, res.headers)
+                if(this.responseWrapper.headers['set-cookie']){
+                    if (this.responseWrapper.headers['set-cookie'] instanceof Array) {
+                        this.responseWrapper.headers['set-cookie'].map(c => this.setCookies(c).catch(console.error))
                     } else {
-                        this.setCookies(this.response.headers['set-cookie']).catch(console.error)
+                        this.setCookies(this.responseWrapper.headers['set-cookie']).catch(console.error)
                     }
-                    delete this.response.headers['set-cookie']
+                    delete this.responseWrapper.headers['set-cookie']
                 }
                 res.on('error', fail)
                 res.on('timeout', fail)
@@ -192,12 +201,13 @@ class DownloadStreamHttp extends DownloadStreamBase {
                 res.socket.once('end', () => finish())
                 res.socket.on('close', () => finish())
                 res.socket.on('finish', () => finish())
-                this.emit('response', this.response)
+                this.once('destroy', () => (resolved || finish()))
+                this.emit('response', this.responseWrapper)
                 res.on('data', chunk => {
                     if(this.ended || this.destroyed){
-                        console.error('RECEIVING DATA AFTER END')
+                        console.error('RECEIVING DATA AFTER END ', this.ended, this.destroyed, this.errors)
                     }
-                    this.response && this.response.write(chunk)
+                    this.responseWrapper && this.responseWrapper.write(chunk)
                     startTimer('response')                  
                 })
                 startTimer('response')
@@ -206,22 +216,18 @@ class DownloadStreamHttp extends DownloadStreamBase {
             startTimer('connect')
         })
 	}
-    async getCookies(){
+    getCookies(){
         return new Promise((resolve, reject) => {
             (this.parsed.protocol == 'http:' ? httpJar : httpsJar).getCookies(this.opts.url, (err, cookies) => {
-                if(err){
-                    resolve('')
-                }
+                if(err) return resolve('')
                 resolve(cookies.join('; '))
             })
         })
     }
-    async setCookies(header){
+    setCookies(header){
         return new Promise((resolve, reject) => {
             (this.parsed.protocol == 'http:' ? httpJar : httpsJar).setCookie(header, this.opts.url, err => {
-                if(err){
-                    return reject(err)
-                }
+                if(err) return reject(err) 
                 resolve(true)
             })
         })

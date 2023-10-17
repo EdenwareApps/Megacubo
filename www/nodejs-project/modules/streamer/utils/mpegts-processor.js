@@ -1,30 +1,8 @@
-const Events = require('events'), { BufferList } = require('bl')
+const Events = require('events'), MultiBuffer = require('./multibuffer')
 
 const SYNC_BYTE = 0x47
 const PACKET_SIZE = 188
 const ADAPTATION_POSITION = 6
-
-class MultiBuffer extends BufferList {
-    constructor() {
-        super()
-    }
-    extract(start, end) {
-        const ret = this.slice(start, end)
-        this.consume(end)
-        return ret
-    }
-    remove(start, end) {
-        const pieces = [
-            this.shallowSlice(0, start),
-            this.shallowSlice(end, this.length)
-        ]
-        this.consume(this.length)
-        pieces.forEach(p => this.append(p))
-    }
-    clear() {
-        this.consume(this.length)
-    }
-}
 
 class MPEGTSProcessor extends Events {
 	constructor(){
@@ -39,7 +17,7 @@ class MPEGTSProcessor extends Events {
         */
         this.direction = 1 
         this.packetBuffer = new MultiBuffer()
-        this.packetFilterPolicy = 0
+        this.packetFilterPolicy = global.config.get('mpegts-packet-filter-policy')
         this.pcrMemoNudgeSize = parseInt(this.maxPcrMemoSize / 10)
         this.pcrMemoSize = 0
         this.pcrMemo = new Map()
@@ -187,9 +165,7 @@ class MPEGTSProcessor extends Events {
         }
     }
 	push(chunk){
-        if(this.destroyed){
-            return
-        }
+        if(this.destroyed) return
         if(!Buffer.isBuffer(chunk)){ // is buffer
             chunk = Buffer.from(chunk)
         }
@@ -208,7 +184,7 @@ class MPEGTSProcessor extends Events {
         this.destroyed = true
         this.removeAllListeners()
         this.pcrMemo.clear()
-        this.packetBuffer.clear()
+        this.packetBuffer.destroy()
     }
     async terminate(){
         this.destroy()

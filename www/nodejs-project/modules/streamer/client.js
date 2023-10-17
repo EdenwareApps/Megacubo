@@ -135,33 +135,8 @@ class StreamerCasting extends StreamerOSD {
         super(controls, app)
         this.casting = false
         this.castingPaused = false
-        app.on('cast-start', () => {
-            if(!this.casting){
-                this.casting = true
-                this.castingPaused = false
-                this.unbindStateListener()
-                parent.player.pause()
-                this.stateListener('playing')
-                this.jbody.addClass('casting')
-                this.inLiveStream && this.jbody.addClass('casting-live')
-            }
-        })
-        app.on('cast-stop', () => {
-            if(this.casting){
-                this.casting = false
-                this.castingPaused = false
-                this.jbody.removeClass('casting casting-live')
-                if(this.active){
-                    this.bindStateListener()
-                    if(parent.player.state){
-                        parent.player.resume()
-                    } else {
-                        parent.player.load(this.activeSrc, this.activeMimetype, this.activeCookie, this.activeMediatype, this.data)
-                        this.stateListener('loading')
-                    }
-                }
-            }
-        })
+        app.on('cast-start', () => this.castUIStart())
+        app.on('cast-stop', () => this.castUIStop())
         app.on('external-player', url => {
             parent.parent.Manager.externalPlayer.play(url).catch(err => {
                 console.error(err)
@@ -207,6 +182,33 @@ class StreamerCasting extends StreamerOSD {
                 }
             }
         })
+    }
+    castUIStart() {        
+        if(!this.casting){
+            this.casting = true
+            this.castingPaused = false
+            this.unbindStateListener()
+            parent.player.pause()
+            this.stateListener('playing')
+            this.jbody.addClass('casting')
+            this.inLiveStream && this.jbody.addClass('casting-live')
+        }
+    }
+    castUIStop() { 
+        if(this.casting){
+            this.casting = false
+            this.castingPaused = false
+            this.jbody.removeClass('casting casting-live')
+            if(this.active){
+                this.bindStateListener()
+                if(parent.player.state){
+                    parent.player.resume()
+                } else {
+                    parent.player.load(this.activeSrc, this.activeMimetype, this.activeCookie, this.activeMediatype, this.data)
+                    this.stateListener('loading')
+                }
+            }
+        }
     }
 }
 
@@ -568,6 +570,7 @@ class StreamerSpeedo extends StreamerIdle {
             this.bitrate = 0
             this.currentSpeed = 0
             this.speedoDurationReported = false
+            jQuery('.control-layer').hide()
         })
         this.app.on('streamer-speed', speed => {
             this.currentSpeed = speed
@@ -1063,10 +1066,21 @@ class StreamerClientTimeWarp extends StreamerLiveStreamClockTimer {
     constructor(controls, app){
         super(controls, app)
         this.maxRateChange = 0.15
-        this.bufferTimeSecs = 10
+        this.defaultBufferTimeSecs = {
+            pressure: 6,
+            lazy: 30
+        }
         this.currentPlaybackRate = 1
         parent.player.on('timeupdate', pos => this.doTimeWarp(pos))
         parent.player.on('durationchange', () => this.doTimeWarp())
+        this.app.on('streamer-connect', (src, mimetype, cookie, mediatype) => {
+            if(!config['in-disk-caching'] && mimetype.indexOf('mpegurl') != -1 && mediatype != 'video') {
+                this.bufferTimeSecs = this.defaultBufferTimeSecs.pressure
+            } else {
+                this.bufferTimeSecs = this.defaultBufferTimeSecs.lazy
+            }            
+            parent.player.playbackRate(0.9) // start with caution
+        })
     }
     doTimeWarp(ptime){
         if(this.inLiveStream && config['playback-rate-control'] && this.timewarpInitialPlaybackTime !== null){
@@ -1078,7 +1092,7 @@ class StreamerClientTimeWarp extends StreamerLiveStreamClockTimer {
                 ptime = parent.player.time()
             }
             let duration, pduration = parent.player.duration()
-            if(this.activeMimetype.indexOf('mpegurl') != -1 && this.activeMediatype != 'video') {
+            if(!config['in-disk-caching'] && this.activeMimetype.indexOf('mpegurl') != -1 && this.activeMediatype != 'video') {
                 duration = this.clockTimerDuration()
             } else {
                 duration = pduration
@@ -1483,7 +1497,10 @@ class StreamerClientControls extends StreamerAudioUI {
             <i class="fas fa-pause pause-button"></i>`, 0, () => {
             this.playOrPauseNotIdle()
         })
-        this.addPlayerButton('stop', 'STOP', 'fas fa-stop', 1, () => this.stop())
+        this.addPlayerButton('stop', 'STOP', 'fas fa-stop', 1, () => {            
+            if(this.casting) return this.castUIStop()
+            this.stop()
+        })
         this.addPlayerButton('next', 'GO_NEXT', 'fas fa-step-forward', 5, () => this.app.emit('go-next'))
         this.setupVolume()
         this.addPlayerButton('tune', 'RETRY', config['tuning-icon'], 7, () => this.app.emit('reload-dialog'))
@@ -1631,7 +1648,7 @@ class StreamerClient extends StreamerClientController {
         if(this.autoTuning && !this.transcodeStarting && this.stateListening && mimetype.indexOf('video/') == -1){ // seems live
             explorer.dialog([
                 {template: 'question', text: '', fa: 'fas fa-question-circle'},
-                {template: 'option', text: lang.PLAYALTERNATE, id: 'tune', fa: config['tuning-icon']},
+                {template: 'option', text: lang.PLAY_ALTERNATE, id: 'tune', fa: config['tuning-icon']},
                 {template: 'option', text: lang.STOP, id: 'stop', fa: 'fas fa-stop-circle'},
                 {template: 'option', text: lang.RETRY, id: 'retry', fa: 'fas fa-sync'}
             ], choose => {
@@ -1670,7 +1687,6 @@ class StreamerClient extends StreamerClientController {
             this.data = data
             this.autoTuning = autoTuning
             console.warn('CONNECT', src, mimetype, cookie, mediatype, data, autoTuning)
-            parent.player.playbackRate(1)
             this.start(src, mimetype, cookie, mediatype)
             osd.hide('streamer')
             setTimeout(() => {

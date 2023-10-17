@@ -36,7 +36,6 @@ const setupConstructor = () => {
 			this.worker.postMessage({method: 'loadWorker', file})
 			const instance = new Proxy(this, {
 				get: (self, method) => {
-					const trace = global.traceback()
 					const terminating = ['destroy', 'terminate'].includes(method)
 					if(terminating) {
 						self.terminating[file] = true
@@ -74,7 +73,7 @@ const setupConstructor = () => {
 							try {
 								self.worker.postMessage({method, id, file, args})
 							} catch(e) {
-								console.error({e, method, id, file, args, trace})
+								console.error({e, method, id, file, args})
 							}
 						})
 					}
@@ -167,7 +166,8 @@ const setupConstructor = () => {
 						console.warn('Callback repeated', ret)
 					}
 				} else {
-					let args = [], pos = ret.data.indexOf(':')
+					let args = []
+					let pos = (ret.data.length > 32 ? ret.data.substr(0, 32) : ret.data).indexOf(':')
 					if(pos != -1){
 						let evtType = ret.data.substr(0, pos)
 						let evtContent = ret.data.substr(pos + 1)

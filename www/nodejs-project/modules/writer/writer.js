@@ -1,12 +1,13 @@
 const fs = require('fs'), path = require('path'), Events = require('events')
 
 class Writer extends Events {
-	constructor(file){
+	constructor(file, opts){
 		super()
 		this.setMaxListeners(20)
 		this.autoclose = true
 		this.debug = false
 		this.file = file
+		this.opts = opts
 		this.written = 0
 		this.writing = false
 		this.writeQueue = []
@@ -23,17 +24,25 @@ class Writer extends Events {
 		this.pump()
 	}
 	ready(cb){
-		const done = () => {
+		const done = callback => {
 			if(this.fd){
-				fs.close(this.fd, () => {})
+				fs.close(this.fd, callback)
 				this.fd = null
+			} else {
+				callback()
 			}
-			cb()
 		}
-		if(this.writing || this.writeQueue.length){
-			this.once('drain', done)
+		const run = callback => {
+			if(this.writing || this.writeQueue.length){
+				this.once('drain', () => done(callback))
+			} else {
+				done(callback)
+			}
+		}
+		if(cb) {
+			run(cb)
 		} else {
-			done()
+			return new Promise(resolve => run(resolve))
 		}
 	}
 	sleep(ms) {
@@ -44,9 +53,7 @@ class Writer extends Events {
 		fs.access(this.file, err => {
 			this.debug && console.log('writeat prepared', this.file, err)
 			if(err){
-				if(this.debug){
-					console.log('writeat creating', this.file)
-				}
+				this.debug && console.log('writeat creating', this.file)
 				fs.mkdir(path.dirname(this.file), {recursive: true}, () => {
 					fs.writeFile(this.file, '', cb)
 				})
@@ -123,6 +130,7 @@ class Writer extends Events {
 	}
 	fail(err) {
 		this.error = err
+		this.debug && console.log(err)
 		this.listenerCount('error') && this.emit('error', err)
 		this.close()
 		this.writeQueue = []

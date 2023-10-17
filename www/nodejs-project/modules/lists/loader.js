@@ -4,12 +4,15 @@ const { default: PQueue } = require('p-queue'), ConnRacing = require('../conn-ra
 class ListsLoader extends Events {
     constructor(master, opts) {
         super()
-        const concurrency = 4 // avoid too many concurrency on mobiles
+        const concurrency = global.config.get('lists-loader-concurrency') || 3 // avoid too many concurrency on mobiles
+        this.debug = master.debug
         this.master = master
         this.opts = opts || {}
+        this.progresses = {}
         this.queue = new PQueue({ concurrency })
         this.osdID = 'lists-loader'
         this.tried = 0
+        this.pings = {}
         this.results = {}
         this.processes = []
         this.myCurrentLists = global.config.get('lists').map(l => l[1])
@@ -58,6 +61,7 @@ class ListsLoader extends Events {
         this.resetLowPriorityUpdates()
     }
     async resetLowPriorityUpdates(){ // load community lists
+        this.debug && console.error('[listsLoader] resetLowPriorityUpdates()', this.communityListsAmount)
         this.processes = this.processes.filter(p => {
             /* Cancel pending processes to reorder it */
             if(p.priority > 1 && !p.started() && !p.done()) {
@@ -69,7 +73,7 @@ class ListsLoader extends Events {
 
         if(!this.communityListsAmount) return
 
-        const maxListsToTry = 72
+        const maxListsToTry = Math.max(72, this.communityListsAmount)
         const minListsToTry = Math.max(32, 3 * this.communityListsAmount)
         if(minListsToTry < this.master.processedLists.size) return
 
@@ -77,6 +81,7 @@ class ListsLoader extends Events {
         this.currentTaskId = taskId
         this.master.updaterFinished(false)
 
+        this.debug && console.error('[listsLoader] resetLowPriorityUpdates(1)')
         const lists = await global.discovery.get(maxListsToTry)
         const communityLists = []
         lists.some(({ url }) => {
@@ -87,27 +92,40 @@ class ListsLoader extends Events {
                     return communityLists.length == maxListsToTry
                 }
         })
+        this.debug && console.error('[listsLoader] resetLowPriorityUpdates(2)')
         const communityListsCached = await this.master.filterCachedUrls(communityLists)
+        this.debug && console.error('[listsLoader] resetLowPriorityUpdates(3)')
         this.enqueue(communityLists.filter(u => !communityListsCached.includes(u)).concat(communityListsCached)) // update uncached lists first
         this.master.loadCachedLists(communityListsCached)
         this.queue.onIdle().catch(console.error).finally(() => {
-            if(this.currentTaskId == taskId) this.master.updaterFinished(true)
+            setTimeout(() => {
+                if(this.currentTaskId == taskId && !this.queue._pendingCount) {
+                    this.master.updaterFinished(true)
+                }
+            }, 2000)
         })
+        this.debug && console.error('[listsLoader] resetLowPriorityUpdates(4)')
     }
     async prepareUpdater(){
         if(!this.updater || this.updater.finished === true) {
+            this.debug && console.error('[listsLoader] Creating updater worker')
             const MultiWorker = require('../multi-worker')
             this.worker = new MultiWorker()
             const updater = this.updater = this.worker.load(path.join(__dirname, 'updater-worker'))
             this.once('destroy', () => updater.terminate())
             this.updaterClients = 1
+            this.updater.on('progress', p => {
+                if(!p || !p.url) return
+                this.progresses[p.url] = p.progress
+                this.emit('progresses', this.progresses)
+            })            
             updater.close = () => {
                 if(this.updaterClients > 0){
                     this.updaterClients--
                 }
                 if(!this.updaterClients && !this.updater.terminating){
                     this.updater.terminating = setTimeout(() => {
-                        console.error('Terminating updater worker')
+                        console.error('[listsLoader] Terminating updater worker')
                         updater.terminate()
                         this.updater = null
                     }, 5000)
@@ -115,6 +133,7 @@ class ListsLoader extends Events {
             }
             const keywords = await this.master.relevantKeywords()
             updater.setRelevantKeywords(keywords).catch(console.error)
+            this.debug && console.error('[listsLoader] Updater worker created, relevant keywords: '+ keywords.join(', '))
         } else {
             this.updaterClients++
             if(this.updater.terminating) {
@@ -124,10 +143,8 @@ class ListsLoader extends Events {
         }
     }
     async enqueue(urls, priority=9){
-        if(priority == 1){ // priority=1 should be reprocessed, as it is in our lists            
-            urls = urls.filter(url => {
-                return this.myCurrentLists.includes(url) // list still added
-            })
+        if(priority == 1){ // priority=1 should be reprocessed, as it is in our private lists            
+            urls = urls.filter(url => this.myCurrentLists.includes(url)) // list still added
         } else {
             urls = urls.filter(url => {
                 return !this.processes.some(p => p.url == url) // already processing/processed
@@ -137,6 +154,43 @@ class ListsLoader extends Events {
         for(const url of urls) {
             this.schedule(url, priority)
         }
+    }
+    async enqueue(urls, priority=9){
+        if(priority == 1){ // priority=1 should be reprocessed, as it is in our lists            
+            urls = urls.filter(url => this.myCurrentLists.includes(url)) // list still added
+        } else {
+            urls = urls.filter(url => {
+                return !this.processes.some(p => p.url == url) // already processing/processed
+            })
+        }
+        this.debug && console.error('[listsLoader] enqueue: '+ urls.join("\n"))
+        if(!urls.length) return
+        let already = []
+        urls = urls.filter(url => {
+            if(typeof(this.pings[url]) == 'undefined'){
+                return true
+            }
+            if(this.pings[url] > 0) { // if zero, is loading yet
+                already.push({url, time: this.pings[url]})
+            }
+        })
+        urls.forEach(u => this.pings[u] = 0)
+        already.sortByProp('time').map(u => u.url).forEach(url => this.schedule(url, priority))
+        const start = global.time()
+        const racing = new ConnRacing(urls, {retries: 1, timeout: 5})
+        this.debug && console.error('[listsLoader] enqueue conn racing: '+ urls.join("\n"))
+		for(let i=0; i<urls.length; i++) {
+            const res = await racing.next().catch(console.error)
+            if(res && res.valid) {
+                const url = res.url
+                const time = global.time() - start
+                if(!this.pings[url] || this.pings[url] < time) {
+                    this.pings[url] = global.time() - start
+                }
+                this.schedule(url, priority)
+            }            
+        }
+        urls.filter(u => this.pings[u] == 0).forEach(u => delete this.pings[u])
     }
     async addListNow(url, progress) {
         const uid = parseInt(Math.random() * 1000000)
@@ -153,15 +207,21 @@ class ListsLoader extends Events {
     }
     schedule(url, priority){
         let cancel, started, done
+        this.debug && console.error('[listsLoader] schedule: '+ url)
         this.processes.some(p => p.url == url) || this.processes.push({
             promise: this.queue.add(async () => {
+                this.debug && console.error('[listsLoader] schedule processing 0: '+ url +' | '+ this.paused)
                 started = true
                 this.paused && await this.wait()
+                this.debug && console.error('[listsLoader] schedule processing 1: '+ url)
                 await global.Download.waitNetworkConnection()
+                this.debug && console.error('[listsLoader] schedule processing 2: '+ url +' | '+ cancel)
                 if(cancel) return
                 await this.prepareUpdater()
+                this.debug && console.error('[listsLoader] schedule processing 3: '+ url)
                 this.results[url] = 'awaiting'
                 this.results[url] = await this.updater.update(url, false).catch(console.error)
+                this.debug && console.error('[listsLoader] schedule processing 4: '+ url +' | '+ this.results[url])
                 this.updater && this.updater.close && this.updater.close()
                 done = true
                 const add = this.results[url] == 'updated' || (this.results[url] == 'already updated' && !this.master.processedLists.has(url))
@@ -191,12 +251,14 @@ class ListsLoader extends Events {
     }
     async reload(url){
         let updateErr
+        const file = global.storage.raw.resolve(global.LIST_DATA_KEY_MASK.format(url))
         const progressId = 'reloading-'+ parseInt(Math.random() * 1000000)
         const progressListener = p => {
             if(p.progressId == progressId) {
                 global.osd.show(global.lang.RECEIVING_LIST +' '+ p.progress +'%', 'fas fa-circle-notch fa-spin', 'progress-'+ progressId, 'persistent')
             }
         }
+        await require('fs').promises.unlink(file).catch(() => {})
         progressListener({progressId, progress: 0})
         await this.prepareUpdater()
         this.updater.on('progress', progressListener)

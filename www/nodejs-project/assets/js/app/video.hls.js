@@ -29,38 +29,33 @@ class HLSObserver extends EventEmitter {
 		this.hls.on(Events.MANIFEST_LOAD_ERROR, this.handleManifestLoadError)
 		this.hls.on(Events.MANIFEST_LOAD_TIMEOUT, this.handleManifestLoadTimeout)
 	}
-
 	handleFragLoading() {
 		this.isDownloadingSegment = Date.now() / 1000
 		this.isStuck = false
 		this.timer && clearTimeout(this.timer) && (this.timer = 0)
 	}
-
 	handleFragLoaded() {
 		this.isDownloadingSegment = false
 	}
-
 	handleFragLoadError() {
 		this.isDownloadingSegment = false
 	}
-
 	handleFragLoadTimeout(event, data) {
 		this.isDownloadingSegment = false
 	}
-
-	handleError(data) {
+	handleError(event, data) {
 		this.isDownloadingSegment = false
-		if (
-			data.type === ErrorTypes.MEDIA_ERROR &&
+		if (!data) data = event
+		if (data && data.type === ErrorTypes.MEDIA_ERROR &&
 			data.details === ErrorDetails.BUFFER_STALLED_ERROR
 		) {
 			const playerEmptyLoading =
-				this.hls.media.networkState == 2 && this.hls.media.readyState == 1
+				this.hls.media.networkState == 2 && [1, 2].includes(this.hls.media.readyState)
 			const fatal = data.fatal || playerEmptyLoading
 			this.isStuck = fatal
 			if (this.isStuck && !this.timer) {
 				this.timer = setTimeout(() => {
-					this.emit("stuck")
+					this.isStuck && this.emit('stuck')
 					clearTimeout(this.timer) && (this.timer = 0)
 				}, this.fragLoadTimeout)
 			} else if (!this.isStuck && this.timer) {
@@ -68,25 +63,20 @@ class HLSObserver extends EventEmitter {
 			}
 		}
 	}
-
 	handleManifestLoading() {
 		this.isPlaylistLoading = true
 		this.isStuck = false
 		this.timer && clearTimeout(this.timer) && (this.timer = 0)
 	}
-
 	handleManifestLoaded() {
 		this.isPlaylistLoading = false
 	}
-
 	handleManifestLoadError() {
 		this.isPlaylistLoading = false
 	}
-
 	handleManifestLoadTimeout() {
 		this.isPlaylistLoading = false
 	}
-
 	check() {
 		const fragLoadTimeout = 10
 		const deadline = (Date.now() / 1000) - fragLoadTimeout
@@ -147,8 +137,9 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 		hls.loadSource(this.currentSrc)
 		hls.attachMedia(this.object)
 		hls.on(Events.ERROR, (event, data) => {
-			console.error('HLS ERROR', data)
-			if(['fragParsingError', 'fragLoadError'].includes(data.details)){
+			console.error('HLS ERROR', data)			
+			if (!data) data = event
+			if(data && ['fragParsingError', 'fragLoadError'].includes(data.details)){
 				// handle fragment load errors
 				const loader = data.frag.loader
 				if (data.response && data.response.status === 404) {
@@ -165,12 +156,12 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 				}
 				return
 			}
-			if(data.details == 'manifestLoadTimeOut'){
+			if(data && data.details == 'manifestLoadTimeOut'){
 				hls.recoverMediaError()
 				hls.startLoad()
 				return
 			}
-			if (data.fatal) {
+			if (data && data.fatal) {
 				switch (data.type) {
 					case ErrorTypes.MEDIA_ERROR:
 						console.error('HLS fatal media error encountered, reload')

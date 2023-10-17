@@ -15,8 +15,14 @@ class DownloadStreamResponse extends Events {
 		this.end()
 	}
     end(){
-        this.ended = global.traceback()
-        this.emit('end')
+        if(!this.ended) {
+            this.ended = true
+            this.emit('end')
+        }
+        this.destroy()
+    }
+    destroy(){
+        this.emit('destroy')
         this.removeAllListeners()
     }
 }
@@ -75,15 +81,15 @@ class DownloadStream extends Events {
 		this.end()
 	}
     end(){
-        if(!this.ended){
-            this.ended = global.traceback()
-            this.emit('end')
-        }
-        this.destroy()
+        this.destroyed || this.destroy()
     }
-	destroy(){
+	close(){
+        this.destroyed || this.destroy()
+    }
+    destroy() {
         if(!this.ended){
-            this.end()
+            this.ended = true
+            this.emit('end')
         }
         if(!this.destroyed){
 		    this.destroyed = true

@@ -1,6 +1,8 @@
 
-const path = require('path'), http = require('http'), fs = require('fs'), stoppable = require('stoppable')
-const StreamerAdapterBase = require('../adapters/base.js'), Writer = require('../../writer')
+const path = require('path'), http = require('http')
+const fs = require('fs'), stoppable = require('stoppable')
+const StreamerAdapterBase = require('../adapters/base.js')
+const MultiBuffer = require('./multibuffer')
 
 const SYNC_BYTE = 0x47
 const PACKET_SIZE = 188
@@ -16,11 +18,12 @@ class Downloader extends StreamerAdapterBase {
             debug: false,
 			debugHTTP: false,
 			persistent: false,
-			errorLimit: 5,
-			initialErrorLimit: 2, // at least 2
-			warmCache: global.config.get('in-disk-caching'), // in-disk startup cache
-			warmCacheMaxSize: 36 * (1024 * 1024),
-			warmCacheMaxSeconds: 6,
+			errorLimit: 30,
+			initialerrorLimit: 2, // at least 2
+			warmCache: true,
+			warmCacheSeconds: 6,
+			warmCacheMinSize: 6 * (1024 * 1024),
+			warmCacheMaxSize: 6 * (4096 * 1024),
 			sniffingSizeLimit: 196 * 1024 // if minor, check if is binary or ascii (maybe some error page)
 		}, opts || {})
 		super(url, opts)
@@ -29,10 +32,11 @@ class Downloader extends StreamerAdapterBase {
 			this.opts.initialErrorLimit = Number.MAX_SAFE_INTEGER
 		}
 		const ms = (global.config.get('connect-timeout') || 5) * 1000
+		const pms = (7 * (24 * 3600)) * 1000
 		this.timeoutOpts = {
 			lookup: ms,
-			connect: opts.persistent ? (7 * (24 * 3600)) * 1000 : ms,
-			response: opts.persistent ? (7 * (24 * 3600)) * 1000 : 30000
+			connect: opts.persistent ? pms : ms,
+			response: opts.persistent ? pms : ms
 		}
 		this.type = 'downloader'
 		this.internalErrorLevel = 0
@@ -48,16 +52,17 @@ class Downloader extends StreamerAdapterBase {
 		this.ext = 'ts'
 		this.currentDownloadUID = undefined
 		if(this.opts.warmCache){
-			this.warmCacheSize = 0
-			this.warmCacheFile = global.paths.temp +'/'+ parseInt(Math.random() * 100000000) + '.ts'
-			this.warmCache = new Writer(this.warmCacheFile)
+			this.warmCache = new MultiBuffer()
 			this.on('bitrate', bitrate => {
-				const newMaxSize = bitrate * this.opts.warmCacheMaxSeconds
+				const newMaxSize = Math.max(
+					this.opts.warmCacheMinSize,
+					bitrate * this.opts.warmCacheSeconds
+				)
 				if(typeof(newMaxSize) == 'number' && !isNaN(newMaxSize)) {
 					this.opts.warmCacheMaxSize = newMaxSize
 				}
 			})
-			this.on('destroy', () => this.destroyWarmCache().catch(console.error))
+			this.on('destroy', () => this.destroyWarmCache())
 		}
 		let m = url.match(new RegExp('\\.([a-z0-9]{2,4})($|[\\?#])', 'i'))
 		if(m && m.length > 1){
@@ -100,49 +105,19 @@ class Downloader extends StreamerAdapterBase {
 						'access-control-allow-methods': 'get',
 						'access-control-allow-headers': global.DEFAULT_ACCESS_CONTROL_ALLOW_HEADERS
 					})
-					let stream, finished, syncByteFound, buffer = false
-					let uid = parseInt(Math.random() * 1000000)
-					if(this.warmCacheSize){
-						buffer = [] // do not redeclare it
-						syncByteFound =  true
-						const end = parseInt(this.warmCacheSize / PACKET_SIZE) * PACKET_SIZE // packetize
-						stream = fs.createReadStream(this.warmCacheFile, {start: 0, end})
-						stream.on('data', chunk => response.writable && response.write(chunk))
-						stream.on('end', () => {
-							buffer.length && response.writable && response.write(Buffer.concat(buffer))
-							buffer = false
-						})
-						console.warn('SENT WARMCACHE', this.warmCacheSize)
-					} else {
-						if(!this.opts.persistent){
-							this.endRequest() // force new conn so
-						}
-					}					
+					let finished
+					const uid = parseInt(Math.random() * 1000000)
+					if(this.warmCache && this.warmCache.length){
+						response.write(this.warmCache.slice())
+						console.warn('SENT WARMCACHE', this.warmCache.length)
+					}				
 					if(this.connected === false){
 						this.connected = {}
 					}
 					this.connected[uid] = true
 					const listener = (url, chunk) => {
-						if(buffer !== false){
-							if(syncByteFound || buffer.length || chunk[0] === SYNC_BYTE) {
-								syncByteFound = true
-								buffer.push(chunk)
-							}
-						} else {
-							if(response.writable){
-								let offset = -1
-								if(!syncByteFound){
-									if(chunk[0] === SYNC_BYTE){
-										syncByteFound = true
-										response.write(chunk.slice(offset))
-									}
-								} else {
-									response.write(chunk)
-								}
-							}
-						}
+						finished || response.write(chunk)
 					}, finish = () => {
-						stream && stream.close()
 						if(!finished){
 							finished = true
 							this.removeListener('data', listener)
@@ -179,102 +154,45 @@ class Downloader extends StreamerAdapterBase {
 				this.opts.port = this.server.address().port
 				this.endpoint = 'http://127.0.0.1:'+ this.opts.port +'/stream'
 				resolve(this.endpoint)
-				this.getBitrate(this.endpoint)
+				const getBitrate = () => this.getBitrate(this.endpoint)
+				if(this.warmCache && this.warmCache.length) {
+					getBitrate()
+				} else {
+					this.once('data', getBitrate)
+				}
 			}) 
 		})
 	}
-	shouldRotateWarmCache() {
-		return this.warmCacheSize > this.opts.warmCacheMaxSize
-	}
-	async rotateWarmCache() {
-		const inputFilePath = this.warmCacheFile
-		const outputFilePath = this.warmCacheFile +'.tmp'
-
-		const start = global.time()
-		console.warn('WARMCACHE ROTATING...')
-
+	rotateWarmCache() {
+		if(this.warmCache.length < this.opts.warmCacheMaxSize) return true
 		const desiredSize = this.opts.warmCacheMaxSize * 0.75 // avoid to run it too frequently
-		const startPosition = this.warmCacheSize - desiredSize
-		const readStream = fs.createReadStream(inputFilePath, { start: startPosition });
-
-		let foundSyncByte = false
-		let syncBytePosition = -1
-		let currentPos = 0
-
-		readStream.on('data', chunk => {
-			for (let i = 0; i < chunk.length; i++) {
-				if (chunk[i] === 0x47) {
-					foundSyncByte = true
-					syncBytePosition = startPosition + currentPos
-					readStream.close()
-					break
-				} else {
-					currentPos++
-				}
-			}
-		})
-		await new Promise((resolve, reject) => {
-			readStream.on('end', () => {
-				console.warn('WARMCACHE ROTATING, 1st READSTREAM ENDED '+ foundSyncByte)
-				if (foundSyncByte) {
-					const writeStream = fs.createWriteStream(outputFilePath)
-					const copyStream = fs.createReadStream(inputFilePath, {start: syncBytePosition})
-					copyStream.on('data', chunk => writeStream.write(chunk))
-					copyStream.on('end', () => writeStream.end())
-					copyStream.on('error', reject)
-					writeStream.on('close', () => {
-						console.warn('WARMCACHE ROTATING, write close')
-						global.moveFile(outputFilePath, inputFilePath, err => {
-							console.warn('WARMCACHE ROTATING, moved '+ err)
-							if(err) return reject(err)
-							fs.stat(inputFilePath, (err, stat) => {
-								if(err) return reject(err)
-								this.warmCacheSize = stat.size
-								resolve()
-							})
-						})
-					})
-				} else {
-					reject('SYNC_BYTE não encontrado')
-				}
-			})
-			readStream.on('error', err => {
-				const elapsed = parseTime(global.time() - start)
-				console.warn('WARMCACHE NOT ROTATED!!! after '+ elapsed +'s, '+ err)
-				reject(err)
-			})
-		})
+		const startPosition = this.warmCache.length - desiredSize				
+		if(this.shouldCheckBitrate()) {
+			const file = global.paths.temp +'/'+ parseInt(Math.random() * 1000000) +'.ts'
+			fs.writeFile(file, this.warmCache.slice(), () => this.getBitrate(file))
+		}
+		const syncBytePosition = this.warmCache.indexOf(SYNC_BYTE, startPosition)
+		if (syncBytePosition == -1) {
+			global.displayErr('!!! SYNC_BYTE não encontrado')
+			this.warmCache.clear()
+		} else {
+			this.warmCache.consume(syncBytePosition)
+		}
+		return true
 	}
 	destroyWarmCache(){
-		return new Promise(resolve => {
-			if(this.warmCache){
-				this.warmCache.destroy()
-				this.warmCache = null
-				this.warmCacheSize = 0
-				setTimeout(() => {
-					if(this.warmCacheFile){
-						const next = () => {
-							fs.unlink(this.warmCacheFile, () => {})
-							fs.unlink(this.warmCacheFile +'.tmp', () => {})
-							resolve()
-						}
-						Array.isArray(this.rotating) ? this.once('rotated', next) : next()
-					}
-				}, 100)
-			} else {
-				resolve()
-			}
-		})
+		if(this.warmCache){
+			this.warmCache.destroy()
+			this.warmCache = null
+		}
 	}
 	internalError(e){
-		if(!this.committed){
-			this.internalErrorLevel++
-			this.internalErrors.push(e)
-			if(this.internalErrorLevel >= (this.connectable ? this.opts.errorLimit : this.opts.initialErrorLimit)){
-				let status = this.internalErrorStatusCode()
-				console.error('[' + this.type + '] error limit reached', this.committed, this.internalErrorLevel, this.internalErrors, status, this.opts.persistent, this.opts.errorLimit, this.opts.initialErrorLimit)
-				this.fail(status)
-			}
+		this.internalErrorLevel++
+		this.internalErrors.push(e)
+		if(this.internalErrorLevel >= (this.connectable ? this.opts.errorLimit : this.opts.initialErrorLimit)){
+			const status = this.internalErrorStatusCode()
+			console.error('[' + this.type + '] error limit reached', this.committed, this.internalErrorLevel, this.internalErrors, status, this.opts.persistent, this.opts.errorLimit, this.opts.initialErrorLimit)
+			this.fail(status)
 		}
 		return this.destroyed || this._destroyed
 	}
@@ -303,28 +221,17 @@ class Downloader extends StreamerAdapterBase {
 		if(this.destroyed || this._destroyed) return
         if(typeof(len) != 'number') len = this.len(data)
 		if(!len) return
+		this.internalErrorLevel = 0
 		this.downloadLog(len)
 		this.emit('data', this.url, data, len)
 		if(this.warmCache){
-			if(Array.isArray(this.rotating)) {
-				this.rotating.push(data)
-			} else if(this.shouldRotateWarmCache()) {
-				this.rotating = [data]
-				this.warmCache.ready(() => {
-					this.rotateWarmCache().catch(err => {
-						console.warn('WARMCACHE NOT ROTATED!!! , '+ err)
-					}).finally(() => {
-						this.rotating.length && this.rotating.map(c => {
-							this.warmCacheSize += c.length
-							this.warmCache.write(c)
-						})
-						this.rotating = false
-						this.emit('rotated')
-					})
-				})
+			this.warmCache.append(data)	
+			if(!this.minimalWarmCacheBitrateCheck && this.warmCache.length >= this.opts.minBitrateCheckSize && this.shouldCheckBitrate()) {
+				this.minimalWarmCacheBitrateCheck = true
+				const file = global.paths.temp +'/'+ parseInt(Math.random() * 1000000) +'.ts'
+				fs.writeFile(file, this.warmCache.slice(), () => this.getBitrate(file))
 			} else {
-				this.warmCacheSize += data.length
-				this.warmCache.write(data)
+				this.rotateWarmCache()
 			}
 		}
     }
@@ -344,7 +251,7 @@ class Downloader extends StreamerAdapterBase {
     }
 	download(callback){
         clearTimeout(this.timer)
-		if((this.warmCacheSize && !this.connected) || this.destroyed || this._destroyed || this.currentRequest) return
+		if(this.destroyed || this._destroyed || this.currentRequest) return
 		let connTime, received = 0, connStart = global.time()
 		this.currentDownloadUID = 'cdl-'+ String(connStart)
 		this.lastConnectionStartTime = connStart
@@ -358,7 +265,8 @@ class Downloader extends StreamerAdapterBase {
 			resume: false, // avoid download resuming as it won't work
 			debug: this.opts.debugHTTP,
 			headers: this.getDefaultRequestHeaders(),
-			timeout: this.timeoutOpts
+			timeout: this.timeoutOpts,
+			compression: false
 		}
 		if(this.opts.persistent){
 			Object.assign(opts, {
@@ -412,6 +320,7 @@ class Downloader extends StreamerAdapterBase {
 						console.log('[' + this.type + '] received '+ global.kbfmt(received) +' in '+ (this.lastConnectionEndTime - connStart) +'s to connect') // 200
 					}
 					this.endRequest()
+					received || this.internalError(500)
 					if(callback){
 						this.afterDownload(null, callback, {contentType, statusCode, headers})
 						callback = null

@@ -36,35 +36,36 @@ class LineReader extends EventEmitter {
 		super()
 		this.opts = Object.assign({bufferSize: 8192}, opts)
 		this.readOffset = 0
-		this.reader = null
-		this.readline = null
+		this.liner = null
 		this.opts = Object.assign({encoding: 'utf8'}, opts)
-		if(!this.opts.file) throw 'LineReader initialized with no file specified'
-		process.nextTick(() => this.start())
+		if(!this.opts.stream) throw 'LineReader initialized with no stream specified'
+		this.start()
 	}
 	start() {
-		this.readline = new LineEmitter()
-		this.readline.on('line', line => this.emit('line', line))
-		this.readline.on('close', () => {
-			this.emit('close')
-			this.destroy()
-		})
-		this.reader = new Reader(this.opts.file, this.opts)
-		this.reader.on('error', err => {
+		this.liner = new LineEmitter()
+		this.liner.on('line', line => this.emit('line', line))
+		this.liner.on('close', () => this.close())
+		this.liner.on('finish', () => this.close())
+		this.opts.stream.on('error', err => {
 			console.error(err)
-			this.emit('error', err)
+			this.listenerCount('error') && this.emit('error', err)
 		})
-		this.reader.on('data', chunk => this.readline.write(chunk))
-		this.reader.on('close', () => this.readline.end())
+		this.opts.stream.on('data', chunk => this.liner.write(chunk))
+		this.opts.stream.on('close', () => this.end())
 	}
 	end() {
-		this.opts.persistent = false
-		this.reader && this.reader.endPersistence()
+		this.liner && this.liner.end()
+	}
+	close() {
+		this.end()
+		this.emit('close')
+		this.emit('finish')
+		this.destroy()
 	}
 	destroy() {
 		this.destroyed = true
-		this.reader && this.reader.close()
-		this.readline && this.readline.destroy()
+		this.opts.stream && this.opts.stream.close()
+		this.liner && this.liner.destroy()
 		this.removeAllListeners()
 	}
 }

@@ -65,7 +65,7 @@ class StreamerTools extends Events {
 		let type = false
 		const now = global.time()
 		const cachingKey = this.infoCacheKey(url)
-		if(this.streamInfoCaching[cachingKey] && now < this.streamInfoCaching[cachingKey].until) {
+		if(cachingKey && this.streamInfoCaching[cachingKey] && now < this.streamInfoCaching[cachingKey].until) {
 			return this.streamInfoCaching[cachingKey]
 		}
 		const nfo = await this.streamInfo.probe(url, retries, entry)
@@ -91,11 +91,12 @@ class StreamerTools extends Events {
 		const rawType = this.streamInfo.rawType(url)
 		const proto = this.streamInfo.mi.proto(url)
 		const domain = this.streamInfo.mi.domain(url)
+		if(!rawType) return null
 		return [proto, domain, rawType].join('-')
 	}
 	invalidateInfoCache(url){
 		const cachingKey = this.infoCacheKey(url)
-		if(this.streamInfoCaching[cachingKey]) {
+		if(cachingKey && this.streamInfoCaching[cachingKey]) {
 			delete this.streamInfoCaching[cachingKey]
 		}
 	}
@@ -228,6 +229,12 @@ class StreamerBase extends StreamerTools {
 	intentFromInfo(data, opts, aside, nfo){
         return new Promise((resolve, reject) => {
 			opts = Object.assign(Object.assign({}, this.opts), opts || {})
+			if(data.atts && data.atts['user-agent']) {
+				opts.userAgent = data.atts['user-agent']
+			}
+			if(data.atts && data.atts['referer']) {
+				opts.referer = data.atts['referer']
+			}
 			let intent
 			try {
 				intent = new this.engines[nfo.type](data, opts, nfo)
@@ -272,7 +279,7 @@ class StreamerBase extends StreamerTools {
 		})
 	}
 	async askExternalPlayer() {
-		if(!this.active) return
+		if(!this.active || global.cordova) return
 		const url = this.active.data.url
 		const chosen = await global.explorer.dialog([
 			{template: 'question', text: global.lang.OPEN_EXTERNAL_PLAYER_ASK, fa: 'fas fa-play'},
@@ -338,7 +345,7 @@ class StreamerBase extends StreamerTools {
 					if(this.opts.debug){
 						console.log('INTENT FAILED !!')
 					}
-					this.handleFailure(intent.data, err)
+					this.handleFailure(intent.data, err).catch(global.displayErr)
 				})
 				intent.on('codecData', async codecData => {
 					if(codecData && intent == this.active){
@@ -566,8 +573,9 @@ class StreamerGoNext extends StreamerThrottling {
 			global.ui.on('video-ended', () => this.goNext().catch(global.displayErr))
 			global.ui.on('video-resumed', () => this.cancelGoNext())
 			global.ui.on('stop', () => this.cancelGoNext())
+			global.ui.on('go-prev', () => this.goPrev().catch(global.displayErr))
 			global.ui.on('go-next', () => this.goNext(true).catch(global.displayErr))
-			this.on('pre-play-entry', e => this.goNextPrepare(e).catch(global.displayErr))
+			this.on('pre-play-entry', e => this.saveQueue(e).catch(global.displayErr))
 			this.on('streamer-connect', () => this.goNextButtonVisibility().catch(global.displayErr))				
 			process.nextTick(() => {
 				this.aboutRegisterEntry('gonext', async () => {
@@ -582,41 +590,61 @@ class StreamerGoNext extends StreamerThrottling {
 	sleep(ms){
 		return new Promise(resolve => setTimeout(resolve, ms))
 	}
+	async getQueue() {
+		let entries = await global.storage.promises.get('streamer-go-next-queue').catch(console.error)
+		if(!Array.isArray(entries)) entries = []
+		return entries
+	}
+	async getPrev(offset=0){
+		const entry = this.active ? this.active.data : this.lastActiveData
+		const entries = await this.getQueue()
+		if(entry && entries.length){
+			let prev, found = -1
+			if(entry.originalUrl) found = entries.findIndex(e => (e.originalUrl || e.url) == entry.originalUrl)
+			if(found == -1) found = entries.findIndex(e => e.url == entry.url)
+			if(found == -1) return false
+			entries.slice(0, found).reverse().some(e => {
+				if(e){
+					if(offset) {
+						offset--
+					} else {
+						prev = e
+						return true
+					}
+				}
+			})
+			return prev
+		}
+	}
 	async getNext(offset=0){
 		const entry = this.active ? this.active.data : this.lastActiveData
-		const entries = await global.storage.promises.get('streamer-go-next-queue').catch(console.error)
-		if(entry && Array.isArray(entries)){
+		const entries = await this.getQueue()
+		if(entry && entries.length){
 			let next, found = -1
-			entries.some(e => {
+			if(entry.originalUrl) found = entries.findIndex(e => (e.originalUrl || e.url) == entry.originalUrl)
+			if(found == -1) found = entries.findIndex(e => e.url == entry.url)
+			if(found == -1) return false
+			entries.slice(found + 1).some(e => {
 				if(e){
-					if(found >= 0){
-						if(found == offset) {
-							next = e
-							return true
-						} else {
-							found++
-						}
+					if(offset) {
+						offset--
 					} else {
-						if(e.url == entry.url) {
-							found = 0
-						}
+						next = e
+						return true
 					}
 				}
 			})
 			return next
 		}
 	}
-	async goNextPrepare(e){
+	async saveQueue(e){
 		if(e.url){
-			const oentries = await global.storage.promises.get('streamer-go-next-queue').catch(console.error)
-			if(!Array.isArray(oentries) || !oentries.some(n => n.url == e.url)){
-				const entries = global.explorer.pages[global.explorer.path].filter(n => n.url)
-				if(entries.some(n => n.url == e.url)){
-					entries.forEach((n, i) => {
-						if(n.renderer) delete entries[i].renderer
-					})
-					global.storage.set('streamer-go-next-queue', entries, true)
-				}
+			const entries = global.explorer.pages[global.explorer.path].filter(n => n.url)
+			if(entries.length > 1 && entries.some(n => n.url == e.url)){
+				entries.forEach((n, i) => {
+					if(n.renderer) delete entries[i].renderer
+				})
+				global.storage.set('streamer-go-next-queue', entries, true)
 			}
 		}
 	}
@@ -624,23 +652,64 @@ class StreamerGoNext extends StreamerThrottling {
 		const next = await this.getNext()
 		global.ui.emit('enable-player-button', 'next', !!next)
 	}
+	async goPrev(){
+		let offset = 0
+		const msg = global.lang.GOING_PREVIOUS
+		global.osd.show(msg, 'fa-mega spin-x-alt', 'go-next', 'persistent')
+		this.goingNext = true
+		while(true) {
+			const prev = await this.getPrev(offset), ret = {}
+			if(!prev) break
+			const isMega = global.mega.isMega(prev.url)
+			if(!isMega) {
+				ret.info = await this.info(prev.url, 2, prev).catch(err => ret.err = err)
+				if(ret.err) {
+					offset++
+					continue // try prev one
+				}
+			}
+			if(this.goingNext !== true) return // cancelled
+			let err
+			if(isMega) {
+				await this.play(prev).catch(err => err = err)
+			} else {
+				await this.intentFromInfo(prev, {}, undefined, ret.info).catch(e => err = e)
+			}
+			if(err) {
+				offset++
+				continue // try prev one
+			} else {
+				break
+			}
+		}
+		this.goingNext = false
+		global.osd.hide('go-next')
+	}
 	async goNext(immediate){
 		let offset = 0, start = global.time(), delay = immediate ? 0 : 5
-		global.osd.show(global.lang.GOING_NEXT_SECS_X.format(delay), 'fa-mega spin-x-alt', 'go-next', 'persistent')
+		const msg = delay ? global.lang.GOING_NEXT_SECS_X.format(delay) : global.lang.GOING_NEXT
+		global.osd.show(msg, 'fa-mega spin-x-alt', 'go-next', 'persistent')
 		this.goingNext = true
 		while(true) {
 			const next = await this.getNext(offset), ret = {}
 			if(!next) break
-			ret.info = await this.info(next.url, 2, next).catch(err => ret.err = err)
-			if(ret.err) {
-				offset++
-				continue // try next one
+			const isMega = global.mega.isMega(next.url)
+			if(!isMega) {
+				ret.info = await this.info(next.url, 2, next).catch(err => ret.err = err)
+				if(ret.err) {
+					offset++
+					continue // try next one
+				}
 			}
 			const now = global.time(), elapsed = now - start
 			if(this.goingNext !== true) return // cancelled
 			let err
 			if(elapsed < delay) await this.sleep((delay - elapsed) * 1000)
-			await this.intentFromInfo(next, {}, undefined, ret.info).catch(e => err = e)
+			if(isMega) {
+				await this.play(next).catch(err => err = err)
+			} else {
+				await this.intentFromInfo(next, {}, undefined, ret.info).catch(e => err = e)
+			}
 			if(err) {
 				offset++
 				continue // try next one
@@ -862,7 +931,7 @@ class StreamerAbout extends StreamerTracks {
 	async showStreamInfo(){
 		if(!this.active) return
 		const domain = global.Download.domain(this.active.data.url)
-		const addr = await Download.stream.lookup.lookup(domain, {})
+		const addr = await global.Download.stream.lookup.lookup(domain, {})
 		const countryCode = await global.cloud.getCountry(addr).catch(global.displayErr)
 		const country = global.lang.countries.getCountryName(countryCode, global.lang.locale)
 		await global.explorer.info(global.lang.KNOW_MORE, 'Broadcast server country: '+ (country || countryCode))
@@ -1181,7 +1250,7 @@ class Streamer extends StreamerAbout {
 		}
 		if(global.tuning){
 			if(!global.tuning.destroyed && global.tuning.opts.megaURL && global.tuning.opts.megaURL == e.url){
-				return this.tune(e)
+				return await this.tune(e)
 			}
 			global.tuning.destroy()
 		}
@@ -1194,6 +1263,7 @@ class Streamer extends StreamerAbout {
 		silent || global.explorer.setLoadingEntries(loadingEntriesData, true, txt)
 		console.warn('STREAMER INTENT', e, results, traceback());
 		let succeeded
+		this.emit('pre-play-entry', e)
 		if(Array.isArray(results)){
 			let name = e.name
 			if(opts.name){
@@ -1256,8 +1326,7 @@ class Streamer extends StreamerAbout {
 			if(opts.url){
 				e = Object.assign(Object.assign({}, e), opts)
 			}
-			console.warn('STREAMER INTENT', e);
-			this.emit('pre-play-entry', e)
+			console.warn('STREAMER INTENT', e)
 			let terms = global.channels.entryTerms(e)
 			this.setTuneable(!global.lists.mi.isVideo(e.url) && global.channels.isChannel(terms))
 			silent || global.osd.show(global.lang.CONNECTING +' '+ e.name + '...', 'fa-mega spin-x-alt', 'streamer', 'persistent')
@@ -1271,7 +1340,7 @@ class Streamer extends StreamerAbout {
 				global.ui.emit('sound', 'static', 25)
 				this.connectId = false
 				this.emit('connecting-failure', e)
-				this.handleFailure(e, hasErr)
+				this.handleFailure(e, hasErr).catch(global.displayErr)
 			} else {
 				if(intent.mediaType != 'live'){
 					this.setTuneable(false)
@@ -1286,10 +1355,8 @@ class Streamer extends StreamerAbout {
 	play(e, results, silent){
 		return this.playPromise(e, results, silent).catch(silent ? console.error : global.displayErr)
 	}
-	tune(e){
-		if(this.opts.shadow){
-			return
-		}
+	async tune(e){
+		if(this.opts.shadow) return
 		if(!this.isEntry(e)){
 			if(this.active){
 				e = this.active.data
@@ -1299,7 +1366,7 @@ class Streamer extends StreamerAbout {
 			if(this.active && !global.config.get('play-while-loading')){
 				this.stop()
 			}
-			let ch = global.channels.isChannel(global.channels.entryTerms(e))
+			const ch = global.channels.isChannel(global.channels.entryTerms(e))
 			if(ch){
 				e.name = ch.name
 			}
@@ -1307,34 +1374,34 @@ class Streamer extends StreamerAbout {
 			const loadingEntriesData = [e, global.lang.AUTO_TUNING]
 			console.log('tuneEntry', e, same)
 			if(same){
-				global.tuning.tune().then(() => {
-					this.setTuneable(true)
-				}).catch(err => {
+				let err
+				await global.tuning.tune().catch(e => err = e)
+				global.explorer.setLoadingEntries(loadingEntriesData, false)
+				if(err) {
 					if(err != 'cancelled by user'){
 						this.emit('connecting-failure', e)
 						console.error('tune() ERR', err)
 						global.osd.show(global.lang.NO_MORE_STREAM_WORKED_X.format(e.name), 'fas fa-exclamation-triangle faclr-red', 'streamer', 'normal')
 					}
-				}).finally(() => {
-					global.explorer.setLoadingEntries(loadingEntriesData, false)
-				})
+					return
+				}
+				this.setTuneable(true)
 			} else {
-				const name = e.originalName || e.name
-				global.search.termsFromEntry(e, false).then(terms => {
-					if(!terms){
-						terms = global.lists.terms(name)
-					}
-					if(Array.isArray(terms)){
-						terms = terms.join(' ')
-					}
+				if(ch) {
+					e.url = global.mega.build(ch.name, {terms: ch.terms})
+				} else {
+					const name = e.originalName || e.name
+					let terms = await global.search.termsFromEntry(e, false)
+					if(!terms) terms = global.lists.terms(name)
+					if(Array.isArray(terms)) terms = terms.join(' ')
 					e.url = global.mega.build(name, {terms})
-					this.play(e)
-				}).catch(console.error)
+				}
+				this.play(e)
 			}
 			return true
 		}
 	}
-	handleFailure(e, r, silent, doTune){		
+	async handleFailure(e, r, silent, doTune){		
 		let c = doTune ? 'tune' : 'stop', trace = traceback()
 		if(!this.isEntry(e)){
 			if(this.active){
@@ -1357,11 +1424,26 @@ class Streamer extends StreamerAbout {
 			this.handleFailureMessage(r)
 		}
 		console.error('handleFailure', r, c, e)
-		if(c != 'stop'){
-			if(e && !global.mega.isMega(e.url)){
-				if(this.tune(e)){
-					return
+		const isMega = e && global.mega.isMega(e.url)
+		if(!isMega && e) {
+			if(c == 'stop') {
+				const terms = global.channels.entryTerms(e)
+				const ch = global.channels.isChannel(terms)
+				if(ch) {
+					const skips = [global.lang.STREAMS, global.lang.IPTV_LISTS, global.lang.CATEGORY_MOVIES_SERIES]
+					if(skips.every(s => global.explorer.path.indexOf(s) == -1)) {
+						const chosen = await global.explorer.dialog([
+							{template: 'question', text: global.lang.PLAYBACK_OFFLINE_STREAM, fa: 'fas fa-exclamation-triangle faclr-red'},
+							{template: 'message', text: global.lang.PLAY_ALTERNATE_ASK},
+							{template: 'option', text: global.lang.YES, id: 'yes', fa: 'fas fa-check-circle'},
+							{template: 'option', text: global.lang.NO, id: 'no', fa: 'fas fa-times-circle'}
+						], 'yes')
+						if(chosen == 'yes') c = 'tune'
+					}
 				}
+			}
+			if(c != 'stop'){
+				if(await this.tune(e)) return
 				if(!global.config.get('play-while-loading')){
 					this.stop({err: 'tune failure', trace})
 				}
@@ -1400,6 +1482,10 @@ class Streamer extends StreamerAbout {
 					status = http.STATUS_CODES[code].toLowerCase()
 				}
 				switch(code){
+					case '-7':
+						msg = 'Worker crashed.'
+						status = 'worker exited'
+						break
 					case '0':
 						msg = global.lang.SLOW_SERVER
 						status = 'timeout'

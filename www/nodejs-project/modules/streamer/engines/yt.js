@@ -1,6 +1,7 @@
 const StreamerHLSIntent = require('./hls.js'), fs = require('fs'), ytdl = require('ytdl-core')
 const StreamerProxy = require('../utils/proxy.js'), StreamerHLSProxy = require('../utils/proxy-hls.js')
-const YTRegex = new RegExp('(youtube\.com|youtu\.be).*(v=|v/)([A-Za-z0-9\-_]+)', 'i')
+const YTDomainRegex = new RegExp('youtube\.com|youtu\.be')
+const YTIDRegex = new RegExp('(v=|/v/|/embed/|\.be/)([A-Za-z0-9\-_]+)')
 
 class StreamerYTHLSIntent extends StreamerHLSIntent {    
     constructor(data, opts, info){
@@ -129,9 +130,9 @@ class StreamerYTHLSIntent extends StreamerHLSIntent {
         return {endpoint: this.endpoint, mimetype: this.mimetype}
     }
     async _start(){ 
-        const matches = this.data.url.match(YTRegex)
+        const matches = this.data.url.match(YTIDRegex)
         if(!matches || !matches.length) throw 'Bad yt url'
-        let info = await this.getYTInfo(matches[3])
+        let info = await this.getYTInfo(matches[2])
         this.data.name = info.videoDetails.title
         let tracks = info.formats.filter(s => s.isHLS).filter(s => s.hasVideo || s.hasAudio)
         if(!tracks.length){
@@ -155,7 +156,7 @@ class StreamerYTHLSIntent extends StreamerHLSIntent {
 
 StreamerYTHLSIntent.mediaType = 'live'
 StreamerYTHLSIntent.supports = info => {
-    if(info.url && info.url.match(YTRegex)){
+    if(info.url && global.Download.domain(info.url).match(YTDomainRegex)){
         return true
     }
     return false

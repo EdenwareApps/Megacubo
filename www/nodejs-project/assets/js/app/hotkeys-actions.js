@@ -15,6 +15,16 @@ var hotkeysActions = {
             }
         }, 'up'
     ],
+    'PLAY_PREVIOUS': [
+        () => {
+            app.emit('go-prev')
+        }, 'up'
+    ],
+    'PLAY_NEXT': [
+        () => {
+            app.emit('go-next')
+        }, 'up'
+    ],
     'BACKNOTINPUT': [
         () => {
             escapePressed()

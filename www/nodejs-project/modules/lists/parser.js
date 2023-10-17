@@ -35,7 +35,7 @@ class Parser extends EventEmitter {
 		this.headerAttrMapRegex = this.generateAttrMapRegex(this.headerAttrMap)
 		this.readen = 0 // no precision required, just for progress stats
 		this.lastProgress = -1
-		if(!this.opts.file) throw 'Parser instance with no file set!'
+		if(!this.opts.stream) throw 'Parser instance with no stream set!'
 	}
 	generateAttrMapRegex(attrs) {
 		return new RegExp('(' +
@@ -43,151 +43,146 @@ class Parser extends EventEmitter {
 			')\\s*=\\s*[\'"]([^\r\n\'"]*)[\'"]',
 			'g')
 	}
-	start() {
-		return new Promise(resolve => {
-			this.opts.persistent = !this.ended
-			this.reader = new LineReader(this.opts)
-			let g = '', a = {}, e = {url: '', icon: ''}, attsMap = {
-				'http-user-agent': 'user-agent',
-				'referrer': 'referer',
-				'http-referer': 'referer',
-				'http-referrer': 'referer'
-			}
-			this.reader.on('line', line => {
-				this.readen += (line.length + 1)
-				const hashed = line.startsWith('#')
-				const sig = hashed ? line.substr(0, 7).toUpperCase() : ''
-				const isExtM3U = hashed && this.isExtM3U(sig)
-				const isExtInf = hashed && !isExtM3U && this.isExtInf(sig)
-				if (!hashed && line.length < 6) return
-				if (isExtM3U) {
-					if (this.expectingHeader) {
-						const matches = [...line.matchAll(this.headerAttrMapRegex)];
-						for (const t of matches) {
-							if (t && t[2]) {
-								t[1] = this.headerAttrMap[t[1]] || t[1];
-								this.meta[t[1]] = t[2];
-							}
-						}
-					}
-				} else if (isExtInf) {
-					if (this.expectingHeader) {
-						this.expectingHeader = false
-						this.emit('meta', this.meta)
-					}
-					this.expectingPlaylist = this.isExtInfPlaylist(line)
-					let n = '', sg = ''
-					const attributes = {}
-					const matches = [...line.matchAll(this.attrMapRegex)]
+	async start() {
+		this.liner = new LineReader(this.opts)
+		let g = '', a = {}, e = {url: '', icon: ''}, attsMap = {
+			'http-user-agent': 'user-agent',
+			'referrer': 'referer',
+			'http-referer': 'referer',
+			'http-referrer': 'referer'
+		}
+		this.liner.on('line', line => {
+			this.readen += (line.length + 1)
+			const hashed = line.startsWith('#')
+			const sig = hashed ? line.substr(0, 7).toUpperCase() : ''
+			const isExtM3U = hashed && this.isExtM3U(sig)
+			const isExtInf = hashed && !isExtM3U && this.isExtInf(sig)
+			if (!hashed && line.length < 6) return
+			if (isExtM3U) {
+				if (this.expectingHeader) {
+					const matches = [...line.matchAll(this.headerAttrMapRegex)];
 					for (const t of matches) {
 						if (t && t[2]) {
-							const tag = this.attrMap[t[1]] || t[1]
-							switch (tag)  {
-								case 'name':
-									n = t[2]
-									break
-								case 'group':
-									if (!g || g === 'N/A') {
-										g = t[2]
-									}
-									break
-								case 'sub-group':
-									if (!sg || sg === 'N/A') {
-										sg = t[2]
-									}
-									break
-								default:
-									if (!e[this.attrMap[t[1]]]) {
-										e[this.attrMap[t[1]]] = t[2]
-									}
-							}
+							t[1] = this.headerAttrMap[t[1]] || t[1];
+							this.meta[t[1]] = t[2];
 						}
 					}
-					g = this.trimPath(g)
-					if (sg) {
-						g = this.mergePath(g, this.trimPath(sg))
-					}
-					if(!n) {
-						const pos = line.lastIndexOf(',')
-						if (pos != -1) {
-							n = line.substr(pos + 1).trim()
-						}
-					}
-					e.name = Parser.sanitizeName(n)
-				} else if (hashed) {
-					// parse here extra info like #EXTGRP and #EXTVLCOPT
-					if (sig == '#EXTGRP') {
-						let i = line.indexOf(':')
-						if (i !== -1) {
-							let nwg = line.substr(i + 1).trim()
-							if (nwg.length && (!g || g.length < nwg.length)) {
-								g = nwg
-							}
-						}
-					} else if (sig == '#EXTVLC') { // #EXTVLCOPT
-						let i = line.indexOf(':')
-						if (i !== -1) {
-							let nwa = line.substr(i + 1).trim().split('=')
-							if (nwa) {
-								nwa[0] = nwa[0].toLowerCase()
-								a[attsMap[nwa[0]] || nwa[0]] = this.trimQuotes(nwa[1] || '')
-							}
-						}
-					}
-				} else { // not hashed so, length already checked
-					e.url = line
-					if (e.url.startsWith('//')) {
-						e.url = 'http:' + e.url
-					}
-					if (e.url.indexOf('|') !== -1 && e.url.match(Parser.regexes['m3u-url-params'])) {
-						let parts = e.url.split('|')
-						e.url = parts[0]
-						parts = parts[1].split('=')
-						parts[0] = parts[0].toLowerCase()
-						a[attsMap[parts[0]] || parts[0]] = this.trimQuotes(parts[1] || '')
-					}
-					// removed url validation for performance
-					if (!e.name) {
-						e.name = e.gid || this.nameFromURL(e.url)
-					}
-					const name = e.name.replace(Parser.regexes['between-brackets'], '')
-					if (name === e.name) {
-						e.rawname = e.name
-						e.name = name
-					}
-					if (Object.keys(a).length) {
-						e.atts = a
-					}
-					g = this.sanitizeGroup(g)
-					e.group = g
-					e.groups = g.split('/')
-					e.groupName = e.groups[e.groups.length - 1]
-					if (this.expectingPlaylist) {
-						this.emit('playlist', e)
-					} else {
-						this.emit('entry', e)
-					}
-					e = { url: '', icon: '' }
-					g = ''
 				}
-				this.emit('progress', this.readen)
-			})
-			this.reader.on('error', err => {
-				console.error('PARSER READ ERROR', err)
-				this.emit('finish')
-				resolve(true)
-			})
-			this.reader.on('close', () => {
-				this.emit('finish')
-				resolve(true)
-			})
+			} else if (isExtInf) {
+				if (this.expectingHeader) {
+					this.expectingHeader = false
+					this.emit('meta', this.meta)
+				}
+				this.expectingPlaylist = this.isExtInfPlaylist(line)
+				let n = '', sg = ''
+				const matches = [...line.matchAll(this.attrMapRegex)]
+				for (const t of matches) {
+					if (t && t[2]) {
+						const tag = this.attrMap[t[1]] || t[1]
+						switch (tag)  {
+							case 'name':
+								n = t[2]
+								break
+							case 'group':
+								if (!g || g === 'N/A') {
+									g = t[2]
+								}
+								break
+							case 'sub-group':
+								if (!sg || sg === 'N/A') {
+									sg = t[2]
+								}
+								break
+							default:
+								if (!e[this.attrMap[t[1]]]) {
+									e[this.attrMap[t[1]]] = t[2]
+								}
+						}
+					}
+				}
+				g = this.trimPath(g)
+				if (sg) {
+					g = this.mergePath(g, this.trimPath(sg))
+				}
+				if(!n) {
+					const pos = line.lastIndexOf(',')
+					if (pos != -1) {
+						n = line.substr(pos + 1).trim()
+					}
+				}
+				e.name = Parser.sanitizeName(n)
+			} else if (hashed) {
+				// parse here extra info like #EXTGRP and #EXTVLCOPT
+				if (sig == '#EXTGRP') {
+					let i = line.indexOf(':')
+					if (i !== -1) {
+						let nwg = line.substr(i + 1).trim()
+						if (nwg.length && (!g || g.length < nwg.length)) {
+							g = nwg
+						}
+					}
+				} else if (sig == '#EXTVLC') { // #EXTVLCOPT
+					let i = line.indexOf(':')
+					if (i !== -1) {
+						let nwa = line.substr(i + 1).trim().split('=')
+						if (nwa) {
+							nwa[0] = nwa[0].toLowerCase()
+							a[attsMap[nwa[0]] || nwa[0]] = this.trimQuotes(nwa[1] || '')
+						}
+					}
+				}
+			} else { // not hashed so, length already checked
+				e.url = line
+				if (e.url.startsWith('//')) {
+					e.url = 'http:' + e.url
+				}
+				if (e.url.indexOf('|') !== -1 && e.url.match(Parser.regexes['m3u-url-params'])) {
+					let parts = e.url.split('|')
+					e.url = parts[0]
+					parts = parts[1].split('=')
+					parts[0] = parts[0].toLowerCase()
+					a[attsMap[parts[0]] || parts[0]] = this.trimQuotes(parts[1] || '')
+				}
+				// removed url validation for performance
+				if (!e.name) {
+					e.name = e.gid || global.listNameFromURL(e.url)
+				}
+				const name = e.name.replace(Parser.regexes['between-brackets'], '')
+				if (name === e.name) {
+					e.rawname = e.name
+					e.name = name
+				}
+				if (Object.keys(a).length) {
+					e.atts = a
+				}
+				g = this.sanitizeGroup(g)
+				e.group = g
+				e.groups = g.split('/')
+				e.groupName = e.groups[e.groups.length - 1]
+				if (this.expectingPlaylist) {
+					this.emit('playlist', e)
+				} else {
+					this.emit('entry', e)
+				}
+				e = { url: '', icon: '' }
+				g = ''
+			}
+			this.emit('progress', this.readen)
 		})
-	}
-	end() {
-		if (!this.ended && !this.destroyed) {
-			this.ended = true
-			this.reader && this.reader.end()
-		}
+		return await new Promise(resolve => {
+			const close = () => {
+				this.close()
+				resolve(true)
+			}
+			if(this.liner.destroyed) {
+				return close()
+			}
+			this.liner.once('error', err => {
+				console.error('PARSER READ ERROR', err)
+				close()
+			})
+			this.liner.once('close', close)
+		})
 	}
 	sanitizeGroup(s) {
 		if (s.length == 3 && s.toLowerCase().trim() === 'n/a') {
@@ -221,34 +216,6 @@ class Parser extends EventEmitter {
 		}
 		return text
 	}
-	nameFromURL(url) {
-		let name
-		if (url.indexOf('?') !== -1) {
-			url.split('?')[1].split('&').forEach(s => {
-				s = s.split('=')
-				if (s.length > 1) {
-					if (['name', 'dn', 'title'].includes(s[0])) {
-						if (!name || name.length < s[1].length) {
-							name = s[1]
-						}
-					}
-				}
-			})
-		}
-		if (name) {
-			name = global.decodeURIComponentSafe(name)
-			if (name.indexOf(' ') === -1 && name.indexOf('+') !== -1) {
-				name = name.replaceAll('+', ' ').replaceAll('<', '').replaceAll('>', '')
-			}
-			return name
-		}
-		url = url.replace(Parser.regexes['strip-proto'], '').split('/').filter(s => s.length)
-		if (url.length > 1) {
-			return (url[0].split('.')[0] + ' ' + url[url.length - 1]).replace(Parser.regexes['strip-query-string'], '')
-		} else {
-			return 'Untitled ' + parseInt(Math.random() * 100000)
-		}
-	}
 	trimPath(b) {
 		if (b) {
 			const chr = b.charAt(b.length - 1)
@@ -270,13 +237,22 @@ class Parser extends EventEmitter {
 		}
 		return a
 	}
+	end() {
+		if (!this.ended && !this.destroyed) {
+			this.ended = true
+			this.liner && this.liner.end()
+		}
+	}
+	close() {
+		this.emit('finish')
+	}
 	destroy() {
 		if (!this.destroyed) {
 			this.destroyed = true
 			this.emit('destroy')
 			this.end()
 		}
-		this.reader && this.reader.destroy()
+		this.liner && this.liner.destroy()
 		this.removeAllListeners()
 	}
 }

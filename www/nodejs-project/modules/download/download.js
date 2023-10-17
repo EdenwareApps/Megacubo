@@ -26,6 +26,7 @@ class Download extends Events {
 			cacheTTL: 0,
 			uid: parseInt(Math.random() * 100000000000),
 			debug: Download.debug || false,
+			downloadLimit: undefined,
 			keepalive: false,
 			maxAuthErrors: 2,
 			maxAbortErrors: 2,
@@ -48,7 +49,9 @@ class Download extends Events {
 		}
 		if(opts){
 			if(opts.headers){
-				opts.headers = Object.assign(this.opts.headers, opts.headers)
+				Object.keys(opts.headers).forEach(name => {
+					this.opts.headers[name.toLowerCase()] = opts.headers[name]
+				})
 			}
 			Object.assign(this.opts, opts)
 		}
@@ -851,7 +854,7 @@ class Download extends Events {
 	}
 	destroyStream(){
 		if(this.currentResponse){
-			//this.currentResponse.removeAllListeners()
+			this.currentResponse.destroy()
 			this.currentResponse = null
 		}
 		if(this.stream){
@@ -866,11 +869,7 @@ class Download extends Events {
 			if(this.opts.debug){
 				console.log('destroyStream', global.traceback())		
 			}
-			//this.stream.removeAllListeners('response')
-			//this.stream.removeAllListeners('data')
-			//this.stream.removeAllListeners('end')
 			this.stream.destroy()
-			///this.stream.removeAllListeners()
 			this.stream = null
 		}
 	}
@@ -943,6 +942,9 @@ class Download extends Events {
 			}
 		}
 	}
+	close(){
+		this.end()
+	}
 	checkStatusCode(){
 		if(this.statusCode == 0){
 			const errs = this.errors.join(' ')
@@ -977,6 +979,7 @@ class Download extends Events {
 			}
 			this.destroyed = true
 			this.destroyStream()
+			this.emit('close')
 			this.emit('destroy')
 			this.removeAllListeners()
 			this.buffer = []

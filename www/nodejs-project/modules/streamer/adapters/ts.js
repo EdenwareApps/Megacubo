@@ -13,7 +13,7 @@ class StreamerAdapterTS extends StreamerAdapterBase {
 		return new Promise((resolve, reject) => {
 			this.setCallback(success => (success ? resolve : reject)())
 			const args = [this.url, this.opts]
-			if(global.config.get('ts-packet-filter-policy') == -1){
+			if(global.config.get('mpegts-packet-filter-policy') == -1){
 				this.source = new Downloader(...args)
 			} else {
 				this.source = new Joiner(...args)

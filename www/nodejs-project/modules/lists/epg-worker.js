@@ -255,7 +255,7 @@ class EPG extends EPGPaginateChannelsList {
                     // 'range': 'bytes=0-' // was getting wrong content-length from Cloudflare
                 },
                 encoding: 'utf8',
-                cacheTTL: 3600,
+                cacheTTL: this.ttl - 30,
                 progress: p => utils.emit('progress', p)
             }
             this.request = new global.Download(req)

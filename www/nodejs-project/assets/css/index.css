@@ -586,6 +586,8 @@ div#loading-layer > span.loading-layer-status > span {
     border-radius: 25vmin;
     position: relative;
     top: -2vmin;
+    display: inline-flex;
+    justify-content: center;
 }
 body.idle div#loading-layer > span.loading-layer-status {
     position: absolute;

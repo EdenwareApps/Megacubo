@@ -21,7 +21,7 @@ if(!global.cordova){
 }
 
 // Buffer = require('safe-buffer').Buffer
-const fs = require('fs'), path = require('path'), sanitizeFilename = require('sanitize-filename')
+const fs = require('fs'), path = require('path')
 
 global.APPDIR = String(__dirname || process.cwd()).replace(new RegExp('\\\\', 'g'), '/')
 if(!global.APPDIR.endsWith('/package.nw') && !fs.existsSync(global.APPDIR + '/package.json')){
@@ -32,14 +32,6 @@ global.MANIFEST = JSON.parse(fs.readFileSync(global.APPDIR + '/package.json'))
 global.tuning = false
 global.moment = require('moment-timezone')
 global.onexit = require('node-cleanup')
-global.sanitize = (txt, keepAccents) => {
-    let ret = txt
-    if(keepAccents !== true) {
-        //ret = ret.replace(new RegExp('[^\x00-\x7F]+', 'g'), '')
-        ret = ret.normalize('NFD').replace(new RegExp('[\u0300-\u036f]', 'g'), '').replace(new RegExp('[^A-Za-z0-9\\._\\- ]', 'g'), '')
-    }
-    return sanitizeFilename(ret)
-}
 
 require('./modules/supercharge')(global)
 
@@ -226,7 +218,7 @@ global.updateUserTasks = async app => {
 const videoErrorTimeoutCallback = ret => {
     console.log('video-error-timeout-callback', ret)
     if(ret == 'try-other'){
-        global.streamer.handleFailure(null, 'timeout', true, true)
+        global.streamer.handleFailure(null, 'timeout', true, true).catch(global.displayErr)
     } else if(ret == 'retry') {
         global.streamer.reload()
     } else if(ret == 'transcode') {
@@ -432,7 +424,7 @@ const init = (language, timezone) => {
                     global.mega.isMega(global.streamer.active.data.originalUrl || global.streamer.active.data.url)
                 )
             if(isCH){
-                opts.push({template: 'option', text: global.lang.PLAYALTERNATE, fa: global.config.get('tuning-icon'), id: 'try-other'})
+                opts.push({template: 'option', text: global.lang.PLAY_ALTERNATE, fa: global.config.get('tuning-icon'), id: 'try-other'})
                 def = 'try-other'
             }
             opts.push({template: 'option', text: global.lang.RELOAD_THIS_BROADCAST, fa: 'fas fa-redo', id: 'retry'})
@@ -460,7 +452,7 @@ const init = (language, timezone) => {
         global.ui.on('tune', () => {
             let data = global.streamer.active ? global.streamer.active.data : global.streamer.lastActiveData
             console.warn('RETUNNING', data)
-            if(data) global.streamer.tune(data)
+            if(data) global.streamer.tune(data).catch(global.displayErr)
         })
         global.ui.on('retry', () => {
             console.warn('RETRYING')
@@ -469,7 +461,7 @@ const init = (language, timezone) => {
         global.ui.on('video-transcode', () => {
             console.error('VIDEO TRANSCODE')
             global.streamer.transcode(null, err => {
-                if(err) global.streamer.handleFailure(null, 'unsupported format')
+                if(err) global.streamer.handleFailure(null, 'unsupported format').catch(global.displayErr)
             })
         })
         global.ui.on('video-error', async (type, errData) => {
@@ -482,7 +474,7 @@ const init = (language, timezone) => {
                         let opts = [{template: 'question', text: global.lang.SLOW_BROADCAST}], def = 'wait'
                         let isCH = global.streamer.active.type != 'video' && global.channels.isChannel(global.streamer.active.data.terms ? global.streamer.active.data.terms.name : global.streamer.active.data.name)
                         if(isCH){
-                            opts.push({template: 'option', text: global.lang.PLAYALTERNATE, fa: global.config.get('tuning-icon'), id: 'try-other'})
+                            opts.push({template: 'option', text: global.lang.PLAY_ALTERNATE, fa: global.config.get('tuning-icon'), id: 'try-other'})
                             def = 'try-other'
                         }
                         opts.push({template: 'option', text: global.lang.RELOAD_THIS_BROADCAST, fa: 'fas fa-redo', id: 'retry'})
@@ -496,15 +488,14 @@ const init = (language, timezone) => {
                         videoErrorTimeoutCallback(ret)
                     }
                 } else {
-                    if(type == 'playback') {
-                        const openedExternal = await global.streamer.askExternalPlayer().catch(console.error)
-						if(openedExternal === true) return
+                    if(global.streamer.active) {
+                        if(type == 'playback' && (!errData || !errData.details || errData.details != 'NetworkError')) {
+                            const openedExternal = await global.streamer.askExternalPlayer().catch(console.error)
+						    if(openedExternal === true) return
+                        }
+                        console.error('VIDEO ERR', type, errData)
+                        global.streamer.handleFailure(null, type).catch(global.displayErr)
                     }
-                    console.error('VIDEO ERR', type, errData)
-                    if(global.streamer.active && global.streamer.active.type == 'hls' && global.streamer.active.adapters.length){
-                        console.error('VIDEO ERR EXT', global.streamer.active.endpoint)
-                    }
-                    global.streamer.handleFailure(null, type)
                 }
             }
         })
@@ -531,22 +522,27 @@ const init = (language, timezone) => {
         global.ui.on('open-url', url => {
             console.log('OPENURL', url)
             if(url){
-                global.storage.raw.set('open-url', url, true)
-                const name = global.lists.manager.nameFromSourceURL(url), e = {
-                    name, 
-                    url, 
-                    terms: {
-                        name: global.lists.terms(name), 
-                        group: []
+                const isM3U = url.match(new RegExp('(get.php\\?username=|\\.m3u($|[^A-Za-z0-9])|\/supratv\\.)'))
+                if(isM3U) {
+                    global.lists.manager.addList(url).catch(global.displayErr)
+                } else {
+                    const name = global.listNameFromURL(url), e = {
+                        name, 
+                        url, 
+                        terms: {
+                            name: global.lists.terms(name), 
+                            group: []
+                        }
                     }
+                    global.storage.raw.set('open-url', url, true)
+                    global.lists.manager.waitListsReady().then(() => {                       
+                        if(isStreamerReady){
+                            global.streamer.play(e)
+                        } else {
+                            playOnLoaded = e
+                        }
+                    }).catch(console.error)
                 }
-                global.lists.manager.waitListsReady().then(() => {                       
-                    if(isStreamerReady){
-                        global.streamer.play(e)
-                    } else {
-                        playOnLoaded = e
-                    }
-                }).catch(console.error)
             }
         })
         global.ui.on('open-name', name => {

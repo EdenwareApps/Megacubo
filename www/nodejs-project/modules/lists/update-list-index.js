@@ -1,7 +1,7 @@
 const fs = require('fs'), Events = require('events')
 const ListIndexUtils = require('./list-index-utils')
 const MediaURLInfo = require('../streamer/utils/media-url-info')
-const Parser = require('./parser')
+const Parser = require('./parser'), Xtr = require('./xtr')
 
 class UpdateListIndex extends ListIndexUtils { 
 	constructor(url, directURL, file, master, updateMeta, forceDownload){
@@ -91,10 +91,8 @@ class UpdateListIndex extends ListIndexUtils {
                     timeout: Math.max(30, global.config.get('connect-timeout')), // some servers will take too long to send the initial response
                     downloadLimit: 200 * (1024 * 1024), // 200Mb
                     cacheTTL: this.forceDownload ? 0 : 3600,
-                    file: global.paths.temp + '/update-'+ parseInt(Math.random() * 10000000) +'.tmp',
                     debug: false
                 }
-                this.on('destroy', () => fs.unlink(opts.file, () => {}))
                 this.stream = new global.Download(opts)
                 this.stream.on('redirect', (url, headers) => this.parseHeadersMeta(headers))
                 this.stream.on('response', (statusCode, headers) => {
@@ -104,15 +102,14 @@ class UpdateListIndex extends ListIndexUtils {
                     resolved = true
                     this.parseHeadersMeta(headers)
                     if(statusCode >= 200 && statusCode < 300){
-                        this.contentLength = this.stream.totalContentLength
+                        if(this.stream.totalContentLength) {
+                            this.contentLength = this.stream.totalContentLength
+                        }
                         if(this.stream.totalContentLength > 0 && (this.stream.totalContentLength == this.updateMeta.contentLength)){
                             this.stream.destroy()
                             resolve(false) // no need to update
                         } else {
-                            this.stream.on('end', () => {
-                                this.parser && this.parser.end()
-                            })
-                            resolve({file: opts.file, persistent: true})
+                            resolve({stream: this.stream})
                         }
                     } else {
                         this.stream.destroy()
@@ -130,9 +127,7 @@ class UpdateListIndex extends ListIndexUtils {
                     }
                 })
                 this.stream.on('error', e => {
-                    if(this.debug){
-                        console.log('err', e)
-                    }
+                    if(this.debug) console.log('err', e)
                 })
                 this.stream.start()
             } else {
@@ -143,7 +138,7 @@ class UpdateListIndex extends ListIndexUtils {
                         if(stat.size > 0 && stat.size == this.updateMeta.contentLength){
                             resolve(false) // no need to update
                         } else {
-                            resolve({file, persistent: false})
+                            resolve({stream: fs.createReadStream(file, {})})
                         }
                     } else {
                         reject('file not found or empty*')
@@ -165,12 +160,18 @@ class UpdateListIndex extends ListIndexUtils {
         }
         await fs.promises.mkdir(global.dirname(this.tmpOutputFile), {recursive: true}).catch(console.error)
         const writer = fs.createWriteStream(this.tmpOutputFile)
+        writer.on('close', () => this.writerClosed = true)
         for(let url of urls){
             let err
-            const ret = await this.fetch(url).catch(e => err = e)
-            if(!err && ret){
-                await this.parse(ret, writer).catch(console.error)
+            if(url.indexOf('#xtream') != -1) {
+                await this.xparse(url, writer).catch(console.error)
                 if(this.indexateIterator) break
+            } else {
+                const ret = await this.fetch(url).catch(e => err = e)
+                if(!err && ret){
+                    await this.parse(ret, writer).catch(console.error)
+                    if(this.indexateIterator) break
+                }
             }
         }
         let i = 0
@@ -188,33 +189,64 @@ class UpdateListIndex extends ListIndexUtils {
         writer.destroy()
         return true
 	}
+    async xparse(url, writer){
+        let err, count = 0
+        const xtr = new Xtr(url)
+        xtr.on('progress', p => this.emit('progress', p, this.url))
+        xtr.on('meta', meta => {
+            Object.assign(this.index.meta, meta)
+        })
+        xtr.on('entry', entry => {
+            count++
+            if(entry.group) { // collect some data to sniff after if each group seems live, serie or movie
+                if(typeof(this.groups[entry.group]) == 'undefined') {
+                    this.groups[entry.group] = []
+                }
+                this.groups[entry.group].push({
+                    name: entry.name,
+                    url: entry.url,
+                    icon: entry.icon
+                })
+            }
+            entry = this.indexate(entry, this.indexateIterator)
+            const line = Buffer.from(JSON.stringify(entry) + "\n")
+            writer.write(line)
+            this.linesMap.push(this.linesMapPtr)
+            this.linesMapPtr += line.byteLength
+            if(!this.uniqueStreamsIndexate.has(entry.url)) {
+                this.uniqueStreamsIndexate.set(entry.url, null)
+                this.uniqueStreamsIndexateIterator++
+            }
+            this.indexateIterator++
+        })
+        await xtr.run().catch(e => err = e)
+        xtr.destroy()
+        if(err) {
+            console.error('XPARSE '+ err)
+            throw err
+        }
+    }
 	parse(opts, writer, playlist){
 		return new Promise((resolve, reject) => {
-			let resolved, count
-            const destroyTempFile = () => {
-                opts.file && fs.unlink(opts.file, () => {})
-            }
+			let resolved, count = 0
             const destroyListener = () => {
                 if(!resolved){
                     resolved = true
-                    destroyTempFile()
                     reject('destroyed')
                 }
             }
+            const endListener = () => {
+                this.parser && this.parser.end()
+            }
             this.parser && this.parser.destroy()
             this.parser = new Parser(opts)
-			this.parser.on('meta', meta => {
-				Object.assign(this.index.meta, meta)
-			})
-			this.parser.on('playlist', e => {
-                this.playlists.push(e)
-			})
+			this.parser.on('meta', meta => Object.assign(this.index.meta, meta))
+			this.parser.on('playlist', e => this.playlists.push(e))
 			this.parser.on('entry', entry => {
                 count++
 				if(this.destroyed){
                     if(!resolved){
                         resolved = true
-                        destroyTempFile()
                         reject('destroyed')
                     }
                     return
@@ -233,10 +265,10 @@ class UpdateListIndex extends ListIndexUtils {
                     })
                 }
                 entry = this.indexate(entry, this.indexateIterator)
-                const line = JSON.stringify(entry) + "\n"
+                const line = Buffer.from(JSON.stringify(entry) + "\n") // Writer expects buffer, that's better to get byteLength right after
                 writer.write(line)
                 this.linesMap.push(this.linesMapPtr)
-                this.linesMapPtr += Buffer.byteLength(line, 'utf8')
+                this.linesMapPtr += line.byteLength
                 if(!this.uniqueStreamsIndexate.has(entry.url)) {
                     this.uniqueStreamsIndexate.set(entry.url, null)
                     this.uniqueStreamsIndexateIterator++
@@ -244,11 +276,10 @@ class UpdateListIndex extends ListIndexUtils {
                 this.indexateIterator++
 			})
             this.parser.on('progress', readen => {
-                const cl = this.contentLength > 0 ? this.contentLength : 62 * (1024 * 1024) // estimate it if we don't know
-                const pp = cl / 100
+                const pp = this.contentLength / 100
                 let progress = parseInt(readen / pp)
                 if(progress > 99) progress = 99
-                if(this.playlists.length){
+                if(this.playlists.length > 0){
                     let i = -1
                     this.playlists.some((p, n) => {
                         if(!playlist || playlist.url == p.url){
@@ -260,23 +291,14 @@ class UpdateListIndex extends ListIndexUtils {
                         const lr = 100 / (this.playlists.length + 1)
                         const pr = (i * lr) + (progress * (lr / 100))
                         progress = parseInt(pr)
+                        console.error('PLAYLISTSPROGRESS='+ JSON.stringify({i, lr, progress}))
                     }
                 }
                 if(progress != this.lastProgress) {
                     this.lastProgress = progress
-                    this.emit('progress', progress)
+                    this.emit('progress', progress, this.url)
                 }
             })
-            if(this.stream.ended) {
-                this.parser.end()
-            } else {
-                this.stream.once('end', () => this.parser.end())
-            }
-            if(this.stream.received) {
-                this.parser.start()
-            } else {
-                this.stream.once('data', () => this.parser.start())
-            }
             this.once('destroy', destroyListener)
 			this.parser.once('finish', () => {
                 if(!resolved){
@@ -286,16 +308,20 @@ class UpdateListIndex extends ListIndexUtils {
                     } else {
                         reject('empty list')
                     }
-                    if(this.contentLength <= 0){
+                    if(this.contentLength == this.defaultContentLength) {
                         this.contentLength = this.stream.received
                     }
                     this.parser.destroy()
                     this.stream && this.stream.destroy()
                     this.stream = this.parser = null
-                    destroyTempFile()
                 }
-                this.removeListener('destroy', destroyListener)
 			})
+            this.parser.start()
+            if(!this.stream || this.stream.ended) {
+                endListener()
+            } else {
+                this.stream.once('end', endListener)
+            }
 		})
 	}
     writeIndex(writer){
@@ -401,7 +427,8 @@ class UpdateListIndex extends ListIndexUtils {
 		this.indexateIterator = 0
 		this.uniqueStreamsIndexate = new Map()
 		this.uniqueStreamsIndexateIterator = 0
-		this.contentLength = -1
+		this.defaultContentLength = 62 * (1024 * 1024) // estimate it if we don't know
+		this.contentLength = this.defaultContentLength // estimate it if we don't know
 	}
 	destroy(){
 		if(!this.destroyed){

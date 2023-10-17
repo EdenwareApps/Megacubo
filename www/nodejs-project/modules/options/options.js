@@ -114,7 +114,7 @@ class PerformanceProfiles extends Timer {
                 'search-missing-logos': true,
                 'show-logos': true,
                 'transcoding-resolution': '1080p',
-                'ts-packet-filter-policy': 1,
+                'mpegts-packet-filter-policy': 1,
                 'tune-concurrency': 8,
                 'tune-ffmpeg-concurrency': 3,
                 'ui-sounds': true
@@ -138,7 +138,7 @@ class PerformanceProfiles extends Timer {
                 'search-missing-logos': false,
                 'show-logos': false,
                 'transcoding-resolution': '480p',
-                'ts-packet-filter-policy': 1,
+                'mpegts-packet-filter-policy': 1,
                 'tune-concurrency': 4,
                 'tune-ffmpeg-concurrency': 2,
                 'ui-sounds': false
@@ -966,14 +966,6 @@ class Options extends OptionsExportImport {
                 },
                 checked: () => global.config.get('use-keepalive'),
                 details: global.lang.RECOMMENDED
-            },
-            {
-                name: 'TCP Fast Open', type: 'check',
-                action: (data, checked) => {
-                    global.config.set('tcp-fast-open', checked)
-                    global.energy.askRestart()
-                },
-                checked: () => global.config.get('tcp-fast-open')
             }, 
             {
                 name: global.lang.CONNECT_TIMEOUT, 
@@ -1029,6 +1021,16 @@ class Options extends OptionsExportImport {
                 }
             }
         ]
+        if(!global.cordova) {
+            opts.splice(1, 0, {
+                name: 'TCP Fast Open', type: 'check',
+                action: (data, checked) => {
+                    global.config.set('tcp-fast-open', checked)
+                    global.energy.askRestart()
+                },
+                checked: () => global.config.get('tcp-fast-open')
+            })
+        }
         return opts
     }
     async tuneEntries(){
@@ -1195,11 +1197,51 @@ class Options extends OptionsExportImport {
                 return global.config.get('hls-prefetching')
             }},
             {
-                name: 'MPEGTS Joining', details: global.lang.RECOMMENDED, type: 'check', action: (data, checked) => {
-                global.config.set('ts-packet-filter-policy', checked ? 1 : -1)
+                name: 'Lists loading concurrency',
+                type: 'slider', 
+                fa: 'fas fa-cog',
+                range: {start: 1, end: 20},
+                action: (data, value) => {
+                    global.config.set('lists-loader-concurrency', value)
+                }, 
+                value: () => {
+                    return global.config.get('lists-loader-concurrency') || 3
+                }
+            },
+            {
+                name: 'MPEGTS persistent connections', type: 'check', action: (data, checked) => {
+                global.config.set('mpegts-persistent-connections', checked)
             }, checked: () => {
-                return global.config.get('ts-packet-filter-policy') !== -1                    
+                return global.config.get('mpegts-persistent-connections') === true
             }},
+            {
+                name: 'MPEGTS use worker', type: 'check', action: (data, checked) => {
+                global.config.set('mpegts-use-worker', checked)
+            }, checked: () => {
+                return global.config.get('mpegts-use-worker') === true
+            }},
+            {
+                name: 'MPEGTS packet filter',
+                fa: 'fas fa-cog',
+                type: 'select', 
+                renderer: async () => {
+                    const def = global.config.get('mpegts-packet-filter-policy'), opts = [
+                        {name: 'Do not remove repetitions', type: 'action', selected: (def == 'no'), action: () => {
+                            global.config.set('mpegts-packet-filter-policy', -1)
+                        }},
+                        {name: 'Trim larger packets, remove smaller ones', type: 'action', selected: (def == 'no'), action: () => {
+                            global.config.set('mpegts-packet-filter-policy', 1)
+                        }},
+                        {name: 'Remove invalid size packets', type: 'action', selected: (def == 'no'), action: () => {
+                            global.config.set('mpegts-packet-filter-policy', 2)
+                        }},
+                        {name: 'Ignore invalid size packets', type: 'action', selected: (def == 'no'), action: () => {
+                            global.config.set('mpegts-packet-filter-policy', 3)
+                        }}
+                    ]
+                    return opts
+                }               
+            },
             {
                 name: 'FFmpeg CRF',
                 fa: 'fas fa-film',

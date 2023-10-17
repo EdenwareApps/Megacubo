@@ -23,15 +23,17 @@ class FFmpegController extends Events {
 			// add these input options only if we have an input, not in -version, per example
 			// set probesize/analyzeduration too high will make ffmpeg startup too slow
 			// TODO: allow to customize probesize and analyzeduration
-			cmd.push(...[
-				'-y',
-				'-loglevel', 'info', // if logerror=(warning|error) it will not return the codec and bitrate data
-				'-analyzeduration', 10000000, // 10s in microseconds
-				'-probesize', 10000000,	// ~10MB
-				'-err_detect', 'ignore_err',
-				'-i', this.input
-			])
-			
+			const defaults = [
+				['-y'],
+				['-loglevel', 'info'], // if logerror=(warning|error) it will not return the codec and bitrate data
+				['-analyzeduration', 10000000], // 10s in microseconds
+				['-probesize', 10000000],	// ~10MB
+				['-err_detect', 'ignore_err'],
+				['-i', this.input]
+			]
+			defaults.forEach(c => {
+				cmd.includes(c[0]) || cmd.push(...c)
+			})
             if (this.input.startsWith('https')) {
                 cmd.push(...['-tls_verify', 0])
             }
@@ -248,11 +250,11 @@ class FFMPEGMediaInfo extends FFMPEGHelper {
 	}
 	getFileDuration(file, cb){
 		let next = () => {
-			this.info(file, nfo => {
+			this.info(file, true, nfo => {
 				if(nfo){
 					// console.log('mediainfo', nfo)
-					let duration = this.duration(nfo)
-					if(isNaN(duration)){
+					let duration = this.duration(nfo.output +' '+ nfo.error)
+					if(isNaN(duration)) {
 						console.error('duration() failure', nfo, duration)
 						cb('duration check failure', 0)
 					} else {
@@ -273,12 +275,20 @@ class FFMPEGMediaInfo extends FFMPEGHelper {
 	}
 	bitrate(file, cb, length){
 		let next = () => {
-			this.info(file, nfo => {
+			this.info(file, false, nfo => {
 				if(nfo){
-					let codecs = this.codecs(nfo), rate = this.rawBitrate(nfo), dimensions = this.dimensions(nfo)
+					const output = nfo.output +' '+ nfo.error
+					let codecs = this.codecs(output), rate = this.rawBitrate(output), dimensions = this.dimensions(output)
 					// console.log('NFO BITRATE', codecs, rate, dimensions, Buffer.from(nfo))
-					if(!rate && length){
-						rate = parseInt(length / this.duration(nfo))
+					if(nfo.size) {
+						length = nfo.size
+					}
+					if(length) {
+						let duration = nfo.duration || this.duration(output)
+						const nrate = parseInt(length / duration)
+						if(!rate || nrate > rate) {
+							rate = nrate
+						}
 					}
 					if(isNaN(rate)){
 						console.error('bitrate() failure', nfo, global.kbfmt(length))
@@ -318,24 +328,41 @@ class FFMPEGMediaInfo extends FFMPEGHelper {
 		}
 	}
     ext(file){
-        return String(file).split('?')[0].split('#')[0].split('.').pop().toLowerCase()
+        const ext = String(file).split('?')[0].split('#')[0].split('.').pop().toLowerCase()
+		return ext.length >= 2 && ext.length <= 4 ? ext : null
     }
-	info(path, cb){
+	info(path, durationWanted, cb){
 		if(path.indexOf('://') == -1){
 			this.exec(path, [], (error, output) => {
-				cb(String(error || output))
+				fs.stat(path, (err, stat) => {
+					cb({error, output, size: stat ? stat.size: null})
+				})
 			})
 		} else {
-			const ext = this.ext(path) || 'mp4', tempFile = global.paths.temp +'/'+ Math.random() +'.'+ ext
-			if(path.toLowerCase().indexOf('.m3u8') != -1){
-				path = 'hls+'+ path
+			const seconds = 4 // should be less than 10
+			const ext = this.ext(path) || 'ts'
+			const tempFile = global.paths.temp +'/'+ Math.random() +'.'+ ext
+			if(path.toLowerCase().indexOf('.m3u8') != -1) path = 'hls+'+ path
+			const inputOptions = [
+				'-timeout', 30000,
+				'-rw_timeout', 30000				
+			]
+			const outputOptions = [,
+				'-max_muxing_queue_size', 9999
+				// '-c', 'copy' // omit -c and -f to ensure a bitrate output
+			]
+			if(!durationWanted) {
+				inputOptions.unshift(...[
+					'-ss', '00:00:00',
+					'-to', '00:00:30'//+ seconds
+				])
 			}
-			this.exec(path, ['-c', 'copy', tempFile], (error, output) => {
-				cb(String(error || output))
-				fs.unlink(tempFile, err => {
-					err && console.error('CANNOT DELETE', err, error, output)
+			this.exec(path, [...outputOptions, tempFile], (error, output) => {
+				fs.stat(tempFile, (err, stat) => {
+					cb({error, output, size: stat ? stat.size: null, duration: seconds})
+					err || fs.unlink(tempFile, () => {})
 				})
-			}, ['-ss', '00:00:00', '-to', '00:00:02'])
+			}, inputOptions)
 		}
 	}
 }

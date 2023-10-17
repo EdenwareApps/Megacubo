@@ -24,7 +24,7 @@ class ListIndex extends ListIndexUtils {
         if(!Array.isArray(entries)){
             console.error('Failed to get lines', this.file)
             throw 'failed to get lines'
-        }
+        } 
         if(entries.length) {
             let last = entries.length - 1
             if(entries[last].length){ // remove index entry

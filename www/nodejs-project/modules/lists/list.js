@@ -218,10 +218,6 @@ class List extends Events {
                 this.indexer.destroy()
                 this.indexer = null
             }
-			if(this.rl){
-				this.rl.close()
-				this.rl = null
-			}
 			if(this.validator){
 				this.validator.destroy()
 				this.validator = null

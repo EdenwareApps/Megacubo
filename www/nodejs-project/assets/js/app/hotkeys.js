@@ -28,9 +28,10 @@ function escapePressed(){
             explorer.endModal()
         }
     } else {
+        if(streamer.casting) return streamer.castUIStop()
         let playing = explorer.inPlayer(), exploring = playing && explorer.isExploring()
         if(playing && !exploring){
-            if(streamer.state == 'playing' && !streamer.casting && arePlayerControlsVisible()){
+            if(streamer.state == 'playing' && arePlayerControlsVisible()){
                 idle.start()
                 idle.lock(1)
             } else {

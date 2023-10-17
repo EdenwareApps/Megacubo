@@ -1,5 +1,6 @@
 class MediaStreamInfo {
 	constructor(){
+		this.extAsURLParam = new RegExp('[#&\\?]ext=([^&]+)')
 		this.radioRegexA = new RegExp('r(aá|&aacute;)dio', 'i')
 		this.radioRegexB = new RegExp('\\b[FA]M( |$)')
 		this.protoRegexA = new RegExp('^([A-Za-z0-9]{2,6}):')
@@ -7,7 +8,16 @@ class MediaStreamInfo {
 		this.seemsLiveRegex = new RegExp('(live|m3u)', 'i')
 	}
 	ext(url){
-		return url.split('?')[0].split('#')[0].split('.').pop().toLowerCase()  
+		let parts = url.split('?')[0].split('#')[0].split('/').pop().split('.')
+		if(parts.length > 1) {
+			const ext = parts.pop()
+			if(ext.length >= 2 && ext.length <= 4) return ext.toLowerCase()
+		}
+		if(url.indexOf('ext=') != -1) {
+			const m = url.match(this.extAsURLParam)
+			if(m && m[1].length >= 2 && m[1].length <= 4) return m[1].toLowerCase()
+		}
+		return ''
 	}
 	proto(url, len){
 		var ret = ''
@@ -113,8 +123,8 @@ class MediaStreamInfo {
 	}
 	isYT(url){
 		if(url.indexOf('youtube.com') != -1 || url.indexOf('youtu.be') != -1){
-			var d = this.domain(url)
-			if(d.indexOf('youtu')){
+			const d = this.domain(url)
+			if(d.indexOf('youtu') != -1){
 				return true
 			}
 		}

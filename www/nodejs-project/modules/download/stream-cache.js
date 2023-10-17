@@ -33,11 +33,10 @@ class DownloadStreamCache extends DownloadStreamBase {
             if(range.start > row.processed) throw 'Range not satisfiable'
             headers['content-range'] = 'bytes='+ range.start +'-'+ end +'/'+ total
         }
+        headers['x-megacubo-dl-source'] += '-'+ row.type
         this.response = new DownloadStreamBase.Response(range ? 206 : 200, headers)
         this.emit('response', this.response)
-        if(row.type == 'file' && row.size === 0){
-            return this.end()
-        }
+        if(row.type == 'file' && row.size === 0) return this.end()
         switch(row.type){
             case 'saving':
                 stream = Download.cache.index[url].chunks.createReadStream(range)

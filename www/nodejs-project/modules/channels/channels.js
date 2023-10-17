@@ -897,7 +897,7 @@ class Channels extends ChannelsKids {
             }
         }
         let url = 'https://www.google.com/search?btnI=1&lr=lang_{0}&q={1}'.format(global.lang.locale, encodeURIComponent('"'+ name +'" site'))
-        const body = String(await Download.get({url}).catch(console.error))
+        const body = String(await global.Download.get({url}).catch(console.error))
         const matches = body.match(new RegExp('href *= *["\']([^"\']*://[^"\']*)'))
         if(matches && matches[1] && matches[1].indexOf('google.com') == -1){
             url = matches[1]

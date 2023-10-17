@@ -1,4 +1,4 @@
-const Events = require('events'), Limiter = require('../limiter')
+const Events = require('events'), Xtr = require('./xtr')
 
 class ManagerCommunityLists extends Events {
     constructor(){
@@ -81,7 +81,7 @@ class ManagerCommunityLists extends Events {
                 return
             }
             let health = global.discovery.averageHealth(data) || -1
-            let name = data.name || this.nameFromSourceURL(url)
+            let name = data.name || global.listNameFromURL(url)
             let author = data.author || undefined
             let icon = data.icon || undefined
             let length = data.length || info[url].length || 0
@@ -369,7 +369,7 @@ class ManagerEPG extends ManagerCommunityLists {
                 }
                 const next = () => {
                     options = epgs.unique().sort().map(url => {
-                        let details = '', name = this.nameFromSourceURL(url)
+                        let details = '', name = global.listNameFromURL(url)
                         if(url == activeEPG){
                             if(activeEPGDetails){
                                 details = activeEPGDetails
@@ -795,7 +795,7 @@ class Manager extends ManagerEPG {
         } else {
             global.osd.show(global.lang.LIST_ADDED, 'fas fa-check-circle', 'add-list', 'normal')
             const isURL = global.validateURL(listUrl)
-            const sensible = listUrl.match(new RegExp('(pwd?|pass|password)=', 'i')) || listUrl.indexOf('supratv') != -1 // protect sensible lists
+            const sensible = listUrl.match(new RegExp('(pwd?|pass|password)=', 'i')) || listUrl.indexOf('@') != -1 || listUrl.indexOf('supratv') != -1 // protect sensible lists
             let makePrivate
             if(fromCommunity) {
                 makePrivate = false
@@ -803,7 +803,7 @@ class Manager extends ManagerEPG {
                 makePrivate = true
                 global.config.set('communitary-mode-lists-amount', 0) // disable community lists to focus on user list
             } else {
-                chosen = await global.explorer.dialog([
+                const chosen = await global.explorer.dialog([
                     {template: 'question', text: global.lang.COMMUNITY_LISTS, fa: 'fas fa-users'},
                     {template: 'message', text: global.lang.WANT_SHARE_COMMUNITY},
                     {template: 'option', text: lang.NO_THANKS, id: 'no', fa: 'fas fa-lock'},
@@ -834,6 +834,8 @@ class Manager extends ManagerEPG {
             const currentEPG = global.config.get('epg-'+ global.lang.locale)
             info[listUrl].epg = this.parseEPGURL(info[listUrl].epg, false)
             if(global.validateURL(info[listUrl].epg) && info[listUrl].epg != currentEPG){
+                const sample = await global.Download.get({url: info[listUrl].epg, range: '0-512', responseType: 'text'})
+                if(typeof(sample) != 'string' || sample.toLowerCase().indexOf('<tv') == -1) return
                 let chosen = await global.explorer.dialog([
                     {template: 'question', text: ucWords(global.MANIFEST.name), fa: 'fas fa-star'},
                     {template: 'message', text: global.lang.ADDED_LIST_EPG},
@@ -884,41 +886,6 @@ class Manager extends ManagerEPG {
             }
         }
     }
-    nameFromSourceURL(url){
-        let name
-        if(url.indexOf('?') != -1){
-            let qs = {}
-            url.split('?')[1].split('&').forEach(s => {
-                s = s.split('=')
-                if(s.length > 1){
-                    if(['name', 'dn', 'title'].includes(s[0])){
-                        if(!name || name.length < s[1].length){
-                            name = s[1]
-                        }
-                    }
-                }
-            })
-        }
-        if(name){
-            name = global.decodeURIComponentSafe(name)
-            if(name.indexOf(' ') == -1 && name.indexOf('+') != -1){
-                name = name.replaceAll('+', ' ')
-            }
-            return name
-        }
-        if(this.isLocal(url)){
-            return url.split('/').pop().replace(new RegExp('\\.[A-Za-z0-9]{2,4}$', 'i'), '')
-        } else {
-            url = String(url).replace(new RegExp('^[a-z]*://', 'i'), '').split('/').filter(s => s.length)
-            if(!url.length){
-                return 'Untitled '+ parseInt(Math.random() * 9999)
-            } else if(url.length == 1) {
-                return url[0]
-            } else {
-                return (url[0].split('.')[0] + ' ' + url[url.length - 1]).replace(new RegExp('\\?.*$'), '')
-            }
-        }
-    }
     async name(url, content=''){
         let name = this.getMeta(url, 'name')
         if(!name){
@@ -926,7 +893,7 @@ class Manager extends ManagerEPG {
                 name = this.nameFromContent(content)
             }
             if(typeof(name) != 'string' || !name){
-                name = this.nameFromSourceURL(url)
+                name = global.listNameFromURL(url)
             }
         }
         return name
@@ -1021,10 +988,10 @@ class Manager extends ManagerEPG {
 
         if(p.satisfied || this.isUpdating || (!p.length && !c)) return
 
-        let lastProgress = 0
+        let lastProgress = -1
         const listener = c => p = c
-        const processStatus = p => {
-            if(lastProgress == p.progress) return
+        const processStatus = () => {
+            if(lastProgress >= p.progress) return
             lastProgress = p.length ? p.progress : 0
             let m, fa = 'fa-mega spin-x-alt', duration = 'persistent'
             if(p.satisfied) {
@@ -1043,7 +1010,8 @@ class Manager extends ManagerEPG {
                 m = global.lang[p.firstRun ? 'STARTING_LISTS_FIRST_TIME_WAIT' : 'UPDATING_LISTS'] +' '+ p.progress +'%'
             }
             if(m == -1) {
-                global.osd.hide('update-progress')
+                global.osd.show(JSON.stringify(p), fa, 'update-progress', duration)
+                //global.osd.hide('update-progress')
             } else {
                 global.osd.show(m, fa, 'update-progress', duration)
             }
@@ -1065,10 +1033,8 @@ class Manager extends ManagerEPG {
             }
         }
         this.master.on('status', listener)
-        this.isUpdating = setInterval(() => {
-            processStatus(global.lists.status())
-            p = false
-        }, 1000)
+        this.master.loader.on('progresses', () => listener(global.lists.status()))
+        this.isUpdating = setInterval(processStatus, 1000)
 
         global.osd.show(m, 'fa-mega spin-x-alt', 'update-progress', 'persistent')
     }
@@ -1200,7 +1166,19 @@ class Manager extends ManagerEPG {
         if(server.charAt(server.length - 1) == '/') {
             server = server.substr(0, server.length - 1)
         }
-        const url = await this.getM3UFromCredentials(server, user, pass)
+        global.osd.show(global.lang.PROCESSING, 'fa-mega spin-x-alt', 'add-list-pre', 'persistent')
+        let url = await this.getM3UFromCredentials(server, user, pass).catch(console.error)
+        if(typeof(url) != 'string') {
+            url = server.replace('//', '//'+ user +':'+ pass +'@') +'#xtream'
+            let chosen = await global.explorer.dialog([
+                {template: 'question', text: global.ADD_USER_PASS, fa: 'fas fa-key'},
+                {template: 'message', text: global.lang.INCLUDE_SERIES_CATALOG},
+                {template: 'option', text: global.lang.YES, id: 'yes', fa: 'fas fa-check-circle'},
+                {template: 'option', text: global.lang.NO, id: 'no', fa: 'fas fa-times-circle'}
+            ], 'yes').catch(console.error)
+            if(chosen == 'no') url += '-all'
+        }
+        global.osd.hide('add-list-pre')
         return await this.addList(url)
     }    
     async getM3UFromCredentials(server, user, pass) {
@@ -1315,7 +1293,7 @@ class Manager extends ManagerEPG {
                 for(const row of lists){
                     let url = row[1]
                     if(!extInfo[url]) extInfo[url] = {}
-                    let name = extInfo[url].name || row[0] || this.nameFromSourceURL(url)
+                    let name = extInfo[url].name || row[0] || global.listNameFromURL(url)
                     let details = [extInfo[url].author || '', '<i class="fas fa-play-circle"></i> '+ global.kfmt(extInfo[url].length || 0)].filter(n => n).join(' &nbsp;&middot;&nbsp; ')
                     let icon = extInfo[url].icon || undefined
                     let priv = (row.length > 2 && typeof(row[2]['private']) != 'undefined') ? row[2]['private'] : doNotShareHint 
@@ -1442,11 +1420,13 @@ class Manager extends ManagerEPG {
         let updateErr
         await this.master.loader.reload(data.url).catch(e => updateErr = e)
         if(updateErr){
-            if(updateErr == 'empty list'){
+            if(updateErr == 'empty list' || updateErr == 'empty index'){
                 let haserr, msg = updateErr
                 const ret = await global.Download.head({url: data.url}).catch(err => haserr = err)
                 if(ret && typeof(ret.statusCode) == 'number'){
                     switch(String(ret.statusCode)){
+                        case '200':
+                        case '210':
                         case '400':
                         case '401':
                         case '403':
@@ -1472,14 +1452,15 @@ class Manager extends ManagerEPG {
                 }
                 updateErr = msg
             }
+            global.explorer.refreshNow()
             global.displayErr(updateErr)
         } else {
             await global.lists.loadList(data.url).catch(err => updateErr = err)
+            global.explorer.refreshNow()
             if(updateErr){
                 global.displayErr(updateErr)
             } else {
                 global.osd.show('OK', 'fas fa-check-circle faclr-green', 'refresh-list', 'normal')
-                global.explorer.refreshNow() // epg options path
                 return true // return here, so osd will not hide
             }
         }

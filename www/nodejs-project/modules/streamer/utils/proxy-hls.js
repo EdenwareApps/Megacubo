@@ -615,7 +615,7 @@ class StreamerProxyHLS extends HLSRequests {
 		}
 		let ended, url = this.unproxify(req.url)		
 		let reqHeaders = req.headers
-		reqHeaders = this.removeHeaders(reqHeaders, ['cookie', 'referer', 'origin', 'range', 'user-agent'])
+		reqHeaders = this.removeHeaders(reqHeaders, ['cookie', 'referer', 'origin', 'user-agent'])
 		if(this.type == 'network-proxy'){
 			reqHeaders['x-from-network-proxy'] = '1'
 		} else {
@@ -715,11 +715,6 @@ class StreamerProxyHLS extends HLSRequests {
 				return abort()					
 			}
 			if(statusCode >= 200 && statusCode < 300){ // is data response
-				if(!headers['content-disposition'] || headers['content-disposition'].indexOf('attachment') == -1 || headers['content-disposition'].indexOf('filename=') == -1){
-					// setting filename to allow future file download feature
-					// will use sanitize to prevent net::ERR_RESPONSE_HEADERS_MULTIPLE_CONTENT_DISPOSITION on bad filename
-					headers['content-disposition'] = 'attachment; filename="' + global.filenameFromURL(url) + '"'
-				}
 				if(statusCode == 206){
 					statusCode = 200
 				}

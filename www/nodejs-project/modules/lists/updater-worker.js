@@ -45,36 +45,26 @@ class ListsUpdater extends Common {
 		if(this.debug){
 			console.log('updater updateList', url)
 		}
-		progressId && utils.emit('progress', {progressId, progress: 0})
+		utils.emit('progress', {progressId, progress: 0, url})
 		const should = force === true || (await this.updaterShouldUpdate(url))
 		const now = global.time()
 		if(this.debug){
-			console.log('updater - should', url, should, force)
+			console.log('updater - should 1', url, should, force)
 		}
 		if(should){
-			if(this.debug){
-				console.log('updater - should', url, should)
-			}
 			const updateMeta = {}
 			const file = global.storage.raw.resolve(global.LIST_DATA_KEY_MASK.format(url))
 			const updater = new UpdateListIndex(url, url, file, this, Object.assign({}, updateMeta), force === true)
 			updateMeta.updateAfter = now + 180
 			if(this.debug){
-				console.log('updater - should', url, should)
+				console.log('updater - should 2', url, should)
 			}
 			await this.setListMeta(url, updateMeta).catch(console.error)
 			let ret
 			if(this.debug){
-				console.log('updater - should', url, should)
+				console.log('updater - should 3', url, should)
 			}
-			if(progressId) {
-				updater.on('progress', progress => {
-					if(this.debug){
-						console.log('updater - progress ', {progressId, progress})
-					}
-					utils.emit('progress', {progressId, progress})
-				})
-			}
+			updater.on('progress', progress => progress > 0 && utils.emit('progress', {progressId, progress, url}))
 			const start = global.time()
 			await updater.start()
 			if(this.debug){
@@ -112,7 +102,7 @@ class ListsUpdater extends Common {
 			console.log('updater shouldUpdate', JSON.stringify(updateMeta, null, 3), url)
 		}
 		let now = global.time()
-		let should = !updateMeta || now >= updateMeta.updateAfter
+		let should = url.indexOf('#xtream') == -1 && (!updateMeta || now >= updateMeta.updateAfter)
 		if(!should){
 			const start = global.time()
 			const valid = await this.validateIndex(url).catch(console.error)

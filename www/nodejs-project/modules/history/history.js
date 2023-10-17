@@ -56,6 +56,14 @@ class History extends EntriesGroup {
                 ret = fixIcon(ret)
             }
         }
+        for(let i=0; i<ret.length; i++) {
+            if(!ret[i].originalUrl) {
+                const ch = global.channels.isChannel(ret[i].name)
+                if(ch) {
+                    ret[i].originalUrl = global.mega.build(ch.name, {terms: ch.terms})
+                }
+            }
+        }
         return ret
     }
     resume(){

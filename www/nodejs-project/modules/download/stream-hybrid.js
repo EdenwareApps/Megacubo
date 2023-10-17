@@ -1,5 +1,3 @@
-const Events = require('events')
-
 const DownloadStreamHttp = require('./stream-http')
 const DownloadStreamCache = require('./stream-cache')
 const DownloadStreamBase = require('./stream-base')
@@ -30,21 +28,22 @@ class DownloadStream extends DownloadStreamBase {
             types.unshift(DownloadStreamCache)
         }
         let chosen, responseData
-        const vias = types.map((t, i) => {
+        const vias = types.map(t => {
             const opts = Object.assign({}, this.ropts)
             const via = new t(opts)
+            this.once('destroy', () => via.destroy())
             via.once('error', (err, report) => {
                 (report || via == chosen) && console.error(err)
             })
             via.once('response', response => {
-                if(chosen){
-                    return via.destroy()
-                }
+                if(chosen) return via.destroy()
                 via.validation = [response, this.validate(response)]
-                if(this.validate(response)){
+                if(this.validate(response)) {
                     chosen = via
                     vias.filter(v => v != via).forEach(v => v.destroy())
-                    response.headers['x-megacubo-dl-source'] = via.type
+                    if(!response.headers['x-megacubo-dl-source']) {
+                        response.headers['x-megacubo-dl-source'] = via.type
+                    }
                     this.emit('response', response)
                     if(response.ended){
                         this.end()

@@ -224,8 +224,8 @@ class StreamInfo {
 	}
 	isYT(url){
 		if(url.indexOf('youtube.com') != -1 || url.indexOf('youtu.be') != -1){
-			var d = this.domain(url)
-			if(d.indexOf('youtu')){
+			const d = this.domain(url)
+			if(d.indexOf('youtu') != -1){
 				return true
 			}
 		}

@@ -3,147 +3,30 @@ const fs = require('fs'), Events = require('events'), Reader = require('../reade
 const CACHE_MEM_ONLY = false
 
 class DownloadCacheFileReader extends Events {
-    constructor(file, opts){
+    constructor(master, opts){
         super()
-        this.file = file
+        this.file = master.file
         this.opts = opts
+        this.opts.persistent = !master.finished
+        master.once('finish', () => {
+            this.opts.persistent = false
+            this.stream && this.stream.endPersistence()
+        })
         this.on('error', console.error)
         process.nextTick(() => this.init())
     }
     init(){
         this.stream = new Reader(this.file, this.opts);
-        ['data', 'end', 'error', 'finish'].forEach(n => this.forward(n))
+        ['data', 'end', 'error', 'finish', 'close'].forEach(n => this.forward(n))
     }
     forward(name){
         this.stream.on(name, (...args) => this.emit(name, ...args))
     }
     destroy(){
+        this.emit('close')
+        this.emit('finish')
         this.removeAllListeners()
         this.stream && this.stream.close && this.stream.close()
-    }
-}
-
-/* Read cache from a DownloadCacheChunks instance */
-class DownloadCacheChunksReader extends Events {
-    constructor(master, opts){
-        super()
-        this.opts = opts || {}
-        this.expectedLength = (this.opts.start && this.opts.end) ? (this.opts.end - this.opts.start + 1) : -1
-        this.sent = 0 // bytes outputted for client
-        this.processed = 0 // bytes processed from whole file, ignoring requested ranges
-        this.freaden = 0 // bytes readen from cache file
-        this.fcheck = false
-        this.current = -1
-        this.pending = []
-        this.master = master
-        this.master.chunks.forEach(c => {
-            if(c.type == 'buffer' && c.data){
-                this.pending.push({data: c.data, offset: c.start})
-            }
-        })
-        if(!this.master.finished){
-            this.masterDataListener = (data, offset) => {
-                this.pending.push({data, offset})
-                this.pump()
-            }
-            this.masterEndListener = () => {
-                this.masterEnded = true
-                this.master.removeListener('data', this.masterDataListener)
-                this.master.removeListener('end', this.masterEndListener)
-                this.pump()
-            }
-            this.master.on('data', this.masterDataListener)
-            this.master.once('finish', this.masterEndListener)
-        }
-        fs.stat(this.master.file, (err, stat) => {
-            this.fcheck = true
-            if(err) return this.emitError(err)
-            if(stat.size == 0) return this.emit('end')
-            if(this.opts.start && this.opts.start >= stat.size) return this.pump()
-            const end = err => {
-                err && console.error('DownloadCacheChunks()', err)
-                if(!this.masterEnded){
-                    this.masterEnded = this.master.ended
-                }
-                if(this.stream !== null){
-                    this.stream.destroy()
-                    this.stream = null
-                    if(this.freaden){
-                        this.processed = (this.opts.start || 0) + this.freaden
-                    }
-                    this.pump()
-                }
-            }
-            this.stream = new DownloadCacheFileReader(this.master.file, this.opts)
-            this.stream.on('error', end)
-            this.stream.on('data', chunk => {
-                this.emitData(chunk, (this.opts.start || 0) + this.freaden)
-                this.freaden += chunk.length
-            })
-            this.stream.once('end', end)
-        })
-    }
-    emitData(data, offset){
-        if(typeof(this.opts.start) == 'number'){
-            let end, ignoreBytes = 0
-            if(offset < this.opts.start){
-                ignoreBytes = this.opts.start - offset
-            }
-            if(this.opts.end){
-                if(this.opts.end < offset){
-                    return false
-                }
-                const expectedEnd = (this.opts.end + 1) - offset
-                if(expectedEnd < data.length){
-                    end = expectedEnd
-                }
-            }
-            if(ignoreBytes >= data.length || (end && ignoreBytes >= end)){
-                return false
-            }
-            this.sent += (end - ignoreBytes)
-            this.emit('data', data.slice(ignoreBytes, end))
-            return true
-        }
-        this.sent += data.length
-        this.emit('data', data)
-    }
-	emitError(error){
-        this.error = error
-        if(this.listenerCount('error')){
-			this.emit('error', error)
-		}
-        this.emit('end')
-	}
-    pump(){
-        if(!this.fcheck || this.stream) return
-        this.pending.forEach((c, i) => {
-            if(!c.data) return
-            let len = c.data.length, start = c.offset, end = start + len
-            if(this.processed < end){
-                const data = this.processed > start ? c.data.slice(this.processed - start) : c.data
-                this.emitData(data, this.processed)
-                this.processed += len
-                /*
-                TODO: workaround it, console.warn('Bad pumping', this.processed, end)
-                if(!skipChk && this.processed != end){
-                    skipChk = true
-                }
-                */
-                delete this.pending[i].data
-            }
-        })
-        const ended = this.masterEnded || (this.expectedLength >= 0 && this.sent >= this.expectedLength)
-        if(ended){
-            this.emit('end')
-            this.pending = []
-            this.master.removeListener('data', this.masterDataListener)
-            this.master.removeListener('end', this.masterEndListener)
-            this.destroy()
-        }
-    }
-    destroy(){
-        this.removeAllListeners()
     }
 }
 
@@ -227,8 +110,8 @@ class DownloadCacheChunks extends Events {
         this.ended = true // before pump()
         this.pump()
     }
-    createReadStream(opts){
-        return new DownloadCacheChunksReader(this, opts)
+    createReadStream(opts={}){
+        return new DownloadCacheFileReader(this, opts)
     }
     destroy(){
         this.chunks = []
