@@ -102,6 +102,7 @@ class ListsLoader extends Events {
                 if(this.currentTaskId == taskId && !this.queue._pendingCount) {
                     this.master.updaterFinished(true)
                 }
+                this.master.status()
             }, 2000)
         })
         this.debug && console.error('[listsLoader] resetLowPriorityUpdates(4)')

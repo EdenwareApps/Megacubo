@@ -99,10 +99,11 @@ class CloudConfiguration {
             const url = this.url(key)
             let err, err2, body = await global.Download.get({
                 url,
-                responseType: raw === true ? 'text' : 'json',
-                timeout: 60,
                 retry: 10,
-                cacheTTL: this.expires[expiralKey] || 300
+                timeout: 60,
+                responseType: raw === true ? 'text' : 'json',
+                cacheTTL: this.expires[expiralKey] || 300,
+                encoding: 'utf8'
             }).catch(e => err = e)
             if(this.debug){
                 console.log('cloud: got', key, err, body)

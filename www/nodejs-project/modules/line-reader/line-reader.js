@@ -5,13 +5,11 @@ class LineEmitter extends Writable {
 	constructor(options = {}) {
 		super(options)
 		this.buffer = ''
-		this.maxBufferSize = options.maxBufferSize || 1024 * 256
+		this.bufferSize = 1024 * 64
 	}
 	_write(chunk, encoding, callback) {
 		this.buffer += chunk
-		if (this.buffer.length > this.maxBufferSize) {
-			this.emitLines()
-		}
+		if (this.buffer.length > this.bufferSize) this.emitLines()
 		callback()
 	}
 	_final(callback) {
@@ -20,10 +18,11 @@ class LineEmitter extends Writable {
 		callback()
 	}
 	emitLines() {
+		const nl = "\n", r = "\r"
 		let startIndex = 0
 		let lineIndex
-		while ((lineIndex = this.buffer.indexOf('\n', startIndex)) !== -1) {
-			let line = this.buffer.substring(startIndex, this.buffer[lineIndex - 1] == '\r' ? (lineIndex - 1) : lineIndex)
+		while ((lineIndex = this.buffer.indexOf(nl, startIndex)) !== -1) {
+			let line = this.buffer.substring(startIndex, this.buffer[lineIndex - 1] === r ? (lineIndex - 1) : lineIndex)
 			this.emit('line', line)
 			startIndex = lineIndex + 1
 		}
@@ -34,10 +33,9 @@ class LineEmitter extends Writable {
 class LineReader extends EventEmitter {
 	constructor(opts={}) {
 		super()
-		this.opts = Object.assign({bufferSize: 8192}, opts)
 		this.readOffset = 0
 		this.liner = null
-		this.opts = Object.assign({encoding: 'utf8'}, opts)
+		this.opts = opts
 		if(!this.opts.stream) throw 'LineReader initialized with no stream specified'
 		this.start()
 	}

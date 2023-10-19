@@ -870,7 +870,7 @@ class Options extends OptionsExportImport {
                         }},
                         {name: global.lang.ONLY +' MPEGTS', type: 'action', selected: (def == 'yes'), action: () => {
                             global.config.set('ffmpeg-broadcast-pre-processing', 'mpegts')
-                        }},
+                        }}
                     ]
                     return opts
                 }
@@ -1212,38 +1212,47 @@ class Options extends OptionsExportImport {
                 }
             },
             {
-                name: 'MPEGTS persistent connections', type: 'check', action: (data, checked) => {
-                global.config.set('mpegts-persistent-connections', checked)
-            }, checked: () => {
-                return global.config.get('mpegts-persistent-connections') === true
-            }},
+                name: 'Debug credentials', fa: 'fas fa-key', type: 'action', action: () => {
+                    global.lists.manager.debugCredentials().catch(global.displayErr)
+                }
+            },
             {
-                name: 'MPEGTS use worker', type: 'check', action: (data, checked) => {
-                global.config.set('mpegts-use-worker', checked)
-            }, checked: () => {
-                return global.config.get('mpegts-use-worker') === true
-            }},
-            {
-                name: 'MPEGTS packet filter',
-                fa: 'fas fa-cog',
-                type: 'select', 
-                renderer: async () => {
-                    const def = global.config.get('mpegts-packet-filter-policy'), opts = [
-                        {name: 'Do not remove repetitions', type: 'action', selected: (def == 'no'), action: () => {
-                            global.config.set('mpegts-packet-filter-policy', -1)
-                        }},
-                        {name: 'Trim larger packets, remove smaller ones', type: 'action', selected: (def == 'no'), action: () => {
-                            global.config.set('mpegts-packet-filter-policy', 1)
-                        }},
-                        {name: 'Remove invalid size packets', type: 'action', selected: (def == 'no'), action: () => {
-                            global.config.set('mpegts-packet-filter-policy', 2)
-                        }},
-                        {name: 'Ignore invalid size packets', type: 'action', selected: (def == 'no'), action: () => {
-                            global.config.set('mpegts-packet-filter-policy', 3)
-                        }}
-                    ]
-                    return opts
-                }               
+                name: 'MPEGTS', fa: 'fas fa-film', type: 'group', entries: [
+                    {
+                        name: 'MPEGTS persistent connections', type: 'check', action: (data, checked) => {
+                        global.config.set('mpegts-persistent-connections', checked)
+                    }, checked: () => {
+                        return global.config.get('mpegts-persistent-connections') === true
+                    }},
+                    {
+                        name: 'MPEGTS use worker', type: 'check', action: (data, checked) => {
+                        global.config.set('mpegts-use-worker', checked)
+                    }, checked: () => {
+                        return global.config.get('mpegts-use-worker') === true
+                    }},
+                    {
+                        name: 'MPEGTS packet filter',
+                        fa: 'fas fa-cog',
+                        type: 'select', 
+                        renderer: async () => {
+                            const def = global.config.get('mpegts-packet-filter-policy'), opts = [
+                                {name: 'Do not remove repetitions', type: 'action', selected: (def == 'no'), action: () => {
+                                    global.config.set('mpegts-packet-filter-policy', -1)
+                                }},
+                                {name: 'Trim larger packets, remove smaller ones', type: 'action', selected: (def == 'no'), action: () => {
+                                    global.config.set('mpegts-packet-filter-policy', 1)
+                                }},
+                                {name: 'Remove invalid size packets', type: 'action', selected: (def == 'no'), action: () => {
+                                    global.config.set('mpegts-packet-filter-policy', 2)
+                                }},
+                                {name: 'Ignore invalid size packets', type: 'action', selected: (def == 'no'), action: () => {
+                                    global.config.set('mpegts-packet-filter-policy', 3)
+                                }}
+                            ]
+                            return opts
+                        }               
+                    }
+                ]
             },
             {
                 name: 'FFmpeg CRF',

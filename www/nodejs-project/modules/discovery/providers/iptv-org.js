@@ -8,9 +8,7 @@ class IPTV extends Events {
         this.data = {}
         this.countries = new Countries()
         this.load().catch(console.error)    
-        global.uiReady(() => {
-            global.explorer.addFilter(this.hook.bind(this))
-        })
+        global.uiReady(() => global.explorer.addFilter(this.hook.bind(this)))
     }
 	async load(){
         if(!this.repo){

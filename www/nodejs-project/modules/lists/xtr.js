@@ -1,8 +1,9 @@
 const Events = require('events'), pLimit = require('p-limit')
   
 class Xtr extends Events {
-    constructor(addr) { // addr = http://user:pass@server
+    constructor(addr, debug) { // addr = http://user:pass@server
         super()
+        if(debug === true) this.debugInfo = []
 
         let parts = addr.split('#')
         this.authAddr = parts[0]
@@ -17,6 +18,7 @@ class Xtr extends Events {
         this.foundStreams = 0
     }
     async execute(action) {
+        let err
         const url = this.authAddr +'/player_api.php?username='+ this.user +'&password=' + this.pass + '&action='+ action
         const data = await global.Download.get({
             url,
@@ -26,7 +28,9 @@ class Xtr extends Events {
         	maxAuthErrors: 0,
 			maxAbortErrors: 1,
 			redirectionLimit: 1
-        })
+        }).catch(e => err = e)
+        this.debugInfo && this.debugInfo.push({url, data, err})
+        if(err) throw err
         return data
     }
     async getSeriesStreams(id) {

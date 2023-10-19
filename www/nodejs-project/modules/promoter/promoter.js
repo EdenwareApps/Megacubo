@@ -87,11 +87,15 @@ class Promoter {
 					o.url = o.url.replace('{name}', encodeURIComponent(name || ''))
 				}
 				if(o.confirmation) {
+					global.osd.show(global.lang.PROCESSING, 'fas fa-circle-notch fa-spin', 'promoter', 'persistent')
 					global.Download.get({
 						url: o.url,
 						retries: 10
-					}).catch(console.error)
-					global.explorer.info(o.name, o.confirmation)
+					}).then(() => {
+						global.explorer.info(o.name, o.confirmation)
+					}).catch(global.displayErr).finally(() => {
+						global.osd.hide('promoter')
+					})
 				} else {
 					global.ui.emit('open-external-url', o.url)
 				}

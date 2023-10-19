@@ -50,6 +50,7 @@ class DownloadStreamHttp extends DownloadStreamBase {
         }
         if(this.parsed.protocol == 'https:'){
             opts.rejectUnauthorized = false
+            opts.insecureHTTPParser = true
         }
         if(opts.headers.connection == 'keep-alive'){
             opts.agent = this.parsed.protocol == 'http:' ? KHttpAgent : KHttpsAgent
@@ -123,8 +124,7 @@ class DownloadStreamHttp extends DownloadStreamBase {
         return new Promise(resolve => {
             let timer, fine, req, res, resolved
             
-            const controller = new AbortController()
-            const signal = controller.signal            
+            const controller = new AbortController()  
             const close = () => {
                 this.removeListener('destroy', close)
                 this.responseWrapper && this.responseWrapper.end()
@@ -175,8 +175,8 @@ class DownloadStreamHttp extends DownloadStreamBase {
                 }
                 close()
             }
-            this.once('destroy', close)
-            options.signal = { signal }
+            this.once('destroy', close)     
+            options.signal = controller.signal
             req = (options.protocol == 'http:' ? http : https).request(options, response => {
                 if(this.destroyed){
                     fail('destroyed')
@@ -193,14 +193,14 @@ class DownloadStreamHttp extends DownloadStreamBase {
                     }
                     delete this.responseWrapper.headers['set-cookie']
                 }
-                res.on('error', fail)
-                res.on('timeout', fail)
-                res.once('end', () => finish())
-                res.on('close', () => finish())
-                res.on('finish', () => finish())
+                res.once('error', fail)
+                res.once('timeout', fail)
+                //res.once('end', () => finish())
+                res.once('close', () => finish())
+                res.once('finish', () => finish())
                 res.socket.once('end', () => finish())
-                res.socket.on('close', () => finish())
-                res.socket.on('finish', () => finish())
+                res.socket.once('close', () => finish())
+                res.socket.once('finish', () => finish())
                 this.once('destroy', () => (resolved || finish()))
                 this.emit('response', this.responseWrapper)
                 res.on('data', chunk => {

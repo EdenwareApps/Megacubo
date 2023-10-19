@@ -1,4 +1,4 @@
-const Events = require('events'), Xtr = require('./xtr')
+const Events = require('events')
 
 class ManagerCommunityLists extends Events {
     constructor(){
@@ -672,16 +672,15 @@ class Manager extends ManagerEPG {
     }
     waitListsReady(timeoutSecs){
         return new Promise(resolve => {
-            const listener = () => {
-                const info = this.master.status()
-                if(info.satisfied && info.length) {
+            const listener = info => {
+                if(this.master.satisfied && info.length) {
                     this.master.removeListener('satisfied', listener)
                     resolve(true)
                 }
             }
             this.master.on('satisfied', listener)
             typeof(timeoutSecs) == 'number' && setTimeout(() => resolve(false), timeoutSecs * 1000)
-            listener()
+            listener(this.master.status())
         })
     }
     inChannelPage(){
@@ -986,7 +985,7 @@ class Manager extends ManagerEPG {
             this.master.on('status', this.receivedCommunityListsListener)
         }
 
-        if(p.satisfied || this.isUpdating || (!p.length && !c)) return
+        if(this.master.satisfied || this.isUpdating || (!p.length && !c)) return
 
         let lastProgress = -1
         const listener = c => p = c
@@ -994,10 +993,13 @@ class Manager extends ManagerEPG {
             if(lastProgress >= p.progress) return
             lastProgress = p.length ? p.progress : 0
             let m, fa = 'fa-mega spin-x-alt', duration = 'persistent'
-            if(p.satisfied) {
+            if(this.master.satisfied) {
                 clearInterval(this.isUpdating)
                 delete this.isUpdating
                 if(p.length) {
+                    this.master.off('status', listener)
+                    this.master.off('satisfied', listener)
+                    this.master.off('unsatisfied', listener)
                     m = global.lang.LISTS_UPDATED
                     this.master.isFirstRun = false
                 } else {
@@ -1009,10 +1011,7 @@ class Manager extends ManagerEPG {
             } else {
                 m = global.lang[p.firstRun ? 'STARTING_LISTS_FIRST_TIME_WAIT' : 'UPDATING_LISTS'] +' '+ p.progress +'%'
             }
-            if(m == -1) {
-                global.osd.show(JSON.stringify(p), fa, 'update-progress', duration)
-                //global.osd.hide('update-progress')
-            } else {
+            if(m != -1) { // if == -1 it's not complete yet, no lists
                 global.osd.show(m, fa, 'update-progress', duration)
             }
             if(global.explorer && global.explorer.currentEntries) {
@@ -1033,6 +1032,8 @@ class Manager extends ManagerEPG {
             }
         }
         this.master.on('status', listener)
+        this.master.on('satisfied', listener)
+        this.master.on('unsatisfied', listener)
         this.master.loader.on('progresses', () => listener(global.lists.status()))
         this.isUpdating = setInterval(processStatus, 1000)
 
@@ -1104,7 +1105,7 @@ class Manager extends ManagerEPG {
         if(id == 'file'){
             return await this.addListDialogFile()
         } else if(id == 'code') {
-            return await this.addListUserPassDialogFile()
+            return await this.addListCredentialsDialog()
         } else if(id == 'sh') {
             let active = await this.communityModeDialog()
             if(active){
@@ -1143,7 +1144,11 @@ class Manager extends ManagerEPG {
             return true
         }
     }
-    async addListUserPassDialogFile(){     
+    async addListCredentialsDialog(){     
+        const url = await this.askListCredentials()
+        return await this.addList(url)
+    }  
+    async askListCredentials(){     
         let server = await global.explorer.prompt({
             question: global.lang.PASTE_SERVER_ADDRESS,
             placeholder: 'http://host:port',
@@ -1179,8 +1184,28 @@ class Manager extends ManagerEPG {
             if(chosen == 'no') url += '-all'
         }
         global.osd.hide('add-list-pre')
-        return await this.addList(url)
-    }    
+        return url
+    }
+    async debugCredentials() {
+        let err
+        const data = {}
+        const {promises: fsp} = require('fs'), Xtr = require('./xtr')
+        const output = global.paths.temp+ '/xtr-'+ parseInt(Math.random() * 10000000) +'.log.txt'
+        const url = await this.askListCredentials().catch(e => err = e)
+        if(err) {
+            data.askListCredentials = String(err)
+        } else if(url.indexOf('#xtream') == -1) {
+            data.askListCredentials = url
+        } else {
+            const xtr = new Xtr(url, true)
+            await xtr.run().catch(e => err = e)
+            data.calls = xtr.debugInfo
+            if(err) data.run = String(err)
+            xtr.destroy()
+        }
+        await fsp.writeFile(output, global.crashlog.stringify(data))
+        await global.downloads.serve(output, true)
+    }
     async getM3UFromCredentials(server, user, pass) {
         const masks = [
             '{0}/get.php?username={1}&password={2}&output=mpegts&type=m3u_plus',
@@ -1279,7 +1304,7 @@ class Manager extends ManagerEPG {
         if (res.length < 6) return false
         const usr = res[4], pw = res[5]
         return baseUrl +'/get.php?username='+ encodeURIComponent(usr) +'&password='+ encodeURIComponent(pw) +'&type=m3u&output=ts'
-    }    
+    }   
     myListsEntry(manageOnly){
         return {
             name: global.lang.MY_LISTS, 

@@ -35,7 +35,6 @@ class Parser extends EventEmitter {
 		this.headerAttrMapRegex = this.generateAttrMapRegex(this.headerAttrMap)
 		this.readen = 0 // no precision required, just for progress stats
 		this.lastProgress = -1
-		if(!this.opts.stream) throw 'Parser instance with no stream set!'
 	}
 	generateAttrMapRegex(attrs) {
 		return new RegExp('(' +
@@ -44,6 +43,7 @@ class Parser extends EventEmitter {
 			'g')
 	}
 	async start() {
+		if(!this.opts.stream) throw 'Parser instance started with no stream set!'
 		this.liner = new LineReader(this.opts)
 		let g = '', a = {}, e = {url: '', icon: ''}, attsMap = {
 			'http-user-agent': 'user-agent',

@@ -25,7 +25,11 @@ class StreamerAdapterTS extends StreamerAdapterBase {
 				this.source.endpoint = endpoint
 				resolve(this.endpoint)
 			}).catch(err => {
-				this.source.terminate()
+				if(this.source.terminate) {
+					this.source.terminate() // using worker
+				} else {
+					this.source.destroy()
+				}
 				reject(err)
 			})
 		})

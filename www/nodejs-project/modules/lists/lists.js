@@ -232,7 +232,7 @@ class Lists extends ListsEPGTools {
 		loadedUrls.push(...cachedUrls)
 		return loadedUrls
 	}
-	async updaterFinished(isFinished){
+	updaterFinished(isFinished){
 		this.isUpdaterFinished = isFinished
 		return this.isUpdaterFinished
 	}
@@ -364,17 +364,6 @@ class Lists extends ListsEPGTools {
 			const sumProgress = progresses.reduce((a, b) => a + b, 0)
 			progress = Math.min(100, parseInt(sumProgress / (allProgress / 100)))
 		}
-		if(progress > 99) {
-			if(!this.satisfied) {
-				this.satisfied = true
-				this.emit('satisfied')
-			}
-		} else {
-			if(this.satisfied) {
-				this.satisfied = false
-				this.emit('unsatisfied')
-			}
-		}
 		if(this.debug){
 			console.log('status() progresses', progress)
 		}
@@ -382,12 +371,22 @@ class Lists extends ListsEPGTools {
 			url,
 			progress,
 			satisfyAmount,
-			satisfied: this.satisfied,
 			communityListsAmount,
 			isUpdatingFinished: this.isUpdaterFinished,
 			pendingCount: this.queue._pendingCount,
 			firstRun,
 			length: Object.values(this.lists).filter(l => l.isReady).length
+		}
+		if(progress > 99) {
+			if(!this.satisfied) {
+				this.satisfied = true
+				this.emit('satisfied', ret)
+			}
+		} else {
+			if(this.satisfied) {
+				this.satisfied = false
+				this.emit('unsatisfied', ret)
+			}
 		}
 		this.emit('status', ret)
 		return ret

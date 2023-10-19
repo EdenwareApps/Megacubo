@@ -598,6 +598,7 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 		return this.formatTracks(this.object.subtitleTracks)
 	}
 	subtitleTrack(trackId){
+		if(!this.object.subtitleTracks) return
 		for (let i = 0; i < this.object.subtitleTracks.length; i++) {
 			const enable = i == trackId || this.object.subtitleTracks[i].id == trackId
 			this.object.subtitleTracks[i].enabled = enable

@@ -91,7 +91,7 @@ class UpdateListIndex extends ListIndexUtils {
                     timeout: Math.max(30, global.config.get('connect-timeout')), // some servers will take too long to send the initial response
                     downloadLimit: 200 * (1024 * 1024), // 200Mb
                     cacheTTL: this.forceDownload ? 0 : 3600,
-                    debug: false
+                    encoding: 'utf8'
                 }
                 this.stream = new global.Download(opts)
                 this.stream.on('redirect', (url, headers) => this.parseHeadersMeta(headers))
@@ -138,7 +138,8 @@ class UpdateListIndex extends ListIndexUtils {
                         if(stat.size > 0 && stat.size == this.updateMeta.contentLength){
                             resolve(false) // no need to update
                         } else {
-                            resolve({stream: fs.createReadStream(file, {})})
+                            this.stream = fs.createReadStream(file)
+                            resolve({stream: this.stream})
                         }
                     } else {
                         reject('file not found or empty*')

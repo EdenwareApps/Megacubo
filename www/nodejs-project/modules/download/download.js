@@ -45,7 +45,7 @@ class Download extends Events {
 			timeout: null,
 			followRedirect: true,
 			acceptRanges: false, // Cloudflare may send invalid content-range when requesting inadvertedly with bytes=0-
-			encoding: null
+			encoding: undefined
 		}
 		if(opts){
 			if(opts.headers){
@@ -57,8 +57,8 @@ class Download extends Events {
 		}
 		this.currentURL = this.opts.url
 		this.opts.headers['connection'] = this.opts.keepalive ? 'keep-alive' : 'close'
-		if(this.opts.responseType && this.opts.responseType == 'json'){
-			this.opts.headers['accept'] = 'application/json,text/*;q=0.99'
+		if(this.opts.responseType == 'json') {
+			this.opts.headers.accept = 'application/json,text/*;q=0.99'
 		}
 		this.opts.headers['accept-encoding'] = 'identity'
 		if(this.opts.compression){
@@ -609,6 +609,10 @@ class Download extends Events {
 		}
 		this.receivedUncompressed += chunk.length
 		if(this.listenerCount('data')) {
+			if(this.buffer.length) { // 'data' late binded
+				this.buffer.forEach(c => this.emit('data', c))
+				this.buffer = []
+			}
 			this.emit('data', chunk)
 		} else if(!this.opts.file) {
 			this.buffer.push(chunk)
@@ -876,6 +880,10 @@ class Download extends Events {
 	prepareOutputData(data){
 		if(data && data.length){
 			if(Array.isArray(data)){
+				if(this.stringDecoder) {
+					const remains = this.stringDecoder.end()
+					if(remains && remains.length) data.push(remains)
+				}
 				if(data.length && typeof(data[0]) == 'string'){
 					data = data.join('')
 				} else {
@@ -896,7 +904,16 @@ class Download extends Events {
 					break
 			}
 		} else {
-			data = Buffer.alloc(0)
+			switch(this.opts.responseType){
+				case 'text':
+					data = ''
+					break
+				case 'json':
+					data = null
+					break
+				default:
+					data = Buffer.alloc(0)
+			}
 		}
 		return data
 	}

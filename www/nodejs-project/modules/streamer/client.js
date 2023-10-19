@@ -1263,11 +1263,11 @@ class StreamerAudioUI extends StreamerClientVideoFullScreen {
         this.app.on('codecData', codecData => {
             if(codecData.audio && !codecData.video){
                 this.isAudio = true
-                parent.winman.backgroundModeLock('audio')
+                parent.winman && parent.winman.backgroundModeLock('audio')
                 this.jbody.addClass('audio')
             } else {
                 this.isAudio = false
-                parent.winman.backgroundModeUnlock('audio')
+                parent.winman && parent.winman.backgroundModeUnlock('audio')
                 this.jbody.removeClass('audio')
             }
         })
@@ -1281,7 +1281,7 @@ class StreamerAudioUI extends StreamerClientVideoFullScreen {
         })
         this.on('stop', () => {
             this.isAudio = false
-            parent.winman.backgroundModeUnlock('audio')
+            parent.winman && parent.winman.backgroundModeUnlock('audio')
             this.jbody.removeClass('audio')
         })
         this.on('state', s => {
