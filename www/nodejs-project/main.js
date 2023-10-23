@@ -778,6 +778,8 @@ if(global.cordova) {
         await app.whenReady()
         const window = new BrowserWindow({  
             frame: false,
+            maximizable: false, // macos
+            minimizable: false, // macos
             titleBarStyle: 'hidden',
             webPreferences: {
                 cache: false,
