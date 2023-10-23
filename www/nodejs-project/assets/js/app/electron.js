@@ -111,7 +111,7 @@ class FFMpeg extends FFmpegDownloader {
 			this.cp = window.require('child_process')
 		}
 		let exe, gotMetadata, output = ''
-		if(process.platform == 'linux'){ // cwd was not being honored on Linux
+		if(process.platform == 'linux' || process.platform == 'darwin'){ // cwd was not being honored on Linux/macOS
 			exe = this.executableDir +'/'+ this.executable
 		} else {
 			exe = this.executable
