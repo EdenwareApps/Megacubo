@@ -741,7 +741,7 @@ class Manager extends ManagerEPG {
         if(url.startsWith('//')){
             url = 'http:'+ url
         }
-        const isURL = global.validateURL(url), isFile = this.isLocal(url)
+        const fs = require('fs'), isURL = global.validateURL(url), isFile = this.isLocal(url)
         console.error('lists.add '+url+' | '+ name +' | '+ isFile +' | '+ !isURL)
         if(!isFile && !isURL){
             throw global.lang.INVALID_URL_MSG +' Not a file or URL'
@@ -754,6 +754,13 @@ class Manager extends ManagerEPG {
         }
         this.addingList = true
         global.explorer.path.endsWith(global.lang.MY_LISTS) && global.explorer.refreshNow()
+        
+        const cacheFile = global.storage.raw.resolve(global.LIST_DATA_KEY_MASK.format(url))
+        const stat = await fs.promises.stat(cacheFile).catch(console.error)
+        if(stat && stat.size && stat.size < 16384) {
+            await fs.promises.unlink(cacheFile).catch(console.error) // invalidate possibly bad caches
+        }
+
         const fetch = new this.master.Fetcher(url, {
             progress: p => {
                 global.osd.show(global.lang.RECEIVING_LIST +' '+ p +'%', 'fa-mega spin-x-alt', 'add-list-progress-'+ uid, 'persistent')

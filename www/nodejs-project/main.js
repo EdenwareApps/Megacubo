@@ -756,10 +756,21 @@ if(global.cordova) {
     }
 
     const initAppWindow = async () => {
+        const isLinux = process.platform == 'linux'
         await global.updateUserTasks(app).catch(console.error)
 
-        global.config.get('gpu-flags').forEach(f => app.commandLine.appendSwitch(f))
-        global.config.get('gpu') || app.disableHardwareAcceleration()
+        if(global.config.get('gpu')) {
+            global.config.get('gpu-flags').forEach(f => {
+                if(isLinux && f == 'in-process-gpu') {
+                    // --in-process-gpu chromium flag is enabled by default to prevent IPC
+                    // but it causes fatal error on Linux
+                    return
+                }
+                app.commandLine.appendSwitch(f)
+            })
+        } else {
+            app.disableHardwareAcceleration()
+        }
 
         app.commandLine.appendSwitch('no-zygote')
         app.commandLine.appendSwitch('no-sandbox')

@@ -78,6 +78,10 @@ class StreamerTools extends Events {
 			})
 		}
 		if(type){
+			if(type == 'ts' && !nfo.sample.length) {
+				console.error('empty response', nfo, Object.keys(this.engines).slice(0), this.destroyed)
+				throw 'empty response'
+			}
 			nfo.type = type
 			nfo.until = now + 600
 			this.streamInfoCaching[cachingKey] = nfo
