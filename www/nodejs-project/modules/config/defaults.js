@@ -83,6 +83,7 @@ module.exports = {
 	'show-logos': true,
 	'startup-window': '',
 	'status-flags-type': false,
+	'subtitles': true,
 	'theme-name': '',
 	'timeout-secs-energy-saving': 60,
 	'transcoding': true,

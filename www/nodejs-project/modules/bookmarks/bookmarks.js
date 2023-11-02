@@ -312,17 +312,13 @@ class Bookmarks extends EntriesGroup {
                 const output = iconv.decode(stdout, 'cp850') // 'cp850' is the default command prompt encoding
                 const outputLines = output.split('\n')
                 const desktopDirLine = outputLines.find(line => line.includes('REG_SZ'))
+                if (!desktopDirLine) return reject('Folder not found')
+
                 const desktopDir = desktopDirLine.match(new RegExp('REG_SZ +(.*)'))
                 const desktopPath = desktopDir ? desktopDir[1] : null
-                if (desktopPath) {
-                    if (fs.existsSync(desktopPath)) {
-                        resolve(desktopPath)
-                    } else {
-                        reject('Folder not exists: ' + desktopPath)
-                    }
-                } else {
-                    reject('Folder not found')
-                }
+                if (!desktopPath) return reject('Folder not found')
+                if (!fs.existsSync(desktopPath)) return reject('Folder not exists: ' + desktopPath)
+                resolve(desktopPath)
             })
             child.stdout.setEncoding('binary')
             child.stderr.setEncoding('binary')

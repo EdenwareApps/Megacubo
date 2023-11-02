@@ -162,12 +162,8 @@ class MediaStreamInfo {
 		}
 	}
 	isLive(url, ext, proto){
-		if(!ext){
-			ext = this.ext(url)
-		}
-		if(!proto){
-			proto = this.proto(url)
-		}
+		if(!ext) ext = this.ext(url)
+		if(!proto) proto = this.proto(url)
 		return this.isM3U8(url, ext) || this.isRTP(url, proto) || this.isRemoteTS(url, ext, proto)
 	}
 }

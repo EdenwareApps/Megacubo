@@ -13,11 +13,11 @@ class LineEmitter extends Writable {
 		callback()
 	}
 	_final(callback) {
-		this.emitLines()
+		this.emitLines(true)
 		this.emit('close')
 		callback()
 	}
-	emitLines() {
+	emitLines(final) {
 		const nl = "\n", r = "\r"
 		let startIndex = 0
 		let lineIndex
@@ -26,7 +26,11 @@ class LineEmitter extends Writable {
 			this.emit('line', line)
 			startIndex = lineIndex + 1
 		}
-		this.buffer = this.buffer.substring(startIndex)
+		if(final) {
+			this.emit('line', this.buffer.substring(startIndex))
+		} else {
+			this.buffer = this.buffer.substring(startIndex)
+		}
 	}
 }
 

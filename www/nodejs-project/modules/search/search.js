@@ -370,7 +370,7 @@ class Search extends Events {
         }
         const tasks = locs.map(loc => {
             return async () => {
-                const data = global.cloud.get('searching.'+ loc)
+                const data = await global.cloud.get('searching.'+ loc)
                 data.forEach(row => {
                     if(ignoreKeywords.includes(row.search_term)) return
 					let count = parseInt(row.cnt)

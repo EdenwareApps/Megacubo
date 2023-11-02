@@ -16,7 +16,37 @@ function patch(scope) {
 			return sanitizeFilename(ret)
 		}
 	}
-	scope.DEFAULT_ACCESS_CONTROL_ALLOW_HEADERS = 'Origin, X-Requested-With, Content-Type, Cache-Control, Accept, Content-Range, Range, range, Authorization'
+	scope.DEFAULT_ACCESS_CONTROL_ALLOW_HEADERS = 'Origin, X-Requested-With, Content-Type, Cache-Control, Accept, Content-Range, Range, Vary, range, Authorization'
+	scope.prepareCORS = (headers, url) => {
+		let origin = '*'
+		if(url) {
+			if(typeof(url) != 'string') { // is req object
+				if(url.headers.origin) {
+					url = url.headers.origin
+				} else {
+					const scheme = url.connection.encrypted ? 'https' : 'http'
+					const host = url.headers.host
+					url = scheme +'://'+ host + url.url
+				}
+			}
+			let pos = url.indexOf('//')
+			if(pos != -1 && pos <= 5) {
+				origin = url.split('/').slice(0, 3).join('/')
+			}
+		}
+		if(headers.setHeader) { // response object
+			headers.setHeader('access-control-allow-origin', origin)
+			headers.setHeader('access-control-allow-methods', 'GET, HEAD, OPTIONS')
+			headers.setHeader('access-control-allow-headers', scope.DEFAULT_ACCESS_CONTROL_ALLOW_HEADERS)
+			headers.setHeader('access-control-allow-credentials', true)
+		} else {
+			headers['access-control-allow-origin'] = origin
+			headers['access-control-allow-methods'] = 'GET, HEAD, OPTIONS'
+			headers['access-control-allow-headers'] = scope.DEFAULT_ACCESS_CONTROL_ALLOW_HEADERS
+			headers['access-control-allow-credentials'] = true
+		}
+		return headers
+	}
 	scope.isWritable = stream => {
 		return (stream.writable || stream.writeable) && !stream.finished
 	}	

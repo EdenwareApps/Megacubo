@@ -22,8 +22,9 @@ class Downloader extends StreamerAdapterBase {
 			initialerrorLimit: 2, // at least 2
 			warmCache: true,
 			warmCacheSeconds: 6,
-			warmCacheMinSize: 6 * (1024 * 1024),
-			warmCacheMaxSize: 6 * (4096 * 1024),
+			warmCacheMinSize: 6 * (1024 * 1024), // never minor than it
+			warmCacheMaxSize: 6 * (4096 * 1024), // default max size
+			warmCacheMaxMaxSize: 6 * (8192 * 1024), // never exceed that
 			sniffingSizeLimit: 196 * 1024 // if minor, check if is binary or ascii (maybe some error page)
 		}, opts || {})
 		super(url, opts)
@@ -54,10 +55,10 @@ class Downloader extends StreamerAdapterBase {
 		if(this.opts.warmCache){
 			this.warmCache = new MultiBuffer()
 			this.on('bitrate', bitrate => {
-				const newMaxSize = Math.max(
+				const newMaxSize = Math.min(Math.max(
 					this.opts.warmCacheMinSize,
 					bitrate * this.opts.warmCacheSeconds
-				)
+				), this.opts.warmCacheMaxMaxSize)
 				if(typeof(newMaxSize) == 'number' && !isNaN(newMaxSize)) {
 					this.opts.warmCacheMaxSize = newMaxSize
 				}
@@ -99,12 +100,9 @@ class Downloader extends StreamerAdapterBase {
 		return new Promise((resolve, reject) => {
 			this.server = http.createServer((req, response) => {
 				if(path.basename(req.url) == 'stream'){
-					response.writeHead(200, {
-						'content-type': this.getContentType(),
-						'access-control-allow-origin': '*',
-						'access-control-allow-methods': 'get',
-						'access-control-allow-headers': global.DEFAULT_ACCESS_CONTROL_ALLOW_HEADERS
-					})
+					response.writeHead(200, global.prepareCORS({
+						'content-type': this.getContentType()
+					}, req))
 					let finished
 					const uid = parseInt(Math.random() * 1000000)
 					if(this.warmCache && this.warmCache.length){

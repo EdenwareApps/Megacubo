@@ -194,6 +194,7 @@ class ExplorerBase extends EventEmitter {
 		this.debug = false
 		this.app = app
 		this.j = jQuery
+		this.path = ''
 		this.body = this.j('body')
 		this.container = this.j(container)
 	}

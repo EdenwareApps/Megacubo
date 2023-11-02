@@ -16,7 +16,13 @@ class Parser extends EventEmitter {
 			'tvg-language': 'lang',
 			'tvg-country': 'country',
 			'group-title': 'group',
-			'pltv-subgroup': 'sub-group'
+			'pltv-subgroup': 'sub-group',
+			'subtitles': 'subtitle',
+			'sub-file': 'subtitle',
+			'http-user-agent': 'user-agent',
+			'referrer': 'referer',
+			'http-referer': 'referer',
+			'http-referrer': 'referer'
 		}
 		this.headerAttrMap = {
 			'url-tvg': 'epg',
@@ -45,12 +51,7 @@ class Parser extends EventEmitter {
 	async start() {
 		if(!this.opts.stream) throw 'Parser instance started with no stream set!'
 		this.liner = new LineReader(this.opts)
-		let g = '', a = {}, e = {url: '', icon: ''}, attsMap = {
-			'http-user-agent': 'user-agent',
-			'referrer': 'referer',
-			'http-referer': 'referer',
-			'http-referrer': 'referer'
-		}
+		let g = '', a = {}, e = {url: '', icon: ''}
 		this.liner.on('line', line => {
 			this.readen += (line.length + 1)
 			const hashed = line.startsWith('#')
@@ -127,7 +128,7 @@ class Parser extends EventEmitter {
 						let nwa = line.substr(i + 1).trim().split('=')
 						if (nwa) {
 							nwa[0] = nwa[0].toLowerCase()
-							a[attsMap[nwa[0]] || nwa[0]] = this.trimQuotes(nwa[1] || '')
+							a[this.attrMap[nwa[0]] || nwa[0]] = this.trimQuotes(nwa[1] || '')
 						}
 					}
 				}
@@ -141,7 +142,7 @@ class Parser extends EventEmitter {
 					e.url = parts[0]
 					parts = parts[1].split('=')
 					parts[0] = parts[0].toLowerCase()
-					a[attsMap[parts[0]] || parts[0]] = this.trimQuotes(parts[1] || '')
+					a[this.attrMap[parts[0]] || parts[0]] = this.trimQuotes(parts[1] || '')
 				}
 				// removed url validation for performance
 				if (!e.name) {
@@ -153,7 +154,8 @@ class Parser extends EventEmitter {
 					e.name = name
 				}
 				if (Object.keys(a).length) {
-					e.atts = a
+					Object.assign(e, a)
+					a = {}
 				}
 				g = this.sanitizeGroup(g)
 				e.group = g

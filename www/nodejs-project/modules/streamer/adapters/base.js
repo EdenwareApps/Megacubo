@@ -214,9 +214,9 @@ class StreamerAdapterBase extends StreamerAdapterBaseBitrate {
 		this.downloadLogging = {}
     }
 	getDefaultRequestHeaders(headers={}){		
-		if(this.data.atts){
-			const ua = this.data.atts['user-agent'] || this.opts.userAgent
-			const referer = this.data.atts['referer'] || this.opts.referer
+		if(this.data){
+			const ua = this.data['user-agent'] || this.opts.userAgent
+			const referer = this.data['referer'] || this.opts.referer
 			if(ua) headers['user-agent'] = ua
 			if(referer) headers['referer'] = referer
 		}
@@ -266,6 +266,7 @@ class StreamerAdapterBase extends StreamerAdapterBaseBitrate {
     connectAdapter(adapter){  
 		this.adapters.push(adapter) 
         adapter.mediaType = this.mediaType
+		adapter.on('outside-of-live-window', () => this.emit('outside-of-live-window'))
         adapter.on('dimensions', dimensions => {
 			if(dimensions && this._dimensions != dimensions){
 				this._dimensions = dimensions
@@ -327,7 +328,7 @@ class StreamerAdapterBase extends StreamerAdapterBaseBitrate {
         }
     }
 	ext(url){
-		return url.split('?')[0].split('#')[0].split('.').pop().toLowerCase()  
+		return String(url).split('?')[0].split('#')[0].split('.').pop().toLowerCase()  
 	}
 	proto(url, len){
 		var ret = '', res = url.match(new RegExp('^([A-Za-z0-9]{2,6}):'))
@@ -357,8 +358,7 @@ class StreamerAdapterBase extends StreamerAdapterBaseBitrate {
 			distances[i] = minimal
 		})
 		let minimal = Math.min.apply(null, distances)
-		let a = distances.indexOf(minimal)
-		let b = closest[a]
+		let a = distances.indexOf(minimal), b = closest[a]
 		return [values[a], values[b]]		
 	}
 	md5(txt){

@@ -2,7 +2,7 @@
 class VideoControl extends EventEmitter {
 	constructor(container){
 		super()
-		this.rootElement = $('html')
+		this.rootElement = jQuery('html')
 		this.container = container
 		this.innerContainer = this.container.querySelector('div')
 		if(!this.innerContainer){
@@ -156,7 +156,7 @@ class VideoControl extends EventEmitter {
 			if(!this.suspendStateChangeReporting) this.emit('state', s, err)
 		}
 	}
-	load(src, mimetype, cookie, mediatype, data){
+	load(src, mimetype, additionalSubtitles, cookie, mediatype, data){
 		this.setState('loading')
 		this.suspendStateChangeReporting = true
 		this.current && this.current.unload(true)
@@ -178,8 +178,7 @@ class VideoControl extends EventEmitter {
 		this.suspendStateChangeReporting = false
 		current.errorsCount = 0
 		try {
-			current.load(src, mimetype, cookie, mediatype)
-
+			current.load(src, mimetype, additionalSubtitles, cookie, mediatype)
 		} catch(err) {console.error(err)}
 		this.current = current
 		this.show()
@@ -189,6 +188,8 @@ class VideoControl extends EventEmitter {
 	}
 	setup(adapter, cls){
 		this.adapter = adapter
+		this.currentAudioTracks = []
+		this.currentSubtitleTracks = []
 		if(typeof(this.adapters[this.adapter]) == 'undefined'){
 			const a = new (cls)(this.innerContainer)
 			a.on('state', s => {
@@ -332,6 +333,7 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 	setup(tag){
 		console.log('adapter setup')
 		this.object = this.container.querySelector(tag)
+		this.recycle() // force to clear tracks
 		this.patchPauseFn()
 	}
 	patchPauseFn(){		
@@ -345,7 +347,8 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 	}
 	connect(){
 		this.object.currentTime = 0
-		const v = $(this.object)
+		this.object.textTracks.addEventListener('change', () => this.emit('subtitleTracks', this.subtitleTracks()))
+		const v = jQuery(this.object)
 		v.off()
 		if(!this.object.parentNode){
 			this.container.appendChild(this.object)
@@ -376,7 +379,7 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 					setTimeout(() => {
 						this.suspendStateChangeReporting = false
 						this.setState('loading')
-						this.load(this.currentSrc, this.currentMimetype)
+						this.load(this.currentSrc, this.currentMimetype, this.currentAdditionalSubtitles)
 						if(t){
 							this.object.currentTime = t + 0.5 // nudge a bit to skip any decoding error on part of the file
 						}
@@ -436,14 +439,14 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 		this.processState()
 	}
 	disconnect(){
-		$(this.object).off()
+		jQuery(this.object).off()
 	}	
 	recycle() {
 		const p = this.object.parentNode
 		if (p) {
 			const volume = this.object.volume
 			const v = document.createElement('video')
-			$(this.object).off()
+			jQuery(this.object).off()
 			v.autoplay = true
 			p.removeChild(this.object)
 			p.appendChild(v)
@@ -452,10 +455,39 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 			this.patchPauseFn()
 		}
 	}
-	load(src, mimetype){
+	setObjectTracks(object, tracks) {
+		const existingTracks = object.querySelectorAll('track')
+		for (var i = 0; i < existingTracks.length; i++) {
+			object.removeChild(existingTracks[i])
+		}
+		if(tracks) {
+			tracks.split('§').forEach((subtitleUrl, i) => {
+				const track = document.createElement('track')
+				//track.kind = 'subtitles'
+				track.kind = 'captions'
+				track.src = subtitleUrl
+
+				if(i == 0) {
+					track.mode = 'showing'
+					track.enabled = true
+				}
+
+				const urlParams = new URL(subtitleUrl)
+				const language = urlParams.searchParams.get('lang')
+				const label = urlParams.searchParams.get('label')
+			
+				if(language) track.srclang = language
+				if(label) track.label = label
+
+				object.appendChild(track)
+			})
+		}
+	}
+	load(src, mimetype, additionalSubtitles){
 		if(this.currentSrc != src){
 			this.currentSrc = src
 			this.currentMimetype = mimetype
+			this.currentAdditionalSubtitles = additionalSubtitles
 		}
 		this._paused = false
 		this.setState('loading')
@@ -463,6 +495,8 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 		this.unload(true)
 		this.active = true
 		console.log('adapter load')
+
+		this.setObjectTracks(this.object, additionalSubtitles)
 		this.object.src = src
 		this.connect()
 		this.object.load()
@@ -595,13 +629,14 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 		}
 	}
 	subtitleTracks(){
-		return this.formatTracks(this.object.subtitleTracks)
+		return this.formatTracks(this.object.textTracks)
 	}
 	subtitleTrack(trackId){
-		if(!this.object.subtitleTracks) return
-		for (let i = 0; i < this.object.subtitleTracks.length; i++) {
-			const enable = i == trackId || this.object.subtitleTracks[i].id == trackId
-			this.object.subtitleTracks[i].enabled = enable
+		if(!this.object.textTracks) return
+		for (let i = 0; i < this.object.textTracks.length; i++) {
+			const enable = i == trackId || this.object.textTracks[i].id == trackId
+			this.object.textTracks[i].enabled = enable
+			this.object.textTracks[i].mode = enable ? 'showing' : 'disabled'
 		}
 	}
 	formatTracks(tracks, activeId){
@@ -701,14 +736,14 @@ class VideoControlAdapterAndroidNative extends VideoControlAdapter {
 	uiVisible(visible){
 		this.object.uiVisible(visible)
 	}
-	load(src, mimetype, cookie, mediatype){
+	load(src, mimetype, additionalSubtitles, cookie, mediatype){
 		this.active = true
 		this.currentTime = 0
 		this.duration = 0
 		this.state = 'loading'
 		this.emit('state', this.state)
 		this.object.setBackBuffer(config['live-window-time'] * 1000)
-		this.object.play(src, mimetype, cookie, mediatype, this.successCallback.bind(this), this.errorCallback.bind(this))
+		this.object.play(src, mimetype, additionalSubtitles, cookie, mediatype, this.successCallback.bind(this), this.errorCallback.bind(this))
 	}
 	successCallback(){
 		console.warn('exoplayer success', arguments)

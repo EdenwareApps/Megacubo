@@ -1,7 +1,7 @@
 
 const path = require('path'), Events = require('events')
 const AutoTuner = require('../tuner/auto-tuner'), StreamInfo = require('./utils/stream-info')
-const Zap = require('../zap')
+const Zap = require('../zap'), StreamerProxy = require('./utils/proxy')
 
 const SYNC_BYTE = 0x47
 const PACKET_SIZE = 188
@@ -230,57 +230,56 @@ class StreamerBase extends StreamerTools {
 			}
 		}
 	}
-	intentFromInfo(data, opts, aside, nfo){
-        return new Promise((resolve, reject) => {
-			opts = Object.assign(Object.assign({}, this.opts), opts || {})
-			if(data.atts && data.atts['user-agent']) {
-				opts.userAgent = data.atts['user-agent']
+	async intentFromInfo(data, opts, aside, nfo){
+		opts = Object.assign(Object.assign({}, this.opts), opts || {})
+		if(data && data['user-agent']) {
+			opts.userAgent = data['user-agent']
+		}
+		if(data && data['referer']) {
+			opts.referer = data['referer']
+		}
+		let intent
+		try {
+			intent = new this.engines[nfo.type](data, opts, nfo)
+		} catch(err) {
+			return reject('Engine "'+ nfo.type +'" not found. '+ err)
+		}
+		if(aside){
+			return intent
+		} else {
+			this.unregisterAllLoadingIntents()
+			this.registerLoadingIntent(intent)
+			if(this.opts.debug){
+				console.log('RUN', intent, opts)
 			}
-			if(data.atts && data.atts['referer']) {
-				opts.referer = data.atts['referer']
-			}
-			let intent
-			try {
-				intent = new this.engines[nfo.type](data, opts, nfo)
-			} catch(err) {
-				return reject('Engine "'+ nfo.type +'" not found. '+ err)
-			}
-			if(aside){
-				resolve(intent)
-			} else {
-				this.unregisterAllLoadingIntents()
-				this.registerLoadingIntent(intent)
-				if(this.opts.debug){
-					console.log('RUN', intent, opts)
+			let err
+			await intent.start().catch(e => err = e)
+			if(err) {
+				if(!this.opts.shadow){
+					global.osd.hide('streamer')
 				}
-				intent.start().then(() => {
-					this.unregisterLoadingIntent(intent, true)
-					if(intent.cancel){
-						if(this.opts.debug){
-							console.log('CANCEL')
-						}
-						intent.destroy()
-						reject('cancelled by user')
-					} else {
-						if(this.opts.debug){
-							console.log('COMMIT', intent)
-						}
-						this.commit(intent)
-						resolve(intent)
-					}
-				}).catch(err => {
-					if(!this.opts.shadow){
-						global.osd.hide('streamer')
-					}
-					this.unregisterLoadingIntent(intent)
-					if(this.opts.debug){
-						console.log('ERR', err)
-					}
-					intent.destroy()
-					reject(err)
-				})
+				this.unregisterLoadingIntent(intent)
+				if(this.opts.debug){
+					console.log('ERR', err)
+				}
+				intent.destroy()
+				throw err
 			}
-		})
+			this.unregisterLoadingIntent(intent, true)
+			if(intent.cancel){
+				if(this.opts.debug){
+					console.log('CANCEL')
+				}
+				intent.destroy()
+				reject('cancelled by user')
+			} else {
+				if(this.opts.debug){
+					console.log('COMMIT', intent)
+				}
+				await this.commit(intent)
+				return intent
+			}
+		}
 	}
 	async askExternalPlayer() {
 		if(!this.active || global.cordova) return
@@ -303,7 +302,7 @@ class StreamerBase extends StreamerTools {
 			process.nextTick(() => this.play(data))
 		}
 	}
-	commit(intent){
+	async commit(intent){
 		if(intent){
 			if(this.active == intent){
 				return true // 'ALREADY COMMITTED'
@@ -375,13 +374,13 @@ class StreamerBase extends StreamerTools {
 						}
 					}
 				})
-				intent.on('streamer-connect', () => this.uiConnect())
+				intent.on('streamer-connect', () => this.uiConnect().catch(console.error))
 				if(intent.codecData){
 					intent.emit('codecData', intent.codecData)
 				}
 				this.emit('commit', intent)
 				intent.emit('commit')
-				this.uiConnect(intent)
+				await this.uiConnect(intent)
 				console.warn('STREAMER COMMIT '+ intent.data.url)
 				return true
 			}
@@ -389,9 +388,18 @@ class StreamerBase extends StreamerTools {
 			return 'NO INTENT'
 		}
 	}
-	uiConnect(intent, skipTranscodingCheck){
+	async uiConnect(intent, skipTranscodingCheck){
 		if(!intent) intent = this.active
-		let data = intent.data
+		const data = Object.assign({}, intent.data) // clone it before to change subtitle attr or any other
+		if(data.subtitle) {
+			let adapter = intent.findAdapter(null, ['proxy'], a => !a.opts.agnostic)
+			if(!adapter) {
+				adapter = new StreamerProxy({agnostic: false}) // agnostic mode will not transform to vtt
+				await adapter.start()
+				intent.connectAdapter(adapter)
+			}
+			data.subtitle = adapter.proxify(data.subtitle)
+		}
 		data.engine = intent.type
 		if(data.icon){
 			data.originalIcon = data.icon
@@ -399,6 +407,7 @@ class StreamerBase extends StreamerTools {
 		} else {
 			data.icon = global.icons.url + global.channels.entryTerms(data).join(',')
 		}
+		intent.on('outside-of-live-window', () => global.ui.emit('outside-of-live-window'))
 		this.emit('streamer-connect', intent.endpoint, intent.mimetype, data)
 		if(!skipTranscodingCheck && intent.transcoderStarting){
 			global.ui.emit('streamer-connect-suspend')
@@ -437,8 +446,8 @@ class StreamerBase extends StreamerTools {
 					global.ui.emit('streamer-connect-suspend')
 					global.ui.emit('transcode-starting', true)
 				}
-				intent.transcode().then(() => {
-					this.uiConnect(intent, true)
+				intent.transcode().then(async () => {
+					await this.uiConnect(intent, true)
 					cb(null, intent.transcoder)
 				}).catch(err => {
 					if(this.active){
@@ -740,9 +749,13 @@ class StreamerTracks extends StreamerGoNext {
 				}
 			})
 			global.ui.on('subtitleTracks', tracks => {
-				console.warn('subtitleTracks', tracks)
 				if(this.active){
 					this.active.subtitleTracks = tracks
+					if(tracks.length && global.config.get('subtitles')) {
+						const id = tracks[0].id || 0
+						this.active.subtitleTrack = id
+						global.ui.emit('streamer-subtitle-track', id)
+					}
 				}
 			})
 		}
@@ -750,9 +763,7 @@ class StreamerTracks extends StreamerGoNext {
 	getTrackOptions(tracks, activeTrack){
 		const sep = ' &middot; ', opts = Object.keys(tracks).map((name, i) => {
 			let opt = {template: 'option', text: name, id: 'track-'+ i}
-			if(tracks[name].url == activeTrack){
-				opt.fa = 'fas fa-play'
-			}
+			if(tracks[name].url == activeTrack) opt.fa = 'fas fa-play'
 			return opt
 		})
 		let names = opts.map(o => o.text.split(sep))
@@ -782,9 +793,7 @@ class StreamerTracks extends StreamerGoNext {
 				}
 			}
 			let opt = {template: 'option', text, id: 'track-'+ track.id}
-			if(track.id == activeTrack){
-				opt.fa = 'fas fa-play'
-			}
+			if(track.id == activeTrack) opt.fa = 'fas fa-check-circle'
 			return opt
 		})
 	}
@@ -813,7 +822,9 @@ class StreamerTracks extends StreamerGoNext {
 	}
 	async showQualityTrackSelector(){
 		if(!this.active) return
-		let activeTrackId, activeTrack = this.active.getActiveQualityTrack(), tracks = await this.active.getQualityTracks(true), opts = this.getTrackOptions(tracks, activeTrack)
+		let activeTrackId, activeTrack = this.active.getActiveQualityTrack()
+		let tracks = await this.active.getQualityTracks(true)
+		let opts = this.getTrackOptions(tracks, activeTrack)
 		opts.forEach(o => {
 			if(o.fa) activeTrackId = o.id
 		})
@@ -833,7 +844,7 @@ class StreamerTracks extends StreamerGoNext {
 			if(uri && uri != this.active.endpoint){
 				this.active.setActiveQualityTrack(uri, bandwidth)
 				this.active.endpoint = uri
-				this.uiConnect()
+				await this.uiConnect()
 			}
 		}
 		return {ret, opts}
@@ -857,16 +868,18 @@ class StreamerTracks extends StreamerGoNext {
 	async showSubtitleTrackSelector(){
 		if(!this.active) return
 		let activeTrackId, activeTrack = this.active.subtitleTrack, tracks = this.active.getSubtitleTracks(), opts = this.getExtTrackOptions(tracks, activeTrack)
+		let hasActive = opts.some(o => !!o.fa)
+		opts.unshift({template: 'option', text: global.lang.NONE, id: 'track--1', fa: hasActive ? undefined : 'fas fa-check-circle'})
 		opts.forEach(o => {
 			if(o.fa) activeTrackId = o.id
 		})
 		opts.unshift({template: 'question', fa: 'fas fa-comments', text: global.lang.SELECT_SUBTITLE})
 		let ret = await global.explorer.dialog(opts, activeTrackId)
-		console.warn('TRACK OPTS RET', ret, opts)
 		if(ret){
 			const n = ret.replace(new RegExp('^track\\-'), '')
 			this.active.subtitleTrack = n
 			global.ui.emit('streamer-subtitle-track', n)
+			global.config.set('subtitles', ret != '-1')
 		}
 		return {ret, opts}
 	}

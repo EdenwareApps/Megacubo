@@ -181,7 +181,7 @@ class AutoTuner extends Events {
                     this.removeListener('success', successListener)
                     this.removeListener('finish', finishListener)
                 }
-                const successListener = n => {
+                const successListener = async n => {
                     removeListeners()
                     //console.log('auto-tuner tune commit', n)
                     this.pause()
@@ -192,7 +192,7 @@ class AutoTuner extends Events {
                         if(n.nid){
                             n = this.prepareIntentToEmit(n)
                             if(!this.headless){
-                                let ret = global.streamer.commit(n)
+                                let ret = await global.streamer.commit(n)
                                 if(global.debugTuning){
                                     global.displayErr('TUNER COMMITING '+ ret +' - '+ n.data.name)
                                 }
@@ -221,7 +221,7 @@ class AutoTuner extends Events {
                         reject('finished')
                     }
                 }
-                this.once('success', successListener)
+                this.once('success', n => successListener(n).catch(reject))
                 this.once('finish', finishListener)
                 this.resume()
                 this.pump()

@@ -34,7 +34,7 @@ class Reader extends Readable {
 			if (err) {
 				console.error('READER ERROR: '+ err)
 				this.emit('error', err)
-				this.destroy()
+				this.close()
 			} else if (bytesRead > 0) {
 				this.bytesRead += bytesRead
 				this.push(buffer.slice(0, bytesRead))
@@ -56,13 +56,13 @@ class Reader extends Readable {
 				if (err) {
 					console.error('Failed to access file:', err)
 					this.emit('error', err)
-					this.destroy()
+					this.close()
 				} else {
 					fs.open(this.file, 'r', (err, fd) => {
 						if (err) {
 							console.error('Failed to open file:', err)
 							this.emit('error', err)
-							this.destroy()
+							this.close()
 						} else {
 							this.fd = fd
 							this.emit('open')
@@ -73,7 +73,7 @@ class Reader extends Readable {
 		} catch (err) {
 			console.error('Error opening file:', err)
 			this.emit('error', err)
-			this.destroy()
+			this.close()
 		}
 	}
 	endPersistence() {

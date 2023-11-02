@@ -520,14 +520,11 @@ class IconServer extends IconServerStore {
                     console.log('req starting...', req)
                 }
                 if(req.method == 'OPTIONS' || this.closed){
-                    response.writeHead(200, {
-                        'Access-Control-Allow-Origin': '*',
-                        'Access-Control-Allow-Methods': 'GET',
-                        'Access-Control-Allow-Headers': global.DEFAULT_ACCESS_CONTROL_ALLOW_HEADERS,
+                    response.writeHead(200, global.prepareCORS({
                         'Content-Length': 0,
                         'Connection': 'close',
                         'Cache-Control': 'max-age=0, no-cache, no-store'
-                    })
+                    }, req))
                     response.end()
                     return
                 }
@@ -536,14 +533,11 @@ class IconServer extends IconServerStore {
                         if(this.opts.debug){
                             console.log('get() resolved', file)
                         }
-                        response.writeHead(200, {
-                            'Access-Control-Allow-Origin': '*',
-                            'Access-Control-Allow-Methods': 'GET',
-                            'Access-Control-Allow-Headers': global.DEFAULT_ACCESS_CONTROL_ALLOW_HEADERS,
+                        response.writeHead(200, global.prepareCORS({
                             'Connection': 'close',
                             'Cache-Control': 'max-age=0, no-cache, no-store',
                             'Content-Type': 'image/png'
-                        })
+                        }, req))
                         let stream = fs.createReadStream(file)
                         closed(req, response, () => {
                             if(stream){
@@ -558,13 +552,11 @@ class IconServer extends IconServerStore {
                             console.log('BADDATA', file)
                         }
                         console.error('icons.get() not validated', req.url, file)
-                        response.writeHead(404, {
-                            'Access-Control-Allow-Origin': '*',
-                            'Access-Control-Allow-Methods': 'GET',
-                            'Access-Control-Allow-Headers': global.DEFAULT_ACCESS_CONTROL_ALLOW_HEADERS,
+                        response.writeHead(404, global.prepareCORS({
+                            'Content-Length': 0,
                             'Connection': 'close',
                             'Cache-Control': 'max-age=0, no-cache, no-store'
-                        })
+                        }, req))
                         response.end()
                     }
                 }
@@ -576,13 +568,10 @@ class IconServer extends IconServerStore {
                     if(this.opts.debug){
                         console.log('get() catch', err, req.url, global.traceback())
                     }
-                    response.writeHead(404, {
-                        'Access-Control-Allow-Origin': '*',
-                        'Access-Control-Allow-Methods': 'GET',
-                        'Access-Control-Allow-Headers': global.DEFAULT_ACCESS_CONTROL_ALLOW_HEADERS,
+                    response.writeHead(404, global.prepareCORS({
                         'Connection': 'close',
                         'Cache-Control': 'max-age=0, no-cache, no-store'
-                    })
+                    }, req))
                     response.end(err +' - '+ req.url.split('#')[0])
                 }
                 if(this.isHashKey(key)){

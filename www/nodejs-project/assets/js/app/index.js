@@ -123,7 +123,7 @@ function theming(image, video, color, fontColor, animate){
 			if(!v || v.src != data.video){
 				bg.innerHTML = '&nbsp;';
 				setTimeout(function () {
-					bg.innerHTML = '<video src="'+ data.video +'" onerror="setTimeout(() => {if(this.parentNode)this.load()}, 500)" loop muted autoplay style="background-color: black;object-fit: cover;" poster="assets/images/blank.png"></video>';
+					bg.innerHTML = '<video crossorigin src="'+ data.video +'" onerror="setTimeout(() => {if(this.parentNode)this.load()}, 500)" loop muted autoplay style="background-color: black;object-fit: cover;" poster="assets/images/blank.png"></video>';
 				}, 1000);
 			}
 		} else {
@@ -295,7 +295,7 @@ function loadScripts() {
 		updateSplashProgress();
 		loadResizeObserverPolyfill(function () {
 			loadJS('./assets/js/app/video.js', function () {
-				loadJS('./node_modules/hls.js/dist/hls.js', function() { // hls.light.js will not play fmp4
+				loadJS('./node_modules/hls.js/dist/hls.js', function() { // hls.light.js will not play fmp4 or handle subtitles
 					loadJS('./assets/js/app/video.hls.js', function () {
 						updateSplashProgress();
 						loadJS('./assets/js/app/video.ts.js', function () {

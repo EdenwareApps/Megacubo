@@ -10,7 +10,6 @@ class Language extends Events {
             languageHint = explicitLanguage +', '+ languageHint
         }
         this.languageHint = languageHint
-        this.findLanguages()
         this.countries = new Countries()
         this.isReady = false
         this.timezone = timezone
@@ -120,11 +119,14 @@ class Language extends Events {
         return false
     }
     async load(){
-        await this.countries.ready()
+        await Promise.allSettled([
+            this.findLanguages(),
+            this.countries.ready()
+        ])
         this.locale = 'en'
         let utexts, texts = await this.loadLanguage('en').catch(global.displayErr) // english will be a base/fallback language for any key missing in translation chosen
         if(!texts) texts = {}
-        await this.asyncSome(this.userAvailableLocales, async loc => {
+        await this.asyncSome(this.userAvailableLocales || ['en'], async loc => {
             if(loc == 'en') return true
             utexts = await this.loadLanguage(loc).catch(console.error)
             if(utexts){

@@ -76,11 +76,11 @@ class StreamerProxyBase extends StreamerAdapterBase {
 		let type = '', minSegmentSize = 96 * 1024
 		if(typeof(headers['content-length']) != 'undefined' && parseInt(headers['content-length']) >= minSegmentSize && this.ext(url) == 'ts') { // a ts was being sent with m3u8 content-type
 			type = 'video'
-		} else if(typeof(headers['content-type']) != 'undefined' && (headers['content-type'].indexOf('video/') != -1 || headers['content-type'].indexOf('audio/') != -1)){
+		} else if(typeof(headers['content-type']) != 'undefined' && (headers['content-type'].startsWith('video/') || headers['content-type'].startsWith('audio/'))){
 			type = 'video'
-		} else if(typeof(headers['content-type']) != 'undefined' && headers['content-type'].toLowerCase().indexOf('linguist') != -1){ // .ts bad mimetype "text/vnd.trolltech.linguist"
+		} else if(typeof(headers['content-type']) != 'undefined' && headers['content-type'].endsWith('linguist')){ // .ts bad mimetype "text/vnd.trolltech.linguist"
 			type = 'video'
-		}  else if(typeof(headers['content-type']) != 'undefined' && (headers['content-type'].toLowerCase().indexOf('mpegurl') != -1 || headers['content-type'].indexOf('text/') != -1)){
+		}  else if(typeof(headers['content-type']) != 'undefined' && (headers['content-type'].toLowerCase().endsWith('mpegurl') || headers['content-type'].startsWith('text/'))){
 			type = 'meta'
 		} else if(typeof(headers['content-type']) == 'undefined' && this.ext(url) == 'm3u8') {
 			type = 'meta'
@@ -91,6 +91,17 @@ class StreamerProxyBase extends StreamerAdapterBase {
 		}
 		//console.warn('MEDIATYPE', type, headers, url)
 		return type
+	}
+	isSRT(headers, url){
+		if(url && this.ext(url) == 'srt') {
+			return true
+		} else if(typeof(headers['content-type']) != 'undefined' && (headers['content-type'].endsWith('/srt') || headers['content-type'].endsWith('subrip'))){
+			return true
+		}
+	}
+	srt2vtt(srt) {
+		return "WEBVTT\n\n" + 
+			srt.replace(new RegExp(':([0-9]{2}),', 'g'), ':$1.').trim()
 	}
 	isSegmentURL(url){
 		return typeof(this.segmentExts[this.ext(url)]) != 'undefined'

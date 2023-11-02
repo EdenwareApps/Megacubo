@@ -1,5 +1,6 @@
-const fs = require('fs'), http = require('http'), path = require('path'), Events = require('events')
-const stoppable = require('stoppable'), Downloader = require('./downloader')
+const fs = require('fs'), http = require('http'), path = require('path')
+const Events = require('events'), stoppable = require('stoppable')
+const Downloader = require('./downloader'), Reader = require('../../reader')
 const closed = require('../../on-closed'), decodeEntities = require('decode-entities')
 
 class StreamerFFmpeg extends Events {
@@ -25,6 +26,7 @@ class StreamerFFmpeg extends Events {
             vprofile: 'baseline'
         };
         this.setOpts(opts)
+        this.OUTDATED = 'outdated file'
     }
     isTranscoding(){
         return this.opts.videoCodec == 'libx264' || this.opts.audioCodec == 'aac'
@@ -208,10 +210,13 @@ class StreamerFFmpeg extends Events {
                             let firstFile = files.sort().filter(f => f.indexOf('m3u8') == -1).shift()
                             if(basename < firstFile){
                                 console.warn('Outdated file', basename, firstFile, files)
-                                reject('outdated file')
+                                reject(this.OUTDATED)
                             } else {
                                 console.warn('File not ready??', basename, firstFile, files)
-                                this.waitFile(file, 10).then(resolve).catch(err => {
+                                this.waitFile(file, 10).then(() => {
+                                    console.warn('File now ready', basename, firstFile, files)
+                                    resolve()
+                                }).catch(err => {
                                     console.error(err)
                                     reject(err)
                                 })
@@ -280,30 +285,29 @@ class StreamerFFmpeg extends Events {
         const file = this.unproxify(req.url.split('#')[0]), fail = err => {
             console.log('FFMPEG SERVE', err, file, this.destroyed)
             const headers = { 
-                'access-control-allow-origin': '*',
                 'content-length': 0,
                 'connection': 'close'
             }
-            response.writeHead(404, headers)
+            response.writeHead(404, global.prepareCORS(headers, req))
             response.end()
+            String(err) == this.OUTDATED && this.emit('outside-of-live-window')
         }
         if(this.destroyed){
             fail('destroyed')
         } else {
             this.prepareFile(file).then(stat => {
-                let headers = {
-                    'access-control-allow-origin': '*',
+                let headers = global.prepareCORS({
                     'content-length': stat.size,
                     'connection': 'close',
                     'cache-control': 'private, no-cache, no-store, must-revalidate',
                     'expires': '-1',
                     'pragma': 'no-cache'
-                }
+                }, req)
                 let ctype = this.contentTypeFromExt(global.streamer.ext(file))
                 if(ctype){
                     headers['content-type'] =  ctype
                 }
-                let ended, stream = fs.createReadStream(file)
+                let ended, stream = new Reader(file)
                 response.writeHead(200, headers)
                 const end = () => {
                     if(!ended){
@@ -312,12 +316,8 @@ class StreamerFFmpeg extends Events {
                         stream && stream.destroy()
                     }
                 }
-                closed(req, response, () => {
-                    if(!ended){
-                        end()
-                    }
-                })
-                stream.pipe(response) 
+                closed(req, response, () => (ended||end()))
+                stream.on('data', chunk => response.write(chunk))
             }).catch(fail)
         }
     }

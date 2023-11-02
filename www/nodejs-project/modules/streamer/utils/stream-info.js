@@ -23,12 +23,12 @@ class StreamInfo {
                     retries,
 					headers: []
                 }
-				if(opts && typeof(opts) == 'object' && opts.atts){
-					if(opts.atts['user-agent']){
-						req.headers['user-agent'] = opts.atts['user-agent']
+				if(opts && typeof(opts) == 'object' && opts){
+					if(opts['user-agent']){
+						req.headers['user-agent'] = opts['user-agent']
 					}
-					if(opts.atts['referer']){
-						req.headers['referer'] = opts.atts['referer']
+					if(opts['referer']){
+						req.headers['referer'] = opts['referer']
 					}
 				}
                 let download = new global.Download(req), ended = false, finish = () => {

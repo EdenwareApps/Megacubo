@@ -1558,8 +1558,10 @@ class Options extends OptionsExportImport {
     }
     prm(strict) {
         const p = global.premium
-        if(p && p.active) return !strict || p.active == 'activation'
-        if(p && p.enabling) return true
+        if(p) {
+            if(p.active) return !strict || p.active == 'activation'
+            if(p.enabling) return true
+        }
         const licensed = global.config.get('premium-license') && !global.config.get('premium-disable')
         return !!licensed
     }

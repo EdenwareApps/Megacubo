@@ -91,6 +91,7 @@ class StreamerBaseIntent extends Events {
     connectAdapter(adapter){    
         this.adapters.push(adapter)
         adapter.mediaType = this.mediaType
+        adapter.on('outside-of-live-window', () => this.emit('outside-of-live-window'))
         adapter.on('dimensions', dimensions => {
 			this.emit('dimensions', dimensions)
         })
@@ -309,17 +310,7 @@ class StreamerBaseIntent extends Events {
 		if(Array.isArray(this.subtitleTracks) && this.subtitleTracks.length){
             return this.subtitleTracks
         }
-		return [
-            {id: 0, name: global.lang.DEFAULT, enabled: true}
-        ]
-	}
-	selectAudioTrack(trackId){
-        this.audioTrack = trackId
-        global.ui.emit('audio-track', trackId)
-	}
-	selectSubtitleTrack(trackId){
-        this.subtitleTrack = trackId
-        global.ui.emit('subtitle-track', trackId)
+		return []
 	}
     fail(err){
         if(this && !this.failed && !this.destroyed){

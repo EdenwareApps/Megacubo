@@ -259,16 +259,16 @@
 		</script>
 		<player>
 			<div>
-				<video plays-inline webkit-playsinline muted poster="assets/images/blank.png"></video>
-				<audio plays-inline webkit-playsinline muted poster="assets/images/blank.png"></audio>
+				<video crossorigin plays-inline webkit-playsinline muted poster="assets/images/blank.png"></video>
+				<audio crossorigin plays-inline webkit-playsinline muted poster="assets/images/blank.png"></audio>
 			</div>
 		</player>
 		<div class="curtain curtain-a"></div>
 		<div class="curtain curtain-b"></div>
 		<iframe id="app" src="about:blank" allow="fullscreen; autoplay" scrolling="no" frameborder="0"></iframe> 
         <script type="text/javascript" src="assets/js/libs/events.js"></script>
-        <script type="text/javascript" src="assets/js/app/index.js"></script>
         <script type="text/javascript" src="node_modules/jquery/dist/jquery.min.js"></script>
+        <script type="text/javascript" src="assets/js/app/index.js"></script> <!-- after jQuery //-->
         <script type="text/javascript" src="node_modules/mpegts.js/dist/mpegts.js"></script>
 	</body>
 </html>

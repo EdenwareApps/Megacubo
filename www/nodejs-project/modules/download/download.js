@@ -331,6 +331,13 @@ class Download extends Events {
 		})
 		this.stream = stream
 	}
+	pause() {
+		this.paused = true
+	}
+	resume() {
+		this.paused = false
+		this.emit('resume')
+	}
 	reconnect(force){
 		if(force || !this.received){
 			this.destroyStream()
@@ -877,31 +884,48 @@ class Download extends Events {
 			this.stream = null
 		}
 	}
+	len(data){
+		if (!data) {
+			return 0
+		}
+		if (Array.isArray(data)) {
+			return data.reduce((acc, val) => acc + this.len(val), 0)
+		}
+		return data.byteLength || data.length || 0
+	}
 	prepareOutputData(data){
 		if(data && data.length){
+			const maxStringSize = 0xffffff0 // String cannot be created beyound this size
 			if(Array.isArray(data)){
 				if(this.stringDecoder) {
 					const remains = this.stringDecoder.end()
 					if(remains && remains.length) data.push(remains)
 				}
-				if(data.length && typeof(data[0]) == 'string'){
+				if(data.length && typeof(data[0]) == 'string' && this.len(data) < maxStringSize){
 					data = data.join('')
 				} else {
-					data = Buffer.concat(data)
+					data = data.map(chunk => {
+						if(Buffer.isBuffer(chunk)) return chunk
+						return Buffer.from(chunk, 'utf-8')
+					})
+					const totalLength = data.reduce((acc, buffer) => acc + buffer.length, 0) // set totalLength helps to optimize mem usage
+					data = Buffer.concat(data, totalLength)
 				}
 			}
-			switch(this.opts.responseType){
-				case 'text':
-					data = String(data)
-					break
-				case 'json':
-					try {
-						data = global.parseJSON(String(data))
-					} catch(e) {
-						this.listenerCount('error') && this.emit('error', e)
-						data = undefined
-					}
-					break
+			if(data.length < maxStringSize) {
+				switch(this.opts.responseType){
+					case 'text':
+						data = String(data)
+						break
+					case 'json':
+						try {
+							data = global.parseJSON(String(data))
+						} catch(e) {
+							this.listenerCount('error') && this.emit('error', e)
+							data = undefined
+						}
+						break
+				}
 			}
 		} else {
 			switch(this.opts.responseType){
@@ -943,17 +967,24 @@ class Download extends Events {
 					this.emit('error', 'unknown error')
 				}
 			}
-			if(!this.isResponseCompressed || this.decompressEnded || !this.decompressor){
+			const flush = () => {
+				if(this.paused) {
+					return this.once('resume', flush)
+				}
 				this.ended = true
-				this.emit('end', this.prepareOutputData(this.buffer))
+				const ret = this.prepareOutputData(this.buffer)
+				if(this.listenerCount('data')) {
+					this.emit('data', ret)
+					this.emit('end')
+				} else {
+					this.emit('end', ret)
+				}
 				this.destroy()
+			}
+			if(!this.isResponseCompressed || this.decompressEnded || !this.decompressor){
+				flush()
 			} else {
-				this.on('decompressed', () => {
-					// console.log('decompressor end', this.buffer)
-					this.ended = true
-					this.emit('end', this.prepareOutputData(this.buffer))
-					this.destroy()
-				})
+				this.on('decompressed', flush)
 				this.decompressor.flush()
 				this.decompressor.end()
 			}

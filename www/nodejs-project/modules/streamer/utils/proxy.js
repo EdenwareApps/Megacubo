@@ -29,9 +29,7 @@ class StreamerProxy extends StreamerProxyBase {
 			if(this.connections[uid].response){
 				if(data && typeof(data) != 'number' && global.isWritable(this.connections[uid].response)){
 					if(!this.connections[uid].response.headersSent){
-            			response.setHeader('Access-Control-Allow-Origin', '*')
-						response.setHeader('Access-Control-Allow-Methods', 'GET')
-			            response.setHeader('Access-Control-Allow-Headers', global.DEFAULT_ACCESS_CONTROL_ALLOW_HEADERS)
+            			global.prepareCORS(response)
 					}
 					this.connections[uid].response.end(data)
 				} else {
@@ -221,33 +219,24 @@ class StreamerProxy extends StreamerProxyBase {
 	}
 	handleRequest(req, response){
 		if(this.disabled){
-			response.writeHead(410, {
-				'access-control-allow-origin': '*',
-				'access-control-allow-methods': 'get',
-				'access-control-allow-headers': global.DEFAULT_ACCESS_CONTROL_ALLOW_HEADERS,
+			response.writeHead(410, global.prepareCORS({
 				'connection': 'close'
-			})
+			}, req))
 			return response.end()
 		}
 		if(this.destroyed || req.url.indexOf('favicon.ico') != -1){
-			response.writeHead(404, {
-				'access-control-allow-origin': '*',
-				'access-control-allow-methods': 'get',
-				'access-control-allow-headers': global.DEFAULT_ACCESS_CONTROL_ALLOW_HEADERS,
+			response.writeHead(404, global.prepareCORS({
 				'connection': 'close'
-			})
+			}, req))
 			return response.end()
 		}
 		if(this.networkOnly){
 			if(this.type != 'network-proxy'){
 				if(!req.headers['x-from-network-proxy'] && !req.rawHeaders.includes('x-from-network-proxy')){
 					console.warn('networkOnly block', this.type, req.rawHeaders)
-					response.writeHead(504, {
-						'access-control-allow-origin': '*',
-						'access-control-allow-methods': 'get',
-						'access-control-allow-headers': global.DEFAULT_ACCESS_CONTROL_ALLOW_HEADERS,
+					response.writeHead(504, global.prepareCORS({
 						'connection': 'close'
-					})
+					}, req))
 					return response.end()
 				}
 			}
@@ -337,9 +326,7 @@ class StreamerProxy extends StreamerProxyBase {
 				'x-xss-protection',
 				'cross-origin-resource-policy'
 			])
-			headers['access-control-allow-origin'] = '*'
-			headers['access-control-allow-methods'] = 'get'
-			headers['access-control-allow-headers'] = global.DEFAULT_ACCESS_CONTROL_ALLOW_HEADERS
+			headers = global.prepareCORS(headers, url)
 			if(this.opts.forceExtraHeaders){
 				Object.assign(headers, this.opts.forceExtraHeaders)
 			}
@@ -364,6 +351,8 @@ class StreamerProxy extends StreamerProxyBase {
 				if(this.type == 'network-proxy' && this.opts.debug){
 					console.log('network serving', url, reqHeaders, statusCode, headers)
 				}
+				const isSRT = this.isSRT(headers, url)
+				if(isSRT) headers['content-type'] = 'text/vtt'
 				if(req.method == 'HEAD'){
 					if(this.opts.debug){
 						console.log('download sent response headers', statusCode, headers)
@@ -419,7 +408,12 @@ class StreamerProxy extends StreamerProxyBase {
 		headers = this.addCachingHeaders(headers, 6) // set a min cache to this m3u8 to prevent his overfetching
 		download.once('end', data => {
 			if(data && data.length > 12){
-				data = this.proxifyM3U8(String(data), download.currentURL)
+				const isSRT = this.isSRT(headers, url)
+				if(isSRT) {
+					data = this.srt2vtt(String(data))
+				} else {
+					data = this.proxifyM3U8(String(data), download.currentURL)
+				}
 				headers['content-length'] = data.length
 				if(!response.headersSent){
 					response.writeHead(statusCode, headers)

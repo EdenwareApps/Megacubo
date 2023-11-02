@@ -25,7 +25,7 @@ class AnalyticsBase extends Events {
         data.country = global.lang.countryCode
         data.ver = global.MANIFEST.version
         data.verinf = ''
-        if(global.options.prm()) {
+        if(global.options.prm() && global.premium) {
             data.verinf = global.premium.active
         }
         if(data.url) data.url = this.obfuscateURL(data.url)

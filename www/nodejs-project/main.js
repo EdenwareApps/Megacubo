@@ -785,7 +785,9 @@ if(global.cordova) {
         app.commandLine.appendSwitch('enable-experimental-web-platform-features') // audioTracks support
         app.commandLine.appendSwitch('enable-features', 'PlatformHEVCDecoderSupport')  // TODO: Allow user to activate Metal (macOS) and VaapiVideoDecoder (Linux) features
         app.commandLine.appendSwitch('disable-features', 'IsolateOrigins,SitePerProcess,NetworkPrediction')
-
+        app.commandLine.appendSwitch('disable-web-security')
+        app.commandLine.appendSwitch('allow-file-access-from-files')
+        
         await app.whenReady()
         const window = new BrowserWindow({  
             frame: false,

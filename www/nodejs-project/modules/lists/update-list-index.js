@@ -109,6 +109,7 @@ class UpdateListIndex extends ListIndexUtils {
                             this.stream.destroy()
                             resolve(false) // no need to update
                         } else {
+                            this.stream.pause()
                             resolve({stream: this.stream})
                         }
                     } else {
@@ -278,7 +279,7 @@ class UpdateListIndex extends ListIndexUtils {
 			})
             this.parser.on('progress', readen => {
                 const pp = this.contentLength / 100
-                let progress = parseInt(readen / pp)
+                let progress = Math.max(0, parseInt(readen / pp))
                 if(progress > 99) progress = 99
                 if(this.playlists.length > 0){
                     let i = -1
@@ -318,11 +319,8 @@ class UpdateListIndex extends ListIndexUtils {
                 }
 			})
             this.parser.start()
-            if(!this.stream || this.stream.ended) {
-                endListener()
-            } else {
-                this.stream.once('end', endListener)
-            }
+            this.stream.once('end', endListener)
+            this.stream.resume()
 		})
 	}
     writeIndex(writer){

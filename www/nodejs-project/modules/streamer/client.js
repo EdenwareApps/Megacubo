@@ -11,6 +11,7 @@ class StreamerPlaybackTimeout extends EventEmitter {
             if(s == 'loading'){
                 if(!this.playbackTimeoutTimer){
                     this.playbackTimeoutTimer = setTimeout(() => {
+                        this.emit('stuck')
                         clearTimeout(this.playbackTimeoutTimer)
                         this.app.emit('video-error', 'timeout', this.prepareErrorData({type: 'timeout', details: 'client playback timeout'}))
                     }, this.playbackTimeout)
@@ -204,7 +205,7 @@ class StreamerCasting extends StreamerOSD {
                 if(parent.player.state){
                     parent.player.resume()
                 } else {
-                    parent.player.load(this.activeSrc, this.activeMimetype, this.activeCookie, this.activeMediatype, this.data)
+                    parent.player.load(this.activeSrc, this.activeMimetype, this.activeSubtitle, this.activeCookie, this.activeMediatype, this.data)
                     this.stateListener('loading')
                 }
             }
@@ -1080,6 +1081,21 @@ class StreamerClientTimeWarp extends StreamerLiveStreamClockTimer {
             }            
             parent.player.playbackRate(0.9) // start with caution
         })
+        this.app.on('outside-of-live-window', () => this.syncLiveWindow())
+        this.on('stuck', () => this.syncLiveWindow())
+    }
+    syncLiveWindow() {
+        if(!this.inLiveStream) return
+        const currentTime = parent.player.time()
+        const nudge = 10
+        let duration, pduration = parent.player.duration()
+        if(!config['in-disk-caching'] && this.activeMimetype.indexOf('mpegurl') != -1 && this.activeMediatype != 'video') {
+            duration = this.clockTimerDuration()
+        } else {
+            duration = pduration
+        }
+        let minSeekTime = parseInt(duration - (config['live-window-time'] + nudge))
+        if(minSeekTime && minSeekTime > (currentTime + nudge)) this.seekTo(minSeekTime, 'forward')
     }
     doTimeWarp(ptime){
         if(this.inLiveStream && config['playback-rate-control'] && this.timewarpInitialPlaybackTime !== null){
@@ -1290,10 +1306,7 @@ class StreamerAudioUI extends StreamerClientVideoFullScreen {
             }
         })
 		parent.player.on('audioTracks', tracks => this.app.emit('audioTracks', tracks))
-		parent.player.on('subtitleTracks', tracks => {
-			console.warn('subtitleTracks', tracks)
-            this.app.emit('subtitleTracks', tracks)
-        })
+		parent.player.on('subtitleTracks', tracks => this.app.emit('subtitleTracks', tracks))
         this.volumeInitialized = false
         this.volumeLastClickTime = 0
         this.volumeShowTimer = 0
@@ -1615,11 +1628,12 @@ class StreamerClientController extends StreamerClientControls {
     start(src, mimetype, cookie, mediatype){
         this.active = true
         this.activeSrc = src
+        this.activeSubtitle = this.data.subtitle || ''
         this.activeCookie = cookie
         this.activeMimetype = (mimetype || '').toLowerCase()
         this.activeMediatype = mediatype
-        this.inLiveStream = this.activeMediatype == 'live'
-        parent.player.load(src, mimetype, cookie, this.activeMediatype, this.data)
+        this.inLiveStream = ['live', 'audio'].includes(this.activeMediatype)
+        parent.player.load(src, mimetype, this.activeSubtitle, cookie, this.activeMediatype, this.data)
         this.emit('start')
     }
     stop(fromServer){

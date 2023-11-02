@@ -449,7 +449,11 @@ class StreamerProxyHLS extends HLSRequests {
 		}).join(' &middot; ')
 		return name || track.uri
 	}
-	proxifyM3U8(body, baseUrl, url){
+	isM3U8(body) {
+		return body.substr(0, 12).indexOf('#EXT') != -1
+	}
+	proxifyM3U8(body, baseUrl, url) {
+		if(!this.isM3U8(body)) return body
 		body = body.trim()
 		let u, parser = new m3u8Parser.Parser(), replaces = {}
 		try{ 
@@ -594,18 +598,18 @@ class StreamerProxyHLS extends HLSRequests {
 	}
 	handleRequest(req, response){
 		if(this.destroyed || req.url.indexOf('favicon.ico') != -1){
-			response.writeHead(404, {
-				'Access-Control-Allow-Origin': '*'
-			})
+			response.writeHead(404, global.prepareCORS({
+				'connection': 'close'
+			}, req))
 			return response.end()
 		}
 		if(this.networkOnly){
 			if(this.type != 'network-proxy'){
 				if(!req.headers['x-from-network-proxy'] && !req.rawHeaders.includes('x-from-network-proxy')){
 					console.warn('networkOnly block', this.type, req.rawHeaders)
-					response.writeHead(504, {
-						'Access-Control-Allow-Origin': '*'
-					})
+					response.writeHead(504, global.prepareCORS({
+						'connection': 'close'
+					}, req))
 					return response.end()
 				}
 			}
@@ -700,9 +704,7 @@ class StreamerProxyHLS extends HLSRequests {
 				'x-xss-protection',
 				'cross-origin-resource-policy'
 			])
-			headers['access-control-allow-origin'] = '*'
-			headers['access-control-allow-methods'] = 'get'
-			headers['access-control-allow-headers'] = global.DEFAULT_ACCESS_CONTROL_ALLOW_HEADERS
+			headers = global.prepareCORS(headers, url)
 			if(this.opts.forceExtraHeaders){
 				Object.assign(headers, this.opts.forceExtraHeaders)
 			}
@@ -718,6 +720,8 @@ class StreamerProxyHLS extends HLSRequests {
 				if(statusCode == 206){
 					statusCode = 200
 				}
+				const isSRT = this.isSRT(headers, url)
+				if(isSRT) headers['content-type'] = 'text/vtt'
 				if(req.method == 'HEAD'){
 					if(this.opts.debug){
 						console.log('download sent response headers', statusCode, headers)
@@ -783,6 +787,8 @@ class StreamerProxyHLS extends HLSRequests {
 		download.start()
 	}
 	handleMetaResponse(download, statusCode, headers, response, end){
+		const isSRT = this.isSRT(headers, download.opts.url)
+		if(isSRT) headers['content-type'] = 'text/vtt'
 		let closed, data = []
 		if(!response.headersSent){
 			response.writeHead(statusCode, this.removeHeaders(headers, ['content-length']))
@@ -794,7 +800,11 @@ class StreamerProxyHLS extends HLSRequests {
 		download.on('data', chunk => data.push(chunk))
 		download.once('end', () => {
 			data = String(Buffer.concat(data))
-			data = this.proxifyM3U8(data, download.currentURL, download.opts.url)
+			if(isSRT) {
+				data = this.srt2vtt(data)
+			} else {
+				data = this.proxifyM3U8(data, download.currentURL, download.opts.url)
+			}
 			if(!closed){
 				if(global.isWritable(response)){
 					try {

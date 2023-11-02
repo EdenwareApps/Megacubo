@@ -94,16 +94,13 @@ class Downloads extends Events {
 					pathname = path.join(this.folder, pathname)
 					console.log('serve ' + pathname, fs.readdirSync(this.folder))
 				}
-				let resHeaders = {
+				let resHeaders = global.prepareCORS({
 					'accept-ranges': 'bytes',
 					'content-type': this.mimes[ext] || 'text/plain',
-					'access-control-allow-origin': '*',
-					'access-control-allow-methods': 'get',
-					'access-control-allow-headers': global.DEFAULT_ACCESS_CONTROL_ALLOW_HEADERS,
 					'cache-control': 'max-age=0, no-cache, no-store',
 					//'content-disposition': 'attachment; filename="' + name + '"',
 					'connection': 'close'
-				}
+				}, req)
 				if(pathname.match(new RegExp('^https?://'))){    
 					let reqHeaders = {
 						'content-encoding': 'identity'
