@@ -284,7 +284,7 @@ class HLSRequests extends StreamerProxyBase {
 					this.activeManifest = manifest
 					if(this.playlistsMeta[manifest]) {
 						if(this.playlistsMeta[manifest].bandwidth && !isNaN(this.playlistsMeta[manifest].bandwidth) && this.playlistsMeta[manifest].bandwidth > 0) {
-							this.saveBitrate(this.playlistsMeta[manifest].bandwidth, true)
+							this.bitrateChecker.save(this.playlistsMeta[manifest].bandwidth, true)
 						}
 						if(this.playlistsMeta[manifest].resolution) {
 							this.emit('dimensions', this.playlistsMeta[manifest].resolution)
@@ -293,9 +293,9 @@ class HLSRequests extends StreamerProxyBase {
 					this.finishObsoleteSegmentRequests(manifest)
 				}
 				if(this.activeManifest && this.committed){ // has downloaded at least one segment to know from where the player is starting
-					if(seg &&  !this.bitrateChecking && (this.bitrates.length <= this.opts.bitrateCheckingAmount || !this.codecData)){
+					if(seg &&  !this.bitrateChecker.checking && (this.bitrateChecker.bitrates.length <= this.bitrateChecker.opts.checkingAmount || !this.codecData)){
 						if(!this.playlistsMeta[this.activeManifest] || !this.codecData || !(this.codecData.audio || this.codecData.video)) {
-							this.getBitrate(this.proxify(url))
+							this.committed && this.bitrateChecker.addSample(this.proxify(url))
 						}
 					}					
 					// Using nextTick to prevent "RangeError: Maximum call stack size exceeded"

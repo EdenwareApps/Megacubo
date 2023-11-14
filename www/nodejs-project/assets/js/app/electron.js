@@ -221,7 +221,7 @@ class ExternalPlayer {
 		const { spawn } = require('child_process');
 		const inPlayer = this.context.streamer.active
 		if(inPlayer) {
-			this.context.streamer.once('stop', exitUI)
+			this.context.streamer.once('cast-stop', exitUI)
 			url = this.context.streamer.activeSrc
 		} else {
 			exitUI()

@@ -101,7 +101,7 @@ class PerformanceProfiles extends Timer {
         this.profiles = {
             high: {
                 'animate-background': 'slow-desktop',
-                'auto-testing': true,
+                'auto-test': false,
                 'autocrop-logos': true,
                 'broadcast-start-timeout': 40,
                 'connect-timeout': 5,
@@ -121,7 +121,7 @@ class PerformanceProfiles extends Timer {
             },
             low: {
                 'animate-background': 'none',
-                'auto-testing': false,
+                'auto-test': false,
                 'autocrop-logos': false,
                 'broadcast-start-timeout': 60,
                 'connect-timeout': 10,
@@ -1039,11 +1039,11 @@ class Options extends OptionsExportImport {
     async tuneEntries(){
         let opts = [
             {
-                name: global.lang.TEST_STREAMS, type: 'check',
+                name: global.lang.TEST_STREAMS_AUTO, type: 'check',
                 action: (data, checked) => {
-                    global.config.set('auto-testing', checked)
+                    global.config.set('auto-test', checked)
                 },
-                checked: () => global.config.get('auto-testing')
+                checked: () => global.config.get('auto-test')
             },
             {
                 name: global.lang.TEST_STREAMS_TYPE, type: 'check',
@@ -1051,6 +1051,28 @@ class Options extends OptionsExportImport {
                     global.config.set('status-flags-type', checked)
                 },
                 checked: () => global.config.get('status-flags-type')
+            },
+            {
+                name: global.lang.SKIP_PLAY_CHECKING,
+                fa: 'fas fa-cog',
+                type: 'select', 
+                renderer: async () => {
+                    const def = global.config.get('tuning-blind-trust'), opts = [
+                        {name: global.lang.NEVER, type: 'action', selected: (def == ''), action: () => {
+                            global.config.set('tuning-blind-trust', '')
+                        }},
+                        {name: global.lang.VIDEOS, type: 'action', selected: (def == 'video'), action: () => {
+                            global.config.set('tuning-blind-trust', 'video')
+                        }},
+                        {name: global.lang.LIVE, type: 'action', selected: (def == 'live'), action: () => {
+                            global.config.set('tuning-blind-trust', 'live')
+                        }},
+                        {name: global.lang.ALWAYS, type: 'action', selected: (def == 'live,video'), action: () => {
+                            global.config.set('tuning-blind-trust', 'live,video')
+                        }}
+                    ]
+                    return opts
+                }
             },
             {
                 name: global.lang.ENABLE_DISK_CACHE, type: 'check',
@@ -1319,6 +1341,13 @@ class Options extends OptionsExportImport {
                         name: global.lang.RESUME_PLAYBACK, type: 'check',
                         action: (data, checked) => global.config.set('resume', checked),
                         checked: () => global.config.get('resume')
+                    },
+                    {
+                        name: global.lang.TEST_STREAMS_AUTO, type: 'check',
+                        action: (data, checked) => {
+                            global.config.set('auto-test', checked)
+                        },
+                        checked: () => global.config.get('auto-test')
                     },
                     {
                         name: global.lang.AUTO_MINIPLAYER, type: 'check', 

@@ -705,7 +705,7 @@ class Explorer extends Events {
                     path: backTo || this.dirname(path)
                 }
                 entries.unshift(backEntry)
-                if(!global.config.get('auto-testing')){
+                if(!global.config.get('auto-test')){
                     let has = entries.some(e => e.name == global.lang.TEST_STREAMS)
                     if(!has && this.canApplyStreamTesting(entries)){
                         entries.splice(1, 0, {

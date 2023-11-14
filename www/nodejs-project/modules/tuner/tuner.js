@@ -83,7 +83,7 @@ class TunerTask extends TunerUtils {
 		this.domainDelay[domain] = global.time() + 1 // try to keep a max of 1 request per sec for same domain connections
 
 		let err		
-		const info = await streamer().info(e.url, 2, e).catch(r => err = r)
+		const info = await streamer().info(e.url, 2, Object.assign({skipSample: this.opts.skipSample}, e)).catch(r => err = r)
 		if(typeof(err) != 'undefined') {    
 			this.states[i] = -1
 			console.error('Tuner err', err, i)

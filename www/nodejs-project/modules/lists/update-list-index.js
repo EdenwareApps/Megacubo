@@ -110,7 +110,10 @@ class UpdateListIndex extends ListIndexUtils {
                             resolve(false) // no need to update
                         } else {
                             this.stream.pause()
-                            resolve({stream: this.stream})
+                            resolve({
+                                stream: this.stream,
+                                url: this.stream.currentURL // use final URL for relative URLs normalization
+                            })
                         }
                     } else {
                         this.stream.destroy()
@@ -140,7 +143,10 @@ class UpdateListIndex extends ListIndexUtils {
                             resolve(false) // no need to update
                         } else {
                             this.stream = fs.createReadStream(file)
-                            resolve({stream: this.stream})
+                            resolve({
+                                stream: this.stream,
+                                url: file
+                            })
                         }
                     } else {
                         reject('file not found or empty*')
@@ -293,7 +299,6 @@ class UpdateListIndex extends ListIndexUtils {
                         const lr = 100 / (this.playlists.length + 1)
                         const pr = (i * lr) + (progress * (lr / 100))
                         progress = parseInt(pr)
-                        console.error('PLAYLISTSPROGRESS='+ JSON.stringify({i, lr, progress}))
                     }
                 }
                 if(progress != this.lastProgress) {

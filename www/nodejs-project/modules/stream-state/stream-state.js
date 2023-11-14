@@ -25,7 +25,7 @@ class StreamState extends Events {
             if(data){
                 this.set(data.url, 'offline', true, { source: data.source })
             }
-            if(global.config.get('auto-testing')){
+            if(global.config.get('auto-test')){
                 this.test(global.explorer.currentStreamEntries()).catch(console.error)
             }
         })
@@ -50,7 +50,7 @@ class StreamState extends Events {
         })
         global.streamer.on('stop', (err, e) => {
             setTimeout(() => {
-                if(!global.streamer.active && global.config.get('auto-testing')){
+                if(!global.streamer.active && global.config.get('auto-test')){
                     this.test(global.explorer.currentStreamEntries()).catch(console.error)
                 }
             }, 500)
@@ -60,7 +60,7 @@ class StreamState extends Events {
         })
         global.explorer.on('render', entries => {
             this.cancelTests()
-            if(global.config.get('auto-testing') && entries.some(e => this.supports(e))){
+            if(global.config.get('auto-test') && entries.some(e => this.supports(e))){
                 this.test(entries).catch(console.error)
             }
         })
@@ -238,7 +238,7 @@ class StreamState extends Events {
             if(this.debug){
                 console.log('streamState about to test', entries)
             }
-            const nt = {name: global.lang.TEST_STREAMS}, autoTesting = global.config.get('auto-testing')
+            const nt = {name: global.lang.TEST_STREAMS}, autoTesting = global.config.get('auto-test')
             if(!autoTesting){
                 global.ui.emit('set-loading', nt, true, global.lang.TESTING)
                 global.osd.show(global.lang.TESTING + ' 0%', 'fa-mega spin-x-alt', 'stream-state-tester', 'persistent') 
@@ -281,7 +281,7 @@ class StreamState extends Events {
             if(retest.length){
                 entries.push(...retest)
             }
-            this.testing = new Tuner(entries, { shadow: true }, name)
+            this.testing = new Tuner(entries, { skipSample: true, shadow: true }, name)
             this.testing.ctrlKey = ctrlKey
             this.testing.on('success', this.success.bind(this))
             this.testing.on('failure', this.failure.bind(this))

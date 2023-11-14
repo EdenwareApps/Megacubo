@@ -112,7 +112,7 @@ class StreamerYTHLSIntent extends StreamerHLSIntent {
                 throw 'no valid track'
             }
         }
-        chosenBandwidth && this.prx && this.prx.resetBitrate(chosenBandwidth)
+        chosenBandwidth && this.prx && this.prx.bitrateChecker.reset(chosenBandwidth)
         return {url: chosen, mimetype: chosenMimeType, bandwidth: chosenBandwidth}
     }
     async _startVideo(info){

@@ -1,5 +1,5 @@
 
-const http = require('http'), path = require('path'), parseRange = require('range-parser'), closed = require('../../on-closed')
+const http = require('http'), path = require('path'), Writer = require('../../writer'), closed = require('../../on-closed')
 const StreamerProxyBase = require('./proxy-base'), decodeEntities = require('decode-entities'), m3u8Parser = require('m3u8-parser'), stoppable = require('stoppable')
 
 class StreamerProxy extends StreamerProxyBase {
@@ -460,28 +460,39 @@ class StreamerProxy extends StreamerProxyBase {
 			}
 		}
 		let initialOffset = download.requestingRange ? download.requestingRange.start : 0, offset = initialOffset
-		let sampleCollected, doBitrateCheck = this.committed && this.type != 'network-proxy' && this.bitrates.length <= this.opts.bitrateCheckingAmount
-		let onend = () => {
+		let sampleCollected, doBitrateCheck = this.committed && this.type != 'network-proxy' && this.bitrateChecker.bitrates.length <= this.bitrateChecker.opts.checkingAmount
+		let sampleWriter, sampleFile = doBitrateCheck ? global.paths.temp +'/'+ parseInt(Math.random() * 100000) +'.ts' : ''
+		const onend = () => {
 			if(doBitrateCheck){
 				if(this.opts.debug){
 					console.log('finishBitrateSampleProxy', url, sampleCollected, initialOffset, offset)
 				}
-				this.finishBitrateSample(url)
+				finishSample()
 			}
 			end()
+		}
+		const finishSample = () => {
+			if(sampleCollected || !sampleWriter) return
+			sampleWriter.end()                    
+			sampleCollected = true
+			if(this.opts.debug){
+				console.log('collectBitrateSampleProxy', url, sampleCollected, initialOffset, offset)
+			}
+			sampleWriter.ready(() => {
+				this.bitrateChecker.addSample(sampleFile, null, true)
+			})			
 		}
 		// console.warn('handleVideoResponse', doBitrateCheck, this.opts.forceFirstBitrateDetection, offset, download, statusCode, headers)
 		download.on('data', chunk => {
 			response.write(chunk)
 			let len = this.len(chunk)
 			this.downloadLog(len)
-			if(doBitrateCheck && !sampleCollected){
-				//console.warn('forceFirstBitrateDetection data', this.bitrateCheckBuffer[uid], offset, chunk)
-				if(!this.collectBitrateSample(chunk, offset, url)){                       
-					sampleCollected = true
-					if(this.opts.debug){
-						console.log('collectBitrateSampleProxy', url, sampleCollected, initialOffset, offset)
-					}
+			if(sampleFile && !sampleCollected){
+				//console.warn('forceFirstBitrateDetection data', this.bitrateChecker.checkingBuffers[uid], offset, chunk)
+				if(!sampleWriter) sampleWriter = new Writer(sampleFile)
+				sampleWriter.write(chunk)
+				if(sampleWriter.position > this.bitrateChecker.opts.maxCheckingSize) {
+					finishSample()
 				}
 			}
 			offset += len

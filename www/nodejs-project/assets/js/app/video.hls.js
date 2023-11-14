@@ -33,7 +33,7 @@ class VideoControlAdapterHTML5HLS extends VideoControlAdapterHTML5Video {
 			manifestLoadingMaxRetryTimeout: timeout
 		}
 		const hls = new Hls(config)
-		this.setObjectTracks(this.object, additionalSubtitles)		
+		this.setTextTracks(this.object, additionalSubtitles)		
 		hls.loadSource(this.currentSrc)
 		hls.attachMedia(this.object)
 		hls.on(Events.ERROR, (event, data) => {

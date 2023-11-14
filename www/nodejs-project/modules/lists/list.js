@@ -105,12 +105,18 @@ class List extends Events {
 		return p
 	}
 	async verifyListQuality(){
-        if(this.skipValidating){
-            return true
+        const cacheTTL = 120, cacheKey = 'list-quality-'+ this.url
+        const cached = await global.storage.promises.get(cacheKey)
+        if(cached) {
+            if(cached.err) throw cached.err
+            return cached.result
         }
+        if(this.skipValidating) return true
         let len = this.index.length
         if(!len){
-            throw 'insufficient streams '+ len
+            const err = 'insufficient streams '+ len
+            global.storage.promises.set(cacheKey, {err}, cacheTTL).catch(console.error)
+            throw err
         }
         let tests = Math.min(len, 10), mtp = Math.floor((len - 1) / (tests - 1))
         let ids = []
@@ -124,10 +130,14 @@ class List extends Events {
 		for(let i=0; i<urls.length; i++){
             const res = await racing.next().catch(console.error)
             if(res && res.valid){
-                return 100 / i
-            }            
+                const result = 100 / i
+                global.storage.promises.set(cacheKey, {result}, cacheTTL).catch(console.error)
+                return result
+            }
         }
-		throw 'no valid links'
+        const err = 'no valid links'
+        global.storage.promises.set(cacheKey, {err}, cacheTTL).catch(console.error)
+        throw err
 	}
 	async verifyListRelevance(index){
         const values = {

@@ -27,6 +27,7 @@
     "mpegts.js": "^1.7.3",
     "node-cleanup": "^2.1.2",
     "nw-custom-frame": "github:efoxbr/nw-custom-frame",
+    "opensubtitles.com": "^1.0.0",
     "p-queue": "^6.6.2",
     "png-to-ico": "^2.1.8",
     "range-parser": "^1.2.1",
@@ -46,7 +47,7 @@
   "description": "A intuitive, multi-language and cross-platform IPTV player.",
   "name": "megacubo",
   "icon": "./default_icon.png",
-  "version": "17.2.8",
+  "version": "17.2.9",
   "theme": {
     "fullScreen": true
   },

@@ -30,6 +30,7 @@ class Download extends Events {
 			keepalive: false,
 			maxAuthErrors: 2,
 			maxAbortErrors: 2,
+			maxZlibErrors: 10,
 			redirectionLimit: 20,
 			retries: 3,
 			resume: true,
@@ -88,6 +89,7 @@ class Download extends Events {
 		this.totalContentLength = -1
 		this.errorCount = []
 		this.errors = []
+		this.zlibErrors = 0
 		this.authErrors = 0
 		this.abortErrors = 0
 		this.statusCode = 0
@@ -99,6 +101,9 @@ class Download extends Events {
 		this.on('error', () => {}) // avoid uncaught exception, make error listening not mandatory
 		if(typeof(this.opts.headers['range']) != 'undefined'){
 			this.checkRequestingRange(this.opts.headers['range'])
+		}
+		if(typeof(this.opts.oncreate) == 'function') { // allows Download.get to get the object instance
+			this.opts.oncreate(this)
 		}
 	}
 	avoidKeepAlive(url){ // on some servers, the number of sockets increase indefinitely causing downloads to hang up after some time, doesn't seems that these sockets are really being reused
@@ -607,7 +612,13 @@ class Download extends Events {
 				Download.cache.save(this, chunk, false) // before to be converted by StringDecoder
 			}
 		}
-		this.opts.file && this.fileStream.write(chunk)
+		if(this.opts.file) {
+			if(global.isWritable(this.fileStream)) {
+				this.fileStream.write(chunk)
+			} else {
+				return this.endWithError('File not writable')
+			}
+		}
 		if(this.opts.encoding && this.opts.encoding != 'binary') {
 			if(!this.stringDecoder){
 				this.stringDecoder = new StringDecoder(this.opts.encoding)
@@ -646,10 +657,14 @@ class Download extends Events {
 				this.decompressor.on('error', err => {
 					console.error('Zlib err', err, this.currentURL)
 					this.decompressEnded = 'error'
-					this.emit('decompressed')
-					this.destroyStream()
-					if(!this.ended){
-						this.connect()
+					this.zlibErrors++
+					if(this.zlibErrors >= this.opts.maxZlibErrors) {
+						this.endWithError(err)
+					} else {
+						this.opts.cacheTTL = 0
+						this.emit('decompressed')
+						this.destroyStream()
+						this.ended || this.connect()
 					}
 				})
 				this.decompressor.on('finish', chunk => {
@@ -944,6 +959,7 @@ class Download extends Events {
 	endWithError(err){
 		this.statusCode = 500
 		this.headers = {}
+		this.buffer = [] // discard any
 		console.warn('Download error: '+ err, this.redirectLog, this.opts.url, this.currentURL, this.redirectCount, this, global.traceback())
 		this.errors.push(String(err) || 'unknown request error')
 		if(!this.currentRequestError){
@@ -991,7 +1007,7 @@ class Download extends Events {
 		}
 	}
 	close(){
-		this.end()
+		this.destroy()
 	}
 	checkStatusCode(){
 		if(this.statusCode == 0){
@@ -1030,7 +1046,7 @@ class Download extends Events {
 			this.emit('close')
 			this.emit('destroy')
 			this.removeAllListeners()
-			this.buffer = []
+			this.buffer = [] // discard
 			this.fileStream && this.fileStream.close()
 			process.nextTick(() => {
 				if(global.osd && global.debugConns){

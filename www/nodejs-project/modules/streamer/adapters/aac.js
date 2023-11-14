@@ -2,12 +2,10 @@
 const StreamerAdapterBase = require('./base.js'), Downloader = require('../utils/downloader.js')
 		
 class StreamerAdapterAAC extends StreamerAdapterBase {
-	constructor(url, opts, cb){
+	constructor(url, opts){
 		super(url, opts)
-		this.opts = {
-			minBitrateCheckSize: 128 * 1024,
-			maxBitrateCheckSize: 0.25 * (1024 * 1024)
-		};
+		this.bitrateChecker.opts.minCheckSize = 128 * 1024
+		this.bitrateChecker.opts.maxCheckSize = 0.25 * (1024 * 1024)
 		this.defaults = this.opts
 		if(opts){
 			this.setOpts(opts)

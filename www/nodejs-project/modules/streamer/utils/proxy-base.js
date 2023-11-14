@@ -93,7 +93,7 @@ class StreamerProxyBase extends StreamerAdapterBase {
 		return type
 	}
 	isSRT(headers, url){
-		if(url && this.ext(url) == 'srt') {
+		if(url && (this.ext(url) == 'srt' || url.endsWith('.srt.gz'))) {
 			return true
 		} else if(typeof(headers['content-type']) != 'undefined' && (headers['content-type'].endsWith('/srt') || headers['content-type'].endsWith('subrip'))){
 			return true

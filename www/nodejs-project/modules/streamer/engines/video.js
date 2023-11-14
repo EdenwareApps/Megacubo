@@ -10,9 +10,9 @@ class StreamerVideoIntent extends StreamerBaseIntent {
         } else {
             this.mimetype = this.mimeTypes.video
         }
-        this.opts.minBitrateCheckSize = 6 * (1024 * 1024)
-        this.opts.maxBitrateCheckSize = 3 * this.opts.minBitrateCheckSize
-        this.opts.bitrateCheckingAmount = 1
+        this.bitrateChecker.opts.minCheckSize = 6 * (1024 * 1024)
+        this.bitrateChecker.opts.maxCheckSize = 3 * this.bitrateChecker.opts.minCheckSize
+        this.bitrateChecker.opts.checkingAmount = 1
     } 
 	domain(u){
 		if(u && u.indexOf('//') != -1){

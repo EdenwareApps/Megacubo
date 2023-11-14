@@ -45,19 +45,23 @@ class Parser extends EventEmitter {
 	generateAttrMapRegex(attrs) {
 		return new RegExp('(' +
 			Object.keys(attrs).join('|').replace(new RegExp('-', 'g'), '\\-') +
-			')\\s*=\\s*[\'"]([^\r\n\'"]*)[\'"]',
+			')\\s*=\\s*"([^\r\n"]+)', // always between DOUBLE quotes?!
 			'g')
 	}
 	async start() {
 		if(!this.opts.stream) throw 'Parser instance started with no stream set!'
+		if(!this.opts.url) throw 'Parser instance started with no stream set!'
 		this.liner = new LineReader(this.opts)
-		let g = '', a = {}, e = {url: '', icon: ''}
+		let inExtInf, g = '', a = {}, e = {url: '', icon: ''}
 		this.liner.on('line', line => {
 			this.readen += (line.length + 1)
 			const hashed = line.startsWith('#')
 			const sig = hashed ? line.substr(0, 7).toUpperCase() : ''
 			const isExtM3U = hashed && this.isExtM3U(sig)
-			const isExtInf = hashed && !isExtM3U && this.isExtInf(sig)
+			const isExtInf = (
+				(hashed && !isExtM3U && this.isExtInf(sig)) ||
+				(inExtInf && line.startsWith('"')) // if some tvg field ended with a new line, next one starts with double quotes
+			)
 			if (!hashed && line.length < 6) return
 			if (isExtM3U) {
 				if (this.expectingHeader) {
@@ -70,6 +74,7 @@ class Parser extends EventEmitter {
 					}
 				}
 			} else if (isExtInf) {
+				inExtInf = true
 				if (this.expectingHeader) {
 					this.expectingHeader = false
 					this.emit('meta', this.meta)
@@ -133,17 +138,26 @@ class Parser extends EventEmitter {
 					}
 				}
 			} else { // not hashed so, length already checked
+				inExtInf = false
 				e.url = line
-				if (e.url.startsWith('//')) {
-					e.url = 'http:' + e.url
-				}
 				if (e.url.indexOf('|') !== -1 && e.url.match(Parser.regexes['m3u-url-params'])) {
 					let parts = e.url.split('|')
 					e.url = parts[0]
 					parts = parts[1].split('=')
-					parts[0] = parts[0].toLowerCase()
-					a[this.attrMap[parts[0]] || parts[0]] = this.trimQuotes(parts[1] || '')
+					if(parts.length > 1) {
+						parts[0] = parts[0].toLowerCase()
+						a[this.attrMap[parts[0]] || parts[0]] = this.trimQuotes(parts[1] || '')
+					}
 				}
+
+				// resolve relative urls
+				const pos = e.url.substr(0, 8).indexOf('//')
+				if (pos === 0) {
+					e.url = 'http:' + e.url
+				} else if(pos === -1) {
+					e.url = global.absolutize(e.url, this.opts.url)
+				}
+
 				// removed url validation for performance
 				if (!e.name) {
 					e.name = e.gid || global.listNameFromURL(e.url)
@@ -190,8 +204,10 @@ class Parser extends EventEmitter {
 		if (s.length == 3 && s.toLowerCase().trim() === 'n/a') {
 			return ''
 		}
-		if(s.match(Parser.regexes['group-separators'])) { // if there are few cases, is better not replace directly
+		if(s.indexOf('/') == -1 && s.match(Parser.regexes['group-separators'])) { // if there are few cases, is better not replace directly
 			s = s.replace(Parser.regexes['group-separators'], '/')
+			if(s.startsWith('/')) s = s.substr(1)
+			if(s.endsWith('/')) s = s.substr(0, s.length - 1)
 		}
 		if(s.indexOf('[') != -1) {
 			s = s.replace(Parser.regexes['between-brackets'], '')
@@ -260,7 +276,7 @@ class Parser extends EventEmitter {
 }
 
 Parser.regexes = {
-	'group-separators': new RegExp('( ?[\\\\|;] ?| /|/ )', 'g'),
+	'group-separators': new RegExp('( ?[\\\\|;] ?| /+|/+ )', 'g'),
 	'notags': new RegExp('\\[[^\\]]*\\]', 'g'),
 	'between-brackets': new RegExp('\\[[^\\]]*\\]', 'g'), // match data between brackets
 	'accents': new RegExp('[\\u0300-\\u036f]', 'g'), // match accents

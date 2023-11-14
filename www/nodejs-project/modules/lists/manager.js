@@ -350,96 +350,80 @@ class ManagerEPG extends ManagerCommunityLists {
             })
         }
     }
-    epgOptionsEntries(activeEPGDetails){
-        return new Promise((resolve, reject) => {
-            let options = [], epgs = []
-            this.searchEPGs().then(urls => {
-                epgs.push(...urls)
-            }).catch(console.error).finally(() => {
-                let activeEPG = global.config.get('epg-'+ global.lang.locale) || global.activeEPG
-                if(!activeEPG || activeEPG == 'disabled'){
-                    activeEPG = ''
+    async epgOptionsEntries(activeEPGDetails){
+        let options = [], epgs = []
+        await this.searchEPGs().then(urls => epgs.push(...urls)).catch(console.error)
+        let activeEPG = global.config.get('epg-'+ global.lang.locale) || global.activeEPG
+        if(!activeEPG || activeEPG == 'disabled'){
+            activeEPG = ''
+        }
+        if(activeEPG){
+            activeEPG = this.formatEPGURL(activeEPG) 
+            epgs.includes(activeEPG) || epgs.push(activeEPG)
+        }
+        this.lastActiveEPGDetails = ''
+        if(activeEPG){
+            if(typeof(activeEPGDetails) != 'string'){
+                await this.master.epg([], 2).then(epgData => {
+                    this.lastActiveEPGDetails = activeEPGDetails = this.epgLoadingStatus(epgData)
+                }).catch(err => {
+                    console.error(err)
+                    activeEPGDetails = ''
+                })
+            }
+            if(activeEPGDetails == global.lang.ENABLED){
+                if(this.epgStatusTimer){
+                    clearInterval(this.epgStatusTimer)
+                    this.epgStatusTimer = false
                 }
-                console.log('SETT-EPG', activeEPG, epgs)
-                if(activeEPG){
-                    activeEPG = this.formatEPGURL(activeEPG) 
-                    if(!epgs.includes(activeEPG)){
-                        epgs.push(activeEPG)
-                    }
-                }
-                const next = () => {
-                    options = epgs.unique().sort().map(url => {
-                        let details = '', name = global.listNameFromURL(url)
-                        if(url == activeEPG){
-                            if(activeEPGDetails){
-                                details = activeEPGDetails
-                            } else {
-                                if(global.channels.loadedEPG == url){
-                                    details = global.lang.EPG_LOAD_SUCCESS
-                                } else {
-                                    details = global.lang.PROCESSING
-                                }
-                            }
-                        }
-                        return {
-                            name,
-                            type: 'action',
-                            fa: 'fas fa-th-large',
-                            prepend: (url == activeEPG) ? '<i class="fas fa-check-circle faclr-green"></i> ' : '',
-                            details,
-                            action: () => {
-                                if(url == global.config.get('epg-'+ global.lang.locale)){
-                                    global.config.set('epg-'+ global.lang.locale, 'disabled')
-                                    global.channels.load()
-                                    this.setEPG('', true)
-                                } else {
-                                    global.config.set('epg-'+ global.lang.locale, url)
-                                    this.setEPG(url, true)
-                                }
-                                global.explorer.refreshNow() // epg options path
-                            }
-                        }
-                    })
-                    options.unshift({name: global.lang.ADD, fa: 'fas fa-plus-square', type: 'action', action: async () => {
-                        await global.explorer.prompt({
-                            question: global.lang.EPG,
-                            placeholder: 'http://.../epg.xml',
-                            defaultValue: global.activeEPG || '',
-                            callback: 'set-epg',
-                            fa: global.channels.epgIcon
-                        })
-                    }})
-                    resolve(options)
-                }
-                this.lastActiveEPGDetails = ''
-                if(activeEPG){
-                    const epgNext = () => {
-                        if(activeEPGDetails == global.lang.ENABLED){
-                            if(this.epgStatusTimer){
-                                clearInterval(this.epgStatusTimer)
-                                this.epgStatusTimer = false
-                            }
-                        } else {
-                            this.epgStatusTimer && clearInterval(this.epgStatusTimer)
-                            this.epgStatusTimer = setInterval(this.updateEPGStatus.bind(this), 1000)
-                        }
-                        next()
-                    }
-                    if(typeof(activeEPGDetails) == 'string'){
-                        epgNext()
-                    } else {
-                        this.master.epg([], 2).then(epgData => {
-                            this.lastActiveEPGDetails = activeEPGDetails = this.epgLoadingStatus(epgData)
-                        }).catch(err => {
-                            console.error(err)
-                            activeEPGDetails = ''
-                        }).finally(epgNext)
-                    }
+            } else {
+                this.epgStatusTimer && clearInterval(this.epgStatusTimer)
+                this.epgStatusTimer = setInterval(this.updateEPGStatus.bind(this), 1000)
+            }
+        }
+        options = epgs.unique().sort().map(url => {
+            let details = '', name = global.listNameFromURL(url)
+            if(url == activeEPG){
+                if(activeEPGDetails){
+                    details = activeEPGDetails
                 } else {
-                    next()
+                    if(global.channels.loadedEPG == url){
+                        details = global.lang.EPG_LOAD_SUCCESS
+                    } else {
+                        details = global.lang.PROCESSING
+                    }
                 }
-            })
+            }
+            return {
+                name,
+                type: 'action',
+                fa: 'fas fa-th-large',
+                url,
+                prepend: (url == activeEPG) ? '<i class="fas fa-check-circle faclr-green"></i> ' : '',
+                details,
+                action: () => {
+                    if(url == global.config.get('epg-'+ global.lang.locale)){
+                        global.config.set('epg-'+ global.lang.locale, 'disabled')
+                        global.channels.load()
+                        this.setEPG('', true)
+                    } else {
+                        global.config.set('epg-'+ global.lang.locale, url)
+                        this.setEPG(url, true)
+                    }
+                    global.explorer.refreshNow() // epg options path
+                }
+            }
         })
+        options.unshift({name: global.lang.ADD, fa: 'fas fa-plus-square', type: 'action', action: async () => {
+            await global.explorer.prompt({
+                question: global.lang.EPG,
+                placeholder: 'http://.../epg.xml',
+                defaultValue: global.activeEPG || '',
+                callback: 'set-epg',
+                fa: global.channels.epgIcon
+            })
+        }})
+        return options
     }
     formatEPGURL(url){        
         const fragment = ',http'
@@ -522,8 +506,8 @@ class ManagerEPG extends ManagerCommunityLists {
                         type: 'group',
                         fa: 'fas fa-cog',
                         renderer: async () => {
-                            const epgData = this.master.epg([], 2)
-                            return this.epgOptionsEntries(this.epgLoadingStatus(epgData))
+                            const epgData = await this.master.epg([], 2)
+                            return await this.epgOptionsEntries(this.epgLoadingStatus(epgData))
                         }
                     }
                 ]

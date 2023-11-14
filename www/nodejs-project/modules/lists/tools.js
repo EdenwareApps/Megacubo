@@ -127,14 +127,15 @@ class Tools {
 		sentries = global.lists.sort(sentries)
 		const folderSizeLimit = global.config.get('folder-size-limit')
 		if(sentries.length > (folderSizeLimit + this.folderSizeLimitTolerance)){
-			let expectedFolderSizeLimit = folderSizeLimit
-			if(minPageCount) {
-				let n = Math.ceil(sentries.length / minPageCount)
-				if(n < expectedFolderSizeLimit){
-					expectedFolderSizeLimit = n
-				}
+			if(!minPageCount) {
+				minPageCount = 8
 			}
-			let group, nextName, lastName, entries = [], template = {type: 'group', fa: 'fas fa-box-open'}, n = 1
+			let expectedFolderSizeLimit = folderSizeLimit
+			let n = Math.ceil(sentries.length / minPageCount)
+			if(n < expectedFolderSizeLimit){
+				expectedFolderSizeLimit = n
+			}
+			let group, nextName, lastName, entries = [], template = {type: 'group', fa: 'fas fa-box-open'}
 			for(let i=0; i<sentries.length; i += expectedFolderSizeLimit){
 				group = Object.assign({}, template);
 				let gentries = sentries.slice(i, i + expectedFolderSizeLimit)

@@ -152,7 +152,7 @@ class Downloader extends StreamerAdapterBase {
 				this.opts.port = this.server.address().port
 				this.endpoint = 'http://127.0.0.1:'+ this.opts.port +'/stream'
 				resolve(this.endpoint)
-				const getBitrate = () => this.getBitrate(this.endpoint)
+				const getBitrate = () => this.bitrateChecker.addSample(this.endpoint)
 				if(this.warmCache && this.warmCache.length) {
 					getBitrate()
 				} else {
@@ -164,10 +164,11 @@ class Downloader extends StreamerAdapterBase {
 	rotateWarmCache() {
 		if(this.warmCache.length < this.opts.warmCacheMaxSize) return true
 		const desiredSize = this.opts.warmCacheMaxSize * 0.75 // avoid to run it too frequently
-		const startPosition = this.warmCache.length - desiredSize				
-		if(this.shouldCheckBitrate()) {
+		const startPosition = this.warmCache.length - desiredSize
+		const currentSize = this.warmCache.length
+		if(this.committed && this.bitrateChecker.acceptingSamples(currentSize)) {
 			const file = global.paths.temp +'/'+ parseInt(Math.random() * 1000000) +'.ts'
-			fs.writeFile(file, this.warmCache.slice(), () => this.getBitrate(file))
+			fs.writeFile(file, this.warmCache.slice(), () => this.bitrateChecker.addSample(file, currentSize, true))
 		}
 		const syncBytePosition = this.warmCache.indexOf(SYNC_BYTE, startPosition)
 		if (syncBytePosition == -1) {
@@ -224,10 +225,11 @@ class Downloader extends StreamerAdapterBase {
 		this.emit('data', this.url, data, len)
 		if(this.warmCache){
 			this.warmCache.append(data)	
-			if(!this.minimalWarmCacheBitrateCheck && this.warmCache.length >= this.opts.minBitrateCheckSize && this.shouldCheckBitrate()) {
+			const currentSize = this.warmCache.length
+			if(!this.minimalWarmCacheBitrateCheck && this.committed && this.bitrateChecker.acceptingSamples(currentSize)) {
 				this.minimalWarmCacheBitrateCheck = true
 				const file = global.paths.temp +'/'+ parseInt(Math.random() * 1000000) +'.ts'
-				fs.writeFile(file, this.warmCache.slice(), () => this.getBitrate(file))
+				fs.writeFile(file, this.warmCache.slice(), () => this.bitrateChecker.addSample(file, this.warmCache.length, true))
 			} else {
 				this.rotateWarmCache()
 			}

@@ -1,6 +1,7 @@
 const fs = require('fs'), pathm = require('path'), http = require('http')
 const crypto = require('crypto'), Icon = require('./icon')
 const pLimit = require('p-limit'), closed = require('../on-closed')
+const Reader = require('../reader')
 
 class IconDefault {
     constructor(){
@@ -72,11 +73,12 @@ class IconDefault {
             return false
         }
         if(terms && terms.length){
-            let name = this.prepareDefaultName(terms) + '.png', file = this.opts.folder + pathm.sep + name
+            let err, name = this.prepareDefaultName(terms) + '.png', file = this.opts.folder + pathm.sep + name
             if(this.opts.debug){
                 console.log('saveDefaultFile', terms, name, sourceFile, file)
             }
-            await fs.promises.copyFile(sourceFile, file)
+            await fs.promises.stat(sourceFile).catch(e => err = e)
+            if(!err) await fs.promises.copyFile(sourceFile, file)
         }
     }
     getDefaultIcon(terms){
@@ -96,11 +98,12 @@ class IconDefault {
     }
     async saveDefaultIcon(terms, sourceFile){
         if(terms && terms.length){
-            let name = this.prepareDefaultName(terms) + '.icon.'+ this.defaultIconExtension, file = this.opts.folder + pathm.sep + name
+            let err, name = this.prepareDefaultName(terms) + '.icon.'+ this.defaultIconExtension, file = this.opts.folder + pathm.sep + name
             if(this.opts.debug){
                 console.log('saveDefaultFile', terms, name, sourceFile, file)
             }
-            await fs.promises.copyFile(sourceFile, file)
+            await fs.promises.stat(sourceFile).catch(e => err = e)
+            if(!err) await fs.promises.copyFile(sourceFile, file)
             return file
         }
     }
@@ -250,7 +253,7 @@ class IconServerStore extends IconSearch {
     }
     validateFile(file){
         return new Promise((resolve, reject) => {
-            fs.access(file, err => {
+            fs.access(file, fs.constants.R_OK, err => {
                 if(err) return reject(err)
                 fs.open(file, 'r', (err, fd) => {
                     if(err) return reject(err)
@@ -538,15 +541,12 @@ class IconServer extends IconServerStore {
                             'Cache-Control': 'max-age=0, no-cache, no-store',
                             'Content-Type': 'image/png'
                         }, req))
-                        let stream = fs.createReadStream(file)
+                        const stream = new Reader(file)
+                        stream.on('data', c => response.write(c))
                         closed(req, response, () => {
-                            if(stream){
-                                stream.destroy()
-                                stream = null
-                            }
+                            stream.destroy()
                             response.end()
                         })
-                        stream.pipe(response)
                     } else {
                         if(this.opts.debug){
                             console.log('BADDATA', file)

@@ -458,12 +458,6 @@ const init = (language, timezone) => {
             console.warn('RETRYING')
             global.streamer.reload()
         })
-        global.ui.on('video-transcode', () => {
-            console.error('VIDEO TRANSCODE')
-            global.streamer.transcode(null, err => {
-                if(err) global.streamer.handleFailure(null, 'unsupported format').catch(global.displayErr)
-            })
-        })
         global.ui.on('video-error', async (type, errData) => {
             if(global.streamer.zap.isZapping){
                 await global.streamer.zap.go()
@@ -489,9 +483,16 @@ const init = (language, timezone) => {
                     }
                 } else {
                     if(global.streamer.active) {
-                        if(type == 'playback' && (!errData || !errData.details || errData.details != 'NetworkError')) {
-                            const openedExternal = await global.streamer.askExternalPlayer().catch(console.error)
-						    if(openedExternal === true) return
+                        if(!global.cordova && type == 'playback' && (!errData || !errData.details || errData.details != 'NetworkError')) {
+                            console.error('DETAILS='+ JSON.stringify({type, errData}))                            
+                            let err
+                            const data = global.streamer.active.data
+                            data.allowBlindTrust = false
+                            await global.streamer.info(data.url, 2, data).catch(e => err = e)
+                            if(!err) { // skip if it's not a false positive due to tuning-blind-trust
+                                const openedExternal = await global.streamer.askExternalPlayer().catch(console.error)
+						        if(openedExternal === true) return
+                            }
                         }
                         console.error('VIDEO ERR', type, errData)
                         global.streamer.handleFailure(null, type).catch(global.displayErr)
@@ -558,9 +559,7 @@ const init = (language, timezone) => {
         })
         global.ui.on('about', async () => {
             if(global.streamer.active){
-                global.ui.emit('streamer-client-pause')
                 await global.streamer.about()
-                global.ui.emit('streamer-client-resume')
             } else {
                 global.options.about()
             }

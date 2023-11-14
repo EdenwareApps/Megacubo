@@ -124,17 +124,17 @@ class DownloadCacheMap extends Events {
     constructor(){
         super()
         this.index = {}
+        this.uid = parseInt(Math.random() * 100000)
         this.debug = false
         this.maxDiskUsage = 512 * (1024 * 1024) // 512MB
         this.maxMaintenanceInterval = 60
+        this.maintenanceTimer = 0
         this.folder = global.storage.folder +'/dlcache'
         this.indexFile = this.folder +'/index.json'
         this.tempnamIterator = 0
         this.start().catch(console.error).finally(() => {
-            this.emit('update', this.export())
-            setTimeout(() => {
-                this.maintenance().catch(console.error)
-            }, 15000) // delay a bit for performance
+            this.emit('update', this.export())            
+            this.scheduleMaintenance(15000) // delay a bit for performance
         })
     }
     async reload(){
@@ -145,6 +145,9 @@ class DownloadCacheMap extends Events {
                     this.index[url] = data[url]
                 }
             })
+        }
+        if(true||this.debug){
+            console.warn('DLCACHE reload', global.time())
         }
     }
     async readIndexFile(){
@@ -225,6 +228,20 @@ class DownloadCacheMap extends Events {
             this.emit('update', this.export())
         }
     }
+    scheduleMaintenance(sdelay) {
+        if(this.inMaintenance) return
+        this.inMaintenance = true
+        clearTimeout(this.maintenanceTimer)        
+        this.maintenanceTimer = setTimeout(() => {
+            let delay = this.maxMaintenanceInterval
+            this.maintenance().then(ret => {
+                if(ret >= 0) delay = ret
+            }).catch(console.error).finally(() => {
+                this.inMaintenance = false
+                this.scheduleMaintenance(delay * 1000)
+            })
+        }, parseInt(sdelay))
+    }
     async maintenance(now){
         let expired = [], nextRun = 0, diskUsage = 0
         await this.reload()
@@ -261,19 +278,17 @@ class DownloadCacheMap extends Events {
             this.emit('update', this.export())
         }
         await this.saveIndex().catch(console.error)
-        let ms = -1
-        if(nextRun && nextRun >= now){
-            ms = nextRun - now
+        let delay = -1
+        if(nextRun >= now) delay = nextRun - now
+        if(delay < 0 || delay > this.maxMaintenanceInterval) delay = this.maxMaintenanceInterval
+        if(true||this.debug){
+            console.warn('DLCACHE maintenance', JSON.stringify({
+                thread: global.file ? global.file : 'main',
+                uid: this.uid,
+                delay, nextRun, now
+            }))
         }
-        if(ms < 0 || ms > this.maxMaintenanceInterval){
-            ms = this.maxMaintenanceInterval
-        }
-        ms *= 1000
-        this.maintenanceTimer && clearTimeout(this.maintenanceTimer)
-        if(this.debug){
-            console.warn('DLCACHE maintenance', ms)
-        }
-        this.maintenanceTimer = setTimeout(() => this.maintenance().catch(console.error), ms)
+       return delay
     }
     async saveIndex(){
         const findex = {}
@@ -341,7 +356,7 @@ class DownloadCacheMap extends Events {
                         chunks.destroy()
                         delete this.index[url].chunks
                         delete this.index[url]
-                    } else if((this.index[url].size === false && !expectedLength) || (expectedLength != chunks.size)) {
+                    } else if((this.index[url].size === false && !expectedLength) || (expectedLength > chunks.size)) {
                         console.warn('Bad file size. Expected: '+ this.index[url].size +', received: '+ chunks.size +', discarding http cache.')
                         chunks.destroy()
                         delete this.index[url].chunks

@@ -192,7 +192,7 @@ class ChannelsCategories extends ChannelsData {
         let nk = global.lang[lk] || k
         return nk
     }
-    async getDefaultCategories(amount=96){
+    async getDefaultCategories(amount=256){
         const type = global.config.get('channel-grid')
         if(type == 'xxx') {
             return await this.getAdultCategories()

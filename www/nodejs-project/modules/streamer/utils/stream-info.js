@@ -10,6 +10,9 @@ class StreamInfo {
     }
 	_probe(url, timeoutSecs, retries=0, opts={}, recursion=10){
 		return new Promise((resolve, reject) => {
+			const sampleSize = opts.probeSampleSize ? 
+				opts.probeSampleSize : 
+				(opts.skipSample ? 0 : this.opts.probeSampleSize)
 			let status = 0, timer = 0, headers = {}, sample = [], start = global.time()
 			if(this.validate(url)){
 				if(typeof(timeoutSecs) != 'number'){
@@ -95,8 +98,8 @@ class StreamInfo {
 						chunk = Buffer.from(chunk)
 					}
 					sample.push(chunk)
-					if(this.len(sample) >= this.opts.probeSampleSize){
-						//console.log('sample', sample, this.opts.probeSampleSize)
+					if(this.len(sample) >= sampleSize){
+						//console.log('sample', sample, sampleSize)
 						finish()
 					}
 				})
@@ -106,6 +109,7 @@ class StreamInfo {
 					}
 					headers = responseHeaders
 					status = statusCode
+					sampleSize || finish()
 				})
 				download.once('end', finish)
 				download.start()
@@ -129,6 +133,42 @@ class StreamInfo {
 		const timeout = global.config.get('connect-timeout') * 2
 		const proto = this.mi.proto(url)
 		if(proto.startsWith('http')) {
+			if(opts.allowBlindTrust) {
+				const blindTrust = String(global.config.get('tuning-blind-trust')).split(',')
+				if(blindTrust.length) {
+					const mediaType = this.mi.mediaType(url)
+					if(blindTrust.includes(mediaType)) {
+						let contentType
+						const ext = this.mi.ext(url)
+						if(mediaType == 'video') {
+							if(this.mi.isVideo(url, ext)) {
+								contentType = 'video/mp4'
+							}
+						} else {
+							if(ext == 'm3u8') {
+								contentType = 'application/x-mpegURL'
+							} else if(ext == 'm3u8') {
+								contentType = 'video/mp2t'
+							}
+						}
+						if(contentType) {
+							const ret = {
+								status: 200,
+								headers: {
+									'content-type': contentType
+								},
+								sample: Buffer.from(''),
+								url,
+								directURL: url,
+								ext
+							}
+							// console.log('data', url, status, download.statusCode, ping, received, speed, ret)
+							return ret
+						}
+					}
+				}
+			}
+
 			const ret = await this._probe(url, timeout, retries, opts)
 			let cl = ret.headers['content-length'] || -1, ct = ret.headers['content-type'] || '', st = ret.status || 0
 			if(st < 200 || st >= 400 || st == 204){ // 204=No content

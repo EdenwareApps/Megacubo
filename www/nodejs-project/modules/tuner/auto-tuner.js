@@ -303,7 +303,7 @@ class AutoTuner extends Events {
                 if(ffmpegBasedSlotCount <= 0){
                     return
                 }
-                if(!global.config.get('auto-testing')){
+                if(!global.config.get('auto-test')){
                     return
                 }
             }    

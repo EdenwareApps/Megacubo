@@ -68,7 +68,7 @@ class MediaStreamInfo {
             return alturl
         }
     }
-	mediaType(entry, def){
+	mediaType(entry, def, ext){
 		if(!entry || typeof(entry) != 'object'){
 			entry = {
 				url: String(entry)
@@ -77,7 +77,8 @@ class MediaStreamInfo {
 		if(entry.mediaType && entry.mediaType != -1){
 			return entry.mediaType
 		}
-		const ext = this.ext(entry.url), proto = this.proto(entry.url)
+		if(!ext) ext = this.ext(entry.url)
+		const proto = this.proto(entry.url)
 		if(this.isLive(entry.url, ext, proto)) {
 			return 'live'
 		} if(this.isVideo(entry.url, ext, proto) || this.isAudio(entry.url, ext) || this.isYT(entry.url)) {
@@ -133,12 +134,8 @@ class MediaStreamInfo {
 		return ['mms', 'mmsh', 'mmst', 'rtp', 'rtsp', 'rtmp'].indexOf(this.proto(url, 4)) != -1      
 	}
 	isVideo(url, ext, proto){
-		if(!url){
-			return false
-		}
-		if(!ext){
-			ext = this.ext(url)
-		}
+		if(!url) return false
+		if(!ext) ext = this.ext(url)
 		if(ext == 'ts'){
 			if(!proto){
 				proto = this.proto(url)

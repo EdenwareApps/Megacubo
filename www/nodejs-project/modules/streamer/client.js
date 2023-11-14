@@ -11,8 +11,10 @@ class StreamerPlaybackTimeout extends EventEmitter {
             if(s == 'loading'){
                 if(!this.playbackTimeoutTimer){
                     this.playbackTimeoutTimer = setTimeout(() => {
+                        console.warn('STUCK')
                         this.emit('stuck')
                         clearTimeout(this.playbackTimeoutTimer)
+                        this.playbackTimeoutTimer = 0
                         this.app.emit('video-error', 'timeout', this.prepareErrorData({type: 'timeout', details: 'client playback timeout'}))
                     }, this.playbackTimeout)
                 }
@@ -200,6 +202,7 @@ class StreamerCasting extends StreamerOSD {
             this.casting = false
             this.castingPaused = false
             this.jbody.removeClass('casting casting-live')
+            this.emit('cast-stop')
             if(this.active){
                 this.bindStateListener()
                 if(parent.player.state){
@@ -298,16 +301,11 @@ class StreamerState extends StreamerCasting {
             if(!this.inLiveStream && position >= 30){
                 const now = time()
                 if(now > (this.lastPositionReportingTime + this.positionReportingInterval)){
-                    let reportingDiff = Math.abs(position - this.lastPositionReported)
-                    if(reportingDiff >= this.positionReportingInterval){
-                        this.lastPositionReportingTime = now
-                        let duration = parent.player.duration()
-                        if(duration && duration > 0){
-                            this.lastPositionReported = position
-                            this.app.emit('state-atts', this.data.url, {duration, position, source: this.data.source})
-                        }
-                    } else {
-                        this.lastPositionReportingTime += (this.positionReportingInterval - reportingDiff + 0.1)
+                    this.lastPositionReportingTime = now
+                    let duration = parent.player.duration()
+                    if(duration && duration > 0){
+                        this.lastPositionReported = position
+                        this.app.emit('state-atts', this.data.url, {duration, position, source: this.data.source})
                     }
                 }
             }
@@ -394,16 +392,7 @@ class StreamerState extends StreamerCasting {
     }
 }
 
-class StreamerTranscode extends StreamerState { // request stream transcode 
-    constructor(controls, app){
-        super(controls, app)
-        if(!parent.cordova){
-            parent.player.on('request-transcode', () => this.app.emit('video-transcode'))
-        }
-    }
-}
-
-class StreamerUnmuteHack extends StreamerTranscode { // unmute player on browser restrictions
+class StreamerUnmuteHack extends StreamerState { // unmute player on browser restrictions
     constructor(controls, app){
         super(controls, app)
         if(!parent.cordova){
@@ -1295,6 +1284,10 @@ class StreamerAudioUI extends StreamerClientVideoFullScreen {
             console.warn('SET TRACK', trackId)
             parent.player.subtitleTrack(trackId)
         })
+        this.app.on('streamer-add-subtitle-track', track => {
+            console.warn('ADD TRACK', track)
+            parent.player.current && parent.player.current.addTextTrack(track)
+        })
         this.on('stop', () => {
             this.isAudio = false
             parent.winman && parent.winman.backgroundModeUnlock('audio')
@@ -1530,7 +1523,6 @@ class StreamerClientControls extends StreamerAudioUI {
             <i class="about-icon-dot about-icon-dot-first"></i>
             <i class="about-icon-dot about-icon-dot-second"></i>
             <i class="about-icon-dot about-icon-dot-third"></i>`, 12, () => {
-                !this.casting && parent.player.pause()
                 this.app.emit('about')
             })
         this.controls.querySelectorAll('button').forEach(bt => {
@@ -1647,6 +1639,7 @@ class StreamerClientController extends StreamerClientControls {
                 this.app.emit('stop')
             }
             this.emit('stop')
+            this.casting && this.castUIStop() // if it opened in external player
         }
     }
 }

@@ -1,197 +1,15 @@
 
 const path = require('path'), fs = require('fs'), http = require('http')
 const Events = require('events'), Writer = require('../../writer')
+const BitrateChecker = require('../utils/bitrate-checker')
 
-class StreamerAdapterBaseBitrate extends Events {
-	constructor(){
-		super()
-	}
-	getTSFromM3U8(url, cb){
-		const download = new global.Download({
-			url,
-			responseType: 'text'
-		})
-		download.once('end', body => {
-			let matches = String(body).match(new RegExp('^[^#].+\\..+$','m'))
-			if(matches){
-				const basename = matches[0].trim()
-				const nurl = global.absolutize(basename, download.currentURL)
-				if(nurl && nurl != url){
-					if(basename.toLowerCase().indexOf('.m3u8') == -1){
-						cb(nurl)
-					} else {
-						this.getTSFromM3U8(nurl, cb)
-					}
-				} else {
-					cb(false)
-				}
-			} else {
-				cb(false)
-			}
-			download.destroy()
-		})
-		download.start()
-	}
-	getBitrateHLS(url){
-		this.getTSFromM3U8(url, url => {
-			if(url){
-				this.getBitrate(url)
-			}
-		})
-	}
-	saveBitrate(bitrate, force){
-		const prevBitrate = this.bitrate
-		if(force){
-			this.bitrates = [bitrate]
-			this.bitrate = bitrate
-		} else {
-			this.bitrates.push(bitrate)
-			if(this.bitrates.length >= 3){
-				this.bitrate = this.findTwoClosestValues(this.bitrates).reduce((a, b) => a + b, 0) / 2
-				this.bitrates = this.bitrates.slice(-3)
-			} else {
-				this.bitrate = this.bitrates.reduce((a, b) => a + b, 0) / this.bitrates.length
-			}
-		}
-		if(this.bitrate != prevBitrate){
-			this.emit('bitrate', this.bitrate, this.currentSpeed)
-		}
-	}
-	pumpGetBitrateQueue(){
-		this.bitrateChecking = false
-		if(this.getBitrateQueue.length && !this.destroyed){
-			this.getBitrate(this.getBitrateQueue.shift())
-		}
-	}
-	getBitrate(file){
-		if(this.bitrateChecking){
-			this.getBitrateQueue.includes(file) || this.getBitrateQueue.push(file)
-			return
-		}
-		this.bitrateChecking = true
-		const isHTTP = file.match(new RegExp('^(((rtmp|rtsp|https?)://)|//)'))
-		const next = (err, stat) => {
-			if(this.destroyed || (this.bitrates.length >= this.opts.bitrateCheckingAmount && this.codecData) || this.bitrateCheckFails >= this.opts.maxBitrateCheckingFails){
-				this.bitrateChecking = false
-				this.getBitrateQueue = []
-				this.clearBitrateSampleFiles()
-			} else if(err || (!isHTTP && stat.size < this.opts.minBitrateCheckSize)) {
-				this.pumpGetBitrateQueue()
-			} else {
-				console.log('getBitrate', file, this.url, isHTTP ? null : stat.size, this.opts.minBitrateCheckSize, traceback())
-				global.ffmpeg.bitrate(file, (err, bitrate, codecData, dimensions, nfo) => {
-					isHTTP || fs.unlink(file, () => {})
-					if(!this.destroyed){
-						console.log('getBitrate', file, bitrate, codecData, dimensions, nfo)
-						if(codecData){
-							this.addCodecData(codecData)
-						}
-						if(dimensions && !this._dimensions){
-							this._dimensions = dimensions
-							this.emit('dimensions', this._dimensions)
-						}
-						if(err){
-							this.bitrateCheckFails++
-							this.opts.minBitrateCheckSize += this.opts.minBitrateCheckSize * 0.5
-							this.opts.maxBitrateCheckSize += this.opts.maxBitrateCheckSize * 0.5
-						} else {
-							if(this.opts.debug){
-								console.log('getBitrate', err, bitrate, codecData, dimensions, this.url)
-							}
-							if(bitrate && bitrate > 0){
-								this.saveBitrate(bitrate)	
-							}
-							if(this.opts.debug){
-								console.log('[' + this.type + '] analyzing: ' + file, isHTTP ? '' : 'sample len: '+ global.kbfmt(stat.size), 'bitrate: '+ global.kbsfmt(this.bitrate), this.bitrates, this.url, nfo)
-							}
-						}
-						this.pumpGetBitrateQueue()
-					}
-				}, stat.size)
-			}
-		}
-		if(isHTTP){
-			next(null, {})
-		} else {
-			fs.stat(file, next)
-		}
-	}
-	resetBitrate(bitrate){
-		this.clearBitrateSampleFiles()
-		this.bitrates = []
-		if(bitrate) {
-			this.saveBitrate(bitrate, true)
-		}
-	}
-	clearBitrateSampleFiles(){
-		Object.keys(this.bitrateCheckBuffer).forEach(id => {
-			let file = this.bitrateCheckBuffer[id].file
-			this.bitrateCheckBuffer[id].destroy()
-			file && fs.unlink(file, () => {})
-		})
-		this.bitrateCheckBuffer = {}
-	}
-	bitrateSampleFilename(id){ // normally id is the URL
-		let filename = id.split('?')[0].split('/').pop()
-		if(!filename){
-			filename = 'bitrate-check-'+ String(parseInt(Math.random() * 1000000))
-		} else if(filename.length >= 42){ // Android filename length limit may be lower https://www.reddit.com/r/AndroidQuestions/comments/65o0ds/filename_50character_limit/
-			filename = this.md5(filename)
-		}
-		return global.streamer.opts.workDir +'/'+ global.sanitize(filename)
-	}
-	shouldCheckBitrate(){
-		return this.committed && 
-				this.bitrates.length <= this.opts.bitrateCheckingAmount && 
-				this.bitrateCheckFails < this.opts.maxBitrateCheckingFails
-	}
-	collectBitrateSample(chunk, offset, id = 'default'){
-		if(this.shouldCheckBitrate()){
-			if(typeof(this.bitrateCheckBuffer[id]) == 'undefined'){
-				let file = this.bitrateSampleFilename(id)
-				this.bitrateCheckBuffer[id] = new Writer(file)
-			}
-			if(this.bitrateCheckBuffer[id]._finished){
-				return false
-			} else {
-				this.bitrateCheckBuffer[id].write(chunk, offset)
-				if(this.bitrateCheckBuffer[id].written >= this.opts.maxBitrateCheckSize){
-					this.finishBitrateSample(id)
-					return false
-				}
-				return true
-			}
-		}
-	}
-	finishBitrateSample(id = 'default'){
-		if(typeof(this.bitrateCheckBuffer[id]) != 'undefined' && !this.bitrateCheckBuffer[id]._finished){
-			if(this.bitrates.length <= this.opts.bitrateCheckingAmount){
-				this.bitrateCheckBuffer[id]._finished = true
-				this.bitrateCheckBuffer[id].end()
-				this.bitrateCheckBuffer[id].ready(() => { // keep after end()
-					if(this.bitrateCheckBuffer[id].written >= this.opts.minBitrateCheckSize){
-						this.bitrateCheckBuffer[id].error || this.getBitrate(this.bitrateCheckBuffer[id].file)
-						delete this.bitrateCheckBuffer[id]
-					} else {
-						this.bitrateCheckBuffer[id]._finished = false
-					}
-				})
-			}
-		}
-	}
-}
-
-class StreamerAdapterBase extends StreamerAdapterBaseBitrate {
+class StreamerAdapterBase extends Events {
 	constructor(url, opts, data){
 		super()
 		this.data = data || {}
 		this.url = url
 		this.opts = {
 			addr: '127.0.0.1',
-			minBitrateCheckSize: 48 * 1024,
-			maxBitrateCheckSize: 3 * (1024 * 1024),
-			bitrateCheckingAmount: 3,
-			maxBitrateCheckingFails: 8,
 			debug: false,
 			port: 0
 		};
@@ -204,13 +22,11 @@ class StreamerAdapterBase extends StreamerAdapterBaseBitrate {
 		this.connectable = false
 		this.adapters = []
 		this.bitrate = false
-		this.bitrates = []
+		this.bitrateChecker = new BitrateChecker()
+		this.bitrateChecker.on('codecData', this.addCodecData.bind(this))
+		this.bitrateChecker.on('dimensions', (...args) => this.emit('dimensions', ...args))
 		this.errors = []
         this.type = 'base'
-		this.getBitrateQueue = []
-		this.bitrateChecking = false
-		this.bitrateCheckFails = 0
-		this.bitrateCheckBuffer = {}
 		this.downloadLogging = {}
     }
 	getDefaultRequestHeaders(headers={}){		
@@ -342,25 +158,6 @@ class StreamerAdapterBase extends StreamerAdapterBaseBitrate {
 		}
 		return ret
 	}
-	findTwoClosestValues(values){
-		let distances = [], closest = [], results = []
-		values.forEach((n, i) => {
-			distances[i] = []
-			values.forEach((m, j) => {
-				if(i == j){
-					distances[i][j] = Number.MAX_SAFE_INTEGER
-				} else {
-					distances[i][j] = Math.abs(m - n)
-				}
-			})
-			let minimal = Math.min.apply(null, distances[i])
-			closest[i] = distances[i].indexOf(minimal)
-			distances[i] = minimal
-		})
-		let minimal = Math.min.apply(null, distances)
-		let a = distances.indexOf(minimal), b = closest[a]
-		return [values[a], values[b]]		
-	}
 	md5(txt){
 		if(!this.crypto){
 			this.crypto = require('crypto')
@@ -485,7 +282,7 @@ class StreamerAdapterBase extends StreamerAdapterBaseBitrate {
 		if(!this.destroyed){
 			this.destroyed = true
 			this.emit('destroy')
-			this.clearBitrateSampleFiles()
+			this.bitrateChecker.clearSamples()
             if(this.serverStopper){
                 this.serverStopper.stop()
                 this.serverStopper = null

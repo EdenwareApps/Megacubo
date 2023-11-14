@@ -211,10 +211,6 @@ class VideoControl extends EventEmitter {
 				if(!this.current) return
 				this.emit('durationchange', this.uiVisibility)
 			})
-			a.on('request-transcode', () => {
-				if(!this.current) return
-				this.emit('request-transcode')
-			})
 			a.on('audioTracks', tracks => {
 				if(!this.current) return
 				if(!this.equals(tracks, this.currentAudioTracks)){
@@ -455,7 +451,7 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 			this.patchPauseFn()
 		}
 	}
-	setObjectTracks(object, tracks) {
+	setTextTracks(object, tracks) {
 		const existingTracks = object.querySelectorAll('track')
 		for (var i = 0; i < existingTracks.length; i++) {
 			object.removeChild(existingTracks[i])
@@ -483,6 +479,35 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 			})
 		}
 	}
+	disableTextTracks() {
+		for(let i=0; i<this.object.textTracks.length; i++) {
+			this.object.textTracks.mode = 'disabled'
+		}
+		const existingTracks = this.object.querySelectorAll('track')
+		for (var i = 0; i < existingTracks.length; i++) {
+			this.object.removeChild(existingTracks[i])
+		}
+	}
+	addTextTrack(trackNfo) {
+		if(this.object.readyState < 2) {
+			const listener = () => {
+				this.addTextTrack(trackNfo)
+				this.object.removeEventListener('loadedmetadata', listener)
+			}
+			return this.object.addEventListener('loadedmetadata', listener)
+		}
+		this.disableTextTracks() // disable video embedded tracks
+		const track = document.createElement('track')
+		track.kind = 'captions'
+		track.label = trackNfo.name || 'English'
+		track.srclang = trackNfo.language || 'en'
+		track.enabled = true
+		track.src = trackNfo.url
+		track.mode = 'showing'
+		track.addEventListener('load', () => track.mode = 'showing')
+		this.object.appendChild(track)
+		this.object.textTracks[0].mode = 'showing'
+	}
 	load(src, mimetype, additionalSubtitles){
 		if(this.currentSrc != src){
 			this.currentSrc = src
@@ -496,7 +521,7 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 		this.active = true
 		console.log('adapter load')
 
-		this.setObjectTracks(this.object, additionalSubtitles)
+		this.setTextTracks(this.object, additionalSubtitles)
 		this.object.src = src
 		this.connect()
 		this.object.load()
@@ -809,6 +834,9 @@ class VideoControlAdapterAndroidNative extends VideoControlAdapter {
 	}
 	subtitleTracks(){
 		return this.object.subtitleTracks()
+	}
+	addTextTrack(){
+		// TODO
 	}
 	destroy(){
 		this.unload()

@@ -2,6 +2,7 @@
 const path = require('path'), Events = require('events')
 const AutoTuner = require('../tuner/auto-tuner'), StreamInfo = require('./utils/stream-info')
 const Zap = require('../zap'), StreamerProxy = require('./utils/proxy')
+const Subtitles = require('../subtitles')
 
 const SYNC_BYTE = 0x47
 const PACKET_SIZE = 188
@@ -64,11 +65,13 @@ class StreamerTools extends Events {
 		await this.pingSource(entry.source).catch(console.error)
 		let type = false
 		const now = global.time()
-		const cachingKey = this.infoCacheKey(url)
+		const cachingKey = this.infoCacheKey(url), skipSample = entry.skipSample || this.streamInfo.mi.isVideo(url)
 		if(cachingKey && this.streamInfoCaching[cachingKey] && now < this.streamInfoCaching[cachingKey].until) {
-			return this.streamInfoCaching[cachingKey]
+			if(skipSample || (this.streamInfoCaching[cachingKey].sample && this.streamInfoCaching[cachingKey].sample.length)) {
+				return this.streamInfoCaching[cachingKey]
+			}
 		}
-		const nfo = await this.streamInfo.probe(url, retries, entry)
+		const nfo = await this.streamInfo.probe(url, retries, Object.assign({skipSample}, entry))
 		if(nfo && (nfo.headers || nfo.isLocalFile)) {
 			Object.keys(this.engines).some(name => {
 				if(this.engines[name].supports(nfo)) {
@@ -187,7 +190,7 @@ class StreamerBase extends StreamerTools {
 			if(!this.throttle(data.url)){
 				return reject('401')
 			}
-			this.info(data.url, 2, data).then(nfo => {
+			this.info(data.url, 2, Object.assign({allowBlindTrust: true}, data)).then(nfo => {
 				this.intentFromInfo(data, opts, aside, nfo).then(resolve).catch(reject)
 			}).catch(err => {
 				if(this.opts.debug){
@@ -369,7 +372,7 @@ class StreamerBase extends StreamerTools {
 						}
 					}
 					if(codecData.audio && !codecData.video) { // is an audio stream
-						if(global.tuning && global.tuning.opts.name == intent.data.originalName && !global.lists.mi.isRadio(intent.data.originalName)){ // not expecing an audio stream
+						if(global.tuning && global.tuning.opts.name == intent.data.originalName && !this.streamInfo.mi.isRadio(intent.data.originalName)){ // not expecing an audio stream
  							return intent.fail('unsupported format') // fail this audio only stream for tuning resuming
 						}
 					}
@@ -388,16 +391,25 @@ class StreamerBase extends StreamerTools {
 			return 'NO INTENT'
 		}
 	}
+	async getProxyAdapter(intent) {
+		let adapter
+		if(!intent) {
+			intent = this.active
+		}
+		if(!intent) return
+		adapter = intent.findAdapter(null, ['proxy'], a => !a.opts.agnostic)
+		if(!adapter) {
+			adapter = new StreamerProxy({agnostic: false}) // agnostic mode will not transform to vtt
+			intent.connectAdapter(adapter)
+			await adapter.start()
+		}
+		return adapter
+	}
 	async uiConnect(intent, skipTranscodingCheck){
 		if(!intent) intent = this.active
 		const data = Object.assign({}, intent.data) // clone it before to change subtitle attr or any other
 		if(data.subtitle) {
-			let adapter = intent.findAdapter(null, ['proxy'], a => !a.opts.agnostic)
-			if(!adapter) {
-				adapter = new StreamerProxy({agnostic: false}) // agnostic mode will not transform to vtt
-				await adapter.start()
-				intent.connectAdapter(adapter)
-			}
+			const adapter = await this.getProxyAdapter(intent)
 			data.subtitle = adapter.proxify(data.subtitle)
 		}
 		data.engine = intent.type
@@ -675,7 +687,7 @@ class StreamerGoNext extends StreamerThrottling {
 			if(!prev) break
 			const isMega = global.mega.isMega(prev.url)
 			if(!isMega) {
-				ret.info = await this.info(prev.url, 2, prev).catch(err => ret.err = err)
+				ret.info = await this.info(prev.url, 2, Object.assign({allowBlindTrust: true, skipSample: true}, prev)).catch(err => ret.err = err)
 				if(ret.err) {
 					offset++
 					continue // try prev one
@@ -708,7 +720,7 @@ class StreamerGoNext extends StreamerThrottling {
 			if(!next) break
 			const isMega = global.mega.isMega(next.url)
 			if(!isMega) {
-				ret.info = await this.info(next.url, 2, next).catch(err => ret.err = err)
+				ret.info = await this.info(next.url, 2, Object.assign({allowBlindTrust: true, skipSample: true}, next)).catch(err => ret.err = err)
 				if(ret.err) {
 					offset++
 					continue // try next one
@@ -751,7 +763,8 @@ class StreamerTracks extends StreamerGoNext {
 			global.ui.on('subtitleTracks', tracks => {
 				if(this.active){
 					this.active.subtitleTracks = tracks
-					if(tracks.length && global.config.get('subtitles')) {
+					if(!this.active.subtitleAutoConfigured && tracks.length && global.config.get('subtitles')) {
+						this.active.subtitleAutoConfigured = true
 						const id = tracks[0].id || 0
 						this.active.subtitleTrack = id
 						global.ui.emit('streamer-subtitle-track', id)
@@ -874,14 +887,74 @@ class StreamerTracks extends StreamerGoNext {
 			if(o.fa) activeTrackId = o.id
 		})
 		opts.unshift({template: 'question', fa: 'fas fa-comments', text: global.lang.SELECT_SUBTITLE})
+		if(!global.cordova && this.active.mediaType == 'video') {
+			opts.push({template: 'option', fa: 'fas fa-search-plus', details: 'Opensubtitles.com', id: 'search', text: global.lang.SEARCH})
+		}
 		let ret = await global.explorer.dialog(opts, activeTrackId)
-		if(ret){
+		if(ret == 'search') {
+			await this.showSearchSubtitleTrackSelector()
+		} else if(ret) {
 			const n = ret.replace(new RegExp('^track\\-'), '')
 			this.active.subtitleTrack = n
 			global.ui.emit('streamer-subtitle-track', n)
 			global.config.set('subtitles', ret != '-1')
 		}
-		return {ret, opts}
+	}
+	async showSearchSubtitleTrackSelector(query, ask){
+		if(!this.active) return		
+		if(!this.subtitles) this.subtitles = new Subtitles()
+		if(!query) query = global.lists.terms(this.active.data.name).join(' ')
+		let err, hasActive, activeTrackId = '', cancelId = 'track--1'
+		let extraOpts = []
+		extraOpts.push({template: 'option', text: global.lang.SEARCH, id: 'submit', fa: 'fas fa-search'})
+		extraOpts.push({template: 'option', text: global.lang.CANCEL, id: cancelId, fa: 'fas fa-times-circle'})
+		if(!query || ask) {
+			query = await global.explorer.prompt({
+				question: global.lang.ADJUST_SEARCH_TERMS,
+				defaultValue: query,
+				placeholder: query,
+				fa: 'fas fa-search-plus',
+				extraOpts
+			})
+		}
+		global.osd.show(global.lang.SEARCHING, 'fas fa-circle-notch fa-spin', 'search-subs', 'persistent')
+		const results = await this.subtitles.search(query).catch(e => err = e)
+		global.osd.hide('search-subs')
+		if(err) global.displayErr(err)
+		if(!Array.isArray(results) || !results.length) {
+			if(query && query != cancelId) {
+				err || global.displayErr(global.lang.NOT_FOUND +', '+ global.lang.X_RESULTS.format(0))
+				await this.showSearchSubtitleTrackSelector(query, true)
+			}
+			return
+		}
+		const opts = results.map(r => {
+			return {
+				template: 'option',
+				text: r.name,
+				id: r.url
+			}
+		})
+		opts.push({template: 'option', text: global.lang.NONE, id: cancelId, fa: hasActive ? undefined : 'fas fa-check-circle'})
+		opts.push({template: 'option', text: global.lang.SEARCH, id: 'search', fa: 'fas fa-search'})
+		/*
+		opts.forEach(o => {
+			if(o.fa) activeTrackId = o.id
+		})
+		*/
+		opts.unshift({template: 'question', fa: 'fas fa-comments', text: global.lang.SELECT_SUBTITLE})
+		const ret = await global.explorer.dialog(opts, activeTrackId)
+		console.error('SELECTED SUB OK: '+ ret)
+		if(ret == 'search') {
+			await this.showSearchSubtitleTrackSelector(query, true)
+		} else if(ret != cancelId) {
+			const i = results.findIndex(r => r.url == ret)
+			this.active.subtitleTrack = ret
+			global.ui.emit('streamer-add-subtitle-track', results[i])
+			global.config.set('subtitles', true)
+		} else {
+			global.config.set('subtitles', false)
+		}
 	}
 }
 
@@ -1345,7 +1418,7 @@ class Streamer extends StreamerAbout {
 			}
 			console.warn('STREAMER INTENT', e)
 			let terms = global.channels.entryTerms(e)
-			this.setTuneable(!global.lists.mi.isVideo(e.url) && global.channels.isChannel(terms))
+			this.setTuneable(!this.streamInfo.mi.isVideo(e.url) && global.channels.isChannel(terms))
 			silent || global.osd.show(global.lang.CONNECTING +' '+ e.name + '...', 'fa-mega spin-x-alt', 'streamer', 'persistent')
 			let hasErr, intent = await this.intent(e).catch(r => hasErr = r)
 			if(typeof(hasErr) != 'undefined'){
