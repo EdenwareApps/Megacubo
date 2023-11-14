@@ -303,9 +303,6 @@ class AutoTuner extends Events {
                 if(ffmpegBasedSlotCount <= 0){
                     return
                 }
-                if(!global.config.get('auto-test')){
-                    return
-                }
             }    
             let intent = new global.streamer.engines[this.tuner.info[nid].type](this.tuner.entries[nid], {}, this.tuner.info[nid])
             if(this.opts.mediaType && this.opts.mediaType != 'all' && intent.mediaType != this.opts.mediaType){
