@@ -475,6 +475,7 @@ class Lists extends ListsEPGTools {
 			if(this.lists[url] && !this.myLists.includes(url)){
 				this.remove(url)												
 			}
+			this.updateActiveLists()
 			throw err
 		} else {
 			this.loadTimes[url].synced = global.time()
@@ -604,6 +605,7 @@ class Lists extends ListsEPGTools {
 		if(!list || !list.index){
 			return
 		}
+		if(list.isReady && !list.index.length) return true // loaded with no content
 		if(this.loader.results[list.url]){
             const ret = String(this.loader.results[list.url] || '')
             if(ret.startsWith('failed') && ['401', '403', '404', '410'].includes(ret.substr(-3))) {
@@ -619,9 +621,10 @@ class Lists extends ListsEPGTools {
         if(!this.lists[url]) return false
 		if(this.seemsExpiredList(this.lists[url])) return true
         if(!test) return false
+        let err
         this.lists[url].skipValidating = false
-        const connectable = await this.lists[url].verifyListQuality()
-        return !connectable
+		const connectable = await this.lists[url].verifyListQuality().catch(e => err = e)
+        return err || !connectable
     }
 	async isSameContentLoaded(list){
 		let err, alreadyLoaded, listDataFile = list.file, listIndexLength = list.index.length
@@ -652,8 +655,10 @@ class Lists extends ListsEPGTools {
 			return alreadyLoaded
 		}
 	}
-	loadedListsCount(){
-		return Object.values(this.lists).filter(l => l.isReady).length
+	loadedListsCount(communityListsOnly){
+		const loadedLists = Object.values(this.lists).filter(l => l.isReady).map(l => l.url)
+		if(communityListsOnly) return loadedLists.filter(u => !this.myLists.includes(u)).length
+		return loadedLists.length
 	}
     updateActiveLists(){
 		let communityUrls = Object.keys(this.lists).filter(u => !this.myLists.includes(u))
@@ -725,10 +730,11 @@ class Lists extends ListsEPGTools {
 	}
 	delimitActiveLists(){
         const communityListsAmount = global.config.get('communitary-mode-lists-amount')
-		if(this.loadedListsCount() > (this.myLists.length + communityListsAmount)){
+		const communityListsQuota = Math.max(communityListsAmount - this.myLists.length, 0)
+		if(this.loadedListsCount(true) > communityListsQuota){
 			let results = {}
 			if(this.debug){
-				console.log('delimitActiveLists', Object.keys(this.lists), communityListsAmount)
+				console.log('delimitActiveLists', Object.keys(this.lists), communityListsQuota)
 			}
 			Object.keys(this.lists).forEach(url => {
 				if(!this.myLists.includes(url)){
@@ -736,14 +742,14 @@ class Lists extends ListsEPGTools {
 				}
 			})
 			let sorted = Object.keys(results).sort((a, b) => results[b] - results[a])
-			sorted.slice(communityListsAmount).forEach(u => {
+			sorted.slice(communityListsQuota).forEach(u => {
 				if(this.lists[u]){
 					this.requesting[u] = 'destroyed on delimiting (relevance: '+ this.lists[u].relevance.total +'), '+ JSON.stringify(global.traceback()).replace(new RegExp('[^A-Za-z0-9 /:]+', 'g'), ' ')
 					this.remove(u)
 				}
 			})
 			if(this.debug){
-				console.log('delimitActiveLists', Object.keys(this.lists), communityListsAmount, results, sorted)
+				console.log('delimitActiveLists', Object.keys(this.lists), communityListsQuota, results, sorted)
 			}
 		}
 	}

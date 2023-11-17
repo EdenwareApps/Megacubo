@@ -182,26 +182,25 @@ class StreamerBase extends StreamerTools {
 		})
 		this.loadingIntents = []
 	}
-    intent(data, opts, aside){ // create intent
-        return new Promise((resolve, reject) => {
-			if(!data.url){
-				return reject(global.lang.INVALID_URL)
+    async intent(data, opts, aside){ // create intent
+		if(!data.url){
+			throw global.lang.INVALID_URL
+		}
+		if(!this.throttle(data.url)){
+			throw '401'
+		}
+		let err
+		const nfo = await this.info(data.url, 2, Object.assign({allowBlindTrust: true}, data)).catch(e => err = e)
+		if(err) {
+			if(this.opts.debug){
+				console.log('ERR', err)
 			}
-			if(!this.throttle(data.url)){
-				return reject('401')
+			if(String(err).match(new RegExp("(: 401|^401$)"))){
+				this.forbid(data.url)
 			}
-			this.info(data.url, 2, Object.assign({allowBlindTrust: true}, data)).then(nfo => {
-				this.intentFromInfo(data, opts, aside, nfo).then(resolve).catch(reject)
-			}).catch(err => {
-				if(this.opts.debug){
-					console.log('ERR', err)
-				}
-				if(String(err).match(new RegExp("(: 401|^401$)"))){
-					this.forbid(data.url)
-				}
-				reject(err)
-			})
-        })
+			throw err
+		}
+		return await this.intentFromInfo(data, opts, aside, nfo)
 	}
 	async pingSource(url){ // ensure to keep any auth
 		if(typeof(global.streamerPingSourceTTLs) == 'undefined'){ // using global here to make it unique between any tuning and streamer
@@ -245,7 +244,7 @@ class StreamerBase extends StreamerTools {
 		try {
 			intent = new this.engines[nfo.type](data, opts, nfo)
 		} catch(err) {
-			return reject('Engine "'+ nfo.type +'" not found. '+ err)
+			throw 'Engine "'+ nfo.type +'" not found. '+ err
 		}
 		if(aside){
 			return intent
@@ -1407,9 +1406,14 @@ class Streamer extends StreamerAbout {
 				this.connectId = false
 				this.emit('connecting-failure', e)				
 				if(!silent){
-					const err = global.lists.activeLists.length ? global.lang.NONE_STREAM_WORKED_X.format(name) : global.lang.NO_LISTS_ADDED
+					const err = global.lists.activeLists.length ? 
+						global.lang.NONE_STREAM_WORKED_X.format(name) : 
+						(
+							(global.lists && Object.keys(global.lists).length) ? global.lang.NO_LIST : global.lang.NO_LISTS_ADDED
+						)
 					global.osd.show(err, 'fas fa-exclamation-triangle faclr-red', 'streamer', 'normal')
 					global.ui.emit('sound', 'static', 25)
+					this.emit('hard-failure', entries)
 				}
 			}
 		} else {
@@ -1608,7 +1612,9 @@ class Streamer extends StreamerAbout {
 		return msg
 	}
 	handleFailureMessage(r){
-		global.osd.show(this.humanizeFailureMessage(r), 'fas fa-exclamation-triangle faclr-red', '', 'normal')
+		process.nextTick(() => {
+			global.osd.show(this.humanizeFailureMessage(r), 'fas fa-exclamation-triangle faclr-red', 'failure', 'normal')
+		})
 	}
 }
 

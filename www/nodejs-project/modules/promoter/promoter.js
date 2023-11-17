@@ -31,7 +31,7 @@ class Promoter {
 		this.promoteDialogPending = true
 		this.promoteDialog().catch(console.error)
 	}
-	async offer(type){
+	async offer(type, skipRequirements){
 		const atts = {
 			communitary: global.config.get('communitary-mode-lists-amount') > 0,
 			premium: global.options.prm(),
@@ -44,7 +44,9 @@ class Promoter {
 		const promos = c.filter(p => {
 			if(p.type != type) return
 			return Object.keys(atts).every(k => {
-				if(k == 'country') {
+				if(skipRequirements && skipRequirements.includes(k)) {
+					return true
+				} else if(k == 'country') {
 					return typeof(p.countries) == 'undefined' || p.countries.includes(atts[k])
 				} else if(k == 'platform') {
 					return typeof(p.platforms) == 'undefined' || p.platforms.includes(atts[k])

@@ -45,6 +45,14 @@ class ListsLoader extends Events {
                     this.communityListsAmount = data['communitary-mode-lists-amount']
                     this.master.processedLists.clear()
                     this.resetLowPriorityUpdates()
+                    if(!data['communitary-mode-lists-amount']) { // unload community lists
+                        const myLists = data.lists.map(l => l[1])
+                        const loadedLists = Object.keys(this.master.lists)
+                        this.master.processes.forEach(p => {
+                            if(!myLists.includes(p.url)) p.cancel()
+                        })
+                        this.master.delimitActiveLists()
+                    }
                 }
             }
         })
@@ -166,6 +174,12 @@ class ListsLoader extends Events {
         }
         this.debug && console.error('[listsLoader] enqueue: '+ urls.join("\n"))
         if(!urls.length) return
+        if(priority == 1) { // my lists should be always added regardless if it's connectable
+            for(const url of urls) {
+                this.schedule(url, priority)
+            }
+            return
+        }
         let already = []
         urls = urls.filter(url => {
             if(typeof(this.pings[url]) == 'undefined'){
@@ -225,7 +239,9 @@ class ListsLoader extends Events {
                 this.debug && console.error('[listsLoader] schedule processing 4: '+ url +' | '+ this.results[url])
                 this.updater && this.updater.close && this.updater.close()
                 done = true
-                const add = this.results[url] == 'updated' || (this.results[url] == 'already updated' && !this.master.processedLists.has(url))
+                const add = this.results[url] == 'updated' || 
+                    (this.myCurrentLists.includes(url) && !this.master.lists[url]) ||
+                    (this.results[url] == 'already updated' && !this.master.processedLists.has(url))
                 add && this.master.addList(url, priority)
             }, { priority }),
             started: () => {

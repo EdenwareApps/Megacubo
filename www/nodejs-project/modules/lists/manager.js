@@ -1546,6 +1546,7 @@ class Manager extends ManagerEPG {
     async checkListExpiral(es){
         if(!this.master.activeLists.my.length) return
         if(!this.checkListExpiralTimes) this.checkListExpiralTimes = {}
+        if(!es || !es.length) es = this.master.myLists.map(source => ({source}))
         const now = global.time()
         const checkListExpiralInterval = this.master.activeLists.community.length ? 120 : 10
         const myBadSources = es.map(e => e.source).filter(e => e).unique().filter(u => this.master.activeLists.my.includes(u))
@@ -1578,6 +1579,7 @@ class Manager extends ManagerEPG {
                     contactUrl = 'tel:+'+ meta.phone.replace(new RegExp('[^0-9]+'), '')
                     contactFa = 'fas fa-phone'
                 }
+                let offer
                 if(contactUrl) {
                     opts.push({
                         template: 'option',
@@ -1585,10 +1587,23 @@ class Manager extends ManagerEPG {
                         id: 'contact',
                         fa: contactFa
                     })
+                } else {
+                    offer = await global.promo.offer('dialog', ['communitary']).catch(console.error)
+                    if(offer && offer.type == 'dialog') {
+                        opts.push({
+                            template: 'option',
+                            text: offer.title,
+                            id: 'offer',
+                            fa: offer.fa
+                        })
+                    }
                 }
-                global.explorer.dialog(opts).then(ret => {
-                    if(ret == 'contact') global.ui.emit('open-external-url', contactUrl)
-                }).catch(console.error)
+                const ret = await global.explorer.dialog(opts)
+                if(ret == 'contact') {
+                    global.ui.emit('open-external-url', contactUrl)
+                } else if(ret == 'offer') {
+                    await global.promo.dialogOffer(offer)
+                }
             }
         }
     }

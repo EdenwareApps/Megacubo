@@ -366,7 +366,7 @@ class VideoControlAdapterHTML5 extends VideoControlAdapter {
 			if(isFailed){
 				this.errorsCount++
 				if(this.errorsCount >= (t > 0 ? 20 : 2)){
-					this.emit('error', String(e), true)
+					this.emit('error', String(e.message || e), true)
 					this.setState('')
 				} else {
 					const c = this.errorsCount // load() will reset the counter

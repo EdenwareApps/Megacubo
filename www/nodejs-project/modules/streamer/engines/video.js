@@ -10,9 +10,6 @@ class StreamerVideoIntent extends StreamerBaseIntent {
         } else {
             this.mimetype = this.mimeTypes.video
         }
-        this.bitrateChecker.opts.minCheckSize = 6 * (1024 * 1024)
-        this.bitrateChecker.opts.maxCheckSize = 3 * this.bitrateChecker.opts.minCheckSize
-        this.bitrateChecker.opts.checkingAmount = 1
     } 
 	domain(u){
 		if(u && u.indexOf('//') != -1){
@@ -38,12 +35,15 @@ class StreamerVideoIntent extends StreamerBaseIntent {
                     resolve()
                 }
             } else {
-                this.adapter = new StreamerProxy(Object.assign({
+                const adapter = new StreamerProxy(Object.assign({
                     authURL: this.data.authURL || this.data.source
                 }, this.opts))
-                this.connectAdapter(this.adapter)
-                this.adapter.start().then(() => {
-                    this.endpoint = this.adapter.proxify(this.data.url)
+                adapter.bitrateChecker.opts.minCheckSize = 6 * (1024 * 1024)
+                adapter.bitrateChecker.opts.maxCheckSize = 3 * adapter.bitrateChecker.opts.minCheckSize
+                adapter.bitrateChecker.opts.checkingAmount = 1
+                this.connectAdapter(adapter)
+                adapter.start().then(() => {
+                    this.endpoint = adapter.proxify(this.data.url)
                     resolve()
                 }).catch(e => {
                     reject(e)

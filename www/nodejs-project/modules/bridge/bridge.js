@@ -129,7 +129,14 @@ class BridgeServer extends Events {
             this.opts.port = this.server.address().port
             console.log('Bridge server started', err)
             this.uploadURL = 'http://' + this.opts.addr + ':' + this.opts.port + '/upload'
-        })  
+        })
+        if(!global.cordova) {
+            global.uiReady(() => {
+                const listener = () => this.updateExitPage()
+                global.ui.on('premium-state', listener) // locally emitted
+                listener()
+            })
+        }
     }
     secret(length) {
         const charset = 'abcdefghijklmnopqrstuvwxyz0123456789'
@@ -156,6 +163,11 @@ class BridgeServer extends Events {
                 return 'http://' + this.opts.addr + ':' + this.opts.port + '/'+ path.substr(2)
             }
         }
+    }
+    updateExitPage() {
+        const prm = global.options.prm() ? 'prm' : ''
+        const url = global.cloud.server +'/out.php?ver='+ global.MANIFEST.version +'&inf='+ prm
+        global.ui.emit('exit-page', url)
     }
     destroy(){
         if(this.opts.debug){

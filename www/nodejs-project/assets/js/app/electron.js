@@ -280,6 +280,7 @@ class ExitPage {
 		return Date.now() / 1000
 	}
 	allow(){
+		if(!this.url) return
 		const now = this.time(), lastOpen = parseInt(this.get('last-open'))
 		if((now - this.startTime) < 10){
 			return false
@@ -293,26 +294,8 @@ class ExitPage {
 	touch(){
 		this.set('last-open', this.time())
 	}
-	manifest(callback) {
-		fetch('./package.json')
-			.then(response => response.text())
-			.then(data => {
-				data = data.replace(new RegExp('/\\* .+ \\*/', 'gm'), '')
-				data = JSON.parse(data.split("\n").join(""))
-				callback(null, data);
-			})
-			.catch(error => {
-				console.error('Erro ao obter o manifesto:', error)
-				callback(error)
-			})
-	}
 	open(){
-		if(this.allow()){
-			this.manifest((err, data) => {
-				const version = data && data.version ? data.version : ''
-				shell.openExternal('http://app.megacubo.net/out.php?ver='+ version)
-			})
-		}
+		this.allow() && shell.openExternal(this.url)
 	}
 	get(key){
 		return localStorage.getItem(key)
@@ -588,6 +571,7 @@ class WindowManager extends WindowManagerCommon {
 			this.app.idle.on('idle', this.idleChange.bind(this))
 			this.app.idle.on('active', this.idleChange.bind(this))
 			this.app.app.on('arguments', this.handleArgs.bind(this))
+			this.app.app.on('exit-page', url => this.exitPage.url = url)
 			this.patch()
 			setTimeout(() => {
 				this.focusApp()

@@ -462,7 +462,7 @@ const init = (language, timezone) => {
             if(global.streamer.zap.isZapping){
                 await global.streamer.zap.go()
             } else if(global.streamer.active && !global.streamer.active.isTranscoding()) {
-                console.error('VIDEO ERROR', type, errData)
+                console.error('VIDEO ERROR', {type, errData})
                 if(type == 'timeout'){
                     if(!showingSlowBroadcastDialog){
                         let opts = [{template: 'question', text: global.lang.SLOW_BROADCAST}], def = 'wait'
@@ -483,16 +483,22 @@ const init = (language, timezone) => {
                     }
                 } else {
                     if(global.streamer.active) {
-                        if(!global.cordova && type == 'playback' && (!errData || !errData.details || errData.details != 'NetworkError')) {
-                            console.error('DETAILS='+ JSON.stringify({type, errData}))                            
-                            let err
-                            const data = global.streamer.active.data
-                            data.allowBlindTrust = false
-                            await global.streamer.info(data.url, 2, data).catch(e => err = e)
-                            if(!err) { // skip if it's not a false positive due to tuning-blind-trust
-                                const openedExternal = await global.streamer.askExternalPlayer().catch(console.error)
-						        if(openedExternal === true) return
+                        if(type == 'playback') {
+                            if(errData && errData.details && errData.details == 'NetworkError') {
+                                type = 'request error'
                             }
+                            if(type == 'playback') { // if type stills being 'playback'
+                                const data = global.streamer.active.data
+                                data.allowBlindTrust = false
+                                const info = await global.streamer.info(data.url, 2, data).catch(e => {
+                                    type = 'request error'
+                                })
+                            }
+                        }
+                        if(!global.cordova && type == 'playback') {
+                            // skip if it's not a false positive due to tuning-blind-trust
+                            const openedExternal = await global.streamer.askExternalPlayer().catch(console.error)
+						    if(openedExternal === true) return
                         }
                         console.error('VIDEO ERR', type, errData)
                         global.streamer.handleFailure(null, type).catch(global.displayErr)
@@ -500,9 +506,7 @@ const init = (language, timezone) => {
                 }
             }
         })
-        global.ui.on('share', () => {
-            global.streamer.share()
-        })
+        global.ui.on('share', () => global.streamer.share())
         global.ui.on('stop', () => {
             if(global.streamer.active){
                 console.warn('STREAMER STOP FROM CLIENT')

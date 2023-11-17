@@ -15,7 +15,7 @@ class StreamerPlaybackTimeout extends EventEmitter {
                         this.emit('stuck')
                         clearTimeout(this.playbackTimeoutTimer)
                         this.playbackTimeoutTimer = 0
-                        this.app.emit('video-error', 'timeout', this.prepareErrorData({type: 'timeout', details: 'client playback timeout'}))
+                        this.app.emit('video-error', 'timeout', 'client playback timeout')
                     }, this.playbackTimeout)
                 }
             } else {
@@ -45,7 +45,7 @@ class StreamerPlaybackTimeout extends EventEmitter {
     ended(){
         clearTimeout(this.playbackTimeoutTimer)
         if(this.inLiveStream){
-            this.app.emit('video-error', 'playback', this.prepareErrorData({type: 'timeout', details: 'client playback ended after '+ v.currentTime + 's'}))
+            this.app.emit('video-error', 'timeout', 'remote server timeout or end of stream')
         }
     }
     prepareErrorData(data){
@@ -242,8 +242,8 @@ class StreamerState extends StreamerCasting {
                         this.controls.querySelector('.pause-button').style.display = 'none'
                         this.app.emit('video-ended')
                         break
-                    case 'error':                    
-                        this.app.emit('video-error', 'playback', this.prepareErrorData({type: 'playback', details: String(data) || 'playback error'}))
+                    case 'error':
+                        this.app.emit('video-error', 'playback', data ? String(data.details || data) : 'playback error')
                         this.stop(true) // stop silently, to let server handle the video-error
                     case '':
                         this.stop()

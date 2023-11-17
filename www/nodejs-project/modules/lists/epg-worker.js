@@ -256,6 +256,7 @@ class EPG extends EPGPaginateChannelsList {
                 },
                 encoding: 'utf8',
                 cacheTTL: this.ttl - 30,
+                responseType: 'text',
                 progress: p => utils.emit('progress', p)
             }
             this.request = new global.Download(req)

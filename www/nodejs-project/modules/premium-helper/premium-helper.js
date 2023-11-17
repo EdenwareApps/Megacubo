@@ -21,13 +21,11 @@ class PremiumHelper {
             }
         }
     }
-    hook(entries, path){
-        return new Promise((resolve, reject) => {
-            if(path == global.lang.OPTIONS){
-                entries.push(this.entry())
-            }
-            resolve(entries)
-        })
+    async hook(entries, path){
+        if(path == global.lang.OPTIONS){
+            entries.push(this.entry())
+        }
+        return entries
     }
 }
 

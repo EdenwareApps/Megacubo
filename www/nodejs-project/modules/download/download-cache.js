@@ -146,7 +146,7 @@ class DownloadCacheMap extends Events {
                 }
             })
         }
-        if(true||this.debug){
+        if(this.debug){
             console.warn('DLCACHE reload', global.time())
         }
     }
@@ -281,7 +281,7 @@ class DownloadCacheMap extends Events {
         let delay = -1
         if(nextRun >= now) delay = nextRun - now
         if(delay < 0 || delay > this.maxMaintenanceInterval) delay = this.maxMaintenanceInterval
-        if(true||this.debug){
+        if(this.debug){
             console.warn('DLCACHE maintenance', JSON.stringify({
                 thread: global.file ? global.file : 'main',
                 uid: this.uid,
