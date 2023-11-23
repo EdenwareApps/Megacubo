@@ -316,7 +316,7 @@ class StreamerFFmpeg extends Events {
                         stream && stream.destroy()
                     }
                 }
-                closed(req, response, () => (ended||end()))
+                closed(req, response, stream, () => (ended||end()))
                 stream.on('data', chunk => response.write(chunk))
             }).catch(fail)
         }

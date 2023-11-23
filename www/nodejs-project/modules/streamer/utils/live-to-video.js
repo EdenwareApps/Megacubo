@@ -130,7 +130,7 @@ class StreamerLiveToVideo extends StreamerFFmpeg {
                         stream && stream.destroy()
                     }
                 }
-                closed(req, response, () => {
+                closed(req, response, stream, () => {
                     if(!ended){
                         end()
                     }
@@ -285,10 +285,8 @@ class StreamerLiveToVideo extends StreamerFFmpeg {
                     stream && stream.destroy()
                 }
             }
-            closed(req, response, () => {
-                if(!ended){
-                    end()
-                }
+            closed(req, response, stream, () => {
+                ended || end()
             })
             stream.on('data', chunk => response.write(chunk))
             stream.on('error', () => {

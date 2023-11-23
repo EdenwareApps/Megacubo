@@ -311,7 +311,7 @@ class IconServerStore extends IconSearch {
         if(String(url).startsWith(suffix)) {
             const key = this.key(url)
             const file = this.resolveHTTPCache(key)
-            await fs.promises.writeFile(file, Buffer.from(url.replace(suffix, ''), 'base64'))
+            await fs.promises.writeFile(file, Buffer.from(url.substr(suffix.length), 'base64'))
             const ret = await this.validateFile(file)
             return {key, file, isAlpha: ret == 2}
         }
@@ -520,7 +520,7 @@ class IconServer extends IconServerStore {
             }
             this.server = http.createServer((req, response) => {
                 if(this.opts.debug){
-                    console.log('req starting...', req)
+                    console.log('req starting...', req.url)
                 }
                 if(req.method == 'OPTIONS' || this.closed){
                     response.writeHead(200, global.prepareCORS({
@@ -543,7 +543,7 @@ class IconServer extends IconServerStore {
                         }, req))
                         const stream = new Reader(file)
                         stream.on('data', c => response.write(c))
-                        closed(req, response, () => {
+                        closed(req, response, stream, () => {
                             stream.destroy()
                             response.end()
                         })

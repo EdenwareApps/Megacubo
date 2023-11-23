@@ -245,7 +245,7 @@ class StreamerProxy extends StreamerProxyBase {
 			return
 		}
 		if(this.opts.debug){
-			console.log('req starting...', req, req.url)
+			console.log('req starting...', req.url)
 		}
 		if(typeof(this.connectionsServed) != 'undefined'){ // for networkproxy activity detection
 			this.connectionsServed++
@@ -293,7 +293,7 @@ class StreamerProxy extends StreamerProxyBase {
 				console.log('ended', uid, traceback())
 			}
 		}
-		closed(req, response, () => {
+		closed(req, response, download, () => {
 			if(!ended){ // req disconnected
 				if(this.opts.debug){
 					console.log('response closed', ended, response.ended)

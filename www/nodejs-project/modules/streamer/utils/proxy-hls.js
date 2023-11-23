@@ -615,7 +615,7 @@ class StreamerProxyHLS extends HLSRequests {
 			}
 		}
 		if(this.opts.debug){
-			console.log('req starting...', req, req.url)
+			console.log('req starting...', req.url)
 		}
 		let ended, url = this.unproxify(req.url)		
 		let reqHeaders = req.headers
@@ -674,7 +674,7 @@ class StreamerProxyHLS extends HLSRequests {
 				console.log('ended', traceback())
 			}
 		}
-		closed(req, response, () => {
+		closed(req, response,  download, () => {
 			if(!ended){ // req disconnected
 				if(this.opts.debug){
 					console.log('response closed or request aborted', ended, response.ended)

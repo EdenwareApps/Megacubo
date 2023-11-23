@@ -184,7 +184,7 @@ class Downloads extends Events {
 						if (req.method === 'HEAD' || len == 0) return res.end()
 						let stream = fs.createReadStream(pathname, {start, end})
 						let sent = 0
-						closed(req, res, () => {
+						closed(req, res, stream, () => {
 							console.log('serve res finished', sent, start, end)
 							if(stream){
 								stream.destroy()

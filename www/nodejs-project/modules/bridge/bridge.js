@@ -113,7 +113,7 @@ class BridgeServer extends Events {
                     response.setHeader('Content-type', mimes[ext] || 'text/plain' )
                     response.setHeader('Cache-Control', 'max-age=0, no-cache, no-store')
                     let stream = fs.createReadStream(pathname)
-                    closed(req, response, () => {
+                    closed(req, response, stream, () => {
                         console.log(`${req.method} ${req.url} CLOSED`)
                         if(stream){
                             stream.destroy()
