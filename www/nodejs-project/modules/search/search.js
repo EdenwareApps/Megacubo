@@ -144,7 +144,7 @@ class Search extends Events {
                     type: 'action',
                     fa: 'fas fa-search-plus',
                     action: async () => {
-                        let opts = [
+                        const opts = [
                             {template: 'question', text: global.lang.SEARCH_MORE, fa: 'fas fa-search-plus'},
                             {template: 'option', text: global.lang.EPG, details: global.lang.LIVE, fa: 'fas fa-th', id: 'epg'},
                             {template: 'option', text: global.lang.IPTV_LISTS, details: global.lang.CATEGORY_MOVIES_SERIES, fa: 'fas fa-list', id: 'lists'}

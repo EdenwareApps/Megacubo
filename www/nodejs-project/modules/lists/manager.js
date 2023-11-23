@@ -414,15 +414,7 @@ class ManagerEPG extends ManagerCommunityLists {
                 }
             }
         })
-        options.unshift({name: global.lang.ADD, fa: 'fas fa-plus-square', type: 'action', action: async () => {
-            await global.explorer.prompt({
-                question: global.lang.EPG,
-                placeholder: 'http://.../epg.xml',
-                defaultValue: global.activeEPG || '',
-                callback: 'set-epg',
-                fa: global.channels.epgIcon
-            })
-        }})
+        options.unshift(this.addEPGEntry())
         return options
     }
     formatEPGURL(url){        
@@ -431,6 +423,25 @@ class ManagerEPG extends ManagerCommunityLists {
             url = url.split(',http').shift()
         }
         return url
+    }
+    addEPGEntry() {
+        return {
+            name: global.lang.ADD_LIST, fa: 'fas fa-plus-square',
+            type: 'action', action: async () => {
+                const url = await global.explorer.prompt({
+                    question: global.lang.EPG,
+                    placeholder: 'http://.../epg.xml', 
+                    defaultValue: global.activeEPG || '',
+                    fa: global.channels.epgIcon
+                })
+                if(url && url.length > 6) {
+                    console.log('SET-EPG', url, global.activeEPG)
+                    global.config.set('epg-'+ global.lang.locale, url || 'disabled')
+                    global.lists.manager.setEPG(url, true).catch(console.error)
+                    global.explorer.refresh()
+                }
+            }
+        }
     }
     async setEPG(url, ui){
         console.log('SETEPG', url)
@@ -531,12 +542,8 @@ class ManagerEPG extends ManagerCommunityLists {
                         type: 'action',
                         class: 'entry-empty',
                         action: () => {
-                            if(global.activeEPG) {
-                                global.explorer.refresh()
-                            } else {
-                                const p = global.lang.IPTV_LISTS +'/'+ global.lang.EPG +'/'+ global.lang.OPTIONS
-                                global.explorer.open(p).catch(console.error)
-                            }
+                            const p = global.lang.MY_LISTS +'/'+ global.lang.EPG +'/'+ global.lang.OPTIONS
+                            global.explorer.open(p).catch(console.error)
                         }
                     })
                 }
@@ -1042,7 +1049,7 @@ class Manager extends ManagerEPG {
                     fa: 'fas fa-plus-square',
                     type: 'action',
                     action: () => {
-                        global.explorer.open(global.lang.IPTV_LISTS).catch(console.error)
+                        global.explorer.open(global.lang.MY_LISTS).catch(console.error)
                     }
                 }
             }
@@ -1296,10 +1303,10 @@ class Manager extends ManagerEPG {
         const usr = res[4], pw = res[5]
         return baseUrl +'/get.php?username='+ encodeURIComponent(usr) +'&password='+ encodeURIComponent(pw) +'&type=m3u&output=ts'
     }   
-    myListsEntry(manageOnly){
+    listsEntry(manageOnly){
         return {
-            name: global.lang.MY_LISTS, 
-            details: global.lang.IPTV_LISTS, 
+            name: manageOnly ? global.lang.IPTV_LISTS : global.lang.MY_LISTS, 
+            details: manageOnly ? global.lang.CONFIGURE : global.lang.IPTV_LISTS, 
             type: 'group', 
             renderer: async () => {
                 let lists = this.get()
@@ -1419,18 +1426,18 @@ class Manager extends ManagerEPG {
                     })
                 }
                 ls.push(this.addListEntry())
+                if(manageOnly) {
+                    const e = this.addEPGEntry()
+                    e.name = global.lang.EPG
+                    e.details = 'EPG'
+                    ls.push(e)
+                } else {
+                    ls.push(this.listSharingEntry())
+                    ls.push(this.epgEntry())
+                }
                 return ls
             }
         }
-    }
-    listsEntries(){
-        return new Promise((resolve, reject) => {
-            let options = []
-            options.push(this.myListsEntry())
-            options.push(this.listSharingEntry())
-            options.push(this.epgEntry())
-            resolve(options)
-        })
     }
     async refreshList(data){
         let updateErr
@@ -1609,7 +1616,7 @@ class Manager extends ManagerEPG {
     }
     async hook(entries, path){
         if(!path) {
-            const entry = {name: global.lang.IPTV_LISTS, details: global.lang.CONFIGURE, fa: 'fas fa-list', type: 'group', renderer: this.listsEntries.bind(this)}
+            const entry = this.listsEntry(false)
             global.options.insertEntry(entry, entries, -2, global.lang.TOOLS, [
                 global.lang.BOOKMARKS,
                 global.lang.KEEP_WATHING,

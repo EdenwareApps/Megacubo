@@ -268,7 +268,7 @@ class EPGHistory extends EntriesGroup {
                             {template: 'option', text: global.lang.EPG, id: 'epg', fa: 'fas fa-th'}
                         ])
                         if(ret == 'epg') {
-                            explorer.open(global.lang.IPTV_LISTS +'/'+ global.lang.EPG).catch(console.error)
+                            explorer.open(global.lang.MY_LISTS +'/'+ global.lang.EPG).catch(console.error)
                         }
                     }
                 })
@@ -279,7 +279,7 @@ class EPGHistory extends EntriesGroup {
                     fa: 'fas fa-times-circle', 
                     class: 'entry-empty',
                     action: async () => {
-                        const path = global.lang.IPTV_LISTS +'/'+ global.lang.EPG
+                        const path = global.lang.MY_LISTS +'/'+ global.lang.EPG
                         await global.explorer.open(path)
                     }
                 })

@@ -1524,7 +1524,7 @@ class Streamer extends StreamerAbout {
 				const terms = global.channels.entryTerms(e)
 				const ch = global.channels.isChannel(terms)
 				if(ch) {
-					const skips = [global.lang.STREAMS, global.lang.IPTV_LISTS, global.lang.CATEGORY_MOVIES_SERIES]
+					const skips = [global.lang.STREAMS, global.lang.MY_LISTS, global.lang.CATEGORY_MOVIES_SERIES]
 					if(skips.every(s => global.explorer.path.indexOf(s) == -1)) {
 						const chosen = await global.explorer.dialog([
 							{template: 'question', text: global.lang.PLAYBACK_OFFLINE_STREAM, fa: 'fas fa-exclamation-triangle faclr-red'},

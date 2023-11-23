@@ -1524,16 +1524,7 @@ class Channels extends ChannelsKids {
             }
             entries.push(...[
                 this.exportImportOption(),
-                global.lists.manager.myListsEntry(true),
-                {name: global.lang.EPG, fa: this.epgIcon, type: 'action', details: 'EPG', action: async () => {
-                    await global.explorer.prompt({
-                        question: global.lang.EPG,
-                        placeholder: 'http://.../epg.xml', 
-                        defaultValue: this.loadedEPG,
-                        callback: 'set-epg',
-                        fa: this.epgIcon
-                    })
-                }},
+                global.lists.manager.listsEntry(true),
                 {
                     name: global.lang.ALLOW_EDIT_CHANNEL_LIST,
                     type: 'check',
@@ -1678,8 +1669,8 @@ class Channels extends ChannelsKids {
         if(!path) {
             const liveEntry = {name: global.lang.LIVE, fa: 'fas fa-tv', details: '<i class="fas fa-satellite-dish"></i>&nbsp; '+ global.lang.CATEGORIES, type: 'group', renderer: this.entries.bind(this)}
             const moviesEntry = {name: global.lang.CATEGORY_MOVIES_SERIES,  fa: 'fas fa-th', details: '', type: 'group', renderer: () => this.groupsRenderer('')}
-            global.options.insertEntry(liveEntry, entries, 1, global.lang.IPTV_LISTS)
-            global.options.insertEntry(moviesEntry, entries, 2, global.lang.IPTV_LISTS)
+            global.options.insertEntry(liveEntry, entries, 1, global.lang.MY_LISTS)
+            global.options.insertEntry(moviesEntry, entries, 2, global.lang.MY_LISTS)
         }
         return entries
     }

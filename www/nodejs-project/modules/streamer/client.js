@@ -1143,9 +1143,6 @@ class StreamerClientVideoFullScreen extends StreamerAndroidNetworkIP {
             if(parent.cordova){
                 this.inFullScreen = true // bugfix for some devices
                 this.leaveFullScreen()
-                parent.plugins.megacubo.on('appmetrics', this.updateAndroidAppMetrics.bind(this))
-                parent.plugins.megacubo.on('nightmode', this.handleDarkModeInfoDialog.bind(this))
-                this.updateAndroidAppMetrics(parent.plugins.megacubo.appMetrics)
                 this.on('fullscreenchange', () => {
                     this.updateAndroidAppMetrics()
                     parent.plugins.megacubo.getAppMetrics()
@@ -1153,15 +1150,19 @@ class StreamerClientVideoFullScreen extends StreamerAndroidNetworkIP {
                 if(b){
                     b.style.display = 'none'
                 }
+                let timer = 0
                 this.on('start', () => {
-                    this.enterFullScreen()
-                    setTimeout(() => {
-                        if(this.active){ // on Android, when fullscreen plugin slows to respond and stop+start calls got fast, it can happen that the fullscreen get messed, so ensure it after some seconds
-                            this.enterFullScreen()
-                        }
-                    }, 2000)
+                    clearTimeout(timer)
+                    this.enterFullScreen() // start ASAP, no timer
                 })
-                this.on('stop', () => this.leaveFullScreen())
+                this.on('stop', () => {
+                    clearTimeout(timer)
+                    // wait a bit, maybe it will start again immediately, like when tuning
+                    timer = setTimeout(() => this.leaveFullScreen(), 1500)
+                })
+                parent.plugins.megacubo.on('appmetrics', this.updateAndroidAppMetrics.bind(this))
+                parent.plugins.megacubo.on('nightmode', this.handleDarkModeInfoDialog.bind(this))
+                this.updateAndroidAppMetrics(parent.plugins.megacubo.appMetrics)
             } else {
                 this.inFullScreen = false
                 if(b) b.style.display = 'inline-flex'

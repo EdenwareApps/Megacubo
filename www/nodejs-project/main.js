@@ -518,11 +518,6 @@ const init = (language, timezone) => {
             if(isEPGEnabledPath){ // update current section data for epg freshness
                 global.explorer.refresh()
             }
-        })  
-        global.ui.on('set-epg', url => {
-            console.log('SET-EPG', url, global.activeEPG)
-            global.config.set('epg-'+ global.lang.locale, url || 'disabled')
-            global.lists.manager.setEPG(url, true).catch(console.error)
         })
         global.ui.on('open-url', url => {
             console.log('OPENURL', url)

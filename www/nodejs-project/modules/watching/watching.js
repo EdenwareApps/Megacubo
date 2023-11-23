@@ -18,7 +18,7 @@ class Watching extends EntriesGroup {
                     this.currentRawEntries = data
                     this.update(data).catch(console.error)
                 } else if(Array.isArray(data)) {                  
-                    this.currentEntries.forEach((c, i) => {  
+                    this.currentEntries && this.currentEntries.forEach((c, i) => {  
                         data.forEach(e => {
                             if(typeof(c.trend) == 'undefined' && typeof(e.trend) != 'undefined'){
                                 this.currentEntries[i].trend = e.trend
@@ -170,6 +170,7 @@ class Watching extends EntriesGroup {
     async process(rawEntries){
         let data = Array.isArray(rawEntries) ? rawEntries : (await this.getRawEntries())
         let recoverNameFromMegaURL = true, ex = !global.config.get('communitary-mode-lists-amount') // we'll make entries URLless for exclusive mode, to use the provided lists only
+        if(!Array.isArray(data) || !data.length) return []
         data = global.lists.prepareEntries(data)
         data = data.filter(e => (e && typeof(e) == 'object' && typeof(e.name) == 'string')).map(e => {
             const isMega = global.mega.isMega(e.url)

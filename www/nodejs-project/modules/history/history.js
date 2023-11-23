@@ -91,7 +91,7 @@ class History extends EntriesGroup {
                 return e.hookId != this.key
             })
             entries.some((e, i) => {
-                if(e.name == global.lang.IPTV_LISTS){
+                if(e.name == global.lang.MY_LISTS){
                     pos = i
                     return true
                 }
