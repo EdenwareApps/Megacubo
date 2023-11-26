@@ -206,13 +206,12 @@ class ChannelsCategories extends ChannelsData {
         }
         const processCountry = async country => {
             let err
-            if(completed()) throw 'completed'
+            const isMainCountry = countries[0] == country
+            if(!isMainCountry && completed()) throw 'completed'
             const map = await global.cloud.get('channels/' + country).catch(e => err = e)
-            if(completed()) throw 'completed'
-            if (!err) {
-                const isMainCountry = countries[0] == country
-                data = await this.applyMapCategories(map, data, amount, isMainCountry ? false : weighted)
-            }
+            if(err) return
+            if(!isMainCountry && completed()) throw 'completed'
+            data = await this.applyMapCategories(map, data, amount, isMainCountry ? false : weighted)
         }
         const limit = pLimit(2)
         const tasks = () => countries.map(country => {
@@ -1311,7 +1310,7 @@ class Channels extends ChannelsKids {
                             safe: !global.lists.parentalControl.lazyAuth(),
                             limit: 1024
                         })
-                        return es.results
+                        return global.lists.tools.paginateList(es.results)
                     }
                 })
             } else {

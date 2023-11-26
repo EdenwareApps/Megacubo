@@ -17,7 +17,8 @@
       ],
       "languages": [
          "ca"
-      ]
+      ],
+      "population": 77265
    },
    {
       "code": "ae",
@@ -37,7 +38,8 @@
       ],
       "languages": [
          "ar"
-      ]
+      ],
+      "population": 9890400
    },
    {
       "code": "af",
@@ -58,7 +60,8 @@
       "languages": [
          "ps",
          "fa"
-      ]
+      ],
+      "population": 38928346
    },
    {
       "code": "ag",
@@ -78,7 +81,8 @@
       ],
       "languages": [
          "en"
-      ]
+      ],
+      "population": 97928
    },
    {
       "code": "ai",
@@ -96,7 +100,8 @@
       "tz": [
          -240
       ],
-      "languages": []
+      "languages": [],
+      "population": 15002
    },
    {
       "code": "al",
@@ -116,7 +121,8 @@
       ],
       "languages": [
          "sq"
-      ]
+      ],
+      "population": 2877797
    },
    {
       "code": "am",
@@ -136,7 +142,8 @@
       ],
       "languages": [
          "hy"
-      ]
+      ],
+      "population": 2963243
    },
    {
       "code": "ao",
@@ -158,7 +165,9 @@
          "kg",
          "kj",
          "pt"
-      ]
+      ],
+      "dist": 9219.888402057024,
+      "population": 32866272
    },
    {
       "code": "aq",
@@ -176,7 +185,8 @@
       "tz": [
          180
       ],
-      "languages": []
+      "languages": [],
+      "population": 1000
    },
    {
       "code": "ar",
@@ -196,7 +206,8 @@
       ],
       "languages": [
          "es"
-      ]
+      ],
+      "population": 45195777
    },
    {
       "code": "as",
@@ -214,7 +225,8 @@
       "tz": [
          -660
       ],
-      "languages": []
+      "languages": [],
+      "population": 55191
    },
    {
       "code": "at",
@@ -234,7 +246,8 @@
       ],
       "languages": [
          "de"
-      ]
+      ],
+      "population": 9006398
    },
    {
       "code": "au",
@@ -258,7 +271,8 @@
       ],
       "languages": [
          "en"
-      ]
+      ],
+      "population": 25499884
    },
    {
       "code": "aw",
@@ -278,7 +292,8 @@
       ],
       "languages": [
          "nl"
-      ]
+      ],
+      "population": 106766
    },
    {
       "code": "az",
@@ -298,7 +313,8 @@
       ],
       "languages": [
          "az"
-      ]
+      ],
+      "population": 10139177
    },
    {
       "code": "ba",
@@ -320,7 +336,8 @@
          "bs",
          "hr",
          "sr"
-      ]
+      ],
+      "population": 3280819
    },
    {
       "code": "bb",
@@ -340,7 +357,8 @@
       ],
       "languages": [
          "en"
-      ]
+      ],
+      "population": 287375
    },
    {
       "code": "bd",
@@ -360,7 +378,8 @@
       ],
       "languages": [
          "bn"
-      ]
+      ],
+      "population": 164689383
    },
    {
       "code": "be",
@@ -382,7 +401,8 @@
          "nl",
          "fr",
          "de"
-      ]
+      ],
+      "population": 11589623
    },
    {
       "code": "bf",
@@ -403,7 +423,8 @@
       "languages": [
          "fr",
          "ff"
-      ]
+      ],
+      "population": 20903278
    },
    {
       "code": "bg",
@@ -423,7 +444,8 @@
       ],
       "languages": [
          "bg"
-      ]
+      ],
+      "population": 6948445
    },
    {
       "code": "bh",
@@ -443,7 +465,8 @@
       ],
       "languages": [
          "ar"
-      ]
+      ],
+      "population": 1701575
    },
    {
       "code": "bi",
@@ -464,7 +487,8 @@
       "languages": [
          "fr",
          "rn"
-      ]
+      ],
+      "population": 11890784
    },
    {
       "code": "bj",
@@ -486,7 +510,8 @@
          "fr",
          "ff",
          "yo"
-      ]
+      ],
+      "population": 12123200
    },
    {
       "code": "bm",
@@ -504,7 +529,8 @@
       "tz": [
          -240
       ],
-      "languages": []
+      "languages": [],
+      "population": 62278
    },
    {
       "code": "bn",
@@ -524,7 +550,8 @@
       ],
       "languages": [
          "ms"
-      ]
+      ],
+      "population": 437479
    },
    {
       "code": "bo",
@@ -547,7 +574,8 @@
          "gn",
          "qu",
          "es"
-      ]
+      ],
+      "population": 11673029
    },
    {
       "code": "br",
@@ -570,7 +598,9 @@
       ],
       "languages": [
          "pt"
-      ]
+      ],
+      "dist": 0,
+      "population": 212559417
    },
    {
       "code": "bs",
@@ -590,7 +620,8 @@
       ],
       "languages": [
          "en"
-      ]
+      ],
+      "population": 393244
    },
    {
       "code": "bt",
@@ -610,7 +641,8 @@
       ],
       "languages": [
          "dz"
-      ]
+      ],
+      "population": 771608
    },
    {
       "code": "bv",
@@ -628,7 +660,8 @@
       "tz": [
          60
       ],
-      "languages": []
+      "languages": [],
+      "population": 0
    },
    {
       "code": "bw",
@@ -649,7 +682,8 @@
       "languages": [
          "en",
          "tn"
-      ]
+      ],
+      "population": 2351627
    },
    {
       "code": "by",
@@ -670,7 +704,8 @@
       "languages": [
          "be",
          "ru"
-      ]
+      ],
+      "population": 9449323
    },
    {
       "code": "bz",
@@ -690,7 +725,8 @@
       ],
       "languages": [
          "en"
-      ]
+      ],
+      "population": 397621
    },
    {
       "code": "ca",
@@ -720,7 +756,8 @@
       "languages": [
          "en",
          "fr"
-      ]
+      ],
+      "population": 37742154
    },
    {
       "code": "cc",
@@ -738,7 +775,8 @@
       "tz": [
          390
       ],
-      "languages": []
+      "languages": [],
+      "population": 628
    },
    {
       "code": "cf",
@@ -759,7 +797,8 @@
       "languages": [
          "fr",
          "sg"
-      ]
+      ],
+      "population": 4829767
    },
    {
       "code": "cg",
@@ -781,7 +820,8 @@
          "fr",
          "kg",
          "ln"
-      ]
+      ],
+      "population": 5518087
    },
    {
       "code": "ch",
@@ -804,7 +844,8 @@
          "de",
          "it",
          "rm"
-      ]
+      ],
+      "population": 8654622
    },
    {
       "code": "ck",
@@ -822,7 +863,8 @@
       "tz": [
          -600
       ],
-      "languages": []
+      "languages": [],
+      "population": 21377
    },
    {
       "code": "cl",
@@ -843,7 +885,8 @@
       ],
       "languages": [
          "es"
-      ]
+      ],
+      "population": 19116201
    },
    {
       "code": "cm",
@@ -864,7 +907,8 @@
       "languages": [
          "en",
          "fr"
-      ]
+      ],
+      "population": 26545863
    },
    {
       "code": "cn",
@@ -885,7 +929,8 @@
       "ownDiffLangCode": "zh",
       "languages": [
          "zh"
-      ]
+      ],
+      "population": 1439323776
    },
    {
       "code": "co",
@@ -905,7 +950,8 @@
       ],
       "languages": [
          "es"
-      ]
+      ],
+      "population": 50882891
    },
    {
       "code": "cr",
@@ -925,7 +971,8 @@
       ],
       "languages": [
          "es"
-      ]
+      ],
+      "population": 5094118
    },
    {
       "code": "cu",
@@ -945,7 +992,8 @@
       ],
       "languages": [
          "es"
-      ]
+      ],
+      "population": 11326616
    },
    {
       "code": "cv",
@@ -965,7 +1013,9 @@
       ],
       "languages": [
          "pt"
-      ]
+      ],
+      "dist": 4346.959803572377,
+      "population": 555987
    },
    {
       "code": "cx",
@@ -983,7 +1033,8 @@
       "tz": [
          420
       ],
-      "languages": []
+      "languages": [],
+      "population": 1843
    },
    {
       "code": "cy",
@@ -1004,7 +1055,8 @@
       "languages": [
          "el",
          "tr"
-      ]
+      ],
+      "population": 1207359
    },
    {
       "code": "cz",
@@ -1025,7 +1077,8 @@
       "languages": [
          "cs",
          "sk"
-      ]
+      ],
+      "population": 10708981
    },
    {
       "code": "de",
@@ -1045,7 +1098,8 @@
       ],
       "languages": [
          "de"
-      ]
+      ],
+      "population": 83783942
    },
    {
       "code": "dj",
@@ -1068,7 +1122,8 @@
          "ar",
          "fr",
          "so"
-      ]
+      ],
+      "population": 988000
    },
    {
       "code": "dk",
@@ -1088,7 +1143,8 @@
       ],
       "languages": [
          "da"
-      ]
+      ],
+      "population": 5792202
    },
    {
       "code": "dm",
@@ -1108,7 +1164,8 @@
       ],
       "languages": [
          "en"
-      ]
+      ],
+      "population": 71991
    },
    {
       "code": "do",
@@ -1128,7 +1185,8 @@
       ],
       "languages": [
          "es"
-      ]
+      ],
+      "population": 10847904
    },
    {
       "code": "dz",
@@ -1148,7 +1206,8 @@
       ],
       "languages": [
          "ar"
-      ]
+      ],
+      "population": 43851044
    },
    {
       "code": "ec",
@@ -1168,7 +1227,8 @@
       ],
       "languages": [
          "es"
-      ]
+      ],
+      "population": 17643054
    },
    {
       "code": "ee",
@@ -1188,7 +1248,8 @@
       ],
       "languages": [
          "et"
-      ]
+      ],
+      "population": 1326535
    },
    {
       "code": "eg",
@@ -1208,7 +1269,8 @@
       ],
       "languages": [
          "ar"
-      ]
+      ],
+      "population": 104258327
    },
    {
       "code": "er",
@@ -1230,7 +1292,8 @@
          "ar",
          "en",
          "ti"
-      ]
+      ],
+      "population": 3546421
    },
    {
       "code": "es",
@@ -1250,7 +1313,8 @@
       ],
       "languages": [
          "es"
-      ]
+      ],
+      "population": 47329981
    },
    {
       "code": "et",
@@ -1270,7 +1334,8 @@
       ],
       "languages": [
          "am"
-      ]
+      ],
+      "population": 114963588
    },
    {
       "code": "fi",
@@ -1291,7 +1356,8 @@
       "languages": [
          "fi",
          "sv"
-      ]
+      ],
+      "population": 5540720
    },
    {
       "code": "fj",
@@ -1314,7 +1380,8 @@
          "fj",
          "hi",
          "ur"
-      ]
+      ],
+      "population": 896445
    },
    {
       "code": "fk",
@@ -1332,7 +1399,8 @@
       "tz": [
          -240
       ],
-      "languages": []
+      "languages": [],
+      "population": 3480
    },
    {
       "code": "fm",
@@ -1352,7 +1420,8 @@
       ],
       "languages": [
          "en"
-      ]
+      ],
+      "population": 113815
    },
    {
       "code": "fo",
@@ -1372,7 +1441,8 @@
       ],
       "languages": [
          "da"
-      ]
+      ],
+      "population": 48865
    },
    {
       "code": "fr",
@@ -1392,7 +1462,8 @@
       ],
       "languages": [
          "fr"
-      ]
+      ],
+      "population": 65273511
    },
    {
       "code": "ci",
@@ -1412,7 +1483,8 @@
       ],
       "languages": [
          "fr"
-      ]
+      ],
+      "population": 26378274
    },
    {
       "code": "ga",
@@ -1432,7 +1504,8 @@
       ],
       "languages": [
          "fr"
-      ]
+      ],
+      "population": 2225734
    },
    {
       "code": "gd",
@@ -1452,7 +1525,8 @@
       ],
       "languages": [
          "en"
-      ]
+      ],
+      "population": 112523
    },
    {
       "code": "ge",
@@ -1472,7 +1546,8 @@
       ],
       "languages": [
          "ka"
-      ]
+      ],
+      "population": 3989175
    },
    {
       "code": "gf",
@@ -1492,7 +1567,8 @@
       ],
       "languages": [
          "fr"
-      ]
+      ],
+      "population": 298682
    },
    {
       "code": "gh",
@@ -1514,7 +1590,8 @@
          "ak",
          "en",
          "ee"
-      ]
+      ],
+      "population": 31072940
    },
    {
       "code": "gi",
@@ -1532,7 +1609,8 @@
       "tz": [
          60
       ],
-      "languages": []
+      "languages": [],
+      "population": 33691
    },
    {
       "code": "gl",
@@ -1550,7 +1628,8 @@
       "tz": [
          -180
       ],
-      "languages": []
+      "languages": [],
+      "population": 56770
    },
    {
       "code": "gm",
@@ -1570,7 +1649,8 @@
       ],
       "languages": [
          "en"
-      ]
+      ],
+      "population": 2416665
    },
    {
       "code": "gn",
@@ -1590,7 +1670,8 @@
       ],
       "languages": [
          "fr"
-      ]
+      ],
+      "population": 13132792
    },
    {
       "code": "gp",
@@ -1610,7 +1691,8 @@
       ],
       "languages": [
          "fr"
-      ]
+      ],
+      "population": 400124
    },
    {
       "code": "gq",
@@ -1632,7 +1714,9 @@
          "fr",
          "pt",
          "es"
-      ]
+      ],
+      "dist": 7172.854106974383,
+      "population": 1402985
    },
    {
       "code": "gr",
@@ -1653,7 +1737,8 @@
       "ownDiffLangCode": "el",
       "languages": [
          "el"
-      ]
+      ],
+      "population": 10423054
    },
    {
       "code": "gs",
@@ -1671,7 +1756,8 @@
       "tz": [
          -120
       ],
-      "languages": []
+      "languages": [],
+      "population": 30
    },
    {
       "code": "gt",
@@ -1691,7 +1777,8 @@
       ],
       "languages": [
          "es"
-      ]
+      ],
+      "population": 17915568
    },
    {
       "code": "gu",
@@ -1709,7 +1796,8 @@
       "tz": [
          600
       ],
-      "languages": []
+      "languages": [],
+      "population": 168775
    },
    {
       "code": "gw",
@@ -1729,7 +1817,9 @@
       ],
       "languages": [
          "pt"
-      ]
+      ],
+      "dist": 4911.298990498379,
+      "population": 2149937
    },
    {
       "code": "gy",
@@ -1749,7 +1839,8 @@
       ],
       "languages": [
          "en"
-      ]
+      ],
+      "population": 786552
    },
    {
       "code": "hk",
@@ -1770,7 +1861,8 @@
       "languages": [
          "zh",
          "en"
-      ]
+      ],
+      "population": 7496981
    },
    {
       "code": "hm",
@@ -1788,7 +1880,8 @@
       "tz": [
          300
       ],
-      "languages": []
+      "languages": [],
+      "population": 0
    },
    {
       "code": "hn",
@@ -1808,7 +1901,8 @@
       ],
       "languages": [
          "es"
-      ]
+      ],
+      "population": 9904607
    },
    {
       "code": "hr",
@@ -1829,7 +1923,8 @@
       "languages": [
          "hr",
          "it"
-      ]
+      ],
+      "population": 4105267
    },
    {
       "code": "ht",
@@ -1850,7 +1945,8 @@
       "languages": [
          "fr",
          "ht"
-      ]
+      ],
+      "population": 11402528
    },
    {
       "code": "hu",
@@ -1870,7 +1966,8 @@
       ],
       "languages": [
          "hu"
-      ]
+      ],
+      "population": 9660350
    },
    {
       "code": "id",
@@ -1891,7 +1988,8 @@
       "languages": [
          "id",
          "ms"
-      ]
+      ],
+      "population": 273523615
    },
    {
       "code": "ie",
@@ -1912,7 +2010,8 @@
       "languages": [
          "en",
          "ga"
-      ]
+      ],
+      "population": 4937786
    },
    {
       "code": "il",
@@ -1933,7 +2032,8 @@
       "languages": [
          "ar",
          "he"
-      ]
+      ],
+      "population": 8655535
    },
    {
       "code": "in",
@@ -1959,7 +2059,8 @@
          "pa",
          "ta",
          "te"
-      ]
+      ],
+      "population": 1380004385
    },
    {
       "code": "io",
@@ -1977,7 +2078,8 @@
       "tz": [
          360
       ],
-      "languages": []
+      "languages": [],
+      "population": 0
    },
    {
       "code": "iq",
@@ -1998,7 +2100,8 @@
       "languages": [
          "ar",
          "ku"
-      ]
+      ],
+      "population": 40222503
    },
    {
       "code": "ir",
@@ -2018,7 +2121,8 @@
       ],
       "languages": [
          "fa"
-      ]
+      ],
+      "population": 83992949
    },
    {
       "code": "is",
@@ -2039,7 +2143,8 @@
       "ownDiffLangCode": "is",
       "languages": [
          "is"
-      ]
+      ],
+      "population": 341243
    },
    {
       "code": "it",
@@ -2061,7 +2166,8 @@
          "fr",
          "de",
          "it"
-      ]
+      ],
+      "population": 60461826
    },
    {
       "code": "jm",
@@ -2081,7 +2187,8 @@
       ],
       "languages": [
          "en"
-      ]
+      ],
+      "population": 2961167
    },
    {
       "code": "jo",
@@ -2101,7 +2208,8 @@
       ],
       "languages": [
          "ar"
-      ]
+      ],
+      "population": 10203140
    },
    {
       "code": "jp",
@@ -2122,7 +2230,8 @@
       "ownDiffLangCode": "ja",
       "languages": [
          "ja"
-      ]
+      ],
+      "population": 126476461
    },
    {
       "code": "ke",
@@ -2143,7 +2252,8 @@
       "languages": [
          "en",
          "sw"
-      ]
+      ],
+      "population": 53771300
    },
    {
       "code": "kg",
@@ -2164,7 +2274,8 @@
       "languages": [
          "ky",
          "ru"
-      ]
+      ],
+      "population": 6524195
    },
    {
       "code": "kh",
@@ -2184,7 +2295,8 @@
       ],
       "languages": [
          "km"
-      ]
+      ],
+      "population": 16718965
    },
    {
       "code": "ki",
@@ -2204,7 +2316,8 @@
       ],
       "languages": [
          "en"
-      ]
+      ],
+      "population": 119295
    },
    {
       "code": "km",
@@ -2225,7 +2338,8 @@
       "languages": [
          "ar",
          "fr"
-      ]
+      ],
+      "population": 869601
    },
    {
       "code": "kn",
@@ -2245,7 +2359,8 @@
       ],
       "languages": [
          "en"
-      ]
+      ],
+      "population": 53199
    },
    {
       "code": "kp",
@@ -2265,7 +2380,8 @@
       ],
       "languages": [
          "ko"
-      ]
+      ],
+      "population": 25778816
    },
    {
       "code": "kr",
@@ -2286,7 +2402,8 @@
       "ownDiffLangCode": "ko",
       "languages": [
          "ko"
-      ]
+      ],
+      "population": 51269185
    },
    {
       "code": "kw",
@@ -2306,7 +2423,8 @@
       ],
       "languages": [
          "ar"
-      ]
+      ],
+      "population": 4270571
    },
    {
       "code": "ky",
@@ -2324,7 +2442,8 @@
       "tz": [
          -300
       ],
-      "languages": []
+      "languages": [],
+      "population": 64948
    },
    {
       "code": "kz",
@@ -2346,7 +2465,8 @@
       "languages": [
          "kk",
          "ru"
-      ]
+      ],
+      "population": 18776707
    },
    {
       "code": "la",
@@ -2366,7 +2486,8 @@
       ],
       "languages": [
          "lo"
-      ]
+      ],
+      "population": 7275556
    },
    {
       "code": "lb",
@@ -2386,7 +2507,8 @@
       ],
       "languages": [
          "ar"
-      ]
+      ],
+      "population": 6825442
    },
    {
       "code": "lc",
@@ -2406,7 +2528,8 @@
       ],
       "languages": [
          "en"
-      ]
+      ],
+      "population": 183627
    },
    {
       "code": "li",
@@ -2426,7 +2549,8 @@
       ],
       "languages": [
          "de"
-      ]
+      ],
+      "population": 38128
    },
    {
       "code": "lk",
@@ -2448,7 +2572,8 @@
          "en",
          "si",
          "ta"
-      ]
+      ],
+      "population": 21413249
    },
    {
       "code": "lr",
@@ -2468,7 +2593,8 @@
       ],
       "languages": [
          "en"
-      ]
+      ],
+      "population": 5057677
    },
    {
       "code": "ls",
@@ -2489,7 +2615,8 @@
       "languages": [
          "en",
          "st"
-      ]
+      ],
+      "population": 2142249
    },
    {
       "code": "lt",
@@ -2509,7 +2636,8 @@
       ],
       "languages": [
          "lt"
-      ]
+      ],
+      "population": 2722289
    },
    {
       "code": "lu",
@@ -2531,7 +2659,8 @@
          "fr",
          "de",
          "lb"
-      ]
+      ],
+      "population": 625978
    },
    {
       "code": "lv",
@@ -2551,7 +2680,8 @@
       ],
       "languages": [
          "lv"
-      ]
+      ],
+      "population": 1886198
    },
    {
       "code": "ly",
@@ -2571,7 +2701,8 @@
       ],
       "languages": [
          "ar"
-      ]
+      ],
+      "population": 6871287
    },
    {
       "code": "ma",
@@ -2591,7 +2722,8 @@
       ],
       "languages": [
          "ar"
-      ]
+      ],
+      "population": 36910560
    },
    {
       "code": "mc",
@@ -2611,7 +2743,8 @@
       ],
       "languages": [
          "fr"
-      ]
+      ],
+      "population": 39242
    },
    {
       "code": "md",
@@ -2631,7 +2764,8 @@
       ],
       "languages": [
          "ro"
-      ]
+      ],
+      "population": 2657637
    },
    {
       "code": "mg",
@@ -2652,7 +2786,8 @@
       "languages": [
          "fr",
          "mg"
-      ]
+      ],
+      "population": 27691018
    },
    {
       "code": "mh",
@@ -2673,7 +2808,8 @@
       "languages": [
          "en",
          "mh"
-      ]
+      ],
+      "population": 58413
    },
    {
       "code": "mk",
@@ -2693,7 +2829,8 @@
       ],
       "languages": [
          "mk"
-      ]
+      ],
+      "population": 2083374
    },
    {
       "code": "ml",
@@ -2715,7 +2852,8 @@
          "bm",
          "fr",
          "ff"
-      ]
+      ],
+      "population": 20250834
    },
    {
       "code": "mm",
@@ -2735,7 +2873,8 @@
       ],
       "languages": [
          "my"
-      ]
+      ],
+      "population": 54409800
    },
    {
       "code": "mn",
@@ -2756,7 +2895,8 @@
       ],
       "languages": [
          "mn"
-      ]
+      ],
+      "population": 3278292
    },
    {
       "code": "mo",
@@ -2777,7 +2917,9 @@
       "languages": [
          "zh",
          "pt"
-      ]
+      ],
+      "dist": 6812.01902004265,
+      "population": 649335
    },
    {
       "code": "mp",
@@ -2795,7 +2937,8 @@
       "tz": [
          600
       ],
-      "languages": []
+      "languages": [],
+      "population": 57569
    },
    {
       "code": "mq",
@@ -2815,7 +2958,8 @@
       ],
       "languages": [
          "fr"
-      ]
+      ],
+      "population": 376480
    },
    {
       "code": "mr",
@@ -2835,7 +2979,8 @@
       ],
       "languages": [
          "ar"
-      ]
+      ],
+      "population": 4525696
    },
    {
       "code": "ms",
@@ -2853,7 +2998,8 @@
       "tz": [
          -240
       ],
-      "languages": []
+      "languages": [],
+      "population": 4992
    },
    {
       "code": "mt",
@@ -2874,7 +3020,8 @@
       "languages": [
          "en",
          "mt"
-      ]
+      ],
+      "population": 441539
    },
    {
       "code": "mu",
@@ -2896,7 +3043,8 @@
          "en",
          "fr",
          "ta"
-      ]
+      ],
+      "population": 1271768
    },
    {
       "code": "mv",
@@ -2916,7 +3064,8 @@
       ],
       "languages": [
          "dv"
-      ]
+      ],
+      "population": 521167
    },
    {
       "code": "mw",
@@ -2937,7 +3086,8 @@
       "languages": [
          "ny",
          "en"
-      ]
+      ],
+      "population": 19129952
    },
    {
       "code": "mx",
@@ -2959,7 +3109,8 @@
       ],
       "languages": [
          "es"
-      ]
+      ],
+      "population": 128932753
    },
    {
       "code": "my",
@@ -2981,7 +3132,8 @@
          "en",
          "ms",
          "ta"
-      ]
+      ],
+      "population": 32365999
    },
    {
       "code": "mz",
@@ -3001,7 +3153,9 @@
       ],
       "languages": [
          "pt"
-      ]
+      ],
+      "dist": 9434.38967312772,
+      "population": 31255435
    },
    {
       "code": "na",
@@ -3021,7 +3175,8 @@
       ],
       "languages": [
          "en"
-      ]
+      ],
+      "population": 2540905
    },
    {
       "code": "nc",
@@ -3041,7 +3196,8 @@
       ],
       "languages": [
          "fr"
-      ]
+      ],
+      "population": 291032
    },
    {
       "code": "ne",
@@ -3065,7 +3221,8 @@
          "ff",
          "ha",
          "kr"
-      ]
+      ],
+      "population": 24206636
    },
    {
       "code": "nf",
@@ -3083,7 +3240,8 @@
       "tz": [
          690
       ],
-      "languages": []
+      "languages": [],
+      "population": 0
    },
    {
       "code": "ng",
@@ -3106,7 +3264,8 @@
          "ha",
          "ig",
          "yo"
-      ]
+      ],
+      "population": 206139589
    },
    {
       "code": "ni",
@@ -3126,7 +3285,8 @@
       ],
       "languages": [
          "es"
-      ]
+      ],
+      "population": 6624554
    },
    {
       "code": "nl",
@@ -3146,7 +3306,8 @@
       ],
       "languages": [
          "nl"
-      ]
+      ],
+      "population": 17134872
    },
    {
       "code": "no",
@@ -3169,7 +3330,8 @@
          "nb",
          "nn",
          "no"
-      ]
+      ],
+      "population": 5421241
    },
    {
       "code": "np",
@@ -3189,7 +3351,8 @@
       ],
       "languages": [
          "ne"
-      ]
+      ],
+      "population": 29136808
    },
    {
       "code": "nr",
@@ -3209,7 +3372,8 @@
       ],
       "languages": [
          "en"
-      ]
+      ],
+      "population": 10834
    },
    {
       "code": "nu",
@@ -3227,7 +3391,8 @@
       "tz": [
          -660
       ],
-      "languages": []
+      "languages": [],
+      "population": 1430
    },
    {
       "code": "nz",
@@ -3248,7 +3413,8 @@
       "languages": [
          "en",
          "mi"
-      ]
+      ],
+      "population": 4822233
    },
    {
       "code": "om",
@@ -3268,7 +3434,8 @@
       ],
       "languages": [
          "ar"
-      ]
+      ],
+      "population": 5106626
    },
    {
       "code": "pa",
@@ -3288,7 +3455,8 @@
       ],
       "languages": [
          "es"
-      ]
+      ],
+      "population": 4314767
    },
    {
       "code": "pe",
@@ -3310,7 +3478,8 @@
          "ay",
          "qu",
          "es"
-      ]
+      ],
+      "population": 32971846
    },
    {
       "code": "pf",
@@ -3330,7 +3499,8 @@
       ],
       "languages": [
          "fr"
-      ]
+      ],
+      "population": 280908
    },
    {
       "code": "pg",
@@ -3351,7 +3521,8 @@
       "languages": [
          "en",
          "ho"
-      ]
+      ],
+      "population": 8947027
    },
    {
       "code": "ph",
@@ -3372,7 +3543,8 @@
       "languages": [
          "en",
          "tl"
-      ]
+      ],
+      "population": 113134903
    },
    {
       "code": "pk",
@@ -3393,7 +3565,8 @@
       "languages": [
          "en",
          "ur"
-      ]
+      ],
+      "population": 220892331
    },
    {
       "code": "pl",
@@ -3413,7 +3586,8 @@
       ],
       "languages": [
          "pl"
-      ]
+      ],
+      "population": 37846611
    },
    {
       "code": "pm",
@@ -3433,7 +3607,8 @@
       ],
       "languages": [
          "fr"
-      ]
+      ],
+      "population": 24986
    },
    {
       "code": "pn",
@@ -3451,7 +3626,8 @@
       "tz": [
          -480
       ],
-      "languages": []
+      "languages": [],
+      "population": 341
    },
    {
       "code": "pr",
@@ -3471,7 +3647,8 @@
       ],
       "languages": [
          "es"
-      ]
+      ],
+      "population": 3193694
    },
    {
       "code": "pt",
@@ -3491,7 +3668,9 @@
       ],
       "languages": [
          "pt"
-      ]
+      ],
+      "dist": 7243.0805270027295,
+      "population": 10196709
    },
    {
       "code": "pw",
@@ -3511,7 +3690,8 @@
       ],
       "languages": [
          "en"
-      ]
+      ],
+      "population": 18008
    },
    {
       "code": "py",
@@ -3532,7 +3712,8 @@
       "languages": [
          "gn",
          "es"
-      ]
+      ],
+      "population": 7132530
    },
    {
       "code": "qa",
@@ -3552,7 +3733,8 @@
       ],
       "languages": [
          "ar"
-      ]
+      ],
+      "population": 2881053
    },
    {
       "code": "re",
@@ -3572,7 +3754,8 @@
       ],
       "languages": [
          "fr"
-      ]
+      ],
+      "population": 895308
    },
    {
       "code": "ro",
@@ -3592,7 +3775,8 @@
       ],
       "languages": [
          "ro"
-      ]
+      ],
+      "population": 19237691
    },
    {
       "code": "ru",
@@ -3621,7 +3805,8 @@
       ],
       "languages": [
          "ru"
-      ]
+      ],
+      "population": 145912025
    },
    {
       "code": "rw",
@@ -3643,7 +3828,8 @@
          "en",
          "fr",
          "rw"
-      ]
+      ],
+      "population": 12952218
    },
    {
       "code": "sa",
@@ -3663,7 +3849,8 @@
       ],
       "languages": [
          "ar"
-      ]
+      ],
+      "population": 34813871
    },
    {
       "code": "sb",
@@ -3683,7 +3870,8 @@
       ],
       "languages": [
          "en"
-      ]
+      ],
+      "population": 686884
    },
    {
       "code": "sc",
@@ -3704,7 +3892,8 @@
       "languages": [
          "en",
          "fr"
-      ]
+      ],
+      "population": 98347
    },
    {
       "code": "sd",
@@ -3725,7 +3914,8 @@
       "languages": [
          "ar",
          "en"
-      ]
+      ],
+      "population": 43849269
    },
    {
       "code": "se",
@@ -3745,7 +3935,8 @@
       ],
       "languages": [
          "sv"
-      ]
+      ],
+      "population": 10099265
    },
    {
       "code": "sg",
@@ -3768,7 +3959,8 @@
          "en",
          "ms",
          "ta"
-      ]
+      ],
+      "population": 5850342
    },
    {
       "code": "sh",
@@ -3786,7 +3978,8 @@
       "tz": [
          0
       ],
-      "languages": []
+      "languages": [],
+      "population": 60765
    },
    {
       "code": "si",
@@ -3807,7 +4000,8 @@
       "languages": [
          "it",
          "sl"
-      ]
+      ],
+      "population": 2078654
    },
    {
       "code": "sj",
@@ -3825,7 +4019,8 @@
       "tz": [
          0
       ],
-      "languages": []
+      "languages": [],
+      "population": 2810
    },
    {
       "code": "sk",
@@ -3846,7 +4041,8 @@
       "languages": [
          "cs",
          "sk"
-      ]
+      ],
+      "population": 5459642
    },
    {
       "code": "sl",
@@ -3866,7 +4062,8 @@
       ],
       "languages": [
          "en"
-      ]
+      ],
+      "population": 7976985
    },
    {
       "code": "sm",
@@ -3886,7 +4083,8 @@
       ],
       "languages": [
          "it"
-      ]
+      ],
+      "population": 33938
    },
    {
       "code": "sn",
@@ -3908,7 +4106,8 @@
          "fr",
          "ff",
          "wo"
-      ]
+      ],
+      "population": 16743927
    },
    {
       "code": "so",
@@ -3929,7 +4128,8 @@
       "languages": [
          "ar",
          "so"
-      ]
+      ],
+      "population": 16385698
    },
    {
       "code": "sr",
@@ -3949,7 +4149,8 @@
       ],
       "languages": [
          "nl"
-      ]
+      ],
+      "population": 586632
    },
    {
       "code": "st",
@@ -3969,7 +4170,9 @@
       ],
       "languages": [
          "pt"
-      ]
+      ],
+      "dist": 9312.15546361638,
+      "population": 219159
    },
    {
       "code": "sv",
@@ -3989,7 +4192,8 @@
       ],
       "languages": [
          "es"
-      ]
+      ],
+      "population": 6486205
    },
    {
       "code": "sy",
@@ -4009,7 +4213,8 @@
       ],
       "languages": [
          "ar"
-      ]
+      ],
+      "population": 17500658
    },
    {
       "code": "sz",
@@ -4030,7 +4235,8 @@
       "languages": [
          "en",
          "ss"
-      ]
+      ],
+      "population": 1160164
    },
    {
       "code": "tc",
@@ -4048,7 +4254,8 @@
       "tz": [
          -300
       ],
-      "languages": []
+      "languages": [],
+      "population": 38717
    },
    {
       "code": "td",
@@ -4069,7 +4276,8 @@
       "languages": [
          "ar",
          "fr"
-      ]
+      ],
+      "population": 16425859
    },
    {
       "code": "tf",
@@ -4087,7 +4295,8 @@
       "tz": [
          300
       ],
-      "languages": []
+      "languages": [],
+      "population": 282200
    },
    {
       "code": "tg",
@@ -4108,7 +4317,8 @@
       "languages": [
          "ee",
          "fr"
-      ]
+      ],
+      "population": 8278737
    },
    {
       "code": "th",
@@ -4128,7 +4338,8 @@
       ],
       "languages": [
          "th"
-      ]
+      ],
+      "population": 69799978
    },
    {
       "code": "tj",
@@ -4150,7 +4361,8 @@
          "fa",
          "ru",
          "tg"
-      ]
+      ],
+      "population": 9537645
    },
    {
       "code": "tk",
@@ -4168,7 +4380,8 @@
       "tz": [
          780
       ],
-      "languages": []
+      "languages": [],
+      "population": 1352
    },
    {
       "code": "tm",
@@ -4188,7 +4401,8 @@
       ],
       "languages": [
          "tk"
-      ]
+      ],
+      "population": 6031187
    },
    {
       "code": "tn",
@@ -4208,7 +4422,8 @@
       ],
       "languages": [
          "ar"
-      ]
+      ],
+      "population": 11818619
    },
    {
       "code": "to",
@@ -4228,7 +4443,8 @@
       ],
       "languages": [
          "en"
-      ]
+      ],
+      "population": 105697
    },
    {
       "code": "tl",
@@ -4248,7 +4464,9 @@
       ],
       "languages": [
          "pt"
-      ]
+      ],
+      "dist": 17892.18352897251,
+      "population": 1318445
    },
    {
       "code": "tr",
@@ -4268,7 +4486,8 @@
       ],
       "languages": [
          "tr"
-      ]
+      ],
+      "population": 84339067
    },
    {
       "code": "tt",
@@ -4288,7 +4507,8 @@
       ],
       "languages": [
          "en"
-      ]
+      ],
+      "population": 1399488
    },
    {
       "code": "tv",
@@ -4308,7 +4528,8 @@
       ],
       "languages": [
          "en"
-      ]
+      ],
+      "population": 11796
    },
    {
       "code": "tw",
@@ -4328,7 +4549,8 @@
       ],
       "languages": [
          "zh"
-      ]
+      ],
+      "population": 23816775
    },
    {
       "code": "tz",
@@ -4349,7 +4571,8 @@
       "languages": [
          "en",
          "sw"
-      ]
+      ],
+      "population": 59734218
    },
    {
       "code": "ua",
@@ -4370,7 +4593,8 @@
       "ownDiffLangCode": "uk",
       "languages": [
          "uk"
-      ]
+      ],
+      "population": 43733762
    },
    {
       "code": "ug",
@@ -4391,7 +4615,8 @@
       "languages": [
          "en",
          "sw"
-      ]
+      ],
+      "population": 45741007
    },
    {
       "code": "gb",
@@ -4412,7 +4637,8 @@
       "languages": [
          "en",
          "cy"
-      ]
+      ],
+      "population": 67886011
    },
    {
       "code": "us",
@@ -4446,7 +4672,8 @@
       ],
       "languages": [
          "en"
-      ]
+      ],
+      "population": 331002651
    },
    {
       "code": "va",
@@ -4467,7 +4694,8 @@
       "languages": [
          "it",
          "la"
-      ]
+      ],
+      "population": 801
    },
    {
       "code": "vc",
@@ -4487,7 +4715,8 @@
       ],
       "languages": [
          "en"
-      ]
+      ],
+      "population": 110210
    },
    {
       "code": "ws",
@@ -4507,7 +4736,8 @@
       ],
       "languages": [
          "en"
-      ]
+      ],
+      "population": 198414
    },
    {
       "code": "yt",
@@ -4527,7 +4757,8 @@
       ],
       "languages": [
          "fr"
-      ]
+      ],
+      "population": 275841
    },
    {
       "code": "za",
@@ -4558,7 +4789,8 @@
          "ve",
          "xh",
          "zu"
-      ]
+      ],
+      "population": 59308690
    },
    {
       "code": "cd",
@@ -4583,7 +4815,8 @@
          "ln",
          "sw",
          "lu"
-      ]
+      ],
+      "population": 89561403
    },
    {
       "code": "rs",
@@ -4604,7 +4837,8 @@
       "ownDiffLangCode": "sr",
       "languages": [
          "sr"
-      ]
+      ],
+      "population": 8737371
    },
    {
       "code": "ax",
@@ -4624,7 +4858,8 @@
       ],
       "languages": [
          "sv"
-      ]
+      ],
+      "population": 29789
    },
    {
       "code": "ps",
@@ -4642,7 +4877,8 @@
       "tz": [
          120
       ],
-      "languages": []
+      "languages": [],
+      "population": 5101414
    },
    {
       "code": "me",
@@ -4660,7 +4896,8 @@
       "tz": [
          60
       ],
-      "languages": []
+      "languages": [],
+      "population": 622359
    },
    {
       "code": "cw",
@@ -4681,7 +4918,8 @@
       "languages": [
          "nl",
          "en"
-      ]
+      ],
+      "population": 164093
    },
    {
       "code": "sx",
@@ -4702,7 +4940,8 @@
       "languages": [
          "nl",
          "en"
-      ]
+      ],
+      "population": 42876
    },
    {
       "code": "bq",
@@ -4720,7 +4959,8 @@
       "tz": [
          -240
       ],
-      "languages": []
+      "languages": [],
+      "population": 262100
    },
    {
       "code": "im",
@@ -4738,7 +4978,8 @@
       "tz": [
          0
       ],
-      "languages": []
+      "languages": [],
+      "population": 85032
    },
    {
       "code": "je",
@@ -4758,7 +4999,8 @@
       ],
       "languages": [
          "fr"
-      ]
+      ],
+      "population": 108858
    },
    {
       "code": "gg",
@@ -4776,6 +5018,7 @@
       "tz": [
          0
       ],
-      "languages": []
+      "languages": [],
+      "population": 67052
    }
 ]

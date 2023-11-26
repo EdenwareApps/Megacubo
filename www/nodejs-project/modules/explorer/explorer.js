@@ -713,7 +713,7 @@ class Explorer extends Events {
                             fa: 'fas fa-satellite-dish',
                             type: 'action',
                             action: () => {
-                                global.streamState.test(entries)
+                                global.streamState.test(entries, '', true)
                             }
                         })
                     }

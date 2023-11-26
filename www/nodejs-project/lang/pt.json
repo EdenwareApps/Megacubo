@@ -437,7 +437,7 @@
    "SYNC_EPG_CHANNELS_FAILED": "Falha ao obter lista de canais a partir do EPG",
    "TESTING": "Testando...",
    "TEST_STREAMS": "Testar transmissões",
-   "TEST_STREAMS_AUTO": "Transmissões de teste automaticamente",
+   "TEST_STREAMS_AUTO": "Testar transmissões automaticamente",
    "TEST_STREAMS_TYPE": "Mostrar o tipo de transmissão ao testar",
    "THEMES": "Temas",
    "THEME_NAME": "Nome do tema",

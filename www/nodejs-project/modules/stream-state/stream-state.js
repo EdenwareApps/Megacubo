@@ -25,9 +25,7 @@ class StreamState extends Events {
             if(data){
                 this.set(data.url, 'offline', true, { source: data.source })
             }
-            if(global.config.get('auto-test')){
-                this.test(global.explorer.currentStreamEntries()).catch(console.error)
-            }
+            this.test(global.explorer.currentStreamEntries()).catch(console.error)
         })
         global.streamer.on('commit', intent => {
             const url = intent.data.url
@@ -50,7 +48,7 @@ class StreamState extends Events {
         })
         global.streamer.on('stop', (err, e) => {
             setTimeout(() => {
-                if(!global.streamer.active && global.config.get('auto-test')){
+                if(!global.streamer.active){
                     this.test(global.explorer.currentStreamEntries()).catch(console.error)
                 }
             }, 500)
@@ -60,7 +58,7 @@ class StreamState extends Events {
         })
         global.explorer.on('render', entries => {
             this.cancelTests()
-            if(global.config.get('auto-test') && entries.some(e => this.supports(e))){
+            if(entries.some(e => this.supports(e))){
                 this.test(entries).catch(console.error)
             }
         })
@@ -223,7 +221,7 @@ class StreamState extends Events {
 			}
 		}
 	}
-    test(entries, name){
+    test(entries, name='', force){
         return new Promise((resolve, reject) => {
             const ctrlKey = entries.map(e => e.url || '').join('')
             if(this.testing){
@@ -238,8 +236,11 @@ class StreamState extends Events {
             if(this.debug){
                 console.log('streamState about to test', entries)
             }
-            const nt = {name: global.lang.TEST_STREAMS}, autoTesting = global.config.get('auto-test')
-            if(!autoTesting){
+            const allowAutoTest = global.config.get('auto-test')
+            const manuallyTesting = force === true
+            const autoTesting = !manuallyTesting && allowAutoTest
+            const nt = {name: global.lang.TEST_STREAMS}
+            if(manuallyTesting){
                 global.ui.emit('set-loading', nt, true, global.lang.TESTING)
                 global.osd.show(global.lang.TESTING + ' 0%', 'fa-mega spin-x-alt', 'stream-state-tester', 'persistent') 
             }
@@ -260,12 +261,22 @@ class StreamState extends Events {
                                 this.set(e.url, state, false, { source: e.source })
                             } else if(typeof(this.clientFailures[e.url]) != 'undefined') {
                                 syncData[e.url] = 'offline'
-                            } else { // if did it failed previously, move to end of queue to try again after the untested ones
-                                syncData[e.url] = 'waiting'
-                                this.waiting[e.url] = true
-                                retest.push(e)
+                            } else {
+                                if(manuallyTesting || autoTesting) { // if did it failed previously, move to end of queue to try again after the untested ones
+                                    syncData[e.url] = 'waiting'
+                                    this.waiting[e.url] = true
+                                    retest.push(e)
+                                } else {
+                                    syncData[e.url] = state || ''
+                                    this.waiting[e.url] = false                                    
+                                }
                             }
                             return false
+                        }
+                        if(!manuallyTesting && !autoTesting) {                            
+                            syncData[e.url] = ''
+                            this.waiting[e.url] = false 
+                            return
                         }
                         syncData[e.url] = 'waiting'
                         this.waiting[e.url] = true
@@ -274,8 +285,11 @@ class StreamState extends Events {
                 }                
             })
             global.ui.emit('sync-status-flags', syncData)
+            if(!manuallyTesting && !autoTesting) {
+                return resolve(true)
+            }
             if(!entries.length){
-                autoTesting || global.osd.show(global.lang.TESTING + ' 100%', 'fa-mega spin-x-alt', 'stream-state-tester', 'normal') 
+                manuallyTesting && global.osd.show(global.lang.TESTING + ' 100%', 'fa-mega spin-x-alt', 'stream-state-tester', 'normal') 
                 return resolve(true)
             }
             if(retest.length){
@@ -286,7 +300,7 @@ class StreamState extends Events {
             this.testing.on('success', this.success.bind(this))
             this.testing.on('failure', this.failure.bind(this))
             this.testing.on('progress', i => {
-                autoTesting || global.osd.show(global.lang.TESTING + ' ' + i.progress + '%', 'fa-mega spin-x-alt', 'stream-state-tester', 'persistent') 
+                manuallyTesting && global.osd.show(global.lang.TESTING + ' ' + i.progress + '%', 'fa-mega spin-x-alt', 'stream-state-tester', 'persistent') 
             })
             this.testing.on('finish', () => {
                 if(this.testing){
@@ -294,9 +308,7 @@ class StreamState extends Events {
                         console.warn('TESTER FINISH!', nt, this.testing.results, this.testing.states)
                     }
                     global.ui.emit('set-loading', nt, false)
-                    if(!autoTesting){
-                        global.osd.hide('stream-state-tester')
-                    }
+                    manuallyTesting && global.osd.hide('stream-state-tester')
                     this.testing.destroy()
                     this.testing = null 
                     resolve(true)
