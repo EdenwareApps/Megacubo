@@ -387,7 +387,7 @@ class IconServer extends IconServerStore {
         this.closed = false
         this.server = false
         this.limiter = {
-            download: pLimit(20),
+            download: pLimit(8),
             adjust: pLimit(1)
         }
         this.rendering = {}

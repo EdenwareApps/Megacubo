@@ -102,7 +102,7 @@ class Wizard extends WizardUtils {
         if(!global.config.get('country') && global.lang.alternateCountries && global.lang.alternateCountries.length){            
             const to = global.lang.locale
             const opts = [
-                {template: 'question', fa: 'fas fa-info-circle', text: global.lang.COUNTRIES}
+                {template: 'question', fa: 'fas fa-info-circle', text: global.lang.SELECT_COUNTRY}
             ].concat(global.lang.alternateCountries.concat([global.lang.countryCode]).map(id => {
                 const text = global.lang.countries.getCountryName(id, to)
                 return {template: 'option', text, fa: 'fas fa-globe', id}
@@ -119,8 +119,11 @@ class Wizard extends WizardUtils {
                 ret = await global.explorer.dialog(nopts)
             }
             if(ret && global.lang.countries.countryCodeExists(ret)){
+                global.lang.countryCode = ret // reference for upcoming lang.getActiveCountries()
                 global.config.set('country', ret)
-                global.config.set('countries', [])
+                global.config.set('countries', []) // reset
+                let countries = await global.lang.getActiveCountries()
+                global.config.set('countries', countries)
                 let languages = global.lang.countries.getCountryLanguages(ret)
                 const map = await global.lang.availableLocalesMap()
                 languages = Object.keys(map).filter(code => languages.includes(code))
@@ -140,7 +143,7 @@ class Wizard extends WizardUtils {
                     ret = await global.explorer.dialog(opts)
                     if(ret && map[ret]) languages = [ret]
                 }
-                const locale = languages.shift()
+                const locale = languages.shift()              
                 if(locale != global.lang.locale) {
                     global.config.set('locale', locale)
                     let texts = await global.lang.loadLanguage(locale)
@@ -151,6 +154,8 @@ class Wizard extends WizardUtils {
                         global.explorer.refreshNow()
                     }
                 }
+                global.channels.updateCategoriesCacheKey()
+                global.channels.load()
             }
         }
     }

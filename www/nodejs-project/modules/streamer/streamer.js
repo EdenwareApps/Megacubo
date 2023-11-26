@@ -1023,7 +1023,22 @@ class StreamerAbout extends StreamerTracks {
 		const addr = await global.Download.stream.lookup.lookup(domain, {})
 		const countryCode = await global.cloud.getCountry(addr).catch(global.displayErr)
 		const country = global.lang.countries.getCountryName(countryCode, global.lang.locale)
-		await global.explorer.info(global.lang.KNOW_MORE, 'Broadcast server country: '+ (country || countryCode))
+		const text = 'Broadcast server country: '+ (country || countryCode) +"\r\n"+
+			'Source list: '+ ((await global.lists.manager.name(this.active.data.source)) || 'N/A')
+		const opts = [
+			{template: 'question', text: global.lang.KNOW_MORE, fa: 'fas fa-info-circle'},
+        	{template: 'message', text},
+        	{template: 'option', text: 'OK', id: 'submit', fa: 'fas fa-check-circle'},
+        	{template: 'option', text: global.lang.COPY_STREAM_URL, id: 'copy-stream', fa: 'fas fa-play-circle'},
+        	{template: 'option', text: global.lang.COPY_LIST_URL, id: 'copy-list', fa: 'fas fa-satellite-dish'}
+		]
+		const ret = await global.explorer.dialog(opts, 'submit')
+		if(!this.active) return
+		if(ret == 'copy-stream') {
+			global.ui.emit('clipboard-write', this.active.data.url, global.lang.COPIED_URL)
+		} else if(ret == 'copy-list') {
+			global.ui.emit('clipboard-write', this.active.data.source || 'no list', global.lang.COPIED_URL)
+		}
 	}
 	aboutRegisterEntry(id, renderer, action, position, more) {
 		if(this.opts.shadow) return

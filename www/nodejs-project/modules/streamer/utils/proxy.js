@@ -460,7 +460,7 @@ class StreamerProxy extends StreamerProxyBase {
 			}
 		}
 		let initialOffset = download.requestingRange ? download.requestingRange.start : 0, offset = initialOffset
-		let sampleCollected, doBitrateCheck = this.committed && this.type != 'network-proxy' && this.bitrateChecker.bitrates.length <= this.bitrateChecker.opts.checkingAmount
+		let sampleCollected, doBitrateCheck = this.committed && this.type != 'network-proxy' && this.bitrateChecker.acceptingSamples()
 		let sampleWriter, sampleFile = doBitrateCheck ? global.paths.temp +'/'+ parseInt(Math.random() * 100000) +'.ts' : ''
 		const onend = () => {
 			if(doBitrateCheck){

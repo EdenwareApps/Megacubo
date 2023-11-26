@@ -90,6 +90,7 @@ class Common extends Events {
 	constructor(opts){
 		super()
 		this.regexes = regexes
+		this.charToSpaceRegex = new RegExp('["/=\\,\\.\\|:]+')
 		this.sanitizeName = sanitizeName
 		this.Fetcher = Fetcher
 		this.searchRedirects = []
@@ -156,13 +157,22 @@ class Common extends Events {
 		}
 		if(Array.isArray(txt)) {
 			txt = txt.join(' ')
-		};
-		['"', '/', '=', '.', ','].forEach(c => {
-			if(txt.indexOf(c) != -1){
-				txt = txt.replaceAll(c, ' ')
-			}
-		})
+		}
 		txt = txt.toLowerCase()
+		if(txt.match(this.charToSpaceRegex)) {
+			txt = txt.replace(this.charToSpaceRegex, ' ')
+		}
+		const tchar = txt.charAt(2)
+		if(global.lang.countries && tchar == ' ') {
+			// for channels name formatted like 'US: CNN', 'US - CNN' or 'US | CNN'
+			const maybeCountryCode = txt.substr(0, 2)
+			if(!Array.isArray(this.countryCodes)) {
+				this.countryCodes = require('../countries/countries.json').map(c => c.code)
+			}
+			if(this.countryCodes.includes(maybeCountryCode)) {
+				txt = txt.substr(3).trim()
+			}
+		}
 		let tms = this.applySearchRedirects(txt.replace(this.regexes['plus-signal'], 'plus').
 			replace(this.regexes['between-brackets'], '').
 			normalize('NFD').toLowerCase().replace(this.regexes['accents'], ''). // replace/normalize accents

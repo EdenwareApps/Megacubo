@@ -1393,7 +1393,11 @@ class Channels extends ChannelsKids {
         if(editable){
             list.push(this.getCategoryEntry())
         }
-        list.unshift({
+        list.unshift(this.chooseChannelGridOption())
+        return list
+    }
+    chooseChannelGridOption(epgFocused){
+        return {
             name: global.lang.CHOOSE_CHANNEL_GRID,
             type: 'select',
             fa: 'fas fa-th',
@@ -1402,14 +1406,18 @@ class Channels extends ChannelsKids {
                     {name: global.lang.DEFAULT +' ('+ global.lang.RECOMMENDED +')', type: 'action', selected: !def, action: () => {
                         this.setGridType('').catch(console.error)
                     }},
-                    {name: global.lang.IPTV_LISTS, type: 'action', selected: def == 'lists', action: () => {
-                        this.setGridType('lists').catch(console.error)
-                    }},
                     {name: global.lang.EPG, type: 'action', selected: def == 'epg', action: () => {
                         this.setGridType('epg').catch(console.error)
-                    }},
-                    this.exportImportOption()
+                    }}
                 ]
+                if(epgFocused !== true) {
+                    opts.push(...[
+                        {name: global.lang.IPTV_LISTS, type: 'action', selected: def == 'lists', action: () => {
+                            this.setGridType('lists').catch(console.error)
+                        }},
+                        this.exportImportOption()
+                    ])
+                }
                 if(global.config.get('parental-control') != 'remove') {
                     opts.splice(3, 0, {name: global.lang.ADULT_CONTENT, type: 'action', selected: def == 'xxx', action: () => {
                         this.setGridType('xxx').catch(console.error)
@@ -1417,8 +1425,7 @@ class Channels extends ChannelsKids {
                 }
                 return opts
             }
-        })
-        return list
+        }
     }
     sortCategoryEntries(entries){
         entries = global.lists.sort(entries)                                

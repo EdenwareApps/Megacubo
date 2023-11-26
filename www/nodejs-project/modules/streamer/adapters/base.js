@@ -23,6 +23,7 @@ class StreamerAdapterBase extends Events {
 		this.adapters = []
 		this.bitrate = false
 		this.bitrateChecker = new BitrateChecker()
+		this.bitrateChecker.on('bitrate', (...args) => this.emit('bitrate', ...args))
 		this.bitrateChecker.on('codecData', this.addCodecData.bind(this))
 		this.bitrateChecker.on('dimensions', (...args) => this.emit('dimensions', ...args))
 		this.errors = []

@@ -494,7 +494,7 @@ class Theme extends Events {
                                                             fa: 'fas fa-palette', 
                                                             value: () => global.config.get('font-color'),
                                                             action: (data, value) => {
-                                                                if(value.match(new RegExp('^#?[0-9a-fA-F]{6}$'))){
+                                                                if(value && value.match(new RegExp('^#?[0-9a-fA-F]{6}$'))){
                                                                     if(value.length == 6){
                                                                         value = '#' + value
                                                                     }

@@ -1114,7 +1114,6 @@ class ExplorerFx extends ExplorerPlayer {
 	}
 }
 
-
 class ExplorerDialogQueue extends ExplorerFx {
 	constructor(jQuery, container, app){
 		super(jQuery, container, app)
@@ -1165,7 +1164,7 @@ class ExplorerDialog extends ExplorerDialogQueue {
 		this.modalTemplates['text'] = `
 			<span class="modal-template-text" id="modal-template-option-{id}">
 				<i class="fas fa-caret-right"></i>
-				<input type="text" placeholder="{placeholder}" value="{text}" aria-label="{plainText}" onmousedown="explorer.inputPaste(this).catch(console.error)" />
+				<input type="text" placeholder="{placeholder}" value="{text}" aria-label="{plainText}" onmousedown="explorer.inputPaste(this)" />
 			</span>
 		`
 		this.modalTemplates['textarea'] = `
@@ -1199,16 +1198,17 @@ class ExplorerDialog extends ExplorerDialogQueue {
 			<span class="modal-template-spacer">&nbsp;</span>
 		`
 	}
-	async inputPaste(input) {
-		if(input.value) return
-		let paste = await top.navigator.clipboard.readText()
-		if(paste) {
-			paste = paste.trim()
-			if(paste.startsWith('http') || paste.startsWith('//')) { // seems URL
-				input.value = paste
-				input.select()
+	inputPaste(input) {
+		if(input.value || !top.navigator.clipboard) return
+		top.navigator.clipboard.readText().then(paste => {
+			if(paste) {
+				paste = paste.trim()
+				if(paste.startsWith('http') || paste.startsWith('//')) { // seems URL
+					input.value = paste
+					input.select()
+				}
 			}
-		}
+		}).catch(console.error)
 	}
 	text2id(txt){
 		if(txt.match(new RegExp('^[A-Za-z0-9\\-_]+$', 'g'))){

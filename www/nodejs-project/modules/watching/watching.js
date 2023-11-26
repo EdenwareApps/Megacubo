@@ -25,7 +25,6 @@ class Watching extends EntriesGroup {
                                 return true
                             }
                         })
-                        return e
                     })
                 }
                 global.channels.on('loaded', () => this.update().catch(console.error)) // on each "loaded"
@@ -57,9 +56,9 @@ class Watching extends EntriesGroup {
                 this.currentRawEntries = []
             }
         })
+        this.emit('update')
         clearTimeout(this.timer) // clear again to be sure
         this.timer = setTimeout(() => this.update().catch(console.error), this.updateIntervalSecs * 1000)
-        this.emit('update')
         let nxt = this.entry()
         if(this.showChannelOnHome() && global.explorer.path == '' && (prv.details != nxt.details || prv.name != nxt.name)){
             global.explorer.updateHomeFilters()
@@ -169,7 +168,7 @@ class Watching extends EntriesGroup {
     }
     async process(rawEntries){
         let data = Array.isArray(rawEntries) ? rawEntries : (await this.getRawEntries())
-        let recoverNameFromMegaURL = true, ex = !global.config.get('communitary-mode-lists-amount') // we'll make entries URLless for exclusive mode, to use the provided lists only
+        let recoverNameFromMegaURL = true
         if(!Array.isArray(data) || !data.length) return []
         data = global.lists.prepareEntries(data)
         data = data.filter(e => (e && typeof(e) == 'object' && typeof(e.name) == 'string')).map(e => {
@@ -183,7 +182,7 @@ class Watching extends EntriesGroup {
             e.name = global.lists.sanitizeName(e.name)
             e.users = this.extractUsersCount(e)
             e.details = ''
-            if(ex && !isMega){
+            if(!isMega){
                 e.url = global.mega.build(e.name)
             }
             return e

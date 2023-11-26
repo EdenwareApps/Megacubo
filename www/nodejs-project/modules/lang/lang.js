@@ -84,7 +84,7 @@ class Language extends Events {
             return this.countries.getCountriesFromLanguage(loc)
         }).flat().unique()
     }
-    async getActiveCountries(limit=10){
+    async getActiveCountries(limit=5){
         await this.ready()
         let actives = global.config.get('countries')
         if(!Array.isArray(actives) || !actives.length){

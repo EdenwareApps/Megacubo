@@ -83,7 +83,7 @@ class BridgeServer extends Events {
             const parsedUrl = url.parse(req.url, false)
             global.prepareCORS(response, req)
             response.setHeader('Connection', 'close')
-            response.setHeader('Feature-Policy', 'clipboard-read; fullscreen; autoplay;')
+            response.setHeader('Feature-Policy', 'clipboard-read; clipboard-write; fullscreen; autoplay;')
             if(parsedUrl.pathname == '/upload') {
                 const form = formidable({ multiples: true })
                 form.parse(req, (err, fields, files) => {

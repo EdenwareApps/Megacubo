@@ -539,9 +539,19 @@ class Options extends OptionsExportImport {
                 id
             })
         })
+        options.push({
+            text: global.lang.IMPROVE_TRANSLATIONS,
+            template: 'option',
+            fa: 'fas fa-question-circle',
+            id: 'improve'
+        })
         let locale = await global.explorer.dialog([
             {template: 'question', text: global.lang.LANGUAGE, fa: 'fas fa-language'}
         ].concat(options), def)
+        if(locale == 'improve') {
+            global.ui.emit('open-external-url', 'https://github.com/efoxbr/megacubo/tree/master/www/nodejs-project/lang')
+            return await this.showLanguageEntriesDialog()
+        }
         let _def = global.config.get('locale') || global.lang.locale
         if(locale && (locale != _def)){
             global.config.set('countries', [])

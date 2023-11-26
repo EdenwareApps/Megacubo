@@ -331,6 +331,7 @@ function fakeUpdateProgress() {
 
 window.onerror = function (message, file, line, column, errorObj) {
 	let stack = typeof errorObj == 'object' && errorObj !== null && errorObj.stack ? errorObj.stack : traceback();
+	console.error(errorObj || message, { errorObj, message, file, stack });
 	if (maxAlerts) {
 		maxAlerts--;
 		if (file && 
@@ -341,7 +342,6 @@ window.onerror = function (message, file, line, column, errorObj) {
 			log(message);
 		}
 	}
-	console.error(errorObj || message, { errorObj, message, file, stack });
 	return true;
 }
 	

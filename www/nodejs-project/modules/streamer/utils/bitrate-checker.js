@@ -17,7 +17,7 @@ class BitrateChecker extends Events {
             debug: true,
 			minCheckSize: 48 * 1024,
 			maxCheckSize: 3 * (1024 * 1024),
-			checkingAmount: 3,
+			checkingAmount: 2,
 			maxCheckingFails: 8
         }, opts)
 	}
@@ -61,6 +61,14 @@ class BitrateChecker extends Events {
 		}
 	}
 	async addSample(file, size, deleteFileAfterChecking){
+        if(!this.acceptingSamples(size)){
+            if(deleteFileAfterChecking === true) {
+                fs.unlink(file, err => {
+                    if(err) console.error(file, err)
+                })
+            }
+            return
+        }
         if(!size) {
             let err
             const stat = fs.promises.stat(file).catch(e => err = e)
@@ -87,6 +95,14 @@ class BitrateChecker extends Events {
         this.pump()
     }
 	check(file, size, deleteFileAfterChecking){
+        if(!this.acceptingSamples(size)){
+            if(deleteFileAfterChecking === true) {
+                fs.unlink(file, err => {
+                    if(err) console.error(file, err)
+                })
+            }
+            return
+        }
 		this.checking = true
 		const isHTTP = file.match(new RegExp('^(((rt[ms]p|https?)://)|//)'))
         if(this.destroyed || (this.bitrates.length >= this.opts.checkingAmount && this.codecData) || this.checkingFails >= this.opts.maxCheckingFails){

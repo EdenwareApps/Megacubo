@@ -393,6 +393,7 @@ class UpdateListIndex extends ListIndexUtils {
         const masks = {}
         const mask = n => n.replace(new RegExp('[0-9]+', 'g'), '*')
         es.forEach(e => {
+            if(!e.name) return // Cannot read property 'replace' of null
             const m = mask(e.name)
             if(typeof(masks[m]) == 'undefined') masks[m] = 0
             masks[m]++

@@ -33,7 +33,7 @@ class IconFetcher extends Events {
         if(this.master.opts.debug){
             console.log('GOFETCH', images)
         }
-        const limit = pLimit(3)
+        const limit = pLimit(2)
         const tasks = images.map(image => {
             return async () => {
                 if(image.icon.match(this.isNonAlphaRegex) && !image.icon.match(this.isAlphaRegex)){

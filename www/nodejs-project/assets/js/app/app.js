@@ -118,6 +118,17 @@ function initApp(){
             })
         })
     }
+    app.on('clipboard-write', (text, successMessage) => {
+        if(!top.navigator.clipboard) {
+            osd.show('This webview doesn\'t supports copying to clipboard.', 'fas fa-exclamation-triangle faclr-red', 'clipboard', 'normal')
+            return
+        }
+        top.navigator.clipboard.writeText(text).then(() => {
+            successMessage && osd.show(successMessage, 'fas fa-check-circle faclr-green', 'clipboard', 'normal')
+        }).catch(err => {
+            osd.show(String(err.message || err), 'fas fa-exclamation-triangle faclr-red', 'clipboard', 'normal')
+        })
+    })
     app.on('open-external-url', url => parent.openExternalURL(url)) 
     app.on('open-external-file', (url, mimetype) => parent.openExternalFile(url, mimetype)) 
     app.on('load-js', src => {

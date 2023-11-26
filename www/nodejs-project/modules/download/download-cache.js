@@ -1,7 +1,5 @@
 const fs = require('fs'), Events = require('events'), Reader = require('../reader')
 
-const CACHE_MEM_ONLY = false
-
 class DownloadCacheFileReader extends Events {
     constructor(master, opts){
         super()
@@ -53,45 +51,42 @@ class DownloadCacheChunks extends Events {
             length: chunk.length
         })
         this.size += chunk.length
-        this.pump()
+        this.pump().catch(console.error)
     }
-    pump(){
-        if(this.finished || this.pumping) {
-            return
-        }
-        let chunks = this.chunks.filter((c, i) => {
-            if(c.type == 'buffer'){
-                this.chunks[i].writing = true
-                return true
+    async pump(){
+        if(this.finished || this.pumping) return
+        this.pumping = true
+        let written = 0
+        for(let i=0; i<this.chunks.length; i++) {
+            if(this.chunks[i].type != 'buffer' || this.chunks[i].writing) {
+                continue
             }
-        }).map(c => c.data)
-        if(chunks.length && !CACHE_MEM_ONLY){
-            this.pumping = true
-            const next = () => {
-                fs.appendFile(this.file, Buffer.concat(chunks), {encoding: null}, err => {
-                    if(err){
-                        return this.fail(err)
-                    }
-                    this.chunks.filter((c, i) => {
-                        if(c.type == 'buffer' && c.writing == true){
-                            this.chunks[i].type = 'file'
-                            this.chunks[i].data = null
-                            delete this.chunks[i].writing
-                        }
-                    })
-                    this.pumping = false
-                    this.pump()
-                })
+            let err
+            if(!this.created) {
+                await fs.promises.writeFile(this.file, '', { flag: 'wx'}).catch(e => err = e)
+                if(err) {
+                    break
+                }
             }
-            if(this.created) {
-                next()
+            this.chunks[i].writing = true            
+            await fs.promises.appendFile(this.file, this.chunks[i].data, {encoding: null}).catch(e => err = e)
+            delete this.chunks[i].writing
+            if(err) {
+                break
             } else {
-                this.created = true
-                fs.writeFile(this.file, '', { flag: 'wx'}, next)
+                written++
+                this.chunks[i].type = 'file'
+                this.chunks[i].data = null
             }
-        } else if(this.ended && !this.finished) {
-            this.finished = true
-            this.emit('finish')
+        }
+        this.pumping = false
+        if(written > 0) {
+            this.pump().catch(console.error)
+        } else {
+            if(this.ended && !this.finished) {
+                this.finished = true
+                this.emit('finish')
+            }
         }
     }
     finish(){
@@ -108,7 +103,7 @@ class DownloadCacheChunks extends Events {
     }
     end(){
         this.ended = true // before pump()
-        this.pump()
+        this.pump().catch(console.error)
     }
     createReadStream(opts={}){
         return new DownloadCacheFileReader(this, opts)
@@ -370,16 +365,11 @@ class DownloadCacheMap extends Events {
                         if(!this.index[url].status){
                             this.index[url].status = downloader.statusCode
                         }
-                        if(CACHE_MEM_ONLY){
-                            this.index[url].headers['content-length'] = this.index[url].size = chunks.size
-                            chunks.end()
-                        } else {
-                            this.index[url].headers['content-length'] = this.index[url].size = chunks.size
-                            this.index[url].data = chunks.file
-                            this.index[url].type = 'file'
-                            chunks.destroy()
-                            delete this.index[url].chunks
-                        }
+                        this.index[url].headers['content-length'] = this.index[url].size = chunks.size
+                        this.index[url].data = chunks.file
+                        this.index[url].type = 'file'
+                        chunks.destroy()
+                        delete this.index[url].chunks
                     }
                 }
                 if(chunks.finished){

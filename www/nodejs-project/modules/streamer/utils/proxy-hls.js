@@ -293,7 +293,7 @@ class HLSRequests extends StreamerProxyBase {
 					this.finishObsoleteSegmentRequests(manifest)
 				}
 				if(this.activeManifest && this.committed){ // has downloaded at least one segment to know from where the player is starting
-					if(seg &&  !this.bitrateChecker.checking && (this.bitrateChecker.bitrates.length <= this.bitrateChecker.opts.checkingAmount || !this.codecData)){
+					if(seg &&  this.bitrateChecker.acceptingSamples()){
 						if(!this.playlistsMeta[this.activeManifest] || !this.codecData || !(this.codecData.audio || this.codecData.video)) {
 							this.committed && this.bitrateChecker.addSample(this.proxify(url))
 						}

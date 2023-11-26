@@ -229,7 +229,12 @@ class Downloader extends StreamerAdapterBase {
 			if(!this.minimalWarmCacheBitrateCheck && this.committed && this.bitrateChecker.acceptingSamples(currentSize)) {
 				this.minimalWarmCacheBitrateCheck = true
 				const file = global.paths.temp +'/'+ parseInt(Math.random() * 1000000) +'.ts'
-				fs.writeFile(file, this.warmCache.slice(), () => this.bitrateChecker.addSample(file, this.warmCache.length, true))
+				fs.writeFile(file, this.warmCache.slice(), () => {
+					if(this.destroyed) {
+						return fs.unlink(file, () => {}) // late for the party
+					}
+					this.bitrateChecker.addSample(file, this.warmCache.length, true)
+				})
 			} else {
 				this.rotateWarmCache()
 			}

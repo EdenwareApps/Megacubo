@@ -62,8 +62,11 @@ class Diagnostics extends Events {
     }
 	async saveReport(){
 		const file = global.downloads.folder +'/megacubo-report.txt'
-		await fs.promises.writeFile(file, await this.report(), {encoding: 'utf8'})
+		const report = await this.report()
+		await fs.promises.writeFile(file, report, {encoding: 'utf8'})
 		global.downloads.serve(file, true, false).catch(global.displayErr)
+		global.ui.emit('clipboard-write', report)
+		console.error('REPORT => '+ report)
 	}
     async checkDisk(){
 		return require('check-disk-space').default(this.folder) // {diskPath: "C:", free: 12345678, size: 98756432}

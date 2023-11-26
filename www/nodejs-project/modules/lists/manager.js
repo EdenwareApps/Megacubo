@@ -260,6 +260,7 @@ class ManagerCommunityLists extends Events {
 class ManagerEPG extends ManagerCommunityLists {
     constructor(){
         super()
+        this.lastActiveEPGDetails = ''
     }
     parseEPGURL(url, asArray){
         let urls = [url]
@@ -350,19 +351,18 @@ class ManagerEPG extends ManagerCommunityLists {
             })
         }
     }
-    async epgOptionsEntries(activeEPGDetails){
-        let options = [], epgs = []
-        await this.searchEPGs().then(urls => epgs.push(...urls)).catch(console.error)
+    activeEPG() {
         let activeEPG = global.config.get('epg-'+ global.lang.locale) || global.activeEPG
         if(!activeEPG || activeEPG == 'disabled'){
             activeEPG = ''
         }
         if(activeEPG){
             activeEPG = this.formatEPGURL(activeEPG) 
-            epgs.includes(activeEPG) || epgs.push(activeEPG)
         }
-        this.lastActiveEPGDetails = ''
-        if(activeEPG){
+        return activeEPG        
+    }
+    async startEPGStatusUpdating(activeEPG, activeEPGDetails) {
+        if(activeEPG){            
             if(typeof(activeEPGDetails) != 'string'){
                 await this.master.epg([], 2).then(epgData => {
                     this.lastActiveEPGDetails = activeEPGDetails = this.epgLoadingStatus(epgData)
@@ -380,7 +380,18 @@ class ManagerEPG extends ManagerCommunityLists {
                 this.epgStatusTimer && clearInterval(this.epgStatusTimer)
                 this.epgStatusTimer = setInterval(this.updateEPGStatus.bind(this), 1000)
             }
+        } else {
+            this.lastActiveEPGDetails = ''
         }
+    }
+    async epgOptionsEntries(activeEPGDetails){
+        let options = [], epgs = []
+        await this.searchEPGs().then(urls => epgs.push(...urls)).catch(console.error)
+        let activeEPG = this.activeEPG()
+        if(activeEPG){
+            epgs.includes(activeEPG) || epgs.push(activeEPG)
+        }
+        await this.startEPGStatusUpdating(activeEPG, activeEPGDetails).catch(global.displayErr)
         options = epgs.unique().sort().map(url => {
             let details = '', name = global.listNameFromURL(url)
             if(url == activeEPG){
@@ -426,7 +437,7 @@ class ManagerEPG extends ManagerCommunityLists {
     }
     addEPGEntry() {
         return {
-            name: global.lang.ADD_LIST, fa: 'fas fa-plus-square',
+            name: global.lang.ADD, fa: 'fas fa-plus-square',
             type: 'action', action: async () => {
                 const url = await global.explorer.prompt({
                     question: global.lang.EPG,
@@ -513,7 +524,7 @@ class ManagerEPG extends ManagerCommunityLists {
             renderer: async () => {
                 const entries = [
                     {
-                        name: global.lang.OPTIONS,
+                        name: global.lang.SELECT,
                         type: 'group',
                         fa: 'fas fa-cog',
                         renderer: async () => {
@@ -523,21 +534,25 @@ class ManagerEPG extends ManagerCommunityLists {
                     }
                 ]
                 if(global.channels.loadedEPG) {
-                    entries.push(global.channels.epgSearchEntry())
-                    entries.push(...global.channels.getCategories().map(category => {
-                        const rawname = global.lang.CATEGORY_KIDS == category.name ? '[fun]'+ category.name +'[|fun]' : category.name
-                        return {
-                            name: category.name,
-                            rawname,
-                            type: 'group',
-                            renderer: () => {
-                                return this.epgCategoryEntries(category)
+                    entries.push(...[
+                        global.channels.epgSearchEntry(),
+                        global.channels.chooseChannelGridOption(true),
+                        ...global.channels.getCategories().map(category => {
+                            const rawname = global.lang.CATEGORY_KIDS == category.name ? '[fun]'+ category.name +'[|fun]' : category.name
+                            return {
+                                name: category.name,
+                                rawname,
+                                type: 'group',
+                                renderer: () => this.epgCategoryEntries(category)
                             }
-                        }
-                    }))
+                        })
+                    ])
                 } else {
+                    const activeEPG = this.activeEPG()
+                    await this.startEPGStatusUpdating(activeEPG).catch(global.displayErr)
                     entries.push({
                         name: global.channels.loadedEPG ? global.lang.EMPTY : global.lang.EPG_DISABLED,
+                        details: this.lastActiveEPGDetails,
                         fa: 'fas fa-info-circle',
                         type: 'action',
                         class: 'entry-empty',

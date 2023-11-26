@@ -340,6 +340,18 @@ function patch(scope, isBrowser){
 			}
 		}
 	}
+	scope.trimExt = (text, exts) => {
+		if(typeof(exts) == 'string') {
+			exts = [exts]
+		}
+		exts.some(e => {
+			if(text.endsWith('.'+ e)) {
+				text = text.substr(0, text.length - (e.length + 1))
+				return true
+			}
+		})
+		return text
+	}
 	scope.listNameFromURL = url => {
 		let name
 		if (url.indexOf('?') !== -1) {
@@ -365,18 +377,18 @@ function patch(scope, isBrowser){
 			if (name.indexOf(' ') === -1 && name.indexOf('+') !== -1) {
 				name = name.replaceAll('+', ' ').replaceAll('<', '').replaceAll('>', '')
 			}
-			return name
+			return scope.trimExt(name, ['m3u'])
 		}
         if(url.indexOf('//') == -1){ // isLocal
-            return url.split('/').pop().replace(new RegExp('\\.[A-Za-z0-9]{2,4}$', 'i'), '')
+            return scope.trimExt(url.split('/').pop(), ['m3u'])
         } else {
             url = String(url).replace(new RegExp('^[a-z]*://', 'i'), '').split('/').filter(s => s.length)
             if(!url.length){
                 return 'Untitled '+ parseInt(Math.random() * 9999)
             } else if(url.length == 1) {
-                return url[0]
+                return scope.trimExt(url[0], ['m3u'])
             } else {
-                return (url[0].split('.')[0] + ' ' + url[url.length - 1]).replace(new RegExp('\\?.*$'), '')
+                return scope.trimExt(url[0].split('.')[0] + ' ' + url[url.length - 1], ['m3u'])
             }
         }
 	}
